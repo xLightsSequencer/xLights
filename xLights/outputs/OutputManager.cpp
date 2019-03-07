@@ -208,7 +208,7 @@ bool OutputManager::Discover(wxWindow* frame, std::map<std::string, std::string>
     }
 
     auto e131 = E131Output::Discover(this);
-    for (auto it = e131.begin(); it != e131.end(); ++it)
+    for (auto it : e131)
     {
         if (std::find(outputs.begin(), outputs.end(), it) == outputs.end())
         {
@@ -218,21 +218,21 @@ bool OutputManager::Discover(wxWindow* frame, std::map<std::string, std::string>
     }
 
     auto artnet = ArtNetOutput::Discover(this);
-    for (auto it =  artnet.begin(); it != artnet.end(); ++it)
+    for (auto it : artnet)
     {
-        if (std::find(outputs.begin(), outputs.end(), *it) == outputs.end())
+        if (std::find(outputs.begin(), outputs.end(), it) == outputs.end())
         {
-            _outputs.push_back(*it);
+            _outputs.push_back(it);
             found = true;
         }
     }
 
     auto ddp = DDPOutput::Discover(this);
-    for (auto it = ddp.begin(); it != ddp.end(); ++it)
+    for (auto it : ddp)
     {
-        if (std::find(outputs.begin(), outputs.end(), *it) == outputs.end())
+        if (std::find(outputs.begin(), outputs.end(), it) == outputs.end())
         {
-            _outputs.push_back(*it);
+            _outputs.push_back(it);
             found = true;
         }
     }

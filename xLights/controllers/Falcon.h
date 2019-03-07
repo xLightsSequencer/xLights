@@ -103,21 +103,25 @@ public:
     }
     virtual bool IsValidPixelProtocol(const std::string protocol) const override
     {
-        if (protocol == "ws2811") return true;
-        if (protocol == "tm18xx") return true;
-        if (protocol == "lx1203") return true;
-        if (protocol == "ws2801") return true;
-        if (protocol == "tls3001") return true;
-        if (protocol == "lpd6803") return true;
-        if (protocol == "gece") return true;
+        wxString p(protocol);
+        p = p.Lower();
+        if (p == "ws2811") return true;
+        if (p == "tm18xx") return true;
+        if (p == "lx1203") return true;
+        if (p == "ws2801") return true;
+        if (p == "tls3001") return true;
+        if (p == "lpd6803") return true;
+        if (p == "gece") return true;
 
         return false;
     }
     virtual bool IsValidSerialProtocol(const std::string protocol) const override
     {
-        if (protocol == "dmx") return true;
-        if (protocol == "pixelnet") return true;
-        if (protocol == "renard") return true;
+        wxString p(protocol);
+        p = p.Lower();
+        if (p == "dmx") return true;
+        if (p == "pixelnet") return true;
+        if (p == "renard") return true;
 
         return false;
     }
@@ -125,6 +129,7 @@ public:
     {
         return true;
     }
+    virtual bool SupportsMultipleInputProtocols() const override { return true; }
     virtual bool AllUniversesSameSize() const override
     {
         return false;

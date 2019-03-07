@@ -1122,13 +1122,13 @@ std::string CubeModel::ChannelLayoutHtml(OutputManager* outputManager)
         html += wxString::Format("<tr><td>Controller:</td><td>%s:%s</td></tr>", o->GetCommPort(), o->GetDescription());
     }
 
-    if (GetProtocol() != "") {
-        html += wxString::Format("<tr><td>Pixel protocol:</td><td>%s</td></tr>", GetProtocol().c_str());
+    if (GetControllerProtocol() != "") {
+        html += wxString::Format("<tr><td>Pixel protocol:</td><td>%s</td></tr>", GetControllerProtocol().c_str());
         if (GetNumStrings() == 1) {
-            html += wxString::Format("<tr><td>Controller Connection:</td><td>%d</td></tr>", GetPort());
+            html += wxString::Format("<tr><td>Controller Connection:</td><td>%d</td></tr>", GetControllerPort());
         }
         else {
-            html += wxString::Format("<tr><td>Controller Connections:</td><td>%d-%d</td></tr>", GetPort(), GetPort() + GetNumPhysicalStrings() - 1);
+            html += wxString::Format("<tr><td>Controller Connections:</td><td>%d-%d</td></tr>", GetControllerPort(), GetControllerPort() + GetNumPhysicalStrings() - 1);
         }
     }
     html += "</table><p>Node numbers starting with 1 followed by string number:</p><table border=1>";

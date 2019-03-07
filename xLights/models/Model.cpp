@@ -361,6 +361,7 @@ static wxArrayString LAYOUT_GROUPS;
 static wxArrayString CONTROLLER_PROTOCOLS;
 static wxArrayString CONTROLLER_DIRECTION;
 static wxArrayString CONTROLLER_COLORORDER;
+static wxArrayString CONTROLLERS;
 
 wxArrayString Model::GetLayoutGroups(const ModelManager& mm)
 {
@@ -662,12 +663,12 @@ void Model::AddControllerProperties(wxPropertyGridInterface *grid) {
 
     wxPGProperty *p = grid->Append(new wxPropertyCategory("Controller Connection", "ModelControllerConnectionProperties"));
 
-    wxPGProperty *sp = grid->AppendIn(p, new wxUIntProperty("Port", "ModelControllerConnectionPort", GetPort(1)));
+    wxPGProperty *sp = grid->AppendIn(p, new wxUIntProperty("Port", "ModelControllerConnectionPort", GetControllerPort(1)));
     sp->SetAttribute("Min", 0);
     sp->SetAttribute("Max", 48);
     sp->SetEditor("SpinCtrl");
 
-        if (_controllerName != "" && GetControllerPort(1) == 0)
+    if (_controllerName != "" && GetControllerPort(1) == 0)
     {
         sp->SetBackgroundColour(*wxRED);
     }
@@ -1989,11 +1990,11 @@ std::string Model::GetControllerConnectionRangeString() const
 {
     if (GetControllerProtocol() == "") return "";
     std::string ret = wxString::Format("%s:%d", GetControllerProtocol(), GetControllerPort(1)).ToStdString();
-    if (GetPort(1) == 0)
+    if (GetControllerPort(1) == 0)
     {
-        ret = wxString::Format("%s", GetProtocol()).ToStdString();
+        ret = wxString::Format("%s", GetControllerProtocol()).ToStdString();
     }
-    if (GetNumPhysicalStrings() > 1 && GetPort(1) != 0)
+    if (GetNumPhysicalStrings() > 1 && GetControllerPort(1) != 0)
     {
         ret = wxString::Format("%s-%d", ret, GetControllerPort(GetNumPhysicalStrings())).ToStdString();
     }
@@ -4305,7 +4306,7 @@ void Model::SetControllerPort(int port)
 {
     GetControllerConnection()->DeleteAttribute("Port");
     if (port > 0) {
-        GetControllerConnection()->AddAttribute("Port", CONTROLLER_PORTS[port]);
+        GetControllerConnection()->AddAttribute("Port", wxString::Format("%d", port));
     }
 
     ReworkStartChannel();
