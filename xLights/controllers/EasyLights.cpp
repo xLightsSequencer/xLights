@@ -788,7 +788,7 @@ bool EasyLights::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
 	logger_base.info("Scanning models.");
 
 	std::string check;
-	UDController cud(controller_ip, allmodels, outputManager, &selected, check);
+	UDController cud(controller_ip, controller_ip, allmodels, outputManager, &selected, check);
 
 	EasyLightsControllerRules rules(_model, _version);
 	bool success = cud.Check(&rules, check);
@@ -835,7 +835,7 @@ bool EasyLights::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
 			UDControllerPort* port = cud.GetControllerPixelPort(pp);
 			logger_base.info("Pixel Port %d Protocol %s.", pp, (const char *)port->GetProtocol().c_str());
 
-			port->CreateVirtualStrings();
+			port->CreateVirtualStrings(true);
 
 			EasyLightsString* firstString = nullptr;
 			for(auto sd : stringData)

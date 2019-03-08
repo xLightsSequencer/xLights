@@ -1104,6 +1104,7 @@ int LayoutPanel::AddModelToTree(Model *model, wxTreeListItem* parent, bool expan
     if (model == nullptr)
     {
         logger_base.crit("LayoutPanel::AddModelToTree model is null ... this is going to crash.");
+        wxASSERT(false);
     }
 
     //logger_base.debug("Adding model %s", (const char *)model->GetFullName().c_str());
@@ -1291,8 +1292,8 @@ void LayoutPanel::UpdateModelsForPreview(const std::string &group, LayoutGroup* 
 {
     std::set<std::string> modelsAdded;
 
-    for (auto it = xlights->AllModels.begin(); it != xlights->AllModels.end(); ++it) {
-        Model *model = it->second;
+    for (auto& it : xlights->AllModels) {
+        Model *model = it.second;
         if (model->GetDisplayAs() != "ModelGroup") {
             if (group == "All Models" ||
                 model->GetLayoutGroup() == group ||
@@ -1309,8 +1310,8 @@ void LayoutPanel::UpdateModelsForPreview(const std::string &group, LayoutGroup* 
         selected_group_name = TreeListViewModels->GetItemText(mSelectedGroup);
     }
 
-    for (auto it = xlights->AllModels.begin(); it != xlights->AllModels.end(); ++it) {
-        Model *model = it->second;
+    for (auto it : xlights->AllModels) {
+        Model *model = it.second;
         bool mark_selected = false;
         if (mSelectedGroup.IsOk() && filtering && (model->name == selected_group_name)) {
             mark_selected = true;
@@ -1320,8 +1321,8 @@ void LayoutPanel::UpdateModelsForPreview(const std::string &group, LayoutGroup* 
             if (group == "All Models" ||
                 model->GetLayoutGroup() == group ||
                 (model->GetLayoutGroup() == "All Previews" && group != "Unassigned")) {
-                for (auto it2 = grp->ModelNames().begin(); it2 != grp->ModelNames().end(); ++it2) {
-                    Model *m = xlights->AllModels[*it2];
+                for (auto it2 : grp->ModelNames()) {
+                    Model *m = xlights->AllModels[it2];
                     if (m != nullptr) {
                         if (mark_selected) {
                             if (selectedBaseObject == nullptr)
@@ -1377,8 +1378,8 @@ void LayoutPanel::UpdateModelsForPreview(const std::string &group, LayoutGroup* 
                                 }
                             }
                         }
-                        else if (modelsAdded.find(*it2) == modelsAdded.end()) {
-                            modelsAdded.insert(*it2);
+                        else if (modelsAdded.find(it2) == modelsAdded.end()) {
+                            modelsAdded.insert(it2);
                             prev_models.push_back(m);
                         }
                     }

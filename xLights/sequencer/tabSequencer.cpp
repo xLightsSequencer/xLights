@@ -944,8 +944,9 @@ void xLightsFrame::EffectUpdated(wxCommandEvent& event)
         // For canvas mode the timing panel needs to know how many layers are under this effect
         int layers = selectedEffect->GetParentEffectLayer()->GetParentElement()->GetEffectLayerCount();
         int start = selectedEffect->GetParentEffectLayer()->GetLayerNumber() + 1;
+		std::vector<int> effectLayers = selectedEffect->GetParentEffectLayer()->GetParentElement()->GetLayersWithEffects();
         if (start > layers) start = -1;
-        timingPanel->SetLayersBelow(start, layers);
+        timingPanel->SetLayersBelow(start, layers, effectLayers);
     }
 }
 
@@ -1039,8 +1040,9 @@ void xLightsFrame::SelectedEffectChanged(SelectedEffectChangedEvent& event)
             // For canvas mode the timing panel needs to know how many layers are under this effect
             int layers = effect->GetParentEffectLayer()->GetParentElement()->GetEffectLayerCount();
             int start = effect->GetParentEffectLayer()->GetLayerNumber() + 1;
+			std::vector<int> effectLayers = effect->GetParentEffectLayer()->GetParentElement()->GetLayersWithEffects();
             if (start > layers) start = -1;
-            timingPanel->SetLayersBelow(start, layers);
+            timingPanel->SetLayersBelow(start, layers, effectLayers);
 
             bool resetStrings = false;
             if ("Random" == effect->GetEffectName()) {

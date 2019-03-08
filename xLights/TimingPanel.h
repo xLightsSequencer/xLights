@@ -24,13 +24,14 @@ class TimingPanel: public wxPanel
     std::string _layersSelected;
     int _startLayer;
     int _endLayer;
+    std::vector<int> _layerWithEffect;
 
 	public:
 
 		TimingPanel(wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~TimingPanel();
 
-        void SetLayersBelow(int start, int end) { _startLayer = start; _endLayer = end; }
+        void SetLayersBelow(int start, int end, std::vector<int> effects) { _startLayer = start; _endLayer = end; _layerWithEffect = effects; }
         wxString GetTimingString();
         void SetDefaultControls(const Model *model, bool optionbased = false);
         void ValidateWindow();

@@ -14,6 +14,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- enh (scott)   Added Cut/Copy/Paste Support for 3D Objects in the Layout Tab
    -- enh (scott)   Added Arrow Key Support for 3D Objects in the Layout Tab
    -- bug (scott)   Pressing Delete Key in Layout Model List now deletes model
+   -- enh (scott)   Added Right Click Menu for Canvas Layers Selection. Select All, Deselect All, Select Layers With Effects
 2019.15 March 2, 2019
    -- bug (keith)   Fix rendering per preview from a 3D camera ... it just wasnt right
                     This may change how some rendering looks. I am happy to look into any issues but I will only change it again if it is

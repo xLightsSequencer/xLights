@@ -860,7 +860,7 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         grid->GetPropertyByName("ModelIndividualStartChannels")->Enable(false);
         grid->GetPropertyByName("ModelIndividualStartChannels")->GetPropertyByName("ModelStartChannel")->SetValue(ModelXml->GetAttribute("StartChannel", "1"));
         IncrementChangeCount();
-        return 3 | 0x0008;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
     }
     else if (event.GetPropertyName() == "Controller") {
         SetControllerName(CONTROLLERS[event.GetValue().GetInteger()]);
@@ -881,14 +881,15 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
             grid->GetPropertyByName("ModelIndividualStartChannels")->GetPropertyByName("ModelStartChannel")->SetValue(ModelXml->GetAttribute("StartChannel", "1"));
         }
         grid->GetPropertyByName("ModelChain")->Enable(_controllerName != "" && controller_connection != "");
-        if (_controllerName != "" && controller_connection == "")
+        if (_controllerName != "" && GetControllerConnectionString() == "")
         {
-            grid->GetPropertyByName("ControllerConnection")->SetBackgroundColour(*wxRED);
+            grid->GetPropertyByName("ModelControllerConnectionProtocol")->SetBackgroundColour(*wxRED);
         }
         else
         {
-            grid->GetPropertyByName("ControllerConnection")->SetBackgroundColour(*wxWHITE);
+            grid->GetPropertyByName("ModelControllerConnectionProtocol")->SetBackgroundColour(*wxWHITE);
 		}
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST | GRIDCHANGE_REBUILD_PROP_GRID;
     } else if (event.GetPropertyName() == "ModelControllerConnectionPort") {
         SetControllerPort(event.GetValue().GetLong());
 
@@ -2195,6 +2196,17 @@ std::string Model::GetStartChannelInDisplayFormat(OutputManager* outputManager)
     else if (ModelStartChannel[0] == '@')
     {
         return ModelStartChannel + wxString::Format(" (%u)", GetFirstChannel() + 1);
+    }
+    else if (ModelStartChannel[0] == '!')
+    {
+        auto o = outputManager->GetOutput(GetControllerName());
+        long start = 1;
+        if (o != nullptr)
+        {
+            start = o->GetStartChannel();
+        }
+        unsigned int startChannel = GetFirstChannel() + 1;
+        return wxString::Format("!%s:%ld (%u)", GetControllerName(), startChannel - start + 1, startChannel);
     }
     else if (ModelStartChannel[0] == '#' || CountChar(ModelStartChannel, ':') > 0)
     {

@@ -82,6 +82,7 @@ class xScheduleFrame : public wxFrame
     bool _webIconDisplayed;
     bool _slowDisplayed;
     wxLongLong _lastSlow;
+    wxFrame *_smsDaemon;
 
     void AddIPs();
     void LoadShowDir();
@@ -203,6 +204,7 @@ public:
         void OnMenuItem_ConfigureTestSelected(wxCommandEvent& event);
         void OnMenuItem_ModeFPPUnicastMasterSelected(wxCommandEvent& event);
         void OnMenuItem_RemoteLatencySelected(wxCommandEvent& event);
+        void OnSMSMenuItemSelected(wxCommandEvent& event);
         //*)
 
         bool IsPlayList(wxTreeItemId id) const;
@@ -275,6 +277,7 @@ public:
         static const long ID_MNU_WEBINTERFACE;
         static const long ID_MNU_IMPORT;
         static const long ID_MNU_CRASH;
+        static const long ID_MENUITEM_SMS;
         static const long ID_MNU_TEST;
         static const long ID_MNU_FPP_BROADCASTMASTER;
         static const long ID_MNU_FPP_UNICASTMASTER;
@@ -333,11 +336,11 @@ public:
         wxFlexGridSizer* FlexGridSizer6;
         wxListView* ListView_Ping;
         wxListView* ListView_Running;
-        wxMenu* Menu3;
         wxMenu* Menu4;
         wxMenu* Menu5;
         wxMenu* Menu6;
         wxMenu* MenuItem3;
+        wxMenu* ToolsMenu;
         wxMenuItem* MenuItem5MenuItem_ConfigureMIDITimecode;
         wxMenuItem* MenuItem_AddPlayList;
         wxMenuItem* MenuItem_BackgroundPlaylist;
@@ -370,6 +373,7 @@ public:
         wxMenuItem* MenuItem_VirtualMatrices;
         wxMenuItem* MenuItem_WebInterface;
         wxMenuItem* Menu_OutputProcessing;
+        wxMenuItem* SMSMenuItem;
         wxPanel* Panel1;
         wxPanel* Panel2;
         wxPanel* Panel3;

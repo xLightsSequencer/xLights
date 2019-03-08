@@ -25,19 +25,68 @@
 #include "xLightsVersion.h"
 
 #include "../Parallel.h"
+#include "ControllerUploadData.h"
 
 #include <log4cpp/Category.hh>
 #include "../FSEQFile.h"
 
 
-class PixelCapeInfo {
+class PixelCapeInfo : public ControllerRules {
 public:
-    PixelCapeInfo(const std::string &d, int s, int dmx) : description(d), maxStrings(s), maxDMX(dmx) {}
-    PixelCapeInfo() : maxStrings(0), maxDMX(0) {}
-    PixelCapeInfo(const PixelCapeInfo&pci) : description(pci.description), maxStrings(pci.maxStrings), maxDMX(pci.maxDMX) {}
+    PixelCapeInfo(const std::string &d, int s, int dmx) : ControllerRules(), description(d), maxStrings(s), maxDMX(dmx) {}
+    PixelCapeInfo() : ControllerRules(),  maxStrings(0), maxDMX(0) {}
+    PixelCapeInfo(const PixelCapeInfo&pci) : ControllerRules(), description(pci.description), maxStrings(pci.maxStrings), maxDMX(pci.maxDMX) {}
     std::string description;
     int maxStrings;
     int maxDMX;
+    
+    
+    virtual int GetMaxPixelPortChannels() const override {
+        return 1400*3;
+    }
+    virtual int GetMaxPixelPort() const override {
+        return maxStrings;
+    }
+    virtual int GetMaxSerialPortChannels() const override {
+        return 4096;
+    }
+    virtual int GetMaxSerialPort() const override {
+        return maxDMX;
+    }
+    virtual bool IsValidPixelProtocol(const std::string protocol) const override {
+        wxString p(protocol);
+        p = p.Lower();
+        if (p == "ws2811") return true;
+        return false;
+    }
+    virtual bool IsValidSerialProtocol(const std::string protocol) const override {
+        wxString p(protocol);
+        p = p.Lower();
+        if (p == "dmx") return true;
+        if (p == "pixelnet") return true;
+        if (p == "renard") return false;
+        return false;
+    }
+    virtual bool SupportsMultipleProtocols() const override {
+        return false;
+    }
+    virtual bool SupportsMultipleInputProtocols() const override {
+        return true;
+        
+    }
+    virtual bool AllUniversesSameSize() const override {
+        return false;
+    }
+    virtual std::list<std::string> GetSupportedInputProtocols() const override {
+        std::list<std::string> res;
+        res.push_back("E131");
+        res.push_back("ARTNET");
+        res.push_back("DDP");
+        return res;
+    }
+    virtual bool UniversesMustBeSequential() const override {
+        return false;
+    }
 };
 static std::map<std::string, PixelCapeInfo> CONTROLLER_TYPE_MAP = {
     {"PiHat", PixelCapeInfo("PiHat", 2, 0)},
@@ -51,8 +100,12 @@ static std::map<std::string, PixelCapeInfo> CONTROLLER_TYPE_MAP = {
     {"F16-B-32", PixelCapeInfo("F16-B w/ 32 outputs", 32, 8)},
     {"F16-B-48", PixelCapeInfo("F16-B w/ 48 outputs (No Serial)", 48, 0)},
     {"F4-B", PixelCapeInfo("F4-B", 4, 1)},
-    {"F32-B", PixelCapeInfo("F32-B", 40, 8)},
+    {"F32-B", PixelCapeInfo("F32-B (8 Serial)", 40, 8)},
+    {"F32-B-44", PixelCapeInfo("F32-B (4 Serial)", 44, 4)},
     {"F32-B-48", PixelCapeInfo("F32-B (No Serial)", 48, 0)},
+    {"F40D-PB", PixelCapeInfo("F40D-PB (8 Serial)", 32, 8)},
+    {"F40D-PB-36", PixelCapeInfo("F40D-PB (4 Serial)", 36, 4)},
+    {"F40D-PB-40", PixelCapeInfo("F40D-PB (No Serial)", 40, 0)},
     {"RGBCape24", PixelCapeInfo("RGBCape24", 48, 0)},
     {"RGBCape48C", PixelCapeInfo("RGBCape48C", 48, 0)},
     {"RGBCape48F", PixelCapeInfo("RGBCape48F", 48, 0)}
@@ -64,6 +117,7 @@ const std::string &FPP::PixelContollerDescription() const {
     }
     return CONTROLLER_TYPE_MAP[pixelControllerType].description;
 }
+
 
 
 FPP::FPP(const std::string &ad) : majorVersion(0), minorVersion(0), outputFile(nullptr), parent(nullptr), ipAddress(ad) {
@@ -832,10 +886,9 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
     
     int maxString = 1;
     int maxdmx = 0;
-    if (CONTROLLER_TYPE_MAP.find(pixelControllerType) != CONTROLLER_TYPE_MAP.end()) {
-        maxString = CONTROLLER_TYPE_MAP[pixelControllerType].maxStrings;
-        maxdmx = CONTROLLER_TYPE_MAP[pixelControllerType].maxDMX;
-    }
+    PixelCapeInfo &rules = CONTROLLER_TYPE_MAP.find(pixelControllerType) != CONTROLLER_TYPE_MAP.end() ? CONTROLLER_TYPE_MAP[pixelControllerType] : CONTROLLER_TYPE_MAP["PiHat"];
+    maxdmx = rules.maxDMX;
+    maxString = rules.maxStrings;
     
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("FPP Outputs Upload: Uploading to %s", (const char *)ipAddress.c_str());
@@ -846,6 +899,11 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
         fppFileName = "co-pixelStrings";
         minPorts = 2;
     }
+
+    std::string check;
+    UDController cud(ipAddress, hostName, allmodels, outputManager, &selected, check);
+    cud.Check(&rules, check);
+    cud.Dump();
 
     wxFileName fnOrig;
     fnOrig.AssignTempFileName("pixelOutputs");
@@ -878,14 +936,7 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
             }
         }
     }
-    // build a list of models on this controller
-    std::map<int, Model*> models;
-    std::list<Model*> warnedmodels;
     int maxport = 0;
-
-    std::vector<int> DMXMin = {INT_MAX, INT_MAX, INT_MAX, INT_MAX, INT_MAX, INT_MAX, INT_MAX, INT_MAX, INT_MAX};
-    std::vector<int> DMXMax = {-1, -1, -1, -1, -1, -1, -1, -1, -1};
-    int maxDMXPort = -1;
 
     wxJSONValue stringData;
     stringData["enabled"] = 1;
@@ -897,69 +948,8 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
     dmxData["startChannel"] = 1;
     dmxData["type"] = wxString("BBBSerial");
     dmxData["subType"] = wxString("DMX");
-    bool isDMX = true;
 
-    // Get universes based on IP
-    std::list<Output*> outputs = outputManager->GetAllOutputs(ipAddress, hostName, selected);
-    for (auto ito = outputs.begin(); ito != outputs.end(); ++ito) {
-        // find all the models in this range
-        for (auto it = allmodels->begin(); it != allmodels->end(); ++it) {
-            if (it->second->GetDisplayAs() != "ModelGroup") {
-                int modelstart = it->second->GetNumberFromChannelString(it->second->ModelStartChannel);
-                int modelend = modelstart + it->second->GetChanCount() - 1;
-                if ((modelstart >= (*ito)->GetStartChannel() && modelstart <= (*ito)->GetEndChannel()) ||
-                    (modelend >= (*ito)->GetStartChannel() && modelend <= (*ito)->GetEndChannel()))
-                {
-                    if (!it->second->IsControllerConnectionValid()) {
-                        // only warn if we have not already warned
-                        if (std::find(warnedmodels.begin(), warnedmodels.end(), it->second) == warnedmodels.end()) {
-                            warnedmodels.push_back(it->second);
-                            logger_base.warn("FPP Outputs Upload: Model %s on controller %s does not have its Controller Connection details completed. Model ignored.", (const char *)it->first.c_str(), (const char *)ipAddress.c_str());
-                        }
-                    } else {
-                        // model uses channels in this universe
-                        logger_base.debug("FPP Outputs Upload: Uploading Model %s. %s ports %d", (const char *)it->first.c_str(), (const char *)it->second->GetControllerConnectionString().c_str(), it->second->GetNumPhysicalStrings());
-                        if (it->second->GetControllerProtocol() == "dmx" || it->second->GetControllerProtocol() == "DMX"
-                            || it->second->GetControllerProtocol() == "pixelnet" || it->second->GetControllerProtocol() == "PIXELNET") {
-                            if (it->second->GetControllerProtocol() == "pixelnet" || it->second->GetControllerProtocol() == "PIXELNET") {
-                                dmxData["subType"] = wxString("Pixelnet");
-                                isDMX = false;
-                            }
-
-                            int firstC = it->second->GetFirstChannel() + 1; //DMX channels are 1 based
-                            int lastC = it->second->GetLastChannel();
-                            wxXmlNode *v = it->second->GetControllerConnection();
-                            if (v->HasAttribute("channel")) {
-                                //if the DMX device has a channel # assigned, we need to subtract out so the
-                                //DMX channel is sent out correctly
-                                int i = wxAtoi(v->GetAttribute("channel", "1"));
-                                i = i - 1;
-                                firstC -= i;
-                            }
-                            
-                            if (firstC < DMXMin[it->second->GetControllerPort()]) {
-                                DMXMin[it->second->GetControllerPort()] = firstC;
-                            }
-                            if (lastC > DMXMax[it->second->GetControllerPort()]) {
-                                DMXMax[it->second->GetControllerPort()] = lastC;
-                            }
-                            maxDMXPort = std::max(maxDMXPort, it->second->GetControllerPort());
-                        } else {
-                            int st = it->second->GetFirstChannel();
-                            while (models[st] != nullptr) {
-                                st++;
-                            }
-                            models[st] = it->second;
-                            int mp = it->second->GetControllerPort() + it->second->GetNumPhysicalStrings() - 1;
-                            if (mp > maxport) {
-                                maxport = mp;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
+    maxport = cud.GetMaxPixelPort();
     if (maxport < minPorts) {
         maxport = minPorts;
     }
@@ -975,77 +965,75 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
     stringData["outputCount"] = maxport;
     dmxData["device"] = wxString(pixelControllerType);
 
-
     for (int x = 0; x < maxport; x++) {
         wxJSONValue port;
         port["portNumber"] = x;
 
         stringData["outputs"].Append(port);
     }
-    for (auto mm = models.begin(); mm != models.end(); ++mm) {
-        Model *model = mm->second;
-        for (int x = 0; x < model->GetNumPhysicalStrings(); x++) {
-            int port = x + model->GetControllerPort() - 1;
-            
-            wxJSONValue vs;
-            if (model->GetNumPhysicalStrings() == 1) {
-                vs["description"] = wxString(model->GetName());
-            } else {
-                vs["description"] = (model->GetName()) + wxString::Format(" String-%d", (x + 1));
-            }
-            vs["startChannel"] = model->GetStringStartChan(x);
-            vs["pixelCount"] = model->NodesPerString();
-
-            if (origStrings.find(vs["description"].AsString()) != origStrings.end()) {
-                wxJSONValue &vo = origStrings[vs["description"].AsString()];
-                vs["groupCount"] = vo["groupCount"];
-                vs["reverse"] = vo["reverse"];
-                vs["colorOrder"] = vo["colorOrder"];
-                vs["nullNodes"] = vo["nullNodes"];
-                vs["zigZag"] = vo["zigZag"];
-                vs["brightness"] = vo["brightness"];
-                vs["gamma"] =vo["gamma"];
-            } else {
-                vs["groupCount"] = 0;
-                vs["reverse"] = 0;
-                if (model->GetNodeChannelCount((model->GetStringType())) == 4) {
-                    vs["colorOrder"] = wxString("RGBW");
+    
+    for (int pp = 1; pp <= rules.GetMaxPixelPort(); pp++) {
+        if (cud.HasPixelPort(pp)) {
+            UDControllerPort* port = cud.GetControllerPixelPort(pp);
+            port->CreateVirtualStrings(false);
+            for (auto pvs : port->GetVirtualStrings()) {
+                wxJSONValue vs;
+                vs["description"] = pvs->_description;
+                vs["startChannel"] = pvs->_startChannel - 1; // we need 0 based
+                vs["pixelCount"] = pvs->Channels() / pvs->_channelsPerPixel;
+                
+                if (origStrings.find(vs["description"].AsString()) != origStrings.end()) {
+                    wxJSONValue &vo = origStrings[vs["description"].AsString()];
+                    vs["groupCount"] = vo["groupCount"];
+                    vs["reverse"] = vo["reverse"];
+                    vs["colorOrder"] = vo["colorOrder"];
+                    vs["nullNodes"] = vo["nullNodes"];
+                    vs["zigZag"] = vo["zigZag"];
+                    vs["brightness"] = vo["brightness"];
+                    vs["gamma"] =vo["gamma"];
                 } else {
-                    vs["colorOrder"] = wxString("RGB");
+                    vs["groupCount"] = 0;
+                    vs["reverse"] = 0;
+                    if (pvs->_channelsPerPixel == 4) {
+                        vs["colorOrder"] = wxString("RGBW");
+                    } else {
+                        vs["colorOrder"] = wxString("RGB");
+                    }
+                    vs["nullNodes"] = 0;
+                    vs["zigZag"] = 0; // If we zigzag in xLights, we don't do it in the controller, if we need it in the controller, we don't know about it here
+                    vs["brightness"] = 100;
+                    vs["gamma"] = wxString("1.0");
                 }
-                vs["nullNodes"] = 0;
-                vs["zigZag"] = 0; // If we zigzag in xLights, we don't do it in the controller, if we need it in the controller, we don't know about it here
-                vs["brightness"] = 100;
-                vs["gamma"] = wxString("1.0");
+                if (pvs->_reverseSet) {
+                    vs["reverse"] = pvs->_reverse;
+                }
+                if (pvs->_gammaSet) {
+                    char buf[16];
+                    sprintf(buf, "%g", pvs->_gamma);
+                    std::string gam = buf;
+                    vs["gamma"] = gam;
+                }
+                if (pvs->_brightnessSet) {
+                    vs["brightness"] = pvs->_brightness;
+                }
+                if (pvs->_nullPixelsSet) {
+                    vs["nullNodes"] = pvs->_nullPixels;
+                }
+                if (pvs->_colourOrderSet) {
+                    vs["colorOrder"] = pvs->_colourOrder;
+                }
+                if (pvs->_groupCountSet) {
+                    vs["groupCount"] = pvs->_groupCount;
+                }
+                if (vs["groupCount"].AsInt() > 1) {
+                    //if the group count is >1, we need to adjust the number of pixels
+                    vs["pixelCount"] = vs["pixelCount"].AsInt() * vs["groupCount"].AsInt();
+                }
+                stringData["outputs"][port->GetPort() - 1]["virtualStrings"].Append(vs);
             }
-            wxXmlNode *node = model->GetControllerConnection();
-            if (node->HasAttribute("reverse")) {
-                vs["reverse"] = wxAtoi(node->GetAttribute("reverse"));
-            }
-            if (node->HasAttribute("gamma")) {
-                vs["gamma"] = wxAtof(node->GetAttribute("gamma"));
-            }
-            if (node->HasAttribute("brightness")) {
-                vs["brightness"] = wxAtoi(node->GetAttribute("brightness"));
-            }
-            if (node->HasAttribute("nullNodes")) {
-                vs["nullNodes"] = wxAtoi(node->GetAttribute("nullNodes"));
-            }
-            if (node->HasAttribute("colorOrder")) {
-                vs["colorOrder"] = node->GetAttribute("colorOrder");
-            }
-            if (node->HasAttribute("groupCount")) {
-                vs["groupCount"] = wxAtoi(node->GetAttribute("groupCount"));
-            }
-
-            if (vs["groupCount"].AsInt() > 1) {
-                //if the group count is >1, we need to adjust the number of pixels
-                vs["pixelCount"] = model->NodesPerString() * vs["groupCount"].AsInt();
-            }
-
-            stringData["outputs"][port]["virtualStrings"].Append(vs);
         }
     }
+
     for (int x = 0; x < maxport; x++) {
         if (stringData["outputs"][x]["virtualStrings"].IsNull() || stringData["outputs"][x]["virtualStrings"].Size() == 0) {
             wxJSONValue vs;
@@ -1063,26 +1051,47 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
         }
     }
 
+    bool isDMX = true;
     int maxChan = 0;
-    int maxDmxPort = -1;
-    int chanPerOut = isDMX ? 512 : 4096;
-    for (int x = 1; x <= 8; x++) {
-        wxJSONValue port;
-        port["outputNumber"] = (x - 1);
-        port["outputType"] = isDMX ? wxString("DMX") : wxString("Pixelnet");
-        if (DMXMin[x] == INT_MAX) {
-            port["startChannel"] = 0;
-        } else {
-            port["startChannel"] = DMXMin[x];
-            if ((DMXMin[x] + (chanPerOut+1) > maxChan)) {
-                maxChan = DMXMin[x] + chanPerOut + 1;
+    for (int sp = 1; sp <= cud.GetMaxSerialPort(); sp++) {
+        if (cud.HasSerialPort(sp)) {
+            UDControllerPort* port = cud.GetControllerSerialPort(sp);
+            isDMX &= ((port->GetProtocol() == "DMX") || (port->GetProtocol() == "dmx"));
+            
+            int dmxOffset = 1;
+            UDControllerPortModel* m = port->GetFirstModel();
+            if (m != nullptr) {
+                dmxOffset = m->GetDMXChannelOffset();
+                if (dmxOffset < 1) dmxOffset = 1; // a value less than 1 makes no sense
             }
-            maxDmxPort = std::max(maxDmxPort, x);
+            int sc = port->GetStartChannel() - dmxOffset + 1;
+            int mx = port->GetEndChannel() - sc + 1;
+            maxChan = std::max(mx, maxChan);
         }
-        port["channelCount"] = chanPerOut;
+    }
+    for (int sp = 1; sp <= rules.GetMaxSerialPort(); sp++) {
+        wxJSONValue port;
+        port["outputNumber"] = (sp - 1);
+        port["outputType"] = isDMX ? wxString("DMX") : wxString("Pixelnet");
+        if (cud.HasSerialPort(sp)) {
+            UDControllerPort* vport = cud.GetControllerSerialPort(sp);
+            int dmxOffset = 1;
+            UDControllerPortModel* m = vport->GetFirstModel();
+            if (m != nullptr) {
+                dmxOffset = m->GetDMXChannelOffset();
+                if (dmxOffset < 1) dmxOffset = 1; // a value less than 1 makes no sense
+            }
+            int sc = vport->GetStartChannel() - dmxOffset + 1;
+            port["startChannel"] = sc;
+            port["channelCount"] = isDMX ? maxChan : 4096;
+        } else {
+            port["startChannel"] = 0;
+            port["channelCount"] = 0;
+        }
         dmxData["outputs"].Append(port);
     }
-    dmxData["channelCount"] = maxChan < chanPerOut ? chanPerOut : maxChan;
+    
+    dmxData["channelCount"] = isDMX ? maxChan : 4096;
     if (maxChan == 0) {
         dmxData["enabled"] = 0;
         dmxData["subType"] = wxString("off");

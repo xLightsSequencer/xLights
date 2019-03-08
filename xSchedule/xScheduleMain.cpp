@@ -175,6 +175,7 @@ const long xScheduleFrame::ID_MNU_CHECK_SCHEDULE = wxNewId();
 const long xScheduleFrame::ID_MNU_WEBINTERFACE = wxNewId();
 const long xScheduleFrame::ID_MNU_IMPORT = wxNewId();
 const long xScheduleFrame::ID_MNU_CRASH = wxNewId();
+const long xScheduleFrame::ID_MENUITEM_SMS = wxNewId();
 const long xScheduleFrame::ID_MNU_TEST = wxNewId();
 const long xScheduleFrame::ID_MNU_FPP_BROADCASTMASTER = wxNewId();
 const long xScheduleFrame::ID_MNU_FPP_UNICASTMASTER = wxNewId();
@@ -367,6 +368,7 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     _webIconDisplayed = false;
     _slowDisplayed = false;
     _lastSlow = 0;
+    _smsDaemon = nullptr;
 
     static log4cpp::Category &logger_frame = log4cpp::Category::getInstance(std::string("log_frame"));
     _timer.SetLog((logger_frame.getPriority() == log4cpp::Priority::DEBUG));
@@ -530,18 +532,20 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     MenuItem_Options = new wxMenuItem(Menu5, ID_MNU_OPTIONS, _("&Options"), wxEmptyString, wxITEM_NORMAL);
     Menu5->Append(MenuItem_Options);
     MenuBar1->Append(Menu5, _("&Edit"));
-    Menu3 = new wxMenu();
-    MenuItem_ViewLog = new wxMenuItem(Menu3, ID_MNU_VIEW_LOG, _("&View Log"), wxEmptyString, wxITEM_NORMAL);
-    Menu3->Append(MenuItem_ViewLog);
-    MenuItem_CheckSchedule = new wxMenuItem(Menu3, ID_MNU_CHECK_SCHEDULE, _("&Check Schedule"), wxEmptyString, wxITEM_NORMAL);
-    Menu3->Append(MenuItem_CheckSchedule);
-    MenuItem_WebInterface = new wxMenuItem(Menu3, ID_MNU_WEBINTERFACE, _("&Web Interface"), wxEmptyString, wxITEM_NORMAL);
-    Menu3->Append(MenuItem_WebInterface);
-    MenuItem_ImportxLights = new wxMenuItem(Menu3, ID_MNU_IMPORT, _("Import xLights Playlist"), wxEmptyString, wxITEM_NORMAL);
-    Menu3->Append(MenuItem_ImportxLights);
-    MenuItem_Crash = new wxMenuItem(Menu3, ID_MNU_CRASH, _("Crash"), _("Crash xSchedule"), wxITEM_NORMAL);
-    Menu3->Append(MenuItem_Crash);
-    MenuBar1->Append(Menu3, _("&Tools"));
+    ToolsMenu = new wxMenu();
+    MenuItem_ViewLog = new wxMenuItem(ToolsMenu, ID_MNU_VIEW_LOG, _("&View Log"), wxEmptyString, wxITEM_NORMAL);
+    ToolsMenu->Append(MenuItem_ViewLog);
+    MenuItem_CheckSchedule = new wxMenuItem(ToolsMenu, ID_MNU_CHECK_SCHEDULE, _("&Check Schedule"), wxEmptyString, wxITEM_NORMAL);
+    ToolsMenu->Append(MenuItem_CheckSchedule);
+    MenuItem_WebInterface = new wxMenuItem(ToolsMenu, ID_MNU_WEBINTERFACE, _("&Web Interface"), wxEmptyString, wxITEM_NORMAL);
+    ToolsMenu->Append(MenuItem_WebInterface);
+    MenuItem_ImportxLights = new wxMenuItem(ToolsMenu, ID_MNU_IMPORT, _("Import xLights Playlist"), wxEmptyString, wxITEM_NORMAL);
+    ToolsMenu->Append(MenuItem_ImportxLights);
+    MenuItem_Crash = new wxMenuItem(ToolsMenu, ID_MNU_CRASH, _("Crash"), _("Crash xSchedule"), wxITEM_NORMAL);
+    ToolsMenu->Append(MenuItem_Crash);
+    SMSMenuItem = new wxMenuItem(ToolsMenu, ID_MENUITEM_SMS, _("SMS"), wxEmptyString, wxITEM_NORMAL);
+    ToolsMenu->Append(SMSMenuItem);
+    MenuBar1->Append(ToolsMenu, _("&Tools"));
     Menu4 = new wxMenu();
     MenuItem_ModeTest = new wxMenuItem(Menu4, ID_MNU_TEST, _("Test"), wxEmptyString, wxITEM_CHECK);
     Menu4->Append(MenuItem_ModeTest);
@@ -639,6 +643,7 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     Connect(ID_MNU_WEBINTERFACE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_WebInterfaceSelected);
     Connect(ID_MNU_IMPORT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_ImportxLightsSelected);
     Connect(ID_MNU_CRASH,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_CrashSelected);
+    Connect(ID_MENUITEM_SMS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnSMSMenuItemSelected);
     Connect(ID_MNU_TEST,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_TestSelected);
     Connect(ID_MNU_FPP_BROADCASTMASTER,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_FPPMasterSelected);
     Connect(ID_MNU_FPP_UNICASTMASTER,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_ModeFPPUnicastMasterSelected);
@@ -818,6 +823,10 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     }
 #endif
 
+#ifndef __WXOSX__
+    SMSMenuItem->GetMenu()->Remove(SMSMenuItem);
+#endif
+
     RemoteWarning();
 
     UpdateUI(true);
@@ -935,6 +944,9 @@ xScheduleFrame::~xScheduleFrame()
     {
         delete _pinger;
         _pinger = nullptr;
+    }
+    if (_smsDaemon) {
+        delete _smsDaemon;
     }
 
     int x, y;
@@ -3254,3 +3266,16 @@ void xScheduleFrame::OnMenuItem_RemoteLatencySelected(wxCommandEvent& event)
         __schedule->GetOptions()->SetRemoteAcceptableJitter(dlg.GetJitter());
     }
 }
+
+#ifdef __WXOSX__
+#include "xSMSDaemon/xSMSDaemonMain.h"
+void xScheduleFrame::OnSMSMenuItemSelected(wxCommandEvent& event)
+{
+    if (!_smsDaemon) {
+        _smsDaemon = new xSMSDaemonFrame(this);
+    }
+    _smsDaemon->Show();
+}
+#else
+void xScheduleFrame::OnSMSMenuItemSelected(wxCommandEvent& event) {}
+#endif

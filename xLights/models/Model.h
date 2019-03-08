@@ -190,7 +190,7 @@ protected:
     bool isBotToTop;
     std::string StringType; // RGB Nodes, 3 Channel RGB, Single Color Red, Single Color Green, Single Color Blue, Single Color White
     std::string DisplayAs;  // Tree 360, Tree 270, Tree 180, Tree 90, Vert Matrix, Horiz Matrix, Single Line, Arches, Window Frame, Candy Cane
-    std::string layout_group;
+    //std::string layout_group;
     std::string controller_connection;
     std::string _modelChain;
     int rgbwHandlingType;

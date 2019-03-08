@@ -380,7 +380,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
     logger_base.info("Scanning models.");
 
     std::string check;
-    UDController cud(_ip, allmodels, outputManager, &selected, check);
+    UDController cud(_ip, _ip, allmodels, outputManager, &selected, check);
 
     FalconControllerRules rules(_model, _version);
     bool success = cud.Check(&rules, check);
@@ -483,7 +483,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
             UDControllerPort* port = cud.GetControllerPixelPort(pp);
             logger_base.info("Pixel Port %d Protocol %s.", pp, (const char *)port->GetProtocol().c_str());
 
-            port->CreateVirtualStrings();
+            port->CreateVirtualStrings(true);
 
             FalconString* firstString = nullptr;            
             for (auto sd: stringData)

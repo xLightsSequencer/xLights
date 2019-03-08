@@ -629,7 +629,7 @@ void PolyLineModel::InitModel() {
 }
 
 void PolyLineModel::DistributeLightsAcrossCurveSegment(int lights, int segment, size_t &idx, std::vector<xlPolyPoint> &pPos,
-                                                       std::vector<unsigned int>& dropSizes, unsigned int& drop_index, float& mheight)
+    std::vector<unsigned int>& dropSizes, unsigned int& drop_index, float& mheight)
 {
     // distribute the lights evenly across the line segments
     int coords_per_node = Nodes[0].get()->Coords.size();
@@ -637,22 +637,22 @@ void PolyLineModel::DistributeLightsAcrossCurveSegment(int lights, int segment, 
     float total_length = pPos[segment].curve->GetLength();
     float offset = total_length / (float)lights_to_distribute;
     float current_pos = offset / 2.0f;
-    size_t c=0;
+    size_t c = 0;
     int sub_segment = 0;
     float seg_start = current_pos;
     float segment_length = pPos[segment].curve->GetSegLength(sub_segment);
     float seg_end = seg_start + segment_length;
-    for(size_t m=0; m<lights_to_distribute; m++) {
+    for (size_t m = 0; m < lights_to_distribute; m++) {
         unsigned int drops_this_node = dropSizes[drop_index];
-        while( current_pos > seg_end ) {
+        while (current_pos > seg_end) {
             sub_segment++;
             seg_start = seg_end;
             segment_length = pPos[segment].curve->GetSegLength(sub_segment);
             seg_end = seg_start + segment_length;
         }
         glm::vec3 v = glm::vec3(*pPos[segment].curve->GetMatrix(sub_segment) * glm::vec4((current_pos - seg_start) / segment_length, 0, 0, 1));
-        if( SingleNode ) {
-            for( int z = 0; z < drops_this_node; z++) {
+        if (SingleNode) {
+            for (auto z = 0; z < drops_this_node; z++) {
                 Nodes[0]->Coords[idx].screenX = v.x;
                 Nodes[0]->Coords[idx].screenY = v.y - z * mheight;
                 Nodes[0]->Coords[idx].screenZ = v.z;
@@ -660,16 +660,18 @@ void PolyLineModel::DistributeLightsAcrossCurveSegment(int lights, int segment, 
             }
             drop_index++;
             drop_index %= dropSizes.size();
-        } else {
-            for( int z = 0; z < drops_this_node; z++) {
+        }
+        else {
+            for (auto z = 0; z < drops_this_node; z++) {
                 Nodes[idx]->Coords[c].screenX = v.x;
                 Nodes[idx]->Coords[c].screenY = v.y - z * mheight;
                 Nodes[idx]->Coords[c].screenZ = v.z;
                 IsLtoR ? idx++ : idx--;
             }
-            if( c < coords_per_node-1 ) {
+            if (c < coords_per_node - 1) {
                 c++;
-            } else {
+            }
+            else {
                 c = 0;
                 //IsLtoR ? idx++ : idx--;
             }

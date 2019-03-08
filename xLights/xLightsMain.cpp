@@ -5017,14 +5017,14 @@ void xLightsFrame::CheckSequence(bool display)
         }
 
         // Apply the vendor specific validations
-        for (auto it = zcppOutputs.begin(); it != zcppOutputs.end(); ++it)
+        for (auto it : zcppOutputs)
         {
-            wxString msg = wxString::Format("        Applying controller rules for %s:%s", (*it)->GetIP(), (*it)->GetDescription());
+            wxString msg = wxString::Format("        Applying controller rules for %s:%s", it->GetIP(), it->GetDescription());
             LogAndWrite(f, msg.ToStdString());
 
             std::list<int> outputNums;
             std::string check;
-            UDController edc((*it)->GetIP(), &AllModels, &_outputManager, &outputNums, check);
+            UDController edc(it->GetIP(), it->GetIP(), &AllModels, &_outputManager, &outputNums, check);
             if (check != "")
             {
                 LogAndWrite(f, check);
@@ -5032,12 +5032,12 @@ void xLightsFrame::CheckSequence(bool display)
 
             check = "";
 
-            switch(((ZCPPOutput*)(*it))->GetVendor())
+            switch(((ZCPPOutput*)it)->GetVendor())
             {
             case 0:
                 // falcon
                 {
-                    FalconControllerRules fcr(((ZCPPOutput*)(*it))->GetModel());
+                    FalconControllerRules fcr(((ZCPPOutput*)it)->GetModel());
                     edc.Check(&fcr, check);
                 }
                 break;

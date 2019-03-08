@@ -285,7 +285,7 @@ bool J1Sys::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, st
     logger_base.debug("J1Sys Outputs Upload: Uploading to %s", (const char *)_ip.c_str());
 
     std::string check;
-    UDController cud(_ip, allmodels, outputManager, &selected, check);
+    UDController cud(_ip, _ip, allmodels, outputManager, &selected, check);
 
     J1SysControllerRules rules(_outputs);
     bool success = cud.Check(&rules, check);

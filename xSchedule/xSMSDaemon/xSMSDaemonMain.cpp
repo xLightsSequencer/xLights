@@ -45,6 +45,7 @@
 #include "voip_ms.h"
 #include "Twilio.h"
 
+#ifndef __WXOSX__
 //helper functions
 enum wxbuildinfoformat {
     short_f, long_f };
@@ -70,6 +71,7 @@ wxString wxbuildinfo(wxbuildinfoformat format)
 
     return wxbuild;
 }
+#endif
 
 //(*IdInit(xSMSDaemonFrame)
 const long xSMSDaemonFrame::ID_STATICTEXT9 = wxNewId();
@@ -363,8 +365,12 @@ void xSMSDaemonFrame::SendReport(const wxString &loc, wxDebugReportCompress &rep
 
 void xSMSDaemonFrame::OnButton_CloseClick(wxCommandEvent& event)
 {
+#ifdef __WXOSX__
+    Hide();
+#else
     Stop();
     Close();
+#endif
 }
 
 void xSMSDaemonFrame::OnButton_PauseClick(wxCommandEvent& event)

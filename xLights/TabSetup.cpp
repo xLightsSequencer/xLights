@@ -2241,7 +2241,7 @@ void xLightsFrame::SetModelData(ZCPPOutput* zcpp, ModelManager* modelManager, Ou
 {
     std::list<int> selected;
     std::string check;
-    UDController cud(zcpp->GetIP(), modelManager, outputManager, &selected, check);
+    UDController cud(zcpp->GetIP(), zcpp->GetIP(), modelManager, outputManager, &selected, check);
     long baseStart = zcpp->GetStartChannel();
 
     unsigned char buffer[ZCPP_MODELDATASIZE];
