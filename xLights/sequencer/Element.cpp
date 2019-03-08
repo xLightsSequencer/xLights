@@ -67,10 +67,10 @@ bool Element::HasEffects() const {
     return false;
 }
 
-std::vector<int> Element::GetLayersWithEffects() const {
+std::vector<int> Element::GetLayersWithEffectsByTime(int startMs, int endMS) const {
 	std::vector<int> returnList;
 	for (size_t x = 0; x < mEffectLayers.size(); x++) {
-		if (mEffectLayers[x]->GetEffectCount() > 0) {
+		if (mEffectLayers[x]->GetAllEffectsByTime(startMs, endMS).size() > 0) {
 			returnList.push_back(x);
 		}
 	}

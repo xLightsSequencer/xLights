@@ -60,7 +60,7 @@ public:
     bool CleanupFileLocations(xLightsFrame* frame, EffectManager& em);
     bool SelectEffectUsingDescription(std::string description);
     bool SelectEffectUsingLayerTime(int layer, int time);
-	virtual std::vector<int> GetLayersWithEffects() const;
+	virtual std::vector<int> GetLayersWithEffectsByTime(int startMs, int endMS) const;
 
     EffectLayer* AddEffectLayer();
     void RemoveEffectLayer(int index);
