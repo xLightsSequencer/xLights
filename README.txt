@@ -11,10 +11,20 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2019.16 March 9, 2019
    -- enh (scott)   Added Cut/Copy/Paste Support for 3D Objects in the Layout Tab
    -- enh (scott)   Added Arrow Key Support for 3D Objects in the Layout Tab
    -- bug (scott)   Pressing Delete Key in Layout Model List now deletes model
    -- enh (scott)   Added Right Click Menu for Canvas Layers Selection. Select All, Deselect All, Select Layers With Effects
+   -- enh (dkulp)   Add more parallelism to kaleidoscope render
+   -- enh (dkulp)   Make SMS feature available on OSX ... although in this release it may cause playback pauses
+   -- bug (dkulp)   Add some screen rendering options to sort through some display issues on model preview
+   -- enh (priemd)  Add yet more wiring options to the cube model
+   -- bug (keith)   Fix LOR Optimised output allows you to exceed memory allocated
+   -- bug (keith)   Fix issue with canvas layers dialog displaying crazy number of layers
+   -- bug (keith)   Fix some render cache issues
+   -- enh (keith)   Expand pixlite upload to support all pixlite and LOR pixcon versions
+   -- bug (keith)   Fix single note spectragram doesnt render
 2019.15 March 2, 2019
    -- bug (keith)   Fix rendering per preview from a 3D camera ... it just wasnt right
                     This may change how some rendering looks. I am happy to look into any issues but I will only change it again if it is
