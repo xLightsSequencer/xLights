@@ -38,21 +38,75 @@ ZCPPOutput::ZCPPOutput(wxXmlNode* node, std::string showdir) : IPOutput(node)
         wxFile zf;
         if (zf.Open(fileName))
         {
-            zf.Read(_modelData, sizeof(_modelData));
-            while (!zf.Eof())
+            uint8_t tag[4];
+            zf.Read(tag, sizeof(tag));
+            if (tag[0] != 'Z' || tag[1] != 'C' || tag[2] != 'P' || tag[3] != 'P')
             {
-                wxByte* descPacket = (wxByte*)malloc(ZCPP_EXTRACONFIG_PACKET_SIZE);
-                zf.Read(descPacket, ZCPP_EXTRACONFIG_PACKET_SIZE);
-                _extraConfig.push_back(descPacket);
+                logger_base.warn("ZCPP Model data file %s did not contain opening tag.", (const char*)fileName.c_str());
+            }
+            else
+            {
+                while (!zf.Eof())
+                {
+                    uint8_t type;
+                    zf.Read(&type, sizeof(type));
+                    switch (type)
+                    {
+                        case 0x00:
+                            {
+                            uint8_t b1;
+                            uint8_t b2;
+                            zf.Read(&b1, sizeof(b1));
+                            zf.Read(&b2, sizeof(b2));
+                            uint16_t size = (b1 << 8) + b2;
+                            if (size == sizeof(_modelData))
+                            {
+                                zf.Read(_modelData, sizeof(_modelData));
+                            }
+                            else
+                            {
+                                logger_base.warn("ZCPP Model data file %s unrecognised model data size.", (const char*)fileName.c_str());
+                                zf.SeekEnd();
+                            }
+                            }
+                        break;
+                        case 0x01:
+                        {
+                            uint8_t b1;
+                            uint8_t b2;
+                            zf.Read(&b1, sizeof(b1));
+                            zf.Read(&b2, sizeof(b2));
+                            uint16_t size = (b1 << 8) + b2;
+                            if (size == ZCPP_EXTRACONFIG_PACKET_SIZE)
+                            {
+                                wxByte* descPacket = (wxByte*)malloc(ZCPP_EXTRACONFIG_PACKET_SIZE);
+                                zf.Read(descPacket, ZCPP_EXTRACONFIG_PACKET_SIZE);
+                                _extraConfig.push_back(descPacket);
+                            }
+                            else
+                            {
+                                logger_base.warn("ZCPP Model data file %s unrecognised extra config size.", (const char*)fileName.c_str());
+                                zf.SeekEnd();
+                            }
+                        }
+                        break;
+                        case 0xFF:
+                            zf.SeekEnd();
+                            break;
+                        default:
+                            logger_base.warn("ZCPP Model data file %s unrecognised type %d.", (const char*)fileName.c_str(), type);
+                            break;
+                    }
+                }
+                logger_base.debug("ZCPP Model data file %s loaded.", (const char*)fileName.c_str());
             }
             zf.Close();
-            logger_base.debug("ZCPP Model data file %s loaded.", (const char*)fileName.c_str());
-            ExtractUsedChannelsFromModelData();
         }
         else
         {
             logger_base.warn("ZCPP Model data file %s could not be opened.", (const char*)fileName.c_str());
         }
+        ExtractUsedChannelsFromModelData();
     }
     else
     {
@@ -156,11 +210,35 @@ bool ZCPPOutput::SetModelData(unsigned char* buffer, size_t bufsize, std::list<w
     wxFile zf;
     if (zf.Create(fileName, true))
     {
+        uint8_t tag[4] = { 'Z','C','P','P' };
+        zf.Write(tag, sizeof(tag));
+        
+        uint8_t type = 0x00;
+        zf.Write(&type, sizeof(type));
+        
+        uint8_t b = (bufsize & 0xFF00) >> 8;
+        zf.Write(&b, sizeof(b));
+        b = bufsize & 0xFF;
+        zf.Write(&b, sizeof(b));
+        
         zf.Write(buffer, bufsize);
+        
         for (auto it = _extraConfig.begin(); it != _extraConfig.end(); ++it)
         {
+            type = 0x01;
+            zf.Write(&type, sizeof(type));
+
+            b = (ZCPP_EXTRACONFIG_PACKET_SIZE & 0xFF00) >> 8;
+            zf.Write(&b, sizeof(b));
+            b = ZCPP_EXTRACONFIG_PACKET_SIZE & 0xFF;
+            zf.Write(&b, sizeof(b));
+
             zf.Write(*it, ZCPP_EXTRACONFIG_PACKET_SIZE);
         }
+
+        type = 0xFF;
+        zf.Write(&type, sizeof(type));
+
         zf.Close();
     }
 
