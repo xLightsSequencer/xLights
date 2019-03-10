@@ -2,11 +2,12 @@
 #define SMSSERVICE_H
 
 #include <vector>
-#include <codecvt>
-#include <mutex>
 #include <atomic>
+#include <mutex>
+#include <codecvt>
 
 #include <wx/uri.h>
+
 #include "SMSMessage.h"
 #include "SMSDaemonOptions.h"
 
@@ -15,8 +16,8 @@ class SMSService;
 class RetrieveThread : public wxThread
 {
     SMSService* _service;
-    std::atomic<bool> _stop = false;
-    std::atomic<bool> _running = false;
+    std::atomic_bool _stop = {false};
+    std::atomic_bool _running = {false};
     uint32_t _interval = 30000;
 
 public:
@@ -88,12 +89,12 @@ class SMSService
             std::lock_guard<std::recursive_mutex> lock(_threadLock);
             return _options.GetSID();
         }
-        std::string GetToken() 
+        std::string GetToken()
         {
             std::lock_guard<std::recursive_mutex> lock(_threadLock);
             return _options.GetToken();
         }
-        std::string GetPhone() 
+        std::string GetPhone()
         {
             std::lock_guard<std::recursive_mutex> lock(_threadLock);
             return _options.GetPhone();
@@ -138,7 +139,7 @@ class SMSService
         virtual bool RetrieveMessages() = 0;
         void SendSuccessMessage(const SMSMessage& msg, const wxString& successMessage)
         {
-            if (successMessage != "" && 
+            if (successMessage != "" &&
                 (_options.GetMaxMsgAgeMinsForResponse() == 0 || msg.GetAgeMins() < _options.GetMaxMsgAgeMinsForResponse()))
             {
                 SendSMS(msg._from, successMessage);
@@ -146,7 +147,7 @@ class SMSService
         }
         void SendRejectMessage(const SMSMessage& msg, const wxString& rejectMessage)
         {
-            if (rejectMessage != "" && 
+            if (rejectMessage != "" &&
                 (_options.GetMaxMsgAgeMinsForResponse() == 0 || msg.GetAgeMins() < _options.GetMaxMsgAgeMinsForResponse()))
             {
                 SendSMS(msg._from, rejectMessage);
@@ -197,7 +198,7 @@ class SMSService
                                 if (msg._message != "")
                                 {
                                     int maxMessageLen = _options.GetMaxMessageLength();
-                                    if (maxMessageLen != 0 && msg._message.size() > maxMessageLen && 
+                                    if (maxMessageLen != 0 && msg._message.size() > maxMessageLen &&
                                         !_options.GetIgnoreOversizedMessages())
                                     {
                                         msg._message = msg._message.substr(0, maxMessageLen);
