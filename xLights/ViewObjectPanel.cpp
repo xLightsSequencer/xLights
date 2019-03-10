@@ -1020,7 +1020,7 @@ void ViewObjectPanel::DoUndo(wxCommandEvent& event)
 
 void ViewObjectPanel::OnCharHook(wxKeyEvent& event)
 {
-	layoutPanel->OnCharHook(event);
+	layoutPanel->OnListCharHook(event);
 }
 
 void ViewObjectPanel::OnChar(wxKeyEvent& event)
