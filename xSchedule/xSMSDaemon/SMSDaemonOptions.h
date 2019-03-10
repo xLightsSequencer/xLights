@@ -26,6 +26,7 @@ class SMSDaemonOptions
 	int _maximiumMessageAge = 10;
 	int _maximiumTimesToDisplay = 0;
 	int _xSchedulePort = 80;
+    int _maxMsgAgeMinsForResponse = 10;
 	bool _usePurgoMalum = false;
 	bool _rejectProfanity = true;
 	bool _usePhoneBlacklist = false;
@@ -69,6 +70,13 @@ class SMSDaemonOptions
 		int GetMaxMessageAge() const { return _maximiumMessageAge; }
         void SetMaxMessageAge(int maximiumMessageAge) { if (maximiumMessageAge != _maximiumMessageAge) { _maximiumMessageAge = maximiumMessageAge; _changeCount++; } }
 		int GetMaxTimesToDisplay() const { return _maximiumTimesToDisplay; }
+        int GetMaxMsgAgeMinsForResponse() const { return _maxMsgAgeMinsForResponse; }
+        void SetMaxMsgAgeMinsForResponse(int maxMsgAgeMinsForResponse) {
+            if (maxMsgAgeMinsForResponse != _maxMsgAgeMinsForResponse) {
+                _maxMsgAgeMinsForResponse = maxMsgAgeMinsForResponse; 
+                _changeCount++;
+            }
+        }
         void SetMaxTimesToDisplay(int maximiumTimesToDisplay) { if (maximiumTimesToDisplay != _maximiumTimesToDisplay) { _maximiumTimesToDisplay = maximiumTimesToDisplay; _changeCount++; } }
 
 		bool GetUsePurgoMalum() const { return _usePurgoMalum; }

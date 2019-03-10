@@ -2,8 +2,6 @@
 #define BANDWIDTH_H
 
 #include <string>
-#include <vector>
-#include <locale>
 
 #include "Curl.h"
 
@@ -21,24 +19,26 @@ class Bandwidth : public SMSService
 
     public:
 
-        Bandwidth() : SMSService() {}
+        Bandwidth(const SMSDaemonOptions& options) : SMSService(options) {}
 
-        virtual bool SendSMS(const std::string& number, const std::string& message) const override
+        virtual bool SendSMS(const std::string& number, const std::string& message) override
 		{
             if (number == "TEST") return false;
 
             static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
             std::string url = BANDWIDTH_API_URL;
-            Replace(url, "{sid}", _sid);
-            Replace(url, "{user}", _user);
-            Replace(url, "{token}", _token);
+            auto sid = GetSID();
+            auto token = GetToken();
+            Replace(url, "{sid}", sid);
+            Replace(url, "{user}", GetUser());
+            Replace(url, "{token}", token);
             url += "/messages";
 
             wxString b = body;
-            b.Replace("{phone}", _myNumber);
+            b.Replace("{phone}", GetPhone());
             b.Replace("{tophone}", number);
             b.Replace("{message}", message);
-            std::string res = Curl::HTTPSPost(url, b, _sid, _token, "JSON");
+            std::string res = Curl::HTTPSPost(url, b, sid, token, "JSON");
 
             logger_base.debug("%s", (const char*)url.c_str());
             logger_base.debug("%s", (const char*)res.c_str());
@@ -46,18 +46,20 @@ class Bandwidth : public SMSService
 		}
 
         virtual std::string GetServiceName() const override { return "Bandwidth"; }
-        virtual bool RetrieveMessages(const SMSDaemonOptions& options) override
+        virtual bool RetrieveMessages() override
         {
             static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
             bool added = false;
 
             std::string url = BANDWIDTH_API_URL;
-            Replace(url, "{sid}", _sid);
-            Replace(url, "{user}", _user);
-            Replace(url, "{token}", _token);
+            auto sid = GetSID();
+            auto token = GetToken();
+            Replace(url, "{sid}", sid);
+            Replace(url, "{user}", GetUser());
+            Replace(url, "{token}", token);
             url += "/messages?page=0&size=100";
-            std::string res = Curl::HTTPSGet(url, _sid, _token);
+            std::string res = Curl::HTTPSGet(url, sid, token);
             logger_base.debug("%s", (const char*)url.c_str());
             logger_base.debug("%s", (const char*)res.c_str());
 
@@ -79,6 +81,8 @@ class Bandwidth : public SMSService
             }
             else
             {
+                Retrieved();
+
                 if (root.IsArray())
                 {
                     for (int i = 0; i < root.Size(); i++)
@@ -96,7 +100,7 @@ class Bandwidth : public SMSService
                             msg._from = m.Get("from", defaultValue).AsString().ToStdString();
                             msg._rawMessage = m.Get("text", defaultValue).AsString().ToStdString();
 
-                            if (AddMessage(msg, options))
+                            if (AddMessage(msg))
                             {
                                 added = true;
                             }

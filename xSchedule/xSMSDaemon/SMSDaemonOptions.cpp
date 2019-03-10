@@ -48,6 +48,7 @@ void SMSDaemonOptions::Load(const std::string& showDir)
             _displayDuration = wxAtoi(n->GetAttribute("DisplayDuration", "30"));
             _maximiumMessageLength = wxAtoi(n->GetAttribute("MaxMsgLen", "100"));
             _maximiumTimesToDisplay = wxAtoi(n->GetAttribute("MaxDisplays", "0"));
+            _maxMsgAgeMinsForResponse = wxAtoi(n->GetAttribute("MaxMsgAgeMinsForResponse", "10"));
             _maximiumMessageAge = wxAtoi(n->GetAttribute("MaxMsgAge", "10"));
             _xSchedulePort = wxAtoi(n->GetAttribute("xSchedulePort", "80"));
 
@@ -101,6 +102,7 @@ void SMSDaemonOptions::Save(const std::string& showDir)
     node->AddAttribute("MaxMsgLen", wxString::Format("%d", _maximiumMessageLength));
     node->AddAttribute("MaxMsgAge", wxString::Format("%d", _maximiumMessageAge));
     node->AddAttribute("MaxDisplays", wxString::Format("%d", _maximiumTimesToDisplay));
+    node->AddAttribute("MaxMsgAgeMinsForResponse", wxString::Format("%d", _maxMsgAgeMinsForResponse));
     node->AddAttribute("xSchedulePort", wxString::Format("%d", _xSchedulePort));
 
     if (!_rejectProfanity) node->AddAttribute("RejectProfanity", "FALSE");

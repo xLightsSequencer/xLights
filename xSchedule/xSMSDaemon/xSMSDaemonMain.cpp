@@ -92,8 +92,8 @@ const long xSMSDaemonFrame::ID_MNU_OPTIONS = wxNewId();
 const long xSMSDaemonFrame::ID_MNU_VIEWLOG = wxNewId();
 const long xSMSDaemonFrame::ID_MNU_TESTMESSAGES = wxNewId();
 const long xSMSDaemonFrame::idMenuAbout = wxNewId();
-const long xSMSDaemonFrame::ID_TIMER1 = wxNewId();
 const long xSMSDaemonFrame::ID_TIMER2 = wxNewId();
+const long xSMSDaemonFrame::ID_TIMER_SECOND = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(xSMSDaemonFrame,wxFrame)
@@ -184,10 +184,10 @@ xSMSDaemonFrame::xSMSDaemonFrame(wxWindow* parent, const std::string& showdir, c
     Menu2->Append(MenuItem2);
     MenuBar1->Append(Menu2, _("Help"));
     SetMenuBar(MenuBar1);
-    RetrieveTimer.SetOwner(this, ID_TIMER1);
-    RetrieveTimer.Start(60000, false);
     SendTimer.SetOwner(this, ID_TIMER2);
     SendTimer.Start(60000, false);
+    Timer_Second.SetOwner(this, ID_TIMER_SECOND);
+    Timer_Second.Start(1000, false);
     FlexGridSizer1->Fit(this);
     FlexGridSizer1->SetSizeHints(this);
 
@@ -198,8 +198,8 @@ xSMSDaemonFrame::xSMSDaemonFrame(wxWindow* parent, const std::string& showdir, c
     Connect(ID_MNU_VIEWLOG,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xSMSDaemonFrame::OnMenuItem_ViewLogSelected);
     Connect(ID_MNU_TESTMESSAGES,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xSMSDaemonFrame::OnMenuItem_InsertTestMessagesSelected);
     Connect(idMenuAbout,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xSMSDaemonFrame::OnAbout);
-    Connect(ID_TIMER1,wxEVT_TIMER,(wxObjectEventFunction)&xSMSDaemonFrame::OnRetrieveTimerTrigger);
     Connect(ID_TIMER2,wxEVT_TIMER,(wxObjectEventFunction)&xSMSDaemonFrame::OnSendTimerTrigger);
+    Connect(ID_TIMER_SECOND,wxEVT_TIMER,(wxObjectEventFunction)&xSMSDaemonFrame::OnTimer_SecondTrigger);
     //*)
 
     SetTitle("xLights SMS Daemon " + GetDisplayVersionString());
@@ -237,11 +237,9 @@ xSMSDaemonFrame::xSMSDaemonFrame(wxWindow* parent, const std::string& showdir, c
     else
     {
         _showDir = showdir;
+        LoadOptions();
+        Start();
     }
-
-    LoadOptions();
-    Stop();
-    Start();
 
     Grid1->SetColSize(1, 150);
     Grid1->SetColSize(2, 400);
@@ -559,24 +557,16 @@ void xSMSDaemonFrame::LoadOptions()
     {
         if (_options.GetSMSService() == "Bandwidth")
         {
-            _smsService = std::make_unique<Bandwidth>();
+            _smsService = std::make_unique<Bandwidth>(_options);
         }
         else if (_options.GetSMSService() == "Voip.ms")
         {
-            _smsService = std::make_unique<Voip_ms>();
+            _smsService = std::make_unique<Voip_ms>(_options);
         }
         else if (_options.GetSMSService() == "Twilio")
         {
-            _smsService = std::make_unique<Twilio>();
+            _smsService = std::make_unique<Twilio>(_options);
         }
-    }
-
-    if (_smsService != nullptr)
-    {
-        _smsService->SetUser(_options.GetUser());
-        _smsService->SetSID(_options.GetSID());
-        _smsService->SetToken(_options.GetToken());
-        _smsService->SetPhone(_options.GetPhone());
     }
 
     StaticText_IPAddress->SetLabel(_options.GetXScheduleIP() + ":" + wxString::Format("%d", _options.GetXSchedulePort()));
@@ -594,10 +584,8 @@ void xSMSDaemonFrame::Start()
     if (!_options.IsValid()) return;
 
     wxTimerEvent e;
-    OnRetrieveTimerTrigger(e);
     OnSendTimerTrigger(e);
 
-    RetrieveTimer.Start(_options.GetRetrieveInterval() * 1000, false, "Retrieve");
     SendTimer.Start(_options.GetDisplayDuration() * 1000, false, "Display");
 }
 
@@ -605,7 +593,6 @@ void xSMSDaemonFrame::Stop()
 {
     SetAllText("");
     SendTimer.Stop();
-    RetrieveTimer.Stop();
 }
 
 bool xSMSDaemonFrame::SetText(const std::string& t, const std::string& text, const std::wstring wtext)
@@ -660,18 +647,6 @@ bool xSMSDaemonFrame::SetText(const std::string& t, const std::string& text, con
     return ok;
 }
 
-void xSMSDaemonFrame::OnRetrieveTimerTrigger(wxTimerEvent& event)
-{
-    if (_smsService != nullptr)
-    {
-        if (_smsService->RetrieveMessages(_options))
-        {
-            StaticText_LastRetrieved->SetLabel(wxDateTime::Now().FormatTime());
-            RefreshList();
-        }
-    }
-}
-
 void xSMSDaemonFrame::SetAllText(const std::string& text, const std::wstring wtext)
 {
     wxArrayString texts = wxSplit(_options.GetTextItem(), ',');
@@ -688,7 +663,7 @@ void xSMSDaemonFrame::OnSendTimerTrigger(wxTimerEvent& event)
     {
         _smsService->ClearDisplayed();
         _smsService->PrepareMessages(_options.GetMaxMessageAge());
-        auto& msgs = _smsService->GetMessages();
+        auto msgs = _smsService->GetMessages();
         if (msgs.size() > 0)
         {
             wxArrayString texts = wxSplit(_options.GetTextItem(), ',');
@@ -698,13 +673,12 @@ void xSMSDaemonFrame::OnSendTimerTrigger(wxTimerEvent& event)
             {
                 if (msgs.size() > i)
                 {
-                    auto& msg = msgs[i];
+                    auto msg = msgs[i];
                     if (_options.GetMaxTimesToDisplay() == 0 || msg._displayCount < _options.GetMaxTimesToDisplay())
                     {
                         if (SetText(it, msg._message, msg._wmessage))
                         {
-                            msg._displayCount++;
-                            msg._displayed = true;
+                            _smsService->Display(msg);
                         }
                     }
                     else
@@ -741,7 +715,7 @@ void xSMSDaemonFrame::OnMenuItem_InsertTestMessagesSelected(wxCommandEvent& even
         {
             auto msgs = dlg.TextCtrl_Messages->GetValue();
             auto ms = wxSplit(msgs, '\n');
-            _smsService->AddTestMessages(ms, _options);
+            _smsService->AddTestMessages(ms);
             RefreshList();
         }
     }
@@ -751,7 +725,7 @@ void xSMSDaemonFrame::RefreshList()
 {
     if (_smsService != nullptr)
     {
-        auto& msgs = _smsService->GetMessages();
+        auto msgs = _smsService->GetMessages();
         if (msgs.size() > 0)
         {
             Grid1->Freeze();
@@ -796,6 +770,17 @@ void xSMSDaemonFrame::RefreshList()
         if (Grid1->GetNumberRows() > 0)
         {
             Grid1->DeleteRows(0, Grid1->GetNumberRows());
+        }
+    }
+}
+
+void xSMSDaemonFrame::OnTimer_SecondTrigger(wxTimerEvent& event)
+{
+    if (_smsService != nullptr)
+    {
+        if (StaticText_LastRetrieved->GetLabel() != _smsService->GetLastRetrieved())
+        {
+            StaticText_LastRetrieved->SetLabel(_smsService->GetLastRetrieved());
         }
     }
 }

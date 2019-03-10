@@ -71,6 +71,12 @@ class SMSMessage
         return wxString::Format("Age %d mins, Displayed %d", GetAgeMins(), _displayCount);
     }
 
+    void Display()
+    {
+        _displayCount++;
+        _displayed = true;
+    }
+
     int GetAgeMins() const
     {
         wxTimeSpan age = wxDateTime::Now().MakeGMT() - _timestamp;

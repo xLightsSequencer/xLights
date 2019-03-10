@@ -150,13 +150,17 @@ SMSMessage.cpp: SMSMessage.h
 
 SMSMessage.h: Curl.h
 
-xSMSDaemonMain.cpp: Curl.h xSMSDaemonMain.h SMSSettingsDialog.h SMSDaemonOptions.h SMSService.h TestMessagesDialog.h Bandwidth.h
+xSMSDaemonMain.cpp: Curl.h xSMSDaemonMain.h SMSSettingsDialog.h SMSDaemonOptions.h SMSService.h TestMessagesDialog.h Bandwidth.h voip_ms.h Twilio.h
 
 xSMSDaemonMain.h: SMSService.h SMSDaemonOptions.h
 
 SMSService.h: SMSMessage.h SMSDaemonOptions.h
 
 Bandwidth.h: Curl.h SMSMessage.h SMSService.h
+
+voip_ms.h: Curl.h SMSMessage.h SMSService.h
+
+Twilio.h: Curl.h SMSMessage.h SMSService.h
 
 xSMSDaemonApp.cpp: xSMSDaemonMain.h xSMSDaemonApp.h
 

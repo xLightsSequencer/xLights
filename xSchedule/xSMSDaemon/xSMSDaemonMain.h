@@ -79,9 +79,9 @@ public:
         void OnButton_PauseClick(wxCommandEvent& event);
         void OnButton_CloseClick(wxCommandEvent& event);
         void OnMenuItem_ShowFolderSelected(wxCommandEvent& event);
-        void OnRetrieveTimerTrigger(wxTimerEvent& event);
         void OnSendTimerTrigger(wxTimerEvent& event);
         void OnMenuItem_InsertTestMessagesSelected(wxCommandEvent& event);
+        void OnTimer_SecondTrigger(wxTimerEvent& event);
         //*)
 
         //(*Identifiers(xSMSDaemonFrame)
@@ -103,8 +103,8 @@ public:
         static const long ID_MNU_VIEWLOG;
         static const long ID_MNU_TESTMESSAGES;
         static const long idMenuAbout;
-        static const long ID_TIMER1;
         static const long ID_TIMER2;
+        static const long ID_TIMER_SECOND;
         //*)
 
         //(*Declarations(xSMSDaemonFrame)
@@ -128,8 +128,8 @@ public:
         wxStaticText* StaticText_LastRetrieved;
         wxStaticText* StaticText_Phone;
         wxStaticText* StaticText_TextItemName;
-        xLightsTimer RetrieveTimer;
         xLightsTimer SendTimer;
+        xLightsTimer Timer_Second;
         //*)
 
         DECLARE_EVENT_TABLE()
