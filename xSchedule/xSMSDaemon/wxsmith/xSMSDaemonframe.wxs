@@ -186,13 +186,13 @@
 				</object>
 			</object>
 		</object>
-		<object class="wxTimer" name="ID_TIMER1" subclass="xLightsTimer" variable="RetrieveTimer" member="yes">
-			<interval>60000</interval>
-			<handler function="OnRetrieveTimerTrigger" entry="EVT_TIMER" />
-		</object>
 		<object class="wxTimer" name="ID_TIMER2" subclass="xLightsTimer" variable="SendTimer" member="yes">
 			<interval>60000</interval>
 			<handler function="OnSendTimerTrigger" entry="EVT_TIMER" />
+		</object>
+		<object class="wxTimer" name="ID_TIMER_SECOND" subclass="xLightsTimer" variable="Timer_Second" member="yes">
+			<interval>1000</interval>
+			<handler function="OnTimer_SecondTrigger" entry="EVT_TIMER" />
 		</object>
 	</object>
 </wxsmith>

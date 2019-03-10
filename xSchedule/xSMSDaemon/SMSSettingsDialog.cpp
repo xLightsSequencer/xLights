@@ -40,6 +40,8 @@ const long SMSSettingsDialog::ID_CHECKBOX3 = wxNewId();
 const long SMSSettingsDialog::ID_CHECKBOX6 = wxNewId();
 const long SMSSettingsDialog::ID_STATICTEXT8 = wxNewId();
 const long SMSSettingsDialog::ID_SPINCTRL5 = wxNewId();
+const long SMSSettingsDialog::ID_STATICTEXT16 = wxNewId();
+const long SMSSettingsDialog::ID_SPINCTRL7 = wxNewId();
 const long SMSSettingsDialog::ID_STATICTEXT9 = wxNewId();
 const long SMSSettingsDialog::ID_SPINCTRL6 = wxNewId();
 const long SMSSettingsDialog::ID_STATICTEXT11 = wxNewId();
@@ -161,6 +163,11 @@ SMSSettingsDialog::SMSSettingsDialog(wxWindow* parent, SMSDaemonOptions* options
 	SpinCtrl_MaxMessageAge = new wxSpinCtrl(this, ID_SPINCTRL5, _T("10"), wxDefaultPosition, wxDefaultSize, 0, 0, 3600, 10, _T("ID_SPINCTRL5"));
 	SpinCtrl_MaxMessageAge->SetValue(_T("10"));
 	FlexGridSizer3->Add(SpinCtrl_MaxMessageAge, 1, wxALL|wxEXPAND, 2);
+	StaticText4 = new wxStaticText(this, ID_STATICTEXT16, _("Maximum Message Age For Response (mins)"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT16"));
+	FlexGridSizer3->Add(StaticText4, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	SpinCtrl_MaxMsgAgeMinsForResponse = new wxSpinCtrl(this, ID_SPINCTRL7, _T("10"), wxDefaultPosition, wxDefaultSize, 0, 0, 1440, 10, _T("ID_SPINCTRL7"));
+	SpinCtrl_MaxMsgAgeMinsForResponse->SetValue(_T("10"));
+	FlexGridSizer3->Add(SpinCtrl_MaxMsgAgeMinsForResponse, 1, wxALL|wxEXPAND, 2);
 	StaticText9 = new wxStaticText(this, ID_STATICTEXT9, _("Times To Display"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT9"));
 	FlexGridSizer3->Add(StaticText9, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	SpinCtrl_TimesToDisplay = new wxSpinCtrl(this, ID_SPINCTRL6, _T("0"), wxDefaultPosition, wxDefaultSize, 0, 0, 30, 0, _T("ID_SPINCTRL6"));
@@ -223,6 +230,7 @@ SMSSettingsDialog::SMSSettingsDialog(wxWindow* parent, SMSDaemonOptions* options
     SpinCtrl_DisplayDuration->SetValue(options->GetDisplayDuration());
     SpinCtrl_MaximumMessageLength->SetValue(options->GetMaxMessageLength());
     SpinCtrl_MaxMessageAge->SetValue(options->GetMaxMessageAge());
+    SpinCtrl_MaxMsgAgeMinsForResponse->SetValue(options->GetMaxMsgAgeMinsForResponse());
     SpinCtrl_TimesToDisplay->SetValue(options->GetMaxTimesToDisplay());
     SpinCtrl_xSchedulePort->SetValue(options->GetXSchedulePort());
 
@@ -262,6 +270,7 @@ void SMSSettingsDialog::OnButton_OkClick(wxCommandEvent& event)
     _options->SetDisplayDuration(SpinCtrl_DisplayDuration->GetValue());
     _options->SetMaxMessageLength(SpinCtrl_MaximumMessageLength->GetValue());
     _options->SetMaxMessageAge(SpinCtrl_MaxMessageAge->GetValue());
+    _options->SetMaxMsgAgeMinsForResponse(SpinCtrl_MaxMsgAgeMinsForResponse->GetValue());
     _options->SetMaxTimesToDisplay(SpinCtrl_TimesToDisplay->GetValue());
     _options->SetXSchedulePort(SpinCtrl_xSchedulePort->GetValue());
 

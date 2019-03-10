@@ -3,7 +3,6 @@
 
 #include <string>
 #include <vector>
-#include <locale>
 
 #include "Curl.h"
 
@@ -20,42 +19,46 @@ class Twilio : public SMSService
 
     public:
 
-        Twilio() : SMSService() {}
+        Twilio(const SMSDaemonOptions& options) : SMSService(options) {}
 
-        virtual bool SendSMS(const std::string& number, const std::string& message) const override
+        virtual bool SendSMS(const std::string& number, const std::string& message) override
 		{
             if (number == "TEST") return false;
 
             static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
             std::string url = TWILIO_API_URL;
-            Replace(url, "{sid}", _sid);
-            Replace(url, "{user}", _user);
-            Replace(url, "{token}", _token);
+            auto sid = GetSID();
+            auto token = GetToken();
+            Replace(url, "{sid}", sid);
+            Replace(url, "{user}", GetUser());
+            Replace(url, "{token}", token);
 
             std::vector<Curl::Var> vars;
             vars.push_back(Curl::Var("To", number));
-            vars.push_back(Curl::Var("From", _myNumber));
+            vars.push_back(Curl::Var("From", GetPhone()));
             vars.push_back(Curl::Var("Body", message));
 
-            std::string res = Curl::HTTPSPost(url, vars, _sid, _token);
+            std::string res = Curl::HTTPSPost(url, vars, sid, token);
             logger_base.debug("%s", (const char*)url.c_str());
             logger_base.debug("%s", (const char*)res.c_str());
             return true;
 		}
 
         virtual std::string GetServiceName() const override { return "Twilio"; }
-        virtual bool RetrieveMessages(const SMSDaemonOptions& options) override
+        virtual bool RetrieveMessages() override
         {
             static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
             bool added = false;
 
             std::string url = TWILIO_API_URL;
-            Replace(url, "{sid}", _sid);
-            Replace(url, "{user}", _user);
-            Replace(url, "{token}", _token);
+            auto sid = GetSID();
+            auto token = GetToken();
+            Replace(url, "{sid}", sid);
+            Replace(url, "{user}", GetUser());
+            Replace(url, "{token}", token);
 
-            std::string res = Curl::HTTPSGet(url, _sid, _token);
+            std::string res = Curl::HTTPSGet(url, sid, token);
             logger_base.debug("%s", (const char*)url.c_str());
             logger_base.debug("%s", (const char*)res.c_str());
 
@@ -77,6 +80,8 @@ class Twilio : public SMSService
             }
             else
             {
+                Retrieved();
+
                 wxJSONValue defaultValue = wxString("");
                 wxJSONValue msgs = root.Get("messages", defaultValue);
 
@@ -96,7 +101,7 @@ class Twilio : public SMSService
                             msg._from = m.Get("from", defaultValue).AsString().ToStdString();
                             msg._rawMessage = m.Get("body", defaultValue).AsString().ToStdString();
 
-                            if (AddMessage(msg, options))
+                            if (AddMessage(msg))
                             {
                                 added = true;
                             }

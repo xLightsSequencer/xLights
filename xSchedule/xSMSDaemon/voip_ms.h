@@ -3,7 +3,6 @@
 
 #include <string>
 #include <vector>
-#include <locale>
 
 #include "Curl.h"
 
@@ -20,21 +19,21 @@ class Voip_ms : public SMSService
 
     public:
 
-        Voip_ms() : SMSService() {}
+        Voip_ms(const SMSDaemonOptions& options) : SMSService(options) {}
 
-        virtual bool SendSMS(const std::string& number, const std::string& message) const override
+        virtual bool SendSMS(const std::string& number, const std::string& message) override
 		{
             if (number == "TEST") return false;
 
             static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
             std::string url = VOIP_MS_API_URL;
-            Replace(url, "{sid}", _sid);
-            Replace(url, "{user}", _user);
-            Replace(url, "{token}", _token);
+            Replace(url, "{sid}", GetSID());
+            Replace(url, "{user}", GetUser());
+            Replace(url, "{token}", GetToken());
             url += "sendSMS";
 
             std::vector<Curl::Var> vars;
-            vars.push_back(Curl::Var("did", _myNumber));
+            vars.push_back(Curl::Var("did", GetPhone()));
             vars.push_back(Curl::Var("dst", number));
             vars.push_back(Curl::Var("message", message));
 
@@ -45,16 +44,16 @@ class Voip_ms : public SMSService
 		}
 
         virtual std::string GetServiceName() const override { return "Voip.ms"; }
-        virtual bool RetrieveMessages(const SMSDaemonOptions& options) override
+        virtual bool RetrieveMessages() override
         {
             static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
             bool added = false;
 
             std::string url = VOIP_MS_API_URL;
-            Replace(url, "{sid}", _sid);
-            Replace(url, "{user}", _user);
-            Replace(url, "{token}", _token);
+            Replace(url, "{sid}", GetSID());
+            Replace(url, "{user}", GetUser());
+            Replace(url, "{token}", GetToken());
             url += "getSMS";
 
             std::vector<Curl::Var> vars;
@@ -87,6 +86,8 @@ class Voip_ms : public SMSService
                 wxJSONValue defaultValue = wxString("");
                 if (root.Get("status", defaultValue).AsString() == "success")
                 {
+                    Retrieved();
+
                     wxJSONValue msgs = root.Get("sms", defaultValue);
 
                     if (msgs.IsArray())
@@ -105,7 +106,7 @@ class Voip_ms : public SMSService
                                 msg._from = m.Get("contact", defaultValue).AsString().ToStdString();
                                 msg._rawMessage = m.Get("message", defaultValue).AsString().ToStdString();
 
-                                if (AddMessage(msg, options))
+                                if (AddMessage(msg))
                                 {
                                     added = true;
                                 }
