@@ -27,6 +27,8 @@ ZCPPOutput::ZCPPOutput(wxXmlNode* node, std::string showdir) : IPOutput(node)
     _vendor = wxAtoi(node->GetAttribute("Vendor", "65535"));
     _model = wxAtoi(node->GetAttribute("Model", "65535"));
     _sendConfiguration = node->GetAttribute("SendConfig", "TRUE") != "FALSE";
+    _supportsVirtualStrings = node->GetAttribute("SupportsVirtualStrings", "FALSE") == "TRUE";
+    DeserialiseProtocols(node->GetAttribute("Protocols", ""));
 
     wxString fileName = GetIP();
     fileName.Replace(".", "_");
@@ -114,6 +116,27 @@ ZCPPOutput::ZCPPOutput(wxXmlNode* node, std::string showdir) : IPOutput(node)
     }
 }
 
+void ZCPPOutput::DeserialiseProtocols(const std::string& protocols)
+{
+    auto ps = wxSplit(protocols, '|');
+
+    for (auto it : ps)
+    {
+        AddProtocol(it);
+    }
+}
+
+std::string ZCPPOutput::SerialiseProtocols()
+{
+    std::string res;
+    for (auto it : _protocols)
+    {
+        if (res != "") res += "|";
+        res += it;
+    }
+    return res;
+}
+
 ZCPPOutput::ZCPPOutput() : IPOutput()
 {
     memset(_modelData, 0x00, sizeof(_modelData));
@@ -123,6 +146,7 @@ ZCPPOutput::ZCPPOutput() : IPOutput()
     _universe = -1;
     _sequenceNum = 0;
     _sendConfiguration = true;
+    _supportsVirtualStrings = false;
     _datagram = nullptr;
     _vendor = -1;
     _autoSize = true;
@@ -130,6 +154,78 @@ ZCPPOutput::ZCPPOutput() : IPOutput()
     _data = (wxByte*)malloc(_channels);
     memset(_data, 0, _channels);
     memset(_packet, 0, sizeof(_packet));
+}
+
+int ZCPPOutput::EncodeProtocol(const std::string& protocol)
+{
+    auto p = wxString(protocol).Lower();
+    if (p == "ws2811") return 0x00;
+    if (p == "ws2801") return 0x01;
+    if (p == "tm18xx") return 0x02;
+    if (p == "lx1203") return 0x03;
+    if (p == "tls3001") return 0x04;
+    if (p == "lpd6803") return 0x05;
+    if (p == "gece") return 0x06;
+    if (p == "sm16716") return 0x07;
+    if (p == "mb16020") return 0x08;
+    if (p == "my9231") return 0x09;
+    if (p == "apa102") return 0x0a;
+    if (p == "my9221") return 0x0b;
+    if (p == "sk6812") return 0x0c;
+    if (p == "ucs1903") return 0x0d;
+
+    return 0xFE;
+}
+
+std::string ZCPPOutput::DecodeProtocol(int protocol)
+{
+    switch(protocol)
+    {
+    case 0x00:
+        return "ws2811";
+        break;
+    case 0x01:
+        return "ws2801";
+        break;
+    case 0x02:
+        return "tm18xx";
+        break;
+    case 0x03:
+        return "lx1203";
+        break;
+    case 0x04:
+        return "tls3001";
+        break;
+    case 0x05:
+        return "lpd6803";
+        break;
+    case 0x06:
+        return "gece";
+        break;
+    case 0x07:
+        return "sm16716";
+        break;
+    case 0x08:
+        return "mb16020";
+        break;
+    case 0x09:
+        return "my9231";
+        break;
+    case 0x0a:
+        return "apa102";
+        break;
+    case 0x0b:
+        return "my9221";
+        break;
+    case 0x0c:
+        return "sk6812";
+        break;
+    case 0x0d:
+        return "ucs1903";
+        break;
+    default:
+        return "unknown";
+    }
 }
 
 ZCPPOutput::~ZCPPOutput()
@@ -257,6 +353,8 @@ wxXmlNode* ZCPPOutput::Save()
     node->AddAttribute("Vendor", wxString::Format("%d", _vendor));
     node->AddAttribute("Model", wxString::Format("%d", _model));
     if (!_sendConfiguration) node->AddAttribute("SendConfiguration", "FALSE");
+    if (_supportsVirtualStrings)node->AddAttribute("SupportsVirtualStrings", "TRUE");
+    node->AddAttribute("Protocols", SerialiseProtocols());
     IPOutput::Save(node);
 
     return node;
@@ -463,6 +561,14 @@ std::list<Output*> ZCPPOutput::Discover(OutputManager* outputManager)
                                 output = nullptr;
                                 break;
                             }
+                        }
+
+                        bool supportsVirtualStrings = buffer[115] & 0x08;
+                        output->SetSupportsVirtualStrings(supportsVirtualStrings);
+                        int i = 90;
+                        while (i <= 109 && buffer[i] != 0xFF)
+                        {
+                            output->AddProtocol(DecodeProtocol(buffer[i]));
                         }
 
                         if (buffer[115] & 0x04)

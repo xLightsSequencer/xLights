@@ -29,12 +29,14 @@ public:
     wxButton* Button_Cancel;
     wxButton* Button_Ok;
     wxCheckBox* CheckBoxAutoSizeOutput;
+    wxCheckBox* CheckBox_SupportVirtualStrings;
     wxCheckBox* CheckBox_SuppressDuplicates;
     wxSpinCtrl* SpinCtrl_Channels;
     wxStaticText* StaticText1;
     wxStaticText* StaticText2;
     wxStaticText* StaticText3;
     wxStaticText* StaticText4;
+    wxStaticText* StaticText5;
     wxStaticText* StaticText8;
     wxStaticText* StaticText9;
     wxTextCtrl* TextCtrlIpAddr;
@@ -55,6 +57,8 @@ protected:
     static const long ID_CHECKBOX2;
     static const long ID_STATICTEXT2;
     static const long ID_CHECKBOX1;
+    static const long ID_STATICTEXT5;
+    static const long ID_CHECKBOX3;
     static const long ID_BUTTON1;
     static const long ID_BUTTON2;
     //*)

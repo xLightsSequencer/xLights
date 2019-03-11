@@ -18,7 +18,6 @@
 #define ZCPP_MODELDATASIZE (40 + 10 * 100)
 #define ZCPP_MULTICAST_TO "224.0.30.5"
 #define ZCPP_EXTRACONFIG_PACKET_SIZE ZCPP_PACKET_LEN
-
 #pragma endregion ZCPP Constants
 
 class ZCPPOutput : public IPOutput
@@ -35,10 +34,14 @@ class ZCPPOutput : public IPOutput
     int _model;
     long _usedChannels;
     bool _sendConfiguration;
+    bool _supportsVirtualStrings;
     std::list<wxByte*> _extraConfig;
+    std::list<std::string> _protocols;
     #pragma endregion Member Variables
 
     void ExtractUsedChannelsFromModelData();
+    void DeserialiseProtocols(const std::string& protocols);
+    std::string SerialiseProtocols();
 
 public:
 
@@ -52,6 +55,8 @@ public:
     static void SendSync(int syncUniverse);
     static std::list<Output*> Discover(OutputManager* outputManager);
     static void InitialiseExtraConfigPacket(wxByte* buffer, int seq, std::string userControllerId);
+    static std::string DecodeProtocol(int protocol);
+    static int EncodeProtocol(const std::string& protocol);
     #pragma endregion Static Functions
 
     #pragma region Getters and Setters
@@ -66,10 +71,23 @@ public:
     void SetId(int id) { _universe = id; _dirty = true; }
     void SetSendConfiguration(bool send) { if (_sendConfiguration != send) { _sendConfiguration = send; _dirty = true; } }
     bool IsSendConfiguration() const { return _sendConfiguration; }
+    void SetSupportsVirtualStrings(bool supportsVirtualStrings) { if (_supportsVirtualStrings != supportsVirtualStrings) { _supportsVirtualStrings = supportsVirtualStrings; _dirty = true; } }
+    bool IsSupportsVirtualStrings() const { return _supportsVirtualStrings; }
     void SetVendor(int vendor) { _vendor = vendor; _dirty = true; }
     void SetModel(int model) { _model = model; _dirty = true; }
     int GetVendor() const { return _vendor; }
     int GetModel() const { return _model; }
+    void AddProtocol(const std::string& protocol)
+    {
+        if (!SupportsProtocol(protocol))
+        {
+            _protocols.push_back(wxString(protocol).Lower().ToStdString());
+        }
+    }
+    bool SupportsProtocol(const std::string& protocol)
+    {
+        return std::find(_protocols.begin(), _protocols.end(), wxString(protocol).Lower().ToStdString()) != _protocols.end();
+    }
     bool SetModelData(unsigned char* buffer, size_t bufsize, std::list<wxByte*> extraConfig, std::string showDir);
     virtual bool IsLookedUpByControllerName() const override { return true; }
     virtual std::string GetUniverseString() const override { return ""; }
@@ -101,5 +119,4 @@ public:
 #endif
     #pragma endregion UI
 };
-
 #endif
