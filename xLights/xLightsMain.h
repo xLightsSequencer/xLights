@@ -1131,9 +1131,10 @@ public:
     void UploadPixlite16Output();
     void UploadFPPStringOuputs(const std::string &controllers);
 	void PingController(Output* e);
-    void SetModelData(ZCPPOutput* zcpp, ModelManager* modelManager, OutputManager* outputManager, int modelsChangeCount, std::string showDir);
-    void SetZCPPPort(unsigned char* current, UDControllerPort* port, long baseStart);
-	void UploadEasyLightsOutput();
+    void SetModelData(ZCPPOutput* zcpp, ModelManager* modelManager, OutputManager* outputManager, std::string showDir);
+    int SetZCPPPort(unsigned char* current, UDControllerPort* port, int portNum, int virtualString, long baseStart, bool isSerial);
+    void SetZCPPExtraConfig(std::list<wxByte*>& extraConfig, int& extraConfigPos, int portNum, int virtualStringNum, const std::string& name, int& extraConfigPorts, ZCPPOutput* zcpp);
+    void UploadEasyLightsOutput();
 
     void DeleteSelectedNetworks();
     void ActivateSelectedNetworks(bool active);

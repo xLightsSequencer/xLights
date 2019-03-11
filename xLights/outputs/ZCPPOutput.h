@@ -15,7 +15,9 @@
 #define ZCPP_SYNCPACKET_LEN 7
 #define ZCPP_PORT 30005
 #define ZCPP_MAXCHANNELS (16*1024)
-#define ZCPP_MODELDATASIZE (40 + 10 * 100)
+#define ZCPP_MAXSTRINGSPERMODELPACKET 110
+#define ZCPP_BYTESPERSTRING 13
+#define ZCPP_MODELDATASIZE (40 + ZCPP_BYTESPERSTRING * ZCPP_MAXSTRINGSPERMODELPACKET)
 #define ZCPP_MULTICAST_TO "224.0.30.5"
 #define ZCPP_EXTRACONFIG_PACKET_SIZE ZCPP_PACKET_LEN
 #pragma endregion ZCPP Constants
@@ -57,6 +59,7 @@ public:
     static void InitialiseExtraConfigPacket(wxByte* buffer, int seq, std::string userControllerId);
     static std::string DecodeProtocol(int protocol);
     static int EncodeProtocol(const std::string& protocol);
+    static int EncodeColourOrder(const std::string& colourOrder);
     #pragma endregion Static Functions
 
     #pragma region Getters and Setters

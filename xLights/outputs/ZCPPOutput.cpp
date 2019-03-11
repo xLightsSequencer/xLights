@@ -116,27 +116,6 @@ ZCPPOutput::ZCPPOutput(wxXmlNode* node, std::string showdir) : IPOutput(node)
     }
 }
 
-void ZCPPOutput::DeserialiseProtocols(const std::string& protocols)
-{
-    auto ps = wxSplit(protocols, '|');
-
-    for (auto it : ps)
-    {
-        AddProtocol(it);
-    }
-}
-
-std::string ZCPPOutput::SerialiseProtocols()
-{
-    std::string res;
-    for (auto it : _protocols)
-    {
-        if (res != "") res += "|";
-        res += it;
-    }
-    return res;
-}
-
 ZCPPOutput::ZCPPOutput() : IPOutput()
 {
     memset(_modelData, 0x00, sizeof(_modelData));
@@ -156,78 +135,6 @@ ZCPPOutput::ZCPPOutput() : IPOutput()
     memset(_packet, 0, sizeof(_packet));
 }
 
-int ZCPPOutput::EncodeProtocol(const std::string& protocol)
-{
-    auto p = wxString(protocol).Lower();
-    if (p == "ws2811") return 0x00;
-    if (p == "ws2801") return 0x01;
-    if (p == "tm18xx") return 0x02;
-    if (p == "lx1203") return 0x03;
-    if (p == "tls3001") return 0x04;
-    if (p == "lpd6803") return 0x05;
-    if (p == "gece") return 0x06;
-    if (p == "sm16716") return 0x07;
-    if (p == "mb16020") return 0x08;
-    if (p == "my9231") return 0x09;
-    if (p == "apa102") return 0x0a;
-    if (p == "my9221") return 0x0b;
-    if (p == "sk6812") return 0x0c;
-    if (p == "ucs1903") return 0x0d;
-
-    return 0xFE;
-}
-
-std::string ZCPPOutput::DecodeProtocol(int protocol)
-{
-    switch(protocol)
-    {
-    case 0x00:
-        return "ws2811";
-        break;
-    case 0x01:
-        return "ws2801";
-        break;
-    case 0x02:
-        return "tm18xx";
-        break;
-    case 0x03:
-        return "lx1203";
-        break;
-    case 0x04:
-        return "tls3001";
-        break;
-    case 0x05:
-        return "lpd6803";
-        break;
-    case 0x06:
-        return "gece";
-        break;
-    case 0x07:
-        return "sm16716";
-        break;
-    case 0x08:
-        return "mb16020";
-        break;
-    case 0x09:
-        return "my9231";
-        break;
-    case 0x0a:
-        return "apa102";
-        break;
-    case 0x0b:
-        return "my9221";
-        break;
-    case 0x0c:
-        return "sk6812";
-        break;
-    case 0x0d:
-        return "ucs1903";
-        break;
-    default:
-        return "unknown";
-    }
-}
-
 ZCPPOutput::~ZCPPOutput()
 {
     if (_datagram != nullptr) delete _datagram;
@@ -242,17 +149,16 @@ ZCPPOutput::~ZCPPOutput()
 
 void ZCPPOutput::ExtractUsedChannelsFromModelData()
 {
-    int ports = _modelData[38];
-
+    int ports = _modelData[38] & 0x7F;
     _usedChannels = 1;
     for (int i = 0; i < ports; i++)
     {
-        int start = (((int)_modelData[41 + i * 10]) << 24) +
-            (((int)_modelData[42 + i * 10]) << 16) +
-            (((int)_modelData[43 + i * 10]) << 8) +
-            (((int)_modelData[44 + i * 10]));
-        int len = (((int)_modelData[45 + i * 10]) << 8) +
-            (((int)_modelData[46 + i * 10]));
+        int start = (((int)_modelData[42 + i * ZCPP_BYTESPERSTRING]) << 24) +
+            (((int)_modelData[43 + i * ZCPP_BYTESPERSTRING]) << 16) +
+            (((int)_modelData[44 + i * ZCPP_BYTESPERSTRING]) << 8) +
+            (((int)_modelData[45 + i * ZCPP_BYTESPERSTRING]));
+        int len = (((int)_modelData[46 + i * ZCPP_BYTESPERSTRING]) << 8) +
+            (((int)_modelData[47 + i * ZCPP_BYTESPERSTRING]));
         if (start + len - 1 > _usedChannels)
         {
             _usedChannels = start + len;
@@ -345,6 +251,28 @@ bool ZCPPOutput::SetModelData(unsigned char* buffer, size_t bufsize, std::list<w
     ExtractUsedChannelsFromModelData();
 
     return true;
+}
+
+
+void ZCPPOutput::DeserialiseProtocols(const std::string& protocols)
+{
+    auto ps = wxSplit(protocols, '|');
+
+    for (auto it : ps)
+    {
+        AddProtocol(it);
+    }
+}
+
+std::string ZCPPOutput::SerialiseProtocols()
+{
+    std::string res;
+    for (auto it : _protocols)
+    {
+        if (res != "") res += "|";
+        res += it;
+    }
+    return res;
 }
 
 wxXmlNode* ZCPPOutput::Save()
@@ -540,14 +468,19 @@ std::list<Output*> ZCPPOutput::Discover(OutputManager* outputManager)
                         logger_base.debug(" Valid response.");
 
                         long channels = ((long)buffer[66] << 24) + ((long)buffer[67] << 16) + ((long)buffer[68] << 8) + (long)buffer[69];
+                        logger_base.debug("   Channels %ld", channels);
                         ZCPPOutput* output = new ZCPPOutput();
                         output->SetDescription(std::string((char*)&buffer[31]));
+                        logger_base.debug("   Description %s", (const char *)output->GetDescription().c_str());
                         auto ip = wxString::Format("%d.%d.%d.%d", (int)buffer[110], (int)buffer[111], (int)buffer[112], (int)buffer[113]);
                         output->SetIP(ip.ToStdString());
+                        logger_base.debug("   IP %s", (const char *)ip.c_str());
                         int vendor = ((int)buffer[6] << 8) + buffer[7];
                         output->SetVendor(vendor);
+                        logger_base.debug("   Vendor %d", vendor);
                         int model = ((int)buffer[8] << 8) + buffer[9];
                         output->SetModel(model);
+                        logger_base.debug("   Model %d", model);
 
                         // now search for it in outputManager
                         auto outputs = outputManager->GetOutputs();
@@ -563,12 +496,16 @@ std::list<Output*> ZCPPOutput::Discover(OutputManager* outputManager)
                             }
                         }
 
+                        logger_base.info("ZCPP Discovery found a new controller %s.", (const char*)output->GetIP().c_str());
                         bool supportsVirtualStrings = buffer[115] & 0x08;
                         output->SetSupportsVirtualStrings(supportsVirtualStrings);
+                        logger_base.debug("   Supports Virtual Strings %d", supportsVirtualStrings);
+
                         int i = 90;
                         while (i <= 109 && buffer[i] != 0xFF)
                         {
                             output->AddProtocol(DecodeProtocol(buffer[i]));
+                            logger_base.debug("   Supports Protocol %s", (const char *)DecodeProtocol(buffer[i]).c_str());
                         }
 
                         if (buffer[115] & 0x04)
@@ -608,6 +545,93 @@ std::list<Output*> ZCPPOutput::Discover(OutputManager* outputManager)
     logger_base.info("ZCPP Discovery Finished.");
 
     return res;
+}
+
+int ZCPPOutput::EncodeColourOrder(const std::string& colourOrder)
+{
+    if (colourOrder == "RGB") return 0;
+    if (colourOrder == "RBG") return 1;
+    if (colourOrder == "GRB") return 2;
+    if (colourOrder == "GBR") return 3;
+    if (colourOrder == "BRG") return 4;
+    if (colourOrder == "BGR") return 5;
+    return 0;
+}
+
+int ZCPPOutput::EncodeProtocol(const std::string& protocol)
+{
+    auto p = wxString(protocol).Lower();
+    if (p == "ws2811") return 0x00;
+    if (p == "gece") return 0x01;
+    if (p == "dmx") return 0x02;
+    if (p == "lx1203") return 0x03;
+    if (p == "tls3001") return 0x04;
+    if (p == "lpd6803") return 0x05;
+    if (p == "ws2801") return 0x06;
+    if (p == "sm16716") return 0x07;
+    if (p == "mb16020") return 0x08;
+    if (p == "my9231") return 0x09;
+    if (p == "apa102") return 0x0a;
+    if (p == "my9221") return 0x0b;
+    if (p == "sk6812") return 0x0c;
+    if (p == "ucs1903") return 0x0d;
+    if (p == "tm18xx") return 0x0e;
+
+    return 0xFE;
+}
+
+std::string ZCPPOutput::DecodeProtocol(int protocol)
+{
+    switch (protocol)
+    {
+    case 0x00:
+        return "ws2811";
+        break;
+    case 0x01:
+        return "gece";
+        break;
+    case 0x02:
+        return "dmx";
+        break;
+    case 0x03:
+        return "lx1203";
+        break;
+    case 0x04:
+        return "tls3001";
+        break;
+    case 0x05:
+        return "lpd6803";
+        break;
+    case 0x06:
+        return "ws2801";
+        break;
+    case 0x07:
+        return "sm16716";
+        break;
+    case 0x08:
+        return "mb16020";
+        break;
+    case 0x09:
+        return "my9231";
+        break;
+    case 0x0a:
+        return "apa102";
+        break;
+    case 0x0b:
+        return "my9221";
+        break;
+    case 0x0c:
+        return "sk6812";
+        break;
+    case 0x0d:
+        return "ucs1903";
+        break;
+    case 0x0e:
+        return "tm18xx";
+        break;
+    default:
+        return "unknown";
+    }
 }
 #pragma endregion Static Functions
 

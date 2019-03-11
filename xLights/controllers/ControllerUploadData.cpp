@@ -125,21 +125,15 @@ UDController::~UDController()
 
 UDControllerPort* UDController::GetControllerPixelPort(int port)
 {
-    bool found = false;
     for (auto it = _pixelPorts.begin(); it != _pixelPorts.end(); ++it)
     {
         if (it->second->GetPort() == port)
         {
-            found = true;
-            break;
+            return it->second;
         }
     }
 
-    if (!found)
-    {
-        _pixelPorts[port] = new UDControllerPort(port);
-    }
-
+    _pixelPorts[port] = new UDControllerPort(port);
     return _pixelPorts[port];
 }
 
