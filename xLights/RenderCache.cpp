@@ -37,16 +37,16 @@ private:
         wxArrayString files;
         dir.GetAllFiles(cacheFolder, &files, "*.cache");
 
-        for (auto it = files.begin(); it != files.end(); ++it)
+        for (auto it : files)
         {
-            auto rci = new RenderCacheItem(_cache, *it);
+            auto rci = new RenderCacheItem(_cache, it);
             if (rci != nullptr && !rci->IsPurged())
             {
                 _cache->AddCacheItem(rci);
             }
             else
             {
-                logger_base.warn("Failed to load cache item %s.", (const char*)it->c_str());
+                logger_base.warn("Failed to load cache item %s.", (const char*)it.c_str());
             }
         }
 
@@ -151,6 +151,7 @@ void RenderCache::RemoveItem(RenderCacheItem *item) {
 
 bool RenderCache::IsEffectOkForCaching(Effect* effect) const
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (!IsEnabled()) return false;
 
     bool locked = false;
@@ -178,6 +179,16 @@ bool RenderCache::IsEffectOkForCaching(Effect* effect) const
     {
         return false;
     }
+
+    // last check for a fair bit of available memory
+    void* test = malloc(200 * 1024 * 1024);
+    if (test == nullptr)
+    {
+        logger_base.error("RenderCache::IsEffectOkForCaching failed memory available test. This is a bad sign. Rendering will be really slow.");
+        wxASSERT(false);
+        return false;
+    }
+    free(test);
 
     return true;
 }
@@ -493,9 +504,31 @@ void RenderCacheItem::AddFrame(RenderBuffer* buffer)
         return;
     }
 
+    if (_purged)
+    {
+        return;
+    }
+
+    // last check for a fair bit of available memory
+    void* test = malloc(200 * 1024 * 1024);
+    if (test == nullptr)
+    {
+        logger_base.error("RenderCacheItem::AddFrame failed memory available test. This is a bad sign. Rendering will be really slow.");
+        PurgeFrames();
+        wxASSERT(false);
+        return;
+    }
+    free(test);
+
     int frame = buffer->curPeriod - buffer->curEffStartPer;
 
     std::string mname = GetModelName(buffer);
+
+    if (mname == "")
+    {
+        logger_base.error("RenderCacheItem::AddFrame was passed a buffer to a model with no name");
+        return;
+    }
 
     if (_frameSize.find(mname) == _frameSize.end())
     {
@@ -506,6 +539,7 @@ void RenderCacheItem::AddFrame(RenderBuffer* buffer)
         if (_frameSize[mname] != sizeof(xlColor) * buffer->pixels.size())
         {
             // the buffer size has changed ... we dont support this.
+            logger_base.warn("RenderCacheItem::AddFrame buffer size changed ... we dont support this.");
             return;
         }
     }
@@ -522,6 +556,13 @@ void RenderCacheItem::AddFrame(RenderBuffer* buffer)
     }
 
     unsigned char* frameBuffer = (unsigned char *)malloc(_frameSize.at(mname));
+    if (frameBuffer == nullptr)
+    {
+        logger_base.warn("RenderCacheItem::AddFrame failed to allocate frameBuffer.");
+        PurgeFrames();
+        wxASSERT(false);
+        return;
+    }
     memcpy(frameBuffer, &buffer->pixels[0], _frameSize.at(mname));
 
     if (_frames.at(mname)[frame] != nullptr) {
@@ -537,7 +578,11 @@ void RenderCacheItem::AddFrame(RenderBuffer* buffer)
         // if multi models in this cache then only call save when none of them have null pointers at the end
         for (auto itm : _frames)
         {
-            if (itm.second.back() == nullptr) return;
+            if (itm.second.back() == nullptr)
+            {
+                logger_base.warn("RenderCacheItem::AddFrame save abandoned due to null frame.");
+                return;
+            }
         }
 
         Save();
@@ -706,6 +751,14 @@ RenderCacheItem::RenderCacheItem(RenderCache* renderCache, const std::string& fi
         {
             for (int i = 0; i < itm->second.size(); i++) {
                 unsigned char* frameBuffer = (unsigned char *)malloc(_frameSize.at(itm->first));
+
+                if (frameBuffer == nullptr)
+                {
+                    file.Close();
+                    PurgeFrames();
+                    return;
+                }
+
                 file.Read(frameBuffer, _frameSize.at(itm->first));
                 itm->second[i] = frameBuffer;
             }

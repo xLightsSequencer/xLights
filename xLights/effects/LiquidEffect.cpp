@@ -14,6 +14,7 @@
 #include "../../include/liquid-32.xpm"
 #include "../../include/liquid-48.xpm"
 #include "../../include/liquid-64.xpm"
+#include <log4cpp/Category.hh>
 
 //#define LE_INTERPOLATE
 
@@ -278,12 +279,12 @@ void LiquidEffect::Draw(RenderBuffer& buffer, b2ParticleSystem* ps, const xlColo
     free(count);
 #else
     int32 particleCount = ps->GetParticleCount();
-    if (particleCount)
+    if (particleCount > 0)
     {
         const b2Vec2* positionBuffer = ps->GetPositionBuffer();
         const b2ParticleColor* colorBuffer = ps->GetColorBuffer();
 
-        for (int i = 0; i < ps->GetParticleCount(); ++i)
+        for (int i = 0; i < particleCount; ++i)
         {
             int x = positionBuffer[i].x;
             int y = positionBuffer[i].y;
@@ -561,6 +562,8 @@ void LiquidEffect::Render(RenderBuffer &buffer,
     bool enabled4, int direction4, int x4, int y4, int velocity4, int flow4, int sourceSize4, bool flowMusic4,
     const std::string& particleType, int despeckle)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     bool enabled[4];
     enabled[0] = true;
     enabled[1] = enabled2;
@@ -617,6 +620,24 @@ void LiquidEffect::Render(RenderBuffer &buffer,
         }
     }
 
+    // exit if no world
+    if (_world == nullptr) return;
+
+    // test memory availability by allocating 200MB ... if it fails then treat this as a low memory problem
+    void* test = malloc(200 * 1024 * 1024);
+    if (test == nullptr)
+    {
+        logger_base.error("LiquidEffect Render abandoned due to insufficient memory. This is not good. Rendering will be slow.");
+
+        // delete our world to get all our memory back
+        delete _world;
+        _world = nullptr;
+
+        wxASSERT(false);
+        return;
+    }
+    free(test);
+
     Step(_world, buffer, enabled, lifetime, particleType, mixcolors,
         x1, y1, direction1, velocity1, flow1, sourceSize1, flowMusic1,
         x2, y2, direction2, velocity2, flow2, sourceSize2, flowMusic2,
@@ -631,5 +652,12 @@ void LiquidEffect::Render(RenderBuffer &buffer,
          xlColor color;
         buffer.palette.GetColor(0, color);
         Draw(buffer, ps, color, holdcolor | mixcolors, despeckle);
+    }
+
+    // because of memory usage delete our world when rendered the last frame
+    if (buffer.curPeriod == buffer.curEffEndPer)
+    {
+        delete _world;
+        _world = nullptr;
     }
 }

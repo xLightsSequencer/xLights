@@ -186,6 +186,7 @@ Output* Output::Create(wxXmlNode* node)
     }
 
     logger_base.warn("Unknown network type %s ignored.", (const char *)type.c_str());
+    wxASSERT(false);
     return nullptr;
 }
 #pragma endregion Static Functions
