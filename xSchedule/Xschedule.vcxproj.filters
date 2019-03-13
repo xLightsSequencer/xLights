@@ -486,6 +486,12 @@
     <ClCompile Include="SyncFPP.cpp" />
     <ClCompile Include="SyncMIDI.cpp" />
     <ClCompile Include="RemoteModeConfigDialog.cpp" />
+    <ClCompile Include="PlayList\PlayListItemMIDIPanel.cpp">
+      <Filter>PlayList</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayList\PlayListItemMIDI.cpp">
+      <Filter>PlayList</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\xLights\AudioManager.h" />
@@ -949,6 +955,12 @@
     <ClInclude Include="SyncMIDI.h" />
     <ClInclude Include="SyncArtNet.h" />
     <ClInclude Include="RemoteModeConfigDialog.h" />
+    <ClInclude Include="PlayList\PlayListItemMIDIPanel.h">
+      <Filter>PlayList</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayList\PlayListItemMIDI.h">
+      <Filter>PlayList</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

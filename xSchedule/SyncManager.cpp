@@ -63,7 +63,10 @@ void SyncManager::SetRemote(REMOTEMODE rm)
 
 void SyncManager::ClearRemote()
 {
-    _scheduleManager->GetListenerManager()->SetRemoteNone();
+    if (_scheduleManager->GetListenerManager() != nullptr)
+    {
+        _scheduleManager->GetListenerManager()->SetRemoteNone();
+    }
     _remote = nullptr;
 }
 

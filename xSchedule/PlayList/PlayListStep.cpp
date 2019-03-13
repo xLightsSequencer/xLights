@@ -23,6 +23,7 @@
 #include "PlayListItemRunProcess.h"
 #include "PlayListItemCURL.h"
 #include "PlayListItemSerial.h"
+#include "PlayListItemMIDI.h"
 #include "PlayListItemFPPEvent.h"
 #include "PlayListItemRunCommand.h"
 #include "PlayListItemOSC.h"
@@ -254,6 +255,10 @@ void PlayListStep::Load(OutputManager* outputManager, wxXmlNode* node)
         else if (n->GetName() == "PLISERIAL")
         {
             _items.push_back(new PlayListItemSerial(n));
+        }
+        else if (n->GetName() == "PLIMIDI")
+        {
+            _items.push_back(new PlayListItemMIDI(n));
         }
         else if (n->GetName() == "PLIFPPEVENT")
         {

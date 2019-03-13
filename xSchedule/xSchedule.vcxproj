@@ -289,6 +289,8 @@
     <ClCompile Include="PlayList\PlayListItemJukeboxPanel.cpp" />
     <ClCompile Include="PlayList\PlayListItemMicrophone.cpp" />
     <ClCompile Include="PlayList\PlayListItemMicrophonePanel.cpp" />
+    <ClCompile Include="PlayList\PlayListItemMIDI.cpp" />
+    <ClCompile Include="PlayList\PlayListItemMIDIPanel.cpp" />
     <ClCompile Include="PlayList\PlayListItemOSC.cpp" />
     <ClCompile Include="PlayList\PlayListItemOSCPanel.cpp" />
     <ClCompile Include="PlayList\PlayListItemProjector.cpp" />
@@ -491,6 +493,8 @@
     <ClInclude Include="PlayList\PlayListItemJukeboxPanel.h" />
     <ClInclude Include="PlayList\PlayListItemMicrophone.h" />
     <ClInclude Include="PlayList\PlayListItemMicrophonePanel.h" />
+    <ClInclude Include="PlayList\PlayListItemMIDI.h" />
+    <ClInclude Include="PlayList\PlayListItemMIDIPanel.h" />
     <ClInclude Include="PlayList\PlayListItemOSC.h" />
     <ClInclude Include="PlayList\PlayListItemOSCPanel.h" />
     <ClInclude Include="PlayList\PlayListItemProjector.h" />

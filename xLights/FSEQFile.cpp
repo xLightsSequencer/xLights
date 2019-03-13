@@ -625,7 +625,7 @@ public:
 
     virtual uint8_t getCompressionType() override { return 0;}
     virtual uint32_t computeMaxBlocks() override {return 0;}
-    virtual std::string GetType() const override { return _("No Compression"); }
+    virtual std::string GetType() const override { return "No Compression"; }
     virtual FrameData *getFrame(uint32_t frame) override {
         UncompressedFrameData *data = new UncompressedFrameData(frame, m_file->m_dataBlockSize, m_file->m_rangesToRead);
         uint64_t offset = m_file->getChannelCount();
@@ -773,7 +773,7 @@ public:
         }
     }
     virtual uint8_t getCompressionType() override { return 1;}
-    virtual std::string GetType() const override { return _("Compressed ZSTD"); }
+    virtual std::string GetType() const override { return "Compressed ZSTD"; }
 
     virtual FrameData *getFrame(uint32_t frame) override {
 
@@ -948,7 +948,7 @@ public:
         }
     }
     virtual uint8_t getCompressionType() override { return 2; }
-    virtual std::string GetType() const override { return _("Compressed ZLIB"); }
+    virtual std::string GetType() const override { return "Compressed ZLIB"; }
 
     virtual FrameData *getFrame(uint32_t frame) override {
         if (m_curBlock > 256 || (frame < m_file->m_frameOffsets[m_curBlock].first) || (frame >= m_file->m_frameOffsets[m_curBlock + 1].first)) {
