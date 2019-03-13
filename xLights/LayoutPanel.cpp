@@ -5610,7 +5610,8 @@ void LayoutPanel::OnSelectionChanged(wxTreeListEvent& event)
                     mSelectedGroup = nullptr;
                     ShowPropGrid(true);
                     SelectModel(model, false);
-                    SetToolTipForTreeList(TreeListViewModels, xlights->GetChannelToControllerMapping(model->GetNumberFromChannelString(model->ModelStartChannel)));
+                    SetToolTipForTreeList(TreeListViewModels, 
+                        xlights->GetChannelToControllerMapping(model->GetNumberFromChannelString(model->ModelStartChannel)) + "Nodes: " + wxString::Format("%d", (int)model->GetNodeCount()).ToStdString());
                 }
             } else {
                 mSelectedGroup = nullptr;
