@@ -65,6 +65,7 @@ public:
 	void SetCameraView(int camerax, int cameray, bool latch, bool reset = false);
 	void SetCameraPos(int camerax, int cameray, bool latch, bool reset = false);
     void SetZoomDelta(float delta);
+    float GetCameraZoomForHandles() const;
 
     void Render();
     void Render(const unsigned char *data, bool swapBuffers=true);

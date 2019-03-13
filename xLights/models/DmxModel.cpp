@@ -867,7 +867,6 @@ void DmxModel::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
 
 // display model using colors
 void DmxModel::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &sva, DrawGLUtils::xlAccumulator &tva, bool is_3d, const xlColor *c, bool allowSelected) {
-    float sx,sy,sz;
     int w, h;
     preview->GetVirtualCanvasSize(w, h);
 
@@ -875,9 +874,9 @@ void DmxModel::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumu
 
     tva.PreAlloc(maxVertexCount);
 
-    sx=0;
-    sy=0;
-    sz=0;
+    float sx = 0;
+    float sy = 0;
+    float sz = 0;
     GetModelScreenLocation().TranslatePoint(sx, sy, sz);
 
     GetModelScreenLocation().SetDefaultMatrices();
@@ -892,13 +891,12 @@ void DmxModel::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumu
     }
 
     if ((Selected || (Highlighted && is_3d)) && c != nullptr && allowSelected) {
-        GetModelScreenLocation().DrawHandles(sva);
+        GetModelScreenLocation().DrawHandles(sva, preview->GetCameraZoomForHandles());
     }
 }
 
 // display model using colors
 void DmxModel::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator &sva, DrawGLUtils::xl3Accumulator &tva, bool is_3d, const xlColor *c, bool allowSelected) {
-    float sx, sy, sz;
     int w, h;
     preview->GetVirtualCanvasSize(w, h);
 
@@ -906,9 +904,9 @@ void DmxModel::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accum
 
     tva.PreAlloc(maxVertexCount);
 
-    sx = 0;
-    sy = 0;
-    sz = 0;
+    float sx = 0;
+    float sy = 0;
+    float sz = 0;
     GetModelScreenLocation().TranslatePoint(sx, sy, sz);
 
     GetModelScreenLocation().SetDefaultMatrices();
@@ -925,7 +923,7 @@ void DmxModel::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accum
     }
 
     if ((Selected || (Highlighted && is_3d)) && c != nullptr && allowSelected) {
-        GetModelScreenLocation().DrawHandles(sva);
+        GetModelScreenLocation().DrawHandles(sva, preview->GetCameraZoomForHandles());
     }
 }
 
@@ -1322,7 +1320,6 @@ void DmxModel::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
         ApplyTransparency(blue, trans);
         ApplyTransparency(pink, trans);
         ApplyTransparency(turqoise, trans);
-        float offsetx = 0.0f;
         int stepy = (int)(radius * 0.15f);
         int gapy = (int)(radius * 0.1f);
         if( gapy < 1 ) gapy = 1;
@@ -1331,7 +1328,7 @@ void DmxModel::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
         for( int i = 1; i <= NodeCount; ++i ) {
             Nodes[i-1]->GetColor(proxy);
             float val = (float)proxy.red;
-            offsetx = (val / 255.0 * radius);
+            float offsetx = val / 255.0 * radius;
             if( i == pan_channel ) {
                 proxy = pink;
             } else if( i == tilt_channel ) {
