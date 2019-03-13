@@ -2293,7 +2293,7 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
                 glm::vec3 ray_origin;
                 glm::vec3 ray_direction;
                 GetMouseLocation(event.GetX(), event.GetY(), ray_origin, ray_direction);
-                selectedBaseObject->GetBaseObjectScreenLocation().CheckIfOverHandles3D(ray_origin, ray_direction, m_over_handle);
+                selectedBaseObject->GetBaseObjectScreenLocation().CheckIfOverHandles3D(ray_origin, ray_direction, m_over_handle, modelPreview->GetCameraZoomForHandles());
             }
             if (m_over_handle != -1) {
                 if ((m_over_handle & 0x2000) > 0) {
@@ -2959,7 +2959,7 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
                 glm::vec3 ray_direction;
                 GetMouseLocation(event.GetX(), event.GetY(), ray_origin, ray_direction);
                 // check for mouse over handle and if so highlight it
-                modelPreview->SetCursor(selectedBaseObject->GetBaseObjectScreenLocation().CheckIfOverHandles3D(ray_origin, ray_direction, m_over_handle));
+                modelPreview->SetCursor(selectedBaseObject->GetBaseObjectScreenLocation().CheckIfOverHandles3D(ray_origin, ray_direction, m_over_handle, modelPreview->GetCameraZoomForHandles()));
                 if (m_over_handle != over_handle) {
                     selectedBaseObject->GetBaseObjectScreenLocation().MouseOverHandle(m_over_handle);
                     over_handle = m_over_handle;
@@ -3498,7 +3498,7 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
         if( md == nullptr ) return;
         int handle = md->GetSelectedSegment();
         CreateUndoPoint("SingleModel", md->name, std::to_string(handle+0x8000));
-        md->InsertHandle(handle);
+        md->InsertHandle(handle, modelPreview->GetCameraZoomForHandles());
         md->UpdateXmlWithScale();
         md->InitModel();
         SetupPropGrid(md);

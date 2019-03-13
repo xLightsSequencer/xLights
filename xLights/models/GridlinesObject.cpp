@@ -190,8 +190,6 @@ void GridlinesObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &v
     GetObjectScreenLocation().UpdateBoundingBox(width, height);  // FIXME: Modify to only call this when position changes
 
     if ((Selected || Highlighted) && allowSelected) {
-        GetObjectScreenLocation().DrawHandles(va3);
+        GetObjectScreenLocation().DrawHandles(va3, preview->GetCameraZoomForHandles());
     }
-
 }
-

@@ -128,7 +128,7 @@ void PolyLineModel::SetStringStartChannels(bool zeroBased, int NumberOfStrings, 
     }
 }
 
-void PolyLineModel::InsertHandle(int after_handle) {
+void PolyLineModel::InsertHandle(int after_handle, float zoom) {
     if( polyLineSizes.size() > after_handle ) {
         for (int x = num_segments-1; x > after_handle; --x) {
             std::string val = ModelXml->GetAttribute(SegAttrName(x)).ToStdString();
@@ -150,7 +150,7 @@ void PolyLineModel::InsertHandle(int after_handle) {
         ModelXml->DeleteAttribute(SegAttrName(after_handle+1));
         ModelXml->AddAttribute(SegAttrName(after_handle+1), val);
     }
-    GetModelScreenLocation().InsertHandle(after_handle);
+    GetModelScreenLocation().InsertHandle(after_handle, zoom);
 }
 
 void PolyLineModel::DeleteHandle(int handle_) {
