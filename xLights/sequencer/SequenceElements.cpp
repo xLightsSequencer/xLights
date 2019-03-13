@@ -113,6 +113,7 @@ int SequenceElements::GetSequenceEnd() const
 
 EffectLayer* SequenceElements::GetEffectLayer(Row_Information_Struct *s) const
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (s == nullptr) {
         return nullptr;
     }
@@ -123,7 +124,6 @@ EffectLayer* SequenceElements::GetEffectLayer(Row_Information_Struct *s) const
     else if (s->nodeIndex == -1) {
         SubModelElement *se = dynamic_cast<SubModelElement*>(e);
         if (se == nullptr) {
-            static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
             logger_base.error("Expected a SubModelElment be found %d", e->GetType());
             return nullptr;
         }
@@ -219,6 +219,7 @@ static Element* CreateElement(SequenceElements *se, const std::string &name, con
 Element* SequenceElements::AddElement(const std::string &name, const std::string &type,
     bool visible, bool collapsed, bool active, bool selected)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (!ElementExists(name)) {
         Element *el = CreateElement(this, name, type, visible, collapsed, active, selected, xframe);
 
@@ -227,6 +228,7 @@ Element* SequenceElements::AddElement(const std::string &name, const std::string
         IncrementChangeCount(el);
         return el;
     }
+    logger_base.error("SequenceElements::AddElement %s failed.", (const char *)name.c_str());
     return nullptr;
 }
 
@@ -234,6 +236,7 @@ Element* SequenceElements::AddElement(int index, const std::string &name,
     const std::string &type,
     bool visible, bool collapsed, bool active, bool selected)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (!ElementExists(name) && index <= mAllViews[MASTER_VIEW].size())
     {
         Element *el = CreateElement(this, name, type, visible, collapsed, active, selected, xframe);
@@ -242,16 +245,21 @@ Element* SequenceElements::AddElement(int index, const std::string &name,
         IncrementChangeCount(el);
         return el;
     }
+    logger_base.error("SequenceElements::AddElement #2 %s failed.", (const char *)name.c_str());
     return nullptr;
 }
 
 size_t SequenceElements::GetElementCount(int view) const
 {
+    if (view >= mAllViews.size()) return 0;
+
     return mAllViews[view].size();
 }
 
 bool SequenceElements::ElementExists(const std::string &elementName, int view)
 {
+    if (view >= mAllViews.size()) return false;
+
     for (size_t i = 0; i < mAllViews[view].size(); i++)
     {
         if (mAllViews[view][i]->GetName() == elementName)
@@ -1182,6 +1190,14 @@ void addModelElement(ModelElement *elem, std::vector<Row_Information_Struct> &mR
                      int &rowIndex, xLightsFrame *xframe,
                      std::vector <Element*> &elements,
                      bool submodel) {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    if (elem == nullptr)
+    {
+        logger_base.error("addModelElement attempted to add null element.");
+        return;
+    }
+
     if(!elem->GetCollapsed())
     {
         for(int j =0; j<elem->GetEffectLayerCount();j++)
@@ -1211,6 +1227,7 @@ void addModelElement(ModelElement *elem, std::vector<Row_Information_Struct> &mR
     }
     Model *cls = xframe->GetModel(elem->GetModelName());
     if (cls == nullptr) {
+        logger_base.error("addModelElement model not found %s.", (const char *)elem->GetModelName().c_str());
         return;
     }
     elem->Init(*cls);

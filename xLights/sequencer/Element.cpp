@@ -534,13 +534,17 @@ void ModelElement::Init(Model &model) {
         //no strands for a whole house model
         return;
     }
-    for (auto sm = model.GetSubModels().begin(); sm != model.GetSubModels().end(); ++sm) {
+    for (auto sm : model.GetSubModels()) {
         bool found = false;
-        for (auto sm2 = mSubModels.begin(); sm2 != mSubModels.end(); ++sm2) {
-            found |= ((*sm2)->GetName() == (*sm)->Name());
+        for (auto sm2 : mSubModels) {
+            if (sm2->GetName() == sm->Name())
+            {
+                found = true;
+                break;
+            }
         }
         if (!found) {
-            mSubModels.push_back(new SubModelElement(this, (*sm)->Name()));
+            mSubModels.push_back(new SubModelElement(this, sm->Name()));
         }
     }
     int ns = model.GetNumStrands();

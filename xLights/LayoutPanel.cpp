@@ -2758,6 +2758,7 @@ void LayoutPanel::OnPreviewZoomGesture(wxZoomGestureEvent& event) {
     }
     m_last_mouse_x = (event.GetZoomFactor() * 1000);
 }
+
 void LayoutPanel::OnPreviewMagnify(wxMouseEvent& event) {
     if (event.GetWheelRotation() == 0 || event.GetMagnification() == 0.0f) {
         //magnification of 0 is sometimes generated for other gestures (pinch/zoom), ignore
