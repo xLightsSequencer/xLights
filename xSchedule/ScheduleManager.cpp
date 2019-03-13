@@ -1451,7 +1451,7 @@ int ScheduleManager::CheckSchedule()
                 it->GetPlayList()->IsSuspended() ? _("Suspended") :
                 _("Done");
             std::string suspend = it->GetPlayList()->IsSuspended() ? _("Suspended") : _("");
-            std::string stepname = step == nullptr ? _("") : step->GetNameNoTime();
+            std::string stepname = step == nullptr ? _("").ToStdString() : step->GetNameNoTime();
             std::string pos = std::string(step == nullptr ? _("") : FORMATTIME(step->GetPosition()));
             std::string len = std::string(step == nullptr ? _("") : FORMATTIME(step->GetLengthMS()));
 
