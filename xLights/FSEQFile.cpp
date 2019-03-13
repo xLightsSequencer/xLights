@@ -596,6 +596,7 @@ public:
     virtual uint32_t computeMaxBlocks() = 0;
     virtual void addFrame(uint32_t frame, const uint8_t *data) = 0;
     virtual void finalize() = 0;
+    virtual std::string GetType() const = 0;
 
     int seek(uint64_t location, int origin) {
         return m_file->seek(location, origin);
@@ -624,7 +625,7 @@ public:
 
     virtual uint8_t getCompressionType() override { return 0;}
     virtual uint32_t computeMaxBlocks() override {return 0;}
-
+    virtual std::string GetType() const override { return _("No Compression"); }
     virtual FrameData *getFrame(uint32_t frame) override {
         UncompressedFrameData *data = new UncompressedFrameData(frame, m_file->m_dataBlockSize, m_file->m_rangesToRead);
         uint64_t offset = m_file->getChannelCount();
@@ -772,8 +773,14 @@ public:
         }
     }
     virtual uint8_t getCompressionType() override { return 1;}
+    virtual std::string GetType() const override { return _("Compressed ZSTD"); }
 
     virtual FrameData *getFrame(uint32_t frame) override {
+
+        // I see crashes in this function ... I have not made changes but the code seems
+        // to assume a lot of integrity ... particularly in m_frameOffsets ... which is 
+        // fine when it works ... until it doesnt
+
         if (m_curBlock > 256 || (frame < m_file->m_frameOffsets[m_curBlock].first) || (frame >= m_file->m_frameOffsets[m_curBlock + 1].first)) {
             //frame is not in the current block
             m_curBlock = 0;
@@ -941,7 +948,7 @@ public:
         }
     }
     virtual uint8_t getCompressionType() override { return 2; }
-
+    virtual std::string GetType() const override { return _("Compressed ZLIB"); }
 
     virtual FrameData *getFrame(uint32_t frame) override {
         if (m_curBlock > 256 || (frame < m_file->m_frameOffsets[m_curBlock].first) || (frame >= m_file->m_frameOffsets[m_curBlock + 1].first)) {
@@ -1102,7 +1109,6 @@ public:
 };
 #endif
 
-
 void V2FSEQFile::createHandler() {
     switch (m_compressionType) {
     case CompressionType::none:
@@ -1123,7 +1129,9 @@ void V2FSEQFile::createHandler() {
 #endif
         break;
     }
+
     if (m_handler == nullptr) {
+        LogDebug(VB_SEQUENCE, "Creating a default none compression handler. %d", (int)m_compressionType);
         m_handler = new V2NoneCompressionHandler(this);
     }
 }
@@ -1366,7 +1374,16 @@ FrameData *V2FSEQFile::getFrame(uint32_t frame) {
         return nullptr;
     }
     if (m_handler != nullptr) {
-        return m_handler->getFrame(frame);
+        FrameData* fd = nullptr;
+        try
+        {
+            fd = m_handler->getFrame(frame);
+        }
+        catch(...)
+        {
+            LogErr(VB_SEQUENCE, "Error getting frame from handler %s.\n", m_handler->GetType());
+        }
+        return fd;
     }
     return nullptr;
 }
@@ -1394,4 +1411,3 @@ uint32_t V2FSEQFile::getMaxChannel() const {
     }
     return ret;
 }
-

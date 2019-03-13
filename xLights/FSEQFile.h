@@ -185,6 +185,4 @@ private:
     V2Handler *m_handler;
     friend class V2Handler;
 };
-
-
 #endif

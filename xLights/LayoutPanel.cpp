@@ -1868,10 +1868,10 @@ void LayoutPanel::SelectBaseObject(BaseObject *obj, bool highlight_tree)
 
 void LayoutPanel::SelectModel(const std::string & name, bool highlight_tree)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     Model *m = xlights->AllModels[name];
     if (m == nullptr)
     {
-        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         logger_base.warn("LayoutPanel:SelectModel Unable to select model '%s'.", (const char *)name.c_str());
     }
     SelectModel(m, highlight_tree);
@@ -1933,8 +1933,11 @@ void LayoutPanel::SelectModel(Model *m, bool highlight_tree) {
     }
 
     selectedBaseObject = m;
-    selectedBaseObject->GetBaseObjectScreenLocation().SetActiveHandle(CENTER_HANDLE);
-    selectionLatched = true;
+    if (selectedBaseObject != nullptr)
+    {
+        selectedBaseObject->GetBaseObjectScreenLocation().SetActiveHandle(CENTER_HANDLE);
+        selectionLatched = true;
+    }
 
     if (CheckBoxOverlap->GetValue()) {
         for ( wxTreeListItem item = TreeListViewModels->GetFirstItem();
