@@ -3562,10 +3562,13 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
     bool success = preview->StartDrawing(pointSize);
 
     if(success) {
-        xlColor color;
         int w, h;
-
         preview->GetSize(&w, &h);
+
+        float ml, mb;
+        GetMinScreenXY(ml, mb);
+        ml += GetModelScreenLocation().RenderWi / 2;
+        mb += GetModelScreenLocation().RenderHt / 2;
 
         float scaleX = float(w) * 0.95 / GetModelScreenLocation().RenderWi;
         float scaleY = float(h) * 0.95 / GetModelScreenLocation().RenderHt;
@@ -3623,6 +3626,7 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
                 }
             }
 
+            xlColor color;
             Nodes[n]->GetColor(color);
             if (Nodes[n]->model->modelDimmingCurve != nullptr) {
                 Nodes[n]->model->modelDimmingCurve->reverse(color);
@@ -3638,6 +3642,15 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
                 // draw node on screen
                 float sx = Nodes[n]->Coords[c].screenX;
                 float sy = Nodes[n]->Coords[c].screenY;
+
+                if (ml < 0)
+                {
+                    sx -= ml;
+                }
+                if (mb < 0)
+                {
+                    sy -= mb;
+                }
 
                 if (!GetModelScreenLocation().IsCenterBased()) {
                     sx -= GetModelScreenLocation().RenderWi / 2.0;
@@ -4180,4 +4193,25 @@ std::vector<std::string> Model::GetModelState() const
 void Model::SaveModelState( std::vector<std::string>& state )
 {
     modelState = state;
+}
+
+void Model::GetMinScreenXY(float& minx, float& miny) const
+{
+    if (Nodes.size() == 0)
+    {
+        minx = 0;
+        miny = 0;
+        return;
+    }
+
+    minx = 99999999;
+    miny = 99999999;
+    for (auto& it : Nodes)
+    {
+        for (auto it2 : it->Coords)
+        {
+            minx = std::min(minx, it2.screenX);
+            miny = std::min(miny, it2.screenY);
+        }
+    }
 }

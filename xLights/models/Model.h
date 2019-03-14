@@ -319,6 +319,7 @@ public:
     bool GetIsBtoT() const {return isBotToTop;}
     virtual int GetStrandLength(int strand) const;
 
+    void GetMinScreenXY(float& minx, float& miny) const;
     virtual int GetNumStrands() const;
     std::string GetStrandName(size_t x, bool def = false) const {
         if (x < strandNames.size()) {

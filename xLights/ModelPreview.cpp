@@ -183,6 +183,7 @@ void ModelPreview::mouseLeftWindow(wxMouseEvent& event) {
     event.ResumePropagation(1);
     event.Skip (); // continue the event
 }
+
 const std::vector<Model*> &ModelPreview::GetModels() {
     tmpModelList.clear();
     if (xlights) {
@@ -229,6 +230,7 @@ const std::vector<Model*> &ModelPreview::GetModels() {
     }
     return tmpModelList;
 }
+
 void ModelPreview::SetModel(const Model* model) {
     if (model) {
         this->xlights = model->GetModelManager().GetXLightsFrame();
