@@ -129,6 +129,7 @@ protected:
     virtual void SetMDepth(float d) = 0;
     virtual float GetMWidth() const = 0;
     virtual float GetMHeight() const = 0;
+    virtual float GetMDepth() const = 0;
 
     void SetRenderSize(float NewWi, float NewHt, float NewDp = 0.0f);
     bool IsLocked() const { return _locked; }
@@ -302,6 +303,7 @@ public:
     virtual void SetMDepth(float d) override;
     virtual float GetMWidth() const override;
     virtual float GetMHeight() const override;
+    virtual float GetMDepth() const override;
 
     int GetRotation() const {
         return rotatez;
@@ -382,6 +384,7 @@ public:
     virtual void SetMHeight(float h) override;
     virtual float GetMWidth() const override;
     virtual float GetMHeight() const override;
+    virtual float GetMDepth() const override;
     virtual void SetMDepth(float d) override;
 
     virtual float GetYShear() const {return 0.0;}
@@ -541,6 +544,7 @@ public:
     virtual void SetMDepth(float d) override;
     virtual float GetMWidth() const override;
     virtual float GetMHeight() const override;
+    virtual float GetMDepth() const override;
 
     virtual int GetDefaultHandle() override { return END_HANDLE; }
     virtual int GetDefaultTool() override { return TOOL_XY_TRANS; }

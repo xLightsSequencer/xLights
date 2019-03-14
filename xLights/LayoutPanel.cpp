@@ -789,7 +789,15 @@ void LayoutPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
                     xlights->MarkEffectsFileDirty(true);
                 }
                 else {
+                    selectedModel->SaveDisplayDimensions();
                     int i = selectedModel->OnPropertyGridChange(propertyEditor, event);
+                    if ((i & GRIDCHANGE_SUPPRESS_HOLDSIZE) == 0 &&
+                        (dynamic_cast<ModelWithScreenLocation<BoxedScreenLocation>*>(selectedModel) != nullptr ||
+                            dynamic_cast<ModelWithScreenLocation<ThreePointScreenLocation>*>(selectedModel) != nullptr))
+                    {
+                            // only restore if not suppressed and if it is a boxed screen location
+                            selectedModel->RestoreDisplayDimensions();
+                    }
                     if (i & GRIDCHANGE_REFRESH_DISPLAY) {
                         xlights->UpdatePreview();
                     }
@@ -840,7 +848,7 @@ void LayoutPanel::SetDisplay2DBoundingBox(bool bb)
 void LayoutPanel::SetDisplay2DCenter0(bool bb) {
     modelPreview->SetDisplay2DCenter0(bb);
 }
-
+                                            
 
 void LayoutPanel::OnPropertyGridChanging(wxPropertyGridEvent& event) {
     std::string name = event.GetPropertyName().ToStdString();

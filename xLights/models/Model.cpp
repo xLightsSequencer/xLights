@@ -4215,3 +4215,10 @@ void Model::GetMinScreenXY(float& minx, float& miny) const
         }
     }
 }
+
+void Model::RestoreDisplayDimensions()
+{
+    SetWidth(_savedWidth);
+    SetHeight(_savedHeight);
+    SetDepth(_savedDepth);
+}

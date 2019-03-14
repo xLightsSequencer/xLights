@@ -37,6 +37,7 @@ enum {
     GRIDCHANGE_REBUILD_PROP_GRID = 0x0004,
     GRIDCHANGE_REBUILD_MODEL_LIST = 0x0008,
     GRIDCHANGE_UPDATE_ALL_MODEL_LISTS = 0x0010,
+    GRIDCHANGE_SUPPRESS_HOLDSIZE = 0x00020,
 
     GRIDCHANGE_MARK_DIRTY_AND_REFRESH = 0x0003
 };
@@ -280,7 +281,6 @@ public:
     bool HitTest(ModelPreview* preview, glm::vec3& ray_origin, glm::vec3& ray_direction);
     bool IsContained(ModelPreview* preview, int x1, int y1, int x2, int y2);
     const std::string& GetStringType(void) const { return StringType; }
-    const std::string& GetDisplayAs(void) const { return DisplayAs; }
     virtual int NodesPerString() const;
     virtual int NodesPerString(int string) const { return NodesPerString(); }
     virtual int MapPhysicalStringToLogicalString(int string) const { return string; }
@@ -318,6 +318,17 @@ public:
     bool GetIsLtoR() const {return IsLtoR;}
     bool GetIsBtoT() const {return isBotToTop;}
     virtual int GetStrandLength(int strand) const;
+
+    float _savedWidth = 0;
+    float _savedHeight = 0;
+    float _savedDepth = 0;
+    void SaveDisplayDimensions()
+    {
+        _savedWidth = GetWidth();
+        _savedHeight = GetHeight();
+        _savedDepth = GetDepth();
+    }
+    void RestoreDisplayDimensions();
 
     void GetMinScreenXY(float& minx, float& miny) const;
     virtual int GetNumStrands() const;

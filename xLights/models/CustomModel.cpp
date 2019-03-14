@@ -35,10 +35,12 @@ public:
     }
     virtual bool DoShowDialog(wxPropertyGrid* propGrid,
                               wxPGProperty* WXUNUSED(property) ) override {
+        m_model->SaveDisplayDimensions();
         CustomModelDialog dlg(propGrid);
         dlg.Setup(m_model);
         if (dlg.ShowModal() == wxID_OK) {
             dlg.Save(m_model);
+            m_model->RestoreDisplayDimensions();
             wxVariant v(CLICK_TO_EDIT);
             SetValue(v);
             return true;

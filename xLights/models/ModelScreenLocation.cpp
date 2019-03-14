@@ -1232,7 +1232,7 @@ int BoxedScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid, wxP
     std::string name = event.GetPropertyName().ToStdString();
     if (!_locked && "ScaleX" == name) {
         scalex = event.GetValue().GetDouble();
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_SUPPRESS_HOLDSIZE;
     }
     else if (_locked && "ScaleX" == name) {
         event.Veto();
@@ -1240,7 +1240,7 @@ int BoxedScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid, wxP
     }
     else if (!_locked && "ScaleY" == name) {
         scaley = event.GetValue().GetDouble();
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_SUPPRESS_HOLDSIZE;
     }
     else if (_locked && "ScaleY" == name) {
         event.Veto();
@@ -1248,7 +1248,7 @@ int BoxedScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid, wxP
     }
     else if (!_locked && "ScaleZ" == name) {
         scalez = event.GetValue().GetDouble();
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_SUPPRESS_HOLDSIZE;
     }
     else if (_locked && "ScaleZ" == name) {
         event.Veto();
@@ -1332,6 +1332,7 @@ bool BoxedScreenLocation::Rotate(int axis, float factor) {
     }
     return false;
 }
+
 bool BoxedScreenLocation::Scale(float factor) {
     if (_locked) return false;
 
@@ -1597,6 +1598,10 @@ void BoxedScreenLocation::SetMWidth(float w)
 void BoxedScreenLocation::SetMDepth(float d)
 {
     scalez = d / RenderWi;
+}
+float BoxedScreenLocation::GetMDepth() const
+{
+    return scalez * RenderWi;
 }
 void BoxedScreenLocation::SetMHeight(float h)
 {
@@ -2631,6 +2636,11 @@ void TwoPointScreenLocation::SetMWidth(float w)
 
 void TwoPointScreenLocation::SetMDepth(float w)
 {
+}
+
+float TwoPointScreenLocation::GetMDepth() const
+{
+    return 1.0;
 }
 
 void TwoPointScreenLocation::SetMHeight(float h)
@@ -5165,6 +5175,11 @@ void PolyPointScreenLocation::SetMWidth(float w)
 void PolyPointScreenLocation::SetMDepth(float d)
 {
     scalez = d / (maxZ - minZ);
+}
+
+float PolyPointScreenLocation::GetMDepth() const
+{
+    return scalez * (maxZ - minZ);
 }
 
 void PolyPointScreenLocation::SetMHeight(float h)

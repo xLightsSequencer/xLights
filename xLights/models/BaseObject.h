@@ -40,6 +40,7 @@ public:
     void SetVcenterPos(float pos);
     void SetWidth(float w);
     void SetHeight(float h);
+    void SetDepth(float d);
     bool Scale(float f);
     bool Rotate(int axis, float factor);
 
@@ -51,8 +52,9 @@ public:
     float GetBack();
     float GetHcenterPos();
     float GetVcenterPos();
-    float GetWidth();
-    float GetHeight();
+    float GetWidth() const;
+    float GetHeight() const;
+    float GetDepth() const;
 
     const std::string &Name() const { return name;}
     const std::string &GetName() const { return name;}
