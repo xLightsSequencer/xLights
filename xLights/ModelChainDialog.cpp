@@ -65,14 +65,18 @@ void ModelChainDialog::Set(Model* m, const ModelManager &models) {
     {
         chain = chain.substr(1);
     }
-    wxString mc = wxString(m->GetControllerConnectionString()).Lower();
+    int port = m->GetControllerPort();
+    std::string protocol = m->GetControllerProtocol();
+    std::string controller = m->GetControllerName();
 
     wxArrayString  list;
     list.push_back("Beginning");
     for (auto it = models.begin(); it != models.end(); ++it) {
         if (it->second->GetDisplayAs() != "ModelGroup" && 
             m != it->second && 
-            mc == wxString(it->second->GetControllerConnectionString()).Lower()) {
+            controller == it->second->GetControllerName() &&
+            port == it->second->GetControllerPort() &&
+            protocol == it->second->GetControllerProtocol()) {
             list.push_back(it->first);
         }
     }

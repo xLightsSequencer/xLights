@@ -83,7 +83,6 @@ public:
     xlColor customColor;
     DimmingCurve *modelDimmingCurve;
     int _controller; // this is used to pass the selected controller name between property create and property change only
-    std::string _controllerName;
 
     virtual bool AllNodesAllocated() const { return true; }
     static void ParseFaceInfo(wxXmlNode *fiNode, std::map<std::string, std::map<std::string, std::string> > &faceInfo);
@@ -194,8 +193,6 @@ protected:
     std::string StringType; // RGB Nodes, 3 Channel RGB, Single Color Red, Single Color Green, Single Color Blue, Single Color White
     std::string DisplayAs;  // Tree 360, Tree 270, Tree 180, Tree 90, Vert Matrix, Horiz Matrix, Single Line, Arches, Window Frame, Candy Cane
     //std::string layout_group;
-    std::string controller_connection;
-    std::string _modelChain;
     int rgbwHandlingType;
 
     std::vector<Model *> subModels;
@@ -224,12 +221,12 @@ public:
     void SetControllerName(const std::string& controllerName);
     void SetControllerProtocol(const std::string& protocol);
     void SetControllerPort(int port);
-    std::string GetControllerName() const { return _controllerName; }
+    std::string GetControllerName() const;
     std::string GetControllerProtocol() const;
     int GetSmartRemote() const;
     int GetControllerPort(int string = 1) const;
     void SetModelChain(const std::string& modelChain);
-    std::string GetModelChain() const { return _modelChain; }
+    std::string GetModelChain() const;
     void ReworkStartChannel();
     const std::vector<Model *>& GetSubModels() const { return subModels; }
     Model *GetSubModel(const std::string &name);

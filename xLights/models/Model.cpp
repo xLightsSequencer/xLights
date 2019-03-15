@@ -47,7 +47,7 @@ const std::vector<std::string> Model::DEFAULT_BUFFER_STYLES {DEFAULT, PER_PREVIE
 Model::Model(const ModelManager &manager) : modelDimmingCurve(nullptr),
     parm1(0), parm2(0), parm3(0), pixelStyle(1), pixelSize(2), transparency(0), blackTransparency(0),
     StrobeRate(0), modelManager(manager), CouldComputeStartChannel(false), maxVertexCount(0),
-    splitRGB(false), rgbwHandlingType(0), BufferDp(0)
+    splitRGB(false), rgbwHandlingType(0), BufferDp(0), _controller(0)
 {
     // These member vars were not initialised so give them some defaults.
     BufferHt = 0;
@@ -57,8 +57,6 @@ Model::Model(const ModelManager &manager) : modelDimmingCurve(nullptr),
     SingleNode = false;
     zeroBased = false;
     SingleChannel = false;
-    _controllerName = "";
-    _modelChain = "";
 }
 
 Model::~Model() {
@@ -484,7 +482,7 @@ void Model::AddProperties(wxPropertyGridInterface *grid, OutputManager* outputMa
 
         for (auto it = controllerNames.begin(); it != controllerNames.end(); ++it)
         {
-            if (_controllerName == *it)
+            if (GetControllerName() == *it)
             {
                 _controller = controllerNames.size();
             }
@@ -497,14 +495,14 @@ void Model::AddProperties(wxPropertyGridInterface *grid, OutputManager* outputMa
 
     if (HasOneString(DisplayAs)) {
         grid->Append(new StartChannelProperty(this, 0, "Start Channel", "ModelStartChannel", ModelXml->GetAttribute("StartChannel","1"), modelManager.GetXLightsFrame()->GetSelectedLayoutPanelPreview()));
-        p->Enable(_controllerName == "");
+        p->Enable(GetControllerName() == "");
     } else {
         bool hasIndiv = ModelXml->GetAttribute("Advanced", "0") == "1";
         p = grid->Append(new wxBoolProperty("Indiv Start Chans", "ModelIndividualStartChannels", hasIndiv));
         p->SetAttribute("UseCheckbox", true);
-        p->Enable(parm1 > 1 && _controllerName == "");
+        p->Enable(parm1 > 1 && GetControllerName() == "");
         sp = grid->AppendIn(p, new StartChannelProperty(this, 0, "Start Channel", "ModelStartChannel", ModelXml->GetAttribute("StartChannel","1"), modelManager.GetXLightsFrame()->GetSelectedLayoutPanelPreview()));
-        p->Enable(_controllerName == "");
+        sp->Enable(GetControllerName() == "");
         if (hasIndiv) {
             int c = Model::HasOneString(DisplayAs) ? 1 : parm1;
             for (int x = 0; x < c; x++) {
@@ -532,8 +530,8 @@ void Model::AddProperties(wxPropertyGridInterface *grid, OutputManager* outputMa
             }
         }
     }
-    p = grid->Append(new ModelChainProperty(this, "Model Chain", "ModelChain", ModelXml->GetAttribute("ModelChain", "")));
-    p->Enable(_controllerName != "" && controller_connection != "");
+    p = grid->Append(new ModelChainProperty(this, "Model Chain", "ModelChain", GetModelChain() == "" ? _("Beginning") : GetModelChain()));
+    p->Enable(GetControllerName() != "" && GetControllerProtocol() != "" && GetControllerPort() != 0);
 
     int layout_group_number = 0;
     for (int grp = 0; grp < LAYOUT_GROUPS.Count(); grp++)
@@ -676,7 +674,7 @@ void Model::AddControllerProperties(wxPropertyGridInterface *grid) {
     sp->SetAttribute("Max", 48);
     sp->SetEditor("SpinCtrl");
 
-    if (_controllerName != "" && GetControllerPort(1) == 0)
+    if (GetControllerName() != "" && GetControllerPort(1) == 0)
     {
         sp->SetBackgroundColour(*wxRED);
     }
@@ -705,7 +703,7 @@ void Model::AddControllerProperties(wxPropertyGridInterface *grid) {
 
     sp = grid->AppendIn(p, new wxEnumProperty("Protocol", "ModelControllerConnectionProtocol", CONTROLLER_PROTOCOLS, wxArrayInt(), idx));
 
-    if (_controllerName != "" && GetControllerProtocol() == "")
+    if (GetControllerName() != "" && GetControllerProtocol() == "")
     {
         sp->SetBackgroundColour(*wxRED);
     }
@@ -865,18 +863,27 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         return GRIDCHANGE_MARK_DIRTY;
     } else if (event.GetPropertyName() == "ModelChain") {
         SetModelChain(event.GetValue().GetString());
-        ModelXml->DeleteAttribute("Advanced");
-        AdjustStringProperties(grid, parm1);
-        grid->GetPropertyByName("ModelIndividualStartChannels")->GetPropertyByName("ModelStartChannel")->Enable(false);
-        grid->GetPropertyByName("ModelIndividualStartChannels")->Enable(false);
-        grid->GetPropertyByName("ModelIndividualStartChannels")->GetPropertyByName("ModelStartChannel")->SetValue(ModelXml->GetAttribute("StartChannel", "1"));
+        if (event.GetValue().GetString() != "")
+        {
+            ModelXml->DeleteAttribute("Advanced");
+            AdjustStringProperties(grid, parm1);
+            grid->GetPropertyByName("ModelIndividualStartChannels")->GetPropertyByName("ModelStartChannel")->Enable(false);
+            grid->GetPropertyByName("ModelIndividualStartChannels")->Enable(false);
+            grid->GetPropertyByName("ModelIndividualStartChannels")->GetPropertyByName("ModelStartChannel")->SetValue(ModelXml->GetAttribute("StartChannel", "1"));
+        }
+        else
+        {
+            SetStartChannel("1", true);
+            grid->GetPropertyByName("ModelIndividualStartChannels")->GetPropertyByName("ModelStartChannel")->Enable();
+            grid->GetPropertyByName("ModelIndividualStartChannels")->Enable();
+        }
         IncrementChangeCount();
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST | GRIDCHANGE_REBUILD_PROP_GRID;
     }
     else if (event.GetPropertyName() == "Controller") {
         SetControllerName(CONTROLLERS[event.GetValue().GetInteger()]);
 
-        if (_controllerName == "")
+        if (GetControllerName() == "")
         {
             SetModelChain("");
             SetStartChannel("1", true);
@@ -891,8 +898,8 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
             grid->GetPropertyByName("ModelIndividualStartChannels")->Enable(false);
             grid->GetPropertyByName("ModelIndividualStartChannels")->GetPropertyByName("ModelStartChannel")->SetValue(ModelXml->GetAttribute("StartChannel", "1"));
         }
-        grid->GetPropertyByName("ModelChain")->Enable(_controllerName != "" && controller_connection != "");
-        if (_controllerName != "" && GetControllerConnectionString() == "")
+        grid->GetPropertyByName("ModelChain")->Enable(GetControllerName() != "");
+        if (GetControllerName() != "" && (GetControllerPort() == 0 || GetControllerProtocol() == ""))
         {
             grid->GetPropertyByName("ModelControllerConnectionProtocol")->SetBackgroundColour(*wxRED);
         }
@@ -904,7 +911,7 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
     } else if (event.GetPropertyName() == "ModelControllerConnectionPort") {
         SetControllerPort(event.GetValue().GetLong());
 
-        if (_controllerName != "" && GetControllerPort(1) == 0)
+        if (GetControllerName() != "" && GetControllerPort(1) == 0)
         {
             event.GetProperty()->SetBackgroundColour(*wxRED);
         }
@@ -913,11 +920,11 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
             event.GetProperty()->SetBackgroundColour(*wxWHITE);
         }
 
-        if (_controllerName != "")
+        if (GetControllerName() != "")
         {
             grid->GetPropertyByName("ModelIndividualStartChannels")->GetPropertyByName("ModelStartChannel")->SetValue(ModelXml->GetAttribute("StartChannel", "1"));
         }
-        grid->GetPropertyByName("ModelChain")->Enable(_controllerName != "" && controller_connection != "");
+        grid->GetPropertyByName("ModelChain")->Enable(GetControllerName() != "" && GetControllerProtocol() != "" && GetControllerPort() != 0);
 
         if (GetControllerPort(1) > 0 && GetControllerProtocol() == "")
         {
@@ -938,7 +945,7 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
 
                 clearUnusedProtocolProperties(GetControllerConnection());
 
-        if (_controllerName != "" && GetControllerProtocol() == "")
+        if (GetControllerName() != "" && GetControllerProtocol() == "")
         {
             event.GetProperty()->SetBackgroundColour(*wxRED);
         }
@@ -947,11 +954,11 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
             event.GetProperty()->SetBackgroundColour(*wxWHITE);
         }
 
-        if (_controllerName != "")
+        if (GetControllerName() != "")
         {
             grid->GetPropertyByName("ModelIndividualStartChannels")->GetPropertyByName("ModelStartChannel")->SetValue(ModelXml->GetAttribute("StartChannel", "1"));
         }
-        grid->GetPropertyByName("ModelChain")->Enable(_controllerName != "" && controller_connection != "");
+        grid->GetPropertyByName("ModelChain")->Enable(GetControllerName() != "" && GetControllerProtocol() != "" && GetControllerPort() != 0);
 
         std::string newProtocol = GetControllerProtocol();
         if (
@@ -1234,7 +1241,7 @@ void Model::AdjustStringProperties(wxPropertyGridInterface *grid, int newNum) {
     wxPGProperty *p = grid->GetPropertyByName("ModelIndividualStartChannels");
     if (p != nullptr) {
         pg->Freeze();
-        p->Enable(_controllerName == "");
+        p->Enable(GetControllerName() == "");
         bool adv = p->GetValue().GetBool();
         if (adv) {
             int count = p->GetChildCount();
@@ -1256,7 +1263,7 @@ void Model::AdjustStringProperties(wxPropertyGridInterface *grid, int newNum) {
                     ModelXml->AddAttribute(nm, val);
                 }
                 grid->AppendIn(p, new StartChannelProperty(this, count, nm, nm, val, modelManager.GetXLightsFrame()->GetSelectedLayoutPanelPreview()));
-                p->Enable(_controllerName == "");
+                p->Enable(GetControllerName() == "");
                 count++;
             }
         } else if (p->GetChildCount() > 1) {
@@ -1275,7 +1282,7 @@ void Model::AdjustStringProperties(wxPropertyGridInterface *grid, int newNum) {
         } else {
             sp->SetLabel("Start Channel");
         }
-        p->Enable(parm1 > 1);
+        p->Enable(parm1 > 1 && (GetControllerName() == "" || GetModelChain() == ""));
         pg->Thaw();
         pg->RefreshGrid();
     }
@@ -1832,8 +1839,6 @@ void Model::SetFromXml(wxXmlNode* ModelNode, bool zb) {
 
     name=ModelNode->GetAttribute("name").ToStdString();
     DisplayAs=ModelNode->GetAttribute("DisplayAs").ToStdString();
-    _modelChain = ModelNode->GetAttribute("ModelChain").ToStdString();
-    _controllerName = ModelNode->GetAttribute("Controller").ToStdString();
     StringType=ModelNode->GetAttribute("StringType").ToStdString();
     _pixelCount = ModelNode->GetAttribute("PixelCount", "").ToStdString();
     _pixelType = ModelNode->GetAttribute("PixelType", "").ToStdString();
@@ -4305,31 +4310,27 @@ int Model::GetSmartRemote() const
 
 void Model::SetModelChain(const std::string& modelChain)
 {
-    _modelChain = modelChain;
-
-    if (_modelChain == "") _modelChain = "Beginning";
-
     ModelXml->DeleteAttribute("ModelChain");
-    if (_modelChain != "")
+    if (modelChain != "")
     {
-        ModelXml->AddAttribute("ModelChain", _modelChain);
+        ModelXml->AddAttribute("ModelChain", modelChain);
     }
     ReworkStartChannel();
     RecalcStartChannels();
     IncrementChangeCount();
 }
 
+std::string Model::GetModelChain() const
+{
+    return ModelXml->GetAttribute("ModelChain", "").ToStdString();
+}
+
 void Model::SetControllerName(const std::string& controller)
 {
-    _controllerName = controller;
     ModelXml->DeleteAttribute("Controller");
-    if (_controllerName != "" && _controllerName != "Use Start Channel")
+    if (controller != "" && controller != "Use Start Channel")
     {
-        ModelXml->AddAttribute("Controller", _controllerName);
-    }
-    else
-    {
-        _controllerName = "";
+        ModelXml->AddAttribute("Controller", controller);
     }
     ReworkStartChannel();
     RecalcStartChannels();
@@ -4348,7 +4349,6 @@ void Model::SetControllerProtocol(const std::string& protocol)
     IncrementChangeCount();
 }
 
-
 void Model::SetControllerPort(int port)
 {
     GetControllerConnection()->DeleteAttribute("Port");
@@ -4359,6 +4359,11 @@ void Model::SetControllerPort(int port)
     ReworkStartChannel();
     RecalcStartChannels();
     IncrementChangeCount();
+}
+
+std::string Model::GetControllerName() const
+{
+    return ModelXml->GetAttribute("Controller", "").ToStdString();
 }
 
 void Model::ReworkStartChannel()

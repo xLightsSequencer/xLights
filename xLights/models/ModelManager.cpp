@@ -319,24 +319,22 @@ void ModelManager::ReworkStartChannel() const
     bool  outputsChanged = false;
 
     OutputManager* outputManager = xlights->GetOutputManager();
-    auto outputs = outputManager->GetOutputs();
-
-    for (auto it = outputs.begin(); it != outputs.end(); ++it)
+    for (auto it : outputManager->GetOutputs())
     {
-        if ((*it)->IsLookedUpByControllerName())
+        if (it->IsLookedUpByControllerName())
         {
             std::map<std::string, std::list<Model*>> cmodels;
-            for (auto itm = models.begin(); itm != models.end(); ++itm)
+            for (auto itm : models)
             {
-                if (itm->second->GetControllerName() == (*it)->GetDescription())
+                if (itm.second->GetControllerName() == it->GetDescription())
                 {
-                    wxString cc = wxString(itm->second->GetControllerConnectionString()).Lower();
+                    wxString cc = wxString::Format("%s:%d:%02d", itm.second->GetControllerProtocol(), itm.second->GetSmartRemote(), itm.second->GetControllerPort()).Lower();
                     if (cmodels.find(cc) == cmodels.end())
                     {
                         std::list<Model*> ml;
                         cmodels[cc] = ml;
                     }
-                    cmodels[cc].push_back(itm->second);
+                    cmodels[cc].push_back(itm.second);
                 }
             }
 
@@ -354,7 +352,7 @@ void ModelManager::ReworkStartChannel() const
                     bool pushed = false;
                     for (auto itms = (*itcc).second.begin(); itms != (*itcc).second.end(); ++itms)
                     {
-                        if (((*itms)->GetModelChain() == "Beginning" && last == "") ||
+                        if ((((*itms)->GetModelChain() == "Beginning" || (*itms)->GetModelChain() == "") && last == "") ||
                             (*itms)->GetModelChain() == last || 
                             (*itms)->GetModelChain() == ">" + last)
                         {
@@ -378,26 +376,28 @@ void ModelManager::ReworkStartChannel() const
                 }
 
                 last = "";
-                for (auto itm = sortedmodels.begin(); itm != sortedmodels.end(); ++itm)
+                for (auto itm : sortedmodels)
                 {
-                    if ((*itm)->GetModelChain() == last || (*itm)->GetModelChain() == ">" + last || ((*itm)->GetModelChain() == "Beginning" && last == ""))
+                    if (itm->GetModelChain() == last || 
+                        itm->GetModelChain() == ">" + last || 
+                        ((itm->GetModelChain() == "Beginning" || itm->GetModelChain() == "") && last == ""))
                     {
-                        (*itm)->SetStartChannel("!" + (*it)->GetDescription() + ":" + wxString::Format("%ld", ch));
-                        last = (*itm)->GetName();
+                        itm->SetStartChannel("!" + it->GetDescription() + ":" + wxString::Format("%ld", ch));
+                        last = itm->GetName();
                     }
                     else
                     {
-                        (*itm)->SetStartChannel("!" + (*it)->GetDescription() + ":" + wxString::Format("%ld", chstart));
+                        itm->SetStartChannel("!" + it->GetDescription() + ":" + wxString::Format("%ld", chstart));
                     }
-                    ch += (*itm)->GetChanCount();
+                    ch += itm->GetChanCount();
                 }
             }
 
-            if ((*it)->GetAutoSize())
+            if (it->GetAutoSize())
             {
-                if ((*it)->GetChannels() != std::max((long)1, (long)ch - 1))
+                if (it->GetChannels() != std::max((long)1, (long)ch - 1))
                 {
-                    (*it)->SetChannels(std::max((long)1, (long)ch - 1));
+                    it->SetChannels(std::max((long)1, (long)ch - 1));
                     outputsChanged = true;
                 }
             }
