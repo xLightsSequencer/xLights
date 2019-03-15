@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <wxsmith>
 	<object class="wxDialog" name="ZCPPDialog">
-		<title>E1.31 Setup</title>
+		<title>ZCPP Setup</title>
 		<id_arg>0</id_arg>
 		<pos_arg>1</pos_arg>
 		<size_arg>1</size_arg>
@@ -109,6 +109,34 @@
 					<object class="sizeritem">
 						<object class="wxCheckBox" name="ID_CHECKBOX3" variable="CheckBox_SupportVirtualStrings" member="yes" />
 						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxStaticText" name="ID_STATICTEXT6" variable="StaticText6" member="yes">
+							<label>Support Smart Remotes</label>
+						</object>
+						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxCheckBox" name="ID_CHECKBOX4" variable="CheckBox_SupportSmartRemotes" member="yes" />
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="spacer">
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxButton" name="ID_BUTTON3" variable="Button_Visualise" member="yes">
+							<label>Visualise</label>
+							<handler function="OnButton_VisualiseClick" entry="EVT_BUTTON" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>

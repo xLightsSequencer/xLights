@@ -357,7 +357,7 @@ std::string DDPOutput::GetChannelMapping(long ch) const
 
 #pragma region UI
 #ifndef EXCLUDENETWORKUI
-Output* DDPOutput::Configure(wxWindow* parent, OutputManager* outputManager)
+Output* DDPOutput::Configure(wxWindow* parent, OutputManager* outputManager, ModelManager* modelManager)
 {
     DDPDialog dlg(parent, this, outputManager);
 

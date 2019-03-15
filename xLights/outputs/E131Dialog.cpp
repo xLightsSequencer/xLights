@@ -1,8 +1,8 @@
 #include "E131Dialog.h"
 
 //(*InternalHeaders(E131Dialog)
-#include <wx/string.h>
 #include <wx/intl.h>
+#include <wx/string.h>
 //*)
 
 #include "E131Output.h"
@@ -45,10 +45,10 @@ E131Dialog::E131Dialog(wxWindow* parent, E131Output* e131, OutputManager* output
     _outputManager = outputManager;
 
     //(*Initialize(E131Dialog)
+    wxBoxSizer* BoxSizer1;
     wxFlexGridSizer* FlexGridSizer1;
     wxFlexGridSizer* FlexGridSizer2;
     wxFlexGridSizer* FlexGridSizer3;
-    wxBoxSizer* BoxSizer1;
 
     Create(parent, wxID_ANY, _("E1.31 Setup"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE, _T("wxID_ANY"));
     SetClientSize(wxDefaultSize);

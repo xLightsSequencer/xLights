@@ -650,6 +650,8 @@
 		<Unit filename="WiringDialog.h" />
 		<Unit filename="XlightsDrawable.cpp" />
 		<Unit filename="XlightsDrawable.h" />
+		<Unit filename="ZCPPVisualiseDialog.cpp" />
+		<Unit filename="ZCPPVisualiseDialog.h" />
 		<Unit filename="controllers/ControllerUploadData.cpp" />
 		<Unit filename="controllers/ControllerUploadData.h" />
 		<Unit filename="controllers/ESPixelStick.cpp" />
@@ -982,10 +984,6 @@
 		<Unit filename="outputs/E131Dialog.h" />
 		<Unit filename="outputs/E131Output.cpp" />
 		<Unit filename="outputs/E131Output.h" />
-		<Unit filename="outputs/ZCPPDialog.cpp" />
-		<Unit filename="outputs/ZCPPDialog.h" />
-		<Unit filename="outputs/ZCPPOutput.cpp" />
-		<Unit filename="outputs/ZCPPOutput.h" />
 		<Unit filename="outputs/IPOutput.cpp" />
 		<Unit filename="outputs/IPOutput.h" />
 		<Unit filename="outputs/LOROptimisedOutput.cpp" />
@@ -1022,6 +1020,10 @@
 		<Unit filename="outputs/SerialPortWithRate.h" />
 		<Unit filename="outputs/TestPreset.cpp" />
 		<Unit filename="outputs/TestPreset.h" />
+		<Unit filename="outputs/ZCPPDialog.cpp" />
+		<Unit filename="outputs/ZCPPDialog.h" />
+		<Unit filename="outputs/ZCPPOutput.cpp" />
+		<Unit filename="outputs/ZCPPOutput.h" />
 		<Unit filename="outputs/serial.cpp" />
 		<Unit filename="outputs/serial.h" />
 		<Unit filename="resource.rc">
@@ -1149,10 +1151,10 @@
 		<Unit filename="wxsmith/HousePreviewPanel.wxs" />
 		<Unit filename="wxsmith/IPEntryDialog.wxs" />
 		<Unit filename="wxsmith/JukeboxPanel.wxs" />
+		<Unit filename="wxsmith/KaleidoscopePanel.wxs" />
 		<Unit filename="wxsmith/LMSImportChannelMapDialog.wxs" />
 		<Unit filename="wxsmith/LayerSelectDialog.wxs" />
 		<Unit filename="wxsmith/LayoutPanel.wxs" />
-		<Unit filename="wxsmith/KaleidoscopePanel.wxs" />
 		<Unit filename="wxsmith/LifePanel.wxs" />
 		<Unit filename="wxsmith/LightningPanel.wxs" />
 		<Unit filename="wxsmith/LinesPanel.wxs" />
@@ -1242,6 +1244,7 @@
 		<Unit filename="wxsmith/WarpPanel.wxs" />
 		<Unit filename="wxsmith/WavePanel.wxs" />
 		<Unit filename="wxsmith/WiringDialog.wxs" />
+		<Unit filename="wxsmith/ZCPPVisualiseDialog.wxs" />
 		<Unit filename="wxsmith/xLightsImportChannelMapDialog.wxs" />
 		<Unit filename="wxsmith/xLightsframe.wxs" />
 		<Unit filename="wxsmith/xlColorPickerFields.wxs" />
@@ -1423,6 +1426,7 @@
 					<wxDialog wxs="wxsmith/MultiControllerUploadDialog.wxs" src="MultiControllerUploadDialog.cpp" hdr="MultiControllerUploadDialog.h" fwddecl="0" i18n="1" name="MultiControllerUploadDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/PathGenerationDialog.wxs" src="PathGenerationDialog.cpp" hdr="PathGenerationDialog.h" fwddecl="0" i18n="1" name="PathGenerationDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/RemapDMXChannelsDialog.wxs" src="RemapDMXChannelsDialog.cpp" hdr="RemapDMXChannelsDialog.h" fwddecl="0" i18n="1" name="RemapDMXChannelsDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/ZCPPVisualiseDialog.wxs" src="ZCPPVisualiseDialog.cpp" hdr="ZCPPVisualiseDialog.h" fwddecl="0" i18n="1" name="ZCPPVisualiseDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>

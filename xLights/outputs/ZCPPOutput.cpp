@@ -864,9 +864,9 @@ std::string ZCPPOutput::GetChannelMapping(long ch) const
 
 #pragma region UI
 #ifndef EXCLUDENETWORKUI
-Output* ZCPPOutput::Configure(wxWindow* parent, OutputManager* outputManager)
+Output* ZCPPOutput::Configure(wxWindow* parent, OutputManager* outputManager, ModelManager* modelManager)
 {
-    ZCPPDialog dlg(parent, this, outputManager);
+    ZCPPDialog dlg(parent, this, outputManager, modelManager);
 
     int res = dlg.ShowModal();
 

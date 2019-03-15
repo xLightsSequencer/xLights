@@ -52,7 +52,7 @@ std::string NullOutput::GetChannelMapping(long ch) const
 
 #pragma region UI
 #ifndef EXCLUDENETWORKUI
-Output* NullOutput::Configure(wxWindow* parent, OutputManager* outputManager)
+Output* NullOutput::Configure(wxWindow* parent, OutputManager* outputManager, ModelManager* modelManager)
 {
     NullOutputDialog dlg(parent, this, outputManager);
 

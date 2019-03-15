@@ -874,6 +874,7 @@ void UDControllerPort::CreateVirtualStrings(bool mergeSequential)
         }
 
         current->_endChannel = it->GetEndChannel();
+        current->_models.push_back(it);
 
         if (first)
         {
