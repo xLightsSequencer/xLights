@@ -513,6 +513,7 @@ std::list<Output*> ZCPPOutput::Discover(OutputManager* outputManager)
                         {
                             output->AddProtocol(DecodeProtocol(buffer[i]));
                             logger_base.debug("   Supports Protocol %s", (const char *)DecodeProtocol(buffer[i]).c_str());
+                            i++;
                         }
 
                         if (buffer[115] & 0x04)
