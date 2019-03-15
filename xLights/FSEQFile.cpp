@@ -1381,7 +1381,7 @@ FrameData *V2FSEQFile::getFrame(uint32_t frame) {
         }
         catch(...)
         {
-            LogErr(VB_SEQUENCE, "Error getting frame from handler %s.\n", m_handler->GetType());
+            LogErr(VB_SEQUENCE, "Error getting frame from handler %s.\n", m_handler->GetType().c_str());
         }
         return fd;
     }
