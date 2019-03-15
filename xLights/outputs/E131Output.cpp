@@ -669,7 +669,7 @@ void E131Output::SetPriority(int priority)
 
 #pragma region UI
 #ifndef EXCLUDENETWORKUI
-Output* E131Output::Configure(wxWindow* parent, OutputManager* outputManager)
+Output* E131Output::Configure(wxWindow* parent, OutputManager* outputManager, ModelManager* modelManager)
 {
     E131Dialog dlg(parent, this, outputManager);
 

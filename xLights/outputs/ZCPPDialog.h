@@ -13,22 +13,26 @@
 
 class ZCPPOutput;
 class OutputManager;
+class ModelManager;
 
 class ZCPPDialog: public wxDialog
 {
     ZCPPOutput* _zcpp;
     OutputManager* _outputManager;
+    ModelManager* _modelManager;
     void ValidateWindow();
 
 public:
 
-    ZCPPDialog(wxWindow* parent, ZCPPOutput* zcpp, OutputManager* outputManager, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
+    ZCPPDialog(wxWindow* parent, ZCPPOutput* zcpp, OutputManager* outputManager, ModelManager* modelManager, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
     virtual ~ZCPPDialog();
 
     //(*Declarations(ZCPPDialog)
     wxButton* Button_Cancel;
     wxButton* Button_Ok;
+    wxButton* Button_Visualise;
     wxCheckBox* CheckBoxAutoSizeOutput;
+    wxCheckBox* CheckBox_SupportSmartRemotes;
     wxCheckBox* CheckBox_SupportVirtualStrings;
     wxCheckBox* CheckBox_SuppressDuplicates;
     wxSpinCtrl* SpinCtrl_Channels;
@@ -37,6 +41,7 @@ public:
     wxStaticText* StaticText3;
     wxStaticText* StaticText4;
     wxStaticText* StaticText5;
+    wxStaticText* StaticText6;
     wxStaticText* StaticText8;
     wxStaticText* StaticText9;
     wxTextCtrl* TextCtrlIpAddr;
@@ -59,6 +64,9 @@ protected:
     static const long ID_CHECKBOX1;
     static const long ID_STATICTEXT5;
     static const long ID_CHECKBOX3;
+    static const long ID_STATICTEXT6;
+    static const long ID_CHECKBOX4;
+    static const long ID_BUTTON3;
     static const long ID_BUTTON1;
     static const long ID_BUTTON2;
     //*)
@@ -75,6 +83,7 @@ private:
     void OnButton_OkClick(wxCommandEvent& event);
     void OnButton_CancelClick(wxCommandEvent& event);
     void OnSpinCtrl_ChannelsChange(wxSpinEvent& event);
+    void OnButton_VisualiseClick(wxCommandEvent& event);
     //*)
 
     DECLARE_EVENT_TABLE()

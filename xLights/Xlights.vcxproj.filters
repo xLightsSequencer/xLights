@@ -358,7 +358,6 @@
     <ClCompile Include="controllers\ControllerUploadData.cpp" />
     <ClCompile Include="outputs\ZCPPDialog.cpp" />
     <ClCompile Include="outputs\ZCPPOutput.cpp" />
-    <ClCompile Include="NodeSelectGrid.h" />
     <ClCompile Include="models\MeshObject.cpp" />
     <ClCompile Include="NodeSelectGrid.cpp" />
     <ClCompile Include="ModelChainDialog.cpp" />
@@ -374,6 +373,7 @@
     <ClCompile Include="effects\LinesPanel.cpp" />
     <ClCompile Include="effects\KaleidoscopeEffect.cpp" />
     <ClCompile Include="effects\KaleidoscopePanel.cpp" />
+    <ClCompile Include="ZCPPVisualiseDialog.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -749,6 +749,7 @@
     <ClInclude Include="effects\LinesPanel.h" />
     <ClInclude Include="effects\KaleidoscopeEffect.h" />
     <ClInclude Include="effects\KaleidoscopePanel.h" />
+    <ClInclude Include="ZCPPVisualiseDialog.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

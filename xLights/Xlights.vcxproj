@@ -539,6 +539,7 @@
     <ClCompile Include="xLightsXmlFile.cpp" />
     <ClCompile Include="xlLockButton.cpp" />
     <ClCompile Include="xlSlider.cpp" />
+    <ClCompile Include="ZCPPVisualiseDialog.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\xSchedule\md5.h" />
@@ -914,6 +915,7 @@
     <ClInclude Include="xLightsXmlFile.h" />
     <ClInclude Include="xlLockButton.h" />
     <ClInclude Include="xlSlider.h" />
+    <ClInclude Include="ZCPPVisualiseDialog.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

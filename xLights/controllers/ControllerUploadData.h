@@ -103,6 +103,7 @@ struct UDVirtualString
     bool _reverseSet;
     std::string _reverse;
     int _channelsPerPixel;
+    std::list<UDControllerPortModel*> _models;
 };
 
 class UDControllerPort

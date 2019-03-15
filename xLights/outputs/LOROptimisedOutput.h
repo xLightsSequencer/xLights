@@ -57,7 +57,7 @@ public:
     #pragma endregion Data Setting
 
 #ifndef EXCLUDENETWORKUI
-    virtual Output* Configure(wxWindow* parent, OutputManager* outputManager) override;
+    virtual Output* Configure(wxWindow* parent, OutputManager* outputManager, ModelManager* modelManager) override;
 #endif
 };
 
