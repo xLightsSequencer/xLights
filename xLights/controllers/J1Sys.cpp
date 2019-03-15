@@ -51,6 +51,7 @@ public:
         return (p == "renard" || p == "dmx");
     }
     virtual bool SupportsMultipleProtocols() const override { return true; }
+    virtual bool SupportsSmartRemotes() const override { return false; }
     virtual bool SupportsMultipleInputProtocols() const override { return false; }
     virtual bool AllUniversesSameSize() const override { return false; }
     virtual std::list<std::string> GetSupportedInputProtocols() const override {

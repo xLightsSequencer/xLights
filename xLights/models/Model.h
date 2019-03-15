@@ -153,9 +153,11 @@ protected:
     void ApplyTransparency(xlColor &color, int transparency) const;
     void DumpBuffer(std::vector<NodeBaseClassPtr> &newNodes, int bufferWi, int bufferHi) const;
 
-    int BufferHt,BufferWi,BufferDp;  // size of the default buffer
+    // size of the default buffer
+    int BufferHt = 0;
+    int BufferWi = 0;
+    int BufferDp = 0;  
     std::vector<NodeBaseClassPtr> Nodes;
-
     const ModelManager &modelManager;
 
     virtual void InitModel();
@@ -198,6 +200,7 @@ protected:
 public:
     bool IsControllerConnectionValid() const;
     int GetPort(int string = 1) const;
+    int GetSmartRemote() const;
     bool IsPixelProtocol() const;
     std::string GetProtocol() const;
     wxXmlNode *GetControllerConnection() const;

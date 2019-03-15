@@ -70,6 +70,7 @@ public:
     virtual bool SupportsMultipleProtocols() const override {
         return false;
     }
+    virtual bool SupportsSmartRemotes() const override { return false; }
     virtual bool SupportsMultipleInputProtocols() const override {
         return true;
         

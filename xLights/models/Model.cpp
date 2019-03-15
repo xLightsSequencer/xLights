@@ -46,7 +46,7 @@ const std::vector<std::string> Model::DEFAULT_BUFFER_STYLES {DEFAULT, PER_PREVIE
 Model::Model(const ModelManager &manager) : modelDimmingCurve(nullptr),
     parm1(0), parm2(0), parm3(0), pixelStyle(1), pixelSize(2), transparency(0), blackTransparency(0),
     StrobeRate(0), modelManager(manager), CouldComputeStartChannel(false), maxVertexCount(0),
-    splitRGB(false), rgbwHandlingType(0)
+    splitRGB(false), rgbwHandlingType(0), BufferDp(0)
 {
     // These member vars were not initialised so give them some defaults.
     BufferHt = 0;
@@ -315,6 +315,7 @@ static wxArrayString RGBW_HANDLING;
 static wxArrayString PIXEL_STYLES;
 static wxArrayString LAYOUT_GROUPS;
 static wxArrayString CONTROLLER_PROTOCOLS;
+static wxArrayString SMART_REMOTES;
 static wxArrayString CONTROLLER_DIRECTION;
 static wxArrayString CONTROLLER_COLORORDER;
 
@@ -556,6 +557,13 @@ static inline void setupProtocolList() {
         CONTROLLER_PROTOCOLS.push_back("DMX");
         CONTROLLER_PROTOCOLS.push_back("PixelNet");
         CONTROLLER_PROTOCOLS.push_back("Renard");
+        CONTROLLER_PROTOCOLS.push_back("LOR");
+    }
+    if (SMART_REMOTES.IsEmpty()) {
+        SMART_REMOTES.push_back("N/A");
+        SMART_REMOTES.push_back("*A*->b->c");
+        SMART_REMOTES.push_back("a->*B*->c");
+        SMART_REMOTES.push_back("a->b->*C*");
     }
     if (CONTROLLER_DIRECTION.IsEmpty()) {
         CONTROLLER_DIRECTION.push_back("Forward");
@@ -593,6 +601,7 @@ void Model::AddControllerProperties(wxPropertyGridInterface *grid) {
     sp->SetAttribute("Min", 0);
     sp->SetAttribute("Max", 48);
     sp->SetEditor("SpinCtrl");
+
     wxString protocol = GetProtocol();
     protocol.LowerCase();
     int idx = -1;
@@ -606,10 +615,15 @@ void Model::AddControllerProperties(wxPropertyGridInterface *grid) {
         }
         i++;
     }
+
+    if (protocol != "dmx" && protocol != "pixelnet" && protocol != "renard" && protocol != "lor" && protocol != "") {
+        sp = grid->AppendIn(p, new wxEnumProperty("Smart Remote", "SmartRemote", SMART_REMOTES, wxArrayInt(), GetSmartRemote()));
+    }
+
     sp = grid->AppendIn(p, new wxEnumProperty("Protocol", "ModelControllerConnectionProtocol", CONTROLLER_PROTOCOLS, wxArrayInt(), idx));
     
     wxXmlNode *node = GetControllerConnection();
-    if (protocol == "dmx" || protocol == "pixelnet" || protocol == "renard") {
+    if (protocol == "dmx" || protocol == "pixelnet" || protocol == "renard" || protocol == "lor") {
         int chan = wxAtoi(node->GetAttribute("channel", "1"));
         sp = grid->AppendIn(p, new wxUIntProperty(protocol + " Channel", "ModelControllerConnectionDMXChannel", chan));
         sp->SetAttribute("Min", 1);
@@ -683,7 +697,6 @@ void Model::AddControllerProperties(wxPropertyGridInterface *grid) {
             grid->DisableProperty(sp2);
             grid->Collapse(sp);
         }
-
     }
 }
 
@@ -707,7 +720,7 @@ static wxString GetColorString(wxPGProperty *p, xlColor &xc) {
 
 static void clearUnusedProtocolProperties(wxXmlNode *node) {
     std::string protocol = node->GetAttribute("Protocol");
-    bool isDMX = protocol == "DMX" || protocol == "dmx" || protocol == "PIXELNET" || protocol == "pixelnet" || protocol == "PixelNet" || protocol == "Renard";
+    bool isDMX = protocol == "DMX" || protocol == "dmx" || protocol == "PIXELNET" || protocol == "pixelnet" || protocol == "PixelNet" || protocol == "Renard" || protocol == "LOR" || protocol == "lor";
     bool isPixel = Model::IsPixelProtocol(protocol);
     
     if (!isPixel) {
@@ -757,7 +770,8 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         SetFromXml(ModelXml, zeroBased);
         IncrementChangeCount();
         return GRIDCHANGE_MARK_DIRTY;
-    } else if (event.GetPropertyName() == "ModelControllerConnectionPort") {
+    }
+    else if (event.GetPropertyName() == "ModelControllerConnectionPort") {
         GetControllerConnection()->DeleteAttribute("Port");
         if (event.GetValue().GetLong() > 0) {
             GetControllerConnection()->AddAttribute("Port", wxString::Format("%ld", event.GetValue().GetLong()));
@@ -773,6 +787,10 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
             }
         }
         return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
+    } else if (event.GetPropertyName() == "SmartRemote") {
+        GetControllerConnection()->DeleteAttribute("SmartRemote");
+        GetControllerConnection()->AddAttribute("SmartRemote", event.GetValue().GetString());
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
     } else if (event.GetPropertyName() == "ModelControllerConnectionProtocol") {
         std::string oldProtocol = GetProtocol();
         GetControllerConnection()->DeleteAttribute("Protocol");
@@ -783,8 +801,8 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
 
         std::string newProtocol = GetProtocol();
         if (
-            ((newProtocol == "DMX" || newProtocol == "PixelNet" || newProtocol == "Renard") && IsPixelProtocol(oldProtocol)) ||
-            ((oldProtocol == "DMX" || oldProtocol == "PixelNet" || oldProtocol == "Renard") && IsPixelProtocol(newProtocol)) ||
+            ((newProtocol == "DMX" || newProtocol == "PixelNet" || newProtocol == "Renard" || newProtocol == "LOR") && IsPixelProtocol(oldProtocol)) ||
+            ((oldProtocol == "DMX" || oldProtocol == "PixelNet" || oldProtocol == "Renard" || oldProtocol == "LOR") && IsPixelProtocol(newProtocol)) ||
             (oldProtocol == "" && newProtocol != "") ||
             (newProtocol == "" && oldProtocol != ""))
         {
@@ -4053,6 +4071,12 @@ std::string Model::GetProtocol() const
     return s.ToStdString();
 }
 
+int Model::GetSmartRemote() const
+{
+    wxString s = GetControllerConnection()->GetAttribute("SmartRemote", "0");
+    return wxAtoi(s);
+}
+
 int Model::GetPort(int string) const
 {
     wxString p = wxString::Format("%d", string);
@@ -4075,7 +4099,7 @@ bool Model::IsPixelProtocol(const std::string &p) {
     }
     wxString protocol = p;
     protocol.MakeLower();
-    return (protocol != "dmx" && protocol != "pixelnet" && protocol != "renard");
+    return (protocol != "dmx" && protocol != "pixelnet" && protocol != "renard" && protocol != "lor");
 }
 
 bool Model::IsPixelProtocol() const

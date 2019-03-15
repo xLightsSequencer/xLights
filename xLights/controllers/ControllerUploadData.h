@@ -31,6 +31,7 @@ public:
     virtual std::list<std::string> GetSupportedInputProtocols() const = 0;
     virtual bool SupportsMultipleInputProtocols() const = 0;
     virtual bool UniversesMustBeSequential() const = 0;
+    virtual bool SupportsSmartRemotes() const = 0;
 };
 
 class UDControllerPortModel
@@ -43,6 +44,7 @@ private:
     int _universe;
     long _universeStartChannel;
     std::string _protocol;
+    int _smartRemote;
 
     bool ChannelsOnOutputs(std::list<Output*>& outputs) const;
 
@@ -51,12 +53,17 @@ public:
     virtual ~UDControllerPortModel() {};
     bool operator<(const UDControllerPortModel& cpm) const
     {
-        return _startChannel < cpm._startChannel;
+        if (_smartRemote == cpm._smartRemote)
+        {
+            return _startChannel < cpm._startChannel;
+        }
+        return _smartRemote < cpm._smartRemote;
     }
     int GetChannelsPerPixel();
     long Channels() const { return _endChannel - _startChannel + 1; }
     long GetStartChannel() const { return _startChannel; }
     long GetEndChannel() const { return _endChannel; }
+    int GetSmartRemote() const { return _smartRemote; }
     Model* GetModel() const { return _model; }
     std::string GetName() const;
     void Dump() const;
@@ -88,6 +95,7 @@ struct UDVirtualString
     float _gamma;
     bool _brightnessSet;
     int _brightness;
+    int _smartRemote;
     bool _nullPixelsSet;
     int _nullPixels;
     bool _groupCountSet;

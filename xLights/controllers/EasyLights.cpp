@@ -653,6 +653,9 @@ public:
 	{
 		return false;
 	}
+
+    virtual bool SupportsSmartRemotes() const override { return false; }
+
     
     // Joe ... not sure this is right
     virtual bool SupportsMultipleInputProtocols() const override { return true; }

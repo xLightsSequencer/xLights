@@ -242,7 +242,8 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     background = nullptr;
     _firstTreeLoad = true;
     _lastXlightsModel = "";
-    appearanceVisible = sizeVisible = stringPropsVisible = controllerConnectionVisible = false;
+    appearanceVisible = sizeVisible = stringPropsVisible = false;
+    controllerConnectionVisible = true;
 
 	//(*Initialize(LayoutPanel)
 	wxFlexGridSizer* FlexGridSizer1;

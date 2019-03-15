@@ -21,6 +21,7 @@ public:
     int port;
     float gamma;
     int groupCount;
+    int smartRemote;
     int nullPixels;
     std::string colourOrder;
     std::string direction;
