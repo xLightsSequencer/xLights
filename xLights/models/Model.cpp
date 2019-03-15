@@ -438,14 +438,14 @@ void Model::AddProperties(wxPropertyGridInterface *grid, OutputManager* outputMa
         NODE_TYPES.push_back("GRB Nodes");
         NODE_TYPES.push_back("BRG Nodes");
         NODE_TYPES.push_back("BGR Nodes");
-        
+
         NODE_TYPES.push_back("3 Channel RGB");
         NODE_TYPES.push_back("4 Channel RGBW");
         NODE_TYPES.push_back("4 Channel WRGB");
         NODE_TYPES.push_back("Strobes");
         NODE_TYPES.push_back("Single Color");
         NODE_TYPES.push_back("Single Color Intensity");
-        
+
         NODE_TYPES.push_back("WRGB Nodes");
         NODE_TYPES.push_back("WRBG Nodes");
         NODE_TYPES.push_back("WGBR Nodes");
@@ -530,7 +530,7 @@ void Model::AddProperties(wxPropertyGridInterface *grid, OutputManager* outputMa
             }
         }
     }
-    p = grid->Append(new ModelChainProperty(this, "Model Chain", "ModelChain", GetModelChain() == "" ? _("Beginning") : GetModelChain()));
+    p = grid->Append(new ModelChainProperty(this, "Model Chain", "ModelChain", GetModelChain() == "" ? _("Beginning").ToStdString() : GetModelChain()));
     p->Enable(GetControllerName() != "" && GetControllerProtocol() != "" && GetControllerPort() != 0);
 
     int layout_group_number = 0;
@@ -558,7 +558,7 @@ void Model::AddProperties(wxPropertyGridInterface *grid, OutputManager* outputMa
     grid->LimitPropertyEditing(p);
 
     AddControllerProperties(grid);
-    
+
     p = grid->Append(new wxPropertyCategory("String Properties", "ModelStringProperties"));
     int i = NODE_TYPES.Index(StringType);
     if (i == wxNOT_FOUND) {
@@ -731,7 +731,7 @@ void Model::AddControllerProperties(wxPropertyGridInterface *grid) {
             grid->DisableProperty(sp2);
             grid->Collapse(sp);
         }
-        
+
         sp = grid->AppendIn(p, new wxBoolProperty("Set Brightness", "ModelControllerConnectionPixelSetBrightness", node->HasAttribute("brightness")));
         sp->SetAttribute("UseCheckbox", true);
         sp2 = grid->AppendIn(sp, new wxUIntProperty("Brightness", "ModelControllerConnectionPixelBrightness",
@@ -743,7 +743,7 @@ void Model::AddControllerProperties(wxPropertyGridInterface *grid) {
             grid->DisableProperty(sp2);
             grid->Collapse(sp);
         }
-        
+
         sp = grid->AppendIn(p, new wxBoolProperty("Set Gamma", "ModelControllerConnectionPixelSetGamma", node->HasAttribute("gamma")));
         sp->SetAttribute("UseCheckbox", true);
         double gamma = wxAtof(GetControllerConnection()->GetAttribute("gamma", "1.0"));
@@ -757,7 +757,7 @@ void Model::AddControllerProperties(wxPropertyGridInterface *grid) {
             grid->DisableProperty(sp2);
             grid->Collapse(sp);
         }
-        
+
         sp = grid->AppendIn(p, new wxBoolProperty("Set Color Order", "ModelControllerConnectionPixelSetColorOrder", node->HasAttribute("colorOrder")));
         sp->SetAttribute("UseCheckbox", true);
         int cidx = CONTROLLER_COLORORDER.Index(GetControllerConnection()->GetAttribute("colorOrder", "RGB"));
@@ -766,7 +766,7 @@ void Model::AddControllerProperties(wxPropertyGridInterface *grid) {
             grid->DisableProperty(sp2);
             grid->Collapse(sp);
         }
-        
+
         sp = grid->AppendIn(p, new wxBoolProperty("Set Pixel Direction", "ModelControllerConnectionPixelSetDirection", node->HasAttribute("reverse")));
         sp->SetAttribute("UseCheckbox", true);
         sp2 = grid->AppendIn(sp, new wxEnumProperty("Direction", "ModelControllerConnectionPixelDirection", CONTROLLER_DIRECTION, wxArrayInt(),
@@ -775,7 +775,7 @@ void Model::AddControllerProperties(wxPropertyGridInterface *grid) {
             grid->DisableProperty(sp2);
             grid->Collapse(sp);
         }
-        
+
         sp = grid->AppendIn(p, new wxBoolProperty("Set Group Count", "ModelControllerConnectionPixelSetGroupCount", node->HasAttribute("groupCount")));
         sp->SetAttribute("UseCheckbox", true);
         sp2 = grid->AppendIn(sp, new wxUIntProperty("Group Count", "ModelControllerConnectionPixelGroupCount",
@@ -812,7 +812,7 @@ static void clearUnusedProtocolProperties(wxXmlNode *node) {
     std::string protocol = node->GetAttribute("Protocol");
     bool isDMX = protocol == "DMX" || protocol == "dmx" || protocol == "PIXELNET" || protocol == "pixelnet" || protocol == "PixelNet" || protocol == "Renard" || protocol == "LOR" || protocol == "lor";
     bool isPixel = Model::IsPixelProtocol(protocol);
-    
+
     if (!isPixel) {
         node->DeleteAttribute("gamma");
         node->DeleteAttribute("brightness");
@@ -824,7 +824,7 @@ static void clearUnusedProtocolProperties(wxXmlNode *node) {
     if (!isDMX) {
         node->DeleteAttribute("channel");
     }
-    
+
 }
 
 int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
@@ -1602,7 +1602,7 @@ bool Model::IsValidStartChannelString() const
     else if (parts[0][0] == '!')
     {
         if ((parts.size() == 2) &&
-            (modelManager.GetOutputManager()->GetOutput(parts[0].substr(1)) != nullptr) && 
+            (modelManager.GetOutputManager()->GetOutput(parts[0].substr(1)) != nullptr) &&
             (parts[1].IsNumber() && wxAtol(parts[1]) > 0 && !parts[1].Contains('.')))
         {
             return true;
@@ -1963,7 +1963,7 @@ void Model::SetFromXml(wxXmlNode* ModelNode, bool zb) {
         }
         f = f->GetNext();
     }
-    
+
     wxString cc = ModelNode->GetAttribute("ControllerConnection").ToStdString();
     if (cc != "") {
         ModelNode->DeleteAttribute("ControllerConnection");
@@ -1996,7 +1996,7 @@ std::string Model::GetControllerConnectionString() const
 {
     if (GetControllerProtocol() == "") return "";
     std::string ret = wxString::Format("%s:%d", GetControllerProtocol(), GetControllerPort(1)).ToStdString();
-    
+
     wxXmlAttribute* att = GetControllerConnection()->GetAttributes();
     while (att != nullptr) {
         if (att->GetName() != "Port" && att->GetName() != "Protocol") {
@@ -3365,7 +3365,7 @@ std::string Model::ChannelLayoutHtml(OutputManager* outputManager)
     {
         html += wxString::Format("<tr><td>Controller:</td><td>%s:%s</td></tr>", o->GetCommPort(), o->GetDescription());
     }
-    
+
     if (GetControllerProtocol() != "") {
         html += wxString::Format("<tr><td>Pixel protocol:</td><td>%s</td></tr>", GetControllerProtocol().c_str());
         if (GetNumStrings() == 1) {
