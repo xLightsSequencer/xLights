@@ -25,69 +25,11 @@
 #include "xLightsVersion.h"
 
 #include "../Parallel.h"
-#include "ControllerUploadData.h"
 
 #include <log4cpp/Category.hh>
 #include "../FSEQFile.h"
 
 
-class PixelCapeInfo : public ControllerRules {
-public:
-    PixelCapeInfo(const std::string &d, int s, int dmx) : ControllerRules(), description(d), maxStrings(s), maxDMX(dmx) {}
-    PixelCapeInfo() : ControllerRules(),  maxStrings(0), maxDMX(0) {}
-    PixelCapeInfo(const PixelCapeInfo&pci) : ControllerRules(), description(pci.description), maxStrings(pci.maxStrings), maxDMX(pci.maxDMX) {}
-    std::string description;
-    int maxStrings;
-    int maxDMX;
-    
-    
-    virtual int GetMaxPixelPortChannels() const override {
-        return 1400*3;
-    }
-    virtual int GetMaxPixelPort() const override {
-        return maxStrings;
-    }
-    virtual int GetMaxSerialPortChannels() const override {
-        return 4096;
-    }
-    virtual int GetMaxSerialPort() const override {
-        return maxDMX;
-    }
-    virtual bool IsValidPixelProtocol(const std::string protocol) const override {
-        wxString p(protocol);
-        p = p.Lower();
-        if (p == "ws2811") return true;
-        return false;
-    }
-    virtual bool IsValidSerialProtocol(const std::string protocol) const override {
-        wxString p(protocol);
-        p = p.Lower();
-        if (p == "dmx") return true;
-        if (p == "pixelnet") return true;
-        if (p == "renard") return false;
-        return false;
-    }
-    virtual bool SupportsMultipleProtocols() const override {
-        return false;
-    }
-    virtual bool SupportsMultipleInputProtocols() const override {
-        return true;
-        
-    }
-    virtual bool AllUniversesSameSize() const override {
-        return false;
-    }
-    virtual std::list<std::string> GetSupportedInputProtocols() const override {
-        std::list<std::string> res;
-        res.push_back("E131");
-        res.push_back("ARTNET");
-        res.push_back("DDP");
-        return res;
-    }
-    virtual bool UniversesMustBeSequential() const override {
-        return false;
-    }
-};
 static std::map<std::string, PixelCapeInfo> CONTROLLER_TYPE_MAP = {
     {"PiHat", PixelCapeInfo("PiHat", 2, 0)},
     {"F8-B", PixelCapeInfo("F8-B (8 serial)", 12, 8)},
@@ -880,13 +822,18 @@ bool FPP::SetInputUniversesBridge(std::list<int>& selected, OutputManager* outpu
     return false;
 }
 
+PixelCapeInfo& FPP::GetCapeRules(const std::string& type)
+{
+    return CONTROLLER_TYPE_MAP.find(type) != CONTROLLER_TYPE_MAP.end() ? CONTROLLER_TYPE_MAP[type] : CONTROLLER_TYPE_MAP["PiHat"];
+}
+
 bool FPP::UploadPixelOutputs(ModelManager* allmodels,
                              OutputManager* outputManager,
                              const std::list<int>& selected) {
     
     int maxString = 1;
     int maxdmx = 0;
-    PixelCapeInfo &rules = CONTROLLER_TYPE_MAP.find(pixelControllerType) != CONTROLLER_TYPE_MAP.end() ? CONTROLLER_TYPE_MAP[pixelControllerType] : CONTROLLER_TYPE_MAP["PiHat"];
+    PixelCapeInfo &rules = GetCapeRules(pixelControllerType);
     maxdmx = rules.maxDMX;
     maxString = rules.maxStrings;
     

@@ -242,7 +242,7 @@ public:
     void Enable(bool b);
     void SetBitmap(const wxBitmap &bmp);
 private:
-    wxAuiToolBar *toolbar;
+    wxAuiToolBar *toolbar = nullptr;
     int id;
 };
 
@@ -297,7 +297,7 @@ public:
     void LoadPerspectivesMenu(wxXmlNode* perspectivesNode);
     struct PerspectiveId {
         int id;
-        wxXmlNode* p;
+        wxXmlNode* p = nullptr;
     };
 
     PerspectiveId perspectives[10];
@@ -1049,20 +1049,20 @@ public:
 
     wxBitmap pauseIcon;
     wxBitmap playIcon;
-    bool previewLoaded;
-    bool previewPlaying;
+    bool previewLoaded = false;
+    bool previewPlaying = false;
     wxFileName networkFile;
     wxArrayString mru;  // most recently used directories
     wxMenuItem* mru_MenuItem[MRU_LENGTH];
     OutputManager _outputManager;
     long DragRowIdx;
     wxListCtrl* DragListBox;
-    bool UnsavedNetworkChanges;
-    bool UnsavedPlaylistChanges;
+    bool UnsavedNetworkChanges = false;
+    bool UnsavedPlaylistChanges = false;
     int mSavedChangeCount;
     int mLastAutosaveCount;
     wxDateTime starttime;
-    ModelPreview* modelPreview;
+    ModelPreview* modelPreview = nullptr;
     EffectManager effectManager;
     int effGridPrevX;
     int effGridPrevY;
@@ -1080,7 +1080,7 @@ public:
     bool _autoSavePerspecive;
     int _fseqVersion;
     int _xFadePort;
-    wxSocketServer* _xFadeSocket;
+    wxSocketServer* _xFadeSocket = nullptr;
 
     void OnxFadeSocketEvent(wxSocketEvent & event);
     void OnxFadeServerEvent(wxSocketEvent & event);
@@ -1170,7 +1170,7 @@ public:
     bool mScaleBackgroundImage = false;
     std::string mStoredLayoutGroup;
     int _suppressDuplicateFrames;
-    bool _suspendAutoSave;
+    bool _suspendAutoSave = false;
 
     // convert
 public:
@@ -1296,15 +1296,15 @@ protected:
     bool Grid1HasFocus; //cut/copy/paste handled differently with grid vs. other text controls -DJ
     wxXmlDocument EffectsXml;
 	SequenceViewManager _sequenceViewManager;
-    wxXmlNode* EffectsNode;
-    wxXmlNode* PalettesNode;
-    wxXmlNode* PerspectivesNode;
+    wxXmlNode* EffectsNode = nullptr;
+    wxXmlNode* PalettesNode = nullptr;
+    wxXmlNode* PerspectivesNode = nullptr;
 public:
-    wxXmlNode* ModelsNode;
-    wxXmlNode* ModelGroupsNode;
-    wxXmlNode* LayoutGroupsNode;
-    wxXmlNode* ViewObjectsNode;
     bool RebuildControllerConfig(OutputManager* outputManager, ModelManager* modelManager);
+    wxXmlNode* ModelsNode = nullptr;
+    wxXmlNode* ModelGroupsNode = nullptr;
+    wxXmlNode* LayoutGroupsNode = nullptr;
+    wxXmlNode* ViewObjectsNode = nullptr;
     SequenceViewManager* GetViewsManager() { return &_sequenceViewManager; }
     void OpenSequence(wxString passed_filename, ConvertLogDialog* plog);
     void SaveSequence();
@@ -1317,7 +1317,7 @@ public:
     bool HandleAllKeyBinding(wxKeyEvent& event);
 
 private:
-    wxXmlNode* SettingsNode;
+    wxXmlNode* SettingsNode = nullptr;
 
     bool MixTypeChanged;
     bool FadesChanged;
@@ -1374,7 +1374,7 @@ private:
     std::string selectedEffectName;
     std::string selectedEffectString;
     std::string selectedEffectPalette;
-    Effect *selectedEffect;
+    Effect *selectedEffect = nullptr;
 
     std::string lastPlayEffect;
     double mPointSize = 2.0;
@@ -1434,28 +1434,28 @@ private:
     int _acParm2RampDown;
     int _acParm1RampUpDown;
     int _acParm2RampUpDown;
-    wxXmlNode* mCurrentPerpective;
+    wxXmlNode* mCurrentPerpective = nullptr;
     std::map<wxString, bool> savedPaneShown;
     SequenceElements mSequenceElements;
-    MainSequencer* mainSequencer;
-    ModelPreview * _modelPreviewPanel;
-    HousePreviewPanel *_housePreviewPanel;
-    LayoutPanel *layoutPanel;
-    EffectAssist* sEffectAssist;
-    ColorPanel* colorPanel;
-    TimingPanel* timingPanel;
-    PerspectivesPanel* perspectivePanel;
-    EffectIconPanel *effectPalettePanel;
-    JukeboxPanel *jukeboxPanel;
-    BufferPanel *bufferPanel;
-    ViewsModelsPanel *displayElementsPanel;
-    TopEffectsPanel* effectsPnl;
-    EffectsPanel* EffectsPanel1;
-    SelectPanel *_selectPanel;
-    SequenceVideoPanel* sequenceVideoPanel;
+    MainSequencer* mainSequencer = nullptr;
+    ModelPreview * _modelPreviewPanel = nullptr;
+    HousePreviewPanel *_housePreviewPanel = nullptr;
+    LayoutPanel *layoutPanel = nullptr;
+    EffectAssist* sEffectAssist = nullptr;
+    ColorPanel* colorPanel = nullptr;
+    TimingPanel* timingPanel = nullptr;
+    PerspectivesPanel* perspectivePanel = nullptr;
+    EffectIconPanel *effectPalettePanel = nullptr;
+    JukeboxPanel *jukeboxPanel = nullptr;
+    BufferPanel *bufferPanel = nullptr;
+    ViewsModelsPanel *displayElementsPanel = nullptr;
+    TopEffectsPanel* effectsPnl = nullptr;
+    EffectsPanel* EffectsPanel1 = nullptr;
+    SelectPanel *_selectPanel = nullptr;
+    SequenceVideoPanel* sequenceVideoPanel = nullptr;
     int mMediaLengthMS;
     bool mSequencerInitialize = false;
-    wxFlexGridSizer* FlexGridEffects;
+    wxFlexGridSizer* FlexGridEffects = nullptr;
     std::set<int> LorTimingList; // contains a list of period numbers, set by ReadLorFile()
                                  //add lock/unlock/random state flags -DJ
                                  //these could be used to make fields read-only, but initially they are just used for partially random effects
@@ -1542,8 +1542,8 @@ private:
     void CreateSequencer();
     void DoStopSequence();
 
-    wxMenu* MenuItemPreviews;
-    wxMenuItem* MenuItemPreviewSeparator;
+    wxMenu* MenuItemPreviews = nullptr;
+    wxMenuItem* MenuItemPreviewSeparator = nullptr;
     static const long ID_MENU_ITEM_PREVIEWS;
     static const long ID_MENU_ITEM_PREVIEWS_SHOW_ALL;
 
@@ -1596,7 +1596,7 @@ public:
     ViewObjectManager AllObjects;
     ColorManager color_mgr;
     ViewpointMgr viewpoint_mgr;
-    EffectTreeDialog *EffectTreeDlg;
+    EffectTreeDialog *EffectTreeDlg = nullptr;
 
     void LoadJukebox(wxXmlNode* node);
     static wxXmlNode* FindNode(wxXmlNode* parent, const wxString& tag, const wxString& attr, const wxString& value, bool create = false);

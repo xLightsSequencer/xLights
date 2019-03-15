@@ -70,7 +70,10 @@ class SyncManager
 	public:
 
 		SyncManager(ScheduleManager* scheduleManager) : _scheduleManager(scheduleManager) {}
-        virtual ~SyncManager() { ClearRemote(); ClearMasters(); }
+        virtual ~SyncManager() {
+            _remote = nullptr;
+            ClearMasters(); 
+        }
 
 		void AddMaster(SYNCMODE sm);
         void RemoveMaster(SYNCMODE sm);

@@ -28,6 +28,7 @@ ZCPPOutput::ZCPPOutput(wxXmlNode* node, std::string showdir) : IPOutput(node)
     _model = wxAtoi(node->GetAttribute("Model", "65535"));
     _sendConfiguration = node->GetAttribute("SendConfig", "TRUE") != "FALSE";
     _supportsVirtualStrings = node->GetAttribute("SupportsVirtualStrings", "FALSE") == "TRUE";
+    _supportsSmartRemotes = node->GetAttribute("SupportsSmartRemotes", "FALSE") == "TRUE";
     DeserialiseProtocols(node->GetAttribute("Protocols", ""));
 
     wxString fileName = GetIP();
@@ -126,6 +127,7 @@ ZCPPOutput::ZCPPOutput() : IPOutput()
     _sequenceNum = 0;
     _sendConfiguration = true;
     _supportsVirtualStrings = false;
+    _supportsSmartRemotes = false;
     _datagram = nullptr;
     _vendor = -1;
     _autoSize = true;
@@ -282,6 +284,7 @@ wxXmlNode* ZCPPOutput::Save()
     node->AddAttribute("Model", wxString::Format("%d", _model));
     if (!_sendConfiguration) node->AddAttribute("SendConfiguration", "FALSE");
     if (_supportsVirtualStrings)node->AddAttribute("SupportsVirtualStrings", "TRUE");
+    if (_supportsSmartRemotes)node->AddAttribute("SupportsSmartRemotes", "TRUE");
     node->AddAttribute("Protocols", SerialiseProtocols());
     IPOutput::Save(node);
 
@@ -500,6 +503,10 @@ std::list<Output*> ZCPPOutput::Discover(OutputManager* outputManager)
                         bool supportsVirtualStrings = buffer[115] & 0x08;
                         output->SetSupportsVirtualStrings(supportsVirtualStrings);
                         logger_base.debug("   Supports Virtual Strings %d", supportsVirtualStrings);
+
+                        bool supportsSmartRemotes = buffer[115] & 0x10;
+                        output->SetSupportsSmartRemotes(supportsSmartRemotes);
+                        logger_base.debug("   Supports Smart Remotes %d", supportsSmartRemotes);
 
                         int i = 90;
                         while (i <= 109 && buffer[i] != 0xFF)

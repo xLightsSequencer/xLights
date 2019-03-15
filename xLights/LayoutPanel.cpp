@@ -242,7 +242,8 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     background = nullptr;
     _firstTreeLoad = true;
     _lastXlightsModel = "";
-    appearanceVisible = sizeVisible = stringPropsVisible = controllerConnectionVisible = false;
+    appearanceVisible = sizeVisible = stringPropsVisible = false;
+    controllerConnectionVisible = true;
 
 	//(*Initialize(LayoutPanel)
 	wxFlexGridSizer* FlexGridSizer1;
@@ -461,7 +462,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     TreeListViewModels->GetView()->Connect(wxID_COPY, wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::DoCopy, nullptr,this);
     TreeListViewModels->GetView()->Connect(wxID_PASTE, wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::DoPaste, nullptr,this);
     TreeListViewModels->GetView()->Connect(wxID_UNDO, wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::DoUndo, nullptr,this);
-    TreeListViewModels->GetView()->Connect(wxID_ANY, wxEVT_CHAR_HOOK, wxKeyEventHandler(LayoutPanel::OnCharHook), nullptr, this);
+    TreeListViewModels->GetView()->Connect(wxID_ANY, wxEVT_CHAR_HOOK, wxKeyEventHandler(LayoutPanel::OnListCharHook), nullptr, this);
 
     wxScrolledWindow *sw = new wxScrolledWindow(ModelSplitter);
     wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
@@ -794,7 +795,15 @@ void LayoutPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
                     xlights->MarkEffectsFileDirty(true);
                 }
                 else {
+                    selectedModel->SaveDisplayDimensions();
                     int i = selectedModel->OnPropertyGridChange(propertyEditor, event);
+                    if ((i & GRIDCHANGE_SUPPRESS_HOLDSIZE) == 0 &&
+                        (dynamic_cast<ModelWithScreenLocation<BoxedScreenLocation>*>(selectedModel) != nullptr ||
+                            dynamic_cast<ModelWithScreenLocation<ThreePointScreenLocation>*>(selectedModel) != nullptr))
+                    {
+                            // only restore if not suppressed and if it is a boxed screen location
+                            selectedModel->RestoreDisplayDimensions();
+                    }
                     if (i & GRIDCHANGE_REFRESH_DISPLAY) {
                         xlights->UpdatePreview();
                     }
@@ -845,7 +854,7 @@ void LayoutPanel::SetDisplay2DBoundingBox(bool bb)
 void LayoutPanel::SetDisplay2DCenter0(bool bb) {
     modelPreview->SetDisplay2DCenter0(bb);
 }
-
+                                            
 
 void LayoutPanel::OnPropertyGridChanging(wxPropertyGridEvent& event) {
     std::string name = event.GetPropertyName().ToStdString();
@@ -1874,10 +1883,10 @@ void LayoutPanel::SelectBaseObject(BaseObject *obj, bool highlight_tree)
 
 void LayoutPanel::SelectModel(const std::string & name, bool highlight_tree)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     Model *m = xlights->AllModels[name];
     if (m == nullptr)
     {
-        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         logger_base.warn("LayoutPanel:SelectModel Unable to select model '%s'.", (const char *)name.c_str());
     }
     SelectModel(m, highlight_tree);
@@ -1939,8 +1948,11 @@ void LayoutPanel::SelectModel(Model *m, bool highlight_tree) {
     }
 
     selectedBaseObject = m;
-    selectedBaseObject->GetBaseObjectScreenLocation().SetActiveHandle(CENTER_HANDLE);
-    selectionLatched = true;
+    if (selectedBaseObject != nullptr)
+    {
+        selectedBaseObject->GetBaseObjectScreenLocation().SetActiveHandle(CENTER_HANDLE);
+        selectionLatched = true;
+    }
 
     if (CheckBoxOverlap->GetValue()) {
         for ( wxTreeListItem item = TreeListViewModels->GetFirstItem();
@@ -2299,7 +2311,7 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
                 glm::vec3 ray_origin;
                 glm::vec3 ray_direction;
                 GetMouseLocation(event.GetX(), event.GetY(), ray_origin, ray_direction);
-                selectedBaseObject->GetBaseObjectScreenLocation().CheckIfOverHandles3D(ray_origin, ray_direction, m_over_handle);
+                selectedBaseObject->GetBaseObjectScreenLocation().CheckIfOverHandles3D(ray_origin, ray_direction, m_over_handle, modelPreview->GetCameraZoomForHandles());
             }
             if (m_over_handle != -1) {
                 if ((m_over_handle & 0x2000) > 0) {
@@ -2761,6 +2773,7 @@ void LayoutPanel::OnPreviewZoomGesture(wxZoomGestureEvent& event) {
     }
     m_last_mouse_x = (event.GetZoomFactor() * 1000);
 }
+
 void LayoutPanel::OnPreviewMagnify(wxMouseEvent& event) {
     if (event.GetWheelRotation() == 0 || event.GetMagnification() == 0.0f) {
         //magnification of 0 is sometimes generated for other gestures (pinch/zoom), ignore
@@ -2965,7 +2978,7 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
                 glm::vec3 ray_direction;
                 GetMouseLocation(event.GetX(), event.GetY(), ray_origin, ray_direction);
                 // check for mouse over handle and if so highlight it
-                modelPreview->SetCursor(selectedBaseObject->GetBaseObjectScreenLocation().CheckIfOverHandles3D(ray_origin, ray_direction, m_over_handle));
+                modelPreview->SetCursor(selectedBaseObject->GetBaseObjectScreenLocation().CheckIfOverHandles3D(ray_origin, ray_direction, m_over_handle, modelPreview->GetCameraZoomForHandles()));
                 if (m_over_handle != over_handle) {
                     selectedBaseObject->GetBaseObjectScreenLocation().MouseOverHandle(m_over_handle);
                     over_handle = m_over_handle;
@@ -3504,7 +3517,7 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
         if( md == nullptr ) return;
         int handle = md->GetSelectedSegment();
         CreateUndoPoint("SingleModel", md->name, std::to_string(handle+0x8000));
-        md->InsertHandle(handle);
+        md->InsertHandle(handle, modelPreview->GetCameraZoomForHandles());
         md->UpdateXmlWithScale();
         md->InitModel();
         SetupPropGrid(md);
@@ -4426,6 +4439,22 @@ void LayoutPanel::OnCharHook(wxKeyEvent& event) {
         default:
             event.Skip();
             break;
+    }
+}
+
+void LayoutPanel::OnListCharHook(wxKeyEvent& event)
+{
+    wxChar uc = event.GetKeyCode();
+    switch (uc) {
+    case WXK_UP:
+    case WXK_DOWN:
+    case WXK_LEFT:
+    case WXK_RIGHT:
+        event.DoAllowNextEvent();
+        break;
+    default:
+        OnCharHook(event);
+        break;
     }
 }
 
@@ -5592,7 +5621,8 @@ void LayoutPanel::OnSelectionChanged(wxTreeListEvent& event)
                     mSelectedGroup = nullptr;
                     ShowPropGrid(true);
                     SelectModel(model, false);
-                    SetToolTipForTreeList(TreeListViewModels, xlights->GetChannelToControllerMapping(model->GetNumberFromChannelString(model->ModelStartChannel)));
+                    SetToolTipForTreeList(TreeListViewModels, 
+                        xlights->GetChannelToControllerMapping(model->GetNumberFromChannelString(model->ModelStartChannel)) + "Nodes: " + wxString::Format("%d", (int)model->GetNodeCount()).ToStdString());
                 }
             } else {
                 mSelectedGroup = nullptr;

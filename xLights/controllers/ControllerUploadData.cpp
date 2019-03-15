@@ -300,6 +300,47 @@ bool UDController::Check(ControllerRules* rules, std::string& res)
         }
     }
 
+    if (!rules->SupportsSmartRemotes())
+    {
+        for (auto it : _pixelPorts)
+        {
+            for (auto it2: it.second->GetModels())
+            {
+                if (it2->GetSmartRemote() != 0)
+                {
+                    res += wxString::Format("ERROR: Port %d has model %s with smart remote set ... but this controller does not support smart remotes.\n", 
+                        it.second->GetPort(), it2->GetName());
+                    success = false;
+                }
+            }
+        }
+    }
+    else
+    {
+        for (auto it : _pixelPorts)
+        {
+            int countNoSmart = 0;
+            int countSmart = 0;
+            for (auto it2 : it.second->GetModels())
+            {
+                if (it2->GetSmartRemote() == 0)
+                {
+                    countNoSmart++;
+                }
+                else
+                {
+                    countSmart++;
+                }
+            }
+            if (countSmart > 0 && countNoSmart > 0)
+            {
+                res += wxString::Format("ERROR: Port %d has a mix of models with smart and non smart remotes. This is not supported.\n",
+                    it.second->GetPort());
+                success = false;
+            }
+        }
+    }
+
     if (rules->AllUniversesSameSize())
     {
         int size = -1;
@@ -462,6 +503,7 @@ UDControllerPortModel::UDControllerPortModel(Model* m, OutputManager* om, int st
     _model = m;
     _string = string;
     _protocol = _model->GetControllerProtocol();
+    _smartRemote = _model->GetSmartRemote();
 
     if (string == -1)
     {
@@ -601,7 +643,11 @@ UDControllerPortModel* UDControllerPort::GetLastModel() const
 
 bool compare_modelsc(const UDControllerPortModel* first, const UDControllerPortModel* second)
 {
-    return first->GetStartChannel() < second->GetStartChannel();
+    if (first->GetSmartRemote() == second->GetSmartRemote())
+    {
+        return first->GetStartChannel() < second->GetStartChannel();
+    }
+    return first->GetSmartRemote() < second->GetSmartRemote();
 }
 
 void UDControllerPort::AddModel(Model* m, OutputManager* om, int string)
@@ -795,6 +841,7 @@ void UDControllerPort::CreateVirtualStrings(bool mergeSequential)
         bool first = false;
         int brightness = it->GetBrightness(-9999);
         int nullPixels = it->GetNullPixels(-9999);
+        int smartRemote = it->GetSmartRemote();
         std::string reverse = it->GetDirection("unknown");
         std::string colourOrder = it->GetColourOrder("unknown");
         float gamma = it->GetGamma(-9999);
@@ -812,6 +859,7 @@ void UDControllerPort::CreateVirtualStrings(bool mergeSequential)
         {
             if ((brightness != -9999 && current->_brightness != brightness) ||
                 (nullPixels != -9999) ||
+                (current->_smartRemote != smartRemote) ||
                 (reverse != "unknown" && current->_reverse != reverse) ||
                 (colourOrder != "unknown" && current->_colourOrder != colourOrder) ||
                 (gamma != -9999 && current->_gamma != gamma) ||
@@ -835,6 +883,7 @@ void UDControllerPort::CreateVirtualStrings(bool mergeSequential)
             current->_universe = it->GetUniverse();
             current->_universeStartChannel = it->GetUniverseStartChannel();
             current->_channelsPerPixel = it->GetChannelsPerPixel();
+            current->_smartRemote = it->GetSmartRemote();
 
             if (gamma == -9999)
             {

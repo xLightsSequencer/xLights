@@ -115,6 +115,15 @@ void BaseObject::SetWidth(float w) {
     IncrementChangeCount();
 }
 
+void BaseObject::SetDepth(float d) {
+    
+    if (GetBaseObjectScreenLocation().IsLocked()) return;
+
+    GetBaseObjectScreenLocation().SetMDepth(d);
+    GetBaseObjectScreenLocation().Write(ModelXml);
+    IncrementChangeCount();
+}
+
 void BaseObject::SetHeight(float h) {
 
     if (GetBaseObjectScreenLocation().IsLocked()) return;
@@ -184,12 +193,16 @@ float BaseObject::GetBack() {
     return GetBaseObjectScreenLocation().GetBack();
 }
 
-float BaseObject::GetWidth() {
+float BaseObject::GetWidth() const {
     return GetBaseObjectScreenLocation().GetMWidth();
 }
 
-float BaseObject::GetHeight() {
+float BaseObject::GetHeight() const {
     return GetBaseObjectScreenLocation().GetMHeight();
+}
+
+float BaseObject::GetDepth() const {
+    return GetBaseObjectScreenLocation().GetMDepth();
 }
 
 float BaseObject::GetHcenterPos() {

@@ -956,11 +956,14 @@ xScheduleFrame::~xScheduleFrame()
     GetSize(&w, &h);
 
     wxConfigBase* config = wxConfigBase::Get();
-    config->Write(_("xsWindowPosX"), x);
-    config->Write(_("xsWindowPosY"), y);
-    config->Write(_("xsWindowPosW"), w);
-    config->Write(_("xsWindowPosH"), h);
-    config->Flush();
+    if (config != nullptr)
+    {
+        config->Write(_("xsWindowPosX"), x);
+        config->Write(_("xsWindowPosY"), y);
+        config->Write(_("xsWindowPosW"), w);
+        config->Write(_("xsWindowPosH"), h);
+        config->Flush();
+    }
 
     //(*Destroy(xScheduleFrame)
     //*)

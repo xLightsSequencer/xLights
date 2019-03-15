@@ -47,6 +47,7 @@ ScheduleManager::ScheduleManager(xScheduleFrame* frame, const std::string& showD
     // prime fix file with our show directory for any filename fixups
     FixFile(showDir, "");
 
+    _syncManager = std::make_unique<SyncManager>(this);
     _testMode = false;
     _mainThread = wxThread::GetCurrentId();
     _listenerManager = nullptr;
@@ -72,7 +73,6 @@ ScheduleManager::ScheduleManager(xScheduleFrame* frame, const std::string& showD
     _timerAdjustment = 0;
     _lastXyzzyCommand = wxDateTime::Now();
     _outputManager = new OutputManager();
-    _syncManager = std::make_unique<SyncManager>(this);
 
     _mode = (int)SYNCMODE::STANDALONE;
     _remoteMode = REMOTEMODE::DISABLED;
@@ -383,7 +383,6 @@ int ScheduleManager::DoSync(const std::string& filename, long ms)
 ScheduleManager::~ScheduleManager()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    _syncManager = nullptr;
     AllOff();
     _outputManager->StopOutput();
     StopVirtualMatrices();
@@ -473,6 +472,8 @@ ScheduleManager::~ScheduleManager()
 
     delete _scheduleOptions;
     delete _outputManager;
+    _syncManager = nullptr;
+
     free(_buffer);
 
     logger_base.info("Closed schedule.");
@@ -1440,28 +1441,35 @@ int ScheduleManager::CheckSchedule()
     }
 
     logger_base.debug("   Active scheduled playlists: %d", _activeSchedules.size());
-    for (auto it = _activeSchedules.begin(); it != _activeSchedules.end(); ++it)
+    for (auto it : _activeSchedules)
     {
-        PlayListStep* step = (*it)->GetPlayList()->GetRunningStep();
-        std::string runstate = (*it)->IsStopped() ? "Stopped" : 
-                                                     (*it)->GetPlayList()->IsRunning() ? "Running" : 
-                                                                                         (*it)->GetPlayList()->IsSuspended() ? "Suspended" : 
-                                                                                                                               "Done";
-        std::string suspend = (*it)->GetPlayList()->IsSuspended() ? "Suspended" : "";
-        std::string stepname = step == nullptr ? "" : step->GetNameNoTime();
-        std::string pos = std::string(step == nullptr ? "" : FORMATTIME(step->GetPosition()));
-        std::string len = std::string(step == nullptr ? "" : FORMATTIME(step->GetLengthMS()));
+        if (it->GetPlayList() != nullptr && it->GetSchedule() != nullptr)
+        {       
+            PlayListStep* step = it->GetPlayList()->GetRunningStep();
+            std::string runstate = it->IsStopped() ? _("Stopped") :
+                it->GetPlayList()->IsRunning() ? _("Running") :
+                it->GetPlayList()->IsSuspended() ? _("Suspended") :
+                _("Done");
+            std::string suspend = it->GetPlayList()->IsSuspended() ? _("Suspended") : _("");
+            std::string stepname = step == nullptr ? _("").ToStdString() : step->GetNameNoTime();
+            std::string pos = std::string(step == nullptr ? _("") : FORMATTIME(step->GetPosition()));
+            std::string len = std::string(step == nullptr ? _("") : FORMATTIME(step->GetLengthMS()));
 
-        logger_base.debug("        Playlist %s, Schedule %s Priority %d %s %s Step '%s' Time %s/%s",
-            (const char *)(*it)->GetPlayList()->GetName().c_str(), 
-            (const char *)(*it)->GetSchedule()->GetName().c_str(), 
-            (*it)->GetSchedule()->GetPriority(), 
-            (const char*)runstate.c_str(),
-            (const char*)suspend.c_str(),
-            (const char*)stepname.c_str(),
-            (const char*)pos.c_str(),
-            (const char*)len.c_str()
+            logger_base.debug("        Playlist %s, Schedule %s Priority %d %s %s Step '%s' Time %s/%s",
+                (const char *)it->GetPlayList()->GetName().c_str(),
+                (const char *)it->GetSchedule()->GetName().c_str(),
+                it->GetSchedule()->GetPriority(),
+                (const char*)runstate.c_str(),
+                (const char*)suspend.c_str(),
+                (const char*)stepname.c_str(),
+                (const char*)pos.c_str(),
+                (const char*)len.c_str()
             );
+        }
+        else
+        {
+            logger_base.error("        Weird playlist or schedule was null.");
+        }
     }
 
     return framems;

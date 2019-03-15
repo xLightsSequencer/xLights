@@ -183,6 +183,7 @@ void ModelPreview::mouseLeftWindow(wxMouseEvent& event) {
     event.ResumePropagation(1);
     event.Skip (); // continue the event
 }
+
 const std::vector<Model*> &ModelPreview::GetModels() {
     tmpModelList.clear();
     if (xlights) {
@@ -229,6 +230,7 @@ const std::vector<Model*> &ModelPreview::GetModels() {
     }
     return tmpModelList;
 }
+
 void ModelPreview::SetModel(const Model* model) {
     if (model) {
         this->xlights = model->GetModelManager().GetXLightsFrame();
@@ -756,11 +758,20 @@ void ModelPreview::SetCameraPos(int camerax, int cameraz, bool latch, bool reset
 	}
 }
 
+float ModelPreview::GetCameraZoomForHandles() const
+{
+    if (is_3d) {
+        return camera3d->GetZoom();
+    }
+    return 1.0;
+}
+
 void ModelPreview::SetZoomDelta(float delta)
 {
     if (is_3d) {
-        camera3d->SetZoom( camera3d->GetZoom() * (1.0f + delta));
-    } else {
+        camera3d->SetZoom(camera3d->GetZoom() * (1.0f + delta));
+    }
+    else {
         camera2d->SetZoom(camera2d->GetZoom() * (1.0f - delta));
         camera2d->SetZoomCorrX(((mWindowWidth * camera2d->GetZoom()) - mWindowWidth) / 2.0f);
         camera2d->SetZoomCorrY(((mWindowHeight * camera2d->GetZoom()) - mWindowHeight) / 2.0f);

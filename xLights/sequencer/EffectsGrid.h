@@ -285,6 +285,7 @@ private:
     static const long ID_GRID_MNU_UNDO;
     static const long ID_GRID_MNU_PRESETS;
     static const long ID_GRID_MNU_BREAKDOWN_PHRASE;
+    static const long ID_GRID_MNU_HALVETIMINGS;
     static const long ID_GRID_MNU_BREAKDOWN_WORD;
     static const long ID_GRID_MNU_BREAKDOWN_WORDS;
     static const long ID_GRID_MNU_ALIGN_START_TIMES;

@@ -246,6 +246,8 @@ class LayoutPanel: public wxPanel
         void ModelGroupUpdated(ModelGroup *group, bool full_refresh);
         bool HandleLayoutKeyBinding(wxKeyEvent& event);
 
+        void OnListCharHook(wxKeyEvent& event);
+
     protected:
         NewModelBitmapButton* AddModelButton(const std::string &type, const char *imageData[]);
         void UpdateModelsForPreview(const std::string &group, LayoutGroup* layout_grp, std::vector<Model *> &prev_models, bool filtering );

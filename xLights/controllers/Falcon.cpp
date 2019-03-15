@@ -215,9 +215,10 @@ Falcon::~Falcon()
 void FalconString::Dump() const
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("    Index %02d Port %02d Prot %d Desc '%s' Uni %d StartChan %d Pixels %d Group %d Direction %s ColorOrder %s Nulls %d Brightness %d Gamma %.1f",
+    logger_base.debug("    Index %02d Port %02d SmartRemote %d Prot %d Desc '%s' Uni %d StartChan %d Pixels %d Group %d Direction %s ColorOrder %s Nulls %d Brightness %d Gamma %.1f",
         index,
         port+1,
+        smartRemote,
         protocol,
         (const char*)description.c_str(),
         universe,
@@ -525,6 +526,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
                 fs->startChannel = vs->_universeStartChannel;
                 fs->pixels = vs->Channels() / 3;
                 fs->description = SafeDescription(vs->_description);
+                fs->smartRemote = vs->_smartRemote;
                 if (vs->_brightnessSet)
                 {
                     fs->brightness = vs->_brightness;
@@ -877,6 +879,7 @@ void Falcon::ReadStringData(const wxXmlDocument& stringsDoc, std::vector<FalconS
         string->colourOrder = DecodeColourOrder(wxAtoi(e->GetAttribute("o", "0")));
         string->direction = DecodeDirection(wxAtoi(e->GetAttribute("d", "0")));
         string->groupCount = wxAtoi(e->GetAttribute("g", "1"));
+        string->smartRemote = wxAtoi(e->GetAttribute("x", "0"));
         string->index = i;
         stringData[i] = string;
 
@@ -1048,6 +1051,7 @@ void Falcon::InitialiseStrings(std::vector<FalconString*>& stringsData, int max)
             string->colourOrder = "RGB";
             string->direction = "Forward";
             string->groupCount = 1;
+            string->smartRemote = 0x00;
             newStringsData.push_back(string);
             logger_base.debug("    Added default string to port %d.", i+1);
         }
@@ -1187,7 +1191,7 @@ int Falcon::CountStrings(const wxXmlDocument& stringsDoc) const
 
 std::string Falcon::BuildStringPort(FalconString* string) const
 {
-    return wxString::Format("&p%i=%i&t%i=%i&u%i=%i&s%i=%i&c%i=%i&y%i=%s&b%i=%i&n%i=%i&G%i=%i&o%i=%i&d%i=%i&g%i=%i",
+    return wxString::Format("&p%i=%i&t%i=%i&u%i=%i&s%i=%i&c%i=%i&y%i=%s&b%i=%i&n%i=%i&G%i=%i&o%i=%i&d%i=%i&g%i=%i&x%i=%d",
         string->index, string->port,
         string->index, string->protocol,
         string->index, string->universe,
@@ -1199,7 +1203,8 @@ std::string Falcon::BuildStringPort(FalconString* string) const
         string->index, EncodeGamma(string->gamma),
         string->index, EncodeColourOrder(string->colourOrder),
         string->index, EncodeDirection(string->direction),
-        string->index, string->groupCount
+        string->index, string->groupCount,
+        string->index, string->smartRemote
     ).ToStdString();
 }
 

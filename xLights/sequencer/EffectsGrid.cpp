@@ -64,6 +64,7 @@ const long EffectsGrid::ID_GRID_MNU_TIMING = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_UNDO = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_PRESETS = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_BREAKDOWN_PHRASE = wxNewId();
+const long EffectsGrid::ID_GRID_MNU_HALVETIMINGS = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_BREAKDOWN_WORD = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_BREAKDOWN_WORDS = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_ALIGN_START_TIMES = wxNewId();
@@ -344,6 +345,7 @@ void EffectsGrid::rightClick(wxMouseEvent& event)
                     mnuLayer.Append(ID_GRID_MNU_BREAKDOWN_WORDS,"Breakdown Selected Words");
                 }
             }
+            mnuLayer.Append(ID_GRID_MNU_HALVETIMINGS, "Halve Selected Timings");
             mSelectedEffect = selectedEffect;
         }
         mnuLayer.AppendSeparator();
@@ -497,6 +499,28 @@ void EffectsGrid::OnGridPopup(wxCommandEvent& event)
         element->SetCollapsed(false);
         wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
         wxPostEvent(mParent, eventRowHeaderChanged);
+    }
+    else if (id == ID_GRID_MNU_HALVETIMINGS)
+    {
+        auto el = mSelectedEffect->GetParentEffectLayer();
+        for (int i = 0; i < el->GetEffectCount(); i++)
+        {
+            auto ef = el->GetEffect(i);
+            if (ef->GetSelected())
+            {
+                auto s = ef->GetStartTimeMS();
+                auto e = ef->GetEndTimeMS();
+                auto frequency = mTimeline->GetTimeFrequency();
+                int base_timing = 1000.0 / frequency;
+                if (e - s > base_timing)
+                {
+                    long split = TimeLine::RoundToMultipleOfPeriod(s + (e - s) / 2, frequency);
+                    ef->SetEndTimeMS(split);
+                    el->AddEffect(0, "", "", "", split, e, EFFECT_SELECTED, false);
+                    i++; // jump over the one we just inserted
+                }
+            }
+        }
     }
     else if(id == ID_GRID_MNU_BREAKDOWN_WORD)
     {

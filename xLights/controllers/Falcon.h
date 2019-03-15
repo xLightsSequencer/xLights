@@ -19,9 +19,9 @@ class FalconControllerRules : public ControllerRules
 public:
     FalconControllerRules(int type, int version) : ControllerRules()
     {
+        _expansions = 0;
         _type = type;
         _version = version;
-        _expansions = 0;
     }
     FalconControllerRules(int model) : ControllerRules()
     {
@@ -56,7 +56,7 @@ public:
             wxASSERT(false);
             break;
         }
-    }
+    }    
     virtual ~FalconControllerRules() {}
     virtual int GetMaxPixelPortChannels() const override
     {
@@ -129,6 +129,7 @@ public:
     {
         return true;
     }
+    virtual bool SupportsSmartRemotes() const override { return true; }
     virtual bool SupportsMultipleInputProtocols() const override { return true; }
     virtual bool AllUniversesSameSize() const override
     {
@@ -160,6 +161,7 @@ public:
     int port;
     float gamma;
     int groupCount;
+    int smartRemote;
     int nullPixels;
     std::string colourOrder;
     std::string direction;

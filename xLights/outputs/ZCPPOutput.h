@@ -37,6 +37,7 @@ class ZCPPOutput : public IPOutput
     long _usedChannels;
     bool _sendConfiguration;
     bool _supportsVirtualStrings;
+    bool _supportsSmartRemotes;
     std::list<wxByte*> _extraConfig;
     std::list<std::string> _protocols;
     #pragma endregion Member Variables
@@ -76,6 +77,8 @@ public:
     bool IsSendConfiguration() const { return _sendConfiguration; }
     void SetSupportsVirtualStrings(bool supportsVirtualStrings) { if (_supportsVirtualStrings != supportsVirtualStrings) { _supportsVirtualStrings = supportsVirtualStrings; _dirty = true; } }
     bool IsSupportsVirtualStrings() const { return _supportsVirtualStrings; }
+    void SetSupportsSmartRemotes(bool supportsSmartRemotes) { if (_supportsSmartRemotes != supportsSmartRemotes) { _supportsSmartRemotes  = supportsSmartRemotes; _dirty = true; } }
+    bool IsSupportsSmartRemotes() const { return _supportsSmartRemotes; }
     void SetVendor(int vendor) { _vendor = vendor; _dirty = true; }
     void SetModel(int model) { _model = model; _dirty = true; }
     int GetVendor() const { return _vendor; }

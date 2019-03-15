@@ -1635,7 +1635,7 @@ void FileConverter::ReadFalconFile(ConvertParameters& params)
     int periodsRead = 0;
     while (periodsRead < falconPeriods) {
         FSEQFile::FrameData *data = file->getFrame(periodsRead);
-        
+        if (data == nullptr) break;
         
         if (channel_offset == 0 && params.read_mode != ConvertParameters::READ_MODE_IGNORE_BLACK) {
             data->readFrame(&params.seq_data[periodsRead][0]);

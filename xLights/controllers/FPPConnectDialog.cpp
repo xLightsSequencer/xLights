@@ -556,8 +556,11 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
                         //Read a bunch of frames so each parallel thread has more info to work with before returning out here
                         while (lastBuffered < FRAMES_TO_BUFFER && frame < seq->getNumFrames()) {
                             FSEQFile::FrameData *f = seq->getFrame(frame);
-                            f->readFrame(&frames[lastBuffered][0]);
-                            delete f;
+                            if (f != nullptr)
+                            {
+                                f->readFrame(&frames[lastBuffered][0]);
+                                delete f;
+                            }
                             lastBuffered++;
                             frame++;
                         }

@@ -37,6 +37,7 @@ enum {
     GRIDCHANGE_REBUILD_PROP_GRID = 0x0004,
     GRIDCHANGE_REBUILD_MODEL_LIST = 0x0008,
     GRIDCHANGE_UPDATE_ALL_MODEL_LISTS = 0x0010,
+    GRIDCHANGE_SUPPRESS_HOLDSIZE = 0x00020,
 
     GRIDCHANGE_MARK_DIRTY_AND_REFRESH = 0x0003
 };
@@ -154,9 +155,11 @@ protected:
     void ApplyTransparency(xlColor &color, int transparency) const;
     void DumpBuffer(std::vector<NodeBaseClassPtr> &newNodes, int bufferWi, int bufferHi) const;
 
-    int BufferHt,BufferWi,BufferDp;  // size of the default buffer
+    // size of the default buffer
+    int BufferHt = 0;
+    int BufferWi = 0;
+    int BufferDp = 0;  
     std::vector<NodeBaseClassPtr> Nodes;
-
     const ModelManager &modelManager;
 
     virtual void InitModel();
@@ -223,6 +226,7 @@ public:
     void SetControllerPort(int port);
     std::string GetControllerName() const { return _controllerName; }
     std::string GetControllerProtocol() const;
+    int GetSmartRemote() const;
     int GetControllerPort(int string = 1) const;
     void SetModelChain(const std::string& modelChain);
     std::string GetModelChain() const { return _modelChain; }
@@ -284,7 +288,7 @@ public:
     bool HasCurve(int segment);
     void SetCurve(int segment, bool create);
     void AddHandle(ModelPreview* preview, int mouseX, int mouseY);
-    virtual void InsertHandle(int after_handle);
+    virtual void InsertHandle(int after_handle, float zoom);
     virtual void DeleteHandle(int handle);
 
     std::vector<std::string> GetModelState() const;
@@ -293,7 +297,6 @@ public:
     bool HitTest(ModelPreview* preview, glm::vec3& ray_origin, glm::vec3& ray_direction);
     bool IsContained(ModelPreview* preview, int x1, int y1, int x2, int y2);
     const std::string& GetStringType(void) const { return StringType; }
-    const std::string& GetDisplayAs(void) const { return DisplayAs; }
     virtual int NodesPerString() const;
     virtual int NodesPerString(int string) const { return NodesPerString(); }
     virtual int MapPhysicalStringToLogicalString(int string) const { return string; }
@@ -332,6 +335,18 @@ public:
     bool GetIsBtoT() const {return isBotToTop;}
     virtual int GetStrandLength(int strand) const;
 
+    float _savedWidth = 0;
+    float _savedHeight = 0;
+    float _savedDepth = 0;
+    void SaveDisplayDimensions()
+    {
+        _savedWidth = GetWidth();
+        _savedHeight = GetHeight();
+        _savedDepth = GetDepth();
+    }
+    void RestoreDisplayDimensions();
+
+    void GetMinScreenXY(float& minx, float& miny) const;
     virtual int GetNumStrands() const;
     std::string GetStrandName(size_t x, bool def = false) const {
         if (x < strandNames.size()) {

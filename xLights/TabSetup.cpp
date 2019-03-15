@@ -2458,8 +2458,14 @@ void xLightsFrame::SetModelData(ZCPPOutput* zcpp, ModelManager* modelManager, Ou
             {
                 for (int j = 0; j < port->GetVirtualStringCount(); j++)
                 {
-                    current += SetZCPPPort(current, port, i, j, baseStart, false);
-                    SetZCPPExtraConfig(extraConfig, extraConfigPos, i, j, port->GetVirtualString(j)->_description, extraConfigPortsInPacket, zcpp);
+                    int string = j;
+                    if (zcpp->IsSupportsSmartRemotes())
+                    {
+                        // put the smart remote number in the top 2 bits
+                        string += (port->GetVirtualString(j)->_smartRemote << 6);
+                    }
+                    current += SetZCPPPort(current, port, i, string, baseStart, false);
+                    SetZCPPExtraConfig(extraConfig, extraConfigPos, i, string, port->GetVirtualString(j)->_description, extraConfigPortsInPacket, zcpp);
                 }
             }
             else

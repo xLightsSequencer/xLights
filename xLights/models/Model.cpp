@@ -47,7 +47,7 @@ const std::vector<std::string> Model::DEFAULT_BUFFER_STYLES {DEFAULT, PER_PREVIE
 Model::Model(const ModelManager &manager) : modelDimmingCurve(nullptr),
     parm1(0), parm2(0), parm3(0), pixelStyle(1), pixelSize(2), transparency(0), blackTransparency(0),
     StrobeRate(0), modelManager(manager), CouldComputeStartChannel(false), maxVertexCount(0),
-    splitRGB(false), rgbwHandlingType(0)
+    splitRGB(false), rgbwHandlingType(0), BufferDp(0)
 {
     // These member vars were not initialised so give them some defaults.
     BufferHt = 0;
@@ -359,6 +359,7 @@ static wxArrayString RGBW_HANDLING;
 static wxArrayString PIXEL_STYLES;
 static wxArrayString LAYOUT_GROUPS;
 static wxArrayString CONTROLLER_PROTOCOLS;
+static wxArrayString SMART_REMOTES;
 static wxArrayString CONTROLLER_DIRECTION;
 static wxArrayString CONTROLLER_COLORORDER;
 static wxArrayString CONTROLLERS;
@@ -630,6 +631,13 @@ static inline void setupProtocolList() {
         CONTROLLER_PROTOCOLS.push_back("DMX");
         CONTROLLER_PROTOCOLS.push_back("PixelNet");
         CONTROLLER_PROTOCOLS.push_back("Renard");
+        CONTROLLER_PROTOCOLS.push_back("LOR");
+    }
+    if (SMART_REMOTES.IsEmpty()) {
+        SMART_REMOTES.push_back("N/A");
+        SMART_REMOTES.push_back("*A*->b->c");
+        SMART_REMOTES.push_back("a->*B*->c");
+        SMART_REMOTES.push_back("a->b->*C*");
     }
     if (CONTROLLER_DIRECTION.IsEmpty()) {
         CONTROLLER_DIRECTION.push_back("Forward");
@@ -691,6 +699,10 @@ void Model::AddControllerProperties(wxPropertyGridInterface *grid) {
         i++;
     }
 
+    if (protocol != "dmx" && protocol != "pixelnet" && protocol != "renard" && protocol != "lor" && protocol != "") {
+        sp = grid->AppendIn(p, new wxEnumProperty("Smart Remote", "SmartRemote", SMART_REMOTES, wxArrayInt(), GetSmartRemote()));
+    }
+
     sp = grid->AppendIn(p, new wxEnumProperty("Protocol", "ModelControllerConnectionProtocol", CONTROLLER_PROTOCOLS, wxArrayInt(), idx));
 
     if (_controllerName != "" && GetControllerProtocol() == "")
@@ -703,7 +715,7 @@ void Model::AddControllerProperties(wxPropertyGridInterface *grid) {
     }
 
     wxXmlNode *node = GetControllerConnection();
-    if (protocol == "dmx" || protocol == "pixelnet" || protocol == "renard") {
+    if (protocol == "dmx" || protocol == "pixelnet" || protocol == "renard" || protocol == "lor") {
         int chan = wxAtoi(node->GetAttribute("channel", "1"));
         sp = grid->AppendIn(p, new wxUIntProperty(protocol + " Channel", "ModelControllerConnectionDMXChannel", chan));
         sp->SetAttribute("Min", 1);
@@ -777,7 +789,6 @@ void Model::AddControllerProperties(wxPropertyGridInterface *grid) {
             grid->DisableProperty(sp2);
             grid->Collapse(sp);
         }
-
     }
 }
 
@@ -801,7 +812,7 @@ static wxString GetColorString(wxPGProperty *p, xlColor &xc) {
 
 static void clearUnusedProtocolProperties(wxXmlNode *node) {
     std::string protocol = node->GetAttribute("Protocol");
-    bool isDMX = protocol == "DMX" || protocol == "dmx" || protocol == "PIXELNET" || protocol == "pixelnet" || protocol == "PixelNet" || protocol == "Renard";
+    bool isDMX = protocol == "DMX" || protocol == "dmx" || protocol == "PIXELNET" || protocol == "pixelnet" || protocol == "PixelNet" || protocol == "Renard" || protocol == "LOR" || protocol == "lor";
     bool isPixel = Model::IsPixelProtocol(protocol);
     
     if (!isPixel) {
@@ -917,6 +928,10 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         }
 
         return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
+    } else if (event.GetPropertyName() == "SmartRemote") {
+        GetControllerConnection()->DeleteAttribute("SmartRemote");
+        GetControllerConnection()->AddAttribute("SmartRemote", event.GetValue().GetString());
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
     } else if (event.GetPropertyName() == "ModelControllerConnectionProtocol") {
         std::string oldProtocol = GetControllerProtocol();
         SetControllerProtocol(CONTROLLER_PROTOCOLS[event.GetValue().GetLong()]);
@@ -940,8 +955,8 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
 
         std::string newProtocol = GetControllerProtocol();
         if (
-            ((newProtocol == "DMX" || newProtocol == "PixelNet" || newProtocol == "Renard") && IsPixelProtocol(oldProtocol)) ||
-            ((oldProtocol == "DMX" || oldProtocol == "PixelNet" || oldProtocol == "Renard") && IsPixelProtocol(newProtocol)) ||
+            ((newProtocol == "DMX" || newProtocol == "PixelNet" || newProtocol == "Renard" || newProtocol == "LOR") && IsPixelProtocol(oldProtocol)) ||
+            ((oldProtocol == "DMX" || oldProtocol == "PixelNet" || oldProtocol == "Renard" || oldProtocol == "LOR") && IsPixelProtocol(newProtocol)) ||
             (oldProtocol == "" && newProtocol != "") ||
             (newProtocol == "" && oldProtocol != ""))
         {
@@ -3583,7 +3598,7 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
         va.Finish(GL_POINTS, pixelStyle == 1 ? GL_POINT_SMOOTH : 0, preview->calcPixelSize(pixelSize));
     }
     if ((Selected || (Highlighted && is_3d)) && c != nullptr && allowSelected) {
-        GetModelScreenLocation().DrawHandles(va);
+        GetModelScreenLocation().DrawHandles(va, preview->GetCameraZoomForHandles());
     }
 }
 
@@ -3721,7 +3736,7 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumula
         va.Finish(GL_POINTS, pixelStyle == 1 ? GL_POINT_SMOOTH : 0, preview->calcPixelSize(pixelSize));
     }
     if ((Selected || (Highlighted && is_3d)) && c != nullptr && allowSelected) {
-        GetModelScreenLocation().DrawHandles(va);
+        GetModelScreenLocation().DrawHandles(va, preview->GetCameraZoomForHandles());
     }
 }
 
@@ -3783,10 +3798,13 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
     bool success = preview->StartDrawing(pointSize);
 
     if(success) {
-        xlColor color;
         int w, h;
-
         preview->GetSize(&w, &h);
+
+        float ml, mb;
+        GetMinScreenXY(ml, mb);
+        ml += GetModelScreenLocation().RenderWi / 2;
+        mb += GetModelScreenLocation().RenderHt / 2;
 
         float scaleX = float(w) * 0.95 / GetModelScreenLocation().RenderWi;
         float scaleY = float(h) * 0.95 / GetModelScreenLocation().RenderHt;
@@ -3844,6 +3862,7 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
                 }
             }
 
+            xlColor color;
             Nodes[n]->GetColor(color);
             if (Nodes[n]->model->modelDimmingCurve != nullptr) {
                 Nodes[n]->model->modelDimmingCurve->reverse(color);
@@ -3859,6 +3878,15 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
                 // draw node on screen
                 float sx = Nodes[n]->Coords[c].screenX;
                 float sy = Nodes[n]->Coords[c].screenY;
+
+                if (ml < 0)
+                {
+                    sx -= ml;
+                }
+                if (mb < 0)
+                {
+                    sy -= mb;
+                }
 
                 if (!GetModelScreenLocation().IsCenterBased()) {
                     sx -= GetModelScreenLocation().RenderWi / 2.0;
@@ -3982,11 +4010,11 @@ void Model::AddHandle(ModelPreview* preview, int mouseX, int mouseY) {
     GetModelScreenLocation().AddHandle(preview, mouseX, mouseY);
 }
 
-void Model::InsertHandle(int after_handle) {
+void Model::InsertHandle(int after_handle, float zoom) {
 
     if (GetModelScreenLocation().IsLocked()) return;
 
-    GetModelScreenLocation().InsertHandle(after_handle);
+    GetModelScreenLocation().InsertHandle(after_handle, zoom);
 }
 
 void Model::DeleteHandle(int handle) {
@@ -4269,6 +4297,12 @@ bool Model::IsPixelProtocol() const
     return GetControllerPort(1) != 0 && IsPixelProtocol(GetControllerProtocol());
 }
 
+int Model::GetSmartRemote() const
+{
+    wxString s = GetControllerConnection()->GetAttribute("SmartRemote", "0");
+    return wxAtoi(s);
+}
+
 void Model::SetModelChain(const std::string& modelChain)
 {
     _modelChain = modelChain;
@@ -4313,6 +4347,7 @@ void Model::SetControllerProtocol(const std::string& protocol)
     RecalcStartChannels();
     IncrementChangeCount();
 }
+
 
 void Model::SetControllerPort(int port)
 {
@@ -4463,4 +4498,32 @@ int Model::GetControllerPort(int string) const
         port += string - 1;
     }
     return port;
+}
+
+void Model::GetMinScreenXY(float& minx, float& miny) const
+{
+    if (Nodes.size() == 0)
+    {
+        minx = 0;
+        miny = 0;
+        return;
+    }
+
+    minx = 99999999;
+    miny = 99999999;
+    for (auto& it : Nodes)
+    {
+        for (auto it2 : it->Coords)
+        {
+            minx = std::min(minx, it2.screenX);
+            miny = std::min(miny, it2.screenY);
+        }
+    }
+}
+
+void Model::RestoreDisplayDimensions()
+{
+    SetWidth(_savedWidth);
+    SetHeight(_savedHeight);
+    SetDepth(_savedDepth);
 }

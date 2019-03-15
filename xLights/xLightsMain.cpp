@@ -5037,10 +5037,19 @@ void xLightsFrame::CheckSequence(bool display)
             case 0:
                 // falcon
                 {
+                // FIXME ... need the right rules
                     FalconControllerRules fcr(((ZCPPOutput*)it)->GetModel());
                     edc.Check(&fcr, check);
                 }
                 break;
+            case 1:
+                // fpp
+                {
+                    // FIXME ... need the right rules
+                    ControllerRules& fcr = FPP::GetCapeRules("");
+                    edc.Check(&fcr, check);
+                }
+            break;
             default:
                 LogAndWrite(f, "Unknown controller vendor.");
                 break;
