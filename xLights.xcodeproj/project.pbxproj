@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		10AE605B223C3542007FAA8F /* PlayListItemMIDIPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 10AE6057223C3540007FAA8F /* PlayListItemMIDIPanel.cpp */; };
+		10AE605C223C3542007FAA8F /* PlayListItemMIDI.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 10AE6059223C3541007FAA8F /* PlayListItemMIDI.cpp */; };
 		1E3E24F81E371555001D48E3 /* UserButton.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1E3E24F61E371555001D48E3 /* UserButton.cpp */; };
 		1E3E24FD1E3715BB001D48E3 /* PlayListItemCURL.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1E3E24F91E3715BB001D48E3 /* PlayListItemCURL.cpp */; };
 		1E3E24FE1E3715BB001D48E3 /* PlayListItemCURLPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1E3E24FB1E3715BB001D48E3 /* PlayListItemCURLPanel.cpp */; };
@@ -823,6 +825,10 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		10AE6057223C3540007FAA8F /* PlayListItemMIDIPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PlayListItemMIDIPanel.cpp; path = PlayList/PlayListItemMIDIPanel.cpp; sourceTree = "<group>"; };
+		10AE6058223C3541007FAA8F /* PlayListItemMIDIPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlayListItemMIDIPanel.h; path = PlayList/PlayListItemMIDIPanel.h; sourceTree = "<group>"; };
+		10AE6059223C3541007FAA8F /* PlayListItemMIDI.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PlayListItemMIDI.cpp; path = PlayList/PlayListItemMIDI.cpp; sourceTree = "<group>"; };
+		10AE605A223C3541007FAA8F /* PlayListItemMIDI.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlayListItemMIDI.h; path = PlayList/PlayListItemMIDI.h; sourceTree = "<group>"; };
 		1E3E24F61E371555001D48E3 /* UserButton.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = UserButton.cpp; sourceTree = "<group>"; };
 		1E3E24F71E371555001D48E3 /* UserButton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UserButton.h; sourceTree = "<group>"; };
 		1E3E24F91E3715BB001D48E3 /* PlayListItemCURL.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PlayListItemCURL.cpp; path = PlayList/PlayListItemCURL.cpp; sourceTree = "<group>"; };
@@ -3309,6 +3315,10 @@
 		67F23F221E32994400F8B985 /* xSchedule */ = {
 			isa = PBXGroup;
 			children = (
+				10AE6059223C3541007FAA8F /* PlayListItemMIDI.cpp */,
+				10AE605A223C3541007FAA8F /* PlayListItemMIDI.h */,
+				10AE6057223C3540007FAA8F /* PlayListItemMIDIPanel.cpp */,
+				10AE6058223C3541007FAA8F /* PlayListItemMIDIPanel.h */,
 				671E47E42231CD3400049DC9 /* xSMSDaemon */,
 				67C581461E4B95A400932DFA /* AddReverseDialog.cpp */,
 				67C581471E4B95A400932DFA /* AddReverseDialog.h */,
@@ -4447,6 +4457,7 @@
 				670B171921973D07004F0993 /* ExtraIPsDialog.cpp in Sources */,
 				671E47F82231CD9700049DC9 /* SMSDaemonOptions.cpp in Sources */,
 				67C581531E4B95A400932DFA /* AddReverseDialog.cpp in Sources */,
+				10AE605B223C3542007FAA8F /* PlayListItemMIDIPanel.cpp in Sources */,
 				67B6F3342040F59500B847E0 /* EventMIDI.cpp in Sources */,
 				67F23FFC1E329E7400F8B985 /* PlayListItemRunProcess.cpp in Sources */,
 				67B6F33D2040F66500B847E0 /* wxMidi.cpp in Sources */,
@@ -4514,6 +4525,7 @@
 				67D75E572020ED60005BAC6E /* ListenerBase.cpp in Sources */,
 				67F240021E329E7400F8B985 /* PlayListStepPanel.cpp in Sources */,
 				67480D532072773F00B3ED60 /* EventPingPanel.cpp in Sources */,
+				10AE605C223C3542007FAA8F /* PlayListItemMIDI.cpp in Sources */,
 				6783D01B209758BF00C6F51D /* PlayListItemProjectorPanel.cpp in Sources */,
 				67D75E552020ED60005BAC6E /* ListenerFPPUnicast.cpp in Sources */,
 				67D75E6F2020ED96005BAC6E /* PlayListItemFPPEvent.cpp in Sources */,
