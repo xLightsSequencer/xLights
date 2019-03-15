@@ -49,7 +49,7 @@ ConvertLogDialog::ConvertLogDialog(wxWindow* parent,wxWindowID id,const wxPoint&
 	FlexGridSizer1->AddGrowableCol(0);
 	FlexGridSizer1->AddGrowableRow(0);
 	TextCtrlLog = new wxTextCtrl(this, ID_TEXTCTRL_LOG, wxEmptyString, wxDefaultPosition, wxSize(584,401), wxTE_MULTILINE|wxTE_READONLY, wxDefaultValidator, _T("ID_TEXTCTRL_LOG"));
-	FlexGridSizer1->Add(TextCtrlLog, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer1->Add(TextCtrlLog, 1, wxALL|wxEXPAND, 2);
 	SetSizer(FlexGridSizer1);
 	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);

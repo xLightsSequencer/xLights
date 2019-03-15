@@ -2,9 +2,9 @@
 #define CONVERTLOGDIALOG_H
 
 //(*Headers(ConvertLogDialog)
+#include <wx/dialog.h>
 #include <wx/sizer.h>
 #include <wx/textctrl.h>
-#include <wx/dialog.h>
 //*)
 
 class ConvertLogDialog: public wxDialog
