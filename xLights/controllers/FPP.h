@@ -62,7 +62,7 @@ class FPP {
     
     bool SetRestartFlag();
     
-    static void Discover(std::list<FPP*> &instances);
+    static void Discover(const std::list<std::string> &forcedAddresses, std::list<FPP*> &instances, bool doBroadcast = true);
     static void Probe(const std::list<std::string> &addresses, std::list<FPP*> &instances);
     
     static std::string CreateModelMemoryMap(ModelManager* allmodels);

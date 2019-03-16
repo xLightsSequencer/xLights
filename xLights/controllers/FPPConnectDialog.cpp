@@ -107,12 +107,8 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
     prgs.Pulse("Discovering FPP Instances");
     prgs.Show();
     
-    FPP::Discover(instances);
 
     std::list<std::string> startAddresses;
-    for (auto inst : instances) {
-        startAddresses.push_back(inst->ipAddress);
-    }
 
     wxConfigBase* config = wxConfigBase::Get();
     wxString force;
@@ -120,36 +116,24 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
         wxArrayString ips = wxSplit(force, '|');
         wxString newForce;
         for (auto &a : ips) {
-            bool foundAlready = false;
-            for (auto inst : instances) {
-                if (a == inst->ipAddress || a == inst->hostName) {
-                    foundAlready = true;
-                }
-            }
-            if (!foundAlready) {
-                FPP *fpp = new FPP(a);
-                prgs.Pulse("Gathering information from " + a);
-                if (fpp->AuthenticateAndUpdateVersions()) {
-                    //able to contact and authenticate
-                    instances.push_back(fpp);
-                    startAddresses.push_back(a);
-                    if (newForce == "") {
-                        newForce = a;
-                    } else {
-                        newForce += "," + a;
-                    }
-                } else {
-                    delete fpp;
-                }
-            }
-        }
-        if (newForce != force) {
-            config->Write("FPPConnectForcedIPs", newForce);
+            startAddresses.push_back(a);
         }
     }
-    prgs.Pulse("Probing for multisync instances");
-    FPP::Probe(startAddresses, instances);
-    
+    FPP::Discover(startAddresses, instances);
+    wxString newForce = "";
+    for (auto &a : startAddresses) {
+        for (auto fpp : instances) {
+            if (a == fpp->hostName || a == fpp->ipAddress) {
+                if (newForce != "") {
+                    newForce.append(",");
+                }
+                newForce.append(a);
+            }
+        }
+    }
+    if (newForce != force) {
+        config->Write("FPPConnectForcedIPs", newForce);
+    }
     
     prgs.Pulse("Checking for mounted media drives");
     CreateDriveList();
@@ -189,6 +173,9 @@ void FPPConnectDialog::PopulateFPPInstanceList() {
         wxWindow *tmp = w->GetNextSibling();
         w->Destroy();
         w = tmp;
+    }
+    while (FPPInstanceSizer->GetItemCount () > 10) {
+        FPPInstanceSizer->Remove(10);
     }
 
     int row = 0;
