@@ -142,6 +142,7 @@
 		6733CF051E60659F00B97F60 /* xschedule.mac.properties in Resources */ = {isa = PBXBuildFile; fileRef = 6733CF041E60659E00B97F60 /* xschedule.mac.properties */; };
 		6738541021E515A500A71071 /* CubeModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6738540E21E515A500A71071 /* CubeModel.cpp */; };
 		673930DF202B6103000A33B4 /* SelectPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 673930DD202B6103000A33B4 /* SelectPanel.cpp */; };
+		673B3D4E223BF203000F1D7E /* libcurl.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 671E47FC2231CEC900049DC9 /* libcurl.tbd */; };
 		673C45571C79570B00FDED47 /* BufferPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 673C45561C79570B00FDED47 /* BufferPanel.cpp */; };
 		673C925320A47C4C00E59F5D /* VendorMusicHelpers.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 673C925020A47C4900E59F5D /* VendorMusicHelpers.cpp */; };
 		673C925420A47C4C00E59F5D /* VendorMusicDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 673C925220A47C4C00E59F5D /* VendorMusicDialog.cpp */; };
@@ -2099,6 +2100,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				673B3D4E223BF203000F1D7E /* libcurl.tbd in Frameworks */,
 				6794272621CC0E6500F7ED59 /* libzstd.a in Frameworks */,
 				675D404E1E896C620033C950 /* libliquidfun.a in Frameworks */,
 				676C5EAB1C99D6D20031A033 /* liblog4cpp.5.dylib in Frameworks */,

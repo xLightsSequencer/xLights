@@ -3,6 +3,7 @@
 
 #include <list>
 #include <map>
+#include <curl/curl.h>
 #include "models/ModelManager.h"
 
 class OutputManager;
@@ -12,10 +13,10 @@ class wxMemoryBuffer;
 
 class FPP {
     public:
-    FPP() : majorVersion(0), minorVersion(0), outputFile(nullptr), parent(nullptr) {}
+    FPP() : majorVersion(0), minorVersion(0), outputFile(nullptr), parent(nullptr), curl(nullptr) {}
     FPP(const std::string &address);
+    FPP(const FPP &c);
     virtual ~FPP();
-    
     
     std::string hostName;
     std::string description;
@@ -37,6 +38,7 @@ class FPP {
     bool AuthenticateAndUpdateVersions();
     void LoadPlaylists(std::list<std::string> &playlists);
     void probePixelControllerType();
+    
     bool IsVersionAtLeast(uint32_t maj, uint32_t min);
     bool IsDrive();
     
@@ -60,16 +62,18 @@ class FPP {
     
     bool SetRestartFlag();
     
-    static void Discover(std::list<FPP> &instances);
-    static void Probe(const std::list<std::string> &addresses, std::list<FPP> &instances, const std::list<std::string> &complete = std::list<std::string>());
+    static void Discover(std::list<FPP*> &instances);
+    static void Probe(const std::list<std::string> &addresses, std::list<FPP*> &instances);
+    
     static std::string CreateModelMemoryMap(ModelManager* allmodels);
     static wxJSONValue CreateOutputUniverseFile(OutputManager* outputManager);
-    
 private:
     static wxJSONValue CreateUniverseFile(OutputManager* outputManager, const std::string &onlyip, const std::list<int>& selected, bool input);
     
     bool GetPathAsJSON(const std::string &path, wxJSONValue &val);
     bool GetURLAsJSON(const std::string& url, wxJSONValue& val);
+    bool GetURLAsString(const std::string& url, std::string& val);
+
     bool WriteJSONToPath(const std::string& path, const wxJSONValue& val);
     int PostJSONToURL(const std::string& url, const wxJSONValue& val);
     int PostJSONToURLAsFormData(const std::string& url, const std::string &extra, const wxJSONValue& val);
@@ -85,6 +89,9 @@ private:
     bool copyFile(const std::string &filename,
                   const std::string &file,
                   const std::string &dir);
+    
+    bool parseSysInfo(wxJSONValue& v);
+    void parseControllerType(wxJSONValue& v);
 
     
     std::map<std::string, std::string> sequences;
@@ -92,6 +99,10 @@ private:
     std::string baseSeqName;
     bool uploadCompressed;
     FSEQFile *outputFile;
+
+    void setupCurl();
+    CURL *curl;
+    std::string curlInputBuffer;
 };
 
 #endif
