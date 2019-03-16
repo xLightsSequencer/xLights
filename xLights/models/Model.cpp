@@ -674,23 +674,17 @@ void Model::AddControllerProperties(wxPropertyGridInterface *grid) {
     sp->SetAttribute("Max", 48);
     sp->SetEditor("SpinCtrl");
 
-    if (GetControllerName() != "" && GetControllerPort(1) == 0)
-    {
+    if (GetControllerName() != "" && GetControllerPort(1) == 0) {
         sp->SetBackgroundColour(*wxRED);
     }
-    else
-    {
-        sp->SetBackgroundColour(*wxWHITE);
-    }
+
 
 	wxString protocol = GetControllerProtocol();
     protocol.LowerCase();
     int idx = -1;
     int i = 0;
-    for (auto it : CONTROLLER_PROTOCOLS)
-    {
-        if (protocol == it.Lower())
-        {
+    for (auto it : CONTROLLER_PROTOCOLS) {
+        if (protocol == it.Lower()) {
             idx = i;
             break;
         }
@@ -703,14 +697,10 @@ void Model::AddControllerProperties(wxPropertyGridInterface *grid) {
 
     sp = grid->AppendIn(p, new wxEnumProperty("Protocol", "ModelControllerConnectionProtocol", CONTROLLER_PROTOCOLS, wxArrayInt(), idx));
 
-    if (GetControllerName() != "" && GetControllerProtocol() == "")
-    {
+    if (GetControllerName() != "" && GetControllerProtocol() == "") {
         sp->SetBackgroundColour(*wxRED);
     }
-    else
-    {
-        sp->SetBackgroundColour(*wxWHITE);
-    }
+
 
     wxXmlNode *node = GetControllerConnection();
     if (protocol == "dmx" || protocol == "pixelnet" || protocol == "renard" || protocol == "lor") {
