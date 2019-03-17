@@ -1,4 +1,4 @@
-﻿xLights is a show sequencer and player/scheduler designed to control
+xLights is a show sequencer and player/scheduler designed to control
 USB/DMX/sACN(e1.31)/ArtNET(e.1.17)/DDP controllers.
 xLights also integrates with the Falcon Player.
 xLights imports and exports sequence data from sequencers such as LOR (SE, PE & SS),
@@ -11,6 +11,9 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (dkulp)   xShcedule as FPP remote now works with Multicast protocol (maybe Linux/OSX only)
+   -- enh (dkulp)   xShcedule as FPP remote now responds to FPP Ping's/Discovery
+   -- enh (dkulp)   Much faster FPP Connect discovery
 2019.17 March 15, 2019
    -- enh (keith)   Add falcon smart remote support
    -- enh (keith)   Add ability to split timing marks in half
