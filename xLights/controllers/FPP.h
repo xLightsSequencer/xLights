@@ -3,13 +3,15 @@
 
 #include <list>
 #include <map>
-#include <curl/curl.h>
+
 #include "models/ModelManager.h"
 
 class OutputManager;
 class wxJSONValue;
 class FSEQFile;
 class wxMemoryBuffer;
+typedef void CURL;
+class wxWindow;
 
 class FPP {
     public:
@@ -17,7 +19,7 @@ class FPP {
     FPP(const std::string &address);
     FPP(const FPP &c);
     virtual ~FPP();
-    
+
     std::string hostName;
     std::string description;
     std::string ipAddress;
@@ -29,19 +31,19 @@ class FPP {
     std::string ranges;
     std::string mode;
     std::string pixelControllerType;
-    
+
     std::string username;
     std::string password;
-    
+
     wxWindow *parent;
-    
+
     bool AuthenticateAndUpdateVersions();
     void LoadPlaylists(std::list<std::string> &playlists);
     void probePixelControllerType();
-    
+
     bool IsVersionAtLeast(uint32_t maj, uint32_t min);
     bool IsDrive();
-    
+
     const std::string &PixelContollerDescription() const;
 
     bool PrepareUploadSequence(const FSEQFile &file,
@@ -50,7 +52,7 @@ class FPP {
                                int type);
     bool AddFrameToUpload(uint32_t frame, uint8_t *data);
     bool FinalizeUploadSequence();
-    
+
     bool UploadPlaylist(const std::string &playlist);
     bool UploadModels(const std::string &models);
     bool UploadUDPOut(const wxJSONValue &udp);
@@ -59,17 +61,17 @@ class FPP {
                             OutputManager* outputManager,
                             const std::list<int>& selected = std::list<int>());
     bool SetInputUniversesBridge(std::list<int>& selected, OutputManager* outputManager);
-    
+
     bool SetRestartFlag();
-    
+
     static void Discover(const std::list<std::string> &forcedAddresses, std::list<FPP*> &instances, bool doBroadcast = true);
     static void Probe(const std::list<std::string> &addresses, std::list<FPP*> &instances);
-    
+
     static std::string CreateModelMemoryMap(ModelManager* allmodels);
     static wxJSONValue CreateOutputUniverseFile(OutputManager* outputManager);
 private:
     static wxJSONValue CreateUniverseFile(OutputManager* outputManager, const std::string &onlyip, const std::list<int>& selected, bool input);
-    
+
     bool GetPathAsJSON(const std::string &path, wxJSONValue &val);
     bool GetURLAsJSON(const std::string& url, wxJSONValue& val);
     bool GetURLAsString(const std::string& url, std::string& val);
@@ -89,11 +91,11 @@ private:
     bool copyFile(const std::string &filename,
                   const std::string &file,
                   const std::string &dir);
-    
+
     bool parseSysInfo(wxJSONValue& v);
     void parseControllerType(wxJSONValue& v);
 
-    
+
     std::map<std::string, std::string> sequences;
     std::string tempFileName;
     std::string baseSeqName;

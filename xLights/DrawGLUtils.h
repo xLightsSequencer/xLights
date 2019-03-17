@@ -58,33 +58,33 @@ namespace DrawGLUtils
     public:
         virtual void Reset() {count = 0;}
         void PreAlloc(unsigned int i) {
-            if ((count + i) > max) {
+            if ((count + i) > _max) {
                 DoRealloc(count + i);
-                max = count + i;
+                _max = count + i;
             }
         };
 
         float *vertices;
         unsigned int count;
-        unsigned int max;
+        unsigned int _max;
         unsigned int coordsPerVertex;
         
     protected:
         virtual void DoRealloc(int newMax) {
             vertices = (float*)realloc(vertices, sizeof(float)*newMax*coordsPerVertex);
         }
-        xlVertexAccumulatorBase() : count(0), max(64), coordsPerVertex(2) {
-            vertices = (float*)malloc(sizeof(float)*max*coordsPerVertex);
+        xlVertexAccumulatorBase() : count(0), _max(64), coordsPerVertex(2) {
+            vertices = (float*)malloc(sizeof(float)*_max*coordsPerVertex);
         }
-        xlVertexAccumulatorBase(unsigned int m) : count(0), max(m), coordsPerVertex(2) {
-            vertices = (float*)malloc(sizeof(float)*max*coordsPerVertex);
+        xlVertexAccumulatorBase(unsigned int m) : count(0), _max(m), coordsPerVertex(2) {
+            vertices = (float*)malloc(sizeof(float)*_max*coordsPerVertex);
         }
 
         xlVertexAccumulatorBase(const xlVertexAccumulatorBase &mv) {
             coordsPerVertex = mv.coordsPerVertex;
             count = mv.count;
-            max = mv.max;
-            vertices = (float*)malloc(sizeof(float)*max*coordsPerVertex);
+            _max = mv._max;
+            vertices = (float*)malloc(sizeof(float)*_max*coordsPerVertex);
             memcpy(vertices, mv.vertices, count * sizeof(float) * coordsPerVertex);
         }
         xlVertexAccumulatorBase(xlVertexAccumulatorBase &&mv) {
@@ -92,7 +92,7 @@ namespace DrawGLUtils
             vertices = mv.vertices;
             mv.vertices = nullptr;
             count = mv.count;
-            max = mv.max;
+            _max = mv._max;
         }
         virtual ~xlVertexAccumulatorBase() {
             if (vertices != nullptr) free(vertices);
@@ -100,7 +100,7 @@ namespace DrawGLUtils
         
         void SetCoordsPerVertex(unsigned int c) {
             coordsPerVertex = c;
-            DoRealloc(max);
+            DoRealloc(_max);
         }
     };
 
@@ -145,17 +145,17 @@ namespace DrawGLUtils
     class xlVertexColorAccumulator : public xlVertexAccumulatorBase {
     public:
         xlVertexColorAccumulator() : xlVertexAccumulatorBase() {
-            colors = (uint8_t*)malloc(max*4);
+            colors = (uint8_t*)malloc(_max*4);
         }
         xlVertexColorAccumulator(unsigned int m) : xlVertexAccumulatorBase(m) {
-            colors = (uint8_t*)malloc(max*4);
+            colors = (uint8_t*)malloc(_max*4);
         }
         xlVertexColorAccumulator(xlVertexColorAccumulator &&mv) : xlVertexAccumulatorBase(mv) {
             colors = mv.colors;
             mv.colors = nullptr;
         }
         xlVertexColorAccumulator(const xlVertexColorAccumulator &mv) : xlVertexAccumulatorBase(mv) {
-            colors = (uint8_t*)malloc(max*4);
+            colors = (uint8_t*)malloc(_max*4);
             memcpy(colors, mv.colors, count * 4);
         }
 
@@ -235,13 +235,13 @@ namespace DrawGLUtils
     class xlVertexTextureAccumulator : public xlVertexAccumulatorBase {
     public:
         xlVertexTextureAccumulator() : xlVertexAccumulatorBase(), id(0), alpha(255), forceColor(false), brightness(100.0) {
-            tvertices = (float*)malloc(sizeof(float)*max*2);
+            tvertices = (float*)malloc(sizeof(float)*_max*2);
         }
         xlVertexTextureAccumulator(GLuint i) : xlVertexAccumulatorBase(), id(i), alpha(255), forceColor(false), brightness(100.0) {
-            tvertices = (float*)malloc(sizeof(float)*max*2);
+            tvertices = (float*)malloc(sizeof(float)*_max*2);
         }
         xlVertexTextureAccumulator(GLuint i, uint8_t a) : xlVertexAccumulatorBase(), id(i), alpha(a), forceColor(false), brightness(100.0) {
-            tvertices = (float*)malloc(sizeof(float)*max*2);
+            tvertices = (float*)malloc(sizeof(float)*_max*2);
         }
         xlVertexTextureAccumulator(xlVertexTextureAccumulator &&mv) : xlVertexAccumulatorBase(mv) {
             tvertices = mv.tvertices;
@@ -257,7 +257,7 @@ namespace DrawGLUtils
             alpha = mv.alpha;
             forceColor = mv.forceColor;
             color = mv.color;
-            tvertices = (float*)malloc(sizeof(float)*max*2);
+            tvertices = (float*)malloc(sizeof(float)*_max*2);
             memcpy(tvertices, mv.tvertices, count * sizeof(float) * 2);
             brightness = mv.brightness;
         }

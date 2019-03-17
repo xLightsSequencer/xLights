@@ -1,3 +1,5 @@
+#define NOMINMAX
+
 #include <map>
 #include <string.h>
 
@@ -14,7 +16,6 @@
 #include <wx/mstream.h>
 #include <wx/protocol/http.h>
 
-
 #include "../xSchedule/wxJSON/jsonreader.h"
 #include "../xSchedule/wxJSON/jsonwriter.h"
 
@@ -26,13 +27,11 @@
 #include "outputs/DDPOutput.h"
 #include "UtilFunctions.h"
 #include "xLightsVersion.h"
-
 #include "../Parallel.h"
 #include "ControllerUploadData.h"
-
-#include <log4cpp/Category.hh>
 #include "../FSEQFile.h"
 
+#include <log4cpp/Category.hh>
 
 class PixelCapeInfo : public ControllerRules {
 public:
@@ -42,8 +41,7 @@ public:
     std::string description;
     int maxStrings;
     int maxDMX;
-    
-    
+        
     virtual int GetMaxPixelPortChannels() const override {
         return 1400*3;
     }
