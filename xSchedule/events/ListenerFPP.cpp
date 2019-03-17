@@ -5,6 +5,12 @@
 #include "../../xLights/outputs/IPOutput.h"
 #include "../Control.h"
 #include "../../xLights/UtilFunctions.h"
+#include "../../xLights/xLightsVersion.h"
+
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <ifaddrs.h>
+#include <arpa/inet.h>
 
 bool ListenerFPP::IsValidHeader(uint8_t* buffer)
 {
@@ -77,6 +83,31 @@ void ListenerFPP::StartProcess()
     }
     else
     {
+        struct ip_mreq mreq;
+        struct ifaddrs *interfaces,*tmp;
+        getifaddrs(&interfaces);
+        memset(&mreq, 0, sizeof(mreq));
+        mreq.imr_multiaddr.s_addr = inet_addr(MULTISYNC_MULTICAST_ADDRESS);
+        tmp = interfaces;
+        int receiveSock = _socket->GetSocket();
+        //loop through all the interfaces and subscribe to the group
+        while (tmp) {
+            //struct sockaddr_in *sin = (struct sockaddr_in *)tmp->ifa_addr;
+            //strcpy(address, inet_ntoa(sin->sin_addr));
+            if (tmp->ifa_addr && tmp->ifa_addr->sa_family == AF_INET) {
+                struct sockaddr_in * address = (struct sockaddr_in *)tmp->ifa_addr;
+                mreq.imr_interface.s_addr = address->sin_addr.s_addr;
+                if (setsockopt(receiveSock, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(mreq)) < 0) {
+                    logger_base.warn("   Could not setup Multicast Group for interface %s\n", tmp->ifa_name);
+                }
+            } else if (tmp->ifa_addr && tmp->ifa_addr->sa_family == AF_INET6) {
+                //FIXME for ipv6 multicast
+                //LogDebug(VB_SYNC, "   Inet6 interface %s\n", tmp->ifa_name);
+            }
+            tmp = tmp->ifa_next;
+        }
+        freeifaddrs(interfaces);
+        
         _socket->SetTimeout(1);
         _socket->Notify(false);
         logger_base.info("FPP reception datagram opened successfully.");
@@ -135,41 +166,85 @@ void ListenerFPP::Poll()
 
                         logger_base.debug("FPP Sync type %d frame %u ms %ld %s.", (int)packetType, frameNumber, ms, (const char *)fileName.c_str());
 
-                        if (packetType != -1)
+                        switch (packetType)
                         {
-                            switch (packetType)
-                            {
-                            case SYNC_PKT_START:
-                            {
-                                logger_base.debug("!!!!!!!!!!!!!!!!!!!!!!!!!!! Remote start %s.", (const char *)fileName.c_str());
+                        case SYNC_PKT_START:
+                        {
+                            logger_base.debug("!!!!!!!!!!!!!!!!!!!!!!!!!!! Remote start %s.", (const char *)fileName.c_str());
 
-                                _listenerManager->Sync(fileName, 0, GetType());
-                            }
-                            break;
-                            case SYNC_PKT_STOP:
-                            {
-                                logger_base.debug("!!!!!!!!!!!!!!!!!!!!!!!!!!! Remote stop %s.", (const char *)fileName.c_str());
-                                _listenerManager->Sync(fileName, 0xFFFFFFFF, GetType());
-                            }
-                            break;
-                            case SYNC_PKT_SYNC:
-                            {
-                                _listenerManager->Sync(fileName, ms, GetType());
-                            }
-                            break;
-                            default:
-                                break;
-                            }
+                            _listenerManager->Sync(fileName, 0, GetType());
                         }
-                        else
+                        break;
+                        case SYNC_PKT_STOP:
                         {
-                            // media file ... not sure what to do with this ... so ignoring it
+                            logger_base.debug("!!!!!!!!!!!!!!!!!!!!!!!!!!! Remote stop %s.", (const char *)fileName.c_str());
+                            _listenerManager->Sync(fileName, 0xFFFFFFFF, GetType());
                         }
+                        break;
+                        case SYNC_PKT_SYNC:
+                        {
+                            _listenerManager->Sync(fileName, ms, GetType());
+                        }
+                        break;
+                        default:
+                            break;
+                        }
+
                     }
                 }
-                else if (cp->pktType == CTRL_PKT_EVENT)
-                {
+                else if (cp->pktType == CTRL_PKT_EVENT) {
                     _listenerManager->ProcessPacket(GetType(), std::string((char*)(buffer + sizeof(ControlPkt))));
+                } else if (cp->pktType == CTRL_PKT_CMD) {
+                    //FIXME - command?
+                } else if (cp->pktType == CTRL_PKT_BLANK) {
+                    //FIXME - blank data
+                } else if (cp->pktType == CTRL_PKT_PING) {
+                    if (buffer[8] == 1) { //1 is discover
+                        char           outBuf[512];
+                        memset(outBuf, 0, sizeof(outBuf));
+                        
+                        ControlPkt    *cpkt = (ControlPkt*)outBuf;
+                        cpkt->fppd[0]      = 'F';
+                        cpkt->fppd[1]      = 'P';
+                        cpkt->fppd[2]      = 'P';
+                        cpkt->fppd[3]      = 'D';
+                        cpkt->pktType        = CTRL_PKT_PING;
+                        cpkt->extraDataLen   = 214; // v2 ping length
+                        
+                        unsigned char *ed = (unsigned char*)(outBuf + 7);
+                        
+                        int majorVersion = 2019;
+                        int minorVersion = 17;
+                        
+                        ed[0]  = 2; // ping version 2
+                        ed[1]  = 0; // 0 = ping, 1 = discover
+                        ed[2]  = 0xC1; // xLigths type
+                        ed[3]  = (majorVersion & 0xFF00) >> 8;
+                        ed[4]  = (majorVersion & 0x00FF);
+                        ed[5]  = (minorVersion & 0xFF00) >> 8;
+                        ed[6]  = (minorVersion & 0x00FF);
+                        ed[7]  = 0x08; //REMOTE mode
+                        
+                        wxIPV4address localaddr;
+                        localaddr.Hostname(wxGetFullHostName());
+                        wxString ipAddr = localaddr.IPAddress();
+                        
+                        wxArrayString ip = wxSplit(ipAddr, '.');
+                        ed[8]  = wxAtoi(ip[0]);
+                        ed[9]  = wxAtoi(ip[1]);
+                        ed[10] = wxAtoi(ip[2]);
+                        ed[11] = wxAtoi(ip[3]);
+                        
+                        strncpy((char *)(ed + 12), wxGetHostName().c_str(), 65);
+                        strncpy((char *)(ed + 77), xlights_version_string.c_str(), 41);
+                        strncpy((char *)(ed + 118), "xSchedule", 41);
+                        //strncpy((char *)(ed + 159), sysInfo.ranges.c_str(), 41);
+                        
+                        wxIPV4address remoteAddr;
+                        remoteAddr.Hostname("255.255.255.255");
+                        remoteAddr.Service(FPP_CTRL_PORT);
+                        _socket->SendTo(remoteAddr, outBuf, 214 + 7);
+                    }
                 }
             }
         }

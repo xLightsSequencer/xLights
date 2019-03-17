@@ -1230,17 +1230,22 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
     buffer[15] = buffer[16] = buffer[17] = buffer[18] = 0;
     strcpy((char *)&buffer[84], ver.c_str());
 
-    wxIPV4address bcAddress;
-    bcAddress.BroadcastAddress();
-    bcAddress.Service(FPP_CTRL_PORT);
-    socket->SendTo(bcAddress, buffer, 207);
-    
+    if (socket->IsOk()) {
+        wxIPV4address bcAddress;
+        bcAddress.BroadcastAddress();
+        bcAddress.Service(FPP_CTRL_PORT);
+        socket->SendTo(bcAddress, buffer, 207);
+    }
     uint64_t endBroadcastTime = wxGetLocalTimeMillis().GetValue() + 1200l;
     int running = curls.size();
     while (running || (wxGetLocalTimeMillis().GetValue() < endBroadcastTime)) {
         memset(buffer, 0x00, sizeof(buffer));
-        socket->Read(&buffer[0], sizeof(buffer));
-        if (socket->GetLastIOReadSize() != 0
+        int readSize = 0;
+        if (socket->IsOk()) {
+            socket->Read(&buffer[0], sizeof(buffer));
+            readSize = socket->GetLastIOReadSize();
+        }
+        if (readSize != 0
             && buffer[0] == 'F' && buffer[1] == 'P' && buffer[2] == 'P' && buffer[3] == 'D' && buffer[4] == 0x04) {
             char ip[64];
             sprintf(ip, "%d.%d.%d.%d", (int)buffer[15], (int)buffer[16], (int)buffer[17], (int)buffer[18]);
@@ -1254,7 +1259,9 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
                         found = a;
                     }
                 }
-                if (!found) {
+                int platform = buffer[9];
+                if (!found && (platform > 0 && platform < 0x80)) {
+                    //platform > 0x80 is Falcon controllers or xLights
                     FPP *inst = new FPP();
                     inst->hostName = (char *)&buffer[19];
                     inst->model = (char *)&buffer[125];
@@ -1342,6 +1349,18 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
                                             inst.hostName = hostName;
                                             if (!system["Platform"].IsNull()) {
                                                 inst.platform = system["Platform"].AsString();
+                                            }
+                                            if (inst.platform.find("xLights") != std::string::npos) {
+                                                continue;
+                                            }
+                                            if (inst.platform.find("Unknown") != std::string::npos) {
+                                                continue;
+                                            }
+                                            if (inst.platform.find("unknown") != std::string::npos) {
+                                                continue;
+                                            }
+                                            if (inst.platform.find("Falcon ") != std::string::npos) {
+                                                continue;
                                             }
                                             if (!system["model"].IsNull()) {
                                                 inst.model = system["model"].AsString();
