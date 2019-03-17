@@ -9,6 +9,7 @@
 #include <wx/dir.h>
 #include <functional>
 #include "xLightsVersion.h"
+#include "UtilFunctions.h"
 
 #pragma region RenderCache
 
@@ -39,6 +40,15 @@ private:
 
         for (auto it : files)
         {
+            // allow up to 3 times physical memory
+            // This means the render cache will be swapped out ... but I think that is still better than re-rendering
+            // Abandon loading render cache if we use too much memory
+            if (IsExcessiveMemoryUsage(3.0))
+            {
+                logger_base.warn("Render cache loading abandoned due to too much memory use.");
+                break;
+            }
+
             auto rci = new RenderCacheItem(_cache, it);
             if (rci != nullptr && !rci->IsPurged())
             {
@@ -180,15 +190,14 @@ bool RenderCache::IsEffectOkForCaching(Effect* effect) const
         return false;
     }
 
-    // last check for a fair bit of available memory
-    void* test = malloc(200 * 1024 * 1024);
-    if (test == nullptr)
+    // allow up to 3 times physical memory
+    // This means the render cache will be swapped out ... but I think that is still better than re-rendering
+    if (IsExcessiveMemoryUsage(3.0))
     {
         logger_base.error("RenderCache::IsEffectOkForCaching failed memory available test. This is a bad sign. Rendering will be really slow.");
         wxASSERT(false);
         return false;
     }
-    free(test);
 
     return true;
 }
@@ -509,27 +518,19 @@ void RenderCacheItem::AddFrame(RenderBuffer* buffer)
         return;
     }
 
-    // last check for a fair bit of available memory
-    void* test = malloc(200 * 1024 * 1024);
-    if (test == nullptr)
+    // allow up to 3 times physical memory
+    // This means the render cache will be swapped out ... but I think that is still better than re-rendering
+    if (IsExcessiveMemoryUsage(3.0))
     {
         logger_base.error("RenderCacheItem::AddFrame failed memory available test. This is a bad sign. Rendering will be really slow.");
         PurgeFrames();
         wxASSERT(false);
         return;
     }
-    free(test);
 
     int frame = buffer->curPeriod - buffer->curEffStartPer;
 
     std::string mname = GetModelName(buffer);
-
-    if (mname == "")
-    {
-        logger_base.error("RenderCacheItem::AddFrame was passed a buffer to a model with no name");
-        return;
-    }
-
     if (_frameSize.find(mname) == _frameSize.end())
     {
         _frameSize[mname] = sizeof(xlColor) * buffer->pixels.size();
@@ -580,7 +581,7 @@ void RenderCacheItem::AddFrame(RenderBuffer* buffer)
         {
             if (itm.second.back() == nullptr)
             {
-                logger_base.warn("RenderCacheItem::AddFrame save abandoned due to null frame.");
+                //logger_base.warn("RenderCacheItem::AddFrame save abandoned due to null frame.");
                 return;
             }
         }

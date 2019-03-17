@@ -623,11 +623,11 @@ void LiquidEffect::Render(RenderBuffer &buffer,
     // exit if no world
     if (_world == nullptr) return;
 
-    // test memory availability by allocating 200MB ... if it fails then treat this as a low memory problem
-    void* test = malloc(200 * 1024 * 1024);
-    if (test == nullptr)
+    // allow up to 1 times physical memory
+    if (IsExcessiveMemoryUsage(1.0))
     {
         logger_base.error("LiquidEffect Render abandoned due to insufficient memory. This is not good. Rendering will be slow.");
+        logger_base.error("To reduce memory turn off render caching and/or change liquid effect settings.");
 
         // delete our world to get all our memory back
         delete _world;
@@ -636,7 +636,6 @@ void LiquidEffect::Render(RenderBuffer &buffer,
         wxASSERT(false);
         return;
     }
-    free(test);
 
     Step(_world, buffer, enabled, lifetime, particleType, mixcolors,
         x1, y1, direction1, velocity1, flow1, sourceSize1, flowMusic1,

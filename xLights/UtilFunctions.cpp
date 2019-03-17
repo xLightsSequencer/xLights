@@ -7,6 +7,10 @@
 
 #include "UtilFunctions.h"
 
+#ifdef __WXMSW__
+#include <psapi.h>
+#endif
+
 #include <log4cpp/Category.hh>
 
 void DisplayError(const std::string& err, wxWindow* win)
@@ -587,6 +591,34 @@ double UnScaleWithSystemDPI(double scalingFactor, double val) {
 #else
     return val / scalingFactor;
 #endif
+}
+
+bool IsExcessiveMemoryUsage(double physicalMultiplier)
+{
+#ifdef __WXMSW__
+    ULONGLONG physical;
+    if (GetPhysicallyInstalledSystemMemory(&physical) != 0)
+    {
+        PROCESS_MEMORY_COUNTERS_EX mc;
+        if (::GetProcessMemoryInfo(::GetCurrentProcess(), (PPROCESS_MEMORY_COUNTERS)&mc, sizeof(mc)) != 0)
+        {
+            // if we are using more ram than the machine has times the multiplier
+            if (mc.PagefileUsage / 1024 > physicalMultiplier * physical)
+            {
+                return true;
+            }
+        }
+    }
+#else
+    // test memory availability by allocating 200MB ... if it fails then treat this as a low memory problem
+    //void* test = malloc(200 * 1024 * 1024);
+    //if (test == nullptr)
+    //{
+    //    return true;
+    //}
+    //free(test);
+#endif
+    return false;
 }
 
 bool DeleteDirectory(std::string directory)

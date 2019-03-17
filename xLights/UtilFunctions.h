@@ -169,5 +169,5 @@ static inline double toRadians(float degrees)
 static inline double toDegrees(double radians) {
     return (radians / (2 * M_PI))*360.0;
 }
-
+bool IsExcessiveMemoryUsage(double physicalMultiplier = 0.95);
 #endif
