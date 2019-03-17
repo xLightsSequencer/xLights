@@ -139,6 +139,7 @@
 					<Add library="../lib/windows/iphlpapi.lib" />
 					<Add library="../lib/windows/WS2_32.Lib" />
 					<Add library="../lib/windows/libzstd_static.lib" />
+					<Add library="../lib/windows/LIBCURL.LIB" />
 					<Add directory="lib/windows" />
 					<Add directory="../lib/windows" />
 				</Linker>
@@ -303,6 +304,7 @@
 					<Add library="../lib/windows64/iphlpapi.lib" />
 					<Add library="../lib/windows64/WS2_32.Lib" />
 					<Add library="../lib/windows64/libzstd_static.lib" />
+					<Add library="../lib/windows64/LIBCURL.LIB" />
 				</Linker>
 			</Target>
 			<Target title="64bit MinGW_Debug">
@@ -368,6 +370,7 @@
 					<Add library="../lib/windows64/iphlpapi.lib" />
 					<Add library="../lib/windows64/WS2_32.Lib" />
 					<Add library="../lib/windows64/libzstd_static.lib" />
+					<Add library="../lib/windows64/LIBCURL.LIB" />
 					<Add directory="$(#wx)/lib/gcc_dll" />
 				</Linker>
 			</Target>
@@ -1143,10 +1146,10 @@
 		<Unit filename="wxsmith/HousePreviewPanel.wxs" />
 		<Unit filename="wxsmith/IPEntryDialog.wxs" />
 		<Unit filename="wxsmith/JukeboxPanel.wxs" />
+		<Unit filename="wxsmith/KaleidoscopePanel.wxs" />
 		<Unit filename="wxsmith/LMSImportChannelMapDialog.wxs" />
 		<Unit filename="wxsmith/LayerSelectDialog.wxs" />
 		<Unit filename="wxsmith/LayoutPanel.wxs" />
-		<Unit filename="wxsmith/KaleidoscopePanel.wxs" />
 		<Unit filename="wxsmith/LifePanel.wxs" />
 		<Unit filename="wxsmith/LightningPanel.wxs" />
 		<Unit filename="wxsmith/LinesPanel.wxs" />
