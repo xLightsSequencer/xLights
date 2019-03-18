@@ -270,6 +270,30 @@ void FPP::parseControllerType(wxJSONValue& val) {
             if (val["channelOutputs"][x]["enabled"].AsInt()) {
                 pixelControllerType = val["channelOutputs"][x]["subType"].AsString();
             }
+        } else if (val["channelOutputs"][x]["type"].AsString() == "LEDPanelMatrix") {
+            pixelControllerType = "LED Panels - ";
+            int pw = val["channelOutputs"][x]["panelWidth"].AsInt();
+            int ph = val["channelOutputs"][x]["panelHeight"].AsInt();
+            int nw = 0; int nh = 0;
+            bool tall = false;
+            for (int p = 0; p < val["channelOutputs"][x]["panels"].Size(); ++p) {
+                int r = val["channelOutputs"][x]["panels"][p]["row"].AsInt();
+                int c = val["channelOutputs"][x]["panels"][p]["col"].AsInt();
+                nw = std::max(c, nw);
+                nh = std::max(r, nh);
+                std::string orientation = val["channelOutputs"][x]["panels"][p]["orientation"].AsString();
+                if (orientation == "E" || orientation == "W") {
+                    tall = true;
+                }
+            }
+            nw++; nh++;
+            if (tall) {
+                std::swap(pw, ph);
+            }
+            pixelControllerType.append(std::to_string(pw * nw));
+            pixelControllerType.append("x");
+            pixelControllerType.append(std::to_string(ph * nh));
+
         }
     }
 }
@@ -1320,6 +1344,14 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
                                         }
                                         std::string fullAddress = "http://" + curls[x]->fpp->ipAddress + "/fppjson.php?command=getChannelOutputs&file=" + file;
                                         CurlData *data = new CurlData(fullAddress);
+                                        data->type = 2;
+                                        data->fpp = curls[x]->fpp;
+                                        curls.push_back(data);
+                                        curl_multi_add_handle(curlMulti, data->curl);
+                                        running++;
+
+                                        fullAddress = "http://" + curls[x]->fpp->ipAddress + "/fppjson.php?command=getChannelOutputs&file=channelOutputsJSON";
+                                        data = new CurlData(fullAddress);
                                         data->type = 2;
                                         data->fpp = curls[x]->fpp;
                                         curls.push_back(data);
