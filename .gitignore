@@ -2,6 +2,7 @@ bin/xCapture
 bin/xFade
 bin/xLights
 bin/xSchedule
+bin/xSMSDaemon
 bin/*.dll
 bin/*.exe
 bin/*.map
