@@ -103,6 +103,7 @@ struct UDVirtualString
     bool _reverseSet;
     std::string _reverse;
     int _channelsPerPixel;
+    std::list<UDControllerPortModel*> _models;
 };
 
 class UDControllerPort
@@ -139,6 +140,16 @@ class UDControllerPort
         void CreateVirtualStrings(bool mergeSequential);
         int GetVirtualStringCount() const { return _virtualStrings.size(); }
         std::list<UDVirtualString*> GetVirtualStrings() const { return _virtualStrings; }
+        UDVirtualString* GetVirtualString(int index) const
+        {
+            int i = 0;
+            for (auto it : _virtualStrings)
+            {
+                if (i == index) return it;
+                i++;
+            }
+            return nullptr;
+        }
         std::list<UDControllerPortModel*> GetModels() const { return _models; }
 };
 

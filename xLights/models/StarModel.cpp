@@ -13,7 +13,7 @@
 
 std::vector<std::string> StarModel::STAR_BUFFER_STYLES;
 
-StarModel::StarModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased) : ModelWithScreenLocation(manager), starRatio(2.618034)
+StarModel::StarModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased) : ModelWithScreenLocation(manager), starRatio(2.618034f)
 {
     SetFromXml(node, zeroBased);
 }

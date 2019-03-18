@@ -138,7 +138,7 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
         }
     }
 
-    wxXmlNode* root=EffectsXml.GetRoot();
+    wxXmlNode* root = EffectsXml.GetRoot();
     if (root->GetName() != "xrgb")
     {
         DisplayError("Invalid RGB effects file ... creating a default one.", this);
@@ -164,8 +164,8 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
     }
     if (ModelsNode == nullptr)
     {
-        ModelsNode = new wxXmlNode( wxXML_ELEMENT_NODE, "models" );
-        root->AddChild( ModelsNode );
+        ModelsNode = new wxXmlNode(wxXML_ELEMENT_NODE, "models");
+        root->AddChild(ModelsNode);
         UnsavedRgbEffectsChanges = true;
     }
     if (ViewObjectsNode == nullptr)
@@ -195,15 +195,15 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
     }
     if (EffectsNode == nullptr)
     {
-        EffectsNode = new wxXmlNode( wxXML_ELEMENT_NODE, "effects" );
+        EffectsNode = new wxXmlNode(wxXML_ELEMENT_NODE, "effects");
         EffectsNode->AddAttribute("version", XLIGHTS_RGBEFFECTS_VERSION);
-        root->AddChild( EffectsNode );
+        root->AddChild(EffectsNode);
         UnsavedRgbEffectsChanges = true;
     }
     if (PalettesNode == nullptr)
     {
-        PalettesNode = new wxXmlNode( wxXML_ELEMENT_NODE, "palettes" );
-        root->AddChild( PalettesNode );
+        PalettesNode = new wxXmlNode(wxXML_ELEMENT_NODE, "palettes");
+        root->AddChild(PalettesNode);
         UnsavedRgbEffectsChanges = true;
     }
 
@@ -211,15 +211,15 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
     {
         UnsavedRgbEffectsChanges = true;
     }
-	else
-	{
-		_sequenceViewManager.Load(viewsNode, mSequenceElements.GetCurrentView());
-	}
+    else
+    {
+        _sequenceViewManager.Load(viewsNode, mSequenceElements.GetCurrentView());
+    }
 
     if (colorsNode != nullptr)
     {
-		color_mgr.Load(colorsNode);
-	}
+        color_mgr.Load(colorsNode);
+    }
 
     if (viewpointsNode != nullptr)
     {
@@ -228,50 +228,51 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
 
     if (ModelGroupsNode == nullptr)
     {
-        ModelGroupsNode = new wxXmlNode( wxXML_ELEMENT_NODE, "modelGroups" );
-        root->AddChild( ModelGroupsNode );
+        ModelGroupsNode = new wxXmlNode(wxXML_ELEMENT_NODE, "modelGroups");
+        root->AddChild(ModelGroupsNode);
         UnsavedRgbEffectsChanges = true;
     }
 
     if (LayoutGroupsNode == nullptr)
     {
-        LayoutGroupsNode = new wxXmlNode( wxXML_ELEMENT_NODE, "layoutGroups" );
-        root->AddChild( LayoutGroupsNode );
+        LayoutGroupsNode = new wxXmlNode(wxXML_ELEMENT_NODE, "layoutGroups");
+        root->AddChild(LayoutGroupsNode);
         UnsavedRgbEffectsChanges = true;
     }
 
     if (PerspectivesNode == nullptr)
     {
-        PerspectivesNode = new wxXmlNode( wxXML_ELEMENT_NODE, "perspectives" );
-        root->AddChild( PerspectivesNode );
+        PerspectivesNode = new wxXmlNode(wxXML_ELEMENT_NODE, "perspectives");
+        root->AddChild(PerspectivesNode);
         UnsavedRgbEffectsChanges = true;
     }
 
-    if(SettingsNode== nullptr)
+    if (SettingsNode == nullptr)
     {
-        SettingsNode = new wxXmlNode( wxXML_ELEMENT_NODE, "settings" );
-        root->AddChild( SettingsNode );
-        SetXmlSetting("previewWidth","1280");
-        SetXmlSetting("previewHeight","720");
+        SettingsNode = new wxXmlNode(wxXML_ELEMENT_NODE, "settings");
+        root->AddChild(SettingsNode);
+        SetXmlSetting("previewWidth", "1280");
+        SetXmlSetting("previewHeight", "720");
         UnsavedRgbEffectsChanges = true;
     }
-    int previewWidth=wxAtoi(GetXmlSetting("previewWidth","1280"));
-    int previewHeight=wxAtoi(GetXmlSetting("previewHeight","720"));
-    if (previewWidth==0 || previewHeight==0)
+    int previewWidth = wxAtoi(GetXmlSetting("previewWidth", "1280"));
+    int previewHeight = wxAtoi(GetXmlSetting("previewHeight", "720"));
+    if (previewWidth == 0 || previewHeight == 0)
     {
         previewWidth = 1280;
         previewHeight = 720;
     }
-    SetPreviewSize(previewWidth,previewHeight);
+    SetPreviewSize(previewWidth, previewHeight);
 
-    mBackgroundImage = FixFile(GetShowDirectory(), GetXmlSetting("backgroundImage",""));
+    mBackgroundImage = FixFile(GetShowDirectory(), GetXmlSetting("backgroundImage", ""));
     ObtainAccessToURL(mBackgroundImage.ToStdString());
     if (mBackgroundImage != "" && (!wxFileExists(mBackgroundImage) || !wxIsReadable(mBackgroundImage))) {
-        wxString fn = FixFile(mediaDirectory, GetXmlSetting("backgroundImage",""));
+        wxString fn = FixFile(mediaDirectory, GetXmlSetting("backgroundImage", ""));
         ObtainAccessToURL(fn.ToStdString());
         if (wxFileExists(fn) && wxIsReadable(mBackgroundImage)) {
             mBackgroundImage = fn;
-        } else {
+        }
+        else {
             //image doesn't exist there, lets look for it in show directory and media directory
             wxFileName name(mBackgroundImage);
             name.SetPath(CurrentDir);
@@ -310,25 +311,25 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
         UnsavedRgbEffectsChanges = true;
     }
 
-    mStoredLayoutGroup = GetXmlSetting("storedLayoutGroup","Default");
+    mStoredLayoutGroup = GetXmlSetting("storedLayoutGroup", "Default");
 
     // validate stored preview exists
     bool found_saved_preview = false;
-    for(wxXmlNode* e=LayoutGroupsNode->GetChildren(); e!=nullptr; e=e->GetNext() )
+    for (wxXmlNode* e = LayoutGroupsNode->GetChildren(); e != nullptr; e = e->GetNext())
     {
         if (e->GetName() == "layoutGroup")
         {
-            wxString grp_name=e->GetAttribute("name");
+            wxString grp_name = e->GetAttribute("name");
             if (!grp_name.IsEmpty())
             {
-                if( grp_name.ToStdString() == mStoredLayoutGroup )
+                if (grp_name.ToStdString() == mStoredLayoutGroup)
                 {
                     found_saved_preview = true;
                 }
             }
         }
     }
-    if( !found_saved_preview )
+    if (!found_saved_preview)
     {
         mStoredLayoutGroup = "Default";
     }
@@ -337,11 +338,11 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
     LayoutGroups.clear();
     layoutPanel->Reset();
     AllModels.SetLayoutsNode(LayoutGroupsNode);  // provides easy access to layout names for the model class
-    for(wxXmlNode* e=LayoutGroupsNode->GetChildren(); e!=nullptr; e=e->GetNext() )
+    for (wxXmlNode* e = LayoutGroupsNode->GetChildren(); e != nullptr; e = e->GetNext())
     {
         if (e->GetName() == "layoutGroup")
         {
-            wxString grp_name=e->GetAttribute("name");
+            wxString grp_name = e->GetAttribute("name");
             if (!grp_name.IsEmpty())
             {
                 LayoutGroup* grp = new LayoutGroup(grp_name.ToStdString(), this, e);
@@ -374,9 +375,9 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
 void xLightsFrame::LoadEffectsFile()
 {
     wxStopWatch sw; // start a stopwatch timer
-    wxString filename=LoadEffectsFileNoCheck();
+    wxString filename = LoadEffectsFileNoCheck();
     // check version, do we need to convert?
-    wxString version=EffectsNode->GetAttribute("version", "0000");
+    wxString version = EffectsNode->GetAttribute("version", "0000");
     if (version < "0004")
     {
         // fix tags
@@ -406,41 +407,42 @@ void xLightsFrame::LoadEffectsFile()
             if (model->GetName() == "model") {
                 std::string my_display = model->GetAttribute("MyDisplay").ToStdString();
                 std::string layout_group = "Unassigned";
-                if ( my_display == "1" ) {
+                if (my_display == "1") {
                     layout_group = "Default";
                 }
                 model->DeleteAttribute("MyDisplay");
                 model->DeleteAttribute("LayoutGroup");
                 model->AddAttribute("LayoutGroup", layout_group);
-             }
+            }
         }
         // parse groups once to figure out if any of them are selected
         bool groups_are_selected = false;
         for (wxXmlNode *group = ModelGroupsNode->GetChildren(); group != nullptr; group = group->GetNext()) {
             if (group->GetName() == "modelGroup") {
                 std::string selected = group->GetAttribute("selected").ToStdString();
-                if ( selected == "1" ) {
+                if (selected == "1") {
                     groups_are_selected = true;
                     break;
                 }
-             }
+            }
         }
         // if no groups are selected then models remain as set above and all groups goto Default
-        if( !groups_are_selected ) {
+        if (!groups_are_selected) {
             for (wxXmlNode *group = ModelGroupsNode->GetChildren(); group != nullptr; group = group->GetNext()) {
                 if (group->GetName() == "modelGroup") {
                     group->DeleteAttribute("selected");
                     group->DeleteAttribute("LayoutGroup");
                     group->AddAttribute("LayoutGroup", "Default");
-                 }
+                }
             }
-        } else { // otherwise need to set models in unchecked groups to unassigned
+        }
+        else { // otherwise need to set models in unchecked groups to unassigned
             std::set<std::string> modelsAdded;
             for (wxXmlNode *group = ModelGroupsNode->GetChildren(); group != nullptr; group = group->GetNext()) {
                 if (group->GetName() == "modelGroup") {
                     std::string selected = group->GetAttribute("selected").ToStdString();
                     std::string layout_group = "Unassigned";
-                    if( selected == "1" ) {
+                    if (selected == "1") {
                         wxArrayString mn = wxSplit(group->GetAttribute("models"), ',');
                         for (int x = 0; x < mn.size(); x++) {
                             std::string name = mn[x].ToStdString();
@@ -453,7 +455,7 @@ void xLightsFrame::LoadEffectsFile()
                     group->DeleteAttribute("selected");
                     group->DeleteAttribute("LayoutGroup");
                     group->AddAttribute("LayoutGroup", layout_group);
-                 }
+                }
             }
             // now move models back to unassigned that were not part of a checked group
             for (wxXmlNode *model = ModelsNode->GetChildren(); model != nullptr; model = model->GetNext()) {
@@ -463,10 +465,10 @@ void xLightsFrame::LoadEffectsFile()
                         model->DeleteAttribute("LayoutGroup");
                         model->AddAttribute("LayoutGroup", "Unassigned");
                     }
-                 }
+                }
             }
         }
-       UnsavedRgbEffectsChanges = true;
+        UnsavedRgbEffectsChanges = true;
     }
 
     // update version
@@ -484,7 +486,7 @@ void xLightsFrame::LoadEffectsFile()
     perspectivePanel->SetPerspectives(PerspectivesNode);
     LoadPerspectivesMenu(PerspectivesNode);
 
-    float elapsedTime = sw.Time()/1000.0; //msec => sec
+    float elapsedTime = sw.Time() / 1000.0; //msec => sec
     SetStatusText(wxString::Format(_("'%s' loaded in %4.3f sec."), filename, elapsedTime));
 }
 
@@ -619,11 +621,11 @@ void xLightsFrame::SaveModelsFile()
             }
             first = false;
 
-            int ch = model->GetNumberFromChannelString(model->ModelStartChannel);
+            long ch = model->GetNumberFromChannelString(model->ModelStartChannel);
             modelsJSON.Write("{\"name\":\""+model->name+
                               "\",\"type\":\""+model->GetDisplayAs()+
-                              "\",\"startchannel\":\""+wxString::Format("%i", ch)+
-                              "\",\"channels\":\""+ wxString::Format("%i", model->GetChanCount()) +
+                              "\",\"startchannel\":\""+wxString::Format("%ld", (long)ch)+
+                              "\",\"channels\":\""+ wxString::Format("%ld", (long)model->GetChanCount()) +
                               "\",\"stringtype\":\""+ model->GetStringType() +"\"}");
         }
     }

@@ -5,6 +5,7 @@
 #include <map>
 
 #include "models/ModelManager.h"
+#include "ControllerUploadData.h"
 
 class OutputManager;
 class wxJSONValue;
@@ -13,6 +14,65 @@ class wxMemoryBuffer;
 typedef void CURL;
 class wxWindow;
 
+class PixelCapeInfo : public ControllerRules {
+public:
+    PixelCapeInfo(const std::string &d, int s, int dmx) : ControllerRules(), description(d), maxStrings(s), maxDMX(dmx) {}
+    PixelCapeInfo() : ControllerRules(), maxStrings(0), maxDMX(0) {}
+    PixelCapeInfo(const PixelCapeInfo&pci) : ControllerRules(), description(pci.description), maxStrings(pci.maxStrings), maxDMX(pci.maxDMX) {}
+    std::string description;
+    int maxStrings;
+    int maxDMX;
+
+
+    virtual int GetMaxPixelPortChannels() const override {
+        return 1400 * 3;
+    }
+    virtual int GetMaxPixelPort() const override {
+        return maxStrings;
+    }
+    virtual int GetMaxSerialPortChannels() const override {
+        return 4096;
+    }
+    virtual int GetMaxSerialPort() const override {
+        return maxDMX;
+    }
+    virtual bool IsValidPixelProtocol(const std::string protocol) const override {
+        wxString p(protocol);
+        p = p.Lower();
+        if (p == "ws2811") return true;
+        return false;
+    }
+    virtual bool IsValidSerialProtocol(const std::string protocol) const override {
+        wxString p(protocol);
+        p = p.Lower();
+        if (p == "dmx") return true;
+        if (p == "pixelnet") return true;
+        if (p == "renard") return false;
+        return false;
+    }
+    virtual bool SupportsMultipleProtocols() const override {
+        return false;
+    }
+    virtual bool SupportsSmartRemotes() const override { return false; }
+    virtual bool SupportsMultipleInputProtocols() const override {
+        return true;
+
+    }
+    virtual bool AllUniversesSameSize() const override {
+        return false;
+    }
+    virtual std::list<std::string> GetSupportedInputProtocols() const override {
+        std::list<std::string> res;
+        res.push_back("E131");
+        res.push_back("ARTNET");
+        res.push_back("DDP");
+        return res;
+    }
+    virtual bool UniversesMustBeSequential() const override {
+        return false;
+    }
+};
+
 class FPP {
     public:
     FPP() : majorVersion(0), minorVersion(0), outputFile(nullptr), parent(nullptr), curl(nullptr) {}
@@ -20,6 +80,8 @@ class FPP {
     FPP(const FPP &c);
     virtual ~FPP();
 
+    static PixelCapeInfo& GetCapeRules(const std::string& type);
+    
     std::string hostName;
     std::string description;
     std::string ipAddress;
