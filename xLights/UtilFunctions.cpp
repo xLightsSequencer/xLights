@@ -628,11 +628,10 @@ bool IsExcessiveMemoryUsage(double physicalMultiplier)
 
 std::list<std::string> GetLocalIPs()
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     std::list<std::string> res;
 
 #ifdef __WXMSW__
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     ULONG ulOutBufLen = sizeof(IP_ADAPTER_INFO);
     PIP_ADAPTER_INFO pAdapterInfo = (IP_ADAPTER_INFO *)malloc(sizeof(IP_ADAPTER_INFO));
     if (pAdapterInfo == nullptr) {
@@ -678,16 +677,11 @@ std::list<std::string> GetLocalIPs()
     while (tmp) {
         if (tmp->ifa_addr && tmp->ifa_addr->sa_family == AF_INET) {
             struct sockaddr_in * address = (struct sockaddr_in *)tmp->ifa_addr;
-            wxString ip = wxString::Format("%d.%d.%d.%d", address->sin_addr.s_addr.s_b1, 
-                address->sin_addr.s_addr.s_b2, 
-                address->sin_addr.s_addr.s_b3, 
-                address->sin_addr.s_addr.s_b4));
-            if (ip != "0.0.0.0")
-            {
-                res.push_back(ip.ToStdString());
+            std::string ip = inet_ntoa(address->sin_addr);
+            if (ip != "0.0.0.0") {
+                res.push_back(ip);
             }
-        }
-        else if (tmp->ifa_addr && tmp->ifa_addr->sa_family == AF_INET6) {
+        } else if (tmp->ifa_addr && tmp->ifa_addr->sa_family == AF_INET6) {
             //LogDebug(VB_SYNC, "   Inet6 interface %s\n", tmp->ifa_name);
         }
         tmp = tmp->ifa_next;
