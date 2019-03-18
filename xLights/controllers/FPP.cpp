@@ -1,5 +1,9 @@
+#define NOMINMAX
+
 #include <map>
 #include <string.h>
+
+#include <curl/curl.h>
 
 #include <wx/msgdlg.h>
 #include <wx/sstream.h>
@@ -23,11 +27,12 @@
 #include "outputs/DDPOutput.h"
 #include "UtilFunctions.h"
 #include "xLightsVersion.h"
-
 #include "../Parallel.h"
 
 #include <log4cpp/Category.hh>
+#include "ControllerUploadData.h"
 #include "../FSEQFile.h"
+
 
 
 static std::map<std::string, PixelCapeInfo> CONTROLLER_TYPE_MAP = {
@@ -62,12 +67,21 @@ const std::string &FPP::PixelContollerDescription() const {
 
 
 
-FPP::FPP(const std::string &ad) : majorVersion(0), minorVersion(0), outputFile(nullptr), parent(nullptr), ipAddress(ad) {
+FPP::FPP(const std::string &ad) : majorVersion(0), minorVersion(0), outputFile(nullptr), parent(nullptr), ipAddress(ad), curl(nullptr) {
     wxIPV4address address;
     if (address.Hostname(ad)) {
         hostName = ad;
         ipAddress = address.IPAddress();
     }
+}
+
+
+FPP::FPP(const FPP &c)
+    : majorVersion(c.majorVersion), minorVersion(c.minorVersion), outputFile(nullptr), parent(nullptr), curl(nullptr),
+    hostName(c.hostName), description(c.description), ipAddress(c.ipAddress), fullVersion(c.fullVersion), platform(c.platform),
+    model(c.model), ranges(c.ranges), mode(c.mode), pixelControllerType(c.pixelControllerType), username(c.username), password(c.password)
+{
+    
 }
 
 FPP::~FPP() {
@@ -79,29 +93,92 @@ FPP::~FPP() {
         ::wxRemoveFile(tempFileName);
         tempFileName = "";
     }
+    if (curl) {
+        curl_easy_cleanup(curl);
+        curl = nullptr;
+    }
 }
+
+static int buffer_writer(char *data, size_t size, size_t nmemb,
+                         std::string *writerData) {
+    if (writerData == NULL) {
+        return 0;
+    }
+    writerData->append(data, size * nmemb);
+    return size * nmemb;
+}
+
+void FPP::setupCurl() {
+    if (curl == nullptr) {
+        curl = curl_easy_init();
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, buffer_writer);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &curlInputBuffer);
+        curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+        curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT_MS, 100);
+        curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, 10000);
+    }
+}
+bool FPP::GetURLAsString(const std::string& url, std::string& val)  {
+    setupCurl();
+    curlInputBuffer.clear();
+    char error[1024];
+    std::string fullUrl = "http://" + ipAddress + url;
+    curl_easy_setopt(curl, CURLOPT_URL, fullUrl.c_str());
+    curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, &error);
+    bool retValue = false;
+    int i = curl_easy_perform(curl);
+    if (i == CURLE_OK) {
+        val = curlInputBuffer;
+        retValue = true;
+    }
+    curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, nullptr);
+    return retValue;
+
+}
+
+bool FPP::GetURLAsJSON(const std::string& url, wxJSONValue& val) {
+    setupCurl();
+    curlInputBuffer.clear();
+    char error[1024];
+    std::string fullUrl = "http://" + ipAddress + url;
+    curl_easy_setopt(curl, CURLOPT_URL, fullUrl.c_str());
+    curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, &error);
+    bool retValue = false;
+    int i = curl_easy_perform(curl);
+    if (i == CURLE_OK) {
+        wxJSONReader reader;
+        reader.Parse(curlInputBuffer, &val);
+        retValue = true;
+    }
+    curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, nullptr);
+    return retValue;
+}
+
 
 bool FPP::AuthenticateAndUpdateVersions() {
     wxJSONValue val;
-    if (GetURLAsJSON("/fppjson.php?command=getSysInfo", val)) {
-        platform = val["Platform"].AsString();
-        model = val["Variant"].AsString();
-        fullVersion = val["Version"].AsString();
-        hostName = val["HostName"].AsString();
-        description = val["HostDescription"].AsString();
-        mode = val["Mode"].AsString();
-
-        if (fullVersion != "") {
-            majorVersion = wxAtoi(fullVersion);
-            if (fullVersion[2] == 'x') {
-                minorVersion = wxAtoi(fullVersion.substr(4)) + 1000;
-            } else {
-                minorVersion = wxAtoi(fullVersion.substr(2));
-            }
-        }
-        return true;
+    if (GetURLAsJSON("/fppjson.php?command=getSysInfo&simple", val)) {
+        return parseSysInfo(val);
     }
     return false;
+}
+bool FPP::parseSysInfo(wxJSONValue& val) {
+    platform = val["Platform"].AsString();
+    model = val["Variant"].AsString();
+    fullVersion = val["Version"].AsString();
+    hostName = val["HostName"].AsString();
+    description = val["HostDescription"].AsString();
+    mode = val["Mode"].AsString();
+
+    if (fullVersion != "") {
+        majorVersion = wxAtoi(fullVersion);
+        if (fullVersion[2] == 'x') {
+            minorVersion = wxAtoi(fullVersion.substr(4)) + 1000;
+        } else {
+            minorVersion = wxAtoi(fullVersion.substr(2));
+        }
+    }
+    return true;
 }
 
 
@@ -125,16 +202,43 @@ void FPP::probePixelControllerType() {
     }
     wxJSONValue val;
     if (GetURLAsJSON("/fppjson.php?command=getChannelOutputs&file=" + file, val)) {
-        for (int x = 0; x < val["channelOutputs"].Size(); x++) {
-            if (val["channelOutputs"][x]["type"].AsString() == "RPIWS281X") {
-                if (val["channelOutputs"][x]["enabled"].AsInt()) {
-                    pixelControllerType = "PiHat";
-                }
-            } else if (val["channelOutputs"][x]["type"].AsString() == "BBB48String") {
-                if (val["channelOutputs"][x]["enabled"].AsInt()) {
-                    pixelControllerType = val["channelOutputs"][x]["subType"].AsString();
+        parseControllerType(val);
+    }
+}
+void FPP::parseControllerType(wxJSONValue& val) {
+    for (int x = 0; x < val["channelOutputs"].Size(); x++) {
+        if (val["channelOutputs"][x]["type"].AsString() == "RPIWS281X") {
+            if (val["channelOutputs"][x]["enabled"].AsInt()) {
+                pixelControllerType = "PiHat";
+            }
+        } else if (val["channelOutputs"][x]["type"].AsString() == "BBB48String") {
+            if (val["channelOutputs"][x]["enabled"].AsInt()) {
+                pixelControllerType = val["channelOutputs"][x]["subType"].AsString();
+            }
+        } else if (val["channelOutputs"][x]["type"].AsString() == "LEDPanelMatrix") {
+            pixelControllerType = "LED Panels - ";
+            int pw = val["channelOutputs"][x]["panelWidth"].AsInt();
+            int ph = val["channelOutputs"][x]["panelHeight"].AsInt();
+            int nw = 0; int nh = 0;
+            bool tall = false;
+            for (int p = 0; p < val["channelOutputs"][x]["panels"].Size(); ++p) {
+                int r = val["channelOutputs"][x]["panels"][p]["row"].AsInt();
+                int c = val["channelOutputs"][x]["panels"][p]["col"].AsInt();
+                nw = std::max(c, nw);
+                nh = std::max(r, nh);
+                std::string orientation = val["channelOutputs"][x]["panels"][p]["orientation"].AsString();
+                if (orientation == "E" || orientation == "W") {
+                    tall = true;
                 }
             }
+            nw++; nh++;
+            if (tall) {
+                std::swap(pw, ph);
+            }
+            pixelControllerType.append(std::to_string(pw * nw));
+            pixelControllerType.append("x");
+            pixelControllerType.append(std::to_string(ph * nh));
+
         }
     }
 }
@@ -211,35 +315,6 @@ bool FPP::WriteJSONToPath(const std::string& path, const wxJSONValue& val) {
     return true;
 }
 
-bool FPP::GetURLAsJSON(const std::string& url, wxJSONValue& val) {
-    wxHTTP http;
-    http.Connect(ipAddress);
-    http.SetMethod("GET");
-    std::unique_ptr<wxInputStream> httpStream(http.GetInputStream(wxString(url)));
-    /*
-    if (hostName == "") {
-        //the ip address passed in MIGHT be a hostname, if so,
-        //we'll flip it into the hostname field and then get the
-        //real ip address
-        wxIPV4address remote;
-        http.GetPeer(remote);
-        if (ipAddress != remote.IPAddress().ToStdString()) {
-            hostName = ipAddress;
-            ipAddress = remote.IPAddress().ToStdString();
-        }
-    }
-     */
-    int rc = http.GetResponse();
-    if (rc == 401) {
-        // FIXME - get password and authenticate
-    }
-    if (rc == 200) {
-        wxJSONReader reader;
-        reader.Parse(*httpStream, &val);
-        return true;
-    }
-    return false;
-}
 int FPP::PostJSONToURL(const std::string& url, const wxJSONValue& val) {
     wxString str;
     wxJSONWriter writer(wxJSONWRITER_STYLED, 0, 3);
@@ -484,12 +559,8 @@ bool FPP::uploadFile(const std::string &filename, const std::string &file, bool 
         
         if (strstr((char *)rbuf, fn.c_str()) != nullptr) {
             //upload OK, now rename
-            wxHTTP http;
-            http.Connect(ipAddress);
-            wxInputStream *inp = http.GetInputStream("/fppxml.php?command=moveFile&file=" + URLEncode(filename + ext));
-            if (inp) {
-                delete inp;
-            }
+            std::string val;
+            GetURLAsString("/fppxml.php?command=moveFile&file=" + URLEncode(filename + ext), val);
             logger_base.debug("Renaming done.");
         }
         progress.Update(1000, wxEmptyString, &cancelled);
@@ -708,8 +779,6 @@ bool FPP::UploadUDPOut(const wxJSONValue &udp) {
     return false;
 }
 
-
-
 std::string FPP::CreateModelMemoryMap(ModelManager* allmodels) {
     std::string ret;
     for (auto m = allmodels->begin(); m != allmodels->end(); ++m) {
@@ -803,12 +872,8 @@ wxJSONValue FPP::CreateUniverseFile(OutputManager* outputManager, const std::str
 }
 
 bool FPP::SetRestartFlag() {
-    wxHTTP http;
-    http.Connect(ipAddress);
-    http.SetMethod("GET");
-    std::unique_ptr<wxInputStream> httpStream(http.GetInputStream(wxString("/fppjson.php?command=setSetting&key=restartFlag&value=1")));
-    int rc = http.GetResponse();
-    return rc == 200;
+    std::string val;
+    return GetURLAsString("/fppjson.php?command=setSetting&key=restartFlag&value=1", val);
 }
 
 bool FPP::SetInputUniversesBridge(std::list<int>& selected, OutputManager* outputManager) {
@@ -1071,14 +1136,48 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
     return false;
 }
 
+
+
+class CurlData {
+public:
+    CurlData(const std::string &a) : url(a), type(0), fpp(nullptr) {
+        errorBuffer[0] = 0;
+        curl = curl_easy_init();
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, buffer_writer);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &buffer);
+        curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+        curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+        curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT_MS, 500);
+        curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, 8000);
+        curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, &errorBuffer);
+    }
+    ~CurlData() {
+        curl_easy_cleanup(curl);
+    }
+    std::string url;
+    CURL *curl;
+    std::string buffer;
+    char errorBuffer[CURL_ERROR_SIZE];
+    int type;
+    FPP *fpp;
+};
+
 #define FPP_CTRL_PORT 32320
-void FPP::Discover(std::list<FPP> &instances) {
+void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &instances, bool doBroadcast) {
+    std::vector<CurlData*> curls;
+    CURLM * curlMulti = curl_multi_init();
+    for (auto &a : addresses) {
+        std::string fullAddress = "http://" + a + "/fppjson.php?command=getFPPSystems";
+        CurlData *data = new CurlData(fullAddress);
+        curls.push_back(data);
+        curl_multi_add_handle(curlMulti, data->curl);
+    }
     wxDatagramSocket *socket;
     wxIPV4address localaddr;
     localaddr.AnyAddress();
     localaddr.Service(FPP_CTRL_PORT);
 
-    socket = new wxDatagramSocket(localaddr, wxSOCKET_BROADCAST);
+    socket = new wxDatagramSocket(localaddr, wxSOCKET_BROADCAST | wxSOCKET_NOWAIT);
     socket->SetTimeout(1);
     socket->Notify(false);
 
@@ -1105,34 +1204,217 @@ void FPP::Discover(std::list<FPP> &instances) {
     buffer[15] = buffer[16] = buffer[17] = buffer[18] = 0;
     strcpy((char *)&buffer[84], ver.c_str());
 
-    wxIPV4address bcAddress;
-    bcAddress.BroadcastAddress();
-    bcAddress.Service(FPP_CTRL_PORT);
-    socket->SendTo(bcAddress, buffer, 207);
-    
-    uint64_t time = wxGetLocalTimeMillis().GetValue() + 1000l;
-    while (wxGetLocalTimeMillis().GetValue() < time) {
+    if (socket->IsOk()) {
+        wxIPV4address bcAddress;
+        bcAddress.BroadcastAddress();
+        bcAddress.Service(FPP_CTRL_PORT);
+        socket->SendTo(bcAddress, buffer, 207);
+    }
+    uint64_t endBroadcastTime = wxGetLocalTimeMillis().GetValue() + 1200l;
+    int running = curls.size();
+    while (running || (wxGetLocalTimeMillis().GetValue() < endBroadcastTime)) {
         memset(buffer, 0x00, sizeof(buffer));
-        socket->Read(&buffer[0], sizeof(buffer));
-        if (socket->GetLastIOReadSize() == 0) {
-            socket->WaitForRead(0, 50);
-        } else if (buffer[0] == 'F' && buffer[1] == 'P' && buffer[2] == 'P' && buffer[3] == 'D' && buffer[4] == 0x04) {
+        int readSize = 0;
+        if (socket->IsOk()) {
+            socket->Read(&buffer[0], sizeof(buffer));
+            readSize = socket->GetLastIOReadSize();
+        }
+        if (readSize != 0
+            && buffer[0] == 'F' && buffer[1] == 'P' && buffer[2] == 'P' && buffer[3] == 'D' && buffer[4] == 0x04) {
             char ip[64];
             sprintf(ip, "%d.%d.%d.%d", (int)buffer[15], (int)buffer[16], (int)buffer[17], (int)buffer[18]);
             if (strcmp(ip, "0.0.0.0")) {
                 //we found a system!!!
-                FPP inst;
-                inst.hostName = (char *)&buffer[19];
-                inst.model = (char *)&buffer[125];
-                inst.ipAddress = ip;
-                inst.fullVersion = (char *)&buffer[84];
-                inst.minorVersion = buffer[13] + (buffer[12] << 8);
-                inst.majorVersion = buffer[11] + (buffer[10] << 8);
-                inst.ranges = (char*)&buffer[166];
-                instances.push_back(inst);
+                std::string hostname = (char *)&buffer[19];
+                std::string ipStr = ip;
+                FPP *found = nullptr;
+                for (auto a : instances) {
+                    if (a->hostName == hostname || a->ipAddress == hostname || a->ipAddress == ipStr) {
+                        found = a;
+                    }
+                }
+                int platform = buffer[9];
+                if (!found && (platform > 0 && platform < 0x80)) {
+                    //platform > 0x80 is Falcon controllers or xLights
+                    FPP *inst = new FPP();
+                    inst->hostName = (char *)&buffer[19];
+                    inst->model = (char *)&buffer[125];
+                    inst->ipAddress = ip;
+                    inst->fullVersion = (char *)&buffer[84];
+                    inst->minorVersion = buffer[13] + (buffer[12] << 8);
+                    inst->majorVersion = buffer[11] + (buffer[10] << 8);
+                    inst->ranges = (char*)&buffer[166];
+                    instances.push_back(inst);
+                    
+                    std::string fullAddress = "http://" + inst->ipAddress + "/fppjson.php?command=getFPPSystems";
+                    CurlData *data = new CurlData(fullAddress);
+                    data->type = 0;
+                    data->fpp = inst;
+                    curls.push_back(data);
+                    curl_multi_add_handle(curlMulti, data->curl);
+                    running++;
+
+                    fullAddress = "http://" + inst->ipAddress + "/fppjson.php?command=getSysInfo&simple";
+                    data = new CurlData(fullAddress);
+                    data->type = 1;
+                    data->fpp = inst;
+                    curls.push_back(data);
+                    curl_multi_add_handle(curlMulti, data->curl);
+                    running++;
+                }
+            }
+        } else {
+            int start = running;
+            curl_multi_perform(curlMulti, &running);
+            if (start != running) {
+                struct CURLMsg *m;
+                int msgq = 0;
+                while ((m = curl_multi_info_read(curlMulti, &msgq))) {
+                    if (m->msg == CURLMSG_DONE) {
+                        CURL *e = m->easy_handle;
+                        curl_multi_remove_handle(curlMulti, e);
+                        for (int x = 0; x < curls.size(); x++) {
+                            if (curls[x] && curls[x]->curl == e) {
+                                /*
+                                if (curls[x]->errorBuffer[0]) {
+                                    printf("error:  %s    %d\n      %s\n", curls[x]->url.c_str(), curls[x]->type, curls[x]->errorBuffer);
+                                } else {
+                                    printf("OK:  %s     %d\n      %s\n", curls[x]->url.c_str(), curls[x]->type, curls[x]->buffer.c_str());
+                                }
+                                */
+                                wxJSONValue origJson;
+                                wxJSONReader reader;
+                                reader.Parse(curls[x]->buffer, &origJson);
+                                switch (curls[x]->type) {
+                                    case 1: {
+                                        curls[x]->fpp->parseSysInfo(origJson);
+                                        std::string file = "co-pixelStrings";
+                                        if (curls[x]->fpp->platform.find("Beagle") != std::string::npos) {
+                                            file = "co-bbbStrings";
+                                        }
+                                        std::string fullAddress = "http://" + curls[x]->fpp->ipAddress + "/fppjson.php?command=getChannelOutputs&file=" + file;
+                                        CurlData *data = new CurlData(fullAddress);
+                                        data->type = 2;
+                                        data->fpp = curls[x]->fpp;
+                                        curls.push_back(data);
+                                        curl_multi_add_handle(curlMulti, data->curl);
+                                        running++;
+
+                                        fullAddress = "http://" + curls[x]->fpp->ipAddress + "/fppjson.php?command=getChannelOutputs&file=channelOutputsJSON";
+                                        data = new CurlData(fullAddress);
+                                        data->type = 2;
+                                        data->fpp = curls[x]->fpp;
+                                        curls.push_back(data);
+                                        curl_multi_add_handle(curlMulti, data->curl);
+                                        running++;
+                                        break;
+                                    }
+                                    case 2:
+                                        curls[x]->fpp->parseControllerType(origJson);
+                                        break;
+                                    default:
+                                        for (int x = 0; x < origJson.Size(); x++) {
+                                            wxJSONValue system = origJson[x];
+                                            wxString address = system["IP"].AsString();
+                                            wxString hostName = system["HostName"].AsString();
+                                            if (address.length() > 16) {
+                                                //ignore for some reason, FPP is occassionally returning an IPV6 address
+                                                continue;
+                                            }
+                                            FPP *found = nullptr;
+                                            for (auto &b : instances) {
+                                                if (b->ipAddress == address || b->ipAddress == hostName || b->hostName == hostName) {
+                                                    found = b;
+                                                }
+                                            }
+                                            FPP inst;
+                                            inst.hostName = hostName;
+                                            if (!system["Platform"].IsNull()) {
+                                                inst.platform = system["Platform"].AsString();
+                                            }
+                                            if (inst.platform.find("xLights") != std::string::npos) {
+                                                continue;
+                                            }
+                                            if (inst.platform.find("Unknown") != std::string::npos) {
+                                                continue;
+                                            }
+                                            if (inst.platform.find("unknown") != std::string::npos) {
+                                                continue;
+                                            }
+                                            if (inst.platform.find("Falcon ") != std::string::npos) {
+                                                continue;
+                                            }
+                                            if (!system["model"].IsNull()) {
+                                                inst.model = system["model"].AsString();
+                                            }
+                                            inst.ipAddress = address;
+                                            if (!system["version"].IsNull()) {
+                                                inst.fullVersion = system["version"].AsString();
+                                            }
+                                            if (system["minorVersion"].IsInt()) {
+                                                inst.minorVersion = system["minorVersion"].AsInt();
+                                            }
+                                            if (system["majorVersion"].IsInt()) {
+                                                inst.majorVersion = system["majorVersion"].AsInt();
+                                            }
+                                            if (!system["channelRanges"].IsNull()) {
+                                                inst.ranges = system["channelRanges"].AsString();
+                                            }
+                                            if (!system["HostDescription"].IsNull()) {
+                                                inst.description = system["HostDescription"].AsString();
+                                            }
+                                            if (!system["fppMode"].IsNull()) {
+                                                inst.mode = system["fppMode"].AsString();
+                                            }
+                                            if (found) {
+                                                if (found->majorVersion == 0) {
+                                                    *found = inst;
+                                                } else {
+                                                    if (found->platform == "") {
+                                                        found->platform = inst.platform;
+                                                    }
+                                                    if (found->mode == "") {
+                                                        found->mode = inst.mode;
+                                                    }
+                                                    if (found->model == "") {
+                                                        found->model = inst.model;
+                                                    }
+                                                    if (found->ranges == "") {
+                                                        found->ranges = inst.ranges;
+                                                    }
+                                                }
+                                            } else {
+                                                FPP *fpp = new FPP(inst);
+                                                std::string fullAddress = "http://" + fpp->ipAddress + "/fppjson.php?command=getSysInfo&simple";
+                                                if (fpp->ipAddress == "") {
+                                                    fullAddress = "http://" + fpp->hostName + "/fppjson.php?command=getSysInfo&simple";
+                                                }
+                                                CurlData *data = new CurlData(fullAddress);
+                                                data->type = 1;
+                                                data->fpp = fpp;
+                                                curls.push_back(data);
+                                                curl_multi_add_handle(curlMulti, data->curl);
+                                                
+                                                instances.push_back(fpp);
+                                            }
+                                        }
+                                }
+                                delete curls[x];
+                                curls[x] = nullptr;
+                            }
+                        }
+                    }
+                }
             }
         }
     }
+    for (auto data : curls) {
+        if (data) {
+            curl_multi_remove_handle(curlMulti, data->curl);
+            delete data;
+        }
+    }
+    curl_multi_cleanup(curlMulti);
     socket->Close();
     delete socket;
     /*
@@ -1147,87 +1429,7 @@ void FPP::Discover(std::list<FPP> &instances) {
 }
 
 
-void FPP::Probe(const std::list<std::string> &addresses, std::list<FPP> &instances, const std::list<std::string> &complete) {
-    //wxHTTP has to be created and connected on main thread
-    for (auto &a : addresses) {
-        wxHTTP *http = new wxHTTP();
-        http->Connect(a);
-        http->SetMethod("GET");
-        http->SetTimeout(10);
-        http->Initialize();
-        wxInputStream *inp = http->GetInputStream("/fppjson.php?command=getFPPSystems");
-        if (inp) {
-            wxJSONValue origJson;
-            wxJSONReader reader;
-            reader.Parse(*inp, &origJson);
-            delete inp;
-            
-            for (int x = 0; x < origJson.Size(); x++) {
-                wxJSONValue system = origJson[x];
-                wxString address = system["IP"].AsString();
-                
-                if (address.length() > 16) {
-                    //ignore for some reason, FPP is occassionally returning an IPV6 address
-                    continue;
-                }
-                if (std::find(complete.begin(), complete.end(), address) != complete.end()) {
-                    //already complete, continue
-                    continue;
-                }
-                FPP *found = nullptr;
-                for (auto &b : instances) {
-                    if (b.ipAddress == address) {
-                        found = &b;
-                    }
-                }
-                FPP inst;
-                inst.hostName = system["HostName"].AsString();
-                if (!system["Platform"].IsNull()) {
-                    inst.platform = system["Platform"].AsString();
-                }
-                if (!system["model"].IsNull()) {
-                    inst.model = system["model"].AsString();
-                }
-                inst.ipAddress = address;
-                if (!system["version"].IsNull()) {
-                    inst.fullVersion = system["version"].AsString();
-                }
-                if (system["minorVersion"].IsInt()) {
-                    inst.minorVersion = system["minorVersion"].AsInt();
-                }
-                if (system["majorVersion"].IsInt()) {
-                    inst.majorVersion = system["majorVersion"].AsInt();
-                }
-                if (!system["channelRanges"].IsNull()) {
-                    inst.ranges = system["channelRanges"].AsString();
-                }
-                if (!system["HostDescription"].IsNull()) {
-                    inst.description = system["HostDescription"].AsString();
-                }
-                if (!system["fppMode"].IsNull()) {
-                    inst.mode = system["fppMode"].AsString();
-                }
-                if (found) {
-                    if (found->majorVersion == 0) {
-                        *found = inst;
-                    } else {
-                        if (found->platform == "") {
-                            found->platform = inst.platform;
-                        }
-                        if (found->mode == "") {
-                            found->mode = inst.mode;
-                        }
-                        if (found->model == "") {
-                            found->model = inst.model;
-                        }
-                        if (found->ranges == "") {
-                            found->ranges = inst.ranges;
-                        }
-                    }
-                } else {
-                    instances.push_back(inst);
-                }
-            }
-        }
-    };
+
+void FPP::Probe(const std::list<std::string> &addresses, std::list<FPP*> &instances) {
+    Discover(addresses, instances, false);
 }

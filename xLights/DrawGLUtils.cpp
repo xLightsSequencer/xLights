@@ -1030,7 +1030,7 @@ void DrawGLUtils::xlAccumulator::DoRealloc(int newMax) {
 void DrawGLUtils::xlAccumulator::PreAllocTexture(int i) {
     PreAlloc(i);
     if (tvertices == nullptr) {
-        tvertices = (float*)malloc(sizeof(float)*max * 2);
+        tvertices = (float*)malloc(sizeof(float)*_max * 2);
     }
 }
 

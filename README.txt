@@ -1,4 +1,4 @@
-﻿xLights is a show sequencer and player/scheduler designed to control
+xLights is a show sequencer and player/scheduler designed to control
 USB/DMX/sACN(e1.31)/ArtNET(e.1.17)/DDP controllers.
 xLights also integrates with the Falcon Player.
 xLights imports and exports sequence data from sequencers such as LOR (SE, PE & SS),
@@ -11,6 +11,18 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (dkulp)   xShcedule as FPP remote now works with Multicast protocol (maybe Linux/OSX only)
+   -- enh (dkulp)   xShcedule as FPP remote now responds to FPP Ping's/Discovery
+   -- enh (dkulp)   Much faster FPP Connect discovery
+2019.17 March 15, 2019
+   -- enh (keith)   Add falcon smart remote support
+   -- enh (keith)   Add ability to split timing marks in half
+   -- enh (keith)   Add playlist item for outputting a short MIDI message
+   -- enh (keith)   Show node count in model list tooltip
+   -- enh (keith)   Move SMS retrieval to a separate thread
+   -- bug (keith)   Fix a number of issues with models resizing when parameters change
+   -- bug (keith)   Fix #1510 Model preview does not always centre model group
+   -- bug (keith)   Fix 3D model handles dont hold size while zooming   
 2019.16 March 9, 2019
    -- enh (scott)   Added Cut/Copy/Paste Support for 3D Objects in the Layout Tab
    -- enh (scott)   Added Arrow Key Support for 3D Objects in the Layout Tab

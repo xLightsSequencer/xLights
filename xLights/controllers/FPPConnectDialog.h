@@ -53,7 +53,7 @@ class FPPConnectDialog: public wxDialog
         static const long ID_FPP_INSTANCE_LIST;
 
     
-        std::list<FPP> instances;
+        std::list<FPP*> instances;
         OutputManager* _outputManager;
 
 	private:

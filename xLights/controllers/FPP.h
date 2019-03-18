@@ -3,6 +3,7 @@
 
 #include <list>
 #include <map>
+
 #include "models/ModelManager.h"
 #include "ControllerUploadData.h"
 
@@ -10,6 +11,8 @@ class OutputManager;
 class wxJSONValue;
 class FSEQFile;
 class wxMemoryBuffer;
+typedef void CURL;
+class wxWindow;
 
 class PixelCapeInfo : public ControllerRules {
 public:
@@ -72,9 +75,11 @@ public:
 
 class FPP {
     public:
-    FPP() : majorVersion(0), minorVersion(0), outputFile(nullptr), parent(nullptr) {}
+    FPP() : majorVersion(0), minorVersion(0), outputFile(nullptr), parent(nullptr), curl(nullptr) {}
     FPP(const std::string &address);
+    FPP(const FPP &c);
     virtual ~FPP();
+
     static PixelCapeInfo& GetCapeRules(const std::string& type);
     
     std::string hostName;
@@ -88,18 +93,19 @@ class FPP {
     std::string ranges;
     std::string mode;
     std::string pixelControllerType;
-    
+
     std::string username;
     std::string password;
-    
+
     wxWindow *parent;
-    
+
     bool AuthenticateAndUpdateVersions();
     void LoadPlaylists(std::list<std::string> &playlists);
     void probePixelControllerType();
+
     bool IsVersionAtLeast(uint32_t maj, uint32_t min);
     bool IsDrive();
-    
+
     const std::string &PixelContollerDescription() const;
 
     bool PrepareUploadSequence(const FSEQFile &file,
@@ -108,7 +114,7 @@ class FPP {
                                int type);
     bool AddFrameToUpload(uint32_t frame, uint8_t *data);
     bool FinalizeUploadSequence();
-    
+
     bool UploadPlaylist(const std::string &playlist);
     bool UploadModels(const std::string &models);
     bool UploadUDPOut(const wxJSONValue &udp);
@@ -117,19 +123,21 @@ class FPP {
                             OutputManager* outputManager,
                             const std::list<int>& selected = std::list<int>());
     bool SetInputUniversesBridge(std::list<int>& selected, OutputManager* outputManager);
-    
+
     bool SetRestartFlag();
-    
-    static void Discover(std::list<FPP> &instances);
-    static void Probe(const std::list<std::string> &addresses, std::list<FPP> &instances, const std::list<std::string> &complete = std::list<std::string>());
+
+    static void Discover(const std::list<std::string> &forcedAddresses, std::list<FPP*> &instances, bool doBroadcast = true);
+    static void Probe(const std::list<std::string> &addresses, std::list<FPP*> &instances);
+
     static std::string CreateModelMemoryMap(ModelManager* allmodels);
     static wxJSONValue CreateOutputUniverseFile(OutputManager* outputManager);
-    
 private:
     static wxJSONValue CreateUniverseFile(OutputManager* outputManager, const std::string &onlyip, const std::list<int>& selected, bool input);
-    
+
     bool GetPathAsJSON(const std::string &path, wxJSONValue &val);
     bool GetURLAsJSON(const std::string& url, wxJSONValue& val);
+    bool GetURLAsString(const std::string& url, std::string& val);
+
     bool WriteJSONToPath(const std::string& path, const wxJSONValue& val);
     int PostJSONToURL(const std::string& url, const wxJSONValue& val);
     int PostJSONToURLAsFormData(const std::string& url, const std::string &extra, const wxJSONValue& val);
@@ -146,12 +154,19 @@ private:
                   const std::string &file,
                   const std::string &dir);
 
-    
+    bool parseSysInfo(wxJSONValue& v);
+    void parseControllerType(wxJSONValue& v);
+
+
     std::map<std::string, std::string> sequences;
     std::string tempFileName;
     std::string baseSeqName;
     bool uploadCompressed;
     FSEQFile *outputFile;
+
+    void setupCurl();
+    CURL *curl;
+    std::string curlInputBuffer;
 };
 
 #endif

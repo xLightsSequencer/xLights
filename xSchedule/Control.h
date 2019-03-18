@@ -6,6 +6,10 @@
 #define FPP_CTRL_PORT 32320
 #define FPP_CTRL_CSV_PORT 32321
 
+// 239.F.P.P
+#define MULTISYNC_MULTICAST_ADDRESS "239.70.80.80"
+
+
 #define CTRL_PKT_CMD   0
 #define CTRL_PKT_SYNC  1
 #define CTRL_PKT_EVENT 2
@@ -24,8 +28,11 @@
 
 PACK( typedef struct { char fppd[4]; uint8_t pktType; uint16_t extraDataLen; } ControlPkt);
 
+#define CTRL_PKT_CMD    0
 #define CTRL_PKT_SYNC   1
 #define CTRL_PKT_EVENT  2
+#define CTRL_PKT_BLANK  3
+#define CTRL_PKT_PING   4
 
 #define SYNC_PKT_START 0
 #define SYNC_PKT_STOP  1

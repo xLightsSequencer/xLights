@@ -139,6 +139,8 @@
 					<Add library="../lib/windows/iphlpapi.lib" />
 					<Add library="../lib/windows/WS2_32.Lib" />
 					<Add library="../lib/windows/libzstd_static.lib" />
+					<Add library="../lib/windows/LIBCURL.LIB" />
+					<Add library="Psapi" />
 					<Add directory="lib/windows" />
 					<Add directory="../lib/windows" />
 				</Linker>
@@ -303,6 +305,8 @@
 					<Add library="../lib/windows64/iphlpapi.lib" />
 					<Add library="../lib/windows64/WS2_32.Lib" />
 					<Add library="../lib/windows64/libzstd_static.lib" />
+					<Add library="../lib/windows64/LIBCURL.LIB" />
+					<Add library="Psapi" />
 				</Linker>
 			</Target>
 			<Target title="64bit MinGW_Debug">
@@ -368,6 +372,7 @@
 					<Add library="../lib/windows64/iphlpapi.lib" />
 					<Add library="../lib/windows64/WS2_32.Lib" />
 					<Add library="../lib/windows64/libzstd_static.lib" />
+					<Add library="../lib/windows64/LIBCURL.LIB" />
 					<Add directory="$(#wx)/lib/gcc_dll" />
 				</Linker>
 			</Target>

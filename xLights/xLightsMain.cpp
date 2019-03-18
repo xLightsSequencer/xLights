@@ -4793,6 +4793,13 @@ void xLightsFrame::CheckSequence(bool display)
         delete testSocket;
     }
 
+    LogAndWrite(f, "");
+    LogAndWrite(f, "IP Addresses on this machine:");
+    for (auto it : GetLocalIPs())
+    {
+        LogAndWrite(f, wxString::Format("    %s", it));
+    }
+
     int errcountsave = errcount;
     int warncountsave = warncount;
 
@@ -7516,12 +7523,46 @@ void xLightsFrame::OnMenuItem_BackupSubfoldersSelected(wxCommandEvent& event)
 
 void xLightsFrame::OnMenuItem_ForceLocalIPSelected(wxCommandEvent& event)
 {
-    IPEntryDialog dlg(this);
-    dlg.TextCtrl_IPAddress->SetValue(mLocalIP);
+    auto ips = GetLocalIPs();
+
+    if (ips.size() == 0)
+    {
+        if (mLocalIP != "")
+        {
+            mLocalIP = "";
+            MenuItem_ForceLocalIP->Check(false);
+            _outputManager.SetForceFromIP(mLocalIP.ToStdString());
+            if (_outputManager.IsOutputting())
+            {
+                _outputManager.StopOutput();
+                _outputManager.StartOutput();
+            }
+        }
+        wxMessageBox("No local ip addresses found.");
+        return;
+    }
+
+    wxArrayString choices;
+    choices.push_back("");
+    int sel = -1;
+    int i = 0;
+    for (auto it: ips)
+    {
+        if (it == mLocalIP)
+        {
+            sel = i+1;
+        }
+        i++;
+        choices.push_back(it);
+    }
+    if (sel == -1) sel = 0;
+
+    wxSingleChoiceDialog dlg(this, _("Select the ip address to send data out"), _("Select local IP address"), choices);
+    dlg.SetSelection(sel);
 
     if (dlg.ShowModal() == wxID_OK)
     {
-        mLocalIP = dlg.TextCtrl_IPAddress->GetValue();
+        mLocalIP = dlg.GetStringSelection();
         _outputManager.SetForceFromIP(mLocalIP.ToStdString());
 
         if (_outputManager.IsOutputting())
