@@ -117,6 +117,7 @@
 					<Add library="../lib/windows/swresample.lib" />
 					<Add library="../lib/windows/swscale.lib" />
 					<Add library="../lib/windows/Ws2_32.lib" />
+					<Add library="psapi" />
 					<Add directory="../lib/windows" />
 				</Linker>
 			</Target>
@@ -244,6 +245,7 @@
 					<Add library="../lib/windows64/swscale.lib" />
 					<Add library="../lib/windows64/Ws2_32.lib" />
 					<Add library="../lib/windows64/libzstd_static.lib" />
+					<Add library="psapi" />
 					<Add directory="../lib/windows64" />
 				</Linker>
 			</Target>
@@ -492,14 +494,14 @@
 		<Unit filename="PlayList/PlayListItemJukebox.h" />
 		<Unit filename="PlayList/PlayListItemJukeboxPanel.cpp" />
 		<Unit filename="PlayList/PlayListItemJukeboxPanel.h" />
-		<Unit filename="PlayList/PlayListItemMicrophone.cpp" />
-		<Unit filename="PlayList/PlayListItemMicrophone.h" />
-		<Unit filename="PlayList/PlayListItemMicrophonePanel.cpp" />
-		<Unit filename="PlayList/PlayListItemMicrophonePanel.h" />
 		<Unit filename="PlayList/PlayListItemMIDI.cpp" />
 		<Unit filename="PlayList/PlayListItemMIDI.h" />
 		<Unit filename="PlayList/PlayListItemMIDIPanel.cpp" />
 		<Unit filename="PlayList/PlayListItemMIDIPanel.h" />
+		<Unit filename="PlayList/PlayListItemMicrophone.cpp" />
+		<Unit filename="PlayList/PlayListItemMicrophone.h" />
+		<Unit filename="PlayList/PlayListItemMicrophonePanel.cpp" />
+		<Unit filename="PlayList/PlayListItemMicrophonePanel.h" />
 		<Unit filename="PlayList/PlayListItemOSC.cpp" />
 		<Unit filename="PlayList/PlayListItemOSC.h" />
 		<Unit filename="PlayList/PlayListItemOSCPanel.cpp" />
@@ -712,8 +714,8 @@
 		<Unit filename="wxsmith/PlayListItemFilePanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemImagePanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemJukeboxPanel.wxs" />
-		<Unit filename="wxsmith/PlayListItemMicrophonePanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemMIDIPanel.wxs" />
+		<Unit filename="wxsmith/PlayListItemMicrophonePanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemOSCPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemProjectorPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemRDSPanel.wxs" />

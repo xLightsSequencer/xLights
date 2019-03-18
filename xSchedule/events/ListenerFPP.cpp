@@ -8,9 +8,13 @@
 #include "../../xLights/xLightsVersion.h"
 
 #include <sys/types.h>
+#ifdef __WXMSW__
+#include <iphlpapi.h>
+#else
 #include <sys/socket.h>
 #include <ifaddrs.h>
 #include <arpa/inet.h>
+#endif
 
 bool ListenerFPP::IsValidHeader(uint8_t* buffer)
 {
@@ -83,6 +87,66 @@ void ListenerFPP::StartProcess()
     }
     else
     {
+#ifdef __WXMSW__
+        ULONG ulOutBufLen = sizeof(IP_ADAPTER_INFO);
+        PIP_ADAPTER_INFO pAdapterInfo = (IP_ADAPTER_INFO *)malloc(sizeof(IP_ADAPTER_INFO));
+        if (pAdapterInfo == nullptr) {
+            logger_base.error("Error getting adapter info.");
+            delete _socket;
+            _socket = nullptr;
+            return;
+        }
+
+        if (GetAdaptersInfo(pAdapterInfo, &ulOutBufLen) == ERROR_BUFFER_OVERFLOW) {
+            free(pAdapterInfo);
+            pAdapterInfo = (IP_ADAPTER_INFO *)malloc(ulOutBufLen);
+            if (pAdapterInfo == nullptr) {
+                logger_base.error("Error getting adapter info.");
+                delete _socket;
+                _socket = nullptr;
+                return;
+            }
+        }
+
+        int receiveSock = _socket->GetSocket();
+        PIP_ADAPTER_INFO pAdapter = nullptr;
+        DWORD dwRetVal = 0;
+        struct ip_mreq mreq;
+        memset(&mreq, 0, sizeof(mreq));
+        mreq.imr_multiaddr.s_addr = inet_addr(MULTISYNC_MULTICAST_ADDRESS);
+
+        if ((dwRetVal = GetAdaptersInfo(pAdapterInfo, &ulOutBufLen)) == NO_ERROR) {
+            pAdapter = pAdapterInfo;
+            while (pAdapter) {
+
+                auto ip = &pAdapter->IpAddressList;
+                while (ip != nullptr)
+                {
+                    auto ipc = wxSplit(ip->IpAddress.String, '.');
+                    if (ipc.size() == 4 && wxString(ip->IpAddress.String) != "0.0.0.0")
+                    {
+                        uint8_t* p = (uint8_t*)&mreq.imr_interface.s_addr;
+                        for (auto it : ipc)
+                        {
+                            *p = (uint8_t)wxAtoi(it);
+                            p++;
+                        }
+
+                        logger_base.debug("FPP Remote Subscribing on adapter %s.", (const char *)ip->IpAddress.String);
+
+                        if (setsockopt(receiveSock, IPPROTO_IP, IP_ADD_MEMBERSHIP, (const char *)&mreq, sizeof(mreq)) < 0) {
+                            logger_base.warn("   Could not setup Multicast Group for interface %s\n", (const char *)pAdapter->IpAddressList.IpAddress.String);
+                        }
+                    }
+                    ip = ip->Next;
+                }
+
+                pAdapter = pAdapter->Next;
+            }
+        }
+
+        free(pAdapterInfo);
+#else
         struct ip_mreq mreq;
         struct ifaddrs *interfaces,*tmp;
         getifaddrs(&interfaces);
@@ -107,7 +171,7 @@ void ListenerFPP::StartProcess()
             tmp = tmp->ifa_next;
         }
         freeifaddrs(interfaces);
-        
+#endif   
         _socket->SetTimeout(1);
         _socket->Notify(false);
         logger_base.info("FPP reception datagram opened successfully.");

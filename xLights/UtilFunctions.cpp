@@ -9,6 +9,11 @@
 
 #ifdef __WXMSW__
 #include <psapi.h>
+#include <iphlpapi.h>
+#else
+#include <sys/socket.h>
+#include <ifaddrs.h>
+#include <arpa/inet.h>
 #endif
 
 #include <log4cpp/Category.hh>
@@ -619,6 +624,78 @@ bool IsExcessiveMemoryUsage(double physicalMultiplier)
     //free(test);
 #endif
     return false;
+}
+
+std::list<std::string> GetLocalIPs()
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    std::list<std::string> res;
+
+#ifdef __WXMSW__
+    ULONG ulOutBufLen = sizeof(IP_ADAPTER_INFO);
+    PIP_ADAPTER_INFO pAdapterInfo = (IP_ADAPTER_INFO *)malloc(sizeof(IP_ADAPTER_INFO));
+    if (pAdapterInfo == nullptr) {
+        logger_base.error("Error getting adapter info.");
+        return res;
+    }
+
+    if (GetAdaptersInfo(pAdapterInfo, &ulOutBufLen) == ERROR_BUFFER_OVERFLOW) {
+        free(pAdapterInfo);
+        pAdapterInfo = (IP_ADAPTER_INFO *)malloc(ulOutBufLen);
+        if (pAdapterInfo == nullptr) {
+            logger_base.error("Error getting adapter info.");
+            return res;
+        }
+    }
+
+    PIP_ADAPTER_INFO pAdapter = nullptr;
+    DWORD dwRetVal = 0;
+
+    if ((dwRetVal = GetAdaptersInfo(pAdapterInfo, &ulOutBufLen)) == NO_ERROR) {
+        pAdapter = pAdapterInfo;
+        while (pAdapter) {
+
+            auto ip = &pAdapter->IpAddressList;
+            while (ip != nullptr)
+            {
+                if (wxString(ip->IpAddress.String) != "0.0.0.0")
+                {
+                    res.push_back(std::string(ip->IpAddress.String));
+                }
+                ip = ip->Next;
+            }
+
+            pAdapter = pAdapter->Next;
+        }
+    }
+    free(pAdapterInfo);
+#else
+    struct ifaddrs *interfaces, *tmp;
+    getifaddrs(&interfaces);
+    tmp = interfaces;
+    //loop through all the interfaces
+    while (tmp) {
+        if (tmp->ifa_addr && tmp->ifa_addr->sa_family == AF_INET) {
+            struct sockaddr_in * address = (struct sockaddr_in *)tmp->ifa_addr;
+            wxString ip = wxString::Format("%d.%d.%d.%d", address->sin_addr.s_addr.s_b1, 
+                address->sin_addr.s_addr.s_b2, 
+                address->sin_addr.s_addr.s_b3, 
+                address->sin_addr.s_addr.s_b4));
+            if (ip != "0.0.0.0")
+            {
+                res.push_back(ip.ToStdString());
+            }
+        }
+        else if (tmp->ifa_addr && tmp->ifa_addr->sa_family == AF_INET6) {
+            //LogDebug(VB_SYNC, "   Inet6 interface %s\n", tmp->ifa_name);
+        }
+        tmp = tmp->ifa_next;
+    }
+    freeifaddrs(interfaces);
+#endif   
+
+    return res;
 }
 
 bool DeleteDirectory(std::string directory)
