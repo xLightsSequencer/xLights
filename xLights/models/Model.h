@@ -120,7 +120,7 @@ public:
     int GetDefaultBufferHt() const {return BufferHt;}
 
     void SetProperty(wxString property, wxString value, bool apply = false);
-    virtual void AddProperties(wxPropertyGridInterface *grid) override;
+    virtual void AddProperties(wxPropertyGridInterface *grid, OutputManager* outputManager) override;
     virtual void AddControllerProperties(wxPropertyGridInterface *grid);
     virtual void DisableUnusedProperties(wxPropertyGridInterface *grid) {};
     virtual void AddTypeProperties(wxPropertyGridInterface *grid) override {};
@@ -199,10 +199,10 @@ protected:
 
 public:
     bool IsControllerConnectionValid() const;
-    int GetPort(int string = 1) const;
+    int GetControllerPort(int string = 1) const;
     int GetSmartRemote() const;
     bool IsPixelProtocol() const;
-    std::string GetProtocol() const;
+    std::string GetControllerProtocol() const;
     wxXmlNode *GetControllerConnection() const;
     std::string GetControllerConnectionString() const;
     std::string GetControllerConnectionRangeString() const;

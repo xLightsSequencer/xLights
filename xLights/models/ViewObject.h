@@ -13,7 +13,7 @@ public:
     ViewObject(const ObjectManager &manager);
     virtual ~ViewObject();
 
-    virtual void AddProperties(wxPropertyGridInterface *grid) override;
+    virtual void AddProperties(wxPropertyGridInterface *grid, OutputManager* outputManager) override;
     virtual void AddTypeProperties(wxPropertyGridInterface *grid) override {};
     void AddSizeLocationProperties(wxPropertyGridInterface *grid) override;
     virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event);

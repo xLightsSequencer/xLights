@@ -26,6 +26,7 @@ class ModelManager : public ObjectManager
         void NewRecalcStartChannels() const;
         unsigned int GetLastChannel() const;
         void DisplayStartChannelCalcWarning() const;
+        void ReworkStartChannel() const;
 
         bool Rename(const std::string &oldName, const std::string &newName);
         bool RenameSubModel(const std::string &oldName, const std::string &newName);
@@ -38,6 +39,8 @@ class ModelManager : public ObjectManager
 
         void LoadModels(wxXmlNode *modelNode, int previewW, int previewH);
         bool LoadGroups(wxXmlNode *groupNode, int previewW, int previewH);
+
+        void RenameController(const std::string& oldName, const std::string& newName);
 
         void SetLayoutsNode(wxXmlNode* layouts) {layoutsNode = layouts;}
         wxXmlNode* GetLayoutsNode() const {return layoutsNode;}

@@ -5,6 +5,7 @@
 #include <wx/window.h>
 #include <wx/time.h>
 
+class ModelManager;
 class OutputManager;
 
 #pragma region Output Constants
@@ -158,7 +159,7 @@ public:
 #ifndef EXCLUDENETWORKUI
     // returns nullptr if cancelled
     // retruns a pointer to a new output if mutated ... otherwise it returns this
-    virtual Output* Configure(wxWindow* parent, OutputManager* outputManager) = 0;
+    virtual Output* Configure(wxWindow* parent, OutputManager* outputManager, ModelManager* modelManager) = 0;
 #endif
     #pragma endregion UI
 };

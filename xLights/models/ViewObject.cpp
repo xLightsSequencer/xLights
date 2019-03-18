@@ -34,7 +34,7 @@ void ViewObject::SetFromXml(wxXmlNode* ObjectNode, bool zeroBased) {
     IncrementChangeCount();
 }
 
-void ViewObject::AddProperties(wxPropertyGridInterface *grid) {
+void ViewObject::AddProperties(wxPropertyGridInterface *grid, OutputManager* outputManager) {
 
     //LAYOUT_GROUPS = Model::GetLayoutGroups(modelManager);
 
@@ -56,7 +56,6 @@ void ViewObject::AddProperties(wxPropertyGridInterface *grid) {
 
     //grid->Append(new wxStringProperty("Description", "Description", description));
     //grid->Append(new wxEnumProperty("Preview", "ModelLayoutGroup", LAYOUT_GROUPS, wxArrayInt(), layout_group_number));
-
 }
 
 int ViewObject::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {

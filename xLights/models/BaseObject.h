@@ -8,6 +8,7 @@ class wxPropertyGridInterface;
 class wxXmlNode;
 class ModelScreenLocation;
 class ModelPreview;
+class OutputManager;
 
 class BaseObject
 {
@@ -15,7 +16,7 @@ public:
     BaseObject();
     virtual ~BaseObject();
 
-    virtual void AddProperties(wxPropertyGridInterface *grid) = 0;
+    virtual void AddProperties(wxPropertyGridInterface *grid, OutputManager* outputManager) = 0;
     virtual void AddTypeProperties(wxPropertyGridInterface *grid) = 0;
     virtual void AddSizeLocationProperties(wxPropertyGridInterface *grid) = 0;
 

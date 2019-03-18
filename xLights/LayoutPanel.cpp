@@ -1490,8 +1490,8 @@ void LayoutPanel::BulkEditControllerConnection()
     wxXmlNode *cc = nullptr;
     for (size_t i = 0; i < modelPreview->GetModels().size(); i++) {
         if (modelPreview->GetModels()[i]->GroupSelected) {
-            std::string port = modelPreview->GetModels()[i]->GetProtocol();
-            if (port != "") {
+            std::string protocol = modelPreview->GetModels()[i]->GetControllerProtocol();
+            if (protocol != "") {
                 cc = modelPreview->GetModels()[i]->GetControllerConnection();
                 break;
             }
@@ -1795,7 +1795,7 @@ void LayoutPanel::SetupPropGrid(BaseObject *base_object) {
         propertyEditor->Append(new wxStringProperty("Name", "ObjectName", base_object->name));
     }
 
-    base_object->AddProperties(propertyEditor);
+    base_object->AddProperties(propertyEditor, xlights->GetOutputManager());
 
     if (dynamic_cast<SubModel*>(base_object) == nullptr) {
         wxPGProperty *p2 = propertyEditor->Append(new wxPropertyCategory("Size/Location", "ModelSize"));

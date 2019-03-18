@@ -922,16 +922,16 @@ std::string CustomModel::ChannelLayoutHtml(OutputManager* outputManager) {
     html+=wxString::Format("<tr><td>Height:</td><td>%d</td></tr>",BufferHt);
     if (o != nullptr)
         html += wxString::Format("<tr><td>Controller:</td><td>%s:%s</td></tr>", (o->GetIP() != "" ? o->GetIP() : o->GetCommPort()), o->GetDescription());
-    if ("" != GetProtocol())
+    if ("" != GetControllerProtocol())
     {
-        html += wxString::Format("<tr><td>Pixel protocol:</td><td>%s</td></tr>", GetProtocol());
+        html += wxString::Format("<tr><td>Pixel protocol:</td><td>%s</td></tr>", GetControllerProtocol());
         if (_strings == 1)
         {
-            html += wxString::Format("<tr><td>Controller Connection:</td><td>%d</td></tr>", GetPort());
+            html += wxString::Format("<tr><td>Controller Connection:</td><td>%d</td></tr>", GetControllerPort());
         }
         else
         {
-            html += wxString::Format("<tr><td>Controller Connection:</td><td>%d-%d</td></tr>", GetPort(), GetPort() + _strings - 1);
+            html += wxString::Format("<tr><td>Controller Connection:</td><td>%d-%d</td></tr>", GetControllerPort(), GetControllerPort() + _strings - 1);
         }
     }
     html+="</table><p>Node numbers starting with 1 followed by string number:</p><table border=1>";

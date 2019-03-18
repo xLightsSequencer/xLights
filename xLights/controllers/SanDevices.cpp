@@ -588,13 +588,13 @@ bool SanDevices::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
                         {
                             logger_base.debug("SanDevices Outputs Upload: Uploading Model %s.", (const char *)it->first.c_str());
                             models.push_back(it->second);
-                            if (std::find(protocolsused.begin(), protocolsused.end(), it->second->GetProtocol()) == protocolsused.end())
+                            if (std::find(protocolsused.begin(), protocolsused.end(), it->second->GetControllerProtocol()) == protocolsused.end())
                             {
-                                protocolsused.push_back(it->second->GetProtocol());
+                                protocolsused.push_back(it->second->GetControllerProtocol());
                             }
-                            if (it->second->GetPort() > maxport)
+                            if (it->second->GetControllerPort() > maxport)
                             {
-                                maxport = it->second->GetPort();
+                                maxport = it->second->GetControllerPort();
                             }
                         }
                     }
@@ -650,7 +650,7 @@ bool SanDevices::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
 
             for (auto model = models.begin(); model != models.end(); ++model)
             {
-                if ((*model)->GetProtocol() == *protocol && (*model)->GetPort() == i)
+                if ((*model)->GetControllerProtocol() == *protocol && (*model)->GetControllerPort() == i)
                 {
                     int modelstart = (*model)->GetNumberFromChannelString((*model)->ModelStartChannel);
                     int modelend = modelstart + (*model)->GetChanCount() - 1;

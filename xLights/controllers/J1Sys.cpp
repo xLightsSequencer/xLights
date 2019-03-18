@@ -509,13 +509,13 @@ bool J1Sys::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, st
                             {
                                 logger_base.debug("J1Sys Outputs Upload: Uploading Model %s.", (const char *)it->first.c_str());
                                 models.push_back(it->second);
-                                if (std::find(protocolsused.begin(), protocolsused.end(), it->second->GetProtocol()) == protocolsused.end())
+                                if (std::find(protocolsused.begin(), protocolsused.end(), it->second->GetControllerProtocol()) == protocolsused.end())
                                 {
-                                    protocolsused.push_back(it->second->GetProtocol());
+                                    protocolsused.push_back(it->second->GetControllerProtocol());
                                 }
-                                if (it->second->GetPort() > maxport)
+                                if (it->second->GetControllerPort() > maxport)
                                 {
-                                    maxport = it->second->GetPort();
+                                    maxport = it->second->GetControllerPort();
                                 }
                             }
                         }
@@ -557,7 +557,7 @@ bool J1Sys::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, st
 
                 for (auto model = models.begin(); model != models.end(); ++model)
                 {
-                    if ((*model)->GetProtocol() == *protocol && (*model)->GetPort() == i)
+                    if ((*model)->GetControllerProtocol() == *protocol && (*model)->GetControllerPort() == i)
                     {
                         int modelstart = (*model)->GetNumberFromChannelString((*model)->ModelStartChannel);
                         int modelend = modelstart + (*model)->GetChanCount() - 1;
@@ -606,7 +606,7 @@ bool J1Sys::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, st
                                 else
                                 {
                                     portdone[i + j] = true;
-                                    int string = first->GetPort() - 1;
+                                    int string = first->GetControllerPort() - 1;
                                     if (_outputs == 2) string *= GetBankSize();
                                     int s = portstart + (i + j - 1) * channelsperstring;
                                     int e = s + channelsperstring - 1;
@@ -665,7 +665,7 @@ bool J1Sys::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, st
                             else
                             {
                                 portdone[i] = true;
-                                int string = first->GetPort() - 1;
+                                int string = first->GetControllerPort() - 1;
                                 if (_outputs == 2) string *= GetBankSize();
                                 long sc = 1;
                                 outputManager->GetOutput(first->GetFirstChannel() + 1, sc);

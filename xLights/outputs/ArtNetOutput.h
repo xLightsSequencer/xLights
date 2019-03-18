@@ -80,7 +80,7 @@ public:
 
     #pragma region UI
 #ifndef EXCLUDENETWORKUI
-    virtual Output* Configure(wxWindow* parent, OutputManager* outputManager) override;
+    virtual Output* Configure(wxWindow* parent, OutputManager* outputManager, ModelManager *modelManager) override;
 #endif
     #pragma endregion UI
 };

@@ -5264,7 +5264,7 @@ void xLightsFrame::CheckSequence(bool display)
             std::string cc = "";
             if (it.second->IsControllerConnectionValid())
             {
-                cc = wxString::Format("%s:%d", it.second->GetProtocol(), it.second->GetPort()).ToStdString();
+                cc = wxString::Format("%s:%d", it.second->GetControllerProtocol(), it.second->GetControllerPort()).ToStdString();
             }
             if (cc != "")
             {

@@ -52,7 +52,7 @@ UDController::UDController(const std::string &ip, const std::string &hostname, M
                     {
                         // model uses channels in this universe
 
-                        int port = it->second->GetPort();
+                        int port = it->second->GetControllerPort();
 
                         if (it->second->IsPixelProtocol())
                         {
@@ -125,21 +125,15 @@ UDController::~UDController()
 
 UDControllerPort* UDController::GetControllerPixelPort(int port)
 {
-    bool found = false;
     for (auto it = _pixelPorts.begin(); it != _pixelPorts.end(); ++it)
     {
         if (it->second->GetPort() == port)
         {
-            found = true;
-            break;
+            return it->second;
         }
     }
 
-    if (!found)
-    {
-        _pixelPorts[port] = new UDControllerPort(port);
-    }
-
+    _pixelPorts[port] = new UDControllerPort(port);
     return _pixelPorts[port];
 }
 
@@ -507,8 +501,8 @@ int UDControllerPortModel::GetDMXChannelOffset()
 UDControllerPortModel::UDControllerPortModel(Model* m, OutputManager* om, int string)
 {
     _model = m;
-    _string = _model->MapPhysicalStringToLogicalString(string);
-    _protocol = _model->GetProtocol();
+    _string = string;
+    _protocol = _model->GetControllerProtocol();
     _smartRemote = _model->GetSmartRemote();
 
     if (string == -1)
@@ -662,7 +656,7 @@ void UDControllerPort::AddModel(Model* m, OutputManager* om, int string)
     _models.push_back(new UDControllerPortModel(m, om, string));
     if (_protocol == "")
     {
-        _protocol = m->GetProtocol();
+        _protocol = m->GetControllerProtocol();
     }
     _models.sort(compare_modelsc);
 }
@@ -880,6 +874,7 @@ void UDControllerPort::CreateVirtualStrings(bool mergeSequential)
         }
 
         current->_endChannel = it->GetEndChannel();
+        current->_models.push_back(it);
 
         if (first)
         {

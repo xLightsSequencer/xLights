@@ -352,7 +352,7 @@ std::string LOROptimisedOutput::GetSetupHelp() const
 #pragma region UI
 #ifndef EXCLUDENETWORKUI
 // This is a bit funky as we will need to create a serial output then mutate it into the correct output type
-Output* LOROptimisedOutput::Configure(wxWindow* parent, OutputManager* outputManager)
+Output* LOROptimisedOutput::Configure(wxWindow* parent, OutputManager* outputManager, ModelManager* modelManager)
 {
     LOROptimisedOutput* result = this;
 

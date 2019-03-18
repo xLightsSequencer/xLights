@@ -582,7 +582,7 @@ void xLightsFrame::ChangeSelectedNetwork()
     }
 
     Output* o = _outputManager.GetOutput(item);
-    Output* newoutput = o->Configure(this, &_outputManager);
+    Output* newoutput = o->Configure(this, &_outputManager, &AllModels);
     if (newoutput != nullptr)
     {
         if (newoutput != o)
@@ -1002,7 +1002,7 @@ void xLightsFrame::SetupNullOutput(Output* e, int after) {
     if (null == nullptr) null = new NullOutput();
     _outputManager.AddOutput(null, after);
 
-    if (null->Configure(this, &_outputManager) != nullptr)
+    if (null->Configure(this, &_outputManager, &AllModels) != nullptr)
     {
         NetworkChange();
         UpdateNetworkList(true);
@@ -1022,7 +1022,7 @@ void xLightsFrame::SetupE131(Output* e, int after)
     if (e131 == nullptr) e131 = new E131Output();
     _outputManager.AddOutput(e131, after);
 
-    if (e131->Configure(this, &_outputManager) != nullptr)
+    if (e131->Configure(this, &_outputManager, &AllModels) != nullptr)
     {
         NetworkChange();
         UpdateNetworkList(true);
@@ -1042,7 +1042,7 @@ void xLightsFrame::SetupArtNet(Output* e, int after)
     if (artnet == nullptr) artnet = new ArtNetOutput();
     _outputManager.AddOutput(artnet, after);
 
-    if (artnet->Configure(this, &_outputManager) != nullptr)
+    if (artnet->Configure(this, &_outputManager, &AllModels) != nullptr)
     {
         NetworkChange();
         UpdateNetworkList(true);
@@ -1062,7 +1062,7 @@ void xLightsFrame::SetupDDP(Output* e, int after)
     if (ddp == nullptr) ddp = new DDPOutput();
     _outputManager.AddOutput(ddp, after);
 
-    if (ddp->Configure(this, &_outputManager) != nullptr)
+    if (ddp->Configure(this, &_outputManager, &AllModels) != nullptr)
     {
         NetworkChange();
         UpdateNetworkList(true);
@@ -1082,7 +1082,7 @@ void xLightsFrame::SetupDongle(Output* e, int after)
     if (serial == nullptr) serial = new DMXOutput();
     _outputManager.AddOutput(serial, after);
 
-    Output* newoutput = serial->Configure(this, &_outputManager);
+    Output* newoutput = serial->Configure(this, &_outputManager, &AllModels);
 
     if (newoutput == nullptr)
     {
@@ -1110,7 +1110,7 @@ void xLightsFrame::SetupLOR(Output* e, int after)
     if (serial == nullptr) serial = new LOROptimisedOutput();
     _outputManager.AddOutput(serial, after);
 
-    Output* newoutput = serial->Configure(this, &_outputManager);
+    Output* newoutput = serial->Configure(this, &_outputManager, &AllModels);
 
     if (newoutput == nullptr) {
         if (e != serial) {

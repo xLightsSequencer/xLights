@@ -382,7 +382,7 @@ void Model::SetProperty(wxString property, wxString value, bool apply)
     }
 }
 
-void Model::AddProperties(wxPropertyGridInterface *grid) {
+void Model::AddProperties(wxPropertyGridInterface *grid, OutputManager* outputManager) {
     if (PIXEL_STYLES.empty()) {
         PIXEL_STYLES.push_back("Square");
         PIXEL_STYLES.push_back("Smooth");
@@ -597,12 +597,12 @@ void Model::AddControllerProperties(wxPropertyGridInterface *grid) {
 
     wxPGProperty *p = grid->Append(new wxPropertyCategory("Controller Connection", "ModelControllerConnectionProperties"));
 
-    wxPGProperty *sp = grid->AppendIn(p, new wxUIntProperty("Port", "ModelControllerConnectionPort", GetPort(1)));
+    wxPGProperty *sp = grid->AppendIn(p, new wxUIntProperty("Port", "ModelControllerConnectionPort", GetControllerPort(1)));
     sp->SetAttribute("Min", 0);
     sp->SetAttribute("Max", 48);
     sp->SetEditor("SpinCtrl");
 
-    wxString protocol = GetProtocol();
+    wxString protocol = GetControllerProtocol();
     protocol.LowerCase();
     int idx = -1;
     int i = 0;
@@ -776,11 +776,11 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         if (event.GetValue().GetLong() > 0) {
             GetControllerConnection()->AddAttribute("Port", wxString::Format("%ld", event.GetValue().GetLong()));
 
-            if (GetProtocol() == "")
+            if (GetControllerProtocol() == "")
             {
                 GetControllerConnection()->DeleteAttribute("Protocol");
                 GetControllerConnection()->AddAttribute("Protocol", CONTROLLER_PROTOCOLS[1]); // default to ws2811
-                grid->GetPropertyByName("ModelControllerConnectionProtocol")->SetValue(GetProtocol());
+                grid->GetPropertyByName("ModelControllerConnectionProtocol")->SetValue(GetControllerProtocol());
 
                 // need to refresh to add protocol specific options
                 return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST | GRIDCHANGE_REBUILD_PROP_GRID;
@@ -792,14 +792,14 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         GetControllerConnection()->AddAttribute("SmartRemote", event.GetValue().GetString());
         return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
     } else if (event.GetPropertyName() == "ModelControllerConnectionProtocol") {
-        std::string oldProtocol = GetProtocol();
+        std::string oldProtocol = GetControllerProtocol();
         GetControllerConnection()->DeleteAttribute("Protocol");
         if (event.GetValue().GetLong() > 0) {
             GetControllerConnection()->AddAttribute("Protocol", CONTROLLER_PROTOCOLS[event.GetValue().GetLong()]);
         }
         clearUnusedProtocolProperties(GetControllerConnection());
 
-        std::string newProtocol = GetProtocol();
+        std::string newProtocol = GetControllerProtocol();
         if (
             ((newProtocol == "DMX" || newProtocol == "PixelNet" || newProtocol == "Renard" || newProtocol == "LOR") && IsPixelProtocol(oldProtocol)) ||
             ((oldProtocol == "DMX" || oldProtocol == "PixelNet" || oldProtocol == "Renard" || oldProtocol == "LOR") && IsPixelProtocol(newProtocol)) ||
@@ -1799,8 +1799,8 @@ void Model::SetFromXml(wxXmlNode* ModelNode, bool zb) {
 
 std::string Model::GetControllerConnectionString() const
 {
-    if (GetProtocol() == "") return "";
-    std::string ret = wxString::Format("%s:%d", GetProtocol(), GetPort(1)).ToStdString();
+    if (GetControllerProtocol() == "") return "";
+    std::string ret = wxString::Format("%s:%d", GetControllerProtocol(), GetControllerPort(1)).ToStdString();
     
     wxXmlAttribute* att = GetControllerConnection()->GetAttributes();
     while (att != nullptr) {
@@ -1814,15 +1814,15 @@ std::string Model::GetControllerConnectionString() const
 
 std::string Model::GetControllerConnectionRangeString() const
 {
-    if (GetProtocol() == "") return "";
-    std::string ret = wxString::Format("%s:%d", GetProtocol(), GetPort(1)).ToStdString();
-    if (GetPort(1) == 0)
+    if (GetControllerProtocol() == "") return "";
+    std::string ret = wxString::Format("%s:%d", GetControllerProtocol(), GetControllerPort(1)).ToStdString();
+    if (GetControllerPort(1) == 0)
     {
-        ret = wxString::Format("%s", GetProtocol()).ToStdString();
+        ret = wxString::Format("%s", GetControllerProtocol()).ToStdString();
     }
-    if (GetNumPhysicalStrings() > 1 && GetPort(1) != 0)
+    if (GetNumPhysicalStrings() > 1 && GetControllerPort(1) != 0)
     {
-        ret = wxString::Format("%s-%d", ret, GetPort() + GetNumPhysicalStrings() - 1).ToStdString();
+        ret = wxString::Format("%s-%d", ret, GetControllerPort() + GetNumPhysicalStrings() - 1).ToStdString();
     }
 
     wxXmlAttribute* att = GetControllerConnection()->GetAttributes();
@@ -3143,12 +3143,12 @@ std::string Model::ChannelLayoutHtml(OutputManager* outputManager)
         html += wxString::Format("<tr><td>Controller:</td><td>%s:%s</td></tr>", o->GetCommPort(), o->GetDescription());
     }
     
-    if (GetProtocol() != "") {
-        html += wxString::Format("<tr><td>Pixel protocol:</td><td>%s</td></tr>", GetProtocol().c_str());
+    if (GetControllerProtocol() != "") {
+        html += wxString::Format("<tr><td>Pixel protocol:</td><td>%s</td></tr>", GetControllerProtocol().c_str());
         if (GetNumStrings() == 1) {
-            html += wxString::Format("<tr><td>Controller Connection:</td><td>%d</td></tr>", GetPort());
+            html += wxString::Format("<tr><td>Controller Connection:</td><td>%d</td></tr>", GetControllerPort());
         } else {
-            html += wxString::Format("<tr><td>Controller Connections:</td><td>%d-%d</td></tr>", GetPort(), GetPort() + GetNumPhysicalStrings() - 1);
+            html += wxString::Format("<tr><td>Controller Connections:</td><td>%d-%d</td></tr>", GetControllerPort(), GetControllerPort() + GetNumPhysicalStrings() - 1);
         }
     }
     html += "</table><p>Node numbers starting with 1 followed by string number:</p><table border=1>";
@@ -4062,10 +4062,10 @@ wxString Model::SerialiseSubmodel() const
 
 bool Model::IsControllerConnectionValid() const
 {
-    return (Model::IsProtocolValid(GetProtocol()) && GetPort(1) > 0);
+    return (Model::IsProtocolValid(GetControllerProtocol()) && GetControllerPort(1) > 0);
 }
 
-std::string Model::GetProtocol() const
+std::string Model::GetControllerProtocol() const
 {
     wxString s = GetControllerConnection()->GetAttribute("Protocol");
     return s.ToStdString();
@@ -4077,7 +4077,7 @@ int Model::GetSmartRemote() const
     return wxAtoi(s);
 }
 
-int Model::GetPort(int string) const
+int Model::GetControllerPort(int string) const
 {
     wxString p = wxString::Format("%d", string);
     if (GetControllerConnection()->HasAttribute(p)) {
@@ -4104,7 +4104,7 @@ bool Model::IsPixelProtocol(const std::string &p) {
 
 bool Model::IsPixelProtocol() const
 {
-    return GetPort(1) != 0 && IsPixelProtocol(GetProtocol());
+    return GetControllerPort(1) != 0 && IsPixelProtocol(GetControllerProtocol());
 }
 
 std::list<std::string> Model::GetProtocols()
