@@ -1658,30 +1658,35 @@ void CustomModelDialog::OnNotebook1PageChanged(wxNotebookEvent& event)
     wxColor nextc = wxColor(200, 200, 255);
     wxColor priornextc = wxColor(200, 255, 200);
 
-    for (auto c = 0; c < GetActiveGrid()->GetNumberCols(); c++)
+    // Prevent firing if no grids created yet (aka still in setup())
+    if (_grids.size() > 0)
     {
-        for (auto r = 0; r < GetActiveGrid()->GetNumberRows(); ++r)
+
+        for (auto c = 0; c < GetActiveGrid()->GetNumberCols(); c++)
         {
-            int state = 0;
+            for (auto r = 0; r < GetActiveGrid()->GetNumberRows(); ++r)
+            {
+                int state = 0;
 
-            if (prior != nullptr && !prior->GetCellValue(r, c).IsEmpty()) state += 1;
-            if (next != nullptr && !next->GetCellValue(r, c).IsEmpty()) state += 2;
+                if (prior != nullptr && !prior->GetCellValue(r, c).IsEmpty()) state += 1;
+                if (next != nullptr && !next->GetCellValue(r, c).IsEmpty()) state += 2;
 
-            if (state == 0)
-            {
-                GetActiveGrid()->SetCellBackgroundColour(r, c, *wxWHITE);
-            }
-            else if (state == 1)
-            {
-                GetActiveGrid()->SetCellBackgroundColour(r, c, priorc);
-            }
-            else if (state == 2)
-            {
-                GetActiveGrid()->SetCellBackgroundColour(r, c, nextc);
-            }
-            else if (state == 3)
-            {
-                GetActiveGrid()->SetCellBackgroundColour(r, c, priornextc);
+                if (state == 0)
+                {
+                    GetActiveGrid()->SetCellBackgroundColour(r, c, *wxWHITE);
+                }
+                else if (state == 1)
+                {
+                    GetActiveGrid()->SetCellBackgroundColour(r, c, priorc);
+                }
+                else if (state == 2)
+                {
+                    GetActiveGrid()->SetCellBackgroundColour(r, c, nextc);
+                }
+                else if (state == 3)
+                {
+                    GetActiveGrid()->SetCellBackgroundColour(r, c, priornextc);
+                }
             }
         }
     }
