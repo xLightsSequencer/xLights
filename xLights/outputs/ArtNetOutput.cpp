@@ -504,7 +504,7 @@ std::string ArtNetOutput::GetChannelMapping(long ch) const
 
 #pragma region UI
 #ifndef EXCLUDENETWORKUI
-Output* ArtNetOutput::Configure(wxWindow* parent, OutputManager* outputManager, ModelManager* modelManager)
+Output* ArtNetOutput::Configure(wxWindow* parent, OutputManager* outputManager, ModelManager *modelManager)
 {
     ArtNetDialog dlg(parent, this, outputManager);
 
