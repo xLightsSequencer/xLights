@@ -269,7 +269,7 @@
 		676DCBFF1A98E53800FBA86B /* LorConvertDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 676DCBFB1A98E53800FBA86B /* LorConvertDialog.cpp */; };
 		677196AC223C98790082576E /* ZCPPDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 677196A9223C98780082576E /* ZCPPDialog.cpp */; };
 		677196AD223C98790082576E /* ZCPPOutput.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 677196AA223C98780082576E /* ZCPPOutput.cpp */; };
-		677196B0223CEF820082576E /* ZCPPVisualiseDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 677196AF223CEF820082576E /* ZCPPVisualiseDialog.cpp */; };
+		677196B0223CEF820082576E /* ControllerVisualiseDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 677196AF223CEF820082576E /* ControllerVisualiseDialog.cpp */; };
 		677196B3223CEFAD0082576E /* ModelChainDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 677196B1223CEFAD0082576E /* ModelChainDialog.cpp */; };
 		6771B228204BA69C00E90AC7 /* CoreImage.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6771B227204BA69B00E90AC7 /* CoreImage.framework */; };
 		6771B22A204BA6AF00E90AC7 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6771B229204BA6AF00E90AC7 /* QuartzCore.framework */; };
@@ -1287,8 +1287,8 @@
 		677196A9223C98780082576E /* ZCPPDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ZCPPDialog.cpp; path = outputs/ZCPPDialog.cpp; sourceTree = "<group>"; };
 		677196AA223C98780082576E /* ZCPPOutput.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ZCPPOutput.cpp; path = outputs/ZCPPOutput.cpp; sourceTree = "<group>"; };
 		677196AB223C98780082576E /* ZCPPOutput.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ZCPPOutput.h; path = outputs/ZCPPOutput.h; sourceTree = "<group>"; };
-		677196AE223CEF820082576E /* ZCPPVisualiseDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ZCPPVisualiseDialog.h; sourceTree = "<group>"; };
-		677196AF223CEF820082576E /* ZCPPVisualiseDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ZCPPVisualiseDialog.cpp; sourceTree = "<group>"; };
+		677196AE223CEF820082576E /* ControllerVisualiseDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ControllerVisualiseDialog.h; sourceTree = "<group>"; };
+		677196AF223CEF820082576E /* ControllerVisualiseDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ControllerVisualiseDialog.cpp; sourceTree = "<group>"; };
 		677196B1223CEFAD0082576E /* ModelChainDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ModelChainDialog.cpp; sourceTree = "<group>"; };
 		677196B2223CEFAD0082576E /* ModelChainDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ModelChainDialog.h; sourceTree = "<group>"; };
 		6771B227204BA69B00E90AC7 /* CoreImage.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreImage.framework; path = System/Library/Frameworks/CoreImage.framework; sourceTree = SDKROOT; };
@@ -3007,8 +3007,8 @@
 			children = (
 				677196B1223CEFAD0082576E /* ModelChainDialog.cpp */,
 				677196B2223CEFAD0082576E /* ModelChainDialog.h */,
-				677196AF223CEF820082576E /* ZCPPVisualiseDialog.cpp */,
-				677196AE223CEF820082576E /* ZCPPVisualiseDialog.h */,
+				677196AF223CEF820082576E /* ControllerVisualiseDialog.cpp */,
+				677196AE223CEF820082576E /* ControllerVisualiseDialog.h */,
 				67FA9FD21C67837500FED13B /* AudioManager.cpp */,
 				67FA9FD11C67837500FED13B /* AudioManager.h */,
 				6760D8541FA3C6AD00458894 /* BatchRenderDialog.cpp */,
@@ -4273,7 +4273,7 @@
 				67B2CFE71C3A186A003C17CA /* MorphEffect.cpp in Sources */,
 				670E473F1C62A901008F4C60 /* ModelGroup.cpp in Sources */,
 				6784F92F1A5653670018EC0C /* tabSequencer.cpp in Sources */,
-				677196B0223CEF820082576E /* ZCPPVisualiseDialog.cpp in Sources */,
+				677196B0223CEF820082576E /* ControllerVisualiseDialog.cpp in Sources */,
 				67B2CFEC1C3A186A003C17CA /* GlediatorEffect.cpp in Sources */,
 				675D1E951D0B54B800CC6C02 /* LayoutGroup.cpp in Sources */,
 				671142EC207BACF200F45296 /* ESPixelStick.cpp in Sources */,

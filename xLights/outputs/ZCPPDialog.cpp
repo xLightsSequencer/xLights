@@ -8,7 +8,7 @@
 #include "ZCPPOutput.h"
 #include "OutputManager.h"
 #include "../UtilFunctions.h"
-#include "../ZCPPVisualiseDialog.h"
+#include "../ControllerVisualiseDialog.h"
 #include "controllers/ControllerUploadData.h"
 
 //(*IdInit(ZCPPDialog)
@@ -177,6 +177,6 @@ void ZCPPDialog::OnButton_VisualiseClick(wxCommandEvent& event)
     std::string check;
     std::list<int> nullList;
     UDController cud(TextCtrlIpAddr->GetValue().ToStdString(), TextCtrlIpAddr->GetValue().ToStdString(), _modelManager, _outputManager, &nullList, check);
-    ZCPPVisualiseDialog dlg(this, cud);
+    ControllerVisualiseDialog dlg(this, cud);
     dlg.ShowModal();
 }

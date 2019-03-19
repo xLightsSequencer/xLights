@@ -1,7 +1,7 @@
 #ifndef ZCPPVISUALISEDIALOG_H
 #define ZCPPVISUALISEDIALOG_H
 
-//(*Headers(ZCPPVisualiseDialog)
+//(*Headers(ControllerVisualiseDialog)
 #include <wx/dialog.h>
 #include <wx/panel.h>
 #include <wx/scrolbar.h>
@@ -10,16 +10,16 @@
 
 #include "controllers/ControllerUploadData.h"
 
-class ZCPPVisualiseDialog: public wxDialog
+class ControllerVisualiseDialog: public wxDialog
 {
     UDController& _cud;
 
 	public:
 
-		ZCPPVisualiseDialog(wxWindow* parent, UDController& cud, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
-		virtual ~ZCPPVisualiseDialog();
+		ControllerVisualiseDialog(wxWindow* parent, UDController& cud, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
+		virtual ~ControllerVisualiseDialog();
 
-		//(*Declarations(ZCPPVisualiseDialog)
+		//(*Declarations(ControllerVisualiseDialog)
 		wxPanel* Panel1;
 		wxScrollBar* ScrollBar_Horizontal;
 		wxScrollBar* ScrollBar_Vertical;
@@ -27,7 +27,7 @@ class ZCPPVisualiseDialog: public wxDialog
 
 	protected:
 
-		//(*Identifiers(ZCPPVisualiseDialog)
+		//(*Identifiers(ControllerVisualiseDialog)
 		static const long ID_PANEL1;
 		static const long ID_SCROLLBAR1;
 		static const long ID_SCROLLBAR2;
@@ -35,7 +35,7 @@ class ZCPPVisualiseDialog: public wxDialog
 
 	private:
 
-		//(*Handlers(ZCPPVisualiseDialog)
+		//(*Handlers(ControllerVisualiseDialog)
 		void OnPanel1Paint(wxPaintEvent& event);
 		void OnScrollBar_VerticalScroll(wxScrollEvent& event);
 		void OnScrollBar_HorizontalScroll(wxScrollEvent& event);

@@ -1,20 +1,20 @@
-#include "ZCPPVisualiseDialog.h"
+#include "ControllerVisualiseDialog.h"
 
-//(*InternalHeaders(ZCPPVisualiseDialog)
+//(*InternalHeaders(ControllerVisualiseDialog)
 #include <wx/intl.h>
 #include <wx/string.h>
 //*)
 
 #include <wx/dcclient.h>
 
-//(*IdInit(ZCPPVisualiseDialog)
-const long ZCPPVisualiseDialog::ID_PANEL1 = wxNewId();
-const long ZCPPVisualiseDialog::ID_SCROLLBAR1 = wxNewId();
-const long ZCPPVisualiseDialog::ID_SCROLLBAR2 = wxNewId();
+//(*IdInit(ControllerVisualiseDialog)
+const long ControllerVisualiseDialog::ID_PANEL1 = wxNewId();
+const long ControllerVisualiseDialog::ID_SCROLLBAR1 = wxNewId();
+const long ControllerVisualiseDialog::ID_SCROLLBAR2 = wxNewId();
 //*)
 
-BEGIN_EVENT_TABLE(ZCPPVisualiseDialog,wxDialog)
-	//(*EventTable(ZCPPVisualiseDialog)
+BEGIN_EVENT_TABLE(ControllerVisualiseDialog,wxDialog)
+	//(*EventTable(ControllerVisualiseDialog)
 	//*)
 END_EVENT_TABLE()
 
@@ -26,12 +26,12 @@ END_EVENT_TABLE()
 #define HORIZONTAL_SIZE 100
 #define CORNER_ROUNDING 5
 
-ZCPPVisualiseDialog::ZCPPVisualiseDialog(wxWindow* parent, UDController& cud, wxWindowID id,const wxPoint& pos,const wxSize& size) : _cud(cud)
+ControllerVisualiseDialog::ControllerVisualiseDialog(wxWindow* parent, UDController& cud, wxWindowID id,const wxPoint& pos,const wxSize& size) : _cud(cud)
 {
-	//(*Initialize(ZCPPVisualiseDialog)
+	//(*Initialize(ControllerVisualiseDialog)
 	wxFlexGridSizer* FlexGridSizer1;
 
-	Create(parent, id, _("ZCPP Visualiser"), wxDefaultPosition, wxDefaultSize, wxCAPTION|wxRESIZE_BORDER|wxCLOSE_BOX|wxMAXIMIZE_BOX, _T("id"));
+	Create(parent, id, _("Controller Visualiser"), wxDefaultPosition, wxDefaultSize, wxCAPTION|wxRESIZE_BORDER|wxCLOSE_BOX|wxMAXIMIZE_BOX, _T("id"));
 	SetClientSize(wxSize(500,500));
 	Move(wxDefaultPosition);
 	FlexGridSizer1 = new wxFlexGridSizer(2, 2, 0, 0);
@@ -45,19 +45,19 @@ ZCPPVisualiseDialog::ZCPPVisualiseDialog(wxWindow* parent, UDController& cud, wx
 	ScrollBar_Horizontal = new wxScrollBar(this, ID_SCROLLBAR2, wxDefaultPosition, wxDefaultSize, wxSB_HORIZONTAL, wxDefaultValidator, _T("ID_SCROLLBAR2"));
 	ScrollBar_Horizontal->SetScrollbar(0, 1, 10, 1);
 	FlexGridSizer1->Add(ScrollBar_Horizontal, 1, wxALL|wxEXPAND, 0);
-	FlexGridSizer1->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
+	FlexGridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
 	SetSizer(FlexGridSizer1);
 	SetSizer(FlexGridSizer1);
 	Layout();
 
-	Panel1->Connect(wxEVT_PAINT,(wxObjectEventFunction)&ZCPPVisualiseDialog::OnPanel1Paint,0,this);
-	Panel1->Connect(wxEVT_SIZE,(wxObjectEventFunction)&ZCPPVisualiseDialog::OnPanel1Resize,0,this);
-	Connect(ID_SCROLLBAR1,wxEVT_SCROLL_TOP|wxEVT_SCROLL_BOTTOM|wxEVT_SCROLL_LINEUP|wxEVT_SCROLL_LINEDOWN|wxEVT_SCROLL_PAGEUP|wxEVT_SCROLL_PAGEDOWN|wxEVT_SCROLL_THUMBTRACK|wxEVT_SCROLL_THUMBRELEASE|wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&ZCPPVisualiseDialog::OnScrollBar_VerticalScroll);
-	Connect(ID_SCROLLBAR1,wxEVT_SCROLL_THUMBTRACK,(wxObjectEventFunction)&ZCPPVisualiseDialog::OnScrollBar_VerticalScrollThumbTrack);
-	Connect(ID_SCROLLBAR1,wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&ZCPPVisualiseDialog::OnScrollBar_VerticalScrollChanged);
-	Connect(ID_SCROLLBAR2,wxEVT_SCROLL_TOP|wxEVT_SCROLL_BOTTOM|wxEVT_SCROLL_LINEUP|wxEVT_SCROLL_LINEDOWN|wxEVT_SCROLL_PAGEUP|wxEVT_SCROLL_PAGEDOWN|wxEVT_SCROLL_THUMBTRACK|wxEVT_SCROLL_THUMBRELEASE|wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&ZCPPVisualiseDialog::OnScrollBar_HorizontalScroll);
-	Connect(ID_SCROLLBAR2,wxEVT_SCROLL_THUMBTRACK,(wxObjectEventFunction)&ZCPPVisualiseDialog::OnScrollBar_HorizontalScrollThumbTrack);
-	Connect(ID_SCROLLBAR2,wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&ZCPPVisualiseDialog::OnScrollBar_HorizontalScrollChanged);
+	Panel1->Connect(wxEVT_PAINT,(wxObjectEventFunction)&ControllerVisualiseDialog::OnPanel1Paint,0,this);
+	Panel1->Connect(wxEVT_SIZE,(wxObjectEventFunction)&ControllerVisualiseDialog::OnPanel1Resize,0,this);
+	Connect(ID_SCROLLBAR1,wxEVT_SCROLL_TOP|wxEVT_SCROLL_BOTTOM|wxEVT_SCROLL_LINEUP|wxEVT_SCROLL_LINEDOWN|wxEVT_SCROLL_PAGEUP|wxEVT_SCROLL_PAGEDOWN|wxEVT_SCROLL_THUMBTRACK|wxEVT_SCROLL_THUMBRELEASE|wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&ControllerVisualiseDialog::OnScrollBar_VerticalScroll);
+	Connect(ID_SCROLLBAR1,wxEVT_SCROLL_THUMBTRACK,(wxObjectEventFunction)&ControllerVisualiseDialog::OnScrollBar_VerticalScrollThumbTrack);
+	Connect(ID_SCROLLBAR1,wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&ControllerVisualiseDialog::OnScrollBar_VerticalScrollChanged);
+	Connect(ID_SCROLLBAR2,wxEVT_SCROLL_TOP|wxEVT_SCROLL_BOTTOM|wxEVT_SCROLL_LINEUP|wxEVT_SCROLL_LINEDOWN|wxEVT_SCROLL_PAGEUP|wxEVT_SCROLL_PAGEDOWN|wxEVT_SCROLL_THUMBTRACK|wxEVT_SCROLL_THUMBRELEASE|wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&ControllerVisualiseDialog::OnScrollBar_HorizontalScroll);
+	Connect(ID_SCROLLBAR2,wxEVT_SCROLL_THUMBTRACK,(wxObjectEventFunction)&ControllerVisualiseDialog::OnScrollBar_HorizontalScrollThumbTrack);
+	Connect(ID_SCROLLBAR2,wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&ControllerVisualiseDialog::OnScrollBar_HorizontalScrollChanged);
 	//*)
 
     int countlines = 0;
@@ -96,13 +96,13 @@ ZCPPVisualiseDialog::ZCPPVisualiseDialog(wxWindow* parent, UDController& cud, wx
     Layout();
 }
 
-ZCPPVisualiseDialog::~ZCPPVisualiseDialog()
+ControllerVisualiseDialog::~ControllerVisualiseDialog()
 {
-	//(*Destroy(ZCPPVisualiseDialog)
+	//(*Destroy(ControllerVisualiseDialog)
 	//*)
 }
 
-void ZCPPVisualiseDialog::OnPanel1Paint(wxPaintEvent& event)
+void ControllerVisualiseDialog::OnPanel1Paint(wxPaintEvent& event)
 {
     wxPaintDC dc(Panel1);
 
@@ -178,37 +178,37 @@ void ZCPPVisualiseDialog::OnPanel1Paint(wxPaintEvent& event)
     }
 }
 
-void ZCPPVisualiseDialog::OnScrollBar_VerticalScroll(wxScrollEvent& event)
+void ControllerVisualiseDialog::OnScrollBar_VerticalScroll(wxScrollEvent& event)
 {
     Panel1->Refresh();
 }
 
-void ZCPPVisualiseDialog::OnScrollBar_HorizontalScroll(wxScrollEvent& event)
+void ControllerVisualiseDialog::OnScrollBar_HorizontalScroll(wxScrollEvent& event)
 {
     Panel1->Refresh();
 }
 
-void ZCPPVisualiseDialog::OnScrollBar_HorizontalScrollThumbTrack(wxScrollEvent& event)
+void ControllerVisualiseDialog::OnScrollBar_HorizontalScrollThumbTrack(wxScrollEvent& event)
 {
     Panel1->Refresh();
 }
 
-void ZCPPVisualiseDialog::OnScrollBar_HorizontalScrollChanged(wxScrollEvent& event)
+void ControllerVisualiseDialog::OnScrollBar_HorizontalScrollChanged(wxScrollEvent& event)
 {
     Panel1->Refresh();
 }
 
-void ZCPPVisualiseDialog::OnScrollBar_VerticalScrollChanged(wxScrollEvent& event)
+void ControllerVisualiseDialog::OnScrollBar_VerticalScrollChanged(wxScrollEvent& event)
 {
     Panel1->Refresh();
 }
 
-void ZCPPVisualiseDialog::OnScrollBar_VerticalScrollThumbTrack(wxScrollEvent& event)
+void ControllerVisualiseDialog::OnScrollBar_VerticalScrollThumbTrack(wxScrollEvent& event)
 {
     Panel1->Refresh();
 }
 
-void ZCPPVisualiseDialog::OnPanel1Resize(wxSizeEvent& event)
+void ControllerVisualiseDialog::OnPanel1Resize(wxSizeEvent& event)
 {
     int pw;
     int ph;
