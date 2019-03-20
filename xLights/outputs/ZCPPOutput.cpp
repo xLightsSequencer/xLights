@@ -499,42 +499,45 @@ std::list<Output*> ZCPPOutput::Discover(OutputManager* outputManager)
                             }
                         }
 
-                        logger_base.info("ZCPP Discovery found a new controller %s.", (const char*)output->GetIP().c_str());
-                        bool supportsVirtualStrings = buffer[115] & 0x08;
-                        output->SetSupportsVirtualStrings(supportsVirtualStrings);
-                        logger_base.debug("   Supports Virtual Strings %d", supportsVirtualStrings);
-
-                        bool supportsSmartRemotes = buffer[115] & 0x10;
-                        output->SetSupportsSmartRemotes(supportsSmartRemotes);
-                        logger_base.debug("   Supports Smart Remotes %d", supportsSmartRemotes);
-
-                        int i = 90;
-                        while (i <= 109 && buffer[i] != 0xFF)
-                        {
-                            output->AddProtocol(DecodeProtocol(buffer[i]));
-                            logger_base.debug("   Supports Protocol %s", (const char *)DecodeProtocol(buffer[i]).c_str());
-                            i++;
-                        }
-
-                        if (buffer[115] & 0x04)
-                        {
-                            // Dan this is where you would need to do your special adjustments to ensure it is in the right place
-                            logger_base.info("ZCPP Discovery found controller %s but it doesnt want us to configure it.", (const char*)output->GetIP().c_str());
-                            delete output;
-                            output = nullptr;
-                            break;
-                        }
-                        else
-                        {
-                            output->SetAutoSize(true);
-                            output->SetChannels(1 /*channels*/); // Set this to one as it defaults to auto size
-                            output->SetSendConfiguration(true);
-                        }
-
                         if (output != nullptr)
                         {
-                            logger_base.info("ZCPP Discovery adding controller %s.", (const char*)output->GetIP().c_str());
-                            res.push_back(output);
+                            logger_base.info("ZCPP Discovery found a new controller %s.", (const char*)output->GetIP().c_str());
+                            bool supportsVirtualStrings = buffer[115] & 0x08;
+                            output->SetSupportsVirtualStrings(supportsVirtualStrings);
+                            logger_base.debug("   Supports Virtual Strings %d", supportsVirtualStrings);
+
+                            bool supportsSmartRemotes = buffer[115] & 0x10;
+                            output->SetSupportsSmartRemotes(supportsSmartRemotes);
+                            logger_base.debug("   Supports Smart Remotes %d", supportsSmartRemotes);
+
+                            int i = 90;
+                            while (i <= 109 && buffer[i] != 0xFF)
+                            {
+                                output->AddProtocol(DecodeProtocol(buffer[i]));
+                                logger_base.debug("   Supports Protocol %s", (const char *)DecodeProtocol(buffer[i]).c_str());
+                                i++;
+                            }
+
+                            if (buffer[115] & 0x04)
+                            {
+                                // Dan this is where you would need to do your special adjustments to ensure it is in the right place
+                                logger_base.info("ZCPP Discovery found controller %s but it doesnt want us to configure it.", (const char*)output->GetIP().c_str());
+                                delete output;
+                                output = nullptr;
+                                break;
+                            }
+                            else
+                            {
+                                output->SetAutoSize(true);
+                                output->SetChannels(1 /*channels*/); // Set this to one as it defaults to auto size
+                                output->SetSendConfiguration(true);
+                            }
+
+                            if (output != nullptr)
+                            {
+                                logger_base.info("ZCPP Discovery adding controller %s.", (const char*)output->GetIP().c_str());
+                                res.push_back(output);
+                            }
                         }
                     }
                     else
