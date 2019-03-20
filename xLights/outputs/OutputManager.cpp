@@ -293,6 +293,18 @@ Output* OutputManager::GetOutput(int universe, const std::string& ip) const
     return nullptr;
 }
 
+Output* OutputManager::GetOutput(const std::string& description) const
+{
+    for (auto it = _outputs.begin(); it != _outputs.end(); ++it)
+    {
+        if ((*it)->GetDescription() == description && (*it)->IsLookedUpByControllerName())
+        {
+            return *it;
+        }
+    }
+    return nullptr;
+}
+
 long OutputManager::GetTotalChannels() const
 {
     if (_outputs.size() == 0) return 0;

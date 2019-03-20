@@ -46,7 +46,7 @@ const std::vector<std::string> Model::DEFAULT_BUFFER_STYLES {DEFAULT, PER_PREVIE
 Model::Model(const ModelManager &manager) : modelDimmingCurve(nullptr),
     parm1(0), parm2(0), parm3(0), pixelStyle(1), pixelSize(2), transparency(0), blackTransparency(0),
     StrobeRate(0), modelManager(manager), CouldComputeStartChannel(false), maxVertexCount(0),
-    splitRGB(false), rgbwHandlingType(0), BufferDp(0)
+    splitRGB(false), rgbwHandlingType(0), BufferDp(0), _controller(0)
 {
     // These member vars were not initialised so give them some defaults.
     BufferHt = 0;
@@ -1323,7 +1323,7 @@ std::string Model::ComputeStringStartChannel(int i) {
                 }
             }
         }
-        else if (comps[0].StartsWith(">") || comps[0].StartsWith("@"))
+        else if (comps[0].StartsWith(">") || comps[0].StartsWith("@") || comps[0].StartsWith("!") )
         {
             return wxString::Format("%s:%ld", comps[0], wxAtol(comps[1]) + priorLength);
         }
@@ -1422,6 +1422,15 @@ bool Model::IsValidStartChannelString() const
             (parts[1].IsNumber() && wxAtol(parts[1]) > 0 && !parts[1].Contains('.')))
         {
             // dont bother checking the model name ... other processes will check for that
+            return true;
+        }
+    }
+    else if (parts[0][0] == '!')
+    {
+        if ((parts.size() == 2) &&
+            (modelManager.GetOutputManager()->GetOutput(parts[0].substr(1)) != nullptr) &&
+            (parts[1].IsNumber() && wxAtol(parts[1]) > 0 && !parts[1].Contains('.')))
+        {
             return true;
         }
     }
@@ -1525,6 +1534,21 @@ int Model::GetNumberFromChannelString(const std::string &str, bool &valid, std::
                     output = 1;
                 }
             }
+        }
+        else if (start[0] == '!')
+        {
+            wxString ss = wxString(str);
+            wxArrayString cs = wxSplit(ss.SubString(1, ss.Length()), ':');
+            if (cs.Count() == 2)
+            {
+                Output* o = modelManager.GetOutputManager()->GetOutput(cs[0].Trim(false).Trim(true).ToStdString());
+                if (o != nullptr)
+                {
+                    return o->GetStartChannel() - 1 + wxAtoi(cs[1]);
+                }
+            }
+            valid = false;
+            return 1;
         }
         else if (start[0] == '#') {
             wxString ss = wxString(str);
@@ -1775,12 +1799,10 @@ void Model::SetFromXml(wxXmlNode* ModelNode, bool zb) {
             ModelNode->AddChild(controllerConnectionNode);
         }
         if (ar.size() > 0) {
-            controllerConnectionNode->DeleteAttribute("Protocol");
-            controllerConnectionNode->AddAttribute("Protocol", ar[0]);
+            SetControllerProtocol(ar[0]);
         }
         if (ar.size() > 1) {
-            controllerConnectionNode->DeleteAttribute("Port");
-            controllerConnectionNode->AddAttribute("Port", ar[1]);
+            SetControllerPort(wxAtoi(ar[1]));
         }
     }
 
@@ -1822,7 +1844,7 @@ std::string Model::GetControllerConnectionRangeString() const
     }
     if (GetNumPhysicalStrings() > 1 && GetControllerPort(1) != 0)
     {
-        ret = wxString::Format("%s-%d", ret, GetControllerPort() + GetNumPhysicalStrings() - 1).ToStdString();
+        ret = wxString::Format("%s-%d", ret, GetControllerPort(GetNumPhysicalStrings())).ToStdString();
     }
 
     wxXmlAttribute* att = GetControllerConnection()->GetAttributes();
@@ -2022,6 +2044,10 @@ std::string Model::GetStartChannelInDisplayFormat(OutputManager* outputManager)
     {
         return ModelStartChannel + wxString::Format(" (%u)", GetFirstChannel() + 1);
     }
+    else if (ModelStartChannel[0] == '!')
+    {
+        return ModelStartChannel + wxString::Format(" (%u)", GetFirstChannel() + 1);
+    }
     else if (ModelStartChannel[0] == '#' || CountChar(ModelStartChannel, ':') > 0)
     {
         return GetFirstChannelInStartChannelFormat(outputManager);
@@ -2063,6 +2089,11 @@ std::string Model::GetChannelInStartChannelFormat(OutputManager* outputManager, 
                 if (end[0] == '#')
                 {
                     firstChar = '#';
+                    modelFormat = end;
+                }
+                else if (end[0] == '!')
+                {
+                    firstChar = '!';
                     modelFormat = end;
                 }
                 else if (CountChar(end, ':') == 1)
@@ -2108,6 +2139,18 @@ std::string Model::GetChannelInStartChannelFormat(OutputManager* outputManager, 
             }
             return wxString::Format("#%s:%d:%ld (%u)", ip, output->GetUniverse(), startChannel, channel).ToStdString();
         }
+    }
+    else if (firstChar == '!')
+    {
+        auto comps = wxSplit(modelFormat, ':');
+        auto o = outputManager->GetOutput(comps[0].substr(1));
+        long start = 1;
+        if (o != nullptr)
+        {
+            start = o->GetStartChannel();
+        }
+        unsigned int lastChannel = GetLastChannel() + 1;
+        return wxString(modelFormat).BeforeFirst(':') + ":" + wxString::Format("%ld (%u)", lastChannel - start + 1, lastChannel);
     }
     else if (firstChar == '@' || firstChar == '>' || CountChar(modelFormat, ':') == 0)
     {
@@ -3146,9 +3189,9 @@ std::string Model::ChannelLayoutHtml(OutputManager* outputManager)
     if (GetControllerProtocol() != "") {
         html += wxString::Format("<tr><td>Pixel protocol:</td><td>%s</td></tr>", GetControllerProtocol().c_str());
         if (GetNumStrings() == 1) {
-            html += wxString::Format("<tr><td>Controller Connection:</td><td>%d</td></tr>", GetControllerPort());
+            html += wxString::Format("<tr><td>Controller Connection:</td><td>%d</td></tr>", GetControllerPort(1));
         } else {
-            html += wxString::Format("<tr><td>Controller Connections:</td><td>%d-%d</td></tr>", GetControllerPort(), GetControllerPort() + GetNumPhysicalStrings() - 1);
+            html += wxString::Format("<tr><td>Controller Connections:</td><td>%d-%d</td></tr>", GetControllerPort(1), GetControllerPort(GetNumPhysicalStrings()));
         }
     }
     html += "</table><p>Node numbers starting with 1 followed by string number:</p><table border=1>";
@@ -4065,34 +4108,6 @@ bool Model::IsControllerConnectionValid() const
     return (Model::IsProtocolValid(GetControllerProtocol()) && GetControllerPort(1) > 0);
 }
 
-std::string Model::GetControllerProtocol() const
-{
-    wxString s = GetControllerConnection()->GetAttribute("Protocol");
-    return s.ToStdString();
-}
-
-int Model::GetSmartRemote() const
-{
-    wxString s = GetControllerConnection()->GetAttribute("SmartRemote", "0");
-    return wxAtoi(s);
-}
-
-int Model::GetControllerPort(int string) const
-{
-    wxString p = wxString::Format("%d", string);
-    if (GetControllerConnection()->HasAttribute(p)) {
-        wxString s = GetControllerConnection()->GetAttribute(p);
-        return wxAtoi(s);
-    }
-    
-    wxString s = GetControllerConnection()->GetAttribute("Port", "0");
-    int port = wxAtoi(s);
-    if (port > 0) {
-        port += string - 1;
-    }
-    return port;
-}
-
 bool Model::IsPixelProtocol(const std::string &p) {
     if (p == "") {
         return false;
@@ -4105,6 +4120,75 @@ bool Model::IsPixelProtocol(const std::string &p) {
 bool Model::IsPixelProtocol() const
 {
     return GetControllerPort(1) != 0 && IsPixelProtocol(GetControllerProtocol());
+}
+
+int Model::GetSmartRemote() const
+{
+    wxString s = GetControllerConnection()->GetAttribute("SmartRemote", "0");
+    return wxAtoi(s);
+}
+
+void Model::SetModelChain(const std::string& modelChain)
+{
+    ModelXml->DeleteAttribute("ModelChain");
+    if (modelChain != "")
+    {
+        ModelXml->AddAttribute("ModelChain", modelChain);
+    }
+    ReworkStartChannel();
+    RecalcStartChannels();
+    IncrementChangeCount();
+}
+
+std::string Model::GetModelChain() const
+{
+    return ModelXml->GetAttribute("ModelChain", "").ToStdString();
+}
+
+void Model::SetControllerName(const std::string& controller)
+{
+    ModelXml->DeleteAttribute("Controller");
+    if (controller != "" && controller != "Use Start Channel")
+    {
+        ModelXml->AddAttribute("Controller", controller);
+    }
+    ReworkStartChannel();
+    RecalcStartChannels();
+    IncrementChangeCount();
+}
+
+void Model::SetControllerProtocol(const std::string& protocol)
+{
+    GetControllerConnection()->DeleteAttribute("Protocol");
+    if (protocol != "") {
+        GetControllerConnection()->AddAttribute("Protocol", protocol);
+    }
+    
+    ReworkStartChannel();
+    RecalcStartChannels();
+    IncrementChangeCount();
+}
+
+void Model::SetControllerPort(int port)
+{
+    GetControllerConnection()->DeleteAttribute("Port");
+    if (port > 0) {
+        GetControllerConnection()->AddAttribute("Port", wxString::Format("%d", port));
+    }
+    
+    ReworkStartChannel();
+    RecalcStartChannels();
+    IncrementChangeCount();
+}
+
+std::string Model::GetControllerName() const
+{
+    return ModelXml->GetAttribute("Controller", "").ToStdString();
+}
+
+void Model::ReworkStartChannel()
+{
+    modelManager.ReworkStartChannel();
 }
 
 std::list<std::string> Model::GetProtocols()
@@ -4217,6 +4301,28 @@ std::vector<std::string> Model::GetModelState() const
 void Model::SaveModelState( std::vector<std::string>& state )
 {
     modelState = state;
+}
+
+std::string Model::GetControllerProtocol() const
+{
+    wxString s = GetControllerConnection()->GetAttribute("Protocol");
+    return s.ToStdString();
+}
+
+int Model::GetControllerPort(int string) const
+{
+    wxString p = wxString::Format("%d", string);
+    if (GetControllerConnection()->HasAttribute(p)) {
+        wxString s = GetControllerConnection()->GetAttribute(p);
+        return wxAtoi(s);
+    }
+    
+    wxString s = GetControllerConnection()->GetAttribute("Port", "0");
+    int port = wxAtoi(s);
+    if (port > 0) {
+        port += string - 1;
+    }
+    return port;
 }
 
 void Model::GetMinScreenXY(float& minx, float& miny) const

@@ -163,6 +163,7 @@ class UDController
 		std::map<int, UDControllerPort*> _serialPorts;
 
         bool ModelProcessed(Model* m);
+        std::list<Model*> _noConnectionModels;
 
 	public:
         UDController(const std::string &ip, const std::string &hostName, ModelManager* mm, OutputManager* om, const std::list<int>* outputs, std::string& check);
@@ -177,6 +178,8 @@ class UDController
         bool HasSerialPort(int port) const;
         bool Check(ControllerRules* rules, std::string& res);
         Output* GetFirstOutput() const;
+    
+        const std::list<Model *> GetNoConnectionModels() const { return _noConnectionModels; }
 };
 
 #endif

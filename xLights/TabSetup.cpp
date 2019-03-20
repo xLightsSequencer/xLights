@@ -121,7 +121,7 @@ void xLightsFrame::OnMenuMRU(wxCommandEvent& event)
 bool xLightsFrame::SetDir(const wxString& newdir)
 {
     static bool HasMenuSeparator = false;
-    int idx, cnt, i;
+    int idx, i;
 
     // don't change show directories with an open sequence because models won't match
     if (!CloseSequence()) {
@@ -165,7 +165,7 @@ bool xLightsFrame::SetDir(const wxString& newdir)
         if (idx != wxNOT_FOUND) mru.RemoveAt(idx);
         mru.Insert(CurrentDir, 0);
     }
-    cnt = mru.GetCount();
+    int cnt = mru.GetCount();
     if (cnt > MRU_LENGTH)
     {
         mru.RemoveAt(MRU_LENGTH, cnt - MRU_LENGTH);
@@ -302,6 +302,12 @@ bool xLightsFrame::SetDir(const wxString& newdir)
     Notebook1->ChangeSelection(SETUPTAB);
     SetStatusText("");
     FileNameText->SetLabel(newdir);
+    
+    if (UnsavedRgbEffectsChanges)
+    {
+        RebuildControllerConfig(&_outputManager, &AllModels);
+    }
+    
     return true;
 }
 
@@ -582,6 +588,7 @@ void xLightsFrame::ChangeSelectedNetwork()
     }
 
     Output* o = _outputManager.GetOutput(item);
+    std::string oldDesc = o->GetDescription();
     Output* newoutput = o->Configure(this, &_outputManager, &AllModels);
     if (newoutput != nullptr)
     {
@@ -589,7 +596,16 @@ void xLightsFrame::ChangeSelectedNetwork()
         {
             _outputManager.Replace(o, newoutput);
         }
-
+        else
+        {
+            std::string newDesc = o->GetDescription();
+            if (o->IsLookedUpByControllerName() && oldDesc != "" && oldDesc != newDesc)
+            {
+                AllModels.RenameController(oldDesc, newDesc);
+            }
+        }
+        
+        AllModels.ReworkStartChannel();
         NetworkChange();
         UpdateNetworkList(true);
     }
@@ -668,7 +684,16 @@ void xLightsFrame::UpdateSelectedDescriptions()
     {
         while (item != -1)
         {
-            _outputManager.GetOutput(item)->SetDescription(dlg.GetValue().ToStdString());
+            Output* o = _outputManager.GetOutput(item);
+            std::string oldDesc = o->GetDescription();
+            std::string newDesc = dlg.GetValue().ToStdString();
+            
+            if (o->IsLookedUpByControllerName() && oldDesc != "")
+            {
+                AllModels.RenameController(oldDesc, newDesc);
+            }
+            
+            o->SetDescription(newDesc);
 
             item = GridNetwork->GetNextItem(item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
         }
@@ -702,7 +727,10 @@ void xLightsFrame::UpdateSelectedChannels()
             }
             else
             {
-                o->SetChannels(dlg.GetValue());
+                if (!o->GetAutoSize())
+                {
+                    o->SetChannels(dlg.GetValue());
+                }
             }
 
             item = GridNetwork->GetNextItem(item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
@@ -1146,6 +1174,10 @@ void xLightsFrame::NetworkChange()
 #else
     ButtonSaveSetup->SetBackgroundColour(wxColour(255, 108, 108));
 #endif
+    if (RebuildControllerConfig(&_outputManager, &AllModels))
+    {
+        MarkEffectsFileDirty(false);
+    }
 }
 
 bool xLightsFrame::SaveNetworksFile()
@@ -1858,7 +1890,10 @@ void xLightsFrame::UploadFalconOutput()
 
 void xLightsFrame::UploadFPPStringOuputs(const std::string &controller) {
     SetStatusText("");
-    if (wxMessageBox("This will upload the output controller configuration for a " + controller + " controller. It requires that you have setup the controller connection on your models. Do you want to proceed with the upload?", "Are you sure?", wxYES_NO, this) == wxYES) {
+    const PixelCapeInfo &ci = FPP::GetCapeRules(controller);
+    if (wxMessageBox("This will upload the output controller configuration for a " + ci.description
+                     + " controller. It requires that you have setup the controller connection on your models. Do you want to proceed with the upload?",
+                     "Are you sure?", wxYES_NO, this) == wxYES) {
         SetCursor(wxCURSOR_WAIT);
         wxString ip;
         std::list<int> selected = GetSelectedOutputs(ip);
@@ -2088,6 +2123,23 @@ void xLightsFrame::PingController(Output* e)
 				break;
 		}
 	}
+}
+
+bool xLightsFrame::RebuildControllerConfig(OutputManager* outputManager, ModelManager* modelManager)
+{
+    auto outputs = outputManager->GetOutputs();
+    for (auto ito = outputs.begin(); ito != outputs.end(); ++ito)
+    {
+        /*
+        if ((*ito)->NeedsControllerConfig())
+        {
+            ZCPPOutput* zcpp = (ZCPPOutput*)(*ito);
+            SetModelData(zcpp, modelManager, outputManager, CurrentDir.ToStdString());
+        }
+        */
+    }
+
+    return true;
 }
 
 void xLightsFrame::UploadEasyLightsOutput()

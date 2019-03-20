@@ -26,6 +26,7 @@
 #include "../sequencer/Element.h"
 #include "../xLightsMain.h"
 #include "UtilFunctions.h"
+#include "outputs/Output.h"
 
 #include <log4cpp/Category.hh>
 
@@ -313,6 +314,105 @@ void ModelManager::DisplayStartChannelCalcWarning() const
     }
 }
 
+void ModelManager::ReworkStartChannel() const
+{
+    bool  outputsChanged = false;
+
+    OutputManager* outputManager = xlights->GetOutputManager();
+    for (auto it : outputManager->GetOutputs())
+    {
+        if (it->IsLookedUpByControllerName())
+        {
+            std::map<std::string, std::list<Model*>> cmodels;
+            for (auto itm : models)
+            {
+                if (itm.second->GetControllerName() == it->GetDescription())
+                {
+                    wxString cc = wxString::Format("%s:%d:%02d", itm.second->GetControllerProtocol(), itm.second->GetSmartRemote(), itm.second->GetControllerPort()).Lower();
+                    if (cmodels.find(cc) == cmodels.end())
+                    {
+                        std::list<Model*> ml;
+                        cmodels[cc] = ml;
+                    }
+                    cmodels[cc].push_back(itm.second);
+                }
+            }
+
+            long ch = 1;
+            for (auto itcc = cmodels.begin(); itcc != cmodels.end(); ++itcc)
+            {
+                // order the models
+                std::list<Model*> sortedmodels;
+                std::string last = "";
+
+                long chstart = ch;
+
+                while ((*itcc).second.size() > 0)
+                {
+                    bool pushed = false;
+                    for (auto itms = (*itcc).second.begin(); itms != (*itcc).second.end(); ++itms)
+                    {
+                        if ((((*itms)->GetModelChain() == "Beginning" || (*itms)->GetModelChain() == "") && last == "") ||
+                            (*itms)->GetModelChain() == last || 
+                            (*itms)->GetModelChain() == ">" + last)
+                        {
+                            sortedmodels.push_back(*itms);
+                            pushed = true;
+                            last = (*itms)->GetName();
+                            (*itcc).second.erase(itms);
+                            break;
+                        }
+                    }
+
+                    if (!pushed && (*itcc).second.size() > 0)
+                    {
+                        // chain is broken ... so just put the rest in in random order
+                        while ((*itcc).second.size() > 0)
+                        {
+                            sortedmodels.push_back(itcc->second.front());
+                            itcc->second.pop_front();
+                        }
+                    }
+                }
+
+                last = "";
+                for (auto itm : sortedmodels)
+                {
+                    if (itm->GetModelChain() == last || 
+                        itm->GetModelChain() == ">" + last || 
+                        ((itm->GetModelChain() == "Beginning" || itm->GetModelChain() == "") && last == ""))
+                    {
+                        itm->SetStartChannel("!" + it->GetDescription() + ":" + wxString::Format("%ld", ch));
+                        last = itm->GetName();
+                    }
+                    else
+                    {
+                        itm->SetStartChannel("!" + it->GetDescription() + ":" + wxString::Format("%ld", chstart));
+                    }
+                    ch += itm->GetChanCount();
+                }
+            }
+
+            if (it->GetAutoSize())
+            {
+                if (it->GetChannels() != std::max((long)1, (long)ch - 1))
+                {
+                    it->SetChannels(std::max((long)1, (long)ch - 1));
+                    outputsChanged = true;
+                }
+            }
+        }
+    }
+
+    if (outputsChanged)
+    {
+        xlights->GetOutputManager()->SomethingChanged();
+        xlights->UpdateNetworkList(false);
+        xlights->NetworkChange();
+        xlights->SaveNetworksFile();
+    }
+}
+
 bool ModelManager::LoadGroups(wxXmlNode *groupNode, int previewW, int previewH) {
     this->groupNode = groupNode;
     std::list<ModelGroup*> toBeDone;
@@ -432,6 +532,17 @@ bool ModelManager::LoadGroups(wxXmlNode *groupNode, int previewW, int previewH) 
         }
     }
     return changed;
+}
+
+void ModelManager::RenameController(const std::string& oldName, const std::string& newName)
+{
+    for (auto it = begin(); it != end(); ++it)
+    {
+        if (it->second->GetControllerName() == oldName)
+        {
+            it->second->SetControllerName(newName);
+        }
+    }
 }
 
 // generate the next similar model name to the candidateName we are given

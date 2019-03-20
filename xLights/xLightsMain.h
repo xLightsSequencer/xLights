@@ -1288,6 +1288,7 @@ protected:
     wxXmlNode* PalettesNode = nullptr;
     wxXmlNode* PerspectivesNode = nullptr;
 public:
+    bool RebuildControllerConfig(OutputManager* outputManager, ModelManager* modelManager);
     wxXmlNode* ModelsNode = nullptr;
     wxXmlNode* ModelGroupsNode = nullptr;
     wxXmlNode* LayoutGroupsNode = nullptr;

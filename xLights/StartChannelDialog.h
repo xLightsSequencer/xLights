@@ -28,10 +28,12 @@ class StartChannelDialog: public wxDialog
 		wxButton* Button_Cancel;
 		wxButton* Button_Ok;
 		wxCheckBox* CheckBox_FromThisPreviewOnly;
+		wxChoice* ChoiceController;
 		wxChoice* ModelChoice;
 		wxChoice* OutputChoice;
 		wxChoice* ipChoice;
 		wxChoice* universeChoice;
+		wxRadioButton* ControllerButton;
 		wxRadioButton* ModelButton;
 		wxRadioButton* NoneButton;
 		wxRadioButton* OutputButton;
@@ -39,7 +41,7 @@ class StartChannelDialog: public wxDialog
 		wxRadioButton* UniverseButton;
 		wxSpinCtrl* StartChannel;
 		//*)
-    
+
         void Set(const wxString &start, const ModelManager &models, const std::string& preview);
         void SetUniverseOptionsBasedOnIP(wxString ip);
         std::string Get();
@@ -62,6 +64,8 @@ class StartChannelDialog: public wxDialog
 		static const long ID_CHOICE1;
 		static const long ID_CHECKBOX1;
 		static const long ID_RADIOBUTTON4;
+		static const long ID_RADIOBUTTON6;
+		static const long ID_CHOICE5;
 		static const long ID_BUTTON1;
 		static const long ID_BUTTON2;
 		//*)

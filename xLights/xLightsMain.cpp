@@ -5124,6 +5124,16 @@ void xLightsFrame::CheckSequence(bool display)
                     }
                 }
             }
+            else if (start[0] == '!')
+            {
+                auto comp = wxSplit(start.substr(1), ':');
+                if (_outputManager.GetOutput(comp[0]) == nullptr)
+                {
+                    wxString msg = wxString::Format("    ERR: Model '%s' start channel '%s' refers to non existent controller '%s'.", it->first, start, comp[0]);
+                    LogAndWrite(f, msg.ToStdString());
+                    errcount++;
+                }
+            }
             if (it->second->GetLastChannel() == (unsigned int)-1)
             {
                 wxString msg = wxString::Format("    ERR: Model '%s' start channel '%s' evaluates to an illegal channel number.", it->first, start);
@@ -5189,6 +5199,10 @@ void xLightsFrame::CheckSequence(bool display)
                     LogAndWrite(f, msg.ToStdString());
                     errcount++;
                 }
+            }
+            else if (start[0] == '!')
+            {
+                // nothing to check
             }
             else if (start.find(':') != std::string::npos)
             {

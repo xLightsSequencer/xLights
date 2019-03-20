@@ -656,6 +656,10 @@ void LayoutPanel::SetDirtyHiLight(bool dirty) {
         ButtonSavePreview->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
     }
 #endif
+    if (dirty)
+    {
+        xlights->RebuildControllerConfig(xlights->GetOutputManager(), &xlights->AllModels);
+    }
 }
 
 std::string LayoutPanel::GetCurrentPreview() const
@@ -694,6 +698,7 @@ LayoutPanel::~LayoutPanel()
 }
 
 void LayoutPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxString name = event.GetPropertyName();
     updatingProperty = true;
     if (name == "BkgBrightness") {
@@ -1108,6 +1113,7 @@ int LayoutPanel::AddModelToTree(Model *model, wxTreeListItem* parent, bool expan
     if (model == nullptr)
     {
         logger_base.crit("LayoutPanel::AddModelToTree model is null ... this is going to crash.");
+        wxASSERT(false);
     }
 
     //logger_base.debug("Adding model %s", (const char *)model->GetFullName().c_str());
@@ -1295,8 +1301,8 @@ void LayoutPanel::UpdateModelsForPreview(const std::string &group, LayoutGroup* 
 {
     std::set<std::string> modelsAdded;
 
-    for (auto it = xlights->AllModels.begin(); it != xlights->AllModels.end(); ++it) {
-        Model *model = it->second;
+    for (auto& it : xlights->AllModels) {
+        Model *model = it.second;
         if (model->GetDisplayAs() != "ModelGroup") {
             if (group == "All Models" ||
                 model->GetLayoutGroup() == group ||
@@ -1313,8 +1319,8 @@ void LayoutPanel::UpdateModelsForPreview(const std::string &group, LayoutGroup* 
         selected_group_name = TreeListViewModels->GetItemText(mSelectedGroup);
     }
 
-    for (auto it = xlights->AllModels.begin(); it != xlights->AllModels.end(); ++it) {
-        Model *model = it->second;
+    for (auto it : xlights->AllModels) {
+        Model *model = it.second;
         bool mark_selected = false;
         if (mSelectedGroup.IsOk() && filtering && (model->name == selected_group_name)) {
             mark_selected = true;
@@ -1324,8 +1330,8 @@ void LayoutPanel::UpdateModelsForPreview(const std::string &group, LayoutGroup* 
             if (group == "All Models" ||
                 model->GetLayoutGroup() == group ||
                 (model->GetLayoutGroup() == "All Previews" && group != "Unassigned")) {
-                for (auto it2 = grp->ModelNames().begin(); it2 != grp->ModelNames().end(); ++it2) {
-                    Model *m = xlights->AllModels[*it2];
+                for (auto it2 : grp->ModelNames()) {
+                    Model *m = xlights->AllModels[it2];
                     if (m != nullptr) {
                         if (mark_selected) {
                             if (selectedBaseObject == nullptr)
@@ -1381,8 +1387,8 @@ void LayoutPanel::UpdateModelsForPreview(const std::string &group, LayoutGroup* 
                                 }
                             }
                         }
-                        else if (modelsAdded.find(*it2) == modelsAdded.end()) {
-                            modelsAdded.insert(*it2);
+                        else if (modelsAdded.find(it2) == modelsAdded.end()) {
+                            modelsAdded.insert(it2);
                             prev_models.push_back(m);
                         }
                     }
@@ -4473,6 +4479,7 @@ void LayoutPanel::DeleteSelectedModel() {
         {
             xlights->AllModels.Delete(selectedBaseObject->name);
         }
+        xlights->AllModels.ReworkStartChannel();
         selectedBaseObject = nullptr;
         xlights->UpdateModelsList();
         xlights->MarkEffectsFileDirty(true);
@@ -4520,28 +4527,19 @@ void LayoutPanel::ReplaceModel()
         // they are not already the same and the new model uses a chaining start
         // channel ... the theory being if you took time to set the start channel
         // you probably want to keep it and so a prompt will just be annoying
-        if (replaceModel->ModelStartChannel !=
+        if ((replaceModel->ModelStartChannel !=
             modelToReplaceItWith->ModelStartChannel &&
-            wxString(modelToReplaceItWith->ModelStartChannel).StartsWith(">"))
+            wxString(modelToReplaceItWith->ModelStartChannel).StartsWith(">")) ||
+            (replaceModel->GetControllerName() != modelToReplaceItWith->GetControllerName() && modelToReplaceItWith->GetControllerName() == ""))
         {
-            auto msg = wxString::Format("Should I copy the replaced models start channel %s to the replacement model whose start channel is currently %s?", replaceModel->ModelStartChannel, modelToReplaceItWith->ModelStartChannel);
+            auto msg = wxString::Format("Should I copy the replaced models start channel '%s' to the replacement model whose start channel is currently '%s'?", replaceModel->ModelStartChannel, modelToReplaceItWith->ModelStartChannel);
             if (wxMessageBox(msg, "Update Start Channel", wxYES_NO) == wxYES)
             {
                 modelToReplaceItWith->SetStartChannel(replaceModel->ModelStartChannel, true);
 
-                auto tocc = modelToReplaceItWith->GetControllerConnection();
-                auto fromcc = replaceModel->GetControllerConnection();
-                if (fromcc->GetAttribute("Protocol", "") != "")
-                {
-                    tocc->DeleteAttribute("Protocol");
-                    tocc->AddAttribute("Protocol", fromcc->GetAttribute("Protocol"));
-                }
-
-                if (fromcc->GetAttribute("Port", "") != "")
-                {
-                    tocc->DeleteAttribute("Port");
-                    tocc->AddAttribute("Port", fromcc->GetAttribute("Port"));
-                }
+                modelToReplaceItWith->SetControllerProtocol(replaceModel->GetControllerProtocol());
+                modelToReplaceItWith->SetControllerPort(replaceModel->GetControllerPort());
+                modelToReplaceItWith->SetControllerName(replaceModel->GetControllerName());
             }
         }
 

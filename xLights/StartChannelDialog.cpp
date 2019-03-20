@@ -21,6 +21,8 @@ const long StartChannelDialog::ID_RADIOBUTTON3 = wxNewId();
 const long StartChannelDialog::ID_CHOICE1 = wxNewId();
 const long StartChannelDialog::ID_CHECKBOX1 = wxNewId();
 const long StartChannelDialog::ID_RADIOBUTTON4 = wxNewId();
+const long StartChannelDialog::ID_RADIOBUTTON6 = wxNewId();
+const long StartChannelDialog::ID_CHOICE5 = wxNewId();
 const long StartChannelDialog::ID_BUTTON1 = wxNewId();
 const long StartChannelDialog::ID_BUTTON2 = wxNewId();
 //*)
@@ -91,6 +93,11 @@ StartChannelDialog::StartChannelDialog(wxWindow* parent,wxWindowID id,const wxPo
 	FlexGridSizer3->Add(FlexGridSizer5, 1, wxALL|wxEXPAND, 5);
 	StartModelButton = new wxRadioButton(this, ID_RADIOBUTTON4, _("Start of Model"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON4"));
 	FlexGridSizer3->Add(StartModelButton, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer3->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	ControllerButton = new wxRadioButton(this, ID_RADIOBUTTON6, _("Controller"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON6"));
+	FlexGridSizer3->Add(ControllerButton, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	ChoiceController = new wxChoice(this, ID_CHOICE5, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE5"));
+	FlexGridSizer3->Add(ChoiceController, 1, wxALL|wxEXPAND, 5);
 	StaticBoxSizer1->Add(FlexGridSizer3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
 	FlexGridSizer1->Add(StaticBoxSizer1, 1, wxALL|wxEXPAND, 3);
 	FlexGridSizer6 = new wxFlexGridSizer(0, 3, 0, 0);
@@ -110,6 +117,7 @@ StartChannelDialog::StartChannelDialog(wxWindow* parent,wxWindowID id,const wxPo
 	Connect(ID_RADIOBUTTON3,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&StartChannelDialog::OnButtonSelect);
 	Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&StartChannelDialog::OnCheckBox_FromThisPreviewOnlyClick);
 	Connect(ID_RADIOBUTTON4,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&StartChannelDialog::OnButtonSelect);
+	Connect(ID_RADIOBUTTON6,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&StartChannelDialog::OnButtonSelect);
 	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&StartChannelDialog::OnButton_OkClick);
 	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&StartChannelDialog::OnButton_CancelClick);
 	//*)
@@ -202,14 +210,34 @@ void StartChannelDialog::Set(const wxString &s, const ModelManager &models, cons
     ipChoice->SetStringSelection("ANY");
     SetUniverseOptionsBasedOnIP(ipChoice->GetStringSelection());
 
+    auto outputs = _outputManager->GetOutputs();
+    for (auto it = outputs.begin(); it != outputs.end(); ++it)
+    {
+        if ((*it)->IsLookedUpByControllerName())
+        {
+            ChoiceController->AppendString((*it)->GetDescription());
+        }
+    }
+
     if (start.Contains(":")) {
         wxString sNet = start.SubString(0, start.Find(":")-1);
-        if (sNet[0] == '@') {
+        if (sNet[0] == '!')
+        {
+            ChoiceController->Enable();
+            ControllerButton->SetValue(true);
+            OutputChoice->Disable();
+            ipChoice->Disable();
+            universeChoice->Disable();
+            ModelChoice->Disable();
+            ChoiceController->SetStringSelection(sNet.substr(1));
+        }
+        else if (sNet[0] == '@') {
             ModelChoice->Enable();
             StartModelButton->SetValue(true);
             OutputChoice->Disable();
             ipChoice->Disable();
             universeChoice->Disable();
+            ChoiceController->Disable();
             ModelChoice->SetStringSelection(sNet.SubString(1, sNet.size()));
         }
         else if (sNet[0] == '#')
@@ -219,6 +247,7 @@ void StartChannelDialog::Set(const wxString &s, const ModelManager &models, cons
             ipChoice->Enable();
             universeChoice->Enable();
             UniverseButton->SetValue(true);
+            ChoiceController->Disable();
             wxArrayString cs = wxSplit(start.SubString(1, start.Length()), ':');
             if (cs.Count() == 3)
             {
@@ -247,6 +276,7 @@ void StartChannelDialog::Set(const wxString &s, const ModelManager &models, cons
             OutputChoice->Disable();
             ipChoice->Disable();
             universeChoice->Disable();
+            ChoiceController->Disable();
 
             wxString model = sNet[0] == '<' || sNet[0] == '>' ? sNet.SubString(1, sNet.size()) : sNet;
             ModelChoice->SetStringSelection(model);
@@ -269,6 +299,7 @@ void StartChannelDialog::Set(const wxString &s, const ModelManager &models, cons
             ipChoice->Disable();
             universeChoice->Disable();
             OutputButton->SetValue(true);
+            ChoiceController->Disable();
         }
         start = start.SubString(start.Find(':', true) + 1, start.size());
     } else {
@@ -277,13 +308,34 @@ void StartChannelDialog::Set(const wxString &s, const ModelManager &models, cons
         ModelChoice->Disable();
         ipChoice->Disable();
         universeChoice->Disable();
+        ChoiceController->Disable();
     }
+
+    if (ChoiceController->GetCount() == 0)
+    {
+        if (ControllerButton->GetValue())
+        {
+            NoneButton->SetValue(true);
+            OutputChoice->Disable();
+            ModelChoice->Disable();
+            ipChoice->Disable();
+            universeChoice->Disable();
+            ChoiceController->Disable();
+        }
+        ControllerButton->Enable(false);
+        ChoiceController->Enable(false);
+    }
+
     StartChannel->SetValue(start);
 }
 
 std::string StartChannelDialog::Get() {
     if (OutputButton->GetValue()) {
         return std::string(OutputChoice->GetStringSelection().c_str()) + ":" + std::to_string(StartChannel->GetValue());
+    }
+    else if (ControllerButton->GetValue())
+    {
+        return "!" + ChoiceController->GetStringSelection() + ":" + std::to_string(StartChannel->GetValue());
     }
     else if (UniverseButton->GetValue())
     {
@@ -311,25 +363,34 @@ void StartChannelDialog::OnButtonSelect(wxCommandEvent& event)
         OutputChoice->Disable();
         ipChoice->Disable();
         universeChoice->Disable();
+        ChoiceController->Disable();
     } else if (OutputButton->GetValue()) {
         ModelChoice->Disable();
         OutputChoice->Enable();
         ipChoice->Disable();
         universeChoice->Disable();
+        ChoiceController->Disable();
     } else if (UniverseButton->GetValue()) {
         ModelChoice->Disable();
         OutputChoice->Disable();
         ipChoice->Enable();
         universeChoice->Enable();
+        ChoiceController->Disable();
+    } else if (ControllerButton->GetValue()) {
+        ModelChoice->Disable();
+        OutputChoice->Disable();
+        ipChoice->Disable();
+        universeChoice->Disable();
+        ChoiceController->Enable();
     } else {
         ModelChoice->Enable();
         OutputChoice->Disable();
         ipChoice->Disable();
         universeChoice->Disable();
+        ChoiceController->Disable();
     }
 
-    if (ModelButton->GetValue())
-    {
+    if (ModelButton->GetValue()) {
         StartChannel->SetValue(1);
     }
 }

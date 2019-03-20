@@ -246,9 +246,6 @@ void FPPConnectDialog::PopulateFPPInstanceList() {
         if (inst->PixelContollerDescription() != "") {
             CheckBox1 = new wxCheckBox(FPPInstanceList, wxID_ANY, inst->PixelContollerDescription(), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, UPLOAD_CONTROLLER_COL + rowStr);
             CheckBox1->SetValue(false);
-            if (inst->PixelContollerDescription().find("LED Panels") != std::string::npos) {
-                CheckBox1->Disable();
-            }
             FPPInstanceSizer->Add(CheckBox1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 1);
         } else {
             FPPInstanceSizer->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);

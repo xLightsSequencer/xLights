@@ -67,6 +67,8 @@ public:
     virtual bool IsValidChannelCount(long channelCount) const override { return channelCount > 0 && channelCount <= GetMaxChannels(); }
     virtual bool IsKeepChannelNumbers() const { return _keepChannelNumbers; }
     virtual void KeepChannelNumber(bool b = true) { _keepChannelNumbers = b; _dirty = true; }
+    virtual bool IsLookedUpByControllerName() const override;
+
     int GetId() const { return _universe; }
     void SetId(int id) { _universe = id; _dirty = true; }
     #pragma endregion Getters and Setters

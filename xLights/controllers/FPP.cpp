@@ -55,7 +55,8 @@ static std::map<std::string, PixelCapeInfo> CONTROLLER_TYPE_MAP = {
     {"F40D-PB-40", PixelCapeInfo("F40D-PB (No Serial)", 40, 0)},
     {"RGBCape24", PixelCapeInfo("RGBCape24", 48, 0)},
     {"RGBCape48C", PixelCapeInfo("RGBCape48C", 48, 0)},
-    {"RGBCape48F", PixelCapeInfo("RGBCape48F", 48, 0)}
+    {"RGBCape48F", PixelCapeInfo("RGBCape48F", 48, 0)},
+    {"LED Panels", PixelCapeInfo("LED Panels", 0, 0)}
 };
 
 const std::string &FPP::PixelContollerDescription() const {
@@ -65,7 +66,13 @@ const std::string &FPP::PixelContollerDescription() const {
     return CONTROLLER_TYPE_MAP[pixelControllerType].description;
 }
 
-
+PixelCapeInfo& FPP::GetCapeRules(const std::string& type)
+{
+    if (type.find("LED Panels", 0) == 0) {
+        return CONTROLLER_TYPE_MAP["LED Panels"];
+    }
+    return CONTROLLER_TYPE_MAP.find(type) != CONTROLLER_TYPE_MAP.end() ? CONTROLLER_TYPE_MAP[type] : CONTROLLER_TYPE_MAP["PiHat"];
+}
 
 FPP::FPP(const std::string &ad) : majorVersion(0), minorVersion(0), outputFile(nullptr), parent(nullptr), ipAddress(ad), curl(nullptr) {
     wxIPV4address address;
@@ -887,11 +894,6 @@ bool FPP::SetInputUniversesBridge(std::list<int>& selected, OutputManager* outpu
     return false;
 }
 
-PixelCapeInfo& FPP::GetCapeRules(const std::string& type)
-{
-    return CONTROLLER_TYPE_MAP.find(type) != CONTROLLER_TYPE_MAP.end() ? CONTROLLER_TYPE_MAP[type] : CONTROLLER_TYPE_MAP["PiHat"];
-}
-
 bool FPP::UploadPixelOutputs(ModelManager* allmodels,
                              OutputManager* outputManager,
                              const std::list<int>& selected) {
@@ -905,15 +907,46 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("FPP Outputs Upload: Uploading to %s", (const char *)ipAddress.c_str());
 
+    std::string check;
+    UDController cud(ipAddress, hostName, allmodels, outputManager, &selected, check);
+    if (maxString == 0 && maxdmx == 0) {
+        //LED panel cape, nothing we can really do except update the start channel
+        int startChannel = -1;
+        if (cud.GetMaxPixelPort()) {
+            //The matrix actually has the controller connection defined, we'll use it
+            startChannel = cud.GetControllerPixelPort(0)->GetStartChannel();
+        } else if (!cud.GetNoConnectionModels().empty()) {
+            startChannel = cud.GetNoConnectionModels().front()->GetStringStartChan(0);
+        }
+        if (startChannel >= 0) {
+            startChannel++;  //one based
+            wxJSONValue origJson;
+            if (IsDrive()) {
+                GetPathAsJSON(ipAddress + wxFileName::GetPathSeparator() + "config" + wxFileName::GetPathSeparator() + "channeloutputs.json", origJson);
+            } else {
+                GetURLAsJSON("/fppjson.php?command=getChannelOutputs&file=channelOutputsJSON", origJson);
+            }
+            for (int x = 0; x < origJson["channelOutputs"].Size(); x++) {
+                if (origJson["channelOutputs"][x]["type"].AsString() == "LEDPanelMatrix") {
+                    origJson["channelOutputs"][x]["startChannel"] = startChannel;
+                }
+            }
+            
+            if (IsDrive()) {
+                WriteJSONToPath(ipAddress + wxFileName::GetPathSeparator() + "config" + wxFileName::GetPathSeparator() + "channeloutputs.json", origJson);
+            } else {
+                PostJSONToURLAsFormData("/fppjson.php", "command=setChannelOutputs&file=channelOutputsJSON", origJson);
+            }
+        }
+        return false;
+    }
+    
     std::string fppFileName = "co-bbbStrings";
     int minPorts = 1;
     if (pixelControllerType == "PiHat") {
         fppFileName = "co-pixelStrings";
         minPorts = 2;
     }
-
-    std::string check;
-    UDController cud(ipAddress, hostName, allmodels, outputManager, &selected, check);
     cud.Check(&rules, check);
     cud.Dump();
 

@@ -59,6 +59,7 @@ protected:
     wxLongLong _lastOutputTime;
     int _skippedFrames;
     bool _changed; // set to true when something in the packed has changed
+    bool _autoSize;
     #pragma endregion Member Variables
 
     virtual void Save(wxXmlNode* node);
@@ -81,6 +82,7 @@ public:
     virtual std::list<Output*> GetOutputs() const { std::list<Output*> res; return res; }
     bool IsDirty() const { return _dirty; }
     void ClearDirty() { _dirty = false; }
+    virtual bool IsLookedUpByControllerName() const { return false; }
     long GetStartChannel() const { return _startChannel; }
     long GetActualEndChannel() const { return _startChannel + _channels - 1; }
     void Suspend(bool suspend) { _suspend = suspend; }
@@ -101,6 +103,8 @@ public:
     virtual int GetUniverses() const { return 1; }
     int GetBaudRate() const;
     void SetBaudRate(int baudRate) { _baudRate = baudRate; _dirty = true; }
+    void SetAutoSize(bool autosize) { _autoSize = autosize; _dirty = true; }
+    bool GetAutoSize() const { return _autoSize; }
     bool IsEnabled() const { return _enabled; }
     void Enable(bool enable) { _enabled = enable; _dirty = true; }
     void SetController(const std::string& id);
