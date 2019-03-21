@@ -25,18 +25,18 @@ class StartChannelDialog: public wxDialog
 		virtual ~StartChannelDialog();
 
 		//(*Declarations(StartChannelDialog)
-		wxChoice* ChoiceController;
 		wxButton* Button_Cancel;
 		wxButton* Button_Ok;
 		wxCheckBox* CheckBox_FromThisPreviewOnly;
+		wxChoice* ChoiceController;
 		wxChoice* ModelChoice;
 		wxChoice* OutputChoice;
 		wxChoice* ipChoice;
 		wxChoice* universeChoice;
+		wxRadioButton* ControllerButton;
 		wxRadioButton* ModelButton;
 		wxRadioButton* NoneButton;
 		wxRadioButton* OutputButton;
-		wxRadioButton* RadioButton1;
 		wxRadioButton* StartModelButton;
 		wxRadioButton* UniverseButton;
 		wxSpinCtrl* StartChannel;

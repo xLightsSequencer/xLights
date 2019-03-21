@@ -83,8 +83,8 @@ public:
     virtual std::list<Output*> GetOutputs() const { std::list<Output*> res; return res; }
     virtual bool NeedsControllerConfig() const { return false; }
     bool IsDirty() const { return _dirty; }
-    virtual bool IsLookedUpByControllerName() const { return false; }
     void ClearDirty() { _dirty = false; }
+    virtual bool IsLookedUpByControllerName() const { return false; }
     long GetStartChannel() const { return _startChannel; }
     long GetActualEndChannel() const { return _startChannel + _channels - 1; }
     void Suspend(bool suspend) { _suspend = suspend; }
@@ -104,9 +104,9 @@ public:
     virtual std::string GetBaudRateString() const { return wxString::Format(wxT("%i"), GetBaudRate()).ToStdString(); }
     virtual int GetUniverses() const { return 1; }
     int GetBaudRate() const;
+    void SetBaudRate(int baudRate) { _baudRate = baudRate; _dirty = true; }
     void SetAutoSize(bool autosize) { _autoSize = autosize; _dirty = true; }
     bool GetAutoSize() const { return _autoSize; }
-    void SetBaudRate(int baudRate) { _baudRate = baudRate; _dirty = true; }
     bool IsEnabled() const { return _enabled; }
     void Enable(bool enable) { _enabled = enable; _dirty = true; }
     void SetController(const std::string& id);

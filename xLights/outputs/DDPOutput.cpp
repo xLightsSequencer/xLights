@@ -327,6 +327,10 @@ void DDPOutput::AllOff()
 #pragma endregion Data Setting
 
 #pragma region Getters and Setters
+bool DDPOutput::IsLookedUpByControllerName() const {
+    return GetDescription() != "";
+}
+
 std::string DDPOutput::GetLongDescription() const
 {
     std::string res = "";

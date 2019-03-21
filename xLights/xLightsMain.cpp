@@ -5329,7 +5329,7 @@ void xLightsFrame::CheckSequence(bool display)
                     LogAndWrite(f, msg.ToStdString());
                     errcount++;
                 }
-            } 
+            }
             if (it->second->GetLastChannel() == (unsigned int)-1)
             {
                 wxString msg = wxString::Format("    ERR: Model '%s' start channel '%s' evaluates to an illegal channel number.", it->first, start);

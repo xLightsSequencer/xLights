@@ -11,6 +11,10 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (dkulp)   Fix problem with FPP connect not finding models if using hostname instead of ip address
+   -- enh (dkulp)   FPP Connect can update the start channel of matrices for LED panel capes
+   -- enh (dkulp)   FPP Connect can detect LED Panel capes, display the matrix size
+   -- enh (dkulp/keith) Ability to use "Controller description" for starting channel (DDP only right now)
    -- enh (dkulp)   xShcedule as FPP remote now works with Multicast protocol (maybe Linux/OSX only)
    -- enh (dkulp)   xShcedule as FPP remote now responds to FPP Ping's/Discovery
    -- enh (dkulp)   Much faster FPP Connect discovery

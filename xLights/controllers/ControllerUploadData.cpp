@@ -15,13 +15,11 @@
 
 UDController::UDController(const std::string &ip, const std::string &hostname, ModelManager* mm, OutputManager* om, const std::list<int>* selected, std::string& check)
 {
-    std::list<Model*> noConnectionModels;
-
     _ipAddress = ip;
     _hostName = hostname;
 
     // get the list of outputs going to this controller
-    _outputs = om->GetAllOutputs(ip, *selected);
+    _outputs = om->GetAllOutputs(_ipAddress, _hostName, *selected);
 
     for (auto ito = _outputs.begin(); ito != _outputs.end(); ++ito)
     {
@@ -43,9 +41,9 @@ UDController::UDController(const std::string &ip, const std::string &hostname, M
                     if (!it->second->IsControllerConnectionValid())
                     {
                         // only warn if we have not already warned
-                        if (std::find(noConnectionModels.begin(), noConnectionModels.end(), it->second) == noConnectionModels.end())
+                        if (std::find(_noConnectionModels.begin(), _noConnectionModels.end(), it->second) == _noConnectionModels.end())
                         {
-                            noConnectionModels.push_back(it->second);
+                            _noConnectionModels.push_back(it->second);
                         }
                     }
                     else
@@ -89,7 +87,7 @@ UDController::UDController(const std::string &ip, const std::string &hostname, M
         }
     }
 
-    for (auto it = noConnectionModels.begin(); it != noConnectionModels.end(); ++it)
+    for (auto it = _noConnectionModels.begin(); it != _noConnectionModels.end(); ++it)
     {
         bool ok = false;
 

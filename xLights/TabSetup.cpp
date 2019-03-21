@@ -328,12 +328,12 @@ bool xLightsFrame::SetDir(const wxString& newdir)
     Notebook1->ChangeSelection(SETUPTAB);
     SetStatusText("");
     FileNameText->SetLabel(newdir);
-
+    
     if (UnsavedRgbEffectsChanges)
     {
         RebuildControllerConfig(&_outputManager, &AllModels);
     }
-
+    
     return true;
 }
 
@@ -630,7 +630,7 @@ void xLightsFrame::ChangeSelectedNetwork()
                 AllModels.RenameController(oldDesc, newDesc);
             }
         }
-
+        
         AllModels.ReworkStartChannel();
         NetworkChange();
         UpdateNetworkList(true);
@@ -713,12 +713,12 @@ void xLightsFrame::UpdateSelectedDescriptions()
             Output* o = _outputManager.GetOutput(item);
             std::string oldDesc = o->GetDescription();
             std::string newDesc = dlg.GetValue().ToStdString();
-
+            
             if (o->IsLookedUpByControllerName() && oldDesc != "")
             {
                 AllModels.RenameController(oldDesc, newDesc);
             }
-
+            
             o->SetDescription(newDesc);
 
             item = GridNetwork->GetNextItem(item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
@@ -1957,7 +1957,10 @@ void xLightsFrame::UploadFalconOutput()
 
 void xLightsFrame::UploadFPPStringOuputs(const std::string &controller) {
     SetStatusText("");
-    if (wxMessageBox("This will upload the output controller configuration for a " + controller + " controller. It requires that you have setup the controller connection on your models. Do you want to proceed with the upload?", "Are you sure?", wxYES_NO, this) == wxYES) {
+    const PixelCapeInfo &ci = FPP::GetCapeRules(controller);
+    if (wxMessageBox("This will upload the output controller configuration for a " + ci.description
+                     + " controller. It requires that you have setup the controller connection on your models. Do you want to proceed with the upload?",
+                     "Are you sure?", wxYES_NO, this) == wxYES) {
         SetCursor(wxCURSOR_WAIT);
         wxString ip;
         std::list<int> selected = GetSelectedOutputs(ip);
@@ -2519,9 +2522,10 @@ bool xLightsFrame::RebuildControllerConfig(OutputManager* outputManager, ModelMa
     {
         if ((*ito)->NeedsControllerConfig())
         {
-            ZCPPOutput* zcpp = (ZCPPOutput*)(*ito);
-
-            SetModelData(zcpp, modelManager, outputManager, CurrentDir.ToStdString());
+            if ((*ito)->GetType() == OUTPUT_ZCPP) {
+                ZCPPOutput* zcpp = (ZCPPOutput*)(*ito);
+                SetModelData(zcpp, modelManager, outputManager, CurrentDir.ToStdString());
+            }
         }
     }
 

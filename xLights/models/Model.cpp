@@ -570,25 +570,19 @@ void Model::AddProperties(wxPropertyGridInterface *grid, OutputManager* outputMa
         wxColor v;
         if (StringType == "Single Color Red") {
             v = *wxRED;
-        }
-        else if (StringType == "Single Color Green" || StringType == "G") {
+        } else if (StringType == "Single Color Green" || StringType == "G") {
             v = *wxGREEN;
-        }
-        else if (StringType == "Single Color Blue" || StringType == "B") {
+        } else if (StringType == "Single Color Blue" || StringType == "B") {
             v = *wxBLUE;
-        }
-        else if (StringType == "Single Color White" || StringType == "W") {
+        } else if (StringType == "Single Color White" || StringType == "W") {
             v = *wxWHITE;
-        }
-        else if (StringType == "Single Color Custom" || StringType == "Single Color Intensity") {
+        } else if (StringType == "Single Color Custom" || StringType == "Single Color Intensity") {
             v = customColor.asWxColor();
-        }
-        else if (StringType[0] == '#') {
+        } else if (StringType[0] == '#') {
             v = xlColor(StringType).asWxColor();
         }
         grid->AppendIn(p, new wxColourProperty("Color", "ModelStringColor", v));
-    }
-    else {
+    } else {
         sp = grid->AppendIn(p, new wxColourProperty("Color", "ModelStringColor", *wxRED));
         sp->Enable(false);
     }
@@ -678,8 +672,7 @@ void Model::AddControllerProperties(wxPropertyGridInterface *grid) {
         sp->SetBackgroundColour(*wxRED);
     }
 
-
-	wxString protocol = GetControllerProtocol();
+    wxString protocol = GetControllerProtocol();
     protocol.LowerCase();
     int idx = -1;
     int i = 0;
@@ -846,8 +839,7 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         SetFromXml(ModelXml, zeroBased);
         IncrementChangeCount();
         return 2;
-    }
-    else if (event.GetPropertyName() == "ModelDimmingCurves") {
+    } else if (event.GetPropertyName() == "ModelDimmingCurves") {
         SetFromXml(ModelXml, zeroBased);
         IncrementChangeCount();
         return GRIDCHANGE_MARK_DIRTY;
@@ -1137,8 +1129,7 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
                 ModelXml->AddAttribute("CustomColor", xc);
             }
             ModelXml->AddAttribute("StringType", tp);
-        }
-        else {
+        } else {
             ModelXml->AddAttribute("StringType", NODE_TYPES[i]);
             grid->GetPropertyByName("ModelStringColor")->Enable(false);
         }
@@ -1180,8 +1171,7 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
                         ComputeStringStartChannel(x));
                 }
             }
-        }
-        else {
+        } else {
             // overkill but just delete any that are there
             for (int x = 0; x < 100; x++) {
                 ModelXml->DeleteAttribute(StartChanAttrName(x));
@@ -2209,14 +2199,7 @@ std::string Model::GetStartChannelInDisplayFormat(OutputManager* outputManager)
     }
     else if (ModelStartChannel[0] == '!')
     {
-        auto o = outputManager->GetOutput(GetControllerName());
-        long start = 1;
-        if (o != nullptr)
-        {
-            start = o->GetStartChannel();
-        }
-        unsigned int startChannel = GetFirstChannel() + 1;
-        return wxString::Format("!%s:%ld (%u)", GetControllerName(), startChannel - start + 1, startChannel);
+        return ModelStartChannel + wxString::Format(" (%u)", GetFirstChannel() + 1);
     }
     else if (ModelStartChannel[0] == '#' || CountChar(ModelStartChannel, ':') > 0)
     {
@@ -4284,7 +4267,7 @@ bool Model::IsPixelProtocol(const std::string &p) {
     }
     wxString protocol = p;
     protocol.MakeLower();
-    return (protocol != "dmx" && protocol != "pixelnet" && protocol != "renard");
+    return (protocol != "dmx" && protocol != "pixelnet" && protocol != "renard" && protocol != "lor");
 }
 
 bool Model::IsPixelProtocol() const
@@ -4333,7 +4316,6 @@ void Model::SetControllerProtocol(const std::string& protocol)
     if (protocol != "") {
         GetControllerConnection()->AddAttribute("Protocol", protocol);
     }
-
     ReworkStartChannel();
     RecalcStartChannels();
     IncrementChangeCount();
@@ -4345,7 +4327,7 @@ void Model::SetControllerPort(int port)
     if (port > 0) {
         GetControllerConnection()->AddAttribute("Port", wxString::Format("%d", port));
     }
-
+    
     ReworkStartChannel();
     RecalcStartChannels();
     IncrementChangeCount();
@@ -4486,7 +4468,7 @@ int Model::GetControllerPort(int string) const
         wxString s = GetControllerConnection()->GetAttribute(p);
         return wxAtoi(s);
     }
-
+    
     wxString s = GetControllerConnection()->GetAttribute("Port", "0");
     int port = wxAtoi(s);
     if (port > 0) {
