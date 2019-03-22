@@ -78,7 +78,7 @@
 // when ZCPP_DISCOVERY_FLAG_SEND_DATA_AS_MULTICAST is set the controllers IP is slightly ignored
 // if controller IP is 10.10.10.10 then the data will be multicast to 224.0.31.10 ... ie the last octet is added
 // to ZCPP_MULTICAST_DATA_ADDRESS
-	#define ZCPP_DISCOVERY_FLAG_SEND_DATA_AS_MULTICAST 0x02
+#define ZCPP_DISCOVERY_FLAG_SEND_DATA_AS_MULTICAST 0x02
 #define ZCPP_DISCOVERY_FLAG_CONFIGURATION_LOCKED 0x04
 #define ZCPP_DISCOVERY_FLAG_SUPPORTS_VIRTUAL_STRINGS 0x08
 #define ZCPP_DISCOVERY_FLAG_SUPPORTS_SMART_REMOTES 0x10
@@ -100,6 +100,8 @@
 #define ZCPP_CONFIG_FLAG_FIRST 0x40 
 #define ZCPP_CONFIG_FLAG_LAST 0x80 
 
+#define ZCPP_CONFIG_MAX_PORT_PER_PACKET 100
+
 #define ZCPP_CONFIGURATION_QUERY_ERRORS 0x01
 
 #define ZCPP_DATA_FLAG_SYNC_WILL_BE_SENT 0x01
@@ -115,7 +117,7 @@ inline uint8_t ZCPP_GetStringNumber(uint8_t string) {
 }
 
 inline bool ZCPP_IsReversed(uint8_t directionColourOrder) {
-	return directionColourOrder & ZCPP_REVERSE_MASK != 0;
+	return (directionColourOrder & ZCPP_REVERSE_MASK) != 0;
 }
 
 inline uint8_t ZCPP_GetColourOrder(uint8_t directionColourOrder) {
@@ -123,7 +125,7 @@ inline uint8_t ZCPP_GetColourOrder(uint8_t directionColourOrder) {
 }
 
 inline float ZCPP_GetGamma(uint8_t gamma) {
-	return (float)gamma / 10.0;
+	return static_cast<float>(gamma) / 10.0;
 }
 
 inline uint8_t ZCPP_ConvertDiscoveryProtocolToProtocol(uint32_t discoveryProtocol) {
@@ -148,22 +150,39 @@ inline uint32_t ZCPP_ConvertProtocolToDiscoveryProtocol(uint8_t protocol)
 
 const uint8_t ZCPP_token[4] = {'Z', 'C', 'P', 'P'};
 
+#ifdef _MSC_VER
+#pragma pack(push)
+#pragma pack(1)
+#endif
+
 // Common header across all packet types - 6 bytes
-typedef struct {
+typedef 
+#ifndef _MSC_VER
+__attribute__((packed))
+#endif
+struct {
 	uint8_t token[4]; 			// Always ZCPP
 	uint8_t type;				// packet type
 	uint8_t protocolVersion;	// version of the protocol
-} ZCPP_Header __attribute__ ((packed));
+} ZCPP_Header;
 
 // Discovery Request - 8 bytes
-typedef struct {
+typedef 
+#ifndef _MSC_VER
+__attribute__((packed))
+#endif
+struct {
 	ZCPP_Header Header;
 	uint8_t minProtocolVersion; // The minimum version of the protocol the requester supports
 	uint8_t maxProtocolVersion; // The maximum version of the protocol the requester supports
-} ZCPP_Discovery __attribute__((packed));
+} ZCPP_Discovery;
 
 // Discovery Response - 86 bytes
-typedef struct {
+typedef 
+#ifndef _MSC_VER
+__attribute__((packed))
+#endif
+struct {
 	ZCPP_Header Header;
 	uint8_t minProtocolVersion; // The minimum version of the protocol the controller supports
 	uint8_t maxProtocolVersion; // The maximum version of the protocol the controller supports
@@ -172,94 +191,151 @@ typedef struct {
 	char firmwareVersion[12];	// A string of up to 12 characters which is the firmware version as a string. It does not
 								// need to be null terminated but should be null filled if all 12 characters are not used
 	uint8_t macAddress[6];		// The controllers mac Address
+    uint8_t filler1[2];
 	uint32_t ipv4Address;		// The controllers IP V4 IP Address
 	uint32_t ipv4Mask;			// The controllers IP V4 Subnet Mask
 	char userControllerName[32];// Up to 32 characters of user controller name
-	uint8_t pixelPorts;			// Number of pixel ports supported by the controller
+    uint32_t maxTotalChannels;  // Maximum number of channels that the controller will accept. This may not just be the sum
+                                // of all port channels as the controller may have some global limits
+    uint8_t pixelPorts;			// Number of pixel ports supported by the controller
 	uint8_t rsPorts;			// Number of RSxxx ports supported by the controller
 	uint16_t channelsPerPixelPort; // Maximum number of channels each pixel port can accept
 	uint16_t channelsPerRSPort; // Maximum number of channels each RSxxx port can accept
-	uint32_t maxTotalChannels;  // Maximum number of channels that the controller will accept. This may not just be the sum
-								// of all port channels as the controller may have some global limits
-	uint32_t protocolsSupported; // Bitmask of all supported protocols
-	uint16_t flags;				// Discovery Flags
-} ZCPP_DiscoveryResponse __attribute__((packed));
+    uint16_t flags;				// Discovery Flags
+    uint32_t protocolsSupported; // Bitmask of all supported protocols
+} ZCPP_DiscoveryResponse;
 
 // Describes the configuration of a port or virtual string - 14 bytes
-typedef struct {
+typedef 
+#ifndef _MSC_VER
+__attribute__((packed))
+#endif
+struct {
 	uint8_t port;					// zero based port that is being configured
 	uint8_t string;					// smart remote and virtual string number within port
-	uint8_t protocol;				// port protocol
-	uint32_t startChannel;			// zero based start channel within the ZCPP data space
+    uint16_t startChannel;			// zero based start channel within the ZCPP data space
+    uint8_t protocol;				// port protocol
 	uint16_t channels;				// number of channels to send out this port
 	uint8_t grouping;				// pixel grouping on this port. If 2 then channels 123456789 becomes 123123456456789789
 	uint8_t directionColourOrder;   // should data be reversed and what is the pixel colour order
 	uint8_t nullPixels;				// number of null pixels at the start of this string
 	uint8_t brightness;				// 0-100 brightness
 	uint8_t gamma;					// Gamma * 10
-} ZCPP_PortConfig __attribute__((packed));
+} ZCPP_PortConfig;
 
 // Configuration - 42 - 1442 bytes
-typedef struct {
+typedef 
+#ifndef _MSC_VER
+__attribute__((packed))
+#endif
+struct {
 	ZCPP_Header Header;
 	uint16_t sequenceNumber;		// sequence number unique each time the configuration changes
 	char userControllerName[32];	// Up to 32 characters of user controller name
 	uint8_t flags;					// Configuration flags
 	uint8_t ports;					// Number of ports being configured
-	ZCPP_PortConfig PortConfig[];		// Up to 100 of them
-} ZCPP_Configuration __attribute__((packed));
+#ifdef _MSC_VER
+    ZCPP_PortConfig PortConfig[1];		// Up to 100 of them
+#else
+    ZCPP_PortConfig PortConfig[];		// Up to 100 of them
+#endif
+} ZCPP_Configuration;
 
 // Query Configuration Response 42 - 1442 bytes
-typedef struct {
+typedef 
+#ifndef _MSC_VER
+__attribute__((packed))
+#endif
+struct {
 	ZCPP_Header Header;
 	uint16_t sequenceNumber;		// sequence number unique each time the configuration changes
 	char userControllerName[32];	// Up to 32 characters of user controller name
 	uint8_t flags;					// Configuration result flags
 	uint8_t ports;					// Number of ports configured
-	ZCPP_PortConfig PortConfig[];		// Up to 100 of them
-} ZCPP_QueryConfigurationResponse __attribute__((packed));
+#ifdef _MSC_VER
+    ZCPP_PortConfig PortConfig[1];		// Up to 100 of them
+#else
+    ZCPP_PortConfig PortConfig[];		// Up to 100 of them
+#endif
+} ZCPP_QueryConfigurationResponse;
 
 // QueryConfiguration - 6 bytes
-typedef struct {
+typedef 
+#ifndef _MSC_VER
+__attribute__((packed))
+#endif
+struct {
 	ZCPP_Header Header;
-} ZCPP_QueryConfiguration __attribute__((packed));
+} ZCPP_QueryConfiguration;
 
 // Extra port data - 3 - 1490 bytes
-typedef struct {
+typedef 
+#ifndef _MSC_VER
+__attribute__((packed))
+#endif
+struct {
 	uint8_t port;					// zero based port that is being configured
 	uint8_t string;					// smart remote and virtual string number within port
 	uint8_t descriptionLength;		// length of the description which must fit entirely within this ethernet frame
-	char description[];				// the port description
-} ZCPP_PortExtraData __attribute__((packed));
+#ifdef _MSC_VER
+    char description[1];				// the port description
+#else
+    char description[];				// the port description
+#endif
+} ZCPP_PortExtraData;
 
 // Extra port configuration data - 10 - 1500 bytes
-typedef struct {
+typedef 
+#ifndef _MSC_VER
+__attribute__((packed))
+#endif
+struct {
 	ZCPP_Header Header;
 	uint16_t sequenceNumber;		// sequence number unique each time the configuration changes
 	uint8_t flags;					// Configuration flags
 	uint8_t ports;					// Number of ports being configured
-	ZCPP_PortExtraData PortExtraData[];
-} ZCPP_ExtraData __attribute__((packed));
+#ifdef _MSC_VER
+    ZCPP_PortExtraData PortExtraData[1];
+#else
+    ZCPP_PortExtraData PortExtraData[];
+#endif
+} ZCPP_ExtraData;
 
 // Sync - 7 bytes
-typedef struct {
+typedef 
+#ifndef _MSC_VER
+__attribute__((packed))
+#endif
+struct {
 	ZCPP_Header Header;
 	uint8_t sequenceNumber;			// sequence number matching the data frame sequence number this sync packet is for
-} ZCPP_Sync __attribute__((packed));
+} ZCPP_Sync;
 
 // Data - 14 - 1500 bytes
-typedef struct {
+typedef 
+#ifndef _MSC_VER
+__attribute__((packed)) 
+#endif
+struct {
 	ZCPP_Header Header;
 	uint8_t sequenceNumber;			// sequence number matching of the data frame. If multiple packets are needed all packets in the
 									// same frame will have the same sequence number. Frame numbers start at zero and increment and 
 									// then go back to zero
-	uint32_t frameAddress;			// where in the zero based data address space the data in this packet belongs
 	uint8_t flags;					// data packet flags
-	uint16_t packetDataLength;		// how many data bytes are in this packet
-	uint8_t data[];
-} ZCPP_Data __attribute__((packed));
+    uint32_t frameAddress;			// where in the zero based data address space the data in this packet belongs
+    uint16_t packetDataLength;		// how many data bytes are in this packet
+#ifdef _MSC_VER
+    uint8_t data[1];
+#else
+    uint8_t data[];
+#endif
+} ZCPP_Data;
 
-typedef union {
+typedef
+#ifndef _MSC_VER
+__attribute__((packed))
+#endif
+union {
 	// sent discovery
 	ZCPP_Discovery Discovery;
 		// Must lead to a DiscoveryResponse
@@ -289,6 +365,51 @@ typedef union {
 	ZCPP_Sync Sync;
 
     uint8_t raw[1500];
-} ZCPP_packet_t __attribute__((packed));
+} ZCPP_packet_t;
 
+#ifdef _MSC_VER
+#pragma pack(pop)
+#endif
+
+inline uint16_t ZCPP_ExtraDataUsed(ZCPP_packet_t& packet) {
+    uint16_t used = 10;
+    ZCPP_PortExtraData* p = packet.ExtraData.PortExtraData;
+    for (int i = 0; i < packet.ExtraData.ports; i++)
+    {
+        used += 3;
+        used += p->descriptionLength;
+        p = (ZCPP_PortExtraData*)((uint8_t*)p + 3 + p->descriptionLength);
+    }
+    return used;
+}
+
+inline uint32_t ZCPP_FromWire32(uint32_t value)
+{
+    uint8_t* p = (uint8_t*)&value;
+    return (((uint32_t)(*p)) << 24) + (((uint32_t)*(p + 1)) << 16) + (((uint32_t)*(p + 2)) << 8) + ((uint32_t)*(p + 3));
+}
+
+inline uint16_t ZCPP_FromWire16(uint16_t value)
+{
+    uint8_t* p = (uint8_t*)&value;
+    return (((uint16_t)(*p)) << 8) + (uint16_t)(*(p + 1));
+}
+
+inline uint32_t ZCPP_ToWire32(uint32_t value)
+{
+    uint8_t res[4];
+    res[0] = value >> 24;
+    res[1] = (value & 0xFF0000) >> 16;
+    res[2] = (value & 0xFF00) >> 8;
+    res[3] = value & 0xFF;
+    return *(uint32_t*)res;
+}
+
+inline uint16_t ZCPP_ToWire16(uint32_t value)
+{
+    uint8_t res[2];
+    res[0] = (value & 0xFF00) >> 8;
+    res[1] = value & 0xFF;
+    return *(uint16_t*)res;
+}
 #endif

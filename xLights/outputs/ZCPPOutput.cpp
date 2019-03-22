@@ -16,47 +16,52 @@
 ZCPPOutput::ZCPPOutput(wxXmlNode* node, std::string showdir) : IPOutput(node)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    memset(_modelData, 0x00, sizeof(_modelData));
+    memset(&_modelData, 0x00, sizeof(_modelData));
+    _multicast = false;
+    _dontConfigure = false;
     _lastSecond = -1;
     _sequenceNum = 0;
     _usedChannels = _channels;
     _datagram = nullptr;
     _data = (wxByte*)malloc(_channels);
     memset(_data, 0, _channels);
-    memset(_packet, 0, sizeof(_packet));
+    memset(&_packet, 0, sizeof(_packet));
     _vendor = wxAtoi(node->GetAttribute("Vendor", "65535"));
     _model = wxAtoi(node->GetAttribute("Model", "65535"));
-    _sendConfiguration = node->GetAttribute("SendConfig", "TRUE") != "FALSE";
     _supportsVirtualStrings = node->GetAttribute("SupportsVirtualStrings", "FALSE") == "TRUE";
     _supportsSmartRemotes = node->GetAttribute("SupportsSmartRemotes", "FALSE") == "TRUE";
+    _multicast = node->GetAttribute("Multicast", "FALSE") == "TRUE";
+    _dontConfigure = node->GetAttribute("DontConfigure", "FALSE") == "TRUE";
     DeserialiseProtocols(node->GetAttribute("Protocols", ""));
 
-    wxString fileName = GetIP();
-    fileName.Replace(".", "_");
-    fileName += ".zcpp";
-    fileName = showdir + wxFileName::GetPathSeparator() + fileName;
-
-    if (wxFile::Exists(fileName))
+    if (!_dontConfigure)
     {
-        wxFile zf;
-        if (zf.Open(fileName))
+        wxString fileName = GetIP();
+        fileName.Replace(".", "_");
+        fileName += ".zcpp";
+        fileName = showdir + wxFileName::GetPathSeparator() + fileName;
+
+        if (wxFile::Exists(fileName))
         {
-            uint8_t tag[4];
-            zf.Read(tag, sizeof(tag));
-            if (tag[0] != 'Z' || tag[1] != 'C' || tag[2] != 'P' || tag[3] != 'P')
+            wxFile zf;
+            if (zf.Open(fileName))
             {
-                logger_base.warn("ZCPP Model data file %s did not contain opening tag.", (const char*)fileName.c_str());
-            }
-            else
-            {
-                while (!zf.Eof())
+                uint8_t tag[4];
+                zf.Read(tag, sizeof(tag));
+                if (tag[0] != 'Z' || tag[1] != 'C' || tag[2] != 'P' || tag[3] != 'P')
                 {
-                    uint8_t type;
-                    zf.Read(&type, sizeof(type));
-                    switch (type)
+                    logger_base.warn("ZCPP Model data file %s did not contain opening tag.", (const char*)fileName.c_str());
+                }
+                else
+                {
+                    while (!zf.Eof())
                     {
+                        uint8_t type;
+                        zf.Read(&type, sizeof(type));
+                        switch (type)
+                        {
                         case 0x00:
-                            {
+                        {
                             uint8_t b1;
                             uint8_t b2;
                             zf.Read(&b1, sizeof(b1));
@@ -64,14 +69,14 @@ ZCPPOutput::ZCPPOutput(wxXmlNode* node, std::string showdir) : IPOutput(node)
                             uint16_t size = (b1 << 8) + b2;
                             if (size == sizeof(_modelData))
                             {
-                                zf.Read(_modelData, sizeof(_modelData));
+                                zf.Read(&_modelData, sizeof(_modelData));
                             }
                             else
                             {
                                 logger_base.warn("ZCPP Model data file %s unrecognised model data size.", (const char*)fileName.c_str());
                                 zf.SeekEnd();
                             }
-                            }
+                        }
                         break;
                         case 0x01:
                         {
@@ -80,10 +85,10 @@ ZCPPOutput::ZCPPOutput(wxXmlNode* node, std::string showdir) : IPOutput(node)
                             zf.Read(&b1, sizeof(b1));
                             zf.Read(&b2, sizeof(b2));
                             uint16_t size = (b1 << 8) + b2;
-                            if (size == ZCPP_EXTRACONFIG_PACKET_SIZE)
+                            if (size == sizeof(ZCPP_packet_t))
                             {
-                                wxByte* descPacket = (wxByte*)malloc(ZCPP_EXTRACONFIG_PACKET_SIZE);
-                                zf.Read(descPacket, ZCPP_EXTRACONFIG_PACKET_SIZE);
+                                ZCPP_packet_t descPacket;
+                                zf.Read(&descPacket, sizeof(descPacket));
                                 _extraConfig.push_back(descPacket);
                             }
                             else
@@ -99,33 +104,39 @@ ZCPPOutput::ZCPPOutput(wxXmlNode* node, std::string showdir) : IPOutput(node)
                         default:
                             logger_base.warn("ZCPP Model data file %s unrecognised type %d.", (const char*)fileName.c_str(), type);
                             break;
+                        }
                     }
+                    logger_base.debug("ZCPP Model data file %s loaded.", (const char*)fileName.c_str());
                 }
-                logger_base.debug("ZCPP Model data file %s loaded.", (const char*)fileName.c_str());
+                zf.Close();
             }
-            zf.Close();
+            else
+            {
+                logger_base.warn("ZCPP Model data file %s could not be opened.", (const char*)fileName.c_str());
+            }
+            ExtractUsedChannelsFromModelData();
         }
         else
         {
-            logger_base.warn("ZCPP Model data file %s could not be opened.", (const char*)fileName.c_str());
+            logger_base.warn("ZCPP Model data file %s not found.", (const char*)fileName.c_str());
         }
-        ExtractUsedChannelsFromModelData();
     }
     else
     {
-        logger_base.warn("ZCPP Model data file %s not found.", (const char*)fileName.c_str());
+        logger_base.warn("ZCPP set to not configure the controller.");
     }
 }
 
 ZCPPOutput::ZCPPOutput() : IPOutput()
 {
-    memset(_modelData, 0x00, sizeof(_modelData));
+    memset(&_modelData, 0x00, sizeof(_modelData));
+    _multicast = false;
+    _dontConfigure = false;
     _lastSecond = -1;
     _channels = 1;
     _usedChannels = 1;
     _universe = -1;
     _sequenceNum = 0;
-    _sendConfiguration = true;
     _supportsVirtualStrings = false;
     _supportsSmartRemotes = false;
     _datagram = nullptr;
@@ -134,44 +145,39 @@ ZCPPOutput::ZCPPOutput() : IPOutput()
     _model = -1;
     _data = (wxByte*)malloc(_channels);
     memset(_data, 0, _channels);
-    memset(_packet, 0, sizeof(_packet));
+    memset(&_packet, 0, sizeof(_packet));
 }
 
 ZCPPOutput::~ZCPPOutput()
 {
     if (_datagram != nullptr) delete _datagram;
     if (_data != nullptr) free(_data);
-    while (_extraConfig.size() > 0)
-    {
-        free(_extraConfig.front());
-        _extraConfig.pop_front();
-    }
 }
 #pragma endregion Constructors and Destructors
 
 void ZCPPOutput::ExtractUsedChannelsFromModelData()
 {
-    int ports = _modelData[38] & 0x7F;
+    int ports = _modelData.Configuration.ports;
     _usedChannels = 1;
+    ZCPP_PortConfig* port = _modelData.Configuration.PortConfig;
     for (int i = 0; i < ports; i++)
     {
-        int start = (((int)_modelData[42 + i * ZCPP_BYTESPERSTRING]) << 24) +
-            (((int)_modelData[43 + i * ZCPP_BYTESPERSTRING]) << 16) +
-            (((int)_modelData[44 + i * ZCPP_BYTESPERSTRING]) << 8) +
-            (((int)_modelData[45 + i * ZCPP_BYTESPERSTRING]));
-        int len = (((int)_modelData[46 + i * ZCPP_BYTESPERSTRING]) << 8) +
-            (((int)_modelData[47 + i * ZCPP_BYTESPERSTRING]));
+        int start = htonl(port->startChannel);
+        int len = htons(port->channels);
         if (start + len - 1 > _usedChannels)
         {
             _usedChannels = start + len;
         }
+        port++;
     }
 }
 
-bool ZCPPOutput::SetModelData(unsigned char* buffer, size_t bufsize, std::list<wxByte*> extraConfig, std::string showDir)
+bool ZCPPOutput::SetModelData(ZCPP_packet_t& modelData, std::list<ZCPP_packet_t> extraConfig, std::string showDir)
 {
+    if (_dontConfigure) return false;
+
     // before byte 9 there can be differences
-    if (memcmp(&_modelData[8], &buffer[8], std::min(bufsize, sizeof(_modelData)) - 8) == 0 &&
+    if (memcmp(&_modelData.raw[8], &modelData.raw[8], sizeof(_modelData) - 8) == 0 &&
         _extraConfig.size() == _extraConfig.size())
     {
         bool extraConfigSame = true;
@@ -180,7 +186,7 @@ bool ZCPPOutput::SetModelData(unsigned char* buffer, size_t bufsize, std::list<w
 
         while (extraConfigSame && it1 != _extraConfig.end())
         {
-            if (memcmp(&(*it1)[9], &(*it2)[9], ZCPP_EXTRACONFIG_PACKET_SIZE - 9) != 0)
+            if (memcmp(&(*it1).raw[9], &(*it2).raw[9], sizeof(extraConfig) - 9) != 0)
             {
                 extraConfigSame = false;
             }
@@ -197,16 +203,21 @@ bool ZCPPOutput::SetModelData(unsigned char* buffer, size_t bufsize, std::list<w
 
     while (_extraConfig.size() > 0)
     {
-        free(_extraConfig.front());
         _extraConfig.pop_front();
     }
 
-    for (auto it = extraConfig.begin(); it != extraConfig.end(); ++it)
+    for (auto it : extraConfig)
     {
-        _extraConfig.push_back(*it);
+        _extraConfig.push_back(it);
     }
 
     wxString fileName = GetIP();
+
+    if (_multicast)
+    {
+        fileName = ZCPP_MULTICAST_DATA_ADDRESS + wxString(GetIP()).AfterLast('.');
+    }
+
     fileName.Replace(".", "_");
     fileName += ".zcpp";
     fileName = showDir + wxFileName::GetPathSeparator() + fileName;
@@ -214,30 +225,29 @@ bool ZCPPOutput::SetModelData(unsigned char* buffer, size_t bufsize, std::list<w
     wxFile zf;
     if (zf.Create(fileName, true))
     {
-        uint8_t tag[4] = { 'Z','C','P','P' };
-        zf.Write(tag, sizeof(tag));
+        zf.Write(ZCPP_token, sizeof(ZCPP_token));
         
         uint8_t type = 0x00;
         zf.Write(&type, sizeof(type));
         
-        uint8_t b = (bufsize & 0xFF00) >> 8;
+        uint8_t b = (sizeof(modelData) & 0xFF00) >> 8;
         zf.Write(&b, sizeof(b));
-        b = bufsize & 0xFF;
+        b = sizeof(modelData) & 0xFF;
         zf.Write(&b, sizeof(b));
         
-        zf.Write(buffer, bufsize);
+        zf.Write(&modelData, sizeof(modelData));
         
-        for (auto it = _extraConfig.begin(); it != _extraConfig.end(); ++it)
+        for (auto it : _extraConfig)
         {
             type = 0x01;
             zf.Write(&type, sizeof(type));
 
-            b = (ZCPP_EXTRACONFIG_PACKET_SIZE & 0xFF00) >> 8;
+            b = (sizeof(ZCPP_packet_t) & 0xFF00) >> 8;
             zf.Write(&b, sizeof(b));
-            b = ZCPP_EXTRACONFIG_PACKET_SIZE & 0xFF;
+            b = sizeof(ZCPP_packet_t) & 0xFF;
             zf.Write(&b, sizeof(b));
 
-            zf.Write(*it, ZCPP_EXTRACONFIG_PACKET_SIZE);
+            zf.Write(&it, sizeof(ZCPP_packet_t));
         }
 
         type = 0xFF;
@@ -246,8 +256,7 @@ bool ZCPPOutput::SetModelData(unsigned char* buffer, size_t bufsize, std::list<w
         zf.Close();
     }
 
-    wxASSERT(bufsize <= ZCPP_MODELDATASIZE);
-    memcpy(_modelData, buffer, std::min(bufsize, sizeof(_modelData)));
+    _modelData = modelData;
     _lastSecond = -1;
 
     ExtractUsedChannelsFromModelData();
@@ -282,9 +291,10 @@ wxXmlNode* ZCPPOutput::Save()
     wxXmlNode* node = new wxXmlNode(wxXML_ELEMENT_NODE, "network");
     node->AddAttribute("Vendor", wxString::Format("%d", _vendor));
     node->AddAttribute("Model", wxString::Format("%d", _model));
-    if (!_sendConfiguration) node->AddAttribute("SendConfiguration", "FALSE");
     if (_supportsVirtualStrings)node->AddAttribute("SupportsVirtualStrings", "TRUE");
     if (_supportsSmartRemotes)node->AddAttribute("SupportsSmartRemotes", "TRUE");
+    if (_dontConfigure)node->AddAttribute("DontConfigure", "TRUE");
+    if (_multicast)node->AddAttribute("Multicast", "TRUE");
     node->AddAttribute("Protocols", SerialiseProtocols());
     IPOutput::Save(node);
 
@@ -295,8 +305,8 @@ wxXmlNode* ZCPPOutput::Save()
 void ZCPPOutput::SendSync(int syncUniverse)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    static wxByte syncdata[ZCPP_SYNCPACKET_LEN];
-    static wxByte syncSequenceNum = 0;
+    static ZCPP_packet_t syncdata;
+    static uint8_t syncSequenceNum = 0;
     static bool initialised = false;
     static wxIPV4address syncremoteAddr;
     static wxDatagramSocket *syncdatagram = nullptr;
@@ -307,14 +317,10 @@ void ZCPPOutput::SendSync(int syncUniverse)
 
         initialised = true;
 
-        memset(syncdata, 0x00, sizeof(syncdata));
-
-        syncdata[0] = 'Z';   // RLP preamble size (low)
-        syncdata[1] = 'C';   // ACN Packet Identifier (12 bytes)
-        syncdata[2] = 'P';
-        syncdata[3] = 'P';
-        syncdata[4] = 21;
-        syncdata[5] = 0x00;
+        memset(&syncdata, 0x00, sizeof(syncdata));
+        memcpy(syncdata.Sync.Header.token, ZCPP_token, sizeof(ZCPP_token));
+        syncdata.Sync.Header.type = ZCPP_TYPE_SYNC;
+        syncdata.Sync.Header.protocolVersion = ZCPP_CURRENT_PROTOCOL_VERSION;
 
         wxIPV4address localaddr;
         if (IPOutput::__localIP == "")
@@ -351,33 +357,27 @@ void ZCPPOutput::SendSync(int syncUniverse)
         }
 
         // multicast - universe number must be in lower 2 bytes
-        wxString ipaddrWithUniv = ZCPP_MULTICAST_TO;
+        wxString ipaddrWithUniv = ZCPP_MULTICAST_ADDRESS;
         syncremoteAddr.Hostname(ipaddrWithUniv);
         syncremoteAddr.Service(ZCPP_PORT);
     }
 
-    syncdata[6] = syncSequenceNum++;   // sequence number
+    syncdata.Sync.sequenceNumber = syncSequenceNum++;   // sequence number
 
     // bail if we dont have a datagram to use
     if (syncdatagram != nullptr)
     {
-        syncdatagram->SendTo(syncremoteAddr, syncdata, ZCPP_SYNCPACKET_LEN);
+        syncdatagram->SendTo(syncremoteAddr, &syncdata, sizeof(ZCPP_Sync));
     }
 }
 
-void ZCPPOutput::InitialiseExtraConfigPacket(wxByte* buffer, int seq, std::string userControllerId)
+void ZCPPOutput::InitialiseExtraConfigPacket(ZCPP_packet_t& packet, int seq)
 {
-    memset(buffer, 0x00, ZCPP_EXTRACONFIG_PACKET_SIZE);
-    buffer[0] = 'Z';
-    buffer[1] = 'C';   // ACN Packet Identifier (12 bytes)
-    buffer[2] = 'P';
-    buffer[3] = 'P';
-    buffer[4] = 0x0B;
-    buffer[5] = 0x00;
-    buffer[6] = (seq & 0xff00) >> 8;
-    buffer[7] = seq & 0xff;
-    buffer[8] = 0x00;
-    strncpy((char*)&buffer[9], userControllerId.c_str(), 30);
+    memset(&packet, 0x00, sizeof(packet));
+    memcpy(packet.ExtraData.Header.token, ZCPP_token, sizeof(ZCPP_token));
+    packet.ExtraData.Header.type = ZCPP_TYPE_EXTRA_DATA;
+    packet.ExtraData.Header.protocolVersion = ZCPP_CURRENT_PROTOCOL_VERSION;
+    packet.ExtraData.sequenceNumber = ntohs(seq);
 }
 
 std::list<Output*> ZCPPOutput::Discover(OutputManager* outputManager)
@@ -385,15 +385,12 @@ std::list<Output*> ZCPPOutput::Discover(OutputManager* outputManager)
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     std::list<Output*> res;
 
-    wxByte packet[7];
+    ZCPP_packet_t packet;
 
-    packet[0] = 'Z';
-    packet[1] = 'C';
-    packet[2] = 'P';
-    packet[3] = 'P';
-    packet[4] = 0x00;
-    packet[5] = 0x00;
-    packet[6] = 0x00;
+    memset(&packet, 0x00, sizeof(packet));
+    memcpy(packet.Discovery.Header.token, ZCPP_token, sizeof(ZCPP_token));
+    packet.Discovery.Header.type = ZCPP_TYPE_DISCOVERY;
+    packet.Discovery.Header.protocolVersion = ZCPP_CURRENT_PROTOCOL_VERSION;
 
     wxIPV4address sendlocaladdr;
     if (IPOutput::__localIP == "")
@@ -430,7 +427,7 @@ std::list<Output*> ZCPPOutput::Discover(OutputManager* outputManager)
 
     // multicast - universe number must be in lower 2 bytes
     wxIPV4address remoteaddr;
-    wxString ipaddrWithUniv = ZCPP_MULTICAST_TO;
+    wxString ipaddrWithUniv = ZCPP_MULTICAST_ADDRESS;
     remoteaddr.Hostname(ipaddrWithUniv);
     remoteaddr.Service(ZCPP_PORT);
 
@@ -438,7 +435,7 @@ std::list<Output*> ZCPPOutput::Discover(OutputManager* outputManager)
     if (datagram != nullptr)
     {
         logger_base.info("ZCPP sending discovery packet.");
-        datagram->SendTo(remoteaddr, packet, sizeof(packet));
+        datagram->SendTo(remoteaddr, &packet, sizeof(ZCPP_Discovery));
         if (datagram->Error() != wxSOCKET_NOERROR)
         {
             logger_base.error("Error sending ZCPP discovery datagram => %d : %s.", datagram->LastError(), (const char *)DecodeIPError(datagram->LastError()).c_str());
@@ -450,7 +447,7 @@ std::list<Output*> ZCPPOutput::Discover(OutputManager* outputManager)
             // give the controllers 2 seconds to respond
             wxMilliSleep(2000);
 
-            unsigned char buffer[2048];
+            ZCPP_packet_t response;
 
             int lastread = 1;
 
@@ -458,32 +455,55 @@ std::list<Output*> ZCPPOutput::Discover(OutputManager* outputManager)
             {
                 wxStopWatch sw;
                 logger_base.debug("Trying to read ZCPP discovery packet.");
-                memset(buffer, 0x00, sizeof(buffer));
-                datagram->Read(&buffer[0], sizeof(buffer));
+                memset(&response, 0x00, sizeof(response));
+                datagram->Read(&response, sizeof(response));
                 lastread = datagram->LastReadCount();
 
                 if (lastread > 0)
                 {
                     logger_base.debug(" Read done. %d bytes %ldms", lastread, sw.Time());
 
-                    if (buffer[0] == 'Z' && buffer[1] == 'C' && buffer[2] == 'P' && buffer[3] == 'P' && buffer[4] == 0x01)
+                    if (memcmp(&response, ZCPP_token, sizeof(ZCPP_token)) == 0 && response.DiscoveryResponse.Header.type == ZCPP_TYPE_DISCOVERY_RESPONSE)
                     {
                         logger_base.debug(" Valid response.");
 
-                        long channels = ((long)buffer[66] << 24) + ((long)buffer[67] << 16) + ((long)buffer[68] << 8) + (long)buffer[69];
-                        logger_base.debug("   Channels %ld", channels);
                         ZCPPOutput* output = new ZCPPOutput();
-                        output->SetDescription(std::string((char*)&buffer[31]));
-                        logger_base.debug("   Description %s", (const char *)output->GetDescription().c_str());
-                        auto ip = wxString::Format("%d.%d.%d.%d", (int)buffer[110], (int)buffer[111], (int)buffer[112], (int)buffer[113]);
-                        output->SetIP(ip.ToStdString());
-                        logger_base.debug("   IP %s", (const char *)ip.c_str());
-                        int vendor = ((int)buffer[6] << 8) + buffer[7];
+
+                        int vendor = ZCPP_FromWire16(response.DiscoveryResponse.vendor);
                         output->SetVendor(vendor);
                         logger_base.debug("   Vendor %d", vendor);
-                        int model = ((int)buffer[8] << 8) + buffer[9];
+
+                        int model = ZCPP_FromWire16(response.DiscoveryResponse.model);
                         output->SetModel(model);
                         logger_base.debug("   Model %d", model);
+
+                        logger_base.debug("   Firmware %s", response.DiscoveryResponse.firmwareVersion);
+
+                        auto ip = wxString::Format("%d.%d.%d.%d",
+                            (int)(response.DiscoveryResponse.ipv4Address & 0xFF),
+                            (int)(response.DiscoveryResponse.ipv4Address & 0xFF00) >> 8,
+                            (int)(response.DiscoveryResponse.ipv4Address & 0xFF0000) >> 16,
+                            (int)(response.DiscoveryResponse.ipv4Address & 0xFF000000) >> 24);
+                        output->SetIP(ip.ToStdString());
+                        logger_base.debug("   IP %s", (const char *)ip.c_str());
+
+                        output->SetDescription(response.DiscoveryResponse.userControllerName);
+                        logger_base.debug("   Description %s", (const char *)output->GetDescription().c_str());
+
+                        uint32_t channels = ZCPP_FromWire32(response.DiscoveryResponse.maxTotalChannels);
+                        logger_base.debug("   Channels %ld", channels);
+
+                        bool supportsVirtualStrings = response.DiscoveryResponse.flags & ZCPP_DISCOVERY_FLAG_SUPPORTS_VIRTUAL_STRINGS;
+                        logger_base.debug("   Supports Virtual Strings %d", supportsVirtualStrings);
+
+                        bool supportsSmartRemotes = response.DiscoveryResponse.flags & ZCPP_DISCOVERY_FLAG_SUPPORTS_SMART_REMOTES;
+                        logger_base.debug("   Supports Smart Remotes %d", supportsSmartRemotes);
+
+                        bool dontConfigure = (response.DiscoveryResponse.flags & ZCPP_DISCOVERY_FLAG_CONFIGURATION_LOCKED) != 0;
+                        logger_base.debug("   Doesnt want to recieve configuration %d", dontConfigure);
+
+                        bool multicast = (response.DiscoveryResponse.flags & ZCPP_DISCOVERY_FLAG_SEND_DATA_AS_MULTICAST) != 0;
+                        logger_base.debug("   Wants to receive data multicast %d", multicast);
 
                         // now search for it in outputManager
                         auto outputs = outputManager->GetOutputs();
@@ -502,36 +522,26 @@ std::list<Output*> ZCPPOutput::Discover(OutputManager* outputManager)
                         if (output != nullptr)
                         {
                             logger_base.info("ZCPP Discovery found a new controller %s.", (const char*)output->GetIP().c_str());
-                            bool supportsVirtualStrings = buffer[115] & 0x08;
                             output->SetSupportsVirtualStrings(supportsVirtualStrings);
-                            logger_base.debug("   Supports Virtual Strings %d", supportsVirtualStrings);
-
-                            bool supportsSmartRemotes = buffer[115] & 0x10;
                             output->SetSupportsSmartRemotes(supportsSmartRemotes);
-                            logger_base.debug("   Supports Smart Remotes %d", supportsSmartRemotes);
 
-                            int i = 90;
-                            while (i <= 109 && buffer[i] != 0xFF)
+                            uint32_t mask = 0x00000001;
+                            uint32_t dp = ZCPP_FromWire32(response.DiscoveryResponse.protocolsSupported);
+                            for (int i = 0; i < 32; i++)
                             {
-                                output->AddProtocol(DecodeProtocol(buffer[i]));
-                                logger_base.debug("   Supports Protocol %s", (const char *)DecodeProtocol(buffer[i]).c_str());
-                                i++;
+                                if ((dp & mask) != 0)
+                                {
+                                    output->AddProtocol(DecodeProtocol(ZCPP_ConvertDiscoveryProtocolToProtocol(dp & mask)));
+                                    logger_base.debug("   Supports Protocol %s", (const char *)DecodeProtocol(ZCPP_ConvertDiscoveryProtocolToProtocol(dp & mask)).c_str());
+                                }
+                                mask = mask << 1;
                             }
 
-                            if (buffer[115] & 0x04)
-                            {
-                                // Dan this is where you would need to do your special adjustments to ensure it is in the right place
-                                logger_base.info("ZCPP Discovery found controller %s but it doesnt want us to configure it.", (const char*)output->GetIP().c_str());
-                                delete output;
-                                output = nullptr;
-                                break;
-                            }
-                            else
-                            {
-                                output->SetAutoSize(true);
-                                output->SetChannels(1 /*channels*/); // Set this to one as it defaults to auto size
-                                output->SetSendConfiguration(true);
-                            }
+                            output->SetAutoSize(true);
+                            output->SetChannels(1 /*channels*/); // Set this to one as it defaults to auto size
+                            output->SetDontConfigure(dontConfigure);
+
+                            output->SetMulticast(multicast);
 
                             if (output != nullptr)
                             {
@@ -597,49 +607,34 @@ std::string ZCPPOutput::DecodeProtocol(int protocol)
     {
     case 0x00:
         return "ws2811";
-        break;
     case 0x01:
         return "gece";
-        break;
     case 0x02:
         return "dmx";
-        break;
     case 0x03:
         return "lx1203";
-        break;
     case 0x04:
         return "tls3001";
-        break;
     case 0x05:
         return "lpd6803";
-        break;
     case 0x06:
         return "ws2801";
-        break;
     case 0x07:
         return "sm16716";
-        break;
     case 0x08:
         return "mb16020";
-        break;
     case 0x09:
         return "my9231";
-        break;
     case 0x0a:
         return "apa102";
-        break;
     case 0x0b:
         return "my9221";
-        break;
     case 0x0c:
         return "sk6812";
-        break;
     case 0x0d:
         return "ucs1903";
-        break;
     case 0x0e:
         return "tm18xx";
-        break;
     default:
         return "unknown";
     }
@@ -656,15 +651,12 @@ bool ZCPPOutput::Open()
 
     _ok = IPOutput::Open();
 
-    memset(_packet, 0x00, sizeof(_packet));
+    memset(&_packet, 0x00, sizeof(_packet));
     _sequenceNum = 0;
 
-    _packet[0] = 'Z';
-    _packet[1] = 'C';
-    _packet[2] = 'P';
-    _packet[3] = 'P';
-    _packet[4] = 20;
-    _packet[5] = 0x00;
+    memcpy(_packet.Data.Header.token, ZCPP_token, sizeof(ZCPP_token));
+    _packet.Data.Header.type = ZCPP_TYPE_DATA;
+    _packet.Data.Header.protocolVersion = ZCPP_CURRENT_PROTOCOL_VERSION;
 
     wxIPV4address localaddr;
     if (IPOutput::__localIP == "")
@@ -694,7 +686,14 @@ bool ZCPPOutput::Open()
         _datagram = nullptr;
     }
 
-    _remoteAddr.Hostname(_ip.c_str());
+    if (_multicast)
+    {
+        _remoteAddr.Hostname(ZCPP_MULTICAST_DATA_ADDRESS + wxString(_ip).AfterLast('.'));
+    }
+    else
+    {
+        _remoteAddr.Hostname(_ip.c_str());
+    }
     _remoteAddr.Service(ZCPP_PORT);
 
     return _ok && _datagram != nullptr;
@@ -731,7 +730,7 @@ void ZCPPOutput::EndFrame(int suppressFrames)
 
     if (_datagram == nullptr || _usedChannels == 0) return;
 
-    if (IsSendConfiguration())
+    if (!IsDontConfigure())
     {
         long second = wxGetLocalTime();
         if (_lastSecond == -1 || (second != _lastSecond && (second - _lastSecond) % 10 == 0))
@@ -745,20 +744,20 @@ void ZCPPOutput::EndFrame(int suppressFrames)
                     ++it2;
                     if (it == _extraConfig.begin())
                     {
-                        (*it)[8] |= 0x40;
+                        (*it).ExtraData.flags |= ZCPP_CONFIG_FLAG_FIRST;
                     }
                     if (it2 == _extraConfig.end())
                     {
-                        (*it)[8] |= 0x80;
+                        (*it).ExtraData.flags |= ZCPP_CONFIG_FLAG_LAST;
                     }
-                    _datagram->SendTo(_remoteAddr, *it, ZCPP_EXTRACONFIG_PACKET_SIZE);
+                    _datagram->SendTo(_remoteAddr, &(*it), sizeof(*it));
                 }
             }
 
-            if (_modelData[0] != 0x00)
+            if (_modelData.raw[0] != 0x00)
             {
                 _lastSecond = second;
-                _datagram->SendTo(_remoteAddr, _modelData, sizeof(_modelData));
+                _datagram->SendTo(_remoteAddr, &_modelData, sizeof(_modelData));
             }
         }
     }
@@ -768,23 +767,19 @@ void ZCPPOutput::EndFrame(int suppressFrames)
         int i = 0;
         while (i < _usedChannels)
         {
-            _packet[6] = _sequenceNum;
-            long startAddress = i;
-            _packet[7] = (wxByte)((startAddress >> 24) & 0xFF);
-            _packet[8] = (wxByte)((startAddress >> 16) & 0xFF);
-            _packet[9] = (wxByte)((startAddress >> 8) & 0xFF);
-            _packet[10] = (wxByte)((startAddress) & 0xFF);
-            int packetlen = _usedChannels - i > ZCPP_PACKET_LEN - 14 ? ZCPP_PACKET_LEN - 14 : _usedChannels - i;
-            _packet[11] = (OutputManager::IsSyncEnabled_() ? 0x01 : 0x00) + 
-                          (i + packetlen == _usedChannels ? 0x80 : 0x00) + 
-                          (i == 0 ? 0x40 : 0x00);
-            _packet[12] = (wxByte)((packetlen >> 8) & 0xFF);
-            _packet[13] = (wxByte)((packetlen) & 0xFF);
-            memcpy(&_packet[14], &_data[i], packetlen);
-            _datagram->SendTo(_remoteAddr, _packet, 14 + packetlen);
+            _packet.Data.sequenceNumber = _sequenceNum;
+            uint32_t startAddress = i;
+            _packet.Data.frameAddress = ntohl(startAddress);
+            uint16_t packetlen = _usedChannels - i > sizeof(ZCPP_packet_t) - 14 ? sizeof(ZCPP_packet_t) - 14 : _usedChannels - i;
+            _packet.Data.flags = (OutputManager::IsSyncEnabled_() ? ZCPP_DATA_FLAG_SYNC_WILL_BE_SENT : 0x00) +
+                          (i + packetlen == _usedChannels ? ZCPP_DATA_FLAG_LAST : 0x00) +
+                          (i == 0 ? ZCPP_DATA_FLAG_FIRST : 0x00);
+            _packet.Data.packetDataLength = ntohs(packetlen);
+            memcpy(_packet.Data.data, &_data[i], packetlen);
+            _datagram->SendTo(_remoteAddr, &_packet, 14 + packetlen);
             i += packetlen;
         }
-        _sequenceNum = _sequenceNum == 255 ? 0 : _sequenceNum + 1;
+        _sequenceNum++;
 
         FrameOutput();
     }

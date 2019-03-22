@@ -3,42 +3,28 @@
 
 #include "IPOutput.h"
 #include <wx/socket.h>
+#include "ZCPP.h"
 
-// ******************************************************
-// * This class represents a single universe for E1.31
-// * Methods should be called with: 0 <= chindex <= 511
-// ******************************************************
-
-#pragma region ZCPP Constants
-#define ZCPP_PACKET_HEADERLEN 6
-#define ZCPP_PACKET_LEN 1458
-#define ZCPP_SYNCPACKET_LEN 7
-#define ZCPP_PORT 30005
-#define ZCPP_MAXCHANNELS (16*1024)
-#define ZCPP_MAXSTRINGSPERMODELPACKET 110
-#define ZCPP_BYTESPERSTRING 13
-#define ZCPP_MODELDATASIZE (40 + ZCPP_BYTESPERSTRING * ZCPP_MAXSTRINGSPERMODELPACKET)
-#define ZCPP_MULTICAST_TO "224.0.30.5"
-#define ZCPP_EXTRACONFIG_PACKET_SIZE ZCPP_PACKET_LEN
-#pragma endregion ZCPP Constants
+#define ZCPP_MAXCHANNELS (16 * 1024)
 
 class ZCPPOutput : public IPOutput
 {
     #pragma region Member Variables
-    wxByte* _data;
-    wxByte _packet[ZCPP_PACKET_LEN];
-    unsigned char _modelData[ZCPP_MODELDATASIZE];
-    wxByte _sequenceNum;
+    uint8_t* _data;
+    ZCPP_packet_t _packet;
+    ZCPP_packet_t _modelData;
+    uint8_t _sequenceNum;
     wxIPV4address _remoteAddr;
     wxDatagramSocket *_datagram;
     long _lastSecond;
     int _vendor;
     int _model;
     long _usedChannels;
-    bool _sendConfiguration;
-    bool _supportsVirtualStrings;
-    bool _supportsSmartRemotes;
-    std::list<wxByte*> _extraConfig;
+    bool _supportsVirtualStrings = false;
+    bool _supportsSmartRemotes = false;
+    bool _multicast = false;
+    bool _dontConfigure = false;
+    std::list<ZCPP_packet_t> _extraConfig;
     std::list<std::string> _protocols;
     #pragma endregion Member Variables
 
@@ -57,7 +43,7 @@ public:
     #pragma region Static Functions
     static void SendSync(int syncUniverse);
     static std::list<Output*> Discover(OutputManager* outputManager);
-    static void InitialiseExtraConfigPacket(wxByte* buffer, int seq, std::string userControllerId);
+    static void InitialiseExtraConfigPacket(ZCPP_packet_t& packet, int seq);
     static std::string DecodeProtocol(int protocol);
     static int EncodeProtocol(const std::string& protocol);
     static int EncodeColourOrder(const std::string& colourOrder);
@@ -73,12 +59,14 @@ public:
     virtual long GetEndChannel() const override;
     int GetId() const { return _universe; }
     void SetId(int id) { _universe = id; _dirty = true; }
-    void SetSendConfiguration(bool send) { if (_sendConfiguration != send) { _sendConfiguration = send; _dirty = true; } }
-    bool IsSendConfiguration() const { return _sendConfiguration; }
     void SetSupportsVirtualStrings(bool supportsVirtualStrings) { if (_supportsVirtualStrings != supportsVirtualStrings) { _supportsVirtualStrings = supportsVirtualStrings; _dirty = true; } }
     bool IsSupportsVirtualStrings() const { return _supportsVirtualStrings; }
-    void SetSupportsSmartRemotes(bool supportsSmartRemotes) { if (_supportsSmartRemotes != supportsSmartRemotes) { _supportsSmartRemotes  = supportsSmartRemotes; _dirty = true; } }
+    void SetSupportsSmartRemotes(bool supportsSmartRemotes) { if (_supportsSmartRemotes != supportsSmartRemotes) { _supportsSmartRemotes = supportsSmartRemotes; _dirty = true; } }
     bool IsSupportsSmartRemotes() const { return _supportsSmartRemotes; }
+    void SetDontConfigure(bool dontConfigure) { if (_dontConfigure != dontConfigure) { _dontConfigure = dontConfigure; _dirty = true; } }
+    bool IsDontConfigure() const { return _dontConfigure; }
+    void SetMulticast(bool multicast) { if (_multicast != multicast) { _multicast = multicast; _dirty = true; } }
+    bool IsMulticast() const { return _multicast; }
     void SetVendor(int vendor) { _vendor = vendor; _dirty = true; }
     void SetModel(int model) { _model = model; _dirty = true; }
     int GetVendor() const { return _vendor; }
@@ -94,7 +82,7 @@ public:
     {
         return std::find(_protocols.begin(), _protocols.end(), wxString(protocol).Lower().ToStdString()) != _protocols.end();
     }
-    bool SetModelData(unsigned char* buffer, size_t bufsize, std::list<wxByte*> extraConfig, std::string showDir);
+    bool SetModelData(ZCPP_packet_t& modelData, std::list<ZCPP_packet_t> extraConfig, std::string showDir);
     virtual bool IsLookedUpByControllerName() const override { return true; }
     virtual std::string GetUniverseString() const override { return ""; }
     #pragma region Getters and Setters

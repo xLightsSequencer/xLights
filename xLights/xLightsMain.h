@@ -71,6 +71,7 @@
 #include "xLightsXmlFile.h"
 #include "sequencer/EffectsGrid.h"
 #include "RenderCache.h"
+#include "outputs/ZCPP.h"
 
 class EffectTreeDialog;
 class ConvertDialog;
@@ -1132,8 +1133,8 @@ public:
     void UploadFPPStringOuputs(const std::string &controllers);
 	void PingController(Output* e);
     void SetModelData(ZCPPOutput* zcpp, ModelManager* modelManager, OutputManager* outputManager, std::string showDir);
-    int SetZCPPPort(unsigned char* current, UDControllerPort* port, int portNum, int virtualString, long baseStart, bool isSerial);
-    void SetZCPPExtraConfig(std::list<wxByte*>& extraConfig, int& extraConfigPos, int portNum, int virtualStringNum, const std::string& name, int& extraConfigPorts, ZCPPOutput* zcpp);
+    int SetZCPPPort(ZCPP_packet_t& modelData, int index, UDControllerPort* port, int portNum, int virtualString, long baseStart, bool isSerial);
+    void SetZCPPExtraConfig(std::list<ZCPP_packet_t>& extraConfig, int portNum, int virtualStringNum, const std::string& name, ZCPPOutput* zcpp);
     void UploadEasyLightsOutput();
 
     void DeleteSelectedNetworks();

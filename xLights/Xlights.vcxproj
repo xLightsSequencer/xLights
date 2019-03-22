@@ -799,6 +799,7 @@
     <ClInclude Include="outputs\serial.h" />
     <ClInclude Include="outputs\SerialOutput.h" />
     <ClInclude Include="outputs\TestPreset.h" />
+    <ClInclude Include="outputs\ZCPP.h" />
     <ClInclude Include="outputs\ZCPPDialog.h" />
     <ClInclude Include="outputs\ZCPPOutput.h" />
     <ClInclude Include="PaletteMgmtDialog.h" />

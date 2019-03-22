@@ -750,6 +750,7 @@
     <ClInclude Include="effects\KaleidoscopeEffect.h" />
     <ClInclude Include="effects\KaleidoscopePanel.h" />
     <ClInclude Include="ControllerVisualiseDialog.h" />
+    <ClInclude Include="outputs\ZCPP.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

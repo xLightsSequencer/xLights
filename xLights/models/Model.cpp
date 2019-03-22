@@ -4486,8 +4486,8 @@ void Model::GetMinScreenXY(float& minx, float& miny) const
         return;
     }
 
-    minx = 99999999;
-    miny = 99999999;
+    minx = 99999999.0f;
+    miny = 99999999.0f;
     for (auto& it : Nodes)
     {
         for (auto it2 : it->Coords)

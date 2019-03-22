@@ -2192,7 +2192,7 @@ void xLightsFrame::PingController(Output* e)
 	}
 }
 
-int xLightsFrame::SetZCPPPort(unsigned char* current, UDControllerPort* port, int portNum, int virtualString, long baseStart, bool isSerial)
+int xLightsFrame::SetZCPPPort(ZCPP_packet_t& modelData, int index, UDControllerPort* port, int portNum, int virtualString, long baseStart, bool isSerial)
 {
     static log4cpp::Category &logger_zcpp = log4cpp::Category::getInstance(std::string("log_zcpp"));
 
@@ -2207,17 +2207,16 @@ int xLightsFrame::SetZCPPPort(unsigned char* current, UDControllerPort* port, in
 
     logger_zcpp.debug("    Port/String %d/%d", portNum, virtualString);
 
-    *current = portNum | (isSerial ? 0x80 : 0x00);
-    current++;
-    *current = virtualString;
-    current++;
+    ZCPP_PortConfig* p = modelData.Configuration.PortConfig + index;
+
+    p->port = portNum | (isSerial ? 0x80 : 0x00);
+    p->string = virtualString;
     std::string protocol = "ws2811";
     if (port != nullptr)
     {
         protocol = port->GetProtocol();
     }
-    *current = ZCPPOutput::EncodeProtocol(protocol);
-    current++;
+    p->protocol = ZCPPOutput::EncodeProtocol(protocol);
     logger_zcpp.debug("       Protocol %d/%s", ZCPPOutput::EncodeProtocol(protocol), (const char *)protocol.c_str());
 
     long sc = 0;
@@ -2233,14 +2232,7 @@ int xLightsFrame::SetZCPPPort(unsigned char* current, UDControllerPort* port, in
         }
     }
     if (sc < 0) sc = 0;
-    *current = (sc & 0xFF000000) >> 24;
-    current++;
-    *current = (sc & 0xFF0000) >> 16;
-    current++;
-    *current = (sc & 0xFF00) >> 8;
-    current++;
-    *current = sc & 0xFF;
-    current++;
+    p->startChannel = ntohs(sc);
     logger_zcpp.debug("       Start Channel %ld", sc);
 
     int c = 0;
@@ -2255,10 +2247,7 @@ int xLightsFrame::SetZCPPPort(unsigned char* current, UDControllerPort* port, in
             c = port->Channels();
         }
     }
-    *current = (c & 0xff00) >> 8;
-    current++;
-    *current = c & 0xff;
-    current++;
+    p->channels = ntohs(c);
     logger_zcpp.debug("       Channels %d", c);
 
     wxByte gc = 1;
@@ -2273,8 +2262,7 @@ int xLightsFrame::SetZCPPPort(unsigned char* current, UDControllerPort* port, in
     {
         gc = m->GetGroupCount(1);
     }
-    *current = gc;
-    current++;
+    p->grouping = gc;
     logger_zcpp.debug("       Group Count %d", (int)gc);
 
     wxByte directionColourOrder = 0x00;
@@ -2298,8 +2286,7 @@ int xLightsFrame::SetZCPPPort(unsigned char* current, UDControllerPort* port, in
         directionColourOrder += m->GetDirection("Forward") == "Reverse" ? 0x80 : 0x00;
         directionColourOrder += ZCPPOutput::EncodeColourOrder(port->GetFirstModel()->GetColourOrder("RGB"));
     }
-    *current = directionColourOrder;
-    current++;
+    p->directionColourOrder = directionColourOrder;
     logger_zcpp.debug("       Direction/Colour Order %d/%d", (int)directionColourOrder & 0x80, (int)directionColourOrder & 0x7F);
 
     wxByte np = 0;
@@ -2314,8 +2301,7 @@ int xLightsFrame::SetZCPPPort(unsigned char* current, UDControllerPort* port, in
     {
         np = m->GetNullPixels(0);
     }
-    *current = np;
-    current++;
+    p->nullPixels = np;
     logger_zcpp.debug("       Null Pixels %d", (int)np);
 
     wxByte b = 100;
@@ -2330,8 +2316,7 @@ int xLightsFrame::SetZCPPPort(unsigned char* current, UDControllerPort* port, in
     {
         b = m->GetBrightness(100);
     }
-    *current = b;
-    current++;
+    p->brightness = b;
     logger_zcpp.debug("       Brightness %d", (int)b);
 
     wxByte g = 10;
@@ -2346,33 +2331,33 @@ int xLightsFrame::SetZCPPPort(unsigned char* current, UDControllerPort* port, in
     {
         g = m->GetGamma(1) * 10.0;
     }
-    *current = g;
+    p->gamma = g;
     logger_zcpp.debug("       Gamma %d", (int)g);
 
-    return 13;
+    return sizeof(ZCPP_PortConfig);
 }
 
-void xLightsFrame::SetZCPPExtraConfig(std::list<wxByte*>& extraConfig, int& extraConfigPos, int portNum, int virtualStringNum, const std::string& name, int& extraConfigPorts, ZCPPOutput* zcpp)
+void xLightsFrame::SetZCPPExtraConfig(std::list<ZCPP_packet_t>& extraConfigs, int portNum, int virtualStringNum, const std::string& name, ZCPPOutput* zcpp)
 {
     static log4cpp::Category &logger_zcpp = log4cpp::Category::getInstance(std::string("log_zcpp"));
-    auto current = extraConfig.back();
-    if (extraConfigPos + 3 + name.size() > ZCPP_EXTRACONFIG_PACKET_SIZE)
+    auto& current = extraConfigs.back();
+    uint16_t pos = ZCPP_ExtraDataUsed(current);
+    if (pos + 3 + name.size() > sizeof(ZCPP_packet_t))
     {
-        current[39] = extraConfigPorts;
-        current = (wxByte*)malloc(ZCPP_EXTRACONFIG_PACKET_SIZE);
-        extraConfig.push_back(current);
-        extraConfigPorts = 0;
-        extraConfigPos = 40;
-        ZCPPOutput::InitialiseExtraConfigPacket(current, modelsChangeCount, zcpp->GetDescription());
+        ZCPP_packet_t extraData;
+        extraConfigs.push_back(extraData);
+        current = extraConfigs.back();
+        ZCPPOutput::InitialiseExtraConfigPacket(current, modelsChangeCount);
+        pos = ZCPP_ExtraDataUsed(current);
     }
 
-    extraConfigPorts++;
-    current[extraConfigPos++] = portNum;
-    current[extraConfigPos++] = virtualStringNum;
+    current.ExtraData.ports++;
+    ZCPP_PortExtraData* p = (ZCPP_PortExtraData*)&current.raw[pos];
+    p->port =  portNum;
+    p->string = virtualStringNum;
     int len = std::min(255, (int)name.size());
-    current[extraConfigPos++] = len;
-    strncpy((char*)&current[extraConfigPos], name.c_str(), len);
-    extraConfigPos += len;
+    p->descriptionLength = len;
+    strncpy(p->description, name.c_str(), len);
     logger_zcpp.debug("       Extra : %d/%d '%s'", portNum, virtualStringNum, (const char*)name.c_str());
 }
 
@@ -2388,18 +2373,13 @@ void xLightsFrame::SetModelData(ZCPPOutput* zcpp, ModelManager* modelManager, Ou
     UDController cud(zcpp->GetIP(), zcpp->GetIP(), modelManager, outputManager, &selected, check);
     long baseStart = zcpp->GetStartChannel();
 
-    unsigned char buffer[ZCPP_MODELDATASIZE];
-
-    memset(buffer, 0x00, sizeof(buffer));
-    buffer[0] = 'Z';
-    buffer[1] = 'C';
-    buffer[2] = 'P';
-    buffer[3] = 'P';
-    buffer[4] = 0x10;
-    buffer[5] = 0x00;
-    buffer[6] = (modelsChangeCount & 0xff00) >> 8;
-    buffer[7] = modelsChangeCount & 0xff;
-    strncpy((char*)&buffer[8], zcpp->GetDescription().c_str(), 30);
+    ZCPP_packet_t modelData;
+    memset(&modelData, 0x00, sizeof(modelData));
+    memcpy(modelData.Configuration.Header.token, ZCPP_token, sizeof(ZCPP_token));
+    modelData.Configuration.Header.type = ZCPP_TYPE_CONFIG;
+    modelData.Configuration.Header.protocolVersion = ZCPP_CURRENT_PROTOCOL_VERSION;
+    modelData.Configuration.sequenceNumber = ntohs(modelsChangeCount);
+    strncpy(modelData.Configuration.userControllerName, zcpp->GetDescription().c_str(), sizeof(modelData.Configuration.userControllerName));
 
     logger_zcpp.debug("    Model Change Count : %d", modelsChangeCount);
 
@@ -2419,41 +2399,42 @@ void xLightsFrame::SetModelData(ZCPPOutput* zcpp, ModelManager* modelManager, Ou
                 ports++;
             }
         }
-        buffer[38] = ports;
+        modelData.Configuration.ports = ports;
     }
     else
     {
-        buffer[38] = cud.GetMaxPixelPort() + cud.GetMaxSerialPort();
+        modelData.Configuration.ports = cud.GetMaxPixelPort() + cud.GetMaxSerialPort();
     }
 
-    if (buffer[38] > ZCPP_MAXSTRINGSPERMODELPACKET)
+    if (modelData.Configuration.ports > ZCPP_CONFIG_MAX_PORT_PER_PACKET)
     {
-        logger_base.error("ZCPP too many strings : %d > %d", buffer[38], ZCPP_MAXSTRINGSPERMODELPACKET);
+        logger_base.error("ZCPP too many strings : %d > %d", (int)modelData.Configuration.ports, ZCPP_CONFIG_MAX_PORT_PER_PACKET);
         return;
     }
     else
     {
-        logger_zcpp.debug("    String Count : %d", buffer[38]);
+        logger_zcpp.debug("    String Count : %d", (int)modelData.Configuration.ports);
     }
 
-    buffer[38] += 0x80; // this is the last model data packet
+    modelData.Configuration.flags |= ZCPP_CONFIG_FLAG_FIRST;
+    modelData.Configuration.flags |= ZCPP_CONFIG_FLAG_LAST;
 
-    std::list<wxByte*> extraConfig;
-    int extraConfigPortsInPacket = 0;
-    int extraConfigPos = 40;
-    wxByte* currentExtraConfig = (wxByte*)malloc(ZCPP_EXTRACONFIG_PACKET_SIZE);
-    extraConfig.push_back(currentExtraConfig);    
-    ZCPPOutput::InitialiseExtraConfigPacket(currentExtraConfig, modelsChangeCount, zcpp->GetDescription());
+    ZCPP_packet_t extraConfig;
+    std::list<ZCPP_packet_t> extraConfigs;
+    extraConfigs.push_back(extraConfig);
+    auto& current = extraConfigs.back();
+    ZCPPOutput::InitialiseExtraConfigPacket(current, modelsChangeCount);
 
-    unsigned char* current = &buffer[39];
+    int index = 0;
     for (int i = 0; i < cud.GetMaxPixelPort(); i++)
     {
         auto port = cud.GetControllerPixelPort(i + 1);
 
         if (port == nullptr)
         {
-            current += SetZCPPPort(current, nullptr, i, 0, baseStart, false);
-            SetZCPPExtraConfig(extraConfig, extraConfigPos, i, 0, "", extraConfigPortsInPacket, zcpp);
+            SetZCPPPort(modelData, index, nullptr, i, 0, baseStart, false);
+            SetZCPPExtraConfig(extraConfigs, i, 0, "", zcpp);
+            index++;
         }
         else
         {
@@ -2467,14 +2448,16 @@ void xLightsFrame::SetModelData(ZCPPOutput* zcpp, ModelManager* modelManager, Ou
                         // put the smart remote number in the top 2 bits
                         string += (port->GetVirtualString(j)->_smartRemote << 6);
                     }
-                    current += SetZCPPPort(current, port, i, string, baseStart, false);
-                    SetZCPPExtraConfig(extraConfig, extraConfigPos, i, string, port->GetVirtualString(j)->_description, extraConfigPortsInPacket, zcpp);
+                    SetZCPPPort(modelData, index, port, i, string, baseStart, false);
+                    SetZCPPExtraConfig(extraConfigs, i, string, port->GetVirtualString(j)->_description, zcpp);
+                    index++;
                 }
             }
             else
             {
-                current += SetZCPPPort(current, port, i, 0, baseStart, false);
-                SetZCPPExtraConfig(extraConfig, extraConfigPos, i, 0, port->GetPortName(), extraConfigPortsInPacket, zcpp);
+                SetZCPPPort(modelData, index, port, i, 0, baseStart, false);
+                SetZCPPExtraConfig(extraConfigs, i, 0, port->GetPortName(), zcpp);
+                index++;
             }
         }
     }
@@ -2485,26 +2468,24 @@ void xLightsFrame::SetModelData(ZCPPOutput* zcpp, ModelManager* modelManager, Ou
 
         if (port == nullptr)
         {
-            current += SetZCPPPort(current, port, i, 0, baseStart, true);
-            SetZCPPExtraConfig(extraConfig, extraConfigPos, 0x80 + i, 0, "", extraConfigPortsInPacket, zcpp);
+            SetZCPPPort(modelData, index, port, i, 0, baseStart, true);
+            SetZCPPExtraConfig(extraConfigs, 0x80 + i, 0, "", zcpp);
+            index++;
         }
         else
         {
-            current += SetZCPPPort(current, port, i, 0, baseStart, true);
-            SetZCPPExtraConfig(extraConfig, extraConfigPos, 0x80 + i, 0, port->GetPortName(), extraConfigPortsInPacket, zcpp);
+            SetZCPPPort(modelData, index, port, i, 0, baseStart, true);
+            SetZCPPExtraConfig(extraConfigs, 0x80 + i, 0, port->GetPortName(), zcpp);
+            index++;
         }
     }
 
-    if (extraConfigPortsInPacket == 0)
+    if (extraConfigs.back().ExtraData.ports == 0)
     {
-        extraConfig.pop_back();
-    }
-    else
-    {
-        extraConfig.back()[39] = extraConfigPortsInPacket;
+        extraConfigs.pop_back();
     }
 
-    if (zcpp->SetModelData(buffer, sizeof(buffer), extraConfig, showDir))
+    if (zcpp->SetModelData(modelData, extraConfigs, showDir))
     {
         //#ifdef DEBUG
         cud.Dump();
