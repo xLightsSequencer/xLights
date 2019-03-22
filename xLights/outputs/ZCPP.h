@@ -96,9 +96,9 @@
 #define ZCPP_COLOUR_ORDER_BRG 0x04
 #define ZCPP_COLOUR_ORDER_BGR 0x05
 
-#define ZCPP_CONFIG_FLAG_QUERY_CONFIGURATION_RESPONSE_REQUIRED 0x10 
-#define ZCPP_CONFIG_FLAG_FIRST 0x40 
-#define ZCPP_CONFIG_FLAG_LAST 0x80 
+#define ZCPP_CONFIG_FLAG_QUERY_CONFIGURATION_RESPONSE_REQUIRED 0x10
+#define ZCPP_CONFIG_FLAG_FIRST 0x40
+#define ZCPP_CONFIG_FLAG_LAST 0x80
 
 #define ZCPP_CONFIG_MAX_PORT_PER_PACKET 100
 
@@ -156,7 +156,7 @@ const uint8_t ZCPP_token[4] = {'Z', 'C', 'P', 'P'};
 #endif
 
 // Common header across all packet types - 6 bytes
-typedef 
+typedef
 #ifndef _MSC_VER
 __attribute__((packed))
 #endif
@@ -167,7 +167,7 @@ struct {
 } ZCPP_Header;
 
 // Discovery Request - 8 bytes
-typedef 
+typedef
 #ifndef _MSC_VER
 __attribute__((packed))
 #endif
@@ -178,7 +178,7 @@ struct {
 } ZCPP_Discovery;
 
 // Discovery Response - 86 bytes
-typedef 
+typedef
 #ifndef _MSC_VER
 __attribute__((packed))
 #endif
@@ -206,7 +206,7 @@ struct {
 } ZCPP_DiscoveryResponse;
 
 // Describes the configuration of a port or virtual string - 14 bytes
-typedef 
+typedef
 #ifndef _MSC_VER
 __attribute__((packed))
 #endif
@@ -224,7 +224,7 @@ struct {
 } ZCPP_PortConfig;
 
 // Configuration - 42 - 1442 bytes
-typedef 
+typedef
 #ifndef _MSC_VER
 __attribute__((packed))
 #endif
@@ -234,15 +234,11 @@ struct {
 	char userControllerName[32];	// Up to 32 characters of user controller name
 	uint8_t flags;					// Configuration flags
 	uint8_t ports;					// Number of ports being configured
-#ifdef _MSC_VER
     ZCPP_PortConfig PortConfig[1];		// Up to 100 of them
-#else
-    ZCPP_PortConfig PortConfig[];		// Up to 100 of them
-#endif
 } ZCPP_Configuration;
 
 // Query Configuration Response 42 - 1442 bytes
-typedef 
+typedef
 #ifndef _MSC_VER
 __attribute__((packed))
 #endif
@@ -252,15 +248,11 @@ struct {
 	char userControllerName[32];	// Up to 32 characters of user controller name
 	uint8_t flags;					// Configuration result flags
 	uint8_t ports;					// Number of ports configured
-#ifdef _MSC_VER
     ZCPP_PortConfig PortConfig[1];		// Up to 100 of them
-#else
-    ZCPP_PortConfig PortConfig[];		// Up to 100 of them
-#endif
 } ZCPP_QueryConfigurationResponse;
 
 // QueryConfiguration - 6 bytes
-typedef 
+typedef
 #ifndef _MSC_VER
 __attribute__((packed))
 #endif
@@ -269,7 +261,7 @@ struct {
 } ZCPP_QueryConfiguration;
 
 // Extra port data - 3 - 1490 bytes
-typedef 
+typedef
 #ifndef _MSC_VER
 __attribute__((packed))
 #endif
@@ -277,15 +269,11 @@ struct {
 	uint8_t port;					// zero based port that is being configured
 	uint8_t string;					// smart remote and virtual string number within port
 	uint8_t descriptionLength;		// length of the description which must fit entirely within this ethernet frame
-#ifdef _MSC_VER
     char description[1];				// the port description
-#else
-    char description[];				// the port description
-#endif
 } ZCPP_PortExtraData;
 
 // Extra port configuration data - 10 - 1500 bytes
-typedef 
+typedef
 #ifndef _MSC_VER
 __attribute__((packed))
 #endif
@@ -294,15 +282,11 @@ struct {
 	uint16_t sequenceNumber;		// sequence number unique each time the configuration changes
 	uint8_t flags;					// Configuration flags
 	uint8_t ports;					// Number of ports being configured
-#ifdef _MSC_VER
     ZCPP_PortExtraData PortExtraData[1];
-#else
-    ZCPP_PortExtraData PortExtraData[];
-#endif
 } ZCPP_ExtraData;
 
 // Sync - 7 bytes
-typedef 
+typedef
 #ifndef _MSC_VER
 __attribute__((packed))
 #endif
@@ -312,23 +296,19 @@ struct {
 } ZCPP_Sync;
 
 // Data - 14 - 1500 bytes
-typedef 
+typedef
 #ifndef _MSC_VER
-__attribute__((packed)) 
+__attribute__((packed))
 #endif
 struct {
 	ZCPP_Header Header;
 	uint8_t sequenceNumber;			// sequence number matching of the data frame. If multiple packets are needed all packets in the
-									// same frame will have the same sequence number. Frame numbers start at zero and increment and 
+									// same frame will have the same sequence number. Frame numbers start at zero and increment and
 									// then go back to zero
 	uint8_t flags;					// data packet flags
     uint32_t frameAddress;			// where in the zero based data address space the data in this packet belongs
     uint16_t packetDataLength;		// how many data bytes are in this packet
-#ifdef _MSC_VER
     uint8_t data[1];
-#else
-    uint8_t data[];
-#endif
 } ZCPP_Data;
 
 typedef
@@ -339,10 +319,10 @@ union {
 	// sent discovery
 	ZCPP_Discovery Discovery;
 		// Must lead to a DiscoveryResponse
-	
+
 	// discovery response
 	ZCPP_DiscoveryResponse DiscoveryResponse;
-	
+
 	// configuration
 	ZCPP_Configuration Configuration;
 		// May optionally lead to a QueryConfigurationResponse
