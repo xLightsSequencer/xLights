@@ -1,12 +1,12 @@
 #ifndef OUTPUT_H
 #define OUTPUT_H
 
-#include "Controller.h"
 #include <wx/window.h>
 #include <wx/time.h>
 
 class ModelManager;
 class OutputManager;
+class wxXmlNode;
 
 #pragma region Output Constants
 // These are used to identify each output type
@@ -50,7 +50,7 @@ protected:
     int _universe;
     bool _enabled;
     bool _suspend;
-    Controller* _controller;
+    std::string _controller;
     int _outputNumber; // cached ordinal of this output ... may change when reordered or other output are changed
     int _nullNumber; // cached ordinal of null controllers ... may change when reordered or other output are changed
     long _startChannel; // cached start channel of this output ... may change when reordered or other output are changed
@@ -109,8 +109,8 @@ public:
     bool GetAutoSize() const { return _autoSize; }
     bool IsEnabled() const { return _enabled; }
     void Enable(bool enable) { _enabled = enable; _dirty = true; }
-    void SetController(const std::string& id);
-    Controller* GetController() const { return _controller; }
+    void SetControllerId(const std::string& id) { _controller = id; }
+    const std::string &GetControllerId() const { return _controller; }
     int GetOutputNumber() const { return _outputNumber; }
     virtual void SetTransientData(int on, long startChannel, int nullnumber);
     long GetTimer() const { return _timer_msec; }

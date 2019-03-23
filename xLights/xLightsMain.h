@@ -1137,6 +1137,7 @@ public:
     void SetZCPPExtraConfig(std::list<ZCPP_packet_t>& extraConfig, int portNum, int virtualStringNum, const std::string& name, ZCPPOutput* zcpp);
     void UploadEasyLightsOutput();
 
+    void VisualiseOutput(Output *e, wxWindow *parent = nullptr);
     void DeleteSelectedNetworks();
     void ActivateSelectedNetworks(bool active);
     void DeactivateUnusedNetworks();
@@ -1583,6 +1584,8 @@ private:
     static const long ID_NETWORK_UCOPIXLITE16;
     static const long ID_NETWORK_PINGCONTROLLER;
 	static const long ID_NETWORK_UCOEASYLIGHTS;
+    static const long ID_NETWORK_UPLOAD_CONTROLLER_CONFIGURED;
+    static const long ID_NETWORK_VISUALISE;
 
     #define isRandom(ctl)  isRandom_(ctl, #ctl) //(buttonState[std::string(ctl->GetName())] == Random)
 

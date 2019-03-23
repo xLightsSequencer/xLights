@@ -1,5 +1,5 @@
-#ifndef ZCPPVISUALISEDIALOG_H
-#define ZCPPVISUALISEDIALOG_H
+#ifndef CONTROLLERVISUALISEDIALOG_H
+#define CONTROLLERVISUALISEDIALOG_H
 
 //(*Headers(ControllerVisualiseDialog)
 #include <wx/dialog.h>

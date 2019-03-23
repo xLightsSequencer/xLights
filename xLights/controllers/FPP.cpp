@@ -30,6 +30,7 @@
 #include "../Parallel.h"
 
 #include <log4cpp/Category.hh>
+#include "ControllerRegistry.h"
 #include "ControllerUploadData.h"
 #include "../FSEQFile.h"
 
@@ -37,22 +38,22 @@
 
 static std::map<std::string, PixelCapeInfo> CONTROLLER_TYPE_MAP = {
     {"PiHat", PixelCapeInfo("PiHat", 2, 0)},
-    {"F8-B", PixelCapeInfo("F8-B (8 serial)", 12, 8)},
-    {"F8-B-16", PixelCapeInfo("F8-B (4 serial)", 16, 4)},
-    {"F8-B-20", PixelCapeInfo("F8-B (No serial)", 20, 0)},
-    {"F8-B-EXP", PixelCapeInfo("F8-B w/ Expansion (8 serial)", 28, 8)},
-    {"F8-B-EXP-32", PixelCapeInfo("F8-B w/ Expansion (4 serial)", 32, 4)},
-    {"F8-B-EXP-36", PixelCapeInfo("F8-B w/ Expansion (No serial)", 36, 0)},
-    {"F16-B", PixelCapeInfo("F16-B", 16, 8)},
-    {"F16-B-32", PixelCapeInfo("F16-B w/ 32 outputs", 32, 8)},
-    {"F16-B-48", PixelCapeInfo("F16-B w/ 48 outputs (No Serial)", 48, 0)},
-    {"F4-B", PixelCapeInfo("F4-B", 4, 1)},
-    {"F32-B", PixelCapeInfo("F32-B (8 Serial)", 40, 8)},
-    {"F32-B-44", PixelCapeInfo("F32-B (4 Serial)", 44, 4)},
-    {"F32-B-48", PixelCapeInfo("F32-B (No Serial)", 48, 0)},
-    {"F40D-PB", PixelCapeInfo("F40D-PB (8 Serial)", 32, 8)},
-    {"F40D-PB-36", PixelCapeInfo("F40D-PB (4 Serial)", 36, 4)},
-    {"F40D-PB-40", PixelCapeInfo("F40D-PB (No Serial)", 40, 0)},
+    {"F8-B", PixelCapeInfo("F8-B", "F8-B (8 serial)", 12, 8)},
+    {"F8-B-16", PixelCapeInfo("F8-B-16", "F8-B (4 serial)", 16, 4)},
+    {"F8-B-20", PixelCapeInfo("F8-B-20", "F8-B (No serial)", 20, 0)},
+    {"F8-B-EXP", PixelCapeInfo("F8-B-EXP", "F8-B w/ Expansion (8 serial)", 28, 8)},
+    {"F8-B-EXP-32", PixelCapeInfo("F8-B-EXP-32", "F8-B w/ Expansion (4 serial)", 32, 4)},
+    {"F8-B-EXP-36", PixelCapeInfo("F8-B-EXP-36", "F8-B w/ Expansion (No serial)", 36, 0)},
+    {"F16-B", PixelCapeInfo("F16-B", "F16-B", 16, 8)},
+    {"F16-B-32", PixelCapeInfo("F16-B-32", "F16-B w/ 32 outputs", 32, 8)},
+    {"F16-B-48", PixelCapeInfo("F16-B-48", "F16-B w/ 48 outputs (No Serial)", 48, 0)},
+    {"F4-B", PixelCapeInfo("F4-B", "F4-B", 4, 1)},
+    {"F32-B", PixelCapeInfo("F32-B", "F32-B (8 Serial)", 40, 8)},
+    {"F32-B-44", PixelCapeInfo("F32-B-44", "F32-B (4 Serial)", 44, 4)},
+    {"F32-B-48", PixelCapeInfo("F32-B-48", "F32-B (No Serial)", 48, 0)},
+    {"F40D-PB", PixelCapeInfo("F40D-PB", "F40D-PB (8 Serial)", 32, 8)},
+    {"F40D-PB-36", PixelCapeInfo("F40D-PB-36", "F40D-PB (4 Serial)", 36, 4)},
+    {"F40D-PB-40", PixelCapeInfo("F40D-PB-40", "F40D-PB (No Serial)", 40, 0)},
     {"RGBCape24", PixelCapeInfo("RGBCape24", 48, 0)},
     {"RGBCape48C", PixelCapeInfo("RGBCape48C", 48, 0)},
     {"RGBCape48F", PixelCapeInfo("RGBCape48F", 48, 0)},
@@ -65,12 +66,15 @@ const std::string &FPP::PixelContollerDescription() const {
     }
     return CONTROLLER_TYPE_MAP[pixelControllerType].description;
 }
+void FPP::RegisterCapes() {
+    for (auto &a : CONTROLLER_TYPE_MAP) {
+        ControllerRegistry::AddController(&a.second);
+    }
+}
+
 
 PixelCapeInfo& FPP::GetCapeRules(const std::string& type)
 {
-    if (type.find("LED Panels", 0) == 0) {
-        return CONTROLLER_TYPE_MAP["LED Panels"];
-    }
     return CONTROLLER_TYPE_MAP.find(type) != CONTROLLER_TYPE_MAP.end() ? CONTROLLER_TYPE_MAP[type] : CONTROLLER_TYPE_MAP["PiHat"];
 }
 
@@ -223,7 +227,7 @@ void FPP::parseControllerType(wxJSONValue& val) {
                 pixelControllerType = val["channelOutputs"][x]["subType"].AsString();
             }
         } else if (val["channelOutputs"][x]["type"].AsString() == "LEDPanelMatrix") {
-            pixelControllerType = "LED Panels - ";
+            pixelControllerType = "LED Panels";
             int pw = val["channelOutputs"][x]["panelWidth"].AsInt();
             int ph = val["channelOutputs"][x]["panelHeight"].AsInt();
             int nw = 0; int nh = 0;
@@ -242,10 +246,9 @@ void FPP::parseControllerType(wxJSONValue& val) {
             if (tall) {
                 std::swap(pw, ph);
             }
-            pixelControllerType.append(std::to_string(pw * nw));
-            pixelControllerType.append("x");
-            pixelControllerType.append(std::to_string(ph * nh));
-
+            panelSize = std::to_string(pw * nw);
+            panelSize.append("x");
+            panelSize.append(std::to_string(ph * nh));
         }
     }
 }
@@ -882,6 +885,12 @@ bool FPP::SetRestartFlag() {
     std::string val;
     return GetURLAsString("/fppjson.php?command=setSetting&key=restartFlag&value=1", val);
 }
+
+void FPP::SetDescription(const std::string &st) {
+    std::string val;
+    GetURLAsString("/fppjson.php?command=setSetting&key=HostDescription&value=" + URLEncode(st), val);
+}
+
 
 bool FPP::SetInputUniversesBridge(std::list<int>& selected, OutputManager* outputManager) {
     wxJSONValue udp = CreateUniverseFile(outputManager, ipAddress, selected, true);

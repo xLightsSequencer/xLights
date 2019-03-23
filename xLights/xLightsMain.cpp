@@ -1678,6 +1678,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     itemCol.SetText(_T("Duplicate Suppress"));
     itemCol.SetAlign(wxLIST_FORMAT_LEFT);
     GridNetwork->InsertColumn(8, itemCol);
+    
+    itemCol.SetText(_T("Controller Type"));
+    itemCol.SetAlign(wxLIST_FORMAT_LEFT);
+    GridNetwork->InsertColumn(9, itemCol);
 
     GridNetwork->SetColumnWidth(0, wxLIST_AUTOSIZE_USEHEADER);
     GridNetwork->SetColumnWidth(1, wxLIST_AUTOSIZE_USEHEADER);
@@ -1688,6 +1692,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     GridNetwork->SetColumnWidth(6, wxLIST_AUTOSIZE_USEHEADER);
 	GridNetwork->SetColumnWidth(7, wxLIST_AUTOSIZE);
     GridNetwork->SetColumnWidth(8, wxLIST_AUTOSIZE_USEHEADER);
+    GridNetwork->SetColumnWidth(9, wxLIST_AUTOSIZE_USEHEADER);
 
     _scrollTimer.Connect(wxEVT_TIMER,
         wxTimerEventHandler(xLightsFrame::OnGridNetworkScrollTimer), nullptr, this);
@@ -9984,4 +9989,3 @@ void xLightsFrame::OnMenuItem_PrepareAudioSelected(wxCommandEvent& event)
         }
     }
 }
-

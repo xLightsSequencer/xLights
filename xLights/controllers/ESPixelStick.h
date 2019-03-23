@@ -15,6 +15,9 @@ class ESPixelStickControllerRules : public ControllerRules
 public:
     ESPixelStickControllerRules() : ControllerRules() {}
     virtual ~ESPixelStickControllerRules() {}
+    virtual const std::string GetControllerId() const override {
+        return std::string("ESPixelStick");
+    }
     virtual int GetMaxPixelPortChannels() const override { return 1360 * 3; }
     virtual int GetMaxPixelPort() const override { return 1; }
     virtual int GetMaxSerialPortChannels() const override { return 0; } // not implemented yet
@@ -35,9 +38,8 @@ public:
     virtual bool SupportsSmartRemotes() const override { return false; }
     virtual bool SupportsMultipleInputProtocols() const override { return false; }
     virtual bool AllUniversesSameSize() const override { return true; }
-    virtual std::list<std::string> GetSupportedInputProtocols() const override {
-        std::list<std::string> res;
-        res.push_back("E131");
+    virtual std::set<std::string> GetSupportedInputProtocols() const override {
+        std::set<std::string> res = {"E131"};
         return res;
     };
     virtual bool UniversesMustBeSequential() const override { return true; }

@@ -244,7 +244,11 @@ void FPPConnectDialog::PopulateFPPInstanceList() {
         }
 
         if (inst->PixelContollerDescription() != "") {
-            CheckBox1 = new wxCheckBox(FPPInstanceList, wxID_ANY, inst->PixelContollerDescription(), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, UPLOAD_CONTROLLER_COL + rowStr);
+            std::string desc = inst->PixelContollerDescription();
+            if (inst->panelSize != "") {
+                desc += " - " + inst->panelSize;
+            }
+            CheckBox1 = new wxCheckBox(FPPInstanceList, wxID_ANY, desc, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, UPLOAD_CONTROLLER_COL + rowStr);
             CheckBox1->SetValue(false);
             FPPInstanceSizer->Add(CheckBox1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 1);
         } else {

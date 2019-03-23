@@ -58,6 +58,9 @@ public:
         }
     }    
     virtual ~FalconControllerRules() {}
+    
+    virtual const std::string GetControllerId() const override;
+
     virtual int GetMaxPixelPortChannels() const override
     {
         if (_version == 2)
@@ -135,12 +138,9 @@ public:
     {
         return false;
     }
-    virtual std::list<std::string> GetSupportedInputProtocols() const override
+    virtual std::set<std::string> GetSupportedInputProtocols() const override
     {
-        std::list<std::string> res;
-        res.push_back("E131");
-        res.push_back("ARTNET");
-        res.push_back("ZCPP");
+        std::set<std::string> res = {"E131", "ARTNET", "ZCPP"};
         return res;
     }
     virtual bool UniversesMustBeSequential() const override
