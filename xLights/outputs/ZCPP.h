@@ -41,22 +41,22 @@
 #define ZCPP_VENDOR_FPP 0x0001
 #define ZCPP_VENDOR_ESPIXELSTICK 0x0002
 
-#define ZCPP_DISCOVERY_PROTOCOL_WS2811 0x00000001
-#define ZCPP_DISCOVERY_PROTOCOL_GECE 0x000000002
-#define ZCPP_DISCOVERY_PROTOCOL_DMX 0x000000004
-#define ZCPP_DISCOVERY_PROTOCOL_LX1203 0x00000008
+#define ZCPP_DISCOVERY_PROTOCOL_WS2811  0x00000001
+#define ZCPP_DISCOVERY_PROTOCOL_GECE    0x00000002
+#define ZCPP_DISCOVERY_PROTOCOL_DMX     0x00000004
+#define ZCPP_DISCOVERY_PROTOCOL_LX1203  0x00000008
 #define ZCPP_DISCOVERY_PROTOCOL_TLS3001 0x00000010
 #define ZCPP_DISCOVERY_PROTOCOL_LPD6803 0x00000020
-#define ZCPP_DISCOVERY_PROTOCOL_WS2801 0x00000040
+#define ZCPP_DISCOVERY_PROTOCOL_WS2801  0x00000040
 #define ZCPP_DISCOVERY_PROTOCOL_SM16716 0x00000080
 #define ZCPP_DISCOVERY_PROTOCOL_MB16020 0x00000100
-#define ZCPP_DISCOVERY_PROTOCOL_MY9231 0x00000200
-#define ZCPP_DISCOVERY_PROTOCOL_APA102 0x00000400
-#define ZCPP_DISCOVERY_PROTOCOL_MY9221 0x00000800
-#define ZCPP_DISCOVERY_PROTOCOL_SK6812 0x00001000
+#define ZCPP_DISCOVERY_PROTOCOL_MY9231  0x00000200
+#define ZCPP_DISCOVERY_PROTOCOL_APA102  0x00000400
+#define ZCPP_DISCOVERY_PROTOCOL_MY9221  0x00000800
+#define ZCPP_DISCOVERY_PROTOCOL_SK6812  0x00001000
 #define ZCPP_DISCOVERY_PROTOCOL_UCS1903 0x00002000
-#define ZCPP_DISCOVERY_PROTOCOL_TM18XX 0x00004000
-#define ZCPP_DISCOVERY_PROTOCOL_RENARD 0x00008000
+#define ZCPP_DISCOVERY_PROTOCOL_TM18XX  0x00004000
+#define ZCPP_DISCOVERY_PROTOCOL_RENARD  0x00008000
 
 #define ZCPP_PROTOCOL_WS2811 0x00
 #define ZCPP_PROTOCOL_GECE 0x01
@@ -78,10 +78,10 @@
 // when ZCPP_DISCOVERY_FLAG_SEND_DATA_AS_MULTICAST is set the controllers IP is slightly ignored
 // if controller IP is 10.10.10.10 then the data will be multicast to 224.0.31.10 ... ie the last octet is added
 // to ZCPP_MULTICAST_DATA_ADDRESS
-#define ZCPP_DISCOVERY_FLAG_SEND_DATA_AS_MULTICAST 0x02
-#define ZCPP_DISCOVERY_FLAG_CONFIGURATION_LOCKED 0x04
-#define ZCPP_DISCOVERY_FLAG_SUPPORTS_VIRTUAL_STRINGS 0x08
-#define ZCPP_DISCOVERY_FLAG_SUPPORTS_SMART_REMOTES 0x10
+#define ZCPP_DISCOVERY_FLAG_SEND_DATA_AS_MULTICAST 0x0002
+#define ZCPP_DISCOVERY_FLAG_CONFIGURATION_LOCKED 0x0004
+#define ZCPP_DISCOVERY_FLAG_SUPPORTS_VIRTUAL_STRINGS 0x0008
+#define ZCPP_DISCOVERY_FLAG_SUPPORTS_SMART_REMOTES 0x0010
 
 #define ZCPP_SMART_REMOTE_MASK 0xC0
 #define ZCPP_STRING_NUMBER_MASK 0x3F
@@ -100,7 +100,7 @@
 #define ZCPP_CONFIG_FLAG_FIRST 0x40
 #define ZCPP_CONFIG_FLAG_LAST 0x80
 
-#define ZCPP_CONFIG_MAX_PORT_PER_PACKET 100
+#define ZCPP_CONFIG_MAX_PORT_PER_PACKET 115
 
 #define ZCPP_CONFIGURATION_QUERY_ERRORS 0x01
 
@@ -177,7 +177,7 @@ struct {
 	uint8_t maxProtocolVersion; // The maximum version of the protocol the requester supports
 } ZCPP_Discovery;
 
-// Discovery Response - 86 bytes
+// Discovery Response - 88 bytes
 typedef
 #ifndef _MSC_VER
 __attribute__((packed))
@@ -205,7 +205,7 @@ struct {
     uint32_t protocolsSupported; // Bitmask of all supported protocols
 } ZCPP_DiscoveryResponse;
 
-// Describes the configuration of a port or virtual string - 14 bytes
+// Describes the configuration of a port or virtual string - 12 bytes
 typedef
 #ifndef _MSC_VER
 __attribute__((packed))
@@ -295,7 +295,7 @@ struct {
 	uint8_t sequenceNumber;			// sequence number matching the data frame sequence number this sync packet is for
 } ZCPP_Sync;
 
-// Data - 14 - 1458 bytes
+// Data - 12 - 1458 bytes
 typedef
 #ifndef _MSC_VER
 __attribute__((packed))
@@ -306,7 +306,7 @@ struct {
 									// same frame will have the same sequence number. Frame numbers start at zero and increment and
 									// then go back to zero
 	uint8_t flags;					// data packet flags
-    uint32_t frameAddress;			// where in the zero based data address space the data in this packet belongs
+    uint16_t frameAddress;			// where in the zero based data address space the data in this packet belongs
     uint16_t packetDataLength;		// how many data bytes are in this packet
     uint8_t data[1];
 } ZCPP_Data;
