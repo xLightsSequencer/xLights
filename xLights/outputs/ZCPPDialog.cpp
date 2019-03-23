@@ -27,6 +27,10 @@ const long ZCPPDialog::ID_STATICTEXT5 = wxNewId();
 const long ZCPPDialog::ID_CHECKBOX3 = wxNewId();
 const long ZCPPDialog::ID_STATICTEXT6 = wxNewId();
 const long ZCPPDialog::ID_CHECKBOX4 = wxNewId();
+const long ZCPPDialog::ID_STATICTEXT7 = wxNewId();
+const long ZCPPDialog::ID_CHECKBOX5 = wxNewId();
+const long ZCPPDialog::ID_STATICTEXT10 = wxNewId();
+const long ZCPPDialog::ID_CHECKBOX6 = wxNewId();
 const long ZCPPDialog::ID_BUTTON3 = wxNewId();
 const long ZCPPDialog::ID_BUTTON1 = wxNewId();
 const long ZCPPDialog::ID_BUTTON2 = wxNewId();
@@ -89,6 +93,16 @@ ZCPPDialog::ZCPPDialog(wxWindow* parent, ZCPPOutput* zcpp, OutputManager* output
     CheckBox_SupportSmartRemotes = new wxCheckBox(this, ID_CHECKBOX4, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX4"));
     CheckBox_SupportSmartRemotes->SetValue(false);
     FlexGridSizer2->Add(CheckBox_SupportSmartRemotes, 1, wxALL|wxEXPAND, 5);
+    StaticText7 = new wxStaticText(this, ID_STATICTEXT7, _("Multicast "), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT7"));
+    FlexGridSizer2->Add(StaticText7, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    CheckBox_Multicast = new wxCheckBox(this, ID_CHECKBOX5, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX5"));
+    CheckBox_Multicast->SetValue(false);
+    FlexGridSizer2->Add(CheckBox_Multicast, 1, wxALL|wxEXPAND, 5);
+    StaticText10 = new wxStaticText(this, ID_STATICTEXT10, _("Suppress sending confguration"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT10"));
+    FlexGridSizer2->Add(StaticText10, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    CheckBox_SuppressSendingConfig = new wxCheckBox(this, ID_CHECKBOX6, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX6"));
+    CheckBox_SuppressSendingConfig->SetValue(false);
+    FlexGridSizer2->Add(CheckBox_SuppressSendingConfig, 1, wxALL|wxEXPAND, 5);
     FlexGridSizer2->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Button_Visualise = new wxButton(this, ID_BUTTON3, _("Visualise"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON3"));
     FlexGridSizer2->Add(Button_Visualise, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -117,6 +131,8 @@ ZCPPDialog::ZCPPDialog(wxWindow* parent, ZCPPOutput* zcpp, OutputManager* output
     CheckBoxAutoSizeOutput->SetValue(_zcpp->GetAutoSize());
     CheckBox_SupportVirtualStrings->SetValue(_zcpp->IsSupportsVirtualStrings());
     CheckBox_SupportSmartRemotes->SetValue(_zcpp->IsSupportsSmartRemotes());
+    CheckBox_SuppressSendingConfig->SetValue(_zcpp->IsDontConfigure());
+    CheckBox_Multicast->SetValue(_zcpp->IsMulticast());
 
     Button_Ok->SetDefault();
     ValidateWindow();
@@ -146,6 +162,8 @@ void ZCPPDialog::OnButton_OkClick(wxCommandEvent& event)
     _zcpp->SetAutoSize(CheckBoxAutoSizeOutput->IsChecked());
     _zcpp->SetSupportsVirtualStrings(CheckBox_SupportVirtualStrings->IsChecked());
     _zcpp->SetSupportsSmartRemotes(CheckBox_SupportSmartRemotes->IsChecked());
+    _zcpp->SetMulticast(CheckBox_Multicast->IsChecked());
+    _zcpp->SetDontConfigure(CheckBox_SuppressSendingConfig->IsChecked());
 
     EndDialog(wxID_OK);
 }
@@ -161,9 +179,19 @@ void ZCPPDialog::ValidateWindow()
         !IsIPValidOrHostname(TextCtrlIpAddr->GetValue().ToStdString(), true))
     {
         Button_Ok->Enable(false);
+        CheckBox_Multicast->SetLabel("");
     }
     else
     {
+        if (TextCtrlIpAddr->GetValue().Contains("."))
+        {
+            CheckBox_Multicast->SetLabel(wxString::Format("Multicast to 224.0.31.%s", TextCtrlIpAddr->GetValue().AfterLast('.')));
+        }
+        else
+        {
+            CheckBox_Multicast->SetLabel("");
+        }
+
         Button_Ok->Enable();
     }
 }

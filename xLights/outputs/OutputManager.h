@@ -125,6 +125,7 @@ public:
     bool UseE131() const;
     bool UseArtnet() const;
     bool UseDDP() const;
+    bool UseZCPP() const;
     #pragma endregion Packet Sync
 
     #pragma region Data Setting

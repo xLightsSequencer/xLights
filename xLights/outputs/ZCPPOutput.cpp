@@ -302,7 +302,7 @@ wxXmlNode* ZCPPOutput::Save()
 }
 
 #pragma region Static Functions
-void ZCPPOutput::SendSync(int syncUniverse)
+void ZCPPOutput::SendSync()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     static ZCPP_packet_t syncdata;

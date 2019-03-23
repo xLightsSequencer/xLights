@@ -420,6 +420,8 @@
 		<Unit filename="ColorPanel.h" />
 		<Unit filename="ControllerConnectionDialog.cpp" />
 		<Unit filename="ControllerConnectionDialog.h" />
+		<Unit filename="ControllerVisualiseDialog.cpp" />
+		<Unit filename="ControllerVisualiseDialog.h" />
 		<Unit filename="ConvertDialog.cpp" />
 		<Unit filename="ConvertDialog.h" />
 		<Unit filename="ConvertLogDialog.cpp" />
@@ -655,8 +657,6 @@
 		<Unit filename="WiringDialog.h" />
 		<Unit filename="XlightsDrawable.cpp" />
 		<Unit filename="XlightsDrawable.h" />
-		<Unit filename="ControllerVisualiseDialog.cpp" />
-		<Unit filename="ControllerVisualiseDialog.h" />
 		<Unit filename="controllers/ControllerUploadData.cpp" />
 		<Unit filename="controllers/ControllerUploadData.h" />
 		<Unit filename="controllers/ESPixelStick.cpp" />
@@ -1025,6 +1025,7 @@
 		<Unit filename="outputs/SerialPortWithRate.h" />
 		<Unit filename="outputs/TestPreset.cpp" />
 		<Unit filename="outputs/TestPreset.h" />
+		<Unit filename="outputs/ZCPP.h" />
 		<Unit filename="outputs/ZCPPDialog.cpp" />
 		<Unit filename="outputs/ZCPPDialog.h" />
 		<Unit filename="outputs/ZCPPOutput.cpp" />
@@ -1127,6 +1128,7 @@
 		<Unit filename="wxsmith/ColorPanel.wxs" />
 		<Unit filename="wxsmith/ColorWashPanel.wxs" />
 		<Unit filename="wxsmith/ControllerConnectionDialog.wxs" />
+		<Unit filename="wxsmith/ControllerVisualiseDialog.wxs" />
 		<Unit filename="wxsmith/ConvertDialog.wxs" />
 		<Unit filename="wxsmith/ConvertLogDialog.wxs" />
 		<Unit filename="wxsmith/CurrentPreviewModels.wxs" />
@@ -1249,7 +1251,6 @@
 		<Unit filename="wxsmith/WarpPanel.wxs" />
 		<Unit filename="wxsmith/WavePanel.wxs" />
 		<Unit filename="wxsmith/WiringDialog.wxs" />
-		<Unit filename="wxsmith/ControllerVisualiseDialog.wxs" />
 		<Unit filename="wxsmith/xLightsImportChannelMapDialog.wxs" />
 		<Unit filename="wxsmith/xLightsframe.wxs" />
 		<Unit filename="wxsmith/xlColorPickerFields.wxs" />

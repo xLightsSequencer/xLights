@@ -41,7 +41,7 @@ public:
     #pragma endregion Constructors and Destructors
     
     #pragma region Static Functions
-    static void SendSync(int syncUniverse);
+    static void SendSync();
     static std::list<Output*> Discover(OutputManager* outputManager);
     static void InitialiseExtraConfigPacket(ZCPP_packet_t& packet, int seq);
     static std::string DecodeProtocol(int protocol);

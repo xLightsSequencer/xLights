@@ -126,6 +126,34 @@
 						<border>5</border>
 						<option>1</option>
 					</object>
+					<object class="sizeritem">
+						<object class="wxStaticText" name="ID_STATICTEXT7" variable="StaticText7" member="yes">
+							<label>Multicast </label>
+						</object>
+						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxCheckBox" name="ID_CHECKBOX5" variable="CheckBox_Multicast" member="yes" />
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxStaticText" name="ID_STATICTEXT10" variable="StaticText10" member="yes">
+							<label>Suppress sending confguration</label>
+						</object>
+						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxCheckBox" name="ID_CHECKBOX6" variable="CheckBox_SuppressSendingConfig" member="yes" />
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
 					<object class="spacer">
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>

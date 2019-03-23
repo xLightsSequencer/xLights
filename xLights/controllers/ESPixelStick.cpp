@@ -6,45 +6,11 @@
 #include "outputs/OutputManager.h"
 #include "outputs/Output.h"
 #include "models/ModelManager.h"
-#include "ControllerUploadData.h"
 #include "UtilFunctions.h"
 
 #include <log4cpp/Category.hh>
 
 // This is tested with a pixel stick running v3.0 of the firmware
-
-class ESPixelStickControllerRules : public ControllerRules
-{
-public:
-    ESPixelStickControllerRules() : ControllerRules() {}
-    virtual ~ESPixelStickControllerRules() {}
-    virtual int GetMaxPixelPortChannels() const override { return 1360 * 3; }
-    virtual int GetMaxPixelPort() const override { return 1; }
-    virtual int GetMaxSerialPortChannels() const override { return 0; } // not implemented yet
-    virtual int GetMaxSerialPort() const override { return 0; } // not implemented yet
-    virtual bool IsValidPixelProtocol(const std::string protocol) const override
-    {
-        wxString p(protocol);
-        p = p.Lower();
-        return (p == "ws2811" || p == "gece");
-    }
-    virtual bool IsValidSerialProtocol(const std::string protocol) const override
-    {
-        wxString p(protocol);
-        p = p.Lower();
-        return (p == "renard" || p == "dmx");
-    }
-    virtual bool SupportsMultipleProtocols() const override { return false; }
-    virtual bool SupportsSmartRemotes() const override { return false; }
-    virtual bool SupportsMultipleInputProtocols() const override { return false; }
-    virtual bool AllUniversesSameSize() const override { return true; }
-    virtual std::list<std::string> GetSupportedInputProtocols() const override {
-        std::list<std::string> res;
-        res.push_back("E131");
-        return res;
-    };
-    virtual bool UniversesMustBeSequential() const override { return true; }
-};
 
 ESPixelStick::ESPixelStick(const std::string& ip)
 {

@@ -903,6 +903,11 @@ void OutputManager::EndFrame()
         {
             DDPOutput::SendSync();
         }
+
+        if (UseZCPP())
+        {
+            ZCPPOutput::SendSync();
+        }
     }
     _outputCriticalSection.Leave();
 }
@@ -1038,9 +1043,9 @@ void OutputManager::SetManyChannels(long channel, unsigned char* data, long size
 #pragma region Sync
 bool OutputManager::UseE131() const
 {
-    for (auto it = _outputs.begin(); it != _outputs.end(); ++it)
+    for (auto it : _outputs)
     {
-        if ((*it)->GetType() == OUTPUT_E131)
+        if (it->GetType() == OUTPUT_E131)
         {
             return true;
         }
@@ -1051,9 +1056,9 @@ bool OutputManager::UseE131() const
 
 bool OutputManager::UseArtnet() const
 {
-    for (auto it = _outputs.begin(); it != _outputs.end(); ++it)
+    for (auto it : _outputs)
     {
-        if ((*it)->GetType() == OUTPUT_ARTNET)
+        if (it->GetType() == OUTPUT_ARTNET)
         {
             return true;
         }
@@ -1064,9 +1069,22 @@ bool OutputManager::UseArtnet() const
 
 bool OutputManager::UseDDP() const
 {
-    for (auto it = _outputs.begin(); it != _outputs.end(); ++it)
+    for (auto it : _outputs)
     {
-        if ((*it)->GetType() == OUTPUT_DDP)
+        if (it->GetType() == OUTPUT_DDP)
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool OutputManager::UseZCPP() const
+{
+    for (auto it : _outputs)
+    {
+        if (it->GetType() == OUTPUT_ZCPP)
         {
             return true;
         }

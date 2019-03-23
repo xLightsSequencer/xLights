@@ -66,6 +66,7 @@
 #include "LyricUserDictDialog.h"
 #include "controllers/ControllerUploadData.h"
 #include "controllers/Falcon.h"
+#include "controllers/ESPixelStick.h"
 #include "outputs/ZCPPOutput.h"
 #include "EffectIconPanel.h"
 #include "models/ViewObject.h"
@@ -5041,7 +5042,7 @@ void xLightsFrame::CheckSequence(bool display)
 
             switch(((ZCPPOutput*)it)->GetVendor())
             {
-            case 0:
+            case ZCPP_VENDOR_FALCON:
                 // falcon
                 {
                 // FIXME ... need the right rules
@@ -5049,12 +5050,19 @@ void xLightsFrame::CheckSequence(bool display)
                     edc.Check(&fcr, check);
                 }
                 break;
-            case 1:
+            case ZCPP_VENDOR_FPP:
                 // fpp
                 {
                     // FIXME ... need the right rules
                     ControllerRules& fcr = FPP::GetCapeRules("");
                     edc.Check(&fcr, check);
+                }
+            break;
+            case ZCPP_VENDOR_ESPIXELSTICK:
+                // fpp
+                {
+                    ESPixelStickControllerRules epscr;
+                    edc.Check(&epscr, check);
                 }
             break;
             default:

@@ -214,9 +214,9 @@ struct {
 	uint8_t port;					// zero based port that is being configured
 	uint8_t string;					// smart remote and virtual string number within port
     uint16_t startChannel;			// zero based start channel within the ZCPP data space
-    uint8_t protocol;				// port protocol
 	uint16_t channels;				// number of channels to send out this port
-	uint8_t grouping;				// pixel grouping on this port. If 2 then channels 123456789 becomes 123123456456789789
+    uint8_t protocol;				// port protocol
+    uint8_t grouping;				// pixel grouping on this port. If 2 then channels 123456789 becomes 123123456456789789
 	uint8_t directionColourOrder;   // should data be reversed and what is the pixel colour order
 	uint8_t nullPixels;				// number of null pixels at the start of this string
 	uint8_t brightness;				// 0-100 brightness
@@ -260,7 +260,7 @@ struct {
 	ZCPP_Header Header;
 } ZCPP_QueryConfiguration;
 
-// Extra port data - 3 - 1490 bytes
+// Extra port data - 3 - 1458 bytes
 typedef
 #ifndef _MSC_VER
 __attribute__((packed))
@@ -272,7 +272,7 @@ struct {
     char description[1];				// the port description
 } ZCPP_PortExtraData;
 
-// Extra port configuration data - 10 - 1500 bytes
+// Extra port configuration data - 10 - 1458 bytes
 typedef
 #ifndef _MSC_VER
 __attribute__((packed))
@@ -295,7 +295,7 @@ struct {
 	uint8_t sequenceNumber;			// sequence number matching the data frame sequence number this sync packet is for
 } ZCPP_Sync;
 
-// Data - 14 - 1500 bytes
+// Data - 14 - 1458 bytes
 typedef
 #ifndef _MSC_VER
 __attribute__((packed))
@@ -344,7 +344,7 @@ union {
 	// sync
 	ZCPP_Sync Sync;
 
-    uint8_t raw[1500];
+    uint8_t raw[1458];
 } ZCPP_packet_t;
 
 #ifdef _MSC_VER
