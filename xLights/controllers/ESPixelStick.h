@@ -4,10 +4,46 @@
 #include <list>
 #include <string>
 #include "WebSocketClient.h"
+#include "ControllerUploadData.h"
 
 class ModelManager;
 class Output;
 class OutputManager;
+
+class ESPixelStickControllerRules : public ControllerRules
+{
+public:
+    ESPixelStickControllerRules() : ControllerRules() {}
+    virtual ~ESPixelStickControllerRules() {}
+    virtual const std::string GetControllerId() const override {
+        return std::string("ESPixelStick");
+    }
+    virtual int GetMaxPixelPortChannels() const override { return 1360 * 3; }
+    virtual int GetMaxPixelPort() const override { return 1; }
+    virtual int GetMaxSerialPortChannels() const override { return 0; } // not implemented yet
+    virtual int GetMaxSerialPort() const override { return 0; } // not implemented yet
+    virtual bool IsValidPixelProtocol(const std::string protocol) const override
+    {
+        wxString p(protocol);
+        p = p.Lower();
+        return (p == "ws2811" || p == "gece");
+    }
+    virtual bool IsValidSerialProtocol(const std::string protocol) const override
+    {
+        wxString p(protocol);
+        p = p.Lower();
+        return (p == "renard" || p == "dmx");
+    }
+    virtual bool SupportsMultipleProtocols() const override { return false; }
+    virtual bool SupportsSmartRemotes() const override { return false; }
+    virtual bool SupportsMultipleInputProtocols() const override { return false; }
+    virtual bool AllUniversesSameSize() const override { return true; }
+    virtual std::set<std::string> GetSupportedInputProtocols() const override {
+        std::set<std::string> res = {"E131"};
+        return res;
+    };
+    virtual bool UniversesMustBeSequential() const override { return true; }
+};
 
 class ESPixelStick
 {
