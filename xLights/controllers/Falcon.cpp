@@ -47,6 +47,12 @@ void Falcon::DecodeModelVersion(int p, int& model, int& version)
     }
 }
 
+static std::string FALCON_F4 = "Falcon F4";
+
+const std::string FalconControllerRules::GetControllerId() const {
+    return wxString::Format("F%dv%d", _type, _version).ToStdString();
+}
+
 bool Falcon::IsEnhancedV2Firmware() const
 {
     if (_firmwareVersion == "") return false;

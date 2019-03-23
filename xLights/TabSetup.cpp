@@ -25,6 +25,7 @@
 #include "controllers/J1Sys.h"
 #include "controllers/ESPixelStick.h"
 #include "controllers/EasyLights.h"
+#include "controllers/ControllerRegistry.h"
 #include "sequencer/MainSequencer.h"
 #include "ViewsModelsPanel.h"
 #include "outputs/Output.h"
@@ -39,6 +40,7 @@
 
 #include <log4cpp/Category.hh>
 #include "MultiControllerUploadDialog.h"
+#include "ControllerVisualiseDialog.h"
 
 const long xLightsFrame::ID_NETWORK_ADDUSB = wxNewId();
 const long xLightsFrame::ID_NETWORK_ADDNULL = wxNewId();
@@ -74,6 +76,8 @@ const long xLightsFrame::ID_NETWORK_UCOJ1SYS = wxNewId();
 const long xLightsFrame::ID_NETWORK_UCOESPIXELSTICK = wxNewId();
 const long xLightsFrame::ID_NETWORK_PINGCONTROLLER = wxNewId();
 const long xLightsFrame::ID_NETWORK_UCOEASYLIGHTS = wxNewId();
+const long xLightsFrame::ID_NETWORK_UPLOAD_CONTROLLER_CONFIGURED = wxNewId();
+const long xLightsFrame::ID_NETWORK_VISUALISE = wxNewId();
 
 const long ID_NETWORK_UCOFPP_PIHAT = wxNewId();
 
@@ -412,8 +416,13 @@ void xLightsFrame::UpdateNetworkList(bool updateModels)
         }
         GridNetwork->SetItem(newidx, 7, (*e)->GetDescription());
         GridNetwork->SetItem(newidx, 8, (*e)->IsSuppressDuplicateFrames() ? "Y" : "");
-        if (!(*e)->IsEnabled())
-        {
+        const ControllerRules *rules = ControllerRegistry::GetRulesForController((*e)->GetControllerId());
+        if (rules) {
+            GridNetwork->SetItem(newidx, 9, rules->GetControllerDescription());
+        } else {
+            GridNetwork->SetItem(newidx, 9, "");
+        }
+        if (!(*e)->IsEnabled()) {
             GridNetwork->SetItemTextColour(newidx, *wxLIGHT_GREY);
         }
     }
@@ -1439,57 +1448,73 @@ void xLightsFrame::OnGridNetworkItemRClick(wxListEvent& event)
     bool validIpNoType = CheckAllAreSameIPType(_outputManager, GridNetwork, true, false);
     bool allSupportIp = AllSelectedSupportIP();
     bool doEnable = allSupportIp && (selcnt == 1 || validIpNoType);
-    
-    wxMenu* fppOutput = new wxMenu();
-    mnuUCOutput->AppendSubMenu(fppOutput, "FPP Capes/Hats");
-    fppOutput->Connect(wxEVT_MENU, (wxObjectEventFunction)&xLightsFrame::OnNetworkPopup, nullptr, this);
-    wxMenuItem* item = fppOutput->Append(ID_NETWORK_UCOFPP_F4B, "F4-B");
-    item->Enable(doEnable);
-    item = fppOutput->Append(ID_NETWORK_UCOFPP_F8B, "F8-B (8 serial)");
-    item->Enable(doEnable);
-    item = fppOutput->Append(ID_NETWORK_UCOFPP_F8B_16, "F8-B (4 serial)");
-    item->Enable(doEnable);
-    item = fppOutput->Append(ID_NETWORK_UCOFPP_F8B_20, "F8-B (No serial)");
-    item->Enable(doEnable);
-    item = fppOutput->Append(ID_NETWORK_UCOFPP_F8B_EXP, "F8-B w/ Expansion (8 serial)");
-    item->Enable(doEnable);
-    item = fppOutput->Append(ID_NETWORK_UCOFPP_F8B_EXP_32, "F8-B w/ Expansion (4 serial)");
-    item->Enable(doEnable);
-    item = fppOutput->Append(ID_NETWORK_UCOFPP_F8B_EXP_36, "F8-B w/ Expansion (No serial)");
-    item->Enable(doEnable);
-    item = fppOutput->Append(ID_NETWORK_UCOFPP_F16B, "F16-B");
-    item->Enable(doEnable);
-    item = fppOutput->Append(ID_NETWORK_UCOFPP_F16B_32, "F16-B w/ 32 outputs");
-    item->Enable(doEnable);
-    item = fppOutput->Append(ID_NETWORK_UCOFPP_F16B_48, "F16-B w/ 48 outputs (No Serial)");
-    item->Enable(doEnable);
-    item = fppOutput->Append(ID_NETWORK_UCOFPP_F32B, "F32-B");
-    item->Enable(doEnable);
-    item = fppOutput->Append(ID_NETWORK_UCOFPP_F32B_48, "F32-B (No Serial)");
-    item->Enable(doEnable);
-    item = fppOutput->Append(ID_NETWORK_UCOFPP_RGBCape24, "RGBCape24");
-    item->Enable(doEnable);
-    item = fppOutput->Append(ID_NETWORK_UCOFPP_RGBCape48C, "RGBCape48C");
-    item->Enable(doEnable);
-    item = fppOutput->Append(ID_NETWORK_UCOFPP_RGBCape48F, "RGBCape48F");
-    item->Enable(doEnable);
-    item = fppOutput->Append(ID_NETWORK_UCOFPP_PIHAT, "PiHat");
-    item->Enable(doEnable);
 
-    wxMenuItem* beUCOESPixelStick = mnuUCOutput->Append(ID_NETWORK_UCOESPIXELSTICK, "ES Pixel Stick");
-    if (!AllSelectedSupportIP()) {
-        beUCOESPixelStick->Enable(false);
-    } else {
-        if (selcnt == 1) {
-            beUCOESPixelStick->Enable(true);
-        } else {
-            bool valid = CheckAllAreSameIPType(_outputManager, GridNetwork, true, true);
-            beUCOESPixelStick->Enable(valid);
+    bool hasControllerConfigured = false;
+    Output *selected = nullptr;
+    if (selcnt == 1) {
+        int idx = GridNetwork->GetNextItem(-1,
+                                           wxLIST_NEXT_ALL,
+                                           wxLIST_STATE_SELECTED);
+        selected = _outputManager.GetOutput(idx);
+        if (idx > 0 && selected && selected->GetControllerId() != "") {
+            hasControllerConfigured = true;
         }
     }
+    if (hasControllerConfigured) {
+        std::string description = ControllerRegistry::GetRulesForController(selected->GetControllerId())->GetControllerDescription();
+        mnuUploadController->Append(ID_NETWORK_UPLOAD_CONTROLLER_CONFIGURED, "Output - " + description);
+    } else {
+        wxMenu* fppOutput = new wxMenu();
+        mnuUCOutput->AppendSubMenu(fppOutput, "FPP Capes/Hats");
+        fppOutput->Connect(wxEVT_MENU, (wxObjectEventFunction)&xLightsFrame::OnNetworkPopup, nullptr, this);
+        wxMenuItem* item = fppOutput->Append(ID_NETWORK_UCOFPP_F4B, "F4-B");
+        item->Enable(doEnable);
+        item = fppOutput->Append(ID_NETWORK_UCOFPP_F8B, "F8-B (8 serial)");
+        item->Enable(doEnable);
+        item = fppOutput->Append(ID_NETWORK_UCOFPP_F8B_16, "F8-B (4 serial)");
+        item->Enable(doEnable);
+        item = fppOutput->Append(ID_NETWORK_UCOFPP_F8B_20, "F8-B (No serial)");
+        item->Enable(doEnable);
+        item = fppOutput->Append(ID_NETWORK_UCOFPP_F8B_EXP, "F8-B w/ Expansion (8 serial)");
+        item->Enable(doEnable);
+        item = fppOutput->Append(ID_NETWORK_UCOFPP_F8B_EXP_32, "F8-B w/ Expansion (4 serial)");
+        item->Enable(doEnable);
+        item = fppOutput->Append(ID_NETWORK_UCOFPP_F8B_EXP_36, "F8-B w/ Expansion (No serial)");
+        item->Enable(doEnable);
+        item = fppOutput->Append(ID_NETWORK_UCOFPP_F16B, "F16-B");
+        item->Enable(doEnable);
+        item = fppOutput->Append(ID_NETWORK_UCOFPP_F16B_32, "F16-B w/ 32 outputs");
+        item->Enable(doEnable);
+        item = fppOutput->Append(ID_NETWORK_UCOFPP_F16B_48, "F16-B w/ 48 outputs (No Serial)");
+        item->Enable(doEnable);
+        item = fppOutput->Append(ID_NETWORK_UCOFPP_F32B, "F32-B");
+        item->Enable(doEnable);
+        item = fppOutput->Append(ID_NETWORK_UCOFPP_F32B_48, "F32-B (No Serial)");
+        item->Enable(doEnable);
+        item = fppOutput->Append(ID_NETWORK_UCOFPP_RGBCape24, "RGBCape24");
+        item->Enable(doEnable);
+        item = fppOutput->Append(ID_NETWORK_UCOFPP_RGBCape48C, "RGBCape48C");
+        item->Enable(doEnable);
+        item = fppOutput->Append(ID_NETWORK_UCOFPP_RGBCape48F, "RGBCape48F");
+        item->Enable(doEnable);
+        item = fppOutput->Append(ID_NETWORK_UCOFPP_PIHAT, "PiHat");
+        item->Enable(doEnable);
 
-    mnuUploadController->Append(ID_NETWORK_UCOUTPUT, "Output", mnuUCOutput, "");
-    mnuUCOutput->Connect(wxEVT_MENU, (wxObjectEventFunction)&xLightsFrame::OnNetworkPopup, nullptr, this);
+        wxMenuItem* beUCOESPixelStick = mnuUCOutput->Append(ID_NETWORK_UCOESPIXELSTICK, "ES Pixel Stick");
+        if (!AllSelectedSupportIP()) {
+            beUCOESPixelStick->Enable(false);
+        } else {
+            if (selcnt == 1) {
+                beUCOESPixelStick->Enable(true);
+            } else {
+                bool valid = CheckAllAreSameIPType(_outputManager, GridNetwork, true, true);
+                beUCOESPixelStick->Enable(valid);
+            }
+        }
+
+        mnuUploadController->Append(ID_NETWORK_UCOUTPUT, "Output", mnuUCOutput, "");
+        mnuUCOutput->Connect(wxEVT_MENU, (wxObjectEventFunction)&xLightsFrame::OnNetworkPopup, nullptr, this);
+    }
 
     mnu.Append(ID_NETWORK_UPLOADCONTROLLER, "Upload To Controller", mnuUploadController, "");
     mnuUploadController->Connect(wxEVT_MENU, (wxObjectEventFunction)&xLightsFrame::OnNetworkPopup, nullptr, this);
@@ -1530,6 +1555,9 @@ void xLightsFrame::OnGridNetworkItemRClick(wxListEvent& event)
     wxMenuItem* mideu = mnu.Append(ID_NETWORK_DEACTIVATEUNUSED, "Deactivate Unused");
     wxMenuItem* oc = mnu.Append(ID_NETWORK_OPENCONTROLLER, "Open Controller");
     wxMenuItem* pc = mnu.Append(ID_NETWORK_PINGCONTROLLER, "Ping Controller");
+    if (hasControllerConfigured) {
+        mnu.Append(ID_NETWORK_VISUALISE, "Visualise Controller");
+    }
 
     mideu->Enable(true);
     mid->Enable(selcnt > 0);
@@ -1642,6 +1670,13 @@ void xLightsFrame::OnNetworkPopup(wxCommandEvent &event)
         UploadFPPStringOuputs("PiHat");
     } else if (id == ID_NETWORK_UCOPIXLITE16) {
         UploadPixlite16Output();
+    } else if (id == ID_NETWORK_UPLOAD_CONTROLLER_CONFIGURED) {
+        Output *selected = _outputManager.GetOutput(item);
+        //FIXME - non FPP targets
+        UploadFPPStringOuputs(selected->GetControllerId());
+    } else if (id == ID_NETWORK_VISUALISE) {
+        Output *selected = _outputManager.GetOutput(item);
+        VisualiseOutput(selected);
     } else if (id == ID_NETWORK_BEIPADDR) {
         UpdateSelectedIPAddresses();
     } else if (id == ID_NETWORK_BECHANNELS) {
@@ -2140,6 +2175,106 @@ bool xLightsFrame::RebuildControllerConfig(OutputManager* outputManager, ModelMa
     }
 
     return true;
+}
+
+void xLightsFrame::OnButton_DiscoverClick(wxCommandEvent& event)
+{
+    std::list<std::string> startAddresses;
+    std::list<FPP*> instances;
+    wxConfigBase* config = wxConfigBase::Get();
+    wxString force;
+    if (config->Read("FPPConnectForcedIPs", &force)) {
+        wxArrayString ips = wxSplit(force, '|');
+        wxString newForce;
+        for (auto &a : ips) {
+            startAddresses.push_back(a);
+        }
+    }
+    FPP::Discover(startAddresses, instances);
+    std::list<FPP*> consider;
+    for (auto fpp : instances) {
+        std::list<Output*> outputs = _outputManager.GetAllOutputs(fpp->ipAddress, fpp->hostName);
+        if (outputs.size() == 1) {
+            Output *o = outputs.front();
+            if (o->GetDescription() != fpp->description) {
+                if (fpp->description == "") {
+                    fpp->SetDescription(o->GetDescription());
+                } else if (o->GetDescription() == "") {
+                    o->SetDescription(fpp->description);
+                } else {
+                    //FIXME - descriptions aren't equal, ask what to do....
+                }
+            }
+            if (o->GetControllerId() != fpp->pixelControllerType) {
+                if (o->GetControllerId() == "") {
+                    o->SetControllerId(fpp->pixelControllerType);
+                } else if (fpp->pixelControllerType == "") {
+                    // this will get set later at upload time
+                } else {
+                    //FIXME - controller types don't match, ask what to do
+                    //for now, I'll use what FPP is configured for
+                     o->SetControllerId(fpp->pixelControllerType);
+                }
+            }
+            delete fpp;
+        } else if (outputs.size() > 1) {
+            // not sure what to do if multiple outputs match
+            delete fpp;
+        } else {
+            consider.push_back(fpp);
+        }
+    }
+    bool changed = false;
+    for (auto fpp : consider) {
+        DDPOutput *ddp = new DDPOutput();
+        if (fpp->hostName != "") {
+            ddp->SetIP(fpp->hostName);
+        } else {
+            ddp->SetIP(fpp->ipAddress);
+        }
+        ddp->SetControllerId(fpp->pixelControllerType);
+        ddp->SetDescription(fpp->description);
+        int min = 9999999; int max = 0;
+        if (fpp->ranges != "") {
+            wxArrayString r1 = wxSplit(wxString(fpp->ranges), ',');
+            for (auto a : r1) {
+                wxArrayString r = wxSplit(a, '-');
+                int start = wxAtoi(r[0]);
+                int len = 4; //at least 4
+                if (r.size() == 2) {
+                    len = wxAtoi(r[1]) - start + 1;
+                }
+                min = std::min(min, start);
+                max = std::max(max, start + len - 1);
+            }
+        }
+        int count = max - min;
+        if (count < 512) {
+            count = 512;
+        }
+        ddp->SetChannels(count);
+        _outputManager.AddOutput(ddp, -1);
+        changed = true;
+        delete fpp;
+    }
+    if (changed) {
+        NetworkChange();
+        UpdateNetworkList(true);
+    }
+}
+
+
+void xLightsFrame::VisualiseOutput(Output *e, wxWindow *parent) {
+    std::list<int> selected;
+    std::string check;
+    std::string ip = e->GetIP();
+    UDController cud(ip, ip, &AllModels, &_outputManager, &selected, check);
+    cud.Check(ControllerRegistry::GetRulesForController(e->GetControllerId()), check);
+    if (!parent) {
+        parent = this;
+    }
+    ControllerVisualiseDialog dlg(parent, cud);
+    dlg.ShowModal();
 }
 
 void xLightsFrame::UploadEasyLightsOutput()

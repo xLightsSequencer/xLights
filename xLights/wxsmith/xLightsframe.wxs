@@ -772,6 +772,15 @@
 															<option>1</option>
 														</object>
 														<object class="sizeritem">
+															<object class="wxButton" name="ID_BUTTON5" variable="Button_Discover" member="yes">
+																<label>Discover</label>
+																<handler function="OnButton_DiscoverClick" entry="EVT_BUTTON" />
+															</object>
+															<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+															<border>5</border>
+															<option>1</option>
+														</object>
+														<object class="sizeritem">
 															<object class="wxStaticText" name="ID_STATICTEXT8" variable="StaticText5" member="yes">
 																<label>&#x0A;E1.31 Sync Universe:</label>
 															</object>

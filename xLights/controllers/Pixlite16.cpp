@@ -22,6 +22,10 @@ public:
         _dmxPorts = config._realDMX;
     }
     virtual ~PixLite16ControllerRules() {}
+    virtual const std::string GetControllerId() const override {
+        return std::string("PixLite") + std::to_string(_pixelPorts);
+    }
+
     virtual int GetMaxPixelPortChannels() const override
     {
         return _maxChannelsPerOutput;
@@ -58,10 +62,8 @@ public:
     virtual bool SupportsSmartRemotes() const override { return false; }
     virtual bool SupportsMultipleInputProtocols() const override { return false; }
     virtual bool AllUniversesSameSize() const override { return false; }
-    virtual std::list<std::string> GetSupportedInputProtocols() const override {
-        std::list<std::string> res;
-        res.push_back("E131");
-        res.push_back("ARTNET");
+    virtual std::set<std::string> GetSupportedInputProtocols() const override {
+        std::set<std::string> res = {"E131", "ARTNET"};
         return res;
     };
     virtual bool UniversesMustBeSequential() const override { return true; }

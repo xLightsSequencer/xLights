@@ -4,6 +4,7 @@
 //(*Headers(DDPDialog)
 #include <wx/button.h>
 #include <wx/checkbox.h>
+#include <wx/choice.h>
 #include <wx/dialog.h>
 #include <wx/sizer.h>
 #include <wx/spinctrl.h>
@@ -28,8 +29,10 @@ class DDPDialog: public wxDialog
 		//(*Declarations(DDPDialog)
 		wxButton* ButtonCancel;
 		wxButton* ButtonOk;
+		wxButton* VisualizeButton;
 		wxCheckBox* CheckBox1;
 		wxCheckBox* CheckBoxKeepChannels;
+		wxChoice* ControllerTypeChoice;
 		wxSpinCtrl* SpinCtrl1;
 		wxSpinCtrl* SpinCtrlChannels;
 		wxSpinCtrl* SpinCtrl_ChannelsPerPacket;
@@ -38,6 +41,7 @@ class DDPDialog: public wxDialog
 		wxStaticText* StaticText3;
 		wxStaticText* StaticText4;
 		wxStaticText* StaticText5;
+		wxStaticText* StaticText6;
 		wxStaticText* StaticText7;
 		wxTextCtrl* TextCtrlDescription;
 		wxTextCtrl* TextCtrlIPAddress;
@@ -56,19 +60,26 @@ class DDPDialog: public wxDialog
 		static const long ID_STATICTEXT4;
 		static const long ID_SPINCTRL_ChannelsPerPacket;
 		static const long ID_CHECKBOX_KEEPCHANNELS;
+		static const long ID_CHECKBOX1;
 		static const long ID_STATICTEXT3;
 		static const long ID_TEXTCTRL2;
-		static const long ID_CHECKBOX1;
+		static const long ID_STATICTEXT6;
+		static const long ID_CHOICE1;
 		static const long ID_BUTTON1;
 		static const long ID_BUTTON2;
+		static const long ID_BUTTON3;
 		//*)
 
 	private:
+        void SaveDDPFields();
 
 		//(*Handlers(DDPDialog)
 		void OnTextCtrlIPAddressText(wxCommandEvent& event);
 		void OnButtonOkClick(wxCommandEvent& event);
 		void OnButtonCancelClick(wxCommandEvent& event);
+		void OnButton1Click(wxCommandEvent& event);
+		void OnVisualizeButtonClick(wxCommandEvent& event);
+		void OnControllerTypeChoiceSelect(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

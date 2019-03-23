@@ -226,7 +226,7 @@ bool UDController::HasSerialPort(int port) const
     return false;
 }
 
-bool UDController::Check(ControllerRules* rules, std::string& res)
+bool UDController::Check(const ControllerRules* rules, std::string& res)
 {
     bool success = true;
 
@@ -582,7 +582,7 @@ bool UDControllerPortModel::ChannelsOnOutputs(std::list<Output*>& outputs) const
     return true;
 }
 
-bool UDControllerPortModel::Check(const UDControllerPort* port, bool pixel, ControllerRules* rules, std::list<Output*>& outputs, std::string& res) const
+bool UDControllerPortModel::Check(const UDControllerPort* port, bool pixel, const ControllerRules* rules, std::list<Output*>& outputs, std::string& res) const
 {
     bool success = true;
     if (!ChannelsOnOutputs(outputs))
@@ -723,7 +723,7 @@ void UDControllerPort::Dump() const
     }
 }
 
-bool UDControllerPort::Check(const UDController* controller, bool pixel, ControllerRules* rules, std::list<Output*>& outputs, std::string& res) const
+bool UDControllerPort::Check(const UDController* controller, bool pixel, const ControllerRules* rules, std::list<Output*>& outputs, std::string& res) const
 {
     bool success = true;
 

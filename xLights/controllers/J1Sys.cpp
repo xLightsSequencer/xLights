@@ -23,12 +23,27 @@
 //           - 2 serial ports
 //           - can receive 26 universes
 
+static std::string J1SYS_P12S = "J1Sys-P12S";
+static std::string J1SYS_P12R = "J1Sys-P12R";
+static std::string J1SYS_P12D = "J1Sys-P12D";
+static std::string J1SYS_P2 = "J1Sys P2";
+
 class J1SysControllerRules : public ControllerRules
 {
     int _outputs = 0;
 public:
     J1SysControllerRules(int outputs) : ControllerRules(), _outputs(outputs) {}
     virtual ~J1SysControllerRules() {}
+    
+    virtual const std::string GetControllerId() const override {
+        if (_outputs == 2) {
+            return J1SYS_P2;
+        }
+        //FIXME, other models
+        return J1SYS_P12R;
+    }
+
+    
     virtual int GetMaxPixelPortChannels() const override 
     { 
         if (_outputs == 2) return 9999999; // we will detect this in a different way 
@@ -54,10 +69,8 @@ public:
     virtual bool SupportsSmartRemotes() const override { return false; }
     virtual bool SupportsMultipleInputProtocols() const override { return false; }
     virtual bool AllUniversesSameSize() const override { return false; }
-    virtual std::list<std::string> GetSupportedInputProtocols() const override {
-        std::list<std::string> res;
-        res.push_back("E131");
-        res.push_back("ARTNET");
+    virtual std::set<std::string> GetSupportedInputProtocols() const override {
+        std::set<std::string> res = {"E131", "ARTNET"};
         return res;
     };
     virtual bool UniversesMustBeSequential() const override { return false; }

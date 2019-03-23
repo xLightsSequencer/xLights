@@ -869,6 +869,14 @@ public:
             if (clevel < 0 || clevel > 25) {
                 clevel = 10;
             }
+            if (frame == 0 && (ZSTD_versionNumber() > 10305)) {
+                // first frame needs to be grabbed as fast as possible
+                // or remotes may be off by a few frames at start.  Thus,
+                // if using recent zstd, we'll use the negative levels
+                // for the first block so the decompression can
+                // be as fast as possible
+                clevel = -10;
+            }
             ZSTD_initCStream(m_cctx, clevel);
         }
 

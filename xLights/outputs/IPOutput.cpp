@@ -1,3 +1,9 @@
+#ifdef __WXMSW__
+#include <winsock2.h>
+#include <iphlpapi.h>
+#include <icmpapi.h>
+#endif
+
 #include "IPOutput.h"
 
 #include <wx/xml/xml.h>
@@ -6,11 +12,6 @@
 #include <log4cpp/Category.hh>
 #include <wx/protocol/http.h>
 
-#ifdef __WXMSW__
-#include <winsock2.h>
-#include <iphlpapi.h>
-#include <icmpapi.h>
-#endif
 
 std::string IPOutput::__localIP = "";
 

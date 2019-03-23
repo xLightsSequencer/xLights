@@ -25,6 +25,8 @@
 		3D585F2F1E7E52F800A3F84F /* SequenceData.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3D585F2E1E7E52F700A3F84F /* SequenceData.cpp */; };
 		3D585F311E7E541400A3F84F /* UtilFunctions.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3D585F301E7E541400A3F84F /* UtilFunctions.cpp */; };
 		6701999F1CE5A03200AE9B7E /* RenderProgressDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6701999D1CE5A03200AE9B7E /* RenderProgressDialog.cpp */; };
+		6701C433224557660004335C /* ControllerRegistry.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6701C431224557660004335C /* ControllerRegistry.cpp */; };
+		6701C43622468C440004335C /* ControllerVisualiseDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6701C43422468C430004335C /* ControllerVisualiseDialog.cpp */; };
 		67025C6E20D7E80900BF1AC6 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 67025C6D20D7E80900BF1AC6 /* Assets.xcassets */; };
 		67025C8C20D7E85100BF1AC6 /* SettingsDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67025C7920D7E84F00BF1AC6 /* SettingsDialog.cpp */; };
 		67025C8D20D7E85100BF1AC6 /* UniverseEntryDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67025C7B20D7E84F00BF1AC6 /* UniverseEntryDialog.cpp */; };
@@ -378,7 +380,6 @@
 		67B02300204A794200639D21 /* SustainDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B022FD204A794200639D21 /* SustainDialog.cpp */; };
 		67B2B2241E1947BE0024F0BB /* ArtNetDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B2B1F81E1947BE0024F0BB /* ArtNetDialog.cpp */; };
 		67B2B2251E1947BE0024F0BB /* ArtNetOutput.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B2B1FA1E1947BE0024F0BB /* ArtNetOutput.cpp */; };
-		67B2B2261E1947BE0024F0BB /* Controller.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B2B1FC1E1947BE0024F0BB /* Controller.cpp */; };
 		67B2B2271E1947BE0024F0BB /* DMXOutput.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B2B1FF1E1947BE0024F0BB /* DMXOutput.cpp */; };
 		67B2B2281E1947BE0024F0BB /* E131Dialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B2B2011E1947BE0024F0BB /* E131Dialog.cpp */; };
 		67B2B2291E1947BE0024F0BB /* E131Output.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B2B2031E1947BE0024F0BB /* E131Output.cpp */; };
@@ -702,7 +703,6 @@
 		67F240031E329E7400F8B985 /* VideoWindowPositionDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67F23FE41E329E7400F8B985 /* VideoWindowPositionDialog.cpp */; };
 		67F240051E32A03F00F8B985 /* ArtNetDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B2B1F81E1947BE0024F0BB /* ArtNetDialog.cpp */; };
 		67F240061E32A03F00F8B985 /* ArtNetOutput.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B2B1FA1E1947BE0024F0BB /* ArtNetOutput.cpp */; };
-		67F240071E32A03F00F8B985 /* Controller.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B2B1FC1E1947BE0024F0BB /* Controller.cpp */; };
 		67F240081E32A03F00F8B985 /* DMXOutput.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B2B1FF1E1947BE0024F0BB /* DMXOutput.cpp */; };
 		67F240091E32A03F00F8B985 /* E131Dialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B2B2011E1947BE0024F0BB /* E131Dialog.cpp */; };
 		67F2400A1E32A03F00F8B985 /* E131Output.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B2B2031E1947BE0024F0BB /* E131Output.cpp */; };
@@ -859,6 +859,10 @@
 		3D585F301E7E541400A3F84F /* UtilFunctions.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = UtilFunctions.cpp; sourceTree = "<group>"; };
 		6701999D1CE5A03200AE9B7E /* RenderProgressDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderProgressDialog.cpp; sourceTree = "<group>"; };
 		6701999E1CE5A03200AE9B7E /* RenderProgressDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RenderProgressDialog.h; sourceTree = "<group>"; };
+		6701C431224557660004335C /* ControllerRegistry.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ControllerRegistry.cpp; path = controllers/ControllerRegistry.cpp; sourceTree = "<group>"; };
+		6701C432224557660004335C /* ControllerRegistry.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ControllerRegistry.h; path = controllers/ControllerRegistry.h; sourceTree = "<group>"; };
+		6701C43422468C430004335C /* ControllerVisualiseDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ControllerVisualiseDialog.cpp; sourceTree = "<group>"; };
+		6701C43522468C430004335C /* ControllerVisualiseDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ControllerVisualiseDialog.h; sourceTree = "<group>"; };
 		67025C6820D7E80700BF1AC6 /* xFade.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = xFade.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		67025C6D20D7E80900BF1AC6 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		67025C7220D7E80900BF1AC6 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -1429,8 +1433,6 @@
 		67B2B1F91E1947BE0024F0BB /* ArtNetDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ArtNetDialog.h; path = outputs/ArtNetDialog.h; sourceTree = "<group>"; };
 		67B2B1FA1E1947BE0024F0BB /* ArtNetOutput.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ArtNetOutput.cpp; path = outputs/ArtNetOutput.cpp; sourceTree = "<group>"; };
 		67B2B1FB1E1947BE0024F0BB /* ArtNetOutput.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ArtNetOutput.h; path = outputs/ArtNetOutput.h; sourceTree = "<group>"; };
-		67B2B1FC1E1947BE0024F0BB /* Controller.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Controller.cpp; path = outputs/Controller.cpp; sourceTree = "<group>"; };
-		67B2B1FD1E1947BE0024F0BB /* Controller.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Controller.h; path = outputs/Controller.h; sourceTree = "<group>"; };
 		67B2B1FE1E1947BE0024F0BB /* DLightOutput.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DLightOutput.h; path = outputs/DLightOutput.h; sourceTree = "<group>"; };
 		67B2B1FF1E1947BE0024F0BB /* DMXOutput.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = DMXOutput.cpp; path = outputs/DMXOutput.cpp; sourceTree = "<group>"; };
 		67B2B2001E1947BE0024F0BB /* DMXOutput.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DMXOutput.h; path = outputs/DMXOutput.h; sourceTree = "<group>"; };
@@ -2687,8 +2689,6 @@
 				67B2B1F91E1947BE0024F0BB /* ArtNetDialog.h */,
 				67B2B1FA1E1947BE0024F0BB /* ArtNetOutput.cpp */,
 				67B2B1FB1E1947BE0024F0BB /* ArtNetOutput.h */,
-				67B2B1FC1E1947BE0024F0BB /* Controller.cpp */,
-				67B2B1FD1E1947BE0024F0BB /* Controller.h */,
 				67B2B1FE1E1947BE0024F0BB /* DLightOutput.h */,
 				67B2B1FF1E1947BE0024F0BB /* DMXOutput.cpp */,
 				67B2B2001E1947BE0024F0BB /* DMXOutput.h */,
@@ -2742,26 +2742,28 @@
 		67BF7FF31F278946002F118D /* Controllers */ = {
 			isa = PBXGroup;
 			children = (
-				6722E9F621EC275C0063D54E /* EasyLights.cpp */,
-				6722E9F721EC275D0063D54E /* EasyLights.h */,
+				6701C431224557660004335C /* ControllerRegistry.cpp */,
+				6701C432224557660004335C /* ControllerRegistry.h */,
 				67912999213423A800818B73 /* ControllerUploadData.cpp */,
 				6791299A213423A800818B73 /* ControllerUploadData.h */,
-				671142EE207BAD5400F45296 /* WebSocketClient.cpp */,
-				671142ED207BAD5400F45296 /* WebSocketClient.h */,
+				6722E9F621EC275C0063D54E /* EasyLights.cpp */,
+				6722E9F721EC275D0063D54E /* EasyLights.h */,
 				671142EB207BACF200F45296 /* ESPixelStick.cpp */,
 				671142EA207BACF100F45296 /* ESPixelStick.h */,
-				67BF7FF61F278956002F118D /* SanDevices.h */,
-				67BF7FF71F278956002F118D /* SanDevices.cpp */,
-				67BF7FF81F278956002F118D /* Pixlite16.h */,
-				67BF7FF91F278956002F118D /* Pixlite16.cpp */,
-				67BF7FFA1F278956002F118D /* J1Sys.h */,
-				67BF7FFB1F278956002F118D /* J1Sys.cpp */,
-				67BF7FFC1F278956002F118D /* Falcon.h */,
 				67BF7FFD1F278956002F118D /* Falcon.cpp */,
-				67BF7FFE1F278956002F118D /* FPPConnectDialog.h */,
-				67BF7FFF1F278956002F118D /* FPPConnectDialog.cpp */,
-				67BF80001F278956002F118D /* FPP.h */,
+				67BF7FFC1F278956002F118D /* Falcon.h */,
 				67BF80011F278956002F118D /* FPP.cpp */,
+				67BF80001F278956002F118D /* FPP.h */,
+				67BF7FFF1F278956002F118D /* FPPConnectDialog.cpp */,
+				67BF7FFE1F278956002F118D /* FPPConnectDialog.h */,
+				67BF7FFB1F278956002F118D /* J1Sys.cpp */,
+				67BF7FFA1F278956002F118D /* J1Sys.h */,
+				67BF7FF91F278956002F118D /* Pixlite16.cpp */,
+				67BF7FF81F278956002F118D /* Pixlite16.h */,
+				67BF7FF71F278956002F118D /* SanDevices.cpp */,
+				67BF7FF61F278956002F118D /* SanDevices.h */,
+				671142EE207BAD5400F45296 /* WebSocketClient.cpp */,
+				671142ED207BAD5400F45296 /* WebSocketClient.h */,
 			);
 			name = Controllers;
 			sourceTree = "<group>";
@@ -2989,6 +2991,8 @@
 		67E7087617B51AB400A22034 /* xLights */ = {
 			isa = PBXGroup;
 			children = (
+				6701C43422468C430004335C /* ControllerVisualiseDialog.cpp */,
+				6701C43522468C430004335C /* ControllerVisualiseDialog.h */,
 				67FA9FD21C67837500FED13B /* AudioManager.cpp */,
 				67FA9FD11C67837500FED13B /* AudioManager.h */,
 				6760D8541FA3C6AD00458894 /* BatchRenderDialog.cpp */,
@@ -4003,7 +4007,6 @@
 				67B2CFDE1C3A186A003C17CA /* WaveEffect.cpp in Sources */,
 				67E9389D1A80FC5A00937772 /* SeqFileUtilities.cpp in Sources */,
 				679BD3431C375D9F000539FE /* OnEffect.cpp in Sources */,
-				67B2B2261E1947BE0024F0BB /* Controller.cpp in Sources */,
 				67BF80031F278956002F118D /* SanDevices.cpp in Sources */,
 				67FE98551EB8C9BF00C5E804 /* ViewsModelsPanel.cpp in Sources */,
 				67B2CFDB1C3A186A003C17CA /* TextEffect.cpp in Sources */,
@@ -4204,6 +4207,7 @@
 				67B2CF721C39D98A003C17CA /* FacesPanel.cpp in Sources */,
 				67D11C791BEA691900000A7F /* ModelDimmingCurveDialog.cpp in Sources */,
 				67145C2D1D6607AE00A35D4B /* SubModel.cpp in Sources */,
+				6701C433224557660004335C /* ControllerRegistry.cpp in Sources */,
 				671130B41E4EB18100AF09A7 /* VsaImportDialog.cpp in Sources */,
 				67FB9D1B1F4D21EB00983072 /* ShapePanel.cpp in Sources */,
 				676CFAF7207D2BBE002EB5E7 /* jsonwriter.cpp in Sources */,
@@ -4309,6 +4313,7 @@
 				67447D981C6664900095CDB5 /* WreathModel.cpp in Sources */,
 				67B2B2251E1947BE0024F0BB /* ArtNetOutput.cpp in Sources */,
 				67B2CF741C39D98A003C17CA /* FirePanel.cpp in Sources */,
+				6701C43622468C440004335C /* ControllerVisualiseDialog.cpp in Sources */,
 				67CE258F2138234000ADF180 /* ObjectManager.cpp in Sources */,
 				67BE75131CAC2EB200D7BA82 /* IciclesModel.cpp in Sources */,
 				67F4C6161A097A35003E978F /* Image_Loader.cpp in Sources */,
@@ -4405,7 +4410,6 @@
 				67FFB81C1FA3F65E007F9FBB /* OutputProcessDeadChannel.cpp in Sources */,
 				67B31CB921AC2E5A005ECB82 /* PlayListItemDim.cpp in Sources */,
 				671E47F92231CD9700049DC9 /* TestMessagesDialog.cpp in Sources */,
-				67F240071E32A03F00F8B985 /* Controller.cpp in Sources */,
 				67F240081E32A03F00F8B985 /* DMXOutput.cpp in Sources */,
 				67C5814E1E4B95A400932DFA /* Xyzzy.cpp in Sources */,
 				67B022FF204A794200639D21 /* OutputProcessSustain.cpp in Sources */,

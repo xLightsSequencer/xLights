@@ -38,7 +38,7 @@ Output::Output(Output* output)
     _enabled = output->IsEnabled();
     _description = output->GetDescription();
     _channels = output->GetChannels();
-    _controller = output->GetController();
+    _controller = output->GetControllerId();
 }
 
 Output::Output(wxXmlNode* node)
@@ -53,7 +53,7 @@ Output::Output(wxXmlNode* node)
     _universe = 0;
     _baudRate = 0;
     _commPort = "";
-    _controller = nullptr;
+    _controller = "";
     _dirty = false;
     _ok = true;
     _lastOutputTime = 0 ;
@@ -63,11 +63,7 @@ Output::Output(wxXmlNode* node)
     _suppressDuplicateFrames = (node->GetAttribute("SuppressDuplicates", "No") == "Yes");
     _description = UnXmlSafe(node->GetAttribute("Description"));
     _channels = wxAtoi(node->GetAttribute("MaxChannels"));
-    std::string controller = UnXmlSafe(node->GetAttribute("Controller").ToStdString());
-    if (controller != "")
-    {
-        _controller = Controller::GetController(controller);
-    }
+    _controller = UnXmlSafe(node->GetAttribute("Controller"));
 }
 
 Output::Output()
@@ -81,7 +77,7 @@ Output::Output()
     _universe = 0;
     _baudRate = 0;
     _commPort = "";
-    _controller = nullptr;
+    _controller = "";
     _enabled = true;
     _description = "";
     _dirty = true;
@@ -112,9 +108,9 @@ void Output::Save(wxXmlNode* node)
         node->AddAttribute("Description", XmlSafe(_description));
     }
 
-    if (_controller != nullptr)
+    if (_controller != "")
     {
-        node->AddAttribute("Controller", XmlSafe(_controller->GetId()));
+        node->AddAttribute("Controller", XmlSafe(_controller));
     }
 
     node->AddAttribute("MaxChannels", wxString::Format("%ld", _channels));
@@ -192,19 +188,6 @@ Output* Output::Create(wxXmlNode* node)
 #pragma endregion Static Functions
 
 #pragma region Getters and Setters
-void Output::SetController(const std::string& id)
-{
-    if (id == "")
-    {
-        _controller = nullptr;
-    }
-    else
-    {
-        _controller = Controller::GetController(id);
-    }
-
-    _dirty = true;
-}
 
 void Output::SetTransientData(int on, long startChannel, int nullnumber)
 {

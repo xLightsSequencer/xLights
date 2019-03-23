@@ -570,6 +570,9 @@ void EasyLightsString::Dump() const
 		Slots );
 }
 
+static const std::string EASYLIGHTS_24 = "EasyLights 24";
+static const std::string EASYLIGHTS_PIX16 = "EasyLights PIX16";
+
 class EasyLightsControllerRules: public ControllerRules
 {
 	int _type;
@@ -586,6 +589,14 @@ public:
 	}
 
     virtual ~EasyLightsControllerRules() {}
+    
+    virtual const std::string GetControllerId() const override {
+        if (_type == 1) {
+            return EASYLIGHTS_PIX16;
+        }
+        return EASYLIGHTS_24;
+    }
+
 
 	virtual int GetMaxPixelPortChannels() const override
 	{
@@ -665,12 +676,9 @@ public:
 		return false;
 	}
 
-    virtual std::list<std::string> GetSupportedInputProtocols() const override
+    virtual std::set<std::string> GetSupportedInputProtocols() const override
 	{
-		std::list<std::string> res;
-		res.push_back("E131");
-		res.push_back("ARTNET");
-		res.push_back("DDP");
+        std::set<std::string> res = {"E131", "ARTNET", "DDP"};
 		return res;
 	}
 

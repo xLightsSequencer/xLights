@@ -553,6 +553,7 @@ public:
     void OnMenuItem_ShowKeyBindingsSelected(wxCommandEvent& event);
     void OnChar(wxKeyEvent& event);
     void OnMenuItem_ZoomSelected(wxCommandEvent& event);
+    void OnButton_DiscoverClick(wxCommandEvent& event);
     void OnMenuItem_CleanupFileLocationsSelected(wxCommandEvent& event);
     void OnMenuItem_Generate2DPathSelected(wxCommandEvent& event);
     void OnMenuItemFSEQV1Selected(wxCommandEvent& event);
@@ -642,6 +643,7 @@ public:
     static const long ID_BUTTON_NETWORK_CHANGE;
     static const long ID_BUTTON_NETWORK_DELETE;
     static const long ID_BUTTON_NETWORK_DELETE_ALL;
+    static const long ID_BUTTON5;
     static const long ID_STATICTEXT8;
     static const long ID_SPINCTRL1;
     static const long ID_BITMAPBUTTON1;
@@ -856,6 +858,7 @@ public:
     wxButton* ButtonNetworkDeleteAll;
     wxButton* ButtonOtherFolders;
     wxButton* ButtonSaveSetup;
+    wxButton* Button_Discover;
     wxChoice* ChoiceParm1;
     wxChoice* ChoiceParm2;
     wxFlexGridSizer* GaugeSizer;
@@ -1124,6 +1127,7 @@ public:
 	void PingController(Output* e);
 	void UploadEasyLightsOutput();
 
+    void VisualiseOutput(Output *e, wxWindow *parent = nullptr);
     void DeleteSelectedNetworks();
     void ActivateSelectedNetworks(bool active);
     void DeactivateUnusedNetworks();
@@ -1569,6 +1573,8 @@ private:
     static const long ID_NETWORK_UCOPIXLITE16;
     static const long ID_NETWORK_PINGCONTROLLER;
 	static const long ID_NETWORK_UCOEASYLIGHTS;
+    static const long ID_NETWORK_UPLOAD_CONTROLLER_CONFIGURED;
+    static const long ID_NETWORK_VISUALISE;
 
     #define isRandom(ctl)  isRandom_(ctl, #ctl) //(buttonState[std::string(ctl->GetName())] == Random)
 

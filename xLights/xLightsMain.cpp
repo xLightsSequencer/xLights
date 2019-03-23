@@ -183,6 +183,7 @@ const long xLightsFrame::ID_BUTTON_ADD_DDP = wxNewId();
 const long xLightsFrame::ID_BUTTON_NETWORK_CHANGE = wxNewId();
 const long xLightsFrame::ID_BUTTON_NETWORK_DELETE = wxNewId();
 const long xLightsFrame::ID_BUTTON_NETWORK_DELETE_ALL = wxNewId();
+const long xLightsFrame::ID_BUTTON5 = wxNewId();
 const long xLightsFrame::ID_STATICTEXT8 = wxNewId();
 const long xLightsFrame::ID_SPINCTRL1 = wxNewId();
 const long xLightsFrame::ID_BITMAPBUTTON1 = wxNewId();
@@ -748,6 +749,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     BoxSizer1->Add(ButtonNetworkDelete, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 3);
     ButtonNetworkDeleteAll = new wxButton(PanelSetup, ID_BUTTON_NETWORK_DELETE_ALL, _("Delete All"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_NETWORK_DELETE_ALL"));
     BoxSizer1->Add(ButtonNetworkDeleteAll, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 3);
+    Button_Discover = new wxButton(PanelSetup, ID_BUTTON5, _("Discover"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON5"));
+    BoxSizer1->Add(Button_Discover, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText5 = new wxStaticText(PanelSetup, ID_STATICTEXT8, _("\nE1.31 Sync Universe:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT8"));
     BoxSizer1->Add(StaticText5, 1, wxALL|wxALIGN_LEFT, 2);
     SpinCtrl_SyncUniverse = new wxSpinCtrl(PanelSetup, ID_SPINCTRL1, _T("0"), wxDefaultPosition, wxDefaultSize, 0, 0, 63999, 0, _T("ID_SPINCTRL1"));
@@ -1258,6 +1261,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     Connect(ID_BUTTON_NETWORK_CHANGE,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonNetworkChangeClick);
     Connect(ID_BUTTON_NETWORK_DELETE,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonNetworkDeleteClick);
     Connect(ID_BUTTON_NETWORK_DELETE_ALL,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonNetworkDeleteAllClick);
+    Connect(ID_BUTTON5,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButton_DiscoverClick);
     Connect(ID_SPINCTRL1,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&xLightsFrame::OnSpinCtrl_SyncUniverseChange);
     Connect(ID_BITMAPBUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonNetworkMoveUpClick);
     Connect(ID_BITMAPBUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonNetworkMoveDownClick);
@@ -1666,6 +1670,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     itemCol.SetText(_T("Duplicate Suppress"));
     itemCol.SetAlign(wxLIST_FORMAT_LEFT);
     GridNetwork->InsertColumn(8, itemCol);
+    
+    itemCol.SetText(_T("Controller Type"));
+    itemCol.SetAlign(wxLIST_FORMAT_LEFT);
+    GridNetwork->InsertColumn(9, itemCol);
 
     GridNetwork->SetColumnWidth(0, wxLIST_AUTOSIZE_USEHEADER);
     GridNetwork->SetColumnWidth(1, wxLIST_AUTOSIZE_USEHEADER);
@@ -1676,6 +1684,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     GridNetwork->SetColumnWidth(6, wxLIST_AUTOSIZE_USEHEADER);
 	GridNetwork->SetColumnWidth(7, wxLIST_AUTOSIZE);
     GridNetwork->SetColumnWidth(8, wxLIST_AUTOSIZE_USEHEADER);
+    GridNetwork->SetColumnWidth(9, wxLIST_AUTOSIZE_USEHEADER);
 
     _scrollTimer.Connect(wxEVT_TIMER,
         wxTimerEventHandler(xLightsFrame::OnGridNetworkScrollTimer), nullptr, this);
@@ -9780,4 +9789,3 @@ void xLightsFrame::OnMenuItem_PrepareAudioSelected(wxCommandEvent& event)
         }
     }
 }
-

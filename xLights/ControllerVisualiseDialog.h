@@ -1,0 +1,52 @@
+#ifndef CONTROLLERVISUALISEDIALOG_H
+#define CONTROLLERVISUALISEDIALOG_H
+
+//(*Headers(ControllerVisualiseDialog)
+#include <wx/dialog.h>
+#include <wx/panel.h>
+#include <wx/scrolbar.h>
+#include <wx/sizer.h>
+//*)
+
+#include "controllers/ControllerUploadData.h"
+
+class ControllerVisualiseDialog: public wxDialog
+{
+    UDController& _cud;
+
+	public:
+
+		ControllerVisualiseDialog(wxWindow* parent, UDController& cud, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
+		virtual ~ControllerVisualiseDialog();
+
+		//(*Declarations(ControllerVisualiseDialog)
+		wxPanel* Panel1;
+		wxScrollBar* ScrollBar_Horizontal;
+		wxScrollBar* ScrollBar_Vertical;
+		//*)
+
+	protected:
+
+		//(*Identifiers(ControllerVisualiseDialog)
+		static const long ID_PANEL1;
+		static const long ID_SCROLLBAR1;
+		static const long ID_SCROLLBAR2;
+		//*)
+
+	private:
+
+		//(*Handlers(ControllerVisualiseDialog)
+		void OnPanel1Paint(wxPaintEvent& event);
+		void OnScrollBar_VerticalScroll(wxScrollEvent& event);
+		void OnScrollBar_HorizontalScroll(wxScrollEvent& event);
+		void OnScrollBar_HorizontalScrollThumbTrack(wxScrollEvent& event);
+		void OnScrollBar_HorizontalScrollChanged(wxScrollEvent& event);
+		void OnScrollBar_VerticalScrollChanged(wxScrollEvent& event);
+		void OnScrollBar_VerticalScrollThumbTrack(wxScrollEvent& event);
+		void OnPanel1Resize(wxSizeEvent& event);
+		//*)
+
+		DECLARE_EVENT_TABLE()
+};
+
+#endif
