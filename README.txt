@@ -18,6 +18,11 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- enh (dkulp)   xShcedule as FPP remote now works with Multicast protocol (maybe Linux/OSX only)
    -- enh (dkulp)   xShcedule as FPP remote now responds to FPP Ping's/Discovery
    -- enh (dkulp)   Much faster FPP Connect discovery
+   -- enh (keith)   Add a LOR S5 LOREDIT file import. This is a highly speculative implementation at this time
+                    Unless those who want this function lean in and help get it right it will likely never be
+					quite right.
+   -- enh (keith)   Use a dropdown for selection of Force IP address
+   -- bug (keith)   Fix slow render when using render cache
 2019.17 March 15, 2019
    -- enh (keith)   Add falcon smart remote support
    -- enh (keith)   Add ability to split timing marks in half
