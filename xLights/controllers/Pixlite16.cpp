@@ -25,7 +25,9 @@ public:
     virtual const std::string GetControllerId() const override {
         return std::string("PixLite") + std::to_string(_pixelPorts);
     }
-
+    virtual bool SupportsLEDPanelMatrix() const override {
+        return false;
+    }
     virtual int GetMaxPixelPortChannels() const override
     {
         return _maxChannelsPerOutput;

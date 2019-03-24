@@ -61,6 +61,10 @@ public:
     
     virtual const std::string GetControllerId() const override;
 
+    virtual bool SupportsLEDPanelMatrix() const override {
+        return false;
+    }
+    
     virtual int GetMaxPixelPortChannels() const override
     {
         if (_version == 2)
