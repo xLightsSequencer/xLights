@@ -30,7 +30,6 @@ public:
 
 class SequenceElements;
 
-
 class Element {
 public:
     Element(SequenceElements *p, const std::string &name);
@@ -54,6 +53,7 @@ public:
     virtual EffectLayer* GetEffectLayerFromExclusiveIndex(int index);
     EffectLayer* GetEffectLayer(int index) const;
     int GetLayerNumberFromIndex(int index);
+    virtual NodeLayer* GetNodeEffectLayer(int index) const = 0;
     size_t GetEffectLayerCount() const;
     std::list<std::string> GetFileReferences(EffectManager& em) const;
     std::list<std::string> GetFacesUsed(EffectManager& em) const;
@@ -149,7 +149,8 @@ public:
 
     std::string GetExport() const;
     std::string GetPapagayoExport(int ms) const;
-    
+    virtual NodeLayer* GetNodeEffectLayer(int index) const override { return nullptr; }
+
 private:
     int mFixed;
     bool mActive;
@@ -169,6 +170,7 @@ public:
     
     virtual std::string GetFullName() const override;
     virtual void IncrementChangeCount(int startMs, int endMS) override;
+    virtual NodeLayer* GetNodeEffectLayer(int index) const override { return nullptr; }
 
     virtual bool HasEffects() const override;
 
@@ -185,6 +187,7 @@ public:
     
     virtual EffectLayer* GetEffectLayerFromExclusiveIndex(int index) override;
     virtual ElementType GetType() const override { return ELEMENT_TYPE_STRAND; }
+    virtual NodeLayer* GetNodeEffectLayer(int index) const override;
 
     int GetStrand() const { return mStrand; }
     
@@ -242,7 +245,8 @@ class ModelElement : public Element
     
         bool ShowStrands() const { return mStrandsVisible;}
         void ShowStrands(bool b) { mStrandsVisible = b;}
-    
+        virtual NodeLayer* GetNodeEffectLayer(int index) const override;
+
         std::recursive_timed_mutex &GetRenderLock() { return changeLock; }
         int GetWaitCount();
         void IncWaitCount();

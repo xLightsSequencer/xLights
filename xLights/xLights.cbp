@@ -488,6 +488,8 @@
 		<Unit filename="KeyBindings.h" />
 		<Unit filename="LMSImportChannelMapDialog.cpp" />
 		<Unit filename="LMSImportChannelMapDialog.h" />
+		<Unit filename="LOREdit.cpp" />
+		<Unit filename="LOREdit.h" />
 		<Unit filename="LayerSelectDialog.cpp" />
 		<Unit filename="LayerSelectDialog.h" />
 		<Unit filename="LayoutGroup.cpp" />

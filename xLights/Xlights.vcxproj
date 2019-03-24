@@ -214,6 +214,7 @@
     <ClCompile Include="JukeboxPanel.cpp" />
     <ClCompile Include="LayerSelectDialog.cpp" />
     <ClCompile Include="LinkJukeboxButtonDialog.cpp" />
+    <ClCompile Include="LOREdit.cpp" />
     <ClCompile Include="LyricUserDictDialog.cpp" />
     <ClCompile Include="MatrixFaceDownloadDialog.cpp" />
     <ClCompile Include="models\BaseObject.cpp" />
@@ -579,6 +580,7 @@
     <ClInclude Include="JukeboxPanel.h" />
     <ClInclude Include="LayerSelectDialog.h" />
     <ClInclude Include="LinkJukeboxButtonDialog.h" />
+    <ClInclude Include="LOREdit.h" />
     <ClInclude Include="LyricUserDictDialog.h" />
     <ClInclude Include="MatrixFaceDownloadDialog.h" />
     <ClInclude Include="models\BaseObject.h" />

@@ -315,6 +315,13 @@ EffectLayer* StrandElement::GetEffectLayerFromExclusiveIndex(int index) {
     return nullptr;
 }
 
+NodeLayer* StrandElement::GetNodeEffectLayer(int index) const
+{
+    if ( index < GetNodeLayerCount())
+        return GetNodeLayer(index);
+    return nullptr;
+}
+
 bool StrandElement::HasEffects() const
 {
     for (size_t x = 0; x < mEffectLayers.size(); x++) {
@@ -379,6 +386,20 @@ void ModelElement::CleanupAfterRender() {
         a->CleanupAfterRender();
     }
     Element::CleanupAfterRender();
+}
+
+NodeLayer* ModelElement::GetNodeEffectLayer(int index) const
+{
+    int startStrand = 0;
+    for (int s = 0; s < GetStrandCount(); s++)
+    {
+        if (index < startStrand + GetStrand(s)->GetNodeLayerCount())
+        {
+            return GetStrand(s)->GetNodeEffectLayer(index - startStrand);
+        }
+        startStrand += GetStrand(s)->GetNodeLayerCount();
+    }
+    return nullptr;
 }
 
 int ModelElement::GetWaitCount() {
