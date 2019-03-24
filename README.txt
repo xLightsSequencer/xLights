@@ -11,6 +11,10 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (dkulp)   DDP outputs can record the controller type (hat/cape) and upload menu item only shows it
+   -- enh (dkulp)   "Discover" button on setup tab to discover and automatically add/configure FPP instances
+   -- enh (dkulp/keith) Add "Visualise" option for DDP/FPP controllers to see layout of models on controller
+                            (work in progress)
    -- bug (dkulp)   Fix problem with FPP connect not finding models if using hostname instead of ip address
    -- enh (dkulp)   FPP Connect can update the start channel of matrices for LED panel capes
    -- enh (dkulp)   FPP Connect can detect LED Panel capes, display the matrix size
