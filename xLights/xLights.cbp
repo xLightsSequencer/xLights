@@ -410,6 +410,7 @@
 		<Unit filename="ChannelLayoutDialog.h" />
 		<Unit filename="Color.cpp" />
 		<Unit filename="ColorCurve.cpp" />
+		<Unit filename="ColorCurve.h" />
 		<Unit filename="ColorCurveDialog.cpp" />
 		<Unit filename="ColorCurveDialog.h" />
 		<Unit filename="ColorManager.cpp" />
@@ -420,8 +421,8 @@
 		<Unit filename="ColorPanel.h" />
 		<Unit filename="ControllerConnectionDialog.cpp" />
 		<Unit filename="ControllerConnectionDialog.h" />
-        <Unit filename="ControllerVisualiseDialog.cpp" />
-        <Unit filename="ControllerVisualiseDialog.h" />
+		<Unit filename="ControllerVisualiseDialog.cpp" />
+		<Unit filename="ControllerVisualiseDialog.h" />
 		<Unit filename="ConvertDialog.cpp" />
 		<Unit filename="ConvertDialog.h" />
 		<Unit filename="ConvertLogDialog.cpp" />
@@ -657,6 +658,8 @@
 		<Unit filename="WiringDialog.h" />
 		<Unit filename="XlightsDrawable.cpp" />
 		<Unit filename="XlightsDrawable.h" />
+		<Unit filename="controllers/ControllerRegistry.cpp" />
+		<Unit filename="controllers/ControllerRegistry.h" />
 		<Unit filename="controllers/ControllerUploadData.cpp" />
 		<Unit filename="controllers/ControllerUploadData.h" />
 		<Unit filename="controllers/ESPixelStick.cpp" />
@@ -976,7 +979,6 @@
 		<Unit filename="outputs/ArtNetDialog.h" />
 		<Unit filename="outputs/ArtNetOutput.cpp" />
 		<Unit filename="outputs/ArtNetOutput.h" />
-		<Unit filename="outputs/Controller.cpp" />
 		<Unit filename="outputs/Controller.h" />
 		<Unit filename="outputs/DDPDialog.cpp" />
 		<Unit filename="outputs/DDPDialog.h" />
@@ -1123,7 +1125,7 @@
 		<Unit filename="wxsmith/ColorPanel.wxs" />
 		<Unit filename="wxsmith/ColorWashPanel.wxs" />
 		<Unit filename="wxsmith/ControllerConnectionDialog.wxs" />
-        <Unit filename="wxsmith/ControllerVisualiseDialog.wxs" />
+		<Unit filename="wxsmith/ControllerVisualiseDialog.wxs" />
 		<Unit filename="wxsmith/ConvertDialog.wxs" />
 		<Unit filename="wxsmith/ConvertLogDialog.wxs" />
 		<Unit filename="wxsmith/CurrentPreviewModels.wxs" />
@@ -1424,7 +1426,7 @@
 					<wxDialog wxs="wxsmith/MultiControllerUploadDialog.wxs" src="MultiControllerUploadDialog.cpp" hdr="MultiControllerUploadDialog.h" fwddecl="0" i18n="1" name="MultiControllerUploadDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/PathGenerationDialog.wxs" src="PathGenerationDialog.cpp" hdr="PathGenerationDialog.h" fwddecl="0" i18n="1" name="PathGenerationDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/RemapDMXChannelsDialog.wxs" src="RemapDMXChannelsDialog.cpp" hdr="RemapDMXChannelsDialog.h" fwddecl="0" i18n="1" name="RemapDMXChannelsDialog" language="CPP" />
-                    <wxDialog wxs="wxsmith/ControllerVisualiseDialog.wxs" src="ControllerVisualiseDialog.cpp" hdr="ControllerVisualiseDialog.h" fwddecl="0" i18n="1" name="ControllerVisualiseDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/ControllerVisualiseDialog.wxs" src="ControllerVisualiseDialog.cpp" hdr="ControllerVisualiseDialog.h" fwddecl="0" i18n="1" name="ControllerVisualiseDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>
