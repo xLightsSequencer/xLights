@@ -1,8 +1,9 @@
 #include "NullOutput.h"
 
 #include <wx/xml/xml.h>
+#ifndef EXCLUDENETWORKUI
 #include "NullOutputDialog.h"
-
+#endif
 #pragma region Save
 void NullOutput::Save(wxXmlNode* node)
 {
@@ -57,7 +58,7 @@ Output* NullOutput::Configure(wxWindow* parent, OutputManager* outputManager, Mo
     NullOutputDialog dlg(parent, this, outputManager);
 
     int res = dlg.ShowModal();
-    
+
     if (res == wxID_CANCEL)
     {
         return nullptr;

@@ -16,10 +16,10 @@
 				<Compiler>
 					<Add option="-march=i586" />
 					<Add option="-pedantic" />
+					<Add option="-std=c++1z" />
 					<Add option="-g" />
 					<Add option="-pipe" />
 					<Add option="-mthreads" />
-					<Add option="-std=c++1z" />
 					<Add option="-fno-keep-inline-dllexport" />
 					<Add option='[[if ((GetCompilerFactory().GetCompilerVersionString(_T(&quot;gcc&quot;)) &gt;= _T(&quot;4.0.0&quot;))) print(_T(&quot;-Wno-attributes&quot;));]]' />
 					<Add option="-D__GNUWIN32__" />
@@ -27,6 +27,7 @@
 					<Add option="-DWXUSINGDLL" />
 					<Add option="-D__WXDEBUG__" />
 					<Add option="-D_USE_MATH_DEFINES" />
+					<Add option="-DEXCLUDENETWORKUI" />
 					<Add directory="$(#wx)/lib/gcc_dll/mswud" />
 					<Add directory="include" />
 					<Add directory="../xSchedule" />
@@ -84,6 +85,7 @@
 					<Add option="-DWXUSINGDLL" />
 					<Add option="-DNDEBUG" />
 					<Add option="-D_USE_MATH_DEFINES" />
+					<Add option="-DEXCLUDENETWORKUI" />
 					<Add directory="$(#wx)/lib/gcc_dll/mswu" />
 					<Add directory="include" />
 					<Add directory="../xSchedule" />
@@ -214,6 +216,7 @@
 					<Add option="-DWXUSINGDLL" />
 					<Add option="-DNDEBUG" />
 					<Add option="-D_USE_MATH_DEFINES" />
+					<Add option="-DEXCLUDENETWORKUI" />
 					<Add directory="include" />
 					<Add directory="../xSchedule" />
 					<Add directory="../xLights/ffmpeg-dev/include" />
@@ -280,20 +283,16 @@
 		<Unit filename="../xLights/kiss_fft/tools/kiss_fftr.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="../xLights/outputs/ArtNetDialog.cpp" />
 		<Unit filename="../xLights/outputs/ArtNetDialog.h" />
 		<Unit filename="../xLights/outputs/ArtNetOutput.cpp" />
 		<Unit filename="../xLights/outputs/ArtNetOutput.h" />
-		<Unit filename="../xLights/outputs/Controller.cpp" />
 		<Unit filename="../xLights/outputs/Controller.h" />
-		<Unit filename="../xLights/outputs/DDPDialog.cpp" />
 		<Unit filename="../xLights/outputs/DDPDialog.h" />
 		<Unit filename="../xLights/outputs/DDPOutput.cpp" />
 		<Unit filename="../xLights/outputs/DDPOutput.h" />
 		<Unit filename="../xLights/outputs/DLightOutput.h" />
 		<Unit filename="../xLights/outputs/DMXOutput.cpp" />
 		<Unit filename="../xLights/outputs/DMXOutput.h" />
-		<Unit filename="../xLights/outputs/E131Dialog.cpp" />
 		<Unit filename="../xLights/outputs/E131Dialog.h" />
 		<Unit filename="../xLights/outputs/E131Output.cpp" />
 		<Unit filename="../xLights/outputs/E131Output.h" />
@@ -306,14 +305,11 @@
 		<Unit filename="../xLights/outputs/LOROutput.h" />
 		<Unit filename="../xLights/outputs/LorController.cpp" />
 		<Unit filename="../xLights/outputs/LorController.h" />
-		<Unit filename="../xLights/outputs/LorControllerDialog.cpp" />
 		<Unit filename="../xLights/outputs/LorControllerDialog.h" />
 		<Unit filename="../xLights/outputs/LorControllers.cpp" />
 		<Unit filename="../xLights/outputs/LorControllers.h" />
-		<Unit filename="../xLights/outputs/LorOptimisedDialog.cpp" />
 		<Unit filename="../xLights/outputs/NullOutput.cpp" />
 		<Unit filename="../xLights/outputs/NullOutput.h" />
-		<Unit filename="../xLights/outputs/NullOutputDialog.cpp" />
 		<Unit filename="../xLights/outputs/NullOutputDialog.h" />
 		<Unit filename="../xLights/outputs/OpenDMXOutput.cpp" />
 		<Unit filename="../xLights/outputs/OpenDMXOutput.h" />
@@ -329,7 +325,6 @@
 		<Unit filename="../xLights/outputs/RenardOutput.h" />
 		<Unit filename="../xLights/outputs/SerialOutput.cpp" />
 		<Unit filename="../xLights/outputs/SerialOutput.h" />
-		<Unit filename="../xLights/outputs/SerialPortWithRate.cpp" />
 		<Unit filename="../xLights/outputs/SerialPortWithRate.h" />
 		<Unit filename="../xLights/outputs/TestPreset.cpp" />
 		<Unit filename="../xLights/outputs/TestPreset.h" />

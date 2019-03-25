@@ -97,6 +97,7 @@
 					<Add library="../lib/windows/imagehlp.lib" />
 					<Add library="../lib/windows/iphlpapi.lib" />
 					<Add library="../lib/windows/Ws2_32.lib" />
+					<Add library="psapi" />
 					<Add directory="../lib/windows" />
 				</Linker>
 			</Target>
@@ -206,6 +207,7 @@
 					<Add library="../lib/windows64/libimagehlp.a" />
 					<Add library="../lib/windows64/iphlpapi.lib" />
 					<Add library="../lib/windows64/Ws2_32.lib" />
+					<Add library="psapi" />
 					<Add directory="../lib/windows64" />
 				</Linker>
 			</Target>

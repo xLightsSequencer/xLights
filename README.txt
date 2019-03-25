@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2019.18 March 25, 2019
    -- enh (dkulp)   DDP outputs can record the controller type (hat/cape) and upload menu item only shows it
    -- enh (dkulp)   "Discover" button on setup tab to discover and automatically add/configure FPP instances
    -- enh (dkulp/keith) Add "Visualise" option for DDP/FPP controllers to see layout of models on controller

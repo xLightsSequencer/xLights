@@ -1,6 +1,5 @@
 
 #include "ControllerRegistry.h"
-
 #include "FPP.h"
 
 
@@ -16,7 +15,6 @@ ControllerRegistry::~ControllerRegistry()
 {
     //dtor
 }
-
 
 void ControllerRegistry::AddController(const ControllerRules *rules) {
     if (rules && rules->GetControllerId() != "") {
@@ -35,13 +33,14 @@ std::vector<std::string> ControllerRegistry::GetControllerIds() {
     }
     return keys;
 }
+
 const ControllerRules *ControllerRegistry::GetRulesForController(const std::string &id) {
     if (controllers.empty()) {
         loadControllers();
     }
     return controllers[id];
 }
+
 void ControllerRegistry::loadControllers() {
     FPP::RegisterCapes();
 }
-

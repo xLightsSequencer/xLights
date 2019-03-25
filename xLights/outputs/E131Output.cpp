@@ -4,7 +4,9 @@
 #include <wx/process.h>
 
 #include <log4cpp/Category.hh>
+#ifndef EXCLUDENETWORKUI
 #include "E131Dialog.h"
+#endif
 #include "OutputManager.h"
 #include "../UtilFunctions.h"
 

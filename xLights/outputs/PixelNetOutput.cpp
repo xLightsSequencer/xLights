@@ -87,4 +87,3 @@ std::string PixelNetOutput::GetSetupHelp() const
     return "Pixelnet controllers attached to a USB Lynx Pixelnet\ndongle";
 }
 #pragma endregion Getters and Setters
-

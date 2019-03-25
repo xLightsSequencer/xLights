@@ -100,6 +100,7 @@
 					<Add library="../lib/windows/Ws2_32.lib" />
 					<Add library="../lib/windows/libportmidi.a" />
 					<Add library="libwinmm.a" />
+					<Add library="psapi" />
 					<Add directory="../lib/windows" />
 				</Linker>
 			</Target>
@@ -213,6 +214,7 @@
 					<Add library="../lib/windows64/Ws2_32.lib" />
 					<Add library="../lib/windows64/libportmidi.a" />
 					<Add library="libwinmm.a" />
+					<Add library="psapi" />
 					<Add directory="../lib/windows64" />
 				</Linker>
 			</Target>

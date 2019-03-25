@@ -104,6 +104,7 @@
 					<Add library="../../lib/windows/libwxmsw31u_gl.a" />
 					<Add library="../../lib/windows/Ws2_32.lib" />
 					<Add library="../../lib/windows/libcurl.lib" />
+					<Add library="psapi" />
 					<Add directory="../../lib/windows" />
 				</Linker>
 			</Target>
@@ -226,6 +227,7 @@
 					<Add library="../../lib/windows64/libwxmsw31u_gl.a" />
 					<Add library="../../lib/windows64/Ws2_32.lib" />
 					<Add library="../../lib/windows64/libcurl.lib" />
+					<Add library="psapi" />
 					<Add directory="../../lib/windows64" />
 				</Linker>
 			</Target>

@@ -2,7 +2,9 @@
 #include <wx/msgdlg.h>
 
 #include "SerialOutput.h"
+#ifndef EXCLUDENETWORKUI
 #include "SerialPortWithRate.h"
+#endif
 #include "LOROutput.h"
 #include "LOROptimisedOutput.h"
 #include "DLightOutput.h"
@@ -498,4 +500,3 @@ Output* SerialOutput::Configure(wxWindow* parent, OutputManager* outputManager, 
 }
 #endif
 #pragma endregion UI
-
