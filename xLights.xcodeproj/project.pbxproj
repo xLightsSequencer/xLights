@@ -3786,7 +3786,7 @@
 			};
 			buildConfigurationList = 67E7086817B51AB400A22034 /* Build configuration list for PBXProject "xLights" */;
 			compatibilityVersion = "Xcode 6.3";
-			developmentRegion = English;
+			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
@@ -4890,6 +4890,7 @@
 				OTHER_CFLAGS = (
 					"$(inherited)",
 					"-IxLights/ffmpeg-dev/include/",
+					"-DEXCLUDENETWORKUI",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = org.xlights.xSchedule;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -4911,6 +4912,7 @@
 				OTHER_CFLAGS = (
 					"$(inherited)",
 					"-IxLights/ffmpeg-dev/include/",
+					"-DEXCLUDENETWORKUI",
 				);
 				OTHER_CODE_SIGN_FLAGS = "--timestamp";
 				PRODUCT_BUNDLE_IDENTIFIER = org.xlights.xSchedule;

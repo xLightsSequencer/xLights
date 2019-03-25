@@ -373,6 +373,7 @@
 					<Add library="../lib/windows64/WS2_32.Lib" />
 					<Add library="../lib/windows64/libzstd_static.lib" />
 					<Add library="../lib/windows64/LIBCURL.LIB" />
+					<Add library="Psapi" />
 					<Add directory="$(#wx)/lib/gcc_dll" />
 				</Linker>
 			</Target>
