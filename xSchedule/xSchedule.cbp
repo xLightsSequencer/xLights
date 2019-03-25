@@ -27,7 +27,6 @@
 					<Add option="-DWXUSINGDLL" />
 					<Add option="-D__WXDEBUG__" />
 					<Add option="-D_USE_MATH_DEFINES" />
-					<Add option="-DEXCLUDENETWORKUI" />
 					<Add directory="$(#wx)/lib/gcc_dll/mswud" />
 					<Add directory="include" />
 					<Add directory="../xSchedule" />
@@ -85,7 +84,6 @@
 					<Add option="-DWXUSINGDLL" />
 					<Add option="-DNDEBUG" />
 					<Add option="-D_USE_MATH_DEFINES" />
-					<Add option="-DEXCLUDENETWORKUI" />
 					<Add directory="$(#wx)/lib/gcc_dll/mswu" />
 					<Add directory="include" />
 					<Add directory="../xSchedule" />
@@ -216,7 +214,6 @@
 					<Add option="-DWXUSINGDLL" />
 					<Add option="-DNDEBUG" />
 					<Add option="-D_USE_MATH_DEFINES" />
-					<Add option="-DEXCLUDENETWORKUI" />
 					<Add directory="include" />
 					<Add directory="../xSchedule" />
 					<Add directory="../xLights/ffmpeg-dev/include" />
@@ -257,6 +254,7 @@
 			<Add option="-fno-strict-aliasing" />
 			<Add option="-Wno-unused-local-typedefs" />
 			<Add option="-DwxUSE_UNICODE" />
+			<Add option="-DEXCLUDENETWORKUI" />
 		</Compiler>
 		<ResourceCompiler>
 			<Add directory="$(#wx)/include" />
