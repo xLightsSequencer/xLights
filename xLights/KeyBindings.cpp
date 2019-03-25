@@ -85,7 +85,7 @@ static  std::vector<std::pair<std::string, KBSCOPE>> KeyBindingTypes =
 
 const std::vector<KeyBinding> DefaultBindings =
 {
-    KeyBinding(_("A"), false, _("SELECT_ALL"), true, false, true),
+    KeyBinding(_("a"), false, _("SELECT_ALL"), true, true),
     KeyBinding(_("a"), false, _("SELECT_ALL_NO_TIMING"), true),
     KeyBinding(_("F10"), false, _("BACKUP")),
     KeyBinding(_("F11"), false, _("ALTERNATE_BACKUP")),
@@ -121,9 +121,9 @@ const std::vector<KeyBinding> DefaultBindings =
     KeyBinding(_("F4"), false, _("LAYER_BLENDING_TOGGLE"), true),
     KeyBinding(_("F5"), false, _("MODEL_PREVIEW_TOGGLE"), true),
     KeyBinding(_("F6"), false, _("HOUSE_PREVIEW_TOGGLE"), true),
-    KeyBinding(_("F9"), false, _("EFFECTS_TOGGLE"), true, true),
+    KeyBinding(_("F9"), false, _("EFFECTS_TOGGLE"), true),
     KeyBinding(_("F7"), false, _("DISPLAY_ELEMENTS_TOGGLE"), true),
-    KeyBinding(_("F8"), false, _("JUKEBOX_TOGGLE"), true),
+    KeyBinding(_("F8"), false, _("JUKEBOX_TOGGLE"), true, true),
     KeyBinding(_("l"), false, _("LOCK_EFFECT"), true),
     KeyBinding(_("u"), false, _("UNLOCK_EFFECT"), true),
     KeyBinding(_("."), false, _("MARK_SPOT"), true),
