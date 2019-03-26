@@ -177,6 +177,7 @@
     <ClCompile Include="CachedFileDownloader.cpp" />
     <ClCompile Include="ColorManager.cpp" />
     <ClCompile Include="ColorManagerDialog.cpp" />
+    <ClCompile Include="controllers\ControllerRegistry.cpp" />
     <ClCompile Include="controllers\ControllerUploadData.cpp" />
     <ClCompile Include="controllers\EasyLights.cpp" />
     <ClCompile Include="controllers\ESPixelStick.cpp" />
@@ -415,7 +416,6 @@
     <ClCompile Include="OptionChooser.cpp" />
     <ClCompile Include="osx_utils\TouchBars.cpp" />
     <ClCompile Include="outputs\ArtNetOutput.cpp" />
-    <ClCompile Include="outputs\Controller.cpp" />
     <ClCompile Include="outputs\DMXOutput.cpp" />
     <ClCompile Include="outputs\E131Output.cpp" />
     <ClCompile Include="outputs\IPOutput.cpp" />
@@ -547,6 +547,7 @@
     <ClInclude Include="CachedFileDownloader.h" />
     <ClInclude Include="ColorManager.h" />
     <ClInclude Include="ColorManagerDialog.h" />
+    <ClInclude Include="controllers\ControllerRegistry.h" />
     <ClInclude Include="controllers\ControllerUploadData.h" />
     <ClInclude Include="controllers\EasyLights.h" />
     <ClInclude Include="controllers\ESPixelStick.h" />

@@ -3953,7 +3953,7 @@ void MapLPEEffects(const EffectManager& effectManager, Element* model, const wxX
     }
 }
 
-void MapS5(const EffectManager& effect_manager, int layer, EffectLayer* el, const LOREdit& lorEdit, const wxString& model, int frequency, int offset)
+void MapS5(const EffectManager& effect_manager, int layer, EffectLayer* el, const LOREdit& lorEdit, const wxString& model, int modelStrands, int frequency, int offset)
 {
     if (el == nullptr) return;
 
@@ -3961,7 +3961,7 @@ void MapS5(const EffectManager& effect_manager, int layer, EffectLayer* el, cons
 
     if (st == loreditType::CHANNELS)
     {
-        auto effects = lorEdit.GetChannelEffects(model, 0, offset);
+        auto effects = lorEdit.GetChannelEffects(model, 0, modelStrands, offset);
 
         for (auto it : effects)
         {
@@ -3998,7 +3998,7 @@ void MapS5(const EffectManager& effect_manager, int layer, EffectLayer* el, cons
     }
 }
 
-void MapS5ChannelEffects(const EffectManager& effectManager, int node, NodeLayer* nl, const LOREdit& lorEdit, const wxString& mapping, int frequency, int offset)
+void MapS5ChannelEffects(const EffectManager& effectManager, int node, NodeLayer* nl, int modelStrands, const LOREdit& lorEdit, const wxString& mapping, int frequency, int offset)
 {
     if (nl == nullptr) return;
 
@@ -4006,7 +4006,7 @@ void MapS5ChannelEffects(const EffectManager& effectManager, int node, NodeLayer
 
     if (st == loreditType::CHANNELS)
     {
-        auto effects = lorEdit.GetChannelEffects(mapping, node, offset);
+        auto effects = lorEdit.GetChannelEffects(mapping, node, modelStrands, offset);
 
         for (auto it : effects)
         {
@@ -4051,12 +4051,14 @@ void MapS5Effects(const EffectManager& effectManager, Element* model, const LORE
 
     if (st == loreditType::CHANNELS)
     {
-        for (int i = 0; i < model->GetSequenceElements()->GetXLightsFrame()->AllModels[model->GetModelName()]->GetNodeCount(); i++)
+        Model* m = model->GetSequenceElements()->GetXLightsFrame()->AllModels[model->GetModelName()];
+
+        for (int i = 0; i < m->GetNodeCount(); i++)
         {
             NodeLayer* nl = model->GetNodeEffectLayer(i);
             if (nl != nullptr)
             {
-                MapS5ChannelEffects(effectManager, i, nl, lorEdit, mapping, frequency, offset);
+                MapS5ChannelEffects(effectManager, i, nl, m->GetNumStrands(), lorEdit, mapping, frequency, offset);
             }
         }
     }
@@ -4068,7 +4070,8 @@ void MapS5Effects(const EffectManager& effectManager, Element* model, const LORE
             {
                 model->AddEffectLayer();
             }
-            MapS5(effectManager, i, model->GetEffectLayer(i), lorEdit, mapping, frequency, offset);
+            int strands = model->GetSequenceElements()->GetXLightsFrame()->AllModels[model->GetModelName()]->GetNumStrands();
+            MapS5(effectManager, i, model->GetEffectLayer(i), lorEdit, mapping, strands, frequency, offset);
         }
     }
 }
@@ -4143,6 +4146,8 @@ bool xLightsFrame::ImportS5(wxXmlDocument &input_xml, const wxFileName &filename
             }
         }
 
+        int modelStrands = model->GetSequenceElements()->GetXLightsFrame()->AllModels[model->GetModelName()]->GetNumStrands();
+
         if (m->_mapping != "") {
             if (model == nullptr) {
                 model = AddModel(GetModel(modelName), mSequenceElements);
@@ -4197,11 +4202,11 @@ bool xLightsFrame::ImportS5(wxXmlDocument &input_xml, const wxFileName &filename
                             if (nl != nullptr) {
                                 auto st = lorEdit.GetSequencingType(ns->_mapping);
                                 if (st == loreditType::CHANNELS) {
-                                    MapS5ChannelEffects(effectManager, i, nl, lorEdit, ns->_mapping, CurrentSeqXmlFile->GetFrequency(), offset);
+                                    MapS5ChannelEffects(effectManager, i, nl, modelStrands, lorEdit, ns->_mapping, CurrentSeqXmlFile->GetFrequency(), offset);
                                 }
                                 else if (st == loreditType::TRACKS) {
                                     // no layers so we just map the first
-                                    MapS5(effectManager, 0, nl, lorEdit, ns->_mapping, CurrentSeqXmlFile->GetFrequency(), offset);
+                                    MapS5(effectManager, 0, nl, lorEdit, ns->_mapping, modelStrands, CurrentSeqXmlFile->GetFrequency(), offset);
                                 }
                             }
                         }

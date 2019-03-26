@@ -908,6 +908,29 @@ std::vector<std::pair<uint32_t, uint32_t>> LOREdit::GetTimings(const std::string
     return res;
 }
 
+// Uses prop definition to work out how many strands a model has
+// that can then be used out to work out channel sequencing mapping
+int LOREdit::GetModelStrands(const std::string& model) const
+{
+    for (wxXmlNode* e = _input_xml.GetRoot()->GetChildren(); e != nullptr; e = e->GetNext()) {
+        if (e->GetName() == "PreviewClass") {
+            for (wxXmlNode* prop = e->GetChildren(); prop != nullptr; prop = prop->GetNext()) {
+                if (prop->GetName() == "PropClass") {
+                    if (prop->GetAttribute("name") == model) {
+                        wxString grid = prop->GetAttribute("ChannelGrid");
+                        int strands = 1;
+                        for (auto it : grid) {
+                            if (it == ';') strands++;
+                        }
+                        return strands;
+                    }
+                }
+            }
+        }
+    }
+    return 0;
+}
+
 // Calculate the number of layers necessary for pixel effects on this model
 // basically one per track * whether or not there are effects on left and right
 int LOREdit::GetModelLayers(const std::string& model) const
@@ -1160,28 +1183,42 @@ std::vector<LOREditEffect> LOREdit::GetTrackEffects(const std::string& model, in
     return res;
 }
 
-std::vector<LOREditEffect> LOREdit::GetChannelEffects(const std::string& model, int channel, int offset) const
+std::vector<LOREditEffect> LOREdit::GetChannelEffects(const std::string& model, int channel, int modelStrands, int offset) const
 {
     std::vector<LOREditEffect> res;
+
+    bool mapRowsToStrands = false;
 
     int rows = 0;
     int cols = 0;
     int channels = GetModelChannels(model, rows, cols);
+    int strands = GetModelStrands(model);
 
-    if (channel >= channels) return res;
+    if (rows == strands)
+    {
+        mapRowsToStrands = true;
+    }
+    else
+    {
+        mapRowsToStrands = false;
+    }
 
-    // Right now i am assuming only one can be non-zero
-    if (rows > 1 && cols > 1) wxASSERT(false);
+    if (strands != modelStrands)
+    {
+        mapRowsToStrands = !mapRowsToStrands;
+    }
 
     int targetRow = 0;
     int targetCol = 0;
-    if (rows > 1)
+    if (mapRowsToStrands)
     {
-        targetRow = channel;
+        targetRow = channel / modelStrands;
+        targetCol = channel % modelStrands;
     }
-    else if (cols > 1)
+    else
     {
-        targetCol = channel;
+        targetRow = channel % modelStrands;
+        targetCol = channel / modelStrands;
     }
 
     for (wxXmlNode* e = _input_xml.GetRoot()->GetChildren(); e != nullptr; e = e->GetNext()) {

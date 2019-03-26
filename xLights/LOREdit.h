@@ -52,11 +52,12 @@ class LOREdit {
     std::vector<std::string> GetTimingTracks() const;
     std::vector<std::pair<uint32_t, uint32_t>> GetTimings(const std::string& timingTrackName, int offset = 0) const;
     int GetModelLayers(const std::string& model) const;
+    int GetModelStrands(const std::string& model) const;
     int GetModelChannels(const std::string& model, int& rows, int& cols) const;
     loreditType GetSequencingType(const std::string& model) const;
     std::vector<std::string> GetModelsWithEffects() const;
     std::vector<LOREditEffect> GetTrackEffects(const std::string& model, int layer, int offset = 0) const;
-    std::vector<LOREditEffect> GetChannelEffects(const std::string& model, int channel, int offset = 0) const;
+    std::vector<LOREditEffect> GetChannelEffects(const std::string& model, int channel, int modelStrands, int offset) const;
     std::vector<LOREditEffect> AddEffects(wxXmlNode* track, bool left, int offset) const;
     static void GetLayers(const std::string& settings, int& ll1, int& ll2);
 };

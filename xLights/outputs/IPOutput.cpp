@@ -1,17 +1,20 @@
+#include "IPOutput.h"
+
+#include <wx/socket.h>
+#include <wx/xml/xml.h>
+#include <wx/regex.h>
+#include <wx/protocol/http.h>
+
+// This must be below the wx includes
 #ifdef __WXMSW__
 #include <winsock2.h>
 #include <iphlpapi.h>
 #include <icmpapi.h>
+#else
+#include <winsock.h>
 #endif
 
-#include "IPOutput.h"
-
-#include <wx/xml/xml.h>
-#include <wx/regex.h>
-#include <wx/socket.h>
 #include <log4cpp/Category.hh>
-#include <wx/protocol/http.h>
-
 
 std::string IPOutput::__localIP = "";
 

@@ -215,7 +215,6 @@
     <ClCompile Include="OptionChooser.cpp" />
     <ClCompile Include="osx_utils\TouchBars.cpp" />
     <ClCompile Include="outputs\ArtNetOutput.cpp" />
-    <ClCompile Include="outputs\Controller.cpp" />
     <ClCompile Include="outputs\DMXOutput.cpp" />
     <ClCompile Include="outputs\E131Output.cpp" />
     <ClCompile Include="outputs\IPOutput.cpp" />
@@ -372,6 +371,7 @@
     <ClCompile Include="effects\KaleidoscopePanel.cpp" />
     <ClCompile Include="ControllerVisualiseDialog.cpp" />
     <ClCompile Include="LOREdit.cpp" />
+    <ClCompile Include="controllers\ControllerRegistry.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -746,6 +746,7 @@
     <ClInclude Include="effects\KaleidoscopePanel.h" />
     <ClInclude Include="ControllerVisualiseDialog.h" />
     <ClInclude Include="LOREdit.h" />
+    <ClInclude Include="controllers\ControllerRegistry.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />
