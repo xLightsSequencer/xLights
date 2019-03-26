@@ -10,8 +10,6 @@
 #include <winsock2.h>
 #include <iphlpapi.h>
 #include <icmpapi.h>
-#else
-#include <winsock.h>
 #endif
 
 #include <log4cpp/Category.hh>
