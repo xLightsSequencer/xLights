@@ -2248,7 +2248,7 @@ void xLightsFrame::OnButton_DiscoverClick(wxCommandEvent& event)
                 max = std::max(max, start + len - 1);
             }
         }
-        int count = max - min;
+        int count = max - min + 1;
         if (count < 512) {
             count = 512;
         }
