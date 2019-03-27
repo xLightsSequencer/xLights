@@ -311,8 +311,8 @@ void TreeModel::AddStyleProperties(wxPropertyGridInterface *grid) {
     p->Enable(treeType == 0);
 
     p = grid->Append(new wxFloatProperty("Spiral Wraps", "TreeSpiralRotations", treeType == 0 ? spiralRotations : 0.0));
-    p->SetAttribute("Min", "-20");
-    p->SetAttribute("Max", "20");
+    p->SetAttribute("Min", "-200");
+    p->SetAttribute("Max", "200");
     p->SetAttribute("Precision", 2);
     p->SetEditor("SpinCtrl");
     p->Enable(treeType == 0);
