@@ -5,6 +5,7 @@
 
 #include "sequencer/TimeLine.h"
 #include "UtilFunctions.h"
+#include "models/Model.h"
 
 #include "effects/SpiralsEffect.h"
 #include "effects/ButterflyEffect.h"
@@ -198,6 +199,16 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
     if (effectType == "SHIMMER")
     {
         return wxString::Format("E_CHECKBOX_On_Shimmer=1,E_TEXTCTRL_Eff_On_End=%d,E_TEXTCTRL_Eff_On_Start=%d", endIntensity, startIntensity).ToStdString();
+    }
+    if (effectType == "TWINKLE")
+    {
+        return "E_SLIDER_Twinkle_Count=48";
+    }
+
+    if (effectSettings.size() == 0)
+    {
+        wxASSERT(false);
+        return "";
     }
 
     std::string et = effectType;
@@ -1183,43 +1194,37 @@ std::vector<LOREditEffect> LOREdit::GetTrackEffects(const std::string& model, in
     return res;
 }
 
-std::vector<LOREditEffect> LOREdit::GetChannelEffects(const std::string& model, int channel, int modelStrands, int offset) const
+std::vector<LOREditEffect> LOREdit::GetChannelEffects(const std::string& model, int channel, Model* m, int offset) const
 {
     std::vector<LOREditEffect> res;
-
-    bool mapRowsToStrands = false;
 
     int rows = 0;
     int cols = 0;
     int channels = GetModelChannels(model, rows, cols);
     int strands = GetModelStrands(model);
 
-    if (rows == strands)
+    int mw = m->GetDefaultBufferWi();
+    int mh = m->GetDefaultBufferHt();
+
+    wxASSERT(rows == mh);
+    wxASSERT(cols == mw);
+
+    std::vector<wxPoint> coords;
+    m->GetNodeCoords(channel, coords);
+    int bufx = 0;
+    int bufy = 0;
+    if (coords.size() != 0)
     {
-        mapRowsToStrands = true;
+        bufx = coords[0].x;
+        bufy = coords[0].y;
     }
     else
     {
-        mapRowsToStrands = false;
+        // this is not encouraging
     }
 
-    if (strands != modelStrands)
-    {
-        mapRowsToStrands = !mapRowsToStrands;
-    }
-
-    int targetRow = 0;
-    int targetCol = 0;
-    if (mapRowsToStrands)
-    {
-        targetRow = channel / modelStrands;
-        targetCol = channel % modelStrands;
-    }
-    else
-    {
-        targetRow = channel % modelStrands;
-        targetCol = channel / modelStrands;
-    }
+    int targetRow = bufy;
+    int targetCol = bufx;
 
     for (wxXmlNode* e = _input_xml.GetRoot()->GetChildren(); e != nullptr; e = e->GetNext()) {
         if (e->GetName() == "SequenceProps") {

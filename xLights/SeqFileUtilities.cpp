@@ -3953,7 +3953,7 @@ void MapLPEEffects(const EffectManager& effectManager, Element* model, const wxX
     }
 }
 
-void MapS5(const EffectManager& effect_manager, int layer, EffectLayer* el, const LOREdit& lorEdit, const wxString& model, int modelStrands, int frequency, int offset)
+void MapS5(const EffectManager& effect_manager, int layer, EffectLayer* el, const LOREdit& lorEdit, const wxString& model, Model* m, int frequency, int offset)
 {
     if (el == nullptr) return;
 
@@ -3961,7 +3961,7 @@ void MapS5(const EffectManager& effect_manager, int layer, EffectLayer* el, cons
 
     if (st == loreditType::CHANNELS)
     {
-        auto effects = lorEdit.GetChannelEffects(model, 0, modelStrands, offset);
+        auto effects = lorEdit.GetChannelEffects(model, 0, m, offset);
 
         for (auto it : effects)
         {
@@ -3998,7 +3998,7 @@ void MapS5(const EffectManager& effect_manager, int layer, EffectLayer* el, cons
     }
 }
 
-void MapS5ChannelEffects(const EffectManager& effectManager, int node, NodeLayer* nl, int modelStrands, const LOREdit& lorEdit, const wxString& mapping, int frequency, int offset)
+void MapS5ChannelEffects(const EffectManager& effectManager, int node, NodeLayer* nl, Model* m, const LOREdit& lorEdit, const wxString& mapping, int frequency, int offset)
 {
     if (nl == nullptr) return;
 
@@ -4006,7 +4006,7 @@ void MapS5ChannelEffects(const EffectManager& effectManager, int node, NodeLayer
 
     if (st == loreditType::CHANNELS)
     {
-        auto effects = lorEdit.GetChannelEffects(mapping, node, modelStrands, offset);
+        auto effects = lorEdit.GetChannelEffects(mapping, node, m, offset);
 
         for (auto it : effects)
         {
@@ -4045,20 +4045,19 @@ void MapS5ChannelEffects(const EffectManager& effectManager, int node, NodeLayer
 
 void MapS5Effects(const EffectManager& effectManager, Element* model, const LOREdit& lorEdit, const wxString& mapping, int frequency, int offset)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     auto st = lorEdit.GetSequencingType(mapping);
+    Model* m = model->GetSequenceElements()->GetXLightsFrame()->AllModels[model->GetModelName()];
 
     if (st == loreditType::CHANNELS)
     {
-        Model* m = model->GetSequenceElements()->GetXLightsFrame()->AllModels[model->GetModelName()];
-
         for (int i = 0; i < m->GetNodeCount(); i++)
         {
             NodeLayer* nl = model->GetNodeEffectLayer(i);
             if (nl != nullptr)
             {
-                MapS5ChannelEffects(effectManager, i, nl, m->GetNumStrands(), lorEdit, mapping, frequency, offset);
+                MapS5ChannelEffects(effectManager, i, nl, m, lorEdit, mapping, frequency, offset);
             }
         }
     }
@@ -4071,7 +4070,7 @@ void MapS5Effects(const EffectManager& effectManager, Element* model, const LORE
                 model->AddEffectLayer();
             }
             int strands = model->GetSequenceElements()->GetXLightsFrame()->AllModels[model->GetModelName()]->GetNumStrands();
-            MapS5(effectManager, i, model->GetEffectLayer(i), lorEdit, mapping, strands, frequency, offset);
+            MapS5(effectManager, i, model->GetEffectLayer(i), lorEdit, mapping, m, frequency, offset);
         }
     }
 }
@@ -4146,7 +4145,7 @@ bool xLightsFrame::ImportS5(wxXmlDocument &input_xml, const wxFileName &filename
             }
         }
 
-        int modelStrands = model->GetSequenceElements()->GetXLightsFrame()->AllModels[model->GetModelName()]->GetNumStrands();
+        Model* mdl = model->GetSequenceElements()->GetXLightsFrame()->AllModels[model->GetModelName()];
 
         if (m->_mapping != "") {
             if (model == nullptr) {
@@ -4202,11 +4201,11 @@ bool xLightsFrame::ImportS5(wxXmlDocument &input_xml, const wxFileName &filename
                             if (nl != nullptr) {
                                 auto st = lorEdit.GetSequencingType(ns->_mapping);
                                 if (st == loreditType::CHANNELS) {
-                                    MapS5ChannelEffects(effectManager, i, nl, modelStrands, lorEdit, ns->_mapping, CurrentSeqXmlFile->GetFrequency(), offset);
+                                    MapS5ChannelEffects(effectManager, i, nl, mdl, lorEdit, ns->_mapping, CurrentSeqXmlFile->GetFrequency(), offset);
                                 }
                                 else if (st == loreditType::TRACKS) {
                                     // no layers so we just map the first
-                                    MapS5(effectManager, 0, nl, lorEdit, ns->_mapping, modelStrands, CurrentSeqXmlFile->GetFrequency(), offset);
+                                    MapS5(effectManager, 0, nl, lorEdit, ns->_mapping, mdl, CurrentSeqXmlFile->GetFrequency(), offset);
                                 }
                             }
                         }
