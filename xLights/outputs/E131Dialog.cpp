@@ -141,6 +141,7 @@ E131Dialog::E131Dialog(wxWindow* parent, E131Output* e131, OutputManager* output
     }
     else
     {
+        MultiE131CheckBox->SetValue(true); // default to multi to encourage the use of this setup
         MultiE131CheckBox->Enable(true);
         SpinCtrl_NumUniv->Enable(true);
     }
