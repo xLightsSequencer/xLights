@@ -216,7 +216,6 @@ void xLightsFrame::SetPanelSequencerLabel(const std::string& sequence)
 void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog* plog)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    bool loaded_xml = false;
     bool loaded_fseq = false;
     wxString filename;
     wxString wildcards = "XML files (*.xml)|*.xml|FSEQ files (*.fseq)|*.fseq";
@@ -479,7 +478,7 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
 
         wxString mss = CurrentSeqXmlFile->GetSequenceTiming();
         int ms = atoi(mss.c_str());
-        loaded_xml = SeqLoadXlightsFile(*CurrentSeqXmlFile, true);
+        bool loaded_xml = SeqLoadXlightsFile(*CurrentSeqXmlFile, true);
 
         unsigned int numChan = GetMaxNumChannels();
         if (numChan >= 999999) {
@@ -3998,7 +3997,7 @@ void MapS5(const EffectManager& effect_manager, int layer, EffectLayer* el, cons
     }
 }
 
-void MapS5ChannelEffects(const EffectManager& effectManager, int node, NodeLayer* nl, Model* m, const LOREdit& lorEdit, const wxString& mapping, int frequency, int offset)
+void MapS5ChannelEffects(const EffectManager& effectManager, int node, EffectLayer* nl, Model* m, const LOREdit& lorEdit, const wxString& mapping, int frequency, int offset)
 {
     if (nl == nullptr) return;
 
@@ -4052,12 +4051,19 @@ void MapS5Effects(const EffectManager& effectManager, Element* model, const LORE
 
     if (st == loreditType::CHANNELS)
     {
-        for (int i = 0; i < m->GetNodeCount(); i++)
+        if (m->GetNodeCount() == 1)
         {
-            NodeLayer* nl = model->GetNodeEffectLayer(i);
-            if (nl != nullptr)
+            MapS5ChannelEffects(effectManager, 0, model->GetEffectLayer(0), m, lorEdit, mapping, frequency, offset);
+        }
+        else
+        {
+            for (int i = 0; i < m->GetNodeCount(); i++)
             {
-                MapS5ChannelEffects(effectManager, i, nl, m, lorEdit, mapping, frequency, offset);
+                NodeLayer* nl = model->GetNodeEffectLayer(i);
+                if (nl != nullptr)
+                {
+                    MapS5ChannelEffects(effectManager, i, nl, m, lorEdit, mapping, frequency, offset);
+                }
             }
         }
     }
@@ -4069,7 +4075,6 @@ void MapS5Effects(const EffectManager& effectManager, Element* model, const LORE
             {
                 model->AddEffectLayer();
             }
-            int strands = model->GetSequenceElements()->GetXLightsFrame()->AllModels[model->GetModelName()]->GetNumStrands();
             MapS5(effectManager, i, model->GetEffectLayer(i), lorEdit, mapping, m, frequency, offset);
         }
     }
