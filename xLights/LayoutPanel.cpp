@@ -2636,7 +2636,7 @@ void LayoutPanel::OnPreviewLeftUp(wxMouseEvent& event)
 
 void LayoutPanel::FinalizeModel()
 {
-    if( m_polyline_active && m_over_handle > 1 ) {
+    if (m_polyline_active && m_over_handle > 1) {
         Model *m = newModel;
         if (m != nullptr)
         {
@@ -2650,7 +2650,9 @@ void LayoutPanel::FinalizeModel()
     m_over_handle = NO_HANDLE;
 
     if (newModel != nullptr) {
-        if (selectedButton != nullptr && (selectedButton->GetModelType() == "Import Custom" || selectedButton->GetModelType() == "Download"))
+        // cache the selected button as it may change during a download or some such event
+        auto b = selectedButton;
+        if (b != nullptr && (b->GetModelType() == "Import Custom" || b->GetModelType() == "Download"))
         {
             float min_x = (float)(newModel->GetBaseObjectScreenLocation().GetLeft());
             float max_x = (float)(newModel->GetBaseObjectScreenLocation().GetRight());
@@ -2659,22 +2661,22 @@ void LayoutPanel::FinalizeModel()
             bool cancelled = false;
 
             wxProgressDialog prog("Model download", "Downloading models ...", 100, this, wxPD_APP_MODAL | wxPD_AUTO_HIDE);
-            if (selectedButton->GetModelType() == "Download")
+            if (b->GetModelType() == "Download")
             {
                 prog.Show();
             }
-            newModel = Model::GetXlightsModel(newModel, _lastXlightsModel, xlights, cancelled, selectedButton->GetModelType() == "Download", &prog, 0, 99);
+            newModel = Model::GetXlightsModel(newModel, _lastXlightsModel, xlights, cancelled, b->GetModelType() == "Download", &prog, 0, 99);
             if (cancelled || newModel == nullptr) {
                 newModel = nullptr;
                 modelPreview->SetCursor(wxCURSOR_DEFAULT);
-                selectedButton->SetState(0);
+                b->SetState(0);
                 selectedButton = nullptr;
                 xlights->UpdateModelsList();
                 UpdatePreview();
                 return;
             }
             newModel->ImportXlightsModel(_lastXlightsModel, xlights, min_x, max_x, min_y, max_y);
-            if (selectedButton->GetState() == 1)
+            if (b->GetState() == 1)
             {
                 _lastXlightsModel = "";
             }
@@ -2687,18 +2689,17 @@ void LayoutPanel::FinalizeModel()
 
         modelPreview->SetCursor(wxCURSOR_DEFAULT);
         modelPreview->SetAdditionalModel(nullptr);
-        if (selectedButton != nullptr && selectedButton->GetState() == 1) {
+        if (b != nullptr && b->GetState() == 1) {
             std::string name = newModel->name;
             newModel = nullptr;
-            if (selectedButton != nullptr) {
-                selectedButton->SetState(0);
-                selectedButton = nullptr;
-            }
+            b->SetState(0);
+            selectedButton = nullptr;
             selectedBaseObject = nullptr;
             xlights->UpdateModelsList();
             SelectBaseObject(name);
             SelectBaseObject3D();
-        } else {
+        }
+        else {
             newModel = nullptr;
             xlights->UpdateModelsList();
         }

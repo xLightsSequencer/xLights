@@ -1198,6 +1198,9 @@ std::vector<LOREditEffect> LOREdit::GetChannelEffects(const std::string& model, 
 {
     std::vector<LOREditEffect> res;
 
+    if (m == nullptr) return res;
+    if (channel >= m->GetNodeCount()) return res;
+
     int rows = 0;
     int cols = 0;
     int channels = GetModelChannels(model, rows, cols);
