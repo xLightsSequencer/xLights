@@ -44,7 +44,7 @@
 								<object class="sizeritem">
 									<object class="wxFlexGridSizer" variable="FlexGridSizer10" member="no">
 										<cols>2</cols>
-										<rows>3</rows>
+										<rows>4</rows>
 										<object class="sizeritem">
 											<object class="wxButton" name="ID_BUTTON3" variable="AddButton" member="yes">
 												<label>Add</label>
@@ -86,17 +86,30 @@
 												<label>Import from Model</label>
 												<handler function="OnButtonCopyModelClick" entry="EVT_BUTTON" />
 											</object>
-											<flag>wxALL|wxEXPAND|wxFIXED_MINSIZE</flag>
+											<flag>wxALL|wxEXPAND</flag>
 											<border>5</border>
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
 											<object class="wxButton" name="ID_BUTTON_SUB_IMPORT" variable="Button_Sub_Import" member="yes">
 												<label>Import from File</label>
-												<size>95,33</size>
 												<handler function="OnButton_Sub_ImportClick" entry="EVT_BUTTON" />
 											</object>
-											<flag>wxALL|wxEXPAND|wxFIXED_MINSIZE</flag>
+											<flag>wxALL|wxEXPAND</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxButton" name="ID_BUTTON9" variable="Button_importCustom" member="yes">
+												<label>Import Custom</label>
+												<handler function="OnButton_importCustomClick" entry="EVT_BUTTON" />
+											</object>
+											<flag>wxALL|wxEXPAND</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="spacer">
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>5</border>
 											<option>1</option>
 										</object>

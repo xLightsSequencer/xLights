@@ -2791,11 +2791,27 @@ int Model::GetNodeChannelCount(const std::string & nodeType) {
 }
 
 // returns a number where the first node is 1
-int Model::GetNodeNumber(size_t nodenum) {
+int Model::GetNodeNumber(size_t nodenum) const {
     if (nodenum >= Nodes.size()) return 0;
-    //if (Nodes[nodenum].bufX < 0) return 0;
     int sn=Nodes[nodenum]->StringNum;
     return (Nodes[nodenum]->ActChan - stringStartChan[sn]) / 3 + sn*NodesPerString() + 1;
+}
+
+int Model::GetNodeNumber(int bufY, int bufX) const
+{
+    int count = 0;
+    for (const auto& it : Nodes)
+    {
+        if (it->Coords.size() > 0)
+        {
+            if (it->Coords[0].bufX == bufX && it->Coords[0].bufY == bufY)
+            {
+                return count;
+            }
+        }
+        count++;
+    }
+    return 0;
 }
 
 size_t Model::GetNodeCount() const {
@@ -2855,6 +2871,7 @@ int Model::GetNodeStringNumber(size_t nodenum) const {
 }
 
 void Model::GetNodeCoords(int nodeidx, std::vector<wxPoint> &pts) {
+    if (nodeidx >= Nodes.size()) return;
     for (int x = 0; x < Nodes[nodeidx]->Coords.size(); x++) {
         pts.push_back(wxPoint(Nodes[nodeidx]->Coords[x].bufX, Nodes[nodeidx]->Coords[x].bufY));
     }
