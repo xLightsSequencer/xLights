@@ -1430,7 +1430,7 @@ void xLightsFrame::OnGridNetworkItemRClick(wxListEvent& event)
         }
     }
 
-    mnuUploadController->Append(ID_NETWORK_UCINPUT, "E1.31 Input Defintion", mnuUCInput, "");
+    mnuUploadController->Append(ID_NETWORK_UCINPUT, "E1.31 Input Definition", mnuUCInput, "");
     mnuUCInput->Connect(wxEVT_MENU, (wxObjectEventFunction)&xLightsFrame::OnNetworkPopup, nullptr, this);
 
     wxMenu* mnuUCOutput = new wxMenu();
@@ -2622,7 +2622,7 @@ void xLightsFrame::OnButton_DiscoverClick(wxCommandEvent& event)
                 max = std::max(max, start + len - 1);
             }
         }
-        int count = max - min;
+        int count = max - min + 1;
         if (count < 512) {
             count = 512;
         }

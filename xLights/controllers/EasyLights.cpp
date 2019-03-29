@@ -589,7 +589,10 @@ public:
 	}
 
     virtual ~EasyLightsControllerRules() {}
-    
+    virtual bool SupportsLEDPanelMatrix() const override {
+        return false;
+    }
+
     virtual const std::string GetControllerId() const override {
         if (_type == 1) {
             return EASYLIGHTS_PIX16;

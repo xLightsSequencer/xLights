@@ -12,7 +12,7 @@ LD = g++
 WINDRES = windres
 
 INC = 
-CFLAGS = -fno-strict-aliasing -Wno-unused-local-typedefs -DwxUSE_UNICODE
+CFLAGS = -fno-strict-aliasing -Wno-unused-local-typedefs -DwxUSE_UNICODE -DEXCLUDENETWORKUI
 RESINC = 
 LIBDIR = 
 LIB = 

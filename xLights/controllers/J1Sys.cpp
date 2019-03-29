@@ -43,7 +43,10 @@ public:
         return J1SYS_P12R;
     }
 
-    
+    virtual bool SupportsLEDPanelMatrix() const override {
+        return false;
+    }
+
     virtual int GetMaxPixelPortChannels() const override 
     { 
         if (_outputs == 2) return 9999999; // we will detect this in a different way 

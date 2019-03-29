@@ -11,6 +11,16 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (keith)   Bunch of fixes to LOR S5 import
+   -- bug (scott)   Fix some overlapping keybinding defaults
+   -- bug (dkulp)   Fix discovery returns 1 too few channels
+   -- enh (keith)   Increase maximum spirals on the tree model
+   -- enh (keith)   Make e131 default to multiple universes ... single output
+2019.18 March 25, 2019
+   -- enh (dkulp)   DDP outputs can record the controller type (hat/cape) and upload menu item only shows it
+   -- enh (dkulp)   "Discover" button on setup tab to discover and automatically add/configure FPP instances
+   -- enh (dkulp/keith) Add "Visualise" option for DDP/FPP controllers to see layout of models on controller
+                            (work in progress)
    -- bug (dkulp)   Fix problem with FPP connect not finding models if using hostname instead of ip address
    -- enh (dkulp)   FPP Connect can update the start channel of matrices for LED panel capes
    -- enh (dkulp)   FPP Connect can detect LED Panel capes, display the matrix size
@@ -18,6 +28,11 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- enh (dkulp)   xShcedule as FPP remote now works with Multicast protocol (maybe Linux/OSX only)
    -- enh (dkulp)   xShcedule as FPP remote now responds to FPP Ping's/Discovery
    -- enh (dkulp)   Much faster FPP Connect discovery
+   -- enh (keith)   Add a LOR S5 LOREDIT file import. This is a highly speculative implementation at this time
+                    Unless those who want this function lean in and help get it right it will likely never be
+					quite right.
+   -- enh (keith)   Use a dropdown for selection of Force IP address
+   -- bug (keith)   Fix slow render when using render cache
 2019.17 March 15, 2019
    -- enh (keith)   Add falcon smart remote support
    -- enh (keith)   Add ability to split timing marks in half

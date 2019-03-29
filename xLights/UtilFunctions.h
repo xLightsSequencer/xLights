@@ -80,7 +80,7 @@ inline char HexToChar(char c)
 
 inline char HexToChar(char c1, char c2)
 {
-    return (HexToChar(c1) << 8) + HexToChar(c2);
+    return (HexToChar(c1) << 4) + HexToChar(c2);
 }
 
 inline bool Contains(const std::string& in, const std::string& contains) noexcept
@@ -96,6 +96,13 @@ inline bool Contains(const std::wstring& in, const std::wstring& contains) noexc
 inline bool StartsWith(const std::string& in, const std::string& startswith) noexcept
 {
     return in.size() >= startswith.size() && in.substr(0, startswith.size()) == startswith;
+}
+
+inline std::string AfterFirst(const std::string& in, char c)
+{
+    auto pos = in.find(c);
+    if (pos == std::string::npos) return "";
+    return in.substr(pos);
 }
 
 inline bool EndsWith(const std::string& in, const std::string& endswith) noexcept

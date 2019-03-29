@@ -626,6 +626,7 @@
 		67E8F6501E513B380096546A /* IPEntryDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67E8F64E1E513B380096546A /* IPEntryDialog.cpp */; };
 		67E9389D1A80FC5A00937772 /* SeqFileUtilities.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67E9389C1A80FC5A00937772 /* SeqFileUtilities.cpp */; };
 		67E9F6F818887898000D8182 /* TabConvert.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C7969017B5791700CEE775 /* TabConvert.cpp */; };
+		67EB0CB72248F65800F3A164 /* LOREdit.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67EB0CB52248F65800F3A164 /* LOREdit.cpp */; };
 		67EB24B11D2F399200C7C4A1 /* DmxModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67EB24B01D2F399200C7C4A1 /* DmxModel.cpp */; };
 		67EE95B21C848A3600C62C95 /* VideoPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67EE95AF1C848A3600C62C95 /* VideoPanel.cpp */; };
 		67EE95B31C848A3600C62C95 /* VideoEffect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67EE95B11C848A3600C62C95 /* VideoEffect.cpp */; };
@@ -1911,6 +1912,8 @@
 		67E8F64E1E513B380096546A /* IPEntryDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = IPEntryDialog.cpp; sourceTree = "<group>"; };
 		67E8F64F1E513B380096546A /* IPEntryDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IPEntryDialog.h; sourceTree = "<group>"; };
 		67E9389C1A80FC5A00937772 /* SeqFileUtilities.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SeqFileUtilities.cpp; sourceTree = "<group>"; };
+		67EB0CB52248F65800F3A164 /* LOREdit.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = LOREdit.cpp; sourceTree = "<group>"; };
+		67EB0CB62248F65800F3A164 /* LOREdit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LOREdit.h; sourceTree = "<group>"; };
 		67EB24AF1D2F399200C7C4A1 /* DmxModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DmxModel.h; path = models/DmxModel.h; sourceTree = "<group>"; };
 		67EB24B01D2F399200C7C4A1 /* DmxModel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = DmxModel.cpp; path = models/DmxModel.cpp; sourceTree = "<group>"; };
 		67EE95AE1C848A3600C62C95 /* VideoPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = VideoPanel.h; path = effects/VideoPanel.h; sourceTree = "<group>"; };
@@ -3008,8 +3011,10 @@
 			children = (
 				677196B1223CEFAD0082576E /* ModelChainDialog.cpp */,
 				677196B2223CEFAD0082576E /* ModelChainDialog.h */,
-				677196AF223CEF820082576E /* ControllerVisualiseDialog.cpp */,
-				677196AE223CEF820082576E /* ControllerVisualiseDialog.h */,
+				67EB0CB52248F65800F3A164 /* LOREdit.cpp */,
+				67EB0CB62248F65800F3A164 /* LOREdit.h */,
+				6701C43422468C430004335C /* ControllerVisualiseDialog.cpp */,
+				6701C43522468C430004335C /* ControllerVisualiseDialog.h */,
 				67FA9FD21C67837500FED13B /* AudioManager.cpp */,
 				67FA9FD11C67837500FED13B /* AudioManager.h */,
 				6760D8541FA3C6AD00458894 /* BatchRenderDialog.cpp */,
@@ -3798,7 +3803,7 @@
 			};
 			buildConfigurationList = 67E7086817B51AB400A22034 /* Build configuration list for PBXProject "xLights" */;
 			compatibilityVersion = "Xcode 6.3";
-			developmentRegion = English;
+			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
@@ -3997,6 +4002,7 @@
 				67D5DEE81F792B19002BB5F6 /* SplashDialog.cpp in Sources */,
 				67B2CFDC1C3A186A003C17CA /* TreeEffect.cpp in Sources */,
 				67B2CF7E1C39D98A003C17CA /* PianoPanel.cpp in Sources */,
+				67EB0CB72248F65800F3A164 /* LOREdit.cpp in Sources */,
 				67B2CF7B1C39D98A003C17CA /* MarqueePanel.cpp in Sources */,
 				67BD442A1FAB3B3D0007E083 /* UpdaterDialog.cpp in Sources */,
 				67BF80051F278956002F118D /* J1Sys.cpp in Sources */,
@@ -4905,6 +4911,7 @@
 				OTHER_CFLAGS = (
 					"$(inherited)",
 					"-IxLights/ffmpeg-dev/include/",
+					"-DEXCLUDENETWORKUI",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = org.xlights.xSchedule;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -4926,6 +4933,7 @@
 				OTHER_CFLAGS = (
 					"$(inherited)",
 					"-IxLights/ffmpeg-dev/include/",
+					"-DEXCLUDENETWORKUI",
 				);
 				OTHER_CODE_SIGN_FLAGS = "--timestamp";
 				PRODUCT_BUNDLE_IDENTIFIER = org.xlights.xSchedule;

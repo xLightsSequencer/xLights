@@ -1,6 +1,7 @@
 #include "LOROptimisedOutput.h"
+#ifndef EXCLUDENETWORKUI
 #include "LorOptimisedDialog.h"
-
+#endif
 #include <wx/xml/xml.h>
 #include <log4cpp/Category.hh>
 

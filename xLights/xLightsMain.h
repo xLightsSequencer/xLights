@@ -359,6 +359,7 @@ public:
     void ImportHLS(const wxFileName &filename);
     void ImportLMS(const wxFileName &filename);
     void ImportLPE(const wxFileName &filename);
+    void ImportS5(const wxFileName &filename);
     void ImportLSP(const wxFileName &filename);
     void ImportVsa(const wxFileName &filename);
     void ImportSuperStar(const wxFileName &filename);
@@ -375,6 +376,7 @@ public:
                          int imageResizeType, const wxSize &modelSize);
     bool ImportLMS(wxXmlDocument &doc, const wxFileName &filename);
     bool ImportLPE(wxXmlDocument &doc, const wxFileName &filename);
+    bool ImportS5(wxXmlDocument &doc, const wxFileName &filename);
 
     //(*Handlers(xLightsFrame)
     void OnQuit(wxCommandEvent& event);

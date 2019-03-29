@@ -918,7 +918,7 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
 
     std::string check;
     UDController cud(ipAddress, hostName, allmodels, outputManager, &selected, check);
-    if (maxString == 0 && maxdmx == 0) {
+    if (rules.SupportsLEDPanelMatrix()) {
         //LED panel cape, nothing we can really do except update the start channel
         int startChannel = -1;
         if (cud.GetMaxPixelPort()) {

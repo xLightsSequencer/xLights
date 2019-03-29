@@ -32,6 +32,9 @@ public:
     virtual const std::string GetControllerDescription() const override {
         return description;
     }
+    virtual bool SupportsLEDPanelMatrix() const override {
+        return maxStrings == 0 && maxDMX == 0;
+    }
 
     virtual int GetMaxPixelPortChannels() const override {
         return 1400 * 3;

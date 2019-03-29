@@ -415,6 +415,7 @@ bool SanDevices::SetInputUniverses(OutputManager* outputManager, std::list<int>&
     }
 
     GetURL(request.ToStdString());
+    wxMilliSleep(1000);
 
     request = "";
     wxString requestUnvSize = "/I?";
@@ -456,7 +457,10 @@ bool SanDevices::SetInputUniverses(OutputManager* outputManager, std::list<int>&
     }
 
     if (FirmwareVersion::Five == _eVersion)
+    {
         GetURL(requestUnvSize.ToStdString());
+        wxMilliSleep(1000);
+    }
 
     return (GetURL(request.ToStdString()) != "");
 }
@@ -609,7 +613,10 @@ bool SanDevices::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
 
     //Switch Pages from Version 5 Firmware
     if (FirmwareVersion::Five == _eVersion)
+    {
         GetURL("/H?");
+        wxMilliSleep(1000);
+    }
 
     // get the current config before I start
     std::string page = GetURL("/");
@@ -715,7 +722,10 @@ bool SanDevices::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
                                 long startChannel;
                                 Output* output = outputManager->GetOutput(portstart + j * channelsperstring, startChannel);
                                 if (FirmwareVersion::Five == _eVersion)
+                                {
                                     success = UploadStringPortFirmwareFive(page, outputPort, outputsUsed, DecodeStringPortProtocolFive(*protocol), startChannel, EncodeUniverse(output->GetUniverse(), outputManager, selected), channelsperstring / 3, first->GetName(), parent) && success;
+                                    wxMilliSleep(1000);
+                                }
                                 else
                                     success = UploadStringPort(page, outputPort, outputsUsed, DecodeStringPortProtocol(*protocol), startChannel, EncodeUniverse(output->GetUniverse(), outputManager, selected), channelsperstring / 3, first->GetName(), parent) && success;
                             }
@@ -736,7 +746,10 @@ bool SanDevices::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
                             Output* output = outputManager->GetOutput(portstart, startChannel);
                             wxASSERT(channelsperstring == portend - portstart + 1);
                             if (FirmwareVersion::Five == _eVersion)
+                            {
                                 success = UploadStringPortFirmwareFive(page, i, outputsUsed, DecodeStringPortProtocolFive(*protocol), startChannel, EncodeUniverse(output->GetUniverse(), outputManager, selected), (portend - portstart + 1) / 3, first->GetName(), parent) && success;
+                                wxMilliSleep(1000);
+                            }
                             else
                                 success = UploadStringPort(page, i, outputsUsed, DecodeStringPortProtocol(*protocol), startChannel, EncodeUniverse(output->GetUniverse(), outputManager, selected), (portend - portstart + 1) / 3, first->GetName(), parent) && success;
                         }
@@ -764,9 +777,15 @@ bool SanDevices::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
                 if (FirmwareVersion::Five == _eVersion)
                 {
                     if (_model == "E682")
+                    {
                         GetURL(wxString::Format("/%c?A=0", 'J' + i).ToStdString());
+                        wxMilliSleep(1000);
+                    }
                     else
+                    {
                         GetURL(wxString::Format("/%c?A=0", 'J' + (((i - 1) * 4) + 1)).ToStdString());//skip every four letters for E6804
+                        wxMilliSleep(1000);
+                    }
                 }
                 else
                     GetURL(wxString::Format("/%i?A=0", i + 3).ToStdString());

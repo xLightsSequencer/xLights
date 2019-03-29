@@ -7,7 +7,7 @@
 #include <string>
 #include <mutex>
 
-#include "ColorCurve.h" // This needs to be here
+#include "../ColorCurve.h" // This needs to be here
 #include "../UtilClasses.h"
 #include "../DrawGLUtils.h"
 #include "../Color.h"
@@ -132,7 +132,7 @@ public:
         return &mColorMask;
     }
     void SetColorMask(xlColor colorMask) { mColorMask = colorMask; }
-    
+
     //gets the cached frame.   Returns true if the frame was filled into the buffer
     bool GetFrame(RenderBuffer &buffer, RenderCache &renderCache);
     void AddFrame(RenderBuffer &buffer, RenderCache &renderCache);

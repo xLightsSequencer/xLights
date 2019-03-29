@@ -4,7 +4,9 @@
 
 #include <wx/xml/xml.h>
 #include <log4cpp/Category.hh>
+#ifndef EXCLUDENETWORKUI
 #include "DDPDialog.h"
+#endif
 #include "OutputManager.h"
 #include "../UtilFunctions.h"
 
@@ -258,7 +260,7 @@ void DDPOutput::EndFrame(int suppressFrames)
             }
 
             _data[1] = (_data[1] & 0xF0) + _sequenceNum;
-            
+
             _data[4] = (chan & 0xFF000000) >> 24;
             _data[5] = (chan & 0xFF0000) >> 16;
             _data[6] = (chan & 0xFF00) >> 8;

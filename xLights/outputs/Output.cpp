@@ -33,6 +33,7 @@ Output::Output(Output* output)
     _universe = 0;
     _lastOutputTime = 0;
     _skippedFrames = 9999;
+    _autoSize = false;
 
     _suppressDuplicateFrames = output->IsSuppressDuplicateFrames();
     _dirty = output->IsDirty();
@@ -47,6 +48,7 @@ Output::Output(wxXmlNode* node)
 {
     _suspend = false;
     _changed = false;
+    _autoSize = false;
     _timer_msec = 0;
     _outputNumber = -1;
     _nullNumber = -1;
@@ -74,6 +76,7 @@ Output::Output()
     _autoSize = false;
     _suspend = false;
     _changed = false;
+    _autoSize = false;
     _timer_msec = 0;
     _outputNumber = -1;
     _nullNumber = -1;

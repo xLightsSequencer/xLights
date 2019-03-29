@@ -177,6 +177,7 @@
     <ClCompile Include="CachedFileDownloader.cpp" />
     <ClCompile Include="ColorManager.cpp" />
     <ClCompile Include="ColorManagerDialog.cpp" />
+    <ClCompile Include="controllers\ControllerRegistry.cpp" />
     <ClCompile Include="controllers\ControllerUploadData.cpp" />
     <ClCompile Include="controllers\EasyLights.cpp" />
     <ClCompile Include="controllers\ESPixelStick.cpp" />
@@ -214,6 +215,7 @@
     <ClCompile Include="JukeboxPanel.cpp" />
     <ClCompile Include="LayerSelectDialog.cpp" />
     <ClCompile Include="LinkJukeboxButtonDialog.cpp" />
+    <ClCompile Include="LOREdit.cpp" />
     <ClCompile Include="LyricUserDictDialog.cpp" />
     <ClCompile Include="MatrixFaceDownloadDialog.cpp" />
     <ClCompile Include="ModelChainDialog.cpp" />
@@ -415,7 +417,6 @@
     <ClCompile Include="OptionChooser.cpp" />
     <ClCompile Include="osx_utils\TouchBars.cpp" />
     <ClCompile Include="outputs\ArtNetOutput.cpp" />
-    <ClCompile Include="outputs\Controller.cpp" />
     <ClCompile Include="outputs\DMXOutput.cpp" />
     <ClCompile Include="outputs\E131Output.cpp" />
     <ClCompile Include="outputs\IPOutput.cpp" />
@@ -549,6 +550,7 @@
     <ClInclude Include="CachedFileDownloader.h" />
     <ClInclude Include="ColorManager.h" />
     <ClInclude Include="ColorManagerDialog.h" />
+    <ClInclude Include="controllers\ControllerRegistry.h" />
     <ClInclude Include="controllers\ControllerUploadData.h" />
     <ClInclude Include="controllers\EasyLights.h" />
     <ClInclude Include="controllers\ESPixelStick.h" />
@@ -582,6 +584,7 @@
     <ClInclude Include="JukeboxPanel.h" />
     <ClInclude Include="LayerSelectDialog.h" />
     <ClInclude Include="LinkJukeboxButtonDialog.h" />
+    <ClInclude Include="LOREdit.h" />
     <ClInclude Include="LyricUserDictDialog.h" />
     <ClInclude Include="MatrixFaceDownloadDialog.h" />
     <ClInclude Include="ModelChainDialog.h" />

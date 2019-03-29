@@ -33,6 +33,8 @@ public:
     virtual bool SupportsMultipleInputProtocols() const = 0;
     virtual bool UniversesMustBeSequential() const = 0;
     virtual bool SupportsSmartRemotes() const = 0;
+    virtual bool SupportsLEDPanelMatrix() const = 0;
+
     virtual const std::string GetControllerId() const = 0;
     virtual const std::string GetControllerDescription() const {
         return GetControllerId();

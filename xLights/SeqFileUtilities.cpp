@@ -4,6 +4,7 @@
 #include <wx/config.h>
 #include <wx/uri.h>
 
+#include "LOREdit.h"
 #include "xLightsMain.h"
 #include "SeqSettingsDialog.h"
 #include "FileConverter.h"
@@ -215,7 +216,6 @@ void xLightsFrame::SetPanelSequencerLabel(const std::string& sequence)
 void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog* plog)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    bool loaded_xml = false;
     bool loaded_fseq = false;
     wxString filename;
     wxString wildcards = "XML files (*.xml)|*.xml|FSEQ files (*.fseq)|*.fseq";
@@ -478,7 +478,7 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
 
         wxString mss = CurrentSeqXmlFile->GetSequenceTiming();
         int ms = atoi(mss.c_str());
-        loaded_xml = SeqLoadXlightsFile(*CurrentSeqXmlFile, true);
+        bool loaded_xml = SeqLoadXlightsFile(*CurrentSeqXmlFile, true);
 
         unsigned int numChan = GetMaxNumChannels();
         if (numChan >= 999999) {
@@ -1067,8 +1067,11 @@ void xLightsFrame::OnMenuItemImportEffects(wxCommandEvent& event)
         if (ext == "lms" || ext == "las") {
             ImportLMS(fn);
         }
-        else if (ext == "lpe" || ext == "loredit") {
+        else if (ext == "lpe") {
             ImportLPE(fn);
+        }
+        else if (ext == "loredit") {
+            ImportS5(fn);
         }
         else if (ext == "hlsidata") {
             ImportHLS(fn);
@@ -2114,6 +2117,20 @@ void xLightsFrame::ImportLPE(const wxFileName &filename) {
 
     if (!input_xml.Load(fin))  return;
     ImportLPE(input_xml, filename);
+    float elapsedTime = sw.Time() / 1000.0; //msec => sec
+    SetStatusText(wxString::Format("'%s' imported in %4.3f sec.", filename.GetPath(), elapsedTime));
+}
+
+void xLightsFrame::ImportS5(const wxFileName &filename) {
+    wxStopWatch sw; // start a stopwatch timer
+
+    wxFileName xml_file(filename);
+    wxXmlDocument input_xml;
+    wxString xml_doc = xml_file.GetFullPath();
+    wxFileInputStream fin(xml_doc);
+
+    if (!input_xml.Load(fin))  return;
+    ImportS5(input_xml, filename);
     float elapsedTime = sw.Time() / 1000.0; //msec => sec
     SetStatusText(wxString::Format("'%s' imported in %4.3f sec.", filename.GetPath(), elapsedTime));
 }
@@ -3933,6 +3950,280 @@ void MapLPEEffects(const EffectManager& effectManager, Element* model, const wxX
             (const char *)model->GetFullName().c_str(), layer + 1, (const char *)mapping.c_str());
         MapLPE(effectManager, 1, model->GetEffectLayer(layer), input_xml, mapping, false, frequency);
     }
+}
+
+void MapS5(const EffectManager& effect_manager, int layer, EffectLayer* el, const LOREdit& lorEdit, const wxString& model, Model* m, int frequency, int offset)
+{
+    if (el == nullptr) return;
+
+    auto st = lorEdit.GetSequencingType(model);
+
+    if (st == loreditType::CHANNELS)
+    {
+        auto effects = lorEdit.GetChannelEffects(model, 0, m, offset);
+
+        for (auto it : effects)
+        {
+            if (!el->HasEffectsInTimeRange(it.startMS, it.endMS))
+            {
+                std::string palette = it.GetPalette();
+                std::string ef = it.GetxLightsEffect();
+                if (ef != "")
+                {
+                    std::string settings = it.GetSettings(palette);
+                    el->AddEffect(0, ef, settings, palette, it.startMS, it.endMS, false, false);
+                }
+            }
+        }
+    }
+    else if (st == loreditType::TRACKS)
+    {
+        // pixel effects on a node ... not useful but whatever
+        auto effects = lorEdit.GetTrackEffects(model, layer, offset);
+
+        for (auto it : effects)
+        {
+            if (!el->HasEffectsInTimeRange(it.startMS, it.endMS))
+            {
+                std::string palette = it.GetPalette();
+                std::string ef = it.GetxLightsEffect();
+                if (ef != "")
+                {
+                    std::string settings = it.GetSettings(palette);
+                    el->AddEffect(0, ef, settings, palette, it.startMS, it.endMS, false, false);
+                }
+            }
+        }
+    }
+}
+
+void MapS5ChannelEffects(const EffectManager& effectManager, int node, EffectLayer* nl, Model* m, const LOREdit& lorEdit, const wxString& mapping, int frequency, int offset)
+{
+    if (nl == nullptr) return;
+
+    auto st = lorEdit.GetSequencingType(mapping);
+
+    if (st == loreditType::CHANNELS)
+    {
+        auto effects = lorEdit.GetChannelEffects(mapping, node, m, offset);
+
+        for (auto it : effects)
+        {
+            if (!nl->HasEffectsInTimeRange(it.startMS, it.endMS))
+            {
+                std::string palette = it.GetPalette();
+                std::string ef = it.GetxLightsEffect();
+                if (ef != "")
+                {
+                    std::string settings = it.GetSettings(palette);
+                    nl->AddEffect(0, ef, settings, palette, it.startMS, it.endMS, false, false);
+                }
+            }
+        }
+    }
+    else if (st == loreditType::TRACKS)
+    {
+        // pixel effects on a node ... not useful but whatever
+        auto effects = lorEdit.GetTrackEffects(mapping, 0, offset);
+
+        for (auto it : effects)
+        {
+            if (!nl->HasEffectsInTimeRange(it.startMS, it.endMS))
+            {
+                std::string palette = it.GetPalette();
+                std::string ef = it.GetxLightsEffect();
+                if (ef != "")
+                {
+                    std::string settings = it.GetSettings(palette);
+                    nl->AddEffect(0, ef, settings, palette, it.startMS, it.endMS, false, false);
+                }
+            }
+        }
+    }
+}
+
+void MapS5Effects(const EffectManager& effectManager, Element* model, const LOREdit& lorEdit, const wxString& mapping, int frequency, int offset)
+{
+    //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    auto st = lorEdit.GetSequencingType(mapping);
+    Model* m = model->GetSequenceElements()->GetXLightsFrame()->AllModels[model->GetModelName()];
+
+    if (st == loreditType::CHANNELS)
+    {
+        if (m->GetNodeCount() == 1)
+        {
+            MapS5ChannelEffects(effectManager, 0, model->GetEffectLayer(0), m, lorEdit, mapping, frequency, offset);
+        }
+        else
+        {
+            for (int i = 0; i < m->GetNodeCount(); i++)
+            {
+                NodeLayer* nl = model->GetNodeEffectLayer(i);
+                if (nl != nullptr)
+                {
+                    MapS5ChannelEffects(effectManager, i, nl, m, lorEdit, mapping, frequency, offset);
+                }
+            }
+        }
+    }
+    else if (st == loreditType::TRACKS)
+    {
+        for (int i = 0; i < lorEdit.GetModelLayers(mapping); i++)
+        {
+            if (model->GetEffectLayerCount() < i + 1)
+            {
+                model->AddEffectLayer();
+            }
+            MapS5(effectManager, i, model->GetEffectLayer(i), lorEdit, mapping, m, frequency, offset);
+        }
+    }
+}
+
+bool xLightsFrame::ImportS5(wxXmlDocument &input_xml, const wxFileName &filename)
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    DisplayWarning(
+        "WARNING: As at this release S5 import is experimental and its improvement relies on your feedback.\nIf it doesnt do a good job let us know by telling us:\n\
+        - which effect\n\
+        - which setting you had to fine tune\n\
+        - what it was when it was converted\n\
+        - what you changed it to.\n", this);
+
+    LOREdit lorEdit(input_xml, CurrentSeqXmlFile->GetFrequency());
+
+    xLightsImportChannelMapDialog dlg(this, filename, true, true, false, false, false);
+    dlg.mSequenceElements = &mSequenceElements;
+    dlg.xlights = this;
+
+    dlg.timingTracks = lorEdit.GetTimingTracks();
+    dlg.channelNames = lorEdit.GetModelsWithEffects();
+
+    std::sort(dlg.channelNames.begin(), dlg.channelNames.end(), stdlistNumberAwareStringCompare);
+
+    dlg.InitImport();
+
+    if (dlg.ShowModal() != wxID_OK || dlg._dataModel == nullptr) {
+        return false;
+    }
+
+    logger_base.debug("Importing S5 effects from %s.", (const char *)filename.GetFullPath().c_str());
+
+    int offset = dlg.TimeAdjustSpinCtrl->GetValue();
+
+    for (size_t tt = 0; tt < dlg.TimingTrackListBox->GetCount(); ++tt) {
+        if (dlg.TimingTrackListBox->IsChecked(tt)) {
+            std::string name = dlg.TimingTrackListBox->GetString(tt).ToStdString();
+
+            auto timings = lorEdit.GetTimings(name, offset);
+
+            TimingElement *target = (TimingElement*)mSequenceElements.AddElement(name, "timing", true, true, false, false);
+            char cnt = '1';
+            while (target == nullptr) {
+                target = (TimingElement*)mSequenceElements.AddElement(name + "-" + cnt++, "timing", true, true, false, false);
+            }
+            if (target->GetEffectLayerCount() == 0)
+            {
+                target->AddEffectLayer();
+            }
+
+            EffectLayer *targetLayer = target->GetEffectLayer(0);
+
+            for (auto t : timings)
+            {
+                targetLayer->AddEffect(0, "", "", "", t.first, t.second, false, false);
+            }
+        }
+    }
+
+    for (size_t i = 0; i < dlg._dataModel->GetChildCount(); ++i)
+    {
+        xLightsImportModelNode* m = dlg._dataModel->GetNthChild(i);
+        std::string modelName = m->_model.ToStdString();
+        ModelElement* model = nullptr;
+        for (size_t x = 0; x < mSequenceElements.GetElementCount(); x++) {
+            if (mSequenceElements.GetElement(x)->GetType() == ELEMENT_TYPE_MODEL
+                && modelName == mSequenceElements.GetElement(x)->GetName()) {
+                model = dynamic_cast<ModelElement*>(mSequenceElements.GetElement(x));
+                break;
+            }
+        }
+
+        Model* mdl = model->GetSequenceElements()->GetXLightsFrame()->AllModels[model->GetModelName()];
+
+        if (m->_mapping != "") {
+            if (model == nullptr) {
+                model = AddModel(GetModel(modelName), mSequenceElements);
+            }
+            if (model == nullptr)
+            {
+                logger_base.error("Attempt to add model %s during S5 import failed.", (const char *)modelName.c_str());
+            }
+            else
+            {
+                MapS5Effects(effectManager, model, lorEdit, m->_mapping, CurrentSeqXmlFile->GetFrequency(), offset);
+            }
+        }
+
+        int str = 0;
+        for (size_t j = 0; j < m->GetChildCount(); j++)
+        {
+            xLightsImportModelNode* s = m->GetNthChild(j);
+
+            if ("" != s->_mapping) {
+                if (model == nullptr) {
+                    model = AddModel(GetModel(modelName), mSequenceElements);
+                }
+                if (model == nullptr)
+                {
+                    logger_base.error("Attempt to add model %s during S5 import failed.", (const char *)modelName.c_str());
+                }
+                else
+                {
+                    SubModelElement *ste = model->GetSubModel(str);
+                    if (ste != nullptr) {
+                        MapS5Effects(effectManager, ste, lorEdit, s->_mapping, CurrentSeqXmlFile->GetFrequency(), offset);
+                    }
+                }
+            }
+            for (size_t n = 0; n < s->GetChildCount(); n++) {
+                xLightsImportModelNode* ns = s->GetNthChild(n);
+                if ("" != ns->_mapping) {
+                    if (model == nullptr) {
+                        model = AddModel(GetModel(modelName), mSequenceElements);
+                    }
+                    if (model == nullptr)
+                    {
+                        logger_base.error("Attempt to add model %s during S5 import failed.", (const char *)modelName.c_str());
+                    }
+                    else
+                    {
+                        SubModelElement *ste = model->GetSubModel(str);
+                        StrandElement *stre = dynamic_cast<StrandElement *>(ste);
+                        if (stre != nullptr) {
+                            NodeLayer *nl = stre->GetNodeLayer(n, true);
+                            if (nl != nullptr) {
+                                auto st = lorEdit.GetSequencingType(ns->_mapping);
+                                if (st == loreditType::CHANNELS) {
+                                    MapS5ChannelEffects(effectManager, i, nl, mdl, lorEdit, ns->_mapping, CurrentSeqXmlFile->GetFrequency(), offset);
+                                }
+                                else if (st == loreditType::TRACKS) {
+                                    // no layers so we just map the first
+                                    MapS5(effectManager, 0, nl, lorEdit, ns->_mapping, mdl, CurrentSeqXmlFile->GetFrequency(), offset);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            str++;
+        }
+    }
+
+    logger_base.debug("    Importing S5 effects done.");
+
+    return true;
 }
 
 bool xLightsFrame::ImportLPE(wxXmlDocument &input_xml, const wxFileName &filename)

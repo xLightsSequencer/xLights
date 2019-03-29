@@ -18,6 +18,9 @@ public:
     virtual const std::string GetControllerId() const override {
         return std::string("ESPixelStick");
     }
+    virtual bool SupportsLEDPanelMatrix() const override {
+        return false;
+    }
     virtual int GetMaxPixelPortChannels() const override { return 1360 * 3; }
     virtual int GetMaxPixelPort() const override { return 1; }
     virtual int GetMaxSerialPortChannels() const override { return 0; } // not implemented yet
