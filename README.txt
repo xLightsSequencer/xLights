@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (dkulp)   DDP upload menu optimization doesn't work on first output in list
    -- bug (keith)   Bunch of fixes to LOR S5 import
    -- bug (scott)   Fix some overlapping keybinding defaults
    -- bug (dkulp)   Fix discovery returns 1 too few channels
