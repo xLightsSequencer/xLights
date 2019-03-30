@@ -169,6 +169,7 @@ protected:
     void RemoveSubModelFromList(wxString name);
     wxString GenerateSubModelName(wxString basename);
     void ImportCustomModel(std::string filename);
+    void FixNodes(wxXmlNode* n, const std::string& attribute, std::map<int, int>& nodeMap);
 
     void PopulateList();
     void ValidateWindow();
