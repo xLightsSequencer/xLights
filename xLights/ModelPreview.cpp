@@ -34,6 +34,7 @@ BEGIN_EVENT_TABLE(ModelPreview, xlGLCanvas)
 	EVT_MIDDLE_UP(ModelPreview::mouseMiddleUp)
 	EVT_PAINT(ModelPreview::render)
     EVT_SYS_COLOUR_CHANGED(ModelPreview::OnSysColourChanged)
+    EVT_LEFT_DCLICK(ModelPreview::mouseLeftDClick)
 END_EVENT_TABLE()
 
 const long ModelPreview::ID_VIEWPOINT2D = wxNewId();
@@ -167,6 +168,31 @@ void ModelPreview::mouseLeftDown(wxMouseEvent& event) {
 
 	event.ResumePropagation(1);
 	event.Skip(); // continue the event
+}
+
+void ModelPreview::mouseLeftDClick(wxMouseEvent& event)
+{
+    wxTopLevelWindow* tlw = dynamic_cast<wxTopLevelWindow*>(GetParent()->GetParent());
+
+    if (tlw==nullptr)
+    {
+        tlw = dynamic_cast<wxTopLevelWindow*>(GetParent());
+    }
+
+    if (tlw != nullptr)
+    {
+        if (tlw->IsMaximized())
+        {
+            tlw->Restore();
+        }
+        else {
+            tlw->Maximize();
+        }
+    }
+    else
+    {
+        
+    }
 }
 
 void ModelPreview::mouseLeftUp(wxMouseEvent& event) {
