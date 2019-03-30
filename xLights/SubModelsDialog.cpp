@@ -1722,10 +1722,10 @@ void SubModelsDialog::ImportCustomModel(std::string filename)
 
                 auto data = root->GetAttribute("CustomModel", "");
                 auto rows = wxSplit(data, ';');
-                int rnum = model->GetDefaultBufferHt() - 1;
-                for (auto r : rows)
+                int rnum = 0;
+                for (auto r = rows.rbegin(); r != rows.rend(); r++)
                 {
-                    auto cols = wxSplit(r, ',');
+                    auto cols = wxSplit(*r, ',');
                     wxString row = "";
                     int cnum = 1;
                     for (auto c : cols)
@@ -1741,7 +1741,7 @@ void SubModelsDialog::ImportCustomModel(std::string filename)
                         cnum++;
                     }
                     sm->strands.push_back(row);
-                    rnum--;
+                    rnum++;
                 }
                 _subModels.push_back(sm);
                 long index = ListCtrl_SubModels->InsertItem(ListCtrl_SubModels->GetItemCount(), sm->name);
