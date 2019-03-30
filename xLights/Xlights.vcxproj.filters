@@ -747,6 +747,7 @@
     <ClInclude Include="ControllerVisualiseDialog.h" />
     <ClInclude Include="LOREdit.h" />
     <ClInclude Include="controllers\ControllerRegistry.h" />
+    <ClInclude Include="..\include\globals.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />
