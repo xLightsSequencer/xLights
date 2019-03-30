@@ -392,6 +392,8 @@
 		<Unit filename="../xSchedule/wxJSON/jsonval.h" />
 		<Unit filename="../xSchedule/wxJSON/jsonwriter.cpp" />
 		<Unit filename="../xSchedule/wxJSON/jsonwriter.h" />
+		<Unit filename="AlignmentDialog.cpp" />
+		<Unit filename="AlignmentDialog.h" />
 		<Unit filename="AudioManager.cpp" />
 		<Unit filename="AudioManager.h" />
 		<Unit filename="BatchRenderDialog.cpp" />
@@ -1111,6 +1113,7 @@
 		<Unit filename="wxModelGridCellRenderer.cpp" />
 		<Unit filename="wxModelGridCellRenderer.h" />
 		<Unit filename="wx_pch.h" />
+		<Unit filename="wxsmith/AlignmentDialog.wxs" />
 		<Unit filename="wxsmith/ArtNetDialog.wxs" />
 		<Unit filename="wxsmith/AssistPanel.wxs" />
 		<Unit filename="wxsmith/BarsPanel.wxs" />
@@ -1428,6 +1431,7 @@
 					<wxDialog wxs="wxsmith/PathGenerationDialog.wxs" src="PathGenerationDialog.cpp" hdr="PathGenerationDialog.h" fwddecl="0" i18n="1" name="PathGenerationDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/RemapDMXChannelsDialog.wxs" src="RemapDMXChannelsDialog.cpp" hdr="RemapDMXChannelsDialog.h" fwddecl="0" i18n="1" name="RemapDMXChannelsDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/ControllerVisualiseDialog.wxs" src="ControllerVisualiseDialog.cpp" hdr="ControllerVisualiseDialog.h" fwddecl="0" i18n="1" name="ControllerVisualiseDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/AlignmentDialog.wxs" src="AlignmentDialog.cpp" hdr="AlignmentDialog.h" fwddecl="0" i18n="1" name="AlignmentDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>

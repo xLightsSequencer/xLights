@@ -29,6 +29,7 @@
 #include "xLightsMain.h"
 #include "ModelPreview.h"
 #include "DimmingCurve.h"
+#include "AlignmentDialog.h"
 
 #include <log4cpp/Category.hh>
 
@@ -1753,184 +1754,210 @@ void SubModelsDialog::ImportCustomModel(std::string filename)
         {
             int width = wxAtoi(root->GetAttribute("parm1", "1"));
             int height = wxAtoi(root->GetAttribute("parm2", "1"));
+            int modelw = model->GetDefaultBufferWi();
+            int modelh = model->GetDefaultBufferHt();
 
-            if (model->GetDefaultBufferWi() < width || model->GetDefaultBufferHt() < height)
+            if (modelw < width || modelh < height)
             {
                 wxMessageBox("Model is too small for the custom model.");
             }
             else
             {
-                std::map<int, int> nodeMap;
-                wxString name = GenerateSubModelName(root->GetAttribute("name"));
-                SubModelInfo* sm = new SubModelInfo(name);
-                sm->vertical = false;
-                sm->strands.clear();
-                sm->isRanges = true;
+                AlignmentDialog dlg(this);
 
-                auto data = root->GetAttribute("CustomModel", "");
-                auto rows = wxSplit(data, ';');
-                int rnum = 0;
-                for (auto r = rows.rbegin(); r != rows.rend(); ++r)
+                if (dlg.ShowModal() == wxID_OK)
                 {
-                    auto cols = wxSplit(*r, ',');
-                    wxString row = "";
-                    int cnum = 1;
-                    for (auto c : cols)
+                    int xStart = 1;
+                    if (dlg.GetX() == AlignmentDialog::Alignment::CENTRE)
                     {
-                        if (c == "")
-                        {
-                            row += ",";
-                        }
-                        else
-                        {
-                            int nn = model->GetNodeNumber(rnum, cnum);
-                            row += wxString::Format("%d", nn);
-                            nodeMap[wxAtoi(c)] = nn;
-                        }
-                        cnum++;
+                        xStart = (float)modelw / 2.0 - (float)width / 2.0 + 1.0;
                     }
-                    sm->strands.push_back(row);
-                    rnum++;
-                }
-                _subModels.push_back(sm);
-                long index = ListCtrl_SubModels->InsertItem(ListCtrl_SubModels->GetItemCount(), sm->name);
-                ListCtrl_SubModels->SetItemPtrData(index, (wxUIntPtr)sm);
-
-                TextCtrl_Name->SetFocus();
-                TextCtrl_Name->SelectAll();
-
-                for (wxXmlNode* n = root->GetChildren(); n != nullptr; n = n->GetNext())
-                {
-                    if (n->GetName() == "subModel")
+                    else if (dlg.GetX() == AlignmentDialog::Alignment::RIGHT)
                     {
-                        auto smname = n->GetAttribute("name");
-                        SubModelInfo* sm2 = new SubModelInfo(name + "-"+smname);
-                        sm2->vertical = n->GetAttribute("layout", "horizontal") == "vertical";
-                        sm2->strands.clear();
-                        sm2->isRanges = n->GetAttribute("type", "") == "ranges";
-                        if (sm2->isRanges)
-                        {
-                            wxString row = "";
-                            int line = 0;
-                            while (n->HasAttribute(wxString::Format("line%d", line)))
-                            {
-                                auto l = n->GetAttribute(wxString::Format("line%d", line), "");
-                                auto ranges = wxSplit(l, ',');
+                        xStart = modelw - width + 1;
+                    }
 
-                                for (auto r : ranges)
+                    int yStart = 0;
+                    if (dlg.GetY() == AlignmentDialog::Alignment::TOP)
+                    {
+                        yStart = modelh - height;
+                    }
+                    else if (dlg.GetY() == AlignmentDialog::Alignment::MIDDLE)
+                    {
+                        yStart = (float)modelh / 2.0 - (float)height / 2.0;
+                    }
+
+                    std::map<int, int> nodeMap;
+                    wxString name = GenerateSubModelName(root->GetAttribute("name"));
+                    SubModelInfo* sm = new SubModelInfo(name);
+                    sm->vertical = false;
+                    sm->strands.clear();
+                    sm->isRanges = true;
+
+                    auto data = root->GetAttribute("CustomModel", "");
+                    auto rows = wxSplit(data, ';');
+                    int rnum = yStart;
+                    for (auto r = rows.rbegin(); r != rows.rend(); ++r)
+                    {
+                        auto cols = wxSplit(*r, ',');
+                        wxString row = "";
+                        int cnum = xStart;
+                        for (auto c : cols)
+                        {
+                            if (c == "")
+                            {
+                                row += ",";
+                            }
+                            else
+                            {
+                                int nn = model->GetNodeNumber(rnum, cnum);
+                                row += wxString::Format("%d", nn);
+                                nodeMap[wxAtoi(c)] = nn;
+                            }
+                            cnum++;
+                        }
+                        sm->strands.push_back(row);
+                        rnum++;
+                    }
+                    _subModels.push_back(sm);
+                    long index = ListCtrl_SubModels->InsertItem(ListCtrl_SubModels->GetItemCount(), sm->name);
+                    ListCtrl_SubModels->SetItemPtrData(index, (wxUIntPtr)sm);
+
+                    TextCtrl_Name->SetFocus();
+                    TextCtrl_Name->SelectAll();
+
+                    for (wxXmlNode* n = root->GetChildren(); n != nullptr; n = n->GetNext())
+                    {
+                        if (n->GetName() == "subModel")
+                        {
+                            auto smname = n->GetAttribute("name");
+                            SubModelInfo* sm2 = new SubModelInfo(name + "-" + smname);
+                            sm2->vertical = n->GetAttribute("layout", "horizontal") == "vertical";
+                            sm2->strands.clear();
+                            sm2->isRanges = n->GetAttribute("type", "") == "ranges";
+                            if (sm2->isRanges)
+                            {
+                                wxString row = "";
+                                int line = 0;
+                                while (n->HasAttribute(wxString::Format("line%d", line)))
                                 {
-                                    if (r == "")
+                                    auto l = n->GetAttribute(wxString::Format("line%d", line), "");
+                                    auto ranges = wxSplit(l, ',');
+
+                                    for (auto r : ranges)
                                     {
-                                        row += ",";
-                                    }
-                                    else if (r.Contains("-"))
-                                    {
-                                        auto rg = wxSplit(r, '-');
-                                        if (rg.size() == 2)
+                                        if (r == "")
                                         {
-                                            int first = wxAtoi(rg[0]);
-                                            int last = wxAtoi(rg[1]);
-                                            if (first <= last)
+                                            row += ",";
+                                        }
+                                        else if (r.Contains("-"))
+                                        {
+                                            auto rg = wxSplit(r, '-');
+                                            if (rg.size() == 2)
                                             {
-                                                for (int i = first; i <= last; i++)
+                                                int first = wxAtoi(rg[0]);
+                                                int last = wxAtoi(rg[1]);
+                                                if (first <= last)
                                                 {
-                                                    row += wxString::Format("%d,", nodeMap[i]);
+                                                    for (int i = first; i <= last; i++)
+                                                    {
+                                                        row += wxString::Format("%d,", nodeMap[i]);
+                                                    }
                                                 }
-                                            }
-                                            else
-                                            {
-                                                for (int i = first; i >= last; i--)
+                                                else
                                                 {
-                                                    row += wxString::Format("%d,", nodeMap[i]);
+                                                    for (int i = first; i >= last; i--)
+                                                    {
+                                                        row += wxString::Format("%d,", nodeMap[i]);
+                                                    }
                                                 }
                                             }
                                         }
+                                        else
+                                        {
+                                            int rr = wxAtoi(r);
+                                            row += wxString::Format("%d,", nodeMap[rr]);
+                                        }
                                     }
-                                    else
-                                    {
-                                        int rr = wxAtoi(r);
-                                        row += wxString::Format("%d,", nodeMap[rr]);
-                                    }
+                                    sm2->strands.push_back(row);
+                                    line++;
                                 }
-                                sm2->strands.push_back(row);
-                                line++;
-                            }
 
-                            _subModels.push_back(sm2);
-                            index = ListCtrl_SubModels->InsertItem(ListCtrl_SubModels->GetItemCount(), sm2->name);
-                            ListCtrl_SubModels->SetItemPtrData(index, (wxUIntPtr)sm2);
+                                _subModels.push_back(sm2);
+                                index = ListCtrl_SubModels->InsertItem(ListCtrl_SubModels->GetItemCount(), sm2->name);
+                                ListCtrl_SubModels->SetItemPtrData(index, (wxUIntPtr)sm2);
+                            }
+                            else
+                            {
+                                // we only bring in ranges
+                                delete sm2;
+                            }
                         }
-                        else
+                        else if (n->GetName() == "faceInfo")
                         {
-                            // we only bring in ranges
-                            delete sm2;
+                            // Fix Me
+                            if (n->GetAttribute("Type") == "NodeRange")
+                            {
+                                FixNodes(n, "Eyes-Closed", nodeMap);
+                                FixNodes(n, "Eyes-Open", nodeMap);
+                                FixNodes(n, "FaceOutline", nodeMap);
+                                FixNodes(n, "Mouth-AI", nodeMap);
+                                FixNodes(n, "Mouth-E", nodeMap);
+                                FixNodes(n, "Mouth-FV", nodeMap);
+                                FixNodes(n, "Mouth-O", nodeMap);
+                                FixNodes(n, "Mouth-U", nodeMap);
+                                FixNodes(n, "Mouth-L", nodeMap);
+                                FixNodes(n, "Mouth-MBP", nodeMap);
+                                FixNodes(n, "Mouth-WQ", nodeMap);
+                                FixNodes(n, "Mouth-etc", nodeMap);
+                                FixNodes(n, "Mouth-rest", nodeMap);
+
+                                auto fname = n->GetAttribute("Name");
+                                auto basefname = fname;
+
+                                int suffix = 1;
+                                while (model->faceInfo.find(fname) != model->faceInfo.end())
+                                {
+                                    fname = wxString::Format("%s-%d", basefname, suffix);
+                                    suffix++;
+                                }
+
+                                model->AddFace(n);
+                            }
+                            else
+                            {
+                                // We dont handle non node range faces
+                            }
+                        }
+                        else if (n->GetName() == "stateInfo")
+                        {
+                            if (n->GetAttribute("Type") == "NodeRange")
+                            {
+                                int i = 1;
+                                while (n->HasAttribute(wxString::Format("s%d", i)))
+                                {
+                                    FixNodes(n, wxString::Format("s%d", i), nodeMap);
+                                    i++;
+                                }
+
+                                auto sname = n->GetAttribute("Name");
+                                auto basesname = sname;
+
+                                int suffix = 1;
+                                while (model->stateInfo.find(sname) != model->stateInfo.end())
+                                {
+                                    sname = wxString::Format("%s-%d", basesname, suffix);
+                                    suffix++;
+                                }
+
+                                model->AddState(n);
+                            }
+                            else
+                            {
+                                // We dont handle non node range states
+                            }
                         }
                     }
-                    else if (n->GetName() == "faceInfo")
-                    {
-                        // Fix Me
-                        if (n->GetAttribute("Type") == "NodeRange")
-                        {
-                            FixNodes(n, "Eyes-Closed", nodeMap);
-                            FixNodes(n, "Eyes-Open", nodeMap);
-                            FixNodes(n, "FaceOutline", nodeMap);
-                            FixNodes(n, "Mouth-AI", nodeMap);
-                            FixNodes(n, "Mouth-E", nodeMap);
-                            FixNodes(n, "Mouth-FV", nodeMap);
-                            FixNodes(n, "Mouth-O", nodeMap);
-                            FixNodes(n, "Mouth-U", nodeMap);
-                            FixNodes(n, "Mouth-L", nodeMap);
-                            FixNodes(n, "Mouth-MBP", nodeMap);
-                            FixNodes(n, "Mouth-WQ", nodeMap);
-                            FixNodes(n, "Mouth-etc", nodeMap);
-                            FixNodes(n, "Mouth-rest", nodeMap);
-
-                            auto fname = n->GetAttribute("Name");
-                            auto basefname = fname;
-
-                            int suffix = 1;
-                            while (model->faceInfo.find(fname) != model->faceInfo.end())
-                            {
-                                fname = wxString::Format("%s-%d", basefname, suffix);
-                                suffix++;
-                            }
-
-                            model->AddFace(n);
-                        }
-                        else
-                        {
-                            // We dont handle non node range faces
-                        }
-                    }
-                    else if (n->GetName() == "stateInfo")
-                    {
-                        if (n->GetAttribute("Type") == "NodeRange")
-                        {
-                            int i = 1;
-                            while (n->HasAttribute(wxString::Format("s%d", i)))
-                            {
-                                FixNodes(n, wxString::Format("s%d", i), nodeMap);
-                                i++;
-                            }
-
-                            auto sname = n->GetAttribute("Name");
-                            auto basesname = sname;
-
-                            int suffix = 1;
-                            while (model->stateInfo.find(sname) != model->stateInfo.end())
-                            {
-                                sname = wxString::Format("%s-%d", basesname, suffix);
-                                suffix++;
-                            }
-
-                            model->AddState(n);
-                        }
-                        else
-                        {
-                            // We dont handle non node range states
-                        }
-                    }
-
                     ValidateWindow();
                     Select(name);
                 }

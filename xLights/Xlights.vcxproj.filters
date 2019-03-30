@@ -372,6 +372,7 @@
     <ClCompile Include="ControllerVisualiseDialog.cpp" />
     <ClCompile Include="LOREdit.cpp" />
     <ClCompile Include="controllers\ControllerRegistry.cpp" />
+    <ClCompile Include="AlignmentDialog.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -748,6 +749,7 @@
     <ClInclude Include="LOREdit.h" />
     <ClInclude Include="controllers\ControllerRegistry.h" />
     <ClInclude Include="..\include\globals.h" />
+    <ClInclude Include="AlignmentDialog.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

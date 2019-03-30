@@ -171,6 +171,7 @@
     <ClCompile Include="..\xSchedule\wxJSON\jsonreader.cpp" />
     <ClCompile Include="..\xSchedule\wxJSON\jsonval.cpp" />
     <ClCompile Include="..\xSchedule\wxJSON\jsonwriter.cpp" />
+    <ClCompile Include="AlignmentDialog.cpp" />
     <ClCompile Include="BatchRenderDialog.cpp" />
     <ClCompile Include="BulkEditControls.cpp" />
     <ClCompile Include="BulkEditSliderDialog.cpp" />
@@ -542,6 +543,7 @@
   <ItemGroup>
     <ClInclude Include="..\include\globals.h" />
     <ClInclude Include="..\xSchedule\md5.h" />
+    <ClInclude Include="AlignmentDialog.h" />
     <ClInclude Include="BatchRenderDialog.h" />
     <ClInclude Include="BulkEditControls.h" />
     <ClInclude Include="BulkEditSliderDialog.h" />
