@@ -4629,6 +4629,41 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
 					{
 						if (!editing_models)//dont paste model in View Object mode
 							return;
+
+                        auto nda = nd->GetAttribute("DisplayAs");
+                        auto nx = (int)wxAtof(nd->GetAttribute("WorldPosX"));
+                        auto ny = (int)wxAtof(nd->GetAttribute("WorldPosY"));
+                        auto nz = (int)wxAtof(nd->GetAttribute("WorldPosZ"));
+
+                        bool moved = true;
+                        while (moved)
+                        {
+                            moved = false;
+                            // is there a model in the same location of the same type ... if so offset the pasting of the model
+                            for (auto it : xlights->AllModels)
+                            {
+                                if (nda == it.second->GetModelXml()->GetAttribute("DisplayAs"))
+                                {
+                                    auto x = (int)wxAtof(it.second->GetModelXml()->GetAttribute("WorldPosX"));
+                                    auto y = (int)wxAtof(it.second->GetModelXml()->GetAttribute("WorldPosY"));
+                                    auto z = (int)wxAtof(it.second->GetModelXml()->GetAttribute("WorldPosZ"));
+                                    if (nx == x &&
+                                        ny == y &&
+                                        nz == z)
+                                    {
+                                        nx += 40;
+                                        ny -= 40;
+                                        nd->DeleteAttribute("WorldPosX");
+                                        nd->DeleteAttribute("WorldPosY");
+                                        nd->AddAttribute("WorldPosX", wxString::Format("%6.4f", (float)nx));
+                                        nd->AddAttribute("WorldPosY", wxString::Format("%6.4f", (float)ny));
+                                        moved = true;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+
 						if (xlights->AllModels[lastModelName] != nullptr) {
 							nd->DeleteAttribute("StartChannel");
 							nd->AddAttribute("StartChannel", ">" + lastModelName + ":1");
@@ -4637,14 +4672,14 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
 						{
 							long highestch = 0;
 							Model* highest = nullptr;
-							for (auto it = xlights->AllModels.begin(); it != xlights->AllModels.end(); ++it)
+							for (auto it : xlights->AllModels)
 							{
-								if (it->second->GetDisplayAs() != "ModelGroup")
+								if (it.second->GetDisplayAs() != "ModelGroup")
 								{
-									if (it->second->GetLastChannel() > highestch)
+									if (it.second->GetLastChannel() > highestch)
 									{
-										highestch = it->second->GetLastChannel();
-										highest = it->second;
+										highestch = it.second->GetLastChannel();
+										highest = it.second;
 									}
 								}
 							}
