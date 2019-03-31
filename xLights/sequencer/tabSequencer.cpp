@@ -73,12 +73,12 @@ void xLightsFrame::CreateSequencer()
     logger_base.debug("        Model preview.");
     _modelPreviewPanel = new ModelPreview(PanelSequencer, this);
     m_mgr->AddPane(_modelPreviewPanel,wxAuiPaneInfo().Name(wxT("ModelPreview")).Caption(wxT("Model Preview")).
-                   Left().Layer(1).PaneBorder(true).BestSize(250,250));
+                   Left().Layer(1).PaneBorder(true).BestSize(250,250).MaximizeButton(true));
 
     logger_base.debug("        House preview.");
     _housePreviewPanel = new HousePreviewPanel(PanelSequencer, this, _playControlsOnPreview, PreviewModels, LayoutGroups, false, 0, true);
     m_mgr->AddPane(_housePreviewPanel, wxAuiPaneInfo().Name(wxT("HousePreview")).Caption(wxT("House Preview")).
-        Left().Layer(1).BestSize(250, 250));
+        Left().Layer(1).BestSize(250, 250).MaximizeButton(true));
 
     logger_base.debug("        Effects.");
     effectsPnl = new TopEffectsPanel(PanelSequencer);
@@ -124,7 +124,7 @@ void xLightsFrame::CreateSequencer()
 
     logger_base.debug("CreateSequencer: Hooking up the panes.");
     m_mgr->AddPane(displayElementsPanel,wxAuiPaneInfo().Name(wxT("DisplayElements")).Caption(wxT("Display Elements"))
-                   .Float());
+                   .Float().MaximizeButton(true));
     // Hide the panel on start.
     wxAuiPaneInfo & info = m_mgr->GetPane("DisplayElements");
     info.BestSize(wxSize(600, 400));

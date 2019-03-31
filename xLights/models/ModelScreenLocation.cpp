@@ -2418,7 +2418,7 @@ int TwoPointScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid, 
         float old_world_x = worldPos_x;
         worldPos_x = event.GetValue().GetDouble();
         x2 += old_world_x - worldPos_x;
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_PROP_GRID;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_PROP_GRID | GRIDCHANGE_SUPPRESS_HOLDSIZE;
     }
     else if (_locked && "ModelX1" == name) {
         event.Veto();
@@ -2428,7 +2428,7 @@ int TwoPointScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid, 
         float old_world_y = worldPos_y;
         worldPos_y = event.GetValue().GetDouble();
         y2 += old_world_y - worldPos_y;
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_PROP_GRID;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_PROP_GRID | GRIDCHANGE_SUPPRESS_HOLDSIZE;
     }
     else if (_locked && "ModelY1" == name) {
         event.Veto();
@@ -2438,7 +2438,7 @@ int TwoPointScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid, 
         float old_world_z = worldPos_z;
         worldPos_z = event.GetValue().GetDouble();
         z2 += old_world_z - worldPos_z;
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_PROP_GRID;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_PROP_GRID | GRIDCHANGE_SUPPRESS_HOLDSIZE;
     }
     else if (_locked && "ModelZ1" == name) {
         event.Veto();
@@ -2446,7 +2446,7 @@ int TwoPointScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid, 
     }
     else if (!_locked && "ModelX2" == name) {
         x2 = event.GetValue().GetDouble() - worldPos_x;
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_SUPPRESS_HOLDSIZE;
     }
     else if (_locked && "ModelX2" == name) {
         event.Veto();
@@ -2454,7 +2454,7 @@ int TwoPointScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid, 
     }
     else if (!_locked && "ModelY2" == name) {
         y2 = event.GetValue().GetDouble() - worldPos_y;
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_SUPPRESS_HOLDSIZE;
     }
     else if (_locked && "ModelY2" == name) {
         event.Veto();
@@ -2462,7 +2462,7 @@ int TwoPointScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid, 
     }
     else if (!_locked && "ModelZ2" == name) {
         z2 = event.GetValue().GetDouble() - worldPos_z;
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_SUPPRESS_HOLDSIZE;
     }
     else if (_locked && "ModelZ2" == name) {
         event.Veto();
@@ -2542,12 +2542,12 @@ float TwoPointScreenLocation::GetLeft() const {
 
 float TwoPointScreenLocation::GetMWidth() const
 {
-    return RenderWi * scalex;
+    return x2 - worldPos_x;
 }
 
 float TwoPointScreenLocation::GetMHeight() const
 {
-    return RenderHt * scaley;
+    return y2 - worldPos_y;
 }
 
 float TwoPointScreenLocation::GetRight() const {
@@ -2625,13 +2625,7 @@ void TwoPointScreenLocation::SetBack(float i) {
 
 void TwoPointScreenLocation::SetMWidth(float w)
 {
-    if (x2 > 0) {
-        x2 = w;
-    }
-    else {
-        worldPos_x += w + x2;
-        x2 = -w;
-    }
+    x2 = worldPos_x + w;
 }
 
 void TwoPointScreenLocation::SetMDepth(float w)
@@ -2645,13 +2639,7 @@ float TwoPointScreenLocation::GetMDepth() const
 
 void TwoPointScreenLocation::SetMHeight(float h)
 {
-    if (y2 > 0) {
-        y2 = h;
-    }
-    else {
-        worldPos_y += h + y2;
-        y2 = -h;
-    }
+    y2  = worldPos_y + h;
 }
 
 ThreePointScreenLocation::ThreePointScreenLocation(): height(1.0), modelHandlesHeight(false), supportsShear(false), supportsAngle(false), angle(0), shear(0.0) {
@@ -2882,7 +2870,7 @@ void ThreePointScreenLocation::SetMWidth(float w)
 
 void ThreePointScreenLocation::SetMHeight(float h)
 {
-    SetHeight(h / (RenderHt * scaley));
+    TwoPointScreenLocation::SetMHeight(h);
 }
 
 float ThreePointScreenLocation::GetMWidth() const
@@ -2892,7 +2880,7 @@ float ThreePointScreenLocation::GetMWidth() const
 
 float ThreePointScreenLocation::GetMHeight() const
 {
-    return GetHeight() * RenderHt * scaley;
+    return TwoPointScreenLocation::GetMHeight();
 }
 
 void ThreePointScreenLocation::SetActiveHandle(int handle)

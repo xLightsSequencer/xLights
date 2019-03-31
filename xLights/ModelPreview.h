@@ -123,6 +123,7 @@ private:
 	void SetOrigin();
 	void mouseMoved(wxMouseEvent& event);
 	void mouseLeftDown(wxMouseEvent& event);
+	void mouseLeftDClick(wxMouseEvent& event);
 	void mouseLeftUp(wxMouseEvent& event);
 	void mouseWheelMoved(wxMouseEvent& event);
     void mouseMiddleDown(wxMouseEvent& event);

@@ -264,7 +264,8 @@ public:
     bool IsValidStartChannelString() const;
     virtual unsigned int GetFirstChannel() const;
     unsigned int GetNumChannels();
-    int GetNodeNumber(size_t nodenum);
+    int GetNodeNumber(size_t nodenum) const;
+    int GetNodeNumber(int bufY, int bufX) const;
     bool UpdateStartChannelFromChannelString(std::map<std::string, Model*>& models, std::list<std::string>& used);
     int GetNumberFromChannelString(const std::string &sc) const;
     int GetNumberFromChannelString(const std::string &sc, bool &valid, std::string& dependsonmodel) const;
