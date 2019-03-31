@@ -4625,44 +4625,46 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
 
                 if (nd != nullptr)
                 {
-					if (!copyData.IsViewObject())
-					{
-						if (!editing_models)//dont paste model in View Object mode
-							return;
+                    auto nda = nd->GetAttribute("DisplayAs");
+                    auto nx = (int)wxAtof(nd->GetAttribute("WorldPosX"));
+                    auto ny = (int)wxAtof(nd->GetAttribute("WorldPosY"));
+                    auto nz = (int)wxAtof(nd->GetAttribute("WorldPosZ"));
 
-                        auto nda = nd->GetAttribute("DisplayAs");
-                        auto nx = (int)wxAtof(nd->GetAttribute("WorldPosX"));
-                        auto ny = (int)wxAtof(nd->GetAttribute("WorldPosY"));
-                        auto nz = (int)wxAtof(nd->GetAttribute("WorldPosZ"));
-
-                        bool moved = true;
-                        while (moved)
+                    bool moved = true;
+                    while (moved)
+                    {
+                        moved = false;
+                        // is there a model in the same location of the same type ... if so offset the pasting of the model
+                        for (auto it : xlights->AllModels)
                         {
-                            moved = false;
-                            // is there a model in the same location of the same type ... if so offset the pasting of the model
-                            for (auto it : xlights->AllModels)
+                            if (nda == it.second->GetModelXml()->GetAttribute("DisplayAs"))
                             {
-                                if (nda == it.second->GetModelXml()->GetAttribute("DisplayAs"))
+                                auto x = (int)wxAtof(it.second->GetModelXml()->GetAttribute("WorldPosX"));
+                                auto y = (int)wxAtof(it.second->GetModelXml()->GetAttribute("WorldPosY"));
+                                auto z = (int)wxAtof(it.second->GetModelXml()->GetAttribute("WorldPosZ"));
+                                if (nx == x &&
+                                    ny == y &&
+                                    nz == z)
                                 {
-                                    auto x = (int)wxAtof(it.second->GetModelXml()->GetAttribute("WorldPosX"));
-                                    auto y = (int)wxAtof(it.second->GetModelXml()->GetAttribute("WorldPosY"));
-                                    auto z = (int)wxAtof(it.second->GetModelXml()->GetAttribute("WorldPosZ"));
-                                    if (nx == x &&
-                                        ny == y &&
-                                        nz == z)
-                                    {
-                                        nx += 40;
-                                        ny -= 40;
-                                        nd->DeleteAttribute("WorldPosX");
-                                        nd->DeleteAttribute("WorldPosY");
-                                        nd->AddAttribute("WorldPosX", wxString::Format("%6.4f", (float)nx));
-                                        nd->AddAttribute("WorldPosY", wxString::Format("%6.4f", (float)ny));
-                                        moved = true;
-                                        break;
-                                    }
+                                    nx += 40;
+                                    ny -= 40;
+                                    nd->DeleteAttribute("WorldPosX");
+                                    nd->DeleteAttribute("WorldPosY");
+                                    nd->AddAttribute("WorldPosX", wxString::Format("%6.4f", (float)nx));
+                                    nd->AddAttribute("WorldPosY", wxString::Format("%6.4f", (float)ny));
+                                    moved = true;
+                                    break;
                                 }
                             }
                         }
+                    }
+
+                    std::string name = "";
+
+                    if (!copyData.IsViewObject())
+					{
+						if (!editing_models)//dont paste model in View Object mode
+							return;
 
 						if (xlights->AllModels[lastModelName] != nullptr) {
 							nd->DeleteAttribute("StartChannel");
@@ -4697,7 +4699,7 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
 						}
 
 						Model *newModel = xlights->AllModels.CreateModel(nd);
-						std::string name = xlights->AllModels.GenerateModelName(newModel->name);
+						name = xlights->AllModels.GenerateModelName(newModel->name);
 						newModel->name = name;
 						newModel->GetModelXml()->DeleteAttribute("name");
 						newModel->Lock(false);
@@ -4706,15 +4708,14 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
 						newModel->UpdateXmlWithScale();
 						xlights->AllModels.AddModel(newModel);
 						lastModelName = name;
-						SelectBaseObject(name);
-
 					}
 					else
 					{
 						if (editing_models)//dont paste view objects in model editing mode
 							return;
+
 						ViewObject *newViewObject = xlights->AllObjects.CreateObject(nd);
-						std::string name = xlights->AllObjects.GenerateObjectName(newViewObject->name);
+						name = xlights->AllObjects.GenerateObjectName(newViewObject->name);
 						newViewObject->name = name;
 						newViewObject->GetModelXml()->DeleteAttribute("name");
 						newViewObject->Lock(false);
@@ -4723,11 +4724,12 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
 						newViewObject->UpdateXmlWithScale();
 						xlights->AllObjects.AddViewObject(newViewObject);
 						lastModelName = name;
-						SelectBaseObject(name);
 					}
 
 					xlights->UpdateModelsList();
-					xlights->MarkEffectsFileDirty(true);
+                    modelPreview->SetCursor(wxCURSOR_DEFAULT);
+                    SelectBaseObject(name);
+                    xlights->MarkEffectsFileDirty(true);
 					
                 }
             }
