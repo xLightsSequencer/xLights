@@ -15,8 +15,11 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- bug (keith)   Bunch of fixes to LOR S5 import
    -- bug (scott)   Fix some overlapping keybinding defaults
    -- bug (dkulp)   Fix discovery returns 1 too few channels
+   -- bug (dkulp)   Fix DDP upload to controller doesnt filter controllers on first row
+   -- bug (keith)   Fix issues with 3 point models resizing when properties changed
    -- enh (keith)   Increase maximum spirals on the tree model
    -- enh (keith)   Make e131 default to multiple universes ... single output
+   -- enh (keith)   Add custom model import onto matrices/trees as submodels including the submodels, faces and states
 2019.18 March 25, 2019
    -- enh (dkulp)   DDP outputs can record the controller type (hat/cape) and upload menu item only shows it
    -- enh (dkulp)   "Discover" button on setup tab to discover and automatically add/configure FPP instances
