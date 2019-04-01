@@ -35,6 +35,7 @@
 #include "MatrixFaceDownloadDialog.h"
 #include "xLightsMain.h"
 #include "NodeSelectGrid.h"
+#include "models/Model.h"
 
 #include <log4cpp/Category.hh>
 
@@ -68,14 +69,11 @@ BEGIN_EVENT_TABLE(ModelFaceDialog,wxDialog)
 	//*)
 END_EVENT_TABLE()
 
-
 enum {
     SINGLE_NODE_FACE = 0,
     NODE_RANGE_FACE,
     MATRIX_FACE
 };
-
-#include "models/Model.h"
 
 #ifndef wxEVT_GRID_CELL_CHANGE
 //until CodeBlocks is updated to wxWidgets 3.x

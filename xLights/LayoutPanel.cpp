@@ -3931,7 +3931,6 @@ void LayoutPanel::PreviewModelAlignVCenter()
     UpdatePreview();
 }
 
-
 int LayoutPanel::GetSelectedModelIndex() const
 {
     for (size_t i = 0; i<modelPreview->GetModels().size(); i++)
@@ -3943,6 +3942,7 @@ int LayoutPanel::GetSelectedModelIndex() const
     }
     return -1;
 }
+
 int LayoutPanel::ModelsSelectedCount() const
 {
     int selectedModelCount = 0;
