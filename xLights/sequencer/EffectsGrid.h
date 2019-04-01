@@ -274,6 +274,7 @@ private:
     int mRangeCursorRow;
     int mRangeCursorCol;
 
+    static const long ID_GRID_MNU_CUT;
     static const long ID_GRID_MNU_COPY;
     static const long ID_GRID_MNU_PASTE;
     static const long ID_GRID_MNU_DELETE;

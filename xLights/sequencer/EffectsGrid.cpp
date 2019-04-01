@@ -53,6 +53,7 @@ EVT_PAINT(EffectsGrid::render)
 END_EVENT_TABLE()
 
 // Menu constants
+const long EffectsGrid::ID_GRID_MNU_CUT = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_COPY = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_PASTE = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_DELETE = wxNewId();
@@ -254,11 +255,13 @@ void EffectsGrid::rightClick(wxMouseEvent& event)
     {
         wxMenu mnuLayer;
         // Copy / Paste / Delete
-        wxMenuItem* menu_copy = mnuLayer.Append(ID_GRID_MNU_COPY,"Copy");
+        wxMenuItem* menu_cut = mnuLayer.Append(ID_GRID_MNU_CUT, "Cut");
+        wxMenuItem* menu_copy = mnuLayer.Append(ID_GRID_MNU_COPY, "Copy");
         wxMenuItem* menu_paste = mnuLayer.Append(ID_GRID_MNU_PASTE,"Paste");
         wxMenuItem* menu_delete = mnuLayer.Append(ID_GRID_MNU_DELETE,"Delete");
         if( (mSelectedEffect == nullptr && !AtLeastOneEffectSelected()) &&
             !(IsACActive() && mCellRangeSelected)) {
+            menu_cut->Enable(false);
             menu_copy->Enable(false);
             menu_delete->Enable(false);
         }
@@ -357,10 +360,12 @@ void EffectsGrid::rightClick(wxMouseEvent& event)
             menu_effect_lock->Enable(false);
         }
         mnuLayer.AppendSeparator();
+        wxMenuItem* menu_cut = mnuLayer.Append(ID_GRID_MNU_CUT,"Cut");
         wxMenuItem* menu_copy = mnuLayer.Append(ID_GRID_MNU_COPY,"Copy");
         wxMenuItem* menu_paste = mnuLayer.Append(ID_GRID_MNU_PASTE,"Paste");
         wxMenuItem* menu_delete = mnuLayer.Append(ID_GRID_MNU_DELETE,"Delete");
         if( mSelectedEffect == nullptr && !MultipleEffectsSelected() ) {
+            menu_cut->Enable(false);
             menu_copy->Enable(false);
             menu_delete->Enable(false);
         }
@@ -389,7 +394,12 @@ void EffectsGrid::OnGridPopup(wxCommandEvent& event)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     int id = event.GetId();
-    if(id == ID_GRID_MNU_COPY)
+    if(id == ID_GRID_MNU_CUT)
+    {
+        logger_base.debug("OnGridPopup - CUT");
+        ((MainSequencer*)mParent)->Cut();
+    }
+    else if(id == ID_GRID_MNU_COPY)
     {
         logger_base.debug("OnGridPopup - COPY");
         ((MainSequencer*)mParent)->CopySelectedEffects();
