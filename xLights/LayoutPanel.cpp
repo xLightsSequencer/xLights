@@ -854,7 +854,7 @@ void LayoutPanel::SetDisplay2DBoundingBox(bool bb)
 void LayoutPanel::SetDisplay2DCenter0(bool bb) {
     modelPreview->SetDisplay2DCenter0(bb);
 }
-                                            
+
 
 void LayoutPanel::OnPropertyGridChanging(wxPropertyGridEvent& event) {
     std::string name = event.GetPropertyName().ToStdString();
@@ -3106,12 +3106,20 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
     {
         double delta_x = event.GetPosition().x - m_previous_mouse_x;
         double delta_y = -(event.GetPosition().y - m_previous_mouse_y);
+
         // I have no idea why i need to divide the zoom by this amount but doing so causes the model and the mouse to move
         // together in 2D at all levels of zoom
+        #ifdef _MSC_VER
         // 1.12 under shoot
         // 1.14 over shoot
-        delta_x /= modelPreview->GetZoom() / 1.135;
-        delta_y /= modelPreview->GetZoom() / 1.135;
+        double factor = 1.135;
+        #else
+        // 0.85 under shoot
+        // 0.86 over shoot
+        double factor = 0.855;
+        #endif
+        delta_x /= modelPreview->GetZoom() / factor;
+        delta_y /= modelPreview->GetZoom() / factor;
         int wi, ht;
         modelPreview->GetVirtualCanvasSize(wi, ht);
         if (wi > 0 && ht > 0)
@@ -4126,7 +4134,7 @@ Model *LayoutPanel::CreateNewModel(const std::string &type) const
 std::list<BaseObject*> LayoutPanel::GetSelectedBaseObjects() const
 {
     std::list<BaseObject*> res;
- 
+
     if (selectedBaseObject != nullptr)
     {
         res.push_back(selectedBaseObject);
@@ -4734,7 +4742,7 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
                     modelPreview->SetCursor(wxCURSOR_DEFAULT);
                     SelectBaseObject(name);
                     xlights->MarkEffectsFileDirty(true);
-					
+
                 }
             }
             else
@@ -5663,7 +5671,7 @@ void LayoutPanel::OnSelectionChanged(wxTreeListEvent& event)
                     mSelectedGroup = nullptr;
                     ShowPropGrid(true);
                     SelectModel(model, false);
-                    SetToolTipForTreeList(TreeListViewModels, 
+                    SetToolTipForTreeList(TreeListViewModels,
                         xlights->GetChannelToControllerMapping(model->GetNumberFromChannelString(model->ModelStartChannel)) + "Nodes: " + wxString::Format("%d", (int)model->GetNodeCount()).ToStdString());
                 }
             } else {
