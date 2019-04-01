@@ -3106,8 +3106,12 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
     {
         double delta_x = event.GetPosition().x - m_previous_mouse_x;
         double delta_y = -(event.GetPosition().y - m_previous_mouse_y);
-        delta_x /= modelPreview->GetZoom();
-        delta_y /= modelPreview->GetZoom();
+        // I have no idea why i need to divide the zoom by this amount but doing so causes the model and the mouse to move
+        // together in 2D at all levels of zoom
+        // 1.12 under shoot
+        // 1.14 over shoot
+        delta_x /= modelPreview->GetZoom() / 1.135;
+        delta_y /= modelPreview->GetZoom() / 1.135;
         int wi, ht;
         modelPreview->GetVirtualCanvasSize(wi, ht);
         if (wi > 0 && ht > 0)
