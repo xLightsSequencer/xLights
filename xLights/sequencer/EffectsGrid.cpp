@@ -6167,7 +6167,15 @@ void EffectsGrid::DrawTimingEffects(int row)
                     }
                     textBackgrounds.AddRect(label_start, y1 - 2, label_start + width, y2 + 2, label_color);
                     timingLines.AddLinesRect(label_start - 0.4, y1 - 2 - 0.4, label_start + width + 0.4, y2 + 2 + 0.4, xlights->color_mgr.GetColor(ColorManager::COLOR_LABEL_OUTLINE));
-                    texts.AddVertex(label_start + 4, y2 + toffset, eff->GetEffectName());
+
+                    // trim the text to fit
+                    auto name = eff->GetEffectName();
+                    while (name != "" && DrawGLUtils::GetTextWidth(fontSize, name, factor) > width)
+                    {
+                        name = name.substr(0, name.size() - 1);
+                    }
+
+                    texts.AddVertex(label_start + 4, y2 + toffset, name);
                 }
             }
         }
