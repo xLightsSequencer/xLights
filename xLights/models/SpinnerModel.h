@@ -28,11 +28,14 @@ class SpinnerModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual void InitModel() override;
         virtual int MapToNodeIndex(int strand, int node) const override;
         virtual int CalcCannelsPerString() override;
+        int EncodeStartLocation();
+        void DecodeStartLocation(int sl);
 
         void SetSpinnerCoord();
         int hollow;
         int arc;
         bool zigzag; // if true then numbering alternates in and out along arms
+        bool alternate;
     private:
 };
 
