@@ -563,6 +563,10 @@ void E131Output::AllOff()
 #pragma endregion Data Setting
 
 #pragma region Getters and Setters
+bool E131Output::IsLookedUpByControllerName() const {
+    return GetDescription() != "";
+}
+
 long E131Output::GetEndChannel() const
 {
     if (IsOutputCollection())

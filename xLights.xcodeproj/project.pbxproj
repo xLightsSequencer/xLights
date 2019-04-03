@@ -281,6 +281,7 @@
 		6778F3E61A601CA7008C2086 /* Effect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6778F3E31A601CA7008C2086 /* Effect.cpp */; };
 		6778F3E71A601CA7008C2086 /* EffectLayer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6778F3E41A601CA7008C2086 /* EffectLayer.cpp */; };
 		677989A11F321BC200A26FA9 /* valuecurves in Resources */ = {isa = PBXBuildFile; fileRef = 677989A01F321BC200A26FA9 /* valuecurves */; };
+		677E58482251277400861ABF /* AlignmentDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 677E58472251277400861ABF /* AlignmentDialog.cpp */; };
 		678058CB2176600600BFD388 /* MultiControllerUploadDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 678058C92176600500BFD388 /* MultiControllerUploadDialog.cpp */; };
 		678058D02176619800BFD388 /* PlayListItemFadePanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 678058CD2176619800BFD388 /* PlayListItemFadePanel.cpp */; };
 		678058D12176619800BFD388 /* PlayListItemFade.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 678058CF2176619800BFD388 /* PlayListItemFade.cpp */; };
@@ -1297,6 +1298,8 @@
 		6778F3E31A601CA7008C2086 /* Effect.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Effect.cpp; path = sequencer/Effect.cpp; sourceTree = "<group>"; };
 		6778F3E41A601CA7008C2086 /* EffectLayer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EffectLayer.cpp; path = sequencer/EffectLayer.cpp; sourceTree = "<group>"; };
 		677989A01F321BC200A26FA9 /* valuecurves */ = {isa = PBXFileReference; lastKnownFileType = folder; path = valuecurves; sourceTree = "<group>"; };
+		677E58462251277400861ABF /* AlignmentDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AlignmentDialog.h; sourceTree = "<group>"; };
+		677E58472251277400861ABF /* AlignmentDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = AlignmentDialog.cpp; sourceTree = "<group>"; };
 		678058C92176600500BFD388 /* MultiControllerUploadDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MultiControllerUploadDialog.cpp; sourceTree = "<group>"; };
 		678058CA2176600500BFD388 /* MultiControllerUploadDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MultiControllerUploadDialog.h; sourceTree = "<group>"; };
 		678058CC2176619800BFD388 /* PlayListItemFadePanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlayListItemFadePanel.h; path = PlayList/PlayListItemFadePanel.h; sourceTree = "<group>"; };
@@ -2994,6 +2997,8 @@
 		67E7087617B51AB400A22034 /* xLights */ = {
 			isa = PBXGroup;
 			children = (
+				677E58472251277400861ABF /* AlignmentDialog.cpp */,
+				677E58462251277400861ABF /* AlignmentDialog.h */,
 				67EB0CB52248F65800F3A164 /* LOREdit.cpp */,
 				67EB0CB62248F65800F3A164 /* LOREdit.h */,
 				6701C43422468C430004335C /* ControllerVisualiseDialog.cpp */,
@@ -4150,6 +4155,7 @@
 				677421D71A68ACDA0082DA5B /* JobPool.cpp in Sources */,
 				67ACBAB51C63DAD400BFA7D6 /* WholeHouseModel.cpp in Sources */,
 				675AB42B1B5ACEDA00853A28 /* PluginHostAdapter.cpp in Sources */,
+				677E58482251277400861ABF /* AlignmentDialog.cpp in Sources */,
 				67AAF8F21B63767B00585431 /* PhonemeDictionary.cpp in Sources */,
 				67B2CF911C39D98A003C17CA /* CirclesPanel.cpp in Sources */,
 				6747107E1A65464C0086C35C /* xLightsXmlFile.cpp in Sources */,

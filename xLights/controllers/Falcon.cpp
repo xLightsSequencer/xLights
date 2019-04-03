@@ -13,6 +13,7 @@
 
 #include <log4cpp/Category.hh>
 #include "UtilFunctions.h"
+#include "ControllerRegistry.h"
 
 void Falcon::DecodeModelVersion(int p, int& model, int& version)
 {
@@ -52,6 +53,22 @@ static std::string FALCON_F4 = "Falcon F4";
 const std::string FalconControllerRules::GetControllerId() const {
     return wxString::Format("F%dv%d", _type, _version).ToStdString();
 }
+
+static std::vector<FalconControllerRules> CONTROLLER_TYPE_MAP = {
+    FalconControllerRules(1),
+    FalconControllerRules(3),
+    FalconControllerRules(4),
+    FalconControllerRules(5),
+    FalconControllerRules(6),
+    FalconControllerRules(7)
+};
+void Falcon::RegisterControllers() {
+    for (auto &a : CONTROLLER_TYPE_MAP) {
+        ControllerRegistry::AddController(&a);
+    }
+}
+
+
 
 bool Falcon::IsEnhancedV2Firmware() const
 {

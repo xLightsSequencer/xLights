@@ -4,6 +4,7 @@
 //(*Headers(E131Dialog)
 #include <wx/button.h>
 #include <wx/checkbox.h>
+#include <wx/choice.h>
 #include <wx/dialog.h>
 #include <wx/radiobut.h>
 #include <wx/sizer.h>
@@ -29,22 +30,24 @@ public:
     //(*Declarations(E131Dialog)
     wxButton* Button_Cancel;
     wxButton* Button_Ok;
+    wxButton* VisualizeButton;
     wxCheckBox* CheckBox_SuppressDuplicates;
     wxCheckBox* MultiE131CheckBox;
+    wxChoice* ControllerChoice;
     wxRadioButton* RadioButtonMulticast;
     wxRadioButton* RadioButtonUnicast;
     wxSpinCtrl* SpinCtrl_LastChannel;
     wxSpinCtrl* SpinCtrl_NumUniv;
     wxSpinCtrl* SpinCtrl_Priority;
     wxSpinCtrl* SpinCtrl_StartUniv;
+    wxStaticText* DescriptionStaticText;
+    wxStaticText* OneOutputLabel;
     wxStaticText* StaticText10;
     wxStaticText* StaticText1;
     wxStaticText* StaticText2;
     wxStaticText* StaticText3;
-    wxStaticText* StaticText4;
     wxStaticText* StaticText5;
     wxStaticText* StaticText6;
-    wxStaticText* StaticText7;
     wxStaticText* StaticText8;
     wxStaticText* StaticText9;
     wxTextCtrl* TextCtrlIpAddr;
@@ -74,8 +77,10 @@ protected:
     static const long ID_CHECKBOX2;
     static const long ID_STATICTEXT10;
     static const long ID_SPINCTRL_PRIORITY;
+    static const long ID_CHOICE1;
     static const long ID_BUTTON1;
     static const long ID_BUTTON2;
+    static const long ID_BUTTON3;
     //*)
 
 private:
@@ -89,8 +94,11 @@ private:
     void OnMultiE131CheckBoxClick(wxCommandEvent& event);
     void OnButton_OkClick(wxCommandEvent& event);
     void OnButton_CancelClick(wxCommandEvent& event);
+    void OnVisualizeButtonClick(wxCommandEvent& event);
+    void OnControllerChoiceSelect(wxCommandEvent& event);
     //*)
 
+    void SaveFields();
     DECLARE_EVENT_TABLE()
 };
 #endif

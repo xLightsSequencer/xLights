@@ -30,8 +30,9 @@ public:
         return id;
     }
     virtual const std::string GetControllerDescription() const override {
-        return description;
+        return "FPP " + description;
     }
+    virtual const std::string GetControllerManufacturer() const override { return "FPP"; };
     virtual bool SupportsLEDPanelMatrix() const override {
         return maxStrings == 0 && maxDMX == 0;
     }

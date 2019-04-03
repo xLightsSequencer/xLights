@@ -25,6 +25,10 @@ public:
     virtual const std::string GetControllerId() const override {
         return std::string("PixLite") + std::to_string(_pixelPorts);
     }
+    virtual const std::string GetControllerManufacturer() const override {
+        return "PixLite";
+    }
+
     virtual bool SupportsLEDPanelMatrix() const override {
         return false;
     }

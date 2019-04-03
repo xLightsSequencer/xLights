@@ -1,10 +1,12 @@
 
 #include "ControllerRegistry.h"
 #include "FPP.h"
+#include "Falcon.h"
+#include "ESPixelStick.h"
 
 
 std::map<std::string, const ControllerRules*> ControllerRegistry::controllers;
-
+std::map<std::string, std::string> ControllerRegistry::controllersByDescription;
 
 ControllerRegistry::ControllerRegistry()
 {
@@ -19,17 +21,24 @@ ControllerRegistry::~ControllerRegistry()
 void ControllerRegistry::AddController(const ControllerRules *rules) {
     if (rules && rules->GetControllerId() != "") {
         controllers[rules->GetControllerId()] = rules;
+        controllersByDescription[rules->GetControllerDescription()] = rules->GetControllerId();
     }
 }
 
-std::vector<std::string> ControllerRegistry::GetControllerIds() {
+std::vector<std::string> ControllerRegistry::GetControllerIds(bool sortByDescription) {
     if (controllers.empty()) {
         loadControllers();
     }
     std::vector<std::string> keys;
     keys.reserve(controllers.size());
-    for (auto &c : controllers) {
-        keys.push_back(c.first);
+    if (sortByDescription) {
+        for (auto &c : controllersByDescription) {
+            keys.push_back(c.second);
+        }
+    } else {
+        for (auto &c : controllers) {
+            keys.push_back(c.first);
+        }
     }
     return keys;
 }
@@ -42,5 +51,7 @@ const ControllerRules *ControllerRegistry::GetRulesForController(const std::stri
 }
 
 void ControllerRegistry::loadControllers() {
+    Falcon::RegisterControllers();
     FPP::RegisterCapes();
+    ESPixelStick::RegisterControllers();
 }

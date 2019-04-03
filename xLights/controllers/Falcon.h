@@ -60,6 +60,7 @@ public:
     virtual ~FalconControllerRules() {}
     
     virtual const std::string GetControllerId() const override;
+    virtual const std::string GetControllerManufacturer() const override { return "Falcon"; };
 
     virtual bool SupportsLEDPanelMatrix() const override {
         return false;
@@ -228,6 +229,7 @@ public:
     bool SetInputUniverses(OutputManager* outputManager, std::list<int>& selected);
     bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, std::list<int>& selected, wxWindow* parent);
     static void DecodeModelVersion(int p, int& model, int& version);
+    static void RegisterControllers();
 };
 
 #endif

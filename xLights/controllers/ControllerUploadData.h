@@ -36,8 +36,9 @@ public:
     virtual bool SupportsLEDPanelMatrix() const = 0;
 
     virtual const std::string GetControllerId() const = 0;
+    virtual const std::string GetControllerManufacturer() const = 0;
     virtual const std::string GetControllerDescription() const {
-        return GetControllerId();
+        return GetControllerManufacturer() + " " + GetControllerId();
     }
 };
 

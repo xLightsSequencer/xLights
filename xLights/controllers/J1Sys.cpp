@@ -42,6 +42,9 @@ public:
         //FIXME, other models
         return J1SYS_P12R;
     }
+    virtual const std::string GetControllerManufacturer() const override {
+        return "J1Sys";
+    }
 
     virtual bool SupportsLEDPanelMatrix() const override {
         return false;
