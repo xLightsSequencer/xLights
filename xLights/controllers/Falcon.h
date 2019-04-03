@@ -179,6 +179,7 @@ class Falcon
 	wxHTTP _http;
 	std::string _ip;
     std::string _firmwareVersion;
+    bool _usingAbsolute;
     int _version;
     std::string _modelString;
     int _model;
