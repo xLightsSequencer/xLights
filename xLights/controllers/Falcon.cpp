@@ -12,7 +12,7 @@
 #include "ControllerUploadData.h"
 
 #include <log4cpp/Category.hh>
-#include "UtilFunctions.h"
+#include "../UtilFunctions.h"
 #include "ControllerRegistry.h"
 
 void Falcon::DecodeModelVersion(int p, int& model, int& version)
