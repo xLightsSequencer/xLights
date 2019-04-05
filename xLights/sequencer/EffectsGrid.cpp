@@ -516,7 +516,7 @@ void EffectsGrid::OnGridPopup(wxCommandEvent& event)
         for (int i = 0; i < el->GetEffectCount(); i++)
         {
             auto ef = el->GetEffect(i);
-            if (ef->GetSelected())
+            if (ef->GetSelected() || ef->GetID() == mSelectedEffect->GetID())
             {
                 auto s = ef->GetStartTimeMS();
                 auto e = ef->GetEndTimeMS();

@@ -11,8 +11,18 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2019.20 April 5, 2019
    -- enh (dkulp)   ESPixelStick upload will honor color order, brightness, gamma, group count controller settings on FIRST model
    -- enh (dkulp)   Add Controller type to e1.31 dialog, allow selection of Falcon/ESPixelStick.   More to come.
+   -- enh (keith)   Add shift scroll wheel horizontal scrolling to custom model dialog
+   -- enh (keith)   Add cut to effects grid right click menu
+   -- enh (keith)   Add alternate pixel wiring to the spinner model
+   -- bug (keith)   Fix if no timing element is selected and you try to split it it wont split
+   -- bug (keith)   Fix dragging models in 2D dont track with mouse
+   -- bug (keith)   Fix node tooltip in states/faces/submodels does not work if you zoom or pan
+   -- bug (keith)   Fix a cause of crash when loading LMS to a data layer
+   -- bug (keith)   Fix timing labels ae not clipped to the box
+   -- bug (keith)   When using up down to move models in the display elements panel ensure the selected model is visible
 2019.19 April 1, 2019
    -- bug (dkulp)   DDP upload menu optimization doesn't work on first output in list
    -- bug (keith)   Bunch of fixes to LOR S5 import
