@@ -12,6 +12,8 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2019.20 April 5, 2019
+   -- enh (dkulp)   Falcon upload - will upload in "Absolute" mode if Falcon is configured that way,
+                    or "Universe" mode if it's configured that way.
    -- enh (dkulp)   ESPixelStick upload will honor color order, brightness, gamma, group count controller settings on FIRST model
    -- enh (dkulp)   Add Controller type to e1.31 dialog, allow selection of Falcon/ESPixelStick.   More to come.
    -- enh (keith)   Add shift scroll wheel horizontal scrolling to custom model dialog
