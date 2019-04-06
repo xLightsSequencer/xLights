@@ -38,7 +38,9 @@ public:
     wxCheckBox* CheckBox_SuppressDuplicates;
     wxCheckBox* CheckBox_SuppressSendingConfig;
     wxSpinCtrl* SpinCtrl_Channels;
+    wxSpinCtrl* SpinCtrl_Priority;
     wxStaticText* StaticText10;
+    wxStaticText* StaticText11;
     wxStaticText* StaticText1;
     wxStaticText* StaticText2;
     wxStaticText* StaticText3;
@@ -74,6 +76,8 @@ protected:
     static const long ID_CHECKBOX5;
     static const long ID_STATICTEXT10;
     static const long ID_CHECKBOX6;
+    static const long ID_STATICTEXT11;
+    static const long ID_SPINCTRL1;
     static const long ID_BUTTON3;
     static const long ID_BUTTON1;
     static const long ID_BUTTON2;

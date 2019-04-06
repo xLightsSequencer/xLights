@@ -241,7 +241,9 @@ struct {
 	uint16_t sequenceNumber;		// sequence number unique each time the configuration changes
 	char userControllerName[32];	// Up to 32 characters of user controller name
 	uint8_t flags;					// Configuration flags
-	uint8_t ports;					// Number of ports being configured
+    uint8_t priority;               // priority of this source
+    uint8_t filler1;
+    uint8_t ports;					// Number of ports being configured
     ZCPP_PortConfig PortConfig[1];		// Up to 100 of them
 } ZCPP_Configuration;
 
@@ -289,7 +291,9 @@ struct {
 	ZCPP_Header Header;
 	uint16_t sequenceNumber;		// sequence number unique each time the configuration changes
 	uint8_t flags;					// Configuration flags
-	uint8_t ports;					// Number of ports being configured
+    uint8_t priority;               // priority of this source
+    uint8_t filler1;
+    uint8_t ports;					// Number of ports being configured
     ZCPP_PortExtraData PortExtraData[1];
 } ZCPP_ExtraData;
 
@@ -303,7 +307,9 @@ struct {
 	uint8_t sequenceNumber;			// sequence number matching the data frame sequence number this sync packet is for
 } ZCPP_Sync;
 
-// Data - 12 - 1458 bytes
+#define ZCPP_DATA_HEADER_SIZE 13
+
+// Data - 13 - 1458 bytes
 typedef
 #ifndef _MSC_VER
 __attribute__((packed))
@@ -316,6 +322,7 @@ struct {
 	uint8_t flags;					// data packet flags
     uint16_t frameAddress;			// where in the zero based data address space the data in this packet belongs
     uint16_t packetDataLength;		// how many data bytes are in this packet
+    uint8_t priority;               // priority of this source
     uint8_t data[1];
 } ZCPP_Data;
 

@@ -28,6 +28,7 @@ ZCPPOutput::ZCPPOutput(wxXmlNode* node, std::string showdir) : IPOutput(node)
     memset(&_packet, 0, sizeof(_packet));
     _vendor = wxAtoi(node->GetAttribute("Vendor", "65535"));
     _model = wxAtoi(node->GetAttribute("Model", "65535"));
+    _priority = wxAtoi(node->GetAttribute("Priority", "100"));
     _supportsVirtualStrings = node->GetAttribute("SupportsVirtualStrings", "FALSE") == "TRUE";
     _supportsSmartRemotes = node->GetAttribute("SupportsSmartRemotes", "FALSE") == "TRUE";
     _multicast = node->GetAttribute("Multicast", "FALSE") == "TRUE";
@@ -143,6 +144,7 @@ ZCPPOutput::ZCPPOutput() : IPOutput()
     _vendor = -1;
     _autoSize = true;
     _model = -1;
+    _priority = 100;
     _data = (wxByte*)malloc(_channels);
     memset(_data, 0, _channels);
     memset(&_packet, 0, sizeof(_packet));
@@ -162,7 +164,7 @@ void ZCPPOutput::ExtractUsedChannelsFromModelData()
     ZCPP_PortConfig* port = _modelData.Configuration.PortConfig;
     for (int i = 0; i < ports; i++)
     {
-        int start = htonl(port->startChannel);
+        int start = htons(port->startChannel);
         int len = htons(port->channels);
         if (start + len - 1 > _usedChannels)
         {
@@ -291,6 +293,7 @@ wxXmlNode* ZCPPOutput::Save()
     wxXmlNode* node = new wxXmlNode(wxXML_ELEMENT_NODE, "network");
     node->AddAttribute("Vendor", wxString::Format("%d", _vendor));
     node->AddAttribute("Model", wxString::Format("%d", _model));
+    node->AddAttribute("Priority", wxString::Format("%d", _priority));
     if (_supportsVirtualStrings)node->AddAttribute("SupportsVirtualStrings", "TRUE");
     if (_supportsSmartRemotes)node->AddAttribute("SupportsSmartRemotes", "TRUE");
     if (_dontConfigure)node->AddAttribute("DontConfigure", "TRUE");
@@ -371,13 +374,14 @@ void ZCPPOutput::SendSync()
     }
 }
 
-void ZCPPOutput::InitialiseExtraConfigPacket(ZCPP_packet_t& packet, int seq)
+void ZCPPOutput::InitialiseExtraConfigPacket(ZCPP_packet_t& packet, int seq, uint8_t priority)
 {
     memset(&packet, 0x00, sizeof(packet));
     memcpy(packet.ExtraData.Header.token, ZCPP_token, sizeof(ZCPP_token));
     packet.ExtraData.Header.type = ZCPP_TYPE_EXTRA_DATA;
     packet.ExtraData.Header.protocolVersion = ZCPP_CURRENT_PROTOCOL_VERSION;
     packet.ExtraData.sequenceNumber = ntohs(seq);
+    packet.ExtraData.priority = priority;
 }
 
 std::list<Output*> ZCPPOutput::Discover(OutputManager* outputManager)
@@ -491,16 +495,16 @@ std::list<Output*> ZCPPOutput::Discover(OutputManager* outputManager)
                             uint32_t channels = ZCPP_FromWire32(response.DiscoveryResponse.maxTotalChannels);
                             logger_base.debug("   Channels %ld", channels);
 
-                            bool supportsVirtualStrings = response.DiscoveryResponse.flags & ZCPP_DISCOVERY_FLAG_SUPPORTS_VIRTUAL_STRINGS;
+                            bool supportsVirtualStrings = (ZCPP_FromWire16(response.DiscoveryResponse.flags) & ZCPP_DISCOVERY_FLAG_SUPPORTS_VIRTUAL_STRINGS) != 0;
                             logger_base.debug("   Supports Virtual Strings %d", supportsVirtualStrings);
 
-                            bool supportsSmartRemotes = response.DiscoveryResponse.flags & ZCPP_DISCOVERY_FLAG_SUPPORTS_SMART_REMOTES;
+                            bool supportsSmartRemotes = (ZCPP_FromWire16(response.DiscoveryResponse.flags) & ZCPP_DISCOVERY_FLAG_SUPPORTS_SMART_REMOTES) != 0;
                             logger_base.debug("   Supports Smart Remotes %d", supportsSmartRemotes);
 
-                            bool dontConfigure = (response.DiscoveryResponse.flags & ZCPP_DISCOVERY_FLAG_CONFIGURATION_LOCKED) != 0;
+                            bool dontConfigure = (ZCPP_FromWire16(response.DiscoveryResponse.flags) & ZCPP_DISCOVERY_FLAG_CONFIGURATION_LOCKED) != 0;
                             logger_base.debug("   Doesnt want to recieve configuration %d", dontConfigure);
 
-                            bool multicast = (response.DiscoveryResponse.flags & ZCPP_DISCOVERY_FLAG_SEND_DATA_AS_MULTICAST) != 0;
+                            bool multicast = (ZCPP_FromWire16(response.DiscoveryResponse.flags) & ZCPP_DISCOVERY_FLAG_SEND_DATA_AS_MULTICAST) != 0;
                             logger_base.debug("   Wants to receive data multicast %d", multicast);
 
                             // now search for it in outputManager
@@ -656,6 +660,7 @@ bool ZCPPOutput::Open()
     memcpy(_packet.Data.Header.token, ZCPP_token, sizeof(ZCPP_token));
     _packet.Data.Header.type = ZCPP_TYPE_DATA;
     _packet.Data.Header.protocolVersion = ZCPP_CURRENT_PROTOCOL_VERSION;
+    _packet.Data.priority = _priority;
 
     wxIPV4address localaddr;
     if (IPOutput::__localIP == "")
@@ -769,13 +774,13 @@ void ZCPPOutput::EndFrame(int suppressFrames)
             _packet.Data.sequenceNumber = _sequenceNum;
             uint16_t startAddress = i;
             _packet.Data.frameAddress = ntohs(startAddress);
-            uint16_t packetlen = _usedChannels - i > sizeof(ZCPP_packet_t) - 14 ? sizeof(ZCPP_packet_t) - 14 : _usedChannels - i;
+            uint16_t packetlen = _usedChannels - i > sizeof(ZCPP_packet_t) - ZCPP_DATA_HEADER_SIZE ? sizeof(ZCPP_packet_t) - ZCPP_DATA_HEADER_SIZE : _usedChannels - i;
             _packet.Data.flags = (OutputManager::IsSyncEnabled_() ? ZCPP_DATA_FLAG_SYNC_WILL_BE_SENT : 0x00) +
                           (i + packetlen == _usedChannels ? ZCPP_DATA_FLAG_LAST : 0x00) +
                           (i == 0 ? ZCPP_DATA_FLAG_FIRST : 0x00);
             _packet.Data.packetDataLength = ntohs(packetlen);
             memcpy(_packet.Data.data, &_data[i], packetlen);
-            _datagram->SendTo(_remoteAddr, &_packet, 14 + packetlen);
+            _datagram->SendTo(_remoteAddr, &_packet, ZCPP_DATA_HEADER_SIZE + packetlen);
             i += packetlen;
         }
         _sequenceNum++;

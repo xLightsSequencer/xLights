@@ -31,6 +31,8 @@ const long ZCPPDialog::ID_STATICTEXT7 = wxNewId();
 const long ZCPPDialog::ID_CHECKBOX5 = wxNewId();
 const long ZCPPDialog::ID_STATICTEXT10 = wxNewId();
 const long ZCPPDialog::ID_CHECKBOX6 = wxNewId();
+const long ZCPPDialog::ID_STATICTEXT11 = wxNewId();
+const long ZCPPDialog::ID_SPINCTRL1 = wxNewId();
 const long ZCPPDialog::ID_BUTTON3 = wxNewId();
 const long ZCPPDialog::ID_BUTTON1 = wxNewId();
 const long ZCPPDialog::ID_BUTTON2 = wxNewId();
@@ -105,6 +107,11 @@ ZCPPDialog::ZCPPDialog(wxWindow* parent, ZCPPOutput* zcpp, OutputManager* output
     CheckBox_SuppressSendingConfig = new wxCheckBox(this, ID_CHECKBOX6, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX6"));
     CheckBox_SuppressSendingConfig->SetValue(false);
     FlexGridSizer2->Add(CheckBox_SuppressSendingConfig, 1, wxALL|wxEXPAND, 5);
+    StaticText11 = new wxStaticText(this, ID_STATICTEXT11, _("Priority"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT11"));
+    FlexGridSizer2->Add(StaticText11, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    SpinCtrl_Priority = new wxSpinCtrl(this, ID_SPINCTRL1, _T("100"), wxDefaultPosition, wxDefaultSize, 0, 0, 255, 100, _T("ID_SPINCTRL1"));
+    SpinCtrl_Priority->SetValue(_T("100"));
+    FlexGridSizer2->Add(SpinCtrl_Priority, 1, wxALL|wxEXPAND, 5);
     FlexGridSizer2->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Button_Visualise = new wxButton(this, ID_BUTTON3, _("Visualise"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON3"));
     FlexGridSizer2->Add(Button_Visualise, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -128,6 +135,7 @@ ZCPPDialog::ZCPPDialog(wxWindow* parent, ZCPPOutput* zcpp, OutputManager* output
 
     CheckBox_SuppressDuplicates->SetValue(_zcpp->IsSuppressDuplicateFrames());
     SpinCtrl_Channels->SetValue(_zcpp->GetChannels());
+    SpinCtrl_Priority->SetValue(_zcpp->GetPriority());
     TextCtrl_Description->SetValue(_zcpp->GetDescription());
     TextCtrlIpAddr->SetValue(_zcpp->GetIP());
     CheckBoxAutoSizeOutput->SetValue(_zcpp->GetAutoSize());
@@ -161,6 +169,7 @@ void ZCPPDialog::OnButton_OkClick(wxCommandEvent& event)
 {
     _zcpp->SetIP(TextCtrlIpAddr->GetValue().ToStdString());
     _zcpp->SetChannels(SpinCtrl_Channels->GetValue());
+    _zcpp->SetPriority(SpinCtrl_Priority->GetValue());
     _zcpp->SetDescription(TextCtrl_Description->GetValue().ToStdString());
     _zcpp->SetSuppressDuplicateFrames(CheckBox_SuppressDuplicates->IsChecked());
     _zcpp->SetAutoSize(CheckBoxAutoSizeOutput->IsChecked());
@@ -190,6 +199,7 @@ void ZCPPDialog::ValidateWindow()
         if (TextCtrlIpAddr->GetValue().Contains("."))
         {
             CheckBox_Multicast->SetLabel(wxString::Format("Multicast to 224.0.31.%s", TextCtrlIpAddr->GetValue().AfterLast('.')));
+            Fit();
         }
         else
         {

@@ -2397,7 +2397,7 @@ void xLightsFrame::SetZCPPExtraConfig(std::list<ZCPP_packet_t>& extraConfigs, in
         ZCPP_packet_t extraData;
         extraConfigs.push_back(extraData);
         current = extraConfigs.back();
-        ZCPPOutput::InitialiseExtraConfigPacket(current, modelsChangeCount);
+        ZCPPOutput::InitialiseExtraConfigPacket(current, modelsChangeCount, zcpp->GetPriority());
         pos = ZCPP_ExtraDataUsed(current);
     }
 
@@ -2429,6 +2429,7 @@ void xLightsFrame::SetModelData(ZCPPOutput* zcpp, ModelManager* modelManager, Ou
     modelData.Configuration.Header.type = ZCPP_TYPE_CONFIG;
     modelData.Configuration.Header.protocolVersion = ZCPP_CURRENT_PROTOCOL_VERSION;
     modelData.Configuration.sequenceNumber = ntohs(modelsChangeCount);
+    modelData.Configuration.priority = zcpp->GetPriority();
     strncpy(modelData.Configuration.userControllerName, zcpp->GetDescription().c_str(), sizeof(modelData.Configuration.userControllerName));
 
     logger_zcpp.debug("    Model Change Count : %d", modelsChangeCount);
@@ -2442,7 +2443,7 @@ void xLightsFrame::SetModelData(ZCPPOutput* zcpp, ModelManager* modelManager, Ou
             if (p != nullptr)
             {
                 p->CreateVirtualStrings(true);
-                ports += p->GetVirtualStringCount();
+                ports += std::max(1, p->GetVirtualStringCount());
             }
             else
             {
@@ -2473,7 +2474,7 @@ void xLightsFrame::SetModelData(ZCPPOutput* zcpp, ModelManager* modelManager, Ou
     std::list<ZCPP_packet_t> extraConfigs;
     extraConfigs.push_back(extraConfig);
     auto& current = extraConfigs.back();
-    ZCPPOutput::InitialiseExtraConfigPacket(current, modelsChangeCount);
+    ZCPPOutput::InitialiseExtraConfigPacket(current, modelsChangeCount, zcpp->GetPriority());
 
     int index = 0;
     for (int i = 0; i < cud.GetMaxPixelPort(); i++)

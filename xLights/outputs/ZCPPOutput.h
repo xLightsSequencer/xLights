@@ -19,6 +19,7 @@ class ZCPPOutput : public IPOutput
     long _lastSecond;
     int _vendor;
     int _model;
+    int _priority = 100;
     long _usedChannels;
     bool _supportsVirtualStrings = false;
     bool _supportsSmartRemotes = false;
@@ -43,7 +44,7 @@ public:
     #pragma region Static Functions
     static void SendSync();
     static std::list<Output*> Discover(OutputManager* outputManager);
-    static void InitialiseExtraConfigPacket(ZCPP_packet_t& packet, int seq);
+    static void InitialiseExtraConfigPacket(ZCPP_packet_t& packet, int seq, uint8_t priority);
     static std::string DecodeProtocol(int protocol);
     static int EncodeProtocol(const std::string& protocol);
     static int EncodeColourOrder(const std::string& colourOrder);
@@ -69,8 +70,10 @@ public:
     bool IsMulticast() const { return _multicast; }
     void SetVendor(int vendor) { _vendor = vendor; _dirty = true; }
     void SetModel(int model) { _model = model; _dirty = true; }
+    void SetPriority(int priority) { _priority = priority; _dirty = true; }
     int GetVendor() const { return _vendor; }
     int GetModel() const { return _model; }
+    int GetPriority() const { return _priority; }
     void AddProtocol(const std::string& protocol)
     {
         if (!SupportsProtocol(protocol))
