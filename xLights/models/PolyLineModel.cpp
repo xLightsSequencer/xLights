@@ -174,9 +174,27 @@ void PolyLineModel::DeleteHandle(int handle_) {
     GetModelScreenLocation().DeleteHandle(handle);
 }
 
+void PolyLineModel::SetSegsCollapsed(bool collapsed)
+{
+    segs_collapsed = collapsed;
+
+    // We have to add it to the xml so it survives reconstruction
+    GetModelXml()->DeleteAttribute("SegsExpanded");
+    if (segs_collapsed)
+    {
+        GetModelXml()->AddAttribute("SegsExpanded", "TRUE");
+    }
+    else
+    {
+        GetModelXml()->AddAttribute("SegsExpanded", "FALSE");
+    }
+}
+
 void PolyLineModel::InitModel() {
     wxString dropPattern = GetModelXml()->GetAttribute("DropPattern", "1");
     wxArrayString pat = wxSplit(dropPattern, ',');
+
+    segs_collapsed = GetModelXml()->GetAttribute("SegsCollapsed", "TRUE") == "FALSE";
 
     // parse drop sizes
     std::vector<unsigned int> dropSizes;
@@ -772,7 +790,7 @@ int PolyLineModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropert
         ModelXml->DeleteAttribute("IndivSegs");
         if (event.GetValue().GetBool()) {
             hasIndivSeg = true;
-            segs_collapsed = false;
+            SetSegsCollapsed(false);
             ModelXml->AddAttribute("IndivSegs", "1");
             int count = polyLineSizes.size();
             for (int x = 0; x < count; x++) {
@@ -862,13 +880,13 @@ int PolyLineModel::OnPropertyGridSelection(wxPropertyGridInterface *grid, wxProp
 
 void PolyLineModel::OnPropertyGridItemCollapsed(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
     if (event.GetPropertyName() == "ModelIndividualSegments") {
-        segs_collapsed = true;
+        SetSegsCollapsed(true);
     }
 }
 
 void PolyLineModel::OnPropertyGridItemExpanded(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
     if (event.GetPropertyName() == "ModelIndividualSegments") {
-        segs_collapsed = false;
+        SetSegsCollapsed(false);
     }
 }
 

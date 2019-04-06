@@ -1,11 +1,10 @@
 #ifndef XLIGHTSVERSION_H
 #define XLIGHTSVERSION_H
 
-// These have been moved here so they can be used in xSchedule as well.
-
+// Update these before building a release
 static const wxString xlights_qualifier       = ""; // " BETA,ALPHA,PROD";
-static const wxString xlights_version_string  = "2019.18";
-static const wxString xlights_build_date      = "March 25, 2019";
+static const wxString xlights_version_string  = "2019.20";
+static const wxString xlights_build_date      = "April 5, 2019";
 
 const wxString &GetBitness();
 wxString GetDisplayVersionString();

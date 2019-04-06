@@ -99,6 +99,7 @@ const long ID_NETWORK_UCOFPP_F32B_48 = wxNewId();
 const long ID_NETWORK_UCOFPP_RGBCape24 = wxNewId();
 const long ID_NETWORK_UCOFPP_RGBCape48C = wxNewId();
 const long ID_NETWORK_UCOFPP_RGBCape48F = wxNewId();
+const long ID_NETWORK_UPLOAD_INPUT_CONTROLLER_CONFIGURED = wxNewId();
 
 void CleanupIpAddress(wxString& IpAddr)
 {
@@ -1380,136 +1381,10 @@ void xLightsFrame::OnGridNetworkItemRClick(wxListEvent& event)
     mnuAdd->Append(ID_NETWORK_ADDZCPP, "ZCPP")->Enable(selcnt == 1);
     mnuAdd->Connect(wxEVT_MENU, (wxObjectEventFunction)&xLightsFrame::OnNetworkPopup, nullptr, this);
 
-    wxMenu* mnuUploadController = new wxMenu();
-
-    wxMenuItem* beMultiUpload = mnuUploadController->Append(ID_NETWORK_MULTIUPLOAD, "Upload To All Controllers");
-    if (_outputManager.GetOutputCount() > 0 && _outputManager.GetIps().size() > 0)
-    {
-        beMultiUpload->Enable();
-    }
-    else
-    {
-        beMultiUpload->Enable(false);
-    }
-
-    wxMenu* mnuUCInput = new wxMenu();
-
-    wxMenuItem* beUCIFPPB = mnuUCInput->Append(ID_NETWORK_UCIFPPB, "FPP Bridge Mode");
-    if (!AllSelectedSupportIP()) {
-        beUCIFPPB->Enable(false);
-    } else {
-        if (selcnt == 1) {
-            beUCIFPPB->Enable(true);
-        } else {
-            bool valid = CheckAllAreSameIPType(_outputManager, GridNetwork, true, false);
-            beUCIFPPB->Enable(valid);
-        }
-    }
-
-    wxMenuItem* beUCIFalcon = mnuUCInput->Append(ID_NETWORK_UCIFALCON, "Falcon");
-    if (!AllSelectedSupportIP()) {
-        beUCIFalcon->Enable(false);
-    } else {
-        if (selcnt == 1) {
-            beUCIFalcon->Enable(true);
-        } else {
-            bool valid = CheckAllAreSameIPType(_outputManager, GridNetwork, true, false);
-            beUCIFalcon->Enable(valid);
-        }
-    }
-
-    wxMenuItem* beUCISanDevices = mnuUCInput->Append(ID_NETWORK_UCISANDEVICES, "SanDevices");
-    if (!AllSelectedSupportIP()) {
-        beUCISanDevices->Enable(false);
-    } else {
-        if (selcnt == 1) {
-            beUCISanDevices->Enable(true);
-        } else {
-            bool valid = CheckAllAreSameIPType(_outputManager, GridNetwork, false, true);
-            beUCISanDevices->Enable(valid);
-        }
-    }
-
-    mnuUploadController->Append(ID_NETWORK_UCINPUT, "E1.31 Input Definition", mnuUCInput, "");
-    mnuUCInput->Connect(wxEVT_MENU, (wxObjectEventFunction)&xLightsFrame::OnNetworkPopup, nullptr, this);
-
-    wxMenu* mnuUCOutput = new wxMenu();
-
-#if 0
-    wxMenuItem* beUCOFPPB = mnuUCOutput->Append(ID_NETWORK_UCOFPPB, "FPP Bridge Mode");
-    beUCOFPPB->Enable(selcnt == 1);
-    if (!AllSelectedSupportIP()) {
-        beUCOFPPB->Enable(false);
-    }
-#endif
-
-    wxMenuItem* beUCOFalcon = mnuUCOutput->Append(ID_NETWORK_UCOFALCON, "Falcon");
-    if (!AllSelectedSupportIP()) {
-        beUCOFalcon->Enable(false);
-    } else {
-        if (selcnt == 1) {
-            beUCOFalcon->Enable(true);
-        } else {
-            bool valid = CheckAllAreSameIPType(_outputManager, GridNetwork, true, false);
-            beUCOFalcon->Enable(valid);
-        }
-    }
-
-    wxMenuItem* beUCOPixlite16 = mnuUCOutput->Append(ID_NETWORK_UCOPIXLITE16, "PixLite/PixCon");
-    if (!AllSelectedSupportIP()) {
-        beUCOPixlite16->Enable(false);
-    } else  {
-        if (selcnt == 1) {
-            beUCOPixlite16->Enable(true);
-        } else {
-            bool valid = CheckAllAreSameIPType(_outputManager, GridNetwork, true, false);
-            beUCOPixlite16->Enable(valid);
-        }
-    }
-
-    wxMenuItem* beUCOSanDevices = mnuUCOutput->Append(ID_NETWORK_UCOSANDEVICES, "SanDevices");
-    if (!AllSelectedSupportIP()) {
-        beUCOSanDevices->Enable(false);
-    } else {
-        if (selcnt == 1) {
-            beUCOSanDevices->Enable(true);
-        } else {
-            bool valid = CheckAllAreSameIPType(_outputManager, GridNetwork, false, true);
-            beUCOSanDevices->Enable(valid);
-        }
-    }
-
-
-    wxMenuItem* beUCOJ1SYS = mnuUCOutput->Append(ID_NETWORK_UCOJ1SYS, "J1SYS");
-    if (!AllSelectedSupportIP()) {
-        beUCOJ1SYS->Enable(false);
-    } else {
-        if (selcnt == 1) {
-            beUCOJ1SYS->Enable(true);
-        } else {
-            bool valid = CheckAllAreSameIPType(_outputManager, GridNetwork, true, true);
-            beUCOJ1SYS->Enable(valid);
-        }
-    }
-
-	wxMenuItem* beUCOEasyLights = mnuUCOutput->Append(ID_NETWORK_UCOEASYLIGHTS, "EasyLights");
-	if(!AllSelectedSupportIP()) {
-		beUCOEasyLights->Enable(false);
-	}
-	else {
-		if(selcnt == 1) {
-			beUCOEasyLights->Enable(true);
-		}
-		else {
-			bool valid = CheckAllAreSameIPType(_outputManager, GridNetwork, false, true);
-			beUCOEasyLights->Enable(valid);
-		}
-	}
-
+    
     bool validIpNoType = CheckAllAreSameIPType(_outputManager, GridNetwork, true, false);
     bool allSupportIp = AllSelectedSupportIP();
     bool doEnable = allSupportIp && (selcnt == 1 || validIpNoType);
-
     bool hasControllerConfigured = false;
     Output *selected = nullptr;
     if (selcnt == 1) {
@@ -1521,10 +1396,133 @@ void xLightsFrame::OnGridNetworkItemRClick(wxListEvent& event)
             hasControllerConfigured = true;
         }
     }
+    
+    wxMenu* mnuUploadController = new wxMenu();
     if (hasControllerConfigured) {
-        std::string description = ControllerRegistry::GetRulesForController(selected->GetControllerId())->GetControllerDescription();
-        mnuUploadController->Append(ID_NETWORK_UPLOAD_CONTROLLER_CONFIGURED, "Output - " + description);
+        auto rules = ControllerRegistry::GetRulesForController(selected->GetControllerId());
+        if (selected->GetType() == OUTPUT_E131 && rules->GetControllerManufacturer() != "ESPixelStick") {
+            std::string description = rules->GetControllerDescription();
+            mnuUploadController->Append(ID_NETWORK_UPLOAD_INPUT_CONTROLLER_CONFIGURED, "E1.31 Input Definition - " + description);
+        }
     } else {
+        wxMenuItem* beMultiUpload = mnuUploadController->Append(ID_NETWORK_MULTIUPLOAD, "Upload To All Controllers");
+        if (_outputManager.GetOutputCount() > 0 && _outputManager.GetIps().size() > 0) {
+            beMultiUpload->Enable();
+        } else {
+            beMultiUpload->Enable(false);
+        }
+
+        
+        wxMenu* mnuUCInput = new wxMenu();
+        wxMenuItem* beUCIFPPB = mnuUCInput->Append(ID_NETWORK_UCIFPPB, "FPP Bridge Mode");
+        if (!AllSelectedSupportIP()) {
+            beUCIFPPB->Enable(false);
+        } else {
+            if (selcnt == 1) {
+                beUCIFPPB->Enable(true);
+            } else {
+                beUCIFPPB->Enable(validIpNoType);
+            }
+        }
+
+        wxMenuItem* beUCIFalcon = mnuUCInput->Append(ID_NETWORK_UCIFALCON, "Falcon");
+        if (!AllSelectedSupportIP()) {
+            beUCIFalcon->Enable(false);
+        } else {
+            if (selcnt == 1) {
+                beUCIFalcon->Enable(true);
+            } else {
+                beUCIFalcon->Enable(validIpNoType);
+            }
+        }
+
+        wxMenuItem* beUCISanDevices = mnuUCInput->Append(ID_NETWORK_UCISANDEVICES, "SanDevices");
+        if (!AllSelectedSupportIP()) {
+            beUCISanDevices->Enable(false);
+        } else {
+            if (selcnt == 1) {
+                beUCISanDevices->Enable(true);
+            } else {
+                bool valid = CheckAllAreSameIPType(_outputManager, GridNetwork, false, true);
+                beUCISanDevices->Enable(valid);
+            }
+        }
+
+        mnuUploadController->Append(ID_NETWORK_UCINPUT, "E1.31 Input Definition", mnuUCInput, "");
+        mnuUCInput->Connect(wxEVT_MENU, (wxObjectEventFunction)&xLightsFrame::OnNetworkPopup, nullptr, this);
+    }
+    if (hasControllerConfigured) {
+        auto rules = ControllerRegistry::GetRulesForController(selected->GetControllerId());
+        std::string description = rules->GetControllerDescription();
+        if (rules->GetControllerManufacturer() == "ESPixelStick") {
+            //ESPixelStick uploads inputs and outputs together as one
+            mnuUploadController->Append(ID_NETWORK_UPLOAD_CONTROLLER_CONFIGURED, description);
+        } else {
+            mnuUploadController->Append(ID_NETWORK_UPLOAD_CONTROLLER_CONFIGURED, "Output - " + description);
+        }
+    } else {
+        wxMenu* mnuUCOutput = new wxMenu();
+        wxMenuItem* beUCOFalcon = mnuUCOutput->Append(ID_NETWORK_UCOFALCON, "Falcon");
+        if (!AllSelectedSupportIP()) {
+            beUCOFalcon->Enable(false);
+        } else {
+            if (selcnt == 1) {
+                beUCOFalcon->Enable(true);
+            } else {
+                beUCOFalcon->Enable(validIpNoType);
+            }
+        }
+
+        wxMenuItem* beUCOPixlite16 = mnuUCOutput->Append(ID_NETWORK_UCOPIXLITE16, "PixLite/PixCon");
+        if (!AllSelectedSupportIP()) {
+            beUCOPixlite16->Enable(false);
+        } else  {
+            if (selcnt == 1) {
+                beUCOPixlite16->Enable(true);
+            } else {
+                beUCOPixlite16->Enable(validIpNoType);
+            }
+        }
+
+        wxMenuItem* beUCOSanDevices = mnuUCOutput->Append(ID_NETWORK_UCOSANDEVICES, "SanDevices");
+        if (!AllSelectedSupportIP()) {
+            beUCOSanDevices->Enable(false);
+        } else {
+            if (selcnt == 1) {
+                beUCOSanDevices->Enable(true);
+            } else {
+                bool valid = CheckAllAreSameIPType(_outputManager, GridNetwork, false, true);
+                beUCOSanDevices->Enable(valid);
+            }
+        }
+
+
+        wxMenuItem* beUCOJ1SYS = mnuUCOutput->Append(ID_NETWORK_UCOJ1SYS, "J1SYS");
+        if (!AllSelectedSupportIP()) {
+            beUCOJ1SYS->Enable(false);
+        } else {
+            if (selcnt == 1) {
+                beUCOJ1SYS->Enable(true);
+            } else {
+                bool valid = CheckAllAreSameIPType(_outputManager, GridNetwork, true, true);
+                beUCOJ1SYS->Enable(valid);
+            }
+        }
+
+        wxMenuItem* beUCOEasyLights = mnuUCOutput->Append(ID_NETWORK_UCOEASYLIGHTS, "EasyLights");
+        if(!AllSelectedSupportIP()) {
+            beUCOEasyLights->Enable(false);
+        }
+        else {
+            if(selcnt == 1) {
+                beUCOEasyLights->Enable(true);
+            }
+            else {
+                bool valid = CheckAllAreSameIPType(_outputManager, GridNetwork, false, true);
+                beUCOEasyLights->Enable(valid);
+            }
+        }
+
         wxMenu* fppOutput = new wxMenu();
         mnuUCOutput->AppendSubMenu(fppOutput, "FPP Capes/Hats");
         fppOutput->Connect(wxEVT_MENU, (wxObjectEventFunction)&xLightsFrame::OnNetworkPopup, nullptr, this);
@@ -1737,10 +1735,28 @@ void xLightsFrame::OnNetworkPopup(wxCommandEvent &event)
         UploadFPPStringOuputs("PiHat");
     } else if (id == ID_NETWORK_UCOPIXLITE16) {
         UploadPixlite16Output();
+    } else if (id == ID_NETWORK_UPLOAD_INPUT_CONTROLLER_CONFIGURED) {
+        Output *selected = _outputManager.GetOutput(item);
+        const ControllerRules * rules = ControllerRegistry::GetRulesForController(selected->GetControllerId());
+        if (rules->GetControllerManufacturer() == "FPP")  {
+            UploadFPPBridgeInput();
+        } else if (rules->GetControllerManufacturer() == "Falcon")  {
+            UploadFalconInput();
+        } else if (rules->GetControllerManufacturer() == "ESPixelStick")  {
+            UploadESPixelStickOutput();
+        }
+        //FIXME - other targets
     } else if (id == ID_NETWORK_UPLOAD_CONTROLLER_CONFIGURED) {
         Output *selected = _outputManager.GetOutput(item);
-        //FIXME - non FPP targets
-        UploadFPPStringOuputs(selected->GetControllerId());
+        const ControllerRules * rules = ControllerRegistry::GetRulesForController(selected->GetControllerId());
+        if (rules->GetControllerManufacturer() == "FPP")  {
+            UploadFPPStringOuputs(rules->GetControllerId());
+        } else if (rules->GetControllerManufacturer() == "Falcon")  {
+            UploadFalconOutput();
+        } else if (rules->GetControllerManufacturer() == "ESPixelStick")  {
+            UploadESPixelStickOutput();
+        }
+        //FIXME - other targets
     } else if (id == ID_NETWORK_VISUALISE) {
         Output *selected = _outputManager.GetOutput(item);
         VisualiseOutput(selected);
@@ -1770,9 +1786,8 @@ void xLightsFrame::OnNetworkPopup(wxCommandEvent &event)
     } else if (id == ID_NETWORK_PINGCONTROLLER) {
         Output* o = _outputManager.GetOutput(item);
         PingController(o);
-	}
-	else if(id == ID_NETWORK_UCOEASYLIGHTS) {
-		UploadEasyLightsOutput();
+	} else if(id == ID_NETWORK_UCOEASYLIGHTS) {
+	 	UploadEasyLightsOutput();
 	}
 }
 

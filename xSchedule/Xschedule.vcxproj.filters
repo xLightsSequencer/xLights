@@ -5,7 +5,6 @@
     <ClCompile Include="..\xLights\JobPool.cpp" />
     <ClCompile Include="..\xLights\kiss_fft\kiss_fft.c" />
     <ClCompile Include="..\xLights\kiss_fft\tools\kiss_fftr.c" />
-    <ClCompile Include="..\xLights\outputs\Controller.cpp" />
     <ClCompile Include="..\xLights\outputs\TestPreset.cpp" />
     <ClCompile Include="..\xLights\vamp-hostsdk\Files.cpp" />
     <ClCompile Include="..\xLights\vamp-hostsdk\PluginBufferingAdapter.cpp" />
@@ -76,9 +75,6 @@
     <ClCompile Include="ColourOrderDialog.cpp">
       <Filter>OutputProcessing</Filter>
     </ClCompile>
-    <ClCompile Include="..\xLights\outputs\DDPDialog.cpp">
-      <Filter>Outputs</Filter>
-    </ClCompile>
     <ClCompile Include="..\xLights\outputs\DDPOutput.cpp">
       <Filter>Outputs</Filter>
     </ClCompile>
@@ -92,9 +88,6 @@
       <Filter>OutputProcessing</Filter>
     </ClCompile>
     <ClCompile Include="..\xLights\outputs\DMXOutput.cpp">
-      <Filter>Outputs</Filter>
-    </ClCompile>
-    <ClCompile Include="..\xLights\outputs\E131Dialog.cpp">
       <Filter>Outputs</Filter>
     </ClCompile>
     <ClCompile Include="..\xLights\outputs\E131Output.cpp">
@@ -215,9 +208,6 @@
       <Filter>Outputs</Filter>
     </ClCompile>
     <ClCompile Include="..\xLights\outputs\NullOutput.cpp">
-      <Filter>Outputs</Filter>
-    </ClCompile>
-    <ClCompile Include="..\xLights\outputs\NullOutputDialog.cpp">
       <Filter>Outputs</Filter>
     </ClCompile>
     <ClCompile Include="..\xLights\outputs\OpenDMXOutput.cpp">
@@ -412,9 +402,6 @@
     <ClCompile Include="ThreeToFourDialog.cpp">
       <Filter>OutputProcessing</Filter>
     </ClCompile>
-    <ClCompile Include="..\xLights\outputs\SerialPortWithRate.cpp">
-      <Filter>Outputs</Filter>
-    </ClCompile>
     <ClCompile Include="..\xLights\outputs\SerialOutput.cpp">
       <Filter>Outputs</Filter>
     </ClCompile>
@@ -554,9 +541,6 @@
     </ClInclude>
     <ClInclude Include="ColourOrderDialog.h">
       <Filter>OutputProcessing</Filter>
-    </ClInclude>
-    <ClInclude Include="..\xLights\outputs\DDPDialog.h">
-      <Filter>Outputs</Filter>
     </ClInclude>
     <ClInclude Include="..\xLights\outputs\DDPOutput.h">
       <Filter>Outputs</Filter>

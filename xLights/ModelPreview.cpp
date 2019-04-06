@@ -151,8 +151,26 @@ void ModelPreview::mouseMoved(wxMouseEvent& event) {
         }
     }
     Model *model = xlights ? xlights->GetModel(currentModel) : nullptr;
-    if (model != nullptr) {
-        wxString tip = model->GetNodeNear(this, event.GetPosition());
+    if (model != nullptr && !is_3d) {
+        double x = event.GetPosition().x;
+        double y = event.GetPosition().y;
+
+        int w, h;
+        GetSize(&w, &h);
+
+        x -= camera2d->GetPanX() * camera2d->GetZoom();
+        y += camera2d->GetPanY() * camera2d->GetZoom();
+
+        x -= (double)w / 2.0;
+        y -= (double)h / 2.0;
+        
+        x /= camera2d->GetZoom();
+        y /= camera2d->GetZoom();
+
+        x += (double)w / 2.0;
+        y += (double)h / 2.0;
+
+        wxString tip = model->GetNodeNear(this, wxPoint(x,y));
         SetToolTip(tip);
     }
 
@@ -624,6 +642,7 @@ void ModelPreview::InitializeGLCanvas()
 
     mIsInitialized = true;
 }
+
 void ModelPreview::OnSysColourChanged(wxSysColourChangedEvent& event) {
     if (mIsInitialized) {
         SetCurrentGLContext();

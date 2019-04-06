@@ -11,7 +11,7 @@ class ControllerRegistry
 {
     public:
     
-        static std::vector<std::string> GetControllerIds();
+        static std::vector<std::string> GetControllerIds(bool sortByDescription = true);
         static const ControllerRules *GetRulesForController(const std::string &id);
         static void AddController(const ControllerRules *rules);
     
@@ -23,6 +23,7 @@ class ControllerRegistry
         static void loadControllers();
 
         static std::map<std::string, const ControllerRules*> controllers;
+        static std::map<std::string, std::string> controllersByDescription;
 };
 
 #endif // CONTROLLERREGISTRY_H

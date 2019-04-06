@@ -51,12 +51,100 @@ int EncodeStarts(const wxString& start)
     return -1;
 }
 
+void SpinnerModel::DecodeStartLocation(int sl)
+{
+    switch(sl)
+    {
+    case 0:
+        alternate = false;
+        isBotToTop = false;
+        IsLtoR = true;
+        break;
+    case 1:
+        alternate = false;
+        isBotToTop = false;
+        IsLtoR = false;
+        break;
+    case 2:
+        alternate = false;
+        isBotToTop = true;
+        IsLtoR = true;
+        break;
+    case 3:
+        alternate = false;
+        isBotToTop = true;
+        IsLtoR = false;
+        break;
+    case 4:
+        isBotToTop = false;
+        alternate = true;
+        IsLtoR = true;
+        zigzag = false;
+        break;
+    case 5:
+        isBotToTop = false;
+        alternate = true;
+        IsLtoR = false;
+        zigzag = false;
+        break;
+    default:
+        wxASSERT(false);
+        break;
+    }
+}
+
+int SpinnerModel::EncodeStartLocation()
+{
+    if (alternate)
+    {
+        if (IsLtoR)
+        {
+            // Alternate CCW
+            return 4;
+        }
+        else
+        {
+            // Alternate CW
+            return 5;
+        }
+    }
+    else
+    {
+        if (isBotToTop)
+        {
+            if (IsLtoR)
+            {
+                return 2; // Outsde CCW
+            }
+            else
+            {
+                return 3; // Outside CW
+            }
+        }
+        else
+        {
+            if (IsLtoR)
+            {
+                return 0; // Center CCW
+            }
+            else
+            {
+                return 1; // Center CW
+            }
+        }
+    }
+    wxASSERT(false);
+    return 0;
+}
+
 void SpinnerModel::AddTypeProperties(wxPropertyGridInterface *grid) {
     if (TOP_BOT_LEFT_RIGHT.GetCount() == 0) {
         TOP_BOT_LEFT_RIGHT.Add("Center Counter Clockwise");
         TOP_BOT_LEFT_RIGHT.Add("Center Clockwise");
         TOP_BOT_LEFT_RIGHT.Add("End Counter Clockwise");
         TOP_BOT_LEFT_RIGHT.Add("End Clockwise");
+        TOP_BOT_LEFT_RIGHT.Add("Center Alternate Counter Clockwise");
+        TOP_BOT_LEFT_RIGHT.Add("Center Alternate Clockwise");
     }
     
     wxPGProperty *p = grid->Append(new wxUIntProperty("# Strings", "SpinnerStringCount", parm1));
@@ -84,10 +172,11 @@ void SpinnerModel::AddTypeProperties(wxPropertyGridInterface *grid) {
     p->SetAttribute("Max", 360);
     p->SetEditor("SpinCtrl");
 
-    grid->Append(new wxEnumProperty("Starting Location", "MatrixStart", TOP_BOT_LEFT_RIGHT, IsLtoR ? (isBotToTop ? 2 : 0) : (isBotToTop ? 3 : 1)));
+    grid->Append(new wxEnumProperty("Starting Location", "MatrixStart", TOP_BOT_LEFT_RIGHT, EncodeStartLocation()));
 
     p = grid->Append(new wxBoolProperty("Zig-Zag Start", "ZigZag", zigzag));
     p->SetEditor("CheckBox");
+    p->Enable(alternate == false);
 }
 
 int SpinnerModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
@@ -123,10 +212,15 @@ int SpinnerModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxProperty
         SetFromXml(ModelXml, zeroBased);
         return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
     } else if ("MatrixStart" == event.GetPropertyName()) {
+        DecodeStartLocation(event.GetValue().GetLong());
         ModelXml->DeleteAttribute("Dir");
-        ModelXml->AddAttribute("Dir", event.GetValue().GetLong() == 0 || event.GetValue().GetLong() == 2 ? "L" : "R");
+        ModelXml->AddAttribute("Dir", IsLtoR ? "L" : "R");
         ModelXml->DeleteAttribute("StartSide");
-        ModelXml->AddAttribute("StartSide", event.GetValue().GetLong() == 0 || event.GetValue().GetLong() == 1 ? "T" : "B");
+        ModelXml->AddAttribute("StartSide", isBotToTop ? "B" : "T");
+        ModelXml->DeleteAttribute("Alternate");
+        ModelXml->AddAttribute("Alternate", alternate ? "true" : "false");
+        ModelXml->DeleteAttribute("ZigZag");
+        ModelXml->AddAttribute("ZigZag",zigzag ? "true" : "false");
         SetFromXml(ModelXml, zeroBased);
         return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
     }
@@ -163,7 +257,7 @@ void SpinnerModel::InitModel() {
     hollow = wxAtoi(ModelXml->GetAttribute("Hollow", "20"));
     arc = wxAtoi(ModelXml->GetAttribute("Arc", "360"));
     zigzag = (ModelXml->GetAttribute("ZigZag", "false") == "true");
-
+    alternate = (ModelXml->GetAttribute("Alternate", "false") == "true");
     SetNodeCount(stringcount, pixelsperstring, rgbOrder);
     screenLocation.SetRenderSize(2 * nodesperarm + 3 + (hollow * 2.0 * nodesperarm) / 100.0, 2 * nodesperarm + 3 + (hollow * 2.0 * nodesperarm) / 100.0);
 
@@ -190,19 +284,34 @@ void SpinnerModel::InitModel() {
                 size_t idx = x * nodesperarm + y;
                 Nodes[idx]->ActChan = stringStartChan[stringnum] + segmentnum * nodesperarm * chanPerNode + y * chanPerNode;
                 Nodes[idx]->Coords[0].bufX = IsLtoR ? x : armcount - x - 1;
-                if (!zigzag)
+                if (alternate)
                 {
-                    Nodes[idx]->Coords[0].bufY = isBotToTop ? y : nodesperarm - y - 1;
+                    if (y + 1 <= (nodesperarm+1) / 2)
+                    {
+                        Nodes[idx]->Coords[0].bufY = 2 * y;
+                    }
+                    else
+                    {
+                        Nodes[idx]->Coords[0].bufY = (nodesperarm - (y+1)) * 2 + 1;
+                    }
+                    Nodes[idx]->Coords[0].bufY = nodesperarm - Nodes[idx]->Coords[0].bufY - 1;
                 }
                 else
                 {
-                    if (x % 2 == 0)
+                    if (!zigzag)
                     {
                         Nodes[idx]->Coords[0].bufY = isBotToTop ? y : nodesperarm - y - 1;
                     }
                     else
                     {
-                        Nodes[idx]->Coords[0].bufY = isBotToTop ? nodesperarm - y - 1 : y;
+                        if (x % 2 == 0)
+                        {
+                            Nodes[idx]->Coords[0].bufY = isBotToTop ? y : nodesperarm - y - 1;
+                        }
+                        else
+                        {
+                            Nodes[idx]->Coords[0].bufY = isBotToTop ? nodesperarm - y - 1 : y;
+                        }
                     }
                 }
             }
@@ -284,25 +393,25 @@ void SpinnerModel::SetSpinnerCoord() {
             int end = start + nodesperarm;
             for (size_t c = start; c < end; c++) {
                 int c2 = c - start;
-                    int c1 = 0;
+                int c1 = 0;
+                if (!fromcentre) {
+                    c1 = nodesperarm - c2 - 1;
+                }
+                else {
+                    c1 = c2;
+                }
+
+                if (zigzag && a % 2 > 0) {
                     if (!fromcentre) {
-                        c1 = nodesperarm - c2 - 1;
-                    }
-                    else {
                         c1 = c2;
                     }
-
-                    if (zigzag && a % 2 > 0) {
-                        if (!fromcentre) {
-                            c1 = c2;
-                        }
-                        else {
-                            c1 = nodesperarm - c2 - 1;
-                        }
+                    else {
+                        c1 = nodesperarm - c2 - 1;
                     }
+                }
 
-                    Nodes[a1]->Coords[c].screenX = (0.5f + (float)c1 + ((float)hollow * 2.0 * (float)nodesperarm) / 100.0) * cos(angle);
-                    Nodes[a1]->Coords[c].screenY = (0.5f + (float)c1 + ((float)hollow * 2.0 * (float)nodesperarm) / 100.0) * sin(angle);
+                Nodes[a1]->Coords[c].screenX = (0.5f + (float)c1 + ((float)hollow * 2.0 * (float)nodesperarm) / 100.0) * cos(angle);
+                Nodes[a1]->Coords[c].screenY = (0.5f + (float)c1 + ((float)hollow * 2.0 * (float)nodesperarm) / 100.0) * sin(angle);
             }
         }
         else
@@ -310,24 +419,38 @@ void SpinnerModel::SetSpinnerCoord() {
             for (size_t n = 0; n < nodesperarm; n++)
             {
                 int n1 = 0;
-                if (!fromcentre)
+                if (alternate)
                 {
-                    n1 = nodesperarm - n - 1;
-                }
-                else
-                {
-                    n1 = n;
-                }
-
-                if (zigzag && a % 2 > 0)
-                {
-                    if (!fromcentre)
+                    if (n + 1 <= (nodesperarm + 1) / 2)
                     {
-                        n1 = n;
+                        n1 = 2 * n;
                     }
                     else
                     {
+                        n1 = (nodesperarm - (n + 1)) * 2 + 1;
+                    }
+                }
+                else
+                {
+                    if (!fromcentre)
+                    {
                         n1 = nodesperarm - n - 1;
+                    }
+                    else
+                    {
+                        n1 = n;
+                    }
+
+                    if (zigzag && a % 2 > 0)
+                    {
+                        if (!fromcentre)
+                        {
+                            n1 = n;
+                        }
+                        else
+                        {
+                            n1 = nodesperarm - n - 1;
+                        }
                     }
                 }
 

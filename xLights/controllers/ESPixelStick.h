@@ -18,6 +18,12 @@ public:
     virtual const std::string GetControllerId() const override {
         return std::string("ESPixelStick");
     }
+    virtual const std::string GetControllerDescription() const override {
+        return std::string("ESPixelStick");
+    }
+    virtual const std::string GetControllerManufacturer() const override {
+        return "ESPixelStick";
+    }
     virtual bool SupportsLEDPanelMatrix() const override {
         return false;
     }
@@ -66,6 +72,8 @@ public:
     bool IsConnected() const { return _connected; };
     virtual ~ESPixelStick();
     bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, std::list<int>& selected, wxWindow* parent);
+    
+    static void RegisterControllers();
 };
 
 #endif

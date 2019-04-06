@@ -543,7 +543,14 @@ void FileConverter::ReadLorFile(ConvertParameters& params)
                         chindex = 0;
                         for (int z = 0; z < (unit - 1); z++)
                         {
-                            chindex += lorUnitSizes[network][z];
+                            if (lorUnitSizes.size() > network && lorUnitSizes[network].size() > z)
+                            {
+                                chindex += lorUnitSizes[network][z];
+                            }
+                            else
+                            {
+                                params.AppendConvertStatus("Problem resolving channel. Have you got your setup tab right?");
+                            }
                         }
                         chindex += circuit - 1;
                         curchannel = params._outputManager->GetAbsoluteChannel(network, chindex) - 1;

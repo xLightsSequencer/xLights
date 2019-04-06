@@ -110,6 +110,61 @@ public:
 // Subclassing wxGrid is the only way to get keyboard copy and paste working without breaking the grid behaviour
 class CopyPasteGrid : public wxGrid
 {
+    void HandleOnMouseWheel(wxMouseEvent& event)
+    {
+        m_wheelRotation += event.GetWheelRotation();
+        int lines = m_wheelRotation / event.GetWheelDelta();
+        m_wheelRotation -= lines * event.GetWheelDelta();
+
+        if (lines != 0)
+        {
+
+            wxScrollWinEvent newEvent;
+
+            newEvent.SetPosition(0);
+            newEvent.SetOrientation(event.GetWheelAxis() == 0 ? wxVERTICAL : wxHORIZONTAL);
+
+            if(event.ShiftDown())
+            {
+                if (newEvent.GetOrientation() == wxVERTICAL)
+                {
+                    newEvent.SetOrientation(wxHORIZONTAL);
+                }
+                else
+                {
+                    newEvent.SetOrientation(wxVERTICAL);
+                }
+            }
+
+            newEvent.SetEventObject(m_win);
+
+            if (event.GetWheelAxis() == wxMOUSE_WHEEL_HORIZONTAL)
+                lines = -lines;
+
+            if (event.IsPageScroll())
+            {
+                if (lines > 0)
+                    newEvent.SetEventType(wxEVT_SCROLLWIN_PAGEUP);
+                else
+                    newEvent.SetEventType(wxEVT_SCROLLWIN_PAGEDOWN);
+
+                m_win->GetEventHandler()->ProcessEvent(newEvent);
+            }
+            else
+            {
+                lines *= event.GetLinesPerAction();
+                if (lines > 0)
+                    newEvent.SetEventType(wxEVT_SCROLLWIN_LINEUP);
+                else
+                    newEvent.SetEventType(wxEVT_SCROLLWIN_LINEDOWN);
+
+                int times = abs(lines);
+                for (; times > 0; times--)
+                    m_win->GetEventHandler()->ProcessEvent(newEvent);
+            }
+        }
+    }
+
     void DoOnChar(wxKeyEvent& event)
     {
         wxChar uc = event.GetUnicodeKey();
@@ -174,6 +229,7 @@ class CopyPasteGrid : public wxGrid
     CopyPasteGrid(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style, const wxString& name) : wxGrid(parent, id, pos, size, style, name)
     {
         Connect(wxEVT_CHAR, (wxObjectEventFunction)&CopyPasteGrid::DoOnChar, 0, this);
+        Connect(wxEVT_MOUSEWHEEL, (wxObjectEventFunction)&CopyPasteGrid::HandleOnMouseWheel, 0, this);
     }
 
     virtual ~CopyPasteGrid()

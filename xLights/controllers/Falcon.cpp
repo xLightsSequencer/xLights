@@ -12,7 +12,8 @@
 #include "ControllerUploadData.h"
 
 #include <log4cpp/Category.hh>
-#include "UtilFunctions.h"
+#include "../UtilFunctions.h"
+#include "ControllerRegistry.h"
 
 void Falcon::DecodeModelVersion(int p, int& model, int& version)
 {
@@ -52,6 +53,22 @@ static std::string FALCON_F4 = "Falcon F4";
 const std::string FalconControllerRules::GetControllerId() const {
     return wxString::Format("F%dv%d", _type, _version).ToStdString();
 }
+
+static std::vector<FalconControllerRules> CONTROLLER_TYPE_MAP = {
+    FalconControllerRules(1),
+    FalconControllerRules(3),
+    FalconControllerRules(4),
+    FalconControllerRules(5),
+    FalconControllerRules(6),
+    FalconControllerRules(7)
+};
+void Falcon::RegisterControllers() {
+    for (auto &a : CONTROLLER_TYPE_MAP) {
+        ControllerRegistry::AddController(&a);
+    }
+}
+
+
 
 bool Falcon::IsEnhancedV2Firmware() const
 {
@@ -104,76 +121,54 @@ Falcon::Falcon(const std::string& ip)
     _http.SetMethod("GET");
     _connected = _http.Connect(_ip);
 
-    if (_connected)
-    {
+    if (_connected) {
         int p = 0;
         std::string versionxml = GetURL("/status.xml");
-        if (versionxml == "")
-        {
+        if (versionxml == "") {
             logger_base.error("    Error retrieving status.xml from falcon controller.");
             _connected = false;
             return;
         }
-        logger_base.debug("Status.xml retrieved.");
+        logger_base.debug("status.xml:\n%s", (const char*)versionxml.c_str());
 
-        if (versionxml != "")
-        {
-            logger_base.debug("status.xml:\n%s", (const char*)versionxml.c_str());
-
-            static wxRegEx versionregex("(\\<v\\>)([0-9]+\\.[0-9]+)\\<\\/v\\>", wxRE_ADVANCED | wxRE_NEWLINE);
-            if (versionregex.Matches(wxString(versionxml)))
-            {
-                _firmwareVersion = versionregex.GetMatch(wxString(versionxml), 2).ToStdString();
-            }
-
-            if (_firmwareVersion == "")
-            {
-                static wxRegEx version1regex("(\\<fv\\>)([0-9]+\\.[0-9]+)\\<\\/fv\\>", wxRE_ADVANCED | wxRE_NEWLINE);
-                if (version1regex.Matches(wxString(versionxml)))
-                {
-                    _firmwareVersion = version1regex.GetMatch(wxString(versionxml), 2).ToStdString();
-                }
-            }
-
-            static wxRegEx versionmodelregex("(\\<p\\>)([0-9]+)\\<\\/p\\>", wxRE_ADVANCED | wxRE_NEWLINE);
-            if (versionmodelregex.Matches(wxString(versionxml)))
-            {
-                p = wxAtoi(versionmodelregex.GetMatch(wxString(versionxml), 2));
-                DecodeModelVersion(p, _model, _version);
+        wxStringInputStream stream(versionxml);
+        wxXmlDocument xml(stream);
+        wxXmlNode *node = xml.GetRoot()->GetChildren();
+        while (node) {
+            if (node->GetName() == "v" || node->GetName() == "fv") {
+                _firmwareVersion = node->GetNodeContent();
+            } else if (node->GetName() == "a") {
+                _usingAbsolute = node->GetNodeContent() == "0";
+            } else if (node->GetName() == "p") {
+                DecodeModelVersion(wxAtoi(node->GetNodeContent()), _model, _version);
                 _modelString = wxString::Format("F%dV%d", _model, _version).ToStdString();
             }
+            node = node->GetNext();
         }
 
-        if (_version == 0 || _model == 0 || _firmwareVersion == "")
-        {
+        if (_version == 0 || _model == 0 || _firmwareVersion == "") {
             std::string version = GetURL("/index.htm");
-            if (version == "")
-            {
+            if (version == "") {
                 logger_base.error("    Error retrieving index.htm from falcon controller.");
                 _connected = false;
                 return;
             }
 
-            if (_firmwareVersion == "")
-            {
+            if (_firmwareVersion == "") {
                 //<title>F4V2            - v1.10</title>
                 static wxRegEx firmwareversionregex("(title.*?v)([0-9]+\\.[0-9]+)\\<\\/title\\>", wxRE_ADVANCED | wxRE_NEWLINE);
-                if (firmwareversionregex.Matches(wxString(version)))
-                {
+                if (firmwareversionregex.Matches(wxString(version))) {
                     _firmwareVersion = firmwareversionregex.GetMatch(wxString(version), 2).ToStdString();
                 }
             }
         }
 
         logger_base.debug("Connected to falcon - p=%d Model: '%s' Firmware Version '%s'. F%d:V%d", p, (const char*)_modelString.c_str(), (const char*)_firmwareVersion.c_str(), _model, _version);
-    }
-    else
-    {
+    } else {
         logger_base.error("Error connecting to falcon controller on %s.", (const char *)_ip.c_str());
     }
 
-    if (_version == 0 || _model == 0)
-    {
+    if (_version == 0 || _model == 0) {
         _connected = false;
         logger_base.error("Error connecting to falcon controller on %s. Unable to determine model/version.", (const char *)_ip.c_str());
     }
@@ -304,32 +299,27 @@ bool Falcon::SetInputUniverses(OutputManager* outputManager, std::list<int>& sel
     // Get universes based on IP
     std::list<Output*> outputs = outputManager->GetAllOutputs(_ip, selected);
 
-    if (outputs.size() > 96)
-    {
+    if (outputs.size() > 96) {
         DisplayError(wxString::Format("Attempt to upload %d universes to falcon controller but only 96 are supported.", outputs.size()).ToStdString());
         return false;
     }
 
-    for (auto it = outputs.begin(); it != outputs.end(); ++it)
-    {
+    for (auto it = outputs.begin(); it != outputs.end(); ++it) {
         int t = -1;
-        if ((*it)->GetType() == "E131")
-        {
+        if ((*it)->GetType() == "E131") {
             t = 0;
-        }
-        else if ((*it)->GetType() == "ArtNet")
-        {
+        } else if ((*it)->GetType() == "ArtNet") {
             t = 1;
         }
         request += wxString::Format("&u%d=%d&s%d=%d&c%d=%d&t%d=%d",
             output, (*it)->GetUniverse(),
-            output, (*it)->GetChannels(),
-            output, (*it)->GetStartChannel(),
+            output, (int)(*it)->GetChannels(),
+            output, (int)(*it)->GetStartChannel(),
             output, t);
         output++;
     }
 
-    request = wxString::Format("z=%d&a=1", output) + request;
+    request = wxString::Format("z=%d&a=%d", output, (_usingAbsolute ? 0 : 1)) + request;
     std::string response = PutURL("/E131.htm", request.ToStdString());
     return (response != "");
 }
@@ -529,7 +519,11 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
                 fs->index = index++;
                 fs->protocol = DecodeStringPortProtocol(vs->_protocol);
                 fs->universe = vs->_universe;
-                fs->startChannel = vs->_universeStartChannel;
+                if (_usingAbsolute) {
+                    fs->startChannel = vs->_startChannel;
+                } else {
+                    fs->startChannel = vs->_universeStartChannel;
+                }
                 fs->pixels = vs->Channels() / 3;
                 fs->description = SafeDescription(vs->_description);
                 fs->smartRemote = vs->_smartRemote;
@@ -871,7 +865,9 @@ void Falcon::ReadStringData(const wxXmlDocument& stringsDoc, std::vector<FalconS
         // ga = gamma (index 0 - none, 1 - 2.0, 2 - 2.3, 3 - 2.5, 4 - 2.8, 5 - 3.0
         FalconString* string = new FalconString();
         string->startChannel = wxAtoi(e->GetAttribute("us")) + 1;
-        if (string->startChannel < 1 || string->startChannel > 512) string->startChannel = 1;
+        if (!_usingAbsolute) {
+            if (string->startChannel < 1 || string->startChannel > 512) string->startChannel = 1;
+        }
         string->pixels = wxAtoi(e->GetAttribute("c"));
         if (string->pixels < 0 || string->pixels > GetMaxPixels()) string->pixels = 0;
         string->protocol = wxAtoi(e->GetAttribute("t", "0"));
@@ -1068,12 +1064,9 @@ void Falcon::InitialiseStrings(std::vector<FalconString*>& stringsData, int max)
 void Falcon::UploadStringPort(const std::string& request, bool final)
 {
     std::string r = request;
-    if (final)
-    {
+    if (final) {
         r = "r=1&" + r;
-    }
-    else
-    {
+    } else {
         r = "r=0&" + r;
     }
 
@@ -1247,7 +1240,7 @@ void Falcon::UploadSerialOutput(int output, OutputManager* outputManager, int pr
         wxString request = wxString::Format("btnSave=Save&t%d=%d&u%d=%d&s%d=%d", 
             output-1, protocol, 
             output-1, o->GetUniverse(), 
-            output-1, sc);
+            output-1, (int)sc);
         PutURL("/SerialOutputs.htm", request.ToStdString());
     }
     else

@@ -2187,6 +2187,7 @@ void ViewsModelsPanel::OnButton_MoveDownClick(wxCommandEvent& event)
 
     wxArrayString movedModels;
     int selcnt = 0;
+    int lastsel = -1;
 
     for (int i = ListCtrlModels->GetItemCount()-1; i >= 0; --i)
     {
@@ -2215,6 +2216,10 @@ void ViewsModelsPanel::OnButton_MoveDownClick(wxCommandEvent& event)
             logger_base.debug("Moving from %d '%s' to %d '%s'", from, (const char *)_sequenceElements->GetElement(from, currentView)->GetName().c_str(),
                 to, (const char *)(_sequenceElements->GetElement(to, currentView) == nullptr) ? "N/A" : _sequenceElements->GetElement(to, currentView)->GetName().c_str());
 #endif
+            if (lastsel < 0)
+            {
+                lastsel = to;
+            }
 
             _sequenceElements->MoveSequenceElement(from, to, currentView);
             SelectItem(ListCtrlModels, i, false);
@@ -2229,6 +2234,7 @@ void ViewsModelsPanel::OnButton_MoveDownClick(wxCommandEvent& event)
         MarkViewsChanged();
         UpdateModelsForSelectedView();
         PopulateModels(wxJoin(movedModels, ',').ToStdString());
+        ListCtrlModels->EnsureVisible(lastsel);
         _xlFrame->DoForceSequencerRefresh();
     }
 }
@@ -2326,6 +2332,7 @@ void ViewsModelsPanel::OnButton_MoveUpClick(wxCommandEvent& event)
 
     wxArrayString movedModels;
     int selcnt = 0;
+    int firstsel = -1;
 
     for (int i = 0; i < ListCtrlModels->GetItemCount(); ++i)
     {
@@ -2347,6 +2354,10 @@ void ViewsModelsPanel::OnButton_MoveUpClick(wxCommandEvent& event)
 
             if (to < 0) return;
 
+            if (firstsel < 0)
+            {
+                firstsel = to;
+            }
 #ifdef TRACEMOVES
             static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
             logger_base.debug("Timing count in models list: %d", GetTimingCount());
@@ -2366,6 +2377,7 @@ void ViewsModelsPanel::OnButton_MoveUpClick(wxCommandEvent& event)
         MarkViewsChanged();
         UpdateModelsForSelectedView();
         PopulateModels(wxJoin(movedModels, ',').ToStdString());
+        ListCtrlModels->EnsureVisible(firstsel);
         _xlFrame->DoForceSequencerRefresh();
     }
 }

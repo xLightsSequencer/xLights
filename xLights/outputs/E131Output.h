@@ -65,6 +65,7 @@ public:
     virtual bool IsValidChannelCount(long channelCount) const override { return channelCount > 0 && channelCount <= 512; }
     virtual long GetEndChannel() const override;
     virtual std::string GetUniverseString() const override;
+    virtual bool IsLookedUpByControllerName() const override;
 
     // These are required because one e1.31 output can actually be multiple
     virtual std::list<Output*> GetOutputs() const override { return _outputs; }

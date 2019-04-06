@@ -541,6 +541,7 @@ void RenderCacheItem::AddFrame(RenderBuffer* buffer)
         {
             // the buffer size has changed ... we dont support this.
             logger_base.warn("RenderCacheItem::AddFrame buffer size changed ... we dont support this.");
+            PurgeFrames();
             return;
         }
     }

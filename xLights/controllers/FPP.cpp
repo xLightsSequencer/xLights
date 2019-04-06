@@ -20,13 +20,13 @@
 #include "../xSchedule/wxJSON/jsonwriter.h"
 
 #include "FPP.h"
-#include "xLightsXmlFile.h"
-#include "models/Model.h"
-#include "outputs/OutputManager.h"
-#include "outputs/Output.h"
-#include "outputs/DDPOutput.h"
-#include "UtilFunctions.h"
-#include "xLightsVersion.h"
+#include "../xLightsXmlFile.h"
+#include "../models/Model.h"
+#include "../outputs/OutputManager.h"
+#include "../outputs/Output.h"
+#include "../outputs/DDPOutput.h"
+#include "../UtilFunctions.h"
+#include "../xLightsVersion.h"
 #include "../Parallel.h"
 
 #include <log4cpp/Category.hh>

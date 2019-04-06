@@ -854,7 +854,7 @@ void LayoutPanel::SetDisplay2DBoundingBox(bool bb)
 void LayoutPanel::SetDisplay2DCenter0(bool bb) {
     modelPreview->SetDisplay2DCenter0(bb);
 }
-                                            
+
 
 void LayoutPanel::OnPropertyGridChanging(wxPropertyGridEvent& event) {
     std::string name = event.GetPropertyName().ToStdString();
@@ -3106,8 +3106,20 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
     {
         double delta_x = event.GetPosition().x - m_previous_mouse_x;
         double delta_y = -(event.GetPosition().y - m_previous_mouse_y);
-        delta_x /= modelPreview->GetZoom();
-        delta_y /= modelPreview->GetZoom();
+
+        // I have no idea why i need to divide the zoom by this amount but doing so causes the model and the mouse to move
+        // together in 2D at all levels of zoom
+        #ifdef _MSC_VER
+        // 1.12 under shoot
+        // 1.14 over shoot
+        double factor = 1.135;
+        #else
+        // 0.85 under shoot
+        // 0.86 over shoot
+        double factor = 0.855;
+        #endif
+        delta_x /= modelPreview->GetZoom() / factor;
+        delta_y /= modelPreview->GetZoom() / factor;
         int wi, ht;
         modelPreview->GetVirtualCanvasSize(wi, ht);
         if (wi > 0 && ht > 0)
@@ -3927,7 +3939,6 @@ void LayoutPanel::PreviewModelAlignVCenter()
     UpdatePreview();
 }
 
-
 int LayoutPanel::GetSelectedModelIndex() const
 {
     for (size_t i = 0; i<modelPreview->GetModels().size(); i++)
@@ -3939,6 +3950,7 @@ int LayoutPanel::GetSelectedModelIndex() const
     }
     return -1;
 }
+
 int LayoutPanel::ModelsSelectedCount() const
 {
     int selectedModelCount = 0;
@@ -4122,7 +4134,7 @@ Model *LayoutPanel::CreateNewModel(const std::string &type) const
 std::list<BaseObject*> LayoutPanel::GetSelectedBaseObjects() const
 {
     std::list<BaseObject*> res;
- 
+
     if (selectedBaseObject != nullptr)
     {
         res.push_back(selectedBaseObject);
@@ -4625,10 +4637,47 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
 
                 if (nd != nullptr)
                 {
-					if (!copyData.IsViewObject())
+                    auto nda = nd->GetAttribute("DisplayAs");
+                    auto nx = (int)wxAtof(nd->GetAttribute("WorldPosX"));
+                    auto ny = (int)wxAtof(nd->GetAttribute("WorldPosY"));
+                    auto nz = (int)wxAtof(nd->GetAttribute("WorldPosZ"));
+
+                    bool moved = true;
+                    while (moved)
+                    {
+                        moved = false;
+                        // is there a model in the same location of the same type ... if so offset the pasting of the model
+                        for (auto it : xlights->AllModels)
+                        {
+                            if (nda == it.second->GetModelXml()->GetAttribute("DisplayAs"))
+                            {
+                                auto x = (int)wxAtof(it.second->GetModelXml()->GetAttribute("WorldPosX"));
+                                auto y = (int)wxAtof(it.second->GetModelXml()->GetAttribute("WorldPosY"));
+                                auto z = (int)wxAtof(it.second->GetModelXml()->GetAttribute("WorldPosZ"));
+                                if (nx == x &&
+                                    ny == y &&
+                                    nz == z)
+                                {
+                                    nx += 40;
+                                    ny -= 40;
+                                    nd->DeleteAttribute("WorldPosX");
+                                    nd->DeleteAttribute("WorldPosY");
+                                    nd->AddAttribute("WorldPosX", wxString::Format("%6.4f", (float)nx));
+                                    nd->AddAttribute("WorldPosY", wxString::Format("%6.4f", (float)ny));
+                                    moved = true;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    std::string name = "";
+
+                    if (!copyData.IsViewObject())
 					{
 						if (!editing_models)//dont paste model in View Object mode
 							return;
+
 						if (xlights->AllModels[lastModelName] != nullptr) {
 							nd->DeleteAttribute("StartChannel");
 							nd->AddAttribute("StartChannel", ">" + lastModelName + ":1");
@@ -4637,14 +4686,14 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
 						{
 							long highestch = 0;
 							Model* highest = nullptr;
-							for (auto it = xlights->AllModels.begin(); it != xlights->AllModels.end(); ++it)
+							for (auto it : xlights->AllModels)
 							{
-								if (it->second->GetDisplayAs() != "ModelGroup")
+								if (it.second->GetDisplayAs() != "ModelGroup")
 								{
-									if (it->second->GetLastChannel() > highestch)
+									if (it.second->GetLastChannel() > highestch)
 									{
-										highestch = it->second->GetLastChannel();
-										highest = it->second;
+										highestch = it.second->GetLastChannel();
+										highest = it.second;
 									}
 								}
 							}
@@ -4662,7 +4711,7 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
 						}
 
 						Model *newModel = xlights->AllModels.CreateModel(nd);
-						std::string name = xlights->AllModels.GenerateModelName(newModel->name);
+						name = xlights->AllModels.GenerateModelName(newModel->name);
 						newModel->name = name;
 						newModel->GetModelXml()->DeleteAttribute("name");
 						newModel->Lock(false);
@@ -4671,15 +4720,14 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
 						newModel->UpdateXmlWithScale();
 						xlights->AllModels.AddModel(newModel);
 						lastModelName = name;
-						SelectBaseObject(name);
-
 					}
 					else
 					{
 						if (editing_models)//dont paste view objects in model editing mode
 							return;
+
 						ViewObject *newViewObject = xlights->AllObjects.CreateObject(nd);
-						std::string name = xlights->AllObjects.GenerateObjectName(newViewObject->name);
+						name = xlights->AllObjects.GenerateObjectName(newViewObject->name);
 						newViewObject->name = name;
 						newViewObject->GetModelXml()->DeleteAttribute("name");
 						newViewObject->Lock(false);
@@ -4688,12 +4736,13 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
 						newViewObject->UpdateXmlWithScale();
 						xlights->AllObjects.AddViewObject(newViewObject);
 						lastModelName = name;
-						SelectBaseObject(name);
 					}
 
 					xlights->UpdateModelsList();
-					xlights->MarkEffectsFileDirty(true);
-					
+                    modelPreview->SetCursor(wxCURSOR_DEFAULT);
+                    SelectBaseObject(name);
+                    xlights->MarkEffectsFileDirty(true);
+
                 }
             }
             else
@@ -5622,7 +5671,7 @@ void LayoutPanel::OnSelectionChanged(wxTreeListEvent& event)
                     mSelectedGroup = nullptr;
                     ShowPropGrid(true);
                     SelectModel(model, false);
-                    SetToolTipForTreeList(TreeListViewModels, 
+                    SetToolTipForTreeList(TreeListViewModels,
                         xlights->GetChannelToControllerMapping(model->GetNumberFromChannelString(model->ModelStartChannel)) + "Nodes: " + wxString::Format("%d", (int)model->GetNodeCount()).ToStdString());
                 }
             } else {

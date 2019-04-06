@@ -60,6 +60,7 @@ public:
     virtual ~FalconControllerRules() {}
     
     virtual const std::string GetControllerId() const override;
+    virtual const std::string GetControllerManufacturer() const override { return "Falcon"; };
 
     virtual bool SupportsLEDPanelMatrix() const override {
         return false;
@@ -178,6 +179,7 @@ class Falcon
 	wxHTTP _http;
 	std::string _ip;
     std::string _firmwareVersion;
+    bool _usingAbsolute;
     int _version;
     std::string _modelString;
     int _model;
@@ -228,6 +230,7 @@ public:
     bool SetInputUniverses(OutputManager* outputManager, std::list<int>& selected);
     bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, std::list<int>& selected, wxWindow* parent);
     static void DecodeModelVersion(int p, int& model, int& version);
+    static void RegisterControllers();
 };
 
 #endif

@@ -3,15 +3,14 @@
 	<object class="wxDialog" name="E131Dialog">
 		<title>E1.31 Setup</title>
 		<id_arg>0</id_arg>
-		<pos_arg>1</pos_arg>
-		<size_arg>1</size_arg>
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
 			<cols>1</cols>
 			<object class="sizeritem">
-				<object class="wxStaticText" name="ID_STATICTEXT4" variable="StaticText4" member="yes">
-					<label>Sets up an E1.31 connection over ethernet.&#x0A;&#x0A;Supported devices include those made&#x0A;by Falcon, j1sys, SanDevices, Advatek Lights,&#x0A;and Entec. Also supports the Lynx &#x0A;EtherDongle, and E1.31 projects on DIYC.&#x0A;&#x0A;The universe numbers entered here&#x0A;should match the universe numbers &#x0A;defined on your E1.31 device.</label>
+				<object class="wxStaticText" name="ID_STATICTEXT4" variable="DescriptionStaticText" member="yes">
+					<label>Sets up an E1.31 connection over ethernet.&#x0A;&#x0A;Supported devices include those made by Falcon, j1sys,&#x0A;SanDevices, Advatek Lights, and Entec. Also supports the&#x0A; Lynx EtherDongle, and E1.31 projects on DIYC.&#x0A;&#x0A;The universe numbers entered here should match the &#x0A;universe numbers defined on your E1.31 device.</label>
+					<style>wxST_NO_AUTORESIZE</style>
 				</object>
-				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
@@ -110,7 +109,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxStaticText" name="ID_STATICTEXT7" variable="StaticText7" member="yes">
+						<object class="wxStaticText" name="ID_STATICTEXT7" variable="OneOutputLabel" member="yes">
 							<label>One Output</label>
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -191,14 +190,30 @@
 						<border>5</border>
 						<option>1</option>
 					</object>
+					<object class="sizeritem">
+						<object class="wxStaticText" name="wxID_ANY" variable="ControllerLabel" member="no">
+							<label>Controller Type</label>
+						</object>
+						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxChoice" name="ID_CHOICE1" variable="ControllerChoice" member="yes">
+							<handler function="OnControllerChoiceSelect" entry="EVT_CHOICE" />
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
 				</object>
-				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
 				<object class="wxFlexGridSizer" variable="FlexGridSizer3" member="no">
-					<cols>2</cols>
+					<cols>3</cols>
 					<object class="sizeritem">
 						<object class="wxButton" name="ID_BUTTON1" variable="Button_Ok" member="yes">
 							<label>Ok</label>
@@ -212,6 +227,15 @@
 						<object class="wxButton" name="ID_BUTTON2" variable="Button_Cancel" member="yes">
 							<label>Cancel</label>
 							<handler function="OnButton_CancelClick" entry="EVT_BUTTON" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxButton" name="ID_BUTTON3" variable="VisualizeButton" member="yes">
+							<label>Visualize</label>
+							<handler function="OnVisualizeButtonClick" entry="EVT_BUTTON" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>

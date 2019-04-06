@@ -57,6 +57,7 @@ class PolyLineModel : public ModelWithScreenLocation<PolyPointScreenLocation>
         {
             return wxString::Format(wxT("Seg%d"),idx+1).ToStdString();
         }
+        void SetSegsCollapsed(bool collapsed);
 
         std::vector<int> polyLineSizes;
         bool hasIndivSeg;

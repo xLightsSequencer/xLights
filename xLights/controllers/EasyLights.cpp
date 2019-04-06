@@ -599,6 +599,9 @@ public:
         }
         return EASYLIGHTS_24;
     }
+    virtual const std::string GetControllerManufacturer() const override {
+        return "EasyLights";
+    }
 
 
 	virtual int GetMaxPixelPortChannels() const override
