@@ -392,175 +392,174 @@ std::list<Output*> ZCPPOutput::Discover(OutputManager* outputManager)
     packet.Discovery.Header.type = ZCPP_TYPE_DISCOVERY;
     packet.Discovery.Header.protocolVersion = ZCPP_CURRENT_PROTOCOL_VERSION;
 
-    wxIPV4address sendlocaladdr;
-    if (IPOutput::__localIP == "")
-    {
-        sendlocaladdr.AnyAddress();
-    }
-    else
-    {
-        sendlocaladdr.Hostname(IPOutput::__localIP);
-    }
+    auto localIPs = GetLocalIPs();
 
-    wxDatagramSocket* datagram = new wxDatagramSocket(sendlocaladdr, wxSOCKET_NOWAIT | wxSOCKET_BROADCAST);
+    for (auto ip : localIPs)
+    {
+        wxIPV4address sendlocaladdr;
+        sendlocaladdr.Hostname(ip);
 
-    if (datagram == nullptr)
-    {
-        logger_base.error("Error initialising ZCPP discovery datagram.");
-    }
-    else if (!datagram->IsOk())
-    {
-        logger_base.error("Error initialising ZCPP discovery datagram ... is network connected? OK : FALSE");
-        delete datagram;
-        datagram = nullptr;
-    }
-    else if (datagram->Error() != wxSOCKET_NOERROR)
-    {
-        logger_base.error("Error creating ZCPP discovery datagram => %d : %s.", datagram->LastError(), (const char *)DecodeIPError(datagram->LastError()).c_str());
-        delete datagram;
-        datagram = nullptr;
-    }
-    else
-    {
-        logger_base.info("ZCPP discovery datagram opened successfully.");
-    }
+        logger_base.debug(" ZCPP Discovery using %s", (const char*)ip.c_str());
+        wxDatagramSocket* datagram = new wxDatagramSocket(sendlocaladdr, wxSOCKET_NOWAIT | wxSOCKET_BROADCAST);
 
-    // multicast - universe number must be in lower 2 bytes
-    wxIPV4address remoteaddr;
-    wxString ipaddrWithUniv = ZCPP_MULTICAST_ADDRESS;
-    remoteaddr.Hostname(ipaddrWithUniv);
-    remoteaddr.Service(ZCPP_PORT);
-
-    // bail if we dont have a datagram to use
-    if (datagram != nullptr)
-    {
-        logger_base.info("ZCPP sending discovery packet.");
-        datagram->SendTo(remoteaddr, &packet, sizeof(ZCPP_Discovery));
-        if (datagram->Error() != wxSOCKET_NOERROR)
+        if (datagram == nullptr)
         {
-            logger_base.error("Error sending ZCPP discovery datagram => %d : %s.", datagram->LastError(), (const char *)DecodeIPError(datagram->LastError()).c_str());
+            logger_base.error("Error initialising ZCPP discovery datagram.");
+        }
+        else if (!datagram->IsOk())
+        {
+            logger_base.error("Error initialising ZCPP discovery datagram ... is network connected? OK : FALSE");
+            delete datagram;
+            datagram = nullptr;
+        }
+        else if (datagram->Error() != wxSOCKET_NOERROR)
+        {
+            logger_base.error("Error creating ZCPP discovery datagram => %d : %s.", datagram->LastError(), (const char*)DecodeIPError(datagram->LastError()).c_str());
+            delete datagram;
+            datagram = nullptr;
         }
         else
         {
-            logger_base.info("ZCPP sent discovery packet. Sleeping for 2 seconds.");
+            logger_base.info("ZCPP discovery datagram opened successfully.");
+        }
 
-            // give the controllers 2 seconds to respond
-            wxMilliSleep(2000);
+        // multicast - universe number must be in lower 2 bytes
+        wxIPV4address remoteaddr;
+        wxString ipaddrWithUniv = ZCPP_MULTICAST_ADDRESS;
+        remoteaddr.Hostname(ipaddrWithUniv);
+        remoteaddr.Service(ZCPP_PORT);
 
-            ZCPP_packet_t response;
-
-            int lastread = 1;
-
-            while (lastread > 0)
+        // bail if we dont have a datagram to use
+        if (datagram != nullptr)
+        {
+            logger_base.info("ZCPP sending discovery packet.");
+            datagram->SendTo(remoteaddr, &packet, sizeof(ZCPP_Discovery));
+            if (datagram->Error() != wxSOCKET_NOERROR)
             {
-                wxStopWatch sw;
-                logger_base.debug("Trying to read ZCPP discovery packet.");
-                memset(&response, 0x00, sizeof(response));
-                datagram->Read(&response, sizeof(response));
-                lastread = datagram->LastReadCount();
+                logger_base.error("Error sending ZCPP discovery datagram => %d : %s.", datagram->LastError(), (const char*)DecodeIPError(datagram->LastError()).c_str());
+            }
+            else
+            {
+                logger_base.info("ZCPP sent discovery packet. Sleeping for 2 seconds.");
 
-                if (lastread > 0)
+                // give the controllers 2 seconds to respond
+                wxMilliSleep(2000);
+
+                ZCPP_packet_t response;
+
+                int lastread = 1;
+
+                while (lastread > 0)
                 {
-                    logger_base.debug(" Read done. %d bytes %ldms", lastread, sw.Time());
+                    wxStopWatch sw;
+                    logger_base.debug("Trying to read ZCPP discovery packet.");
+                    memset(&response, 0x00, sizeof(response));
+                    datagram->Read(&response, sizeof(response));
+                    lastread = datagram->LastReadCount();
 
-                    if (memcmp(&response, ZCPP_token, sizeof(ZCPP_token)) == 0 && response.DiscoveryResponse.Header.type == ZCPP_TYPE_DISCOVERY_RESPONSE)
+                    if (lastread > 0)
                     {
-                        logger_base.debug(" Valid response.");
+                        logger_base.debug(" Read done. %d bytes %ldms", lastread, sw.Time());
 
-                        ZCPPOutput* output = new ZCPPOutput();
-
-                        int vendor = ZCPP_FromWire16(response.DiscoveryResponse.vendor);
-                        output->SetVendor(vendor);
-                        logger_base.debug("   Vendor %d", vendor);
-
-                        int model = ZCPP_FromWire16(response.DiscoveryResponse.model);
-                        output->SetModel(model);
-                        logger_base.debug("   Model %d", model);
-
-                        logger_base.debug("   Firmware %s", response.DiscoveryResponse.firmwareVersion);
-
-                        auto ip = wxString::Format("%d.%d.%d.%d",
-                            (int)(response.DiscoveryResponse.ipv4Address & 0xFF),
-                            (int)(response.DiscoveryResponse.ipv4Address & 0xFF00) >> 8,
-                            (int)(response.DiscoveryResponse.ipv4Address & 0xFF0000) >> 16,
-                            (int)(response.DiscoveryResponse.ipv4Address & 0xFF000000) >> 24);
-                        output->SetIP(ip.ToStdString());
-                        logger_base.debug("   IP %s", (const char *)ip.c_str());
-
-                        output->SetDescription(response.DiscoveryResponse.userControllerName);
-                        logger_base.debug("   Description %s", (const char *)output->GetDescription().c_str());
-
-                        uint32_t channels = ZCPP_FromWire32(response.DiscoveryResponse.maxTotalChannels);
-                        logger_base.debug("   Channels %ld", channels);
-
-                        bool supportsVirtualStrings = response.DiscoveryResponse.flags & ZCPP_DISCOVERY_FLAG_SUPPORTS_VIRTUAL_STRINGS;
-                        logger_base.debug("   Supports Virtual Strings %d", supportsVirtualStrings);
-
-                        bool supportsSmartRemotes = response.DiscoveryResponse.flags & ZCPP_DISCOVERY_FLAG_SUPPORTS_SMART_REMOTES;
-                        logger_base.debug("   Supports Smart Remotes %d", supportsSmartRemotes);
-
-                        bool dontConfigure = (response.DiscoveryResponse.flags & ZCPP_DISCOVERY_FLAG_CONFIGURATION_LOCKED) != 0;
-                        logger_base.debug("   Doesnt want to recieve configuration %d", dontConfigure);
-
-                        bool multicast = (response.DiscoveryResponse.flags & ZCPP_DISCOVERY_FLAG_SEND_DATA_AS_MULTICAST) != 0;
-                        logger_base.debug("   Wants to receive data multicast %d", multicast);
-
-                        // now search for it in outputManager
-                        auto outputs = outputManager->GetOutputs();
-                        for (auto it = outputs.begin(); it != outputs.end(); ++it)
+                        if (memcmp(&response, ZCPP_token, sizeof(ZCPP_token)) == 0 && response.DiscoveryResponse.Header.type == ZCPP_TYPE_DISCOVERY_RESPONSE)
                         {
-                            if ((*it)->GetIP() == output->GetIP())
-                            {
-                                // we already know about this controller
-                                logger_base.info("ZCPP Discovery we already know about this controller %s.", (const char*)output->GetIP().c_str());
-                                delete output;
-                                output = nullptr;
-                                break;
-                            }
-                        }
+                            logger_base.debug(" Valid response.");
 
-                        if (output != nullptr)
-                        {
-                            logger_base.info("ZCPP Discovery found a new controller %s.", (const char*)output->GetIP().c_str());
-                            output->SetSupportsVirtualStrings(supportsVirtualStrings);
-                            output->SetSupportsSmartRemotes(supportsSmartRemotes);
+                            ZCPPOutput* output = new ZCPPOutput();
 
-                            uint32_t mask = 0x00000001;
-                            uint32_t dp = ZCPP_FromWire32(response.DiscoveryResponse.protocolsSupported);
-                            for (int i = 0; i < 32; i++)
+                            int vendor = ZCPP_FromWire16(response.DiscoveryResponse.vendor);
+                            output->SetVendor(vendor);
+                            logger_base.debug("   Vendor %d", vendor);
+
+                            int model = ZCPP_FromWire16(response.DiscoveryResponse.model);
+                            output->SetModel(model);
+                            logger_base.debug("   Model %d", model);
+
+                            logger_base.debug("   Firmware %s", response.DiscoveryResponse.firmwareVersion);
+
+                            auto ip = wxString::Format("%d.%d.%d.%d",
+                                (int)(response.DiscoveryResponse.ipv4Address & 0xFF),
+                                (int)(response.DiscoveryResponse.ipv4Address & 0xFF00) >> 8,
+                                (int)(response.DiscoveryResponse.ipv4Address & 0xFF0000) >> 16,
+                                (int)(response.DiscoveryResponse.ipv4Address & 0xFF000000) >> 24);
+                            output->SetIP(ip.ToStdString());
+                            logger_base.debug("   IP %s", (const char*)ip.c_str());
+
+                            output->SetDescription(response.DiscoveryResponse.userControllerName);
+                            logger_base.debug("   Description %s", (const char*)output->GetDescription().c_str());
+
+                            uint32_t channels = ZCPP_FromWire32(response.DiscoveryResponse.maxTotalChannels);
+                            logger_base.debug("   Channels %ld", channels);
+
+                            bool supportsVirtualStrings = response.DiscoveryResponse.flags & ZCPP_DISCOVERY_FLAG_SUPPORTS_VIRTUAL_STRINGS;
+                            logger_base.debug("   Supports Virtual Strings %d", supportsVirtualStrings);
+
+                            bool supportsSmartRemotes = response.DiscoveryResponse.flags & ZCPP_DISCOVERY_FLAG_SUPPORTS_SMART_REMOTES;
+                            logger_base.debug("   Supports Smart Remotes %d", supportsSmartRemotes);
+
+                            bool dontConfigure = (response.DiscoveryResponse.flags & ZCPP_DISCOVERY_FLAG_CONFIGURATION_LOCKED) != 0;
+                            logger_base.debug("   Doesnt want to recieve configuration %d", dontConfigure);
+
+                            bool multicast = (response.DiscoveryResponse.flags & ZCPP_DISCOVERY_FLAG_SEND_DATA_AS_MULTICAST) != 0;
+                            logger_base.debug("   Wants to receive data multicast %d", multicast);
+
+                            // now search for it in outputManager
+                            auto outputs = outputManager->GetOutputs();
+                            for (auto it = outputs.begin(); it != outputs.end(); ++it)
                             {
-                                if ((dp & mask) != 0)
+                                if ((*it)->GetIP() == output->GetIP())
                                 {
-                                    output->AddProtocol(DecodeProtocol(ZCPP_ConvertDiscoveryProtocolToProtocol(dp & mask)));
-                                    logger_base.debug("   Supports Protocol %s", (const char *)DecodeProtocol(ZCPP_ConvertDiscoveryProtocolToProtocol(dp & mask)).c_str());
+                                    // we already know about this controller
+                                    logger_base.info("ZCPP Discovery we already know about this controller %s.", (const char*)output->GetIP().c_str());
+                                    delete output;
+                                    output = nullptr;
+                                    break;
                                 }
-                                mask = mask << 1;
                             }
-
-                            output->SetAutoSize(true);
-                            output->SetChannels(1 /*channels*/); // Set this to one as it defaults to auto size
-                            output->SetDontConfigure(dontConfigure);
-
-                            output->SetMulticast(multicast);
 
                             if (output != nullptr)
                             {
-                                logger_base.info("ZCPP Discovery adding controller %s.", (const char*)output->GetIP().c_str());
-                                res.push_back(output);
+                                logger_base.info("ZCPP Discovery found a new controller %s.", (const char*)output->GetIP().c_str());
+                                output->SetSupportsVirtualStrings(supportsVirtualStrings);
+                                output->SetSupportsSmartRemotes(supportsSmartRemotes);
+
+                                uint32_t mask = 0x00000001;
+                                uint32_t dp = ZCPP_FromWire32(response.DiscoveryResponse.protocolsSupported);
+                                for (int i = 0; i < 32; i++)
+                                {
+                                    if ((dp & mask) != 0)
+                                    {
+                                        output->AddProtocol(DecodeProtocol(ZCPP_ConvertDiscoveryProtocolToProtocol(dp & mask)));
+                                        logger_base.debug("   Supports Protocol %s", (const char*)DecodeProtocol(ZCPP_ConvertDiscoveryProtocolToProtocol(dp & mask)).c_str());
+                                    }
+                                    mask = mask << 1;
+                                }
+
+                                output->SetAutoSize(true);
+                                output->SetChannels(1 /*channels*/); // Set this to one as it defaults to auto size
+                                output->SetDontConfigure(dontConfigure);
+
+                                output->SetMulticast(multicast);
+
+                                if (output != nullptr)
+                                {
+                                    logger_base.info("ZCPP Discovery adding controller %s.", (const char*)output->GetIP().c_str());
+                                    res.push_back(output);
+                                }
                             }
                         }
-                    }
-                    else
-                    {
-                        // non discovery response packet
-                        logger_base.info("ZCPP Discovery strange packet received.");
+                        else
+                        {
+                            // non discovery response packet
+                            logger_base.info("ZCPP Discovery strange packet received.");
+                        }
                     }
                 }
+                logger_base.info("ZCPP Discovery Done looking for response.");
             }
-            logger_base.info("ZCPP Discovery Done looking for response.");
+            datagram->Close();
+            delete datagram;
         }
-        datagram->Close();
-        delete datagram;
     }
 
     logger_base.info("ZCPP Discovery Finished.");
