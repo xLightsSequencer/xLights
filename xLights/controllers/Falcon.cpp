@@ -115,6 +115,7 @@ Falcon::Falcon(const std::string& ip)
     _modelString = "";
     _version = 0;
     _model = 0;
+    _usingAbsolute = false;
 
     logger_base.debug("Connecting to Falcon on %s.", (const char *)_ip.c_str());
 

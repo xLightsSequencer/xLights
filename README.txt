@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (scott)   Falcon upload - Default to "Universe" mode instead of "Absolute" on Firmware 2.04 and lower.
 2019.20 April 5, 2019
    -- enh (dkulp)   Falcon upload - will upload in "Absolute" mode if Falcon is configured that way,
                     or "Universe" mode if it's configured that way.
