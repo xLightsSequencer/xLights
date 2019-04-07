@@ -74,6 +74,7 @@ public:
     int GetVendor() const { return _vendor; }
     int GetModel() const { return _model; }
     int GetPriority() const { return _priority; }
+    void AllOn();
     void AddProtocol(const std::string& protocol)
     {
         if (!SupportsProtocol(protocol))

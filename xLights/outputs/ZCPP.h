@@ -367,7 +367,7 @@ union {
 #endif
 
 inline uint16_t ZCPP_ExtraDataUsed(ZCPP_packet_t& packet) {
-    uint16_t used = 10;
+    uint16_t used = 12;
     ZCPP_PortExtraData* p = packet.ExtraData.PortExtraData;
     for (int i = 0; i < packet.ExtraData.ports; i++)
     {

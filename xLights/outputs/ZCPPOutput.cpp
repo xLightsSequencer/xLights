@@ -172,6 +172,26 @@ void ZCPPOutput::ExtractUsedChannelsFromModelData()
         }
         port++;
     }
+
+    if (_usedChannels != _channels && _autoSize)
+    {
+        _channels = _usedChannels;
+        free(_data);
+        _data = (wxByte*)malloc(_channels);
+        memset(_data, 0x00, _channels);
+    }
+    else if (_usedChannels > _channels)
+    {
+        // cant use more channels than there are
+        _usedChannels = _channels;
+    }
+}
+
+void ZCPPOutput::AllOn()
+{
+    // turn everything to a dim white
+    memset(_data, 0x20, _channels);
+    _changed = true;
 }
 
 bool ZCPPOutput::SetModelData(ZCPP_packet_t& modelData, std::list<ZCPP_packet_t> extraConfig, std::string showDir)
@@ -202,6 +222,13 @@ bool ZCPPOutput::SetModelData(ZCPP_packet_t& modelData, std::list<ZCPP_packet_t>
             return false;
         }
     }
+
+    AllOff();
+    EndFrame(0);
+
+    // dont let any outputting happen while we play with things
+    bool oldSuspend = _suspend;
+    _suspend = true;
 
     while (_extraConfig.size() > 0)
     {
@@ -263,9 +290,9 @@ bool ZCPPOutput::SetModelData(ZCPP_packet_t& modelData, std::list<ZCPP_packet_t>
 
     ExtractUsedChannelsFromModelData();
 
+    _suspend = oldSuspend;
     return true;
 }
-
 
 void ZCPPOutput::DeserialiseProtocols(const std::string& protocols)
 {
@@ -710,6 +737,7 @@ void ZCPPOutput::Close()
         delete _datagram;
         _datagram = nullptr;
     }
+    _ok = false;
 }
 #pragma endregion Start and Stop
 
@@ -739,7 +767,19 @@ void ZCPPOutput::EndFrame(int suppressFrames)
         long second = wxGetLocalTime();
         if (_lastSecond == -1 || (second != _lastSecond && (second - _lastSecond) % 10 == 0))
         {
-            if (_lastSecond == -1 || second % 600 == 0)
+            bool sendExtra = false;
+            if (_lastSecond == -1 || second % 60 == 0)
+            {
+                sendExtra = true;
+            }
+
+            if (_modelData.raw[0] != 0x00)
+            {
+                _lastSecond = second;
+                _datagram->SendTo(_remoteAddr, &_modelData, sizeof(_modelData));
+            }
+
+            if (sendExtra)
             {
                 // Send descriptions every 10 mins
                 for (auto it = _extraConfig.begin(); it != _extraConfig.end(); ++it)
@@ -756,12 +796,6 @@ void ZCPPOutput::EndFrame(int suppressFrames)
                     }
                     _datagram->SendTo(_remoteAddr, &(*it), sizeof(*it));
                 }
-            }
-
-            if (_modelData.raw[0] != 0x00)
-            {
-                _lastSecond = second;
-                _datagram->SendTo(_remoteAddr, &_modelData, sizeof(_modelData));
             }
         }
     }

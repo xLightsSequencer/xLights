@@ -334,10 +334,8 @@ bool xLightsFrame::SetDir(const wxString& newdir)
     SetStatusText("");
     FileNameText->SetLabel(newdir);
     
-    if (UnsavedRgbEffectsChanges)
-    {
-        RebuildControllerConfig(&_outputManager, &AllModels);
-    }
+    AllModels.ReworkStartChannel();
+    RebuildControllerConfig(&_outputManager, &AllModels);
     
     return true;
 }
@@ -2541,6 +2539,17 @@ void xLightsFrame::SetModelData(ZCPPOutput* zcpp, ModelManager* modelManager, Ou
         //#ifdef DEBUG
         cud.Dump();
         //#endif
+
+        GetOutputManager()->SomethingChanged();
+        UpdateNetworkList(false);
+        NetworkChange();
+        SaveNetworksFile();
+
+        if (_outputManager.IsOutputting())
+        {
+            zcpp->AllOn();
+            zcpp->EndFrame(0);
+        }
     }
 }
 

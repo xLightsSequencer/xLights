@@ -97,7 +97,7 @@ public:
     std::string GetCommPort() const { return _commPort; }
     void SetCommPort(const std::string& commPort) { _commPort = commPort; _dirty = true; }
     long GetChannels() const { return _channels; }
-    void SetChannels(long channels) { _channels = channels; _dirty = true; }
+    virtual void SetChannels(long channels) { _channels = channels; _dirty = true; }
     int GetUniverse() const { return _universe; }
     void SetUniverse(int universe) { _universe = universe; _dirty = true; }
     virtual std::string GetUniverseString() const { return wxString::Format(wxT("%i"), GetUniverse()).ToStdString(); }

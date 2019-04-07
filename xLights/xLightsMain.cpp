@@ -2479,6 +2479,8 @@ void xLightsFrame::RecalcModels(bool force)
         SetCursor(wxCURSOR_WAIT);
         // Now notify the layout as the model start numbers may have been impacted
         AllModels.OldRecalcStartChannels();
+        AllModels.ReworkStartChannel();
+
         //AllModels.NewRecalcStartChannels();
         if (layoutPanel != nullptr) {
             layoutPanel->RefreshLayout();
