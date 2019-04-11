@@ -44,6 +44,7 @@
 #define ZCPP_VENDOR_FALCON 0x0000
 #define ZCPP_VENDOR_FPP 0x0001
 #define ZCPP_VENDOR_ESPIXELSTICK 0x0002
+#define ZCPP_VENDOR_UNKNOWN 0xFFFF
 
 #define ZCPP_DISCOVERY_PROTOCOL_WS2811  0x00000001
 #define ZCPP_DISCOVERY_PROTOCOL_GECE    0x00000002
@@ -165,6 +166,9 @@ const uint8_t ZCPP_token[4] = {'Z', 'C', 'P', 'P'};
 #pragma pack(1)
 #endif
 
+// NOTE: All 16 bit values must be aligned on even bytes
+//       All 32 bit values must be aligned on 4 byte boundaries
+
 // Common header across all packet types - 6 bytes
 typedef
 #ifndef _MSC_VER
@@ -201,21 +205,22 @@ struct {
 	char firmwareVersion[12];	// A string of up to 12 characters which is the firmware version as a string. It does not
 								// need to be null terminated but should be null filled if all 12 characters are not used
 	uint8_t macAddress[6];		// The controllers mac Address
-    uint8_t filler1[2];
+        uint8_t filler1[2];
 	uint32_t ipv4Address;		// The controllers IP V4 IP Address
 	uint32_t ipv4Mask;			// The controllers IP V4 Subnet Mask
 	char userControllerName[32];// Up to 32 characters of user controller name
-    uint32_t maxTotalChannels;  // Maximum number of channels that the controller will accept. This may not just be the sum
-                                // of all port channels as the controller may have some global limits
-    uint8_t pixelPorts;			// Number of pixel ports supported by the controller
+        uint32_t maxTotalChannels;  // Maximum number of channels that the controller will accept. This may not just be the sum
+                                    // of all port channels as the controller may have some global limits
+        uint8_t pixelPorts;			// Number of pixel ports supported by the controller
 	uint8_t rsPorts;			// Number of RSxxx ports supported by the controller
 	uint16_t channelsPerPixelPort; // Maximum number of channels each pixel port can accept
 	uint16_t channelsPerRSPort; // Maximum number of channels each RSxxx port can accept
-    uint16_t flags;				// Discovery Flags
-    uint32_t protocolsSupported; // Bitmask of all supported protocols
+        uint16_t flags;				// Discovery Flags
+        uint32_t protocolsSupported; // Bitmask of all supported protocols
 } ZCPP_DiscoveryResponse;
 
-// Describes the configuration of a port or virtual string - 12 bytes
+// Describes the configuration of a port or virtual string - 16 bytes
+// This structure must be a multiple of 4 bytes in size
 typedef
 #ifndef _MSC_VER
 __attribute__((packed))
@@ -223,9 +228,9 @@ __attribute__((packed))
 struct {
 	uint8_t port;					// zero based port that is being configured
 	uint8_t string;					// smart remote and virtual string number within port
-    uint8_t protocol;				// port protocol
-    uint8_t grouping;				// pixel grouping on this port. If 2 then channels 123456789 becomes 123123456456789789
-    uint32_t startChannel;			// zero based start channel within the ZCPP data space
+        uint8_t protocol;				// port protocol
+        uint8_t grouping;				// pixel grouping on this port. If 2 then channels 123456789 becomes 123123456456789789
+        uint32_t startChannel;			// zero based start channel within the ZCPP data space
 	uint32_t channels;				// number of channels to send out this port
 	uint8_t directionColourOrder;   // should data be reversed and what is the pixel colour order
 	uint8_t nullPixels;				// number of null pixels at the start of this string
@@ -234,6 +239,7 @@ struct {
 } ZCPP_PortConfig;
 
 // Configuration - 44 - 1442 bytes
+// This structure excluding Port config must be a multiple of 4 bytes in size
 typedef
 #ifndef _MSC_VER
 __attribute__((packed))
@@ -243,15 +249,16 @@ struct {
 	uint16_t sequenceNumber;		// sequence number unique each time the configuration changes
 	char userControllerName[32];	// Up to 32 characters of user controller name
 	uint8_t flags;					// Configuration flags
-    uint8_t priority;               // priority of this source
-    uint8_t filler1;
-    uint8_t ports;					// Number of ports being configured
-    ZCPP_PortConfig PortConfig[1];		// Up to 100 of them
+        uint8_t priority;               // priority of this source
+        uint8_t filler1;
+        uint8_t ports;					// Number of ports being configured
+        ZCPP_PortConfig PortConfig[1];		// Up to 100 of them
 } ZCPP_Configuration;
 #define ZCPP_CONFIGURATION_HEADER_SIZE (sizeof(ZCPP_Configuration) - sizeof(ZCPP_PortConfig))
 #define ZCPP_CONFIGURATION_HEADER_MUTABLE_SIZE 8
 
-// Query Configuration Response 42 - 1442 bytes
+// Query Configuration Response 44 - 1442 bytes
+// This structure must be a multiple of 4 bytes in size
 typedef
 #ifndef _MSC_VER
 __attribute__((packed))
@@ -260,10 +267,10 @@ struct {
 	ZCPP_Header Header;
 	uint16_t sequenceNumber;		// sequence number unique each time the configuration changes
 	char userControllerName[32];	// Up to 32 characters of user controller name
-    uint16_t filler;
-    uint8_t flags;					// Configuration result flags
+        uint16_t filler;
+        uint8_t flags;					// Configuration result flags
 	uint8_t ports;					// Number of ports configured
-    ZCPP_PortConfig PortConfig[1];		// Up to 100 of them
+        ZCPP_PortConfig PortConfig[1];		// Up to 100 of them
 } ZCPP_QueryConfigurationResponse;
 #define ZCPP_QUERYCONFIGURATIONRESPONSE_HEADER_SIZE (sizeof(ZCPP_QueryConfigurationResponse) - sizeof(ZCPP_PortConfig))
 
@@ -285,7 +292,7 @@ struct {
 	uint8_t port;					// zero based port that is being configured
 	uint8_t string;					// smart remote and virtual string number within port
 	uint8_t descriptionLength;		// length of the description which must fit entirely within this ethernet frame
-    char description[1];				// the port description
+        char description[1];				// the port description
 } ZCPP_PortExtraData;
 #define ZCPP_PORTEXTRADATA_HEADER_SIZE (sizeof(ZCPP_PortExtraData) - 1)
 
@@ -298,10 +305,10 @@ struct {
 	ZCPP_Header Header;
 	uint16_t sequenceNumber;		// sequence number unique each time the configuration changes
 	uint8_t flags;					// Configuration flags
-    uint8_t priority;               // priority of this source
-    uint8_t filler1;
-    uint8_t ports;					// Number of ports being configured
-    ZCPP_PortExtraData PortExtraData[1];
+        uint8_t priority;               // priority of this source
+        uint8_t filler1;
+        uint8_t ports;					// Number of ports being configured
+        ZCPP_PortExtraData PortExtraData[1];
 } ZCPP_ExtraData;
 #define ZCPP_EXTRADATA_HEADER_SIZE (sizeof(ZCPP_ExtraData) - sizeof(ZCPP_PortExtraData))
 #define ZCPP_EXTRADATA_HEADER_MUTABLE_SIZE 9
@@ -327,10 +334,10 @@ struct {
 									// same frame will have the same sequence number. Frame numbers start at zero and increment and
 									// then go back to zero
 	uint8_t flags;					// data packet flags
-    uint32_t frameAddress;			// where in the zero based data address space the data in this packet belongs
-    uint16_t packetDataLength;		// how many data bytes are in this packet
-    uint8_t priority;               // priority of this source
-    uint8_t data[1];
+        uint32_t frameAddress;			// where in the zero based data address space the data in this packet belongs
+        uint16_t packetDataLength;		// how many data bytes are in this packet
+        uint8_t priority;               // priority of this source
+        uint8_t data[1];
 } ZCPP_Data;
 #define ZCPP_DATA_HEADER_SIZE (sizeof(ZCPP_Data) - 1)
 
