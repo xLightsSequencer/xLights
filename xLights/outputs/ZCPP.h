@@ -170,33 +170,33 @@ const uint8_t ZCPP_token[4] = {'Z', 'C', 'P', 'P'};
 //       All 32 bit values must be aligned on 4 byte boundaries
 
 // Common header across all packet types - 6 bytes
-typedef
+typedef struct 
 #ifndef _MSC_VER
 __attribute__((packed))
 #endif
-struct {
+{
 	uint8_t token[4]; 			// Always ZCPP
 	uint8_t type;				// packet type
 	uint8_t protocolVersion;	// version of the protocol
 } ZCPP_Header;
 
 // Discovery Request - 8 bytes
-typedef
+typedef struct 
 #ifndef _MSC_VER
 __attribute__((packed))
 #endif
-struct {
+{
 	ZCPP_Header Header;
 	uint8_t minProtocolVersion; // The minimum version of the protocol the requester supports
 	uint8_t maxProtocolVersion; // The maximum version of the protocol the requester supports
 } ZCPP_Discovery;
 
 // Discovery Response - 88 bytes
-typedef
+typedef struct 
 #ifndef _MSC_VER
 __attribute__((packed))
 #endif
-struct {
+{
 	ZCPP_Header Header;
 	uint8_t minProtocolVersion; // The minimum version of the protocol the controller supports
 	uint8_t maxProtocolVersion; // The maximum version of the protocol the controller supports
@@ -221,11 +221,11 @@ struct {
 
 // Describes the configuration of a port or virtual string - 16 bytes
 // This structure must be a multiple of 4 bytes in size
-typedef
+typedef struct 
 #ifndef _MSC_VER
 __attribute__((packed))
 #endif
-struct {
+{
 	uint8_t port;					// zero based port that is being configured
 	uint8_t string;					// smart remote and virtual string number within port
         uint8_t protocol;				// port protocol
@@ -240,11 +240,11 @@ struct {
 
 // Configuration - 44 - 1442 bytes
 // This structure excluding Port config must be a multiple of 4 bytes in size
-typedef
+typedef struct 
 #ifndef _MSC_VER
 __attribute__((packed))
 #endif
-struct {
+{
 	ZCPP_Header Header;
 	uint16_t sequenceNumber;		// sequence number unique each time the configuration changes
 	char userControllerName[32];	// Up to 32 characters of user controller name
@@ -259,11 +259,11 @@ struct {
 
 // Query Configuration Response 44 - 1442 bytes
 // This structure must be a multiple of 4 bytes in size
-typedef
+typedef struct 
 #ifndef _MSC_VER
 __attribute__((packed))
 #endif
-struct {
+{
 	ZCPP_Header Header;
 	uint16_t sequenceNumber;		// sequence number unique each time the configuration changes
 	char userControllerName[32];	// Up to 32 characters of user controller name
@@ -275,20 +275,20 @@ struct {
 #define ZCPP_QUERYCONFIGURATIONRESPONSE_HEADER_SIZE (sizeof(ZCPP_QueryConfigurationResponse) - sizeof(ZCPP_PortConfig))
 
 // QueryConfiguration - 6 bytes
-typedef
+typedef struct 
 #ifndef _MSC_VER
 __attribute__((packed))
 #endif
-struct {
+{
 	ZCPP_Header Header;
 } ZCPP_QueryConfiguration;
 
 // Extra port data - 3 - 1458 bytes
-typedef
+typedef struct 
 #ifndef _MSC_VER
 __attribute__((packed))
 #endif
-struct {
+{
 	uint8_t port;					// zero based port that is being configured
 	uint8_t string;					// smart remote and virtual string number within port
 	uint8_t descriptionLength;		// length of the description which must fit entirely within this ethernet frame
@@ -297,11 +297,11 @@ struct {
 #define ZCPP_PORTEXTRADATA_HEADER_SIZE (sizeof(ZCPP_PortExtraData) - 1)
 
 // Extra port configuration data - 10 - 1458 bytes
-typedef
+typedef struct 
 #ifndef _MSC_VER
 __attribute__((packed))
 #endif
-struct {
+{
 	ZCPP_Header Header;
 	uint16_t sequenceNumber;		// sequence number unique each time the configuration changes
 	uint8_t flags;					// Configuration flags
@@ -314,21 +314,21 @@ struct {
 #define ZCPP_EXTRADATA_HEADER_MUTABLE_SIZE 9
 
 // Sync - 7 bytes
-typedef
+typedef struct 
 #ifndef _MSC_VER
 __attribute__((packed))
 #endif
-struct {
+{
 	ZCPP_Header Header;
 	uint8_t sequenceNumber;			// sequence number matching the data frame sequence number this sync packet is for
 } ZCPP_Sync;
 
 // Data - 15 - 1458 bytes
-typedef
+typedef struct 
 #ifndef _MSC_VER
 __attribute__((packed))
 #endif
-struct {
+{
 	ZCPP_Header Header;
 	uint8_t sequenceNumber;			// sequence number matching of the data frame. If multiple packets are needed all packets in the
 									// same frame will have the same sequence number. Frame numbers start at zero and increment and
@@ -341,11 +341,11 @@ struct {
 } ZCPP_Data;
 #define ZCPP_DATA_HEADER_SIZE (sizeof(ZCPP_Data) - 1)
 
-typedef
+typedef union 
 #ifndef _MSC_VER
 __attribute__((packed))
 #endif
-union {
+{
 	// sent discovery
 	ZCPP_Discovery Discovery;
 		// Must lead to a DiscoveryResponse
