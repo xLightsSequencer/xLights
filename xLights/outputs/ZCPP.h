@@ -110,7 +110,7 @@
 #define ZCPP_CONFIG_FLAG_FIRST 0x40
 #define ZCPP_CONFIG_FLAG_LAST 0x80
 
-#define ZCPP_CONFIG_MAX_PORT_PER_PACKET 115
+#define ZCPP_CONFIG_MAX_PORT_PER_PACKET 90
 
 #define ZCPP_CONFIGURATION_QUERY_ERRORS 0x01
 
@@ -223,8 +223,8 @@ __attribute__((packed))
 struct {
 	uint8_t port;					// zero based port that is being configured
 	uint8_t string;					// smart remote and virtual string number within port
-    uint16_t startChannel;			// zero based start channel within the ZCPP data space
-	uint16_t channels;				// number of channels to send out this port
+    uint32_t startChannel;			// zero based start channel within the ZCPP data space
+	uint32_t channels;				// number of channels to send out this port
     uint8_t protocol;				// port protocol
     uint8_t grouping;				// pixel grouping on this port. If 2 then channels 123456789 becomes 123123456456789789
 	uint8_t directionColourOrder;   // should data be reversed and what is the pixel colour order
@@ -233,7 +233,7 @@ struct {
 	uint8_t gamma;					// Gamma * 10
 } ZCPP_PortConfig;
 
-// Configuration - 42 - 1442 bytes
+// Configuration - 44 - 1442 bytes
 typedef
 #ifndef _MSC_VER
 __attribute__((packed))
@@ -248,6 +248,8 @@ struct {
     uint8_t ports;					// Number of ports being configured
     ZCPP_PortConfig PortConfig[1];		// Up to 100 of them
 } ZCPP_Configuration;
+#define ZCPP_CONFIGURATION_HEADER_SIZE (sizeof(ZCPP_Configuration) - sizeof(ZCPP_PortConfig))
+#define ZCPP_CONFIGURATION_HEADER_MUTABLE_SIZE 8
 
 // Query Configuration Response 42 - 1442 bytes
 typedef
@@ -258,10 +260,12 @@ struct {
 	ZCPP_Header Header;
 	uint16_t sequenceNumber;		// sequence number unique each time the configuration changes
 	char userControllerName[32];	// Up to 32 characters of user controller name
-	uint8_t flags;					// Configuration result flags
+    uint16_t filler;
+    uint8_t flags;					// Configuration result flags
 	uint8_t ports;					// Number of ports configured
     ZCPP_PortConfig PortConfig[1];		// Up to 100 of them
 } ZCPP_QueryConfigurationResponse;
+#define ZCPP_QUERYCONFIGURATIONRESPONSE_HEADER_SIZE (sizeof(ZCPP_QueryConfigurationResponse) - sizeof(ZCPP_PortConfig))
 
 // QueryConfiguration - 6 bytes
 typedef
@@ -283,6 +287,7 @@ struct {
 	uint8_t descriptionLength;		// length of the description which must fit entirely within this ethernet frame
     char description[1];				// the port description
 } ZCPP_PortExtraData;
+#define ZCPP_PORTEXTRADATA_HEADER_SIZE (sizeof(ZCPP_PortExtraData) - 1)
 
 // Extra port configuration data - 10 - 1458 bytes
 typedef
@@ -298,6 +303,8 @@ struct {
     uint8_t ports;					// Number of ports being configured
     ZCPP_PortExtraData PortExtraData[1];
 } ZCPP_ExtraData;
+#define ZCPP_EXTRADATA_HEADER_SIZE (sizeof(ZCPP_ExtraData) - sizeof(ZCPP_PortExtraData))
+#define ZCPP_EXTRADATA_HEADER_MUTABLE_SIZE 9
 
 // Sync - 7 bytes
 typedef
@@ -309,9 +316,7 @@ struct {
 	uint8_t sequenceNumber;			// sequence number matching the data frame sequence number this sync packet is for
 } ZCPP_Sync;
 
-#define ZCPP_DATA_HEADER_SIZE 13
-
-// Data - 13 - 1458 bytes
+// Data - 15 - 1458 bytes
 typedef
 #ifndef _MSC_VER
 __attribute__((packed))
@@ -322,11 +327,12 @@ struct {
 									// same frame will have the same sequence number. Frame numbers start at zero and increment and
 									// then go back to zero
 	uint8_t flags;					// data packet flags
-    uint16_t frameAddress;			// where in the zero based data address space the data in this packet belongs
+    uint32_t frameAddress;			// where in the zero based data address space the data in this packet belongs
     uint16_t packetDataLength;		// how many data bytes are in this packet
     uint8_t priority;               // priority of this source
     uint8_t data[1];
 } ZCPP_Data;
+#define ZCPP_DATA_HEADER_SIZE (sizeof(ZCPP_Data) - 1)
 
 typedef
 #ifndef _MSC_VER
@@ -369,7 +375,7 @@ union {
 #endif
 
 inline uint16_t ZCPP_ExtraDataUsed(ZCPP_packet_t& packet) {
-    uint16_t used = 12;
+    uint16_t used = ZCPP_EXTRADATA_HEADER_SIZE;
     ZCPP_PortExtraData* p = packet.ExtraData.PortExtraData;
     for (int i = 0; i < packet.ExtraData.ports; i++)
     {

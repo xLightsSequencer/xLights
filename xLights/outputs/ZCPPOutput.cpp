@@ -16,7 +16,6 @@
 ZCPPOutput::ZCPPOutput(wxXmlNode* node, std::string showdir) : IPOutput(node)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    memset(&_modelData, 0x00, sizeof(_modelData));
     _multicast = false;
     _dontConfigure = false;
     _lastSecond = -1;
@@ -68,9 +67,11 @@ ZCPPOutput::ZCPPOutput(wxXmlNode* node, std::string showdir) : IPOutput(node)
                             zf.Read(&b1, sizeof(b1));
                             zf.Read(&b2, sizeof(b2));
                             uint16_t size = (b1 << 8) + b2;
-                            if (size == sizeof(_modelData))
+                            if (size == sizeof(ZCPP_packet_t))
                             {
-                                zf.Read(&_modelData, sizeof(_modelData));
+                                ZCPP_packet_t modelPacket;
+                                zf.Read(&modelPacket, sizeof(modelPacket));
+                                _modelData.push_back(modelPacket);
                             }
                             else
                             {
@@ -130,7 +131,6 @@ ZCPPOutput::ZCPPOutput(wxXmlNode* node, std::string showdir) : IPOutput(node)
 
 ZCPPOutput::ZCPPOutput() : IPOutput()
 {
-    memset(&_modelData, 0x00, sizeof(_modelData));
     _multicast = false;
     _dontConfigure = false;
     _lastSecond = -1;
@@ -159,18 +159,22 @@ ZCPPOutput::~ZCPPOutput()
 
 void ZCPPOutput::ExtractUsedChannelsFromModelData()
 {
-    int ports = _modelData.Configuration.ports;
     _usedChannels = 1;
-    ZCPP_PortConfig* port = _modelData.Configuration.PortConfig;
-    for (int i = 0; i < ports; i++)
+
+    for (auto it : _modelData)
     {
-        int start = htons(port->startChannel);
-        int len = htons(port->channels);
-        if (start + len - 1 > _usedChannels)
+        int ports = it.Configuration.ports;
+        ZCPP_PortConfig* port = it.Configuration.PortConfig;
+        for (int i = 0; i < ports; i++)
         {
-            _usedChannels = start + len;
+            long start = htonl(port->startChannel);
+            long len = htonl(port->channels);
+            if (start + len - 1 > _usedChannels)
+            {
+                _usedChannels = start + len;
+            }
+            port++;
         }
-        port++;
     }
 
     if (_usedChannels != _channels && _autoSize)
@@ -178,7 +182,10 @@ void ZCPPOutput::ExtractUsedChannelsFromModelData()
         _channels = _usedChannels;
         free(_data);
         _data = (wxByte*)malloc(_channels);
-        memset(_data, 0x00, _channels);
+        if (_data != nullptr)
+        {
+            memset(_data, 0x00, _channels);
+        }
     }
     else if (_usedChannels > _channels)
     {
@@ -194,21 +201,38 @@ void ZCPPOutput::AllOn()
     _changed = true;
 }
 
-bool ZCPPOutput::SetModelData(ZCPP_packet_t& modelData, std::list<ZCPP_packet_t> extraConfig, std::string showDir)
+bool ZCPPOutput::SetModelData(std::list<ZCPP_packet_t> modelData, std::list<ZCPP_packet_t> extraConfig, std::string showDir)
 {
     if (_dontConfigure) return false;
 
-    // before byte 9 there can be differences
-    if (memcmp(&_modelData.raw[8], &modelData.raw[8], sizeof(_modelData) - 8) == 0 &&
-        _extraConfig.size() == _extraConfig.size())
+    if (_modelData.size() != modelData.size() || _extraConfig.size() != extraConfig.size())
     {
-        bool extraConfigSame = true;
+        // different size so must be different
+    }
+    else
+    {
+        bool modelDataSame = true;
+
+        auto oldit = _modelData.begin();
+        auto newit = modelData.begin();
+
+        while (modelDataSame && oldit != _modelData.end())
+        {
+            if (memcmp(&(*oldit).raw[ZCPP_CONFIGURATION_HEADER_MUTABLE_SIZE], &(*newit).raw[ZCPP_CONFIGURATION_HEADER_MUTABLE_SIZE], sizeof(_modelData) - ZCPP_CONFIGURATION_HEADER_MUTABLE_SIZE) != 0)
+            {
+                modelDataSame = false;
+            }
+            ++oldit;
+            ++newit;
+        }
+
+        bool extraConfigSame = modelDataSame;
         auto it1 = _extraConfig.begin();
         auto it2 = extraConfig.begin();
 
         while (extraConfigSame && it1 != _extraConfig.end())
         {
-            if (memcmp(&(*it1).raw[9], &(*it2).raw[9], sizeof(extraConfig) - 9) != 0)
+            if (memcmp(&(*it1).raw[ZCPP_EXTRADATA_HEADER_MUTABLE_SIZE], &(*it2).raw[ZCPP_EXTRADATA_HEADER_MUTABLE_SIZE], sizeof(extraConfig) - ZCPP_EXTRADATA_HEADER_MUTABLE_SIZE) != 0)
             {
                 extraConfigSame = false;
             }
@@ -230,9 +254,19 @@ bool ZCPPOutput::SetModelData(ZCPP_packet_t& modelData, std::list<ZCPP_packet_t>
     bool oldSuspend = _suspend;
     _suspend = true;
 
+    while (_modelData.size() > 0)
+    {
+        _modelData.pop_front();
+    }
+
     while (_extraConfig.size() > 0)
     {
         _extraConfig.pop_front();
+    }
+
+    for (auto it : modelData)
+    {
+        _modelData.push_back(it);
     }
 
     for (auto it : extraConfig)
@@ -256,22 +290,12 @@ bool ZCPPOutput::SetModelData(ZCPP_packet_t& modelData, std::list<ZCPP_packet_t>
     {
         zf.Write(ZCPP_token, sizeof(ZCPP_token));
         
-        uint8_t type = 0x00;
-        zf.Write(&type, sizeof(type));
-        
-        uint8_t b = (sizeof(modelData) & 0xFF00) >> 8;
-        zf.Write(&b, sizeof(b));
-        b = sizeof(modelData) & 0xFF;
-        zf.Write(&b, sizeof(b));
-        
-        zf.Write(&modelData, sizeof(modelData));
-        
-        for (auto it : _extraConfig)
+        for (auto it : _modelData)
         {
-            type = 0x01;
+            uint8_t type = 0x00;
             zf.Write(&type, sizeof(type));
 
-            b = (sizeof(ZCPP_packet_t) & 0xFF00) >> 8;
+            uint8_t b = (sizeof(ZCPP_packet_t) & 0xFF00) >> 8;
             zf.Write(&b, sizeof(b));
             b = sizeof(ZCPP_packet_t) & 0xFF;
             zf.Write(&b, sizeof(b));
@@ -279,13 +303,25 @@ bool ZCPPOutput::SetModelData(ZCPP_packet_t& modelData, std::list<ZCPP_packet_t>
             zf.Write(&it, sizeof(ZCPP_packet_t));
         }
 
-        type = 0xFF;
+        for (auto it : _extraConfig)
+        {
+            uint8_t type = 0x01;
+            zf.Write(&type, sizeof(type));
+
+            uint8_t b = (sizeof(ZCPP_packet_t) & 0xFF00) >> 8;
+            zf.Write(&b, sizeof(b));
+            b = sizeof(ZCPP_packet_t) & 0xFF;
+            zf.Write(&b, sizeof(b));
+
+            zf.Write(&it, sizeof(ZCPP_packet_t));
+        }
+
+        uint8_t type = 0xFF;
         zf.Write(&type, sizeof(type));
 
         zf.Close();
     }
 
-    _modelData = modelData;
     _lastSecond = -1;
 
     ExtractUsedChannelsFromModelData();
@@ -409,6 +445,17 @@ void ZCPPOutput::InitialiseExtraConfigPacket(ZCPP_packet_t& packet, int seq, uin
     packet.ExtraData.Header.protocolVersion = ZCPP_CURRENT_PROTOCOL_VERSION;
     packet.ExtraData.sequenceNumber = ntohs(seq);
     packet.ExtraData.priority = priority;
+}
+
+void ZCPPOutput::InitialiseModelDataPacket(ZCPP_packet_t& packet, int seq, uint8_t priority, const std::string& description)
+{
+    memset(&packet, 0x00, sizeof(packet));
+    memcpy(packet.Configuration.Header.token, ZCPP_token, sizeof(ZCPP_token));
+    packet.Configuration.Header.type = ZCPP_TYPE_CONFIG;
+    packet.Configuration.Header.protocolVersion = ZCPP_CURRENT_PROTOCOL_VERSION;
+    packet.Configuration.sequenceNumber = ntohs(seq);
+    packet.Configuration.priority = priority;
+    strncpy(packet.Configuration.userControllerName, description.c_str(), sizeof(packet.Configuration.userControllerName));
 }
 
 std::list<Output*> ZCPPOutput::Discover(OutputManager* outputManager)
@@ -773,10 +820,19 @@ void ZCPPOutput::EndFrame(int suppressFrames)
                 sendExtra = true;
             }
 
-            if (_modelData.raw[0] != 0x00)
+            for (auto it = _modelData.begin(); it != _modelData.end(); ++it)
             {
-                _lastSecond = second;
-                _datagram->SendTo(_remoteAddr, &_modelData, sizeof(_modelData));
+                auto it2 = it;
+                ++it2;
+                if (it == _modelData.begin())
+                {
+                    (*it).Configuration.flags |= ZCPP_CONFIG_FLAG_FIRST;
+                }
+                if (it2 == _modelData.end())
+                {
+                    (*it).Configuration.flags |= ZCPP_CONFIG_FLAG_LAST;
+                }
+                _datagram->SendTo(_remoteAddr, &(*it), sizeof(*it));
             }
 
             if (sendExtra)
@@ -802,12 +858,12 @@ void ZCPPOutput::EndFrame(int suppressFrames)
 
     if (_changed || NeedToOutput(suppressFrames))
     {
-        int i = 0;
+        long i = 0;
         while (i < _usedChannels)
         {
             _packet.Data.sequenceNumber = _sequenceNum;
-            uint16_t startAddress = i;
-            _packet.Data.frameAddress = ntohs(startAddress);
+            uint32_t startAddress = i;
+            _packet.Data.frameAddress = ntohl(startAddress);
             uint16_t packetlen = _usedChannels - i > sizeof(ZCPP_packet_t) - ZCPP_DATA_HEADER_SIZE ? sizeof(ZCPP_packet_t) - ZCPP_DATA_HEADER_SIZE : _usedChannels - i;
             _packet.Data.flags = (OutputManager::IsSyncEnabled_() ? ZCPP_DATA_FLAG_SYNC_WILL_BE_SENT : 0x00) +
                           (i + packetlen == _usedChannels ? ZCPP_DATA_FLAG_LAST : 0x00) +
@@ -878,8 +934,9 @@ std::string ZCPPOutput::GetLongDescription() const
 
         if (!_enabled) res += "INACTIVE ";
         res += "ZCPP " + _ip;
-        res += " [1-" + std::string(wxString::Format(wxT("%li"), (long)_channels)) + "] ";
-        res += "(" + std::string(wxString::Format(wxT("%li"), (long)GetStartChannel())) + "-" + std::string(wxString::Format(wxT("%li"), (long)GetActualEndChannel())) + ") ";
+        res += " [1-" + std::string(wxString::Format(wxT("%ld"), (long)_channels)) + "] ";
+        res += "(" + std::string(wxString::Format(wxT("%ld"), (long)GetStartChannel())) + "-" + 
+               std::string(wxString::Format(wxT("%ld"), (long)GetActualEndChannel())) + ") ";
         res += _description;
 
     return res;

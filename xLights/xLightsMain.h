@@ -1135,7 +1135,7 @@ public:
     void UploadFPPStringOuputs(const std::string &controllers);
 	void PingController(Output* e);
     void SetModelData(ZCPPOutput* zcpp, ModelManager* modelManager, OutputManager* outputManager, std::string showDir);
-    int SetZCPPPort(ZCPP_packet_t& modelData, int index, UDControllerPort* port, int portNum, int virtualString, long baseStart, bool isSerial);
+    int SetZCPPPort(std::list<ZCPP_packet_t>& modelDatas, int index, UDControllerPort* port, int portNum, int virtualString, long baseStart, bool isSerial, ZCPPOutput* zcpp);
     void SetZCPPExtraConfig(std::list<ZCPP_packet_t>& extraConfig, int portNum, int virtualStringNum, const std::string& name, ZCPPOutput* zcpp);
     void UploadEasyLightsOutput();
 

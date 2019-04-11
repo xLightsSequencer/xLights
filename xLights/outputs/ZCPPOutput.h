@@ -12,7 +12,6 @@ class ZCPPOutput : public IPOutput
     #pragma region Member Variables
     uint8_t* _data;
     ZCPP_packet_t _packet;
-    ZCPP_packet_t _modelData;
     uint8_t _sequenceNum;
     wxIPV4address _remoteAddr;
     wxDatagramSocket *_datagram;
@@ -26,6 +25,7 @@ class ZCPPOutput : public IPOutput
     bool _multicast = false;
     bool _dontConfigure = false;
     std::list<ZCPP_packet_t> _extraConfig;
+    std::list<ZCPP_packet_t> _modelData;
     std::list<std::string> _protocols;
     #pragma endregion Member Variables
 
@@ -45,6 +45,7 @@ public:
     static void SendSync();
     static std::list<Output*> Discover(OutputManager* outputManager);
     static void InitialiseExtraConfigPacket(ZCPP_packet_t& packet, int seq, uint8_t priority);
+    static void InitialiseModelDataPacket(ZCPP_packet_t& packet, int seq, uint8_t priority, const std::string& description);
     static std::string DecodeProtocol(int protocol);
     static int EncodeProtocol(const std::string& protocol);
     static int EncodeColourOrder(const std::string& colourOrder);
@@ -86,7 +87,7 @@ public:
     {
         return std::find(_protocols.begin(), _protocols.end(), wxString(protocol).Lower().ToStdString()) != _protocols.end();
     }
-    bool SetModelData(ZCPP_packet_t& modelData, std::list<ZCPP_packet_t> extraConfig, std::string showDir);
+    bool SetModelData(std::list<ZCPP_packet_t> modelData, std::list<ZCPP_packet_t> extraConfig, std::string showDir);
     virtual bool IsLookedUpByControllerName() const override { return true; }
     virtual std::string GetUniverseString() const override { return ""; }
     #pragma region Getters and Setters
