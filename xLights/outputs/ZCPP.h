@@ -223,10 +223,10 @@ __attribute__((packed))
 struct {
 	uint8_t port;					// zero based port that is being configured
 	uint8_t string;					// smart remote and virtual string number within port
-    uint32_t startChannel;			// zero based start channel within the ZCPP data space
-	uint32_t channels;				// number of channels to send out this port
     uint8_t protocol;				// port protocol
     uint8_t grouping;				// pixel grouping on this port. If 2 then channels 123456789 becomes 123123456456789789
+    uint32_t startChannel;			// zero based start channel within the ZCPP data space
+	uint32_t channels;				// number of channels to send out this port
 	uint8_t directionColourOrder;   // should data be reversed and what is the pixel colour order
 	uint8_t nullPixels;				// number of null pixels at the start of this string
 	uint8_t brightness;				// 0-100 brightness
