@@ -1396,21 +1396,22 @@ void xLightsFrame::OnGridNetworkItemRClick(wxListEvent& event)
     }
     
     wxMenu* mnuUploadController = new wxMenu();
+
+    wxMenuItem* beMultiUpload = mnuUploadController->Append(ID_NETWORK_MULTIUPLOAD, "Upload To All Controllers");
+    if (_outputManager.GetOutputCount() > 0 && _outputManager.GetIps().size() > 0) {
+        beMultiUpload->Enable();
+    }
+    else {
+        beMultiUpload->Enable(false);
+    }
+
     if (hasControllerConfigured) {
         auto rules = ControllerRegistry::GetRulesForController(selected->GetControllerId());
         if (selected->GetType() == OUTPUT_E131 && rules->GetControllerManufacturer() != "ESPixelStick") {
             std::string description = rules->GetControllerDescription();
             mnuUploadController->Append(ID_NETWORK_UPLOAD_INPUT_CONTROLLER_CONFIGURED, "E1.31 Input Definition - " + description);
         }
-    } else {
-        wxMenuItem* beMultiUpload = mnuUploadController->Append(ID_NETWORK_MULTIUPLOAD, "Upload To All Controllers");
-        if (_outputManager.GetOutputCount() > 0 && _outputManager.GetIps().size() > 0) {
-            beMultiUpload->Enable();
-        } else {
-            beMultiUpload->Enable(false);
-        }
-
-        
+    } else {        
         wxMenu* mnuUCInput = new wxMenu();
         wxMenuItem* beUCIFPPB = mnuUCInput->Append(ID_NETWORK_UCIFPPB, "FPP Bridge Mode");
         if (!AllSelectedSupportIP()) {
