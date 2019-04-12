@@ -136,7 +136,7 @@ inline uint8_t ZCPP_GetColourOrder(uint8_t directionColourOrder) {
 }
 
 inline float ZCPP_GetGamma(uint8_t gamma) {
-	return static_cast<float>(gamma) / 10.0;
+	return ((float)gamma) / 10.0;
 }
 
 inline uint8_t ZCPP_ConvertDiscoveryProtocolToProtocol(uint32_t discoveryProtocol) {
@@ -205,18 +205,18 @@ __attribute__((packed))
 	char firmwareVersion[12];	// A string of up to 12 characters which is the firmware version as a string. It does not
 								// need to be null terminated but should be null filled if all 12 characters are not used
 	uint8_t macAddress[6];		// The controllers mac Address
-        uint8_t filler1[2];
+    uint8_t filler1[2];
 	uint32_t ipv4Address;		// The controllers IP V4 IP Address
 	uint32_t ipv4Mask;			// The controllers IP V4 Subnet Mask
 	char userControllerName[32];// Up to 32 characters of user controller name
-        uint32_t maxTotalChannels;  // Maximum number of channels that the controller will accept. This may not just be the sum
-                                    // of all port channels as the controller may have some global limits
-        uint8_t pixelPorts;			// Number of pixel ports supported by the controller
+    uint32_t maxTotalChannels;  // Maximum number of channels that the controller will accept. This may not just be the sum
+                                // of all port channels as the controller may have some global limits
+    uint8_t pixelPorts;			// Number of pixel ports supported by the controller
 	uint8_t rsPorts;			// Number of RSxxx ports supported by the controller
 	uint16_t channelsPerPixelPort; // Maximum number of channels each pixel port can accept
 	uint16_t channelsPerRSPort; // Maximum number of channels each RSxxx port can accept
-        uint16_t flags;				// Discovery Flags
-        uint32_t protocolsSupported; // Bitmask of all supported protocols
+    uint16_t flags;				// Discovery Flags
+    uint32_t protocolsSupported; // Bitmask of all supported protocols
 } ZCPP_DiscoveryResponse;
 
 // Describes the configuration of a port or virtual string - 16 bytes
@@ -228,9 +228,9 @@ __attribute__((packed))
 {
 	uint8_t port;					// zero based port that is being configured
 	uint8_t string;					// smart remote and virtual string number within port
-        uint8_t protocol;				// port protocol
-        uint8_t grouping;				// pixel grouping on this port. If 2 then channels 123456789 becomes 123123456456789789
-        uint32_t startChannel;			// zero based start channel within the ZCPP data space
+    uint8_t protocol;				// port protocol
+    uint8_t grouping;				// pixel grouping on this port. If 2 then channels 123456789 becomes 123123456456789789
+    uint32_t startChannel;			// zero based start channel within the ZCPP data space
 	uint32_t channels;				// number of channels to send out this port
 	uint8_t directionColourOrder;   // should data be reversed and what is the pixel colour order
 	uint8_t nullPixels;				// number of null pixels at the start of this string
@@ -249,10 +249,10 @@ __attribute__((packed))
 	uint16_t sequenceNumber;		// sequence number unique each time the configuration changes
 	char userControllerName[32];	// Up to 32 characters of user controller name
 	uint8_t flags;					// Configuration flags
-        uint8_t priority;               // priority of this source
-        uint8_t filler1;
-        uint8_t ports;					// Number of ports being configured
-        ZCPP_PortConfig PortConfig[1];		// Up to 100 of them
+    uint8_t priority;               // priority of this source
+    uint8_t filler1;
+    uint8_t ports;					// Number of ports being configured
+    ZCPP_PortConfig PortConfig[1];		// Up to 100 of them
 } ZCPP_Configuration;
 #define ZCPP_CONFIGURATION_HEADER_SIZE (sizeof(ZCPP_Configuration) - sizeof(ZCPP_PortConfig))
 #define ZCPP_CONFIGURATION_HEADER_MUTABLE_SIZE 8
@@ -267,10 +267,10 @@ __attribute__((packed))
 	ZCPP_Header Header;
 	uint16_t sequenceNumber;		// sequence number unique each time the configuration changes
 	char userControllerName[32];	// Up to 32 characters of user controller name
-        uint16_t filler;
-        uint8_t flags;					// Configuration result flags
+    uint16_t filler;
+    uint8_t flags;					// Configuration result flags
 	uint8_t ports;					// Number of ports configured
-        ZCPP_PortConfig PortConfig[1];		// Up to 100 of them
+    ZCPP_PortConfig PortConfig[1];		// Up to 100 of them
 } ZCPP_QueryConfigurationResponse;
 #define ZCPP_QUERYCONFIGURATIONRESPONSE_HEADER_SIZE (sizeof(ZCPP_QueryConfigurationResponse) - sizeof(ZCPP_PortConfig))
 
@@ -292,7 +292,7 @@ __attribute__((packed))
 	uint8_t port;					// zero based port that is being configured
 	uint8_t string;					// smart remote and virtual string number within port
 	uint8_t descriptionLength;		// length of the description which must fit entirely within this ethernet frame
-        char description[1];				// the port description
+    char description[1];				// the port description
 } ZCPP_PortExtraData;
 #define ZCPP_PORTEXTRADATA_HEADER_SIZE (sizeof(ZCPP_PortExtraData) - 1)
 
@@ -305,10 +305,10 @@ __attribute__((packed))
 	ZCPP_Header Header;
 	uint16_t sequenceNumber;		// sequence number unique each time the configuration changes
 	uint8_t flags;					// Configuration flags
-        uint8_t priority;               // priority of this source
-        uint8_t filler1;
-        uint8_t ports;					// Number of ports being configured
-        ZCPP_PortExtraData PortExtraData[1];
+    uint8_t priority;               // priority of this source
+    uint8_t filler1;
+    uint8_t ports;					// Number of ports being configured
+    ZCPP_PortExtraData PortExtraData[1];
 } ZCPP_ExtraData;
 #define ZCPP_EXTRADATA_HEADER_SIZE (sizeof(ZCPP_ExtraData) - sizeof(ZCPP_PortExtraData))
 #define ZCPP_EXTRADATA_HEADER_MUTABLE_SIZE 9
@@ -334,10 +334,10 @@ __attribute__((packed))
 									// same frame will have the same sequence number. Frame numbers start at zero and increment and
 									// then go back to zero
 	uint8_t flags;					// data packet flags
-        uint32_t frameAddress;			// where in the zero based data address space the data in this packet belongs
-        uint16_t packetDataLength;		// how many data bytes are in this packet
-        uint8_t priority;               // priority of this source
-        uint8_t data[1];
+    uint32_t frameAddress;			// where in the zero based data address space the data in this packet belongs
+    uint16_t packetDataLength;		// how many data bytes are in this packet
+    uint8_t priority;               // priority of this source
+    uint8_t data[1];
 } ZCPP_Data;
 #define ZCPP_DATA_HEADER_SIZE (sizeof(ZCPP_Data) - 1)
 
@@ -381,18 +381,6 @@ __attribute__((packed))
 #pragma pack(pop)
 #endif
 
-inline uint16_t ZCPP_ExtraDataUsed(ZCPP_packet_t& packet) {
-    uint16_t used = ZCPP_EXTRADATA_HEADER_SIZE;
-    ZCPP_PortExtraData* p = packet.ExtraData.PortExtraData;
-    for (int i = 0; i < packet.ExtraData.ports; i++)
-    {
-        used += 3;
-        used += p->descriptionLength;
-        p = (ZCPP_PortExtraData*)((uint8_t*)p + 3 + p->descriptionLength);
-    }
-    return used;
-}
-
 inline uint32_t ZCPP_FromWire32(uint32_t value)
 {
     uint8_t* p = (uint8_t*)&value;
@@ -422,4 +410,39 @@ inline uint16_t ZCPP_ToWire16(uint32_t value)
     res[1] = value & 0xFF;
     return *(uint16_t*)res;
 }
+
+inline uint16_t ZCPP_GetPacketActualSize(const ZCPP_packet_t& packet)
+{
+    switch (packet.Discovery.Header.type)
+    {
+    case ZCPP_TYPE_DISCOVERY:
+        return sizeof(ZCPP_Discovery);
+    case ZCPP_TYPE_DISCOVERY_RESPONSE:
+        return sizeof(ZCPP_DiscoveryResponse);
+    case ZCPP_TYPE_CONFIG:
+        return ZCPP_CONFIGURATION_HEADER_SIZE + packet.Configuration.ports * sizeof(ZCPP_PortConfig);
+    case ZCPP_TYPE_EXTRA_DATA:
+    {
+        int size = ZCPP_EXTRADATA_HEADER_SIZE;
+        int i;
+        for (i = 0; i < packet.ExtraData.ports; i++)
+        {
+            ZCPP_PortExtraData* p = (ZCPP_PortExtraData*)& packet.raw[size];
+            size += ZCPP_PORTEXTRADATA_HEADER_SIZE + p->descriptionLength;
+        }
+        return size;
+    }
+    case ZCPP_TYPE_QUERY_CONFIG:
+        return sizeof(ZCPP_QueryConfiguration);
+    case ZCPP_TYPE_QUERY_CONFIG_RESPONSE:
+        return ZCPP_QUERYCONFIGURATIONRESPONSE_HEADER_SIZE + packet.QueryConfigurationResponse.ports * sizeof(ZCPP_PortConfig);
+    case ZCPP_TYPE_DATA:
+        return ZCPP_DATA_HEADER_SIZE + ZCPP_FromWire16(packet.Data.packetDataLength);
+    case ZCPP_TYPE_SYNC:
+        return sizeof(ZCPP_Sync);
+    }
+
+    return 0;
+}
+
 #endif

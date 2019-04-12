@@ -218,7 +218,8 @@ bool ZCPPOutput::SetModelData(std::list<ZCPP_packet_t> modelData, std::list<ZCPP
 
         while (modelDataSame && oldit != _modelData.end())
         {
-            if (memcmp(&(*oldit).raw[ZCPP_CONFIGURATION_HEADER_MUTABLE_SIZE], &(*newit).raw[ZCPP_CONFIGURATION_HEADER_MUTABLE_SIZE], sizeof(_modelData) - ZCPP_CONFIGURATION_HEADER_MUTABLE_SIZE) != 0)
+            if (ZCPP_GetPacketActualSize(*oldit) != ZCPP_GetPacketActualSize(*newit) ||
+                memcmp(&(*oldit).raw[ZCPP_CONFIGURATION_HEADER_MUTABLE_SIZE], &(*newit).raw[ZCPP_CONFIGURATION_HEADER_MUTABLE_SIZE], ZCPP_GetPacketActualSize(*oldit) - ZCPP_CONFIGURATION_HEADER_MUTABLE_SIZE) != 0)
             {
                 modelDataSame = false;
             }
@@ -232,7 +233,8 @@ bool ZCPPOutput::SetModelData(std::list<ZCPP_packet_t> modelData, std::list<ZCPP
 
         while (extraConfigSame && it1 != _extraConfig.end())
         {
-            if (memcmp(&(*it1).raw[ZCPP_EXTRADATA_HEADER_MUTABLE_SIZE], &(*it2).raw[ZCPP_EXTRADATA_HEADER_MUTABLE_SIZE], sizeof(extraConfig) - ZCPP_EXTRADATA_HEADER_MUTABLE_SIZE) != 0)
+            if (ZCPP_GetPacketActualSize(*it1) != ZCPP_GetPacketActualSize(*it2) ||
+                memcmp(&(*it1).raw[ZCPP_EXTRADATA_HEADER_MUTABLE_SIZE], &(*it2).raw[ZCPP_EXTRADATA_HEADER_MUTABLE_SIZE], ZCPP_GetPacketActualSize(*it1) - ZCPP_EXTRADATA_HEADER_MUTABLE_SIZE) != 0)
             {
                 extraConfigSame = false;
             }
@@ -433,7 +435,7 @@ void ZCPPOutput::SendSync()
     // bail if we dont have a datagram to use
     if (syncdatagram != nullptr)
     {
-        syncdatagram->SendTo(syncremoteAddr, &syncdata, sizeof(ZCPP_Sync));
+        syncdatagram->SendTo(syncremoteAddr, &syncdata, ZCPP_GetPacketActualSize(syncdata));
     }
 }
 
@@ -511,7 +513,7 @@ std::list<Output*> ZCPPOutput::Discover(OutputManager* outputManager)
         if (datagram != nullptr)
         {
             logger_base.info("ZCPP sending discovery packet.");
-            datagram->SendTo(remoteaddr, &packet, sizeof(ZCPP_Discovery));
+            datagram->SendTo(remoteaddr, &packet, ZCPP_GetPacketActualSize(packet));
             if (datagram->Error() != wxSOCKET_NOERROR)
             {
                 logger_base.error("Error sending ZCPP discovery datagram => %d : %s.", datagram->LastError(), (const char*)DecodeIPError(datagram->LastError()).c_str());
@@ -832,7 +834,7 @@ void ZCPPOutput::EndFrame(int suppressFrames)
                 {
                     (*it).Configuration.flags |= ZCPP_CONFIG_FLAG_LAST;
                 }
-                _datagram->SendTo(_remoteAddr, &(*it), sizeof(*it));
+                _datagram->SendTo(_remoteAddr, &(*it), ZCPP_GetPacketActualSize(*it));
             }
 
             if (sendExtra)
@@ -850,7 +852,7 @@ void ZCPPOutput::EndFrame(int suppressFrames)
                     {
                         (*it).ExtraData.flags |= ZCPP_CONFIG_FLAG_LAST;
                     }
-                    _datagram->SendTo(_remoteAddr, &(*it), sizeof(*it));
+                    _datagram->SendTo(_remoteAddr, &(*it), ZCPP_GetPacketActualSize(*it));
                 }
             }
         }
@@ -870,7 +872,7 @@ void ZCPPOutput::EndFrame(int suppressFrames)
                           (i == 0 ? ZCPP_DATA_FLAG_FIRST : 0x00);
             _packet.Data.packetDataLength = ntohs(packetlen);
             memcpy(_packet.Data.data, &_data[i], packetlen);
-            _datagram->SendTo(_remoteAddr, &_packet, ZCPP_DATA_HEADER_SIZE + packetlen);
+            _datagram->SendTo(_remoteAddr, &_packet, ZCPP_GetPacketActualSize(_packet));
             i += packetlen;
         }
         _sequenceNum++;

@@ -2400,14 +2400,14 @@ void xLightsFrame::SetZCPPExtraConfig(std::list<ZCPP_packet_t>& extraConfigs, in
 {
     static log4cpp::Category &logger_zcpp = log4cpp::Category::getInstance(std::string("log_zcpp"));
     auto& current = extraConfigs.back();
-    uint16_t pos = ZCPP_ExtraDataUsed(current);
+    uint16_t pos = ZCPP_GetPacketActualSize(current);
     if (pos + ZCPP_PORTEXTRADATA_HEADER_SIZE + name.size() > sizeof(ZCPP_packet_t))
     {
         ZCPP_packet_t extraData;
         extraConfigs.push_back(extraData);
         current = extraConfigs.back();
         ZCPPOutput::InitialiseExtraConfigPacket(current, modelsChangeCount, zcpp->GetPriority());
-        pos = ZCPP_ExtraDataUsed(current);
+        pos = ZCPP_GetPacketActualSize(current);
     }
 
     current.ExtraData.ports++;
@@ -2449,6 +2449,7 @@ void xLightsFrame::SetModelData(ZCPPOutput* zcpp, ModelManager* modelManager, Ou
     for (int i = 0; i < cud.GetMaxPixelPort(); i++)
     {
         auto port = cud.GetControllerPixelPort(i + 1);
+        port->CreateVirtualStrings(true);
 
         if (port == nullptr)
         {
