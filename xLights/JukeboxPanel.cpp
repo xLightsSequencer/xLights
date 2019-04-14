@@ -121,7 +121,7 @@ JukeboxPanel::JukeboxPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,con
             0, wxDefaultValidator, _T("ID_BITMAPBUTTON_JB") + wxString::Format("%d", i + 1));
         button->SetMinSize(wxSize(BUTTONWIDTH, BUTTONHEIGHT));
         button->SetMaxSize(wxSize(BUTTONWIDTH, BUTTONHEIGHT));
-        GridSizer1->Add(button, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, i);
+        GridSizer1->Add(button, 1, wxALL | wxEXPAND);
         Connect(button->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&JukeboxPanel::OnButtonClick);
         Connect(button->GetId(), wxEVT_CONTEXT_MENU, (wxObjectEventFunction)&JukeboxPanel::OnButtonRClick);
     }
