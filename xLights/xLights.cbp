@@ -278,6 +278,7 @@
 					<Add directory="outputs" />
 					<Add directory="xLights" />
 					<Add directory="xLights/models" />
+					<Add directory="$(#wx)/include" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="$(#wx)/include" />
@@ -346,6 +347,7 @@
 					<Add directory="outputs" />
 					<Add directory="xLights" />
 					<Add directory="xLights/models" />
+					<Add directory="$(#wx)/include" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="$(#wx)/include" />
