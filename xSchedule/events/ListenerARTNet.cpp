@@ -132,10 +132,8 @@ void ListenerARTNet::Poll()
                 else if (buffer[9] == 0x99)
                 {
                     // Trigger data packet
-                    // uint8_t key = buffer[14];
-                    // uint8_t subkey = buffer[15];
-                    // TODO add event using ARTNet trigger packets
-                    //_listenerManager->ProcessPacket(GetType() + " Trigger", (key << 8) + subkey, &buffer[16], size);
+                    int oem = (((int)buffer[14])<<8) + buffer[15];
+                    _listenerManager->ProcessPacket(GetType() + " Trigger", oem, &buffer[16], 2);
                 }
                 else if (buffer[9] == 0x97)
                 {

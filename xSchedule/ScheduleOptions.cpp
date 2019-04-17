@@ -11,6 +11,7 @@
 #include "CommandManager.h"
 #include "events/EventBase.h"
 #include "events/EventARTNet.h"
+#include "events/EventARTNetTrigger.h"
 #include "events/EventSerial.h"
 #include "events/EventLor.h"
 #include "events/EventPing.h"
@@ -120,6 +121,10 @@ ScheduleOptions::ScheduleOptions(OutputManager* outputManager, wxXmlNode* node, 
                 else if (n2->GetName() == "EventARTNet")
                 {
                     _events.push_back(new EventARTNet(n2));
+                }
+                else if (n2->GetName() == "EventARTNetTrigger")
+                {
+                    _events.push_back(new EventARTNetTrigger(n2));
                 }
                 else
                 {

@@ -136,7 +136,7 @@ void ListenerManager::StartListeners()
                 }
             }
         }
-        else if ((*it)->GetType() == "ARTNet")
+        else if ((*it)->GetType() == "ARTNet" || (*it)->GetType() == "ARTNetTrigger")
         {
             if (_sync == 3)
             {
@@ -148,7 +148,7 @@ void ListenerManager::StartListeners()
                 bool found = false;
                 for (auto it2 = _scheduleManager->GetOptions()->GetEvents()->begin(); it2 != _scheduleManager->GetOptions()->GetEvents()->end(); ++it2)
                 {
-                    if ((*it2)->GetType() == "ARTNet")
+                    if ((*it2)->GetType() == "ARTNet" || (*it2)->GetType() == "ARTNetTrigger")
                     {
                         found = true;
                     }
@@ -261,7 +261,7 @@ void ListenerManager::StartListeners()
                 _listeners.back()->Start();
             }
         }
-        else if ((*it3)->GetType() == "ARTNet")
+        else if ((*it3)->GetType() == "ARTNet" || (*it3)->GetType() == "ARTNetTrigger")
         {
             bool artnetExists = false;
             for (auto it2 = _listeners.begin(); it2 != _listeners.end(); ++it2)

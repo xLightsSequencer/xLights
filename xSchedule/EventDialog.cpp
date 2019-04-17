@@ -5,6 +5,7 @@
 #include "EventSerialPanel.h"
 #include "EventLorPanel.h"
 #include "EventARTNetPanel.h"
+#include "EventARTNetTriggerPanel.h"
 #include "EventPingPanel.h"
 #include "EventOSCPanel.h"
 #include "EventFPPPanel.h"
@@ -14,6 +15,7 @@
 #include "ScheduleManager.h"
 #include "CommandManager.h"
 #include "events/EventARTNet.h"
+#include "events/EventARTNetTrigger.h"
 #include "events/EventE131.h"
 #include "events/EventData.h"
 #include "events/EventOSC.h"
@@ -149,6 +151,7 @@ EventDialog::EventDialog(wxWindow* parent, OutputManager* outputManager, EventBa
         Choicebook_EventType->AddPage(new EventOSCPanel(Choicebook_EventType), "OSC", false);
         Choicebook_EventType->AddPage(new EventFPPPanel(Choicebook_EventType), "FPP", false);
         Choicebook_EventType->AddPage(new EventARTNetPanel(Choicebook_EventType), "ARTNet", false);
+        Choicebook_EventType->AddPage(new EventARTNetTriggerPanel(Choicebook_EventType), "ARTNet Trigger", false);
         Choicebook_EventType->AddPage(new EventPingPanel(Choicebook_EventType, outputManager), "Ping", false);
         Choicebook_EventType->AddPage(new EventLorPanel(Choicebook_EventType), "LOR", false);
         Choicebook_EventType->AddPage(new EventMIDIPanel(Choicebook_EventType), "MIDI", false);
@@ -180,6 +183,10 @@ EventDialog::EventDialog(wxWindow* parent, OutputManager* outputManager, EventBa
         else if (type == "ARTNet")
         {
             Choicebook_EventType->AddPage(new EventARTNetPanel(Choicebook_EventType), "ARTNet", true);
+        }
+        else if (type == "ARTNetTrigger")
+        {
+            Choicebook_EventType->AddPage(new EventARTNetTriggerPanel(Choicebook_EventType), "ARTNet Trigger", true);
         }
         else if (type == "Ping")
         {
@@ -245,6 +252,10 @@ void EventDialog::OnButton_OkClick(wxCommandEvent& event)
         else if (type == "ARTNet")
         {
             _eventBase = new EventARTNet();
+        }
+        else if (type == "ARTNet Trigger")
+        {
+            _eventBase = new EventARTNetTrigger();
         }
         else if (type == "LOR")
         {
@@ -315,6 +326,12 @@ void EventDialog::OnChoicebook_EventTypePageChanged(wxChoicebookEvent& event)
         TextCtrl_P3->SetToolTip(EventFPP::GetParmToolTip());
     }
     else if (type == "ARTNet")
+    {
+        TextCtrl_P1->SetToolTip(EventARTNet::GetParmToolTip());
+        TextCtrl_P2->SetToolTip(EventARTNet::GetParmToolTip());
+        TextCtrl_P3->SetToolTip(EventARTNet::GetParmToolTip());
+    }
+    else if (type == "ARTNet Trigger")
     {
         TextCtrl_P1->SetToolTip(EventARTNet::GetParmToolTip());
         TextCtrl_P2->SetToolTip(EventARTNet::GetParmToolTip());
