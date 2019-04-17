@@ -855,6 +855,7 @@ void ZCPPOutput::EndFrame(int suppressFrames)
                     _datagram->SendTo(_remoteAddr, &(*it), ZCPP_GetPacketActualSize(*it));
                 }
             }
+            _lastSecond = second;
         }
     }
 
