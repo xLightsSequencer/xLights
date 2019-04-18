@@ -134,7 +134,7 @@ unsigned char* PlayListItemSerial::PrepareData(const std::string s, int& used)
 		}
 		else
 		{
-			buffer[used] = working[i];
+			buffer[used++] = working[i];
 		}
 	}
 

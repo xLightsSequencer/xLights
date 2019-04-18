@@ -28,6 +28,7 @@
 #include "PlayListItemRunCommand.h"
 #include "PlayListItemOSC.h"
 #include "PlayListItemAudio.h"
+#include "PlayListItemARTNetTrigger.h"
 #include <wx/filename.h>
 #include "../xScheduleMain.h"
 #include "../ScheduleManager.h"
@@ -186,6 +187,10 @@ void PlayListStep::Load(OutputManager* outputManager, wxXmlNode* node)
         else if (n->GetName() == "PLIAudio")
         {
             _items.push_back(new PlayListItemAudio(n));
+        }
+        else if (n->GetName() == "PLIARTNetTrigger")
+        {
+            _items.push_back(new PlayListItemARTNetTrigger(n));
         }
         else if (n->GetName() == "PLIFSEQVideo")
         {

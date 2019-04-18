@@ -274,6 +274,8 @@
     <ClCompile Include="OutputProcessSustain.cpp" />
     <ClCompile Include="OutputProcessThreeToFour.cpp" />
     <ClCompile Include="Pinger.cpp" />
+    <ClCompile Include="PlayList\PlayListItemARTNetTrigger.cpp" />
+    <ClCompile Include="PlayList\PlayListItemARTNetTriggerPanel.cpp" />
     <ClCompile Include="PlayList\PlayListItemDim.cpp" />
     <ClCompile Include="PlayList\PlayListItemDimPanel.cpp" />
     <ClCompile Include="PlayList\PlayListItemFade.cpp" />
@@ -479,6 +481,8 @@
     <ClInclude Include="OutputProcessSustain.h" />
     <ClInclude Include="OutputProcessThreeToFour.h" />
     <ClInclude Include="Pinger.h" />
+    <ClInclude Include="PlayList\PlayListItemARTNetTrigger.h" />
+    <ClInclude Include="PlayList\PlayListItemARTNetTriggerPanel.h" />
     <ClInclude Include="PlayList\PlayListItemDim.h" />
     <ClInclude Include="PlayList\PlayListItemDimPanel.h" />
     <ClInclude Include="PlayList\PlayListItemFade.h" />

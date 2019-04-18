@@ -32,6 +32,7 @@
 #include "PlayListItemDelay.h"
 #include "PlayListItemDim.h"
 #include "PlayListItemProjector.h"
+#include "PlayListItemARTNetTrigger.h"
 
 #include "../xLights/osxMacUtils.h"
 
@@ -65,6 +66,7 @@ const long PlayListDialog::ID_SPLITTERWINDOW1 = wxNewId();
 
 const long PlayListDialog::ID_MNU_ADDSTEP = wxNewId();
 const long PlayListDialog::ID_MNU_ADDVIDEO = wxNewId();
+const long PlayListDialog::ID_MNU_ADDARTNETTRIGGER = wxNewId();
 const long PlayListDialog::ID_MNU_ADDAUDIO = wxNewId();
 const long PlayListDialog::ID_MNU_ADDESEQ = wxNewId();
 const long PlayListDialog::ID_MNU_ADDFADE = wxNewId();
@@ -559,6 +561,7 @@ void PlayListDialog::OnTreeCtrl_PlayListItemMenu(wxTreeEvent& event)
 
     wxMenu mnu;
     mnu.Append(ID_MNU_ADDALLOFF, "Add All Set");
+    mnu.Append(ID_MNU_ADDARTNETTRIGGER, "Add ARTNet Trigger");
     mnu.Append(ID_MNU_ADDAUDIO, "Add Audio");
     mnu.Append(ID_MNU_ADDCOMMAND, "Add Command");
     mnu.Append(ID_MNU_ADDCURL, "Add CURL");
@@ -745,6 +748,11 @@ void PlayListDialog::OnTreeCtrlMenu(wxCommandEvent &event)
     else if (event.GetId() == ID_MNU_ADDPROJECTOR)
     {
         PlayListItemProjector* pli = new PlayListItemProjector();
+        AddItem(_playlist, step, pli);
+    }
+    else if (event.GetId() == ID_MNU_ADDARTNETTRIGGER)
+    {
+        PlayListItemARTNetTrigger* pli = new PlayListItemARTNetTrigger();
         AddItem(_playlist, step, pli);
     }
     else if (event.GetId() == ID_MNU_ADDESEQ)
