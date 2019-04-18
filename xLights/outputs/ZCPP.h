@@ -108,6 +108,7 @@
 #define ZCPP_COLOUR_ORDER_BGR 0x05
 
 #define ZCPP_CONFIG_FLAG_QUERY_CONFIGURATION_RESPONSE_REQUIRED 0x10
+#define ZCPP_CONFIG_FLAG_EXTRA_DATA_WILL_FOLLOW 0x20
 #define ZCPP_CONFIG_FLAG_FIRST 0x40
 #define ZCPP_CONFIG_FLAG_LAST 0x80
 
@@ -141,10 +142,10 @@ inline float ZCPP_GetGamma(uint8_t gamma) {
 
 inline uint8_t ZCPP_ConvertDiscoveryProtocolToProtocol(uint32_t discoveryProtocol) {
 	uint8_t res = 0x00;
-	discoveryProtocol = discoveryProtocol > 1;
+	discoveryProtocol = discoveryProtocol >> 1;
 	while (discoveryProtocol != 0) 	{
 		res++;
-		discoveryProtocol = discoveryProtocol > 1;
+		discoveryProtocol = discoveryProtocol >> 1;
 	}
 	return res;
 }

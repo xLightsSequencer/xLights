@@ -834,6 +834,12 @@ void ZCPPOutput::EndFrame(int suppressFrames)
                 {
                     (*it).Configuration.flags |= ZCPP_CONFIG_FLAG_LAST;
                 }
+
+                if (sendExtra)
+                {
+                    (*it).Configuration.flags |= ZCPP_CONFIG_FLAG_EXTRA_DATA_WILL_FOLLOW;
+                }
+
                 _datagram->SendTo(_remoteAddr, &(*it), ZCPP_GetPacketActualSize(*it));
             }
 
