@@ -255,6 +255,9 @@ ValueCurveDialog::ValueCurveDialog(wxWindow* parent, ValueCurve* vc, bool slider
 
     Connect(wxID_ANY, wxEVT_CHAR_HOOK, wxKeyEventHandler(ValueCurveDialog::OnChar), (wxObject*)nullptr, this);
 
+    Button_Ok->SetDefault();
+    SetEscapeId(ID_BUTTON2);
+
     int start = -1;
     int end = -1;
     Effect* eff = xLightsApp::GetFrame()->GetMainSequencer()->GetSelectedEffect();

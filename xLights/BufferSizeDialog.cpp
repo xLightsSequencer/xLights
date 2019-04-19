@@ -95,6 +95,11 @@ BufferSizeDialog::BufferSizeDialog(wxWindow* parent, bool usevc,wxWindowID id,co
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&BufferSizeDialog::OnVCChanged, nullptr, this);
 
+    int item = 1;
+    wxWindow* ok_btn = StdDialogButtonSizer1->GetItem(item)->GetWindow();
+    SetDefaultItem(ok_btn);
+    SetEscapeId(wxID_CANCEL);
+
     if (usevc)
     {
         ValueCurve_Top->GetValue()->SetLimits(-100, 200);

@@ -20,6 +20,7 @@ class wxTextCtrl;
 #include <list>
 
 class Emoji;
+class ClickableStaticText;
 
 class ShapePanel: public wxPanel
 {
@@ -33,6 +34,7 @@ class ShapePanel: public wxPanel
         void SetTimingTracks(wxCommandEvent& event);
         void EmojiMenu(wxContextMenuEvent& event);
         void OnPopupEmoji(wxCommandEvent& event);
+        void OnShowCharMap(wxCommandEvent& event);
 
 		//(*Declarations(ShapePanel)
 		BulkEditCheckBox* CheckBox_Shape_FadeAway;
@@ -75,8 +77,8 @@ class ShapePanel: public wxPanel
 		BulkEditValueCurveButton* BitmapButton_Shape_ThicknessVC;
 		BulkEditValueCurveButton* BitmapButton_Shapes_Direction;
 		BulkEditValueCurveButton* BitmapButton_Shapes_Velocity;
+		ClickableStaticText* StaticText10;
 		wxFontPickerCtrl* FontPickerCtrl_Font;
-		wxStaticText* StaticText10;
 		wxStaticText* StaticText11;
 		wxStaticText* StaticText12;
 		wxStaticText* StaticText13;

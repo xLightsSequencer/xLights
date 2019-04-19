@@ -98,7 +98,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxStaticText" name="ID_STATICTEXT2" variable="StaticText10" member="yes">
+				<object class="wxStaticText" name="ID_STATICTEXT2" subclass="ClickableStaticText" variable="StaticText10" member="yes">
 					<label></label>
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>

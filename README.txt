@@ -11,7 +11,11 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2019.21 April 15, 2019
    -- bug (scott)   Falcon upload - Default to "Universe" mode instead of "Absolute" on Firmware 2.04 and lower.
+   -- bug (keith)   Fix jukebox button size
+   -- bug (keith)   Fix wiring dialog sometimes loses some nodes
+   -- bug (keith)   Fix dont suppress upload to all controllers if controller type specified
 2019.20 April 5, 2019
    -- enh (dkulp)   Falcon upload - will upload in "Absolute" mode if Falcon is configured that way,
                     or "Universe" mode if it's configured that way.

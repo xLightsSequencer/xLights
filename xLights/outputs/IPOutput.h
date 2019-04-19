@@ -6,11 +6,12 @@
 class IPOutput : public Output
 {
 protected:
-    static std::string __localIP;
 
     virtual void Save(wxXmlNode* node) override;
 
 public:
+
+    static std::string __localIP;
 
     #pragma region Constructors and Destructors
     IPOutput(wxXmlNode* node);

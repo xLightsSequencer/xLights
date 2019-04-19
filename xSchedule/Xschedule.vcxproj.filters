@@ -485,6 +485,18 @@
     <ClCompile Include="PlayList\PlayListItemMIDI.cpp">
       <Filter>PlayList</Filter>
     </ClCompile>
+    <ClCompile Include="EventARTNetTriggerPanel.cpp">
+      <Filter>Events</Filter>
+    </ClCompile>
+    <ClCompile Include="events\EventARTNetTrigger.cpp">
+      <Filter>Events</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayList\PlayListItemARTNetTriggerPanel.cpp">
+      <Filter>PlayList</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayList\PlayListItemARTNetTrigger.cpp">
+      <Filter>PlayList</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\xLights\AudioManager.h" />
@@ -955,6 +967,18 @@
       <Filter>PlayList</Filter>
     </ClInclude>
     <ClInclude Include="PlayList\PlayListItemMIDI.h">
+      <Filter>PlayList</Filter>
+    </ClInclude>
+    <ClInclude Include="EventARTNetTriggerPanel.h">
+      <Filter>Events</Filter>
+    </ClInclude>
+    <ClInclude Include="events\EventARTNetTrigger.h">
+      <Filter>Events</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayList\PlayListItemARTNetTriggerPanel.h">
+      <Filter>PlayList</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayList\PlayListItemARTNetTrigger.h">
       <Filter>PlayList</Filter>
     </ClInclude>
   </ItemGroup>
