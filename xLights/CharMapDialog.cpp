@@ -5,8 +5,10 @@
 #include <wx/string.h>
 //*)
 
-#include <log4cpp/Category.hh>
 #include <wx/valnum.h>
+#include <wx/settings.h>
+
+#include <log4cpp/Category.hh>
 
 //(*IdInit(CharMapDialog)
 const long CharMapDialog::ID_STATICTEXT1 = wxNewId();
