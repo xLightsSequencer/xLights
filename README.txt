@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (scott)   Updated Sandevice upload to support color order, brightness, group count, null pixel, and reverse controller settings on FIRST model.
+   -- enh (scott)   Add Sandevice Controller types to e1.31 dialog.
 2019.21 April 15, 2019
    -- bug (scott)   Falcon upload - Default to "Universe" mode instead of "Absolute" on Firmware 2.04 and lower.
    -- bug (keith)   Fix jukebox button size

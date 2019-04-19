@@ -1352,7 +1352,7 @@ void xLightsFrame::OnGridNetworkItemRClick(wxListEvent& event)
             std::string description = rules->GetControllerDescription();
             mnuUploadController->Append(ID_NETWORK_UPLOAD_INPUT_CONTROLLER_CONFIGURED, "E1.31 Input Definition - " + description);
         }
-    } else {        
+    } else {
         wxMenu* mnuUCInput = new wxMenu();
         wxMenuItem* beUCIFPPB = mnuUCInput->Append(ID_NETWORK_UCIFPPB, "FPP Bridge Mode");
         if (!AllSelectedSupportIP()) {
@@ -1672,23 +1672,27 @@ void xLightsFrame::OnNetworkPopup(wxCommandEvent &event)
     } else if (id == ID_NETWORK_UPLOAD_INPUT_CONTROLLER_CONFIGURED) {
         Output *selected = _outputManager.GetOutput(item);
         const ControllerRules * rules = ControllerRegistry::GetRulesForController(selected->GetControllerId());
-        if (rules->GetControllerManufacturer() == "FPP")  {
+        if (rules->GetControllerManufacturer() == "FPP") {
             UploadFPPBridgeInput();
-        } else if (rules->GetControllerManufacturer() == "Falcon")  {
+        } else if (rules->GetControllerManufacturer() == "Falcon") {
             UploadFalconInput();
-        } else if (rules->GetControllerManufacturer() == "ESPixelStick")  {
+        } else if (rules->GetControllerManufacturer() == "ESPixelStick") {
             UploadESPixelStickOutput();
+        } else if (rules->GetControllerManufacturer() == "SanDevices") {
+            UploadSanDevicesInput();
         }
         //FIXME - other targets
     } else if (id == ID_NETWORK_UPLOAD_CONTROLLER_CONFIGURED) {
         Output *selected = _outputManager.GetOutput(item);
         const ControllerRules * rules = ControllerRegistry::GetRulesForController(selected->GetControllerId());
-        if (rules->GetControllerManufacturer() == "FPP")  {
+        if (rules->GetControllerManufacturer() == "FPP") {
             UploadFPPStringOuputs(rules->GetControllerId());
-        } else if (rules->GetControllerManufacturer() == "Falcon")  {
+        } else if (rules->GetControllerManufacturer() == "Falcon") {
             UploadFalconOutput();
-        } else if (rules->GetControllerManufacturer() == "ESPixelStick")  {
+        } else if (rules->GetControllerManufacturer() == "ESPixelStick") {
             UploadESPixelStickOutput();
+        } else if (rules->GetControllerManufacturer() == "SanDevices") {
+            UploadSanDevicesOutput();
         }
         //FIXME - other targets
     } else if (id == ID_NETWORK_VISUALISE) {
