@@ -1,6 +1,7 @@
 #include "ShapePanel.h"
 #include "EffectPanelUtils.h"
 #include "ShapeEffect.h"
+#include "../CharMapDialog.h"
 
 //(*InternalHeaders(ShapePanel)
 #include <wx/artprov.h>
@@ -183,7 +184,7 @@ ShapePanel::ShapePanel(wxWindow* parent)
     SpinCtrl_CharCode->SetValue(_T("127876"));
     FlexGridSizer8->Add(SpinCtrl_CharCode, 1, wxALL|wxEXPAND, 2);
     FlexGridSizer57->Add(FlexGridSizer8, 1, wxALL|wxEXPAND, 0);
-    StaticText10 = new wxStaticText(this, ID_STATICTEXT2, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
+    StaticText10 = new ClickableStaticText(this, ID_STATICTEXT2, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
     FlexGridSizer57->Add(StaticText10, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText72 = new wxStaticText(this, ID_STATICTEXT_Shape_Thickness, _("Thickness"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Shape_Thickness"));
     FlexGridSizer57->Add(StaticText72, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
@@ -466,7 +467,20 @@ ShapePanel::ShapePanel(wxWindow* parent)
         wxASSERT(false);
     }
 
+    Connect(ID_STATICTEXT2, wxEVT_COMMAND_LEFT_DCLICK, (wxObjectEventFunction)& ShapePanel::OnShowCharMap);
     Connect(ID_STATICTEXT2, wxEVT_CONTEXT_MENU, (wxObjectEventFunction)&ShapePanel::EmojiMenu);
+
+    ValidateWindow();
+}
+
+
+void ShapePanel::OnShowCharMap(wxCommandEvent& event)
+{
+    CharMapDialog dlg(this, FontPickerCtrl_Font->GetSelectedFont(), SpinCtrl_CharCode->GetValue());
+
+    dlg.ShowModal();
+
+    SpinCtrl_CharCode->SetValue(dlg.GetCharCode());
 
     ValidateWindow();
 }
