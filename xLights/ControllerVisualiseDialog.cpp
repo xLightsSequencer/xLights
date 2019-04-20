@@ -6,12 +6,21 @@
 //*)
 
 #include <wx/dcclient.h>
+#include <wx/menu.h>
+#include <wx/position.h>
+#include <wx/dcmemory.h>
+#include <wx/dcscreen.h>
+#include <wx/image.h>
+#include "UtilFunctions.h"
 
 //(*IdInit(ControllerVisualiseDialog)
 const long ControllerVisualiseDialog::ID_PANEL1 = wxNewId();
 const long ControllerVisualiseDialog::ID_SCROLLBAR1 = wxNewId();
 const long ControllerVisualiseDialog::ID_SCROLLBAR2 = wxNewId();
 //*)
+
+const long ControllerVisualiseDialog::CONTROLLERVISUALISE_PRINT = wxNewId();
+const long ControllerVisualiseDialog::CONTROLLERVISUALISE_SAVE_PICTURE = wxNewId();
 
 BEGIN_EVENT_TABLE(ControllerVisualiseDialog,wxDialog)
 	//(*EventTable(ControllerVisualiseDialog)
@@ -23,8 +32,29 @@ END_EVENT_TABLE()
 #define VERTICAL_SIZE 20
 #define LEFT_RIGHT_MARGIN TOP_BOTTOM_MARGIN
 #define HORIZONTAL_GAP VERTICAL_GAP
-#define HORIZONTAL_SIZE 100
+#define HORIZONTAL_SIZE 120
 #define CORNER_ROUNDING 5
+#define PRINTSCALE 8.0
+
+ControllerVisualisePrintout::ControllerVisualisePrintout(ControllerVisualiseDialog* controllerDialog)
+{
+    _controllerDialog = controllerDialog;
+}
+
+bool ControllerVisualisePrintout::OnPrintPage(int pageNum)
+{
+    if (pageNum != 1) return false;
+
+    wxRect rect = GetLogicalPageRect();
+    wxBitmap bmp;
+    bmp.Create(rect.GetWidth() * 0.95f, rect.GetHeight() * 0.95f);
+    _controllerDialog->RenderPicture(bmp, true);
+
+    wxDC* dc = GetDC();
+    dc->DrawBitmap(bmp, 0, 0);
+
+    return true;
+}
 
 ControllerVisualiseDialog::ControllerVisualiseDialog(wxWindow* parent, UDController& cud, wxWindowID id,const wxPoint& pos,const wxSize& size) : _cud(cud)
 {
@@ -51,6 +81,7 @@ ControllerVisualiseDialog::ControllerVisualiseDialog(wxWindow* parent, UDControl
 	Layout();
 
 	Panel1->Connect(wxEVT_PAINT,(wxObjectEventFunction)&ControllerVisualiseDialog::OnPanel1Paint,0,this);
+	Panel1->Connect(wxEVT_RIGHT_DOWN,(wxObjectEventFunction)&ControllerVisualiseDialog::OnPanel1RightDown,0,this);
 	Panel1->Connect(wxEVT_SIZE,(wxObjectEventFunction)&ControllerVisualiseDialog::OnPanel1Resize,0,this);
 	Connect(ID_SCROLLBAR1,wxEVT_SCROLL_TOP|wxEVT_SCROLL_BOTTOM|wxEVT_SCROLL_LINEUP|wxEVT_SCROLL_LINEDOWN|wxEVT_SCROLL_PAGEUP|wxEVT_SCROLL_PAGEDOWN|wxEVT_SCROLL_THUMBTRACK|wxEVT_SCROLL_THUMBRELEASE|wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&ControllerVisualiseDialog::OnScrollBar_VerticalScroll);
 	Connect(ID_SCROLLBAR1,wxEVT_SCROLL_THUMBTRACK,(wxObjectEventFunction)&ControllerVisualiseDialog::OnScrollBar_VerticalScrollThumbTrack);
@@ -111,71 +142,7 @@ void ControllerVisualiseDialog::OnPanel1Paint(wxPaintEvent& event)
 
     dc.SetDeviceOrigin(-xOffset, -yOffset);
 
-    dc.SetTextForeground(*wxBLACK);
-
-    int rowPos = TOP_BOTTOM_MARGIN;
-    for (int i = 1; i <= _cud.GetMaxPixelPort(); i++)
-    {
-        int colPos = LEFT_RIGHT_MARGIN;
-        dc.SetPen(*wxRED_PEN);
-        dc.DrawRoundedRectangle(colPos, rowPos, HORIZONTAL_SIZE, VERTICAL_SIZE, CORNER_ROUNDING);
-        dc.DrawText(wxString::Format("Pixel Port %d", i), colPos + 2, rowPos + 2);
-
-        if (_cud.GetControllerPixelPort(i)->GetVirtualStringCount() > 0)
-        {
-            for (int j = 0; j < _cud.GetControllerPixelPort(i)->GetVirtualStringCount(); j++)
-            {
-                colPos = LEFT_RIGHT_MARGIN + HORIZONTAL_SIZE + HORIZONTAL_GAP;
-
-                for (auto it : _cud.GetControllerPixelPort(i)->GetVirtualString(j)->_models)
-                {
-                    switch (it->GetSmartRemote())
-                    {
-                    case 0:
-                        dc.SetBrush(*wxWHITE_BRUSH);
-                        break;
-                    case 1:
-                        dc.SetBrush(*wxGREEN_BRUSH);
-                        break;
-                    case 2:
-                        dc.SetBrush(*wxCYAN_BRUSH);
-                        break;
-                    case 3:
-                        dc.SetBrush(*wxLIGHT_GREY_BRUSH);
-                        break;
-                    }
-                    dc.SetPen(*wxGREY_PEN);
-                    dc.DrawRectangle(colPos, rowPos, HORIZONTAL_SIZE, VERTICAL_SIZE);
-                    dc.DrawText(it->GetName(), colPos + 2, rowPos + 2);
-                    colPos += HORIZONTAL_SIZE + HORIZONTAL_GAP;
-                    dc.SetBrush(*wxWHITE_BRUSH);
-                }
-                rowPos += VERTICAL_SIZE + VERTICAL_GAP;
-            }
-        }
-        else
-        {
-            rowPos += VERTICAL_SIZE + VERTICAL_GAP;
-        }
-    }
-    for (int i = 1; i <= _cud.GetMaxSerialPort(); i++)
-    {
-        int colPos = LEFT_RIGHT_MARGIN;
-            dc.SetPen(*wxGREEN_PEN);
-        dc.DrawRoundedRectangle(colPos, rowPos, HORIZONTAL_SIZE, VERTICAL_SIZE, CORNER_ROUNDING);
-        dc.DrawText(wxString::Format("Serial Port %d", i), colPos + 2, rowPos + 2);
-        colPos += HORIZONTAL_SIZE + HORIZONTAL_GAP;
-
-        for (auto it : _cud.GetControllerSerialPort(i)->GetModels())
-        {
-            dc.SetPen(*wxGREY_PEN);
-            dc.DrawRectangle(colPos, rowPos, HORIZONTAL_SIZE, VERTICAL_SIZE);
-            dc.DrawText(it->GetName(), colPos + 2, rowPos + 2);
-            colPos += HORIZONTAL_SIZE + HORIZONTAL_GAP;
-        }
-
-        rowPos += VERTICAL_SIZE + VERTICAL_GAP;
-    }
+	RenderDiagram(dc);
 }
 
 void ControllerVisualiseDialog::OnScrollBar_VerticalScroll(wxScrollEvent& event)
@@ -218,4 +185,136 @@ void ControllerVisualiseDialog::OnPanel1Resize(wxSizeEvent& event)
     ScrollBar_Horizontal->SetThumbSize(w);
     ScrollBar_Vertical->SetThumbSize(h);
     Panel1->Refresh();
+}
+
+void ControllerVisualiseDialog::OnPanel1RightDown(wxMouseEvent& event)
+{
+    wxMenu mnu;
+    mnu.Append(CONTROLLERVISUALISE_PRINT, "Print");
+    //mnu.Append(CONTROLLERVISUALISE_SAVE_PICTURE, "Save As Picture");
+
+    mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&ControllerVisualiseDialog::OnPopupCommand, nullptr, this);
+    PopupMenu(&mnu);
+}
+
+void ControllerVisualiseDialog::OnPopupCommand(wxCommandEvent &event)
+{
+    int id = event.GetId();
+    if (id == CONTROLLERVISUALISE_PRINT)
+    {
+        static wxPrintDialogData printDialogData;
+        wxPrinter printer(&printDialogData);
+
+        ControllerVisualisePrintout printout(this);
+
+        if (!printer.Print(this, &printout, true))
+        {
+            if (wxPrinter::GetLastError() == wxPRINTER_ERROR)
+            {
+                DisplayError(wxString::Format("Problem printing wiring. %d", wxPrinter::GetLastError()).ToStdString(), this);
+            }
+        }
+        else
+        {
+            printDialogData = printer.GetPrintDialogData();
+        }
+    }
+    else if (id == CONTROLLERVISUALISE_SAVE_PICTURE)
+    {
+        
+    }
+}
+
+
+void ControllerVisualiseDialog::RenderPicture(wxBitmap& bitmap, bool printer)
+{
+	wxMemoryDC dc;
+	dc.SelectObject(bitmap);
+
+	dc.SetTextForeground(*wxWHITE);
+
+	dc.SetPen(*wxWHITE_PEN);
+	dc.SetBrush(*wxWHITE_BRUSH);
+
+	dc.DrawRectangle(wxPoint(0, 0), bitmap.GetScaledSize());
+
+	dc.SetDeviceOrigin(0, 0);
+
+	RenderDiagram(dc, PRINTSCALE);
+}
+
+void ControllerVisualiseDialog::RenderDiagram(wxDC& dc, int scale)
+{
+    if (scale != 1)
+    {
+		int fontSize = 10 * scale;
+		wxFont font = wxFont(fontSize, wxFONTFAMILY_SWISS, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, _T("Arial"), wxFONTENCODING_DEFAULT);
+		dc.SetFont(font);
+    }
+
+    dc.SetTextForeground(*wxBLACK);
+
+    int rowPos = TOP_BOTTOM_MARGIN * scale;
+    for (int i = 1; i <= _cud.GetMaxPixelPort(); i++)
+    {
+        int colPos = LEFT_RIGHT_MARGIN * scale;
+        dc.SetPen(*wxRED_PEN);
+        dc.DrawRoundedRectangle(colPos, rowPos, HORIZONTAL_SIZE * scale, VERTICAL_SIZE * scale, CORNER_ROUNDING * scale);
+        dc.DrawText(wxString::Format("Pixel Port %d", i), colPos + 2, rowPos + 2);
+
+        if (_cud.GetControllerPixelPort(i)->GetVirtualStringCount() > 0)
+        {
+            for (int j = 0; j < _cud.GetControllerPixelPort(i)->GetVirtualStringCount(); j++)
+            {
+                colPos = (LEFT_RIGHT_MARGIN * scale) + (HORIZONTAL_SIZE * scale) + (HORIZONTAL_GAP * scale);
+
+                for (auto it : _cud.GetControllerPixelPort(i)->GetVirtualString(j)->_models)
+                {
+                    switch (it->GetSmartRemote())
+                    {
+                    case 0:
+                        dc.SetBrush(*wxWHITE_BRUSH);
+                        break;
+                    case 1:
+                        dc.SetBrush(*wxGREEN_BRUSH);
+                        break;
+                    case 2:
+                        dc.SetBrush(*wxCYAN_BRUSH);
+                        break;
+                    case 3:
+                        dc.SetBrush(*wxLIGHT_GREY_BRUSH);
+                        break;
+                    }
+                    dc.SetPen(*wxGREY_PEN);
+                    dc.DrawRectangle(colPos, rowPos, (HORIZONTAL_SIZE * scale), VERTICAL_SIZE * scale);
+                    dc.DrawText(it->GetName(), colPos + 2, rowPos + 2);
+                    colPos += (HORIZONTAL_SIZE * scale) + (HORIZONTAL_GAP * scale);
+                    dc.SetBrush(*wxWHITE_BRUSH);
+                }
+                rowPos += (VERTICAL_SIZE * scale) + (VERTICAL_GAP * scale);
+            }
+        }
+        else
+        {
+            rowPos += (VERTICAL_SIZE * scale) + (VERTICAL_GAP * scale);
+        }
+    }
+    for (int i = 1; i <= _cud.GetMaxSerialPort(); i++)
+    {
+        int colPos = (LEFT_RIGHT_MARGIN * scale);
+        dc.SetPen(*wxGREEN_PEN);
+        dc.DrawRoundedRectangle(colPos, rowPos, (HORIZONTAL_SIZE * scale), (VERTICAL_SIZE * scale), (CORNER_ROUNDING * scale));
+        dc.DrawText(wxString::Format("Serial Port %d", i), colPos + 2, rowPos + 2);
+        colPos += (HORIZONTAL_SIZE * scale) + (HORIZONTAL_GAP * scale);
+
+        for (auto it : _cud.GetControllerSerialPort(i)->GetModels())
+        {
+            dc.SetPen(*wxGREY_PEN);
+            dc.DrawRectangle(colPos, rowPos, (HORIZONTAL_SIZE * scale), (VERTICAL_SIZE * scale));
+            dc.DrawText(it->GetName(), colPos + 2, rowPos + 2);
+            colPos += (HORIZONTAL_SIZE * scale) + (HORIZONTAL_GAP * scale);
+        }
+
+        rowPos += (VERTICAL_SIZE * scale) + (VERTICAL_GAP * scale);
+    }
 }

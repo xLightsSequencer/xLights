@@ -14,6 +14,7 @@
 			<object class="sizeritem">
 				<object class="wxPanel" name="ID_PANEL1" variable="Panel1" member="yes">
 					<handler function="OnPanel1Paint" entry="EVT_PAINT" />
+					<handler function="OnPanel1RightDown" entry="EVT_RIGHT_DOWN" />
 					<handler function="OnPanel1Resize" entry="EVT_SIZE" />
 				</object>
 				<flag>wxALL|wxEXPAND</flag>

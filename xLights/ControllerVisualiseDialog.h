@@ -9,6 +9,17 @@
 //*)
 
 #include "controllers/ControllerUploadData.h"
+#include <wx/prntbase.h>
+
+class ControllerVisualiseDialog;
+
+class ControllerVisualisePrintout : public wxPrintout
+{
+    ControllerVisualiseDialog* _controllerDialog;
+public:
+    ControllerVisualisePrintout(ControllerVisualiseDialog* controllerDialog);
+    virtual bool OnPrintPage(int pageNum) override;
+};
 
 class ControllerVisualiseDialog: public wxDialog
 {
@@ -24,6 +35,11 @@ class ControllerVisualiseDialog: public wxDialog
 		wxScrollBar* ScrollBar_Horizontal;
 		wxScrollBar* ScrollBar_Vertical;
 		//*)
+
+        static const long CONTROLLERVISUALISE_PRINT;
+        static const long CONTROLLERVISUALISE_SAVE_PICTURE;
+
+        void RenderPicture(wxBitmap& bitmap, bool printer);
 
 	protected:
 
@@ -44,7 +60,12 @@ class ControllerVisualiseDialog: public wxDialog
 		void OnScrollBar_VerticalScrollChanged(wxScrollEvent& event);
 		void OnScrollBar_VerticalScrollThumbTrack(wxScrollEvent& event);
 		void OnPanel1Resize(wxSizeEvent& event);
+		void OnPanel1RightDown(wxMouseEvent& event);
 		//*)
+
+        void OnPopupCommand(wxCommandEvent & event);
+
+		void RenderDiagram(wxDC& dc, int scale = 1);
 
 		DECLARE_EVENT_TABLE()
 };
