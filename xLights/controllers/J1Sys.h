@@ -22,7 +22,16 @@ class J1Sys
         int pixels;
     };
 
-	wxHTTP _http;
+    struct J1SysSerialOutput
+    {
+        char port;
+        bool active;
+        char protocol;
+        int speed;
+        int universe;
+    };
+
+    wxHTTP _http;
 	std::string _ip = "";
     std::string _version = "";
     std::string _model = "";
@@ -30,18 +39,18 @@ class J1Sys
     bool _connected = false;
     std::string GetURL(const std::string& url, bool logresult = false);
     std::string PutURL(const std::string& url, const std::string& request, bool logresult = false);
-    char DecodeStringPortProtocol(std::string protocol) const;
-    char DecodeSerialPortProtocol(std::string protocol) const;
+    char EncodeStringPortProtocol(std::string protocol) const;
+    char EncodeSerialPortProtocol(std::string protocol) const;
     int DecodeProtocolSpeed(std::string protocol) const;
     std::string BuildStringPort(bool active, int string, char protocol, int speed, int startChannel, int universe, int pixels, wxWindow* parent) const;
-    std::string BuildSerialPort(int string, char protocol, int speed, int universe, wxWindow* parent) const;
+    std::string BuildSerialPort(bool active, int port, char protocol, int speed, int universe, wxWindow* parent) const;
     void ResetStringOutputs();
     void ResetSerialOutputs();
     void Reboot();
-    int GetMaxStringOutputs() const;
-    int GetMaxSerialOutputs() const;
     void DumpConfig(const std::vector<J1SysOutput>& j) const;
+    void DumpConfig(const std::vector<J1SysSerialOutput>& j) const;
     void ReadCurrentConfig(std::vector<J1SysOutput>& j);
+    void ReadCurrentSerialConfig(std::vector<J1SysSerialOutput>& j);
     int GetBankSize() const;
 
 public:
