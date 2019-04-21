@@ -37,7 +37,7 @@ class ControllerVisualiseDialog: public wxDialog
 		//*)
 
         static const long CONTROLLERVISUALISE_PRINT;
-        static const long CONTROLLERVISUALISE_SAVE_PICTURE;
+        static const long CONTROLLERVISUALISE_SAVE_CSV;
 
         void RenderPicture(wxBitmap& bitmap, bool printer);
 
@@ -66,6 +66,8 @@ class ControllerVisualiseDialog: public wxDialog
         void OnPopupCommand(wxCommandEvent & event);
 
 		void RenderDiagram(wxDC& dc, int scale = 1);
+
+		void SaveCSV();
 
 		DECLARE_EVENT_TABLE()
 };

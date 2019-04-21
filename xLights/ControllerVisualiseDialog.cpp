@@ -11,6 +11,7 @@
 #include <wx/dcmemory.h>
 #include <wx/dcscreen.h>
 #include <wx/image.h>
+#include <wx/file.h>
 #include "UtilFunctions.h"
 
 //(*IdInit(ControllerVisualiseDialog)
@@ -20,7 +21,7 @@ const long ControllerVisualiseDialog::ID_SCROLLBAR2 = wxNewId();
 //*)
 
 const long ControllerVisualiseDialog::CONTROLLERVISUALISE_PRINT = wxNewId();
-const long ControllerVisualiseDialog::CONTROLLERVISUALISE_SAVE_PICTURE = wxNewId();
+const long ControllerVisualiseDialog::CONTROLLERVISUALISE_SAVE_CSV = wxNewId();
 
 BEGIN_EVENT_TABLE(ControllerVisualiseDialog,wxDialog)
 	//(*EventTable(ControllerVisualiseDialog)
@@ -191,7 +192,7 @@ void ControllerVisualiseDialog::OnPanel1RightDown(wxMouseEvent& event)
 {
     wxMenu mnu;
     mnu.Append(CONTROLLERVISUALISE_PRINT, "Print");
-    //mnu.Append(CONTROLLERVISUALISE_SAVE_PICTURE, "Save As Picture");
+    mnu.Append(CONTROLLERVISUALISE_SAVE_CSV, "Save As CSV...");
 
     mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&ControllerVisualiseDialog::OnPopupCommand, nullptr, this);
     PopupMenu(&mnu);
@@ -219,9 +220,9 @@ void ControllerVisualiseDialog::OnPopupCommand(wxCommandEvent &event)
             printDialogData = printer.GetPrintDialogData();
         }
     }
-    else if (id == CONTROLLERVISUALISE_SAVE_PICTURE)
+    else if (id == CONTROLLERVISUALISE_SAVE_CSV)
     {
-        
+		SaveCSV();
     }
 }
 
@@ -317,4 +318,69 @@ void ControllerVisualiseDialog::RenderDiagram(wxDC& dc, int scale)
 
         rowPos += (VERTICAL_SIZE * scale) + (VERTICAL_GAP * scale);
     }
+}
+
+void ControllerVisualiseDialog::SaveCSV()
+{
+	wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
+	wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, wxEmptyString, wxEmptyString, "Export files (*.csv)|*.csv", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+
+	if (filename.IsEmpty()) return;	
+
+	std::vector<wxString> lines;
+	int columnSize = 0;
+
+	for (int i = 1; i <= _cud.GetMaxPixelPort(); i++)
+	{
+		wxString line = wxString::Format("Pixel Port %d,", i);
+
+		if (columnSize < _cud.GetControllerPixelPort(i)->GetModels().size())
+			columnSize = _cud.GetControllerPixelPort(i)->GetModels().size();
+
+		for (auto it : _cud.GetControllerPixelPort(i)->GetModels())
+		{
+			line += it->GetName();
+			line += ",";
+		}				
+		
+		line += "\n";
+		lines.push_back(line);
+	}
+	lines.push_back("\n");
+	for (int i = 1; i <= _cud.GetMaxSerialPort(); i++)
+	{
+		if (columnSize < _cud.GetControllerSerialPort(i)->GetModels().size())
+			columnSize = _cud.GetControllerSerialPort(i)->GetModels().size();
+
+		wxString line = wxString::Format("Serial Port %d,", i);
+		for (auto it : _cud.GetControllerSerialPort(i)->GetModels())
+		{
+			line += it->GetName();
+			line += ",";
+		}
+		line += "\n";
+		lines.push_back(line);
+	}
+
+	wxFile f(filename);
+
+	if (!f.Create(filename, true) || !f.IsOpened())
+	{
+		DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
+		return;
+	}
+
+	wxString header = "Output,";
+	for (int i = 1; i <= columnSize; i++)
+	{
+		header += wxString::Format("Model %d,", i);
+	}
+	header += "\n";
+	f.Write(header);
+	for (const auto& line : lines)
+	{
+		f.Write(line);
+	}
+	
+	f.Close();
 }
