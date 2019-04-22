@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (dkulp)   When bulk editing path, if the original "looks" like a windows path ( : as second char),
+                    then parse as a windows path instead of "native", Fixes #1532
    -- bug (dkulp)   When loading older show directories, it will sometimes go into a loop displaying error
                     message trying to calc start channels for most models
 2019.22 April 21, 2019
