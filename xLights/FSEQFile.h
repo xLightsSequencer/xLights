@@ -86,6 +86,10 @@ public:
     uint32_t      getChannelCount() const  { return m_seqChannelCount; }
     int           getVersionMajor() const { return m_seqVersionMajor; }
     int           getVersionMinor() const { return m_seqVersionMinor; }
+    uint64_t      getUniqueId() const { return m_uniqueId; }
+    const std::string& getFilename() const { return m_filename; }
+    
+    
     virtual uint32_t getMaxChannel() const = 0;
     const std::vector<VariableHeader> &getVariableHeaders() const { return m_variableHeaders;}
 
@@ -185,4 +189,6 @@ private:
     V2Handler *m_handler;
     friend class V2Handler;
 };
+
+
 #endif

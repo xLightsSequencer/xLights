@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (dkulp)   Make sure FPP string upload doesn't generate configuration that won't work, make sure
+                    it marks hasSerial as false if no serial is configured
    -- bug (dkulp)   When bulk editing path, if the original "looks" like a windows path ( : as second char),
                     then parse as a windows path instead of "native", Fixes #1532
    -- bug (dkulp)   When loading older show directories, it will sometimes go into a loop displaying error

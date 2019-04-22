@@ -776,11 +776,6 @@ public:
     virtual std::string GetType() const override { return "Compressed ZSTD"; }
 
     virtual FrameData *getFrame(uint32_t frame) override {
-
-        // I see crashes in this function ... I have not made changes but the code seems
-        // to assume a lot of integrity ... particularly in m_frameOffsets ... which is 
-        // fine when it works ... until it doesnt
-
         if (m_curBlock > 256 || (frame < m_file->m_frameOffsets[m_curBlock].first) || (frame >= m_file->m_frameOffsets[m_curBlock + 1].first)) {
             //frame is not in the current block
             m_curBlock = 0;
@@ -814,13 +809,21 @@ public:
             }
 
             free(m_outBuffer.dst);
-            int numFrames = (m_file->m_frameOffsets[m_curBlock + 1].first > m_file->getNumFrames() ? m_file->getNumFrames() :  m_file->m_frameOffsets[m_curBlock + 1].first) - m_file->m_frameOffsets[m_curBlock].first;
-            m_outBuffer.size = numFrames * m_file->getChannelCount();
+            m_numFramesInBlock = (m_file->m_frameOffsets[m_curBlock + 1].first > m_file->getNumFrames() ? m_file->getNumFrames() :  m_file->m_frameOffsets[m_curBlock + 1].first) - m_file->m_frameOffsets[m_curBlock].first;
+            m_outBuffer.size = m_numFramesInBlock * m_file->getChannelCount();
             m_outBuffer.dst = malloc(m_outBuffer.size);
             m_outBuffer.pos = 0;
-            ZSTD_decompressStream(m_dctx, &m_outBuffer, &m_inBuffer);
+            m_curFrameInBlock = 0;
+            
         }
         int fidx = frame - m_file->m_frameOffsets[m_curBlock].first;
+        if (fidx >= m_curFrameInBlock) {
+            m_outBuffer.size = (fidx + 1) * m_file->getChannelCount();
+            int opos = m_outBuffer.pos;
+            ZSTD_decompressStream(m_dctx, &m_outBuffer, &m_inBuffer);
+            m_curFrameInBlock = fidx + 1;
+        }
+        
         fidx *= m_file->getChannelCount();
         uint8_t *fdata = (uint8_t*)m_outBuffer.dst;
         UncompressedFrameData *data = new UncompressedFrameData(frame, m_file->m_dataBlockSize, m_file->m_rangesToRead);
@@ -939,6 +942,8 @@ public:
     ZSTD_DStream* m_dctx;
     ZSTD_outBuffer_s m_outBuffer;
     ZSTD_inBuffer_s m_inBuffer;
+    int m_numFramesInBlock;
+    int m_curFrameInBlock;
 };
 #endif
 
@@ -1117,6 +1122,7 @@ public:
 };
 #endif
 
+
 void V2FSEQFile::createHandler() {
     switch (m_compressionType) {
     case CompressionType::none:
@@ -1137,7 +1143,6 @@ void V2FSEQFile::createHandler() {
 #endif
         break;
     }
-
     if (m_handler == nullptr) {
         LogDebug(VB_SEQUENCE, "Creating a default none compression handler. %d", (int)m_compressionType);
         m_handler = new V2NoneCompressionHandler(this);
@@ -1383,12 +1388,9 @@ FrameData *V2FSEQFile::getFrame(uint32_t frame) {
     }
     if (m_handler != nullptr) {
         FrameData* fd = nullptr;
-        try
-        {
+        try {
             fd = m_handler->getFrame(frame);
-        }
-        catch(...)
-        {
+        } catch(...) {
             LogErr(VB_SEQUENCE, "Error getting frame from handler %s.\n", m_handler->GetType().c_str());
         }
         return fd;
