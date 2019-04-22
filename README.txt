@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (dkulp)   When loading older show directories, it will sometimes go into a loop displaying error
+                    message trying to calc start channels for most models
 2019.22 April 21, 2019
    -- enh (scott)   Add right click print to controller visualiser
    -- enh (scott)   Add right click export to csv file to controller visualiser

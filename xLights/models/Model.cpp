@@ -1799,10 +1799,17 @@ void Model::SetFromXml(wxXmlNode* ModelNode, bool zb) {
             ModelNode->AddChild(controllerConnectionNode);
         }
         if (ar.size() > 0) {
-            SetControllerProtocol(ar[0]);
+            controllerConnectionNode->DeleteAttribute("Protocol");
+            if (ar[0] != "") {
+                controllerConnectionNode->AddAttribute("Protocol", ar[0]);
+            }
         }
         if (ar.size() > 1) {
-            SetControllerPort(wxAtoi(ar[1]));
+            GetControllerConnection()->DeleteAttribute("Port");
+            int port = wxAtoi(ar[1]);
+            if (port > 0) {
+                GetControllerConnection()->AddAttribute("Port", wxString::Format("%d", port));
+            }
         }
     }
 
