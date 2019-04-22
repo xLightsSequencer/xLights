@@ -1311,15 +1311,27 @@ void xLightsFrame::AutoShowHouse()
         {
             if (!visible)
             {
-                m_mgr->GetPane("HousePreview").Show();
+                auto& hp = m_mgr->GetPane("HousePreview");
+                hp.Show();
+                if (_wasMaximised)
+                {
+                    m_mgr->MaximizePane(hp);
+                }
                 m_mgr->Update();
             }
         }
         else
         {
+            _wasMaximised = false;
             if (visible)
             {
-                m_mgr->GetPane("HousePreview").Hide();
+                auto& hp = m_mgr->GetPane("HousePreview");
+                if (hp.IsMaximized() && hp.IsDocked())
+                {
+                    _wasMaximised = true;
+                    m_mgr->RestoreMaximizedPane();
+                }
+                hp.Hide();
                 m_mgr->Update();
             }
         }

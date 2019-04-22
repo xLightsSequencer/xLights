@@ -1077,6 +1077,7 @@ public:
     bool _autoSavePerspecive;
     int _fseqVersion;
     int _xFadePort;
+    bool _wasMaximised = false;
     wxSocketServer* _xFadeSocket = nullptr;
 
     void OnxFadeSocketEvent(wxSocketEvent & event);
