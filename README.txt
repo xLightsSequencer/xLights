@@ -11,8 +11,17 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
-   -- enh (scott)   Updated Sandevice upload to support color order, brightness, group count, null pixel, and reverse controller settings on FIRST model.
+2019.22 April 21, 2019
+   -- enh (scott)   Add right click print to controller visualiser
+   -- enh (scott)   Add right click export to csv file to controller visualiser
+   -- enh (scott)   Updated Sandevice upload to support color order, brightness, group count, null pixel, and 
+                    reverse controller settings on FIRST model.
    -- enh (scott)   Add Sandevice Controller types to e1.31 dialog.
+   -- enh (keith)   Upgrade J1SYS P12 support to support a broader range of models
+   -- enh (keith)   Add the ability to send ArtNET triggers to xSchedule
+   -- enh (keith)   Add the ability to receive ArtNET triggers to xSchedule
+   -- enh (keith)   Add a character map browser to the shape effect emoji
+   -- bug (scott)   Explain to user why they cant enter text on a fixed timing track
 2019.21 April 15, 2019
    -- bug (scott)   Falcon upload - Default to "Universe" mode instead of "Absolute" on Firmware 2.04 and lower.
    -- bug (keith)   Fix jukebox button size

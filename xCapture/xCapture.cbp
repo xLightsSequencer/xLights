@@ -28,6 +28,7 @@
 					<Add option="-D__WXDEBUG__" />
 					<Add option="-D_USE_MATH_DEFINES" />
 					<Add directory="$(#wx)/lib/gcc_dll/mswud" />
+					<Add directory="$(#wx)/include" />
 					<Add directory="include" />
 					<Add directory="../xCapture" />
 					<Add directory="../include" />
@@ -76,6 +77,7 @@
 					<Add option="-DNDEBUG" />
 					<Add option="-D_USE_MATH_DEFINES" />
 					<Add directory="$(#wx)/lib/gcc_dll/mswu" />
+					<Add directory="$(#wx)/include" />
 					<Add directory="include" />
 					<Add directory="../xCapture" />
 					<Add directory="../include" />
@@ -191,6 +193,7 @@
 					<Add directory="../xCapture" />
 					<Add directory="../include" />
 					<Add directory="$(#wx)/lib/gcc_dll/mswu" />
+					<Add directory="$(#wx)/include" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="$(#wx)/include" />
