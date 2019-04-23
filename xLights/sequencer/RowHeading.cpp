@@ -15,6 +15,7 @@
 #include "NewTimingDialog.h"
 #include "VAMPPluginDialog.h"
 #include "UtilFunctions.h"
+#include "xlGLCanvas.h"
 
 #include <log4cpp/Category.hh>
 
@@ -1153,6 +1154,22 @@ void RowHeading::render( wxPaintEvent& event )
     Draw();
 }
 
+float ComputeRHFontSize(int& toffset, const float factor) {
+    double fontSize = DEFAULT_ROW_HEADING_HEIGHT - 20;
+    toffset = 0;
+    if (fontSize < 9) {
+        if (factor > 1.5) {
+            fontSize = 8;
+            toffset = 1;
+        }
+        else {
+            fontSize = 9;
+            toffset = 2;
+        }
+    }
+    return fontSize;
+}
+
 void RowHeading::Draw()
 {
     wxClientDC dc(this);
@@ -1168,6 +1185,16 @@ void RowHeading::Draw()
     wxBrush brush(rowHeaderCol.asWxColor(), wxBRUSHSTYLE_SOLID);
     dc.SetBrush(brush);
     dc.SetPen(penOutline);
+
+    // I am not sure this will be right on OSX
+    // Basically if effect labels grow with row size then so should labels.
+    float factor = xlGLCanvas::translateToBacking(1.0);
+    int toffset;
+    auto fontSize = ComputeRHFontSize(toffset, factor);
+    auto font = dc.GetFont();
+    font.SetPointSize(fontSize);
+    dc.SetFont(font);
+
     int row = 0;
     int endY = 0;
 
