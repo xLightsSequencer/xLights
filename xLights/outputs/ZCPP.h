@@ -65,6 +65,7 @@
 #define ZCPP_DISCOVERY_PROTOCOL_LPD8806 0x00010000
 #define ZCPP_DISCOVERY_PROTOCOL_DM412   0x00020000
 #define ZCPP_DISCOVERY_PROTOCOL_P9813   0x00040000
+#define ZCPP_DISCOVERY_PROTOCOL_LOR     0x00080000
 
 #define ZCPP_PROTOCOL_WS2811 0x00
 #define ZCPP_PROTOCOL_GECE 0x01
@@ -85,6 +86,7 @@
 #define ZCPP_PROTOCOL_LPD8806 0x10
 #define ZCPP_PROTOCOL_DM412   0x11
 #define ZCPP_PROTOCOL_P9813   0x12
+#define ZCPP_PROTOCOL_LOR   0x13
 
 // when ZCPP_DISCOVERY_FLAG_SEND_DATA_AS_MULTICAST is set the controllers IP is slightly ignored
 // if controller IP is 10.10.10.10 then the data will be multicast to 224.0.31.10 ... ie the last octet is added
