@@ -784,14 +784,14 @@ void LayoutPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
                         if (oldname == lastModelName) {
                             lastModelName = safename;
                         }
-                        xlights->RecalcModels(true);
-                        SelectBaseObject(safename);
-                        CallAfter(&LayoutPanel::RefreshLayout); // refresh whole layout seems the most reliable at this point
-                        xlights->MarkEffectsFileDirty(true);
+//                        xlights->RecalcModels(true);
+//                        SelectBaseObject(safename);
+//                        CallAfter(&LayoutPanel::RefreshLayout); // refresh whole layout seems the most reliable at this point
+//                        xlights->MarkEffectsFileDirty(true);
                     }
-                    xlights->RecalcModels(true);
+                    xlights->RecalcModels(true); // includes call to RefreshLayout
                     SelectModel(safename);
-                    CallAfter(&LayoutPanel::RefreshLayout); // refresh whole layout seems the most reliable at this point
+//                    CallAfter(&LayoutPanel::RefreshLayout); // refresh whole layout seems the most reliable at this point
                     xlights->MarkEffectsFileDirty(true);
                 }
                 else {

@@ -1899,6 +1899,7 @@ Model *Model::GetSubModel(const std::string &name) {
 void Model::ParseSubModel(wxXmlNode *node) {
     subModels.push_back(new SubModel(this, node));
 }
+
 int Model::CalcCannelsPerString() {
     int ChannelsPerString = parm2*GetNodeChannelCount(StringType);
     if (SingleChannel)
@@ -2411,6 +2412,7 @@ void Model::ApplyTransform(const std::string &type,
 void Model::InitRenderBufferNodes(const std::string &type, const std::string &camera,
     const std::string &transform,
     std::vector<NodeBaseClassPtr> &newNodes, int &bufferWi, int &bufferHt) const {
+
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     int firstNode = newNodes.size();
