@@ -23,7 +23,7 @@ class xlGLCanvas
         int getWidth() const { return mWindowWidth; }
         int getHeight() const { return mWindowHeight; }
 
-        static double translateToBacking(double x);
+        double translateToBacking(double x);
 
         void DisplayWarning(const wxString &msg);
 

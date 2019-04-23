@@ -1988,23 +1988,20 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     }
 
     config->Read("xLightsGridSpacing", &mGridSpacing, 16);
-    if (mGridSpacing != 16)
-    {
+    if (mGridSpacing != 16) {
         int idi = ID_MENUITEM_GRID_ICON_MEDIUM;
-        if (mGridSpacing == 32)
-        {
+        if (mGridSpacing == 32) {
             idi = ID_MENUITEM_GRID_ICON_LARGE;
-        }
-        else if (mGridSpacing >= 48)
-        {
+        } else if (mGridSpacing >= 48) {
             idi = ID_MENUITEM_GRID_ICON_XLARGE;
-        }
-        else if (mGridSpacing <= 12)
-        {
+        } else if (mGridSpacing <= 12) {
             idi = ID_MENUITEM_GRID_ICON_XSMALL;
         }
         wxCommandEvent eventi(wxEVT_NULL, idi);
         SetIconSize(eventi);
+    } else {
+        //make sure the 16 size is checked 
+        GridSpacingMenu->Check(ID_MENUITEM_GRID_ICON_SMALL, true);
     }
     logger_base.debug("Grid spacing: %d.", mGridSpacing);
 

@@ -1154,21 +1154,34 @@ void RowHeading::render( wxPaintEvent& event )
     Draw();
 }
 
-float ComputeRHFontSize(int& toffset, const float factor) {
-    double fontSize = DEFAULT_ROW_HEADING_HEIGHT - 20;
-    toffset = 0;
+static float ComputeRHFontSize() {
+    // DEFAULT_ROW_HEADING_HEIGHT is either 16, 22, 30, 38, or 54
+    // default size is appropriate for "22", scale others appropriately.
+    // Since there are currently only 5 sizes, this would be better as
+    // a switch statement, but this allows future sizes
+    float fontSize = 15 * DEFAULT_ROW_HEADING_HEIGHT;
+    fontSize /= 22.0f;
     if (fontSize < 9) {
-        if (factor > 1.5) {
-            fontSize = 8;
-            toffset = 1;
-        }
-        else {
-            fontSize = 9;
-            toffset = 2;
-        }
+        fontSize = 8;
     }
     return fontSize;
 }
+#ifdef __WXOSX__
+static void SetFontPixelSize(wxFont &font, float f) {
+    float i = font.GetPixelSize().y;
+    float p = font.GetFractionalPointSize();
+    // map to "points" so we can use the fractional sizing
+    float points = f * p;
+    points /= i;
+    font.SetFractionalPointSize(points);
+}
+#else
+static void SetFontPixelSize(wxFont &font, float f) {
+    wxSize sz(0, (int)(std::round(f)));
+    font.SetPixelSize(sz);
+}
+#endif
+
 
 void RowHeading::Draw()
 {
@@ -1186,13 +1199,14 @@ void RowHeading::Draw()
     dc.SetBrush(brush);
     dc.SetPen(penOutline);
 
-    // I am not sure this will be right on OSX
-    // Basically if effect labels grow with row size then so should labels.
-    float factor = xlGLCanvas::translateToBacking(1.0);
-    int toffset;
-    auto fontSize = ComputeRHFontSize(toffset, factor);
+    // If effect labels grow with row size then so should labels.
     auto font = dc.GetFont();
-    font.SetPointSize(fontSize);
+    
+    // Note: DEFAULT_ROW_HEADING_HEIGHT is in PIXELS which is independent
+    // of any scaling factor, thus, we need to set the font size in Pixels,
+    // not points which would end up scaling depending on scale factor
+    auto fontSize = ComputeRHFontSize();
+    SetFontPixelSize(font, fontSize);
     dc.SetFont(font);
 
     int row = 0;
