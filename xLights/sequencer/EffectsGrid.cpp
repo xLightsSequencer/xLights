@@ -174,19 +174,21 @@ void EffectsGrid::mouseLeftDClick(wxMouseEvent& event)
         if ((mTimingPlayOnDClick && event.ShiftDown()) ||
              (!mTimingPlayOnDClick && !event.ShiftDown())) {
             if (selectedEffect->GetParentEffectLayer()->GetParentElement()->GetType() == ELEMENT_TYPE_TIMING ){
-                if (selectedEffect->GetParentEffectLayer()->IsFixedTimingLayer() && 
-                    wxMessageBox("Cannot Add Labels to a Fixed Timing Track.\nWould You Like to convert it to a Varible Timing Track First?", "Convert Fixed Timing Track First", wxYES_NO) == wxYES) 
+                if (selectedEffect->GetParentEffectLayer()->IsFixedTimingLayer())
                 {
-                    TimingElement* te = dynamic_cast<TimingElement*>(selectedEffect->GetParentEffectLayer()->GetParentElement());
-                    te->SetFixedTiming(0);
-                }
-                else
-                {
-                    if (update_time > -1)
+                    if (wxMessageBox("Cannot Add Labels to a Fixed Timing Track.\nWould You Like to convert it to a Varible Timing Track First?", "Convert Fixed Timing Track First", wxYES_NO) == wxYES)
                     {
-                        UpdateTimePosition(update_time);
+                        TimingElement* te = dynamic_cast<TimingElement*>(selectedEffect->GetParentEffectLayer()->GetParentElement());
+                        te->SetFixedTiming(0);
                     }
-                    return;
+                    else
+                    {
+                        if (update_time > -1)
+                        {
+                            UpdateTimePosition(update_time);
+                        }
+                        return;
+                    }
                 }
                 wxString label = selectedEffect->GetEffectName();
 
