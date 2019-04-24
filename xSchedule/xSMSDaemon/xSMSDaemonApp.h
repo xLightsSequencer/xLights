@@ -10,27 +10,12 @@
 #ifndef xSMSDaemonAPP_H
 #define xSMSDaemonAPP_H
 
-#ifdef _MSC_VER
-#include <stdlib.h>
-//#define VISUALSTUDIO_MEMORYLEAKDETECTION
-#ifdef VISUALSTUDIO_MEMORYLEAKDETECTION
-#define _CRTDBG_MAP_ALLOC
-#include <crtdbg.h>
-#endif
-#endif
-
 #include <wx/app.h>
-
-class wxSingleInstanceChecker;
 
 class xSMSDaemonApp : public wxApp
 {
-    wxSingleInstanceChecker* _checker;
-
     public:
         virtual bool OnInit() override;
-        virtual void OnFatalException() override;
-        void WipeSettings();
         virtual int OnExit() override;
 };
 

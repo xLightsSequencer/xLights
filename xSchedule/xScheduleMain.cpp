@@ -586,6 +586,8 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     MenuItem_ConfigureTest = new wxMenuItem(Menu4, ID_MNU_CONFIGURE_TEST, _("Configure Test"), wxEmptyString, wxITEM_NORMAL);
     Menu4->Append(MenuItem_ConfigureTest);
     MenuBar1->Append(Menu4, _("&Modes"));
+    Menu_Plugins = new wxMenu();
+    MenuBar1->Append(Menu_Plugins, _("Plugins"));
     Menu2 = new wxMenu();
     MenuItem2 = new wxMenuItem(Menu2, idMenuAbout, _("About\tF1"), _("Show info about this application"), wxITEM_NORMAL);
     Menu2->Append(MenuItem2);
@@ -831,6 +833,22 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
 
     UpdateUI(true);
     ValidateWindow();
+
+    _pluginManager.Initialise(_showDir);
+
+    for (auto it : _pluginManager.GetPlugins())
+    {
+        wxMenuItem* mi = Menu_Plugins->Append(_pluginManager.GetId(it), _pluginManager.GetMenuLabel(it), nullptr);
+        mi->SetCheckable(true);
+        Connect(_pluginManager.GetId(it), wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)& xScheduleFrame::OnPluginMenu);
+        if (config->ReadBool(_("Plugin") + it, false))
+        {
+            if (_pluginManager.StartPlugin(it, _showDir))
+            {
+                mi->Check(true);
+            }
+        }
+    }
 }
 
 void xScheduleFrame::LoadSchedule()
@@ -940,6 +958,8 @@ void xScheduleFrame::AddIPs()
 
 xScheduleFrame::~xScheduleFrame()
 {
+    _pluginManager.Uninitialise();
+
     if (_pinger != nullptr)
     {
         delete _pinger;
@@ -1245,12 +1265,14 @@ void xScheduleFrame::OnMenuItem_ShowFolderSelected(wxCommandEvent& event)
     {
         _showDir = DirDialog1->GetPath().ToStdString();
         SaveShowDir();
+        _pluginManager.Uninitialise();
         _timerSchedule.Stop();
         _timer.Stop();
         LoadSchedule();
         wxASSERT(__schedule != nullptr);
         _timer.Start(50 / 2, false);
         _timerSchedule.Start(500, false);
+        _pluginManager.Initialise(_showDir);
     }
     ValidateWindow();
 }
@@ -2420,6 +2442,29 @@ void xScheduleFrame::CorrectTimer(int rate)
         logger_frame.debug("Timer corrected %d", (rate - __schedule->GetTimerAdjustment()) / 2);
 
         _timer.Start((rate - __schedule->GetTimerAdjustment()) / 2);
+    }
+}
+
+void xScheduleFrame::OnPluginMenu(wxCommandEvent& event)
+{
+    std::string plugin = _pluginManager.GetPluginFromId(event.GetId());
+    wxConfigBase* config = wxConfigBase::Get();
+
+    if (((wxMenu*)event.GetEventObject())->IsChecked(event.GetId()))
+    {
+        if (!_pluginManager.StartPlugin(plugin, _showDir))
+        {
+            ((wxMenu*)event.GetEventObject())->Check(event.GetId(), false);
+            config->Write(_("Plugin") + plugin, false);
+        }
+        else
+        {
+            config->Write(_("Plugin") + plugin, true);
+        }
+    }
+    else {
+        _pluginManager.StopPlugin(plugin);
+        config->Write(_("Plugin") + plugin, false);
     }
 }
 

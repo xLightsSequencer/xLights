@@ -516,6 +516,9 @@
 					<handler function="OnMenuItem_ConfigureTestSelected" entry="EVT_MENU" />
 				</object>
 			</object>
+			<object class="wxMenu" variable="Menu_Plugins" member="yes">
+				<label>Plugins</label>
+			</object>
 			<object class="wxMenu" variable="Menu2" member="no">
 				<label>Help</label>
 				<object class="wxMenuItem" name="idMenuAbout" variable="MenuItem2" member="no">

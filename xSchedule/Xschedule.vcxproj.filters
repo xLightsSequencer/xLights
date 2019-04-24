@@ -491,6 +491,7 @@
     <ClCompile Include="PlayList\PlayListItemARTNetTrigger.cpp">
       <Filter>PlayList</Filter>
     </ClCompile>
+    <ClCompile Include="PluginManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\xLights\AudioManager.h" />
@@ -969,6 +970,8 @@
     <ClInclude Include="PlayList\PlayListItemARTNetTrigger.h">
       <Filter>PlayList</Filter>
     </ClInclude>
+    <ClInclude Include="PluginManager.h" />
+    <ClInclude Include="xSchedulePlugin.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

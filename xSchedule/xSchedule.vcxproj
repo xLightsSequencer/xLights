@@ -337,6 +337,7 @@
     <ClCompile Include="PlayList\PlayListStep.cpp" />
     <ClCompile Include="PlayList\PlayListStepPanel.cpp" />
     <ClCompile Include="PlayList\VideoWindowPositionDialog.cpp" />
+    <ClCompile Include="PluginManager.cpp" />
     <ClCompile Include="RemapDialog.cpp" />
     <ClCompile Include="RemoteModeConfigDialog.cpp" />
     <ClCompile Include="RunningSchedule.cpp" />
@@ -544,6 +545,7 @@
     <ClInclude Include="PlayList\PlayListStep.h" />
     <ClInclude Include="PlayList\PlayListStepPanel.h" />
     <ClInclude Include="PlayList\VideoWindowPositionDialog.h" />
+    <ClInclude Include="PluginManager.h" />
     <ClInclude Include="ProjectorCodes.h" />
     <ClInclude Include="ReentrancyCounter.h" />
     <ClInclude Include="RemapDialog.h" />
@@ -574,6 +576,7 @@
     <ClInclude Include="xScheduleApp.h" />
     <ClInclude Include="xScheduleMain.h" />
     <ClInclude Include="MatrixDialog.h" />
+    <ClInclude Include="xSchedulePlugin.h" />
     <ClInclude Include="Xyzzy.h" />
   </ItemGroup>
   <ItemGroup>

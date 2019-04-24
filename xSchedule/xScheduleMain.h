@@ -43,6 +43,7 @@ class BrightnessControl;
 //*)
 
 #include "../xLights/xLightsTimer.h"
+#include "PluginManager.h"
 #include <list>
 
 class wxDebugReportCompress;
@@ -83,6 +84,7 @@ class xScheduleFrame : public wxFrame
     bool _slowDisplayed;
     wxLongLong _lastSlow;
     wxFrame *_smsDaemon;
+    PluginManager _pluginManager;
 
     void AddIPs();
     void LoadShowDir();
@@ -140,6 +142,7 @@ public:
         void CreateDebugReport(wxDebugReportCompress *report);
         void CreateButton(const std::string& label, const wxColor& c);
         void SetTempMessage(const std::string& msg);
+        PluginManager& GetPluginManager() { return _pluginManager; }
 
     private:
 
@@ -340,6 +343,7 @@ public:
         wxMenu* Menu5;
         wxMenu* Menu6;
         wxMenu* MenuItem3;
+        wxMenu* Menu_Plugins;
         wxMenu* ToolsMenu;
         wxMenuItem* MenuItem5MenuItem_ConfigureMIDITimecode;
         wxMenuItem* MenuItem_AddPlayList;
@@ -398,6 +402,8 @@ public:
         //*)
 
         DECLARE_EVENT_TABLE()
+
+        void OnPluginMenu(wxCommandEvent& event);
 };
 
 #endif // XSCHEDULEMAIN_H

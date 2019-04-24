@@ -560,6 +560,8 @@
 		<Unit filename="PlayList/PlayerWindow.h" />
 		<Unit filename="PlayList/VideoWindowPositionDialog.cpp" />
 		<Unit filename="PlayList/VideoWindowPositionDialog.h" />
+		<Unit filename="PluginManager.cpp" />
+		<Unit filename="PluginManager.h" />
 		<Unit filename="RemapDialog.cpp" />
 		<Unit filename="RemapDialog.h" />
 		<Unit filename="RemoteModeConfigDialog.cpp" />
@@ -751,6 +753,7 @@
 		<Unit filename="xScheduleApp.h" />
 		<Unit filename="xScheduleMain.cpp" />
 		<Unit filename="xScheduleMain.h" />
+		<Unit filename="xSchedulePlugin.h" />
 		<Extensions>
 			<code_completion />
 			<envvars />
