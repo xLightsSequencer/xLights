@@ -254,7 +254,7 @@ NodeSelectGrid::NodeSelectGrid(Model *m, const std::vector<wxString>& rows, wxWi
 	FlexGridSizer3 = new wxFlexGridSizer(0, 2, 0, 0);
 	Button_Select = new wxButton(this, ID_BUTTON_SELECT, _("Select"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SELECT"));
 	FlexGridSizer3->Add(Button_Select, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	ButtonDeselect = new wxButton(this, ID_BUTTON_DESELECT, _("De-Select"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_DESELECT"));
+	ButtonDeselect = new wxButton(this, ID_BUTTON_DESELECT, _("Deselect"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_DESELECT"));
 	FlexGridSizer3->Add(ButtonDeselect, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	ButtonSelectAll = new wxButton(this, ID_BUTTON_SELECT_ALL, _("Select All"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SELECT_ALL"));
 	FlexGridSizer3->Add(ButtonSelectAll, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);

@@ -34,7 +34,7 @@
 											</object>
 											<object class="sizeritem">
 												<object class="wxButton" name="ID_BUTTON_DESELECT" variable="ButtonDeselect" member="yes">
-													<label>De-Select</label>
+													<label>Deselect</label>
 													<handler function="OnButtonDeselectClick" entry="EVT_BUTTON" />
 												</object>
 												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
