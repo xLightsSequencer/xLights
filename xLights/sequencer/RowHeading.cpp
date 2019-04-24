@@ -1177,7 +1177,7 @@ static void SetFontPixelSize(wxFont &font, float f) {
 }
 #else
 static void SetFontPixelSize(wxFont &font, float f) {
-    wxSize sz(0, (int)(std::round(f)));
+    wxSize sz(0, (int)(std::round(f * 0.8f)));
     font.SetPixelSize(sz);
 }
 #endif
