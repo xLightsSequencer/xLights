@@ -354,7 +354,7 @@ class SMSService
         }
 };
 
-inline RetrieveThread::RetrieveThread(SMSService* service, uint32_t interval)
+inline RetrieveThread::RetrieveThread(SMSService* service, uint32_t interval) : wxThread(wxTHREAD_JOINABLE)
 {
     _service = service;
     _interval = interval;

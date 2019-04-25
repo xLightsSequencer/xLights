@@ -1492,6 +1492,25 @@ std::string ScheduleManager::GetStatus() const
     return "Playing " + curr->GetRunningStep()->GetNameNoTime() + " " + curr->GetRunningStep()->GetStatus();
 }
 
+bool ScheduleManager::IsQuery(const wxString& command)
+{
+    wxString c = command.Lower();
+    if (c == "getplaylists" ||
+        c == "getplayliststeps" ||
+        c == "getmatrices" ||
+        c == "getqueuedsteps" ||
+        c == "listwebfolders" ||
+        c == "getnextscheduledplaylist" ||
+        c == "getplaylistschedules" ||
+        c == "getplaylistschedule" ||
+        c == "getplayingstatus" ||
+        c == "getbuttons")
+    {
+        return true;
+    }
+    return false;
+}
+
 PlayList* ScheduleManager::GetPlayList(const std::string& playlist) const
 {
     for (auto it = _playLists.begin(); it != _playLists.end(); ++it)
@@ -1511,7 +1530,7 @@ bool ScheduleManager::IsQueuedPlaylistRunning() const
 }
 
 // localhost/xScheduleCommand?Command=<command>&Parameters=<comma separated parameters>
-bool ScheduleManager::Action(const wxString command, const wxString parameters, const wxString& data, PlayList* selplaylist, Schedule* selschedule, size_t& rate, wxString& msg)
+bool ScheduleManager::Action(const wxString& command, const wxString& parameters, const wxString& data, PlayList* selplaylist, Schedule* selschedule, size_t& rate, wxString& msg)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -2948,7 +2967,7 @@ bool ScheduleManager::Action(const wxString command, const wxString parameters, 
     return result;
 }
 
-bool ScheduleManager::Action(const wxString label, PlayList* selplaylist, Schedule* selschedule, size_t& rate, wxString& msg)
+bool ScheduleManager::Action(const wxString& label, PlayList* selplaylist, Schedule* selschedule, size_t& rate, wxString& msg)
 {
     UserButton* b = _scheduleOptions->GetButton(label);
 
@@ -3016,8 +3035,10 @@ void ScheduleManager::StopPlayList(PlayList* playlist, bool atendofcurrentstep, 
 // 127.0.0.1/xScheduleQuery?Query=GetPlayingStatus&Parameters=
 // 127.0.0.1/xScheduleQuery?Query=GetButtons&Parameters=
 
-bool ScheduleManager::Query(const wxString command, const wxString parameters, wxString& data, wxString& msg, const wxString& ip, const wxString& reference)
+bool ScheduleManager::Query(const wxString& command, const wxString& parameters, wxString& data, wxString& msg, const wxString& ip, const wxString& reference)
 {
+    wxASSERT(IsQuery(command));
+
     bool result = true;
     data = "";
     if (command == "GetPlayLists")

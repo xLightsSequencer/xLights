@@ -204,6 +204,25 @@ wxString ProcessCommand(HttpConnection &connection, const wxString& command, con
     return result;
 }
 
+wxString ProcessPluginRequest(HttpConnection& connection, const wxString& plugin, const wxString& command, const wxString& parameters, const wxString& data, const wxString& reference)
+{
+    wxStopWatch sw;
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    if (!CheckLoggedIn(connection))
+    {
+        return "{\"result\":\"not logged in\",\"command\":\"" +
+            command + "\",\"ip\":\"" +
+            connection.Address().IPAddress() + "\"}";
+    }
+
+#ifdef DETAILED_LOGGING
+    logger_base.info("xSchedule received plugin request command = '%s' parameters = '%s'.", (const char*)command.c_str(), (const char*)parameters.c_str());
+#endif
+
+    return ((xScheduleFrame*)wxTheApp->GetTopWindow())->ProcessPluginRequest(plugin, command, parameters, data, reference);
+}
+
 wxString ProcessQuery(HttpConnection &connection, const wxString& query, const wxString& parameters, const wxString& reference)
 {
     wxStopWatch sw;
@@ -407,12 +426,21 @@ wxString ProcessStash(HttpConnection &connection, const wxString& command, const
     return result;
 }
 
+wxString GetPluginRequest(const wxString& request)
+{
+    if (request == "") return "";
+
+    auto plugin = request.AfterFirst('/').BeforeFirst('?');
+    return ((xScheduleFrame*)wxTheApp->GetTopWindow())->GetWebPluginRequest(plugin.ToStdString());
+}
+
 bool MyRequestHandler(HttpConnection &connection, HttpRequest &request)
 {
     wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     bool res = false;
+    std::string plugin;
 
     logger_base.debug("Web request %s.", (const char *)request.URI().c_str());
 
@@ -510,6 +538,21 @@ bool MyRequestHandler(HttpConnection &connection, HttpRequest &request)
 
         res = true;
     }
+    else if ((plugin = GetPluginRequest(request.URI().Lower())) != "")
+    {
+        wxURI url(request.URI());
+        std::map<wxString, wxString> parms = ParseURI(url.BuildUnescapedURI());
+        wxString command = parms["Command"];
+        wxString parameters = parms["Parameters"];
+        wxString reference = parms["Reference"];
+        wxString data = request.Data();
+
+        wxString result = ProcessPluginRequest(connection, plugin, command, parameters, data, reference);
+
+        HttpResponse response(connection, request, HttpStatus::OK);
+        response.MakeFromText(result, "application/json");
+        connection.SendResponse(response);
+    }
     else if (wwwroot != "" && !__apiOnly && (request.URI() == "" || request.URI() == "/" || request.URI() == "/" + wwwroot || request.URI() == "/" + wwwroot + "/"))
     {
         // Chris if you need this line to be this way on linux then use a #ifdef as the other works on windows
@@ -566,11 +609,11 @@ bool MyRequestHandler(HttpConnection &connection, HttpRequest &request)
 
             //response.AddHeader("Cache-Control", "max-age=14400");
 
-            response.MakeFromFile(file);
+response.MakeFromFile(file);
 
-            connection.SendResponse(response);
+connection.SendResponse(response);
 
-            res = true; // disable default processing
+res = true; // disable default processing
         }
     }
 
@@ -586,16 +629,16 @@ bool MyRequestHandler(HttpConnection &connection, HttpRequest &request)
     return res; // lets the library's default processing
 }
 
-void MyMessageHandler(HttpConnection &connection, WebSocketMessage &message)
+void MyMessageHandler(HttpConnection& connection, WebSocketMessage& message)
 {
     wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     xScheduleFrame::GetScheduleManager()->WebRequestReceived();
 
     if (message.Type() == WebSocketMessage::Text)
     {
-        wxString text((char *)message.Content().GetData(), message.Content().GetDataLen());
+        wxString text((char*)message.Content().GetData(), message.Content().GetDataLen());
         logger_base.info("Received " + text);
 
         // construct the JSON root object
@@ -609,7 +652,7 @@ void MyMessageHandler(HttpConnection &connection, WebSocketMessage &message)
         int numErrors = reader.Parse(text, &root);
         if (numErrors > 0) {
             logger_base.error("The JSON document is not well-formed: " + text);
-            const wxArrayString& errors = reader.GetErrors();
+            const wxArrayString & errors = reader.GetErrors();
             for (auto it = errors.begin(); it != errors.end(); ++it)
             {
                 logger_base.error("    " + std::string(it->c_str()));
@@ -620,6 +663,7 @@ void MyMessageHandler(HttpConnection &connection, WebSocketMessage &message)
         }
 
         wxJSONValue defaultValue = wxString("");
+        std::string plugin;
 
         // extract the type of request
         wxString type = root.Get("Type", defaultValue).AsString().Lower();
@@ -664,6 +708,14 @@ void MyMessageHandler(HttpConnection &connection, WebSocketMessage &message)
             {
                 result = d;
             }
+        }
+        else if ((plugin = ((xScheduleFrame*)wxTheApp->GetTopWindow())->GetWebPluginRequest(type)) != "")
+        {
+            wxString c = root.Get("Command", defaultValue).AsString();
+            wxString p = root.Get("Parameters", defaultValue).AsString();
+            wxString d = root.Get("Data", defaultValue).AsString();
+            wxString r = root.Get("Reference", defaultValue).AsString();
+            result = ProcessPluginRequest(connection, plugin, c, p, d, r);
         }
         else
         {

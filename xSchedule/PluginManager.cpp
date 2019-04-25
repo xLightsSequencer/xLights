@@ -5,6 +5,8 @@
 #include <wx/dir.h>
 #include <wx/dynlib.h>
 #include <wx/filename.h>
+#include "xScheduleApp.h"
+#include "ScheduleManager.h"
 
 uint32_t __nextId = 1;
 
@@ -74,7 +76,7 @@ void PluginManager::DoUnload(const std::string& plugin)
     }
 }
 
-bool PluginManager::DoStart(const std::string& plugin, char* showDir)
+bool PluginManager::DoStart(const std::string& plugin, char* showDir, char* xScheduleURL)
 {
     if (_plugins.find(plugin) == _plugins.end()) return false;
     if (_plugins.at(plugin)->_started) return true;
@@ -82,19 +84,22 @@ bool PluginManager::DoStart(const std::string& plugin, char* showDir)
     p_xSchedule_Start fn = (p_xSchedule_Start)(_plugins.at(plugin)->_dl->GetSymbol("xSchedule_Start"));
     if (fn != nullptr)
     {
-        _plugins.at(plugin)->_started = fn(showDir);
+        _plugins.at(plugin)->_started = fn(showDir, xScheduleURL, Action);
     }
     return _plugins.at(plugin)->_started;
 }
 
-bool PluginManager::HandleWeb(const std::string& plugin, const char* action, const char* parms)
+bool PluginManager::HandleWeb(const std::string& plugin, const std::string& action, const std::wstring& parms, const std::wstring& data, const std::wstring& reference, std::wstring& response)
 {
     if (_plugins.find(plugin) == _plugins.end()) return false;
 
     p_xSchedule_HandleWeb fn = (p_xSchedule_HandleWeb)(_plugins.at(plugin)->_dl->GetSymbol("xSchedule_HandleWeb"));
     if (fn != nullptr)
     {
-        return fn(action, parms);
+        wchar_t resp[4096];
+        bool res = fn((const char*)action.c_str(), (const wchar_t*)parms.c_str(), (const wchar_t*)data.c_str(), (const wchar_t*)reference.c_str(), resp, sizeof(resp));
+        response = std::wstring(resp);
+        return res;
     }
 
     return false;
@@ -127,6 +132,7 @@ void PluginManager::DoWipeSettings(const std::string& plugin)
 std::string PluginManager::GetVirtualWebFolder(const std::string& plugin)
 {
     if (_plugins.find(plugin) == _plugins.end()) return "";
+    if (!_plugins.at(plugin)->_started) return "";
 
     char buffer[200];
     memset(buffer, 0x00, sizeof(buffer));
@@ -171,9 +177,9 @@ void PluginManager::Initialise(const std::string& showDir)
     }
 }
 
-bool PluginManager::StartPlugin(const std::string& plugin, const std::string& showDir)
+bool PluginManager::StartPlugin(const std::string& plugin, const std::string& showDir, const std::string& xScheduleURL)
 {
-    return DoStart(plugin, (char *)showDir.c_str());
+    return DoStart(plugin, (char *)showDir.c_str(), (char*)xScheduleURL.c_str());
 }
 
 void PluginManager::StopPlugin(const std::string& plugin)
@@ -241,4 +247,49 @@ std::vector<std::string> PluginManager::GetPlugins() const
 PluginManager::~PluginManager()
 {
     Uninitialise();
+}
+
+bool Action(const char* command, const wchar_t* parameters, const char* data, char* buffer, size_t bufferSize)
+{
+    memset(buffer, 0x00, bufferSize);
+    std::string c(command);
+    std::wstring p(parameters);
+    std::string d(data);
+    wxString dd(data);
+    size_t rate;
+    wxString msg;
+    if (((xScheduleFrame*)wxTheApp->GetTopWindow())->GetScheduleManager()->IsQuery(c))
+    {
+        wxString ip;
+        wxString reference;
+        bool result = ((xScheduleFrame*)wxTheApp->GetTopWindow())->GetScheduleManager()->Query(c, p, dd, msg, ip, reference);
+        if (result || msg == "")
+        {
+            msg = "{result\":\"ok\"}";
+        }
+        else
+        {
+            msg = "{\"result\":\"failed\",\"command\":\"" +
+                c + "\",\"message\":\"" +
+                msg + "\"}";
+        }
+        strncpy(buffer, (const char*)msg.c_str(), bufferSize - 1);
+        return result;
+    }
+    else
+    {
+        bool result = ((xScheduleFrame*)wxTheApp->GetTopWindow())->GetScheduleManager()->Action(c, p, d, nullptr, nullptr, rate, msg);
+        if (result || msg == "")
+        {
+            msg = "{result\":\"ok\"}";
+        }
+        else
+        {
+            msg = "{\"result\":\"failed\",\"command\":\"" +
+                c + "\",\"message\":\"" +
+                msg + "\"}";
+        }
+        strncpy(buffer, (const char*)msg.c_str(), bufferSize - 1);
+        return result;
+    }
 }

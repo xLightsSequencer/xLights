@@ -3,6 +3,7 @@
 	<object class="wxFrame" name="xSMSDaemonFrame">
 		<title>xSMSDaemon</title>
 		<id_arg>0</id_arg>
+		<handler function="OnClose" entry="EVT_CLOSE" />
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="yes">
 			<cols>1</cols>
 			<growablecols>0</growablecols>
@@ -21,23 +22,6 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxStaticText" name="ID_STATICTEXT10" variable="StaticText_Phone" member="yes">
-							<label></label>
-							<style>wxSUNKEN_BORDER</style>
-						</object>
-						<flag>wxALL|wxEXPAND</flag>
-						<border>5</border>
-						<option>1</option>
-					</object>
-					<object class="sizeritem">
-						<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
-							<label>xSchedule IP Address</label>
-						</object>
-						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
-						<option>1</option>
-					</object>
-					<object class="sizeritem">
-						<object class="wxStaticText" name="ID_STATICTEXT2" variable="StaticText_IPAddress" member="yes">
 							<label></label>
 							<style>wxSUNKEN_BORDER</style>
 						</object>
@@ -138,15 +122,6 @@
 						<border>5</border>
 						<option>1</option>
 					</object>
-					<object class="sizeritem">
-						<object class="wxButton" name="ID_BUTTON1" variable="Button_Close" member="yes">
-							<label>Close</label>
-							<handler function="OnButton_CloseClick" entry="EVT_BUTTON" />
-						</object>
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
-						<option>1</option>
-					</object>
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
@@ -186,11 +161,11 @@
 				</object>
 			</object>
 		</object>
-		<object class="wxTimer" name="ID_TIMER2" subclass="xLightsTimer" variable="SendTimer" member="yes">
+		<object class="wxTimer" name="ID_TIMER2" variable="SendTimer" member="yes">
 			<interval>60000</interval>
 			<handler function="OnSendTimerTrigger" entry="EVT_TIMER" />
 		</object>
-		<object class="wxTimer" name="ID_TIMER_SECOND" subclass="xLightsTimer" variable="Timer_Second" member="yes">
+		<object class="wxTimer" name="ID_TIMER_SECOND" variable="Timer_Second" member="yes">
 			<interval>1000</interval>
 			<handler function="OnTimer_SecondTrigger" entry="EVT_TIMER" />
 		</object>

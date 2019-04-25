@@ -29,7 +29,6 @@ void SMSDaemonOptions::Load(const std::string& showDir)
         {
             logger_base.debug("Options loaded from %s.", (const char *)options.c_str());
             auto n = doc.GetRoot();
-            _xScheduleIP = n->GetAttribute("xScheduleIP", "127.0.0.1");
             _textItem = n->GetAttribute("TextItem", "");
             _user = n->GetAttribute("User", "");
             _sid = n->GetAttribute("SID", "");
@@ -50,7 +49,6 @@ void SMSDaemonOptions::Load(const std::string& showDir)
             _maximiumTimesToDisplay = wxAtoi(n->GetAttribute("MaxDisplays", "0"));
             _maxMsgAgeMinsForResponse = wxAtoi(n->GetAttribute("MaxMsgAgeMinsForResponse", "10"));
             _maximiumMessageAge = wxAtoi(n->GetAttribute("MaxMsgAge", "10"));
-            _xSchedulePort = wxAtoi(n->GetAttribute("xSchedulePort", "80"));
 
             _rejectProfanity = n->GetAttribute("RejectProfanity", "TRUE") == "TRUE";
             _usePurgoMalum = n->GetAttribute("UsePurgoMalum", "FALSE") == "TRUE";
@@ -86,7 +84,6 @@ void SMSDaemonOptions::Save(const std::string& showDir)
 
     wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "SMSDaemon");
 
-    node->AddAttribute("xScheduleIP", _xScheduleIP);
     node->AddAttribute("TextItem", _textItem);
     node->AddAttribute("User", _user);
     node->AddAttribute("SID", _sid);
@@ -103,7 +100,6 @@ void SMSDaemonOptions::Save(const std::string& showDir)
     node->AddAttribute("MaxMsgAge", wxString::Format("%d", _maximiumMessageAge));
     node->AddAttribute("MaxDisplays", wxString::Format("%d", _maximiumTimesToDisplay));
     node->AddAttribute("MaxMsgAgeMinsForResponse", wxString::Format("%d", _maxMsgAgeMinsForResponse));
-    node->AddAttribute("xSchedulePort", wxString::Format("%d", _xSchedulePort));
 
     if (!_rejectProfanity) node->AddAttribute("RejectProfanity", "FALSE");
     if (_usePurgoMalum) node->AddAttribute("UsePurgoMalum", "TRUE");
@@ -122,8 +118,6 @@ void SMSDaemonOptions::Save(const std::string& showDir)
 
 bool SMSDaemonOptions::IsValid() const
 {
-    if (!IsIPValid(_xScheduleIP)) return false;
-
     if (_smsService == "Bandwidth")
     {
         if (_sid == "" || _token == "" || _textItem == "" || _user == "") return false;

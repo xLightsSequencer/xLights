@@ -76,8 +76,6 @@ wxString wxbuildinfo(wxbuildinfoformat format)
 //(*IdInit(xSMSDaemonFrame)
 const long xSMSDaemonFrame::ID_STATICTEXT9 = wxNewId();
 const long xSMSDaemonFrame::ID_STATICTEXT10 = wxNewId();
-const long xSMSDaemonFrame::ID_STATICTEXT1 = wxNewId();
-const long xSMSDaemonFrame::ID_STATICTEXT2 = wxNewId();
 const long xSMSDaemonFrame::ID_STATICTEXT3 = wxNewId();
 const long xSMSDaemonFrame::ID_STATICTEXT4 = wxNewId();
 const long xSMSDaemonFrame::ID_STATICTEXT5 = wxNewId();
@@ -86,7 +84,6 @@ const long xSMSDaemonFrame::ID_STATICTEXT7 = wxNewId();
 const long xSMSDaemonFrame::ID_STATICTEXT8 = wxNewId();
 const long xSMSDaemonFrame::ID_GRID1 = wxNewId();
 const long xSMSDaemonFrame::ID_BUTTON2 = wxNewId();
-const long xSMSDaemonFrame::ID_BUTTON1 = wxNewId();
 const long xSMSDaemonFrame::ID_MNU_ShowFolder = wxNewId();
 const long xSMSDaemonFrame::ID_MNU_OPTIONS = wxNewId();
 const long xSMSDaemonFrame::ID_MNU_VIEWLOG = wxNewId();
@@ -106,9 +103,13 @@ bool xSMSDaemonFrame::IsOptionsValid() const
     return _options.IsValid();
 }
 
-xSMSDaemonFrame::xSMSDaemonFrame(wxWindow* parent, const std::string& showdir, const std::string& playlist, wxWindowID id)
+xSMSDaemonFrame::xSMSDaemonFrame(wxWindow* parent, const std::string& showDir, const std::string& xScheduleURL, p_xSchedule_Action action, wxWindowID id)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    _showDir = showDir;
+    _xScheduleURL = xScheduleURL;
+    _action = action;
 
     //(*Initialize(xSMSDaemonFrame)
     wxFlexGridSizer* FlexGridSizer2;
@@ -128,10 +129,6 @@ xSMSDaemonFrame::xSMSDaemonFrame(wxWindow* parent, const std::string& showdir, c
     FlexGridSizer2->Add(StaticText4, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     StaticText_Phone = new wxStaticText(this, ID_STATICTEXT10, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSUNKEN_BORDER, _T("ID_STATICTEXT10"));
     FlexGridSizer2->Add(StaticText_Phone, 1, wxALL|wxEXPAND, 5);
-    StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("xSchedule IP Address"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
-    FlexGridSizer2->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    StaticText_IPAddress = new wxStaticText(this, ID_STATICTEXT2, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSUNKEN_BORDER, _T("ID_STATICTEXT2"));
-    FlexGridSizer2->Add(StaticText_IPAddress, 1, wxALL|wxEXPAND, 5);
     StaticText3 = new wxStaticText(this, ID_STATICTEXT3, _("Text Item"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
     FlexGridSizer2->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     StaticText_TextItemName = new wxStaticText(this, ID_STATICTEXT4, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSUNKEN_BORDER, _T("ID_STATICTEXT4"));
@@ -162,8 +159,6 @@ xSMSDaemonFrame::xSMSDaemonFrame(wxWindow* parent, const std::string& showdir, c
     FlexGridSizer3 = new wxFlexGridSizer(0, 3, 0, 0);
     Button_Pause = new wxButton(this, ID_BUTTON2, _("Pause"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
     FlexGridSizer3->Add(Button_Pause, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    Button_Close = new wxButton(this, ID_BUTTON1, _("Close"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
-    FlexGridSizer3->Add(Button_Close, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer1->Add(FlexGridSizer3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     SetSizer(FlexGridSizer1);
     MenuBar1 = new wxMenuBar();
@@ -192,7 +187,6 @@ xSMSDaemonFrame::xSMSDaemonFrame(wxWindow* parent, const std::string& showdir, c
     FlexGridSizer1->SetSizeHints(this);
 
     Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xSMSDaemonFrame::OnButton_PauseClick);
-    Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xSMSDaemonFrame::OnButton_CloseClick);
     Connect(ID_MNU_ShowFolder,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xSMSDaemonFrame::OnMenuItem_ShowFolderSelected);
     Connect(ID_MNU_OPTIONS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xSMSDaemonFrame::OnMenuItem_OptionsSelected);
     Connect(ID_MNU_VIEWLOG,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xSMSDaemonFrame::OnMenuItem_ViewLogSelected);
@@ -200,7 +194,11 @@ xSMSDaemonFrame::xSMSDaemonFrame(wxWindow* parent, const std::string& showdir, c
     Connect(idMenuAbout,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xSMSDaemonFrame::OnAbout);
     Connect(ID_TIMER2,wxEVT_TIMER,(wxObjectEventFunction)&xSMSDaemonFrame::OnSendTimerTrigger);
     Connect(ID_TIMER_SECOND,wxEVT_TIMER,(wxObjectEventFunction)&xSMSDaemonFrame::OnTimer_SecondTrigger);
+    Connect(wxID_ANY,wxEVT_CLOSE_WINDOW,(wxObjectEventFunction)&xSMSDaemonFrame::OnClose);
     //*)
+
+    //Timer_Second.SetName("xSMSDaemon second timer");
+    //SendTimer.SetName("xSMSDaemon send timer");
 
     SetTitle("xLights SMS Daemon " + GetDisplayVersionString());
 
@@ -230,13 +228,12 @@ xSMSDaemonFrame::xSMSDaemonFrame(wxWindow* parent, const std::string& showdir, c
     logger_base.debug("xSMSDaemon UI %d,%d %dx%d.", x, y, w, h);
 
     logger_base.debug("Loading show folder.");
-    if (showdir == "")
+    if (_showDir == "")
     {
         LoadShowDir();
     }
     else
     {
-        _showDir = showdir;
         LoadOptions();
         Start();
     }
@@ -249,6 +246,8 @@ xSMSDaemonFrame::xSMSDaemonFrame(wxWindow* parent, const std::string& showdir, c
 
 xSMSDaemonFrame::~xSMSDaemonFrame()
 {
+    Stop();
+
     int x, y;
     GetPosition(&x, &y);
 
@@ -266,10 +265,71 @@ xSMSDaemonFrame::~xSMSDaemonFrame()
     //*)
 }
 
+bool xSMSDaemonFrame::Action(const std::string& command, const std::wstring& parameters, const std::wstring& data, const std::wstring& reference, std::wstring& response)
+{
+    auto c = wxString(command).Lower();
+    if (c == "getsmsqueue")
+    {
+        if (_smsService != nullptr)
+        {
+            response = _("{\"result\":\"ok\",\"reference\":\"")+reference+_("\",\"messages\":[");
+            auto msgs = _smsService->GetMessages();
+            for (auto it : msgs)
+            {
+                response += _("{\"timestamp\":\"");
+                response += it._timestamp.FromTimezone(wxDateTime::TZ::GMT0).FormatTime();
+                response += _("\",\"status\":\"");
+                std::string st = it.GetStatus();
+                response += std::wstring(st.begin(), st.end());
+                response += _("\",\"message\":\"");
+                if (it._wmessage != "")
+                {
+                    response += it._wmessage;
+                }
+                else
+                {
+                    response += std::wstring(it._message.begin(), it._message.end());
+                }
+                if (it._displayed)
+                {
+                    response += _("\",\"displayed\":\"true");
+                }
+                else
+                {
+                    response += _("\",\"displayed\":\"false");
+                }
+                response += _("\"},");
+            }
+            if (response[response.length() - 1] == ',')
+            {
+                response = response.substr(0, response.length() - 1);
+            }
+            response += _("]}");
+            return true;
+        }
+        else
+        {
+            response = _("{\"result\":\"failed\",\"reference\":\"")+reference+_("\",\"command\":\"") +
+                command + _("\",\"message\":\"SMS no service.\"}");
+            return false;
+        }
+    }
+    else if (c == "moderatesms")
+    {
+        response = _("{\"result\":\"failed\",\"reference\":\"") + reference + _("\",\"command\":\"") +
+            command + _("\",\"message\":\"Not implemented.\"}");
+        return true;
+    }
+
+    response = _("{\"result\":\"failed\",\"reference\":\"") + reference + _("\",\"command\":\"") +
+        command + _("\",\"message\":\"SMS no service.\"}");
+
+    return false;
+}
+
 void xSMSDaemonFrame::OnQuit(wxCommandEvent& event)
 {
-    Stop();
-    Close();
+    event.Skip();
 }
 
 void xSMSDaemonFrame::OnAbout(wxCommandEvent& event)
@@ -305,62 +365,6 @@ void xSMSDaemonFrame::OnMenuItem_OptionsSelected(wxCommandEvent& event)
     ValidateWindow();
 }
 
-void xSMSDaemonFrame::CreateDebugReport(wxDebugReportCompress *report) {
-
-    report->Process();
-
-    if (wxDebugReportPreviewStd().Show(*report)) {
-        wxMessageBox("Crash report saved to " + report->GetCompressedFileName());
-        SendReport("crashUpload", *report);
-    }
-
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.crit("Exiting after creating debug report: " + report->GetCompressedFileName());
-    delete report;
-    exit(1);
-}
-
-void xSMSDaemonFrame::SendReport(const wxString &loc, wxDebugReportCompress &report) {
-    wxHTTP http;
-    http.Connect("dankulp.com");
-
-    const char *bound = "--------------------------b29a7c2fe47b9481";
-
-    wxDateTime now = wxDateTime::Now();
-    int millis = wxGetUTCTimeMillis().GetLo() % 1000;
-    wxString ts = wxString::Format("%04d-%02d-%02d_%02d-%02d-%02d-%03d", now.GetYear(), now.GetMonth()+1, now.GetDay(), now.GetHour(), now.GetMinute(), now.GetSecond(), millis);
-
-    wxString fn = wxString::Format("xSMSDaemon-%s_%s_%s_%s.zip", wxPlatformInfo::Get().GetOperatingSystemFamilyName().c_str(), xlights_version_string, GetBitness(), ts);
-    const char *ct = "Content-Type: application/octet-stream\n";
-    std::string cd = "Content-Disposition: form-data; name=\"userfile\"; filename=\"" + fn.ToStdString() + "\"\n\n";
-
-    wxMemoryBuffer memBuff;
-    memBuff.AppendData(bound, strlen(bound));
-    memBuff.AppendData("\n", 1);
-    memBuff.AppendData(ct, strlen(ct));
-    memBuff.AppendData(cd.c_str(), strlen(cd.c_str()));
-
-    wxFile f_in(report.GetCompressedFileName());
-    wxFileOffset fLen = f_in.Length();
-    void* tmp = memBuff.GetAppendBuf(fLen);
-    size_t iRead = f_in.Read(tmp, fLen);
-    memBuff.UngetAppendBuf(iRead);
-    f_in.Close();
-
-    memBuff.AppendData("\n", 1);
-    memBuff.AppendData(bound, strlen(bound));
-    memBuff.AppendData("--\n", 3);
-
-    http.SetMethod("POST");
-    http.SetPostBuffer("multipart/form-data; boundary=------------------------b29a7c2fe47b9481", memBuff);
-    wxInputStream * is = http.GetInputStream("/" + loc + "/index.php");
-    char buf[1024];
-    is->Read(buf, 1024);
-    //printf("%s\n", buf);
-    delete is;
-    http.Close();
-}
-
 void xSMSDaemonFrame::OnButton_CloseClick(wxCommandEvent& event)
 {
 #ifdef __WXOSX__
@@ -384,7 +388,6 @@ void xSMSDaemonFrame::OnButton_PauseClick(wxCommandEvent& event)
         Button_Pause->SetLabel("Pause");
     }
 }
-
 
 void xSMSDaemonFrame::OnMenuItem_ShowFolderSelected(wxCommandEvent& event)
 {
@@ -569,7 +572,6 @@ void xSMSDaemonFrame::LoadOptions()
         }
     }
 
-    StaticText_IPAddress->SetLabel(_options.GetXScheduleIP() + ":" + wxString::Format("%d", _options.GetXSchedulePort()));
     StaticText_TextItemName->SetLabel(_options.GetTextItem());
     StaticText_Phone->SetLabel(_options.GetPhone());
 }
@@ -586,46 +588,36 @@ void xSMSDaemonFrame::Start()
     wxTimerEvent e;
     OnSendTimerTrigger(e);
 
-    SendTimer.Start(_options.GetDisplayDuration() * 1000, false, "Display");
+    SendTimer.Start(_options.GetDisplayDuration() * 1000, false); //  , "xSMSDaemon send timer");
 }
 
 void xSMSDaemonFrame::Stop()
 {
-    SetAllText("");
     SendTimer.Stop();
+    SetAllText("");
 }
 
-bool xSMSDaemonFrame::SetText(const std::string& t, const std::string& text, const std::wstring wtext)
+bool xSMSDaemonFrame::SetText(const std::string& t, const std::string& text, const std::wstring& wtext)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     bool ok = false;
     if (_options.IsValid())
     {
-        wxURI url;
+        char result[4096];
+
+        std::wstring s;
         if (wtext != "")
         {
-            auto wtt = wtext;
-            Replace(wtt, _("%"), _("%25"));
-            Replace(wtt, _(","), _(" "));
-            Replace(wtt, _("&"), _("%26"));
-            Replace(wtt, _("="), _("%3D"));
-            Replace(wtt, _("?"), _("%3F"));
-
-            url.Create("http://" + _options.GetXScheduleIP() + ":" + wxString::Format("%d", _options.GetXSchedulePort()) + "/xScheduleCommand?Command=Set%20current%20text&Parameters=" + t + "," + wtt + ",");
+            s = wtext;
         }
         else
         {
-            auto tt = text;
-            Replace(tt, "%", "%25");
-            Replace(tt, ",", " ");
-            Replace(tt, "&", "%26");
-            Replace(tt, "=", "%3D");
-            Replace(tt, "?", "%3F");
-
-            url.Create("http://" + _options.GetXScheduleIP() + ":" + wxString::Format("%d", _options.GetXSchedulePort()) + "/xScheduleCommand?Command=Set%20current%20text&Parameters=" + t + "," + tt + ",");
+            s = std::wstring(text.begin(), text.end());
         }
-        auto u = url.BuildURI().ToStdString();
-        auto res = Curl::HTTPSGet(u);
+        std::wstring p = t + "," + s + ",";
+        _action("Set current text", (const wchar_t*)p.c_str(), "", result, sizeof(result));
+        std::string res(result);
+
         if (Contains(res, _("result\":\"ok")) && text != "")
         {
             StaticText_LastDisplayed->SetLabel(wxDateTime::Now().FormatTime());
@@ -633,11 +625,8 @@ bool xSMSDaemonFrame::SetText(const std::string& t, const std::string& text, con
         }
         else
         {
-            if (text != "")
-            {
-                logger_base.debug("%s", (const char *)u.c_str());
-                logger_base.debug("%s", (const char *)res.c_str());
-            }
+            logger_base.debug("SetText failed:");
+            logger_base.debug("   res: %s", (const char *)res.c_str());
         }
     }
     else
@@ -647,7 +636,7 @@ bool xSMSDaemonFrame::SetText(const std::string& t, const std::string& text, con
     return ok;
 }
 
-void xSMSDaemonFrame::SetAllText(const std::string& text, const std::wstring wtext)
+void xSMSDaemonFrame::SetAllText(const std::string& text, const std::wstring& wtext)
 {
     wxArrayString texts = wxSplit(_options.GetTextItem(), ',');
 
@@ -783,4 +772,9 @@ void xSMSDaemonFrame::OnTimer_SecondTrigger(wxTimerEvent& event)
             StaticText_LastRetrieved->SetLabel(_smsService->GetLastRetrieved());
         }
     }
+}
+
+void xSMSDaemonFrame::OnClose(wxCloseEvent& event)
+{
+    event.Skip();
 }

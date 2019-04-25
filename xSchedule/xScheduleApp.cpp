@@ -329,6 +329,8 @@ bool xScheduleApp::OnInit()
     SetUnhandledExceptionFilter(windows_exception_handler);
 #endif
 
+    //curl_global_init(CURL_GLOBAL_SSL);
+
     InitialiseLogging(false);
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.info("******* OnInit: xSchedule started.");

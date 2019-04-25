@@ -13,11 +13,16 @@ class xlTimerThread : public wxThread
 {
 public:
     xlTimerThread(const std::string& name, int interval, bool oneshot, xLightsTimer* timer, bool log);
+    virtual ~xlTimerThread() {
+    };
     void Reset(int interval, bool oneshot, const std::string& name);
     void Stop();
     void Suspend();
     void SetFudgeFactor(int ff);
     int GetInterval() const { return _interval; }
+    void SetName(const std::string& name) {
+        _name = name;
+    }
 private:
     std::atomic<bool> _stop;
     std::atomic<bool> _suspend;
@@ -70,6 +75,11 @@ void xLightsTimer::Stop()
     }
 }
 
+void xLightsTimer::SetName(const std::string& name)
+{
+    _name = name; 
+    if (_t != nullptr) _t->SetName(name);
+}
 bool xLightsTimer::Start(int time/* = -1*/, bool oneShot/* = wxTIMER_CONTINUOUS*/, const std::string& name)
 {
     static log4cpp::Category &logger_timer = log4cpp::Category::getInstance(std::string("log_timer"));
@@ -201,7 +211,7 @@ void xlTimerThread::Reset(int interval, bool oneshot, const std::string& name)
     _suspend = false;
 
     // if this was not a one shot suspend
-    if (oldInterval != -99)
+    if (oldInterval != -99 && _suspendCount > 0)
     {
         // now release the suspend
         logger_timer.debug("About to release the suspendLock");
@@ -269,7 +279,7 @@ void xlTimerThread::Stop()
     _waiter.unlock();
 
     // if this was not a one shot suspend
-    if (oldInterval != -99)
+    if (oldInterval != -99 && _suspendCount > 0)
     {
         // also release any suspended state so the thread will exit
         _suspendLock.unlock();
