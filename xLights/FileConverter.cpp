@@ -21,7 +21,7 @@
     #include "outputs/Output.h"
     #define string_format wxString::Format
 #endif
-
+#include "xLightsVersion.h"
 #include <log4cpp/Category.hh>
 
 static const int MAX_READ_BLOCK_SIZE = 4096 * 1024;
@@ -1702,6 +1702,15 @@ void FileConverter::WriteFalconPiFile(ConvertParameters& params)
             file->addVariableHeader(header);
         }
     }
+    FSEQFile::VariableHeader header;
+    header.code[0] = 's';
+    header.code[1] = 'p';
+    std::string ver = "xLights " + wxPlatformInfo::Get().GetOperatingSystemFamilyName() + " " + GetDisplayVersionString();
+    int len = strlen(ver.c_str()) + 1;
+    header.data.resize(len);
+    strcpy((char *)&header.data[0], ver.c_str());
+    file->addVariableHeader(header);
+
     file->writeHeader();
     size_t size = params.seq_data.NumFrames();
     for (int x = 0; x < size; x++) {

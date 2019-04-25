@@ -790,6 +790,10 @@ public:
 
             uint64_t len = m_file->m_frameOffsets[m_curBlock + 1].second;
             len -= m_file->m_frameOffsets[m_curBlock].second;
+            int max = m_file->getNumFrames() * m_file->getChannelCount();
+            if (len > max) {
+                len = max;
+            }
             if (m_inBuffer.src) {
                 free((void*)m_inBuffer.src);
             }
@@ -1306,8 +1310,15 @@ m_handler(nullptr)
                 preload(doff, dlen);
             }
         }
-        
-        m_frameOffsets.push_back(std::pair<uint32_t, uint64_t>(99999999, offset));
+        if (m_frameOffsets.size() == 0) {
+            //this is bad... not sure what we can do.  We'll force a "0" block to
+            //avoid a crash, but the data might not load correctly
+            LogErr(VB_SEQUENCE, "FSEQ file corrupt: did not load any block references from header.");
+
+            m_frameOffsets.push_back(std::pair<uint32_t, uint64_t>(0, offset));
+            offset += this->m_seqFileSize - offset;
+        }
+        m_frameOffsets.push_back(std::pair<uint32_t, uint64_t>(getNumFrames() + 2, offset));
         //sparse ranges
         for (int x = 0; x < header[22]; x++) {
             uint32_t st = read3ByteUInt(&header[hoffset]);
