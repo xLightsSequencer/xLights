@@ -1213,8 +1213,8 @@ int GenerateCustomModelDialog::FindStartFrame(VideoReader* vr)
     _overallmaxbrightness = 0.0;
     std::map<int, int> levelmaxlen;
     std::map<int, int> levelmaxstart;
-    float level = 0.1f;
-    for (size_t i = 0; i < 9; i++)
+    float level = 0.05f;
+    for (size_t i = 0; i < 19; i++)
     {
         int maxrunlength = 0;
         int currunlength = 0;
@@ -1264,19 +1264,19 @@ int GenerateCustomModelDialog::FindStartFrame(VideoReader* vr)
             maxrunlength = currunlength;
             maxrunstart = currunstart;
         }
-        levelmaxlen[(int)(level*10.0)] = maxrunlength;
-        levelmaxstart[(int)(level*10.0)] = maxrunstart;
+        levelmaxlen[(int)(level*20.0)] = maxrunlength;
+        levelmaxstart[(int)(level*20.0)] = maxrunstart;
         logger_gcm.info("   For level %f maxrunstarts at %dms and goes for %dms with max brightness %f.", level, maxrunstart * FRAMEMS, maxrunlength * FRAMEMS, maxrunbrightness);
-        level += 0.1f;
+        level += 0.05f;
     }
 
     // look for thresholds that are close to LEADON long
     std::map<int, bool> suitable;
-    for (int l = 1; l < 10; l++)
+    for (int l = 1; l < 20; l++)
     {
         if (levelmaxlen[l] > LEADON / FRAMEMS - 1 && levelmaxlen[l] < LEADON / FRAMEMS + 1)
         {
-            logger_gcm.info("   Level %f looks suitable from a length perspective.", (float)l/10.0);
+            logger_gcm.info("   Level %f looks suitable from a length perspective.", (float)l/20.0);
             if (LooksLikeStartFrame(levelmaxstart[l] * FRAMEMS))
             {
                 logger_gcm.info("       And looking forward the second flash also seems to be there.");
@@ -1307,7 +1307,7 @@ int GenerateCustomModelDialog::FindStartFrame(VideoReader* vr)
     int last = -2;
     int curfirst = -1;
     int curlast = -2;
-    for (int l = 1; l < 10; l++)
+    for (int l = 1; l < 20; l++)
     {
         if (suitable[l])
         {
@@ -1346,8 +1346,8 @@ int GenerateCustomModelDialog::FindStartFrame(VideoReader* vr)
     }
     else
     {
-        bestlevel = ((((float)last + (float)first + 1.0) * 10.0) / 2.0) / 10;
-        logger_gcm.info("    Level chosen: halfway between %f and %f ... %f.", (float)first/10.0, (float)last/10.0, (float)bestlevel / 10.0);
+        bestlevel = ((((float)last + (float)first + 1.0) * 20.0) / 2.0) / 20;
+        logger_gcm.info("    Level chosen: halfway between %f and %f ... %f.", (float)first/20.0, (float)last/20.0, (float)bestlevel / 20.0);
     }
 
     // pick a point 0.1 secs into the high period as our start frame
