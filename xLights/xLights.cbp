@@ -113,7 +113,6 @@
 					<Add directory="outputs" />
 					<Add directory="xLights" />
 					<Add directory="xLights/models" />
-					<Add directory="$(#wx)/include" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="$(#wx)/include" />
@@ -1040,8 +1039,6 @@
 		<Unit filename="outputs/TestPreset.cpp" />
 		<Unit filename="outputs/TestPreset.h" />
 		<Unit filename="outputs/ZCPP.h" />
-		<Unit filename="outputs/ZCPPDialog.cpp" />
-		<Unit filename="outputs/ZCPPDialog.h" />
 		<Unit filename="outputs/ZCPPOutput.cpp" />
 		<Unit filename="outputs/ZCPPOutput.h" />
 		<Unit filename="outputs/serial.cpp" />

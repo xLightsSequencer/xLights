@@ -9,7 +9,7 @@
 #include "OutputManager.h"
 #include "../UtilFunctions.h"
 #include "../ControllerVisualiseDialog.h"
-#include "controllers/ControllerUploadData.h"
+#include "../controllers/ControllerUploadData.h"
 
 //(*IdInit(ZCPPDialog)
 const long ZCPPDialog::ID_STATICTEXT4 = wxNewId();

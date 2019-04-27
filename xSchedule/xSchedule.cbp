@@ -329,7 +329,6 @@
 		<Unit filename="../xLights/outputs/SerialPortWithRate.h" />
 		<Unit filename="../xLights/outputs/TestPreset.cpp" />
 		<Unit filename="../xLights/outputs/TestPreset.h" />
-		<Unit filename="../xLights/outputs/ZCPPDialog.cpp" />
 		<Unit filename="../xLights/outputs/ZCPPDialog.h" />
 		<Unit filename="../xLights/outputs/ZCPPOutput.cpp" />
 		<Unit filename="../xLights/outputs/ZCPPOutput.h" />
