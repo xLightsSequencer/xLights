@@ -55,15 +55,36 @@ int gettimeofday(struct timeval * tp, struct timezone * tzp)
 #include <log4cpp/Category.hh>
 template<typename... Args> static void LogErr(int i, const char *fmt, Args... args) {
     static log4cpp::Category &fseq_logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    fseq_logger_base.error(fmt, args...);
+    char buf[256];
+    const char *nfmt = fmt;
+    if (nfmt[strlen(nfmt) - 1] == '\n') {
+        strcpy(buf, fmt);
+        buf[strlen(nfmt) - 1] = 0;
+        nfmt = buf;
+    }
+    fseq_logger_base.error(nfmt, args...);
 }
 template<typename... Args> static void LogInfo(int i, const char *fmt, Args... args) {
     static log4cpp::Category &fseq_logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    fseq_logger_base.info(fmt, args...);
+    char buf[256];
+    const char *nfmt = fmt;
+    if (nfmt[strlen(nfmt) - 1] == '\n') {
+        strcpy(buf, fmt);
+        buf[strlen(nfmt) - 1] = 0;
+        nfmt = buf;
+    }
+    fseq_logger_base.info(nfmt, args...);
 }
 template<typename... Args> static void LogDebug(int i, const char *fmt, Args... args) {
     static log4cpp::Category &fseq_logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    fseq_logger_base.debug(fmt, args...);
+    char buf[256];
+    const char *nfmt = fmt;
+    if (nfmt[strlen(nfmt) - 1] == '\n') {
+        strcpy(buf, fmt);
+        buf[strlen(nfmt) - 1] = 0;
+        nfmt = buf;
+    }
+    fseq_logger_base.debug(nfmt, args...);
 }
 #define VB_SEQUENCE 1
 #define VB_ALL 0
