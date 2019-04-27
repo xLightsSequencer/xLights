@@ -11,6 +11,15 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2019.23 April 27, 2019
+   -- enh (scott)   Add manual link to help menu
+   -- bug (keith)   Make custom model generator capable of detecting the start in very dark videos
+   -- bug (keith)   Better fix for models dont track the mouse in 2D layout
+   -- bug (keith)   Make the row header size scale with the row size on the effects grid
+   -- bug (keith)   Remove a bunch of unnecessary processing when renaming model groups
+   -- bug (keith)   Fix timing track label edit broken
+   -- bug (keith)   Fix auto hide house does not work if house is maximised
+   -- bug (dkulp)   Add logging and try to handle corrupt fseq files
    -- bug (dkulp)   Make sure FPP string upload doesn't generate configuration that won't work, make sure
                     it marks hasSerial as false if no serial is configured
    -- bug (dkulp)   When bulk editing path, if the original "looks" like a windows path ( : as second char),

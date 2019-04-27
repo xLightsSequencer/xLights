@@ -55,15 +55,36 @@ int gettimeofday(struct timeval * tp, struct timezone * tzp)
 #include <log4cpp/Category.hh>
 template<typename... Args> static void LogErr(int i, const char *fmt, Args... args) {
     static log4cpp::Category &fseq_logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    fseq_logger_base.error(fmt, args...);
+    char buf[256];
+    const char *nfmt = fmt;
+    if (nfmt[strlen(nfmt) - 1] == '\n') {
+        strcpy(buf, fmt);
+        buf[strlen(nfmt) - 1] = 0;
+        nfmt = buf;
+    }
+    fseq_logger_base.error(nfmt, args...);
 }
 template<typename... Args> static void LogInfo(int i, const char *fmt, Args... args) {
     static log4cpp::Category &fseq_logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    fseq_logger_base.info(fmt, args...);
+    char buf[256];
+    const char *nfmt = fmt;
+    if (nfmt[strlen(nfmt) - 1] == '\n') {
+        strcpy(buf, fmt);
+        buf[strlen(nfmt) - 1] = 0;
+        nfmt = buf;
+    }
+    fseq_logger_base.info(nfmt, args...);
 }
 template<typename... Args> static void LogDebug(int i, const char *fmt, Args... args) {
     static log4cpp::Category &fseq_logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    fseq_logger_base.debug(fmt, args...);
+    char buf[256];
+    const char *nfmt = fmt;
+    if (nfmt[strlen(nfmt) - 1] == '\n') {
+        strcpy(buf, fmt);
+        buf[strlen(nfmt) - 1] = 0;
+        nfmt = buf;
+    }
+    fseq_logger_base.debug(nfmt, args...);
 }
 #define VB_SEQUENCE 1
 #define VB_ALL 0
@@ -721,6 +742,22 @@ public:
         uint64_t off = V2FSEQ_HEADER_SIZE;
         seek(off, SEEK_SET);
         int count = m_file->m_frameOffsets.size();
+        if (count == 0) {
+            //not good, count should never be 0 unless no frames were written,
+            //this really should never happen, but I've seen fseq files without the
+            //blocks filled in so I know it DOES happen, just haven't figured out
+            //how it's possible yet.
+            LogErr(VB_SEQUENCE, "Error writing fseq file.  No compressed blocks created.\n");
+            
+            //we'll use the offset to the data for the 0 frame
+            seek(0, SEEK_SET);
+            uint8_t header[10];
+            read(header, 10);
+            int seqChanDataOffset = read2ByteUInt(&header[4]);
+            seek(off, SEEK_SET);
+            m_file->m_frameOffsets.push_back(std::pair<uint32_t, uint64_t>(0, seqChanDataOffset));
+            count++;
+        }
         m_file->m_frameOffsets.push_back(std::pair<uint32_t, uint64_t>(99999999, curr));
         for (int x = 0 ; x < count; x++) {
             uint8_t buf[8];
@@ -759,6 +796,7 @@ public:
         m_inBuffer.src = nullptr;
         m_inBuffer.size = 0;
         m_inBuffer.pos = 0;
+        LogDebug(VB_SEQUENCE, "  Prepared to write a ZSTD compress fseq file.\n");
     }
     virtual ~V2ZSTDCompressionHandler() {
         free(m_outBuffer.dst);
@@ -790,6 +828,10 @@ public:
 
             uint64_t len = m_file->m_frameOffsets[m_curBlock + 1].second;
             len -= m_file->m_frameOffsets[m_curBlock].second;
+            int max = m_file->getNumFrames() * m_file->getChannelCount();
+            if (len > max) {
+                len = max;
+            }
             if (m_inBuffer.src) {
                 free((void*)m_inBuffer.src);
             }
@@ -819,7 +861,6 @@ public:
         int fidx = frame - m_file->m_frameOffsets[m_curBlock].first;
         if (fidx >= m_curFrameInBlock) {
             m_outBuffer.size = (fidx + 1) * m_file->getChannelCount();
-            int opos = m_outBuffer.pos;
             ZSTD_decompressStream(m_dctx, &m_outBuffer, &m_inBuffer);
             m_curFrameInBlock = fidx + 1;
         }
@@ -867,6 +908,7 @@ public:
         }
         if (m_curFrameInBlock == 0) {
             uint64_t offset = tell();
+            LogDebug(VB_SEQUENCE, "  Preparing to create a compressed block of data starting at frame %d, offset  %" PRIu64 ".\n", frame, offset);
             m_file->m_frameOffsets.push_back(std::pair<uint32_t, uint64_t>(frame, offset));
             int clevel = m_file->m_compressionLevel == -1 ? 10 : m_file->m_compressionLevel;
             if (clevel < 0 || clevel > 25) {
@@ -913,12 +955,13 @@ public:
         //we'll start a new block.  We want the first block to be small so startup is
         //quicker and we can get the first few frames as fast as possible.
         if ((m_curBlock == 0 && m_curFrameInBlock == 10)
-            || (m_curFrameInBlock == m_framesPerBlock && m_file->m_frameOffsets.size() < m_maxBlocks)) {
+            || (m_curFrameInBlock >= m_framesPerBlock && m_file->m_frameOffsets.size() < m_maxBlocks)) {
             while(ZSTD_endStream(m_cctx, &m_outBuffer) > 0) {
                 write(m_outBuffer.dst, m_outBuffer.pos);
                 m_outBuffer.pos = 0;
             }
             write(m_outBuffer.dst, m_outBuffer.pos);
+            LogDebug(VB_SEQUENCE, "  Finalized block of data ending at frame %d.  Frames in block: %d.\n", frame, m_curFrameInBlock);
             m_outBuffer.pos = 0;
             m_curFrameInBlock = 0;
             m_curBlock++;
@@ -931,6 +974,7 @@ public:
                 m_outBuffer.pos = 0;
             }
             write(m_outBuffer.dst, m_outBuffer.pos);
+            LogDebug(VB_SEQUENCE, "  Finalized last block of data.  Frames in block: %d.\n", m_curFrameInBlock);
             m_outBuffer.pos = 0;
             m_curFrameInBlock = 0;
             m_curBlock++;
@@ -1306,8 +1350,15 @@ m_handler(nullptr)
                 preload(doff, dlen);
             }
         }
-        
-        m_frameOffsets.push_back(std::pair<uint32_t, uint64_t>(99999999, offset));
+        if (m_frameOffsets.size() == 0) {
+            //this is bad... not sure what we can do.  We'll force a "0" block to
+            //avoid a crash, but the data might not load correctly
+            LogErr(VB_SEQUENCE, "FSEQ file corrupt: did not load any block references from header.");
+
+            m_frameOffsets.push_back(std::pair<uint32_t, uint64_t>(0, offset));
+            offset += this->m_seqFileSize - offset;
+        }
+        m_frameOffsets.push_back(std::pair<uint32_t, uint64_t>(getNumFrames() + 2, offset));
         //sparse ranges
         for (int x = 0; x < header[22]; x++) {
             uint32_t st = read3ByteUInt(&header[hoffset]);

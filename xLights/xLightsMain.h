@@ -562,6 +562,7 @@ public:
     void OnMenuItemFSEQV2Selected(wxCommandEvent& event);
     void OnMenuItem_PrepareAudioSelected(wxCommandEvent& event);
     void OnMenuItemOGLRenderOrder(wxCommandEvent& event);
+    void OnMenuItem_UserManualSelected(wxCommandEvent& event);
     //*)
     void OnCharHook(wxKeyEvent& event);
 private:
@@ -811,6 +812,7 @@ public:
     static const long ID_MENUITEM21;
     static const long ID_MENUITEM22;
     static const long ID_MENUITEM1;
+    static const long ID_MNU_MANUAL;
     static const long ID_MNU_ZOOM;
     static const long ID_MNU_KEYBINDINGS;
     static const long idMenuHelpContent;
@@ -984,6 +986,7 @@ public:
     wxMenuItem* MenuItem_SmallWaveform;
     wxMenuItem* MenuItem_SnapToTimingMarks;
     wxMenuItem* MenuItem_Update;
+    wxMenuItem* MenuItem_UserManual;
     wxMenuItem* MenuItem_VQuietVol;
     wxMenuItem* MenuItem_VideoTutorials;
     wxMenuItem* MenuItem_ViewLog;
