@@ -11,6 +11,32 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2019.23 April 27, 2019
+   -- enh (scott)   Add manual link to help menu
+   -- bug (keith)   Make custom model generator capable of detecting the start in very dark videos
+   -- bug (keith)   Better fix for models dont track the mouse in 2D layout
+   -- bug (keith)   Make the row header size scale with the row size on the effects grid
+   -- bug (keith)   Remove a bunch of unnecessary processing when renaming model groups
+   -- bug (keith)   Fix timing track label edit broken
+   -- bug (keith)   Fix auto hide house does not work if house is maximised
+   -- bug (dkulp)   Add logging and try to handle corrupt fseq files
+   -- bug (dkulp)   Make sure FPP string upload doesn't generate configuration that won't work, make sure
+                    it marks hasSerial as false if no serial is configured
+   -- bug (dkulp)   When bulk editing path, if the original "looks" like a windows path ( : as second char),
+                    then parse as a windows path instead of "native", Fixes #1532
+   -- bug (dkulp)   When loading older show directories, it will sometimes go into a loop displaying error
+                    message trying to calc start channels for most models
+2019.22 April 21, 2019
+   -- enh (scott)   Add right click print to controller visualiser
+   -- enh (scott)   Add right click export to csv file to controller visualiser
+   -- enh (scott)   Updated Sandevice upload to support color order, brightness, group count, null pixel, and 
+                    reverse controller settings on FIRST model.
+   -- enh (scott)   Add Sandevice Controller types to e1.31 dialog.
+   -- enh (keith)   Upgrade J1SYS P12 support to support a broader range of models
+   -- enh (keith)   Add the ability to send ArtNET triggers to xSchedule
+   -- enh (keith)   Add the ability to receive ArtNET triggers to xSchedule
+   -- enh (keith)   Add a character map browser to the shape effect emoji
+   -- bug (scott)   Explain to user why they cant enter text on a fixed timing track
 2019.21 April 15, 2019
    -- bug (scott)   Falcon upload - Default to "Universe" mode instead of "Absolute" on Firmware 2.04 and lower.
    -- bug (keith)   Fix jukebox button size

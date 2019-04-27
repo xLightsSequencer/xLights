@@ -1751,6 +1751,10 @@
 			</object>
 			<object class="wxMenu" variable="MenuHelp" member="no">
 				<label>&amp;Help</label>
+				<object class="wxMenuItem" name="ID_MNU_MANUAL" variable="MenuItem_UserManual" member="yes">
+					<label>User Manual</label>
+					<handler function="OnMenuItem_UserManualSelected" entry="EVT_MENU" />
+				</object>
 				<object class="wxMenuItem" name="ID_MNU_ZOOM" variable="MenuItem_Zoom" member="yes">
 					<label>Zoom</label>
 					<handler function="OnMenuItem_ZoomSelected" entry="EVT_MENU" />

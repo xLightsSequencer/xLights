@@ -467,25 +467,20 @@ void Effect::ApplySetting(const std::string& id, const std::string& value, Value
 
             wxString wid = id;
 
-            if (wid.Contains("FILEPICKER"))
-            {
+            if (wid.Contains("FILEPICKER")) {
                 wxString realid = wid.substr(0, wid.Length() - 3);
-                if (wid.EndsWith("_FN"))
-                {
+                if (wid.EndsWith("_FN")) {
                     mSettings[realid] = value;
-                }
-                else
-                {
-                    if (mSettings.Contains(realid) && mSettings.Get(realid, "") != "")
-                    {
-                        wxFileName fn(mSettings[realid]);
+                } else {
+                    if (mSettings.Contains(realid) && mSettings.Get(realid, "") != "") {
+                        wxString origName = mSettings[realid];
+                        wxFileName fn(origName, origName[1] == ':' ? wxPATH_WIN : wxPATH_UNIX);
                         fn.SetPath(value);
-                        mSettings[realid] = fn.GetFullPath();
+                        wxString newName = fn.GetFullPath();
+                        mSettings[realid] = newName;
                     }
                 }
-            }
-            else
-            {
+            } else {
                 mSettings[id] = value;
             }
         }

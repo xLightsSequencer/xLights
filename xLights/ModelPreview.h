@@ -88,6 +88,7 @@ public:
     void SetActive(bool show);
     bool GetActive() const;
     float GetZoom() const { return (is_3d ? camera3d->GetZoom() : camera2d->GetZoom()); }
+    double GetCurrentScaleFactor() const { return std::max((float)virtualWidth / (float)mWindowWidth, (float)virtualHeight / (float)mWindowHeight); }
     float GetCameraRotationY() const { return (is_3d ? camera3d->GetAngleY() : camera2d->GetAngleY()); }
     float GetCameraRotationX() const { return (is_3d ? camera3d->GetAngleX() : camera2d->GetAngleX()); }
     void SetPan(float deltax, float deltay, float deltaz);

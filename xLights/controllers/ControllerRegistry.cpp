@@ -3,7 +3,7 @@
 #include "FPP.h"
 #include "Falcon.h"
 #include "ESPixelStick.h"
-
+#include "SanDevices.h"
 
 std::map<std::string, const ControllerRules*> ControllerRegistry::controllers;
 std::map<std::string, std::string> ControllerRegistry::controllersByDescription;
@@ -54,4 +54,5 @@ void ControllerRegistry::loadControllers() {
     Falcon::RegisterControllers();
     FPP::RegisterCapes();
     ESPixelStick::RegisterControllers();
+    SanDevices::RegisterController();
 }

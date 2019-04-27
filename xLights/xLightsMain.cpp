@@ -354,6 +354,7 @@ const long xLightsFrame::ID_MNU_SNAP_TO_TIMING = wxNewId();
 const long xLightsFrame::ID_MENUITEM21 = wxNewId();
 const long xLightsFrame::ID_MENUITEM22 = wxNewId();
 const long xLightsFrame::ID_MENUITEM1 = wxNewId();
+const long xLightsFrame::ID_MNU_MANUAL = wxNewId();
 const long xLightsFrame::ID_MNU_ZOOM = wxNewId();
 const long xLightsFrame::ID_MNU_KEYBINDINGS = wxNewId();
 const long xLightsFrame::idMenuHelpContent = wxNewId();
@@ -1179,6 +1180,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     MenuSettings->Append(ID_MENUITEM1, _("FSEQ Version"), MenuItem54, wxEmptyString);
     MenuBar->Append(MenuSettings, _("&Settings"));
     MenuHelp = new wxMenu();
+    MenuItem_UserManual = new wxMenuItem(MenuHelp, ID_MNU_MANUAL, _("User Manual"), wxEmptyString, wxITEM_NORMAL);
+    MenuHelp->Append(MenuItem_UserManual);
     MenuItem_Zoom = new wxMenuItem(MenuHelp, ID_MNU_ZOOM, _("Zoom"), wxEmptyString, wxITEM_NORMAL);
     MenuHelp->Append(MenuItem_Zoom);
     MenuItem_ShowKeyBindings = new wxMenuItem(MenuHelp, ID_MNU_KEYBINDINGS, _("Key Bindings"), wxEmptyString, wxITEM_NORMAL);
@@ -1422,6 +1425,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     Connect(ID_MNU_SNAP_TO_TIMING,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_SnapToTimingMarksSelected);
     Connect(ID_MENUITEM21,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemFSEQV1Selected);
     Connect(ID_MENUITEM22,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemFSEQV2Selected);
+    Connect(ID_MNU_MANUAL,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_UserManualSelected);
     Connect(ID_MNU_ZOOM,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_ZoomSelected);
     Connect(ID_MNU_KEYBINDINGS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_ShowKeyBindingsSelected);
     Connect(idMenuHelpContent,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButtonTabInfoClick);
@@ -1678,7 +1682,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     itemCol.SetText(_T("Duplicate Suppress"));
     itemCol.SetAlign(wxLIST_FORMAT_LEFT);
     GridNetwork->InsertColumn(8, itemCol);
-    
+
     itemCol.SetText(_T("Controller Type"));
     itemCol.SetAlign(wxLIST_FORMAT_LEFT);
     GridNetwork->InsertColumn(9, itemCol);
@@ -1996,23 +2000,20 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     }
 
     config->Read("xLightsGridSpacing", &mGridSpacing, 16);
-    if (mGridSpacing != 16)
-    {
+    if (mGridSpacing != 16) {
         int idi = ID_MENUITEM_GRID_ICON_MEDIUM;
-        if (mGridSpacing == 32)
-        {
+        if (mGridSpacing == 32) {
             idi = ID_MENUITEM_GRID_ICON_LARGE;
-        }
-        else if (mGridSpacing >= 48)
-        {
+        } else if (mGridSpacing >= 48) {
             idi = ID_MENUITEM_GRID_ICON_XLARGE;
-        }
-        else if (mGridSpacing <= 12)
-        {
+        } else if (mGridSpacing <= 12) {
             idi = ID_MENUITEM_GRID_ICON_XSMALL;
         }
         wxCommandEvent eventi(wxEVT_NULL, idi);
         SetIconSize(eventi);
+    } else {
+        //make sure the 16 size is checked
+        GridSpacingMenu->Check(ID_MENUITEM_GRID_ICON_SMALL, true);
     }
     logger_base.debug("Grid spacing: %d.", mGridSpacing);
 
@@ -9990,4 +9991,9 @@ void xLightsFrame::OnMenuItem_PrepareAudioSelected(wxCommandEvent& event)
             delete it.second;
         }
     }
+}
+
+void xLightsFrame::OnMenuItem_UserManualSelected(wxCommandEvent& event)
+{
+    ::wxLaunchDefaultBrowser("https://manual.xlights.org/");
 }

@@ -31,7 +31,6 @@
     <ClCompile Include="MatrixFaceDownloadDialog.cpp" />
     <ClCompile Include="models\ChannelBlockModel.cpp" />
     <ClCompile Include="models\ImageModel.cpp" />
-    <ClCompile Include="outputs\ArtNetDialog.cpp" />
     <ClCompile Include="AudioManager.cpp" />
     <ClCompile Include="BitmapCache.cpp" />
     <ClCompile Include="BufferPanel.cpp" />
@@ -64,8 +63,6 @@
     <ClCompile Include="effects\assist\xlGridCanvasEmpty.cpp" />
     <ClCompile Include="effects\assist\xlGridCanvasMorph.cpp" />
     <ClCompile Include="effects\assist\xlGridCanvasPictures.cpp" />
-    <ClCompile Include="effects\BarsEffect.cpp" />
-    <ClCompile Include="effects\BarsPanel.cpp" />
     <ClCompile Include="effects\ButterflyEffect.cpp" />
     <ClCompile Include="effects\ButterflyPanel.cpp" />
     <ClCompile Include="effects\CirclesEffect.cpp" />
@@ -180,7 +177,6 @@
     <ClCompile Include="ModelGroupPanel.cpp" />
     <ClCompile Include="ModelPreview.cpp" />
     <ClCompile Include="ModelStateDialog.cpp" />
-    <ClCompile Include="models\ArchesModel.cpp" />
     <ClCompile Include="models\CandyCaneModel.cpp" />
     <ClCompile Include="models\CircleModel.cpp" />
     <ClCompile Include="models\CustomModel.cpp" />
@@ -214,7 +210,6 @@
     <ClCompile Include="outputs\NullOutputDialog.cpp" />
     <ClCompile Include="OptionChooser.cpp" />
     <ClCompile Include="osx_utils\TouchBars.cpp" />
-    <ClCompile Include="outputs\ArtNetOutput.cpp" />
     <ClCompile Include="outputs\DMXOutput.cpp" />
     <ClCompile Include="outputs\E131Output.cpp" />
     <ClCompile Include="outputs\IPOutput.cpp" />
@@ -347,7 +342,6 @@
     <ClCompile Include="LyricUserDictDialog.cpp" />
     <ClCompile Include="RenderCache.cpp" />
     <ClCompile Include="Parallel.cpp" />
-    <ClCompile Include="models\BaseObject.cpp" />
     <ClCompile Include="models\ObjectManager.cpp" />
     <ClCompile Include="models\ViewObject.cpp" />
     <ClCompile Include="models\ViewObjectManager.cpp" />
@@ -377,6 +371,24 @@
     <ClCompile Include="controllers\ControllerRegistry.cpp" />
     <ClCompile Include="AlignmentDialog.cpp" />
     <ClCompile Include="CharMapDialog.cpp" />
+    <ClCompile Include="models\ArchesModel.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
+    <ClCompile Include="outputs\ArtNetDialog.cpp">
+      <Filter>Outputs</Filter>
+    </ClCompile>
+    <ClCompile Include="outputs\ArtNetOutput.cpp">
+      <Filter>Outputs</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\BarsEffect.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\BarsPanel.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="models\BaseObject.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -410,7 +422,6 @@
     <ClInclude Include="effects\ServoEffect.h" />
     <ClInclude Include="effects\ServoPanel.h" />
     <ClInclude Include="IPEntryDialog.h" />
-    <ClInclude Include="outputs/ArtNetDialog.h" />
     <ClInclude Include="AudioManager.h" />
     <ClInclude Include="BitmapCache.h" />
     <ClInclude Include="BufferPanel.h" />
@@ -436,8 +447,6 @@
     <ClInclude Include="EffectIconPanel.h" />
     <ClInclude Include="EffectListDialog.h" />
     <ClInclude Include="EffectsPanel.h" />
-    <ClInclude Include="effects\BarsEffect.h" />
-    <ClInclude Include="effects\BarsPanel.h" />
     <ClInclude Include="effects\ButterflyEffect.h" />
     <ClInclude Include="effects\ButterflyPanel.h" />
     <ClInclude Include="effects\ChromaEffect.h" />
@@ -547,7 +556,6 @@
     <ClInclude Include="ModelGroupPanel.h" />
     <ClInclude Include="ModelPreview.h" />
     <ClInclude Include="ModelStateDialog.h" />
-    <ClInclude Include="models\ArchesModel.h" />
     <ClInclude Include="models\CandyCaneModel.h" />
     <ClInclude Include="models\CircleModel.h" />
     <ClInclude Include="models\CustomModel.h" />
@@ -582,7 +590,6 @@
     <ClInclude Include="OptionChooser.h" />
     <ClInclude Include="osxMacUtils.h" />
     <ClInclude Include="osx_utils\TouchBars.h" />
-    <ClInclude Include="outputs\ArtNetOutput.h" />
     <ClInclude Include="outputs\Controller.h" />
     <ClInclude Include="outputs\DLightOutput.h" />
     <ClInclude Include="outputs\DMXOutput.h" />
@@ -726,7 +733,6 @@
     <ClInclude Include="LyricUserDictDialog.h" />
     <ClInclude Include="RenderCache.h" />
     <ClInclude Include="Parallel.h" />
-    <ClInclude Include="models\BaseObject.h" />
     <ClInclude Include="models\ObjectManager.h" />
     <ClInclude Include="models\ViewObject.h" />
     <ClInclude Include="models\ViewObjectManager.h" />
@@ -759,8 +765,37 @@
     <ClInclude Include="..\include\globals.h" />
     <ClInclude Include="AlignmentDialog.h" />
     <ClInclude Include="CharMapDialog.h" />
+    <ClInclude Include="models\ArchesModel.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="outputs/ArtNetDialog.h">
+      <Filter>Outputs</Filter>
+    </ClInclude>
+    <ClInclude Include="outputs\ArtNetOutput.h">
+      <Filter>Outputs</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\BarsEffect.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\BarsPanel.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="models\BaseObject.h">
+      <Filter>Models</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Models">
+      <UniqueIdentifier>{b79fdd8e-7e7c-4782-993b-6823a86b5147}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Outputs">
+      <UniqueIdentifier>{dfe9d5da-0dd9-4e21-9343-0a44da6b4534}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effects">
+      <UniqueIdentifier>{3c4a01c4-d8e7-4148-b2ac-0fe747bc1b86}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
 </Project>

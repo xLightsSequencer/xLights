@@ -626,6 +626,7 @@
 		67E6750B2009993D000E930E /* VendorModelDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67E675082009993C000E930E /* VendorModelDialog.cpp */; };
 		67E8F6501E513B380096546A /* IPEntryDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67E8F64E1E513B380096546A /* IPEntryDialog.cpp */; };
 		67E9389D1A80FC5A00937772 /* SeqFileUtilities.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67E9389C1A80FC5A00937772 /* SeqFileUtilities.cpp */; };
+		67E9B4AC226E510700243B4E /* CharMapDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67E9B4AB226E510600243B4E /* CharMapDialog.cpp */; };
 		67E9F6F818887898000D8182 /* TabConvert.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C7969017B5791700CEE775 /* TabConvert.cpp */; };
 		67EB0CB72248F65800F3A164 /* LOREdit.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67EB0CB52248F65800F3A164 /* LOREdit.cpp */; };
 		67EB24B11D2F399200C7C4A1 /* DmxModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67EB24B01D2F399200C7C4A1 /* DmxModel.cpp */; };
@@ -1915,6 +1916,8 @@
 		67E8F64E1E513B380096546A /* IPEntryDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = IPEntryDialog.cpp; sourceTree = "<group>"; };
 		67E8F64F1E513B380096546A /* IPEntryDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IPEntryDialog.h; sourceTree = "<group>"; };
 		67E9389C1A80FC5A00937772 /* SeqFileUtilities.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SeqFileUtilities.cpp; sourceTree = "<group>"; };
+		67E9B4AA226E510600243B4E /* CharMapDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CharMapDialog.h; sourceTree = "<group>"; };
+		67E9B4AB226E510600243B4E /* CharMapDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CharMapDialog.cpp; sourceTree = "<group>"; };
 		67EB0CB52248F65800F3A164 /* LOREdit.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = LOREdit.cpp; sourceTree = "<group>"; };
 		67EB0CB62248F65800F3A164 /* LOREdit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LOREdit.h; sourceTree = "<group>"; };
 		67EB24AF1D2F399200C7C4A1 /* DmxModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DmxModel.h; path = models/DmxModel.h; sourceTree = "<group>"; };
@@ -3014,6 +3017,8 @@
 			children = (
 				677196B1223CEFAD0082576E /* ModelChainDialog.cpp */,
 				677196B2223CEFAD0082576E /* ModelChainDialog.h */,
+				67E9B4AB226E510600243B4E /* CharMapDialog.cpp */,
+				67E9B4AA226E510600243B4E /* CharMapDialog.h */,
 				677E58472251277400861ABF /* AlignmentDialog.cpp */,
 				677E58462251277400861ABF /* AlignmentDialog.h */,
 				67EB0CB52248F65800F3A164 /* LOREdit.cpp */,
@@ -4340,6 +4345,7 @@
 				6719BF4B1CCB1D8800899A4B /* MusicEffect.cpp in Sources */,
 				67E5B5E41EAEDC5800735BF0 /* SubModelGenerateDialog.cpp in Sources */,
 				6706BB0A1E9CFD8E00B44278 /* SequenceViewManager.cpp in Sources */,
+				67E9B4AC226E510700243B4E /* CharMapDialog.cpp in Sources */,
 				67B2CFE81C3A186A003C17CA /* MeteorsEffect.cpp in Sources */,
 				67B2B2391E1947BE0024F0BB /* SerialPortWithRate.cpp in Sources */,
 				67B2CFF11C3A186A003C17CA /* FanEffect.cpp in Sources */,

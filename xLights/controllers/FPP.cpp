@@ -963,12 +963,18 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
     fnOrig.AssignTempFileName("pixelOutputs");
     std::string file = fnOrig.GetFullPath().ToStdString();
     wxJSONValue origJson;
+    bool doVirtualString = true;
     if (IsDrive()) {
         GetPathAsJSON(ipAddress + wxFileName::GetPathSeparator() + "config" + wxFileName::GetPathSeparator() + fppFileName +".json", origJson);
     } else {
         GetURLAsJSON("/fppjson.php?command=getChannelOutputs&file=" + fppFileName, origJson);
+        if (IsVersionAtLeast(2, 7)) {
+            wxJSONValue capeInfo;
+            if (GetURLAsJSON("/api/cape", capeInfo)) {
+                doVirtualString = capeInfo["id"].AsString() != "Unsupported";
+            }
+        }
     }
-
     wxString pinout = "1.x";
     std::map<std::string, wxJSONValue> origStrings;
     if (origJson["channelOutputs"].IsArray()) {
@@ -1029,14 +1035,74 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
     for (int pp = 1; pp <= rules.GetMaxPixelPort(); pp++) {
         if (cud.HasPixelPort(pp)) {
             UDControllerPort* port = cud.GetControllerPixelPort(pp);
-            port->CreateVirtualStrings(false);
-            for (auto pvs : port->GetVirtualStrings()) {
+            if (doVirtualString) {
+                port->CreateVirtualStrings(false);
+                for (auto pvs : port->GetVirtualStrings()) {
+                    wxJSONValue vs;
+                    vs["description"] = pvs->_description;
+                    vs["startChannel"] = pvs->_startChannel - 1; // we need 0 based
+                    vs["pixelCount"] = pvs->Channels() / pvs->_channelsPerPixel;
+                    
+                    if (origStrings.find(vs["description"].AsString()) != origStrings.end()) {
+                        wxJSONValue &vo = origStrings[vs["description"].AsString()];
+                        vs["groupCount"] = vo["groupCount"];
+                        vs["reverse"] = vo["reverse"];
+                        vs["colorOrder"] = vo["colorOrder"];
+                        vs["nullNodes"] = vo["nullNodes"];
+                        vs["zigZag"] = vo["zigZag"];
+                        vs["brightness"] = vo["brightness"];
+                        vs["gamma"] = vo["gamma"];
+                    } else {
+                        vs["groupCount"] = 0;
+                        vs["reverse"] = 0;
+                        if (pvs->_channelsPerPixel == 4) {
+                            vs["colorOrder"] = wxString("RGBW");
+                        } else {
+                            vs["colorOrder"] = wxString("RGB");
+                        }
+                        vs["nullNodes"] = 0;
+                        vs["zigZag"] = 0; // If we zigzag in xLights, we don't do it in the controller, if we need it in the controller, we don't know about it here
+                        vs["brightness"] = 100;
+                        vs["gamma"] = wxString("1.0");
+                    }
+                    if (pvs->_reverseSet) {
+                        vs["reverse"] = pvs->_reverse;
+                    }
+                    if (pvs->_gammaSet) {
+                        char buf[16];
+                        sprintf(buf, "%g", pvs->_gamma);
+                        std::string gam = buf;
+                        vs["gamma"] = gam;
+                    }
+                    if (pvs->_brightnessSet) {
+                        vs["brightness"] = pvs->_brightness;
+                    }
+                    if (pvs->_nullPixelsSet) {
+                        vs["nullNodes"] = pvs->_nullPixels;
+                    }
+                    if (pvs->_colourOrderSet) {
+                        vs["colorOrder"] = pvs->_colourOrder;
+                    }
+                    if (pvs->_groupCountSet) {
+                        vs["groupCount"] = pvs->_groupCount;
+                    }
+                    if (vs["groupCount"].AsInt() > 1) {
+                        //if the group count is >1, we need to adjust the number of pixels
+                        vs["pixelCount"] = vs["pixelCount"].AsInt() * vs["groupCount"].AsInt();
+                    }
+                    stringData["outputs"][port->GetPort() - 1]["virtualStrings"].Append(vs);
+                }
+            } else {
                 wxJSONValue vs;
-                vs["description"] = pvs->_description;
-                vs["startChannel"] = pvs->_startChannel - 1; // we need 0 based
-                vs["pixelCount"] = pvs->Channels() / pvs->_channelsPerPixel;
-                
-                if (origStrings.find(vs["description"].AsString()) != origStrings.end()) {
+                vs["startChannel"] = port->GetStartChannel() - 1; // we need 0 based
+                vs["pixelCount"] = port->Pixels();
+                auto s = port->GetModels().front();
+                std::string description;
+                if (s) {
+                    description = s->GetName();
+                    vs["description"] = description;
+                }
+                if (description != "" && origStrings.find(description) != origStrings.end()) {
                     wxJSONValue &vo = origStrings[vs["description"].AsString()];
                     vs["groupCount"] = vo["groupCount"];
                     vs["reverse"] = vo["reverse"];
@@ -1044,44 +1110,40 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
                     vs["nullNodes"] = vo["nullNodes"];
                     vs["zigZag"] = vo["zigZag"];
                     vs["brightness"] = vo["brightness"];
-                    vs["gamma"] =vo["gamma"];
+                    vs["gamma"] = vo["gamma"];
                 } else {
                     vs["groupCount"] = 0;
                     vs["reverse"] = 0;
-                    if (pvs->_channelsPerPixel == 4) {
-                        vs["colorOrder"] = wxString("RGBW");
-                    } else {
-                        vs["colorOrder"] = wxString("RGB");
-                    }
+                    vs["colorOrder"] = wxString("RGB");
                     vs["nullNodes"] = 0;
-                    vs["zigZag"] = 0; // If we zigzag in xLights, we don't do it in the controller, if we need it in the controller, we don't know about it here
+                    vs["zigZag"] = 0;
                     vs["brightness"] = 100;
                     vs["gamma"] = wxString("1.0");
                 }
-                if (pvs->_reverseSet) {
-                    vs["reverse"] = pvs->_reverse;
-                }
-                if (pvs->_gammaSet) {
-                    char buf[16];
-                    sprintf(buf, "%g", pvs->_gamma);
-                    std::string gam = buf;
-                    vs["gamma"] = gam;
-                }
-                if (pvs->_brightnessSet) {
-                    vs["brightness"] = pvs->_brightness;
-                }
-                if (pvs->_nullPixelsSet) {
-                    vs["nullNodes"] = pvs->_nullPixels;
-                }
-                if (pvs->_colourOrderSet) {
-                    vs["colorOrder"] = pvs->_colourOrder;
-                }
-                if (pvs->_groupCountSet) {
-                    vs["groupCount"] = pvs->_groupCount;
-                }
-                if (vs["groupCount"].AsInt() > 1) {
-                    //if the group count is >1, we need to adjust the number of pixels
-                    vs["pixelCount"] = vs["pixelCount"].AsInt() * vs["groupCount"].AsInt();
+                if (s) {
+                    std::string colourOrder = s->GetColourOrder("unknown");
+                    float gamma = s->GetGamma(-9999);
+                    if (gamma > 0) {
+                        char buf[16];
+                        sprintf(buf, "%g", gamma);
+                        std::string gam = buf;
+                        vs["gamma"] = gam;
+                    }
+                    if (s->GetGroupCount(-9999) > 0) {
+                        vs["groupCount"] = s->GetGroupCount(-9999);
+                    }
+                    if (colourOrder != "unknown") {
+                        vs["colorOrder"] = colourOrder;
+                    }
+                    if (s->GetBrightness(-9999) > 0) {
+                        vs["brightness"] = s->GetBrightness(-9999);
+                    }
+                    if (s->GetNullPixels(-9999) > 0) {
+                        vs["nullNodes"] = s->GetNullPixels(-9999);
+                    }
+                    if (s->GetDirection("unknown") != "unknown") {
+                        vs["reverse"] = s->GetDirection("unknown") == "Reverse" ? 1 : 0;
+                    }
                 }
                 stringData["outputs"][port->GetPort() - 1]["virtualStrings"].Append(vs);
             }
@@ -1107,6 +1169,7 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
 
     bool isDMX = true;
     int maxChan = 0;
+    bool hasSerial = false;
     for (int sp = 1; sp <= cud.GetMaxSerialPort(); sp++) {
         if (cud.HasSerialPort(sp)) {
             UDControllerPort* port = cud.GetControllerSerialPort(sp);
@@ -1138,19 +1201,26 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
             int sc = vport->GetStartChannel() - dmxOffset + 1;
             port["startChannel"] = sc;
             port["channelCount"] = isDMX ? maxChan : 4096;
+            hasSerial = true;
         } else {
             port["startChannel"] = 0;
             port["channelCount"] = 0;
         }
         dmxData["outputs"].Append(port);
     }
-    
+    if (!doVirtualString) {
+        maxChan = 0;
+        isDMX = true;
+        hasSerial = false;
+    }
     dmxData["channelCount"] = isDMX ? maxChan : 4096;
     if (maxChan == 0) {
         dmxData["enabled"] = 0;
         dmxData["subType"] = wxString("off");
     }
-
+    // let the string handling know if it's safe to use the other PRU
+    // or if the serial out will need it
+    stringData["serialInUse"] = hasSerial;
 
     wxJSONValue root;
     root["channelOutputs"].Append(stringData);
