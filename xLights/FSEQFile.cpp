@@ -788,7 +788,9 @@ class V2ZSTDCompressionHandler : public V2CompressedHandler {
 public:
     V2ZSTDCompressionHandler(V2FSEQFile *f) : V2CompressedHandler(f),
     m_cctx(nullptr),
-    m_dctx(nullptr)
+    m_dctx(nullptr),
+    m_curFrameInBlock(0),
+    m_numFramesInBlock(0)
     {
         m_outBuffer.pos = 0;
         m_outBuffer.size = V2FSEQ_OUT_BUFFER_SIZE;
@@ -859,6 +861,7 @@ public:
             
         }
         int fidx = frame - m_file->m_frameOffsets[m_curBlock].first;
+
         if (fidx >= m_curFrameInBlock) {
             m_outBuffer.size = (fidx + 1) * m_file->getChannelCount();
             ZSTD_decompressStream(m_dctx, &m_outBuffer, &m_inBuffer);
@@ -868,6 +871,19 @@ public:
         fidx *= m_file->getChannelCount();
         uint8_t *fdata = (uint8_t*)m_outBuffer.dst;
         UncompressedFrameData *data = new UncompressedFrameData(frame, m_file->m_dataBlockSize, m_file->m_rangesToRead);
+
+        // This stops the crash on load ... but it is not the root cause.
+        // But better to not load completely than crashing
+        if (fidx < 0)
+        {
+            // this is not going to end well ... best to give up here
+#ifdef _MSC_VER
+            wxASSERT(false); // this should not happen
+#endif
+            LogErr(VB_SEQUENCE, "Frame index calculated as a negative number. Aborting frame %d load.\n", (int)frame);
+            return data;
+        }
+
         if (!m_file->m_sparseRanges.empty()) {
             memcpy(data->m_data, &fdata[fidx], m_file->getChannelCount());
         } else {
