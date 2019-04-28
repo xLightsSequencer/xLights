@@ -114,6 +114,7 @@ const long LayoutPanel::ID_PREVIEW_RESIZE_SAMEHEIGHT = wxNewId();
 const long LayoutPanel::ID_PREVIEW_RESIZE_SAMESIZE = wxNewId();
 const long LayoutPanel::ID_PREVIEW_BULKEDIT = wxNewId();
 const long LayoutPanel::ID_PREVIEW_BULKEDIT_CONTROLLERCONNECTION = wxNewId();
+const long LayoutPanel::ID_PREVIEW_BULKEDIT_CONTROLLERNAME = wxNewId();
 const long LayoutPanel::ID_PREVIEW_BULKEDIT_PREVIEW = wxNewId();
 const long LayoutPanel::ID_PREVIEW_BULKEDIT_DIMMINGCURVES = wxNewId();
 const long LayoutPanel::ID_PREVIEW_ALIGN_TOP = wxNewId();
@@ -1521,6 +1522,45 @@ void LayoutPanel::BulkEditControllerConnection()
         for (size_t i = 0; i < modelPreview->GetModels().size(); i++) {
             if (modelPreview->GetModels()[i]->GroupSelected) {
                 dlg.Get(modelPreview->GetModels()[i]->GetControllerConnection());
+            }
+        }
+
+        xlights->UpdateModelsList();
+        xlights->MarkEffectsFileDirty(true);
+        resetPropertyGrid();
+    }
+}
+
+void LayoutPanel::BulkEditControllerName()
+{
+    // get the first controller connection
+    std::string name = "";
+    for (size_t i = 0; i < modelPreview->GetModels().size(); i++) {
+        if (modelPreview->GetModels()[i]->GroupSelected) {
+            name = modelPreview->GetModels()[i]->GetControllerName();
+            if (name != "") {
+                break;
+            }
+        }
+    }
+
+    wxArrayString cn;
+    int sel = -1;
+    int i = 0;
+    for (auto it : xlights->GetOutputManager()->GetControllerNames())
+    {
+        if (it == name) sel = i;
+        cn.push_back(it);
+        i++;
+    }
+    wxSingleChoiceDialog dlg(this, "Choose the controller name", "Controller Name", cn);
+    if (sel != -1) dlg.SetSelection(sel);
+
+    if (dlg.ShowModal() == wxID_OK) {
+        name = dlg.GetStringSelection();
+        for (size_t i = 0; i < modelPreview->GetModels().size(); i++) {
+            if (modelPreview->GetModels()[i]->GroupSelected) {
+                modelPreview->GetModels()[i]->SetControllerName(name, false);
             }
         }
 
@@ -3163,6 +3203,10 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
     {
         wxMenu* mnuBulkEdit = new wxMenu();
         if( editing_models ) {
+            if (xlights->GetOutputManager()->GetControllerNames().size() > 0)
+            {
+                mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_CONTROLLERNAME, "Controller Name");
+            }
             mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_CONTROLLERCONNECTION, "Controller Connection");
         }
         mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_PREVIEW, "Preview");
@@ -3367,6 +3411,10 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
     else if (event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERCONNECTION)
     {
         BulkEditControllerConnection();
+    }
+    else if (event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERNAME)
+    {
+        BulkEditControllerName();
     }
     else if (event.GetId() == ID_PREVIEW_BULKEDIT_PREVIEW)
     {

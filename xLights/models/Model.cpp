@@ -4349,15 +4349,18 @@ std::string Model::GetModelChain() const
     return ModelXml->GetAttribute("ModelChain", "").ToStdString();
 }
 
-void Model::SetControllerName(const std::string& controller)
+void Model::SetControllerName(const std::string& controller, bool recalc)
 {
     ModelXml->DeleteAttribute("Controller");
     if (controller != "" && controller != "Use Start Channel")
     {
         ModelXml->AddAttribute("Controller", controller);
     }
-    ReworkStartChannel();
-    RecalcStartChannels();
+    if (recalc)
+    {
+        ReworkStartChannel();
+        RecalcStartChannels();
+    }
     IncrementChangeCount();
 }
 

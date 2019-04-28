@@ -216,7 +216,7 @@ public:
         }
         return 1;
     }
-    void SetControllerName(const std::string& controllerName);
+    void SetControllerName(const std::string& controllerName, bool recalc = true);
     void SetControllerProtocol(const std::string& protocol);
     void SetControllerPort(int port);
     std::string GetControllerName() const;
