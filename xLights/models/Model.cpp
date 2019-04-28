@@ -868,7 +868,7 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
             SetControllerName(CONTROLLERS[event.GetValue().GetInteger()]);
             if (GetControllerPort() != 0)
             {
-                SetModelChain(modelManager.GetLastModelOnPort(CONTROLLERS[event.GetValue().GetInteger()], GetControllerPort(), GetName()));
+                SetModelChain(">" + modelManager.GetLastModelOnPort(CONTROLLERS[event.GetValue().GetInteger()], GetControllerPort(), GetName()));
             }
             else
             {
@@ -901,15 +901,23 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
 		}
         return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST | GRIDCHANGE_REBUILD_PROP_GRID;
     } else if (event.GetPropertyName() == "ModelControllerConnectionPort") {
-        
+
+        bool protocolChanged = false;
         if (GetControllerPort() != event.GetValue().GetLong())
         {
             SetControllerPort(event.GetValue().GetLong());
+
+            if (GetControllerPort(1) > 0 && GetControllerProtocol() == "")
+            {
+                SetControllerProtocol(CONTROLLER_PROTOCOLS[1]);
+                protocolChanged = true;
+            }
+
             if (GetControllerName() != "")
             {
                 grid->GetPropertyByName("ModelIndividualStartChannels")->GetPropertyByName("ModelStartChannel")->SetValue(ModelXml->GetAttribute("StartChannel", "1"));
                 // when the port changes we have to assume any existing model chain will break
-                SetModelChain(modelManager.GetLastModelOnPort(GetControllerName(), event.GetValue().GetLong(), GetName()));
+                SetModelChain(">" + modelManager.GetLastModelOnPort(GetControllerName(), event.GetValue().GetLong(), GetName()));
             }
         }
 
@@ -924,15 +932,13 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
 
         grid->GetPropertyByName("ModelChain")->Enable(GetControllerName() != "" && GetControllerProtocol() != "" && GetControllerPort() != 0);
 
-        if (GetControllerPort(1) > 0 && GetControllerProtocol() == "")
+        if (protocolChanged)
         {
-        	SetControllerProtocol(CONTROLLER_PROTOCOLS[1]);
-
-                // need to refresh to add protocol specific options
-                return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST | GRIDCHANGE_REBUILD_PROP_GRID;
+            // need to refresh to add protocol specific options
+            return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST | GRIDCHANGE_REBUILD_PROP_GRID;
         }
-
         return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
+
     } else if (event.GetPropertyName() == "SmartRemote") {
         GetControllerConnection()->DeleteAttribute("SmartRemote");
         GetControllerConnection()->AddAttribute("SmartRemote", event.GetValue().GetString());
@@ -2185,7 +2191,7 @@ char Model::EncodeColour(const xlColor& c)
 char Model::GetAbsoluteChannelColorLetter(long absoluteChannel)
 {
     long fc = GetFirstChannel();
-    if (absoluteChannel < fc + 1 || absoluteChannel > GetLastChannel() + 1) return ' ';
+    if (absoluteChannel < fc + 1 || absoluteChannel > (long)GetLastChannel() + 1) return ' ';
 
     if (SingleChannel)
     {
@@ -4323,15 +4329,18 @@ int Model::GetSmartRemote() const
     return wxAtoi(s);
 }
 
-void Model::SetModelChain(const std::string& modelChain)
+void Model::SetModelChain(const std::string& modelChain, bool recalc)
 {
     ModelXml->DeleteAttribute("ModelChain");
     if (modelChain != "")
     {
         ModelXml->AddAttribute("ModelChain", modelChain);
     }
-    ReworkStartChannel();
-    RecalcStartChannels();
+    if (recalc)
+    {
+        ReworkStartChannel();
+        RecalcStartChannels();
+    }
     IncrementChangeCount();
 }
 

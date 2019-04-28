@@ -129,7 +129,7 @@ void xLightsFrame::OnMenuMRU(wxCommandEvent& event)
 bool xLightsFrame::SetDir(const wxString& newdir)
 {
     static bool HasMenuSeparator = false;
-    int idx, i;
+    int idx;
 
     // don't change show directories with an open sequence because models won't match
     if (!CloseSequence()) {
@@ -173,7 +173,7 @@ bool xLightsFrame::SetDir(const wxString& newdir)
         if (idx != wxNOT_FOUND) mru.RemoveAt(idx);
         mru.Insert(CurrentDir, 0);
     }
-    int cnt = mru.GetCount();
+    size_t cnt = mru.GetCount();
     if (cnt > MRU_LENGTH)
     {
         mru.RemoveAt(MRU_LENGTH, cnt - MRU_LENGTH);
@@ -191,9 +191,9 @@ bool xLightsFrame::SetDir(const wxString& newdir)
     wxString value;
     wxConfigBase* config = wxConfigBase::Get();
     if (DirExists) config->Write(_("LastDir"), newdir);
-    for (i = 0; i < MRU_LENGTH; i++)
+    for (size_t i = 0; i < MRU_LENGTH; i++)
     {
-        wxString mru_name = wxString::Format("mru%d", i);
+        wxString mru_name = wxString::Format("mru%d", (int)i);
         if (mru_MenuItem[i] != nullptr)
         {
             Disconnect(mru_MenuItem[i]->GetId(), wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuMRU);
@@ -214,12 +214,12 @@ bool xLightsFrame::SetDir(const wxString& newdir)
 
     // append mru items to menu
     cnt = mru.GetCount();
-    if (!HasMenuSeparator && cnt > 0)
+    if (!HasMenuSeparator)
     {
         MenuFile->AppendSeparator();
         HasMenuSeparator = true;
     }
-    for (i = 0; i < cnt; i++)
+    for (size_t i = 0; i < cnt; i++)
     {
         int menuID = wxNewId();
         mru_MenuItem[i] = new wxMenuItem(MenuFile, menuID, mru[i]);
@@ -2434,6 +2434,7 @@ void xLightsFrame::SetModelData(ZCPPOutput* zcpp, ModelManager* modelManager, Ou
     std::list<int> selected;
     std::string check;
     UDController cud(zcpp->GetIP(), zcpp->GetIP(), modelManager, outputManager, &selected, check);
+
     long baseStart = zcpp->GetStartChannel();
 
     logger_zcpp.debug("    Model Change Count : %d", modelsChangeCount);
@@ -2504,6 +2505,8 @@ void xLightsFrame::SetModelData(ZCPPOutput* zcpp, ModelManager* modelManager, Ou
             index++;
         }
     }
+
+    //cud.Dump();
 
     if (extraConfigs.back().ExtraData.ports == 0)
     {

@@ -258,12 +258,12 @@ bool ZCPPOutput::SetModelData(std::list<ZCPP_packet_t> modelData, std::list<ZCPP
 
     while (_modelData.size() > 0)
     {
-        _modelData.pop_front();
+        _modelData.pop_back();
     }
 
     while (_extraConfig.size() > 0)
     {
-        _extraConfig.pop_front();
+        _extraConfig.pop_back();
     }
 
     for (auto it : modelData)

@@ -333,8 +333,14 @@ void ModelManager::DisplayStartChannelCalcWarning() const
     }
 }
 
+//#define REWORKLOGGING
+
 void ModelManager::ReworkStartChannel() const
 {
+#ifdef REWORKLOGGING
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+#endif
+
     bool  outputsChanged = false;
 
     OutputManager* outputManager = xlights->GetOutputManager();
@@ -345,7 +351,10 @@ void ModelManager::ReworkStartChannel() const
             std::map<std::string, std::list<Model*>> cmodels;
             for (auto itm : models)
             {
-                if (itm.second->GetControllerName() == it->GetDescription())
+                if (itm.second->GetControllerName() == it->GetDescription() && 
+                    itm.second->GetControllerPort() != 0 &&
+                    itm.second->GetControllerProtocol() != ""
+                    ) // we dont muck with unassigned models or no protocol models
                 {
                     wxString cc = wxString::Format("%s:%d:%02d", itm.second->GetControllerProtocol(), itm.second->GetSmartRemote(), itm.second->GetControllerPort()).Lower();
                     if (cmodels.find(cc) == cmodels.end())
@@ -357,6 +366,70 @@ void ModelManager::ReworkStartChannel() const
                 }
             }
 
+            // first of all fix any weirdness ...
+            for (auto itcc = cmodels.begin(); itcc != cmodels.end(); ++itcc)
+            {
+#ifdef REWORKLOGGING
+                logger_base.debug("Fixing weirdness on %s - %s", (const char*)it->GetDescription().c_str(), (const char*)itcc->first.c_str());
+                logger_base.debug("    Models at start:");
+#endif
+
+                // build a list of model names on the port
+                std::list<std::string> models;
+                for (auto itmm : itcc->second)
+                {
+#ifdef REWORKLOGGING
+                    logger_base.debug("        %s Chained to '%s'", (const char*)itmm->GetName().c_str(), (const char*)itmm->GetModelChain().c_str());
+#endif
+                    models.push_back(itmm->GetName());
+                }
+
+#ifdef REWORKLOGGING
+                logger_base.debug("    Fixing weirdness:");
+#endif
+
+                // If a model refers to a chained model not on the port then move it to beginning ... so next step can move it again
+                bool beginningFound = false;
+                for (auto itmm : itcc->second)
+                {
+                    auto ch = itmm->GetModelChain();
+                    if (ch == "" || ch == "Beginning")
+                    {
+                        beginningFound = true;
+                    }
+                    else
+                    {
+                        ch = ch.substr(1); // string off leading >
+                        if (std::find(models.begin(), models.end(), ch) == models.end())
+                        {
+#ifdef REWORKLOGGING
+                            logger_base.debug("    Model %s set to beginning because the model it is chained to does not exist.", (const char*)itmm->GetName().c_str());
+#endif
+                            itmm->SetModelChain("", false);
+                            beginningFound = true;
+                            outputsChanged = true;
+                        }
+                    }
+                }
+
+                // If no model is set as beginning ... then just make the first one beginning
+                if (!beginningFound)
+                {
+#ifdef REWORKLOGGING
+                    logger_base.debug("    Model %s set to beginning because no other model was.", (const char*)itcc->second.front()->GetName().c_str());
+#endif
+                    itcc->second.front()->SetModelChain("", false);
+                    outputsChanged = true;
+                }
+
+                // Now I would love to give any more than the first model a default to chain to but this is
+                // not as easy as it looks ... so for now i am going to leave multiple models at the beginning
+                // and let the user sort it out rather than creating loops
+            }
+
+#ifdef REWORKLOGGING
+            logger_base.debug("    Sorting models:");
+#endif
             long ch = 1;
             for (auto itcc = cmodels.begin(); itcc != cmodels.end(); ++itcc)
             {
@@ -385,7 +458,8 @@ void ModelManager::ReworkStartChannel() const
 
                     if (!pushed && (*itcc).second.size() > 0)
                     {
-                        // chain is broken ... so just put the rest in in random order
+                        // chain is broken ... so just put the rest in in the original order
+                        // wxASSERT(false);
                         while ((*itcc).second.size() > 0)
                         {
                             sortedmodels.push_back(itcc->second.front());
@@ -397,18 +471,30 @@ void ModelManager::ReworkStartChannel() const
                 last = "";
                 for (auto itm : sortedmodels)
                 {
+                    std::string sc = "";
                     if (itm->GetModelChain() == last || 
                         itm->GetModelChain() == ">" + last || 
                         ((itm->GetModelChain() == "Beginning" || itm->GetModelChain() == "") && last == ""))
                     {
-                        itm->SetStartChannel("!" + it->GetDescription() + ":" + wxString::Format("%ld", ch));
+                        sc = "!" + it->GetDescription() + ":" + wxString::Format("%ld", ch);
+                        itm->SetStartChannel(sc);
                         last = itm->GetName();
+                        ch += itm->GetChanCount();
                     }
                     else
                     {
-                        itm->SetStartChannel("!" + it->GetDescription() + ":" + wxString::Format("%ld", chstart));
+                        sc = "!" + it->GetDescription() + ":" + wxString::Format("%ld", chstart);
+                        itm->SetStartChannel(sc);
+                        ch = std::max(ch, chstart + itm->GetChanCount());
                     }
-                    ch += itm->GetChanCount();
+
+#ifdef REWORKLOGGING
+                    logger_base.debug("    Model %s on port %d chained to %s start channel %s.",
+                        (const char*)itm->GetName().c_str(),
+                        itm->GetControllerPort(),
+                        (const char*)itm->GetModelChain().c_str(),
+                        (const char*)sc.c_str());
+#endif
                 }
             }
 
@@ -416,6 +502,9 @@ void ModelManager::ReworkStartChannel() const
             {
                 if (it->GetChannels() != std::max((long)1, (long)ch - 1))
                 {
+#ifdef REWORKLOGGING
+                    logger_base.debug("    Resizing output to %ld channels.", std::max((long)1, (long)ch - 1));
+#endif
                     it->SetChannels(std::max((long)1, (long)ch - 1));
                     outputsChanged = true;
                 }

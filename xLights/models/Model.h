@@ -223,7 +223,7 @@ public:
     std::string GetControllerProtocol() const;
     int GetSmartRemote() const;
     int GetControllerPort(int string = 1) const;
-    void SetModelChain(const std::string& modelChain);
+    void SetModelChain(const std::string& modelChain, bool recalc = true);
     std::string GetModelChain() const;
     void ReworkStartChannel();
     const std::vector<Model *>& GetSubModels() const { return subModels; }

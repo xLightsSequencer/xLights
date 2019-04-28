@@ -157,6 +157,7 @@ const long LayoutPanel::ID_ADD_OBJECT_MESH = wxNewId();
 class ModelTreeData : public wxTreeItemData {
 public:
     ModelTreeData(Model *m, int NativeOrder) :wxTreeItemData(), model(m) {
+        wxASSERT(m != nullptr);
         //a SetFromXML call on the parent (example: recalc start channels) will cause
         //submodel pointers to be deleted.  Need to not save them, but instead, use the parent
         //and query by name
@@ -238,6 +239,15 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     selectionLatched(false), over_handle(-1), creating_model(false)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    m_bound_start_x = 0;
+    m_bound_start_y = 0;
+    m_bound_end_x = 0;
+    m_bound_end_y = 0;
+    m_last_mouse_x = 0;
+    m_last_mouse_y = 0;
+    m_previous_mouse_x = 0;
+    m_previous_mouse_y = 0;
 
     background = nullptr;
     _firstTreeLoad = true;
@@ -3104,8 +3114,8 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
     }
     else if (m_dragging && event.Dragging())
     {
-        double delta_x = event.GetX() - m_previous_mouse_x;
-        double delta_y = -(event.GetY() - m_previous_mouse_y);
+        double delta_x = (double)event.GetX() - m_previous_mouse_x;
+        double delta_y = -((double)event.GetY() - m_previous_mouse_y);
 
         auto scale = modelPreview->GetCurrentScaleFactor();
         delta_x /= modelPreview->GetZoom() / scale;
@@ -4097,7 +4107,7 @@ Model *LayoutPanel::CreateNewModel(const std::string &type) const
     }
     else
     {
-        long highestch = 0;
+        unsigned int highestch = 0;
         Model* highest = nullptr;
         for (auto it = xlights->AllModels.begin(); it != xlights->AllModels.end(); ++it)
         {
@@ -4674,7 +4684,7 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
 						}
 						else
 						{
-							long highestch = 0;
+							unsigned int highestch = 0;
 							Model* highest = nullptr;
 							for (auto it : xlights->AllModels)
 							{
@@ -4885,7 +4895,7 @@ void LayoutPanel::DoUndo(wxCommandEvent& event) {
 
 void LayoutPanel::CreateUndoPoint(const std::string &type, const std::string &model, const std::string &key, const std::string &data) {
     xlights->MarkEffectsFileDirty(false);
-    int idx = undoBuffer.size();
+    size_t idx = undoBuffer.size();
 
     //printf("%s   %s   %s  %s\n", type.c_str(), model.c_str(), key.c_str(), data.c_str());
     if (idx > 0 )  {
@@ -4901,7 +4911,7 @@ void LayoutPanel::CreateUndoPoint(const std::string &type, const std::string &mo
         }
     }
     if (idx >= 100) {  //100 steps is more than enough IMO
-        for (int x = 1; x < idx; x++) {
+        for (size_t x = 1; x < idx; x++) {
             undoBuffer[x-1] = undoBuffer[x];
         }
         idx--;
@@ -5050,7 +5060,7 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event)
         if (wxMessageBox("While this will make all your start channels valid it will not magically make your start channel right for your show. It will however solve strange nodes lighting up in the sequencer.\nAre you ok with this?", "WARNING", wxYES_NO | wxCENTRE) == wxYES)
         {
             Model* lastModel = nullptr;
-            long lastModelEndChannel = 0;
+            unsigned int lastModelEndChannel = 0;
             for (auto it = xlights->AllModels.begin(); it != xlights->AllModels.end(); ++it)
             {
                 if (it->second->GetLastChannel() > lastModelEndChannel)
@@ -5089,7 +5099,7 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event)
         if (wxMessageBox("While this will make all your start channels not overlapping it will not magically make your start channel right for your show. It will however solve strange nodes lighting up in the sequencer.\nAre you ok with this?", "WARNING", wxYES_NO | wxCENTRE) == wxYES)
         {
             Model* lastModel = nullptr;
-            long lastModelEndChannel = 0;
+            unsigned int lastModelEndChannel = 0;
             for (auto it = xlights->AllModels.begin(); it != xlights->AllModels.end(); ++it)
             {
                 if (it->second->GetLastChannel() > lastModelEndChannel)
@@ -5131,7 +5141,7 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event)
             {
                 Model* selectedModel = dynamic_cast<Model*>(selectedBaseObject);
                 Model* lastModel = nullptr;
-                long lastModelEndChannel = 0;
+                unsigned int lastModelEndChannel = 0;
                 for (auto it = xlights->AllModels.begin(); it != xlights->AllModels.end(); ++it)
                 {
                     if (it->second->GetLastChannel() > lastModelEndChannel)
