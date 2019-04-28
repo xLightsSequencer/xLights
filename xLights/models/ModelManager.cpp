@@ -250,6 +250,25 @@ void ModelManager::ResetModelGroups() const
     }
 }
 
+std::string ModelManager::GetLastModelOnPort(const std::string& controllerName, int port, const std::string& excludeModel) const
+{
+    std::string last = "";
+    unsigned int highestEndChannel = 0;
+
+    for (auto it : models)
+    {
+        if (it.second->GetDisplayAs() != "ModelGroup" && 
+            it.second->GetControllerName() == controllerName && 
+            it.second->GetControllerPort() == port && 
+            it.second->GetLastChannel() > highestEndChannel && it.first != excludeModel)
+        {
+            last = it.first;
+            highestEndChannel = it.second->GetLastChannel();
+        }
+    }
+    return last;
+}
+
 void ModelManager::OldRecalcStartChannels() const {
     //wxStopWatch sw;
     //sw.Start();

@@ -863,8 +863,18 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST | GRIDCHANGE_REBUILD_PROP_GRID;
     }
     else if (event.GetPropertyName() == "Controller") {
-        SetControllerName(CONTROLLERS[event.GetValue().GetInteger()]);
-
+        if (GetControllerName() != CONTROLLERS[event.GetValue().GetInteger()])
+        {
+            SetControllerName(CONTROLLERS[event.GetValue().GetInteger()]);
+            if (GetControllerPort() != 0)
+            {
+                SetModelChain(modelManager.GetLastModelOnPort(CONTROLLERS[event.GetValue().GetInteger()], GetControllerPort(), GetName()));
+            }
+            else
+            {
+                SetModelChain("");
+            }
+        }
         if (GetControllerName() == "")
         {
             SetModelChain("");
@@ -891,7 +901,17 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
 		}
         return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST | GRIDCHANGE_REBUILD_PROP_GRID;
     } else if (event.GetPropertyName() == "ModelControllerConnectionPort") {
-        SetControllerPort(event.GetValue().GetLong());
+        
+        if (GetControllerPort() != event.GetValue().GetLong())
+        {
+            SetControllerPort(event.GetValue().GetLong());
+            if (GetControllerName() != "")
+            {
+                grid->GetPropertyByName("ModelIndividualStartChannels")->GetPropertyByName("ModelStartChannel")->SetValue(ModelXml->GetAttribute("StartChannel", "1"));
+                // when the port changes we have to assume any existing model chain will break
+                SetModelChain(modelManager.GetLastModelOnPort(GetControllerName(), event.GetValue().GetLong(), GetName()));
+            }
+        }
 
         if (GetControllerName() != "" && GetControllerPort(1) == 0)
         {
@@ -902,10 +922,6 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
             event.GetProperty()->SetBackgroundColour(*wxWHITE);
         }
 
-        if (GetControllerName() != "")
-        {
-            grid->GetPropertyByName("ModelIndividualStartChannels")->GetPropertyByName("ModelStartChannel")->SetValue(ModelXml->GetAttribute("StartChannel", "1"));
-        }
         grid->GetPropertyByName("ModelChain")->Enable(GetControllerName() != "" && GetControllerProtocol() != "" && GetControllerPort() != 0);
 
         if (GetControllerPort(1) > 0 && GetControllerProtocol() == "")
