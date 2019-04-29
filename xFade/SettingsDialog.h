@@ -9,6 +9,7 @@
 #include <wx/listctrl.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
+#include <wx/textctrl.h>
 //*)
 
 #include <map>
@@ -62,8 +63,12 @@ class SettingsDialog: public wxDialog
 		wxStaticText* StaticText5;
 		wxStaticText* StaticText6;
 		wxStaticText* StaticText7;
+		wxStaticText* StaticText8;
+		wxStaticText* StaticText9;
 		wxStaticText* StaticText_InputIP;
 		wxStaticText* StaticText_OutputIP;
+		wxTextCtrl* TextCtrl_LeftIP;
+		wxTextCtrl* TextCtrl_RightIP;
 		//*)
 
 	protected:
@@ -78,6 +83,10 @@ class SettingsDialog: public wxDialog
 		static const long ID_STATICTEXT2;
 		static const long ID_STATICTEXT3;
 		static const long ID_BUTTON12;
+		static const long ID_STATICTEXT10;
+		static const long ID_TEXTCTRL1;
+		static const long ID_STATICTEXT11;
+		static const long ID_TEXTCTRL2;
 		static const long ID_STATICTEXT9;
 		static const long ID_CHOICE1;
 		static const long ID_STATICTEXT1;
@@ -120,7 +129,9 @@ class SettingsDialog: public wxDialog
 		void OnButton_DeleteFEClick(wxCommandEvent& event);
 		void OnListViewFadeExcludeItemSelect(wxListEvent& event);
 		void OnListViewFadeExcludeItemActivated(wxListEvent& event);
-        void LoadFadeExclude();
+		void LoadFadeExclude();
+		void OnTextCtrl_LeftIPText(wxCommandEvent& event);
+		void OnTextCtrl_RightIPText(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()
