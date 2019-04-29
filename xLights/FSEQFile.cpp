@@ -805,7 +805,7 @@ public:
         if (m_inBuffer.src != nullptr) {
             free((void*)m_inBuffer.src);
         }
-        if (m_dctx) {
+        if (m_cctx) {
             ZSTD_freeCStream(m_cctx);
         }
         if (m_dctx) {
@@ -853,12 +853,11 @@ public:
             }
 
             free(m_outBuffer.dst);
-            m_numFramesInBlock = (m_file->m_frameOffsets[m_curBlock + 1].first > m_file->getNumFrames() ? m_file->getNumFrames() :  m_file->m_frameOffsets[m_curBlock + 1].first) - m_file->m_frameOffsets[m_curBlock].first;
-            m_outBuffer.size = m_numFramesInBlock * m_file->getChannelCount();
+            m_framesPerBlock = (m_file->m_frameOffsets[m_curBlock + 1].first > m_file->getNumFrames() ? m_file->getNumFrames() :  m_file->m_frameOffsets[m_curBlock + 1].first) - m_file->m_frameOffsets[m_curBlock].first;
+            m_outBuffer.size = m_framesPerBlock * m_file->getChannelCount();
             m_outBuffer.dst = malloc(m_outBuffer.size);
             m_outBuffer.pos = 0;
             m_curFrameInBlock = 0;
-            
         }
         int fidx = frame - m_file->m_frameOffsets[m_curBlock].first;
 
@@ -874,12 +873,8 @@ public:
 
         // This stops the crash on load ... but it is not the root cause.
         // But better to not load completely than crashing
-        if (fidx < 0)
-        {
+        if (fidx < 0) {
             // this is not going to end well ... best to give up here
-#ifdef _MSC_VER
-            wxASSERT(false); // this should not happen
-#endif
             LogErr(VB_SEQUENCE, "Frame index calculated as a negative number. Aborting frame %d load.\n", (int)frame);
             return data;
         }
@@ -1002,8 +997,6 @@ public:
     ZSTD_DStream* m_dctx;
     ZSTD_outBuffer_s m_outBuffer;
     ZSTD_inBuffer_s m_inBuffer;
-    int m_numFramesInBlock;
-    int m_curFrameInBlock;
 };
 #endif
 
