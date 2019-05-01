@@ -179,13 +179,13 @@ void ZCPPOutput::ExtractUsedChannelsFromModelData()
 
     if (_usedChannels != _channels && _autoSize)
     {
-        _channels = _usedChannels;
         free(_data);
-        _data = (wxByte*)malloc(_channels);
+        _data = (wxByte*)malloc(_usedChannels);
         if (_data != nullptr)
         {
-            memset(_data, 0x00, _channels);
+            memset(_data, 0x00, _usedChannels);
         }
+        _channels = _usedChannels;
     }
     else if (_usedChannels > _channels)
     {
@@ -256,16 +256,11 @@ bool ZCPPOutput::SetModelData(std::list<ZCPP_packet_t> modelData, std::list<ZCPP
     bool oldSuspend = _suspend;
     _suspend = true;
 
-    while (_modelData.size() > 0)
-    {
-        _modelData.pop_back();
-    }
+    // erase any existing data
+    _modelData.clear();
+    _extraConfig.clear();
 
-    while (_extraConfig.size() > 0)
-    {
-        _extraConfig.pop_back();
-    }
-
+    // and replace it with our new data
     for (auto it : modelData)
     {
         _modelData.push_back(it);

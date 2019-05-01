@@ -2433,8 +2433,8 @@ void xLightsFrame::SetZCPPExtraConfig(std::list<ZCPP_packet_t>& extraConfigs, in
 
 void xLightsFrame::SetModelData(ZCPPOutput* zcpp, ModelManager* modelManager, OutputManager* outputManager, std::string showDir)
 {
-    static log4cpp::Category &logger_zcpp = log4cpp::Category::getInstance(std::string("log_zcpp"));
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category& logger_zcpp = log4cpp::Category::getInstance(std::string("log_zcpp"));
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     logger_base.debug("Setting ZCPP model data");
 
@@ -2533,7 +2533,12 @@ void xLightsFrame::SetModelData(ZCPPOutput* zcpp, ModelManager* modelManager, Ou
 
         GetOutputManager()->SomethingChanged();
         UpdateNetworkList(false);
+
         NetworkChange();
+
+        // TEST
+        //return;
+
         SaveNetworksFile();
 
         if (_outputManager.IsOutputting())
@@ -2547,13 +2552,12 @@ void xLightsFrame::SetModelData(ZCPPOutput* zcpp, ModelManager* modelManager, Ou
 // This is used to build the ZCPP controller config data that will be needed when it comes time to send data to controllers
 bool xLightsFrame::RebuildControllerConfig(OutputManager* outputManager, ModelManager* modelManager)
 {
-    auto outputs = outputManager->GetOutputs();
-    for (auto ito = outputs.begin(); ito != outputs.end(); ++ito)
+    for (auto ito : outputManager->GetOutputs())
     {
-        if ((*ito)->NeedsControllerConfig())
+        if (ito->NeedsControllerConfig())
         {
-            if ((*ito)->GetType() == OUTPUT_ZCPP) {
-                ZCPPOutput* zcpp = (ZCPPOutput*)(*ito);
+            if (ito->GetType() == OUTPUT_ZCPP) {
+                ZCPPOutput* zcpp = (ZCPPOutput*)(ito);
                 SetModelData(zcpp, modelManager, outputManager, CurrentDir.ToStdString());
             }
         }

@@ -426,7 +426,7 @@ void ModelManager::ReworkStartChannel() const
                 while ((*itcc).second.size() > 0)
                 {
                     bool pushed = false;
-                    for (auto itms = (*itcc).second.begin(); itms != (*itcc).second.end(); ++itms)
+                    for (auto itms = itcc->second.begin(); itms != itcc->second.end(); ++itms)
                     {
                         if ((((*itms)->GetModelChain() == "Beginning" || (*itms)->GetModelChain() == "") && last == "") ||
                             (*itms)->GetModelChain() == last || 
@@ -435,7 +435,7 @@ void ModelManager::ReworkStartChannel() const
                             sortedmodels.push_back(*itms);
                             pushed = true;
                             last = (*itms)->GetName();
-                            (*itcc).second.erase(itms);
+                            itcc->second.erase(itms);
                             break;
                         }
                     }
@@ -444,6 +444,7 @@ void ModelManager::ReworkStartChannel() const
                     {
                         // chain is broken ... so just put the rest in in the original order
                         // wxASSERT(false);
+                        logger_zcpp.debug("    Model chain is broken so just stuffing the remaining %d models in in their original order.", (*itcc).second.size());
                         while ((*itcc).second.size() > 0)
                         {
                             sortedmodels.push_back(itcc->second.front());

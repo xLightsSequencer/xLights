@@ -865,19 +865,19 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
     else if (event.GetPropertyName() == "Controller") {
         if (GetControllerName() != CONTROLLERS[event.GetValue().GetInteger()])
         {
-            SetControllerName(CONTROLLERS[event.GetValue().GetInteger()]);
+            SetControllerName(CONTROLLERS[event.GetValue().GetInteger()], false);
             if (GetControllerPort() != 0)
             {
-                SetModelChain(">" + modelManager.GetLastModelOnPort(CONTROLLERS[event.GetValue().GetInteger()], GetControllerPort(), GetName()));
+                SetModelChain(">" + modelManager.GetLastModelOnPort(CONTROLLERS[event.GetValue().GetInteger()], GetControllerPort(), GetName()), false);
             }
             else
             {
-                SetModelChain("");
+                SetModelChain("", false);
             }
         }
         if (GetControllerName() == "")
         {
-            SetModelChain("");
+            SetModelChain("", false);
             SetStartChannel("1", true);
             grid->GetPropertyByName("ModelIndividualStartChannels")->Enable();
             grid->GetPropertyByName("ModelIndividualStartChannels")->GetPropertyByName("ModelStartChannel")->Enable();
