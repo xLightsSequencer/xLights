@@ -897,7 +897,7 @@ void UDControllerPort::CreateVirtualStrings(bool mergeSequential)
         float gamma = it->GetGamma(-9999);
         int groupCount = it->GetGroupCount(-9999);
 
-        if (it == _models.front() || !mergeSequential)
+        if (current == nullptr || !mergeSequential)
         {
             // this is automatically a new virtual string
             current = new UDVirtualString();

@@ -788,9 +788,7 @@ class V2ZSTDCompressionHandler : public V2CompressedHandler {
 public:
     V2ZSTDCompressionHandler(V2FSEQFile *f) : V2CompressedHandler(f),
     m_cctx(nullptr),
-    m_dctx(nullptr),
-    m_curFrameInBlock(0),
-    m_numFramesInBlock(0)
+    m_dctx(nullptr)
     {
         m_outBuffer.pos = 0;
         m_outBuffer.size = V2FSEQ_OUT_BUFFER_SIZE;

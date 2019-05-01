@@ -1226,13 +1226,14 @@ std::list<std::string> OutputManager::GetControllerNames() const
 {
     std::list<std::string> res;
 
-    for (auto it = _outputs.begin(); it != _outputs.end(); ++it)
+    for (auto it : _outputs)
     {
-        if ((*it)->IsLookedUpByControllerName())
+        if (it->IsLookedUpByControllerName())
         {
-            if ((*it)->GetDescription() != "")
+            auto desc = it->GetDescription();
+            if (desc != "" && std::find(res.begin(), res.end(), desc) == res.end())
             {
-                res.push_back((*it)->GetDescription());
+                res.push_back(desc);
             }
         }
     }

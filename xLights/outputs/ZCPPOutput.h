@@ -89,6 +89,7 @@ public:
     }
     bool SetModelData(std::list<ZCPP_packet_t> modelData, std::list<ZCPP_packet_t> extraConfig, std::string showDir);
     virtual bool IsLookedUpByControllerName() const override { return true; }
+    virtual bool IsAutoLayoutModels() const { return true; }
     virtual std::string GetUniverseString() const override { return ""; }
     #pragma region Getters and Setters
 

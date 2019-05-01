@@ -1234,6 +1234,12 @@ void xLightsFrame::OnButtonAddLORClick(wxCommandEvent& event)
 
 void xLightsFrame::NetworkChange()
 {
+    static bool reentry = false;
+
+    if (reentry) return;
+
+    reentry = true;
+
     _outputManager.SomethingChanged();
     UnsavedNetworkChanges = true;
 #ifdef __WXOSX__
@@ -1246,6 +1252,7 @@ void xLightsFrame::NetworkChange()
     {
         MarkEffectsFileDirty(false);
     }
+    reentry = false;
 }
 
 bool xLightsFrame::SaveNetworksFile()
@@ -2540,8 +2547,6 @@ void xLightsFrame::SetModelData(ZCPPOutput* zcpp, ModelManager* modelManager, Ou
 // This is used to build the ZCPP controller config data that will be needed when it comes time to send data to controllers
 bool xLightsFrame::RebuildControllerConfig(OutputManager* outputManager, ModelManager* modelManager)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     auto outputs = outputManager->GetOutputs();
     for (auto ito = outputs.begin(); ito != outputs.end(); ++ito)
     {

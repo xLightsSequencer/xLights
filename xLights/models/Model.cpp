@@ -886,9 +886,15 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         {
             ModelXml->DeleteAttribute("Advanced");
             AdjustStringProperties(grid, parm1);
-            grid->GetPropertyByName("ModelIndividualStartChannels")->GetPropertyByName("ModelStartChannel")->Enable(false);
-            grid->GetPropertyByName("ModelIndividualStartChannels")->Enable(false);
-            grid->GetPropertyByName("ModelIndividualStartChannels")->GetPropertyByName("ModelStartChannel")->SetValue(ModelXml->GetAttribute("StartChannel", "1"));
+            if (grid->GetPropertyByName("ModelIndividualStartChannels") != nullptr)
+            {
+                grid->GetPropertyByName("ModelIndividualStartChannels")->Enable(false);
+                if (grid->GetPropertyByName("ModelIndividualStartChannels")->GetPropertyByName("ModelStartChannel") != nullptr)
+                {
+                    grid->GetPropertyByName("ModelIndividualStartChannels")->GetPropertyByName("ModelStartChannel")->Enable(false);
+                    grid->GetPropertyByName("ModelIndividualStartChannels")->GetPropertyByName("ModelStartChannel")->SetValue(ModelXml->GetAttribute("StartChannel", "1"));
+                }
+            }
         }
         grid->GetPropertyByName("ModelChain")->Enable(GetControllerName() != "");
         if (GetControllerName() != "" && (GetControllerPort() == 0 || GetControllerProtocol() == ""))

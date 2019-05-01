@@ -85,6 +85,7 @@ public:
     bool IsDirty() const { return _dirty; }
     void ClearDirty() { _dirty = false; }
     virtual bool IsLookedUpByControllerName() const { return false; }
+    virtual bool IsAutoLayoutModels() const { return false; }
     long GetStartChannel() const { return _startChannel; }
     long GetActualEndChannel() const { return _startChannel + _channels - 1; }
     void Suspend(bool suspend) { _suspend = suspend; }

@@ -667,10 +667,10 @@ void LayoutPanel::SetDirtyHiLight(bool dirty) {
         ButtonSavePreview->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
     }
 #endif
-    if (dirty)
-    {
-        xlights->RebuildControllerConfig(xlights->GetOutputManager(), &xlights->AllModels);
-    }
+//    if (dirty)
+//    {
+//        xlights->RebuildControllerConfig(xlights->GetOutputManager(), &xlights->AllModels);
+//    }
 }
 
 std::string LayoutPanel::GetCurrentPreview() const
@@ -1545,8 +1545,9 @@ void LayoutPanel::BulkEditControllerName()
     }
 
     wxArrayString cn;
-    int sel = -1;
-    int i = 0;
+    int sel = 0;
+    int i = 1;
+    cn.push_back("");
     for (auto it : xlights->GetOutputManager()->GetControllerNames())
     {
         if (it == name) sel = i;
@@ -1554,7 +1555,7 @@ void LayoutPanel::BulkEditControllerName()
         i++;
     }
     wxSingleChoiceDialog dlg(this, "Choose the controller name", "Controller Name", cn);
-    if (sel != -1) dlg.SetSelection(sel);
+    dlg.SetSelection(sel);
 
     if (dlg.ShowModal() == wxID_OK) {
         name = dlg.GetStringSelection();
