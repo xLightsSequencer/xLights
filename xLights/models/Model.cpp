@@ -3624,7 +3624,7 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
         va.Finish(GL_POINTS, pixelStyle == 1 ? GL_POINT_SMOOTH : 0, preview->calcPixelSize(pixelSize));
     }
     if ((Selected || (Highlighted && is_3d)) && c != nullptr && allowSelected) {
-        GetModelScreenLocation().DrawHandles(va, preview->GetCameraZoomForHandles());
+        GetModelScreenLocation().DrawHandles(va, preview->GetCameraZoomForHandles(), preview->GetHandleScale());
     }
 }
 
@@ -3762,7 +3762,7 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumula
         va.Finish(GL_POINTS, pixelStyle == 1 ? GL_POINT_SMOOTH : 0, preview->calcPixelSize(pixelSize));
     }
     if ((Selected || (Highlighted && is_3d)) && c != nullptr && allowSelected) {
-        GetModelScreenLocation().DrawHandles(va, preview->GetCameraZoomForHandles());
+        GetModelScreenLocation().DrawHandles(va, preview->GetCameraZoomForHandles(), preview->GetHandleScale());
     }
 }
 
@@ -4036,11 +4036,11 @@ void Model::AddHandle(ModelPreview* preview, int mouseX, int mouseY) {
     GetModelScreenLocation().AddHandle(preview, mouseX, mouseY);
 }
 
-void Model::InsertHandle(int after_handle, float zoom) {
+void Model::InsertHandle(int after_handle, float zoom, int scale) {
 
     if (GetModelScreenLocation().IsLocked()) return;
 
-    GetModelScreenLocation().InsertHandle(after_handle, zoom);
+    GetModelScreenLocation().InsertHandle(after_handle, zoom, scale);
 }
 
 void Model::DeleteHandle(int handle) {

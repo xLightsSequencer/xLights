@@ -1453,22 +1453,25 @@ void xFadeFrame::PressJukeboxButton(int button, bool left)
 {
     wxWindow* panel;
     int port = 0;
+    std::string ip = "127.0.0.1";
     if (left)
     {
         panel = Panel_Left;
         port = 1;
+        ip = _settings._leftIP;
     }
     else
     {
         panel = Panel_Right;
         port = 2;
+        ip = _settings._rightIP;
     }
 
     wxButton* b = GetJukeboxButton(button, panel);
 
     if (b != nullptr)
     {
-        wxString result = xLightsRequest(port, "PLAY_JUKEBOX_BUTTON " + wxString::Format("%d", button));
+        wxString result = xLightsRequest(port, "PLAY_JUKEBOX_BUTTON " + wxString::Format("%d", button), ip);
 
         if (result.StartsWith("SUCCESS"))
         {
@@ -1623,8 +1626,8 @@ void xFadeFrame::OnButton_ConnectToxLightsClick(wxCommandEvent& event)
     TextCtrl_RightSequence->SetValue("");
     TextCtrl_LeftTag->SetValue("");
     TextCtrl_RightTag->SetValue("");
-    
-    wxString result = xLightsRequest(1, "GET_JUKEBOX_BUTTON_TOOLTIPS");
+
+    wxString result = xLightsRequest(1, "GET_JUKEBOX_BUTTON_TOOLTIPS", _settings._leftIP);
     if (result.StartsWith("SUCCESS"))
     {
         Panel_Left->Enable(true);
@@ -1655,7 +1658,7 @@ void xFadeFrame::OnButton_ConnectToxLightsClick(wxCommandEvent& event)
             i++;
         }
 
-        result = xLightsRequest(1, "GET_JUKEBOX_BUTTON_EFFECTPRESENT");
+        result = xLightsRequest(1, "GET_JUKEBOX_BUTTON_EFFECTPRESENT", _settings._leftIP);
         if (result.StartsWith("SUCCESS"))
         {
             auto bs = wxSplit(result, '|');
@@ -1686,7 +1689,7 @@ void xFadeFrame::OnButton_ConnectToxLightsClick(wxCommandEvent& event)
             }
         }
 
-        result = xLightsRequest(1, "GET_E131_TAG");
+        result = xLightsRequest(1, "GET_E131_TAG", _settings._leftIP);
         if (result.StartsWith("SUCCESS "))
         {
             _leftTag = result.substr(sizeof("SUCCESS ") - 1);
@@ -1697,7 +1700,7 @@ void xFadeFrame::OnButton_ConnectToxLightsClick(wxCommandEvent& event)
         }
         TextCtrl_LeftTag->SetValue(_leftTag);
 
-        result = xLightsRequest(1, "GET_SEQUENCE_NAME");
+        result = xLightsRequest(1, "GET_SEQUENCE_NAME", _settings._leftIP);
         if (result.StartsWith("SUCCESS "))
         {
             TextCtrl_LeftSequence->SetValue(result.substr(sizeof("SUCCESS ") - 1));
@@ -1707,14 +1710,14 @@ void xFadeFrame::OnButton_ConnectToxLightsClick(wxCommandEvent& event)
             TextCtrl_LeftSequence->SetValue("No sequence loaded.");
         }
 
-        result = xLightsRequest(1, "TURN_LIGHTS_ON");
+        result = xLightsRequest(1, "TURN_LIGHTS_ON", _settings._leftIP);
     }
     else
     {
         Panel_Left->Enable(false);
     }
 
-    result = xLightsRequest(2, "GET_JUKEBOX_BUTTON_TOOLTIPS");
+    result = xLightsRequest(2, "GET_JUKEBOX_BUTTON_TOOLTIPS", _settings._rightIP);
     if (result.StartsWith("SUCCESS"))
     {
         Panel_Right->Enable(true);
@@ -1746,7 +1749,7 @@ void xFadeFrame::OnButton_ConnectToxLightsClick(wxCommandEvent& event)
             i++;
         }
 
-        result = xLightsRequest(2, "GET_JUKEBOX_BUTTON_EFFECTPRESENT");
+        result = xLightsRequest(2, "GET_JUKEBOX_BUTTON_EFFECTPRESENT", _settings._rightIP);
         if (result.StartsWith("SUCCESS"))
         {
             auto bs = wxSplit(result, '|');
@@ -1777,7 +1780,7 @@ void xFadeFrame::OnButton_ConnectToxLightsClick(wxCommandEvent& event)
             }
         }
 
-        result = xLightsRequest(2, "GET_E131_TAG");
+        result = xLightsRequest(2, "GET_E131_TAG", _settings._rightIP);
         if (result.StartsWith("SUCCESS "))
         {
             _rightTag = result.substr(sizeof("SUCCESS ") - 1);
@@ -1788,7 +1791,7 @@ void xFadeFrame::OnButton_ConnectToxLightsClick(wxCommandEvent& event)
         }
         TextCtrl_RightTag->SetValue(_rightTag);
 
-        result = xLightsRequest(2, "GET_SEQUENCE_NAME");
+        result = xLightsRequest(2, "GET_SEQUENCE_NAME", _settings._rightIP);
         if (result.StartsWith("SUCCESS "))
         {
             TextCtrl_RightSequence->SetValue(result.substr(sizeof("SUCCESS ") - 1));
@@ -1798,7 +1801,7 @@ void xFadeFrame::OnButton_ConnectToxLightsClick(wxCommandEvent& event)
             TextCtrl_RightSequence->SetValue("No sequence loaded.");
         }
 
-        result = xLightsRequest(2, "TURN_LIGHTS_ON");
+        result = xLightsRequest(2, "TURN_LIGHTS_ON", _settings._rightIP);
     }
     else
     {
@@ -1828,7 +1831,7 @@ void xFadeFrame::OnButton_ConfigureClick(wxCommandEvent& event)
     logger_base.debug("Configure ...");
 
     _suspendListen = true;
-    
+
     SettingsDialog dlg(this, &_settings);
 
     CloseSockets();

@@ -284,7 +284,7 @@ public:
     bool HasCurve(int segment);
     void SetCurve(int segment, bool create);
     void AddHandle(ModelPreview* preview, int mouseX, int mouseY);
-    virtual void InsertHandle(int after_handle, float zoom);
+    virtual void InsertHandle(int after_handle, float zoom, int scale);
     virtual void DeleteHandle(int handle);
 
     std::vector<std::string> GetModelState() const;

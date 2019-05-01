@@ -811,6 +811,11 @@ float ModelPreview::GetCameraZoomForHandles() const
     return 1.0;
 }
 
+int ModelPreview::GetHandleScale() const
+{
+    return xlights->GetModelHandleScale();
+}
+
 void ModelPreview::SetZoomDelta(float delta)
 {
     if (is_3d) {

@@ -9,6 +9,8 @@ class Settings
 public:
 
     int _frameMS;
+    std::string _leftIP;
+    std::string _rightIP;
     std::string _localInputIP;
     std::string _localOutputIP;
     std::string _defaultIP;

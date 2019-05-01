@@ -1485,6 +1485,24 @@
 						<radio>1</radio>
 					</object>
 				</object>
+				<object class="wxMenu" name="ID_MENUITEM23" variable="MenuItem60" member="yes">
+					<label>Model Handle Size</label>
+					<object class="wxMenuItem" name="ID_MENUITEM24" variable="MenuItem_MHS_Normal" member="yes">
+						<label>Normal</label>
+						<handler function="OnMenuItem_MHS_NormalSelected" entry="EVT_MENU" />
+						<radio>1</radio>
+					</object>
+					<object class="wxMenuItem" name="ID_MENUITEM25" variable="MenuItem_MHS_Large" member="yes">
+						<label>Large</label>
+						<handler function="OnMenuItem_MHS_LargeSelected" entry="EVT_MENU" />
+						<radio>1</radio>
+					</object>
+					<object class="wxMenuItem" name="ID_MENUITEM26" variable="MenuItem_MHS_ExtraLarge" member="yes">
+						<label>Extra Large</label>
+						<handler function="OnMenuItem_MHS_ExtraLargeSelected" entry="EVT_MENU" />
+						<radio>1</radio>
+					</object>
+				</object>
 				<object class="wxMenu" name="ID_MENUITEM_Grid_Icon_Backgrounds" variable="MenuItem_Grid_Icon_Backgrounds" member="no">
 					<label>Grid Icon Backgrounds</label>
 					<object class="wxMenuItem" name="ID_MENUITEM_GRID_ICON_BACKGROUND_ON" variable="MenuItemGridIconBackgroundOn" member="yes">

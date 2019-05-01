@@ -11,6 +11,10 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2019.24 April 29, 2019
+   -- bug (dkulp)   Fix FSEQ v2 hangs on saving ... sometimes
+   -- bug (keith)   Fix corrupt FSEQ v2 file crashes on sequence load
+   -- enh (keith)   Add xFade ability to control xLights on multiple machines
 2019.23 April 27, 2019
    -- enh (scott)   Add manual link to help menu
    -- bug (keith)   Make custom model generator capable of detecting the start in very dark videos
