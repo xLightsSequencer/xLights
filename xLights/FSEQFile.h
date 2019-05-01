@@ -52,7 +52,7 @@ public:
     static FSEQFile* createFSEQFile(const std::string &fn,
                                     int version,
                                     CompressionType ct = CompressionType::zstd,
-                                    int level = 10);
+                                    int level = -99);
     //utility methods
     static std::string getMediaFilename(const std::string &fn);
     std::string getMediaFilename() const;
