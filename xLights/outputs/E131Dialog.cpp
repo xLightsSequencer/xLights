@@ -34,6 +34,8 @@ const long E131Dialog::ID_CHECKBOX2 = wxNewId();
 const long E131Dialog::ID_STATICTEXT10 = wxNewId();
 const long E131Dialog::ID_SPINCTRL_PRIORITY = wxNewId();
 const long E131Dialog::ID_CHOICE1 = wxNewId();
+const long E131Dialog::ID_STATICTEXT11 = wxNewId();
+const long E131Dialog::ID_CHECKBOX_AUTO_CHANNELS = wxNewId();
 const long E131Dialog::ID_BUTTON1 = wxNewId();
 const long E131Dialog::ID_BUTTON2 = wxNewId();
 const long E131Dialog::ID_BUTTON3 = wxNewId();
@@ -114,6 +116,11 @@ E131Dialog::E131Dialog(wxWindow* parent, E131Output* e131, OutputManager* output
     FlexGridSizer2->Add(ControllerLabel, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     ControllerChoice = new wxChoice(this, ID_CHOICE1, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE1"));
     FlexGridSizer2->Add(ControllerChoice, 1, wxALL|wxEXPAND, 5);
+    StaticText4 = new wxStaticText(this, ID_STATICTEXT11, _("Use Auto Start Channels"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT11"));
+    FlexGridSizer2->Add(StaticText4, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    CheckBox_Auto_Channels = new wxCheckBox(this, ID_CHECKBOX_AUTO_CHANNELS, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_AUTO_CHANNELS"));
+    CheckBox_Auto_Channels->SetValue(false);
+    FlexGridSizer2->Add(CheckBox_Auto_Channels, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 5);
     FlexGridSizer3 = new wxFlexGridSizer(0, 3, 0, 0);
     Button_Ok = new wxButton(this, ID_BUTTON1, _("Ok"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
@@ -144,6 +151,7 @@ E131Dialog::E131Dialog(wxWindow* parent, E131Output* e131, OutputManager* output
     SpinCtrl_NumUniv->SetValue(_e131->GetUniverses());
     MultiE131CheckBox->SetValue(_e131->IsOutputCollection());
     SpinCtrl_Priority->SetValue(_e131->GetPriority());
+	CheckBox_Auto_Channels->SetValue(_e131->IsAutoLayoutModels());
     if (_e131->GetIP() != "") {
         MultiE131CheckBox->SetValue(true);
         MultiE131CheckBox->Hide();
@@ -243,6 +251,7 @@ void E131Dialog::SaveFields() {
     _e131->SetDescription(TextCtrl_Description->GetValue().ToStdString());
     _e131->SetSuppressDuplicateFrames(CheckBox_SuppressDuplicates->IsChecked());
     _e131->SetPriority(SpinCtrl_Priority->GetValue());
+	_e131->SetAutoStartChannels(CheckBox_Auto_Channels->IsChecked());
     int idx = ControllerChoice->GetSelection();
     if (idx == 0) {
         _e131->SetControllerId("");

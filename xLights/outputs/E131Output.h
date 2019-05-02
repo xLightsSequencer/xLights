@@ -30,6 +30,7 @@ class E131Output : public IPOutput
     // in case it is a multi universe e131
     int _numUniverses = 1;
     std::list<Output*> _outputs;
+	bool _autoStartChannels = false;
     #pragma endregion Member Variables
 
 public:
@@ -66,6 +67,7 @@ public:
     virtual long GetEndChannel() const override;
     virtual std::string GetUniverseString() const override;
     virtual bool IsLookedUpByControllerName() const override;
+	virtual bool IsAutoLayoutModels() const override { return _autoStartChannels; }
 
     // These are required because one e1.31 output can actually be multiple
     virtual std::list<Output*> GetOutputs() const override { return _outputs; }
@@ -75,6 +77,8 @@ public:
     virtual Output* GetActualOutput(long startChannel) override;
     virtual int GetPriority() const {return _priority; }
     virtual void SetPriority(int priority);
+
+	virtual void SetAutoStartChannels(bool autoMode) { _autoStartChannels = autoMode; }
     #pragma region Getters and Setters
 
     virtual wxXmlNode* Save() override;
