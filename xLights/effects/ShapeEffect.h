@@ -57,15 +57,16 @@ protected:
     static int DecodeShape(const std::string& shape);
         void SetPanelTimingTracks() const;
         void Drawcircle(RenderBuffer &buffer, int xc, int yc, double radius, xlColor color, int thickness) const;
-        void Drawheart(RenderBuffer &buffer, int xc, int yc, double radius, xlColor color, int thickness) const;
+        void Drawheart(RenderBuffer &buffer, int xc, int yc, double radius, xlColor color, int thickness, double rotation) const;
         void Drawstar(RenderBuffer &buffer, int xc, int yc, double radius, int points, xlColor color, int thickness, double rotation = 0) const;
         void Drawpolygon(RenderBuffer &buffer, int xc, int yc, double radius, int sides, xlColor color, int thickness, double rotation = 0) const;
         void Drawsnowflake(RenderBuffer &buffer, int xc, int yc, double radius, int sides, xlColor color, double rotation = 0) const;
-        void Drawtree(RenderBuffer &buffer, int xc, int yc, double radius, xlColor color, int thickness) const;
+        void Drawtree(RenderBuffer &buffer, int xc, int yc, double radius, xlColor color, int thickness, double rotation) const;
         void Drawcandycane(RenderBuffer &buffer, int xc, int yc, double radius, xlColor color, int thickness) const;
-        void Drawcrucifix(RenderBuffer &buffer, int xc, int yc, double radius, xlColor color, int thickness) const;
-        void Drawpresent(RenderBuffer &buffer, int xc, int yc, double radius, xlColor color, int thickness) const;
+        void Drawcrucifix(RenderBuffer &buffer, int xc, int yc, double radius, xlColor color, int thickness, double rotation) const;
+        void Drawpresent(RenderBuffer &buffer, int xc, int yc, double radius, xlColor color, int thickness, double rotation) const;
         void Drawemoji(RenderBuffer &buffer, int xc, int yc, double radius, xlColor color, int emoji, wxFontInfo& font) const;
+		void Drawellipse(RenderBuffer &buffer, int xc, int yc, double radius, int multipler, xlColor color, int thickness, double rotation = 0) const;
 };
 
 #endif // SHAPEEFFECT_H
