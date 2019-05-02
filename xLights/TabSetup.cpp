@@ -277,7 +277,8 @@ bool xLightsFrame::SetDir(const wxString& newdir)
     ShowDirectoryLabel->GetParent()->Layout();
 
     logger_base.debug("Updating networks on setup tab.");
-    UpdateNetworkList(false);
+    _outputModelManager.AddImmediateWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, nullptr, nullptr);
+    _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, nullptr, nullptr);
     logger_base.debug("    Networks updated.");
 
     wxFileName kbf;
@@ -310,7 +311,7 @@ bool xLightsFrame::SetDir(const wxString& newdir)
     
     if (UnsavedRgbEffectsChanges)
     {
-        RebuildControllerConfig(&_outputManager, &AllModels);
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, nullptr, nullptr);
     }
     
     return true;
@@ -375,10 +376,8 @@ std::string xLightsFrame::GetChannelToControllerMapping(long channel)
     }
 }
 
-void xLightsFrame::UpdateNetworkList(bool updateModels)
+void xLightsFrame::UpdateNetworkList()
 {
-    if (updateModels) _setupChanged = true;
-
     int item = GridNetwork->GetTopItem() + GridNetwork->GetCountPerPage() - 1;
     int itemselected = GetNetworkSelection();
 
@@ -575,8 +574,10 @@ void xLightsFrame::MoveNetworkRows(int toRow, bool reverse)
         moved++;
     }
 
-    NetworkChange();
-    UpdateNetworkList(true);
+    _outputModelManager.AddImmediateWork(OutputModelManager::WORK_NETWORK_CHANGE, nullptr, nullptr);
+    _outputModelManager.AddImmediateWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, nullptr, nullptr);
+    _outputModelManager.AddImmediateWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, nullptr, nullptr);
+    _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, nullptr, nullptr);
 
     for (auto it = tomove.begin(); it != tomove.end(); ++it)
     {
@@ -615,9 +616,11 @@ void xLightsFrame::ChangeSelectedNetwork()
             }
         }
         
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, nullptr, newoutput);
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, nullptr, newoutput);
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, nullptr, newoutput);
+        _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, nullptr, newoutput);
         AllModels.ReworkStartChannel();
-        NetworkChange();
-        UpdateNetworkList(true);
     }
 }
 
@@ -643,20 +646,14 @@ void xLightsFrame::UpdateSelectedIPAddresses()
         {
             while (item != -1)
             {
-                _outputManager.GetOutput(item)->SetIP(dlg.GetValue().ToStdString());
+                Output* o = _outputManager.GetOutput(item);
+                o->SetIP(dlg.GetValue().ToStdString());
+
+                _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, nullptr, o);
+                _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, nullptr, o);
+                _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, nullptr, o);
 
                 item = GridNetwork->GetNextItem(item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
-            }
-
-            NetworkChange();
-            UpdateNetworkList(false);
-
-            item = GridNetwork->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
-            while (item != -1)
-            {
-                GridNetwork->SetItemState(item, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
-
-                item = GridNetwork->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
             }
         }
     }
@@ -668,19 +665,12 @@ void xLightsFrame::UpdateSelectedSuppressDuplicates(bool suppressDuplicates)
 
     while (item != -1)
     {
-        _outputManager.GetOutput(item)->SetSuppressDuplicateFrames(suppressDuplicates);
+        Output* o = _outputManager.GetOutput(item);
+        o->SetSuppressDuplicateFrames(suppressDuplicates);
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, nullptr, o);
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, nullptr, o);
+
         item = GridNetwork->GetNextItem(item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
-    }
-
-    NetworkChange();
-    UpdateNetworkList(false);
-
-    item = GridNetwork->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
-    while (item != -1)
-    {
-        GridNetwork->SetItemState(item, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
-
-        item = GridNetwork->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
     }
 }
 
@@ -705,18 +695,11 @@ void xLightsFrame::UpdateSelectedDescriptions()
             
             o->SetDescription(newDesc);
 
+            _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, nullptr, o);
+            _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, nullptr, o);
+            _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, nullptr, o);
+
             item = GridNetwork->GetNextItem(item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
-        }
-
-        NetworkChange();
-        UpdateNetworkList(false);
-
-        item = GridNetwork->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
-        while (item != -1)
-        {
-            GridNetwork->SetItemState(item, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
-
-            item = GridNetwork->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
         }
     }
 }
@@ -740,21 +723,15 @@ void xLightsFrame::UpdateSelectedChannels()
                 if (!o->GetAutoSize())
                 {
                     o->SetChannels(dlg.GetValue());
+
+                    _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, nullptr, o);
+                    _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, nullptr, o);
+                    _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, nullptr, o);
+                    _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, nullptr, o);
                 }
             }
 
             item = GridNetwork->GetNextItem(item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
-        }
-
-        NetworkChange();
-        UpdateNetworkList(true);
-
-        item = GridNetwork->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
-        while (item != -1)
-        {
-            GridNetwork->SetItemState(item, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
-
-            item = GridNetwork->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
         }
     }
 }
@@ -784,22 +761,9 @@ void xLightsFrame::DeactivateUnusedNetworks()
         }
         if (!used)
         {
-            changed = true;
             o->Enable(false);
-        }
-    }
-
-    if (changed)
-    {
-        NetworkChange();
-        UpdateNetworkList(false);
-
-        int item = GridNetwork->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
-        while (item != -1)
-        {
-            GridNetwork->SetItemState(item, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
-
-            item = GridNetwork->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+            _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, nullptr, o);
+            _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, nullptr, o);
         }
     }
 }
@@ -810,20 +774,13 @@ void xLightsFrame::ActivateSelectedNetworks(bool active)
 
     while (item != -1)
     {
-        _outputManager.GetOutput(item)->Enable(active);
+        Output* o = _outputManager.GetOutput(item);
+        o->Enable(active);
+
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, nullptr, o);
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, nullptr, o);
 
         item = GridNetwork->GetNextItem(item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
-    }
-
-    NetworkChange();
-    UpdateNetworkList(false);
-
-    item = GridNetwork->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
-    while (item != -1)
-    {
-        GridNetwork->SetItemState(item, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
-
-        item = GridNetwork->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
     }
 }
 
@@ -834,21 +791,16 @@ void xLightsFrame::DeleteSelectedNetworks()
 
     while (item != -1)
     {
-        _outputManager.DeleteOutput(_outputManager.GetOutput(item - removed));
+        Output* o = _outputManager.GetOutput(item - removed);
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, nullptr, o);
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, nullptr, o);
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, nullptr, o);
+        _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, nullptr, o);
+
+        _outputManager.DeleteOutput(o);
 
         removed++;
         item = GridNetwork->GetNextItem(item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
-    }
-
-    NetworkChange();
-    UpdateNetworkList(true);
-
-    item = GridNetwork->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
-    while (item != -1)
-    {
-        GridNetwork->SetItemState(item, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
-
-        item = GridNetwork->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
     }
 }
 
@@ -860,8 +812,10 @@ void xLightsFrame::OnButtonNetworkDeleteClick(wxCommandEvent& event)
 void xLightsFrame::OnButtonNetworkDeleteAllClick(wxCommandEvent& event)
 {
     _outputManager.DeleteAllOutputs();
-    NetworkChange();
-    UpdateNetworkList(true);
+    _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, nullptr, nullptr);
+    _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, nullptr, nullptr);
+    _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, nullptr, nullptr);
+    _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, nullptr, nullptr);
 }
 
 void xLightsFrame::OnButtonNetworkMoveUpClick(wxCommandEvent& event)
@@ -1042,8 +996,10 @@ void xLightsFrame::SetupNullOutput(Output* e, int after) {
 
     if (null->Configure(this, &_outputManager, &AllModels) != nullptr)
     {
-        NetworkChange();
-        UpdateNetworkList(true);
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, nullptr, null);
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, nullptr, null);
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, nullptr, null);
+        _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, nullptr, null);
     }
     else
     {
@@ -1062,8 +1018,10 @@ void xLightsFrame::SetupE131(Output* e, int after)
 
     if (e131->Configure(this, &_outputManager, &AllModels) != nullptr)
     {
-        NetworkChange();
-        UpdateNetworkList(true);
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, nullptr, e131);
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, nullptr, e131);
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, nullptr, e131);
+        _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, nullptr, e131);
     }
     else
     {
@@ -1082,8 +1040,10 @@ void xLightsFrame::SetupArtNet(Output* e, int after)
 
     if (artnet->Configure(this, &_outputManager, &AllModels) != nullptr)
     {
-        NetworkChange();
-        UpdateNetworkList(true);
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, nullptr, artnet);
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, nullptr, artnet);
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, nullptr, artnet);
+        _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, nullptr, artnet);
     }
     else
     {
@@ -1102,8 +1062,10 @@ void xLightsFrame::SetupDDP(Output* e, int after)
 
     if (ddp->Configure(this, &_outputManager, &AllModels) != nullptr)
     {
-        NetworkChange();
-        UpdateNetworkList(true);
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, nullptr, ddp);
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, nullptr, ddp);
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, nullptr, ddp);
+        _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, nullptr, ddp);
     }
     else
     {
@@ -1132,13 +1094,17 @@ void xLightsFrame::SetupDongle(Output* e, int after)
     else if (newoutput != serial)
     {
         _outputManager.Replace(serial, newoutput);
-        NetworkChange();
-        UpdateNetworkList(true);
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, nullptr, newoutput);
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, nullptr, newoutput);
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, nullptr, newoutput);
+        _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, nullptr, newoutput);
     }
     else
     {
-        NetworkChange();
-        UpdateNetworkList(true);
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, nullptr, newoutput);
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, nullptr, newoutput);
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, nullptr, newoutput);
+        _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, nullptr, newoutput);
     }
 }
 
@@ -1156,11 +1122,15 @@ void xLightsFrame::SetupLOR(Output* e, int after)
         }
     } else if (newoutput != serial) {
         _outputManager.Replace(serial, newoutput);
-        NetworkChange();
-        UpdateNetworkList(true);
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, nullptr, newoutput);
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, nullptr, newoutput);
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, nullptr, newoutput);
+        _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, nullptr, newoutput);
     } else {
-        NetworkChange();
-        UpdateNetworkList(true);
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, nullptr, newoutput);
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, nullptr, newoutput);
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, nullptr, newoutput);
+        _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, nullptr, newoutput);
     }
 }
 
@@ -1176,7 +1146,6 @@ void xLightsFrame::OnButtonAddLORClick(wxCommandEvent& event)
 
 void xLightsFrame::NetworkChange()
 {
-    _outputManager.SomethingChanged();
     UnsavedNetworkChanges = true;
 #ifdef __WXOSX__
     ButtonSaveSetup->SetBackgroundColour(wxColour(255, 0, 0));
@@ -1184,6 +1153,11 @@ void xLightsFrame::NetworkChange()
 #else
     ButtonSaveSetup->SetBackgroundColour(wxColour(255, 108, 108));
 #endif
+}
+
+void xLightsFrame::NetworkChannelsChange()
+{
+    _outputManager.SomethingChanged();
     if (RebuildControllerConfig(&_outputManager, &AllModels))
     {
         MarkEffectsFileDirty(false);
@@ -1220,7 +1194,7 @@ void xLightsFrame::SetSyncUniverse(int syncUniverse)
 void xLightsFrame::OnSpinCtrl_SyncUniverseChange(wxSpinEvent& event)
 {
     SetSyncUniverse(SpinCtrl_SyncUniverse->GetValue());
-    NetworkChange();
+    _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, nullptr, nullptr);
 }
 
 int xLightsFrame::GetNetworkSelectedItemCount() const
@@ -2244,7 +2218,6 @@ void xLightsFrame::OnButton_DiscoverClick(wxCommandEvent& event)
             consider.push_back(fpp);
         }
     }
-    bool changed = false;
     for (auto fpp : consider) {
         DDPOutput *ddp = new DDPOutput();
         if (fpp->hostName != "") {
@@ -2274,15 +2247,63 @@ void xLightsFrame::OnButton_DiscoverClick(wxCommandEvent& event)
         }
         ddp->SetChannels(count);
         _outputManager.AddOutput(ddp, -1);
-        changed = true;
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, nullptr, ddp);
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, nullptr, ddp);
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, nullptr, ddp);
+        _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, nullptr, ddp);
         delete fpp;
-    }
-    if (changed) {
-        NetworkChange();
-        UpdateNetworkList(true);
     }
 }
 
+void xLightsFrame::DoASAPWork()
+{
+    DoWork(_outputModelManager.GetASAPWork());
+}
+
+void xLightsFrame::DoWork(uint32_t work)
+{
+    if (work & OutputModelManager::WORK_NETWORK_CHANGE)
+    {
+        // Mark networks file dirty
+        NetworkChange();
+    }
+    if (work & OutputModelManager::WORK_NETWORK_CHANNELSCHANGE)
+    {
+        // Recalculates all the channels in the outputs
+        NetworkChannelsChange();
+    }
+    if (work & OutputModelManager::WORK_UPDATE_NETWORK_LIST)
+    {
+        // Updates the list of outputs on the screen
+        UpdateNetworkList();
+    }
+    if (work & OutputModelManager::WORK_CALCULATE_START_CHANNELS)
+    {
+        // Recalculates the models actual start channels based on changes to the outputs
+        RecalcModels();
+    }
+    if (work & OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG)
+    {
+        // Rebuilds generally ZCPP controller config
+        // Should happen whenever models are changed or a ZCPP output is changed
+        RebuildControllerConfig(&_outputManager, &AllModels);
+    }
+    if (work & OutputModelManager::WORK_SAVE_NETWORKS)
+    {
+        // write the networks file to disk and clears the dirty flag
+        SaveNetworksFile();
+    }
+}
+
+void xLightsFrame::DoLayoutWork()
+{
+    DoWork(_outputModelManager.GetLayoutWork());
+}
+
+void xLightsFrame::DoSetupWork()
+{
+    DoWork(_outputModelManager.GetLayoutWork());
+}
 
 void xLightsFrame::VisualiseOutput(Output *e, wxWindow *parent) {
     std::list<int> selected;

@@ -316,8 +316,6 @@ void ModelManager::DisplayStartChannelCalcWarning() const
 
 void ModelManager::ReworkStartChannel() const
 {
-    bool  outputsChanged = false;
-
     OutputManager* outputManager = xlights->GetOutputManager();
     for (auto it : outputManager->GetOutputs())
     {
@@ -398,18 +396,13 @@ void ModelManager::ReworkStartChannel() const
                 if (it->GetChannels() != std::max((long)1, (long)ch - 1))
                 {
                     it->SetChannels(std::max((long)1, (long)ch - 1));
-                    outputsChanged = true;
+                    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, nullptr, it);
+                    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, nullptr, it);
+                    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, nullptr, it);
+                    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_SAVE_NETWORKS, nullptr, it);
                 }
             }
         }
-    }
-
-    if (outputsChanged)
-    {
-        xlights->GetOutputManager()->SomethingChanged();
-        xlights->UpdateNetworkList(false);
-        xlights->NetworkChange();
-        xlights->SaveNetworksFile();
     }
 }
 

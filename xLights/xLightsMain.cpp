@@ -2070,7 +2070,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     MenuItemEffectAssistToggleMode->Check(mEffectAssistMode==EFFECT_ASSIST_TOGGLE_MODE);
     logger_base.debug("Effect Assist Mode: %s.", mEffectAssistMode ? "true" : "false");
 
-    _setupChanged = false;
+    _outputModelManager.SetFrame(this);
     InitEffectsPanel(EffectsPanel1);
     logger_base.debug("Effects panel initialised.");
 
@@ -2495,23 +2495,19 @@ void xLightsFrame::ShowHideAllSequencerWindows(bool show)
     logger_base.debug("xLightsFrame::ShowHideAllSequencerWindows - layout previews - done");
 }
 
-void xLightsFrame::RecalcModels(bool force)
+void xLightsFrame::RecalcModels()
 {
     if (IsExiting()) return;
 
-    if (force || _setupChanged)
-    {
-        SetCursor(wxCURSOR_WAIT);
-        // Now notify the layout as the model start numbers may have been impacted
-        AllModels.OldRecalcStartChannels();
-        //AllModels.NewRecalcStartChannels();
-        if (layoutPanel != nullptr) {
-            layoutPanel->RefreshLayout();
-        }
-
-        _setupChanged = false;
-        SetCursor(wxCURSOR_ARROW);
+    SetCursor(wxCURSOR_WAIT);
+    // Now notify the layout as the model start numbers may have been impacted
+    AllModels.OldRecalcStartChannels();
+    //AllModels.NewRecalcStartChannels();
+    if (layoutPanel != nullptr) {
+        layoutPanel->RefreshLayout();
     }
+
+    SetCursor(wxCURSOR_ARROW);
 }
 
 void xLightsFrame::OnNotebook1PageChanging(wxAuiNotebookEvent& event)
@@ -2520,6 +2516,7 @@ void xLightsFrame::OnNotebook1PageChanging(wxAuiNotebookEvent& event)
         event.Veto();
         return;
     }
+
     if (event.GetOldSelection() == NEWSEQUENCER)
     {
         ShowHideAllSequencerWindows(false);
@@ -2527,7 +2524,15 @@ void xLightsFrame::OnNotebook1PageChanging(wxAuiNotebookEvent& event)
     else if (event.GetOldSelection() == SETUPTAB)
     {
         layoutPanel->UnSelectAllModels();
-        RecalcModels();
+    }
+
+    if (event.GetSelection() == SETUPTAB)
+    {
+        DoSetupWork();
+    }
+    else if (event.GetSelection() == LAYOUTTAB)
+    {
+        DoLayoutWork();
     }
 }
 

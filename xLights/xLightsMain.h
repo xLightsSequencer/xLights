@@ -71,6 +71,7 @@
 #include "xLightsXmlFile.h"
 #include "sequencer/EffectsGrid.h"
 #include "RenderCache.h"
+#include "OutputModelManager.h"
 
 class EffectTreeDialog;
 class ConvertDialog;
@@ -365,6 +366,10 @@ public:
     void PlayerError(const wxString& msg);
     void AskCloseSequence();
     void SaveCurrentTab();
+    void DoWork(uint32_t work);
+    void DoASAPWork();
+    void DoSetupWork();
+    void DoLayoutWork();
 
     EffectManager &GetEffectManager() { return effectManager; }
 
@@ -1066,6 +1071,7 @@ public:
     wxArrayString mru;  // most recently used directories
     wxMenuItem* mru_MenuItem[MRU_LENGTH];
     OutputManager _outputManager;
+    OutputModelManager _outputModelManager;
     long DragRowIdx;
     wxListCtrl* DragListBox;
     bool UnsavedNetworkChanges = false;
@@ -1112,7 +1118,7 @@ public:
     void OnMenuMRU(wxCommandEvent& event);
     bool SetDir(const wxString& dirname);
     bool PromptForShowDirectory();
-    void UpdateNetworkList(bool updateModels);
+    void UpdateNetworkList();
     long GetNetworkSelection() const;
     long GetLastNetworkSelection() const;
     int GetNetworkSelectedItemCount() const;
@@ -1129,6 +1135,7 @@ public:
     void SetupNullOutput(Output* e, int after = -1);
     bool SaveNetworksFile();
     void NetworkChange();
+    void NetworkChannelsChange();
     std::list<int> GetSelectedOutputs(wxString& ip);
     void UploadFPPBridgeInput();
     void MultiControllerUpload();
@@ -1197,6 +1204,7 @@ public:
     void ReadFalconFile(const wxString& FileName, ConvertDialog* convertdlg);
     void WriteFalconPiFile(const wxString& filename); //  Falcon Pi Player *.pseq
     OutputManager* GetOutputManager() { return &_outputManager; };
+    OutputModelManager* GetOutputModelManager() { return&_outputModelManager; }
 
 private:
 
@@ -1335,7 +1343,6 @@ private:
     bool SeqChanCtrlBasic;
     bool SeqChanCtrlColor;
 	bool mLoopAudio;
-    bool _setupChanged; // set to true if something changes on the setup tab which would require the layout tab to have the model start channels recalculated
 
     bool mResetToolbars;
     bool mRenderOnSave;
@@ -1625,6 +1632,6 @@ public:
     std::string GetEffectTextFromWindows(std::string &palette) const;
 
 	void DoPlaySequence();
-    void RecalcModels(bool force = false);
+    void RecalcModels();
 };
 #endif // XLIGHTSMAIN_H

@@ -789,7 +789,7 @@ void LayoutPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
 //                        CallAfter(&LayoutPanel::RefreshLayout); // refresh whole layout seems the most reliable at this point
 //                        xlights->MarkEffectsFileDirty(true);
                     }
-                    xlights->RecalcModels(true); // includes call to RefreshLayout
+                    xlights->RecalcModels(); // includes call to RefreshLayout
                     SelectModel(safename);
 //                    CallAfter(&LayoutPanel::RefreshLayout); // refresh whole layout seems the most reliable at this point
                     xlights->MarkEffectsFileDirty(true);
@@ -816,7 +816,7 @@ void LayoutPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
                     if (i & (GRIDCHANGE_REBUILD_MODEL_LIST | GRIDCHANGE_UPDATE_ALL_MODEL_LISTS))
                     {
                         // if these values were returned then some absolute start channels may have changed
-                        xlights->RecalcModels(true);
+                        xlights->RecalcModels();
                     }
                     if (i & GRIDCHANGE_REBUILD_MODEL_LIST) {
                         CallAfter(&LayoutPanel::refreshModelList);
