@@ -742,34 +742,44 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         pixelSize = event.GetValue().GetLong();
         ModelXml->DeleteAttribute("PixelSize");
         ModelXml->AddAttribute("PixelSize", wxString::Format(wxT("%i"), pixelSize));
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW);
         IncrementChangeCount();
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
+        return 0;
     } else if (event.GetPropertyName() == "ModelPixelStyle") {
         pixelStyle = event.GetValue().GetLong();
         ModelXml->DeleteAttribute("Antialias");
         ModelXml->AddAttribute("Antialias", wxString::Format(wxT("%i"), pixelStyle));
         IncrementChangeCount();
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW);
+        return 0;
     } else if (event.GetPropertyName() == "ModelPixelTransparency") {
         transparency = event.GetValue().GetLong();
         ModelXml->DeleteAttribute("Transparency");
         ModelXml->AddAttribute("Transparency", wxString::Format(wxT("%i"), transparency));
         IncrementChangeCount();
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW);
+        return 0;
     } else if (event.GetPropertyName() == "ModelPixelBlackTransparency") {
         blackTransparency = event.GetValue().GetLong();
         ModelXml->DeleteAttribute("BlackTransparency");
         ModelXml->AddAttribute("BlackTransparency", wxString::Format(wxT("%i"), blackTransparency));
         IncrementChangeCount();
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW);
+        return 0;
     } else if (event.GetPropertyName() == "ModelStrandNodeNames") {
-        SetFromXml(ModelXml, zeroBased);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML);
         IncrementChangeCount();
-        return 2;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        return 0;
     } else if (event.GetPropertyName() == "ModelDimmingCurves") {
-        SetFromXml(ModelXml, zeroBased);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML);
         IncrementChangeCount();
-        return GRIDCHANGE_MARK_DIRTY;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        return 0;
     }
     else if (event.GetPropertyName() == "ModelControllerConnectionPort") {
         GetControllerConnection()->DeleteAttribute("Port");
@@ -781,16 +791,18 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
                 GetControllerConnection()->DeleteAttribute("Protocol");
                 GetControllerConnection()->AddAttribute("Protocol", CONTROLLER_PROTOCOLS[1]); // default to ws2811
                 grid->GetPropertyByName("ModelControllerConnectionProtocol")->SetValue(GetControllerProtocol());
-
-                // need to refresh to add protocol specific options
-                return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST | GRIDCHANGE_REBUILD_PROP_GRID;
+                AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID);
             }
         }
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST);
+        return 0;
     } else if (event.GetPropertyName() == "SmartRemote") {
         GetControllerConnection()->DeleteAttribute("SmartRemote");
         GetControllerConnection()->AddAttribute("SmartRemote", event.GetValue().GetString());
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST);
+        return 0;
     } else if (event.GetPropertyName() == "ModelControllerConnectionProtocol") {
         std::string oldProtocol = GetControllerProtocol();
         GetControllerConnection()->DeleteAttribute("Protocol");
@@ -798,7 +810,6 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
             GetControllerConnection()->AddAttribute("Protocol", CONTROLLER_PROTOCOLS[event.GetValue().GetLong()]);
         }
         clearUnusedProtocolProperties(GetControllerConnection());
-
         std::string newProtocol = GetControllerProtocol();
         if (
             ((newProtocol == "DMX" || newProtocol == "PixelNet" || newProtocol == "Renard" || newProtocol == "LOR") && IsPixelProtocol(oldProtocol)) ||
@@ -807,17 +818,20 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
             (newProtocol == "" && oldProtocol != ""))
         {
             // if we switch between a DMX and pixel protocol we need to rebuild the properties
-            return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST | GRIDCHANGE_REBUILD_PROP_GRID;
+            AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID);
         }
-
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST);
+        return 0;
     } else if (event.GetPropertyName() == "ModelControllerConnectionDMXChannel") {
         GetControllerConnection()->DeleteAttribute("channel");
         if (event.GetValue().GetLong() > 0) {
             GetControllerConnection()->AddAttribute("channel", wxString::Format("%i", (int)event.GetValue().GetLong()));
             clearUnusedProtocolProperties(GetControllerConnection());
         }
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST);
+        return 0;
     } else if (event.GetPropertyName() == "ModelControllerConnectionPixelSetBrightness") {
         GetControllerConnection()->DeleteAttribute("brightness");
         wxPGProperty *prop = grid->GetFirstChild(event.GetProperty());
@@ -829,13 +843,17 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         } else {
             grid->Collapse(event.GetProperty());
         }
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST);
+        return 0;
     } else if (event.GetPropertyName() == "ModelControllerConnectionPixelSetBrightness.ModelControllerConnectionPixelBrightness") {
         GetControllerConnection()->DeleteAttribute("brightness");
         if (event.GetValue().GetLong() > 0) {
             GetControllerConnection()->AddAttribute("brightness", wxString::Format("%i", (int)event.GetValue().GetLong()));
         }
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST);
+        return 0;
     } else if (event.GetPropertyName() == "ModelControllerConnectionPixelSetGamma") {
         GetControllerConnection()->DeleteAttribute("gamma");
         wxPGProperty *prop = grid->GetFirstChild(event.GetProperty());
@@ -847,11 +865,15 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         } else {
             grid->Collapse(event.GetProperty());
         }
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST);
+        return 0;
     } else if (event.GetPropertyName() == "ModelControllerConnectionPixelSetGamma.ModelControllerConnectionPixelGamma") {
         GetControllerConnection()->DeleteAttribute("gamma");
         GetControllerConnection()->AddAttribute("gamma", wxString::Format("%g", (float)event.GetValue().GetDouble()));
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST);
+        return 0;
     } else if (event.GetPropertyName() == "ModelControllerConnectionPixelSetDirection") {
         GetControllerConnection()->DeleteAttribute("reverse");
         wxPGProperty *prop = grid->GetFirstChild(event.GetProperty());
@@ -863,13 +885,17 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         } else {
             grid->Collapse(event.GetProperty());
         }
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST);
+        return 0;
     } else if (event.GetPropertyName() == "ModelControllerConnectionPixelSetDirection.ModelControllerConnectionPixelDirection") {
         GetControllerConnection()->DeleteAttribute("reverse");
         if (event.GetValue().GetLong() > 0) {
             GetControllerConnection()->AddAttribute("reverse", wxString::Format("%i", (int)event.GetValue().GetLong()));
         }
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST);
+        return 0;
     } else if (event.GetPropertyName() == "ModelControllerConnectionPixelSetColorOrder") {
         GetControllerConnection()->DeleteAttribute("colorOrder");
         wxPGProperty *prop = grid->GetFirstChild(event.GetProperty());
@@ -881,11 +907,15 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         } else {
             grid->Collapse(event.GetProperty());
         }
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST);
+        return 0;
     } else if (event.GetPropertyName() == "ModelControllerConnectionPixelSetColorOrder.ModelControllerConnectionPixelColorOrder") {
         GetControllerConnection()->DeleteAttribute("colorOrder");
         GetControllerConnection()->AddAttribute("colorOrder", CONTROLLER_COLORORDER[event.GetValue().GetLong()]);
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST);
+        return 0;
     } else if (event.GetPropertyName() == "ModelControllerConnectionPixelSetNullNodes") {
         GetControllerConnection()->DeleteAttribute("nullNodes");
         wxPGProperty *prop = grid->GetFirstChild(event.GetProperty());
@@ -897,13 +927,17 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         } else {
             grid->Collapse(event.GetProperty());
         }
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST);
+        return 0;
     } else if (event.GetPropertyName() == "ModelControllerConnectionPixelSetNullNodes.ModelControllerConnectionPixelNullNodes") {
         GetControllerConnection()->DeleteAttribute("nullNodes");
         if (event.GetValue().GetLong() >= 0) {
             GetControllerConnection()->AddAttribute("nullNodes", wxString::Format("%i", (int)event.GetValue().GetLong()));
         }
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST);
+        return 0;
     } else if (event.GetPropertyName() == "ModelControllerConnectionPixelSetGroupCount") {
         GetControllerConnection()->DeleteAttribute("groupCount");
         wxPGProperty *prop = grid->GetFirstChild(event.GetProperty());
@@ -915,17 +949,22 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         } else {
             grid->Collapse(event.GetProperty());
         }
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST);
+        return 0;
     } else if (event.GetPropertyName() == "ModelControllerConnectionPixelSetGroupCount.ModelControllerConnectionPixelGroupCount") {
         GetControllerConnection()->DeleteAttribute("groupCount");
         if (event.GetValue().GetLong() >= 0) {
             GetControllerConnection()->AddAttribute("groupCount", wxString::Format("%i", (int)event.GetValue().GetLong()));
         }
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST);
+        return 0;
     } else if (event.GetPropertyName() == "SubModels") {
-        SetFromXml(ModelXml, zeroBased);
         IncrementChangeCount();
-        return GRIDCHANGE_MARK_DIRTY;
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML);
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        return 0;
     } else if (event.GetPropertyName() == "Description") {
         description = event.GetValue().GetString();
         ModelXml->DeleteAttribute("Description");
@@ -933,8 +972,9 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         {
             ModelXml->AddAttribute("Description", XmlSafe(description));
         }
-        //IncrementChangeCount();
-        return GRIDCHANGE_MARK_DIRTY;
+        IncrementChangeCount();
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        return 0;
     } else if (event.GetPropertyName() == "ModelFaces") {
         wxXmlNode *f = ModelXml->GetChildren();
         while (f != nullptr) {
@@ -947,8 +987,9 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
             }
         }
         Model::WriteFaceInfo(ModelXml, faceInfo);
-        //IncrementChangeCount();
-        return GRIDCHANGE_MARK_DIRTY;
+        IncrementChangeCount();
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        return 0;
     } else if (event.GetPropertyName() == "ModelStates") {
         wxXmlNode *f = ModelXml->GetChildren();
         while (f != nullptr) {
@@ -962,8 +1003,9 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
             }
         }
         Model::WriteStateInfo(ModelXml, stateInfo);
-        //IncrementChangeCount();
-        return GRIDCHANGE_MARK_DIRTY;
+        IncrementChangeCount();
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        return 0;
     } else if (event.GetPropertyName() == "ModelStringColor"
                || event.GetPropertyName() == "ModelStringType"
                || event.GetPropertyName() == "ModelRGBWHandling") {
@@ -993,14 +1035,22 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
             p2 = grid->GetPropertyByName("ModelRGBWHandling");
             ModelXml->AddAttribute("RGBWHandling", RGBW_HANDLING[p2->GetValue().GetLong()]);
         }
-        SetFromXml(ModelXml, zeroBased);
-        //IncrementChangeCount();
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | ((event.GetPropertyName() == "ModelStringType" ) ? GRIDCHANGE_REBUILD_PROP_GRID | GRIDCHANGE_REBUILD_MODEL_LIST : 0);
+        IncrementChangeCount();
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML);
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        if (event.GetPropertyName() == "ModelStringType")
+        {
+            AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID);
+            AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST);
+            AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS);
+            AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER);
+        }
+        return 0;
     } else if (event.GetPropertyName() == "ModelStartChannel" || event.GetPropertyName() == "ModelIndividualStartChannels.ModelStartChannel") {
 
         wxString val = event.GetValue().GetString();
 
-        if ((val.StartsWith("@") || val.StartsWith("#") || val.StartsWith(">")) && !val.Contains(":"))
+        if ((val.StartsWith("@") || val.StartsWith("#") || val.StartsWith(">") || val.StartsWith("!")) && !val.Contains(":"))
         {
             val = val + ":1";
             event.GetProperty()->SetValue(val);
@@ -1012,9 +1062,13 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
             ModelXml->DeleteAttribute(StartChanAttrName(0));
             ModelXml->AddAttribute(StartChanAttrName(0), val);
         }
-        //RecalcStartChannels();
-        //IncrementChangeCount();
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
+        IncrementChangeCount();
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST);
+        AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS);
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER);
+        return 0;
     } else if (event.GetPropertyName() == "ModelIndividualStartChannels") {
         ModelXml->DeleteAttribute("Advanced");
         int c = Model::HasOneString(DisplayAs) ? 1 : parm1;
@@ -1033,16 +1087,22 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
                 ModelXml->DeleteAttribute(StartChanAttrName(x));
             }
         }
-        RecalcStartChannels();
-        AdjustStringProperties(grid, parm1);
-        //IncrementChangeCount();
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
+        // Not sure if i can just remove these
+        //RecalcStartChannels();
+        //AdjustStringProperties(grid, parm1);
+        IncrementChangeCount();
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST);
+        AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS);
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER);
+        return 0;
     } else if (event.GetPropertyName().StartsWith("ModelIndividualStartChannels.")) {
         wxString str = event.GetPropertyName();
         str = str.SubString(str.Find(".") + 1, str.length());
 
         wxString val = event.GetValue().GetString();
-        if ((val.StartsWith("@") || val.StartsWith("#") || val.StartsWith(">")) && !val.Contains(":"))
+        if ((val.StartsWith("@") || val.StartsWith("#") || val.StartsWith(">") || val.StartsWith("!")) && !val.Contains(":"))
         {
             val = val + ":1";
             event.GetProperty()->SetValue(val);
@@ -1050,23 +1110,32 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
 
         ModelXml->DeleteAttribute(str);
         ModelXml->AddAttribute(str, val);
-        //RecalcStartChannels();
-        //IncrementChangeCount();
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
+        IncrementChangeCount();
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST);
+        AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS);
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER);
+        return 0;
     } else if (event.GetPropertyName() == "ModelLayoutGroup") {
         layout_group = LAYOUT_GROUPS[event.GetValue().GetLong()];
         ModelXml->DeleteAttribute("LayoutGroup");
         ModelXml->AddAttribute("LayoutGroup", layout_group);
-        //IncrementChangeCount();
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_UPDATE_ALL_MODEL_LISTS;
+        IncrementChangeCount();
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST);
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW);
+        return 0;
     }
 
     int i = GetModelScreenLocation().OnPropertyGridChange(grid, event);
 
     if (i & GRIDCHANGE_MARK_DIRTY) {
+        // Todo ... this has to move into the ModelScreen location change event
         GetModelScreenLocation().Write(ModelXml);
         SetFromXml(ModelXml, zeroBased);
-        //IncrementChangeCount();
+        IncrementChangeCount();
     }
 
     return i;
@@ -3902,6 +3971,11 @@ void Model::AddSizeLocationProperties(wxPropertyGridInterface *grid) {
     GetModelScreenLocation().AddSizeLocationProperties(grid);
 }
 
+void Model::AddASAPWork(uint32_t work)
+{
+    modelManager.GetXLightsFrame()->GetOutputModelManager()->AddASAPWork(work, this, nullptr);
+}
+
 bool Model::SupportsXlightsModel()
 {
     return false;
@@ -4161,8 +4235,8 @@ void Model::SetModelChain(const std::string& modelChain)
     {
         ModelXml->AddAttribute("ModelChain", modelChain);
     }
-    ReworkStartChannel();
-    RecalcStartChannels();
+    AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS);
+    AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS);
     IncrementChangeCount();
 }
 
@@ -4178,8 +4252,8 @@ void Model::SetControllerName(const std::string& controller)
     {
         ModelXml->AddAttribute("Controller", controller);
     }
-    ReworkStartChannel();
-    RecalcStartChannels();
+    AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS);
+    AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS);
     IncrementChangeCount();
 }
 
@@ -4190,8 +4264,8 @@ void Model::SetControllerProtocol(const std::string& protocol)
         GetControllerConnection()->AddAttribute("Protocol", protocol);
     }
     
-    ReworkStartChannel();
-    RecalcStartChannels();
+    AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS);
+    AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS);
     IncrementChangeCount();
 }
 
@@ -4202,19 +4276,14 @@ void Model::SetControllerPort(int port)
         GetControllerConnection()->AddAttribute("Port", wxString::Format("%d", port));
     }
     
-    ReworkStartChannel();
-    RecalcStartChannels();
+    AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS);
+    AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS);
     IncrementChangeCount();
 }
 
 std::string Model::GetControllerName() const
 {
     return ModelXml->GetAttribute("Controller", "").ToStdString();
-}
-
-void Model::ReworkStartChannel()
-{
-    modelManager.ReworkStartChannel();
 }
 
 std::list<std::string> Model::GetProtocols()

@@ -4,6 +4,7 @@
 
 #include "CircleModel.h"
 #include "ModelScreenLocation.h"
+#include "../OutputModelManager.h"
 
 CircleModel::CircleModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased) : ModelWithScreenLocation(manager), insideOut(false)
 {
@@ -130,27 +131,43 @@ int CircleModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyG
     if ("CircleStringCount" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm1");
         ModelXml->AddAttribute("parm1", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        SetFromXml(ModelXml, zeroBased);
-        AdjustStringProperties(grid, parm1);
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
+        //AdjustStringProperties(grid, parm1);
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST);
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW);
+        AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS);
+        return 0;
     }
     else if ("CircleLightCount" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm2");
         ModelXml->AddAttribute("parm2", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        SetFromXml(ModelXml, zeroBased);
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST);
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW);
+        AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS);
+        return 0;
     }
     else if ("CircleCenterPercent" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm3");
         ModelXml->AddAttribute("parm3", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        SetFromXml(ModelXml, zeroBased);
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML);
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW);
+        return 0;
     }
     else if ("CircleLayerSizes" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("circleSizes");
         ModelXml->AddAttribute("circleSizes", event.GetValue().GetString());
-        SetFromXml(ModelXml, zeroBased);
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML);
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW);
+        return 0;
     }
     else if ("CircleStart" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("Dir");
@@ -162,8 +179,10 @@ int CircleModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyG
         ModelXml->AddAttribute("StartSide", v < 4 ? "T" : "B");
         ModelXml->AddAttribute("InsideOut", v & 0x2 ? "1" : "0");
 
-        SetFromXml(ModelXml, zeroBased);
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML);
+        return 0;
     }
 
     return Model::OnPropertyGridChange(grid, event);

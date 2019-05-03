@@ -534,7 +534,7 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
 
         if( loaded_fseq )
         {
-            UpdatePreview();
+            GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, nullptr, nullptr);
         }
         else if( !loaded_xml )
         {

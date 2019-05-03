@@ -411,183 +411,252 @@ int DmxModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGrid
             style_changed = true;
         }
         ModelXml->AddAttribute("DmxStyle", dmx_style );
-        SetFromXml(ModelXml, zeroBased);
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_PROP_GRID;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST);
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW);
+        AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID);
+        return 0;
     } else if ("DmxChannelCount" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm1");
         ModelXml->AddAttribute("parm1", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        //SetFromXml(ModelXml, zeroBased);
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST);
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW);
+        AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS);
+        return 0;
     } else if ("DmxPanChannel" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxPanChannel");
         ModelXml->AddAttribute("DmxPanChannel", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        SetFromXml(ModelXml, zeroBased);
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML);
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER);
     } else if ("DmxPanOrient" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxPanOrient");
         ModelXml->AddAttribute("DmxPanOrient", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        SetFromXml(ModelXml, zeroBased);
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML);
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW);
     } else if ("DmxPanDegOfRot" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxPanDegOfRot");
         ModelXml->AddAttribute("DmxPanDegOfRot", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        SetFromXml(ModelXml, zeroBased);
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML);
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW);
     } else if ("DmxPanSlewLimit" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxPanSlewLimit");
         ModelXml->AddAttribute("DmxPanSlewLimit", wxString::Format("%6.4f", (float)event.GetPropertyValue().GetDouble()));
-        SetFromXml(ModelXml, zeroBased);
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML);
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW);
     } else if ("DmxPanMinLimit" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxPanMinLimit");
         ModelXml->AddAttribute("DmxPanMinLimit", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        SetFromXml(ModelXml, zeroBased);
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML);
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW);
     } else if ("DmxPanMaxLimit" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxPanMaxLimit");
         ModelXml->AddAttribute("DmxPanMaxLimit", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        SetFromXml(ModelXml, zeroBased);
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML);
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW);
     } else if ("DmxTiltChannel" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxTiltChannel");
         ModelXml->AddAttribute("DmxTiltChannel", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        SetFromXml(ModelXml, zeroBased);
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML);
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER);
     } else if ("DmxTiltOrient" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxTiltOrient");
         ModelXml->AddAttribute("DmxTiltOrient", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        SetFromXml(ModelXml, zeroBased);
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML);
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW);
     } else if ("DmxTiltDegOfRot" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxTiltDegOfRot");
         ModelXml->AddAttribute("DmxTiltDegOfRot", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        SetFromXml(ModelXml, zeroBased);
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML);
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW);
     } else if ("DmxTiltSlewLimit" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxTiltSlewLimit");
         ModelXml->AddAttribute("DmxTiltSlewLimit", wxString::Format("%6.4f", (float)event.GetPropertyValue().GetDouble()));
-        SetFromXml(ModelXml, zeroBased);
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML);
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW);
     } else if ("DmxTiltMinLimit" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxTiltMinLimit");
         ModelXml->AddAttribute("DmxTiltMinLimit", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        SetFromXml(ModelXml, zeroBased);
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML);
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW);
     } else if ("DmxTiltMaxLimit" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxTiltMaxLimit");
         ModelXml->AddAttribute("DmxTiltMaxLimit", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        SetFromXml(ModelXml, zeroBased);
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML);
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW);
     } else if ("DmxNodChannel" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxNodChannel");
         ModelXml->AddAttribute("DmxNodChannel", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        SetFromXml(ModelXml, zeroBased);
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML);
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER);
     } else if ("DmxNodOrient" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxNodOrient");
         ModelXml->AddAttribute("DmxNodOrient", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        SetFromXml(ModelXml, zeroBased);
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML);
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW);
     } else if ("DmxNodDegOfRot" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxNodDegOfRot");
         ModelXml->AddAttribute("DmxNodDegOfRot", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        SetFromXml(ModelXml, zeroBased);
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML);
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW);
+        return 0;
     } else if ("DmxNodMinLimit" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxNodMinLimit");
         ModelXml->AddAttribute("DmxNodMinLimit", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        SetFromXml(ModelXml, zeroBased);
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML);
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW);
+        return 0;
     } else if ("DmxNodMaxLimit" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxNodMaxLimit");
         ModelXml->AddAttribute("DmxNodMaxLimit", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        SetFromXml(ModelXml, zeroBased);
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML);
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW);
+        return 0;
     } else if ("DmxJawChannel" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxJawChannel");
         ModelXml->AddAttribute("DmxJawChannel", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        SetFromXml(ModelXml, zeroBased);
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML);
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER);
+        return 0;
     } else if ("DmxJawMinLimit" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxJawMinLimit");
         ModelXml->AddAttribute("DmxJawMinLimit", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        SetFromXml(ModelXml, zeroBased);
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML);
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW);
+        return 0;
     } else if ("DmxJawMaxLimit" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxJawMaxLimit");
         ModelXml->AddAttribute("DmxJawMaxLimit", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        SetFromXml(ModelXml, zeroBased);
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML);
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW);
+        return 0;
     } else if ("DmxEyeBrtChannel" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxEyeBrtChannel");
         ModelXml->AddAttribute("DmxEyeBrtChannel", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        SetFromXml(ModelXml, zeroBased);
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML);
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER);
+        return 0;
     } else if ("DmxEyeUDChannel" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxEyeUDChannel");
         ModelXml->AddAttribute("DmxEyeUDChannel", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        SetFromXml(ModelXml, zeroBased);
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML);
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER);
+        return 0;
     } else if ("DmxEyeUDMinLimit" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxEyeUDMinLimit");
         ModelXml->AddAttribute("DmxEyeUDMinLimit", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        SetFromXml(ModelXml, zeroBased);
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML);
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW);
+        return 0;
     } else if ("DmxEyeUDMaxLimit" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxEyeUDMaxLimit");
         ModelXml->AddAttribute("DmxEyeUDMaxLimit", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        SetFromXml(ModelXml, zeroBased);
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML);
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW);
+        return 0;
     } else if ("DmxEyeLRChannel" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxEyeLRChannel");
         ModelXml->AddAttribute("DmxEyeLRChannel", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        SetFromXml(ModelXml, zeroBased);
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML);
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER);
+        return 0;
     } else if ("DmxEyeLRMinLimit" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxEyeLRMinLimit");
         ModelXml->AddAttribute("DmxEyeLRMinLimit", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        SetFromXml(ModelXml, zeroBased);
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML);
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW);
+        return 0;
     } else if ("DmxEyeLRMaxLimit" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxEyeLRMaxLimit");
         ModelXml->AddAttribute("DmxEyeLRMaxLimit", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        SetFromXml(ModelXml, zeroBased);
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML);
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW);
+        return 0;
     } else if ("DmxRedChannel" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxRedChannel");
         ModelXml->AddAttribute("DmxRedChannel", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        SetFromXml(ModelXml, zeroBased);
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML);
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER);
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW);
+        return 0;
     } else if ("DmxGreenChannel" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxGreenChannel");
         ModelXml->AddAttribute("DmxGreenChannel", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        SetFromXml(ModelXml, zeroBased);
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML);
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER);
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW);
+        return 0;
     } else if ("DmxBlueChannel" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxBlueChannel");
         ModelXml->AddAttribute("DmxBlueChannel", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        SetFromXml(ModelXml, zeroBased);
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML);
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER);
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW);
+        return 0;
     } else if ("DmxWhiteChannel" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxWhiteChannel");
         ModelXml->AddAttribute("DmxWhiteChannel", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        SetFromXml(ModelXml, zeroBased);
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML);
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER);
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW);
+        return 0;
     } else if ("DmxShutterChannel" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxShutterChannel");
         ModelXml->AddAttribute("DmxShutterChannel", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        SetFromXml(ModelXml, zeroBased);
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML);
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER);
+        return 0;
     } else if ("DmxShutterOpen" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxShutterOpen");
         ModelXml->AddAttribute("DmxShutterOpen", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        SetFromXml(ModelXml, zeroBased);
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML);
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER);
+        return 0;
     } else if ("DmxBeamLength" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxBeamLength");
         ModelXml->AddAttribute("DmxBeamLength", wxString::Format("%6.4f", (float)event.GetPropertyValue().GetDouble()));
-        SetFromXml(ModelXml, zeroBased);
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML);
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW);
+        return 0;
     }
 
     return Model::OnPropertyGridChange(grid, event);
@@ -3166,7 +3235,8 @@ void DmxModel::ImportXlightsModel(std::string filename, xLightsFrame* xlights, f
                 }
             }
 
-            xlights->MarkEffectsFileDirty(true);
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, nullptr, nullptr);
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, nullptr, nullptr);
         }
         else
         {

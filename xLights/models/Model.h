@@ -107,12 +107,15 @@ public:
     const ModelManager &GetModelManager() const {
         return modelManager;
     }
-
+    virtual void AddASAPWork(uint32_t work) override;
     virtual bool SupportsXlightsModel();
     static Model* GetXlightsModel(Model* model, std::string &last_model, xLightsFrame* xlights, bool &cancelled, bool download, wxProgressDialog* prog, int low, int high);
     virtual void ImportXlightsModel(std::string filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y);
     virtual void ExportXlightsModel();
     void SetStartChannel(std::string startChannel, bool suppressRecalc = false);
+    void ReloadModelXml() {
+        SetFromXml(ModelXml, zeroBased);
+    }
 
     static const std::vector<std::string> DEFAULT_BUFFER_STYLES;
 
@@ -225,7 +228,6 @@ public:
     int GetControllerPort(int string = 1) const;
     void SetModelChain(const std::string& modelChain);
     std::string GetModelChain() const;
-    void ReworkStartChannel();
     const std::vector<Model *>& GetSubModels() const { return subModels; }
     Model *GetSubModel(const std::string &name);
     int GetNumSubModels() const { return subModels.size();}

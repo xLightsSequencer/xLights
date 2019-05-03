@@ -768,24 +768,35 @@ int PolyLineModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropert
     if ("PolyLineNodes" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm2");
         ModelXml->AddAttribute("parm2", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        SetFromXml(ModelXml, zeroBased);
         wxPGProperty* sp = grid->GetPropertyByLabel("# Nodes");
         if (sp == nullptr)
         {
             sp = grid->GetPropertyByLabel("# Lights");
         }
         sp->SetValueFromInt(parm2);
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML);
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW);
+        AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS);
+        return 0;
     } else if ("PolyLineLights" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm3");
         ModelXml->AddAttribute("parm3", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        //SetFromXml(ModelXml, zeroBased);
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML);
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW);
+        AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS);
+        return 0;
     } else if ("PolyLineStart" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("Dir");
         ModelXml->AddAttribute("Dir", event.GetValue().GetLong() == 0 ? "L" : "R");
-        SetFromXml(ModelXml, zeroBased);
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML);
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW);
+        return 0;
     } else if (event.GetPropertyName() == "ModelIndividualSegments") {
         ModelXml->DeleteAttribute("IndivSegs");
         if (event.GetValue().GetBool()) {
@@ -807,17 +818,25 @@ int PolyLineModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropert
                 ModelXml->DeleteAttribute(SegAttrName(x));
             }
         }
-        //SetFromXml(ModelXml, zeroBased);
-        //IncrementChangeCount();
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_PROP_GRID | GRIDCHANGE_REBUILD_MODEL_LIST;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML);
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW);
+        AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID);
+        return 0;
     } else if (event.GetPropertyName().StartsWith("ModelIndividualSegments.")) {
         wxString str = event.GetPropertyName();
         str = str.SubString(str.Find(".") + 1, str.length());
         ModelXml->DeleteAttribute(str);
         ModelXml->AddAttribute(str, event.GetValue().GetString());
-        //SetFromXml(ModelXml, zeroBased);
-        //IncrementChangeCount();
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_PROP_GRID | GRIDCHANGE_REBUILD_MODEL_LIST;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML);
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW);
+        AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID);
+        return 0;
     } else if (event.GetPropertyName() == "ModelIndividualStartChannels") {
         ModelXml->DeleteAttribute("Advanced");
         if (event.GetValue().GetBool()) {
@@ -835,15 +854,24 @@ int PolyLineModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropert
                 ModelXml->DeleteAttribute(StartChanAttrName(x));
             }
         }
-        RecalcStartChannels();
-        AdjustStringProperties(grid, num_segments);
+        //RecalcStartChannels();
+        //AdjustStringProperties(grid, num_segments);
         //IncrementChangeCount();
         return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML);
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW);
+        AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS);
+        return 0;
     } else if ("IciclesDrops" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DropPattern");
         ModelXml->AddAttribute("DropPattern", event.GetPropertyValue().GetString());
-        SetFromXml(ModelXml, zeroBased);
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML);
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW);
+        return 0;
     }
     else if (!GetModelScreenLocation().IsLocked() && "ModelHeight" == event.GetPropertyName()) {
         height = event.GetValue().GetDouble();
@@ -857,8 +885,11 @@ int PolyLineModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropert
         }
         ModelXml->DeleteAttribute("ModelHeight");
         ModelXml->AddAttribute("ModelHeight", event.GetPropertyValue().GetString());
-        SetFromXml(ModelXml, zeroBased);
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML);
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW);
+        return 0;
     }
     else if (GetModelScreenLocation().IsLocked() && "ModelHeight" == event.GetPropertyName()) {
         event.Veto();
@@ -1059,7 +1090,8 @@ void PolyLineModel::ImportXlightsModel(std::string filename, xLightsFrame* xligh
 
             GetModelScreenLocation().Read(ModelXml);
 
-            xlights->MarkEffectsFileDirty(true);
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, nullptr, nullptr);
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, nullptr, nullptr);
         }
         else
         {

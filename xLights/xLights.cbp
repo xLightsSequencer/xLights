@@ -548,6 +548,8 @@
 		<Unit filename="OpenGLShaders.cpp" />
 		<Unit filename="OptionChooser.cpp" />
 		<Unit filename="OptionChooser.h" />
+		<Unit filename="OutputModelManager.cpp" />
+		<Unit filename="OutputModelManager.h" />
 		<Unit filename="PaletteMgmtDialog.cpp" />
 		<Unit filename="PaletteMgmtDialog.h" />
 		<Unit filename="Parallel.cpp" />

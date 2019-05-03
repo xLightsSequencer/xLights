@@ -1495,6 +1495,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
 
     SetPanelSequencerLabel("");
 
+    _outputModelManager.SetFrame(this);
+
 	mRendering = false;
 
     AddEffectToolbarButtons(effectManager, EffectsToolBar);
@@ -2070,7 +2072,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     MenuItemEffectAssistToggleMode->Check(mEffectAssistMode==EFFECT_ASSIST_TOGGLE_MODE);
     logger_base.debug("Effect Assist Mode: %s.", mEffectAssistMode ? "true" : "false");
 
-    _outputModelManager.SetFrame(this);
     InitEffectsPanel(EffectsPanel1);
     logger_base.debug("Effects panel initialised.");
 
@@ -2503,9 +2504,7 @@ void xLightsFrame::RecalcModels()
     // Now notify the layout as the model start numbers may have been impacted
     AllModels.OldRecalcStartChannels();
     //AllModels.NewRecalcStartChannels();
-    if (layoutPanel != nullptr) {
-        layoutPanel->RefreshLayout();
-    }
+    GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, nullptr, nullptr);
 
     SetCursor(wxCURSOR_ARROW);
 }
@@ -2536,13 +2535,18 @@ void xLightsFrame::OnNotebook1PageChanging(wxAuiNotebookEvent& event)
     }
 }
 
+void xLightsFrame::RenderLayout()
+{
+    layoutPanel->RenderLayout();
+}
+
 void xLightsFrame::OnNotebook1PageChanged1(wxAuiNotebookEvent& event)
 {
     heartbeat("tab change", true); //tell fido to stop watching -DJ
     int pagenum=event.GetSelection(); //Notebook1->GetSelection();
 	if (pagenum == LAYOUTTAB)
     {
-        UpdatePreview();
+        GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, nullptr, nullptr);
         SetStatusText(_(""));
         MenuItem_File_Save->Enable(true);
         MenuItem_File_Save->SetItemLabel("Save Layout\tCTRL-s");
@@ -3696,13 +3700,15 @@ void xLightsFrame::CheckUnsavedChanges()
     }
 }
 
-void xLightsFrame::MarkEffectsFileDirty(bool modelStructureChange)
+void xLightsFrame::MarkEffectsFileDirty()
 {
     layoutPanel->SetDirtyHiLight(true);
     UnsavedRgbEffectsChanges=true;
-    if (modelStructureChange) {
-        modelsChangeCount++;
-    }
+}
+
+void xLightsFrame::MarkModelsAsNeedingRender()
+{
+    modelsChangeCount++;
 }
 
 unsigned int xLightsFrame::GetMaxNumChannels() {
@@ -7301,14 +7307,14 @@ void xLightsFrame::CleanupRGBEffectsFileLocations()
     {
         wxString bi = MoveToShowFolder(mBackgroundImage, wxString(wxFileName::GetPathSeparator()));
         SetPreviewBackgroundImage(bi);
-        MarkEffectsFileDirty(false);
+        GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, nullptr, nullptr);
     }
 
     for (auto m : AllModels)
     {
         if (m.second->CleanupFileLocations(this))
         {
-            MarkEffectsFileDirty(false);
+            GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, nullptr, nullptr);
         }
     }
 
@@ -7316,7 +7322,7 @@ void xLightsFrame::CleanupRGBEffectsFileLocations()
     {
         if (m.second->CleanupFileLocations(this))
         {
-            MarkEffectsFileDirty(false);
+            GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, nullptr, nullptr);
         }
     }
 }

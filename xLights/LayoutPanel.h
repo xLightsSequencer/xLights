@@ -242,6 +242,10 @@ class LayoutPanel: public wxPanel
         std::string GetCurrentPreview() const;
         void SetDisplay2DBoundingBox(bool bb);
         void SetDisplay2DCenter0(bool bb);
+        void ReloadModelList();
+        void refreshModelList();
+        void refreshObjectList();
+        void resetPropertyGrid();
 
         void ModelGroupUpdated(ModelGroup *group, bool full_refresh);
         bool HandleLayoutKeyBinding(wxKeyEvent& event);
@@ -313,9 +317,6 @@ class LayoutPanel: public wxPanel
         int over_handle;
         glm::vec3 last_worldpos;
 
-        void ReloadModelList();
-        void refreshModelList();
-        void resetPropertyGrid();
         void clearPropGrid();
         bool stringPropsVisible;
         bool controllerConnectionVisible;

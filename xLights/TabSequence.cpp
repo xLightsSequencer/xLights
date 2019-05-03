@@ -476,9 +476,7 @@ void xLightsFrame::LoadEffectsFile()
     EffectsNode->AddAttribute("version", XLIGHTS_RGBEFFECTS_VERSION);
 
     displayElementsPanel->SetSequenceElementsModelsViews(&SeqData, &mSequenceElements, ModelsNode, ModelGroupsNode, &_sequenceViewManager);
-    layoutPanel->RefreshLayout();
-    // the call to RefreshLayout will call UpdateModelsList, avoid doing it twice
-    //UpdateModelsList();
+    GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_ALLMODELS, nullptr, nullptr);
     mSequencerInitialize = false;
 
     // load the perspectives

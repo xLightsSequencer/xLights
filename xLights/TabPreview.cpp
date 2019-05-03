@@ -12,21 +12,6 @@ std::string xLightsFrame::GetSelectedLayoutPanelPreview() const
     return layoutPanel->GetCurrentPreview();
 }
 
-void xLightsFrame::UpdatePreview()
-{
-    layoutPanel->UpdatePreview();
-}
-
-void xLightsFrame::RefreshLayout()
-{
-    layoutPanel->RefreshLayout();
-}
-
-void xLightsFrame::RenderLayout()
-{
-    layoutPanel->RenderLayout();
-}
-
 void xLightsFrame::ShowPreviewTime(long ElapsedMSec)
 {
 }
@@ -56,7 +41,7 @@ void xLightsFrame::SetPreviewBackgroundImage(const wxString &filename)
     }
     modelPreview->SetbackgroundImage(mBackgroundImage);
     _housePreviewPanel->GetModelPreview()->SetbackgroundImage(mBackgroundImage);
-    UpdatePreview();
+    GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, nullptr, nullptr);
 }
 
 void xLightsFrame::SetDisplay2DBoundingBox(bool bb)
@@ -65,7 +50,7 @@ void xLightsFrame::SetDisplay2DBoundingBox(bool bb)
     {
         SetXmlSetting("Display2DBoundingBox", bb ? "1" : "0");
         UnsavedRgbEffectsChanges = true;
-        UpdatePreview();
+        GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, nullptr, nullptr);
     }
 }
 
@@ -79,7 +64,7 @@ void xLightsFrame::SetDisplay2DCenter0(bool bb) {
     {
         SetXmlSetting("Display2DCenter0", bb ? "1" : "0");
         UnsavedRgbEffectsChanges = true;
-        UpdatePreview();
+        GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, nullptr, nullptr);
     }
 }
 bool xLightsFrame::GetDisplay2DCenter0() const {
@@ -105,7 +90,7 @@ void xLightsFrame::SetPreviewBackgroundBrightness(int i, int a)
     }
     modelPreview->SetBackgroundBrightness(mBackgroundBrightness, mBackgroundAlpha);
     _housePreviewPanel->GetModelPreview()->SetBackgroundBrightness(mBackgroundBrightness, mBackgroundAlpha);
-    UpdatePreview();
+    GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, nullptr, nullptr);
 }
 
 bool xLightsFrame::GetDefaultPreviewBackgroundScaled()

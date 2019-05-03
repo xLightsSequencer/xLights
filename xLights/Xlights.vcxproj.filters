@@ -29,8 +29,6 @@
     <ClCompile Include="HousePreviewPanel.cpp" />
     <ClCompile Include="IPEntryDialog.cpp" />
     <ClCompile Include="MatrixFaceDownloadDialog.cpp" />
-    <ClCompile Include="models\ChannelBlockModel.cpp" />
-    <ClCompile Include="models\ImageModel.cpp" />
     <ClCompile Include="AudioManager.cpp" />
     <ClCompile Include="BitmapCache.cpp" />
     <ClCompile Include="BufferPanel.cpp" />
@@ -44,7 +42,6 @@
     <ClCompile Include="ConvertDialog.cpp" />
     <ClCompile Include="ConvertLogDialog.cpp" />
     <ClCompile Include="CurrentPreviewModels.cpp" />
-    <ClCompile Include="CustomModelDialog.cpp" />
     <ClCompile Include="DataLayer.cpp" />
     <ClCompile Include="DimmingCurve.cpp" />
     <ClCompile Include="DimmingCurvePanel.cpp" />
@@ -172,32 +169,12 @@
     <ClCompile Include="MIDI\MidiEventList.cpp" />
     <ClCompile Include="MIDI\MidiFile.cpp" />
     <ClCompile Include="MIDI\MidiMessage.cpp" />
-    <ClCompile Include="ModelDimmingCurveDialog.cpp" />
-    <ClCompile Include="ModelFaceDialog.cpp" />
     <ClCompile Include="ModelGroupPanel.cpp" />
     <ClCompile Include="ModelPreview.cpp" />
-    <ClCompile Include="ModelStateDialog.cpp" />
-    <ClCompile Include="models\CandyCaneModel.cpp" />
-    <ClCompile Include="models\CircleModel.cpp" />
-    <ClCompile Include="models\CustomModel.cpp" />
-    <ClCompile Include="models\DmxModel.cpp" />
-    <ClCompile Include="models\IciclesModel.cpp" />
-    <ClCompile Include="models\MatrixModel.cpp" />
-    <ClCompile Include="models\Model.cpp" />
-    <ClCompile Include="models\ModelGroup.cpp" />
-    <ClCompile Include="models\ModelManager.cpp" />
-    <ClCompile Include="models\ModelScreenLocation.cpp" />
     <ClCompile Include="models\Node.cpp" />
-    <ClCompile Include="models\PolyLineModel.cpp" />
     <ClCompile Include="models\Shapes.cpp" />
     <ClCompile Include="models\SingleLineModel.cpp" />
-    <ClCompile Include="models\SphereModel.cpp" />
-    <ClCompile Include="models\SpinnerModel.cpp" />
-    <ClCompile Include="models\StarModel.cpp" />
-    <ClCompile Include="models\SubModel.cpp" />
-    <ClCompile Include="models\TreeModel.cpp" />
     <ClCompile Include="models\WindowFrameModel.cpp" />
-    <ClCompile Include="models\WreathModel.cpp" />
     <ClCompile Include="MusicXML.cpp" />
     <ClCompile Include="NewTimingDialog.cpp" />
     <ClCompile Include="NodesGridCellEditor.cpp" />
@@ -264,7 +241,6 @@
     <ClCompile Include="StrandNodeNamesDialog.cpp" />
     <ClCompile Include="SubBufferPanel.cpp" />
     <ClCompile Include="SubModelGenerateDialog.cpp" />
-    <ClCompile Include="SubModelsDialog.cpp" />
     <ClCompile Include="SuperStarImportDialog.cpp" />
     <ClCompile Include="support\EzGrid.cpp" />
     <ClCompile Include="support\FastComboEditor.cpp" />
@@ -343,19 +319,14 @@
     <ClCompile Include="RenderCache.cpp" />
     <ClCompile Include="Parallel.cpp" />
     <ClCompile Include="models\ObjectManager.cpp" />
-    <ClCompile Include="models\ViewObject.cpp" />
     <ClCompile Include="models\ViewObjectManager.cpp" />
-    <ClCompile Include="models\GridlinesObject.cpp" />
     <ClCompile Include="ViewObjectPanel.cpp" />
-    <ClCompile Include="models\ImageObject.cpp" />
     <ClCompile Include="controllers\ControllerUploadData.cpp" />
-    <ClCompile Include="models\MeshObject.cpp" />
     <ClCompile Include="NodeSelectGrid.cpp" />
     <ClCompile Include="MultiControllerUploadDialog.cpp" />
     <ClCompile Include="wxModelGridCellRenderer.cpp" />
     <ClCompile Include="FSEQFile.cpp" />
     <ClCompile Include="PathGenerationDialog.cpp" />
-    <ClCompile Include="models\CubeModel.cpp" />
     <ClCompile Include="controllers\EasyLights.cpp" />
     <ClCompile Include="RemapDMXChannelsDialog.cpp" />
     <ClCompile Include="models\WholeHouseModel.cpp" />
@@ -387,6 +358,93 @@
       <Filter>Models</Filter>
     </ClCompile>
     <ClCompile Include="OutputModelManager.cpp" />
+    <ClCompile Include="models\ModelManager.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
+    <ClCompile Include="models\Model.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
+    <ClCompile Include="models\ChannelBlockModel.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
+    <ClCompile Include="models\CandyCaneModel.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
+    <ClCompile Include="models\DmxModel.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
+    <ClCompile Include="models\CircleModel.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
+    <ClCompile Include="models\CubeModel.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
+    <ClCompile Include="CustomModelDialog.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
+    <ClCompile Include="models\CustomModel.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
+    <ClCompile Include="models\IciclesModel.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
+    <ClCompile Include="models\ImageObject.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
+    <ClCompile Include="models\ImageModel.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
+    <ClCompile Include="models\MatrixModel.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
+    <ClCompile Include="models\MeshObject.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
+    <ClCompile Include="models\GridlinesObject.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
+    <ClCompile Include="models\PolyLineModel.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
+    <ClCompile Include="models\SphereModel.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
+    <ClCompile Include="models\SpinnerModel.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
+    <ClCompile Include="models\StarModel.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
+    <ClCompile Include="models\SubModel.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
+    <ClCompile Include="SubModelsDialog.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
+    <ClCompile Include="models\TreeModel.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
+    <ClCompile Include="models\ViewObject.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
+    <ClCompile Include="models\WreathModel.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
+    <ClCompile Include="models\ModelGroup.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
+    <ClCompile Include="ModelFaceDialog.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
+    <ClCompile Include="ModelDimmingCurveDialog.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
+    <ClCompile Include="models\ModelScreenLocation.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
+    <ClCompile Include="ModelStateDialog.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -408,8 +466,6 @@
     <ClInclude Include="GenerateLyricsDialog.h" />
     <ClInclude Include="HousePreviewPanel.h" />
     <ClInclude Include="MatrixFaceDownloadDialog.h" />
-    <ClInclude Include="models\ChannelBlockModel.h" />
-    <ClInclude Include="models\ImageModel.h" />
     <ClInclude Include="MSWStackWalk.h" />
     <ClInclude Include="CustomTimingDialog.h" />
     <ClInclude Include="effects\CandleEffect.h" />
@@ -433,7 +489,6 @@
     <ClInclude Include="ConvertDialog.h" />
     <ClInclude Include="ConvertLogDialog.h" />
     <ClInclude Include="CurrentPreviewModels.h" />
-    <ClInclude Include="CustomModelDialog.h" />
     <ClInclude Include="DataLayer.h" />
     <ClInclude Include="DimmingCurve.h" />
     <ClInclude Include="DimmingCurvePanel.h" />
@@ -549,32 +604,12 @@
     <ClInclude Include="LMSImportChannelMapDialog.h" />
     <ClInclude Include="LorConvertDialog.h" />
     <ClInclude Include="LyricsDialog.h" />
-    <ClInclude Include="ModelDimmingCurveDialog.h" />
-    <ClInclude Include="ModelFaceDialog.h" />
     <ClInclude Include="ModelGroupPanel.h" />
     <ClInclude Include="ModelPreview.h" />
-    <ClInclude Include="ModelStateDialog.h" />
-    <ClInclude Include="models\CandyCaneModel.h" />
-    <ClInclude Include="models\CircleModel.h" />
-    <ClInclude Include="models\CustomModel.h" />
-    <ClInclude Include="models\DmxModel.h" />
-    <ClInclude Include="models\IciclesModel.h" />
-    <ClInclude Include="models\MatrixModel.h" />
-    <ClInclude Include="models\Model.h" />
-    <ClInclude Include="models\ModelGroup.h" />
-    <ClInclude Include="models\ModelManager.h" />
-    <ClInclude Include="models\ModelScreenLocation.h" />
     <ClInclude Include="models\Node.h" />
-    <ClInclude Include="models\PolyLineModel.h" />
     <ClInclude Include="models\Shapes.h" />
     <ClInclude Include="models\SingleLineModel.h" />
-    <ClInclude Include="models\SphereModel.h" />
-    <ClInclude Include="models\SpinnerModel.h" />
-    <ClInclude Include="models\StarModel.h" />
-    <ClInclude Include="models\SubModel.h" />
-    <ClInclude Include="models\TreeModel.h" />
     <ClInclude Include="models\WindowFrameModel.h" />
-    <ClInclude Include="models\WreathModel.h" />
     <ClInclude Include="MusicXML.h" />
     <ClInclude Include="NewTimingDialog.h" />
     <ClInclude Include="NodesGridCellEditor.h" />
@@ -644,7 +679,6 @@
     <ClInclude Include="StrandNodeNamesDialog.h" />
     <ClInclude Include="SubBufferPanel.h" />
     <ClInclude Include="SubModelGenerateDialog.h" />
-    <ClInclude Include="SubModelsDialog.h" />
     <ClInclude Include="SuperStarImportDialog.h" />
     <ClInclude Include="support\EzGrid.h" />
     <ClInclude Include="support\FastComboEditor.h" />
@@ -732,20 +766,15 @@
     <ClInclude Include="RenderCache.h" />
     <ClInclude Include="Parallel.h" />
     <ClInclude Include="models\ObjectManager.h" />
-    <ClInclude Include="models\ViewObject.h" />
     <ClInclude Include="models\ViewObjectManager.h" />
-    <ClInclude Include="models\GridlinesObject.h" />
     <ClInclude Include="ViewObjectPanel.h" />
-    <ClInclude Include="models\ImageObject.h" />
     <ClInclude Include="controllers\ControllerUploadData.h" />
     <ClInclude Include="NodeSelectGrid.h" />
-    <ClInclude Include="models\MeshObject.h" />
     <ClInclude Include="models\tiny_obj_loader.h" />
     <ClInclude Include="MultiControllerUploadDialog.h" />
     <ClInclude Include="wxModelGridCellRenderer.h" />
     <ClInclude Include="FSEQFile.h" />
     <ClInclude Include="PathGenerationDialog.h" />
-    <ClInclude Include="models\CubeModel.h" />
     <ClInclude Include="controllers\EasyLights.h" />
     <ClInclude Include="RemapDMXChannelsDialog.h" />
     <ClInclude Include="models\WholeHouseModel.h" />
@@ -778,6 +807,93 @@
       <Filter>Models</Filter>
     </ClInclude>
     <ClInclude Include="OutputModelManager.h" />
+    <ClInclude Include="models\ModelManager.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="models\Model.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="models\ChannelBlockModel.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="models\CandyCaneModel.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="models\DmxModel.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="models\CircleModel.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="models\CubeModel.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="CustomModelDialog.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="models\CustomModel.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="models\IciclesModel.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="models\ImageObject.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="models\ImageModel.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="models\MatrixModel.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="models\MeshObject.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="models\GridlinesObject.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="models\PolyLineModel.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="models\SphereModel.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="models\SpinnerModel.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="models\StarModel.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="models\SubModel.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="SubModelsDialog.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="models\TreeModel.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="models\ViewObject.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="models\WreathModel.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="models\ModelGroup.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="ModelFaceDialog.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="ModelDimmingCurveDialog.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="models\ModelScreenLocation.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="ModelStateDialog.h">
+      <Filter>Models</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

@@ -63,18 +63,28 @@ int GridlinesObject::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPrope
         ModelXml->DeleteAttribute("GridLineSpacing");
         ModelXml->AddAttribute("GridLineSpacing", wxString::Format("%d", line_spacing));
         return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        //AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML);
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW);
+        return 0;
     }
     else if ("GridWidth" == event.GetPropertyName()) {
         width = (int)event.GetPropertyValue().GetLong();
         ModelXml->DeleteAttribute("GridWidth");
         ModelXml->AddAttribute("GridWidth", wxString::Format("%d", width));
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        //AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML);
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW);
+        return 0;
     }
     else if ("GridHeight" == event.GetPropertyName()) {
         height = (int)event.GetPropertyValue().GetLong();
         ModelXml->DeleteAttribute("GridHeight");
         ModelXml->AddAttribute("GridHeight", wxString::Format("%d", height));
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        //AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML);
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW);
+        return 0;
     }
     else if ("GridColor" == event.GetPropertyName()) {
         wxPGProperty *p = grid->GetPropertyByName("GridColor");
@@ -83,14 +93,20 @@ int GridlinesObject::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPrope
         gridColor = c;
         ModelXml->DeleteAttribute("GridColor");
         ModelXml->AddAttribute("GridColor", gridColor);
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        //AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML);
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW);
+        return 0;
     } else if (event.GetPropertyName() == "GridAxis") {
         ModelXml->DeleteAttribute("GridAxis");
         hasAxis = event.GetValue().GetBool();
         if (hasAxis) {
             ModelXml->AddAttribute("GridAxis", "1");
         }
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        //AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML);
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW);
+        return 0;
     }
 
     return ViewObject::OnPropertyGridChange(grid, event);

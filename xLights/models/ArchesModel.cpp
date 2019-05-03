@@ -62,34 +62,59 @@ int ArchesModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyG
     if ("ArchesCount" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm1");
         ModelXml->AddAttribute("parm1", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        //SetFromXml(ModelXml, zeroBased);
-        AdjustStringProperties(grid, parm1);
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
+        //AdjustStringProperties(grid, parm1);
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST);
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID);
+        AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS);
+        return 0;
     } else if ("ArchesNodes" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm2");
         ModelXml->AddAttribute("parm2", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        //SetFromXml(ModelXml, zeroBased);
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST);
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW);
+        AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS);
+        return 0;
     } else if ("ArchesLights" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm3");
         ModelXml->AddAttribute("parm3", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        //SetFromXml(ModelXml, zeroBased);
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST);
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW);
+        return 0;
     } else if ("ArchesArc" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("arc");
         ModelXml->AddAttribute("arc", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        SetFromXml(ModelXml, zeroBased);
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML);
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW);
+        return 0;
     } else if ("ArchesSkew" == event.GetPropertyName()) {
+        screenLocation.SetAngle(event.GetPropertyValue().GetLong());
         ModelXml->DeleteAttribute("Angle");
         ModelXml->AddAttribute("Angle", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        SetFromXml(ModelXml, zeroBased);
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML);
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW);
+        return 0;
     } else if ("ArchesStart" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("Dir");
         ModelXml->AddAttribute("Dir", event.GetValue().GetLong() == 0 ? "L" : "R");
-        SetFromXml(ModelXml, zeroBased);
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER);
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML);
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW);
+        return 0;
     }
 
     return Model::OnPropertyGridChange(grid, event);
@@ -212,35 +237,35 @@ static void rotate_point(float cx,float cy, float angle, float &x, float &y)
 
 void ArchesModel::SetArchCoord() {
     double x;
-    size_t NodeCount=GetNodeCount();
-    double midpt=parm2*parm3;
+    size_t NodeCount = GetNodeCount();
+    double midpt = parm2 * parm3;
     midpt -= 1.0;
     midpt /= 2.0;
     double total = toRadians(arc);
     double start = (M_PI - total) / 2.0;
     float skew_angle = toRadians(screenLocation.GetAngle());
 
-    double angle=-M_PI/2.0 + start;
-    x=midpt*sin(angle)*2.0+parm2*parm3;
-    double width = parm2*parm3*2 - x;
+    double angle = -M_PI / 2.0 + start;
+    x = midpt * sin(angle) * 2.0 + parm2 * parm3;
+    double width = parm2 * parm3 * 2 - x;
 
     double minY = 999999;
-    for(size_t n=0; n<NodeCount; n++) {
+    for (size_t n = 0; n < NodeCount; n++) {
         double xoffset = Nodes[n]->StringNum * width;
-        size_t CoordCount=GetCoordCount(n);
-        for(size_t c=0; c < CoordCount; c++) {
-            double angle2 = -M_PI/2.0 + start + total * ((double)(Nodes[n]->Coords[c].bufX * parm3 + c))/midpt/2.0;
-            x = xoffset + midpt*sin(angle2)*2.0+parm2*parm3;
-            double y = (parm2*parm3)*cos(angle2);
+        size_t CoordCount = GetCoordCount(n);
+        for (size_t c = 0; c < CoordCount; c++) {
+            double angle2 = -M_PI / 2.0 + start + total * ((double)(Nodes[n]->Coords[c].bufX * parm3 + c)) / midpt / 2.0;
+            x = xoffset + midpt * sin(angle2) * 2.0 + parm2 * parm3;
+            double y = (parm2 * parm3) * cos(angle2);
             Nodes[n]->Coords[c].screenX = x;
             Nodes[n]->Coords[c].screenY = y * screenLocation.GetHeight();
             rotate_point(x, 0, skew_angle,
-                        Nodes[n]->Coords[c].screenX,
-                        Nodes[n]->Coords[c].screenY);
+                Nodes[n]->Coords[c].screenX,
+                Nodes[n]->Coords[c].screenY);
             minY = std::min(minY, y);
         }
     }
-    float renderHt = parm2*parm3;
+    float renderHt = parm2 * parm3;
     if (minY > 1) {
         renderHt -= minY;
         for (auto it = Nodes.begin(); it != Nodes.end(); ++it) {
@@ -376,7 +401,8 @@ void ArchesModel::ImportXlightsModel(std::string filename, xLightsFrame* xlights
                 }
             }
 
-            xlights->MarkEffectsFileDirty(true);
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, nullptr, nullptr);
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, nullptr, nullptr);
         }
         else
         {

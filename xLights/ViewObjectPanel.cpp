@@ -28,7 +28,7 @@ const long ViewObjectPanel::ID_TREELISTVIEW_OBJECTS = wxNewId();
 const long ViewObjectPanel::ID_MNU_DELETE_OBJECT = wxNewId();
 
 ViewObjectPanel::ViewObjectPanel(wxWindow* parent,ViewObjectManager &Objects,LayoutPanel *xl,wxWindowID id,const wxPoint& pos,const wxSize& size)
-:   layoutPanel(xl), mViewObjects(Objects), mSelectedObject(nullptr)
+:   layoutPanel(xl), mViewObjects(Objects), mSelectedObject(nullptr), m_imageList(nullptr)
 {
 	//(*Initialize(ViewObjectPanel)
 	wxFlexGridSizer* FlexGridSizer1;
@@ -192,10 +192,7 @@ int ViewObjectPanel::AddObjectToTree(ViewObject *view_object, wxTreeListItem* pa
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     int width = 0;
 
-    if (view_object == nullptr)
-    {
-        logger_base.crit("LayoutPanel::AddObjectToTree view_object is null ... this is going to crash.");
-    }
+    if (view_object == nullptr) return width;
 
     //logger_base.debug("Adding object %s", (const char *)view_object->GetName().c_str());
 
@@ -517,22 +514,24 @@ void ViewObjectPanel::OnPropertyGridChange(wxPropertyGrid *propertyEditor, wxPro
                 layoutPanel->xlights->RenameObject(oldname, safename);
                 layoutPanel->SelectBaseObject(safename);
                 mSelectedObject = dynamic_cast<ViewObject*>(layoutPanel->selectedBaseObject);
-                CallAfter(&ViewObjectPanel::refreshObjectList);
-                layoutPanel->xlights->MarkEffectsFileDirty(true);
+                layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, nullptr, nullptr);
+                layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, nullptr, nullptr);
+                layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_OBJECTLIST, nullptr, nullptr);
             }
         } else {
             int i = mSelectedObject->OnPropertyGridChange(propertyEditor, event);
             if (i & GRIDCHANGE_REFRESH_DISPLAY) {
-                layoutPanel->xlights->UpdatePreview();
+                layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, nullptr, nullptr);
             }
             if (i & GRIDCHANGE_MARK_DIRTY) {
-                layoutPanel->xlights->MarkEffectsFileDirty(true);
+                layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, nullptr, nullptr);
+                layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, nullptr, nullptr);
             }
             if (i & GRIDCHANGE_REBUILD_PROP_GRID) {
-                CallAfter(&LayoutPanel::resetPropertyGrid);
+                layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, nullptr, nullptr);
             }
             if (i & GRIDCHANGE_REBUILD_MODEL_LIST) {
-                CallAfter(&ViewObjectPanel::refreshObjectList);
+                layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_OBJECTLIST, nullptr, nullptr);
             }
             if (i & GRIDCHANGE_UPDATE_ALL_MODEL_LISTS) {
                 // Preview assignment change so model may not exist in current preview anymore
@@ -615,25 +614,10 @@ void ViewObjectPanel::DeleteSelectedObject() {
         layoutPanel->CreateUndoPoint("All", mSelectedObject->name);
         // This should delete all selected models
         layoutPanel->xlights->AllObjects.Delete(mSelectedObject->name);
-        /*bool selectedModelFound = false;
-        for (size_t i = 0; i<modelPreview->GetModels().size(); i++)
-        {
-            if (modelPreview->GetModels()[i]->GroupSelected)
-            {
-                if (!selectedModelFound && modelPreview->GetModels()[i]->name == mSelectedObject->name)
-                {
-                    selectedModelFound = true;
-                }
-                xlights->AllModels.Delete(modelPreview->GetModels()[i]->name);
-            }
-        }
-        if (!selectedModelFound)
-        {
-            xlights->AllModels.Delete(mSelectedObject->name);
-        }*/
         mSelectedObject = nullptr;
-        layoutPanel->xlights->UpdateModelsList();
-        layoutPanel->xlights->MarkEffectsFileDirty(true);
+        layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, nullptr, nullptr);
+        layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, nullptr, nullptr);
+        layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, nullptr, nullptr);
     }
 }
 
@@ -717,7 +701,7 @@ void ViewObjectPanel::PreviewObjectAlignWithGround()
             view_object->SetBottom(0.0f);
         }
     }
-    layoutPanel->UpdatePreview();
+    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, nullptr, nullptr);
 }
 
 void ViewObjectPanel::PreviewObjectAlignTops()
@@ -733,7 +717,7 @@ void ViewObjectPanel::PreviewObjectAlignTops()
             view_object->SetTop(top);
         }
     }
-    layoutPanel->UpdatePreview();
+    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, nullptr, nullptr);
 }
 
 void ViewObjectPanel::PreviewObjectAlignBottoms()
@@ -749,7 +733,7 @@ void ViewObjectPanel::PreviewObjectAlignBottoms()
             view_object->SetBottom(bottom);
         }
     }
-    layoutPanel->UpdatePreview();
+    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, nullptr, nullptr);
 }
 
 void ViewObjectPanel::PreviewObjectAlignLeft()
@@ -765,7 +749,7 @@ void ViewObjectPanel::PreviewObjectAlignLeft()
             view_object->SetLeft(left);
         }
     }
-    layoutPanel->UpdatePreview();
+    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, nullptr, nullptr);
 }
 
 void ViewObjectPanel::PreviewObjectAlignFronts()
@@ -781,7 +765,7 @@ void ViewObjectPanel::PreviewObjectAlignFronts()
             view_object->SetFront(front);
         }
     }
-    layoutPanel->UpdatePreview();
+    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, nullptr, nullptr);
 }
 
 void ViewObjectPanel::PreviewObjectAlignBacks()
@@ -797,7 +781,7 @@ void ViewObjectPanel::PreviewObjectAlignBacks()
             view_object->SetBack(back);
         }
     }
-    layoutPanel->UpdatePreview();
+    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, nullptr, nullptr);
 }
 
 void ViewObjectPanel::PreviewObjectResize(bool sameWidth, bool sameHeight)
@@ -833,7 +817,7 @@ void ViewObjectPanel::PreviewObjectResize(bool sameWidth, bool sameHeight)
             }
         }
     }
-    layoutPanel->UpdatePreview();
+    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, nullptr, nullptr);
 }
 
 void ViewObjectPanel::PreviewObjectAlignRight()
@@ -849,7 +833,7 @@ void ViewObjectPanel::PreviewObjectAlignRight()
             view_object->SetRight(right);
         }
     }
-    layoutPanel->UpdatePreview();
+    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, nullptr, nullptr);
 }
 
 void ViewObjectPanel::PreviewObjectAlignHCenter()
@@ -865,7 +849,7 @@ void ViewObjectPanel::PreviewObjectAlignHCenter()
             view_object->SetHcenterPos(center);
         }
     }
-    layoutPanel->UpdatePreview();
+    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, nullptr, nullptr);
 }
 
 void ViewObjectPanel::PreviewObjectAlignVCenter()
@@ -881,7 +865,7 @@ void ViewObjectPanel::PreviewObjectAlignVCenter()
             view_object->SetVcenterPos(center);
         }
     }
-    layoutPanel->UpdatePreview();
+    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, nullptr, nullptr);
 }
 
 bool SortObjectX(const ViewObject* first, const ViewObject* second)
@@ -946,7 +930,7 @@ void ViewObjectPanel::PreviewObjectHDistribute()
             x += space;
         }
     }
-    layoutPanel->UpdatePreview();
+    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, nullptr, nullptr);
 }
 
 void ViewObjectPanel::PreviewObjectVDistribute()
@@ -995,7 +979,7 @@ void ViewObjectPanel::PreviewObjectVDistribute()
             y += space;
         }
     }
-    layoutPanel->UpdatePreview();
+    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, nullptr, nullptr);
 }
 
 void ViewObjectPanel::DoCut(wxCommandEvent& event)

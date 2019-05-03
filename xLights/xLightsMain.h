@@ -303,7 +303,8 @@ public:
     void OnMenuItemLoadPerspectiveSelected(wxCommandEvent& event);
 	bool SaveEffectsFile(bool backup = false);
     void SaveModelsFile();
-    void MarkEffectsFileDirty(bool modelStructureChange);
+    void MarkEffectsFileDirty();
+    void MarkModelsAsNeedingRender();
     void CheckUnsavedChanges();
     void SetStatusText(const wxString &msg, int filename = 0);
     void SetStatusTextColor(const wxString &msg, const wxColor& colour);
@@ -1418,12 +1419,9 @@ public:
     int GetDefaultPreviewBackgroundBrightness();
     int GetDefaultPreviewBackgroundAlpha();
     void SetPreviewBackgroundBrightness(int brightness, int alpha);
-    void UpdatePreview();
     void UpdateModelsList();
     void RowHeadingsChanged( wxCommandEvent& event);
     void DoForceSequencerRefresh();
-    void RefreshLayout();
-    void RenderLayout();
     void AddPreviewOption(LayoutGroup* grp);
     void RemovePreviewOption(LayoutGroup* grp);
     ModelPreview* GetLayoutPreview() const {return modelPreview;}
@@ -1440,6 +1438,7 @@ public:
     void SetACSettings(ACTYPE type);
     bool IsPaneDocked(wxWindow* window) const;
     ModelPreview* GetHousePreview() const;
+    void RenderLayout();
 
     void UnselectEffect();
 

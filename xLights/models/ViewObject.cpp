@@ -69,8 +69,10 @@ int ViewObject::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGr
         {
             ModelXml->AddAttribute("Active", "0");
         }
-        //IncrementChangeCount();
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE);
+        //AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML);
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW);
+        return 0;
     }
 
     int i = GetObjectScreenLocation().OnPropertyGridChange(grid, event);
@@ -78,7 +80,6 @@ int ViewObject::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGr
     if (i & GRIDCHANGE_MARK_DIRTY) {
         GetObjectScreenLocation().Write(ModelXml);
         SetFromXml(ModelXml);
-        //IncrementChangeCount();
     }
 
     return i;

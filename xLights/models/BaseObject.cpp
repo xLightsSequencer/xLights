@@ -2,6 +2,8 @@
 
 #include "BaseObject.h"
 #include "ModelScreenLocation.h"
+#include "../xLightsMain.h"
+#include "../xLightsApp.h"
 
 BaseObject::BaseObject()
 : ModelXml(nullptr), changeCount(0)
@@ -50,6 +52,11 @@ void BaseObject::Lock(bool lock)
         GetModelXml()->AddAttribute("Locked", "1");
     }
     IncrementChangeCount();
+}
+
+void BaseObject::AddASAPWork(uint32_t work)
+{
+    xLightsApp::GetFrame()->GetOutputModelManager()->AddASAPWork(work, nullptr, nullptr);
 }
 
 void BaseObject::SetTop(float y) {

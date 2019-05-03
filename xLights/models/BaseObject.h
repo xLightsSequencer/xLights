@@ -2,6 +2,7 @@
 #define BASEOBJECT_H
 
 #include <string>
+#include "../OutputModelManager.h"
 
 class xLightsFrame;
 class wxPropertyGridInterface;
@@ -30,6 +31,7 @@ public:
     virtual void MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z);
     void SelectHandle(int handle);
     void Lock(bool lock);
+    virtual void AddASAPWork(uint32_t work);
 
     void SetTop(float y);
     void SetBottom(float y);

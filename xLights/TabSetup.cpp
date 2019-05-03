@@ -37,10 +37,11 @@
 #include "outputs/LOROptimisedOutput.h"
 #include "osxMacUtils.h"
 #include "UtilFunctions.h"
+#include "models/Model.h"
 
-#include <log4cpp/Category.hh>
 #include "MultiControllerUploadDialog.h"
 #include "ControllerVisualiseDialog.h"
+#include <log4cpp/Category.hh>
 
 const long xLightsFrame::ID_NETWORK_ADDUSB = wxNewId();
 const long xLightsFrame::ID_NETWORK_ADDNULL = wxNewId();
@@ -620,7 +621,7 @@ void xLightsFrame::ChangeSelectedNetwork()
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, nullptr, newoutput);
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, nullptr, newoutput);
         _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, nullptr, newoutput);
-        AllModels.ReworkStartChannel();
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, nullptr, newoutput);
     }
 }
 
@@ -1160,7 +1161,7 @@ void xLightsFrame::NetworkChannelsChange()
     _outputManager.SomethingChanged();
     if (RebuildControllerConfig(&_outputManager, &AllModels))
     {
-        MarkEffectsFileDirty(false);
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, nullptr, nullptr);
     }
 }
 
@@ -2257,51 +2258,128 @@ void xLightsFrame::OnButton_DiscoverClick(wxCommandEvent& event)
 
 void xLightsFrame::DoASAPWork()
 {
+    static log4cpp::Category& logger_work = log4cpp::Category::getInstance(std::string("log_work"));
+    logger_work.debug("Doing ASAP Work.");
     DoWork(_outputModelManager.GetASAPWork());
 }
 
 void xLightsFrame::DoWork(uint32_t work)
 {
+    static log4cpp::Category& logger_work = log4cpp::Category::getInstance(std::string("log_work"));
     if (work & OutputModelManager::WORK_NETWORK_CHANGE)
     {
+        logger_work.debug("    WORK_NETWORK_CHANGE.");
         // Mark networks file dirty
         NetworkChange();
     }
     if (work & OutputModelManager::WORK_NETWORK_CHANNELSCHANGE)
     {
+        logger_work.debug("    WORK_NETWORK_CHANNELSCHANGE.");
         // Recalculates all the channels in the outputs
         NetworkChannelsChange();
     }
     if (work & OutputModelManager::WORK_UPDATE_NETWORK_LIST)
     {
+        logger_work.debug("    WORK_UPDATE_NETWORK_LIST.");
         // Updates the list of outputs on the screen
         UpdateNetworkList();
     }
+    if (work & OutputModelManager::WORK_RGBEFFECTS_CHANGE)
+    {
+        logger_work.debug("    WORK_RGBEFFECTS_CHANGE.");
+        // Mark the rgb effects file as needing to be saved
+        MarkEffectsFileDirty();
+    }
+    if (work & OutputModelManager::WORK_RELOAD_MODEL_FROM_XML && !(work & OutputModelManager::WORK_RELOAD_ALLMODELS))
+    {
+        logger_work.debug("    WORK_RELOAD_MODEL_FROM_XML.");
+        Model* m = _outputModelManager.GetModelToReload();
+        if (m != nullptr)
+        {
+            m->ReloadModelXml();
+        }
+    }
+    if (work & OutputModelManager::WORK_RELOAD_ALLMODELS)
+    {
+        logger_work.debug("    WORK_RELOAD_ALLMODELS.");
+        UpdateModelsList();
+        //layoutPanel->RefreshLayout();
+    }
+    if (work & OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS)
+    {
+        logger_work.debug("    WORK_MODELS_REWORK_STARTCHANNELS.");
+        // Moves all the models around optimally
+        AllModels.ReworkStartChannel();
+    }
+    if (work & OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER)
+    {
+        logger_work.debug("    WORK_MODELS_CHANGE_REQUIRING_RERENDER.");
+        // increment the model count which triggers re-rendering due to models changing
+        MarkModelsAsNeedingRender();
+    }
     if (work & OutputModelManager::WORK_CALCULATE_START_CHANNELS)
     {
+        logger_work.debug("    WORK_CALCULATE_START_CHANNELS.");
         // Recalculates the models actual start channels based on changes to the outputs
         RecalcModels();
     }
     if (work & OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG)
     {
+        logger_work.debug("    WORK_RESEND_CONTROLLER_CONFIG.");
         // Rebuilds generally ZCPP controller config
         // Should happen whenever models are changed or a ZCPP output is changed
         RebuildControllerConfig(&_outputManager, &AllModels);
     }
+    if (work & OutputModelManager::WORK_RELOAD_MODELLIST)
+    {
+        logger_work.debug("    WORK_RELOAD_MODELLIST.");
+        // reload the models list on the layout panel
+        layoutPanel->refreshModelList();
+    }
+    if (work & OutputModelManager::WORK_RELOAD_OBJECTLIST)
+    {
+        logger_work.debug("    WORK_RELOAD_OBJECTLIST.");
+        // reload the objects list on the layout panel
+        layoutPanel->refreshObjectList();
+    }
+    if (work & OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW)
+    {
+        logger_work.debug("    WORK_REDRAW_LAYOUTPREVIEW.");
+        // repaint the layout panel
+        layoutPanel->UpdatePreview();
+    }
+    if (work & OutputModelManager::WORK_RELOAD_PROPERTYGRID)
+    {
+        logger_work.debug("    WORK_RELOAD_PROPERTYGRID.");
+        // Reload the property grid either because a value changed and needs to be shown or optional properties should be added or removed
+        layoutPanel->resetPropertyGrid();
+    }
     if (work & OutputModelManager::WORK_SAVE_NETWORKS)
     {
+        logger_work.debug("    WORK_SAVE_NETWORKS.");
         // write the networks file to disk and clears the dirty flag
         SaveNetworksFile();
+    }
+    auto selectModel = _outputModelManager.GetSelectedModel();
+    if (selectModel != "")
+    {
+        logger_work.debug("    Selecting model '%s'.", (const char*)selectModel.c_str());
+        //SelectModel(selectModel);
+        layoutPanel->SelectBaseObject(selectModel);
     }
 }
 
 void xLightsFrame::DoLayoutWork()
 {
+    static log4cpp::Category& logger_work = log4cpp::Category::getInstance(std::string("log_work"));
+    logger_work.debug("Doing Switch To Layout Tab Work.");
     DoWork(_outputModelManager.GetLayoutWork());
 }
 
 void xLightsFrame::DoSetupWork()
 {
+    static log4cpp::Category& logger_work = log4cpp::Category::getInstance(std::string("log_work"));
+    logger_work.debug("Doing Switch To Setup Tab Work.");
     DoWork(_outputModelManager.GetLayoutWork());
 }
 
