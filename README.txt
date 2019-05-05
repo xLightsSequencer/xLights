@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (scott)   Added Ellipse to Shapes Effect
+   -- enh (scott)   Added Rotation to the Present, Tree, Heart, and Crucifix in the Shapes Effect
 2019.24 April 29, 2019
    -- bug (dkulp)   Fix FSEQ v2 hangs on saving ... sometimes
    -- bug (keith)   Fix corrupt FSEQ v2 file crashes on sequence load

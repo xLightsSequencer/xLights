@@ -26,7 +26,7 @@ class ModelManager : public ObjectManager
         void NewRecalcStartChannels() const;
         unsigned int GetLastChannel() const;
         void DisplayStartChannelCalcWarning() const;
-        void ReworkStartChannel() const;
+        bool ReworkStartChannel() const;
 
         bool Rename(const std::string &oldName, const std::string &newName);
         bool RenameSubModel(const std::string &oldName, const std::string &newName);

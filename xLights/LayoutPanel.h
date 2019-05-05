@@ -231,6 +231,7 @@ class LayoutPanel: public wxPanel
         void SelectModel(const std::string & name, bool highlight_tree = true);
         void SelectModel(Model *model, bool highlight_tree = true);
         void UnSelectAllModels(bool addBkgProps = true);
+        void SelectAllModels();
         void SetupPropGrid(BaseObject *model);
         void AddPreviewChoice(const std::string &name);
         ModelPreview* GetMainPreview() const {return modelPreview;}
@@ -243,6 +244,10 @@ class LayoutPanel: public wxPanel
         std::string GetCurrentPreview() const;
         void SetDisplay2DBoundingBox(bool bb);
         void SetDisplay2DCenter0(bool bb);
+        void ReloadModelList();
+        void refreshModelList();
+        void refreshObjectList();
+        void resetPropertyGrid();
 
         void ModelGroupUpdated(ModelGroup *group, bool full_refresh);
         bool HandleLayoutKeyBinding(wxKeyEvent& event);
@@ -315,9 +320,6 @@ class LayoutPanel: public wxPanel
         int over_handle;
         glm::vec3 last_worldpos;
 
-        void ReloadModelList();
-        void refreshModelList();
-        void resetPropertyGrid();
         void clearPropGrid();
         bool stringPropsVisible;
         bool controllerConnectionVisible;
@@ -354,6 +356,7 @@ class LayoutPanel: public wxPanel
         void UpdateModelList(bool full_refresh, std::vector<Model*> &modelList);
         void RefreshLayout();
         void RenderLayout();
+        std::string GetSelectedModelName() const;
 
     private:
         enum

@@ -1503,6 +1503,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
 
     SetPanelSequencerLabel("");
 
+    _outputModelManager.SetFrame(this);
+
 	mRendering = false;
 
     AddEffectToolbarButtons(effectManager, EffectsToolBar);
@@ -2078,7 +2080,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     MenuItemEffectAssistToggleMode->Check(mEffectAssistMode==EFFECT_ASSIST_TOGGLE_MODE);
     logger_base.debug("Effect Assist Mode: %s.", mEffectAssistMode ? "true" : "false");
 
-    _setupChanged = false;
     InitEffectsPanel(EffectsPanel1);
     logger_base.debug("Effects panel initialised.");
 
@@ -2503,25 +2504,22 @@ void xLightsFrame::ShowHideAllSequencerWindows(bool show)
     logger_base.debug("xLightsFrame::ShowHideAllSequencerWindows - layout previews - done");
 }
 
-void xLightsFrame::RecalcModels(bool force)
+void xLightsFrame::RecalcModels()
 {
+    static log4cpp::Category& logger_work = log4cpp::Category::getInstance(std::string("log_work"));
+    logger_work.debug("        RecalcModels.");
+
     if (IsExiting()) return;
 
-    if (force || _setupChanged)
-    {
-        SetCursor(wxCURSOR_WAIT);
-        // Now notify the layout as the model start numbers may have been impacted
-        AllModels.OldRecalcStartChannels();
-        AllModels.ReworkStartChannel();
+    SetCursor(wxCURSOR_WAIT);
+    // Now notify the layout as the model start numbers may have been impacted
+    AllModels.OldRecalcStartChannels();
+    //AllModels.NewRecalcStartChannels();
 
-        //AllModels.NewRecalcStartChannels();
-        if (layoutPanel != nullptr) {
-            layoutPanel->RefreshLayout();
-        }
+    GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "RecalcModels");
+    GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "RecalcModels", nullptr, nullptr, layoutPanel->GetSelectedModelName());
 
-        _setupChanged = false;
-        SetCursor(wxCURSOR_ARROW);
-    }
+    SetCursor(wxCURSOR_ARROW);
 }
 
 void xLightsFrame::OnNotebook1PageChanging(wxAuiNotebookEvent& event)
@@ -2530,6 +2528,7 @@ void xLightsFrame::OnNotebook1PageChanging(wxAuiNotebookEvent& event)
         event.Veto();
         return;
     }
+
     if (event.GetOldSelection() == NEWSEQUENCER)
     {
         ShowHideAllSequencerWindows(false);
@@ -2537,8 +2536,21 @@ void xLightsFrame::OnNotebook1PageChanging(wxAuiNotebookEvent& event)
     else if (event.GetOldSelection() == SETUPTAB)
     {
         layoutPanel->UnSelectAllModels();
-        RecalcModels();
     }
+
+    if (event.GetSelection() == SETUPTAB)
+    {
+        DoSetupWork();
+    }
+    else if (event.GetSelection() == LAYOUTTAB)
+    {
+        DoLayoutWork();
+    }
+}
+
+void xLightsFrame::RenderLayout()
+{
+    layoutPanel->RenderLayout();
 }
 
 void xLightsFrame::OnNotebook1PageChanged1(wxAuiNotebookEvent& event)
@@ -2547,7 +2559,7 @@ void xLightsFrame::OnNotebook1PageChanged1(wxAuiNotebookEvent& event)
     int pagenum=event.GetSelection(); //Notebook1->GetSelection();
 	if (pagenum == LAYOUTTAB)
     {
-        UpdatePreview();
+        GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "OnNotebook1PageChanged");
         SetStatusText(_(""));
         MenuItem_File_Save->Enable(true);
         MenuItem_File_Save->SetItemLabel("Save Layout\tCTRL-s");
@@ -3703,13 +3715,20 @@ void xLightsFrame::CheckUnsavedChanges()
     }
 }
 
-void xLightsFrame::MarkEffectsFileDirty(bool modelStructureChange)
+void xLightsFrame::MarkEffectsFileDirty()
 {
+    static log4cpp::Category& logger_work = log4cpp::Category::getInstance(std::string("log_work"));
+    logger_work.debug("        MarkEffectsFileDirty.");
+
     layoutPanel->SetDirtyHiLight(true);
     UnsavedRgbEffectsChanges=true;
-    if (modelStructureChange) {
-        modelsChangeCount++;
-    }
+}
+
+void xLightsFrame::MarkModelsAsNeedingRender()
+{
+    static log4cpp::Category& logger_work = log4cpp::Category::getInstance(std::string("log_work"));
+    logger_work.debug("        MarkModelsAsNeedingRender %d.", modelsChangeCount);
+    modelsChangeCount++;
 }
 
 unsigned int xLightsFrame::GetMaxNumChannels() {
@@ -7498,14 +7517,14 @@ void xLightsFrame::CleanupRGBEffectsFileLocations()
     {
         wxString bi = MoveToShowFolder(mBackgroundImage, wxString(wxFileName::GetPathSeparator()));
         SetPreviewBackgroundImage(bi);
-        MarkEffectsFileDirty(false);
+        GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CleanupRGBEffectsFileLocations");
     }
 
     for (auto m : AllModels)
     {
         if (m.second->CleanupFileLocations(this))
         {
-            MarkEffectsFileDirty(false);
+            GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CleanupRGBEffectsFileLocations");
         }
     }
 
@@ -7513,7 +7532,7 @@ void xLightsFrame::CleanupRGBEffectsFileLocations()
     {
         if (m.second->CleanupFileLocations(this))
         {
-            MarkEffectsFileDirty(false);
+            GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CleanupRGBEffectsFileLocations");
         }
     }
 }

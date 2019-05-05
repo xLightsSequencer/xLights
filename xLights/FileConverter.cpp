@@ -1678,7 +1678,7 @@ void FileConverter::WriteFalconPiFile(ConvertParameters& params)
     
     
     const wxUint8 vMajor = params.xLightsFrm->_fseqVersion;
-    FSEQFile *file = FSEQFile::createFSEQFile(params.out_filename, vMajor);
+    FSEQFile *file = FSEQFile::createFSEQFile(params.out_filename, vMajor, FSEQFile::CompressionType::zstd, 2);
     if (!file) {
         params.ConversionError(wxString("Unable to create file: ") + params.out_filename);
         return;

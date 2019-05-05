@@ -476,9 +476,7 @@ void xLightsFrame::LoadEffectsFile()
     EffectsNode->AddAttribute("version", XLIGHTS_RGBEFFECTS_VERSION);
 
     displayElementsPanel->SetSequenceElementsModelsViews(&SeqData, &mSequenceElements, ModelsNode, ModelGroupsNode, &_sequenceViewManager);
-    layoutPanel->RefreshLayout();
-    // the call to RefreshLayout will call UpdateModelsList, avoid doing it twice
-    //UpdateModelsList();
+    GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LoadEffectsFile");
     mSequencerInitialize = false;
 
     // load the perspectives
@@ -887,6 +885,9 @@ static void AddModelsToPreview(ModelGroup *grp, std::vector<Model *> &PreviewMod
 
 void xLightsFrame::UpdateModelsList()
 {
+    static log4cpp::Category& logger_work = log4cpp::Category::getInstance(std::string("log_work"));
+    logger_work.debug("        UpdateModelsList.");
+
     if (ModelsNode == nullptr) return; // this happens when xlights is first loaded
     if (ViewObjectsNode == nullptr) return; // this happens when xlights is first loaded
 

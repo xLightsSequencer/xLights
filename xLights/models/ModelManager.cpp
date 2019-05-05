@@ -333,9 +333,11 @@ void ModelManager::DisplayStartChannelCalcWarning() const
     }
 }
 
-void ModelManager::ReworkStartChannel() const
+bool ModelManager::ReworkStartChannel() const
 {
     static log4cpp::Category &logger_zcpp = log4cpp::Category::getInstance(std::string("log_zcpp"));
+    static log4cpp::Category& logger_work = log4cpp::Category::getInstance(std::string("log_work"));
+    logger_work.debug("        ReworkStartChannel.");
 
     bool  outputsChanged = false;
 
@@ -393,7 +395,7 @@ void ModelManager::ReworkStartChannel() const
                         if (std::find(models.begin(), models.end(), ch) == models.end())
                         {
                             logger_zcpp.debug("    Model %s set to beginning because the model it is chained to does not exist.", (const char*)itmm->GetName().c_str());
-                            itmm->SetModelChain("", false);
+                            itmm->SetModelChain("");
                             beginningFound = true;
                             outputsChanged = true;
                         }
@@ -404,7 +406,7 @@ void ModelManager::ReworkStartChannel() const
                 if (!beginningFound)
                 {
                     logger_zcpp.debug("    Model %s set to beginning because no other model was.", (const char*)itcc->second.front()->GetName().c_str());
-                    itcc->second.front()->SetModelChain("", false);
+                    itcc->second.front()->SetModelChain("");
                     outputsChanged = true;
                 }
 
@@ -461,16 +463,26 @@ void ModelManager::ReworkStartChannel() const
                         itm->GetModelChain() == ">" + last || 
                         ((itm->GetModelChain() == "Beginning" || itm->GetModelChain() == "") && last == ""))
                     {
+                        auto osc = itm->ModelStartChannel;
                         sc = "!" + it->GetDescription() + ":" + wxString::Format("%ld", ch);
                         itm->SetStartChannel(sc);
                         last = itm->GetName();
                         ch += itm->GetChanCount();
+                        if (osc != itm->ModelStartChannel)
+                        {
+                            outputsChanged = true;
+                        }
                     }
                     else
                     {
+                        auto osc = itm->ModelStartChannel;
                         sc = "!" + it->GetDescription() + ":" + wxString::Format("%ld", chstart);
                         itm->SetStartChannel(sc);
                         ch = std::max(ch, chstart + itm->GetChanCount());
+                        if (osc != itm->ModelStartChannel)
+                        {
+                            outputsChanged = true;
+                        }
                     }
 
                     logger_zcpp.debug("    Model %s on port %d chained to %s start channel %s.",
@@ -487,19 +499,15 @@ void ModelManager::ReworkStartChannel() const
                 {
                     logger_zcpp.debug("    Resizing output to %ld channels.", std::max((long)1, (long)ch - 1));
                     it->SetChannels(std::max((long)1, (long)ch - 1));
-                    outputsChanged = true;
+                    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ReworkStartChannel", nullptr, it);
+                    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "ReworkStartChannel", nullptr, it);
+                    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "ReworkStartChannel", nullptr, it);
+                    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_SAVE_NETWORKS, "ReworkStartChannel", nullptr, it);
                 }
             }
         }
     }
-
-    if (outputsChanged)
-    {
-        xlights->GetOutputManager()->SomethingChanged();
-        xlights->UpdateNetworkList(false);
-        xlights->NetworkChange();
-        xlights->SaveNetworksFile();
-    }
+    return outputsChanged;
 }
 
 bool ModelManager::LoadGroups(wxXmlNode *groupNode, int previewW, int previewH) {

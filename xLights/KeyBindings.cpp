@@ -72,6 +72,7 @@ static  std::vector<std::pair<std::string, KBSCOPE>> KeyBindingTypes =
     { _("WIRING_VIEW"), KBSCOPE::Layout },
     { _("NODE_LAYOUT"), KBSCOPE::Layout },
     { _("SAVE_LAYOUT"), KBSCOPE::Layout },
+    { _("SELECT_ALL_MODELS"), KBSCOPE::Layout },
     { _("MODEL_ALIGN_TOP"), KBSCOPE::Layout },
     { _("MODEL_ALIGN_BOTTOM"), KBSCOPE::Layout },
     { _("MODEL_ALIGN_LEFT"), KBSCOPE::Layout },
@@ -85,6 +86,7 @@ static  std::vector<std::pair<std::string, KBSCOPE>> KeyBindingTypes =
 
 const std::vector<KeyBinding> DefaultBindings =
 {
+    KeyBinding(_("a"), false, _("SELECT_ALL_MODELS"), true),
     KeyBinding(_("a"), false, _("SELECT_ALL"), true, true),
     KeyBinding(_("a"), false, _("SELECT_ALL_NO_TIMING"), true),
     KeyBinding(_("F10"), false, _("BACKUP")),
@@ -188,6 +190,7 @@ const std::vector<std::pair<std::string, std::string>> ConvertKeys =
     { _("SAVE_CURRENT_TAB"), _("CTRL+S") },
     { _("MARK_SPOT"), _("CTRL+.") },
     { _("RETURN_TO_SPOT"), _("CTRL+/") },
+    { _("SELECT_ALL_MODELS"), _("CTRL+A") },
     { _("SELECT_ALL"), _("CTRL+SHIFT+A") },
     { _("SELECT_ALL_NO_TIMING"), _("CTRL+A") },
     { _("TOGGLE_PLAY"), _("+ ") },

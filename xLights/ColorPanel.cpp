@@ -22,6 +22,7 @@
 #include <wx/config.h>
 #include <wx/filename.h>
 #include <wx/stdpaths.h>
+#include <wx/regex.h>
 
 #include <log4cpp/Category.hh>
 
@@ -468,9 +469,10 @@ void ColorPanel::LoadAllPalettes()
 
 void ColorPanel::LoadPalettes(wxDir& directory, bool subdirs)
 {
+    static wxRegEx cregex("^\\$color([0-9]): rgba\\(([^)]*)\\)");
+
     wxString filename;
     bool cont = directory.GetFirst(&filename, "*.xpalette", wxDIR_FILES);
-
     while (cont)
     {
         wxFileName fn(directory.GetNameWithSep() + filename);
@@ -496,7 +498,62 @@ void ColorPanel::LoadPalettes(wxDir& directory, bool subdirs)
                 _loadedPalettes.push_back(s.ToStdString() + fn.GetFullName().ToStdString());
             }
         }
+        cont = directory.GetNext(&filename);
+    }
 
+    filename = "";
+    cont = directory.GetFirst(&filename, "*.scss", wxDIR_FILES);
+    while (cont)
+    {
+        wxFileName fn(directory.GetNameWithSep() + filename);
+        wxFileInputStream input(fn.GetFullPath());
+        if (input.IsOk())
+        {
+            wxString pal;
+            int cols = 0;
+            wxTextInputStream text(input);
+            while (!input.Eof())
+            {
+                wxString line = text.ReadLine();
+                if (cregex.Matches(line))
+                {
+                    wxString cnum = cregex.GetMatch(line, 1);
+                    wxString rgb = cregex.GetMatch(line, 2);
+                    wxArrayString comp = wxSplit(rgb, ',');
+                    if (comp.size() == 4)
+                    {
+                        pal += wxString::Format("#%2x%2x%2x,",
+                            wxAtoi(comp[0]),
+                            wxAtoi(comp[1]),
+                            wxAtoi(comp[2])
+                        );
+                        cols++;
+                    }
+                }
+            }
+            if (cols > 0)
+            {
+                while (cols < 8)
+                {
+                    pal += "#FFFFFF,";
+                    cols++;
+                }
+                bool found = false;
+                for (auto it = _loadedPalettes.begin(); it != _loadedPalettes.end(); ++it)
+                {
+                    wxString p(*it);
+                    if (p.BeforeLast(',') == pal)
+                    {
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found)
+                {
+                    _loadedPalettes.push_back(pal.ToStdString() + fn.GetFullName().ToStdString());
+                }
+            }
+        }
         cont = directory.GetNext(&filename);
     }
 

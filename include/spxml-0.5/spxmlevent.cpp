@@ -246,7 +246,7 @@ void SP_XmlStartTagEvent :: setName( const char * name )
 {
 	if( NULL != name ) {
 		if( NULL != mName ) free( mName );
-		mName = strdup( name );
+		mName = _strdup( name );
 	}
 }
 
@@ -257,8 +257,8 @@ const char * SP_XmlStartTagEvent :: getName() const
 
 void SP_XmlStartTagEvent :: addAttr( const char * name, const char * value )
 {
-	if( NULL != name ) mAttrNameList->append( strdup( name ) );
-	if( NULL != value ) mAttrValueList->append( strdup( value ) );
+	if( NULL != name ) mAttrNameList->append( _strdup( name ) );
+	if( NULL != value ) mAttrValueList->append( _strdup( value ) );
 }
 
 const char * SP_XmlStartTagEvent :: getAttrValue( const char * name ) const

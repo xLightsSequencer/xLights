@@ -241,6 +241,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
+    m_imageList = nullptr;
     m_bound_start_x = 0;
     m_bound_start_y = 0;
     m_bound_end_x = 0;
@@ -719,8 +720,8 @@ void LayoutPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
         else {
             pGrp->SetBackgroundBrightness(event.GetValue().GetLong(), previewBackgroundAlpha);
             modelPreview->SetBackgroundBrightness(event.GetValue().GetLong(), previewBackgroundAlpha);
-            xlights->MarkEffectsFileDirty(false);
-            UpdatePreview();
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::OnPropertyGridChange::Brightness");
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPropertyGridChange::Brightness");
         }
     }
     else if (name == "BkgTransparency") {
@@ -730,26 +731,28 @@ void LayoutPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
         else {
             pGrp->SetBackgroundBrightness(previewBackgroundBrightness, 100 - event.GetValue().GetLong());
             modelPreview->SetBackgroundBrightness(previewBackgroundBrightness, 100 - event.GetValue().GetLong());
-            xlights->MarkEffectsFileDirty(false);
-            UpdatePreview();
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::OnPropertyGridChange::BkgTransparency");
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPropertyGridChange::BkgTransparency");
         }
     }
     else if (name == "BkgSizeWidth") {
         xlights->SetPreviewSize(event.GetValue().GetLong(), modelPreview->GetVirtualCanvasHeight());
-        xlights->UpdateModelsList();
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::OnPropertyGridChange::BkgSizeWidth");
     }
     else if (name == "BkgSizeHeight") {
         xlights->SetPreviewSize(modelPreview->GetVirtualCanvasWidth(), event.GetValue().GetLong());
-        xlights->UpdateModelsList();
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::OnPropertyGridChange::BkgSizeHeight");
     }
     else if (name == "BoundingBox") {
         modelPreview->SetDisplay2DBoundingBox(event.GetValue().GetBool());
         xlights->SetDisplay2DBoundingBox(event.GetValue().GetBool());
-        xlights->MarkEffectsFileDirty(false);
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::OnPropertyGridChange::BoundingBox");
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPropertyGridChange::BoundingBox");
     } else if (name == "2DXZeroIsCenter") {
         modelPreview->SetDisplay2DCenter0(event.GetValue().GetBool());
         xlights->SetDisplay2DCenter0(event.GetValue().GetBool());
-        xlights->MarkEffectsFileDirty(false);
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::OnPropertyGridChange::2DXZeroIsCenter");
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPropertyGridChange::2DXZeroIsCenter");
     } else if (name == "BkgImage") {
         if (currentLayoutGroup == "Default" || currentLayoutGroup == "All Models" || currentLayoutGroup == "Unassigned") {
             xlights->SetPreviewBackgroundImage(event.GetValue().GetString());
@@ -757,18 +760,19 @@ void LayoutPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
         else {
             pGrp->SetBackgroundImage(event.GetValue().GetString());
             modelPreview->SetbackgroundImage(event.GetValue().GetString());
-            xlights->MarkEffectsFileDirty(false);
-            UpdatePreview();
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::OnPropertyGridChange::BkgImage");
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPropertyGridChange::BkgImage");
         }
     }
     else if (name == "BkgFill") {
         if (currentLayoutGroup == "Default" || currentLayoutGroup == "All Models" || currentLayoutGroup == "Unassigned") {
             xlights->SetPreviewBackgroundScaled(event.GetValue().GetBool());
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPropertyGridChange::BkgFill");
         } else {
             pGrp->SetBackgroundScaled(wxAtoi(event.GetValue().GetString()) > 0);
             modelPreview->SetScaleBackgroundImage(wxAtoi(event.GetValue().GetString()) > 0);
-            xlights->MarkEffectsFileDirty(false);
-            UpdatePreview();
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::OnPropertyGridChange::BkgFill");
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPropertyGridChange::BkgFill");
         }
     }
     else {
@@ -795,15 +799,10 @@ void LayoutPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
                         if (oldname == lastModelName) {
                             lastModelName = safename;
                         }
-//                        xlights->RecalcModels(true);
-//                        SelectBaseObject(safename);
-//                        CallAfter(&LayoutPanel::RefreshLayout); // refresh whole layout seems the most reliable at this point
-//                        xlights->MarkEffectsFileDirty(true);
                     }
-                    xlights->RecalcModels(true); // includes call to RefreshLayout
-                    SelectModel(safename);
-//                    CallAfter(&LayoutPanel::RefreshLayout); // refresh whole layout seems the most reliable at this point
-                    xlights->MarkEffectsFileDirty(true);
+                    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::OnPropertyGridChange::ModelName");
+                    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "LayoutPanel::OnPropertyGridChange::ModelName");
+                    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "LayoutPanel::OnPropertyGridChange::ModelName", nullptr, nullptr, safename);
                 }
                 else {
                     selectedModel->SaveDisplayDimensions();
@@ -815,38 +814,13 @@ void LayoutPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
                             // only restore if not suppressed and if it is a boxed screen location
                             selectedModel->RestoreDisplayDimensions();
                     }
-                    if (i & GRIDCHANGE_REFRESH_DISPLAY) {
-                        xlights->UpdatePreview();
-                    }
-                    if (i & GRIDCHANGE_MARK_DIRTY) {
-                        xlights->MarkEffectsFileDirty(true);
-                    }
-                    if (i & GRIDCHANGE_REBUILD_PROP_GRID) {
-                        CallAfter(&LayoutPanel::resetPropertyGrid);
-                    }
-                    if (i & (GRIDCHANGE_REBUILD_MODEL_LIST | GRIDCHANGE_UPDATE_ALL_MODEL_LISTS))
-                    {
-                        // if these values were returned then some absolute start channels may have changed
-                        xlights->RecalcModels(true);
-                    }
-                    if (i & GRIDCHANGE_REBUILD_MODEL_LIST) {
-                        CallAfter(&LayoutPanel::refreshModelList);
-                    }
-                    if (i & GRIDCHANGE_UPDATE_ALL_MODEL_LISTS) {
-                        // Preview assignment change so model may not exist in current preview anymore
-                        CallAfter(&LayoutPanel::RefreshLayout);
-                    }
-                    if (i == 0) {
-                        printf("Did not handle %s   %s\n",
-                            (const char *)event.GetPropertyName().c_str(),
-                            (const char *)event.GetValue().GetString().c_str());
-                    }
+                    wxASSERT(i == 0 || i == GRIDCHANGE_SUPPRESS_HOLDSIZE);
 
                     if ("SubModels" == name) {
                         // if the sequencer is open we need to force a refresh to make sure submodel names are right
                         wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
                         wxPostEvent(xlights, eventForceRefresh);
-                        CallAfter(&LayoutPanel::ReloadModelList);
+                        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "LayoutPanel::OnPropertyGridChange", nullptr, nullptr, selectedBaseObject->GetName());
                     }
                 }
             }
@@ -914,7 +888,7 @@ void LayoutPanel::OnPropertyGridSelection(wxPropertyGridEvent& event) {
             if( selectedModel->GetDisplayAs() == "Poly Line" ) {
                 int segment = selectedModel->OnPropertyGridSelection(propertyEditor, event);
                 selectedModel->GetBaseObjectScreenLocation().SelectSegment(segment);
-                UpdatePreview();
+                xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPropertyGridSelection");
             }
         }
     }
@@ -946,10 +920,7 @@ void LayoutPanel::RefreshLayout()
 {
     std::string selectedBaseObjectName = "";
     if (selectedBaseObject != nullptr) selectedBaseObjectName = selectedBaseObject->name;
-    xlights->UpdateModelsList();
-    if (selectedBaseObjectName != "") {
-         SelectBaseObject(selectedBaseObjectName);
-    }
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::RefreshLayout", nullptr, nullptr, selectedBaseObjectName);
     ShowPropGrid(true);
 }
 
@@ -969,21 +940,49 @@ void LayoutPanel::RenderLayout()
 
 void LayoutPanel::UpdatePreview()
 {
+    static log4cpp::Category& logger_work = log4cpp::Category::getInstance(std::string("log_work"));
+    logger_work.debug("        UpdatePreview.");
     SetDirtyHiLight(xlights->UnsavedRgbEffectsChanges);
     RenderLayout();
 }
 
 void LayoutPanel::resetPropertyGrid() {
-    auto scroll = propertyEditor->GetScrollPos(wxVERTICAL);
-    auto top = propertyEditor->GetItemAtY(0);
-    clearPropGrid();
-    if (selectedBaseObject != nullptr) {
-        SetupPropGrid(selectedBaseObject);
-        propertyEditor->SetScrollPos(wxVERTICAL, scroll - 1, true);
-        wxScrollWinEvent e(wxEVT_SCROLLWIN_THUMBRELEASE);
-        e.SetOrientation(wxVERTICAL);
-        e.SetPosition(scroll);
-        propertyEditor->HandleOnScroll(e);
+    static log4cpp::Category& logger_work = log4cpp::Category::getInstance(std::string("log_work"));
+    logger_work.debug("        resetPropertyGrid.");
+
+    if (selectedBaseObject != nullptr && selectedBaseObject->GetDisplayAs() == "ModelGroup")
+    {
+        ShowPropGrid(false);
+    }
+    else
+    {
+        ShowPropGrid(true);
+        auto save = propertyEditor->SaveEditableState();
+        auto scroll = propertyEditor->GetScrollPos(wxVERTICAL);
+        //auto top = propertyEditor->GetItemAtY(0);
+        wxString selProp = "";
+        if (propertyEditor->GetSelection() != nullptr)
+        {
+            selProp = propertyEditor->GetSelection()->GetName();
+        }
+        clearPropGrid();
+        if (selectedBaseObject != nullptr) {
+            SetupPropGrid(selectedBaseObject);
+            propertyEditor->RestoreEditableState(save);
+            if (selProp != "")
+            {
+                auto p = propertyEditor->GetPropertyByName(selProp);
+                if (p != nullptr) propertyEditor->EnsureVisible(p);
+            }
+            else
+            {
+                propertyEditor->SetScrollPos(wxVERTICAL, scroll - 1, true);
+                wxScrollWinEvent e(wxEVT_SCROLLWIN_THUMBRELEASE);
+                e.SetOrientation(wxVERTICAL);
+                e.SetPosition(scroll);
+                propertyEditor->HandleOnScroll(e);
+            }
+        }
     }
 }
 
@@ -1007,7 +1006,16 @@ void LayoutPanel::clearPropGrid() {
     propertyEditor->Clear();
 }
 
+void LayoutPanel::refreshObjectList() {
+    static log4cpp::Category& logger_work = log4cpp::Category::getInstance(std::string("log_work"));
+    logger_work.debug("        refreshObjectList.");
+    objects_panel->refreshObjectList();
+}
+
 void LayoutPanel::refreshModelList() {
+
+    static log4cpp::Category& logger_work = log4cpp::Category::getInstance(std::string("log_work"));
+    logger_work.debug("        refreshModelList.");
 
     TreeListViewModels->Freeze();
 
@@ -1302,7 +1310,7 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
         }
     }
     xlights->PreviewModels = models;
-    UpdatePreview();
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::UpdateModelList");
 
     TreeListViewModels->Thaw();
     TreeListViewModels->Refresh();
@@ -1495,7 +1503,8 @@ void LayoutPanel::BulkEditDimmingCurves()
                         dc->AddAttribute(it2->first, it2->second);
                     }
                 }
-                xlights->MarkEffectsFileDirty(true);
+                xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "BulkEditDimmingCurves");
+                xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "BulkEditDimmingCurves");
             }
         }
     }
@@ -1503,6 +1512,22 @@ void LayoutPanel::BulkEditDimmingCurves()
 
 void LayoutPanel::BulkEditControllerConnection()
 {
+    // remember the selected models
+    wxString selected = "";
+    for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
+    {
+        if (modelPreview->GetModels()[i]->GroupSelected)
+        {
+            if (selected != "")
+            {
+                selected += ",";
+            }
+            selected += modelPreview->GetModels()[i]->GetName();
+        }
+    }
+
+    std::string sm = GetSelectedModelName();
+
     // get the first controller connection
     wxXmlNode *cc = nullptr;
     for (size_t i = 0; i < modelPreview->GetModels().size(); i++) {
@@ -1525,14 +1550,42 @@ void LayoutPanel::BulkEditControllerConnection()
             }
         }
 
-        xlights->UpdateModelsList();
-        xlights->MarkEffectsFileDirty(true);
-        resetPropertyGrid();
+        xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "BulkEditControllerConnection", nullptr, nullptr, sm);
+        xlights->GetOutputModelManager()->ForceSelectedModel(sm);
+
+        // reselect all the models
+        wxArrayString models = wxSplit(selected, ',');
+        for (auto it = models.begin(); it != models.end(); ++it)
+        {
+            for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
+            {
+                if (modelPreview->GetModels()[i]->GetName() == it->ToStdString())
+                {
+                    modelPreview->GetModels()[i]->GroupSelected = true;
+                }
+            }
+        }
     }
 }
 
 void LayoutPanel::BulkEditControllerName()
 {
+    // remember the selected models
+    wxString selected = "";
+    for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
+    {
+        if (modelPreview->GetModels()[i]->GroupSelected)
+        {
+            if (selected != "")
+            {
+                selected += ",";
+            }
+            selected += modelPreview->GetModels()[i]->GetName();
+        }
+    }
+
+    std::string sm = GetSelectedModelName();
+
     // get the first controller connection
     std::string name = "";
     for (size_t i = 0; i < modelPreview->GetModels().size(); i++) {
@@ -1561,13 +1614,25 @@ void LayoutPanel::BulkEditControllerName()
         name = dlg.GetStringSelection();
         for (size_t i = 0; i < modelPreview->GetModels().size(); i++) {
             if (modelPreview->GetModels()[i]->GroupSelected) {
-                modelPreview->GetModels()[i]->SetControllerName(name, false);
+                modelPreview->GetModels()[i]->SetControllerName(name);
             }
         }
 
-        xlights->UpdateModelsList();
-        xlights->MarkEffectsFileDirty(true);
-        resetPropertyGrid();
+        xlights->GetOutputModelManager()->ForceSelectedModel(sm);
+        xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "BulkEditControllerName", nullptr, nullptr, sm);
+
+        // reselect all the models
+        wxArrayString models = wxSplit(selected, ',');
+        for (auto it = models.begin(); it != models.end(); ++it)
+        {
+            for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
+            {
+                if (modelPreview->GetModels()[i]->GetName() == it->ToStdString())
+                {
+                    modelPreview->GetModels()[i]->GroupSelected = true;
+                }
+            }
+        }
     }
 }
 
@@ -1598,7 +1663,7 @@ void LayoutPanel::BulkEditControllerPreview()
         }
     }
 
-    Model* sm = dynamic_cast<Model*>(selectedBaseObject);
+    std::string sm = GetSelectedModelName();
 
     wxArrayString choices = Model::GetLayoutGroups(xlights->AllModels);
     int sel = 0;
@@ -1624,10 +1689,8 @@ void LayoutPanel::BulkEditControllerPreview()
             }
         }
 
-        xlights->MarkEffectsFileDirty(true);
-        UpdateModelList(true);
-        SelectModel(sm, true);
-        resetPropertyGrid();
+        xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "BulkEditControllerPreview", nullptr, nullptr, sm);
+        xlights->GetOutputModelManager()->ForceSelectedModel(sm);
 
         // reselect all the models
         wxArrayString models = wxSplit(selected, ',');
@@ -1699,11 +1762,11 @@ void LayoutPanel::CreateModelGroupFromSelected()
         node->AddAttribute("models", ModelsInGroup);
 
         xlights->AllModels.AddModel(xlights->AllModels.CreateModel(node));
-        xlights->UpdateModelsList();
-        xlights->MarkEffectsFileDirty(true);
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CreateModelGroupFromSelected");
+        xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "CreateModelGroupFromSelected", nullptr, nullptr, name.ToStdString());
         model_grp_panel->UpdatePanel(name.ToStdString());
-        ShowPropGrid(false);
-        SelectBaseObject(name.ToStdString());
+        //ShowPropGrid(false);
+        //SelectBaseObject(name.ToStdString());
         wxArrayString models = wxSplit(ModelsInGroup, ',');
         for (auto it = models.begin(); it != models.end(); ++it)
         {
@@ -1715,7 +1778,9 @@ void LayoutPanel::CreateModelGroupFromSelected()
                 }
             }
         }
-        RenderLayout();
+        //RenderLayout();
+        xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "CreateModelGroupFromSelected", nullptr, nullptr, name.ToStdString());
+        xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "CreateModelGroupFromSelected", nullptr, nullptr, name.ToStdString());
     }
 }
 
@@ -1779,7 +1844,7 @@ void LayoutPanel::UnSelectAllModels(bool addBkgProps)
         }
     }
 
-    UpdatePreview();
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::UnselectAllModels");
     selectedBaseObject = nullptr;
     mSelectedGroup = nullptr;
 
@@ -1837,6 +1902,50 @@ void LayoutPanel::UnSelectAllModels(bool addBkgProps)
 
         propertyEditor->Thaw();
     }
+}
+
+void LayoutPanel::SelectAllModels()
+{
+    highlightedBaseObject = nullptr;
+    selectedBaseObject = nullptr;
+    selectionLatched = false;
+
+    if (editing_models) {
+        auto models = modelPreview->GetModels();
+        for (size_t i = 0; i < models.size(); i++)
+        {
+            Model* m = modelPreview->GetModels()[i];
+
+            if (selectedBaseObject == nullptr)
+            {
+                SelectModel(m);
+            }
+
+            m->Selected = true;
+            m->Highlighted = true;
+            m->GroupSelected = true;
+            m->SelectHandle(-1);
+            m->GetBaseObjectScreenLocation().SetActiveHandle(-1);
+        }
+    }
+    else {
+        for (auto it = xlights->AllObjects.begin(); it != xlights->AllObjects.end(); ++it) {
+            ViewObject* view_object = it->second;
+
+            if (selectedBaseObject == nullptr)
+            {
+                SelectBaseObject(view_object);
+            }
+
+            view_object->Selected = true;
+            view_object->Highlighted = true;
+            view_object->GroupSelected = true;
+            view_object->SelectHandle(-1);
+            view_object->GetBaseObjectScreenLocation().SetActiveHandle(-1);
+        }
+    }
+
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::SelectAllModels");
 }
 
 void LayoutPanel::SetupPropGrid(BaseObject *base_object) {
@@ -1940,7 +2049,10 @@ void LayoutPanel::SelectModel(const std::string & name, bool highlight_tree)
     {
         logger_base.warn("LayoutPanel:SelectModel Unable to select model '%s'.", (const char *)name.c_str());
     }
-    SelectModel(m, highlight_tree);
+    if (selectedBaseObject != m)
+    {
+        SelectModel(m, highlight_tree);
+    }
 }
 
 void LayoutPanel::SelectModel(Model *m, bool highlight_tree) {
@@ -2034,7 +2146,7 @@ void LayoutPanel::SelectModel(Model *m, bool highlight_tree) {
         }
     }
     SelectBaseObject3D();
-    UpdatePreview();
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::SelectModel");
 }
 
 void LayoutPanel::SelectViewObject(ViewObject *v, bool highlight_tree) {
@@ -2066,7 +2178,13 @@ void LayoutPanel::SelectViewObject(ViewObject *v, bool highlight_tree) {
     }
     SelectBaseObject3D();
 
-    UpdatePreview();
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::SelectViewObject");
+}
+
+std::string LayoutPanel::GetSelectedModelName() const
+{
+    if (selectedBaseObject == nullptr) return "";
+    return selectedBaseObject->GetName();
 }
 
 void LayoutPanel::OnCheckBoxOverlapClick(wxCommandEvent& event)
@@ -2327,7 +2445,7 @@ bool LayoutPanel::SelectMultipleModels(int x,int y)
                 modelPreview->GetModels()[found[0]]->GroupSelected = true;
             }
         }
-        UpdatePreview();
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::SelectMultipleModels");
         return true;
     }
     return false;
@@ -2362,6 +2480,7 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
                 glm::vec3 ray_origin;
                 glm::vec3 ray_direction;
                 GetMouseLocation(event.GetX(), event.GetY(), ray_origin, ray_direction);
+                // This is weird ... are we relying on some side effect of what looks like a test function?
                 selectedBaseObject->GetBaseObjectScreenLocation().CheckIfOverHandles3D(ray_origin, ray_direction, m_over_handle, modelPreview->GetCameraZoomForHandles(), modelPreview->GetHandleScale());
             }
             if (m_over_handle != -1) {
@@ -2375,7 +2494,7 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
                         // this is designed to pretend the control and shift keys are down when creating models to
                         // make them scale from the desired handle depending on model type
                         selectedBaseObject->MoveHandle3D(modelPreview, active_handle, event.ShiftDown() | creating_model, event.ControlDown() | (creating_model & z_scale), event.GetX(), event.GetY(), true, z_scale);
-                        UpdatePreview();
+                        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::ProcessLeftMouseClick3D");
                         m_moving_handle = true;
                         m_mouse_down = true;
                         last_worldpos = selectedBaseObject->GetBaseObjectScreenLocation().GetWorldPosition();
@@ -2385,7 +2504,7 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
                     // a segment was selected
                     if (selectedBaseObject != nullptr) {
                         selectedBaseObject->GetBaseObjectScreenLocation().SelectSegment(m_over_handle & 0xFFF);
-                        UpdatePreview();
+                        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::ProcessLeftMouseClick3D");
                     }
                 }
                 else {
@@ -2393,7 +2512,7 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
                         selectedBaseObject->GetBaseObjectScreenLocation().AdvanceAxisTool();
                     }
                     selectedBaseObject->GetBaseObjectScreenLocation().SetActiveHandle(m_over_handle);
-                    UpdatePreview();
+                    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::ProcessLeftMouseClick3D");
                 }
             }
             else {
@@ -2405,7 +2524,7 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
             selectionLatched = true;
             // latch center handle immediately
             selectedBaseObject->GetBaseObjectScreenLocation().SetActiveHandle(CENTER_HANDLE);
-            UpdatePreview();
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::ProcessLeftMouseClick3D");
         }
     }
     else {
@@ -2514,7 +2633,7 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
                         }
                         highlightedBaseObject = selectedBaseObject;
                     }
-                    UpdatePreview();
+                    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::ProcessLeftMouseClick3D");
                 }
             }
         }
@@ -2541,8 +2660,9 @@ void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
         m->AddHandle(modelPreview, event.GetX(), event.GetY());
         m->UpdateXmlWithScale();
         m->InitModel();
-        xlights->MarkEffectsFileDirty(true);
-        UpdatePreview();
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::OnPreviewLeftDown");
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "LayoutPanel::OnPreviewLeftDown");
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewLeftDown");
         m_over_handle++;
         int handle = m->GetBaseObjectScreenLocation().GetActiveHandle();
         handle++;
@@ -2583,14 +2703,14 @@ void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
             if (selectedBaseObject != nullptr) {
                 selectedBaseObject->GetBaseObjectScreenLocation().SelectSegment(m_over_handle & 0xFFF);
                 modelPreview->SetCursor(wxCURSOR_DEFAULT);
-                UpdatePreview();
+                xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewLeftDown");
             }
         }
         else {
             m_moving_handle = true;
             if (selectedBaseObject != nullptr) {
                 selectedBaseObject->SelectHandle(m_over_handle);
-                UpdatePreview();
+                xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewLeftDown");
             }
         }
     }
@@ -2658,7 +2778,7 @@ void LayoutPanel::OnPreviewLeftUp(wxMouseEvent& event)
     if (is_3d && m_mouse_down) {
         if (selectedBaseObject != nullptr) {
             selectedBaseObject->GetBaseObjectScreenLocation().SetActiveAxis(-1);
-            UpdatePreview();
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewLeftDown");
         }
         modelPreview->SetCameraView(0, 0, true);
     }
@@ -2680,7 +2800,7 @@ void LayoutPanel::OnPreviewLeftUp(wxMouseEvent& event)
         }
         SelectAllInBoundingRect();
         m_creating_bound_rect = false;
-        UpdatePreview();
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewLeftUp");
     }
     FinalizeModel();
 }
@@ -2722,8 +2842,8 @@ void LayoutPanel::FinalizeModel()
                 modelPreview->SetCursor(wxCURSOR_DEFAULT);
                 b->SetState(0);
                 selectedButton = nullptr;
-                xlights->UpdateModelsList();
-                UpdatePreview();
+                xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "FinalizeModel");
+                xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "FinalizeModel");
                 return;
             }
             newModel->ImportXlightsModel(_lastXlightsModel, xlights, min_x, max_x, min_y, max_y);
@@ -2746,15 +2866,15 @@ void LayoutPanel::FinalizeModel()
             b->SetState(0);
             selectedButton = nullptr;
             selectedBaseObject = nullptr;
-            xlights->UpdateModelsList();
-            SelectBaseObject(name);
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "FinalizeModel", nullptr, nullptr, name);
+            //SelectBaseObject(name);
             SelectBaseObject3D();
         }
         else {
             newModel = nullptr;
-            xlights->UpdateModelsList();
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "FinalizeModel");
         }
-        UpdatePreview();
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "FinalizeModel");
     }
 }
 
@@ -2797,8 +2917,9 @@ void LayoutPanel::OnPreviewRotateGesture(wxRotateGestureEvent& event) {
             }
             if (selectedBaseObject->Rotate(axis, delta)) {
                 SetupPropGrid(selectedBaseObject);
-                xlights->MarkEffectsFileDirty(true);
-                UpdatePreview();
+                xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::OnPreviewRotateGesture");
+                xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "LayoutPanel::OnPreviewRotateGesture");
+                xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewRotateGesture");
             }
         } else {
             CreateUndoPoint(editing_models ? "SingleModel" : "SingleObject", selectedBaseObject->name, "Zoom");
@@ -2813,15 +2934,16 @@ void LayoutPanel::OnPreviewZoomGesture(wxZoomGestureEvent& event) {
             //resize model
             if (selectedBaseObject->Scale(1.0f - delta)) {
                 SetupPropGrid(selectedBaseObject);
-                xlights->MarkEffectsFileDirty(true);
-                UpdatePreview();
+                xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::OnPreviewZoomGesture");
+                xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "LayoutPanel::OnPreviewZoomGesture");
+                xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewZoomGesture");
             }
         } else {
             CreateUndoPoint(editing_models ? "SingleModel" : "SingleObject", selectedBaseObject->name, "Zoom");
         }
     }  else {
         modelPreview->SetZoomDelta(delta > 0.0 ? 0.1f : -0.1f);
-        UpdatePreview();
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewZoomGesture");
     }
     m_last_mouse_x = (event.GetZoomFactor() * 1000);
 }
@@ -2872,7 +2994,7 @@ void LayoutPanel::OnPreviewMouseWheel(wxMouseEvent& event)
             m_previous_mouse_y = event.GetY();
         }
     }
-    UpdatePreview();
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewMouseWheel");
 }
 
 void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
@@ -2882,7 +3004,7 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
         m_bound_end_x = event.GetX();
         m_bound_end_y = event.GetY();
         HighlightAllInBoundingRect();
-        UpdatePreview();
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewMouseMove3D");
         return;
     }
     else if (m_wheel_down)
@@ -2918,7 +3040,7 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
         modelPreview->SetPan(delta_x, delta_y, delta_z);
         m_previous_mouse_x = event.GetX();
         m_previous_mouse_y = event.GetY();
-        UpdatePreview();
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewMouseMove3D");
     }
     else if (m_mouse_down) {
         if (m_moving_handle) {
@@ -2932,8 +3054,11 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
                 // this is designed to pretend the control and shift keys are down when creating models to
                 // make them scale from the desired handle depending on model type
                 selectedBaseObject->MoveHandle3D(modelPreview, active_handle, event.ShiftDown() | creating_model, event.ControlDown() | (creating_model & z_scale), event.GetX(), event.GetY(), false, z_scale);
-                SetupPropGrid(selectedBaseObject);
-                xlights->MarkEffectsFileDirty(true);
+                //SetupPropGrid(selectedBaseObject);
+                xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::OnPreviewMouseMove");
+                // dont need these until released
+                //xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::OnPreviewMouseMove3D");
+                //xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "LayoutPanel::OnPreviewMouseMove3D");
                 if (selectedModelCnt > 1) {
                     glm::vec3 new_worldpos = selectedBaseObject->GetBaseObjectScreenLocation().GetWorldPosition();
                     new_worldpos = new_worldpos - last_worldpos;
@@ -2947,14 +3072,14 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
                     }
                     last_worldpos = selectedBaseObject->GetBaseObjectScreenLocation().GetWorldPosition();
                 }
-                UpdatePreview();
+                xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewMouseMove3D");
             }
         }
         else {
             int delta_x = event.GetPosition().x - m_last_mouse_x;
             int delta_y = event.GetPosition().y - m_last_mouse_y;
             modelPreview->SetCameraView(delta_x, delta_y, false);
-            UpdatePreview();
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewMouseMove3D");
         }
     }
     else {
@@ -2991,7 +3116,7 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
                 if (highlightedBaseObject != nullptr) {
                     highlightedBaseObject->Highlighted = false;
                     highlightedBaseObject = nullptr;
-                    UpdatePreview();
+                    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewMouseMove3D");
                 }
             }
             else
@@ -3000,7 +3125,7 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
                     UnSelectAllModels();
                     highlightedBaseObject = which_object;
                     highlightedBaseObject->Highlighted = true;
-                    UpdatePreview();
+                    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewMouseMove3D");
                 }
             }
             last_selection = which_object;
@@ -3020,9 +3145,12 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
             // this is designed to pretend the control and shift keys are down when creating models to
             // make them scale from the desired handle depending on model type
             obj->MoveHandle3D(modelPreview, active_handle, event.ShiftDown() | creating_model, event.ControlDown() | (creating_model & z_scale), event.GetX(), event.GetY(), false, z_scale);
-            SetupPropGrid(obj);
-            xlights->MarkEffectsFileDirty(true);
-            UpdatePreview();
+            //SetupPropGrid(obj);
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::OnPreviewMouseMove");
+            // dont need these until model is finished moving
+            //xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::OnPreviewMouseMove3D");
+            //xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "LayoutPanel::OnPreviewMouseMove3D");
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewMouseMove3D");
         }
         else {
             if (selectedBaseObject != nullptr) {
@@ -3034,7 +3162,7 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
                 if (m_over_handle != over_handle) {
                     selectedBaseObject->GetBaseObjectScreenLocation().MouseOverHandle(m_over_handle);
                     over_handle = m_over_handle;
-                    UpdatePreview();
+                    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewMouseMove3D");
                 }
                 else if( event.ControlDown() ) {
                     // For now require control to be active before we start highlighting other models while a model is selected otherwise
@@ -3072,14 +3200,14 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
                             if (!which_object->Highlighted) {
                                 which_object->Highlighted = true;
                             }
-                            UpdatePreview();
+                            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewMouseMove3D");
                         }
                     }
                     if (last_highlight != nullptr && last_highlight != which_object) {
                         if (last_highlight->Highlighted &&
                             !(last_highlight->Selected || last_highlight->GroupSelected)) {
                             last_highlight->Highlighted = false;
-                            UpdatePreview();
+                            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewMouseMove3D");
                         }
                     }
                     last_highlight = which_object;
@@ -3122,7 +3250,7 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
         GetMouseLocation(event.GetX(), event.GetY(), ray_origin, ray_direction);
         m_bound_end_x = ray_origin.x;
         m_bound_end_y = ray_origin.y;
-        UpdatePreview();
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewMouseMove");
         return;
     }
     else if (m_wheel_down)
@@ -3134,7 +3262,7 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
         modelPreview->SetPan(delta_x, -delta_y, 0.0f);
         m_previous_mouse_x = event.GetX();
         m_previous_mouse_y = event.GetY();
-        UpdatePreview();
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewMouseMove");
     }
 
     Model *m = newModel;
@@ -3149,9 +3277,12 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
             CreateUndoPoint("SingleModel", m->name, std::to_string(m_over_handle));
         }
         m->MoveHandle(modelPreview,m_over_handle, event.ShiftDown(), event.GetX(), event.GetY());
-        SetupPropGrid(m);
-        xlights->MarkEffectsFileDirty(true);
-        UpdatePreview();
+        //SetupPropGrid(m);
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::OnPreviewMouseMove");
+        // dont need these until finish moving
+        //xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::OnPreviewMouseMove");
+        //xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "LayoutPanel::OnPreviewMouseMove");
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewMouseMove");
     }
     else if (m_dragging && event.Dragging())
     {
@@ -3172,15 +3303,18 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
                     CreateUndoPoint("SingleModel", m->name, "location");
                     modelPreview->GetModels()[i]->AddOffset(delta_x, delta_y, 0.0);
                     modelPreview->GetModels()[i]->UpdateXmlWithScale();
-                    SetupPropGrid(modelPreview->GetModels()[i]);
-                    xlights->MarkEffectsFileDirty(true);
+                    //SetupPropGrid(modelPreview->GetModels()[i]);
+                    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::OnPreviewMouseMove");
+                    // dont need these until finished moving
+                    //xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::OnPreviewMouseMove");
+                    //xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "LayoutPanel::OnPreviewMouseMove");
                 }
             }
         }
         m_previous_mouse_x = event.GetPosition().x;
         m_previous_mouse_y = event.GetPosition().y;
         xlights->SetStatusText(wxString::Format("x=%d y=%d",m_previous_mouse_x,m_previous_mouse_y));
-        UpdatePreview();
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewMouseMove");
     }
     else
     {
@@ -3371,7 +3505,7 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
     if (event.GetId() == ID_PREVIEW_RESET)
     {
         modelPreview->Reset();
-        UpdatePreview();
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_RESET");
     }
     else if (event.GetId() == ID_PREVIEW_REPLACEMODEL)
     {
@@ -3520,14 +3654,14 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
     else if (event.GetId() == ID_PREVIEW_MODEL_LOCK)
     {
         LockSelectedModels(true);
-        UpdatePreview();
-        resetPropertyGrid();
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_LOCK");
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_LOCK");
     }
     else if (event.GetId() == ID_PREVIEW_MODEL_UNLOCK)
     {
         LockSelectedModels(false);
-        UpdatePreview();
-        resetPropertyGrid();
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_UNLOCK");
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_UNLOCK");
     }
     else if (event.GetId() == ID_PREVIEW_MODEL_EXPORTASCUSTOM)
     {
@@ -3560,8 +3694,8 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
             render_ht = render_ht / wi_ratio;
             md->GetBaseObjectScreenLocation().SetMHeight((int)render_ht);
         }
-        UpdatePreview();
-        resetPropertyGrid();
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_ASPECTRATIO");
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_ASPECTRATIO");
     }
     else if (event.GetId() == ID_PREVIEW_MODEL_EXPORTXLIGHTSMODEL)
     {
@@ -3582,8 +3716,9 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
         md->InsertHandle(handle, modelPreview->GetCameraZoomForHandles(), modelPreview->GetHandleScale());
         md->UpdateXmlWithScale();
         md->InitModel();
-        SetupPropGrid(md);
-        UpdatePreview();
+        //SetupPropGrid(md);
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_ADDPOINT");
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_ADDPOINT");
     }
     else if (event.GetId() == ID_PREVIEW_MODEL_DELETEPOINT)
     {
@@ -3596,8 +3731,9 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
             md->DeleteHandle(selected_handle);
             md->UpdateXmlWithScale();
             md->InitModel();
-            SetupPropGrid(md);
-            UpdatePreview();
+            //SetupPropGrid(md);
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_DELETEPOINT");
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_DELETEPOINT");
         }
     }
     else if (event.GetId() == ID_PREVIEW_MODEL_ADDCURVE)
@@ -3609,7 +3745,7 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
         md->SetCurve(seg, true);
         md->UpdateXmlWithScale();
         md->InitModel();
-        UpdatePreview();
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_ADDCURVE");
     }
     else if (event.GetId() == ID_PREVIEW_MODEL_DELCURVE)
     {
@@ -3620,7 +3756,7 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
         md->SetCurve(seg, false);
         md->UpdateXmlWithScale();
         md->InitModel();
-        UpdatePreview();
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_DELCURVE");
     }
     else if (event.GetId() == ID_PREVIEW_SAVE_VIEWPOINT)
     {
@@ -3634,7 +3770,7 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
                 if (event.GetId() == xlights->viewpoint_mgr.GetCamera3D(i)->GetMenuId())
                 {
                     modelPreview->SetCamera3D(i);
-                    UpdatePreview();
+                    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewModelPopup::3dCamera");
                     break;
                 }
                 else if (event.GetId() == xlights->viewpoint_mgr.GetCamera3D(i)->GetDeleteMenuId())
@@ -3651,7 +3787,7 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
                 if (event.GetId() == xlights->viewpoint_mgr.GetCamera2D(i)->GetMenuId())
                 {
                     modelPreview->SetCamera2D(i);
-                    UpdatePreview();
+                    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewModelPopup::2dCamera");
                     break;
                 }
                 else if (event.GetId() == xlights->viewpoint_mgr.GetCamera2D(i)->GetDeleteMenuId())
@@ -3676,7 +3812,7 @@ void LayoutPanel::PreviewModelAlignWithGround()
             modelPreview->GetModels()[i]->SetBottom(0.0f);
         }
     }
-    UpdatePreview();
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::PreviewModelAlignWithGround");
 }
 
 void LayoutPanel::ShowNodeLayout()
@@ -3712,7 +3848,9 @@ void LayoutPanel::PreviewModelAlignTops()
             modelPreview->GetModels()[i]->SetTop(top);
         }
     }
-    UpdatePreview();
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::PreviewModelAlignTops");
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::PreviewModelAlignTops");
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::PreviewModelAlignTops", nullptr, nullptr, GetSelectedModelName());
 }
 
 void LayoutPanel::PreviewModelAlignBottoms()
@@ -3729,7 +3867,9 @@ void LayoutPanel::PreviewModelAlignBottoms()
             modelPreview->GetModels()[i]->SetBottom(bottom);
         }
     }
-    UpdatePreview();
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::PreviewModelAlignBottoms");
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::PreviewModelAlignBottoms");
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::PreviewModelAlignBottoms", nullptr, nullptr, GetSelectedModelName());
 }
 
 void LayoutPanel::PreviewModelAlignLeft()
@@ -3746,7 +3886,9 @@ void LayoutPanel::PreviewModelAlignLeft()
             modelPreview->GetModels()[i]->SetLeft(left);
         }
     }
-    UpdatePreview();
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::PreviewModelAlignLeft");
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::PreviewModelAlignLeft");
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::PreviewModelAlignLeft", nullptr, nullptr, GetSelectedModelName());
 }
 
 void LayoutPanel::PreviewModelAlignFronts()
@@ -3763,7 +3905,9 @@ void LayoutPanel::PreviewModelAlignFronts()
             modelPreview->GetModels()[i]->SetFront(front);
         }
     }
-    UpdatePreview();
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::PreviewModelAlignFronts");
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::PreviewModelAlignFronts");
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::PreviewModelAlignFronts", nullptr, nullptr, GetSelectedModelName());
 }
 
 void LayoutPanel::PreviewModelAlignBacks()
@@ -3780,7 +3924,9 @@ void LayoutPanel::PreviewModelAlignBacks()
             modelPreview->GetModels()[i]->SetBack(back);
         }
     }
-    UpdatePreview();
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::PreviewModelAlignBacks");
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::PreviewModelAlignBacks");
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::PreviewModelAlignBacks", nullptr, nullptr, GetSelectedModelName());
 }
 
 void LayoutPanel::PreviewModelResize(bool sameWidth, bool sameHeight)
@@ -3818,7 +3964,9 @@ void LayoutPanel::PreviewModelResize(bool sameWidth, bool sameHeight)
             }
         }
     }
-    UpdatePreview();
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::PreviewModelAlignResize");
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::PreviewModelAlignResize");
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::PreviewModelAlignResize", nullptr, nullptr, GetSelectedModelName());
 }
 
 void LayoutPanel::PreviewModelAlignRight()
@@ -3835,7 +3983,9 @@ void LayoutPanel::PreviewModelAlignRight()
             modelPreview->GetModels()[i]->SetRight(right);
         }
     }
-    UpdatePreview();
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::PreviewModelAlignRight");
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::PreviewModelAlignRight");
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::PreviewModelAlignRight", nullptr, nullptr, GetSelectedModelName());
 }
 
 void LayoutPanel::PreviewModelAlignHCenter()
@@ -3852,7 +4002,9 @@ void LayoutPanel::PreviewModelAlignHCenter()
             modelPreview->GetModels()[i]->SetHcenterPos(center);
         }
     }
-    UpdatePreview();
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::PreviewModelAlignHCenter");
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::PreviewModelAlignHCenter");
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::PreviewModelAlignHCenter", nullptr, nullptr, GetSelectedModelName());
 }
 
 bool SortModelX(const Model* first, const Model* second)
@@ -3918,7 +4070,9 @@ void LayoutPanel::PreviewModelHDistribute()
             x += space;
         }
     }
-    UpdatePreview();
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::PreviewModelHDistribute");
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::PreviewModelHDistribute");
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::PreviewModelHDistribute", nullptr, nullptr, GetSelectedModelName());
 }
 
 void LayoutPanel::PreviewModelVDistribute()
@@ -3968,7 +4122,9 @@ void LayoutPanel::PreviewModelVDistribute()
             y += space;
         }
     }
-    UpdatePreview();
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::PreviewModelVDistribute");
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::PreviewModelVDistribute");
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::PreviewModelVDistribute", nullptr, nullptr, GetSelectedModelName());
 }
 
 void LayoutPanel::PreviewModelAlignVCenter()
@@ -3985,7 +4141,9 @@ void LayoutPanel::PreviewModelAlignVCenter()
             modelPreview->GetModels()[i]->SetVcenterPos(center);
         }
     }
-    UpdatePreview();
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::PreviewModelVCenter");
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::PreviewModelVCenter");
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::PreviewModelVCenter", nullptr, nullptr, GetSelectedModelName());
 }
 
 int LayoutPanel::GetSelectedModelIndex() const
@@ -4137,7 +4295,8 @@ void LayoutPanel::OnAddObjectPopup(wxCommandEvent& event)
         editing_models = false;
         SelectViewObject(vobj, true);
         vobj->UpdateXmlWithScale();
-        SetupPropGrid(vobj);
+        //SetupPropGrid(vobj);
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::OnPreviewModelPopup::ID_ADD_OBJECT_MESH");
     }
 
     Refresh();
@@ -4377,13 +4536,14 @@ void LayoutPanel::Nudge(int key)
                     it->AddOffset(deltax, deltay, 0.0);
                 }
                 it->UpdateXmlWithScale();
-                SetupPropGrid(it);
+                //SetupPropGrid(it);
             }
         }
 
-        xlights->MarkEffectsFileDirty(true);
-        UpdatePreview();
-        resetPropertyGrid();
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::Nudge");
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "LayoutPanel::Nudge");
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::Nudge");
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::Nudge");
 
         // set last time after everything is done
         lastTime = wxGetUTCTimeMillis();
@@ -4541,10 +4701,11 @@ void LayoutPanel::DeleteSelectedModel() {
         {
             xlights->AllModels.Delete(selectedBaseObject->name);
         }
-        xlights->AllModels.ReworkStartChannel();
         selectedBaseObject = nullptr;
-        xlights->UpdateModelsList();
-        xlights->MarkEffectsFileDirty(true);
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::DeleteSelectedModel");
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::DeleteSelectedModel");
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "LayoutPanel::DeleteSelectedModel");
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "LayoutPanel::DeleteSelectedModel");
     }
 }
 
@@ -4597,7 +4758,7 @@ void LayoutPanel::ReplaceModel()
             auto msg = wxString::Format("Should I copy the replaced models start channel '%s' to the replacement model whose start channel is currently '%s'?", replaceModel->ModelStartChannel, modelToReplaceItWith->ModelStartChannel);
             if (wxMessageBox(msg, "Update Start Channel", wxYES_NO) == wxYES)
             {
-                modelToReplaceItWith->SetStartChannel(replaceModel->ModelStartChannel, true);
+                modelToReplaceItWith->SetStartChannel(replaceModel->ModelStartChannel);
 
                 modelToReplaceItWith->SetControllerProtocol(replaceModel->GetControllerProtocol());
                 modelToReplaceItWith->SetControllerPort(replaceModel->GetControllerPort());
@@ -4610,8 +4771,9 @@ void LayoutPanel::ReplaceModel()
         xlights->AllModels.RenameInListOnly(modelToReplaceItWith->GetName(), dlg.GetStringSelection().ToStdString());
         modelToReplaceItWith->Rename(dlg.GetStringSelection().ToStdString());
         xlights->AllModels.Delete("Iamgoingtodeletethismodel");
-        xlights->UpdateModelsList();
-        xlights->MarkEffectsFileDirty(true);
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "ReplaceModel", nullptr, nullptr, dlg.GetStringSelection().ToStdString());
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ReplaceModel");
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "ReplaceModel");
     }
 }
 
@@ -4634,7 +4796,7 @@ void LayoutPanel::LockSelectedModels(bool lock)
     {
         selectedBaseObject->Lock(lock);
     }
-    xlights->MarkEffectsFileDirty(true);
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::LockSelectedModels");
 }
 
 void LayoutPanel::DoCopy(wxCommandEvent& event) {
@@ -4787,11 +4949,11 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
 						lastModelName = name;
 					}
 
-					xlights->UpdateModelsList();
+                    //SelectBaseObject(name);
+                    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::DoPaste");
+                    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "LayoutPanel::DoPaste");
+                    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::DoPaste", nullptr, nullptr, name);
                     modelPreview->SetCursor(wxCURSOR_DEFAULT);
-                    SelectBaseObject(name);
-                    xlights->MarkEffectsFileDirty(true);
-
                 }
             }
             else
@@ -4826,8 +4988,9 @@ void LayoutPanel::DoUndo(wxCommandEvent& event) {
             wxVariant value(undoBuffer[sz].data);
             event2.SetPropertyValue(value);
             OnPropertyGridChange(event2);
-            xlights->MarkEffectsFileDirty(true);
-            resetPropertyGrid();
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::DoUndo");
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "LayoutPanel::DoUndo");
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::DoUndo");
         } else if (undoBuffer[sz].type == "ObjectProperty") {
             ViewObject* vobj = xlights->AllObjects[undoBuffer[sz].model];
             SelectViewObject(vobj);
@@ -4838,8 +5001,9 @@ void LayoutPanel::DoUndo(wxCommandEvent& event) {
             wxVariant value(undoBuffer[sz].data);
             event2.SetPropertyValue(value);
             OnPropertyGridChange(event2);
-            xlights->MarkEffectsFileDirty(true);
-            resetPropertyGrid();
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::DoUndo");
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "LayoutPanel::DoUndo");
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::DoUndo");
         } else if (undoBuffer[sz].type == "SingleModel") {
             Model *m = xlights->AllModels[undoBuffer[sz].model];
             if (m != nullptr) {
@@ -4855,7 +5019,8 @@ void LayoutPanel::DoUndo(wxCommandEvent& event) {
                 mdoc.DetachRoot();
                 parent->InsertChild(m->GetModelXml(), next);
                 SelectModel(undoBuffer[sz].model);
-                xlights->MarkEffectsFileDirty(true);
+                xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::DoUndo");
+                xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "LayoutPanel::DoUndo");
             }
         } else if (undoBuffer[sz].type == "All") {
             UnSelectAllModels();
@@ -4907,11 +5072,9 @@ void LayoutPanel::DoUndo(wxCommandEvent& event) {
                 m = gdoc.GetRoot()->GetChildren();
             }
 
-            xlights->UpdateModelsList();
-            xlights->MarkEffectsFileDirty(true);
-            if (undoBuffer[sz].model != "") {
-                SelectModel(undoBuffer[sz].model);
-            }
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::DoUndo");
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "LayoutPanel::DoUndo");
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::DoUndo", nullptr, nullptr, undoBuffer[sz].model);
         } else if (undoBuffer[sz].type == "ModelName") {
             std::string origName = undoBuffer[sz].model;
             std::string newName = undoBuffer[sz].key;
@@ -4920,17 +5083,16 @@ void LayoutPanel::DoUndo(wxCommandEvent& event) {
             }
             xlights->RenameModel(newName, origName);
 
-            xlights->UpdateModelsList();
-            xlights->MarkEffectsFileDirty(true);
-            SelectModel(origName);
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::DoUndo", nullptr, nullptr, origName);
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::DoUndo");
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "LayoutPanel::DoUndo");
         } else if (undoBuffer[sz].type == "ObjectName") {
             std::string origName = undoBuffer[sz].model;
             std::string newName = undoBuffer[sz].key;
             xlights->RenameObject(newName, origName);
-            xlights->UpdateModelsList();
-            xlights->MarkEffectsFileDirty(true);
-            ViewObject *vobj = xlights->AllObjects[origName];
-            SelectViewObject(vobj);
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::DoUndo");
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "LayoutPanel::DoUndo");
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::DoUndo", nullptr, nullptr, origName);
         }
         else
         {
@@ -4943,7 +5105,7 @@ void LayoutPanel::DoUndo(wxCommandEvent& event) {
 }
 
 void LayoutPanel::CreateUndoPoint(const std::string &type, const std::string &model, const std::string &key, const std::string &data) {
-    xlights->MarkEffectsFileDirty(false);
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::CreateUndoPoint");
     size_t idx = undoBuffer.size();
 
     //printf("%s   %s   %s  %s\n", type.c_str(), model.c_str(), key.c_str(), data.c_str());
@@ -5063,9 +5225,11 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event)
                 selectedBaseObject = nullptr;
                 mSelectedGroup = nullptr;
                 UnSelectAllModels();
-                ShowPropGrid(true);
-                xlights->UpdateModelsList();
-                xlights->MarkEffectsFileDirty(true);
+                //ShowPropGrid(true);
+                xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::OnModelsPopup::ID_MNU_DELETE_MODEL_GROUP");
+                xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::OnModelsPopup::ID_MNU_DELETE_MODEL_GROUP");
+                xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "LayoutPanel::OnModelsPopup::ID_MNU_DELETE_MODEL_GROUP");
+                xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::OnPreviewModelPopup::ID_MNU_DELETE_MODEL_GROUP");
             }
         }
     }
@@ -5100,9 +5264,10 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event)
 
         mSelectedGroup = nullptr;
         UnSelectAllModels();
-        ShowPropGrid(true);
-        xlights->UpdateModelsList();
-        xlights->MarkEffectsFileDirty(true);
+        //ShowPropGrid(true);
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::OnModelsPopup::ID_MNU_DELETE_EMPTY_MODEL_GROUPS");
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::OnModelsPopup::ID_MNU_DELETE_EMPTY_MODEL_GROUPS");
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::OnModelsPopup::ID_MNU_DELETE_EMPTY_MODEL_GROUPS");
     }
     else if (id == ID_MNU_MAKEALLSCVALID)
     {
@@ -5128,19 +5293,21 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event)
                 {
                     if (lastModel == nullptr)
                     {
-                        it->second->SetStartChannel("1", true);
+                        it->second->SetStartChannel("1");
                         lastModel = it->second;
                     }
                     else
                     {
-                        it->second->SetStartChannel(">" + lastModel->GetName() + ":1", true);
+                        it->second->SetStartChannel(">" + lastModel->GetName() + ":1");
                         lastModel = it->second;
                     }
                 }
             }
             //xlights->RecalcModels(true);
-            xlights->UpdateModelsList();
-            xlights->MarkEffectsFileDirty(true);
+            //xlights->UpdateModelsList();
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::OnModelsPopup::ID_MNU_MAKEALLSCVALID");
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::OnModelsPopup::ID_MNU_MAKEALLSCVALID");
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "LayoutPanel::OnModelsPopup::ID_MNU_MAKEALLSCVALID");
         }
     }
     else if (id == ID_MNU_MAKEALLSCNOTOVERLAPPING)
@@ -5167,19 +5334,21 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event)
                 {
                     if (lastModel == nullptr)
                     {
-                        it->second->SetStartChannel("1", true);
+                        it->second->SetStartChannel("1");
                         lastModel = it->second;
                     }
                     else
                     {
-                        it->second->SetStartChannel(">" + lastModel->GetName() + ":1", true);
+                        it->second->SetStartChannel(">" + lastModel->GetName() + ":1");
                         lastModel = it->second;
                     }
                 }
             }
             //xlights->RecalcModels(true);
-            xlights->UpdateModelsList();
-            xlights->MarkEffectsFileDirty(true);
+            //xlights->UpdateModelsList();
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::OnModelsPopup::ID_MNU_MAKEALLSCNOTOVERLAPPING");
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::OnModelsPopup::ID_MNU_MAKEALLSCNOTOVERLAPPING");
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "LayoutPanel::OnModelsPopup::ID_MNU_MAKEALLSCNOTOVERLAPPING");
         }
     }
     else if (id == ID_MNU_MAKESCVALID)
@@ -5204,14 +5373,15 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event)
                 }
                 if (lastModel == nullptr)
                 {
-                    selectedModel->SetStartChannel("1", true);
+                    selectedModel->SetStartChannel("1");
                 }
                 else
                 {
-                    selectedModel->SetStartChannel(">" + lastModel->GetName() + ":1", true);
+                    selectedModel->SetStartChannel(">" + lastModel->GetName() + ":1");
                 }
-                xlights->UpdateModelsList();
-                xlights->MarkEffectsFileDirty(true);
+                xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::OnModelsPopup::ID_MNU_MAKESCVALID");
+                xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::OnModelsPopup::ID_MNU_MAKESCVALID");
+                xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "LayoutPanel::OnModelsPopup::ID_MNU_MAKESCVALID");
             }
         }
     }
@@ -5234,12 +5404,13 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event)
                 }
 
                 if (xlights->RenameModel(sel.ToStdString(), name.ToStdString())) {
-                    CallAfter(&LayoutPanel::UpdateModelList, true);
+                    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::OnModelsPopup::ID_MNU_RENAME_MODEL_GROUP", nullptr, nullptr, name.ToStdString());
                 }
 
-                xlights->UpdateModelsList();
-                xlights->MarkEffectsFileDirty(true);
-                model_grp_panel->UpdatePanel(name.ToStdString());
+                //xlights->UpdateModelsList();
+                xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::OnModelsPopup::ID_MNU_RENAME_MODEL_GROUP");
+                xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "LayoutPanel::OnModelsPopup::ID_MNU_RENAME_MODEL_GROUP");
+                //model_grp_panel->UpdatePanel(name.ToStdString());
             }
         }
     }
@@ -5268,10 +5439,13 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event)
             node->AddAttribute("LayoutGroup", grp);
 
             xlights->AllModels.AddModel(xlights->AllModels.CreateModel(node));
-            xlights->UpdateModelsList();
-            xlights->MarkEffectsFileDirty(true);
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::OnModelsPopup::ID_MNU_ADD_MODEL_GROUP", nullptr, nullptr, name.ToStdString());
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::OnModelsPopup::ID_MNU_ADD_MODEL_GROUP");
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "LayoutPanel::OnModelsPopup::ID_MNU_ADD_MODEL_GROUP");
             model_grp_panel->UpdatePanel(name.ToStdString());
-            ShowPropGrid(false);
+            //ShowPropGrid(false);
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::OnModelsPopup::ID_MNU_ADD_MODEL_GROUP");
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "LayoutPanel::OnModelsPopup::ID_MNU_ADD_MODEL_GROUP");
         }
     }
 }
@@ -5323,9 +5497,9 @@ void LayoutPanel::OnChoiceLayoutGroupsSelect(wxCommandEvent& event)
             AddPreviewChoice(name.ToStdString());
             ChoiceLayoutGroups->SetSelection(ChoiceLayoutGroups->GetCount() - 2);
 
-            xlights->UpdateModelsList();
-            xlights->MarkEffectsFileDirty(true);
-            ShowPropGrid(true);
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::OnChoiceLayoutGroupsSelect");
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::OnChoiceLayoutGroupsSelect");
+            //ShowPropGrid(true);
         } else {
             SwitchChoiceToCurrentLayoutGroup();
             return;
@@ -5340,7 +5514,7 @@ void LayoutPanel::OnChoiceLayoutGroupsSelect(wxCommandEvent& event)
     modelPreview->SetbackgroundImage(GetBackgroundImageForSelectedPreview());
     modelPreview->SetScaleBackgroundImage(GetBackgroundScaledForSelectedPreview());
     modelPreview->SetBackgroundBrightness(GetBackgroundBrightnessForSelectedPreview(), GetBackgroundAlphaForSelectedPreview());
-    UpdatePreview();
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnChoiceLayoutGroupsSelect");
 
     xlights->SetStoredLayoutGroup(currentLayoutGroup);
 }
@@ -5472,7 +5646,7 @@ void LayoutPanel::AddPreviewChoice(const std::string &name)
                 modelPreview->SetbackgroundImage(GetBackgroundImageForSelectedPreview());
                 modelPreview->SetScaleBackgroundImage(GetBackgroundScaledForSelectedPreview());
                 modelPreview->SetBackgroundBrightness(GetBackgroundBrightnessForSelectedPreview(), GetBackgroundAlphaForSelectedPreview());
-                UpdatePreview();
+                xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::AddPreview");
                 break;
             }
         }
@@ -5541,7 +5715,7 @@ void LayoutPanel::DeleteCurrentPreview()
                 }
             }
         }
-        xlights->MarkEffectsFileDirty(false);
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::DeleteCurrentPreview");
         mSelectedGroup = nullptr;
         for( int i = 0; i < (int)ChoiceLayoutGroups->GetCount(); i++ )
         {
@@ -5569,7 +5743,7 @@ void LayoutPanel::DeleteCurrentPreview()
         modelPreview->SetbackgroundImage(GetBackgroundImageForSelectedPreview());
         modelPreview->SetScaleBackgroundImage(GetBackgroundScaledForSelectedPreview());
         modelPreview->SetBackgroundBrightness(GetBackgroundBrightnessForSelectedPreview(), GetBackgroundAlphaForSelectedPreview());
-        UpdatePreview();
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::DeleteCurrentPreview");
     }
 }
 
@@ -5963,14 +6137,14 @@ bool LayoutPanel::HandleLayoutKeyBinding(wxKeyEvent& event)
         if (type == "LOCK_MODEL")
         {
             LockSelectedModels(true);
-            UpdatePreview();
-            resetPropertyGrid();
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::HandleLayoutKey::LOCK_MODEL");
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::HandleLayoutKey::LOCK_MODEL");
         }
         else if (type == "UNLOCK_MODEL")
         {
             LockSelectedModels(false);
-            UpdatePreview();
-            resetPropertyGrid();
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::HandleLayoutKey::UNLOCK_MODEL");
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::HandleLayoutKey::UNLOCK_MODEL");
         }
         else if (type == "GROUP_MODELS")
         {
@@ -6015,6 +6189,10 @@ bool LayoutPanel::HandleLayoutKeyBinding(wxKeyEvent& event)
         else if (type == "MODEL_DISTRIBUTE_HORIZ")
         {
             PreviewModelHDistribute();
+        }
+        else if (type == "SELECT_ALL_MODELS")
+        {
+            SelectAllModels();
         }
         else if (type == "MODEL_DISTRIBUTE_VERT")
         {

@@ -73,7 +73,7 @@ private:
 
 // These are needed to compile with Visual Studio
 #ifdef _MSC_VER
-#define strcasecmp stricmp
+#define strcasecmp _stricmp
 #endif
 
 #endif

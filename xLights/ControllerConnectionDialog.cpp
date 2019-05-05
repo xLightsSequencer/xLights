@@ -4,6 +4,8 @@
 #include "../xSchedule/wxJSON/jsonreader.h"
 #include "../xSchedule/wxJSON/jsonwriter.h"
 #include <wx/xml/xml.h>
+#include "xLightsApp.h"
+#include "xLightsMain.h"
 
 //(*InternalHeaders(ControllerConnectionDialog)
 #include <wx/intl.h>
@@ -229,11 +231,26 @@ void ControllerConnectionDialog::Set(wxXmlNode *node) {
 }
 
 void ControllerConnectionDialog::Get(wxXmlNode *node) {
+    bool changed = false;
     std::string protocol = Choice_Protocol->GetStringSelection().ToStdString();
+    if (protocol != node->GetAttribute("Protocol", "xyzzy_kw")) changed = true;
     node->DeleteAttribute("Protocol");
     node->AddAttribute("Protocol", protocol);
+
+    if (SpinCtrl_Port->GetValue() != wxAtoi(node->GetAttribute("Port", "-999"))) changed = true;
     node->DeleteAttribute("Port");
     node->AddAttribute("Port", wxString::Format("%d", SpinCtrl_Port->GetValue()));
+
+    if (protocol == "DMX" || protocol == "dmx") {
+        if (DMXChannel->GetValue() != wxAtoi(node->GetAttribute("channel", "-999"))) changed = true;
+    }
+    else if (Model::IsPixelProtocol(protocol)) {
+        if (Brightness->GetValue() != wxAtoi(node->GetAttribute("brightness", "-999"))) changed = true;
+        if (Gamma->GetValue() != wxAtof(node->GetAttribute("gamma", "-999"))) changed = true;
+        if (NullNodes->GetValue() != wxAtoi(node->GetAttribute("nullNodes", "-999"))) changed = true;
+        if (ColorOrder->GetStringSelection() != node->GetAttribute("colorOrder", "-999")) changed = true;
+        if (PixelDirection->GetSelection() != wxAtoi(node->GetAttribute("reverse", "-999"))) changed = true;
+    }
 
     node->DeleteAttribute("channel");
     node->DeleteAttribute("brightness");
@@ -243,7 +260,7 @@ void ControllerConnectionDialog::Get(wxXmlNode *node) {
     node->DeleteAttribute("reverse");
     if (protocol == "DMX" || protocol == "dmx") {
         if (CheckBox_DMXChannel->IsChecked()) {
-            node->AddAttribute("Port", wxString::Format("%d", DMXChannel->GetValue()));
+            node->AddAttribute("channel", wxString::Format("%d", DMXChannel->GetValue()));
         }
     } else if (Model::IsPixelProtocol(protocol)) {
         wxJSONValue value;
@@ -252,6 +269,13 @@ void ControllerConnectionDialog::Get(wxXmlNode *node) {
         if (CheckBox_NullNodes->IsChecked()) node->AddAttribute("nullNodes", wxString::Format("%d", NullNodes->GetValue()));
         if (CheckBox_ColorOrder->IsChecked()) node->AddAttribute("colorOrder", ColorOrder->GetStringSelection());
         if (CheckBox_PixelDirection->IsChecked()) node->AddAttribute("reverse", wxString::Format("%d",  PixelDirection->GetSelection()));
+    }
+    if (changed)
+    {
+        xLightsApp::GetFrame()->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ControllerConnectionDialog::Get");
+        xLightsApp::GetFrame()->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "ControllerConnectionDialog::Get");
+        xLightsApp::GetFrame()->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "ControllerConnectionDialog::Get");
+        xLightsApp::GetFrame()->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "ControllerConnectionDialog::Get");
     }
 }
 

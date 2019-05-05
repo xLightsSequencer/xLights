@@ -32,14 +32,14 @@ namespace DrawGLUtils {
 }
 
 enum {
-    GRIDCHANGE_REFRESH_DISPLAY = 0x0001,
-    GRIDCHANGE_MARK_DIRTY = 0x0002,
-    GRIDCHANGE_REBUILD_PROP_GRID = 0x0004,
-    GRIDCHANGE_REBUILD_MODEL_LIST = 0x0008,
-    GRIDCHANGE_UPDATE_ALL_MODEL_LISTS = 0x0010,
+    //GRIDCHANGE_REFRESH_DISPLAY = 0x0001,
+    //GRIDCHANGE_MARK_DIRTY = 0x0002,
+    //GRIDCHANGE_REBUILD_PROP_GRID = 0x0004,
+    //GRIDCHANGE_REBUILD_MODEL_LIST = 0x0008,
+    //GRIDCHANGE_UPDATE_ALL_MODEL_LISTS = 0x0010,
     GRIDCHANGE_SUPPRESS_HOLDSIZE = 0x00020,
 
-    GRIDCHANGE_MARK_DIRTY_AND_REFRESH = 0x0003
+    //GRIDCHANGE_MARK_DIRTY_AND_REFRESH = 0x0003
 };
 
 class Model : public BaseObject
@@ -107,12 +107,15 @@ public:
     const ModelManager &GetModelManager() const {
         return modelManager;
     }
-
+    virtual void AddASAPWork(uint32_t work, const std::string& from) override;
     virtual bool SupportsXlightsModel();
     static Model* GetXlightsModel(Model* model, std::string &last_model, xLightsFrame* xlights, bool &cancelled, bool download, wxProgressDialog* prog, int low, int high);
     virtual void ImportXlightsModel(std::string filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y);
     virtual void ExportXlightsModel();
-    void SetStartChannel(std::string startChannel, bool suppressRecalc = false);
+    void SetStartChannel(std::string startChannel);
+    void ReloadModelXml() {
+        SetFromXml(ModelXml, zeroBased);
+    }
 
     static const std::vector<std::string> DEFAULT_BUFFER_STYLES;
 
@@ -216,16 +219,15 @@ public:
         }
         return 1;
     }
-    void SetControllerName(const std::string& controllerName, bool recalc = true);
+    void SetControllerName(const std::string& controllerName);
     void SetControllerProtocol(const std::string& protocol);
     void SetControllerPort(int port);
     std::string GetControllerName() const;
     std::string GetControllerProtocol() const;
     int GetSmartRemote() const;
     int GetControllerPort(int string = 1) const;
-    void SetModelChain(const std::string& modelChain, bool recalc = true);
+    void SetModelChain(const std::string& modelChain);
     std::string GetModelChain() const;
-    void ReworkStartChannel();
     const std::vector<Model *>& GetSubModels() const { return subModels; }
     Model *GetSubModel(const std::string &name);
     int GetNumSubModels() const { return subModels.size();}

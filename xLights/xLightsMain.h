@@ -72,6 +72,7 @@
 #include "sequencer/EffectsGrid.h"
 #include "RenderCache.h"
 #include "outputs/ZCPP.h"
+#include "OutputModelManager.h"
 
 class EffectTreeDialog;
 class ConvertDialog;
@@ -305,7 +306,8 @@ public:
     void OnMenuItemLoadPerspectiveSelected(wxCommandEvent& event);
 	bool SaveEffectsFile(bool backup = false);
     void SaveModelsFile();
-    void MarkEffectsFileDirty(bool modelStructureChange);
+    void MarkEffectsFileDirty();
+    void MarkModelsAsNeedingRender();
     void CheckUnsavedChanges();
     void SetStatusText(const wxString &msg, int filename = 0);
     void SetStatusTextColor(const wxString &msg, const wxColor& colour);
@@ -368,6 +370,10 @@ public:
     void PlayerError(const wxString& msg);
     void AskCloseSequence();
     void SaveCurrentTab();
+    void DoWork(uint32_t work, const std::string& type, Model* model = nullptr, const std::string& selected = "");
+    void DoASAPWork();
+    void DoSetupWork();
+    void DoLayoutWork();
 
     EffectManager &GetEffectManager() { return effectManager; }
 
@@ -1072,6 +1078,7 @@ public:
     wxArrayString mru;  // most recently used directories
     wxMenuItem* mru_MenuItem[MRU_LENGTH];
     OutputManager _outputManager;
+    OutputModelManager _outputModelManager;
     long DragRowIdx;
     wxListCtrl* DragListBox;
     bool UnsavedNetworkChanges = false;
@@ -1118,7 +1125,7 @@ public:
     void OnMenuMRU(wxCommandEvent& event);
     bool SetDir(const wxString& dirname);
     bool PromptForShowDirectory();
-    void UpdateNetworkList(bool updateModels);
+    void UpdateNetworkList();
     long GetNetworkSelection() const;
     long GetLastNetworkSelection() const;
     int GetNetworkSelectedItemCount() const;
@@ -1136,6 +1143,7 @@ public:
     void SetupNullOutput(Output* e, int after = -1);
     bool SaveNetworksFile();
     void NetworkChange();
+    void NetworkChannelsChange();
     std::list<int> GetSelectedOutputs(wxString& ip);
     void UploadFPPBridgeInput();
     void MultiControllerUpload();
@@ -1150,8 +1158,8 @@ public:
     void UploadFPPStringOuputs(const std::string &controllers);
 	void PingController(Output* e);
     void SetModelData(ZCPPOutput* zcpp, ModelManager* modelManager, OutputManager* outputManager, std::string showDir);
-    int SetZCPPPort(std::list<ZCPP_packet_t>& modelDatas, int index, UDControllerPort* port, int portNum, int virtualString, long baseStart, bool isSerial, ZCPPOutput* zcpp);
-    void SetZCPPExtraConfig(std::list<ZCPP_packet_t>& extraConfig, int portNum, int virtualStringNum, const std::string& name, ZCPPOutput* zcpp);
+    int SetZCPPPort(std::list<ZCPP_packet_t*>& modelDatas, int index, UDControllerPort* port, int portNum, int virtualString, long baseStart, bool isSerial, ZCPPOutput* zcpp);
+    void SetZCPPExtraConfig(std::list<ZCPP_packet_t*>& extraConfig, int portNum, int virtualStringNum, const std::string& name, ZCPPOutput* zcpp);
     void UploadEasyLightsOutput();
 
     void VisualiseOutput(Output *e, wxWindow *parent = nullptr);
@@ -1207,6 +1215,7 @@ public:
     void ReadFalconFile(const wxString& FileName, ConvertDialog* convertdlg);
     void WriteFalconPiFile(const wxString& filename); //  Falcon Pi Player *.pseq
     OutputManager* GetOutputManager() { return &_outputManager; };
+    OutputModelManager* GetOutputModelManager() { return&_outputModelManager; }
 
 private:
 
@@ -1345,7 +1354,6 @@ private:
     bool SeqChanCtrlBasic;
     bool SeqChanCtrlColor;
 	bool mLoopAudio;
-    bool _setupChanged; // set to true if something changes on the setup tab which would require the layout tab to have the model start channels recalculated
 
     bool mResetToolbars;
     bool mRenderOnSave;
@@ -1421,12 +1429,9 @@ public:
     int GetDefaultPreviewBackgroundBrightness();
     int GetDefaultPreviewBackgroundAlpha();
     void SetPreviewBackgroundBrightness(int brightness, int alpha);
-    void UpdatePreview();
     void UpdateModelsList();
     void RowHeadingsChanged( wxCommandEvent& event);
     void DoForceSequencerRefresh();
-    void RefreshLayout();
-    void RenderLayout();
     void AddPreviewOption(LayoutGroup* grp);
     void RemovePreviewOption(LayoutGroup* grp);
     ModelPreview* GetLayoutPreview() const {return modelPreview;}
@@ -1443,6 +1448,7 @@ public:
     void SetACSettings(ACTYPE type);
     bool IsPaneDocked(wxWindow* window) const;
     ModelPreview* GetHousePreview() const;
+    void RenderLayout();
 
     void UnselectEffect();
 
@@ -1636,6 +1642,6 @@ public:
     std::string GetEffectTextFromWindows(std::string &palette) const;
 
 	void DoPlaySequence();
-    void RecalcModels(bool force = false);
+    void RecalcModels();
 };
 #endif // XLIGHTSMAIN_H

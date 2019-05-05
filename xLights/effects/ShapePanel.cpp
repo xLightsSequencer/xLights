@@ -154,6 +154,7 @@ ShapePanel::ShapePanel(wxWindow* parent)
     FlexGridSizer57->Add(StaticText69, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     Choice_Shape_ObjectToDraw = new BulkEditChoice(this, ID_CHOICE_Shape_ObjectToDraw, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Shape_ObjectToDraw"));
     Choice_Shape_ObjectToDraw->SetSelection( Choice_Shape_ObjectToDraw->Append(_("Circle")) );
+    Choice_Shape_ObjectToDraw->Append(_("Ellipse"));
     Choice_Shape_ObjectToDraw->Append(_("Triangle"));
     Choice_Shape_ObjectToDraw->Append(_("Square"));
     Choice_Shape_ObjectToDraw->Append(_("Pentagon"));
@@ -301,7 +302,7 @@ ShapePanel::ShapePanel(wxWindow* parent)
     FlexGridSizer57->Add(TextCtrl_Shape_CentreY, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText1 = new wxStaticText(this, ID_STATICTEXT_Shape_Points, _("Points"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Shape_Points"));
     FlexGridSizer57->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    Slider_Shape_Points = new BulkEditSlider(this, ID_SLIDER_Shape_Points, 5, 4, 7, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Shape_Points"));
+    Slider_Shape_Points = new BulkEditSlider(this, ID_SLIDER_Shape_Points, 5, 2, 9, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Shape_Points"));
     FlexGridSizer57->Add(Slider_Shape_Points, 1, wxALL|wxEXPAND, 2);
     TextCtrl_Shape_Points = new BulkEditTextCtrl(this, IDD_TEXTCTRL_Shape_Points, _("5"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Shape_Points"));
     TextCtrl_Shape_Points->SetMaxLength(1);
@@ -501,7 +502,8 @@ PANEL_EVENT_HANDLERS(ShapePanel)
 
 void ShapePanel::ValidateWindow()
 {
-    if (Choice_Shape_ObjectToDraw->GetStringSelection() == "Star")
+    if (Choice_Shape_ObjectToDraw->GetStringSelection() == "Star" ||
+		Choice_Shape_ObjectToDraw->GetStringSelection() == "Ellipse")
     {
         Slider_Shape_Points->Enable();
         TextCtrl_Shape_Points->Enable();
@@ -511,6 +513,14 @@ void ShapePanel::ValidateWindow()
         Slider_Shape_Points->Disable();
         TextCtrl_Shape_Points->Disable();
     }
+	if (Choice_Shape_ObjectToDraw->GetStringSelection() == "Ellipse")
+	{
+		StaticText1->SetLabel("Ratio");
+	}
+	else
+	{
+		StaticText1->SetLabel("Points");
+	}
 
     if (Choice_Shape_ObjectToDraw->GetStringSelection() == "Emoji")
     {
@@ -541,23 +551,20 @@ void ShapePanel::ValidateWindow()
         TextCtrl_Shape_Thickness->Enable();
     }
 
-    if (Choice_Shape_ObjectToDraw->GetStringSelection() == "Square" ||
-        Choice_Shape_ObjectToDraw->GetStringSelection() == "Triangle" ||
-        Choice_Shape_ObjectToDraw->GetStringSelection() == "Pentagon" ||
-        Choice_Shape_ObjectToDraw->GetStringSelection() == "Hexagon" ||
-        Choice_Shape_ObjectToDraw->GetStringSelection() == "Octagon" ||
-        Choice_Shape_ObjectToDraw->GetStringSelection() == "Star" ||
-        Choice_Shape_ObjectToDraw->GetStringSelection() == "Snowflake")
+    if (Choice_Shape_ObjectToDraw->GetStringSelection() == "Emoji" ||
+		Choice_Shape_ObjectToDraw->GetStringSelection() == "Candy Cane" ||
+		Choice_Shape_ObjectToDraw->GetStringSelection() == "Random" ||
+        Choice_Shape_ObjectToDraw->GetStringSelection() == "Circle" )
     {
-        Slider_Shape_Rotation->Enable();
-        TextCtrl_Shape_Rotation->Enable();
-        BitmapButton_Shape_RotationVC->Enable();
+		Slider_Shape_Rotation->Disable();
+		TextCtrl_Shape_Rotation->Disable();
+		BitmapButton_Shape_RotationVC->Disable();
     }
     else
     {
-        Slider_Shape_Rotation->Disable();
-        TextCtrl_Shape_Rotation->Disable();
-        BitmapButton_Shape_RotationVC->Disable();
+		Slider_Shape_Rotation->Enable();
+		TextCtrl_Shape_Rotation->Enable();
+		BitmapButton_Shape_RotationVC->Enable();
     }
 
     if (CheckBox_Shapes_RandomMovement->IsChecked())

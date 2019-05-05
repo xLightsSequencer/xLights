@@ -4,6 +4,7 @@
 
 #include "ChannelBlockModel.h"
 #include "ModelScreenLocation.h"
+#include "../OutputModelManager.h"
 
 std::vector<std::string> ChannelBlockModel::LINE_BUFFER_STYLES;
 
@@ -56,10 +57,16 @@ int ChannelBlockModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPro
     if ("ChannelBlockCount" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm1");
         ModelXml->AddAttribute("parm1", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        AdjustChannelProperties(grid, event.GetPropertyValue().GetLong());
-        AdjustStringProperties(grid, event.GetPropertyValue().GetLong());
-        SetFromXml(ModelXml, zeroBased);
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
+        //AdjustChannelProperties(grid, event.GetPropertyValue().GetLong());
+        //AdjustStringProperties(grid, event.GetPropertyValue().GetLong());
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ChannelBlockModel::OnPropertyGridChange::ChannelBlockCount");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "ChannelBlockModel::OnPropertyGridChange::ChannelBlockCount");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "ChannelBlockModel::OnPropertyGridChange::ChannelBlockCount");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "ChannelBlockModel::OnPropertyGridChange::ChannelBlockCount");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ChannelBlockModel::OnPropertyGridChange::ChannelBlockCount");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "ChannelBlockModel::OnPropertyGridChange::ChannelBlockCount");
+        AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "ChannelBlockModel::OnPropertyGridChange::ChannelBlockCount");
+        return 0;
     }
     else if (event.GetPropertyName().StartsWith("ChannelProperties."))
     {
@@ -68,8 +75,10 @@ int ChannelBlockModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPro
         xlColor xc = c;
         ModelXml->DeleteAttribute(event.GetPropertyName());
         ModelXml->AddAttribute(event.GetPropertyName(), xc);
-        SetFromXml(ModelXml, zeroBased);
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ChannelBlockModel::OnPropertyGridChange::ChannelProperties");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "ChannelBlockModel::OnPropertyGridChange::ChannelProperties");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "ChannelBlockModel::OnPropertyGridChange::ChannelProperties");
+        return 0;
     }
 
     return Model::OnPropertyGridChange(grid, event);
