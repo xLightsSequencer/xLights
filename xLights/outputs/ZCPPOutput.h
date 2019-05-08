@@ -38,6 +38,7 @@ public:
     #pragma region Constructors and Destructors
     ZCPPOutput(wxXmlNode* node, std::string showdir);
     ZCPPOutput();
+    ZCPPOutput(ZCPPOutput* output);
     virtual ~ZCPPOutput() override;
     #pragma endregion Constructors and Destructors
     
@@ -59,6 +60,7 @@ public:
     virtual int GetMaxChannels() const override { return ZCPP_MAXCHANNELS; }
     virtual bool IsValidChannelCount(long channelCount) const override { return channelCount > 0 && channelCount <= GetMaxChannels(); }
     virtual long GetEndChannel() const override;
+    virtual void SetChannels(long channels) override;
     int GetId() const { return _universe; }
     void SetId(int id) { _universe = id; _dirty = true; }
     void SetSupportsVirtualStrings(bool supportsVirtualStrings) { if (_supportsVirtualStrings != supportsVirtualStrings) { _supportsVirtualStrings = supportsVirtualStrings; _dirty = true; } }

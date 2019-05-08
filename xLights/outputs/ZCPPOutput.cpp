@@ -20,8 +20,8 @@ ZCPPOutput::ZCPPOutput(wxXmlNode* node, std::string showdir) : IPOutput(node)
     _dontConfigure = false;
     _lastSecond = -1;
     _sequenceNum = 0;
-    _usedChannels = _channels;
     _datagram = nullptr;
+    _usedChannels = _channels;
     if (_channels == 0)
     {
         _data = nullptr;
@@ -29,7 +29,7 @@ ZCPPOutput::ZCPPOutput(wxXmlNode* node, std::string showdir) : IPOutput(node)
     else
     {
         _data = (wxByte*)malloc(_channels);
-        memset(_data, 0x00, _channels);
+        if (_data != nullptr) memset(_data, 0x00, _channels);
     }
     memset(&_packet, 0, sizeof(_packet));
     _vendor = wxAtoi(node->GetAttribute("Vendor", "65535"));
@@ -157,6 +157,33 @@ ZCPPOutput::ZCPPOutput() : IPOutput()
     memset(&_packet, 0, sizeof(_packet));
 }
 
+ZCPPOutput::ZCPPOutput(ZCPPOutput* output) : IPOutput(output)
+{
+    _usedChannels = output->_usedChannels;
+    if (_channels == 0)
+    {
+        _data = nullptr;
+    }
+    else
+    {
+        _data = (wxByte*)malloc(_channels);
+        if (_data != nullptr) memset(_data, 0x00, _channels);
+    }
+    memset(&_packet, 0, sizeof(_packet));
+    _sequenceNum = output->_sequenceNum;
+    _remoteAddr = output->_remoteAddr;
+    _datagram = nullptr;
+    _lastSecond = -1;
+    _vendor = output->_vendor;
+    _model = output->_model;
+    _priority = output->_priority;
+    _supportsVirtualStrings = output->_supportsVirtualStrings;
+    _supportsSmartRemotes = output->_supportsSmartRemotes;
+    _multicast = output->_multicast;
+    _dontConfigure = output->_dontConfigure;
+    _protocols = output->_protocols;
+}
+
 ZCPPOutput::~ZCPPOutput()
 {
     while (_modelData.size() > 0)
@@ -184,6 +211,15 @@ void ZCPPOutput::ExtractUsedChannelsFromModelData()
     for (auto it : _modelData)
     {
         int ports = it->Configuration.ports;
+        wxASSERT(ports <= ZCPP_CONFIG_MAX_PORT_PER_PACKET);
+        if (ports > ZCPP_CONFIG_MAX_PORT_PER_PACKET)
+        {
+            logger_base.warn("ZCPP file corrupt. Abandoning read.");
+            _usedChannels = 1;
+            if (_autoSize)
+                SetChannels(1);
+            return;
+        }
         ZCPP_PortConfig* port = it->Configuration.PortConfig;
         for (int i = 0; i < ports; i++)
         {
@@ -202,16 +238,7 @@ void ZCPPOutput::ExtractUsedChannelsFromModelData()
     if (_usedChannels != _channels && _autoSize)
     {
         logger_base.debug("    usedChannels %ld != _channels %ld and autosize.", (long)_usedChannels, (long)_channels);
-        if (_data != nullptr)
-        {
-            free(_data);
-        }
-        _data = (wxByte*)malloc(_usedChannels);
-        if (_data != nullptr)
-        {
-            memset(_data, 0x00, _usedChannels);
-        }
-        _channels = _usedChannels;
+        SetChannels(_usedChannels);
         wxASSERT(_channels < 100000); // catch weird numbers
     }
     else if (_usedChannels > _channels)
@@ -332,6 +359,7 @@ bool ZCPPOutput::SetModelData(std::list<ZCPP_packet_t*> modelData, std::list<ZCP
         
         for (auto it : _modelData)
         {
+            wxASSERT(it->Configuration.ports <= ZCPP_CONFIG_MAX_PORT_PER_PACKET);
             uint8_t type = 0x00;
             zf.Write(&type, sizeof(type));
 
@@ -973,6 +1001,22 @@ void ZCPPOutput::AllOff()
 long ZCPPOutput::GetEndChannel() const
 {
     return _startChannel + _channels - 1;
+}
+
+void ZCPPOutput::SetChannels(long channels)
+{
+    if (channels != _channels)
+    {
+        _channels = channels; 
+        _dirty = true;
+        if (_data != nullptr)
+        {
+            free(_data);
+        }
+        _data = (wxByte*)malloc(_channels);
+        if (_data != nullptr) memset(_data, 0x00, _channels);
+        if (_usedChannels > _channels) _usedChannels = _channels;
+    }
 }
 
 std::string ZCPPOutput::GetLongDescription() const

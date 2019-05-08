@@ -473,27 +473,23 @@ void Model::AddProperties(wxPropertyGridInterface *grid, OutputManager* outputMa
     AddTypeProperties(grid);
 
     _controller = 0;
-    auto controllerNames = outputManager->GetControllerNames();
-    if (controllerNames.size() > 0)
-    {
-        CONTROLLERS.clear();
-        CONTROLLERS.Add("Use Start Channel");
+    CONTROLLERS.clear();
+    CONTROLLERS.Add("Use Start Channel");
 
-        for (auto it = controllerNames.begin(); it != controllerNames.end(); ++it)
+    for (auto it : outputManager->GetControllerNames())
+    {
+        if (GetControllerName() == it)
         {
-            if (GetControllerName() == *it)
-            {
-                _controller = controllerNames.size();
-            }
-            CONTROLLERS.Add(*it);
+            _controller = CONTROLLERS.size();
         }
+        CONTROLLERS.Add(it);
     }
 
     p = grid->Append(new wxEnumProperty("Controller", "Controller", CONTROLLERS, wxArrayInt(), _controller));
     p->Enable(CONTROLLERS.size() > 0);
 
     if (HasOneString(DisplayAs)) {
-        grid->Append(new StartChannelProperty(this, 0, "Start Channel", "ModelStartChannel", ModelXml->GetAttribute("StartChannel","1"), modelManager.GetXLightsFrame()->GetSelectedLayoutPanelPreview()));
+        p = grid->Append(new StartChannelProperty(this, 0, "Start Channel", "ModelStartChannel", ModelXml->GetAttribute("StartChannel","1"), modelManager.GetXLightsFrame()->GetSelectedLayoutPanelPreview()));
         p->Enable(GetControllerName() == "");
     } else {
         bool hasIndiv = ModelXml->GetAttribute("Advanced", "0") == "1";
