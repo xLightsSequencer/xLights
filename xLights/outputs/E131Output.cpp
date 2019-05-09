@@ -15,6 +15,7 @@ E131Output::E131Output(wxXmlNode* node) : IPOutput(node)
 {
     _numUniverses = wxAtoi(node->GetAttribute("NumUniverses", "1"));
     _priority = wxAtoi(node->GetAttribute("Priority","100"));
+	_autoStartChannels = (node->GetAttribute("AutoStartChannels", "false") == "true");
     if (_numUniverses > 1)
     {
         CreateMultiUniverses(_numUniverses);
@@ -58,6 +59,8 @@ wxXmlNode* E131Output::Save()
     {
         node->AddAttribute("Priority",wxString::Format(wxT("%i"), _priority));
     }
+
+	node->AddAttribute("AutoStartChannels", _autoStartChannels ? "true" : "false");
 
     return node;
 }
