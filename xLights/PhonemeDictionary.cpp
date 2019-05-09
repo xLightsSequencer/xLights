@@ -112,6 +112,27 @@ void PhonemeDictionary::BreakdownWord(const wxString& text, wxArrayString& phone
     word.Replace("%", "");
     word.Replace("^", "");
     word.Replace("*", "");
+    word.Replace(",", "");
+    word.Replace("!", "");
+    word.Replace("&", "");
+    word.Replace("-", "");
+    word.Replace("_", "");
+    word.Replace("+", "");
+    word.Replace("=", "");
+    word.Replace("[", "");
+    word.Replace("]", "");
+    word.Replace("{", "");
+    word.Replace("}", "");
+    word.Replace("\"", "");
+    word.Replace(":", "");
+    word.Replace(";", "");
+    word.Replace(".", "");
+    word.Replace("<", "");
+    word.Replace(">", "");
+    word.Replace("/", "");
+    word.Replace("?", "");
+    word.Replace("`", "");
+    word.Replace("\t", " ");
 
     phonemes.Clear();
 
