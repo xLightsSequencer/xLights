@@ -294,6 +294,10 @@ const long xLightsFrame::ID_MENUITEM_GRID_ICON_MEDIUM = wxNewId();
 const long xLightsFrame::ID_MENUITEM_GRID_ICON_LARGE = wxNewId();
 const long xLightsFrame::ID_MENUITEM_GRID_ICON_XLARGE = wxNewId();
 const long xLightsFrame::ID_MENUITEM6 = wxNewId();
+const long xLightsFrame::ID_MENUITEM24 = wxNewId();
+const long xLightsFrame::ID_MENUITEM25 = wxNewId();
+const long xLightsFrame::ID_MENUITEM26 = wxNewId();
+const long xLightsFrame::ID_MENUITEM23 = wxNewId();
 const long xLightsFrame::ID_MENUITEM_GRID_ICON_BACKGROUND_ON = wxNewId();
 const long xLightsFrame::ID_MENUITEM_GRID_ICON_BACKGROUND_OFF = wxNewId();
 const long xLightsFrame::ID_MENUITEM_Grid_Icon_Backgrounds = wxNewId();
@@ -1055,6 +1059,14 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     MenuItem28 = new wxMenuItem(GridSpacingMenu, ID_MENUITEM_GRID_ICON_XLARGE, _("Extra Large"), wxEmptyString, wxITEM_RADIO);
     GridSpacingMenu->Append(MenuItem28);
     MenuSettings->Append(ID_MENUITEM6, _("Grid Spacing"), GridSpacingMenu, wxEmptyString);
+    MenuItem60 = new wxMenu();
+    MenuItem_MHS_Normal = new wxMenuItem(MenuItem60, ID_MENUITEM24, _("Normal"), wxEmptyString, wxITEM_RADIO);
+    MenuItem60->Append(MenuItem_MHS_Normal);
+    MenuItem_MHS_Large = new wxMenuItem(MenuItem60, ID_MENUITEM25, _("Large"), wxEmptyString, wxITEM_RADIO);
+    MenuItem60->Append(MenuItem_MHS_Large);
+    MenuItem_MHS_ExtraLarge = new wxMenuItem(MenuItem60, ID_MENUITEM26, _("Extra Large"), wxEmptyString, wxITEM_RADIO);
+    MenuItem60->Append(MenuItem_MHS_ExtraLarge);
+    MenuSettings->Append(ID_MENUITEM23, _("Model Handle Size"), MenuItem60, wxEmptyString);
     MenuItem_Grid_Icon_Backgrounds = new wxMenu();
     MenuItemGridIconBackgroundOn = new wxMenuItem(MenuItem_Grid_Icon_Backgrounds, ID_MENUITEM_GRID_ICON_BACKGROUND_ON, _("On"), wxEmptyString, wxITEM_CHECK);
     MenuItem_Grid_Icon_Backgrounds->Append(MenuItemGridIconBackgroundOn);
@@ -1373,6 +1385,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     Connect(ID_MENUITEM_GRID_ICON_MEDIUM,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::SetIconSize);
     Connect(ID_MENUITEM_GRID_ICON_LARGE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::SetIconSize);
     Connect(ID_MENUITEM_GRID_ICON_XLARGE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::SetIconSize);
+    Connect(ID_MENUITEM24,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_MHS_NormalSelected);
+    Connect(ID_MENUITEM25,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_MHS_LargeSelected);
+    Connect(ID_MENUITEM26,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_MHS_ExtraLargeSelected);
     Connect(ID_MENUITEM_GRID_ICON_BACKGROUND_ON,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnSetGridIconBackground);
     Connect(ID_MENUITEM_GRID_ICON_BACKGROUND_OFF,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnSetGridIconBackground);
     Connect(ID_MENUITEM_GRID_NODE_VALUES_ON,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnSetGridNodeValues);
@@ -1537,6 +1552,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     mLocalIP = "";
     mAltBackupDir = "";
     mIconSize = 16;
+    _modelHandleSize = 1;
 
     _acParm1Intensity = 100;
     _acParm1RampUp = 0;
@@ -1822,6 +1838,21 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
         mRenderOnSaveMenuItem->Enable(false);
         mRenderOnSave = false;
     }
+
+    config->Read("xLightsModelHandleSize", &_modelHandleSize, 1);
+    switch (_modelHandleSize)
+    {
+    case 1:
+        MenuItem_MHS_Normal->Check();
+        break;
+    case 2:
+        MenuItem_MHS_Large->Check();
+        break;
+    case 3:
+        MenuItem_MHS_ExtraLarge->Check();
+        break;
+    }
+    logger_base.debug("Model Handle Size: %d.", _modelHandleSize);
 
     config->Read("xLightsBackupOnSave", &mBackupOnSave, false);
     mBackupOnSaveMenuItem->Check(mBackupOnSave);
@@ -2223,6 +2254,7 @@ xLightsFrame::~xLightsFrame()
     config->Write("xLightsEffectAssistMode", mEffectAssistMode);
     config->Write("xLightsAltBackupDir", mAltBackupDir);
     config->Write("xFadePort", _xFadePort);
+    config->Write("xLightsModelHandleSize", _modelHandleSize);
 
     //definitely not outputting data anymore
     config->Write("OutputActive", false);
@@ -9794,4 +9826,22 @@ void xLightsFrame::OnMenuItem_PrepareAudioSelected(wxCommandEvent& event)
 void xLightsFrame::OnMenuItem_UserManualSelected(wxCommandEvent& event)
 {
     ::wxLaunchDefaultBrowser("https://manual.xlights.org/");
+}
+
+void xLightsFrame::OnMenuItem_MHS_NormalSelected(wxCommandEvent& event)
+{
+    _modelHandleSize = 1;
+    layoutPanel->Refresh();
+}
+
+void xLightsFrame::OnMenuItem_MHS_LargeSelected(wxCommandEvent& event)
+{
+    _modelHandleSize =2;
+    layoutPanel->Refresh();
+}
+
+void xLightsFrame::OnMenuItem_MHS_ExtraLargeSelected(wxCommandEvent& event)
+{
+    _modelHandleSize = 3;
+    layoutPanel->Refresh();
 }

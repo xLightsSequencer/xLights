@@ -803,7 +803,7 @@ public:
         if (m_inBuffer.src != nullptr) {
             free((void*)m_inBuffer.src);
         }
-        if (m_dctx) {
+        if (m_cctx) {
             ZSTD_freeCStream(m_cctx);
         }
         if (m_dctx) {
@@ -851,14 +851,14 @@ public:
             }
 
             free(m_outBuffer.dst);
-            m_numFramesInBlock = (m_file->m_frameOffsets[m_curBlock + 1].first > m_file->getNumFrames() ? m_file->getNumFrames() :  m_file->m_frameOffsets[m_curBlock + 1].first) - m_file->m_frameOffsets[m_curBlock].first;
-            m_outBuffer.size = m_numFramesInBlock * m_file->getChannelCount();
+            m_framesPerBlock = (m_file->m_frameOffsets[m_curBlock + 1].first > m_file->getNumFrames() ? m_file->getNumFrames() :  m_file->m_frameOffsets[m_curBlock + 1].first) - m_file->m_frameOffsets[m_curBlock].first;
+            m_outBuffer.size = m_framesPerBlock * m_file->getChannelCount();
             m_outBuffer.dst = malloc(m_outBuffer.size);
             m_outBuffer.pos = 0;
             m_curFrameInBlock = 0;
-            
         }
         int fidx = frame - m_file->m_frameOffsets[m_curBlock].first;
+
         if (fidx >= m_curFrameInBlock) {
             m_outBuffer.size = (fidx + 1) * m_file->getChannelCount();
             ZSTD_decompressStream(m_dctx, &m_outBuffer, &m_inBuffer);
@@ -868,6 +868,15 @@ public:
         fidx *= m_file->getChannelCount();
         uint8_t *fdata = (uint8_t*)m_outBuffer.dst;
         UncompressedFrameData *data = new UncompressedFrameData(frame, m_file->m_dataBlockSize, m_file->m_rangesToRead);
+
+        // This stops the crash on load ... but it is not the root cause.
+        // But better to not load completely than crashing
+        if (fidx < 0) {
+            // this is not going to end well ... best to give up here
+            LogErr(VB_SEQUENCE, "Frame index calculated as a negative number. Aborting frame %d load.\n", (int)frame);
+            return data;
+        }
+
         if (!m_file->m_sparseRanges.empty()) {
             memcpy(data->m_data, &fdata[fidx], m_file->getChannelCount());
         } else {
@@ -910,8 +919,8 @@ public:
             uint64_t offset = tell();
             LogDebug(VB_SEQUENCE, "  Preparing to create a compressed block of data starting at frame %d, offset  %" PRIu64 ".\n", frame, offset);
             m_file->m_frameOffsets.push_back(std::pair<uint32_t, uint64_t>(frame, offset));
-            int clevel = m_file->m_compressionLevel == -1 ? 10 : m_file->m_compressionLevel;
-            if (clevel < 0 || clevel > 25) {
+            int clevel = m_file->m_compressionLevel == -99 ? 10 : m_file->m_compressionLevel;
+            if (clevel < -25 || clevel > 25) {
                 clevel = 10;
             }
             if (frame == 0 && (ZSTD_versionNumber() > 10305)) {
@@ -921,6 +930,9 @@ public:
                 // for the first block so the decompression can
                 // be as fast as possible
                 clevel = -10;
+            }
+            if (ZSTD_versionNumber() <= 10305 && clevel < 0) {
+                clevel = 0;
             }
             ZSTD_initCStream(m_cctx, clevel);
         }
@@ -986,8 +998,6 @@ public:
     ZSTD_DStream* m_dctx;
     ZSTD_outBuffer_s m_outBuffer;
     ZSTD_inBuffer_s m_inBuffer;
-    int m_numFramesInBlock;
-    int m_curFrameInBlock;
 };
 #endif
 
@@ -1086,7 +1096,7 @@ public:
             memset(m_stream, 0, sizeof(z_stream));
         }
         if (m_curFrameInBlock == 0) {
-            int clevel = m_file->m_compressionLevel == -1 ? 3 : m_file->m_compressionLevel;
+            int clevel = m_file->m_compressionLevel == -99 ? 3 : m_file->m_compressionLevel;
             if (clevel < 0 || clevel > 9) {
                 clevel = 3;
             }

@@ -15,6 +15,8 @@ Settings::Settings(std::string settings)
 
     _defaultIP = addr.IPAddress();
 
+    _leftIP = "127.0.0.1";
+    _rightIP = "127.0.0.1";
     _localInputIP = "";
     _localOutputIP = "";
     _E131 = true;
@@ -126,6 +128,16 @@ std::string Settings::Serialise()
     if (_localOutputIP != _defaultIP)
     {
         res += "|LOIP:" + _localOutputIP;
+    }
+
+    if (_leftIP != "127.0.0.1")
+    {
+        res += "|IPL:" + _leftIP;
+    }
+
+    if (_rightIP != "127.0.0.1")
+    {
+        res += "|IPR:" + _rightIP;
     }
 
     if (_frameMS != 50)
@@ -256,6 +268,14 @@ void Settings::Load(std::string settings)
             else if (s2[0] == "LIIP")
             {
                 _localInputIP = s2[1];
+            }
+            else if (s2[0] == "IPL")
+            {
+                _leftIP = s2[1];
+            }
+            else if (s2[0] == "IPR")
+            {
+                _rightIP = s2[1];
             }
             else if (s2[0] == "MIDI")
             {

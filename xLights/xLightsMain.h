@@ -563,6 +563,9 @@ public:
     void OnMenuItem_PrepareAudioSelected(wxCommandEvent& event);
     void OnMenuItemOGLRenderOrder(wxCommandEvent& event);
     void OnMenuItem_UserManualSelected(wxCommandEvent& event);
+    void OnMenuItem_MHS_NormalSelected(wxCommandEvent& event);
+    void OnMenuItem_MHS_LargeSelected(wxCommandEvent& event);
+    void OnMenuItem_MHS_ExtraLargeSelected(wxCommandEvent& event);
     //*)
     void OnCharHook(wxKeyEvent& event);
 private:
@@ -757,6 +760,10 @@ public:
     static const long ID_MENUITEM_GRID_ICON_LARGE;
     static const long ID_MENUITEM_GRID_ICON_XLARGE;
     static const long ID_MENUITEM6;
+    static const long ID_MENUITEM24;
+    static const long ID_MENUITEM25;
+    static const long ID_MENUITEM26;
+    static const long ID_MENUITEM23;
     static const long ID_MENUITEM_GRID_ICON_BACKGROUND_ON;
     static const long ID_MENUITEM_GRID_ICON_BACKGROUND_OFF;
     static const long ID_MENUITEM_Grid_Icon_Backgrounds;
@@ -881,6 +888,7 @@ public:
     wxMenu* MenuItem29;
     wxMenu* MenuItem53;
     wxMenu* MenuItem54;
+    wxMenu* MenuItem60;
     wxMenu* MenuItem7;
     wxMenu* MenuItemPerspectives;
     wxMenu* MenuItemRenderMode;
@@ -965,6 +973,9 @@ public:
     wxMenuItem* MenuItem_Jukebox;
     wxMenuItem* MenuItem_LogRenderState;
     wxMenuItem* MenuItem_LoudVol;
+    wxMenuItem* MenuItem_MHS_ExtraLarge;
+    wxMenuItem* MenuItem_MHS_Large;
+    wxMenuItem* MenuItem_MHS_Normal;
     wxMenuItem* MenuItem_MedVol;
     wxMenuItem* MenuItem_ModelBlendDefaultOff;
     wxMenuItem* MenuItem_PackageSequence;
@@ -1313,6 +1324,7 @@ public:
     void SetPasteByTime();
     void ShowSequenceSettings();
     bool HandleAllKeyBinding(wxKeyEvent& event);
+    int GetModelHandleScale() const { return _modelHandleSize; }
 
 private:
     wxXmlNode* SettingsNode = nullptr;
@@ -1340,6 +1352,7 @@ private:
     int mEffectAssistMode;
 	bool mRendering;
     bool mSaveFseqOnSave;
+    int _modelHandleSize = 1;
 
     class RenderTree {
     public:

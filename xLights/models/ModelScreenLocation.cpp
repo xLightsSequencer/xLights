@@ -151,62 +151,62 @@ void ModelScreenLocation::MouseOverHandle(int handle)
     }
 }
 
-float ModelScreenLocation::GetAxisArrowLength(float zoom) const
+float ModelScreenLocation::GetAxisArrowLength(float zoom, int scale) const
 {
     static float AXIS_ARROW_LENGTH = 60.0f;
-    return AXIS_ARROW_LENGTH * zoom;
+    return AXIS_ARROW_LENGTH * zoom* scale;
 }
 
-float ModelScreenLocation::GetAxisHeadLength(float zoom) const
+float ModelScreenLocation::GetAxisHeadLength(float zoom, int scale) const
 {
     static float AXIS_HEAD_LENGTH = 12.0f;
-    return AXIS_HEAD_LENGTH * zoom;
+    return AXIS_HEAD_LENGTH * zoom* scale;
 }
 
-float ModelScreenLocation::GetAxisRadius(float zoom) const
+float ModelScreenLocation::GetAxisRadius(float zoom, int scale) const
 {
     static float AXIS_RADIUS = 4.0f;
-    return AXIS_RADIUS * zoom;
+    return AXIS_RADIUS * zoom* scale;
 }
 
-float ModelScreenLocation::GetRectHandleWidth(float zoom) const
+float ModelScreenLocation::GetRectHandleWidth(float zoom, int scale) const
 {
     static float RECT_HANDLE_WIDTH = 6.0f;
-    return RECT_HANDLE_WIDTH * zoom;
+    return RECT_HANDLE_WIDTH * zoom* scale;
 }
 
-void ModelScreenLocation::DrawAxisTool(glm::vec3& pos, DrawGLUtils::xl3Accumulator &va, float zoom) const
+void ModelScreenLocation::DrawAxisTool(glm::vec3& pos, DrawGLUtils::xl3Accumulator &va, float zoom, int scale) const
 {
     int num_points = 18;
-    float os = (float)GetRectHandleWidth(zoom);
+    float os = (float)GetRectHandleWidth(zoom, scale);
 
     if (axis_tool == TOOL_TRANSLATE) {
         xlColor ax1c = (highlighted_handle == 0x2000) ? xlYELLOW : xlRED;
         xlColor ax2c = (highlighted_handle == 0x2001) ? xlYELLOW : xlGREEN;
         xlColor ax3c = (highlighted_handle == 0x2002) ? xlYELLOW : xlBLUE;
-        float tip = pos.x + GetAxisArrowLength(zoom);
+        float tip = pos.x + GetAxisArrowLength(zoom, scale);
         for (size_t i = 0; i < num_points; i++) {
             float u1 = i / (float)num_points;
             float u2 = (i + 1) / (float)num_points;
             va.AddVertex(tip, pos.y, pos.z, ax1c);
-            va.AddVertex(tip - GetAxisHeadLength(zoom), pos.y + GetAxisRadius(zoom) * cos(2.0 * M_PI*u1), pos.z + GetAxisRadius(zoom) * sin(2.0 * M_PI*u1), ax1c);
-            va.AddVertex(tip - GetAxisHeadLength(zoom), pos.y + GetAxisRadius(zoom) * cos(2.0 * M_PI*u2), pos.z + GetAxisRadius(zoom) * sin(2.0 * M_PI*u2), ax1c);
+            va.AddVertex(tip - GetAxisHeadLength(zoom, scale), pos.y + GetAxisRadius(zoom, scale) * cos(2.0 * M_PI*u1), pos.z + GetAxisRadius(zoom,scale) * sin(2.0 * M_PI*u1), ax1c);
+            va.AddVertex(tip - GetAxisHeadLength(zoom, scale), pos.y + GetAxisRadius(zoom, scale) * cos(2.0 * M_PI*u2), pos.z + GetAxisRadius(zoom,scale) * sin(2.0 * M_PI*u2), ax1c);
         }
-        tip = pos.y + GetAxisArrowLength(zoom);
+        tip = pos.y + GetAxisArrowLength(zoom,scale);
         for (size_t i = 0; i < num_points; i++) {
             float u1 = i / (float)num_points;
             float u2 = (i + 1) / (float)num_points;
             va.AddVertex(pos.x, tip, pos.z, ax2c);
-            va.AddVertex(pos.x + GetAxisRadius(zoom) * cos(2.0 * M_PI*u1), tip - GetAxisHeadLength(zoom), pos.z + GetAxisRadius(zoom) * sin(2.0 * M_PI*u1), ax2c);
-            va.AddVertex(pos.x + GetAxisRadius(zoom) * cos(2.0 * M_PI*u2), tip - GetAxisHeadLength(zoom), pos.z + GetAxisRadius(zoom) * sin(2.0 * M_PI*u2), ax2c);
+            va.AddVertex(pos.x + GetAxisRadius(zoom,scale) * cos(2.0 * M_PI*u1), tip - GetAxisHeadLength(zoom, scale), pos.z + GetAxisRadius(zoom, scale) * sin(2.0 * M_PI*u1), ax2c);
+            va.AddVertex(pos.x + GetAxisRadius(zoom,scale) * cos(2.0 * M_PI*u2), tip - GetAxisHeadLength(zoom, scale), pos.z + GetAxisRadius(zoom, scale) * sin(2.0 * M_PI*u2), ax2c);
         }
-        tip = pos.z + GetAxisArrowLength(zoom);
+        tip = pos.z + GetAxisArrowLength(zoom, scale);
         for (size_t i = 0; i < num_points; i++) {
             float u1 = i / (float)num_points;
             float u2 = (i + 1) / (float)num_points;
             va.AddVertex(pos.x, pos.y, tip, ax3c);
-            va.AddVertex(pos.x + GetAxisRadius(zoom) * cos(2.0 * M_PI*u1), pos.y + GetAxisRadius(zoom) * sin(2.0 * M_PI*u1), tip - GetAxisHeadLength(zoom), ax3c);
-            va.AddVertex(pos.x + GetAxisRadius(zoom) * cos(2.0 * M_PI*u2), pos.y + GetAxisRadius(zoom) * sin(2.0 * M_PI*u2), tip - GetAxisHeadLength(zoom), ax3c);
+            va.AddVertex(pos.x + GetAxisRadius(zoom, scale) * cos(2.0 * M_PI*u1), pos.y + GetAxisRadius(zoom, scale) * sin(2.0 * M_PI*u1), tip - GetAxisHeadLength(zoom, scale), ax3c);
+            va.AddVertex(pos.x + GetAxisRadius(zoom, scale) * cos(2.0 * M_PI*u2), pos.y + GetAxisRadius(zoom, scale) * sin(2.0 * M_PI*u2), tip - GetAxisHeadLength(zoom, scale), ax3c);
         }
         va.Finish(GL_TRIANGLES);
     }
@@ -214,16 +214,16 @@ void ModelScreenLocation::DrawAxisTool(glm::vec3& pos, DrawGLUtils::xl3Accumulat
         xlColor ax1c = (highlighted_handle == 0x2000) ? xlYELLOW : xlRED;
         xlColor ax2c = (highlighted_handle == 0x2001) ? xlYELLOW : xlGREEN;
         xlColor ax3c = (highlighted_handle == 0x2002) ? xlYELLOW : xlBLUE;
-        DrawGLUtils::DrawCube(pos.x + GetAxisArrowLength(zoom) - GetAxisRadius(zoom), pos.y, pos.z, GetAxisRadius(zoom) * 2, ax1c, va);
-        DrawGLUtils::DrawCube(pos.x, pos.y + GetAxisArrowLength(zoom) - GetAxisRadius(zoom), pos.z, GetAxisRadius(zoom) * 2, ax2c, va);
-        DrawGLUtils::DrawCube(pos.x, pos.y, pos.z + GetAxisArrowLength(zoom) - GetAxisRadius(zoom), GetAxisRadius(zoom) * 2, ax3c, va);
+        DrawGLUtils::DrawCube(pos.x + GetAxisArrowLength(zoom, scale) - GetAxisRadius(zoom, scale), pos.y, pos.z, GetAxisRadius(zoom, scale) * 2, ax1c, va);
+        DrawGLUtils::DrawCube(pos.x, pos.y + GetAxisArrowLength(zoom, scale) - GetAxisRadius(zoom, scale), pos.z, GetAxisRadius(zoom, scale) * 2, ax2c, va);
+        DrawGLUtils::DrawCube(pos.x, pos.y, pos.z + GetAxisArrowLength(zoom, scale) - GetAxisRadius(zoom, scale), GetAxisRadius(zoom, scale) * 2, ax3c, va);
         va.Finish(GL_TRIANGLES);
     }
     else if (axis_tool == TOOL_ROTATE) {
         xlColor ax1c = (highlighted_handle == 0x2000) ? xlYELLOW : xlGREEN;
         xlColor ax2c = (highlighted_handle == 0x2001) ? xlYELLOW : xlBLUE;
         xlColor ax3c = (highlighted_handle == 0x2002) ? xlYELLOW : xlRED;
-        float radius = GetAxisArrowLength(zoom) - GetAxisRadius(zoom);
+        float radius = GetAxisArrowLength(zoom, scale) - GetAxisRadius(zoom, scale);
         for (size_t i = 30; i <= 150; i += 5) {
             float u1 = (float)i;
             float u2 = (float)(i + 5);
@@ -244,15 +244,15 @@ void ModelScreenLocation::DrawAxisTool(glm::vec3& pos, DrawGLUtils::xl3Accumulat
         }
         va.Finish(GL_LINES);
 
-        DrawGLUtils::DrawCube(pos.x + GetAxisArrowLength(zoom) - GetAxisRadius(zoom), pos.y, pos.z, GetAxisRadius(zoom) * 2, ax1c, va);
-        DrawGLUtils::DrawCube(pos.x, pos.y + GetAxisArrowLength(zoom) - GetAxisRadius(zoom), pos.z, GetAxisRadius(zoom) * 2, ax2c, va);
-        DrawGLUtils::DrawCube(pos.x, pos.y, pos.z + GetAxisArrowLength(zoom) - GetAxisRadius(zoom), GetAxisRadius(zoom) * 2, ax3c, va);
+        DrawGLUtils::DrawCube(pos.x + GetAxisArrowLength(zoom, scale) - GetAxisRadius(zoom,scale), pos.y, pos.z, GetAxisRadius(zoom, scale) * 2, ax1c, va);
+        DrawGLUtils::DrawCube(pos.x, pos.y + GetAxisArrowLength(zoom, scale) - GetAxisRadius(zoom, scale), pos.z, GetAxisRadius(zoom, scale) * 2, ax2c, va);
+        DrawGLUtils::DrawCube(pos.x, pos.y, pos.z + GetAxisArrowLength(zoom, scale) - GetAxisRadius(zoom, scale), GetAxisRadius(zoom, scale) * 2, ax3c, va);
         va.Finish(GL_TRIANGLES);
     }
     else if (axis_tool == TOOL_XY_TRANS) {
         xlColor a1c = (highlighted_handle == 0x2000) ? xlYELLOW : xlRED;
         xlColor a2c = (highlighted_handle == 0x2000) ? xlYELLOW : xlGREEN;
-        float arrow_length = GetAxisArrowLength(zoom) / 2.0f;
+        float arrow_length = GetAxisArrowLength(zoom, scale) / 2.0f;
         va.AddVertex(pos.x, pos.y, pos.z, xlGREEN);
         va.AddVertex(pos.x, pos.y + arrow_length, pos.z, xlGREEN);
         va.AddVertex(pos.x, pos.y, pos.z, xlGREEN);
@@ -267,43 +267,43 @@ void ModelScreenLocation::DrawAxisTool(glm::vec3& pos, DrawGLUtils::xl3Accumulat
             float u1 = i / (float)num_points;
             float u2 = (i + 1) / (float)num_points;
             va.AddVertex(tip, pos.y, pos.z, a1c);
-            va.AddVertex(tip - GetAxisHeadLength(zoom), pos.y + GetAxisRadius(zoom) * cos(2.0 * M_PI*u1), pos.z + GetAxisRadius(zoom) * sin(2.0 * M_PI*u1), a1c);
-            va.AddVertex(tip - GetAxisHeadLength(zoom), pos.y + GetAxisRadius(zoom) * cos(2.0 * M_PI*u2), pos.z + GetAxisRadius(zoom) * sin(2.0 * M_PI*u2), a1c);
+            va.AddVertex(tip - GetAxisHeadLength(zoom, scale), pos.y + GetAxisRadius(zoom, scale) * cos(2.0 * M_PI*u1), pos.z + GetAxisRadius(zoom, scale) * sin(2.0 * M_PI*u1), a1c);
+            va.AddVertex(tip - GetAxisHeadLength(zoom, scale), pos.y + GetAxisRadius(zoom, scale) * cos(2.0 * M_PI*u2), pos.z + GetAxisRadius(zoom, scale) * sin(2.0 * M_PI*u2), a1c);
         }
         tip = pos.x - arrow_length;
         for (size_t i = 0; i < num_points; i++) {
             float u1 = i / (float)num_points;
             float u2 = (i + 1) / (float)num_points;
             va.AddVertex(tip, pos.y, pos.z, a1c);
-            va.AddVertex(tip + GetAxisHeadLength(zoom), pos.y + GetAxisRadius(zoom) * cos(2.0 * M_PI*u1), pos.z + GetAxisRadius(zoom) * sin(2.0 * M_PI*u1), a1c);
-            va.AddVertex(tip + GetAxisHeadLength(zoom), pos.y + GetAxisRadius(zoom) * cos(2.0 * M_PI*u2), pos.z + GetAxisRadius(zoom) * sin(2.0 * M_PI*u2), a1c);
+            va.AddVertex(tip + GetAxisHeadLength(zoom, scale), pos.y + GetAxisRadius(zoom, scale) * cos(2.0 * M_PI*u1), pos.z + GetAxisRadius(zoom, scale) * sin(2.0 * M_PI*u1), a1c);
+            va.AddVertex(tip + GetAxisHeadLength(zoom, scale), pos.y + GetAxisRadius(zoom, scale) * cos(2.0 * M_PI*u2), pos.z + GetAxisRadius(zoom, scale) * sin(2.0 * M_PI*u2), a1c);
         }
         tip = pos.y + arrow_length;
         for (size_t i = 0; i < num_points; i++) {
             float u1 = i / (float)num_points;
             float u2 = (i + 1) / (float)num_points;
             va.AddVertex(pos.x, tip, pos.z, a2c);
-            va.AddVertex(pos.x + GetAxisRadius(zoom) * cos(2.0 * M_PI*u1), tip - GetAxisHeadLength(zoom), pos.z + GetAxisRadius(zoom) * sin(2.0 * M_PI*u1), a2c);
-            va.AddVertex(pos.x + GetAxisRadius(zoom) * cos(2.0 * M_PI*u2), tip - GetAxisHeadLength(zoom), pos.z + GetAxisRadius(zoom) * sin(2.0 * M_PI*u2), a2c);
+            va.AddVertex(pos.x + GetAxisRadius(zoom, scale) * cos(2.0 * M_PI*u1), tip - GetAxisHeadLength(zoom, scale), pos.z + GetAxisRadius(zoom, scale) * sin(2.0 * M_PI*u1), a2c);
+            va.AddVertex(pos.x + GetAxisRadius(zoom, scale) * cos(2.0 * M_PI*u2), tip - GetAxisHeadLength(zoom, scale), pos.z + GetAxisRadius(zoom, scale) * sin(2.0 * M_PI*u2), a2c);
         }
         tip = pos.y - arrow_length;
         for (size_t i = 0; i < num_points; i++) {
             float u1 = i / (float)num_points;
             float u2 = (i + 1) / (float)num_points;
             va.AddVertex(pos.x, tip, pos.z, a2c);
-            va.AddVertex(pos.x + GetAxisRadius(zoom) * cos(2.0 * M_PI*u1), tip + GetAxisHeadLength(zoom), pos.z + GetAxisRadius(zoom) * sin(2.0 * M_PI*u1), a2c);
-            va.AddVertex(pos.x + GetAxisRadius(zoom) * cos(2.0 * M_PI*u2), tip + GetAxisHeadLength(zoom), pos.z + GetAxisRadius(zoom) * sin(2.0 * M_PI*u2), a2c);
+            va.AddVertex(pos.x + GetAxisRadius(zoom, scale) * cos(2.0 * M_PI*u1), tip + GetAxisHeadLength(zoom, scale), pos.z + GetAxisRadius(zoom, scale) * sin(2.0 * M_PI*u1), a2c);
+            va.AddVertex(pos.x + GetAxisRadius(zoom, scale) * cos(2.0 * M_PI*u2), tip + GetAxisHeadLength(zoom, scale), pos.z + GetAxisRadius(zoom, scale) * sin(2.0 * M_PI*u2), a2c);
         }
         va.Finish(GL_TRIANGLES);
     }
 
     if (axis_tool == TOOL_TRANSLATE || axis_tool == TOOL_SCALE) {
         va.AddVertex(pos.x + os, pos.y, pos.z, xlRED);
-        va.AddVertex(pos.x + GetAxisArrowLength(zoom) - GetAxisRadius(zoom), pos.y, pos.z, xlRED);
+        va.AddVertex(pos.x + GetAxisArrowLength(zoom, scale) - GetAxisRadius(zoom, scale), pos.y, pos.z, xlRED);
         va.AddVertex(pos.x, pos.y + os, pos.z, xlGREEN);
-        va.AddVertex(pos.x, pos.y + GetAxisArrowLength(zoom) - GetAxisRadius(zoom), pos.z, xlGREEN);
+        va.AddVertex(pos.x, pos.y + GetAxisArrowLength(zoom, scale) - GetAxisRadius(zoom, scale), pos.z, xlGREEN);
         va.AddVertex(pos.x, pos.y, pos.z + os, xlBLUE);
-        va.AddVertex(pos.x, pos.y, pos.z + GetAxisArrowLength(zoom) - GetAxisRadius(zoom), xlBLUE);
+        va.AddVertex(pos.x, pos.y, pos.z + GetAxisArrowLength(zoom, scale) - GetAxisRadius(zoom, scale), xlBLUE);
         va.Finish(GL_LINES);
     }
 }
@@ -352,6 +352,7 @@ void ModelScreenLocation::SetDefaultMatrices() const
 bool ModelScreenLocation::DragHandle(ModelPreview* preview, int mouseX, int mouseY, bool latch) {
 
     float zoom = preview->GetCameraZoomForHandles();
+    int scale = preview->GetHandleScale();
 
     if (latch) {
         saved_scale = glm::vec3(scalex, scaley, scalez);
@@ -379,15 +380,15 @@ bool ModelScreenLocation::DragHandle(ModelPreview* preview, int mouseX, int mous
         switch (active_axis)
         {
         case X_AXIS:
-            normal = glm::vec3(saved_position.x + GetAxisArrowLength(zoom), 0.0f, 0.0f);
+            normal = glm::vec3(saved_position.x + GetAxisArrowLength(zoom, scale), 0.0f, 0.0f);
             point = glm::vec3(saved_position.x, 0.0f, 0.0f);
             break;
         case Y_AXIS:
-            normal = glm::vec3(0.0f, saved_position.y + GetAxisArrowLength(zoom), 0.0f);
+            normal = glm::vec3(0.0f, saved_position.y + GetAxisArrowLength(zoom, scale), 0.0f);
             point = glm::vec3(0.0f, saved_position.y, 0.0f);
             break;
         case Z_AXIS:
-            normal = glm::vec3(0.0f, 0.0f, saved_position.z + GetAxisArrowLength(zoom));
+            normal = glm::vec3(0.0f, 0.0f, saved_position.z + GetAxisArrowLength(zoom, scale));
             point = glm::vec3(0.0f, 0.0f, saved_position.z);
             break;
         default:
@@ -399,12 +400,12 @@ bool ModelScreenLocation::DragHandle(ModelPreview* preview, int mouseX, int mous
         switch (active_axis)
         {
         case Z_AXIS:
-            normal = glm::vec3(0.0f, saved_position.y + GetAxisArrowLength(zoom), 0.0f);
+            normal = glm::vec3(0.0f, saved_position.y + GetAxisArrowLength(zoom, scale), 0.0f);
             point = glm::vec3(0.0f, saved_position.y, 0.0f);
             break;
         case X_AXIS:
         case Y_AXIS:
-            normal = glm::vec3(0.0f, 0.0f, saved_position.z + GetAxisArrowLength(zoom));
+            normal = glm::vec3(0.0f, 0.0f, saved_position.z + GetAxisArrowLength(zoom, scale));
             point = glm::vec3(0.0f, 0.0f, saved_position.z);
             break;
         default:
@@ -437,7 +438,7 @@ bool ModelScreenLocation::DragHandle(ModelPreview* preview, int mouseX, int mous
     return found;
 }
 
-wxCursor ModelScreenLocation::CheckIfOverHandles3D(glm::vec3& ray_origin, glm::vec3& ray_direction, int &handle, float zoom) const
+wxCursor ModelScreenLocation::CheckIfOverHandles3D(glm::vec3& ray_origin, glm::vec3& ray_direction, int &handle, float zoom, int scale) const
 {
     handle = NO_HANDLE;
 
@@ -446,7 +447,7 @@ wxCursor ModelScreenLocation::CheckIfOverHandles3D(glm::vec3& ray_origin, glm::v
         return wxCURSOR_DEFAULT;
     }
 
-    wxCursor return_value = CheckIfOverAxisHandles3D(ray_origin, ray_direction, handle, zoom);
+    wxCursor return_value = CheckIfOverAxisHandles3D(ray_origin, ray_direction, handle, zoom, scale);
 
     if (handle == NO_HANDLE) {
         float distance = 1000000000.0f;
@@ -475,7 +476,7 @@ wxCursor ModelScreenLocation::CheckIfOverHandles3D(glm::vec3& ray_origin, glm::v
     return return_value;
 }
 
-wxCursor ModelScreenLocation::CheckIfOverAxisHandles3D(glm::vec3& ray_origin, glm::vec3& ray_direction, int &handle, float zoom) const
+wxCursor ModelScreenLocation::CheckIfOverAxisHandles3D(glm::vec3& ray_origin, glm::vec3& ray_direction, int &handle, float zoom, int scale) const
 {
     wxCursor return_value = wxCURSOR_DEFAULT;
 
@@ -487,32 +488,32 @@ wxCursor ModelScreenLocation::CheckIfOverAxisHandles3D(glm::vec3& ray_origin, gl
     glm::vec3 axisbb_min[3];
     glm::vec3 axisbb_max[3];
     if (IsXYTransHandle()) {
-        axisbb_min[0].x = active_handle_pos.x - ModelMatrix[3][0] - GetAxisArrowLength(zoom) /2 - 3;
-        axisbb_min[0].y = active_handle_pos.y - ModelMatrix[3][1] - GetAxisArrowLength(zoom) /2 - 3;
-        axisbb_min[0].z = active_handle_pos.z - ModelMatrix[3][2] - GetAxisArrowLength(zoom) /2 - 3;
-        axisbb_max[0].x = active_handle_pos.x - ModelMatrix[3][0] + GetAxisArrowLength(zoom) /2 + 3;
-        axisbb_max[0].y = active_handle_pos.y - ModelMatrix[3][1] + GetAxisArrowLength(zoom) /2 + 3;
-        axisbb_max[0].z = active_handle_pos.z - ModelMatrix[3][2] + GetAxisArrowLength(zoom) /2 + 3;
+        axisbb_min[0].x = active_handle_pos.x - ModelMatrix[3][0] - GetAxisArrowLength(zoom, scale) /2 - 3;
+        axisbb_min[0].y = active_handle_pos.y - ModelMatrix[3][1] - GetAxisArrowLength(zoom, scale) /2 - 3;
+        axisbb_min[0].z = active_handle_pos.z - ModelMatrix[3][2] - GetAxisArrowLength(zoom, scale) /2 - 3;
+        axisbb_max[0].x = active_handle_pos.x - ModelMatrix[3][0] + GetAxisArrowLength(zoom, scale) /2 + 3;
+        axisbb_max[0].y = active_handle_pos.y - ModelMatrix[3][1] + GetAxisArrowLength(zoom, scale) /2 + 3;
+        axisbb_max[0].z = active_handle_pos.z - ModelMatrix[3][2] + GetAxisArrowLength(zoom, scale) /2 + 3;
     }
     else {
-        axisbb_min[0].x = active_handle_pos.x - ModelMatrix[3][0] + GetAxisArrowLength(zoom) - GetAxisHeadLength(zoom) - 3;
-        axisbb_min[0].y = active_handle_pos.y - ModelMatrix[3][1] - GetAxisRadius(zoom);
-        axisbb_min[0].z = active_handle_pos.z - ModelMatrix[3][2] - GetAxisRadius(zoom);
-        axisbb_min[1].x = active_handle_pos.x - ModelMatrix[3][0] - GetAxisRadius(zoom);
-        axisbb_min[1].y = active_handle_pos.y - ModelMatrix[3][1] + GetAxisArrowLength(zoom) - GetAxisHeadLength(zoom) - 3;
-        axisbb_min[1].z = active_handle_pos.z - ModelMatrix[3][2] - GetAxisRadius(zoom);
-        axisbb_min[2].x = active_handle_pos.x - ModelMatrix[3][0] - GetAxisRadius(zoom);
-        axisbb_min[2].y = active_handle_pos.y - ModelMatrix[3][1] - GetAxisRadius(zoom);
-        axisbb_min[2].z = active_handle_pos.z - ModelMatrix[3][2] + GetAxisArrowLength(zoom) - GetAxisHeadLength(zoom) - 3;
-        axisbb_max[0].x = active_handle_pos.x - ModelMatrix[3][0] + GetAxisArrowLength(zoom) + 3;
-        axisbb_max[0].y = active_handle_pos.y - ModelMatrix[3][1] + GetAxisRadius(zoom);
-        axisbb_max[0].z = active_handle_pos.z - ModelMatrix[3][2] + GetAxisRadius(zoom);
-        axisbb_max[1].x = active_handle_pos.x - ModelMatrix[3][0] + GetAxisRadius(zoom);
-        axisbb_max[1].y = active_handle_pos.y - ModelMatrix[3][1] + GetAxisArrowLength(zoom) + 3;
-        axisbb_max[1].z = active_handle_pos.z - ModelMatrix[3][2] + GetAxisRadius(zoom);
-        axisbb_max[2].x = active_handle_pos.x - ModelMatrix[3][0] + GetAxisRadius(zoom);
-        axisbb_max[2].y = active_handle_pos.y - ModelMatrix[3][1] + GetAxisRadius(zoom);
-        axisbb_max[2].z = active_handle_pos.z - ModelMatrix[3][2] + GetAxisArrowLength(zoom) + 3;
+        axisbb_min[0].x = active_handle_pos.x - ModelMatrix[3][0] + GetAxisArrowLength(zoom, scale) - GetAxisHeadLength(zoom, scale) - 3;
+        axisbb_min[0].y = active_handle_pos.y - ModelMatrix[3][1] - GetAxisRadius(zoom, scale);
+        axisbb_min[0].z = active_handle_pos.z - ModelMatrix[3][2] - GetAxisRadius(zoom, scale);
+        axisbb_min[1].x = active_handle_pos.x - ModelMatrix[3][0] - GetAxisRadius(zoom, scale);
+        axisbb_min[1].y = active_handle_pos.y - ModelMatrix[3][1] + GetAxisArrowLength(zoom, scale) - GetAxisHeadLength(zoom, scale) - 3;
+        axisbb_min[1].z = active_handle_pos.z - ModelMatrix[3][2] - GetAxisRadius(zoom, scale);
+        axisbb_min[2].x = active_handle_pos.x - ModelMatrix[3][0] - GetAxisRadius(zoom, scale);
+        axisbb_min[2].y = active_handle_pos.y - ModelMatrix[3][1] - GetAxisRadius(zoom, scale);
+        axisbb_min[2].z = active_handle_pos.z - ModelMatrix[3][2] + GetAxisArrowLength(zoom, scale) - GetAxisHeadLength(zoom, scale) - 3;
+        axisbb_max[0].x = active_handle_pos.x - ModelMatrix[3][0] + GetAxisArrowLength(zoom, scale) + 3;
+        axisbb_max[0].y = active_handle_pos.y - ModelMatrix[3][1] + GetAxisRadius(zoom, scale);
+        axisbb_max[0].z = active_handle_pos.z - ModelMatrix[3][2] + GetAxisRadius(zoom, scale);
+        axisbb_max[1].x = active_handle_pos.x - ModelMatrix[3][0] + GetAxisRadius(zoom, scale);
+        axisbb_max[1].y = active_handle_pos.y - ModelMatrix[3][1] + GetAxisArrowLength(zoom, scale) + 3;
+        axisbb_max[1].z = active_handle_pos.z - ModelMatrix[3][2] + GetAxisRadius(zoom, scale);
+        axisbb_max[2].x = active_handle_pos.x - ModelMatrix[3][0] + GetAxisRadius(zoom, scale);
+        axisbb_max[2].y = active_handle_pos.y - ModelMatrix[3][1] + GetAxisRadius(zoom, scale);
+        axisbb_max[2].z = active_handle_pos.z - ModelMatrix[3][2] + GetAxisArrowLength(zoom, scale) + 3;
     }
 
     // see if an axis handle is selected
@@ -797,7 +798,7 @@ wxCursor BoxedScreenLocation::CheckIfOverHandles(ModelPreview* preview, int &han
         ray_direction
     );
 
-    int hw = GetRectHandleWidth(preview->GetCameraZoomForHandles());
+    int hw = GetRectHandleWidth(preview->GetCameraZoomForHandles(), preview->GetHandleScale());
 
     int num_handles = 5;
     glm::vec3 aabb_min[5];
@@ -953,7 +954,7 @@ void BoxedScreenLocation::PrepareToDraw(bool is_3d, bool allow_selected) const {
     }
 }
 
-void BoxedScreenLocation::DrawHandles(DrawGLUtils::xl3Accumulator &va, float zoom) const {
+void BoxedScreenLocation::DrawHandles(DrawGLUtils::xl3Accumulator &va, float zoom, int scale) const {
     va.PreAlloc(32 * 5);
 
     float sz1 = RenderDp / 2;
@@ -1038,12 +1039,12 @@ void BoxedScreenLocation::DrawHandles(DrawGLUtils::xl3Accumulator &va, float zoo
     mHandlePosition[L_BOT_HANDLE + 5].z = sz;
 
     // Center Handle
-    handle_aabb_min[CENTER_HANDLE].x = -GetRectHandleWidth(zoom);
-    handle_aabb_min[CENTER_HANDLE].y = -GetRectHandleWidth(zoom);
-    handle_aabb_min[CENTER_HANDLE].z = -GetRectHandleWidth(zoom);
-    handle_aabb_max[CENTER_HANDLE].x = GetRectHandleWidth(zoom);
-    handle_aabb_max[CENTER_HANDLE].y = GetRectHandleWidth(zoom);
-    handle_aabb_max[CENTER_HANDLE].z = GetRectHandleWidth(zoom);
+    handle_aabb_min[CENTER_HANDLE].x = -GetRectHandleWidth(zoom, scale);
+    handle_aabb_min[CENTER_HANDLE].y = -GetRectHandleWidth(zoom, scale);
+    handle_aabb_min[CENTER_HANDLE].z = -GetRectHandleWidth(zoom, scale);
+    handle_aabb_max[CENTER_HANDLE].x = GetRectHandleWidth(zoom, scale);
+    handle_aabb_max[CENTER_HANDLE].y = GetRectHandleWidth(zoom, scale);
+    handle_aabb_max[CENTER_HANDLE].z = GetRectHandleWidth(zoom, scale);
     mHandlePosition[CENTER_HANDLE].x = worldPos_x;
     mHandlePosition[CENTER_HANDLE].y = worldPos_y;
     mHandlePosition[CENTER_HANDLE].z = worldPos_z;
@@ -1083,8 +1084,8 @@ void BoxedScreenLocation::DrawHandles(DrawGLUtils::xl3Accumulator &va, float zoo
 
     if (active_handle != -1) {
         active_handle_pos = glm::vec3(mHandlePosition[active_handle].x, mHandlePosition[active_handle].y, mHandlePosition[active_handle].z);
-        DrawGLUtils::DrawSphere(mHandlePosition[CENTER_HANDLE].x, mHandlePosition[CENTER_HANDLE].y, mHandlePosition[CENTER_HANDLE].z, (double)(GetRectHandleWidth(zoom)), xlORANGETRANSLUCENT, va);
-        DrawAxisTool(active_handle_pos, va, zoom);
+        DrawGLUtils::DrawSphere(mHandlePosition[CENTER_HANDLE].x, mHandlePosition[CENTER_HANDLE].y, mHandlePosition[CENTER_HANDLE].z, (double)(GetRectHandleWidth(zoom, scale)), xlORANGETRANSLUCENT, va);
+        DrawAxisTool(active_handle_pos, va, zoom, scale);
         if (active_axis != -1) {
             LOG_GL_ERRORV(glHint(GL_LINE_SMOOTH_HINT, GL_NICEST));
             switch (active_axis)
@@ -1111,7 +1112,7 @@ void BoxedScreenLocation::DrawHandles(DrawGLUtils::xl3Accumulator &va, float zoo
 
 }
 
-void BoxedScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va, float zoom) const {
+void BoxedScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va, float zoom, int scale) const {
     va.PreAlloc(6 * 5);
 
     float w1 = worldPos_x;
@@ -1130,7 +1131,7 @@ void BoxedScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va, float zoom
     TranslatePoint(sx, sy, sz);
     sx += -BOUNDING_RECT_OFFSET;
     sy += BOUNDING_RECT_OFFSET;
-    va.AddRect(sx - (GetRectHandleWidth(zoom) / 2), sy - (GetRectHandleWidth(zoom) / 2), sx + (GetRectHandleWidth(zoom) /2), sy + (GetRectHandleWidth(zoom) / 2), handleColor);
+    va.AddRect(sx - (GetRectHandleWidth(zoom, scale) / 2), sy - (GetRectHandleWidth(zoom, scale) / 2), sx + (GetRectHandleWidth(zoom, scale) /2), sy + (GetRectHandleWidth(zoom, scale) / 2), handleColor);
     mHandlePosition[L_TOP_HANDLE].x = sx;
     mHandlePosition[L_TOP_HANDLE].y = sy;
     mHandlePosition[L_TOP_HANDLE].z = sz;
@@ -1141,7 +1142,7 @@ void BoxedScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va, float zoom
     TranslatePoint(sx, sy, sz);
     sx += BOUNDING_RECT_OFFSET;
     sy += BOUNDING_RECT_OFFSET;
-    va.AddRect(sx - (GetRectHandleWidth(zoom) / 2), sy - (GetRectHandleWidth(zoom) / 2), sx + (GetRectHandleWidth(zoom) / 2), sy + (GetRectHandleWidth(zoom) / 2), handleColor);
+    va.AddRect(sx - (GetRectHandleWidth(zoom, scale) / 2), sy - (GetRectHandleWidth(zoom, scale) / 2), sx + (GetRectHandleWidth(zoom, scale) / 2), sy + (GetRectHandleWidth(zoom, scale) / 2), handleColor);
     mHandlePosition[R_TOP_HANDLE].x = sx;
     mHandlePosition[R_TOP_HANDLE].y = sy;
     mHandlePosition[R_TOP_HANDLE].z = sz;
@@ -1152,7 +1153,7 @@ void BoxedScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va, float zoom
     TranslatePoint(sx, sy, sz);
     sx += BOUNDING_RECT_OFFSET;
     sy += -BOUNDING_RECT_OFFSET;
-    va.AddRect(sx - (GetRectHandleWidth(zoom) / 2), sy - (GetRectHandleWidth(zoom) / 2), sx + (GetRectHandleWidth(zoom) / 2), sy + (GetRectHandleWidth(zoom) / 2), handleColor);
+    va.AddRect(sx - (GetRectHandleWidth(zoom, scale) / 2), sy - (GetRectHandleWidth(zoom, scale) / 2), sx + (GetRectHandleWidth(zoom, scale) / 2), sy + (GetRectHandleWidth(zoom, scale) / 2), handleColor);
     mHandlePosition[R_BOT_HANDLE].x = sx;
     mHandlePosition[R_BOT_HANDLE].y = sy;
     mHandlePosition[R_BOT_HANDLE].z = sz;
@@ -1163,7 +1164,7 @@ void BoxedScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va, float zoom
     TranslatePoint(sx, sy, sz);
     sx += -BOUNDING_RECT_OFFSET;
     sy += -BOUNDING_RECT_OFFSET;
-    va.AddRect(sx - (GetRectHandleWidth(zoom) / 2), sy - (GetRectHandleWidth(zoom) / 2), sx + (GetRectHandleWidth(zoom) / 2), sy + (GetRectHandleWidth(zoom) / 2), handleColor);
+    va.AddRect(sx - (GetRectHandleWidth(zoom, scale) / 2), sy - (GetRectHandleWidth(zoom, scale) / 2), sx + (GetRectHandleWidth(zoom, scale) / 2), sy + (GetRectHandleWidth(zoom, scale) / 2), handleColor);
     mHandlePosition[L_BOT_HANDLE].x = sx;
     mHandlePosition[L_BOT_HANDLE].y = sy;
     mHandlePosition[L_BOT_HANDLE].z = sz;
@@ -1173,7 +1174,7 @@ void BoxedScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va, float zoom
     sy = RenderHt / 2 + (50/scaley);
     sz = 0.0f;
     TranslatePoint(sx, sy, sz);
-    va.AddRect(sx - (GetRectHandleWidth(zoom) / 2), sy - (GetRectHandleWidth(zoom) / 2), sx + (GetRectHandleWidth(zoom) / 2), sy + (GetRectHandleWidth(zoom) / 2), handleColor);
+    va.AddRect(sx - (GetRectHandleWidth(zoom, scale) / 2), sy - (GetRectHandleWidth(zoom, scale) / 2), sx + (GetRectHandleWidth(zoom, scale) / 2), sy + (GetRectHandleWidth(zoom, scale) / 2), handleColor);
     // Save rotate handle
     mHandlePosition[ROTATE_HANDLE].x = sx;
     mHandlePosition[ROTATE_HANDLE].y = sy;
@@ -1841,12 +1842,13 @@ wxCursor TwoPointScreenLocation::CheckIfOverHandles(ModelPreview* preview, int &
 
     for (size_t h = 0; h < num_handles; h++) {
         float zoom = preview->GetCameraZoomForHandles();
-        handle_aabb_min[h].x = mHandlePosition[h + 1].x - GetRectHandleWidth(zoom);
-        handle_aabb_min[h].y = mHandlePosition[h + 1].y - GetRectHandleWidth(zoom);
-        handle_aabb_min[h].z = mHandlePosition[h + 1].z - GetRectHandleWidth(zoom);
-        handle_aabb_max[h].x = mHandlePosition[h + 1].x + GetRectHandleWidth(zoom);
-        handle_aabb_max[h].y = mHandlePosition[h + 1].y + GetRectHandleWidth(zoom);
-        handle_aabb_max[h].z = mHandlePosition[h + 1].z + GetRectHandleWidth(zoom);
+        int scale = preview->GetHandleScale();
+        handle_aabb_min[h].x = mHandlePosition[h + 1].x - GetRectHandleWidth(zoom, scale);
+        handle_aabb_min[h].y = mHandlePosition[h + 1].y - GetRectHandleWidth(zoom, scale);
+        handle_aabb_min[h].z = mHandlePosition[h + 1].z - GetRectHandleWidth(zoom, scale);
+        handle_aabb_max[h].x = mHandlePosition[h + 1].x + GetRectHandleWidth(zoom, scale);
+        handle_aabb_max[h].y = mHandlePosition[h + 1].y + GetRectHandleWidth(zoom, scale);
+        handle_aabb_max[h].z = mHandlePosition[h + 1].z + GetRectHandleWidth(zoom, scale);
     }
 
     // Test each each Oriented Bounding Box (OBB).
@@ -1899,7 +1901,7 @@ void TwoPointScreenLocation::AdvanceAxisTool()
     axis_tool %= (NUM_TOOLS-1);
 }
 
-void TwoPointScreenLocation::DrawHandles(DrawGLUtils::xl3Accumulator &va, float zoom) const {
+void TwoPointScreenLocation::DrawHandles(DrawGLUtils::xl3Accumulator &va, float zoom, int scale) const {
     va.PreAlloc(10);
 
     if (active_handle != NO_HANDLE) {
@@ -1918,46 +1920,46 @@ void TwoPointScreenLocation::DrawHandles(DrawGLUtils::xl3Accumulator &va, float 
             h3c = (highlighted_handle == CENTER_HANDLE) ? xlYELLOWTRANSLUCENT : xlORANGETRANSLUCENT;
         }
 
-        DrawGLUtils::DrawSphere(worldPos_x, worldPos_y, worldPos_z, GetRectHandleWidth(zoom), h1c, va);
+        DrawGLUtils::DrawSphere(worldPos_x, worldPos_y, worldPos_z, GetRectHandleWidth(zoom, scale), h1c, va);
         mHandlePosition[START_HANDLE].x = worldPos_x;
         mHandlePosition[START_HANDLE].y = worldPos_y;
         mHandlePosition[START_HANDLE].z = worldPos_z;
 
-        DrawGLUtils::DrawSphere(point2.x, point2.y, point2.z, GetRectHandleWidth(zoom), h2c, va);
+        DrawGLUtils::DrawSphere(point2.x, point2.y, point2.z, GetRectHandleWidth(zoom, scale), h2c, va);
         mHandlePosition[END_HANDLE].x = point2.x;
         mHandlePosition[END_HANDLE].y = point2.y;
         mHandlePosition[END_HANDLE].z = point2.z;
 
 
-        DrawGLUtils::DrawSphere(center.x, center.y, center.z, GetRectHandleWidth(zoom), h3c, va);
+        DrawGLUtils::DrawSphere(center.x, center.y, center.z, GetRectHandleWidth(zoom, scale), h3c, va);
         mHandlePosition[CENTER_HANDLE].x = center.x;
         mHandlePosition[CENTER_HANDLE].y = center.y;
         mHandlePosition[CENTER_HANDLE].z = center.z;
 
-        handle_aabb_min[START_HANDLE].x = -GetRectHandleWidth(zoom);
-        handle_aabb_min[START_HANDLE].y = -GetRectHandleWidth(zoom);
-        handle_aabb_min[START_HANDLE].z = -GetRectHandleWidth(zoom);
-        handle_aabb_max[START_HANDLE].x = GetRectHandleWidth(zoom);
-        handle_aabb_max[START_HANDLE].y = GetRectHandleWidth(zoom);
-        handle_aabb_max[START_HANDLE].z = GetRectHandleWidth(zoom);
+        handle_aabb_min[START_HANDLE].x = -GetRectHandleWidth(zoom, scale);
+        handle_aabb_min[START_HANDLE].y = -GetRectHandleWidth(zoom, scale);
+        handle_aabb_min[START_HANDLE].z = -GetRectHandleWidth(zoom, scale);
+        handle_aabb_max[START_HANDLE].x = GetRectHandleWidth(zoom, scale);
+        handle_aabb_max[START_HANDLE].y = GetRectHandleWidth(zoom, scale);
+        handle_aabb_max[START_HANDLE].z = GetRectHandleWidth(zoom, scale);
 
-        handle_aabb_min[END_HANDLE].x = RenderWi * scalex - GetRectHandleWidth(zoom);
-        handle_aabb_min[END_HANDLE].y = -GetRectHandleWidth(zoom);
-        handle_aabb_min[END_HANDLE].z = -GetRectHandleWidth(zoom);
-        handle_aabb_max[END_HANDLE].x = RenderWi * scalex + GetRectHandleWidth(zoom);
-        handle_aabb_max[END_HANDLE].y = GetRectHandleWidth(zoom);
-        handle_aabb_max[END_HANDLE].z = GetRectHandleWidth(zoom);
+        handle_aabb_min[END_HANDLE].x = RenderWi * scalex - GetRectHandleWidth(zoom, scale);
+        handle_aabb_min[END_HANDLE].y = -GetRectHandleWidth(zoom, scale);
+        handle_aabb_min[END_HANDLE].z = -GetRectHandleWidth(zoom, scale);
+        handle_aabb_max[END_HANDLE].x = RenderWi * scalex + GetRectHandleWidth(zoom, scale);
+        handle_aabb_max[END_HANDLE].y = GetRectHandleWidth(zoom, scale);
+        handle_aabb_max[END_HANDLE].z = GetRectHandleWidth(zoom, scale);
 
-        handle_aabb_min[CENTER_HANDLE].x = (RenderWi / 2.0f) * scalex - GetRectHandleWidth(zoom);
-        handle_aabb_min[CENTER_HANDLE].y = -GetRectHandleWidth(zoom);
-        handle_aabb_min[CENTER_HANDLE].z = -GetRectHandleWidth(zoom);
-        handle_aabb_max[CENTER_HANDLE].x = (RenderWi / 2.0f) * scalex + GetRectHandleWidth(zoom);
-        handle_aabb_max[CENTER_HANDLE].y = GetRectHandleWidth(zoom);
-        handle_aabb_max[CENTER_HANDLE].z = GetRectHandleWidth(zoom);
+        handle_aabb_min[CENTER_HANDLE].x = (RenderWi / 2.0f) * scalex - GetRectHandleWidth(zoom, scale);
+        handle_aabb_min[CENTER_HANDLE].y = -GetRectHandleWidth(zoom, scale);
+        handle_aabb_min[CENTER_HANDLE].z = -GetRectHandleWidth(zoom, scale);
+        handle_aabb_max[CENTER_HANDLE].x = (RenderWi / 2.0f) * scalex + GetRectHandleWidth(zoom, scale);
+        handle_aabb_max[CENTER_HANDLE].y = GetRectHandleWidth(zoom, scale);
+        handle_aabb_max[CENTER_HANDLE].z = GetRectHandleWidth(zoom, scale);
 
         if (!_locked) {
             active_handle_pos = glm::vec3(mHandlePosition[active_handle].x, mHandlePosition[active_handle].y, mHandlePosition[active_handle].z);
-            DrawAxisTool(active_handle_pos, va, zoom);
+            DrawAxisTool(active_handle_pos, va, zoom, scale);
             if (active_axis != -1) {
                 LOG_GL_ERRORV(glHint(GL_LINE_SMOOTH_HINT, GL_NICEST));
                 if (active_handle == SHEAR_HANDLE) {
@@ -1995,7 +1997,7 @@ void TwoPointScreenLocation::DrawHandles(DrawGLUtils::xl3Accumulator &va, float 
     }
 }
 
-void TwoPointScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va, float zoom) const {
+void TwoPointScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va, float zoom, int scale) const {
 
     xlColor handleColor = xlBLUETRANSLUCENT;
     if (_locked)
@@ -2021,7 +2023,7 @@ void TwoPointScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va, float z
     float sy = worldPos_y;
     float sz = worldPos_z;
     //TranslatePoint(sx, sy, sz);
-    va.AddRect(sx - (GetRectHandleWidth(zoom) / 2), sy - (GetRectHandleWidth(zoom) / 2), sx + (GetRectHandleWidth(zoom) / 2), sy + (GetRectHandleWidth(zoom) / 2), xlGREENTRANSLUCENT);
+    va.AddRect(sx - (GetRectHandleWidth(zoom, scale) / 2), sy - (GetRectHandleWidth(zoom, scale) / 2), sx + (GetRectHandleWidth(zoom, scale) / 2), sy + (GetRectHandleWidth(zoom, scale) / 2), xlGREENTRANSLUCENT);
     mHandlePosition[START_HANDLE].x = sx;
     mHandlePosition[START_HANDLE].y = sy;
     mHandlePosition[START_HANDLE].z = sz;
@@ -2030,7 +2032,7 @@ void TwoPointScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va, float z
     sy = point2.y;
     sz = point2.z;
     //TranslatePoint(sx, sy, sz);
-    va.AddRect(sx - (GetRectHandleWidth(zoom) / 2), sy - (GetRectHandleWidth(zoom) / 2), sx + (GetRectHandleWidth(zoom) / 2), sy + (GetRectHandleWidth(zoom) / 2), handleColor);
+    va.AddRect(sx - (GetRectHandleWidth(zoom, scale) / 2), sy - (GetRectHandleWidth(zoom, scale) / 2), sx + (GetRectHandleWidth(zoom, scale) / 2), sy + (GetRectHandleWidth(zoom, scale) / 2), handleColor);
     mHandlePosition[END_HANDLE].x = sx;
     mHandlePosition[END_HANDLE].y = sy;
     mHandlePosition[END_HANDLE].z = sz;
@@ -2925,7 +2927,7 @@ void ThreePointScreenLocation::SetActiveAxis(int axis)
     }
 }
 
-void ThreePointScreenLocation::DrawHandles(DrawGLUtils::xl3Accumulator &va, float zoom) const {
+void ThreePointScreenLocation::DrawHandles(DrawGLUtils::xl3Accumulator &va, float zoom, int scale) const {
 
     if (active_handle != -1) {
 
@@ -2956,17 +2958,17 @@ void ThreePointScreenLocation::DrawHandles(DrawGLUtils::xl3Accumulator &va, floa
             h4c = (highlighted_handle == SHEAR_HANDLE) ? xlYELLOWTRANSLUCENT : xlBLUETRANSLUCENT;
         }
 
-        DrawGLUtils::DrawSphere(sx, sy, sz, GetRectHandleWidth(zoom), h4c, va);
+        DrawGLUtils::DrawSphere(sx, sy, sz, GetRectHandleWidth(zoom, scale), h4c, va);
         mHandlePosition[SHEAR_HANDLE].x = sx;
         mHandlePosition[SHEAR_HANDLE].y = sy;
         mHandlePosition[SHEAR_HANDLE].z = sz;
 
-        handle_aabb_min[SHEAR_HANDLE].x = x * scalex - GetRectHandleWidth(zoom);
-        handle_aabb_min[SHEAR_HANDLE].y = ymax * scaley * (supportsShear ? height : 1.0f) - GetRectHandleWidth(zoom);
-        handle_aabb_min[SHEAR_HANDLE].z = -GetRectHandleWidth(zoom);
-        handle_aabb_max[SHEAR_HANDLE].x = x * scalex + GetRectHandleWidth(zoom);
-        handle_aabb_max[SHEAR_HANDLE].y = ymax * scaley * (supportsShear ? height : 1.0f) + GetRectHandleWidth(zoom);
-        handle_aabb_max[SHEAR_HANDLE].z = GetRectHandleWidth(zoom);
+        handle_aabb_min[SHEAR_HANDLE].x = x * scalex - GetRectHandleWidth(zoom, scale);
+        handle_aabb_min[SHEAR_HANDLE].y = ymax * scaley * (supportsShear ? height : 1.0f) - GetRectHandleWidth(zoom, scale);
+        handle_aabb_min[SHEAR_HANDLE].z = -GetRectHandleWidth(zoom, scale);
+        handle_aabb_max[SHEAR_HANDLE].x = x * scalex + GetRectHandleWidth(zoom, scale);
+        handle_aabb_max[SHEAR_HANDLE].y = ymax * scaley * (supportsShear ? height : 1.0f) + GetRectHandleWidth(zoom, scale);
+        handle_aabb_max[SHEAR_HANDLE].z = GetRectHandleWidth(zoom, scale);
 
         if (supportsShear) {
             handle_aabb_min[SHEAR_HANDLE] = glm::vec3(shearMatrix * glm::vec4(handle_aabb_min[SHEAR_HANDLE], 1.0f));
@@ -2974,10 +2976,10 @@ void ThreePointScreenLocation::DrawHandles(DrawGLUtils::xl3Accumulator &va, floa
         }
     }
 
-    TwoPointScreenLocation::DrawHandles(va, zoom);
+    TwoPointScreenLocation::DrawHandles(va, zoom, scale);
 }
 
-void ThreePointScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va, float zoom) const {
+void ThreePointScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va, float zoom, int scale) const {
 
     float sx1 = center.x;
     float sy1 = center.y;
@@ -3006,12 +3008,12 @@ void ThreePointScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va, float
         handleColor = xlREDTRANSLUCENT;
     }
 
-    va.AddRect(sx - GetRectHandleWidth(zoom)/2.0, sy - GetRectHandleWidth(zoom)/2.0, sx + GetRectHandleWidth(zoom), sy + GetRectHandleWidth(zoom), handleColor);
+    va.AddRect(sx - GetRectHandleWidth(zoom, scale)/2.0, sy - GetRectHandleWidth(zoom, scale)/2.0, sx + GetRectHandleWidth(zoom, scale), sy + GetRectHandleWidth(zoom, scale), handleColor);
     va.Finish(GL_TRIANGLES);
     mHandlePosition[SHEAR_HANDLE].x = sx;
     mHandlePosition[SHEAR_HANDLE].y = sy;
 
-    TwoPointScreenLocation::DrawHandles(va, zoom);
+    TwoPointScreenLocation::DrawHandles(va, zoom, scale);
 }
 
 int ThreePointScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) {
@@ -3802,7 +3804,7 @@ bool PolyPointScreenLocation::HitTest3D(glm::vec3& ray_origin, glm::vec3& ray_di
     return ret_value;
 }
 
-wxCursor PolyPointScreenLocation::CheckIfOverHandles3D(glm::vec3& ray_origin, glm::vec3& ray_direction, int &handle, float zoom) const
+wxCursor PolyPointScreenLocation::CheckIfOverHandles3D(glm::vec3& ray_origin, glm::vec3& ray_direction, int &handle, float zoom, int scale) const
 {
     wxCursor return_value = wxCURSOR_DEFAULT;
     handle = NO_HANDLE;
@@ -3811,7 +3813,7 @@ wxCursor PolyPointScreenLocation::CheckIfOverHandles3D(glm::vec3& ray_origin, gl
         return wxCURSOR_DEFAULT;
     }
 
-    return_value = CheckIfOverAxisHandles3D(ray_origin, ray_direction, handle, zoom);
+    return_value = CheckIfOverAxisHandles3D(ray_origin, ray_direction, handle, zoom, scale);
 
     // test control point handles
     if (handle == NO_HANDLE) {
@@ -3823,18 +3825,18 @@ wxCursor PolyPointScreenLocation::CheckIfOverHandles3D(glm::vec3& ray_origin, gl
             if (mPos[s].has_curve) {
                 glm::vec3 cp_handle_aabb_min[2];
                 glm::vec3 cp_handle_aabb_max[2];
-                cp_handle_aabb_min[0].x = (mPos[s].curve->get_cp0x() - minX)*scalex - GetRectHandleWidth(zoom);
-                cp_handle_aabb_min[0].y = (mPos[s].curve->get_cp0y() - minY)*scaley - GetRectHandleWidth(zoom);
-                cp_handle_aabb_min[0].z = (mPos[s].curve->get_cp0z() - minZ)*scalez - GetRectHandleWidth(zoom);
-                cp_handle_aabb_max[0].x = (mPos[s].curve->get_cp0x() - minX)*scalex + GetRectHandleWidth(zoom);
-                cp_handle_aabb_max[0].y = (mPos[s].curve->get_cp0y() - minY)*scaley + GetRectHandleWidth(zoom);
-                cp_handle_aabb_max[0].z = (mPos[s].curve->get_cp0z() - minZ)*scalez + GetRectHandleWidth(zoom);
-                cp_handle_aabb_min[1].x = (mPos[s].curve->get_cp1x() - minX)*scalex - GetRectHandleWidth(zoom);
-                cp_handle_aabb_min[1].y = (mPos[s].curve->get_cp1y() - minY)*scaley - GetRectHandleWidth(zoom);
-                cp_handle_aabb_min[1].z = (mPos[s].curve->get_cp1z() - minZ)*scalez - GetRectHandleWidth(zoom);
-                cp_handle_aabb_max[1].x = (mPos[s].curve->get_cp1x() - minX)*scalex + GetRectHandleWidth(zoom);
-                cp_handle_aabb_max[1].y = (mPos[s].curve->get_cp1y() - minY)*scaley + GetRectHandleWidth(zoom);
-                cp_handle_aabb_max[1].z = (mPos[s].curve->get_cp1z() - minZ)*scalez + GetRectHandleWidth(zoom);
+                cp_handle_aabb_min[0].x = (mPos[s].curve->get_cp0x() - minX)*scalex - GetRectHandleWidth(zoom, scale);
+                cp_handle_aabb_min[0].y = (mPos[s].curve->get_cp0y() - minY)*scaley - GetRectHandleWidth(zoom, scale);
+                cp_handle_aabb_min[0].z = (mPos[s].curve->get_cp0z() - minZ)*scalez - GetRectHandleWidth(zoom, scale);
+                cp_handle_aabb_max[0].x = (mPos[s].curve->get_cp0x() - minX)*scalex + GetRectHandleWidth(zoom, scale);
+                cp_handle_aabb_max[0].y = (mPos[s].curve->get_cp0y() - minY)*scaley + GetRectHandleWidth(zoom, scale);
+                cp_handle_aabb_max[0].z = (mPos[s].curve->get_cp0z() - minZ)*scalez + GetRectHandleWidth(zoom, scale);
+                cp_handle_aabb_min[1].x = (mPos[s].curve->get_cp1x() - minX)*scalex - GetRectHandleWidth(zoom, scale);
+                cp_handle_aabb_min[1].y = (mPos[s].curve->get_cp1y() - minY)*scaley - GetRectHandleWidth(zoom, scale);
+                cp_handle_aabb_min[1].z = (mPos[s].curve->get_cp1z() - minZ)*scalez - GetRectHandleWidth(zoom, scale);
+                cp_handle_aabb_max[1].x = (mPos[s].curve->get_cp1x() - minX)*scalex + GetRectHandleWidth(zoom, scale);
+                cp_handle_aabb_max[1].y = (mPos[s].curve->get_cp1y() - minY)*scaley + GetRectHandleWidth(zoom, scale);
+                cp_handle_aabb_max[1].z = (mPos[s].curve->get_cp1z() - minZ)*scalez + GetRectHandleWidth(zoom, scale);
 
                 // Test each each Oriented Bounding Box (OBB).
                 for (size_t i = 0; i < 2; i++)
@@ -3931,6 +3933,7 @@ wxCursor PolyPointScreenLocation::CheckIfOverHandles(ModelPreview* preview, int 
     wxCursor return_value = wxCURSOR_DEFAULT;
     handle = NO_HANDLE;
     float zoom = preview->GetCameraZoomForHandles();
+    int scale = preview->GetHandleScale();
 
     if (_locked)
     {
@@ -3956,18 +3959,18 @@ wxCursor PolyPointScreenLocation::CheckIfOverHandles(ModelPreview* preview, int 
             if (mPos[s].has_curve) {
                 glm::vec3 cp_handle_aabb_min[2];
                 glm::vec3 cp_handle_aabb_max[2];
-                cp_handle_aabb_min[0].x = (mPos[s].curve->get_cp0x() - minX)*scalex - GetRectHandleWidth(zoom);
-                cp_handle_aabb_min[0].y = (mPos[s].curve->get_cp0y() - minY)*scaley - GetRectHandleWidth(zoom);
-                cp_handle_aabb_min[0].z = (mPos[s].curve->get_cp0z() - minZ)*scalez - GetRectHandleWidth(zoom);
-                cp_handle_aabb_max[0].x = (mPos[s].curve->get_cp0x() - minX)*scalex + GetRectHandleWidth(zoom);
-                cp_handle_aabb_max[0].y = (mPos[s].curve->get_cp0y() - minY)*scaley + GetRectHandleWidth(zoom);
-                cp_handle_aabb_max[0].z = (mPos[s].curve->get_cp0z() - minZ)*scalez + GetRectHandleWidth(zoom);
-                cp_handle_aabb_min[1].x = (mPos[s].curve->get_cp1x() - minX)*scalex - GetRectHandleWidth(zoom);
-                cp_handle_aabb_min[1].y = (mPos[s].curve->get_cp1y() - minY)*scaley - GetRectHandleWidth(zoom);
-                cp_handle_aabb_min[1].z = (mPos[s].curve->get_cp1z() - minZ)*scalez - GetRectHandleWidth(zoom);
-                cp_handle_aabb_max[1].x = (mPos[s].curve->get_cp1x() - minX)*scalex + GetRectHandleWidth(zoom);
-                cp_handle_aabb_max[1].y = (mPos[s].curve->get_cp1y() - minY)*scaley + GetRectHandleWidth(zoom);
-                cp_handle_aabb_max[1].z = (mPos[s].curve->get_cp1z() - minZ)*scalez + GetRectHandleWidth(zoom);
+                cp_handle_aabb_min[0].x = (mPos[s].curve->get_cp0x() - minX)*scalex - GetRectHandleWidth(zoom, scale);
+                cp_handle_aabb_min[0].y = (mPos[s].curve->get_cp0y() - minY)*scaley - GetRectHandleWidth(zoom, scale);
+                cp_handle_aabb_min[0].z = (mPos[s].curve->get_cp0z() - minZ)*scalez - GetRectHandleWidth(zoom, scale);
+                cp_handle_aabb_max[0].x = (mPos[s].curve->get_cp0x() - minX)*scalex + GetRectHandleWidth(zoom, scale);
+                cp_handle_aabb_max[0].y = (mPos[s].curve->get_cp0y() - minY)*scaley + GetRectHandleWidth(zoom, scale);
+                cp_handle_aabb_max[0].z = (mPos[s].curve->get_cp0z() - minZ)*scalez + GetRectHandleWidth(zoom, scale);
+                cp_handle_aabb_min[1].x = (mPos[s].curve->get_cp1x() - minX)*scalex - GetRectHandleWidth(zoom, scale);
+                cp_handle_aabb_min[1].y = (mPos[s].curve->get_cp1y() - minY)*scaley - GetRectHandleWidth(zoom, scale);
+                cp_handle_aabb_min[1].z = (mPos[s].curve->get_cp1z() - minZ)*scalez - GetRectHandleWidth(zoom, scale);
+                cp_handle_aabb_max[1].x = (mPos[s].curve->get_cp1x() - minX)*scalex + GetRectHandleWidth(zoom, scale);
+                cp_handle_aabb_max[1].y = (mPos[s].curve->get_cp1y() - minY)*scaley + GetRectHandleWidth(zoom, scale);
+                cp_handle_aabb_max[1].z = (mPos[s].curve->get_cp1z() - minZ)*scalez + GetRectHandleWidth(zoom, scale);
 
                 // Test each each Oriented Bounding Box (OBB).
                 for (size_t i = 0; i < 2; i++)
@@ -4036,12 +4039,12 @@ wxCursor PolyPointScreenLocation::CheckIfOverHandles(ModelPreview* preview, int 
     // test for clicking a boundary handle
     if (handle == NO_HANDLE) {
         for (size_t h = num_points + 1; h < num_points + 5; h++) {
-            handle_aabb_min[h].x = mHandlePosition[h].x - GetRectHandleWidth(zoom);
-            handle_aabb_min[h].y = mHandlePosition[h].y - GetRectHandleWidth(zoom);
-            handle_aabb_min[h].z = mHandlePosition[h].z - GetRectHandleWidth(zoom);
-            handle_aabb_max[h].x = mHandlePosition[h].x + GetRectHandleWidth(zoom);
-            handle_aabb_max[h].y = mHandlePosition[h].y + GetRectHandleWidth(zoom);
-            handle_aabb_max[h].z = mHandlePosition[h].z + GetRectHandleWidth(zoom);
+            handle_aabb_min[h].x = mHandlePosition[h].x - GetRectHandleWidth(zoom, scale);
+            handle_aabb_min[h].y = mHandlePosition[h].y - GetRectHandleWidth(zoom, scale);
+            handle_aabb_min[h].z = mHandlePosition[h].z - GetRectHandleWidth(zoom, scale);
+            handle_aabb_max[h].x = mHandlePosition[h].x + GetRectHandleWidth(zoom, scale);
+            handle_aabb_max[h].y = mHandlePosition[h].y + GetRectHandleWidth(zoom, scale);
+            handle_aabb_max[h].z = mHandlePosition[h].z + GetRectHandleWidth(zoom, scale);
 
             // Test each each Oriented Bounding Box (OBB).
             if (VectorMath::TestRayOBBIntersection2D(
@@ -4097,7 +4100,7 @@ void PolyPointScreenLocation::SetActiveAxis(int axis)
    ModelScreenLocation::SetActiveAxis(axis);
 }
 
-void PolyPointScreenLocation::DrawHandles(DrawGLUtils::xl3Accumulator &va, float zoom) const {
+void PolyPointScreenLocation::DrawHandles(DrawGLUtils::xl3Accumulator &va, float zoom, int scale) const {
     std::unique_lock<std::mutex> locker(_mutex);
 
     if (active_handle != NO_HANDLE) {
@@ -4119,16 +4122,16 @@ void PolyPointScreenLocation::DrawHandles(DrawGLUtils::xl3Accumulator &va, float
         float cx = (maxX + minX) * scalex / 2.0f + worldPos_x;
         float cy = (maxY + minY) * scaley / 2.0f + worldPos_y;
         float cz = (maxZ + minZ) * scalez / 2.0f + worldPos_z;
-        DrawGLUtils::DrawSphere(cx, cy, cz, GetRectHandleWidth(zoom), h3c, va);
+        DrawGLUtils::DrawSphere(cx, cy, cz, GetRectHandleWidth(zoom, scale), h3c, va);
         mHandlePosition[CENTER_HANDLE].x = cx;
         mHandlePosition[CENTER_HANDLE].y = cy;
         mHandlePosition[CENTER_HANDLE].z = cz;
-        handle_aabb_min[CENTER_HANDLE].x = (maxX - minX)*scalex / 2.0f - GetRectHandleWidth(zoom);
-        handle_aabb_min[CENTER_HANDLE].y = (maxY - minY)*scaley / 2.0f - GetRectHandleWidth(zoom);
-        handle_aabb_min[CENTER_HANDLE].z = (maxZ - minZ)*scalez / 2.0f - GetRectHandleWidth(zoom);
-        handle_aabb_max[CENTER_HANDLE].x = (maxX - minX)*scalex / 2.0f + GetRectHandleWidth(zoom);
-        handle_aabb_max[CENTER_HANDLE].y = (maxY - minY)*scaley / 2.0f + GetRectHandleWidth(zoom);
-        handle_aabb_max[CENTER_HANDLE].z = (maxZ - minZ)*scalez / 2.0f + GetRectHandleWidth(zoom);
+        handle_aabb_min[CENTER_HANDLE].x = (maxX - minX)*scalex / 2.0f - GetRectHandleWidth(zoom, scale);
+        handle_aabb_min[CENTER_HANDLE].y = (maxY - minY)*scaley / 2.0f - GetRectHandleWidth(zoom, scale);
+        handle_aabb_min[CENTER_HANDLE].z = (maxZ - minZ)*scalez / 2.0f - GetRectHandleWidth(zoom, scale);
+        handle_aabb_max[CENTER_HANDLE].x = (maxX - minX)*scalex / 2.0f + GetRectHandleWidth(zoom, scale);
+        handle_aabb_max[CENTER_HANDLE].y = (maxY - minY)*scaley / 2.0f + GetRectHandleWidth(zoom, scale);
+        handle_aabb_max[CENTER_HANDLE].z = (maxZ - minZ)*scalez / 2.0f + GetRectHandleWidth(zoom, scale);
 
         for (int i = 0; i < num_points - 1; ++i) {
             int x1_pos = mPos[i].x * scalex + worldPos_x;
@@ -4181,37 +4184,37 @@ void PolyPointScreenLocation::DrawHandles(DrawGLUtils::xl3Accumulator &va, float
             }
 
             // add handle for start of this vector
-            float sx = mPos[i].x * scalex + worldPos_x - GetRectHandleWidth(zoom) / 2;
-            float sy = mPos[i].y * scaley + worldPos_y - GetRectHandleWidth(zoom) / 2;
-            float sz = mPos[i].z * scalez + worldPos_z - GetRectHandleWidth(zoom) / 2;
+            float sx = mPos[i].x * scalex + worldPos_x - GetRectHandleWidth(zoom, scale) / 2;
+            float sy = mPos[i].y * scaley + worldPos_y - GetRectHandleWidth(zoom, scale) / 2;
+            float sz = mPos[i].z * scalez + worldPos_z - GetRectHandleWidth(zoom, scale) / 2;
             int hpos = i + 1;
-            DrawGLUtils::DrawSphere(sx, sy, sz, GetRectHandleWidth(zoom), i == 0 ? h1c : (hpos == highlighted_handle ? xlYELLOW : h2c), va);
+            DrawGLUtils::DrawSphere(sx, sy, sz, GetRectHandleWidth(zoom, scale), i == 0 ? h1c : (hpos == highlighted_handle ? xlYELLOW : h2c), va);
             mHandlePosition[hpos].x = sx;
             mHandlePosition[hpos].y = sy;
             mHandlePosition[hpos].z = sz;
-            handle_aabb_min[hpos].x = (mPos[i].x - minX)*scalex - GetRectHandleWidth(zoom);
-            handle_aabb_min[hpos].y = (mPos[i].y - minY)*scaley - GetRectHandleWidth(zoom);
-            handle_aabb_min[hpos].z = (mPos[i].z - minZ)*scalez - GetRectHandleWidth(zoom);
-            handle_aabb_max[hpos].x = (mPos[i].x - minX)*scalex + GetRectHandleWidth(zoom);
-            handle_aabb_max[hpos].y = (mPos[i].y - minY)*scaley + GetRectHandleWidth(zoom);
-            handle_aabb_max[hpos].z = (mPos[i].z - minZ)*scalez + GetRectHandleWidth(zoom);
+            handle_aabb_min[hpos].x = (mPos[i].x - minX)*scalex - GetRectHandleWidth(zoom, scale);
+            handle_aabb_min[hpos].y = (mPos[i].y - minY)*scaley - GetRectHandleWidth(zoom, scale);
+            handle_aabb_min[hpos].z = (mPos[i].z - minZ)*scalez - GetRectHandleWidth(zoom, scale);
+            handle_aabb_max[hpos].x = (mPos[i].x - minX)*scalex + GetRectHandleWidth(zoom, scale);
+            handle_aabb_max[hpos].y = (mPos[i].y - minY)*scaley + GetRectHandleWidth(zoom, scale);
+            handle_aabb_max[hpos].z = (mPos[i].z - minZ)*scalez + GetRectHandleWidth(zoom, scale);
 
             // add final handle
             if (i == num_points - 2) {
                 hpos++;
-                sx = mPos[i + 1].x * scalex + worldPos_x - GetRectHandleWidth(zoom) / 2;
-                sy = mPos[i + 1].y * scaley + worldPos_y - GetRectHandleWidth(zoom) / 2;
-                sz = mPos[i + 1].z * scalez + worldPos_z - GetRectHandleWidth(zoom) / 2;
-                DrawGLUtils::DrawSphere(sx, sy, sz, GetRectHandleWidth(zoom), (hpos == highlighted_handle ? xlYELLOW : h2c), va);
+                sx = mPos[i + 1].x * scalex + worldPos_x - GetRectHandleWidth(zoom, scale) / 2;
+                sy = mPos[i + 1].y * scaley + worldPos_y - GetRectHandleWidth(zoom, scale) / 2;
+                sz = mPos[i + 1].z * scalez + worldPos_z - GetRectHandleWidth(zoom, scale) / 2;
+                DrawGLUtils::DrawSphere(sx, sy, sz, GetRectHandleWidth(zoom, scale), (hpos == highlighted_handle ? xlYELLOW : h2c), va);
                 mHandlePosition[hpos].x = sx;
                 mHandlePosition[hpos].y = sy;
                 mHandlePosition[hpos].z = sz;
-                handle_aabb_min[hpos].x = (mPos[i + 1].x - minX)*scalex - GetRectHandleWidth(zoom);
-                handle_aabb_min[hpos].y = (mPos[i + 1].y - minY)*scaley - GetRectHandleWidth(zoom);
-                handle_aabb_min[hpos].z = (mPos[i + 1].z - minZ)*scalez - GetRectHandleWidth(zoom);
-                handle_aabb_max[hpos].x = (mPos[i + 1].x - minX)*scalex + GetRectHandleWidth(zoom);
-                handle_aabb_max[hpos].y = (mPos[i + 1].y - minY)*scaley + GetRectHandleWidth(zoom);
-                handle_aabb_max[hpos].z = (mPos[i + 1].z - minZ)*scalez + GetRectHandleWidth(zoom);
+                handle_aabb_min[hpos].x = (mPos[i + 1].x - minX)*scalex - GetRectHandleWidth(zoom, scale);
+                handle_aabb_min[hpos].y = (mPos[i + 1].y - minY)*scaley - GetRectHandleWidth(zoom, scale);
+                handle_aabb_min[hpos].z = (mPos[i + 1].z - minZ)*scalez - GetRectHandleWidth(zoom, scale);
+                handle_aabb_max[hpos].x = (mPos[i + 1].x - minX)*scalex + GetRectHandleWidth(zoom, scale);
+                handle_aabb_max[hpos].y = (mPos[i + 1].y - minY)*scaley + GetRectHandleWidth(zoom, scale);
+                handle_aabb_max[hpos].z = (mPos[i + 1].z - minZ)*scalez + GetRectHandleWidth(zoom, scale);
             }
         }
 
@@ -4220,22 +4223,22 @@ void PolyPointScreenLocation::DrawHandles(DrawGLUtils::xl3Accumulator &va, float
             // add control point handles for selected segments
             int i = selected_segment;
             if (mPos[i].has_curve) {
-                float cxx = mPos[i].curve->get_cp0x() * scalex + worldPos_x - GetRectHandleWidth(zoom) / 2;
-                float cyy = mPos[i].curve->get_cp0y() * scaley + worldPos_y - GetRectHandleWidth(zoom) / 2;
-                float czz = mPos[i].curve->get_cp0z() * scalez + worldPos_z - GetRectHandleWidth(zoom) / 2;
+                float cxx = mPos[i].curve->get_cp0x() * scalex + worldPos_x - GetRectHandleWidth(zoom, scale) / 2;
+                float cyy = mPos[i].curve->get_cp0y() * scaley + worldPos_y - GetRectHandleWidth(zoom, scale) / 2;
+                float czz = mPos[i].curve->get_cp0z() * scalez + worldPos_z - GetRectHandleWidth(zoom, scale) / 2;
                 h2c = highlighted_handle & 0x4000 ? ((highlighted_handle & 0xFFF) == i ? xlYELLOW : xlRED) : xlRED;
-                DrawGLUtils::DrawSphere(cxx, cyy, czz, GetRectHandleWidth(zoom), h2c, va);
+                DrawGLUtils::DrawSphere(cxx, cyy, czz, GetRectHandleWidth(zoom, scale), h2c, va);
                 mPos[i].cp0.x = mPos[i].curve->get_cp0x();
                 mPos[i].cp0.y = mPos[i].curve->get_cp0y();
                 mPos[i].cp0.z = mPos[i].curve->get_cp0z();
                 cp_handle_pos[0].x = cxx;
                 cp_handle_pos[0].y = cyy;
                 cp_handle_pos[0].z = czz;
-                cxx = mPos[i].curve->get_cp1x() * scalex + worldPos_x - GetRectHandleWidth(zoom) / 2;
-                cyy = mPos[i].curve->get_cp1y() * scaley + worldPos_y - GetRectHandleWidth(zoom) / 2;
-                czz = mPos[i].curve->get_cp1z() * scalez + worldPos_z - GetRectHandleWidth(zoom) / 2;
+                cxx = mPos[i].curve->get_cp1x() * scalex + worldPos_x - GetRectHandleWidth(zoom, scale) / 2;
+                cyy = mPos[i].curve->get_cp1y() * scaley + worldPos_y - GetRectHandleWidth(zoom, scale) / 2;
+                czz = mPos[i].curve->get_cp1z() * scalez + worldPos_z - GetRectHandleWidth(zoom, scale) / 2;
                 h2c = highlighted_handle & 0x8000 ? ((highlighted_handle & 0xFFF) == i ? xlYELLOW : xlRED) : xlRED;
-                DrawGLUtils::DrawSphere(cxx, cyy, czz, GetRectHandleWidth(zoom), h2c, va);
+                DrawGLUtils::DrawSphere(cxx, cyy, czz, GetRectHandleWidth(zoom, scale), h2c, va);
                 mPos[i].cp1.x = mPos[i].curve->get_cp1x();
                 mPos[i].cp1.y = mPos[i].curve->get_cp1y();
                 mPos[i].cp1.z = mPos[i].curve->get_cp1z();
@@ -4255,7 +4258,7 @@ void PolyPointScreenLocation::DrawHandles(DrawGLUtils::xl3Accumulator &va, float
             else {
                 active_handle_pos = glm::vec3(mHandlePosition[active_handle].x, mHandlePosition[active_handle].y, mHandlePosition[active_handle].z);
             }
-            DrawAxisTool(active_handle_pos, va, zoom);
+            DrawAxisTool(active_handle_pos, va, zoom, scale);
             if (active_axis != -1) {
                 LOG_GL_ERRORV(glHint(GL_LINE_SMOOTH_HINT, GL_NICEST));
                 if (axis_tool == TOOL_XY_TRANS) {
@@ -4300,27 +4303,27 @@ void PolyPointScreenLocation::DrawHandles(DrawGLUtils::xl3Accumulator &va, float
     va.Finish(GL_TRIANGLES);
 }
 
-void PolyPointScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va, float zoom) const {
+void PolyPointScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va, float zoom, int scale) const {
     std::unique_lock<std::mutex> locker(_mutex);
     va.PreAlloc(10*num_points+12);
 
     // add boundary handles
-    float boundary_offset = 2.0f * GetRectHandleWidth(zoom);
-    float x1 = minX * scalex + worldPos_x - GetRectHandleWidth(zoom) / 2 - boundary_offset;
-    float y1 = minY * scaley + worldPos_y - GetRectHandleWidth(zoom) / 2 - boundary_offset;
-    float z1 = minZ * scalez + worldPos_z - GetRectHandleWidth(zoom) / 2 - boundary_offset;
-    float x2 = maxX * scalex + worldPos_x + GetRectHandleWidth(zoom) / 2 + boundary_offset;
-    float y2 = maxY * scaley + worldPos_y + GetRectHandleWidth(zoom) / 2 + boundary_offset;
-    float z2 = maxZ * scalez + worldPos_z + GetRectHandleWidth(zoom) / 2 + boundary_offset;
+    float boundary_offset = 2.0f * GetRectHandleWidth(zoom, scale);
+    float x1 = minX * scalex + worldPos_x - GetRectHandleWidth(zoom, scale) / 2 - boundary_offset;
+    float y1 = minY * scaley + worldPos_y - GetRectHandleWidth(zoom, scale) / 2 - boundary_offset;
+    float z1 = minZ * scalez + worldPos_z - GetRectHandleWidth(zoom, scale) / 2 - boundary_offset;
+    float x2 = maxX * scalex + worldPos_x + GetRectHandleWidth(zoom, scale) / 2 + boundary_offset;
+    float y2 = maxY * scaley + worldPos_y + GetRectHandleWidth(zoom, scale) / 2 + boundary_offset;
+    float z2 = maxZ * scalez + worldPos_z + GetRectHandleWidth(zoom, scale) / 2 + boundary_offset;
     xlColor handleColor = xlBLUETRANSLUCENT;
     if (_locked)
     {
         handleColor = xlREDTRANSLUCENT;
     }
-    va.AddRect(x1, y1, x1 + GetRectHandleWidth(zoom), y1 + GetRectHandleWidth(zoom), handleColor);
-    va.AddRect(x1, y2, x1 + GetRectHandleWidth(zoom), y2 + GetRectHandleWidth(zoom), handleColor);
-    va.AddRect(x2, y1, x2 + GetRectHandleWidth(zoom), y1 + GetRectHandleWidth(zoom), handleColor);
-    va.AddRect(x2, y2, x2 + GetRectHandleWidth(zoom), y2 + GetRectHandleWidth(zoom), handleColor);
+    va.AddRect(x1, y1, x1 + GetRectHandleWidth(zoom, scale), y1 + GetRectHandleWidth(zoom, scale), handleColor);
+    va.AddRect(x1, y2, x1 + GetRectHandleWidth(zoom, scale), y2 + GetRectHandleWidth(zoom, scale), handleColor);
+    va.AddRect(x2, y1, x2 + GetRectHandleWidth(zoom, scale), y1 + GetRectHandleWidth(zoom, scale), handleColor);
+    va.AddRect(x2, y2, x2 + GetRectHandleWidth(zoom, scale), y2 + GetRectHandleWidth(zoom, scale), handleColor);
     while (mHandlePosition.size() < num_points + 5) // not sure this is the best way to do this but it stops a crash
     {
         xlPoint pt;
@@ -4389,37 +4392,37 @@ void PolyPointScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va, float 
         }
 
         // add handle for start of this vector
-        float sx = mPos[i].x * scalex + worldPos_x - GetRectHandleWidth(zoom) / 2;
-        float sy = mPos[i].y * scaley + worldPos_y - GetRectHandleWidth(zoom) / 2;
-        float sz = mPos[i].z * scalez + worldPos_z - GetRectHandleWidth(zoom) / 2;
-        va.AddRect(sx, sy, sx + GetRectHandleWidth(zoom), sy + GetRectHandleWidth(zoom), i == (selected_handle-1) ? xlMAGENTATRANSLUCENT : (i == 0 ? xlGREENTRANSLUCENT : handleColor));
+        float sx = mPos[i].x * scalex + worldPos_x - GetRectHandleWidth(zoom, scale) / 2;
+        float sy = mPos[i].y * scaley + worldPos_y - GetRectHandleWidth(zoom, scale) / 2;
+        float sz = mPos[i].z * scalez + worldPos_z - GetRectHandleWidth(zoom, scale) / 2;
+        va.AddRect(sx, sy, sx + GetRectHandleWidth(zoom, scale), sy + GetRectHandleWidth(zoom, scale), i == (selected_handle-1) ? xlMAGENTATRANSLUCENT : (i == 0 ? xlGREENTRANSLUCENT : handleColor));
         int hpos = i + 1;
         mHandlePosition[hpos].x = sx;
         mHandlePosition[hpos].y = sy;
         mHandlePosition[hpos].z = sz;
-        handle_aabb_min[hpos].x = (mPos[i].x - minX)*scalex - GetRectHandleWidth(zoom);
-        handle_aabb_min[hpos].y = (mPos[i].y - minY)*scaley - GetRectHandleWidth(zoom);
-        handle_aabb_min[hpos].z = (mPos[i].z - minZ)*scalez - GetRectHandleWidth(zoom);
-        handle_aabb_max[hpos].x = (mPos[i].x - minX)*scalex + GetRectHandleWidth(zoom);
-        handle_aabb_max[hpos].y = (mPos[i].y - minY)*scaley + GetRectHandleWidth(zoom);
-        handle_aabb_max[hpos].z = (mPos[i].z - minZ)*scalez + GetRectHandleWidth(zoom);
+        handle_aabb_min[hpos].x = (mPos[i].x - minX)*scalex - GetRectHandleWidth(zoom, scale);
+        handle_aabb_min[hpos].y = (mPos[i].y - minY)*scaley - GetRectHandleWidth(zoom, scale);
+        handle_aabb_min[hpos].z = (mPos[i].z - minZ)*scalez - GetRectHandleWidth(zoom, scale);
+        handle_aabb_max[hpos].x = (mPos[i].x - minX)*scalex + GetRectHandleWidth(zoom, scale);
+        handle_aabb_max[hpos].y = (mPos[i].y - minY)*scaley + GetRectHandleWidth(zoom, scale);
+        handle_aabb_max[hpos].z = (mPos[i].z - minZ)*scalez + GetRectHandleWidth(zoom, scale);
 
         // add final handle
         if( i == num_points-2 ) {
-            sx = mPos[i+1].x * scalex + worldPos_x - GetRectHandleWidth(zoom) / 2;
-            sy = mPos[i+1].y * scaley + worldPos_y - GetRectHandleWidth(zoom) / 2;
-            sz = mPos[i+1].z * scalez + worldPos_z - GetRectHandleWidth(zoom) / 2;
-            va.AddRect(sx, sy, sx + GetRectHandleWidth(zoom), sy + GetRectHandleWidth(zoom), i+1 == (selected_handle - 1) ? xlMAGENTATRANSLUCENT : handleColor);
+            sx = mPos[i+1].x * scalex + worldPos_x - GetRectHandleWidth(zoom, scale) / 2;
+            sy = mPos[i+1].y * scaley + worldPos_y - GetRectHandleWidth(zoom, scale) / 2;
+            sz = mPos[i+1].z * scalez + worldPos_z - GetRectHandleWidth(zoom, scale) / 2;
+            va.AddRect(sx, sy, sx + GetRectHandleWidth(zoom, scale), sy + GetRectHandleWidth(zoom, scale), i+1 == (selected_handle - 1) ? xlMAGENTATRANSLUCENT : handleColor);
             hpos++;
             mHandlePosition[hpos].x = sx;
             mHandlePosition[hpos].y = sy;
             mHandlePosition[hpos].z = sz;
-            handle_aabb_min[hpos].x = (mPos[i+1].x - minX)*scalex - GetRectHandleWidth(zoom);
-            handle_aabb_min[hpos].y = (mPos[i+1].y - minY)*scaley - GetRectHandleWidth(zoom);
-            handle_aabb_min[hpos].z = (mPos[i+1].z - minZ)*scalez - GetRectHandleWidth(zoom);
-            handle_aabb_max[hpos].x = (mPos[i+1].x - minX)*scalex + GetRectHandleWidth(zoom);
-            handle_aabb_max[hpos].y = (mPos[i+1].y - minY)*scaley + GetRectHandleWidth(zoom);
-            handle_aabb_max[hpos].z = (mPos[i+1].z - minZ)*scalez + GetRectHandleWidth(zoom);
+            handle_aabb_min[hpos].x = (mPos[i+1].x - minX)*scalex - GetRectHandleWidth(zoom, scale);
+            handle_aabb_min[hpos].y = (mPos[i+1].y - minY)*scaley - GetRectHandleWidth(zoom, scale);
+            handle_aabb_min[hpos].z = (mPos[i+1].z - minZ)*scalez - GetRectHandleWidth(zoom, scale);
+            handle_aabb_max[hpos].x = (mPos[i+1].x - minX)*scalex + GetRectHandleWidth(zoom, scale);
+            handle_aabb_max[hpos].y = (mPos[i+1].y - minY)*scaley + GetRectHandleWidth(zoom, scale);
+            handle_aabb_max[hpos].z = (mPos[i+1].z - minZ)*scalez + GetRectHandleWidth(zoom, scale);
         }
     }
 
@@ -4427,17 +4430,17 @@ void PolyPointScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va, float 
         // add control point handles for selected segments
         int i = selected_segment;
         if( mPos[i].has_curve ) {
-            float cx = mPos[i].curve->get_cp0x() * scalex + worldPos_x - GetRectHandleWidth(zoom) / 2;
-            float cy = mPos[i].curve->get_cp0y() * scaley + worldPos_y - GetRectHandleWidth(zoom) / 2;
-            float cz = mPos[i].curve->get_cp0z() * scalez + worldPos_z - GetRectHandleWidth(zoom) / 2;
-            va.AddRect(cx, cy, cx + GetRectHandleWidth(zoom), cy + GetRectHandleWidth(zoom), xlREDTRANSLUCENT);
+            float cx = mPos[i].curve->get_cp0x() * scalex + worldPos_x - GetRectHandleWidth(zoom, scale) / 2;
+            float cy = mPos[i].curve->get_cp0y() * scaley + worldPos_y - GetRectHandleWidth(zoom, scale) / 2;
+            float cz = mPos[i].curve->get_cp0z() * scalez + worldPos_z - GetRectHandleWidth(zoom, scale) / 2;
+            va.AddRect(cx, cy, cx + GetRectHandleWidth(zoom, scale), cy + GetRectHandleWidth(zoom, scale), xlREDTRANSLUCENT);
             mPos[i].cp0.x = mPos[i].curve->get_cp0x();
             mPos[i].cp0.y = mPos[i].curve->get_cp0y();
             mPos[i].cp0.z = mPos[i].curve->get_cp0z();
-            cx = mPos[i].curve->get_cp1x() * scalex + worldPos_x - GetRectHandleWidth(zoom) / 2;
-            cy = mPos[i].curve->get_cp1y() * scaley + worldPos_y - GetRectHandleWidth(zoom) / 2;
-            cz = mPos[i].curve->get_cp1z() * scalez + worldPos_z - GetRectHandleWidth(zoom) / 2;
-            va.AddRect(cx, cy, cx + GetRectHandleWidth(zoom), cy + GetRectHandleWidth(zoom), xlREDTRANSLUCENT);
+            cx = mPos[i].curve->get_cp1x() * scalex + worldPos_x - GetRectHandleWidth(zoom, scale) / 2;
+            cy = mPos[i].curve->get_cp1y() * scaley + worldPos_y - GetRectHandleWidth(zoom, scale) / 2;
+            cz = mPos[i].curve->get_cp1z() * scalez + worldPos_z - GetRectHandleWidth(zoom, scale) / 2;
+            va.AddRect(cx, cy, cx + GetRectHandleWidth(zoom, scale), cy + GetRectHandleWidth(zoom, scale), xlREDTRANSLUCENT);
             mPos[i].cp1.x = mPos[i].curve->get_cp1x();
             mPos[i].cp1.y = mPos[i].curve->get_cp1y();
             mPos[i].cp1.z = mPos[i].curve->get_cp1z();
@@ -4708,6 +4711,7 @@ int PolyPointScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool 
     glm::vec3 ray_origin;
     glm::vec3 ray_direction;
     float zoom = preview->GetCameraZoomForHandles();
+    int scale = preview->GetHandleScale();
 
     VectorMath::ScreenPosToWorldRay(
         mouseX, preview->getHeight() - mouseY,
@@ -4724,14 +4728,14 @@ int PolyPointScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool 
     // check for control point handles
     if( handle & 0x4000 ) {
         int seg = handle & 0x0FFF;
-        mPos[seg].cp0.x = ray_origin.x - GetRectHandleWidth(zoom) / 2;
-        mPos[seg].cp0.y = ray_origin.y - GetRectHandleWidth(zoom) / 2;
+        mPos[seg].cp0.x = ray_origin.x - GetRectHandleWidth(zoom, scale) / 2;
+        mPos[seg].cp0.y = ray_origin.y - GetRectHandleWidth(zoom, scale) / 2;
         mPos[seg].cp0.z = newz;
         mPos[seg].curve->set_cp0( newx, newy, newz );
     } else if( handle & 0x8000 ) {
         int seg = handle & 0x0FFF;
-        mPos[seg].cp1.x = ray_origin.x - GetRectHandleWidth(zoom) / 2;
-        mPos[seg].cp1.y = ray_origin.y - GetRectHandleWidth(zoom) / 2;
+        mPos[seg].cp1.x = ray_origin.x - GetRectHandleWidth(zoom, scale) / 2;
+        mPos[seg].cp1.y = ray_origin.y - GetRectHandleWidth(zoom, scale) / 2;
         mPos[seg].cp1.z = newz;
         mPos[seg].curve->set_cp1( newx, newy, newz );
 
@@ -4741,7 +4745,7 @@ int PolyPointScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool 
         mPos[handle-1].y = newy;
         FixCurveHandles();
     } else {
-        float boundary_offset = 2.0f * GetRectHandleWidth(zoom);
+        float boundary_offset = 2.0f * GetRectHandleWidth(zoom, scale);
         // move a boundary handle
         float trans_x = 0.0f;
         float trans_y = 0.0f;
@@ -4825,6 +4829,7 @@ void PolyPointScreenLocation::AddHandle(ModelPreview* preview, int mouseX, int m
     glm::vec3 ray_origin;
     glm::vec3 ray_direction;
     float zoom = preview->GetCameraZoomForHandles();
+    int scale = preview->GetHandleScale();
 
     VectorMath::ScreenPosToWorldRay(
         mouseX, preview->getHeight() - mouseY,
@@ -4858,9 +4863,9 @@ void PolyPointScreenLocation::AddHandle(ModelPreview* preview, int mouseX, int m
     new_point.seg_scale = 1.0f;
     mPos.push_back(new_point);
     xlPoint new_handle;
-    float sx = new_point.x * scalex + worldPos_x - GetRectHandleWidth(zoom) / 2;
-    float sy = new_point.y * scaley + worldPos_y - GetRectHandleWidth(zoom) / 2;
-    float sz = new_point.z * scalez + worldPos_z - GetRectHandleWidth(zoom) / 2;
+    float sx = new_point.x * scalex + worldPos_x - GetRectHandleWidth(zoom, scale) / 2;
+    float sy = new_point.y * scaley + worldPos_y - GetRectHandleWidth(zoom, scale) / 2;
+    float sz = new_point.z * scalez + worldPos_z - GetRectHandleWidth(zoom, scale) / 2;
     new_handle.x = sx;
     new_handle.y = sy;
     new_handle.z = sz;
@@ -4872,15 +4877,15 @@ void PolyPointScreenLocation::AddHandle(ModelPreview* preview, int mouseX, int m
     seg_aabb_min.resize(num_points - 1);
     seg_aabb_max.resize(num_points - 1);
 
-    handle_aabb_min[num_points].x = sx - GetRectHandleWidth(zoom);
-    handle_aabb_min[num_points].y = sy - GetRectHandleWidth(zoom);
-    handle_aabb_min[num_points].z = sz - GetRectHandleWidth(zoom);
-    handle_aabb_max[num_points].x = sx + GetRectHandleWidth(zoom);
-    handle_aabb_max[num_points].y = sy + GetRectHandleWidth(zoom);
-    handle_aabb_max[num_points].z = sz + GetRectHandleWidth(zoom);
+    handle_aabb_min[num_points].x = sx - GetRectHandleWidth(zoom, scale);
+    handle_aabb_min[num_points].y = sy - GetRectHandleWidth(zoom, scale);
+    handle_aabb_min[num_points].z = sz - GetRectHandleWidth(zoom, scale);
+    handle_aabb_max[num_points].x = sx + GetRectHandleWidth(zoom, scale);
+    handle_aabb_max[num_points].y = sy + GetRectHandleWidth(zoom, scale);
+    handle_aabb_max[num_points].z = sz + GetRectHandleWidth(zoom, scale);
 }
 
-void PolyPointScreenLocation::InsertHandle(int after_handle, float zoom) {
+void PolyPointScreenLocation::InsertHandle(int after_handle, float zoom, int scale) {
     std::unique_lock<std::mutex> locker(_mutex);
 
     int pos = after_handle;
@@ -4900,9 +4905,9 @@ void PolyPointScreenLocation::InsertHandle(int after_handle, float zoom) {
     new_point.has_curve = false;
     mPos.insert(mPos.begin() + pos + 1, new_point);
     xlPoint new_handle;
-    float sx = mPos[pos+1].x * scalex + worldPos_x - GetRectHandleWidth(zoom) / 2;
-    float sy = mPos[pos+1].y * scaley + worldPos_y - GetRectHandleWidth(zoom) / 2;
-    float sz = mPos[pos+1].z * scalez + worldPos_z - GetRectHandleWidth(zoom) / 2;
+    float sx = mPos[pos+1].x * scalex + worldPos_x - GetRectHandleWidth(zoom, scale) / 2;
+    float sy = mPos[pos+1].y * scaley + worldPos_y - GetRectHandleWidth(zoom, scale) / 2;
+    float sz = mPos[pos+1].z * scalez + worldPos_z - GetRectHandleWidth(zoom, scale) / 2;
     new_handle.x = sx;
     new_handle.y = sy;
     new_handle.z = sz;
@@ -4916,12 +4921,12 @@ void PolyPointScreenLocation::InsertHandle(int after_handle, float zoom) {
     seg_aabb_min.resize(num_points - 1);
     seg_aabb_max.resize(num_points - 1);
 
-    handle_aabb_min[num_points].x = sx - GetRectHandleWidth(zoom);
-    handle_aabb_min[num_points].y = sy - GetRectHandleWidth(zoom);
-    handle_aabb_min[num_points].z = sz - GetRectHandleWidth(zoom);
-    handle_aabb_max[num_points].x = sx + GetRectHandleWidth(zoom);
-    handle_aabb_max[num_points].y = sy + GetRectHandleWidth(zoom);
-    handle_aabb_max[num_points].z = sz + GetRectHandleWidth(zoom);
+    handle_aabb_min[num_points].x = sx - GetRectHandleWidth(zoom, scale);
+    handle_aabb_min[num_points].y = sy - GetRectHandleWidth(zoom, scale);
+    handle_aabb_min[num_points].z = sz - GetRectHandleWidth(zoom, scale);
+    handle_aabb_max[num_points].x = sx + GetRectHandleWidth(zoom, scale);
+    handle_aabb_max[num_points].y = sy + GetRectHandleWidth(zoom, scale);
+    handle_aabb_max[num_points].z = sz + GetRectHandleWidth(zoom, scale);
 }
 
 void PolyPointScreenLocation::DeleteHandle(int handle) {
@@ -4956,8 +4961,10 @@ void PolyPointScreenLocation::DeleteHandle(int handle) {
 
 wxCursor PolyPointScreenLocation::InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes, ModelPreview* preview) {
     float zoom = 1.0;
+    int scale = 1;
     if (preview != nullptr) {
         zoom = preview->GetCameraZoomForHandles();
+        scale = preview->GetHandleScale();
         active_axis = X_AXIS;
         saved_position = glm::vec3(worldPos_x, worldPos_y, worldPos_z);
         DragHandle(preview, x, y, true);
@@ -4981,24 +4988,24 @@ wxCursor PolyPointScreenLocation::InitializeLocation(int &handle, int x, int y, 
     mPos[1].y = 0.0f;
     mPos[1].z = 0.0f;
 
-    handle_aabb_min[0].x = -GetRectHandleWidth(zoom);
-    handle_aabb_min[0].y = -GetRectHandleWidth(zoom);
-    handle_aabb_min[0].z = -GetRectHandleWidth(zoom);
-    handle_aabb_max[0].x = GetRectHandleWidth(zoom);
-    handle_aabb_max[0].y = GetRectHandleWidth(zoom);
-    handle_aabb_max[0].z = GetRectHandleWidth(zoom);
-    handle_aabb_min[1].x = -GetRectHandleWidth(zoom);
-    handle_aabb_min[1].y = -GetRectHandleWidth(zoom);
-    handle_aabb_min[1].z = -GetRectHandleWidth(zoom);
-    handle_aabb_max[1].x = GetRectHandleWidth(zoom);
-    handle_aabb_max[1].y = GetRectHandleWidth(zoom);
-    handle_aabb_max[1].z = GetRectHandleWidth(zoom);
-    handle_aabb_min[2].x = -GetRectHandleWidth(zoom);
-    handle_aabb_min[2].y = -GetRectHandleWidth(zoom);
-    handle_aabb_min[2].z = -GetRectHandleWidth(zoom);
-    handle_aabb_max[2].x = GetRectHandleWidth(zoom);
-    handle_aabb_max[2].y = GetRectHandleWidth(zoom);
-    handle_aabb_max[2].z = GetRectHandleWidth(zoom);
+    handle_aabb_min[0].x = -GetRectHandleWidth(zoom, scale);
+    handle_aabb_min[0].y = -GetRectHandleWidth(zoom, scale);
+    handle_aabb_min[0].z = -GetRectHandleWidth(zoom, scale);
+    handle_aabb_max[0].x = GetRectHandleWidth(zoom, scale);
+    handle_aabb_max[0].y = GetRectHandleWidth(zoom, scale);
+    handle_aabb_max[0].z = GetRectHandleWidth(zoom, scale);
+    handle_aabb_min[1].x = -GetRectHandleWidth(zoom, scale);
+    handle_aabb_min[1].y = -GetRectHandleWidth(zoom, scale);
+    handle_aabb_min[1].z = -GetRectHandleWidth(zoom, scale);
+    handle_aabb_max[1].x = GetRectHandleWidth(zoom, scale);
+    handle_aabb_max[1].y = GetRectHandleWidth(zoom, scale);
+    handle_aabb_max[1].z = GetRectHandleWidth(zoom, scale);
+    handle_aabb_min[2].x = -GetRectHandleWidth(zoom, scale);
+    handle_aabb_min[2].y = -GetRectHandleWidth(zoom, scale);
+    handle_aabb_min[2].z = -GetRectHandleWidth(zoom, scale);
+    handle_aabb_max[2].x = GetRectHandleWidth(zoom, scale);
+    handle_aabb_max[2].y = GetRectHandleWidth(zoom, scale);
+    handle_aabb_max[2].z = GetRectHandleWidth(zoom, scale);
 
     handle = 2;
     return wxCURSOR_SIZING;
