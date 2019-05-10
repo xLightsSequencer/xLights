@@ -17,8 +17,10 @@ public:
     BaseObject();
     virtual ~BaseObject();
 
-    virtual void AddProperties(wxPropertyGridInterface *grid, OutputManager* outputManager) = 0;
+    virtual void AddProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) = 0;
+    virtual void UpdateProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) = 0;
     virtual void AddTypeProperties(wxPropertyGridInterface *grid) = 0;
+    virtual void UpdateTypeProperties(wxPropertyGridInterface* grid) = 0;
     virtual void AddSizeLocationProperties(wxPropertyGridInterface *grid) = 0;
 
     virtual const ModelScreenLocation &GetBaseObjectScreenLocation() const = 0;

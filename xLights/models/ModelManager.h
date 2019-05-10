@@ -22,8 +22,8 @@ class ModelManager : public ObjectManager
         Model *GetModel(const std::string &name) const;
         virtual BaseObject *GetObject(const std::string &name) const override;
 
-        void OldRecalcStartChannels() const;
-        void NewRecalcStartChannels() const;
+        bool OldRecalcStartChannels() const;
+        bool NewRecalcStartChannels() const;
         unsigned int GetLastChannel() const;
         void DisplayStartChannelCalcWarning() const;
         bool ReworkStartChannel() const;

@@ -14,10 +14,14 @@ void OutputModelManager::Dump(const std::string& type, const std::list<std::pair
     {
         logger_work.debug("          0x%04x  %s  %s", it.first, (const char*)DecodeWork(it.first).c_str(), (const char*)it.second.c_str());
     }
+    if (_selectedModel != "") logger_work.debug("    Select model '%s'", (const char*)_selectedModel.c_str());
+    if (_modelToModelFromXml != nullptr) logger_work.debug("    Model to reload xml '%s'", (const char*)_modelToModelFromXml->GetName().c_str());
 }
+
 std::string OutputModelManager::DecodeWork(uint32_t work)
 {
     std::string res;
+    if (work & WORK_UPDATE_PROPERTYGRID) res += "WORK_UPDATE_PROPERTYGRID";
     if (work & WORK_MODELS_REWORK_STARTCHANNELS) res += " WORK_MODELS_REWORK_STARTCHANNELS";
     if (work & WORK_RELOAD_MODEL_FROM_XML) res += " WORK_RELOAD_MODEL_FROM_XML";
     if (work & WORK_RELOAD_ALLMODELS) res += " WORK_RELOAD_ALLMODELS";

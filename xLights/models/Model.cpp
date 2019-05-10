@@ -424,6 +424,33 @@ void Model::SetProperty(wxString property, wxString value, bool apply)
     }
 }
 
+void Model::UpdateProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) {
+    
+    UpdateTypeProperties(grid);
+
+    grid->GetPropertyByName("Controller")->Enable(outputManager->GetControllerNames().size() > 0);
+
+    if (HasOneString(DisplayAs)) {
+        grid->GetPropertyByName("ModelStartChannel")->Enable(GetControllerName() == "");
+    }
+    else {
+        grid->GetPropertyByName("ModelIndividualStartChannels")->Enable(parm1 > 1 && GetControllerName() == "");
+        grid->GetPropertyByName("ModelIndividualStartChannels.ModelStartChannel")->Enable(GetControllerName() == "");
+    }
+    grid->GetPropertyByName("ModelChain")->Enable(GetControllerName() != "" && GetControllerProtocol() != "" && GetControllerPort() != 0);
+
+    UpdateControllerProperties(grid);
+
+    int i = grid->GetPropertyByName("ModelStringType")->GetValue().GetLong();
+    if (NODE_TYPES[i] == "Single Color" || NODE_TYPES[i] == "Single Color Intensity") {
+        grid->GetPropertyByName("ModelStringColor")->Enable();
+    }
+    else {
+        grid->GetPropertyByName("ModelStringColor")->Enable(false);
+    }
+    grid->GetPropertyByName("ModelRGBWHandling")->Enable(!(HasSingleChannel(StringType) || GetNodeChannelCount(StringType) != 4));
+}
+
 void Model::AddProperties(wxPropertyGridInterface *grid, OutputManager* outputManager) {
     if (PIXEL_STYLES.empty()) {
         PIXEL_STYLES.push_back("Square");
@@ -764,6 +791,85 @@ void Model::AddControllerProperties(wxPropertyGridInterface *grid) {
         if (!node->HasAttribute("groupCount")) {
             grid->DisableProperty(sp2);
             grid->Collapse(sp);
+        }
+    }
+}
+
+void Model::UpdateControllerProperties(wxPropertyGridInterface* grid) {
+
+    if (GetControllerName() != "" && GetControllerPort(1) == 0) {
+        grid->GetPropertyByName("ModelControllerConnectionPort")->SetBackgroundColour(*wxRED);
+    }
+    else
+    {
+        grid->GetPropertyByName("ModelControllerConnectionPort")->SetBackgroundColour(*wxWHITE);
+    }
+
+    if (GetControllerName() != "" && GetControllerProtocol() == "") {
+        grid->GetPropertyByName("ModelControllerConnectionProtocol")->SetBackgroundColour(*wxRED);
+    }
+    else
+    {
+        grid->GetPropertyByName("ModelControllerConnectionProtocol")->SetBackgroundColour(*wxWHITE);
+    }
+
+
+    wxXmlNode* node = GetControllerConnection();
+    wxString protocol = GetControllerProtocol();
+    protocol.LowerCase();
+    if (IsPixelProtocol(protocol)) {
+        if (!node->HasAttribute("nullNodes")) {
+            grid->GetPropertyByName("ModelControllerConnectionPixelSetNullNodes")->SetExpanded(false);
+            grid->GetPropertyByName("ModelControllerConnectionPixelNullNodes")->Enable(false);
+        }
+        else {
+            grid->GetPropertyByName("ModelControllerConnectionPixelSetNullNodes")->SetExpanded(true);
+            grid->GetPropertyByName("ModelControllerConnectionPixelNullNodes")->Enable();
+        }
+
+        if (!node->HasAttribute("brightness")) {
+            grid->GetPropertyByName("ModelControllerConnectionPixelSetBrightness")->SetExpanded(false);
+            grid->GetPropertyByName("ModelControllerConnectionPixelBrightness")->Enable(false);
+        }
+        else {
+            grid->GetPropertyByName("ModelControllerConnectionPixelSetBrightness")->SetExpanded(true);
+            grid->GetPropertyByName("ModelControllerConnectionPixelBrightness")->Enable();
+        }
+
+        if (!node->HasAttribute("gamma")) {
+            grid->GetPropertyByName("ModelControllerConnectionPixelSetGamma")->SetExpanded(false);
+            grid->GetPropertyByName("ModelControllerConnectionPixelGamma")->Enable(false);
+        }
+        else {
+            grid->GetPropertyByName("ModelControllerConnectionPixelSetGamma")->SetExpanded(true);
+            grid->GetPropertyByName("ModelControllerConnectionPixelGamma")->Enable();
+        }
+
+        if (!node->HasAttribute("colorOrder")) {
+            grid->GetPropertyByName("ModelControllerConnectionPixelSetColorOrder")->SetExpanded(false);
+            grid->GetPropertyByName("ModelControllerConnectionPixelColorOrder")->Enable(false);
+        }
+        else {
+            grid->GetPropertyByName("ModelControllerConnectionPixelSetColorOrder")->SetExpanded(true);
+            grid->GetPropertyByName("ModelControllerConnectionPixelColorOrder")->Enable();
+        }
+
+        if (!node->HasAttribute("reverse")) {
+            grid->GetPropertyByName("ModelControllerConnectionPixelSetDirection")->SetExpanded(false);
+            grid->GetPropertyByName("ModelControllerConnectionPixelDirection")->Enable(false);
+        }
+        else {
+            grid->GetPropertyByName("ModelControllerConnectionPixelSetDirection")->SetExpanded(true);
+            grid->GetPropertyByName("ModelControllerConnectionPixelDirection")->Enable();
+        }
+
+        if (!node->HasAttribute("groupCount")) {
+            grid->GetPropertyByName("ModelControllerConnectionPixelSetGroupCount")->SetExpanded(false);
+            grid->GetPropertyByName("ModelControllerConnectionPixelGroupCount")->Enable(false);
+        }
+        else {
+            grid->GetPropertyByName("ModelControllerConnectionPixelSetGroupCount")->SetExpanded(true);
+            grid->GetPropertyByName("ModelControllerConnectionPixelGroupCount")->Enable();
         }
     }
 }
@@ -1240,7 +1346,7 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         }
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::OnPropertyGridChange::ModelStartChannel");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "Model::OnPropertyGridChange::ModelStartChannel");
+        //AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "Model::OnPropertyGridChange::ModelStartChannel");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "Model::OnPropertyGridChange::ModelStartChannel");
         AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "Model::OnPropertyGridChange::ModelStartChannel");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Model::OnPropertyGridChange::ModelStartChannel");
@@ -1288,7 +1394,7 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         ModelXml->AddAttribute(str, val);
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::OnPropertyGridChange::ModelIndividualStartChannels2");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "Model::OnPropertyGridChange::ModelIndividualStartChannels2");
+        //AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "Model::OnPropertyGridChange::ModelIndividualStartChannels2");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "Model::OnPropertyGridChange::ModelIndividualStartChannels2");
         AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "Model::OnPropertyGridChange::ModelIndividualStartChannels2");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Model::OnPropertyGridChange::ModelIndividualStartChannels2");
@@ -1302,6 +1408,7 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "Model::OnPropertyGridChange::ModelLayoutGroup");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "Model::OnPropertyGridChange::ModelLayoutGroup");
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "Model::OnPropertyGridChange::ModelLayoutGroup");
+        //AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "Model::OnPropertyGridChange::ModelLayoutGroup");
         return 0;
     }
 
@@ -4418,6 +4525,8 @@ void Model::SetModelChain(const std::string& modelChain)
     }
     AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "Model::SetModelChain");
     AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "Model::SetModelChain");
+    //AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "Model::SetControllerPort");
+    AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "Model::SetControllerPort");
     IncrementChangeCount();
 }
 
@@ -4439,7 +4548,9 @@ void Model::SetControllerName(const std::string& controller)
     AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "Model::SetControllerName");
     AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::SetControllerName");
     AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Model::SetControllerName");
-    AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "Model::SetControllerName");
+    AddASAPWork(OutputModelManager::WORK_UPDATE_PROPERTYGRID, "Model::SetControllerName");
+    //AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "Model::SetControllerPort");
+    AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "Model::SetControllerPort");
     IncrementChangeCount();
 }
 
@@ -4454,6 +4565,8 @@ void Model::SetControllerProtocol(const std::string& protocol)
     
     AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "Model::SetControllerProtocol");
     AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "Model::SetControllerProtocol");
+    //AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "Model::SetControllerPort");
+    AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "Model::SetControllerPort");
     IncrementChangeCount();
 }
 
@@ -4468,6 +4581,8 @@ void Model::SetControllerPort(int port)
     
     AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "Model::SetControllerPort");
     AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "Model::SetControllerPort");
+    //AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "Model::SetControllerPort");
+    AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "Model::SetControllerPort");
     IncrementChangeCount();
 }
 

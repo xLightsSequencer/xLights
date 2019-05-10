@@ -2696,6 +2696,7 @@ void xLightsFrame::DoWork(uint32_t work, const std::string& type, Model* m, cons
         NetworkChange();
     }
     work = _outputModelManager.ClearWork(type, work,
+        OutputModelManager::WORK_UPDATE_PROPERTYGRID |
         OutputModelManager::WORK_NETWORK_CHANNELSCHANGE |
         OutputModelManager::WORK_UPDATE_NETWORK_LIST |
         OutputModelManager::WORK_RGBEFFECTS_CHANGE |
@@ -2718,6 +2719,7 @@ void xLightsFrame::DoWork(uint32_t work, const std::string& type, Model* m, cons
         NetworkChannelsChange();
     }
     work = _outputModelManager.ClearWork(type, work,
+        OutputModelManager::WORK_UPDATE_PROPERTYGRID |
         OutputModelManager::WORK_UPDATE_NETWORK_LIST |
         OutputModelManager::WORK_RGBEFFECTS_CHANGE |
         OutputModelManager::WORK_RELOAD_MODEL_FROM_XML |
@@ -2739,6 +2741,7 @@ void xLightsFrame::DoWork(uint32_t work, const std::string& type, Model* m, cons
         UpdateNetworkList();
     }
     work = _outputModelManager.ClearWork(type, work,
+        OutputModelManager::WORK_UPDATE_PROPERTYGRID |
         OutputModelManager::WORK_RGBEFFECTS_CHANGE |
         OutputModelManager::WORK_RELOAD_MODEL_FROM_XML |
         OutputModelManager::WORK_RELOAD_ALLMODELS |
@@ -2759,6 +2762,7 @@ void xLightsFrame::DoWork(uint32_t work, const std::string& type, Model* m, cons
         MarkEffectsFileDirty();
     }
     work = _outputModelManager.ClearWork(type, work,
+        OutputModelManager::WORK_UPDATE_PROPERTYGRID |
         OutputModelManager::WORK_RELOAD_MODEL_FROM_XML |
         OutputModelManager::WORK_RELOAD_ALLMODELS |
         OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS |
@@ -2782,6 +2786,7 @@ void xLightsFrame::DoWork(uint32_t work, const std::string& type, Model* m, cons
         }
     }
     work = _outputModelManager.ClearWork(type, work,
+        OutputModelManager::WORK_UPDATE_PROPERTYGRID |
         OutputModelManager::WORK_RELOAD_ALLMODELS |
         OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS |
         OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER |
@@ -2800,6 +2805,7 @@ void xLightsFrame::DoWork(uint32_t work, const std::string& type, Model* m, cons
         //layoutPanel->RefreshLayout();
     }
     work = _outputModelManager.ClearWork(type, work,
+        OutputModelManager::WORK_UPDATE_PROPERTYGRID |
         OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS |
         OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER |
         OutputModelManager::WORK_CALCULATE_START_CHANNELS |
@@ -2820,6 +2826,7 @@ void xLightsFrame::DoWork(uint32_t work, const std::string& type, Model* m, cons
         }
     }
     work = _outputModelManager.ClearWork(type, work,
+        OutputModelManager::WORK_UPDATE_PROPERTYGRID |
         OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER |
         OutputModelManager::WORK_CALCULATE_START_CHANNELS |
         OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG |
@@ -2836,6 +2843,7 @@ void xLightsFrame::DoWork(uint32_t work, const std::string& type, Model* m, cons
         MarkModelsAsNeedingRender();
     }
     work = _outputModelManager.ClearWork(type, work,
+        OutputModelManager::WORK_UPDATE_PROPERTYGRID |
         OutputModelManager::WORK_CALCULATE_START_CHANNELS |
         OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG |
         OutputModelManager::WORK_RELOAD_MODELLIST |
@@ -2851,6 +2859,7 @@ void xLightsFrame::DoWork(uint32_t work, const std::string& type, Model* m, cons
         RecalcModels();
     }
     work = _outputModelManager.ClearWork(type, work,
+        OutputModelManager::WORK_UPDATE_PROPERTYGRID |
         OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG |
         OutputModelManager::WORK_RELOAD_MODELLIST |
         OutputModelManager::WORK_RELOAD_OBJECTLIST |
@@ -2866,6 +2875,7 @@ void xLightsFrame::DoWork(uint32_t work, const std::string& type, Model* m, cons
         RebuildControllerConfig(&_outputManager, &AllModels);
     }
     work = _outputModelManager.ClearWork(type, work,
+        OutputModelManager::WORK_UPDATE_PROPERTYGRID |
         OutputModelManager::WORK_RELOAD_MODELLIST |
         OutputModelManager::WORK_RELOAD_OBJECTLIST |
         OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW |
@@ -2876,10 +2886,14 @@ void xLightsFrame::DoWork(uint32_t work, const std::string& type, Model* m, cons
     {
         logger_work.debug("    WORK_RELOAD_MODELLIST.");
         // reload the models list on the layout panel
-        //layoutPanel->refreshModelList();
-        layoutPanel->ReloadModelList();
+        layoutPanel->refreshModelList();
+        //layoutPanel->ReloadModelList();
+        // reload the whole list if no model is selected
+        //layoutPanel->UpdateModelList(layoutPanel->GetSelectedModelName() == "");
+        //layoutPanel->UpdateModelList(true);
     }
     work = _outputModelManager.ClearWork(type, work,
+        OutputModelManager::WORK_UPDATE_PROPERTYGRID |
         OutputModelManager::WORK_RELOAD_OBJECTLIST |
         OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW |
         OutputModelManager::WORK_RELOAD_PROPERTYGRID |
@@ -2892,6 +2906,7 @@ void xLightsFrame::DoWork(uint32_t work, const std::string& type, Model* m, cons
         layoutPanel->refreshObjectList();
     }
     work = _outputModelManager.ClearWork(type, work,
+        OutputModelManager::WORK_UPDATE_PROPERTYGRID |
         OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW |
         OutputModelManager::WORK_RELOAD_PROPERTYGRID |
         OutputModelManager::WORK_SAVE_NETWORKS
@@ -2903,6 +2918,7 @@ void xLightsFrame::DoWork(uint32_t work, const std::string& type, Model* m, cons
         layoutPanel->UpdatePreview();
     }
     work = _outputModelManager.ClearWork(type, work,
+        OutputModelManager::WORK_UPDATE_PROPERTYGRID |
         OutputModelManager::WORK_RELOAD_PROPERTYGRID |
         OutputModelManager::WORK_SAVE_NETWORKS
     );
@@ -2919,6 +2935,16 @@ void xLightsFrame::DoWork(uint32_t work, const std::string& type, Model* m, cons
         layoutPanel->resetPropertyGrid();
     }
     work = _outputModelManager.ClearWork(type, work, 
+        OutputModelManager::WORK_UPDATE_PROPERTYGRID |
+        OutputModelManager::WORK_SAVE_NETWORKS
+    );
+    if (work & OutputModelManager::WORK_UPDATE_PROPERTYGRID)
+    {
+        logger_work.debug("    WORK_UPDATE_PROPERTYGRID.");
+        // Update the property grid mainly enabling and disabling of properties
+        layoutPanel->updatePropertyGrid();
+    }
+    work = _outputModelManager.ClearWork(type, work,
         OutputModelManager::WORK_SAVE_NETWORKS
     );
     if (work & OutputModelManager::WORK_SAVE_NETWORKS)

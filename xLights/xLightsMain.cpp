@@ -2513,11 +2513,13 @@ void xLightsFrame::RecalcModels()
 
     SetCursor(wxCURSOR_WAIT);
     // Now notify the layout as the model start numbers may have been impacted
-    AllModels.OldRecalcStartChannels();
-    //AllModels.NewRecalcStartChannels();
-
-    GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "RecalcModels");
-    GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "RecalcModels", nullptr, nullptr, layoutPanel->GetSelectedModelName());
+    if (AllModels.OldRecalcStartChannels())
+        //AllModels.NewRecalcStartChannels();
+    {
+        GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "RecalcModels");
+        GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "RecalcModels");
+        //GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "RecalcModels", nullptr, nullptr, layoutPanel->GetSelectedModelName());
+    }
 
     SetCursor(wxCURSOR_ARROW);
 }

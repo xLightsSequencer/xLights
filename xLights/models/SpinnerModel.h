@@ -15,6 +15,7 @@ class SpinnerModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual int NodesPerString() const override;
 
         virtual void AddTypeProperties(wxPropertyGridInterface *grid) override;
+        virtual void UpdateTypeProperties(wxPropertyGridInterface* grid) override;
         virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
         virtual void InitRenderBufferNodes(const std::string &type, const std::string &camera, const std::string &transform,
             std::vector<NodeBaseClassPtr> &Nodes, int &BufferWi, int &BufferHi) const override;

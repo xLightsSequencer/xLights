@@ -27,6 +27,7 @@ class OutputModelManager {
 
 public:
 
+    static const uint32_t WORK_UPDATE_PROPERTYGRID              = 0x0001;
     static const uint32_t WORK_MODELS_REWORK_STARTCHANNELS      = 0x0002;
     static const uint32_t WORK_RELOAD_MODEL_FROM_XML            = 0x0004; // Note the model must remain valid until the message is processed
     static const uint32_t WORK_RELOAD_ALLMODELS                 = 0x0008;

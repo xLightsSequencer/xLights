@@ -76,7 +76,7 @@ ZCPPOutput::ZCPPOutput(wxXmlNode* node, std::string showdir) : IPOutput(node)
                             uint16_t size = (b1 << 8) + b2;
                             if (size == sizeof(ZCPP_packet_t))
                             {
-                                ZCPP_packet_t* modelPacket = new ZCPP_packet_t();
+                                ZCPP_packet_t* modelPacket = (ZCPP_packet_t*)malloc(sizeof(ZCPP_packet_t));
                                 zf.Read(modelPacket, sizeof(ZCPP_packet_t));
                                 _modelData.push_back(modelPacket);
                             }
@@ -96,7 +96,7 @@ ZCPPOutput::ZCPPOutput(wxXmlNode* node, std::string showdir) : IPOutput(node)
                             uint16_t size = (b1 << 8) + b2;
                             if (size == sizeof(ZCPP_packet_t))
                             {
-                                ZCPP_packet_t* descPacket = new ZCPP_packet_t();
+                                ZCPP_packet_t* descPacket = (ZCPP_packet_t*)malloc(sizeof(ZCPP_packet_t));
                                 zf.Read(descPacket, sizeof(ZCPP_packet_t));
                                 _extraConfig.push_back(descPacket);
                             }
@@ -111,6 +111,7 @@ ZCPPOutput::ZCPPOutput(wxXmlNode* node, std::string showdir) : IPOutput(node)
                             zf.SeekEnd();
                             break;
                         default:
+                            wxASSERT(false);
                             logger_base.warn("ZCPP Model data file %s unrecognised type %d.", (const char*)fileName.c_str(), type);
                             break;
                         }
@@ -368,7 +369,7 @@ bool ZCPPOutput::SetModelData(std::list<ZCPP_packet_t*> modelData, std::list<ZCP
             b = sizeof(ZCPP_packet_t) & 0xFF;
             zf.Write(&b, sizeof(b));
 
-            zf.Write(&it, sizeof(ZCPP_packet_t));
+            zf.Write(it, sizeof(ZCPP_packet_t));
         }
 
         for (auto it : _extraConfig)
@@ -381,7 +382,7 @@ bool ZCPPOutput::SetModelData(std::list<ZCPP_packet_t*> modelData, std::list<ZCP
             b = sizeof(ZCPP_packet_t) & 0xFF;
             zf.Write(&b, sizeof(b));
 
-            zf.Write(&it, sizeof(ZCPP_packet_t));
+            zf.Write(it, sizeof(ZCPP_packet_t));
         }
 
         uint8_t type = 0xFF;

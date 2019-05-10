@@ -124,10 +124,13 @@ public:
     int GetDefaultBufferHt() const {return BufferHt;}
 
     void SetProperty(wxString property, wxString value, bool apply = false);
-    virtual void AddProperties(wxPropertyGridInterface *grid, OutputManager* outputManager) override;
+    virtual void AddProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
+    virtual void UpdateProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
     virtual void AddControllerProperties(wxPropertyGridInterface *grid);
+    virtual void UpdateControllerProperties(wxPropertyGridInterface* grid);
     virtual void DisableUnusedProperties(wxPropertyGridInterface *grid) {};
-    virtual void AddTypeProperties(wxPropertyGridInterface *grid) override {};
+    virtual void AddTypeProperties(wxPropertyGridInterface* grid) override {};
+    virtual void UpdateTypeProperties(wxPropertyGridInterface* grid) override {};
     virtual void AddSizeLocationProperties(wxPropertyGridInterface *grid) override;
     virtual void OnPropertyGridChanging(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {};
     virtual int OnPropertyGridSelection(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) { return 0; };

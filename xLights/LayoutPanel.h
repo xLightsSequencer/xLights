@@ -248,6 +248,7 @@ class LayoutPanel: public wxPanel
         void refreshModelList();
         void refreshObjectList();
         void resetPropertyGrid();
+        void updatePropertyGrid();
 
         void ModelGroupUpdated(ModelGroup *group, bool full_refresh);
         bool HandleLayoutKeyBinding(wxKeyEvent& event);

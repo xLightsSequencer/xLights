@@ -173,7 +173,6 @@
     <ClCompile Include="ModelPreview.cpp" />
     <ClCompile Include="models\Node.cpp" />
     <ClCompile Include="models\Shapes.cpp" />
-    <ClCompile Include="models\SingleLineModel.cpp" />
     <ClCompile Include="models\WindowFrameModel.cpp" />
     <ClCompile Include="MusicXML.cpp" />
     <ClCompile Include="NewTimingDialog.cpp" />
@@ -324,7 +323,6 @@
     <ClCompile Include="controllers\ControllerUploadData.cpp" />
     <ClCompile Include="outputs\ZCPPDialog.cpp" />
     <ClCompile Include="outputs\ZCPPOutput.cpp" />
-    <ClCompile Include="models\MeshObject.cpp" />
     <ClCompile Include="NodeSelectGrid.cpp" />
     <ClCompile Include="ModelChainDialog.cpp" />
     <ClCompile Include="MultiControllerUploadDialog.cpp" />
@@ -447,6 +445,12 @@
       <Filter>Models</Filter>
     </ClCompile>
     <ClCompile Include="ModelStateDialog.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
+    <ClCompile Include="models\SingleLineModel.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
+    <ClCompile Include="models\MeshObject.cpp">
       <Filter>Models</Filter>
     </ClCompile>
   </ItemGroup>
@@ -612,7 +616,6 @@
     <ClInclude Include="ModelPreview.h" />
     <ClInclude Include="models\Node.h" />
     <ClInclude Include="models\Shapes.h" />
-    <ClInclude Include="models\SingleLineModel.h" />
     <ClInclude Include="models\WindowFrameModel.h" />
     <ClInclude Include="MusicXML.h" />
     <ClInclude Include="NewTimingDialog.h" />
@@ -777,7 +780,6 @@
     <ClInclude Include="outputs\ZCPPDialog.h" />
     <ClInclude Include="NodeSelectGrid.h" />
     <ClInclude Include="ModelChainDialog.h" />
-    <ClInclude Include="models\MeshObject.h" />
     <ClInclude Include="models\tiny_obj_loader.h" />
     <ClInclude Include="MultiControllerUploadDialog.h" />
     <ClInclude Include="wxModelGridCellRenderer.h" />
@@ -901,6 +903,12 @@
       <Filter>Models</Filter>
     </ClInclude>
     <ClInclude Include="ModelStateDialog.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="models\SingleLineModel.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="models\MeshObject.h">
       <Filter>Models</Filter>
     </ClInclude>
   </ItemGroup>

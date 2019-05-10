@@ -206,8 +206,9 @@ unsigned int ModelManager::GetLastChannel() const {
     return max;
 }
 
-void ModelManager::NewRecalcStartChannels() const
+bool ModelManager::NewRecalcStartChannels() const
 {
+    bool changed = false;
     //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     //wxStopWatch sw;
     //sw.Start();
@@ -226,9 +227,17 @@ void ModelManager::NewRecalcStartChannels() const
         if (it->second->GetDisplayAs() != "ModelGroup")
         {
             std::list<std::string> used;
+            auto oldsc = it->second->GetFirstChannel();
             if (!it->second->UpdateStartChannelFromChannelString(ms, used)) {
                 msg += it->second->name + "\n";
                 failed = true;
+            }
+            else
+            {
+                if (oldsc != it->second->GetFirstChannel())
+                {
+                    changed = true;
+                }
             }
         }
     }
@@ -238,6 +247,8 @@ void ModelManager::NewRecalcStartChannels() const
 
     //long end  = sw.Time();
     //logger_base.debug("New RecalcStartChannels takes %ld.", end);
+
+    return changed;
 }
 
 void ModelManager::ResetModelGroups() const
@@ -269,7 +280,8 @@ std::string ModelManager::GetLastModelOnPort(const std::string& controllerName, 
     return last;
 }
 
-void ModelManager::OldRecalcStartChannels() const {
+bool ModelManager::OldRecalcStartChannels() const {
+    bool changed = false;
     //wxStopWatch sw;
     //sw.Start();
     int countValid = 0;
@@ -278,8 +290,16 @@ void ModelManager::OldRecalcStartChannels() const {
     }
     for (auto it = models.begin(); it != models.end(); ++it) {
         if( it->second->GetDisplayAs() != "ModelGroup" ) {
+            auto oldsc = it->second->GetFirstChannel();
             it->second->SetFromXml(it->second->GetModelXml());
-            countValid += it->second->CouldComputeStartChannel ? 1 : 0;
+            if (it->second->CouldComputeStartChannel)
+            {
+                countValid++;
+                if (oldsc != it->second->GetFirstChannel())
+                {
+                    changed = true;
+                }
+            }
         } else {
             countValid++;
         }
@@ -289,8 +309,16 @@ void ModelManager::OldRecalcStartChannels() const {
         for (auto it = models.begin(); it != models.end(); ++it) {
             if( it->second->GetDisplayAs() != "ModelGroup" ) {
                 if (!it->second->CouldComputeStartChannel) {
+                    auto oldsc = it->second->GetFirstChannel();
                     it->second->SetFromXml(it->second->GetModelXml());
-                    newCountValid += it->second->CouldComputeStartChannel ? 1 : 0;
+                    if (it->second->CouldComputeStartChannel)
+                    {
+                        newCountValid++;
+                        if (oldsc != it->second->GetFirstChannel())
+                        {
+                            changed = true;
+                        }
+                    }
                 } else {
                     newCountValid++;
                 }
@@ -305,7 +333,7 @@ void ModelManager::OldRecalcStartChannels() const {
 
             ResetModelGroups();
 
-            return;
+            return changed;
         }
         countValid = newCountValid;
     }
@@ -314,6 +342,7 @@ void ModelManager::OldRecalcStartChannels() const {
 
     //long end = sw.Time();
     //logger_base.debug("Old RecalcStartChannels takes %ld.", end);
+    return changed;
 }
 
 void ModelManager::DisplayStartChannelCalcWarning() const

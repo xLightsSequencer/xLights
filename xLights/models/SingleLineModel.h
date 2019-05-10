@@ -17,9 +17,9 @@ class SingleLineModel : public ModelWithScreenLocation<TwoPointScreenLocation>
     
         void Reset(int lights, const Model &base, int strand, int node = -1, bool forceDirection = false);
         virtual const std::vector<std::string> &GetBufferStyles() const override;
-
+        
         virtual int GetLightsPerNode() const override { return parm3; } // default to one unless a model supports this
-        virtual void AddTypeProperties(wxPropertyGridInterface *grid) override;
+        virtual void AddTypeProperties(wxPropertyGridInterface* grid) override;
         virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
         virtual bool SupportsExportAsCustom() const override { return true; }
         virtual bool SupportsWiringView() const override { return false; }

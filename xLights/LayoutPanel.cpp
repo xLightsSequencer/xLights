@@ -737,11 +737,13 @@ void LayoutPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
     }
     else if (name == "BkgSizeWidth") {
         xlights->SetPreviewSize(event.GetValue().GetLong(), modelPreview->GetVirtualCanvasHeight());
-        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::OnPropertyGridChange::BkgSizeWidth");
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::OnPropertyGridChange::BkgTransparency");
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPropertyGridChange::BkgSizeWidth");
     }
     else if (name == "BkgSizeHeight") {
         xlights->SetPreviewSize(modelPreview->GetVirtualCanvasWidth(), event.GetValue().GetLong());
-        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::OnPropertyGridChange::BkgSizeHeight");
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::OnPropertyGridChange::BkgTransparency");
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPropertyGridChange::BkgSizeHeight");
     }
     else if (name == "BoundingBox") {
         modelPreview->SetDisplay2DBoundingBox(event.GetValue().GetBool());
@@ -767,6 +769,7 @@ void LayoutPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
     else if (name == "BkgFill") {
         if (currentLayoutGroup == "Default" || currentLayoutGroup == "All Models" || currentLayoutGroup == "Unassigned") {
             xlights->SetPreviewBackgroundScaled(event.GetValue().GetBool());
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::OnPropertyGridChange::BkgFill");
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPropertyGridChange::BkgFill");
         } else {
             pGrp->SetBackgroundScaled(wxAtoi(event.GetValue().GetString()) > 0);
@@ -946,6 +949,13 @@ void LayoutPanel::UpdatePreview()
     RenderLayout();
 }
 
+void LayoutPanel::updatePropertyGrid()
+{
+    if (selectedBaseObject == nullptr || propertyEditor == nullptr) return;
+
+    selectedBaseObject->UpdateProperties(propertyEditor, xlights->GetOutputManager());
+}
+
 void LayoutPanel::resetPropertyGrid() {
     static log4cpp::Category& logger_work = log4cpp::Category::getInstance(std::string("log_work"));
     logger_work.debug("        resetPropertyGrid.");
@@ -957,8 +967,9 @@ void LayoutPanel::resetPropertyGrid() {
     else
     {
         ShowPropGrid(true);
+        propertyEditor->Freeze();
         auto save = propertyEditor->SaveEditableState();
-        auto scroll = propertyEditor->GetScrollPos(wxVERTICAL);
+        //auto scroll = propertyEditor->GetScrollPos(wxVERTICAL);
         //auto top = propertyEditor->GetItemAtY(0);
         wxString selProp = "";
         if (propertyEditor->GetSelection() != nullptr)
@@ -976,13 +987,14 @@ void LayoutPanel::resetPropertyGrid() {
             }
             else
             {
-                propertyEditor->SetScrollPos(wxVERTICAL, scroll - 1, true);
-                wxScrollWinEvent e(wxEVT_SCROLLWIN_THUMBRELEASE);
-                e.SetOrientation(wxVERTICAL);
-                e.SetPosition(scroll);
-                propertyEditor->HandleOnScroll(e);
+                //propertyEditor->SetScrollPos(wxVERTICAL, scroll - 1, true);
+                //wxScrollWinEvent e(wxEVT_SCROLLWIN_THUMBRELEASE);
+                //e.SetOrientation(wxVERTICAL);
+                //e.SetPosition(scroll);
+                //propertyEditor->HandleOnScroll(e);
             }
         }
+        propertyEditor->Thaw();
     }
 }
 
@@ -1952,7 +1964,8 @@ void LayoutPanel::SetupPropGrid(BaseObject *base_object) {
 
     if (base_object == nullptr || propertyEditor == nullptr) return;
 
-    propertyEditor->Freeze();
+    auto frozen = propertyEditor->IsFrozen();
+    if (!frozen) propertyEditor->Freeze();
     clearPropGrid();
 
     if( editing_models ) {
@@ -1989,7 +2002,7 @@ void LayoutPanel::SetupPropGrid(BaseObject *base_object) {
             }
         }
     }
-    propertyEditor->Thaw();
+    if (!frozen) propertyEditor->Thaw();
 }
 
 void LayoutPanel::SelectBaseObject3D()
@@ -2020,7 +2033,8 @@ void LayoutPanel::SelectBaseObject(const std::string & name, bool highlight_tree
             static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
             logger_base.warn("LayoutPanel:SelectBaseObject Unable to select model '%s'.", (const char *)name.c_str());
         }
-        SelectModel(m, highlight_tree);
+        if (m != selectedBaseObject)
+            SelectModel(m, highlight_tree);
     } else {
         ViewObject *v = xlights->AllObjects[name];
         if (v == nullptr)
@@ -2028,7 +2042,8 @@ void LayoutPanel::SelectBaseObject(const std::string & name, bool highlight_tree
             static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
             logger_base.warn("LayoutPanel:SelectBaseObject Unable to select object '%s'.", (const char *)name.c_str());
         }
-        SelectViewObject(v, highlight_tree);
+        if (v != selectedBaseObject)
+            SelectViewObject(v, highlight_tree);
     }
 }
 
@@ -2061,6 +2076,12 @@ void LayoutPanel::SelectModel(Model *m, bool highlight_tree) {
 
     // TODO need to strip out extra logging once I know for sure what is going on
     if (modelPreview == nullptr) logger_base.crit("LayoutPanel::SelectModel modelPreview is nullptr ... this is going to crash.");
+
+    bool changed = false;
+    if (selectedBaseObject != m)
+    { 
+        changed = true;
+    }
 
     modelPreview->SetFocus();
     int foundStart = 0;
@@ -2103,7 +2124,8 @@ void LayoutPanel::SelectModel(Model *m, bool highlight_tree) {
             foundStart = m->GetNumberFromChannelString(m->ModelStartChannel);
             foundEnd = m->GetLastChannel();
         }
-        SetupPropGrid(m);
+        if (changed)
+            SetupPropGrid(m);
     } else {
         propertyEditor->Freeze();
         clearPropGrid();
@@ -2156,6 +2178,12 @@ void LayoutPanel::SelectViewObject(ViewObject *v, bool highlight_tree) {
     // TODO need to strip out extra logging once I know for sure what is going on
     if (modelPreview == nullptr) logger_base.crit("LayoutPanel::SelectViewObject modelPreview is nullptr ... this is going to crash.");
 
+    bool changed = false;
+    if (v != selectedBaseObject)
+    {
+        changed = true;
+    }
+
     modelPreview->SetFocus();
 
     if (v != nullptr) {
@@ -2164,7 +2192,8 @@ void LayoutPanel::SelectViewObject(ViewObject *v, bool highlight_tree) {
         if( highlight_tree ) {
             objects_panel->HighlightObject(v);
         }
-        SetupPropGrid(v);
+        if (changed)
+            SetupPropGrid(v);
     } else {
         propertyEditor->Freeze();
         clearPropGrid();
@@ -5463,12 +5492,14 @@ LayoutGroup* LayoutPanel::GetLayoutGroup(const std::string &name)
 
 void LayoutPanel::OnChoiceLayoutGroupsSelect(wxCommandEvent& event)
 {
-    for (auto it = xlights->AllModels.begin(); it != xlights->AllModels.end(); ++it) {
-        Model *model = it->second;
-        model->Selected = false;
-        model->GroupSelected = false;
-        model->Highlighted = false;
-    }
+    UnSelectAllModels();
+
+    //for (auto it = xlights->AllModels.begin(); it != xlights->AllModels.end(); ++it) {
+    //    Model *model = it->second;
+    //    model->Selected = false;
+    //    model->GroupSelected = false;
+    //    model->Highlighted = false;
+    //}
 
     std::string choice_layout = std::string(ChoiceLayoutGroups->GetStringSelection().c_str());
     if( choice_layout == "<Create New Preview>" ) {
@@ -5497,7 +5528,7 @@ void LayoutPanel::OnChoiceLayoutGroupsSelect(wxCommandEvent& event)
             AddPreviewChoice(name.ToStdString());
             ChoiceLayoutGroups->SetSelection(ChoiceLayoutGroups->GetCount() - 2);
 
-            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::OnChoiceLayoutGroupsSelect");
+            //xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::OnChoiceLayoutGroupsSelect");
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::OnChoiceLayoutGroupsSelect");
             //ShowPropGrid(true);
         } else {
@@ -5506,7 +5537,7 @@ void LayoutPanel::OnChoiceLayoutGroupsSelect(wxCommandEvent& event)
         }
     } else {
         SetCurrentLayoutGroup(choice_layout);
-        mSelectedGroup = nullptr;
+        //mSelectedGroup = nullptr;
         UpdateModelList(true);
     }
     modelPreview->SetDisplay2DBoundingBox(xlights->GetDisplay2DBoundingBox());

@@ -179,6 +179,10 @@ void SpinnerModel::AddTypeProperties(wxPropertyGridInterface *grid) {
     p->Enable(alternate == false);
 }
 
+void SpinnerModel::UpdateTypeProperties(wxPropertyGridInterface* grid) {
+    grid->GetPropertyByName("ZigZag")->Enable(alternate == false);
+}
+
 int SpinnerModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
     if ("SpinnerStringCount" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm1");
