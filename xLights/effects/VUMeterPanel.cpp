@@ -278,6 +278,9 @@ VUMeterPanel::VUMeterPanel(wxWindow* parent)
     Choice_VUMeter_Type->Append(_("Timing Event Bars"));
     Choice_VUMeter_Type->Append(_("Timing Event Spike"));
     Choice_VUMeter_Type->Append(_("Timing Event Sweep"));
+    Choice_VUMeter_Type->Append(_("Timing Event Sweep 2"));
+    Choice_VUMeter_Type->Append(_("Timing Event Timed Sweep"));
+    Choice_VUMeter_Type->Append(_("Timing Event Timed Sweep 2"));
     Choice_VUMeter_Type->Append(_("Timing Event Color"));
     Choice_VUMeter_Type->Append(_("Timing Event Jump"));
     Choice_VUMeter_Type->Append(_("Timing Event Jump 100"));
@@ -351,6 +354,9 @@ void VUMeterPanel::ValidateWindow()
 
     if (type == "Timing Event Spike" ||
         type == "Timing Event Sweep" ||
+        type == "Timing Event Sweep 2" ||
+        type == "Timing Event Timed Sweep" ||
+        type == "Timing Event Timed Sweep 2" ||
         type == "Pulse" ||
         type == "Timing Event Color" ||
         type == "Timing Event Pulse" ||
