@@ -600,7 +600,7 @@ double UnScaleWithSystemDPI(double scalingFactor, double val) {
 
 bool IsExcessiveMemoryUsage(double physicalMultiplier)
 {
-#ifdef __WXMSW__
+#if defined(__WXMSW__) && defined(__WIN64__)
     ULONGLONG physical;
     if (GetPhysicallyInstalledSystemMemory(&physical) != 0)
     {
