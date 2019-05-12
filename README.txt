@@ -11,8 +11,14 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2019.25 May 11, 2019
+   -- enh (keith)   Add some extra modes to VU Meter that act like timing mark controlled sweeps for arches
+   -- bug (keith)   Fix punctuation at word level of lyric tracks prevents phoneme breakdown
+   -- enh (keith)   Add support for scss palette files
+   -- enh (keith)   Allow user to control model handle sizes
    -- enh (scott)   Added Ellipse to Shapes Effect
    -- enh (scott)   Added Rotation to the Present, Tree, Heart, and Crucifix in the Shapes Effect
+   -- bug (dkulp)   Change fseq compression to a more compatible version
 2019.24 April 29, 2019
    -- bug (dkulp)   Fix FSEQ v2 hangs on saving ... sometimes
    -- bug (keith)   Fix corrupt FSEQ v2 file crashes on sequence load
