@@ -960,15 +960,30 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         {
             ModelXml->DeleteAttribute("Advanced");
             AdjustStringProperties(grid, parm1);
-            grid->GetPropertyByName("ModelIndividualStartChannels")->GetPropertyByName("ModelStartChannel")->Enable(false);
-            grid->GetPropertyByName("ModelIndividualStartChannels")->Enable(false);
-            grid->GetPropertyByName("ModelIndividualStartChannels")->GetPropertyByName("ModelStartChannel")->SetValue(ModelXml->GetAttribute("StartChannel", "1"));
+            if (grid->GetPropertyByName("ModelStartChannel") != nullptr)
+            {
+                grid->GetPropertyByName("ModelStartChannel")->SetValue(ModelXml->GetAttribute("StartChannel", "1"));
+                grid->GetPropertyByName("ModelStartChannel")->Enable(false);
+            }
+            else if (grid->GetPropertyByName("ModelIndividualStartChannels.ModelStartChannel") != nullptr)
+            {
+                grid->GetPropertyByName("ModelIndividualStartChannels.ModelStartChannel")->Enable(false);
+                grid->GetPropertyByName("ModelIndividualStartChannels")->Enable(false);
+                grid->GetPropertyByName("ModelIndividualStartChannels.ModelStartChannel")->SetValue(ModelXml->GetAttribute("StartChannel", "1"));
+            }
         }
         else
         {
             SetStartChannel("1");
-            grid->GetPropertyByName("ModelIndividualStartChannels")->GetPropertyByName("ModelStartChannel")->Enable();
-            grid->GetPropertyByName("ModelIndividualStartChannels")->Enable();
+            if (grid->GetPropertyByName("ModelStartChannel") != nullptr)
+            {
+                grid->GetPropertyByName("ModelStartChannel")->Enable();
+            }
+            else if (grid->GetPropertyByName("ModelIndividualStartChannels.ModelStartChannel") != nullptr)
+            {
+                grid->GetPropertyByName("ModelIndividualStartChannels.ModelStartChannel")->Enable();
+                grid->GetPropertyByName("ModelIndividualStartChannels")->Enable();
+            }
         }
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "Model::OnPropertyGridChange::ModelChain");
@@ -993,21 +1008,30 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         {
             SetModelChain("");
             SetStartChannel("1");
-            grid->GetPropertyByName("ModelIndividualStartChannels")->Enable();
-            grid->GetPropertyByName("ModelIndividualStartChannels")->GetPropertyByName("ModelStartChannel")->Enable();
+            if (grid->GetPropertyByName("ModelStartChannel") != nullptr)
+            {
+                grid->GetPropertyByName("ModelStartChannel")->Enable();
+            }
+            else if (grid->GetPropertyByName("ModelIndividualStartChannels.ModelStartChannel") != nullptr)
+            {
+                grid->GetPropertyByName("ModelIndividualStartChannels.ModelStartChannel")->Enable();
+                grid->GetPropertyByName("ModelIndividualStartChannels")->Enable();
+            }
         }
         else
         {
             ModelXml->DeleteAttribute("Advanced");
             AdjustStringProperties(grid, parm1);
-            if (grid->GetPropertyByName("ModelIndividualStartChannels") != nullptr)
+            if (grid->GetPropertyByName("ModelStartChannel") != nullptr)
             {
+                grid->GetPropertyByName("ModelStartChannel")->SetValue(ModelXml->GetAttribute("StartChannel", "1"));
+                grid->GetPropertyByName("ModelStartChannel")->Enable(false);
+            }
+            else if (grid->GetPropertyByName("ModelIndividualStartChannels.ModelStartChannel") != nullptr)
+            {
+                grid->GetPropertyByName("ModelIndividualStartChannels.ModelStartChannel")->Enable(false);
                 grid->GetPropertyByName("ModelIndividualStartChannels")->Enable(false);
-                if (grid->GetPropertyByName("ModelIndividualStartChannels")->GetPropertyByName("ModelStartChannel") != nullptr)
-                {
-                    grid->GetPropertyByName("ModelIndividualStartChannels")->GetPropertyByName("ModelStartChannel")->Enable(false);
-                    grid->GetPropertyByName("ModelIndividualStartChannels")->GetPropertyByName("ModelStartChannel")->SetValue(ModelXml->GetAttribute("StartChannel", "1"));
-                }
+                grid->GetPropertyByName("ModelIndividualStartChannels.ModelStartChannel")->SetValue(ModelXml->GetAttribute("StartChannel", "1"));
             }
         }
         grid->GetPropertyByName("ModelChain")->Enable(GetControllerName() != "");
@@ -1038,7 +1062,14 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
 
             if (GetControllerName() != "")
             {
-                grid->GetPropertyByName("ModelIndividualStartChannels")->GetPropertyByName("ModelStartChannel")->SetValue(ModelXml->GetAttribute("StartChannel", "1"));
+                if (grid->GetPropertyByName("ModelStartChannel") != nullptr)
+                {
+                    grid->GetPropertyByName("ModelStartChannel")->SetValue(ModelXml->GetAttribute("StartChannel", "1"));
+                }
+                else if (grid->GetPropertyByName("ModelIndividualStartChannels.ModelStartChannel") != nullptr)
+                {
+                    grid->GetPropertyByName("ModelIndividualStartChannels.ModelStartChannel")->SetValue(ModelXml->GetAttribute("StartChannel", "1"));
+                }
                 // when the port changes we have to assume any existing model chain will break
                 SetModelChain(">" + modelManager.GetLastModelOnPort(GetControllerName(), event.GetValue().GetLong(), GetName()));
             }
@@ -1087,7 +1118,14 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
 
         if (GetControllerName() != "")
         {
-            grid->GetPropertyByName("ModelIndividualStartChannels")->GetPropertyByName("ModelStartChannel")->SetValue(ModelXml->GetAttribute("StartChannel", "1"));
+            if (grid->GetPropertyByName("ModelStartChannel") != nullptr)
+            {
+                grid->GetPropertyByName("ModelStartChannel")->SetValue(ModelXml->GetAttribute("StartChannel", "1"));
+            }
+            else if (grid->GetPropertyByName("ModelIndividualStartChannels.ModelStartChannel") != nullptr)
+            {
+                grid->GetPropertyByName("ModelIndividualStartChannels.ModelStartChannel")->SetValue(ModelXml->GetAttribute("StartChannel", "1"));
+            }
         }
         grid->GetPropertyByName("ModelChain")->Enable(GetControllerName() != "" && GetControllerProtocol() != "" && GetControllerPort() != 0);
 
@@ -1465,10 +1503,14 @@ void Model::AdjustStringProperties(wxPropertyGridInterface *grid, int newNum) {
             }
         }
         wxPGProperty *sp = grid->GetPropertyByName("ModelIndividualStartChannels.ModelStartChannel");
-        if (adv) {
-            sp->SetLabel(StartChanAttrName(0));
-        } else {
-            sp->SetLabel("Start Channel");
+        if (sp != nullptr)
+        {
+            if (adv) {
+                sp->SetLabel(StartChanAttrName(0));
+            }
+            else {
+                sp->SetLabel("Start Channel");
+            }
         }
         p->Enable(parm1 > 1 && (GetControllerName() == "" || GetModelChain() == ""));
         pg->Thaw();
