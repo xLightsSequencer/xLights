@@ -818,58 +818,76 @@ void Model::UpdateControllerProperties(wxPropertyGridInterface* grid) {
     wxString protocol = GetControllerProtocol();
     protocol.LowerCase();
     if (IsPixelProtocol(protocol)) {
-        if (!node->HasAttribute("nullNodes")) {
-            grid->GetPropertyByName("ModelControllerConnectionPixelSetNullNodes")->SetExpanded(false);
-            grid->GetPropertyByName("ModelControllerConnectionPixelSetNullNodes.ModelControllerConnectionPixelNullNodes")->Enable(false);
-        }
-        else {
-            grid->GetPropertyByName("ModelControllerConnectionPixelSetNullNodes")->SetExpanded(true);
-            grid->GetPropertyByName("ModelControllerConnectionPixelSetNullNodes.ModelControllerConnectionPixelNullNodes")->Enable();
-        }
-
-        if (!node->HasAttribute("brightness")) {
-            grid->GetPropertyByName("ModelControllerConnectionPixelSetBrightness")->SetExpanded(false);
-            grid->GetPropertyByName("ModelControllerConnectionPixelSetBrightness.ModelControllerConnectionPixelBrightness")->Enable(false);
-        }
-        else {
-            grid->GetPropertyByName("ModelControllerConnectionPixelSetBrightness")->SetExpanded(true);
-            grid->GetPropertyByName("ModelControllerConnectionPixelSetBrightness.ModelControllerConnectionPixelBrightness")->Enable();
+        if (grid->GetPropertyByName("ModelControllerConnectionPixelSetNullNodes") != nullptr)
+        {
+            if (!node->HasAttribute("nullNodes")) {
+                grid->GetPropertyByName("ModelControllerConnectionPixelSetNullNodes")->SetExpanded(false);
+                grid->GetPropertyByName("ModelControllerConnectionPixelSetNullNodes.ModelControllerConnectionPixelNullNodes")->Enable(false);
+            }
+            else {
+                grid->GetPropertyByName("ModelControllerConnectionPixelSetNullNodes")->SetExpanded(true);
+                grid->GetPropertyByName("ModelControllerConnectionPixelSetNullNodes.ModelControllerConnectionPixelNullNodes")->Enable();
+            }
         }
 
-        if (!node->HasAttribute("gamma")) {
-            grid->GetPropertyByName("ModelControllerConnectionPixelSetGamma")->SetExpanded(false);
-            grid->GetPropertyByName("ModelControllerConnectionPixelSetGamma.ModelControllerConnectionPixelGamma")->Enable(false);
-        }
-        else {
-            grid->GetPropertyByName("ModelControllerConnectionPixelSetGamma")->SetExpanded(true);
-            grid->GetPropertyByName("ModelControllerConnectionPixelSetGamma.ModelControllerConnectionPixelGamma")->Enable();
-        }
-
-        if (!node->HasAttribute("colorOrder")) {
-            grid->GetPropertyByName("ModelControllerConnectionPixelSetColorOrder")->SetExpanded(false);
-            grid->GetPropertyByName("ModelControllerConnectionPixelSetColorOrder.ModelControllerConnectionPixelColorOrder")->Enable(false);
-        }
-        else {
-            grid->GetPropertyByName("ModelControllerConnectionPixelSetColorOrder")->SetExpanded(true);
-            grid->GetPropertyByName("ModelControllerConnectionPixelSetColorOrder.ModelControllerConnectionPixelColorOrder")->Enable();
+        if (grid->GetPropertyByName("ModelControllerConnectionPixelSetBrightness") != nullptr)
+        {
+            if (!node->HasAttribute("brightness")) {
+                grid->GetPropertyByName("ModelControllerConnectionPixelSetBrightness")->SetExpanded(false);
+                grid->GetPropertyByName("ModelControllerConnectionPixelSetBrightness.ModelControllerConnectionPixelBrightness")->Enable(false);
+            }
+            else {
+                grid->GetPropertyByName("ModelControllerConnectionPixelSetBrightness")->SetExpanded(true);
+                grid->GetPropertyByName("ModelControllerConnectionPixelSetBrightness.ModelControllerConnectionPixelBrightness")->Enable();
+            }
         }
 
-        if (!node->HasAttribute("reverse")) {
-            grid->GetPropertyByName("ModelControllerConnectionPixelSetDirection")->SetExpanded(false);
-            grid->GetPropertyByName("ModelControllerConnectionPixelSetDirection.ModelControllerConnectionPixelDirection")->Enable(false);
-        }
-        else {
-            grid->GetPropertyByName("ModelControllerConnectionPixelSetDirection")->SetExpanded(true);
-            grid->GetPropertyByName("ModelControllerConnectionPixelSetDirection.ModelControllerConnectionPixelDirection")->Enable();
+        if (grid->GetPropertyByName("ModelControllerConnectionPixelSetGamma") != nullptr)
+        {
+            if (!node->HasAttribute("gamma")) {
+                grid->GetPropertyByName("ModelControllerConnectionPixelSetGamma")->SetExpanded(false);
+                grid->GetPropertyByName("ModelControllerConnectionPixelSetGamma.ModelControllerConnectionPixelGamma")->Enable(false);
+            }
+            else {
+                grid->GetPropertyByName("ModelControllerConnectionPixelSetGamma")->SetExpanded(true);
+                grid->GetPropertyByName("ModelControllerConnectionPixelSetGamma.ModelControllerConnectionPixelGamma")->Enable();
+            }
         }
 
-        if (!node->HasAttribute("groupCount")) {
-            grid->GetPropertyByName("ModelControllerConnectionPixelSetGroupCount")->SetExpanded(false);
-            grid->GetPropertyByName("ModelControllerConnectionPixelSetGroupCount.ModelControllerConnectionPixelGroupCount")->Enable(false);
+        if (grid->GetPropertyByName("ModelControllerConnectionPixelSetColorOrder") != nullptr)
+        {
+            if (!node->HasAttribute("colorOrder")) {
+                grid->GetPropertyByName("ModelControllerConnectionPixelSetColorOrder")->SetExpanded(false);
+                grid->GetPropertyByName("ModelControllerConnectionPixelSetColorOrder.ModelControllerConnectionPixelColorOrder")->Enable(false);
+            }
+            else {
+                grid->GetPropertyByName("ModelControllerConnectionPixelSetColorOrder")->SetExpanded(true);
+                grid->GetPropertyByName("ModelControllerConnectionPixelSetColorOrder.ModelControllerConnectionPixelColorOrder")->Enable();
+            }
         }
-        else {
-            grid->GetPropertyByName("ModelControllerConnectionPixelSetGroupCount")->SetExpanded(true);
-            grid->GetPropertyByName("ModelControllerConnectionPixelSetGroupCount.ModelControllerConnectionPixelGroupCount")->Enable();
+
+        if (grid->GetPropertyByName("ModelControllerConnectionPixelSetDirection") != nullptr)
+        {
+            if (!node->HasAttribute("reverse")) {
+                grid->GetPropertyByName("ModelControllerConnectionPixelSetDirection")->SetExpanded(false);
+                grid->GetPropertyByName("ModelControllerConnectionPixelSetDirection.ModelControllerConnectionPixelDirection")->Enable(false);
+            }
+            else {
+                grid->GetPropertyByName("ModelControllerConnectionPixelSetDirection")->SetExpanded(true);
+                grid->GetPropertyByName("ModelControllerConnectionPixelSetDirection.ModelControllerConnectionPixelDirection")->Enable();
+            }
+        }
+
+        if (grid->GetPropertyByName("ModelControllerConnectionPixelSetGroupCount") != nullptr)
+        {
+            if (!node->HasAttribute("groupCount")) {
+                grid->GetPropertyByName("ModelControllerConnectionPixelSetGroupCount")->SetExpanded(false);
+                grid->GetPropertyByName("ModelControllerConnectionPixelSetGroupCount.ModelControllerConnectionPixelGroupCount")->Enable(false);
+            }
+            else {
+                grid->GetPropertyByName("ModelControllerConnectionPixelSetGroupCount")->SetExpanded(true);
+                grid->GetPropertyByName("ModelControllerConnectionPixelSetGroupCount.ModelControllerConnectionPixelGroupCount")->Enable();
+            }
         }
     }
 }
