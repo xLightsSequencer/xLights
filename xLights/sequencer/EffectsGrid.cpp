@@ -4308,6 +4308,7 @@ void EffectsGrid::OldPaste(const wxString &data, const wxString &pasteDataVersio
 			if (eff1data.size() < 7)
 			{
 				// this code assumes at least 7 so dont go there
+                wxASSERT(false);
 			}
 			else
 			{
