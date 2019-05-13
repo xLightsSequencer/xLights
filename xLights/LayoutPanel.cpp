@@ -1788,6 +1788,50 @@ void LayoutPanel::UnSelectAllModels(bool addBkgProps)
     }
 }
 
+void LayoutPanel::SelectAllModels()
+{
+    highlightedBaseObject = nullptr;
+    selectedBaseObject = nullptr;
+    selectionLatched = false;
+
+    if (editing_models) {
+        auto models = modelPreview->GetModels();
+        for (size_t i = 0; i < models.size(); i++)
+        {
+            Model* m = modelPreview->GetModels()[i];
+
+            if (selectedBaseObject == nullptr)
+            {
+                SelectModel(m);
+            }
+
+            m->Selected = true;
+            m->Highlighted = true;
+            m->GroupSelected = true;
+            m->SelectHandle(-1);
+            m->GetBaseObjectScreenLocation().SetActiveHandle(-1);
+        }
+    }
+    else {
+        for (auto it = xlights->AllObjects.begin(); it != xlights->AllObjects.end(); ++it) {
+            ViewObject* view_object = it->second;
+
+            if (selectedBaseObject == nullptr)
+            {
+                SelectBaseObject(view_object);
+            }
+
+            view_object->Selected = true;
+            view_object->Highlighted = true;
+            view_object->GroupSelected = true;
+            view_object->SelectHandle(-1);
+            view_object->GetBaseObjectScreenLocation().SetActiveHandle(-1);
+        }
+    }
+
+    UpdatePreview();
+}
+
 void LayoutPanel::SetupPropGrid(BaseObject *base_object) {
 
     if (base_object == nullptr || propertyEditor == nullptr) return;
@@ -5956,6 +6000,10 @@ bool LayoutPanel::HandleLayoutKeyBinding(wxKeyEvent& event)
         else if (type == "MODEL_DISTRIBUTE_HORIZ")
         {
             PreviewModelHDistribute();
+        }
+        else if (type == "SELECT_ALL_MODELS")
+        {
+            SelectAllModels();
         }
         else if (type == "MODEL_DISTRIBUTE_VERT")
         {
