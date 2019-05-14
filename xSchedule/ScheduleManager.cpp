@@ -1647,6 +1647,63 @@ bool ScheduleManager::Action(const wxString command, const wxString parameters, 
                         result = false;
                     }
                 }
+                else if (command == "Set mode")
+                {
+                    int mode = (int)SYNCMODE::STANDALONE;
+                    REMOTEMODE remote = REMOTEMODE::DISABLED;
+                    bool test = false;
+                    wxArrayString modes = wxSplit(parameters, '|');
+                    for (auto it : modes)
+                    {
+                        auto m = it.Lower().Trim().Trim(false);
+                        if (m == "test")
+                        {
+                            test = true;
+                        }
+                        else if (m == "master_fppunicast")
+                        {
+                            mode |= (int)SYNCMODE::FPPUNICASTMASTER;
+                        }
+                        else if (m == "master_artnet")
+                        {
+                            mode |= (int)SYNCMODE::ARTNETMASTER;
+                        }
+                        else if (m == "master_fppbroadcast")
+                        {
+                            mode |= (int)SYNCMODE::FPPBROADCASTMASTER;
+                        }
+                        else if (m == "master_midi")
+                        {
+                            mode |= (int)SYNCMODE::MIDIMASTER;
+                        }
+                        else if (m == "master_osc")
+                        {
+                            mode |= (int)SYNCMODE::OSCMASTER;
+                        }
+                        else if (m == "remote_fppunicast")
+                        {
+                            remote = REMOTEMODE::FPPUNICASTSLAVE;
+                        }
+                        else if (m == "remote_artnet")
+                        {
+                            remote = REMOTEMODE::ARTNETSLAVE;
+                        }
+                        else if (m == "remote_fppbroadcast")
+                        {
+                            remote = REMOTEMODE::FPPBROADCASTSLAVE;
+                        }
+                        else if (m == "remote_midi")
+                        {
+                            remote = REMOTEMODE::MIDISLAVE;
+                        }
+                        else if (m == "remote_osc")
+                        {
+                            remote = REMOTEMODE::OSCSLAVE;
+                        }
+                    }
+                    SetTestMode(test);
+                    SetMode(mode, remote);
+                }
                 else if (command == "Play specified playlist if nothing running")
                 {
                     PlayList* running = GetRunningPlayList();

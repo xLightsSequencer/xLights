@@ -304,7 +304,22 @@ http://<host:port>/xScheduleCommand?Command=<command>&Parameters=<parameters>
         Change show folder <show folder>
             Change the show folder to the named show folder (if it exists). 
             If blank is passed the current show folder is reloaded
-			
+
+		Set mode <mode|mode|mode>
+			Sets the test/master/remote modes of xSchedule. You can have one remote mode and many master modes. If more than one remote
+			mode is specified the last one listed wins. Modes can be:
+				Test
+				Master_FPPUnicast
+				Master_FPPBroadcast
+				Master_Artnet
+				Master_MIDI
+				Master_OSC
+				Remote_FPPUnicast
+				Remote_FPPBroadcast
+				Remote_Artnet
+				Remote_MIDI
+				Remote_OSC
+						
 http://<host:port>/xScheduleStash?Command=<command>&Key=<key>
 
 

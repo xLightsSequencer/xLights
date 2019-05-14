@@ -340,4 +340,5 @@ CommandManager::CommandManager()
     _commands.push_back(new Command("Start test mode", 1, s, false, false, false, false, false, true, true, false));
     _commands.push_back(new Command("Stop test mode", 0, {}, false, false, false, false, false, true, true, false));
     _commands.push_back(new Command("Change show folder", 1, s, false, false, false, false, true, true, true, false));
+    _commands.push_back(new Command("Set mode", 1, s, false, false, false, false, true, true, true, false));
 }
