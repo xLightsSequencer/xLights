@@ -2500,6 +2500,20 @@ void xScheduleFrame::OnMenuItem_ARTNetTimeCodeMasterSelected(wxCommandEvent& eve
 
 void xScheduleFrame::OnMenuItem_TestSelected(wxCommandEvent& event)
 {
+    static int mode = (int)SYNCMODE::STANDALONE;
+    static REMOTEMODE remoteMode = REMOTEMODE::DISABLED;
+
+    if (event.IsChecked())
+    {
+        __schedule->GetMode(mode, remoteMode);
+    }
+    else
+    {
+        __schedule->SetMode(mode, remoteMode);
+        __schedule->SetTestMode(false);
+        ModeToUI();
+    }
+
     UIToMode();
 }
 
