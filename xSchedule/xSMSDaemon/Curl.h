@@ -27,7 +27,7 @@ public:
     };
     typedef struct Var Var;
 
-    static std::string HTTPSPost(const std::string& url, const wxString& body, const std::string& user = "", const std::string& password = "", const std::string& contentType = "")
+    static std::string HTTPSPost(const std::string& url, const wxString& body, const std::string& user = "", const std::string& password = "", const std::string& contentType = "", int timeout = 10)
     {
         CURL* curl = curl_easy_init();
 
@@ -60,6 +60,7 @@ public:
 
             curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)body.size());
             curl_easy_setopt(curl, CURLOPT_POSTFIELDS, (const char*)body.c_str());
+            curl_easy_setopt(curl, CURLOPT_TIMEOUT, timeout);
 
             CURLcode res = curl_easy_perform(curl);
             curl_easy_cleanup(curl);
@@ -73,7 +74,7 @@ public:
         return "";
     }
 
-    static std::string HTTPSPost(const std::string& url, const std::vector<Var>& vars, const std::string& user = "", const std::string& password = "")
+    static std::string HTTPSPost(const std::string& url, const std::vector<Var>& vars, const std::string& user = "", const std::string& password = "", int timeout = 10)
     {
         CURL* curl = curl_easy_init();
 
@@ -105,6 +106,7 @@ public:
             curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerlist);
             curl_easy_setopt(curl, CURLOPT_HTTPPOST, formpost);
             curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeFunction);
+            curl_easy_setopt(curl, CURLOPT_TIMEOUT, timeout);
             std::string buffer = "";
             curl_easy_setopt(curl, CURLOPT_WRITEDATA, &buffer);
             CURLcode res = curl_easy_perform(curl);
@@ -120,7 +122,7 @@ public:
         return "";
     }
 
-    static std::string HTTPSGet(const std::string s, const std::string& user = "", const std::string& password = "")
+    static std::string HTTPSGet(const std::string s, const std::string& user = "", const std::string& password = "", int timeout = 10)
     {
         static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         std::string res;
@@ -142,6 +144,7 @@ public:
             curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
             curl_easy_setopt(curl, CURLOPT_MAXREDIRS, 50L);
             curl_easy_setopt(curl, CURLOPT_TCP_KEEPALIVE, 1L);
+            curl_easy_setopt(curl, CURLOPT_TIMEOUT, timeout);
 
             std::string response_string;
             std::string header_string;

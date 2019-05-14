@@ -175,7 +175,6 @@ const long xScheduleFrame::ID_MNU_CHECK_SCHEDULE = wxNewId();
 const long xScheduleFrame::ID_MNU_WEBINTERFACE = wxNewId();
 const long xScheduleFrame::ID_MNU_IMPORT = wxNewId();
 const long xScheduleFrame::ID_MNU_CRASH = wxNewId();
-const long xScheduleFrame::ID_MENUITEM_SMS = wxNewId();
 const long xScheduleFrame::ID_MNU_TEST = wxNewId();
 const long xScheduleFrame::ID_MNU_FPP_BROADCASTMASTER = wxNewId();
 const long xScheduleFrame::ID_MNU_FPP_UNICASTMASTER = wxNewId();
@@ -368,7 +367,6 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     _webIconDisplayed = false;
     _slowDisplayed = false;
     _lastSlow = 0;
-    _smsDaemon = nullptr;
 
     static log4cpp::Category &logger_frame = log4cpp::Category::getInstance(std::string("log_frame"));
     _timer.SetLog((logger_frame.getPriority() == log4cpp::Priority::DEBUG));
@@ -543,8 +541,6 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     ToolsMenu->Append(MenuItem_ImportxLights);
     MenuItem_Crash = new wxMenuItem(ToolsMenu, ID_MNU_CRASH, _("Crash"), _("Crash xSchedule"), wxITEM_NORMAL);
     ToolsMenu->Append(MenuItem_Crash);
-    SMSMenuItem = new wxMenuItem(ToolsMenu, ID_MENUITEM_SMS, _("SMS"), wxEmptyString, wxITEM_NORMAL);
-    ToolsMenu->Append(SMSMenuItem);
     MenuBar1->Append(ToolsMenu, _("&Tools"));
     Menu4 = new wxMenu();
     MenuItem_ModeTest = new wxMenuItem(Menu4, ID_MNU_TEST, _("Test"), wxEmptyString, wxITEM_CHECK);
@@ -586,6 +582,8 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     MenuItem_ConfigureTest = new wxMenuItem(Menu4, ID_MNU_CONFIGURE_TEST, _("Configure Test"), wxEmptyString, wxITEM_NORMAL);
     Menu4->Append(MenuItem_ConfigureTest);
     MenuBar1->Append(Menu4, _("&Modes"));
+    Menu_Plugins = new wxMenu();
+    MenuBar1->Append(Menu_Plugins, _("Plugins"));
     Menu2 = new wxMenu();
     MenuItem2 = new wxMenuItem(Menu2, idMenuAbout, _("About\tF1"), _("Show info about this application"), wxITEM_NORMAL);
     Menu2->Append(MenuItem2);
@@ -643,7 +641,6 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     Connect(ID_MNU_WEBINTERFACE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_WebInterfaceSelected);
     Connect(ID_MNU_IMPORT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_ImportxLightsSelected);
     Connect(ID_MNU_CRASH,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_CrashSelected);
-    Connect(ID_MENUITEM_SMS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnSMSMenuItemSelected);
     Connect(ID_MNU_TEST,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_TestSelected);
     Connect(ID_MNU_FPP_BROADCASTMASTER,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_FPPMasterSelected);
     Connect(ID_MNU_FPP_UNICASTMASTER,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_ModeFPPUnicastMasterSelected);
@@ -680,6 +677,9 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     Connect(wxID_ANY, EVT_XYZZY, (wxObjectEventFunction)&xScheduleFrame::DoXyzzy);
     Connect(wxID_ANY, EVT_XYZZYEVENT, (wxObjectEventFunction)&xScheduleFrame::DoXyzzyEvent);
     Connect(wxID_ANY, wxEVT_CHAR_HOOK, (wxObjectEventFunction)&xScheduleFrame::OnKeyDown);
+
+    _timer.SetName("xSchedule frame timer");
+    _timerSchedule.SetName("xSchedule schedule timer");
 
     SetTitle("xLights Scheduler " + GetDisplayVersionString());
 
@@ -823,14 +823,26 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     }
 #endif
 
-#ifndef __WXOSX__
-    SMSMenuItem->GetMenu()->Remove(SMSMenuItem);
-#endif
-
     RemoteWarning();
 
     UpdateUI(true);
     ValidateWindow();
+
+    _pluginManager.Initialise(_showDir);
+
+    for (auto it : _pluginManager.GetPlugins())
+    {
+        wxMenuItem* mi = Menu_Plugins->Append(_pluginManager.GetId(it), _pluginManager.GetMenuLabel(it), nullptr);
+        mi->SetCheckable(true);
+        Connect(_pluginManager.GetId(it), wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)& xScheduleFrame::OnPluginMenu);
+        if (config->ReadBool(_("Plugin") + it, false))
+        {
+            if (_pluginManager.StartPlugin(it, _showDir, GetOurURL()))
+            {
+                mi->Check(true);
+            }
+        }
+    }
 }
 
 void xScheduleFrame::LoadSchedule()
@@ -940,13 +952,12 @@ void xScheduleFrame::AddIPs()
 
 xScheduleFrame::~xScheduleFrame()
 {
+    _pluginManager.Uninitialise();
+
     if (_pinger != nullptr)
     {
         delete _pinger;
         _pinger = nullptr;
-    }
-    if (_smsDaemon) {
-        delete _smsDaemon;
     }
 
     int x, y;
@@ -1245,12 +1256,14 @@ void xScheduleFrame::OnMenuItem_ShowFolderSelected(wxCommandEvent& event)
     {
         _showDir = DirDialog1->GetPath().ToStdString();
         SaveShowDir();
+        _pluginManager.Uninitialise();
         _timerSchedule.Stop();
         _timer.Stop();
         LoadSchedule();
         wxASSERT(__schedule != nullptr);
         _timer.Start(50 / 2, false);
         _timerSchedule.Start(500, false);
+        _pluginManager.Initialise(_showDir);
     }
     ValidateWindow();
 }
@@ -1732,6 +1745,26 @@ void xScheduleFrame::SetTempMessage(const std::string& msg)
 {
     _statusSetAt = wxDateTime::Now();
     StatusBar1->SetStatusText(msg);
+}
+
+// returns the name of the plugin associated with the given web folder or blank if not running
+std::string xScheduleFrame::GetWebPluginRequest(const std::string& request)
+{
+    for (auto it : _pluginManager.GetPlugins())
+    {
+        if (wxString(_pluginManager.GetVirtualWebFolder(it)).Lower() == request)
+        {
+            return it;
+        }
+    }
+    return "";
+}
+
+wxString xScheduleFrame::ProcessPluginRequest(const wxString& plugin, const wxString& command, const wxString& parameters, const wxString& data, const wxString& reference)
+{
+    std::wstring res;
+    _pluginManager.HandleWeb(plugin.ToStdString(), command.ToStdString(), parameters, data, reference, res);
+    return wxString(res);
 }
 
 void xScheduleFrame::OnMenuItem_ViewLogSelected(wxCommandEvent& event)
@@ -2420,6 +2453,34 @@ void xScheduleFrame::CorrectTimer(int rate)
         logger_frame.debug("Timer corrected %d", (rate - __schedule->GetTimerAdjustment()) / 2);
 
         _timer.Start((rate - __schedule->GetTimerAdjustment()) / 2);
+    }
+}
+
+std::string xScheduleFrame::GetOurURL() const
+{
+    return "http://127.0.0.1:" + wxString::Format("%d", __schedule->GetOptions()->GetWebServerPort());
+}
+
+void xScheduleFrame::OnPluginMenu(wxCommandEvent& event)
+{
+    std::string plugin = _pluginManager.GetPluginFromId(event.GetId());
+    wxConfigBase* config = wxConfigBase::Get();
+
+    if (((wxMenu*)event.GetEventObject())->IsChecked(event.GetId()))
+    {
+        if (!_pluginManager.StartPlugin(plugin, _showDir, GetOurURL()))
+        {
+            ((wxMenu*)event.GetEventObject())->Check(event.GetId(), false);
+            config->Write(_("Plugin") + plugin, false);
+        }
+        else
+        {
+            config->Write(_("Plugin") + plugin, true);
+        }
+    }
+    else {
+        _pluginManager.StopPlugin(plugin);
+        config->Write(_("Plugin") + plugin, false);
     }
 }
 
@@ -3283,16 +3344,3 @@ void xScheduleFrame::OnMenuItem_RemoteLatencySelected(wxCommandEvent& event)
         __schedule->GetOptions()->SetRemoteAcceptableJitter(dlg.GetJitter());
     }
 }
-
-#ifdef __WXOSX__
-#include "xSMSDaemon/xSMSDaemonMain.h"
-void xScheduleFrame::OnSMSMenuItemSelected(wxCommandEvent& event)
-{
-    if (!_smsDaemon) {
-        _smsDaemon = new xSMSDaemonFrame(this);
-    }
-    _smsDaemon->Show();
-}
-#else
-void xScheduleFrame::OnSMSMenuItemSelected(wxCommandEvent& event) {}
-#endif

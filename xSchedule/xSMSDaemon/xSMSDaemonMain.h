@@ -36,6 +36,7 @@
 
 #include "../../xLights/xLightsTimer.h"
 #include "SMSDaemonOptions.h"
+#include "xSMSDaemonApp.h"
 
 #include <memory>
 
@@ -44,8 +45,10 @@ class wxDebugReportCompress;
 class xSMSDaemonFrame : public wxFrame
 {
     std::string _showDir;
+    std::string _xScheduleURL;
     SMSDaemonOptions _options;
     std::unique_ptr<SMSService> _smsService;
+    p_xSchedule_Action _action;
 
     void RefreshList();
     void ValidateWindow();
@@ -60,14 +63,14 @@ class xSMSDaemonFrame : public wxFrame
     void Start();
     void Stop();
     bool IsOptionsValid() const;
-    bool SetText(const std::string& t, const std::string& text, const std::wstring wtext = _(""));
-    void SetAllText(const std::string& text, const std::wstring wtext = _(""));
+    bool SetText(const std::string& t, const std::string& text, const std::wstring& wtext = _(""));
+    void SetAllText(const std::string& text, const std::wstring& wtext = _(""));
 
 public:
 
-        xSMSDaemonFrame(wxWindow* parent, const std::string& showdir = "", const std::string& playlist = "", wxWindowID id = -1);
+        xSMSDaemonFrame(wxWindow* parent, const std::string& showdir, const std::string& xScheduleURL, p_xSchedule_Action action, wxWindowID id = -1);
         virtual ~xSMSDaemonFrame();
-        void CreateDebugReport(wxDebugReportCompress *report);
+        bool Action(const std::string& command, const std::wstring& parameters, const std::wstring& data, const std::wstring& reference, std::wstring& response);
 
     private:
 
@@ -82,13 +85,12 @@ public:
         void OnSendTimerTrigger(wxTimerEvent& event);
         void OnMenuItem_InsertTestMessagesSelected(wxCommandEvent& event);
         void OnTimer_SecondTrigger(wxTimerEvent& event);
+        void OnClose(wxCloseEvent& event);
         //*)
 
         //(*Identifiers(xSMSDaemonFrame)
         static const long ID_STATICTEXT9;
         static const long ID_STATICTEXT10;
-        static const long ID_STATICTEXT1;
-        static const long ID_STATICTEXT2;
         static const long ID_STATICTEXT3;
         static const long ID_STATICTEXT4;
         static const long ID_STATICTEXT5;
@@ -97,7 +99,6 @@ public:
         static const long ID_STATICTEXT8;
         static const long ID_GRID1;
         static const long ID_BUTTON2;
-        static const long ID_BUTTON1;
         static const long ID_MNU_ShowFolder;
         static const long ID_MNU_OPTIONS;
         static const long ID_MNU_VIEWLOG;
@@ -108,7 +109,6 @@ public:
         //*)
 
         //(*Declarations(xSMSDaemonFrame)
-        wxButton* Button_Close;
         wxButton* Button_Pause;
         wxFlexGridSizer* FlexGridSizer1;
         wxGrid* Grid1;
@@ -118,18 +118,16 @@ public:
         wxMenuItem* MenuItem_Options;
         wxMenuItem* MenuItem_ShowFolder;
         wxMenuItem* MenuItem_ViewLog;
-        wxStaticText* StaticText1;
         wxStaticText* StaticText2;
         wxStaticText* StaticText3;
         wxStaticText* StaticText4;
         wxStaticText* StaticText5;
-        wxStaticText* StaticText_IPAddress;
         wxStaticText* StaticText_LastDisplayed;
         wxStaticText* StaticText_LastRetrieved;
         wxStaticText* StaticText_Phone;
         wxStaticText* StaticText_TextItemName;
-        xLightsTimer SendTimer;
-        xLightsTimer Timer_Second;
+        wxTimer SendTimer;
+        wxTimer Timer_Second;
         //*)
 
         DECLARE_EVENT_TABLE()

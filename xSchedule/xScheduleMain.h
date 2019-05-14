@@ -43,6 +43,7 @@ class BrightnessControl;
 //*)
 
 #include "../xLights/xLightsTimer.h"
+#include "PluginManager.h"
 #include <list>
 
 class wxDebugReportCompress;
@@ -82,7 +83,7 @@ class xScheduleFrame : public wxFrame
     bool _webIconDisplayed;
     bool _slowDisplayed;
     wxLongLong _lastSlow;
-    wxFrame *_smsDaemon;
+    PluginManager _pluginManager;
 
     void AddIPs();
     void LoadShowDir();
@@ -140,6 +141,9 @@ public:
         void CreateDebugReport(wxDebugReportCompress *report);
         void CreateButton(const std::string& label, const wxColor& c);
         void SetTempMessage(const std::string& msg);
+        PluginManager& GetPluginManager() { return _pluginManager; }
+        std::string GetWebPluginRequest(const std::string& request);
+        wxString ProcessPluginRequest(const wxString& plugin, const wxString& command, const wxString& parameters, const wxString& data, const wxString& reference);
 
     private:
 
@@ -204,7 +208,6 @@ public:
         void OnMenuItem_ConfigureTestSelected(wxCommandEvent& event);
         void OnMenuItem_ModeFPPUnicastMasterSelected(wxCommandEvent& event);
         void OnMenuItem_RemoteLatencySelected(wxCommandEvent& event);
-        void OnSMSMenuItemSelected(wxCommandEvent& event);
         //*)
 
         bool IsPlayList(wxTreeItemId id) const;
@@ -224,6 +227,8 @@ public:
         void DoXyzzy(wxCommandEvent& event);
         void DoXyzzyEvent(wxCommandEvent& event);
         void CorrectTimer(int rate);
+
+        std::string GetOurURL() const;
 
         //(*Identifiers(xScheduleFrame)
         static const long ID_BITMAPBUTTON1;
@@ -277,7 +282,6 @@ public:
         static const long ID_MNU_WEBINTERFACE;
         static const long ID_MNU_IMPORT;
         static const long ID_MNU_CRASH;
-        static const long ID_MENUITEM_SMS;
         static const long ID_MNU_TEST;
         static const long ID_MNU_FPP_BROADCASTMASTER;
         static const long ID_MNU_FPP_UNICASTMASTER;
@@ -340,6 +344,7 @@ public:
         wxMenu* Menu5;
         wxMenu* Menu6;
         wxMenu* MenuItem3;
+        wxMenu* Menu_Plugins;
         wxMenu* ToolsMenu;
         wxMenuItem* MenuItem5MenuItem_ConfigureMIDITimecode;
         wxMenuItem* MenuItem_AddPlayList;
@@ -373,7 +378,6 @@ public:
         wxMenuItem* MenuItem_VirtualMatrices;
         wxMenuItem* MenuItem_WebInterface;
         wxMenuItem* Menu_OutputProcessing;
-        wxMenuItem* SMSMenuItem;
         wxPanel* Panel1;
         wxPanel* Panel2;
         wxPanel* Panel3;
@@ -398,6 +402,8 @@ public:
         //*)
 
         DECLARE_EVENT_TABLE()
+
+        void OnPluginMenu(wxCommandEvent& event);
 };
 
 #endif // XSCHEDULEMAIN_H

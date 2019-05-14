@@ -1,0 +1,51 @@
+
+The xSchedule plugin architecture has been designed to support plugins written in any language as long as they can interface with C and handle integer, 8 bit and 16 bit character formats.
+
+To build a plugin it must export the following functions which xSchedule will call:
+
+bool xSchedule_Load(char* showDir);
+
+	This is called when the DLL is first loaded but the plugin is not active at this point and should take no action.
+	
+void xSchedule_GetVirtualWebFolder(char* buffer, size_t bufferSize);
+
+	If your plugin wants to handle web requests then you must return a string here which will be used as the tag that identifies requests that should be routed to your plugin. For example if you returned "MySpecialPlugin" then any requests to http://<yourip>:<yourport/MySpecialPlugin?Command=xyz&Parameters=abc will be routed to your plugin to be handled.
+	
+	If you return an empty string then you will not receive any web requests
+	
+void xSchedule_GetMenuLabel(char* buffer, size_t bufferSize);
+
+	Your plugin should return the text that you want displayed in the plugin menu.
+	
+bool xSchedule_HandleWeb(const char* command, const wchar_t* parameters, const wchar_t* data, const wchar_t* reference, wchar_t* response, size_t responseSize);
+
+	This is the function that will be called when a web request is received. You should return true if you handle the request and place the response in the response buffer.
+	
+	Note if you want your web to work as a plugin in the xSchedule web ui ensure you return the reference and use the same fortmat as the sms example.
+	
+bool xSchedule_Start(char* showDir, char* xScheduleURL, p_xSchedule_Action action);
+
+	This is called when xSchedule wants your plugin to activate.
+	
+	The url should be saved and use if you want to call xScedule using the web api. Calling the web ui will not work during any of these API calls as xSchedule cannot serve any messages during any of these calls.
+	The action funtion pointer can be used to direct call xSchedule to perform an action.
+
+void xSchedule_Stop()
+
+	This is called when xSchedule wants your plugin to cease interacting with the user. All UIs should close when this is received.
+	
+void xSchedule_Unload()
+	This is called just before xSchedule exits.
+
+xSchedule supports one function which you may call if you want to to take any command or query action.
+
+    bool Action(const char* command, const wchar_t* parameters, const char* data, char* buffer, size_t bufferSize);
+
+	Where command is any of the supported commands or queries documented in the API.
+	Data is anything that would have been passed in the body of a post request.
+
+To setup a plugin web UI you will need to create a folder under xScheduleWeb/Plugins/<yourname>
+	Create a <yourname>.html document which will be the body of your plugin webpage.
+	Add javascript as necessary to interact with your plugin.
+	
+While not all concepts are illustrated in the SMSDaemon plugin many of them are.

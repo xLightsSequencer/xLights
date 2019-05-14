@@ -67,10 +67,8 @@ Source: "bin/xfade.windows.properties"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "include\xfade.ico"; DestDir: "{app}"; Flags: "ignoreversion"
 
 ; xSMSDaemon
-Source: "bin/xSMSDaemon.exe"; DestDir: "{app}"
+Source: "bin/xSMSDaemon.dll"; DestDir: "{app}"
 Source: "bin/xSMSDaemon.map"; DestDir: "{app}"; Flags: "ignoreversion"
-Source: "bin/xsmsdaemon.windows.properties"; DestDir: "{app}"; Flags: "ignoreversion"
-Source: "include\xsmsdaemon.ico"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "xSchedule\xSMSDaemon\Blacklist.txt"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "xSchedule\xSMSDaemon\Whitelist.txt"; DestDir: "{app}"; Flags: "ignoreversion"
 

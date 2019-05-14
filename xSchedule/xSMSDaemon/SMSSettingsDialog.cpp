@@ -9,9 +9,6 @@
 #include "../../xLights/UtilFunctions.h"
 
 //(*IdInit(SMSSettingsDialog)
-const long SMSSettingsDialog::ID_STATICTEXT1 = wxNewId();
-const long SMSSettingsDialog::ID_TEXTCTRL1 = wxNewId();
-const long SMSSettingsDialog::ID_SPINCTRL4 = wxNewId();
 const long SMSSettingsDialog::ID_STATICTEXT7 = wxNewId();
 const long SMSSettingsDialog::ID_TEXTCTRL4 = wxNewId();
 const long SMSSettingsDialog::ID_STATICTEXT15 = wxNewId();
@@ -67,7 +64,6 @@ SMSSettingsDialog::SMSSettingsDialog(wxWindow* parent, SMSDaemonOptions* options
 	wxFlexGridSizer* FlexGridSizer1;
 	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer3;
-	wxFlexGridSizer* FlexGridSizer4;
 
 	Create(parent, id, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE, _T("id"));
 	SetClientSize(wxDefaultSize);
@@ -77,16 +73,6 @@ SMSSettingsDialog::SMSSettingsDialog(wxWindow* parent, SMSDaemonOptions* options
 	FlexGridSizer1->AddGrowableRow(0);
 	FlexGridSizer3 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer3->AddGrowableCol(0);
-	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("xSchedule IP Address:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
-	FlexGridSizer3->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-	FlexGridSizer4 = new wxFlexGridSizer(0, 2, 0, 0);
-	FlexGridSizer4->AddGrowableCol(0);
-	TextCtrl_xScheduleIPAddress = new wxTextCtrl(this, ID_TEXTCTRL1, _("127.0.0.1"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL1"));
-	FlexGridSizer4->Add(TextCtrl_xScheduleIPAddress, 1, wxALL|wxEXPAND, 2);
-	SpinCtrl_xSchedulePort = new wxSpinCtrl(this, ID_SPINCTRL4, _T("80"), wxDefaultPosition, wxDefaultSize, 0, 1, 65535, 80, _T("ID_SPINCTRL4"));
-	SpinCtrl_xSchedulePort->SetValue(_T("80"));
-	FlexGridSizer4->Add(SpinCtrl_xSchedulePort, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	FlexGridSizer3->Add(FlexGridSizer4, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	StaticText7 = new wxStaticText(this, ID_STATICTEXT7, _("Target text item(s)"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT7"));
 	FlexGridSizer3->Add(StaticText7, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	TextCtrl_TargetMatrix = new wxTextCtrl(this, ID_TEXTCTRL4, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL4"));
@@ -196,7 +182,6 @@ SMSSettingsDialog::SMSSettingsDialog(wxWindow* parent, SMSDaemonOptions* options
 	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
 
-	Connect(ID_TEXTCTRL1,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&SMSSettingsDialog::OnTextCtrl_xScheduleIPAddressText);
 	Connect(ID_TEXTCTRL4,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&SMSSettingsDialog::OnTextCtrl_TargetMatrixText);
 	Connect(ID_CHOICE1,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&SMSSettingsDialog::OnChoice_SMSServiceSelect);
 	Connect(ID_TEXTCTRL7,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&SMSSettingsDialog::OnTextCtrl_UserText);
@@ -215,7 +200,6 @@ SMSSettingsDialog::SMSSettingsDialog(wxWindow* parent, SMSDaemonOptions* options
     Choice_SMSService->AppendString("Voip.ms");
     Choice_SMSService->SetSelection(0);
 
-    TextCtrl_xScheduleIPAddress->SetValue(options->GetXScheduleIP());
     TextCtrl_TargetMatrix->SetValue(options->GetTextItem());
     TextCtrl_User->SetValue(options->GetUser());
     TextCtrl_SID->SetValue(options->GetSID());
@@ -232,7 +216,6 @@ SMSSettingsDialog::SMSSettingsDialog(wxWindow* parent, SMSDaemonOptions* options
     SpinCtrl_MaxMessageAge->SetValue(options->GetMaxMessageAge());
     SpinCtrl_MaxMsgAgeMinsForResponse->SetValue(options->GetMaxMsgAgeMinsForResponse());
     SpinCtrl_TimesToDisplay->SetValue(options->GetMaxTimesToDisplay());
-    SpinCtrl_xSchedulePort->SetValue(options->GetXSchedulePort());
 
     CheckBox_UsePurgoMalum->SetValue(options->GetUsePurgoMalum());
     CheckBox_RejectProfanity->SetValue(options->GetRejectProfanity());
@@ -255,7 +238,6 @@ SMSSettingsDialog::~SMSSettingsDialog()
 
 void SMSSettingsDialog::OnButton_OkClick(wxCommandEvent& event)
 {
-    _options->SetXScheduleIP(TextCtrl_xScheduleIPAddress->GetValue().ToStdString());
     _options->SetTextItem(TextCtrl_TargetMatrix->GetValue().ToStdString());
     _options->SetUser(TextCtrl_User->GetValue().ToStdString());
     _options->SetSID(TextCtrl_SID->GetValue().ToStdString());
@@ -272,7 +254,6 @@ void SMSSettingsDialog::OnButton_OkClick(wxCommandEvent& event)
     _options->SetMaxMessageAge(SpinCtrl_MaxMessageAge->GetValue());
     _options->SetMaxMsgAgeMinsForResponse(SpinCtrl_MaxMsgAgeMinsForResponse->GetValue());
     _options->SetMaxTimesToDisplay(SpinCtrl_TimesToDisplay->GetValue());
-    _options->SetXSchedulePort(SpinCtrl_xSchedulePort->GetValue());
 
     _options->SetUsePurgoMalum(CheckBox_UsePurgoMalum->GetValue());
     _options->SetRejectProfanity(CheckBox_RejectProfanity->GetValue());
@@ -323,8 +304,7 @@ void SMSSettingsDialog::ValidateWindow()
         if (TextCtrl_TargetMatrix->GetValue() == "" ||
             TextCtrl_User->GetValue() == "" ||
             TextCtrl_SID->GetValue() == "" ||
-            TextCtrl_Token->GetValue() == "" ||
-            !IsIPValid(TextCtrl_xScheduleIPAddress->GetValue()))
+            TextCtrl_Token->GetValue() == "")
         {
             Button_Ok->Disable();
         }
@@ -343,8 +323,7 @@ void SMSSettingsDialog::ValidateWindow()
         TextCtrl_User->Enable();
         if (TextCtrl_TargetMatrix->GetValue() == "" ||
             TextCtrl_User->GetValue() == "" ||
-            TextCtrl_SID->GetValue() == "" ||
-            !IsIPValid(TextCtrl_xScheduleIPAddress->GetValue()))
+            TextCtrl_SID->GetValue() == "")
         {
             Button_Ok->Disable();
         }
@@ -363,8 +342,7 @@ void SMSSettingsDialog::ValidateWindow()
         TextCtrl_Token->Enable();
         if (TextCtrl_TargetMatrix->GetValue() == "" ||
             TextCtrl_Token->GetValue() == "" ||
-            TextCtrl_SID->GetValue() == "" ||
-            !IsIPValid(TextCtrl_xScheduleIPAddress->GetValue()))
+            TextCtrl_SID->GetValue() == "")
         {
             Button_Ok->Disable();
         }

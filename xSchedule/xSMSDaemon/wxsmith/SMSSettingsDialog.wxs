@@ -12,42 +12,6 @@
 					<cols>2</cols>
 					<growablecols>0</growablecols>
 					<object class="sizeritem">
-						<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
-							<label>xSchedule IP Address:</label>
-						</object>
-						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-						<border>2</border>
-						<option>1</option>
-					</object>
-					<object class="sizeritem">
-						<object class="wxFlexGridSizer" variable="FlexGridSizer4" member="no">
-							<cols>2</cols>
-							<growablecols>0</growablecols>
-							<object class="sizeritem">
-								<object class="wxTextCtrl" name="ID_TEXTCTRL1" variable="TextCtrl_xScheduleIPAddress" member="yes">
-									<value>127.0.0.1</value>
-									<handler function="OnTextCtrl_xScheduleIPAddressText" entry="EVT_TEXT" />
-								</object>
-								<flag>wxALL|wxEXPAND</flag>
-								<border>2</border>
-								<option>1</option>
-							</object>
-							<object class="sizeritem">
-								<object class="wxSpinCtrl" name="ID_SPINCTRL4" variable="SpinCtrl_xSchedulePort" member="yes">
-									<value>80</value>
-									<min>1</min>
-									<max>65535</max>
-								</object>
-								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-								<border>2</border>
-								<option>1</option>
-							</object>
-						</object>
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-						<border>2</border>
-						<option>1</option>
-					</object>
-					<object class="sizeritem">
 						<object class="wxStaticText" name="ID_STATICTEXT7" variable="StaticText7" member="yes">
 							<label>Target text item(s)</label>
 						</object>

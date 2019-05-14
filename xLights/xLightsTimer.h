@@ -30,6 +30,7 @@ public:
     xLightsTimer();
     virtual ~xLightsTimer();
     virtual void Stop() override;
+    void SetName(const std::string& name);
     bool Start(int time, bool oneShot, const std::string& name);
     virtual bool Start(int time = -1, bool oneShot = wxTIMER_CONTINUOUS) override { return Start(time, oneShot, ""); }
     virtual void Notify() override;

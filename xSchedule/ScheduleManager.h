@@ -173,9 +173,10 @@ class ScheduleManager
         bool IsSomethingPlaying() const { return GetRunningPlayList() != nullptr; }
         void OptionsChanged() { _changeCount++; };
         void OutputProcessingChanged() { _changeCount++; };
-        bool Action(const wxString label, PlayList* selplaylist, Schedule* selschedule, size_t& rate, wxString& msg);
-        bool Action(const wxString command, const wxString parameters, const wxString& data, PlayList* selplaylist, Schedule* selschedule, size_t& rate, wxString& msg);
-        bool Query(const wxString command, const wxString parameters, wxString& data, wxString& msg, const wxString& ip, const wxString& reference);
+        bool Action(const wxString& label, PlayList* selplaylist, Schedule* selschedule, size_t& rate, wxString& msg);
+        bool Action(const wxString& command, const wxString& parameters, const wxString& data, PlayList* selplaylist, Schedule* selschedule, size_t& rate, wxString& msg);
+        bool Query(const wxString& command, const wxString& parameters, wxString& data, wxString& msg, const wxString& ip, const wxString& reference);
+        bool IsQuery(const wxString& command);
         PlayList * GetPlayList(const std::string& playlist) const;
         void StopPlayList(PlayList* playlist, bool atendofcurrentstep, bool sustain = false);
         bool StoreData(const wxString& key, const wxString& data, wxString& msg) const;
