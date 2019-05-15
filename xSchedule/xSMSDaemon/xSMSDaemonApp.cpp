@@ -14,6 +14,7 @@
 
 #include "xSMSDaemonApp.h"
 
+#include <wx/wx.h>
 #include <log4cpp/Category.hh>
 #include <log4cpp/PropertyConfigurator.hh>
 #include <log4cpp/Configurator.hh>
@@ -30,6 +31,7 @@
 
 #ifdef __WXMSW__
 #include <wx/msw/private.h>
+HANDLE _hModule = 0;
 #endif
 
 IMPLEMENT_APP_NO_MAIN(xSMSDaemonApp)
@@ -47,107 +49,6 @@ void WipeSettings()
 
     wxConfigBase* config = wxConfigBase::Get();
     config->DeleteAll();
-}
-
-extern "C" {
-    // always called when the dll is found ... should not actually do anything
-    bool __declspec(dllexport) xSchedule_Load(char* showDir)
-    {
-        __showDir = std::string(showDir);
-        return true;
-    }
-
-    void __declspec(dllexport) xSchedule_GetVirtualWebFolder(char* buffer, size_t bufferSize)
-    {
-        memset(buffer, 0x00, bufferSize);
-        strncpy(buffer, "xSMSDaemon", bufferSize - 1);
-    }
-
-    void __declspec(dllexport) xSchedule_GetMenuLabel(char* buffer, size_t bufferSize)
-    {
-        memset(buffer, 0x00, bufferSize);
-        strncpy(buffer, "SMS", bufferSize - 1);
-    }
-
-    bool __declspec(dllexport) xSchedule_HandleWeb(const char* command, const wchar_t* parameters, const wchar_t* data, const wchar_t* reference, wchar_t* response, size_t responseSize)
-    {
-        std::wstring resp;
-        memset(response, 0x00, responseSize);
-        bool res = ((xSMSDaemonFrame*)wxTheApp->GetTopWindow())->Action(std::string(command), std::wstring(parameters), std::wstring(data), std::wstring(reference), resp);
-        wchar_t* pr = (wchar_t*)resp.c_str();
-        wcsncpy(response, pr, (responseSize / 2) - 1); // divide by 2 as 2 byte characters
-        return res;
-    }
-
-    // called when we want the plugin to actually interact with the user
-    bool __declspec(dllexport) xSchedule_Start(char* showDir, char* xScheduleURL, p_xSchedule_Action action)
-    {
-        if (__started) return true;
-
-        __action = action;
-        __showDir = std::string(showDir);
-        __xScheduleURL = std::string(xScheduleURL);
-
-        //ThreadId = CreateThread(NULL, 0, ThreadProc, NULL, 0, NULL);
-
-        int argc = 0;
-        char** argv = NULL;
-        wxEntryStart(argc, argv);
-        if (!wxTheApp || !wxTheApp->CallOnInit())
-            return false;
-
-        __started = true;
-
-        return true;
-    }
-
-    // called when we want the plugin to exit
-    void __declspec(dllexport) xSchedule_Stop()
-    {
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
-        if (!__started) return;
-
-        wxEntryCleanup();
-        __started = false;
-    }
-
-    void __declspec(dllexport) xSchedule_WipeSettings()
-    {
-        WipeSettings();
-    }
-
-    // called just before xSchedule exits
-    void __declspec(dllexport) xSchedule_Unload()
-    {
-    }
-}
-
-#ifdef __WXMSW__
-BOOL APIENTRY DllMain(HANDLE hModule,
-    DWORD  ul_reason_for_call, LPVOID lpReserved)
-{
-    switch (ul_reason_for_call)
-    {
-    case DLL_PROCESS_ATTACH:
-        wxSetInstance((HINSTANCE)hModule);
-        break;
-    case DLL_THREAD_ATTACH: break;
-    case DLL_THREAD_DETACH: break;
-    case DLL_PROCESS_DETACH:
-        break;
-    }
-
-    return TRUE;
-}
-#endif
-
-int xSMSDaemonApp::OnExit()
-{
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.info("xSMSDaemon exiting.");
-
-    return 0;
 }
 
 void InitialiseLogging(bool fromMain)
@@ -205,6 +106,104 @@ void InitialiseLogging(bool fromMain)
     }
 }
 
+extern "C" {
+    // always called when the dll is found ... should not actually do anything
+    bool WXEXPORT xSchedule_Load(char* showDir)
+    {
+        __showDir = std::string(showDir);
+        return true;
+    }
+
+    void WXEXPORT xSchedule_GetVirtualWebFolder(char* buffer, size_t bufferSize)
+    {
+        memset(buffer, 0x00, bufferSize);
+        strncpy(buffer, "xSMSDaemon", bufferSize - 1);
+    }
+
+    void WXEXPORT xSchedule_GetMenuLabel(char* buffer, size_t bufferSize)
+    {
+        memset(buffer, 0x00, bufferSize);
+        strncpy(buffer, "SMS", bufferSize - 1);
+    }
+
+    bool WXEXPORT xSchedule_HandleWeb(const char* command, const wchar_t* parameters, const wchar_t* data, const wchar_t* reference, wchar_t* response, size_t responseSize)
+    {
+        std::wstring resp;
+        memset(response, 0x00, responseSize);
+        bool res = ((xSMSDaemonFrame*)wxTheApp->GetTopWindow())->Action(std::string(command), std::wstring(parameters), std::wstring(data), std::wstring(reference), resp);
+        wchar_t* pr = (wchar_t*)resp.c_str();
+        wcsncpy(response, pr, (responseSize / 2) - 1); // divide by 2 as 2 byte characters
+        return res;
+    }
+
+    // called when we want the plugin to actually interact with the user
+    bool WXEXPORT xSchedule_Start(char* showDir, char* xScheduleURL, p_xSchedule_Action action)
+    {
+        printf("SMS start");
+
+        if (__started) return true;
+
+        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+        InitialiseLogging(false);
+
+        __action = action;
+        __showDir = std::string(showDir);
+        __xScheduleURL = std::string(xScheduleURL);
+
+        logger_base.debug("xSMSDaemon handle %llx", (uint64_t)_hModule);
+
+        int argc = 0;
+        char** argv = NULL;
+        wxEntryStart(argc, argv);
+        if (!wxTheApp || !wxTheApp->CallOnInit())
+            return false;
+
+        __started = true;
+
+        return true;
+    }
+
+    // called when we want the plugin to exit
+    void WXEXPORT xSchedule_Stop()
+    {
+        //static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+        if (!__started) return;
+
+        wxEntryCleanup();
+        __started = false;
+    }
+
+    void WXEXPORT xSchedule_WipeSettings()
+    {
+        WipeSettings();
+    }
+
+    // called just before xSchedule exits
+    void WXEXPORT xSchedule_Unload()
+    {
+    }
+
+    void WXEXPORT xSchedule_NotifyStatus(const char* status)
+    {
+        // we dont care about status
+    }
+
+    void WXEXPORT xSchedule_ManipulateBuffer(uint8_t* buffer, size_t bufferSize)
+    {
+        // we dont manipulate pixel data directly
+    }
+}
+
+int xSMSDaemonApp::OnExit()
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.info("xSMSDaemon exiting.");
+
+    return 0;
+}
+
 bool xSMSDaemonApp::OnInit()
 {
     InitialiseLogging(false);
@@ -218,3 +217,29 @@ bool xSMSDaemonApp::OnInit()
 
     return true;
 }
+
+#ifdef __WXMSW__
+BOOL APIENTRY DllMain(HANDLE hModule,
+    DWORD  ul_reason_for_call, LPVOID lpReserved)
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    switch (ul_reason_for_call)
+    {
+    case DLL_PROCESS_ATTACH:
+        printf("process attach");
+        InitialiseLogging(false);
+        logger_base.info("xSMSDaemon process attach.");
+        wxSetInstance((HINSTANCE)hModule);
+        _hModule = hModule;
+        break;
+    case DLL_THREAD_ATTACH: break;
+    case DLL_THREAD_DETACH: break;
+    case DLL_PROCESS_DETACH:
+        logger_base.info("xSMSDaemon process detach.");
+        break;
+    }
+
+    return TRUE;
+}
+#endif

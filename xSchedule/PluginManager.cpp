@@ -7,6 +7,7 @@
 #include <wx/filename.h>
 #include "xScheduleApp.h"
 #include "ScheduleManager.h"
+#include <log4cpp/Category.hh>
 
 uint32_t __nextId = 1;
 
@@ -16,6 +17,10 @@ PluginManager::PluginManager()
 
 void PluginManager::ScanFolder(const std::string& folder)
 {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    logger_base.debug("Scanning for plugins");
+
 #ifdef __WXMSW__
     std::string filespec = "*.dll";
 #elif defined __WXOSX__
@@ -48,6 +53,9 @@ void PluginManager::ScanFolder(const std::string& folder)
 
                 wxFileName fn(f);
                 _plugins[fn.GetName()] = pis;
+
+                logger_base.debug("Plugin found %s : %s", (const char*)fn.GetName().c_str(), (const char*)f.c_str());
+
                 continue;
             }
         }
@@ -57,36 +65,50 @@ void PluginManager::ScanFolder(const std::string& folder)
 
 bool PluginManager::DoLoad(const std::string& plugin, char* showDir)
 {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (_plugins.find(plugin) == _plugins.end()) return false;
 
     p_xSchedule_Load fn = (p_xSchedule_Load)(_plugins.at(plugin)->_dl->GetSymbol("xSchedule_Load"));
     if (fn != nullptr)
     {
-        return fn(showDir);
+        logger_base.debug("Loading plugin %s", (const char*)plugin.c_str());
+
+        bool res = fn(showDir);
+
+        logger_base.debug("Loaded plugin %s -> %d", (const char*)plugin.c_str(), res);
+
+        return res;
     }
     return false;
 }
 
 void PluginManager::DoUnload(const std::string& plugin)
 {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (_plugins.find(plugin) == _plugins.end()) return;
 
     p_xSchedule_Unload fn = (p_xSchedule_Unload)(_plugins.at(plugin)->_dl->GetSymbol("xSchedule_Unload"));
     if (fn != nullptr)
     {
+        logger_base.debug("Unloading plugin %s", (const char*)plugin.c_str());
         fn();
     }
 }
 
 bool PluginManager::DoStart(const std::string& plugin, char* showDir, char* xScheduleURL)
 {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (_plugins.find(plugin) == _plugins.end()) return false;
     if (_plugins.at(plugin)->_started) return true;
 
     p_xSchedule_Start fn = (p_xSchedule_Start)(_plugins.at(plugin)->_dl->GetSymbol("xSchedule_Start"));
     if (fn != nullptr)
     {
+        logger_base.debug("Starting plugin %s", (const char*)plugin.c_str());
+
         _plugins.at(plugin)->_started = fn(showDir, xScheduleURL, Action);
+
+        logger_base.debug("Started plugin %s -> %d", (const char*)plugin.c_str(), _plugins.at(plugin)->_started);
     }
     return _plugins.at(plugin)->_started;
 }
@@ -107,8 +129,27 @@ bool PluginManager::HandleWeb(const std::string& plugin, const std::string& acti
     return false;
 }
 
+void PluginManager::ManipulateBuffer(uint8_t* buffer, size_t bufferSize)
+{
+    for (auto it : _plugins)
+    {
+        DoManipulateBuffer(it.first, buffer, bufferSize);
+    }
+}
+
+void PluginManager::NotifyStatus(const std::string& statusJSON)
+{
+    const char* s = (const char*)statusJSON.c_str();
+    for (auto it : _plugins)
+    {
+        DoNotifyStatus(it.first, s);
+    }
+}
+
 void PluginManager::DoStop(const std::string& plugin)
 {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     if (_plugins.find(plugin) == _plugins.end()) return;
     if (!_plugins.at(plugin)->_started) return;
 
@@ -116,6 +157,7 @@ void PluginManager::DoStop(const std::string& plugin)
     if (fn != nullptr)
     {
         fn();
+        logger_base.debug("Stopped plugin %s", (const char*)plugin.c_str());
         _plugins.at(plugin)->_started = false;
     }
 }
@@ -128,6 +170,30 @@ void PluginManager::DoWipeSettings(const std::string& plugin)
     if (fn != nullptr)
     {
         fn();
+    }
+}
+
+bool PluginManager::DoManipulateBuffer(const std::string& plugin, uint8_t* buffer, size_t bufferSize)
+{
+    if (_plugins.find(plugin) == _plugins.end()) return false;
+
+    p_xSchedule_ManipulateBuffer fn = (p_xSchedule_ManipulateBuffer)(_plugins.at(plugin)->_dl->GetSymbol("xSchedule_ManipulateBuffer"));
+    if (fn != nullptr)
+    {
+        fn(buffer, bufferSize);
+        return true;
+    }
+    return false;
+}
+
+void PluginManager::DoNotifyStatus(const std::string& plugin, const char* statusJSON)
+{
+    if (_plugins.find(plugin) == _plugins.end()) return;
+
+    p_xSchedule_NotifyStatus fn = (p_xSchedule_NotifyStatus)(_plugins.at(plugin)->_dl->GetSymbol("xSchedule_NotifyStatus"));
+    if (fn != nullptr)
+    {
+        fn(statusJSON);
     }
 }
 

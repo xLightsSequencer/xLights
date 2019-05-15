@@ -35,7 +35,18 @@ void xSchedule_Stop()
 	This is called when xSchedule wants your plugin to cease interacting with the user. All UIs should close when this is received.
 	
 void xSchedule_Unload()
+
 	This is called just before xSchedule exits.
+
+void xSchedule_ManipulateBuffer(uint8_t* buffer, size_t bufferSize);
+
+	This is called during each output frame allowing the plugin to directly manipulate the pixel data ... but its up to the plugin to work out which channels need to be manipulated.
+	
+	This is called after all output is rendered but before any output processing or global dimming.
+
+void xSchedule_NotifyStatus(const char* statusJSON);
+
+	This is called once per second by xSchedule to inform your plugin of the scheduler state. The string is a JSON message the same as the web interface would have returned.
 
 xSchedule supports one function which you may call if you want to to take any command or query action.
 

@@ -144,6 +144,7 @@ public:
         PluginManager& GetPluginManager() { return _pluginManager; }
         std::string GetWebPluginRequest(const std::string& request);
         wxString ProcessPluginRequest(const wxString& plugin, const wxString& command, const wxString& parameters, const wxString& data, const wxString& reference);
+        void ManipulateBuffer(uint8_t* buffer, size_t bufferSize);
 
     private:
 

@@ -98,6 +98,7 @@
 					<Add option="-Wl,--large-address-aware" />
 					<Add option="-lpthread" />
 					<Add option="-lz" />
+					<Add option="-shared" />
 					<Add library="../../lib/windows/imagehlp.lib" />
 					<Add library="../../lib/windows/iphlpapi.lib" />
 					<Add library="../../lib/windows/liblog4cpp.lib" />
@@ -222,6 +223,7 @@
 					<Add option="-Wl,-Map=../../bin64/xSMSDaemon.map" />
 					<Add option="-lpthread" />
 					<Add option="-lz" />
+					<Add option="-shared" />
 					<Add library="../../lib/windows64/iphlpapi.lib" />
 					<Add library="../../lib/windows64/libimagehlp.a" />
 					<Add library="../../lib/windows64/liblog4cpp.a" />

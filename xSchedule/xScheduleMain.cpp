@@ -1408,7 +1408,7 @@ void xScheduleFrame::On_timerTrigger(wxTimerEvent& event)
 
     wxDateTime frameStart = wxDateTime::UNow();
 
-    int rate = __schedule->Frame(_timerOutputFrame);
+    int rate = __schedule->Frame(_timerOutputFrame, this);
 
 #ifndef WEBOVERLOAD
     if (last != wxDateTime::Now().GetSecond() && _timerOutputFrame)
@@ -1758,6 +1758,11 @@ std::string xScheduleFrame::GetWebPluginRequest(const std::string& request)
         }
     }
     return "";
+}
+
+void xScheduleFrame::ManipulateBuffer(uint8_t* buffer, size_t bufferSize)
+{
+    _pluginManager.ManipulateBuffer(buffer, bufferSize);
 }
 
 wxString xScheduleFrame::ProcessPluginRequest(const wxString& plugin, const wxString& command, const wxString& parameters, const wxString& data, const wxString& reference)
@@ -3238,23 +3243,26 @@ void xScheduleFrame::OnMenuItem_VirtualMatricesSelected(wxCommandEvent& event)
 
 void xScheduleFrame::SendStatus()
 {
-    if (_webServer != nullptr && __schedule != nullptr)
+    if (__schedule != nullptr)
     {
-        if (_webServer->IsSomeoneListening())
-        {
-            wxString result;
-            if (__schedule->IsXyzzy())
-            {
-                __schedule->DoXyzzy("q", "", result, "");
-            }
-            else
-            {
-                wxString msg;
-                __schedule->Query("GetPlayingStatus", "", result, msg, "", "");
-            }
+        wxString msg;
+        wxString result;
+        __schedule->Query("GetPlayingStatus", "", result, msg, "", "");
 
-            _webServer->SendMessageToAllWebSockets(result);
+        if (_webServer != nullptr)
+        {
+            if (_webServer->IsSomeoneListening())
+            {
+                if (__schedule->IsXyzzy())
+                {
+                    __schedule->DoXyzzy("q", "", result, "");
+                }
+
+                _webServer->SendMessageToAllWebSockets(result);
+            }
         }
+
+        _pluginManager.NotifyStatus(result.ToStdString());
     }
 }
 

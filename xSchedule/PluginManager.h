@@ -32,6 +32,8 @@ class PluginManager
     void DoStop(const std::string& plugin);
     void DoUnload(const std::string& plugin);
     void DoWipeSettings(const std::string& plugin);
+    bool DoManipulateBuffer(const std::string& plugin, uint8_t* buffer, size_t bufferSize);
+    void DoNotifyStatus(const std::string& plugin, const char* statusJSON);
 
     public:
 	
@@ -50,5 +52,7 @@ class PluginManager
         std::string GetVirtualWebFolder(const std::string& plugin);
         std::string GetMenuLabel(const std::string& plugin);
         bool HandleWeb(const std::string& plugin, const std::string& command, const std::wstring& parameters, const std::wstring& data, const std::wstring& reference, std::wstring& response);
+        void ManipulateBuffer(uint8_t* buffer, size_t bufferSize);
+        void NotifyStatus(const std::string& statusJSON);
 };
 #endif

@@ -166,7 +166,7 @@ class ScheduleManager
         int GetBrightness() const { return _brightness; }
         void AdjustBrightness(int by) { _brightness += by; if (_brightness < 0) _brightness = 0; else if (_brightness > 100) _brightness = 100; }
         void SetBrightness(int brightness) { if (brightness < 0) _brightness = 0; else if (brightness > 100) _brightness = 100; else _brightness = brightness; }
-        int Frame(bool outputframe); // called when a frame needs to be displayed ... returns desired frame rate
+        int Frame(bool outputframe, xScheduleFrame* frame); // called when a frame needs to be displayed ... returns desired frame rate
         int CheckSchedule();
         std::string GetShowDir() const { return _showDir; }
         bool PlayPlayList(PlayList* playlist, size_t& rate, bool loop = false, const std::string& step = "", bool forcelast = false, int loops = -1, bool random = false, int steploops = -1);

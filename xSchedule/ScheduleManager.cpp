@@ -762,7 +762,7 @@ void ScheduleManager::AllOff()
     _outputManager->EndFrame();
 }
 
-int ScheduleManager::Frame(bool outputframe)
+int ScheduleManager::Frame(bool outputframe, xScheduleFrame* frame)
 {
     static bool reentry = false;
     static int oldrate = 50;
@@ -940,6 +940,8 @@ int ScheduleManager::Frame(bool outputframe)
                     (*it)->Set(_buffer, totalChannels);
                 }
 
+                frame->ManipulateBuffer(_buffer, totalChannels);
+
                 logger_frame.debug("Frame: Overlay data done %ldms", sw.Time());
 
                 // apply any output processing
@@ -1055,6 +1057,8 @@ int ScheduleManager::Frame(bool outputframe)
                     {
                         (*it)->Set(_buffer, totalChannels);
                     }
+
+                    frame->ManipulateBuffer(_buffer, totalChannels);
                 }
 
                 // apply any output processing
@@ -1119,6 +1123,8 @@ int ScheduleManager::Frame(bool outputframe)
                             ++it;
                         }
                     }
+
+                    frame->ManipulateBuffer(_buffer, totalChannels);
 
                     // apply any output processing
                     for (auto it2 = _outputProcessing.begin(); it2 != _outputProcessing.end(); ++it2)
