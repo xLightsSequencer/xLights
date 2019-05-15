@@ -196,11 +196,11 @@ public:
             int y = event.GetY();
             int w, h;
             GetSize(&w, &h);
-            if ((x < SIZINGEDGE && y < SIZINGEDGE) || x > w - SIZINGEDGE && y > h - SIZINGEDGE)
+            if ((x < SIZINGEDGE && y < SIZINGEDGE) || (x > w - SIZINGEDGE && y > h - SIZINGEDGE))
             {
                 SetCursor(wxCURSOR_SIZENWSE);
             }
-            else if ((x > w - SIZINGEDGE && y < SIZINGEDGE) || x <SIZINGEDGE && y > h - SIZINGEDGE)
+            else if ((x > w - SIZINGEDGE && y < SIZINGEDGE) || (x <SIZINGEDGE && y > h - SIZINGEDGE))
             {
                 SetCursor(wxCURSOR_SIZENESW);
             }
