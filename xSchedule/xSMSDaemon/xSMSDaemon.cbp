@@ -20,6 +20,7 @@
 					<Add option="-pedantic" />
 					<Add option="-std=c++1z" />
 					<Add option="-g" />
+					<Add option="-fPIC" />
 					<Add option="-pipe" />
 					<Add option="-mthreads" />
 					<Add option="-fno-keep-inline-dllexport" />
@@ -70,6 +71,7 @@
 					<Add option="-pedantic" />
 					<Add option="-std=c++1z" />
 					<Add option="-m32" />
+					<Add option="-fPIC" />
 					<Add option="-pipe" />
 					<Add option="-mthreads" />
 					<Add option="-static-libgcc" />
@@ -199,6 +201,7 @@
 					<Add option="-pedantic" />
 					<Add option="-std=c++1z" />
 					<Add option="-m64" />
+					<Add option="-fPIC" />
 					<Add option="-pipe" />
 					<Add option="-mthreads" />
 					<Add option="-static-libgcc" />
