@@ -151,7 +151,9 @@ extern "C" {
         __showDir = std::string(showDir);
         __xScheduleURL = std::string(xScheduleURL);
 
+        #ifdef __WXMSW__
         logger_base.debug("xSMSDaemon handle %llx", (uint64_t)_hModule);
+        #endif
 
         int argc = 0;
         char** argv = NULL;
