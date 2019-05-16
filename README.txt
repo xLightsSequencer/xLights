@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (dkulp)   Better handling if other FPP discovery nodes are found that aren't FPP (like ESPixelSticks)
+   -- bug (dkulp)   Try to detect if "null" hostnames would appear in FPP Connect and ignore
 2019.25 May 11, 2019
    -- enh (keith)   Add some extra modes to VU Meter that act like timing mark controlled sweeps for arches
    -- bug (keith)   Fix punctuation at word level of lyric tracks prevents phoneme breakdown
