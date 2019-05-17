@@ -6,6 +6,7 @@
 #include <wx/settings.h>
 #include <wx/dataview.h>
 #include <wx/confbase.h>
+#include <wx/numdlg.h>
 
 //(*InternalHeaders(PixelTestDialog)
 #include <wx/intl.h>
@@ -802,6 +803,10 @@ public:
 const long PixelTestDialog::ID_TREELISTCTRL_Outputs = wxNewId();
 const long PixelTestDialog::ID_TREELISTCTRL_ModelGroups = wxNewId();
 const long PixelTestDialog::ID_TREELISTCTRL_Models = wxNewId();
+const long PixelTestDialog::ID_MNU_TEST_SELECTALL = wxNewId();
+const long PixelTestDialog::ID_MNU_TEST_DESELECTALL = wxNewId();
+const long PixelTestDialog::ID_MNU_TEST_SELECTN = wxNewId();
+const long PixelTestDialog::ID_MNU_TEST_DESELECTN = wxNewId();
 
 //(*IdInit(PixelTestDialog)
 const long PixelTestDialog::ID_BUTTON_Load = wxNewId();
@@ -1158,14 +1163,17 @@ PixelTestDialog::PixelTestDialog(wxWindow* parent, OutputManager* outputManager,
 	Connect(ID_TREELISTCTRL_Outputs, wxEVT_COMMAND_TREELIST_ITEM_CHECKED, (wxObjectEventFunction)&PixelTestDialog::OnTreeListCtrlCheckboxtoggled);
 	Connect(ID_TREELISTCTRL_Outputs, wxEVT_COMMAND_TREELIST_SELECTION_CHANGED, (wxObjectEventFunction)&PixelTestDialog::OnTreeListCtrlItemSelected);
 	Connect(ID_TREELISTCTRL_Outputs, wxEVT_COMMAND_TREELIST_ITEM_EXPANDING, (wxObjectEventFunction)&PixelTestDialog::OnTreeListCtrlItemExpanding);
-	Connect(ID_TREELISTCTRL_ModelGroups, wxEVT_COMMAND_CHECKLISTBOX_TOGGLED,(wxObjectEventFunction)&PixelTestDialog::OnTreeListCtrlCheckboxtoggled);
+    Connect(ID_TREELISTCTRL_Outputs, wxEVT_TREELIST_ITEM_CONTEXT_MENU, (wxObjectEventFunction)& PixelTestDialog::OnContextMenu);
+    Connect(ID_TREELISTCTRL_ModelGroups, wxEVT_COMMAND_CHECKLISTBOX_TOGGLED,(wxObjectEventFunction)&PixelTestDialog::OnTreeListCtrlCheckboxtoggled);
 	Connect(ID_TREELISTCTRL_ModelGroups, wxEVT_COMMAND_TREELIST_ITEM_CHECKED, (wxObjectEventFunction)&PixelTestDialog::OnTreeListCtrlCheckboxtoggled);
 	Connect(ID_TREELISTCTRL_ModelGroups, wxEVT_COMMAND_TREELIST_SELECTION_CHANGED, (wxObjectEventFunction)&PixelTestDialog::OnTreeListCtrlItemSelected);
 	Connect(ID_TREELISTCTRL_ModelGroups, wxEVT_COMMAND_TREELIST_ITEM_EXPANDING, (wxObjectEventFunction)&PixelTestDialog::OnTreeListCtrlItemExpanding);
-	Connect(ID_TREELISTCTRL_Models, wxEVT_COMMAND_CHECKLISTBOX_TOGGLED,(wxObjectEventFunction)&PixelTestDialog::OnTreeListCtrlCheckboxtoggled);
+    Connect(ID_TREELISTCTRL_ModelGroups, wxEVT_TREELIST_ITEM_CONTEXT_MENU, (wxObjectEventFunction)& PixelTestDialog::OnContextMenu);
+    Connect(ID_TREELISTCTRL_Models, wxEVT_COMMAND_CHECKLISTBOX_TOGGLED,(wxObjectEventFunction)&PixelTestDialog::OnTreeListCtrlCheckboxtoggled);
 	Connect(ID_TREELISTCTRL_Models, wxEVT_COMMAND_TREELIST_ITEM_CHECKED, (wxObjectEventFunction)&PixelTestDialog::OnTreeListCtrlCheckboxtoggled);
 	Connect(ID_TREELISTCTRL_Models, wxEVT_COMMAND_TREELIST_SELECTION_CHANGED, (wxObjectEventFunction)&PixelTestDialog::OnTreeListCtrlItemSelected);
 	Connect(ID_TREELISTCTRL_Models, wxEVT_COMMAND_TREELIST_ITEM_EXPANDING, (wxObjectEventFunction)&PixelTestDialog::OnTreeListCtrlItemExpanding);
+    Connect(ID_TREELISTCTRL_Models, wxEVT_TREELIST_ITEM_CONTEXT_MENU, (wxObjectEventFunction)& PixelTestDialog::OnContextMenu);
 #ifdef __WXOSX__
 	Connect(ID_TREELISTCTRL_Outputs, wxEVT_COMMAND_TREELIST_ITEM_ACTIVATED, (wxObjectEventFunction)&PixelTestDialog::OnTreeListCtrlItemActivated);
 	Connect(ID_TREELISTCTRL_ModelGroups, wxEVT_COMMAND_TREELIST_ITEM_ACTIVATED, (wxObjectEventFunction)&PixelTestDialog::OnTreeListCtrlItemActivated);
@@ -1644,6 +1652,75 @@ void PixelTestDialog::OnTreeListCtrlItemActivated(wxTreeListEvent& event)
     OnTreeListCtrlCheckboxtoggled(event);
 
     SetTreeTooltip(tree, item);
+}
+
+void PixelTestDialog::OnContextMenu(wxTreeListEvent& event)
+{
+    _rcItem = event.GetItem();
+    _rcTree = (wxTreeListCtrl*)event.GetEventObject();
+    wxMenu mnuContext;
+    mnuContext.Append(ID_MNU_TEST_SELECTALL, "Select All");
+    mnuContext.Append(ID_MNU_TEST_DESELECTALL, "Deselect All");
+    mnuContext.Append(ID_MNU_TEST_SELECTN, "Select Many");
+    mnuContext.Append(ID_MNU_TEST_DESELECTN, "Deselect Many");
+
+    mnuContext.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)& PixelTestDialog::OnListPopup, nullptr, this);
+    PopupMenu(&mnuContext);
+}
+
+void PixelTestDialog::OnListPopup(wxCommandEvent& event)
+{
+    //static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    wxTreeListCtrl* tree = _rcTree;
+    wxTreeListItem selected = _rcItem;
+    long id = event.GetId();
+    if (id == ID_MNU_TEST_SELECTALL)
+    {
+        tree->CheckItem(tree->GetRootItem(), wxCHK_CHECKED);
+        CascadeSelected(tree, tree->GetRootItem(), wxCHK_CHECKED);
+    }
+    else if (id == ID_MNU_TEST_DESELECTALL)
+    {
+        tree->CheckItem(tree->GetRootItem(), wxCHK_UNCHECKED);
+        CascadeSelected(tree, tree->GetRootItem(), wxCHK_UNCHECKED);
+    }
+    else if (id == ID_MNU_TEST_SELECTN)
+    {
+        if (selected.IsOk())
+        {
+            wxNumberEntryDialog dlg(this, "Number to select", "", "", 2, 1, 1000);
+            if (dlg.ShowModal() == wxID_OK)
+            {
+                int count = dlg.GetValue();
+
+                while (count > 0 && selected.IsOk())
+                {
+                    tree->CheckItem(selected, wxCHK_CHECKED);
+                    selected = tree->GetNextSibling(selected);
+                    count--;
+                }
+            }
+        }
+    }
+    else if (id == ID_MNU_TEST_DESELECTN)
+    {
+        if (selected.IsOk())
+        {
+            wxNumberEntryDialog dlg(this, "Number to deselect", "", "", 2, 1, 1000);
+            if (dlg.ShowModal() == wxID_OK)
+            {
+                int count = dlg.GetValue();
+
+                while (count > 0 && selected.IsOk())
+                {
+                    tree->CheckItem(selected, wxCHK_UNCHECKED);
+                    selected = tree->GetNextSibling(selected);
+                    count--;
+                }
+            }
+        }
+    }
 }
 
 void PixelTestDialog::OnTreeListCtrlCheckboxtoggled(wxTreeListEvent& event)

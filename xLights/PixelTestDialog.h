@@ -242,6 +242,8 @@ class PixelTestDialog: public wxDialog
 		bool _checkChannelList;
 		wxDateTime _starttime;
 		SeqDataType _seqData;
+        wxTreeListItem _rcItem;
+        wxTreeListCtrl* _rcTree = nullptr;
 
 		//(*Declarations(PixelTestDialog)
 		wxButton* Button_Load;
@@ -317,6 +319,10 @@ class PixelTestDialog: public wxDialog
 		static const long ID_TREELISTCTRL_Outputs;
 		static const long ID_TREELISTCTRL_ModelGroups;
 		static const long ID_TREELISTCTRL_Models;
+        static const long ID_MNU_TEST_SELECTALL;
+        static const long ID_MNU_TEST_DESELECTALL;
+        static const long ID_MNU_TEST_SELECTN;
+        static const long ID_MNU_TEST_DESELECTN;
 
 		//(*Identifiers(PixelTestDialog)
 		static const long ID_BUTTON_Load;
@@ -397,6 +403,8 @@ class PixelTestDialog: public wxDialog
 
 		void OnTreeListCtrlCheckboxtoggled(wxTreeListEvent& event);
         void OnTreeListCtrlItemActivated(wxTreeListEvent& event);
+        void OnContextMenu(wxTreeListEvent& event);
+        void OnListPopup(wxCommandEvent& event);
         void OnTreeListCtrlItemSelected(wxTreeListEvent& event);
         void OnTreeListCtrlItemExpanding(wxTreeListEvent& event);
 
