@@ -1232,7 +1232,7 @@ PixelTestDialog::~PixelTestDialog()
 // Functions for navigating the tree
 // Cascading Functions
 
-void PixelTestDialog::CascadeSelected(wxTreeListCtrl* tree, wxTreeListItem& item, wxCheckBoxState state)
+void PixelTestDialog::CascadeSelected(wxTreeListCtrl* tree, const wxTreeListItem& item, wxCheckBoxState state)
 {
     tree->CheckItemRecursively(item, state);
 }

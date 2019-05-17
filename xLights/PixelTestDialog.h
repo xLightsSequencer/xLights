@@ -420,7 +420,7 @@ class PixelTestDialog: public wxDialog
         bool AreChannelsAvailable(Model* model);
         bool AreChannelsAvailable(ModelGroup* model);
 
-		void CascadeSelected(wxTreeListCtrl* tree, wxTreeListItem& item, wxCheckBoxState state);
+		void CascadeSelected(wxTreeListCtrl* tree, const wxTreeListItem& item, wxCheckBoxState state);
         void DumpSelected();
 
 		void DestroyTreeControllerData(wxTreeListCtrl* tree, wxTreeListItem& item);
