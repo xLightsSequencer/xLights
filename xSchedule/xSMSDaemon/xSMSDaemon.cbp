@@ -70,8 +70,8 @@
 					<Add option="-O2" />
 					<Add option="-pedantic" />
 					<Add option="-std=c++1z" />
-					<Add option="-m32" />
 					<Add option="-fPIC" />
+					<Add option="-m32" />
 					<Add option="-pipe" />
 					<Add option="-mthreads" />
 					<Add option="-static-libgcc" />
@@ -93,6 +93,7 @@
 					<Add directory="$(#wx)/lib/gcc_dll/mswu" />
 				</ResourceCompiler>
 				<Linker>
+					<Add option="-O2" />
 					<Add option="-s" />
 					<Add option="-m32" />
 					<Add option="-lopengl32" />
@@ -200,8 +201,8 @@
 					<Add option="-O2" />
 					<Add option="-pedantic" />
 					<Add option="-std=c++1z" />
-					<Add option="-m64" />
 					<Add option="-fPIC" />
+					<Add option="-m64" />
 					<Add option="-pipe" />
 					<Add option="-mthreads" />
 					<Add option="-static-libgcc" />
@@ -223,12 +224,12 @@
 					<Add directory="$(#wx)/lib/gcc_dll/mswu" />
 				</ResourceCompiler>
 				<Linker>
+					<Add option="-O2" />
 					<Add option="-s" />
 					<Add option="-m64" />
 					<Add option="-Wl,-Map=../../bin64/xSMSDaemon.map" />
 					<Add option="-lpthread" />
 					<Add option="-lz" />
-					<Add option="-shared" />
 					<Add library="../../lib/windows64/iphlpapi.lib" />
 					<Add library="../../lib/windows64/libimagehlp.a" />
 					<Add library="../../lib/windows64/liblog4cpp.a" />

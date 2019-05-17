@@ -335,6 +335,11 @@ bool xScheduleApp::OnInit()
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.info("******* OnInit: xSchedule started.");
 
+#ifdef __WXMSW__
+    logger_base.debug("xSchedule module handle 0x%llx", ::GetModuleHandle(nullptr));
+    logger_base.debug("xSchedule wxTheApp 0x%llx", wxTheApp);
+#endif
+
     DumpConfig();
 
     static const wxCmdLineEntryDesc cmdLineDesc[] =
