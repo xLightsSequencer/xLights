@@ -250,7 +250,7 @@ void JukeboxPanel::OnButtonRClick(wxContextMenuEvent& event)
         control = _buttons[button];
     }
 
-    LinkJukeboxButtonDialog dlg(this, button, control, xLightsApp::GetFrame()->GetMainSequencer());
+    LinkJukeboxButtonDialog dlg(this, button, control, xLightsApp::GetFrame()->GetMainSequencer(), -1, wxGetMousePosition());
 
     if (dlg.ShowModal() == wxID_OK)
     {
