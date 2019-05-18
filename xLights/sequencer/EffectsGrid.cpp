@@ -29,6 +29,7 @@
 #include "ColorManager.h"
 #include "models/Model.h"
 #include "PixelBuffer.h"
+#include "../VideoReader.h"
 
 #include <log4cpp/Category.hh>
 
@@ -828,15 +829,53 @@ void EffectsGrid::OnDrop(int x, int y)
     Refresh(false);
 }
 
+bool EffectsGrid::IsDroppingBetweenTimingMarks() const
+{
+    // is any timing mark active
+    if (mSequenceElements->GetSelectedTimingRow() == -1) {
+        return false;
+    }
+
+    EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
+    if (tel == nullptr) return false; // this should never happen
+
+    Effect* e = tel->GetEffectAtTime((mDropStartTimeMS + mDropEndTimeMS) / 2);
+    if (e == nullptr) return false;
+
+    return (e->GetStartTimeMS() == mDropStartTimeMS && e->GetEndTimeMS() == mDropEndTimeMS);
+}
+
 void EffectsGrid::OnDropFiles(int x, int y, const wxArrayString& files)
 {
     if (files.size() > 0)
     {
+        long tlEnd = mTimeline->GetSequenceEnd();
+
+        int row = GetRow(y);
+        if (row >= mSequenceElements->GetVisibleRowInformationSize()) {
+            return; // we are not one a row
+        }
+        EffectLayer* effectLayer = mSequenceElements->GetVisibleEffectLayer(row);
+        if (effectLayer == nullptr) return;
+        Effect* e = effectLayer->GetEffectAfterEmptyTime(mDropStartTimeMS);
+
+        long nextEffectStart = 999999999;
+        if (e != nullptr)
+        {
+            nextEffectStart = e->GetStartTimeMS();
+        }
+
         wxString file = files.front();
         std::string effectName = "";
         if (VideoEffect::IsVideoFile(file))
         {
             effectName = "Video";
+
+            if (!IsDroppingBetweenTimingMarks())
+            {
+                long videoEnd = mDropStartTimeMS + VideoReader::GetVideoLength(file);
+                mDropEndTimeMS = std::min(std::min(tlEnd, videoEnd), nextEffectStart);
+            }
         }
         else if (PicturesEffect::IsPictureFile(file))
         {
@@ -845,10 +884,27 @@ void EffectsGrid::OnDropFiles(int x, int y, const wxArrayString& files)
         else if (GlediatorEffect::IsGlediatorFile(file))
         {
             effectName = "Glediator";
+
+            if (IsDroppingBetweenTimingMarks())
+            {
+                Model* m = xlights->GetModel(effectLayer->GetParentElement()->GetModelName());
+                if (m != nullptr)
+                {
+                    wxSize size(m->GetDefaultBufferWi(), m->GetDefaultBufferHt());
+                    GlediatorReader gr(file, size);
+                    long glediatorEnd = mDropStartTimeMS + gr.GetFrames() * mTimeline->GetFrameMS();
+
+                    mDropEndTimeMS = std::min(std::min(tlEnd, glediatorEnd), nextEffectStart);
+                }
+            }
         }
 
         if (effectName != "")
         {
+            if (mRangeStartCol == -1)
+            {
+                if (mDropEndTimeMS <= mDropStartTimeMS) mDropEndTimeMS = mDropStartTimeMS + 1000;
+            }
             CreateEffectForFile(x, y, effectName, file.ToStdString());
         }
     }

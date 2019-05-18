@@ -76,6 +76,7 @@ public:
     bool DragOver(int x, int y);
     void OnDrop(int x, int y);
     void OnDropFiles(int x, int y, const wxArrayString& files);
+    bool IsDroppingBetweenTimingMarks() const;
     void ForceRefresh();
     void SetTimingClickPlayMode(bool mode) {mTimingPlayOnDClick = mode;}
     void SetEffectIconBackground(bool mode) {mGridIconBackgrounds = mode;}

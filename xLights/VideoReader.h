@@ -14,6 +14,7 @@ class VideoReader
 {
 public:
     static bool IsVideoFile(const std::string &filename);
+    static long GetVideoLength(const std::string& filename);
 	VideoReader(const std::string& filename, int width, int height, bool keepaspectratio, bool usenativeresolution=false);
 	~VideoReader();
 	int GetLengthMS() const { return (int)_lengthMS; };
