@@ -41,6 +41,189 @@
 #define M_PI_2 1.57079632679489661923
 #endif
 
+namespace
+{
+   template <class T> T CLAMP( const T& lo, const T&val, const T& hi )
+   {
+      return std::min( hi, std::max( lo, val ) );
+   }
+
+   xlColor lerp( const xlColor& a, const xlColor& b, double progress )
+   {
+      double red   = a.red   + progress * ( b.red   - a.red   );
+      double green = a.green + progress * ( b.green - a.green );
+      double blue  = a.blue  + progress * ( b.blue  - a.blue  );
+
+      return xlColor( uint8_t( red ), uint8_t( green ), uint8_t( blue ) );
+   }
+
+   struct ColorBuffer
+   {
+      ColorBuffer( const xlColorVector& i_cv, int i_w, int i_h ) : cv( i_cv ), w( i_w ), h( i_h ) {}
+
+      xlColor GetPixel( int x, int y ) const
+      {
+         return ( x >= 0 && x < w && y >= 0 && y <h ) ? cv[y*w + x] : xlBLACK;
+      }
+      xlColorVector cv;
+      const int w;
+      const int h;
+   };
+
+   xlColor tex2D( const ColorBuffer& cb, double s, double t )
+   {
+      s = CLAMP( 0., s, 1. );
+      t = CLAMP( 0., t, 1. );
+
+      int x = int( s * ( cb.w - 1 ) );
+      int y = int( t * ( cb.h - 1 ) );
+
+      return cb.GetPixel( x, y );
+   }
+
+   xlColor tex2D( const RenderBuffer& rb, double s, double t )
+   {
+      s = CLAMP( 0., s, 1. );
+      t = CLAMP( 0., t, 1. );
+
+      int x = int( s * ( rb.BufferWi - 1 ) );
+      int y = int( t * ( rb.BufferHt - 1 ) );
+
+      return rb.GetPixel( x, y );
+   }
+
+   struct Vec2D
+   {
+      Vec2D( double i_x = 0., double i_y = 0. ) : x( i_x ), y( i_y ) {}
+
+      Vec2D    operator+( const Vec2D& p ) const { return Vec2D( x + p.x, y + p.y ); }
+      Vec2D    operator-( const Vec2D& p ) const { return Vec2D( x - p.x, y - p.y ); }
+      double   operator^( const Vec2D& p ) const { return x * p.y - y * p.x; }
+      Vec2D    operator*( const double& k ) const { return Vec2D( x*k, y*k ); }
+      Vec2D    operator*( const Vec2D& p ) const { return Vec2D( x * p.x, y * p.y ); }
+      Vec2D    operator/( const double& k ) const { return *this * ( 1 / k ); }
+      Vec2D    operator+=( const Vec2D& p ) { return *this = *this + p; }
+      Vec2D    operator-=( const Vec2D& p ) { return *this = *this - p; }
+      Vec2D    operator*=( const double& k ) { return *this = *this * k; }
+      Vec2D    operator/=( const double& k ) { return *this = *this / k; }
+      Vec2D    operator-() const { return Vec2D( -x, -y ); }
+      Vec2D    Min( const Vec2D& p ) const { return Vec2D( std::min( x, p.x ), std::min( y, p.y ) ); }
+      Vec2D    Max( const Vec2D& p ) const { return Vec2D( std::max( x, p.x ), std::max( y, p.y ) ); }
+      double   Len2() const { return x * x + y * y; }
+      double   Len() const { return ::sqrt( Len2() ); }
+      double   Dist2( const Vec2D& p ) const { return ( *this - p ).Len2(); }
+      double   Dist( const Vec2D& p ) const { return ( *this - p ).Len(); }
+      Vec2D    Norm() const { return Len() > 0 ? *this / Len() : Vec2D( 0, 0 ); }
+      bool     IsNormal() const { return fabs( Len2() - 1 ) < 1e-6; }
+      Vec2D    Rotate( const double& fAngle ) const
+      {
+         float cs = RenderBuffer::cos( fAngle );
+         float sn = RenderBuffer::sin( fAngle );
+         return Vec2D( x*cs + y * sn, -x * sn + y * cs );
+      }
+      static Vec2D lerp( const Vec2D& a, const Vec2D& b, double progress )
+      {
+         double x = a.x + progress * ( b.x - a.x );
+         double y = a.y + progress * ( b.y - a.y );
+         return Vec2D( x, y );
+      }
+      double x, y;
+   };
+   Vec2D operator +( double a, const Vec2D& b )
+   {
+      return Vec2D( a + b.x, a + b.y );
+   }
+   Vec2D operator -( double a, const Vec2D& b )
+   {
+      return Vec2D( a - b.x, a - b.y );
+   }
+   Vec2D operator *( double a, const Vec2D& b )
+   {
+      return Vec2D( a * b.x, a * b.y );
+   }
+
+   double dot( const Vec2D& a, const Vec2D& b )
+   {
+      return a.x * b.x + a.y * b.y;
+   }
+
+   struct Vec3D
+   {
+      Vec3D( double i_x = 0., double i_y = 0., double i_z = 0. ) : x( i_x ), y( i_y ), z( i_z ) {}
+      Vec3D operator -() const { return Vec3D( -x, -y, -z ); }
+      Vec3D operator+( const Vec3D& p ) const { return Vec3D( x + p.x, y + p.y, z + p.z ); }
+      Vec3D operator-( const Vec3D& p ) const { return Vec3D( x - p.x, y - p.y, z - p.z ); }
+
+      double x, y, z;
+   };
+   Vec3D operator *( double a, const Vec3D& b )
+   {
+      return Vec3D( a * b.x, a * b.y, a * b.z );
+   }
+
+   double dot( const Vec3D& a, const Vec3D& b )
+   {
+      return a.x * b.x + a.y * b.y + a.z * b.z;
+   }
+
+   const float PI = 3.14159265359f;
+
+   xlColor foldOut( const ColorBuffer& cb0, const RenderBuffer* rb1, double s, double t, float progress )
+   {
+      if ( rb1 == nullptr )
+         return xlYELLOW;
+      const double CAMERA_DIST = 2.;
+      Vec3D ray( s*2-1, t*2-1, CAMERA_DIST );
+      float phi = progress * PI;   // rotation angle
+
+      // rotated basis vectors
+      Vec3D rx( RenderBuffer::cos( phi ), 0., -RenderBuffer::sin( phi ) );
+      Vec3D ry( 0., 1., 0. );
+      Vec3D rz( -rx.z, 0., rx.x );
+
+      // corner and direction vectors of "from" polygon
+      Vec3D p0( -rx + Vec3D( 0., -1., CAMERA_DIST ) );
+      Vec3D u0( rx );
+      Vec3D v0( ry );
+      Vec3D n0( rz );
+
+      // ray-plane intersection
+      Vec3D a0( ( dot( p0, n0) / dot( ray, n0 ) ) * ray );
+
+      Vec2D uv0( dot( a0 - p0, u0 ) / 2., dot( a0 - p0, v0 ) / 2. );
+      if ( uv0.x >= 0. && uv0.x < 1. && uv0.y >= 0. && uv0.y < 1. )
+      {
+         // This isn't working quite as expected...in the case where there is no next (prev?)
+         // layer, we seem to get a blank one, so the fold works how we want for the first
+         // half but delivers all-black for the second half
+         if ( s < 0.5 )
+         {
+            if ( rb1 != nullptr )
+               return progress < 0.5 ? tex2D( cb0, uv0.x, uv0.y ) : tex2D( *rb1, 1-uv0.x, uv0.y );
+         }
+         else
+         {
+            if ( rb1 != nullptr )
+               return progress >= 0.5 ? tex2D( *rb1, 1-uv0.x, uv0.y ) : tex2D( cb0, uv0.x, uv0.y );
+         }
+      }
+      return xlBLACK;
+   }
+
+   void foldOut( RenderBuffer& rb0, const ColorBuffer& cb0, const RenderBuffer* rb1, double progress )
+   {
+      if ( progress < 0. || progress > 1. )
+         return;
+      parallel_for(0, rb0.BufferHt, [&rb0, &cb0, &rb1, progress](int y) {
+         double t = double( y ) / ( rb0.BufferHt - 1 );
+         for ( int x = 0; x < rb0.BufferWi; ++x ) {
+            double s = double( x ) / ( rb0.BufferWi - 1 );
+            rb0.SetPixel( x, y, foldOut( cb0, rb1, s, t, progress ) );
+         }
+      }, 25);
+   }
+}
+
 PixelBufferClass::PixelBufferClass(xLightsFrame *f) : frame(f)
 {
     frameTimeInMs = 50;
@@ -1241,6 +1424,7 @@ static const std::string SLIDER_Contrast("SLIDER_Contrast");
 static const std::string STR_NORMAL("Normal");
 static const std::string STR_NONE("None");
 static const std::string STR_FADE("Fade");
+static const std::string STR_FOLD("Fold");
 
 static const std::string CHOICE_In_Transition_Type("CHOICE_In_Transition_Type");
 static const std::string CHOICE_Out_Transition_Type("CHOICE_Out_Transition_Type");
@@ -2084,7 +2268,15 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & va
             } else {
                 layers[ii]->outMaskFactor = fadeOutFactor;
             }
-            layers[ii]->calculateMask(isFirstFrame);
+            if (STR_FOLD == layers[ii]->outTransitionType )
+            {
+               RenderBuffer& currentRB(layers[ii]->buffer);
+               const RenderBuffer* prevRB = ( ii != numLayers -1 ) ? ( &layers[ii+1]->buffer ) : nullptr;
+               double progress = 1. - fadeOutFactor;
+               foldOut( currentRB, ColorBuffer( currentRB.pixels, currentRB.BufferWi, currentRB.BufferHt ), prevRB, progress );
+            } else {
+               layers[ii]->calculateMask(isFirstFrame);
+            }
         } else {
             layers[ii]->mask.clear();
         }
