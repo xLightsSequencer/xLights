@@ -290,7 +290,11 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer, const std::string &Phoneme, 
         {"(off)", 10}
     };
 
-    std::map<wxString, int>::const_iterator it = phonemeMap.find(Phoneme);
+    wxString pp = Phoneme;
+    std::string p = pp.BeforeFirst('-');
+    bool shimmer = pp.Lower().EndsWith("-shimmer");
+
+    std::map<wxString, int>::const_iterator it = phonemeMap.find(p);
     int PhonemeInt = 0;
     if (it != phonemeMap.end()) {
         PhonemeInt = it->second;
@@ -300,12 +304,18 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer, const std::string &Phoneme, 
     int Wt = buffer.BufferWi;
 
     drawoutline(buffer, PhonemeInt, outline, eyes, buffer.BufferHt, buffer.BufferWi);
-    mouth(buffer, PhonemeInt, Ht,  Wt); // draw a mouth syllable
+    mouth(buffer, PhonemeInt, Ht,  Wt, shimmer); // draw a mouth syllable
 }
 
 //TODO: add params for eyes, outline
-void FacesEffect::mouth(RenderBuffer &buffer, int Phoneme, int BufferHt, int BufferWi)
+void FacesEffect::mouth(RenderBuffer &buffer, int Phoneme, int BufferHt, int BufferWi, bool shimmer)
 {
+    if (shimmer)
+    {
+        // dont draw every third frame
+        if ((buffer.curPeriod - buffer.curEffStartPer) % 3 == 0) return;
+    }
+
     /*
      FacesPhoneme.Add("AI");     0
      FacesPhoneme.Add("E");      1
@@ -897,13 +907,18 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
 
     bool customColor = found ? model_info->faceInfo[definition]["CustomColors"] == "1" : false;
 
+    wxString pp = phoneme;
+    std::string p = pp.BeforeFirst('-');
+    bool shimmer = pp.Lower().EndsWith("-shimmer");
+
     std::vector<std::string> todo;
     std::vector<xlColor> colors;
-    if (phoneme != "(off)") {
-        todo.push_back("Mouth-" + phoneme);
+    if (p != "(off)") {
+
+        todo.push_back("Mouth-" + p);
         colorOffset = 1;
         if (customColor) {
-            std::string cname = model_info->faceInfo[definition]["Mouth-" + phoneme + "-Color"];
+            std::string cname = model_info->faceInfo[definition]["Mouth-" + p + "-Color"];
             if (cname == "") {
                 colors.push_back(xlWHITE);
             }
@@ -983,7 +998,7 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
         if (eyes == "(off)") {
             e = "Closed";
         }
-        std::string key = "Mouth-" + phoneme + "-Eyes";
+        std::string key = "Mouth-" + p + "-Eyes";
         std::string picture = "";
         if (model_info->faceInfo[definition].find(key + e) != model_info->faceInfo[definition].end())
         {
@@ -1030,6 +1045,11 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
         }
     }
     for (size_t t = 0; t < todo.size(); t++) {
+
+        if (shimmer && StartsWith(todo[t], "Mouth-"))
+        {
+            if ((buffer.curPeriod - buffer.curEffStartPer) % 3 == 0) continue;
+        }
         std::string channels = model_info->faceInfo[definition][todo[t]];
         wxStringTokenizer wtkz(channels, ",");
         while (wtkz.HasMoreTokens()) {
