@@ -295,7 +295,7 @@ void PluginManager::Uninitialise()
     for (auto it : _plugins)
     {
         DoUnload(it.first);
-        delete it.second->_dl;
+        //delete it.second->_dl; // this creates an exception
         delete it.second;
     }
     _plugins.clear();

@@ -31,7 +31,6 @@
 
 #ifdef __WXMSW__
 #include <wx/msw/private.h>
-HANDLE _hModule = 0;
 #endif
 
 IMPLEMENT_APP_NO_MAIN(xSMSDaemonApp)
@@ -144,24 +143,12 @@ extern "C" {
         __showDir = std::string(showDir);
         __xScheduleURL = std::string(xScheduleURL);
 
-#ifdef __WXMSW__
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         InitialiseLogging(false);
-        logger_base.debug("xSMSDaemon start 1 module handle 0x%llx", ::GetModuleHandleA(_("xSMSDaemon.dll").c_str()));
-        logger_base.debug("xSMSDaemon start 1 wxTheApp 0x%llx", wxTheApp);
-        logger_base.debug("xSMSDaemon start 1 _hModule 0x%llx", _hModule);
-#endif
 
         int argc = 0;
         char** argv = NULL;
         if (!wxEntryStart(argc, argv) || !wxTheApp || !wxTheApp->CallOnInit())
             return false;
-
-#ifdef __WXMSW__
-        logger_base.debug("xSMSDaemon start 3 module handle 0x%llx", ::GetModuleHandleA(_("xSMSDaemon.dll").c_str()));
-        logger_base.debug("xSMSDaemon start 3 wxTheApp 0x%llx", wxTheApp);
-        logger_base.debug("xSMSDaemon start 3 _hModule 0x%llx", _hModule);
-#endif
 
         __started = true;
 
@@ -236,10 +223,6 @@ extern "C"
             InitialiseLogging(false);
             logger_base.info("xSMSDaemon process attach.");
             wxSetInstance((HINSTANCE)hModule);
-            logger_base.debug("xSMSDaemon PA module handle 0x%llx", ::GetModuleHandleA(_("xSMSDaemon.dll").c_str()));
-            logger_base.debug("xSMSDaemon PA wxTheApp after set 0x%llx", wxTheApp);
-            logger_base.debug("xSMSDaemon PA hModule 0x%llx", hModule);
-            _hModule = hModule;
             break;
         case DLL_THREAD_ATTACH: break;
         case DLL_THREAD_DETACH: break;
