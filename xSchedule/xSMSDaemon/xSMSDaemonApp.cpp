@@ -210,28 +210,25 @@ bool xSMSDaemonApp::OnInit()
 }
 
 #ifdef __WXMSW__
-extern "C"
+BOOL APIENTRY DllMain(HANDLE hModule,
+    DWORD  ul_reason_for_call, LPVOID lpReserved)
 {
-    BOOL APIENTRY DllMain(HANDLE hModule,
-        DWORD  ul_reason_for_call, LPVOID lpReserved)
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    switch (ul_reason_for_call)
     {
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
-        switch (ul_reason_for_call)
-        {
-        case DLL_PROCESS_ATTACH:
-            InitialiseLogging(false);
-            logger_base.info("xSMSDaemon process attach.");
-            wxSetInstance((HINSTANCE)hModule);
-            break;
-        case DLL_THREAD_ATTACH: break;
-        case DLL_THREAD_DETACH: break;
-        case DLL_PROCESS_DETACH:
-            logger_base.info("xSMSDaemon process detach.");
-            break;
-        }
-
-        return TRUE;
+    case DLL_PROCESS_ATTACH:
+        InitialiseLogging(false);
+        logger_base.info("xSMSDaemon process attach.");
+        wxSetInstance((HINSTANCE)hModule);
+        break;
+    case DLL_THREAD_ATTACH: break;
+    case DLL_THREAD_DETACH: break;
+    case DLL_PROCESS_DETACH:
+        logger_base.info("xSMSDaemon process detach.");
+        break;
     }
+
+    return TRUE;
 }
 #endif
