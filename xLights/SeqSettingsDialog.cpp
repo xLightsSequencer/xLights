@@ -1360,6 +1360,14 @@ void SeqSettingsDialog::MediaChooser()
     {
         OpenDialog.SetDirectory(media_directory);
     }
+	if (!xml_file->GetMediaFile().empty())
+	{
+		OpenDialog.SetFilename(wxFileName(xml_file->GetMediaFile()).GetFullName());
+	}
+	if (!TextCtrl_Xml_Media_File->GetValue().empty())
+	{
+		OpenDialog.SetPath(TextCtrl_Xml_Media_File->GetValue());
+	}
     if (OpenDialog.ShowModal() == wxID_OK)
     {
         wxString fDir = OpenDialog.GetDirectory();
