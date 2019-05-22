@@ -413,4 +413,6 @@ bool xLightsTimer::Start(int time, bool oneShot, const std::string& name) {retur
 void xLightsTimer::Notify() {wxTimer::Notify();}
 int xLightsTimer::GetInterval() const { return wxTimer::GetInterval(); }
 void xLightsTimer::DoSendTimer() {};
+void xLightsTimer::SetName(const std::string& name) {_name = name;}
+
 #endif

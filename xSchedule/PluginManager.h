@@ -7,6 +7,8 @@ class wxDynamicLibrary;
 #include <string>
 #include <vector>
 
+#include "xSchedulePlugin.h"
+
 extern "C"
 {
     // callback function from plugins that want xSchedule to do something
@@ -16,16 +18,34 @@ extern "C"
 
 class PluginManager
 {
-    struct PluginState
+public:
+    class PluginState
     {
+    public:
+        PluginState(wxDynamicLibrary* dl);
+        virtual ~PluginState();
+        
         std::string _filename;
         wxDynamicLibrary* _dl;
         bool _started;
         uint32_t _id;
+        
+        p_xSchedule_Load _loadFn;
+        p_xSchedule_Unload _unloadFn;
+        p_xSchedule_Start _startFn;
+        p_xSchedule_Stop _stopFn;
+        p_xSchedule_HandleWeb _handleWebFn;
+        p_xSchedule_WipeSettings _wipeFn;
+        p_xSchedule_ManipulateBuffer _manipulateBufferFn;
+        p_xSchedule_NotifyStatus _notifyStatusFn;
+        p_xSchedule_GetVirtualWebFolder _getVirtualWebFolderFn;
+        p_xSchedule_GetMenuLabel _getMenuLabelFn;
     };
+private:
     std::map<std::string, PluginState*> _plugins;
 
     void ScanFolder(const std::string& folder);
+    void RegisterStaticPlugins();
 
     bool DoLoad(const std::string& plugin, char* showDir);
     bool DoStart(const std::string& plugin, char* showDir, char* xScheduleURL);

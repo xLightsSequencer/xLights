@@ -776,5 +776,9 @@ void xSMSDaemonFrame::OnTimer_SecondTrigger(wxTimerEvent& event)
 
 void xSMSDaemonFrame::OnClose(wxCloseEvent& event)
 {
-    event.Skip();
+    if (event.CanVeto()) {
+        event.Veto();
+    } else{
+        event.Skip();
+    }
 }

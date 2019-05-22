@@ -180,6 +180,7 @@
 		67480D4D207269DA00B3ED60 /* xLightsVersion.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67BCD1531E6DAF9100F99935 /* xLightsVersion.cpp */; };
 		67480D532072773F00B3ED60 /* EventPingPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67480D512072773F00B3ED60 /* EventPingPanel.cpp */; };
 		67480D542072773F00B3ED60 /* EventPing.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67480D522072773F00B3ED60 /* EventPing.cpp */; };
+		674AC9F82296399500F624EE /* xSMSDaemonApp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 674AC9F62296399500F624EE /* xSMSDaemonApp.cpp */; };
 		674ACA7C1C5ADE4000B54B32 /* Node.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 674ACA7B1C5ADE4000B54B32 /* Node.cpp */; };
 		674B81522028EDA3002A97A6 /* PlayListItemScreenMap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 674B814F2028EDA3002A97A6 /* PlayListItemScreenMap.cpp */; };
 		674B81532028EDA3002A97A6 /* PlayListItemScreenMapPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 674B81502028EDA3002A97A6 /* PlayListItemScreenMapPanel.cpp */; };
@@ -477,6 +478,11 @@
 		67B5F50E2045B96100F5B99D /* SequenceVideoPreview.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B5F50A2045B96000F5B99D /* SequenceVideoPreview.cpp */; };
 		67B5F50F2045B96100F5B99D /* SequenceVideoPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B5F50D2045B96000F5B99D /* SequenceVideoPanel.cpp */; };
 		67B61E8021FEF3A900BCB000 /* RemapDMXChannelsDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B61E7E21FEF3A800BCB000 /* RemapDMXChannelsDialog.cpp */; };
+		67B627BD2295F7EA001155C8 /* EventARTNetTriggerPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B627B82295F7E9001155C8 /* EventARTNetTriggerPanel.cpp */; };
+		67B627BE2295F7EA001155C8 /* PluginManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B627BA2295F7EA001155C8 /* PluginManager.cpp */; };
+		67B627C32295F9B3001155C8 /* PlayListItemARTNetTriggerPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B627C02295F9B3001155C8 /* PlayListItemARTNetTriggerPanel.cpp */; };
+		67B627C42295F9B3001155C8 /* PlayListItemARTNetTrigger.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B627C12295F9B3001155C8 /* PlayListItemARTNetTrigger.cpp */; };
+		67B627C72295F9C2001155C8 /* EventARTNetTrigger.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B627C52295F9C2001155C8 /* EventARTNetTrigger.cpp */; };
 		67B6F3252040BF6C00B847E0 /* PixelTestDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B6F3242040BF6C00B847E0 /* PixelTestDialog.cpp */; };
 		67B6F3332040F59500B847E0 /* ListenerMIDI.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B6F3302040F59400B847E0 /* ListenerMIDI.cpp */; };
 		67B6F3342040F59500B847E0 /* EventMIDI.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B6F3312040F59500B847E0 /* EventMIDI.cpp */; };
@@ -590,7 +596,6 @@
 		67D75E6E2020ED96005BAC6E /* PlayListItemSerial.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67D75E6A2020ED96005BAC6E /* PlayListItemSerial.cpp */; };
 		67D75E6F2020ED96005BAC6E /* PlayListItemFPPEvent.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67D75E6B2020ED96005BAC6E /* PlayListItemFPPEvent.cpp */; };
 		67D75E702020EE21005BAC6E /* DDPOutput.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67DD179520167D4A001E7A8B /* DDPOutput.cpp */; };
-		67D75E712020EE34005BAC6E /* DDPDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67DD179720167D4B001E7A8B /* DDPDialog.cpp */; };
 		67D7DD041B23C586007A3F20 /* UndoManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67D7DD031B23C586007A3F20 /* UndoManager.cpp */; };
 		67D8F45A1A1A584400522413 /* TabSequence.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67E491B317C45BAF00FE40EA /* TabSequence.cpp */; };
 		67D9B0A81D42A9BA005367DB /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 67E7087017B51AB400A22034 /* Cocoa.framework */; };
@@ -704,10 +709,8 @@
 		67F240011E329E7400F8B985 /* PlayListStep.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67F23FE01E329E7400F8B985 /* PlayListStep.cpp */; };
 		67F240021E329E7400F8B985 /* PlayListStepPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67F23FE21E329E7400F8B985 /* PlayListStepPanel.cpp */; };
 		67F240031E329E7400F8B985 /* VideoWindowPositionDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67F23FE41E329E7400F8B985 /* VideoWindowPositionDialog.cpp */; };
-		67F240051E32A03F00F8B985 /* ArtNetDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B2B1F81E1947BE0024F0BB /* ArtNetDialog.cpp */; };
 		67F240061E32A03F00F8B985 /* ArtNetOutput.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B2B1FA1E1947BE0024F0BB /* ArtNetOutput.cpp */; };
 		67F240081E32A03F00F8B985 /* DMXOutput.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B2B1FF1E1947BE0024F0BB /* DMXOutput.cpp */; };
-		67F240091E32A03F00F8B985 /* E131Dialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B2B2011E1947BE0024F0BB /* E131Dialog.cpp */; };
 		67F2400A1E32A03F00F8B985 /* E131Output.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B2B2031E1947BE0024F0BB /* E131Output.cpp */; };
 		67F2400B1E32A03F00F8B985 /* IPOutput.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B2B2051E1947BE0024F0BB /* IPOutput.cpp */; };
 		67F2400C1E32A03F00F8B985 /* LOROutput.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B2B2071E1947BE0024F0BB /* LOROutput.cpp */; };
@@ -1128,6 +1131,8 @@
 		67480D502072773F00B3ED60 /* EventPingPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EventPingPanel.h; sourceTree = "<group>"; };
 		67480D512072773F00B3ED60 /* EventPingPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = EventPingPanel.cpp; sourceTree = "<group>"; };
 		67480D522072773F00B3ED60 /* EventPing.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EventPing.cpp; path = events/EventPing.cpp; sourceTree = "<group>"; };
+		674AC9F62296399500F624EE /* xSMSDaemonApp.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = xSMSDaemonApp.cpp; sourceTree = "<group>"; };
+		674AC9F72296399500F624EE /* xSMSDaemonApp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = xSMSDaemonApp.h; sourceTree = "<group>"; };
 		674ACA7B1C5ADE4000B54B32 /* Node.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Node.cpp; path = models/Node.cpp; sourceTree = "<group>"; };
 		674B814E2028EDA2002A97A6 /* PlayListItemScreenMapPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlayListItemScreenMapPanel.h; path = PlayList/PlayListItemScreenMapPanel.h; sourceTree = "<group>"; };
 		674B814F2028EDA3002A97A6 /* PlayListItemScreenMap.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PlayListItemScreenMap.cpp; path = PlayList/PlayListItemScreenMap.cpp; sourceTree = "<group>"; };
@@ -1628,6 +1633,17 @@
 		67B5F50D2045B96000F5B99D /* SequenceVideoPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SequenceVideoPanel.cpp; sourceTree = "<group>"; };
 		67B61E7E21FEF3A800BCB000 /* RemapDMXChannelsDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RemapDMXChannelsDialog.cpp; sourceTree = "<group>"; };
 		67B61E7F21FEF3A900BCB000 /* RemapDMXChannelsDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RemapDMXChannelsDialog.h; sourceTree = "<group>"; };
+		67B627B82295F7E9001155C8 /* EventARTNetTriggerPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = EventARTNetTriggerPanel.cpp; sourceTree = "<group>"; };
+		67B627B92295F7E9001155C8 /* xSchedulePlugin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = xSchedulePlugin.h; sourceTree = "<group>"; };
+		67B627BA2295F7EA001155C8 /* PluginManager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PluginManager.cpp; sourceTree = "<group>"; };
+		67B627BB2295F7EA001155C8 /* PluginManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PluginManager.h; sourceTree = "<group>"; };
+		67B627BC2295F7EA001155C8 /* EventARTNetTriggerPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EventARTNetTriggerPanel.h; sourceTree = "<group>"; };
+		67B627BF2295F9B3001155C8 /* PlayListItemARTNetTrigger.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlayListItemARTNetTrigger.h; path = PlayList/PlayListItemARTNetTrigger.h; sourceTree = "<group>"; };
+		67B627C02295F9B3001155C8 /* PlayListItemARTNetTriggerPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PlayListItemARTNetTriggerPanel.cpp; path = PlayList/PlayListItemARTNetTriggerPanel.cpp; sourceTree = "<group>"; };
+		67B627C12295F9B3001155C8 /* PlayListItemARTNetTrigger.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PlayListItemARTNetTrigger.cpp; path = PlayList/PlayListItemARTNetTrigger.cpp; sourceTree = "<group>"; };
+		67B627C22295F9B3001155C8 /* PlayListItemARTNetTriggerPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlayListItemARTNetTriggerPanel.h; path = PlayList/PlayListItemARTNetTriggerPanel.h; sourceTree = "<group>"; };
+		67B627C52295F9C2001155C8 /* EventARTNetTrigger.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EventARTNetTrigger.cpp; path = events/EventARTNetTrigger.cpp; sourceTree = "<group>"; };
+		67B627C62295F9C2001155C8 /* EventARTNetTrigger.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EventARTNetTrigger.h; path = events/EventARTNetTrigger.h; sourceTree = "<group>"; };
 		67B6F3232040BF6C00B847E0 /* PixelTestDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PixelTestDialog.h; sourceTree = "<group>"; };
 		67B6F3242040BF6C00B847E0 /* PixelTestDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PixelTestDialog.cpp; sourceTree = "<group>"; };
 		67B6F32F2040F59400B847E0 /* ListenerMIDI.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ListenerMIDI.h; path = events/ListenerMIDI.h; sourceTree = "<group>"; };
@@ -2315,6 +2331,8 @@
 		671E47E42231CD3400049DC9 /* xSMSDaemon */ = {
 			isa = PBXGroup;
 			children = (
+				674AC9F62296399500F624EE /* xSMSDaemonApp.cpp */,
+				674AC9F72296399500F624EE /* xSMSDaemonApp.h */,
 				671E47EA2231CD9600049DC9 /* Bandwidth.h */,
 				671E47EB2231CD9600049DC9 /* Curl.h */,
 				671E47E82231CD9600049DC9 /* SMSDaemonOptions.cpp */,
@@ -2780,6 +2798,8 @@
 		67D75E352020ED4B005BAC6E /* events */ = {
 			isa = PBXGroup;
 			children = (
+				67B627C52295F9C2001155C8 /* EventARTNetTrigger.cpp */,
+				67B627C62295F9C2001155C8 /* EventARTNetTrigger.h */,
 				675081EB21B80EC600A48CD1 /* EventState.cpp */,
 				675081EC21B80EC600A48CD1 /* EventState.h */,
 				67480D522072773F00B3ED60 /* EventPing.cpp */,
@@ -3336,6 +3356,11 @@
 		67F23F221E32994400F8B985 /* xSchedule */ = {
 			isa = PBXGroup;
 			children = (
+				67B627B82295F7E9001155C8 /* EventARTNetTriggerPanel.cpp */,
+				67B627BC2295F7EA001155C8 /* EventARTNetTriggerPanel.h */,
+				67B627BA2295F7EA001155C8 /* PluginManager.cpp */,
+				67B627BB2295F7EA001155C8 /* PluginManager.h */,
+				67B627B92295F7E9001155C8 /* xSchedulePlugin.h */,
 				10AE6059223C3541007FAA8F /* PlayListItemMIDI.cpp */,
 				10AE605A223C3541007FAA8F /* PlayListItemMIDI.h */,
 				10AE6057223C3540007FAA8F /* PlayListItemMIDIPanel.cpp */,
@@ -3528,6 +3553,10 @@
 		67F23FA91E329E6100F8B985 /* PlayList */ = {
 			isa = PBXGroup;
 			children = (
+				67B627C12295F9B3001155C8 /* PlayListItemARTNetTrigger.cpp */,
+				67B627BF2295F9B3001155C8 /* PlayListItemARTNetTrigger.h */,
+				67B627C02295F9B3001155C8 /* PlayListItemARTNetTriggerPanel.cpp */,
+				67B627C22295F9B3001155C8 /* PlayListItemARTNetTriggerPanel.h */,
 				67B31CB721AC2E5A005ECB82 /* PlayListItemDim.cpp */,
 				67B31CB621AC2E5A005ECB82 /* PlayListItemDim.h */,
 				67B31CB521AC2E5A005ECB82 /* PlayListItemDimPanel.cpp */,
@@ -4367,7 +4396,6 @@
 				674B81522028EDA3002A97A6 /* PlayListItemScreenMap.cpp in Sources */,
 				670828012024C39C0002B617 /* LorOptimisedDialog.cpp in Sources */,
 				670828022024C39C0002B617 /* LOROptimisedOutput.cpp in Sources */,
-				67D75E712020EE34005BAC6E /* DDPDialog.cpp in Sources */,
 				671E47FA2231CD9700049DC9 /* xSMSDaemonMain.cpp in Sources */,
 				67D75E702020EE21005BAC6E /* DDPOutput.cpp in Sources */,
 				3D585F2F1E7E52F800A3F84F /* SequenceData.cpp in Sources */,
@@ -4421,9 +4449,9 @@
 				67F240271E32A09E00F8B985 /* xLightsTimer.cpp in Sources */,
 				67D75E562020ED60005BAC6E /* EventARTNet.cpp in Sources */,
 				67DA0AFD1E39C8EB00E2A859 /* OutputProcessingDialog.cpp in Sources */,
-				67F240051E32A03F00F8B985 /* ArtNetDialog.cpp in Sources */,
 				1ECB4F751FF635D7006D57AA /* ConfigureOSC.cpp in Sources */,
 				67F240061E32A03F00F8B985 /* ArtNetOutput.cpp in Sources */,
+				67B627C42295F9B3001155C8 /* PlayListItemARTNetTrigger.cpp in Sources */,
 				671E47FB2231CD9700049DC9 /* SMSMessage.cpp in Sources */,
 				67FFB81C1FA3F65E007F9FBB /* OutputProcessDeadChannel.cpp in Sources */,
 				67B31CB921AC2E5A005ECB82 /* PlayListItemDim.cpp in Sources */,
@@ -4431,7 +4459,6 @@
 				67F240081E32A03F00F8B985 /* DMXOutput.cpp in Sources */,
 				67C5814E1E4B95A400932DFA /* Xyzzy.cpp in Sources */,
 				67B022FF204A794200639D21 /* OutputProcessSustain.cpp in Sources */,
-				67F240091E32A03F00F8B985 /* E131Dialog.cpp in Sources */,
 				67D75E5E2020ED60005BAC6E /* EventData.cpp in Sources */,
 				67F2400A1E32A03F00F8B985 /* E131Output.cpp in Sources */,
 				67F2400B1E32A03F00F8B985 /* IPOutput.cpp in Sources */,
@@ -4441,6 +4468,7 @@
 				67FFB81D1FA3F65E007F9FBB /* DeadChannelDialog.cpp in Sources */,
 				67D75E6D2020ED96005BAC6E /* PlayListItemFPPEventPanel.cpp in Sources */,
 				67F2400D1E32A03F00F8B985 /* NullOutput.cpp in Sources */,
+				67B627BD2295F7EA001155C8 /* EventARTNetTriggerPanel.cpp in Sources */,
 				67F2400E1E32A03F00F8B985 /* NullOutputDialog.cpp in Sources */,
 				1E3E24FE1E3715BB001D48E3 /* PlayListItemCURLPanel.cpp in Sources */,
 				676CFAF8207D2BBE002EB5E7 /* jsonwriter.cpp in Sources */,
@@ -4478,6 +4506,7 @@
 				67F23F611E329AD800F8B985 /* RunningSchedule.cpp in Sources */,
 				67D75E322020ED1B005BAC6E /* EventDataPanel.cpp in Sources */,
 				67F23FA61E329E3300F8B985 /* server.cpp in Sources */,
+				674AC9F82296399500F624EE /* xSMSDaemonApp.cpp in Sources */,
 				670B171921973D07004F0993 /* ExtraIPsDialog.cpp in Sources */,
 				671E47F82231CD9700049DC9 /* SMSDaemonOptions.cpp in Sources */,
 				67C581531E4B95A400932DFA /* AddReverseDialog.cpp in Sources */,
@@ -4550,6 +4579,7 @@
 				67F240021E329E7400F8B985 /* PlayListStepPanel.cpp in Sources */,
 				67480D532072773F00B3ED60 /* EventPingPanel.cpp in Sources */,
 				10AE605C223C3542007FAA8F /* PlayListItemMIDI.cpp in Sources */,
+				67B627BE2295F7EA001155C8 /* PluginManager.cpp in Sources */,
 				6783D01B209758BF00C6F51D /* PlayListItemProjectorPanel.cpp in Sources */,
 				67D75E552020ED60005BAC6E /* ListenerFPPUnicast.cpp in Sources */,
 				67D75E6F2020ED96005BAC6E /* PlayListItemFPPEvent.cpp in Sources */,
@@ -4578,9 +4608,11 @@
 				67F23FEE1E329E7400F8B985 /* PlayListItemDelay.cpp in Sources */,
 				67B6F33C2040F66500B847E0 /* wxMidiDatabase.cpp in Sources */,
 				67F23FA81E329E3300F8B985 /* status.cpp in Sources */,
+				67B627C72295F9C2001155C8 /* EventARTNetTrigger.cpp in Sources */,
 				6765DD26220F2029007C8180 /* SyncOSC.cpp in Sources */,
 				1ECB4F7B1FF635EE006D57AA /* PlayListItemOSC.cpp in Sources */,
 				678058D02176619800BFD388 /* PlayListItemFadePanel.cpp in Sources */,
+				67B627C32295F9B3001155C8 /* PlayListItemARTNetTriggerPanel.cpp in Sources */,
 				674B81532028EDA3002A97A6 /* PlayListItemScreenMapPanel.cpp in Sources */,
 				67F23FF51E329E7400F8B985 /* PlayListItemImagePanel.cpp in Sources */,
 				670B171821973D07004F0993 /* ExtraIPDialog.cpp in Sources */,

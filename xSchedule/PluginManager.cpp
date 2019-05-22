@@ -11,6 +11,42 @@
 
 uint32_t __nextId = 1;
 
+
+PluginManager::PluginState::PluginState(wxDynamicLibrary* dl) : _dl(dl), _started(false), _id(__nextId++)
+{
+    if (_dl) {
+        _loadFn = (p_xSchedule_Load)_dl->GetSymbol("xSchedule_Load");
+        _unloadFn = (p_xSchedule_Unload)_dl->GetSymbol("xSchedule_Unload");
+        _startFn = (p_xSchedule_Start)_dl->GetSymbol("xSchedule_Start");
+        _stopFn = (p_xSchedule_Stop)_dl->GetSymbol("xSchedule_Stop");
+        _handleWebFn= (p_xSchedule_HandleWeb)_dl->GetSymbol("xSchedule_HandleWeb");
+        _wipeFn = (p_xSchedule_WipeSettings)_dl->GetSymbol("xSchedule_WipeSettings");
+        _manipulateBufferFn = (p_xSchedule_ManipulateBuffer)_dl->GetSymbol("xSchedule_ManipulateBuffer");
+        _notifyStatusFn = (p_xSchedule_NotifyStatus)_dl->GetSymbol("xSchedule_NotifyStatus");
+        _getVirtualWebFolderFn = (p_xSchedule_GetVirtualWebFolder)_dl->GetSymbol("xSchedule_GetVirtualWebFolder");
+        _getMenuLabelFn = (p_xSchedule_GetMenuLabel)_dl->GetSymbol("xSchedule_GetMenuLabel");
+    } else {
+        _loadFn = nullptr;
+        _unloadFn = nullptr;
+        _startFn = nullptr;
+        _stopFn = nullptr;
+        _handleWebFn = nullptr;
+        _wipeFn = nullptr;
+        _manipulateBufferFn = nullptr;
+        _notifyStatusFn = nullptr;
+        _getVirtualWebFolderFn = nullptr;
+        _getMenuLabelFn = nullptr;
+    }
+}
+PluginManager::PluginState::~PluginState()
+{
+    if (_dl) {
+        ///_dl->Detach(); ????
+        delete _dl;
+    }
+}
+
+
 PluginManager::PluginManager()
 {
 }
@@ -37,29 +73,25 @@ void PluginManager::ScanFolder(const std::string& folder)
         wxDynamicLibrary* dl = new wxDynamicLibrary();
         dl->Load(f);
 
-        if (dl->IsLoaded())
-        {
+        if (dl->IsLoaded()) {
             // look for our function
             p_xSchedule_Load fn = (p_xSchedule_Load)dl->GetSymbol("xSchedule_Load");
 
             // if found add to list
-            if (fn != nullptr)
-            {
-                PluginState* pis = new PluginState();
-                pis->_dl = dl;
+            if (fn != nullptr) {
+                PluginState* pis = new PluginState(dl);
                 pis->_filename = f;
-                pis->_started = false;
-                pis->_id = __nextId++;
 
                 wxFileName fn(f);
                 _plugins[fn.GetName()] = pis;
 
                 logger_base.debug("Plugin found %s : %s", (const char*)fn.GetName().c_str(), (const char*)f.c_str());
-
-                continue;
+            } else {
+                delete dl;
             }
+        } else {
+            delete dl;
         }
-        delete dl;
     }
 }
 
@@ -68,15 +100,11 @@ bool PluginManager::DoLoad(const std::string& plugin, char* showDir)
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (_plugins.find(plugin) == _plugins.end()) return false;
 
-    p_xSchedule_Load fn = (p_xSchedule_Load)(_plugins.at(plugin)->_dl->GetSymbol("xSchedule_Load"));
-    if (fn != nullptr)
-    {
+    p_xSchedule_Load fn = _plugins.at(plugin)->_loadFn;
+    if (fn != nullptr) {
         logger_base.debug("Loading plugin %s", (const char*)plugin.c_str());
-
         bool res = fn(showDir);
-
         logger_base.debug("Loaded plugin %s -> %d", (const char*)plugin.c_str(), res);
-
         return res;
     }
     return false;
@@ -87,9 +115,8 @@ void PluginManager::DoUnload(const std::string& plugin)
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (_plugins.find(plugin) == _plugins.end()) return;
 
-    p_xSchedule_Unload fn = (p_xSchedule_Unload)(_plugins.at(plugin)->_dl->GetSymbol("xSchedule_Unload"));
-    if (fn != nullptr)
-    {
+    p_xSchedule_Unload fn = _plugins.at(plugin)->_unloadFn;
+    if (fn != nullptr) {
         logger_base.debug("Unloading plugin %s", (const char*)plugin.c_str());
         fn();
     }
@@ -101,13 +128,10 @@ bool PluginManager::DoStart(const std::string& plugin, char* showDir, char* xSch
     if (_plugins.find(plugin) == _plugins.end()) return false;
     if (_plugins.at(plugin)->_started) return true;
 
-    p_xSchedule_Start fn = (p_xSchedule_Start)(_plugins.at(plugin)->_dl->GetSymbol("xSchedule_Start"));
-    if (fn != nullptr)
-    {
+    p_xSchedule_Start fn = _plugins.at(plugin)->_startFn;
+    if (fn != nullptr) {
         logger_base.debug("Starting plugin %s", (const char*)plugin.c_str());
-
         _plugins.at(plugin)->_started = fn(showDir, xScheduleURL, Action);
-
         logger_base.debug("Started plugin %s -> %d", (const char*)plugin.c_str(), _plugins.at(plugin)->_started);
     }
     return _plugins.at(plugin)->_started;
@@ -117,9 +141,8 @@ bool PluginManager::HandleWeb(const std::string& plugin, const std::string& acti
 {
     if (_plugins.find(plugin) == _plugins.end()) return false;
 
-    p_xSchedule_HandleWeb fn = (p_xSchedule_HandleWeb)(_plugins.at(plugin)->_dl->GetSymbol("xSchedule_HandleWeb"));
-    if (fn != nullptr)
-    {
+    p_xSchedule_HandleWeb fn = _plugins.at(plugin)->_handleWebFn;
+    if (fn != nullptr) {
         wchar_t resp[4096];
         bool res = fn((const char*)action.c_str(), (const wchar_t*)parms.c_str(), (const wchar_t*)data.c_str(), (const wchar_t*)reference.c_str(), resp, sizeof(resp));
         response = std::wstring(resp);
@@ -131,8 +154,7 @@ bool PluginManager::HandleWeb(const std::string& plugin, const std::string& acti
 
 void PluginManager::ManipulateBuffer(uint8_t* buffer, size_t bufferSize)
 {
-    for (auto it : _plugins)
-    {
+    for (auto it : _plugins) {
         DoManipulateBuffer(it.first, buffer, bufferSize);
     }
 }
@@ -140,8 +162,7 @@ void PluginManager::ManipulateBuffer(uint8_t* buffer, size_t bufferSize)
 void PluginManager::NotifyStatus(const std::string& statusJSON)
 {
     const char* s = (const char*)statusJSON.c_str();
-    for (auto it : _plugins)
-    {
+    for (auto it : _plugins) {
         DoNotifyStatus(it.first, s);
     }
 }
@@ -153,9 +174,8 @@ void PluginManager::DoStop(const std::string& plugin)
     if (_plugins.find(plugin) == _plugins.end()) return;
     if (!_plugins.at(plugin)->_started) return;
 
-    p_xSchedule_Stop fn = (p_xSchedule_Stop)(_plugins.at(plugin)->_dl->GetSymbol("xSchedule_Stop"));
-    if (fn != nullptr)
-    {
+    p_xSchedule_Stop fn = _plugins.at(plugin)->_stopFn;
+    if (fn != nullptr) {
         fn();
         logger_base.debug("Stopped plugin %s", (const char*)plugin.c_str());
         _plugins.at(plugin)->_started = false;
@@ -166,9 +186,8 @@ void PluginManager::DoWipeSettings(const std::string& plugin)
 {
     if (_plugins.find(plugin) == _plugins.end()) return;
 
-    p_xSchedule_WipeSettings fn = (p_xSchedule_WipeSettings)(_plugins.at(plugin)->_dl->GetSymbol("xSchedule_WipeSettings"));
-    if (fn != nullptr)
-    {
+    p_xSchedule_WipeSettings fn = _plugins.at(plugin)->_wipeFn;
+    if (fn != nullptr) {
         fn();
     }
 }
@@ -177,9 +196,8 @@ bool PluginManager::DoManipulateBuffer(const std::string& plugin, uint8_t* buffe
 {
     if (_plugins.find(plugin) == _plugins.end()) return false;
 
-    p_xSchedule_ManipulateBuffer fn = (p_xSchedule_ManipulateBuffer)(_plugins.at(plugin)->_dl->GetSymbol("xSchedule_ManipulateBuffer"));
-    if (fn != nullptr)
-    {
+    p_xSchedule_ManipulateBuffer fn = _plugins.at(plugin)->_manipulateBufferFn;
+    if (fn != nullptr) {
         fn(buffer, bufferSize);
         return true;
     }
@@ -190,9 +208,8 @@ void PluginManager::DoNotifyStatus(const std::string& plugin, const char* status
 {
     if (_plugins.find(plugin) == _plugins.end()) return;
 
-    p_xSchedule_NotifyStatus fn = (p_xSchedule_NotifyStatus)(_plugins.at(plugin)->_dl->GetSymbol("xSchedule_NotifyStatus"));
-    if (fn != nullptr)
-    {
+    p_xSchedule_NotifyStatus fn = _plugins.at(plugin)->_notifyStatusFn;
+    if (fn != nullptr) {
         fn(statusJSON);
     }
 }
@@ -205,9 +222,8 @@ std::string PluginManager::GetVirtualWebFolder(const std::string& plugin)
     char buffer[200];
     memset(buffer, 0x00, sizeof(buffer));
 
-    p_xSchedule_GetVirtualWebFolder fn = (p_xSchedule_GetVirtualWebFolder)(_plugins.at(plugin)->_dl->GetSymbol("xSchedule_GetVirtualWebFolder"));
-    if (fn != nullptr)
-    {
+    p_xSchedule_GetVirtualWebFolder fn = _plugins.at(plugin)->_getVirtualWebFolderFn;
+    if (fn != nullptr) {
         fn(buffer, sizeof(buffer));
     }
     return std::string(buffer);
@@ -220,13 +236,25 @@ std::string PluginManager::GetMenuLabel(const std::string& plugin)
     char buffer[200];
     memset(buffer, 0x00, sizeof(buffer));
 
-    p_xSchedule_GetMenuLabel fn = (p_xSchedule_GetMenuLabel)(_plugins.at(plugin)->_dl->GetSymbol("xSchedule_GetMenuLabel"));
-    if (fn != nullptr)
-    {
+    p_xSchedule_GetMenuLabel fn = _plugins.at(plugin)->_getMenuLabelFn;
+    if (fn != nullptr) {
         fn(buffer, sizeof(buffer));
     }
     return std::string(buffer);
 }
+
+
+#ifdef __WXOSX__
+PluginManager::PluginState *CreateSMSPluginState();
+#endif
+
+void PluginManager::RegisterStaticPlugins() {
+#ifdef __WXOSX__
+    PluginManager::PluginState *p = CreateSMSPluginState();
+    if (p) _plugins[p->_filename] = p;
+#endif
+}
+
 
 void PluginManager::Initialise(const std::string& showDir)
 {
@@ -239,8 +267,10 @@ void PluginManager::Initialise(const std::string& showDir)
     // then scan show folder
     ScanFolder(showDir);
 
-    for (auto it : _plugins)
-    {
+    // then add anything that is statically compiled in
+    RegisterStaticPlugins();
+    
+    for (auto it : _plugins) {
         DoLoad(it.first, (char*)showDir.c_str());
     }
 }
@@ -284,8 +314,7 @@ void PluginManager::StopPlugins()
 
 void PluginManager::WipeSettings()
 {
-    for (auto it : _plugins)
-    {
+    for (auto it : _plugins) {
         DoWipeSettings(it.first);
     }
 }
@@ -295,7 +324,6 @@ void PluginManager::Uninitialise()
     for (auto it : _plugins)
     {
         DoUnload(it.first);
-        //delete it.second->_dl; // this creates an exception
         delete it.second;
     }
     _plugins.clear();

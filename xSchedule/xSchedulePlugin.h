@@ -14,8 +14,8 @@ extern "C" {
     bool WXIMPORT xSchedule_Load(char* showDir);
     typedef bool (*p_xSchedule_Load)(char* showDir);
 
-    bool WXIMPORT xSchedule_WipeSettings();
-    typedef bool (*p_xSchedule_WipeSettings)();
+    void WXIMPORT xSchedule_WipeSettings();
+    typedef void (*p_xSchedule_WipeSettings)();
 
     void WXIMPORT xSchedule_GetVirtualWebFolder(char* buffer, size_t bufferSize);
     typedef void (*p_xSchedule_GetVirtualWebFolder)(char* buffer, size_t bufferSize);
@@ -31,7 +31,7 @@ extern "C" {
     typedef bool (*p_xSchedule_Start)(char* showDir, char* xScheduleURL, p_xSchedule_Action action);
 
     void WXIMPORT xSchedule_ManipulateBuffer(uint8_t* buffer, size_t bufferSize);
-    typedef bool (*p_xSchedule_ManipulateBuffer)(uint8_t* buffer, size_t bufferSize);
+    typedef void (*p_xSchedule_ManipulateBuffer)(uint8_t* buffer, size_t bufferSize);
 
     void WXIMPORT xSchedule_NotifyStatus(const char* statusJSON);
     typedef void (*p_xSchedule_NotifyStatus)(const char* statusJSON);
