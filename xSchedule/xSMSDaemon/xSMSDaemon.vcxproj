@@ -74,6 +74,7 @@
     <IncludePath>..\..\..\wxWidgets\include;..\..\..\wxWidgets\include\msvc;$(IncludePath);..\..\include</IncludePath>
     <LibraryPath>..\..\..\wxWidgets\lib\vc_lib;..\..\lib\windows;GL;$(LibraryPath);$(VCToolsInstallDir)lib\x86</LibraryPath>
     <TargetExt>.dll</TargetExt>
+    <OutDir>$(SolutionDir)..\$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>

@@ -95,15 +95,14 @@
 					<Add option="-O2" />
 					<Add option="-s" />
 					<Add option="-m32" />
-					<Add option="-lopengl32" />
 					<Add option="-Wl,-Map=../../bin/xSMSDaemon.map,--allow-multiple-definition" />
 					<Add option="-Wl,--large-address-aware" />
 					<Add option="-lpthread" />
 					<Add option="-lz" />
-					<Add option="-shared" />
 					<Add library="libwxmsw31u.a" />
 					<Add library="libwxmsw31u_gl.a" />
 					<Add library="libwxregexu.a" />
+					<Add library="libwxexpat.a" />
 					<Add library="libuuid.a" />
 					<Add library="../../lib/windows/iphlpapi.lib" />
 					<Add library="libimagehlp.a" />
@@ -126,8 +125,10 @@
 					<Add library="liboleaut32.a" />
 					<Add library="libodbc32.a" />
 					<Add library="liboleacc.a" />
+					<Add library="libwxpng.a" />
+					<Add library="libwxjpeg.a" />
+					<Add library="libwxzlib.a" />
 					<Add library="libshell32.a" />
-					<Add library="libwxexpat.a" />
 					<Add directory="../../lib/windows/static" />
 					<Add directory="../../lib/windows" />
 				</Linker>
