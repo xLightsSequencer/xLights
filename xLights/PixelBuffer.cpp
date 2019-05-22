@@ -170,8 +170,6 @@ namespace
 
    xlColor foldOut( const ColorBuffer& cb0, const RenderBuffer* rb1, double s, double t, float progress )
    {
-      if ( rb1 == nullptr )
-         return xlYELLOW;
       const double CAMERA_DIST = 2.;
       Vec3D ray( s*2-1, t*2-1, CAMERA_DIST );
       float phi = progress * PI;   // rotation angle
@@ -193,19 +191,10 @@ namespace
       Vec2D uv0( dot( a0 - p0, u0 ) / 2., dot( a0 - p0, v0 ) / 2. );
       if ( uv0.x >= 0. && uv0.x < 1. && uv0.y >= 0. && uv0.y < 1. )
       {
-         // This isn't working quite as expected...in the case where there is no next (prev?)
-         // layer, we seem to get a blank one, so the fold works how we want for the first
-         // half but delivers all-black for the second half
-         if ( s < 0.5 )
-         {
-            if ( rb1 != nullptr )
-               return progress < 0.5 ? tex2D( cb0, uv0.x, uv0.y ) : tex2D( *rb1, 1-uv0.x, uv0.y );
-         }
-         else
-         {
-            if ( rb1 != nullptr )
-               return progress >= 0.5 ? tex2D( *rb1, 1-uv0.x, uv0.y ) : tex2D( cb0, uv0.x, uv0.y );
-         }
+         if ( rb1 == nullptr )
+            return tex2D( cb0, uv0.x, uv0.y );
+
+         return progress < 0.5 ? tex2D( cb0, uv0.x, uv0.y ) : tex2D( *rb1, 1-uv0.x, uv0.y );
       }
       return xlBLACK;
    }
@@ -2271,7 +2260,10 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & va
             if (STR_FOLD == layers[ii]->outTransitionType )
             {
                RenderBuffer& currentRB(layers[ii]->buffer);
-               const RenderBuffer* prevRB = ( ii != numLayers -1 ) ? ( &layers[ii+1]->buffer ) : nullptr;
+               const RenderBuffer *prevRB = nullptr;
+               int fakeLayerIndex = numLayers - 1;
+               if ( fakeLayerIndex - ii > 1 )
+                  prevRB = &layers[ii+1]->buffer;
                double progress = 1. - fadeOutFactor;
                foldOut( currentRB, ColorBuffer( currentRB.pixels, currentRB.BufferWi, currentRB.BufferHt ), prevRB, progress );
             } else {
