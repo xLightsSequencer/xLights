@@ -333,7 +333,7 @@ bool Action(const char* command, const wchar_t* parameters, const char* data, ch
         bool result = ((xScheduleFrame*)wxTheApp->GetTopWindow())->GetScheduleManager()->Query(c, p, dd, msg, ip, reference);
         if (result || msg == "")
         {
-            msg = "{result\":\"ok\"}";
+            msg = dd;
         }
         else
         {
