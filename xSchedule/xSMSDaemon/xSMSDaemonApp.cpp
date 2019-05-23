@@ -33,9 +33,6 @@
 #include <wx/msw/private.h>
 #endif
 
-#ifndef __WXOSX__
-IMPLEMENT_APP_NO_MAIN(xSMSDaemonApp)
-#endif
 
 static std::string __showDir;
 static std::string __xScheduleURL;
@@ -224,7 +221,7 @@ extern "C" {
     void WXEXPORT Schedule_NotifyStatus(const char* status) {
         xSMSDaemon_xSchedule_NotifyStatus(status);
     }
-    void WXEXPORT xSMSDaemon_xSchedule_ManipulateBuffer(uint8_t* buffer, size_t bufferSize) {
+    void WXEXPORT xSchedule_ManipulateBuffer(uint8_t* buffer, size_t bufferSize) {
         xSMSDaemon_xSchedule_ManipulateBuffer(buffer, bufferSize);
     }
 }
