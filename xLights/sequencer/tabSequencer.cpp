@@ -2674,6 +2674,8 @@ void xLightsFrame::OnMenuDockAllSelected(wxCommandEvent& event)
 
 void xLightsFrame::ShowHideBufferSettingsWindow(wxCommandEvent& event)
 {
+    InitSequencer();
+
     bool visible = m_mgr->GetPane("LayerSettings").IsShown();
     if (visible) {
         m_mgr->GetPane("LayerSettings").Hide();
@@ -2685,6 +2687,8 @@ void xLightsFrame::ShowHideBufferSettingsWindow(wxCommandEvent& event)
 
 void xLightsFrame::ShowHideDisplayElementsWindow(wxCommandEvent& event)
 {
+    InitSequencer();
+
     wxAuiPaneInfo& info = m_mgr->GetPane("DisplayElements");
 
     if (!info.IsOk()) return;
@@ -2704,6 +2708,7 @@ void xLightsFrame::ShowHideDisplayElementsWindow(wxCommandEvent& event)
 
 void xLightsFrame::ShowHideEffectSettingsWindow(wxCommandEvent& event)
 {
+    InitSequencer();
     bool visible = m_mgr->GetPane("Effect").IsShown();
     if (visible) {
         m_mgr->GetPane("Effect").Hide();
@@ -2715,6 +2720,7 @@ void xLightsFrame::ShowHideEffectSettingsWindow(wxCommandEvent& event)
 
 void xLightsFrame::ShowHideColorWindow(wxCommandEvent& event)
 {
+    InitSequencer();
     bool visible = m_mgr->GetPane("Color").IsShown();
     if (visible) {
         m_mgr->GetPane("Color").Hide();
@@ -2726,6 +2732,7 @@ void xLightsFrame::ShowHideColorWindow(wxCommandEvent& event)
 
 void xLightsFrame::ShowHideLayerTimingWindow(wxCommandEvent& event)
 {
+    InitSequencer();
     bool visible = m_mgr->GetPane("LayerTiming").IsShown();
     if (visible) {
         m_mgr->GetPane("LayerTiming").Hide();
@@ -2737,6 +2744,7 @@ void xLightsFrame::ShowHideLayerTimingWindow(wxCommandEvent& event)
 
 void xLightsFrame::ShowHideModelPreview(wxCommandEvent& event)
 {
+    InitSequencer();
     bool visible = m_mgr->GetPane("ModelPreview").IsShown();
     if (visible) {
         m_mgr->GetPane("ModelPreview").Hide();
@@ -2748,6 +2756,7 @@ void xLightsFrame::ShowHideModelPreview(wxCommandEvent& event)
 
 void xLightsFrame::ShowHideHousePreview(wxCommandEvent& event)
 {
+    InitSequencer();
     bool visible = m_mgr->GetPane("HousePreview").IsShown();
     if (visible) {
         m_mgr->GetPane("HousePreview").Hide();
@@ -2759,6 +2768,7 @@ void xLightsFrame::ShowHideHousePreview(wxCommandEvent& event)
 
 void xLightsFrame::ShowHideEffectDropper(wxCommandEvent& event)
 {
+    InitSequencer();
     bool visible = m_mgr->GetPane("EffectDropper").IsShown();
     if (visible) {
         m_mgr->GetPane("EffectDropper").Hide();
@@ -2770,6 +2780,7 @@ void xLightsFrame::ShowHideEffectDropper(wxCommandEvent& event)
 
 void xLightsFrame::ShowHidePerspectivesWindow(wxCommandEvent& event)
 {
+    InitSequencer();
     bool visible = m_mgr->GetPane("Perspectives").IsShown();
     if (visible) {
         m_mgr->GetPane("Perspectives").Hide();
@@ -2781,6 +2792,7 @@ void xLightsFrame::ShowHidePerspectivesWindow(wxCommandEvent& event)
 
 void xLightsFrame::ShowHideEffectAssistWindow(wxCommandEvent& event)
 {
+    InitSequencer();
     bool visible = m_mgr->GetPane("EffectAssist").IsShown();
     if (visible) {
         m_mgr->GetPane("EffectAssist").Hide();
@@ -3333,6 +3345,7 @@ void xLightsFrame::ImportTimingElement()
 
 void xLightsFrame::OnMenuItemLoadEditPerspectiveSelected(wxCommandEvent& event)
 {
+    InitSequencer();
     m_mgr->GetPane(wxT("Perspectives")).Show(true);
     m_mgr->Update();
 }
@@ -3652,6 +3665,7 @@ void xLightsFrame::DoPromoteEffects(ModelElement *element) {
 
 void xLightsFrame::OnAuiToolBarItemShowHideEffects(wxCommandEvent& event)
 {
+    InitSequencer();
     bool visible = m_mgr->GetPane("EffectDropper").IsShown();
     if (visible) {
         m_mgr->GetPane("EffectDropper").Hide();
