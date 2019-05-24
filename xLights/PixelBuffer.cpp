@@ -168,6 +168,42 @@ namespace
 
    const float PI = 3.14159265359f;
 
+   xlColor foldIn( const ColorBuffer& cb0, const RenderBuffer* rb1, double s, double t, float progress )
+   {
+      const double CAMERA_DIST = 2.;
+      Vec3D ray( s*2-1, t*2-1, CAMERA_DIST );
+      float phi = progress * PI;   // rotation angle
+
+      // rotated basis vectors
+      Vec3D rx( RenderBuffer::cos( phi ), 0., -RenderBuffer::sin( phi ) );
+      Vec3D ry( 0., 1., 0. );
+      Vec3D rz( -rx.z, 0., rx.x );
+
+      // corner and direction vectors of "from" polygon
+      Vec3D p0( -rx + Vec3D( 0., -1., CAMERA_DIST ) );
+      Vec3D u0( rx );
+      Vec3D v0( ry );
+      Vec3D n0( rz );
+
+      // ray-plane intersection
+      Vec3D a0( ( dot( p0, n0) / dot( ray, n0 ) ) * ray );
+
+      Vec2D uv0( dot( a0 - p0, u0 ) / 2., dot( a0 - p0, v0 ) / 2. );
+      if ( uv0.x >= 0. && uv0.x < 1. && uv0.y >= 0. && uv0.y < 1. )
+      {
+         if ( rb1 == nullptr )
+            return tex2D( cb0, 1-uv0.x, uv0.y );
+
+         if ( progress < 0.5 )
+         {
+            xlColor c = tex2D( *rb1, uv0.x, uv0.y );
+            return ( c != xlCLEAR ) ? c : tex2D( cb0, 1-uv0.x, uv0.y );
+         }
+         return tex2D( cb0, 1-uv0.x, uv0.y );
+      }
+      return xlBLACK;
+   }
+
    xlColor foldOut( const ColorBuffer& cb0, const RenderBuffer* rb1, double s, double t, float progress )
    {
       const double CAMERA_DIST = 2.;
@@ -200,6 +236,19 @@ namespace
          return ( c != xlCLEAR ) ? c : tex2D( cb0, uv0.x, uv0.y );
       }
       return xlBLACK;
+   }
+
+   void foldIn( RenderBuffer& rb0, const ColorBuffer& cb0, const RenderBuffer* rb1, double progress )
+   {
+      if ( progress < 0. || progress > 1. )
+         return;
+      parallel_for(0, rb0.BufferHt, [&rb0, &cb0, &rb1, progress](int y) {
+         double t = double( y ) / ( rb0.BufferHt - 1 );
+         for ( int x = 0; x < rb0.BufferWi; ++x ) {
+            double s = double( x ) / ( rb0.BufferWi - 1 );
+            rb0.SetPixel( x, y, foldIn( cb0, rb1, s, t, progress ) );
+         }
+      }, 25);
    }
 
    void foldOut( RenderBuffer& rb0, const ColorBuffer& cb0, const RenderBuffer* rb1, double progress )
@@ -2250,7 +2299,13 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & va
             }
             if (STR_FOLD == layers[ii]->inTransitionType)
             {
-               // todo
+               RenderBuffer& currentRB(layers[ii]->buffer);
+               const RenderBuffer *prevRB = nullptr;
+               int fakeLayerIndex = numLayers - 1;
+               if ( fakeLayerIndex - ii > 1 )
+                  prevRB = &layers[ii+1]->buffer;
+               double progress = fadeInFactor;
+               foldIn( currentRB, ColorBuffer( currentRB.pixels, currentRB.BufferWi, currentRB.BufferHt ), prevRB, progress );
             }
 
             if (STR_FADE == layers[ii]->outTransitionType) {
