@@ -5816,7 +5816,29 @@ int EffectsGrid::DrawEffectBackground(const Row_Information_Struct* ri, const Ef
             }
         }
     }
-    return ef == nullptr ? 1 : ef->DrawEffectBackground(e, x1, y1, x2, y2, backgrounds, (colorMask.IsNilColor() ? nullptr : &colorMask), xlights->IsDrawRamps());
+    int result = ef == nullptr ? 1 : ef->DrawEffectBackground(e, x1, y1, x2, y2, backgrounds, (colorMask.IsNilColor() ? nullptr : &colorMask), xlights->IsDrawRamps());
+    ////
+    const SettingsMap &sm( e->GetSettings() );
+    double fadeInTime = sm.GetDouble( "T_TEXTCTRL_Fadein" );
+    if ( fadeInTime != 0. )
+    {
+       double fadeInTimeMS = fadeInTime * 1000;
+       int durationMS = e->GetEndTimeMS() - e->GetStartTimeMS();
+       double pct = fadeInTimeMS / durationMS;
+       int width = int( pct * (x2 - x1) );
+       backgrounds.AddRect( x1, y1, x1+width, y2, xlColor( 0, 0x64, 0 ) );
+    }
+    double fadeOutTime = sm.GetDouble( "T_TEXTCTRL_Fadeout" );
+    if ( fadeOutTime != 0. )
+    {
+       double fadeOutTimeMS = fadeOutTime * 1000;
+       int durationMS = e->GetEndTimeMS() - e->GetStartTimeMS();
+       double pct = fadeOutTimeMS / durationMS;
+       int width = int( pct * (x2 - x1) );
+       backgrounds.AddRect( x2-width, y1, x2, y2, xlColor( 0x64, 0, 0 ) );
+    }
+    ////
+    return result;
 }
 
 float ComputeFontSize(int &toffset, const float factor) {
