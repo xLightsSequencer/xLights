@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (kevin)   Add "Fold" transition type
 2019.26 May 24, 2019
    -- enh (scott)   When prompting for missing audio include the original audio filename to make it easier to find
    -- enh (scott)   When audio is missing look down 1 folder and grab it from there if found
