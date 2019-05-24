@@ -89,8 +89,9 @@ void PhonemeDictionary::LoadDictionary(const wxString &filename, const wxString 
 
 		wxArrayString strList = wxSplit(line,' ');
 		if (strList.size() > 1) {
-			if (phoneme_dict.find(strList[0]) == phoneme_dict.end())
-				phoneme_dict.emplace(std::pair<wxString, wxArrayString>(strList[0], strList));
+			//if (phoneme_dict.find(strList[0]) == phoneme_dict.end())
+			//	phoneme_dict.emplace(std::pair<wxString, wxArrayString>(strList[0], strList));
+            phoneme_dict[strList[0]] = strList;
 		}
         linenum++;
         if (linenum % 1000 == 0)

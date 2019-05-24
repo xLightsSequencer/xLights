@@ -75,6 +75,8 @@ namespace Plugin
 
         public void ManipulateBuffer(PixelBuffer buffer)
         {
+            for (int i = 0; i < 10; i++)
+                buffer.SetPixel(i, Color.Magenta);
         }
     }
 }
