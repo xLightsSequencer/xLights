@@ -176,6 +176,7 @@
 																			<item>Blend</item>
 																			<item>Slide Checks</item>
 																			<item>Slide Bars</item>
+																			<item>Fold</item>
 																		</content>
 																		<selection>0</selection>
 																		<handler function="OnTransitionTypeSelect" entry="EVT_CHOICE" />

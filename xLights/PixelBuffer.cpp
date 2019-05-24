@@ -2248,6 +2248,11 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & va
             } else {
                 layers[ii]->inMaskFactor = fadeInFactor;
             }
+            if (STR_FOLD == layers[ii]->inTransitionType)
+            {
+               // todo
+            }
+
             if (STR_FADE == layers[ii]->outTransitionType) {
                 if (fadeOutFactor<1) {
                     if (STR_FADE == layers[ii]->inTransitionType
