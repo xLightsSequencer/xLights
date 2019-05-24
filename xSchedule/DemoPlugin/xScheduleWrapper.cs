@@ -7,6 +7,7 @@
 
 using System;
 using System.Runtime.InteropServices;
+using System.Drawing;
 
 // requires package UnmanagedExports - version 1.6
 // https://github.com/3F/DllExport
@@ -14,6 +15,51 @@ using System.Runtime.InteropServices;
 
 namespace xScheduleWrapper
 {
+    public class PixelBuffer
+    {
+        IntPtr _buffer { get; }
+        int _bufferSize;
+
+        public PixelBuffer(IntPtr buffer, int bufferSize)
+        {
+            _buffer = buffer;
+            _bufferSize = bufferSize;
+        }
+
+        int GetSize() { return _bufferSize; }
+        int GetPixels() { return _bufferSize / 3; }
+
+        public byte this[int index]
+        {
+            get
+            {
+                if (index >= _bufferSize) return 0;
+                return Marshal.ReadByte(_buffer + index);
+            }
+            set
+            {
+                if (index >= _bufferSize) return; // out of bounds
+                Marshal.WriteByte(_buffer + index, value);
+            }
+        }
+
+        public Color GetPixel(int index)
+        {
+            if (3 * index + 2 >= _bufferSize) return Color.Black;
+            return Color.FromArgb(this[index * 3],
+                this[index * 3 + 1], 
+                this[index * 3] + 2);
+        }
+
+        public void SetPixel(int index, Color c)
+        {
+            if (3 * index + 2 >= _bufferSize) return;
+            this[3 * index] = c.R;
+            this[3 * index+1] = c.G;
+            this[3 * index+2] = c.B;
+        }
+    }
+
     public static class xScheduleWrapper
     {
         static IntPtr _action;
@@ -145,9 +191,9 @@ namespace xScheduleWrapper
         }
 
         [DllExport("xSchedule_ManipulateBuffer", CallingConvention = CallingConvention.StdCall)]
-        public static void xSchedule_ManipulateBuffer([MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 1)]byte[] buffer, int bufferSize)
+        public static void xSchedule_ManipulateBuffer(IntPtr buffer, int bufferSize)
         {
-            _plugin.ManipulateBuffer(ref buffer, bufferSize);
+            _plugin.ManipulateBuffer(new PixelBuffer(buffer, bufferSize));
         }
     }
 }

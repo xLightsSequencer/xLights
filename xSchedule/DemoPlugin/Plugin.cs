@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using xScheduleWrapper;
+using System.Drawing;
 
 namespace Plugin
 {
@@ -72,7 +73,7 @@ namespace Plugin
         {
         }
 
-        public void ManipulateBuffer(ref byte[] buffer, int buffersize)
+        public void ManipulateBuffer(PixelBuffer buffer)
         {
         }
     }

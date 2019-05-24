@@ -14,5 +14,15 @@
 
 typedef bool (*p_xSchedule_Action)(const char* command, const wchar_t* parameters, const char* data, char* buffer, size_t bufferSize);
 
+#ifndef __WXOSX__
+class xSMSDaemonApp : public wxApp
+{
+public:
+    virtual bool OnInit() override;
+    virtual int OnExit() override;
+};
+
+DECLARE_APP(xSMSDaemonApp)
+#endif
 
 #endif // xSMSDaemonAPP_H
