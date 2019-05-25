@@ -5817,29 +5817,33 @@ int EffectsGrid::DrawEffectBackground(const Row_Information_Struct* ri, const Ef
         }
     }
     int result = ef == nullptr ? 1 : ef->DrawEffectBackground(e, x1, y1, x2, y2, backgrounds, (colorMask.IsNilColor() ? nullptr : &colorMask), xlights->IsDrawRamps());
-    ////
+
     const SettingsMap &sm( e->GetSettings() );
     double fadeInTime = sm.GetDouble( "T_TEXTCTRL_Fadein" );
     if ( fadeInTime != 0. )
     {
        double fadeInTimeMS = fadeInTime * 1000;
        int durationMS = e->GetEndTimeMS() - e->GetStartTimeMS();
-       double pct = fadeInTimeMS / durationMS;
-       int width = int( pct * (x2 - x1) );
-       xlColor greenOverlay( 0, 0xff, 0, 0x64 );
-       backgrounds.AddHBlendedRectangle( greenOverlay, greenOverlay, x1, y1, x1+width, y2 );
+       if ( durationMS > 0 )
+       {
+         double pct = std::min( fadeInTimeMS / durationMS, 1. );
+         int width = int( pct * (x2 - x1) );
+         backgrounds.AddRect( x1, y1, x1+width, y1+3, xlGREEN );
+       }
     }
     double fadeOutTime = sm.GetDouble( "T_TEXTCTRL_Fadeout" );
     if ( fadeOutTime != 0. )
     {
        double fadeOutTimeMS = fadeOutTime * 1000;
        int durationMS = e->GetEndTimeMS() - e->GetStartTimeMS();
-       double pct = fadeOutTimeMS / durationMS;
-       int width = int( pct * (x2 - x1) );
-       xlColor redOverlay( 0xff, 0, 0, 0x64 );
-       backgrounds.AddHBlendedRectangle( redOverlay, redOverlay, x2-width, y1, x2, y2 );
+       if ( durationMS > 0 )
+       {
+         double pct = std::min( fadeOutTimeMS / durationMS, 1. );
+         int width = int( pct * (x2 - x1) );
+         backgrounds.AddRect( x2 - width, y1, x2, y1+3, xlRED );
+       }
     }
-    ////
+
     return result;
 }
 
@@ -6098,9 +6102,7 @@ void EffectsGrid::DrawEffects()
         }
     }
     backgrounds.Finish(GL_TRIANGLES);
-    LOG_GL_ERRORV( glEnable( GL_BLEND ) );
     DrawGLUtils::Draw(backgrounds);
-    LOG_GL_ERRORV( glDisable( GL_BLEND ) );
     for (auto it = textures.begin(); it != textures.end(); ++it) {
         it->second.id = it->first;
         DrawGLUtils::Draw(it->second, GL_TRIANGLES);
