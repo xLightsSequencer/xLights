@@ -3,6 +3,10 @@ The xSchedule plugin architecture has been designed to support plugins written i
 
 To build a plugin it must export the following functions which xSchedule will call:
 
+Only the xSchedule_Load API must exist otherwise the DLL will not be recognised as a plugin. If others are not found it will just be ignored. In practice xSchedule_Start and xSchedule_Stop are also critical.
+
+All Apis are StdCall or extern "C" calling convention ... see the DemoPlugin and xSMSDaemon for examples.
+
 bool xSchedule_Load(char* showDir);
 
 	This is called when the DLL is first loaded but the plugin is not active at this point and should take no action.
@@ -47,6 +51,10 @@ void xSchedule_ManipulateBuffer(uint8_t* buffer, size_t bufferSize);
 void xSchedule_NotifyStatus(const char* statusJSON);
 
 	This is called once per second by xSchedule to inform your plugin of the scheduler state. The string is a JSON message the same as the web interface would have returned.
+
+void xScedule_FireEvent(const char* type, const char* parameters)
+	
+	This is called as a result of either a Playlist Plugin item firing an event or an event or button triggering the "Fire plugin event" api or that api being called externally.
 
 xSchedule supports one function which you may call if you want to to take any command or query action.
 

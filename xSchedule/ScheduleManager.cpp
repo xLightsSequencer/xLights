@@ -1672,6 +1672,34 @@ bool ScheduleManager::Action(const wxString& command, const wxString& parameters
                         result = false;
                     }
                 }
+                else if (command == "Fire plugin event")
+                {
+                    wxArrayString ep = wxSplit(parameters, '|');
+                    if (ep.size() > 0)
+                    {
+                        std::string plugin = ep[0];
+
+                        std::string eps = "";
+                        if (ep.size() > 1)
+                        {
+                            eps = ep[1];
+                        }
+
+                        if (plugin == "*")
+                        {
+                            ((xScheduleApp*)wxTheApp)->GetFrame()->GetPluginManager().FireEvent("Command", eps);
+                        }
+                        else
+                        {
+                            ((xScheduleApp*)wxTheApp)->GetFrame()->GetPluginManager().FirePluginEvent(plugin, "Command", eps);
+                        }
+                    }
+                    else
+                    {
+                        msg = "No plugin specified";
+                        result = false;
+                    }
+                }
                 else if (command == "Set mode")
                 {
                     int mode = (int)SYNCMODE::STANDALONE;

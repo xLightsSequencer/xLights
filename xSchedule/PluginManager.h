@@ -40,6 +40,7 @@ public:
         p_xSchedule_NotifyStatus _notifyStatusFn;
         p_xSchedule_GetVirtualWebFolder _getVirtualWebFolderFn;
         p_xSchedule_GetMenuLabel _getMenuLabelFn;
+        p_xSchedule_FireEvent _fireEventFn;
     };
 private:
     std::map<std::string, PluginState*> _plugins;
@@ -74,5 +75,7 @@ private:
         bool HandleWeb(const std::string& plugin, const std::string& command, const std::wstring& parameters, const std::wstring& data, const std::wstring& reference, std::wstring& response);
         void ManipulateBuffer(uint8_t* buffer, size_t bufferSize);
         void NotifyStatus(const std::string& statusJSON);
+        void FirePluginEvent(const std::string& plugin, const std::string& eventType, const std::string& eventParam);
+        void FireEvent(const std::string& eventType, const std::string& eventParam);
 };
 #endif

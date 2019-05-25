@@ -190,6 +190,12 @@ namespace xScheduleWrapper
             _plugin.NotifyStatus(status);
         }
 
+        [DllExport("xSchedule_FireEvent", CallingConvention = CallingConvention.StdCall)]
+        public static void xSchedule_FireEvent([MarshalAs(UnmanagedType.LPStr)]string type, [MarshalAs(UnmanagedType.LPStr)]string parameters)
+        {
+            _plugin.FireEvent(type, parameters);
+        }
+
         [DllExport("xSchedule_ManipulateBuffer", CallingConvention = CallingConvention.StdCall)]
         public static void xSchedule_ManipulateBuffer(IntPtr buffer, int bufferSize)
         {

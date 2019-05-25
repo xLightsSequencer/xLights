@@ -320,6 +320,11 @@ http://<host:port>/xScheduleCommand?Command=<command>&Parameters=<parameters>
 				Remote_MIDI
 				Remote_OSC
 						
+		Fire plugin event <plugin>|<plugin parameteres>
+			Fires an event to the named plugin with the specified data
+			If the plugin name is * then the event is sent to all plugins.
+			The plugin parameters are interpreted by the plugin
+						
 http://<host:port>/xScheduleStash?Command=<command>&Key=<key>
 
 

@@ -43,5 +43,9 @@ extern "C" {
     // called just before xSchedule exits
     void WXIMPORT xSchedule_Unload();
     typedef void (*p_xSchedule_Unload)();
+
+    // called when an event occurs
+    void WXIMPORT xSchedule_FireEvent(const char* eventType, const char* eventParam);
+    typedef bool (*p_xSchedule_FireEvent)(const char* eventType, const char* eventParam);
 }
 #endif

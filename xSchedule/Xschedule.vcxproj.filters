@@ -492,6 +492,12 @@
       <Filter>PlayList</Filter>
     </ClCompile>
     <ClCompile Include="PluginManager.cpp" />
+    <ClCompile Include="PlayList\PlayListItemPluginPanel.cpp">
+      <Filter>PlayList</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayList\PlayListItemPlugin.cpp">
+      <Filter>PlayList</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\xLights\AudioManager.h" />
@@ -972,6 +978,12 @@
     </ClInclude>
     <ClInclude Include="PluginManager.h" />
     <ClInclude Include="xSchedulePlugin.h" />
+    <ClInclude Include="PlayList\PlayListItemPluginPanel.h">
+      <Filter>PlayList</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayList\PlayListItemPlugin.h">
+      <Filter>PlayList</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

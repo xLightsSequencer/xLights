@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using xScheduleWrapper;
 using System.Drawing;
+using System.Windows.Forms;
 
 namespace Plugin
 {
@@ -77,6 +78,11 @@ namespace Plugin
         {
             for (int i = 0; i < 10; i++)
                 buffer.SetPixel(i, Color.Magenta);
+        }
+
+        public void FireEvent(string type, string parameters)
+        {
+            MessageBox.Show(parameters);
         }
     }
 }

@@ -25,6 +25,7 @@ PluginManager::PluginState::PluginState(wxDynamicLibrary* dl) : _dl(dl), _starte
         _notifyStatusFn = (p_xSchedule_NotifyStatus)_dl->GetSymbol("xSchedule_NotifyStatus");
         _getVirtualWebFolderFn = (p_xSchedule_GetVirtualWebFolder)_dl->GetSymbol("xSchedule_GetVirtualWebFolder");
         _getMenuLabelFn = (p_xSchedule_GetMenuLabel)_dl->GetSymbol("xSchedule_GetMenuLabel");
+        _fireEventFn = (p_xSchedule_FireEvent)_dl->GetSymbol("xSchedule_FireEvent");
     } else {
         _loadFn = nullptr;
         _unloadFn = nullptr;
@@ -36,6 +37,7 @@ PluginManager::PluginState::PluginState(wxDynamicLibrary* dl) : _dl(dl), _starte
         _notifyStatusFn = nullptr;
         _getVirtualWebFolderFn = nullptr;
         _getMenuLabelFn = nullptr;
+        _fireEventFn = nullptr;
     }
 }
 PluginManager::PluginState::~PluginState()
@@ -45,7 +47,6 @@ PluginManager::PluginState::~PluginState()
         delete _dl;
     }
 }
-
 
 PluginManager::PluginManager()
 {
@@ -164,6 +165,26 @@ void PluginManager::NotifyStatus(const std::string& statusJSON)
     const char* s = (const char*)statusJSON.c_str();
     for (auto it : _plugins) {
         DoNotifyStatus(it.first, s);
+    }
+}
+
+void PluginManager::FirePluginEvent(const std::string& plugin, const std::string& eventType, const std::string& eventParam)
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    if (_plugins.find(plugin) == _plugins.end()) return;
+    if (!_plugins.at(plugin)->_started) return;
+
+    p_xSchedule_FireEvent fn = _plugins.at(plugin)->_fireEventFn;
+    if (fn != nullptr) {
+        fn((const char*)eventType.c_str(), (const char*)eventParam.c_str());
+        logger_base.debug("Fired event to plugin %s %s:%s", (const char*)plugin.c_str(), (const char*)eventType.c_str(), (const char*)eventParam.c_str());
+    }
+}
+
+void PluginManager::FireEvent(const std::string& eventType, const std::string& eventParam)
+{
+    for (auto it : _plugins) {
+        FirePluginEvent(it.first, eventType, eventParam);
     }
 }
 

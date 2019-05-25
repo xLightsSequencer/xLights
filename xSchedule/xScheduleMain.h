@@ -145,6 +145,7 @@ public:
         std::string GetWebPluginRequest(const std::string& request);
         wxString ProcessPluginRequest(const wxString& plugin, const wxString& command, const wxString& parameters, const wxString& data, const wxString& reference);
         void ManipulateBuffer(uint8_t* buffer, size_t bufferSize);
+        std::string GetOurURL() const;
 
     private:
 
@@ -228,8 +229,6 @@ public:
         void DoXyzzy(wxCommandEvent& event);
         void DoXyzzyEvent(wxCommandEvent& event);
         void CorrectTimer(int rate);
-
-        std::string GetOurURL() const;
 
         //(*Identifiers(xScheduleFrame)
         static const long ID_BITMAPBUTTON1;
