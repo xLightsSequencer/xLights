@@ -445,9 +445,6 @@
     <ClCompile Include="PlayList\PlayListItemMicrophone.cpp">
       <Filter>PlayList</Filter>
     </ClCompile>
-    <ClCompile Include="..\xLights\outputs\ZCPPDialog.cpp">
-      <Filter>Outputs</Filter>
-    </ClCompile>
     <ClCompile Include="..\xLights\outputs\ZCPPOutput.cpp">
       <Filter>Outputs</Filter>
     </ClCompile>
@@ -495,6 +492,13 @@
       <Filter>PlayList</Filter>
     </ClCompile>
     <ClCompile Include="PlayList\PlayListItemARTNetTrigger.cpp">
+      <Filter>PlayList</Filter>
+    </ClCompile>
+    <ClCompile Include="PluginManager.cpp" />
+    <ClCompile Include="PlayList\PlayListItemPluginPanel.cpp">
+      <Filter>PlayList</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayList\PlayListItemPlugin.cpp">
       <Filter>PlayList</Filter>
     </ClCompile>
   </ItemGroup>
@@ -930,9 +934,6 @@
     <ClInclude Include="PlayList\PlayListItemMicrophone.h">
       <Filter>PlayList</Filter>
     </ClInclude>
-    <ClInclude Include="..\xLights\outputs\ZCPPDialog.h">
-      <Filter>Outputs</Filter>
-    </ClInclude>
     <ClInclude Include="..\xLights\outputs\ZCPPOutput.h">
       <Filter>Outputs</Filter>
     </ClInclude>
@@ -979,6 +980,14 @@
       <Filter>PlayList</Filter>
     </ClInclude>
     <ClInclude Include="PlayList\PlayListItemARTNetTrigger.h">
+      <Filter>PlayList</Filter>
+    </ClInclude>
+    <ClInclude Include="PluginManager.h" />
+    <ClInclude Include="xSchedulePlugin.h" />
+    <ClInclude Include="PlayList\PlayListItemPluginPanel.h">
+      <Filter>PlayList</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayList\PlayListItemPlugin.h">
       <Filter>PlayList</Filter>
     </ClInclude>
   </ItemGroup>

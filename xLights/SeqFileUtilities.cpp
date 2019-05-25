@@ -436,6 +436,31 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
             }
         }
 
+		// search for missing media file in the show directory one folder deep
+		if (!wxFileName(media_file).Exists() || !wxFileName(media_file).IsFileReadable())
+		{
+			wxFileName detect_audio(CurrentSeqXmlFile->GetMediaFile());
+			wxDir audDirectory;
+			wxString audFile;
+			audDirectory.Open(GetShowDirectory());
+			bool fcont = audDirectory.GetFirst(&audFile, wxEmptyString, wxDIR_DIRS);
+			while (fcont)
+			{
+				if (audFile != "Backup")
+				{
+					// search directory
+					detect_audio.SetPath(GetShowDirectory() + wxFileName::GetPathSeparator() + audFile);
+					if (detect_audio.FileExists())
+					{
+						media_file = detect_audio;
+						ObtainAccessToURL(media_file.GetFullPath().ToStdString());
+						break;
+					}
+				}
+				fcont = audDirectory.GetNext(&audFile);
+			}
+		}
+
         // if fseq or xseq had media update xml
         if( !CurrentSeqXmlFile->HasAudioMedia()
            && wxFileName(media_file).Exists()

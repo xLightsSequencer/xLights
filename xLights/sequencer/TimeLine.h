@@ -62,6 +62,7 @@ public:
 
     void SetTimeFrequency(int frequency);
     int GetTimeFrequency() const;
+    int GetFrameMS() const { return 1000.0 / mFrequency; }
 
     void SetTimeLength(int ms);
     int GetTimeLength() const;
@@ -82,6 +83,7 @@ public:
     int GetPositionFromTimeMS(int timeMS);
 
     void SetSequenceEnd(int ms);
+    int GetSequenceEnd() const { return mSequenceEndMarkerMS; }
 
     int GetTimeMSfromPosition(int position);
     int GetAbsoluteTimeMSfromPosition(int position);

@@ -6,6 +6,7 @@ bin/xSMSDaemon
 bin/*.dll
 bin/*.exe
 bin/*.map
+bin/*.so
 bin64/xLights
 bin64/xSchedule
 bin64/*.dll

@@ -72,12 +72,12 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>..\..\wxWidgets\include;..\..\wxWidgets\include\msvc;$(IncludePath);..\xlights\ffmpeg-dev\include;..\include</IncludePath>
-    <LibraryPath>..\..\wxWidgets\lib\vc_lib;..\lib\windows;GL;$(LibraryPath)</LibraryPath>
+    <LibraryPath>..\..\wxWidgets\lib\vc_lib;..\lib\windows;GL;$(LibraryPath);$(VCToolsInstallDir)lib\x86</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>..\..\wxWidgets\include;..\..\wxWidgets\include\msvc;$(IncludePath);../xLights/ffmpeg-dev/include;..\include</IncludePath>
-    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;..\..\wxWidgets\lib\vc_x64_lib;..\lib\windows64;..\..\wxWidgets\lib\vc_x64_lib;..\lib\windows;GL;../xlights/ffmpeg-dev/lib</LibraryPath>
+    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;..\..\wxWidgets\lib\vc_x64_lib;..\lib\windows64;..\..\wxWidgets\lib\vc_x64_lib;..\lib\windows;GL;../xlights/ffmpeg-dev/lib;;$(VCToolsInstallDir)lib\x64</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -189,7 +189,6 @@
     <ClCompile Include="..\xLights\outputs\serial.cpp" />
     <ClCompile Include="..\xLights\outputs\SerialOutput.cpp" />
     <ClCompile Include="..\xLights\outputs\TestPreset.cpp" />
-    <ClCompile Include="..\xLights\outputs\ZCPPDialog.cpp" />
     <ClCompile Include="..\xLights\outputs\ZCPPOutput.cpp" />
     <ClCompile Include="..\xLights\Parallel.cpp" />
     <ClCompile Include="..\xLights\SequenceData.cpp" />
@@ -294,6 +293,8 @@
     <ClCompile Include="PlayList\PlayListItemMIDIPanel.cpp" />
     <ClCompile Include="PlayList\PlayListItemOSC.cpp" />
     <ClCompile Include="PlayList\PlayListItemOSCPanel.cpp" />
+    <ClCompile Include="PlayList\PlayListItemPlugin.cpp" />
+    <ClCompile Include="PlayList\PlayListItemPluginPanel.cpp" />
     <ClCompile Include="PlayList\PlayListItemProjector.cpp" />
     <ClCompile Include="PlayList\PlayListItemProjectorPanel.cpp" />
     <ClCompile Include="PlayList\PlayListItemScreenMap.cpp" />
@@ -339,6 +340,7 @@
     <ClCompile Include="PlayList\PlayListStep.cpp" />
     <ClCompile Include="PlayList\PlayListStepPanel.cpp" />
     <ClCompile Include="PlayList\VideoWindowPositionDialog.cpp" />
+    <ClCompile Include="PluginManager.cpp" />
     <ClCompile Include="RemapDialog.cpp" />
     <ClCompile Include="RemoteModeConfigDialog.cpp" />
     <ClCompile Include="RunningSchedule.cpp" />
@@ -406,7 +408,6 @@
     <ClInclude Include="..\xLights\outputs\serial.h" />
     <ClInclude Include="..\xLights\outputs\SerialOutput.h" />
     <ClInclude Include="..\xLights\outputs\TestPreset.h" />
-    <ClInclude Include="..\xLights\outputs\ZCPPDialog.h" />
     <ClInclude Include="..\xLights\outputs\ZCPPOutput.h" />
     <ClInclude Include="..\xLights\UtilFunctions.h" />
     <ClInclude Include="..\xLights\VideoReader.h" />
@@ -503,6 +504,8 @@
     <ClInclude Include="PlayList\PlayListItemMIDIPanel.h" />
     <ClInclude Include="PlayList\PlayListItemOSC.h" />
     <ClInclude Include="PlayList\PlayListItemOSCPanel.h" />
+    <ClInclude Include="PlayList\PlayListItemPlugin.h" />
+    <ClInclude Include="PlayList\PlayListItemPluginPanel.h" />
     <ClInclude Include="PlayList\PlayListItemProjector.h" />
     <ClInclude Include="PlayList\PlayListItemProjectorPanel.h" />
     <ClInclude Include="PlayList\PlayListItemScreenMap.h" />
@@ -548,6 +551,7 @@
     <ClInclude Include="PlayList\PlayListStep.h" />
     <ClInclude Include="PlayList\PlayListStepPanel.h" />
     <ClInclude Include="PlayList\VideoWindowPositionDialog.h" />
+    <ClInclude Include="PluginManager.h" />
     <ClInclude Include="ProjectorCodes.h" />
     <ClInclude Include="ReentrancyCounter.h" />
     <ClInclude Include="RemapDialog.h" />
@@ -578,6 +582,7 @@
     <ClInclude Include="xScheduleApp.h" />
     <ClInclude Include="xScheduleMain.h" />
     <ClInclude Include="MatrixDialog.h" />
+    <ClInclude Include="xSchedulePlugin.h" />
     <ClInclude Include="Xyzzy.h" />
   </ItemGroup>
   <ItemGroup>

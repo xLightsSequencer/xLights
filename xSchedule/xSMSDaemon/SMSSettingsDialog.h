@@ -41,13 +41,11 @@ class SMSSettingsDialog: public wxDialog
 		wxSpinCtrl* SpinCtrl_MaximumMessageLength;
 		wxSpinCtrl* SpinCtrl_RetrieveInterval;
 		wxSpinCtrl* SpinCtrl_TimesToDisplay;
-		wxSpinCtrl* SpinCtrl_xSchedulePort;
 		wxStaticText* StaticText10;
 		wxStaticText* StaticText11;
 		wxStaticText* StaticText13;
 		wxStaticText* StaticText14;
 		wxStaticText* StaticText15;
-		wxStaticText* StaticText1;
 		wxStaticText* StaticText2;
 		wxStaticText* StaticText3;
 		wxStaticText* StaticText4;
@@ -66,15 +64,11 @@ class SMSSettingsDialog: public wxDialog
 		wxTextCtrl* TextCtrl_TargetMatrix;
 		wxTextCtrl* TextCtrl_Token;
 		wxTextCtrl* TextCtrl_User;
-		wxTextCtrl* TextCtrl_xScheduleIPAddress;
 		//*)
 
 	protected:
 
 		//(*Identifiers(SMSSettingsDialog)
-		static const long ID_STATICTEXT1;
-		static const long ID_TEXTCTRL1;
-		static const long ID_SPINCTRL4;
 		static const long ID_STATICTEXT7;
 		static const long ID_TEXTCTRL4;
 		static const long ID_STATICTEXT15;

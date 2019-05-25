@@ -1627,6 +1627,12 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     MenuItemFSEQV1->Check(_fseqVersion == 1);
     MenuItemFSEQV2->Check(_fseqVersion == 2);
 
+    config->Read("xLightsPlayVolume", &playVolume, 100);
+    MenuItem_LoudVol->Check(playVolume == 100);
+    MenuItem_MedVol->Check(playVolume == 66);
+    MenuItem_QuietVol->Check(playVolume == 33);
+    MenuItem_VQuietVol->Check(playVolume == 10);
+    
     logger_base.debug("xLightsFrame constructor creating sequencer.");
 
     CreateSequencer();
@@ -2264,6 +2270,7 @@ xLightsFrame::~xLightsFrame()
     config->Write("xLightsAltBackupDir", mAltBackupDir);
     config->Write("xFadePort", _xFadePort);
     config->Write("xLightsModelHandleSize", _modelHandleSize);
+    config->Write("xLightsPlayVolume", playVolume);
 
     //definitely not outputting data anymore
     config->Write("OutputActive", false);

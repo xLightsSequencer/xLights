@@ -36,9 +36,7 @@ EffectTimingDialog::EffectTimingDialog(wxWindow* parent, Effect* eff, EffectLaye
 	wxFlexGridSizer* FlexGridSizer1;
 	wxFlexGridSizer* FlexGridSizer2;
 
-	Create(parent, id, _("Effect Timing"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER, _T("id"));
-	SetClientSize(wxDefaultSize);
-	Move(wxDefaultPosition);
+	Create(parent, wxID_ANY, _("Effect Timing"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER, _T("wxID_ANY"));
 	FlexGridSizer1 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer1->AddGrowableCol(1);
 	StaticText2 = new wxStaticText(this, ID_STATICTEXT2, _("Start Time (MS):"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
@@ -64,6 +62,7 @@ EffectTimingDialog::EffectTimingDialog(wxWindow* parent, Effect* eff, EffectLaye
 	FlexGridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer2 = new wxFlexGridSizer(0, 3, 0, 0);
 	Button_Ok = new wxButton(this, ID_BUTTON1, _("Ok"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
+	Button_Ok->SetDefault();
 	FlexGridSizer2->Add(Button_Ok, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Button_Cancel = new wxButton(this, ID_BUTTON2, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
 	FlexGridSizer2->Add(Button_Cancel, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -82,6 +81,10 @@ EffectTimingDialog::EffectTimingDialog(wxWindow* parent, Effect* eff, EffectLaye
     Connect(ID_SPINCTRL1, wxEVT_SPINCTRL, (wxObjectEventFunction)&EffectTimingDialog::OnSpinCtrl_StartTimeChange);
     Connect(ID_SPINCTRL2, wxEVT_SPINCTRL, (wxObjectEventFunction)&EffectTimingDialog::OnSpinCtrl_DurationChange);
     Connect(ID_SPINCTRL3, wxEVT_SPINCTRL, (wxObjectEventFunction)&EffectTimingDialog::OnSpinCtrl_EndTimeChange);
+
+    Connect(ID_SPINCTRL1, wxEVT_KILL_FOCUS, (wxObjectEventFunction)& EffectTimingDialog::OnSpinCtrl_StartTimeLoseFocus);
+    Connect(ID_SPINCTRL2, wxEVT_KILL_FOCUS, (wxObjectEventFunction)& EffectTimingDialog::OnSpinCtrl_DurationLoseFocus);
+    Connect(ID_SPINCTRL3, wxEVT_KILL_FOCUS, (wxObjectEventFunction)& EffectTimingDialog::OnSpinCtrl_EndTimeLoseFocus);
 
     SpinCtrl_StartTime->SetStep(_timeInterval);
     SpinCtrl_EndTime->SetStep(_timeInterval);
@@ -118,6 +121,11 @@ void EffectTimingDialog::OnButton_CancelClick(wxCommandEvent& event)
 
 void EffectTimingDialog::OnSpinCtrl_StartTimeChange(wxSpinEvent& event)
 {
+    StartTimeChange();
+}
+
+void EffectTimingDialog::StartTimeChange()
+{
     if (SpinCtrl_StartTime->GetValue() >= SpinCtrl_EndTime->GetValue())
     {
         SpinCtrl_EndTime->SetValue(SpinCtrl_StartTime->GetValue() + _timeInterval);
@@ -129,12 +137,22 @@ void EffectTimingDialog::OnSpinCtrl_StartTimeChange(wxSpinEvent& event)
 
 void EffectTimingDialog::OnSpinCtrl_DurationChange(wxSpinEvent& event)
 {
+    DurationChange();
+}
+
+void EffectTimingDialog::DurationChange()
+{
     SpinCtrl_EndTime->SetValue(SpinCtrl_StartTime->GetValue() + SpinCtrl_Duration->GetValue());
 
     ValidateWindow();
 }
 
 void EffectTimingDialog::OnSpinCtrl_EndTimeChange(wxSpinEvent& event)
+{
+    EndTimeChange();
+}
+
+void EffectTimingDialog::EndTimeChange()
 {
     if (SpinCtrl_EndTime->GetValue() <= SpinCtrl_StartTime->GetValue())
     {
@@ -145,11 +163,31 @@ void EffectTimingDialog::OnSpinCtrl_EndTimeChange(wxSpinEvent& event)
     ValidateWindow();
 }
 
+void EffectTimingDialog::OnSpinCtrl_StartTimeLoseFocus(wxFocusEvent& event)
+{
+    StartTimeChange();
+    event.Skip();
+}
+
+void EffectTimingDialog::OnSpinCtrl_DurationLoseFocus(wxFocusEvent& event)
+{
+    DurationChange();
+    event.Skip();
+}
+
+void EffectTimingDialog::OnSpinCtrl_EndTimeLoseFocus(wxFocusEvent& event)
+{
+    EndTimeChange();
+    event.Skip();
+}
+
 void EffectTimingDialog::ValidateWindow()
 {
     bool valid = true;
     int start = SpinCtrl_StartTime->GetValue();
     int end = SpinCtrl_EndTime->GetValue();
+
+    if (start == end) valid = false;
 
     for (int i = 0; i < _effectLayer->GetEffectCount(); ++i)
     {

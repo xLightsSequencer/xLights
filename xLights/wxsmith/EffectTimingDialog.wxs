@@ -2,8 +2,7 @@
 <wxsmith>
 	<object class="wxDialog" name="EffectTimingDialog">
 		<title>Effect Timing</title>
-		<pos_arg>1</pos_arg>
-		<size_arg>1</size_arg>
+		<id_arg>0</id_arg>
 		<style>wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER</style>
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
 			<cols>2</cols>
@@ -91,6 +90,7 @@
 					<object class="sizeritem">
 						<object class="wxButton" name="ID_BUTTON1" variable="Button_Ok" member="yes">
 							<label>Ok</label>
+							<default>1</default>
 							<handler function="OnButton_OkClick" entry="EVT_BUTTON" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>

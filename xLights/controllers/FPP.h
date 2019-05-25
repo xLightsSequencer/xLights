@@ -85,7 +85,7 @@ public:
 
 class FPP {
     public:
-    FPP() : majorVersion(0), minorVersion(0), outputFile(nullptr), parent(nullptr), curl(nullptr) {}
+    FPP() : majorVersion(0), minorVersion(0), outputFile(nullptr), parent(nullptr), curl(nullptr), isFPP(true) {}
     FPP(const std::string &address);
     FPP(const FPP &c);
     virtual ~FPP();
@@ -108,6 +108,7 @@ class FPP {
 
     std::string username;
     std::string password;
+    bool isFPP;
 
     wxWindow *parent;
 
@@ -139,7 +140,7 @@ class FPP {
     bool SetRestartFlag();
     void SetDescription(const std::string &st);
 
-    static void Discover(const std::list<std::string> &forcedAddresses, std::list<FPP*> &instances, bool doBroadcast = true);
+    static void Discover(const std::list<std::string> &forcedAddresses, std::list<FPP*> &instances, bool doBroadcast = true, bool allPlatforms = false);
     static void Probe(const std::list<std::string> &addresses, std::list<FPP*> &instances);
 
     static std::string CreateModelMemoryMap(ModelManager* allmodels);
@@ -169,6 +170,7 @@ private:
 
     bool parseSysInfo(wxJSONValue& v);
     void parseControllerType(wxJSONValue& v);
+    void parseConfig(const std::string& v);
 
 
     std::map<std::string, std::string> sequences;

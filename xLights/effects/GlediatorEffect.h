@@ -15,6 +15,7 @@ class GlediatorReader
 public:
     GlediatorReader(const std::string& filename, const wxSize& size);
     virtual ~GlediatorReader();
+    size_t GetFrames() { return _frames; }
     std::string GetFilename() const { return _filename; }
     void GetFrame(size_t frame, char* buffer, size_t size);
     size_t GetFrameCount() const { return _frames; };

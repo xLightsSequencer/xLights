@@ -9,10 +9,10 @@
 		<Build>
 			<Target title="MinGW_Debug">
 				<Option platforms="Windows;" />
-				<Option output="../../bin/xSMSDaemon" prefix_auto="1" extension_auto="1" />
+				<Option output="../../bin/xSMSDaemon" imp_lib="$(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).a" def_file="$(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).def" prefix_auto="1" extension_auto="1" />
 				<Option working_dir="../../bin" />
 				<Option object_output=".objs_wd32" />
-				<Option type="0" />
+				<Option type="3" />
 				<Option compiler="gcc" />
 				<Option projectLinkerOptionsRelation="2" />
 				<Compiler>
@@ -20,6 +20,7 @@
 					<Add option="-pedantic" />
 					<Add option="-std=c++1z" />
 					<Add option="-g" />
+					<Add option="-fPIC" />
 					<Add option="-pipe" />
 					<Add option="-mthreads" />
 					<Add option="-fno-keep-inline-dllexport" />
@@ -58,10 +59,10 @@
 			</Target>
 			<Target title="MinGW_Release">
 				<Option platforms="Windows;" />
-				<Option output="../../bin/xSMSDaemon" prefix_auto="1" extension_auto="1" />
+				<Option output="../../bin/xSMSDaemon" imp_lib="$(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).a" def_file="$(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).def" prefix_auto="1" extension_auto="1" />
 				<Option working_dir="../../bin" />
 				<Option object_output=".objs_wr32" />
-				<Option type="0" />
+				<Option type="3" />
 				<Option compiler="gcc" />
 				<Option projectLinkerOptionsRelation="2" />
 				<Compiler>
@@ -69,6 +70,7 @@
 					<Add option="-O2" />
 					<Add option="-pedantic" />
 					<Add option="-std=c++1z" />
+					<Add option="-fPIC" />
 					<Add option="-m32" />
 					<Add option="-pipe" />
 					<Add option="-mthreads" />
@@ -77,7 +79,6 @@
 					<Add option='[[if ((GetCompilerFactory().GetCompilerVersionString(_T(&quot;gcc&quot;)) &gt;= _T(&quot;4.0.0&quot;))) print(_T(&quot;-Wno-attributes&quot;));]]' />
 					<Add option="-D__GNUWIN32__" />
 					<Add option="-D__WXMSW__" />
-					<Add option="-DWXUSINGDLL" />
 					<Add option="-DNDEBUG" />
 					<Add option="-D_USE_MATH_DEFINES" />
 					<Add directory="$(#wx)/lib/gcc_dll/mswu" />
@@ -91,36 +92,59 @@
 					<Add directory="$(#wx)/lib/gcc_dll/mswu" />
 				</ResourceCompiler>
 				<Linker>
+					<Add option="-O2" />
 					<Add option="-s" />
 					<Add option="-m32" />
-					<Add option="-lopengl32" />
-					<Add option="-Wl,-Map=../../bin/xSMSDaemon.map" />
+					<Add option="-Wl,-Map=../../bin/xSMSDaemon.map,--allow-multiple-definition" />
 					<Add option="-Wl,--large-address-aware" />
 					<Add option="-lpthread" />
 					<Add option="-lz" />
-					<Add library="../../lib/windows/imagehlp.lib" />
+					<Add library="libwxmsw31u.a" />
+					<Add library="libwxmsw31u_gl.a" />
+					<Add library="libwxregexu.a" />
+					<Add library="libwxexpat.a" />
+					<Add library="libuuid.a" />
 					<Add library="../../lib/windows/iphlpapi.lib" />
+					<Add library="libimagehlp.a" />
 					<Add library="../../lib/windows/liblog4cpp.lib" />
 					<Add library="libwinmm.a" />
-					<Add library="../../lib/windows/libwxmsw31u.a" />
-					<Add library="../../lib/windows/libwxmsw31u_gl.a" />
-					<Add library="../../lib/windows/Ws2_32.lib" />
 					<Add library="../../lib/windows/libcurl.lib" />
 					<Add library="psapi" />
+					<Add library="libuser32.a" />
+					<Add library="libkernel32.a" />
+					<Add library="libgdi32.a" />
+					<Add library="libversion.a" />
+					<Add library="libshlwapi.a" />
+					<Add library="libadvapi32.a" />
+					<Add library="libwsock32.a" />
+					<Add library="libole32.a" />
+					<Add library="libcomdlg32.a" />
+					<Add library="libuxtheme.a" />
+					<Add library="libcomctl32.a" />
+					<Add library="libwinspool.a" />
+					<Add library="liboleaut32.a" />
+					<Add library="libodbc32.a" />
+					<Add library="liboleacc.a" />
+					<Add library="libwxpng.a" />
+					<Add library="libwxjpeg.a" />
+					<Add library="libwxzlib.a" />
+					<Add library="libshell32.a" />
+					<Add directory="../../lib/windows/static" />
 					<Add directory="../../lib/windows" />
 				</Linker>
 			</Target>
 			<Target title="Linux_Debug">
 				<Option platforms="Unix;" />
-				<Option output="../../bin/xSMSDaemon" prefix_auto="1" extension_auto="1" />
+				<Option output="../../bin/xSMSDaemon" imp_lib="$(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).a" def_file="$(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).def" prefix_auto="1" extension_auto="1" />
 				<Option object_output=".objs_ld" />
-				<Option type="0" />
+				<Option type="3" />
 				<Option compiler="gcc" />
 				<Option projectCompilerOptionsRelation="1" />
 				<Option projectLinkerOptionsRelation="2" />
 				<Compiler>
 					<Add option="-Wall" />
 					<Add option="-g" />
+					<Add option="-fPIC" />
 					<Add option="`wx-config --version=3.1 --cflags`" />
 					<Add option="`pkg-config --cflags libavformat libavcodec libavutil  libswresample libswscale`" />
 					<Add option="`pkg-config --cflags gstreamer-1.0 gstreamer-video-1.0`" />
@@ -149,14 +173,15 @@
 			</Target>
 			<Target title="Linux_Release">
 				<Option platforms="Unix;" />
-				<Option output="../../bin/xSMSDaemon" prefix_auto="1" extension_auto="1" />
+				<Option output="../../bin/xSMSDaemon" imp_lib="$(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).a" def_file="$(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).def" prefix_auto="1" extension_auto="1" />
 				<Option object_output=".objs_lr" />
-				<Option type="0" />
+				<Option type="3" />
 				<Option compiler="gcc" />
 				<Option projectLinkerOptionsRelation="2" />
 				<Compiler>
 					<Add option="-O2" />
 					<Add option="-Wall" />
+					<Add option="-fPIC" />
 					<Add option="`wx-config --version=3.1 --cflags`" />
 					<Add option="`pkg-config --cflags gstreamer-1.0 gstreamer-video-1.0`" />
 					<Add option="`pkg-config --cflags libavformat libavcodec libavutil  libswresample libswscale`" />
@@ -185,16 +210,17 @@
 			</Target>
 			<Target title="64bit_MinGW_Release">
 				<Option platforms="Windows;" />
-				<Option output="../../bin64/xSMSDaemon" prefix_auto="1" extension_auto="1" />
+				<Option output="../../bin64/xSMSDaemon" imp_lib="$(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).a" def_file="$(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).def" prefix_auto="1" extension_auto="1" />
 				<Option working_dir="../../bin64" />
 				<Option object_output=".objs_wr64" />
-				<Option type="0" />
+				<Option type="3" />
 				<Option compiler="gnu_gcc_64bit_compiler" />
 				<Option projectLinkerOptionsRelation="2" />
 				<Compiler>
 					<Add option="-O2" />
 					<Add option="-pedantic" />
 					<Add option="-std=c++1z" />
+					<Add option="-fPIC" />
 					<Add option="-m64" />
 					<Add option="-pipe" />
 					<Add option="-mthreads" />
@@ -203,7 +229,6 @@
 					<Add option='[[if ((GetCompilerFactory().GetCompilerVersionString(_T(&quot;gcc&quot;)) &gt;= _T(&quot;4.0.0&quot;))) print(_T(&quot;-Wno-attributes&quot;));]]' />
 					<Add option="-D__GNUWIN32__" />
 					<Add option="-D__WXMSW__" />
-					<Add option="-DWXUSINGDLL" />
 					<Add option="-DNDEBUG" />
 					<Add option="-D_USE_MATH_DEFINES" />
 					<Add directory="include" />
@@ -217,20 +242,43 @@
 					<Add directory="$(#wx)/lib/gcc_dll/mswu" />
 				</ResourceCompiler>
 				<Linker>
+					<Add option="-O2" />
 					<Add option="-s" />
 					<Add option="-m64" />
-					<Add option="-Wl,-Map=../../bin64/xSMSDaemon.map" />
+					<Add option="-Wl,-Map=../../bin64/xSMSDaemon.map,--allow-multiple-definition" />
 					<Add option="-lpthread" />
 					<Add option="-lz" />
+					<Add library="libwxmsw31u.a" />
+					<Add library="libwxmsw31u_gl.a" />
+					<Add library="libwxregexu.a" />
+					<Add library="libwxexpat.a" />
+					<Add library="libuuid.a" />
 					<Add library="../../lib/windows64/iphlpapi.lib" />
-					<Add library="../../lib/windows64/libimagehlp.a" />
+					<Add library="libimagehlp.a" />
 					<Add library="../../lib/windows64/liblog4cpp.a" />
 					<Add library="libwinmm.a" />
-					<Add library="../../lib/windows64/libwxmsw31u.a" />
-					<Add library="../../lib/windows64/libwxmsw31u_gl.a" />
-					<Add library="../../lib/windows64/Ws2_32.lib" />
 					<Add library="../../lib/windows64/libcurl.lib" />
 					<Add library="psapi" />
+					<Add library="libuser32.a" />
+					<Add library="libkernel32.a" />
+					<Add library="libgdi32.a" />
+					<Add library="libversion.a" />
+					<Add library="libshlwapi.a" />
+					<Add library="libadvapi32.a" />
+					<Add library="libwsock32.a" />
+					<Add library="libole32.a" />
+					<Add library="libcomdlg32.a" />
+					<Add library="libuxtheme.a" />
+					<Add library="libcomctl32.a" />
+					<Add library="libwinspool.a" />
+					<Add library="liboleaut32.a" />
+					<Add library="libodbc32.a" />
+					<Add library="liboleacc.a" />
+					<Add library="libwxpng.a" />
+					<Add library="libwxjpeg.a" />
+					<Add library="libwxzlib.a" />
+					<Add library="libshell32.a" />
+					<Add directory="../../lib/windows64/static" />
 					<Add directory="../../lib/windows64" />
 				</Linker>
 			</Target>

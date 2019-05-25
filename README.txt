@@ -11,6 +11,27 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (kevin)   Add "Fold" transition type
+2019.26 May 24, 2019
+   -- enh (scott)   When prompting for missing audio include the original audio filename to make it easier to find
+   -- enh (scott)   When audio is missing look down 1 folder and grab it from there if found
+   -- enh (keith)   Add plugin functionality to xSchedule. See "Plugin Docuentation.txt" in github for the interface
+					specification. Also in github is a C# plugin wrapper with simple UI.
+   -- enh (keith)   Move SMS Daemon to be an xSchedule plugin
+   -- enh (keith)   Suport a "-shimmer" suffix on phonemes which will shimmer the phoneme mouth. This needs to be manually
+                    added where you want it
+   -- enh (keith)   When dropping a video file and creating a video effect get smarter about the length of the effect created
+   -- enh (keith)   Add a right click menu to the test dialog channel lists to quick select/deselect channels/models/outputs
+   -- enh (keith)   When editing jukebox button definitions always pop up the dialog near the button
+   -- enh (keith)   Fix #1554 add a set mode api to xschedule to turn on/off master and remote modes
+   -- bug (keith)   Fix #1553 xschedule test mode disable does not restore xSchedule prior mode correctly
+   -- enh (keith)   Fix #987 Add preset length to effect preset panel
+   -- bug (keith)   Fix #959 Edit effect timing does not allow keyboard entry
+   -- enh (keith)   Add a CTRL-A keyboard shortcut to layout panel to select all models
+   -- bug (keith)   Remove a memory check in win32 which older versions of windows dont support
+   -- bug (dkulp)   Better handling if other FPP discovery nodes are found that aren't FPP (like ESPixelSticks)
+   -- bug (dkulp)   Try to detect if "null" hostnames would appear in FPP Connect and ignore
+   -- enh (lee)     Save audio volume between xLights runs
 2019.25 May 11, 2019
    -- enh (keith)   Add some extra modes to VU Meter that act like timing mark controlled sweeps for arches
    -- bug (keith)   Fix punctuation at word level of lyric tracks prevents phoneme breakdown

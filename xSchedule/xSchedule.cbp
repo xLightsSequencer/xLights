@@ -97,6 +97,7 @@
 					<Add directory="$(#wx)/lib/gcc_dll/mswu" />
 				</ResourceCompiler>
 				<Linker>
+					<Add option="-O2" />
 					<Add option="-s" />
 					<Add option="-m32" />
 					<Add option="-lopengl32" />
@@ -228,6 +229,7 @@
 					<Add directory="$(#wx)/lib/gcc_dll/mswu" />
 				</ResourceCompiler>
 				<Linker>
+					<Add option="-O2" />
 					<Add option="-s" />
 					<Add option="-m64" />
 					<Add option="-Wl,-Map=../bin64/xSchedule.map" />
@@ -511,6 +513,10 @@
 		<Unit filename="PlayList/PlayListItemOSC.h" />
 		<Unit filename="PlayList/PlayListItemOSCPanel.cpp" />
 		<Unit filename="PlayList/PlayListItemOSCPanel.h" />
+		<Unit filename="PlayList/PlayListItemPlugin.cpp" />
+		<Unit filename="PlayList/PlayListItemPlugin.h" />
+		<Unit filename="PlayList/PlayListItemPluginPanel.cpp" />
+		<Unit filename="PlayList/PlayListItemPluginPanel.h" />
 		<Unit filename="PlayList/PlayListItemProjector.cpp" />
 		<Unit filename="PlayList/PlayListItemProjector.h" />
 		<Unit filename="PlayList/PlayListItemProjectorPanel.cpp" />
@@ -563,6 +569,8 @@
 		<Unit filename="PlayList/PlayerWindow.h" />
 		<Unit filename="PlayList/VideoWindowPositionDialog.cpp" />
 		<Unit filename="PlayList/VideoWindowPositionDialog.h" />
+		<Unit filename="PluginManager.cpp" />
+		<Unit filename="PluginManager.h" />
 		<Unit filename="RemapDialog.cpp" />
 		<Unit filename="RemapDialog.h" />
 		<Unit filename="RemoteModeConfigDialog.cpp" />
@@ -726,6 +734,7 @@
 		<Unit filename="wxsmith/PlayListItemMIDIPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemMicrophonePanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemOSCPanel.wxs" />
+		<Unit filename="wxsmith/PlayListItemPluginPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemProjectorPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemRDSPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemRunCommandPanel.wxs" />
@@ -754,6 +763,7 @@
 		<Unit filename="xScheduleApp.h" />
 		<Unit filename="xScheduleMain.cpp" />
 		<Unit filename="xScheduleMain.h" />
+		<Unit filename="xSchedulePlugin.h" />
 		<Extensions>
 			<code_completion />
 			<envvars />
@@ -773,6 +783,7 @@
 					<wxPanel wxs="wxsmith/PlayListItemImagePanel.wxs" src="PlayList/PlayListItemImagePanel.cpp" hdr="PlayList/PlayListItemImagePanel.h" fwddecl="0" i18n="1" name="PlayListItemImagePanel" language="CPP" />
 					<wxPanel wxs="wxsmith/PlayListItemJukeboxPanel.wxs" src="PlayList/PlayListItemJukeboxPanel.cpp" hdr="PlayList/PlayListItemJukeboxPanel.h" fwddecl="0" i18n="1" name="PlayListItemJukeboxPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/PlayListItemMIDIPanel.wxs" src="PlayList/PlayListItemMIDIPanel.cpp" hdr="PlayList/PlayListItemMIDIPanel.h" fwddecl="0" i18n="1" name="PlayListItemMIDIPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/PlayListItemPluginPanel.wxs" src="PlayList/PlayListItemPluginPanel.cpp" hdr="PlayList/PlayListItemPluginPanel.h" fwddecl="0" i18n="1" name="PlayListItemPluginPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/PlayListItemProjectorPanel.wxs" src="PlayList/PlayListItemProjectorPanel.cpp" hdr="PlayList/PlayListItemProjectorPanel.h" fwddecl="0" i18n="1" name="PlayListItemProjectorPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/PlayListItemRunCommandPanel.wxs" src="PlayList/PlayListItemRunCommandPanel.cpp" hdr="PlayList/PlayListItemRunCommandPanel.h" fwddecl="0" i18n="1" name="PlayListItemRunCommandPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/PlayListItemCURLPanel.wxs" src="PlayList/PlayListItemCURLPanel.cpp" hdr="PlayList/PlayListItemCURLPanel.h" fwddecl="0" i18n="1" name="PlayListItemCURLPanel" language="CPP" />

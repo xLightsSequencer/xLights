@@ -2580,7 +2580,7 @@ void xLightsFrame::OnButton_DiscoverClick(wxCommandEvent& event)
             startAddresses.push_back(a);
         }
     }
-    FPP::Discover(startAddresses, instances);
+    FPP::Discover(startAddresses, instances, true, true);
     std::list<FPP*> consider;
     for (auto fpp : instances) {
         std::list<Output*> outputs = _outputManager.GetAllOutputs(fpp->ipAddress, fpp->hostName);
@@ -2623,6 +2623,10 @@ void xLightsFrame::OnButton_DiscoverClick(wxCommandEvent& event)
         }
         ddp->SetControllerId(fpp->pixelControllerType);
         ddp->SetDescription(fpp->description);
+        if (fpp->platform == "ESPixelStick") {
+            ddp->SetControllerId("ESPixelStick");
+            ddp->KeepChannelNumber(false);
+        }
         int min = 9999999; int max = 0;
         if (fpp->ranges != "") {
             wxArrayString r1 = wxSplit(wxString(fpp->ranges), ',');

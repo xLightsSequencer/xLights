@@ -78,7 +78,7 @@ PixelCapeInfo& FPP::GetCapeRules(const std::string& type)
     return CONTROLLER_TYPE_MAP.find(type) != CONTROLLER_TYPE_MAP.end() ? CONTROLLER_TYPE_MAP[type] : CONTROLLER_TYPE_MAP["PiHat"];
 }
 
-FPP::FPP(const std::string &ad) : majorVersion(0), minorVersion(0), outputFile(nullptr), parent(nullptr), ipAddress(ad), curl(nullptr) {
+FPP::FPP(const std::string &ad) : majorVersion(0), minorVersion(0), outputFile(nullptr), parent(nullptr), ipAddress(ad), curl(nullptr), isFPP(true) {
     wxIPV4address address;
     if (address.Hostname(ad)) {
         hostName = ad;
@@ -90,7 +90,7 @@ FPP::FPP(const std::string &ad) : majorVersion(0), minorVersion(0), outputFile(n
 FPP::FPP(const FPP &c)
     : majorVersion(c.majorVersion), minorVersion(c.minorVersion), outputFile(nullptr), parent(nullptr), curl(nullptr),
     hostName(c.hostName), description(c.description), ipAddress(c.ipAddress), fullVersion(c.fullVersion), platform(c.platform),
-    model(c.model), ranges(c.ranges), mode(c.mode), pixelControllerType(c.pixelControllerType), username(c.username), password(c.password)
+    model(c.model), ranges(c.ranges), mode(c.mode), pixelControllerType(c.pixelControllerType), username(c.username), password(c.password), isFPP(c.isFPP)
 {
     
 }
@@ -167,9 +167,12 @@ bool FPP::GetURLAsJSON(const std::string& url, wxJSONValue& val) {
 
 
 bool FPP::AuthenticateAndUpdateVersions() {
+    std::string conf;
+    GetURLAsString("/config.php", conf);
+    parseConfig(conf);
     wxJSONValue val;
     if (GetURLAsJSON("/fppjson.php?command=getSysInfo&simple", val)) {
-        return parseSysInfo(val);
+        return isFPP && parseSysInfo(val);
     }
     return false;
 }
@@ -251,6 +254,32 @@ void FPP::parseControllerType(wxJSONValue& val) {
             panelSize.append(std::to_string(ph * nh));
         }
     }
+}
+
+static std::string trimfront(const std::string &s) {
+    int x = 0;
+    while (x < s.length() && std::isspace(s[x])) {
+        x++;
+    }
+    return s.substr(x);
+}
+void FPP::parseConfig(const std::string& v) {
+    std::stringstream ss(v);
+    std::string to;
+    
+    std::map<std::string, std::string> settings;
+    while(std::getline(ss, to, '\n')){
+        to = trimfront(to);
+        if (to.substr(0, 8) == "settings") {
+            to = to.substr(10);
+            int i = to.find("'");
+            std::string key = to.substr(0, i);
+            to = to.substr(to.find("\"") + 1);
+            to = to.substr(0, to.find(";") - 1);
+            settings[key] = to;
+        }
+    }
+    isFPP = settings["Title"].find("Falcon Player") != std::string::npos;
 }
 
 
@@ -1275,7 +1304,7 @@ public:
 };
 
 #define FPP_CTRL_PORT 32320
-void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &instances, bool doBroadcast) {
+void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &instances, bool doBroadcast, bool allPlatforms) {
     std::vector<CurlData*> curls;
     CURLM * curlMulti = curl_multi_init();
     for (auto &a : addresses) {
@@ -1346,7 +1375,7 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
                     }
                 }
                 int platform = buffer[9];
-                if (!found && (platform > 0 && platform < 0x80)) {
+                if (!found && (allPlatforms || (platform > 0 && platform < 0x80))) {
                     //platform > 0x80 is Falcon controllers or xLights
                     FPP *inst = new FPP();
                     inst->hostName = (char *)&buffer[19];
@@ -1396,39 +1425,58 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
                                 */
                                 wxJSONValue origJson;
                                 wxJSONReader reader;
-                                reader.Parse(curls[x]->buffer, &origJson);
+                                bool parsed = true;
+                                if (curls[x]->type != 3) {
+                                    parsed = reader.Parse(curls[x]->buffer, &origJson) == 0;
+                                }
                                 switch (curls[x]->type) {
                                     case 1: {
-                                        curls[x]->fpp->parseSysInfo(origJson);
-                                        std::string file = "co-pixelStrings";
-                                        if (curls[x]->fpp->platform.find("Beagle") != std::string::npos) {
-                                            file = "co-bbbStrings";
+                                        if (parsed) {
+                                            curls[x]->fpp->parseSysInfo(origJson);
+                                            std::string file = "co-pixelStrings";
+                                            if (curls[x]->fpp->platform.find("Beagle") != std::string::npos) {
+                                                file = "co-bbbStrings";
+                                            }
+                                            std::string fullAddress = "http://" + curls[x]->fpp->ipAddress + "/fppjson.php?command=getChannelOutputs&file=" + file;
+                                            CurlData *data = new CurlData(fullAddress);
+                                            data->type = 2;
+                                            data->fpp = curls[x]->fpp;
+                                            curls.push_back(data);
+                                            curl_multi_add_handle(curlMulti, data->curl);
+                                            running++;
+                                            
+                                            fullAddress = "http://" + curls[x]->fpp->ipAddress + "/fppjson.php?command=getChannelOutputs&file=channelOutputsJSON";
+                                            data = new CurlData(fullAddress);
+                                            data->type = 2;
+                                            data->fpp = curls[x]->fpp;
+                                            curls.push_back(data);
+                                            curl_multi_add_handle(curlMulti, data->curl);
+                                            running++;
+                                            
+                                            fullAddress = "http://" + curls[x]->fpp->ipAddress + "/config.php";
+                                            data = new CurlData(fullAddress);
+                                            data->type = 3;
+                                            data->fpp = curls[x]->fpp;
+                                            curls.push_back(data);
+                                            curl_multi_add_handle(curlMulti, data->curl);
+                                            running++;
                                         }
-                                        std::string fullAddress = "http://" + curls[x]->fpp->ipAddress + "/fppjson.php?command=getChannelOutputs&file=" + file;
-                                        CurlData *data = new CurlData(fullAddress);
-                                        data->type = 2;
-                                        data->fpp = curls[x]->fpp;
-                                        curls.push_back(data);
-                                        curl_multi_add_handle(curlMulti, data->curl);
-                                        running++;
-
-                                        fullAddress = "http://" + curls[x]->fpp->ipAddress + "/fppjson.php?command=getChannelOutputs&file=channelOutputsJSON";
-                                        data = new CurlData(fullAddress);
-                                        data->type = 2;
-                                        data->fpp = curls[x]->fpp;
-                                        curls.push_back(data);
-                                        curl_multi_add_handle(curlMulti, data->curl);
-                                        running++;
                                         break;
                                     }
                                     case 2:
-                                        curls[x]->fpp->parseControllerType(origJson);
+                                        if (parsed) curls[x]->fpp->parseControllerType(origJson);
+                                        break;
+                                    case 3:
+                                        curls[x]->fpp->parseConfig(curls[x]->buffer);
                                         break;
                                     default:
                                         for (int x = 0; x < origJson.Size(); x++) {
                                             wxJSONValue system = origJson[x];
                                             wxString address = system["IP"].AsString();
-                                            wxString hostName = system["HostName"].AsString();
+                                            wxString hostName = system["HostName"].IsNull() ? "" : system["HostName"].AsString();
+                                            if (address == "null" || hostName == "null") {
+                                                continue;
+                                            }
                                             if (address.length() > 16) {
                                                 //ignore for some reason, FPP is occassionally returning an IPV6 address
                                                 continue;
@@ -1529,6 +1577,21 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
     curl_multi_cleanup(curlMulti);
     socket->Close();
     delete socket;
+    
+    std::list<FPP*> toRemove;
+    for (auto a : instances) {
+        if (!a->isFPP) {
+            FPP *f = a;
+            toRemove.push_back(f);
+        } else if (!allPlatforms && a->platform == "ESPixelStick") {
+            FPP *f = a;
+            toRemove.push_back(f);
+        }
+    }
+    for (auto a : toRemove) {
+        instances.remove(a);
+        delete a;
+    }
     /*
     for (auto a : instances) {
         printf("%s/%s:\n", a.hostName.c_str(), a.ipAddress.c_str());

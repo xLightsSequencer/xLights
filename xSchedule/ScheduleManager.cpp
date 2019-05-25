@@ -762,7 +762,7 @@ void ScheduleManager::AllOff()
     _outputManager->EndFrame();
 }
 
-int ScheduleManager::Frame(bool outputframe)
+int ScheduleManager::Frame(bool outputframe, xScheduleFrame* frame)
 {
     static bool reentry = false;
     static int oldrate = 50;
@@ -940,6 +940,8 @@ int ScheduleManager::Frame(bool outputframe)
                     (*it)->Set(_buffer, totalChannels);
                 }
 
+                frame->ManipulateBuffer(_buffer, totalChannels);
+
                 logger_frame.debug("Frame: Overlay data done %ldms", sw.Time());
 
                 // apply any output processing
@@ -1055,6 +1057,8 @@ int ScheduleManager::Frame(bool outputframe)
                     {
                         (*it)->Set(_buffer, totalChannels);
                     }
+
+                    frame->ManipulateBuffer(_buffer, totalChannels);
                 }
 
                 // apply any output processing
@@ -1119,6 +1123,8 @@ int ScheduleManager::Frame(bool outputframe)
                             ++it;
                         }
                     }
+
+                    frame->ManipulateBuffer(_buffer, totalChannels);
 
                     // apply any output processing
                     for (auto it2 = _outputProcessing.begin(); it2 != _outputProcessing.end(); ++it2)
@@ -1492,6 +1498,25 @@ std::string ScheduleManager::GetStatus() const
     return "Playing " + curr->GetRunningStep()->GetNameNoTime() + " " + curr->GetRunningStep()->GetStatus();
 }
 
+bool ScheduleManager::IsQuery(const wxString& command)
+{
+    wxString c = command.Lower();
+    if (c == "getplaylists" ||
+        c == "getplayliststeps" ||
+        c == "getmatrices" ||
+        c == "getqueuedsteps" ||
+        c == "listwebfolders" ||
+        c == "getnextscheduledplaylist" ||
+        c == "getplaylistschedules" ||
+        c == "getplaylistschedule" ||
+        c == "getplayingstatus" ||
+        c == "getbuttons")
+    {
+        return true;
+    }
+    return false;
+}
+
 PlayList* ScheduleManager::GetPlayList(const std::string& playlist) const
 {
     for (auto it = _playLists.begin(); it != _playLists.end(); ++it)
@@ -1511,7 +1536,7 @@ bool ScheduleManager::IsQueuedPlaylistRunning() const
 }
 
 // localhost/xScheduleCommand?Command=<command>&Parameters=<comma separated parameters>
-bool ScheduleManager::Action(const wxString command, const wxString parameters, const wxString& data, PlayList* selplaylist, Schedule* selschedule, size_t& rate, wxString& msg)
+bool ScheduleManager::Action(const wxString& command, const wxString& parameters, const wxString& data, PlayList* selplaylist, Schedule* selschedule, size_t& rate, wxString& msg)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -1646,6 +1671,91 @@ bool ScheduleManager::Action(const wxString command, const wxString parameters, 
                         msg = "Change show folder: Folder does not exist '" + parameters + "'";
                         result = false;
                     }
+                }
+                else if (command == "Fire plugin event")
+                {
+                    wxArrayString ep = wxSplit(parameters, '|');
+                    if (ep.size() > 0)
+                    {
+                        std::string plugin = ep[0];
+
+                        std::string eps = "";
+                        if (ep.size() > 1)
+                        {
+                            eps = ep[1];
+                        }
+
+                        if (plugin == "*")
+                        {
+                            ((xScheduleApp*)wxTheApp)->GetFrame()->GetPluginManager().FireEvent("Command", eps);
+                        }
+                        else
+                        {
+                            ((xScheduleApp*)wxTheApp)->GetFrame()->GetPluginManager().FirePluginEvent(plugin, "Command", eps);
+                        }
+                    }
+                    else
+                    {
+                        msg = "No plugin specified";
+                        result = false;
+                    }
+                }
+                else if (command == "Set mode")
+                {
+                    int mode = (int)SYNCMODE::STANDALONE;
+                    REMOTEMODE remote = REMOTEMODE::DISABLED;
+                    bool test = false;
+                    wxArrayString modes = wxSplit(parameters, '|');
+                    for (auto it : modes)
+                    {
+                        auto m = it.Lower().Trim().Trim(false);
+                        if (m == "test")
+                        {
+                            test = true;
+                        }
+                        else if (m == "master_fppunicast")
+                        {
+                            mode |= (int)SYNCMODE::FPPUNICASTMASTER;
+                        }
+                        else if (m == "master_artnet")
+                        {
+                            mode |= (int)SYNCMODE::ARTNETMASTER;
+                        }
+                        else if (m == "master_fppbroadcast")
+                        {
+                            mode |= (int)SYNCMODE::FPPBROADCASTMASTER;
+                        }
+                        else if (m == "master_midi")
+                        {
+                            mode |= (int)SYNCMODE::MIDIMASTER;
+                        }
+                        else if (m == "master_osc")
+                        {
+                            mode |= (int)SYNCMODE::OSCMASTER;
+                        }
+                        else if (m == "remote_fppunicast")
+                        {
+                            remote = REMOTEMODE::FPPUNICASTSLAVE;
+                        }
+                        else if (m == "remote_artnet")
+                        {
+                            remote = REMOTEMODE::ARTNETSLAVE;
+                        }
+                        else if (m == "remote_fppbroadcast")
+                        {
+                            remote = REMOTEMODE::FPPBROADCASTSLAVE;
+                        }
+                        else if (m == "remote_midi")
+                        {
+                            remote = REMOTEMODE::MIDISLAVE;
+                        }
+                        else if (m == "remote_osc")
+                        {
+                            remote = REMOTEMODE::OSCSLAVE;
+                        }
+                    }
+                    SetTestMode(test);
+                    SetMode(mode, remote);
                 }
                 else if (command == "Play specified playlist if nothing running")
                 {
@@ -2948,7 +3058,7 @@ bool ScheduleManager::Action(const wxString command, const wxString parameters, 
     return result;
 }
 
-bool ScheduleManager::Action(const wxString label, PlayList* selplaylist, Schedule* selschedule, size_t& rate, wxString& msg)
+bool ScheduleManager::Action(const wxString& label, PlayList* selplaylist, Schedule* selschedule, size_t& rate, wxString& msg)
 {
     UserButton* b = _scheduleOptions->GetButton(label);
 
@@ -3016,8 +3126,10 @@ void ScheduleManager::StopPlayList(PlayList* playlist, bool atendofcurrentstep, 
 // 127.0.0.1/xScheduleQuery?Query=GetPlayingStatus&Parameters=
 // 127.0.0.1/xScheduleQuery?Query=GetButtons&Parameters=
 
-bool ScheduleManager::Query(const wxString command, const wxString parameters, wxString& data, wxString& msg, const wxString& ip, const wxString& reference)
+bool ScheduleManager::Query(const wxString& command, const wxString& parameters, wxString& data, wxString& msg, const wxString& ip, const wxString& reference)
 {
+    wxASSERT(IsQuery(command));
+
     bool result = true;
     data = "";
     if (command == "GetPlayLists")

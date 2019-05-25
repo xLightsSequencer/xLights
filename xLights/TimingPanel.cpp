@@ -155,6 +155,7 @@ TimingPanel::TimingPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	Choice_In_Transition_Type->Append(_("Blend"));
 	Choice_In_Transition_Type->Append(_("Slide Checks"));
 	Choice_In_Transition_Type->Append(_("Slide Bars"));
+	Choice_In_Transition_Type->Append(_("Fold"));
 	FlexGridSizer10->Add(Choice_In_Transition_Type, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	StaticText2 = new wxStaticText(Panel1, ID_STATICTEXT_Fadein, _("Time (s)"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Fadein"));
 	FlexGridSizer10->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
@@ -196,6 +197,7 @@ TimingPanel::TimingPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	Choice_Out_Transition_Type->Append(_("Blend"));
 	Choice_Out_Transition_Type->Append(_("Slide Checks"));
 	Choice_Out_Transition_Type->Append(_("Slide Bars"));
+	Choice_Out_Transition_Type->Append(_("Fold"));
 	FlexGridSizer12->Add(Choice_Out_Transition_Type, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	StaticText4 = new wxStaticText(Panel2, ID_STATICTEXT_Fadeout, _("Time (s)"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Fadeout"));
 	FlexGridSizer12->Add(StaticText4, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);

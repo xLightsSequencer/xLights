@@ -10,7 +10,6 @@ class SMSDaemonOptions
     int _changeCount = 0;
     int _lastSavedChangeCount = 0;
 
-	std::string _xScheduleIP = "127.0.0.1";
 	std::string _textItem = "";
 	std::string _user = "";
 	std::string _sid = "";
@@ -25,7 +24,6 @@ class SMSDaemonOptions
 	int _maximiumMessageLength = 100;
 	int _maximiumMessageAge = 10;
 	int _maximiumTimesToDisplay = 0;
-	int _xSchedulePort = 80;
     int _maxMsgAgeMinsForResponse = 10;
 	bool _usePurgoMalum = false;
 	bool _rejectProfanity = true;
@@ -38,8 +36,6 @@ class SMSDaemonOptions
 
     public:
 
-		std::string GetXScheduleIP() const { return _xScheduleIP; }
-        void SetXScheduleIP(std::string xScheduleIP) { if (xScheduleIP != _xScheduleIP) { _xScheduleIP = xScheduleIP; _changeCount++; } }
 		std::string GetTextItem() const { return _textItem; }
         void SetTextItem(std::string textItem) { if (textItem != _textItem) { _textItem = textItem; _changeCount++; } }
 		std::string GetUser() const { return _user; }
@@ -59,8 +55,6 @@ class SMSDaemonOptions
 		wxString GetRejectMessage() const { return _rejectMessage; }
         void SetRejectMessage(wxString rejectMessage) { if (rejectMessage != _rejectMessage) { _rejectMessage = rejectMessage; _changeCount++; } }
 
-		int GetXSchedulePort() const { return _xSchedulePort; }
-        void SetXSchedulePort(int xSchedulePort) { if (xSchedulePort != _xSchedulePort) { _xSchedulePort = xSchedulePort; _changeCount++; } }
 		int GetRetrieveInterval() const { return _retrieveInterval; }
         void SetRetrieveInterval(int retrieveInterval) { if (retrieveInterval != _retrieveInterval) { _retrieveInterval = retrieveInterval; _changeCount++; } }
 		int GetDisplayDuration() const { return _displayDuration; }

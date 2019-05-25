@@ -329,9 +329,16 @@ bool xScheduleApp::OnInit()
     SetUnhandledExceptionFilter(windows_exception_handler);
 #endif
 
+    //curl_global_init(CURL_GLOBAL_SSL);
+
     InitialiseLogging(false);
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.info("******* OnInit: xSchedule started.");
+
+#ifdef __WXMSW__
+    logger_base.debug("xSchedule module handle 0x%llx", ::GetModuleHandle(nullptr));
+    logger_base.debug("xSchedule wxTheApp 0x%llx", wxTheApp);
+#endif
 
     DumpConfig();
 
@@ -345,6 +352,7 @@ bool xScheduleApp::OnInit()
     };
 
     bool parmfound = false;
+    bool wipeSettings = false;
     wxString showDir;
     wxString playlist;
     wxCmdLineParser parser(cmdLineDesc, argc, argv);
@@ -358,6 +366,7 @@ bool xScheduleApp::OnInit()
             parmfound = true;
             logger_base.info("-w: Wiping settings");
             WipeSettings();
+            wipeSettings = true;
         }
         if (parser.Found("s", &showDir)) {
             parmfound = true;
@@ -408,6 +417,7 @@ bool xScheduleApp::OnInit()
     	xScheduleFrame* Frame = new xScheduleFrame(0);
     	Frame->Show();
     	SetTopWindow(Frame);
+        if (wipeSettings) Frame->GetPluginManager().WipeSettings();
     }
     //*)
     return wxsOK;

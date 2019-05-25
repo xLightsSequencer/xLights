@@ -19,7 +19,12 @@ class StepSpinCtrl : public wxSpinCtrl
     int _lastValue;
     wxWindow* _parent;
 public:
-    
+
+    void OnKillFocus(wxFocusEvent& event) {
+        wxPostEvent(_parent, event);
+        event.Skip();
+    }
+
     void OnSpin(wxSpinEvent& event) {
         int delta = GetValue() - _lastValue;
 
@@ -83,6 +88,7 @@ public:
         _lastDir = 0;
         _step = 50;
         Bind(wxEVT_SPINCTRL, &StepSpinCtrl::OnSpin, this);
+        Bind(wxEVT_KILL_FOCUS, &StepSpinCtrl::OnKillFocus, this);
     }
     virtual ~StepSpinCtrl() {}
     void SetStep(int step) { _step = step; }
@@ -139,7 +145,14 @@ class EffectTimingDialog: public wxDialog
         EffectLayer* _effectLayer;
         int _effectId;
 
+        void OnSpinCtrl_StartTimeLoseFocus(wxFocusEvent& event);
+        void OnSpinCtrl_DurationLoseFocus(wxFocusEvent& event);
+        void OnSpinCtrl_EndTimeLoseFocus(wxFocusEvent& event);
+
         void ValidateWindow();
+        void StartTimeChange();
+        void DurationChange();
+        void EndTimeChange();
 };
 
 #endif
