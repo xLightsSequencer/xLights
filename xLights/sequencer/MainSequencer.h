@@ -49,8 +49,8 @@ class MainSequencer: public wxPanel
         void ApplyButtonPressToSelected(const std::string& effectName, const std::string id);
         void RemapSelectedDMXEffectValues(const std::vector<std::pair<int, int>>& pairs);
         void ConvertSelectedEffectsTo(const std::string& effectName);
-        void SelectEffectUsingDescription(std::string description);
-        void SelectEffectUsingElementLayerTime(std::string element, int layer, int time);
+        Effect* SelectEffectUsingDescription(std::string description);
+        Effect* SelectEffectUsingElementLayerTime(std::string element, int layer, int time);
         std::list<std::string> GetAllEffectDescriptions();
         std::list<std::string> GetAllElementNamesWithEffects();
         int GetElementLayerCount(std::string elementName, std::list<int>* layers = nullptr);

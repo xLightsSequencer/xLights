@@ -575,7 +575,7 @@ void EffectLayer::PlayEffect(Effect* effect)
     GetParentElement()->GetSequenceElements()->GetXLightsFrame()->GetEventHandler()->ProcessEvent(eventPlayModelEffect);
 }
 
-bool EffectLayer::SelectEffectUsingDescription(std::string description)
+Effect* EffectLayer::SelectEffectUsingDescription(std::string description)
 {
     for (int i = 0; i < mEffects.size(); i++)
     {
@@ -583,14 +583,14 @@ bool EffectLayer::SelectEffectUsingDescription(std::string description)
         {
             mEffects[i]->SetSelected(EFFECT_SELECTED);
             PlayEffect(mEffects[i]);
-            return true;
+            return mEffects[i];
         }
     }
 
-    return false;
+    return nullptr;
 }
 
-bool EffectLayer::SelectEffectUsingTime(int time)
+Effect* EffectLayer::SelectEffectUsingTime(int time)
 {
     for (int i = 0; i < mEffects.size(); i++)
     {
@@ -598,11 +598,11 @@ bool EffectLayer::SelectEffectUsingTime(int time)
         {
             mEffects[i]->SetSelected(EFFECT_SELECTED);
             PlayEffect(mEffects[i]);
-            return true;
+            return mEffects[i];
         }
     }
 
-    return false;
+    return nullptr;
 }
 
 int EffectLayer::GetLayerNumber()

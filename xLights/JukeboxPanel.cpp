@@ -83,13 +83,19 @@ void ButtonControl::SelectEffect(MainSequencer* sequencer)
 {
     if (sequencer != nullptr)
     {
+        Effect* e = nullptr;
         if (_type == LOOKUPTYPE::LTDESCRIPTION)
         {
-            sequencer->SelectEffectUsingDescription(_description);
+            e = sequencer->SelectEffectUsingDescription(_description);
         }
         else if (_type == LOOKUPTYPE::LTMLT)
         {
-            sequencer->SelectEffectUsingElementLayerTime(_element, _layer - 1, _time);
+            e = sequencer->SelectEffectUsingElementLayerTime(_element, _layer - 1, _time);
+        }
+
+        if (e != nullptr)
+        {
+            sequencer->PanelEffectGrid->RaiseSelectedEffectChanged(e, false, true);
         }
     }
 }
