@@ -101,7 +101,11 @@
 				<flag>wxALL|wxEXPAND</flag>
 				<option>1</option>
 			</object>
-			<object class="spacer">
+			<object class="sizeritem">
+				<object class="wxCheckBox" name="ID_CHECKBOX1" variable="CheckBox_SuspendRender" member="yes">
+					<label>Suspend Render</label>
+					<handler function="OnCheckBox_SuspendRenderClick" entry="EVT_CHECKBOX" />
+				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
 				<option>1</option>
@@ -123,11 +127,6 @@
 					<handler function="OnScrollBarEffectGridHorzScroll" entry="EVT_COMMAND_SCROLL_CHANGED" />
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
-				<option>1</option>
-			</object>
-			<object class="spacer">
-				<flag>wxALL|wxEXPAND</flag>
-				<border>5</border>
 				<option>1</option>
 			</object>
 		</object>

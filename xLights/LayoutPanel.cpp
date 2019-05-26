@@ -397,9 +397,9 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
                                         // Default style
                                         wxPG_DEFAULT_STYLE );
 #ifdef __WXOSX__
-    propertyEditor->SetExtraStyle(wxPG_EX_NATIVE_DOUBLE_BUFFERING | wxWS_EX_PROCESS_IDLE);
+    propertyEditor->SetExtraStyle(wxPG_EX_NATIVE_DOUBLE_BUFFERING | wxWS_EX_PROCESS_IDLE | wxPG_EX_HELP_AS_TOOLTIPS);
 #else
-    propertyEditor->SetExtraStyle(wxWS_EX_PROCESS_IDLE);
+    propertyEditor->SetExtraStyle(wxWS_EX_PROCESS_IDLE | wxPG_EX_HELP_AS_TOOLTIPS);
 #endif
     InitImageList();
 
@@ -1613,7 +1613,7 @@ void LayoutPanel::BulkEditControllerName()
     int sel = 0;
     int i = 1;
     cn.push_back("");
-    for (auto it : xlights->GetOutputManager()->GetControllerNames())
+    for (auto it : xlights->GetOutputManager()->GetAutoLayoutControllerNames())
     {
         if (it == name) sel = i;
         cn.push_back(it);
@@ -2034,7 +2034,17 @@ void LayoutPanel::SelectBaseObject(const std::string & name, bool highlight_tree
             logger_base.warn("LayoutPanel:SelectBaseObject Unable to select model '%s'.", (const char *)name.c_str());
         }
         if (m != selectedBaseObject)
+        {
+            for (auto& it : modelPreview->GetModels())
+            {
+                it->Selected = false;
+                it->Highlighted = false;
+                it->GroupSelected = false;
+                it->SelectHandle(-1);
+                it->GetBaseObjectScreenLocation().SetActiveHandle(-1);
+            }
             SelectModel(m, highlight_tree);
+        }
     } else {
         ViewObject *v = xlights->AllObjects[name];
         if (v == nullptr)
@@ -2043,7 +2053,17 @@ void LayoutPanel::SelectBaseObject(const std::string & name, bool highlight_tree
             logger_base.warn("LayoutPanel:SelectBaseObject Unable to select object '%s'.", (const char *)name.c_str());
         }
         if (v != selectedBaseObject)
+        {
+            for (auto& it : xlights->AllObjects) {
+                ViewObject* view_object = it.second;
+                view_object->Selected = false;
+                view_object->Highlighted = false;
+                view_object->GroupSelected = false;
+                view_object->SelectHandle(-1);
+                view_object->GetBaseObjectScreenLocation().SetActiveHandle(-1);
+            }
             SelectViewObject(v, highlight_tree);
+        }
     }
 }
 
@@ -3367,7 +3387,7 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
     {
         wxMenu* mnuBulkEdit = new wxMenu();
         if( editing_models ) {
-            if (xlights->GetOutputManager()->GetControllerNames().size() > 0)
+            if (xlights->GetOutputManager()->GetAutoLayoutControllerNames().size() > 0)
             {
                 mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_CONTROLLERNAME, "Controller Name");
             }

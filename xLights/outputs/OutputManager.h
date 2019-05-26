@@ -87,6 +87,7 @@ public:
     void SetShowDir(const std::string& showDir);
     void SuspendAll(bool suspend);
     std::list<std::string> GetControllerNames() const;
+    std::list<std::string> GetAutoLayoutControllerNames() const;
     void SetParallelTransmission(bool parallel) { _parallelTransmission = parallel; }
     bool GetParallelTransmission() const { return _parallelTransmission; }
     #pragma endregion Output Management

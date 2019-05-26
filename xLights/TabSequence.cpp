@@ -24,6 +24,7 @@
 #include "ModelPreview.h"
 #include "ViewsModelsPanel.h"
 #include "PerspectivesPanel.h"
+#include "sequencer/MainSequencer.h"
 
 #include <log4cpp/Category.hh>
 
@@ -1365,6 +1366,7 @@ void xLightsFrame::EnableSequenceControls(bool enable)
     enableAllToolbarControls(EffectsToolBar, enable && SeqData.NumFrames() > 0 && !IsACActive());
     enableAllToolbarControls(EditToolBar, enable && SeqData.NumFrames() > 0);
     enableAllToolbarControls(ACToolbar, enable && SeqData.NumFrames() > 0);
+    mainSequencer->CheckBox_SuspendRender->Enable(enable && SeqData.NumFrames() > 0);
     enableAllToolbarControls(ViewToolBar, enable);
     enableAllToolbarControls(OutputToolBar, enable);
 

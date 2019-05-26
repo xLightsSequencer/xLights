@@ -22,6 +22,7 @@ class ModelScreenLocation;
 class ModelManager;
 class xLightsFrame;
 class OutputManager;
+class wxPGProperty;
 
 class NodeBaseClass;
 typedef std::unique_ptr<NodeBaseClass> NodeBaseClassPtr;
@@ -201,6 +202,7 @@ protected:
 
     std::vector<Model *> subModels;
     void ParseSubModel(wxXmlNode *subModelNode);
+    void ColourClashingChains(wxPGProperty* p);
 
     std::vector<std::string> modelState;
 

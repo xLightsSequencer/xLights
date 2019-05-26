@@ -362,6 +362,87 @@ void ModelManager::DisplayStartChannelCalcWarning() const
     }
 }
 
+bool ModelManager::IsValidControllerModelChain(Model* m, std::string& tip) const
+{
+    std::list<Model*> sameOutput;
+    tip = "";
+    auto controllerName = m->GetControllerName();
+    if (controllerName == "") return true; // we dont check these
+    auto port = m->GetControllerPort();
+    if (port == 0) return true; // we dont check these
+    auto chain = m->GetModelChain();
+    if (StartsWith(chain, ">"))
+    {
+        chain = chain.substr(1);
+    }
+    auto startModel = m->GetName();
+
+    for (auto it : *this)
+    {
+        if (it.first != startModel)
+        {
+            if (it.second->GetControllerName() == controllerName && it.second->GetControllerPort() == port)
+            {
+                auto c = it.second->GetModelChain();
+                if (StartsWith(c, ">"))
+                {
+                    c = c.substr(1);
+                }
+
+                // valid if no other model shares my chain
+                if (chain == c) {
+                    tip = "Model shares chain with " + it.second->GetName();
+                    return false; // two models chain this place in the chain
+                }
+                sameOutput.push_back(it.second);
+            }
+        }
+    }
+
+    // if no other models then chain must be blank
+    if (sameOutput.size() == 0)
+    {
+        if (chain != "") tip = "Only model on an output must not chain to anything.";
+        return (chain == "");
+    }
+
+    if (chain == "") return true; // this model is the beginning
+
+    // valid if i can follow the chain to blank
+    int checks = 0;
+    auto current = startModel;
+    auto next = chain;
+    while (checks <= sameOutput.size())
+    {
+        bool found = false;
+        for (auto it : sameOutput)
+        {
+            if (it->GetName() == next)
+            {
+                next = it->GetModelChain();
+                if (StartsWith(next, ">"))
+                {
+                    next = next.substr(1);
+                }
+                if (next == "") return true; // we found the beginning
+                found = true;
+                current = it->GetName();
+                break;
+            }
+        }
+
+        if (!found)
+        {
+            tip = "Chained to " + next + " but that model is not on this port";
+            return false; // chained to non existent model
+        }
+
+        checks++;
+    }
+    tip = "Unable to find the beginning of the model chain on this output ... most likely you have a loop.";
+    return false;
+}
+
 bool ModelManager::ReworkStartChannel() const
 {
     static log4cpp::Category &logger_zcpp = log4cpp::Category::getInstance(std::string("log_zcpp"));
@@ -475,7 +556,7 @@ bool ModelManager::ReworkStartChannel() const
                     {
                         // chain is broken ... so just put the rest in in the original order
                         // wxASSERT(false);
-                        logger_zcpp.debug("    Model chain is broken so just stuffing the remaining %d models in in their original order.", (*itcc).second.size());
+                        logger_zcpp.error("    Model chain is broken so just stuffing the remaining %d models in in their original order.", (*itcc).second.size());
                         while ((*itcc).second.size() > 0)
                         {
                             sortedmodels.push_back(itcc->second.front());

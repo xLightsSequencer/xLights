@@ -428,7 +428,7 @@ void Model::UpdateProperties(wxPropertyGridInterface* grid, OutputManager* outpu
     
     UpdateTypeProperties(grid);
 
-    grid->GetPropertyByName("Controller")->Enable(outputManager->GetControllerNames().size() > 0);
+    grid->GetPropertyByName("Controller")->Enable(outputManager->GetAutoLayoutControllerNames().size() > 0);
 
     if (HasOneString(DisplayAs)) {
         grid->GetPropertyByName("ModelStartChannel")->Enable(GetControllerName() == "");
@@ -449,6 +449,29 @@ void Model::UpdateProperties(wxPropertyGridInterface* grid, OutputManager* outpu
         grid->GetPropertyByName("ModelStringColor")->Enable(false);
     }
     grid->GetPropertyByName("ModelRGBWHandling")->Enable(!(HasSingleChannel(StringType) || GetNodeChannelCount(StringType) != 4));
+}
+
+void Model::ColourClashingChains(wxPGProperty* p)
+{
+    std::string tip;
+    if (GetControllerName() != "" && GetControllerProtocol() != "" && GetControllerPort() != 0)
+    {
+        if (!modelManager.IsValidControllerModelChain(this, tip))
+        {
+            p->SetHelpString(tip);
+            p->SetBackgroundColour(*wxRED);
+        }
+        else
+        {
+            p->SetHelpString("");
+            p->SetBackgroundColour(*wxWHITE);
+        }
+    }
+    else
+    {
+        p->SetHelpString("");
+        p->SetBackgroundColour(*wxWHITE);
+    }
 }
 
 void Model::AddProperties(wxPropertyGridInterface *grid, OutputManager* outputManager) {
@@ -503,7 +526,7 @@ void Model::AddProperties(wxPropertyGridInterface *grid, OutputManager* outputMa
     CONTROLLERS.clear();
     CONTROLLERS.Add("Use Start Channel");
 
-    for (auto it : outputManager->GetControllerNames())
+    for (auto it : outputManager->GetAutoLayoutControllerNames())
     {
         if (GetControllerName() == it)
         {
@@ -629,6 +652,7 @@ void Model::AddProperties(wxPropertyGridInterface *grid, OutputManager* outputMa
     sp->SetAttribute("Max", 100);
     sp->SetEditor("SpinCtrl");
 
+    UpdateControllerProperties(grid);
     DisableUnusedProperties(grid);
 }
 
@@ -690,10 +714,6 @@ void Model::AddControllerProperties(wxPropertyGridInterface *grid) {
     sp->SetAttribute("Max", 48);
     sp->SetEditor("SpinCtrl");
 
-    if (GetControllerName() != "" && GetControllerPort(1) == 0) {
-        sp->SetBackgroundColour(*wxRED);
-    }
-
     wxString protocol = GetControllerProtocol();
     protocol.LowerCase();
     int idx = -1;
@@ -711,11 +731,6 @@ void Model::AddControllerProperties(wxPropertyGridInterface *grid) {
     }
 
     sp = grid->AppendIn(p, new wxEnumProperty("Protocol", "ModelControllerConnectionProtocol", CONTROLLER_PROTOCOLS, wxArrayInt(), idx));
-
-    if (GetControllerName() != "" && GetControllerProtocol() == "") {
-        sp->SetBackgroundColour(*wxRED);
-    }
-
 
     wxXmlNode *node = GetControllerConnection();
     if (protocol == "dmx" || protocol == "pixelnet" || protocol == "renard" || protocol == "lor") {
@@ -797,22 +812,30 @@ void Model::AddControllerProperties(wxPropertyGridInterface *grid) {
 
 void Model::UpdateControllerProperties(wxPropertyGridInterface* grid) {
 
+    auto p = grid->GetPropertyByName("ModelControllerConnectionPort");
     if (GetControllerName() != "" && GetControllerPort(1) == 0) {
-        grid->GetPropertyByName("ModelControllerConnectionPort")->SetBackgroundColour(*wxRED);
+        p->SetHelpString("When using controller name instead of start channels then port must be specified.");
+        p->SetBackgroundColour(*wxRED);
     }
     else
     {
-        grid->GetPropertyByName("ModelControllerConnectionPort")->SetBackgroundColour(*wxWHITE);
+        p->SetHelpString("");
+        p->SetBackgroundColour(*wxWHITE);
     }
 
-    if (GetControllerName() != "" && GetControllerProtocol() == "") {
-        grid->GetPropertyByName("ModelControllerConnectionProtocol")->SetBackgroundColour(*wxRED);
+    p = grid->GetPropertyByName("ModelControllerConnectionProtocol");
+    if (GetControllerName() != "" && (GetControllerPort() == 0 || GetControllerProtocol() == ""))
+    {
+        p->SetHelpString("When using controller name instead of start channels then protocol must be specified.");
+        p->SetBackgroundColour(*wxRED);
     }
     else
     {
+        p->SetHelpString("");
         grid->GetPropertyByName("ModelControllerConnectionProtocol")->SetBackgroundColour(*wxWHITE);
     }
 
+    ColourClashingChains(grid->GetPropertyByName("ModelChain"));
 
     wxXmlNode* node = GetControllerConnection();
     wxString protocol = GetControllerProtocol();
@@ -890,6 +913,7 @@ void Model::UpdateControllerProperties(wxPropertyGridInterface* grid) {
             }
         }
     }
+    grid->RefreshGrid();
 }
 
 static wxString GetColorString(wxPGProperty *p, xlColor &xc) {
@@ -1003,6 +1027,7 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
                 grid->GetPropertyByName("ModelIndividualStartChannels")->Enable();
             }
         }
+        UpdateControllerProperties(grid);
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "Model::OnPropertyGridChange::ModelChain");
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::OnPropertyGridChange::ModelChain");
@@ -1053,14 +1078,7 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
             }
         }
         grid->GetPropertyByName("ModelChain")->Enable(GetControllerName() != "");
-        if (GetControllerName() != "" && (GetControllerPort() == 0 || GetControllerProtocol() == ""))
-        {
-            grid->GetPropertyByName("ModelControllerConnectionProtocol")->SetBackgroundColour(*wxRED);
-        }
-        else
-        {
-            grid->GetPropertyByName("ModelControllerConnectionProtocol")->SetBackgroundColour(*wxWHITE);
-		}
+        UpdateControllerProperties(grid);
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::OnPropertyGridChange::Controller");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "Model::OnPropertyGridChange::Controller");
         AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "Model::OnPropertyGridChange::Controller");
@@ -1093,17 +1111,9 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
             }
         }
 
-        if (GetControllerName() != "" && GetControllerPort(1) == 0)
-        {
-            event.GetProperty()->SetBackgroundColour(*wxRED);
-        }
-        else
-        {
-            event.GetProperty()->SetBackgroundColour(*wxWHITE);
-        }
-
         grid->GetPropertyByName("ModelChain")->Enable(GetControllerName() != "" && GetControllerProtocol() != "" && GetControllerPort() != 0);
 
+        UpdateControllerProperties(grid);
         if (protocolChanged)
         {
             // need to refresh to add protocol specific options
@@ -1125,15 +1135,6 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
 
                 clearUnusedProtocolProperties(GetControllerConnection());
 
-        if (GetControllerName() != "" && GetControllerProtocol() == "")
-        {
-            event.GetProperty()->SetBackgroundColour(*wxRED);
-        }
-        else
-        {
-            event.GetProperty()->SetBackgroundColour(*wxWHITE);
-        }
-
         if (GetControllerName() != "")
         {
             if (grid->GetPropertyByName("ModelStartChannel") != nullptr)
@@ -1147,6 +1148,7 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         }
         grid->GetPropertyByName("ModelChain")->Enable(GetControllerName() != "" && GetControllerProtocol() != "" && GetControllerPort() != 0);
 
+        UpdateControllerProperties(grid);
         std::string newProtocol = GetControllerProtocol();
         if (
             ((newProtocol == "DMX" || newProtocol == "PixelNet" || newProtocol == "Renard" || newProtocol == "LOR") && IsPixelProtocol(oldProtocol)) ||

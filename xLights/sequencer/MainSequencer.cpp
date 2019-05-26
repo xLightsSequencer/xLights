@@ -23,6 +23,7 @@ const long MainSequencer::ID_PANEL3 = wxNewId();
 const long MainSequencer::ID_PANEL6 = wxNewId();
 const long MainSequencer::ID_PANEL2 = wxNewId();
 const long MainSequencer::ID_SCROLLBAR_EFFECTS_VERTICAL = wxNewId();
+const long MainSequencer::ID_CHECKBOX1 = wxNewId();
 const long MainSequencer::ID_SCROLLBAR_EFFECT_GRID_HORZ = wxNewId();
 //*)
 
@@ -143,7 +144,7 @@ public:
         xlColor c(ColorManager::instance()->GetColor(ColorManager::COLOR_ROW_HEADER));
         //c.Set(70,70,70); //54->70
         //
-        
+
         LOG_GL_ERRORV(glClearColor(((float)c.Red())/255.0f,
                                    ((float)c.Green())/255.0f,
                                    ((float)c.Blue())/255.0f, 1.0f));
@@ -162,7 +163,7 @@ public:
         SetCurrentGLContext();
         glClear(GL_COLOR_BUFFER_BIT);
         prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
-        
+
         DrawGLUtils::xlVertexTextAccumulator va(ColorManager::instance()->GetColor(ColorManager::COLOR_ROW_HEADER_TEXT));
 #define LINEGAP 1.2
         int y = _fontSize * LINEGAP;
@@ -239,11 +240,12 @@ MainSequencer::MainSequencer(wxWindow* parent, bool smallWaveform, wxWindowID id
     ScrollBarEffectsVertical = new wxScrollBar(this, ID_SCROLLBAR_EFFECTS_VERTICAL, wxDefaultPosition, wxDefaultSize, wxSB_VERTICAL|wxALWAYS_SHOW_SB, wxDefaultValidator, _T("ID_SCROLLBAR_EFFECTS_VERTICAL"));
     ScrollBarEffectsVertical->SetScrollbar(0, 1, 10, 1);
     FlexGridSizer1->Add(ScrollBarEffectsVertical, 1, wxALL|wxEXPAND, 0);
-    FlexGridSizer1->Add(-1,-1,1, wxALL|wxEXPAND, 5);
+    CheckBox_SuspendRender = new wxCheckBox(this, ID_CHECKBOX1, _("Suspend Render"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
+    CheckBox_SuspendRender->SetValue(false);
+    FlexGridSizer1->Add(CheckBox_SuspendRender, 1, wxALL|wxEXPAND, 5);
     ScrollBarEffectsHorizontal = new wxScrollBar(this, ID_SCROLLBAR_EFFECT_GRID_HORZ, wxDefaultPosition, wxDefaultSize, wxSB_HORIZONTAL|wxALWAYS_SHOW_SB, wxDefaultValidator, _T("ID_SCROLLBAR_EFFECT_GRID_HORZ"));
     ScrollBarEffectsHorizontal->SetScrollbar(0, 1, 100, 1);
     FlexGridSizer1->Add(ScrollBarEffectsHorizontal, 1, wxALL|wxEXPAND, 0);
-    FlexGridSizer1->Add(-1,-1,1, wxALL|wxEXPAND, 5);
     SetSizer(FlexGridSizer1);
     FlexGridSizer1->Fit(this);
     FlexGridSizer1->SetSizeHints(this);
@@ -257,6 +259,7 @@ MainSequencer::MainSequencer(wxWindow* parent, bool smallWaveform, wxWindowID id
     Connect(ID_SCROLLBAR_EFFECTS_VERTICAL,wxEVT_SCROLL_PAGEDOWN,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectsVerticalScrollChanged);
     Connect(ID_SCROLLBAR_EFFECTS_VERTICAL,wxEVT_SCROLL_THUMBTRACK,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectsVerticalScrollChanged);
     Connect(ID_SCROLLBAR_EFFECTS_VERTICAL,wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectsVerticalScrollChanged);
+    Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&MainSequencer::OnCheckBox_SuspendRenderClick);
     Connect(ID_SCROLLBAR_EFFECT_GRID_HORZ,wxEVT_SCROLL_TOP|wxEVT_SCROLL_BOTTOM|wxEVT_SCROLL_LINEUP|wxEVT_SCROLL_LINEDOWN|wxEVT_SCROLL_PAGEUP|wxEVT_SCROLL_PAGEDOWN|wxEVT_SCROLL_THUMBTRACK|wxEVT_SCROLL_THUMBRELEASE|wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectGridHorzScroll);
     Connect(ID_SCROLLBAR_EFFECT_GRID_HORZ,wxEVT_SCROLL_TOP,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectGridHorzScroll);
     Connect(ID_SCROLLBAR_EFFECT_GRID_HORZ,wxEVT_SCROLL_BOTTOM,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectGridHorzScroll);
@@ -435,7 +438,7 @@ bool MainSequencer::HandleSequencerKeyBinding(wxKeyEvent& event)
 
     auto k = event.GetKeyCode();
     if (k == WXK_SHIFT || k == WXK_CONTROL || k == WXK_ALT) return false;
-    
+
     if ((!event.ControlDown() && !event.CmdDown() && !event.AltDown()) ||
         (k == 'A' && (event.ControlDown() || event.CmdDown()) && !event.AltDown()))
     {
@@ -1704,4 +1707,10 @@ void MainSequencer::ScrollToRow(int row)
 
     mSequenceElements->SetFirstVisibleModelRow(row);
     UpdateEffectGridVerticalScrollBar();
+}
+
+void MainSequencer::OnCheckBox_SuspendRenderClick(wxCommandEvent& event)
+{
+    if (mSequenceElements == nullptr) return;
+    mSequenceElements->GetXLightsFrame()->SuspendRender(CheckBox_SuspendRender->IsChecked());
 }

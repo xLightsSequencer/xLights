@@ -38,6 +38,7 @@ class DDPOutput : public IPOutput
     int _channelsPerPacket;
     bool _keepChannelNumbers;
     uint8_t* _fulldata;
+    bool _autoStartChannels = false;
 
     // These are used for DDP sync
     static bool __initialised;
@@ -68,6 +69,8 @@ public:
     virtual bool IsKeepChannelNumbers() const { return _keepChannelNumbers; }
     virtual void KeepChannelNumber(bool b = true) { _keepChannelNumbers = b; _dirty = true; }
     virtual bool IsLookedUpByControllerName() const override;
+    virtual bool IsAutoLayoutModels() const override { return _autoStartChannels; }
+    virtual void SetAutoStartChannels(bool autoMode) { _autoStartChannels = autoMode; }
 
     int GetId() const { return _universe; }
     void SetId(int id) { _universe = id; _dirty = true; }

@@ -1239,3 +1239,21 @@ std::list<std::string> OutputManager::GetControllerNames() const
     }
     return res;
 }
+
+std::list<std::string> OutputManager::GetAutoLayoutControllerNames() const
+{
+    std::list<std::string> res;
+
+    for (auto it : _outputs)
+    {
+        if (it->IsAutoLayoutModels())
+        {
+            auto desc = it->GetDescription();
+            if (desc != "" && std::find(res.begin(), res.end(), desc) == res.end())
+            {
+                res.push_back(desc);
+            }
+        }
+    }
+    return res;
+}

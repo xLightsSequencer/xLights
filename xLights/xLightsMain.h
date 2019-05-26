@@ -384,6 +384,9 @@ public:
     bool ImportLPE(wxXmlDocument &doc, const wxFileName &filename);
     bool ImportS5(wxXmlDocument &doc, const wxFileName &filename);
 
+    void SuspendRender(bool suspend) { _suspendRender = suspend; }
+    bool IsRenderSuspended() const { return _suspendRender; }
+
     //(*Handlers(xLightsFrame)
     void OnQuit(wxCommandEvent& event);
     void OnAbout(wxCommandEvent& event);
@@ -1106,6 +1109,7 @@ public:
     int _xFadePort;
     bool _wasMaximised = false;
     wxSocketServer* _xFadeSocket = nullptr;
+    bool _suspendRender = false;
 
     void OnxFadeSocketEvent(wxSocketEvent & event);
     void OnxFadeServerEvent(wxSocketEvent & event);
