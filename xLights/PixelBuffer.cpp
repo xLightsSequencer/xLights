@@ -2297,7 +2297,7 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & va
             } else {
                 layers[ii]->inMaskFactor = fadeInFactor;
             }
-            if (STR_FOLD == layers[ii]->inTransitionType)
+            if (STR_FOLD == layers[ii]->inTransitionType && EffectPeriod < effStartPer + layers[ii]->fadeInSteps )
             {
                RenderBuffer& currentRB(layers[ii]->buffer);
                const RenderBuffer *prevRB = nullptr;
@@ -2322,13 +2322,16 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & va
             }
             if (STR_FOLD == layers[ii]->outTransitionType )
             {
-               RenderBuffer& currentRB(layers[ii]->buffer);
-               const RenderBuffer *prevRB = nullptr;
-               int fakeLayerIndex = numLayers - 1;
-               if ( fakeLayerIndex - ii > 1 )
-                  prevRB = &layers[ii+1]->buffer;
-               double progress = 1. - fadeOutFactor;
-               foldOut( currentRB, ColorBuffer( currentRB.pixels, currentRB.BufferWi, currentRB.BufferHt ), prevRB, progress );
+               if ( EffectPeriod >= effEndPer - layers[ii]->fadeOutSteps )
+               {
+                  RenderBuffer& currentRB(layers[ii]->buffer);
+                  const RenderBuffer *prevRB = nullptr;
+                  int fakeLayerIndex = numLayers - 1;
+                  if ( fakeLayerIndex - ii > 1 )
+                     prevRB = &layers[ii+1]->buffer;
+                  double progress = 1. - fadeOutFactor;
+                  foldOut( currentRB, ColorBuffer( currentRB.pixels, currentRB.BufferWi, currentRB.BufferHt ), prevRB, progress );
+               }
             } else {
                layers[ii]->calculateMask(isFirstFrame);
             }
@@ -2363,7 +2366,7 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & va
                     GetMixedColor(i,
                                   color,
                                   validLayers, EffectPeriod);
-                    
+
                     // set color for physical output
                     layers[saveLayer]->buffer.Nodes[i]->SetColor(color);
                 }
