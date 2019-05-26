@@ -703,28 +703,30 @@ bool Element::CleanupFileLocations(xLightsFrame* frame, EffectManager& em)
     return rc;
 }
 
-bool Element::SelectEffectUsingDescription(std::string description)
+Effect* Element::SelectEffectUsingDescription(std::string description)
 {
     for (int j = 0; j < GetEffectLayerCount(); j++)
     {
         EffectLayer* el = GetEffectLayer(j);
-        if (el->SelectEffectUsingDescription(description))
+        Effect* e = el->SelectEffectUsingDescription(description);
+        if (e != nullptr)
         {
-            return true;
+            return e;
         }
     }
-    return false;
+    return nullptr;
 }
 
-bool Element::SelectEffectUsingLayerTime(int layer, int time)
+Effect* Element::SelectEffectUsingLayerTime(int layer, int time)
 {
     if (layer < GetEffectLayerCount())
     {
         EffectLayer* el = GetEffectLayer(layer);
-        if (el->SelectEffectUsingTime(time))
+        Effect* e = el->SelectEffectUsingTime(time);
+        if (e != nullptr)
         {
-            return true;
+            return e;
         }
     }
-    return false;
+    return nullptr;
 }

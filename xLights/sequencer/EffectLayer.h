@@ -39,8 +39,8 @@ class EffectLayer
         int SelectEffectByTypeInTimeRange(const std::string &type, int startTimeMS, int endTimeMS);
         std::vector<Effect*> GetEffectsByTypeAndTime(const std::string &type, int startTimeMS, int endTimeMS);
         std::vector<Effect*> GetAllEffectsByTime(int startTimeMS, int endTimeMS);
-        bool SelectEffectUsingDescription(std::string description);
-        bool SelectEffectUsingTime(int time);
+        Effect* SelectEffectUsingDescription(std::string description);
+        Effect* SelectEffectUsingTime(int time);
 
         int GetLayerNumber();
         int GetIndex() const;

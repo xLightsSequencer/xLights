@@ -1834,6 +1834,7 @@ void xLightsFrame::PlayModelEffect(wxCommandEvent& event)
             {
                 RenderEffectForModel(args->element->GetModelName(),playStartTime,playEndTime);
             }
+
             playStartMS = -1;
         } else {
             playType = PLAY_TYPE_STOPPED;

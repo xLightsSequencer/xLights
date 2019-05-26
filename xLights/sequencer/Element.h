@@ -58,8 +58,8 @@ public:
     std::list<std::string> GetFileReferences(EffectManager& em) const;
     std::list<std::string> GetFacesUsed(EffectManager& em) const;
     bool CleanupFileLocations(xLightsFrame* frame, EffectManager& em);
-    bool SelectEffectUsingDescription(std::string description);
-    bool SelectEffectUsingLayerTime(int layer, int time);
+    Effect* SelectEffectUsingDescription(std::string description);
+    Effect* SelectEffectUsingLayerTime(int layer, int time);
 	virtual std::vector<int> GetLayersWithEffectsByTime(int startMs, int endMS) const;
 
     EffectLayer* AddEffectLayer();

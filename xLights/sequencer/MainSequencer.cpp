@@ -1276,16 +1276,16 @@ void MainSequencer::UnselectAllEffects()
     mSequenceElements->UnSelectAllEffects();
 }
 
-void MainSequencer::SelectEffectUsingDescription(std::string description)
+Effect* MainSequencer::SelectEffectUsingDescription(std::string description)
 {
     mSequenceElements->UnSelectAllEffects();
-    mSequenceElements->SelectEffectUsingDescription(description);
+    return mSequenceElements->SelectEffectUsingDescription(description);
 }
 
-void MainSequencer::SelectEffectUsingElementLayerTime(std::string element, int layer, int time)
+Effect* MainSequencer::SelectEffectUsingElementLayerTime(std::string element, int layer, int time)
 {
     mSequenceElements->UnSelectAllEffects();
-    mSequenceElements->SelectEffectUsingElementLayerTime(element, layer, time);
+    return mSequenceElements->SelectEffectUsingElementLayerTime(element, layer, time);
 }
 
 void MainSequencer::SetChanged()

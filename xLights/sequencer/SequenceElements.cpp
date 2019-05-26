@@ -1641,19 +1641,22 @@ int SequenceElements::GetFirstVisibleModelRow()
     return mFirstVisibleModelRow;
 }
 
-void SequenceElements::SelectEffectUsingDescription(std::string description)
+Effect* SequenceElements::SelectEffectUsingDescription(std::string description)
 {
     for (size_t i = 0; i < GetElementCount(); i++)
     {
         Element* e = GetElement(i);
         if (e->GetType() != ELEMENT_TYPE_TIMING)
         {
-            if (e->SelectEffectUsingDescription(description))
+            Effect* ef = e->SelectEffectUsingDescription(description);
+            if (ef != nullptr)
             {
-                return;
+                return ef;
             }
         }
     }
+
+    return nullptr;
 }
 
 std::list<std::string> SequenceElements::GetAllEffectDescriptions()
@@ -1757,7 +1760,7 @@ std::list<Effect*> SequenceElements::GetElementLayerEffects(std::string elementN
     return res;
 }
 
-void SequenceElements::SelectEffectUsingElementLayerTime(std::string element, int layer, int time)
+Effect* SequenceElements::SelectEffectUsingElementLayerTime(std::string element, int layer, int time)
 {
     for (size_t i = 0; i < GetElementCount(); i++)
     {
@@ -1766,11 +1769,11 @@ void SequenceElements::SelectEffectUsingElementLayerTime(std::string element, in
         {
             if (e->GetFullName() == element)
             {
-                e->SelectEffectUsingLayerTime(layer, time);
-                return;
+                return e->SelectEffectUsingLayerTime(layer, time);
             }
         }
     }
+    return nullptr;
 }
 
 void SequenceElements::SetVisibilityForAllModels(bool visibility, int view)
