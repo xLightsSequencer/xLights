@@ -6,19 +6,32 @@
 #include <wx/checkbox.h>
 #include <wx/choice.h>
 #include <wx/dialog.h>
-#include <wx/gbsizer.h>
 #include <wx/sizer.h>
 #include <wx/spinctrl.h>
 #include <wx/stattext.h>
 //*)
 
+enum class controller_connection_bulkedit
+{
+    CEBE_CONTROLLERCONNECTION,
+    CEBE_CONTROLLERGAMMA,
+    CEBE_CONTROLLERCOLOURORDER,
+    CEBE_CONTROLLERGROUPCOUNT,
+    CEBE_CONTROLLERDIRECTION,
+    CEBE_CONTROLLERNULLNODES,
+    CEBE_CONTROLLERBRIGHTNESS
+};
+
 class wxXmlNode;
 
 class ControllerConnectionDialog: public wxDialog
 {
+    controller_connection_bulkedit _type;
+    wxString _protocol;
+
 	public:
 
-		ControllerConnectionDialog(wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
+		ControllerConnectionDialog(wxWindow* parent, controller_connection_bulkedit type, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~ControllerConnectionDialog();
 
 		//(*Declarations(ControllerConnectionDialog)
@@ -26,15 +39,15 @@ class ControllerConnectionDialog: public wxDialog
 		wxButton* Button_Ok;
 		wxCheckBox* CheckBox_Brightness;
 		wxCheckBox* CheckBox_ColorOrder;
-		wxCheckBox* CheckBox_DMXChannel;
 		wxCheckBox* CheckBox_Gamma;
+		wxCheckBox* CheckBox_GroupCount;
 		wxCheckBox* CheckBox_NullNodes;
 		wxCheckBox* CheckBox_PixelDirection;
 		wxChoice* Choice_Protocol;
 		wxChoice* ColorOrder;
 		wxChoice* PixelDirection;
 		wxSpinCtrl* Brightness;
-		wxSpinCtrl* DMXChannel;
+		wxSpinCtrl* GroupCount;
 		wxSpinCtrl* NullNodes;
 		wxSpinCtrl* SpinCtrl_Port;
 		wxStaticText* StaticText1;
@@ -53,7 +66,6 @@ class ControllerConnectionDialog: public wxDialog
 		static const long ID_CHOICE1;
 		static const long ID_STATICTEXT2;
 		static const long ID_SPINCTRL1;
-		static const long ID_DMX_channel;
 		static const long ID_CHECKBOX1;
 		static const long ID_PIXEL_reverse;
 		static const long ID_CHECKBOX5;
@@ -65,6 +77,7 @@ class ControllerConnectionDialog: public wxDialog
 		static const long ID_CHECKBOX4;
 		static const long ID_PIXEL_gamma;
 		static const long ID_CHECKBOX6;
+		static const long ID_SPINCTRL2;
 		static const long ID_BUTTON1;
 		static const long ID_BUTTON2;
 		//*)
@@ -80,12 +93,9 @@ class ControllerConnectionDialog: public wxDialog
 		void OnCheckBox_BrightnessClick(wxCommandEvent& event);
 		void OnCheckBox_ColorOrderClick(wxCommandEvent& event);
 		void OnChoice_ProtocolSelect(wxCommandEvent& event);
-		void OnCheckBox_DMXChannelClick(wxCommandEvent& event);
+		void OnCheckBox_GroupCountClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()
-    
-        void ProtocolSelected(const wxString &protocol);
 };
-
 #endif

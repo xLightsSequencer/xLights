@@ -114,6 +114,12 @@ const long LayoutPanel::ID_PREVIEW_RESIZE_SAMEHEIGHT = wxNewId();
 const long LayoutPanel::ID_PREVIEW_RESIZE_SAMESIZE = wxNewId();
 const long LayoutPanel::ID_PREVIEW_BULKEDIT = wxNewId();
 const long LayoutPanel::ID_PREVIEW_BULKEDIT_CONTROLLERCONNECTION = wxNewId();
+const long LayoutPanel::ID_PREVIEW_BULKEDIT_CONTROLLERGAMMA = wxNewId();
+const long LayoutPanel::ID_PREVIEW_BULKEDIT_CONTROLLERCOLOURORDER = wxNewId();
+const long LayoutPanel::ID_PREVIEW_BULKEDIT_CONTROLLERBRIGHTNESS = wxNewId();
+const long LayoutPanel::ID_PREVIEW_BULKEDIT_CONTROLLERNULLNODES = wxNewId();
+const long LayoutPanel::ID_PREVIEW_BULKEDIT_CONTROLLERDIRECTION = wxNewId();
+const long LayoutPanel::ID_PREVIEW_BULKEDIT_CONTROLLERGROUPCOUNT = wxNewId();
 const long LayoutPanel::ID_PREVIEW_BULKEDIT_PREVIEW = wxNewId();
 const long LayoutPanel::ID_PREVIEW_BULKEDIT_DIMMINGCURVES = wxNewId();
 const long LayoutPanel::ID_PREVIEW_ALIGN_TOP = wxNewId();
@@ -1490,7 +1496,7 @@ void LayoutPanel::BulkEditDimmingCurves()
     }
 }
 
-void LayoutPanel::BulkEditControllerConnection()
+void LayoutPanel::BulkEditControllerConnection(int id)
 {
     // get the first controller connection
     wxXmlNode *cc = nullptr;
@@ -1503,8 +1509,26 @@ void LayoutPanel::BulkEditControllerConnection()
             }
         }
     }
-
-    ControllerConnectionDialog dlg(this);
+    controller_connection_bulkedit ccbe = controller_connection_bulkedit::CEBE_CONTROLLERCONNECTION;
+    if (id == ID_PREVIEW_BULKEDIT_CONTROLLERDIRECTION) {
+        ccbe = controller_connection_bulkedit::CEBE_CONTROLLERDIRECTION;
+    }
+    else if (id == ID_PREVIEW_BULKEDIT_CONTROLLERNULLNODES) {
+        ccbe = controller_connection_bulkedit::CEBE_CONTROLLERNULLNODES;
+    }
+    else if (id == ID_PREVIEW_BULKEDIT_CONTROLLERGAMMA) {
+        ccbe = controller_connection_bulkedit::CEBE_CONTROLLERGAMMA;
+    }
+    else if (id == ID_PREVIEW_BULKEDIT_CONTROLLERBRIGHTNESS) {
+        ccbe = controller_connection_bulkedit::CEBE_CONTROLLERBRIGHTNESS;
+    }
+    else if (id == ID_PREVIEW_BULKEDIT_CONTROLLERCOLOURORDER) {
+        ccbe = controller_connection_bulkedit::CEBE_CONTROLLERCOLOURORDER;
+    }
+    else if (id == ID_PREVIEW_BULKEDIT_CONTROLLERGROUPCOUNT) {
+        ccbe = controller_connection_bulkedit::CEBE_CONTROLLERGROUPCOUNT;
+    }
+    ControllerConnectionDialog dlg(this, ccbe);
     dlg.Set(cc);
 
     if (dlg.ShowModal() == wxID_OK) {
@@ -3184,6 +3208,21 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
     }
 }
 
+bool LayoutPanel::IsAllSelectedModelsArePixelProtocol() const
+{
+    for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
+    {
+        if (modelPreview->GetModels()[i]->Selected || modelPreview->GetModels()[i]->GroupSelected)
+        {
+            if (!modelPreview->GetModels()[i]->IsPixelProtocol())
+            {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
 void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
 {
     modelPreview->SetFocus();
@@ -3198,6 +3237,15 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
         wxMenu* mnuBulkEdit = new wxMenu();
         if( editing_models ) {
             mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_CONTROLLERCONNECTION, "Controller Connection");
+            if (IsAllSelectedModelsArePixelProtocol())
+            {
+                mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_CONTROLLERDIRECTION, "Controller Direction");
+                mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_CONTROLLERBRIGHTNESS, "Controller Brightness");
+                mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_CONTROLLERGAMMA, "Controller Gamma");
+                mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_CONTROLLERCOLOURORDER, "Controller Colour Order");
+                mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_CONTROLLERNULLNODES, "Controller Null Nodes");
+                mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_CONTROLLERGROUPCOUNT, "Controller Group Count");
+            }
         }
         mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_PREVIEW, "Preview");
         if( editing_models ) {
@@ -3398,9 +3446,16 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
             objects_panel->PreviewObjectAlignWithGround();
         }
     }
-    else if (event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERCONNECTION)
+    else if (event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERCONNECTION ||
+        event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERNULLNODES ||
+        event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERBRIGHTNESS ||
+        event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERCOLOURORDER ||
+        event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERGAMMA ||
+        event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERGROUPCOUNT ||
+        event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERDIRECTION
+        )
     {
-        BulkEditControllerConnection();
+        BulkEditControllerConnection(event.GetId());
     }
     else if (event.GetId() == ID_PREVIEW_BULKEDIT_PREVIEW)
     {
