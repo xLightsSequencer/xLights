@@ -393,6 +393,16 @@ void TimeLine::RestorePosition()
 
 void TimeLine::LatchSelectedPositions()
 {
+    if (mSelectedPlayMarkerEndMS != -1)
+    {
+        // if we have selected very few horizontal pixels then assume we were trying to click rather than select
+        if (std::abs(mSelectedPlayMarkerStart - mSelectedPlayMarkerEnd) < 5)
+        {
+            mSelectedPlayMarkerEndMS = -1;
+            mSelectedPlayMarkerEnd = -1;
+        }
+    }
+
     if( mSelectedPlayMarkerEndMS != -1 && mSelectedPlayMarkerStartMS > mSelectedPlayMarkerEndMS )
     {
         std::swap(mSelectedPlayMarkerStart, mSelectedPlayMarkerEnd);
