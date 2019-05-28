@@ -174,6 +174,7 @@ class LayoutPanel: public wxPanel
         static const long ID_PREVIEW_VIEWPOINT3D;
         static const long ID_PREVIEW_DELETEVIEWPOINT2D;
         static const long ID_PREVIEW_DELETEVIEWPOINT3D;
+        static const long ID_PREVIEW_IMPORTMODELSFROMRGBEFFECTS;
         static const long ID_ADD_OBJECT_IMAGE;
         static const long ID_ADD_OBJECT_GRIDLINES;
         static const long ID_ADD_OBJECT_MESH;
@@ -229,6 +230,7 @@ class LayoutPanel: public wxPanel
         void LockSelectedModels(bool lock);
         void PreviewSaveImage();
         void PreviewPrintImage();
+        void ImportModelsFromRGBEffects();
 
     public:
         void SaveEffects();

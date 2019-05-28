@@ -44,6 +44,7 @@
 #include "osxMacUtils.h"
 #include "KeyBindings.h"
 #include "sequencer/MainSequencer.h"
+#include "ImportPreviewsModelsDialog.h"
 
 static wxRect scaledRect(int srcWidth, int srcHeight, int dstWidth, int dstHeight)
 {
@@ -154,6 +155,7 @@ const long LayoutPanel::ID_PREVIEW_VIEWPOINT2D = wxNewId();
 const long LayoutPanel::ID_PREVIEW_VIEWPOINT3D = wxNewId();
 const long LayoutPanel::ID_PREVIEW_DELETEVIEWPOINT2D = wxNewId();
 const long LayoutPanel::ID_PREVIEW_DELETEVIEWPOINT3D = wxNewId();
+const long LayoutPanel::ID_PREVIEW_IMPORTMODELSFROMRGBEFFECTS = wxNewId();
 const long LayoutPanel::ID_ADD_OBJECT_IMAGE = wxNewId();
 const long LayoutPanel::ID_ADD_OBJECT_GRIDLINES = wxNewId();
 const long LayoutPanel::ID_ADD_OBJECT_MESH = wxNewId();
@@ -3355,6 +3357,7 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
 
     mnu.Append(ID_PREVIEW_SAVE_LAYOUT_IMAGE, _("Save Layout Image"));
     mnu.Append(ID_PREVIEW_PRINT_LAYOUT_IMAGE, _("Print Layout Image"));
+    mnu.Append(ID_PREVIEW_IMPORTMODELSFROMRGBEFFECTS, _("Import Previews/Models"));
 
     // ViewPoint menus
     mnu.AppendSeparator();
@@ -3429,6 +3432,10 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
     else if (event.GetId() == ID_PREVIEW_PRINT_LAYOUT_IMAGE)
     {
         PreviewPrintImage();
+    }
+    else if (event.GetId() == ID_PREVIEW_IMPORTMODELSFROMRGBEFFECTS)
+    {
+        ImportModelsFromRGBEffects();
     }
     else if (event.GetId() == ID_PREVIEW_ALIGN_BOTTOM)
     {
@@ -5411,6 +5418,68 @@ void LayoutPanel::PreviewSaveImage()
 	delete image;
 }
 
+void LayoutPanel::ImportModelsFromRGBEffects()
+{
+    wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
+    wxString filename = wxFileSelector(_("Choose RGB Effects file to import from"), wxEmptyString, XLIGHTS_RGBEFFECTS_FILE, wxEmptyString, "RGB Effects Files (xlights_rgbeffects.xml)|xlights_rgbeffects.xml", wxFD_FILE_MUST_EXIST | wxFD_OPEN);
+    if (filename.IsEmpty()) return;
+
+    ImportPreviewsModelsDialog dlg(this, filename);
+    if (dlg.ShowModal() == wxID_OK)
+    {
+        for (auto it2 : dlg.GetModelsInPreview(""))
+        {
+            std::string newName = it2.first;
+            if (xlights->AllModels.GetModel(newName) != nullptr) {
+                newName = xlights->AllModels.GenerateModelName(it2.first);
+            }
+            wxString lg = ChoiceLayoutGroups->GetStringSelection();
+            if (lg == "All Models") lg = "Default";
+            it2.second->DeleteAttribute("name");
+            it2.second->DeleteAttribute("LayoutGroup");
+            it2.second->AddAttribute("name", newName);
+            it2.second->AddAttribute("LayoutGroup", lg);
+            xlights->AllModels.createAndAddModel(it2.second, modelPreview->getWidth(), modelPreview->getHeight());
+        }
+
+        for (auto it : dlg.GetPreviews())
+        {
+            bool found = false;
+            for (int i = 0; i < ChoiceLayoutGroups->GetCount(); i++)
+            {
+                if (ChoiceLayoutGroups->GetString(i) == it)
+                {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found)
+            {
+                wxXmlNode* node = new wxXmlNode(wxXML_ELEMENT_NODE, "layoutGroup");
+                xlights->LayoutGroupsNode->AddChild(node);
+                node->AddAttribute("name", it);
+
+                LayoutGroup* grp = new LayoutGroup(it.ToStdString(), xlights, node);
+                grp->SetBackgroundImage(xlights->GetDefaultPreviewBackgroundImage());
+                xlights->LayoutGroups.push_back(grp);
+                xlights->AddPreviewOption(grp);
+                AddPreviewChoice(it.ToStdString());
+            }
+            for (auto it2 : dlg.GetModelsInPreview(it))
+            {
+                std::string newName = it2.first;
+                if (xlights->AllModels.GetModel(newName) != nullptr) {
+                    newName = xlights->AllModels.GenerateModelName(it2.first);
+                }
+                it2.second->DeleteAttribute("name");
+                it2.second->AddAttribute("name", newName);
+                xlights->AllModels.createAndAddModel(it2.second, modelPreview->getWidth(), modelPreview->getHeight());
+            }
+        }
+        ReloadModelList();
+    }
+}
+
 void LayoutPanel::PreviewPrintImage()
 {
 	class Printout : public wxPrintout
@@ -5521,7 +5590,7 @@ void LayoutPanel::AddPreviewChoice(const std::string &name)
 
 const wxString& LayoutPanel::GetBackgroundImageForSelectedPreview() {
     previewBackgroundFile = xlights->GetDefaultPreviewBackgroundImage();
-    if( currentLayoutGroup != "Default" && currentLayoutGroup != "All Models" && currentLayoutGroup != "Unassigned" ) {
+    if (pGrp != nullptr && currentLayoutGroup != "Default" && currentLayoutGroup != "All Models" && currentLayoutGroup != "Unassigned") {
         previewBackgroundFile = pGrp->GetBackgroundImage();
     }
     return previewBackgroundFile;
@@ -5530,7 +5599,7 @@ const wxString& LayoutPanel::GetBackgroundImageForSelectedPreview() {
 bool LayoutPanel::GetBackgroundScaledForSelectedPreview()
 {
     previewBackgroundScaled = xlights->GetDefaultPreviewBackgroundScaled();
-    if( currentLayoutGroup != "Default" && currentLayoutGroup != "All Models" && currentLayoutGroup != "Unassigned" ) {
+    if (pGrp != nullptr && currentLayoutGroup != "Default" && currentLayoutGroup != "All Models" && currentLayoutGroup != "Unassigned") {
         previewBackgroundScaled = pGrp->GetBackgroundScaled();
     }
     return previewBackgroundScaled;
@@ -5539,15 +5608,16 @@ bool LayoutPanel::GetBackgroundScaledForSelectedPreview()
 int LayoutPanel::GetBackgroundBrightnessForSelectedPreview()
 {
     previewBackgroundBrightness = xlights->GetDefaultPreviewBackgroundBrightness();
-    if( currentLayoutGroup != "Default" && currentLayoutGroup != "All Models" && currentLayoutGroup != "Unassigned" ) {
+    if (pGrp != nullptr && currentLayoutGroup != "Default" && currentLayoutGroup != "All Models" && currentLayoutGroup != "Unassigned") {
         previewBackgroundBrightness = pGrp->GetBackgroundBrightness();
     }
     return previewBackgroundBrightness;
 }
+
 int LayoutPanel::GetBackgroundAlphaForSelectedPreview()
 {
     previewBackgroundAlpha = xlights->GetDefaultPreviewBackgroundAlpha();
-    if( currentLayoutGroup != "Default" && currentLayoutGroup != "All Models" && currentLayoutGroup != "Unassigned" ) {
+    if (pGrp != nullptr && currentLayoutGroup != "Default" && currentLayoutGroup != "All Models" && currentLayoutGroup != "Unassigned") {
         previewBackgroundAlpha = pGrp->GetBackgroundAlpha();
     }
     return previewBackgroundAlpha;

@@ -386,6 +386,7 @@
     <ClCompile Include="models\BaseObject.cpp">
       <Filter>Models</Filter>
     </ClCompile>
+    <ClCompile Include="ImportPreviewsModelsDialog.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -776,6 +777,7 @@
     <ClInclude Include="models\BaseObject.h">
       <Filter>Models</Filter>
     </ClInclude>
+    <ClInclude Include="ImportPreviewsModelsDialog.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

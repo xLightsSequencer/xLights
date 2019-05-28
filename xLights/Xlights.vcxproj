@@ -213,6 +213,7 @@
     <ClCompile Include="FSEQFile.cpp" />
     <ClCompile Include="GenerateLyricsDialog.cpp" />
     <ClCompile Include="HousePreviewPanel.cpp" />
+    <ClCompile Include="ImportPreviewsModelsDialog.cpp" />
     <ClCompile Include="IPEntryDialog.cpp" />
     <ClCompile Include="JukeboxPanel.cpp" />
     <ClCompile Include="LayerSelectDialog.cpp" />
@@ -583,6 +584,7 @@
     <ClInclude Include="FSEQFile.h" />
     <ClInclude Include="GenerateLyricsDialog.h" />
     <ClInclude Include="HousePreviewPanel.h" />
+    <ClInclude Include="ImportPreviewsModelsDialog.h" />
     <ClInclude Include="JukeboxPanel.h" />
     <ClInclude Include="LayerSelectDialog.h" />
     <ClInclude Include="LinkJukeboxButtonDialog.h" />
