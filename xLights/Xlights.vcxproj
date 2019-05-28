@@ -196,6 +196,8 @@
     <ClCompile Include="effects\KaleidoscopePanel.cpp" />
     <ClCompile Include="effects\LinesEffect.cpp" />
     <ClCompile Include="effects\LinesPanel.cpp" />
+    <ClCompile Include="effects\ShaderEffect.cpp" />
+    <ClCompile Include="effects\ShaderPanel.cpp" />
     <ClCompile Include="effects\ShapeEffect.cpp" />
     <ClCompile Include="effects\ShapePanel.cpp" />
     <ClCompile Include="effects\WarpEffect.cpp" />
@@ -574,6 +576,8 @@
     <ClInclude Include="effects\KaleidoscopePanel.h" />
     <ClInclude Include="effects\LinesEffect.h" />
     <ClInclude Include="effects\LinesPanel.h" />
+    <ClInclude Include="effects\ShaderEffect.h" />
+    <ClInclude Include="effects\ShaderPanel.h" />
     <ClInclude Include="effects\ShapeEffect.h" />
     <ClInclude Include="effects\ShapePanel.h" />
     <ClInclude Include="effects\WarpEffect.h" />

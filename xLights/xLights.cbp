@@ -831,6 +831,10 @@
 		<Unit filename="effects/ServoEffect.h" />
 		<Unit filename="effects/ServoPanel.cpp" />
 		<Unit filename="effects/ServoPanel.h" />
+		<Unit filename="effects/ShaderEffect.cpp" />
+		<Unit filename="effects/ShaderEffect.h" />
+		<Unit filename="effects/ShaderPanel.cpp" />
+		<Unit filename="effects/ShaderPanel.h" />
 		<Unit filename="effects/ShapeEffect.cpp" />
 		<Unit filename="effects/ShapeEffect.h" />
 		<Unit filename="effects/ShapePanel.cpp" />
@@ -1227,6 +1231,7 @@
 		<Unit filename="wxsmith/SequenceVideoPanel.wxs" />
 		<Unit filename="wxsmith/ServoPanel.wxs" />
 		<Unit filename="wxsmith/SevenSegmentDialog.wxs" />
+		<Unit filename="wxsmith/ShaderPanel.wxs" />
 		<Unit filename="wxsmith/ShapePanel.wxs" />
 		<Unit filename="wxsmith/ShimmerPanel.wxs" />
 		<Unit filename="wxsmith/ShockwavePanel.wxs" />
@@ -1446,6 +1451,7 @@
 					<wxDialog wxs="wxsmith/AlignmentDialog.wxs" src="AlignmentDialog.cpp" hdr="AlignmentDialog.h" fwddecl="0" i18n="1" name="AlignmentDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/CharMapDialog.wxs" src="CharMapDialog.cpp" hdr="CharMapDialog.h" fwddecl="0" i18n="1" name="CharMapDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/ImportPreviewsModelsDialog.wxs" src="ImportPreviewsModelsDialog.cpp" hdr="ImportPreviewsModelsDialog.h" fwddecl="0" i18n="1" name="ImportPreviewsModelsDialog" language="CPP" />
+					<wxPanel wxs="wxsmith/ShaderPanel.wxs" src="effects/ShaderPanel.cpp" hdr="effects/ShaderPanel.h" fwddecl="0" i18n="1" name="ShaderPanel" language="CPP" />
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>

@@ -45,6 +45,7 @@ public:
         eff_PLASMA,
         eff_RIPPLE,
         eff_SERVO,
+        eff_SHADER,
         eff_SHAPE,
         eff_SHIMMER,
         eff_SHOCKWAVE,
