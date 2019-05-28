@@ -5424,7 +5424,7 @@ void LayoutPanel::ImportModelsFromRGBEffects()
     wxString filename = wxFileSelector(_("Choose RGB Effects file to import from"), wxEmptyString, XLIGHTS_RGBEFFECTS_FILE, wxEmptyString, "RGB Effects Files (xlights_rgbeffects.xml)|xlights_rgbeffects.xml", wxFD_FILE_MUST_EXIST | wxFD_OPEN);
     if (filename.IsEmpty()) return;
 
-    ImportPreviewsModelsDialog dlg(this, filename);
+    ImportPreviewsModelsDialog dlg(this, filename, xlights->AllModels, xlights->LayoutGroups);
     if (dlg.ShowModal() == wxID_OK)
     {
         for (auto it2 : dlg.GetModelsInPreview(""))

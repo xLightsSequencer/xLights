@@ -10,21 +10,30 @@
 #include <wx/treelist.h>
 #include <wx/xml/xml.h>
 
+#include "models/ModelManager.h"
+
+class LayoutGroup;
+
 class ImportPreviewsModelsDialog: public wxDialog
 {
     wxTreeListCtrl* TreeListCtrl1;
     wxXmlDocument _doc;
     wxTreeListItem _item;
+    ModelManager& _allModels;
+    std::vector<LayoutGroup*>& _layoutGroups;
 
     void ValidateWindow();
     void AddModels(wxTreeListCtrl* tree, wxTreeListItem item, wxXmlNode* models, wxString preview);
     void SelectAll(bool checked);
     void SelectSiblings(wxTreeListItem item, bool checked);
     void ExpandAll(bool expand);
+    void DeselectExistingModels();
+    bool ModelExists(const std::string& modelName) const;
+    bool LayoutExists(const std::string& layoutName) const;
 
 	public:
 
-		ImportPreviewsModelsDialog(wxWindow* parent, const wxString& filename, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
+		ImportPreviewsModelsDialog(wxWindow* parent, const wxString& filename, ModelManager& allModels, std::vector<LayoutGroup*>& layoutGroups, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~ImportPreviewsModelsDialog();
         wxArrayString GetPreviews() const;
         std::list<std::pair<wxString, wxXmlNode*>> GetModelsInPreview(wxString preview) const;
@@ -47,6 +56,7 @@ class ImportPreviewsModelsDialog: public wxDialog
         static const long ID_MNU_IPM_DESELECTALL;
         static const long ID_MNU_IPM_SELECTSIBLINGS;
         static const long ID_MNU_IPM_DESELECTSIBLINGS;
+        static const long ID_MNU_IPM_DESELECTEXISTING;
 
 	private:
 

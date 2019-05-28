@@ -9,6 +9,8 @@
 #include <wx/treebase.h>
 #include <wx/xml/xml.h>
 
+#include "LayoutGroup.h"
+
 //(*IdInit(ImportPreviewsModelsDialog)
 const long ImportPreviewsModelsDialog::ID_BUTTON1 = wxNewId();
 const long ImportPreviewsModelsDialog::ID_BUTTON2 = wxNewId();
@@ -18,6 +20,7 @@ const long ImportPreviewsModelsDialog::ID_MNU_IPM_SELECTALL = wxNewId();
 const long ImportPreviewsModelsDialog::ID_MNU_IPM_DESELECTALL = wxNewId();
 const long ImportPreviewsModelsDialog::ID_MNU_IPM_SELECTSIBLINGS = wxNewId();
 const long ImportPreviewsModelsDialog::ID_MNU_IPM_DESELECTSIBLINGS = wxNewId();
+const long ImportPreviewsModelsDialog::ID_MNU_IPM_DESELECTEXISTING = wxNewId();
 const long ImportPreviewsModelsDialog::ID_MNU_IPM_EXPANDALL = wxNewId();
 const long ImportPreviewsModelsDialog::ID_MNU_IPM_COLLAPSEALL = wxNewId();
 
@@ -35,7 +38,8 @@ public:
     wxXmlNode* GetModelXml() const { return _modelNode; }
 };
 
-ImportPreviewsModelsDialog::ImportPreviewsModelsDialog(wxWindow* parent, const wxString& filename, wxWindowID id,const wxPoint& pos,const wxSize& size)
+ImportPreviewsModelsDialog::ImportPreviewsModelsDialog(wxWindow* parent, const wxString& filename, ModelManager& allModels, std::vector<LayoutGroup*>& layoutGroups, wxWindowID id,const wxPoint& pos,const wxSize& size) :
+    _allModels(allModels), _layoutGroups(layoutGroups)
 {
 	//(*Initialize(ImportPreviewsModelsDialog)
 	wxFlexGridSizer* FlexGridSizer1;
@@ -190,7 +194,8 @@ void ImportPreviewsModelsDialog::AddModels(wxTreeListCtrl* tree, wxTreeListItem 
     {
         if (m->GetAttribute("LayoutGroup") == preview)
         {
-            tree->AppendItem(item, m->GetAttribute("name"), -1, -1, new impTreeItemData(m));
+            wxString mn = m->GetAttribute("name");
+            tree->AppendItem(item, mn, -1, -1, new impTreeItemData(m));
             if (!tree->IsExpanded(item)) tree->Expand(item);
         }
     }
@@ -218,6 +223,7 @@ void ImportPreviewsModelsDialog::OnContextMenu(wxTreeListEvent& event)
     mnuContext.Append(ID_MNU_IPM_DESELECTALL, "Deselect All");
     mnuContext.Append(ID_MNU_IPM_SELECTSIBLINGS, "Select Siblings");
     mnuContext.Append(ID_MNU_IPM_DESELECTSIBLINGS, "Deselect Siblings");
+    mnuContext.Append(ID_MNU_IPM_DESELECTEXISTING, "Deselect Models Already In Layout");
 
     mnuContext.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)& ImportPreviewsModelsDialog::OnListPopup, nullptr, this);
     PopupMenu(&mnuContext);
@@ -241,6 +247,10 @@ void ImportPreviewsModelsDialog::OnListPopup(wxCommandEvent& event)
     {
         SelectSiblings(_item, false);
     }
+    else if (event.GetId() == ID_MNU_IPM_DESELECTEXISTING)
+    {
+        DeselectExistingModels();
+    }
     else if (event.GetId() == ID_MNU_IPM_EXPANDALL)
     {
         ExpandAll(true);
@@ -249,6 +259,7 @@ void ImportPreviewsModelsDialog::OnListPopup(wxCommandEvent& event)
     {
         ExpandAll(false);
     }
+    ValidateWindow();
 }
 
 void ImportPreviewsModelsDialog::ExpandAll(bool expand)
@@ -264,6 +275,34 @@ void ImportPreviewsModelsDialog::ExpandAll(bool expand)
             TreeListCtrl1->Collapse(it);
         }
     }
+}
+
+void ImportPreviewsModelsDialog::DeselectExistingModels()
+{
+    for (wxTreeListItem it = TreeListCtrl1->GetFirstChild(TreeListCtrl1->GetRootItem()); it.IsOk(); it = TreeListCtrl1->GetNextSibling(it))
+    {
+        for (wxTreeListItem it2 = TreeListCtrl1->GetFirstChild(it); it2.IsOk(); it2 = TreeListCtrl1->GetNextSibling(it2))
+        {
+            if (ModelExists(TreeListCtrl1->GetItemText(it2)))
+            {
+                TreeListCtrl1->CheckItem(it2, wxCHK_UNCHECKED);
+            }
+        }
+    }
+}
+
+bool ImportPreviewsModelsDialog::ModelExists(const std::string& modelName) const
+{
+    return _allModels.GetModel(modelName) != nullptr;
+}
+
+bool ImportPreviewsModelsDialog::LayoutExists(const std::string& layoutName) const
+{
+    for (auto it : _layoutGroups)
+    {
+        if (it->GetName() == layoutName) return true;
+    }
+    return false;
 }
 
 
