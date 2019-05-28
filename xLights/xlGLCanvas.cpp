@@ -591,6 +591,8 @@ void xlGLCanvas::CreateGLContext() {
             m_sharedContext = m_context;
             m_context = nullptr;
             CreateGLContext();
+        } else {
+            InitializeGLContext();
         }
     }
 }
@@ -600,6 +602,15 @@ void xlGLCanvas::Resized(wxSizeEvent& evt)
     mWindowWidth = evt.GetSize().GetWidth();
     mWindowHeight = evt.GetSize().GetHeight();
     mWindowResized = true;
+#ifdef __WXOSX__
+    if (m_context) {
+        if (wxPlatformInfo::Get().CheckOSVersion(10, 14, 5)) {
+            m_context->SetCurrent(*this);
+            delete m_context;
+            m_context = nullptr;
+        }
+    }
+#endif
 }
 
 double xlGLCanvas::translateToBacking(double x) {

@@ -42,7 +42,7 @@ class xlGridCanvasPictures : public xlGridCanvas
         void SetPaintMode( PaintMode mode ) { mPaintMode = mode; Refresh(false); }
 
     protected:
-        virtual void InitializeGLCanvas();
+        virtual void InitializeGLContext();
 
     private:
 

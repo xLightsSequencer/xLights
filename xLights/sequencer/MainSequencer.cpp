@@ -135,15 +135,12 @@ public:
     virtual bool UsesVertexColorAccumulator() override {return false;}
     virtual bool UsesVertexAccumulator() override {return false;}
     virtual bool UsesAddVertex() override {return false;}
-    void InitializeGLCanvas() override
+    void InitializeGLContext() override
     {
-        if(!IsShownOnScreen()) return;
-
         SetCurrentGLContext();
         xlColor c(ColorManager::instance()->GetColor(ColorManager::COLOR_ROW_HEADER));
         //c.Set(70,70,70); //54->70
         //
-        
         LOG_GL_ERRORV(glClearColor(((float)c.Red())/255.0f,
                                    ((float)c.Green())/255.0f,
                                    ((float)c.Blue())/255.0f, 1.0f));
@@ -151,13 +148,12 @@ public:
         LOG_GL_ERRORV(glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA));
         LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT));
         prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
-        mIsInitialized = true;
     }
 
     void renderGL()
     {
-        if(!mIsInitialized) { InitializeGLCanvas(); }
         if(!IsShownOnScreen()) return;
+        if(!mIsInitialized) { InitializeGLCanvas(); }
 
         SetCurrentGLContext();
         glClear(GL_COLOR_BUFFER_BIT);

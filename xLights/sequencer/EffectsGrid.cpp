@@ -5695,16 +5695,19 @@ void EffectsGrid::SetStartPixelOffset(int offset)
 void EffectsGrid::InitializeGLCanvas()
 {
     if(xlights == nullptr) return;
-#ifdef __LINUX__
     if(!IsShownOnScreen()) return;
-#endif
+    SetCurrentGLContext();
+    CreateEffectIconTextures();
+    mIsInitialized = true;
+}
+void EffectsGrid::InitializeGLContext()
+{
     SetCurrentGLContext();
     LOG_GL_ERRORV(glClearColor(0.0f, 0.0f, 0.0f, 1.0f)); // Black Background
     LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT));
     prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
-    CreateEffectIconTextures();
-    mIsInitialized = true;
 }
+
 
 void EffectsGrid::DrawLines() const
 {
@@ -6302,34 +6305,29 @@ void EffectsGrid::render( wxPaintEvent& evt )
 
 void EffectsGrid::Draw()
 {
-    if(!mIsInitialized) { InitializeGLCanvas(); }
-#ifdef __LINUX__
     if(!IsShownOnScreen()) return;
-#endif
-
+    if(!mIsInitialized) { InitializeGLCanvas(); }
+    
+    if (mWindowResized && mTimeline != nullptr) {
+        mTimeline->RecalcEndTime();  // force a recalc of the Timeline end time so that timing effect positions will calculate correct during redraw
+    }
     SetCurrentGLContext();
 
     LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT));
-    if( mWindowResized && mTimeline != nullptr) {
-        mTimeline->RecalcEndTime();  // force a recalc of the Timeline end time so that timing effect positions will calculate correct during redraw
-    }
     prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
 
-    if( mSequenceElements )
-    {
+    if (mSequenceElements) {
         DrawLines();
         DrawEffects();
         DrawPlayMarker();
 
         bool has_timing_effects = (mSequenceElements->GetNumberOfActiveTimingEffects() > 0);
-        if( (mDragging || mCellRangeSelected) && !mPartialCellSelected )
-        {
-            if( has_timing_effects && mRangeStartCol >= 0 ) {
+        if ((mDragging || mCellRangeSelected) && !mPartialCellSelected) {
+            if (has_timing_effects && mRangeStartCol >= 0) {
                 DrawSelectedCells();
             }
         }
-        if( mDragging && !has_timing_effects )
-        {
+        if (mDragging && !has_timing_effects) {
             int offset = (mDragStartRow - mSequenceElements->GetFirstVisibleModelRow()) * DEFAULT_ROW_HEADING_HEIGHT;
             DrawGLUtils::DrawRectangle(xlights->color_mgr.GetColor(ColorManager::COLOR_GRID_DASHES),true,mDragStartX,mDragStartY+offset,mDragEndX,mDragEndY);
         }

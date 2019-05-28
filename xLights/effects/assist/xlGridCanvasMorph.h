@@ -24,6 +24,7 @@ class xlGridCanvasMorph : public xlGridCanvas
         virtual bool UsesAddVertex() {return false;}
 
     protected:
+        virtual void InitializeGLContext();
         virtual void InitializeGLCanvas();
         void SetUndoPoint() const;
 

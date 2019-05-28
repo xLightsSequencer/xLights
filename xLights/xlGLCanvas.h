@@ -57,7 +57,8 @@ class xlGLCanvas
         int mWindowResized;
         bool mIsInitialized;
 
-        virtual void InitializeGLCanvas() = 0;  // pure virtual method to initialize canvas
+        virtual void InitializeGLCanvas() { mIsInitialized = true; };
+        virtual void InitializeGLContext() = 0;  // pure virtual method to initialize a context (set clear color, viewport, etc...)
         void prepare2DViewport(int topleft_x, int topleft_y, int bottomrigth_x, int bottomrigth_y);
         void prepare3DViewport(int topleft_x, int topleft_y, int bottomrigth_x, int bottomrigth_y);
         void Resized(wxSizeEvent& evt);

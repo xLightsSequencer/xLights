@@ -310,16 +310,18 @@ void Waveform::InitializeGLCanvas()
 #ifdef __LINUX__
     if(!IsShownOnScreen()) return;
 #endif
+    mIsInitialized = true;
+    SetZoomLevel(mZoomLevel);
+}
+void Waveform::InitializeGLContext()
+{
     SetCurrentGLContext();
     LOG_GL_ERRORV(glClearColor(0.0f, 0.0f, 0.0f, 0.0f)); // Black Background
     LOG_GL_ERRORV(glDisable(GL_BLEND));
     LOG_GL_ERRORV(glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA));
     LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT));
     prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
-    mIsInitialized = true;
-    SetZoomLevel(mZoomLevel);
 }
-
 void Waveform::renderGL( wxPaintEvent& event )
 {
     renderGL();
@@ -327,18 +329,15 @@ void Waveform::renderGL( wxPaintEvent& event )
 
 void Waveform::renderGL()
 {
-    if(!mIsInitialized) { InitializeGLCanvas(); }
-#ifdef __LINUX__
     if(!IsShownOnScreen()) return;
-#endif
+    if(!mIsInitialized) { InitializeGLCanvas(); }
 
     SetCurrentGLContext();
 
     LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT));
     prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
 
-	if (mCurrentWaveView >= 0)
-	{
+	if (mCurrentWaveView >= 0) {
 		DrawWaveView(views[mCurrentWaveView]);
 	}
     LOG_GL_ERRORV(SwapBuffers());
@@ -373,8 +372,7 @@ void Waveform::DrawWaveView(const WaveView &wv)
     int selected_x2 = mTimeline->GetSelectedPositionEnd();
 
     // draw shaded region if needed
-    if( selected_x1 != -1 && selected_x2 != -1)
-    {
+    if (selected_x1 != -1 && selected_x2 != -1) {
         //color.Set(0, 0, 200, 45);
         color = xLightsApp::GetFrame()->color_mgr.GetColor(ColorManager::COLOR_WAVEFORM_SELECTED);
         color.SetAlpha(45);
@@ -385,11 +383,9 @@ void Waveform::DrawWaveView(const WaveView &wv)
         vac.Finish(GL_TRIANGLE_FAN, GL_BLEND);
     }
 
-    if(_media != nullptr)
-    {
+    if(_media != nullptr) {
         xlColor c(130,178,207,255);
-        if (xLightsApp::GetFrame() != nullptr)
-        {
+        if (xLightsApp::GetFrame() != nullptr) {
             c = xLightsApp::GetFrame()->color_mgr.GetColor(ColorManager::COLOR_WAVEFORM);
         }
 

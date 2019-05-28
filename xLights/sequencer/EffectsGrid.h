@@ -136,6 +136,7 @@ public:
     void UnselectEffect(bool force = false);
 protected:
     void InitializeGLCanvas() override;
+    void InitializeGLContext() override;
 
 private:
     Effect* GetEffectAtRowAndTime(int row, int ms,int &index, HitLocation &selectionType);
