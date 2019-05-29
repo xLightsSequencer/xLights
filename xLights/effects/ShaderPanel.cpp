@@ -1,4 +1,6 @@
 #include "ShaderPanel.h"
+#include "ShaderEffect.h"
+#include "../BulkEditControls.h"
 
 //(*InternalHeaders(ShaderPanel)
 #include <wx/intl.h>
@@ -6,6 +8,8 @@
 //*)
 
 //(*IdInit(ShaderPanel)
+const long ShaderPanel::ID_STATICTEXT1 = wxNewId();
+const long ShaderPanel::ID_0FILEPICKERCTRL_IFS = wxNewId();
 //*)
 
 ShaderPreview::ShaderPreview( wxWindow* parent, wxWindowID id, const wxPoint &pos, const wxSize &size, long style, const wxString &name, bool coreProfile)
@@ -34,8 +38,29 @@ END_EVENT_TABLE()
 
 ShaderPanel::ShaderPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
+    // I have deliberately given the file picker a ID_- prefix to force it to be processed first
+
 	//(*Initialize(ShaderPanel)
+	wxFlexGridSizer* FlexGridSizer1;
+	wxFlexGridSizer* FlexGridSizer2;
+
 	Create(parent, id, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("id"));
+	FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
+	FlexGridSizer2 = new wxFlexGridSizer(0, 2, 0, 0);
+	FlexGridSizer2->AddGrowableCol(1);
+	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Shader File:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
+	FlexGridSizer2->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	FilePickerCtrl1 = new wxFilePickerCtrl(this, ID_0FILEPICKERCTRL_IFS, wxEmptyString, _("Select a file"), _T("*.fs"), wxDefaultPosition, wxDefaultSize, wxFLP_FILE_MUST_EXIST|wxFLP_OPEN|wxFLP_USE_TEXTCTRL, wxDefaultValidator, _T("ID_0FILEPICKERCTRL_IFS"));
+	FlexGridSizer2->Add(FilePickerCtrl1, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer_Dynamic = new wxFlexGridSizer(0, 3, 0, 0);
+	FlexGridSizer_Dynamic->AddGrowableCol(1);
+	FlexGridSizer1->Add(FlexGridSizer_Dynamic, 1, wxALL|wxEXPAND, 5);
+	SetSizer(FlexGridSizer1);
+	FlexGridSizer1->Fit(this);
+	FlexGridSizer1->SetSizeHints(this);
+
+	Connect(ID_0FILEPICKERCTRL_IFS,wxEVT_COMMAND_FILEPICKER_CHANGED,(wxObjectEventFunction)&ShaderPanel::OnFilePickerCtrl1FileChanged);
 	//*)
 
 	_preview = new ShaderPreview( this, ID_CANVAS );
@@ -43,7 +68,76 @@ ShaderPanel::ShaderPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 
 ShaderPanel::~ShaderPanel()
 {
+    if (_shaderConfig != nullptr) delete _shaderConfig;
 	//(*Destroy(ShaderPanel)
 	//*)
 }
 
+void ShaderPanel::OnFilePickerCtrl1FileChanged(wxFileDirPickerEvent& event)
+{
+    if (wxFile::Exists(FilePickerCtrl1->GetFileName().GetFullPath()))
+    {
+        BuildUI(FilePickerCtrl1->GetFileName().GetFullPath());
+    }
+    else
+    {
+        Freeze();
+        FlexGridSizer_Dynamic->DeleteWindows();
+        Thaw();
+    }
+}
+
+void ShaderPanel::BuildUI(const wxString& filename)
+{
+    if (_shaderConfig != nullptr && _shaderConfig->GetFilename() == filename) return;
+
+    Freeze();
+
+    FlexGridSizer_Dynamic->DeleteWindows();
+
+    _shaderConfig = ShaderEffect::ParseShader(filename);
+
+    if (_shaderConfig != nullptr)
+    {
+        int id = 1;
+        for (auto it : _shaderConfig->GetParms())
+        {
+            if (it.ShowParm())
+            {
+                if (it._type == ShaderParmType::SHADER_PARM_FLOAT)
+                {
+                    auto staticText = new wxStaticText(this, wxNewId(), it.GetLabel(), wxDefaultPosition, wxDefaultSize, 0, it.GetId(ShaderCtrlType::SHADER_CTRL_STATIC));
+                    FlexGridSizer_Dynamic->Add(staticText, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 2);
+                    auto slider = new BulkEditSliderF2(this, wxNewId(), it._default * 100, it._min * 100, it._max * 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, it.GetId(ShaderCtrlType::SHADER_CTRL_SLIDER));
+                    FlexGridSizer_Dynamic->Add(slider, 1, wxALL | wxEXPAND, 2);
+                    auto def = wxString::Format("%.2f", it._default);
+                    auto text = new BulkEditTextCtrlF2(this, wxNewId(), def, wxDefaultPosition, wxDLG_UNIT(this, wxSize(30, -1)), 0, wxDefaultValidator, it.GetId(ShaderCtrlType::SHADER_CTRL_TEXTCTRL));
+                    FlexGridSizer_Dynamic->Add(text, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 2);
+                }
+                if (it._type == ShaderParmType::SHADER_PARM_LONG)
+                {
+                    auto staticText = new wxStaticText(this, wxNewId(), it.GetLabel(), wxDefaultPosition, wxDefaultSize, 0, it.GetId(ShaderCtrlType::SHADER_CTRL_STATIC));
+                    FlexGridSizer_Dynamic->Add(staticText, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 2);
+                    auto slider = new BulkEditSlider(this, wxNewId(), it._default, it._min, it._max, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, it.GetId(ShaderCtrlType::SHADER_CTRL_SLIDER));
+                    FlexGridSizer_Dynamic->Add(slider, 1, wxALL | wxEXPAND, 2);
+                    auto def = wxString::Format("%l", (long)it._default);
+                    auto text = new BulkEditTextCtrlF2(this, wxNewId(), def, wxDefaultPosition, wxDLG_UNIT(this, wxSize(30, -1)), 0, wxDefaultValidator, it.GetId(ShaderCtrlType::SHADER_CTRL_TEXTCTRL));
+                    FlexGridSizer_Dynamic->Add(text, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 2);
+                }
+                else if (it._type == ShaderParmType::SHADER_PARM_BOOL)
+                {
+                    auto staticText = new wxStaticText(this, wxNewId(), it.GetLabel(), wxDefaultPosition, wxDefaultSize, 0, it.GetId(ShaderCtrlType::SHADER_CTRL_STATIC));
+                    FlexGridSizer_Dynamic->Add(staticText, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 2);
+                    auto checkbox = new BulkEditCheckBox(this, wxNewId(), _(""), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, it.GetId(ShaderCtrlType::SHADER_CTRL_CHECKBOX));
+                    checkbox->SetValue(it._default == 1);
+                    FlexGridSizer_Dynamic->Add(checkbox, 1, wxALL | wxEXPAND, 2);
+                    FlexGridSizer_Dynamic->Add(-1, -1, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 2);
+                }
+            }
+        }
+        FlexGridSizer_Dynamic->Layout();
+        Layout();
+    }
+
+    Thaw();
+}

@@ -3,6 +3,8 @@
 
 #include "xlGLCanvas.h"
 
+class ShaderConfig;
+
 class ShaderPreview : public xlGLCanvas
 {
 public:
@@ -18,22 +20,32 @@ protected:
 };
 
 //(*Headers(ShaderPanel)
+#include <wx/filepicker.h>
 #include <wx/panel.h>
+#include <wx/sizer.h>
+#include <wx/stattext.h>
 //*)
 
 class ShaderPanel: public wxPanel
 {
+    ShaderConfig* _shaderConfig = nullptr;
+
 	public:
 
 		ShaderPanel(wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~ShaderPanel();
 
 		//(*Declarations(ShaderPanel)
+		wxFilePickerCtrl* FilePickerCtrl1;
+		wxFlexGridSizer* FlexGridSizer_Dynamic;
+		wxStaticText* StaticText1;
 		//*)
 
 	protected:
 
 		//(*Identifiers(ShaderPanel)
+		static const long ID_STATICTEXT1;
+		static const long ID_0FILEPICKERCTRL_IFS;
 		//*)
 
 		ShaderPreview *   _preview;
@@ -43,7 +55,10 @@ class ShaderPanel: public wxPanel
 	private:
 
 		//(*Handlers(ShaderPanel)
+		void OnFilePickerCtrl1FileChanged(wxFileDirPickerEvent& event);
 		//*)
+
+        void BuildUI(const wxString& filename);
 
 		DECLARE_EVENT_TABLE()
 };

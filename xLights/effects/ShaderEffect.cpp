@@ -14,6 +14,9 @@
 #include "../TimingPanel.h"
 #include "OpenGLShaders.h"
 #include "UtilFunctions.h"
+#include "../../xSchedule/wxJSON/jsonreader.h"
+
+#include <wx/regex.h>
 
 // Ack... forgot the old warp effect needed all of this!!
 #ifndef __WXMAC__
@@ -161,6 +164,26 @@ std::list<std::string> ShaderEffect::CheckEffectSettings(const SettingsMap& sett
     return res;
 }
 
+ShaderConfig* ShaderEffect::ParseShader(const std::string& filename)
+{
+    if (!wxFile::Exists(filename)) return nullptr;
+
+    wxFile f(filename);
+    if (!f.IsOpened()) return nullptr;
+
+    wxString code;
+    f.ReadAll(&code);
+    f.Close();
+
+    if (code == "") return nullptr;
+
+    wxRegEx re("\\/\\*(.*?)\\*\\/", wxRE_ADVANCED);
+
+    if (!re.Matches(code)) return nullptr;
+
+    return new ShaderConfig(filename, code, re.GetMatch(code, 1));
+}
+
 void ShaderEffect::SetDefaultParameters()
 {
 
@@ -171,8 +194,41 @@ void ShaderEffect::RemoveDefaults(const std::string &version, Effect *effect)
     RenderableEffect::RemoveDefaults(version, effect);
 }
 
+class ShaderRenderCache : public EffectRenderCache {
+
+public:
+    ShaderRenderCache() { _shaderConfig = nullptr; }
+    virtual ~ShaderRenderCache()
+    {
+        if (_shaderConfig != nullptr) delete _shaderConfig;
+    }
+
+    ShaderConfig* _shaderConfig = nullptr;
+
+    void InitialiseShaderConfig(const wxString& filename)
+    {
+        if (_shaderConfig != nullptr) delete _shaderConfig;
+        _shaderConfig = ShaderEffect::ParseShader(filename);
+    }
+};
+
 void ShaderEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &buffer)
 {
+    ShaderRenderCache* cache = (ShaderRenderCache*)buffer.infoCache[id];
+    if (cache == nullptr) {
+        cache = new ShaderRenderCache();
+        buffer.infoCache[id] = cache;
+    }
+
+    // This object has all the data from the json in the .fs file
+    ShaderConfig*& _shaderConfig = cache->_shaderConfig;
+
+    if (buffer.needToInit)
+    {
+        buffer.needToInit = false;
+        cache->InitialiseShaderConfig(SettingsMap.Get("0FILEPICKERCTRL_IFS", ""));
+    }
+
    ShaderPanel *p = (ShaderPanel *)panel;
    p->_preview->SetCurrentGLContext();
 
@@ -261,5 +317,124 @@ void ShaderEffect::sizeForRenderBuffer(const RenderBuffer& rb)
 
         s_rbWidth = rb.BufferWi;
         s_rbHeight = rb.BufferHt;
+    }
+}
+
+ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const wxString& json) : _filename(filename), _code(code)
+{
+    wxJSONReader reader;
+    wxJSONValue root;
+    reader.Parse(json, &root);
+    _description = root["DESCRIPTION"].AsString();
+    wxJSONValue inputs = root["INPUTS"];
+    for (int i = 0; i < inputs.Size(); i++)
+    {
+        wxString type = inputs[i]["TYPE"].AsString();
+        if (type == "float")
+        {
+            _parms.push_back({
+                    inputs[i].HasMember("NAME") ? inputs[i]["NAME"].AsString() : "",
+                    inputs[i].HasMember("LABEL") ? inputs[i]["LABEL"].AsString() : "",
+                    ShaderParmType::SHADER_PARM_FLOAT,
+                    (float)(inputs[i].HasMember("MIN") ? wxAtof(inputs[i]["MIN"].AsString()) : 0.0),
+                    (float)(inputs[i].HasMember("MAX") ? wxAtof(inputs[i]["MAX"].AsString()) : 0.0),
+                    (float)(inputs[i].HasMember("DEFAULT") ? wxAtof(inputs[i]["DEFAULT"].AsString()) : 0.0)
+                });
+        }
+        else if (type == "long")
+        {
+            _parms.push_back({
+                    inputs[i].HasMember("NAME") ? inputs[i]["NAME"].AsString() : "",
+                    inputs[i].HasMember("LABEL") ? inputs[i]["LABEL"].AsString() : "",
+                    ShaderParmType::SHADER_PARM_LONG,
+                    (float)(inputs[i].HasMember("MIN") ? wxAtol(inputs[i]["MIN"].AsString()) : 0.0),
+                    (float)(inputs[i].HasMember("MAX") ? wxAtol(inputs[i]["MAX"].AsString()) : 0.0),
+                    (float)(inputs[i].HasMember("DEFAULT") ? wxAtol(inputs[i]["DEFAULT"].AsString()) : 0.0)
+                });
+        }
+        else if (type == "color")
+        {
+            _parms.push_back({
+                    inputs[i].HasMember("NAME") ? inputs[i]["NAME"].AsString() : "",
+                    inputs[i].HasMember("LABEL") ? inputs[i]["LABEL"].AsString() : "",
+                    ShaderParmType::SHADER_PARM_COLOUR,
+                    0.0,
+                    0.0,
+                    0.0
+                });
+        }
+        else if (type == "audio")
+        {
+            _parms.push_back({
+                    inputs[i].HasMember("NAME") ? inputs[i]["NAME"].AsString() : "",
+                    inputs[i].HasMember("LABEL") ? inputs[i]["LABEL"].AsString() : "",
+                    ShaderParmType::SHADER_PARM_AUDIO,
+                    0.0,
+                    0.0,
+                    0.0
+                });
+        }
+        else if (type == "audiofft")
+        {
+            _parms.push_back({
+                    inputs[i].HasMember("NAME") ? inputs[i]["NAME"].AsString() : "",
+                    inputs[i].HasMember("LABEL") ? inputs[i]["LABEL"].AsString() : "",
+                    ShaderParmType::SHADER_PARM_AUDIOFFT,
+                    0.0,
+                    0.0,
+                    0.0
+                });
+        }
+        else if (type == "bool")
+        {
+            _parms.push_back({
+                    inputs[i].HasMember("NAME") ? inputs[i]["NAME"].AsString() : "",
+                    inputs[i].HasMember("LABEL") ? inputs[i]["LABEL"].AsString() : "",
+                    ShaderParmType::SHADER_PARM_BOOL,
+                    0.0f,
+                    0.0f,
+                    (float)(inputs[i].HasMember("DEFAULT") ? wxAtof(inputs[i]["DEFAULT"].AsString()) : 0.0f)
+                });
+        }
+        else if (type == "point2D")
+        {
+            // not sure what to do with these
+            _parms.push_back({
+                    inputs[i].HasMember("NAME") ? inputs[i]["NAME"].AsString() : "",
+                    inputs[i].HasMember("LABEL") ? inputs[i]["LABEL"].AsString() : "",
+                    ShaderParmType::SHADER_PARM_POINT2D,
+                    0.0f,
+                    0.0f,
+                    0.0f
+                });
+        }
+        else if (type == "image")
+        {
+            // ignore these as we will use the existing buffer content
+            _parms.push_back({
+                    inputs[i].HasMember("NAME") ? inputs[i]["NAME"].AsString() : "",
+                    inputs[i].HasMember("LABEL") ? inputs[i]["LABEL"].AsString() : "",
+                    ShaderParmType::SHADER_PARM_IMAGE,
+                    0.0f,
+                    0.0f,
+                    0.0f
+                });
+        }
+        else if (type == "event")
+        {
+            // ignore these 
+        }
+        else
+        {
+            wxASSERT(false);
+        }
+    }
+    wxJSONValue passes = root["PASSES"];
+    for (int i = 0; i < passes.Size(); i++)
+    {
+        _passes.push_back({
+            inputs[i].HasMember("TARGET") ? inputs[i]["TARGET"].AsString() : "",
+            passes[i].HasMember("PERSISTENT") ? passes[i]["PERSISTENT"].AsString() == "true" : false
+            });
     }
 }

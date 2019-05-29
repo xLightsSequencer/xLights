@@ -2368,7 +2368,7 @@ void xLightsFrame::ApplySetting(wxString name, const wxString &value)
 				}
 			}
 		}
-		else if (name.StartsWith("ID_FILEPICKER"))
+		else if (name.StartsWith("ID_FILEPICKER") || name.StartsWith("ID_0FILEPICKER"))
 		{
 			wxFilePickerCtrl *picker = (wxFilePickerCtrl*)CtrlWin;
 			picker->SetFileName(value);
