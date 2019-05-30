@@ -158,6 +158,7 @@ unsigned ShaderEffect::s_programId = 0;
 unsigned ShaderEffect::s_rbTex = 0;
 int      ShaderEffect::s_rbWidth = 0;
 int      ShaderEffect::s_rbHeight = 0;
+std::string ShaderEffect::s_psCode;
 
 ShaderEffect::ShaderEffect(int i) : RenderableEffect(i, "Shader", shader_16_xpm, shader_24_xpm, shader_32_xpm, shader_48_xpm, shader_64_xpm)
 {
@@ -265,6 +266,10 @@ void ShaderEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &b
    ShaderPanel *p = (ShaderPanel *)panel;
    p->_preview->SetCurrentGLContext();
 
+   if ( shaderConfig != nullptr && shaderConfig->GetCode() != s_psCode )
+      recompileFromShaderConfig( shaderConfig );
+
+
    if ( OpenGLShaders::HasFramebufferObjects() && OpenGLShaders::HasShaderSupport() )
    {
       sizeForRenderBuffer( buffer );
@@ -335,6 +340,8 @@ void ShaderEffect::sizeForRenderBuffer(const RenderBuffer& rb)
         s_rbTex = RenderBufferTexture(rb.BufferWi, rb.BufferHt);
 
         s_programId = OpenGLShaders::compile( vsSrc, /*psSrc*/ candy_warp );
+        if ( s_programId != 0 )
+           s_psCode = std::string( candy_warp );
 
         s_rbWidth = rb.BufferWi;
         s_rbHeight = rb.BufferHt;
@@ -360,8 +367,25 @@ void ShaderEffect::sizeForRenderBuffer(const RenderBuffer& rb)
     }
 }
 
-ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const wxString& json) : _filename(filename), _code(code)
+void ShaderEffect::recompileFromShaderConfig( const ShaderConfig* cfg )
 {
+   std::string newCode( cfg->GetCode() );
+
+   // todo - it's not gonna compile currently... we need to add uniform declarations for
+   //        each ShaderParm plus TIME and RENDERSSIZE
+   unsigned programId = OpenGLShaders::compile( vsSrc, newCode );
+   if ( programId != 0 )
+   {
+      s_programId = programId;
+      s_psCode = newCode;
+   }
+}
+
+ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const wxString& json) : _filename(filename)
+{
+    size_t pos = code.find( "*/");
+    _code = ( pos != wxString::npos ) ? code.substr( pos + 2 ) : code;
+
     wxJSONReader reader;
     wxJSONValue root;
     reader.Parse(json, &root);

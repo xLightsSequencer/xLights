@@ -108,6 +108,7 @@ class ShaderEffect : public RenderableEffect
         virtual wxPanel *CreatePanel(wxWindow *parent) override;
 
         void sizeForRenderBuffer(const RenderBuffer& rb);
+        void recompileFromShaderConfig( const ShaderConfig* cfg );
 
         static bool s_shadersInit;
         static unsigned s_vertexArrayId;
@@ -118,6 +119,7 @@ class ShaderEffect : public RenderableEffect
         static unsigned s_programId;
         static int s_rbWidth;
         static int s_rbHeight;
+        static std::string s_psCode;
 };
 
 #endif // SHADEREFFECT_H
