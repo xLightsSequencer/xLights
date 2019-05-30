@@ -146,7 +146,12 @@ unsigned OpenGLShaders::compile( const std::string& vertexSource, const std::str
    glShaderSource( fragmentShader, 1, fragmentShaders, NULL );
    glCompileShader( fragmentShader );
    if ( !shaderCompileSuceeded( fragmentShader ) )
+   {
+      char err[1024];
+      GLsizei sz;
+      glGetShaderInfoLog( fragmentShader, 1024, &sz, err );
       return 0;
+   }
 
    GLuint program = glCreateProgram();
    glAttachShader( program, vertexShader );

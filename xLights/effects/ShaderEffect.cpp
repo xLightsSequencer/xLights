@@ -52,6 +52,7 @@ extern PFNGLBINDVERTEXARRAYPROC glBindVertexArray;
 extern PFNGLGENVERTEXARRAYSPROC glGenVertexArrays;
 extern PFNGLUNIFORM1IPROC glUniform1i;
 extern PFNGLUNIFORM1FPROC glUniform1f;
+extern PFNGLUNIFORM2FPROC glUniform2f;
 extern PFNGLUNIFORM4FPROC glUniform4f;
 #else
 #include "OpenGL/gl.h"
@@ -114,6 +115,38 @@ namespace
       "void main() {\n"
       "    color = vec4( 1, 0, 0, 1);\n"
       "}\n";
+
+   // temporarily borrowed from https://www.interactiveshaderformat.com/sketches/1792
+   const char *candy_warp =
+      "#version 330\n"
+      "uniform vec2 RENDERSIZE;\n"
+      "uniform float TIME;\n"
+      "const float scale = 84.;\n"
+      "const float cycle = 0.4;\n"
+      "const float thickness = 0.1;\n"
+      "const float loops = 61.;\n"
+      "const float warp = 2.5;\n"
+      "const float hue = 0.33;\n"
+      "const float tint = 0.1;\n"
+      "const float rate = 1.25;\n"
+      "const bool invert = false;\n"
+      "void main(void)\n"
+      "{\n"
+      "   float s = RENDERSIZE.y / scale;\n"
+	   "   float radius = RENDERSIZE.x / cycle;\n"
+	   "   float gap = s * (1.0 - thickness);\n"
+	   "   vec2 pos = gl_FragCoord.xy - RENDERSIZE.xy * 0.5;\n"
+	   "   float d = length(pos);\n"
+	   "   float T = TIME * rate;\n"
+	   "   d += warp * (sin(pos.y * 0.25 / s + T) * sin(pos.x * 0.25 / s + T * 0.5)) * s * 5.0;\n"
+	   "   float v = mod(d + radius / (loops * 2.0), radius / loops);\n"
+	   "   v = abs(v - radius / (loops * 2.0));\n"
+	   "   v = clamp(v - gap, 0.0, 1.0);\n"
+	   "   d /= radius - T;\n"
+	   "   vec3 m = fract((d - 1.0) * vec3(loops * hue, -loops, loops * tint) * 0.5);\n"
+	   "   if (invert) 	gl_FragColor = vec4(m / v, 1.0);\n"
+	   "   else gl_FragColor = vec4(m * v, 1.0);\n"
+	   "}\n";
 }
 
 bool     ShaderEffect::s_shadersInit;
@@ -248,6 +281,13 @@ void ShaderEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &b
       GLuint programId = s_programId;
       glUseProgram( programId );
 
+      int loc = glGetUniformLocation( programId, "RENDERSIZE" );
+      if ( loc > 0 )
+         glUniform2f( loc, buffer.BufferWi, buffer.BufferHt );
+      loc = glGetUniformLocation( programId, "TIME" );
+      if ( loc > 0 )
+         glUniform1f( loc, (buffer.curPeriod - buffer.curEffStartPer) / 20.f );
+
       GLuint vattrib = glGetAttribLocation( programId, "vpos" );
       glVertexAttribPointer( vattrib, 2, GL_FLOAT, GL_FALSE, sizeof(VertexTex), reinterpret_cast<void *>( offsetof(VertexTex, v) ) );
       glEnableVertexAttribArray( vattrib );
@@ -294,7 +334,7 @@ void ShaderEffect::sizeForRenderBuffer(const RenderBuffer& rb)
 
         s_rbTex = RenderBufferTexture(rb.BufferWi, rb.BufferHt);
 
-        s_programId = OpenGLShaders::compile( vsSrc, psSrc );
+        s_programId = OpenGLShaders::compile( vsSrc, /*psSrc*/ candy_warp );
 
         s_rbWidth = rb.BufferWi;
         s_rbHeight = rb.BufferHt;
