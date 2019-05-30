@@ -149,17 +149,6 @@ namespace
 	   "}\n";
 }
 
-bool     ShaderEffect::s_shadersInit;
-unsigned ShaderEffect::s_vertexArrayId = 0;
-unsigned ShaderEffect::s_vertexBufferId = 0;
-unsigned ShaderEffect::s_fbId = 0;
-unsigned ShaderEffect::s_rbId = 0;
-unsigned ShaderEffect::s_programId = 0;
-unsigned ShaderEffect::s_rbTex = 0;
-int      ShaderEffect::s_rbWidth = 0;
-int      ShaderEffect::s_rbHeight = 0;
-std::string ShaderEffect::s_psCode;
-
 ShaderEffect::ShaderEffect(int i) : RenderableEffect(i, "Shader", shader_16_xpm, shader_24_xpm, shader_32_xpm, shader_48_xpm, shader_64_xpm)
 {
 
@@ -238,6 +227,15 @@ public:
     }
 
     ShaderConfig* _shaderConfig = nullptr;
+    bool s_shadersInit = false;
+    unsigned s_vertexArrayId = 0;
+    unsigned s_vertexBufferId = 0;
+    unsigned s_fbId = 0;
+    unsigned s_rbId = 0;
+    unsigned s_rbTex = 0;
+    unsigned s_programId = 0;
+    int s_rbWidth = 0;
+    int s_rbHeight = 0;
 
     void InitialiseShaderConfig(const wxString& filename)
     {
@@ -256,23 +254,49 @@ void ShaderEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &b
 
     // This object has all the data from the json in the .fs file
     ShaderConfig*& _shaderConfig = cache->_shaderConfig;
+    bool&     s_shadersInit = cache->s_shadersInit;
+    unsigned& s_vertexArrayId = cache->s_vertexArrayId;
+    unsigned& s_vertexBufferId = cache->s_vertexBufferId;
+    unsigned& s_fbId = cache->s_fbId;
+    unsigned& s_rbId = cache->s_rbId;
+    unsigned& s_programId = cache->s_programId;
+    unsigned& s_rbTex = cache->s_rbTex;
+    int&      s_rbWidth = cache->s_rbWidth;
+    int&      s_rbHeight = cache->s_rbHeight;
 
     if (buffer.needToInit)
     {
         buffer.needToInit = false;
         cache->InitialiseShaderConfig(SettingsMap.Get("0FILEPICKERCTRL_IFS", ""));
+        if (_shaderConfig != nullptr)
+        {
+            recompileFromShaderConfig(_shaderConfig, s_programId);
+        }
     }
 
-   ShaderPanel *p = (ShaderPanel *)panel;
+    // if there is no config then we should paint it red ... just like the video effect
+    if (_shaderConfig == nullptr || s_programId == 0)
+    {
+        for (int x = 0; x < buffer.BufferWi; x++)
+        {
+            for (int y = 0; y < buffer.BufferHt; y++)
+            {
+                buffer.SetPixel(x, y, *wxRED);
+            }
+        }
+        return;
+    }
+
+    // ***********************************************************************************************************
+    // todo is there more of this code we could add to the needtoinit case as this only happens on the first frame
+    // ***********************************************************************************************************
+    
+    ShaderPanel *p = (ShaderPanel *)panel;
    p->_preview->SetCurrentGLContext();
-
-   if ( shaderConfig != nullptr && shaderConfig->GetCode() != s_psCode )
-      recompileFromShaderConfig( shaderConfig );
-
 
    if ( OpenGLShaders::HasFramebufferObjects() && OpenGLShaders::HasShaderSupport() )
    {
-      sizeForRenderBuffer( buffer );
+      sizeForRenderBuffer( buffer, s_shadersInit, s_vertexArrayId, s_vertexBufferId, s_rbId, s_fbId, s_rbTex, s_rbWidth, s_rbHeight );
 
       glBindFramebuffer( GL_FRAMEBUFFER, s_fbId );
       glViewport( 0, 0, buffer.BufferWi, buffer.BufferHt );
@@ -286,12 +310,49 @@ void ShaderEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &b
       GLuint programId = s_programId;
       glUseProgram( programId );
 
+      int colourIndex = 0;
       int loc = glGetUniformLocation( programId, "RENDERSIZE" );
       if ( loc > 0 )
          glUniform2f( loc, buffer.BufferWi, buffer.BufferHt );
       loc = glGetUniformLocation( programId, "TIME" );
       if ( loc > 0 )
          glUniform1f( loc, (buffer.curPeriod - buffer.curEffStartPer) / 20.f );
+      for (auto it : _shaderConfig->GetParms())
+      {
+          loc = glGetUniformLocation(programId, it._name.c_str());
+          if (loc > 0)
+          {
+              switch (it._type)
+              {
+              case ShaderParmType::SHADER_PARM_FLOAT:
+              {
+                  float f = SettingsMap.GetFloat(it.GetUndecoratedId(ShaderCtrlType::SHADER_CTRL_SLIDER)) / 100.0;
+                  glUniform1f(loc, f);
+              }
+              break;
+              case ShaderParmType::SHADER_PARM_BOOL:
+              {
+                  //bool b = SettingsMap.GetBool(it.GetUndecoratedId(ShaderCtrlType::SHADER_CTRL_CHECKBOX));
+                  //glUniformb(loc, b);
+              }
+              break;
+              case ShaderParmType::SHADER_PARM_LONG:
+              {
+                  //long l = SettingsMap.GetInt(it.GetUndecoratedId(ShaderCtrlType::SHADER_CTRL_SLIDER));
+                  //glUniformi(loc, l);
+              }
+              break;
+              case ShaderParmType::SHADER_PARM_COLOUR:
+              {
+                  //xlColor c = buffer.palette.GetColor(colourIndex);
+                  //colourIndex++;
+                  //if (colourIndex > buffer.GetColorCount()) colourIndex = 0;
+                  //glUniformc(loc, c);
+              }
+              break;
+              }
+          }
+      }
 
       GLuint vattrib = glGetAttribLocation( programId, "vpos" );
       glVertexAttribPointer( vattrib, 2, GL_FLOAT, GL_FALSE, sizeof(VertexTex), reinterpret_cast<void *>( offsetof(VertexTex, v) ) );
@@ -314,7 +375,10 @@ void ShaderEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &b
    }
 }
 
-void ShaderEffect::sizeForRenderBuffer(const RenderBuffer& rb)
+void ShaderEffect::sizeForRenderBuffer(const RenderBuffer& rb, 
+    bool& s_shadersInit, 
+    unsigned& s_vertexArrayId, unsigned& s_vertexBufferId, unsigned& s_rbId, unsigned& s_fbId,
+    unsigned& s_rbTex, int& s_rbWidth, int& s_rbHeight)
 {
     if (!s_shadersInit)
     {
@@ -338,10 +402,6 @@ void ShaderEffect::sizeForRenderBuffer(const RenderBuffer& rb)
         createOpenGLRenderBuffer(rb.BufferWi, rb.BufferHt, &s_rbId, &s_fbId);
 
         s_rbTex = RenderBufferTexture(rb.BufferWi, rb.BufferHt);
-
-        s_programId = OpenGLShaders::compile( vsSrc, /*psSrc*/ candy_warp );
-        if ( s_programId != 0 )
-           s_psCode = std::string( candy_warp );
 
         s_rbWidth = rb.BufferWi;
         s_rbHeight = rb.BufferHt;
@@ -367,18 +427,15 @@ void ShaderEffect::sizeForRenderBuffer(const RenderBuffer& rb)
     }
 }
 
-void ShaderEffect::recompileFromShaderConfig( const ShaderConfig* cfg )
+void ShaderEffect::recompileFromShaderConfig( const ShaderConfig* cfg, unsigned& s_programId)
 {
    std::string newCode( cfg->GetCode() );
 
+   //s_programId = OpenGLShaders::compile( vsSrc, candy_warp);
+
    // todo - it's not gonna compile currently... we need to add uniform declarations for
    //        each ShaderParm plus TIME and RENDERSSIZE
-   unsigned programId = OpenGLShaders::compile( vsSrc, newCode );
-   if ( programId != 0 )
-   {
-      s_programId = programId;
-      s_psCode = newCode;
-   }
+   s_programId = OpenGLShaders::compile( vsSrc, newCode );
 }
 
 ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const wxString& json) : _filename(filename)
