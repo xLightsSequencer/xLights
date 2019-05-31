@@ -11,8 +11,16 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2019.27 June 1, 2019
    -- enh (kevin)   Add "Fold" transition type
    -- enh (kevin)   Add effects-grid representation of transitions
+   -- enh (keith)   Add import of previews and models from another rgbeffects file
+   -- enh (keith)   Add some more snowflake styles
+   -- enh (keith)   Enhance controller connection bulk edit to allow editing just one property
+   -- enh (keith)   When selecting waveform if less than 5 pixels are selected treat it like a click
+   -- bug (keith)   Make it easier to grab end value curve handles
+   -- enh (keith)   When using jukebox always show the effect properties
+   -- enh (keith)   Add event support to xSchedule plugins
 2019.26 May 24, 2019
    -- enh (scott)   When prompting for missing audio include the original audio filename to make it easier to find
    -- enh (scott)   When audio is missing look down 1 folder and grab it from there if found
