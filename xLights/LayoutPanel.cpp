@@ -5716,7 +5716,8 @@ void LayoutPanel::ImportModelsFromRGBEffects()
                 xlights->AllModels.createAndAddModel(it2.second, modelPreview->getWidth(), modelPreview->getHeight());
             }
         }
-        ReloadModelList();
+        xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::ImportModelsFromRGBEffects");
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "LayoutPanel::ImportModelsFromRGBEffects");
     }
 }
 
