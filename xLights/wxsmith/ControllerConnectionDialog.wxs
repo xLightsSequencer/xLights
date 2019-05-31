@@ -7,13 +7,13 @@
 			<cols>1</cols>
 			<growablecols>0</growablecols>
 			<object class="sizeritem">
-				<object class="wxGridBagSizer" variable="GridBagSizer1" member="no">
+				<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
+					<cols>2</cols>
+					<growablecols>1</growablecols>
 					<object class="sizeritem">
 						<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
 							<label>Protocol</label>
 						</object>
-						<col>0</col>
-						<row>0</row>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
 						<option>1</option>
@@ -23,8 +23,6 @@
 							<focused>1</focused>
 							<handler function="OnChoice_ProtocolSelect" entry="EVT_CHOICE" />
 						</object>
-						<col>1</col>
-						<row>0</row>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>
 						<option>1</option>
@@ -33,8 +31,6 @@
 						<object class="wxStaticText" name="ID_STATICTEXT2" variable="StaticText2" member="yes">
 							<label>Port</label>
 						</object>
-						<col>0</col>
-						<row>1</row>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
 						<option>1</option>
@@ -44,21 +40,6 @@
 							<value>1</value>
 							<min>1</min>
 						</object>
-						<col>1</col>
-						<row>1</row>
-						<flag>wxALL|wxEXPAND</flag>
-						<border>2</border>
-						<option>1</option>
-					</object>
-					<object class="sizeritem">
-						<object class="wxSpinCtrl" name="ID_DMX_channel" variable="DMXChannel" member="yes">
-							<value>1</value>
-							<min>1</min>
-							<max>512</max>
-							<enabled>0</enabled>
-						</object>
-						<col>1</col>
-						<row>2</row>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>
 						<option>1</option>
@@ -68,8 +49,6 @@
 							<label>Set Direction</label>
 							<handler function="OnPixelDirectionClick" entry="EVT_CHECKBOX" />
 						</object>
-						<col>0</col>
-						<row>4</row>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
 						<option>1</option>
@@ -83,8 +62,6 @@
 							<selection>0</selection>
 							<enabled>0</enabled>
 						</object>
-						<col>1</col>
-						<row>4</row>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>
 						<option>1</option>
@@ -94,8 +71,6 @@
 							<label>Set Color Order</label>
 							<handler function="OnCheckBox_ColorOrderClick" entry="EVT_CHECKBOX" />
 						</object>
-						<col>0</col>
-						<row>5</row>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
 						<option>1</option>
@@ -125,8 +100,6 @@
 							<selection>0</selection>
 							<enabled>0</enabled>
 						</object>
-						<col>1</col>
-						<row>5</row>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>
 						<option>1</option>
@@ -136,8 +109,6 @@
 							<label>Set Null Nodes</label>
 							<handler function="OnCheckBox_NullNodesClick" entry="EVT_CHECKBOX" />
 						</object>
-						<col>0</col>
-						<row>6</row>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
 						<option>1</option>
@@ -148,8 +119,6 @@
 							<max>25</max>
 							<enabled>0</enabled>
 						</object>
-						<col>1</col>
-						<row>6</row>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>
 						<option>1</option>
@@ -159,8 +128,6 @@
 							<label>Set Brightness</label>
 							<handler function="OnCheckBox_BrightnessClick" entry="EVT_CHECKBOX" />
 						</object>
-						<col>0</col>
-						<row>7</row>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
 						<option>1</option>
@@ -170,8 +137,6 @@
 							<value>100</value>
 							<enabled>0</enabled>
 						</object>
-						<col>1</col>
-						<row>7</row>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>
 						<option>1</option>
@@ -181,8 +146,6 @@
 							<label>Set Gamma</label>
 							<handler function="OnCheckBox_GammaClick" entry="EVT_CHECKBOX" />
 						</object>
-						<col>0</col>
-						<row>8</row>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
 						<option>1</option>
@@ -192,26 +155,32 @@
 							<value></value>
 							<max>10</max>
 						</object>
-						<col>1</col>
-						<row>8</row>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxCheckBox" name="ID_CHECKBOX6" variable="CheckBox_DMXChannel" member="yes">
-							<label>DMX Channel</label>
-							<handler function="OnCheckBox_DMXChannelClick" entry="EVT_CHECKBOX" />
+						<object class="wxCheckBox" name="ID_CHECKBOX6" variable="CheckBox_GroupCount" member="yes">
+							<label>Group Count</label>
+							<handler function="OnCheckBox_GroupCountClick" entry="EVT_CHECKBOX" />
 						</object>
-						<col>0</col>
-						<row>2</row>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>
+					<object class="sizeritem">
+						<object class="wxSpinCtrl" name="ID_SPINCTRL2" variable="GroupCount" member="yes">
+							<value>1</value>
+							<min>1</min>
+							<enabled>0</enabled>
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
-				<border>2</border>
+				<border>5</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">

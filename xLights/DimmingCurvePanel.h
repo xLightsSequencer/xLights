@@ -20,7 +20,7 @@ class DimmingCurvePanel : public xlGLCanvas
         virtual ~DimmingCurvePanel();
     
     
-        virtual void InitializeGLCanvas();
+        virtual void InitializeGLContext();
         void render(wxPaintEvent& event);
     
         void SetDimmingCurve(DimmingCurve *c, int channel);

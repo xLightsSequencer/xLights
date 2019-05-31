@@ -5695,16 +5695,19 @@ void EffectsGrid::SetStartPixelOffset(int offset)
 void EffectsGrid::InitializeGLCanvas()
 {
     if(xlights == nullptr) return;
-#ifdef __LINUX__
     if(!IsShownOnScreen()) return;
-#endif
+    SetCurrentGLContext();
+    CreateEffectIconTextures();
+    mIsInitialized = true;
+}
+void EffectsGrid::InitializeGLContext()
+{
     SetCurrentGLContext();
     LOG_GL_ERRORV(glClearColor(0.0f, 0.0f, 0.0f, 1.0f)); // Black Background
     LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT));
     prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
-    CreateEffectIconTextures();
-    mIsInitialized = true;
 }
+
 
 void EffectsGrid::DrawLines() const
 {
@@ -5816,7 +5819,46 @@ int EffectsGrid::DrawEffectBackground(const Row_Information_Struct* ri, const Ef
             }
         }
     }
-    return ef == nullptr ? 1 : ef->DrawEffectBackground(e, x1, y1, x2, y2, backgrounds, (colorMask.IsNilColor() ? nullptr : &colorMask), xlights->IsDrawRamps());
+    int result = ef == nullptr ? 1 : ef->DrawEffectBackground(e, x1, y1, x2, y2, backgrounds, (colorMask.IsNilColor() ? nullptr : &colorMask), xlights->IsDrawRamps());
+
+    const SettingsMap &sm( e->GetSettings() );
+    int inTransitionEnd = 0, outTransitionStart = 0;
+    double fadeInTime = sm.GetDouble( "T_TEXTCTRL_Fadein" );
+    if ( fadeInTime != 0. )
+    {
+       double fadeInTimeMS = fadeInTime * 1000;
+       int durationMS = e->GetEndTimeMS() - e->GetStartTimeMS();
+       if ( durationMS > 0 )
+       {
+         double pct = std::min( fadeInTimeMS / durationMS, 1. );
+         int width = int( pct * (x2 - x1) );
+         inTransitionEnd = x1 + width;
+         backgrounds.AddRect( x1, y1, inTransitionEnd, y1+2, xlGREEN );
+         backgrounds.AddRect( x1, y1+2, inTransitionEnd, y1+3, xlBLACK );
+       }
+    }
+    double fadeOutTime = sm.GetDouble( "T_TEXTCTRL_Fadeout" );
+    if ( fadeOutTime != 0. )
+    {
+       double fadeOutTimeMS = fadeOutTime * 1000;
+       int durationMS = e->GetEndTimeMS() - e->GetStartTimeMS();
+       if ( durationMS > 0 )
+       {
+         double pct = std::min( fadeOutTimeMS / durationMS, 1. );
+         int width = int( pct * (x2 - x1) );
+         outTransitionStart = x2 - width;
+         backgrounds.AddRect( outTransitionStart, y1, x2, y1+2, xlRED );
+         backgrounds.AddRect( outTransitionStart, y1+2, x2, y1+3, xlBLACK );
+       }
+    }
+
+    if ( fadeInTime != 0. && fadeOutTime != 0. && inTransitionEnd > outTransitionStart )
+    {
+         backgrounds.AddRect( outTransitionStart, y1, inTransitionEnd, y1+2, xlYELLOW );
+         backgrounds.AddRect( outTransitionStart, y1+2, inTransitionEnd, y1+3, xlBLACK );
+    }
+
+    return result;
 }
 
 float ComputeFontSize(int &toffset, const float factor) {
@@ -6263,34 +6305,29 @@ void EffectsGrid::render( wxPaintEvent& evt )
 
 void EffectsGrid::Draw()
 {
-    if(!mIsInitialized) { InitializeGLCanvas(); }
-#ifdef __LINUX__
     if(!IsShownOnScreen()) return;
-#endif
-
+    if(!mIsInitialized) { InitializeGLCanvas(); }
+    
+    if (mWindowResized && mTimeline != nullptr) {
+        mTimeline->RecalcEndTime();  // force a recalc of the Timeline end time so that timing effect positions will calculate correct during redraw
+    }
     SetCurrentGLContext();
 
     LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT));
-    if( mWindowResized && mTimeline != nullptr) {
-        mTimeline->RecalcEndTime();  // force a recalc of the Timeline end time so that timing effect positions will calculate correct during redraw
-    }
     prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
 
-    if( mSequenceElements )
-    {
+    if (mSequenceElements) {
         DrawLines();
         DrawEffects();
         DrawPlayMarker();
 
         bool has_timing_effects = (mSequenceElements->GetNumberOfActiveTimingEffects() > 0);
-        if( (mDragging || mCellRangeSelected) && !mPartialCellSelected )
-        {
-            if( has_timing_effects && mRangeStartCol >= 0 ) {
+        if ((mDragging || mCellRangeSelected) && !mPartialCellSelected) {
+            if (has_timing_effects && mRangeStartCol >= 0) {
                 DrawSelectedCells();
             }
         }
-        if( mDragging && !has_timing_effects )
-        {
+        if (mDragging && !has_timing_effects) {
             int offset = (mDragStartRow - mSequenceElements->GetFirstVisibleModelRow()) * DEFAULT_ROW_HEADING_HEIGHT;
             DrawGLUtils::DrawRectangle(xlights->color_mgr.GetColor(ColorManager::COLOR_GRID_DASHES),true,mDragStartX,mDragStartY+offset,mDragEndX,mDragEndY);
         }

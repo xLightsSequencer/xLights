@@ -20,6 +20,8 @@ class wxStaticText;
 #include <wx/xml/xml.h>
 #include <glm/glm.hpp>
 
+#include "ControllerConnectionDialog.h"
+
 #include <vector>
 #include <list>
 
@@ -137,6 +139,12 @@ class LayoutPanel: public wxPanel
         static const long ID_PREVIEW_BULKEDIT;
         static const long ID_PREVIEW_BULKEDIT_CONTROLLERCONNECTION;
         static const long ID_PREVIEW_BULKEDIT_CONTROLLERNAME;
+        static const long ID_PREVIEW_BULKEDIT_CONTROLLERDIRECTION;
+        static const long ID_PREVIEW_BULKEDIT_CONTROLLERNULLNODES;
+        static const long ID_PREVIEW_BULKEDIT_CONTROLLERGAMMA;
+        static const long ID_PREVIEW_BULKEDIT_CONTROLLERBRIGHTNESS;
+        static const long ID_PREVIEW_BULKEDIT_CONTROLLERCOLOURORDER;
+        static const long ID_PREVIEW_BULKEDIT_CONTROLLERGROUPCOUNT;
         static const long ID_PREVIEW_BULKEDIT_PREVIEW;
         static const long ID_PREVIEW_BULKEDIT_DIMMINGCURVES;
         static const long ID_PREVIEW_ALIGN_TOP;
@@ -167,6 +175,7 @@ class LayoutPanel: public wxPanel
         static const long ID_PREVIEW_VIEWPOINT3D;
         static const long ID_PREVIEW_DELETEVIEWPOINT2D;
         static const long ID_PREVIEW_DELETEVIEWPOINT3D;
+        static const long ID_PREVIEW_IMPORTMODELSFROMRGBEFFECTS;
         static const long ID_ADD_OBJECT_IMAGE;
         static const long ID_ADD_OBJECT_GRIDLINES;
         static const long ID_ADD_OBJECT_MESH;
@@ -222,6 +231,7 @@ class LayoutPanel: public wxPanel
         void LockSelectedModels(bool lock);
         void PreviewSaveImage();
         void PreviewPrintImage();
+        void ImportModelsFromRGBEffects();
 
     public:
         void SaveEffects();
@@ -259,13 +269,14 @@ class LayoutPanel: public wxPanel
         NewModelBitmapButton* AddModelButton(const std::string &type, const char *imageData[]);
         void UpdateModelsForPreview(const std::string &group, LayoutGroup* layout_grp, std::vector<Model *> &prev_models, bool filtering );
         void CreateModelGroupFromSelected();
-        void BulkEditControllerConnection();
         void BulkEditControllerName();
+        void BulkEditControllerConnection(int type);
         void BulkEditControllerPreview();
         void BulkEditDimmingCurves();
         void ReplaceModel();
         void ShowNodeLayout();
         void ShowWiring();
+        bool IsAllSelectedModelsArePixelProtocol() const;
 
         bool SelectSingleModel(int x,int y);
         bool SelectMultipleModels(int x,int y);

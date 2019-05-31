@@ -63,7 +63,8 @@ class Waveform : public xlGLCanvas
         };
 
     protected:
-		virtual void InitializeGLCanvas() override;
+		virtual void InitializeGLContext() override;
+        virtual void InitializeGLCanvas() override;
         virtual bool UsesVertexTextureAccumulator() override {return false;}
         virtual bool UsesVertexColorAccumulator() override {return true;}
         virtual bool UsesVertexAccumulator() override {return true;}

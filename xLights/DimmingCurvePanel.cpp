@@ -34,10 +34,7 @@ void DimmingCurvePanel::SetDimmingCurve(DimmingCurve *c, int ch) {
     Update();
 }
 
-void DimmingCurvePanel::InitializeGLCanvas() {
-#ifdef __LINUX__
-    if(!IsShownOnScreen()) return;
-#endif
+void DimmingCurvePanel::InitializeGLContext() {
     SetCurrentGLContext();
 
     LOG_GL_ERRORV(glClearColor(0.0f, 0.0f, 0.0f, 0.0f)); // Black Background
@@ -49,10 +46,9 @@ void DimmingCurvePanel::InitializeGLCanvas() {
     mIsInitialized = true;
 }
 void DimmingCurvePanel::render(wxPaintEvent& event) {
-    if(!mIsInitialized) { InitializeGLCanvas(); }
-#ifdef __LINUX__
     if(!IsShownOnScreen()) return;
-#endif
+    if(!mIsInitialized) { InitializeGLCanvas(); }
+
     wxPaintDC(this);
     SetCurrentGLContext();
 

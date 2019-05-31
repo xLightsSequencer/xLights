@@ -34,7 +34,7 @@ class xlColorCanvas : public xlGLCanvas
         virtual bool UsesVertexAccumulator() {return false;}
         virtual bool UsesAddVertex() {return true;}
     protected:
-        virtual void InitializeGLCanvas();
+        virtual void InitializeGLContext();
 
     private:
 

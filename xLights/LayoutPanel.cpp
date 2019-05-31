@@ -44,6 +44,7 @@
 #include "osxMacUtils.h"
 #include "KeyBindings.h"
 #include "sequencer/MainSequencer.h"
+#include "ImportPreviewsModelsDialog.h"
 
 static wxRect scaledRect(int srcWidth, int srcHeight, int dstWidth, int dstHeight)
 {
@@ -115,6 +116,12 @@ const long LayoutPanel::ID_PREVIEW_RESIZE_SAMESIZE = wxNewId();
 const long LayoutPanel::ID_PREVIEW_BULKEDIT = wxNewId();
 const long LayoutPanel::ID_PREVIEW_BULKEDIT_CONTROLLERCONNECTION = wxNewId();
 const long LayoutPanel::ID_PREVIEW_BULKEDIT_CONTROLLERNAME = wxNewId();
+const long LayoutPanel::ID_PREVIEW_BULKEDIT_CONTROLLERGAMMA = wxNewId();
+const long LayoutPanel::ID_PREVIEW_BULKEDIT_CONTROLLERCOLOURORDER = wxNewId();
+const long LayoutPanel::ID_PREVIEW_BULKEDIT_CONTROLLERBRIGHTNESS = wxNewId();
+const long LayoutPanel::ID_PREVIEW_BULKEDIT_CONTROLLERNULLNODES = wxNewId();
+const long LayoutPanel::ID_PREVIEW_BULKEDIT_CONTROLLERDIRECTION = wxNewId();
+const long LayoutPanel::ID_PREVIEW_BULKEDIT_CONTROLLERGROUPCOUNT = wxNewId();
 const long LayoutPanel::ID_PREVIEW_BULKEDIT_PREVIEW = wxNewId();
 const long LayoutPanel::ID_PREVIEW_BULKEDIT_DIMMINGCURVES = wxNewId();
 const long LayoutPanel::ID_PREVIEW_ALIGN_TOP = wxNewId();
@@ -149,6 +156,7 @@ const long LayoutPanel::ID_PREVIEW_VIEWPOINT2D = wxNewId();
 const long LayoutPanel::ID_PREVIEW_VIEWPOINT3D = wxNewId();
 const long LayoutPanel::ID_PREVIEW_DELETEVIEWPOINT2D = wxNewId();
 const long LayoutPanel::ID_PREVIEW_DELETEVIEWPOINT3D = wxNewId();
+const long LayoutPanel::ID_PREVIEW_IMPORTMODELSFROMRGBEFFECTS = wxNewId();
 const long LayoutPanel::ID_ADD_OBJECT_IMAGE = wxNewId();
 const long LayoutPanel::ID_ADD_OBJECT_GRIDLINES = wxNewId();
 const long LayoutPanel::ID_ADD_OBJECT_MESH = wxNewId();
@@ -1522,7 +1530,7 @@ void LayoutPanel::BulkEditDimmingCurves()
     }
 }
 
-void LayoutPanel::BulkEditControllerConnection()
+void LayoutPanel::BulkEditControllerConnection(int id)
 {
     // remember the selected models
     wxString selected = "";
@@ -1551,8 +1559,26 @@ void LayoutPanel::BulkEditControllerConnection()
             }
         }
     }
-
-    ControllerConnectionDialog dlg(this);
+    controller_connection_bulkedit ccbe = controller_connection_bulkedit::CEBE_CONTROLLERCONNECTION;
+    if (id == ID_PREVIEW_BULKEDIT_CONTROLLERDIRECTION) {
+        ccbe = controller_connection_bulkedit::CEBE_CONTROLLERDIRECTION;
+    }
+    else if (id == ID_PREVIEW_BULKEDIT_CONTROLLERNULLNODES) {
+        ccbe = controller_connection_bulkedit::CEBE_CONTROLLERNULLNODES;
+    }
+    else if (id == ID_PREVIEW_BULKEDIT_CONTROLLERGAMMA) {
+        ccbe = controller_connection_bulkedit::CEBE_CONTROLLERGAMMA;
+    }
+    else if (id == ID_PREVIEW_BULKEDIT_CONTROLLERBRIGHTNESS) {
+        ccbe = controller_connection_bulkedit::CEBE_CONTROLLERBRIGHTNESS;
+    }
+    else if (id == ID_PREVIEW_BULKEDIT_CONTROLLERCOLOURORDER) {
+        ccbe = controller_connection_bulkedit::CEBE_CONTROLLERCOLOURORDER;
+    }
+    else if (id == ID_PREVIEW_BULKEDIT_CONTROLLERGROUPCOUNT) {
+        ccbe = controller_connection_bulkedit::CEBE_CONTROLLERGROUPCOUNT;
+    }
+    ControllerConnectionDialog dlg(this, ccbe);
     dlg.Set(cc);
 
     if (dlg.ShowModal() == wxID_OK) {
@@ -3374,6 +3400,21 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
     }
 }
 
+bool LayoutPanel::IsAllSelectedModelsArePixelProtocol() const
+{
+    for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
+    {
+        if (modelPreview->GetModels()[i]->Selected || modelPreview->GetModels()[i]->GroupSelected)
+        {
+            if (!modelPreview->GetModels()[i]->IsPixelProtocol())
+            {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
 void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
 {
     modelPreview->SetFocus();
@@ -3392,6 +3433,15 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
                 mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_CONTROLLERNAME, "Controller Name");
             }
             mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_CONTROLLERCONNECTION, "Controller Connection");
+            if (IsAllSelectedModelsArePixelProtocol())
+            {
+                mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_CONTROLLERDIRECTION, "Controller Direction");
+                mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_CONTROLLERBRIGHTNESS, "Controller Brightness");
+                mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_CONTROLLERGAMMA, "Controller Gamma");
+                mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_CONTROLLERCOLOURORDER, "Controller Colour Order");
+                mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_CONTROLLERNULLNODES, "Controller Null Nodes");
+                mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_CONTROLLERGROUPCOUNT, "Controller Group Count");
+            }
         }
         mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_PREVIEW, "Preview");
         if( editing_models ) {
@@ -3501,6 +3551,7 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
 
     mnu.Append(ID_PREVIEW_SAVE_LAYOUT_IMAGE, _("Save Layout Image"));
     mnu.Append(ID_PREVIEW_PRINT_LAYOUT_IMAGE, _("Print Layout Image"));
+    mnu.Append(ID_PREVIEW_IMPORTMODELSFROMRGBEFFECTS, _("Import Previews/Models"));
 
     // ViewPoint menus
     mnu.AppendSeparator();
@@ -3576,6 +3627,10 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
     {
         PreviewPrintImage();
     }
+    else if (event.GetId() == ID_PREVIEW_IMPORTMODELSFROMRGBEFFECTS)
+    {
+        ImportModelsFromRGBEffects();
+    }
     else if (event.GetId() == ID_PREVIEW_ALIGN_BOTTOM)
     {
         if(editing_models ) {
@@ -3592,9 +3647,16 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
             objects_panel->PreviewObjectAlignWithGround();
         }
     }
-    else if (event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERCONNECTION)
+    else if (event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERCONNECTION ||
+        event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERNULLNODES ||
+        event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERBRIGHTNESS ||
+        event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERCOLOURORDER ||
+        event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERGAMMA ||
+        event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERGROUPCOUNT ||
+        event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERDIRECTION
+        )
     {
-        BulkEditControllerConnection();
+        BulkEditControllerConnection(event.GetId());
     }
     else if (event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERNAME)
     {
@@ -5596,6 +5658,68 @@ void LayoutPanel::PreviewSaveImage()
 	delete image;
 }
 
+void LayoutPanel::ImportModelsFromRGBEffects()
+{
+    wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
+    wxString filename = wxFileSelector(_("Choose RGB Effects file to import from"), wxEmptyString, XLIGHTS_RGBEFFECTS_FILE, wxEmptyString, "RGB Effects Files (xlights_rgbeffects.xml)|xlights_rgbeffects.xml", wxFD_FILE_MUST_EXIST | wxFD_OPEN);
+    if (filename.IsEmpty()) return;
+
+    ImportPreviewsModelsDialog dlg(this, filename, xlights->AllModels, xlights->LayoutGroups);
+    if (dlg.ShowModal() == wxID_OK)
+    {
+        for (auto it2 : dlg.GetModelsInPreview(""))
+        {
+            std::string newName = it2.first;
+            if (xlights->AllModels.GetModel(newName) != nullptr) {
+                newName = xlights->AllModels.GenerateModelName(it2.first);
+            }
+            wxString lg = ChoiceLayoutGroups->GetStringSelection();
+            if (lg == "All Models") lg = "Default";
+            it2.second->DeleteAttribute("name");
+            it2.second->DeleteAttribute("LayoutGroup");
+            it2.second->AddAttribute("name", newName);
+            it2.second->AddAttribute("LayoutGroup", lg);
+            xlights->AllModels.createAndAddModel(it2.second, modelPreview->getWidth(), modelPreview->getHeight());
+        }
+
+        for (auto it : dlg.GetPreviews())
+        {
+            bool found = false;
+            for (int i = 0; i < ChoiceLayoutGroups->GetCount(); i++)
+            {
+                if (ChoiceLayoutGroups->GetString(i) == it)
+                {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found)
+            {
+                wxXmlNode* node = new wxXmlNode(wxXML_ELEMENT_NODE, "layoutGroup");
+                xlights->LayoutGroupsNode->AddChild(node);
+                node->AddAttribute("name", it);
+
+                LayoutGroup* grp = new LayoutGroup(it.ToStdString(), xlights, node);
+                grp->SetBackgroundImage(xlights->GetDefaultPreviewBackgroundImage());
+                xlights->LayoutGroups.push_back(grp);
+                xlights->AddPreviewOption(grp);
+                AddPreviewChoice(it.ToStdString());
+            }
+            for (auto it2 : dlg.GetModelsInPreview(it))
+            {
+                std::string newName = it2.first;
+                if (xlights->AllModels.GetModel(newName) != nullptr) {
+                    newName = xlights->AllModels.GenerateModelName(it2.first);
+                }
+                it2.second->DeleteAttribute("name");
+                it2.second->AddAttribute("name", newName);
+                xlights->AllModels.createAndAddModel(it2.second, modelPreview->getWidth(), modelPreview->getHeight());
+            }
+        }
+        ReloadModelList();
+    }
+}
+
 void LayoutPanel::PreviewPrintImage()
 {
 	class Printout : public wxPrintout
@@ -5706,7 +5830,7 @@ void LayoutPanel::AddPreviewChoice(const std::string &name)
 
 const wxString& LayoutPanel::GetBackgroundImageForSelectedPreview() {
     previewBackgroundFile = xlights->GetDefaultPreviewBackgroundImage();
-    if( currentLayoutGroup != "Default" && currentLayoutGroup != "All Models" && currentLayoutGroup != "Unassigned" ) {
+    if (pGrp != nullptr && currentLayoutGroup != "Default" && currentLayoutGroup != "All Models" && currentLayoutGroup != "Unassigned") {
         previewBackgroundFile = pGrp->GetBackgroundImage();
     }
     return previewBackgroundFile;
@@ -5715,7 +5839,7 @@ const wxString& LayoutPanel::GetBackgroundImageForSelectedPreview() {
 bool LayoutPanel::GetBackgroundScaledForSelectedPreview()
 {
     previewBackgroundScaled = xlights->GetDefaultPreviewBackgroundScaled();
-    if( currentLayoutGroup != "Default" && currentLayoutGroup != "All Models" && currentLayoutGroup != "Unassigned" ) {
+    if (pGrp != nullptr && currentLayoutGroup != "Default" && currentLayoutGroup != "All Models" && currentLayoutGroup != "Unassigned") {
         previewBackgroundScaled = pGrp->GetBackgroundScaled();
     }
     return previewBackgroundScaled;
@@ -5724,15 +5848,16 @@ bool LayoutPanel::GetBackgroundScaledForSelectedPreview()
 int LayoutPanel::GetBackgroundBrightnessForSelectedPreview()
 {
     previewBackgroundBrightness = xlights->GetDefaultPreviewBackgroundBrightness();
-    if( currentLayoutGroup != "Default" && currentLayoutGroup != "All Models" && currentLayoutGroup != "Unassigned" ) {
+    if (pGrp != nullptr && currentLayoutGroup != "Default" && currentLayoutGroup != "All Models" && currentLayoutGroup != "Unassigned") {
         previewBackgroundBrightness = pGrp->GetBackgroundBrightness();
     }
     return previewBackgroundBrightness;
 }
+
 int LayoutPanel::GetBackgroundAlphaForSelectedPreview()
 {
     previewBackgroundAlpha = xlights->GetDefaultPreviewBackgroundAlpha();
-    if( currentLayoutGroup != "Default" && currentLayoutGroup != "All Models" && currentLayoutGroup != "Unassigned" ) {
+    if (pGrp != nullptr && currentLayoutGroup != "Default" && currentLayoutGroup != "All Models" && currentLayoutGroup != "Unassigned") {
         previewBackgroundAlpha = pGrp->GetBackgroundAlpha();
     }
     return previewBackgroundAlpha;

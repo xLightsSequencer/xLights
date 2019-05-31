@@ -24,23 +24,17 @@ SequenceVideoPreview::~SequenceVideoPreview()
    deleteTexture();
 }
 
-void SequenceVideoPreview::InitializeGLCanvas()
+void SequenceVideoPreview::InitializeGLContext()
 {
-#ifdef __LINUX__
-    if(!IsShownOnScreen()) return;
-#endif
    wxColour bg = GetBackgroundColour();
    SetCurrentGLContext();
    LOG_GL_ERRORV( glClearColor( bg.Red() / 255.f, bg.Green() / 255.f, bg.Blue() / 255.f, 0.f ) );
-   mIsInitialized = true;
 }
 
 void SequenceVideoPreview::paint( wxPaintEvent& evt )
 {
+   if(!IsShownOnScreen()) return;
    if ( !mIsInitialized ) { InitializeGLCanvas(); }
-#ifdef __LINUX__
-    if(!IsShownOnScreen()) return;
-#endif
 
    wxPaintDC( this );
    SetCurrentGLContext();

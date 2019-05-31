@@ -111,6 +111,7 @@ public:
     void AddBoundingBoxToAccumulator(int x1, int y1, int x2, int y2);
 protected:
     virtual void InitializeGLCanvas() override;
+    virtual void InitializeGLContext() override;
     virtual bool UsesVertexTextureAccumulator() override {return true;}
     virtual bool UsesVertexColorAccumulator() override {return false;}
     virtual bool UsesVertexAccumulator() override {return false;}

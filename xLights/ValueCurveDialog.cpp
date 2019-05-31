@@ -50,14 +50,27 @@ ValueCurvePanel::ValueCurvePanel(wxWindow* parent, Element* timingElement, int s
     _timingElement = timingElement;
 }
 
+#define X_VC_MARGIN 5.0
+
 void ValueCurvePanel::Convert(float &x, float &y, wxMouseEvent& event) {
     wxSize size = GetSize();
-    float startX = 0.0; // size.GetWidth() / 10.0;
+    float startX = X_VC_MARGIN; // size.GetWidth() / 10.0;
     float startY = 0.0; // size.GetHeight() / 10.0;
-    float bw = size.GetWidth(); //  *0.8;
+    float bw = size.GetWidth() - 2 * X_VC_MARGIN; //  *0.8;
     float bh = size.GetHeight(); //  *0.8;
 
-    x = (event.GetX() - startX) / bw;
+    if (event.GetX() < X_VC_MARGIN)
+    {
+        x = 0;
+    }
+    else if (event.GetX() > X_VC_MARGIN + bw)
+    {
+        x = 1.0;
+    }
+    else
+    {
+        x = (event.GetX() - startX) / bw;
+    }
     y = 1.0 - (event.GetY() - startY) / bh;
 }
 
@@ -712,7 +725,7 @@ void ValueCurvePanel::mouseMoved(wxMouseEvent& event)
 
         if (_vc->NearCustomPoint(x, y))
         {
-            SetCursor(wxCURSOR_SIZENWSE);
+            SetCursor(wxCURSOR_HAND);
         }
         else
         {
@@ -942,7 +955,7 @@ void ValueCurvePanel::DrawTiming(wxAutoBufferedPaintDC& pdc, long timeMS)
     wxSize s = GetSize();
     long interval = _end - _start;
     float pos = (float)(timeMS - _start) / (float)interval;
-    int x = pos * s.GetWidth();
+    int x = pos * s.GetWidth() + X_VC_MARGIN;
 
     pdc.SetPen(*wxBLUE);
     pdc.DrawLine(x, 0, x, s.GetHeight());
@@ -975,7 +988,7 @@ void ValueCurvePanel::Paint(wxPaintEvent& event)
     pdc.SetPen(wxPen(wxSystemSettings::GetColour(wxSYS_COLOUR_FRAMEBK)));
     pdc.SetBrush(wxBrush(wxSystemSettings::GetColour(wxSYS_COLOUR_FRAMEBK)));
     wxSize size = GetSize();
-    float w = size.GetWidth();
+    float w = size.GetWidth() - 2 * X_VC_MARGIN;
     float h = size.GetHeight();
     pdc.DrawRectangle(0, 0, size.GetWidth(), size.GetHeight());
 
@@ -1005,20 +1018,20 @@ void ValueCurvePanel::Paint(wxPaintEvent& event)
                     double yat1 = (1.0 - lastx) * (p->y - last->y) + last->y;
                     if (last->IsWrapped() == p->IsWrapped())
                     {
-                        pdc.DrawLine(lastx * w, h - last->y * h, 1.0 * w, h - yat1 * h);
+                        pdc.DrawLine(lastx * w + X_VC_MARGIN, h - last->y * h, 1.0 * w + X_VC_MARGIN, h - yat1 * h);
                     }
                     else
                     {
-                        pdc.DrawLine(lastx * w, h - p->y * h, 1.0 * w, h - p->y * h);
+                        pdc.DrawLine(lastx * w + X_VC_MARGIN, h - p->y * h, 1.0 * w + X_VC_MARGIN, h - p->y * h);
                     }
 
                     if (last->IsWrapped() == p->IsWrapped())
                     {
-                        pdc.DrawLine(0.0 * w, h - yat1 * h, x * w, h - p->y * h);
+                        pdc.DrawLine(0.0 * w + X_VC_MARGIN, h - yat1 * h, x * w + X_VC_MARGIN, h - p->y * h);
                     }
                     else
                     {
-                        pdc.DrawLine(0.0 * w, h - p->y * h, x * w, h - p->y * h);
+                        pdc.DrawLine(0.0 * w + X_VC_MARGIN, h - p->y * h, x * w + X_VC_MARGIN, h - p->y * h);
                     }
                 }
                 else
@@ -1028,11 +1041,11 @@ void ValueCurvePanel::Paint(wxPaintEvent& event)
 
                     if (last->IsWrapped() == p->IsWrapped())
                     {
-                        pdc.DrawLine(lastx * w, h - last->y * h, x * w, h - p->y * h);
+                        pdc.DrawLine(lastx * w + X_VC_MARGIN, h - last->y * h, x * w + X_VC_MARGIN, h - p->y * h);
                     }
                     else
                     {
-                        pdc.DrawLine(lastx * w, h - p->y * h, x * w, h - p->y * h);
+                        pdc.DrawLine(lastx * w + X_VC_MARGIN, h - p->y * h, x * w + X_VC_MARGIN, h - p->y * h);
                     }
                 }
                 last = p;
@@ -1045,13 +1058,13 @@ void ValueCurvePanel::Paint(wxPaintEvent& event)
             double x = it->x;
             x += (double)_timeOffset / 100.0;
             if (x > 1.0) x -= 1.0;
-            pdc.DrawRectangle((x * w) - 2, h - (it->y * h) - 2, 5, 5);
+            pdc.DrawRectangle((x * w) - 2 + X_VC_MARGIN, h - (it->y * h) - 2, 5, 5);
         }
 
         if (_grabbedPoint != -1 && _type == "Custom" && _timeOffset == 0)
         {
             pdc.SetPen(wxPen(*wxBLUE, 2, wxPENSTYLE_SOLID));
-            pdc.DrawRectangle((_grabbedPoint * w) - 2, h - (_vc->GetValueAt(_grabbedPoint, 0, 1) * h) - 2, 5, 5);
+            pdc.DrawRectangle((_grabbedPoint * w) - 2 + X_VC_MARGIN, h - (_vc->GetValueAt(_grabbedPoint, 0, 1) * h) - 2, 5, 5);
         }
     }
 }

@@ -629,8 +629,12 @@ static inline wxColor GetBackgroundColor() {
 }
 void ModelPreview::InitializeGLCanvas()
 {
+    mIsInitialized = true;
+}
+void ModelPreview::InitializeGLContext()
+{
     SetCurrentGLContext();
-
+    
     if (allowSelected) {
         wxColor c = GetBackgroundColor();
         LOG_GL_ERRORV(glClearColor(c.Red()/255.0f, c.Green()/255.0f, c.Blue()/255.0, 1.0f));
@@ -639,8 +643,6 @@ void ModelPreview::InitializeGLCanvas()
     }
     LOG_GL_ERRORV(glEnable(GL_BLEND));
     LOG_GL_ERRORV(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
-
-    mIsInitialized = true;
 }
 
 void ModelPreview::OnSysColourChanged(wxSysColourChangedEvent& event) {
@@ -1029,11 +1031,8 @@ void ModelPreview::EndDrawing(bool swapBuffers/*=true*/)
         DrawGLUtils::Draw(transparentAccumulator);
     }
     DrawGLUtils::PopMatrix();
-    if (swapBuffers)
-    {
-        logger_opengl.debug("About to swap buffers in ModelPreview::EndDrawing.");
+    if (swapBuffers) {
         LOG_GL_ERRORV(SwapBuffers());
-        logger_opengl.debug("Done swapping buffers in ModelPreview::EndDrawing.");
     }
     solidViewObjectAccumulator.Reset();
     transparentViewObjectAccumulator.Reset();

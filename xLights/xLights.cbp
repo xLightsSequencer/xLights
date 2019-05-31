@@ -492,6 +492,8 @@
 		<Unit filename="Image_Loader.cpp" />
 		<Unit filename="Image_Loader.h" />
 		<Unit filename="Images_png.h" />
+		<Unit filename="ImportPreviewsModelsDialog.cpp" />
+		<Unit filename="ImportPreviewsModelsDialog.h" />
 		<Unit filename="JobPool.cpp" />
 		<Unit filename="JobPool.h" />
 		<Unit filename="JukeboxPanel.cpp" />
@@ -1176,6 +1178,7 @@
 		<Unit filename="wxsmith/GlediatorPanel.wxs" />
 		<Unit filename="wxsmith/HousePreviewPanel.wxs" />
 		<Unit filename="wxsmith/IPEntryDialog.wxs" />
+		<Unit filename="wxsmith/ImportPreviewsModelsDialog.wxs" />
 		<Unit filename="wxsmith/JukeboxPanel.wxs" />
 		<Unit filename="wxsmith/KaleidoscopePanel.wxs" />
 		<Unit filename="wxsmith/LMSImportChannelMapDialog.wxs" />
@@ -1454,6 +1457,7 @@
 					<wxDialog wxs="wxsmith/ControllerVisualiseDialog.wxs" src="ControllerVisualiseDialog.cpp" hdr="ControllerVisualiseDialog.h" fwddecl="0" i18n="1" name="ControllerVisualiseDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/AlignmentDialog.wxs" src="AlignmentDialog.cpp" hdr="AlignmentDialog.h" fwddecl="0" i18n="1" name="AlignmentDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/CharMapDialog.wxs" src="CharMapDialog.cpp" hdr="CharMapDialog.h" fwddecl="0" i18n="1" name="CharMapDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/ImportPreviewsModelsDialog.wxs" src="ImportPreviewsModelsDialog.cpp" hdr="ImportPreviewsModelsDialog.h" fwddecl="0" i18n="1" name="ImportPreviewsModelsDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>

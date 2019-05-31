@@ -32,7 +32,8 @@ class ModelManager : public ObjectManager
         bool RenameSubModel(const std::string &oldName, const std::string &newName);
         bool RenameInListOnly(const std::string &oldName, const std::string &newName);
         bool IsModelOverlapping(Model* model) const;
-        void AddModel(Model *m);
+        void AddModel(Model* m);
+        void AddModel(wxXmlNode* m);
         void Delete(const std::string &name);
         std::string GenerateModelName(const std::string& candidateModelName) const;
         void ResetModelGroups() const;
@@ -57,8 +58,6 @@ class ModelManager : public ObjectManager
         Model *CreateDefaultModel(const std::string &type, const std::string &startChannel = "1") const;
         xLightsFrame* GetXLightsFrame() const { return xlights; }
         bool IsValidControllerModelChain(Model* m, std::string& tip) const;
-
-    protected:
         Model *createAndAddModel(wxXmlNode *node, int previewW, int previewH);
     private:
 

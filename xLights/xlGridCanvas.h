@@ -28,7 +28,6 @@ class xlGridCanvas : public xlGLCanvas
         virtual void Paste() {;}
 
     protected:
-        virtual void InitializeGLCanvas() = 0;
 
         void DrawBaseGrid();
         //void DrawEffect();

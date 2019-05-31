@@ -500,47 +500,41 @@ void xlGridCanvasMorph::SetTooltip(int x, int y)
 void xlGridCanvasMorph::CreateCornerTextures()
 {
     wxString tooltip;
-    for( int i = 0; i < 6; i++ )
-    {
+    for (int i = 0; i < 6; i++) {
         DrawGLUtils::CreateOrUpdateTexture(BitmapCache::GetCornerIcon(i, tooltip, 64, true),
                                            BitmapCache::GetCornerIcon(i, tooltip, 32, true),
                                            BitmapCache::GetCornerIcon(i, tooltip, 16, true),
                                            &mCornerTextures[i]);
     }
 }
-
-void xlGridCanvasMorph::InitializeGLCanvas()
+void xlGridCanvasMorph::InitializeGLContext()
 {
-#ifdef __LINUX__
-    if(!IsShownOnScreen()) return;
-#endif
     SetCurrentGLContext();
-
+    
     LOG_GL_ERRORV(glClearColor(0.0f, 0.0f, 0.0f, 0.0f)); // Black Background
     LOG_GL_ERRORV(glEnable(GL_BLEND));
     LOG_GL_ERRORV(glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA));
     LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT));
     prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
+}
+
+void xlGridCanvasMorph::InitializeGLCanvas()
+{
     CreateCornerTextures();
     mIsInitialized = true;
 }
 
 void xlGridCanvasMorph::render( wxPaintEvent& event )
 {
-    if(!mIsInitialized) { InitializeGLCanvas(); }
-#ifdef __LINUX__
     if(!IsShownOnScreen()) return;
-#endif
-
+    if(!mIsInitialized) { InitializeGLCanvas(); }
 
     SetCurrentGLContext();
 
     LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
     prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
 
-    if( mEffect != nullptr )
-    {
-
+    if( mEffect != nullptr ) {
         DrawBaseGrid();
         DrawMorphEffect();
     }
