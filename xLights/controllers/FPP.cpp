@@ -1375,6 +1375,7 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
                     }
                 }
                 int platform = buffer[9];
+                //printf("%d: %s  %s     %d\n", found ? 1 : 0, hostname.c_str(), ipStr.c_str(), platform);
                 if (!found && (allPlatforms || (platform > 0 && platform < 0x80))) {
                     //platform > 0x80 is Falcon controllers or xLights
                     FPP *inst = new FPP();
@@ -1483,7 +1484,9 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
                                             }
                                             FPP *found = nullptr;
                                             for (auto &b : instances) {
-                                                if (b->ipAddress == address || b->ipAddress == hostName || b->hostName == hostName) {
+                                                if (b->ipAddress == address) {
+                                                    found = b;
+                                                } else if (b->ipAddress == hostName || (b->hostName == hostName && b->ipAddress == "")) {
                                                     found = b;
                                                 }
                                             }
@@ -1545,17 +1548,30 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
                                                 }
                                             } else {
                                                 FPP *fpp = new FPP(inst);
-                                                std::string fullAddress = "http://" + fpp->ipAddress + "/fppjson.php?command=getSysInfo&simple";
+                                                instances.push_back(fpp);
+
+                                                std::string fullAddress = "http://" + fpp->ipAddress + "/fppjson.php?command=getFPPSystems";
+                                                if (fpp->ipAddress == "") {
+                                                    fullAddress = "http://" + fpp->hostName + "/fppjson.php?command=getFPPSystems";
+                                                }
+                                                CurlData *data = new CurlData(fullAddress);
+                                                data->type = 0;
+                                                data->fpp = fpp;
+                                                curls.push_back(data);
+                                                curl_multi_add_handle(curlMulti, data->curl);
+                                                running++;
+
+                                                fullAddress = "http://" + fpp->ipAddress + "/fppjson.php?command=getSysInfo&simple";
                                                 if (fpp->ipAddress == "") {
                                                     fullAddress = "http://" + fpp->hostName + "/fppjson.php?command=getSysInfo&simple";
                                                 }
-                                                CurlData *data = new CurlData(fullAddress);
+                                                data = new CurlData(fullAddress);
                                                 data->type = 1;
                                                 data->fpp = fpp;
                                                 curls.push_back(data);
                                                 curl_multi_add_handle(curlMulti, data->curl);
+                                                running++;
                                                 
-                                                instances.push_back(fpp);
                                             }
                                         }
                                 }
