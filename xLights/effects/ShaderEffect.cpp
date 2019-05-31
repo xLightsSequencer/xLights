@@ -108,45 +108,6 @@ namespace
       "    gl_Position = vec4(vpos,0,1);\n"
       "    texCoord = tpos;\n"
       "}\n";
-
-   const char *psSrc =
-      "#version 330\n"
-      "out vec4 color;\n"
-      "void main() {\n"
-      "    color = vec4( 1, 0, 0, 1);\n"
-      "}\n";
-
-   // temporarily borrowed from https://www.interactiveshaderformat.com/sketches/1792
-   const char *candy_warp =
-      "#version 330\n"
-      "uniform vec2 RENDERSIZE;\n"
-      "uniform float TIME;\n"
-      "const float scale = 84.;\n"
-      "const float cycle = 0.4;\n"
-      "const float thickness = 0.1;\n"
-      "const float loops = 61.;\n"
-      "const float warp = 2.5;\n"
-      "const float hue = 0.33;\n"
-      "const float tint = 0.1;\n"
-      "const float rate = 1.25;\n"
-      "const bool invert = false;\n"
-      "void main(void)\n"
-      "{\n"
-      "   float s = RENDERSIZE.y / scale;\n"
-	   "   float radius = RENDERSIZE.x / cycle;\n"
-	   "   float gap = s * (1.0 - thickness);\n"
-	   "   vec2 pos = gl_FragCoord.xy - RENDERSIZE.xy * 0.5;\n"
-	   "   float d = length(pos);\n"
-	   "   float T = TIME * rate;\n"
-	   "   d += warp * (sin(pos.y * 0.25 / s + T) * sin(pos.x * 0.25 / s + T * 0.5)) * s * 5.0;\n"
-	   "   float v = mod(d + radius / (loops * 2.0), radius / loops);\n"
-	   "   v = abs(v - radius / (loops * 2.0));\n"
-	   "   v = clamp(v - gap, 0.0, 1.0);\n"
-	   "   d /= radius - T;\n"
-	   "   vec3 m = fract((d - 1.0) * vec3(loops * hue, -loops, loops * tint) * 0.5);\n"
-	   "   if (invert) 	gl_FragColor = vec4(m / v, 1.0);\n"
-	   "   else gl_FragColor = vec4(m * v, 1.0);\n"
-	   "}\n";
 }
 
 ShaderEffect::ShaderEffect(int i) : RenderableEffect(i, "Shader", shader_16_xpm, shader_24_xpm, shader_32_xpm, shader_48_xpm, shader_64_xpm)
@@ -429,20 +390,11 @@ void ShaderEffect::sizeForRenderBuffer(const RenderBuffer& rb,
 
 void ShaderEffect::recompileFromShaderConfig( const ShaderConfig* cfg, unsigned& s_programId)
 {
-   std::string newCode( cfg->GetCode() );
-
-   //s_programId = OpenGLShaders::compile( vsSrc, candy_warp);
-
-   // todo - it's not gonna compile currently... we need to add uniform declarations for
-   //        each ShaderParm plus TIME and RENDERSSIZE
-   s_programId = OpenGLShaders::compile( vsSrc, newCode );
+   s_programId = OpenGLShaders::compile( vsSrc, cfg->GetCode() );
 }
 
 ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const wxString& json) : _filename(filename)
 {
-    size_t pos = code.find( "*/");
-    _code = ( pos != wxString::npos ) ? code.substr( pos + 2 ) : code;
-
     wxJSONReader reader;
     wxJSONValue root;
     reader.Parse(json, &root);
@@ -558,4 +510,41 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
             passes[i].HasMember("PERSISTENT") ? passes[i]["PERSISTENT"].AsString() == "true" : false
             });
     }
+
+    // The shader code needs declarations for the uniforms that we silently set with each call to Render()
+    // and the uniforms that correspond to user-visible settings
+    wxString prependText;
+    const char *autos =
+      "#version 330\n"
+      "uniform vec2 RENDERSIZE;\n"
+      "uniform float TIME;\n";
+    prependText = autos;
+
+    for ( auto p : _parms )
+    {
+       wxString name( p._name );
+       wxString str;
+       switch ( p._type )
+       {
+          case ShaderParmType::SHADER_PARM_FLOAT:
+          {
+             str = wxString::Format( "uniform float %s;\n", name );
+             prependText += str;
+             break;
+          }
+          case ShaderParmType::SHADER_PARM_BOOL:
+          {
+             str = wxString::Format( "uniform bool %s;\n", name );
+             prependText += str;
+             break;
+          }
+          default:
+          {
+             // rest of these are un-implemented currently
+          }
+       }
+   }
+   size_t pos = code.find( "*/");
+   wxString shaderCode = ( pos != wxString::npos ) ? code.substr( pos + 2 ) : code;
+   _code = prependText + shaderCode;
 }
