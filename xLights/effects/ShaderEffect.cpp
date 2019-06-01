@@ -373,10 +373,26 @@ void ShaderEffect::sizeForRenderBuffer(const RenderBuffer& rb,
 
         glBindVertexArray(0);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
+        GLenum err = glGetError();
+        if ( err != GL_NO_ERROR )
+        {
+           static log4cpp::Category &logger_opengl = log4cpp::Category::getInstance( std::string( "log_opengl" ) );
+           logger_opengl.error( "ShaderEffect::sizeForRenderBuffer() - Error with vertex array - %d", err );
+        }
 
         createOpenGLRenderBuffer(rb.BufferWi, rb.BufferHt, &s_rbId, &s_fbId);
+        if ( ( err = glGetError()) != GL_NO_ERROR )
+        {
+           static log4cpp::Category &logger_opengl = log4cpp::Category::getInstance( std::string( "log_opengl" ) );
+           logger_opengl.error( "ShaderEffect::sizeForRenderBuffer() - Error creating framebuffer - %d", err );
+        }
 
         s_rbTex = RenderBufferTexture(rb.BufferWi, rb.BufferHt);
+        if ( ( err = glGetError()) != GL_NO_ERROR )
+        {
+           static log4cpp::Category &logger_opengl = log4cpp::Category::getInstance( std::string( "log_opengl" ) );
+           logger_opengl.error( "ShaderEffect::sizeForRenderBuffer() - Error creating renderbuffer texture - %d", err );
+        }
 
         s_rbWidth = rb.BufferWi;
         s_rbHeight = rb.BufferHt;
@@ -395,7 +411,18 @@ void ShaderEffect::sizeForRenderBuffer(const RenderBuffer& rb,
         if (s_rbTex)
             glDeleteTextures(1, &s_rbTex);
         createOpenGLRenderBuffer(rb.BufferWi, rb.BufferHt, &s_rbId, &s_fbId);
-        s_rbTex = RenderBufferTexture(rb.BufferWi, rb.BufferHt);
+        GLenum err = glGetError();
+        if ( err != GL_NO_ERROR )
+        {
+           static log4cpp::Category &logger_opengl = log4cpp::Category::getInstance( std::string( "log_opengl" ) );
+           logger_opengl.error( "ShaderEffect::sizeForRenderBuffer() - Error recreating framebuffer - %d", err );
+        }
+        s_rbTex = RenderBufferTexture(rb.BufferWi, rb.BufferHt);;
+        if ( ( err = glGetError()) != GL_NO_ERROR )
+        {
+           static log4cpp::Category &logger_opengl = log4cpp::Category::getInstance( std::string( "log_opengl" ) );
+           logger_opengl.error( "ShaderEffect::sizeForRenderBuffer() - Error recreating renderbuffer texture - %d", err );
+        }
 
         s_rbWidth = rb.BufferWi;
         s_rbHeight = rb.BufferHt;
