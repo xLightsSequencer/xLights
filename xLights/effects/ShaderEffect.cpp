@@ -58,6 +58,8 @@ extern PFNGLUNIFORM4FPROC glUniform4f;
 #include "OpenGL/gl.h"
 #endif
 
+#include <log4cpp/Category.hh>
+
 namespace
 {
 #ifndef GL_CLAMP_TO_EDGE
@@ -108,6 +110,17 @@ namespace
       "    gl_Position = vec4(vpos,0,1);\n"
       "    texCoord = tpos;\n"
       "}\n";
+
+      void setRenderBufferAllRed( RenderBuffer &buffer )
+      {
+         for ( int y = 0; y < buffer.BufferHt; ++y )
+         {
+            for ( int x = 0; x < buffer.BufferWi; ++x )
+            {
+               buffer.SetPixel(x, y, xlRED );
+            }
+         }
+      }
 }
 
 ShaderEffect::ShaderEffect(int i) : RenderableEffect(i, "Shader", shader_16_xpm, shader_24_xpm, shader_32_xpm, shader_48_xpm, shader_64_xpm)
@@ -207,6 +220,15 @@ public:
 
 void ShaderEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &buffer)
 {
+   // Bail out right away if we don't have the necessary OpenGL support
+   if ( !OpenGLShaders::HasFramebufferObjects() || !OpenGLShaders::HasShaderSupport() )
+   {
+      setRenderBufferAllRed( buffer );
+      static log4cpp::Category &logger_opengl = log4cpp::Category::getInstance( std::string( "log_opengl" ) );
+      logger_opengl.error( "ShaderEffect::Render() - missing OpenGL support!!" );
+      return;
+   }
+
     ShaderRenderCache* cache = (ShaderRenderCache*)buffer.infoCache[id];
     if (cache == nullptr) {
         cache = new ShaderRenderCache();
@@ -236,83 +258,76 @@ void ShaderEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &b
     }
 
     // if there is no config then we should paint it red ... just like the video effect
-    if (_shaderConfig == nullptr || s_programId == 0)
+    if ( _shaderConfig == nullptr || s_programId == 0 )
     {
-        for (int x = 0; x < buffer.BufferWi; x++)
-        {
-            for (int y = 0; y < buffer.BufferHt; y++)
-            {
-                buffer.SetPixel(x, y, *wxRED);
-            }
-        }
-        return;
+       setRenderBufferAllRed( buffer );
+       return;
     }
 
     // ***********************************************************************************************************
     // todo is there more of this code we could add to the needtoinit case as this only happens on the first frame
     // ***********************************************************************************************************
-    
+
     ShaderPanel *p = (ShaderPanel *)panel;
-   p->_preview->SetCurrentGLContext();
+    p->_preview->SetCurrentGLContext();
 
-   if ( OpenGLShaders::HasFramebufferObjects() && OpenGLShaders::HasShaderSupport() )
-   {
-      sizeForRenderBuffer( buffer, s_shadersInit, s_vertexArrayId, s_vertexBufferId, s_rbId, s_fbId, s_rbTex, s_rbWidth, s_rbHeight );
+    // We re-use the same framebuffer for rendering all the shader effects
+    sizeForRenderBuffer( buffer, s_shadersInit, s_vertexArrayId, s_vertexBufferId, s_rbId, s_fbId, s_rbTex, s_rbWidth, s_rbHeight );
 
-      glBindFramebuffer( GL_FRAMEBUFFER, s_fbId );
-      glViewport( 0, 0, buffer.BufferWi, buffer.BufferHt );
+    glBindFramebuffer( GL_FRAMEBUFFER, s_fbId );
+    glViewport( 0, 0, buffer.BufferWi, buffer.BufferHt );
 
-      glClearColor( 0.f, 0.f, 0.f, 0.f );
-      glClear( GL_COLOR_BUFFER_BIT );
+    glClearColor( 0.f, 0.f, 0.f, 0.f );
+    glClear( GL_COLOR_BUFFER_BIT );
 
-      glBindVertexArray( s_vertexArrayId );
-      glBindBuffer( GL_ARRAY_BUFFER, s_vertexBufferId );
+    glBindVertexArray( s_vertexArrayId );
+    glBindBuffer( GL_ARRAY_BUFFER, s_vertexBufferId );
 
-      GLuint programId = s_programId;
-      glUseProgram( programId );
+    GLuint programId = s_programId;
+    glUseProgram( programId );
 
-      int colourIndex = 0;
-      int loc = glGetUniformLocation( programId, "RENDERSIZE" );
-      if ( loc > 0 )
-         glUniform2f( loc, buffer.BufferWi, buffer.BufferHt );
-      loc = glGetUniformLocation( programId, "TIME" );
-      if ( loc > 0 )
-         glUniform1f( loc, (buffer.curPeriod - buffer.curEffStartPer) / 20.f );
-      for (auto it : _shaderConfig->GetParms())
-      {
-          loc = glGetUniformLocation(programId, it._name.c_str());
-          if (loc > 0)
+    int colourIndex = 0;
+    int loc = glGetUniformLocation( programId, "RENDERSIZE" );
+    if ( loc > 0 )
+      glUniform2f( loc, buffer.BufferWi, buffer.BufferHt );
+    loc = glGetUniformLocation( programId, "TIME" );
+    if ( loc > 0 )
+      glUniform1f( loc, (buffer.curPeriod - buffer.curEffStartPer) / 20.f );
+    for ( auto it : _shaderConfig->GetParms() )
+    {
+       loc = glGetUniformLocation( programId, it._name.c_str() );
+       if ( loc > 0 )
+       {
+          switch ( it._type )
           {
-              switch (it._type)
-              {
-              case ShaderParmType::SHADER_PARM_FLOAT:
-              {
-                  float f = SettingsMap.GetFloat(it.GetUndecoratedId(ShaderCtrlType::SHADER_CTRL_SLIDER)) / 100.0;
-                  glUniform1f(loc, f);
-              }
-              break;
-              case ShaderParmType::SHADER_PARM_BOOL:
-              {
-                  //bool b = SettingsMap.GetBool(it.GetUndecoratedId(ShaderCtrlType::SHADER_CTRL_CHECKBOX));
-                  //glUniformb(loc, b);
-              }
-              break;
-              case ShaderParmType::SHADER_PARM_LONG:
-              {
-                  //long l = SettingsMap.GetInt(it.GetUndecoratedId(ShaderCtrlType::SHADER_CTRL_SLIDER));
-                  //glUniformi(loc, l);
-              }
-              break;
-              case ShaderParmType::SHADER_PARM_COLOUR:
-              {
-                  //xlColor c = buffer.palette.GetColor(colourIndex);
-                  //colourIndex++;
-                  //if (colourIndex > buffer.GetColorCount()) colourIndex = 0;
-                  //glUniformc(loc, c);
-              }
-              break;
-              }
-          }
+             case ShaderParmType::SHADER_PARM_FLOAT:
+             {
+                float f = SettingsMap.GetFloat( it.GetUndecoratedId(ShaderCtrlType::SHADER_CTRL_SLIDER) ) / 100.f;
+                glUniform1f( loc, f );
+                break;
+             }
+             case ShaderParmType::SHADER_PARM_BOOL:
+             {
+                bool b = SettingsMap.GetBool( it.GetUndecoratedId(ShaderCtrlType::SHADER_CTRL_CHECKBOX) );
+                glUniform1f( loc, b );
+                break;
+             }
+             case ShaderParmType::SHADER_PARM_LONG:
+             {
+                long l = SettingsMap.GetInt( it.GetUndecoratedId(ShaderCtrlType::SHADER_CTRL_SLIDER) );
+                glUniform1i( loc, l );
+                break;
+             }
+             case ShaderParmType::SHADER_PARM_COLOUR:
+             {
+                 //xlColor c = buffer.palette.GetColor(colourIndex);
+                 //colourIndex++;
+                 //if (colourIndex > buffer.GetColorCount()) colourIndex = 0;
+                 //glUniformc(loc, c);
+                 break;
+             }
+            }
+         }
       }
 
       GLuint vattrib = glGetAttribLocation( programId, "vpos" );
@@ -333,11 +348,10 @@ void ShaderEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &b
 
       xlColorVector& cv( buffer.pixels );
       glReadPixels( 0, 0, buffer.BufferWi, buffer.BufferHt, GL_RGBA, GL_UNSIGNED_BYTE, &cv[0] );
-   }
 }
 
-void ShaderEffect::sizeForRenderBuffer(const RenderBuffer& rb, 
-    bool& s_shadersInit, 
+void ShaderEffect::sizeForRenderBuffer(const RenderBuffer& rb,
+    bool& s_shadersInit,
     unsigned& s_vertexArrayId, unsigned& s_vertexBufferId, unsigned& s_rbId, unsigned& s_fbId,
     unsigned& s_rbTex, int& s_rbWidth, int& s_rbHeight)
 {
