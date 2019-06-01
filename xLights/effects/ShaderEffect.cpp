@@ -59,6 +59,7 @@ extern PFNGLUNIFORM4FPROC glUniform4f;
 #endif
 
 #include <log4cpp/Category.hh>
+//#include <fstream>
 
 namespace
 {
@@ -280,6 +281,9 @@ void ShaderEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &b
     glClearColor( 0.f, 0.f, 0.f, 0.f );
     glClear( GL_COLOR_BUFFER_BIT );
 
+    glActiveTexture( GL_TEXTURE0 );
+    glBindTexture( GL_TEXTURE_2D, s_rbTex );
+    glTexSubImage2D( GL_TEXTURE_2D, 0, 0,0, buffer.BufferWi,buffer.BufferHt, GL_RGBA, GL_UNSIGNED_BYTE, &buffer.pixels[0] );
     glBindVertexArray( s_vertexArrayId );
     glBindBuffer( GL_ARRAY_BUFFER, s_vertexBufferId );
 
@@ -293,6 +297,9 @@ void ShaderEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &b
     loc = glGetUniformLocation( programId, "TIME" );
     if ( loc > 0 )
       glUniform1f( loc, (buffer.curPeriod - buffer.curEffStartPer) / 20.f );
+    loc = glGetUniformLocation( programId, "texSampler" );
+    if ( loc > 0 )
+      glUniform1i( loc, 0 );
     for ( auto it : _shaderConfig->GetParms() )
     {
        loc = glGetUniformLocation( programId, it._name.c_str() );
@@ -441,6 +448,7 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
     reader.Parse(json, &root);
     _description = root["DESCRIPTION"].AsString();
     wxJSONValue inputs = root["INPUTS"];
+    wxString canvasImgName;
     for (int i = 0; i < inputs.Size(); i++)
     {
         wxString type = inputs[i]["TYPE"].AsString();
@@ -525,18 +533,23 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
         else if (type == "image")
         {
             // ignore these as we will use the existing buffer content
-            _parms.push_back({
-                    inputs[i].HasMember("NAME") ? inputs[i]["NAME"].AsString() : "",
-                    inputs[i].HasMember("LABEL") ? inputs[i]["LABEL"].AsString() : "",
-                    ShaderParmType::SHADER_PARM_IMAGE,
-                    0.0f,
-                    0.0f,
-                    0.0f
-                });
+            //_parms.push_back({
+            //        inputs[i].HasMember("NAME") ? inputs[i]["NAME"].AsString() : "",
+            //        inputs[i].HasMember("LABEL") ? inputs[i]["LABEL"].AsString() : "",
+            //        ShaderParmType::SHADER_PARM_IMAGE,
+            //        0.0f,
+            //        0.0f,
+            //        0.0f
+            //    });
+            if ( inputs[i].HasMember( "NAME" ) )
+            {
+               canvasImgName = inputs[i]["NAME"].AsString();
+               //_canvasMode = true;
+            }
         }
         else if (type == "event")
         {
-            // ignore these 
+            // ignore these
         }
         else
         {
@@ -558,7 +571,8 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
     const char *autos =
       "#version 330\n"
       "uniform vec2 RENDERSIZE;\n"
-      "uniform float TIME;\n";
+      "uniform float TIME;\n"
+      "uniform sampler2D texSampler;\n";
     prependText = autos;
 
     for ( auto p : _parms )
@@ -585,7 +599,25 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
           }
        }
    }
+
    size_t pos = code.find( "*/");
    wxString shaderCode = ( pos != wxString::npos ) ? code.substr( pos + 2 ) : code;
+   if ( !canvasImgName.empty() )
+   {
+      shaderCode.Replace( canvasImgName, "texSampler" );
+      shaderCode.Replace( "IMG_NORM_PIXEL", "texture" );
+      _canvasMode = true;
+   }
    _code = prependText + shaderCode;
+   #if 0
+   if ( !canvasImgName.empty() )
+   {
+      std::ofstream s( "C:\\Temp\\temp.txt" );
+      if ( s.good() )
+      {
+         s << _code;
+         s.close();
+      }
+   }
+   #endif
 }

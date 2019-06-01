@@ -73,6 +73,7 @@ class ShaderConfig
     std::string _description;
     std::list<ShaderPass> _passes;
     std::string _code;
+    bool _canvasMode = false;
 
 public:
     ShaderConfig(const wxString& filename, const wxString& code, const wxString& json);
@@ -81,6 +82,7 @@ public:
     std::string GetFilename() const { return _filename; }
     std::string GetDescription() const { return _description; }
     std::string GetCode() const { return _code; }
+    bool IsCanvasShader() const { return _canvasMode; }
 };
 
 class ShaderEffect : public RenderableEffect
