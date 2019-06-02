@@ -59,7 +59,7 @@ extern PFNGLUNIFORM4FPROC glUniform4f;
 #endif
 
 #include <log4cpp/Category.hh>
-//#include <fstream>
+#include <fstream>
 
 namespace
 {
@@ -593,6 +593,12 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
              prependText += str;
              break;
           }
+          case ShaderParmType::SHADER_PARM_POINT2D:
+          {
+             str = wxString::Format( "uniform vec2 %s;\n", name );
+             prependText += str;
+             break;
+          }
           default:
           {
              // rest of these are un-implemented currently
@@ -609,15 +615,13 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
       _canvasMode = true;
    }
    _code = prependText + shaderCode;
+
    #if 0
-   if ( !canvasImgName.empty() )
+   std::ofstream s( "C:\\Temp\\temp.txt" );
+   if ( s.good() )
    {
-      std::ofstream s( "C:\\Temp\\temp.txt" );
-      if ( s.good() )
-      {
-         s << _code;
-         s.close();
-      }
+      s << _code;
+      s.close();
    }
    #endif
 }
