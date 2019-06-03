@@ -431,6 +431,9 @@ wxString GetPluginRequest(const wxString& request)
     if (request == "") return "";
 
     auto plugin = request.AfterFirst('/').BeforeFirst('?');
+
+    if (plugin == "") return "";
+
     return ((xScheduleFrame*)wxTheApp->GetTopWindow())->GetWebPluginRequest(plugin.ToStdString());
 }
 
@@ -538,82 +541,86 @@ bool MyRequestHandler(HttpConnection &connection, HttpRequest &request)
 
         res = true;
     }
-    else if ((plugin = GetPluginRequest(request.URI().Lower())) != "")
+    else
     {
-        wxURI url(request.URI());
-        std::map<wxString, wxString> parms = ParseURI(url.BuildUnescapedURI());
-        wxString command = parms["Command"];
-        wxString parameters = parms["Parameters"];
-        wxString reference = parms["Reference"];
-        wxString data = request.Data();
-
-        wxString result = ProcessPluginRequest(connection, plugin, command, parameters, data, reference);
-
-        HttpResponse response(connection, request, HttpStatus::OK);
-        response.MakeFromText(result, "application/json");
-        connection.SendResponse(response);
-    }
-    else if (wwwroot != "" && !__apiOnly && (request.URI() == "" || request.URI() == "/" || request.URI() == "/" + wwwroot || request.URI() == "/" + wwwroot + "/"))
-    {
-        // Chris if you need this line to be this way on linux then use a #ifdef as the other works on windows
-        //int port = connection.Server()->Context().Port;
-        //wxString url = "http://" + request.Host() + ":" + wxString::Format(wxT("%i"), port) + "/" + wwwroot + "/index.html";
-        wxString url = "http://" + request.Host() + "/" + wwwroot + "/index.html";
-
-        logger_base.info("Redirecting to '%s'.", (const char *)url.c_str());
-
-        HttpResponse response(connection, request, HttpStatus::PermanentRedirect);
-        response.AddHeader("Location", url);
-        //response.AddHeader("Connection", "Close");
-        response.MakeFromText("Redirected to " + url + "\n", "text/plain");
-
-        connection.SendResponse(response);
-
-        res = true; // disable default processing
-    }
-    else if (wwwroot != "")
-    {
-        wxString uri = wxURI(request.URI()).BuildUnescapedURI();
-
-        if (!__apiOnly && request.URI().StartsWith("/" + wwwroot))
+        plugin = GetPluginRequest(request.URI().Lower());
+        if (plugin != "")
         {
-#ifdef __WXMSW__
-            wxString d = wxFileName(wxStandardPaths::Get().GetExecutablePath()).GetPath();
-#elif __LINUX__
-            wxString d = wxStandardPaths::Get().GetDataDir();
-            if (!wxDir::Exists(d)) {
-                d = wxFileName(wxStandardPaths::Get().GetExecutablePath()).GetPath();
-            }
-#else
-            wxString d = wxStandardPaths::Get().GetResourcesDir();
-#endif
+            wxURI url(request.URI());
+            std::map<wxString, wxString> parms = ParseURI(url.BuildUnescapedURI());
+            wxString command = parms["Command"];
+            wxString parameters = parms["Parameters"];
+            wxString reference = parms["Reference"];
+            wxString data = request.Data();
 
-            wxString file = d;
-            if (uri.Contains("?"))
-            {
-                file += uri.BeforeFirst('?');
-            }
-            else
-            {
-                file += uri;
-            }
-
-            logger_base.info("File request received = '%s' : '%s'.", (const char *)file.c_str(), (const char *)uri.c_str());
-
-            if (!wxFile::Exists(file))
-            {
-                logger_base.error("    404: file not found.");
-            }
+            wxString result = ProcessPluginRequest(connection, plugin, command, parameters, data, reference);
 
             HttpResponse response(connection, request, HttpStatus::OK);
+            response.MakeFromText(result, "application/json");
+            connection.SendResponse(response);
+        }
+        else if (wwwroot != "" && !__apiOnly && (request.URI() == "" || request.URI() == "/" || request.URI() == "/" + wwwroot || request.URI() == "/" + wwwroot + "/"))
+        {
+            // Chris if you need this line to be this way on linux then use a #ifdef as the other works on windows
+            //int port = connection.Server()->Context().Port;
+            //wxString url = "http://" + request.Host() + ":" + wxString::Format(wxT("%i"), port) + "/" + wwwroot + "/index.html";
+            wxString url = "http://" + request.Host() + "/" + wwwroot + "/index.html";
 
-            //response.AddHeader("Cache-Control", "max-age=14400");
+            logger_base.info("Redirecting to '%s'.", (const char*)url.c_str());
 
-response.MakeFromFile(file);
+            HttpResponse response(connection, request, HttpStatus::PermanentRedirect);
+            response.AddHeader("Location", url);
+            //response.AddHeader("Connection", "Close");
+            response.MakeFromText("Redirected to " + url + "\n", "text/plain");
 
-connection.SendResponse(response);
+            connection.SendResponse(response);
 
-res = true; // disable default processing
+            res = true; // disable default processing
+        }
+        else if (wwwroot != "")
+        {
+            wxString uri = wxURI(request.URI()).BuildUnescapedURI();
+
+            if (!__apiOnly && request.URI().StartsWith("/" + wwwroot))
+            {
+#ifdef __WXMSW__
+                wxString d = wxFileName(wxStandardPaths::Get().GetExecutablePath()).GetPath();
+#elif __LINUX__
+                wxString d = wxStandardPaths::Get().GetDataDir();
+                if (!wxDir::Exists(d)) {
+                    d = wxFileName(wxStandardPaths::Get().GetExecutablePath()).GetPath();
+                }
+#else
+                wxString d = wxStandardPaths::Get().GetResourcesDir();
+#endif
+
+                wxString file = d;
+                if (uri.Contains("?"))
+                {
+                    file += uri.BeforeFirst('?');
+                }
+                else
+                {
+                    file += uri;
+                }
+
+                logger_base.info("File request received = '%s' : '%s'.", (const char*)file.c_str(), (const char*)uri.c_str());
+
+                if (!wxFile::Exists(file))
+                {
+                    logger_base.error("    404: file not found.");
+                }
+
+                HttpResponse response(connection, request, HttpStatus::OK);
+
+                //response.AddHeader("Cache-Control", "max-age=14400");
+
+                response.MakeFromFile(file);
+
+                connection.SendResponse(response);
+
+                res = true; // disable default processing
+            }
         }
     }
 
