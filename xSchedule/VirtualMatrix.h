@@ -44,6 +44,7 @@ public:
         VirtualMatrix(OutputManager* outputManager);
         virtual ~VirtualMatrix() {}
         void Frame(uint8_t*buffer, size_t size);
+        void AllOff();
         void Start();
         void Stop();
         void Suppress(bool suppress);
