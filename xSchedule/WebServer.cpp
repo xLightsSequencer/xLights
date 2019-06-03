@@ -716,20 +716,24 @@ void MyMessageHandler(HttpConnection& connection, WebSocketMessage& message)
                 result = d;
             }
         }
-        else if ((plugin = ((xScheduleFrame*)wxTheApp->GetTopWindow())->GetWebPluginRequest(type)) != "")
-        {
-            wxString c = root.Get("Command", defaultValue).AsString();
-            wxString p = root.Get("Parameters", defaultValue).AsString();
-            wxString d = root.Get("Data", defaultValue).AsString();
-            wxString r = root.Get("Reference", defaultValue).AsString();
-            result = ProcessPluginRequest(connection, plugin, c, p, d, r);
-        }
         else
         {
-            wxString r = root.Get("Reference", defaultValue).AsString();
-            WebSocketMessage wsm("{\"result\":\"failed\",\"reference\":\""+r+"\",\"message\":\"Unknown request type.\"}");
-            connection.SendMessage(wsm);
-            return;
+            plugin = ((xScheduleFrame*)wxTheApp->GetTopWindow())->GetWebPluginRequest(type);
+            if (plugin != "")
+            {
+                wxString c = root.Get("Command", defaultValue).AsString();
+                wxString p = root.Get("Parameters", defaultValue).AsString();
+                wxString d = root.Get("Data", defaultValue).AsString();
+                wxString r = root.Get("Reference", defaultValue).AsString();
+                result = ProcessPluginRequest(connection, plugin, c, p, d, r);
+            }
+            else
+            {
+                wxString r = root.Get("Reference", defaultValue).AsString();
+                WebSocketMessage wsm("{\"result\":\"failed\",\"reference\":\"" + r + "\",\"message\":\"Unknown request type or plugin not running.\"}");
+                connection.SendMessage(wsm);
+                return;
+            }
         }
 
         WebSocketMessage wsm(result);
