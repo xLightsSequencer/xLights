@@ -58,6 +58,9 @@ class ShaderPanel: public wxPanel
 		void OnFilePickerCtrl1FileChanged(wxFileDirPickerEvent& event);
 		//*)
 
+        void OnVCButtonClick(wxCommandEvent& event);
+        void OnVCChanged(wxCommandEvent& event);
+        void OnLockButtonClick(wxCommandEvent& event);
         void BuildUI(const wxString& filename);
 
 		DECLARE_EVENT_TABLE()

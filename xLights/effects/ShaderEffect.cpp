@@ -67,61 +67,61 @@ namespace
 #define GL_CLAMP_TO_EDGE 0x812F
 #endif
 
-   GLuint RenderBufferTexture( int w, int h )
-   {
-      GLuint texId = 0;
+    GLuint RenderBufferTexture(int w, int h)
+    {
+        GLuint texId = 0;
 
-      glGenTextures( 1, &texId );
-      glBindTexture( GL_TEXTURE_2D, texId );
+        glGenTextures(1, &texId);
+        glBindTexture(GL_TEXTURE_2D, texId);
 
-      glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr );
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
 
-      glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-      glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-      glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
-      glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-      glBindTexture( GL_TEXTURE_2D, 0 );
+        glBindTexture(GL_TEXTURE_2D, 0);
 
-      return texId;
-   }
+        return texId;
+    }
 
-   bool createOpenGLRenderBuffer( int width, int height, GLuint *rbID, GLuint *fbID )
-   {
-      glGenRenderbuffers(1, rbID);
-      glBindRenderbuffer(GL_RENDERBUFFER, *rbID);
-      glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA, width, height );
+    bool createOpenGLRenderBuffer(int width, int height, GLuint* rbID, GLuint* fbID)
+    {
+        glGenRenderbuffers(1, rbID);
+        glBindRenderbuffer(GL_RENDERBUFFER, *rbID);
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA, width, height);
 
-      glGenFramebuffers(1, fbID );
-      glBindFramebuffer(GL_FRAMEBUFFER, *fbID);
-      glFramebufferRenderbuffer(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, *rbID);
-      glFramebufferRenderbuffer(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, *rbID);
+        glGenFramebuffers(1, fbID);
+        glBindFramebuffer(GL_FRAMEBUFFER, *fbID);
+        glFramebufferRenderbuffer(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, *rbID);
+        glFramebufferRenderbuffer(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, *rbID);
 
-      glBindFramebuffer( GL_FRAMEBUFFER, 0 );
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-      return *rbID != 0 && *fbID != 0;
-   }
+        return *rbID != 0 && *fbID != 0;
+    }
 
-   const char *vsSrc =
-      "#version 330 core\n"
-      "in vec2 vpos;\n"
-      "in vec2 tpos;\n"
-      "out vec2 texCoord;\n"
-      "void main(){\n"
-      "    gl_Position = vec4(vpos,0,1);\n"
-      "    texCoord = tpos;\n"
-      "}\n";
+    const char* vsSrc =
+        "#version 330 core\n"
+        "in vec2 vpos;\n"
+        "in vec2 tpos;\n"
+        "out vec2 texCoord;\n"
+        "void main(){\n"
+        "    gl_Position = vec4(vpos,0,1);\n"
+        "    texCoord = tpos;\n"
+        "}\n";
 
-      void setRenderBufferAllRed( RenderBuffer &buffer )
-      {
-         for ( int y = 0; y < buffer.BufferHt; ++y )
-         {
-            for ( int x = 0; x < buffer.BufferWi; ++x )
+    void setRenderBufferAll(RenderBuffer& buffer, const wxColor& colour)
+    {
+        for (int y = 0; y < buffer.BufferHt; ++y)
+        {
+            for (int x = 0; x < buffer.BufferWi; ++x)
             {
-               buffer.SetPixel(x, y, xlRED );
+                buffer.SetPixel(x, y, colour);
             }
-         }
-      }
+        }
+    }
 }
 
 ShaderEffect::ShaderEffect(int i) : RenderableEffect(i, "Shader", shader_16_xpm, shader_24_xpm, shader_32_xpm, shader_48_xpm, shader_64_xpm)
@@ -221,12 +221,13 @@ public:
 
 void ShaderEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &buffer)
 {
-   // Bail out right away if we don't have the necessary OpenGL support
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    // Bail out right away if we don't have the necessary OpenGL support
    if ( !OpenGLShaders::HasFramebufferObjects() || !OpenGLShaders::HasShaderSupport() )
    {
-      setRenderBufferAllRed( buffer );
-      static log4cpp::Category &logger_opengl = log4cpp::Category::getInstance( std::string( "log_opengl" ) );
-      logger_opengl.error( "ShaderEffect::Render() - missing OpenGL support!!" );
+      setRenderBufferAll(buffer, *wxCYAN);
+      logger_base.error( "ShaderEffect::Render() - missing OpenGL support!!" );
       return;
    }
 
@@ -259,10 +260,15 @@ void ShaderEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &b
     }
 
     // if there is no config then we should paint it red ... just like the video effect
-    if ( _shaderConfig == nullptr || s_programId == 0 )
+    if ( _shaderConfig == nullptr)
     {
-       setRenderBufferAllRed( buffer );
+       setRenderBufferAll( buffer, *wxRED);
        return;
+    }
+    else if (s_programId == 0)
+    {
+        setRenderBufferAll(buffer, *wxYELLOW);
+        return;
     }
 
     // ***********************************************************************************************************
@@ -296,10 +302,11 @@ void ShaderEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &b
       glUniform2f( loc, buffer.BufferWi, buffer.BufferHt );
     loc = glGetUniformLocation( programId, "TIME" );
     if ( loc > 0 )
-      glUniform1f( loc, (buffer.curPeriod - buffer.curEffStartPer) / 20.f );
+      glUniform1f( loc, (float)(buffer.curPeriod - buffer.curEffStartPer) / (1000.0f / (float)buffer.frameTimeInMs) );
     loc = glGetUniformLocation( programId, "texSampler" );
     if ( loc > 0 )
       glUniform1i( loc, 0 );
+    float oset = buffer.GetEffectTimeIntervalPosition();
     for ( auto it : _shaderConfig->GetParms() )
     {
        loc = glGetUniformLocation( programId, it._name.c_str() );
@@ -309,7 +316,7 @@ void ShaderEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &b
           {
              case ShaderParmType::SHADER_PARM_FLOAT:
              {
-                float f = SettingsMap.GetFloat( it.GetUndecoratedId(ShaderCtrlType::SHADER_CTRL_SLIDER) ) / 100.f;
+                float f = GetValueCurveDouble(it.GetUndecoratedId(ShaderCtrlType::SHADER_CTRL_VALUECURVE), it._default * 100, SettingsMap, oset, it._min * 100, it._max* 100, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), 100) / 100.0;
                 glUniform1f( loc, f );
                 break;
              }
@@ -321,7 +328,7 @@ void ShaderEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &b
              }
              case ShaderParmType::SHADER_PARM_LONG:
              {
-                long l = SettingsMap.GetInt( it.GetUndecoratedId(ShaderCtrlType::SHADER_CTRL_SLIDER) );
+                long l = GetValueCurveInt(it.GetUndecoratedId(ShaderCtrlType::SHADER_CTRL_VALUECURVE), it._default, SettingsMap, oset, it._min, it._max, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()) * buffer.BufferWi / 100;
                 glUniform1i( loc, l );
                 break;
              }
@@ -362,6 +369,8 @@ void ShaderEffect::sizeForRenderBuffer(const RenderBuffer& rb,
     unsigned& s_vertexArrayId, unsigned& s_vertexBufferId, unsigned& s_rbId, unsigned& s_fbId,
     unsigned& s_rbTex, int& s_rbWidth, int& s_rbHeight)
 {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     if (!s_shadersInit)
     {
         VertexTex vt[4] =
@@ -383,22 +392,19 @@ void ShaderEffect::sizeForRenderBuffer(const RenderBuffer& rb,
         GLenum err = glGetError();
         if ( err != GL_NO_ERROR )
         {
-           static log4cpp::Category &logger_opengl = log4cpp::Category::getInstance( std::string( "log_opengl" ) );
-           logger_opengl.error( "ShaderEffect::sizeForRenderBuffer() - Error with vertex array - %d", err );
+           logger_base.error( "ShaderEffect::sizeForRenderBuffer() - Error with vertex array - %d", err );
         }
 
         createOpenGLRenderBuffer(rb.BufferWi, rb.BufferHt, &s_rbId, &s_fbId);
         if ( ( err = glGetError()) != GL_NO_ERROR )
         {
-           static log4cpp::Category &logger_opengl = log4cpp::Category::getInstance( std::string( "log_opengl" ) );
-           logger_opengl.error( "ShaderEffect::sizeForRenderBuffer() - Error creating framebuffer - %d", err );
+           logger_base.error( "ShaderEffect::sizeForRenderBuffer() - Error creating framebuffer - %d", err );
         }
 
         s_rbTex = RenderBufferTexture(rb.BufferWi, rb.BufferHt);
         if ( ( err = glGetError()) != GL_NO_ERROR )
         {
-           static log4cpp::Category &logger_opengl = log4cpp::Category::getInstance( std::string( "log_opengl" ) );
-           logger_opengl.error( "ShaderEffect::sizeForRenderBuffer() - Error creating renderbuffer texture - %d", err );
+           logger_base.error( "ShaderEffect::sizeForRenderBuffer() - Error creating renderbuffer texture - %d", err );
         }
 
         s_rbWidth = rb.BufferWi;
@@ -421,14 +427,12 @@ void ShaderEffect::sizeForRenderBuffer(const RenderBuffer& rb,
         GLenum err = glGetError();
         if ( err != GL_NO_ERROR )
         {
-           static log4cpp::Category &logger_opengl = log4cpp::Category::getInstance( std::string( "log_opengl" ) );
-           logger_opengl.error( "ShaderEffect::sizeForRenderBuffer() - Error recreating framebuffer - %d", err );
+           logger_base.error( "ShaderEffect::sizeForRenderBuffer() - Error recreating framebuffer - %d", err );
         }
         s_rbTex = RenderBufferTexture(rb.BufferWi, rb.BufferHt);;
         if ( ( err = glGetError()) != GL_NO_ERROR )
         {
-           static log4cpp::Category &logger_opengl = log4cpp::Category::getInstance( std::string( "log_opengl" ) );
-           logger_opengl.error( "ShaderEffect::sizeForRenderBuffer() - Error recreating renderbuffer texture - %d", err );
+           logger_base.error( "ShaderEffect::sizeForRenderBuffer() - Error recreating renderbuffer texture - %d", err );
         }
 
         s_rbWidth = rb.BufferWi;
@@ -438,7 +442,12 @@ void ShaderEffect::sizeForRenderBuffer(const RenderBuffer& rb,
 
 void ShaderEffect::recompileFromShaderConfig( const ShaderConfig* cfg, unsigned& s_programId)
 {
-   s_programId = OpenGLShaders::compile( vsSrc, cfg->GetCode() );
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    s_programId = OpenGLShaders::compile( vsSrc, cfg->GetCode() );
+   if (s_programId == 0)
+   {
+       logger_base.error("Failed to compile shader program %s", (const char *)cfg->GetFilename().c_str());
+   }
 }
 
 ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const wxString& json) : _filename(filename)

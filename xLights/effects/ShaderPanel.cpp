@@ -1,11 +1,13 @@
 #include "ShaderPanel.h"
 #include "ShaderEffect.h"
 #include "../BulkEditControls.h"
+#include "EffectPanelUtils.h"
 
 //(*InternalHeaders(ShaderPanel)
 #include <wx/intl.h>
 #include <wx/string.h>
 //*)
+#include <wx/artprov.h>
 
 //(*IdInit(ShaderPanel)
 const long ShaderPanel::ID_STATICTEXT1 = wxNewId();
@@ -46,11 +48,12 @@ ShaderPanel::ShaderPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 
 	Create(parent, id, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("id"));
 	FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
+	FlexGridSizer1->AddGrowableCol(0);
 	FlexGridSizer2 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer2->AddGrowableCol(1);
 	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Shader File:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
 	FlexGridSizer2->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	FilePickerCtrl1 = new wxFilePickerCtrl(this, ID_0FILEPICKERCTRL_IFS, wxEmptyString, _("Select a file"), _T("*.fs"), wxDefaultPosition, wxDefaultSize, wxFLP_FILE_MUST_EXIST|wxFLP_OPEN|wxFLP_USE_TEXTCTRL, wxDefaultValidator, _T("ID_0FILEPICKERCTRL_IFS"));
+	FilePickerCtrl1 = new wxFilePickerCtrl(this, ID_0FILEPICKERCTRL_IFS, wxEmptyString, wxEmptyString, _T("*.fs"), wxDefaultPosition, wxDefaultSize, wxFLP_FILE_MUST_EXIST|wxFLP_OPEN|wxFLP_USE_TEXTCTRL, wxDefaultValidator, _T("ID_0FILEPICKERCTRL_IFS"));
 	FlexGridSizer2->Add(FilePickerCtrl1, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer_Dynamic = new wxFlexGridSizer(0, 3, 0, 0);
@@ -62,6 +65,7 @@ ShaderPanel::ShaderPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 
 	Connect(ID_0FILEPICKERCTRL_IFS,wxEVT_COMMAND_FILEPICKER_CHANGED,(wxObjectEventFunction)&ShaderPanel::OnFilePickerCtrl1FileChanged);
 	//*)
+    Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)& ShaderPanel::OnVCChanged, 0, this);
 
 	_preview = new ShaderPreview( this, ID_CANVAS );
 }
@@ -72,6 +76,8 @@ ShaderPanel::~ShaderPanel()
 	//(*Destroy(ShaderPanel)
 	//*)
 }
+
+PANEL_EVENT_HANDLERS(ShaderPanel)
 
 void ShaderPanel::OnFilePickerCtrl1FileChanged(wxFileDirPickerEvent& event)
 {
@@ -108,8 +114,21 @@ void ShaderPanel::BuildUI(const wxString& filename)
                 {
                     auto staticText = new wxStaticText(this, wxNewId(), it.GetLabel(), wxDefaultPosition, wxDefaultSize, 0, it.GetId(ShaderCtrlType::SHADER_CTRL_STATIC));
                     FlexGridSizer_Dynamic->Add(staticText, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 2);
+
+                    auto sizer = new wxFlexGridSizer(0, 2, 0, 0);
+                    sizer->AddGrowableCol(0);
+
                     auto slider = new BulkEditSliderF2(this, wxNewId(), it._default * 100, it._min * 100, it._max * 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, it.GetId(ShaderCtrlType::SHADER_CTRL_SLIDER));
-                    FlexGridSizer_Dynamic->Add(slider, 1, wxALL | wxEXPAND, 2);
+                    sizer->Add(slider, 1, wxALL | wxEXPAND, 2);
+                    auto id = wxNewId();
+                    auto vcb = new BulkEditValueCurveButton(this, id, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")), wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW | wxNO_BORDER, wxDefaultValidator, it.GetId(ShaderCtrlType::SHADER_CTRL_VALUECURVE));
+                    sizer->Add(vcb, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 2);
+                    vcb->GetValue()->SetLimits(it._min*100, it._max*100);
+                    vcb->GetValue()->SetDivisor(100);
+                    Connect(id, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)& ShaderPanel::OnVCButtonClick);
+
+                    FlexGridSizer_Dynamic->Add(sizer, 1, wxALL | wxEXPAND, 0);
+
                     auto def = wxString::Format("%.2f", it._default);
                     auto text = new BulkEditTextCtrlF2(this, wxNewId(), def, wxDefaultPosition, wxDLG_UNIT(this, wxSize(30, -1)), 0, wxDefaultValidator, it.GetId(ShaderCtrlType::SHADER_CTRL_TEXTCTRL));
                     FlexGridSizer_Dynamic->Add(text, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 2);
@@ -118,8 +137,20 @@ void ShaderPanel::BuildUI(const wxString& filename)
                 {
                     auto staticText = new wxStaticText(this, wxNewId(), it.GetLabel(), wxDefaultPosition, wxDefaultSize, 0, it.GetId(ShaderCtrlType::SHADER_CTRL_STATIC));
                     FlexGridSizer_Dynamic->Add(staticText, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 2);
+
+                    auto sizer = new wxFlexGridSizer(0, 2, 0, 0);
+                    sizer->AddGrowableCol(0);
+
                     auto slider = new BulkEditSlider(this, wxNewId(), it._default, it._min, it._max, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, it.GetId(ShaderCtrlType::SHADER_CTRL_SLIDER));
                     FlexGridSizer_Dynamic->Add(slider, 1, wxALL | wxEXPAND, 2);
+                    auto id = wxNewId();
+                    auto vcb = new BulkEditValueCurveButton(this, id, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")), wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW | wxNO_BORDER, wxDefaultValidator, it.GetId(ShaderCtrlType::SHADER_CTRL_VALUECURVE));
+                    sizer->Add(vcb, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 2);
+                    vcb->GetValue()->SetLimits(it._min, it._max);
+                    Connect(id, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)& ShaderPanel::OnVCButtonClick);
+
+                    FlexGridSizer_Dynamic->Add(sizer, 1, wxALL | wxEXPAND, 0);
+
                     auto def = wxString::Format("%l", (long)it._default);
                     auto text = new BulkEditTextCtrlF2(this, wxNewId(), def, wxDefaultPosition, wxDLG_UNIT(this, wxSize(30, -1)), 0, wxDefaultValidator, it.GetId(ShaderCtrlType::SHADER_CTRL_TEXTCTRL));
                     FlexGridSizer_Dynamic->Add(text, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 2);
