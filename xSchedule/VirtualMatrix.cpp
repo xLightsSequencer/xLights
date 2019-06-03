@@ -287,6 +287,29 @@ std::string VirtualMatrix::DecodeScalingQuality(wxImageResizeQuality quality, in
     return "Normal";
 }
 
+void VirtualMatrix::AllOff()
+{
+    if (!_image.IsOk()) return;
+    if (_window == nullptr) return;
+
+    _image.Clear();
+
+    if (_rotation == VMROTATION::VM_NORMAL)
+    {
+        _window->SetImage(_image);
+    }
+    else if (_rotation == VMROTATION::VM_90)
+    {
+        wxImage rot = _image.Rotate90();
+        _window->SetImage(rot);
+    }
+    else
+    {
+        wxImage rot = _image.Rotate90(false);
+        _window->SetImage(rot);
+    }
+}
+
 void VirtualMatrix::Frame(uint8_t*buffer, size_t size)
 {
     if (!_image.IsOk()) return;

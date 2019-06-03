@@ -604,6 +604,10 @@ bool PlayList::Frame(uint8_t* buffer, size_t size, bool outputframe)
             it->Frame(buffer, size, outputframe);
         }
     }
+    else
+    {
+        return true;
+    }
 
     return false;
 }

@@ -1148,10 +1148,9 @@ int ScheduleManager::Frame(bool outputframe, xScheduleFrame* frame)
                         }
                     }
 
-                    auto vm = GetOptions()->GetVirtualMatrices();
-                    for (auto it2 = vm->begin(); it2 != vm->end(); ++it2)
+                    for (auto it2 :*GetOptions()->GetVirtualMatrices())
                     {
-                        (*it2)->Frame(_buffer, totalChannels);
+                        it2->Frame(_buffer, totalChannels);
                     }
 
                     if (outputframe)
@@ -1159,14 +1158,24 @@ int ScheduleManager::Frame(bool outputframe, xScheduleFrame* frame)
                         _outputManager->SetManyChannels(0, _buffer, totalChannels);
                         _outputManager->EndFrame();
                     }
+
+                    if (_eventPlayLists.size() == 0)
+                    {
+                        // last event playlist ended ... turn everything off
+                        _outputManager->AllOff(true);
+                        for (auto& it2 : *GetOptions()->GetVirtualMatrices())
+                        {
+                            it2->AllOff();
+                        }
+                    }
                 }
             }
         }
     }
 
     reentry = false;
+    if (rate == 0) rate = 50;
     oldrate = rate;
-
     return rate;
 }
 

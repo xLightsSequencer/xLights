@@ -165,6 +165,9 @@ void EventMIDI::ProcessMIDICommand(uint8_t data1, uint8_t data2, ScheduleManager
 
 std::list<std::string> EventMIDI::GetDevices()
 {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("Input MIDI Devices:");
+
     std::list<std::string> res;
 
     wxMidiSystem* midiSystem = wxMidiSystem::GetInstance();
@@ -174,7 +177,9 @@ std::list<std::string> EventMIDI::GetDevices()
         wxMidiInDevice* midiDev = new wxMidiInDevice(i);
         if (midiDev->IsInputPort()) 
         {
-            res.push_back(wxString::Format("Input %s [%s] %d", midiDev->DeviceName(), midiDev->InterfaceUsed(), i).ToStdString());
+            auto devname = wxString::Format("Input %s [%s] %d", midiDev->DeviceName(), midiDev->InterfaceUsed(), i).ToStdString();
+            res.push_back(devname);
+            logger_base.debug("    %s", (const char*)devname.c_str());
         }
         delete midiDev;
     }
@@ -184,6 +189,9 @@ std::list<std::string> EventMIDI::GetDevices()
 
 std::list<std::string> EventMIDI::GetOutputDevices()
 {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("Output MIDI Devices:");
+
     std::list<std::string> res;
 
     wxMidiSystem* midiSystem = wxMidiSystem::GetInstance();
@@ -193,7 +201,9 @@ std::list<std::string> EventMIDI::GetOutputDevices()
         wxMidiInDevice* midiDev = new wxMidiInDevice(i);
         if (midiDev->IsOutputPort())
         {
-            res.push_back(wxString::Format("Output %s [%s] %d", midiDev->DeviceName(), midiDev->InterfaceUsed(), i).ToStdString());
+            auto devname = wxString::Format("Output %s [%s] %d", midiDev->DeviceName(), midiDev->InterfaceUsed(), i).ToStdString();
+            res.push_back(devname);
+            logger_base.debug("    %s", (const char*)devname.c_str());
         }
         delete midiDev;
     }

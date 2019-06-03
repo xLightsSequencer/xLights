@@ -220,11 +220,11 @@ bool Command::IsValid(wxString parms, PlayList* selectedPlayList, Schedule* sele
 Command* CommandManager::GetCommand(std::string name) const
 {
     auto n = wxString(name).Lower();
-    for (auto it = _commands.begin(); it != _commands.end(); ++it)
+    for (auto it : _commands)
     {
-        if ((*it)->_commandLower == n)
+        if (it->_commandLower == n)
         {
-            return *it;
+            return it;
         }
     }
 
