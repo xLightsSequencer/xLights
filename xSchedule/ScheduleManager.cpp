@@ -278,6 +278,7 @@ int ScheduleManager::DoSync(const std::string& filename, long ms)
     {
         if (_playLists.size() > 0)
         {
+            // we only access the first playlist for timecode
             pl = new PlayList(*_playLists.front());
             long stepMS = 0;
             PlayListStep* shouldberunning = pl->GetStepAtTime(ms, stepMS);

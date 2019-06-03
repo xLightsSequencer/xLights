@@ -19,7 +19,7 @@ PluginManager::PluginState::PluginState(wxDynamicLibrary* dl) : _dl(dl), _starte
         _unloadFn = (p_xSchedule_Unload)_dl->GetSymbol("xSchedule_Unload");
         _startFn = (p_xSchedule_Start)_dl->GetSymbol("xSchedule_Start");
         _stopFn = (p_xSchedule_Stop)_dl->GetSymbol("xSchedule_Stop");
-        _handleWebFn= (p_xSchedule_HandleWeb)_dl->GetSymbol("xSchedule_HandleWeb");
+        _handleWebFn = (p_xSchedule_HandleWeb)_dl->GetSymbol("xSchedule_HandleWeb");
         _wipeFn = (p_xSchedule_WipeSettings)_dl->GetSymbol("xSchedule_WipeSettings");
         _manipulateBufferFn = (p_xSchedule_ManipulateBuffer)_dl->GetSymbol("xSchedule_ManipulateBuffer");
         _notifyStatusFn = (p_xSchedule_NotifyStatus)_dl->GetSymbol("xSchedule_NotifyStatus");
