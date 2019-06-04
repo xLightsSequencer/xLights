@@ -256,6 +256,10 @@ void ShaderEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &b
         if (_shaderConfig != nullptr)
         {
             recompileFromShaderConfig(_shaderConfig, s_programId);
+            if (s_programId != 0)
+            {
+                logger_base.debug("Fragment shader %s compiled successfully.", (const char*)_shaderConfig->GetFilename().c_str());
+            }
         }
     }
 
@@ -298,51 +302,91 @@ void ShaderEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &b
 
     int colourIndex = 0;
     int loc = glGetUniformLocation( programId, "RENDERSIZE" );
-    if ( loc > 0 )
-      glUniform2f( loc, buffer.BufferWi, buffer.BufferHt );
+    if (loc >= 0) {
+        glUniform2f(loc, buffer.BufferWi, buffer.BufferHt);
+    }
+    else {
+        if (buffer.curPeriod == buffer.curEffStartPer && _shaderConfig->HasRendersize())
+        {
+            logger_base.warn("Unable to bind to RENDERSIZE\n%s", (const char *)_shaderConfig->GetCode().c_str());
+        }
+    }
     loc = glGetUniformLocation( programId, "TIME" );
-    if ( loc > 0 )
-      glUniform1f( loc, (float)(buffer.curPeriod - buffer.curEffStartPer) / (1000.0f / (float)buffer.frameTimeInMs) );
+    if (loc >= 0) {
+        //glUniform1f(loc, (float)(buffer.curPeriod - buffer.curEffStartPer) / (1000.0f / (float)buffer.frameTimeInMs));
+        glUniform1f(loc, (float)(buffer.curPeriod - buffer.curEffStartPer) / (1000.0 / (float)buffer.frameTimeInMs));
+    } 
+    else {
+        if (buffer.curPeriod == buffer.curEffStartPer && _shaderConfig->HasTime())
+            logger_base.error("Unable to bind to TIME\n%s", (const char*)_shaderConfig->GetCode().c_str());
+    }
     loc = glGetUniformLocation( programId, "texSampler" );
-    if ( loc > 0 )
-      glUniform1i( loc, 0 );
+    if (loc >= 0) {
+        glUniform1i(loc, 0);
+    } 
+    else {
+        if (buffer.curPeriod == buffer.curEffStartPer)
+            logger_base.warn("Unable to bind to texSampler");
+    }
     float oset = buffer.GetEffectTimeIntervalPosition();
-    for ( auto it : _shaderConfig->GetParms() )
+    for (auto it : _shaderConfig->GetParms())
     {
-       loc = glGetUniformLocation( programId, it._name.c_str() );
-       if ( loc > 0 )
-       {
-          switch ( it._type )
-          {
-             case ShaderParmType::SHADER_PARM_FLOAT:
-             {
-                float f = GetValueCurveDouble(it.GetUndecoratedId(ShaderCtrlType::SHADER_CTRL_VALUECURVE), it._default * 100, SettingsMap, oset, it._min * 100, it._max* 100, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), 100) / 100.0;
-                glUniform1f( loc, f );
+        loc = glGetUniformLocation(programId, it._name.c_str());
+        if (loc >= 0)
+        {
+            switch (it._type)
+            {
+            case ShaderParmType::SHADER_PARM_FLOAT:
+            {
+                float f = GetValueCurveDouble(it.GetUndecoratedId(ShaderCtrlType::SHADER_CTRL_VALUECURVE), it._default * 100.0, SettingsMap, oset, it._min * 100.0, it._max * 100.0, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), 1) / 100.0;
+                glUniform1f(loc, f);
                 break;
-             }
-             case ShaderParmType::SHADER_PARM_BOOL:
-             {
-                bool b = SettingsMap.GetBool( it.GetUndecoratedId(ShaderCtrlType::SHADER_CTRL_CHECKBOX) );
-                glUniform1f( loc, b );
-                break;
-             }
-             case ShaderParmType::SHADER_PARM_LONG:
-             {
-                long l = GetValueCurveInt(it.GetUndecoratedId(ShaderCtrlType::SHADER_CTRL_VALUECURVE), it._default, SettingsMap, oset, it._min, it._max, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()) * buffer.BufferWi / 100;
-                glUniform1i( loc, l );
-                break;
-             }
-             case ShaderParmType::SHADER_PARM_COLOUR:
-             {
-                 //xlColor c = buffer.palette.GetColor(colourIndex);
-                 //colourIndex++;
-                 //if (colourIndex > buffer.GetColorCount()) colourIndex = 0;
-                 //glUniformc(loc, c);
-                 break;
-             }
             }
-         }
-      }
+            case ShaderParmType::SHADER_PARM_POINT2D:
+            {
+                float x = GetValueCurveDouble(it.GetUndecoratedId(ShaderCtrlType::SHADER_CTRL_VALUECURVE) + "X", it._defaultPt.x * 100, SettingsMap, oset, it._minPt.x * 100, it._maxPt.x * 100, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), 1) / 100.0;
+                float y = GetValueCurveDouble(it.GetUndecoratedId(ShaderCtrlType::SHADER_CTRL_VALUECURVE) + "Y", it._defaultPt.y * 100, SettingsMap, oset, it._minPt.y * 100, it._maxPt.y * 100, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), 1) / 100.0;
+                glUniform2f(loc, x, y);
+                break;
+            }
+            case ShaderParmType::SHADER_PARM_BOOL:
+            {
+                bool b = SettingsMap.GetBool(it.GetUndecoratedId(ShaderCtrlType::SHADER_CTRL_CHECKBOX));
+                glUniform1f(loc, b);
+                break;
+            }
+            case ShaderParmType::SHADER_PARM_LONGCHOICE:
+            {
+                long l = it.EncodeChoice(SettingsMap[it.GetUndecoratedId(ShaderCtrlType::SHADER_CTRL_CHOICE)]);
+                glUniform1i(loc, l);
+                break;
+            }
+            case ShaderParmType::SHADER_PARM_LONG:
+            {
+                long l = GetValueCurveInt(it.GetUndecoratedId(ShaderCtrlType::SHADER_CTRL_VALUECURVE), it._default, SettingsMap, oset, it._min, it._max, 
+                    buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), 1);
+                glUniform1i(loc, l);
+                break;
+            }
+            case ShaderParmType::SHADER_PARM_COLOUR:
+            {
+                xlColor c = buffer.palette.GetColor(colourIndex);
+                colourIndex++;
+                if (colourIndex > buffer.GetColorCount()) colourIndex = 0;
+                glUniform4f(loc, (float)c.red / 255.0, (float)c.green / 255.0, (float)c.blue / 255.0, 1.0);
+                break;
+            }            
+            default:
+                logger_base.warn("No binding supported for %s ... we have more work to do.", (const char*)it._name.c_str());
+                break;
+            }
+        }
+        else
+        {
+            if (buffer.curPeriod == buffer.curEffStartPer)
+                logger_base.warn("Unable to bind to %s", (const char*)it._name.c_str());
+        }
+    }
 
       GLuint vattrib = glGetAttribLocation( programId, "vpos" );
       glVertexAttribPointer( vattrib, 2, GL_FLOAT, GL_FALSE, sizeof(VertexTex), reinterpret_cast<void *>( offsetof(VertexTex, v) ) );
@@ -443,6 +487,7 @@ void ShaderEffect::sizeForRenderBuffer(const RenderBuffer& rb,
 void ShaderEffect::recompileFromShaderConfig( const ShaderConfig* cfg, unsigned& s_programId)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     s_programId = OpenGLShaders::compile( vsSrc, cfg->GetCode() );
    if (s_programId == 0)
    {
@@ -463,81 +508,108 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
         wxString type = inputs[i]["TYPE"].AsString();
         if (type == "float")
         {
-            _parms.push_back({
+            _parms.push_back(ShaderParm(
                     inputs[i].HasMember("NAME") ? inputs[i]["NAME"].AsString() : "",
                     inputs[i].HasMember("LABEL") ? inputs[i]["LABEL"].AsString() : "",
                     ShaderParmType::SHADER_PARM_FLOAT,
                     (float)(inputs[i].HasMember("MIN") ? wxAtof(inputs[i]["MIN"].AsString()) : 0.0),
                     (float)(inputs[i].HasMember("MAX") ? wxAtof(inputs[i]["MAX"].AsString()) : 0.0),
                     (float)(inputs[i].HasMember("DEFAULT") ? wxAtof(inputs[i]["DEFAULT"].AsString()) : 0.0)
-                });
+                ));
         }
         else if (type == "long")
         {
-            _parms.push_back({
+            if (inputs[i].HasMember("MIN"))
+            {
+                _parms.push_back(ShaderParm(
                     inputs[i].HasMember("NAME") ? inputs[i]["NAME"].AsString() : "",
                     inputs[i].HasMember("LABEL") ? inputs[i]["LABEL"].AsString() : "",
                     ShaderParmType::SHADER_PARM_LONG,
                     (float)(inputs[i].HasMember("MIN") ? wxAtol(inputs[i]["MIN"].AsString()) : 0.0),
                     (float)(inputs[i].HasMember("MAX") ? wxAtol(inputs[i]["MAX"].AsString()) : 0.0),
                     (float)(inputs[i].HasMember("DEFAULT") ? wxAtol(inputs[i]["DEFAULT"].AsString()) : 0.0)
-                });
+                ));
+            }
+            else if (inputs[i].HasMember("LABELS") && inputs[i].HasMember("VALUES"))
+            {
+                _parms.push_back(ShaderParm(
+                    inputs[i].HasMember("NAME") ? inputs[i]["NAME"].AsString() : "",
+                    inputs[i].HasMember("LABEL") ? inputs[i]["LABEL"].AsString() : "",
+                    ShaderParmType::SHADER_PARM_LONGCHOICE,
+                    0.0f,
+                    0.0f,
+                    (float)(inputs[i].HasMember("DEFAULT") ? wxAtol(inputs[i]["DEFAULT"].AsString()) : 0.0)
+                ));
+                auto ls = inputs[i]["LABELS"];
+                auto vs = inputs[i]["VALUES"];
+                int no = std::min(ls.Size(), vs.Size());
+                for (int i = 0; i < no; i++)
+                {
+                    _parms.back()._valueOptions[vs[i].AsInt()] = ls[i].AsString();
+                }
+            }
+            else
+            {
+                wxASSERT(false);
+            }
         }
         else if (type == "color")
         {
-            _parms.push_back({
+            _parms.push_back(ShaderParm(
                     inputs[i].HasMember("NAME") ? inputs[i]["NAME"].AsString() : "",
                     inputs[i].HasMember("LABEL") ? inputs[i]["LABEL"].AsString() : "",
-                    ShaderParmType::SHADER_PARM_COLOUR,
-                    0.0,
-                    0.0,
-                    0.0
-                });
+                    ShaderParmType::SHADER_PARM_COLOUR
+                ));
         }
         else if (type == "audio")
         {
-            _parms.push_back({
+            _parms.push_back(ShaderParm(
                     inputs[i].HasMember("NAME") ? inputs[i]["NAME"].AsString() : "",
                     inputs[i].HasMember("LABEL") ? inputs[i]["LABEL"].AsString() : "",
-                    ShaderParmType::SHADER_PARM_AUDIO,
-                    0.0,
-                    0.0,
-                    0.0
-                });
+                    ShaderParmType::SHADER_PARM_AUDIO
+                ));
         }
         else if (type == "audiofft")
         {
-            _parms.push_back({
+            _parms.push_back(ShaderParm(
                     inputs[i].HasMember("NAME") ? inputs[i]["NAME"].AsString() : "",
                     inputs[i].HasMember("LABEL") ? inputs[i]["LABEL"].AsString() : "",
-                    ShaderParmType::SHADER_PARM_AUDIOFFT,
-                    0.0,
-                    0.0,
-                    0.0
-                });
+                    ShaderParmType::SHADER_PARM_AUDIOFFT
+                ));
         }
         else if (type == "bool")
         {
-            _parms.push_back({
+            _parms.push_back(ShaderParm(
                     inputs[i].HasMember("NAME") ? inputs[i]["NAME"].AsString() : "",
                     inputs[i].HasMember("LABEL") ? inputs[i]["LABEL"].AsString() : "",
                     ShaderParmType::SHADER_PARM_BOOL,
                     0.0f,
                     0.0f,
                     (float)(inputs[i].HasMember("DEFAULT") ? wxAtof(inputs[i]["DEFAULT"].AsString()) : 0.0f)
-                });
+                ));
         }
         else if (type == "point2D")
         {
-            // not sure what to do with these
-            _parms.push_back({
+            wxRealPoint minPt = wxRealPoint(
+                inputs[i].HasMember("MIN") ? (inputs[i]["MIN"][0].IsDouble() ? inputs[i]["MIN"][0].AsDouble() : inputs[i]["MIN"][0].AsInt()) : 0.0f,
+                inputs[i].HasMember("MIN") ? (inputs[i]["MIN"][1].IsDouble() ? inputs[i]["MIN"][1].AsDouble() : inputs[i]["MIN"][1].AsInt()) : 0.0f
+            );
+            wxRealPoint maxPt = wxRealPoint(
+                inputs[i].HasMember("MAX") ? (inputs[i]["MAX"][0].IsDouble() ? inputs[i]["MAX"][0].AsDouble() : inputs[i]["MAX"][0].AsInt()) : 1.0f,
+                inputs[i].HasMember("MAX") ? (inputs[i]["MAX"][1].IsDouble() ? inputs[i]["MAX"][1].AsDouble() : inputs[i]["MAX"][1].AsInt()) : 1.0f
+            );
+            wxRealPoint defPt = wxRealPoint(
+                inputs[i].HasMember("DEFAULT") ? (inputs[i]["DEFAULT"][0].IsDouble() ? inputs[i]["DEFAULT"][0].AsDouble() : inputs[i]["DEFAULT"][0].AsInt()) : 0.0f,
+                inputs[i].HasMember("DEFAULT") ? (inputs[i]["DEFAULT"][1].IsDouble() ? inputs[i]["DEFAULT"][1].AsDouble() : inputs[i]["DEFAULT"][1].AsInt()) : 0.0f
+            );
+            _parms.push_back(ShaderParm(
                     inputs[i].HasMember("NAME") ? inputs[i]["NAME"].AsString() : "",
                     inputs[i].HasMember("LABEL") ? inputs[i]["LABEL"].AsString() : "",
                     ShaderParmType::SHADER_PARM_POINT2D,
-                    0.0f,
-                    0.0f,
-                    0.0f
-                });
+                    minPt,
+                    maxPt,
+                    defPt
+                ));
         }
         else if (type == "image")
         {
@@ -574,15 +646,12 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
             });
     }
 
+    _hasRendersize = Contains(code, "RENDERSIZE");
+    _hasTime = Contains(code, "TIME");
+
     // The shader code needs declarations for the uniforms that we silently set with each call to Render()
     // and the uniforms that correspond to user-visible settings
-    wxString prependText;
-    const char *autos =
-      "#version 330\n"
-      "uniform vec2 RENDERSIZE;\n"
-      "uniform float TIME;\n"
-      "uniform sampler2D texSampler;\n";
-    prependText = autos;
+    wxString prependText = "#version 330\n\nuniform float TIME;\nuniform vec2 RENDERSIZE;\nuniform sampler2D texSampler;\n";
 
     for ( auto p : _parms )
     {
@@ -598,15 +667,28 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
           }
           case ShaderParmType::SHADER_PARM_BOOL:
           {
-             str = wxString::Format( "uniform bool %s;\n", name );
-             prependText += str;
-             break;
+              str = wxString::Format("uniform bool %s;\n", name);
+              prependText += str;
+              break;
+          }
+          case ShaderParmType::SHADER_PARM_LONG:
+          case ShaderParmType::SHADER_PARM_LONGCHOICE:
+          {
+              str = wxString::Format("uniform int %s;\n", name);
+              prependText += str;
+              break;
           }
           case ShaderParmType::SHADER_PARM_POINT2D:
           {
-             str = wxString::Format( "uniform vec2 %s;\n", name );
+             str = wxString::Format( "uniform vec2 %s;\r\n", name );
              prependText += str;
              break;
+          }
+          case ShaderParmType::SHADER_PARM_COLOUR:
+          {
+              str = wxString::Format("uniform vec4 %s;\r\n", name);
+              prependText += str;
+              break;
           }
           default:
           {

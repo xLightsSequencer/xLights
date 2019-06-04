@@ -12,6 +12,7 @@ enum class ShaderParmType
     SHADER_PARM_BOOL,
     SHADER_PARM_POINT2D,
     SHADER_PARM_LONG,
+    SHADER_PARM_LONGCHOICE,
     SHADER_PARM_AUDIO,
     SHADER_PARM_AUDIOFFT
 };
@@ -22,6 +23,7 @@ enum class ShaderCtrlType
     SHADER_CTRL_SLIDER,
     SHADER_CTRL_CHECKBOX,
     SHADER_CTRL_TEXTCTRL,
+    SHADER_CTRL_CHOICE,
     SHADER_CTRL_VALUECURVE
 };
 
@@ -36,9 +38,61 @@ struct ShaderParm
     wxString _name;
     wxString _label;
     ShaderParmType _type;
-    float _min;
-    float _max;
-    float _default;
+    float _min = 0.0f;
+    float _max = 0.0f;
+    float _default = 0.0f;
+    wxRealPoint _minPt = { 0,0 };
+    wxRealPoint _maxPt = { 0,0 };
+    wxRealPoint _defaultPt = { 0,0 };
+    std::map<int, wxString> _valueOptions;
+
+    std::vector<wxString> GetChoices() const
+    {
+        std::vector<wxString> res;
+
+        for (auto it : _valueOptions)
+        {
+            res.push_back(it.second);
+        }
+
+        return res;
+    }
+
+    int EncodeChoice(const wxString& value)
+    {
+        for (auto it : _valueOptions)
+        {
+            if (it.second == value) return it.first;
+        }
+        return -1;
+    }
+
+    ShaderParm(const wxString& name, const wxString& label, ShaderParmType type)
+    {
+        _name = name;
+        _label = label;
+        _type = type;
+    }
+
+    ShaderParm(const wxString& name, const wxString& label, ShaderParmType type, float min, float max, float dfault)
+    {
+        _name = name;
+        _label = label;
+        _type = type;
+        _min = min;
+        _max = max;
+        _default = dfault;
+    }
+
+    ShaderParm(const wxString& name, const wxString& label, ShaderParmType type, wxRealPoint min, wxRealPoint max, wxRealPoint dfault)
+    {
+        _name = name;
+        _label = label;
+        _type = type;
+        _minPt = min;
+        _maxPt = max;
+        _defaultPt = dfault;
+    }
 
     wxString GetId(ShaderCtrlType ctrl) const
     {
@@ -54,6 +108,8 @@ struct ShaderParm
             return wxString::Format("ID_STATICTEXT_%s", _name);
         case ShaderCtrlType::SHADER_CTRL_VALUECURVE:
             return wxString::Format("ID_VALUECURVE_%s", _name);
+        case ShaderCtrlType::SHADER_CTRL_CHOICE:
+            return wxString::Format("ID_CHOICE_%s", _name);
         }
         wxASSERT(false);
         return "NONAME";
@@ -68,7 +124,11 @@ struct ShaderParm
     wxString GetLabel() const { if (_label != "") return _label; return _name; }
     bool ShowParm() const 
     { 
-        return _type == ShaderParmType::SHADER_PARM_FLOAT || _type == ShaderParmType::SHADER_PARM_BOOL; }
+        return _type == ShaderParmType::SHADER_PARM_FLOAT || 
+            _type == ShaderParmType::SHADER_PARM_BOOL || 
+            _type == ShaderParmType::SHADER_PARM_LONGCHOICE ||
+            _type == ShaderParmType::SHADER_PARM_POINT2D; 
+    }
 };
 
 class ShaderConfig
@@ -79,6 +139,8 @@ class ShaderConfig
     std::list<ShaderPass> _passes;
     std::string _code;
     bool _canvasMode = false;
+    bool _hasRendersize = false;
+    bool _hasTime = false;
 
 public:
     ShaderConfig(const wxString& filename, const wxString& code, const wxString& json);
@@ -88,6 +150,8 @@ public:
     std::string GetDescription() const { return _description; }
     std::string GetCode() const { return _code; }
     bool IsCanvasShader() const { return _canvasMode; }
+    bool HasRendersize() const { return _hasRendersize; }
+    bool HasTime() const { return _hasTime; }
 };
 
 class ShaderEffect : public RenderableEffect
