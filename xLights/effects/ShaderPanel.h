@@ -24,6 +24,7 @@ protected:
 #include <wx/panel.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
+#include <wx/textctrl.h>
 //*)
 
 class ShaderPanel: public wxPanel
@@ -39,6 +40,7 @@ class ShaderPanel: public wxPanel
 		wxFilePickerCtrl* FilePickerCtrl1;
 		wxFlexGridSizer* FlexGridSizer_Dynamic;
 		wxStaticText* StaticText1;
+		wxTextCtrl* TextCtrl_Description;
 		//*)
 
 	protected:
@@ -46,6 +48,7 @@ class ShaderPanel: public wxPanel
 		//(*Identifiers(ShaderPanel)
 		static const long ID_STATICTEXT1;
 		static const long ID_0FILEPICKERCTRL_IFS;
+		static const long IDX_TEXTCTRL_Description;
 		//*)
 
 		ShaderPreview *   _preview;
