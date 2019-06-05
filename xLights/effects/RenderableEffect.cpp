@@ -185,7 +185,7 @@ static std::string GetEffectStringFromWindow(wxWindow *ParentWin)
             wxString checkedVal =(ctrl->IsChecked()) ? "1" : "0";
             s+=AttrName + "=" + checkedVal + ",";
         }
-        else if (ChildName.StartsWith("ID_FILEPICKER"))
+        else if (ChildName.StartsWith("ID_FILEPICKER") || ChildName.StartsWith("ID_0FILEPICKER"))
         {
             wxFilePickerCtrl* ctrl=(wxFilePickerCtrl*)ChildWin;
             s+=AttrName + "=" + ctrl->GetFileName().GetFullPath() + ",";

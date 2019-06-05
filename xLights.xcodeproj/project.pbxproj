@@ -620,6 +620,7 @@
 		67DAFDE01CA1A63C004B3237 /* MidiMessage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67DAFDD71CA1A63C004B3237 /* MidiMessage.cpp */; };
 		67DAFDE11CA1A63C004B3237 /* Options.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67DAFDD91CA1A63C004B3237 /* Options.cpp */; };
 		67DB97391B05744100FC5ADC /* SuperStarImportDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67DB97371B05744100FC5ADC /* SuperStarImportDialog.cpp */; };
+		67DCFC24229E03790032DC47 /* ImportPreviewsModelsDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67DCFC22229E03780032DC47 /* ImportPreviewsModelsDialog.cpp */; };
 		67DD179820167D4B001E7A8B /* DDPOutput.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67DD179520167D4A001E7A8B /* DDPOutput.cpp */; };
 		67DD179920167D4B001E7A8B /* DDPDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67DD179720167D4B001E7A8B /* DDPDialog.cpp */; };
 		67E0BB981E08460400C07EF7 /* ControllerConnectionDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67E0BB901E08460400C07EF7 /* ControllerConnectionDialog.cpp */; };
@@ -1906,6 +1907,8 @@
 		67DB87F51AD6CA1300595194 /* wxsmith */ = {isa = PBXFileReference; lastKnownFileType = folder; name = wxsmith; path = xLights/wxsmith; sourceTree = "<group>"; };
 		67DB97371B05744100FC5ADC /* SuperStarImportDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SuperStarImportDialog.cpp; sourceTree = "<group>"; };
 		67DB97381B05744100FC5ADC /* SuperStarImportDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SuperStarImportDialog.h; sourceTree = "<group>"; };
+		67DCFC22229E03780032DC47 /* ImportPreviewsModelsDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ImportPreviewsModelsDialog.cpp; sourceTree = "<group>"; };
+		67DCFC23229E03780032DC47 /* ImportPreviewsModelsDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ImportPreviewsModelsDialog.h; sourceTree = "<group>"; };
 		67DD179420167D4A001E7A8B /* DDPOutput.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DDPOutput.h; path = outputs/DDPOutput.h; sourceTree = "<group>"; };
 		67DD179520167D4A001E7A8B /* DDPOutput.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = DDPOutput.cpp; path = outputs/DDPOutput.cpp; sourceTree = "<group>"; };
 		67DD179620167D4B001E7A8B /* DDPDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DDPDialog.h; path = outputs/DDPDialog.h; sourceTree = "<group>"; };
@@ -3037,6 +3040,8 @@
 			children = (
 				677196B1223CEFAD0082576E /* ModelChainDialog.cpp */,
 				677196B2223CEFAD0082576E /* ModelChainDialog.h */,
+				67DCFC22229E03780032DC47 /* ImportPreviewsModelsDialog.cpp */,
+				67DCFC23229E03780032DC47 /* ImportPreviewsModelsDialog.h */,
 				67E9B4AB226E510600243B4E /* CharMapDialog.cpp */,
 				67E9B4AA226E510600243B4E /* CharMapDialog.h */,
 				677E58472251277400861ABF /* AlignmentDialog.cpp */,
@@ -4283,6 +4288,7 @@
 				67B2CF751C39D98A003C17CA /* FireworksPanel.cpp in Sources */,
 				67B2CF7C1C39D98A003C17CA /* MeteorsPanel.cpp in Sources */,
 				671130BB1E4EB29B00AF09A7 /* EzGrid.cpp in Sources */,
+				67DCFC24229E03790032DC47 /* ImportPreviewsModelsDialog.cpp in Sources */,
 				673F03681F322A9B0052A793 /* ChannelBlockModel.cpp in Sources */,
 				672E7C621B4B6B3700409549 /* xlGridCanvas.cpp in Sources */,
 				6730747C208E737800D57F99 /* FolderSelection.cpp in Sources */,

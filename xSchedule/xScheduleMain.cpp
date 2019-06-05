@@ -1458,43 +1458,44 @@ void xScheduleFrame::UpdateSchedule()
     // highlight the state of all schedule items in the tree
     wxTreeItemIdValue tid;
     auto root = TreeCtrl_PlayListsSchedules->GetRootItem();
-    for (auto it = TreeCtrl_PlayListsSchedules->GetFirstChild(root, tid); it != nullptr; it = TreeCtrl_PlayListsSchedules->GetNextChild(root, tid))
+    if (root.IsOk())
     {
-        //PlayList* playlist = (PlayList*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(it))->GetData();
-
-        wxTreeItemIdValue tid2;
-        for (auto it2 = TreeCtrl_PlayListsSchedules->GetFirstChild(it, tid2); it2 != nullptr; it2 = TreeCtrl_PlayListsSchedules->GetNextChild(it, tid2))
+        for (auto it = TreeCtrl_PlayListsSchedules->GetFirstChild(root, tid); it != nullptr; it = TreeCtrl_PlayListsSchedules->GetNextChild(root, tid))
         {
-            Schedule* schedule = (Schedule*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(it2))->GetData();
-
-            TreeCtrl_PlayListsSchedules->SetItemText(it2, GetScheduleName(schedule, __schedule->GetRunningSchedules()));
-
-            if (__schedule->IsScheduleActive(schedule))
+            wxTreeItemIdValue tid2;
+            for (auto it2 = TreeCtrl_PlayListsSchedules->GetFirstChild(it, tid2); it2 != nullptr; it2 = TreeCtrl_PlayListsSchedules->GetNextChild(it, tid2))
             {
-                RunningSchedule* rs = __schedule->GetRunningSchedule();
-                if (rs != nullptr && rs->GetPlayList()->IsRunning() &&rs->GetSchedule()->GetId() == schedule->GetId())
+                Schedule* schedule = (Schedule*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(it2))->GetData();
+
+                TreeCtrl_PlayListsSchedules->SetItemText(it2, GetScheduleName(schedule, __schedule->GetRunningSchedules()));
+
+                if (__schedule->IsScheduleActive(schedule))
                 {
-                    TreeCtrl_PlayListsSchedules->SetItemBackgroundColour(it2, wxColor(146, 244, 155));
-                }
-                else
-                {
-                    RunningSchedule* r = __schedule->GetRunningSchedule(schedule);
-                    wxASSERT(r != nullptr);
-                    if (r == nullptr || r->IsStopped())
+                    RunningSchedule* rs = __schedule->GetRunningSchedule();
+                    if (rs != nullptr && rs->GetPlayList()->IsRunning() && rs->GetSchedule()->GetId() == schedule->GetId())
                     {
-                        // stopped
-                        TreeCtrl_PlayListsSchedules->SetItemBackgroundColour(it2, wxColor(0xe7, 0x74, 0x71));
+                        TreeCtrl_PlayListsSchedules->SetItemBackgroundColour(it2, wxColor(146, 244, 155));
                     }
                     else
                     {
-                        // waiting
-                        TreeCtrl_PlayListsSchedules->SetItemBackgroundColour(it2, wxColor(244, 241, 146));
+                        RunningSchedule* r = __schedule->GetRunningSchedule(schedule);
+                        wxASSERT(r != nullptr);
+                        if (r == nullptr || r->IsStopped())
+                        {
+                            // stopped
+                            TreeCtrl_PlayListsSchedules->SetItemBackgroundColour(it2, wxColor(0xe7, 0x74, 0x71));
+                        }
+                        else
+                        {
+                            // waiting
+                            TreeCtrl_PlayListsSchedules->SetItemBackgroundColour(it2, wxColor(244, 241, 146));
+                        }
                     }
                 }
-            }
-            else
-            {
-                TreeCtrl_PlayListsSchedules->SetItemBackgroundColour(it2, *wxWHITE);
+                else
+                {
+                    TreeCtrl_PlayListsSchedules->SetItemBackgroundColour(it2, *wxWHITE);
+                }
             }
         }
     }
@@ -1627,11 +1628,11 @@ void xScheduleFrame::CreateButton(const std::string& label, const wxColor& c)
 void xScheduleFrame::CreateButtons()
 {
     auto buttons = Panel1->GetChildren();
-    for (auto it = buttons.begin(); it != buttons.end(); ++it)
+    for (auto it : buttons)
     {
-        Disconnect((*it)->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xScheduleFrame::OnButton_UserClick);
-        FlexGridSizer4->Detach(*it);
-        delete *it;
+        Disconnect(it->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xScheduleFrame::OnButton_UserClick);
+        FlexGridSizer4->Detach(it);
+        delete it;
     }
 
     auto bs = __schedule->GetOptions()->GetButtons();
@@ -1654,12 +1655,12 @@ void xScheduleFrame::CreateButtons()
     if (bs.size() % 5 != 0) rows++;
     FlexGridSizer4->SetRows(rows);
 
-    for (auto it = bs.begin(); it != bs.end(); ++it)
+    for (auto it : bs)
     {
         // only show not hidden buttons
-        if (!wxString((*it)->GetLabel()).StartsWith("HIDE_") && __schedule->GetCommand((*it)->GetCommand()) != nullptr)
+        if (!wxString(it->GetLabel()).StartsWith("HIDE_") && __schedule->GetCommand(it->GetCommand()) != nullptr)
         {
-            CreateButton((*it)->GetLabel(), (*it)->GetColor());
+            CreateButton(it->GetLabel(), it->GetColor());
         }
     }
 
@@ -1842,11 +1843,11 @@ void xScheduleFrame::OnResize(wxSizeEvent& event)
 
         int lastx = 0;
         int lasty = 0;
-        for (auto it = buttons.begin(); it != buttons.end(); ++it)
+        for (auto it : buttons)
         {
             int x, y, w, h;
-            (*it)->GetPosition(&x, &y);
-            (*it)->GetSize(&w, &h);
+            it->GetPosition(&x, &y);
+            it->GetSize(&w, &h);
 
             if ((x < lastx && y == lasty) || x+w > pw - 10)
             {
@@ -1952,10 +1953,10 @@ void xScheduleFrame::UpdateStatus(bool force)
             auto steps = p->GetSteps();
 
             int i = 0;
-            for (auto it = steps.begin(); it != steps.end(); ++it)
+            for (auto it : steps)
             {
-                ListView_Running->InsertItem(i, (*it)->GetNameNoTime());
-                ListView_Running->SetItem(i, 1, FormatTime((*it)->GetLengthMS()));
+                ListView_Running->InsertItem(i, it->GetNameNoTime());
+                ListView_Running->SetItem(i, 1, FormatTime(it->GetLengthMS()));
                 i++;
             }
         }
@@ -2941,7 +2942,11 @@ void xScheduleFrame::DoStop(wxCommandEvent& event)
 
 void xScheduleFrame::DoAction(wxCommandEvent& event)
 {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     ActionMessageData* amd = (ActionMessageData*)event.GetClientData();
+
+    logger_base.debug("    Thread switched command = %s", (const char*)amd->_command.c_str());
 
     PlayList* playlist = nullptr;
     Schedule* schedule = nullptr;

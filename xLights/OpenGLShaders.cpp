@@ -134,19 +134,29 @@ bool OpenGLShaders::HasFramebufferObjects()
 
 unsigned OpenGLShaders::compile( const std::string& vertexSource, const std::string& fragmentSource )
 {
+    static log4cpp::Category& logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
+
    GLuint vertexShader = glCreateShader( GL_VERTEX_SHADER );
    const GLchar* vertexShaders[] = { vertexSource.c_str() };
    glShaderSource( vertexShader, 1, vertexShaders, NULL );
    glCompileShader( vertexShader );
-   if ( !shaderCompileSuceeded( vertexShader ) )
-      return 0;
+   if (!shaderCompileSuceeded(vertexShader))
+   {
+       glDeleteShader(vertexShader);
+       return 0;
+   }
 
    GLuint fragmentShader = glCreateShader( GL_FRAGMENT_SHADER );
    const GLchar* fragmentShaders[] = { fragmentSource.c_str() };
-   glShaderSource( fragmentShader, 1, fragmentShaders, NULL );
+   glShaderSource( fragmentShader, 1, fragmentShaders, nullptr );
    glCompileShader( fragmentShader );
-   if ( !shaderCompileSuceeded( fragmentShader ) )
-      return 0;
+   if (!shaderCompileSuceeded(fragmentShader))
+   {
+       glDeleteShader(vertexShader);
+       glDeleteShader(fragmentShader);
+       logger_opengl.error("%s", (const char*)fragmentSource.c_str());
+       return 0;
+   }
 
    GLuint program = glCreateProgram();
    glAttachShader( program, vertexShader );
