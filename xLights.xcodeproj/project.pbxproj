@@ -526,6 +526,9 @@
 		67C115641E9071E900B06690 /* CandleEffect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C115601E9071E900B06690 /* CandleEffect.cpp */; };
 		67C115651E9071E900B06690 /* CandlePanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C115621E9071E900B06690 /* CandlePanel.cpp */; };
 		67C31168200506B3005A12D0 /* VideoExporter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C31165200506B2005A12D0 /* VideoExporter.cpp */; };
+		67C33C3722A7EA05001F9944 /* ShaderEffect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C33C3522A7EA05001F9944 /* ShaderEffect.cpp */; };
+		67C33C3822A7EA05001F9944 /* ShaderPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C33C3622A7EA05001F9944 /* ShaderPanel.cpp */; };
+		67C33C3B22A7EB4D001F9944 /* OpenGLShaders.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C33C3A22A7EB4C001F9944 /* OpenGLShaders.cpp */; };
 		67C5814B1E4B95A400932DFA /* ColourOrderDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C581381E4B95A400932DFA /* ColourOrderDialog.cpp */; };
 		67C5814C1E4B95A400932DFA /* MatrixDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C581391E4B95A400932DFA /* MatrixDialog.cpp */; };
 		67C5814D1E4B95A400932DFA /* VirtualMatrixDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C5813A1E4B95A400932DFA /* VirtualMatrixDialog.cpp */; };
@@ -1723,6 +1726,12 @@
 		67C31165200506B2005A12D0 /* VideoExporter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = VideoExporter.cpp; sourceTree = "<group>"; };
 		67C31166200506B2005A12D0 /* VideoExporter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VideoExporter.h; sourceTree = "<group>"; };
 		67C31167200506B2005A12D0 /* UtilFunctions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UtilFunctions.h; sourceTree = "<group>"; };
+		67C33C3322A7EA04001F9944 /* ShaderPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ShaderPanel.h; path = effects/ShaderPanel.h; sourceTree = "<group>"; };
+		67C33C3422A7EA05001F9944 /* ShaderEffect.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ShaderEffect.h; path = effects/ShaderEffect.h; sourceTree = "<group>"; };
+		67C33C3522A7EA05001F9944 /* ShaderEffect.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ShaderEffect.cpp; path = effects/ShaderEffect.cpp; sourceTree = "<group>"; };
+		67C33C3622A7EA05001F9944 /* ShaderPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ShaderPanel.cpp; path = effects/ShaderPanel.cpp; sourceTree = "<group>"; };
+		67C33C3922A7EB28001F9944 /* OpenGLShaders.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OpenGLShaders.h; sourceTree = "<group>"; };
+		67C33C3A22A7EB4C001F9944 /* OpenGLShaders.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = OpenGLShaders.cpp; sourceTree = "<group>"; };
 		67C581361E4B95A400932DFA /* OutputProcessReverse.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OutputProcessReverse.h; sourceTree = "<group>"; };
 		67C581371E4B95A400932DFA /* OutputProcessColourOrder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OutputProcessColourOrder.h; sourceTree = "<group>"; };
 		67C581381E4B95A400932DFA /* ColourOrderDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ColourOrderDialog.cpp; sourceTree = "<group>"; };
@@ -2471,6 +2480,10 @@
 		679BD3281C37552D000539FE /* Effects */ = {
 			isa = PBXGroup;
 			children = (
+				67C33C3522A7EA05001F9944 /* ShaderEffect.cpp */,
+				67C33C3422A7EA05001F9944 /* ShaderEffect.h */,
+				67C33C3622A7EA05001F9944 /* ShaderPanel.cpp */,
+				67C33C3322A7EA04001F9944 /* ShaderPanel.h */,
 				6761F5EA1C4EA032009780DA /* Assist */,
 				679BD33E1C375D9F000539FE /* BarsEffect.cpp */,
 				679BD33F1C375D9F000539FE /* BarsEffect.h */,
@@ -3023,16 +3036,8 @@
 		67E7087617B51AB400A22034 /* xLights */ = {
 			isa = PBXGroup;
 			children = (
-				67DCFC22229E03780032DC47 /* ImportPreviewsModelsDialog.cpp */,
-				67DCFC23229E03780032DC47 /* ImportPreviewsModelsDialog.h */,
-				67E9B4AB226E510600243B4E /* CharMapDialog.cpp */,
-				67E9B4AA226E510600243B4E /* CharMapDialog.h */,
 				677E58472251277400861ABF /* AlignmentDialog.cpp */,
 				677E58462251277400861ABF /* AlignmentDialog.h */,
-				67EB0CB52248F65800F3A164 /* LOREdit.cpp */,
-				67EB0CB62248F65800F3A164 /* LOREdit.h */,
-				6701C43422468C430004335C /* ControllerVisualiseDialog.cpp */,
-				6701C43522468C430004335C /* ControllerVisualiseDialog.h */,
 				67FA9FD21C67837500FED13B /* AudioManager.cpp */,
 				67FA9FD11C67837500FED13B /* AudioManager.h */,
 				6760D8541FA3C6AD00458894 /* BatchRenderDialog.cpp */,
@@ -3049,6 +3054,8 @@
 				67E675062009993B000E930E /* CachedFileDownloader.cpp */,
 				67E675072009993C000E930E /* CachedFileDownloader.h */,
 				67A619BE17B51C0F008E95BB /* ChannelLayoutDialog.cpp */,
+				67E9B4AB226E510600243B4E /* CharMapDialog.cpp */,
+				67E9B4AA226E510600243B4E /* CharMapDialog.h */,
 				670C828D1C45CCCF000AA5D8 /* Color.cpp */,
 				67D2B0421D54CC6A006D324F /* ColorCurve.cpp */,
 				67D2B0431D54CC6A006D324F /* ColorCurve.h */,
@@ -3062,6 +3069,8 @@
 				67E0BB901E08460400C07EF7 /* ControllerConnectionDialog.cpp */,
 				67E0BB911E08460400C07EF7 /* ControllerConnectionDialog.h */,
 				67BF7FF31F278946002F118D /* Controllers */,
+				6701C43422468C430004335C /* ControllerVisualiseDialog.cpp */,
+				6701C43522468C430004335C /* ControllerVisualiseDialog.h */,
 				6719BF4D1CCB1DAB00899A4B /* ConvertDialog.cpp */,
 				6719BF4E1CCB1DAB00899A4B /* ConvertDialog.h */,
 				6719BF4F1CCB1DAB00899A4B /* ConvertLogDialog.cpp */,
@@ -3111,6 +3120,8 @@
 				6715B4F81F5F15CF00D60087 /* HousePreviewPanel.h */,
 				67F4C6131A097A35003E978F /* Image_Loader.cpp */,
 				67F4C6141A097A35003E978F /* Image.cpp */,
+				67DCFC22229E03780032DC47 /* ImportPreviewsModelsDialog.cpp */,
+				67DCFC23229E03780032DC47 /* ImportPreviewsModelsDialog.h */,
 				67E8F64E1E513B380096546A /* IPEntryDialog.cpp */,
 				67E8F64F1E513B380096546A /* IPEntryDialog.h */,
 				677421D51A68ACDA0082DA5B /* JobPool.cpp */,
@@ -3128,6 +3139,8 @@
 				673C925820A47C5400E59F5D /* LinkJukeboxButtonDialog.h */,
 				6781B1D71AF407A300A75E59 /* LMSImportChannelMapDialog.cpp */,
 				676DCBFB1A98E53800FBA86B /* LorConvertDialog.cpp */,
+				67EB0CB52248F65800F3A164 /* LOREdit.cpp */,
+				67EB0CB62248F65800F3A164 /* LOREdit.h */,
 				67AAF8FC1B642E6C00585431 /* LyricsDialog.cpp */,
 				6785922520F02CD8001C2929 /* LyricUserDictDialog.cpp */,
 				6785922620F02CD9001C2929 /* LyricUserDictDialog.h */,
@@ -3154,6 +3167,8 @@
 				67BC8BB91D2152EC009B660F /* NodesGridCellEditor.h */,
 				67FF39911D57F5D000290DB4 /* NoteImportDialog.cpp */,
 				67FF39921D57F5D000290DB4 /* NoteImportDialog.h */,
+				67C33C3A22A7EB4C001F9944 /* OpenGLShaders.cpp */,
+				67C33C3922A7EB28001F9944 /* OpenGLShaders.h */,
 				677674481B38E7F70018E14B /* OptionChooser.cpp */,
 				67582EC61C7363FF00850363 /* osx_utils */,
 				67B2B1F51E19478D0024F0BB /* Outputs */,
@@ -4073,6 +4088,7 @@
 				6761F5F71C4EA041009780DA /* xlGridCanvasEmpty.cpp in Sources */,
 				67BC8BB51D2152C5009B660F /* StatePanel.cpp in Sources */,
 				67B2CF781C39D98A003C17CA /* GlediatorPanel.cpp in Sources */,
+				67C33C3722A7EA05001F9944 /* ShaderEffect.cpp in Sources */,
 				67B2CF901C39D98A003C17CA /* ColorWashPanel.cpp in Sources */,
 				67694F1C1A069BBE0030D020 /* PreviewModels.cpp in Sources */,
 				67CA858018BE86B800A6268C /* heartbeat.cpp in Sources */,
@@ -4213,6 +4229,7 @@
 				67B2CF821C39D98A003C17CA /* RipplePanel.cpp in Sources */,
 				672E62B01C4D2FCF006A4966 /* TendrilEffect.cpp in Sources */,
 				67A260EE1AB71EE3006B140D /* DrawGLUtils.cpp in Sources */,
+				67C33C3822A7EA05001F9944 /* ShaderPanel.cpp in Sources */,
 				67B2CF8C1C39D98A003C17CA /* TreePanel.cpp in Sources */,
 				67D2B0481D54CC6A006D324F /* ColorCurve.cpp in Sources */,
 				67278C801CF74A01000DCFFB /* ValueCurveDialog.cpp in Sources */,
@@ -4331,6 +4348,7 @@
 				679BD3371C37555C000539FE /* BarsPanel.cpp in Sources */,
 				67C31168200506B3005A12D0 /* VideoExporter.cpp in Sources */,
 				67E0BB981E08460400C07EF7 /* ControllerConnectionDialog.cpp in Sources */,
+				67C33C3B22A7EB4D001F9944 /* OpenGLShaders.cpp in Sources */,
 				670827FD2024C2D50002B617 /* MatrixFaceDownloadDialog.cpp in Sources */,
 				672F95261A7A6619005FF8BF /* SeqSettingsDialog.cpp in Sources */,
 				67278C7F1CF74A01000DCFFB /* ValueCurveButton.cpp in Sources */,

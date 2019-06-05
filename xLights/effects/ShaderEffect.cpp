@@ -4,19 +4,6 @@
 #include "../../include/shader_24.xpm"
 #include "../../include/shader_16.xpm"
 
-#include "ShaderEffect.h"
-#include "ShaderPanel.h"
-#include "../sequencer/Effect.h"
-#include "../RenderBuffer.h"
-#include "../UtilClasses.h"
-#include "../xLightsMain.h"
-#include "../xLightsApp.h"
-#include "../TimingPanel.h"
-#include "OpenGLShaders.h"
-#include "UtilFunctions.h"
-#include "../../xSchedule/wxJSON/jsonreader.h"
-
-#include <wx/regex.h>
 
 // Ack... forgot the old warp effect needed all of this!!
 #ifndef __WXMAC__
@@ -55,8 +42,24 @@ extern PFNGLUNIFORM1FPROC glUniform1f;
 extern PFNGLUNIFORM2FPROC glUniform2f;
 extern PFNGLUNIFORM4FPROC glUniform4f;
 #else
-#include "OpenGL/gl.h"
+#include "OpenGL/gl3.h"
+#define __gl_h_
 #endif
+
+#include "ShaderEffect.h"
+#include "ShaderPanel.h"
+#include "../sequencer/Effect.h"
+#include "../RenderBuffer.h"
+#include "../UtilClasses.h"
+#include "../xLightsMain.h"
+#include "../xLightsApp.h"
+#include "../TimingPanel.h"
+#include "OpenGLShaders.h"
+#include "UtilFunctions.h"
+#include "../../xSchedule/wxJSON/jsonreader.h"
+
+#include <wx/regex.h>
+
 
 #include <log4cpp/Category.hh>
 #include <fstream>
@@ -108,7 +111,7 @@ namespace
         "in vec2 vpos;\n"
         "in vec2 tpos;\n"
         "out vec2 texCoord;\n"
-        "varying vec2 isf_FragNormCoord;"
+        "out vec2 isf_FragNormCoord;"
         "void isf_vertShaderInit(void)\n"
         "{\n"
         //"   gl_Position = ftransform();\n"
@@ -330,10 +333,8 @@ void ShaderEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &b
     int loc = glGetUniformLocation( programId, "RENDERSIZE" );
     if (loc >= 0) {
         glUniform2f(loc, buffer.BufferWi, buffer.BufferHt);
-    }
-    else {
-        if (buffer.curPeriod == buffer.curEffStartPer && _shaderConfig->HasRendersize())
-        {
+    } else {
+        if (buffer.curPeriod == buffer.curEffStartPer && _shaderConfig->HasRendersize()) {
             logger_base.warn("Unable to bind to RENDERSIZE\n%s", (const char *)_shaderConfig->GetCode().c_str());
         }
     }
@@ -341,8 +342,7 @@ void ShaderEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &b
     loc = glGetUniformLocation( programId, "TIME" );
     if (loc >= 0) {
         glUniform1f(loc, (float)(buffer.curPeriod - buffer.curEffStartPer) / (1000.0 / (float)buffer.frameTimeInMs));
-    } 
-    else {
+    } else {
         if (buffer.curPeriod == buffer.curEffStartPer && _shaderConfig->HasTime())
             logger_base.warn("Unable to bind to TIME\n%s", (const char*)_shaderConfig->GetCode().c_str());
     }
@@ -352,55 +352,32 @@ void ShaderEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &b
         wxDateTime dt = wxDateTime::Now();
         glUniform4f(loc, dt.GetYear(), dt.GetMonth()+1, dt.GetDay(), dt.GetHour() * 3600 + dt.GetMinute()*60 + dt.GetSecond());
     }
-    else {
-        if (buffer.curPeriod == buffer.curEffStartPer && _shaderConfig->HasTime())
-            logger_base.warn("Unable to bind to DATE\n%s", (const char*)_shaderConfig->GetCode().c_str());
-    }
 
     loc = glGetUniformLocation(programId, "PASSINDEX");
     if (loc >= 0) {
         glUniform1i(loc, 0);
-    }
-    else {
-        if (buffer.curPeriod == buffer.curEffStartPer)
-            logger_base.warn("Unable to bind to PASSINDEX\n%s", (const char*)_shaderConfig->GetCode().c_str());
     }
 
     loc = glGetUniformLocation(programId, "FRAMEINDEX");
     if (loc >= 0) {
         glUniform1i(loc, buffer.curPeriod - buffer.curEffStartPer);
     }
-    else {
-        if (buffer.curPeriod == buffer.curEffStartPer)
-            logger_base.warn("Unable to bind to FRAMEINDEX\n%s", (const char*)_shaderConfig->GetCode().c_str());
-    }
 
     loc = glGetUniformLocation(programId, "clearBuffer");
     if (loc >= 0) {
         glUniform1f(loc, SettingsMap.GetBool("CHECKBOX_OverlayBkg",false) ? 1.0 : 0.0);
-    }
-    else {
-        if (buffer.curPeriod == buffer.curEffStartPer)
-            logger_base.warn("Unable to bind to clearBuffer");
     }
 
     loc = glGetUniformLocation(programId, "resetNow");
     if (loc >= 0) {
         glUniform1f(loc, (buffer.curPeriod == buffer.curEffStartPer) ? 1.0 : 0.0);
     }
-    else {
-        if (buffer.curPeriod == buffer.curEffStartPer)
-            logger_base.warn("Unable to bind to resetNow");
-    }
 
     loc = glGetUniformLocation( programId, "texSampler" );
     if (loc >= 0) {
         glUniform1i(loc, 0);
-    } 
-    else {
-        if (buffer.curPeriod == buffer.curEffStartPer)
-            logger_base.warn("Unable to bind to texSampler");
     }
+    
     float oset = buffer.GetEffectTimeIntervalPosition();
     for (auto it : _shaderConfig->GetParms())
     {
@@ -724,7 +701,17 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
 
     // The shader code needs declarations for the uniforms that we silently set with each call to Render()
     // and the uniforms that correspond to user-visible settings
-    wxString prependText = "#version 330\n\nuniform float TIME;\nuniform vec2 RENDERSIZE;\nuniform bool clearBuffer;\nuniform bool resetNow;\nuniform int PASSINDEX;\nuniform int FRAMEINDEX;\nuniform sampler2D texSampler;\nvarying vec2 isf_FragNormCoord;\nuniform vec4 DATE;\n\n";
+    wxString prependText = "#version 330\n\n"
+    "uniform float TIME;\n"
+    "uniform vec2 RENDERSIZE;\n"
+    "uniform bool clearBuffer;\n"
+    "uniform bool resetNow;\n"
+    "uniform int PASSINDEX;\n"
+    "uniform int FRAMEINDEX;\n"
+    "uniform sampler2D texSampler;\n"
+    "in vec2 isf_FragNormCoord;\n"
+    "out vec4 fragmentColor;\n"
+    "uniform vec4 DATE;\n\n";
 
     for (auto p : _parms)
     {
@@ -770,17 +757,18 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
         }
     }
 
-    prependText += "vec4 IMG_NORM_PIXEL_2D(sampler2D sampler, vec2 pct, vec2 normLoc)\n{\n   vec2 coord = normLoc;\n   return texture2D(sampler, coord* pct);\n}\n\n";
+    prependText += "vec4 IMG_NORM_PIXEL_2D(sampler2D sampler, vec2 pct, vec2 normLoc)\n{\n   vec2 coord = normLoc;\n   return texture(sampler, coord* pct);\n}\n\n";
     prependText += "vec4 IMG_PIXEL_2D(sampler2D sampler, vec2 pct, vec2 loc)\n{\n   return IMG_NORM_PIXEL_2D(sampler, pct, loc / RENDERSIZE);\n}\n\n";
-    prependText += "vec4 IMG_THIS_NORM_PIXEL_2D(sampler2D sampler, vec2 pct)\n{\n   vec2 coord = isf_FragNormCoord;\n   return texture2D(sampler, coord * pct);\n}\n\n";
+    prependText += "vec4 IMG_THIS_NORM_PIXEL_2D(sampler2D sampler, vec2 pct)\n{\n   vec2 coord = isf_FragNormCoord;\n   return texture(sampler, coord * pct);\n}\n\n";
     prependText += "vec4 IMG_THIS_PIXEL_2D(sampler2D sampler, vec2 pct)\n{\n   return IMG_THIS_NORM_PIXEL_2D(sampler, pct);\n}\n\n";
-    prependText += "vec4 IMG_NORM_PIXEL_RECT(sampler2DRect sampler, vec2 pct, vec2 normLoc)\n{\n   vec2 coord = normLoc;\n   return texture2DRect(sampler, coord * RENDERSIZE);\n}\n\n";
+    prependText += "vec4 IMG_NORM_PIXEL_RECT(sampler2DRect sampler, vec2 pct, vec2 normLoc)\n{\n   vec2 coord = normLoc;\n   return texture(sampler, coord * RENDERSIZE);\n}\n\n";
     prependText += "vec4 IMG_PIXEL_RECT(sampler2DRect sampler, vec2 pct, vec2 loc)\n{\n   return IMG_NORM_PIXEL_RECT(sampler, pct, loc / RENDERSIZE);\n}\n\n";
-    prependText += "vec4 IMG_THIS_NORM_PIXEL_RECT(sampler2DRect sampler, vec2 pct)\n{\n   vec2 coord = isf_FragNormCoord;\n   return texture2DRect(sampler, coord * RENDERSIZE);\n}\n\n";
+    prependText += "vec4 IMG_THIS_NORM_PIXEL_RECT(sampler2DRect sampler, vec2 pct)\n{\n   vec2 coord = isf_FragNormCoord;\n   return texture(sampler, coord * RENDERSIZE);\n}\n\n";
     prependText += "vec4 IMG_THIS_PIXEL_RECT(sampler2DRect sampler, vec2 pct)\n{\n   return IMG_THIS_NORM_PIXEL_RECT(sampler, pct);\n}\n\n";
 
     size_t pos = code.find("*/");
     wxString shaderCode = (pos != wxString::npos) ? code.substr(pos + 2) : code;
+    shaderCode.Replace("gl_FragColor", "fragmentColor");
     if (!canvasImgName.empty())
     {
         shaderCode.Replace(canvasImgName, "texSampler");
