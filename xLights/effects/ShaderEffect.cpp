@@ -3,6 +3,7 @@
 #include "../../include/shader_32.xpm"
 #include "../../include/shader_24.xpm"
 #include "../../include/shader_16.xpm"
+#include <wx/wx.h>
 
 #ifndef __WXMAC__
     #include <GL/gl.h>
@@ -13,34 +14,34 @@
     #endif
 
     #ifdef __WXMSW__
-        extern PFNGLGENBUFFERSPROC glGenBuffers;
-        extern PFNGLBINDBUFFERPROC glBindBuffer;
-        extern PFNGLBUFFERDATAPROC glBufferData;
-        extern PFNGLGETATTRIBLOCATIONPROC glGetAttribLocation;
-        extern PFNGLENABLEVERTEXATTRIBARRAYPROC glEnableVertexAttribArray;
-        extern PFNGLDISABLEVERTEXATTRIBARRAYPROC glDisableVertexAttribArray;
-        extern PFNGLVERTEXATTRIBPOINTERPROC glVertexAttribPointer;
-        extern PFNGLDELETEBUFFERSPROC glDeleteBuffers;
         extern PFNGLACTIVETEXTUREPROC glActiveTexture;
-        extern PFNGLDELETEPROGRAMPROC glDeleteProgram;
-        extern PFNGLUSEPROGRAMPROC glUseProgram;
-        extern PFNGLGETUNIFORMLOCATIONPROC glGetUniformLocation;
-        extern PFNGLUNIFORMMATRIX2FVPROC glUniformMatrix4fv;
-        extern PFNGLGENFRAMEBUFFERSPROC glGenFramebuffers;
-        extern PFNGLBINDFRAMEBUFFERPROC glBindFramebuffer;
-        extern PFNGLDELETEFRAMEBUFFERSPROC glDeleteFramebuffers;
-        extern PFNGLGENRENDERBUFFERSPROC glGenRenderbuffers;
-        extern PFNGLBINDRENDERBUFFERPROC glBindRenderbuffer;
-        extern PFNGLRENDERBUFFERSTORAGEPROC glRenderbufferStorage;
-        extern PFNGLFRAMEBUFFERRENDERBUFFERPROC glFramebufferRenderbuffer;
-        extern PFNGLDELETERENDERBUFFERSPROC glDeleteRenderbuffers;
-        extern PFNGLBINDVERTEXARRAYPROC glBindVertexArray;
-        extern PFNGLGENVERTEXARRAYSPROC glGenVertexArrays;
-        extern PFNGLUNIFORM1IPROC glUniform1i;
-        extern PFNGLUNIFORM1FPROC glUniform1f;
-        extern PFNGLUNIFORM2FPROC glUniform2f;
-        extern PFNGLUNIFORM4FPROC glUniform4f;
     #endif
+    extern PFNGLGENBUFFERSPROC glGenBuffers;
+    extern PFNGLBINDBUFFERPROC glBindBuffer;
+    extern PFNGLBUFFERDATAPROC glBufferData;
+    extern PFNGLGETATTRIBLOCATIONPROC glGetAttribLocation;
+    extern PFNGLENABLEVERTEXATTRIBARRAYPROC glEnableVertexAttribArray;
+    extern PFNGLDISABLEVERTEXATTRIBARRAYPROC glDisableVertexAttribArray;
+    extern PFNGLVERTEXATTRIBPOINTERPROC glVertexAttribPointer;
+    extern PFNGLDELETEBUFFERSPROC glDeleteBuffers;
+    extern PFNGLDELETEPROGRAMPROC glDeleteProgram;
+    extern PFNGLUSEPROGRAMPROC glUseProgram;
+    extern PFNGLGETUNIFORMLOCATIONPROC glGetUniformLocation;
+    extern PFNGLUNIFORMMATRIX2FVPROC glUniformMatrix4fv;
+    extern PFNGLGENFRAMEBUFFERSPROC glGenFramebuffers;
+    extern PFNGLBINDFRAMEBUFFERPROC glBindFramebuffer;
+    extern PFNGLDELETEFRAMEBUFFERSPROC glDeleteFramebuffers;
+    extern PFNGLGENRENDERBUFFERSPROC glGenRenderbuffers;
+    extern PFNGLBINDRENDERBUFFERPROC glBindRenderbuffer;
+    extern PFNGLRENDERBUFFERSTORAGEPROC glRenderbufferStorage;
+    extern PFNGLFRAMEBUFFERRENDERBUFFERPROC glFramebufferRenderbuffer;
+    extern PFNGLDELETERENDERBUFFERSPROC glDeleteRenderbuffers;
+    extern PFNGLBINDVERTEXARRAYPROC glBindVertexArray;
+    extern PFNGLGENVERTEXARRAYSPROC glGenVertexArrays;
+    extern PFNGLUNIFORM1IPROC glUniform1i;
+    extern PFNGLUNIFORM1FPROC glUniform1f;
+    extern PFNGLUNIFORM2FPROC glUniform2f;
+    extern PFNGLUNIFORM4FPROC glUniform4f;
 #else
     #include "OpenGL/gl3.h"
     #define __gl_h_
