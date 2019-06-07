@@ -103,6 +103,7 @@ void PlayListItemAudio::LoadFiles()
 
 PlayListItemAudio::PlayListItemAudio() : PlayListItem()
 {
+    _type = "PLIAudio";
     _fastStartAudio = false;
     _controlsTimingCache = false;
     _audioFile = "";
@@ -140,7 +141,7 @@ PlayListItem* PlayListItemAudio::Copy() const
 
 wxXmlNode* PlayListItemAudio::Save()
 {
-    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "PLIAudio");
+    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, GetType());
 
     node->AddAttribute("AudioFile", _audioFile);
     if (_fastStartAudio)

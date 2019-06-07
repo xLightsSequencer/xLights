@@ -13,7 +13,7 @@ protected:
 
     #pragma region Member Variables
     std::string _url;
-    std::string _type;
+    std::string _curltype;
     std::string _body;
     bool _started;
     #pragma endregion Member Variables
@@ -32,8 +32,8 @@ public:
     std::string GetNameNoTime() const override;
     void SetURL(const std::string& url) { if (_url != url) { _url = url; _changeCount++; } }
     std::string GetURL() const { return _url; }
-    void SetType(const std::string& type) { if (_type != type) { _type = type; _changeCount++; } }
-    std::string GetType() const { return _type; }
+    void SetCURLType(const std::string& type) { if (_curltype != type) { _curltype = type; _changeCount++; } }
+    std::string GetCURLType() const { return _curltype; }
     void SetBody(const std::string& body) { if (_body != body) { _body = body; _changeCount++; } }
     std::string GetBody() const { return _body; }
     virtual std::string GetTitle() const override;

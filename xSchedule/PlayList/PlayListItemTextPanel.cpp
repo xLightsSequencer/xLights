@@ -169,7 +169,7 @@ PlayListItemTextPanel::PlayListItemTextPanel(wxWindow* parent, PlayListItemText*
     FontPickerCtrl1->SetSelectedColour(text->GetColour());
     Choice_Orientation->SetStringSelection(text->GetOrientation());
     Choice_Movement->SetStringSelection(text->GetMovement());
-    Choice_Type->SetStringSelection(text->GetType());
+    Choice_Type->SetStringSelection(text->GetTextType());
     TextCtrl_Duration->SetValue(wxString::Format(wxT("%.3f"), (float)text->GetDuration() / 1000.0));
     Choice_BlendMode->SetSelection(text->GetBlendMode());
     Choice_Matrices->SetStringSelection(text->GetMatrix());
@@ -194,7 +194,7 @@ PlayListItemTextPanel::~PlayListItemTextPanel()
     _text->SetColour(FontPickerCtrl1->GetSelectedColour());
     _text->SetOrientation(Choice_Orientation->GetStringSelection().ToStdString());
     _text->SetMovement(Choice_Movement->GetStringSelection().ToStdString());
-    _text->SetType(Choice_Type->GetStringSelection().ToStdString());
+    _text->SetTextType(Choice_Type->GetStringSelection().ToStdString());
     _text->SetDuration(wxAtof(TextCtrl_Duration->GetValue()) * 1000);
     _text->SetBlendMode(Choice_BlendMode->GetStringSelection().ToStdString());
     _text->SetMatrix(Choice_Matrices->GetStringSelection().ToStdString());

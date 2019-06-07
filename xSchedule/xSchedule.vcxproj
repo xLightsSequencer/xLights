@@ -274,6 +274,7 @@
     <ClCompile Include="OutputProcessSustain.cpp" />
     <ClCompile Include="OutputProcessThreeToFour.cpp" />
     <ClCompile Include="Pinger.cpp" />
+    <ClCompile Include="PlayList\PlayListItemAllOff.cpp" />
     <ClCompile Include="PlayList\PlayListItemARTNetTrigger.cpp" />
     <ClCompile Include="PlayList\PlayListItemARTNetTriggerPanel.cpp" />
     <ClCompile Include="PlayList\PlayListItemDim.cpp" />
@@ -308,7 +309,6 @@
     <ClCompile Include="PlayList\PlayList.cpp" />
     <ClCompile Include="PlayList\PlayListDialog.cpp" />
     <ClCompile Include="PlayList\PlayListItem.cpp" />
-    <ClCompile Include="PlayList\PlayListItemAllOff.cpp" />
     <ClCompile Include="PlayList\PlayListItemAllOffPanel.cpp" />
     <ClCompile Include="PlayList\PlayListItemAudio.cpp" />
     <ClCompile Include="PlayList\PlayListItemAudioPanel.cpp" />
@@ -484,6 +484,7 @@
     <ClInclude Include="OutputProcessSustain.h" />
     <ClInclude Include="OutputProcessThreeToFour.h" />
     <ClInclude Include="Pinger.h" />
+    <ClInclude Include="PlayList\PlayListItemAllOff.h" />
     <ClInclude Include="PlayList\PlayListItemARTNetTrigger.h" />
     <ClInclude Include="PlayList\PlayListItemARTNetTriggerPanel.h" />
     <ClInclude Include="PlayList\PlayListItemDim.h" />
@@ -517,7 +518,6 @@
     <ClInclude Include="PlayList\PlayList.h" />
     <ClInclude Include="PlayList\PlayListDialog.h" />
     <ClInclude Include="PlayList\PlayListItem.h" />
-    <ClInclude Include="PlayList\PlayListItemAllOff.h" />
     <ClInclude Include="PlayList\PlayListItemAllOffPanel.h" />
     <ClInclude Include="PlayList\PlayListItemAudio.h" />
     <ClInclude Include="PlayList\PlayListItemAudioPanel.h" />

@@ -2,6 +2,7 @@
 
 #include "PlayList.h"
 #include "PlayListDialog.h"
+#include "PlayListSimpleDialog.h"
 
 //(*InternalHeaders(PlayListPanel)
 #include <wx/intl.h>
@@ -77,5 +78,13 @@ PlayListPanel::~PlayListPanel()
 void PlayListPanel::OnTextCtrl_PlayListNameText(wxCommandEvent& event)
 {
     _playlist->SetName(TextCtrl_PlayListName->GetValue().ToStdString());
-    ((PlayListDialog*)GetParent()->GetParent()->GetParent()->GetParent())->UpdateTree();
+    auto label = GetParent()->GetParent()->GetParent()->GetParent()->GetLabel();
+    if (label.Contains("Simple"))
+    {
+        ((PlayListSimpleDialog*)GetParent()->GetParent()->GetParent()->GetParent())->UpdateTree();
+    }
+    else
+    {
+        ((PlayListDialog*)GetParent()->GetParent()->GetParent()->GetParent())->UpdateTree();
+    }
 }

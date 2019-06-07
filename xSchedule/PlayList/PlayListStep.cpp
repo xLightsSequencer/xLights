@@ -233,7 +233,7 @@ void PlayListStep::Load(OutputManager* outputManager, wxXmlNode* node)
         {
             _items.push_back(new PlayListItemJukebox(n));
         }
-        else if (n->GetName() == "PLIAllSet")
+        else if (n->GetName() == "PLIAllSet" || n->GetName() == "PLIAllOff")
         {
             _items.push_back(new PlayListItemAllOff(outputManager, n));
         }

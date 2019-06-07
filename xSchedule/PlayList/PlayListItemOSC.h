@@ -45,13 +45,13 @@ public:
     void SetIPAddress(const std::string& ip) { if (_ip != ip) { _ip = ip; _changeCount++; } }
     void SetPath(const std::string& path) { if (_path != path) { _path = path; _changeCount++; } }
     void SetPort(int port) { if (_port != port) { _port = port; _changeCount++; } }
-    void SetType(int num, OSCTYPE type) { if (_types[num] != type) { _types[num] = type; _changeCount++; } }
-    void SetType(int num, const std::string& type) { if (_types[num] != EncodeType(type)) { _types[num] = EncodeType(type); _changeCount++; } }
+    void SetOSCType(int num, OSCTYPE type) { if (_types[num] != type) { _types[num] = type; _changeCount++; } }
+    void SetOSCType(int num, const std::string& type) { if (_types[num] != EncodeType(type)) { _types[num] = EncodeType(type); _changeCount++; } }
     void SetValue(int num, const std::string value) { if (_values[num] != value) { _values[num] = value; _changeCount++; } }
     std::string GetIPAddress() const { return _ip; }
     std::string GetPath() const { return _path; }
     int GetPort() const { return _port; }
-    OSCTYPE GetType(int num) const { return _types[num]; }
+    OSCTYPE GetOSCType(int num) const { return _types[num]; }
     std::string GetTypeString(int num) const { return DecodeType(_types[num]); }
     std::string GetValue(int num) const { return _values[num]; }
     virtual std::string GetTitle() const override;

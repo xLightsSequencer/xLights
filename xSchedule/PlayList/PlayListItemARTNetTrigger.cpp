@@ -34,6 +34,7 @@ void PlayListItemARTNetTrigger::Load(wxXmlNode* node)
 
 PlayListItemARTNetTrigger::PlayListItemARTNetTrigger() : PlayListItem()
 {
+    _type = "PLIARTNetTrigger";
     _started = false;
     _oem = 0xFFFF;
     _key = 1;
@@ -58,7 +59,7 @@ PlayListItem* PlayListItemARTNetTrigger::Copy() const
 
 wxXmlNode* PlayListItemARTNetTrigger::Save()
 {
-    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "PLIARTNetTrigger");
+    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, GetType());
 
     node->AddAttribute("OEM", wxString::Format("%d", _oem));
     node->AddAttribute("Key", wxString::Format("%d", _key));

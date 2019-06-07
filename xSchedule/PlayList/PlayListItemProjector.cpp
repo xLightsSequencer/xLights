@@ -196,6 +196,7 @@ void PlayListItemProjector::Load(wxXmlNode* node)
 
 PlayListItemProjector::PlayListItemProjector() : PlayListItem()
 {
+    _type = "PLIProjector";
     _command = "ON";
     _commandData = "set_power_state 1";
     _parity = "none";
@@ -237,7 +238,7 @@ PlayListItem* PlayListItemProjector::Copy() const
 
 wxXmlNode* PlayListItemProjector::Save()
 {
-    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "PLIProjector");
+    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, GetType());
 
     node->AddAttribute("Command", _command);
     node->AddAttribute("CommandData", _commandData);

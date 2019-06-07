@@ -61,6 +61,7 @@ void PlayListItemVideo::Load(wxXmlNode* node)
 
 PlayListItemVideo::PlayListItemVideo() : PlayListItem()
 {
+    _type = "PLIVideo";
     _fadeInMS = 0;
     _fadeOutMS = 0;
     _cacheVideo = false;
@@ -98,7 +99,7 @@ PlayListItem* PlayListItemVideo::Copy() const
 
 wxXmlNode* PlayListItemVideo::Save()
 {
-    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "PLIVideo");
+    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, GetType());
 
     node->AddAttribute("VideoFile", _videoFile);
     node->AddAttribute("X", wxString::Format(wxT("%i"), _origin.x));

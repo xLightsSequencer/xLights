@@ -26,6 +26,7 @@ void PlayListItemFile::Load(wxXmlNode* node)
 
 PlayListItemFile::PlayListItemFile() : PlayListItem()
 {
+    _type = "PLIFile";
     _started = false;
     _content = "";
     _fileName = "";
@@ -44,7 +45,7 @@ PlayListItem* PlayListItemFile::Copy() const
 
 wxXmlNode* PlayListItemFile::Save()
 {
-    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "PLIFile");
+    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, GetType());
 
     node->AddAttribute("Content", _content);
     node->AddAttribute("FileName", _fileName);

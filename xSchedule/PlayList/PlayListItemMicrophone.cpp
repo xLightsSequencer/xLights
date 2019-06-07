@@ -35,6 +35,7 @@ void PlayListItemMicrophone::Load(wxXmlNode* node)
 
 PlayListItemMicrophone::PlayListItemMicrophone(OutputManager* outputManager) : PlayListItem()
 {
+    _type = "PLIMicrophone";
     _outputManager = outputManager;
     _sc = 0;
     _startChannel = "1";
@@ -62,7 +63,7 @@ PlayListItem* PlayListItemMicrophone::Copy() const
 
 wxXmlNode* PlayListItemMicrophone::Save()
 {
-    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "PLIMicrophone");
+    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, GetType());
 
     node->AddAttribute("Mode", _mode);
     node->AddAttribute("StartChannel", _startChannel);

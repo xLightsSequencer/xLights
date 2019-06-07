@@ -71,7 +71,7 @@ PlayListItemCURLPanel::PlayListItemCURLPanel(wxWindow* parent, PlayListItemCURL*
     TextCtrl_URL->SetToolTip(PlayListItemCURL::GetTooltip());
     TextCtrl_Body->SetValue(curl->GetBody());
     TextCtrl_Body->SetToolTip(PlayListItemCURL::GetTooltip());
-    Choice_Type->SetStringSelection(curl->GetType());
+    Choice_Type->SetStringSelection(curl->GetCURLType());
     TextCtrl_Delay->SetValue(wxString::Format(wxT("%.3f"), (float)curl->GetDelay() / 1000.0));
 }
 
@@ -80,7 +80,7 @@ PlayListItemCURLPanel::~PlayListItemCURLPanel()
 	//(*Destroy(PlayListItemCURLPanel)
 	//*)
     _curl->SetName(TextCtrl_CURLName->GetValue().ToStdString());
-    _curl->SetType(Choice_Type->GetStringSelection().ToStdString());
+    _curl->SetCURLType(Choice_Type->GetStringSelection().ToStdString());
     _curl->SetURL(TextCtrl_URL->GetValue().ToStdString());
     _curl->SetBody(TextCtrl_Body->GetValue().ToStdString());
     _curl->SetDelay(wxAtof(TextCtrl_Delay->GetValue())*1000);

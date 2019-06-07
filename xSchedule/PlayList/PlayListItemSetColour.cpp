@@ -28,6 +28,7 @@ void PlayListItemSetColour::Load(wxXmlNode* node)
 
 PlayListItemSetColour::PlayListItemSetColour(OutputManager* outputManager) : PlayListItem()
 {
+    _type = "PLISetColour";
     _outputManager = outputManager;
     _sc = 0;
     _nodes = 0;
@@ -64,7 +65,7 @@ size_t PlayListItemSetColour::GetStartChannelAsNumber()
 
 wxXmlNode* PlayListItemSetColour::Save()
 {
-    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "PLISetColour");
+    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, GetType());
 
     node->AddAttribute("Duration", wxString::Format(wxT("%i"), (long)_duration));
     node->AddAttribute("Value", _value.GetAsString());

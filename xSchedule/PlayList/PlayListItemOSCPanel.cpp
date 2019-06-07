@@ -182,11 +182,11 @@ PlayListItemOSCPanel::~PlayListItemOSCPanel()
     _osc->SetIPAddress(TextCtrl_IPAddress->GetValue().ToStdString());
     _osc->SetPath(TextCtrl_Path->GetValue().ToStdString());
     _osc->SetPort(SpinCtrl_Port->GetValue());
-    _osc->SetType(0, Choice_P1Type->GetStringSelection().ToStdString());
-    _osc->SetType(1, Choice_P2Type->GetStringSelection().ToStdString());
-    _osc->SetType(2, Choice_P3Type->GetStringSelection().ToStdString());
-    _osc->SetType(3, Choice_P4Type->GetStringSelection().ToStdString());
-    _osc->SetType(4, Choice_P5Type->GetStringSelection().ToStdString());
+    _osc->SetOSCType(0, Choice_P1Type->GetStringSelection().ToStdString());
+    _osc->SetOSCType(1, Choice_P2Type->GetStringSelection().ToStdString());
+    _osc->SetOSCType(2, Choice_P3Type->GetStringSelection().ToStdString());
+    _osc->SetOSCType(3, Choice_P4Type->GetStringSelection().ToStdString());
+    _osc->SetOSCType(4, Choice_P5Type->GetStringSelection().ToStdString());
     _osc->SetValue(0, TextCtrl_P1Value->GetValue().ToStdString());
     _osc->SetValue(1, TextCtrl_P2Value->GetValue().ToStdString());
     _osc->SetValue(2, TextCtrl_P3Value->GetValue().ToStdString());

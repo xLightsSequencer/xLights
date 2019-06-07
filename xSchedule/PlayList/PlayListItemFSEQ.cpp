@@ -195,6 +195,7 @@ long PlayListItemFSEQ::GetFSEQChannels() const
 
 PlayListItemFSEQ::PlayListItemFSEQ(OutputManager* outputManager) : PlayListItem()
 {
+    _type = "PLIFSEQ";
     _outputManager = outputManager;
     _cachedAudioFilename = "";
     _fastStartAudio = false;
@@ -238,7 +239,7 @@ PlayListItem* PlayListItemFSEQ::Copy() const
 
 wxXmlNode* PlayListItemFSEQ::Save()
 {
-    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "PLIFSEQ");
+    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, GetType());
 
     node->AddAttribute("FSEQFile", _fseqFileName);
     node->AddAttribute("ApplyMethod", wxString::Format(wxT("%i"), (int)_applyMethod));

@@ -28,6 +28,7 @@ void PlayListItemAllOff::Load(wxXmlNode* node)
 
 PlayListItemAllOff::PlayListItemAllOff(OutputManager* outputManager) : PlayListItem()
 {
+    _type = "PLIAllOff";
     _outputManager = outputManager;
     _sc = 0;
     _channels = 0;
@@ -64,7 +65,7 @@ size_t PlayListItemAllOff::GetStartChannelAsNumber()
 
 wxXmlNode* PlayListItemAllOff::Save()
 {
-    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "PLIAllSet");
+    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, GetType());
 
     node->AddAttribute("Duration", wxString::Format(wxT("%i"), (long)_duration));
     node->AddAttribute("Value", wxString::Format(wxT("%i"), _value));

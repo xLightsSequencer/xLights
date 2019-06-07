@@ -29,6 +29,7 @@ void PlayListItemFPPEvent::Load(wxXmlNode* node)
 
 PlayListItemFPPEvent::PlayListItemFPPEvent() : PlayListItem()
 {
+    _type = "PLIFPPEVENT";
     _started = false;
     _major = 1;
     _minor = 1;
@@ -49,7 +50,7 @@ PlayListItem* PlayListItemFPPEvent::Copy() const
 
 wxXmlNode* PlayListItemFPPEvent::Save()
 {
-    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "PLIFPPEVENT");
+    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, GetType());
 
     node->AddAttribute("Major", wxString::Format("%d", _major));
     node->AddAttribute("Minor", wxString::Format("%d", _minor));

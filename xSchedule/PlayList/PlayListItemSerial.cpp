@@ -30,6 +30,7 @@ void PlayListItemSerial::Load(wxXmlNode* node)
 
 PlayListItemSerial::PlayListItemSerial() : PlayListItem()
 {
+    _type = "PLISERIAL";
     _started = false;
     _commPort = "COM1";
     _configuration = "8N1";
@@ -52,7 +53,7 @@ PlayListItem* PlayListItemSerial::Copy() const
 
 wxXmlNode* PlayListItemSerial::Save()
 {
-    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "PLISERIAL");
+    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, GetType());
 
     node->AddAttribute("CommPort", _commPort);
     node->AddAttribute("Configuration", _configuration);
