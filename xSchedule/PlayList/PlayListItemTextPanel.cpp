@@ -43,6 +43,8 @@ const long PlayListItemTextPanel::ID_STATICTEXT8 = wxNewId();
 const long PlayListItemTextPanel::ID_SPINCTRL4 = wxNewId();
 const long PlayListItemTextPanel::ID_STATICTEXT9 = wxNewId();
 const long PlayListItemTextPanel::ID_TEXTCTRL3 = wxNewId();
+const long PlayListItemTextPanel::ID_STATICTEXT15 = wxNewId();
+const long PlayListItemTextPanel::ID_TEXTCTRL5 = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(PlayListItemTextPanel,wxPanel)
@@ -138,7 +140,10 @@ PlayListItemTextPanel::PlayListItemTextPanel(wxWindow* parent, PlayListItemText*
 	FlexGridSizer1->Add(StaticText9, 1, wxALL|wxALIGN_LEFT, 5);
 	TextCtrl_Duration = new wxTextCtrl(this, ID_TEXTCTRL3, _("0.050"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL3"));
 	FlexGridSizer1->Add(TextCtrl_Duration, 1, wxALL|wxEXPAND, 5);
-	FlexGridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	StaticText14 = new wxStaticText(this, ID_STATICTEXT15, _("Delay:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT15"));
+	FlexGridSizer1->Add(StaticText14, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	TextCtrl_Delay = new wxTextCtrl(this, ID_TEXTCTRL5, _("0.000"), wxDefaultPosition, wxDefaultSize, wxTE_RIGHT, wxDefaultValidator, _T("ID_TEXTCTRL5"));
+	FlexGridSizer1->Add(TextCtrl_Delay, 1, wxALL|wxEXPAND, 5);
 	SetSizer(FlexGridSizer1);
 	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
@@ -172,6 +177,7 @@ PlayListItemTextPanel::PlayListItemTextPanel(wxWindow* parent, PlayListItemText*
     SpinCtrl_Y->SetValue(_text->GetY());
     SpinCtrl_Priority->SetValue(_text->GetPriority());
     CheckBox_RenderWhenBlank->SetValue(_text->GetRenderWhenBlank());
+    TextCtrl_Delay->SetValue(wxString::Format(wxT("%.3f"), (float)text->GetDelay() / 1000.0));
 
     ValidateWindow();
 }
@@ -197,6 +203,7 @@ PlayListItemTextPanel::~PlayListItemTextPanel()
     _text->SetName(TextCtrl_Name->GetValue().ToStdString());
     _text->SetPriority(SpinCtrl_Priority->GetValue());
     _text->SetRenderWhenBlank(CheckBox_RenderWhenBlank->GetValue());
+    _text->SetDelay(wxAtof(TextCtrl_Delay->GetValue()) * 1000);
 }
 
 void PlayListItemTextPanel::OnChoice_TypeSelect(wxCommandEvent& event)
