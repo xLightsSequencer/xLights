@@ -45,6 +45,7 @@
 #else
     #include "OpenGL/gl3.h"
     #define __gl_h_
+    #include <OpenGL/OpenGL.h>
 #endif
 
 #include "ShaderEffect.h"
@@ -229,6 +230,11 @@ public:
     virtual ~ShaderRenderCache()
     {
         if (_shaderConfig != nullptr) delete _shaderConfig;
+        #ifdef __WXOSX__
+        if (s_glContext) {
+            WXGLDestroyContext(s_glContext);
+        }
+        #endif
     }
 
     ShaderConfig* _shaderConfig = nullptr;
@@ -247,7 +253,49 @@ public:
         if (_shaderConfig != nullptr) delete _shaderConfig;
         _shaderConfig = ShaderEffect::ParseShader(filename);
     }
+    
+#ifdef __WXOSX__
+    WXGLContext s_glContext = nullptr;
+#endif
 };
+
+
+bool ShaderEffect::CanRenderOnBackgroundThread(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer)
+{
+#ifdef __WXOSX__
+    // if we create a specific OpenGL context for this thread and not try to share contexts between threads,
+    // the OSX GL engine is thread safe.
+    return true;
+#else
+    return false;
+#endif
+}
+
+void ShaderEffect::SetGLContext(ShaderRenderCache *cache) {
+#ifdef __WXOSX__
+    if (cache->s_glContext == nullptr) {
+        wxGLAttributes attributes;
+        attributes.AddAttribute(51 /* NSOpenGLPFAMinimumPolicy */ );
+        attributes.AddAttribute(96 /* NSOpenGLPFAAcceleratedCompute */ );
+        attributes.AddAttribute(97 /* NSOpenGLPFAAllowOfflineRenderers */ );
+        attributes.MinRGBA(8, 8, 8, 8).EndList();
+        wxGLContextAttrs cxtAttrs;
+        cxtAttrs.CoreProfile().EndList();
+        
+        WXGLPixelFormat pixelFormat = WXGLChoosePixelFormat(attributes.GetGLAttrs(),
+                                                            attributes.GetSize(),
+                                                            cxtAttrs.GetGLAttrs(),
+                                                            cxtAttrs.GetSize());
+        cache->s_glContext = WXGLCreateContext(pixelFormat, nullptr);
+        WXGLDestroyPixelFormat(pixelFormat);
+    }
+    WXGLSetCurrentContext(cache->s_glContext);
+#else
+    ShaderPanel *p = (ShaderPanel *)panel;
+    p->_preview->SetCurrentGLContext();
+#endif
+}
+
 
 void ShaderEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &buffer)
 {
@@ -279,6 +327,8 @@ void ShaderEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &b
     int&      s_rbWidth = cache->s_rbWidth;
     int&      s_rbHeight = cache->s_rbHeight;
 
+    SetGLContext(cache);
+
     if (buffer.needToInit)
     {
         buffer.needToInit = false;
@@ -309,8 +359,6 @@ void ShaderEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &b
     // todo is there more of this code we could add to the needtoinit case as this only happens on the first frame
     // ***********************************************************************************************************
 
-    ShaderPanel *p = (ShaderPanel *)panel;
-    p->_preview->SetCurrentGLContext();
 
     // We re-use the same framebuffer for rendering all the shader effects
     sizeForRenderBuffer( buffer, s_shadersInit, s_vertexArrayId, s_vertexBufferId, s_rbId, s_fbId, s_rbTex, s_rbWidth, s_rbHeight );
