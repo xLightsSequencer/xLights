@@ -210,6 +210,7 @@ public:
         void OnMenuItem_ConfigureTestSelected(wxCommandEvent& event);
         void OnMenuItem_ModeFPPUnicastMasterSelected(wxCommandEvent& event);
         void OnMenuItem_RemoteLatencySelected(wxCommandEvent& event);
+        void OnButton_CloneClick(wxCommandEvent& event);
         //*)
 
         bool IsPlayList(wxTreeItemId id) const;
@@ -246,6 +247,7 @@ public:
         static const long ID_TREECTRL1;
         static const long ID_BUTTON1;
         static const long ID_BUTTON2;
+        static const long ID_BUTTON5;
         static const long ID_BUTTON3;
         static const long ID_BUTTON4;
         static const long ID_PANEL6;
@@ -330,6 +332,7 @@ public:
         wxBitmapButton* BitmapButton_VolumeDown;
         wxBitmapButton* BitmapButton_VolumeUp;
         wxButton* Button_Add;
+        wxButton* Button_Clone;
         wxButton* Button_Delete;
         wxButton* Button_Edit;
         wxButton* Button_Schedule;

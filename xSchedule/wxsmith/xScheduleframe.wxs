@@ -188,6 +188,15 @@
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
+														<object class="wxButton" name="ID_BUTTON5" variable="Button_Clone" member="yes">
+															<label>Clone</label>
+															<handler function="OnButton_CloneClick" entry="EVT_BUTTON" />
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
 														<object class="wxButton" name="ID_BUTTON3" variable="Button_Delete" member="yes">
 															<label>Delete</label>
 															<handler function="OnButton_DeleteClick" entry="EVT_BUTTON" />
