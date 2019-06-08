@@ -1316,11 +1316,24 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
     for (size_t tt = 0; tt < dlg.TimingTrackListBox->GetCount(); ++tt) {
         if (dlg.TimingTrackListBox->IsChecked(tt)) {
             TimingElement *tel = timingTracks[timingTrackNames[tt]];
-            TimingElement *target = static_cast<TimingElement*>(mSequenceElements.AddElement(tel->GetName(), "timing", true, tel->GetCollapsed(), tel->GetActive(), false));
-            char cnt = '1';
-            while (target == nullptr) {
-                target = static_cast<TimingElement*>(mSequenceElements.AddElement(tel->GetName() + "-" + cnt++, "timing", true, tel->GetCollapsed(), tel->GetActive(), false));
+            TimingElement* target = nullptr;
+            if (mSequenceElements.GetTimingElement(tel->GetName()) != nullptr)
+            {
+                if (mSequenceElements.GetTimingElement(tel->GetName())->GetEffectLayer(0)->GetEffectCount() == 0)
+                {
+                    target = mSequenceElements.GetTimingElement(tel->GetName());
+                }
             }
+
+            if (target == nullptr)
+            {
+                target = static_cast<TimingElement*>(mSequenceElements.AddElement(tel->GetName(), "timing", true, tel->GetCollapsed(), tel->GetActive(), false));
+                char cnt = '1';
+                while (target == nullptr) {
+                    target = static_cast<TimingElement*>(mSequenceElements.AddElement(tel->GetName() + "-" + cnt++, "timing", true, tel->GetCollapsed(), tel->GetActive(), false));
+                }
+            }
+
             for (int l = 0; l < tel->GetEffectLayerCount(); ++l) {
                 EffectLayer *src = tel->GetEffectLayer(l);
                 while (l >= target->GetEffectLayerCount()) {

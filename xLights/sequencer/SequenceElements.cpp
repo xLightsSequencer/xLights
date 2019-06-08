@@ -1461,6 +1461,18 @@ TimingElement* SequenceElements::GetTimingElement(int n)
     return nullptr;
 }
 
+TimingElement* SequenceElements::GetTimingElement(const std::string& name)
+{
+    for (size_t i = 0; i < mAllViews[MASTER_VIEW].size(); i++)
+    {
+        if (mAllViews[MASTER_VIEW][i]->GetType() == ELEMENT_TYPE_TIMING && mAllViews[MASTER_VIEW][i]->GetName() == name)
+        {
+            return (TimingElement*)mAllViews[MASTER_VIEW][i];
+        }
+    }
+    return nullptr;
+}
+
 int SequenceElements::GetNumberOfActiveTimingEffects()
 {
     int num_timing_effects = 0;
