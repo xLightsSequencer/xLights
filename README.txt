@@ -11,12 +11,13 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2019.28 June 8, 2019
    -- enh (scott)       Add filename tooltip to colour curve buttons
    -- enh (kevin/keith) Add shader effect
    -- enh (keith)       When importing a timing track from xLights sequence and the name clashes overwrite if there are no existing timing marks
    -- enh (keith)       Allow xSchedule to access more than one MIDI device at once
    -- enh (keith)       Add "Set step position" and "Set step position ms" xSchedule APIs
-   -- enh (keith)       Add ability to clone xSchedule steps and items
+   -- enh (keith)       Add ability to clone xSchedule playlists, steps, items and schedules
    -- enh (keith)       Add the ability to set the Force Local IP in xSchedule
    -- enh (keith)       Add the delay setting to the text playlist item
    -- enh (keith)       Add check sequence check for matrices where strands/string does not divide evenly into string length
