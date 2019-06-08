@@ -325,8 +325,13 @@ http://<host:port>/xScheduleCommand?Command=<command>&Parameters=<parameters>
 			If the plugin name is * then the event is sent to all plugins.
 			The plugin parameters are interpreted by the plugin
 						
-http://<host:port>/xScheduleStash?Command=<command>&Key=<key>
+        Set step position <pos>
+            Set the position in a song where pos is a number between 0 and 255
 
+        Set step position ms <pos>
+            Set the position in a song where pos is the miliisecond position
+
+http://<host:port>/xScheduleStash?Command=<command>&Key=<key>
 
 	This API allows the webpage to store and retrieve data between sessions. The key used should be unique to the webpage. There is no security or protection beyond the password protection to this data. There are 2 commands supported:
 	

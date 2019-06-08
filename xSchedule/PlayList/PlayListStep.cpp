@@ -465,6 +465,12 @@ bool PlayListStep::Frame(uint8_t* buffer, size_t size, bool outputframe)
 
     //logger_base.debug("Step %s frame %ld start.", (const char *)GetNameNoTime().c_str(), (long)frameMS);
 
+    if (frameMS >= GetLengthMS())
+    {
+        // we are done
+        return true;
+    }
+
     wxStopWatch sw;
     // we do this backwards to ensure the right render order
     for (auto it = _items.rbegin(); it != _items.rend(); ++it)

@@ -5,7 +5,7 @@
 #include <string>
 #include <wx/wx.h>
 
-typedef enum { PLAYLIST, STEP, SCHEDULE, INTEGER, STRING, COMMAND, ANY, ITEM} PARMTYPE;
+enum class PARMTYPE { PLAYLIST, STEP, SCHEDULE, INTEGER, STRING, COMMAND, ANY, ITEM};
 
 class PlayList;
 class Schedule;
