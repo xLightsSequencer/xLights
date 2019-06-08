@@ -12,7 +12,6 @@
 //(*IdInit(ShaderPanel)
 const long ShaderPanel::ID_STATICTEXT1 = wxNewId();
 const long ShaderPanel::ID_0FILEPICKERCTRL_IFS = wxNewId();
-const long ShaderPanel::IDX_TEXTCTRL_Description = wxNewId();
 //*)
 
 ShaderPreview::ShaderPreview( wxWindow* parent, wxWindowID id, const wxPoint &pos, const wxSize &size, long style, const wxString &name, bool coreProfile)
@@ -46,7 +45,6 @@ ShaderPanel::ShaderPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	//(*Initialize(ShaderPanel)
 	wxFlexGridSizer* FlexGridSizer1;
 	wxFlexGridSizer* FlexGridSizer2;
-	wxFlexGridSizer* FlexGridSizer3;
 
 	Create(parent, id, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("id"));
 	FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -58,11 +56,6 @@ ShaderPanel::ShaderPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	FilePickerCtrl1 = new wxFilePickerCtrl(this, ID_0FILEPICKERCTRL_IFS, wxEmptyString, wxEmptyString, _T("*.fs"), wxDefaultPosition, wxDefaultSize, wxFLP_FILE_MUST_EXIST|wxFLP_OPEN|wxFLP_USE_TEXTCTRL, wxDefaultValidator, _T("ID_0FILEPICKERCTRL_IFS"));
 	FlexGridSizer2->Add(FilePickerCtrl1, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 5);
-	FlexGridSizer3 = new wxFlexGridSizer(0, 1, 0, 0);
-	FlexGridSizer3->AddGrowableCol(0);
-	TextCtrl_Description = new wxTextCtrl(this, IDX_TEXTCTRL_Description, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE|wxTE_READONLY, wxDefaultValidator, _T("IDX_TEXTCTRL_Description"));
-	FlexGridSizer3->Add(TextCtrl_Description, 1, wxALL|wxEXPAND, 5);
-	FlexGridSizer1->Add(FlexGridSizer3, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer_Dynamic = new wxFlexGridSizer(0, 3, 0, 0);
 	FlexGridSizer_Dynamic->AddGrowableCol(1);
 	FlexGridSizer1->Add(FlexGridSizer_Dynamic, 1, wxALL|wxEXPAND, 5);
@@ -96,7 +89,7 @@ void ShaderPanel::OnFilePickerCtrl1FileChanged(wxFileDirPickerEvent& event)
     {
         Freeze();
         FlexGridSizer_Dynamic->DeleteWindows();
-        TextCtrl_Description->SetValue("");
+        FilePickerCtrl1->UnsetToolTip();
         Thaw();
     }
 }
@@ -108,7 +101,7 @@ void ShaderPanel::BuildUI(const wxString& filename)
     Freeze();
 
     FlexGridSizer_Dynamic->DeleteWindows();
-    TextCtrl_Description->SetValue("");
+    FilePickerCtrl1->UnsetToolTip();
 
     _shaderConfig = ShaderEffect::ParseShader(filename);
 
@@ -117,7 +110,7 @@ void ShaderPanel::BuildUI(const wxString& filename)
         wxString desc = _shaderConfig->GetDescription();
         if (desc != "") desc += "\n";
         if (_shaderConfig->IsCanvasShader())desc += "Use Canvas Mode for this shader.";
-        TextCtrl_Description->SetValue(desc);
+        FilePickerCtrl1->SetToolTip(desc);
 
         int id = 1;
         for (auto it : _shaderConfig->GetParms())
