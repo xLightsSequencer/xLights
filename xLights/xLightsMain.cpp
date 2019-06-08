@@ -1622,7 +1622,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     MenuItem_MedVol->Check(playVolume == 66);
     MenuItem_QuietVol->Check(playVolume == 33);
     MenuItem_VQuietVol->Check(playVolume == 10);
-    
+    SDL::SetGlobalVolume(playVolume);
+
     logger_base.debug("xLightsFrame constructor creating sequencer.");
 
     CreateSequencer();
