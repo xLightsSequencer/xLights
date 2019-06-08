@@ -1,7 +1,8 @@
 #include "Settings.h"
-#include <log4cpp/Category.hh>
+#include "../xSchedule/wxMIDI/src/wxMidi.h"
 #include <wx/string.h>
 #include <wx/socket.h>
+#include <log4cpp/Category.hh>
 
 Settings::Settings(std::string settings)
 {
@@ -21,7 +22,7 @@ Settings::Settings(std::string settings)
     _localOutputIP = "";
     _E131 = true;
     _ArtNET = false;
-    _midiDevice = "";
+    _defaultMIDIDevice = "";
     _frameMS = 50;
     Load(settings);
 }
@@ -36,27 +37,33 @@ std::string Settings::Safe(std::string s)
     return res.ToStdString();
 }
 
-void Settings::SetMIDIControl(std::string controlName, int status, int channel, int data1)
+void Settings::SetMIDIControl(const std::string& midiDevice, const std::string& controlName, int status, int channel, int data1)
 {
     // unmap any other keys mapped to the same MIDI codes
+    int device = GetMIDIDeviceId(midiDevice);
     std::list<std::string> todelete;
     auto itc = _midiChannel.begin();
     auto itd = _midiData1.begin();
+    auto itdv = _midiDevice.begin();
     for (auto it = _midiStatus.begin(); it != _midiStatus.end(); ++it)
     {
         if (it->second == status)
         {
-            if (itc->second == 16 || itc->second == channel)
+            if (itdv->second == device)
             {
-                if (itd->second == 256 || itd->second == data1)
+                if (itc->second == 16 || itc->second == channel)
                 {
-                    todelete.push_back(it->first);
+                    if (itd->second == 256 || itd->second == data1)
+                    {
+                        todelete.push_back(it->first);
+                    }
                 }
             }
         }
 
         ++itc;
         ++itd;
+        ++itdv;
     }
 
     for (auto it = todelete.begin(); it != todelete.end(); ++it)
@@ -64,47 +71,56 @@ void Settings::SetMIDIControl(std::string controlName, int status, int channel, 
         _midiStatus.erase(*it);
         _midiChannel.erase(*it);
         _midiData1.erase(*it);
+        _midiDevice.erase(*it);
     }
 
     _midiStatus[controlName] = status; 
     _midiChannel[controlName] = channel; 
     _midiData1[controlName] = data1;
+    _midiDevice[controlName] = device;
 }
 
-std::string Settings::LookupMIDI(int status, int channel, int data1) const
+std::string Settings::LookupMIDI(int device, int status, int channel, int data1) const
 {
+    auto itdv = _midiDevice.begin();
     auto itc = _midiChannel.begin();
     auto itd = _midiData1.begin();
     for (auto it = _midiStatus.begin(); it != _midiStatus.end(); ++it)
     {
         if (it->second == status)
         {
-            if (itc->second == 16 || itc->second == channel)
+            if (itdv->second == device)
             {
-                if (itd->second == 256 || itd->second == data1)
+                if (itc->second == 16 || itc->second == channel)
                 {
-                    return it->first;
+                    if (itd->second == 256 || itd->second == data1)
+                    {
+                        return it->first;
+                    }
                 }
             }
         }
         
         ++itc;
         ++itd;
+        ++itdv;
     }
 
     return "";
 }
 
-void Settings::LookupMIDI(std::string controlName, int& status, int& channel, int& data1)
+void Settings::LookupMIDI(std::string controlName, int& device, int& status, int& channel, int& data1)
 {
     if (_midiStatus.find(controlName) != _midiStatus.end())
     {
+        device = _midiDevice[controlName];
         status = _midiStatus[controlName];
         channel = _midiChannel[controlName];
         data1 = _midiData1[controlName];
     }
     else
     {
+        device = 0;
         status = 0x90;
         channel = 0;
         data1 = 0;
@@ -115,9 +131,9 @@ std::string Settings::Serialise()
 {
     std::string res = "";
     
-    if (_midiDevice != "")
+    if (_defaultMIDIDevice != "")
     {
-        res += "|MIDI:" + _midiDevice;
+        res += "|MIDI:" + _defaultMIDIDevice;
     }
 
     if (_localInputIP != _defaultIP)
@@ -158,11 +174,13 @@ std::string Settings::Serialise()
     res += "|MM:";
     auto itc = _midiChannel.begin();
     auto itd1 = _midiData1.begin();
+    auto itmd = _midiDevice.begin();
     for (auto it = _midiStatus.begin(); it != _midiStatus.end(); ++it)
     {
-        res += wxString::Format("%s,%d,%d,%d^", it->first, it->second, itc->second, itd1->second);
+        res += wxString::Format("%s,%d,%d,%d,%d^", it->first, itmd->second, it->second, itc->second, itd1->second);
         ++itc;
         ++itd1;
+        ++itmd;
     }
 
     if (_E131)
@@ -241,9 +259,17 @@ void Settings::Load(std::string settings)
                     auto s4 = wxSplit(*it3, ',');
                     if (s4.size() == 4)
                     {
+                        _midiDevice[s4[0]] = GetMIDIDeviceId(_defaultMIDIDevice);
                         _midiStatus[s4[0]] = wxAtoi(s4[1]);
                         _midiChannel[s4[0]] = wxAtoi(s4[2]);
                         _midiData1[s4[0]] = wxAtoi(s4[3]);
+                    }
+                    else if (s4.size() == 5)
+                    {
+                        _midiDevice[s4[0]] = wxAtoi(s4[1]);
+                        _midiStatus[s4[0]] = wxAtoi(s4[2]);
+                        _midiChannel[s4[0]] = wxAtoi(s4[3]);
+                        _midiData1[s4[0]] = wxAtoi(s4[4]);
                     }
                 }
             }
@@ -279,7 +305,7 @@ void Settings::Load(std::string settings)
             }
             else if (s2[0] == "MIDI")
             {
-                _midiDevice = s2[1];
+                _defaultMIDIDevice = s2[1];
             }            
         }
     }
@@ -294,10 +320,10 @@ void Settings::Load(std::string settings)
     }
 }
 
-int Settings::GetMIDIDeviceId()
+int Settings::GetMIDIDeviceId(const std::string& deviceName)
 {
-    if (_midiDevice == "") return -1;
-    return wxAtoi(wxString(_midiDevice).AfterLast(' '));
+    if (deviceName == "") return -1;
+    return wxAtoi(wxString(deviceName).AfterLast(' '));
 }
 
 bool Settings::IsFadeExclude(std::string ch)
@@ -376,4 +402,57 @@ std::list<int> Settings::GetExcludeChannels(int u)
     }
 
     return res;
+}
+
+std::list<int> Settings::GetUsedMIDIDevices() const
+{
+    std::list<int> res;
+
+    for (auto it : _midiDevice)
+    {
+        if (std::find(begin(res), end(res), it.second) == res.end())
+        {
+            res.push_back(it.second);
+        }
+    }
+
+    return res;
+}
+
+std::list<std::string> Settings::GetMIDIDevices()
+{
+    static std::list<std::string> res;
+    static int alldevicecount;
+
+    wxMidiSystem* midiSystem = wxMidiSystem::GetInstance();
+    int devices = midiSystem->CountDevices();
+
+    if (alldevicecount != devices)
+    {
+        res.clear();
+        alldevicecount = devices;
+        for (int i = 0; i < devices; i++)
+        {
+            wxMidiInDevice* midiDev = new wxMidiInDevice(i);
+            if (midiDev->IsInputPort())
+            {
+                res.push_back(wxString::Format("%s [%s] %d", midiDev->DeviceName(), midiDev->InterfaceUsed(), i).ToStdString());
+            }
+            delete midiDev;
+        }
+    }
+
+    return res;
+}
+
+std::string Settings::GetMIDIDeviceName(int device)
+{
+    for (auto it : GetMIDIDevices())
+    {
+        if (GetMIDIDeviceId(it) == device)
+        {
+            return it;
+        }
+    }
+    return "";
 }
