@@ -2250,7 +2250,8 @@ void xLightsFrame::SetEffectControls(const std::string &modelName, const std::st
 
 void xLightsFrame::ApplySetting(wxString name, const wxString &value)
 {
-    wxWindow* ContextWin;
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    wxWindow* ContextWin = nullptr;
 	if (name.StartsWith("E_"))
 	{
 		ContextWin = EffectsPanel1;
@@ -2288,13 +2289,12 @@ void xLightsFrame::ApplySetting(wxString name, const wxString &value)
     else
 	{
 		return;
-		//efPanel = nullptr;
-		//ContextWin=SeqPanelLeft;
 	}
-	name = "ID_" + name.Mid(2);
 
+    name = "ID_" + name.Mid(2);
 	wxWindow *CtrlWin = wxWindow::FindWindowByName(name, ContextWin);
-	if (CtrlWin)
+
+    if (CtrlWin != nullptr)
 	{
 		if (name.StartsWith("ID_SLIDER"))
 		{
@@ -2396,7 +2396,7 @@ void xLightsFrame::ApplySetting(wxString name, const wxString &value)
         }
         else
 		{
-			DisplayError("Unknown type: " + name);
+			logger_base.error("ApplySetting: Unknown type: %s", (const char*)name.c_str());
         }
 	}
 	else
@@ -2407,7 +2407,7 @@ void xLightsFrame::ApplySetting(wxString name, const wxString &value)
 			CtrlWin = wxWindow::FindWindowByName(nn, ContextWin);
 		}
 		if (CtrlWin == nullptr) {
-            DisplayError("Unable to find : " + name);
+            logger_base.error("ApplySetting: Unable to find: %s", (const char*)name.c_str());
         }
 	}
 }
@@ -2422,10 +2422,10 @@ void xLightsFrame::ApplyLast(wxCommandEvent& event)
 
 void xLightsFrame::SetEffectControlsApplyLast(const SettingsMap &settings) {
     // Now Apply those settings with APPLYLAST in their name ... last
-    for (std::map<std::string, std::string>::const_iterator it = settings.begin(); it != settings.end(); ++it) {
-        if (it->first.find("APPLYLAST") != std::string::npos)
+    for (auto it : settings) {
+        if (it.first.find("APPLYLAST") != std::string::npos)
         {
-            ApplySetting(wxString(it->first.c_str()), wxString(it->second.c_str()));
+            ApplySetting(wxString(it.first.c_str()), wxString(it.second.c_str()));
         }
     }
 }
@@ -2435,10 +2435,10 @@ void xLightsFrame::SetEffectControls(const SettingsMap &settings) {
     bool applylast = false;
 
 	// Apply those settings without APPLYLAST in their name first
-    for (std::map<std::string,std::string>::const_iterator it=settings.begin(); it!=settings.end(); ++it) {
-		if (it->first.find("APPLYLAST") == std::string::npos)
+    for (auto it : settings) {
+		if (it.first.find("APPLYLAST") == std::string::npos)
 		{
-			ApplySetting(wxString(it->first.c_str()), wxString(it->second.c_str()));
+			ApplySetting(wxString(it.first.c_str()), wxString(it.second.c_str()));
 		}
         else
         {
