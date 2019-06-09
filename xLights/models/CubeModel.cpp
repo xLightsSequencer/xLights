@@ -240,6 +240,7 @@ int CubeModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGri
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "CubeModel::OnPropertyGridChange::CubeWidth");
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "CubeModel::OnPropertyGridChange::CubeWidth");
         AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "CubeModel::OnPropertyGridChange::CubeWidth");
+        AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "CubeModel::OnPropertyGridChange::CubeWidth");
         return 0;
     } else if ("CubeHeight" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm2");
@@ -249,7 +250,7 @@ int CubeModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGri
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CubeModel::OnPropertyGridChange::CubeHeight");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "CubeModel::OnPropertyGridChange::CubeHeight");
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "CubeModel::OnPropertyGridChange::CubeHeight");
-        AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "CubeModel::OnPropertyGridChange::CubeHeight");
+        AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "CubeModel::OnPropertyGridChange::CubeHeight");
         return 0;
     } else if ("CubeDepth" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm3");
@@ -259,7 +260,7 @@ int CubeModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGri
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CubeModel::OnPropertyGridChange::CubeDepth");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "CubeModel::OnPropertyGridChange::CubeDepth");
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "CubeModel::OnPropertyGridChange::CubeDepth");
-        AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "CubeModel::OnPropertyGridChange::CubeDepth");
+        AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "CubeModel::OnPropertyGridChange::CubeDepth");
         return 0;
     } else if ("CubeStrings" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("Strings");

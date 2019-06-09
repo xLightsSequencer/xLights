@@ -92,6 +92,7 @@ int WreathModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyG
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "WreathModel::OnPropertyGridChange::WreathStringCount");
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "WreathModel::OnPropertyGridChange::WreathStringCount");
         AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "WreathModel::OnPropertyGridChange::WreathStringCount");
+        AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "WreathModel::OnPropertyGridChange::WreathStringCount");
         return 0;
     } else if ("WreathLightCount" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm2");
@@ -101,6 +102,7 @@ int WreathModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyG
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "WreathModel::OnPropertyGridChange::WreathLightCount");
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "WreathModel::OnPropertyGridChange::WreathLightCount");
         AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "WreathModel::OnPropertyGridChange::WreathLightCount");
+        AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "WreathModel::OnPropertyGridChange::WreathLightCount");
         return 0;
     } else if ("WreathStart" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("Dir");
