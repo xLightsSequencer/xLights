@@ -27,6 +27,7 @@ void PlayListItemRunCommand::Load(wxXmlNode* node)
 
 PlayListItemRunCommand::PlayListItemRunCommand() : PlayListItem()
 {
+    _type = "PLICommand";
     _started = false;
     _command = "";
     _parm1 = "";
@@ -49,7 +50,7 @@ PlayListItem* PlayListItemRunCommand::Copy() const
 
 wxXmlNode* PlayListItemRunCommand::Save()
 {
-    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "PLICommand");
+    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, GetType());
 
     node->AddAttribute("Command", _command);
     node->AddAttribute("Parm1", _parm1);

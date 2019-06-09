@@ -182,29 +182,6 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxFlexGridSizer" variable="FlexGridSizer3" member="no">
-					<cols>3</cols>
-					<growablecols>1</growablecols>
-					<object class="sizeritem">
-						<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
-							<label>MIDI Device:</label>
-						</object>
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
-						<option>1</option>
-					</object>
-					<object class="sizeritem">
-						<object class="wxChoice" name="ID_CHOICE2" variable="Choice1" member="yes" />
-						<flag>wxALL|wxEXPAND</flag>
-						<border>5</border>
-						<option>1</option>
-					</object>
-				</object>
-				<flag>wxALL|wxEXPAND</flag>
-				<border>5</border>
-				<option>1</option>
-			</object>
-			<object class="sizeritem">
 				<object class="wxFlexGridSizer" variable="FlexGridSizer4" member="no">
 					<cols>2</cols>
 					<growablecols>0</growablecols>

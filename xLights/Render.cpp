@@ -1898,7 +1898,7 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
                 qlock.unlock();
 
                 CallAfter(&xLightsFrame::RenderMainThreadEffects);
-                if (event->signal.wait_for(lock, std::chrono::seconds(20)) == std::cv_status::no_timeout) {
+                if (event->signal.wait_for(lock, std::chrono::seconds(5)) == std::cv_status::no_timeout) {
                     retval = event->returnVal;
                 } else {
                     logger_base.warn("Frame #%d render on model %s (%dx%d) layer %d effect %s from %dms (#%d) to %dms (#%d) timed out.", b.curPeriod, (const char *)buffer.GetModelName().c_str(), b.BufferWi, b.BufferHt, layer, (const char *)reff->Name().c_str(), effectObj->GetStartTimeMS(), b.curEffStartPer, effectObj->GetEndTimeMS(), b.curEffEndPer);

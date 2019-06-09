@@ -31,6 +31,7 @@ void PlayListItemMIDI::Load(wxXmlNode* node)
 
 PlayListItemMIDI::PlayListItemMIDI() : PlayListItem()
 {
+    _type = "PLIMIDI";
     _started = false;
     _device = "";
     _status = "0x9n - Note On";
@@ -55,7 +56,7 @@ PlayListItem* PlayListItemMIDI::Copy() const
 
 wxXmlNode* PlayListItemMIDI::Save()
 {
-    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "PLIMIDI");
+    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, GetType());
 
     node->AddAttribute("Device", _device);
     node->AddAttribute("Status", _status);

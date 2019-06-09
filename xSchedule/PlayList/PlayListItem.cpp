@@ -12,6 +12,7 @@ int __playlistitemid = 0;
 
 PlayListItem::PlayListItem(wxXmlNode* node)
 {
+    _name = "";
     _currentFrame = 0;
     _id = __playlistitemid++;
     _priority = 0;
@@ -28,6 +29,7 @@ PlayListItem::PlayListItem(wxXmlNode* node)
 
 void PlayListItem::Load(wxXmlNode* node)
 {
+    _type = node->GetName();
     _delay = wxAtoi(node->GetAttribute("Delay", "0"));
     _volume = wxAtoi(node->GetAttribute("Volume", "-1"));
     _priority = wxAtoi(node->GetAttribute("Priority", "0"));
@@ -52,6 +54,7 @@ PlayListItem::PlayListItem()
     _priority = 0;
     _restOfStep = false;
     _stepLengthMS = 0;
+    _type = "";
 }
 
 void PlayListItem::Save(wxXmlNode* node)
@@ -103,6 +106,7 @@ void PlayListItem::Copy(PlayListItem* to) const
     to->_volume = _volume;
     to->_restOfStep = _restOfStep;
     to->_stepLengthMS = _stepLengthMS;
+    to->_type = _type;
 }
 
 bool PlayListItem::IsInSlaveMode() const

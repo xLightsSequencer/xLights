@@ -20,7 +20,7 @@ protected:
     int _speed;
     APPLYMETHOD _blendMode;
     std::string _matrix;
-    std::string _type;
+    std::string _texttype;
     std::string _orientation;
     std::string _movement;
     wxFont* _font;
@@ -61,8 +61,8 @@ public:
     wxColour GetColour() const { return _colour; }
     void SetMatrix(const std::string& matrix) { if (_matrix != matrix) { _matrix = matrix; _changeCount++; } }
     std::string GetMatrix() const { return _matrix; }
-    void SetType(const std::string& type) { if (_type != type) { _type = type; _changeCount++; } }
-    std::string GetType() const { return _type; }
+    void SetTextType(const std::string& type) { if (_texttype != type) { _texttype = type; _changeCount++; } }
+    std::string GetTextType() const { return _texttype; }
     void SetOrientation(const std::string& orientation) { if (_orientation != orientation) { _orientation = orientation; _changeCount++; } }
     std::string GetOrientation() const { return _orientation; }
     void SetMovement(const std::string& movement) { if (_movement != movement) { _movement = movement; _changeCount++; } }

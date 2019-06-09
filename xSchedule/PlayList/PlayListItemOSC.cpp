@@ -37,6 +37,7 @@ void PlayListItemOSC::Load(wxXmlNode* node)
 
 PlayListItemOSC::PlayListItemOSC() : PlayListItem()
 {
+    _type = "PLIOSC";
 	_ip = "";
 	_path = "";
 	_port = 0;
@@ -68,7 +69,7 @@ PlayListItem* PlayListItemOSC::Copy() const
 
 wxXmlNode* PlayListItemOSC::Save()
 {
-    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "PLIOSC");
+    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, GetType());
 
     node->AddAttribute("Path", _path);
     node->AddAttribute("IP", _ip);

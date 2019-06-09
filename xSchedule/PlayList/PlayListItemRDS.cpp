@@ -124,6 +124,7 @@ public:
 
 PlayListItemRDS::PlayListItemRDS(wxXmlNode* node) : PlayListItem(node)
 {
+    _type = "PLIRDS";
     _started = false;
     _stationName = "";
     _commPort = "COM1";
@@ -163,7 +164,7 @@ PlayListItem* PlayListItemRDS::Copy() const
 
 wxXmlNode* PlayListItemRDS::Save()
 {
-    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "PLIRDS");
+    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, GetType());
 
     node->AddAttribute("StationName", _stationName);
     node->AddAttribute("Text", _text);

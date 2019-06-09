@@ -15,6 +15,7 @@ protected:
 
     #pragma region Member Variables
     wxUint32 _id;
+    std::string _type;
     int _lastSavedChangeCount;
     int _changeCount;
     std::string _name;
@@ -47,6 +48,7 @@ protected:
     #pragma endregion Constructors and Destructors
 
     #pragma region Getters and Setters
+    std::string GetType() const { return _type; }
     bool GetRestOfStep() const { return _restOfStep; }
     void SetRestOfStep(bool restOfStep) { if (_restOfStep != restOfStep) { _restOfStep = restOfStep; _changeCount++; } }
     virtual bool HasIP() const { return false; }
@@ -55,6 +57,7 @@ protected:
     virtual size_t GetDurationMS(size_t frameMS) const { return GetDurationMS(); }
     bool IsDirty() const { return _lastSavedChangeCount != _changeCount; }
     void ClearDirty() { _lastSavedChangeCount = _changeCount; }
+    void SetDirty() { _changeCount++; }
     std::string GetName() const;
     std::string GetRawName() const { return _name; }
     virtual std::string GetNameNoTime() const;

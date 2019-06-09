@@ -23,6 +23,7 @@ void PlayListItemJukebox::Load(wxXmlNode* node)
 
 PlayListItemJukebox::PlayListItemJukebox() : PlayListItem()
 {
+    _type = "PLIJukebox";
     _started = false;
     _jukeboxButton = 1;
     _port = "A";
@@ -42,7 +43,7 @@ PlayListItem* PlayListItemJukebox::Copy() const
 
 wxXmlNode* PlayListItemJukebox::Save()
 {
-    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "PLIJukebox");
+    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, GetType());
 
     node->AddAttribute("Button", wxString::Format("%d", _jukeboxButton));
     node->AddAttribute("Port", _port);

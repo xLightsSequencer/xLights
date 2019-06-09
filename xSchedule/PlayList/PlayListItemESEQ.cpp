@@ -21,6 +21,7 @@ void PlayListItemESEQ::Load(wxXmlNode* node)
 
 PlayListItemESEQ::PlayListItemESEQ() : PlayListItem()
 {
+    _type = "PLIESEQ";
     _ESEQFile = nullptr;
     _ESEQFileName = "";
     _applyMethod = APPLYMETHOD::METHOD_OVERWRITE;
@@ -48,7 +49,7 @@ PlayListItem* PlayListItemESEQ::Copy() const
 
 wxXmlNode* PlayListItemESEQ::Save()
 {
-    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "PLIESEQ");
+    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, GetType());
 
     node->AddAttribute("ESEQFile", _ESEQFileName);
     _ESEQFileName = FixFile("", _ESEQFileName);

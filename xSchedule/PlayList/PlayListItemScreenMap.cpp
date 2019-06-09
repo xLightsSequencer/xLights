@@ -44,6 +44,7 @@ void PlayListItemScreenMap::Load(wxXmlNode* node)
 
 PlayListItemScreenMap::PlayListItemScreenMap() : PlayListItem()
 {
+    _type = "PLIScreenMap";
     _matrixMapper = nullptr;
     _blendMode = APPLYMETHOD::METHOD_OVERWRITEIFBLACK;
     _durationMS = 50;
@@ -75,7 +76,7 @@ PlayListItem* PlayListItemScreenMap::Copy() const
 
 wxXmlNode* PlayListItemScreenMap::Save()
 {
-    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "PLIScreenMap");
+    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, GetType());
 
     node->AddAttribute("ApplyMethod", wxString::Format(wxT("%i"), (int)_blendMode));
     node->AddAttribute("Duration", wxString::Format(wxT("%i"), (long)_durationMS));

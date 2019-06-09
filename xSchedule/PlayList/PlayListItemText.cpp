@@ -26,7 +26,7 @@ PlayListItemText::PlayListItemText(wxXmlNode* node) : PlayListItem(node)
     _renderWhenBlank = true;
     _orientation = "Normal";
     _speed = 10;
-    _type = "Normal";
+    _texttype = "Normal";
     _x = 0;
     _y = 0;
     _maxSize = wxSize(0,0);
@@ -63,7 +63,7 @@ void PlayListItemText::Load(wxXmlNode* node)
     _movement = node->GetAttribute("Movement", "None").ToStdString();
     _renderWhenBlank = (node->GetAttribute("RenderWhenBlank", "True") == "True");
     _orientation = node->GetAttribute("Orientation", "Normal").ToStdString();
-    _type = node->GetAttribute("Type", "Normal").ToStdString();
+    _texttype = node->GetAttribute("Type", "Normal").ToStdString();
     _speed = wxAtoi(node->GetAttribute("Speed", "10"));
     _x = wxAtoi(node->GetAttribute("X", "0"));
     _y = wxAtoi(node->GetAttribute("Y", "0"));
@@ -95,6 +95,7 @@ void PlayListItemText::SetFont(wxFont* font)
 
 PlayListItemText::PlayListItemText() : PlayListItem()
 {
+    _type = "PLIText";
     _font = nullptr;
     _matrixMapper = nullptr;
     _blendMode = APPLYMETHOD::METHOD_OVERWRITEIFBLACK;
@@ -108,7 +109,7 @@ PlayListItemText::PlayListItemText() : PlayListItem()
     _renderWhenBlank = true;
     _orientation = "Normal";
     _speed = 10;
-    _type = "Normal";
+    _texttype = "Normal";
     _x = 0;
     _y = 0;
     _maxSize = wxSize(0, 0);
@@ -123,7 +124,7 @@ PlayListItem* PlayListItemText::Copy() const
     res->_orientation = _orientation;
     res->_speed = _speed;
     res->_durationMS = _durationMS;
-    res->_type = _type;
+    res->_texttype = _texttype;
     res->_x = _x;
     res->_y = _y;
     res->_blendMode = _blendMode;
@@ -139,7 +140,7 @@ PlayListItem* PlayListItemText::Copy() const
 
 wxXmlNode* PlayListItemText::Save()
 {
-    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "PLIText");
+    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, GetType());
 
     node->AddAttribute("ApplyMethod", wxString::Format(wxT("%i"), (int)_blendMode));
     node->AddAttribute("Colour", _colour.GetAsString());
@@ -154,7 +155,7 @@ wxXmlNode* PlayListItemText::Save()
         node->AddAttribute("RenderWhenBlank", "False");
     }
     node->AddAttribute("Orientation", _orientation);
-    node->AddAttribute("Type", _type);
+    node->AddAttribute("Type", _texttype);
     node->AddAttribute("Speed", wxString::Format(wxT("%i"), _speed));
     node->AddAttribute("X", wxString::Format(wxT("%i"), _x));
     node->AddAttribute("Y", wxString::Format(wxT("%i"), _y));
@@ -190,7 +191,7 @@ std::string PlayListItemText::GetNameNoTime() const
     }
     else
     {
-        return _type;
+        return _texttype;
     }
 }
 
@@ -274,11 +275,11 @@ wxString PlayListItemText::GetText(size_t ms)
     wxTimeSpan countdown;
     int cds = 0;
 
-    if (_type == "Normal")
+    if (_texttype == "Normal")
     {
         // nothing to do
     }
-    else if (_type == "Countdown")
+    else if (_texttype == "Countdown")
     {
         wxDateTime targetDate;
         targetDate.ParseDateTime(_text);
@@ -307,13 +308,13 @@ wxString PlayListItemText::GetText(size_t ms)
             countdown = wxTimeSpan(0);
         }
     }
-    else if (_type == "Countdown Seconds")
+    else if (_texttype == "Countdown Seconds")
     {
         int to = wxAtoi(_text);
 
         cds = to - ms / 1000;
     }
-    else if (_type == "File Read")
+    else if (_texttype == "File Read")
     {
         wxFileInputStream input(_text);
         wxTextInputStream text(input);

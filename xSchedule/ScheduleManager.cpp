@@ -2461,6 +2461,56 @@ bool ScheduleManager::Action(const wxString& command, const wxString& parameters
                     }
                     scheduleChanged = true;
                 }
+                else if (command == "Set step position")
+                {
+                    PlayList* p = GetRunningPlayList();
+
+                    if (p != nullptr)
+                    {
+                        PlayListStep* s = p->GetRunningStep();
+                        if (s != nullptr)
+                        {
+                            long ms = wxAtoi(parameters) * s->GetLengthMS() / 255;
+                            s->SetSyncPosition((size_t)ms, GetOptions()->GetRemoteAcceptableJitter(), true);
+                        }
+                        else
+                        {
+                            result = false;
+                            msg = "No step running.";
+                        }
+                    }
+                    else
+                    {
+                        result = false;
+                        msg = "No playlist running.";
+                    }
+                }
+                else if (command == "Set step position ms")
+                {
+                PlayList* p = GetRunningPlayList();
+
+                if (p != nullptr)
+                {
+                    PlayListStep* s = p->GetRunningStep();
+                    if (s != nullptr)
+                    {
+                        long ms = wxAtoi(parameters);
+                        if (ms < 0) ms = 0;
+                        if (ms > s->GetLengthMS()) ms = s->GetLengthMS();
+                        s->SetSyncPosition((size_t)ms, GetOptions()->GetRemoteAcceptableJitter(), true);
+                    }
+                    else
+                    {
+                        result = false;
+                        msg = "No step running.";
+                    }
+                }
+                else
+                {
+                    result = false;
+                    msg = "No playlist running.";
+                }
+                }
                 else if (command == "Jump to specified step in current playlist")
                 {
                     PlayList* p = GetRunningPlayList();

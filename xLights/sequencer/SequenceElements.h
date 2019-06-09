@@ -69,6 +69,7 @@ public:
     int GetElementIndex(const std::string &name, int view = MASTER_VIEW);
     Element* GetElement(size_t index, int view = MASTER_VIEW) const;
     TimingElement* GetTimingElement(int n);
+    TimingElement* GetTimingElement(const std::string& name);
     size_t GetElementCount(int view = MASTER_VIEW) const;
     Row_Information_Struct* GetVisibleRowInformation(size_t index);
     Row_Information_Struct* GetVisibleRowInformationFromRow(int row_number);

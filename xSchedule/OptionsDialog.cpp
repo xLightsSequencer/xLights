@@ -9,11 +9,14 @@
 #include <wx/file.h>
 #include "../xLights/AudioManager.h"
 #include "City.h"
+#include "../xLights/UtilFunctions.h"
+#include "../xLights/outputs/IPOutput.h"
 
 //(*InternalHeaders(OptionsDialog)
 #include <wx/intl.h>
 #include <wx/string.h>
 //*)
+#include <wx/config.h>
 
 //(*IdInit(OptionsDialog)
 const long OptionsDialog::ID_CHECKBOX4 = wxNewId();
@@ -48,6 +51,8 @@ const long OptionsDialog::ID_STATICTEXT1 = wxNewId();
 const long OptionsDialog::ID_CHOICE3 = wxNewId();
 const long OptionsDialog::ID_STATICTEXT9 = wxNewId();
 const long OptionsDialog::ID_CHOICE4 = wxNewId();
+const long OptionsDialog::ID_STATICTEXT10 = wxNewId();
+const long OptionsDialog::ID_CHOICE5 = wxNewId();
 const long OptionsDialog::ID_BUTTON1 = wxNewId();
 const long OptionsDialog::ID_BUTTON2 = wxNewId();
 //*)
@@ -169,6 +174,10 @@ OptionsDialog::OptionsDialog(wxWindow* parent, CommandManager* commandManager, S
 	Choice_OnCrash->Append(_("Silently exit after sending crash log"));
 	Choice_OnCrash->Append(_("Silently exit without sending crash log"));
 	FlexGridSizer8->Add(Choice_OnCrash, 1, wxALL|wxEXPAND, 5);
+	StaticText10 = new wxStaticText(this, ID_STATICTEXT10, _("Force Local IP:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT10"));
+	FlexGridSizer8->Add(StaticText10, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	Choice1 = new wxChoice(this, ID_CHOICE5, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE5"));
+	FlexGridSizer8->Add(Choice1, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer1->Add(FlexGridSizer8, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer2 = new wxFlexGridSizer(0, 3, 0, 0);
 	Button_Ok = new wxButton(this, ID_BUTTON1, _("Ok"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
@@ -237,6 +246,13 @@ OptionsDialog::OptionsDialog(wxWindow* parent, CommandManager* commandManager, S
     {
         Choice_AudioDevice->SetStringSelection("(Default)");
     }
+
+    Choice1->AppendString("");
+    for (auto it : GetLocalIPs())
+    {
+        Choice1->AppendString(it);
+    }
+    Choice1->SetStringSelection(IPOutput::GetLocalIP());
 
     LoadButtons();
 
@@ -333,6 +349,18 @@ void OptionsDialog::OnButton_OkClick(wxCommandEvent& event)
                             hotkey,
                             ListView_Buttons->GetItemText(i, 4).ToStdString(),
                             _commandManager);
+    }
+
+    if (Choice1->GetStringSelection() != IPOutput::GetLocalIP())
+    {
+        IPOutput::SetLocalIP(Choice1->GetStringSelection());
+        wxConfig* xlconfig = new wxConfig(_("xLights"));
+        if (xlconfig != nullptr)
+        {
+            xlconfig->Write("xLightsLocalIP", Choice1->GetStringSelection());
+            delete xlconfig;
+        }
+        wxMessageBox("Local IP changed. If you are outputting to lights please stop and restart light output");
     }
 
     EndDialog(wxID_OK);

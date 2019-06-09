@@ -13,7 +13,7 @@ PlayListItemCURL::PlayListItemCURL(wxXmlNode* node) : PlayListItem(node)
 {
     _started = false;
     _url = "";
-    _type = "GET";
+    _curltype = "GET";
     _body = "";
     PlayListItemCURL::Load(node);
 }
@@ -22,15 +22,16 @@ void PlayListItemCURL::Load(wxXmlNode* node)
 {
     PlayListItem::Load(node);
     _url = node->GetAttribute("URL", "");
-    _type = node->GetAttribute("Type", "GET");
+    _curltype = node->GetAttribute("Type", "GET");
     _body = node->GetAttribute("Body", "");
 }
 
 PlayListItemCURL::PlayListItemCURL() : PlayListItem()
 {
+    _type = "PLICURL";
     _started = false;
     _url = "";
-    _type = "GET";
+    _curltype = "GET";
     _body = "";
 }
 
@@ -38,7 +39,7 @@ PlayListItem* PlayListItemCURL::Copy() const
 {
     PlayListItemCURL* res = new PlayListItemCURL();
     res->_url = _url;
-    res->_type = _type;
+    res->_curltype = _curltype;
     res->_body = _body;
     res->_started = false;
     PlayListItem::Copy(res);
@@ -48,10 +49,10 @@ PlayListItem* PlayListItemCURL::Copy() const
 
 wxXmlNode* PlayListItemCURL::Save()
 {
-    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "PLICURL");
+    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, GetType());
 
     node->AddAttribute("URL", _url);
-    node->AddAttribute("Type", _type);
+    node->AddAttribute("Type", _curltype);
     node->AddAttribute("Body", _body);
 
     PlayListItem::Save(node);
@@ -109,10 +110,10 @@ void PlayListItemCURL::Frame(uint8_t* buffer, size_t size, size_t ms, size_t fra
 
         wxHTTP http;
         http.SetTimeout(10);
-        http.SetMethod(_type);
+        http.SetMethod(_curltype);
         if (http.Connect(uri.GetServer()))
         {
-            if (_type == "POST")
+            if (_curltype == "POST")
             {
                 http.SetPostText("application/x-www-form-urlencoded", _body);
             }
@@ -131,7 +132,7 @@ void PlayListItemCURL::Frame(uint8_t* buffer, size_t size, size_t ms, size_t fra
                 logger_base.error("CURL: Error getting page %s from %s.", (const char*)page.c_str(), (const char *)uri.GetServer().c_str());
             }
 
-            if (_type == "POST")
+            if (_curltype == "POST")
             {
                 http.SetPostText("", "");
             }

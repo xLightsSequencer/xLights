@@ -16,6 +16,7 @@ void PlayListItemDelay::Load(wxXmlNode* node)
 
 PlayListItemDelay::PlayListItemDelay() : PlayListItem()
 {
+    _type = "PLIDelay";
     _duration = 50;
     SetName("Delay");
 }
@@ -31,7 +32,7 @@ PlayListItem* PlayListItemDelay::Copy() const
 
 wxXmlNode* PlayListItemDelay::Save()
 {
-    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "PLIDelay");
+    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, GetType());
 
     node->AddAttribute("Duration", wxString::Format(wxT("%i"), (long)_duration));
    

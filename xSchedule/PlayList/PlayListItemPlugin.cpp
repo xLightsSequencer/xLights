@@ -30,6 +30,7 @@ void PlayListItemPlugin::Load(wxXmlNode* node)
 
 PlayListItemPlugin::PlayListItemPlugin() : PlayListItem()
 {
+    _type = "PLIPlugin";
     _started = false;
     _plugin = "";
     _action = "Start";
@@ -50,7 +51,7 @@ PlayListItem* PlayListItemPlugin::Copy() const
 
 wxXmlNode* PlayListItemPlugin::Save()
 {
-    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "PLIPlugin");
+    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, GetType());
 
     node->AddAttribute("Plugin", _plugin);
     node->AddAttribute("Action", _action);

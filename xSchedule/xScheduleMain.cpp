@@ -139,6 +139,7 @@ const long xScheduleFrame::ID_PANEL2 = wxNewId();
 const long xScheduleFrame::ID_TREECTRL1 = wxNewId();
 const long xScheduleFrame::ID_BUTTON1 = wxNewId();
 const long xScheduleFrame::ID_BUTTON2 = wxNewId();
+const long xScheduleFrame::ID_BUTTON5 = wxNewId();
 const long xScheduleFrame::ID_BUTTON3 = wxNewId();
 const long xScheduleFrame::ID_BUTTON4 = wxNewId();
 const long xScheduleFrame::ID_PANEL6 = wxNewId();
@@ -438,6 +439,8 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     BoxSizer1->Add(Button_Add, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Button_Edit = new wxButton(Panel6, ID_BUTTON2, _("Edit"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
     BoxSizer1->Add(Button_Edit, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Button_Clone = new wxButton(Panel6, ID_BUTTON5, _("Clone"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON5"));
+    BoxSizer1->Add(Button_Clone, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Button_Delete = new wxButton(Panel6, ID_BUTTON3, _("Delete"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON3"));
     BoxSizer1->Add(Button_Delete, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Button_Schedule = new wxButton(Panel6, ID_BUTTON4, _("Schedule"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON4"));
@@ -620,6 +623,7 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     Connect(ID_TREECTRL1,wxEVT_COMMAND_TREE_ITEM_MENU,(wxObjectEventFunction)&xScheduleFrame::OnTreeCtrl_PlayListsSchedulesItemMenu);
     Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xScheduleFrame::OnButton_AddClick);
     Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xScheduleFrame::OnButton_EditClick);
+    Connect(ID_BUTTON5,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xScheduleFrame::OnButton_CloneClick);
     Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xScheduleFrame::OnButton_DeleteClick);
     Connect(ID_BUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xScheduleFrame::OnButton_ScheduleClick);
     Connect(ID_LISTVIEW2,wxEVT_COMMAND_LIST_ITEM_ACTIVATED,(wxObjectEventFunction)&xScheduleFrame::OnListView_PingItemActivated);
@@ -952,6 +956,13 @@ void xScheduleFrame::AddIPs()
 
 xScheduleFrame::~xScheduleFrame()
 {
+    // stop the timers immediately
+    _timer.Stop();
+    _timerSchedule.Stop();
+
+    // give them plenty of time to stop
+    wxMilliSleep(100);
+
     _pluginManager.Uninitialise();
 
     if (_pinger != nullptr)
@@ -1549,11 +1560,13 @@ void xScheduleFrame::ValidateWindow()
     wxTreeItemId treeitem = TreeCtrl_PlayListsSchedules->GetSelection();
     if (IsPlayList(treeitem) || IsSchedule(treeitem))
     {
+        Button_Clone->Enable();
         Button_Delete->Enable();
         Button_Edit->Enable();
     }
     else
     {
+        Button_Clone->Enable(false);
         Button_Delete->Enable(false);
         Button_Edit->Enable(false);
     }
@@ -3355,5 +3368,37 @@ void xScheduleFrame::OnMenuItem_RemoteLatencySelected(wxCommandEvent& event)
     {
         __schedule->GetOptions()->SetRemoteLatency(dlg.GetLatency());
         __schedule->GetOptions()->SetRemoteAcceptableJitter(dlg.GetJitter());
+    }
+}
+void xScheduleFrame::OnButton_CloneClick(wxCommandEvent& event)
+{
+    wxTreeItemId treeitem = TreeCtrl_PlayListsSchedules->GetSelection();
+    if (treeitem.IsOk())
+    {
+        if (IsPlayList(treeitem))
+        {
+            PlayList* playlist = (PlayList*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(treeitem))->GetData();
+            PlayList* newpl = new PlayList(*playlist, true);
+            wxTreeItemId  newitem = TreeCtrl_PlayListsSchedules->AppendItem(TreeCtrl_PlayListsSchedules->GetRootItem(), playlist->GetName(), -1, -1, new MyTreeItemData(newpl));
+            TreeCtrl_PlayListsSchedules->Expand(newitem);
+            TreeCtrl_PlayListsSchedules->EnsureVisible(newitem);
+            __schedule->AddPlayList(newpl);
+        }
+        else if (IsSchedule(treeitem))
+        {
+            wxTreeItemId plid = TreeCtrl_PlayListsSchedules->GetItemParent(treeitem);
+            Schedule* schedule = (Schedule*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(treeitem))->GetData();
+            if (plid.IsOk())
+            {
+                wxTreeItemId  newitem = TreeCtrl_PlayListsSchedules->AppendItem(plid, GetScheduleName(schedule, __schedule->GetRunningSchedules()), -1, -1, new MyTreeItemData(schedule));
+                PlayList* playlist = (PlayList*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(plid))->GetData();
+                Schedule* newSchedule = new Schedule(*schedule);
+                TreeCtrl_PlayListsSchedules->Expand(plid);
+                TreeCtrl_PlayListsSchedules->EnsureVisible(newitem);
+                playlist->AddSchedule(newSchedule);
+            }
+        }
+        UpdateSchedule();
+        UpdateUI();
     }
 }

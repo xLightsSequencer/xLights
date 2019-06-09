@@ -52,6 +52,7 @@ void PlayListItemImage::Load(wxXmlNode* node)
 
 PlayListItemImage::PlayListItemImage() : PlayListItem()
 {
+    _type = "PLIImage";
     _gifImage = nullptr;
     _topMost = true;
     _suppressVirtualMatrix = false;
@@ -81,7 +82,7 @@ PlayListItem* PlayListItemImage::Copy() const
 
 wxXmlNode* PlayListItemImage::Save()
 {
-    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "PLIImage");
+    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, GetType());
 
     node->AddAttribute("ImageFile", _ImageFile);
     node->AddAttribute("X", wxString::Format(wxT("%i"), _origin.x));

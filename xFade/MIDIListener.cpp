@@ -29,6 +29,7 @@ MIDIListener::MIDIListener(int deviceId, wxWindow* win)
         // check device id is valid
         if (IsValidDeviceId(deviceId))
         {
+            _deviceId = deviceId;
             _thread = new ListenerThread(deviceId, win);
             wxMilliSleep(20);
             if (!_thread->IsOk())
@@ -53,7 +54,6 @@ void MIDIListener::Stop()
         _thread->Stop();
         //_thread->Wait();
         //delete _thread;
-        wxMilliSleep(10);
         _thread = nullptr;
     }
 }
@@ -71,30 +71,6 @@ void MIDIListener::SetTempWindow(wxWindow* win)
 bool MIDIListener::IsOk() const
 {
     return _thread != nullptr && _thread->IsOk();
-}
-
-void MIDIListener::SetDeviceId(int id, wxWindow* win)
-{
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
-    if (id < 0)
-    {
-        Stop();
-    }
-    else
-    {
-        if (_thread != nullptr && id != _thread->GetDeviceId())
-        {
-            Stop();
-        }
-        _thread = new ListenerThread(id, win);
-        wxMilliSleep(20);
-        if (!_thread->IsOk())
-        {
-            logger_base.error("MIDI listening thread failed.");
-            _thread = nullptr;
-        }
-    }
 }
 
 ListenerThread::ListenerThread(int deviceId, wxWindow* win)
@@ -149,13 +125,20 @@ void* ListenerThread::Entry()
             _isOk = true;
         }
     }
+    else
+    {
+        logger_base.error("    Failed to create MIDI.");
+        return nullptr;
+    }
+
+    wxString device = wxString::Format("%d", _deviceId);
 
     while (!_stop)
     {
         wxMidiError error;
         wxMidiMessage* message = _midiIn->Read(&error);
 
-        if (error == wxMIDI_NO_ERROR && message != nullptr)
+        while (error == wxMIDI_NO_ERROR && message != nullptr)
         {
             if (message->GetType() == wxMIDI_SHORT_MSG)
             {
@@ -198,6 +181,7 @@ void* ListenerThread::Entry()
                                 (((int)msg->GetStatus() & 0x0F) << 16) + 
                                 ((int)msg->GetData1() << 8) + 
                                 (int)msg->GetData2();
+                    event.SetString(device);
                     event.SetInt(value);
                     wxPostEvent(_target, event);
                 }
@@ -229,7 +213,10 @@ void* ListenerThread::Entry()
                     break;
                 }
             }
+            message = _midiIn->Read(&error);
         }
+
+        wxMilliSleep(50);
     }
 
     _midiIn->Close();

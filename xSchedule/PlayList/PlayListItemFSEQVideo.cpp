@@ -221,6 +221,7 @@ void PlayListItemFSEQVideo::LoadFiles(bool doCache)
 
 PlayListItemFSEQVideo::PlayListItemFSEQVideo(OutputManager* outputManager) : PlayListItem()
 {
+    _type = "PLIFSEQVideo";
     _outputManager = outputManager;
     _fadeInMS = 0;
     _fadeOutMS = 0;
@@ -287,7 +288,7 @@ PlayListItem* PlayListItemFSEQVideo::Copy() const
 
 wxXmlNode* PlayListItemFSEQVideo::Save()
 {
-    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "PLIFSEQVideo");
+    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, GetType());
 
     node->AddAttribute("FSEQFile", _fseqFileName);
     _fseqFileName = FixFile("", _fseqFileName);

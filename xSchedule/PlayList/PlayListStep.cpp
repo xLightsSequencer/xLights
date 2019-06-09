@@ -233,7 +233,7 @@ void PlayListStep::Load(OutputManager* outputManager, wxXmlNode* node)
         {
             _items.push_back(new PlayListItemJukebox(n));
         }
-        else if (n->GetName() == "PLIAllSet")
+        else if (n->GetName() == "PLIAllSet" || n->GetName() == "PLIAllOff")
         {
             _items.push_back(new PlayListItemAllOff(outputManager, n));
         }
@@ -464,6 +464,12 @@ bool PlayListStep::Frame(uint8_t* buffer, size_t size, bool outputframe)
     }
 
     //logger_base.debug("Step %s frame %ld start.", (const char *)GetNameNoTime().c_str(), (long)frameMS);
+
+    if (frameMS >= GetLengthMS())
+    {
+        // we are done
+        return true;
+    }
 
     wxStopWatch sw;
     // we do this backwards to ensure the right render order

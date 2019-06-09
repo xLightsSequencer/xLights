@@ -53,6 +53,7 @@ public:
     std::list<PlayListItem*> GetItems();
     bool IsDirty();
     void ClearDirty();
+    void SetDirty() { _changeCount++; }
     std::string GetStatus(bool ms = false);
     bool GetExcludeFromRandom() const { return _excludeFromRandom; }
     void SetExcludeFromRandom(bool efr) { if (_excludeFromRandom != efr) { _excludeFromRandom = efr; _changeCount++; } }

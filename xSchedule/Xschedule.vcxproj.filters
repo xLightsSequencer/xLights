@@ -261,9 +261,6 @@
     <ClCompile Include="PlayList\PlayListItem.cpp">
       <Filter>PlayList</Filter>
     </ClCompile>
-    <ClCompile Include="PlayList\PlayListItemAllOff.cpp">
-      <Filter>PlayList</Filter>
-    </ClCompile>
     <ClCompile Include="PlayList\PlayListItemAllOffPanel.cpp">
       <Filter>PlayList</Filter>
     </ClCompile>
@@ -499,6 +496,9 @@
       <Filter>PlayList</Filter>
     </ClCompile>
     <ClCompile Include="PlayList\PlayListItemPlugin.cpp">
+      <Filter>PlayList</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayList\PlayListItemAllOff.cpp">
       <Filter>PlayList</Filter>
     </ClCompile>
   </ItemGroup>
@@ -747,9 +747,6 @@
     <ClInclude Include="PlayList\PlayListItem.h">
       <Filter>PlayList</Filter>
     </ClInclude>
-    <ClInclude Include="PlayList\PlayListItemAllOff.h">
-      <Filter>PlayList</Filter>
-    </ClInclude>
     <ClInclude Include="PlayList\PlayListItemAllOffPanel.h">
       <Filter>PlayList</Filter>
     </ClInclude>
@@ -988,6 +985,9 @@
       <Filter>PlayList</Filter>
     </ClInclude>
     <ClInclude Include="PlayList\PlayListItemPlugin.h">
+      <Filter>PlayList</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayList\PlayListItemAllOff.h">
       <Filter>PlayList</Filter>
     </ClInclude>
   </ItemGroup>

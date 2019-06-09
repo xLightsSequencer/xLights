@@ -37,6 +37,7 @@ void PlayListItemTest::Load(wxXmlNode* node)
 
 PlayListItemTest::PlayListItemTest(OutputManager* outputManager) : PlayListItem()
 {
+    _type = "PLITest";
     _outputManager = outputManager;
     _sc = 0;
     _startChannel = "1";
@@ -67,7 +68,7 @@ PlayListItem* PlayListItemTest::Copy() const
 
 wxXmlNode* PlayListItemTest::Save()
 {
-    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "PLITest");
+    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, GetType());
 
     node->AddAttribute("Mode", _mode);
     node->AddAttribute("StartChannel", _startChannel);

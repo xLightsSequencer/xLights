@@ -26,6 +26,7 @@ void PlayListItemFade::Load(wxXmlNode* node)
 
 PlayListItemFade::PlayListItemFade(OutputManager* outputManager) : PlayListItem()
 {
+    _type = "PLIFade";
     _outputManager = outputManager;
     _sc = 0;
     _channels = 0;
@@ -60,7 +61,7 @@ size_t PlayListItemFade::GetStartChannelAsNumber()
 
 wxXmlNode* PlayListItemFade::Save()
 {
-    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "PLIFade");
+    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, GetType());
 
     node->AddAttribute("Duration", wxString::Format(wxT("%i"), (long)_duration));
     node->AddAttribute("StartChannel", _startChannel);

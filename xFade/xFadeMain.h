@@ -68,13 +68,14 @@ class xFadeFrame : public wxFrame
     wxDatagramSocket* _e131SocketReceive;
     wxDatagramSocket* _artNETSocketReceive;
     Emitter* _emitter;
-    MIDIListener* _midiListener;
+    std::list<MIDIListener*> _midiListeners;
     std::mutex _lock;
     int _direction; // auto fade direction
     wxLed* Led_Left;
     wxLed* Led_Right;
     wxFont* _selectedButtonFont;
 
+    void StartMIDIListeners();
     std::string ExtractE131Tag(wxByte* packet);
     void SetFade();
     void SetTiming();

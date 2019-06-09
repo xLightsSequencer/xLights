@@ -3,6 +3,50 @@
 #include "../../include/shader_32.xpm"
 #include "../../include/shader_24.xpm"
 #include "../../include/shader_16.xpm"
+#include <wx/wx.h>
+
+#ifndef __WXMAC__
+    #include <GL/gl.h>
+    #ifdef _MSC_VER
+        #include "GL\glext.h"
+    #else
+        #include <GL/glext.h>
+    #endif
+
+    #ifdef __WXMSW__
+        extern PFNGLACTIVETEXTUREPROC glActiveTexture;
+    #endif
+    extern PFNGLGENBUFFERSPROC glGenBuffers;
+    extern PFNGLBINDBUFFERPROC glBindBuffer;
+    extern PFNGLBUFFERDATAPROC glBufferData;
+    extern PFNGLGETATTRIBLOCATIONPROC glGetAttribLocation;
+    extern PFNGLENABLEVERTEXATTRIBARRAYPROC glEnableVertexAttribArray;
+    extern PFNGLDISABLEVERTEXATTRIBARRAYPROC glDisableVertexAttribArray;
+    extern PFNGLVERTEXATTRIBPOINTERPROC glVertexAttribPointer;
+    extern PFNGLDELETEBUFFERSPROC glDeleteBuffers;
+    extern PFNGLDELETEPROGRAMPROC glDeleteProgram;
+    extern PFNGLUSEPROGRAMPROC glUseProgram;
+    extern PFNGLGETUNIFORMLOCATIONPROC glGetUniformLocation;
+    extern PFNGLUNIFORMMATRIX2FVPROC glUniformMatrix4fv;
+    extern PFNGLGENFRAMEBUFFERSPROC glGenFramebuffers;
+    extern PFNGLBINDFRAMEBUFFERPROC glBindFramebuffer;
+    extern PFNGLDELETEFRAMEBUFFERSPROC glDeleteFramebuffers;
+    extern PFNGLGENRENDERBUFFERSPROC glGenRenderbuffers;
+    extern PFNGLBINDRENDERBUFFERPROC glBindRenderbuffer;
+    extern PFNGLRENDERBUFFERSTORAGEPROC glRenderbufferStorage;
+    extern PFNGLFRAMEBUFFERRENDERBUFFERPROC glFramebufferRenderbuffer;
+    extern PFNGLDELETERENDERBUFFERSPROC glDeleteRenderbuffers;
+    extern PFNGLBINDVERTEXARRAYPROC glBindVertexArray;
+    extern PFNGLGENVERTEXARRAYSPROC glGenVertexArrays;
+    extern PFNGLUNIFORM1IPROC glUniform1i;
+    extern PFNGLUNIFORM1FPROC glUniform1f;
+    extern PFNGLUNIFORM2FPROC glUniform2f;
+    extern PFNGLUNIFORM4FPROC glUniform4f;
+#else
+    #include "OpenGL/gl3.h"
+    #define __gl_h_
+    #include <OpenGL/OpenGL.h>
+#endif
 
 #include "ShaderEffect.h"
 #include "ShaderPanel.h"
@@ -18,45 +62,6 @@
 
 #include <wx/regex.h>
 
-// Ack... forgot the old warp effect needed all of this!!
-#ifndef __WXMAC__
-#include <GL/gl.h>
-#ifdef _MSC_VER
-#include "GL\glext.h"
-#else
-#include <GL/glext.h>
-#endif
-
-extern PFNGLGENBUFFERSPROC glGenBuffers;
-extern PFNGLBINDBUFFERPROC glBindBuffer;
-extern PFNGLBUFFERDATAPROC glBufferData;
-extern PFNGLGETATTRIBLOCATIONPROC glGetAttribLocation;
-extern PFNGLENABLEVERTEXATTRIBARRAYPROC glEnableVertexAttribArray;
-extern PFNGLDISABLEVERTEXATTRIBARRAYPROC glDisableVertexAttribArray;
-extern PFNGLVERTEXATTRIBPOINTERPROC glVertexAttribPointer;
-extern PFNGLDELETEBUFFERSPROC glDeleteBuffers;
-extern PFNGLACTIVETEXTUREPROC glActiveTexture;
-extern PFNGLDELETEPROGRAMPROC glDeleteProgram;
-extern PFNGLUSEPROGRAMPROC glUseProgram;
-extern PFNGLGETUNIFORMLOCATIONPROC glGetUniformLocation;
-extern PFNGLUNIFORMMATRIX2FVPROC glUniformMatrix4fv;
-extern PFNGLGENFRAMEBUFFERSPROC glGenFramebuffers;
-extern PFNGLBINDFRAMEBUFFERPROC glBindFramebuffer;
-extern PFNGLDELETEFRAMEBUFFERSPROC glDeleteFramebuffers;
-extern PFNGLGENRENDERBUFFERSPROC glGenRenderbuffers;
-extern PFNGLBINDRENDERBUFFERPROC glBindRenderbuffer;
-extern PFNGLRENDERBUFFERSTORAGEPROC glRenderbufferStorage;
-extern PFNGLFRAMEBUFFERRENDERBUFFERPROC glFramebufferRenderbuffer;
-extern PFNGLDELETERENDERBUFFERSPROC glDeleteRenderbuffers;
-extern PFNGLBINDVERTEXARRAYPROC glBindVertexArray;
-extern PFNGLGENVERTEXARRAYSPROC glGenVertexArrays;
-extern PFNGLUNIFORM1IPROC glUniform1i;
-extern PFNGLUNIFORM1FPROC glUniform1f;
-extern PFNGLUNIFORM2FPROC glUniform2f;
-extern PFNGLUNIFORM4FPROC glUniform4f;
-#else
-#include "OpenGL/gl.h"
-#endif
 
 #include <log4cpp/Category.hh>
 #include <fstream>
@@ -108,7 +113,7 @@ namespace
         "in vec2 vpos;\n"
         "in vec2 tpos;\n"
         "out vec2 texCoord;\n"
-        "varying vec2 isf_FragNormCoord;"
+        "out vec2 isf_FragNormCoord;"
         "void isf_vertShaderInit(void)\n"
         "{\n"
         //"   gl_Position = ftransform();\n"
@@ -225,6 +230,11 @@ public:
     virtual ~ShaderRenderCache()
     {
         if (_shaderConfig != nullptr) delete _shaderConfig;
+        #ifdef __WXOSX__
+        if (s_glContext) {
+            WXGLDestroyContext(s_glContext);
+        }
+        #endif
     }
 
     ShaderConfig* _shaderConfig = nullptr;
@@ -243,7 +253,49 @@ public:
         if (_shaderConfig != nullptr) delete _shaderConfig;
         _shaderConfig = ShaderEffect::ParseShader(filename);
     }
+    
+#ifdef __WXOSX__
+    WXGLContext s_glContext = nullptr;
+#endif
 };
+
+
+bool ShaderEffect::CanRenderOnBackgroundThread(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer)
+{
+#ifdef __WXOSX__
+    // if we create a specific OpenGL context for this thread and not try to share contexts between threads,
+    // the OSX GL engine is thread safe.
+    return true;
+#else
+    return false;
+#endif
+}
+
+void ShaderEffect::SetGLContext(ShaderRenderCache *cache) {
+#ifdef __WXOSX__
+    if (cache->s_glContext == nullptr) {
+        wxGLAttributes attributes;
+        attributes.AddAttribute(51 /* NSOpenGLPFAMinimumPolicy */ );
+        attributes.AddAttribute(96 /* NSOpenGLPFAAcceleratedCompute */ );
+        attributes.AddAttribute(97 /* NSOpenGLPFAAllowOfflineRenderers */ );
+        attributes.MinRGBA(8, 8, 8, 8).EndList();
+        wxGLContextAttrs cxtAttrs;
+        cxtAttrs.CoreProfile().EndList();
+        
+        WXGLPixelFormat pixelFormat = WXGLChoosePixelFormat(attributes.GetGLAttrs(),
+                                                            attributes.GetSize(),
+                                                            cxtAttrs.GetGLAttrs(),
+                                                            cxtAttrs.GetSize());
+        cache->s_glContext = WXGLCreateContext(pixelFormat, nullptr);
+        WXGLDestroyPixelFormat(pixelFormat);
+    }
+    WXGLSetCurrentContext(cache->s_glContext);
+#else
+    ShaderPanel *p = (ShaderPanel *)panel;
+    p->_preview->SetCurrentGLContext();
+#endif
+}
+
 
 void ShaderEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &buffer)
 {
@@ -275,6 +327,8 @@ void ShaderEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &b
     int&      s_rbWidth = cache->s_rbWidth;
     int&      s_rbHeight = cache->s_rbHeight;
 
+    SetGLContext(cache);
+
     if (buffer.needToInit)
     {
         buffer.needToInit = false;
@@ -305,8 +359,6 @@ void ShaderEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &b
     // todo is there more of this code we could add to the needtoinit case as this only happens on the first frame
     // ***********************************************************************************************************
 
-    ShaderPanel *p = (ShaderPanel *)panel;
-    p->_preview->SetCurrentGLContext();
 
     // We re-use the same framebuffer for rendering all the shader effects
     sizeForRenderBuffer( buffer, s_shadersInit, s_vertexArrayId, s_vertexBufferId, s_rbId, s_fbId, s_rbTex, s_rbWidth, s_rbHeight );
@@ -330,10 +382,8 @@ void ShaderEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &b
     int loc = glGetUniformLocation( programId, "RENDERSIZE" );
     if (loc >= 0) {
         glUniform2f(loc, buffer.BufferWi, buffer.BufferHt);
-    }
-    else {
-        if (buffer.curPeriod == buffer.curEffStartPer && _shaderConfig->HasRendersize())
-        {
+    } else {
+        if (buffer.curPeriod == buffer.curEffStartPer && _shaderConfig->HasRendersize()) {
             logger_base.warn("Unable to bind to RENDERSIZE\n%s", (const char *)_shaderConfig->GetCode().c_str());
         }
     }
@@ -341,8 +391,7 @@ void ShaderEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &b
     loc = glGetUniformLocation( programId, "TIME" );
     if (loc >= 0) {
         glUniform1f(loc, (float)(buffer.curPeriod - buffer.curEffStartPer) / (1000.0 / (float)buffer.frameTimeInMs));
-    } 
-    else {
+    } else {
         if (buffer.curPeriod == buffer.curEffStartPer && _shaderConfig->HasTime())
             logger_base.warn("Unable to bind to TIME\n%s", (const char*)_shaderConfig->GetCode().c_str());
     }
@@ -352,55 +401,32 @@ void ShaderEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &b
         wxDateTime dt = wxDateTime::Now();
         glUniform4f(loc, dt.GetYear(), dt.GetMonth()+1, dt.GetDay(), dt.GetHour() * 3600 + dt.GetMinute()*60 + dt.GetSecond());
     }
-    else {
-        if (buffer.curPeriod == buffer.curEffStartPer && _shaderConfig->HasTime())
-            logger_base.warn("Unable to bind to DATE\n%s", (const char*)_shaderConfig->GetCode().c_str());
-    }
 
     loc = glGetUniformLocation(programId, "PASSINDEX");
     if (loc >= 0) {
         glUniform1i(loc, 0);
-    }
-    else {
-        if (buffer.curPeriod == buffer.curEffStartPer)
-            logger_base.warn("Unable to bind to PASSINDEX\n%s", (const char*)_shaderConfig->GetCode().c_str());
     }
 
     loc = glGetUniformLocation(programId, "FRAMEINDEX");
     if (loc >= 0) {
         glUniform1i(loc, buffer.curPeriod - buffer.curEffStartPer);
     }
-    else {
-        if (buffer.curPeriod == buffer.curEffStartPer)
-            logger_base.warn("Unable to bind to FRAMEINDEX\n%s", (const char*)_shaderConfig->GetCode().c_str());
-    }
 
     loc = glGetUniformLocation(programId, "clearBuffer");
     if (loc >= 0) {
         glUniform1f(loc, SettingsMap.GetBool("CHECKBOX_OverlayBkg",false) ? 1.0 : 0.0);
-    }
-    else {
-        if (buffer.curPeriod == buffer.curEffStartPer)
-            logger_base.warn("Unable to bind to clearBuffer");
     }
 
     loc = glGetUniformLocation(programId, "resetNow");
     if (loc >= 0) {
         glUniform1f(loc, (buffer.curPeriod == buffer.curEffStartPer) ? 1.0 : 0.0);
     }
-    else {
-        if (buffer.curPeriod == buffer.curEffStartPer)
-            logger_base.warn("Unable to bind to resetNow");
-    }
 
     loc = glGetUniformLocation( programId, "texSampler" );
     if (loc >= 0) {
         glUniform1i(loc, 0);
-    } 
-    else {
-        if (buffer.curPeriod == buffer.curEffStartPer)
-            logger_base.warn("Unable to bind to texSampler");
     }
+    
     float oset = buffer.GetEffectTimeIntervalPosition();
     for (auto it : _shaderConfig->GetParms())
     {
@@ -724,7 +750,17 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
 
     // The shader code needs declarations for the uniforms that we silently set with each call to Render()
     // and the uniforms that correspond to user-visible settings
-    wxString prependText = "#version 330\n\nuniform float TIME;\nuniform vec2 RENDERSIZE;\nuniform bool clearBuffer;\nuniform bool resetNow;\nuniform int PASSINDEX;\nuniform int FRAMEINDEX;\nuniform sampler2D texSampler;\nvarying vec2 isf_FragNormCoord;\nuniform vec4 DATE;\n\n";
+    wxString prependText = "#version 330\n\n"
+    "uniform float TIME;\n"
+    "uniform vec2 RENDERSIZE;\n"
+    "uniform bool clearBuffer;\n"
+    "uniform bool resetNow;\n"
+    "uniform int PASSINDEX;\n"
+    "uniform int FRAMEINDEX;\n"
+    "uniform sampler2D texSampler;\n"
+    "in vec2 isf_FragNormCoord;\n"
+    "out vec4 fragmentColor;\n"
+    "uniform vec4 DATE;\n\n";
 
     for (auto p : _parms)
     {
@@ -770,17 +806,18 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
         }
     }
 
-    prependText += "vec4 IMG_NORM_PIXEL_2D(sampler2D sampler, vec2 pct, vec2 normLoc)\n{\n   vec2 coord = normLoc;\n   return texture2D(sampler, coord* pct);\n}\n\n";
+    prependText += "vec4 IMG_NORM_PIXEL_2D(sampler2D sampler, vec2 pct, vec2 normLoc)\n{\n   vec2 coord = normLoc;\n   return texture(sampler, coord* pct);\n}\n\n";
     prependText += "vec4 IMG_PIXEL_2D(sampler2D sampler, vec2 pct, vec2 loc)\n{\n   return IMG_NORM_PIXEL_2D(sampler, pct, loc / RENDERSIZE);\n}\n\n";
-    prependText += "vec4 IMG_THIS_NORM_PIXEL_2D(sampler2D sampler, vec2 pct)\n{\n   vec2 coord = isf_FragNormCoord;\n   return texture2D(sampler, coord * pct);\n}\n\n";
+    prependText += "vec4 IMG_THIS_NORM_PIXEL_2D(sampler2D sampler, vec2 pct)\n{\n   vec2 coord = isf_FragNormCoord;\n   return texture(sampler, coord * pct);\n}\n\n";
     prependText += "vec4 IMG_THIS_PIXEL_2D(sampler2D sampler, vec2 pct)\n{\n   return IMG_THIS_NORM_PIXEL_2D(sampler, pct);\n}\n\n";
-    prependText += "vec4 IMG_NORM_PIXEL_RECT(sampler2DRect sampler, vec2 pct, vec2 normLoc)\n{\n   vec2 coord = normLoc;\n   return texture2DRect(sampler, coord * RENDERSIZE);\n}\n\n";
+    prependText += "vec4 IMG_NORM_PIXEL_RECT(sampler2DRect sampler, vec2 pct, vec2 normLoc)\n{\n   vec2 coord = normLoc;\n   return texture(sampler, coord * RENDERSIZE);\n}\n\n";
     prependText += "vec4 IMG_PIXEL_RECT(sampler2DRect sampler, vec2 pct, vec2 loc)\n{\n   return IMG_NORM_PIXEL_RECT(sampler, pct, loc / RENDERSIZE);\n}\n\n";
-    prependText += "vec4 IMG_THIS_NORM_PIXEL_RECT(sampler2DRect sampler, vec2 pct)\n{\n   vec2 coord = isf_FragNormCoord;\n   return texture2DRect(sampler, coord * RENDERSIZE);\n}\n\n";
+    prependText += "vec4 IMG_THIS_NORM_PIXEL_RECT(sampler2DRect sampler, vec2 pct)\n{\n   vec2 coord = isf_FragNormCoord;\n   return texture(sampler, coord * RENDERSIZE);\n}\n\n";
     prependText += "vec4 IMG_THIS_PIXEL_RECT(sampler2DRect sampler, vec2 pct)\n{\n   return IMG_THIS_NORM_PIXEL_RECT(sampler, pct);\n}\n\n";
 
     size_t pos = code.find("*/");
     wxString shaderCode = (pos != wxString::npos) ? code.substr(pos + 2) : code;
+    shaderCode.Replace("gl_FragColor", "fragmentColor");
     if (!canvasImgName.empty())
     {
         shaderCode.Replace(canvasImgName, "texSampler");

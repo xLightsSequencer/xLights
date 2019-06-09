@@ -492,7 +492,7 @@ xFadeFrame::xFadeFrame(wxWindow* parent, wxWindowID id)
     TextCtrl_LeftTag->SetValue("");
     TextCtrl_RightTag->SetValue("");
 
-    _midiListener = new MIDIListener(_settings.GetMIDIDeviceId(), this);
+    StartMIDIListeners();
 
     ValidateWindow();
 }
@@ -525,16 +525,20 @@ void xFadeFrame::LoadState()
 
 xFadeFrame::~xFadeFrame()
 {
-    if (_midiListener != nullptr)
+    for (auto it: _midiListeners)
     {
-        _midiListener->Stop();
-        //delete _midiListener;
+        it->Stop();
+        //delete it;
     }
+
+    wxMilliSleep(100);
 
     if (_emitter != nullptr)
     {
         _emitter->Stop();
     }
+
+    wxMilliSleep(100);
 
     SaveState();
 
@@ -1150,12 +1154,13 @@ void xFadeFrame::CreateArtNETListener()
 
 void xFadeFrame::OnMIDIEvent(wxCommandEvent& event)
 {
+    int device = wxAtoi(event.GetString());
     wxByte status = (event.GetInt() >> 24) & 0xFF;
     wxByte channel = (event.GetInt() >> 16) & 0xFF;
     wxByte data1 = (event.GetInt() >> 8) & 0xFF;
     wxByte data2 = event.GetInt() & 0xFF;
 
-    wxString controlName = _settings.LookupMIDI(status, channel, data1);
+    wxString controlName = _settings.LookupMIDI(device, status, channel, data1);
 
     if (controlName == "") return;
 
@@ -1196,15 +1201,17 @@ void xFadeFrame::OnMIDIEvent(wxCommandEvent& event)
 
 void xFadeFrame::SetMIDIForControl(wxString controlName, float parm)
 {
-    int status, channel, data1;
-    _settings.LookupMIDI(controlName, status, channel, data1);
+    int status, channel, data1, device;
+    _settings.LookupMIDI(controlName, device, status, channel, data1);
 
-    MIDIAssociateDialog dlg(this, controlName, _midiListener, status, channel, data1);
+    MIDIAssociateDialog dlg(this, _midiListeners, controlName, status, channel, data1, Settings::GetMIDIDeviceName(device));
     if (dlg.ShowModal() == wxID_OK)
     {
-        _settings.SetMIDIControl(controlName, (dlg.Choice_Status->GetSelection() << 4) + 0x80, dlg.Choice_Channel->GetSelection(), dlg.Choice_Data1->GetSelection());
+        _settings.SetMIDIControl(dlg.Choice_MIDIDevice->GetStringSelection(), controlName, (dlg.Choice_Status->GetSelection() << 4) + 0x80, dlg.Choice_Channel->GetSelection(), dlg.Choice_Data1->GetSelection());
         SaveState();
     }
+    // This removes any unnecessary listeners the associate dialog added
+    StartMIDIListeners();
 }
 
 void xFadeFrame::OnResize(wxSizeEvent& event)
@@ -1393,6 +1400,40 @@ void xFadeFrame::OnUITimerTrigger(wxTimerEvent& event)
     }
 
     SetFade();
+}
+
+void xFadeFrame::StartMIDIListeners()
+{
+    auto devs = _settings.GetUsedMIDIDevices();
+    for (auto it = begin(_midiListeners); it != end(_midiListeners); )
+    {
+        if (std::find(begin(devs), end(devs), (*it)->GetDeviceId()) == devs.end())
+        {
+            (*it)->Stop();
+            delete *it;
+            it = _midiListeners.erase(it);
+        }
+        else
+        {
+            ++it;
+        }
+    }
+    for (auto it : _settings.GetUsedMIDIDevices())
+    {
+        bool found = false;
+        for (auto it2 : _midiListeners)
+        {
+            if (it2->GetDeviceId() == it)
+            {
+                found = true;
+                break;
+            }
+        }
+        if (!found)
+        {
+            _midiListeners.push_back(new MIDIListener(it, this));
+        }
+    }
 }
 
 std::string xFadeFrame::ExtractE131Tag(wxByte* packet)
@@ -1840,10 +1881,6 @@ void xFadeFrame::OnButton_ConfigureClick(wxCommandEvent& event)
     delete _emitter;
     _emitter = nullptr;
 
-    _midiListener->Stop();
-    delete _midiListener;
-    _midiListener = nullptr;
-
     if (dlg.ShowModal() == wxID_OK)
     {
         SaveState();
@@ -1854,7 +1891,6 @@ void xFadeFrame::OnButton_ConfigureClick(wxCommandEvent& event)
     _emitter->SetRightBrightness(Slider_RightBrightness->GetValue());
     SetTiming();
     SetFade();
-    _midiListener = new MIDIListener(_settings.GetMIDIDeviceId(), this);
 
     _leftReceived = 0;
     _rightReceived = 0;

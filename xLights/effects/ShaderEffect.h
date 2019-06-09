@@ -153,6 +153,7 @@ public:
     bool HasRendersize() const { return _hasRendersize; }
     bool HasTime() const { return _hasTime; }
 };
+class ShaderRenderCache;
 
 class ShaderEffect : public RenderableEffect
 {
@@ -161,7 +162,6 @@ public:
     virtual ~ShaderEffect();
     virtual bool CanBeRandom() override { return false; }
     virtual void Render(Effect* effect, SettingsMap& settings, RenderBuffer& buffer) override;
-    virtual bool CanRenderOnBackgroundThread(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override { return false; }
     virtual bool SupportsLinearColorCurves(const SettingsMap& SettingsMap) override { return false; }
     virtual void SetDefaultParameters() override;
     static ShaderConfig* ParseShader(const std::string& filename);
@@ -169,7 +169,11 @@ public:
     virtual bool CleanupFileLocations(xLightsFrame* frame, SettingsMap& SettingsMap) override;
     virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff) override;
 
+    virtual bool CanRenderOnBackgroundThread(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
+
 protected:
+    void SetGLContext(ShaderRenderCache *);
+    
     virtual void RemoveDefaults(const std::string& version, Effect* effect) override;
     virtual wxPanel* CreatePanel(wxWindow* parent) override;
 

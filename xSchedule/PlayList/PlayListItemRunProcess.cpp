@@ -25,6 +25,7 @@ void PlayListItemRunProcess::Load(wxXmlNode* node)
 
 PlayListItemRunProcess::PlayListItemRunProcess() : PlayListItem()
 {
+    _type = "PLIProcess";
     _started = false;
     _command = "";
     _waitForCompletion = false;
@@ -43,7 +44,7 @@ PlayListItem* PlayListItemRunProcess::Copy() const
 
 wxXmlNode* PlayListItemRunProcess::Save()
 {
-    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "PLIProcess");
+    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, GetType());
 
     node->AddAttribute("Command", _command);
     if (_waitForCompletion)
