@@ -625,10 +625,10 @@ std::list<Output*> ZCPPOutput::Discover(OutputManager* outputManager)
                             logger_base.debug("   Firmware %s", response.DiscoveryResponse.firmwareVersion);
 
                             auto ip = wxString::Format("%d.%d.%d.%d",
-                                (int)(response.DiscoveryResponse.ipv4Address & 0xFF),
-                                (int)(response.DiscoveryResponse.ipv4Address & 0xFF00) >> 8,
-                                (int)(response.DiscoveryResponse.ipv4Address & 0xFF0000) >> 16,
-                                (int)(response.DiscoveryResponse.ipv4Address & 0xFF000000) >> 24);
+                                (int)(uint8_t)(response.DiscoveryResponse.ipv4Address & 0xFF),
+                                (int)(uint8_t)((response.DiscoveryResponse.ipv4Address & 0xFF00) >> 8),
+                                (int)(uint8_t)((response.DiscoveryResponse.ipv4Address & 0xFF0000) >> 16),
+                                (int)(uint8_t)((response.DiscoveryResponse.ipv4Address & 0xFF000000) >> 24));
                             output->SetIP(ip.ToStdString());
                             logger_base.debug("   IP %s", (const char*)ip.c_str());
 
