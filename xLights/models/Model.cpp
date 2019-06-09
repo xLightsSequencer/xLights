@@ -2569,6 +2569,8 @@ void Model::InitRenderBufferNodes(const std::string &type, const std::string &ca
                     {
                         // Handle all of the 2D classic transformations
                         float sz = 0;
+                        // reintroducing the z coordinate as otherwise with some rotations we end up with a zero width buffer
+                        //float sz = it2->screenZ;
                         GetModelScreenLocation().TranslatePoint(sx, sy, sz);
                     }
                     else
