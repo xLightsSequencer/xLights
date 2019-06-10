@@ -38,9 +38,9 @@ struct ShaderParm
     wxString _name;
     wxString _label;
     ShaderParmType _type;
-    float _min = 0.0f;
-    float _max = 0.0f;
-    float _default = 0.0f;
+    double _min = 0.0f;
+    double _max = 0.0f;
+    double _default = 0.0f;
     wxRealPoint _minPt = { 0,0 };
     wxRealPoint _maxPt = { 0,0 };
     wxRealPoint _defaultPt = { 0,0 };
@@ -74,7 +74,7 @@ struct ShaderParm
         _type = type;
     }
 
-    ShaderParm(const wxString& name, const wxString& label, ShaderParmType type, float min, float max, float dfault)
+    ShaderParm(const wxString& name, const wxString& label, ShaderParmType type, double min, double max, double dfault)
     {
         _name = name;
         _label = label;

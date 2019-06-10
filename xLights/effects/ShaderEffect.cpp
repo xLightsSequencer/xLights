@@ -390,7 +390,7 @@ void ShaderEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &b
 
     loc = glGetUniformLocation( programId, "TIME" );
     if (loc >= 0) {
-        glUniform1f(loc, (float)(buffer.curPeriod - buffer.curEffStartPer) / (1000.0 / (float)buffer.frameTimeInMs));
+        glUniform1f(loc, (GLfloat)(buffer.curPeriod - buffer.curEffStartPer) / (1000.0 / (float)buffer.frameTimeInMs));
     } else {
         if (buffer.curPeriod == buffer.curEffStartPer && _shaderConfig->HasTime())
             logger_base.warn("Unable to bind to TIME\n%s", (const char*)_shaderConfig->GetCode().c_str());
@@ -437,14 +437,14 @@ void ShaderEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &b
             {
             case ShaderParmType::SHADER_PARM_FLOAT:
             {
-                float f = GetValueCurveDouble(it.GetUndecoratedId(ShaderCtrlType::SHADER_CTRL_VALUECURVE), it._default * 100.0, SettingsMap, oset, it._min * 100.0, it._max * 100.0, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), 1) / 100.0;
+                double f = GetValueCurveDouble(it.GetUndecoratedId(ShaderCtrlType::SHADER_CTRL_VALUECURVE), it._default * 100.0, SettingsMap, oset, it._min * 100.0, it._max * 100.0, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), 1) / 100.0;
                 glUniform1f(loc, f);
                 break;
             }
             case ShaderParmType::SHADER_PARM_POINT2D:
             {
-                float x = GetValueCurveDouble(it.GetUndecoratedId(ShaderCtrlType::SHADER_CTRL_VALUECURVE) + "X", it._defaultPt.x * 100, SettingsMap, oset, it._minPt.x * 100, it._maxPt.x * 100, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), 1) / 100.0;
-                float y = GetValueCurveDouble(it.GetUndecoratedId(ShaderCtrlType::SHADER_CTRL_VALUECURVE) + "Y", it._defaultPt.y * 100, SettingsMap, oset, it._minPt.y * 100, it._maxPt.y * 100, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), 1) / 100.0;
+                double x = GetValueCurveDouble(it.GetUndecoratedId(ShaderCtrlType::SHADER_CTRL_VALUECURVE) + "X", it._defaultPt.x * 100, SettingsMap, oset, it._minPt.x * 100, it._maxPt.x * 100, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), 1) / 100.0;
+                double y = GetValueCurveDouble(it.GetUndecoratedId(ShaderCtrlType::SHADER_CTRL_VALUECURVE) + "Y", it._defaultPt.y * 100, SettingsMap, oset, it._minPt.y * 100, it._maxPt.y * 100, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), 1) / 100.0;
                 glUniform2f(loc, x, y);
                 break;
             }
@@ -472,7 +472,7 @@ void ShaderEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &b
                 xlColor c = buffer.palette.GetColor(colourIndex);
                 colourIndex++;
                 if (colourIndex > buffer.GetColorCount()) colourIndex = 0;
-                glUniform4f(loc, (float)c.red / 255.0, (float)c.green / 255.0, (float)c.blue / 255.0, 1.0);
+                glUniform4f(loc, (double)c.red / 255.0, (double)c.green / 255.0, (double)c.blue / 255.0, 1.0);
                 break;
             }            
             default:
@@ -594,8 +594,22 @@ void ShaderEffect::recompileFromShaderConfig( const ShaderConfig* cfg, unsigned&
    }
 }
 
+wxString SafeFloat(const wxString& s)
+{
+    if (s.StartsWith("."))
+    {
+        return "0" + s;
+    }
+    else if (!s.Contains("."))
+    {
+        return s + ".0";
+    }
+    return s;
+}
+
 ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const wxString& json) : _filename(filename)
 {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxJSONReader reader;
     wxJSONValue root;
     reader.Parse(json, &root);
@@ -611,9 +625,9 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
                 inputs[i].HasMember("NAME") ? inputs[i]["NAME"].AsString() : "",
                 inputs[i].HasMember("LABEL") ? inputs[i]["LABEL"].AsString() : "",
                 ShaderParmType::SHADER_PARM_FLOAT,
-                (float)(inputs[i].HasMember("MIN") ? wxAtof(inputs[i]["MIN"].AsString()) : 0.0),
-                (float)(inputs[i].HasMember("MAX") ? wxAtof(inputs[i]["MAX"].AsString()) : 0.0),
-                (float)(inputs[i].HasMember("DEFAULT") ? wxAtof(inputs[i]["DEFAULT"].AsString()) : 0.0)
+                (double)(inputs[i].HasMember("MIN") ? wxAtof(SafeFloat(inputs[i]["MIN"].AsString())) : 0.0),
+                (double)(inputs[i].HasMember("MAX") ? wxAtof(SafeFloat(inputs[i]["MAX"].AsString())) : 1.0),
+                (double)(inputs[i].HasMember("DEFAULT") ? wxAtof(SafeFloat(inputs[i]["DEFAULT"].AsString())) : 0.0)
             ));
         }
         else if (type == "long")
@@ -624,9 +638,9 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
                     inputs[i].HasMember("NAME") ? inputs[i]["NAME"].AsString() : "",
                     inputs[i].HasMember("LABEL") ? inputs[i]["LABEL"].AsString() : "",
                     ShaderParmType::SHADER_PARM_LONG,
-                    (float)(inputs[i].HasMember("MIN") ? wxAtol(inputs[i]["MIN"].AsString()) : 0.0),
-                    (float)(inputs[i].HasMember("MAX") ? wxAtol(inputs[i]["MAX"].AsString()) : 0.0),
-                    (float)(inputs[i].HasMember("DEFAULT") ? wxAtol(inputs[i]["DEFAULT"].AsString()) : 0.0)
+                    (double)(inputs[i].HasMember("MIN") ? wxAtol(inputs[i]["MIN"].AsString()) : 0.0),
+                    (double)(inputs[i].HasMember("MAX") ? wxAtol(inputs[i]["MAX"].AsString()) : 1.0),
+                    (double)(inputs[i].HasMember("DEFAULT") ? wxAtol(inputs[i]["DEFAULT"].AsString()) : 0.0)
                 ));
             }
             else if (inputs[i].HasMember("LABELS") && inputs[i].HasMember("VALUES"))
@@ -637,7 +651,7 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
                     ShaderParmType::SHADER_PARM_LONGCHOICE,
                     0.0f,
                     0.0f,
-                    (float)(inputs[i].HasMember("DEFAULT") ? wxAtol(inputs[i]["DEFAULT"].AsString()) : 0.0)
+                    (double)(inputs[i].HasMember("DEFAULT") ? wxAtol(inputs[i]["DEFAULT"].AsString()) : 0.0)
                 ));
                 auto ls = inputs[i]["LABELS"];
                 auto vs = inputs[i]["VALUES"];
@@ -684,7 +698,7 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
                 ShaderParmType::SHADER_PARM_BOOL,
                 0.0f,
                 0.0f,
-                (float)(inputs[i].HasMember("DEFAULT") ? wxAtof(inputs[i]["DEFAULT"].AsString()) : 0.0f)
+                (double)(inputs[i].HasMember("DEFAULT") ? wxAtof(SafeFloat(inputs[i]["DEFAULT"].AsString())) : 0.0f)
             ));
         }
         else if (type == "point2D")
@@ -733,6 +747,7 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
         }
         else
         {
+            logger_base.warn("Unknown type parsing shader JSON : %s.", (const char*)type.c_str());
             wxASSERT(false);
         }
     }
@@ -789,13 +804,13 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
         }
         case ShaderParmType::SHADER_PARM_POINT2D:
         {
-            str = wxString::Format("uniform vec2 %s;\r\n", name);
+            str = wxString::Format("uniform vec2 %s;\n", name);
             prependText += str;
             break;
         }
         case ShaderParmType::SHADER_PARM_COLOUR:
         {
-            str = wxString::Format("uniform vec4 %s;\r\n", name);
+            str = wxString::Format("uniform vec4 %s;\n", name);
             prependText += str;
             break;
         }
@@ -823,6 +838,7 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
         shaderCode.Replace(canvasImgName, "texSampler");
         shaderCode.Replace("IMG_NORM_PIXEL", "texture");
         shaderCode.Replace("IMG_PIXEL", "IMG_THIS_NORM_PIXEL_2D");
+        shaderCode.Replace("IMG_THIS_NORM_PIXEL", "IMG_THIS_NORM_PIXEL_2D");
         _canvasMode = true;
     }
     _code = prependText + shaderCode;
