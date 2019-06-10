@@ -821,14 +821,18 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
         }
     }
 
-    prependText += "vec4 IMG_NORM_PIXEL_2D(sampler2D sampler, vec2 pct, vec2 normLoc)\n{\n   vec2 coord = normLoc;\n   return texture(sampler, coord* pct);\n}\n\n";
-    prependText += "vec4 IMG_PIXEL_2D(sampler2D sampler, vec2 pct, vec2 loc)\n{\n   return IMG_NORM_PIXEL_2D(sampler, pct, loc / RENDERSIZE);\n}\n\n";
-    prependText += "vec4 IMG_THIS_NORM_PIXEL_2D(sampler2D sampler, vec2 pct)\n{\n   vec2 coord = isf_FragNormCoord;\n   return texture(sampler, coord * pct);\n}\n\n";
-    prependText += "vec4 IMG_THIS_PIXEL_2D(sampler2D sampler, vec2 pct)\n{\n   return IMG_THIS_NORM_PIXEL_2D(sampler, pct);\n}\n\n";
-    prependText += "vec4 IMG_NORM_PIXEL_RECT(sampler2DRect sampler, vec2 pct, vec2 normLoc)\n{\n   vec2 coord = normLoc;\n   return texture(sampler, coord * RENDERSIZE);\n}\n\n";
-    prependText += "vec4 IMG_PIXEL_RECT(sampler2DRect sampler, vec2 pct, vec2 loc)\n{\n   return IMG_NORM_PIXEL_RECT(sampler, pct, loc / RENDERSIZE);\n}\n\n";
-    prependText += "vec4 IMG_THIS_NORM_PIXEL_RECT(sampler2DRect sampler, vec2 pct)\n{\n   vec2 coord = isf_FragNormCoord;\n   return texture(sampler, coord * RENDERSIZE);\n}\n\n";
-    prependText += "vec4 IMG_THIS_PIXEL_RECT(sampler2DRect sampler, vec2 pct)\n{\n   return IMG_THIS_NORM_PIXEL_RECT(sampler, pct);\n}\n\n";
+    prependText += "vec4 IMG_NORM_PIXEL_2D(sampler2D sampler, vec2 pct, vec2 normLoc) {\n   vec2 coord = normLoc;\n   return texture(sampler, coord* pct);\n}\n\n";
+    prependText += "vec4 IMG_NORM_PIXEL(sampler2D sampler, vec2 normLoc) {\n   vec2 coord = normLoc;\n   return texture(sampler, coord);\n}\n\n";
+    prependText += "vec4 IMG_PIXEL_2D(sampler2D sampler, vec2 pct, vec2 loc) {\n   return IMG_NORM_PIXEL_2D(sampler, pct, loc / RENDERSIZE);\n}\n\n";
+    prependText += "vec4 IMG_PIXEL(sampler2D sampler, vec2 loc) {\n   return texture(sampler, loc / RENDERSIZE);\n}\n\n";
+    prependText += "vec4 IMG_THIS_PIXEL(sampler2D sampler) {\n   vec2 coord = isf_FragNormCoord;\n   return texture(sampler, coord);\n}\n\n";
+    prependText += "vec4 IMG_THIS_NORM_PIXEL_2D(sampler2D sampler, vec2 pct) {\n   vec2 coord = isf_FragNormCoord;\n   return texture(sampler, coord * pct);\n}\n\n";
+    prependText += "vec4 IMG_THIS_NORM_PIXEL(sampler2D sampler) {\n   vec2 coord = isf_FragNormCoord;\n   return texture(sampler, coord);\n}\n\n";
+    prependText += "vec4 IMG_THIS_PIXEL_2D(sampler2D sampler, vec2 pct) {\n   return IMG_THIS_NORM_PIXEL_2D(sampler, pct);\n}\n\n";
+    prependText += "vec4 IMG_NORM_PIXEL_RECT(sampler2DRect sampler, vec2 pct, vec2 normLoc) {\n   vec2 coord = normLoc;\n   return texture(sampler, coord * RENDERSIZE);\n}\n\n";
+    prependText += "vec4 IMG_PIXEL_RECT(sampler2DRect sampler, vec2 pct, vec2 loc) {\n   return IMG_NORM_PIXEL_RECT(sampler, pct, loc / RENDERSIZE);\n}\n\n";
+    prependText += "vec4 IMG_THIS_NORM_PIXEL_RECT(sampler2DRect sampler, vec2 pct) {\n   vec2 coord = isf_FragNormCoord;\n   return texture(sampler, coord * RENDERSIZE);\n}\n\n";
+    prependText += "vec4 IMG_THIS_PIXEL_RECT(sampler2DRect sampler, vec2 pct) {\n   return IMG_THIS_NORM_PIXEL_RECT(sampler, pct);\n}\n\n";
 
     size_t pos = code.find("*/");
     wxString shaderCode = (pos != wxString::npos) ? code.substr(pos + 2) : code;
@@ -836,9 +840,6 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
     if (!canvasImgName.empty())
     {
         shaderCode.Replace(canvasImgName, "texSampler");
-        shaderCode.Replace("IMG_NORM_PIXEL", "texture");
-        shaderCode.Replace("IMG_PIXEL", "IMG_THIS_NORM_PIXEL_2D");
-        shaderCode.Replace("IMG_THIS_NORM_PIXEL", "IMG_THIS_NORM_PIXEL_2D");
         _canvasMode = true;
     }
     _code = prependText + shaderCode;
