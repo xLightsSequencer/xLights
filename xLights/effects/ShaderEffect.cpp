@@ -765,7 +765,7 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
 
     // The shader code needs declarations for the uniforms that we silently set with each call to Render()
     // and the uniforms that correspond to user-visible settings
-    wxString prependText = "#version 330\n\n"
+    wxString prependText = _("#version 330\n\n"
     "uniform float TIME;\n"
     "uniform vec2 RENDERSIZE;\n"
     "uniform bool clearBuffer;\n"
@@ -775,7 +775,7 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
     "uniform sampler2D texSampler;\n"
     "in vec2 isf_FragNormCoord;\n"
     "out vec4 fragmentColor;\n"
-    "uniform vec4 DATE;\n\n";
+    "uniform vec4 DATE;\n\n");
 
     for (auto p : _parms)
     {
@@ -821,29 +821,46 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
         }
     }
 
-    prependText += "vec4 IMG_NORM_PIXEL_2D(sampler2D sampler, vec2 pct, vec2 normLoc) {\n   vec2 coord = normLoc;\n   return texture(sampler, coord* pct);\n}\n\n";
-    prependText += "vec4 IMG_NORM_PIXEL(sampler2D sampler, vec2 normLoc) {\n   vec2 coord = normLoc;\n   return texture(sampler, coord);\n}\n\n";
-    prependText += "vec4 IMG_PIXEL_2D(sampler2D sampler, vec2 pct, vec2 loc) {\n   return IMG_NORM_PIXEL_2D(sampler, pct, loc / RENDERSIZE);\n}\n\n";
-    prependText += "vec4 IMG_PIXEL(sampler2D sampler, vec2 loc) {\n   return texture(sampler, loc / RENDERSIZE);\n}\n\n";
-    prependText += "vec4 IMG_THIS_PIXEL(sampler2D sampler) {\n   vec2 coord = isf_FragNormCoord;\n   return texture(sampler, coord);\n}\n\n";
-    prependText += "vec4 IMG_THIS_NORM_PIXEL_2D(sampler2D sampler, vec2 pct) {\n   vec2 coord = isf_FragNormCoord;\n   return texture(sampler, coord * pct);\n}\n\n";
-    prependText += "vec4 IMG_THIS_NORM_PIXEL(sampler2D sampler) {\n   vec2 coord = isf_FragNormCoord;\n   return texture(sampler, coord);\n}\n\n";
-    prependText += "vec4 IMG_THIS_PIXEL_2D(sampler2D sampler, vec2 pct) {\n   return IMG_THIS_NORM_PIXEL_2D(sampler, pct);\n}\n\n";
-    prependText += "vec4 IMG_NORM_PIXEL_RECT(sampler2DRect sampler, vec2 pct, vec2 normLoc) {\n   vec2 coord = normLoc;\n   return texture(sampler, coord * RENDERSIZE);\n}\n\n";
-    prependText += "vec4 IMG_PIXEL_RECT(sampler2DRect sampler, vec2 pct, vec2 loc) {\n   return IMG_NORM_PIXEL_RECT(sampler, pct, loc / RENDERSIZE);\n}\n\n";
-    prependText += "vec4 IMG_THIS_NORM_PIXEL_RECT(sampler2DRect sampler, vec2 pct) {\n   vec2 coord = isf_FragNormCoord;\n   return texture(sampler, coord * RENDERSIZE);\n}\n\n";
-    prependText += "vec4 IMG_THIS_PIXEL_RECT(sampler2DRect sampler, vec2 pct) {\n   return IMG_THIS_NORM_PIXEL_RECT(sampler, pct);\n}\n\n";
+    prependText += _("vec4 IMG_NORM_PIXEL_2D(sampler2D sampler, vec2 pct, vec2 normLoc) {\n   vec2 coord = normLoc;\n   return texture(sampler, coord* pct);\n}\n\n");
+    prependText += _("vec4 IMG_NORM_PIXEL(sampler2D sampler, vec2 normLoc) {\n   vec2 coord = normLoc;\n   return texture(sampler, coord);\n}\n\n");
+    prependText += _("vec4 IMG_PIXEL_2D(sampler2D sampler, vec2 pct, vec2 loc) {\n   return IMG_NORM_PIXEL_2D(sampler, pct, loc / RENDERSIZE);\n}\n\n");
+    prependText += _("vec4 IMG_PIXEL(sampler2D sampler, vec2 loc) {\n   return texture(sampler, loc / RENDERSIZE);\n}\n\n");
+    prependText += _("vec4 IMG_THIS_PIXEL(sampler2D sampler) {\n   vec2 coord = isf_FragNormCoord;\n   return texture(sampler, coord);\n}\n\n");
+    prependText += _("vec4 IMG_THIS_NORM_PIXEL_2D(sampler2D sampler, vec2 pct) {\n   vec2 coord = isf_FragNormCoord;\n   return texture(sampler, coord * pct);\n}\n\n");
+    prependText += _("vec4 IMG_THIS_NORM_PIXEL(sampler2D sampler) {\n   vec2 coord = isf_FragNormCoord;\n   return texture(sampler, coord);\n}\n\n");
+    prependText += _("vec4 IMG_THIS_PIXEL_2D(sampler2D sampler, vec2 pct) {\n   return IMG_THIS_NORM_PIXEL_2D(sampler, pct);\n}\n\n");
+    prependText += _("vec4 IMG_NORM_PIXEL_RECT(sampler2DRect sampler, vec2 pct, vec2 normLoc) {\n   vec2 coord = normLoc;\n   return texture(sampler, coord * RENDERSIZE);\n}\n\n");
+    prependText += _("vec4 IMG_PIXEL_RECT(sampler2DRect sampler, vec2 pct, vec2 loc) {\n   return IMG_NORM_PIXEL_RECT(sampler, pct, loc / RENDERSIZE);\n}\n\n");
+    prependText += _("vec4 IMG_THIS_NORM_PIXEL_RECT(sampler2DRect sampler, vec2 pct) {\n   vec2 coord = isf_FragNormCoord;\n   return texture(sampler, coord * RENDERSIZE);\n}\n\n");
+    prependText += _("vec4 IMG_THIS_PIXEL_RECT(sampler2DRect sampler, vec2 pct) {\n   return IMG_THIS_NORM_PIXEL_RECT(sampler, pct);\n}\n\n");
 
-    size_t pos = code.find("*/");
-    wxString shaderCode = (pos != wxString::npos) ? code.substr(pos + 2) : code;
+    //int i = 0;
+    //for (auto c : code)
+    //{
+    //   if ((int)c < 32 || (int)c > 127)
+    //    {
+    //        if (c != 13 && c != 10 && c!= 9)
+    //        logger_base.debug("%d 0x%x %c", i, (int)c, c);
+    //    }
+    //    i++;
+    //}
+
+    wxString shaderCode = wxString(code.mb_str(wxConvUTF8));
+    shaderCode.Replace(wxString((char)133), "...", true);
+    int pos = shaderCode.Find("*/");
+    if (pos > 0)
+    {
+        shaderCode = shaderCode.substr(pos + 2);
+    }
     shaderCode.Replace("gl_FragColor", "fragmentColor");
     if (!canvasImgName.empty())
     {
         shaderCode.Replace(canvasImgName, "texSampler");
         _canvasMode = true;
     }
-    _code = prependText + shaderCode;
-
+    _code = prependText.ToStdString();
+    _code += shaderCode.ToStdString();
+    wxASSERT(_code != "");
 #if 0
     std::ofstream s("C:\\Temp\\temp.txt");
     if (s.good())
