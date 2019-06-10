@@ -1,0 +1,77 @@
+<shaders>
+	<shader>
+		<name>Bloodstain</name>
+		<link>https://www.interactiveshaderformat.com/sketches/3561</link>
+		<rating>2</rating>
+	</shader>
+	<shader>
+		<name>Candywrap</name>
+		<link>https://www.interactiveshaderformat.com/sketches/1792</link>
+		<rating>4</rating>
+	</shader>
+	<shader>
+		<name>Hex Vortex</name>
+		<link>https://www.interactiveshaderformat.com/sketches/488</link>
+		<rating>4</rating>
+	</shader>
+	<shader>
+		<name>Searching For Something</name>
+		<link>https://www.interactiveshaderformat.com/sketches/4390</link>
+		<rating>5</rating>
+	</shader>
+	<shader>
+		<name>Continua Variation</name>
+		<link>https://www.interactiveshaderformat.com/sketches/4455</link>
+		<rating>3</rating>
+	</shader>
+	<shader>
+		<name>Spacels</name>
+		<link>https://www.interactiveshaderformat.com/sketches/799</link>
+		<rating>4</rating>
+	</shader>
+	<shader>
+		<name>Ebo Tunnel</name>
+		<link>https://www.interactiveshaderformat.com/sketches/4118</link>
+		<rating>5</rating>
+	</shader>
+	<shader>
+		<name>Dimension Morphing Topography</name>
+		<link>https://www.interactiveshaderformat.com/sketches/2152</link>
+		<rating>5</rating>
+	</shader>
+	<shader>
+		<name>Fractilian Parabolic Circle Inversion</name>
+		<link>https://www.interactiveshaderformat.com/sketches/1883</link>
+		<rating>4</rating>
+	</shader>
+	<shader>
+		<name>Bit Wheel RGB</name>
+		<link>https://www.interactiveshaderformat.com/sketches/1473</link>
+		<rating>2</rating>
+	</shader>
+	<shader>
+		<name>Bulge</name>
+		<link>https://www.interactiveshaderformat.com/sketches/640</link>
+		<rating>4</rating>
+	</shader>
+	<shader>
+		<name>Chroma Key</name>
+		<link>https://www.interactiveshaderformat.com/sketches/1830</link>
+		<rating>3</rating>
+	</shader>
+	<shader>
+		<name>Colour Diffusion Flow</name>
+		<link>https://www.interactiveshaderformat.com/sketches/1954</link>
+		<rating>5</rating>
+	</shader>
+	<shader>
+		<name></name>
+		<link></link>
+		<rating></rating>
+	</shader>
+	<shader>
+		<name></name>
+		<link></link>
+		<rating></rating>
+	</shader>
+</shaders>
