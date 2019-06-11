@@ -833,16 +833,19 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
     prependText += _("vec4 IMG_THIS_NORM_PIXEL_RECT(sampler2DRect sampler, vec2 pct) {\n   vec2 coord = isf_FragNormCoord;\n   return texture(sampler, coord * RENDERSIZE);\n}\n\n");
     prependText += _("vec4 IMG_THIS_PIXEL_RECT(sampler2DRect sampler, vec2 pct) {\n   return IMG_THIS_NORM_PIXEL_RECT(sampler, pct);\n}\n\n");
 
-    //int i = 0;
-    //for (auto c : code)
-    //{
-    //   if ((int)c < 32 || (int)c > 127)
-    //    {
-    //        if (c != 13 && c != 10 && c!= 9)
-    //        logger_base.debug("%d 0x%x %c", i, (int)c, c);
-    //    }
-    //    i++;
-    //}
+#ifdef __DEBUG
+    int i = 0;
+    for (auto c : code)
+    {
+       if ((int)c < 32 || (int)c > 127)
+        {
+            if (c != 13 && c != 10 && c!= 9)
+            logger_base.debug("%d 0x%x %c", i, (int)c, c);
+            wxASSERT(false);
+        }
+        i++;
+    }
+#endif
 
     wxString shaderCode = wxString(code.mb_str(wxConvUTF8));
     shaderCode.Replace(wxString((char)133), "...", true);
