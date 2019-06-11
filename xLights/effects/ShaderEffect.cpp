@@ -114,12 +114,14 @@ namespace
         "in vec2 tpos;\n"
         "out vec2 texCoord;\n"
         "out vec2 isf_FragNormCoord;"
+        "out vec2 isf_FragCoord;"
         "void isf_vertShaderInit(void)\n"
         "{\n"
         //"   gl_Position = ftransform();\n"
         "   gl_Position = vec4(vpos,0,1);\n"
         "   texCoord = tpos;\n"
         "   isf_FragNormCoord = vec2(tpos.x, tpos.y);\n"
+        "   isf_FragCoord = isf_FragNormCoord * RENDERSIZE;\n"
         "}\n"
         "void main(){\n"
         "    isf_vertShaderInit();"
@@ -773,6 +775,7 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
     "uniform int FRAMEINDEX;\n"
     "uniform sampler2D texSampler;\n"
     "in vec2 isf_FragNormCoord;\n"
+    "in vec2 isf_FragCoord;\n"
     "out vec4 fragmentColor;\n"
     "uniform vec4 DATE;\n\n");
 
