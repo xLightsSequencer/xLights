@@ -181,7 +181,8 @@ void LiquidEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer
         SettingsMap.GetBool("CHECKBOX_FlowMusic4", false),
 
         SettingsMap.Get("CHOICE_ParticleType", "Elastic"),
-        SettingsMap.GetInt("TEXTCTRL_Despeckle", 0)
+        SettingsMap.GetInt("TEXTCTRL_Despeckle", 0),
+        SettingsMap.GetFloat("TEXTCTRL_Liquid_Gravity", 10.0)
     );
 }
 
@@ -560,7 +561,7 @@ void LiquidEffect::Render(RenderBuffer &buffer,
     bool enabled2, int direction2, int x2, int y2, int velocity2, int flow2, int sourceSize2, bool flowMusic2,
     bool enabled3, int direction3, int x3, int y3, int velocity3, int flow3, int sourceSize3, bool flowMusic3,
     bool enabled4, int direction4, int x4, int y4, int velocity4, int flow4, int sourceSize4, bool flowMusic4,
-    const std::string& particleType, int despeckle)
+    const std::string& particleType, int despeckle, float gravity)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -587,8 +588,8 @@ void LiquidEffect::Render(RenderBuffer &buffer,
             _world = nullptr;
         }
 
-        b2Vec2 gravity(0.0f, -10.0f);
-        _world = new b2World(gravity);
+        b2Vec2 grav(0.0f, -gravity);
+        _world = new b2World(grav);
 
         if (bottom)
         {

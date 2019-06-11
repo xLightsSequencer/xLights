@@ -42,6 +42,9 @@ const long LiquidPanel::ID_TEXTCTRL_WarmUpFrames = wxNewId();
 const long LiquidPanel::ID_STATICTEXT_Despeckle = wxNewId();
 const long LiquidPanel::IDD_SLIDER_Despeckle = wxNewId();
 const long LiquidPanel::ID_TEXTCTRL_Despeckle = wxNewId();
+const long LiquidPanel::ID_STATICTEXT1 = wxNewId();
+const long LiquidPanel::IDD_SLIDER_Liquid_Gravity = wxNewId();
+const long LiquidPanel::ID_TEXTCTRL_Liquid_Gravity = wxNewId();
 const long LiquidPanel::ID_STATICTEXT_X1 = wxNewId();
 const long LiquidPanel::IDD_SLIDER_X1 = wxNewId();
 const long LiquidPanel::ID_VALUECURVE_X1 = wxNewId();
@@ -160,6 +163,7 @@ END_EVENT_TABLE()
 LiquidPanel::LiquidPanel(wxWindow* parent)
 {
 	//(*Initialize(LiquidPanel)
+	BulkEditTextCtrlF1* TextCtrl35;
 	wxFlexGridSizer* FlexGridSizer10;
 	wxFlexGridSizer* FlexGridSizer11;
 	wxFlexGridSizer* FlexGridSizer12;
@@ -232,23 +236,30 @@ LiquidPanel::LiquidPanel(wxWindow* parent)
 	FlexGridSizer12->Add(StaticText8, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Size = new BulkEditSlider(this, IDD_SLIDER_Size, 500, 1, 10000, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Size"));
 	FlexGridSizer12->Add(Slider_Size, 1, wxALL|wxEXPAND, 5);
-	TextCtrl_Size = new BulkEditTextCtrl(this, ID_TEXTCTRL_Size, _("500"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(25,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Size"));
+	TextCtrl_Size = new BulkEditTextCtrl(this, ID_TEXTCTRL_Size, _("500"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(30,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Size"));
 	TextCtrl_Size->SetMaxLength(5);
 	FlexGridSizer12->Add(TextCtrl_Size, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText9 = new wxStaticText(this, ID_STATICTEXT_WarmUpFrames, _("Warm Up Frames"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_WarmUpFrames"));
 	FlexGridSizer12->Add(StaticText9, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_WarmUpFrames = new BulkEditSlider(this, IDD_SLIDER_WarmUpFrames, 0, 0, 500, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_WarmUpFrames"));
 	FlexGridSizer12->Add(Slider_WarmUpFrames, 1, wxALL|wxEXPAND, 5);
-	TextCtrl_WarmUpFrames = new BulkEditTextCtrl(this, ID_TEXTCTRL_WarmUpFrames, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(25,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_WarmUpFrames"));
+	TextCtrl_WarmUpFrames = new BulkEditTextCtrl(this, ID_TEXTCTRL_WarmUpFrames, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(30,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_WarmUpFrames"));
 	TextCtrl_WarmUpFrames->SetMaxLength(5);
 	FlexGridSizer12->Add(TextCtrl_WarmUpFrames, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText10 = new wxStaticText(this, ID_STATICTEXT_Despeckle, _("Despeckle Threshold"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Despeckle"));
 	FlexGridSizer12->Add(StaticText10, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Despeckle = new BulkEditSlider(this, IDD_SLIDER_Despeckle, 0, 0, 4, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Despeckle"));
 	FlexGridSizer12->Add(Slider_Despeckle, 1, wxALL|wxEXPAND, 5);
-	TextCtrl_Despeckle = new BulkEditTextCtrl(this, ID_TEXTCTRL_Despeckle, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(25,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Despeckle"));
+	TextCtrl_Despeckle = new BulkEditTextCtrl(this, ID_TEXTCTRL_Despeckle, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(30,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Despeckle"));
 	TextCtrl_Despeckle->SetMaxLength(1);
 	FlexGridSizer12->Add(TextCtrl_Despeckle, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	StaticText15 = new wxStaticText(this, ID_STATICTEXT1, _("Gravity"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
+	FlexGridSizer12->Add(StaticText15, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	Slider_Liquid_Gravity = new BulkEditSliderF1(this, IDD_SLIDER_Liquid_Gravity, 100, -1000, 1000, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Liquid_Gravity"));
+	FlexGridSizer12->Add(Slider_Liquid_Gravity, 1, wxALL|wxEXPAND, 5);
+	TextCtrl35 = new BulkEditTextCtrlF1(this, ID_TEXTCTRL_Liquid_Gravity, _("10.0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(30,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Liquid_Gravity"));
+	TextCtrl35->SetMaxLength(4);
+	FlexGridSizer12->Add(TextCtrl35, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer77->Add(FlexGridSizer12, 1, wxALL|wxEXPAND, 5);
 	Notebook1 = new wxNotebook(this, ID_NOTEBOOK1, wxDefaultPosition, wxDefaultSize, 0, _T("ID_NOTEBOOK1"));
 	Panel1 = new wxPanel(Notebook1, ID_PANEL1, wxPoint(115,49), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL1"));
