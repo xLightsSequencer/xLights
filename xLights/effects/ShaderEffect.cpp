@@ -359,7 +359,6 @@ void ShaderEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &b
     // todo is there more of this code we could add to the needtoinit case as this only happens on the first frame
     // ***********************************************************************************************************
 
-
     // We re-use the same framebuffer for rendering all the shader effects
     sizeForRenderBuffer( buffer, s_shadersInit, s_vertexArrayId, s_vertexBufferId, s_rbId, s_fbId, s_rbTex, s_rbWidth, s_rbHeight );
 
