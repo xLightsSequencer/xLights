@@ -239,10 +239,29 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxSlider" name="IDD_SLIDER_Liquid_Gravity" subclass="BulkEditSliderF1" variable="Slider_Liquid_Gravity" member="yes">
-							<value>100</value>
-							<min>-1000</min>
-							<max>1000</max>
+						<object class="wxFlexGridSizer" variable="FlexGridSizer13" member="no">
+							<cols>2</cols>
+							<growablecols>0</growablecols>
+							<object class="sizeritem">
+								<object class="wxSlider" name="IDD_SLIDER_Liquid_Gravity" subclass="BulkEditSliderF1" variable="Slider_Liquid_Gravity" member="yes">
+									<value>100</value>
+									<min>-1000</min>
+									<max>1000</max>
+								</object>
+								<flag>wxALL|wxEXPAND</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxBitmapButton" name="ID_VALUECURVE_Liquid_Gravity" subclass="BulkEditValueCurveButton" variable="BitmapButton_Liquid_Gravity" member="yes">
+									<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
+									<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+									<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+								</object>
+								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>5</border>
@@ -254,7 +273,7 @@
 							<maxlength>4</maxlength>
 							<size>30,-1d</size>
 						</object>
-						<flag>wxALL|wxEXPAND</flag>
+						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>

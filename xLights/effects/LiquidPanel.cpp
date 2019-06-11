@@ -44,6 +44,7 @@ const long LiquidPanel::IDD_SLIDER_Despeckle = wxNewId();
 const long LiquidPanel::ID_TEXTCTRL_Despeckle = wxNewId();
 const long LiquidPanel::ID_STATICTEXT1 = wxNewId();
 const long LiquidPanel::IDD_SLIDER_Liquid_Gravity = wxNewId();
+const long LiquidPanel::ID_VALUECURVE_Liquid_Gravity = wxNewId();
 const long LiquidPanel::ID_TEXTCTRL_Liquid_Gravity = wxNewId();
 const long LiquidPanel::ID_STATICTEXT_X1 = wxNewId();
 const long LiquidPanel::IDD_SLIDER_X1 = wxNewId();
@@ -167,6 +168,7 @@ LiquidPanel::LiquidPanel(wxWindow* parent)
 	wxFlexGridSizer* FlexGridSizer10;
 	wxFlexGridSizer* FlexGridSizer11;
 	wxFlexGridSizer* FlexGridSizer12;
+	wxFlexGridSizer* FlexGridSizer13;
 	wxFlexGridSizer* FlexGridSizer1;
 	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer3;
@@ -255,11 +257,16 @@ LiquidPanel::LiquidPanel(wxWindow* parent)
 	FlexGridSizer12->Add(TextCtrl_Despeckle, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText15 = new wxStaticText(this, ID_STATICTEXT1, _("Gravity"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
 	FlexGridSizer12->Add(StaticText15, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer13 = new wxFlexGridSizer(0, 2, 0, 0);
+	FlexGridSizer13->AddGrowableCol(0);
 	Slider_Liquid_Gravity = new BulkEditSliderF1(this, IDD_SLIDER_Liquid_Gravity, 100, -1000, 1000, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Liquid_Gravity"));
-	FlexGridSizer12->Add(Slider_Liquid_Gravity, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer13->Add(Slider_Liquid_Gravity, 1, wxALL|wxEXPAND, 5);
+	BitmapButton_Liquid_Gravity = new BulkEditValueCurveButton(this, ID_VALUECURVE_Liquid_Gravity, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Liquid_Gravity"));
+	FlexGridSizer13->Add(BitmapButton_Liquid_Gravity, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer12->Add(FlexGridSizer13, 1, wxALL|wxEXPAND, 5);
 	TextCtrl35 = new BulkEditTextCtrlF1(this, ID_TEXTCTRL_Liquid_Gravity, _("10.0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(30,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Liquid_Gravity"));
 	TextCtrl35->SetMaxLength(4);
-	FlexGridSizer12->Add(TextCtrl35, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer12->Add(TextCtrl35, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer77->Add(FlexGridSizer12, 1, wxALL|wxEXPAND, 5);
 	Notebook1 = new wxNotebook(this, ID_NOTEBOOK1, wxDefaultPosition, wxDefaultSize, 0, _T("ID_NOTEBOOK1"));
 	Panel1 = new wxPanel(Notebook1, ID_PANEL1, wxPoint(115,49), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL1"));
@@ -557,6 +564,7 @@ LiquidPanel::LiquidPanel(wxWindow* parent)
 	FlexGridSizer77->SetSizeHints(this);
 
 	Connect(ID_VALUECURVE_LifeTime,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&LiquidPanel::OnVCButtonClick);
+	Connect(ID_VALUECURVE_Liquid_Gravity,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&LiquidPanel::OnVCButtonClick);
 	Connect(ID_VALUECURVE_X1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&LiquidPanel::OnVCButtonClick);
 	Connect(ID_VALUECURVE_Y1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&LiquidPanel::OnVCButtonClick);
 	Connect(ID_VALUECURVE_Direction1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&LiquidPanel::OnVCButtonClick);
@@ -588,7 +596,11 @@ LiquidPanel::LiquidPanel(wxWindow* parent)
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&LiquidPanel::OnVCChanged, 0, this);
 
+    Slider_Liquid_Gravity->SetRange(LIQUID_GRAVITY_MIN, LIQUID_GRAVITY_MAX);
+
     BitmapButton_LifeTime->GetValue()->SetLimits(LIQUID_LIFETIME_MIN, LIQUID_LIFETIME_MAX);
+    BitmapButton_Liquid_Gravity->GetValue()->SetLimits(LIQUID_GRAVITY_MIN, LIQUID_GRAVITY_MAX);
+    BitmapButton_Liquid_Gravity->GetValue()->SetDivisor(LIQUID_GRAVITY_DIVISOR);
 
     BitmapButton_Direction1->GetValue()->SetLimits(LIQUID_DIRECTION_MIN, LIQUID_DIRECTION_MAX);
     BitmapButton_Flow1->GetValue()->SetLimits(LIQUID_FLOW_MIN, LIQUID_FLOW_MAX);

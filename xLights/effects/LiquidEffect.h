@@ -31,6 +31,10 @@ class b2ParticleSystem;
 #define LIQUID_SOURCESIZE_MIN 0
 #define LIQUID_SOURCESIZE_MAX 100
 
+#define LIQUID_GRAVITY_MIN -1000
+#define LIQUID_GRAVITY_MAX 1000
+#define LIQUID_GRAVITY_DIVISOR 10
+
 class LiquidEffect : public RenderableEffect
 {
     public:

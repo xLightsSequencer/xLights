@@ -179,10 +179,9 @@ void LiquidEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer
         GetValueCurveInt("Flow4", 100, SettingsMap, oset, LIQUID_FLOW_MIN, LIQUID_FLOW_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
         GetValueCurveInt("Liquid_SourceSize4", 0, SettingsMap, oset, LIQUID_SOURCESIZE_MIN, LIQUID_SOURCESIZE_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
         SettingsMap.GetBool("CHECKBOX_FlowMusic4", false),
-
         SettingsMap.Get("CHOICE_ParticleType", "Elastic"),
         SettingsMap.GetInt("TEXTCTRL_Despeckle", 0),
-        SettingsMap.GetFloat("TEXTCTRL_Liquid_Gravity", 10.0)
+        GetValueCurveDouble("Liquid_Gravity", 10.0, SettingsMap, oset, LIQUID_GRAVITY_MIN, LIQUID_GRAVITY_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), LIQUID_GRAVITY_DIVISOR)
     );
 }
 
@@ -578,6 +577,8 @@ void LiquidEffect::Render(RenderBuffer &buffer,
     }
     b2World*& _world = cache->_world;
 
+    b2Vec2 grav(0.0f, -gravity);
+
     if (buffer.needToInit)
     {
         buffer.needToInit = false;
@@ -588,9 +589,7 @@ void LiquidEffect::Render(RenderBuffer &buffer,
             _world = nullptr;
         }
 
-        b2Vec2 grav(0.0f, -gravity);
         _world = new b2World(grav);
-
         if (bottom)
         {
             CreateBarrier(_world, (float)buffer.BufferWi / 2.0, -1.0f, (float)buffer.BufferWi, 0.001f);
@@ -623,6 +622,8 @@ void LiquidEffect::Render(RenderBuffer &buffer,
 
     // exit if no world
     if (_world == nullptr) return;
+
+    _world->SetGravity(grav);
 
     // allow up to 1 times physical memory
     if (IsExcessiveMemoryUsage(1.0))

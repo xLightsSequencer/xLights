@@ -104,6 +104,7 @@ class LiquidPanel: public wxPanel
 		BulkEditValueCurveButton* BitmapButton_Flow3;
 		BulkEditValueCurveButton* BitmapButton_Flow4;
 		BulkEditValueCurveButton* BitmapButton_LifeTime;
+		BulkEditValueCurveButton* BitmapButton_Liquid_Gravity;
 		BulkEditValueCurveButton* BitmapButton_Liquid_SourceSize1;
 		BulkEditValueCurveButton* BitmapButton_Liquid_SourceSize2;
 		BulkEditValueCurveButton* BitmapButton_Liquid_SourceSize3;
@@ -186,6 +187,7 @@ class LiquidPanel: public wxPanel
 		static const long ID_TEXTCTRL_Despeckle;
 		static const long ID_STATICTEXT1;
 		static const long IDD_SLIDER_Liquid_Gravity;
+		static const long ID_VALUECURVE_Liquid_Gravity;
 		static const long ID_TEXTCTRL_Liquid_Gravity;
 		static const long ID_STATICTEXT_X1;
 		static const long IDD_SLIDER_X1;
