@@ -398,6 +398,7 @@
 		<Unit filename="../xSchedule/wxJSON/jsonval.h" />
 		<Unit filename="../xSchedule/wxJSON/jsonwriter.cpp" />
 		<Unit filename="../xSchedule/wxJSON/jsonwriter.h" />
+		<Unit filename="../xSchedule/xSMSDaemon/Curl.h" />
 		<Unit filename="AlignmentDialog.cpp" />
 		<Unit filename="AlignmentDialog.h" />
 		<Unit filename="AudioManager.cpp" />
@@ -611,6 +612,8 @@
 		<Unit filename="SequenceViewManager.h" />
 		<Unit filename="SevenSegmentDialog.cpp" />
 		<Unit filename="SevenSegmentDialog.h" />
+		<Unit filename="ShaderDownloadDialog.cpp" />
+		<Unit filename="ShaderDownloadDialog.h" />
 		<Unit filename="SplashDialog.cpp" />
 		<Unit filename="SplashDialog.h" />
 		<Unit filename="StartChannelDialog.cpp" />
@@ -649,8 +652,6 @@
 		<Unit filename="ValueCurveDialog.h" />
 		<Unit filename="VendorModelDialog.cpp" />
 		<Unit filename="VendorModelDialog.h" />
-		<Unit filename="ShaderDownloadDialog.cpp" />
-		<Unit filename="ShaderDownloadDialog.h" />
 		<Unit filename="VendorMusicDialog.cpp" />
 		<Unit filename="VendorMusicDialog.h" />
 		<Unit filename="VendorMusicHelpers.cpp" />
@@ -1233,6 +1234,7 @@
 		<Unit filename="wxsmith/SequenceVideoPanel.wxs" />
 		<Unit filename="wxsmith/ServoPanel.wxs" />
 		<Unit filename="wxsmith/SevenSegmentDialog.wxs" />
+		<Unit filename="wxsmith/ShaderDownloadDialog.wxs" />
 		<Unit filename="wxsmith/ShaderPanel.wxs" />
 		<Unit filename="wxsmith/ShapePanel.wxs" />
 		<Unit filename="wxsmith/ShimmerPanel.wxs" />
@@ -1260,7 +1262,6 @@
 		<Unit filename="wxsmith/VUMeterPanel.wxs" />
 		<Unit filename="wxsmith/ValueCurveDialog.wxs" />
 		<Unit filename="wxsmith/VendorModelDialog.wxs" />
-		<Unit filename="wxsmith/ShaderDownloadDialog.wxs" />
 		<Unit filename="wxsmith/VendorMusicDialog.wxs" />
 		<Unit filename="wxsmith/VideoPanel.wxs" />
 		<Unit filename="wxsmith/ViewObjectPanel.wxs" />
