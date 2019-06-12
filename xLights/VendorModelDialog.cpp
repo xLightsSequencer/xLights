@@ -837,7 +837,7 @@ bool VendorModelDialog::DlgInit(wxProgressDialog* prog, int low, int high)
 wxXmlDocument* VendorModelDialog::GetXMLFromURL(wxURI url, std::string& filename, wxProgressDialog* prog, int low, int high) const
 {
     filename = "";
-    wxFileName fn = wxFileName(VendorModelDialog::GetCache().GetFile(url, CACHEFOR::CACHETIME_SESSION, prog, low, high));
+    wxFileName fn = wxFileName(VendorModelDialog::GetCache().GetFile(url, CACHEFOR::CACHETIME_SESSION, "", prog, low, high));
     if (fn.Exists())
     {
         filename = fn.GetFullPath();

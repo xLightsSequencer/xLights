@@ -20,6 +20,7 @@ protected:
 };
 
 //(*Headers(ShaderPanel)
+#include <wx/button.h>
 #include <wx/filepicker.h>
 #include <wx/panel.h>
 #include <wx/sizer.h>
@@ -36,6 +37,7 @@ class ShaderPanel: public wxPanel
 		virtual ~ShaderPanel();
 
 		//(*Declarations(ShaderPanel)
+		wxButton* Button_Download;
 		wxFilePickerCtrl* FilePickerCtrl1;
 		wxFlexGridSizer* FlexGridSizer_Dynamic;
 		wxStaticText* StaticText1;
@@ -46,6 +48,7 @@ class ShaderPanel: public wxPanel
 		//(*Identifiers(ShaderPanel)
 		static const long ID_STATICTEXT1;
 		static const long ID_0FILEPICKERCTRL_IFS;
+		static const long ID_BUTTON1;
 		//*)
 
 		ShaderPreview *   _preview;
@@ -56,6 +59,7 @@ class ShaderPanel: public wxPanel
 
 		//(*Handlers(ShaderPanel)
 		void OnFilePickerCtrl1FileChanged(wxFileDirPickerEvent& event);
+		void OnButton_DownloadClick(wxCommandEvent& event);
 		//*)
 
         void OnVCButtonClick(wxCommandEvent& event);

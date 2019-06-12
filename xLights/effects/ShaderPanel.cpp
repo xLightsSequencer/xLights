@@ -2,16 +2,19 @@
 #include "ShaderEffect.h"
 #include "../BulkEditControls.h"
 #include "EffectPanelUtils.h"
+#include "ShaderDownloadDialog.h"
 
 //(*InternalHeaders(ShaderPanel)
 #include <wx/intl.h>
 #include <wx/string.h>
 //*)
 #include <wx/artprov.h>
+#include <wx/progdlg.h>
 
 //(*IdInit(ShaderPanel)
 const long ShaderPanel::ID_STATICTEXT1 = wxNewId();
 const long ShaderPanel::ID_0FILEPICKERCTRL_IFS = wxNewId();
+const long ShaderPanel::ID_BUTTON1 = wxNewId();
 //*)
 
 ShaderPreview::ShaderPreview( wxWindow* parent, wxWindowID id, const wxPoint &pos, const wxSize &size, long style, const wxString &name, bool coreProfile)
@@ -49,12 +52,14 @@ ShaderPanel::ShaderPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	Create(parent, id, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("id"));
 	FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer1->AddGrowableCol(0);
-	FlexGridSizer2 = new wxFlexGridSizer(0, 2, 0, 0);
+	FlexGridSizer2 = new wxFlexGridSizer(0, 3, 0, 0);
 	FlexGridSizer2->AddGrowableCol(1);
 	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Shader File:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
 	FlexGridSizer2->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	FilePickerCtrl1 = new wxFilePickerCtrl(this, ID_0FILEPICKERCTRL_IFS, wxEmptyString, wxEmptyString, _T("*.fs"), wxDefaultPosition, wxDefaultSize, wxFLP_FILE_MUST_EXIST|wxFLP_OPEN|wxFLP_USE_TEXTCTRL, wxDefaultValidator, _T("ID_0FILEPICKERCTRL_IFS"));
 	FlexGridSizer2->Add(FilePickerCtrl1, 1, wxALL|wxEXPAND, 5);
+	Button_Download = new wxButton(this, ID_BUTTON1, _("Download"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
+	FlexGridSizer2->Add(Button_Download, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer_Dynamic = new wxFlexGridSizer(0, 3, 0, 0);
 	FlexGridSizer_Dynamic->AddGrowableCol(1);
@@ -64,6 +69,7 @@ ShaderPanel::ShaderPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	FlexGridSizer1->SetSizeHints(this);
 
 	Connect(ID_0FILEPICKERCTRL_IFS,wxEVT_COMMAND_FILEPICKER_CHANGED,(wxObjectEventFunction)&ShaderPanel::OnFilePickerCtrl1FileChanged);
+	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ShaderPanel::OnButton_DownloadClick);
 	//*)
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)& ShaderPanel::OnVCChanged, 0, this);
 
@@ -236,4 +242,25 @@ void ShaderPanel::BuildUI(const wxString& filename)
     }
 
     Thaw();
+}
+
+void ShaderPanel::OnButton_DownloadClick(wxCommandEvent& event)
+{
+    wxProgressDialog prog("Shader download", "Downloading shaders ...", 100, this, wxPD_APP_MODAL | wxPD_AUTO_HIDE);
+    prog.Show();
+    ShaderDownloadDialog dlg(this);
+    SetCursor(wxCURSOR_WAIT);
+    if (dlg.DlgInit(&prog, 0, 100))
+    {
+        prog.Update(100);
+        SetCursor(wxCURSOR_DEFAULT);
+        if (dlg.ShowModal() == wxID_OK)
+        {
+            FilePickerCtrl1->SetFileName(wxFileName(dlg.GetShaderFile()));
+        }
+    }
+    else
+    {
+        SetCursor(wxCURSOR_DEFAULT);
+    }
 }
