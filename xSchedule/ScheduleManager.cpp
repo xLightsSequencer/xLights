@@ -1763,6 +1763,15 @@ bool ScheduleManager::Action(const wxString& command, const wxString& parameters
                         {
                             remote = REMOTEMODE::OSCSLAVE;
                         }
+                        else if (m == "standalone")
+                        {
+                            // no need to do anything
+                        }
+                        else
+                        {
+                            result = false;
+                            msg = "Invalid mode set '" + m + "'";
+                        }
                     }
                     SetTestMode(test);
                     SetMode(mode, remote);
