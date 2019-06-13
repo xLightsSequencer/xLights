@@ -1,4 +1,5 @@
 <shaders>
+	<!-- Commented out shaders were on the site but seem to have been removed after their certificate issues-->
 	<shader>
 		<name>Bloodstain</name>
 		<link>https://www.interactiveshaderformat.com/sketches/3561</link>
@@ -21,25 +22,11 @@
 		<rating>4</rating>
 	</shader>
 	<shader>
-		<name>Continua Variation</name>
-		<link>https://www.interactiveshaderformat.com/sketches/4455</link>
-		<download>https://www.interactiveshaderformat.com/sketches/4455/download</download>
-		<image></image>
-		<rating>3</rating>
-	</shader>
-	<shader>
 		<name>Spacels</name>
 		<link>https://www.interactiveshaderformat.com/sketches/799</link>
 		<download>https://www.interactiveshaderformat.com/sketches/799/download</download>
 		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_300,w_300/uf6tsj2c0xnjmkn3sm7n</image>
 		<rating>4</rating>
-	</shader>
-	<shader>
-		<name>Ebo Tunnel</name>
-		<link>https://www.interactiveshaderformat.com/sketches/4118</link>
-		<download>https://www.interactiveshaderformat.com/sketches/4118/download</download>
-		<image></image>
-		<rating>5</rating>
 	</shader>
 	<shader>
 		<name>Dimension Morphing Topography</name>
@@ -82,13 +69,6 @@
 		<download>https://www.interactiveshaderformat.com/sketches/1954/download</download>
 		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_300,w_300/cjevusbhd2jmjuoprwqc</image>
 		<rating>5</rating>
-	</shader>
-	<shader>
-		<name>Cubes + Spheres EboRemix</name>
-		<link>https://www.interactiveshaderformat.com/sketches/4114</link>
-		<download>https://www.interactiveshaderformat.com/sketches/4114/download</download>
-		<image></image>
-		<rating>4</rating>
 	</shader>
 	<shader>
 		<name>Cyclotron 1</name>
@@ -203,27 +183,6 @@
 		<rating>5</rating>
 	</shader>
 	<shader>
-		<name>Searching For Something</name>
-		<link>https://www.interactiveshaderformat.com/sketches/4390</link>
-		<download>https://www.interactiveshaderformat.com/sketches/4390/download</download>
-		<image></image>
-		<rating>5</rating>
-	</shader>
-	<shader>
-		<name>Sleepy Rays</name>
-		<link>https://www.interactiveshaderformat.com/sketches/4419</link>
-		<download>https://www.interactiveshaderformat.com/sketches/4419/download</download>
-		<image></image>
-		<rating>5</rating>
-	</shader>
-	<shader>
-		<name>Spirograph Spectrum</name>
-		<link>https://www.interactiveshaderformat.com/sketches/3855</link>
-		<download>https://www.interactiveshaderformat.com/sketches/3855/download</download>
-		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_300,w_300/yamrarypzrwl7348vsxx</image>
-		<rating>5</rating>
-	</shader>
-	<shader>
 		<name>String Art</name>
 		<link>https://www.interactiveshaderformat.com/sketches/2124</link>
 		<download>https://www.interactiveshaderformat.com/sketches/2124/download</download>
@@ -236,13 +195,6 @@
 		<download>https://www.interactiveshaderformat.com/sketches/3234/download</download>
 		<image></image>
 		<rating>5</rating>
-	</shader>
-	<shader>
-		<name>Serpinski Slider</name>
-		<link>https://www.interactiveshaderformat.com/sketches/4469</link>
-		<download>https://www.interactiveshaderformat.com/sketches/4469/download</download>
-		<image></image>
-		<rating>4</rating>
 	</shader>
 	<shader>
 		<name>Totally Twisted Columns</name>
@@ -273,13 +225,6 @@
 		<rating>5</rating>
 	</shader>
 	<shader>
-		<name>Twin Rays</name>
-		<link>https://www.interactiveshaderformat.com/sketches/4404</link>
-		<download>https://www.interactiveshaderformat.com/sketches/4404/download</download>
-		<image></image>
-		<rating>4</rating>
-	</shader>
-	<shader>
 		<name>Twisty Coloured Bars</name>
 		<link>https://www.interactiveshaderformat.com/sketches/3782</link>
 		<download>https://www.interactiveshaderformat.com/sketches/3782/download</download>
@@ -301,13 +246,6 @@
 		<rating>4</rating>
 	</shader>
 	<shader>
-		<name>VV Logo</name>
-		<link>https://www.interactiveshaderformat.com/sketches/4126</link>
-		<download>https://www.interactiveshaderformat.com/sketches/4126/download</download>
-		<image></image>
-		<rating>1</rating>
-	</shader>
-	<shader>
 		<name>Wisps</name>
 		<link>https://www.interactiveshaderformat.com/sketches/969</link>
 		<download>https://www.interactiveshaderformat.com/sketches/969/download</download>
@@ -320,27 +258,6 @@
 		<download>https://www.interactiveshaderformat.com/sketches/1789/download</download>
 		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_300,w_300/ycclnjz8tthav2mexzbf</image>
 		<rating>5</rating>
-	</shader>
-	<shader>
-		<name>xLights Blob</name>
-		<link>https://www.interactiveshaderformat.com/sketches/4465</link>
-		<download>https://www.interactiveshaderformat.com/sketches/4465/download</download>
-		<image></image>
-		<rating>5</rating>
-	</shader>
-	<shader>
-		<name>xLights LSD</name>
-		<link>https://www.interactiveshaderformat.com/sketches/4467</link>
-		<download>https://www.interactiveshaderformat.com/sketches/4467/download</download>
-		<image></image>
-		<rating>3</rating>
-	</shader>
-	<shader>
-		<name>xLights Colour Grid</name>
-		<link>https://www.interactiveshaderformat.com/sketches/4477</link>
-		<download>https://www.interactiveshaderformat.com/sketches/4477/download</download>
-		<image></image>
-		<rating>4</rating>
 	</shader>
 	<shader>
 		<name>Ultimate Flame</name>
@@ -391,4 +308,88 @@
 		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_300,w_300/tldosxd43msiqshjtprh</image>
 		<rating>4</rating>
 	</shader>
+	<shader>
+		<name>Continua Variation</name>
+		<link>https://www.interactiveshaderformat.com/sketches/1142</link>
+		<download>https://www.interactiveshaderformat.com/sketches/1142/download</download>
+		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_300,w_300/l04soxkc8gjuwzl23vfy</image>
+		<rating>3</rating>
+	</shader>
+	<!--shader>
+		<name>Ebo Tunnel</name>
+		<link>https://www.interactiveshaderformat.com/sketches/4118</link>
+		<download>https://www.interactiveshaderformat.com/sketches/4118/download</download>
+		<image></image>
+		<rating>5</rating>
+	</shader-->
+	<shader>
+		<name>Serpinski Slider</name>
+		<link>https://www.interactiveshaderformat.com/sketches/462</link>
+		<download>https://www.interactiveshaderformat.com/sketches/462/download</download>
+		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_300,w_300/untxpx5mqy1i18nw9bgw</image>
+		<rating>4</rating>
+	</shader>
+	<shader>
+		<name>Searching For Something</name>
+		<link>https://www.interactiveshaderformat.com/sketches/129</link>
+		<download>https://www.interactiveshaderformat.com/sketches/129/download</download>
+		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_300,w_300/rv8rw633t5whkv0uxmao</image>
+		<rating>5</rating>
+	</shader>
+	<!--shader>
+		<name>Sleepy Rays</name>
+		<link>https://www.interactiveshaderformat.com/sketches/4419</link>
+		<download>https://www.interactiveshaderformat.com/sketches/4419/download</download>
+		<image></image>
+		<rating>5</rating>
+	</shader-->
+	<shader>
+		<name>Spirograph Spectrum</name>
+		<link>https://www.interactiveshaderformat.com/sketches/3855</link>
+		<download>https://www.interactiveshaderformat.com/sketches/3855/download</download>
+		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_300,w_300/yamrarypzrwl7348vsxx</image>
+		<rating>5</rating>
+	</shader>
+	<shader>
+		<name>Cubes + Spheres EboRemix</name>
+		<link>https://www.interactiveshaderformat.com/sketches/2951</link>
+		<download>https://www.interactiveshaderformat.com/sketches/2951/download</download>
+		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_300,w_300/uxmgxt8idk6s3vzagimb</image>
+		<rating>4</rating>
+	</shader>
+	<!--shader>
+		<name>xLights Blob</name>
+		<link>https://www.interactiveshaderformat.com/sketches/4465</link>
+		<download>https://www.interactiveshaderformat.com/sketches/4465/download</download>
+		<image></image>
+		<rating>5</rating>
+	</shader>
+	<shader>
+		<name>xLights LSD</name>
+		<link>https://www.interactiveshaderformat.com/sketches/4467</link>
+		<download>https://www.interactiveshaderformat.com/sketches/4467/download</download>
+		<image></image>
+		<rating>3</rating>
+	</shader>
+	<shader>
+		<name>xLights Colour Grid</name>
+		<link>https://www.interactiveshaderformat.com/sketches/4477</link>
+		<download>https://www.interactiveshaderformat.com/sketches/4477/download</download>
+		<image></image>
+		<rating>4</rating>
+	</shader-->
+	<shader>
+		<name>VV Logo</name>
+		<link>https://www.interactiveshaderformat.com/sketches/3950</link>
+		<download>https://www.interactiveshaderformat.com/sketches/3950/download</download>
+		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_300,w_300/euanya0bwyviwuktsnhf</image>
+		<rating>1</rating>
+	</shader>
+	<!--shader>
+		<name>Twin Rays</name>
+		<link>https://www.interactiveshaderformat.com/sketches/4404</link>
+		<download>https://www.interactiveshaderformat.com/sketches/4404/download</download>
+		<image></image>
+		<rating>4</rating>
+	</shader-->
 </shaders>

@@ -127,6 +127,7 @@ public:
 
     void DownloadFS()
     {
+        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         if (_download != "")
         {
             // make sure the shaders folder is there
@@ -145,6 +146,12 @@ public:
                     {
                         wxRenameFile(fn, xLightsFrame::CurrentDir + "/Shaders/" + _name + ".zip", true);
                         fn = ExtractFSFromZip(xLightsFrame::CurrentDir + "/Shaders/" + _name + ".zip");
+                    }
+                    else if (strcmp(token, "<!") == 0)
+                    {
+                        wxRemoveFile(fn);
+                        fn = "";
+                        logger_base.debug("Shader file download failed and returned a non fs file.");
                     }
                 }
 
