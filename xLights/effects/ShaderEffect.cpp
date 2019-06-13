@@ -851,7 +851,12 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
 #endif
 
     wxString shaderCode = wxString(code.mb_str(wxConvUTF8));
-    shaderCode.Replace(wxString((char)133), "...", true);
+    for (int x = 0; x < shaderCode.size(); x++) {
+        char ch = shaderCode[x];
+        if (ch == (char)133) {
+            shaderCode[x] = '.';
+        }
+    }
     int pos = shaderCode.Find("*/");
     if (pos > 0)
     {

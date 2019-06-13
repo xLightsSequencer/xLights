@@ -628,6 +628,7 @@
 		67E36FA61A77D017007FFC9E /* PerspectivesPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67E36FA51A77D017007FFC9E /* PerspectivesPanel.cpp */; };
 		67E42C1F1B5C32AD00CEBEC2 /* VAMPPluginDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67E42C1D1B5C32AD00CEBEC2 /* VAMPPluginDialog.cpp */; };
 		67E5B5E41EAEDC5800735BF0 /* SubModelGenerateDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67E5B5E11EAEDC5800735BF0 /* SubModelGenerateDialog.cpp */; };
+		67E5C5DD22B2B32D00D6AF68 /* ShaderDownloadDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67E5C5DC22B2B32D00D6AF68 /* ShaderDownloadDialog.cpp */; };
 		67E6750A2009993D000E930E /* CachedFileDownloader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67E675062009993B000E930E /* CachedFileDownloader.cpp */; };
 		67E6750B2009993D000E930E /* VendorModelDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67E675082009993C000E930E /* VendorModelDialog.cpp */; };
 		67E8F6501E513B380096546A /* IPEntryDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67E8F64E1E513B380096546A /* IPEntryDialog.cpp */; };
@@ -1920,6 +1921,8 @@
 		67E491B317C45BAF00FE40EA /* TabSequence.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TabSequence.cpp; sourceTree = "<group>"; };
 		67E5B5E11EAEDC5800735BF0 /* SubModelGenerateDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SubModelGenerateDialog.cpp; sourceTree = "<group>"; };
 		67E5B5E21EAEDC5800735BF0 /* SubModelGenerateDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SubModelGenerateDialog.h; sourceTree = "<group>"; };
+		67E5C5DB22B2B32C00D6AF68 /* ShaderDownloadDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ShaderDownloadDialog.h; sourceTree = "<group>"; };
+		67E5C5DC22B2B32D00D6AF68 /* ShaderDownloadDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ShaderDownloadDialog.cpp; sourceTree = "<group>"; };
 		67E675062009993B000E930E /* CachedFileDownloader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CachedFileDownloader.cpp; sourceTree = "<group>"; };
 		67E675072009993C000E930E /* CachedFileDownloader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CachedFileDownloader.h; sourceTree = "<group>"; };
 		67E675082009993C000E930E /* VendorModelDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = VendorModelDialog.cpp; sourceTree = "<group>"; };
@@ -3212,6 +3215,8 @@
 				6706BB091E9CFD8E00B44278 /* SequenceViewManager.h */,
 				671859E11D61FFF5008F52AA /* SevenSegmentDialog.cpp */,
 				671859E21D61FFF5008F52AA /* SevenSegmentDialog.h */,
+				67E5C5DC22B2B32D00D6AF68 /* ShaderDownloadDialog.cpp */,
+				67E5C5DB22B2B32C00D6AF68 /* ShaderDownloadDialog.h */,
 				67D5DEE71F792B18002BB5F6 /* SplashDialog.cpp */,
 				67D5DEE61F792B18002BB5F6 /* SplashDialog.h */,
 				67BA42A61C93B78500D17518 /* StartChannelDialog.cpp */,
@@ -4030,6 +4035,7 @@
 				674ACA7C1C5ADE4000B54B32 /* Node.cpp in Sources */,
 				67CE25952138235500ADF180 /* ViewObjectPanel.cpp in Sources */,
 				67C0EEE31C755ABE002FE25E /* MatrixModel.cpp in Sources */,
+				67E5C5DD22B2B32D00D6AF68 /* ShaderDownloadDialog.cpp in Sources */,
 				67D8F45A1A1A584400522413 /* TabSequence.cpp in Sources */,
 				67BF80061F278956002F118D /* Falcon.cpp in Sources */,
 				67B32DD31A16972000143B0F /* TabPreview.cpp in Sources */,
