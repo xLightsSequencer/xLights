@@ -11,6 +11,9 @@
 #include <wx/stopwatch.h>
 #include <wx/progdlg.h>
 #include <wx/dir.h>
+#include <wx/zipstrm.h>
+#include <wx/wfstream.h>
+#include <wx/dir.h>
 
 #include "CachedFileDownloader.h"
 #include "UtilFunctions.h"
@@ -100,15 +103,52 @@ public:
         }
     }
 
+    std::string ExtractFSFromZip(const std::string& zipFile)
+    {
+        std::string fn;
+
+        wxFileInputStream fin(zipFile);
+        wxZipInputStream zin(fin);
+        wxZipEntry* ent = zin.GetNextEntry();
+        while (ent != nullptr)
+        {
+            if (wxFileName(ent->GetName()).GetExt().Lower() == "fs")
+            {
+                fn = xLightsFrame::CurrentDir + "/Shaders/" + ent->GetName();
+                wxFileOutputStream fout(fn);
+                zin.Read(fout);
+                return fn;
+            }
+            ent = zin.GetNextEntry();
+        }
+
+        return "";
+    }
+
     void DownloadFS()
     {
         if (_download != "")
         {
             // make sure the shaders folder is there
             wxMkDir(xLightsFrame::CurrentDir + "/Shaders", wxS_DIR_DEFAULT);
-            if (Curl::HTTPSGetFile(_download, xLightsFrame::CurrentDir + "/Shaders/" + _name + ".fs"))
+            std::string fn = xLightsFrame::CurrentDir + "/Shaders/" + _name + ".fs";
+            if (Curl::HTTPSGetFile(_download, fn))
             {
-                _fsFile = xLightsFrame::CurrentDir + "/Shaders/" + _name + ".fs";
+                wxFile f;
+                if (f.Open(fn))
+                {
+                    char token[3];
+                    memset(token, 0x00, sizeof(token));
+                    f.Read(token, sizeof(token) - 1);
+                    f.Close();
+                    if (strcmp(token, "PK") == 0)
+                    {
+                        wxRenameFile(fn, xLightsFrame::CurrentDir + "/Shaders/" + _name + ".zip", true);
+                        fn = ExtractFSFromZip(xLightsFrame::CurrentDir + "/Shaders/" + _name + ".zip");
+                    }
+                }
+
+                _fsFile = fn;
             }
         }
     }
