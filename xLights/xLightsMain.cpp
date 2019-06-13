@@ -69,6 +69,7 @@
 #include "models/SubModel.h"
 #include "effects/FacesEffect.h"
 #include "effects/StateEffect.h"
+#include "ShaderDownloadDialog.h"
 
 // Linux needs this
 #include <wx/stdpaths.h>
@@ -8673,6 +8674,8 @@ void xLightsFrame::OnMenuItem_PurgeVendorCacheSelected(wxCommandEvent& event)
     VendorModelDialog::GetCache().Save();
     VendorMusicDialog::GetCache().ClearCache();
     VendorMusicDialog::GetCache().Save();
+    ShaderDownloadDialog::GetCache().ClearCache();
+    ShaderDownloadDialog::GetCache().Save();
 }
 
 void xLightsFrame::OnMenuItem_LoudVolSelected(wxCommandEvent& event)
