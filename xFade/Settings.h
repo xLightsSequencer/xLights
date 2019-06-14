@@ -23,6 +23,7 @@ public:
     std::map<std::string, int> _midiStatus;
     std::map<std::string, int> _midiChannel;
     std::map<std::string, int> _midiData1;
+    std::map<std::string, int> _midiData2;
     std::list<std::string> _fadeExclude;
     std::string _defaultMIDIDevice = "";
 
@@ -40,9 +41,9 @@ public:
     std::list<int> GetExcludeChannels(int u);
     std::list<int> GetUsedMIDIDevices() const;
     std::string Safe(std::string s);
-    void SetMIDIControl(const std::string& midiDevice, const std::string& controlName, int status, int channel, int data1);
-    std::string LookupMIDI(int midiDevice, int status, int channel, int data1) const;
-    void LookupMIDI(std::string controlName, int& midiDevice, int& status, int& channel, int& data1);
+    void SetMIDIControl(const std::string& midiDevice, const std::string& controlName, int status, int channel, int data1, int data2);
+    std::string LookupMIDI(int midiDevice, int status, int channel, int data1, int data2) const;
+    void LookupMIDI(std::string controlName, int& midiDevice, int& status, int& channel, int& data1, int& data2);
     const std::list<std::string>& GetFadeExclude() const { return _fadeExclude; }
 };
 
