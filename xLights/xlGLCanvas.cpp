@@ -241,7 +241,6 @@ xlGLCanvas::xlGLCanvas(wxWindow* parent, wxWindowID id, const wxPoint &pos,
         int ret = SetPixelFormat(m_hDC, iPixelFormat, &pfd);
     }
 #endif
-
 }
 
 xlGLCanvas::~xlGLCanvas()
@@ -515,12 +514,15 @@ void xlGLCanvas::SetCurrentGLContext() {
                 UsesVertex3Accumulator(),
                 UsesVertex3TextureAccumulator(),
                 UsesVertex3ColorAccumulator()));
+            if (cache != nullptr) _ver = 3;
         }
         if (cache == nullptr) {
             logger_opengl.info("Try creating 1.1 Cache for %s", (const char *)_name.c_str());
             LOG_GL_ERRORV(cache = Create11Cache());
+            if (cache != nullptr) _ver = 1;
         }
         if (cache == nullptr) {
+            _ver = 0;
             logger_opengl.error("All attempts at cache creation have failed.");
         }
     }
@@ -557,15 +559,21 @@ void xlGLCanvas::CreateGLContext() {
                 m_context = nullptr;
                 supportsCoreProfile = false;
             } else {
+                _ver = 3;
                 LOG_GL_ERROR();
                 const GLubyte* rend = glGetString(GL_RENDERER);
                 if (wxString(rend) == "GDI Generic") {
                     //no way 3.x is going to work, software rendered, flip to 1.x
+                    _ver = 1;
                     LOG_GL_ERRORV(delete m_context);
                     m_context = nullptr;
                     supportsCoreProfile = false;
                 }
             }
+        }
+        else
+        {
+            _ver = 1;
         }
         if (m_context == nullptr) {
             glGetError();
@@ -578,6 +586,7 @@ void xlGLCanvas::CreateGLContext() {
         }
         if (!m_context->IsOK()) {
             LOG_GL_ERRORV(delete m_context);
+            _ver = 0;
             m_context = nullptr;
         }
         wxLog::SetLogLevel(cur);
@@ -585,6 +594,7 @@ void xlGLCanvas::CreateGLContext() {
 
         if (m_context == nullptr) {
             static log4cpp::Category &logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
+            _ver = 0;
             logger_opengl.error("Error creating GL context.");
         } else if (m_sharedContext == nullptr) {
             //use this as the shared context, then create a new one.

@@ -4,6 +4,7 @@
 #include "../../include/shader_24.xpm"
 #include "../../include/shader_16.xpm"
 #include <wx/wx.h>
+#include <wx/config.h>
 
 #ifndef __WXMAC__
     #include <GL/gl.h>

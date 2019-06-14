@@ -5897,12 +5897,13 @@ void xLightsFrame::CheckSequence(bool display)
         std::list<std::pair<std::string, std::string>> faces;
         std::list<std::pair<std::string, std::string>> states;
         std::list<std::string> viewPoints;
+        bool usesShader = false;
         for (int i = 0; i < mSequenceElements.GetElementCount(MASTER_VIEW); i++)
         {
             Element* e = mSequenceElements.GetElement(i);
             if (e->GetType() != ELEMENT_TYPE_TIMING)
             {
-                CheckElement(e, f, errcount, warncount, e->GetFullName(), e->GetName(), videoCacheWarning, faces, states, viewPoints);
+                CheckElement(e, f, errcount, warncount, e->GetFullName(), e->GetName(), videoCacheWarning, faces, states, viewPoints, usesShader);
 
                 if (e->GetType() == ELEMENT_TYPE_MODEL)
                 {
@@ -5911,7 +5912,7 @@ void xLightsFrame::CheckSequence(bool display)
                     for (int j = 0; j < me->GetStrandCount(); ++j)
                     {
                         StrandElement* se = me->GetStrand(j);
-                        CheckElement(se, f, errcount, warncount, se->GetFullName(), e->GetName(), videoCacheWarning, faces, states, viewPoints);
+                        CheckElement(se, f, errcount, warncount, se->GetFullName(), e->GetName(), videoCacheWarning, faces, states, viewPoints, usesShader);
 
                         for(int k = 0; k < se->GetNodeLayerCount(); ++k)
                         {
@@ -5928,10 +5929,20 @@ void xLightsFrame::CheckSequence(bool display)
                         Element* sme = me->GetSubModel(j);
                         if (sme->GetType() == ELEMENT_TYPE_SUBMODEL)
                         {
-                            CheckElement(sme, f, errcount, warncount, sme->GetFullName(), e->GetName(), videoCacheWarning, faces, states, viewPoints);
+                            CheckElement(sme, f, errcount, warncount, sme->GetFullName(), e->GetName(), videoCacheWarning, faces, states, viewPoints, usesShader);
                         }
                     }
                 }
+            }
+        }
+
+        if (usesShader)
+        {
+            if (mainSequencer->PanelEffectGrid->GetCreatedVersion() < 3)
+            {
+                wxString msg = wxString::Format("    ERR: Seqeuence has one or more shader effects but open GL version is lower than verson 3. These effects will not render.");
+                LogAndWrite(f, msg.ToStdString());
+                errcount++;
             }
         }
 
@@ -6190,7 +6201,7 @@ void xLightsFrame::CheckEffect(Effect* ef, wxFile& f, int& errcount, int& warnco
     }
 }
 
-void xLightsFrame::CheckElement(Element* e, wxFile& f, int& errcount, int& warncount, const std::string& name, const std::string& modelName, bool& videoCacheWarning, std::list<std::pair<std::string, std::string>>& faces, std::list<std::pair<std::string, std::string>>& states, std::list<std::string>& viewPoints)
+void xLightsFrame::CheckElement(Element* e, wxFile& f, int& errcount, int& warncount, const std::string& name, const std::string& modelName, bool& videoCacheWarning, std::list<std::pair<std::string, std::string>>& faces, std::list<std::pair<std::string, std::string>>& states, std::list<std::string>& viewPoints, bool& usesShader)
 {
     for (int j = 0; j < e->GetEffectLayerCount(); j++)
     {
@@ -6245,6 +6256,10 @@ void xLightsFrame::CheckElement(Element* e, wxFile& f, int& errcount, int& warnc
             }
 
             CheckEffect(ef, f, errcount, warncount, name, modelName, false, videoCacheWarning, faces, states, viewPoints);
+            if (ef->GetEffectName() == "Shader")
+            {
+                usesShader = true;
+            }
         }
 
         // This assumes effects are stored in start time order per layer

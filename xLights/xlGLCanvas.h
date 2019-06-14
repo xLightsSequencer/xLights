@@ -19,6 +19,7 @@ class xlGLCanvas
         virtual ~xlGLCanvas();
 
         void SetCurrentGLContext();
+        int GetCreatedVersion() const { return _ver; }
 
         int getWidth() const { return mWindowWidth; }
         int getHeight() const { return mWindowHeight; }
@@ -78,6 +79,7 @@ class xlGLCanvas
         DrawGLUtils::xlGLCacheInfo *cache;
 
     private:
+        int _ver = 0;
         wxString _name;
         wxGLContext* m_context;
         bool m_coreProfile;
