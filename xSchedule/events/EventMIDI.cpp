@@ -68,6 +68,19 @@ void EventMIDI::DoSetData1(std::string data1)
     }
 }
 
+void EventMIDI::DoSetData2(std::string data2)
+{
+    _data2 = data2;
+    if (_data2 == "ANY")
+    {
+        _data2Byte = -1;
+    }
+    else
+    {
+        _data2Byte = wxHexToDec(data2.substr(2));
+    }
+}
+
 EventMIDI::EventMIDI() : EventBase()
 {
     _device = "";
@@ -75,8 +88,10 @@ EventMIDI::EventMIDI() : EventBase()
     _statusByte = 0x90;
     _channel = "ANY";
     _data1 = "ANY";
+    _data2 = "ANY";
     _channelByte = -1;
     _data1Byte = -1;
+    _data2Byte = -1;
 }
 
 EventMIDI::EventMIDI(wxXmlNode* node) : EventBase(node)
@@ -85,6 +100,7 @@ EventMIDI::EventMIDI(wxXmlNode* node) : EventBase(node)
     DoSetStatus(node->GetAttribute("Status", "0x9n - Note On").ToStdString());
     DoSetChannel(node->GetAttribute("Channel", "ANY").ToStdString());
     DoSetData1(node->GetAttribute("Data1", "ANY").ToStdString());
+    DoSetData2(node->GetAttribute("Data2", "ANY").ToStdString());
 }
 
 wxXmlNode* EventMIDI::Save()
@@ -94,6 +110,7 @@ wxXmlNode* EventMIDI::Save()
     en->AddAttribute("Status", _status);
     en->AddAttribute("Channel", _channel);
     en->AddAttribute("Data1", _data1);
+    en->AddAttribute("Data2", _data2);
     EventBase::Save(en);
     return en;
 }
@@ -108,10 +125,13 @@ void EventMIDI::Process(uint8_t status, uint8_t channel, uint8_t data1, uint8_t 
         {
             if (IsAnyData1() || data1 == GetData1Byte())
             {
-                int st = status;
-                logger_base.debug("Event fired %s:%s -> %02x", (const char *)GetType().c_str(), (const char *)GetName().c_str(), st);
-                ProcessMIDICommand(data1, data2, scheduleManager);
-                logger_base.debug("    Event processed.");
+                if (IsAnyData2() || data2 == GetData2Byte())
+                {
+                    int st = status;
+                    logger_base.debug("Event fired %s:%s -> %02x", (const char*)GetType().c_str(), (const char*)GetName().c_str(), st);
+                    ProcessMIDICommand(data1, data2, scheduleManager);
+                    logger_base.debug("    Event processed.");
+                }
             }
         }
     }
