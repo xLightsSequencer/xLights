@@ -1728,6 +1728,7 @@ private:
 
 void LayoutPanel::UnSelectAllModels(bool addBkgProps)
 {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     highlightedBaseObject = nullptr;
     selectedBaseObject = nullptr;
     selectionLatched = false;
@@ -1737,20 +1738,34 @@ void LayoutPanel::UnSelectAllModels(bool addBkgProps)
         for (size_t i = 0; i < models.size(); i++)
         {
             Model* m = modelPreview->GetModels()[i];
-            m->Selected = false;
-            m->Highlighted = false;
-            m->GroupSelected = false;
-            m->SelectHandle(-1);
-            m->GetBaseObjectScreenLocation().SetActiveHandle(-1);
+            if (m != nullptr)
+            {
+                m->Selected = false;
+                m->Highlighted = false;
+                m->GroupSelected = false;
+                m->SelectHandle(-1);
+                m->GetBaseObjectScreenLocation().SetActiveHandle(-1);
+            }
+            else
+            {
+                logger_base.error("Really strange ... unselect all models returned a null model pointer");
+            }
         }
     } else {
-        for (auto it = xlights->AllObjects.begin(); it != xlights->AllObjects.end(); ++it) {
-            ViewObject *view_object = it->second;
-            view_object->Selected = false;
-            view_object->Highlighted = false;
-            view_object->GroupSelected = false;
-            view_object->SelectHandle(-1);
-            view_object->GetBaseObjectScreenLocation().SetActiveHandle(-1);
+        for (auto it : xlights->AllObjects) {
+            ViewObject *view_object = it.second;
+            if (view_object != nullptr)
+            {
+                view_object->Selected = false;
+                view_object->Highlighted = false;
+                view_object->GroupSelected = false;
+                view_object->SelectHandle(-1);
+                view_object->GetBaseObjectScreenLocation().SetActiveHandle(-1);
+            }
+            else
+            {
+                logger_base.error("Really strange ... unselect all models returned a null view object pointer");
+            }
         }
     }
 
@@ -1923,11 +1938,11 @@ void LayoutPanel::SelectBaseObject3D()
 }
 void LayoutPanel::SelectBaseObject(const std::string & name, bool highlight_tree)
 {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if( editing_models ) {
         Model *m = xlights->AllModels[name];
         if (m == nullptr)
         {
-            static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
             logger_base.warn("LayoutPanel:SelectBaseObject Unable to select model '%s'.", (const char *)name.c_str());
         }
         SelectModel(m, highlight_tree);
@@ -1935,7 +1950,6 @@ void LayoutPanel::SelectBaseObject(const std::string & name, bool highlight_tree
         ViewObject *v = xlights->AllObjects[name];
         if (v == nullptr)
         {
-            static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
             logger_base.warn("LayoutPanel:SelectBaseObject Unable to select object '%s'.", (const char *)name.c_str());
         }
         SelectViewObject(v, highlight_tree);

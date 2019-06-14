@@ -291,7 +291,7 @@ public:
     void SetEffectControls(const SettingsMap &settings);
     void ApplyLast(wxCommandEvent& event);
     void SetEffectControlsApplyLast(const SettingsMap &settings);
-    void ApplySetting(wxString name, const wxString &value);
+    bool ApplySetting(wxString name, const wxString &value);
     void LoadPerspectivesMenu(wxXmlNode* perspectivesNode);
     struct PerspectiveId {
         int id;

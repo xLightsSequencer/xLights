@@ -10,7 +10,7 @@ class WarpEffect : public RenderableEffect
         virtual ~WarpEffect();
         virtual bool CanBeRandom() override {return false;}
         virtual void Render(Effect *effect, SettingsMap &settings, RenderBuffer &buffer) override;
-        virtual bool SupportsLinearColorCurves(const SettingsMap &SettingsMap) override { return false; }
+        virtual bool SupportsLinearColorCurves(const SettingsMap &SettingsMap) const override { return false; }
         virtual void SetDefaultParameters() override;
         virtual bool needToAdjustSettings(const std::string &version) override;
         virtual void adjustSettings(const std::string &version, Effect *effect, bool removeDefaults = true) override;

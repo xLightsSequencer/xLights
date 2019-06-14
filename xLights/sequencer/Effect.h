@@ -47,6 +47,7 @@ class Effect
     xlColorCurveVector mCC;
     DrawGLUtils::xlDisplayList background;
     RenderCacheItem *mCache;
+    wxLongLong _timeToDelete = 0;
 
     Effect() {}  //don't allow default or copy constructor
     Effect(const Effect &e) {}
@@ -59,6 +60,9 @@ public:
 
     int GetID() const { return mID; }
     void SetID(int i) { mID = i; }
+
+    bool IsTimeToDelete() const;
+    void SetTimeToDelete();
 
     int GetEffectIndex() const { return mEffectIndex; }
     void SetEffectIndex(int effectIndex);

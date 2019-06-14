@@ -59,6 +59,7 @@ public:
     std::list<std::string> GetFacesUsed(EffectManager& em) const;
     bool CleanupFileLocations(xLightsFrame* frame, EffectManager& em);
     Effect* SelectEffectUsingDescription(std::string description);
+    bool IsEffectValid(Effect* e) const;
     Effect* SelectEffectUsingLayerTime(int layer, int time);
 	virtual std::vector<int> GetLayersWithEffectsByTime(int startMs, int endMS) const;
 

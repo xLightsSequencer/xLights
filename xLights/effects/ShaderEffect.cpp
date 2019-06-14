@@ -173,7 +173,7 @@ std::list<std::string> ShaderEffect::CheckEffectSettings(const SettingsMap& sett
     return res;
 }
 
-std::list<std::string> ShaderEffect::GetFileReferences(const SettingsMap& SettingsMap)
+std::list<std::string> ShaderEffect::GetFileReferences(const SettingsMap& SettingsMap) const
 {
     std::list<std::string> res;
     res.push_back(SettingsMap["E_0FILEPICKERCTRL_IFS"]);

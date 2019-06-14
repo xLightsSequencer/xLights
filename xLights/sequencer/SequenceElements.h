@@ -86,6 +86,7 @@ public:
     std::list<std::string> GetAllElementNamesWithEffects();
     int GetElementLayerCount(std::string elementName, std::list<int>* layers = nullptr);
     std::list<Effect*> GetElementLayerEffects(std::string elementName, int layer);
+    bool IsValidEffect(Effect* e) const;
 
     int GetTotalNumberOfModelRows();
     void SetMaxRowsDisplayed(int maxRows);

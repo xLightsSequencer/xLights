@@ -2218,6 +2218,8 @@ void xLightsFrame::TimerRgbSeq(long msec)
 void xLightsFrame::SetEffectControls(const std::string &modelName, const std::string &effectName,
                                      const SettingsMap &settings, const SettingsMap &palette,
                                      bool setDefaults) {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    if (CurrentSeqXmlFile == nullptr) return;
     SetChoicebook(EffectsPanel1->EffectChoicebook, effectName);
     Model *model = GetModel(modelName);
     if (setDefaults) {
@@ -2243,14 +2245,14 @@ void xLightsFrame::SetEffectControls(const std::string &modelName, const std::st
         colorPanel->SetSupports(ef->SupportsLinearColorCurves(settings), ef->SupportsRadialColorCurves(settings));
     } else {
         colorPanel->SetColorCount(8);
-        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         logger_base.warn("Setting effect controls for unknown effect type: %s", (const char *)effectName.c_str());
     }
 }
 
-void xLightsFrame::ApplySetting(wxString name, const wxString &value)
+bool xLightsFrame::ApplySetting(wxString name, const wxString &value)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    bool res = true;
     wxWindow* ContextWin = nullptr;
 	if (name.StartsWith("E_"))
 	{
@@ -2262,7 +2264,7 @@ void xLightsFrame::ApplySetting(wxString name, const wxString &value)
         if (name == "T_LayersSelected")
         {
             timingPanel->SetLayersSelected(value.ToStdString());
-            return;
+            return res;
         }
 
 	    if (name == "T_CHECKBOX_OverlayBkg") {
@@ -2284,11 +2286,12 @@ void xLightsFrame::ApplySetting(wxString name, const wxString &value)
     else if (name.StartsWith("X_"))
     {
         // This is used for properties that are not displayed on a panel ... but are typically accessed via the right click menu on an effect
-        return;
+        return res;
     }
     else
 	{
-		return;
+        logger_base.error("ApplySetting: Unable to panel type for: %s", (const char*)name.c_str());
+        return false;
 	}
 
     name = "ID_" + name.Mid(2);
@@ -2397,6 +2400,7 @@ void xLightsFrame::ApplySetting(wxString name, const wxString &value)
         else
 		{
 			logger_base.error("ApplySetting: Unknown type: %s", (const char*)name.c_str());
+            res = false;
         }
 	}
 	else
@@ -2408,8 +2412,10 @@ void xLightsFrame::ApplySetting(wxString name, const wxString &value)
 		}
 		if (CtrlWin == nullptr) {
             logger_base.error("ApplySetting: Unable to find: %s", (const char*)name.c_str());
+            res = false;
         }
 	}
+    return res;
 }
 
 void xLightsFrame::ApplyLast(wxCommandEvent& event)

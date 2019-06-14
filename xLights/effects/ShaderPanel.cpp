@@ -257,6 +257,17 @@ void ShaderPanel::OnButton_DownloadClick(wxCommandEvent& event)
         if (dlg.ShowModal() == wxID_OK)
         {
             FilePickerCtrl1->SetFileName(wxFileName(dlg.GetShaderFile()));
+            if (wxFile::Exists(dlg.GetShaderFile()))
+            {
+                BuildUI(dlg.GetShaderFile());
+            }
+            else
+            {
+                Freeze();
+                FlexGridSizer_Dynamic->DeleteWindows();
+                FilePickerCtrl1->UnsetToolTip();
+                Thaw();
+            }
         }
     }
     else

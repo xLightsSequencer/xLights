@@ -162,10 +162,11 @@ public:
     virtual ~ShaderEffect();
     virtual bool CanBeRandom() override { return false; }
     virtual void Render(Effect* effect, SettingsMap& settings, RenderBuffer& buffer) override;
-    virtual bool SupportsLinearColorCurves(const SettingsMap& SettingsMap) override { return false; }
+    virtual bool SupportsLinearColorCurves(const SettingsMap& SettingsMap) const override { return false; }
+    virtual bool SupportsRenderCache(const SettingsMap& settings) const override { return true; }
     virtual void SetDefaultParameters() override;
     static ShaderConfig* ParseShader(const std::string& filename);
-    virtual std::list<std::string> GetFileReferences(const SettingsMap& SettingsMap) override;
+    virtual std::list<std::string> GetFileReferences(const SettingsMap& SettingsMap) const override;
     virtual bool CleanupFileLocations(xLightsFrame* frame, SettingsMap& SettingsMap) override;
     virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff) override;
 

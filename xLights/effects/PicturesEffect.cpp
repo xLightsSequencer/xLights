@@ -394,7 +394,7 @@ void PicturesEffect::SetDefaultParameters() {
     pp->ValidateWindow();
 }
 
-std::list<std::string> PicturesEffect::GetFileReferences(const SettingsMap &SettingsMap)
+std::list<std::string> PicturesEffect::GetFileReferences(const SettingsMap &SettingsMap) const
 {
     std::list<std::string> res;
     res.push_back(SettingsMap["E_FILEPICKER_Pictures_Filename"]);

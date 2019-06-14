@@ -717,6 +717,19 @@ Effect* Element::SelectEffectUsingDescription(std::string description)
     return nullptr;
 }
 
+bool Element::IsEffectValid(Effect* e) const
+{
+    for (int j = 0; j < GetEffectLayerCount(); j++)
+    {
+        EffectLayer* el = GetEffectLayer(j);
+        if (el->IsEffectValid(e))
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
 Effect* Element::SelectEffectUsingLayerTime(int layer, int time)
 {
     if (layer < GetEffectLayerCount())

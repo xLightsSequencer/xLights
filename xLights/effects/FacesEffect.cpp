@@ -197,7 +197,7 @@ void FacesEffect::SetPanelStatus(Model *cls) {
     fp->Face_FaceDefinitonChoice->SetSelection(0);
 }
 
-std::list<std::string> FacesEffect::GetFacesUsed(const SettingsMap& SettingsMap)
+std::list<std::string> FacesEffect::GetFacesUsed(const SettingsMap& SettingsMap) const 
 {
     std::list<std::string> res;
     auto face = SettingsMap.Get("E_CHOICE_Faces_FaceDefinition", "Default");
