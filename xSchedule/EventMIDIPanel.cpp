@@ -102,8 +102,10 @@ EventMIDIPanel::EventMIDIPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos
         Choice_Data2->Append(wxString::Format("0x%02X", i));
     }
     Choice_Data1->Append("ANY");
+    Choice_Data1->Append("Not 0x00");
     Choice_Data1->SetSelection(0);
     Choice_Data2->Append("ANY");
+    Choice_Data2->Append("Not 0x00");
     Choice_Data2->SetSelection(256);
 }
 

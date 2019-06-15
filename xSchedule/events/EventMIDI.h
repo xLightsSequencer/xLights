@@ -46,6 +46,8 @@ class EventMIDI: public EventBase
         bool IsAnyChannel() const { return _channel == "ANY"; }
         bool IsAnyData1() const { return _data1 == "ANY"; }
         bool IsAnyData2() const { return _data2 == "ANY"; }
+        bool IsNotZeroData1(uint8_t data1) const { return _data1 == "Not 0x00" && data1 != 0; }
+        bool IsNotZeroData2(uint8_t data2) const { return _data2 == "Not 0x00" && data2 != 0; }
         uint8_t GetStatusByte() const { return _statusByte; }
         uint8_t GetChannelByte() const { return _channelByte; }
         uint8_t GetData1Byte() const { return _data1Byte; }

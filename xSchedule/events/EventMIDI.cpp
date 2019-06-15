@@ -62,6 +62,10 @@ void EventMIDI::DoSetData1(std::string data1)
     {
         _data1Byte = -1;
     }
+    else if (_data1 == "Not 0x00")
+    {
+        _data1Byte = -2;
+    }
     else
     {
         _data1Byte = wxHexToDec(data1.substr(2));
@@ -74,6 +78,10 @@ void EventMIDI::DoSetData2(std::string data2)
     if (_data2 == "ANY")
     {
         _data2Byte = -1;
+    }
+    else if (_data2 == "Not 0x00")
+    {
+        _data2Byte = -2;
     }
     else
     {
@@ -123,9 +131,9 @@ void EventMIDI::Process(uint8_t status, uint8_t channel, uint8_t data1, uint8_t 
     {
         if (IsAnyChannel() || channel == GetChannelByte())
         {
-            if (IsAnyData1() || data1 == GetData1Byte())
+            if (IsAnyData1() || data1 == GetData1Byte() || IsNotZeroData1(data1))
             {
-                if (IsAnyData2() || data2 == GetData2Byte())
+                if (IsAnyData2() || data2 == GetData2Byte() || IsNotZeroData2(data2))
                 {
                     int st = status;
                     logger_base.debug("Event fired %s:%s -> %02x", (const char*)GetType().c_str(), (const char*)GetName().c_str(), st);

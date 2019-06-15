@@ -54,9 +54,9 @@ void Settings::SetMIDIControl(const std::string& midiDevice, const std::string& 
             {
                 if (itc->second == 16 || itc->second == channel)
                 {
-                    if (itd->second == 256 || itd->second == data1)
+                    if (itd->second == 256 || itd->second == data1 || (itd->second == 257 && data1 != 0))
                     {
-                        if (itd2->second == 256 || itd2->second == data2)
+                        if (itd2->second == 256 || itd2->second == data2 || (itd2->second == 257 && data2 != 0))
                         {
                             todelete.push_back(it->first);
                         }
@@ -101,9 +101,9 @@ std::string Settings::LookupMIDI(int device, int status, int channel, int data1,
             {
                 if (itc->second == 16 || itc->second == channel)
                 {
-                    if (itd->second == 256 || itd->second == data1)
+                    if (itd->second == 256 || itd->second == data1 || (itd->second == 257 && data1 != 0))
                     {
-                        if (itd2->second == 256 || itd2->second == data2)
+                        if (itd2->second == 256 || itd2->second == data2 || (itd2->second == 257 && data2 != 0))
                         {
                             return it->first;
                         }
