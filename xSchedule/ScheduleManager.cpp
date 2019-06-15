@@ -1104,6 +1104,7 @@ int ScheduleManager::Frame(bool outputframe, xScheduleFrame* frame)
                 {
                     if (outputframe)
                     {
+                        memset(_buffer, 0x00, totalChannels); // clear out any prior frame data
                         _outputManager->StartFrame(0);
                         _outputManager->AllOff(false);
                     }
