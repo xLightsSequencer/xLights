@@ -84,6 +84,7 @@ protected:
     wxXmlNode* ModelXml;
     std::string layout_group;
     unsigned long changeCount;
+    bool active;
 
 private:
 };

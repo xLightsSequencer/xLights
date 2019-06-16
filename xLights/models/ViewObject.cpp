@@ -6,7 +6,7 @@
 #include "Model.h"
 
 ViewObject::ViewObject(const ObjectManager &manger)
-: only_3d(true), active(true)
+: only_3d(true)
 {
 }
 
