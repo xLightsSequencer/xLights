@@ -332,6 +332,7 @@ const long xLightsFrame::ID_MENUITEM_OGL_RO6 = wxNewId();
 const long xLightsFrame::ID_MENUITEM19 = wxNewId();
 const long xLightsFrame::ID_MNU_PLAYCONTROLSONPREVIEW = wxNewId();
 const long xLightsFrame::ID_MNU_AUTOSHOWHOUSEPREVIEW = wxNewId();
+const long xLightsFrame::ID_MNU_SUPPRESS_TRANSITION_HINTS = wxNewId();
 const long xLightsFrame::ID_MENUITEM_AUTOSAVE_0 = wxNewId();
 const long xLightsFrame::ID_MENUITEM_AUTOSAVE_3 = wxNewId();
 const long xLightsFrame::ID_MENUITEM_AUTOSAVE_10 = wxNewId();
@@ -1140,6 +1141,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     MenuSettings->Append(MenuItem_PlayControlsOnPreview);
     MenuItem_AutoShowHousePreview = new wxMenuItem(MenuSettings, ID_MNU_AUTOSHOWHOUSEPREVIEW, _("Auto Show House Preview"), wxEmptyString, wxITEM_CHECK);
     MenuSettings->Append(MenuItem_AutoShowHousePreview);
+    MenuItem_SuppressFadeHints = new wxMenuItem(MenuSettings, ID_MNU_SUPPRESS_TRANSITION_HINTS, _("Suppress Transition Hints"), wxEmptyString, wxITEM_CHECK);
+    MenuSettings->Append(MenuItem_SuppressFadeHints);
     AutoSaveMenu = new wxMenu();
     MenuItem44 = new wxMenuItem(AutoSaveMenu, ID_MENUITEM_AUTOSAVE_0, _("Disabled"), wxEmptyString, wxITEM_RADIO);
     AutoSaveMenu->Append(MenuItem44);
@@ -1415,6 +1418,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     Connect(ID_MENUITEM_OGL_RO6,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemOGLRenderOrder);
     Connect(ID_MNU_PLAYCONTROLSONPREVIEW,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_PlayControlsOnPreviewSelected);
     Connect(ID_MNU_AUTOSHOWHOUSEPREVIEW,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_AutoShowHousePreviewSelected);
+    Connect(ID_MNU_SUPPRESS_TRANSITION_HINTS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem61Selected);
     Connect(ID_MENUITEM_AUTOSAVE_0,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::AutoSaveIntervalSelected);
     Connect(ID_MENUITEM_AUTOSAVE_3,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::AutoSaveIntervalSelected);
     Connect(ID_MENUITEM_AUTOSAVE_10,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::AutoSaveIntervalSelected);
@@ -1549,6 +1553,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     mSaveFseqOnSave = true;
     mBackupOnSave = false;
     mBackupOnLaunch = true;
+    mSuppressFadeHints = false;
     me131Sync = false;
     mLocalIP = "";
     mAltBackupDir = "";
@@ -1869,6 +1874,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     config->Read("xLightsBackupOnLaunch", &mBackupOnLaunch, true);
     MenuItem_BackupOnLaunch->Check(mBackupOnLaunch);
     logger_base.debug("Backup on launch: %s.", mBackupOnLaunch? "true" : "false");
+
+    config->Read("xLightsSuppressFadeHints", &mSuppressFadeHints, false);
+    MenuItem_SuppressFadeHints->Check(mSuppressFadeHints);
+    logger_base.debug("Suppress Transition Hints: %s.", mSuppressFadeHints ? "true" : "false");
 
     config->Read(_("xLightsAltBackupDir"), &mAltBackupDir);
     logger_base.debug("Alternate Backup Dir: '%s'.", (const char *)mAltBackupDir.c_str());
@@ -2257,6 +2266,7 @@ xLightsFrame::~xLightsFrame()
     config->Write("xLightsAutoSavePerspectives", _autoSavePerspecive);
     config->Write("xLightsBackupOnSave", mBackupOnSave);
     config->Write("xLightsBackupOnLaunch", mBackupOnLaunch);
+    config->Write("xLightsSuppressFadeHints", mSuppressFadeHints);
     config->Write("xLightse131Sync", me131Sync);
     config->Write("xLightsLocalIP", mLocalIP);
     config->Write("xLightsEffectAssistMode", mEffectAssistMode);
@@ -9870,4 +9880,10 @@ void xLightsFrame::OnMenuItem_MHS_ExtraLargeSelected(wxCommandEvent& event)
 {
     _modelHandleSize = 3;
     layoutPanel->Refresh();
+}
+
+void xLightsFrame::OnMenuItem61Selected(wxCommandEvent& event)
+{
+    mSuppressFadeHints = event.IsChecked();
+    mainSequencer->PanelEffectGrid->Refresh();
 }

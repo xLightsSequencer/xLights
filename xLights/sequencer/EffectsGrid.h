@@ -142,6 +142,7 @@ private:
     Effect* GetEffectAtRowAndTime(int row, int ms,int &index, HitLocation &selectionType);
     int GetClippedPositionFromTimeMS(int ms) const;
 
+    void DrawFadeHints(Effect* e, int x1, int y1, int x2, int y2, DrawGLUtils::xlAccumulator& backgrounds) const;
     void CreateEffectForFile(int x, int y, const std::string& effectName, const std::string& filename);
     void render(wxPaintEvent& evt);
     void magnify(wxMouseEvent& event);

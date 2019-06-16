@@ -1654,6 +1654,11 @@
 					<handler function="OnMenuItem_AutoShowHousePreviewSelected" entry="EVT_MENU" />
 					<checkable>1</checkable>
 				</object>
+				<object class="wxMenuItem" name="ID_MNU_SUPPRESS_TRANSITION_HINTS" variable="MenuItem_SuppressFadeHints" member="yes">
+					<label>Suppress Transition Hints</label>
+					<handler function="OnMenuItem61Selected" entry="EVT_MENU" />
+					<checkable>1</checkable>
+				</object>
 				<object class="wxMenu" name="ID_MENUITEM20" variable="AutoSaveMenu" member="yes">
 					<label>Auto Save</label>
 					<object class="wxMenuItem" name="ID_MENUITEM_AUTOSAVE_0" variable="MenuItem44" member="no">
