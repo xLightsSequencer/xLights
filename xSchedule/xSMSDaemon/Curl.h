@@ -92,7 +92,10 @@ public:
 
             CURLcode res = curl_easy_perform(curl);
             curl_easy_cleanup(curl);
-            curl_slist_free_all(headerlist);
+            if (headerlist != nullptr)
+            {
+                curl_slist_free_all(headerlist);
+            }
             if (res == CURLE_OK)
             {
                 return buffer;
@@ -140,7 +143,10 @@ public:
             CURLcode res = curl_easy_perform(curl);
             curl_easy_cleanup(curl);
             curl_formfree(formpost);
-            curl_slist_free_all(headerlist);
+            if (headerlist != nullptr)
+            {
+                curl_slist_free_all(headerlist);
+            }
             if (res == CURLE_OK)
             {
                 return buffer;
@@ -225,6 +231,11 @@ public:
                 curl_easy_setopt(curl, CURLOPT_MAXREDIRS, 50L);
                 curl_easy_setopt(curl, CURLOPT_TCP_KEEPALIVE, 1L);
                 curl_easy_setopt(curl, CURLOPT_TIMEOUT, timeout);
+                curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "gzip,deflate");
+
+                struct curl_slist* chunk = nullptr;
+                chunk = curl_slist_append(chunk, "User-Agent: Mozilla/5.0 (Windows NT 5.1; rv:21.0) Gecko/20130401 Firefox/21.0");
+                curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
 
                 if (prog != nullptr)
                 {
@@ -246,6 +257,10 @@ public:
                 }
                 /* always cleanup */
                 curl_easy_cleanup(curl);
+                if (chunk != nullptr)
+                {
+                    curl_slist_free_all(chunk);
+                }
             }
             fclose(fp);
         }

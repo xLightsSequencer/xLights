@@ -841,7 +841,7 @@ wxXmlDocument* VendorModelDialog::GetXMLFromURL(wxURI url, std::string& filename
     if (fn.Exists())
     {
         filename = fn.GetFullPath();
-        return new wxXmlDocument(fn.GetFullPath());
+        return new wxXmlDocument(filename);
     }
 
     return nullptr;
@@ -880,7 +880,7 @@ bool VendorModelDialog::LoadTree(wxProgressDialog* prog, int low, int high)
                 {
                     std::string vfilename;
                     wxXmlDocument* d = GetXMLFromURL(wxURI(url), vfilename, prog, low, high);
-                    if (d != nullptr)
+                    if (d != nullptr && d->IsOk())
                     {
                         MVendor* mv = new MVendor(d, maxModels);
                         _vendors.push_back(mv);
@@ -908,7 +908,11 @@ bool VendorModelDialog::LoadTree(wxProgressDialog* prog, int low, int high)
         AddHierachy(v, *it, (*it)->_categories);
         TreeCtrl_Navigator->Expand(v);
     }
-    TreeCtrl_Navigator->EnsureVisible(first);
+
+    if (first.IsOk() && first != root)
+    {
+        TreeCtrl_Navigator->EnsureVisible(first);
+    }
 
     wxTreeItemIdValue cookie;
     for (auto l1 = TreeCtrl_Navigator->GetFirstChild(root, cookie); l1.IsOk(); l1 = TreeCtrl_Navigator->GetNextChild(root, cookie))
