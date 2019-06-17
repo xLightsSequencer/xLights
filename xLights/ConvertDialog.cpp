@@ -1,13 +1,3 @@
-// xml
-#include "../include/spxml-0.5/spxmlparser.hpp"
-#include "../include/spxml-0.5/spxmlevent.hpp"
-#include "../include/spxml-0.5/spxmlparser.cpp"
-#include "../include/spxml-0.5/spxmlevent.cpp"
-#include "../include/spxml-0.5/spxmlcodec.cpp"
-#include "../include/spxml-0.5/spxmlreader.cpp"
-#include "../include/spxml-0.5/spxmlutils.cpp"
-#include "../include/spxml-0.5/spxmlstag.cpp"
-
 #include <map>
 
 #include <wx/base64.h>
@@ -27,6 +17,16 @@
 #include "outputs/Output.h"
 #include "UtilFunctions.h"
 #include "outputs/OutputManager.h"
+
+// xml
+#include "../include/spxml-0.5/spxmlparser.hpp"
+#include "../include/spxml-0.5/spxmlevent.hpp"
+#include "../include/spxml-0.5/spxmlparser.cpp"
+#include "../include/spxml-0.5/spxmlevent.cpp"
+#include "../include/spxml-0.5/spxmlcodec.cpp"
+#include "../include/spxml-0.5/spxmlreader.cpp"
+#include "../include/spxml-0.5/spxmlutils.cpp"
+#include "../include/spxml-0.5/spxmlstag.cpp"
 
 #include <log4cpp/Category.hh>
 
@@ -341,7 +341,7 @@ bool ConvertDialog::WriteVixenFile(const wxString& filename)
     textnode = new wxXmlNode(node, wxXML_TEXT_NODE, wxEmptyString, "Music");
     wxXmlNode *chparent = new wxXmlNode(root, wxXML_ELEMENT_NODE, "Channels");
 
-    for (int ch = 0; ch < SeqData.NumChannels(); ch++)
+    for (size_t ch = 0; ch < SeqData.NumChannels(); ch++)
     {
         SetStatusText(string_format("Status: Channel %d ", (int)ch));
 
@@ -434,10 +434,10 @@ bool ConvertDialog::WriteLedBlinkyFile(const wxString& filename)
     wxXmlNode* root = new wxXmlNode(wxXML_ELEMENT_NODE, "LEDAnimation");
     doc.SetRoot(root);
 
-    for (int frame = 1; frame <= SeqData.NumFrames(); frame++) {
+    for (size_t frame = 1; frame <= SeqData.NumFrames(); frame++) {
         wxXmlNode *fr_node = new wxXmlNode(root, wxXML_ELEMENT_NODE, "Frame");
-        fr_node->AddAttribute("Number", string_format("%d", frame));
-        fr_node->AddAttribute("Duration", string_format("%d", SeqData.FrameTime()));
+        fr_node->AddAttribute("Number", string_format("%d", (int)frame));
+        fr_node->AddAttribute("Duration", string_format("%d", (int)SeqData.FrameTime()));
 
         wxXmlNode *int_node = new wxXmlNode(fr_node, wxXML_ELEMENT_NODE, "Intensity");
         int_node->AddAttribute("LedHwType", "6");
@@ -447,7 +447,7 @@ bool ConvertDialog::WriteLedBlinkyFile(const wxString& filename)
         st_node->AddAttribute("Id", "1");
         wxString intensity_values = "";
         wxString state_values = "";
-        for (int ch = 0; ch < SeqData.NumChannels(); ch++) {
+        for (size_t ch = 0; ch < SeqData.NumChannels(); ch++) {
             int data = (int)((float)SeqData[frame][ch] * 48.0f / 255.0f);
             int state = data > 0 ? 1 : 0;
             if (ch == SeqData.NumChannels() - 1) {
@@ -511,7 +511,7 @@ void ConvertDialog::WriteLorFile(const wxString& filename)
 {
     wxString ChannelName, TestName;
     int32_t ChannelColor;
-    int p, csec, StartCSec = 0, ii;
+    int csec, StartCSec = 0, ii;
     wxFile f;
     int savedIndexCount = 0;
     int * savedIndexes = (int *)calloc(SeqData.NumChannels(), sizeof(int));
@@ -541,22 +541,22 @@ void ConvertDialog::WriteLorFile(const wxString& filename)
     }
     f.Write(">\n");
     f.Write("\t<channels>\n");
-    for (int ch = 0; ch < SeqData.NumChannels(); ch++)
+    for (size_t ch = 0; ch < SeqData.NumChannels(); ch++)
     {
-        SetStatusText(wxString("Status: ") + string_format(" Channel %d ", ch));
+        SetStatusText(wxString("Status: ") + string_format(" Channel %d ", (int)ch));
 
         // KW - not sure why this was this way but now test tab is removed I need to remove it
         //		if (ch < CheckListBoxTestChannels->GetCount())
         if (ch < ChNames.Count())
         {
-            TestName = wxString::Format("%s",ChNames[ch]);
+            TestName = wxString::Format("%s", ChNames[ch]);
             if (TestName == "") {
                 TestName = _outputManager->GetChannelName(ch);
             }
         }
         else
         {
-            TestName = string_format("Ch: %d", ch);
+            TestName = string_format("Ch: %d", (int)ch);
         }
         if (ch < ChannelNames.size() && ChannelNames[ch].size() != 0)
         {
@@ -592,7 +592,8 @@ void ConvertDialog::WriteLorFile(const wxString& filename)
         f.Write("\t\t<channel name=\"" + ChannelName + string_format("\" color=\"%d\" centiseconds=\"%d\" savedIndex=\"%d\">\n", ChannelColor, centiseconds, index));
         // write intensity values for this channel
         int LastIntensity = 0;
-        for (p = 0, csec = 0; p < SeqData.NumFrames(); p++, csec += interval)
+        csec = 0;
+        for (size_t p = 0; p < SeqData.NumFrames(); p++, csec += interval)
         {
             int intensity = SeqData[p][ch] * 100 / 255;
             if (intensity != LastIntensity)
@@ -649,7 +650,8 @@ void ConvertDialog::WriteLorFile(const wxString& filename)
     }
     f.Write("\t\t\t</channels>\n");
     f.Write("\t\t\t<timings>\n");
-    for (p = 0, csec = 0; p < SeqData.NumFrames(); p++, csec += interval)
+    csec = 0;
+    for (size_t p = 0; p < SeqData.NumFrames(); p++, csec += interval)
     {
         f.Write(string_format("\t\t\t\t<timing centisecond=\"%d\"/>\n", csec));
     }
