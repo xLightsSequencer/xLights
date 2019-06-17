@@ -153,6 +153,8 @@
 		673D764C214B2F06007C6E83 /* MeshObject.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 673D764B214B2F06007C6E83 /* MeshObject.cpp */; };
 		673E425B17F0D95200F4BC76 /* TabSetup.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 673E425917F0D23E00F4BC76 /* TabSetup.cpp */; };
 		673F03681F322A9B0052A793 /* ChannelBlockModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 673F03671F322A9B0052A793 /* ChannelBlockModel.cpp */; };
+		6743321F22B7C1C30038B63E /* ControllerVisualiseDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6743321D22B7C1C20038B63E /* ControllerVisualiseDialog.cpp */; };
+		6743322222B7C24E0038B63E /* OutputModelManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6743322122B7C24E0038B63E /* OutputModelManager.cpp */; };
 		67447D981C6664900095CDB5 /* WreathModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67447D951C6664900095CDB5 /* WreathModel.cpp */; };
 		67447D991C6664900095CDB5 /* WindowFrameModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67447D971C6664900095CDB5 /* WindowFrameModel.cpp */; };
 		67447D9C1C6666A00095CDB5 /* SphereModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67447D9B1C6666A00095CDB5 /* SphereModel.cpp */; };
@@ -271,7 +273,6 @@
 		676DCBFF1A98E53800FBA86B /* LorConvertDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 676DCBFB1A98E53800FBA86B /* LorConvertDialog.cpp */; };
 		677196AC223C98790082576E /* ZCPPDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 677196A9223C98780082576E /* ZCPPDialog.cpp */; };
 		677196AD223C98790082576E /* ZCPPOutput.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 677196AA223C98780082576E /* ZCPPOutput.cpp */; };
-		677196B0223CEF820082576E /* ControllerVisualiseDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 677196AF223CEF820082576E /* ControllerVisualiseDialog.cpp */; };
 		677196B3223CEFAD0082576E /* ModelChainDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 677196B1223CEFAD0082576E /* ModelChainDialog.cpp */; };
 		6771B228204BA69C00E90AC7 /* CoreImage.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6771B227204BA69B00E90AC7 /* CoreImage.framework */; };
 		6771B22A204BA6AF00E90AC7 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6771B229204BA6AF00E90AC7 /* QuartzCore.framework */; };
@@ -875,8 +876,6 @@
 		6701999E1CE5A03200AE9B7E /* RenderProgressDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RenderProgressDialog.h; sourceTree = "<group>"; };
 		6701C431224557660004335C /* ControllerRegistry.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ControllerRegistry.cpp; path = controllers/ControllerRegistry.cpp; sourceTree = "<group>"; };
 		6701C432224557660004335C /* ControllerRegistry.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ControllerRegistry.h; path = controllers/ControllerRegistry.h; sourceTree = "<group>"; };
-		6701C43422468C430004335C /* ControllerVisualiseDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ControllerVisualiseDialog.cpp; sourceTree = "<group>"; };
-		6701C43522468C430004335C /* ControllerVisualiseDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ControllerVisualiseDialog.h; sourceTree = "<group>"; };
 		67025C6820D7E80700BF1AC6 /* xFade.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = xFade.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		67025C6D20D7E80900BF1AC6 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		67025C7220D7E80900BF1AC6 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -1095,6 +1094,10 @@
 		673F03661F322A9B0052A793 /* ChannelBlockModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ChannelBlockModel.h; path = models/ChannelBlockModel.h; sourceTree = "<group>"; };
 		673F03671F322A9B0052A793 /* ChannelBlockModel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ChannelBlockModel.cpp; path = models/ChannelBlockModel.cpp; sourceTree = "<group>"; };
 		674298971C20432600B11478 /* wx */ = {isa = PBXFileReference; lastKnownFileType = folder; name = wx; path = /opt/local/lib/wx; sourceTree = "<group>"; };
+		6743321D22B7C1C20038B63E /* ControllerVisualiseDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ControllerVisualiseDialog.cpp; sourceTree = "<group>"; };
+		6743321E22B7C1C30038B63E /* ControllerVisualiseDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ControllerVisualiseDialog.h; sourceTree = "<group>"; };
+		6743322022B7C24D0038B63E /* OutputModelManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OutputModelManager.h; sourceTree = "<group>"; };
+		6743322122B7C24E0038B63E /* OutputModelManager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = OutputModelManager.cpp; sourceTree = "<group>"; };
 		67447D941C6664900095CDB5 /* WreathModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = WreathModel.h; path = models/WreathModel.h; sourceTree = "<group>"; };
 		67447D951C6664900095CDB5 /* WreathModel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = WreathModel.cpp; path = models/WreathModel.cpp; sourceTree = "<group>"; };
 		67447D961C6664900095CDB5 /* WindowFrameModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = WindowFrameModel.h; path = models/WindowFrameModel.h; sourceTree = "<group>"; };
@@ -1303,8 +1306,6 @@
 		677196A9223C98780082576E /* ZCPPDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ZCPPDialog.cpp; path = outputs/ZCPPDialog.cpp; sourceTree = "<group>"; };
 		677196AA223C98780082576E /* ZCPPOutput.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ZCPPOutput.cpp; path = outputs/ZCPPOutput.cpp; sourceTree = "<group>"; };
 		677196AB223C98780082576E /* ZCPPOutput.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ZCPPOutput.h; path = outputs/ZCPPOutput.h; sourceTree = "<group>"; };
-		677196AE223CEF820082576E /* ControllerVisualiseDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ControllerVisualiseDialog.h; sourceTree = "<group>"; };
-		677196AF223CEF820082576E /* ControllerVisualiseDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ControllerVisualiseDialog.cpp; sourceTree = "<group>"; };
 		677196B1223CEFAD0082576E /* ModelChainDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ModelChainDialog.cpp; sourceTree = "<group>"; };
 		677196B2223CEFAD0082576E /* ModelChainDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ModelChainDialog.h; sourceTree = "<group>"; };
 		6771B227204BA69B00E90AC7 /* CoreImage.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreImage.framework; path = System/Library/Frameworks/CoreImage.framework; sourceTree = SDKROOT; };
@@ -3054,12 +3055,12 @@
 		67E7087617B51AB400A22034 /* xLights */ = {
 			isa = PBXGroup;
 			children = (
+				6743322122B7C24E0038B63E /* OutputModelManager.cpp */,
+				6743322022B7C24D0038B63E /* OutputModelManager.h */,
+				6743321D22B7C1C20038B63E /* ControllerVisualiseDialog.cpp */,
+				6743321E22B7C1C30038B63E /* ControllerVisualiseDialog.h */,
 				677196B1223CEFAD0082576E /* ModelChainDialog.cpp */,
 				677196B2223CEFAD0082576E /* ModelChainDialog.h */,
-				67DCFC22229E03780032DC47 /* ImportPreviewsModelsDialog.cpp */,
-				67DCFC23229E03780032DC47 /* ImportPreviewsModelsDialog.h */,
-				67E9B4AB226E510600243B4E /* CharMapDialog.cpp */,
-				67E9B4AA226E510600243B4E /* CharMapDialog.h */,
 				677E58472251277400861ABF /* AlignmentDialog.cpp */,
 				677E58462251277400861ABF /* AlignmentDialog.h */,
 				67FA9FD21C67837500FED13B /* AudioManager.cpp */,
@@ -3093,8 +3094,6 @@
 				67E0BB901E08460400C07EF7 /* ControllerConnectionDialog.cpp */,
 				67E0BB911E08460400C07EF7 /* ControllerConnectionDialog.h */,
 				67BF7FF31F278946002F118D /* Controllers */,
-				6701C43422468C430004335C /* ControllerVisualiseDialog.cpp */,
-				6701C43522468C430004335C /* ControllerVisualiseDialog.h */,
 				6719BF4D1CCB1DAB00899A4B /* ConvertDialog.cpp */,
 				6719BF4E1CCB1DAB00899A4B /* ConvertDialog.h */,
 				6719BF4F1CCB1DAB00899A4B /* ConvertLogDialog.cpp */,
@@ -4163,6 +4162,7 @@
 				67F4C6181A097A35003E978F /* XlightsDrawable.cpp in Sources */,
 				677196AD223C98790082576E /* ZCPPOutput.cpp in Sources */,
 				67B2B2271E1947BE0024F0BB /* DMXOutput.cpp in Sources */,
+				6743321F22B7C1C30038B63E /* ControllerVisualiseDialog.cpp in Sources */,
 				67DAFDDB1CA1A63C004B3237 /* Binasc.cpp in Sources */,
 				6778F3E71A601CA7008C2086 /* EffectLayer.cpp in Sources */,
 				6778F3E61A601CA7008C2086 /* Effect.cpp in Sources */,
@@ -4325,6 +4325,7 @@
 				67DD179820167D4B001E7A8B /* DDPOutput.cpp in Sources */,
 				67C9E661211FC07E00379E2A /* ViewpointMgr.cpp in Sources */,
 				67B2B22B1E1947BE0024F0BB /* LOROutput.cpp in Sources */,
+				6743322222B7C24E0038B63E /* OutputModelManager.cpp in Sources */,
 				67E6750B2009993D000E930E /* VendorModelDialog.cpp in Sources */,
 				67B2CFF01C3A186A003C17CA /* FireEffect.cpp in Sources */,
 				670C82871C45C48B000AA5D8 /* ArchesModel.cpp in Sources */,
@@ -4353,7 +4354,6 @@
 				67B2CFE71C3A186A003C17CA /* MorphEffect.cpp in Sources */,
 				670E473F1C62A901008F4C60 /* ModelGroup.cpp in Sources */,
 				6784F92F1A5653670018EC0C /* tabSequencer.cpp in Sources */,
-				677196B0223CEF820082576E /* ControllerVisualiseDialog.cpp in Sources */,
 				67B2CFEC1C3A186A003C17CA /* GlediatorEffect.cpp in Sources */,
 				675D1E951D0B54B800CC6C02 /* LayoutGroup.cpp in Sources */,
 				671142EC207BACF200F45296 /* ESPixelStick.cpp in Sources */,
@@ -4415,7 +4415,6 @@
 				67447D981C6664900095CDB5 /* WreathModel.cpp in Sources */,
 				67B2B2251E1947BE0024F0BB /* ArtNetOutput.cpp in Sources */,
 				67B2CF741C39D98A003C17CA /* FirePanel.cpp in Sources */,
-				6701C43622468C440004335C /* ControllerVisualiseDialog.cpp in Sources */,
 				67CE258F2138234000ADF180 /* ObjectManager.cpp in Sources */,
 				67BE75131CAC2EB200D7BA82 /* IciclesModel.cpp in Sources */,
 				67F4C6161A097A35003E978F /* Image_Loader.cpp in Sources */,

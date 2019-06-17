@@ -126,7 +126,7 @@ void SP_XmlPullParser :: changeReader( SP_XmlReader * reader )
 		if( SP_XmlPullEvent::eStartTag == event->getEventType() ) {
 			if( eRootNone == mRootTagState ) mRootTagState = eRootStart;
 			const char * name = ((SP_XmlStartTagEvent*)event)->getName();
-			mTagNameStack->append( _strdup( name ) );
+			mTagNameStack->append( strdup( name ) );
 		}
 		if( SP_XmlPullEvent::eEndTag == event->getEventType() ) {
 			char error[ 256 ] = { 0 };
@@ -219,7 +219,7 @@ void SP_XmlPullParser :: setError( const char * error )
 		snprintf( msg, sizeof( msg), "%s ( occured at row(%d), col(%d) : %s )",
 				error, mRowIndex + 1, mColIndex + 1, segment );
 
-		mError = _strdup( msg );
+		mError = strdup( msg );
 	}
 }
 

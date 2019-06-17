@@ -67,7 +67,7 @@ void SP_XmlSTagParser :: setError( const char * error )
 {
 	if( NULL != error ) {
 		if( NULL != mError ) free( mError );
-		mError = _strdup( error );
+		mError = strdup( error );
 	}
 }
 
