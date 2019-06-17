@@ -2,6 +2,8 @@
 
 #include "BaseObject.h"
 #include "ModelScreenLocation.h"
+#include "../xLightsMain.h"
+#include "../xLightsApp.h"
 
 BaseObject::BaseObject()
 : ModelXml(nullptr), changeCount(0), active(true)
@@ -19,10 +21,16 @@ wxXmlNode* BaseObject::GetModelXml() const {
 }
 
 void BaseObject::SetLayoutGroup(const std::string &grp) {
-    layout_group = grp;
-    ModelXml->DeleteAttribute("LayoutGroup");
-    ModelXml->AddAttribute("LayoutGroup", grp);
-    IncrementChangeCount();
+    if (grp != ModelXml->GetAttribute("LayoutGroup", "xyzzy_kw"))
+    {
+        layout_group = grp;
+        ModelXml->DeleteAttribute("LayoutGroup");
+        ModelXml->AddAttribute("LayoutGroup", grp);
+        IncrementChangeCount();
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "SetLayoutGroup");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "SetLayoutGroup");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "SetLayoutGroup");
+    }
 }
 
 void BaseObject::MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z)
@@ -50,6 +58,11 @@ void BaseObject::Lock(bool lock)
         GetModelXml()->AddAttribute("Locked", "1");
     }
     IncrementChangeCount();
+}
+
+void BaseObject::AddASAPWork(uint32_t work, const std::string& from)
+{
+    xLightsApp::GetFrame()->GetOutputModelManager()->AddASAPWork(work, from);
 }
 
 void BaseObject::SetTop(float y) {

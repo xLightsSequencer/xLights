@@ -11,6 +11,7 @@ class wxXmlNode;
 #pragma region Output Constants
 // These are used to identify each output type
 #define OUTPUT_E131 "E131"
+#define OUTPUT_ZCPP "ZCPP"
 #define OUTPUT_ARTNET "ArtNet"
 #define OUTPUT_DDP "DDP"
 #define OUTPUT_DMX "DMX"
@@ -74,15 +75,17 @@ public:
     #pragma endregion Constructors and Destructors
 
     #pragma region Static Functions
-    static Output* Create(wxXmlNode* node);
-    static std::list<Output*> Discover() { return std::list<Output*>(); } // Discovers controllers supporting this protocol
+    static Output* Create(wxXmlNode* node, std::string showDir);
+    static std::list<Output*> Discover(OutputManager* outputManager) { return std::list<Output*>(); } // Discovers controllers supporting this protocol
     #pragma endregion Static Functions
 
     #pragma region Getters and Setters
     virtual std::list<Output*> GetOutputs() const { std::list<Output*> res; return res; }
+    virtual bool NeedsControllerConfig() const { return false; }
     bool IsDirty() const { return _dirty; }
     void ClearDirty() { _dirty = false; }
     virtual bool IsLookedUpByControllerName() const { return false; }
+    virtual bool IsAutoLayoutModels() const { return false; }
     long GetStartChannel() const { return _startChannel; }
     long GetActualEndChannel() const { return _startChannel + _channels - 1; }
     void Suspend(bool suspend) { _suspend = suspend; }
@@ -95,7 +98,7 @@ public:
     std::string GetCommPort() const { return _commPort; }
     void SetCommPort(const std::string& commPort) { _commPort = commPort; _dirty = true; }
     long GetChannels() const { return _channels; }
-    void SetChannels(long channels) { _channels = channels; _dirty = true; }
+    virtual void SetChannels(long channels) { _channels = channels; _dirty = true; }
     int GetUniverse() const { return _universe; }
     void SetUniverse(int universe) { _universe = universe; _dirty = true; }
     virtual std::string GetUniverseString() const { return wxString::Format(wxT("%i"), GetUniverse()).ToStdString(); }

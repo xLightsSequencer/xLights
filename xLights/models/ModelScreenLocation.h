@@ -146,6 +146,7 @@ protected:
         float z;
     };
 
+    void AddASAPWork(uint32_t work, const std::string& from);
     void SetDefaultMatrices() const;  // for models that draw themselves
     virtual void SetActiveHandle(int handle);
     int GetActiveHandle() const { return active_handle; }

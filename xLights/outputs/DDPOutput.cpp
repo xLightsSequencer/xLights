@@ -20,6 +20,7 @@ DDPOutput::DDPOutput(wxXmlNode* node) : IPOutput(node)
     _fulldata = nullptr;
     _channelsPerPacket = wxAtoi(node->GetAttribute("ChannelsPerPacket"));
     _keepChannelNumbers = wxAtoi(node->GetAttribute("KeepChannelNumbers"));
+    _autoStartChannels = (node->GetAttribute("AutoStartChannels", "false") == "true");
     _sequenceNum = 0;
     _datagram = nullptr;
     memset(_data, 0, sizeof(_data));
@@ -118,6 +119,7 @@ wxXmlNode* DDPOutput::Save()
     wxXmlNode* node = new wxXmlNode(wxXML_ELEMENT_NODE, "network");
     node->AddAttribute("ChannelsPerPacket", wxString::Format("%i", _channelsPerPacket));
     node->AddAttribute("KeepChannelNumbers", _keepChannelNumbers ? "1" : "0");
+    node->AddAttribute("AutoStartChannels", _autoStartChannels ? "true" : "false");
     IPOutput::Save(node);
 
     return node;

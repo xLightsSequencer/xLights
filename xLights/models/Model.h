@@ -22,6 +22,7 @@ class ModelScreenLocation;
 class ModelManager;
 class xLightsFrame;
 class OutputManager;
+class wxPGProperty;
 
 class NodeBaseClass;
 typedef std::unique_ptr<NodeBaseClass> NodeBaseClassPtr;
@@ -32,14 +33,14 @@ namespace DrawGLUtils {
 }
 
 enum {
-    GRIDCHANGE_REFRESH_DISPLAY = 0x0001,
-    GRIDCHANGE_MARK_DIRTY = 0x0002,
-    GRIDCHANGE_REBUILD_PROP_GRID = 0x0004,
-    GRIDCHANGE_REBUILD_MODEL_LIST = 0x0008,
-    GRIDCHANGE_UPDATE_ALL_MODEL_LISTS = 0x0010,
+    //GRIDCHANGE_REFRESH_DISPLAY = 0x0001,
+    //GRIDCHANGE_MARK_DIRTY = 0x0002,
+    //GRIDCHANGE_REBUILD_PROP_GRID = 0x0004,
+    //GRIDCHANGE_REBUILD_MODEL_LIST = 0x0008,
+    //GRIDCHANGE_UPDATE_ALL_MODEL_LISTS = 0x0010,
     GRIDCHANGE_SUPPRESS_HOLDSIZE = 0x00020,
 
-    GRIDCHANGE_MARK_DIRTY_AND_REFRESH = 0x0003
+    //GRIDCHANGE_MARK_DIRTY_AND_REFRESH = 0x0003
 };
 
 class Model : public BaseObject
@@ -107,12 +108,15 @@ public:
     const ModelManager &GetModelManager() const {
         return modelManager;
     }
-
+    virtual void AddASAPWork(uint32_t work, const std::string& from) override;
     virtual bool SupportsXlightsModel();
     static Model* GetXlightsModel(Model* model, std::string &last_model, xLightsFrame* xlights, bool &cancelled, bool download, wxProgressDialog* prog, int low, int high);
     virtual void ImportXlightsModel(std::string filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y);
     virtual void ExportXlightsModel();
-    void SetStartChannel(std::string startChannel, bool suppressRecalc = false);
+    void SetStartChannel(std::string startChannel);
+    void ReloadModelXml() {
+        SetFromXml(ModelXml, zeroBased);
+    }
 
     static const std::vector<std::string> DEFAULT_BUFFER_STYLES;
 
@@ -121,10 +125,13 @@ public:
     int GetDefaultBufferHt() const {return BufferHt;}
 
     void SetProperty(wxString property, wxString value, bool apply = false);
-    virtual void AddProperties(wxPropertyGridInterface *grid, OutputManager* outputManager) override;
+    virtual void AddProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
+    virtual void UpdateProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
     virtual void AddControllerProperties(wxPropertyGridInterface *grid);
+    virtual void UpdateControllerProperties(wxPropertyGridInterface* grid);
     virtual void DisableUnusedProperties(wxPropertyGridInterface *grid) {};
-    virtual void AddTypeProperties(wxPropertyGridInterface *grid) override {};
+    virtual void AddTypeProperties(wxPropertyGridInterface* grid) override {};
+    virtual void UpdateTypeProperties(wxPropertyGridInterface* grid) override {};
     virtual void AddSizeLocationProperties(wxPropertyGridInterface *grid) override;
     virtual void OnPropertyGridChanging(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {};
     virtual int OnPropertyGridSelection(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) { return 0; };
@@ -195,6 +202,7 @@ protected:
 
     std::vector<Model *> subModels;
     void ParseSubModel(wxXmlNode *subModelNode);
+    void ColourClashingChains(wxPGProperty* p);
 
     std::vector<std::string> modelState;
 
@@ -225,7 +233,6 @@ public:
     int GetControllerPort(int string = 1) const;
     void SetModelChain(const std::string& modelChain);
     std::string GetModelChain() const;
-    void ReworkStartChannel();
     const std::vector<Model *>& GetSubModels() const { return subModels; }
     Model *GetSubModel(const std::string &name);
     int GetNumSubModels() const { return subModels.size();}

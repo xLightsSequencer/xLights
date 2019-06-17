@@ -1,13 +1,16 @@
 #ifndef OUTPUTMANAGER_H
 #define OUTPUTMANAGER_H
 
+#include <wx/thread.h>
+
 #include <list>
 #include <string>
-#include <wx/thread.h>
+#include <map>
 
 class Output;
 class Controller;
 class TestPreset;
+class wxWindow;
 
 #define NETWORKSFILE "xlights_networks.xml";
 
@@ -26,6 +29,7 @@ class OutputManager
     wxCriticalSection _outputCriticalSection; // used to protect areas that must be single threaded
     #pragma endregion Member Variables
 
+    static bool __isSync; // copied here so it can be accessed statically
     static int _lastSecond;
     static int _currentSecond;
     static int _lastSecondCount;
@@ -79,9 +83,11 @@ public:
     Output* GetOutput(int universe, const std::string& ip) const;
     std::list<int> GetIPUniverses(const std::string& ip = "") const;
     int GetOutputCount() const { return _outputs.size(); }
-    bool Discover(); // discover controllers and add them to the list if they are not already there
+    bool Discover(wxWindow* parent, std::map<std::string, std::string>& renames); // discover controllers and add them to the list if they are not already there
     void SetShowDir(const std::string& showDir);
     void SuspendAll(bool suspend);
+    std::list<std::string> GetControllerNames() const;
+    std::list<std::string> GetAutoLayoutControllerNames() const;
     void SetParallelTransmission(bool parallel) { _parallelTransmission = parallel; }
     bool GetParallelTransmission() const { return _parallelTransmission; }
     #pragma endregion Output Management
@@ -112,13 +118,15 @@ public:
 
     #pragma region Packet Sync
     bool IsSyncEnabled() const { return _syncEnabled; }
-    void SetSyncEnabled(bool syncEnabled) { _syncEnabled = syncEnabled; _dirty = true; }
+    static bool IsSyncEnabled_() { return __isSync; }
+    void SetSyncEnabled(bool syncEnabled) { _syncEnabled = syncEnabled; OutputManager::__isSync = syncEnabled; _dirty = true; }
     int GetSyncUniverse() const { return _syncUniverse; }
     void SetSyncUniverse(int syncUniverse) { _syncUniverse = syncUniverse; _dirty = true;}
     void SetForceFromIP(const std::string& forceFromIP);
     bool UseE131() const;
     bool UseArtnet() const;
     bool UseDDP() const;
+    bool UseZCPP() const;
     #pragma endregion Packet Sync
 
     #pragma region Data Setting

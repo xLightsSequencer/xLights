@@ -31,6 +31,7 @@ public:
     wxButton* Button_Cancel;
     wxButton* Button_Ok;
     wxButton* VisualizeButton;
+    wxCheckBox* CheckBox_Auto_Channels;
     wxCheckBox* CheckBox_SuppressDuplicates;
     wxCheckBox* MultiE131CheckBox;
     wxChoice* ControllerChoice;
@@ -46,6 +47,7 @@ public:
     wxStaticText* StaticText1;
     wxStaticText* StaticText2;
     wxStaticText* StaticText3;
+    wxStaticText* StaticText4;
     wxStaticText* StaticText5;
     wxStaticText* StaticText6;
     wxStaticText* StaticText8;
@@ -78,6 +80,8 @@ protected:
     static const long ID_STATICTEXT10;
     static const long ID_SPINCTRL_PRIORITY;
     static const long ID_CHOICE1;
+    static const long ID_STATICTEXT11;
+    static const long ID_CHECKBOX_AUTO_CHANNELS;
     static const long ID_BUTTON1;
     static const long ID_BUTTON2;
     static const long ID_BUTTON3;

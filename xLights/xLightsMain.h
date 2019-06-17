@@ -71,6 +71,8 @@
 #include "xLightsXmlFile.h"
 #include "sequencer/EffectsGrid.h"
 #include "RenderCache.h"
+#include "outputs/ZCPP.h"
+#include "OutputModelManager.h"
 
 class EffectTreeDialog;
 class ConvertDialog;
@@ -92,6 +94,8 @@ class PerspectivesPanel;
 class TopEffectsPanel;
 class MainSequencer;
 class ModelPreview;
+class ZCPPOutput;
+class UDControllerPort;
 
 // max number of most recently used show directories on the File menu
 #define MRU_LENGTH 4
@@ -302,7 +306,8 @@ public:
     void OnMenuItemLoadPerspectiveSelected(wxCommandEvent& event);
 	bool SaveEffectsFile(bool backup = false);
     void SaveModelsFile();
-    void MarkEffectsFileDirty(bool modelStructureChange);
+    void MarkEffectsFileDirty();
+    void MarkModelsAsNeedingRender();
     void CheckUnsavedChanges();
     void SetStatusText(const wxString &msg, int filename = 0);
     void SetStatusTextColor(const wxString &msg, const wxColor& colour);
@@ -365,6 +370,10 @@ public:
     void PlayerError(const wxString& msg);
     void AskCloseSequence();
     void SaveCurrentTab();
+    void DoWork(uint32_t work, const std::string& type, Model* model = nullptr, const std::string& selected = "");
+    void DoASAPWork();
+    void DoSetupWork();
+    void DoLayoutWork();
 
     EffectManager &GetEffectManager() { return effectManager; }
 
@@ -374,6 +383,9 @@ public:
     bool ImportLMS(wxXmlDocument &doc, const wxFileName &filename);
     bool ImportLPE(wxXmlDocument &doc, const wxFileName &filename);
     bool ImportS5(wxXmlDocument &doc, const wxFileName &filename);
+
+    void SuspendRender(bool suspend) { _suspendRender = suspend; }
+    bool IsRenderSuspended() const { return _suspendRender; }
 
     //(*Handlers(xLightsFrame)
     void OnQuit(wxCommandEvent& event);
@@ -555,6 +567,7 @@ public:
     void OnMenuItem_ShowKeyBindingsSelected(wxCommandEvent& event);
     void OnChar(wxKeyEvent& event);
     void OnMenuItem_ZoomSelected(wxCommandEvent& event);
+    void OnButton_AddZCPPClick(wxCommandEvent& event);
     void OnButton_DiscoverClick(wxCommandEvent& event);
     void OnMenuItem_CleanupFileLocationsSelected(wxCommandEvent& event);
     void OnMenuItem_Generate2DPathSelected(wxCommandEvent& event);
@@ -647,6 +660,7 @@ public:
     static const long ID_BUTTON2;
     static const long ID_BUTTON_ADD_LOR;
     static const long ID_BUTTON_ADD_DDP;
+    static const long ID_BUTTON4;
     static const long ID_BUTTON_NETWORK_CHANGE;
     static const long ID_BUTTON_NETWORK_DELETE;
     static const long ID_BUTTON_NETWORK_DELETE_ALL;
@@ -871,6 +885,7 @@ public:
     wxButton* ButtonNetworkDeleteAll;
     wxButton* ButtonOtherFolders;
     wxButton* ButtonSaveSetup;
+    wxButton* Button_AddZCPP;
     wxButton* Button_Discover;
     wxChoice* ChoiceParm1;
     wxChoice* ChoiceParm2;
@@ -1069,6 +1084,7 @@ public:
     wxArrayString mru;  // most recently used directories
     wxMenuItem* mru_MenuItem[MRU_LENGTH];
     OutputManager _outputManager;
+    OutputModelManager _outputModelManager;
     long DragRowIdx;
     wxListCtrl* DragListBox;
     bool UnsavedNetworkChanges = false;
@@ -1096,6 +1112,7 @@ public:
     int _xFadePort;
     bool _wasMaximised = false;
     wxSocketServer* _xFadeSocket = nullptr;
+    bool _suspendRender = false;
 
     void OnxFadeSocketEvent(wxSocketEvent & event);
     void OnxFadeServerEvent(wxSocketEvent & event);
@@ -1115,7 +1132,7 @@ public:
     void OnMenuMRU(wxCommandEvent& event);
     bool SetDir(const wxString& dirname);
     bool PromptForShowDirectory();
-    void UpdateNetworkList(bool updateModels);
+    void UpdateNetworkList();
     long GetNetworkSelection() const;
     long GetLastNetworkSelection() const;
     int GetNetworkSelectedItemCount() const;
@@ -1126,12 +1143,14 @@ public:
     void OnGridNetworkScrollTimer(wxTimerEvent& event);
     void SetupDongle(Output* e, int after = -1);
     void SetupE131(Output* e, int after = -1);
+    void SetupZCPP(Output* e, int after = -1);
     void SetupArtNet(Output* e, int after = -1);
     void SetupLOR(Output* e, int after = -1);
     void SetupDDP(Output* e, int after = -1);
     void SetupNullOutput(Output* e, int after = -1);
     bool SaveNetworksFile();
     void NetworkChange();
+    void NetworkChannelsChange();
     std::list<int> GetSelectedOutputs(wxString& ip);
     void UploadFPPBridgeInput();
     void MultiControllerUpload();
@@ -1145,7 +1164,10 @@ public:
     void UploadPixlite16Output();
     void UploadFPPStringOuputs(const std::string &controllers);
 	void PingController(Output* e);
-	void UploadEasyLightsOutput();
+    void SetModelData(ZCPPOutput* zcpp, ModelManager* modelManager, OutputManager* outputManager, std::string showDir);
+    int SetZCPPPort(std::list<ZCPP_packet_t*>& modelDatas, int index, UDControllerPort* port, int portNum, int virtualString, long baseStart, bool isSerial, ZCPPOutput* zcpp);
+    void SetZCPPExtraConfig(std::list<ZCPP_packet_t*>& extraConfig, int portNum, int virtualStringNum, const std::string& name, ZCPPOutput* zcpp);
+    void UploadEasyLightsOutput();
 
     void VisualiseOutput(Output *e, wxWindow *parent = nullptr);
     void DeleteSelectedNetworks();
@@ -1200,6 +1222,7 @@ public:
     void ReadFalconFile(const wxString& FileName, ConvertDialog* convertdlg);
     void WriteFalconPiFile(const wxString& filename); //  Falcon Pi Player *.pseq
     OutputManager* GetOutputManager() { return &_outputManager; };
+    OutputModelManager* GetOutputModelManager() { return&_outputModelManager; }
 
 private:
 
@@ -1339,7 +1362,6 @@ private:
     bool SeqChanCtrlBasic;
     bool SeqChanCtrlColor;
 	bool mLoopAudio;
-    bool _setupChanged; // set to true if something changes on the setup tab which would require the layout tab to have the model start channels recalculated
 
     bool mResetToolbars;
     bool mRenderOnSave;
@@ -1416,12 +1438,9 @@ public:
     int GetDefaultPreviewBackgroundBrightness();
     int GetDefaultPreviewBackgroundAlpha();
     void SetPreviewBackgroundBrightness(int brightness, int alpha);
-    void UpdatePreview();
     void UpdateModelsList();
     void RowHeadingsChanged( wxCommandEvent& event);
     void DoForceSequencerRefresh();
-    void RefreshLayout();
-    void RenderLayout();
     void AddPreviewOption(LayoutGroup* grp);
     void RemovePreviewOption(LayoutGroup* grp);
     ModelPreview* GetLayoutPreview() const {return modelPreview;}
@@ -1438,6 +1457,7 @@ public:
     void SetACSettings(ACTYPE type);
     bool IsPaneDocked(wxWindow* window) const;
     ModelPreview* GetHousePreview() const;
+    void RenderLayout();
 
     void UnselectEffect();
 
@@ -1566,6 +1586,7 @@ private:
     static const long ID_NETWORK_ADDUSB;
     static const long ID_NETWORK_ADDNULL;
     static const long ID_NETWORK_ADDE131;
+    static const long ID_NETWORK_ADDZCPP;
     static const long ID_NETWORK_ADDARTNET;
     static const long ID_NETWORK_ADDLOR;
     static const long ID_NETWORK_ADDDDP;
@@ -1630,6 +1651,6 @@ public:
     std::string GetEffectTextFromWindows(std::string &palette) const;
 
 	void DoPlaySequence();
-    void RecalcModels(bool force = false);
+    void RecalcModels();
 };
 #endif // XLIGHTSMAIN_H

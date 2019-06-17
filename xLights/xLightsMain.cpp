@@ -64,6 +64,10 @@
 #include "ModelPreview.h"
 #include "TopEffectsPanel.h"
 #include "LyricUserDictDialog.h"
+#include "controllers/ControllerUploadData.h"
+#include "controllers/Falcon.h"
+#include "controllers/ESPixelStick.h"
+#include "outputs/ZCPPOutput.h"
 #include "EffectIconPanel.h"
 #include "models/ViewObject.h"
 #include "models/SubModel.h"
@@ -181,6 +185,7 @@ const long xLightsFrame::ID_BUTTON1 = wxNewId();
 const long xLightsFrame::ID_BUTTON2 = wxNewId();
 const long xLightsFrame::ID_BUTTON_ADD_LOR = wxNewId();
 const long xLightsFrame::ID_BUTTON_ADD_DDP = wxNewId();
+const long xLightsFrame::ID_BUTTON4 = wxNewId();
 const long xLightsFrame::ID_BUTTON_NETWORK_CHANGE = wxNewId();
 const long xLightsFrame::ID_BUTTON_NETWORK_DELETE = wxNewId();
 const long xLightsFrame::ID_BUTTON_NETWORK_DELETE_ALL = wxNewId();
@@ -750,6 +755,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     BoxSizer1->Add(ButtonAddLOR, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     ButtonAddDDP = new wxButton(PanelSetup, ID_BUTTON_ADD_DDP, _("Add DDP"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_ADD_DDP"));
     BoxSizer1->Add(ButtonAddDDP, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Button_AddZCPP = new wxButton(PanelSetup, ID_BUTTON4, _("Add ZCPP"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON4"));
+    BoxSizer1->Add(Button_AddZCPP, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     ButtonNetworkChange = new wxButton(PanelSetup, ID_BUTTON_NETWORK_CHANGE, _("Change"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_NETWORK_CHANGE"));
     BoxSizer1->Add(ButtonNetworkChange, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 3);
     ButtonNetworkDelete = new wxButton(PanelSetup, ID_BUTTON_NETWORK_DELETE, _("Delete"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_NETWORK_DELETE"));
@@ -1277,6 +1284,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonArtNETClick);
     Connect(ID_BUTTON_ADD_LOR,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonAddLORClick);
     Connect(ID_BUTTON_ADD_DDP,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonAddDDPClick);
+    Connect(ID_BUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButton_AddZCPPClick);
     Connect(ID_BUTTON_NETWORK_CHANGE,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonNetworkChangeClick);
     Connect(ID_BUTTON_NETWORK_DELETE,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonNetworkDeleteClick);
     Connect(ID_BUTTON_NETWORK_DELETE_ALL,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonNetworkDeleteAllClick);
@@ -1499,6 +1507,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     Connect(ID_XFADESERVER, wxEVT_SOCKET, (wxObjectEventFunction)&xLightsFrame::OnxFadeServerEvent);
 
     SetPanelSequencerLabel("");
+
+    _outputModelManager.SetFrame(this);
 
 	mRendering = false;
 
@@ -2087,7 +2097,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     MenuItemEffectAssistToggleMode->Check(mEffectAssistMode==EFFECT_ASSIST_TOGGLE_MODE);
     logger_base.debug("Effect Assist Mode: %s.", mEffectAssistMode ? "true" : "false");
 
-    _setupChanged = false;
     InitEffectsPanel(EffectsPanel1);
     logger_base.debug("Effects panel initialised.");
 
@@ -2514,23 +2523,24 @@ void xLightsFrame::ShowHideAllSequencerWindows(bool show)
     logger_base.debug("xLightsFrame::ShowHideAllSequencerWindows - layout previews - done");
 }
 
-void xLightsFrame::RecalcModels(bool force)
+void xLightsFrame::RecalcModels()
 {
+    static log4cpp::Category& logger_work = log4cpp::Category::getInstance(std::string("log_work"));
+    logger_work.debug("        RecalcModels.");
+
     if (IsExiting()) return;
 
-    if (force || _setupChanged)
-    {
-        SetCursor(wxCURSOR_WAIT);
-        // Now notify the layout as the model start numbers may have been impacted
-        AllModels.OldRecalcStartChannels();
+    SetCursor(wxCURSOR_WAIT);
+    // Now notify the layout as the model start numbers may have been impacted
+    if (AllModels.OldRecalcStartChannels())
         //AllModels.NewRecalcStartChannels();
-        if (layoutPanel != nullptr) {
-            layoutPanel->RefreshLayout();
-        }
-
-        _setupChanged = false;
-        SetCursor(wxCURSOR_ARROW);
+    {
+        GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "RecalcModels");
+        GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "RecalcModels");
+        //GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "RecalcModels", nullptr, nullptr, layoutPanel->GetSelectedModelName());
     }
+
+    SetCursor(wxCURSOR_ARROW);
 }
 
 void xLightsFrame::OnNotebook1PageChanging(wxAuiNotebookEvent& event)
@@ -2539,6 +2549,7 @@ void xLightsFrame::OnNotebook1PageChanging(wxAuiNotebookEvent& event)
         event.Veto();
         return;
     }
+
     if (event.GetOldSelection() == NEWSEQUENCER)
     {
         ShowHideAllSequencerWindows(false);
@@ -2546,8 +2557,21 @@ void xLightsFrame::OnNotebook1PageChanging(wxAuiNotebookEvent& event)
     else if (event.GetOldSelection() == SETUPTAB)
     {
         layoutPanel->UnSelectAllModels();
-        RecalcModels();
     }
+
+    if (event.GetSelection() == SETUPTAB)
+    {
+        DoSetupWork();
+    }
+    else if (event.GetSelection() == LAYOUTTAB)
+    {
+        DoLayoutWork();
+    }
+}
+
+void xLightsFrame::RenderLayout()
+{
+    layoutPanel->RenderLayout();
 }
 
 void xLightsFrame::OnNotebook1PageChanged1(wxAuiNotebookEvent& event)
@@ -2556,7 +2580,7 @@ void xLightsFrame::OnNotebook1PageChanged1(wxAuiNotebookEvent& event)
     int pagenum=event.GetSelection(); //Notebook1->GetSelection();
 	if (pagenum == LAYOUTTAB)
     {
-        UpdatePreview();
+        GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "OnNotebook1PageChanged");
         SetStatusText(_(""));
         MenuItem_File_Save->Enable(true);
         MenuItem_File_Save->SetItemLabel("Save Layout\tCTRL-s");
@@ -2629,6 +2653,7 @@ void xLightsFrame::EnableNetworkChanges()
     ButtonAddE131->Enable(flag);
     ButtonAddDDP->Enable(flag);
     ButtonArtNET->Enable(flag);
+    Button_AddZCPP->Enable(flag);
     ButtonAddNull->Enable(flag);
     ButtonAddLOR->Enable(flag);
     ButtonNetworkChange->Enable(flag);
@@ -2636,6 +2661,7 @@ void xLightsFrame::EnableNetworkChanges()
     ButtonNetworkDeleteAll->Enable(flag);
     BitmapButtonMoveNetworkUp->Enable(flag);
     BitmapButtonMoveNetworkDown->Enable(flag);
+    Button_Discover->Enable(flag);
     SpinCtrl_SyncUniverse->Enable(flag);
     ButtonSaveSetup->Enable(!CurrentDir.IsEmpty());
     CheckBoxLightOutput->Enable(!CurrentDir.IsEmpty());
@@ -3710,13 +3736,20 @@ void xLightsFrame::CheckUnsavedChanges()
     }
 }
 
-void xLightsFrame::MarkEffectsFileDirty(bool modelStructureChange)
+void xLightsFrame::MarkEffectsFileDirty()
 {
+    static log4cpp::Category& logger_work = log4cpp::Category::getInstance(std::string("log_work"));
+    logger_work.debug("        MarkEffectsFileDirty.");
+
     layoutPanel->SetDirtyHiLight(true);
     UnsavedRgbEffectsChanges=true;
-    if (modelStructureChange) {
-        modelsChangeCount++;
-    }
+}
+
+void xLightsFrame::MarkModelsAsNeedingRender()
+{
+    static log4cpp::Category& logger_work = log4cpp::Category::getInstance(std::string("log_work"));
+    logger_work.debug("        MarkModelsAsNeedingRender %d.", modelsChangeCount);
+    modelsChangeCount++;
 }
 
 unsigned int xLightsFrame::GetMaxNumChannels() {
@@ -4939,6 +4972,196 @@ void xLightsFrame::CheckSequence(bool display)
     }
     errcountsave = errcount;
     warncountsave = warncount;
+
+    // ZCPP Checks
+    std::list<Output*> zcppOutputs;
+    for (auto it = outputs.begin(); it != outputs.end(); ++it)
+    {
+        if ((*it)->GetType() == "ZCPP")
+        {
+            zcppOutputs.push_back(*it);
+        }
+    }
+
+    if (zcppOutputs.size() > 0)
+    {
+        LogAndWrite(f, "");
+        LogAndWrite(f, "ZCPP Checks");
+
+        // zcpp controllers with descriptions that clash with other outputs
+        for (auto it = zcppOutputs.begin(); it != zcppOutputs.end(); ++it)
+        {
+            if ((*it)->GetDescription() == "")
+            {
+                wxString msg = wxString::Format("    ERR: ZCPP controller on IP %s has no description. This is not valid.", (const char*)(*it)->GetIP().c_str());
+                LogAndWrite(f, msg.ToStdString());
+                errcount++;
+            }
+
+            auto sit = it;
+            ++sit;
+            for (; sit != zcppOutputs.end(); ++sit)
+            {
+                if (*it == *sit)
+                {
+                    wxString msg = wxString::Format("    ERR: Multiple ZCPP outputs with the same description '%s'. This is not valid.", (const char*)(*it)->GetDescription().c_str());
+                    LogAndWrite(f, msg.ToStdString());
+                    errcount++;
+                    break;
+                }
+            }
+        }
+
+        // zcpp ip address must only be on one output ... no duplicates
+        for (auto it = zcppOutputs.begin(); it != zcppOutputs.end(); ++it)
+        {
+            for (auto ito = outputs.begin(); ito != outputs.end(); ++ito)
+            {
+                if (*ito != *it && (*it)->GetIP() == (*ito)->GetIP())
+                {
+                    wxString msg = wxString::Format("    ERR: ZCPP IP Address '%s' for controller '%s' used on another controller '%s'. This is not allowed.", (const char*)(*it)->GetIP().c_str(), (const char*)(*it)->GetDescription().c_str(), (const char*)(*ito)->GetDescription().c_str());
+                    LogAndWrite(f, msg.ToStdString());
+                    errcount++;
+                    break;
+                }
+            }
+        }
+
+        std::map<std::string, std::map<std::string, std::list<Model*>>> modelsByPortByController;
+        for (auto it = AllModels.begin(); it != AllModels.end(); ++it)
+        {
+            if (it->second->GetControllerName() != "")
+            {
+                Output* o = _outputManager.GetOutput(it->second->GetControllerName());
+                if (o != nullptr)
+                {
+                    if (!it->second->IsControllerConnectionValid())
+                    {
+                        wxString msg = wxString::Format("    ERR: Model %s on ZCPP controller '%s:%s' has invalid controller connection '%s'.", (const char*)it->second->GetName().c_str(), (const char*)o->GetIP().c_str(), (const char*)o->GetDescription().c_str(), (const char*)it->second->GetControllerConnectionString().c_str());
+                        LogAndWrite(f, msg.ToStdString());
+                        errcount++;
+                    }
+
+                    if (modelsByPortByController.find(o->GetDescription()) == modelsByPortByController.end())
+                    {
+                        std::map<std::string, std::list<Model*>> pm;
+                        modelsByPortByController[o->GetDescription()] = pm;
+                    }
+                    modelsByPortByController[o->GetDescription()][wxString(it->second->GetControllerConnectionString()).Lower().ToStdString()].push_back(it->second);
+                }
+            }
+        }
+
+        // Models with chains to models that dont exist or are not on same controller and port
+        // Multiple models with the same chain value on the same port on the same controller
+        // Loops in model chains
+
+        // for each controller
+        for (auto it = modelsByPortByController.begin(); it != modelsByPortByController.end(); ++it)
+        {
+            //it->first is controller
+            //it->second is a list of ports
+
+            Output* o = _outputManager.GetOutput(it->first);
+
+            // for each port
+            for (auto itp = it->second.begin(); itp != it->second.end(); ++itp)
+            {
+                // itp->first is the port name
+                // itp->second  is the model list
+
+                    // order the models
+                std::string last = "";
+
+                while (itp->second.size() > 0)
+                {
+                    bool pushed = false;
+                    for (auto itms = itp->second.begin(); itms != itp->second.end(); ++itms)
+                    {
+                        if (((*itms)->GetModelChain() == "Beginning" && last == "") ||
+                            (*itms)->GetModelChain() == last ||
+                            (*itms)->GetModelChain() == ">" + last)
+                        {
+                            pushed = true;
+                            last = (*itms)->GetName();
+                            itp->second.erase(itms);
+                            break;
+                        }
+                    }
+
+                    if (!pushed && itp->second.size() > 0)
+                    {
+                        // chain is broken ... so just put the rest in in random order
+                        while (itp->second.size() > 0)
+                        {
+                            wxString msg = wxString::Format("    ERR: Model %s on ZCPP controller '%s:%s' on port '%s' has invalid Model Chain '%s'. It may be a duplicate or point to a non existent model on this controller port or there may be a loop.", (const char*)itp->second.front()->GetName().c_str(), (const char*)o->GetIP().c_str(), (const char*)o->GetDescription().c_str(), (const char*)itp->second.front()->GetControllerConnectionString().c_str(), (const char*)itp->second.front()->GetModelChain().c_str());
+                            LogAndWrite(f, msg.ToStdString());
+                            errcount++;
+                            itp->second.pop_front();
+                        }
+                    }
+                }
+            }
+        }
+
+        // Apply the vendor specific validations
+        for (auto it : zcppOutputs)
+        {
+            wxString msg = wxString::Format("        Applying controller rules for %s:%s", it->GetIP(), it->GetDescription());
+            LogAndWrite(f, msg.ToStdString());
+
+            std::list<int> outputNums;
+            std::string check;
+            UDController edc(it->GetIP(), it->GetIP(), &AllModels, &_outputManager, &outputNums, check);
+            if (check != "")
+            {
+                LogAndWrite(f, check);
+            }
+
+            check = "";
+
+            switch(((ZCPPOutput*)it)->GetVendor())
+            {
+            case ZCPP_VENDOR_FALCON:
+                // falcon
+                {
+                // FIXME ... need the right rules
+                    FalconControllerRules fcr(((ZCPPOutput*)it)->GetModel());
+                    edc.Check(&fcr, check);
+                }
+                break;
+            case ZCPP_VENDOR_FPP:
+                // fpp
+                {
+                    // FIXME ... need the right rules
+                    ControllerRules& fcr = FPP::GetCapeRules("");
+                    edc.Check(&fcr, check);
+                }
+            break;
+            case ZCPP_VENDOR_ESPIXELSTICK:
+                // fpp
+                {
+                    ESPixelStickControllerRules epscr;
+                    edc.Check(&epscr, check);
+                }
+            break;
+            default:
+                LogAndWrite(f, "Unknown controller vendor.");
+                break;
+            }
+            if (check != "")
+            {
+                LogAndWrite(f, check);
+            }
+        }
+
+        if (errcount + warncount == errcountsave + warncountsave)
+        {
+            LogAndWrite(f, "    No problems found");
+        }
+        errcountsave = errcount;
+        warncountsave = warncount;
+    }
 
     // multiple outputs to same universe/ID
     LogAndWrite(f, "");
@@ -7330,14 +7553,14 @@ void xLightsFrame::CleanupRGBEffectsFileLocations()
     {
         wxString bi = MoveToShowFolder(mBackgroundImage, wxString(wxFileName::GetPathSeparator()));
         SetPreviewBackgroundImage(bi);
-        MarkEffectsFileDirty(false);
+        GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CleanupRGBEffectsFileLocations");
     }
 
     for (auto m : AllModels)
     {
         if (m.second->CleanupFileLocations(this))
         {
-            MarkEffectsFileDirty(false);
+            GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CleanupRGBEffectsFileLocations");
         }
     }
 
@@ -7345,7 +7568,7 @@ void xLightsFrame::CleanupRGBEffectsFileLocations()
     {
         if (m.second->CleanupFileLocations(this))
         {
-            MarkEffectsFileDirty(false);
+            GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CleanupRGBEffectsFileLocations");
         }
     }
 }

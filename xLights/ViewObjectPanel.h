@@ -26,6 +26,7 @@ public:
     void OnItemContextMenu(wxTreeListEvent& event);
     void HighlightObject(ViewObject* v);
     ViewObject* GetSelectedObject() { return mSelectedObject; }
+    void refreshObjectList();
 
     void PreviewObjectAlignWithGround();
     void PreviewObjectAlignTops();
@@ -81,7 +82,6 @@ private:
 
     void InitImageList();
     wxTreeListCtrl* CreateTreeListCtrl(long style);
-    void refreshObjectList();
     int GetObjectTreeIcon(ViewObject* view_object, bool open);
     int AddObjectToTree(ViewObject *view_object, wxTreeListItem* parent, bool expanded, int nativeOrder, bool fullName = false);
     void UpdateObjectList(bool full_refresh, std::vector<ViewObject*> &objects, std::string& currentLayoutGroup );

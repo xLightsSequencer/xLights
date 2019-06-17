@@ -868,10 +868,12 @@ void xLightsFrame::RenderRange(RenderCommandEvent &evt) {
             RenderTimeSlice(evt.start, evt.end, evt.clear);
         } else {
             //render all dirty models
-            RenderDirtyModels();
+            if (!_suspendRender)
+                RenderDirtyModels();
         }
     } else {
-        RenderEffectForModel(evt.model, evt.start,  evt.end, evt.clear);
+        if (!_suspendRender)
+            RenderEffectForModel(evt.model, evt.start,  evt.end, evt.clear);
     }
 }
 
@@ -1435,6 +1437,9 @@ static void addModelsFrom(std::list<Model*> &models, const std::list<Model *> &t
 }
 
 void xLightsFrame::RenderDirtyModels() {
+
+    if (_suspendRender) return; // dont render if suspended
+
     BuildRenderTree();
     if (renderTree.data.empty()) {
         //nothing to do....
@@ -1579,6 +1584,8 @@ void xLightsFrame::RenderGridToSeqData(std::function<void()>&& callback) {
 void xLightsFrame::RenderEffectForModel(const std::string &model, int startms, int endms, bool clear) {
 
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    if (_suspendRender) return;
 
     BuildRenderTree();
 

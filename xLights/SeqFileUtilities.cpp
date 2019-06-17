@@ -559,7 +559,7 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
 
         if( loaded_fseq )
         {
-            UpdatePreview();
+            GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::HandleLayoutKey::OpenSequence");
         }
         else if( !loaded_xml )
         {

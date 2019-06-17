@@ -22,11 +22,11 @@ class ModelManager : public ObjectManager
         Model *GetModel(const std::string &name) const;
         virtual BaseObject *GetObject(const std::string &name) const override;
 
-        void OldRecalcStartChannels() const;
-        void NewRecalcStartChannels() const;
+        bool OldRecalcStartChannels() const;
+        bool NewRecalcStartChannels() const;
         unsigned int GetLastChannel() const;
         void DisplayStartChannelCalcWarning() const;
-        void ReworkStartChannel() const;
+        bool ReworkStartChannel() const;
 
         bool Rename(const std::string &oldName, const std::string &newName);
         bool RenameSubModel(const std::string &oldName, const std::string &newName);
@@ -37,6 +37,7 @@ class ModelManager : public ObjectManager
         void Delete(const std::string &name);
         std::string GenerateModelName(const std::string& candidateModelName) const;
         void ResetModelGroups() const;
+        std::string GetLastModelOnPort(const std::string& controllerName, int port, const std::string& excludeModel) const;
 
         void LoadModels(wxXmlNode *modelNode, int previewW, int previewH);
         bool LoadGroups(wxXmlNode *groupNode, int previewW, int previewH);
@@ -56,8 +57,9 @@ class ModelManager : public ObjectManager
         Model *CreateModel(wxXmlNode *node, int previewW = 0, int previewH = 0, bool zeroBased = false) const;
         Model *CreateDefaultModel(const std::string &type, const std::string &startChannel = "1") const;
         xLightsFrame* GetXLightsFrame() const { return xlights; }
-        Model* createAndAddModel(wxXmlNode* node, int previewW, int previewH);
-private:
+        bool IsValidControllerModelChain(Model* m, std::string& tip) const;
+        Model *createAndAddModel(wxXmlNode *node, int previewW, int previewH);
+    private:
 
     wxXmlNode *layoutsNode;
     OutputManager* _outputManager;

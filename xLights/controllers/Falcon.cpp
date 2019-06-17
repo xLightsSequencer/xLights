@@ -937,15 +937,15 @@ float Falcon::DecodeGamma(int gammaCode) const
 {
     switch(gammaCode)
     {
-    case 0: return 1.0;
-    case 1: return 2.0;
-    case 2: return 2.3;
-    case 3: return 2.5;
-    case 4: return 2.8;
-    case 5: return 3.0;
+    case 0: return 1.0f;
+    case 1: return 2.0f;
+    case 2: return 2.3f;
+    case 3: return 2.5f;
+    case 4: return 2.8f;
+    case 5: return 3.0f;
     default: break;
     }
-    return 1.0;
+    return 1.0f;
 }
 
 int Falcon::EncodeGamma(float gamma) const

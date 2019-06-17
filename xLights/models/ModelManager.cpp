@@ -206,8 +206,9 @@ unsigned int ModelManager::GetLastChannel() const {
     return max;
 }
 
-void ModelManager::NewRecalcStartChannels() const
+bool ModelManager::NewRecalcStartChannels() const
 {
+    bool changed = false;
     //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     //wxStopWatch sw;
     //sw.Start();
@@ -226,9 +227,17 @@ void ModelManager::NewRecalcStartChannels() const
         if (it->second->GetDisplayAs() != "ModelGroup")
         {
             std::list<std::string> used;
+            auto oldsc = it->second->GetFirstChannel();
             if (!it->second->UpdateStartChannelFromChannelString(ms, used)) {
                 msg += it->second->name + "\n";
                 failed = true;
+            }
+            else
+            {
+                if (oldsc != it->second->GetFirstChannel())
+                {
+                    changed = true;
+                }
             }
         }
     }
@@ -238,6 +247,8 @@ void ModelManager::NewRecalcStartChannels() const
 
     //long end  = sw.Time();
     //logger_base.debug("New RecalcStartChannels takes %ld.", end);
+
+    return changed;
 }
 
 void ModelManager::ResetModelGroups() const
@@ -250,7 +261,27 @@ void ModelManager::ResetModelGroups() const
     }
 }
 
-void ModelManager::OldRecalcStartChannels() const {
+std::string ModelManager::GetLastModelOnPort(const std::string& controllerName, int port, const std::string& excludeModel) const
+{
+    std::string last = "";
+    unsigned int highestEndChannel = 0;
+
+    for (auto it : models)
+    {
+        if (it.second->GetDisplayAs() != "ModelGroup" && 
+            it.second->GetControllerName() == controllerName && 
+            it.second->GetControllerPort() == port && 
+            it.second->GetLastChannel() > highestEndChannel && it.first != excludeModel)
+        {
+            last = it.first;
+            highestEndChannel = it.second->GetLastChannel();
+        }
+    }
+    return last;
+}
+
+bool ModelManager::OldRecalcStartChannels() const {
+    bool changed = false;
     //wxStopWatch sw;
     //sw.Start();
     int countValid = 0;
@@ -259,8 +290,16 @@ void ModelManager::OldRecalcStartChannels() const {
     }
     for (auto it = models.begin(); it != models.end(); ++it) {
         if( it->second->GetDisplayAs() != "ModelGroup" ) {
+            auto oldsc = it->second->GetFirstChannel();
             it->second->SetFromXml(it->second->GetModelXml());
-            countValid += it->second->CouldComputeStartChannel ? 1 : 0;
+            if (it->second->CouldComputeStartChannel)
+            {
+                countValid++;
+                if (oldsc != it->second->GetFirstChannel())
+                {
+                    changed = true;
+                }
+            }
         } else {
             countValid++;
         }
@@ -270,8 +309,16 @@ void ModelManager::OldRecalcStartChannels() const {
         for (auto it = models.begin(); it != models.end(); ++it) {
             if( it->second->GetDisplayAs() != "ModelGroup" ) {
                 if (!it->second->CouldComputeStartChannel) {
+                    auto oldsc = it->second->GetFirstChannel();
                     it->second->SetFromXml(it->second->GetModelXml());
-                    newCountValid += it->second->CouldComputeStartChannel ? 1 : 0;
+                    if (it->second->CouldComputeStartChannel)
+                    {
+                        newCountValid++;
+                        if (oldsc != it->second->GetFirstChannel())
+                        {
+                            changed = true;
+                        }
+                    }
                 } else {
                     newCountValid++;
                 }
@@ -286,7 +333,7 @@ void ModelManager::OldRecalcStartChannels() const {
 
             ResetModelGroups();
 
-            return;
+            return changed;
         }
         countValid = newCountValid;
     }
@@ -295,6 +342,7 @@ void ModelManager::OldRecalcStartChannels() const {
 
     //long end = sw.Time();
     //logger_base.debug("Old RecalcStartChannels takes %ld.", end);
+    return changed;
 }
 
 void ModelManager::DisplayStartChannelCalcWarning() const
@@ -314,19 +362,107 @@ void ModelManager::DisplayStartChannelCalcWarning() const
     }
 }
 
-void ModelManager::ReworkStartChannel() const
+bool ModelManager::IsValidControllerModelChain(Model* m, std::string& tip) const
 {
+    std::list<Model*> sameOutput;
+    tip = "";
+    auto controllerName = m->GetControllerName();
+    if (controllerName == "") return true; // we dont check these
+    auto port = m->GetControllerPort();
+    if (port == 0) return true; // we dont check these
+    auto chain = m->GetModelChain();
+    if (StartsWith(chain, ">"))
+    {
+        chain = chain.substr(1);
+    }
+    auto startModel = m->GetName();
+
+    for (auto it : *this)
+    {
+        if (it.first != startModel)
+        {
+            if (it.second->GetControllerName() == controllerName && it.second->GetControllerPort() == port)
+            {
+                auto c = it.second->GetModelChain();
+                if (StartsWith(c, ">"))
+                {
+                    c = c.substr(1);
+                }
+
+                // valid if no other model shares my chain
+                if (chain == c) {
+                    tip = "Model shares chain with " + it.second->GetName();
+                    return false; // two models chain this place in the chain
+                }
+                sameOutput.push_back(it.second);
+            }
+        }
+    }
+
+    // if no other models then chain must be blank
+    if (sameOutput.size() == 0)
+    {
+        if (chain != "") tip = "Only model on an output must not chain to anything.";
+        return (chain == "");
+    }
+
+    if (chain == "") return true; // this model is the beginning
+
+    // valid if i can follow the chain to blank
+    int checks = 0;
+    auto current = startModel;
+    auto next = chain;
+    while (checks <= sameOutput.size())
+    {
+        bool found = false;
+        for (auto it : sameOutput)
+        {
+            if (it->GetName() == next)
+            {
+                next = it->GetModelChain();
+                if (StartsWith(next, ">"))
+                {
+                    next = next.substr(1);
+                }
+                if (next == "") return true; // we found the beginning
+                found = true;
+                current = it->GetName();
+                break;
+            }
+        }
+
+        if (!found)
+        {
+            tip = "Chained to " + next + " but that model is not on this port";
+            return false; // chained to non existent model
+        }
+
+        checks++;
+    }
+    tip = "Unable to find the beginning of the model chain on this output ... most likely you have a loop.";
+    return false;
+}
+
+bool ModelManager::ReworkStartChannel() const
+{
+    static log4cpp::Category &logger_zcpp = log4cpp::Category::getInstance(std::string("log_zcpp"));
+    static log4cpp::Category& logger_work = log4cpp::Category::getInstance(std::string("log_work"));
+    logger_work.debug("        ReworkStartChannel.");
+
     bool  outputsChanged = false;
 
     OutputManager* outputManager = xlights->GetOutputManager();
     for (auto it : outputManager->GetOutputs())
     {
-        if (it->IsLookedUpByControllerName())
+        if (it->IsAutoLayoutModels())
         {
             std::map<std::string, std::list<Model*>> cmodels;
             for (auto itm : models)
             {
-                if (itm.second->GetControllerName() == it->GetDescription())
+                if (itm.second->GetControllerName() == it->GetDescription() && 
+                    itm.second->GetControllerPort() != 0 &&
+                    itm.second->GetControllerProtocol() != ""
+                    ) // we dont muck with unassigned models or no protocol models
                 {
                     wxString cc = wxString::Format("%s:%d:%02d", itm.second->GetControllerProtocol(), itm.second->GetSmartRemote(), itm.second->GetControllerPort()).Lower();
                     if (cmodels.find(cc) == cmodels.end())
@@ -338,6 +474,58 @@ void ModelManager::ReworkStartChannel() const
                 }
             }
 
+            // first of all fix any weirdness ...
+            for (auto itcc = cmodels.begin(); itcc != cmodels.end(); ++itcc)
+            {
+                logger_zcpp.debug("Fixing weirdness on %s - %s", (const char*)it->GetDescription().c_str(), (const char*)itcc->first.c_str());
+                logger_zcpp.debug("    Models at start:");
+
+                // build a list of model names on the port
+                std::list<std::string> models;
+                for (auto itmm : itcc->second)
+                {
+                    logger_zcpp.debug("        %s Chained to '%s'", (const char*)itmm->GetName().c_str(), (const char*)itmm->GetModelChain().c_str());
+                    models.push_back(itmm->GetName());
+                }
+
+                logger_zcpp.debug("    Fixing weirdness:");
+
+                // If a model refers to a chained model not on the port then move it to beginning ... so next step can move it again
+                bool beginningFound = false;
+                for (auto itmm : itcc->second)
+                {
+                    auto ch = itmm->GetModelChain();
+                    if (ch == "" || ch == "Beginning")
+                    {
+                        beginningFound = true;
+                    }
+                    else
+                    {
+                        ch = ch.substr(1); // string off leading >
+                        if (std::find(models.begin(), models.end(), ch) == models.end())
+                        {
+                            logger_zcpp.debug("    Model %s set to beginning because the model it is chained to does not exist.", (const char*)itmm->GetName().c_str());
+                            itmm->SetModelChain("");
+                            beginningFound = true;
+                            outputsChanged = true;
+                        }
+                    }
+                }
+
+                // If no model is set as beginning ... then just make the first one beginning
+                if (!beginningFound)
+                {
+                    logger_zcpp.debug("    Model %s set to beginning because no other model was.", (const char*)itcc->second.front()->GetName().c_str());
+                    itcc->second.front()->SetModelChain("");
+                    outputsChanged = true;
+                }
+
+                // Now I would love to give any more than the first model a default to chain to but this is
+                // not as easy as it looks ... so for now i am going to leave multiple models at the beginning
+                // and let the user sort it out rather than creating loops
+            }
+
+            logger_zcpp.debug("    Sorting models:");
             long ch = 1;
             for (auto itcc = cmodels.begin(); itcc != cmodels.end(); ++itcc)
             {
@@ -350,7 +538,7 @@ void ModelManager::ReworkStartChannel() const
                 while ((*itcc).second.size() > 0)
                 {
                     bool pushed = false;
-                    for (auto itms = (*itcc).second.begin(); itms != (*itcc).second.end(); ++itms)
+                    for (auto itms = itcc->second.begin(); itms != itcc->second.end(); ++itms)
                     {
                         if ((((*itms)->GetModelChain() == "Beginning" || (*itms)->GetModelChain() == "") && last == "") ||
                             (*itms)->GetModelChain() == last || 
@@ -359,14 +547,16 @@ void ModelManager::ReworkStartChannel() const
                             sortedmodels.push_back(*itms);
                             pushed = true;
                             last = (*itms)->GetName();
-                            (*itcc).second.erase(itms);
+                            itcc->second.erase(itms);
                             break;
                         }
                     }
 
                     if (!pushed && (*itcc).second.size() > 0)
                     {
-                        // chain is broken ... so just put the rest in in random order
+                        // chain is broken ... so just put the rest in in the original order
+                        // wxASSERT(false);
+                        logger_zcpp.error("    Model chain is broken so just stuffing the remaining %d models in in their original order.", (*itcc).second.size());
                         while ((*itcc).second.size() > 0)
                         {
                             sortedmodels.push_back(itcc->second.front());
@@ -378,18 +568,38 @@ void ModelManager::ReworkStartChannel() const
                 last = "";
                 for (auto itm : sortedmodels)
                 {
+                    std::string sc = "";
                     if (itm->GetModelChain() == last || 
                         itm->GetModelChain() == ">" + last || 
                         ((itm->GetModelChain() == "Beginning" || itm->GetModelChain() == "") && last == ""))
                     {
-                        itm->SetStartChannel("!" + it->GetDescription() + ":" + wxString::Format("%ld", ch));
+                        auto osc = itm->ModelStartChannel;
+                        sc = "!" + it->GetDescription() + ":" + wxString::Format("%ld", ch);
+                        itm->SetStartChannel(sc);
                         last = itm->GetName();
+                        ch += itm->GetChanCount();
+                        if (osc != itm->ModelStartChannel)
+                        {
+                            outputsChanged = true;
+                        }
                     }
                     else
                     {
-                        itm->SetStartChannel("!" + it->GetDescription() + ":" + wxString::Format("%ld", chstart));
+                        auto osc = itm->ModelStartChannel;
+                        sc = "!" + it->GetDescription() + ":" + wxString::Format("%ld", chstart);
+                        itm->SetStartChannel(sc);
+                        ch = std::max(ch, chstart + itm->GetChanCount());
+                        if (osc != itm->ModelStartChannel)
+                        {
+                            outputsChanged = true;
+                        }
                     }
-                    ch += itm->GetChanCount();
+
+                    logger_zcpp.debug("    Model %s on port %d chained to %s start channel %s.",
+                        (const char*)itm->GetName().c_str(),
+                        itm->GetControllerPort(),
+                        (const char*)itm->GetModelChain().c_str(),
+                        (const char*)sc.c_str());
                 }
             }
 
@@ -397,20 +607,17 @@ void ModelManager::ReworkStartChannel() const
             {
                 if (it->GetChannels() != std::max((long)1, (long)ch - 1))
                 {
+                    logger_zcpp.debug("    Resizing output to %ld channels.", std::max((long)1, (long)ch - 1));
                     it->SetChannels(std::max((long)1, (long)ch - 1));
-                    outputsChanged = true;
+                    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ReworkStartChannel", nullptr, it);
+                    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "ReworkStartChannel", nullptr, it);
+                    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "ReworkStartChannel", nullptr, it);
+                    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_SAVE_NETWORKS, "ReworkStartChannel", nullptr, it);
                 }
             }
         }
     }
-
-    if (outputsChanged)
-    {
-        xlights->GetOutputManager()->SomethingChanged();
-        xlights->UpdateNetworkList(false);
-        xlights->NetworkChange();
-        xlights->SaveNetworksFile();
-    }
+    return outputsChanged;
 }
 
 bool ModelManager::LoadGroups(wxXmlNode *groupNode, int previewW, int previewH) {

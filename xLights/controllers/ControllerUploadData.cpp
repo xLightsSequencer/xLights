@@ -21,7 +21,7 @@ UDController::UDController(const std::string &ip, const std::string &hostname, M
     // get the list of outputs going to this controller
     _outputs = om->GetAllOutputs(_ipAddress, _hostName, *selected);
 
-    for (auto ito = _outputs.begin(); ito != _outputs.end(); ++ito)
+    for (auto ito : _outputs)
     {
         // this universe is sent to the falcon
 
@@ -32,8 +32,8 @@ UDController::UDController(const std::string &ip, const std::string &hostname, M
             {
                 long modelstart = it->second->GetNumberFromChannelString(it->second->ModelStartChannel);
                 long modelend = modelstart + it->second->GetChanCount() - 1;
-                if ((modelstart >= (*ito)->GetStartChannel() && modelstart <= (*ito)->GetEndChannel()) ||
-                    (modelend >= (*ito)->GetStartChannel() && modelend <= (*ito)->GetEndChannel()))
+                if ((modelstart >= ito->GetStartChannel() && modelstart <= ito->GetEndChannel()) ||
+                    (modelend >= ito->GetStartChannel() && modelend <= ito->GetEndChannel()))
                 {
                     //logger_base.debug("Model %s start %d end %d found on controller %s output %d start %d end %d.",
                     //    (const char *)it->first.c_str(), modelstart, modelend,
@@ -87,14 +87,13 @@ UDController::UDController(const std::string &ip, const std::string &hostname, M
         }
     }
 
-    for (auto it = _noConnectionModels.begin(); it != _noConnectionModels.end(); ++it)
+    for (auto it : _noConnectionModels)
     {
         bool ok = false;
-
         for (auto p = _pixelPorts.begin(); !ok && p != _pixelPorts.end(); ++p)
         {
-            if (p->second->GetStartChannel() <= (*it)->GetFirstChannel()+1 &&
-                p->second->GetEndChannel() >= (*it)->GetLastChannel()+1)
+            if (p->second->GetStartChannel() <= it->GetFirstChannel()+1 &&
+                p->second->GetEndChannel() >= it->GetLastChannel()+1)
             {
                 ok = true;
             }
@@ -102,7 +101,7 @@ UDController::UDController(const std::string &ip, const std::string &hostname, M
 
         if (!ok)
         {
-            check += wxString::Format("WARNING: Controller Upload: Model %s on controller %s does not have its Controller Connection details completed. Model ignored.\n", (const char *)(*it)->GetFullName().c_str(), (const char *)ip.c_str()).ToStdString();
+            check += wxString::Format("WARNING: Controller Upload: Model %s on controller %s does not have its Controller Connection details completed. Model ignored.\n", (const char *)it->GetFullName().c_str(), (const char *)ip.c_str()).ToStdString();
         }
     }
 }
@@ -342,12 +341,12 @@ bool UDController::Check(const ControllerRules* rules, std::string& res)
     if (rules->AllUniversesSameSize())
     {
         int size = -1;
-        for (auto it = _outputs.begin(); it != _outputs.end(); ++it)
+        for (auto it : _outputs)
         {
-            if (size == -1) size = (*it)->GetChannels();
-            if (size != (*it)->GetChannels())
+            if (size == -1) size = it->GetChannels();
+            if (size != it->GetChannels())
             {
-                res += wxString::Format("ERROR: All universes must be the same size. %d and %d found.\n", size, (int)(*it)->GetChannels()).ToStdString();
+                res += wxString::Format("ERROR: All universes must be the same size. %d and %d found.\n", size, (int)it->GetChannels()).ToStdString();
                 success = false;
             }
         }
@@ -357,26 +356,26 @@ bool UDController::Check(const ControllerRules* rules, std::string& res)
     {
         int seq = -1;
 
-        for (auto it = _outputs.begin(); it != _outputs.end(); ++it)
+        for (auto it : _outputs)
         {
-            if (seq == -1) seq = (*it)->GetUniverse() - 1;
-            if (seq + 1 != (*it)->GetUniverse())
+            if (seq == -1) seq = it->GetUniverse() - 1;
+            if (seq + 1 != it->GetUniverse())
             {
-                res += wxString::Format("ERROR: All universes must be sequential. %d followed %d.\n", (*it)->GetUniverse(), seq).ToStdString();
+                res += wxString::Format("ERROR: All universes must be sequential. %d followed %d.\n", it->GetUniverse(), seq).ToStdString();
                 success = false;
             }
-            seq = (*it)->GetUniverse();
+            seq = it->GetUniverse();
         }
     }
 
     auto inputprotocols = rules->GetSupportedInputProtocols();
     if (inputprotocols.size() > 0)
     {
-        for (auto it = _outputs.begin(); it != _outputs.end(); ++it)
+        for (auto it : _outputs)
         {
-            if (std::find(inputprotocols.begin(), inputprotocols.end(), (*it)->GetType()) == inputprotocols.end())
+            if (std::find(inputprotocols.begin(), inputprotocols.end(), it->GetType()) == inputprotocols.end())
             {
-                res += wxString::Format("ERROR: Output %s is not a protocol this controller supports.\n", (*it)->GetType()).ToStdString();
+                res += wxString::Format("ERROR: Output %s is not a protocol this controller supports.\n", it->GetType()).ToStdString();
                 success = false;
             }
         }
@@ -389,13 +388,13 @@ bool UDController::Check(const ControllerRules* rules, std::string& res)
     }
     else
     {
-        for (auto it = _serialPorts.begin(); it != _serialPorts.end(); ++it)
+        for (auto it : _serialPorts)
         {
-            success &= it->second->Check(this, false, rules, _outputs, res);
+            success &= it.second->Check(this, false, rules, _outputs, res);
 
-            if (it->second->GetPort() < 1 || it->second->GetPort() > rules->GetMaxSerialPort())
+            if (it.second->GetPort() < 1 || it.second->GetPort() > rules->GetMaxSerialPort())
             {
-                res += wxString::Format("ERROR: Serial port %d is not valid on this controller. Valid ports %d-%d.\n", it->second->GetPort(), 1, rules->GetMaxSerialPort()).ToStdString();
+                res += wxString::Format("ERROR: Serial port %d is not valid on this controller. Valid ports %d-%d.\n", it.second->GetPort(), 1, rules->GetMaxSerialPort()).ToStdString();
                 success = false;
             }
         }
@@ -413,9 +412,9 @@ Output* UDController::GetFirstOutput() const
 
 bool UDController::HasPixelPort(int port) const
 {
-    for (auto it = _pixelPorts.begin(); it != _pixelPorts.end(); ++it)
+    for (auto it : _pixelPorts)
     {
-        if (it->second->GetPort() == port)
+        if (it.second->GetPort() == port)
         {
             return true;
         }
@@ -425,17 +424,17 @@ bool UDController::HasPixelPort(int port) const
 
 bool UDController::ModelProcessed(Model* m)
 {
-    for (auto it = _pixelPorts.begin(); it != _pixelPorts.end(); ++it)
+    for (auto it : _pixelPorts)
     {
-        if (it->second->ContainsModel(m))
+        if (it.second->ContainsModel(m))
         {
             return true;
         }
     }
 
-    for (auto it = _serialPorts.begin(); it != _serialPorts.end(); ++it)
+    for (auto it : _serialPorts)
     {
-        if (it->second->ContainsModel(m))
+        if (it.second->ContainsModel(m))
         {
             return true;
         }
@@ -562,12 +561,12 @@ bool UDControllerPortModel::ChannelsOnOutputs(std::list<Output*>& outputs) const
 
     while (lastChecked < _endChannel)
     {
-        for (auto it = outputs.begin(); it != outputs.end(); ++it)
+        for (auto it : outputs)
         {
-            if (lastChecked + 1 >= (*it)->GetStartChannel() &&
-                lastChecked + 1 <= (*it)->GetEndChannel())
+            if (lastChecked + 1 >= it->GetStartChannel() &&
+                lastChecked + 1 <= it->GetEndChannel())
             {
-                lastChecked = (*it)->GetEndChannel();
+                lastChecked = it->GetEndChannel();
                 break;
             }
         }
@@ -612,11 +611,11 @@ UDControllerPortModel* UDControllerPort::GetFirstModel() const
     wxASSERT(_models.size() > 0);
     UDControllerPortModel* first = _models.front();
 
-    for (auto it = _models.begin(); it != _models.end(); ++it)
+    for (auto it : _models)
     {
-        if (**it < *first)
+        if (*it < *first)
         {
-            first = *it;
+            first = it;
         }
     }
 
@@ -628,11 +627,11 @@ UDControllerPortModel* UDControllerPort::GetLastModel() const
     wxASSERT(_models.size() > 0);
     UDControllerPortModel* last = _models.front();
 
-    for (auto it = _models.begin(); it != _models.end(); ++it)
+    for (auto it : _models)
     {
-        if ((*it)->GetEndChannel() > last->GetEndChannel())
+        if (it->GetEndChannel() > last->GetEndChannel())
         {
-            last = *it;
+            last = it;
         }
     }
 
@@ -650,6 +649,7 @@ bool compare_modelsc(const UDControllerPortModel* first, const UDControllerPortM
 
 void UDControllerPort::AddModel(Model* m, OutputManager* om, int string)
 {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxASSERT(!ContainsModel(m));
     _models.push_back(new UDControllerPortModel(m, om, string));
     if (_protocol == "")
@@ -657,6 +657,58 @@ void UDControllerPort::AddModel(Model* m, OutputManager* om, int string)
         _protocol = m->GetControllerProtocol();
     }
     _models.sort(compare_modelsc);
+
+    // now remove any overlapping models
+    bool erased = true;
+    while (erased)
+    {
+        erased = false;
+        for (auto it = _models.begin(); it != _models.end(); ++it)
+        {
+            auto it2 = it;
+            ++it2;
+
+            for (; it2 != _models.end(); ++it2)
+            {
+                if ((*it2)->GetStartChannel() <= (*it)->GetEndChannel())
+                {
+                    // this model overlaps at least slightly
+                    if ((*it2)->GetEndChannel() <= (*it)->GetEndChannel())
+                    {
+                        // it2 is totally inside it
+                        logger_base.debug("CUD add model removed model %s as it totally overlaps with model %s",
+                            (const char*)(*it2)->GetName().c_str(),
+                            (const char*)(*it)->GetName().c_str()
+                        );
+                        _models.erase(it2);
+                        erased = true;
+                    }
+                    else if ((*it)->GetStartChannel() == (*it2)->GetStartChannel() && (*it2)->GetEndChannel() > (*it)->GetEndChannel())
+                    {
+                        // i1 totally inside it2
+                        logger_base.debug("CUD add model removed model %s as it totally overlaps with model %s",
+                            (const char*)(*it)->GetName().c_str(),
+                            (const char*)(*it2)->GetName().c_str()
+                        );
+                        _models.erase(it);
+                        erased = true;
+                    }
+                    else
+                    {
+                        // so this is the difficult partial overlap case ... to prevent issues i will just erase model 2 and the user will need to fix it
+                        logger_base.debug("CUD add model removed model %s as it PARTIALLY overlaps with model %s. This will cause issues but it cannot be handled by the upload.",
+                            (const char*)(*it2)->GetName().c_str(),
+                            (const char*)(*it)->GetName().c_str()
+                        );
+                        _models.erase(it2);
+                        erased = true;
+                    }
+                }
+                if (erased) break; // iterators are invalid so need to break out
+            }
+            if (erased) break; // iterators are invalid so need to break out
+        }
+    }
 }
 
 long UDControllerPort::GetStartChannel() const
@@ -717,9 +769,9 @@ void UDControllerPort::Dump() const
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     logger_base.debug("            Port %d. Protocol %s. Valid %s. Invalid Reason '%s'. Channels %ld. Pixels %d. Start #%d:%d.", _port, (const char *)_protocol.c_str(), (_valid ? "TRUE" : "FALSE"), (const char *)_invalidReason.c_str(), Channels(), (int)(Channels() / 3), GetUniverse(), GetUniverseStartChannel());
-    for (auto it = _models.begin(); it != _models.end(); ++it)
+    for (auto it : _models)
     {
-        (*it)->Dump();
+        it->Dump();
     }
 }
 
@@ -737,11 +789,11 @@ bool UDControllerPort::Check(const UDController* controller, bool pixel, const C
         }
         else
         {
-            for (auto it = _models.begin(); it != _models.end(); ++it)
+            for (auto it : _models)
             {
-                if ((*it)->GetProtocol() != _protocol)
+                if (it->GetProtocol() != _protocol)
                 {
-                    res += wxString::Format("ERROR: Model %s on pixel port %d has protocol %s but port protocol has been set to %s. This is because you have mixed protocols on your models.", (*it)->GetName(), _port, (*it)->GetProtocol(), _protocol).ToStdString();
+                    res += wxString::Format("ERROR: Model %s on pixel port %d has protocol %s but port protocol has been set to %s. This is because you have mixed protocols on your models.", it->GetName(), _port, it->GetProtocol(), _protocol).ToStdString();
                     success = false;
                 }
             }
@@ -763,11 +815,11 @@ bool UDControllerPort::Check(const UDController* controller, bool pixel, const C
         }
         else
         {
-            for (auto it = _models.begin(); it != _models.end(); ++it)
+            for (auto it : _models)
             {
-                if ((*it)->GetProtocol() != _protocol)
+                if (it->GetProtocol() != _protocol)
                 {
-                    res += wxString::Format("ERROR: Model %s on serial port %d has protocol %s but port protocol has been set to %s. This is because you have mixed protocols on your models.\n", (*it)->GetName(), _port, (*it)->GetProtocol(), _protocol).ToStdString();
+                    res += wxString::Format("ERROR: Model %s on serial port %d has protocol %s but port protocol has been set to %s. This is because you have mixed protocols on your models.\n", it->GetName(), _port, it->GetProtocol(), _protocol).ToStdString();
                     success = false;
                 }
             }
@@ -780,21 +832,21 @@ bool UDControllerPort::Check(const UDController* controller, bool pixel, const C
     }
 
     long ch = -1;
-    for (auto it = _models.begin(); it != _models.end(); ++it)
+    for (auto it : _models)
     {
-        if (ch == -1) ch = (*it)->GetStartChannel() - 1;
-        if ((*it)->GetStartChannel() > ch + 1)
+        if (ch == -1) ch = it->GetStartChannel() - 1;
+        if (it->GetStartChannel() > ch + 1)
         {
-            res += wxString::Format("WARNING: Gap in models on port %d channel %ld to %ld.\n", _port, ch, (*it)->GetStartChannel()).ToStdString();
+            res += wxString::Format("WARNING: Gap in models on port %d channel %ld to %ld.\n", _port, ch, it->GetStartChannel()).ToStdString();
         }
-        ch = (*it)->GetEndChannel();
+        ch = it->GetEndChannel();
     }
 
 
-    for (auto it = _models.begin(); it != _models.end(); ++it)
+    for (auto it : _models)
     {
         // all models must be fully contained within the outputs on this controller
-        success &= (*it)->Check(this, pixel, rules, outputs, res);
+        success &= it->Check(this, pixel, rules, outputs, res);
     }
 
     return success;
@@ -845,7 +897,7 @@ void UDControllerPort::CreateVirtualStrings(bool mergeSequential)
         float gamma = it->GetGamma(-9999);
         int groupCount = it->GetGroupCount(-9999);
 
-        if (it == _models.front() || !mergeSequential)
+        if (current == nullptr || !mergeSequential)
         {
             // this is automatically a new virtual string
             current = new UDVirtualString();
@@ -855,6 +907,7 @@ void UDControllerPort::CreateVirtualStrings(bool mergeSequential)
         }
         else
         {
+            wxASSERT(current != nullptr);
             if ((brightness != -9999 && current->_brightness != brightness) ||
                 (nullPixels != -9999) ||
                 (current->_smartRemote != smartRemote) ||
@@ -871,6 +924,7 @@ void UDControllerPort::CreateVirtualStrings(bool mergeSequential)
             lastEndChannel = it->GetEndChannel();
         }
 
+        wxASSERT(current != nullptr);
         current->_endChannel = it->GetEndChannel();
         current->_models.push_back(it);
 

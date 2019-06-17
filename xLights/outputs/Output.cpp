@@ -4,6 +4,7 @@
 #include <log4cpp/Category.hh>
 
 #include "E131Output.h"
+#include "ZCPPOutput.h"
 #include "ArtNetOutput.h"
 #include "DDPOutput.h"
 #include "NullOutput.h"
@@ -40,6 +41,7 @@ Output::Output(Output* output)
     _description = output->GetDescription();
     _channels = output->GetChannels();
     _controller = output->GetControllerId();
+    _autoSize = output->GetAutoSize();
 }
 
 Output::Output(wxXmlNode* node)
@@ -61,15 +63,17 @@ Output::Output(wxXmlNode* node)
     _lastOutputTime = 0 ;
     _skippedFrames = 9999;
 
+    _autoSize = node->GetAttribute("AutoSize", "FALSE") == "TRUE";
     _enabled = (node->GetAttribute("Enabled", "Yes") == "Yes");
     _suppressDuplicateFrames = (node->GetAttribute("SuppressDuplicates", "No") == "Yes");
     _description = UnXmlSafe(node->GetAttribute("Description"));
-    _channels = wxAtoi(node->GetAttribute("MaxChannels"));
+    _channels = wxAtoi(node->GetAttribute("MaxChannels", "0"));
     _controller = UnXmlSafe(node->GetAttribute("Controller"));
 }
 
 Output::Output()
 {
+    _autoSize = false;
     _suspend = false;
     _changed = false;
     _autoSize = false;
@@ -101,6 +105,11 @@ void Output::Save(wxXmlNode* node)
         node->AddAttribute("Enabled", "No");
     }
 
+    if (_autoSize)
+    {
+        node->AddAttribute("AutoSize", "TRUE");
+    }
+
     if (_suppressDuplicateFrames)
     {
         node->AddAttribute("SuppressDuplicates", "Yes");
@@ -130,7 +139,7 @@ wxXmlNode* Output::Save()
 }
 
 #pragma region Static Functions
-Output* Output::Create(wxXmlNode* node)
+Output* Output::Create(wxXmlNode* node, std::string showDir)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     std::string type = node->GetAttribute("NetworkType", "").ToStdString();
@@ -138,6 +147,10 @@ Output* Output::Create(wxXmlNode* node)
     if (type == OUTPUT_E131)
     {
         return new E131Output(node);
+    }
+    else if (type == OUTPUT_ZCPP)
+    {
+        return new ZCPPOutput(node, showDir);
     }
     else if (type == OUTPUT_NULL)
     {

@@ -79,14 +79,15 @@ class MainSequencer: public wxPanel
         void SetupTouchBar(EffectManager &m, ColorPanelTouchBar *colorTouchBar);
 
     //(*Declarations(MainSequencer)
-		EffectsGrid* PanelEffectGrid;
-		RowHeading* PanelRowHeadings;
-		TimeLine* PanelTimeLine;
-		Waveform* PanelWaveForm;
-		wxChoice* ViewChoice;
-		wxScrollBar* ScrollBarEffectsHorizontal;
-		wxScrollBar* ScrollBarEffectsVertical;
-		//*)
+    EffectsGrid* PanelEffectGrid;
+    RowHeading* PanelRowHeadings;
+    TimeLine* PanelTimeLine;
+    Waveform* PanelWaveForm;
+    wxCheckBox* CheckBox_SuspendRender;
+    wxChoice* ViewChoice;
+    wxScrollBar* ScrollBarEffectsHorizontal;
+    wxScrollBar* ScrollBarEffectsVertical;
+    //*)
 
         KeyBindingMap keyBindings;
         TimeDisplayControl *timeDisplay;
@@ -101,6 +102,7 @@ class MainSequencer: public wxPanel
 		static const long ID_PANEL6;
 		static const long ID_PANEL2;
 		static const long ID_SCROLLBAR_EFFECTS_VERTICAL;
+		static const long ID_CHECKBOX1;
 		static const long ID_SCROLLBAR_EFFECT_GRID_HORZ;
 		//*)
 
@@ -114,6 +116,7 @@ class MainSequencer: public wxPanel
 		void OnCharHook(wxKeyEvent& event);
 		void OnScrollBarEffectsHorizontalScrollLineUp(wxScrollEvent& event);
 		void OnScrollBarEffectsHorizontalScrollLineDown(wxScrollEvent& event);
+		void OnCheckBox_SuspendRenderClick(wxCommandEvent& event);
 		//*)
 		DECLARE_EVENT_TABLE()
 

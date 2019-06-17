@@ -579,7 +579,7 @@ void EffectTreeDialog::OnTreeCtrl1ItemActivated(wxTreeEvent& event)
 
 void EffectTreeDialog::EffectsFileDirty()
 {
-    xLightParent->MarkEffectsFileDirty(false);
+    xLightParent->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "EffectsFileDirty");
 }
 
 void EffectTreeDialog::OnButton_OKClick(wxCommandEvent& event)

@@ -2,6 +2,7 @@
 #define BASEOBJECT_H
 
 #include <string>
+#include "../OutputModelManager.h"
 
 class xLightsFrame;
 class wxPropertyGridInterface;
@@ -16,8 +17,10 @@ public:
     BaseObject();
     virtual ~BaseObject();
 
-    virtual void AddProperties(wxPropertyGridInterface *grid, OutputManager* outputManager) = 0;
+    virtual void AddProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) = 0;
+    virtual void UpdateProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) = 0;
     virtual void AddTypeProperties(wxPropertyGridInterface *grid) = 0;
+    virtual void UpdateTypeProperties(wxPropertyGridInterface* grid) = 0;
     virtual void AddSizeLocationProperties(wxPropertyGridInterface *grid) = 0;
 
     virtual const ModelScreenLocation &GetBaseObjectScreenLocation() const = 0;
@@ -30,6 +33,7 @@ public:
     virtual void MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z);
     void SelectHandle(int handle);
     void Lock(bool lock);
+    virtual void AddASAPWork(uint32_t work, const std::string& from);
 
     void SetTop(float y);
     void SetBottom(float y);

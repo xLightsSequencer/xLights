@@ -6,6 +6,7 @@
 #include <wx/filename.h>
 
 #include "E131Output.h"
+#include "ZCPPOutput.h"
 #include "ArtNetOutput.h"
 #include "DDPOutput.h"
 #include "TestPreset.h"
@@ -18,6 +19,7 @@ int OutputManager::_lastSecond = -10;
 int OutputManager::_currentSecond = -10;
 int OutputManager::_lastSecondCount = 0;
 int OutputManager::_currentSecondCount = 0;
+bool OutputManager::__isSync = false;
 bool OutputManager::_isRetryOpen = false;
 bool OutputManager::_isInteractive = true;
 
@@ -59,7 +61,7 @@ bool OutputManager::Load(const std::string& showdir, bool syncEnabled)
         {
             if (e->GetName() == "network")
             {
-                _outputs.push_back(Output::Create(e));
+                _outputs.push_back(Output::Create(e, showdir));
                 if (_outputs.back() == nullptr)
                 {
                     // this shouldnt happen unless we are loading a future file with an output type we dont recognise
@@ -152,15 +154,70 @@ bool OutputManager::Save()
 #pragma endregion Save and Load
 
 #pragma region Controller Discovery
-bool OutputManager::Discover()
+bool OutputManager::Discover(wxWindow* frame, std::map<std::string, std::string>& renames)
 {
     bool found = false;
-    auto artnet = ArtNetOutput::Discover();
-    auto ddp = DDPOutput::Discover();
-    auto e131 = E131Output::Discover();
 
     auto outputs = GetAllOutputs("");
 
+    auto zcpp = ZCPPOutput::Discover(this);
+    for (auto it = zcpp.begin(); it != zcpp.end(); ++it)
+    {
+        auto match = std::find(outputs.begin(), outputs.end(), *it);
+        if (match == outputs.end())
+        {
+            // no match on ip ... but what about description
+            bool updated = false;
+            for (auto ito = outputs.begin(); ito != outputs.end(); ++ito)
+            {
+                if ((*ito)->GetType() == "ZCPP" && (*ito)->GetDescription() == (*it)->GetDescription())
+                {
+                    if (wxMessageBox("The discovered ZCPP controller matches an existing ZCPP controllers Description but has a different IP address. Do you want to update the IP address for that existing controller in xLights?", "Mismatch IP", wxYES_NO, frame) == wxYES)
+                    {
+                        updated = true;
+                        (*ito)->SetIP((*it)->GetIP());
+                        found = true;
+                    }
+                }
+            }
+
+            if (!updated)
+            {
+                _outputs.push_back(*it);
+                found = true;
+            }
+        }
+        else
+        {
+            // ip address matches
+            if ((*it)->GetDescription() == (*match)->GetDescription())
+            {
+                // descriptions also match ... no need to do anything
+            }
+            else
+            {
+                // existing zcpp with same ip but different description ... maybe we should update the description
+                if (wxMessageBox("The discovered ZCPP controller matches an existing ZCPP controllers IP address but has a different description. Do you want to update the description in xLights?", "Mismatch controller description", wxYES_NO, frame) == wxYES)
+                {
+                    renames[(*match)->GetDescription()] = (*it)->GetDescription();
+                    (*match)->SetDescription((*it)->GetDescription());
+                    found = true;
+                }
+            }
+        }
+    }
+
+    auto e131 = E131Output::Discover(this);
+    for (auto it : e131)
+    {
+        if (std::find(outputs.begin(), outputs.end(), it) == outputs.end())
+        {
+            _outputs.push_back(it);
+            found = true;
+        }
+    }
+
+    auto artnet = ArtNetOutput::Discover(this);
     for (auto it : artnet)
     {
         if (std::find(outputs.begin(), outputs.end(), it) == outputs.end())
@@ -170,20 +227,12 @@ bool OutputManager::Discover()
         }
     }
 
-    for (auto it = ddp.begin(); it != ddp.end(); ++it)
+    auto ddp = DDPOutput::Discover(this);
+    for (auto it : ddp)
     {
-        if (std::find(outputs.begin(), outputs.end(), *it) == outputs.end())
+        if (std::find(outputs.begin(), outputs.end(), it) == outputs.end())
         {
-            _outputs.push_back(*it);
-            found = true;
-        }
-    }
-
-    for (auto it = e131.begin(); it != e131.end(); ++it)
-    {
-        if (std::find(outputs.begin(), outputs.end(), *it) == outputs.end())
-        {
-            _outputs.push_back(*it);
+            _outputs.push_back(it);
             found = true;
         }
     }
@@ -854,6 +903,11 @@ void OutputManager::EndFrame()
         {
             DDPOutput::SendSync();
         }
+
+        if (UseZCPP())
+        {
+            ZCPPOutput::SendSync();
+        }
     }
     _outputCriticalSection.Leave();
 }
@@ -989,9 +1043,9 @@ void OutputManager::SetManyChannels(long channel, unsigned char* data, long size
 #pragma region Sync
 bool OutputManager::UseE131() const
 {
-    for (auto it = _outputs.begin(); it != _outputs.end(); ++it)
+    for (auto it : _outputs)
     {
-        if ((*it)->GetType() == OUTPUT_E131)
+        if (it->GetType() == OUTPUT_E131)
         {
             return true;
         }
@@ -1002,9 +1056,9 @@ bool OutputManager::UseE131() const
 
 bool OutputManager::UseArtnet() const
 {
-    for (auto it = _outputs.begin(); it != _outputs.end(); ++it)
+    for (auto it : _outputs)
     {
-        if ((*it)->GetType() == OUTPUT_ARTNET)
+        if (it->GetType() == OUTPUT_ARTNET)
         {
             return true;
         }
@@ -1015,9 +1069,22 @@ bool OutputManager::UseArtnet() const
 
 bool OutputManager::UseDDP() const
 {
-    for (auto it = _outputs.begin(); it != _outputs.end(); ++it)
+    for (auto it : _outputs)
     {
-        if ((*it)->GetType() == OUTPUT_DDP)
+        if (it->GetType() == OUTPUT_DDP)
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool OutputManager::UseZCPP() const
+{
+    for (auto it : _outputs)
+    {
+        if (it->GetType() == OUTPUT_ZCPP)
         {
             return true;
         }
@@ -1153,4 +1220,40 @@ void OutputManager::RegisterSentPacket()
         _currentSecond = second;
         _currentSecondCount = 1;
     }
+}
+
+std::list<std::string> OutputManager::GetControllerNames() const
+{
+    std::list<std::string> res;
+
+    for (auto it : _outputs)
+    {
+        if (it->IsLookedUpByControllerName())
+        {
+            auto desc = it->GetDescription();
+            if (desc != "" && std::find(res.begin(), res.end(), desc) == res.end())
+            {
+                res.push_back(desc);
+            }
+        }
+    }
+    return res;
+}
+
+std::list<std::string> OutputManager::GetAutoLayoutControllerNames() const
+{
+    std::list<std::string> res;
+
+    for (auto it : _outputs)
+    {
+        if (it->IsAutoLayoutModels())
+        {
+            auto desc = it->GetDescription();
+            if (desc != "" && std::find(res.begin(), res.end(), desc) == res.end())
+            {
+                res.push_back(desc);
+            }
+        }
+    }
+    return res;
 }

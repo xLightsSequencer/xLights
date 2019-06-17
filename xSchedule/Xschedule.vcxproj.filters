@@ -442,6 +442,9 @@
     <ClCompile Include="PlayList\PlayListItemMicrophone.cpp">
       <Filter>PlayList</Filter>
     </ClCompile>
+    <ClCompile Include="..\xLights\outputs\ZCPPOutput.cpp">
+      <Filter>Outputs</Filter>
+    </ClCompile>
     <ClCompile Include="ConfigureMIDITimecodeDialog.cpp" />
     <ClCompile Include="PlayList\PlayListItemFade.cpp">
       <Filter>PlayList</Filter>
@@ -927,6 +930,9 @@
     </ClInclude>
     <ClInclude Include="PlayList\PlayListItemMicrophone.h">
       <Filter>PlayList</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xLights\outputs\ZCPPOutput.h">
+      <Filter>Outputs</Filter>
     </ClInclude>
     <ClInclude Include="ConfigureMIDITimecodeDialog.h" />
     <ClInclude Include="PlayList\PlayListItemFadePanel.h">

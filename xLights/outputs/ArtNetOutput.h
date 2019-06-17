@@ -46,6 +46,7 @@ public:
     static int GetArtNetUniverse(int u);
     static int GetArtNetCombinedUniverse(int net, int subnet, int u);
     static void SendSync();
+    static std::list<Output*> Discover(OutputManager* outputManager); // Discovers controllers supporting this protocol
     #pragma endregion  Static Functions
 
     #pragma region Getters and Setters

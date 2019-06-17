@@ -1062,9 +1062,12 @@ void xLightsFrame::SelectedEffectChanged(SelectedEffectChangedEvent& event)
             if (effect->GetPaletteMap().empty() || resetStrings) {
                 effect->SetPalette(selectedEffectPalette);
                 effect->SetSettings(selectedEffectString, true);
-                RenderEffectForModel(effect->GetParentEffectLayer()->GetParentElement()->GetModelName(),
-                    effect->GetStartTimeMS(),
-                    effect->GetEndTimeMS());
+                if (!_suspendRender)
+                {
+                    RenderEffectForModel(effect->GetParentEffectLayer()->GetParentElement()->GetModelName(),
+                        effect->GetStartTimeMS(),
+                        effect->GetEndTimeMS());
+                }
             }
 
             if (playType == PLAY_TYPE_MODEL_PAUSED) {
@@ -1146,7 +1149,10 @@ void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
             playStartTime = mSequenceElements.GetSelectedRange(i)->StartTime;
             playEndTime = mSequenceElements.GetSelectedRange(i)->EndTime;
             playStartMS = -1;
-            RenderEffectForModel(el->GetParentElement()->GetModelName(),playStartTime,playEndTime);
+            if (!_suspendRender)
+            {
+                RenderEffectForModel(el->GetParentElement()->GetModelName(), playStartTime, playEndTime);
+            }
 
             playModel = GetModel(el->GetParentElement()->GetModelName());
 
@@ -1247,7 +1253,10 @@ void xLightsFrame::EffectFileDroppedOnGrid(wxCommandEvent& event)
             playStartTime = mSequenceElements.GetSelectedRange(i)->StartTime;
             playEndTime = mSequenceElements.GetSelectedRange(i)->EndTime;
             playStartMS = -1;
-            RenderEffectForModel(el->GetParentElement()->GetModelName(), playStartTime, playEndTime);
+            if (!_suspendRender)
+            {
+                RenderEffectForModel(el->GetParentElement()->GetModelName(), playStartTime, playEndTime);
+            }
 
             playModel = GetModel(el->GetParentElement()->GetModelName());
 
@@ -1830,7 +1839,7 @@ void xLightsFrame::PlayModelEffect(wxCommandEvent& event)
             playType = PLAY_TYPE_EFFECT;
             playStartTime = (int)(args->effect->GetStartTimeMS());
             playEndTime = (int)(args->effect->GetEndTimeMS());
-            if(args->renderEffect)
+            if(args->renderEffect && !_suspendRender)
             {
                 RenderEffectForModel(args->element->GetModelName(),playStartTime,playEndTime);
             }
@@ -1869,7 +1878,9 @@ void xLightsFrame::UpdateEffectPalette(wxCommandEvent& event) {
         if(startms <= endms) {
             playType = PLAY_TYPE_EFFECT;
             playStartMS = -1;
-            RenderEffectForModel(element->GetModelName(),startms,endms);
+            if (!_suspendRender) {
+                RenderEffectForModel(element->GetModelName(), startms, endms);
+            }
         }
 
     }
@@ -1912,7 +1923,9 @@ void xLightsFrame::UpdateEffect(wxCommandEvent& event)
         if(startms <= endms) {
             playType = PLAY_TYPE_EFFECT;
             playStartMS = -1;
-            RenderEffectForModel(element->GetModelName(),startms,endms);
+            if (!_suspendRender) {
+                RenderEffectForModel(element->GetModelName(), startms, endms);
+            }
         }
     }
     mainSequencer->PanelEffectGrid->ForceRefresh();
@@ -1977,7 +1990,9 @@ void xLightsFrame::RandomizeEffect(wxCommandEvent& event)
         if(startms <= endms) {
             playType = PLAY_TYPE_EFFECT;
             playStartMS = -1;
-            RenderEffectForModel(element->GetModelName(),startms,endms);
+            if (!_suspendRender) {
+                RenderEffectForModel(element->GetModelName(), startms, endms);
+            }
         }
     }
 
@@ -2060,7 +2075,10 @@ void xLightsFrame::OnEffectSettingsTimerTrigger(wxTimerEvent& event)
                 sEffectAssist->ForceRefresh();
             }
 
-            RenderEffectForModel(elem->GetModelName(),playStartTime,playEndTime);
+            if (!_suspendRender)
+            {
+                RenderEffectForModel(elem->GetModelName(), playStartTime, playEndTime);
+            }
             mainSequencer->PanelEffectGrid->ForceRefresh();
 
             // This ensures colour curves which can be dependent on effect settings are correct
@@ -2081,7 +2099,10 @@ void xLightsFrame::TimerRgbSeq(long msec)
         for (std::vector<Element *>::iterator it = elsToRender.begin(); it != elsToRender.end(); ++it) {
             int ss, es;
             (*it)->GetDirtyRange(ss, es);
-            RenderEffectForModel((*it)->GetModelName(), ss, es);
+            if (!_suspendRender)
+            {
+                RenderEffectForModel((*it)->GetModelName(), ss, es);
+            }
         }
     }
 

@@ -24,6 +24,7 @@
 #include "ModelPreview.h"
 #include "ViewsModelsPanel.h"
 #include "PerspectivesPanel.h"
+#include "sequencer/MainSequencer.h"
 
 #include <log4cpp/Category.hh>
 
@@ -476,9 +477,7 @@ void xLightsFrame::LoadEffectsFile()
     EffectsNode->AddAttribute("version", XLIGHTS_RGBEFFECTS_VERSION);
 
     displayElementsPanel->SetSequenceElementsModelsViews(&SeqData, &mSequenceElements, ModelsNode, ModelGroupsNode, &_sequenceViewManager);
-    layoutPanel->RefreshLayout();
-    // the call to RefreshLayout will call UpdateModelsList, avoid doing it twice
-    //UpdateModelsList();
+    GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LoadEffectsFile");
     mSequencerInitialize = false;
 
     // load the perspectives
@@ -887,6 +886,9 @@ static void AddModelsToPreview(ModelGroup *grp, std::vector<Model *> &PreviewMod
 
 void xLightsFrame::UpdateModelsList()
 {
+    static log4cpp::Category& logger_work = log4cpp::Category::getInstance(std::string("log_work"));
+    logger_work.debug("        UpdateModelsList.");
+
     if (ModelsNode == nullptr) return; // this happens when xlights is first loaded
     if (ViewObjectsNode == nullptr) return; // this happens when xlights is first loaded
 
@@ -1364,6 +1366,7 @@ void xLightsFrame::EnableSequenceControls(bool enable)
     enableAllToolbarControls(EffectsToolBar, enable && SeqData.NumFrames() > 0 && !IsACActive());
     enableAllToolbarControls(EditToolBar, enable && SeqData.NumFrames() > 0);
     enableAllToolbarControls(ACToolbar, enable && SeqData.NumFrames() > 0);
+    mainSequencer->CheckBox_SuspendRender->Enable(enable && SeqData.NumFrames() > 0);
     enableAllToolbarControls(ViewToolBar, enable);
     enableAllToolbarControls(OutputToolBar, enable);
 

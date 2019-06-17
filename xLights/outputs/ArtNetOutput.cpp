@@ -58,6 +58,142 @@ int ArtNetOutput::GetArtNetCombinedUniverse(int net, int subnet, int universe)
     return ((net & 0x007F) << 8) + ((subnet & 0x000F) << 4) + (universe & 0x000F);
 }
 
+std::list<Output*> ArtNetOutput::Discover(OutputManager* outputManager)
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    std::list<Output*> res;
+
+    wxByte packet[14];
+    memset(packet, 0x00, sizeof(packet));
+
+    packet[0] = 'A';
+    packet[1] = 'r';
+    packet[2] = 't';
+    packet[3] = '-';
+    packet[4] = 'N';
+    packet[5] = 'e';
+    packet[6] = 't';
+    packet[9] = 0x20;
+    packet[11] = 0x0E; // Protocol version Low
+    packet[12] = 0x02;
+    packet[13] = 0xe0; //Critical messages Only
+
+    auto localIPs = GetLocalIPs();
+    for (auto ip : localIPs)
+    {
+        wxIPV4address sendlocaladdr;
+        sendlocaladdr.Hostname(ip);
+
+        wxDatagramSocket* datagram = new wxDatagramSocket(sendlocaladdr, wxSOCKET_NOWAIT | wxSOCKET_BROADCAST);
+
+        if (datagram == nullptr)
+        {
+            logger_base.error("Error initialising ArtNet discovery datagram.");
+        }
+        else if (!datagram->IsOk())
+        {
+            logger_base.error("Error initialising ArtNet discovery datagram ... is network connected? OK : FALSE");
+            delete datagram;
+            datagram = nullptr;
+        }
+        else if (datagram->Error() != wxSOCKET_NOERROR)
+        {
+            logger_base.error("Error creating ArtNet discovery datagram => %d : %s.", datagram->LastError(), (const char*)DecodeIPError(datagram->LastError()).c_str());
+            delete datagram;
+            datagram = nullptr;
+        }
+        else
+        {
+            logger_base.info("ArtNet discovery datagram opened successfully.");
+        }
+
+        // multicast - universe number must be in lower 2 bytes
+        wxIPV4address remoteaddr;
+        wxString ipaddrWithUniv = "255.255.255.255";
+        remoteaddr.Hostname(ipaddrWithUniv);
+        remoteaddr.Service(ARTNET_PORT);
+
+        // bail if we dont have a datagram to use
+        if (datagram != nullptr)
+        {
+            logger_base.info("ArtNet sending discovery packet.");
+            datagram->SendTo(remoteaddr, packet, sizeof(packet));
+            if (datagram->Error() != wxSOCKET_NOERROR)
+            {
+                logger_base.error("Error sending ArtNet discovery datagram => %d : %s.", datagram->LastError(), (const char*)DecodeIPError(datagram->LastError()).c_str());
+            }
+            else
+            {
+                logger_base.info("ArtNet sent discovery packet. Sleeping for 2 seconds.");
+
+                // give the controllers 2 seconds to respond
+                wxMilliSleep(2000);
+
+                unsigned char buffer[2048];
+
+                int lastread = 1;
+
+                while (lastread > 0)
+                {
+                    wxStopWatch sw;
+                    logger_base.debug("Trying to read ArtNet discovery packet.");
+                    memset(buffer, 0x00, sizeof(buffer));
+                    datagram->Read(&buffer[0], sizeof(buffer));
+                    lastread = datagram->LastReadCount();
+
+                    if (lastread > 0)
+                    {
+                        logger_base.debug(" Read done. %d bytes %ldms", lastread, sw.Time());
+
+                        if (buffer[0] == 'A' && buffer[1] == 'r' && buffer[2] == 't' && buffer[3] == '-' && buffer[9] == 0x21)
+                        {
+                            logger_base.debug(" Valid response.");
+                            long channels = 512;
+                            ArtNetOutput* output = new ArtNetOutput();
+                            output->SetDescription(std::string((char*)& buffer[26]));
+                            output->SetChannels(channels);
+                            auto ip = wxString::Format("%d.%d.%d.%d", (int)buffer[10], (int)buffer[11], (int)buffer[12], (int)buffer[13]);
+                            output->SetIP(ip.ToStdString());
+
+                            // now search for it in outputManager
+                            auto outputs = outputManager->GetOutputs();
+                            for (auto it = outputs.begin(); it != outputs.end(); ++it)
+                            {
+                                if ((*it)->GetIP() == output->GetIP())
+                                {
+                                    // we already know about this controller
+                                    logger_base.info("ArtNet Discovery we already know about this controller %s.", (const char*)output->GetIP().c_str());
+                                    delete output;
+                                    output = nullptr;
+                                    break;
+                                }
+                            }
+
+                            if (output != nullptr)
+                            {
+                                logger_base.info("ArtNet Discovery adding controller %s.", (const char*)output->GetIP().c_str());
+                                res.push_back(output);
+                            }
+                        }
+                        else
+                        {
+                            // non discovery response packet
+                            logger_base.info("ArtNet Discovery strange packet received.");
+                        }
+                    }
+                }
+                logger_base.info("ArtNet Discovery Done looking for response.");
+            }
+            datagram->Close();
+            delete datagram;
+        }
+    }
+
+    logger_base.info("ArtNet Discovery Finished.");
+
+    return res;
+}
+
 void ArtNetOutput::SendSync()
 {
     static uint8_t syncdata[ARTNET_SYNCPACKET_LEN];

@@ -138,6 +138,7 @@ class LayoutPanel: public wxPanel
         static const long ID_PREVIEW_MODEL_EXPORTXLIGHTSMODEL;
         static const long ID_PREVIEW_BULKEDIT;
         static const long ID_PREVIEW_BULKEDIT_CONTROLLERCONNECTION;
+        static const long ID_PREVIEW_BULKEDIT_CONTROLLERNAME;
         static const long ID_PREVIEW_BULKEDIT_CONTROLLERDIRECTION;
         static const long ID_PREVIEW_BULKEDIT_CONTROLLERNULLNODES;
         static const long ID_PREVIEW_BULKEDIT_CONTROLLERGAMMA;
@@ -253,6 +254,11 @@ class LayoutPanel: public wxPanel
         std::string GetCurrentPreview() const;
         void SetDisplay2DBoundingBox(bool bb);
         void SetDisplay2DCenter0(bool bb);
+        void ReloadModelList();
+        void refreshModelList();
+        void refreshObjectList();
+        void resetPropertyGrid();
+        void updatePropertyGrid();
 
         void ModelGroupUpdated(ModelGroup *group, bool full_refresh);
         bool HandleLayoutKeyBinding(wxKeyEvent& event);
@@ -263,6 +269,7 @@ class LayoutPanel: public wxPanel
         NewModelBitmapButton* AddModelButton(const std::string &type, const char *imageData[]);
         void UpdateModelsForPreview(const std::string &group, LayoutGroup* layout_grp, std::vector<Model *> &prev_models, bool filtering );
         void CreateModelGroupFromSelected();
+        void BulkEditControllerName();
         void BulkEditControllerConnection(int type);
         void BulkEditControllerPreview();
         void BulkEditDimmingCurves();
@@ -325,9 +332,6 @@ class LayoutPanel: public wxPanel
         int over_handle;
         glm::vec3 last_worldpos;
 
-        void ReloadModelList();
-        void refreshModelList();
-        void resetPropertyGrid();
         void clearPropGrid();
         bool stringPropsVisible;
         bool controllerConnectionVisible;
@@ -364,6 +368,7 @@ class LayoutPanel: public wxPanel
         void UpdateModelList(bool full_refresh, std::vector<Model*> &modelList);
         void RefreshLayout();
         void RenderLayout();
+        std::string GetSelectedModelName() const;
 
     private:
         enum

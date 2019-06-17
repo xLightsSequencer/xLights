@@ -527,6 +527,8 @@
 		<Unit filename="MSWStackWalk.h" />
 		<Unit filename="MatrixFaceDownloadDialog.cpp" />
 		<Unit filename="MatrixFaceDownloadDialog.h" />
+		<Unit filename="ModelChainDialog.cpp" />
+		<Unit filename="ModelChainDialog.h" />
 		<Unit filename="ModelDimmingCurveDialog.cpp" />
 		<Unit filename="ModelDimmingCurveDialog.h" />
 		<Unit filename="ModelFaceDialog.cpp" />
@@ -553,6 +555,8 @@
 		<Unit filename="OpenGLShaders.cpp" />
 		<Unit filename="OptionChooser.cpp" />
 		<Unit filename="OptionChooser.h" />
+		<Unit filename="OutputModelManager.cpp" />
+		<Unit filename="OutputModelManager.h" />
 		<Unit filename="PaletteMgmtDialog.cpp" />
 		<Unit filename="PaletteMgmtDialog.h" />
 		<Unit filename="Parallel.cpp" />
@@ -1047,6 +1051,11 @@
 		<Unit filename="outputs/SerialPortWithRate.h" />
 		<Unit filename="outputs/TestPreset.cpp" />
 		<Unit filename="outputs/TestPreset.h" />
+		<Unit filename="outputs/ZCPP.h" />
+		<Unit filename="outputs/ZCPPDialog.cpp" />
+		<Unit filename="outputs/ZCPPDialog.h" />
+		<Unit filename="outputs/ZCPPOutput.cpp" />
+		<Unit filename="outputs/ZCPPOutput.h" />
 		<Unit filename="outputs/serial.cpp" />
 		<Unit filename="outputs/serial.h" />
 		<Unit filename="resource.rc">
@@ -1196,6 +1205,7 @@
 		<Unit filename="wxsmith/MarqueePanel.wxs" />
 		<Unit filename="wxsmith/MatrixFaceDownloadDialog.wxs" />
 		<Unit filename="wxsmith/MeteorsPanel.wxs" />
+		<Unit filename="wxsmith/ModelChainDialog.wxs" />
 		<Unit filename="wxsmith/ModelDimmingCurveDialog.wxs" />
 		<Unit filename="wxsmith/ModelFaceDialog.wxs" />
 		<Unit filename="wxsmith/ModelGroupPanel.wxs" />
@@ -1310,6 +1320,7 @@
 					<wxFrame wxs="wxsmith/xLightsframe.wxs" src="xLightsMain.cpp" hdr="xLightsMain.h" fwddecl="0" i18n="1" name="xLightsFrame" language="CPP" />
 					<wxDialog wxs="wxsmith/SerialPortWithRate.wxs" src="outputs/SerialPortWithRate.cpp" hdr="outputs/SerialPortWithRate.h" fwddecl="0" i18n="1" name="SerialPortWithRate" language="CPP" />
 					<wxDialog wxs="wxsmith/E131Dialog.wxs" src="outputs/E131Dialog.cpp" hdr="outputs/E131Dialog.h" fwddecl="0" i18n="1" name="E131Dialog" language="CPP" />
+					<wxDialog wxs="wxsmith/ZCPPDialog.wxs" src="outputs/ZCPPDialog.cpp" hdr="outputs/ZCPPDialog.h" fwddecl="0" i18n="1" name="ZCPPDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/EffectListDialog.wxs" src="EffectListDialog.cpp" hdr="EffectListDialog.h" fwddecl="0" i18n="1" name="EffectListDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/ChannelLayoutDialog.wxs" src="ChannelLayoutDialog.cpp" hdr="ChannelLayoutDialog.h" fwddecl="0" i18n="1" name="ChannelLayoutDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/PaletteMgmtDialog.wxs" src="PaletteMgmtDialog.cpp" hdr="PaletteMgmtDialog.h" fwddecl="0" i18n="1" name="PaletteMgmtDialog" language="CPP" />
@@ -1344,6 +1355,7 @@
 					<wxDialog wxs="wxsmith/ModelStateDialog.wxs" src="ModelStateDialog.cpp" hdr="ModelStateDialog.h" fwddecl="0" i18n="1" name="ModelStateDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/SaveChangesDialog.wxs" src="SaveChangesDialog.cpp" hdr="SaveChangesDialog.h" fwddecl="0" i18n="1" name="SaveChangesDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/ResizeImageDialog.wxs" src="ResizeImageDialog.cpp" hdr="ResizeImageDialog.h" fwddecl="0" i18n="1" name="ResizeImageDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/ModelChainDialog.wxs" src="ModelChainDialog.cpp" hdr="ModelChainDialog.h" fwddecl="0" i18n="1" name="ModelChainDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/ModelDimmingCurveDialog.wxs" src="ModelDimmingCurveDialog.cpp" hdr="ModelDimmingCurveDialog.h" fwddecl="0" i18n="1" name="ModelDimmingCurveDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/NullOutputDialog.wxs" src="outputs/NullOutputDialog.cpp" hdr="outputs/NullOutputDialog.h" fwddecl="0" i18n="1" name="NullOutputDialog" language="CPP" />
 					<wxPanel wxs="wxsmith/OnPanel.wxs" src="effects/OnPanel.cpp" hdr="effects/OnPanel.h" fwddecl="1" i18n="1" name="OnPanel" language="CPP" />
