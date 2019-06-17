@@ -1,4 +1,4 @@
-#include "Models/model.h"
+#include "models/Model.h"
 #include "outputs/Output.h"
 #include "xLightsMain.h"
 #include "OutputModelManager.h"
