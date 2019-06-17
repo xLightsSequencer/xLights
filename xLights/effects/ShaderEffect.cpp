@@ -226,6 +226,70 @@ void ShaderEffect::RemoveDefaults(const std::string &version, Effect *effect)
     RenderableEffect::RemoveDefaults(version, effect);
 }
 
+#ifdef __WXWIN__
+class GLContextPool {
+public:
+    
+    ContextPool() {
+    }
+    ~ContextPool() {
+        while (!contexts.empty()) {
+            wxGLContext *ret = contexts.front();
+            delete ret;
+            contexts.pop();
+        }
+    }
+    
+    wxGLContext *GetContext(wxGLCanvas *parent) {
+        // This seems odd but manually releasing the lock causes hard crashes on Visual Studio
+        bool contextsEmpty = false;
+        {
+            std::unique_lock<std::mutex> locker(lock);
+            contextsEmpty = contexts.empty();
+        }
+        
+        if (contextsEmpty) {
+            return create(parent);
+        }
+        
+        {
+            std::unique_lock<std::mutex> locker(lock);
+            wxGLContext *ret = contexts.front();
+            contexts.pop();
+            return ret;
+        }
+    }
+    void ReleaseContext(wxGLContext *pctx) {
+        std::unique_lock<std::mutex> locker(lock);
+        contexts.push(pctx);
+    }
+    
+    wxGLContext *create(wxGLCanvas *canv) {
+        if (wxThread::IsMain()) {
+            wxGLContextAttrs cxtAttrs;
+            cxtAttrs.OGLVersion(3, 3).CoreProfile().ForwardCompatible().EndList();
+            return new wxGLContext(canv, nullptr, &cxtAttrs)
+        } else {
+            std::mutex mtx;
+            std::condition_variable signal;
+            std::unique_lock<std::mutex> lck(mtx);
+            wxGLContext *tdc;
+            canv->CallAfter([&mtx, &signal, &tdc, canv]() {
+                std::unique_lock<std::mutex> lck(mtx);
+                tdc = create(canv);
+                signal.notify_all();
+            });
+            signal.wait(lck);
+            return tdc;
+        }
+    }
+private:
+    std::mutex lock;
+    std::queue<wxGLContext*> contexts;
+} GL_CONTEXT_POOL;
+#endif
+
+
 class ShaderRenderCache : public EffectRenderCache {
 
 public:
@@ -233,11 +297,15 @@ public:
     virtual ~ShaderRenderCache()
     {
         if (_shaderConfig != nullptr) delete _shaderConfig;
-        #ifdef __WXOSX__
+#if defined(__WXOSX__)
         if (s_glContext) {
             WXGLDestroyContext(s_glContext);
         }
-        #endif
+#elif defined(__WXWIN__)
+        if (s_glContext) {
+            GL_CONTEXT_POOL.ReleaseContext(s_glContext);
+        }
+#endif
     }
 
     ShaderConfig* _shaderConfig = nullptr;
@@ -257,17 +325,22 @@ public:
         _shaderConfig = ShaderEffect::ParseShader(filename);
     }
     
-#ifdef __WXOSX__
+#if defined(__WXOSX__)
     WXGLContext s_glContext = nullptr;
+#elif defined(__WXWIN__)
+    wxGLContext s_glContext = nullptr;
 #endif
 };
 
 
 bool ShaderEffect::CanRenderOnBackgroundThread(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer)
 {
-#ifdef __WXOSX__
+#if defined(__WXOSX__) || defined(__WXWIN__)
     // if we create a specific OpenGL context for this thread and not try to share contexts between threads,
     // the OSX GL engine is thread safe.
+    //
+    // on windows, we need to create the GL contexts on the main thread, but then can use them
+    // on the background thread.  Similar to the Path and text drawing contexts
     return true;
 #else
     return false;
@@ -275,7 +348,7 @@ bool ShaderEffect::CanRenderOnBackgroundThread(Effect* effect, const SettingsMap
 }
 
 void ShaderEffect::SetGLContext(ShaderRenderCache *cache) {
-#ifdef __WXOSX__
+#if defined(__WXOSX__)
     if (cache->s_glContext == nullptr) {
         wxGLAttributes attributes;
         attributes.AddAttribute(51 /* NSOpenGLPFAMinimumPolicy */ );
@@ -293,6 +366,12 @@ void ShaderEffect::SetGLContext(ShaderRenderCache *cache) {
         WXGLDestroyPixelFormat(pixelFormat);
     }
     WXGLSetCurrentContext(cache->s_glContext);
+#elif defined(__WXWIN__)
+    ShaderPanel *p = (ShaderPanel *)panel;
+    if (cache->s_glContext == nullptr) {
+        cache->s_glContext = GL_CONTEXT_POOL.GetContext(p->_preview);
+    }
+    cache->s_glContext->SetCurrent(p->_preview);
 #else
     ShaderPanel *p = (ShaderPanel *)panel;
     p->_preview->SetCurrentGLContext();
