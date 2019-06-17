@@ -8,6 +8,10 @@
  * License:
  **************************************************************/
 
+#ifdef LINUX
+#include <arpa/inet.h>
+#endif 
+
 #include <wx/msgdlg.h>
 #include <wx/config.h>
 #include <wx/numdlg.h>
