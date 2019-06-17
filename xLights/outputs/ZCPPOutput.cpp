@@ -1,3 +1,7 @@
+#ifdef LINUX
+#include <arpa/inet.h>
+#endif 
+
 #include "ZCPPOutput.h"
 
 #include <wx/xml/xml.h>
