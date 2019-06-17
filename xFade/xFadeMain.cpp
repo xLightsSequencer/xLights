@@ -1160,7 +1160,7 @@ void xFadeFrame::OnMIDIEvent(wxCommandEvent& event)
     wxByte data1 = (event.GetInt() >> 8) & 0xFF;
     wxByte data2 = event.GetInt() & 0xFF;
 
-    wxString controlName = _settings.LookupMIDI(device, status, channel, data1);
+    wxString controlName = _settings.LookupMIDI(device, status, channel, data1, data2);
 
     if (controlName == "") return;
 
@@ -1201,13 +1201,13 @@ void xFadeFrame::OnMIDIEvent(wxCommandEvent& event)
 
 void xFadeFrame::SetMIDIForControl(wxString controlName, float parm)
 {
-    int status, channel, data1, device;
-    _settings.LookupMIDI(controlName, device, status, channel, data1);
+    int status, channel, data1, device, data2;
+    _settings.LookupMIDI(controlName, device, status, channel, data1, data2);
 
-    MIDIAssociateDialog dlg(this, _midiListeners, controlName, status, channel, data1, Settings::GetMIDIDeviceName(device));
+    MIDIAssociateDialog dlg(this, _midiListeners, controlName, status, channel, data1, data2, Settings::GetMIDIDeviceName(device));
     if (dlg.ShowModal() == wxID_OK)
     {
-        _settings.SetMIDIControl(dlg.Choice_MIDIDevice->GetStringSelection(), controlName, (dlg.Choice_Status->GetSelection() << 4) + 0x80, dlg.Choice_Channel->GetSelection(), dlg.Choice_Data1->GetSelection());
+        _settings.SetMIDIControl(dlg.Choice_MIDIDevice->GetStringSelection(), controlName, (dlg.Choice_Status->GetSelection() << 4) + 0x80, dlg.Choice_Channel->GetSelection(), dlg.Choice_Data1->GetSelection(), dlg.Choice_Data2->GetSelection());
         SaveState();
     }
     // This removes any unnecessary listeners the associate dialog added
@@ -1983,6 +1983,9 @@ void xFadeFrame::OnTimer_StatusTrigger(wxTimerEvent& event)
     else
     {
         StatusBar1->SetStatusText("Sending disabled", 1);
-        logger_base.debug("Activity - Left Received %lu, Right Received %lu, Sent DISABLED.", _leftReceived, _rightReceived);
+        if (count % 60 == 0)
+        {
+            logger_base.debug("Activity - Left Received %lu, Right Received %lu, Sent DISABLED.", _leftReceived, _rightReceived);
+        }
     }
 }

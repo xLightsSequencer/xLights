@@ -37,9 +37,18 @@ EffectLayer::~EffectLayer()
 
 void EffectLayer::CleanupAfterRender() {
     std::unique_lock<std::recursive_mutex> locker(lock);
-    while (!mEffectsToDelete.empty()) {
-        delete *mEffectsToDelete.begin();
-        mEffectsToDelete.pop_front();
+    auto it = mEffectsToDelete.begin();
+    while (it != mEffectsToDelete.end())
+    {
+        if ((*it)->IsTimeToDelete())
+        {
+            delete *it;
+            it = mEffectsToDelete.erase(it);
+        }
+        else
+        {
+            ++it;
+        }
     }
 }
 
@@ -94,6 +103,7 @@ void EffectLayer::RemoveEffect(int index)
         {
             mEffects.erase(mEffects.begin() + index);
             IncrementChangeCount(e->GetStartTimeMS(), e->GetEndTimeMS());
+            e->SetTimeToDelete();
             mEffectsToDelete.push_back(e);
             SortEffects();
         }
@@ -108,6 +118,7 @@ void EffectLayer::DeleteEffect(int id)
         if (mEffects[i]->GetID() == id)
         {
             IncrementChangeCount(mEffects[i]->GetStartTimeMS(), mEffects[i]->GetEndTimeMS());
+            mEffects[i]->SetTimeToDelete();
             mEffectsToDelete.push_back(mEffects[i]);
             mEffects.erase(mEffects.begin() + i);
             SortEffects();
@@ -128,6 +139,7 @@ void EffectLayer::RemoveAllEffects(UndoManager *undo_mgr)
                                                mEffects[x]->GetStartTimeMS(), mEffects[x]->GetEndTimeMS(),
                                                mEffects[x]->GetSelected(), mEffects[x]->GetProtected() );
         }
+        mEffects[x]->SetTimeToDelete();
         mEffectsToDelete.push_back(mEffects[x]);
     }
     mEffects.clear();
@@ -588,6 +600,19 @@ Effect* EffectLayer::SelectEffectUsingDescription(std::string description)
     }
 
     return nullptr;
+}
+
+bool EffectLayer::IsEffectValid(Effect* e) const
+{
+    for (int i = 0; i < mEffects.size(); i++)
+    {
+        if (mEffects[i] == e)
+        {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 Effect* EffectLayer::SelectEffectUsingTime(int time)
@@ -1230,6 +1255,7 @@ void EffectLayer::DeleteSelectedEffects(UndoManager& undo_mgr)
                     (*it)->GetSettingsAsString(), (*it)->GetPaletteAsString(),
                     (*it)->GetStartTimeMS(), (*it)->GetEndTimeMS(),
                     (*it)->GetSelected(), (*it)->GetProtected());
+                (*it)->SetTimeToDelete();
                 mEffectsToDelete.push_back(*it);
             }
         }
@@ -1241,6 +1267,7 @@ void EffectLayer::DeleteEffectByIndex(int idx) {
     if (!mEffects[idx]->IsLocked())
     {
         IncrementChangeCount(mEffects[idx]->GetStartTimeMS(), mEffects[idx]->GetEndTimeMS());
+        mEffects[idx]->SetTimeToDelete();
         mEffectsToDelete.push_back(mEffects[idx]);
         mEffects.erase(mEffects.begin() + idx);
     }

@@ -295,7 +295,7 @@ public:
     void SetEffectControls(const SettingsMap &settings);
     void ApplyLast(wxCommandEvent& event);
     void SetEffectControlsApplyLast(const SettingsMap &settings);
-    void ApplySetting(wxString name, const wxString &value);
+    bool ApplySetting(wxString name, const wxString &value);
     void LoadPerspectivesMenu(wxXmlNode* perspectivesNode);
     struct PerspectiveId {
         int id;
@@ -579,6 +579,7 @@ public:
     void OnMenuItem_MHS_NormalSelected(wxCommandEvent& event);
     void OnMenuItem_MHS_LargeSelected(wxCommandEvent& event);
     void OnMenuItem_MHS_ExtraLargeSelected(wxCommandEvent& event);
+    void OnMenuItem61Selected(wxCommandEvent& event);
     //*)
     void OnCharHook(wxKeyEvent& event);
 private:
@@ -811,6 +812,7 @@ public:
     static const long ID_MENUITEM19;
     static const long ID_MNU_PLAYCONTROLSONPREVIEW;
     static const long ID_MNU_AUTOSHOWHOUSEPREVIEW;
+    static const long ID_MNU_SUPPRESS_TRANSITION_HINTS;
     static const long ID_MENUITEM_AUTOSAVE_0;
     static const long ID_MENUITEM_AUTOSAVE_3;
     static const long ID_MENUITEM_AUTOSAVE_10;
@@ -1011,6 +1013,7 @@ public:
     wxMenuItem* MenuItem_ShowKeyBindings;
     wxMenuItem* MenuItem_SmallWaveform;
     wxMenuItem* MenuItem_SnapToTimingMarks;
+    wxMenuItem* MenuItem_SuppressFadeHints;
     wxMenuItem* MenuItem_Update;
     wxMenuItem* MenuItem_UserManual;
     wxMenuItem* MenuItem_VQuietVol;
@@ -1348,6 +1351,7 @@ public:
     void ShowSequenceSettings();
     bool HandleAllKeyBinding(wxKeyEvent& event);
     int GetModelHandleScale() const { return _modelHandleSize; }
+    bool IsSuppressFadeHints() const { return mSuppressFadeHints; }
 
 private:
     wxXmlNode* SettingsNode = nullptr;
@@ -1364,6 +1368,7 @@ private:
     bool mBackupOnSave;
     bool mBackupOnLaunch;
     bool me131Sync;
+    bool mSuppressFadeHints = false;
     wxString mLocalIP;
     wxString mAltBackupDir;
     int mIconSize;
@@ -1558,7 +1563,7 @@ private:
     void CheckSequence(bool display);
     void CleanupRGBEffectsFileLocations();
     void CleanupSequenceFileLocations();
-    void CheckElement(Element* e, wxFile& f, int& errcount, int& warncount, const std::string& name, const std::string& modelName, bool& videoCacheWarning, std::list<std::pair<std::string, std::string>>& faces, std::list<std::pair<std::string, std::string>>& states, std::list<std::string>& viewPoints);
+    void CheckElement(Element* e, wxFile& f, int& errcount, int& warncount, const std::string& name, const std::string& modelName, bool& videoCacheWarning, std::list<std::pair<std::string, std::string>>& faces, std::list<std::pair<std::string, std::string>>& states, std::list<std::string>& viewPoints, bool& usesShader);
     void CheckEffect(Effect* ef, wxFile& f, int& errcount, int& warncount, const std::string& name, const std::string& modelName, bool node, bool& videoCacheWarning, std::list<std::pair<std::string, std::string>>& faces, std::list<std::pair<std::string, std::string>>& states, std::list<std::string>& viewPoints);
     bool CheckStart(wxFile& f, const std::string& startmodel, std::list<std::string>& seen, std::string& nextmodel);
     void ShowHideSync();

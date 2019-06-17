@@ -308,6 +308,7 @@ http://<host:port>/xScheduleCommand?Command=<command>&Parameters=<parameters>
 		Set mode <mode|mode|mode>
 			Sets the test/master/remote modes of xSchedule. You can have one remote mode and many master modes. If more than one remote
 			mode is specified the last one listed wins. Modes can be:
+				Standalone
 				Test
 				Master_FPPUnicast
 				Master_FPPBroadcast

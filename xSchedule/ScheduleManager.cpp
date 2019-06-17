@@ -1017,6 +1017,7 @@ int ScheduleManager::Frame(bool outputframe, xScheduleFrame* frame)
             {
                 if (outputframe)
                 {
+                    memset(_buffer, 0x00, totalChannels); // clear out any prior frame data
                     _outputManager->StartFrame(0);
                     _outputManager->AllOff(false);
                 }
@@ -1104,6 +1105,7 @@ int ScheduleManager::Frame(bool outputframe, xScheduleFrame* frame)
                 {
                     if (outputframe)
                     {
+                        memset(_buffer, 0x00, totalChannels); // clear out any prior frame data
                         _outputManager->StartFrame(0);
                         _outputManager->AllOff(false);
                     }
@@ -1762,6 +1764,15 @@ bool ScheduleManager::Action(const wxString& command, const wxString& parameters
                         else if (m == "remote_osc")
                         {
                             remote = REMOTEMODE::OSCSLAVE;
+                        }
+                        else if (m == "standalone")
+                        {
+                            // no need to do anything
+                        }
+                        else
+                        {
+                            result = false;
+                            msg = "Invalid mode set '" + m + "'";
                         }
                     }
                     SetTestMode(test);

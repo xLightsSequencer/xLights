@@ -179,9 +179,9 @@ void LiquidEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer
         GetValueCurveInt("Flow4", 100, SettingsMap, oset, LIQUID_FLOW_MIN, LIQUID_FLOW_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
         GetValueCurveInt("Liquid_SourceSize4", 0, SettingsMap, oset, LIQUID_SOURCESIZE_MIN, LIQUID_SOURCESIZE_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
         SettingsMap.GetBool("CHECKBOX_FlowMusic4", false),
-
         SettingsMap.Get("CHOICE_ParticleType", "Elastic"),
-        SettingsMap.GetInt("TEXTCTRL_Despeckle", 0)
+        SettingsMap.GetInt("TEXTCTRL_Despeckle", 0),
+        GetValueCurveDouble("Liquid_Gravity", 10.0, SettingsMap, oset, LIQUID_GRAVITY_MIN, LIQUID_GRAVITY_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), LIQUID_GRAVITY_DIVISOR)
     );
 }
 
@@ -560,7 +560,7 @@ void LiquidEffect::Render(RenderBuffer &buffer,
     bool enabled2, int direction2, int x2, int y2, int velocity2, int flow2, int sourceSize2, bool flowMusic2,
     bool enabled3, int direction3, int x3, int y3, int velocity3, int flow3, int sourceSize3, bool flowMusic3,
     bool enabled4, int direction4, int x4, int y4, int velocity4, int flow4, int sourceSize4, bool flowMusic4,
-    const std::string& particleType, int despeckle)
+    const std::string& particleType, int despeckle, float gravity)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -577,6 +577,8 @@ void LiquidEffect::Render(RenderBuffer &buffer,
     }
     b2World*& _world = cache->_world;
 
+    b2Vec2 grav(0.0f, -gravity);
+
     if (buffer.needToInit)
     {
         buffer.needToInit = false;
@@ -587,9 +589,7 @@ void LiquidEffect::Render(RenderBuffer &buffer,
             _world = nullptr;
         }
 
-        b2Vec2 gravity(0.0f, -10.0f);
-        _world = new b2World(gravity);
-
+        _world = new b2World(grav);
         if (bottom)
         {
             CreateBarrier(_world, (float)buffer.BufferWi / 2.0, -1.0f, (float)buffer.BufferWi, 0.001f);
@@ -622,6 +622,8 @@ void LiquidEffect::Render(RenderBuffer &buffer,
 
     // exit if no world
     if (_world == nullptr) return;
+
+    _world->SetGravity(grav);
 
     // allow up to 1 times physical memory
     if (IsExcessiveMemoryUsage(1.0))

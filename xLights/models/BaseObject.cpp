@@ -6,7 +6,7 @@
 #include "../xLightsApp.h"
 
 BaseObject::BaseObject()
-: ModelXml(nullptr), changeCount(0)
+: ModelXml(nullptr), changeCount(0), active(true)
 {
     //ctor
 }

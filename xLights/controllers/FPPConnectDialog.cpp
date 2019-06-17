@@ -485,6 +485,7 @@ void FPPConnectDialog::LoadSequences()
 
 void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
 {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     bool cancelled = false;
     
     std::vector<bool> doUpload(instances.size());
@@ -542,7 +543,10 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
                             FSEQFile::FrameData *f = seq->getFrame(frame);
                             if (f != nullptr)
                             {
-                                f->readFrame(&frames[lastBuffered][0]);
+                                if (!f->readFrame(&frames[lastBuffered][0]))
+                                {
+                                    logger_base.error("FPPConnect FSEQ file corrupt.");
+                                }
                                 delete f;
                             }
                             lastBuffered++;

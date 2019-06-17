@@ -891,11 +891,16 @@ void xLightsFrame::RenderMainThreadEffects() {
 
 void xLightsFrame::RenderEffectOnMainThread(RenderEvent *ev) {
     std::unique_lock<std::mutex> lock(ev->mutex);
-    ev->returnVal = RenderEffectFromMap(ev->effect,
-                                        ev->layer,
-                                        ev->period,
-                                        *ev->settingsMap,
-                                        *ev->buffer, *ev->ResetEffectState, false, ev);
+
+    // validate that the effect still exsts as this could be being processed after the effect was deleted
+    if (mSequenceElements.IsValidEffect(ev->effect))
+    {
+        ev->returnVal = RenderEffectFromMap(ev->effect,
+            ev->layer,
+            ev->period,
+            *ev->settingsMap,
+            *ev->buffer, *ev->ResetEffectState, false, ev);
+    }
     ev->signal.notify_all();
 }
 

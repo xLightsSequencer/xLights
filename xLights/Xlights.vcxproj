@@ -30,6 +30,7 @@
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
+    <SpectreMitigation>false</SpectreMitigation>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -43,6 +44,7 @@
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
+    <SpectreMitigation>false</SpectreMitigation>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -481,6 +483,7 @@
     <ClCompile Include="SequenceVideoPreview.cpp" />
     <ClCompile Include="SequenceViewManager.cpp" />
     <ClCompile Include="SevenSegmentDialog.cpp" />
+    <ClCompile Include="ShaderDownloadDialog.cpp" />
     <ClCompile Include="SplashDialog.cpp" />
     <ClCompile Include="StartChannelDialog.cpp" />
     <ClCompile Include="StrandNodeNamesDialog.cpp" />
@@ -551,6 +554,7 @@
   <ItemGroup>
     <ClInclude Include="..\include\globals.h" />
     <ClInclude Include="..\xSchedule\md5.h" />
+    <ClInclude Include="..\xSchedule\xSMSDaemon\Curl.h" />
     <ClInclude Include="AlignmentDialog.h" />
     <ClInclude Include="BatchRenderDialog.h" />
     <ClInclude Include="BulkEditControls.h" />
@@ -861,6 +865,7 @@
     <ClInclude Include="SequenceVideoPreview.h" />
     <ClInclude Include="SequenceViewManager.h" />
     <ClInclude Include="SevenSegmentDialog.h" />
+    <ClInclude Include="ShaderDownloadDialog.h" />
     <ClInclude Include="SplashDialog.h" />
     <ClInclude Include="StartChannelDialog.h" />
     <ClInclude Include="StrandNodeNamesDialog.h" />

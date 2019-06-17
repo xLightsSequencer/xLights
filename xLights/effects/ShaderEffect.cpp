@@ -4,6 +4,7 @@
 #include "../../include/shader_24.xpm"
 #include "../../include/shader_16.xpm"
 #include <wx/wx.h>
+#include <wx/config.h>
 
 #ifndef __WXMAC__
     #include <GL/gl.h>
@@ -114,12 +115,14 @@ namespace
         "in vec2 tpos;\n"
         "out vec2 texCoord;\n"
         "out vec2 isf_FragNormCoord;"
+        "out vec2 isf_FragCoord;"
         "void isf_vertShaderInit(void)\n"
         "{\n"
         //"   gl_Position = ftransform();\n"
         "   gl_Position = vec4(vpos,0,1);\n"
         "   texCoord = tpos;\n"
         "   isf_FragNormCoord = vec2(tpos.x, tpos.y);\n"
+        "   isf_FragCoord = isf_FragNormCoord * RENDERSIZE;\n"
         "}\n"
         "void main(){\n"
         "    isf_vertShaderInit();"
@@ -170,7 +173,7 @@ std::list<std::string> ShaderEffect::CheckEffectSettings(const SettingsMap& sett
     return res;
 }
 
-std::list<std::string> ShaderEffect::GetFileReferences(const SettingsMap& SettingsMap)
+std::list<std::string> ShaderEffect::GetFileReferences(const SettingsMap& SettingsMap) const
 {
     std::list<std::string> res;
     res.push_back(SettingsMap["E_0FILEPICKERCTRL_IFS"]);
@@ -358,7 +361,6 @@ void ShaderEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &b
     // ***********************************************************************************************************
     // todo is there more of this code we could add to the needtoinit case as this only happens on the first frame
     // ***********************************************************************************************************
-
 
     // We re-use the same framebuffer for rendering all the shader effects
     sizeForRenderBuffer( buffer, s_shadersInit, s_vertexArrayId, s_vertexBufferId, s_rbId, s_fbId, s_rbTex, s_rbWidth, s_rbHeight );
@@ -774,6 +776,7 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
     "uniform int FRAMEINDEX;\n"
     "uniform sampler2D texSampler;\n"
     "in vec2 isf_FragNormCoord;\n"
+    "in vec2 isf_FragCoord;\n"
     "out vec4 fragmentColor;\n"
     "uniform vec4 DATE;\n\n");
 
@@ -834,19 +837,27 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
     prependText += _("vec4 IMG_THIS_NORM_PIXEL_RECT(sampler2DRect sampler, vec2 pct) {\n   vec2 coord = isf_FragNormCoord;\n   return texture(sampler, coord * RENDERSIZE);\n}\n\n");
     prependText += _("vec4 IMG_THIS_PIXEL_RECT(sampler2DRect sampler, vec2 pct) {\n   return IMG_THIS_NORM_PIXEL_RECT(sampler, pct);\n}\n\n");
 
-    //int i = 0;
-    //for (auto c : code)
-    //{
-    //   if ((int)c < 32 || (int)c > 127)
-    //    {
-    //        if (c != 13 && c != 10 && c!= 9)
-    //        logger_base.debug("%d 0x%x %c", i, (int)c, c);
-    //    }
-    //    i++;
-    //}
+#ifdef __DEBUG
+    int i = 0;
+    for (auto c : code)
+    {
+       if ((int)c < 32 || (int)c > 127)
+        {
+            if (c != 13 && c != 10 && c!= 9)
+            logger_base.debug("%d 0x%x %c", i, (int)c, c);
+            wxASSERT(false);
+        }
+        i++;
+    }
+#endif
 
     wxString shaderCode = wxString(code.mb_str(wxConvUTF8));
-    shaderCode.Replace(wxString((char)133), "...", true);
+    for (int x = 0; x < shaderCode.size(); x++) {
+        char ch = shaderCode[x];
+        if (ch == (char)133) {
+            shaderCode[x] = '.';
+        }
+    }
     int pos = shaderCode.Find("*/");
     if (pos > 0)
     {

@@ -512,24 +512,37 @@ public:
                           uint32_t sz,
                           const std::vector<std::pair<uint32_t, uint32_t>> &ranges)
     : FrameData(frame), m_ranges(ranges) {
+        m_size = sz;
         m_data = (uint8_t*)malloc(sz);
     }
     virtual ~UncompressedFrameData() {
-        free(m_data);
-    }
-
-    virtual void readFrame(uint8_t *data) {
-        uint32_t offset = 0;
-        for (auto &rng : m_ranges) {
-            uint32_t toRead = rng.second;
-            memcpy(&data[rng.first], &m_data[offset], toRead);
-            offset += toRead;
+        if (m_data != nullptr) {
+            free(m_data);
         }
     }
 
+    virtual bool readFrame(uint8_t *data) {
+        if (m_data == nullptr) return false;
+        uint32_t offset = 0;
+        for (auto &rng : m_ranges) {
+            uint32_t toRead = rng.second;
+            if (offset + toRead <= m_size) {
+                memcpy(&data[rng.first], &m_data[offset], toRead);
+                offset += toRead;
+            }
+            else
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    uint32_t m_size;
     uint8_t *m_data;
     std::vector<std::pair<uint32_t, uint32_t>> m_ranges;
 };
+
 void V1FSEQFile::prepareRead(const std::vector<std::pair<uint32_t, uint32_t>> &ranges) {
     m_rangesToRead = ranges;
     m_dataBlockSize = 0;

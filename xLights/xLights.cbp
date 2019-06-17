@@ -398,6 +398,7 @@
 		<Unit filename="../xSchedule/wxJSON/jsonval.h" />
 		<Unit filename="../xSchedule/wxJSON/jsonwriter.cpp" />
 		<Unit filename="../xSchedule/wxJSON/jsonwriter.h" />
+		<Unit filename="../xSchedule/xSMSDaemon/Curl.h" />
 		<Unit filename="AlignmentDialog.cpp" />
 		<Unit filename="AlignmentDialog.h" />
 		<Unit filename="AudioManager.cpp" />
@@ -615,6 +616,8 @@
 		<Unit filename="SequenceViewManager.h" />
 		<Unit filename="SevenSegmentDialog.cpp" />
 		<Unit filename="SevenSegmentDialog.h" />
+		<Unit filename="ShaderDownloadDialog.cpp" />
+		<Unit filename="ShaderDownloadDialog.h" />
 		<Unit filename="SplashDialog.cpp" />
 		<Unit filename="SplashDialog.h" />
 		<Unit filename="StartChannelDialog.cpp" />
@@ -1241,6 +1244,7 @@
 		<Unit filename="wxsmith/SequenceVideoPanel.wxs" />
 		<Unit filename="wxsmith/ServoPanel.wxs" />
 		<Unit filename="wxsmith/SevenSegmentDialog.wxs" />
+		<Unit filename="wxsmith/ShaderDownloadDialog.wxs" />
 		<Unit filename="wxsmith/ShaderPanel.wxs" />
 		<Unit filename="wxsmith/ShapePanel.wxs" />
 		<Unit filename="wxsmith/ShimmerPanel.wxs" />
@@ -1440,6 +1444,7 @@
 					<wxDialog wxs="wxsmith/UpdaterDialog.wxs" src="UpdaterDialog.cpp" hdr="UpdaterDialog.h" fwddecl="0" i18n="1" name="UpdaterDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/BulkEditSliderDialog.wxs" src="BulkEditSliderDialog.cpp" hdr="BulkEditSliderDialog.h" fwddecl="0" i18n="1" name="BulkEditSliderDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/VendorModelDialog.wxs" src="VendorModelDialog.cpp" hdr="VendorModelDialog.h" fwddecl="0" i18n="1" name="VendorModelDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/ShaderDownloadDialog.wxs" src="ShaderDownloadDialog.cpp" hdr="ShaderDownloadDialog.h" fwddecl="0" i18n="1" name="ShaderDownloadDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/VendorMusicDialog.wxs" src="VendorMusicDialog.cpp" hdr="VendorMusicDialog.h" fwddecl="0" i18n="1" name="VendorMusicDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/MatrixFaceDownloadDialog.wxs" src="MatrixFaceDownloadDialog.cpp" hdr="MatrixFaceDownloadDialog.h" fwddecl="0" i18n="1" name="MatrixFaceDownloadDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/SelectTimingsDialog.wxs" src="SelectTimingsDialog.cpp" hdr="SelectTimingsDialog.h" fwddecl="0" i18n="1" name="SelectTimingsDialog" language="CPP" />

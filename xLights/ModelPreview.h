@@ -106,6 +106,7 @@ public:
     void SetDisplay2DBoundingBox(bool bb) { _display2DBox = bb; }
     void SetDisplay2DCenter0(bool bb) { _center2D0 = bb; }
 
+    bool IsNoCurrentModel() { return currentModel == "&---none---&"; }
     void SetRenderOrder(int i) { renderOrder = i; Refresh(); }
     
     void AddBoundingBoxToAccumulator(int x1, int y1, int x2, int y2);

@@ -52,7 +52,7 @@ class FanEffect : public RenderableEffect
         virtual void SetDefaultParameters() override;
         virtual int DrawEffectBackground(const Effect *e, int x1, int y1, int x2, int y2,
                                          DrawGLUtils::xlAccumulator &backgrounds, xlColor* colorMask, bool ramps) override;
-        virtual bool SupportsRadialColorCurves(const SettingsMap &SettingsMap) override { return true; }
+        virtual bool SupportsRadialColorCurves(const SettingsMap &SettingsMap) const override { return true; }
         virtual bool CanRenderPartialTimeInterval() const override { return true; }
         virtual bool SupportsRenderCache(const SettingsMap& settings) const override { return true; }
 

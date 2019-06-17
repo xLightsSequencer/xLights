@@ -30,7 +30,6 @@ public:
     virtual void Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, DrawGLUtils::xl3Accumulator &tva3, bool allowSelected = false) {};
 
 protected:
-    bool active;
 
 private:
     bool only_3d;

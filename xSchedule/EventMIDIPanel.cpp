@@ -19,6 +19,8 @@ const long EventMIDIPanel::ID_STATICTEXT4 = wxNewId();
 const long EventMIDIPanel::ID_CHOICE4 = wxNewId();
 const long EventMIDIPanel::ID_STATICTEXT3 = wxNewId();
 const long EventMIDIPanel::ID_CHOICE3 = wxNewId();
+const long EventMIDIPanel::ID_STATICTEXT5 = wxNewId();
+const long EventMIDIPanel::ID_CHOICE5 = wxNewId();
 const long EventMIDIPanel::ID_BUTTON1 = wxNewId();
 //*)
 
@@ -52,6 +54,10 @@ EventMIDIPanel::EventMIDIPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos
 	FlexGridSizer1->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	Choice_Data1 = new wxChoice(this, ID_CHOICE3, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE3"));
 	FlexGridSizer1->Add(Choice_Data1, 1, wxALL|wxEXPAND, 5);
+	StaticText5 = new wxStaticText(this, ID_STATICTEXT5, _("Data 2:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT5"));
+	FlexGridSizer1->Add(StaticText5, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	Choice_Data2 = new wxChoice(this, ID_CHOICE5, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE5"));
+	FlexGridSizer1->Add(Choice_Data2, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Button_Scan = new wxButton(this, ID_BUTTON1, _("Scan"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
 	FlexGridSizer1->Add(Button_Scan, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -93,9 +99,14 @@ EventMIDIPanel::EventMIDIPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos
     for (int i = 0; i < 256; i++)
     {
         Choice_Data1->Append(wxString::Format("0x%02X", i));
+        Choice_Data2->Append(wxString::Format("0x%02X", i));
     }
     Choice_Data1->Append("ANY");
+    Choice_Data1->Append("Not 0x00");
     Choice_Data1->SetSelection(0);
+    Choice_Data2->Append("ANY");
+    Choice_Data2->Append("Not 0x00");
+    Choice_Data2->SetSelection(256);
 }
 
 EventMIDIPanel::~EventMIDIPanel()
@@ -117,6 +128,7 @@ void EventMIDIPanel::Save(EventBase* event)
     e->SetStatus(Choice_Status->GetStringSelection().ToStdString());
     e->SetChannel(Choice_Channel->GetStringSelection().ToStdString());
     e->SetData1(Choice_Data1->GetStringSelection().ToStdString());
+    e->SetData2(Choice_Data2->GetStringSelection().ToStdString());
 }
 
 void EventMIDIPanel::Load(EventBase* event)
@@ -126,6 +138,7 @@ void EventMIDIPanel::Load(EventBase* event)
     Choice_Status->SetStringSelection(e->GetStatus());
     Choice_Channel->SetStringSelection(e->GetChannel());
     Choice_Data1->SetStringSelection(e->GetData1());
+    Choice_Data2->SetStringSelection(e->GetData2());
 }
 
 void EventMIDIPanel::OnButton_ScanClick(wxCommandEvent& event)
@@ -148,11 +161,12 @@ void EventMIDIPanel::OnMIDIEvent(wxCommandEvent& event)
     uint8_t status = (event.GetInt() >> 24) & 0xFF;
     uint8_t channel = (event.GetInt() >> 16) & 0xFF;
     uint8_t data1 = (event.GetInt() >> 8) & 0xFF;
-    // uint8_t data2 = event.GetInt() & 0xFF;
+    uint8_t data2 = event.GetInt() & 0xFF;
 
     Choice_Status->SetSelection(((status & 0xF0) >> 4) - 8);
     Choice_Channel->SetSelection(channel);
     Choice_Data1->SetSelection(data1);
+    Choice_Data2->SetSelection(256);
 
     ((EventDialog*)GetParent()->GetParent()->GetParent()->GetParent())->ValidateWindow();
 }

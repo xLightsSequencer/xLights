@@ -73,6 +73,7 @@
 #include "models/SubModel.h"
 #include "effects/FacesEffect.h"
 #include "effects/StateEffect.h"
+#include "ShaderDownloadDialog.h"
 
 // Linux needs this
 #include <wx/stdpaths.h>
@@ -336,6 +337,7 @@ const long xLightsFrame::ID_MENUITEM_OGL_RO6 = wxNewId();
 const long xLightsFrame::ID_MENUITEM19 = wxNewId();
 const long xLightsFrame::ID_MNU_PLAYCONTROLSONPREVIEW = wxNewId();
 const long xLightsFrame::ID_MNU_AUTOSHOWHOUSEPREVIEW = wxNewId();
+const long xLightsFrame::ID_MNU_SUPPRESS_TRANSITION_HINTS = wxNewId();
 const long xLightsFrame::ID_MENUITEM_AUTOSAVE_0 = wxNewId();
 const long xLightsFrame::ID_MENUITEM_AUTOSAVE_3 = wxNewId();
 const long xLightsFrame::ID_MENUITEM_AUTOSAVE_10 = wxNewId();
@@ -1146,6 +1148,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     MenuSettings->Append(MenuItem_PlayControlsOnPreview);
     MenuItem_AutoShowHousePreview = new wxMenuItem(MenuSettings, ID_MNU_AUTOSHOWHOUSEPREVIEW, _("Auto Show House Preview"), wxEmptyString, wxITEM_CHECK);
     MenuSettings->Append(MenuItem_AutoShowHousePreview);
+    MenuItem_SuppressFadeHints = new wxMenuItem(MenuSettings, ID_MNU_SUPPRESS_TRANSITION_HINTS, _("Suppress Transition Hints"), wxEmptyString, wxITEM_CHECK);
+    MenuSettings->Append(MenuItem_SuppressFadeHints);
     AutoSaveMenu = new wxMenu();
     MenuItem44 = new wxMenuItem(AutoSaveMenu, ID_MENUITEM_AUTOSAVE_0, _("Disabled"), wxEmptyString, wxITEM_RADIO);
     AutoSaveMenu->Append(MenuItem44);
@@ -1422,6 +1426,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     Connect(ID_MENUITEM_OGL_RO6,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemOGLRenderOrder);
     Connect(ID_MNU_PLAYCONTROLSONPREVIEW,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_PlayControlsOnPreviewSelected);
     Connect(ID_MNU_AUTOSHOWHOUSEPREVIEW,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_AutoShowHousePreviewSelected);
+    Connect(ID_MNU_SUPPRESS_TRANSITION_HINTS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem61Selected);
     Connect(ID_MENUITEM_AUTOSAVE_0,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::AutoSaveIntervalSelected);
     Connect(ID_MENUITEM_AUTOSAVE_3,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::AutoSaveIntervalSelected);
     Connect(ID_MENUITEM_AUTOSAVE_10,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::AutoSaveIntervalSelected);
@@ -1558,6 +1563,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     mSaveFseqOnSave = true;
     mBackupOnSave = false;
     mBackupOnLaunch = true;
+    mSuppressFadeHints = false;
     me131Sync = false;
     mLocalIP = "";
     mAltBackupDir = "";
@@ -1878,6 +1884,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     config->Read("xLightsBackupOnLaunch", &mBackupOnLaunch, true);
     MenuItem_BackupOnLaunch->Check(mBackupOnLaunch);
     logger_base.debug("Backup on launch: %s.", mBackupOnLaunch? "true" : "false");
+
+    config->Read("xLightsSuppressFadeHints", &mSuppressFadeHints, false);
+    MenuItem_SuppressFadeHints->Check(mSuppressFadeHints);
+    logger_base.debug("Suppress Transition Hints: %s.", mSuppressFadeHints ? "true" : "false");
 
     config->Read(_("xLightsAltBackupDir"), &mAltBackupDir);
     logger_base.debug("Alternate Backup Dir: '%s'.", (const char *)mAltBackupDir.c_str());
@@ -2265,6 +2275,7 @@ xLightsFrame::~xLightsFrame()
     config->Write("xLightsAutoSavePerspectives", _autoSavePerspecive);
     config->Write("xLightsBackupOnSave", mBackupOnSave);
     config->Write("xLightsBackupOnLaunch", mBackupOnLaunch);
+    config->Write("xLightsSuppressFadeHints", mSuppressFadeHints);
     config->Write("xLightse131Sync", me131Sync);
     config->Write("xLightsLocalIP", mLocalIP);
     config->Write("xLightsEffectAssistMode", mEffectAssistMode);
@@ -6119,12 +6130,13 @@ void xLightsFrame::CheckSequence(bool display)
         std::list<std::pair<std::string, std::string>> faces;
         std::list<std::pair<std::string, std::string>> states;
         std::list<std::string> viewPoints;
+        bool usesShader = false;
         for (int i = 0; i < mSequenceElements.GetElementCount(MASTER_VIEW); i++)
         {
             Element* e = mSequenceElements.GetElement(i);
             if (e->GetType() != ELEMENT_TYPE_TIMING)
             {
-                CheckElement(e, f, errcount, warncount, e->GetFullName(), e->GetName(), videoCacheWarning, faces, states, viewPoints);
+                CheckElement(e, f, errcount, warncount, e->GetFullName(), e->GetName(), videoCacheWarning, faces, states, viewPoints, usesShader);
 
                 if (e->GetType() == ELEMENT_TYPE_MODEL)
                 {
@@ -6133,7 +6145,7 @@ void xLightsFrame::CheckSequence(bool display)
                     for (int j = 0; j < me->GetStrandCount(); ++j)
                     {
                         StrandElement* se = me->GetStrand(j);
-                        CheckElement(se, f, errcount, warncount, se->GetFullName(), e->GetName(), videoCacheWarning, faces, states, viewPoints);
+                        CheckElement(se, f, errcount, warncount, se->GetFullName(), e->GetName(), videoCacheWarning, faces, states, viewPoints, usesShader);
 
                         for(int k = 0; k < se->GetNodeLayerCount(); ++k)
                         {
@@ -6150,10 +6162,20 @@ void xLightsFrame::CheckSequence(bool display)
                         Element* sme = me->GetSubModel(j);
                         if (sme->GetType() == ELEMENT_TYPE_SUBMODEL)
                         {
-                            CheckElement(sme, f, errcount, warncount, sme->GetFullName(), e->GetName(), videoCacheWarning, faces, states, viewPoints);
+                            CheckElement(sme, f, errcount, warncount, sme->GetFullName(), e->GetName(), videoCacheWarning, faces, states, viewPoints, usesShader);
                         }
                     }
                 }
+            }
+        }
+
+        if (usesShader)
+        {
+            if (mainSequencer->PanelEffectGrid->GetCreatedVersion() < 3)
+            {
+                wxString msg = wxString::Format("    ERR: Seqeuence has one or more shader effects but open GL version is lower than verson 3. These effects will not render.");
+                LogAndWrite(f, msg.ToStdString());
+                errcount++;
             }
         }
 
@@ -6412,7 +6434,7 @@ void xLightsFrame::CheckEffect(Effect* ef, wxFile& f, int& errcount, int& warnco
     }
 }
 
-void xLightsFrame::CheckElement(Element* e, wxFile& f, int& errcount, int& warncount, const std::string& name, const std::string& modelName, bool& videoCacheWarning, std::list<std::pair<std::string, std::string>>& faces, std::list<std::pair<std::string, std::string>>& states, std::list<std::string>& viewPoints)
+void xLightsFrame::CheckElement(Element* e, wxFile& f, int& errcount, int& warncount, const std::string& name, const std::string& modelName, bool& videoCacheWarning, std::list<std::pair<std::string, std::string>>& faces, std::list<std::pair<std::string, std::string>>& states, std::list<std::string>& viewPoints, bool& usesShader)
 {
     for (int j = 0; j < e->GetEffectLayerCount(); j++)
     {
@@ -6467,6 +6489,10 @@ void xLightsFrame::CheckElement(Element* e, wxFile& f, int& errcount, int& warnc
             }
 
             CheckEffect(ef, f, errcount, warncount, name, modelName, false, videoCacheWarning, faces, states, viewPoints);
+            if (ef->GetEffectName() == "Shader")
+            {
+                usesShader = true;
+            }
         }
 
         // This assumes effects are stored in start time order per layer
@@ -8896,6 +8922,8 @@ void xLightsFrame::OnMenuItem_PurgeVendorCacheSelected(wxCommandEvent& event)
     VendorModelDialog::GetCache().Save();
     VendorMusicDialog::GetCache().ClearCache();
     VendorMusicDialog::GetCache().Save();
+    ShaderDownloadDialog::GetCache().ClearCache();
+    ShaderDownloadDialog::GetCache().Save();
 }
 
 void xLightsFrame::OnMenuItem_LoudVolSelected(wxCommandEvent& event)
@@ -10075,4 +10103,10 @@ void xLightsFrame::OnMenuItem_MHS_ExtraLargeSelected(wxCommandEvent& event)
 {
     _modelHandleSize = 3;
     layoutPanel->Refresh();
+}
+
+void xLightsFrame::OnMenuItem61Selected(wxCommandEvent& event)
+{
+    mSuppressFadeHints = event.IsChecked();
+    mainSequencer->PanelEffectGrid->Refresh();
 }

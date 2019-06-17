@@ -456,6 +456,7 @@
     <ClCompile Include="ImportPreviewsModelsDialog.cpp" />
     <ClCompile Include="effects\ShaderEffect.cpp" />
     <ClCompile Include="effects\ShaderPanel.cpp" />
+    <ClCompile Include="ShaderDownloadDialog.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -917,6 +918,8 @@
     <ClInclude Include="ImportPreviewsModelsDialog.h" />
     <ClInclude Include="effects\ShaderEffect.h" />
     <ClInclude Include="effects\ShaderPanel.h" />
+    <ClInclude Include="..\xSchedule\xSMSDaemon\Curl.h" />
+    <ClInclude Include="ShaderDownloadDialog.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

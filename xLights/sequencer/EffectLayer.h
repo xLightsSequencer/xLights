@@ -40,6 +40,7 @@ class EffectLayer
         std::vector<Effect*> GetEffectsByTypeAndTime(const std::string &type, int startTimeMS, int endTimeMS);
         std::vector<Effect*> GetAllEffectsByTime(int startTimeMS, int endTimeMS);
         Effect* SelectEffectUsingDescription(std::string description);
+        bool IsEffectValid(Effect* e) const;
         Effect* SelectEffectUsingTime(int time);
 
         int GetLayerNumber();

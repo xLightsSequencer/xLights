@@ -37,13 +37,14 @@ std::string Settings::Safe(std::string s)
     return res.ToStdString();
 }
 
-void Settings::SetMIDIControl(const std::string& midiDevice, const std::string& controlName, int status, int channel, int data1)
+void Settings::SetMIDIControl(const std::string& midiDevice, const std::string& controlName, int status, int channel, int data1, int data2)
 {
     // unmap any other keys mapped to the same MIDI codes
     int device = GetMIDIDeviceId(midiDevice);
     std::list<std::string> todelete;
     auto itc = _midiChannel.begin();
     auto itd = _midiData1.begin();
+    auto itd2 = _midiData2.begin();
     auto itdv = _midiDevice.begin();
     for (auto it = _midiStatus.begin(); it != _midiStatus.end(); ++it)
     {
@@ -53,9 +54,12 @@ void Settings::SetMIDIControl(const std::string& midiDevice, const std::string& 
             {
                 if (itc->second == 16 || itc->second == channel)
                 {
-                    if (itd->second == 256 || itd->second == data1)
+                    if (itd->second == 256 || itd->second == data1 || (itd->second == 257 && data1 != 0))
                     {
-                        todelete.push_back(it->first);
+                        if (itd2->second == 256 || itd2->second == data2 || (itd2->second == 257 && data2 != 0))
+                        {
+                            todelete.push_back(it->first);
+                        }
                     }
                 }
             }
@@ -63,6 +67,7 @@ void Settings::SetMIDIControl(const std::string& midiDevice, const std::string& 
 
         ++itc;
         ++itd;
+        ++itd2;
         ++itdv;
     }
 
@@ -71,20 +76,23 @@ void Settings::SetMIDIControl(const std::string& midiDevice, const std::string& 
         _midiStatus.erase(*it);
         _midiChannel.erase(*it);
         _midiData1.erase(*it);
+        _midiData2.erase(*it);
         _midiDevice.erase(*it);
     }
 
     _midiStatus[controlName] = status; 
     _midiChannel[controlName] = channel; 
     _midiData1[controlName] = data1;
+    _midiData2[controlName] = data2;
     _midiDevice[controlName] = device;
 }
 
-std::string Settings::LookupMIDI(int device, int status, int channel, int data1) const
+std::string Settings::LookupMIDI(int device, int status, int channel, int data1, int data2) const
 {
     auto itdv = _midiDevice.begin();
     auto itc = _midiChannel.begin();
     auto itd = _midiData1.begin();
+    auto itd2 = _midiData2.begin();
     for (auto it = _midiStatus.begin(); it != _midiStatus.end(); ++it)
     {
         if (it->second == status)
@@ -93,9 +101,12 @@ std::string Settings::LookupMIDI(int device, int status, int channel, int data1)
             {
                 if (itc->second == 16 || itc->second == channel)
                 {
-                    if (itd->second == 256 || itd->second == data1)
+                    if (itd->second == 256 || itd->second == data1 || (itd->second == 257 && data1 != 0))
                     {
-                        return it->first;
+                        if (itd2->second == 256 || itd2->second == data2 || (itd2->second == 257 && data2 != 0))
+                        {
+                            return it->first;
+                        }
                     }
                 }
             }
@@ -103,13 +114,14 @@ std::string Settings::LookupMIDI(int device, int status, int channel, int data1)
         
         ++itc;
         ++itd;
+        ++itd2;
         ++itdv;
     }
 
     return "";
 }
 
-void Settings::LookupMIDI(std::string controlName, int& device, int& status, int& channel, int& data1)
+void Settings::LookupMIDI(std::string controlName, int& device, int& status, int& channel, int& data1, int& data2)
 {
     if (_midiStatus.find(controlName) != _midiStatus.end())
     {
@@ -117,6 +129,7 @@ void Settings::LookupMIDI(std::string controlName, int& device, int& status, int
         status = _midiStatus[controlName];
         channel = _midiChannel[controlName];
         data1 = _midiData1[controlName];
+        data2 = _midiData2[controlName];
     }
     else
     {
@@ -124,6 +137,7 @@ void Settings::LookupMIDI(std::string controlName, int& device, int& status, int
         status = 0x90;
         channel = 0;
         data1 = 0;
+        data2 = 0;
     }
 }
 
@@ -174,12 +188,14 @@ std::string Settings::Serialise()
     res += "|MM:";
     auto itc = _midiChannel.begin();
     auto itd1 = _midiData1.begin();
+    auto itd2 = _midiData2.begin();
     auto itmd = _midiDevice.begin();
     for (auto it = _midiStatus.begin(); it != _midiStatus.end(); ++it)
     {
-        res += wxString::Format("%s,%d,%d,%d,%d^", it->first, itmd->second, it->second, itc->second, itd1->second);
+        res += wxString::Format("%s,%d,%d,%d,%d,%d^", it->first, itmd->second, it->second, itc->second, itd1->second, itd2->second);
         ++itc;
         ++itd1;
+        ++itd2;
         ++itmd;
     }
 
@@ -263,6 +279,7 @@ void Settings::Load(std::string settings)
                         _midiStatus[s4[0]] = wxAtoi(s4[1]);
                         _midiChannel[s4[0]] = wxAtoi(s4[2]);
                         _midiData1[s4[0]] = wxAtoi(s4[3]);
+                        _midiData2[s4[0]] = 256;
                     }
                     else if (s4.size() == 5)
                     {
@@ -270,6 +287,15 @@ void Settings::Load(std::string settings)
                         _midiStatus[s4[0]] = wxAtoi(s4[2]);
                         _midiChannel[s4[0]] = wxAtoi(s4[3]);
                         _midiData1[s4[0]] = wxAtoi(s4[4]);
+                        _midiData2[s4[0]] = 256;
+                    }
+                    else if (s4.size() == 6)
+                    {
+                        _midiDevice[s4[0]] = wxAtoi(s4[1]);
+                        _midiStatus[s4[0]] = wxAtoi(s4[2]);
+                        _midiChannel[s4[0]] = wxAtoi(s4[3]);
+                        _midiData1[s4[0]] = wxAtoi(s4[4]);
+                        _midiData2[s4[0]] = wxAtoi(s4[5]);
                     }
                 }
             }

@@ -20,7 +20,7 @@ class MIDIAssociateDialog: public wxDialog
 
     public:
 
-		MIDIAssociateDialog(wxWindow* parent, std::list<MIDIListener*>& midiListeners, std::string controlName, int status, int channel, int data1, const std::string& midiDevice, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
+		MIDIAssociateDialog(wxWindow* parent, std::list<MIDIListener*>& midiListeners, std::string controlName, int status, int channel, int data1, int data2, const std::string& midiDevice, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~MIDIAssociateDialog();
 
 		//(*Declarations(MIDIAssociateDialog)
@@ -29,6 +29,7 @@ class MIDIAssociateDialog: public wxDialog
 		wxButton* Button_Scan;
 		wxChoice* Choice_Channel;
 		wxChoice* Choice_Data1;
+		wxChoice* Choice_Data2;
 		wxChoice* Choice_MIDIDevice;
 		wxChoice* Choice_Status;
 		wxStaticText* StaticText1;
@@ -36,6 +37,7 @@ class MIDIAssociateDialog: public wxDialog
 		wxStaticText* StaticText3;
 		wxStaticText* StaticText4;
 		wxStaticText* StaticText5;
+		wxStaticText* StaticText6;
 		wxTextCtrl* TextCtrl_KeyCode;
 		//*)
 
@@ -52,6 +54,8 @@ class MIDIAssociateDialog: public wxDialog
 		static const long ID_CHOICE2;
 		static const long ID_STATICTEXT3;
 		static const long ID_CHOICE3;
+		static const long ID_STATICTEXT6;
+		static const long ID_CHOICE5;
 		static const long ID_BUTTON3;
 		static const long ID_BUTTON1;
 		static const long ID_BUTTON2;

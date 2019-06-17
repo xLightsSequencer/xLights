@@ -11,6 +11,20 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2019.30 June 16, 2019
+   -- enh (keith)  In MIDI events add the ability to discern non zero data 1/2
+   -- enh (keith)  Add an active property to models so you can hide models from display
+   -- bug (keith)  Fix when xSchedule is just outputting event playlists output buffer is not zeroed out
+   -- bug (keith)  Fix broken model download
+2019.29 June 15, 2019
+   -- enh (keith)  Add a Shader download option for known good shaders
+   -- enh (keith)  Add the ability to prevent some double midi events where the event is not using key on/off
+   -- enh (keith)  Warn in check sequence if trying to use shaders on openGL less than v3
+   -- enh (keith)  Add the ability to control gravity in liquit effect
+   -- enh (keith)  Allow xFade to work with multiple MIDI controllers at once
+   -- bug (keith)  Bunch of changes to try to prevent crashes due to delayed rendering on the main thread
+   -- bug (keith)  Try to detect and handle gracefully corrupt FSEQ files
+   -- bug (keith)  Change the generation of 2D render buffers where rotation leads to a non zero z coordinate
 2019.28 June 8, 2019
    -- enh (scott)       Add filename tooltip to colour curve buttons
    -- enh (kevin/keith) Add shader effect

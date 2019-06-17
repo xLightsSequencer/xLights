@@ -31,6 +31,10 @@ class b2ParticleSystem;
 #define LIQUID_SOURCESIZE_MIN 0
 #define LIQUID_SOURCESIZE_MAX 100
 
+#define LIQUID_GRAVITY_MIN -1000
+#define LIQUID_GRAVITY_MAX 1000
+#define LIQUID_GRAVITY_DIVISOR 10
+
 class LiquidEffect : public RenderableEffect
 {
     public:
@@ -51,7 +55,7 @@ class LiquidEffect : public RenderableEffect
             bool enabled2, int direction2, int x2, int y2, int velocity2, int flow2, int sourceSize2, bool flowMusic2,
             bool enabled3, int direction3, int x3, int y3, int velocity3, int flow3, int sourceSize3, bool flowMusic3,
             bool enabled4, int direction4, int x4, int y4, int velocity4, int flow4, int sourceSize4, bool flowMusic4,
-            const std::string& particleType, int despeckle);
+            const std::string& particleType, int despeckle, float gravity);
         void CreateBarrier(b2World* world, float x, float y, float width, float height);
         void Draw(RenderBuffer& buffer, b2ParticleSystem* ps, const xlColor& color, bool mixColors, int despeckle);
         void CreateParticles(b2ParticleSystem* ps, int x, int y, int direction, int velocity, int flow, bool flowMusic, int lifetime, int width, int height, const xlColor& c, const std::string& particleType, bool mixcolors, float audioLevel, int sourceSize);

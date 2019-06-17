@@ -235,6 +235,19 @@ Effect::~Effect()
 
 #pragma endregion
 
+void Effect::SetTimeToDelete()
+{
+    // we can delete the effect 1 minute later ... this tries to guarantee all dangling pointers are gone at the expense of some memory use
+    // I suspect this is a key reason for some of the crashes
+    _timeToDelete = wxGetUTCTimeMillis() + 60000;
+}
+
+bool Effect::IsTimeToDelete() const
+{
+    wxASSERT(_timeToDelete != 0);
+    return wxGetUTCTimeMillis() > _timeToDelete;
+}
+
 void Effect::SetEffectIndex(int effectIndex)
 {
     if (mEffectIndex != effectIndex)

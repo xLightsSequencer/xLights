@@ -5821,43 +5821,6 @@ int EffectsGrid::DrawEffectBackground(const Row_Information_Struct* ri, const Ef
     }
     int result = ef == nullptr ? 1 : ef->DrawEffectBackground(e, x1, y1, x2, y2, backgrounds, (colorMask.IsNilColor() ? nullptr : &colorMask), xlights->IsDrawRamps());
 
-    const SettingsMap &sm( e->GetSettings() );
-    int inTransitionEnd = 0, outTransitionStart = 0;
-    double fadeInTime = sm.GetDouble( "T_TEXTCTRL_Fadein" );
-    if ( fadeInTime != 0. )
-    {
-       double fadeInTimeMS = fadeInTime * 1000;
-       int durationMS = e->GetEndTimeMS() - e->GetStartTimeMS();
-       if ( durationMS > 0 )
-       {
-         double pct = std::min( fadeInTimeMS / durationMS, 1. );
-         int width = int( pct * (x2 - x1) );
-         inTransitionEnd = x1 + width;
-         backgrounds.AddRect( x1, y1, inTransitionEnd, y1+2, xlGREEN );
-         backgrounds.AddRect( x1, y1+2, inTransitionEnd, y1+3, xlBLACK );
-       }
-    }
-    double fadeOutTime = sm.GetDouble( "T_TEXTCTRL_Fadeout" );
-    if ( fadeOutTime != 0. )
-    {
-       double fadeOutTimeMS = fadeOutTime * 1000;
-       int durationMS = e->GetEndTimeMS() - e->GetStartTimeMS();
-       if ( durationMS > 0 )
-       {
-         double pct = std::min( fadeOutTimeMS / durationMS, 1. );
-         int width = int( pct * (x2 - x1) );
-         outTransitionStart = x2 - width;
-         backgrounds.AddRect( outTransitionStart, y1, x2, y1+2, xlRED );
-         backgrounds.AddRect( outTransitionStart, y1+2, x2, y1+3, xlBLACK );
-       }
-    }
-
-    if ( fadeInTime != 0. && fadeOutTime != 0. && inTransitionEnd > outTransitionStart )
-    {
-         backgrounds.AddRect( outTransitionStart, y1, inTransitionEnd, y1+2, xlYELLOW );
-         backgrounds.AddRect( outTransitionStart, y1+2, inTransitionEnd, y1+3, xlBLACK );
-    }
-
     return result;
 }
 
@@ -6094,8 +6057,8 @@ void EffectsGrid::DrawEffects()
                             }
                         }
                     }
-
                 }
+                DrawFadeHints(e, x3, y1, x4, y2, backgrounds);
             }
             if((mDragDropping || mPartialCellSelected) && mDropRow == row)
             {
@@ -6155,6 +6118,47 @@ void EffectsGrid::DrawEffects()
     selectFocusLines.Reset();
     selectFocusLinesLocked.Reset();
     lines.Reset();
+}
+
+void EffectsGrid::DrawFadeHints(Effect* e, int x1, int y1, int x2, int y2, DrawGLUtils::xlAccumulator& backgrounds) const
+{
+    if (xlights->IsSuppressFadeHints()) return;
+    const SettingsMap& sm(e->GetSettings());
+    int inTransitionEnd = 0, outTransitionStart = 0;
+    double fadeInTime = sm.GetDouble("T_TEXTCTRL_Fadein");
+    if (fadeInTime != 0.)
+    {
+        double fadeInTimeMS = fadeInTime * 1000;
+        int durationMS = e->GetEndTimeMS() - e->GetStartTimeMS();
+        if (durationMS > 0)
+        {
+            double pct = std::min(fadeInTimeMS / durationMS, 1.);
+            int width = int(pct * (x2 - x1));
+            inTransitionEnd = x1 + width;
+            backgrounds.AddRect(x1, y1, inTransitionEnd, y1 + 2, xlGREEN);
+            backgrounds.AddRect(x1, y1 + 2, inTransitionEnd, y1 + 3, xlBLACK);
+        }
+    }
+    double fadeOutTime = sm.GetDouble("T_TEXTCTRL_Fadeout");
+    if (fadeOutTime != 0.)
+    {
+        double fadeOutTimeMS = fadeOutTime * 1000;
+        int durationMS = e->GetEndTimeMS() - e->GetStartTimeMS();
+        if (durationMS > 0)
+        {
+            double pct = std::min(fadeOutTimeMS / durationMS, 1.);
+            int width = int(pct * (x2 - x1));
+            outTransitionStart = x2 - width;
+            backgrounds.AddRect(outTransitionStart, y1, x2, y1 + 2, xlRED);
+            backgrounds.AddRect(outTransitionStart, y1 + 2, x2, y1 + 3, xlBLACK);
+        }
+    }
+
+    if (fadeInTime != 0. && fadeOutTime != 0. && inTransitionEnd > outTransitionStart)
+    {
+        backgrounds.AddRect(outTransitionStart, y1, inTransitionEnd, y1 + 2, xlYELLOW);
+        backgrounds.AddRect(outTransitionStart, y1 + 2, inTransitionEnd, y1 + 3, xlBLACK);
+    }
 }
 
 void EffectsGrid::DrawTimingEffects(int row)

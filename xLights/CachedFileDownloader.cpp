@@ -1,3 +1,4 @@
+#include "../xSchedule/xSMSDaemon/Curl.h"
 #include "CachedFileDownloader.h"
 
 #include <wx/wx.h>
@@ -19,11 +20,11 @@ FileCacheItem::FileCacheItem(wxXmlNode* n)
     _cacheFor = (CACHEFOR)wxAtoi(n->GetAttribute("CacheFor", "0"));
 }
 
-FileCacheItem::FileCacheItem(wxURI url, CACHEFOR cacheFor, wxProgressDialog* prog, int low, int high)
+FileCacheItem::FileCacheItem(wxURI url, CACHEFOR cacheFor, const wxString& forceType, wxProgressDialog* prog, int low, int high)
 {
     _url = url;
     _cacheFor = cacheFor;
-    Download(prog, low, high);
+    Download(forceType, prog, low, high);
 }
 
 void FileCacheItem::Save(wxFile& f)
@@ -34,9 +35,9 @@ void FileCacheItem::Save(wxFile& f)
         "\"/>\n");
 }
 
-void FileCacheItem::Download(wxProgressDialog* prog, int low, int high)
+void FileCacheItem::Download(const wxString& forceType, wxProgressDialog* prog, int low, int high)
 {
-    _fileName = DownloadURLToTemp(_url, prog, low, high);
+    _fileName = DownloadURLToTemp(_url, forceType, prog, low, high);
 }
 
 void FileCacheItem::Delete() const
@@ -57,99 +58,20 @@ bool FileCacheItem::operator==(const wxURI& url) const
 // A major constraint of this function is that it does not support https
 bool FileCacheItem::DownloadURL(wxURI url, wxFileName filename, wxProgressDialog* prog, int low, int high)
 {
-    bool ok = true;
-
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    if (url.GetScheme() == "https")
-    {
-        logger_base.warn("Unable to retrieve '%s' as xLights cannot access https pages.", (const char *)url.GetPath().c_str());
-    }
-
-    wxHTTP http;
-    http.SetTimeout(30);
-    http.SetMethod("GET");
-    int port = 80;
-    if (wxAtoi(url.GetPort()) != 0)
-    {
-        port = wxAtoi(url.GetPort());
-    }
-    bool connected = http.Connect(url.GetServer(), port);
-
-    if (connected)
-    {
-        logger_base.debug("Making request to '%s'.", (const char *)url.BuildURI().c_str());
-        wxStopWatch sw;
-        wxInputStream *httpStream = http.GetInputStream(url.GetPath());
-
-        if (http.GetError() == wxPROTO_NOERR)
-        {
-            logger_base.debug(" Result %d.", http.GetResponse());
-
-            if (http.GetResponse() >= 300 && http.GetResponse() < 400)
-            {
-                wxDELETE(httpStream);
-
-                wxURI redir = http.GetHeader("LOCATION");
-                if (redir.GetPath() == url.GetPath())
-                {
-                    return false;
-                }
-                return DownloadURL(redir, filename, prog, low, high);
-            }
-
-            int upto = low;
-
-            wxFile f;
-            long size = 0;
-            if (f.Open(filename.GetFullPath(), wxFile::write))
-            {
-                const int bufsiz = 2097152;
-                wxByte* buffer = (wxByte*)malloc(bufsiz);
-                while (!httpStream->Eof() && httpStream->CanRead())
-                {
-                    httpStream->Read(buffer, bufsiz);
-                    f.Write(buffer, httpStream->LastRead());
-                    size += httpStream->LastRead();
-                    if (prog != nullptr)
-                    {
-                        upto += 10;
-                        if (upto > high) upto = low;
-                        prog->Update(upto);
-                    }
-                }
-                free(buffer);
-
-                f.Close();
-                logger_base.debug("   File downloaded %.1f kbytes in %ldms.", (float)size / 1024.0, sw.Time());
-            }
-            else
-            {
-                ok = false;
-            }
-        }
-        else
-        {
-            logger_base.error("Unable to connect to '%s' : %d.", (const char *)url.GetPath().c_str(), http.GetError());
-            ok = false;
-        }
-
-        wxDELETE(httpStream);
-    }
-    else
-    {
-        ok = false;
-    }
-
-    return ok;
+    logger_base.debug("Making request to '%s' -> %s.", (const char*)url.BuildURI().c_str(), (const char*)filename.GetFullPath().c_str());
+    return Curl::HTTPSGetFile(url.BuildURI().ToStdString(), filename.GetFullPath().ToStdString(), "", "", 600, prog);
 }
 
-std::string FileCacheItem::DownloadURLToTemp(wxURI url, wxProgressDialog* prog, int low, int high)
+std::string FileCacheItem::DownloadURLToTemp(wxURI url, const wxString& forceType, wxProgressDialog* prog, int low, int high)
 {
     wxString type = url.GetPath().AfterLast('.');
+    if (forceType != "") type = forceType;
     wxString fn = wxFileName::CreateTempFileName("xl");
     wxRemoveFile(fn);
     wxString filename = fn.BeforeLast('.') + "." + type;
+    filename.Replace(",", "");
     if (fn.BeforeLast('.') == "")
     {
         filename = fn + "." + type;
@@ -373,7 +295,7 @@ int CachedFileDownloader::size() {
     return _cacheItems.size();
 }
 
-std::string CachedFileDownloader::GetFile(wxURI url, CACHEFOR cacheFor, wxProgressDialog* prog, int low, int high)
+std::string CachedFileDownloader::GetFile(wxURI url, CACHEFOR cacheFor, const wxString& forceType, wxProgressDialog* prog, int low, int high)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -387,13 +309,13 @@ std::string CachedFileDownloader::GetFile(wxURI url, CACHEFOR cacheFor, wxProgre
     if (fci == nullptr)
     {
         logger_base.debug("File Cache downloading file %s.", (const char *)url.BuildURI().c_str());
-        fci = new FileCacheItem(url, cacheFor, prog, low, high);
+        fci = new FileCacheItem(url, cacheFor, forceType, prog, low, high);
         _cacheItems.push_back(fci);
     }
     else if (!fci->Exists())
     {
         logger_base.debug("File Cache re-downloading file %s.", (const char *)url.BuildURI().c_str());
-        fci->Download(prog, low, high);
+        fci->Download(forceType, prog, low, high);
     }
 
     if (fci->GetFileName() == "")

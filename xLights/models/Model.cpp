@@ -637,6 +637,8 @@ void Model::AddProperties(wxPropertyGridInterface *grid, OutputManager* outputMa
     }
 
     p = grid->Append(new wxPropertyCategory("Appearance", "ModelAppearance"));
+    sp = grid->AppendIn(p, new wxBoolProperty("Active", "Active", active));
+    sp->SetAttribute("UseCheckbox", true);
     sp = grid->AppendIn(p, new wxUIntProperty("Pixel Size", "ModelPixelSize", pixelSize));
     sp->SetAttribute("Min", 1);
     sp->SetAttribute("Max", 300);
@@ -1122,7 +1124,19 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::OnPropertyGridChange::ModelControllerConnectionPort");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "Model::OnPropertyGridChange::ModelControllerConnectionPort");
         return 0;
-
+    } else if (event.GetPropertyName() == "Active") {
+            ModelXml->DeleteAttribute("Active");
+            active = event.GetValue().GetBool();
+            if (active) {
+                ModelXml->AddAttribute("Active", "1");
+            }
+            else
+            {
+                ModelXml->AddAttribute("Active", "0");
+            }
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::OnPropertyGridChange::ModelControllerConnectionPort");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "Model::OnPropertyGridChange::ModelPixelBlackTransparency");
+        return 0;
     } else if (event.GetPropertyName() == "SmartRemote") {
         GetControllerConnection()->DeleteAttribute("SmartRemote");
         GetControllerConnection()->AddAttribute("SmartRemote", event.GetValue().GetString());
@@ -2097,6 +2111,7 @@ void Model::SetFromXml(wxXmlNode* ModelNode, bool zb) {
     _pixelCount = ModelNode->GetAttribute("PixelCount", "").ToStdString();
     _pixelType = ModelNode->GetAttribute("PixelType", "").ToStdString();
     _pixelSpacing = ModelNode->GetAttribute("PixelSpacing", "").ToStdString();
+    active = ModelNode->GetAttribute("Active", "1") == "1";
     SingleNode=HasSingleNode(StringType);
     int ncc = GetNodeChannelCount(StringType);
     SingleChannel = (ncc == 1);
@@ -3749,6 +3764,7 @@ void Model::ApplyTransparency(xlColor &color, int transparency) const
 // display model using colors stored in each node
 // used when preview is running
 void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &sva, DrawGLUtils::xlAccumulator &tva, bool is_3d, const xlColor *c, bool allowSelected) {
+    if (!active && preview->IsNoCurrentModel()) { return; }
     size_t NodeCount = Nodes.size();
     xlColor color;
     if (c != nullptr) {
@@ -3885,6 +3901,7 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
 // display model using colors stored in each node
 // used when preview is running
 void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator &sva, DrawGLUtils::xl3Accumulator &tva, bool is_3d, const xlColor *c, bool allowSelected) {
+    if (!active && preview->IsNoCurrentModel()) { return; }
     size_t NodeCount = Nodes.size();
     xlColor color;
     if (c != nullptr) {
@@ -4075,6 +4092,7 @@ wxString Model::GetNodeNear(ModelPreview* preview, wxPoint pt)
 }
 
 void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
+    if (!active && preview->IsNoCurrentModel()) { return; }
     bool success = preview->StartDrawing(pointSize);
 
     if(success) {

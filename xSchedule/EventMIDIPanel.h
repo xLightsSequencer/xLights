@@ -25,12 +25,14 @@ class EventMIDIPanel: public EventPanel
 		wxButton* Button_Scan;
 		wxChoice* Choice_Channel;
 		wxChoice* Choice_Data1;
+		wxChoice* Choice_Data2;
 		wxChoice* Choice_Devices;
 		wxChoice* Choice_Status;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText2;
 		wxStaticText* StaticText3;
 		wxStaticText* StaticText4;
+		wxStaticText* StaticText5;
 		//*)
 
 	protected:
@@ -44,6 +46,8 @@ class EventMIDIPanel: public EventPanel
 		static const long ID_CHOICE4;
 		static const long ID_STATICTEXT3;
 		static const long ID_CHOICE3;
+		static const long ID_STATICTEXT5;
+		static const long ID_CHOICE5;
 		static const long ID_BUTTON1;
 		//*)
 

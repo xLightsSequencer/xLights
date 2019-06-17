@@ -1645,20 +1645,31 @@ void FileConverter::ReadFalconFile(ConvertParameters& params)
         if (data == nullptr) break;
         
         if (channel_offset == 0 && params.read_mode != ConvertParameters::READ_MODE_IGNORE_BLACK) {
-            data->readFrame(&params.seq_data[periodsRead][0]);
+            if (!data->readFrame(&params.seq_data[periodsRead][0]))
+            {
+                // fseq file corrupt
+                logger_conversion.error("FSEQ file seems to be corrupt.");
+            }
         } else {
-            data->readFrame(tmpBuf);
-            
-            for (int i = 0; i < numChannels; i++) {
-                int new_index = i + channel_offset;
-                if ((new_index < 0) || (new_index >= numChannels)) continue;
-                if (params.read_mode == ConvertParameters::READ_MODE_IGNORE_BLACK) {
-                    if (tmpBuf[i] != 0) {
+            if (data->readFrame(tmpBuf))
+            {
+                for (int i = 0; i < numChannels; i++) {
+                    int new_index = i + channel_offset;
+                    if ((new_index < 0) || (new_index >= numChannels)) continue;
+                    if (params.read_mode == ConvertParameters::READ_MODE_IGNORE_BLACK) {
+                        if (tmpBuf[i] != 0) {
+                            params.seq_data[periodsRead][new_index] = tmpBuf[i];
+                        }
+                    }
+                    else {
                         params.seq_data[periodsRead][new_index] = tmpBuf[i];
                     }
-                } else {
-                    params.seq_data[periodsRead][new_index] = tmpBuf[i];
                 }
+            }
+            else
+            {
+                // fseq file corrupt
+                logger_conversion.error("FSEQ file seems to be corrupt.");
             }
         }
         delete data;

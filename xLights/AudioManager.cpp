@@ -2456,7 +2456,7 @@ void AudioManager::GetTrackMetrics(AVFormatContext* formatContext, AVCodecContex
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    logger_base.error("Getting track metrics.");
+    logger_base.debug("Getting track metrics.");
 
     _trackSize = 0;
 

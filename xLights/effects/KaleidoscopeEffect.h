@@ -31,7 +31,7 @@ class KaleidoscopeEffect : public RenderableEffect
         virtual ~KaleidoscopeEffect();
         virtual bool CanBeRandom() override {return false;}
         virtual void Render(Effect *effect, SettingsMap &settings, RenderBuffer &buffer) override;
-        virtual bool SupportsLinearColorCurves(const SettingsMap &SettingsMap) override { return false; }
+        virtual bool SupportsLinearColorCurves(const SettingsMap &SettingsMap) const override { return false; }
         virtual void SetDefaultParameters() override;
         virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff) override;
 
