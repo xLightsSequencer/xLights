@@ -943,6 +943,7 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
         shaderCode = shaderCode.substr(pos + 2);
     }
     shaderCode.Replace("gl_FragColor", "fragmentColor");
+    shaderCode.Replace("vv_FragNormCoord", "isf_FragNormCoord");
     if (!canvasImgName.empty())
     {
         shaderCode.Replace(canvasImgName, "texSampler");
