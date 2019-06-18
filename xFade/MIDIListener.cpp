@@ -216,7 +216,7 @@ void* ListenerThread::Entry()
             message = _midiIn->Read(&error);
         }
 
-        wxMilliSleep(50);
+        wxMilliSleep(10);
     }
 
     _midiIn->Close();

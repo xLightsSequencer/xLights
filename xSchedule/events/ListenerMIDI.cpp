@@ -223,7 +223,7 @@ void ListenerMIDI::Poll()
         }
         message = _midiIn->Read(&error);
     }
-    wxMilliSleep(100);
+    wxMilliSleep(10);
 }
 
 void ListenerMIDI::DoSync(int mode, int hours, int mins, int secs, int frames)
