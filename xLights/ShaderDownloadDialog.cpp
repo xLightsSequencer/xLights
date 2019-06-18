@@ -354,7 +354,8 @@ ShaderDownloadDialog::~ShaderDownloadDialog()
 
 void ShaderDownloadDialog::OnTreeCtrl_NavigatorItemActivated(wxTreeEvent& event)
 {
-    ValidateWindow();
+    DoDownload(event.GetItem());
+    EndDialog(wxID_OK);
 }
 
 void ShaderDownloadDialog::OnTreeCtrl_NavigatorSelectionChanged(wxTreeEvent& event)
@@ -538,12 +539,8 @@ void ShaderDownloadDialog::OnButton_DownloadClick(wxCommandEvent& event)
 {
     if (TreeCtrl_Navigator->GetSelection().IsOk())
     {
-        wxTreeItemData* tid = TreeCtrl_Navigator->GetItemData(TreeCtrl_Navigator->GetSelection());
-
-        ((ShaderTreeItemData*)tid)->GetShader()->DownloadFS();
-        _shaderFile = ((ShaderTreeItemData*)tid)->GetShader()->_fsFile;
+        DoDownload(TreeCtrl_Navigator->GetSelection());
     }
-
     EndDialog(wxID_OK);
 }
 
@@ -551,4 +548,11 @@ void ShaderDownloadDialog::OnListView_SitesItemActivated(wxListEvent& event)
 {
     auto label = ListView_Sites->GetItemText(event.GetItem());
     ::wxLaunchDefaultBrowser(label);
+}
+
+void ShaderDownloadDialog::DoDownload(wxTreeItemId& treeitem)
+{
+    wxTreeItemData* tid = TreeCtrl_Navigator->GetItemData(treeitem);
+    ((ShaderTreeItemData*)tid)->GetShader()->DownloadFS();
+    _shaderFile = ((ShaderTreeItemData*)tid)->GetShader()->_fsFile;
 }
