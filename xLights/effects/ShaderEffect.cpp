@@ -218,7 +218,16 @@ ShaderConfig* ShaderEffect::ParseShader(const std::string& filename)
 
 void ShaderEffect::SetDefaultParameters()
 {
+    ShaderPanel* fp = (ShaderPanel*)panel;
+    if (fp == nullptr) {
+        return;
+    }
 
+    fp->BitmapButton_Shader_Speed->SetActive(false);
+
+    SetSliderValue(fp->Slider_Shader_LeadIn, 0);
+    SetSliderValue(fp->Slider_Shader_Speed, 100);
+    fp->FilePickerCtrl1->SetFileName(wxFileName());
 }
 
 void ShaderEffect::RemoveDefaults(const std::string &version, Effect *effect)
@@ -318,6 +327,7 @@ public:
     unsigned s_programId = 0;
     int s_rbWidth = 0;
     int s_rbHeight = 0;
+    long _timeMS = 0;
 
     void InitialiseShaderConfig(const wxString& filename)
     {
@@ -408,12 +418,17 @@ void ShaderEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &b
     unsigned& s_rbTex = cache->s_rbTex;
     int&      s_rbWidth = cache->s_rbWidth;
     int&      s_rbHeight = cache->s_rbHeight;
+    long& _timeMS = cache->_timeMS;
 
     SetGLContext(cache);
+
+    float oset = buffer.GetEffectTimeIntervalPosition();
+    double timeRate = GetValueCurveDouble("Shader_Speed", 100, SettingsMap, oset, SHADER_SPEED_MIN, SHADER_SPEED_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), 1) / 100.0;
 
     if (buffer.needToInit)
     {
         buffer.needToInit = false;
+        _timeMS = SettingsMap.GetInt("TEXTCTRL_Shader_LeadIn", 0) * buffer.frameTimeInMs;
         cache->InitialiseShaderConfig(SettingsMap.Get("0FILEPICKERCTRL_IFS", ""));
         if (_shaderConfig != nullptr)
         {
@@ -423,6 +438,10 @@ void ShaderEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &b
                 logger_base.debug("Fragment shader %s compiled successfully.", (const char*)_shaderConfig->GetFilename().c_str());
             }
         }
+    }
+    else
+    {
+        _timeMS += buffer.frameTimeInMs * timeRate;
     }
 
     // if there is no config then we should paint it red ... just like the video effect
@@ -471,7 +490,7 @@ void ShaderEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &b
 
     loc = glGetUniformLocation( programId, "TIME" );
     if (loc >= 0) {
-        glUniform1f(loc, (GLfloat)(buffer.curPeriod - buffer.curEffStartPer) / (1000.0 / (float)buffer.frameTimeInMs));
+        glUniform1f(loc, (GLfloat)(_timeMS) / 1000.0);
     } else {
         if (buffer.curPeriod == buffer.curEffStartPer && _shaderConfig->HasTime())
             logger_base.warn("Unable to bind to TIME\n%s", (const char*)_shaderConfig->GetCode().c_str());
@@ -490,7 +509,7 @@ void ShaderEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &b
 
     loc = glGetUniformLocation(programId, "FRAMEINDEX");
     if (loc >= 0) {
-        glUniform1i(loc, buffer.curPeriod - buffer.curEffStartPer);
+        glUniform1i(loc, _timeMS / buffer.frameTimeInMs);
     }
 
     loc = glGetUniformLocation(programId, "clearBuffer");
@@ -508,7 +527,6 @@ void ShaderEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &b
         glUniform1i(loc, 0);
     }
     
-    float oset = buffer.GetEffectTimeIntervalPosition();
     for (auto it : _shaderConfig->GetParms())
     {
         loc = glGetUniformLocation(programId, it._name.c_str());

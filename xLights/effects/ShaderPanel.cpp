@@ -5,6 +5,9 @@
 #include "ShaderDownloadDialog.h"
 
 //(*InternalHeaders(ShaderPanel)
+#include <wx/artprov.h>
+#include <wx/bitmap.h>
+#include <wx/image.h>
 #include <wx/intl.h>
 #include <wx/string.h>
 //*)
@@ -15,6 +18,13 @@
 const long ShaderPanel::ID_STATICTEXT1 = wxNewId();
 const long ShaderPanel::ID_0FILEPICKERCTRL_IFS = wxNewId();
 const long ShaderPanel::ID_BUTTON1 = wxNewId();
+const long ShaderPanel::ID_STATICTEXT2 = wxNewId();
+const long ShaderPanel::IDD_SLIDER_Shader_LeadIn = wxNewId();
+const long ShaderPanel::ID_TEXTCTRL_Shader_LeadIn = wxNewId();
+const long ShaderPanel::ID_STATICTEXT3 = wxNewId();
+const long ShaderPanel::ID_SLIDER_Shader_Speed = wxNewId();
+const long ShaderPanel::ID_VALUECURVE_Shader_Speed = wxNewId();
+const long ShaderPanel::IDD_TEXTCTRL_Shader_Speed = wxNewId();
 //*)
 
 ShaderPreview::ShaderPreview( wxWindow* parent, wxWindowID id, const wxPoint &pos, const wxSize &size, long style, const wxString &name, bool coreProfile)
@@ -48,6 +58,7 @@ ShaderPanel::ShaderPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	//(*Initialize(ShaderPanel)
 	wxFlexGridSizer* FlexGridSizer1;
 	wxFlexGridSizer* FlexGridSizer2;
+	wxFlexGridSizer* FlexGridSizer3;
 
 	Create(parent, id, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("id"));
 	FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -55,15 +66,33 @@ ShaderPanel::ShaderPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	FlexGridSizer2 = new wxFlexGridSizer(0, 3, 0, 0);
 	FlexGridSizer2->AddGrowableCol(1);
 	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Shader File:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
-	FlexGridSizer2->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer2->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	FilePickerCtrl1 = new wxFilePickerCtrl(this, ID_0FILEPICKERCTRL_IFS, wxEmptyString, wxEmptyString, _T("*.fs"), wxDefaultPosition, wxDefaultSize, wxFLP_FILE_MUST_EXIST|wxFLP_OPEN|wxFLP_USE_TEXTCTRL, wxDefaultValidator, _T("ID_0FILEPICKERCTRL_IFS"));
-	FlexGridSizer2->Add(FilePickerCtrl1, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer2->Add(FilePickerCtrl1, 1, wxALL|wxEXPAND, 2);
 	Button_Download = new wxButton(this, ID_BUTTON1, _("Download"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
-	FlexGridSizer2->Add(Button_Download, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer2->Add(Button_Download, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 2);
+	FlexGridSizer3 = new wxFlexGridSizer(0, 4, 0, 0);
+	FlexGridSizer3->AddGrowableCol(1);
+	StaticText2 = new wxStaticText(this, ID_STATICTEXT2, _("Lead in frames:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
+	FlexGridSizer3->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+	Slider_Shader_LeadIn = new BulkEditSlider(this, IDD_SLIDER_Shader_LeadIn, 0, 0, 1000, wxDefaultPosition, wxSize(200,-1), 0, wxDefaultValidator, _T("IDD_SLIDER_Shader_LeadIn"));
+	FlexGridSizer3->Add(Slider_Shader_LeadIn, 1, wxALL|wxEXPAND, 2);
+	FlexGridSizer3->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	TextCtrl_Shader_LeadIn = new BulkEditTextCtrl(this, ID_TEXTCTRL_Shader_LeadIn, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(40,-1)), wxTE_RIGHT, wxDefaultValidator, _T("ID_TEXTCTRL_Shader_LeadIn"));
+	FlexGridSizer3->Add(TextCtrl_Shader_LeadIn, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	StaticText3 = new wxStaticText(this, ID_STATICTEXT3, _("Time Speed:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
+	FlexGridSizer3->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+	Slider_Shader_Speed = new BulkEditSliderF2(this, ID_SLIDER_Shader_Speed, 100, -1000, 1000, wxDefaultPosition, wxSize(200,-1), 0, wxDefaultValidator, _T("ID_SLIDER_Shader_Speed"));
+	FlexGridSizer3->Add(Slider_Shader_Speed, 1, wxALL|wxEXPAND, 2);
+	BitmapButton_Shader_Speed = new BulkEditValueCurveButton(this, ID_VALUECURVE_Shader_Speed, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Shader_Speed"));
+	FlexGridSizer3->Add(BitmapButton_Shader_Speed, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	TextCtrl_Shader_Speed = new BulkEditTextCtrlF2(this, IDD_TEXTCTRL_Shader_Speed, _("1.00"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(40,-1)), wxTE_RIGHT, wxDefaultValidator, _T("IDD_TEXTCTRL_Shader_Speed"));
+	FlexGridSizer3->Add(TextCtrl_Shader_Speed, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer1->Add(FlexGridSizer3, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer_Dynamic = new wxFlexGridSizer(0, 3, 0, 0);
 	FlexGridSizer_Dynamic->AddGrowableCol(1);
-	FlexGridSizer1->Add(FlexGridSizer_Dynamic, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer1->Add(FlexGridSizer_Dynamic, 1, wxALL|wxEXPAND, 2);
 	SetSizer(FlexGridSizer1);
 	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
@@ -71,7 +100,13 @@ ShaderPanel::ShaderPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	Connect(ID_0FILEPICKERCTRL_IFS,wxEVT_COMMAND_FILEPICKER_CHANGED,(wxObjectEventFunction)&ShaderPanel::OnFilePickerCtrl1FileChanged);
 	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ShaderPanel::OnButton_DownloadClick);
 	//*)
+
+    Connect(ID_VALUECURVE_Shader_Speed, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)& ShaderPanel::OnVCButtonClick);
+
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)& ShaderPanel::OnVCChanged, 0, this);
+
+    BitmapButton_Shader_Speed->GetValue()->SetLimits(SHADER_SPEED_MIN, SHADER_SPEED_MAX);
+    BitmapButton_Shader_Speed->GetValue()->SetDivisor(SHADER_SPEED_DIVISOR);
 
 	_preview = new ShaderPreview( this, ID_CANVAS );
 }
@@ -87,6 +122,13 @@ PANEL_EVENT_HANDLERS(ShaderPanel)
 
 void ShaderPanel::OnFilePickerCtrl1FileChanged(wxFileDirPickerEvent& event)
 {
+    // restore time to defaults
+    BitmapButton_Shader_Speed->SetActive(false);
+    Slider_Shader_LeadIn->SetValue(0);
+    Slider_Shader_Speed->SetValue(100);
+    TextCtrl_Shader_LeadIn->SetValue("0");
+    TextCtrl_Shader_Speed->SetValue("1.0");
+
     if (wxFile::Exists(FilePickerCtrl1->GetFileName().GetFullPath()))
     {
         BuildUI(FilePickerCtrl1->GetFileName().GetFullPath());

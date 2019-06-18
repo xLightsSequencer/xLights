@@ -3,6 +3,10 @@
 
 #include "RenderableEffect.h"
 
+#define SHADER_SPEED_MIN -1000
+#define SHADER_SPEED_MAX 1000
+#define SHADER_SPEED_DIVISOR 100
+
 enum class ShaderParmType
 {
     SHADER_PARM_IMAGE,

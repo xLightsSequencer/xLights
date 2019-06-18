@@ -2,6 +2,7 @@
 #define SHADERPANEL_H
 
 #include "xlGLCanvas.h"
+#include "../BulkEditControls.h"
 
 class ShaderConfig;
 
@@ -20,11 +21,14 @@ protected:
 };
 
 //(*Headers(ShaderPanel)
+#include <wx/bmpbuttn.h>
 #include <wx/button.h>
 #include <wx/filepicker.h>
 #include <wx/panel.h>
 #include <wx/sizer.h>
+#include <wx/slider.h>
 #include <wx/stattext.h>
+#include <wx/textctrl.h>
 //*)
 
 class ShaderPanel: public wxPanel
@@ -37,10 +41,17 @@ class ShaderPanel: public wxPanel
 		virtual ~ShaderPanel();
 
 		//(*Declarations(ShaderPanel)
+		BulkEditSlider* Slider_Shader_LeadIn;
+		BulkEditSliderF2* Slider_Shader_Speed;
+		BulkEditTextCtrl* TextCtrl_Shader_LeadIn;
+		BulkEditTextCtrlF2* TextCtrl_Shader_Speed;
+		BulkEditValueCurveButton* BitmapButton_Shader_Speed;
 		wxButton* Button_Download;
 		wxFilePickerCtrl* FilePickerCtrl1;
 		wxFlexGridSizer* FlexGridSizer_Dynamic;
 		wxStaticText* StaticText1;
+		wxStaticText* StaticText2;
+		wxStaticText* StaticText3;
 		//*)
 
 	protected:
@@ -49,6 +60,13 @@ class ShaderPanel: public wxPanel
 		static const long ID_STATICTEXT1;
 		static const long ID_0FILEPICKERCTRL_IFS;
 		static const long ID_BUTTON1;
+		static const long ID_STATICTEXT2;
+		static const long IDD_SLIDER_Shader_LeadIn;
+		static const long ID_TEXTCTRL_Shader_LeadIn;
+		static const long ID_STATICTEXT3;
+		static const long ID_SLIDER_Shader_Speed;
+		static const long ID_VALUECURVE_Shader_Speed;
+		static const long IDD_TEXTCTRL_Shader_Speed;
 		//*)
 
 		ShaderPreview *   _preview;
