@@ -18,6 +18,28 @@ A precompiled libliquidfun.a.`uname -p` library and QM Vamp plugins are included
 i686, x86_64 and aarm64 - for other platforms it would need to be recompiled from
 https://github.com/google/liquidfun
 
+== Building for linux via docker container ==
+
+If you wish to build for linux from other platforms or without having to touch your local install you can use Docker to test building
+To setup the nessecary docker image you can checkout the build file from git and build directly via:
+
+    docker build -t xlights-build https://github.com/cjd/xlights-build-docker.git
+
+This will leave you with a suitable base image
+Once this is setup you can build xLights via:
+
+    docker run --name buildvm xlights-build /bin/bash Recipe
+
+If you want to build the appimage you can use:
+
+    docker run --name buildvm xlights-build /bin/bash Recipe.appimage
+
+If you want to create a fresh build then the container can be removed with:
+
+    docker rm buildvm
+
+== Building locally from source ==
+
 These instructions have been tested on the following distributions:
 
   - Ubuntu 18.10

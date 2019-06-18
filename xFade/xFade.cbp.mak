@@ -178,7 +178,7 @@ clean_linux_release:
 
 Settings.cpp: Settings.h
 
-SettingsDialog.cpp: SettingsDialog.h Settings.h UniverseEntryDialog.h FadeExcludeDialog.h
+SettingsDialog.cpp: Settings.h SettingsDialog.h UniverseEntryDialog.h FadeExcludeDialog.h
 
 UniverseEntryDialog.cpp: UniverseEntryDialog.h
 
@@ -196,7 +196,7 @@ Emitter.cpp: Emitter.h xFadeMain.h Settings.h
 
 FadeExcludeDialog.cpp: FadeExcludeDialog.h Settings.h
 
-MIDIAssociateDialog.cpp: MIDIAssociateDialog.h MIDIListener.h
+MIDIAssociateDialog.cpp: MIDIAssociateDialog.h MIDIListener.h Settings.h
 
 MIDIListener.cpp: MIDIListener.h
 
