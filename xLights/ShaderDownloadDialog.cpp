@@ -550,7 +550,7 @@ void ShaderDownloadDialog::OnListView_SitesItemActivated(wxListEvent& event)
     ::wxLaunchDefaultBrowser(label);
 }
 
-void ShaderDownloadDialog::DoDownload(wxTreeItemId& treeitem)
+void ShaderDownloadDialog::DoDownload(const wxTreeItemId& treeitem)
 {
     wxTreeItemData* tid = TreeCtrl_Navigator->GetItemData(treeitem);
     ((ShaderTreeItemData*)tid)->GetShader()->DownloadFS();

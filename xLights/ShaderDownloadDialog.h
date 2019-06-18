@@ -40,7 +40,7 @@ class ShaderDownloadDialog: public wxDialog
     void PopulateShaderPanel(MShader* vendor);
     void LoadShaderImage(std::list<wxFileName> imageFiles, int image);
     void LoadImage(wxStaticBitmap* sb, wxImage* img) const;
-    void DoDownload(wxTreeItemId& treeitem);
+    void DoDownload(const wxTreeItemId& treeitem);
 
 	public:
 
