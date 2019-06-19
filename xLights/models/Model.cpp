@@ -3751,13 +3751,22 @@ wxCursor Model::InitializeLocation(int &handle, wxCoord x, wxCoord y, ModelPrevi
     return GetModelScreenLocation().InitializeLocation(handle, x, y, Nodes, preview);
 }
 
-void Model::ApplyTransparency(xlColor &color, int transparency) const
+void Model::ApplyTransparency(xlColor& color, int transparency) const
 {
+    const int minColorTransparency = 30;
+    int colorTransparency = minColorTransparency + (255 - minColorTransparency) * std::max(color.red, std::max(color.green, color.blue)) / 255;
+    if (colorTransparency > 255) colorTransparency = 255;
     if (transparency) {
         float t = 100.0f - transparency;
         t *= 2.55f;
+        t *= colorTransparency;
+        t /= 255.0;
         transparency = t;
         color.alpha = transparency > 255 ? 255 : (transparency < 0 ? 0 : transparency);
+    }
+    else
+    {
+        color.alpha = colorTransparency;
     }
 }
 
