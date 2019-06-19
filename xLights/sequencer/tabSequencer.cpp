@@ -2091,6 +2091,26 @@ void xLightsFrame::OnEffectSettingsTimerTrigger(wxTimerEvent& event)
     }
 }
 
+int xLightsFrame::GetCurrentPlayTime()
+{
+    wxTimeSpan ts = wxDateTime::UNow() - starttime;
+    long msec = ts.GetMilliseconds().ToLong();
+
+    // record current time
+    int curt = (playStartTime + msec - playStartMS);
+
+    if (playType == PLAY_TYPE_MODEL) {
+
+        int current_play_time;
+        if (CurrentSeqXmlFile->GetSequenceType() == "Media" && CurrentSeqXmlFile->GetMedia() != nullptr && CurrentSeqXmlFile->GetMedia()->GetPlayingState() == MEDIAPLAYINGSTATE::PLAYING)
+        {
+            curt = CurrentSeqXmlFile->GetMedia()->Tell();
+        }
+    }
+
+    return curt;
+}
+
 void xLightsFrame::TimerRgbSeq(long msec)
 {
     //check if there are models that depend on timing tracks or similar that need to be rendered

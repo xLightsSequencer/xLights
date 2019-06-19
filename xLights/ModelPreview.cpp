@@ -88,9 +88,12 @@ void ModelPreview::OnZoomGesture(wxZoomGestureEvent& event) {
         float delta = (m_last_mouse_x - (event.GetZoomFactor() * 1000)) / 1000.0;
         SetZoomDelta(delta > 0.0 ? 0.1f : -0.1f);
         if (xlights != nullptr) {
-            if (xlights->GetPlayStatus() == PLAY_TYPE_STOPPED) {
+            if (xlights->GetPlayStatus() == PLAY_TYPE_STOPPED || xlights->GetPlayStatus() == PLAY_TYPE_MODEL_PAUSED || xlights->GetPlayStatus() == PLAY_TYPE_EFFECT_PAUSED) {
                 Refresh();
                 Update();
+                if (xlights->GetPlayStatus() == PLAY_TYPE_MODEL_PAUSED || xlights->GetPlayStatus() == PLAY_TYPE_EFFECT_PAUSED) {
+                    Render(&xlights->SeqData[xlights->GetCurrentPlayTime() / xlights->SeqData.FrameTime()][0]);
+                }
             }
         }
     }
@@ -103,9 +106,12 @@ void ModelPreview::mouseMoved(wxMouseEvent& event) {
 		int delta_y = event.GetPosition().y - m_last_mouse_y;
 		SetCameraView(delta_x, delta_y, false);
         if (xlights != nullptr) {
-            if (xlights->GetPlayStatus() == PLAY_TYPE_STOPPED) {
+            if (xlights->GetPlayStatus() == PLAY_TYPE_STOPPED || xlights->GetPlayStatus() == PLAY_TYPE_MODEL_PAUSED || xlights->GetPlayStatus() == PLAY_TYPE_EFFECT_PAUSED) {
                 Refresh();
                 Update();
+                if (xlights->GetPlayStatus() == PLAY_TYPE_MODEL_PAUSED || xlights->GetPlayStatus() == PLAY_TYPE_EFFECT_PAUSED) {
+                    Render(&xlights->SeqData[xlights->GetCurrentPlayTime() / xlights->SeqData.FrameTime()][0]);
+                }
             }
         }
     } else if (m_wheel_down) {
@@ -144,9 +150,12 @@ void ModelPreview::mouseMoved(wxMouseEvent& event) {
         m_last_mouse_x = event.GetX();
         m_last_mouse_y = event.GetY();
         if (xlights != nullptr) {
-            if (xlights->GetPlayStatus() == PLAY_TYPE_STOPPED) {
+            if (xlights->GetPlayStatus() == PLAY_TYPE_STOPPED || xlights->GetPlayStatus() == PLAY_TYPE_MODEL_PAUSED || xlights->GetPlayStatus() == PLAY_TYPE_EFFECT_PAUSED) {
                 Refresh();
                 Update();
+                if (xlights->GetPlayStatus() == PLAY_TYPE_MODEL_PAUSED || xlights->GetPlayStatus() == PLAY_TYPE_EFFECT_PAUSED) {
+                    Render(&xlights->SeqData[xlights->GetCurrentPlayTime() / xlights->SeqData.FrameTime()][0]);
+                }
             }
         }
     }
@@ -316,11 +325,13 @@ void ModelPreview::mouseWheelMoved(wxMouseEvent& event) {
             m_last_mouse_y = event.GetY();
         }
     }
-
     if (xlights != nullptr) {
-        if(xlights->GetPlayStatus() == PLAY_TYPE_STOPPED) {
+        if (xlights->GetPlayStatus() == PLAY_TYPE_STOPPED || xlights->GetPlayStatus() == PLAY_TYPE_MODEL_PAUSED || xlights->GetPlayStatus() == PLAY_TYPE_EFFECT_PAUSED) {
             Refresh();
             Update();
+            if (xlights->GetPlayStatus() == PLAY_TYPE_MODEL_PAUSED || xlights->GetPlayStatus() == PLAY_TYPE_EFFECT_PAUSED) {
+                Render(&xlights->SeqData[xlights->GetCurrentPlayTime() / xlights->SeqData.FrameTime()][0]);
+            }
         }
     }
     event.ResumePropagation(1);
