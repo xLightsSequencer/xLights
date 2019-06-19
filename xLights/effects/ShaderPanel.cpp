@@ -122,6 +122,14 @@ PANEL_EVENT_HANDLERS(ShaderPanel)
 
 void ShaderPanel::OnFilePickerCtrl1FileChanged(wxFileDirPickerEvent& event)
 {
+    static wxString last = "";
+
+    wxString newf = FilePickerCtrl1->GetFileName().GetFullName();
+
+    // if shader name hasnt changed dont reset
+    if (newf == last && (newf == "" || wxFile::Exists(FilePickerCtrl1->GetFileName().GetFullPath()))) return;
+    last = newf;
+
     // restore time to defaults
     BitmapButton_Shader_Speed->SetActive(false);
     Slider_Shader_LeadIn->SetValue(0);

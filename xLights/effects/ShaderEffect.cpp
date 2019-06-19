@@ -230,6 +230,31 @@ void ShaderEffect::SetDefaultParameters()
     fp->FilePickerCtrl1->SetFileName(wxFileName());
 }
 
+bool ShaderEffect::needToAdjustSettings(const std::string& version)
+{
+    return true;
+}
+
+void ShaderEffect::adjustSettings(const std::string& version, Effect* effect, bool removeDefaults)
+{
+    // give the base class a chance to adjust any settings
+    if (RenderableEffect::needToAdjustSettings(version))
+    {
+        RenderableEffect::adjustSettings(version, effect, removeDefaults);
+    }
+
+    SettingsMap& settings = effect->GetSettings();
+
+    std::string file = settings["E_0FILEPICKERCTRL_IFS"];
+    if (file != "")
+    {
+        if (!wxFile::Exists(file))
+        {
+            settings["E_0FILEPICKERCTRL_IFS"] = FixFile("", file);
+        }
+    }
+}
+
 void ShaderEffect::RemoveDefaults(const std::string &version, Effect *effect)
 {
     RenderableEffect::RemoveDefaults(version, effect);
