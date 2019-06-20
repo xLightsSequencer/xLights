@@ -77,26 +77,26 @@ namespace
     {
         GLuint texId = 0;
 
-        glGenTextures(1, &texId);
-        glBindTexture(GL_TEXTURE_2D, texId);
+        LOG_GL_ERRORV(glGenTextures(1, &texId));
+        LOG_GL_ERRORV(glBindTexture(GL_TEXTURE_2D, texId));
 
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+        LOG_GL_ERRORV(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr));
 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-        glBindTexture(GL_TEXTURE_2D, 0);
+        LOG_GL_ERRORV(glBindTexture(GL_TEXTURE_2D, 0));
 
         return texId;
     }
 
     bool createOpenGLRenderBuffer(int width, int height, GLuint* rbID, GLuint* fbID)
     {
-        glGenRenderbuffers(1, rbID);
-        glBindRenderbuffer(GL_RENDERBUFFER, *rbID);
-        glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA, width, height);
+        LOG_GL_ERRORV(glGenRenderbuffers(1, rbID));
+        LOG_GL_ERRORV(glBindRenderbuffer(GL_RENDERBUFFER, *rbID));
+        LOG_GL_ERRORV(glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA, width, height));
 
         glGenFramebuffers(1, fbID);
         glBindFramebuffer(GL_FRAMEBUFFER, *fbID);
@@ -267,14 +267,17 @@ public:
     GLContextPool() {
     }
     ~GLContextPool() {
+        static log4cpp::Category& logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
         while (!contexts.empty()) {
             wxGLContext *ret = contexts.front();
             delete ret;
+            logger_opengl.debug("Shader opengl context destroyed 0x%llx", (uint64_t)ret);
             contexts.pop();
         }
     }
 
     wxGLContext *GetContext(wxGLCanvas *parent) {
+        static log4cpp::Category& logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
         // This seems odd but manually releasing the lock causes hard crashes on Visual Studio
         bool contextsEmpty = false;
         {
@@ -290,12 +293,15 @@ public:
             std::unique_lock<std::mutex> locker(lock);
             wxGLContext *ret = contexts.front();
             contexts.pop();
+            logger_opengl.debug("Shader opengl context taken from pool 0x%llx", (uint64_t)ret);
             return ret;
         }
     }
     void ReleaseContext(wxGLContext *pctx) {
+        static log4cpp::Category& logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
         std::unique_lock<std::mutex> locker(lock);
         contexts.push(pctx);
+        logger_opengl.debug("Shader opengl context released 0x%llx", (uint64_t)pctx);
     }
 
     wxGLContext *create(wxGLCanvas *canv) {
@@ -317,6 +323,7 @@ public:
                 LOG_GL_ERRORV(delete context);
                 LOG_GL_ERRORV(context = new wxGLContext(canv));
             }
+            logger_opengl.debug("Shader opengl context created 0x%llx", (uint64_t)context);
             return context;
         } else {
             std::mutex mtx;
@@ -504,7 +511,7 @@ void ShaderEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &b
     sizeForRenderBuffer( buffer, s_shadersInit, s_vertexArrayId, s_vertexBufferId, s_rbId, s_fbId, s_rbTex, s_rbWidth, s_rbHeight );
 
     glBindFramebuffer( GL_FRAMEBUFFER, s_fbId );
-    glViewport( 0, 0, buffer.BufferWi, buffer.BufferHt );
+    LOG_GL_ERRORV(glViewport( 0, 0, buffer.BufferWi, buffer.BufferHt ));
 
     glClearColor( 0.f, 0.f, 0.f, 0.f );
     glClear( GL_COLOR_BUFFER_BIT );
