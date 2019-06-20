@@ -6,7 +6,7 @@
 #include <wx/wx.h>
 #include <wx/config.h>
 
-#ifndef __WXMAC__
+#ifndef __WXOSX__
     #include <GL/gl.h>
     #ifdef _MSC_VER
         #include "GL\glext.h"
@@ -301,8 +301,23 @@ public:
     wxGLContext *create(wxGLCanvas *canv) {
         if (wxThread::IsMain()) {
             wxGLContextAttrs cxtAttrs;
-            cxtAttrs.OGLVersion(3, 3).CoreProfile().ForwardCompatible().EndList();
-            return new wxGLContext(canv, nullptr, &cxtAttrs);
+            cxtAttrs.PlatformDefaults().OGLVersion(3, 3).CoreProfile();
+            static log4cpp::Category &logger_opengl_trace = log4cpp::Category::getInstance(std::string("log_opengl_trace"));
+            static log4cpp::Category &logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
+            if (logger_opengl_trace.isDebugEnabled()) {
+                cxtAttrs.ForwardCompatible().DebugCtx().EndList();
+            }
+            cxtAttrs.EndList();
+            glGetError();
+            wxGLContext *context;
+            LOG_GL_ERRORV(context = new wxGLContext(canv, nullptr, &cxtAttrs));
+            
+            if (!context->IsOK()) {
+                logger_opengl.debug("Could not create a valid CoreProfile context");
+                LOG_GL_ERRORV(delete context);
+                LOG_GL_ERRORV(context = new wxGLContext(canv));
+            }
+            return context;
         } else {
             std::mutex mtx;
             std::condition_variable signal;
