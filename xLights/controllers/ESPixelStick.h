@@ -48,7 +48,7 @@ public:
     virtual bool SupportsMultipleInputProtocols() const override { return false; }
     virtual bool AllUniversesSameSize() const override { return true; }
     virtual std::set<std::string> GetSupportedInputProtocols() const override {
-        std::set<std::string> res = {"E131"};
+        std::set<std::string> res = {"E131", "DDP"};
         return res;
     };
     virtual bool UniversesMustBeSequential() const override { return true; }

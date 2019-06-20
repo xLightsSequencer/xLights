@@ -260,20 +260,20 @@ void ShaderEffect::RemoveDefaults(const std::string &version, Effect *effect)
     RenderableEffect::RemoveDefaults(version, effect);
 }
 
-#ifdef __WXWIN__
+#ifdef __WXMSW__
 class GLContextPool {
 public:
-    
-    ContextPool() {
+
+    GLContextPool() {
     }
-    ~ContextPool() {
+    ~GLContextPool() {
         while (!contexts.empty()) {
             wxGLContext *ret = contexts.front();
             delete ret;
             contexts.pop();
         }
     }
-    
+
     wxGLContext *GetContext(wxGLCanvas *parent) {
         // This seems odd but manually releasing the lock causes hard crashes on Visual Studio
         bool contextsEmpty = false;
@@ -281,11 +281,11 @@ public:
             std::unique_lock<std::mutex> locker(lock);
             contextsEmpty = contexts.empty();
         }
-        
+
         if (contextsEmpty) {
             return create(parent);
         }
-        
+
         {
             std::unique_lock<std::mutex> locker(lock);
             wxGLContext *ret = contexts.front();
@@ -297,18 +297,18 @@ public:
         std::unique_lock<std::mutex> locker(lock);
         contexts.push(pctx);
     }
-    
+
     wxGLContext *create(wxGLCanvas *canv) {
         if (wxThread::IsMain()) {
             wxGLContextAttrs cxtAttrs;
             cxtAttrs.OGLVersion(3, 3).CoreProfile().ForwardCompatible().EndList();
-            return new wxGLContext(canv, nullptr, &cxtAttrs)
+            return new wxGLContext(canv, nullptr, &cxtAttrs);
         } else {
             std::mutex mtx;
             std::condition_variable signal;
             std::unique_lock<std::mutex> lck(mtx);
             wxGLContext *tdc;
-            canv->CallAfter([&mtx, &signal, &tdc, canv]() {
+            canv->CallAfter([&mtx, &signal, &tdc, canv, this]() {
                 std::unique_lock<std::mutex> lck(mtx);
                 tdc = create(canv);
                 signal.notify_all();
@@ -335,7 +335,7 @@ public:
         if (s_glContext) {
             WXGLDestroyContext(s_glContext);
         }
-#elif defined(__WXWIN__)
+#elif defined(__WXMSW__)
         if (s_glContext) {
             GL_CONTEXT_POOL.ReleaseContext(s_glContext);
         }
@@ -359,18 +359,18 @@ public:
         if (_shaderConfig != nullptr) delete _shaderConfig;
         _shaderConfig = ShaderEffect::ParseShader(filename);
     }
-    
+
 #if defined(__WXOSX__)
     WXGLContext s_glContext = nullptr;
-#elif defined(__WXWIN__)
-    wxGLContext s_glContext = nullptr;
+#elif defined(__WXMSW__)
+    wxGLContext *s_glContext = nullptr;
 #endif
 };
 
 
 bool ShaderEffect::CanRenderOnBackgroundThread(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer)
 {
-#if defined(__WXOSX__) || defined(__WXWIN__)
+#if defined(__WXOSX__) || defined(__WXMSW__)
     // if we create a specific OpenGL context for this thread and not try to share contexts between threads,
     // the OSX GL engine is thread safe.
     //
@@ -392,7 +392,7 @@ void ShaderEffect::SetGLContext(ShaderRenderCache *cache) {
         attributes.MinRGBA(8, 8, 8, 8).EndList();
         wxGLContextAttrs cxtAttrs;
         cxtAttrs.CoreProfile().EndList();
-        
+
         WXGLPixelFormat pixelFormat = WXGLChoosePixelFormat(attributes.GetGLAttrs(),
                                                             attributes.GetSize(),
                                                             cxtAttrs.GetGLAttrs(),
@@ -401,12 +401,12 @@ void ShaderEffect::SetGLContext(ShaderRenderCache *cache) {
         WXGLDestroyPixelFormat(pixelFormat);
     }
     WXGLSetCurrentContext(cache->s_glContext);
-#elif defined(__WXWIN__)
+#elif defined(__WXMSW__)
     ShaderPanel *p = (ShaderPanel *)panel;
     if (cache->s_glContext == nullptr) {
         cache->s_glContext = GL_CONTEXT_POOL.GetContext(p->_preview);
     }
-    cache->s_glContext->SetCurrent(p->_preview);
+    cache->s_glContext->SetCurrent(*(p->_preview));
 #else
     ShaderPanel *p = (ShaderPanel *)panel;
     p->_preview->SetCurrentGLContext();
@@ -551,7 +551,7 @@ void ShaderEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &b
     if (loc >= 0) {
         glUniform1i(loc, 0);
     }
-    
+
     for (auto it : _shaderConfig->GetParms())
     {
         loc = glGetUniformLocation(programId, it._name.c_str());
@@ -586,7 +586,7 @@ void ShaderEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &b
             }
             case ShaderParmType::SHADER_PARM_LONG:
             {
-                long l = GetValueCurveInt(it.GetUndecoratedId(ShaderCtrlType::SHADER_CTRL_VALUECURVE), it._default, SettingsMap, oset, it._min, it._max, 
+                long l = GetValueCurveInt(it.GetUndecoratedId(ShaderCtrlType::SHADER_CTRL_VALUECURVE), it._default, SettingsMap, oset, it._min, it._max,
                     buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), 1);
                 glUniform1i(loc, l);
                 break;
@@ -598,7 +598,7 @@ void ShaderEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &b
                 if (colourIndex > buffer.GetColorCount()) colourIndex = 0;
                 glUniform4f(loc, (double)c.red / 255.0, (double)c.green / 255.0, (double)c.blue / 255.0, 1.0);
                 break;
-            }            
+            }
             default:
                 logger_base.warn("No binding supported for %s ... we have more work to do.", (const char*)it._name.c_str());
                 break;
