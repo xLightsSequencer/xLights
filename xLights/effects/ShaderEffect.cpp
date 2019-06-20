@@ -261,6 +261,70 @@ void ShaderEffect::RemoveDefaults(const std::string &version, Effect *effect)
 }
 
 #ifdef __WXMSW__
+
+typedef HGLRC(WINAPI * wglCreateContextAttribsARB_t)
+(HDC hDC, HGLRC hShareContext, const int *attribList);
+template <typename T>
+inline T wxWGLProcCast(PROC proc)
+{
+    return reinterpret_cast<T>(proc);
+}
+#define wxDEFINE_WGL_FUNC(name) \
+name##_t name = wxWGLProcCast<name##_t>(wglGetProcAddress(#name))
+
+class ShaderGLCanvas : public xlGLCanvas {
+public:
+    ShaderGLCanvas(wxWindow *parent) : xlGLCanvas(parent, -1) {}
+    virtual ~ShaderGLCanvas() {}
+    
+    virtual void InitializeGLContext() {}
+    
+};
+
+class GLContextInfo {
+public:
+    GLContextInfo(xlGLCanvas *win) {
+        
+        //we need a valid context to get the ARB
+        win->SetCurrentGLContext();
+        wxDEFINE_WGL_FUNC(wglCreateContextAttribsARB);
+        wglMakeCurrent(win->GetHDC(), nullptr);
+        
+        //create a new window and new HDC specifically for this context, we
+        // won't display this anywhere, but it's required to get the hardware accelerated
+        // contexts and such.
+        canvas = new ShaderGLCanvas(win->GetParent());
+        _hdc = canvas->GetHDC();
+        
+        // we need core profile/3.3
+        wxGLContextAttrs cxtAttrs;
+        cxtAttrs.PlatformDefaults().OGLVersion(3, 3).CoreProfile().EndList();
+        _context = wglCreateContextAttribsARB(_hdc, 0, cxtAttrs.GetGLAttrs());
+        
+        //now unset this as current on the main thread
+        wglMakeCurrent(nullptr, nullptr);
+    }
+    ~GLContextInfo() {
+        wglDeleteContext(_context);
+        delete canvas;
+    }
+    void SetCurrent() {
+        for (int x = 0; x < 10; x++) {
+            if (wglMakeCurrent(_hdc, _context)) {
+                return;
+            }
+            wxMilliSleep(1);
+        }
+    }
+    void UnsetCurrent() {
+        wglMakeCurrent(nullptr, nullptr);
+    }
+    
+    HGLRC _context;
+    HDC _hdc;
+    xlGLCanvas *canvas;
+};
+
 class GLContextPool {
 public:
 
@@ -268,13 +332,13 @@ public:
     }
     ~GLContextPool() {
         while (!contexts.empty()) {
-            wxGLContext *ret = contexts.front();
+            GLContextInfo *ret = contexts.front();
             delete ret;
             contexts.pop();
         }
     }
 
-    wxGLContext *GetContext(wxGLCanvas *parent) {
+    GLContextInfo *GetContext(xlGLCanvas *parent) {
         static log4cpp::Category& logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
         // This seems odd but manually releasing the lock causes hard crashes on Visual Studio
         bool contextsEmpty = false;
@@ -289,57 +353,36 @@ public:
 
         {
             std::unique_lock<std::mutex> locker(lock);
-            wxGLContext *ret = contexts.front();
+            GLContextInfo *ret = contexts.front();
             contexts.pop();
             logger_opengl.debug("Shader opengl context taken from pool 0x%llx", (uint64_t)ret);
             return ret;
         }
     }
-    void ReleaseContext(wxGLContext *pctx) {
+    void ReleaseContext(GLContextInfo *pctx) {
         static log4cpp::Category& logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
         std::unique_lock<std::mutex> locker(lock);
         contexts.push(pctx);
         logger_opengl.debug("Shader opengl context released 0x%llx", (uint64_t)pctx);
     }
 
-    wxGLContext *create(wxGLCanvas *canv) {
-        if (wxThread::IsMain()) {
-            wxGLContextAttrs cxtAttrs;
-            cxtAttrs.PlatformDefaults().OGLVersion(3, 3).CoreProfile();
-            static log4cpp::Category &logger_opengl_trace = log4cpp::Category::getInstance(std::string("log_opengl_trace"));
-            static log4cpp::Category &logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
-            if (logger_opengl_trace.isDebugEnabled()) {
-                cxtAttrs.ForwardCompatible().DebugCtx().EndList();
-            }
-            cxtAttrs.EndList();
-            glGetError();
-            wxGLContext *context;
-            LOG_GL_ERRORV(context = new wxGLContext(canv, nullptr, &cxtAttrs));
-            
-            if (!context->IsOK()) {
-                logger_opengl.debug("Could not create a valid CoreProfile context");
-                LOG_GL_ERRORV(delete context);
-                LOG_GL_ERRORV(context = new wxGLContext(canv));
-            }
-            logger_opengl.debug("Shader opengl context created 0x%llx", (uint64_t)context);
-            return context;
-        } else {
-            std::mutex mtx;
-            std::condition_variable signal;
+    GLContextInfo *create(xlGLCanvas *canv) {
+        std::mutex mtx;
+        std::condition_variable signal;
+        std::unique_lock<std::mutex> lck(mtx);
+        GLContextInfo *tdc = nullptr;
+        canv->CallAfter([&mtx, &signal, &tdc, canv]() {
             std::unique_lock<std::mutex> lck(mtx);
-            wxGLContext *tdc;
-            canv->CallAfter([&mtx, &signal, &tdc, canv, this]() {
-                std::unique_lock<std::mutex> lck(mtx);
-                tdc = create(canv);
-                signal.notify_all();
-            });
-            signal.wait(lck);
-            return tdc;
-        }
+            tdc = new GLContextInfo(canv);
+            lck.unlock();
+            signal.notify_all();
+        });
+        signal.wait(lck, [&tdc] {return tdc != nullptr;});
+        return tdc;
     }
 private:
     std::mutex lock;
-    std::queue<wxGLContext*> contexts;
+    std::queue<GLContextInfo*> contexts;
 } GL_CONTEXT_POOL;
 #endif
 
@@ -356,8 +399,9 @@ public:
             WXGLDestroyContext(s_glContext);
         }
 #elif defined(__WXMSW__)
-        if (s_glContext) {
-            GL_CONTEXT_POOL.ReleaseContext(s_glContext);
+        if (glContextInfo) {
+            glContextInfo->UnsetCurrent();
+            GL_CONTEXT_POOL.ReleaseContext(glContextInfo);
         }
 #endif
     }
@@ -383,7 +427,7 @@ public:
 #if defined(__WXOSX__)
     WXGLContext s_glContext = nullptr;
 #elif defined(__WXMSW__)
-    wxGLContext *s_glContext = nullptr;
+    GLContextInfo *glContextInfo = nullptr;
 #endif
 };
 
@@ -423,10 +467,22 @@ void ShaderEffect::SetGLContext(ShaderRenderCache *cache) {
     WXGLSetCurrentContext(cache->s_glContext);
 #elif defined(__WXMSW__)
     ShaderPanel *p = (ShaderPanel *)panel;
-    if (cache->s_glContext == nullptr) {
-        cache->s_glContext = GL_CONTEXT_POOL.GetContext(p->_preview);
+    if (cache->glContextInfo == nullptr) {
+        cache->glContextInfo = GL_CONTEXT_POOL.GetContext(p->_preview);
+        
+        cache->glContextInfo->SetCurrent();
+        const GLubyte* str = glGetString(GL_VERSION);
+        const GLubyte* rend = glGetString(GL_RENDERER);
+        const GLubyte* vend = glGetString(GL_VENDOR);
+        wxString configs = wxString::Format("ShaderEffect - glVer:  %s  (%s)(%s)",
+                                            (const char *)str,
+                                            (const char *)rend,
+                                            (const char *)vend);
+        
+        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        logger_base.info(configs);
     }
-    cache->s_glContext->SetCurrent(*(p->_preview));
+    cache->glContextInfo->SetCurrent();
 #else
     ShaderPanel *p = (ShaderPanel *)panel;
     p->_preview->SetCurrentGLContext();
