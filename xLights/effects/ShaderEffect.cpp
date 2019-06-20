@@ -267,11 +267,9 @@ public:
     GLContextPool() {
     }
     ~GLContextPool() {
-        static log4cpp::Category& logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
         while (!contexts.empty()) {
             wxGLContext *ret = contexts.front();
             delete ret;
-            logger_opengl.debug("Shader opengl context destroyed 0x%llx", (uint64_t)ret);
             contexts.pop();
         }
     }
