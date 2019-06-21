@@ -180,7 +180,7 @@ public:
 
 protected:
     void SetGLContext(ShaderRenderCache*);
-    void UnsetGLContext(RenderBuffer& buffer, ShaderRenderCache*);
+    void UnsetGLContext(ShaderRenderCache*);
 
     virtual void RemoveDefaults(const std::string& version, Effect* effect) override;
     virtual wxPanel* CreatePanel(wxWindow* parent) override;

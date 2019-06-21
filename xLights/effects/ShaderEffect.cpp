@@ -278,28 +278,27 @@ public:
     virtual ~ShaderGLCanvas() {}
     
     virtual void InitializeGLContext() {}
-    
 };
 
 class GLContextInfo {
 public:
-    GLContextInfo(xlGLCanvas *win) {
+    GLContextInfo(xlGLCanvas* win) : _canvas(nullptr), _context(nullptr) {
         static log4cpp::Category& logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
         //we need a valid context to get the ARB
         win->SetCurrentGLContext();
         wxDEFINE_WGL_FUNC(wglCreateContextAttribsARB);
-        LOG_GL_ERRORV(wglMakeCurrent(win->GetHDC(), nullptr));
+        wglMakeCurrent(win->GetHDC(), nullptr);
         
         //create a new window and new HDC specifically for this context, we
         // won't display this anywhere, but it's required to get the hardware accelerated
         // contexts and such.
-        LOG_GL_ERRORV(canvas = new ShaderGLCanvas(win->GetParent()));
-        _hdc = canvas->GetHDC();
+        _canvas = new ShaderGLCanvas(win->GetParent());
+        _hdc = _canvas->GetHDC();
         
         // we need core profile/3.3
         wxGLContextAttrs cxtAttrs;
         cxtAttrs.PlatformDefaults().OGLVersion(3, 3).CoreProfile().EndList();
-        LOG_GL_ERRORV(_context = wglCreateContextAttribsARB(_hdc, 0, cxtAttrs.GetGLAttrs()));
+        _context = wglCreateContextAttribsARB(_hdc, 0, cxtAttrs.GetGLAttrs());
         logger_opengl.debug("ShaderEffect Thread %d created open gl context 0x%llx.", wxThread::GetCurrentId(), (uint64_t)_context);
 
         //now unset this as current on the main thread
@@ -307,7 +306,8 @@ public:
     }
     ~GLContextInfo() {
         wglDeleteContext(_context);
-        delete canvas;
+        // by the time we get here it seems to be destroyed ... possibly because its parent has been destroyed
+        //delete _canvas;
     }
     void SetCurrent() {
         static log4cpp::Category& logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
@@ -335,7 +335,7 @@ public:
     
     HGLRC _context;
     HDC _hdc;
-    xlGLCanvas *canvas;
+    xlGLCanvas *_canvas;
 };
 
 class GLContextPool {
@@ -459,12 +459,11 @@ bool ShaderEffect::CanRenderOnBackgroundThread(Effect* effect, const SettingsMap
 #endif
 }
 
-void ShaderEffect::UnsetGLContext(RenderBuffer& buffer, ShaderRenderCache* cache) {
+void ShaderEffect::UnsetGLContext(ShaderRenderCache* cache) {
 #if defined(__WXMSW__)
     if (cache->glContextInfo != nullptr) {
-        if (buffer.curEffEndPer == buffer.curPeriod) {
-            cache->glContextInfo->UnsetCurrent();
-        }
+        // release it from the thread every time so we never find ourselves in a situation where it has not been released by a thread
+        cache->glContextInfo->UnsetCurrent();
     }
 #endif
 }
@@ -491,6 +490,7 @@ void ShaderEffect::SetGLContext(ShaderRenderCache *cache) {
 #elif defined(__WXMSW__)
     ShaderPanel *p = (ShaderPanel *)panel;
     if (cache->glContextInfo == nullptr) {
+        // we grab it here and release it when the cache is deleted
         cache->glContextInfo = GL_CONTEXT_POOL.GetContext(p->_preview);
         
         cache->glContextInfo->SetCurrent();
@@ -507,8 +507,8 @@ void ShaderEffect::SetGLContext(ShaderRenderCache *cache) {
     }
     else
     {
-        // should not need to do this as we hold onto the context until rendering is done
-        // cache->glContextInfo->SetCurrent();
+        // we still need to grab the gl context to this thread
+        cache->glContextInfo->SetCurrent();
     }
 #else
     ShaderPanel *p = (ShaderPanel *)panel;
@@ -517,17 +517,17 @@ void ShaderEffect::SetGLContext(ShaderRenderCache *cache) {
 }
 
 
-void ShaderEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &buffer)
+void ShaderEffect::Render(Effect* eff, SettingsMap& SettingsMap, RenderBuffer& buffer)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     // Bail out right away if we don't have the necessary OpenGL support
-   if ( !OpenGLShaders::HasFramebufferObjects() || !OpenGLShaders::HasShaderSupport() )
-   {
-      setRenderBufferAll(buffer, *wxCYAN);
-      logger_base.error( "ShaderEffect::Render() - missing OpenGL support!!" );
-      return;
-   }
+    if (!OpenGLShaders::HasFramebufferObjects() || !OpenGLShaders::HasShaderSupport())
+    {
+        setRenderBufferAll(buffer, *wxCYAN);
+        logger_base.error("ShaderEffect::Render() - missing OpenGL support!!");
+        return;
+    }
 
     ShaderRenderCache* cache = (ShaderRenderCache*)buffer.infoCache[id];
     if (cache == nullptr) {
@@ -537,15 +537,15 @@ void ShaderEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &b
 
     // This object has all the data from the json in the .fs file
     ShaderConfig*& _shaderConfig = cache->_shaderConfig;
-    bool&     s_shadersInit = cache->s_shadersInit;
+    bool& s_shadersInit = cache->s_shadersInit;
     unsigned& s_vertexArrayId = cache->s_vertexArrayId;
     unsigned& s_vertexBufferId = cache->s_vertexBufferId;
     unsigned& s_fbId = cache->s_fbId;
     unsigned& s_rbId = cache->s_rbId;
     unsigned& s_programId = cache->s_programId;
     unsigned& s_rbTex = cache->s_rbTex;
-    int&      s_rbWidth = cache->s_rbWidth;
-    int&      s_rbHeight = cache->s_rbHeight;
+    int& s_rbWidth = cache->s_rbWidth;
+    int& s_rbHeight = cache->s_rbHeight;
     long& _timeMS = cache->_timeMS;
 
     SetGLContext(cache);
@@ -573,16 +573,16 @@ void ShaderEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &b
     }
 
     // if there is no config then we should paint it red ... just like the video effect
-    if ( _shaderConfig == nullptr)
+    if (_shaderConfig == nullptr)
     {
-       setRenderBufferAll( buffer, *wxRED);
-       UnsetGLContext(buffer, cache);
-       return;
+        setRenderBufferAll(buffer, *wxRED);
+        UnsetGLContext(cache);
+        return;
     }
     else if (s_programId == 0)
     {
         setRenderBufferAll(buffer, *wxYELLOW);
-        UnsetGLContext(buffer, cache);
+        UnsetGLContext(cache);
         return;
     }
 
@@ -591,37 +591,39 @@ void ShaderEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &b
     // ***********************************************************************************************************
 
     // We re-use the same framebuffer for rendering all the shader effects
-    sizeForRenderBuffer( buffer, s_shadersInit, s_vertexArrayId, s_vertexBufferId, s_rbId, s_fbId, s_rbTex, s_rbWidth, s_rbHeight );
+    sizeForRenderBuffer(buffer, s_shadersInit, s_vertexArrayId, s_vertexBufferId, s_rbId, s_fbId, s_rbTex, s_rbWidth, s_rbHeight);
 
-    glBindFramebuffer( GL_FRAMEBUFFER, s_fbId );
-    LOG_GL_ERRORV(glViewport( 0, 0, buffer.BufferWi, buffer.BufferHt ));
+    glBindFramebuffer(GL_FRAMEBUFFER, s_fbId);
+    LOG_GL_ERRORV(glViewport(0, 0, buffer.BufferWi, buffer.BufferHt));
 
-    glClearColor( 0.f, 0.f, 0.f, 0.f );
-    glClear( GL_COLOR_BUFFER_BIT );
+    glClearColor(0.f, 0.f, 0.f, 0.f);
+    glClear(GL_COLOR_BUFFER_BIT);
 
-    glActiveTexture( GL_TEXTURE0 );
-    glBindTexture( GL_TEXTURE_2D, s_rbTex );
-    glTexSubImage2D( GL_TEXTURE_2D, 0, 0,0, buffer.BufferWi,buffer.BufferHt, GL_RGBA, GL_UNSIGNED_BYTE, &buffer.pixels[0] );
-    glBindVertexArray( s_vertexArrayId );
-    glBindBuffer( GL_ARRAY_BUFFER, s_vertexBufferId );
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, s_rbTex);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, buffer.BufferWi, buffer.BufferHt, GL_RGBA, GL_UNSIGNED_BYTE, &buffer.pixels[0]);
+    glBindVertexArray(s_vertexArrayId);
+    glBindBuffer(GL_ARRAY_BUFFER, s_vertexBufferId);
 
     GLuint programId = s_programId;
-    glUseProgram( programId );
+    glUseProgram(programId);
 
     int colourIndex = 0;
-    int loc = glGetUniformLocation( programId, "RENDERSIZE" );
+    int loc = glGetUniformLocation(programId, "RENDERSIZE");
     if (loc >= 0) {
         glUniform2f(loc, buffer.BufferWi, buffer.BufferHt);
-    } else {
+    }
+    else {
         if (buffer.curPeriod == buffer.curEffStartPer && _shaderConfig->HasRendersize()) {
-            logger_base.warn("Unable to bind to RENDERSIZE\n%s", (const char *)_shaderConfig->GetCode().c_str());
+            logger_base.warn("Unable to bind to RENDERSIZE\n%s", (const char*)_shaderConfig->GetCode().c_str());
         }
     }
 
-    loc = glGetUniformLocation( programId, "TIME" );
+    loc = glGetUniformLocation(programId, "TIME");
     if (loc >= 0) {
         glUniform1f(loc, (GLfloat)(_timeMS) / 1000.0);
-    } else {
+    }
+    else {
         if (buffer.curPeriod == buffer.curEffStartPer && _shaderConfig->HasTime())
             logger_base.warn("Unable to bind to TIME\n%s", (const char*)_shaderConfig->GetCode().c_str());
     }
@@ -629,7 +631,7 @@ void ShaderEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &b
     loc = glGetUniformLocation(programId, "DATE");
     if (loc >= 0) {
         wxDateTime dt = wxDateTime::Now();
-        glUniform4f(loc, dt.GetYear(), dt.GetMonth()+1, dt.GetDay(), dt.GetHour() * 3600 + dt.GetMinute()*60 + dt.GetSecond());
+        glUniform4f(loc, dt.GetYear(), dt.GetMonth() + 1, dt.GetDay(), dt.GetHour() * 3600 + dt.GetMinute() * 60 + dt.GetSecond());
     }
 
     loc = glGetUniformLocation(programId, "PASSINDEX");
@@ -644,7 +646,7 @@ void ShaderEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &b
 
     loc = glGetUniformLocation(programId, "clearBuffer");
     if (loc >= 0) {
-        glUniform1f(loc, SettingsMap.GetBool("CHECKBOX_OverlayBkg",false) ? 1.0 : 0.0);
+        glUniform1f(loc, SettingsMap.GetBool("CHECKBOX_OverlayBkg", false) ? 1.0 : 0.0);
     }
 
     loc = glGetUniformLocation(programId, "resetNow");
@@ -652,7 +654,7 @@ void ShaderEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &b
         glUniform1f(loc, (buffer.curPeriod == buffer.curEffStartPer) ? 1.0 : 0.0);
     }
 
-    loc = glGetUniformLocation( programId, "texSampler" );
+    loc = glGetUniformLocation(programId, "texSampler");
     if (loc >= 0) {
         glUniform1i(loc, 0);
     }
@@ -716,26 +718,26 @@ void ShaderEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &b
         }
     }
 
-      GLuint vattrib = glGetAttribLocation( programId, "vpos" );
-      glVertexAttribPointer( vattrib, 2, GL_FLOAT, GL_FALSE, sizeof(VertexTex), reinterpret_cast<void *>( offsetof(VertexTex, v) ) );
-      glEnableVertexAttribArray( vattrib );
+    GLuint vattrib = glGetAttribLocation(programId, "vpos");
+    glVertexAttribPointer(vattrib, 2, GL_FLOAT, GL_FALSE, sizeof(VertexTex), reinterpret_cast<void*>(offsetof(VertexTex, v)));
+    glEnableVertexAttribArray(vattrib);
 
-      GLuint tattrib = glGetAttribLocation( programId, "tpos" );
-      glVertexAttribPointer( tattrib, 2, GL_FLOAT, GL_FALSE, sizeof(VertexTex), reinterpret_cast<void *>( offsetof(VertexTex, t ) ) );
-      glEnableVertexAttribArray( tattrib );
+    GLuint tattrib = glGetAttribLocation(programId, "tpos");
+    glVertexAttribPointer(tattrib, 2, GL_FLOAT, GL_FALSE, sizeof(VertexTex), reinterpret_cast<void*>(offsetof(VertexTex, t)));
+    glEnableVertexAttribArray(tattrib);
 
-      glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-      glDisableVertexAttribArray( vattrib );
-      glDisableVertexAttribArray( tattrib );
+    glDisableVertexAttribArray(vattrib);
+    glDisableVertexAttribArray(tattrib);
 
-      glBindVertexArray( 0 );
-      glBindBuffer( GL_ARRAY_BUFFER, 0 );
+    glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-      xlColorVector& cv( buffer.pixels );
-      glReadPixels( 0, 0, buffer.BufferWi, buffer.BufferHt, GL_RGBA, GL_UNSIGNED_BYTE, &cv[0] );
+    xlColorVector& cv(buffer.pixels);
+    glReadPixels(0, 0, buffer.BufferWi, buffer.BufferHt, GL_RGBA, GL_UNSIGNED_BYTE, &cv[0]);
 
-        UnsetGLContext(buffer, cache);
+    UnsetGLContext(cache);
 }
 
 void ShaderEffect::sizeForRenderBuffer(const RenderBuffer& rb,
