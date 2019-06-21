@@ -39,6 +39,7 @@
     extern PFNGLDELETERENDERBUFFERSPROC glDeleteRenderbuffers;
     extern PFNGLBINDVERTEXARRAYPROC glBindVertexArray;
     extern PFNGLGENVERTEXARRAYSPROC glGenVertexArrays;
+    extern PFNGLDELETEVERTEXARRAYSPROC glDeleteVertexArrays;
     extern PFNGLUNIFORM1IPROC glUniform1i;
     extern PFNGLUNIFORM1FPROC glUniform1f;
     extern PFNGLUNIFORM2FPROC glUniform2f;
@@ -62,7 +63,6 @@
 #include "../../xSchedule/wxJSON/jsonreader.h"
 
 #include <wx/regex.h>
-
 
 #include <log4cpp/Category.hh>
 #include <fstream>
@@ -409,12 +409,41 @@ public:
         if (_shaderConfig != nullptr) delete _shaderConfig;
 #if defined(__WXOSX__)
         if (s_glContext) {
+            DestroyResources();
             WXGLDestroyContext(s_glContext);
         }
 #elif defined(__WXMSW__)
         if (glContextInfo) {
-            //glContextInfo->UnsetCurrent();
+            glContextInfo->SetCurrent();
+            DestroyResources();
+            glContextInfo->UnsetCurrent();
             GL_CONTEXT_POOL.ReleaseContext(glContextInfo);
+        }
+#else
+        if (preview) {
+            unsigned vertexArrayId = s_vertexArrayId;
+            unsigned vertexBufferId = s_vertexBufferId;
+            unsigned fbId = s_fbId;
+            unsigned rbId = s_rbId;
+            unsigned rbTex = s_rbTex;
+            unsigned programId = s_programId;
+            xlGLCanvas *preview = this->preview;
+            
+            preview->CallAfter([preview,
+                                vertexArrayId,
+                                vertexBufferId,
+                                fbId,
+                                rbId,
+                                rbTex,
+                                programId] {
+                preview->SetCurrentGLContext();
+                DestroyResources(vertexArrayId,
+                                 vertexBufferId,
+                                 fbId,
+                                 rbId,
+                                 rbTex,
+                                 programId);
+            });
         }
 #endif
     }
@@ -431,16 +460,56 @@ public:
     int s_rbHeight = 0;
     long _timeMS = 0;
 
-    void InitialiseShaderConfig(const wxString& filename)
-    {
+    void InitialiseShaderConfig(const wxString& filename) {
         if (_shaderConfig != nullptr) delete _shaderConfig;
         _shaderConfig = ShaderEffect::ParseShader(filename);
+    }
+    
+    void DestroyResources() {
+        DestroyResources(s_vertexArrayId,
+                         s_vertexBufferId,
+                         s_fbId,
+                         s_rbId,
+                         s_rbTex,
+                         s_programId);
+    }
+    static void DestroyResources(unsigned s_vertexArrayId,
+                                  unsigned s_vertexBufferId,
+                                  unsigned s_fbId,
+                                  unsigned s_rbId,
+                                  unsigned s_rbTex,
+                                  unsigned s_programId) {
+        if (s_programId) {
+            glDeleteProgram(s_programId);
+            s_programId = 0;
+        }
+        if (s_vertexArrayId) {
+            glDeleteVertexArrays(1, &s_vertexArrayId);
+            s_vertexArrayId = 0;
+        }
+        if (s_vertexBufferId) {
+            glDeleteBuffers(1, &s_vertexBufferId);
+            s_vertexBufferId = 0;
+        }
+        if (s_fbId) {
+            glDeleteFramebuffers(1, &s_fbId);
+            s_fbId = 0;
+        }
+        if (s_rbId) {
+            glDeleteRenderbuffers(1, &s_rbId);
+            s_rbId = 0;
+        }
+        if (s_rbTex) {
+            glDeleteTextures(1, &s_rbTex);
+        }
     }
 
 #if defined(__WXOSX__)
     WXGLContext s_glContext = nullptr;
 #elif defined(__WXMSW__)
     GLContextInfo *glContextInfo = nullptr;
+#else
+    xlGLCanvas *preview;
 #endif
 };
 
@@ -512,6 +581,7 @@ void ShaderEffect::SetGLContext(ShaderRenderCache *cache) {
     }
 #else
     ShaderPanel *p = (ShaderPanel *)panel;
+    cache->preview = p->_preview;
     p->_preview->SetCurrentGLContext();
 #endif
 }
@@ -819,12 +889,15 @@ void ShaderEffect::sizeForRenderBuffer(const RenderBuffer& rb,
 void ShaderEffect::recompileFromShaderConfig( const ShaderConfig* cfg, unsigned& s_programId)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    if (s_programId != 0) {
+        glDeleteProgram(s_programId);
+        s_programId = 0;
+    }
 
     s_programId = OpenGLShaders::compile( vsSrc, cfg->GetCode() );
-   if (s_programId == 0)
-   {
+    if (s_programId == 0) {
        logger_base.error("Failed to compile shader program %s", (const char *)cfg->GetFilename().c_str());
-   }
+    }
 }
 
 wxString SafeFloat(const wxString& s)
