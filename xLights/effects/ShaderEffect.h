@@ -179,8 +179,9 @@ public:
     virtual bool CanRenderOnBackgroundThread(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
 
 protected:
-    void SetGLContext(ShaderRenderCache *);
-    
+    void SetGLContext(ShaderRenderCache*);
+    void UnsetGLContext(RenderBuffer& buffer, ShaderRenderCache*);
+
     virtual void RemoveDefaults(const std::string& version, Effect* effect) override;
     virtual wxPanel* CreatePanel(wxWindow* parent) override;
 

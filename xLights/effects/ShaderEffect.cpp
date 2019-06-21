@@ -284,40 +284,53 @@ public:
 class GLContextInfo {
 public:
     GLContextInfo(xlGLCanvas *win) {
-        
+        static log4cpp::Category& logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
         //we need a valid context to get the ARB
         win->SetCurrentGLContext();
         wxDEFINE_WGL_FUNC(wglCreateContextAttribsARB);
-        wglMakeCurrent(win->GetHDC(), nullptr);
+        LOG_GL_ERRORV(wglMakeCurrent(win->GetHDC(), nullptr));
         
         //create a new window and new HDC specifically for this context, we
         // won't display this anywhere, but it's required to get the hardware accelerated
         // contexts and such.
-        canvas = new ShaderGLCanvas(win->GetParent());
+        LOG_GL_ERRORV(canvas = new ShaderGLCanvas(win->GetParent()));
         _hdc = canvas->GetHDC();
         
         // we need core profile/3.3
         wxGLContextAttrs cxtAttrs;
         cxtAttrs.PlatformDefaults().OGLVersion(3, 3).CoreProfile().EndList();
-        _context = wglCreateContextAttribsARB(_hdc, 0, cxtAttrs.GetGLAttrs());
-        
+        LOG_GL_ERRORV(_context = wglCreateContextAttribsARB(_hdc, 0, cxtAttrs.GetGLAttrs()));
+        logger_opengl.debug("ShaderEffect Thread %d created open gl context 0x%llx.", wxThread::GetCurrentId(), (uint64_t)_context);
+
         //now unset this as current on the main thread
-        wglMakeCurrent(nullptr, nullptr);
+        UnsetCurrent();
     }
     ~GLContextInfo() {
         wglDeleteContext(_context);
         delete canvas;
     }
     void SetCurrent() {
+        static log4cpp::Category& logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
         for (int x = 0; x < 10; x++) {
             if (wglMakeCurrent(_hdc, _context)) {
+                logger_opengl.debug("ShaderEffect Thread %d given open gl context 0x%llx.", wxThread::GetCurrentId(), (uint64_t)_context);
                 return;
             }
             wxMilliSleep(1);
         }
+        wxASSERT(false);
+        logger_opengl.error("ShaderEffect unable to give thread %d open gl context 0x%llx.", wxThread::GetCurrentId(), (uint64_t)_context);
     }
     void UnsetCurrent() {
-        wglMakeCurrent(nullptr, nullptr);
+        static log4cpp::Category& logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
+        if (wglMakeCurrent(nullptr, nullptr))
+        {
+            logger_opengl.debug("ShaderEffect Thread %d has no current GL Context.", wxThread::GetCurrentId());
+        }
+        else
+        {
+            logger_opengl.error("ShaderEffect Thread %d tried to set no current GL Context but failed.", wxThread::GetCurrentId());
+        }
     }
     
     HGLRC _context;
@@ -400,7 +413,7 @@ public:
         }
 #elif defined(__WXMSW__)
         if (glContextInfo) {
-            glContextInfo->UnsetCurrent();
+            //glContextInfo->UnsetCurrent();
             GL_CONTEXT_POOL.ReleaseContext(glContextInfo);
         }
 #endif
@@ -446,6 +459,16 @@ bool ShaderEffect::CanRenderOnBackgroundThread(Effect* effect, const SettingsMap
 #endif
 }
 
+void ShaderEffect::UnsetGLContext(RenderBuffer& buffer, ShaderRenderCache* cache) {
+#if defined(__WXMSW__)
+    if (cache->glContextInfo != nullptr) {
+        if (buffer.curEffEndPer == buffer.curPeriod) {
+            cache->glContextInfo->UnsetCurrent();
+        }
+    }
+#endif
+}
+
 void ShaderEffect::SetGLContext(ShaderRenderCache *cache) {
 #if defined(__WXOSX__)
     if (cache->s_glContext == nullptr) {
@@ -482,7 +505,11 @@ void ShaderEffect::SetGLContext(ShaderRenderCache *cache) {
         static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         logger_base.info(configs);
     }
-    cache->glContextInfo->SetCurrent();
+    else
+    {
+        // should not need to do this as we hold onto the context until rendering is done
+        // cache->glContextInfo->SetCurrent();
+    }
 #else
     ShaderPanel *p = (ShaderPanel *)panel;
     p->_preview->SetCurrentGLContext();
@@ -549,11 +576,13 @@ void ShaderEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &b
     if ( _shaderConfig == nullptr)
     {
        setRenderBufferAll( buffer, *wxRED);
+       UnsetGLContext(buffer, cache);
        return;
     }
     else if (s_programId == 0)
     {
         setRenderBufferAll(buffer, *wxYELLOW);
+        UnsetGLContext(buffer, cache);
         return;
     }
 
@@ -705,6 +734,8 @@ void ShaderEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &b
 
       xlColorVector& cv( buffer.pixels );
       glReadPixels( 0, 0, buffer.BufferWi, buffer.BufferHt, GL_RGBA, GL_UNSIGNED_BYTE, &cv[0] );
+
+        UnsetGLContext(buffer, cache);
 }
 
 void ShaderEffect::sizeForRenderBuffer(const RenderBuffer& rb,
