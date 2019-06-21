@@ -332,7 +332,7 @@ bool xScheduleApp::OnInit()
     //curl_global_init(CURL_GLOBAL_SSL);
 
     InitialiseLogging(false);
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.info("******* OnInit: xSchedule started.");
 
 #ifdef __WXMSW__
@@ -370,11 +370,11 @@ bool xScheduleApp::OnInit()
         }
         if (parser.Found("s", &showDir)) {
             parmfound = true;
-            logger_base.info("-s: Show directory set to %s.", (const char *)showDir.c_str());
+            logger_base.info("-s: Show directory set to %s.", (const char*)showDir.c_str());
         }
         if (parser.Found("p", &playlist)) {
             parmfound = true;
-            logger_base.info("-p: Playlist to play %s.", (const char *)playlist.c_str());
+            logger_base.info("-p: Playlist to play %s.", (const char*)playlist.c_str());
         }
         if (!parmfound && parser.GetParamCount() > 0)
         {
@@ -412,11 +412,11 @@ bool xScheduleApp::OnInit()
     //(*AppInitialize
     bool wxsOK = true;
     wxInitAllImageHandlers();
-    if ( wxsOK )
+    if (wxsOK)
     {
-    	xScheduleFrame* Frame = new xScheduleFrame(0);
-    	Frame->Show();
-    	SetTopWindow(Frame);
+        xScheduleFrame* Frame = new xScheduleFrame(0, showDir, playlist);
+        Frame->Show();
+        SetTopWindow(Frame);
         if (wipeSettings) Frame->GetPluginManager().WipeSettings();
     }
     //*)
