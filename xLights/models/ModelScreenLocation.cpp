@@ -3837,15 +3837,18 @@ bool PolyPointScreenLocation::HitTest(glm::vec3& ray_origin, glm::vec3& ray_dire
             }
         } else {
             // perform normal line segment hit detection
-            if (VectorMath::TestRayOBBIntersection2D(
-                ray_origin,
-                seg_aabb_min[i],
-                seg_aabb_max[i],
-                *mPos[i].mod_matrix)
-                ) {
-                selected_segment = i;
-                ret_value = true;
-                break;
+            if (mPos[i].mod_matrix != nullptr)
+            {
+                if (VectorMath::TestRayOBBIntersection2D(
+                    ray_origin,
+                    seg_aabb_min[i],
+                    seg_aabb_max[i],
+                    *mPos[i].mod_matrix)
+                    ) {
+                    selected_segment = i;
+                    ret_value = true;
+                    break;
+                }
             }
         }
     }
