@@ -99,7 +99,6 @@ void CandleEffect::SetDefaultParameters() {
 
 void CandleEffect::Update(wxByte& flameprime, wxByte& flame, wxByte& wind, size_t windVariability, size_t flameAgility, size_t windCalmness, size_t windBaseline)
 {
-
     //We simulate a gust of wind by setting the wind var to a random value
     if (wxByte(rand01() * 255.0) < windVariability) {
         wind = wxByte(rand01() * 255.0);
@@ -111,7 +110,7 @@ void CandleEffect::Update(wxByte& flameprime, wxByte& flame, wxByte& wind, size_
     }
 
     //The flame constantly gets brighter till the wind knocks it down
-    if (flame<255) {
+    if (flame < 255) {
         flame++;
     }
 
@@ -129,7 +128,7 @@ void CandleEffect::Update(wxByte& flameprime, wxByte& flame, wxByte& wind, size_
         }
     }
     else {
-        if (flameprime >(flameAgility)) {
+        if (flameprime > flameAgility) {
             flameprime -= flameAgility;
         }
     }
@@ -196,17 +195,25 @@ void CandleEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer
             for (size_t x = 0; x < buffer.BufferWi; x++)
             {
                 size_t index = y * buffer.ModelBufferWi + x;
-                CandleState* state = states[index];
+                if (index >= states.size())
+                {
+                    // this should never happen
+                    wxASSERT(false);
+                }
+                else
+                {
+                    CandleState* state = states[index];
 
-                Update(state->flameprimer, state->flamer, state->wind, windVariability, flameAgility, windCalmness, windBaseline);
-                Update(state->flameprimeg, state->flameg, state->wind, windVariability, flameAgility, windCalmness, windBaseline);
+                    Update(state->flameprimer, state->flamer, state->wind, windVariability, flameAgility, windCalmness, windBaseline);
+                    Update(state->flameprimeg, state->flameg, state->wind, windVariability, flameAgility, windCalmness, windBaseline);
 
-                if (state->flameprimeg > state->flameprimer) state->flameprimeg = state->flameprimer;
-                if (state->flameg > state->flamer) state->flameprimeg = state->flameprimer;
+                    if (state->flameprimeg > state->flameprimer) state->flameprimeg = state->flameprimer;
+                    if (state->flameg > state->flamer) state->flameprimeg = state->flameprimer;
 
-                //  Now play Candle
-                xlColor c = xlColor(state->flameprimer, state->flameprimeg / 2, 0);
-                buffer.SetPixel(x, y, c);
+                    //  Now play Candle
+                    xlColor c = xlColor(state->flameprimer, state->flameprimeg / 2, 0);
+                    buffer.SetPixel(x, y, c);
+                }
             }
         }
     }

@@ -4004,23 +4004,25 @@ wxCursor PolyPointScreenLocation::CheckIfOverHandles3D(glm::vec3& ray_origin, gl
             }
             else {
                 // perform normal line segment hit detection
-                if (VectorMath::TestRayOBBIntersection(
-                    ray_origin,
-                    ray_direction,
-                    seg_aabb_min[i],
-                    seg_aabb_max[i],
-                    *mPos[i].mod_matrix,
-                    distance)
-                    ) {
-                    if (distance < intersection_distance) {
-                        intersection_distance = distance;
-                        handle = i | 0x10000;
-                        return_value = wxCURSOR_DEFAULT;
+                if (mPos[i].mod_matrix != nullptr)
+                {
+                    if (VectorMath::TestRayOBBIntersection(
+                        ray_origin,
+                        ray_direction,
+                        seg_aabb_min[i],
+                        seg_aabb_max[i],
+                        *mPos[i].mod_matrix,
+                        distance)
+                        ) {
+                        if (distance < intersection_distance) {
+                            intersection_distance = distance;
+                            handle = i | 0x10000;
+                            return_value = wxCURSOR_DEFAULT;
+                        }
                     }
                 }
             }
         }
-
     }
 
     return return_value;
