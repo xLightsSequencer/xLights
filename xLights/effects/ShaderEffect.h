@@ -165,6 +165,7 @@ public:
     ShaderEffect(int id);
     virtual ~ShaderEffect();
     virtual bool CanBeRandom() override { return false; }
+    virtual bool AppropriateOnNodes() const override { return false; }
     virtual void Render(Effect* effect, SettingsMap& settings, RenderBuffer& buffer) override;
     virtual bool SupportsLinearColorCurves(const SettingsMap& SettingsMap) const override { return false; }
     virtual bool SupportsRenderCache(const SettingsMap& settings) const override { return true; }
@@ -175,7 +176,6 @@ public:
     virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff) override;
     virtual bool needToAdjustSettings(const std::string& version) override;
     virtual void adjustSettings(const std::string& version, Effect* effect, bool removeDefaults = true) override;
-
     virtual bool CanRenderOnBackgroundThread(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
 
 protected:

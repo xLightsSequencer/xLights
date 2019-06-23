@@ -541,7 +541,7 @@ void TimeLine::SetZoomLevel(int level)
     mZoomLevel = level;
     if( (mZoomMarkerMS != -1) && ((mEndTimeMS - mStartTimeMS) > 0) )
     {
-        float marker_ratio = (double)(mZoomMarkerMS - mStartTimeMS) / (double)(mEndTimeMS - mStartTimeMS);
+        float marker_ratio = std::abs((double)(mZoomMarkerMS - mStartTimeMS) / (double)(mEndTimeMS - mStartTimeMS));
         int total_ms = GetTotalViewableTimeMS();
         mStartTimeMS = mZoomMarkerMS - marker_ratio * total_ms;
         if( mStartTimeMS < 0 )
