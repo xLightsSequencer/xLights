@@ -218,7 +218,7 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     bool loaded_fseq = false;
     wxString filename;
-    wxString wildcards = "XML files (*.xml)|*.xml|FSEQ files (*.fseq)|*.fseq";
+    wxString wildcards = "XML files (*.xml)|*.xml|FSEQ files (*.fseq)|*.fseq|Sequence Backups (*.xbkp)|*.xbkp";
     if (passed_filename.IsEmpty()) {
         filename = wxFileSelector("Choose sequence file to open", CurrentDir, wxEmptyString, "*.xml", wildcards, wxFD_OPEN | wxFD_FILE_MUST_EXIST);
     } else {
@@ -232,7 +232,7 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
         }
 
         // check if there is a autosave backup file which is newer than the file we have been asked to open
-        if (!_renderMode)
+        if (!_renderMode && wxFileName(filename).GetExt().Lower() != "xbkp" && wxFileName(filename).GetExt().Lower() != "fseq")
         {
             wxFileName fn(filename);
             wxFileName xx = fn;
