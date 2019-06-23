@@ -590,9 +590,16 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         if (xml_file->HasAudioMedia())
         {
             plugins = xml_file->GetMedia()->GetVamp()->GetAvailablePlugins(xml_file->GetMedia());
-            for (std::list<std::string>::const_iterator it = plugins.begin(); it != plugins.end(); ++it)
+            if (plugins.size() == 0)
             {
-                dialog.Choice_New_Fixed_Timing->Append(*it);
+                dialog.Choice_New_Fixed_Timing->Append("Download Queen Mary Vamp plugins for audio analysis");
+            }
+            else
+            {
+                for (auto it : plugins)
+                {
+                    dialog.Choice_New_Fixed_Timing->Append(it);
+                }
             }
         }
 
@@ -602,45 +609,53 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         if (dialog.ShowModal() == wxID_OK)
         {
             std::string selected_timing = dialog.GetTiming().ToStdString();
-            if (std::find(plugins.begin(), plugins.end(), selected_timing) != plugins.end())
-            {
-                name = vamp.ProcessPlugin(xml_file, mSequenceElements->GetXLightsFrame(), selected_timing, xml_file->GetMedia());
-                if( name != "" ) {
-                    timing_added = true;
-                }
-            }
-            else if( !xml_file->TimingAlreadyExists(selected_timing, mSequenceElements->GetXLightsFrame()) )
-            {
-                name = selected_timing;
-                if (selected_timing == "Metronome")
-                {
-                    int base_timing = xml_file->GetFrameMS();
-                    wxNumberEntryDialog dlg(this, "Enter metronome timing", "Milliseconds", "Metronome timing", base_timing, base_timing, 60000);
-                    if (dlg.ShowModal() == wxID_OK)
-                    {
-                        int ms = (dlg.GetValue() + base_timing / 2) / base_timing * base_timing;
 
-                        if (ms != dlg.GetValue())
+            if (selected_timing == "Download Queen Mary Vamp plugins for audio analysis")
+            {
+                DownloadVamp();
+            }
+            else
+            {
+                if (std::find(plugins.begin(), plugins.end(), selected_timing) != plugins.end())
+                {
+                    name = vamp.ProcessPlugin(xml_file, mSequenceElements->GetXLightsFrame(), selected_timing, xml_file->GetMedia());
+                    if (name != "") {
+                        timing_added = true;
+                    }
+                }
+                else if (!xml_file->TimingAlreadyExists(selected_timing, mSequenceElements->GetXLightsFrame()))
+                {
+                    name = selected_timing;
+                    if (selected_timing == "Metronome")
+                    {
+                        int base_timing = xml_file->GetFrameMS();
+                        wxNumberEntryDialog dlg(this, "Enter metronome timing", "Milliseconds", "Metronome timing", base_timing, base_timing, 60000);
+                        if (dlg.ShowModal() == wxID_OK)
                         {
-                            DisplayWarning(wxString::Format("Timing adjusted to match sequence timing %dms -> %dms", dlg.GetValue(), ms).ToStdString());
+                            int ms = (dlg.GetValue() + base_timing / 2) / base_timing * base_timing;
+
+                            if (ms != dlg.GetValue())
+                            {
+                                DisplayWarning(wxString::Format("Timing adjusted to match sequence timing %dms -> %dms", dlg.GetValue(), ms).ToStdString());
+                            }
+                            wxString ttn = wxString::Format("%dms Metronome", ms);
+                            if (!xml_file->TimingAlreadyExists(ttn.ToStdString(), mSequenceElements->GetXLightsFrame()))
+                            {
+                                xml_file->AddFixedTimingSection(ttn.ToStdString(), mSequenceElements->GetXLightsFrame());
+                                timing_added = true;
+                            }
                         }
-                        wxString ttn = wxString::Format("%dms Metronome", ms);
-                        if (!xml_file->TimingAlreadyExists(ttn.ToStdString(), mSequenceElements->GetXLightsFrame()))
-                        {
-                            xml_file->AddFixedTimingSection(ttn.ToStdString(), mSequenceElements->GetXLightsFrame());
-                            timing_added = true;
-                        }
+                    }
+                    else
+                    {
+                        xml_file->AddFixedTimingSection(selected_timing, mSequenceElements->GetXLightsFrame());
+                        timing_added = true;
                     }
                 }
                 else
                 {
-                    xml_file->AddFixedTimingSection(selected_timing, mSequenceElements->GetXLightsFrame());
-                    timing_added = true;
+                    DisplayError(wxString::Format("Fixed Timing section %s already exists!", selected_timing).ToStdString());
                 }
-            }
-            else
-            {
-                DisplayError(wxString::Format("Fixed Timing section %s already exists!", selected_timing).ToStdString());
             }
         }
         dialog.Destroy();

@@ -845,9 +845,16 @@ void SeqSettingsDialog::OnButton_Xml_New_TimingClick(wxCommandEvent& event)
     if (xml_file->HasAudioMedia())
 	{
         plugins = xml_file->GetMedia()->GetVamp()->GetAvailablePlugins(xml_file->GetMedia());
-		for (std::list<std::string>::const_iterator it = plugins.begin(); it != plugins.end(); ++it)
-		{
-            dialog.Choice_New_Fixed_Timing->Append(*it);
+        if (plugins.size() == 0)
+        {
+            dialog.Choice_New_Fixed_Timing->Append("Download Queen Mary Vamp plugins for audio analysis");
+        }
+        else
+        {
+            for (auto it : plugins)
+            {
+                dialog.Choice_New_Fixed_Timing->Append(it);
+            }
         }
     }
 
@@ -856,45 +863,52 @@ void SeqSettingsDialog::OnButton_Xml_New_TimingClick(wxCommandEvent& event)
     if (dialog.ShowModal() == wxID_OK)
     {
         std::string selected_timing = dialog.GetTiming().ToStdString();
-        if (std::find(plugins.begin(), plugins.end(), selected_timing) != plugins.end())
-		{
-            wxString name = vamp.ProcessPlugin(xml_file, xLightsParent, selected_timing, xml_file->GetMedia());
-            if (name != "") {
-                AddTimingCell(name);
-            }
-        }
-        else if( !xml_file->TimingAlreadyExists(selected_timing, xLightsParent) )
+        if (selected_timing == "Download Queen Mary Vamp plugins for audio analysis")
         {
-            if (selected_timing == "Metronome")
+            DownloadVamp();
+        }
+        else
+        {
+            if (std::find(plugins.begin(), plugins.end(), selected_timing) != plugins.end())
             {
-                int base_timing = xml_file->GetFrameMS();
-                wxNumberEntryDialog dlg(this, "Enter metronome timing", "Milliseconds", "Metronome timing", base_timing, base_timing, 60000);
-                if (dlg.ShowModal() == wxID_OK)
+                wxString name = vamp.ProcessPlugin(xml_file, xLightsParent, selected_timing, xml_file->GetMedia());
+                if (name != "") {
+                    AddTimingCell(name);
+                }
+            }
+            else if (!xml_file->TimingAlreadyExists(selected_timing, xLightsParent))
+            {
+                if (selected_timing == "Metronome")
                 {
-                    int ms = (dlg.GetValue() + base_timing / 2) / base_timing * base_timing;
+                    int base_timing = xml_file->GetFrameMS();
+                    wxNumberEntryDialog dlg(this, "Enter metronome timing", "Milliseconds", "Metronome timing", base_timing, base_timing, 60000);
+                    if (dlg.ShowModal() == wxID_OK)
+                    {
+                        int ms = (dlg.GetValue() + base_timing / 2) / base_timing * base_timing;
 
-                    if (ms != dlg.GetValue())
-                    {
-                        wxString msg = wxString::Format("Timing adjusted to match sequence timing %dms -> %dms", dlg.GetValue(), ms);
-                        wxMessageBox(msg);
+                        if (ms != dlg.GetValue())
+                        {
+                            wxString msg = wxString::Format("Timing adjusted to match sequence timing %dms -> %dms", dlg.GetValue(), ms);
+                            wxMessageBox(msg);
+                        }
+                        wxString ttn = wxString::Format("%dms Metronome", ms);
+                        if (!xml_file->TimingAlreadyExists(ttn.ToStdString(), xLightsParent))
+                        {
+                            xml_file->AddFixedTimingSection(ttn.ToStdString(), xLightsParent);
+                            AddTimingCell(ttn);
+                        }
                     }
-                    wxString ttn = wxString::Format("%dms Metronome", ms);
-                    if (!xml_file->TimingAlreadyExists(ttn.ToStdString(), xLightsParent))
-                    {
-                        xml_file->AddFixedTimingSection(ttn.ToStdString(), xLightsParent);
-                        AddTimingCell(ttn);
-                    }
+                }
+                else
+                {
+                    xml_file->AddFixedTimingSection(selected_timing, xLightsParent);
+                    AddTimingCell(selected_timing);
                 }
             }
             else
             {
-                xml_file->AddFixedTimingSection(selected_timing, xLightsParent);
-                AddTimingCell(selected_timing);
+                DisplayError(string_format("Fixed Timing section %s already exists!", selected_timing), this);
             }
-        }
-        else
-        {
-            DisplayError(string_format("Fixed Timing section %s already exists!", selected_timing), this);
         }
     }
     dialog.Destroy();

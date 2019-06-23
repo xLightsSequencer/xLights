@@ -6,6 +6,7 @@
 #include <wx/socket.h>
 
 #include "UtilFunctions.h"
+#include "xLightsVersion.h"
 
 #ifdef __WXMSW__
 #include <psapi.h>
@@ -359,6 +360,27 @@ std::string XmlSafe(const std::string& s)
     }
 
     return res;
+}
+
+void DownloadVamp()
+{
+    wxMessageBox("We are about to download the Queen Mary Vamp plugins for your platform. Once downloaded please install them and then close and reopen xLights to use them.");
+#ifdef __WXMSW__
+    if (GetBitness() == "64bit")
+    {
+        ::wxLaunchDefaultBrowser("https://xlights.org/downloads/Vamp_Plugin64.exe");
+    }
+    else
+    {
+        ::wxLaunchDefaultBrowser("http://xlights.org/downloads/Vamp_Plugin32.exe");
+    }
+#elif defined __WXOSX__
+    // I hope this is right
+    ::wxLaunchDefaultBrowser("https://code.soundsoftware.ac.uk/attachments/download/105/qm-vamp-plugins-1.7-osx-universal.tar.gz");
+#else
+    // I hope this is right
+    ::wxLaunchDefaultBrowser("https://code.soundsoftware.ac.uk/attachments/download/107/qm-vamp-plugins-1.7-amd64-linux.tar.gz");
+#endif // __WXMSW__
 }
 
 inline bool is_base64(unsigned char c)
