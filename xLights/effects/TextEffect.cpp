@@ -302,6 +302,42 @@ void TextEffect::SetDefaultParameters() {
     SetSliderValue(tp->Slider_Text_YEnd, 0);
 }
 
+void TextEffect::SetPanelStatus(Model* cls)
+{
+    TextPanel* tp = static_cast<TextPanel*>(panel);
+    if (tp == nullptr)
+    {
+        return;
+    }
+
+    tp->Choice_LyricTrack->Clear();
+    if (mSequenceElements == nullptr)
+    {
+        tp->ValidateWindow();
+        return;
+    }
+
+    // Load the names of the timing tracks
+    tp->Choice_LyricTrack->Append("");
+    for (int i = 0; i < mSequenceElements->GetElementCount(); i++)
+    {
+        Element* e = mSequenceElements->GetElement(i);
+        if (e->GetType() == ELEMENT_TYPE_TIMING && e->GetEffectLayerCount() > 1)
+        {
+            tp->Choice_LyricTrack->Append(e->GetName());
+        }
+    }
+
+    // Select the first one
+    if (tp->Choice_LyricTrack->GetCount() > 0)
+    {
+        tp->Choice_LyricTrack->Select(0);
+    }
+
+    // Validate the window (includes enabling and disabling controls)
+    tp->ValidateWindow();
+}
+
 //formatting notes:
 //countdown == seconds: put a non-0 value in text line 1 to count down
 //countdown == any of the "to date" options: put "Sat, 18 Dec 1999 00:48:30 +0100" in the text line
@@ -409,26 +445,62 @@ void TextEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &
 
     wxString text = SettingsMap["TEXTCTRL_Text"];
     wxString filename = SettingsMap["FILEPICKERCTRL_Text_File"];
+    wxString lyricTrack = SettingsMap["CHOICE_Text_LyricTrack"];
 
-    if (wxFile::Exists(filename))
+    if (text == "")
     {
-        wxTextFile f(filename);
-        f.Open();
-        int i = 0;
-        text = f.GetFirstLine() + "\n";
-        while (!f.Eof() && i < MAXTEXTLINES)
+        if (wxFile::Exists(filename))
         {
-            text += f.GetNextLine() + "\n";
-            i++;
-        }
-        if (text != "")
-        {
-            while (text.Last() == '\n')
+            wxTextFile f(filename);
+            f.Open();
+            int i = 0;
+            text = f.GetFirstLine() + "\n";
+            while (!f.Eof() && i < MAXTEXTLINES)
             {
-                text = text.BeforeLast('\n');
+                text += f.GetNextLine() + "\n";
+                i++;
+            }
+            if (text != "")
+            {
+                while (text.Last() == '\n')
+                {
+                    text = text.BeforeLast('\n');
+                }
+            }
+            f.Close();
+        }
+        else
+        {
+            if (lyricTrack != "")
+            {
+                Element* t = nullptr;
+                for (int i = 0; i < mSequenceElements->GetElementCount(); i++)
+                {
+                    Element* e = mSequenceElements->GetElement(i);
+                    if (e->GetEffectLayerCount() > 1 && e->GetType() == ELEMENT_TYPE_TIMING && e->GetName() == lyricTrack)
+                    {
+                        t = e;
+                        break;
+                    }
+                }
+
+                if (t != nullptr)
+                {
+                    long time = buffer.curPeriod * buffer.frameTimeInMs;
+                    EffectLayer* el = t->GetEffectLayer(1);
+                    for (int j = 0; j < el->GetEffectCount(); j++)
+                    {
+                        Effect* e = el->GetEffect(j);
+                        if (e->GetStartTimeMS() <= time && e->GetEndTimeMS() > time)
+                        {
+                            text = e->GetEffectName();
+                            break;
+                        }
+                    }
+
+                }
             }
         }
-        f.Close();
     }
 
     if (text != "") {

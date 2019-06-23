@@ -15,6 +15,7 @@ class TextEffect : public RenderableEffect
         virtual ~TextEffect();
         virtual void SetDefaultParameters() override;
         virtual void Render(Effect *effect, SettingsMap &settings, RenderBuffer &buffer) override;
+        virtual void SetPanelStatus(Model* cls) override;
 #ifdef LINUX
         virtual bool CanRenderOnBackgroundThread(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) override {return false;};
 #endif

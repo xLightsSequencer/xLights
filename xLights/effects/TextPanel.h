@@ -21,12 +21,11 @@ class wxTextCtrl;
 
 class TextPanel: public wxPanel
 {
-    void ValidateWindow();
-
 	public:
 
 		TextPanel(wxWindow* parent);
 		virtual ~TextPanel();
+        void ValidateWindow();
 
 		//(*Declarations(TextPanel)
 		BulkEditCheckBox* CheckBox_Text_PixelOffsets;
@@ -40,6 +39,7 @@ class TextPanel: public wxPanel
 		BulkEditSlider* Slider_Text_YEnd;
 		BulkEditSlider* Slider_Text_YStart;
 		BulkEditTextCtrl* TextCtrl_Text;
+		wxChoice* Choice_LyricTrack;
 		wxFilePickerCtrl* FilePickerCtrl1;
 		wxPanel* Panel17;
 		wxPanel* Panel_Text1;
@@ -51,6 +51,7 @@ class TextPanel: public wxPanel
 		wxStaticText* StaticText213;
 		wxStaticText* StaticText214;
 		wxStaticText* StaticText2;
+		wxStaticText* StaticText3;
 		wxStaticText* StaticText53;
 		wxStaticText* StaticText78;
 		wxStaticText* StaticText98;
@@ -69,6 +70,8 @@ class TextPanel: public wxPanel
 		static const long ID_TEXTCTRL_Text;
 		static const long ID_STATICTEXT1;
 		static const long ID_FILEPICKERCTRL_Text_File;
+		static const long ID_STATICTEXT2;
+		static const long ID_CHOICE_Text_LyricTrack;
 		static const long ID_FONTPICKER_Text_Font;
 		static const long ID_BITMAPBUTTON_FONTPICKER_Text_Font;
 		static const long ID_STATICTEXT_Text_Font;
@@ -116,6 +119,8 @@ class TextPanel: public wxPanel
 		void OnVCButtonClick(wxCommandEvent& event);
 		void OnVCChanged(wxCommandEvent& event);
 		void OnFilePickerCtrl1FileChanged(wxFileDirPickerEvent& event);
+		void OnTextCtrl_TextText(wxCommandEvent& event);
+		void OnChoice_LyricTrackSelect(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()
