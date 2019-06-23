@@ -867,11 +867,30 @@ std::list<std::string> CustomModel::CheckModelSettings()
             chs[nn + 1]++;
         }
 
+        long lastStart = -1;
         for (int ii = 1; ii <= maxn; ii++)
         {
             if (chs[ii] == 0)
             {
-                res.push_back(wxString::Format("    WARN: Custom model '%s' missing node %d.", (const char *)GetName().c_str(), ii).ToStdString());
+                if (lastStart == -1)
+                {
+                    lastStart = ii;
+                }
+            }
+            else
+            {
+                if (lastStart != -1)
+                {
+                    if (lastStart == ii - 1)
+                    {
+                        res.push_back(wxString::Format("    WARN: Custom model '%s' missing node %d.", (const char*)GetName().c_str(), lastStart).ToStdString());
+                    }
+                    else
+                    {
+                        res.push_back(wxString::Format("    WARN: Custom model '%s' missing nodes %d-%d.", (const char*)GetName().c_str(), lastStart, ii - 1).ToStdString());
+                    }
+                    lastStart = -1;
+                }
             }
         }
 
