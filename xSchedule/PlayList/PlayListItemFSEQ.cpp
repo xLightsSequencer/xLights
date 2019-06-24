@@ -496,7 +496,7 @@ void PlayListItemFSEQ::Frame(uint8_t* buffer, size_t size, size_t ms, size_t fra
                 if (data != nullptr)
                 {
                     std::vector<uint8_t> buf(_fseqFile->getMaxChannel() + 1);
-                    data->readFrame(&buf[0]);
+                    data->readFrame(&buf[0], buf.size());
                     size_t channelsPerFrame = (size_t)_fseqFile->getMaxChannel() + 1;
                     if (_channels > 0) channelsPerFrame = std::min(_channels, (size_t)_fseqFile->getMaxChannel() + 1);
                     if (_channels > 0) {
