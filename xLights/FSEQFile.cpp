@@ -521,13 +521,20 @@ public:
         }
     }
 
-    virtual bool readFrame(uint8_t *data) {
+    virtual bool readFrame(uint8_t *data, size_t channels) {
         if (m_data == nullptr) return false;
         uint32_t offset = 0;
         for (auto &rng : m_ranges) {
             uint32_t toRead = rng.second;
             if (offset + toRead <= m_size) {
-                memcpy(&data[rng.first], &m_data[offset], toRead);
+                uint32_t toCopy = std::min(toRead, (uint32_t)channels - rng.first);
+#ifdef _DEBUG
+#ifdef _WX_WX_H_
+                // this would have crashed if we didnt override toRead
+                if (toCopy != toRead) wxASSERT(false);
+#endif
+#endif
+                memcpy(&data[rng.first], &m_data[offset], toCopy);
                 offset += toRead;
             }
             else

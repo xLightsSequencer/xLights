@@ -543,7 +543,7 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
                             FSEQFile::FrameData *f = seq->getFrame(frame);
                             if (f != nullptr)
                             {
-                                if (!f->readFrame(&frames[lastBuffered][0]))
+                                if (!f->readFrame(&frames[lastBuffered][0], frames[lastBuffered].size()))
                                 {
                                     logger_base.error("FPPConnect FSEQ file corrupt.");
                                 }

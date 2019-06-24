@@ -26,7 +26,7 @@ public:
         FrameData(uint32_t f) : frame(f) {};
         virtual ~FrameData() {};
         
-        virtual bool readFrame(uint8_t *data) = 0;
+        virtual bool readFrame(uint8_t *data, size_t channels) = 0;
         
         uint32_t frame;
     };

@@ -1645,13 +1645,13 @@ void FileConverter::ReadFalconFile(ConvertParameters& params)
         if (data == nullptr) break;
         
         if (channel_offset == 0 && params.read_mode != ConvertParameters::READ_MODE_IGNORE_BLACK) {
-            if (!data->readFrame(&params.seq_data[periodsRead][0]))
+            if (!data->readFrame(&params.seq_data[periodsRead][0], params.seq_data.NumChannels()))
             {
                 // fseq file corrupt
                 logger_conversion.error("FSEQ file seems to be corrupt.");
             }
         } else {
-            if (data->readFrame(tmpBuf))
+            if (data->readFrame(tmpBuf, numChannels))
             {
                 for (int i = 0; i < numChannels; i++) {
                     int new_index = i + channel_offset;
