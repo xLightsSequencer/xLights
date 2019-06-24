@@ -1135,7 +1135,7 @@ void VUMeterEffect::RenderWaveformFrame(RenderBuffer &buffer, int usebars, int y
             float max = 0;
             int startSample = rate * (startMS + (float)i * barms) / 1000.0;
             int endSample = rate * (startMS + (float)(i+1) * barms) / 1000.0;
-            buffer.GetMedia()->GetLeftDataMinMax(startSample, endSample, min, max);
+            buffer.GetMedia()->GetLeftDataMinMax(startSample, endSample, min, max, AUDIOSAMPLETYPE::RAW);
 
             int y;
             int x = (float)i * cols + cols / 2;

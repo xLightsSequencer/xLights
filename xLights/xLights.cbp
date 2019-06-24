@@ -552,6 +552,8 @@
 		<Unit filename="NodesGridCellEditor.h" />
 		<Unit filename="NoteImportDialog.cpp" />
 		<Unit filename="NoteImportDialog.h" />
+		<Unit filename="NoteRangeDialog.cpp" />
+		<Unit filename="NoteRangeDialog.h" />
 		<Unit filename="OpenGLShaders.cpp" />
 		<Unit filename="OptionChooser.cpp" />
 		<Unit filename="OptionChooser.h" />
@@ -1216,6 +1218,7 @@
 		<Unit filename="wxsmith/NewTimingDialog.wxs" />
 		<Unit filename="wxsmith/NodeSelectGrid.wxs" />
 		<Unit filename="wxsmith/NoteImportDialog.wxs" />
+		<Unit filename="wxsmith/NoteRangeDialog.wxs" />
 		<Unit filename="wxsmith/OffPanel.wxs" />
 		<Unit filename="wxsmith/OnPanel.wxs" />
 		<Unit filename="wxsmith/OptionChooser.wxs" />
@@ -1469,6 +1472,7 @@
 					<wxDialog wxs="wxsmith/CharMapDialog.wxs" src="CharMapDialog.cpp" hdr="CharMapDialog.h" fwddecl="0" i18n="1" name="CharMapDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/ImportPreviewsModelsDialog.wxs" src="ImportPreviewsModelsDialog.cpp" hdr="ImportPreviewsModelsDialog.h" fwddecl="0" i18n="1" name="ImportPreviewsModelsDialog" language="CPP" />
 					<wxPanel wxs="wxsmith/ShaderPanel.wxs" src="effects/ShaderPanel.cpp" hdr="effects/ShaderPanel.h" fwddecl="0" i18n="1" name="ShaderPanel" language="CPP" />
+					<wxDialog wxs="wxsmith/NoteRangeDialog.wxs" src="NoteRangeDialog.cpp" hdr="NoteRangeDialog.h" fwddecl="0" i18n="1" name="NoteRangeDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>

@@ -25,6 +25,15 @@ extern "C"
 
 class AudioManager;
 
+enum class AUDIOSAMPLETYPE
+{
+    RAW,
+    BASS,
+    TREBLE,
+    CUSTOM,
+    ALTO
+};
+
 class xLightsVamp
 {
 	Vamp::HostExt::PluginLoader *_loader;
@@ -156,6 +165,13 @@ public:
     void StopListening();
 };
 
+struct FilteredAudioData
+{
+    int lowNote;
+    int highNote;
+    std::vector<float> data;
+};
+
 class AudioManager
 {
 	JobPool _jobPool;
@@ -189,6 +205,7 @@ class AudioManager
 	float _bigspectogrammax;
 	MEDIAPLAYINGSTATE _media_state;
 	bool _polyphonicTranscriptionDone;
+    std::vector<FilteredAudioData*> _filtered;
     int _sdlid;
     bool _ok;
     std::string _hash;
@@ -209,6 +226,8 @@ class AudioManager
     void SetLoadedData(long pos);
 
 public:
+    static double MidiToFrequency(int midi);
+    static std::string MidiToNote(int midi);
     bool IsOk() const { return _ok; }
     static size_t GetAudioFileLength(std::string filename);
 	void Seek(long pos) const;
@@ -244,7 +263,7 @@ public:
 	long LengthMS() const { return _lengthMS; };
 	float GetRightData(long offset);
 	float GetLeftData(long offset);
-    void GetLeftDataMinMax(long start, long end, float& minimum, float& maximum);
+    void GetLeftDataMinMax(long start, long end, float& minimum, float& maximum, AUDIOSAMPLETYPE type, int lowNote = 0, int highNote = 127);
 	float* GetRightDataPtr(long offset);
 	float* GetLeftDataPtr(long offset);
 	void SetStepBlock(int step, int block);
