@@ -31,6 +31,7 @@ BEGIN_EVENT_TABLE(LMSImportChannelMapDialog,wxDialog)
 	//*)
 END_EVENT_TABLE()
 
+wxColourData LMSImportChannelMapDialog::_colorData;
 
 #ifndef wxEVT_GRID_CELL_CHANGE
 //until CodeBlocks is updated to wxWidgets 3.x
@@ -300,13 +301,15 @@ void LMSImportChannelMapDialog::OnChannelMapGridCellLeftDClick(wxGridEvent& even
 {
     if (event.GetCol() == 4) {
         wxColor c = ChannelMapGrid->GetCellBackgroundColour(event.GetRow(), 4);
-        wxColourData data;
-        data.SetColour(c);
-        wxColourDialog dlg(this, &data);
-        dlg.ShowModal();
-        ChannelMapGrid->SetCellBackgroundColour(event.GetRow(), 4, dlg.GetColourData().GetColour());
-        ChannelMapGrid->Refresh();
-        _dirty = true;
+        _colorData.SetColour(c);
+        wxColourDialog dlg(this, &_colorData);
+        if (dlg.ShowModal() == wxID_OK)
+        {
+            _colorData = dlg.GetColourData();
+            ChannelMapGrid->SetCellBackgroundColour(event.GetRow(), 4, dlg.GetColourData().GetColour());
+            ChannelMapGrid->Refresh();
+            _dirty = true;
+        }
     }
 }
 

@@ -43,6 +43,7 @@ BEGIN_EVENT_TABLE(ModelStateDialog,wxDialog)
 	//*)
 END_EVENT_TABLE()
 
+wxColourData ModelStateDialog::_colorData;
 
 enum {
     SINGLE_NODE_STATE = 0,
@@ -532,10 +533,10 @@ void ModelStateDialog::OnNodeRangeGridCellLeftDClick(wxGridEvent& event)
     else if (event.GetCol() == COLOUR_COL) {
         std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
         wxColor c = NodeRangeGrid->GetCellBackgroundColour(event.GetRow(), COLOUR_COL);
-        wxColourData data;
-        data.SetColour(c);
-        wxColourDialog dlg(this, &data);
+        _colorData.SetColour(c);
+        wxColourDialog dlg(this, &_colorData);
         if (dlg.ShowModal() == wxID_OK) {
+            _colorData = dlg.GetColourData();
             NodeRangeGrid->SetCellBackgroundColour(event.GetRow(), COLOUR_COL, dlg.GetColourData().GetColour());
             NodeRangeGrid->Refresh();
             GetValue(NodeRangeGrid, event, stateData[name]);
@@ -549,10 +550,10 @@ void ModelStateDialog::OnSingleNodeGridCellLeftDClick(wxGridEvent& event)
     if (event.GetCol() == COLOUR_COL) {
         std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
         wxColor c = SingleNodeGrid->GetCellBackgroundColour(event.GetRow(), COLOUR_COL);
-        wxColourData data;
-        data.SetColour(c);
-        wxColourDialog dlg(this, &data);
+        _colorData.SetColour(c);
+        wxColourDialog dlg(this, &_colorData);
         if (dlg.ShowModal() == wxID_OK) {
+            _colorData = dlg.GetColourData();
             SingleNodeGrid->SetCellBackgroundColour(event.GetRow(), COLOUR_COL, dlg.GetColourData().GetColour());
             SingleNodeGrid->Refresh();
             GetValue(SingleNodeGrid, event, stateData[name]);

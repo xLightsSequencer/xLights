@@ -28,10 +28,12 @@ const long ColorManagerDialog::ID_BUTTON_Cancel = wxNewId();
 const long ColorManagerDialog::ID_BUTTON_Close = wxNewId();
 //*)
 
-BEGIN_EVENT_TABLE(ColorManagerDialog,wxDialog)
-	//(*EventTable(ColorManagerDialog)
-	//*)
+BEGIN_EVENT_TABLE(ColorManagerDialog, wxDialog)
+//(*EventTable(ColorManagerDialog)
+//*)
 END_EVENT_TABLE()
+
+wxColourData ColorManagerDialog::_colorData;
 
 ColorManagerDialog::ColorManagerDialog(wxWindow* parent,ColorManager& color_mgr_,wxWindowID id,const wxPoint& pos,const wxSize& size)
 : color_mgr(color_mgr_)
@@ -193,13 +195,12 @@ void ColorManagerDialog::ColorButtonSelected(wxCommandEvent& event)
     wxString name = button->GetName();
 
     wxColour color = button->GetBackgroundColour();
-    wxColourData colorData;
-    colorData.SetColour(color);
-    wxColourDialog dialog(this, &colorData);
+    _colorData.SetColour(color);
+    wxColourDialog dialog(this, &_colorData);
     if (dialog.ShowModal() == wxID_OK)
     {
-        wxColourData retData = dialog.GetColourData();
-        color = retData.GetColour();
+        _colorData = dialog.GetColourData();
+        color = _colorData.GetColour();
         SetButtonColor(button, color);
         xlColor c(color);
         color_mgr.SetNewColor(name.ToStdString(), c);

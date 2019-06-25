@@ -14,6 +14,8 @@
 #include <wx/choicebk.h>
 //*)
 
+#include <wx/colourdata.h>
+
 #include <map>
 
 class Model;
@@ -21,7 +23,9 @@ class ModelPreview;
 
 class ModelStateDialog: public wxDialog
 {
-	public:
+    static wxColourData _colorData;
+
+    public:
 
 		ModelStateDialog(wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~ModelStateDialog();

@@ -67,6 +67,7 @@ public:
 
 class ColorRenderer : public wxDataViewCustomRenderer
 {
+    static wxColourData _colorData;
     wxColor _color;
 
 public:
@@ -77,12 +78,12 @@ public:
 
     virtual bool ActivateCell(const wxRect &cell, wxDataViewModel *model, const wxDataViewItem &item, unsigned int col, const wxMouseEvent *mouseEvent) override
     {
-        wxColourData data;
-        data.SetColour(_color);
-        wxColourDialog dlg(GetOwner()->GetOwner()->GetParent(), &data);
+        _colorData.SetColour(_color);
+        wxColourDialog dlg(GetOwner()->GetOwner()->GetParent(), &_colorData);
 
         if (dlg.ShowModal() == wxID_OK)
         {
+            _colorData = dlg.GetColourData();
             _color = dlg.GetColourData().GetColour();
             model->SetValue(wxVariant(_color.GetAsString()), item, col);
         }
@@ -123,6 +124,9 @@ public:
         return false;
     }
 };
+
+wxColourData ColorRenderer::_colorData;
+
 
 xLightsImportTreeModel::xLightsImportTreeModel()
 {

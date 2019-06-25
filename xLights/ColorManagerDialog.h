@@ -12,12 +12,16 @@
 #include <wx/stattext.h>
 //*)
 
+#include <wx/colourdata.h>
+
 class ColorManager;
 class MainSequencer;
 
 class ColorManagerDialog: public wxDialog
 {
-	public:
+    static wxColourData _colorData;
+
+    public:
 
 		ColorManagerDialog(wxWindow* parent, ColorManager& color_mgr_, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~ColorManagerDialog();
