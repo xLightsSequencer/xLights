@@ -3497,26 +3497,90 @@ void xLightsFrame::DoConvertDataRowToEffects(EffectLayer *layer, xlColorVector &
 }
 
 void xLightsFrame::ConvertDataRowToEffects(wxCommandEvent &event) {
-    StrandElement *el = dynamic_cast<StrandElement*>((Element*)event.GetClientData());
-    int node = event.GetInt() & 0xFFFF;
-    int strand = (event.GetInt() >> 16) & 0xFFFF;
-    EffectLayer *layer = el->GetNodeLayer(node);
 
-    xlColorVector colors;
-    colors.reserve(SeqData.NumFrames());
-    PixelBufferClass ncls(this);
-    Model *model = GetModel(el->GetModelName());
-    if (model != nullptr) {
-        SingleLineModel *ssModel = new SingleLineModel(model->GetModelManager());
-        ssModel->Reset(1, *model, strand, node);
+    Element* e = (Element*)event.GetClientData();
+    if (e->GetType() == ELEMENT_TYPE_MODEL)
+    {
+        ModelElement* el = dynamic_cast<ModelElement*>(e);
+        Model* model = GetModel(el->GetModelName());
 
-        for (size_t f = 0; f < SeqData.NumFrames(); f++) {
-            ssModel->SetNodeChannelValues(0, &SeqData[f][ssModel->NodeStartChannel(0)]);
-            xlColor c = ssModel->GetNodeColor(0);
-            colors.push_back(c);
+        // we cant do this on model groups & submodels
+        if (model->GetDisplayAs() != "ModelGroup" && model->GetDisplayAs() != "SubModel")
+        {
+            for (int i = 0; i < el->GetStrandCount(); i++)
+            {
+                StrandElement* se = el->GetStrand(i);
+                for (int j = 0; j < se->GetNodeLayerCount(); j++)
+                {
+                    EffectLayer* layer = se->GetNodeLayer(j);
+                    xlColorVector colors;
+                    colors.reserve(SeqData.NumFrames());
+                    PixelBufferClass ncls(this);
+                    if (model != nullptr) {
+                        SingleLineModel* ssModel = new SingleLineModel(model->GetModelManager());
+                        ssModel->Reset(1, *model, i, j);
+
+                        for (size_t f = 0; f < SeqData.NumFrames(); f++) {
+                            ssModel->SetNodeChannelValues(0, &SeqData[f][ssModel->NodeStartChannel(0)]);
+                            xlColor c = ssModel->GetNodeColor(0);
+                            colors.push_back(c);
+                        }
+                        DoConvertDataRowToEffects(layer, colors, SeqData.FrameTime());
+                        delete ssModel;
+                    }
+                }
+            }
         }
-        DoConvertDataRowToEffects(layer, colors, SeqData.FrameTime());
-        delete ssModel;
+    }
+    else if (e->GetType() == ELEMENT_TYPE_STRAND)
+    {
+        StrandElement* el = dynamic_cast<StrandElement*>(e);
+        Model* model = GetModel(el->GetModelName());
+        int node = event.GetInt() & 0xFFFF;
+        int strand = (event.GetInt() >> 16) & 0xFFFF;
+
+        if (node == 0xFFFF)
+        {
+            // this is a strand
+            for (int i = 0; i < el->GetNodeLayerCount(); i++)
+            {
+                EffectLayer* layer = el->GetNodeLayer(i);
+                xlColorVector colors;
+                colors.reserve(SeqData.NumFrames());
+                PixelBufferClass ncls(this);
+                if (model != nullptr) {
+                    SingleLineModel* ssModel = new SingleLineModel(model->GetModelManager());
+                    ssModel->Reset(1, *model, strand, i);
+
+                    for (size_t f = 0; f < SeqData.NumFrames(); f++) {
+                        ssModel->SetNodeChannelValues(0, &SeqData[f][ssModel->NodeStartChannel(0)]);
+                        xlColor c = ssModel->GetNodeColor(0);
+                        colors.push_back(c);
+                    }
+                    DoConvertDataRowToEffects(layer, colors, SeqData.FrameTime());
+                    delete ssModel;
+                }
+            }
+        }
+        else
+        {
+            EffectLayer* layer = el->GetNodeLayer(node);
+            xlColorVector colors;
+            colors.reserve(SeqData.NumFrames());
+            PixelBufferClass ncls(this);
+            if (model != nullptr) {
+                SingleLineModel* ssModel = new SingleLineModel(model->GetModelManager());
+                ssModel->Reset(1, *model, strand, node);
+
+                for (size_t f = 0; f < SeqData.NumFrames(); f++) {
+                    ssModel->SetNodeChannelValues(0, &SeqData[f][ssModel->NodeStartChannel(0)]);
+                    xlColor c = ssModel->GetNodeColor(0);
+                    colors.push_back(c);
+                }
+                DoConvertDataRowToEffects(layer, colors, SeqData.FrameTime());
+                delete ssModel;
+            }
+        }
     }
 }
 
