@@ -11,6 +11,24 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (keith)  Add ZCPP protocol support
+   -- enh (keith)  In Model Faces, States and import dialogs remember any custom colours between accesses to the colour dialog
+   -- enh (keith)  Add support for convert node data to effects at the strand and model level to reduce the tedium of converting
+                   each node individually.
+   -- enh (keith)  Consolidate custom model node missing errors to one where missing nodes are contiguous
+   -- enh (keith)  Add a link to install vamp plugins when creating timing tracks on a musical sequence and vamp is not installed
+   -- enh (keith)  Make it easier to open sequence backups directly
+   -- enh (keith)  Optionally pull text from a lyric track for the text effect
+   -- enh (dkulp)  Move shader rendering to background threads
+   -- enh (keith)  Make the display of overlapping pixels in previews look more natural
+   -- enh (keith)  Add lead in time and speed controls to Shader effect (includes ability to run time backwards)
+   -- enh (keith)  Download shader if name in tree is double clicked on
+   -- enh (keith)  Make transition hints optional and work even if effect backgrounds not being displayed
+   -- bug (keith)  Fix crash where iseq has more channels than the sequence
+   -- bug (keith)  Fix timeline zoomout results in timeline being positioned way past the end of the song
+   -- bug (keith)  Fix house preview cant be manipulated when playback is paused
+   -- bug (keith)  Fix MIDI responsiveness in xFade and xSchedule
+   -- bug (keith)  Fix Bulge shader
 2019.30 June 16, 2019
    -- enh (keith)  In MIDI events add the ability to discern non zero data 1/2
    -- enh (keith)  Add an active property to models so you can hide models from display
