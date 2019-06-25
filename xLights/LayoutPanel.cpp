@@ -3819,8 +3819,10 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
             render_ht = render_ht / wi_ratio;
             md->GetBaseObjectScreenLocation().SetMHeight((int)render_ht);
         }
+        md->GetBaseObjectScreenLocation().Write(md->ModelXml);
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_ASPECTRATIO");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_ASPECTRATIO");
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_ASPECTRATIO", nullptr, nullptr, GetSelectedModelName());
     }
     else if (event.GetId() == ID_PREVIEW_MODEL_EXPORTXLIGHTSMODEL)
     {
