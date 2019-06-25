@@ -822,8 +822,9 @@ void LayoutPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
                         (dynamic_cast<ModelWithScreenLocation<BoxedScreenLocation>*>(selectedModel) != nullptr ||
                             dynamic_cast<ModelWithScreenLocation<ThreePointScreenLocation>*>(selectedModel) != nullptr))
                     {
-                            // only restore if not suppressed and if it is a boxed screen location
-                            selectedModel->RestoreDisplayDimensions();
+                        // only restore if not suppressed and if it is a boxed screen location
+                        xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "Model::OnPropertyGridChange", selectedModel);
+                        selectedModel->RestoreDisplayDimensions();
                     }
                     wxASSERT(i == 0 || i == GRIDCHANGE_SUPPRESS_HOLDSIZE);
 
