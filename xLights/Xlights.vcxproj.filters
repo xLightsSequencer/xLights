@@ -107,8 +107,6 @@
     <ClCompile Include="effects\StrobePanel.cpp" />
     <ClCompile Include="effects\TendrilEffect.cpp" />
     <ClCompile Include="effects\TendrilPanel.cpp" />
-    <ClCompile Include="effects\TextEffect.cpp" />
-    <ClCompile Include="effects\TextPanel.cpp" />
     <ClCompile Include="effects\TreeEffect.cpp" />
     <ClCompile Include="effects\TreePanel.cpp" />
     <ClCompile Include="effects\TwinkleEffect.cpp" />
@@ -167,8 +165,6 @@
     <ClCompile Include="outputs\OutputManager.cpp" />
     <ClCompile Include="outputs\PixelNetOutput.cpp" />
     <ClCompile Include="outputs\RenardOutput.cpp" />
-    <ClCompile Include="outputs\serial.cpp" />
-    <ClCompile Include="outputs\SerialOutput.cpp" />
     <ClCompile Include="outputs\TestPreset.cpp" />
     <ClCompile Include="PaletteMgmtDialog.cpp" />
     <ClCompile Include="PerspectivesPanel.cpp" />
@@ -202,7 +198,6 @@
     <ClCompile Include="sequencer\TimeLine.cpp" />
     <ClCompile Include="sequencer\UndoManager.cpp" />
     <ClCompile Include="sequencer\Waveform.cpp" />
-    <ClCompile Include="outputs\SerialPortWithRate.cpp" />
     <ClCompile Include="SequenceViewManager.cpp" />
     <ClCompile Include="SevenSegmentDialog.cpp" />
     <ClCompile Include="SplashDialog.cpp" />
@@ -302,8 +297,6 @@
     <ClCompile Include="models\WholeHouseModel.cpp" />
     <ClCompile Include="effects\LinesEffect.cpp" />
     <ClCompile Include="effects\LinesPanel.cpp" />
-    <ClCompile Include="effects\KaleidoscopeEffect.cpp" />
-    <ClCompile Include="effects\KaleidoscopePanel.cpp" />
     <ClCompile Include="ControllerVisualiseDialog.cpp" />
     <ClCompile Include="LOREdit.cpp" />
     <ClCompile Include="controllers\ControllerRegistry.cpp" />
@@ -521,6 +514,27 @@
     <ClCompile Include="outputs\DMXOutput.cpp">
       <Filter>Outputs</Filter>
     </ClCompile>
+    <ClCompile Include="effects\TextEffect.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\TextPanel.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\KaleidoscopePanel.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\KaleidoscopeEffect.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="outputs\SerialPortWithRate.cpp">
+      <Filter>Outputs</Filter>
+    </ClCompile>
+    <ClCompile Include="outputs\SerialOutput.cpp">
+      <Filter>Outputs</Filter>
+    </ClCompile>
+    <ClCompile Include="outputs\serial.cpp">
+      <Filter>Outputs</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -623,8 +637,6 @@
     <ClInclude Include="effects\StrobePanel.h" />
     <ClInclude Include="effects\TendrilEffect.h" />
     <ClInclude Include="effects\TendrilPanel.h" />
-    <ClInclude Include="effects\TextEffect.h" />
-    <ClInclude Include="effects\TextPanel.h" />
     <ClInclude Include="effects\TreeEffect.h" />
     <ClInclude Include="effects\TreePanel.h" />
     <ClInclude Include="effects\TwinkleEffect.h" />
@@ -679,8 +691,6 @@
     <ClInclude Include="outputs\OutputManager.h" />
     <ClInclude Include="outputs\PixelNetOutput.h" />
     <ClInclude Include="outputs\RenardOutput.h" />
-    <ClInclude Include="outputs\serial.h" />
-    <ClInclude Include="outputs\SerialOutput.h" />
     <ClInclude Include="outputs\TestPreset.h" />
     <ClInclude Include="PaletteMgmtDialog.h" />
     <ClInclude Include="PerspectivesPanel.h" />
@@ -714,7 +724,6 @@
     <ClInclude Include="sequencer\TimeLine.h" />
     <ClInclude Include="sequencer\UndoManager.h" />
     <ClInclude Include="sequencer\Waveform.h" />
-    <ClInclude Include="outputs\SerialPortWithRate.h" />
     <ClInclude Include="SequenceViewManager.h" />
     <ClInclude Include="SevenSegmentDialog.h" />
     <ClInclude Include="SplashDialog.h" />
@@ -824,8 +833,6 @@
     <ClInclude Include="models\WholeHouseModel.h" />
     <ClInclude Include="effects\LinesEffect.h" />
     <ClInclude Include="effects\LinesPanel.h" />
-    <ClInclude Include="effects\KaleidoscopeEffect.h" />
-    <ClInclude Include="effects\KaleidoscopePanel.h" />
     <ClInclude Include="ControllerVisualiseDialog.h" />
     <ClInclude Include="LOREdit.h" />
     <ClInclude Include="controllers\ControllerRegistry.h" />
@@ -1049,6 +1056,27 @@
       <Filter>Outputs</Filter>
     </ClInclude>
     <ClInclude Include="outputs\DLightOutput.h">
+      <Filter>Outputs</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\TextEffect.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\TextPanel.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\KaleidoscopePanel.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\KaleidoscopeEffect.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="outputs\SerialPortWithRate.h">
+      <Filter>Outputs</Filter>
+    </ClInclude>
+    <ClInclude Include="outputs\SerialOutput.h">
+      <Filter>Outputs</Filter>
+    </ClInclude>
+    <ClInclude Include="outputs\serial.h">
       <Filter>Outputs</Filter>
     </ClInclude>
   </ItemGroup>
