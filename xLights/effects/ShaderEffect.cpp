@@ -288,17 +288,23 @@ public:
         win->SetCurrentGLContext();
         wxDEFINE_WGL_FUNC(wglCreateContextAttribsARB);
         wglMakeCurrent(win->GetHDC(), nullptr);
-        
+
         //create a new window and new HDC specifically for this context, we
         // won't display this anywhere, but it's required to get the hardware accelerated
         // contexts and such.
         _canvas = new ShaderGLCanvas(win->GetParent());
         _hdc = _canvas->GetHDC();
-        
-        // we need core profile/3.3
+
+        // we *should* need core profile/3.3... but seems to work withe 3.1 for Windows??
         wxGLContextAttrs cxtAttrs;
         cxtAttrs.PlatformDefaults().OGLVersion(3, 3).CoreProfile().EndList();
         _context = wglCreateContextAttribsARB(_hdc, 0, cxtAttrs.GetGLAttrs());
+        if ( _context == NULL )
+        {
+           wxGLContextAttrs newAttrs;
+           newAttrs.PlatformDefaults().OGLVersion(3, 1).CoreProfile().EndList();
+           _context = wglCreateContextAttribsARB(_hdc, 0, newAttrs.GetGLAttrs());
+        }
         logger_opengl.debug("ShaderEffect Thread %d created open gl context 0x%llx.", wxThread::GetCurrentId(), (uint64_t)_context);
 
         //now unset this as current on the main thread

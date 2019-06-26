@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (kevin)  Fix shader effects may fail to render on some versions of Intel Integrated Graphics
    -- enh (keith)  Add ZCPP protocol support
    -- enh (keith)  In Model Faces, States and import dialogs remember any custom colours between accesses to the colour dialog
    -- enh (keith)  Add support for convert node data to effects at the strand and model level to reduce the tedium of converting
