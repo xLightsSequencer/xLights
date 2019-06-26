@@ -406,6 +406,13 @@
 		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_300,w_300/akpx0befykxekpsid55q</image>
 		<rating>1</rating>
 	</shader>
+	<shader>
+		<name>Another Spheriod Fractal Thing</name>
+		<link>https://www.interactiveshaderformat.com/sketches/2033</link>
+		<download>https://www.interactiveshaderformat.com/sketches//2033/download</download>
+		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_300,w_300/g4tr6hqahfpgec33rf1r</image>
+		<rating>3</rating>
+	</shader>
 	<!--shader>
 		<name></name>
 		<link>https://www.interactiveshaderformat.com/sketches/xxx</link>
