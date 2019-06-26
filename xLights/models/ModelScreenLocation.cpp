@@ -155,7 +155,9 @@ void ModelScreenLocation::MouseOverHandle(int handle)
 
 float ModelScreenLocation::GetAxisArrowLength(float zoom, int scale) const
 {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     static float AXIS_ARROW_LENGTH = 60.0f;
+    logger_base.debug("zoom %f scale %d", zoom, scale);
     return AXIS_ARROW_LENGTH * zoom* scale;
 }
 
@@ -359,6 +361,7 @@ void ModelScreenLocation::SetDefaultMatrices() const
 
 bool ModelScreenLocation::DragHandle(ModelPreview* preview, int mouseX, int mouseY, bool latch) {
 
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     float zoom = preview->GetCameraZoomForHandles();
     int scale = preview->GetHandleScale();
 
@@ -440,7 +443,6 @@ bool ModelScreenLocation::DragHandle(ModelPreview* preview, int mouseX, int mous
         }
     }
     else {
-        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         logger_base.warn("MoveHandle3D: Intersect not found!");
     }
     return found;

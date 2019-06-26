@@ -59,6 +59,7 @@ const long xLightsFrame::ID_NETWORK_ADDDDP = wxNewId();
 const long xLightsFrame::ID_NETWORK_BEIPADDR = wxNewId();
 const long xLightsFrame::ID_NETWORK_BECHANNELS = wxNewId();
 const long xLightsFrame::ID_NETWORK_BEDESCRIPTION = wxNewId();
+const long xLightsFrame::ID_NETWORK_BECONTROLLERTYPE = wxNewId();
 const long xLightsFrame::ID_NETWORK_BESUPPRESSDUPLICATES = wxNewId();
 const long xLightsFrame::ID_NETWORK_BESUPPRESSDUPLICATESYES = wxNewId();
 const long xLightsFrame::ID_NETWORK_BESUPPRESSDUPLICATESNO = wxNewId();
@@ -734,6 +735,47 @@ void xLightsFrame::UpdateSelectedDescriptions()
             _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "UpdateSelectedDescriptions", nullptr, o);
 
             item = GridNetwork->GetNextItem(item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+        }
+    }
+}
+
+void xLightsFrame::UpdateSelectedTypes()
+{
+    int item = GridNetwork->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+    Output* f = _outputManager.GetOutput(item);
+
+    wxArrayString types;
+
+    int x = 0;
+    int idx = 0;
+    for (auto& a : ControllerRegistry::GetControllerIds()) {
+        const ControllerRules* rules = ControllerRegistry::GetRulesForController(a);
+        if (rules && rules->GetSupportedInputProtocols().count(f->GetType()) != 0) {
+            types.push_back(rules->GetControllerDescription());
+            if (f->GetControllerId() == a) {
+                idx = x;
+            }
+            x++;
+        }
+    }
+
+    if (types.size() > 0) {
+        wxSingleChoiceDialog dlg(this, "Chang controller type", "Type", types);
+        dlg.SetSelection(idx);
+        if (dlg.ShowModal() == wxID_OK)
+        {
+            while (item != -1)
+            {
+                Output* o = _outputManager.GetOutput(item);
+                const ControllerRules* rules = ControllerRegistry::GetRulesForController(dlg.GetStringSelection());
+                if (rules && rules->GetSupportedInputProtocols().count(o->GetType()) != 0) {
+                    o->SetControllerId(dlg.GetStringSelection());
+                    _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "UpdateSelectedDescriptions", nullptr, o);
+                    _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "UpdateSelectedDescriptions", nullptr, o);
+                }
+
+                item = GridNetwork->GetNextItem(item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+            }
         }
     }
 }
@@ -1577,6 +1619,7 @@ void xLightsFrame::OnGridNetworkItemRClick(wxListEvent& event)
     if (!AllSelectedSupportChannels()) {
         bech->Enable(false);
     }
+    mnuBulkEdit->Append(ID_NETWORK_BECONTROLLERTYPE, "Type")->Enable(selcnt > 0);
     mnuBulkEdit->Append(ID_NETWORK_BEDESCRIPTION, "Description")->Enable(selcnt > 0);
 
     wxMenu* mnuBulkEditSD = new wxMenu();
@@ -1756,8 +1799,12 @@ void xLightsFrame::OnNetworkPopup(wxCommandEvent &event)
         UpdateSelectedIPAddresses();
     } else if (id == ID_NETWORK_BECHANNELS) {
         UpdateSelectedChannels();
-    } else if (id == ID_NETWORK_BEDESCRIPTION) {
-        UpdateSelectedDescriptions();
+    }
+    else if (id == ID_NETWORK_BEDESCRIPTION) {
+    UpdateSelectedDescriptions();
+    }
+    else if (id == ID_NETWORK_BECONTROLLERTYPE) {
+    UpdateSelectedTypes();
     } else if (id == ID_NETWORK_BESUPPRESSDUPLICATESYES) {
         UpdateSelectedSuppressDuplicates(true);
     } else if (id == ID_NETWORK_BESUPPRESSDUPLICATESNO) {

@@ -7,9 +7,6 @@
     <ClCompile Include="CachedFileDownloader.cpp" />
     <ClCompile Include="ColorManager.cpp" />
     <ClCompile Include="ColorManagerDialog.cpp" />
-    <ClCompile Include="controllers\FPP.cpp" />
-    <ClCompile Include="controllers\FPPConnectDialog.cpp" />
-    <ClCompile Include="controllers\J1Sys.cpp" />
     <ClCompile Include="controllers\Pixlite16.cpp" />
     <ClCompile Include="controllers\SanDevices.cpp" />
     <ClCompile Include="CustomTimingDialog.cpp" />
@@ -161,8 +158,6 @@
     <ClCompile Include="outputs\NullOutput.cpp" />
     <ClCompile Include="outputs\OpenDMXOutput.cpp" />
     <ClCompile Include="outputs\OpenPixelNetOutput.cpp" />
-    <ClCompile Include="outputs\Output.cpp" />
-    <ClCompile Include="outputs\OutputManager.cpp" />
     <ClCompile Include="outputs\PixelNetOutput.cpp" />
     <ClCompile Include="outputs\RenardOutput.cpp" />
     <ClCompile Include="outputs\TestPreset.cpp" />
@@ -259,7 +254,6 @@
     <ClCompile Include="PixelTestDialog.cpp" />
     <ClCompile Include="SequenceVideoPanel.cpp" />
     <ClCompile Include="SequenceVideoPreview.cpp" />
-    <ClCompile Include="controllers\ESPixelStick.cpp" />
     <ClCompile Include="controllers\WebSocketClient.cpp" />
     <ClCompile Include="..\xSchedule\wxJSON\jsonval.cpp" />
     <ClCompile Include="..\xSchedule\wxJSON\jsonwriter.cpp" />
@@ -285,21 +279,18 @@
     <ClCompile Include="models\ObjectManager.cpp" />
     <ClCompile Include="models\ViewObjectManager.cpp" />
     <ClCompile Include="ViewObjectPanel.cpp" />
-    <ClCompile Include="controllers\ControllerUploadData.cpp" />
     <ClCompile Include="NodeSelectGrid.cpp" />
     <ClCompile Include="ModelChainDialog.cpp" />
     <ClCompile Include="MultiControllerUploadDialog.cpp" />
     <ClCompile Include="wxModelGridCellRenderer.cpp" />
     <ClCompile Include="FSEQFile.cpp" />
     <ClCompile Include="PathGenerationDialog.cpp" />
-    <ClCompile Include="controllers\EasyLights.cpp" />
     <ClCompile Include="RemapDMXChannelsDialog.cpp" />
     <ClCompile Include="models\WholeHouseModel.cpp" />
     <ClCompile Include="effects\LinesEffect.cpp" />
     <ClCompile Include="effects\LinesPanel.cpp" />
     <ClCompile Include="ControllerVisualiseDialog.cpp" />
     <ClCompile Include="LOREdit.cpp" />
-    <ClCompile Include="controllers\ControllerRegistry.cpp" />
     <ClCompile Include="AlignmentDialog.cpp" />
     <ClCompile Include="CharMapDialog.cpp" />
     <ClCompile Include="models\ArchesModel.cpp">
@@ -535,6 +526,33 @@
     <ClCompile Include="outputs\serial.cpp">
       <Filter>Outputs</Filter>
     </ClCompile>
+    <ClCompile Include="outputs\OutputManager.cpp">
+      <Filter>Outputs</Filter>
+    </ClCompile>
+    <ClCompile Include="outputs\Output.cpp">
+      <Filter>Outputs</Filter>
+    </ClCompile>
+    <ClCompile Include="controllers\ESPixelStick.cpp">
+      <Filter>Controllers</Filter>
+    </ClCompile>
+    <ClCompile Include="controllers\FPP.cpp">
+      <Filter>Controllers</Filter>
+    </ClCompile>
+    <ClCompile Include="controllers\FPPConnectDialog.cpp">
+      <Filter>Controllers</Filter>
+    </ClCompile>
+    <ClCompile Include="controllers\J1Sys.cpp">
+      <Filter>Controllers</Filter>
+    </ClCompile>
+    <ClCompile Include="controllers\EasyLights.cpp">
+      <Filter>Controllers</Filter>
+    </ClCompile>
+    <ClCompile Include="controllers\ControllerUploadData.cpp">
+      <Filter>Controllers</Filter>
+    </ClCompile>
+    <ClCompile Include="controllers\ControllerRegistry.cpp">
+      <Filter>Controllers</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -543,9 +561,6 @@
     <ClInclude Include="CachedFileDownloader.h" />
     <ClInclude Include="ColorManager.h" />
     <ClInclude Include="ColorManagerDialog.h" />
-    <ClInclude Include="controllers\FPP.h" />
-    <ClInclude Include="controllers\FPPConnectDialog.h" />
-    <ClInclude Include="controllers\J1Sys.h" />
     <ClInclude Include="controllers\Pixlite16.h" />
     <ClInclude Include="controllers\SanDevices.h" />
     <ClInclude Include="effects\ShapeEffect.h" />
@@ -687,8 +702,6 @@
     <ClInclude Include="outputs\NullOutput.h" />
     <ClInclude Include="outputs\OpenDMXOutput.h" />
     <ClInclude Include="outputs\OpenPixelNetOutput.h" />
-    <ClInclude Include="outputs\Output.h" />
-    <ClInclude Include="outputs\OutputManager.h" />
     <ClInclude Include="outputs\PixelNetOutput.h" />
     <ClInclude Include="outputs\RenardOutput.h" />
     <ClInclude Include="outputs\TestPreset.h" />
@@ -791,7 +804,6 @@
     <ClInclude Include="PixelTestDialog.h" />
     <ClInclude Include="SequenceVideoPanel.h" />
     <ClInclude Include="SequenceVideoPreview.h" />
-    <ClInclude Include="controllers\ESPixelStick.h" />
     <ClInclude Include="controllers\WebSocketClient.h" />
     <ClInclude Include="LayerSelectDialog.h" />
     <ClInclude Include="FolderSelection.h" />
@@ -820,7 +832,6 @@
     <ClInclude Include="models\ObjectManager.h" />
     <ClInclude Include="models\ViewObjectManager.h" />
     <ClInclude Include="ViewObjectPanel.h" />
-    <ClInclude Include="controllers\ControllerUploadData.h" />
     <ClInclude Include="NodeSelectGrid.h" />
     <ClInclude Include="ModelChainDialog.h" />
     <ClInclude Include="models\tiny_obj_loader.h" />
@@ -828,14 +839,12 @@
     <ClInclude Include="wxModelGridCellRenderer.h" />
     <ClInclude Include="FSEQFile.h" />
     <ClInclude Include="PathGenerationDialog.h" />
-    <ClInclude Include="controllers\EasyLights.h" />
     <ClInclude Include="RemapDMXChannelsDialog.h" />
     <ClInclude Include="models\WholeHouseModel.h" />
     <ClInclude Include="effects\LinesEffect.h" />
     <ClInclude Include="effects\LinesPanel.h" />
     <ClInclude Include="ControllerVisualiseDialog.h" />
     <ClInclude Include="LOREdit.h" />
-    <ClInclude Include="controllers\ControllerRegistry.h" />
     <ClInclude Include="..\include\globals.h" />
     <ClInclude Include="AlignmentDialog.h" />
     <ClInclude Include="CharMapDialog.h" />
@@ -1078,6 +1087,33 @@
     </ClInclude>
     <ClInclude Include="outputs\serial.h">
       <Filter>Outputs</Filter>
+    </ClInclude>
+    <ClInclude Include="outputs\OutputManager.h">
+      <Filter>Outputs</Filter>
+    </ClInclude>
+    <ClInclude Include="outputs\Output.h">
+      <Filter>Outputs</Filter>
+    </ClInclude>
+    <ClInclude Include="controllers\ESPixelStick.h">
+      <Filter>Controllers</Filter>
+    </ClInclude>
+    <ClInclude Include="controllers\FPP.h">
+      <Filter>Controllers</Filter>
+    </ClInclude>
+    <ClInclude Include="controllers\FPPConnectDialog.h">
+      <Filter>Controllers</Filter>
+    </ClInclude>
+    <ClInclude Include="controllers\J1Sys.h">
+      <Filter>Controllers</Filter>
+    </ClInclude>
+    <ClInclude Include="controllers\EasyLights.h">
+      <Filter>Controllers</Filter>
+    </ClInclude>
+    <ClInclude Include="controllers\ControllerUploadData.h">
+      <Filter>Controllers</Filter>
+    </ClInclude>
+    <ClInclude Include="controllers\ControllerRegistry.h">
+      <Filter>Controllers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

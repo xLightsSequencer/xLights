@@ -4,6 +4,8 @@
 #include "Falcon.h"
 #include "ESPixelStick.h"
 #include "SanDevices.h"
+#include "J1Sys.h"
+#include "EasyLights.h"
 
 std::map<std::string, const ControllerRules*> ControllerRegistry::controllers;
 std::map<std::string, std::string> ControllerRegistry::controllersByDescription;

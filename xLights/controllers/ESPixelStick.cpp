@@ -19,6 +19,7 @@
 static std::vector<ESPixelStickControllerRules> CONTROLLER_TYPE_MAP = {
     ESPixelStickControllerRules()
 };
+
 void ESPixelStick::RegisterControllers() {
     for (auto &a : CONTROLLER_TYPE_MAP) {
         ControllerRegistry::AddController(&a);

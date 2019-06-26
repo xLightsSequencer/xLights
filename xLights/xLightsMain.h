@@ -1179,6 +1179,7 @@ public:
     void UpdateSelectedIPAddresses();
     void UpdateSelectedChannels();
     void UpdateSelectedDescriptions();
+    void UpdateSelectedTypes();
     void UpdateSelectedSuppressDuplicates(bool suppressDuplicates);
 
     void OnProgressBarDoubleClick(wxMouseEvent& event);
@@ -1594,6 +1595,7 @@ private:
     static const long ID_NETWORK_BEIPADDR;
     static const long ID_NETWORK_BECHANNELS;
     static const long ID_NETWORK_BEDESCRIPTION;
+    static const long ID_NETWORK_BECONTROLLERTYPE;
     static const long ID_NETWORK_BESUPPRESSDUPLICATES;
     static const long ID_NETWORK_BESUPPRESSDUPLICATESYES;
     static const long ID_NETWORK_BESUPPRESSDUPLICATESNO;
