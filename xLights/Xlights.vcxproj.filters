@@ -65,10 +65,6 @@
     <ClCompile Include="effects\MarqueePanel.cpp" />
     <ClCompile Include="effects\MeteorsEffect.cpp" />
     <ClCompile Include="effects\MeteorsPanel.cpp" />
-    <ClCompile Include="effects\MorphEffect.cpp" />
-    <ClCompile Include="effects\MorphPanel.cpp" />
-    <ClCompile Include="effects\MusicEffect.cpp" />
-    <ClCompile Include="effects\MusicPanel.cpp" />
     <ClCompile Include="effects\OffEffect.cpp" />
     <ClCompile Include="effects\OffPanel.cpp" />
     <ClCompile Include="effects\OnEffect.cpp" />
@@ -553,6 +549,18 @@
     <ClCompile Include="controllers\ControllerRegistry.cpp">
       <Filter>Controllers</Filter>
     </ClCompile>
+    <ClCompile Include="effects\MorphPanel.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\MorphEffect.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\MusicEffect.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\MusicPanel.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -613,10 +621,6 @@
     <ClInclude Include="effects\MarqueePanel.h" />
     <ClInclude Include="effects\MeteorsEffect.h" />
     <ClInclude Include="effects\MeteorsPanel.h" />
-    <ClInclude Include="effects\MorphEffect.h" />
-    <ClInclude Include="effects\MorphPanel.h" />
-    <ClInclude Include="effects\MusicEffect.h" />
-    <ClInclude Include="effects\MusicPanel.h" />
     <ClInclude Include="effects\OffEffect.h" />
     <ClInclude Include="effects\OffPanel.h" />
     <ClInclude Include="effects\OnEffect.h" />
@@ -1114,6 +1118,18 @@
     </ClInclude>
     <ClInclude Include="controllers\ControllerRegistry.h">
       <Filter>Controllers</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\MorphPanel.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\MorphEffect.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\MusicEffect.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\MusicPanel.h">
+      <Filter>Effects</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

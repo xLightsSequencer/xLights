@@ -30,6 +30,8 @@ class xlGridCanvasMorph : public xlGridCanvas
 
     private:
 
+        void CalcDistanceTo(float targetX, float targetY, float* disance);
+        void ProcessNearest(int targetX, int targetY, bool* done);
         bool CheckForInsideHit(int x, int y) const;
         int CheckForCornerHit(int x, int y) const;
         void mouseMoved(wxMouseEvent& event);
@@ -37,6 +39,7 @@ class xlGridCanvasMorph : public xlGridCanvas
         void mouseLeftDown(wxMouseEvent& event);
         void mouseRightUp(wxMouseEvent& event);
         void mouseLeftUp(wxMouseEvent& event);
+        void mouseLeftDClick(wxMouseEvent& event);
         void render(wxPaintEvent& event);
         void DrawMorphEffect();
         void CreateCornerTextures();

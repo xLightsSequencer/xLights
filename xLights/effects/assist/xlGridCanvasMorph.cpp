@@ -14,6 +14,7 @@ BEGIN_EVENT_TABLE(xlGridCanvasMorph, xlGridCanvas)
     EVT_LEFT_UP(xlGridCanvasMorph::mouseLeftUp)
     EVT_RIGHT_DOWN(xlGridCanvasMorph::mouseRightDown)
     EVT_RIGHT_UP(xlGridCanvasMorph::mouseRightUp)
+    EVT_LEFT_DCLICK(xlGridCanvasMorph::mouseLeftDClick)
 END_EVENT_TABLE()
 
 #define CORNER_NOT_SELECTED     0
@@ -296,6 +297,70 @@ void xlGridCanvasMorph::mouseLeftUp(wxMouseEvent& event)
         ReleaseMouse();
         mDragging = false;
     }
+}
+
+void xlGridCanvasMorph::CalcDistanceTo(float targetX, float targetY, float* distance)
+{
+    distance[0] = sqrt((x1a - targetX) * (x1a - targetX) + (y1a - targetY) * (y1a - targetY));
+    distance[1] = sqrt((x2a - targetX) * (x2a - targetX) + (y2a - targetY) * (y2a - targetY));
+    distance[2] = sqrt((x1b - targetX) * (x1b - targetX) + (y1b - targetY) * (y1b - targetY));
+    distance[3] = sqrt((x2b - targetX) * (x2b - targetX) + (y2b - targetY) * (y2b - targetY));
+}
+
+void xlGridCanvasMorph::ProcessNearest(int targetX, int targetY, bool* done)
+{
+    float distanceTo[4];
+    CalcDistanceTo(targetX, targetY, distanceTo);
+
+    int least = -1;
+    for (int i = 0; i < 4; i++)
+    {
+        if (least == -1 && done[i] == false)
+        {
+            least = i;
+        }
+        else if (done[i] == false)
+        {
+            if (distanceTo[i] < distanceTo[least])
+            {
+                least = i;
+            }
+        }
+    }
+    switch (least)
+    {
+    case 0:
+        x1a = targetX;
+        y1a = targetY;
+        break;
+    case 1:
+        x2a = targetX;
+        y2a = targetY;
+        break;
+    case 2:
+        x1b = targetX;
+        y1b = targetY;
+        break;
+    case 3:
+        x2b = targetX;
+        y2b = targetY;
+        break;
+    }
+    done[least] = true;
+}
+
+void xlGridCanvasMorph::mouseLeftDClick(wxMouseEvent& event)
+{
+    bool done[4] = { false,false,false,false };
+
+    ProcessNearest(0, 0, done);
+    ProcessNearest(0, mRows * mCellSize, done);
+    ProcessNearest(mColumns * mCellSize, 0, done);
+    ProcessNearest(mColumns * mCellSize, mRows * mCellSize, done);
+    mSelectedCorner = CORNER_ALL_SELECTED;
+    StoreUpdatedMorphPositions();
+    mSelectedCorner = CORNER_NOT_SELECTED;
+    Refresh(false);
 }
 
 void xlGridCanvasMorph::mouseRightUp(wxMouseEvent& event)
