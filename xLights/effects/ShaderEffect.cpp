@@ -323,16 +323,18 @@ public:
     }
     void UnsetCurrent() {
         static log4cpp::Category& logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
-        if (wglMakeCurrent(nullptr, nullptr))
-        {
-            logger_opengl.debug("ShaderEffect Thread %d has no current GL Context.", wxThread::GetCurrentId());
+        for (int x = 0; x < 10; x++) {
+            if (wglMakeCurrent(_hdc, nullptr))
+            {
+                logger_opengl.debug("ShaderEffect Thread %d has no current GL Context.", wxThread::GetCurrentId());
+                return;
+            }
+            wxMilliSleep(1);
         }
-        else
-        {
-            logger_opengl.error("ShaderEffect Thread %d tried to set no current GL Context but failed.", wxThread::GetCurrentId());
-        }
+        wxASSERT(false);
+        logger_opengl.error("ShaderEffect Thread %d tried to set no current GL Context but failed.", wxThread::GetCurrentId());
     }
-    
+
     HGLRC _context;
     HDC _hdc;
     xlGLCanvas *_canvas;
