@@ -322,9 +322,25 @@ void TextEffect::SetPanelStatus(Model* cls)
     for (int i = 0; i < mSequenceElements->GetElementCount(); i++)
     {
         Element* e = mSequenceElements->GetElement(i);
-        if (e->GetType() == ELEMENT_TYPE_TIMING && e->GetEffectLayerCount() > 1)
+        if (e->GetType() == ELEMENT_TYPE_TIMING)
         {
-            tp->Choice_LyricTrack->Append(e->GetName());
+            TimingElement* te = dynamic_cast<TimingElement*>(e);
+            auto n = e->GetName();
+            if (e->GetEffectLayerCount() > 1)
+            {
+                if (te->HasLyrics(0)) {
+                    tp->Choice_LyricTrack->Append(n + " - Phrases");
+                }
+                if (te->HasLyrics(1)) {
+                    tp->Choice_LyricTrack->Append(n + " - Words");
+                }
+            }
+            else
+            {
+                if (te->HasLyrics(0)) {
+                    tp->Choice_LyricTrack->Append(n + " - Phrases");
+                }
+            }
         }
     }
 
@@ -476,8 +492,10 @@ void TextEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &
                 Element* t = nullptr;
                 for (int i = 0; i < mSequenceElements->GetElementCount(); i++)
                 {
+                    auto lt = lyricTrack.BeforeLast('-');
+                    lt = lt.Left(lt.size() - 1);
                     Element* e = mSequenceElements->GetElement(i);
-                    if (e->GetEffectLayerCount() > 1 && e->GetType() == ELEMENT_TYPE_TIMING && e->GetName() == lyricTrack)
+                    if (e->GetEffectLayerCount() > 1 && e->GetType() == ELEMENT_TYPE_TIMING && e->GetName() == lt)
                     {
                         t = e;
                         break;
@@ -487,7 +505,15 @@ void TextEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &
                 if (t != nullptr)
                 {
                     long time = buffer.curPeriod * buffer.frameTimeInMs;
-                    EffectLayer* el = t->GetEffectLayer(1);
+                    EffectLayer* el = nullptr;
+                    if (lyricTrack.EndsWith(" - Phrases"))
+                    {
+                        el = t->GetEffectLayer(0);
+                    }
+                    else
+                    {
+                        el = t->GetEffectLayer(1);
+                    }
                     for (int j = 0; j < el->GetEffectCount(); j++)
                     {
                         Effect* e = el->GetEffect(j);
@@ -1356,25 +1382,72 @@ void TextEffect::RenderXLText(Effect *effect, const SettingsMap &settings, Rende
 
     wxString text = settings["TEXTCTRL_Text"];
     wxString filename = settings["FILEPICKERCTRL_Text_File"];
-    if (wxFile::Exists(filename))
+    wxString lyricTrack = settings["CHOICE_Text_LyricTrack"];
+
+    if (text == "")
     {
-        wxTextFile f(filename);
-        f.Open();
-        int i = 0;
-        text = f.GetFirstLine() + "\n";
-        while (!f.Eof() && i < MAXTEXTLINES)
+        if (wxFile::Exists(filename))
         {
-            text += f.GetNextLine() + "\n";
-            i++;
-        }
-        if (text != "")
-        {
-            while (text.Last() == '\n')
+            wxTextFile f(filename);
+            f.Open();
+            int i = 0;
+            text = f.GetFirstLine() + "\n";
+            while (!f.Eof() && i < MAXTEXTLINES)
             {
-                text = text.BeforeLast('\n');
+                text += f.GetNextLine() + "\n";
+                i++;
+            }
+            if (text != "")
+            {
+                while (text.Last() == '\n')
+                {
+                    text = text.BeforeLast('\n');
+                }
+            }
+            f.Close();
+        }
+        else
+        {
+            if (lyricTrack != "")
+            {
+                Element* t = nullptr;
+                for (int i = 0; i < mSequenceElements->GetElementCount(); i++)
+                {
+                    auto lt = lyricTrack.BeforeLast('-');
+                    lt = lt.Left(lt.size() - 1);
+                    Element* e = mSequenceElements->GetElement(i);
+                    if (e->GetEffectLayerCount() > 1 && e->GetType() == ELEMENT_TYPE_TIMING && e->GetName() == lt)
+                    {
+                        t = e;
+                        break;
+                    }
+                }
+
+                if (t != nullptr)
+                {
+                    long time = buffer.curPeriod * buffer.frameTimeInMs;
+                    EffectLayer* el = nullptr;
+                    if (lyricTrack.EndsWith(" - Phrases"))
+                    {
+                        el = t->GetEffectLayer(0);
+                    }
+                    else
+                    {
+                        el = t->GetEffectLayer(1);
+                    }
+                    for (int j = 0; j < el->GetEffectCount(); j++)
+                    {
+                        Effect* e = el->GetEffect(j);
+                        if (e->GetStartTimeMS() <= time && e->GetEndTimeMS() > time)
+                        {
+                            text = e->GetEffectName();
+                            break;
+                        }
+                    }
+
+                }
             }
         }
-        f.Close();
     }
 
     wxString msg = text;

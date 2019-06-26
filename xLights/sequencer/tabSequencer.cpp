@@ -2101,7 +2101,6 @@ int xLightsFrame::GetCurrentPlayTime()
 
     if (playType == PLAY_TYPE_MODEL) {
 
-        int current_play_time;
         if (CurrentSeqXmlFile->GetSequenceType() == "Media" && CurrentSeqXmlFile->GetMedia() != nullptr && CurrentSeqXmlFile->GetMedia()->GetPlayingState() == MEDIAPLAYINGSTATE::PLAYING)
         {
             curt = CurrentSeqXmlFile->GetMedia()->Tell();

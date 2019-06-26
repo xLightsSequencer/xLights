@@ -67,6 +67,17 @@ bool Element::HasEffects() const {
     return false;
 }
 
+bool TimingElement::HasLyrics(int layer) const {
+    if (mEffectLayers.size() > layer)
+    {
+        for (auto it : mEffectLayers[layer]->GetAllEffects())
+        {
+            if (it->GetEffectName() != "") return true;
+        }
+    }
+    return false;
+}
+
 std::vector<int> Element::GetLayersWithEffectsByTime(int startMs, int endMS) const {
 	std::vector<int> returnList;
 	for (size_t x = 0; x < mEffectLayers.size(); x++) {

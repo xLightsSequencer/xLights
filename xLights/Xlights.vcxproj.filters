@@ -7,7 +7,6 @@
     <ClCompile Include="CachedFileDownloader.cpp" />
     <ClCompile Include="ColorManager.cpp" />
     <ClCompile Include="ColorManagerDialog.cpp" />
-    <ClCompile Include="controllers\Falcon.cpp" />
     <ClCompile Include="controllers\FPP.cpp" />
     <ClCompile Include="controllers\FPPConnectDialog.cpp" />
     <ClCompile Include="controllers\J1Sys.cpp" />
@@ -17,8 +16,6 @@
     <ClCompile Include="effects\ShapeEffect.cpp" />
     <ClCompile Include="effects\ShapePanel.cpp" />
     <ClCompile Include="EffectTimingDialog.cpp" />
-    <ClCompile Include="effects\CandleEffect.cpp" />
-    <ClCompile Include="effects\CandlePanel.cpp" />
     <ClCompile Include="effects\GIFImage.cpp" />
     <ClCompile Include="effects\LiquidEffect.cpp" />
     <ClCompile Include="effects\LiquidPanel.cpp" />
@@ -48,9 +45,6 @@
     <ClCompile Include="djdebug.cpp" />
     <ClCompile Include="DrawGLUtils.cpp" />
     <ClCompile Include="DrawGLUtils31.cpp" />
-    <ClCompile Include="outputs\DDPDialog.cpp" />
-    <ClCompile Include="outputs\DDPOutput.cpp" />
-    <ClCompile Include="outputs\E131Dialog.cpp" />
     <ClCompile Include="EffectAssist.cpp" />
     <ClCompile Include="EffectIconPanel.cpp" />
     <ClCompile Include="EffectListDialog.cpp" />
@@ -60,32 +54,10 @@
     <ClCompile Include="effects\assist\xlGridCanvasEmpty.cpp" />
     <ClCompile Include="effects\assist\xlGridCanvasMorph.cpp" />
     <ClCompile Include="effects\assist\xlGridCanvasPictures.cpp" />
-    <ClCompile Include="effects\ButterflyEffect.cpp" />
-    <ClCompile Include="effects\ButterflyPanel.cpp" />
-    <ClCompile Include="effects\CirclesEffect.cpp" />
-    <ClCompile Include="effects\CirclesPanel.cpp" />
     <ClCompile Include="effects\ColorWashEffect.cpp" />
     <ClCompile Include="effects\ColorWashPanel.cpp" />
-    <ClCompile Include="effects\CurtainEffect.cpp" />
-    <ClCompile Include="effects\CurtainPanel.cpp" />
-    <ClCompile Include="effects\DMXEffect.cpp" />
-    <ClCompile Include="effects\DMXPanel.cpp" />
     <ClCompile Include="effects\EffectManager.cpp" />
     <ClCompile Include="effects\EffectPanelUtils.cpp" />
-    <ClCompile Include="effects\FacesEffect.cpp" />
-    <ClCompile Include="effects\FacesPanel.cpp" />
-    <ClCompile Include="effects\FanEffect.cpp" />
-    <ClCompile Include="effects\FanPanel.cpp" />
-    <ClCompile Include="effects\FillEffect.cpp" />
-    <ClCompile Include="effects\FillPanel.cpp" />
-    <ClCompile Include="effects\FireEffect.cpp" />
-    <ClCompile Include="effects\FirePanel.cpp" />
-    <ClCompile Include="effects\FireworksEffect.cpp" />
-    <ClCompile Include="effects\FireworksPanel.cpp" />
-    <ClCompile Include="effects\GalaxyEffect.cpp" />
-    <ClCompile Include="effects\GalaxyPanel.cpp" />
-    <ClCompile Include="effects\GarlandsEffect.cpp" />
-    <ClCompile Include="effects\GarlandsPanel.cpp" />
     <ClCompile Include="effects\GlediatorEffect.cpp" />
     <ClCompile Include="effects\GlediatorPanel.cpp" />
     <ClCompile Include="effects\LifeEffect.cpp" />
@@ -186,8 +158,6 @@
     <ClCompile Include="outputs\NullOutputDialog.cpp" />
     <ClCompile Include="OptionChooser.cpp" />
     <ClCompile Include="osx_utils\TouchBars.cpp" />
-    <ClCompile Include="outputs\DMXOutput.cpp" />
-    <ClCompile Include="outputs\E131Output.cpp" />
     <ClCompile Include="outputs\IPOutput.cpp" />
     <ClCompile Include="outputs\LOROutput.cpp" />
     <ClCompile Include="outputs\NullOutput.cpp" />
@@ -461,6 +431,96 @@
     <ClCompile Include="outputs\ZCPPOutput.cpp">
       <Filter>Outputs</Filter>
     </ClCompile>
+    <ClCompile Include="outputs\DDPDialog.cpp">
+      <Filter>Outputs</Filter>
+    </ClCompile>
+    <ClCompile Include="outputs\DDPOutput.cpp">
+      <Filter>Outputs</Filter>
+    </ClCompile>
+    <ClCompile Include="outputs\E131Dialog.cpp">
+      <Filter>Outputs</Filter>
+    </ClCompile>
+    <ClCompile Include="outputs\E131Output.cpp">
+      <Filter>Outputs</Filter>
+    </ClCompile>
+    <ClCompile Include="controllers\Falcon.cpp">
+      <Filter>Controllers</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\ButterflyEffect.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\ButterflyPanel.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\CandleEffect.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\CandlePanel.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\CirclesEffect.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\CirclesPanel.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\CurtainEffect.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\CurtainPanel.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\DMXEffect.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\DMXPanel.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\FanPanel.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\FanEffect.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\FacesPanel.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\FacesEffect.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\GarlandsPanel.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\GarlandsEffect.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\GalaxyPanel.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\GalaxyEffect.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\FireworksPanel.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\FireworksEffect.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\FirePanel.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\FireEffect.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\FillPanel.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\FillEffect.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="outputs\DMXOutput.cpp">
+      <Filter>Outputs</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -469,7 +529,6 @@
     <ClInclude Include="CachedFileDownloader.h" />
     <ClInclude Include="ColorManager.h" />
     <ClInclude Include="ColorManagerDialog.h" />
-    <ClInclude Include="controllers\Falcon.h" />
     <ClInclude Include="controllers\FPP.h" />
     <ClInclude Include="controllers\FPPConnectDialog.h" />
     <ClInclude Include="controllers\J1Sys.h" />
@@ -484,8 +543,6 @@
     <ClInclude Include="MatrixFaceDownloadDialog.h" />
     <ClInclude Include="MSWStackWalk.h" />
     <ClInclude Include="CustomTimingDialog.h" />
-    <ClInclude Include="effects\CandleEffect.h" />
-    <ClInclude Include="effects\CandlePanel.h" />
     <ClInclude Include="effects\GIFImage.h" />
     <ClInclude Include="effects\LiquidEffect.h" />
     <ClInclude Include="effects\LiquidPanel.h" />
@@ -509,40 +566,14 @@
     <ClInclude Include="DimmingCurve.h" />
     <ClInclude Include="DimmingCurvePanel.h" />
     <ClInclude Include="DrawGLUtils.h" />
-    <ClInclude Include="outputs\DDPDialog.h" />
-    <ClInclude Include="outputs\DDPOutput.h" />
-    <ClInclude Include="outputs\E131Dialog.h" />
     <ClInclude Include="EffectAssist.h" />
     <ClInclude Include="EffectIconPanel.h" />
     <ClInclude Include="EffectListDialog.h" />
     <ClInclude Include="EffectsPanel.h" />
-    <ClInclude Include="effects\ButterflyEffect.h" />
-    <ClInclude Include="effects\ButterflyPanel.h" />
-    <ClInclude Include="effects\ChromaEffect.h" />
-    <ClInclude Include="effects\CirclesEffect.h" />
-    <ClInclude Include="effects\CirclesPanel.h" />
     <ClInclude Include="effects\ColorWashEffect.h" />
     <ClInclude Include="effects\ColorWashPanel.h" />
-    <ClInclude Include="effects\CurtainEffect.h" />
-    <ClInclude Include="effects\CurtainPanel.h" />
-    <ClInclude Include="effects\DMXEffect.h" />
-    <ClInclude Include="effects\DMXPanel.h" />
     <ClInclude Include="effects\EffectManager.h" />
     <ClInclude Include="effects\EffectPanelUtils.h" />
-    <ClInclude Include="effects\FacesEffect.h" />
-    <ClInclude Include="effects\FacesPanel.h" />
-    <ClInclude Include="effects\FanEffect.h" />
-    <ClInclude Include="effects\FanPanel.h" />
-    <ClInclude Include="effects\FillEffect.h" />
-    <ClInclude Include="effects\FillPanel.h" />
-    <ClInclude Include="effects\FireEffect.h" />
-    <ClInclude Include="effects\FirePanel.h" />
-    <ClInclude Include="effects\FireworksEffect.h" />
-    <ClInclude Include="effects\FireworksPanel.h" />
-    <ClInclude Include="effects\GalaxyEffect.h" />
-    <ClInclude Include="effects\GalaxyPanel.h" />
-    <ClInclude Include="effects\GarlandsEffect.h" />
-    <ClInclude Include="effects\GarlandsPanel.h" />
     <ClInclude Include="effects\GlediatorEffect.h" />
     <ClInclude Include="effects\GlediatorPanel.h" />
     <ClInclude Include="effects\LifeEffect.h" />
@@ -639,9 +670,6 @@
     <ClInclude Include="osxMacUtils.h" />
     <ClInclude Include="osx_utils\TouchBars.h" />
     <ClInclude Include="outputs\Controller.h" />
-    <ClInclude Include="outputs\DLightOutput.h" />
-    <ClInclude Include="outputs\DMXOutput.h" />
-    <ClInclude Include="outputs\E131Output.h" />
     <ClInclude Include="outputs\IPOutput.h" />
     <ClInclude Include="outputs\LOROutput.h" />
     <ClInclude Include="outputs\NullOutput.h" />
@@ -930,6 +958,99 @@
     <ClInclude Include="outputs\ZCPPOutput.h">
       <Filter>Outputs</Filter>
     </ClInclude>
+    <ClInclude Include="outputs\DDPDialog.h">
+      <Filter>Outputs</Filter>
+    </ClInclude>
+    <ClInclude Include="outputs\DDPOutput.h">
+      <Filter>Outputs</Filter>
+    </ClInclude>
+    <ClInclude Include="outputs\E131Dialog.h">
+      <Filter>Outputs</Filter>
+    </ClInclude>
+    <ClInclude Include="outputs\E131Output.h">
+      <Filter>Outputs</Filter>
+    </ClInclude>
+    <ClInclude Include="controllers\Falcon.h">
+      <Filter>Controllers</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\ButterflyEffect.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\ButterflyPanel.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\CandleEffect.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\CandlePanel.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\CirclesEffect.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\CirclesPanel.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\CurtainEffect.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\CurtainPanel.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\DMXEffect.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\DMXPanel.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\FanPanel.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\FanEffect.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\FacesPanel.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\FacesEffect.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\GarlandsPanel.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\GarlandsEffect.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\GalaxyPanel.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\GalaxyEffect.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\FireworksPanel.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\FireworksEffect.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\FirePanel.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\FireEffect.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\FillPanel.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\FillEffect.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="outputs\DMXOutput.h">
+      <Filter>Outputs</Filter>
+    </ClInclude>
+    <ClInclude Include="outputs\DLightOutput.h">
+      <Filter>Outputs</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />
@@ -943,6 +1064,9 @@
     </Filter>
     <Filter Include="Effects">
       <UniqueIdentifier>{3c4a01c4-d8e7-4148-b2ac-0fe747bc1b86}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Controllers">
+      <UniqueIdentifier>{be70286a-a106-4f14-a344-f7ce82c3c438}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

@@ -662,7 +662,6 @@
     <ClInclude Include="effects\BarsPanel.h" />
     <ClInclude Include="effects\ButterflyEffect.h" />
     <ClInclude Include="effects\ButterflyPanel.h" />
-    <ClInclude Include="effects\ChromaEffect.h" />
     <ClInclude Include="effects\CirclesEffect.h" />
     <ClInclude Include="effects\CirclesPanel.h" />
     <ClInclude Include="effects\ColorWashEffect.h" />

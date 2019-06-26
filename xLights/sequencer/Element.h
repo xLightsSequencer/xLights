@@ -151,6 +151,7 @@ public:
     std::string GetExport() const;
     std::string GetPapagayoExport(int ms) const;
     virtual NodeLayer* GetNodeEffectLayer(int index) const override { return nullptr; }
+    bool HasLyrics(int layer) const;
 
 private:
     int mFixed;
