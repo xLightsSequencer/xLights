@@ -155,28 +155,28 @@ void ModelScreenLocation::MouseOverHandle(int handle)
 
 float ModelScreenLocation::GetAxisArrowLength(float zoom, int scale) const
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    //static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     static float AXIS_ARROW_LENGTH = 60.0f;
-    logger_base.debug("zoom %f scale %d", zoom, scale);
-    return AXIS_ARROW_LENGTH * zoom* scale;
+    //logger_base.debug("zoom %f scale %d", zoom, scale);
+    return std::max(AXIS_ARROW_LENGTH, AXIS_ARROW_LENGTH * zoom* scale);
 }
 
 float ModelScreenLocation::GetAxisHeadLength(float zoom, int scale) const
 {
     static float AXIS_HEAD_LENGTH = 12.0f;
-    return AXIS_HEAD_LENGTH * zoom* scale;
+    return std::max(AXIS_HEAD_LENGTH, AXIS_HEAD_LENGTH * zoom* scale);
 }
 
 float ModelScreenLocation::GetAxisRadius(float zoom, int scale) const
 {
     static float AXIS_RADIUS = 4.0f;
-    return AXIS_RADIUS * zoom* scale;
+    return std::max(AXIS_RADIUS, AXIS_RADIUS * zoom* scale);
 }
 
 float ModelScreenLocation::GetRectHandleWidth(float zoom, int scale) const
 {
     static float RECT_HANDLE_WIDTH = 6.0f;
-    return RECT_HANDLE_WIDTH * zoom* scale;
+    return std::max(RECT_HANDLE_WIDTH, RECT_HANDLE_WIDTH * zoom* scale);
 }
 
 void ModelScreenLocation::DrawAxisTool(glm::vec3& pos, DrawGLUtils::xl3Accumulator &va, float zoom, int scale) const
