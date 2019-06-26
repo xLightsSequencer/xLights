@@ -219,6 +219,11 @@ void FPP::probePixelControllerType() {
         parseControllerType(val);
     }
 }
+void FPP::parseProxies(wxJSONValue& val) {
+    for (int x = 0; x < val.Size(); x++) {
+        proxies.emplace(val[x].AsString());
+    }
+}
 void FPP::parseControllerType(wxJSONValue& val) {
     for (int x = 0; x < val["channelOutputs"].Size(); x++) {
         if (val["channelOutputs"][x]["type"].AsString() == "RPIWS281X") {
@@ -846,6 +851,17 @@ inline wxString stripInvalidChars(const std::string &str) {
     return s;
 }
 
+bool FPP::UploadUDPOutputsForProxy(OutputManager* outputManager) {
+    std::list<int> selected;
+    for (int x = 0; x < outputManager->GetOutputCount(); x++) {
+        std::string px = outputManager->GetOutput(x)->GetFPPProxyIP();
+        if (px == hostName || px == ipAddress) {
+            selected.push_back(x);
+        }
+    }
+    wxJSONValue f = CreateUniverseFile(outputManager, "-selected-", selected, false);
+    return UploadUDPOut(f);
+}
 
 wxJSONValue FPP::CreateOutputUniverseFile(OutputManager* outputManager) {
     std::list<int> selected;
@@ -1409,6 +1425,14 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
                     curls.push_back(data);
                     curl_multi_add_handle(curlMulti, data->curl);
                     running++;
+                    
+                    fullAddress = "http://" + inst->ipAddress + "/api/proxies";
+                    data = new CurlData(fullAddress);
+                    data->type = 4;
+                    data->fpp = inst;
+                    curls.push_back(data);
+                    curl_multi_add_handle(curlMulti, data->curl);
+                    running++;
                 }
             }
         } else {
@@ -1467,6 +1491,14 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
                                             curls.push_back(data);
                                             curl_multi_add_handle(curlMulti, data->curl);
                                             running++;
+                                            
+                                            fullAddress = "http://" + curls[x]->fpp->ipAddress + "/api/proxies";
+                                            data = new CurlData(fullAddress);
+                                            data->type = 4;
+                                            data->fpp = curls[x]->fpp;
+                                            curls.push_back(data);
+                                            curl_multi_add_handle(curlMulti, data->curl);
+                                            running++;
                                         }
                                         break;
                                     }
@@ -1475,6 +1507,9 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
                                         break;
                                     case 3:
                                         curls[x]->fpp->parseConfig(curls[x]->buffer);
+                                        break;
+                                    case 4:
+                                        curls[x]->fpp->parseProxies(origJson);
                                         break;
                                     default:
                                         for (int x = 0; x < origJson.Size(); x++) {

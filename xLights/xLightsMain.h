@@ -1152,6 +1152,7 @@ public:
     void NetworkChange();
     void NetworkChannelsChange();
     std::list<int> GetSelectedOutputs(wxString& ip);
+    std::list<int> GetSelectedOutputs(wxString& ip, wxString &proxy);
     void UploadFPPBridgeInput();
     void MultiControllerUpload();
     void UploadFPPBridgeOutput();
@@ -1163,6 +1164,7 @@ public:
     void UploadESPixelStickOutput();
     void UploadPixlite16Output();
     void UploadFPPStringOuputs(const std::string &controllers);
+    void UploadFPPProxyOuputs();
 	void PingController(Output* e);
     void SetModelData(ZCPPOutput* zcpp, ModelManager* modelManager, OutputManager* outputManager, std::string showDir);
     int SetZCPPPort(std::list<ZCPP_packet_t*>& modelDatas, int index, UDControllerPort* port, int portNum, int virtualString, long baseStart, bool isSerial, ZCPPOutput* zcpp);
@@ -1623,6 +1625,7 @@ private:
 	static const long ID_NETWORK_UCOEASYLIGHTS;
     static const long ID_NETWORK_UPLOAD_CONTROLLER_CONFIGURED;
     static const long ID_NETWORK_VISUALISE;
+    static const long ID_NETWORK_PROXY_OUTPUT;
 
     #define isRandom(ctl)  isRandom_(ctl, #ctl) //(buttonState[std::string(ctl->GetName())] == Random)
 

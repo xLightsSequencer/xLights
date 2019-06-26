@@ -61,6 +61,8 @@ protected:
     int _skippedFrames;
     bool _changed; // set to true when something in the packed has changed
     bool _autoSize;
+    std::string _fppProxy;
+    Output *_fppProxyOutput;
     #pragma endregion Member Variables
 
     virtual void Save(wxXmlNode* node);
@@ -71,7 +73,7 @@ public:
     Output(wxXmlNode* node);
     Output(Output* output);
     Output();
-    virtual ~Output() {};
+    virtual ~Output();
     #pragma endregion Constructors and Destructors
 
     #pragma region Static Functions
@@ -116,6 +118,9 @@ public:
     virtual void SetTransientData(int on, long startChannel, int nullnumber);
     long GetTimer() const { return _timer_msec; }
     bool IsOk() const { return _ok; }
+    const std::string GetFPPProxyIP() const { return _fppProxy;}
+    void SetFPPProxyIP(const std::string &ip) { _fppProxy = ip;}
+    bool IsUsingFPPProxy() const { return _fppProxy != "";}
     virtual std::string GetType() const = 0;
     virtual std::string GetLongDescription() const = 0;
     virtual std::string GetPingDescription() const = 0;
@@ -142,7 +147,7 @@ public:
 
     #pragma region Start and Stop
     virtual bool Open();
-    virtual void Close() = 0;
+    virtual void Close();
     #pragma endregion Start and Stop
 
     #pragma region Frame Handling

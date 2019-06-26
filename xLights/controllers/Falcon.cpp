@@ -107,20 +107,25 @@ int Falcon::GetMaxPixels() const
     }
 }
 
-Falcon::Falcon(const std::string& ip)
+Falcon::Falcon(const std::string& ip, const std::string &proxy) : _ip(ip), _fppProxy(proxy), _baseUrl("")
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    _ip = ip;
     _firmwareVersion = "";
     _modelString = "";
     _version = 0;
     _model = 0;
     _usingAbsolute = false;
+    
 
     logger_base.debug("Connecting to Falcon on %s.", (const char *)_ip.c_str());
 
     _http.SetMethod("GET");
-    _connected = _http.Connect(_ip);
+    if (_fppProxy != "") {
+        _baseUrl = "/proxy/" + _ip;
+        _connected = _http.Connect(_fppProxy);
+    } else {
+        _connected = _http.Connect(_ip);
+    }
 
     if (_connected) {
         int p = 0;
@@ -239,21 +244,17 @@ std::string Falcon::GetURL(const std::string& url, bool logresult)
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxString res;
     _http.SetMethod("GET");
-    wxInputStream *httpStream = _http.GetInputStream(wxString(url));
+    wxInputStream *httpStream = _http.GetInputStream(_baseUrl + wxString(url));
     logger_base.debug("Making request to falcon '%s'.", (const char *)url.c_str());
 
-    if (_http.GetError() == wxPROTO_NOERR)
-    {
+    if (_http.GetError() == wxPROTO_NOERR) {
         wxStringOutputStream out_stream(&res);
         httpStream->Read(out_stream);
 
-        if (logresult)
-        {
+        if (logresult) {
             logger_base.debug("Response from falcon '%s'.", (const char *)res.c_str());
         }
-    }
-    else
-    {
+    } else {
         DisplayError(wxString::Format("Unable to connect to falcon '%s' : %d.", url, _http.GetError()).ToStdString());
         res = "";
     }
@@ -268,22 +269,18 @@ std::string Falcon::PutURL(const std::string& url, const std::string& request, b
     wxString res;
     _http.SetMethod("POST");
     _http.SetPostText("application/x-www-form-urlencoded", request);
-    wxInputStream *httpStream = _http.GetInputStream(wxString(url));
+    wxInputStream *httpStream = _http.GetInputStream(_baseUrl + wxString(url));
     logger_base.debug("Making request to falcon '%s'.", (const char *)url.c_str());
     logger_base.debug("    With data '%s'.", (const char *)request.c_str());
 
-    if (_http.GetError() == wxPROTO_NOERR)
-    {
+    if (_http.GetError() == wxPROTO_NOERR) {
         wxStringOutputStream out_stream(&res);
         httpStream->Read(out_stream);
 
-        if (logresult)
-        {
+        if (logresult) {
             logger_base.debug("Response from falcon '%s'.", (const char *)res.c_str());
         }
-    }
-    else
-    {
+    } else {
         DisplayError(wxString::Format("Unable to connect to falcon '%s' : %d.", url, _http.GetError()).ToStdString());
     }
     _http.SetPostText("", "");

@@ -454,23 +454,17 @@ void Model::UpdateProperties(wxPropertyGridInterface* grid, OutputManager* outpu
 void Model::ColourClashingChains(wxPGProperty* p)
 {
     std::string tip;
-    if (GetControllerName() != "" && GetControllerProtocol() != "" && GetControllerPort() != 0)
-    {
-        if (!modelManager.IsValidControllerModelChain(this, tip))
-        {
+    if (GetControllerName() != "" && GetControllerProtocol() != "" && GetControllerPort() != 0) {
+        if (!modelManager.IsValidControllerModelChain(this, tip)) {
             p->SetHelpString(tip);
             p->SetBackgroundColour(*wxRED);
-        }
-        else
-        {
+        } else {
             p->SetHelpString("");
-            p->SetBackgroundColour(*wxWHITE);
+            p->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
         }
-    }
-    else
-    {
+    } else {
         p->SetHelpString("");
-        p->SetBackgroundColour(*wxWHITE);
+        p->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
     }
 }
 
@@ -822,7 +816,7 @@ void Model::UpdateControllerProperties(wxPropertyGridInterface* grid) {
     else
     {
         p->SetHelpString("");
-        p->SetBackgroundColour(*wxWHITE);
+        p->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
     }
 
     p = grid->GetPropertyByName("ModelControllerConnectionProtocol");
@@ -834,7 +828,7 @@ void Model::UpdateControllerProperties(wxPropertyGridInterface* grid) {
     else
     {
         p->SetHelpString("");
-        grid->GetPropertyByName("ModelControllerConnectionProtocol")->SetBackgroundColour(*wxWHITE);
+        grid->GetPropertyByName("ModelControllerConnectionProtocol")->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
     }
 
     ColourClashingChains(grid->GetPropertyByName("ModelChain"));

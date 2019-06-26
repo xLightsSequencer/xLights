@@ -107,8 +107,7 @@ void DDPOutput::SendSync()
         syncremoteAddr.Service(DDP_PORT);
     }
 
-    if (syncdatagram != nullptr)
-    {
+    if (syncdatagram != nullptr) {
         syncdatagram->SendTo(syncremoteAddr, syncdata, DDP_SYNCPACKET_LEN);
     }
 }
@@ -133,30 +132,22 @@ void DDPOutput::OpenDatagram()
     if (_datagram != nullptr) return;
 
     wxIPV4address localaddr;
-    if (IPOutput::__localIP == "")
-    {
+    if (IPOutput::__localIP == "") {
         localaddr.AnyAddress();
-    }
-    else
-    {
+    } else {
         localaddr.Hostname(IPOutput::__localIP);
     }
 
     _datagram = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);
-    if (_datagram == nullptr)
-    {
+    if (_datagram == nullptr) {
         logger_base.error("Error initialising DDP datagram for %s. %s", (const char *)_ip.c_str(), (const char *)localaddr.IPAddress().c_str());
         _ok = false;
-    }
-    else if (!_datagram->IsOk())
-    {
+    } else if (!_datagram->IsOk()) {
         logger_base.error("Error initialising DDP datagram for %s. %s OK: FALSE", (const char *)_ip.c_str(), (const char *)localaddr.IPAddress().c_str());
         delete _datagram;
         _datagram = nullptr;
         _ok = false;
-    }
-    else if (_datagram->Error() != wxSOCKET_NOERROR)
-    {
+    } else if (_datagram->Error() != wxSOCKET_NOERROR) {
         logger_base.error("Error creating DDP datagram => %d : %s. %s", _datagram->LastError(), (const char *)DecodeIPError(_datagram->LastError()).c_str(), (const char *)localaddr.IPAddress().c_str());
         delete _datagram;
         _datagram = nullptr;
@@ -172,8 +163,7 @@ bool DDPOutput::Open()
 
     if (_fulldata != nullptr) delete _fulldata;
     _fulldata = (uint8_t*)malloc(_channels);
-    if (_fulldata == nullptr)
-    {
+    if (_fulldata == nullptr) {
         logger_base.error("Problem allocating %ld memory for DDP output '%s'.", _channels, (const char *)_description.c_str());
         _ok = false;
         return false;
@@ -181,6 +171,10 @@ bool DDPOutput::Open()
     AllOff();
 
     _ok = IPOutput::Open();
+    
+    if (_fppProxyOutput) {
+        return _ok;
+    }
 
     memset(_data, 0x00, sizeof(_data));
 
@@ -198,16 +192,15 @@ bool DDPOutput::Open()
 
 void DDPOutput::Close()
 {
-    if (_datagram != nullptr)
-    {
+    if (_datagram != nullptr) {
         delete _datagram;
         _datagram = nullptr;
     }
-    if (_fulldata != nullptr)
-    {
+    if (_fulldata != nullptr) {
         free(_fulldata);
         _fulldata = nullptr;
     }
+    IPOutput::Close();
 }
 #pragma endregion Start and Stop
 
@@ -217,12 +210,11 @@ void DDPOutput::StartFrame(long msec)
     log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     if (!_enabled) return;
-
-    if (_datagram == nullptr && OutputManager::IsRetryOpen())
-    {
+    if (_fppProxyOutput) {
+        _fppProxyOutput->StartFrame(msec);
+    } else if (_datagram == nullptr && OutputManager::IsRetryOpen()) {
         OpenDatagram();
-        if (_ok)
-        {
+        if (_ok) {
             logger_base.debug("DDPOutput: Open retry successful");
         }
     }
@@ -232,7 +224,12 @@ void DDPOutput::StartFrame(long msec)
 
 void DDPOutput::EndFrame(int suppressFrames)
 {
-    if (!_enabled || _suspend || _datagram == nullptr) return;
+    if (!_enabled || _suspend) return;
+    if (_fppProxyOutput) {
+        _fppProxyOutput->EndFrame(suppressFrames);
+        return;
+    }
+    if (_datagram == nullptr) return;
 
     if (_changed || NeedToOutput(suppressFrames))
     {
@@ -281,9 +278,7 @@ void DDPOutput::EndFrame(int suppressFrames)
             chan += thissend;
         }
         FrameOutput();
-    }
-    else
-    {
+    } else {
         SkipFrame();
     }
 }
@@ -292,10 +287,13 @@ void DDPOutput::EndFrame(int suppressFrames)
 #pragma region Data Setting
 void DDPOutput::SetOneChannel(long channel, unsigned char data)
 {
+    if (_fppProxyOutput) {
+        _fppProxyOutput->SetOneChannel(channel, data);
+        return;
+    }
     if (_fulldata == nullptr) return;
 
-    if ((channel < _channels) && (*(_fulldata + channel) != data))
-    {
+    if ((channel < _channels) && (*(_fulldata + channel) != data)) {
         *(_fulldata + channel) = data;
         _changed = true;
     }
@@ -303,6 +301,10 @@ void DDPOutput::SetOneChannel(long channel, unsigned char data)
 
 void DDPOutput::SetManyChannels(long channel, unsigned char data[], long size)
 {
+    if (_fppProxyOutput) {
+        _fppProxyOutput->SetManyChannels(channel, data, size);
+        return;
+    }
     if (_fulldata == nullptr) return;
 
 #ifdef _MSC_VER
@@ -311,12 +313,9 @@ void DDPOutput::SetManyChannels(long channel, unsigned char data[], long size)
     long chs = std::min(size, _channels - channel);
 #endif
 
-    if (memcmp(_fulldata + channel, data, chs) == 0)
-    {
+    if (memcmp(_fulldata + channel, data, chs) == 0) {
         // nothing changed
-    }
-    else
-    {
+    } else {
         memcpy(_fulldata + channel, data, chs);
         _changed = true;
     }
@@ -324,6 +323,10 @@ void DDPOutput::SetManyChannels(long channel, unsigned char data[], long size)
 
 void DDPOutput::AllOff()
 {
+    if (_fppProxyOutput) {
+        _fppProxyOutput->AllOff();
+        return;
+    }
     if (_fulldata == nullptr) return;
     memset(_fulldata, 0x00, _channels);
     _changed = true;

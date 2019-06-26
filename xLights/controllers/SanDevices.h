@@ -202,6 +202,8 @@ class SanDevices
     enum class SanDeviceModel { Unknown = -1, E6804 = 6804, E682 = 682 }; // enum class
 
     SimpleHTTP _http;
+    std::string _baseUrl;
+    std::string _fppProxy;
     std::string _ip;
     std::string _page;
     FirmwareVersion _firmware;
@@ -273,7 +275,7 @@ class SanDevices
     std::string GenerateOutputURLV4(SanDevicesOutputV4* outputData);
 
 public:
-    SanDevices(const std::string& ip);
+    SanDevices(const std::string& ip, const std::string &fppProxy);
     bool IsConnected() const { return _connected; };
     virtual ~SanDevices();
     bool SetInputUniverses(OutputManager* outputManager, std::list<int>& selected);

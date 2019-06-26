@@ -3,6 +3,7 @@
 
 #include <list>
 #include <map>
+#include <set>
 #include <algorithm>
 
 #include "../models/ModelManager.h"
@@ -105,6 +106,7 @@ class FPP {
     std::string mode;
     std::string pixelControllerType;
     std::string panelSize;
+    std::set<std::string> proxies;
 
     std::string username;
     std::string password;
@@ -128,6 +130,9 @@ class FPP {
     bool AddFrameToUpload(uint32_t frame, uint8_t *data);
     bool FinalizeUploadSequence();
 
+
+    bool UploadUDPOutputsForProxy(OutputManager* outputManager);
+    
     bool UploadPlaylist(const std::string &playlist);
     bool UploadModels(const std::string &models);
     bool UploadUDPOut(const wxJSONValue &udp);
@@ -171,6 +176,7 @@ private:
     bool parseSysInfo(wxJSONValue& v);
     void parseControllerType(wxJSONValue& v);
     void parseConfig(const std::string& v);
+    void parseProxies(wxJSONValue& v);
 
 
     std::map<std::string, std::string> sequences;

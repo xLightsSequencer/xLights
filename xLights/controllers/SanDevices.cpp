@@ -278,13 +278,17 @@ void SanDevices::RegisterController() {
     }
 }
 
-SanDevices::SanDevices(const std::string& ip)
+SanDevices::SanDevices(const std::string& ip, const std::string &proxy) : _ip(ip), _fppProxy(proxy), _baseUrl("")
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    _ip = ip;
 
     _http.SetMethod("GET");
-    _connected = _http.Connect(_ip);
+    if (_fppProxy != "") {
+        _baseUrl = "/proxy/" + _ip;
+        _connected = _http.Connect(_fppProxy);
+    } else {
+        _connected = _http.Connect(_ip);
+    }
     _firmware = FirmwareVersion::Unknown;
 
     if (_connected)
@@ -367,7 +371,7 @@ std::string SanDevices::GetURL(const std::string& url, bool logresult)
 
     _http.SetMethod("GET");
     wxString startResult;
-    wxInputStream *httpStream = _http.GetInputStream(wxString(url), startResult);
+    wxInputStream *httpStream = _http.GetInputStream(_baseUrl + wxString(url), startResult);
     logger_base.debug("Making request to SanDevices %s '%s' -> %d", (const char *)_ip.c_str(), (const char *)url.c_str(), _http.GetResponse());
 
     if (_http.GetError() == wxPROTO_NOERR)

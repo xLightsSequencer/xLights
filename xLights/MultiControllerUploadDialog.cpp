@@ -90,7 +90,13 @@ MultiControllerUploadDialog::MultiControllerUploadDialog(wxWindow* parent,wxWind
             if (std::find(_ips.begin(), _ips.end(), (*it)->GetIP()) == _ips.end())
             {
                 _ips.push_back((*it)->GetIP());
-                CheckListBox_Controllers->AppendString((*it)->GetIP() + " " + (*it)->GetDescription());
+                _proxies.push_back((*it)->GetFPPProxyIP());
+                
+                if ((*it)->GetFPPProxyIP() != "") {
+                    CheckListBox_Controllers->AppendString((*it)->GetIP() + " (via FPP " + (*it)->GetFPPProxyIP() + ") " + (*it)->GetDescription());
+                } else {
+                    CheckListBox_Controllers->AppendString((*it)->GetIP() + " " + (*it)->GetDescription());
+                }
             }
         }
     }
@@ -124,35 +130,29 @@ void MultiControllerUploadDialog::OnButton_UploadClick(wxCommandEvent& event)
     CheckListBox_Controllers->GetCheckedItems(ch);
     std::list<int> fake;
 
-    for (int i = 0; i < ch.Count() && wxGetKeyState(WXK_ESCAPE) == false; i++)
-    {
+    for (int i = 0; i < ch.Count() && wxGetKeyState(WXK_ESCAPE) == false; i++) {
         wxString ip = _ips[ch[i]];
+        wxString proxy = _proxies[ch[i]];
         TextCtrl_Log->AppendText("Processing " + ip + ".\n");
-        if (selected == "Falcon")
-        {
-            Falcon falcon(ip.ToStdString());
+        if (selected == "Falcon") {
+            Falcon falcon(ip.ToStdString(), proxy.ToStdString());
             if (falcon.IsConnected()) {
                 if (falcon.SetInputUniverses(_frame->GetOutputManager(), fake)) {
                     TextCtrl_Log->AppendText("Falcon Input Upload Complete to " + ip + ".\n");
                     if (falcon.SetOutputs(&_frame->AllModels, _frame->GetOutputManager(), fake, this)) {
                         TextCtrl_Log->AppendText("Falcon Output Upload Complete to " + ip + ".\n");
-                    }
-                    else {
+                    } else {
                         TextCtrl_Log->AppendText("Falcon Output Upload FAILED to " + ip + ".\n");
                     }
-                }
-                else {
+                } else {
                     TextCtrl_Log->AppendText("Falcon Upload FAILED to " + ip + ".\n");
                 }
-            }
-            else {
+            } else {
                 TextCtrl_Log->AppendText("Falcon Output Upload FAILED to " + ip + ".\n");
             }
-        }
-        else if (selected == "San Devices")
-        {
+        } else if (selected == "San Devices") {
             // Input + Output
-            SanDevices sanDevices(ip.ToStdString());
+            SanDevices sanDevices(ip.ToStdString(), proxy);
             if (sanDevices.IsConnected()) {
                 if (sanDevices.SetInputUniverses(_frame->GetOutputManager(), fake)) {
                     TextCtrl_Log->AppendText("SanDevices Input Upload Complete to " + ip + ".\n");
@@ -193,12 +193,10 @@ void MultiControllerUploadDialog::OnButton_UploadClick(wxCommandEvent& event)
             if (pixlite.IsConnected()) {
                 if (pixlite.SetOutputs(&_frame->AllModels, _frame->GetOutputManager(), fake, this)) {
                     TextCtrl_Log->AppendText("PixLite/PixCon Upload Complete to " + ip + ".\n");
-                }
-                else {
+                } else {
                     TextCtrl_Log->AppendText("PixLite/PixCon Upload FAILED to " + ip + ".\n");
                 }
-            }
-            else {
+            } else {
                 TextCtrl_Log->AppendText("PixLite/PixCon Upload FAILED to " + ip + ".\n");
             }
         }
@@ -225,14 +223,7 @@ void MultiControllerUploadDialog::ValidateWindow()
 {
     wxArrayInt ci;
     CheckListBox_Controllers->GetCheckedItems(ci);
-    if (ci.Count() > 0)
-    {
-        Button_Upload->Enable();
-    }
-    else
-    {
-        Button_Upload->Disable();
-    }
+    Button_Upload->Enable(ci.Count() > 0);
 }
 
 void MultiControllerUploadDialog::OnListRClick(wxContextMenuEvent& event)
@@ -247,17 +238,12 @@ void MultiControllerUploadDialog::OnListRClick(wxContextMenuEvent& event)
 
 void MultiControllerUploadDialog::OnPopup(wxCommandEvent& event)
 {
-    if (event.GetId() == ID_MCU_SELECTALL)
-    {
-        for (size_t i = 0; i < CheckListBox_Controllers->GetCount(); i++)
-        {
+    if (event.GetId() == ID_MCU_SELECTALL) {
+        for (size_t i = 0; i < CheckListBox_Controllers->GetCount(); i++) {
             CheckListBox_Controllers->Check(i);
         }
-    }
-    else if (event.GetId() == ID_MCU_SELECTNONE)
-    {
-        for (size_t i = 0; i < CheckListBox_Controllers->GetCount(); i++)
-        {
+    } else if (event.GetId() == ID_MCU_SELECTNONE) {
+        for (size_t i = 0; i < CheckListBox_Controllers->GetCount(); i++) {
             CheckListBox_Controllers->Check(i, false);
         }
     }

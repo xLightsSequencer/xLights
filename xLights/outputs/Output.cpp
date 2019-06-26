@@ -19,6 +19,8 @@
 #include "../UtilFunctions.h"
 #include "OutputManager.h"
 
+#include "DDPOutput.h"
+
 #pragma region Constructors and Destructors
 Output::Output(Output* output)
 {
@@ -42,6 +44,8 @@ Output::Output(Output* output)
     _channels = output->GetChannels();
     _controller = output->GetControllerId();
     _autoSize = output->GetAutoSize();
+    _fppProxy = output->GetFPPProxyIP();
+    _fppProxyOutput = nullptr;
 }
 
 Output::Output(wxXmlNode* node)
@@ -62,6 +66,7 @@ Output::Output(wxXmlNode* node)
     _ok = true;
     _lastOutputTime = 0 ;
     _skippedFrames = 9999;
+    _fppProxyOutput = nullptr;
 
     _autoSize = node->GetAttribute("AutoSize", "FALSE") == "TRUE";
     _enabled = (node->GetAttribute("Enabled", "Yes") == "Yes");
@@ -69,6 +74,7 @@ Output::Output(wxXmlNode* node)
     _description = UnXmlSafe(node->GetAttribute("Description"));
     _channels = wxAtoi(node->GetAttribute("MaxChannels", "0"));
     _controller = UnXmlSafe(node->GetAttribute("Controller"));
+    _fppProxy = UnXmlSafe(node->GetAttribute("FPPProxy"));
 }
 
 Output::Output()
@@ -94,7 +100,14 @@ Output::Output()
     _suppressDuplicateFrames = false;
     _lastOutputTime = 0;
     _skippedFrames = 9999;
+    _fppProxyOutput = nullptr;
 }
+Output::~Output() {
+    if (_fppProxyOutput) {
+        delete _fppProxyOutput;
+    }
+}
+
 #pragma endregion Constructors and Destructors
 
 void Output::Save(wxXmlNode* node)
@@ -126,6 +139,11 @@ void Output::Save(wxXmlNode* node)
     }
 
     node->AddAttribute("MaxChannels", wxString::Format("%ld", _channels));
+    
+    node->DeleteAttribute("FPPProxy");
+    if (IsUsingFPPProxy()) {
+        node->AddAttribute("FPPProxy", _fppProxy);
+    }
 
     _dirty = false;
 }
@@ -250,14 +268,33 @@ bool Output::Open()
     _skippedFrames = 9999;
     _lastOutputTime = 0;
 
+    if (_fppProxy != "") {
+        _fppProxyOutput = new DDPOutput();
+        _fppProxyOutput->_ip = _fppProxy;
+        _fppProxyOutput->_startChannel = _startChannel;
+        _fppProxyOutput->_channels = GetEndChannel() - _startChannel + 1;
+        _fppProxyOutput->Open();
+    }
     return true;
 }
+void Output::Close() {
+    if (_fppProxyOutput) {
+        _fppProxyOutput->Close();
+        delete _fppProxyOutput;
+        _fppProxyOutput = nullptr;
+    }
+}
+
 #pragma endregion Start and Stop
 
 #pragma region Data Setting
 // channel here is 0 based
 void Output::SetManyChannels(long channel, unsigned char data[], long size)
 {
+    if (_fppProxyOutput) {
+        _fppProxyOutput->SetManyChannels(channel, data, size);
+        return;
+    }
 #ifdef _MSC_VER
     long chs = min(size, _channels - channel);
 #else

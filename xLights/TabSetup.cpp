@@ -87,6 +87,7 @@ const long xLightsFrame::ID_NETWORK_PINGCONTROLLER = wxNewId();
 const long xLightsFrame::ID_NETWORK_UCOEASYLIGHTS = wxNewId();
 const long xLightsFrame::ID_NETWORK_UPLOAD_CONTROLLER_CONFIGURED = wxNewId();
 const long xLightsFrame::ID_NETWORK_VISUALISE = wxNewId();
+const long xLightsFrame::ID_NETWORK_PROXY_OUTPUT = wxNewId();
 
 const long ID_NETWORK_UCOFPP_PIHAT = wxNewId();
 
@@ -421,32 +422,24 @@ void xLightsFrame::UpdateNetworkList()
     GridNetwork->Freeze();
     GridNetwork->DeleteAllItems();
 
-    for (auto e = outputs.begin(); e != outputs.end(); ++e)
-    {
+    for (auto e = outputs.begin(); e != outputs.end(); ++e) {
         long newidx = GridNetwork->InsertItem(GridNetwork->GetItemCount(), wxString::Format(wxT("%i"), (*e)->GetOutputNumber()));
         GridNetwork->SetItem(newidx, 1, (*e)->GetType());
-        if ((*e)->IsIpOutput())
-        {
+        if ((*e)->IsIpOutput()) {
             GridNetwork->SetItem(newidx, 2, (*e)->GetIP());
             GridNetwork->SetItem(newidx, 3, (*e)->GetUniverseString());
         }
-        else if ((*e)->GetType() == "NULL")
-        {
+        else if ((*e)->GetType() == "NULL") {
             GridNetwork->SetItem(newidx, 3, (*e)->GetUniverseString());
-        }
-        else if ((*e)->IsSerialOutput())
-        {
+        } else if ((*e)->IsSerialOutput()) {
             GridNetwork->SetItem(newidx, 2, (*e)->GetCommPort() + " : " + (*e)->GetBaudRateString() + " baud");
             GridNetwork->SetItem(newidx, 3, (*e)->GetUniverseString());
         }
         GridNetwork->SetItem(newidx, 4, wxString::Format(wxT("%ld"), (*e)->GetChannels()));
         GridNetwork->SetItem(newidx, 5, wxString::Format(wxT("Channels %ld to %ld"), (*e)->GetStartChannel(), (*e)->GetEndChannel()));
-        if ((*e)->IsEnabled())
-        {
+        if ((*e)->IsEnabled()) {
             GridNetwork->SetItem(newidx, 6, "Yes");
-        }
-        else
-        {
+        } else {
             GridNetwork->SetItem(newidx, 6, "No");
         }
         GridNetwork->SetItem(newidx, 7, (*e)->GetDescription());
@@ -457,6 +450,8 @@ void xLightsFrame::UpdateNetworkList()
         } else {
             GridNetwork->SetItem(newidx, 9, "");
         }
+        GridNetwork->SetItem(newidx, 10, (*e)->GetFPPProxyIP());
+
         if (!(*e)->IsEnabled()) {
             GridNetwork->SetItemTextColour(newidx, *wxLIGHT_GREY);
         }
@@ -467,15 +462,13 @@ void xLightsFrame::UpdateNetworkList()
 
     // try to ensure what should be visible is visible in roughly the same part of the screen
     if (item >= GridNetwork->GetItemCount()) item = GridNetwork->GetItemCount() - 1;
-    if (item != -1)
-    {
+    if (item != -1) {
         GridNetwork->EnsureVisible(item);
     }
 
     if (itemselected >= GridNetwork->GetItemCount()) itemselected = GridNetwork->GetItemCount() - 1;
 
-    if (itemselected != -1)
-    {
+    if (itemselected != -1) {
         GridNetwork->EnsureVisible(itemselected);
     }
 
@@ -1415,14 +1408,20 @@ void xLightsFrame::OnGridNetworkItemRClick(wxListEvent& event)
     bool allSupportIp = AllSelectedSupportIP();
     bool doEnable = allSupportIp && (selcnt == 1 || validIpNoType);
     bool hasControllerConfigured = false;
+    bool hasProxyConfigured = false;
     Output *selected = nullptr;
     if (selcnt == 1) {
         int idx = GridNetwork->GetNextItem(-1,
                                            wxLIST_NEXT_ALL,
                                            wxLIST_STATE_SELECTED);
         selected = _outputManager.GetOutput(idx);
-        if (idx >= 0 && selected && selected->GetControllerId() != "") {
-            hasControllerConfigured = true;
+        if (idx >= 0 && selected) {
+            if (selected->GetControllerId() != "") {
+                hasControllerConfigured = true;
+            }
+            if (selected->GetFPPProxyIP() != "") {
+                hasProxyConfigured = true;
+            }
         }
     }
     
@@ -1604,7 +1603,10 @@ void xLightsFrame::OnGridNetworkItemRClick(wxListEvent& event)
         mnuUploadController->Append(ID_NETWORK_UCOUTPUT, "Output", mnuUCOutput, "");
         mnuUCOutput->Connect(wxEVT_MENU, (wxObjectEventFunction)&xLightsFrame::OnNetworkPopup, nullptr, this);
     }
-
+    if (hasProxyConfigured) {
+        mnuUploadController->Append(ID_NETWORK_PROXY_OUTPUT, "Upload FPP Proxy Outputs");
+    }
+    
     mnu.Append(ID_NETWORK_UPLOADCONTROLLER, "Upload To Controller", mnuUploadController, "");
     mnuUploadController->Connect(wxEVT_MENU, (wxObjectEventFunction)&xLightsFrame::OnNetworkPopup, nullptr, this);
 
@@ -1766,6 +1768,8 @@ void xLightsFrame::OnNetworkPopup(wxCommandEvent &event)
         UploadFPPStringOuputs("PiHat");
     } else if (id == ID_NETWORK_UCOPIXLITE16) {
         UploadPixlite16Output();
+    } else if (id == ID_NETWORK_PROXY_OUTPUT) {
+        UploadFPPProxyOuputs();
     } else if (id == ID_NETWORK_UPLOAD_INPUT_CONTROLLER_CONFIGURED) {
         Output *selected = _outputManager.GetOutput(item);
         const ControllerRules * rules = ControllerRegistry::GetRulesForController(selected->GetControllerId());
@@ -1865,8 +1869,12 @@ void xLightsFrame::OnGridNetworkKeyDown(wxListEvent& event)
         break;
     }
 }
+std::list<int> xLightsFrame::GetSelectedOutputs(wxString& ip) {
+    wxString p;
+    return GetSelectedOutputs(ip, p);
+}
 
-std::list<int> xLightsFrame::GetSelectedOutputs(wxString& ip)
+std::list<int> xLightsFrame::GetSelectedOutputs(wxString& ip, wxString& proxy)
 {
     std::list<int> selected;
     int item = GridNetwork->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
@@ -1874,6 +1882,10 @@ std::list<int> xLightsFrame::GetSelectedOutputs(wxString& ip)
         selected.push_back(item);
         if (ip == "") {
             Output* e = _outputManager.GetOutput(item);
+            
+            if (proxy == "") {
+                proxy = e->GetFPPProxyIP();
+            }
 
             if (e->GetIP() == "MULTICAST") {
             } else if (ip != e->GetIP()) {
@@ -1894,7 +1906,8 @@ void xLightsFrame::UploadFPPBridgeInput()
     {
         SetCursor(wxCURSOR_WAIT);
         wxString ip;
-        std::list<int> selected = GetSelectedOutputs(ip);
+        wxString proxy;
+        std::list<int> selected = GetSelectedOutputs(ip, proxy);
         if (ip == "") {
             wxTextEntryDialog dlg(this, "FPP Bridge Mode Controller IP Address", "IP Address", ip);
             if (dlg.ShowModal() != wxID_OK) {
@@ -1979,7 +1992,8 @@ void xLightsFrame::UploadFalconInput()
     {
         SetCursor(wxCURSOR_WAIT);
         wxString ip;
-        std::list<int> selected = GetSelectedOutputs(ip);
+        wxString proxy;
+        std::list<int> selected = GetSelectedOutputs(ip, proxy);
 
         if (ip == "") {
             wxTextEntryDialog dlg(this, "Falcon IP Address", "IP Address", ip);
@@ -1993,16 +2007,14 @@ void xLightsFrame::UploadFalconInput()
         // Recalc all the models to make sure any changes on setup are incorporated
         RecalcModels();
 
-        Falcon falcon(ip.ToStdString());
+        Falcon falcon(ip.ToStdString(), proxy.ToStdString());
         if (falcon.IsConnected()) {
             if (falcon.SetInputUniverses(&_outputManager, selected)) {
                 SetStatusText("Falcon Input Upload Complete.");
             } else {
                 SetStatusText("Falcon Input Upload Failed.");
             }
-        }
-        else
-        {
+        } else {
             SetStatusText("Falcon Input Upload Failed.");
         }
         SetCursor(wxCURSOR_ARROW);
@@ -2016,7 +2028,8 @@ void xLightsFrame::UploadFalconOutput()
     {
         SetCursor(wxCURSOR_WAIT);
         wxString ip;
-        std::list<int> selected = GetSelectedOutputs(ip);
+        wxString proxy;
+        std::list<int> selected = GetSelectedOutputs(ip, proxy);
 
         if (ip == "") {
             wxTextEntryDialog dlg(this, "Falcon IP Address", "IP Address", ip);
@@ -2030,7 +2043,7 @@ void xLightsFrame::UploadFalconOutput()
         // Recalc all the models to make sure any changes on setup are incorporated
         RecalcModels();
 
-        Falcon falcon(ip.ToStdString());
+        Falcon falcon(ip.ToStdString(), proxy);
         if (falcon.IsConnected()) {
             if (falcon.SetOutputs(&AllModels, &_outputManager, selected, this)) {
                 SetStatusText("Falcon Output Upload Complete.");
@@ -2042,6 +2055,34 @@ void xLightsFrame::UploadFalconOutput()
         }
         SetCursor(wxCURSOR_ARROW);
     }
+}
+void xLightsFrame::UploadFPPProxyOuputs() {
+    SetStatusText("");
+    if (wxMessageBox("This will upload the output UDP configuration for FPP based on controllers with a FPP Proxy set. Do you want to proceed with the upload?", "Are you sure?", wxYES_NO, this) == wxYES) {
+        SetCursor(wxCURSOR_WAIT);
+        wxString ip;
+        wxString proxy;
+        std::list<int> selected = GetSelectedOutputs(ip, proxy);
+        
+        if (ip == "") {
+            return;
+        }
+        // Recalc all the models to make sure any changes on setup are incorporated
+        RecalcModels();
+        
+        std::set<std::string> done;
+        for (auto x : selected) {
+            Output *o = _outputManager.GetOutput(x);
+            if (o->GetFPPProxyIP() != "" && done.find(o->GetFPPProxyIP()) == done.end()) {
+                done.emplace(o->GetFPPProxyIP());
+                FPP fpp(o->GetFPPProxyIP());
+                fpp.AuthenticateAndUpdateVersions();
+                fpp.UploadUDPOutputsForProxy(&_outputManager);
+            }
+        }
+        SetCursor(wxCURSOR_ARROW);
+    }
+
 }
 
 void xLightsFrame::UploadFPPStringOuputs(const std::string &controller) {
@@ -2122,7 +2163,8 @@ void xLightsFrame::UploadSanDevicesInput()
     {
         SetCursor(wxCURSOR_WAIT);
         wxString ip;
-        std::list<int> selected = GetSelectedOutputs(ip);
+        wxString proxy;
+        std::list<int> selected = GetSelectedOutputs(ip, proxy);
 
         if (ip == "") {
             wxTextEntryDialog dlg(this, "SanDevices IP Address", "IP Address", ip);
@@ -2136,7 +2178,7 @@ void xLightsFrame::UploadSanDevicesInput()
         // Recalc all the models to make sure any changes on setup are incorporated
         RecalcModels();
 
-        SanDevices sanDevices(ip.ToStdString());
+        SanDevices sanDevices(ip.ToStdString(), proxy.ToStdString());
         if (sanDevices.IsConnected()) {
             if (sanDevices.SetInputUniverses(&_outputManager, selected)) {
                 SetStatusText("SanDevices Input Upload Complete.");
@@ -2155,7 +2197,8 @@ void xLightsFrame::UploadSanDevicesOutput()
     {
         SetCursor(wxCURSOR_WAIT);
         wxString ip;
-        std::list<int> selected = GetSelectedOutputs(ip);
+        wxString proxy;
+        std::list<int> selected = GetSelectedOutputs(ip, proxy);
 
         if (ip == "") {
             wxTextEntryDialog dlg(this, "SanDevices IP Address", "IP Address", ip);
@@ -2169,7 +2212,7 @@ void xLightsFrame::UploadSanDevicesOutput()
         // Recalc all the models to make sure any changes on setup are incorporated
         RecalcModels();
 
-        SanDevices sanDevices(ip.ToStdString());
+        SanDevices sanDevices(ip.ToStdString(), proxy);
         if (sanDevices.IsConnected()) {
             if (sanDevices.SetOutputs(&AllModels, &_outputManager, selected, this)) {
                 SetStatusText("SanDevices Output Upload Complete.");
@@ -3060,12 +3103,9 @@ void xLightsFrame::UploadEasyLightsOutput()
 
 		EasyLights EL(ip.ToStdString(), 0);
 
-		if(EL.SetOutputs(&AllModels, &_outputManager, selected, this)) 
-		{
+		if(EL.SetOutputs(&AllModels, &_outputManager, selected, this)) {
 			SetStatusText("EasyLights Output Upload Complete.");
-		}
-		else 
-		{
+        } else {
 			SetStatusText("EasyLights Output Upload Failed.");
 		}
 		

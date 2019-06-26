@@ -38,15 +38,7 @@ public:
     #pragma region Constructors and Destructors
     E131Output(wxXmlNode* node);
     E131Output();
-    E131Output(E131Output* output) : IPOutput(output)
-    {
-        _numUniverses = output->_numUniverses;
-        if (_numUniverses > 1)
-        {
-            CreateMultiUniverses(_numUniverses);
-        }
-        _priority = output->_priority;
-    };
+    E131Output(E131Output* output);
     virtual ~E131Output() override;
 
     // this is used to create any sub universes in this output

@@ -177,6 +177,8 @@ public:
 class Falcon
 {
 	wxHTTP _http;
+    std::string _baseUrl;
+    std::string _fppProxy;
 	std::string _ip;
     std::string _firmwareVersion;
     bool _usingAbsolute;
@@ -224,7 +226,7 @@ class Falcon
     int EncodeDirection(const std::string& direction) const;
 
 public:
-    Falcon(const std::string& ip);
+    Falcon(const std::string& ip, const std::string &proxy);
     bool IsConnected() const { return _connected; };
     virtual ~Falcon();
     bool SetInputUniverses(OutputManager* outputManager, std::list<int>& selected);

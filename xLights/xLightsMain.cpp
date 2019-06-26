@@ -1718,6 +1718,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     itemCol.SetAlign(wxLIST_FORMAT_LEFT);
     GridNetwork->InsertColumn(9, itemCol);
 
+    itemCol.SetText(_T("FPP Proxy"));
+    itemCol.SetAlign(wxLIST_FORMAT_LEFT);
+    GridNetwork->InsertColumn(10, itemCol);
+
     GridNetwork->SetColumnWidth(0, wxLIST_AUTOSIZE_USEHEADER);
     GridNetwork->SetColumnWidth(1, wxLIST_AUTOSIZE_USEHEADER);
     GridNetwork->SetColumnWidth(2, 100);
@@ -1728,6 +1732,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
 	GridNetwork->SetColumnWidth(7, wxLIST_AUTOSIZE);
     GridNetwork->SetColumnWidth(8, wxLIST_AUTOSIZE_USEHEADER);
     GridNetwork->SetColumnWidth(9, wxLIST_AUTOSIZE_USEHEADER);
+    GridNetwork->SetColumnWidth(10, wxLIST_AUTOSIZE_USEHEADER);
 
     _scrollTimer.Connect(wxEVT_TIMER,
         wxTimerEventHandler(xLightsFrame::OnGridNetworkScrollTimer), nullptr, this);

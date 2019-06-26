@@ -17,6 +17,7 @@ class MultiControllerUploadDialog: public wxDialog
 {
     xLightsFrame* _frame;
     std::vector<std::string> _ips;
+    std::vector<std::string> _proxies;
     void ValidateWindow();
 
 	public:

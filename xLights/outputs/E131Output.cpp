@@ -36,6 +36,15 @@ E131Output::E131Output() : IPOutput()
     memset(_data, 0, sizeof(_data));
 }
 
+E131Output::E131Output(E131Output* output) : IPOutput(output)
+{
+    _numUniverses = output->_numUniverses;
+    if (_numUniverses > 1) {
+        CreateMultiUniverses(_numUniverses);
+    }
+    _priority = output->_priority;
+};
+
 E131Output::~E131Output()
 {
     if (_datagram != nullptr) delete _datagram;
@@ -249,6 +258,10 @@ void E131Output::OpenDatagram()
 bool E131Output::Open()
 {
     if (!_enabled) return true;
+    _ok = IPOutput::Open();
+    if (_fppProxyOutput) {
+        return _ok;
+    }
 
     if (IsOutputCollection())
     {
@@ -263,7 +276,6 @@ bool E131Output::Open()
     }
     else
     {
-        _ok = IPOutput::Open();
 
         memset(_data, 0x00, sizeof(_data));
         _sequenceNum = 0;
@@ -376,11 +388,17 @@ void E131Output::Close()
             _datagram = nullptr;
         }
     }
+    IPOutput::Close();
 }
 #pragma endregion Start and Stop
 
 void E131Output::SetTransientData(int on, long startChannel, int nullnumber)
 {
+    if (_fppProxyOutput) {
+        _fppProxyOutput->SetTransientData(on, startChannel, nullnumber);
+        return;
+    }
+
     if (IsOutputCollection())
     {
         _outputNumber = on;
@@ -407,6 +425,9 @@ void E131Output::StartFrame(long msec)
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     if (!_enabled) return;
+    if (_fppProxyOutput) {
+        return _fppProxyOutput->StartFrame(msec);
+    }
 
     if (IsOutputCollection())
     {
@@ -434,6 +455,11 @@ void E131Output::EndFrame(int suppressFrames)
 {
     if (!_enabled || _suspend) return;
 
+    if (_fppProxyOutput) {
+        _fppProxyOutput->EndFrame(suppressFrames);
+        return;
+    }
+    
     if (IsOutputCollection())
     {
         for (auto it = _outputs.begin(); it != _outputs.end(); ++it)
@@ -462,6 +488,10 @@ void E131Output::EndFrame(int suppressFrames)
 void E131Output::ResetFrame()
 {
     if (!_enabled) return;
+    if (_fppProxyOutput) {
+        _fppProxyOutput->ResetFrame();
+        return;
+    }
 
     if (IsOutputCollection())
     {
@@ -477,6 +507,10 @@ void E131Output::ResetFrame()
 void E131Output::SetOneChannel(long channel, unsigned char data)
 {
     if (!_enabled) return;
+    if (_fppProxyOutput) {
+        _fppProxyOutput->SetOneChannel(channel, data);
+        return;
+    }
 
     if (IsOutputCollection())
     {
@@ -503,20 +537,19 @@ void E131Output::SetOneChannel(long channel, unsigned char data)
 
 void E131Output::SetManyChannels(long channel, unsigned char data[], long size)
 {
-    if (IsOutputCollection())
-    {
+    if (_fppProxyOutput) {
+        _fppProxyOutput->SetManyChannels(channel, data, size);
+    } else if (IsOutputCollection()) {
         long startu = (channel) / _channels;
         long startc = (channel) % _channels;
 
         auto o = _outputs.begin();
-        for (long i = 0; i < startu; i++)
-        {
+        for (long i = 0; i < startu; i++) {
             ++o;
         }
 
         long left = size;
-        while (left > 0 && o != _outputs.end())
-        {
+        while (left > 0 && o != _outputs.end()) {
 #ifdef _MSC_VER
             long send = min(left, _channels);
 #else
@@ -527,21 +560,16 @@ void E131Output::SetManyChannels(long channel, unsigned char data[], long size)
             ++o;
             startc = 0;
         }
-    }
-    else
-    {
+    } else {
 #ifdef _MSC_VER
         long chs = min(size, _channels - channel);
 #else
         long chs = std::min(size, GetMaxChannels() - channel);
 #endif
 
-        if (memcmp(&_data[channel + E131_PACKET_HEADERLEN], data, chs) == 0)
-        {
+        if (memcmp(&_data[channel + E131_PACKET_HEADERLEN], data, chs) == 0) {
             // nothing changed
-        }
-        else
-        {
+        } else {
             memcpy(&_data[channel + E131_PACKET_HEADERLEN], data, chs);
             _changed = true;
         }
@@ -550,8 +578,9 @@ void E131Output::SetManyChannels(long channel, unsigned char data[], long size)
 
 void E131Output::AllOff()
 {
-    if (IsOutputCollection())
-    {
+    if (_fppProxyOutput) {
+        _fppProxyOutput->AllOff();
+    } if (IsOutputCollection()) {
         for (auto it = _outputs.begin(); it != _outputs.end(); ++it)
         {
             (*it)->AllOff();
