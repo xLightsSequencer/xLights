@@ -11,7 +11,9 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
-   -- bug (kevin)  Fix shader effects may fail to render on some versions of Intel Integrated Graphics
+2019.31 June 26, 2019
+   -- enh (keith)  Add bulk edit of controller type
+   -- enh (keith)  Double click in morph effect assist sends corners to their maximums
    -- enh (keith)  Add ZCPP protocol support
    -- enh (keith)  In Model Faces, States and import dialogs remember any custom colours between accesses to the colour dialog
    -- enh (keith)  Add support for convert node data to effects at the strand and model level to reduce the tedium of converting
@@ -25,11 +27,14 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- enh (keith)  Add lead in time and speed controls to Shader effect (includes ability to run time backwards)
    -- enh (keith)  Download shader if name in tree is double clicked on
    -- enh (keith)  Make transition hints optional and work even if effect backgrounds not being displayed
+   -- bug (kevin)  Fix shader effects may fail to render on some versions of Intel Integrated Graphics
    -- bug (keith)  Fix crash where iseq has more channels than the sequence
    -- bug (keith)  Fix timeline zoomout results in timeline being positioned way past the end of the song
    -- bug (keith)  Fix house preview cant be manipulated when playback is paused
    -- bug (keith)  Fix MIDI responsiveness in xFade and xSchedule
    -- bug (keith)  Fix Bulge shader
+   -- bug (keith)  Set minimum 3d movement tool size
+   -- bug (keith)  Add bulk edit to pinwheel location value curves
 2019.30 June 16, 2019
    -- enh (keith)  In MIDI events add the ability to discern non zero data 1/2
    -- enh (keith)  Add an active property to models so you can hide models from display
