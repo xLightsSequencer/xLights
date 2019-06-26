@@ -321,8 +321,6 @@
     <ClCompile Include="models\ViewObjectManager.cpp" />
     <ClCompile Include="ViewObjectPanel.cpp" />
     <ClCompile Include="controllers\ControllerUploadData.cpp" />
-    <ClCompile Include="outputs\ZCPPDialog.cpp" />
-    <ClCompile Include="outputs\ZCPPOutput.cpp" />
     <ClCompile Include="NodeSelectGrid.cpp" />
     <ClCompile Include="ModelChainDialog.cpp" />
     <ClCompile Include="MultiControllerUploadDialog.cpp" />
@@ -457,6 +455,12 @@
     <ClCompile Include="effects\ShaderEffect.cpp" />
     <ClCompile Include="effects\ShaderPanel.cpp" />
     <ClCompile Include="ShaderDownloadDialog.cpp" />
+    <ClCompile Include="outputs\ZCPPDialog.cpp">
+      <Filter>Outputs</Filter>
+    </ClCompile>
+    <ClCompile Include="outputs\ZCPPOutput.cpp">
+      <Filter>Outputs</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -780,8 +784,6 @@
     <ClInclude Include="models\ViewObjectManager.h" />
     <ClInclude Include="ViewObjectPanel.h" />
     <ClInclude Include="controllers\ControllerUploadData.h" />
-    <ClInclude Include="outputs\ZCPPOutput.h" />
-    <ClInclude Include="outputs\ZCPPDialog.h" />
     <ClInclude Include="NodeSelectGrid.h" />
     <ClInclude Include="ModelChainDialog.h" />
     <ClInclude Include="models\tiny_obj_loader.h" />
@@ -797,7 +799,6 @@
     <ClInclude Include="effects\KaleidoscopeEffect.h" />
     <ClInclude Include="effects\KaleidoscopePanel.h" />
     <ClInclude Include="ControllerVisualiseDialog.h" />
-    <ClInclude Include="outputs\ZCPP.h" />
     <ClInclude Include="LOREdit.h" />
     <ClInclude Include="controllers\ControllerRegistry.h" />
     <ClInclude Include="..\include\globals.h" />
@@ -920,6 +921,15 @@
     <ClInclude Include="effects\ShaderPanel.h" />
     <ClInclude Include="..\xSchedule\xSMSDaemon\Curl.h" />
     <ClInclude Include="ShaderDownloadDialog.h" />
+    <ClInclude Include="outputs\ZCPP.h">
+      <Filter>Outputs</Filter>
+    </ClInclude>
+    <ClInclude Include="outputs\ZCPPDialog.h">
+      <Filter>Outputs</Filter>
+    </ClInclude>
+    <ClInclude Include="outputs\ZCPPOutput.h">
+      <Filter>Outputs</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

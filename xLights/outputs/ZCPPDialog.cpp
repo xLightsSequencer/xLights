@@ -158,6 +158,7 @@ ZCPPDialog::~ZCPPDialog()
 
 void ZCPPDialog::OnTextCtrl_DescriptionText(wxCommandEvent& event)
 {
+    ValidateWindow();
 }
 
 void ZCPPDialog::OnTextCtrlIpAddrText(wxCommandEvent& event)
@@ -186,6 +187,30 @@ void ZCPPDialog::OnButton_CancelClick(wxCommandEvent& event)
     EndDialog(wxID_CANCEL);
 }
 
+bool ZCPPDialog::IsUniqueDescription(const std::string& newDescription, ZCPPOutput* output, OutputManager* outputManager)
+{
+    for (auto it : outputManager->GetOutputs())
+    {
+        if (it->GetType() == "ZCPP" && it != output && newDescription == it->GetDescription())
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool ZCPPDialog::IsUniqueIP(const std::string& newIP, ZCPPOutput* output, OutputManager* outputManager)
+{
+    for (auto it : outputManager->GetOutputs())
+    {
+        if (it->GetType() == "ZCPP" && it != output && newIP == it->GetIP())
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
 void ZCPPDialog::ValidateWindow()
 {
     if (TextCtrlIpAddr->GetValue().IsEmpty() ||
@@ -206,7 +231,14 @@ void ZCPPDialog::ValidateWindow()
             CheckBox_Multicast->SetLabel("");
         }
 
-        Button_Ok->Enable();
+        if (TextCtrl_Description->GetValue() == "" || !IsUniqueDescription(TextCtrl_Description->GetValue(), _zcpp, _outputManager) || !IsUniqueIP(TextCtrlIpAddr->GetValue(), _zcpp, _outputManager))
+        {
+            Button_Ok->Enable(false);
+        }
+        else
+        {
+            Button_Ok->Enable();
+        }
     }
 }
 

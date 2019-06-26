@@ -21,6 +21,8 @@ class ZCPPDialog: public wxDialog
     OutputManager* _outputManager;
     ModelManager* _modelManager;
     void ValidateWindow();
+    bool IsUniqueDescription(const std::string& newDescription, ZCPPOutput* output, OutputManager* outputManager);
+    bool IsUniqueIP(const std::string& newIP, ZCPPOutput* output, OutputManager* outputManager);
 
 public:
 
