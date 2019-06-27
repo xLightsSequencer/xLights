@@ -4691,12 +4691,20 @@ void xLightsFrame::OnMenuItem_ViewLogSelected(wxCommandEvent& event)
     wxString fileName = "xLights_l4cpp.log";
 #ifdef __WXMSW__
     wxGetEnv("APPDATA", &dir);
+    if (dir.EndsWith("/") || dir.EndsWith("\\"))
+    {
+        dir = dir.Left(dir.Length() - 1);
+    }
     wxString filename = dir + "/" + fileName;
 #endif
 #ifdef __WXOSX_MAC__
     wxFileName home;
     home.AssignHomeDir();
     dir = home.GetFullPath();
+    if (dir.EndsWith("/"))
+    {
+        dir = dir.Left(dir.Length() - 1);
+    }
     wxString filename = dir + "/Library/Logs/" + fileName;
 #endif
 #ifdef __LINUX__

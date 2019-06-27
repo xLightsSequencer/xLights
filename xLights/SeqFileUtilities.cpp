@@ -2283,12 +2283,12 @@ void xLightsFrame::ImportSuperStar(const wxFileName &filename)
         int y_size = wxAtoi(dlg.TextCtrl_SS_Y_Size->GetValue());
         int x_offset = wxAtoi(dlg.TextCtrl_SS_X_Offset->GetValue());
         int y_offset = wxAtoi(dlg.TextCtrl_SS_Y_Offset->GetValue());
-        bool average_colors = dlg.CheckBox_AverageColors->GetValue();
+        wxString blend = dlg.Choice_LayerBlend->GetStringSelection();
         Model *cls = GetModel(model->GetFullName());
         int bw, bh;
         cls->GetBufferSize("Default", "2D", "None", bw, bh);
         wxSize modelSize(bw, bh);
-        ImportSuperStar(model, input_xml, x_size, y_size, x_offset, y_offset, average_colors, dlg.ImageResizeChoice->GetSelection(), modelSize);
+        ImportSuperStar(model, input_xml, x_size, y_size, x_offset, y_offset, dlg.ImageResizeChoice->GetSelection(), modelSize, blend);
     }
     float elapsedTime = sw.Time()/1000.0; //msec => sec
     SetStatusText(wxString::Format("'%s' imported in %4.3f sec.", filename.GetPath(), elapsedTime));
@@ -4568,8 +4568,8 @@ bool IsPartOfModel(wxXmlNode *element, int num_rows, int num_columns, bool &isFu
 }
 
 bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int x_size, int y_size,
-                                   int x_offset, int y_offset, bool average_colors,
-                                   int imageResizeType, const wxSize &modelSize)
+                                   int x_offset, int y_offset,
+                                   int imageResizeType, const wxSize &modelSize, const wxString& layerBlend)
 {
     double num_rows = 1.0;
     double num_columns = 1.0;
@@ -4582,8 +4582,8 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
     std::string imagePfx;
     std::vector<bool> reserved;
     std::string blend_string = "";
-    if (average_colors) {
-        blend_string = ",T_CHOICE_LayerMethod=Average";
+    if (layerBlend != "Normal") {
+        blend_string = ",T_CHOICE_LayerMethod=" + layerBlend +",";
     }
     for (wxXmlNode* e = input_root->GetChildren(); e != nullptr; e = e->GetNext()) {
         if ("imageActions" == e->GetName()) {
@@ -4739,19 +4739,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                 color = GetColorString(sRed, sGreen, sBlue);
                 palette += "C_BUTTON_Palette4=" + color + ",";
                 palette += "C_BUTTON_Palette5=#FFFFFF,C_BUTTON_Palette6=#000000,C_CHECKBOX_Palette1=1,C_CHECKBOX_Palette2=1,C_CHECKBOX_Palette3=1,C_CHECKBOX_Palette4=1,";
-                if( color != xlBLACK ) {
-                    if( average_colors ) {
-                        settings += blend_string;
-                        settings += ",";
-                    } else {
-                        settings += ",T_CHOICE_LayerMethod=1 reveals 2,";
-                    }
-                } else {
-                    if( average_colors ) {
-                        settings += blend_string;
-                        settings += ",";
-                    }
-                }
+                settings += blend_string;
                 while( model->GetEffectLayerCount() < layer_index )
                 {
                     model->AddEffectLayer();
@@ -5250,7 +5238,10 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                         + "E_SLIDER_Text_XEnd=" + wxString::Format("%d", xEnd).ToStdString() + ","
                         + "E_SLIDER_Text_YEnd=" + wxString::Format("%d", yEnd).ToStdString();
                     if( mask == "positiveMask" ) {
-                        settings += ",T_CHOICE_LayerMethod=Normal";
+                        if (blend_string != "")
+                        {
+                            settings += blend_string;
+                        }
                     } else if( mask == "negativeMask" ) {
                         settings += ",T_CHOICE_LayerMethod=1 is Mask";
                     } else {
@@ -5268,6 +5259,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                     //  stopAtEdge="0" layer="3" xStart="-1" yStart="0" xEnd="0" yEnd="0" startCentisecond="115" endCentisecond="145"
                     //  preRampTime="0" rampTime="0" fadeToBright="0" fadeFromBright="0" imageIndex="5" savedIndex="0">
 
+                    wxString name = element->GetAttribute("name");
                     int idx = wxAtoi(element->GetAttribute("imageIndex"));
                     int startms = wxAtoi(element->GetAttribute("startCentisecond")) * 10;
                     int endms = wxAtoi(element->GetAttribute("endCentisecond")) * 10;
@@ -5312,6 +5304,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                             "E_SLIDER_PicturesXC=" + wxString::Format("%d", x).ToStdString()
                             + ",E_SLIDER_PicturesYC=" + wxString::Format("%d", y).ToStdString()
                             + ",E_CHOICE_Scaling=No Scaling"
+                            + ",X_Effect_Description=" + name
                             + ",E_SLIDER_Pictures_StartScale=100"
                             + ",E_SLIDER_Pictures_EndScale=100"
                             + ",E_CHECKBOX_Pictures_PixelOffsets=1"
@@ -5335,6 +5328,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                             + ",E_SLIDER_PicturesEndXC=" + wxString::Format("%d", x + (int)round((double)endx*imgInfo.scaleX)).ToStdString()
                             + ",E_SLIDER_PicturesEndYC=" + wxString::Format("%d", y - (int)round((double)endy*imgInfo.scaleY)).ToStdString()
                             + ",E_CHOICE_Scaling=No Scaling"
+                            + ",X_Effect_Description=" + name
                             + ",E_SLIDER_Pictures_StartScale=100"
                             + ",E_SLIDER_Pictures_EndScale=100"
                             + ",E_TEXTCTRL_Pictures_Speed=1.0"

@@ -378,8 +378,8 @@ public:
     EffectManager &GetEffectManager() { return effectManager; }
 
     bool ImportSuperStar(Element *el, wxXmlDocument &doc, int x_size, int y_size,
-                         int x_offset, int y_offset, bool average_colors,
-                         int imageResizeType, const wxSize &modelSize);
+                         int x_offset, int y_offset,
+                         int imageResizeType, const wxSize &modelSize, const wxString& layerBlend);
     bool ImportLMS(wxXmlDocument &doc, const wxFileName &filename);
     bool ImportLPE(wxXmlDocument &doc, const wxFileName &filename);
     bool ImportS5(wxXmlDocument &doc, const wxFileName &filename);

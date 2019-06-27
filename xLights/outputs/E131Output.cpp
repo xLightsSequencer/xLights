@@ -43,7 +43,7 @@ E131Output::E131Output(E131Output* output) : IPOutput(output)
         CreateMultiUniverses(_numUniverses);
     }
     _priority = output->_priority;
-};
+}
 
 E131Output::~E131Output()
 {
@@ -459,7 +459,7 @@ void E131Output::EndFrame(int suppressFrames)
         _fppProxyOutput->EndFrame(suppressFrames);
         return;
     }
-    
+
     if (IsOutputCollection())
     {
         for (auto it = _outputs.begin(); it != _outputs.end(); ++it)
