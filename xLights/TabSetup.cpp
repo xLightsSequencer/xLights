@@ -254,13 +254,6 @@ bool xLightsFrame::SetDir(const wxString& newdir)
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("Show directory set to : %s.", (const char *)showDirectory.c_str());
 
-    if (mBackupOnLaunch)
-    {
-        logger_base.debug("Backing up show directory before we do anything this session in this folder : %s.", (const char *)CurrentDir.c_str());
-        DoBackup(false, true);
-        logger_base.debug("Backup completed.");
-    }
-
     long LinkFlag = 0;
     config->Read(_("LinkFlag"), &LinkFlag);
     if( LinkFlag ) {
