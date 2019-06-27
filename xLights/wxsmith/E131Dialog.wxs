@@ -215,7 +215,9 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxCheckBox" name="ID_CHECKBOX_AUTO_CHANNELS" variable="CheckBox_Auto_Channels" member="yes" />
+						<object class="wxCheckBox" name="ID_CHECKBOX_AUTO_CHANNELS" variable="CheckBox_Auto_Channels" member="yes">
+							<handler function="OnCheckBox_Auto_ChannelsClick" entry="EVT_CHECKBOX" />
+						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
 						<option>1</option>

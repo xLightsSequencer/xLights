@@ -21,6 +21,8 @@ class E131Dialog: public wxDialog
     E131Output* _e131;
     OutputManager* _outputManager;
     void ValidateWindow();
+    bool IsUniqueDescription(const std::string& newDescription, E131Output* output, OutputManager* outputManager);
+	bool IsUniqueIP(const std::string& newIP, E131Output* output, OutputManager* outputManager);
 
 public:
 
@@ -82,6 +84,7 @@ private:
     void OnButton_CancelClick(wxCommandEvent& event);
     void OnVisualizeButtonClick(wxCommandEvent& event);
     void OnControllerChoiceSelect(wxCommandEvent& event);
+    void OnCheckBox_Auto_ChannelsClick(wxCommandEvent& event);
     //*)
 
     void SaveFields();

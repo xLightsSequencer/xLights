@@ -147,6 +147,7 @@ E131Dialog::E131Dialog(wxWindow* parent, E131Output* e131, OutputManager* output
     Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&E131Dialog::OnMultiE131CheckBoxClick);
     Connect(ID_TEXTCTRL_DESCRIPTION,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&E131Dialog::OnTextCtrl_DescriptionText);
     Connect(ID_CHOICE1,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&E131Dialog::OnControllerChoiceSelect);
+    Connect(ID_CHECKBOX_AUTO_CHANNELS,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&E131Dialog::OnCheckBox_Auto_ChannelsClick);
     Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&E131Dialog::OnButton_OkClick);
     Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&E131Dialog::OnButton_CancelClick);
     Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&E131Dialog::OnVisualizeButtonClick);
@@ -196,7 +197,7 @@ E131Dialog::E131Dialog(wxWindow* parent, E131Output* e131, OutputManager* output
     }
     ControllerChoice->SetSelection(idx);
     VisualizeButton->Enable(idx != 0);
-    
+
     FPPProxyIP->SetValue(_e131->GetFPPProxyIP());
 
     FlexGridSizer1->Fit(this);
@@ -235,6 +236,7 @@ void E131Dialog::OnSpinCtrl_NumUnivChange(wxSpinEvent& event)
 
 void E131Dialog::OnTextCtrl_DescriptionText(wxCommandEvent& event)
 {
+    ValidateWindow();
 }
 
 void E131Dialog::OnTextCtrlIpAddrText(wxCommandEvent& event)
@@ -243,6 +245,11 @@ void E131Dialog::OnTextCtrlIpAddrText(wxCommandEvent& event)
 }
 
 void E131Dialog::OnMultiE131CheckBoxClick(wxCommandEvent& event)
+{
+    ValidateWindow();
+}
+
+void E131Dialog::OnCheckBox_Auto_ChannelsClick(wxCommandEvent& event)
 {
     ValidateWindow();
 }
@@ -297,7 +304,11 @@ void E131Dialog::ValidateWindow()
 {
     if (TextCtrlIpAddr->GetValue().IsEmpty() ||
         ((RadioButtonUnicast->GetValue() && !IsIPValidOrHostname(TextCtrlIpAddr->GetValue().ToStdString(), true)) ||
-         SpinCtrl_StartUniv->GetValue() + SpinCtrl_NumUniv->GetValue() >= 64000)) {
+         SpinCtrl_StartUniv->GetValue() + SpinCtrl_NumUniv->GetValue() >= 64000) ||
+		(CheckBox_Auto_Channels->IsChecked() && TextCtrl_Description->GetValue().empty()) ||
+		(CheckBox_Auto_Channels->IsChecked() && !IsUniqueDescription(TextCtrl_Description->GetValue(), _e131, _outputManager)) ||
+			(CheckBox_Auto_Channels->IsChecked() && !IsUniqueIP(TextCtrlIpAddr->GetValue(), _e131, _outputManager)))
+	{
         Button_Ok->Enable(false);
     } else {
         Button_Ok->Enable();
@@ -315,4 +326,28 @@ void E131Dialog::OnControllerChoiceSelect(wxCommandEvent& event)
 {
     int idx = ControllerChoice->GetSelection();
     VisualizeButton->Enable(idx != 0);
+}
+
+bool E131Dialog::IsUniqueDescription(const std::string& newDescription, E131Output* output, OutputManager* outputManager)
+{
+	for (auto it : outputManager->GetOutputs())
+	{
+		if (it->GetType() == "E131" &&  it != output && newDescription == it->GetDescription())
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+bool E131Dialog::IsUniqueIP(const std::string& newIP, E131Output* output, OutputManager* outputManager)
+{
+	for (auto it : outputManager->GetOutputs())
+	{
+		if (it->GetType() == "E131" && it != output && newIP == it->GetIP())
+		{
+			return false;
+		}
+	}
+	return true;
 }
