@@ -231,6 +231,11 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
             return;
         }
 
+        if (wxFileName(filename).GetExt().Lower() == "xbkp")
+        {
+            wxMessageBox("NOTE: When you save this .xbkp file it will save as a .xml file overwriting any existing sequence .xml file", "Warning");
+        }
+
         // check if there is a autosave backup file which is newer than the file we have been asked to open
         if (!_renderMode && wxFileName(filename).GetExt().Lower() != "xbkp" && wxFileName(filename).GetExt().Lower() != "fseq")
         {
