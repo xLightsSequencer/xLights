@@ -23,7 +23,7 @@ void WindowFrameModel::InitModel() {
 
 int WindowFrameModel::NodesPerString() const
 {
-    return GetChanCount() / GetChanCountPerNode();
+    return GetChanCount() / std::max(GetChanCountPerNode(),1);
 }
 
 // initialize buffer coordinates

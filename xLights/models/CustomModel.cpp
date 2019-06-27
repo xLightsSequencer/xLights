@@ -386,7 +386,7 @@ void CustomModel::SetStringStartChannels(bool zeroBased, int NumberOfStrings, in
 
 int CustomModel::NodesPerString() const
 {
-    return GetChanCount() / GetChanCountPerNode();
+    return GetChanCount() / std::max(GetChanCountPerNode(),1);
 }
 
 inline void split(std::string frag, char splitBy, std::vector<std::string>& tokens)
