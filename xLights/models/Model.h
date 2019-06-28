@@ -184,6 +184,7 @@ protected:
     int pixelSize = 2;
     int transparency = 0;
     int blackTransparency = 0;
+    wxColour modelTagColour;
     bool splitRGB;
 
     int StrobeRate;      // 0=no strobing
@@ -217,6 +218,8 @@ public:
     static bool IsProtocolValid(std::string protocol);
     static bool IsPixelProtocol(const std::string &protocol);
 
+    void SetTagColour(wxColour colour);
+    wxColour GetTagColour() const { return modelTagColour; }
     bool IsPixelProtocol() const;
     long GetStringStartChan(int x) const {
         if (x < stringStartChan.size()) {

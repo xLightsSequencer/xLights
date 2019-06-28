@@ -1245,6 +1245,19 @@ void RowHeading::Draw()
         endY = DEFAULT_ROW_HEADING_HEIGHT*(row+1);
         dc.SetBackgroundMode(wxTRANSPARENT);
         dc.DrawRectangle(0,startY,w,DEFAULT_ROW_HEADING_HEIGHT);
+
+        Model* m = mSequenceElements->GetXLightsFrame()->AllModels[rowInfo->element->GetModelName()];
+        if (m != nullptr && m->GetTagColour() != *wxBLACK)
+        {
+            wxBrush tagBrush(m->GetTagColour(), wxBRUSHSTYLE_SOLID);
+            wxPen tagPen(m->GetTagColour());
+            dc.SetBrush(tagBrush);
+            dc.SetPen(tagPen);
+            dc.DrawRectangle(2, startY + 2, DEFAULT_ROW_HEADING_MARGIN - 4, DEFAULT_ROW_HEADING_HEIGHT - 4);
+        }
+
+        dc.SetBrush(brush2);
+        dc.SetPen(penOutline);
         dc.SetTextForeground(ColorManager::instance()->GetColor(ColorManager::COLOR_ROW_HEADER_TEXT).asWxColor());
         if(rowInfo->layerIndex > 0 || rowInfo->strandIndex >= 0)   // If effect layer = 0
         {
@@ -1343,7 +1356,7 @@ void RowHeading::Draw()
                 dc.SetBrush(brush2);
             }
             // draw Model Group icon if necessary
-            Model *m = mSequenceElements->GetXLightsFrame()->AllModels[rowInfo->element->GetModelName()];
+            Model* m = mSequenceElements->GetXLightsFrame()->AllModels[rowInfo->element->GetModelName()];
             if (m != nullptr)
             {
                 if (m->GetDisplayAs() == "ModelGroup")

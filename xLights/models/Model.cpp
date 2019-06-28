@@ -47,7 +47,7 @@ const std::vector<std::string> Model::DEFAULT_BUFFER_STYLES {DEFAULT, PER_PREVIE
 Model::Model(const ModelManager &manager) : modelDimmingCurve(nullptr),
     parm1(0), parm2(0), parm3(0), pixelStyle(1), pixelSize(2), transparency(0), blackTransparency(0),
     StrobeRate(0), modelManager(manager), CouldComputeStartChannel(false), maxVertexCount(0),
-    splitRGB(false), rgbwHandlingType(0), BufferDp(0), _controller(0)
+    splitRGB(false), rgbwHandlingType(0), BufferDp(0), _controller(0), modelTagColour(*wxBLACK)
 {
     // These member vars were not initialised so give them some defaults.
     BufferHt = 0;
@@ -647,7 +647,7 @@ void Model::AddProperties(wxPropertyGridInterface *grid, OutputManager* outputMa
     sp->SetAttribute("Min", 0);
     sp->SetAttribute("Max", 100);
     sp->SetEditor("SpinCtrl");
-
+    sp = grid->AppendIn(p, new wxColourProperty("Tag Color", "ModelTagColour", modelTagColour));
     UpdateControllerProperties(grid);
     DisableUnusedProperties(grid);
 }
@@ -982,6 +982,13 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::OnPropertyGridChange::ModelPixelBlackTransparency");
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "Model::OnPropertyGridChange::ModelPixelBlackTransparency");
         return 0;
+    } else if (event.GetPropertyName() == "ModelTagColour") {
+        modelTagColour << event.GetProperty()->GetValue();
+        ModelXml->DeleteAttribute("TagColour");
+        ModelXml->AddAttribute("TagColour", modelTagColour.GetAsString());
+        IncrementChangeCount();
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::OnPropertyGridChange::ModelTagColour");
+        return 0;
     } else if (event.GetPropertyName() == "ModelStrandNodeNames") {
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "Model::OnPropertyGridChange::ModelStrandNames");
         IncrementChangeCount();
@@ -1128,8 +1135,8 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
             {
                 ModelXml->AddAttribute("Active", "0");
             }
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::OnPropertyGridChange::ModelControllerConnectionPort");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "Model::OnPropertyGridChange::ModelPixelBlackTransparency");
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::OnPropertyGridChange::Active");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "Model::OnPropertyGridChange::Active");
         return 0;
     } else if (event.GetPropertyName() == "SmartRemote") {
         GetControllerConnection()->DeleteAttribute("SmartRemote");
@@ -2187,7 +2194,7 @@ void Model::SetFromXml(wxXmlNode* ModelNode, bool zb) {
     tempstr.ToLong(&n);
     transparency = n;
     blackTransparency = wxAtoi(ModelNode->GetAttribute("BlackTransparency","0"));
-
+    modelTagColour = wxColour(ModelNode->GetAttribute("TagColour", "Black"));
     layout_group = ModelNode->GetAttribute("LayoutGroup","Unassigned");
 
     ModelStartChannel = ModelNode->GetAttribute("StartChannel");
@@ -4596,6 +4603,14 @@ bool Model::IsPixelProtocol(const std::string &p) {
     wxString protocol = p;
     protocol.MakeLower();
     return (protocol != "dmx" && protocol != "pixelnet" && protocol != "renard" && protocol != "lor");
+}
+
+void Model::SetTagColour(wxColour colour)
+{
+    ModelXml->DeleteAttribute("TagColour");
+    ModelXml->AddAttribute("TagColour", colour.GetAsString());
+    IncrementChangeCount();
+    AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::SetTagColour");
 }
 
 bool Model::IsPixelProtocol() const

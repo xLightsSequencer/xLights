@@ -139,6 +139,7 @@ class LayoutPanel: public wxPanel
         static const long ID_PREVIEW_BULKEDIT;
         static const long ID_PREVIEW_BULKEDIT_CONTROLLERCONNECTION;
         static const long ID_PREVIEW_BULKEDIT_CONTROLLERNAME;
+        static const long ID_PREVIEW_BULKEDIT_TAGCOLOUR;
         static const long ID_PREVIEW_BULKEDIT_CONTROLLERDIRECTION;
         static const long ID_PREVIEW_BULKEDIT_CONTROLLERNULLNODES;
         static const long ID_PREVIEW_BULKEDIT_CONTROLLERGAMMA;
@@ -270,6 +271,7 @@ class LayoutPanel: public wxPanel
         void UpdateModelsForPreview(const std::string &group, LayoutGroup* layout_grp, std::vector<Model *> &prev_models, bool filtering );
         void CreateModelGroupFromSelected();
         void BulkEditControllerName();
+        void BulkEditTagColour();
         void BulkEditControllerConnection(int type);
         void BulkEditControllerPreview();
         void BulkEditDimmingCurves();

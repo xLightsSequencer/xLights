@@ -22,6 +22,7 @@
 #include <wx/dataview.h>
 #include <wx/config.h>
 #include <wx/treebase.h>
+#include <wx/colordlg.h>
 
 #include "LayoutPanel.h"
 #include "ModelPreview.h"
@@ -116,6 +117,7 @@ const long LayoutPanel::ID_PREVIEW_RESIZE_SAMESIZE = wxNewId();
 const long LayoutPanel::ID_PREVIEW_BULKEDIT = wxNewId();
 const long LayoutPanel::ID_PREVIEW_BULKEDIT_CONTROLLERCONNECTION = wxNewId();
 const long LayoutPanel::ID_PREVIEW_BULKEDIT_CONTROLLERNAME = wxNewId();
+const long LayoutPanel::ID_PREVIEW_BULKEDIT_TAGCOLOUR = wxNewId();
 const long LayoutPanel::ID_PREVIEW_BULKEDIT_CONTROLLERGAMMA = wxNewId();
 const long LayoutPanel::ID_PREVIEW_BULKEDIT_CONTROLLERCOLOURORDER = wxNewId();
 const long LayoutPanel::ID_PREVIEW_BULKEDIT_CONTROLLERBRIGHTNESS = wxNewId();
@@ -1659,6 +1661,66 @@ void LayoutPanel::BulkEditControllerName()
 
         xlights->GetOutputModelManager()->ForceSelectedModel(sm);
         xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "BulkEditControllerName", nullptr, nullptr, sm);
+
+        // reselect all the models
+        wxArrayString models = wxSplit(selected, ',');
+        for (auto it = models.begin(); it != models.end(); ++it)
+        {
+            for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
+            {
+                if (modelPreview->GetModels()[i]->GetName() == it->ToStdString())
+                {
+                    modelPreview->GetModels()[i]->GroupSelected = true;
+                }
+            }
+        }
+    }
+}
+
+void LayoutPanel::BulkEditTagColour()
+{
+    // remember the selected models
+    wxString selected = "";
+    for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
+    {
+        if (modelPreview->GetModels()[i]->GroupSelected)
+        {
+            if (selected != "")
+            {
+                selected += ",";
+            }
+            selected += modelPreview->GetModels()[i]->GetName();
+        }
+    }
+
+    std::string sm = GetSelectedModelName();
+
+    wxColour colour = *wxBLACK;
+    for (size_t i = 0; i < modelPreview->GetModels().size(); i++) {
+        if (modelPreview->GetModels()[i]->GroupSelected) {
+            colour = modelPreview->GetModels()[i]->GetTagColour();
+            if (colour != *wxBLACK) {
+                break;
+            }
+        }
+    }
+
+    wxColourData colorData;
+    colorData.SetColour(colour);
+    wxColourDialog dialog(this, &colorData);
+    if (dialog.ShowModal() == wxID_OK)
+    {
+        colorData = dialog.GetColourData();
+        colour = colorData.GetColour();
+
+        for (size_t i = 0; i < modelPreview->GetModels().size(); i++) {
+            if (modelPreview->GetModels()[i]->GroupSelected) {
+                modelPreview->GetModels()[i]->SetTagColour(colour);
+            }
+        }
+
+        xlights->GetOutputModelManager()->ForceSelectedModel(sm);
+        xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "BulkEditTagColour", nullptr, nullptr, sm);
 
         // reselect all the models
         wxArrayString models = wxSplit(selected, ',');
@@ -3447,6 +3509,7 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
             {
                 mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_CONTROLLERNAME, "Controller Name");
             }
+            mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_TAGCOLOUR, "Tag Color");
             mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_CONTROLLERCONNECTION, "Controller Connection");
             if (IsAllSelectedModelsArePixelProtocol())
             {
@@ -3676,6 +3739,10 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
     else if (event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERNAME)
     {
         BulkEditControllerName();
+    }
+    else if (event.GetId() == ID_PREVIEW_BULKEDIT_TAGCOLOUR)
+    {
+        BulkEditTagColour();
     }
     else if (event.GetId() == ID_PREVIEW_BULKEDIT_PREVIEW)
     {
