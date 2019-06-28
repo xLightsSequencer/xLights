@@ -241,6 +241,7 @@
     <ClCompile Include="models\ViewObjectManager.cpp" />
     <ClCompile Include="models\WholeHouseModel.cpp" />
     <ClCompile Include="MultiControllerUploadDialog.cpp" />
+    <ClCompile Include="NoteRangeDialog.cpp" />
     <ClCompile Include="OpenGLShaders.cpp" />
     <ClCompile Include="OutputModelManager.cpp" />
     <ClCompile Include="outputs\ArtNetDialog.cpp" />
@@ -630,6 +631,7 @@
     <ClInclude Include="effects\ServoPanel.h" />
     <ClInclude Include="IPEntryDialog.h" />
     <ClInclude Include="MultiControllerUploadDialog.h" />
+    <ClInclude Include="NoteRangeDialog.h" />
     <ClInclude Include="OpenGLShaders.h" />
     <ClInclude Include="OutputModelManager.h" />
     <ClInclude Include="outputs/ArtNetDialog.h" />

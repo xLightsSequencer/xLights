@@ -561,6 +561,7 @@
     <ClCompile Include="effects\MusicPanel.cpp">
       <Filter>Effects</Filter>
     </ClCompile>
+    <ClCompile Include="NoteRangeDialog.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -1131,6 +1132,7 @@
     <ClInclude Include="effects\MusicPanel.h">
       <Filter>Effects</Filter>
     </ClInclude>
+    <ClInclude Include="NoteRangeDialog.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

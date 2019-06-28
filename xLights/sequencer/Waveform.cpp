@@ -21,6 +21,7 @@
 #include "../xLightsApp.h"
 #include "../xLightsMain.h"
 #include "MainSequencer.h"
+#include "../NoteRangeDialog.h"
 
 #include <log4cpp/Category.hh>
 
@@ -41,6 +42,11 @@ EVT_PAINT(Waveform::renderGL)
 END_EVENT_TABLE()
 
 const long Waveform::ID_WAVE_MNU_RENDER = wxNewId();
+const long Waveform::ID_WAVE_MNU_RAW = wxNewId();
+const long Waveform::ID_WAVE_MNU_BASS = wxNewId();
+const long Waveform::ID_WAVE_MNU_ALTO = wxNewId();
+const long Waveform::ID_WAVE_MNU_TREBLE = wxNewId();
+const long Waveform::ID_WAVE_MNU_CUSTOM = wxNewId();
 
 Waveform::Waveform(wxPanel* parent, wxWindowID id, const wxPoint &pos, const wxSize &size,
                    long style, const wxString &name):
@@ -157,12 +163,28 @@ void Waveform::mouseLeftUp( wxMouseEvent& event)
 
 void Waveform::rightClick(wxMouseEvent& event)
 {
+    wxMenu mnuWave;
     if( (mTimeline->GetSelectedPositionStartMS() != -1 ) &&
         (mTimeline->GetSelectedPositionEndMS() != -1 ) )
     {
-        wxMenu mnuWave;
         mnuWave.Append(ID_WAVE_MNU_RENDER,"Render Selected Region");
-        mnuWave.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&Waveform::OnGridPopup, nullptr, this);
+    }
+    if (_media != nullptr)
+    {
+        if (mnuWave.GetMenuItemCount() > 0)
+        {
+            mnuWave.AppendSeparator();
+        }
+
+        mnuWave.AppendRadioItem(ID_WAVE_MNU_RAW, "Raw waveform")->Check(_type == AUDIOSAMPLETYPE::RAW);
+        mnuWave.AppendRadioItem(ID_WAVE_MNU_BASS, "Bass waveform")->Check(_type == AUDIOSAMPLETYPE::BASS);
+        mnuWave.AppendRadioItem(ID_WAVE_MNU_TREBLE, "Treble waveform")->Check(_type == AUDIOSAMPLETYPE::TREBLE);
+        mnuWave.AppendRadioItem(ID_WAVE_MNU_ALTO, "Alto waveform")->Check(_type == AUDIOSAMPLETYPE::ALTO);
+        mnuWave.AppendRadioItem(ID_WAVE_MNU_CUSTOM, "Custom filtered waveform")->Check(_type == AUDIOSAMPLETYPE::CUSTOM);
+    }
+    if (mnuWave.GetMenuItemCount() > 0)
+    {
+        mnuWave.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)& Waveform::OnGridPopup, nullptr, this);
         renderGL();
         PopupMenu(&mnuWave);
     }
@@ -178,6 +200,62 @@ void Waveform::OnGridPopup(wxCommandEvent& event)
         RenderCommandEvent rcEvent("", mTimeline->GetSelectedPositionStartMS(), mTimeline->GetSelectedPositionEndMS(), true, false);
         wxPostEvent(mParent, rcEvent);
     }
+    else if (id == ID_WAVE_MNU_RAW)
+    {
+        _type = AUDIOSAMPLETYPE::RAW;
+    }
+    else if (id == ID_WAVE_MNU_BASS)
+    {
+        _type = AUDIOSAMPLETYPE::BASS;
+    }
+    else if (id == ID_WAVE_MNU_TREBLE)
+    {
+        _type = AUDIOSAMPLETYPE::TREBLE;
+    }
+    else if (id == ID_WAVE_MNU_ALTO)
+    {
+        _type = AUDIOSAMPLETYPE::ALTO;
+    }
+    else if (id == ID_WAVE_MNU_CUSTOM)
+    {
+        NoteRangeDialog dlg(GetParent(), _lowNote, _highNote);
+        if (dlg.ShowModal() == wxID_CANCEL) return;
+        _type = AUDIOSAMPLETYPE::CUSTOM;
+    }
+
+    wxSetCursor(wxCURSOR_WAIT);
+
+    mCurrentWaveView = NO_WAVE_VIEW_SELECTED;
+    for (size_t i = 0; i < views.size(); i++)
+    {
+        if (views[i].GetZoomLevel() == mZoomLevel && views[i].GetType() == _type)
+        {
+            if (_type == AUDIOSAMPLETYPE::CUSTOM)
+            {
+                if (views[i].GetLowNote() == _lowNote && views[i].GetHighNote() == _highNote)
+                {
+                    mCurrentWaveView = i;
+                    break;
+                }
+            }
+            else
+            {
+                mCurrentWaveView = i;
+                break;
+            }
+        }
+    }
+
+    if (mCurrentWaveView == NO_WAVE_VIEW_SELECTED)
+    {
+        float samplesPerLine = GetSamplesPerLineFromZoomLevel(mZoomLevel);
+        WaveView wv(mZoomLevel, samplesPerLine, _media, _type, _lowNote, _highNote);
+        views.push_back(wv);
+        mCurrentWaveView = views.size() - 1;
+    }
+
+    wxSetCursor(wxCURSOR_ARROW);
+
     Refresh();
 }
 
@@ -292,7 +370,7 @@ int Waveform::OpenfileMedia(AudioManager* media, wxString& error)
 	if (_media != nullptr)
 	{
 		float samplesPerLine = GetSamplesPerLineFromZoomLevel(mZoomLevel);
-		WaveView wv(mZoomLevel, samplesPerLine, media);
+		WaveView wv(mZoomLevel, samplesPerLine, media, _type, _lowNote, _highNote);
 		views.push_back(wv);
 		mCurrentWaveView = 0;
 		return media->LengthMS();
@@ -492,7 +570,7 @@ void Waveform::SetZoomLevel(int level)
     mCurrentWaveView = NO_WAVE_VIEW_SELECTED;
     for (size_t i = 0; i < views.size(); i++)
     {
-        if (views[i].GetZoomLevel() == mZoomLevel)
+        if (views[i].GetZoomLevel() == mZoomLevel && views[i].GetType() == _type)
         {
             mCurrentWaveView = i;
         }
@@ -500,7 +578,7 @@ void Waveform::SetZoomLevel(int level)
     if (mCurrentWaveView == NO_WAVE_VIEW_SELECTED)
     {
         float samplesPerLine = GetSamplesPerLineFromZoomLevel(mZoomLevel);
-        WaveView wv(mZoomLevel, samplesPerLine, _media);
+        WaveView wv(mZoomLevel, samplesPerLine, _media, _type, _lowNote, _highNote);
         views.push_back(wv);
         mCurrentWaveView = views.size() - 1;
     }
@@ -574,7 +652,7 @@ void Waveform::SetGLSize(int w, int h)
     if (_media != nullptr)
     {
         float samplesPerLine = GetSamplesPerLineFromZoomLevel(mZoomLevel);
-        WaveView wv(0, samplesPerLine, _media);
+        WaveView wv(0, samplesPerLine, _media, _type, _lowNote, _highNote);
         views.push_back(wv);
     }
 
@@ -584,7 +662,7 @@ void Waveform::SetGLSize(int w, int h)
     Refresh(false);
 }
 
-void Waveform::WaveView::SetMinMaxSampleSet(float SamplesPerPixel, AudioManager* media)
+void Waveform::WaveView::SetMinMaxSampleSet(float SamplesPerPixel, AudioManager* media, AUDIOSAMPLETYPE type, int lowNote, int highNote)
 {
 	MinMaxs.clear();
 
@@ -607,7 +685,7 @@ void Waveform::WaveView::SetMinMaxSampleSet(float SamplesPerPixel, AudioManager*
 			}
 			minimum = 1;
 			maximum = -1;
-            media->GetLeftDataMinMax(start, end, minimum, maximum);
+            media->GetLeftDataMinMax(start, end, minimum, maximum, type, lowNote, highNote);
 			MINMAX mm;
 			mm.min = minimum;
 			mm.max = maximum;

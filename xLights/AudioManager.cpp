@@ -1993,6 +1993,12 @@ AudioManager::~AudioManager()
         _pcmdata = nullptr;
     }
 
+    while (_filtered.size() > 0)
+    {
+        delete _filtered.back();
+        _filtered.pop_back();
+    }
+
     // wait for prepare frame data to finish ... if i delete the data before it is done we will crash
     // this is only tripped if we try to open a new song too soon after opening another one
 
@@ -2578,9 +2584,26 @@ float AudioManager::GetLeftData(long offset)
 	return _data[0][offset];
 }
 
-void AudioManager::GetLeftDataMinMax(long start, long end, float& minimum, float& maximum)
+double AudioManager::MidiToFrequency(int midi)
+{
+    return pow(2.0, (midi - 69.0) / 12.0) * 440;
+}
+
+std::string AudioManager::MidiToNote(int midi)
+{
+    static std::vector<std::string> notes =
+    {
+        "C", "C#","D", "D#", "E", "F", "F#", "G", "G#","A", "A#", "B"
+    };
+    int offset = midi % 12;
+    int octave = midi / 12 - 1;
+    return wxString::Format("%s%d", notes[offset], octave).ToStdString();
+}
+
+void AudioManager::GetLeftDataMinMax(long start, long end, float& minimum, float& maximum, AUDIOSAMPLETYPE type, int lowNote, int highNote)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static const double pi2 = 6.283185307;
     while (!IsDataLoaded(end-1))
     {
         logger_base.debug("GetLeftDataMinMax waiting for data to be loaded.");
@@ -2590,20 +2613,158 @@ void AudioManager::GetLeftDataMinMax(long start, long end, float& minimum, float
     minimum = 0;
     maximum = 0;
 
+    if (type == AUDIOSAMPLETYPE::BASS)
+    {
+        lowNote = 0;
+        highNote = 59;
+    }
+    else if (type == AUDIOSAMPLETYPE::TREBLE)
+    {
+        lowNote = 60;
+        highNote = 72;
+    }
+    else if (type == AUDIOSAMPLETYPE::ALTO)
+    {
+        lowNote = 73;
+        highNote = 127;
+    }
+
     if (_data[0] == nullptr)
     {
         return;
     }
 
-    for (int j = start; j < std::min(end, _trackSize); j++) {
+    switch (type)
+    {
+    case AUDIOSAMPLETYPE::RAW:
+    {
+        for (int j = start; j < std::min(end, _trackSize); j++) {
 
-        float data = _data[0][j];
-        if (data < minimum) {
-            minimum = data;
+            float data = _data[0][j];
+            if (data < minimum) {
+                minimum = data;
+            }
+            if (data > maximum) {
+                maximum = data;
+            }
         }
-        if (data > maximum) {
-            maximum = data;
+    }
+    break;
+    case AUDIOSAMPLETYPE::ALTO:
+    case AUDIOSAMPLETYPE::BASS:
+    case AUDIOSAMPLETYPE::TREBLE:
+    case AUDIOSAMPLETYPE::CUSTOM:
+    {
+        // grab it from my cache if i have it
+        std::vector<float> data;
+        for (auto it : _filtered)
+        {
+            if (it->lowNote == lowNote && it->highNote == highNote)
+            {
+                data = it->data;
+            }
         }
+
+        // if we didnt find it ... create it
+        if (data.size() == 0)
+        {
+            /*
+            // TODO Not sure how to do this
+            // http://blog.bjornroche.com/2012/08/basic-audio-eqs.html
+
+            double fs = _rate;
+            //double f0 = ((double)(lowNote + highNote) / 2.0) / 127.0 * (_rate / 2.0);
+            double midMIDI = ((double)lowNote + (double)highNote) / 2.0;
+            double oct = (midMIDI - 69.0) / 12.0;
+            double f0 = pow(2.0, oct) * 440;
+            double bw = ((double)(highNote - lowNote) / 127.0) * 3.0; // 10 octaves
+            double g = -15;
+            double a = pow(10.0, g / 40.0); // 10^?
+            double w0 = pi2 * f0 / fs;
+            double c = cos(w0);
+            double s = sin(w0);
+            double alpha = s * sinh(ln2 / 2.0 * bw * w0 / a);
+            double b0 = 1 + alpha * a;
+            double b1 = -2 * c;
+            double b2 = 1 - alpha * a;
+            double a0 = 1 + alpha / a;
+            double a1 = -2 * c;
+            double a2 = 1 - alpha / a;
+            b0 /= a0;
+            b1 /= a0;
+            b2 /= a0;
+            a1 /= a0;
+            a2 /= a0;
+
+            double xmem1 = 0.0;
+            double xmem2 = 0.0;
+            double ymem1 = 0.0;
+            double ymem2 = 0.0;
+
+            auto process = [b0, b1, b2, a1, a2, &xmem1, &xmem2, &ymem1, &ymem2](float x) {
+                double y = b0 * x + b1 * xmem1 + b2 * xmem2 - a1 * ymem1 - a2 * ymem2;
+
+                xmem2 = xmem1;
+                xmem1 = x;
+                ymem2 = ymem1;
+                ymem1 = y;
+
+                return y;
+            };
+            */
+
+            double lowHz = MidiToFrequency(lowNote);
+            double highHz = MidiToFrequency(highNote);
+
+            std::vector<float> dataLow;
+
+            // low pass filter
+            {
+                double RC = 1.0 / (highHz * 2 * 3.14);
+                double dt = 1.0 / _rate;
+                double alpha = dt / (RC + dt);
+                dataLow.push_back(alpha * _data[0][0]);
+                for (int i = 1; i < _trackSize; ++i)
+                {
+                    dataLow.push_back(dataLow[i - 1] + alpha * (_data[0][i] - dataLow[i - 1]));
+                }
+            }
+
+            // high pass filter
+            {
+                double RC = 1.0 / (lowHz * 2 * 3.14);
+                double dt = 1.0 / _rate;
+                double alpha = RC / (RC + dt);
+                data.push_back(dataLow[0]);
+                for (int i = 1; i < _trackSize; ++i)
+                {
+                    data.push_back(alpha * (data[i - 1] + dataLow[i] - dataLow[i - 1]));
+                }
+            }
+
+            FilteredAudioData* fad = new FilteredAudioData();
+            fad->lowNote = lowNote;
+            fad->highNote = highNote;
+            fad->data = data;
+            _filtered.push_back(fad);
+        }
+
+        // now if we have it work out the min/max
+        if (data.size() > 0)
+        {
+            for (int j = start; j < std::min(end, (long)data.size()); j++) {
+
+                float d = data[j];
+                if (d < minimum) {
+                    minimum = d;
+                }
+                if (d > maximum) {
+                    maximum = d;
+                }
+            }
+        }
+    }
+    break;
     }
 }
 

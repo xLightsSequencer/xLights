@@ -2,13 +2,13 @@
 #define BULKEDITSLIDERDIALOG_H
 
 //(*Headers(BulkEditSliderDialog)
-#include <wx/sizer.h>
-#include <wx/stattext.h>
-#include <wx/textctrl.h>
-#include <wx/slider.h>
 #include <wx/bmpbuttn.h>
 #include <wx/button.h>
 #include <wx/dialog.h>
+#include <wx/sizer.h>
+#include <wx/slider.h>
+#include <wx/stattext.h>
+#include <wx/textctrl.h>
 //*)
 
 #include "BulkEditControls.h"
@@ -25,11 +25,11 @@ class BulkEditSliderDialog: public wxDialog
 		virtual ~BulkEditSliderDialog();
 
 		//(*Declarations(BulkEditSliderDialog)
-		wxSlider* Slider_BulkEdit;
-		wxButton* Button_Ok;
-		wxStaticText* StaticText_Label;
 		ValueCurveButton* BitmapButton_VC;
 		wxButton* Button_Cancel;
+		wxButton* Button_Ok;
+		wxSlider* Slider_BulkEdit;
+		wxStaticText* StaticText_Label;
 		wxTextCtrl* TextCtrl_BulkEdit;
 		//*)
 

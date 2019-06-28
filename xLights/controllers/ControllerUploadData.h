@@ -146,7 +146,7 @@ class UDControllerPort
         int GetUniverse() const;
         int GetUniverseStartChannel() const;
         void CreateVirtualStrings(bool mergeSequential);
-        int GetVirtualStringCount() const { return _virtualStrings.size(); }
+        int GetVirtualStringCount() const { return (int)_virtualStrings.size(); }
         std::list<UDVirtualString*> GetVirtualStrings() const { return _virtualStrings; }
         UDVirtualString* GetVirtualString(int index) const
         {

@@ -86,15 +86,26 @@ class Waveform : public xlGLCanvas
         bool m_dragging;
         DRAG_MODE m_drag_mode;
 		AudioManager* _media;
+        AUDIOSAMPLETYPE _type = AUDIOSAMPLETYPE::RAW;
+        int _lowNote = 0;
+        int _highNote = 127;
         static const long ID_WAVE_MNU_RENDER;
+        static const long ID_WAVE_MNU_RAW;
+        static const long ID_WAVE_MNU_BASS;
+        static const long ID_WAVE_MNU_TREBLE;
+        static const long ID_WAVE_MNU_ALTO;
+        static const long ID_WAVE_MNU_CUSTOM;
 
         class WaveView
         {
-            private:
+        private:
             float mSamplesPerPixel;
             int mZoomLevel;
+            int _lowNote;
+            int _highNote;
+            AUDIOSAMPLETYPE _type = AUDIOSAMPLETYPE::RAW;
 
-            public:
+        public:
 
             mutable DrawGLUtils::xlVertexAccumulator background;
             mutable DrawGLUtils::xlVertexAccumulator outline;
@@ -102,13 +113,16 @@ class Waveform : public xlGLCanvas
             mutable int lastRenderSize;
 
             std::vector<MINMAX> MinMaxs;
-            WaveView(int ZoomLevel,float SamplesPerPixel, AudioManager* media)
+            WaveView(int ZoomLevel, float SamplesPerPixel, AudioManager* media, AUDIOSAMPLETYPE type, int lowNote, int highNote)
             {
                 mZoomLevel = ZoomLevel;
                 mSamplesPerPixel = SamplesPerPixel;
-                SetMinMaxSampleSet(SamplesPerPixel, media);
+                SetMinMaxSampleSet(SamplesPerPixel, media, type, lowNote, highNote);
                 lastRenderStart = -1;
                 lastRenderSize = 0;
+                _type = type;
+                _lowNote = lowNote;
+                _highNote = highNote;
             }
 
 
@@ -126,8 +140,10 @@ class Waveform : public xlGLCanvas
                 return  mZoomLevel;
             }
 
-            void SetMinMaxSampleSet(float SamplesPerPixel, AudioManager* media);
-
+            AUDIOSAMPLETYPE GetType() const { return _type; }
+            int GetLowNote() const { return _lowNote; }
+            int GetHighNote() const { return _highNote; }
+            void SetMinMaxSampleSet(float SamplesPerPixel, AudioManager* media, AUDIOSAMPLETYPE type, int lowNote, int highNote);
         };
 
         void DrawWaveView(const WaveView &wv);
