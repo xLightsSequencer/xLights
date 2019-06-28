@@ -169,7 +169,7 @@ struct FilteredAudioData
 {
     int lowNote;
     int highNote;
-    std::vector<float> data;
+    float* data;
 };
 
 class AudioManager

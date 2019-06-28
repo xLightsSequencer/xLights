@@ -99,10 +99,10 @@ class Waveform : public xlGLCanvas
         class WaveView
         {
         private:
-            float mSamplesPerPixel;
-            int mZoomLevel;
-            int _lowNote;
-            int _highNote;
+            float mSamplesPerPixel = 1;
+            int mZoomLevel = 0;
+            int _lowNote = 0;
+            int _highNote = 127;
             AUDIOSAMPLETYPE _type = AUDIOSAMPLETYPE::RAW;
 
         public:
@@ -111,8 +111,8 @@ class Waveform : public xlGLCanvas
             mutable DrawGLUtils::xlVertexAccumulator outline;
             mutable int lastRenderStart;
             mutable int lastRenderSize;
-
             std::vector<MINMAX> MinMaxs;
+
             WaveView(int ZoomLevel, float SamplesPerPixel, AudioManager* media, AUDIOSAMPLETYPE type, int lowNote, int highNote)
             {
                 mZoomLevel = ZoomLevel;
@@ -124,22 +124,10 @@ class Waveform : public xlGLCanvas
                 _lowNote = lowNote;
                 _highNote = highNote;
             }
+            WaveView(int ZoomLevel) { }
+            virtual ~WaveView() { }
 
-
-            WaveView(int ZoomLevel)
-            {
-
-            }
-
-            virtual ~WaveView()
-            {
-            }
-
-            int GetZoomLevel() const
-            {
-                return  mZoomLevel;
-            }
-
+            int GetZoomLevel() const { return  mZoomLevel; }
             AUDIOSAMPLETYPE GetType() const { return _type; }
             int GetLowNote() const { return _lowNote; }
             int GetHighNote() const { return _highNote; }
@@ -147,7 +135,6 @@ class Waveform : public xlGLCanvas
         };
 
         void DrawWaveView(const WaveView &wv);
-        //void StartDrawing(wxDouble pointSize);
         void renderGL( wxPaintEvent& event );
         void renderGL();
         void UpdateMousePosition(int time);
@@ -160,9 +147,7 @@ class Waveform : public xlGLCanvas
         void OnGridPopup(wxCommandEvent& event);
         void OnLostMouseCapture(wxMouseCaptureLostEvent& event);
         void mouseLeftWindow(wxMouseEvent& event);
-        //void OutputText(GLfloat x, GLfloat y, char *text);
-        //void drawString (void * font, char *s, float x, float y, float z);
+
         std::vector<WaveView> views;
 };
-
 #endif // WAVEFORM_H
