@@ -147,7 +147,7 @@ unsigned char* PlayListItemMQTT::PrepareData(const std::string s, int& used)
     return res;
 }
 
-int DecodeInt(uint8_t* pb)
+int PlayListItemMQTT::DecodeInt(uint8_t* pb, int& oldindex)
 {
     int index = 0;
     int multiplier = 1;
@@ -165,10 +165,29 @@ int DecodeInt(uint8_t* pb)
         }
     } while ((enc & 128) != 0);
 
+    oldindex += index;
+
     return value;
 }
 
-int EncodeInt(uint8_t* pb, int value)
+std::string PlayListItemMQTT::DecodeString(uint8_t* pb, int& oldindex)
+{
+    std::string value = "";
+    uint8_t enc = 0;
+
+    int stringlen = ((int)pb[0] << 8) + pb[1];
+    int index = 2;
+
+    for (int i = 0; i < stringlen; i++)
+    {
+        value += pb[index++];
+    }
+
+    oldindex += index;
+    return value;
+}
+
+int PlayListItemMQTT::EncodeInt(uint8_t* pb, int value)
 {
     int index = 0;
     do {
@@ -183,11 +202,11 @@ int EncodeInt(uint8_t* pb, int value)
     return index;
 }
 
-int EncodeString(uint8_t* pb, const std::string str)
+int PlayListItemMQTT::EncodeString(uint8_t* pb, const std::string str)
 {
     int index = 0;
-    pb[index++] = 0x00;
-    index += EncodeInt(&pb[index], str.size());
+    pb[index++] = (str.size() & 0xFF00) >> 8;
+    pb[index++] = str.size() & 0xFF;
     for (auto it : str)
     {
         pb[index++] = it;

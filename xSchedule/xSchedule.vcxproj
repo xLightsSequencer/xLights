@@ -228,6 +228,7 @@
     <ClCompile Include="EventFPPPanel.cpp" />
     <ClCompile Include="EventLorPanel.cpp" />
     <ClCompile Include="EventMIDIPanel.cpp" />
+    <ClCompile Include="EventMQTTPanel.cpp" />
     <ClCompile Include="EventOSCPanel.cpp" />
     <ClCompile Include="EventPingPanel.cpp" />
     <ClCompile Include="EventsDialog.cpp" />
@@ -241,6 +242,7 @@
     <ClCompile Include="events\EventFPP.cpp" />
     <ClCompile Include="events\EventLor.cpp" />
     <ClCompile Include="events\EventMIDI.cpp" />
+    <ClCompile Include="events\EventMQTT.cpp" />
     <ClCompile Include="events\EventOSC.cpp" />
     <ClCompile Include="events\EventPing.cpp" />
     <ClCompile Include="events\EventSerial.cpp" />
@@ -253,6 +255,7 @@
     <ClCompile Include="events\ListenerLor.cpp" />
     <ClCompile Include="events\ListenerManager.cpp" />
     <ClCompile Include="events\ListenerMIDI.cpp" />
+    <ClCompile Include="events\ListenerMQTT.cpp" />
     <ClCompile Include="events\ListenerOSC.cpp" />
     <ClCompile Include="events\ListenerSerial.cpp" />
     <ClCompile Include="ExtraIPDialog.cpp" />
@@ -440,6 +443,7 @@
     <ClInclude Include="EventFPPPanel.h" />
     <ClInclude Include="EventLorPanel.h" />
     <ClInclude Include="EventMIDIPanel.h" />
+    <ClInclude Include="EventMQTTPanel.h" />
     <ClInclude Include="EventOSCPanel.h" />
     <ClInclude Include="EventPingPanel.h" />
     <ClInclude Include="EventsDialog.h" />
@@ -453,6 +457,7 @@
     <ClInclude Include="events\EventFPP.h" />
     <ClInclude Include="events\EventLor.h" />
     <ClInclude Include="events\EventMIDI.h" />
+    <ClInclude Include="events\EventMQTT.h" />
     <ClInclude Include="events\EventOSC.h" />
     <ClInclude Include="events\EventPing.h" />
     <ClInclude Include="events\EventSerial.h" />
@@ -465,6 +470,7 @@
     <ClInclude Include="events\ListenerLor.h" />
     <ClInclude Include="events\ListenerManager.h" />
     <ClInclude Include="events\ListenerMIDI.h" />
+    <ClInclude Include="events\ListenerMQTT.h" />
     <ClInclude Include="events\ListenerOSC.h" />
     <ClInclude Include="events\ListenerSerial.h" />
     <ClInclude Include="ExtraIPDialog.h" />

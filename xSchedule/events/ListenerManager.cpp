@@ -9,12 +9,14 @@
 #include "ListenerE131.h"
 #include "ListenerFPP.h"
 #include "ListenerMIDI.h"
+#include "ListenerMQTT.h"
 #include "ListenerFPPUnicast.h"
 #include "ListenerSerial.h"
 #include "ListenerLor.h"
 #include "ListenerARTNet.h"
 #include "ListenerOSC.h"
 #include "EventMIDI.h"
+#include "EventMQTT.h"
 
 wxDEFINE_EVENT(EVT_MIDI, wxCommandEvent);
 
@@ -94,8 +96,8 @@ void ListenerManager::StartListeners()
                     {
                         found = true;
                     }
-				}
-			}
+                }
+            }
             if (!found)
             {
                 l->Stop();
@@ -106,7 +108,7 @@ void ListenerManager::StartListeners()
             {
                 ++it;
             }
-		}
+        }
         else if ((*it)->GetType() == "MIDI")
         {
             if (_sync == 5)
@@ -134,6 +136,28 @@ void ListenerManager::StartListeners()
                 {
                     ++it;
                 }
+            }
+        }
+        else if ((*it)->GetType() == "MQTT")
+        {
+            ListenerMQTT* l = (ListenerMQTT*)(*it);
+            bool found = false;
+            for (auto it2 : *_scheduleManager->GetOptions()->GetEvents())
+            {
+                if (it2->GetType() == "MQTT" && l->GetBrokerIP() == ((EventMQTT*)it2)->GetBrokerIP() && l->GetBrokerPort() == ((EventMQTT*)it2)->GetBrokerPort())
+                {
+                    found = true;
+                }
+            }
+            if (!found)
+            {
+                l->Stop();
+                _listeners.erase(it++);
+                delete l;
+            }
+            else
+            {
+                ++it;
             }
         }
         else if ((*it)->GetType() == "ARTNet" || (*it)->GetType() == "ARTNetTrigger")
@@ -358,6 +382,27 @@ void ListenerManager::StartListeners()
                 _listeners.back()->Start();
             }
         }
+        else if (it3->GetType() == "MQTT")
+        {
+            EventMQTT* e = (EventMQTT*)it3;
+            bool portExists = false;
+            for (auto it2 : _listeners)
+            {
+                if (it2->GetType() == "MQTT" && ((ListenerMQTT*)it2)->GetBrokerIP() == e->GetBrokerIP() && ((ListenerMQTT*)it2)->GetBrokerPort() == e->GetBrokerPort())
+                {
+                    ((ListenerMQTT*)it2)->Subscribe(e->GetTopic());
+                    portExists = true;
+                    break;
+                }
+            }
+
+            if (!portExists)
+            {
+                _listeners.push_back(new ListenerMQTT(this, e->GetBrokerIP(), e->GetBrokerPort(), e->GetUsername(), e->GetPassword()));
+                _listeners.back()->Start();
+                ((ListenerMQTT*)_listeners.back())->Subscribe(e->GetTopic());
+            }
+        }
         else if (it3->GetType() == "OSC")
         {
             bool oscExists = false;
@@ -387,7 +432,7 @@ void ListenerManager::StartListeners()
     }
 
     // need to tell LOR listeners to update Unit Ids they need to poll
-    if( update_lor_unit_ids )
+    if (update_lor_unit_ids)
     {
         for (auto& it2 : _listeners)
         {
@@ -733,6 +778,19 @@ void ListenerManager::ProcessPacket(const std::string& source, bool result, cons
         if (it->GetType() == source)
         {
             it->Process(result, ip, _scheduleManager);
+        }
+    }
+}
+
+void ListenerManager::ProcessPacket(const std::string& source, const std::string& topic, const std::string& data)
+{
+    if (_pause || _stop) return;
+
+    for (auto& it : *_scheduleManager->GetOptions()->GetEvents())
+    {
+        if (it->GetType() == source)
+        {
+            it->Process(topic, data, _scheduleManager);
         }
     }
 }

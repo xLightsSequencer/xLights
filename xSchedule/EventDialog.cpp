@@ -10,6 +10,7 @@
 #include "EventOSCPanel.h"
 #include "EventFPPPanel.h"
 #include "EventMIDIPanel.h"
+#include "EventMQTTPanel.h"
 #include "EventStatePanel.h"
 #include "xScheduleMain.h"
 #include "ScheduleManager.h"
@@ -21,6 +22,7 @@
 #include "events/EventOSC.h"
 #include "events/EventFPP.h"
 #include "events/EventMIDI.h"
+#include "events/EventMQTT.h"
 #include "events/EventState.h"
 #include "events/EventSerial.h"
 #include "events/EventLor.h"
@@ -155,6 +157,7 @@ EventDialog::EventDialog(wxWindow* parent, OutputManager* outputManager, EventBa
         Choicebook_EventType->AddPage(new EventPingPanel(Choicebook_EventType, outputManager), "Ping", false);
         Choicebook_EventType->AddPage(new EventLorPanel(Choicebook_EventType), "LOR", false);
         Choicebook_EventType->AddPage(new EventMIDIPanel(Choicebook_EventType), "MIDI", false);
+        Choicebook_EventType->AddPage(new EventMQTTPanel(Choicebook_EventType), "MQTT", false);
         Choicebook_EventType->AddPage(new EventStatePanel(Choicebook_EventType), "State", false);
     }
     else
@@ -199,6 +202,10 @@ EventDialog::EventDialog(wxWindow* parent, OutputManager* outputManager, EventBa
         else if (type == "MIDI")
         {
             Choicebook_EventType->AddPage(new EventMIDIPanel(Choicebook_EventType), "MIDI", true);
+        }
+        else if (type == "MQTT")
+        {
+            Choicebook_EventType->AddPage(new EventMQTTPanel(Choicebook_EventType), "MQTT", true);
         }
         else if (type == "State")
         {
@@ -264,6 +271,10 @@ void EventDialog::OnButton_OkClick(wxCommandEvent& event)
         else if (type == "MIDI")
         {
             _eventBase = new EventMIDI();
+        }
+        else if (type == "MQTT")
+        {
+            _eventBase = new EventMQTT();
         }
         else if (type == "State")
         {

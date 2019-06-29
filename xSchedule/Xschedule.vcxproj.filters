@@ -507,6 +507,15 @@
     <ClCompile Include="PlayList\PlayListItemMQTTPanel.cpp">
       <Filter>PlayList</Filter>
     </ClCompile>
+    <ClCompile Include="events\ListenerMQTT.cpp">
+      <Filter>Events</Filter>
+    </ClCompile>
+    <ClCompile Include="events\EventMQTT.cpp">
+      <Filter>Events</Filter>
+    </ClCompile>
+    <ClCompile Include="EventMQTTPanel.cpp">
+      <Filter>Events</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\xLights\AudioManager.h" />
@@ -1001,6 +1010,15 @@
     </ClInclude>
     <ClInclude Include="PlayList\PlayListItemMQTT.h">
       <Filter>PlayList</Filter>
+    </ClInclude>
+    <ClInclude Include="events\ListenerMQTT.h">
+      <Filter>Events</Filter>
+    </ClInclude>
+    <ClInclude Include="events\EventMQTT.h">
+      <Filter>Events</Filter>
+    </ClInclude>
+    <ClInclude Include="EventMQTTPanel.h">
+      <Filter>Events</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

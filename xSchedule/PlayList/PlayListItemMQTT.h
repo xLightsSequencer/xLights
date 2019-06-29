@@ -24,6 +24,11 @@ protected:
 
 public:
 
+    static int DecodeInt(uint8_t* pb, int& index);
+    static std::string DecodeString(uint8_t* pb, int& index);
+    static int EncodeInt(uint8_t* pb, int value);
+    static int EncodeString(uint8_t* pb, const std::string str);
+
 #pragma region Constructors and Destructors
     PlayListItemMQTT(wxXmlNode* node);
     PlayListItemMQTT();

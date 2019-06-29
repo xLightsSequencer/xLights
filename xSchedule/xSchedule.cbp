@@ -392,6 +392,8 @@
 		<Unit filename="EventLorPanel.h" />
 		<Unit filename="EventMIDIPanel.cpp" />
 		<Unit filename="EventMIDIPanel.h" />
+		<Unit filename="EventMQTTPanel.cpp" />
+		<Unit filename="EventMQTTPanel.h" />
 		<Unit filename="EventOSCPanel.cpp" />
 		<Unit filename="EventOSCPanel.h" />
 		<Unit filename="EventPingPanel.cpp" />
@@ -635,6 +637,8 @@
 		<Unit filename="events/EventLor.h" />
 		<Unit filename="events/EventMIDI.cpp" />
 		<Unit filename="events/EventMIDI.h" />
+		<Unit filename="events/EventMQTT.cpp" />
+		<Unit filename="events/EventMQTT.h" />
 		<Unit filename="events/EventOSC.cpp" />
 		<Unit filename="events/EventOSC.h" />
 		<Unit filename="events/EventPing.cpp" />
@@ -659,6 +663,8 @@
 		<Unit filename="events/ListenerMIDI.h" />
 		<Unit filename="events/ListenerManager.cpp" />
 		<Unit filename="events/ListenerManager.h" />
+		<Unit filename="events/ListenerMQTT.cpp" />
+		<Unit filename="events/ListenerMQTT.h" />
 		<Unit filename="events/ListenerOSC.cpp" />
 		<Unit filename="events/ListenerOSC.h" />
 		<Unit filename="events/ListenerSerial.cpp" />
@@ -707,6 +713,7 @@
 		<Unit filename="wxsmith/EventFPPPanel.wxs" />
 		<Unit filename="wxsmith/EventLorPanel.wxs" />
 		<Unit filename="wxsmith/EventMIDIPanel.wxs" />
+		<Unit filename="wxsmith/EventMQTTPanel.wxs" />
 		<Unit filename="wxsmith/EventOSCPanel.wxs" />
 		<Unit filename="wxsmith/EventPingPanel.wxs" />
 		<Unit filename="wxsmith/EventSerialPanel.wxs" />
@@ -841,6 +848,7 @@
 					<wxPanel wxs="wxsmith/EventARTNetTriggerPanel.wxs" src="EventARTNetTriggerPanel.cpp" hdr="EventARTNetTriggerPanel.h" fwddecl="0" i18n="1" name="EventARTNetTriggerPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/EventSerialPanel.wxs" src="EventSerialPanel.cpp" hdr="EventSerialPanel.h" fwddecl="0" i18n="1" name="EventSerialPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/EventMIDIPanel.wxs" src="EventMIDIPanel.cpp" hdr="EventMIDIPanel.h" fwddecl="0" i18n="1" name="EventMIDIPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/EventMQTTPanel.wxs" src="EventMQTTPanel.cpp" hdr="EventMQTTPanel.h" fwddecl="0" i18n="1" name="EventMQTTPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/EventOSCPanel.wxs" src="EventOSCPanel.cpp" hdr="EventOSCPanel.h" fwddecl="0" i18n="1" name="EventOSCPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/EventDataPanel.wxs" src="EventDataPanel.cpp" hdr="EventDataPanel.h" fwddecl="0" i18n="1" name="EventDataPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/EventFPPPanel.wxs" src="EventFPPPanel.cpp" hdr="EventFPPPanel.h" fwddecl="0" i18n="1" name="EventFPPPanel" language="CPP" />

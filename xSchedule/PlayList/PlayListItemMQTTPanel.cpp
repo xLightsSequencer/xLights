@@ -62,10 +62,12 @@ PlayListItemMQTTPanel::PlayListItemMQTTPanel(wxWindow* parent, PlayListItemMQTT*
 	StaticText6 = new wxStaticText(this, ID_STATICTEXT6, _("User name:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT6"));
 	FlexGridSizer1->Add(StaticText6, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_Username = new wxTextCtrl(this, ID_TEXTCTRL5, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL5"));
+	TextCtrl_Username->Disable();
 	FlexGridSizer1->Add(TextCtrl_Username, 1, wxALL|wxEXPAND, 5);
 	StaticText7 = new wxStaticText(this, ID_STATICTEXT7, _("Password:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT7"));
 	FlexGridSizer1->Add(StaticText7, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_Password = new wxTextCtrl(this, ID_TEXTCTRL10, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL10"));
+	TextCtrl_Password->Disable();
 	FlexGridSizer1->Add(TextCtrl_Password, 1, wxALL|wxEXPAND, 5);
 	StaticText8 = new wxStaticText(this, ID_STATICTEXT8, _("Data:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT8"));
 	FlexGridSizer1->Add(StaticText8, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
