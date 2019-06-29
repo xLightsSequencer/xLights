@@ -10,6 +10,7 @@
 #include "PlayListItemAllOff.h"
 #include "PlayListItemSetColour.h"
 #include "PlayListItemRunCommand.h"
+#include "PlayListItemMQTT.h"
 #include "PlayListItemOSC.h"
 #include "PlayListItemRunProcess.h"
 #include "PlayListItemCURL.h"
@@ -89,6 +90,7 @@ const long PlayListDialog::ID_MNU_ADDDELAY = wxNewId();
 const long PlayListDialog::ID_MNU_ADDDIM = wxNewId();
 const long PlayListDialog::ID_MNU_ADDCOMMAND = wxNewId();
 const long PlayListDialog::ID_MNU_ADDOSC = wxNewId();
+const long PlayListDialog::ID_MNU_ADDMQTT = wxNewId();
 const long PlayListDialog::ID_MNU_ADDPROCESS = wxNewId();
 const long PlayListDialog::ID_MNU_ADDCURL = wxNewId();
 const long PlayListDialog::ID_MNU_ADDSERIAL = wxNewId();
@@ -593,6 +595,7 @@ void PlayListDialog::OnTreeCtrl_PlayListItemMenu(wxTreeEvent& event)
     mnu.Append(ID_MNU_ADDJUKEBOX, "Add xLights Jukebox");
     mnu.Append(ID_MNU_ADDMICROPHONE, "Add Microphone");
     mnu.Append(ID_MNU_ADDMIDI, "Add MIDI");
+    mnu.Append(ID_MNU_ADDMQTT, "Add MQTT");
     mnu.Append(ID_MNU_ADDOSC, "Add OSC");
     mnu.Append(ID_MNU_ADDPROCESS, "Add Process");
     mnu.Append(ID_MNU_ADDPROJECTOR, "Add Projector");
@@ -714,6 +717,11 @@ void PlayListDialog::OnTreeCtrlMenu(wxCommandEvent &event)
     else if (event.GetId() == ID_MNU_ADDOSC)
     {
         PlayListItemOSC* pli = new PlayListItemOSC();
+        AddItem(_playlist, step, pli);
+    }
+    else if (event.GetId() == ID_MNU_ADDMQTT)
+    {
+        PlayListItemMQTT* pli = new PlayListItemMQTT();
         AddItem(_playlist, step, pli);
     }
     else if (event.GetId() == ID_MNU_ADDTEXT)

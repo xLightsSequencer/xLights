@@ -1249,6 +1249,9 @@ bool ScheduleManager::PlayPlayList(PlayList* playlist, size_t& rate, bool loop, 
         _immediatePlay->StopAtEndOfCurrentStep();
     }
 
+    // play the zero frame immediately ... this ensures the first frame happens in less than the first frame time
+    Frame(true, ((xScheduleApp*)wxTheApp)->GetFrame());
+
     rate = 25; // always start fast
     return result;
 }

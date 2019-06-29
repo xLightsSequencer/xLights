@@ -10,7 +10,7 @@
 
 PlayListItemOSC::PlayListItemOSC(wxXmlNode* node) : PlayListItem(node)
 {
-	_ip = "";
+    _ip = "";
 	_path = "";
 	_port = 0;
     _started = false;

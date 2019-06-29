@@ -35,10 +35,9 @@ protected:
     bool IsSuppressAudioOnSlaves() const;
     std::string ReplaceTags(const std::string s) const;
 
-protected:
-    static std::string GetTagHint();
-
     public:
+
+    static std::string GetTagHint();
 
     #pragma region Constructors and Destructors
     PlayListItem(wxXmlNode* node);

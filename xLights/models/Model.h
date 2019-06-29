@@ -246,12 +246,12 @@ public:
     unsigned long GetChangeCount() const { return changeCount; }
 
     std::string rgbOrder;
-    bool SingleNode;     // true for dumb strings and single channel strings
-    bool SingleChannel;  // true for traditional single-color strings
+    bool SingleNode = false;     // true for dumb strings and single channel strings
+    bool SingleChannel = false;  // true for traditional single-color strings
 
-    std::string ModelStartChannel;
-    bool CouldComputeStartChannel;
-    bool Overlapping=false;
+    std::string ModelStartChannel = "";
+    bool CouldComputeStartChannel = false;
+    bool Overlapping = false;
     std::string _pixelCount = "";
     std::string _pixelType = "";
     std::string _pixelSpacing = "";
@@ -403,18 +403,10 @@ protected:
 template <class ScreenLocation>
 class ModelWithScreenLocation : public Model {
 public:
-    virtual const ModelScreenLocation &GetModelScreenLocation() const {
-        return screenLocation;
-    }
-    virtual ModelScreenLocation &GetModelScreenLocation() {
-        return screenLocation;
-    }
-    virtual const ModelScreenLocation &GetBaseObjectScreenLocation() const {
-        return screenLocation;
-    }
-    virtual ModelScreenLocation &GetBaseObjectScreenLocation() {
-        return screenLocation;
-    }
+    virtual const ModelScreenLocation &GetModelScreenLocation() const { return screenLocation; }
+    virtual ModelScreenLocation &GetModelScreenLocation() { return screenLocation; }
+    virtual const ModelScreenLocation &GetBaseObjectScreenLocation() const { return screenLocation; }
+    virtual ModelScreenLocation &GetBaseObjectScreenLocation() { return screenLocation; }
 protected:
     ModelWithScreenLocation(const ModelManager &manager) : Model(manager) {}
     virtual ~ModelWithScreenLocation() {}
