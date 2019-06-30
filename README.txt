@@ -11,6 +11,16 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2019.32 June 30, 2019
+   -- enh (keith)  Add MQTT support to xSchedule ... both publish and subscribe
+   -- enh (keith)  Add support for static and dynamic PS to xSchedule RDS
+   -- enh (keith)  Add waveform band pass filters for partial frequency waveform visualisation in sequence waveform display
+   -- enh (keith)  Warn users opening xbkp files that they will save as xml
+   -- enh (keith)  Add more blend styles to sup import ... also change the default as the old one did not handle overlapping images correctly
+   -- enh (scott)  Add uniqueness ip & description check to e131 where auto size is enabled
+   -- enh (dkulp)  Start introducing FPP proxy configuration of controllers accessed via FPP
+   -- bug (dkulp)  Fix backup on start on OSX fails
+   -- bug (keith)  Fix arduino buttons code for driving xSchedule sending messages delayed by one button press
 2019.31 June 26, 2019
    -- enh (keith)  Add bulk edit of controller type
    -- enh (keith)  Double click in morph effect assist sends corners to their maximums
