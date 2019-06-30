@@ -128,4 +128,5 @@ June 17, 2018 - add notes about wxWidgets for OSX Mojave
 July 16, 2018 - 85c2877a6c660c3b59c7a5400bab224374e3324a Fixes the native wxDataViewCtrl drag/drop
 Aug  1, 2018 - c83f3b39424fd0d6690a64ba05277c77c077b861 Fixes sRGB <-> RGB color space issues
 Oct 30, 2018 - move to dkulp/wxWidgets xlights_fixes branch to grab atomic ref counting, Mojave fixes, color fixes, etc...
-Jan 6, 2018 - 81de073d3b06d61ed8959d417692e27d49ec17eb  Move to c++17, fixes for multitouch on OpenGL
+Jan 6, 2019 - 81de073d3b06d61ed8959d417692e27d49ec17eb  Move to c++17, fixes for multitouch on OpenGL
+Jun 30, 2019 - 51bce4ec0b2f1d6e38e1d5ae75e0ad1cec9bae13 Contains fixes for opengl window resizing

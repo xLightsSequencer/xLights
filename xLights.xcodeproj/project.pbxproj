@@ -140,6 +140,7 @@
 		672F88C920E10BD1005BE1F4 /* PlayListItemMicrophone.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 672F88C620E10BD0005BE1F4 /* PlayListItemMicrophone.cpp */; };
 		672F95261A7A6619005FF8BF /* SeqSettingsDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 672F950D1A7A6619005FF8BF /* SeqSettingsDialog.cpp */; };
 		6730747C208E737800D57F99 /* FolderSelection.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6730747A208E737800D57F99 /* FolderSelection.cpp */; };
+		6731448822C6F98F00764C44 /* NoteRangeDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6731448622C6F98E00764C44 /* NoteRangeDialog.cpp */; };
 		6733CF051E60659F00B97F60 /* xschedule.mac.properties in Resources */ = {isa = PBXBuildFile; fileRef = 6733CF041E60659E00B97F60 /* xschedule.mac.properties */; };
 		6738541021E515A500A71071 /* CubeModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6738540E21E515A500A71071 /* CubeModel.cpp */; };
 		673930DF202B6103000A33B4 /* SelectPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 673930DD202B6103000A33B4 /* SelectPanel.cpp */; };
@@ -200,6 +201,7 @@
 		67582EC81C73643900850363 /* osx_shared_mutex.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67582EC71C73643900850363 /* osx_shared_mutex.cpp */; };
 		67582ECA1C73646300850363 /* xlMacUtils.mm in Sources */ = {isa = PBXBuildFile; fileRef = 67582EC91C73646300850363 /* xlMacUtils.mm */; };
 		675878DB1A89297200205A75 /* DataLayer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 675878D91A89297200205A75 /* DataLayer.cpp */; };
+		6758DE0622C5BBD300B24351 /* ZCPPOutput.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 677196AA223C98780082576E /* ZCPPOutput.cpp */; };
 		675AB4261B5ACEDA00853A28 /* PluginBufferingAdapter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 675AB40C1B5ACEDA00853A28 /* PluginBufferingAdapter.cpp */; };
 		675AB4271B5ACEDA00853A28 /* acsymbols.c in Sources */ = {isa = PBXBuildFile; fileRef = 675AB40D1B5ACEDA00853A28 /* acsymbols.c */; };
 		675AB4281B5ACEDA00853A28 /* Files.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 675AB40E1B5ACEDA00853A28 /* Files.cpp */; };
@@ -271,6 +273,11 @@
 		676D0F821C72BEBD009C66FC /* kfc.c in Sources */ = {isa = PBXBuildFile; fileRef = 676D0F7B1C72BEBD009C66FC /* kfc.c */; };
 		676DCBFE1A98E53800FBA86B /* FileConverter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 676DCBF81A98E53800FBA86B /* FileConverter.cpp */; };
 		676DCBFF1A98E53800FBA86B /* LorConvertDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 676DCBFB1A98E53800FBA86B /* LorConvertDialog.cpp */; };
+		676F5F8622C8DF5600D28330 /* EventMQTT.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 676F5F8222C8DF5500D28330 /* EventMQTT.cpp */; };
+		676F5F8722C8DF5600D28330 /* ListenerMQTT.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 676F5F8322C8DF5500D28330 /* ListenerMQTT.cpp */; };
+		676F5F8A22C8DFA300D28330 /* EventMQTTPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 676F5F8822C8DFA200D28330 /* EventMQTTPanel.cpp */; };
+		676F5F8F22C8DFC400D28330 /* PlayListItemMQTTPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 676F5F8B22C8DFC300D28330 /* PlayListItemMQTTPanel.cpp */; };
+		676F5F9022C8DFC400D28330 /* PlayListItemMQTT.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 676F5F8E22C8DFC400D28330 /* PlayListItemMQTT.cpp */; };
 		677196AC223C98790082576E /* ZCPPDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 677196A9223C98780082576E /* ZCPPDialog.cpp */; };
 		677196AD223C98790082576E /* ZCPPOutput.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 677196AA223C98780082576E /* ZCPPOutput.cpp */; };
 		677196B3223CEFAD0082576E /* ModelChainDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 677196B1223CEFAD0082576E /* ModelChainDialog.cpp */; };
@@ -1072,6 +1079,8 @@
 		672F95251A7A6619005FF8BF /* XlightsDrawable.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = XlightsDrawable.h; sourceTree = "<group>"; };
 		6730747A208E737800D57F99 /* FolderSelection.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = FolderSelection.cpp; sourceTree = "<group>"; };
 		6730747B208E737800D57F99 /* FolderSelection.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FolderSelection.h; sourceTree = "<group>"; };
+		6731448622C6F98E00764C44 /* NoteRangeDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = NoteRangeDialog.cpp; sourceTree = "<group>"; };
+		6731448722C6F98F00764C44 /* NoteRangeDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NoteRangeDialog.h; sourceTree = "<group>"; };
 		6733CF041E60659E00B97F60 /* xschedule.mac.properties */ = {isa = PBXFileReference; lastKnownFileType = text; name = xschedule.mac.properties; path = bin/xschedule.mac.properties; sourceTree = "<group>"; };
 		6738540E21E515A500A71071 /* CubeModel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = CubeModel.cpp; path = models/CubeModel.cpp; sourceTree = "<group>"; };
 		6738540F21E515A500A71071 /* CubeModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CubeModel.h; path = models/CubeModel.h; sourceTree = "<group>"; };
@@ -1302,6 +1311,16 @@
 		676DCBFB1A98E53800FBA86B /* LorConvertDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = LorConvertDialog.cpp; sourceTree = "<group>"; };
 		676DCBFC1A98E53800FBA86B /* LorConvertDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LorConvertDialog.h; sourceTree = "<group>"; };
 		676DCBFD1A98E53800FBA86B /* tmGridCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = tmGridCell.h; sourceTree = "<group>"; };
+		676F5F8222C8DF5500D28330 /* EventMQTT.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EventMQTT.cpp; path = events/EventMQTT.cpp; sourceTree = "<group>"; };
+		676F5F8322C8DF5500D28330 /* ListenerMQTT.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ListenerMQTT.cpp; path = events/ListenerMQTT.cpp; sourceTree = "<group>"; };
+		676F5F8422C8DF5500D28330 /* ListenerMQTT.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ListenerMQTT.h; path = events/ListenerMQTT.h; sourceTree = "<group>"; };
+		676F5F8522C8DF5500D28330 /* EventMQTT.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EventMQTT.h; path = events/EventMQTT.h; sourceTree = "<group>"; };
+		676F5F8822C8DFA200D28330 /* EventMQTTPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = EventMQTTPanel.cpp; sourceTree = "<group>"; };
+		676F5F8922C8DFA300D28330 /* EventMQTTPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EventMQTTPanel.h; sourceTree = "<group>"; };
+		676F5F8B22C8DFC300D28330 /* PlayListItemMQTTPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PlayListItemMQTTPanel.cpp; path = PlayList/PlayListItemMQTTPanel.cpp; sourceTree = "<group>"; };
+		676F5F8C22C8DFC300D28330 /* PlayListItemMQTT.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlayListItemMQTT.h; path = PlayList/PlayListItemMQTT.h; sourceTree = "<group>"; };
+		676F5F8D22C8DFC400D28330 /* PlayListItemMQTTPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlayListItemMQTTPanel.h; path = PlayList/PlayListItemMQTTPanel.h; sourceTree = "<group>"; };
+		676F5F8E22C8DFC400D28330 /* PlayListItemMQTT.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PlayListItemMQTT.cpp; path = PlayList/PlayListItemMQTT.cpp; sourceTree = "<group>"; };
 		677196A8223C98780082576E /* ZCPPDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ZCPPDialog.h; path = outputs/ZCPPDialog.h; sourceTree = "<group>"; };
 		677196A9223C98780082576E /* ZCPPDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ZCPPDialog.cpp; path = outputs/ZCPPDialog.cpp; sourceTree = "<group>"; };
 		677196AA223C98780082576E /* ZCPPOutput.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ZCPPOutput.cpp; path = outputs/ZCPPOutput.cpp; sourceTree = "<group>"; };
@@ -2833,6 +2852,10 @@
 		67D75E352020ED4B005BAC6E /* events */ = {
 			isa = PBXGroup;
 			children = (
+				676F5F8222C8DF5500D28330 /* EventMQTT.cpp */,
+				676F5F8522C8DF5500D28330 /* EventMQTT.h */,
+				676F5F8322C8DF5500D28330 /* ListenerMQTT.cpp */,
+				676F5F8422C8DF5500D28330 /* ListenerMQTT.h */,
 				67B627C52295F9C2001155C8 /* EventARTNetTrigger.cpp */,
 				67B627C62295F9C2001155C8 /* EventARTNetTrigger.h */,
 				675081EB21B80EC600A48CD1 /* EventState.cpp */,
@@ -3055,6 +3078,8 @@
 		67E7087617B51AB400A22034 /* xLights */ = {
 			isa = PBXGroup;
 			children = (
+				6731448622C6F98E00764C44 /* NoteRangeDialog.cpp */,
+				6731448722C6F98F00764C44 /* NoteRangeDialog.h */,
 				6743322122B7C24E0038B63E /* OutputModelManager.cpp */,
 				6743322022B7C24D0038B63E /* OutputModelManager.h */,
 				6743321D22B7C1C20038B63E /* ControllerVisualiseDialog.cpp */,
@@ -3401,6 +3426,8 @@
 		67F23F221E32994400F8B985 /* xSchedule */ = {
 			isa = PBXGroup;
 			children = (
+				676F5F8822C8DFA200D28330 /* EventMQTTPanel.cpp */,
+				676F5F8922C8DFA300D28330 /* EventMQTTPanel.h */,
 				67B627B82295F7E9001155C8 /* EventARTNetTriggerPanel.cpp */,
 				67B627BC2295F7EA001155C8 /* EventARTNetTriggerPanel.h */,
 				67B627BA2295F7EA001155C8 /* PluginManager.cpp */,
@@ -3598,6 +3625,10 @@
 		67F23FA91E329E6100F8B985 /* PlayList */ = {
 			isa = PBXGroup;
 			children = (
+				676F5F8E22C8DFC400D28330 /* PlayListItemMQTT.cpp */,
+				676F5F8C22C8DFC300D28330 /* PlayListItemMQTT.h */,
+				676F5F8B22C8DFC300D28330 /* PlayListItemMQTTPanel.cpp */,
+				676F5F8D22C8DFC400D28330 /* PlayListItemMQTTPanel.h */,
 				67B627C12295F9B3001155C8 /* PlayListItemARTNetTrigger.cpp */,
 				67B627BF2295F9B3001155C8 /* PlayListItemARTNetTrigger.h */,
 				67B627C02295F9B3001155C8 /* PlayListItemARTNetTriggerPanel.cpp */,
@@ -4191,6 +4222,7 @@
 				67B2CF8D1C39D98A003C17CA /* TwinklePanel.cpp in Sources */,
 				675AB42D1B5ACEDA00853A28 /* PluginLoader.cpp in Sources */,
 				671130B31E4EB18100AF09A7 /* VSAFile.cpp in Sources */,
+				6731448822C6F98F00764C44 /* NoteRangeDialog.cpp in Sources */,
 				67BBFD0F208BD72E00A3D5AE /* LayerSelectDialog.cpp in Sources */,
 				679BD3361C37555C000539FE /* EffectPanelUtils.cpp in Sources */,
 				679BD3351C37555C000539FE /* OnPanel.cpp in Sources */,
@@ -4440,6 +4472,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6758DE0622C5BBD300B24351 /* ZCPPOutput.cpp in Sources */,
 				6796BAE421DAF37C00F18EF7 /* FSEQFile.cpp in Sources */,
 				67B31CBA21AC2F0D005ECB82 /* Parallel.cpp in Sources */,
 				672F88C920E10BD1005BE1F4 /* PlayListItemMicrophone.cpp in Sources */,
@@ -4507,6 +4540,7 @@
 				67F240061E32A03F00F8B985 /* ArtNetOutput.cpp in Sources */,
 				67B627C42295F9B3001155C8 /* PlayListItemARTNetTrigger.cpp in Sources */,
 				671E47FB2231CD9700049DC9 /* SMSMessage.cpp in Sources */,
+				676F5F9022C8DFC400D28330 /* PlayListItemMQTT.cpp in Sources */,
 				67FFB81C1FA3F65E007F9FBB /* OutputProcessDeadChannel.cpp in Sources */,
 				67B31CB921AC2E5A005ECB82 /* PlayListItemDim.cpp in Sources */,
 				671E47F92231CD9700049DC9 /* TestMessagesDialog.cpp in Sources */,
@@ -4530,6 +4564,7 @@
 				670E0C2C20B641D70055F891 /* City.cpp in Sources */,
 				67F240101E32A03F00F8B985 /* OpenPixelNetOutput.cpp in Sources */,
 				67F240111E32A03F00F8B985 /* Output.cpp in Sources */,
+				676F5F8A22C8DFA300D28330 /* EventMQTTPanel.cpp in Sources */,
 				67F240121E32A03F00F8B985 /* OutputManager.cpp in Sources */,
 				67F240131E32A03F00F8B985 /* PixelNetOutput.cpp in Sources */,
 				67F240141E32A03F00F8B985 /* RenardOutput.cpp in Sources */,
@@ -4565,6 +4600,7 @@
 				671E47F82231CD9700049DC9 /* SMSDaemonOptions.cpp in Sources */,
 				67C581531E4B95A400932DFA /* AddReverseDialog.cpp in Sources */,
 				10AE605B223C3542007FAA8F /* PlayListItemMIDIPanel.cpp in Sources */,
+				676F5F8622C8DF5600D28330 /* EventMQTT.cpp in Sources */,
 				67B6F3342040F59500B847E0 /* EventMIDI.cpp in Sources */,
 				67F23FFC1E329E7400F8B985 /* PlayListItemRunProcess.cpp in Sources */,
 				67B6F33D2040F66500B847E0 /* wxMidi.cpp in Sources */,
@@ -4633,6 +4669,7 @@
 				67F240021E329E7400F8B985 /* PlayListStepPanel.cpp in Sources */,
 				67480D532072773F00B3ED60 /* EventPingPanel.cpp in Sources */,
 				10AE605C223C3542007FAA8F /* PlayListItemMIDI.cpp in Sources */,
+				676F5F8F22C8DFC400D28330 /* PlayListItemMQTTPanel.cpp in Sources */,
 				67B627BE2295F7EA001155C8 /* PluginManager.cpp in Sources */,
 				6783D01B209758BF00C6F51D /* PlayListItemProjectorPanel.cpp in Sources */,
 				67D75E552020ED60005BAC6E /* ListenerFPPUnicast.cpp in Sources */,
@@ -4651,6 +4688,7 @@
 				67DA0AF91E39C8EB00E2A859 /* DimWhiteDialog.cpp in Sources */,
 				67C581551E4B95A400932DFA /* OutputProcessReverse.cpp in Sources */,
 				67FF749820BD82B6000EA3A3 /* PlayListItemJukeboxPanel.cpp in Sources */,
+				676F5F8722C8DF5600D28330 /* ListenerMQTT.cpp in Sources */,
 				67F23FA01E329E3300F8B985 /* connection.cpp in Sources */,
 				1ECB4F761FF635D7006D57AA /* OSCPacket.cpp in Sources */,
 				67DA0AFE1E39C8EB00E2A859 /* OutputProcessRemap.cpp in Sources */,
