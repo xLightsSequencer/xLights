@@ -455,6 +455,13 @@
 		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_300,w_300/kjbacw3rocbja57aiacq</image>
 		<rating>1</rating>
 	</shader>
+	<shader>
+		<name>Equirec Mandala Scope</name>
+		<link>https://www.interactiveshaderformat.com/sketches/2154</link>
+		<download>https://www.interactiveshaderformat.com/sketches/2154/download</download>
+		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_300,w_300/s9js5of8daglz2ucqxpu</image>
+		<rating>3</rating>
+	</shader>
 	<!--shader>
 		<name></name>
 		<link>https://www.interactiveshaderformat.com/sketches/xxx</link>
