@@ -298,6 +298,7 @@ bool ShaderDownloadDialog::LoadTree(wxProgressDialog* prog, int low, int high)
 {
     const std::string shaderlink = "https://raw.githubusercontent.com/smeighan/xLights/master/download/shaders.xml";
 
+    bool rc = true;
     std::string filename;
     wxXmlDocument* vd = GetXMLFromURL(wxURI(shaderlink), filename, prog, low, high);
     if (vd != nullptr && vd->IsOk())
@@ -317,26 +318,27 @@ bool ShaderDownloadDialog::LoadTree(wxProgressDialog* prog, int low, int high)
         delete vd;
     }
 
+    TreeCtrl_Navigator->Freeze();
     TreeCtrl_Navigator->DeleteAllItems();
     wxTreeItemId root = TreeCtrl_Navigator->AddRoot("Shaders");
-    wxTreeItemId first = root;
     for (auto it : _shaders)
     {
-        wxTreeItemId v = TreeCtrl_Navigator->AppendItem(root, it->_name, -1, -1, new ShaderTreeItemData(it));
-        if (first == root)
-        {
-            first = v;
-        }
+        TreeCtrl_Navigator->AppendItem(root, it->_name, -1, -1, new ShaderTreeItemData(it));
     }
-    TreeCtrl_Navigator->EnsureVisible(first);
-
-    if (_shaders.size() == 0)
+    TreeCtrl_Navigator->SortChildren(root);
+    if (_shaders.size() > 0)
+    {
+        wxTreeItemIdValue cookie;
+        TreeCtrl_Navigator->EnsureVisible(TreeCtrl_Navigator->GetFirstChild(root, cookie));
+    }
+    else
     {
         DisplayError("Unable to retrieve any shader information", this);
-        return false;
+        rc = false;
     }
+    TreeCtrl_Navigator->Thaw();
 
-    return true;
+    return rc;
 }
 
 ShaderDownloadDialog::~ShaderDownloadDialog()

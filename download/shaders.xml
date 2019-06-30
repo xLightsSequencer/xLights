@@ -413,6 +413,48 @@
 		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_300,w_300/g4tr6hqahfpgec33rf1r</image>
 		<rating>3</rating>
 	</shader>
+	<shader>
+		<name>Iso Lines</name>
+		<link>https://www.interactiveshaderformat.com/sketches/3219</link>
+		<download>https://www.interactiveshaderformat.com/sketches/3219/download</download>
+		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_300,w_300/c23wheabny1veapgxki4</image>
+		<rating>5</rating>
+	</shader>
+	<shader>
+		<name>Truchet Dual Level Spin</name>
+		<link>https://www.interactiveshaderformat.com/sketches/3939</link>
+		<download>https://www.interactiveshaderformat.com/sketches/3939/download</download>
+		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_300,w_300/v2parzqxgmlrcafwviiq</image>
+		<rating>5</rating>
+	</shader>
+	<shader>
+		<name>Soft Patterns</name>
+		<link>https://www.interactiveshaderformat.com/sketches/1425</link>
+		<download>https://www.interactiveshaderformat.com/sketches/1425/download</download>
+		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_300,w_300/dd1gb5zhf9ykwknf8gph</image>
+		<rating>5</rating>
+	</shader>
+	<shader>
+		<name>Something</name>
+		<link>https://www.interactiveshaderformat.com/sketches/360</link>
+		<download>https://www.interactiveshaderformat.com/sketches/360/download</download>
+		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_300,w_300/yef3gn5zzmzfhsu4ul42</image>
+		<rating>5</rating>
+	</shader>
+	<shader>
+		<name>Church Window</name>
+		<link>https://www.interactiveshaderformat.com/sketches/3000</link>
+		<download>https://www.interactiveshaderformat.com/sketches/3000/download</download>
+		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_300,w_300/pixo1klwdyxpltld2cmx</image>
+		<rating>4</rating>
+	</shader>
+	<shader>
+		<name>Test Pattern</name>
+		<link>https://www.interactiveshaderformat.com/sketches/3009</link>
+		<download>https://www.interactiveshaderformat.com/sketches/3009/download</download>
+		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_300,w_300/kjbacw3rocbja57aiacq</image>
+		<rating>1</rating>
+	</shader>
 	<!--shader>
 		<name></name>
 		<link>https://www.interactiveshaderformat.com/sketches/xxx</link>
