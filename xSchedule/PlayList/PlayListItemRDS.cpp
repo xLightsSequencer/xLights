@@ -30,11 +30,11 @@ public:
 
     virtual void* Entry() override
     {
-        log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
         logger_base.debug("PlayListRDS in thread.");
 
-        logger_base.info("RDS: PS '%s' DPS '%s'.", (const char *)_stationName.c_str(), (const char *)_text.c_str());
+        logger_base.info("RDS: PS '%s' DPS '%s'.", (const char*)_stationName.c_str(), (const char*)_text.c_str());
 
         if (_commPort == "")
         {
@@ -49,12 +49,12 @@ public:
         int errcode = serial->Open(_commPort, 19200, serialConfig);
         if (errcode < 0)
         {
-            logger_base.warn("RDS: Unable to open serial port %s. Error code = %d", (const char *)_commPort.c_str(), errcode);
+            logger_base.warn("RDS: Unable to open serial port %s. Error code = %d", (const char*)_commPort.c_str(), errcode);
             delete serial;
             return nullptr;
         }
 
-        logger_base.debug("Serial port open %s, %d baud, %s.", (const char *)_commPort.c_str(), 19200, serialConfig);
+        logger_base.debug("Serial port open %s, %d baud, %s.", (const char*)_commPort.c_str(), 19200, serialConfig);
 
         PlayListItemRDS::InitialiseDTRCTS(serial);
 
@@ -65,7 +65,7 @@ public:
         outBuffer[1] = 0x00;
         outBuffer[2] = 0xFF;
         outBuffer[3] = 0xFF;
-        strncpy((char*)&outBuffer[4], _stationName.c_str(), 8);
+        strncpy((char*)& outBuffer[4], _stationName.c_str(), std::min(8, (int)_stationName.length()));
         for (int i = _stationName.length(); i < 8; i++)
         {
             outBuffer[4 + i] = ' ';
@@ -78,11 +78,17 @@ public:
         outBuffer[17] = 0x00; // # alt frequencies
         PlayListItemRDS::Write(serial, &outBuffer[0], 18);
 
+        // Turn off radio text
         outBuffer[1] = 0x1F;
         outBuffer[2] = 0x00;
+
+        // Set the radio text
+        memset(&outBuffer[1], 0x00, sizeof(outBuffer) - 1);
         memset(&outBuffer[3], 0x20, 64);
-        strncpy((char*)&outBuffer[3], _text.c_str(), std::min(64, (int)_text.size()));
-        outBuffer[67] = 0x00;
+        outBuffer[1] = 0x1F;
+        outBuffer[2] = 0x00;
+        strncpy((char*)& outBuffer[3], _text.c_str(), std::min(64, (int)_text.size()));
+        outBuffer[67] = 0x01; // UDG1EN - enable
         outBuffer[68] = 0x10;
         outBuffer[69] = 0x00;
         outBuffer[70] = 0x00;
@@ -91,6 +97,7 @@ public:
         outBuffer[73] = 0x00;
         PlayListItemRDS::Write(serial, &outBuffer[0], 74);
 
+        // Turn on radio text
         outBuffer[1] = 0x1F;
         outBuffer[2] = 0x01;
         PlayListItemRDS::Write(serial, &outBuffer[0], 3);
@@ -100,18 +107,40 @@ public:
         outBuffer[3] = 0x00;
         PlayListItemRDS::Write(serial, &outBuffer[0], 4);
 
+        // Set chars in dynamic PS
         outBuffer[1] = 0x76;
         outBuffer[2] = 0x00; // zero length
         outBuffer[3] = 0x20;
         PlayListItemRDS::Write(serial, &outBuffer[0], 4);
 
-        outBuffer[1] = 0x72;
-        outBuffer[2] = 0xFF;
-        outBuffer[3] = 0x00;
-        outBuffer[4] = 0x00;
-        outBuffer[5] = 0x00;
-        outBuffer[6] = 0x00; // DPS length
-        PlayListItemRDS::Write(serial, &outBuffer[0], 7);
+        if (_stationName.length() < 7)
+        {
+            memset(&outBuffer[1], 0x00, sizeof(outBuffer) - 1);
+            outBuffer[1] = 0x72;
+            outBuffer[2] = 0xFF; // Static PS Period
+            outBuffer[3] = 0x00; // Scroll by fixed 6 characters
+            outBuffer[4] = 0x00; // Label period
+            outBuffer[5] = 0x00; // Scrolling speed
+            outBuffer[6] = 0x00; // DPS length
+            PlayListItemRDS::Write(serial, &outBuffer[0], 7);
+        }
+        else
+        {
+            memset(&outBuffer[1], 0x00, sizeof(outBuffer) - 1);
+            outBuffer[1] = 0x72;
+            outBuffer[2] = 0x00; // Static PS Period
+            outBuffer[3] = 0x01; // Scroll by fixed 6 characters
+            outBuffer[4] = 0x00; // Label period
+            outBuffer[5] = 0x01; // Scrolling speed
+            outBuffer[6] = 0x00; // DPS length
+            strncpy((char*)& outBuffer[7], _stationName.c_str(), std::min(72, (int)_stationName.size()));
+            PlayListItemRDS::Write(serial, &outBuffer[0], 7 + 72);
+
+            memset(&outBuffer[1], 0x00, sizeof(outBuffer) - 1);
+            outBuffer[1] = 0x76;
+            outBuffer[2] = std::min(72, (int)_stationName.length()); // DPS length
+            PlayListItemRDS::Write(serial, &outBuffer[0], 3);
+        }
 
         delete serial;
 
@@ -142,6 +171,7 @@ void PlayListItemRDS::Load(wxXmlNode* node)
 
 PlayListItemRDS::PlayListItemRDS() : PlayListItem()
 {
+    _type = "PLIRDS";
     _started = false;
     _stationName = "";
     _commPort = "COM1";
