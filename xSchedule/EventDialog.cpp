@@ -360,6 +360,18 @@ void EventDialog::OnChoicebook_EventTypePageChanged(wxChoicebookEvent& event)
         TextCtrl_P2->SetToolTip(EventPing::GetParmToolTip());
         TextCtrl_P3->SetToolTip(EventPing::GetParmToolTip());
     }
+    else if (type == "MIDI")
+    {
+        TextCtrl_P1->SetToolTip(EventMIDI::GetParmToolTip());
+        TextCtrl_P2->SetToolTip(EventMIDI::GetParmToolTip());
+        TextCtrl_P3->SetToolTip(EventMIDI::GetParmToolTip());
+    }
+    else if (type == "MQTT")
+    {
+        TextCtrl_P1->SetToolTip(EventMQTT::GetParmToolTip());
+        TextCtrl_P2->SetToolTip(EventMQTT::GetParmToolTip());
+        TextCtrl_P3->SetToolTip(EventMQTT::GetParmToolTip());
+    }
 }
 
 void EventDialog::OnChoice_CommandSelect(wxCommandEvent& event)

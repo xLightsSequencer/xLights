@@ -8,6 +8,7 @@
 #include <wx/choice.h>
 #include <wx/panel.h>
 #include <wx/sizer.h>
+#include <wx/spinctrl.h>
 #include <wx/stattext.h>
 //*)
 
@@ -24,10 +25,12 @@ class EventMIDIPanel: public EventPanel
 		//(*Declarations(EventMIDIPanel)
 		wxButton* Button_Scan;
 		wxChoice* Choice_Channel;
-		wxChoice* Choice_Data1;
-		wxChoice* Choice_Data2;
 		wxChoice* Choice_Devices;
 		wxChoice* Choice_Status;
+		wxChoice* Choice_TestData1;
+		wxChoice* Choice_TestData2;
+		wxSpinCtrl* SpinCtrl_Data1;
+		wxSpinCtrl* SpinCtrl_Data2;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText2;
 		wxStaticText* StaticText3;
@@ -45,9 +48,11 @@ class EventMIDIPanel: public EventPanel
 		static const long ID_STATICTEXT4;
 		static const long ID_CHOICE4;
 		static const long ID_STATICTEXT3;
-		static const long ID_CHOICE3;
+		static const long ID_CHOICE6;
+		static const long ID_SPINCTRL1;
 		static const long ID_STATICTEXT5;
-		static const long ID_CHOICE5;
+		static const long ID_CHOICE7;
+		static const long ID_SPINCTRL2;
 		static const long ID_BUTTON1;
 		//*)
 
@@ -55,6 +60,8 @@ class EventMIDIPanel: public EventPanel
 
 		//(*Handlers(EventMIDIPanel)
 		void OnButton_ScanClick(wxCommandEvent& event);
+		void OnChoice_TestData1Select(wxCommandEvent& event);
+		void OnChoice_TestData2Select(wxCommandEvent& event);
 		//*)
 
         void OnMIDIEvent(wxCommandEvent& event);
