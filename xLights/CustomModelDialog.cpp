@@ -1729,7 +1729,7 @@ void CustomModelDialog::OnNotebook1PageChanged(wxNotebookEvent& event)
 
                 if (state == 0)
                 {
-                    GetActiveGrid()->SetCellBackgroundColour(r, c, *wxWHITE);
+                    GetActiveGrid()->SetCellBackgroundColour(r, c, wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
                 }
                 else if (state == 1)
                 {
