@@ -731,12 +731,14 @@ void xLightsFrame::UpdateSelectedTypes()
     Output* f = _outputManager.GetOutput(item);
 
     wxArrayString types;
+    std::vector<const ControllerRules*> ruleList;
 
     int x = 0;
     int idx = 0;
     for (auto& a : ControllerRegistry::GetControllerIds()) {
         const ControllerRules* rules = ControllerRegistry::GetRulesForController(a);
         if (rules && rules->GetSupportedInputProtocols().count(f->GetType()) != 0) {
+            ruleList.push_back(rules);
             types.push_back(rules->GetControllerDescription());
             if (f->GetControllerId() == a) {
                 idx = x;
@@ -746,16 +748,17 @@ void xLightsFrame::UpdateSelectedTypes()
     }
 
     if (types.size() > 0) {
-        wxSingleChoiceDialog dlg(this, "Chang controller type", "Type", types);
+        wxSingleChoiceDialog dlg(this, "Change controller type", "Type", types);
         dlg.SetSelection(idx);
         if (dlg.ShowModal() == wxID_OK)
         {
+            item = GridNetwork->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
             while (item != -1)
             {
                 Output* o = _outputManager.GetOutput(item);
-                const ControllerRules* rules = ControllerRegistry::GetRulesForController(dlg.GetStringSelection());
-                if (rules && rules->GetSupportedInputProtocols().count(o->GetType()) != 0) {
-                    o->SetControllerId(dlg.GetStringSelection());
+                const ControllerRules* rules = ruleList[dlg.GetSelection()];
+                if (rules->GetSupportedInputProtocols().count(o->GetType()) != 0) {
+                    o->SetControllerId(rules->GetControllerId());
                     _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "UpdateSelectedDescriptions", nullptr, o);
                     _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "UpdateSelectedDescriptions", nullptr, o);
                 }

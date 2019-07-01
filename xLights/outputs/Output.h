@@ -112,7 +112,7 @@ public:
     bool GetAutoSize() const { return _autoSize; }
     bool IsEnabled() const { return _enabled; }
     void Enable(bool enable) { _enabled = enable; _dirty = true; }
-    void SetControllerId(const std::string& id) { _controller = id; }
+    void SetControllerId(const std::string& id) { _controller = id; _dirty = true; }
     const std::string &GetControllerId() const { return _controller; }
     int GetOutputNumber() const { return _outputNumber; }
     virtual void SetTransientData(int on, long startChannel, int nullnumber);
