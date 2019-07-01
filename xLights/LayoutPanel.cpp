@@ -1460,7 +1460,7 @@ void LayoutPanel::BulkEditDimmingCurves()
     std::map<std::string, std::map<std::string, std::string>> dimmingInfo;
     for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
     {
-        if (modelPreview->GetModels()[i]->GroupSelected)
+        if (modelPreview->GetModels()[i]->GroupSelected || modelPreview->GetModels()[i]->Selected)
         {
             wxXmlNode *f = modelPreview->GetModels()[i]->GetModelXml()->GetChildren();
             while (f != nullptr) {
@@ -1504,7 +1504,7 @@ void LayoutPanel::BulkEditDimmingCurves()
 
         for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
         {
-            if (modelPreview->GetModels()[i]->GroupSelected)
+            if (modelPreview->GetModels()[i]->GroupSelected|| modelPreview->GetModels()[i]->Selected)
             {
                 wxXmlNode *f1 = modelPreview->GetModels()[i]->GetModelXml()->GetChildren();
                 while (f1 != nullptr) {
@@ -1554,7 +1554,7 @@ void LayoutPanel::BulkEditControllerConnection(int id)
     // get the first controller connection
     wxXmlNode *cc = nullptr;
     for (size_t i = 0; i < modelPreview->GetModels().size(); i++) {
-        if (modelPreview->GetModels()[i]->GroupSelected) {
+        if (modelPreview->GetModels()[i]->GroupSelected || modelPreview->GetModels()[i]->Selected) {
             std::string protocol = modelPreview->GetModels()[i]->GetControllerProtocol();
             if (protocol != "") {
                 cc = modelPreview->GetModels()[i]->GetControllerConnection();
@@ -1586,7 +1586,7 @@ void LayoutPanel::BulkEditControllerConnection(int id)
 
     if (dlg.ShowModal() == wxID_OK) {
         for (size_t i = 0; i < modelPreview->GetModels().size(); i++) {
-            if (modelPreview->GetModels()[i]->GroupSelected) {
+            if (modelPreview->GetModels()[i]->GroupSelected || modelPreview->GetModels()[i]->Selected) {
                 dlg.Get(modelPreview->GetModels()[i]->GetControllerConnection());
             }
         }
@@ -1630,7 +1630,7 @@ void LayoutPanel::BulkEditControllerName()
     // get the first controller connection
     std::string name = "";
     for (size_t i = 0; i < modelPreview->GetModels().size(); i++) {
-        if (modelPreview->GetModels()[i]->GroupSelected) {
+        if (modelPreview->GetModels()[i]->GroupSelected || modelPreview->GetModels()[i]->Selected) {
             name = modelPreview->GetModels()[i]->GetControllerName();
             if (name != "") {
                 break;
@@ -1654,7 +1654,7 @@ void LayoutPanel::BulkEditControllerName()
     if (dlg.ShowModal() == wxID_OK) {
         name = dlg.GetStringSelection();
         for (size_t i = 0; i < modelPreview->GetModels().size(); i++) {
-            if (modelPreview->GetModels()[i]->GroupSelected) {
+            if (modelPreview->GetModels()[i]->GroupSelected || modelPreview->GetModels()[i]->Selected) {
                 modelPreview->GetModels()[i]->SetControllerName(name);
             }
         }
@@ -1697,7 +1697,7 @@ void LayoutPanel::BulkEditTagColour()
 
     wxColour colour = *wxBLACK;
     for (size_t i = 0; i < modelPreview->GetModels().size(); i++) {
-        if (modelPreview->GetModels()[i]->GroupSelected) {
+        if (modelPreview->GetModels()[i]->GroupSelected || modelPreview->GetModels()[i]->Selected) {
             colour = modelPreview->GetModels()[i]->GetTagColour();
             if (colour != *wxBLACK) {
                 break;
@@ -1714,7 +1714,7 @@ void LayoutPanel::BulkEditTagColour()
         colour = colorData.GetColour();
 
         for (size_t i = 0; i < modelPreview->GetModels().size(); i++) {
-            if (modelPreview->GetModels()[i]->GroupSelected) {
+            if (modelPreview->GetModels()[i]->GroupSelected || modelPreview->GetModels()[i]->Selected) {
                 modelPreview->GetModels()[i]->SetTagColour(colour);
             }
         }
@@ -1743,7 +1743,7 @@ void LayoutPanel::BulkEditControllerPreview()
     std::string p = "";
     for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
     {
-        if (modelPreview->GetModels()[i]->GroupSelected)
+        if (modelPreview->GetModels()[i]->GroupSelected|| modelPreview->GetModels()[i]->Selected)
         {
             p = modelPreview->GetModels()[i]->GetLayoutGroup();
             if (p != "") break;
@@ -1784,7 +1784,7 @@ void LayoutPanel::BulkEditControllerPreview()
     {
         for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
         {
-            if (modelPreview->GetModels()[i]->GroupSelected)
+            if (modelPreview->GetModels()[i]->GroupSelected || modelPreview->GetModels()[i]->Selected)
             {
                 modelPreview->GetModels()[i]->SetLayoutGroup(dlg.GetStringSelection().ToStdString());
             }
