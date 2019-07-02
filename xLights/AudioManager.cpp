@@ -2603,9 +2603,9 @@ std::string AudioManager::MidiToNote(int midi)
 
 void AudioManager::GetLeftDataMinMax(long start, long end, float& minimum, float& maximum, AUDIOSAMPLETYPE type, int lowNote, int highNote)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     static const double pi2 = 6.283185307;
-    while (!IsDataLoaded(end-1))
+    while (!IsDataLoaded(end - 1))
     {
         logger_base.debug("GetLeftDataMinMax waiting for data to be loaded.");
         wxMilliSleep(100);
@@ -2616,8 +2616,8 @@ void AudioManager::GetLeftDataMinMax(long start, long end, float& minimum, float
 
     if (type == AUDIOSAMPLETYPE::BASS)
     {
-        lowNote = 0;
-        highNote = 59;
+        lowNote = 48;
+        highNote = 60;
     }
     else if (type == AUDIOSAMPLETYPE::TREBLE)
     {
@@ -2626,8 +2626,8 @@ void AudioManager::GetLeftDataMinMax(long start, long end, float& minimum, float
     }
     else if (type == AUDIOSAMPLETYPE::ALTO)
     {
-        lowNote = 73;
-        highNote = 127;
+        lowNote = 72;
+        highNote = 84;
     }
 
     if (_data[0] == nullptr)
@@ -2640,14 +2640,8 @@ void AudioManager::GetLeftDataMinMax(long start, long end, float& minimum, float
     case AUDIOSAMPLETYPE::RAW:
     {
         for (int j = start; j < std::min(end, _trackSize); j++) {
-
-            float data = _data[0][j];
-            if (data < minimum) {
-                minimum = data;
-            }
-            if (data > maximum) {
-                maximum = data;
-            }
+            minimum = std::min(minimum, _data[0][j]);
+            maximum = std::max(maximum, _data[0][j]);
         }
     }
     break;
@@ -2671,34 +2665,41 @@ void AudioManager::GetLeftDataMinMax(long start, long end, float& minimum, float
         {
             double lowHz = MidiToFrequency(lowNote);
             double highHz = MidiToFrequency(highNote);
-
-            float* dataLow = (float*)malloc(sizeof(float) * _trackSize);
-            // low pass filter
-            {
-                float RC = 1.0f / (highHz * 2.0f * 3.14f);
-                float dt = 1.0f / _rate;
-                float alpha = dt / (RC + dt);
-                dataLow[0] = alpha * _data[0][0];
-                for (int i = 1; i < _trackSize; ++i)
-                {
-                    dataLow[i] = dataLow[i - 1] + alpha * (_data[0][i] - dataLow[i - 1]);
-                }
-            }
-
-            // high pass filter
             data = (float*)malloc(sizeof(float) * _trackSize);
+
+            //Normalize f_c and w_c so that pi is equal to the Nyquist angular frequency
+            float f1_c = lowHz / _rate;
+            float f2_c = highHz / _rate;
+            const int order = 513; // 1025 is awesome but slow
+            float a[order];
+            float w1_c = pi2 * f1_c;
+            float w2_c = pi2 * f2_c;
+            int middle = order / 2.0; /*Integer division, dropping remainder*/
+            for (int i = -1 * (order / 2); i <= order / 2; i++)
             {
-                float RC = 1.0f / (lowHz * 2.0 * 3.14f);
-                float dt = 1.0f / _rate;
-                float alpha = RC / (RC + dt);
-                data[0] = dataLow[0];
-                for (int i = 1; i < _trackSize; ++i)
+                if (i == 0)
                 {
-                    data[i] = alpha * (data[i - 1] + dataLow[i] - dataLow[i - 1]);
+                    a[middle] = (2.0 * f2_c) - (2.0 * f1_c);
+                }
+                else
+                {
+                    a[i + middle] = sin(w2_c * i) / (M_PI * i) - sin(w1_c * i) / (M_PI * i);
                 }
             }
-
-            free(dataLow);
+            //Now apply a windowing function to taper the edges of the filter, e.g.
+            for (int i = 0; i < _trackSize; ++i)
+            {
+                float value = 0;
+                for (int j = 0; j < order; j++)
+                {
+                    int jj = i + j - order;
+                    if (jj >= 0 && jj < _trackSize)
+                    {
+                        value += _data[0][jj] * a[order - j - 1];
+                    }
+                }
+                data[i] = value;
+            }
 
             FilteredAudioData* fad = new FilteredAudioData();
             fad->lowNote = lowNote;
@@ -2711,14 +2712,8 @@ void AudioManager::GetLeftDataMinMax(long start, long end, float& minimum, float
         if (data != nullptr)
         {
             for (int j = start; j < std::min(end, _trackSize); j++) {
-
-                float d = data[j];
-                if (d < minimum) {
-                    minimum = d;
-                }
-                if (d > maximum) {
-                    maximum = d;
-                }
+                minimum = std::min(minimum, data[j]);
+                maximum = std::max(maximum, data[j]);
             }
         }
     }
