@@ -19,7 +19,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxFilePickerCtrl" name="ID_0FILEPICKERCTRL_IFS" variable="FilePickerCtrl1" member="yes">
+						<object class="wxFilePickerCtrl" name="ID_0FILEPICKERCTRL_IFS" subclass="BulkEditFilePickerCtrl" variable="FilePickerCtrl1" member="yes">
 							<message></message>
 							<wildcard>*.fs</wildcard>
 							<handler function="OnFilePickerCtrl1FileChanged" entry="EVT_FILEPICKER_CHANGED" />

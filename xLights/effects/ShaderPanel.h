@@ -41,13 +41,13 @@ class ShaderPanel: public wxPanel
 		virtual ~ShaderPanel();
 
 		//(*Declarations(ShaderPanel)
+		BulkEditFilePickerCtrl* FilePickerCtrl1;
 		BulkEditSlider* Slider_Shader_LeadIn;
 		BulkEditSliderF2* Slider_Shader_Speed;
 		BulkEditTextCtrl* TextCtrl_Shader_LeadIn;
 		BulkEditTextCtrlF2* TextCtrl_Shader_Speed;
 		BulkEditValueCurveButton* BitmapButton_Shader_Speed;
 		wxButton* Button_Download;
-		wxFilePickerCtrl* FilePickerCtrl1;
 		wxFlexGridSizer* FlexGridSizer_Dynamic;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText2;

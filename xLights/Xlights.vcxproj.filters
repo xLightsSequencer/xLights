@@ -10,14 +10,10 @@
     <ClCompile Include="controllers\Pixlite16.cpp" />
     <ClCompile Include="controllers\SanDevices.cpp" />
     <ClCompile Include="CustomTimingDialog.cpp" />
-    <ClCompile Include="effects\ShapeEffect.cpp" />
-    <ClCompile Include="effects\ShapePanel.cpp" />
     <ClCompile Include="EffectTimingDialog.cpp" />
     <ClCompile Include="effects\GIFImage.cpp" />
     <ClCompile Include="effects\LiquidEffect.cpp" />
     <ClCompile Include="effects\LiquidPanel.cpp" />
-    <ClCompile Include="effects\ServoEffect.cpp" />
-    <ClCompile Include="effects\ServoPanel.cpp" />
     <ClCompile Include="FontManager.cpp" />
     <ClCompile Include="GenerateLyricsDialog.cpp" />
     <ClCompile Include="HousePreviewPanel.cpp" />
@@ -69,47 +65,11 @@
     <ClCompile Include="effects\OffPanel.cpp" />
     <ClCompile Include="effects\OnEffect.cpp" />
     <ClCompile Include="effects\OnPanel.cpp" />
-    <ClCompile Include="effects\PianoEffect.cpp" />
-    <ClCompile Include="effects\PianoPanel.cpp" />
-    <ClCompile Include="effects\PicturesEffect.cpp" />
-    <ClCompile Include="effects\PicturesPanel.cpp" />
-    <ClCompile Include="effects\PinwheelEffect.cpp" />
-    <ClCompile Include="effects\PinwheelPanel.cpp" />
-    <ClCompile Include="effects\PlasmaEffect.cpp" />
-    <ClCompile Include="effects\PlasmaPanel.cpp" />
     <ClCompile Include="effects\RenderableEffect.cpp" />
     <ClCompile Include="effects\RippleEffect.cpp" />
     <ClCompile Include="effects\RipplePanel.cpp" />
-    <ClCompile Include="effects\ShimmerEffect.cpp" />
-    <ClCompile Include="effects\ShimmerPanel.cpp" />
-    <ClCompile Include="effects\ShockwaveEffect.cpp" />
-    <ClCompile Include="effects\ShockwavePanel.cpp" />
-    <ClCompile Include="effects\SingleStrandEffect.cpp" />
-    <ClCompile Include="effects\SingleStrandPanel.cpp" />
-    <ClCompile Include="effects\SnowflakesEffect.cpp" />
-    <ClCompile Include="effects\SnowflakesPanel.cpp" />
-    <ClCompile Include="effects\SnowstormEffect.cpp" />
-    <ClCompile Include="effects\SnowstormPanel.cpp" />
-    <ClCompile Include="effects\SpiralsEffect.cpp" />
-    <ClCompile Include="effects\SpiralsPanel.cpp" />
-    <ClCompile Include="effects\SpirographEffect.cpp" />
-    <ClCompile Include="effects\SpirographPanel.cpp" />
-    <ClCompile Include="effects\StateEffect.cpp" />
-    <ClCompile Include="effects\StatePanel.cpp" />
     <ClCompile Include="effects\StrobeEffect.cpp" />
     <ClCompile Include="effects\StrobePanel.cpp" />
-    <ClCompile Include="effects\TendrilEffect.cpp" />
-    <ClCompile Include="effects\TendrilPanel.cpp" />
-    <ClCompile Include="effects\TreeEffect.cpp" />
-    <ClCompile Include="effects\TreePanel.cpp" />
-    <ClCompile Include="effects\TwinkleEffect.cpp" />
-    <ClCompile Include="effects\TwinklePanel.cpp" />
-    <ClCompile Include="effects\VideoEffect.cpp" />
-    <ClCompile Include="effects\VideoPanel.cpp" />
-    <ClCompile Include="effects\VUMeterEffect.cpp" />
-    <ClCompile Include="effects\VUMeterPanel.cpp" />
-    <ClCompile Include="effects\WaveEffect.cpp" />
-    <ClCompile Include="effects\WavePanel.cpp" />
     <ClCompile Include="EffectTreeDialog.cpp" />
     <ClCompile Include="ExportModelSelect.cpp" />
     <ClCompile Include="FileConverter.cpp" />
@@ -262,9 +222,7 @@
     <ClCompile Include="JukeboxPanel.cpp" />
     <ClCompile Include="LinkJukeboxButtonDialog.cpp" />
     <ClCompile Include="DissolveTransitionPattern.cpp" />
-    <ClCompile Include="effects\WarpEffect.cpp" />
     <ClCompile Include="OpenGLShaders.cpp" />
-    <ClCompile Include="effects\WarpPanel.cpp" />
     <ClCompile Include="xlLockButton.cpp" />
     <ClCompile Include="support\VectorMath.cpp" />
     <ClCompile Include="ViewpointDialog.cpp" />
@@ -402,8 +360,6 @@
       <Filter>Models</Filter>
     </ClCompile>
     <ClCompile Include="ImportPreviewsModelsDialog.cpp" />
-    <ClCompile Include="effects\ShaderEffect.cpp" />
-    <ClCompile Include="effects\ShaderPanel.cpp" />
     <ClCompile Include="ShaderDownloadDialog.cpp" />
     <ClCompile Include="outputs\ZCPPDialog.cpp">
       <Filter>Outputs</Filter>
@@ -562,6 +518,138 @@
       <Filter>Effects</Filter>
     </ClCompile>
     <ClCompile Include="NoteRangeDialog.cpp" />
+    <ClCompile Include="effects\ShaderEffect.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\ShaderPanel.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\ShapeEffect.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\ShapePanel.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\ShimmerEffect.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\ShimmerPanel.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\ShockwaveEffect.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\ShockwavePanel.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\SingleStrandEffect.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\SingleStrandPanel.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\SnowflakesEffect.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\SnowflakesPanel.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\SnowstormEffect.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\SnowstormPanel.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\SpiralsEffect.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\StateEffect.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\StatePanel.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\SpirographPanel.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\SpirographEffect.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\SpiralsPanel.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\WaveEffect.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\WarpPanel.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\WarpEffect.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\VUMeterPanel.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\VUMeterEffect.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\WavePanel.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\VideoEffect.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\VideoPanel.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\TwinklePanel.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\TwinkleEffect.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\TreePanel.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\TreeEffect.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\TendrilPanel.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\TendrilEffect.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\ServoPanel.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\ServoEffect.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\PlasmaPanel.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\PlasmaEffect.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\PinwheelPanel.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\PinwheelEffect.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\PicturesPanel.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\PicturesEffect.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\PianoPanel.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\PianoEffect.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -572,8 +660,6 @@
     <ClInclude Include="ColorManagerDialog.h" />
     <ClInclude Include="controllers\Pixlite16.h" />
     <ClInclude Include="controllers\SanDevices.h" />
-    <ClInclude Include="effects\ShapeEffect.h" />
-    <ClInclude Include="effects\ShapePanel.h" />
     <ClInclude Include="EffectTimingDialog.h" />
     <ClInclude Include="FontManager.h" />
     <ClInclude Include="GenerateLyricsDialog.h" />
@@ -584,8 +670,6 @@
     <ClInclude Include="effects\GIFImage.h" />
     <ClInclude Include="effects\LiquidEffect.h" />
     <ClInclude Include="effects\LiquidPanel.h" />
-    <ClInclude Include="effects\ServoEffect.h" />
-    <ClInclude Include="effects\ServoPanel.h" />
     <ClInclude Include="IPEntryDialog.h" />
     <ClInclude Include="AudioManager.h" />
     <ClInclude Include="BitmapCache.h" />
@@ -626,47 +710,11 @@
     <ClInclude Include="effects\OffPanel.h" />
     <ClInclude Include="effects\OnEffect.h" />
     <ClInclude Include="effects\OnPanel.h" />
-    <ClInclude Include="effects\PianoEffect.h" />
-    <ClInclude Include="effects\PianoPanel.h" />
-    <ClInclude Include="effects\PicturesEffect.h" />
-    <ClInclude Include="effects\PicturesPanel.h" />
-    <ClInclude Include="effects\PinwheelEffect.h" />
-    <ClInclude Include="effects\PinwheelPanel.h" />
-    <ClInclude Include="effects\PlasmaEffect.h" />
-    <ClInclude Include="effects\PlasmaPanel.h" />
     <ClInclude Include="effects\RenderableEffect.h" />
     <ClInclude Include="effects\RippleEffect.h" />
     <ClInclude Include="effects\RipplePanel.h" />
-    <ClInclude Include="effects\ShimmerEffect.h" />
-    <ClInclude Include="effects\ShimmerPanel.h" />
-    <ClInclude Include="effects\ShockwaveEffect.h" />
-    <ClInclude Include="effects\ShockwavePanel.h" />
-    <ClInclude Include="effects\SingleStrandEffect.h" />
-    <ClInclude Include="effects\SingleStrandPanel.h" />
-    <ClInclude Include="effects\SnowflakesEffect.h" />
-    <ClInclude Include="effects\SnowflakesPanel.h" />
-    <ClInclude Include="effects\SnowstormEffect.h" />
-    <ClInclude Include="effects\SnowstormPanel.h" />
-    <ClInclude Include="effects\SpiralsEffect.h" />
-    <ClInclude Include="effects\SpiralsPanel.h" />
-    <ClInclude Include="effects\SpirographEffect.h" />
-    <ClInclude Include="effects\SpirographPanel.h" />
-    <ClInclude Include="effects\StateEffect.h" />
-    <ClInclude Include="effects\StatePanel.h" />
     <ClInclude Include="effects\StrobeEffect.h" />
     <ClInclude Include="effects\StrobePanel.h" />
-    <ClInclude Include="effects\TendrilEffect.h" />
-    <ClInclude Include="effects\TendrilPanel.h" />
-    <ClInclude Include="effects\TreeEffect.h" />
-    <ClInclude Include="effects\TreePanel.h" />
-    <ClInclude Include="effects\TwinkleEffect.h" />
-    <ClInclude Include="effects\TwinklePanel.h" />
-    <ClInclude Include="effects\VideoEffect.h" />
-    <ClInclude Include="effects\VideoPanel.h" />
-    <ClInclude Include="effects\VUMeterEffect.h" />
-    <ClInclude Include="effects\VUMeterPanel.h" />
-    <ClInclude Include="effects\WaveEffect.h" />
-    <ClInclude Include="effects\WavePanel.h" />
     <ClInclude Include="EffectTreeDialog.h" />
     <ClInclude Include="ExportModelSelect.h" />
     <ClInclude Include="FileConverter.h" />
@@ -819,14 +867,12 @@
     <ClInclude Include="LinkJukeboxButtonDialog.h" />
     <ClInclude Include="RenderUtils.h" />
     <ClInclude Include="DissolveTransitionPattern.h" />
-    <ClInclude Include="effects\WarpEffect.h" />
     <ClInclude Include="OpenGLShaders.h" />
     <ClInclude Include="effects\assist\AssistPanel.h" />
     <ClInclude Include="effects\assist\PicturesAssistPanel.h" />
     <ClInclude Include="effects\assist\xlGridCanvasEmpty.h" />
     <ClInclude Include="effects\assist\xlGridCanvasMorph.h" />
     <ClInclude Include="effects\assist\xlGridCanvasPictures.h" />
-    <ClInclude Include="effects\WarpPanel.h" />
     <ClInclude Include="xlLockButton.h" />
     <ClInclude Include="support\VectorMath.h" />
     <ClInclude Include="ViewpointDialog.h" />
@@ -966,8 +1012,6 @@
       <Filter>Models</Filter>
     </ClInclude>
     <ClInclude Include="ImportPreviewsModelsDialog.h" />
-    <ClInclude Include="effects\ShaderEffect.h" />
-    <ClInclude Include="effects\ShaderPanel.h" />
     <ClInclude Include="..\xSchedule\xSMSDaemon\Curl.h" />
     <ClInclude Include="ShaderDownloadDialog.h" />
     <ClInclude Include="outputs\ZCPP.h">
@@ -1133,6 +1177,138 @@
       <Filter>Effects</Filter>
     </ClInclude>
     <ClInclude Include="NoteRangeDialog.h" />
+    <ClInclude Include="effects\ShaderEffect.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\ShaderPanel.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\ShapeEffect.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\ShapePanel.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\ShimmerEffect.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\ShimmerPanel.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\ShockwaveEffect.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\ShockwavePanel.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\SingleStrandEffect.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\SingleStrandPanel.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\SnowflakesEffect.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\SnowflakesPanel.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\SnowstormEffect.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\SnowstormPanel.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\SpiralsEffect.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\StateEffect.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\StatePanel.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\SpirographPanel.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\SpirographEffect.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\SpiralsPanel.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\WaveEffect.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\WarpPanel.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\WarpEffect.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\VUMeterPanel.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\VUMeterEffect.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\WavePanel.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\VideoEffect.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\VideoPanel.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\TwinklePanel.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\TwinkleEffect.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\TreePanel.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\TreeEffect.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\TendrilPanel.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\TendrilEffect.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\ServoPanel.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\ServoEffect.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\PlasmaPanel.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\PlasmaEffect.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\PinwheelPanel.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\PinwheelEffect.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\PicturesPanel.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\PicturesEffect.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\PianoPanel.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\PianoEffect.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />
