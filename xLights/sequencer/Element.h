@@ -244,7 +244,7 @@ class ModelElement : public Element
         void RemoveSubModel(const std::string &name);
         void RemoveAllSubModels();
         void AddSubModel(SubModelElement* sme);
-    
+
         bool ShowStrands() const { return mStrandsVisible;}
         void ShowStrands(bool b) { mStrandsVisible = b;}
         virtual NodeLayer* GetNodeEffectLayer(int index) const override;

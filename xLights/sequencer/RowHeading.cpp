@@ -343,6 +343,21 @@ void RowHeading::rightClick( wxMouseEvent& event)
                 mnuLayer.Append(ID_ROW_MNU_CONVERT_TO_EFFECTS, "Convert To Effect");
             }
         }
+        else
+        {
+            if (element->GetType() == ELEMENT_TYPE_MODEL) {
+                Model* m = mSequenceElements->GetXLightsFrame()->AllModels[ri->element->GetModelName()];
+                if (m->GetDisplayAs() != "ModelGroup")
+                {
+                    mnuLayer.Append(ID_ROW_MNU_CONVERT_TO_EFFECTS, "Convert To Effect");
+                }
+            }
+            else if (element->GetType() == ELEMENT_TYPE_STRAND)
+            {
+                mnuLayer.Append(ID_ROW_MNU_CONVERT_TO_EFFECTS, "Convert To Effect");
+            }
+        }
+
         if (canPromote) {
             mnuLayer.Append(ID_ROW_MNU_PROMOTE_EFFECTS, "Promote Node Effects");
         }
@@ -970,7 +985,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
     } else if (id == ID_ROW_MNU_CONVERT_TO_EFFECTS) {
         wxCommandEvent evt(EVT_CONVERT_DATA_TO_EFFECTS);
         evt.SetClientData(element);
-        int i = ((ri->strandIndex << 16) & 0xFFFF0000) + ri->nodeIndex;
+        int i = ((ri->strandIndex << 16) & 0xFFFF0000) + (ri->nodeIndex & 0xFFFF);
         evt.SetInt(i);
         wxPostEvent(GetParent(), evt);
     } else if (id == ID_ROW_MNU_PROMOTE_EFFECTS) {
