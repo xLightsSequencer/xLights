@@ -16,6 +16,7 @@ void PlayListItemESEQ::Load(wxXmlNode* node)
 {
     PlayListItem::Load(node);
     _ESEQFileName = node->GetAttribute("ESEQFile", "");
+    _ESEQFileName = FixFile("", _ESEQFileName);
     _applyMethod = (APPLYMETHOD)wxAtoi(node->GetAttribute("ApplyMethod", ""));
 }
 

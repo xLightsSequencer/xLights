@@ -52,7 +52,9 @@ void PlayListItemFSEQVideo::Load(wxXmlNode* node)
 {
     PlayListItem::Load(node);
     _fseqFileName = node->GetAttribute("FSEQFile", "");
+    _fseqFileName = FixFile("", _fseqFileName);
     _audioFile = node->GetAttribute("AudioFile", "");
+    _audioFile = FixFile("", _audioFile);
     _overrideAudio = (_audioFile != "");
     _applyMethod = (APPLYMETHOD)wxAtoi(node->GetAttribute("ApplyMethod", ""));
     _fadeInMS = wxAtoi(node->GetAttribute("FadeInMS", "0"));
@@ -63,6 +65,7 @@ void PlayListItemFSEQVideo::Load(wxXmlNode* node)
     _cacheVideo = (node->GetAttribute("CacheVideo", "FALSE") == "TRUE");
     _loopVideo = (node->GetAttribute("LoopVideo", "FALSE") == "TRUE");
     _videoFile = node->GetAttribute("VideoFile", "");
+    _videoFile = FixFile("", _videoFile);
     _origin = wxPoint(wxAtoi(node->GetAttribute("X", "0")), wxAtoi(node->GetAttribute("Y", "0")));
     _size = wxSize(wxAtoi(node->GetAttribute("W", "100")), wxAtoi(node->GetAttribute("H", "100")));
     _topMost = (node->GetAttribute("Topmost", "TRUE") == "TRUE");
@@ -88,7 +91,9 @@ std::string PlayListItemFSEQVideo::GetAudioFilename()
     {
         if (_fseqFile != nullptr)
         {
-            return _fseqFile->getMediaFilename();
+            auto audio = _fseqFile->getMediaFilename();
+            audio = FixFile("", audio);
+            return audio;
         }
         else
         {

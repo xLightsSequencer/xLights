@@ -62,7 +62,9 @@ std::string PlayListItemFSEQ::GetAudioFilename()
     {
         if (_fseqFile != nullptr)
         {
-            return _fseqFile->getMediaFilename();
+            auto audio = _fseqFile->getMediaFilename();
+            audio = FixFile("", audio);
+            return audio;
         }
         else
         {
