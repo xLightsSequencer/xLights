@@ -114,6 +114,7 @@ void ListenerFPP::StartProcess()
         struct ip_mreq mreq;
         memset(&mreq, 0, sizeof(mreq));
         mreq.imr_multiaddr.s_addr = inet_addr(MULTISYNC_MULTICAST_ADDRESS);
+        //inet_pton(AF_INET, MULTISYNC_MULTICAST_ADDRESS, &mreq.imr_multiaddr.s_addr);
 
         if ((dwRetVal = GetAdaptersInfo(pAdapterInfo, &ulOutBufLen)) == NO_ERROR) {
             pAdapter = pAdapterInfo;

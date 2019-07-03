@@ -8,6 +8,7 @@
 // This must be below the wx includes
 #ifdef __WXMSW__
 #include <winsock2.h>
+#include <Ws2tcpip.h>
 #include <iphlpapi.h>
 #include <icmpapi.h>
 #endif
@@ -86,6 +87,8 @@ PINGSTATE IPOutput::Ping(const std::string ip)
 {
 #ifdef __WXMSW__
     unsigned long ipaddr = inet_addr(ip.c_str());
+    //unsigned long ipaddr = 0;
+    //inet_pton(AF_INET, ip.c_str(), &ipaddr);
     if (ipaddr == INADDR_NONE) {
         return PINGSTATE::PING_ALLFAILED;
     }
