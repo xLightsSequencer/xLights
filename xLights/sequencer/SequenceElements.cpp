@@ -1981,7 +1981,8 @@ void SequenceElements::BreakdownPhrase(EffectLayer* word_layer, int start_time, 
 {
     if( phrase != "" )
     {
-        xframe->dictionary.LoadDictionaries(xframe->CurrentDir, xframe);
+        // I dont need dictionaries here
+        //xframe->dictionary.LoadDictionaries(xframe->CurrentDir, xframe);
         wxArrayString rawwords = wxStringTokenize(phrase, " \t:;,.-_!?{}[]()<>+=|");
         wxArrayString words;
 
