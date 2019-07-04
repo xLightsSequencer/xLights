@@ -84,7 +84,6 @@ const long xSMSDaemonFrame::ID_STATICTEXT7 = wxNewId();
 const long xSMSDaemonFrame::ID_STATICTEXT8 = wxNewId();
 const long xSMSDaemonFrame::ID_GRID1 = wxNewId();
 const long xSMSDaemonFrame::ID_BUTTON2 = wxNewId();
-const long xSMSDaemonFrame::ID_MNU_ShowFolder = wxNewId();
 const long xSMSDaemonFrame::ID_MNU_OPTIONS = wxNewId();
 const long xSMSDaemonFrame::ID_MNU_VIEWLOG = wxNewId();
 const long xSMSDaemonFrame::ID_MNU_TESTMESSAGES = wxNewId();
@@ -163,8 +162,6 @@ xSMSDaemonFrame::xSMSDaemonFrame(wxWindow* parent, const std::string& showDir, c
     SetSizer(FlexGridSizer1);
     MenuBar1 = new wxMenuBar();
     Menu5 = new wxMenu();
-    MenuItem_ShowFolder = new wxMenuItem(Menu5, ID_MNU_ShowFolder, _("Show Folder"), wxEmptyString, wxITEM_NORMAL);
-    Menu5->Append(MenuItem_ShowFolder);
     MenuItem_Options = new wxMenuItem(Menu5, ID_MNU_OPTIONS, _("&Options"), wxEmptyString, wxITEM_NORMAL);
     Menu5->Append(MenuItem_Options);
     MenuBar1->Append(Menu5, _("&Edit"));
@@ -187,7 +184,6 @@ xSMSDaemonFrame::xSMSDaemonFrame(wxWindow* parent, const std::string& showDir, c
     FlexGridSizer1->SetSizeHints(this);
 
     Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xSMSDaemonFrame::OnButton_PauseClick);
-    Connect(ID_MNU_ShowFolder,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xSMSDaemonFrame::OnMenuItem_ShowFolderSelected);
     Connect(ID_MNU_OPTIONS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xSMSDaemonFrame::OnMenuItem_OptionsSelected);
     Connect(ID_MNU_VIEWLOG,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xSMSDaemonFrame::OnMenuItem_ViewLogSelected);
     Connect(ID_MNU_TESTMESSAGES,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xSMSDaemonFrame::OnMenuItem_InsertTestMessagesSelected);

@@ -99,7 +99,6 @@ public:
         static const long ID_STATICTEXT8;
         static const long ID_GRID1;
         static const long ID_BUTTON2;
-        static const long ID_MNU_ShowFolder;
         static const long ID_MNU_OPTIONS;
         static const long ID_MNU_VIEWLOG;
         static const long ID_MNU_TESTMESSAGES;
@@ -116,7 +115,6 @@ public:
         wxMenu* Menu5;
         wxMenuItem* MenuItem_InsertTestMessages;
         wxMenuItem* MenuItem_Options;
-        wxMenuItem* MenuItem_ShowFolder;
         wxMenuItem* MenuItem_ViewLog;
         wxStaticText* StaticText2;
         wxStaticText* StaticText3;

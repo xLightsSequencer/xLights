@@ -131,10 +131,6 @@
 		<object class="wxMenuBar" variable="MenuBar1" member="no">
 			<object class="wxMenu" variable="Menu5" member="yes">
 				<label>&amp;Edit</label>
-				<object class="wxMenuItem" name="ID_MNU_ShowFolder" variable="MenuItem_ShowFolder" member="yes">
-					<label>Show Folder</label>
-					<handler function="OnMenuItem_ShowFolderSelected" entry="EVT_MENU" />
-				</object>
 				<object class="wxMenuItem" name="ID_MNU_OPTIONS" variable="MenuItem_Options" member="yes">
 					<label>&amp;Options</label>
 					<handler function="OnMenuItem_OptionsSelected" entry="EVT_MENU" />
