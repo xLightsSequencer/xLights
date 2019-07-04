@@ -141,6 +141,7 @@ bool PluginManager::DoStart(const std::string& plugin, char* showDir, char* xSch
 bool PluginManager::HandleWeb(const std::string& plugin, const std::string& action, const std::wstring& parms, const std::wstring& data, const std::wstring& reference, std::wstring& response)
 {
     if (_plugins.find(plugin) == _plugins.end()) return false;
+    if (!_plugins.at(plugin)->_started) return false;
 
     p_xSchedule_HandleWeb fn = _plugins.at(plugin)->_handleWebFn;
     if (fn != nullptr) {
@@ -216,6 +217,7 @@ void PluginManager::DoWipeSettings(const std::string& plugin)
 bool PluginManager::DoManipulateBuffer(const std::string& plugin, uint8_t* buffer, size_t bufferSize)
 {
     if (_plugins.find(plugin) == _plugins.end()) return false;
+    if (!_plugins.at(plugin)->_started) return false;
 
     p_xSchedule_ManipulateBuffer fn = _plugins.at(plugin)->_manipulateBufferFn;
     if (fn != nullptr) {
@@ -228,6 +230,7 @@ bool PluginManager::DoManipulateBuffer(const std::string& plugin, uint8_t* buffe
 void PluginManager::DoNotifyStatus(const std::string& plugin, const char* statusJSON)
 {
     if (_plugins.find(plugin) == _plugins.end()) return;
+    if (!_plugins.at(plugin)->_started) return;
 
     p_xSchedule_NotifyStatus fn = _plugins.at(plugin)->_notifyStatusFn;
     if (fn != nullptr) {
