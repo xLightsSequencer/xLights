@@ -1322,11 +1322,6 @@ public:
 #define FPP_CTRL_PORT 32320
 void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &instances, bool doBroadcast, bool allPlatforms) {
 
-    // scan all ip networks
-    auto localIPs = GetLocalIPs();
-    for (auto ip : localIPs)
-    {
-
     std::vector<CurlData*> curls;
     CURLM * curlMulti = curl_multi_init();
     for (auto &a : addresses) {
@@ -1335,14 +1330,8 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
         curls.push_back(data);
         curl_multi_add_handle(curlMulti, data->curl);
     }
-    wxDatagramSocket *socket;
-    wxIPV4address localaddr;
-    localaddr.Hostname(ip);
-    localaddr.Service(FPP_CTRL_PORT);
-
-    socket = new wxDatagramSocket(localaddr, wxSOCKET_BROADCAST | wxSOCKET_NOWAIT);
-    socket->SetTimeout(1);
-    socket->Notify(false);
+    std::vector<wxDatagramSocket *> sockets;
+    
 
     uint8_t buffer[512] = { 'F', 'P', 'P', 'D', 0x04};
     buffer[5] = 207-7;
@@ -1366,21 +1355,53 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
     //we don't want anyone trying to contact us, so we'll set to 0
     buffer[15] = buffer[16] = buffer[17] = buffer[18] = 0;
     strcpy((char *)&buffer[84], ver.c_str());
-
-    if (socket->IsOk()) {
-        wxIPV4address bcAddress;
-        bcAddress.BroadcastAddress();
-        bcAddress.Service(FPP_CTRL_PORT);
+    
+    // scan all ip networks
+    wxIPV4address localaddr;
+    localaddr.AnyAddress();
+    localaddr.Service(FPP_CTRL_PORT);
+    wxDatagramSocket *socket = new wxDatagramSocket(localaddr, wxSOCKET_BROADCAST | wxSOCKET_NOWAIT);
+    socket->SetTimeout(1);
+    socket->Notify(false);
+    sockets.push_back(socket);
+    
+    auto localIPs = GetLocalIPs();
+    for (auto ip : localIPs) {
+        if (ip == "127.0.0.1") {
+            continue;
+        }
+        wxIPV4address localaddr;
+        localaddr.Hostname(ip);
+        
+        wxDatagramSocket *socket = new wxDatagramSocket(localaddr, wxSOCKET_BROADCAST | wxSOCKET_NOWAIT);
+        socket->SetTimeout(1);
+        socket->Notify(false);
+        if (socket->IsOk()) {
+            sockets.push_back(socket);
+        } else {
+            delete socket;
+        }
+    }
+    wxIPV4address bcAddress;
+    bcAddress.BroadcastAddress();
+    bcAddress.Service(FPP_CTRL_PORT);
+    for (auto socket : sockets) {
         socket->SendTo(bcAddress, buffer, 207);
     }
+    
     uint64_t endBroadcastTime = wxGetLocalTimeMillis().GetValue() + 1200l;
     int running = curls.size();
     while (running || (wxGetLocalTimeMillis().GetValue() < endBroadcastTime)) {
         memset(buffer, 0x00, sizeof(buffer));
         int readSize = 0;
-        if (socket->IsOk()) {
-            socket->Read(&buffer[0], sizeof(buffer));
-            readSize = socket->GetLastIOReadSize();
+        for (auto socket : sockets) {
+            if (socket->IsOk()) {
+                socket->Read(&buffer[0], sizeof(buffer));
+                readSize = socket->GetLastIOReadSize();
+                if (readSize != 0) {
+                    break;
+                }
+            }
         }
         if (readSize != 0
             && buffer[0] == 'F' && buffer[1] == 'P' && buffer[2] == 'P' && buffer[3] == 'D' && buffer[4] == 0x04) {
@@ -1539,14 +1560,16 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
                                             if (inst.platform.find("xLights") != std::string::npos) {
                                                 continue;
                                             }
-                                            if (inst.platform.find("Unknown") != std::string::npos) {
-                                                continue;
-                                            }
-                                            if (inst.platform.find("unknown") != std::string::npos) {
-                                                continue;
-                                            }
                                             if (inst.platform.find("Falcon ") != std::string::npos) {
                                                 continue;
+                                            }
+                                            if (!allPlatforms) {
+                                                if (inst.platform.find("Unknown") != std::string::npos) {
+                                                    continue;
+                                                }
+                                                if (inst.platform.find("unknown") != std::string::npos) {
+                                                    continue;
+                                                }
                                             }
                                             if (!system["model"].IsNull()) {
                                                 inst.model = system["model"].AsString();
@@ -1632,8 +1655,10 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
         }
     }
     curl_multi_cleanup(curlMulti);
-    socket->Close();
-    delete socket;
+    
+    for (auto socket : sockets) {
+        socket->Close();
+        delete socket;
     }
 
     std::list<FPP*> toRemove;
