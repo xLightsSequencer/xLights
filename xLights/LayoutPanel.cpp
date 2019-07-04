@@ -2037,7 +2037,7 @@ void LayoutPanel::SelectAllModels()
                 SelectModel(m);
             }
 
-            m->Selected = true;
+            m->Selected = false;
             m->Highlighted = true;
             m->GroupSelected = true;
             m->SelectHandle(-1);
@@ -2053,7 +2053,7 @@ void LayoutPanel::SelectAllModels()
                 SelectBaseObject(view_object);
             }
 
-            view_object->Selected = true;
+            view_object->Selected = false;
             view_object->Highlighted = true;
             view_object->GroupSelected = true;
             view_object->SelectHandle(-1);
