@@ -6,6 +6,7 @@
 #include "xLightsApp.h"
 #include "xLightsMain.h"
 #include "sequencer/MainSequencer.h"
+#include "UtilFunctions.h"
 
 wxDEFINE_EVENT(SUBBUFFER_RANGE_CHANGED, wxCommandEvent);
 
@@ -363,6 +364,7 @@ void SubBufferPanel::MenuItemSelected(wxCommandEvent &event) {
         {
             BufferSizeDialog bsd(this, _usevc);
             bsd.SetSizes(y2, x1, y1, x2, y2vc, x1vc, y1vc, x2vc);
+            OptimiseDialogPosition(&bsd);
 
             if (bsd.ShowModal() == wxID_OK)
             {

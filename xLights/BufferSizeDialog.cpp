@@ -1,5 +1,6 @@
 #include "BufferSizeDialog.h"
 #include "ValueCurveDialog.h"
+#include "UtilFunctions.h"
 
 //(*InternalHeaders(BufferSizeDialog)
 #include <wx/artprov.h>
@@ -194,6 +195,7 @@ void BufferSizeDialog::OnValueCurve_Click(wxCommandEvent& event)
     if (vc->GetValue()->IsActive())
     {
         ValueCurveDialog vcd(vc->GetParent(), vc->GetValue(), true);
+        OptimiseDialogPosition(&vcd);
         if (vcd.ShowModal() != wxOK)
         {
             vc->SetActive(false);

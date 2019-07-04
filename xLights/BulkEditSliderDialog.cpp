@@ -6,6 +6,7 @@
 //*)
 
 #include "ValueCurveDialog.h"
+#include "UtilFunctions.h"
 
 //(*IdInit(BulkEditSliderDialog)
 const long BulkEditSliderDialog::ID_STATICTEXT_BulkEdit = wxNewId();
@@ -284,6 +285,7 @@ void BulkEditSliderDialog::OnBitmapButton_VCClick(wxCommandEvent& event)
     if (vc->GetValue()->IsActive())
     {
         ValueCurveDialog vcd(vc->GetParent(), vc->GetValue(), slideridd);
+        OptimiseDialogPosition(&vcd);
         if (vcd.ShowModal() == wxOK)
         {
             if (slider != nullptr)

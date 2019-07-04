@@ -27,6 +27,7 @@ wxString FixFile(const wxString& ShowDir, const wxString& file, bool recurse = f
 wxString FixEffectFileParameter(const wxString& paramname, const wxString& parametervalue, const wxString& ShowDir);
 int base64_decode(const wxString& encoded_string, std::vector<unsigned char> &data);
 int GetxFadePort(int xfp);
+void OptimiseDialogPosition(wxDialog* dlg);
 wxString xLightsRequest(int xFadePort, wxString message, wxString ipAddress = "127.0.0.1");
 inline long roundTo4(long i) {
     long remainder = i % 4;

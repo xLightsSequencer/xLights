@@ -15,6 +15,7 @@
 #include "effects/EffectPanelUtils.h"
 #include "LayerSelectDialog.h"
 #include "xLightsMain.h"
+#include "UtilFunctions.h"
 
 //(*IdInit(TimingPanel)
 const long TimingPanel::ID_CHECKBOX_ResetTimingPanel = wxNewId();
@@ -431,6 +432,7 @@ void TimingPanel::OnButton_LayersClick(wxCommandEvent& event)
 {
     wxASSERT(_startLayer <= _endLayer);
     LayerSelectDialog dlg(this, _startLayer, _endLayer, _layersSelected, _layerWithEffect);
+    OptimiseDialogPosition(&dlg);
 
     if (dlg.ShowModal() == wxID_OK)
     {

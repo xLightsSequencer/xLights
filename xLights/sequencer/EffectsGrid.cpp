@@ -194,6 +194,7 @@ void EffectsGrid::mouseLeftDClick(wxMouseEvent& event)
                 wxString label = selectedEffect->GetEffectName();
 
                 wxTextEntryDialog dlg(this, "Edit Label", "Enter new label:", label);
+                OptimiseDialogPosition(&dlg);
                 if (dlg.ShowModal()) {
 
                     wxString newLabel = dlg.GetValue();
@@ -4040,6 +4041,7 @@ void EffectsGrid::SetEffectsDescription()
         if (oktocont && efs.size() > 0)
         {
             wxTextEntryDialog dlg(this, "Enter a description to associate with this effect", "Description", description);
+            OptimiseDialogPosition(&dlg);
             if (dlg.ShowModal() == wxID_OK)
             {
                 mSequenceElements->get_undo_mgr().CreateUndoStep();
@@ -4076,7 +4078,7 @@ void EffectsGrid::SetEffectsTiming()
     if (el->IsFixedTimingLayer()) return;
 
     EffectTimingDialog dlg(this, mSelectedEffect, el, mTimeline->GetTimeFrequency());
-
+    OptimiseDialogPosition(&dlg);
     if (dlg.ShowModal() == wxID_OK)
     {
         mSequenceElements->get_undo_mgr().CreateUndoStep();

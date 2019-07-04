@@ -254,8 +254,6 @@ LinkJukeboxButtonDialog::LinkJukeboxButtonDialog(wxWindow* parent, int button, B
         }
     }
 
-    Move(pos);
-
     SetEscapeId(Button_Cancel->GetId());
 
     ValidateWindow();

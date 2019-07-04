@@ -834,6 +834,15 @@ int GetxFadePort(int xfp)
     return xfp + 49912;
 }
 
+void OptimiseDialogPosition(wxDialog* dlg)
+{
+    wxPoint pos = wxGetMousePosition();
+    wxSize sz = dlg->GetSize();
+    pos.x -= sz.GetWidth() / 2;
+    pos.y -= sz.GetHeight() / 2;
+    dlg->SetPosition(pos);
+}
+
 wxString xLightsRequest(int xFadePort, wxString message, wxString ipAddress)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));

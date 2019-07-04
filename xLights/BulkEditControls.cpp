@@ -8,6 +8,7 @@
 #include "EffectsPanel.h"
 #include "sequencer/MainSequencer.h"
 #include "BulkEditSliderDialog.h"
+#include "UtilFunctions.h"
 
 #include <log4cpp/Category.hh>
 
@@ -260,6 +261,7 @@ void BulkEditSlider::OnSliderPopup(wxCommandEvent &event)
         }
 
         BulkEditSliderDialog dlg(this, label, GetValue(), GetMin(), GetMax(), GetPageSize(), _type, vcb);
+        OptimiseDialogPosition(&dlg);
 
         if (dlg.ShowModal() == wxID_OK)
         {
@@ -402,6 +404,7 @@ void BulkEditTextCtrl::OnTextCtrlPopup(wxCommandEvent& event)
             }
 
             wxTextEntryDialog dlg(this, "", label, GetValue());
+            OptimiseDialogPosition(&dlg);
 
             if (dlg.ShowModal() == wxID_OK)
             {
@@ -476,6 +479,7 @@ void BulkEditFilePickerCtrl::OnFilePickerCtrlPopup(wxCommandEvent& event)
         wxFileName fn(GetFileName());
 
         wxDirDialog dlg(this, label, fn.GetPath(), wxDD_DEFAULT_STYLE, wxDefaultPosition, wxDefaultSize, _T("wxDirDialog"));
+        OptimiseDialogPosition(&dlg);
 
         if (dlg.ShowModal() == wxID_OK)
         {
@@ -511,6 +515,7 @@ void BulkEditSpinCtrl::OnSpinCtrlPopup(wxCommandEvent& event)
         }
 
         wxNumberEntryDialog dlg(this, "", label, label, GetValue(), GetMin(), GetMax());
+        OptimiseDialogPosition(&dlg);
 
         if (dlg.ShowModal() == wxID_OK)
         {
@@ -553,6 +558,7 @@ void BulkEditChoice::OnChoicePopup(wxCommandEvent& event)
 
         wxSingleChoiceDialog dlg(GetParent(), "", label, choices);
         dlg.SetSelection(GetSelection());
+        OptimiseDialogPosition(&dlg);
 
         if (dlg.ShowModal() == wxID_OK)
         {

@@ -10,6 +10,7 @@
 #include "xLightsApp.h"
 #include "xLightsMain.h"
 #include "LinkJukeboxButtonDialog.h"
+#include "UtilFunctions.h"
 
 ButtonControl::ButtonControl(int i)
 {
@@ -256,7 +257,8 @@ void JukeboxPanel::OnButtonRClick(wxContextMenuEvent& event)
         control = _buttons[button];
     }
 
-    LinkJukeboxButtonDialog dlg(this, button, control, xLightsApp::GetFrame()->GetMainSequencer(), -1, wxGetMousePosition());
+    LinkJukeboxButtonDialog dlg(this, button, control, xLightsApp::GetFrame()->GetMainSequencer());
+    OptimiseDialogPosition(&dlg);
 
     if (dlg.ShowModal() == wxID_OK)
     {

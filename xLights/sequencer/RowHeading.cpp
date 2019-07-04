@@ -451,7 +451,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
     }
     else if (id == ID_ROW_MNU_INSERT_LAYERS_BELOW)
     {
-        int numtoinsert = wxGetNumberFromUser("Enter number of layers to insert", "Layers", "Insert multiple layers", 2, 1, 100, this);
+        int numtoinsert = wxGetNumberFromUser("Enter number of layers to insert", "Layers", "Insert multiple layers", 2, 1, 100, this, wxGetMousePosition());
 
         if (numtoinsert > 0)
         {
@@ -590,6 +590,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         xLightsXmlFile* xml_file;
         xml_file = mSequenceElements->GetXLightsFrame()->CurrentSeqXmlFile;
         NewTimingDialog dialog(this);
+        OptimiseDialogPosition(&dialog);
         dialog.Fit();
         if(xml_file->GetFrequency() < 40)
         {
@@ -619,6 +620,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         }
 
         dialog.Fit();
+        OptimiseDialogPosition(&dialog);
 
         wxString name = "";
         if (dialog.ShowModal() == wxID_OK)
@@ -645,6 +647,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
                     {
                         int base_timing = xml_file->GetFrameMS();
                         wxNumberEntryDialog dlg(this, "Enter metronome timing", "Milliseconds", "Metronome timing", base_timing, base_timing, 60000);
+                        OptimiseDialogPosition(&dlg);
                         if (dlg.ShowModal() == wxID_OK)
                         {
                             int ms = (dlg.GetValue() + base_timing / 2) / base_timing * base_timing;
@@ -730,7 +733,6 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         if (fn.GetExt().Lower() == "xtiming")
         {
             SelectTimingsDialog dlg(this);
-
             for (int i = 0; i < mSequenceElements->GetNumberOfTimingElements(); i++)
             {
                 TimingElement* te2 = mSequenceElements->GetTimingElement(i);
@@ -740,7 +742,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
                     dlg.CheckListBox_Timings->Check(i);
                 }
             }
-
+            OptimiseDialogPosition(&dlg);
             if (mSequenceElements->GetNumberOfTimingElements() == 1  || dlg.ShowModal() == wxID_OK)
             {
                 wxArrayInt sel;
