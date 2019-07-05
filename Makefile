@@ -55,7 +55,7 @@ wxwidgets31: FORCE
 		echo Building wxwidgets; \
 		${MAKE} -s; \
 		echo Installing wxwidgets; \
-		`which sudo` ${MAKE} install DESTDIR=$(DESTDIR); \
+		sudo ${MAKE} install DESTDIR=$(DESTDIR); \
 		echo Completed build/install of wxwidgets; \
         fi
 
