@@ -344,6 +344,15 @@ void xSMSDaemonFrame::ValidateWindow()
     {
         Button_Pause->Disable();
     }
+
+    if (_smsService == nullptr)
+    {
+        MenuItem_InsertTestMessages->Enable(false);
+    }
+    else
+    {
+        MenuItem_InsertTestMessages->Enable();
+    }
 }
 
 void xSMSDaemonFrame::OnMenuItem_OptionsSelected(wxCommandEvent& event)

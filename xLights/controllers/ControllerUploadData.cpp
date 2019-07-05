@@ -101,7 +101,7 @@ UDController::UDController(const std::string &ip, const std::string &hostname, M
 
         if (!ok)
         {
-            check += wxString::Format("WARNING: Controller Upload: Model %s on controller %s does not have its Controller Connection details completed. Model ignored.\n", (const char *)it->GetFullName().c_str(), (const char *)ip.c_str()).ToStdString();
+            check += wxString::Format("WARN: Controller Upload: Model %s on controller %s does not have its Controller Connection details completed. Model ignored.\n", (const char *)it->GetFullName().c_str(), (const char *)ip.c_str()).ToStdString();
         }
     }
 }
@@ -233,7 +233,7 @@ bool UDController::Check(const ControllerRules* rules, std::string& res)
     // all pixel ports must be valid for this controller
     if (rules->GetMaxPixelPort() == 0 && _pixelPorts.size() > 0)
     {
-        res += wxString::Format("ERROR: Attempt to upload pixel port %d but this controller does not support pixel ports.\n", _pixelPorts.begin()->second->GetPort()).ToStdString();
+        res += wxString::Format("ERR: Attempt to upload pixel port %d but this controller does not support pixel ports.\n", _pixelPorts.begin()->second->GetPort()).ToStdString();
         success = false;
     }
     else
@@ -244,7 +244,7 @@ bool UDController::Check(const ControllerRules* rules, std::string& res)
 
             if (it->second->GetPort() < 1 || it->second->GetPort() > rules->GetMaxPixelPort())
             {
-                res += wxString::Format("ERROR: Pixel port %d is not valid on this controller. Valid ports %d-%d.\n", it->second->GetPort(), 1, rules->GetMaxPixelPort()).ToStdString();
+                res += wxString::Format("ERR: Pixel port %d is not valid on this controller. Valid ports %d-%d.\n", it->second->GetPort(), 1, rules->GetMaxPixelPort()).ToStdString();
                 success = false;
             }
         }
@@ -263,7 +263,7 @@ bool UDController::Check(const ControllerRules* rules, std::string& res)
             {
                 if (o->GetType() != protocol)
                 {
-                    res += wxString::Format("ERROR: Controller only support a single input protocol at a time. %s and %s found.\n", protocol, o->GetType()).ToStdString();
+                    res += wxString::Format("ERR: Controller only support a single input protocol at a time. %s and %s found.\n", protocol, o->GetType()).ToStdString();
                     success = false;
                 }
             }
@@ -279,7 +279,7 @@ bool UDController::Check(const ControllerRules* rules, std::string& res)
 
             if (protocol != it.second->GetProtocol())
             {
-                res += wxString::Format("ERROR: Pixel ports only support a single protocol at a time. %s and %s found.\n", protocol, it.second->GetProtocol()).ToStdString();
+                res += wxString::Format("ERR: Pixel ports only support a single protocol at a time. %s and %s found.\n", protocol, it.second->GetProtocol()).ToStdString();
                 success = false;
             }
         }
@@ -291,7 +291,7 @@ bool UDController::Check(const ControllerRules* rules, std::string& res)
 
             if (protocol != it->second->GetProtocol())
             {
-                res += wxString::Format("ERROR: Serial ports only support a single protocol at a time. %s and %s found.\n", protocol, it->second->GetProtocol()).ToStdString();
+                res += wxString::Format("ERR: Serial ports only support a single protocol at a time. %s and %s found.\n", protocol, it->second->GetProtocol()).ToStdString();
                 success = false;
             }
         }
@@ -305,7 +305,7 @@ bool UDController::Check(const ControllerRules* rules, std::string& res)
             {
                 if (it2->GetSmartRemote() != 0)
                 {
-                    res += wxString::Format("ERROR: Port %d has model %s with smart remote set ... but this controller does not support smart remotes.\n", 
+                    res += wxString::Format("ERR: Port %d has model %s with smart remote set ... but this controller does not support smart remotes.\n", 
                         it.second->GetPort(), it2->GetName());
                     success = false;
                 }
@@ -331,7 +331,7 @@ bool UDController::Check(const ControllerRules* rules, std::string& res)
             }
             if (countSmart > 0 && countNoSmart > 0)
             {
-                res += wxString::Format("ERROR: Port %d has a mix of models with smart and non smart remotes. This is not supported.\n",
+                res += wxString::Format("ERR: Port %d has a mix of models with smart and non smart remotes. This is not supported.\n",
                     it.second->GetPort());
                 success = false;
             }
@@ -346,7 +346,7 @@ bool UDController::Check(const ControllerRules* rules, std::string& res)
             if (size == -1) size = it->GetChannels();
             if (size != it->GetChannels())
             {
-                res += wxString::Format("ERROR: All universes must be the same size. %d and %d found.\n", size, (int)it->GetChannels()).ToStdString();
+                res += wxString::Format("ERR: All universes must be the same size. %d and %d found.\n", size, (int)it->GetChannels()).ToStdString();
                 success = false;
             }
         }
@@ -361,7 +361,7 @@ bool UDController::Check(const ControllerRules* rules, std::string& res)
             if (seq == -1) seq = it->GetUniverse() - 1;
             if (seq + 1 != it->GetUniverse())
             {
-                res += wxString::Format("ERROR: All universes must be sequential. %d followed %d.\n", it->GetUniverse(), seq).ToStdString();
+                res += wxString::Format("ERR: All universes must be sequential. %d followed %d.\n", it->GetUniverse(), seq).ToStdString();
                 success = false;
             }
             seq = it->GetUniverse();
@@ -375,7 +375,7 @@ bool UDController::Check(const ControllerRules* rules, std::string& res)
         {
             if (std::find(inputprotocols.begin(), inputprotocols.end(), it->GetType()) == inputprotocols.end())
             {
-                res += wxString::Format("ERROR: Output %s is not a protocol this controller supports.\n", it->GetType()).ToStdString();
+                res += wxString::Format("ERR: Output %s is not a protocol this controller supports.\n", it->GetType()).ToStdString();
                 success = false;
             }
         }
@@ -383,7 +383,7 @@ bool UDController::Check(const ControllerRules* rules, std::string& res)
 
     if (rules->GetMaxSerialPort() == 0 && _serialPorts.size() > 0)
     {
-        res += wxString::Format("ERROR: Attempt to upload serial port %d but this controller does not support serial ports.\n", _serialPorts.begin()->second->GetPort()).ToStdString();
+        res += wxString::Format("ERR: Attempt to upload serial port %d but this controller does not support serial ports.\n", _serialPorts.begin()->second->GetPort()).ToStdString();
         success = false;
     }
     else
@@ -394,7 +394,7 @@ bool UDController::Check(const ControllerRules* rules, std::string& res)
 
             if (it.second->GetPort() < 1 || it.second->GetPort() > rules->GetMaxSerialPort())
             {
-                res += wxString::Format("ERROR: Serial port %d is not valid on this controller. Valid ports %d-%d.\n", it.second->GetPort(), 1, rules->GetMaxSerialPort()).ToStdString();
+                res += wxString::Format("ERR: Serial port %d is not valid on this controller. Valid ports %d-%d.\n", it.second->GetPort(), 1, rules->GetMaxSerialPort()).ToStdString();
                 success = false;
             }
         }
@@ -784,7 +784,7 @@ bool UDControllerPort::Check(const UDController* controller, bool pixel, const C
     {
         if (!rules->IsValidPixelProtocol(_protocol))
         {
-            res += wxString::Format("ERROR: Invalid protocol on pixel port %d: %s\n", _port, _protocol).ToStdString();
+            res += wxString::Format("ERR: Invalid protocol on pixel port %d: %s\n", _port, _protocol).ToStdString();
             success = false;
         }
         else
@@ -793,7 +793,7 @@ bool UDControllerPort::Check(const UDController* controller, bool pixel, const C
             {
                 if (it->GetProtocol() != _protocol)
                 {
-                    res += wxString::Format("ERROR: Model %s on pixel port %d has protocol %s but port protocol has been set to %s. This is because you have mixed protocols on your models.", it->GetName(), _port, it->GetProtocol(), _protocol).ToStdString();
+                    res += wxString::Format("ERR: Model %s on pixel port %d has protocol %s but port protocol has been set to %s. This is because you have mixed protocols on your models.", it->GetName(), _port, it->GetProtocol(), _protocol).ToStdString();
                     success = false;
                 }
             }
@@ -802,7 +802,7 @@ bool UDControllerPort::Check(const UDController* controller, bool pixel, const C
         // port must not have too many pixels on it
         if (Channels() > rules->GetMaxPixelPortChannels())
         {
-            res += wxString::Format("ERROR: Pixel port %d has %d nodes allocated but maximum is %d.\n", _port, (int)Channels() / 3, rules->GetMaxPixelPortChannels() / 3).ToStdString();
+            res += wxString::Format("ERR: Pixel port %d has %d nodes allocated but maximum is %d.\n", _port, (int)Channels() / 3, rules->GetMaxPixelPortChannels() / 3).ToStdString();
             success = false;
         }
     }
@@ -810,7 +810,7 @@ bool UDControllerPort::Check(const UDController* controller, bool pixel, const C
     {
         if (!rules->IsValidSerialProtocol(_protocol))
         {
-            res += wxString::Format("ERROR: Invalid protocol on serial port %d: %s\n", _port, _protocol).ToStdString();
+            res += wxString::Format("ERR: Invalid protocol on serial port %d: %s\n", _port, _protocol).ToStdString();
             success = false;
         }
         else
@@ -819,14 +819,14 @@ bool UDControllerPort::Check(const UDController* controller, bool pixel, const C
             {
                 if (it->GetProtocol() != _protocol)
                 {
-                    res += wxString::Format("ERROR: Model %s on serial port %d has protocol %s but port protocol has been set to %s. This is because you have mixed protocols on your models.\n", it->GetName(), _port, it->GetProtocol(), _protocol).ToStdString();
+                    res += wxString::Format("ERR: Model %s on serial port %d has protocol %s but port protocol has been set to %s. This is because you have mixed protocols on your models.\n", it->GetName(), _port, it->GetProtocol(), _protocol).ToStdString();
                     success = false;
                 }
             }
         }
         if (Channels() > rules->GetMaxSerialPortChannels())
         {
-            res += wxString::Format("ERROR: Serial port %d has %d channels allocated but maximum is %d.\n", _port, (int)Channels(), rules->GetMaxSerialPortChannels()).ToStdString();
+            res += wxString::Format("ERR: Serial port %d has %d channels allocated but maximum is %d.\n", _port, (int)Channels(), rules->GetMaxSerialPortChannels()).ToStdString();
             success = false;
         }
     }
@@ -837,7 +837,7 @@ bool UDControllerPort::Check(const UDController* controller, bool pixel, const C
         if (ch == -1) ch = it->GetStartChannel() - 1;
         if (it->GetStartChannel() > ch + 1)
         {
-            res += wxString::Format("WARNING: Gap in models on port %d channel %ld to %ld.\n", _port, ch, it->GetStartChannel()).ToStdString();
+            res += wxString::Format("WARN: Gap in models on port %d channel %ld to %ld.\n", _port, ch, it->GetStartChannel()).ToStdString();
         }
         ch = it->GetEndChannel();
     }

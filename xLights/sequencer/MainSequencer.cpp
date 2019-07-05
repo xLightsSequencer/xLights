@@ -306,6 +306,7 @@ MainSequencer::MainSequencer(wxWindow* parent, bool smallWaveform, wxWindowID id
 
 MainSequencer::~MainSequencer()
 {
+    timeDisplay = nullptr; // wxWidgets will delete it
     if (effectGridTouchbar) delete effectGridTouchbar;
 
 	//(*Destroy(MainSequencer)
@@ -332,17 +333,20 @@ void MainSequencer::UpdateEffectGridVerticalScrollBar()
 void MainSequencer::UpdateTimeDisplay(int time_ms, float fps)
 {
     int time = time_ms >= 0 ? time_ms : 0;
-    int msec=time % 1000;
-    int seconds=time / 1000;
-    int minutes=seconds / 60;
-    seconds=seconds % 60;
+    int msec = time % 1000;
+    int seconds = time / 1000;
+    int minutes = seconds / 60;
+    seconds = seconds % 60;
     wxString play_time = wxString::Format("Time: %d:%02d.%02d", minutes, seconds, msec);
     wxString fpsStr;
     if (fps >= 0)
     {
-        fpsStr = wxString::Format("FPS: %5.1f",fps);
+        fpsStr = wxString::Format("FPS: %5.1f", fps);
     }
-    timeDisplay->SetLabels(play_time, fpsStr);
+    if (timeDisplay != nullptr)
+    {
+        timeDisplay->SetLabels(play_time, fpsStr);
+    }
 }
 
 void MainSequencer::UpdateSelectedDisplay(int selected)

@@ -6186,7 +6186,12 @@ void xLightsFrame::CheckSequence(bool display)
         {
             if (mainSequencer->PanelEffectGrid->GetCreatedVersion() < 3)
             {
-                wxString msg = wxString::Format("    ERR: Seqeuence has one or more shader effects but open GL version is lower than verson 3. These effects will not render.");
+#ifdef __WXOSX__
+                std::string type = "WARN";
+#else
+                std::string type = "ERR";
+#endif
+                wxString msg = wxString::Format("    %s: Seqeuence has one or more shader effects but open GL version is lower than verson 3. These effects will not render.", (const char *)type.c_str());
                 LogAndWrite(f, msg.ToStdString());
                 errcount++;
             }

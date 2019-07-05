@@ -19,7 +19,12 @@ class xlGLCanvas
         virtual ~xlGLCanvas();
 
         void SetCurrentGLContext();
-        int GetCreatedVersion() const { return _ver; }
+        int GetCreatedVersion() const {
+            // per Dan if core_profile is enabled then this is at least 3
+            if (DrawGLUtils::IsCoreProfile())
+                return 3;
+            return _ver;
+        }
 
         int getWidth() const { return mWindowWidth; }
         int getHeight() const { return mWindowHeight; }
