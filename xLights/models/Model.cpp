@@ -2868,10 +2868,14 @@ void Model::InitRenderBufferNodes(const std::string &type, const std::string &ca
         logger_base.warn("Model::InitRenderBufferNodes firstNode + Nodes.size() = %ld. %s::'%s'. This commonly happens on a polyline segement with zero pixels or a cutom model with no nodes but with effects dropped on it.", (long)firstNode + Nodes.size(), (const char *)GetDisplayAs().c_str(), (const char *)GetFullName().c_str());
     }
 
-    newNodes.reserve(firstNode + Nodes.size());
-    for (auto it = Nodes.begin(); it != Nodes.end(); ++it) {
-        newNodes.push_back(NodeBaseClassPtr(it->get()->clone()));
+    // Don't add model group nodes if its a 3D preview render buffer
+    if ( !((camera != "2D") && GetDisplayAs() == "ModelGroup" && (type == PER_PREVIEW || type == PER_PREVIEW_NO_OFFSET)) ) {
+        newNodes.reserve(firstNode + Nodes.size());
+        for (auto it = Nodes.begin(); it != Nodes.end(); ++it) {
+            newNodes.push_back(NodeBaseClassPtr(it->get()->clone()));
+        }
     }
+
     if (type == DEFAULT) {
         bufferHt = this->BufferHt;
         bufferWi = this->BufferWi;
@@ -2991,6 +2995,33 @@ void Model::InitRenderBufferNodes(const std::string &type, const std::string &ca
         std::list<float> outx;
         std::list<float> outy;
 
+        // For 3D render view buffers recursively process each individual model...should be able to handle nested model groups
+        if (GetDisplayAs() == "ModelGroup" && camera != "2D")
+        {
+            std::vector<Model *> models;
+            wxArrayString mn = wxSplit(ModelXml->GetAttribute("models"), ',');
+            int nc = 0;
+            for (int x = 0; x < mn.size(); x++) {
+                Model *c = modelManager.GetModel(mn[x].ToStdString());
+                if (c != nullptr) {
+                    models.push_back(c);
+                    nc += c->GetNodeCount();
+                }
+                else if (mn[x] == "")
+                {
+                    // silently ignore blank models
+                }
+            }
+
+            if (nc) {
+                newNodes.reserve(nc);
+            }
+            for (Model *c : models) {
+                int bw, bh;
+                c->InitRenderBufferNodes("Per Preview No Offset", camera, transform, newNodes, bw, bh);
+            }
+        }
+
         for (int x = firstNode; x < newNodes.size(); x++) {
             if (newNodes[x] == nullptr)
             {
@@ -3018,14 +3049,20 @@ void Model::InitRenderBufferNodes(const std::string &type, const std::string &ca
                     }
                     else
                     {
-                        // Handle 3D from an arbitrary camera position
-                        float sz = it2->screenZ;
+                        if (GetDisplayAs() != "ModelGroup")  // ignore for groups since they will have already calculated their node positions from recursion call above
+                        {
+                            // Handle 3D from an arbitrary camera position
+                            float sz = it2->screenZ;
+                            GetModelScreenLocation().TranslatePoint(sx, sy, sz);
 
-                        // really not sure if 400,400 is the best thing to pass in here ... but it seems to work
-                        glm::vec2 loc = GetModelScreenLocation().GetScreenPosition(400, 400, modelPreview, pcamera, sx, sy, sz);
-                        loc.y *= -1.0f;
-                        sx = loc.x;
-                        sy = loc.y;
+                            // really not sure if 400,400 is the best thing to pass in here ... but it seems to work
+                            glm::vec2 loc = GetModelScreenLocation().GetScreenPosition(400, 400, modelPreview, pcamera, sx, sy, sz);
+                            loc.y *= -1.0f;
+                            sx = loc.x;
+                            sy = loc.y;
+                            it2->screenX = sx;
+                            it2->screenY = sy;
+                        }
                     }
                 }
 
@@ -3071,6 +3108,7 @@ void Model::InitRenderBufferNodes(const std::string &type, const std::string &ca
         maxX /= factor;
         minY /= factor;
         maxY /= factor;
+        logger_base.debug("Factor '%f':", factor);
 
         int offx = minX;
         int offy = minY;
@@ -3081,37 +3119,42 @@ void Model::InitRenderBufferNodes(const std::string &type, const std::string &ca
             offy = 0;
         }
         bufferHt = bufferWi = -1;
-        auto itx = outx.begin();
-        auto ity = outy.begin();
-        for (int x = firstNode; x < newNodes.size(); x++) {
-            if (newNodes[x] == nullptr)
-            {
-                logger_base.crit("DDD Model::InitRenderBufferNodes newNodes[x] is null ... this is going to crash.");
-                wxASSERT(false);
-            }
-            for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); ++it2) {
-
-                // grab the previously transformed coordinate
-                float sx = *itx / factor;
-                float sy = *ity / factor;
-
-                SetCoords(*it2, std::round(sx - offx), std::round(sy - offy));
-                if (it2->bufX > bufferWi) {
-                    bufferWi = it2->bufX;
+ 
+        // we can skip all the scaling for individual models that are being recursively handled from a ModelGroup
+        if (!(pcamera != nullptr && camera != "2D" && GetDisplayAs() != "ModelGroup" && noOff)) {
+            auto itx = outx.begin();
+            auto ity = outy.begin();
+            for (int x = firstNode; x < newNodes.size(); x++) {
+                if (newNodes[x] == nullptr)
+                {
+                    logger_base.crit("DDD Model::InitRenderBufferNodes newNodes[x] is null ... this is going to crash.");
+                    wxASSERT(false);
                 }
-                if (it2->bufY > bufferHt) {
-                    bufferHt = it2->bufY;
-                }
+                for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); ++it2) {
 
-                if (noOff) {
-                    it2->screenX = sx;
-                    it2->screenY = sy;
-                }
+                    // grab the previously transformed coordinate
+                    float sx = *itx / factor;
+                    float sy = *ity / factor;
 
-                ++itx;
-                ++ity;
+                    SetCoords(*it2, std::round(sx - offx), std::round(sy - offy));
+                    if (it2->bufX > bufferWi) {
+                        bufferWi = it2->bufX;
+                    }
+                    if (it2->bufY > bufferHt) {
+                        bufferHt = it2->bufY;
+                    }
+
+                    if (noOff) {
+                        it2->screenX = sx;
+                        it2->screenY = sy;
+                    }
+
+                    ++itx;
+                    ++ity;
+                }
             }
         }
+
         if (!noOff) {
             bufferHt++;
             bufferWi++;

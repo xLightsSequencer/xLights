@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (gil)    Fix render buffers for 3D camera angles
+
 2019.32 June 30, 2019
    -- enh (keith)  Add MQTT support to xSchedule ... both publish and subscribe
    -- enh (keith)  Add support for static and dynamic PS to xSchedule RDS
