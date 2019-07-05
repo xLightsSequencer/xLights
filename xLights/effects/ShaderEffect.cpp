@@ -6,6 +6,8 @@
 #include <wx/wx.h>
 #include <wx/config.h>
 
+//#define WINDOWSBACKGROUND
+
 #ifndef __WXOSX__
     #include <GL/gl.h>
     #ifdef _MSC_VER
@@ -392,6 +394,7 @@ public:
         std::condition_variable signal;
         std::unique_lock<std::mutex> lck(mtx);
         GLContextInfo *tdc = nullptr;
+#ifdef WINDOWSBACKGROUND
         canv->CallAfter([&mtx, &signal, &tdc, canv]() {
             std::unique_lock<std::mutex> lck(mtx);
             tdc = new GLContextInfo(canv);
@@ -399,6 +402,9 @@ public:
             signal.notify_all();
         });
         signal.wait(lck, [&tdc] {return tdc != nullptr;});
+#else
+        tdc = new GLContextInfo(canv);
+#endif
         return tdc;
     }
 private:
@@ -524,16 +530,18 @@ public:
 
 bool ShaderEffect::CanRenderOnBackgroundThread(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer)
 {
-#if defined(__WXOSX__) || defined(__WXMSW__)
+
+#if defined(__WXOSX__)     
     // if we create a specific OpenGL context for this thread and not try to share contexts between threads,
     // the OSX GL engine is thread safe.
     //
     // on windows, we need to create the GL contexts on the main thread, but then can use them
     // on the background thread.  Similar to the Path and text drawing contexts
     return true;
-#else
-    return false;
+#elif defined(__WXMSW__) && defined(WINDOWSBACKGROUND)
+    return true;
 #endif
+    return false;
 }
 
 void ShaderEffect::UnsetGLContext(ShaderRenderCache* cache) {
