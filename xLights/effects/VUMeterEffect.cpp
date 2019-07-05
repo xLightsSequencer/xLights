@@ -52,7 +52,9 @@ namespace RenderType
         FRAME_WAVEFORM,
         TIMING_EVENT_SWEEP2,
         TIMING_EVENT_TIMED_SWEEP,
-        TIMING_EVENT_TIMED_SWEEP2
+        TIMING_EVENT_TIMED_SWEEP2,
+        TIMING_EVENT_ALTERNATE_TIMED_SWEEP,
+        TIMING_EVENT_ALTERNATE_TIMED_SWEEP2
     };
 }
 
@@ -249,6 +251,7 @@ public:
         _lastsize = 0;
         _colourindex = 0;
         _lasttimingmark = 0;
+        _nCount = 0;
 	};
     virtual ~VUMeterRenderCache() {};
 	std::list<int> _timingmarks; // collection of recent timing marks ... used for sweep
@@ -259,6 +262,7 @@ public:
     std::list<std::vector<wxPoint>> _lineHistory;
 	float _lastsize;
     int _colourindex;
+    int _nCount;
 };
 
 int VUMeterEffect::DecodeType(const std::string& type)
@@ -294,6 +298,14 @@ int VUMeterEffect::DecodeType(const std::string& type)
     else if (type == "Timing Event Timed Sweep 2")
     {
         return RenderType::TIMING_EVENT_TIMED_SWEEP2;
+    }
+    else if (type == "Timing Event Alternate Timed Sweep")
+    {
+        return RenderType::TIMING_EVENT_ALTERNATE_TIMED_SWEEP;
+    }
+    else if (type == "Timing Event Alternate Timed Sweep 2")
+    {
+        return RenderType::TIMING_EVENT_ALTERNATE_TIMED_SWEEP2;
     }
     else if (type == "On")
 	{
@@ -497,6 +509,7 @@ void VUMeterEffect::Render(RenderBuffer &buffer, SequenceElements *elements, int
 	std::list<float>& _lastvalues = cache->_lastvalues;
 	std::list<float>& _lastpeaks = cache->_lastpeaks;
 	std::list<int>& _pausepeakfall = cache->_pausepeakfall;
+    int& _nCount = cache->_nCount;
 	float& _lastsize = cache->_lastsize;
     int & _colourindex = cache->_colourindex;
     std::list<std::vector<wxPoint>>& _lineHistory = cache->_lineHistory;
@@ -506,6 +519,7 @@ void VUMeterEffect::Render(RenderBuffer &buffer, SequenceElements *elements, int
 	{
         buffer.needToInit = false;
         _lineHistory.clear();
+        _nCount = 0;
         _colourindex = -1;
 		_timingmarks.clear();
 		_lasttimingmark = -1;
@@ -560,7 +574,9 @@ void VUMeterEffect::Render(RenderBuffer &buffer, SequenceElements *elements, int
 			break;
         case RenderType::TIMING_EVENT_TIMED_SWEEP:
         case RenderType::TIMING_EVENT_TIMED_SWEEP2:
-            RenderTimingEventTimedSweepFrame(buffer, usebars, nType, timingtrack);
+        case RenderType::TIMING_EVENT_ALTERNATE_TIMED_SWEEP:
+        case RenderType::TIMING_EVENT_ALTERNATE_TIMED_SWEEP2:
+            RenderTimingEventTimedSweepFrame(buffer, usebars, nType, timingtrack, _nCount);
             break;
         case RenderType::TIMING_EVENT_SPIKE:
 		case RenderType::TIMING_EVENT_SWEEP:
@@ -1333,7 +1349,7 @@ void VUMeterEffect::RenderTimingEventFrame(RenderBuffer &buffer, int usebars, in
 	}
 }
 
-void VUMeterEffect::RenderTimingEventTimedSweepFrame(RenderBuffer& buffer, int usebars, int nType, std::string timingtrack)
+void VUMeterEffect::RenderTimingEventTimedSweepFrame(RenderBuffer& buffer, int usebars, int nType, std::string timingtrack, int& nCount)
 {
     if (timingtrack != "")
     {
@@ -1368,11 +1384,16 @@ void VUMeterEffect::RenderTimingEventTimedSweepFrame(RenderBuffer& buffer, int u
 
             if (timing != nullptr)
             {
+                if (buffer.curPeriod * buffer.frameTimeInMs == timing->GetStartTimeMS())
+                {
+                    nCount++;
+                }
+
                 // we have a timing mark
                 double lengthOfTiming = timing->GetEndTimeMS() - timing->GetStartTimeMS();
                 double lengthOfTimingFrames = lengthOfTiming / buffer.frameTimeInMs;
                 double distanceToTravel = buffer.BufferWi;
-                if (nType == RenderType::TIMING_EVENT_TIMED_SWEEP)
+                if (nType == RenderType::TIMING_EVENT_TIMED_SWEEP || nType == RenderType::TIMING_EVENT_ALTERNATE_TIMED_SWEEP)
                 {
                     distanceToTravel += 2 * usebars;
                 }
@@ -1383,7 +1404,7 @@ void VUMeterEffect::RenderTimingEventTimedSweepFrame(RenderBuffer& buffer, int u
                 double perFrameDistance = distanceToTravel / lengthOfTimingFrames;
                 double posInTiming = (buffer.curPeriod * buffer.frameTimeInMs - timing->GetStartTimeMS()) / buffer.frameTimeInMs;
                 int startX = perFrameDistance * posInTiming;
-                if (nType == RenderType::TIMING_EVENT_TIMED_SWEEP)
+                if (nType == RenderType::TIMING_EVENT_TIMED_SWEEP || nType == RenderType::TIMING_EVENT_ALTERNATE_TIMED_SWEEP)
                 {
                     startX -= usebars;
                 }
@@ -1393,7 +1414,14 @@ void VUMeterEffect::RenderTimingEventTimedSweepFrame(RenderBuffer& buffer, int u
                     buffer.GetMultiColorBlend((double)x / usebars, false, color1);
                     for (int y = 0; y < buffer.BufferHt; y++)
                     {
-                        buffer.SetPixel(x + startX, y, color1);
+                        if ((nType == RenderType::TIMING_EVENT_ALTERNATE_TIMED_SWEEP || nType == RenderType::TIMING_EVENT_ALTERNATE_TIMED_SWEEP2) && nCount % 2 == 0)
+                        {
+                            buffer.SetPixel(buffer.BufferWi - (x + startX) - 1, y, color1);
+                        }
+                        else
+                        {
+                            buffer.SetPixel(x + startX, y, color1);
+                        }
                     }
                 }
             }
