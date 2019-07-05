@@ -44,6 +44,17 @@ std::string OutputModelManager::DecodeWork(uint32_t work)
 }
 #endif
 
+void OutputModelManager::SetSelectedModelIfASAPWorkExists(const std::string& selectedModel)
+{
+    if (_workASAP != 0)
+    {
+        if (selectedModel != "")
+        {
+            _selectedModel = selectedModel;
+        }
+    }
+}
+
 void OutputModelManager::AddASAPWork(uint32_t work, const std::string& from, Model* m, Output* o, const std::string& selectedModel)
 {
 #ifdef _DEBUG

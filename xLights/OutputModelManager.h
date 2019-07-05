@@ -84,6 +84,7 @@ public:
     void AddLayoutTabWork(uint32_t work, const std::string& from, Model* m = nullptr, Output* o = nullptr, const std::string& selectedModel = "");
     Model* GetModelToReload();
     std::string GetSelectedModel();
+    void SetSelectedModelIfASAPWorkExists(const std::string& selectedModel);
     void ClearSelectedModel() { _selectedModel = ""; }
     void ForceSelectedModel(const std::string& name) { _selectedModel = name; }
     void ClearModelToReload() { _modelToModelFromXml = nullptr; _workASAP &= ~WORK_RELOAD_MODEL_FROM_XML; }

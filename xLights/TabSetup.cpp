@@ -3047,6 +3047,9 @@ void xLightsFrame::DoWork(uint32_t work, const std::string& type, Model* m, cons
         // write the networks file to disk and clears the dirty flag
         SaveNetworksFile();
     }
+
+    // Keep the selected model for any subsequence ASAP work
+    _outputModelManager.SetSelectedModelIfASAPWorkExists(selectedModel);
 }
 
 void xLightsFrame::DoLayoutWork()

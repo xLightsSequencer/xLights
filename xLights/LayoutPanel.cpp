@@ -2141,7 +2141,15 @@ void LayoutPanel::SelectBaseObject(const std::string & name, bool highlight_tree
         Model *m = xlights->AllModels[name];
         if (m == nullptr)
         {
-            logger_base.warn("LayoutPanel:SelectBaseObject Unable to select model '%s'.", (const char *)name.c_str());
+            // Hmmm ... model doesnt exist ... maybe it is the additional model
+            if (modelPreview->GetAdditionalModel()->GetName() == name)
+            {
+                m = modelPreview->GetAdditionalModel();
+            }
+            else
+            {
+                logger_base.warn("LayoutPanel:SelectBaseObject Unable to select model '%s'.", (const char*)name.c_str());
+            }
         }
         if (m != selectedBaseObject)
         {
@@ -2713,6 +2721,8 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
             selectionLatched = true;
             highlightedBaseObject = newModel;
             selectedBaseObject = newModel;
+            // need to ensure the model stays selected
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::ProcessLeftMouseClick3D", newModel, nullptr, newModel->GetName());
             creating_model = true;
             if (wi > 0 && ht > 0)
             {

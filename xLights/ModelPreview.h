@@ -83,7 +83,7 @@ public:
         additionalModel = m;
         Refresh();
     }
-
+    Model* GetAdditionalModel() const { return additionalModel; }
 
     void SetPreviewPane(PreviewPane* pane) {mPreviewPane = pane;}
     void SetActive(bool show);
