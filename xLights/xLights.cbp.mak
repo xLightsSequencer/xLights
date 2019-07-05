@@ -3334,7 +3334,7 @@ effects/ShaderEffect.cpp: ../include/shader_64.xpm ../include/shader_48.xpm ../i
 
 effects/ShaderEffect.h: effects/RenderableEffect.h
 
-effects/ShaderPanel.h: xlGLCanvas.h
+effects/ShaderPanel.h: xlGLCanvas.h BulkEditControls.h
 
 effects/ShaderPanel.cpp: effects/ShaderPanel.h effects/ShaderEffect.h BulkEditControls.h effects/EffectPanelUtils.h ShaderDownloadDialog.h
 
@@ -3460,7 +3460,7 @@ TopEffectsPanel.cpp: TopEffectsPanel.h sequencer/EffectDropTarget.h ../include/O
 
 UpdaterDialog.cpp: UpdaterDialog.h
 
-UtilFunctions.cpp: UtilFunctions.h
+UtilFunctions.cpp: UtilFunctions.h xLightsVersion.h
 
 VAMPPluginDialog.cpp: VAMPPluginDialog.h UtilFunctions.h
 
