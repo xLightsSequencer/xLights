@@ -11,8 +11,23 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (keith)  Add an alternate sweep to VU meter for timed bouncing arches
+   -- enh (dkulp)  Use parallel discovery for FPP
+   -- enh (keith)  Optimise the screen location of a bunch of dialog boxes
+   -- enh (keith)  Defer papgayo dictionary load until you are breaking down words
+   -- enh (keith)  Add finer grained control to midi event detection in xSchedule
    -- bug (gil)    Fix render buffers for 3D camera angles
-
+   -- bug (keith)  Fix replace lost code which meant covert node data to effects does not work on strand and model
+   -- bug (keith)  Move back to shaders rendering only on the main thread on windows due to excessive hanging
+   -- bug (keith)  Fix 2/3 point models dont draw in 3D layout
+   -- bug (keith)  Fix xSchedule plugins being called when they shouldnt be
+   -- bug (keith)  Fix xSchedule does not always correct for show folders moved between machines
+   -- bug (keith)  Add in shader bulk edit
+   -- bug (keith)  Replace the audio band filter with a much better but slower one
+   -- bug (keith)  Fix model bulk edit sometimes misses the focussed model
+   -- bug (keith)  Fix cant see node numbers on custom model dialog on OSX dark mode
+   -- bug (keith)  Fix bulk edit controller type not updating for all controller types
+   -- bug (dkulp)  Fix bug with FPP not always finding FPP instances   
 2019.32 June 30, 2019
    -- enh (keith)  Add MQTT support to xSchedule ... both publish and subscribe
    -- enh (keith)  Add support for static and dynamic PS to xSchedule RDS
