@@ -2630,15 +2630,15 @@ std::string Model::GetFirstChannelInStartChannelFormat(OutputManager* outputMana
     return GetChannelInStartChannelFormat(outputManager, nullptr, GetFirstChannel() + 1);
 }
 
-unsigned int Model::GetLastChannel() {
-    unsigned int LastChan=0;
-    size_t NodeCount=GetNodeCount();
-    for(size_t idx=0; idx<NodeCount; idx++) {
+unsigned int Model::GetLastChannel() const {
+    unsigned int LastChan = 0;
+    size_t NodeCount = GetNodeCount();
+    for (size_t idx = 0; idx < NodeCount; idx++) {
         if (Nodes[idx]->ActChan == (unsigned int)-1)
         {
             return (unsigned int)NodeCount * Nodes[idx]->GetChanCount() - 1;
         }
-        unsigned int lc = std::max(LastChan,Nodes[idx]->ActChan + Nodes[idx]->GetChanCount() - 1);
+        unsigned int lc = std::max(LastChan, Nodes[idx]->ActChan + Nodes[idx]->GetChanCount() - 1);
         if (lc > LastChan)
         {
             LastChan = lc;
@@ -3108,7 +3108,7 @@ void Model::InitRenderBufferNodes(const std::string &type, const std::string &ca
         maxX /= factor;
         minY /= factor;
         maxY /= factor;
-        logger_base.debug("Factor '%f':", factor);
+        //logger_base.debug("Factor '%f':", factor);
 
         int offx = minX;
         int offy = minY;

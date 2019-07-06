@@ -77,7 +77,7 @@ public:
     void SetStartTimeMS(int startTimeMS);
     int GetEndTimeMS() const { return mEndTime; }
     void SetEndTimeMS(int endTimeMS);
-    bool OverlapsWith(int startTimeMS, int EndTimeMS);
+    bool OverlapsWith(int startTimeMS, int EndTimeMS) const;
 
     void ConvertTo(int effectIndex);
 

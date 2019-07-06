@@ -429,12 +429,12 @@ unsigned ModelGroup::GetFirstChannel() const
     return first;
 }
 
-unsigned ModelGroup::GetLastChannel()
+unsigned int ModelGroup::GetLastChannel() const
 {
-    unsigned last = 0;
-    for (auto it = ModelNames().begin(); it != ModelNames().end(); ++it)
+    unsigned int last = 0;
+    for (auto it : ModelNames())
     {
-        Model* mm = modelManager.GetModel(*it);
+        Model* mm = modelManager.GetModel(it);
         if (mm != nullptr)
         {
             if (mm->GetLastChannel() > last)

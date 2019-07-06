@@ -1562,25 +1562,35 @@ void SequenceElements::SelectAllEffectsNoTiming()
 {
     for (size_t i = 0; i < mRowInformation.size(); i++)
     {
-        if (mRowInformation[i].element->GetType() == ELEMENT_TYPE_TIMING)
+        if (mRowInformation[i].element->GetType() == ELEMENT_TYPE_TIMING) {
             continue;
+        }
         EffectLayer* effectLayer = GetEffectLayer(&mRowInformation[i]);
-        effectLayer->SelectAllEffects();
+        if (effectLayer != nullptr)
+        {
+            effectLayer->SelectAllEffects();
+        }
     }
 }
 
 void SequenceElements::SelectAllEffectsInRow(int row)
 {
     EffectLayer* effectLayer = GetEffectLayer(&mRowInformation[row]);
-    effectLayer->SelectAllEffects();
+    if (effectLayer != nullptr)
+    {
+        effectLayer->SelectAllEffects();
+    }
 }
 
 void SequenceElements::UnSelectAllEffects()
 {
-    for(size_t i=0;i<mRowInformation.size();i++)
+    for (size_t i = 0; i < mRowInformation.size(); i++)
     {
         EffectLayer* effectLayer = GetEffectLayer(&mRowInformation[i]);
-        effectLayer->UnSelectAllEffects();
+        if (effectLayer != nullptr)
+        {
+            effectLayer->UnSelectAllEffects();
+        }
     }
 }
 
@@ -1605,7 +1615,7 @@ void SequenceElements::UnSelectAllElements()
 }
 
 // Functions to manage selected ranges
-int SequenceElements::GetSelectedRangeCount()
+size_t SequenceElements::GetSelectedRangeCount()
 {
     return mSelectedRanges.size();
 }

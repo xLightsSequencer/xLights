@@ -15,7 +15,7 @@ class ModelGroup : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual ~ModelGroup();
 
         virtual unsigned int GetFirstChannel() const override;
-        virtual unsigned int GetLastChannel() override;
+        virtual unsigned int GetLastChannel() const override;
         void ModelRemoved(const std::string &name);
         virtual bool ModelRenamed(const std::string &oldName, const std::string &newName) override;
         bool SubModelRenamed(const std::string &oldName, const std::string &newName);

@@ -182,11 +182,11 @@ private:
     std::map<std::string, std::string> sequences;
     std::string tempFileName;
     std::string baseSeqName;
-    bool uploadCompressed;
-    FSEQFile *outputFile;
+    bool uploadCompressed = false;
+    FSEQFile *outputFile = nullptr;
 
     void setupCurl();
-    CURL *curl;
+    CURL *curl = nullptr;
     std::string curlInputBuffer;
 };
 

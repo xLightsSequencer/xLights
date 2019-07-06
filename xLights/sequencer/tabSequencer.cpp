@@ -428,12 +428,12 @@ void xLightsFrame::CheckForValidModels()
 
     std::vector<std::string> AllNames;
     std::vector<std::string> ModelNames;
-    for (auto it = AllModels.begin(); it != AllModels.end(); ++it) {
-        if (it->second != nullptr)
+    for (auto it : AllModels) {
+        if (it.second != nullptr)
         {
-            AllNames.push_back(it->first);
-            if (it->second->GetDisplayAs() != "ModelGroup") {
-                ModelNames.push_back(it->first);
+            AllNames.push_back(it.first);
+            if (it.second->GetDisplayAs() != "ModelGroup") {
+                ModelNames.push_back(it.first);
             }
         }
     }
@@ -496,12 +496,23 @@ void xLightsFrame::CheckForValidModels()
                 else {
                     // change the name of the element to the new name
                     std::string newName = dialog.ChoiceModels->GetStringSelection().ToStdString();
-                    logger_base.debug("Sequence Element Mismatch: rename '%s' to '%s'", (const char*)name.c_str(), (const char*)newName.c_str());
-                    mSequenceElements.DeleteElement(newName); // delete the existing element
-                    mSequenceElements.GetElement(x)->SetName(newName);
-                    ((ModelElement*)mSequenceElements.GetElement(x))->Init(*AllModels[newName]);
-                    Remove(AllNames, newName);
-                    Remove(ModelNames, newName);
+                    if (newName != "")
+                    {
+                        logger_base.debug("Sequence Element Mismatch: rename '%s' to '%s'", (const char*)name.c_str(), (const char*)newName.c_str());
+                        mSequenceElements.DeleteElement(newName); // delete the existing element
+                        mSequenceElements.GetElement(x)->SetName(newName);
+                        if (AllModels[newName] == nullptr)
+                        {
+                            logger_base.crit("Sequence Element Mismatch: rename '%s' to '%s' AllModels[newName] returned nullptr ... this is going to crash", (const char*)name.c_str(), (const char*)newName.c_str());
+                        }
+                        ((ModelElement*)mSequenceElements.GetElement(x))->Init(*AllModels[newName]);
+                        Remove(AllNames, newName);
+                        Remove(ModelNames, newName);
+                    }
+                    else
+                    {
+                        logger_base.error("Sequence Element Mismatch: rename '%s' to '%s' tried to rename to blank.", (const char*)name.c_str(), (const char*)newName.c_str());
+                    }
                 }
             }
         }
@@ -1114,7 +1125,7 @@ void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
     Effect* last_effect_created = nullptr;
 
     mSequenceElements.get_undo_mgr().CreateUndoStep();
-    for(int i=0;i<mSequenceElements.GetSelectedRangeCount();i++)
+    for(size_t i=0;i<mSequenceElements.GetSelectedRangeCount();i++)
     {
         EffectLayer* el = mSequenceElements.GetSelectedRange(i)->Layer;
         if (el->GetParentElement()->GetType() == ELEMENT_TYPE_TIMING) {
@@ -1207,7 +1218,7 @@ void xLightsFrame::EffectFileDroppedOnGrid(wxCommandEvent& event)
     Effect* last_effect_created = nullptr;
 
     mSequenceElements.get_undo_mgr().CreateUndoStep();
-    for (int i = 0; i < mSequenceElements.GetSelectedRangeCount(); i++)
+    for (size_t i = 0; i < mSequenceElements.GetSelectedRangeCount(); i++)
     {
         EffectLayer* el = mSequenceElements.GetSelectedRange(i)->Layer;
         if (el->GetParentElement()->GetType() == ELEMENT_TYPE_TIMING) {

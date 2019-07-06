@@ -16,7 +16,7 @@
 #include "effects/RenderableEffect.h"
 #include "EffectsPanel.h"
 #include "RenderCommandEvent.h"
-
+#include "UtilFunctions.h"
 #include "effects/EffectPanelUtils.h"
 #include "xLightsApp.h"
 #include "xLightsMain.h"
@@ -132,7 +132,7 @@ void EffectsPanel::SetEffectPanelStatus(Model *cls, const wxString &name) {
 	}
 }
 
-int EffectsPanel::GetRandomSliderValue(wxSlider* slider)
+int EffectsPanel::GetRandomSliderValue(wxSlider* slider) const
 {
     if (isRandom(slider)) {
         return rand() % (slider->GetMax()-slider->GetMin()) + slider->GetMin();
@@ -140,7 +140,7 @@ int EffectsPanel::GetRandomSliderValue(wxSlider* slider)
     return slider->GetValue();
 }
 
-wxWindow* EffectsPanel::GetWindowPanel(wxWindow* w) {
+wxWindow* EffectsPanel::GetWindowPanel(wxWindow* w) const {
     wxWindowList &ChildList = w->GetChildren();
     for (wxWindowList::iterator it = ChildList.begin(); it != ChildList.end(); ++it)
     {
@@ -225,17 +225,11 @@ wxString EffectsPanel::GetRandomEffectStringFromWindow(wxWindow *w, const wxStri
 }
 
 // assumes effidx does not refer to Text effect
-//modifed for partially random, allow random colors also -DJ
-//void djdebug(const char* fmt, ...); //_DJ
+// modifed for partially random, allow random colors also -DJ
 wxString EffectsPanel::GetRandomEffectString(int effidx)
 {
     wxString s,ChildName,AttrName;
     wxString prefix=",E_";
-
-//    djdebug("GetRandomEffectString: %s rnd? %d", (const char*)Slider_Speed->GetName().c_str(), isRandom(Slider_Speed));
-
-    // get speed
-   //~ s = prefix + wxString::Format("SLIDER_Speed=%d", GetRandomSliderValue(Slider_Speed));
 
     // get effect controls
     wxWindow *window = EffectChoicebook->GetPage(effidx);
@@ -248,7 +242,7 @@ wxString EffectsPanel::GetRandomEffectString(int effidx)
 //selectable clear canvas before render: -DJ
 //this allows multiple effects to be overlayed for composite models
 //also provides useful "bread crumbs" for some effects such as Spirograph
-bool EffectsPanel::WantOverlayBkg(void)
+bool EffectsPanel::WantOverlayBkg(void) const
 {
     //~return CheckBox_OverlayBkg->GetValue();
     return false;
@@ -281,13 +275,14 @@ void EffectsPanel::OnChoicePopup(wxCommandEvent& event)
     std::string label = "Effect";
 
     wxArrayString choices;
-    for (auto i = 0; i < EffectChoicebook->GetChoiceCtrl()->GetCount(); i++)
+    for (size_t i = 0; i < EffectChoicebook->GetChoiceCtrl()->GetCount(); i++)
     {
         choices.push_back(EffectChoicebook->GetChoiceCtrl()->GetString(i));
     }
 
     wxSingleChoiceDialog dlg(GetParent(), "", label, choices);
     dlg.SetSelection(EffectChoicebook->GetChoiceCtrl()->GetSelection());
+    OptimiseDialogPosition(&dlg);
 
     if (dlg.ShowModal() == wxID_OK)
     {
@@ -313,8 +308,9 @@ void EffectsPanel::setlock(wxButton* button) //, EditState& islocked)
 {
     EffectPanelUtils::SetLock(button);
 }
+
 //#define isRandom(ctl)  (buttonState[std::string(ctl->GetName())] == Random)
-bool EffectsPanel::isRandom_(wxControl* ctl, const char*debug)
+bool EffectsPanel::isRandom_(wxControl* ctl, const char*debug) const
 {
     if (!EffectPanelUtils::IsLockable(ctl)) {
         return false;
@@ -325,7 +321,7 @@ bool EffectsPanel::isRandom_(wxControl* ctl, const char*debug)
     return false;
 }
 
-bool EffectsPanel::isRandom_(void)
+bool EffectsPanel::isRandom_(void) const
 {
     return isRandom(EffectChoicebook);
 }

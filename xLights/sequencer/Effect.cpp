@@ -338,7 +338,7 @@ void Effect::SetEndTimeMS(int endTimeMS)
     }
 }
 
-bool Effect::OverlapsWith(int startTimeMS, int EndTimeMS)
+bool Effect::OverlapsWith(int startTimeMS, int EndTimeMS) const
 {
     return (startTimeMS < GetEndTimeMS() && EndTimeMS > GetStartTimeMS());
 }

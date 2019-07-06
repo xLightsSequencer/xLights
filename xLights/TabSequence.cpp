@@ -477,6 +477,7 @@ void xLightsFrame::LoadEffectsFile()
     EffectsNode->AddAttribute("version", XLIGHTS_RGBEFFECTS_VERSION);
 
     displayElementsPanel->SetSequenceElementsModelsViews(&SeqData, &mSequenceElements, ModelsNode, ModelGroupsNode, &_sequenceViewManager);
+    layoutPanel->ClearUndo();
     GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LoadEffectsFile");
     mSequencerInitialize = false;
 

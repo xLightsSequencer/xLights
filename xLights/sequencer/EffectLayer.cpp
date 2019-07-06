@@ -186,11 +186,11 @@ void EffectLayer::SortEffects()
     }
 }
 
-bool EffectLayer::IsStartTimeLinked(int index)
+bool EffectLayer::IsStartTimeLinked(int index) const
 {
-    if(index < mEffects.size() && index > 0)
+    if (index < mEffects.size() && index > 0)
     {
-        return mEffects[index-1]->GetEndTimeMS() == mEffects[index]->GetStartTimeMS();
+        return mEffects[index - 1]->GetEndTimeMS() == mEffects[index]->GetStartTimeMS();
     }
     else
     {
@@ -198,11 +198,11 @@ bool EffectLayer::IsStartTimeLinked(int index)
     }
 }
 
-bool EffectLayer::IsEndTimeLinked(int index)
+bool EffectLayer::IsEndTimeLinked(int index) const
 {
-    if(index < mEffects.size()-1)
+    if (index < mEffects.size() - 1)
     {
-        return mEffects[index]->GetEndTimeMS() == mEffects[index+1]->GetStartTimeMS();
+        return mEffects[index]->GetEndTimeMS() == mEffects[index + 1]->GetStartTimeMS();
     }
     else
     {
@@ -210,40 +210,40 @@ bool EffectLayer::IsEndTimeLinked(int index)
     }
 }
 
-int EffectLayer::GetMaximumEndTimeMS(int index, bool allow_collapse, int min_period)
+int EffectLayer::GetMaximumEndTimeMS(int index, bool allow_collapse, int min_period) const
 {
-    if(index+1 >= mEffects.size())
+    if (index + 1 >= mEffects.size())
     {
         return NO_MIN_MAX_TIME;
     }
     else
     {
-        if(mEffects[index]->GetEndTimeMS() == mEffects[index+1]->GetStartTimeMS() && allow_collapse)
+        if (mEffects[index]->GetEndTimeMS() == mEffects[index + 1]->GetStartTimeMS() && allow_collapse)
         {
-            return mEffects[index+1]->GetEndTimeMS() - min_period;
+            return mEffects[index + 1]->GetEndTimeMS() - min_period;
         }
         else
         {
-            return mEffects[index+1]->GetStartTimeMS();
+            return mEffects[index + 1]->GetStartTimeMS();
         }
     }
 }
 
-int EffectLayer::GetMinimumStartTimeMS(int index, bool allow_collapse, int min_period)
+int EffectLayer::GetMinimumStartTimeMS(int index, bool allow_collapse, int min_period) const
 {
-    if(index == 0)
+    if (index == 0)
     {
         return NO_MIN_MAX_TIME;
     }
     else
     {
-        if(mEffects[index-1]->GetEndTimeMS() == mEffects[index]->GetStartTimeMS() && allow_collapse)
+        if (mEffects[index - 1]->GetEndTimeMS() == mEffects[index]->GetStartTimeMS() && allow_collapse)
         {
-            return mEffects[index-1]->GetStartTimeMS() + min_period;
+            return mEffects[index - 1]->GetStartTimeMS() + min_period;
         }
         else
         {
-            return mEffects[index-1]->GetEndTimeMS();
+            return mEffects[index - 1]->GetEndTimeMS();
         }
     }
 }
@@ -259,7 +259,7 @@ bool EffectLayer::IsFixedTimingLayer()
     return !(te == nullptr || !te->IsFixedTiming());
 }
 
-bool EffectLayer::HitTestEffectByTime(int timeMS, int &index)
+bool EffectLayer::HitTestEffectByTime(int timeMS, int& index) const
 {
     for (int i = 0; i < mEffects.size(); i++)
     {
@@ -273,7 +273,7 @@ bool EffectLayer::HitTestEffectByTime(int timeMS, int &index)
     return false;
 }
 
-bool EffectLayer::HitTestEffectBetweenTime(int t1MS, int t2MS)
+bool EffectLayer::HitTestEffectBetweenTime(int t1MS, int t2MS) const
 {
     for (int i = 0; i < mEffects.size(); i++)
     {
@@ -287,7 +287,7 @@ bool EffectLayer::HitTestEffectBetweenTime(int t1MS, int t2MS)
     return false;
 }
 
-Effect* EffectLayer::GetEffectBeforeTime(int ms)
+Effect* EffectLayer::GetEffectBeforeTime(int ms) const
 {
     int i;
     for (i = 0; i < mEffects.size(); i++)
@@ -307,7 +307,7 @@ Effect* EffectLayer::GetEffectBeforeTime(int ms)
     }
 }
 
-Effect* EffectLayer::GetEffectAfterTime(int ms)
+Effect* EffectLayer::GetEffectAfterTime(int ms) const
 {
     int i;
     for (i = 0; i < mEffects.size(); i++)
@@ -327,7 +327,7 @@ Effect* EffectLayer::GetEffectAfterTime(int ms)
     }
 }
 
-Effect* EffectLayer::GetEffectAtTime(int timeMS)
+Effect* EffectLayer::GetEffectAtTime(int timeMS) const
 {
     for (int i = 0; i < mEffects.size(); i++) {
         if (timeMS >= mEffects[i]->GetStartTimeMS() &&
@@ -338,7 +338,7 @@ Effect* EffectLayer::GetEffectAtTime(int timeMS)
     return nullptr;
 }
 
-Effect*  EffectLayer::GetEffectBeforeEmptyTime(int ms)
+Effect* EffectLayer::GetEffectBeforeEmptyTime(int ms) const
 {
     int i;
     for (i = mEffects.size() - 1; i >= 0; i--)
@@ -358,7 +358,7 @@ Effect*  EffectLayer::GetEffectBeforeEmptyTime(int ms)
     }
 }
 
-Effect*  EffectLayer::GetEffectAfterEmptyTime(int ms)
+Effect* EffectLayer::GetEffectAfterEmptyTime(int ms) const
 {
     int i;
     for (i = 0; i < mEffects.size(); i++)
@@ -630,8 +630,7 @@ Effect* EffectLayer::SelectEffectUsingTime(int time)
     return nullptr;
 }
 
-int EffectLayer::GetLayerNumber()
-{
+int EffectLayer::GetLayerNumber() const {
     return GetParentElement()->GetLayerNumberFromIndex(GetIndex());
 }
 

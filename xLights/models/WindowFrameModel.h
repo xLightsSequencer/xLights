@@ -3,7 +3,6 @@
 
 #include "Model.h"
 
-
 class WindowFrameModel : public ModelWithScreenLocation<BoxedScreenLocation>
 {
     public:

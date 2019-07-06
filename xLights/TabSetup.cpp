@@ -542,6 +542,7 @@ bool xLightsFrame::PromptForShowDirectory()
         }
 
         displayElementsPanel->SetSequenceElementsModelsViews(nullptr, nullptr, nullptr, nullptr, nullptr);
+        layoutPanel->ClearUndo();
         return SetDir(newdir);
     }
     return false;

@@ -235,6 +235,7 @@ class LayoutPanel: public wxPanel
         void ImportModelsFromRGBEffects();
 
     public:
+        void ClearUndo() { undoBuffer.clear(); }
         void SaveEffects();
         void UpdatePreview();
         void SelectBaseObject(const std::string & name, bool highlight_tree = true);

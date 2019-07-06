@@ -43,26 +43,26 @@ class EffectLayer
         bool IsEffectValid(Effect* e) const;
         Effect* SelectEffectUsingTime(int time);
 
-        int GetLayerNumber();
+        int GetLayerNumber() const;
         int GetIndex() const;
         int GetEffectCount() const;
 
-        bool IsStartTimeLinked(int index);
-        bool IsEndTimeLinked(int index);
-        bool IsEffectStartTimeInRange(int index, int startTimeMS, int endTimeMS);
-        bool IsEffectEndTimeInRange(int index, int startTimeMS, int endTimeMS);
+        bool IsStartTimeLinked(int index) const;
+        bool IsEndTimeLinked(int index) const;
+        bool IsEffectStartTimeInRange(int index, int startTimeMS, int endTimeMS) const;
+        bool IsEffectEndTimeInRange(int index, int startTimeMS, int endTimeMS) const;
 
-        int GetMaximumEndTimeMS(int index, bool allow_collapse, int min_period);
-        int GetMinimumStartTimeMS(int index, bool allow_collapse, int min_period);
+        int GetMaximumEndTimeMS(int index, bool allow_collapse, int min_period) const;
+        int GetMinimumStartTimeMS(int index, bool allow_collapse, int min_period) const;
 
-        bool HitTestEffectByTime(int timeMS,int &index);
-        bool HitTestEffectBetweenTime(int t1MS, int t2MS);
+        bool HitTestEffectByTime(int timeMS,int &index) const;
+        bool HitTestEffectBetweenTime(int t1MS, int t2MS) const;
 
-        Effect* GetEffectAtTime(int ms);
-        Effect* GetEffectBeforeTime(int ms);
-        Effect* GetEffectAfterTime(int ms);
-        Effect* GetEffectBeforeEmptyTime(int ms);
-        Effect* GetEffectAfterEmptyTime(int ms);
+        Effect* GetEffectAtTime(int ms) const;
+        Effect* GetEffectBeforeTime(int ms) const;
+        Effect* GetEffectAfterTime(int ms) const;
+        Effect* GetEffectBeforeEmptyTime(int ms) const;
+        Effect* GetEffectAfterEmptyTime(int ms) const;
         std::list<Effect*> GetAllEffects();
 
         bool GetRangeIsClearMS(int startTimeMS, int endTimeMS, bool ignore_selected = false);

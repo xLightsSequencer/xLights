@@ -854,7 +854,6 @@ void LayoutPanel::SetDisplay2DCenter0(bool bb) {
     modelPreview->SetDisplay2DCenter0(bb);
 }
 
-
 void LayoutPanel::OnPropertyGridChanging(wxPropertyGridEvent& event) {
     std::string name = event.GetPropertyName().ToStdString();
     if (selectedBaseObject != nullptr) {
@@ -2329,8 +2328,9 @@ void LayoutPanel::SelectViewObject(ViewObject *v, bool highlight_tree) {
         if( highlight_tree ) {
             objects_panel->HighlightObject(v);
         }
-        if (changed)
+        if (changed) {
             SetupPropGrid(v);
+        }
     } else {
         propertyEditor->Freeze();
         clearPropGrid();
@@ -2338,7 +2338,7 @@ void LayoutPanel::SelectViewObject(ViewObject *v, bool highlight_tree) {
     }
 
     selectedBaseObject = v;
-    if (v) {
+    if (v != nullptr) {
         selectedBaseObject->GetBaseObjectScreenLocation().SetActiveHandle(CENTER_HANDLE);
         selectionLatched = true;
     }
@@ -3095,6 +3095,7 @@ void LayoutPanel::OnPreviewRotateGesture(wxRotateGestureEvent& event) {
     }
     m_last_mouse_x = (event.GetRotationAngle() * 1000);
 }
+
 void LayoutPanel::OnPreviewZoomGesture(wxZoomGestureEvent& event) {
     float delta = (m_last_mouse_x - (event.GetZoomFactor() * 1000)) / 1000.0;
     if (selectedBaseObject != nullptr) {
@@ -4148,7 +4149,6 @@ void LayoutPanel::PreviewModelResize(bool sameWidth, bool sameHeight)
     CreateUndoPoint("All", modelPreview->GetModels()[selectedindex]->name);
 
     if (sameWidth)
-
     {
         int width = modelPreview->GetModels()[selectedindex]->GetWidth();
         for (size_t i = 0; i < modelPreview->GetModels().size(); i++)

@@ -1,6 +1,7 @@
 #include <wx/propgrid/propgrid.h>
 #include <wx/propgrid/advprops.h>
 #include <wx/xml/xml.h>
+
 #include "WindowFrameModel.h"
 #include "ModelScreenLocation.h"
 

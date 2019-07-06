@@ -96,7 +96,6 @@
     <ClCompile Include="ModelPreview.cpp" />
     <ClCompile Include="models\Node.cpp" />
     <ClCompile Include="models\Shapes.cpp" />
-    <ClCompile Include="models\WindowFrameModel.cpp" />
     <ClCompile Include="MusicXML.cpp" />
     <ClCompile Include="NewTimingDialog.cpp" />
     <ClCompile Include="NodesGridCellEditor.cpp" />
@@ -240,7 +239,6 @@
     <ClCompile Include="FSEQFile.cpp" />
     <ClCompile Include="PathGenerationDialog.cpp" />
     <ClCompile Include="RemapDMXChannelsDialog.cpp" />
-    <ClCompile Include="models\WholeHouseModel.cpp" />
     <ClCompile Include="effects\LinesEffect.cpp" />
     <ClCompile Include="effects\LinesPanel.cpp" />
     <ClCompile Include="ControllerVisualiseDialog.cpp" />
@@ -650,6 +648,12 @@
     <ClCompile Include="effects\PianoEffect.cpp">
       <Filter>Effects</Filter>
     </ClCompile>
+    <ClCompile Include="models\WindowFrameModel.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
+    <ClCompile Include="models\WholeHouseModel.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -735,7 +739,6 @@
     <ClInclude Include="ModelPreview.h" />
     <ClInclude Include="models\Node.h" />
     <ClInclude Include="models\Shapes.h" />
-    <ClInclude Include="models\WindowFrameModel.h" />
     <ClInclude Include="MusicXML.h" />
     <ClInclude Include="NewTimingDialog.h" />
     <ClInclude Include="NodesGridCellEditor.h" />
@@ -891,7 +894,6 @@
     <ClInclude Include="FSEQFile.h" />
     <ClInclude Include="PathGenerationDialog.h" />
     <ClInclude Include="RemapDMXChannelsDialog.h" />
-    <ClInclude Include="models\WholeHouseModel.h" />
     <ClInclude Include="effects\LinesEffect.h" />
     <ClInclude Include="effects\LinesPanel.h" />
     <ClInclude Include="ControllerVisualiseDialog.h" />
@@ -1308,6 +1310,12 @@
     </ClInclude>
     <ClInclude Include="effects\PianoEffect.h">
       <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="models\WindowFrameModel.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="models\WholeHouseModel.h">
+      <Filter>Models</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -127,7 +127,7 @@ public:
     void BreakdownWord(EffectLayer* phoneme_layer, int start_time, int end_time, const std::string& word);
 
     // Selected Ranges
-    int GetSelectedRangeCount();
+    size_t GetSelectedRangeCount();
     EffectRange* GetSelectedRange(int index);
     void AddSelectedRange(EffectRange* range);
     void DeleteSelectedRange(int index);
