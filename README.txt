@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (dkulp)  AutoStart channels not working for DDP outputs
 2019.33 July 5, 2019
    -- enh (keith)  Add an alternate sweep to VU meter for timed bouncing arches
    -- enh (dkulp)  Use parallel discovery for FPP

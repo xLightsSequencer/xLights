@@ -139,7 +139,7 @@ DDPDialog::DDPDialog(wxWindow* parent, DDPOutput* DDP, OutputManager* outputMana
     TextCtrlIPAddress->SetValue(DDP->GetIP());
     CheckBox1->SetValue(DDP->IsSuppressDuplicateFrames());
     SpinCtrl1->SetValue(DDP->GetId());
-
+    CheckBox_Auto_Channels->SetValue(DDP->IsAutoLayoutModels());
 
     ControllerTypeChoice->Append("Unknown");
     int idx = 0;
@@ -189,6 +189,7 @@ void DDPDialog::SaveDDPFields() {
     _DDP->KeepChannelNumber(CheckBoxKeepChannels->IsChecked());
     _DDP->SetId(SpinCtrl1->GetValue());
     _DDP->SetFPPProxyIP(FPPProxyHost->GetValue());
+    _DDP->SetAutoStartChannels(CheckBox_Auto_Channels->GetValue());
     int idx = ControllerTypeChoice->GetSelection();
     if (idx == 0) {
         _DDP->SetControllerId("");
