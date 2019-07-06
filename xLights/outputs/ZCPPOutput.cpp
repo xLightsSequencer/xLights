@@ -547,6 +547,9 @@ std::list<Output*> ZCPPOutput::Discover(OutputManager* outputManager)
 
     for (auto ip : localIPs)
     {
+        if (ip == "127.0.0.1") {
+            continue;
+        }
         wxIPV4address sendlocaladdr;
         sendlocaladdr.Hostname(ip);
 

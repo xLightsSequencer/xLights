@@ -1363,7 +1363,9 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
     wxDatagramSocket *socket = new wxDatagramSocket(localaddr, wxSOCKET_BROADCAST | wxSOCKET_NOWAIT);
     socket->SetTimeout(1);
     socket->Notify(false);
-    sockets.push_back(socket);
+    if (socket->IsOk()) {
+        sockets.push_back(socket);
+    }
     
     auto localIPs = GetLocalIPs();
     for (auto ip : localIPs) {
