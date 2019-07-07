@@ -10,6 +10,7 @@
 #include <wx/sstream.h>
 #include "UtilFunctions.h"
 #include "ControllerUploadData.h"
+#include "ControllerRegistry.h"
 
 // This code has been tested with
 // ECG-P12S App Version 3.3
@@ -121,24 +122,45 @@ public:
     virtual bool UniversesMustBeSequential() const override { return false; }
 };
 
-J1Sys::J1Sys(const std::string& ip)
+
+
+static std::vector<J1SysControllerRules> CONTROLLER_TYPE_MAP = {
+    J1SysControllerRules(2, 1.0, "ECG-P2"),
+    J1SysControllerRules(12, 1.0, J1SYS_MODEL_P12R),
+    J1SysControllerRules(12, 4.0, J1SYS_MODEL_P12S),
+    J1SysControllerRules(12, 4.0, J1SYS_MODEL_P12D),
+};
+void J1Sys::RegisterControllers() {
+    for (auto &a : CONTROLLER_TYPE_MAP) {
+        ControllerRegistry::AddController(&a);
+    }
+}
+
+
+
+J1Sys::J1Sys(const std::string& ip, const std::string &proxy)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     _ip = ip;
     _outputs = 0;
+    _proxy = proxy;
 
     logger_base.debug("J1Sys upload tested to work with:");
     logger_base.debug("    ECG-P2 App Version 2.9b");
     logger_base.debug("    ECG-P12S App Version 3.3");
 
     _http.SetMethod("GET");
-    _connected = _http.Connect(_ip);
-
-    if (_connected)
-    {
+    
+    if (_proxy != "") {
+        _baseUrl = "/proxy/" + _ip;
+        _connected = _http.Connect(_proxy);
+    } else {
+        _connected = _http.Connect(_ip);
+    }
+    
+    if (_connected) {
         std::string page = GetURL("/sysinfo.htm");
-        if (page != "")
-        {
+        if (page != "") {
             static wxRegEx versionregex("(App Version:\\<\\/b\\>\\<\\/td\\>\\<td\\>.nbsp;\\<\\/td\\>\\<td\\>)([^\\<]*)\\<", wxRE_ADVANCED | wxRE_NEWLINE);
             if (versionregex.Matches(wxString(page)))
             {
@@ -157,16 +179,12 @@ J1Sys::J1Sys(const std::string& ip)
                     logger_base.debug("     outputs %d.", _outputs);
                 }
             }
-        }
-        else
-        {
+        } else {
             _http.Close();
             _connected = false;
             logger_base.error("Error connecting to J1Sys controller on %s.", (const char *)_ip.c_str());
         }
-    }
-    else
-    {
+    } else {
         logger_base.error("Error connecting to J1Sys controller on %s.", (const char *)_ip.c_str());
     }
 }
@@ -181,27 +199,28 @@ std::string J1Sys::GetURL(const std::string& url, bool logresult)
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxString res;
 
-    if (!_http.IsConnected())
-    {
-        _connected = _http.Connect(_ip);
+    if (!_http.IsConnected()) {
+        if (_proxy != "") {
+            _baseUrl = "/proxy/" + _ip;
+            _connected = _http.Connect(_proxy);
+        } else {
+            _connected = _http.Connect(_ip);
+        }
     }
 
     _http.SetMethod("GET");
-    wxInputStream *httpStream = _http.GetInputStream(wxString(url));
+    wxString gurl = url;
+    wxInputStream *httpStream = _http.GetInputStream(_baseUrl + url);
     logger_base.debug("Making request to J1Sys '%s'.", (const char *)url.c_str());
 
-    if (_http.GetError() == wxPROTO_NOERR)
-    {
+    if (_http.GetError() == wxPROTO_NOERR) {
         wxStringOutputStream out_stream(&res);
         httpStream->Read(out_stream);
 
-        if (logresult)
-        {
+        if (logresult) {
             logger_base.debug("Response from J1Sys '%s' : %d.", (const char *)res.c_str(), _http.GetError());
         }
-    }
-    else
-    {
+    } else {
         DisplayError(wxString::Format("Unable to connect to J1Sys '%s'.", url).ToStdString());
         res = "";
     }
@@ -215,32 +234,32 @@ std::string J1Sys::PutURL(const std::string& url, const std::string& request, bo
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxString res;
 
-    if (!_http.IsConnected())
-    {
-        _connected = _http.Connect(_ip);
+    if (!_http.IsConnected()) {
+        if (_proxy != "") {
+            _baseUrl = "/proxy/" + _ip;
+            _connected = _http.Connect(_proxy);
+        } else {
+            _connected = _http.Connect(_ip);
+        }
     }
 
     _http.SetMethod("POST");
     _http.SetUser("admin");
     _http.SetPostText("application/x-www-form-urlencoded", request);
-    wxInputStream *httpStream = _http.GetInputStream(wxString(url));
+    wxInputStream *httpStream = _http.GetInputStream(_baseUrl + url);
     logger_base.debug("Making request to J1Sys '%s'.", (const char *)url.c_str());
     logger_base.debug("    With data '%s'.", (const char *)request.c_str());
 
     int httpres = _http.GetError();
 
-    if (httpres == wxPROTO_NOERR)
-    {
+    if (httpres == wxPROTO_NOERR) {
         wxStringOutputStream out_stream(&res);
         httpStream->Read(out_stream);
 
-        if (logresult)
-        {
+        if (logresult) {
             logger_base.debug("Response from J1Sys '%s'.", (const char *)res.c_str());
         }
-    }
-    else
-    {
+    } else {
         DisplayError(wxString::Format("Unable to connect to J1Sys '%s' => %d.", url, httpres).ToStdString());
     }
     _http.SetPostText("", "");
@@ -767,3 +786,11 @@ void J1Sys::Reboot()
 {
     GetURL("/protect/reboot.htm?");
 }
+
+
+std::string J1Sys::GetPixelControllerTypeString() const {
+    return  J1SysControllerRules(_outputs, wxAtof(_version), _model).GetControllerId();
+
+}
+
+

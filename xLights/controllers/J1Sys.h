@@ -33,6 +33,8 @@ class J1Sys
 
     wxHTTP _http;
 	std::string _ip = "";
+    std::string _proxy = "";
+    std::string _baseUrl = "";
     std::string _version = "";
     std::string _model = "";
     int _outputs = 0;
@@ -54,11 +56,18 @@ class J1Sys
     int GetBankSize() const;
 
 public:
-    J1Sys(const std::string& ip);
+    J1Sys(const std::string& ip, const std::string &proxy);
     bool IsConnected() const { return _connected; };
     virtual ~J1Sys();
     bool SetInputUniverses(OutputManager* outputManager, std::list<int>& selected);
     bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, std::list<int>& selected, wxWindow* parent);
+    
+    const std::string &GetVersion() const { return _version; }
+    const std::string &GetModel() const { return _model; }
+    std::string GetPixelControllerTypeString() const;
+    
+    
+    static void RegisterControllers();
 };
 
 #endif

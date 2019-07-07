@@ -185,6 +185,7 @@ class Falcon
     int _version;
     std::string _modelString;
     int _model;
+    std::string _name;
     bool _connected;
     std::string GetURL(const std::string& url, bool logresult = false);
     std::string PutURL(const std::string& url, const std::string& request, bool logresult = false);
@@ -233,6 +234,10 @@ public:
     bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, std::list<int>& selected, wxWindow* parent);
     static void DecodeModelVersion(int p, int& model, int& version);
     static void RegisterControllers();
+    
+    const std::string &GetModel() const { return _modelString; }
+    const std::string &GetFirmwareVersion() const { return _firmwareVersion; }
+    const std::string &GetName() const { return _name; }
 };
 
 #endif

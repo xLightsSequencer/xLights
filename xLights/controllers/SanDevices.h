@@ -282,6 +282,10 @@ public:
     bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, std::list<int>& selected, wxWindow* parent);
 
     static void RegisterController();
+    
+    std::string GetModelName() { return EncodeControllerType(); }
+    const std::string &GetVersion() { return _version; }
+    std::string GetPixelControllerTypeString() { return wxString::Format("E%d Firmware %d", _model, _firmware).ToStdString(); }
 };
 
 #endif

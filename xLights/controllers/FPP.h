@@ -106,6 +106,8 @@ class FPP {
     std::string mode;
     std::string pixelControllerType;
     std::string panelSize;
+    
+    std::string proxy;
     std::set<std::string> proxies;
 
     std::string username;

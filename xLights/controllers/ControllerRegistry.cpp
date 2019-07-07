@@ -57,4 +57,5 @@ void ControllerRegistry::loadControllers() {
     FPP::RegisterCapes();
     ESPixelStick::RegisterControllers();
     SanDevices::RegisterController();
+    J1Sys::RegisterControllers();
 }

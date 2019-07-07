@@ -2228,7 +2228,8 @@ void xLightsFrame::UploadJ1SYSOutput()
     {
         SetCursor(wxCURSOR_WAIT);
         wxString ip;
-        std::list<int> selected = GetSelectedOutputs(ip);
+        wxString proxy;
+        std::list<int> selected = GetSelectedOutputs(ip, proxy);
 
         if (ip == "") {
             wxTextEntryDialog dlg(this, "J1SYS IP Address", "IP Address", ip);
@@ -2242,7 +2243,7 @@ void xLightsFrame::UploadJ1SYSOutput()
         // Recalc all the models to make sure any changes on setup are incorporated
         RecalcModels();
 
-        J1Sys j1sys(ip.ToStdString());
+        J1Sys j1sys(ip.ToStdString(), proxy.ToStdString());
         if (j1sys.IsConnected()) {
             if (j1sys.SetOutputs(&AllModels, &_outputManager, selected, this)) {
                 SetStatusText("J1SYS Upload Complete.");
@@ -2706,17 +2707,45 @@ void xLightsFrame::OnButton_DiscoverClick(wxCommandEvent& event)
         }
     }
     for (auto fpp : consider) {
-        DDPOutput *ddp = new DDPOutput();
-        if (fpp->hostName != "") {
-            ddp->SetIP(fpp->hostName);
-        } else {
-            ddp->SetIP(fpp->ipAddress);
+        IPOutput *output = nullptr;
+        bool isDDP = false;
+        if (fpp->pixelControllerType != "") {
+            const ControllerRules * rules = ControllerRegistry::GetRulesForController(fpp->pixelControllerType);
+            if (rules) {
+                std::string cont = rules->GetControllerManufacturer();
+                if (cont == "ESPixelStick") {
+                    DDPOutput *ddp = new DDPOutput();
+                    ddp->KeepChannelNumber(false);
+                    output = ddp;
+                    isDDP = true;
+                } else if (cont == "FPP") {
+                    output = new DDPOutput();
+                    isDDP = true;
+                }
+            }
         }
-        ddp->SetControllerId(fpp->pixelControllerType);
-        ddp->SetDescription(fpp->description);
-        if (fpp->platform == "ESPixelStick") {
-            ddp->SetControllerId("ESPixelStick");
-            ddp->KeepChannelNumber(false);
+        if (output == nullptr) {
+            if (fpp->isFPP) {
+                output = new DDPOutput();
+                isDDP = true;
+            } else {
+                output = new E131Output();
+            }
+        }
+        
+        output->SetFPPProxyIP(fpp->proxy);
+        if (fpp->hostName != "") {
+            output->SetIP(fpp->hostName);
+        } else {
+            output->SetIP(fpp->ipAddress);
+        }
+        output->SetControllerId(fpp->pixelControllerType);
+        if (fpp->description == "") {
+            if (fpp->hostName != "") {
+                output->SetDescription(fpp->hostName);
+            }
+        } else {
+            output->SetDescription(fpp->description);
         }
         int min = 9999999; int max = 0;
         if (fpp->ranges != "") {
@@ -2736,12 +2765,20 @@ void xLightsFrame::OnButton_DiscoverClick(wxCommandEvent& event)
         if (count < 512) {
             count = 512;
         }
-        ddp->SetChannels(count);
-        _outputManager.AddOutput(ddp, -1);
-        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "OnButton_DiscoverClick", nullptr, ddp);
-        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "OnButton_DiscoverClick", nullptr, ddp);
-        _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "OnButton_DiscoverClick", nullptr, ddp);
-        _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "OnButton_DiscoverClick", nullptr, ddp);
+        if (isDDP) {
+            ((DDPOutput*)output)->SetChannels(count);
+        } else {
+            ((E131Output*)output)->SetChannels(count < 512 ? count : 512);
+            int numU = count / 512;
+            if (numU > 1) {
+                ((E131Output*)output)->CreateMultiUniverses(numU);
+            }
+        }
+        _outputManager.AddOutput(output, -1);
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "OnButton_DiscoverClick", nullptr, output);
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "OnButton_DiscoverClick", nullptr, output);
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "OnButton_DiscoverClick", nullptr, output);
+        _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "OnButton_DiscoverClick", nullptr, output);
         delete fpp;
     }
     

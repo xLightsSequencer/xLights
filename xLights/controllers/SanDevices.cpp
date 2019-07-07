@@ -230,7 +230,7 @@ bool SimpleHTTP::MyBuildRequest(const wxString& path, const wxString& method, wx
 
     if (!tmp_str.Contains(wxT("HTTP/"))) {
         m_lastError = wxPROTO_NOERR;
-        SetHeader(wxT("Content-Length"), wxString::Format("%i", (long)tmp_str.Length()));
+        SetHeader(wxT("Content-Length"), wxString::Format("%d", (int)tmp_str.Length()));
         SetHeader(wxT("Content-Type"), wxT("text/html"));
         startResult = tmp_str;
 
@@ -371,7 +371,7 @@ std::string SanDevices::GetURL(const std::string& url, bool logresult)
 
     _http.SetMethod("GET");
     wxString startResult;
-    wxInputStream *httpStream = _http.GetInputStream(_baseUrl + wxString(url), startResult);
+    wxInputStream *httpStream = _http.GetInputStream(_baseUrl + url, startResult);
     logger_base.debug("Making request to SanDevices %s '%s' -> %d", (const char *)_ip.c_str(), (const char *)url.c_str(), _http.GetResponse());
 
     if (_http.GetError() == wxPROTO_NOERR)

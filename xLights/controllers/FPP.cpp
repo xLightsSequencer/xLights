@@ -35,6 +35,11 @@
 #include "../FSEQFile.h"
 
 
+#include "Falcon.h"
+#include "SanDevices.h"
+#include "J1Sys.h"
+
+
 
 static std::map<std::string, PixelCapeInfo> CONTROLLER_TYPE_MAP = {
     {"PiHat", PixelCapeInfo("PiHat", 2, 0)},
@@ -1307,6 +1312,7 @@ public:
         curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT_MS, 500);
         curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, 8000);
         curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, &errorBuffer);
+        curl_easy_setopt(curl, CURLOPT_FAILONERROR, true);
     }
     ~CurlData() {
         curl_easy_cleanup(curl);
@@ -1467,7 +1473,8 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
                 while ((m = curl_multi_info_read(curlMulti, &msgq))) {
                     if (m->msg == CURLMSG_DONE) {
                         CURL *e = m->easy_handle;
-                        curl_multi_remove_handle(curlMulti, e);
+                        long response_code = 0;
+                        curl_easy_getinfo(e, CURLINFO_HTTP_CODE, &response_code);
                         for (int x = 0; x < curls.size(); x++) {
                             if (curls[x] && curls[x]->curl == e) {
                                 /*
@@ -1480,11 +1487,9 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
                                 wxJSONValue origJson;
                                 wxJSONReader reader;
                                 bool parsed = true;
-                                if (curls[x]->type != 3) {
-                                    parsed = reader.Parse(curls[x]->buffer, &origJson) == 0;
-                                }
                                 switch (curls[x]->type) {
                                     case 1: {
+                                        parsed = reader.Parse(curls[x]->buffer, &origJson) == 0;
                                         if (parsed) {
                                             curls[x]->fpp->parseSysInfo(origJson);
                                             std::string file = "co-pixelStrings";
@@ -1526,13 +1531,114 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
                                         break;
                                     }
                                     case 2:
+                                        parsed = reader.Parse(curls[x]->buffer, &origJson) == 0;
                                         if (parsed) curls[x]->fpp->parseControllerType(origJson);
                                         break;
                                     case 3:
                                         curls[x]->fpp->parseConfig(curls[x]->buffer);
                                         break;
                                     case 4:
-                                        curls[x]->fpp->parseProxies(origJson);
+                                        parsed = reader.Parse(curls[x]->buffer, &origJson) == 0;
+                                        if (parsed) curls[x]->fpp->parseProxies(origJson);
+                                        for (auto address : curls[x]->fpp->proxies) {
+                                            bool found = false;
+                                            for (auto f : instances) {
+                                                if (f->ipAddress == address
+                                                    && f->proxy == curls[x]->fpp->ipAddress) {
+                                                    found = true;
+                                                }
+                                            }
+                                            if (found) {
+                                                continue;
+                                            }
+                                            
+                                            
+                                            FPP *fpp = new FPP();
+                                            fpp->ipAddress = address;
+                                            fpp->hostName = address;
+                                            fpp->proxy = curls[x]->fpp->ipAddress;
+                                            instances.push_back(fpp);
+
+                                            
+                                            std::string fullAddress = "http://" + curls[x]->fpp->ipAddress + "/proxy/" + address + "/status.xml";
+                                            CurlData *data = new CurlData(fullAddress);
+                                            data->type = 6;
+                                            data->fpp = fpp;
+                                            curls.push_back(data);
+                                            curl_multi_add_handle(curlMulti, data->curl);
+                                            running++;
+                                            
+                                            /*
+                                            fullAddress = "http://" + curls[x]->fpp->ipAddress + "/proxy/" + address + "/";
+                                            data = new CurlData(fullAddress);
+                                            data->type = 5;
+                                            data->fpp = fpp;
+                                            curls.push_back(data);
+                                            curl_multi_add_handle(curlMulti, data->curl);
+                                            running++;
+                                             */
+                                            
+                                            fullAddress = "http://" + curls[x]->fpp->ipAddress + "/proxy/" + address + "/H?";
+                                            data = new CurlData(fullAddress);
+                                            data->type = 7;
+                                            data->fpp = fpp;
+                                            curls.push_back(data);
+                                            curl_multi_add_handle(curlMulti, data->curl);
+                                            running++;
+
+                                            fullAddress = "http://" + curls[x]->fpp->ipAddress + "/proxy/" + address + "/sysinfo.htm";
+                                            data = new CurlData(fullAddress);
+                                            data->type = 8;
+                                            data->fpp = fpp;
+                                            curls.push_back(data);
+                                            curl_multi_add_handle(curlMulti, data->curl);
+                                            running++;
+                                        }
+                                        break;
+                                    case 5: //  just the root HTTP page, likely hard to figure out?
+                                        break;
+                                    case 6: // /status.xml found, likely Falcon
+                                        if (response_code == 200) {
+                                            Falcon falc(curls[x]->fpp->ipAddress, curls[x]->fpp->proxy);
+                                            if (falc.IsConnected()) {
+                                                if (falc.GetName() != "") {
+                                                    curls[x]->fpp->hostName = falc.GetName();
+                                                    curls[x]->fpp->description = falc.GetName();
+                                                }
+                                                curls[x]->fpp->pixelControllerType = falc.GetModel();
+                                                curls[x]->fpp->model = falc.GetModel();
+                                                curls[x]->fpp->fullVersion = falc.GetFirmwareVersion();
+                                                curls[x]->fpp->platform = "Falcon";
+                                                curls[x]->fpp->mode = "bridge";
+                                                curls[x]->fpp->isFPP = false;
+                                            }
+                                        }
+                                        break;
+                                    case 7: // /H? - likely v5 sandevice
+                                        if (response_code == 200) {
+                                            SanDevices sand(curls[x]->fpp->ipAddress, curls[x]->fpp->proxy);
+                                            if (sand.IsConnected()) {
+                                                curls[x]->fpp->pixelControllerType = sand.GetPixelControllerTypeString();
+                                                curls[x]->fpp->model = sand.GetModelName();
+                                                curls[x]->fpp->fullVersion = sand.GetVersion();
+                                                curls[x]->fpp->platform = "SanDevices";
+                                                curls[x]->fpp->mode = "bridge";
+                                                curls[x]->fpp->isFPP = false;
+                                            }
+                                        }
+                                        break;
+                                    case 8: // /sysinfo.htm - for j1sys
+                                        if (response_code == 200) {
+                                            J1Sys j1sys(curls[x]->fpp->ipAddress, curls[x]->fpp->proxy);
+                                            if (j1sys.IsConnected()) {
+                                                curls[x]->fpp->pixelControllerType = j1sys.GetPixelControllerTypeString();
+                                                curls[x]->fpp->model = j1sys.GetModel();
+                                                curls[x]->fpp->fullVersion = j1sys.GetVersion();
+                                                curls[x]->fpp->platform = "J1Sys";
+                                                curls[x]->fpp->mode = "bridge";
+                                                curls[x]->fpp->isFPP = false;
+                                            }
+                                        }
                                         break;
                                     default:
                                         for (int x = 0; x < origJson.Size(); x++) {
@@ -1645,6 +1751,7 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
                                 curls[x] = nullptr;
                             }
                         }
+                        curl_multi_remove_handle(curlMulti, e);
                     }
                 }
             }
@@ -1665,10 +1772,14 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
 
     std::list<FPP*> toRemove;
     for (auto a : instances) {
-        if (!a->isFPP) {
-            FPP *f = a;
-            toRemove.push_back(f);
-        } else if (!allPlatforms && a->platform == "ESPixelStick") {
+        //apply some fixups
+        if (a->platform == "") {
+            a->platform = a->model;
+        }
+        if (a->platform == "ESPixelStick") {
+            a->pixelControllerType = "ESPixelStick";
+        }
+        if (!allPlatforms && a->pixelControllerType == "") {
             FPP *f = a;
             toRemove.push_back(f);
         }

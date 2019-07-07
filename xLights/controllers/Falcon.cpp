@@ -145,9 +145,11 @@ Falcon::Falcon(const std::string& ip, const std::string &proxy) : _ip(ip), _fppP
                 _firmwareVersion = node->GetNodeContent();
             } else if (node->GetName() == "a") {
                 _usingAbsolute = node->GetNodeContent() == "0";
+            } else if (node->GetName() == "n") {
+                _name = node->GetNodeContent().Trim();
             } else if (node->GetName() == "p") {
                 DecodeModelVersion(wxAtoi(node->GetNodeContent()), _model, _version);
-                _modelString = wxString::Format("F%dV%d", _model, _version).ToStdString();
+                _modelString = wxString::Format("F%dv%d", _model, _version).ToStdString();
             }
             node = node->GetNext();
         }
