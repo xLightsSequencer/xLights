@@ -702,15 +702,6 @@ void KeyBindingMap::Load(const wxFileName &fileName) noexcept
     {
         DisplayError("Keybindings contains invalid bindings:\n\n" + invalid);
     }
-
-    // FIXME ... once I work out why this happens this can be removed
-    for (const auto& b : _bindings)
-    {
-        if (b.GetType() == "TIMING_ADD")
-        {
-            logger_base.debug("On load - TIMING_ADD: " + b.Description());
-        }
-    }
 }
 
 void KeyBindingMap::Save(const wxFileName &fileName) const noexcept
@@ -723,17 +714,28 @@ void KeyBindingMap::Save(const wxFileName &fileName) const noexcept
     wxXmlNode *root = new wxXmlNode(wxXML_ELEMENT_NODE, "keybindings");
     doc.SetRoot(root);
 
+    bool corrupt = false;
     for (const auto& binding : _bindings) {
-
         wxKeyCode key = binding.GetKey();
-
-        // FIXME ... once I work out why this happens this can be removed
         if (binding.GetType() == "TIMING_ADD" && (key == WXK_NONE || KeyBinding::EncodeKey(key, binding.RequiresShift()) == ""))
         {
             logger_base.debug("TIMING_ADD: " + binding.Description());
-            DisplayError("Your keybindings appear corrupt. Can you please use the tools menu Package Logs option and send us the file so we can work out why.");
+            logger_base.warn("Your keybindings appear corrupt. Resetting key bindings.");
+            corrupt = true;
+            break;
         }
-        // END FIXME
+    }
+
+    auto bindings = _bindings;
+    if (corrupt)
+    {
+        wxASSERT(false);
+        bindings = DefaultBindings;
+    }
+
+    for (const auto& binding : bindings) {
+
+        wxKeyCode key = binding.GetKey();
 
         wxXmlNode *child = new wxXmlNode(wxXML_ELEMENT_NODE, "keybinding");
 
