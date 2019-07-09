@@ -12,8 +12,6 @@
     <ClCompile Include="CustomTimingDialog.cpp" />
     <ClCompile Include="EffectTimingDialog.cpp" />
     <ClCompile Include="effects\GIFImage.cpp" />
-    <ClCompile Include="effects\LiquidEffect.cpp" />
-    <ClCompile Include="effects\LiquidPanel.cpp" />
     <ClCompile Include="FontManager.cpp" />
     <ClCompile Include="GenerateLyricsDialog.cpp" />
     <ClCompile Include="HousePreviewPanel.cpp" />
@@ -53,14 +51,6 @@
     <ClCompile Include="effects\EffectPanelUtils.cpp" />
     <ClCompile Include="effects\GlediatorEffect.cpp" />
     <ClCompile Include="effects\GlediatorPanel.cpp" />
-    <ClCompile Include="effects\LifeEffect.cpp" />
-    <ClCompile Include="effects\LifePanel.cpp" />
-    <ClCompile Include="effects\LightningEffect.cpp" />
-    <ClCompile Include="effects\LightningPanel.cpp" />
-    <ClCompile Include="effects\MarqueeEffect.cpp" />
-    <ClCompile Include="effects\MarqueePanel.cpp" />
-    <ClCompile Include="effects\MeteorsEffect.cpp" />
-    <ClCompile Include="effects\MeteorsPanel.cpp" />
     <ClCompile Include="effects\OffEffect.cpp" />
     <ClCompile Include="effects\OffPanel.cpp" />
     <ClCompile Include="effects\OnEffect.cpp" />
@@ -92,7 +82,6 @@
     <ClCompile Include="MIDI\MidiEventList.cpp" />
     <ClCompile Include="MIDI\MidiFile.cpp" />
     <ClCompile Include="MIDI\MidiMessage.cpp" />
-    <ClCompile Include="ModelGroupPanel.cpp" />
     <ClCompile Include="ModelPreview.cpp" />
     <ClCompile Include="models\Node.cpp" />
     <ClCompile Include="models\Shapes.cpp" />
@@ -233,14 +222,11 @@
     <ClCompile Include="models\ViewObjectManager.cpp" />
     <ClCompile Include="ViewObjectPanel.cpp" />
     <ClCompile Include="NodeSelectGrid.cpp" />
-    <ClCompile Include="ModelChainDialog.cpp" />
     <ClCompile Include="MultiControllerUploadDialog.cpp" />
     <ClCompile Include="wxModelGridCellRenderer.cpp" />
     <ClCompile Include="FSEQFile.cpp" />
     <ClCompile Include="PathGenerationDialog.cpp" />
     <ClCompile Include="RemapDMXChannelsDialog.cpp" />
-    <ClCompile Include="effects\LinesEffect.cpp" />
-    <ClCompile Include="effects\LinesPanel.cpp" />
     <ClCompile Include="ControllerVisualiseDialog.cpp" />
     <ClCompile Include="LOREdit.cpp" />
     <ClCompile Include="AlignmentDialog.cpp" />
@@ -654,6 +640,48 @@
     <ClCompile Include="models\WholeHouseModel.cpp">
       <Filter>Models</Filter>
     </ClCompile>
+    <ClCompile Include="ModelChainDialog.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
+    <ClCompile Include="ModelGroupPanel.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\LiquidEffect.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\LiquidPanel.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\LifeEffect.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\LifePanel.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\LightningEffect.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\LightningPanel.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\LinesEffect.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\LinesPanel.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\MarqueePanel.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\MarqueeEffect.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\MeteorsPanel.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\MeteorsEffect.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -672,8 +700,6 @@
     <ClInclude Include="MSWStackWalk.h" />
     <ClInclude Include="CustomTimingDialog.h" />
     <ClInclude Include="effects\GIFImage.h" />
-    <ClInclude Include="effects\LiquidEffect.h" />
-    <ClInclude Include="effects\LiquidPanel.h" />
     <ClInclude Include="IPEntryDialog.h" />
     <ClInclude Include="AudioManager.h" />
     <ClInclude Include="BitmapCache.h" />
@@ -702,14 +728,6 @@
     <ClInclude Include="effects\EffectPanelUtils.h" />
     <ClInclude Include="effects\GlediatorEffect.h" />
     <ClInclude Include="effects\GlediatorPanel.h" />
-    <ClInclude Include="effects\LifeEffect.h" />
-    <ClInclude Include="effects\LifePanel.h" />
-    <ClInclude Include="effects\LightningEffect.h" />
-    <ClInclude Include="effects\LightningPanel.h" />
-    <ClInclude Include="effects\MarqueeEffect.h" />
-    <ClInclude Include="effects\MarqueePanel.h" />
-    <ClInclude Include="effects\MeteorsEffect.h" />
-    <ClInclude Include="effects\MeteorsPanel.h" />
     <ClInclude Include="effects\OffEffect.h" />
     <ClInclude Include="effects\OffPanel.h" />
     <ClInclude Include="effects\OnEffect.h" />
@@ -735,7 +753,6 @@
     <ClInclude Include="LMSImportChannelMapDialog.h" />
     <ClInclude Include="LorConvertDialog.h" />
     <ClInclude Include="LyricsDialog.h" />
-    <ClInclude Include="ModelGroupPanel.h" />
     <ClInclude Include="ModelPreview.h" />
     <ClInclude Include="models\Node.h" />
     <ClInclude Include="models\Shapes.h" />
@@ -887,15 +904,12 @@
     <ClInclude Include="models\ViewObjectManager.h" />
     <ClInclude Include="ViewObjectPanel.h" />
     <ClInclude Include="NodeSelectGrid.h" />
-    <ClInclude Include="ModelChainDialog.h" />
     <ClInclude Include="models\tiny_obj_loader.h" />
     <ClInclude Include="MultiControllerUploadDialog.h" />
     <ClInclude Include="wxModelGridCellRenderer.h" />
     <ClInclude Include="FSEQFile.h" />
     <ClInclude Include="PathGenerationDialog.h" />
     <ClInclude Include="RemapDMXChannelsDialog.h" />
-    <ClInclude Include="effects\LinesEffect.h" />
-    <ClInclude Include="effects\LinesPanel.h" />
     <ClInclude Include="ControllerVisualiseDialog.h" />
     <ClInclude Include="LOREdit.h" />
     <ClInclude Include="..\include\globals.h" />
@@ -1316,6 +1330,48 @@
     </ClInclude>
     <ClInclude Include="models\WholeHouseModel.h">
       <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="ModelChainDialog.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="ModelGroupPanel.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\LiquidEffect.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\LiquidPanel.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\LifeEffect.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\LifePanel.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\LightningEffect.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\LightningPanel.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\LinesEffect.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\LinesPanel.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\MarqueePanel.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\MarqueeEffect.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\MeteorsPanel.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\MeteorsEffect.h">
+      <Filter>Effects</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
