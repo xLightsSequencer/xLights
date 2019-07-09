@@ -87,6 +87,7 @@ class xlGLCanvas
         int _ver = 0;
         wxString _name;
         wxGLContext* m_context;
+        wxGLContext* m_baseContext;
         bool m_coreProfile;
     
         static wxGLContext *m_sharedContext;
