@@ -2734,7 +2734,7 @@ void xLightsFrame::OnButton_DiscoverClick(wxCommandEvent& event)
         }
         
         output->SetFPPProxyIP(fpp->proxy);
-        if (fpp->hostName != "") {
+        if (fpp->proxy == "" && fpp->hostName != "") {
             output->SetIP(fpp->hostName);
         } else {
             output->SetIP(fpp->ipAddress);

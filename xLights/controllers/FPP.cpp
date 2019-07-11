@@ -856,6 +856,60 @@ inline wxString stripInvalidChars(const std::string &str) {
     return s;
 }
 
+void FPP::FillRanges(std::map<int, int> &rngs) {
+    if (ranges != "") {
+        wxArrayString r1 = wxSplit(wxString(ranges), ',');
+        for (auto a : r1) {
+            wxArrayString r = wxSplit(a, '-');
+            int start = wxAtoi(r[0]);
+            int len = 4; //at least 4
+            if (r.size() == 2) {
+                len = wxAtoi(r[1]) - start + 1;
+            }
+            rngs[start] = len;
+        }
+    }
+}
+void FPP::SetNewRanges(const std::map<int, int> &rngs) {
+    if (rngs.empty()) {
+        ranges = "";
+        return;
+    }
+    std::string rngList;
+    int curFirst = -1;
+    int curLast = -1;
+    for (auto &a : rngs) {
+        int s = a.first;
+        int l = a.second;
+        if (curFirst == -1) {
+            curFirst = s;
+            curLast = s + l - 1;
+        } else if (s == (curLast + 1)) {
+            curLast += l;
+        } else if (s < (curFirst + curLast -1)) {
+            //start is within the previous's range
+            int nl = s + l - 1;
+            curLast = std::max(curLast, nl);
+        } else {
+            if (rngList != "") {
+                rngList += ",";
+            }
+            rngList += std::to_string(curFirst) + "-" + std::to_string(curLast);
+            curFirst = s;
+            curLast = a.first + l - 1;
+        }
+    }
+    if (curFirst != -1) {
+        if (rngList != "") {
+            rngList += ",";
+        }
+        rngList += std::to_string(curFirst) + "-" + std::to_string(curLast);
+    }
+    printf("o: %s     n: %s\n", ranges.c_str(), rngList.c_str());
+    ranges = rngList;
+}
+
+
 bool FPP::UploadUDPOutputsForProxy(OutputManager* outputManager) {
     std::list<int> selected;
     for (int x = 0; x < outputManager->GetOutputCount(); x++) {
@@ -865,6 +919,17 @@ bool FPP::UploadUDPOutputsForProxy(OutputManager* outputManager) {
         }
     }
     wxJSONValue f = CreateUniverseFile(outputManager, "-selected-", selected, false);
+    
+    std::map<int, int> rng;
+    FillRanges(rng);
+    for (int x = 0; x < f["channelOutputs"][0]["universes"].Size(); x++) {
+        wxJSONValue u = f["channelOutputs"][0]["universes"][x];
+        int start = u["startChannel"].AsLong() - 1;
+        int len = u["channelCount"].AsLong();
+        rng[start] = len;
+    }
+    SetNewRanges(rng);
+    
     return UploadUDPOut(f);
 }
 
@@ -962,6 +1027,9 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
     PixelCapeInfo &rules = GetCapeRules(pixelControllerType);
     maxdmx = rules.maxDMX;
     maxString = rules.maxStrings;
+    
+    std::map<int, int> rngs;
+    FillRanges(rngs);
 
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("FPP Outputs Upload: Uploading to %s", (const char *)ipAddress.c_str());
@@ -988,6 +1056,7 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
             for (int x = 0; x < origJson["channelOutputs"].Size(); x++) {
                 if (origJson["channelOutputs"][x]["type"].AsString() == "LEDPanelMatrix") {
                     origJson["channelOutputs"][x]["startChannel"] = startChannel;
+                    rngs[startChannel - 1] = origJson["channelOutputs"][x]["channelCount"].AsLong();
                 }
             }
 
@@ -997,6 +1066,7 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
                 PostJSONToURLAsFormData("/fppjson.php", "command=setChannelOutputs&file=channelOutputsJSON", origJson);
             }
         }
+        SetNewRanges(rngs);
         return false;
     }
 
@@ -1092,6 +1162,8 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
                     vs["description"] = pvs->_description;
                     vs["startChannel"] = pvs->_startChannel - 1; // we need 0 based
                     vs["pixelCount"] = pvs->Channels() / pvs->_channelsPerPixel;
+                    
+                    rngs[pvs->_startChannel - 1] = pvs->Channels();
 
                     if (origStrings.find(vs["description"].AsString()) != origStrings.end()) {
                         wxJSONValue &vo = origStrings[vs["description"].AsString()];
@@ -1146,6 +1218,9 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
                 wxJSONValue vs;
                 vs["startChannel"] = port->GetStartChannel() - 1; // we need 0 based
                 vs["pixelCount"] = port->Pixels();
+                
+                rngs[port->GetStartChannel() - 1] = port->Pixels() * 3;
+
                 auto s = port->GetModels().front();
                 std::string description;
                 if (s) {
@@ -1252,6 +1327,8 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
             port["startChannel"] = sc;
             port["channelCount"] = isDMX ? maxChan : 4096;
             hasSerial = true;
+            
+            rngs[sc] = isDMX ? maxChan : 4096;
         } else {
             port["startChannel"] = 0;
             port["channelCount"] = 0;
@@ -1295,6 +1372,8 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
     } else {
         PostJSONToURLAsFormData("/fppjson.php", "command=setChannelOutputs&file=" + fppFileName, root);
     }
+    SetNewRanges(rngs);
+
     return false;
 }
 
@@ -1557,38 +1636,13 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
                                             fpp->ipAddress = address;
                                             fpp->hostName = address;
                                             fpp->proxy = curls[x]->fpp->ipAddress;
+                                            curls[x]->fpp->isFPP = false;
                                             instances.push_back(fpp);
 
                                             
-                                            std::string fullAddress = "http://" + curls[x]->fpp->ipAddress + "/proxy/" + address + "/status.xml";
+                                            std::string fullAddress = "http://" + curls[x]->fpp->ipAddress + "/proxy/" + address + "/";
                                             CurlData *data = new CurlData(fullAddress);
-                                            data->type = 6;
-                                            data->fpp = fpp;
-                                            curls.push_back(data);
-                                            curl_multi_add_handle(curlMulti, data->curl);
-                                            running++;
-                                            
-                                            /*
-                                            fullAddress = "http://" + curls[x]->fpp->ipAddress + "/proxy/" + address + "/";
-                                            data = new CurlData(fullAddress);
                                             data->type = 5;
-                                            data->fpp = fpp;
-                                            curls.push_back(data);
-                                            curl_multi_add_handle(curlMulti, data->curl);
-                                            running++;
-                                             */
-                                            
-                                            fullAddress = "http://" + curls[x]->fpp->ipAddress + "/proxy/" + address + "/H?";
-                                            data = new CurlData(fullAddress);
-                                            data->type = 7;
-                                            data->fpp = fpp;
-                                            curls.push_back(data);
-                                            curl_multi_add_handle(curlMulti, data->curl);
-                                            running++;
-
-                                            fullAddress = "http://" + curls[x]->fpp->ipAddress + "/proxy/" + address + "/sysinfo.htm";
-                                            data = new CurlData(fullAddress);
-                                            data->type = 8;
                                             data->fpp = fpp;
                                             curls.push_back(data);
                                             curl_multi_add_handle(curlMulti, data->curl);
@@ -1596,6 +1650,35 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
                                         }
                                         break;
                                     case 5: //  just the root HTTP page, likely hard to figure out?
+                                        if (response_code == 200) {
+                                            //there is a web server on port 80 running, lets see if we can determine what this is
+                                            FPP *fpp = curls[x]->fpp;
+                                            std::string fullAddress = "http://" + curls[x]->fpp->proxy + "/proxy/" + curls[x]->fpp->ipAddress + "/status.xml";
+                                            CurlData *data = new CurlData(fullAddress);
+                                            data->type = 6;
+                                            data->fpp = fpp;
+                                            curls.push_back(data);
+                                            curl_multi_add_handle(curlMulti, data->curl);
+                                            running++;
+                                            
+                                            fullAddress = "http://" + curls[x]->fpp->proxy + "/proxy/" + curls[x]->fpp->ipAddress + "/H?";
+                                            data = new CurlData(fullAddress);
+                                            data->type = 7;
+                                            data->fpp = fpp;
+                                            curls.push_back(data);
+                                            curl_multi_add_handle(curlMulti, data->curl);
+                                            running++;
+                                            
+                                            fullAddress = "http://" + curls[x]->fpp->proxy + "/proxy/" + curls[x]->fpp->ipAddress + "/sysinfo.htm";
+                                            data = new CurlData(fullAddress);
+                                            data->type = 8;
+                                            data->fpp = fpp;
+                                            curls.push_back(data);
+                                            curl_multi_add_handle(curlMulti, data->curl);
+                                            running++;
+                                        } else {
+                                            curls[x]->fpp->isFPP = false;
+                                        }
                                         break;
                                     case 6: // /status.xml found, likely Falcon
                                         if (response_code == 200) {
@@ -1779,9 +1862,11 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
         if (a->platform == "ESPixelStick") {
             a->pixelControllerType = "ESPixelStick";
         }
-        if (!allPlatforms && a->pixelControllerType == "") {
-            FPP *f = a;
-            toRemove.push_back(f);
+        if (!a->isFPP) {
+            if (!allPlatforms || a->pixelControllerType == "") {
+                FPP *f = a;
+                toRemove.push_back(f);
+            }
         }
     }
     for (auto a : toRemove) {

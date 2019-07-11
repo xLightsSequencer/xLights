@@ -219,16 +219,23 @@ void FPPConnectDialog::PopulateFPPInstanceList() {
             FPPInstanceSizer->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
         }
         if (inst->IsVersionAtLeast(2, 0)) {
-            CheckBox1 = new wxCheckBox(FPPInstanceList, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, UDP_COL + rowStr);
-            CheckBox1->SetValue(false);
-            FPPInstanceSizer->Add(CheckBox1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
+            wxChoice *Choice1 = new wxChoice(FPPInstanceList, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, UDP_COL + rowStr);
+            wxFont font = Choice1->GetFont();
+            font.SetPointSize(font.GetPointSize() - 2);
+            Choice1->SetFont(font);
+
+            Choice1->Append(_("None"));
+            Choice1->Append(_("All"));
+            Choice1->Append(_("Proxied"));
+            Choice1->SetSelection(0);
+            FPPInstanceSizer->Add(Choice1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
         } else {
             FPPInstanceSizer->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
         }
 
         //playlist combo box
-        if (inst->IsVersionAtLeast(2, 6)) {
-            wxComboBox *ComboBox1 = new wxComboBox(FPPInstanceList, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, PLAYLIST_COL + rowStr);
+        if (inst->IsVersionAtLeast(2, 6) && !inst->IsDrive()) {
+            wxComboBox *ComboBox1 = new wxComboBox(FPPInstanceList, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, 0, wxTE_PROCESS_ENTER, wxDefaultValidator, PLAYLIST_COL + rowStr);
             std::list<std::string> playlists;
             inst->LoadPlaylists(playlists);
             ComboBox1->Append(_(""));
@@ -493,6 +500,33 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
     for (row = 0; row < doUpload.size(); ++row) {
         std::string rowStr = std::to_string(row);
         doUpload[row] = GetCheckValue(CHECK_COL + rowStr);
+        if (doUpload[row]) {
+            
+        }
+    }
+    row = 0;
+    xLightsFrame* frame = static_cast<xLightsFrame*>(GetParent());
+    wxJSONValue outputs = FPP::CreateOutputUniverseFile(_outputManager);
+    for (auto inst : instances) {
+        std::string rowStr = std::to_string(row);
+        if (!cancelled && doUpload[row]) {
+            std::string playlist = GetChoiceValue(PLAYLIST_COL + rowStr);
+            if (playlist != "") {
+                cancelled |= inst->UploadPlaylist(playlist);
+            }
+            if (GetChoiceValueIndex(UDP_COL + rowStr) == 1) {
+                cancelled |= inst->UploadUDPOut(outputs);
+                inst->SetRestartFlag();
+            } else if (GetChoiceValueIndex(UDP_COL + rowStr) == 2) {
+                cancelled |= inst->UploadUDPOutputsForProxy(_outputManager);
+                inst->SetRestartFlag();
+            }
+            if (GetCheckValue(UPLOAD_CONTROLLER_COL + rowStr)) {
+                cancelled |= inst->UploadPixelOutputs(&frame->AllModels, _outputManager);
+                inst->SetRestartFlag();
+            }
+        }
+        row++;
     }
     for (int fs = 0; fs < CheckListBox_Sequences->GetItemCount(); fs++) {
         if (CheckListBox_Sequences->IsItemChecked(fs)) {
@@ -576,8 +610,6 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
         }
     }
     row = 0;
-    xLightsFrame* frame = static_cast<xLightsFrame*>(GetParent());
-    wxJSONValue outputs = FPP::CreateOutputUniverseFile(_outputManager);
     std::string memoryMaps = FPP::CreateModelMemoryMap(&frame->AllModels);
     for (auto inst : instances) {
         std::string rowStr = std::to_string(row);
@@ -588,14 +620,6 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
             }
             if (GetCheckValue(MODELS_COL + rowStr)) {
                 cancelled |= inst->UploadModels(memoryMaps);
-                inst->SetRestartFlag();
-            }
-            if (GetCheckValue(UDP_COL + rowStr)) {
-                cancelled |= inst->UploadUDPOut(outputs);
-                inst->SetRestartFlag();
-            }
-            if (GetCheckValue(UPLOAD_CONTROLLER_COL + rowStr)) {
-                cancelled |= inst->UploadPixelOutputs(&frame->AllModels, _outputManager);
                 inst->SetRestartFlag();
             }
         }
@@ -726,6 +750,11 @@ int FPPConnectDialog::GetChoiceValueIndex(const std::string &col) {
 std::string FPPConnectDialog::GetChoiceValue(const std::string &col) {
     wxWindow *w = FPPInstanceList->FindWindow(col);
     if (w) {
+        wxComboBox *comboBox = dynamic_cast<wxComboBox*>(w);
+        if (comboBox) {
+            return comboBox->GetValue();
+        }
+
         wxItemContainer *cb = dynamic_cast<wxItemContainer*>(w);
         if (cb) {
             return cb->GetStringSelection();
@@ -778,7 +807,7 @@ void FPPConnectDialog::SaveSettings()
         config->Write("FPPConnectUploadMedia_" + keyPostfx, GetCheckValue(MEDIA_COL + rowStr));
         config->Write("FPPConnectUploadFSEQType_" + keyPostfx, GetChoiceValueIndex(FSEQ_COL + rowStr));
         config->Write("FPPConnectUploadModels_" + keyPostfx, GetCheckValue(MODELS_COL + rowStr));
-        config->Write("FPPConnectUploadUDPOut_" + keyPostfx, GetCheckValue(UDP_COL + rowStr));
+        config->Write("FPPConnectUploadUDPOut_" + keyPostfx, GetChoiceValueIndex(UDP_COL + rowStr));
         config->Write("FPPConnectUploadPixelOut_" + keyPostfx, GetCheckValue(UPLOAD_CONTROLLER_COL + rowStr));
         row++;
     }
@@ -824,8 +853,8 @@ void FPPConnectDialog::ApplySavedHostSettings()
             if (config->Read("FPPConnectUploadModels_" + keyPostfx, &bval)) {
                 SetCheckValue(MODELS_COL + rowStr, bval);
             }
-            if (config->Read("FPPConnectUploadUDPOut_" + keyPostfx, &bval)) {
-                SetCheckValue(UDP_COL + rowStr, bval);
+            if (config->Read("FPPConnectUploadUDPOut_" + keyPostfx, &lval)) {
+                SetChoiceValueIndex(UDP_COL + rowStr, lval);
             }
             if (config->Read("FPPConnectUploadPixelOut_" + keyPostfx, &bval)) {
                 SetCheckValue(UPLOAD_CONTROLLER_COL + rowStr, bval);

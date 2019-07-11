@@ -153,6 +153,8 @@ class FPP {
     static std::string CreateModelMemoryMap(ModelManager* allmodels);
     static wxJSONValue CreateOutputUniverseFile(OutputManager* outputManager);
 private:
+    void FillRanges(std::map<int, int> &rngs);
+    void SetNewRanges(const std::map<int, int> &rngs);
     static wxJSONValue CreateUniverseFile(OutputManager* outputManager, const std::string &onlyip, const std::list<int>& selected, bool input);
 
     bool GetPathAsJSON(const std::string &path, wxJSONValue &val);

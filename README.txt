@@ -1,4 +1,4 @@
-﻿xLights is a show sequencer and player/scheduler designed to control
+xLights is a show sequencer and player/scheduler designed to control
 USB/DMX/sACN(e1.31)/ArtNET(e.1.17)/DDP controllers.
 xLights also integrates with the Falcon Player.
 xLights imports and exports sequence data from sequencers such as LOR (SE, PE & SS),
@@ -11,6 +11,9 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (dkulp)  FPP Connect - Allow uploading of JUST the UDP outputs needed for that proxy instance
+   -- enh (dkulp)  FPP Connect - Use pixel cape information and UDP ouput information to expand ranges used for v2 sparse files
+   -- bug (dkulp)  FPP Connect - Typing new playlist name into FPP connect not working
    -- bug (dkulp)  AutoStart channels not working for DDP outputs
 2019.33 July 5, 2019
    -- enh (keith)  Add an alternate sweep to VU meter for timed bouncing arches
