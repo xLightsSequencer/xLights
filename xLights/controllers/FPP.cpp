@@ -1575,7 +1575,11 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
                                             if (curls[x]->fpp->platform.find("Beagle") != std::string::npos) {
                                                 file = "co-bbbStrings";
                                             }
-                                            std::string fullAddress = "http://" + curls[x]->fpp->ipAddress + "/fppjson.php?command=getChannelOutputs&file=" + file;
+                                            std::string baseUrl = "http://" + curls[x]->fpp->ipAddress;
+                                            if (curls[x]->fpp->proxy != "") {
+                                                baseUrl = "http://" + curls[x]->fpp->proxy + "/proxy/" + curls[x]->fpp->ipAddress;
+                                            }
+                                            std::string fullAddress = baseUrl + "/fppjson.php?command=getChannelOutputs&file=" + file;
                                             CurlData *data = new CurlData(fullAddress);
                                             data->type = 2;
                                             data->fpp = curls[x]->fpp;
@@ -1583,7 +1587,7 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
                                             curl_multi_add_handle(curlMulti, data->curl);
                                             running++;
 
-                                            fullAddress = "http://" + curls[x]->fpp->ipAddress + "/fppjson.php?command=getChannelOutputs&file=channelOutputsJSON";
+                                            fullAddress = baseUrl + "/fppjson.php?command=getChannelOutputs&file=channelOutputsJSON";
                                             data = new CurlData(fullAddress);
                                             data->type = 2;
                                             data->fpp = curls[x]->fpp;
@@ -1591,7 +1595,7 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
                                             curl_multi_add_handle(curlMulti, data->curl);
                                             running++;
 
-                                            fullAddress = "http://" + curls[x]->fpp->ipAddress + "/config.php";
+                                            fullAddress = baseUrl + "/config.php";
                                             data = new CurlData(fullAddress);
                                             data->type = 3;
                                             data->fpp = curls[x]->fpp;
@@ -1599,13 +1603,15 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
                                             curl_multi_add_handle(curlMulti, data->curl);
                                             running++;
                                             
-                                            fullAddress = "http://" + curls[x]->fpp->ipAddress + "/api/proxies";
-                                            data = new CurlData(fullAddress);
-                                            data->type = 4;
-                                            data->fpp = curls[x]->fpp;
-                                            curls.push_back(data);
-                                            curl_multi_add_handle(curlMulti, data->curl);
-                                            running++;
+                                            if (curls[x]->fpp->proxy == "") {
+                                                fullAddress = baseUrl + "/api/proxies";
+                                                data = new CurlData(fullAddress);
+                                                data->type = 4;
+                                                data->fpp = curls[x]->fpp;
+                                                curls.push_back(data);
+                                                curl_multi_add_handle(curlMulti, data->curl);
+                                                running++;
+                                            }
                                         }
                                         break;
                                     }
@@ -1631,7 +1637,6 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
                                                 continue;
                                             }
                                             
-                                            
                                             FPP *fpp = new FPP();
                                             fpp->ipAddress = address;
                                             fpp->hostName = address;
@@ -1651,31 +1656,53 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
                                         break;
                                     case 5: //  just the root HTTP page, likely hard to figure out?
                                         if (response_code == 200) {
-                                            //there is a web server on port 80 running, lets see if we can determine what this is
-                                            FPP *fpp = curls[x]->fpp;
-                                            std::string fullAddress = "http://" + curls[x]->fpp->proxy + "/proxy/" + curls[x]->fpp->ipAddress + "/status.xml";
-                                            CurlData *data = new CurlData(fullAddress);
-                                            data->type = 6;
-                                            data->fpp = fpp;
-                                            curls.push_back(data);
-                                            curl_multi_add_handle(curlMulti, data->curl);
-                                            running++;
-                                            
-                                            fullAddress = "http://" + curls[x]->fpp->proxy + "/proxy/" + curls[x]->fpp->ipAddress + "/H?";
-                                            data = new CurlData(fullAddress);
-                                            data->type = 7;
-                                            data->fpp = fpp;
-                                            curls.push_back(data);
-                                            curl_multi_add_handle(curlMulti, data->curl);
-                                            running++;
-                                            
-                                            fullAddress = "http://" + curls[x]->fpp->proxy + "/proxy/" + curls[x]->fpp->ipAddress + "/sysinfo.htm";
-                                            data = new CurlData(fullAddress);
-                                            data->type = 8;
-                                            data->fpp = fpp;
-                                            curls.push_back(data);
-                                            curl_multi_add_handle(curlMulti, data->curl);
-                                            running++;
+                                            if (curls[x]->buffer.find("SanDevices SACN") != std::string::npos && curls[x]->buffer.find("Pixel Controller") != std::string::npos) {
+                                                //likely SanDevices
+                                                SanDevices sand(curls[x]->fpp->ipAddress, curls[x]->fpp->proxy);
+                                                if (sand.IsConnected()) {
+                                                    curls[x]->fpp->pixelControllerType = sand.GetPixelControllerTypeString();
+                                                    curls[x]->fpp->model = sand.GetModelName();
+                                                    curls[x]->fpp->fullVersion = sand.GetVersion();
+                                                    curls[x]->fpp->platform = "SanDevices";
+                                                    curls[x]->fpp->mode = "bridge";
+                                                    curls[x]->fpp->isFPP = false;
+                                                }
+                                            } else if (curls[x]->buffer.find("Falcon Player - FPP") != std::string::npos) {
+                                                curls[x]->fpp->isFPP = true;
+                                                std::string fullAddress = "http://" + curls[x]->fpp->proxy + "/proxy/" + curls[x]->fpp->ipAddress + "/fppjson.php?command=getSysInfo&simple";
+                                                CurlData *data = new CurlData(fullAddress);
+                                                data->type = 1;
+                                                data->fpp = curls[x]->fpp;
+                                                curls.push_back(data);
+                                                curl_multi_add_handle(curlMulti, data->curl);
+                                                running++;
+                                            } else {
+                                                //there is a web server on port 80 running, lets see if we can determine what this is
+                                                FPP *fpp = curls[x]->fpp;
+                                                std::string fullAddress = "http://" + curls[x]->fpp->proxy + "/proxy/" + curls[x]->fpp->ipAddress + "/status.xml";
+                                                CurlData *data = new CurlData(fullAddress);
+                                                data->type = 6;
+                                                data->fpp = fpp;
+                                                curls.push_back(data);
+                                                curl_multi_add_handle(curlMulti, data->curl);
+                                                running++;
+                                                
+                                                fullAddress = "http://" + curls[x]->fpp->proxy + "/proxy/" + curls[x]->fpp->ipAddress + "/H?";
+                                                data = new CurlData(fullAddress);
+                                                data->type = 7;
+                                                data->fpp = fpp;
+                                                curls.push_back(data);
+                                                curl_multi_add_handle(curlMulti, data->curl);
+                                                running++;
+                                                
+                                                fullAddress = "http://" + curls[x]->fpp->proxy + "/proxy/" + curls[x]->fpp->ipAddress + "/sysinfo.htm";
+                                                data = new CurlData(fullAddress);
+                                                data->type = 8;
+                                                data->fpp = fpp;
+                                                curls.push_back(data);
+                                                curl_multi_add_handle(curlMulti, data->curl);
+                                                running++;
+                                            }
                                         } else {
                                             curls[x]->fpp->isFPP = false;
                                         }

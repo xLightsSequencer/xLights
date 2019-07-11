@@ -116,12 +116,12 @@ void LightningEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuf
                 if (rand() % 2 == 0) // target x is to the left
                     x2 = xc + topX - (j % Number_Segments);
                 else // but randomely we reverse direction, also make it a larger jag
-                    x2 = xc + topX + (2 * j % Number_Segments);
+                    x2 = xc + topX + (2 * (j % Number_Segments));
             } else { // odd segments will
                 if (rand() % 2 == 0) // move to the right
                     x2 = xc + topX + (j % Number_Segments);
                 else // but sometimes move 3 units to left.
-                    x2 = xc + topX - (3 * j % Number_Segments);
+                    x2 = xc + topX - (3 * (j % Number_Segments));
             }
             if (DIRECTION==DOWN)
                 y2 = buffer.BufferHt - (i * StepSegment) - topY;
@@ -140,12 +140,12 @@ void LightningEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuf
                 if (i % 2 == 1) {
                     if (rand()%2==1)
                         x3 = xc + topX - (j % Number_Segments);
-                    else  x3 = xc + topX + (2 * j % Number_Segments);
+                    else  x3 = xc + topX + (2 * (j % Number_Segments));
                 } else {
                     if (rand() % 2 == 1)
                         x3 = xc + topX + (j % Number_Segments);
                     else
-                        x3 = xc + topX - (3 * j % Number_Segments);
+                        x3 = xc + topX - (3 * (j % Number_Segments));
                 }
                 LightningDrawBolt(buffer, x1 + xoffset, y1, x3 + xoffset, y2, color, curState);
             }

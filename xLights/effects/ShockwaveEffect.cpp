@@ -77,7 +77,10 @@ void ShockwaveEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuf
 
     HSVValue hsv, hsv1;
     xlColor color;
-    double blend_pct = 1.0 / (num_colors-1);
+    double blend_pct = 1.0;
+    if (num_colors > 1) {
+        blend_pct = 1.0 / (num_colors-1);
+    }
     double color_pct1 = eff_pos_adj / blend_pct;
     int color_index = (int)color_pct1;
     blend_pct = color_pct1 - (double)color_index;
