@@ -81,7 +81,8 @@ static  std::vector<std::pair<std::string, KBSCOPE>> KeyBindingTypes =
     { _("MODEL_ALIGN_CENTER_HORIZ"), KBSCOPE::Layout },
     { _("MODEL_DISTRIBUTE_HORIZ"), KBSCOPE::Layout },
     { _("MODEL_DISTRIBUTE_VERT"), KBSCOPE::Layout },
-    { _("CANCEL_RENDER"), KBSCOPE::Sequence }
+    { _("CANCEL_RENDER"), KBSCOPE::Sequence },
+    { _("TOGGLE_RENDER"), KBSCOPE::Sequence }
 };
 
 const std::vector<KeyBinding> DefaultBindings =
@@ -143,6 +144,7 @@ const std::vector<KeyBinding> DefaultBindings =
     KeyBinding(_("F5"), false, _("EFFECT_UPDATE")),
     KeyBinding(_(""), false, _("COLOR_UPDATE")),
     KeyBinding(_("ESCAPE"), false, _("CANCEL_RENDER")),
+    KeyBinding(_(""), false, _("TOGGLE_RENDER")),
 
     KeyBinding(_("l"), false, _("LOCK_MODEL"), true),
     KeyBinding(_("u"), false, _("UNLOCK_MODEL"), true),

@@ -546,6 +546,11 @@ bool MainSequencer::HandleSequencerKeyBinding(wxKeyEvent& event)
         {
             CancelRender();
         }
+        else if (type == "TOGGLE_RENDER")
+        {
+            CheckBox_SuspendRender->SetValue(!CheckBox_SuspendRender->GetValue());
+            ToggleRender(CheckBox_SuspendRender->GetValue());
+        }
         else if (type == "UNLOCK_EFFECT")
         {
             PanelEffectGrid->LockEffects(false);
@@ -791,6 +796,13 @@ void MainSequencer::CancelRender()
         }
         escapeReenter = false;
     }
+}
+
+void MainSequencer::ToggleRender(bool off)
+{
+    if (mSequenceElements == nullptr) return;
+    if (off) CancelRender();
+    mSequenceElements->GetXLightsFrame()->SuspendRender(off);
 }
 
 void MainSequencer::OnKeyDown(wxKeyEvent& event)
@@ -1712,6 +1724,5 @@ void MainSequencer::ScrollToRow(int row)
 
 void MainSequencer::OnCheckBox_SuspendRenderClick(wxCommandEvent& event)
 {
-    if (mSequenceElements == nullptr) return;
-    mSequenceElements->GetXLightsFrame()->SuspendRender(CheckBox_SuspendRender->IsChecked());
+    ToggleRender(CheckBox_SuspendRender->IsChecked());
 }
