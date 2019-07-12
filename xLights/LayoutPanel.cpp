@@ -2141,7 +2141,7 @@ void LayoutPanel::SelectBaseObject(const std::string & name, bool highlight_tree
         if (m == nullptr)
         {
             // Hmmm ... model doesnt exist ... maybe it is the additional model
-            if (modelPreview->GetAdditionalModel()->GetName() == name)
+            if (modelPreview->GetAdditionalModel() != nullptr && modelPreview->GetAdditionalModel()->GetName() == name)
             {
                 m = modelPreview->GetAdditionalModel();
             }
