@@ -384,6 +384,13 @@ void handleCrash(void *data) {
     }
 }
 
+void xLightsFrame::AddTraceMessage(const std::string &trc) {
+    traceMessages.push_back(trc);
+    if (traceMessages.size() > 20) {
+        traceMessages.pop_front();
+    }
+}
+
 wxString xLightsFrame::GetThreadStatusReport() {
     return jobPool.GetThreadStatus();
 }
@@ -404,6 +411,13 @@ void xLightsFrame::CreateDebugReport(wxDebugReportCompress *report) {
     status += topFrame->GetThreadStatusReport();
     status += "\nParallel Job Pool:\n";
     status += ParallelJobPool::POOL.GetThreadStatus();
+    status += "\nTraces:\n";
+    for (auto &a : traceMessages) {
+        status += a;
+        status += "\n";
+    }
+
+    
 
     wxFileName fileName(report->GetDirectory(), "backtrace.txt");
     wxFile file(fileName.GetFullPath(),  wxFile::write_append);

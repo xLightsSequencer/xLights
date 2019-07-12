@@ -353,6 +353,8 @@ public:
     void LoadAudioData(xLightsXmlFile& xml_file);
     void CreateDebugReport(wxDebugReportCompress *report);
     wxString GetThreadStatusReport();
+    void AddTraceMessage(const std::string &msg);
+    
 	void SetAudioControls();
     void ImportXLights(const wxFileName &filename);
     void ImportXLights(SequenceElements &se, const std::vector<Element *> &elements, const wxFileName &filename,
@@ -1428,6 +1430,7 @@ private:
 
     int PlaybackPeriod; //used to be able to record the frame being played in an animation preview
 
+    std::list<std::string> traceMessages;
 public:
     //stuf used by layoutPanel for now
     void SetPreviewBackgroundScaled(bool scaled);

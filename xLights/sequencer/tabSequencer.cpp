@@ -2022,17 +2022,22 @@ void xLightsFrame::OnEffectSettingsTimerTrigger(wxTimerEvent& event)
         return;
     }
 
+    AddTraceMessage("In OnEffectSettingsTimerTrigger");
     UpdateRenderStatus();
+    AddTraceMessage("Render Status Updated");
     if (Notebook1->GetSelection() != NEWSEQUENCER) {
         return;
     }
 
     // grab a copy of the pointer in case user clicks off the effect
     Effect* eff = selectedEffect;
-
     if (eff != nullptr && timingPanel->BitmapButton_CheckBox_LayerMorph->IsEnabled()) {
+        AddTraceMessage("Effect not null and enabled");
+
         std::string palette;
         std::string effectText = GetEffectTextFromWindows(palette);
+        AddTraceMessage("Selected Effect text: " + selectedEffectString);
+        AddTraceMessage("Effect text         : " + effectText);
         if (effectText != selectedEffectString
             || palette != selectedEffectPalette
             || eff->GetEffectIndex() != EffectsPanel1->EffectChoicebook->GetSelection()) {
@@ -2067,10 +2072,12 @@ void xLightsFrame::OnEffectSettingsTimerTrigger(wxTimerEvent& event)
             {
                 mSequenceElements.get_undo_mgr().CreateUndoStep();
                 mSequenceElements.get_undo_mgr().CaptureModifiedEffect( elem->GetModelName(), el->GetIndex(), eff->GetID(), selectedEffectString, selectedEffectPalette );
+                AddTraceMessage("Undo step created\n");
             }
 
             eff->SetSettings(effectText, true);
             eff->SetPalette(palette);
+            AddTraceMessage("Effect settings updated\n");
 
             selectedEffectName = eff->GetEffectName();
             selectedEffectString = effectText;
@@ -2081,21 +2088,21 @@ void xLightsFrame::OnEffectSettingsTimerTrigger(wxTimerEvent& event)
             playStartMS = -1;
 
             // Update if effect has been modified
-            if( m_mgr->GetPane("EffectAssist").IsShown() )
-            {
+            if( m_mgr->GetPane("EffectAssist").IsShown() ) {
                 sEffectAssist->ForceRefresh();
             }
 
-            if (!_suspendRender)
-            {
+            if (!_suspendRender) {
+                AddTraceMessage("Triggering a render\n");
                 RenderEffectForModel(elem->GetModelName(), playStartTime, playEndTime);
             }
+            AddTraceMessage("Triggering a refresh\n");
             mainSequencer->PanelEffectGrid->ForceRefresh();
 
             // This ensures colour curves which can be dependent on effect settings are correct
             RenderableEffect *ef = GetEffectManager().GetEffect(selectedEffectName);
-            if (ef != nullptr)
-            {
+            if (ef != nullptr) {
+                AddTraceMessage("Resetting color panel\n");
                 colorPanel->SetSupports(ef->SupportsLinearColorCurves(eff->GetSettings()), ef->SupportsRadialColorCurves(eff->GetSettings()));
             }
         }
