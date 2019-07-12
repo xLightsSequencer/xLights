@@ -1405,8 +1405,13 @@ public:
 };
 
 #define FPP_CTRL_PORT 32320
+
+//defined in xLightsMain
+void AddTraceMessage(const std::string &msg);
+
 void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &instances, bool doBroadcast, bool allPlatforms) {
 
+    AddTraceMessage("Running FPP Discovery");
     std::vector<CurlData*> curls;
     CURLM * curlMulti = curl_multi_init();
     for (auto &a : addresses) {
@@ -1495,6 +1500,8 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
             char ip[64];
             sprintf(ip, "%d.%d.%d.%d", (int)buffer[15], (int)buffer[16], (int)buffer[17], (int)buffer[18]);
             if (strcmp(ip, "0.0.0.0")) {
+                AddTraceMessage("Received UDP result " + std::string(ip));
+
                 //we found a system!!!
                 std::string hostname = (char *)&buffer[19];
                 std::string ipStr = ip;
@@ -1566,6 +1573,9 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
                                 wxJSONValue origJson;
                                 wxJSONReader reader;
                                 bool parsed = true;
+                                AddTraceMessage("Received curl response: " + std::to_string(curls[x]->type) + " - " + std::to_string(response_code));
+                                AddTraceMessage("    url: " + curls[x]->url);
+
                                 switch (curls[x]->type) {
                                     case 1: {
                                         parsed = reader.Parse(curls[x]->buffer, &origJson) == 0;
@@ -1869,16 +1879,19 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
     }
     for (auto data : curls) {
         if (data) {
+            AddTraceMessage("Still had a curl outstanding");
             curl_multi_remove_handle(curlMulti, data->curl);
             delete data;
         }
     }
+    AddTraceMessage("Closing network resources");
     curl_multi_cleanup(curlMulti);
     
     for (auto socket : sockets) {
         socket->Close();
         delete socket;
     }
+    AddTraceMessage("Checking instances and applying fixups");
 
     std::list<FPP*> toRemove;
     for (auto a : instances) {
@@ -1900,6 +1913,8 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
         instances.remove(a);
         delete a;
     }
+    AddTraceMessage("Done discovery");
+
     /*
     for (auto a : instances) {
         printf("%s/%s:\n", a.hostName.c_str(), a.ipAddress.c_str());

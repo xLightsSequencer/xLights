@@ -246,6 +246,9 @@ wxIMPLEMENT_APP_NO_MAIN(xLightsApp);
 #include <wx/debugrpt.h>
 
 xLightsFrame *topFrame = nullptr;
+void AddTraceMessage(const std::string &msg) {
+    if (topFrame) topFrame->AddTraceMessage(msg);
+}
 
 void handleCrash(void *data) {
     static volatile bool inCrashHandler = false;
