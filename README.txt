@@ -11,10 +11,15 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2019.34 July 12, 2019
    -- enh (dkulp)  FPP Connect - Allow uploading of JUST the UDP outputs needed for that proxy instance
    -- enh (dkulp)  FPP Connect - Use pixel cape information and UDP ouput information to expand ranges used for v2 sparse files
+   -- enh (keith)  Add keybinding for suspend render
    -- bug (dkulp)  FPP Connect - Typing new playlist name into FPP connect not working
    -- bug (dkulp)  AutoStart channels not working for DDP outputs
+   -- bug (keith)  Now we are confident keybindings are not suffering onoing corruption silently fix it
+   -- bug (keith)  Fix crash deleting multiple layout models
+   -- bug (keith)  Fix changing model group preview does not take effect until xlights restarted
 2019.33 July 5, 2019
    -- enh (keith)  Add an alternate sweep to VU meter for timed bouncing arches
    -- enh (dkulp)  Use parallel discovery for FPP
