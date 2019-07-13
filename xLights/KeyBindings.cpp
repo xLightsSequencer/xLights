@@ -82,7 +82,8 @@ static  std::vector<std::pair<std::string, KBSCOPE>> KeyBindingTypes =
     { _("MODEL_DISTRIBUTE_HORIZ"), KBSCOPE::Layout },
     { _("MODEL_DISTRIBUTE_VERT"), KBSCOPE::Layout },
     { _("CANCEL_RENDER"), KBSCOPE::Sequence },
-    { _("TOGGLE_RENDER"), KBSCOPE::Sequence }
+    { _("TOGGLE_RENDER"), KBSCOPE::Sequence },
+    { _("PRESETS_TOGGLE"), KBSCOPE::Sequence }
 };
 
 const std::vector<KeyBinding> DefaultBindings =
@@ -138,7 +139,8 @@ const std::vector<KeyBinding> DefaultBindings =
     KeyBinding(_("I"), false, _("INSERT_LAYER_ABOVE"), true, false, true),
     KeyBinding(_("A"), false, _("INSERT_LAYER_BELOW"), true, false, true),
     KeyBinding(_("X"), false, _("TOGGLE_ELEMENT_EXPAND"), true, false, true),
-    KeyBinding(_("F10"), false, _("SHOW_PRESETS"), true),
+    KeyBinding(_(""), false, _("SHOW_PRESETS")),
+    KeyBinding(_("F10"), false, _("PRESETS_TOGGLE"), true),
     KeyBinding(_("F11"), false, _("SEARCH_TOGGLE"), true),
     KeyBinding(_("F12"), false, _("PERSPECTIVES_TOGGLE"), true),
     KeyBinding(_("F5"), false, _("EFFECT_UPDATE")),

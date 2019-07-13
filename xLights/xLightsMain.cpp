@@ -8970,12 +8970,35 @@ void xLightsFrame::OnMenuItem_VQuietVolSelected(wxCommandEvent& event)
 
 void xLightsFrame::ShowPresetsPanel()
 {
+    if (CurrentSeqXmlFile == nullptr) return;
+
     if (EffectTreeDlg == nullptr)
     {
         EffectTreeDlg = new EffectTreeDialog(this);
         EffectTreeDlg->InitItems(mSequenceElements.GetEffectsNode());
     }
     EffectTreeDlg->Show();
+}
+
+void xLightsFrame::TogglePresetsPanel()
+{
+    if (CurrentSeqXmlFile == nullptr) return;
+
+    if (EffectTreeDlg == nullptr)
+    {
+        ShowPresetsPanel();
+    }
+    else if (EffectTreeDlg->IsVisible())
+    {
+        EffectTreeDlg->Hide();
+        EffectTreeDlg->Close();
+        delete EffectTreeDlg;
+        EffectTreeDlg = nullptr;
+    }
+    else
+    {
+        EffectTreeDlg->Show();
+    }
 }
 
 void xLightsFrame::OnMenuItemSelectEffectSelected(wxCommandEvent& event)

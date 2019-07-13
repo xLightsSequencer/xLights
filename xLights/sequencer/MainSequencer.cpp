@@ -605,6 +605,10 @@ bool MainSequencer::HandleSequencerKeyBinding(wxKeyEvent& event)
         {
             mSequenceElements->GetXLightsFrame()->ShowPresetsPanel();
         }
+        else if (type == "PRESETS_TOGGLE")
+        {
+            mSequenceElements->GetXLightsFrame()->TogglePresetsPanel();
+        }
         else if (type == "SEARCH_TOGGLE")
         {
             wxCommandEvent e;

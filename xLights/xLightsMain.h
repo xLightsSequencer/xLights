@@ -550,6 +550,7 @@ public:
     void OnMenuItem_MedVolSelected(wxCommandEvent& event);
     void OnMenuItem_QuietVolSelected(wxCommandEvent& event);
     void OnMenuItem_VQuietVolSelected(wxCommandEvent& event);
+    void TogglePresetsPanel();
     void ShowPresetsPanel();
     void OnMenuItemSelectEffectSelected(wxCommandEvent& event);
     void OnMenuItemShowHideVideoPreview(wxCommandEvent& event);
