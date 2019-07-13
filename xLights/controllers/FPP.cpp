@@ -1761,6 +1761,7 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
                                         }
                                         break;
                                     default:
+                                        parsed = reader.Parse(curls[x]->buffer, &origJson) == 0;
                                         for (int x = 0; x < origJson.Size(); x++) {
                                             wxJSONValue system = origJson[x];
                                             wxString address = system["IP"].AsString();
