@@ -4123,7 +4123,6 @@ static void AddLogFile(const wxString &CurrentDir, const wxString &fileName, wxD
 
 void xLightsFrame::AddDebugFilesToReport(wxDebugReport &report) {
 
-
     wxFileName fn(CurrentDir, OutputManager::GetNetworksFileName());
     if (fn.Exists()) {
         report.AddFile(fn.GetFullPath(), OutputManager::GetNetworksFileName());
@@ -5927,6 +5926,8 @@ void xLightsFrame::CheckSequence(bool display)
     errcountsave = errcount;
     warncountsave = warncount;
 
+    std::list<std::string> allfiles;
+
     // Check for matrix faces where the file does not exist
     LogAndWrite(f, "");
     LogAndWrite(f, "Missing matrix face images");
@@ -5934,6 +5935,7 @@ void xLightsFrame::CheckSequence(bool display)
     for (auto it = AllModels.begin(); it != AllModels.end(); ++it)
     {
         auto facefiles = it->second->GetFaceFiles(std::list<std::string>(), true);
+        allfiles.splice(allfiles.end(), it->second->GetFileReferences());
 
         for (auto fit = facefiles.begin(); fit != facefiles.end(); ++fit)
         {
@@ -6149,7 +6151,7 @@ void xLightsFrame::CheckSequence(bool display)
             Element* e = mSequenceElements.GetElement(i);
             if (e->GetType() != ELEMENT_TYPE_TIMING)
             {
-                CheckElement(e, f, errcount, warncount, e->GetFullName(), e->GetName(), videoCacheWarning, faces, states, viewPoints, usesShader);
+                CheckElement(e, f, errcount, warncount, e->GetFullName(), e->GetName(), videoCacheWarning, faces, states, viewPoints, usesShader, allfiles);
 
                 if (e->GetType() == ELEMENT_TYPE_MODEL)
                 {
@@ -6158,7 +6160,7 @@ void xLightsFrame::CheckSequence(bool display)
                     for (int j = 0; j < me->GetStrandCount(); ++j)
                     {
                         StrandElement* se = me->GetStrand(j);
-                        CheckElement(se, f, errcount, warncount, se->GetFullName(), e->GetName(), videoCacheWarning, faces, states, viewPoints, usesShader);
+                        CheckElement(se, f, errcount, warncount, se->GetFullName(), e->GetName(), videoCacheWarning, faces, states, viewPoints, usesShader, allfiles);
 
                         for(int k = 0; k < se->GetNodeLayerCount(); ++k)
                         {
@@ -6167,6 +6169,8 @@ void xLightsFrame::CheckSequence(bool display)
                             {
                                 Effect* ef = nl->GetEffect(l);
                                 CheckEffect(ef, f, errcount, warncount, wxString::Format("%sStrand %d/Node %d", se->GetFullName(), j+1, l+1).ToStdString(), e->GetName(), true, videoCacheWarning, faces, states, viewPoints);
+                                RenderableEffect* eff = effectManager[ef->GetEffectIndex()];
+                                allfiles.splice(end(allfiles), eff->GetFileReferences(ef->GetSettings()));
                             }
                         }
                     }
@@ -6175,7 +6179,7 @@ void xLightsFrame::CheckSequence(bool display)
                         Element* sme = me->GetSubModel(j);
                         if (sme->GetType() == ELEMENT_TYPE_SUBMODEL)
                         {
-                            CheckElement(sme, f, errcount, warncount, sme->GetFullName(), e->GetName(), videoCacheWarning, faces, states, viewPoints, usesShader);
+                            CheckElement(sme, f, errcount, warncount, sme->GetFullName(), e->GetName(), videoCacheWarning, faces, states, viewPoints, usesShader, allfiles);
                         }
                     }
                 }
@@ -6210,6 +6214,21 @@ void xLightsFrame::CheckSequence(bool display)
         }
         errcountsave = errcount;
         warncountsave = warncount;
+
+#define SLOWDRIVE 1000
+        std::list<std::pair<std::string, uint64_t>> slowaccess;
+        uint64_t worst = BadDriveAccess(allfiles, slowaccess, SLOWDRIVE);
+        if (slowaccess.size() > 0)
+        {
+            wxString msg = wxString::Format("    WARN: Test of access speed to files your sequence shows the following files take longer than the recommended %dms.", SLOWDRIVE / 1000);
+            LogAndWrite(f, msg.ToStdString());
+            for (auto it : slowaccess)
+            {
+                msg = wxString::Format("    %.2fms  %s.", (float)((double)it.second / 1000.0), (const char*)it.first.c_str());
+                LogAndWrite(f, msg);
+            }
+            warncount++;
+        }
 
         LogAndWrite(f, "");
         LogAndWrite(f, "If you are planning on importing this sequence be aware the sequence relies on the following items that will not be imported.");
@@ -6452,7 +6471,7 @@ void xLightsFrame::CheckEffect(Effect* ef, wxFile& f, int& errcount, int& warnco
     }
 }
 
-void xLightsFrame::CheckElement(Element* e, wxFile& f, int& errcount, int& warncount, const std::string& name, const std::string& modelName, bool& videoCacheWarning, std::list<std::pair<std::string, std::string>>& faces, std::list<std::pair<std::string, std::string>>& states, std::list<std::string>& viewPoints, bool& usesShader)
+void xLightsFrame::CheckElement(Element* e, wxFile& f, int& errcount, int& warncount, const std::string& name, const std::string& modelName, bool& videoCacheWarning, std::list<std::pair<std::string, std::string>>& faces, std::list<std::pair<std::string, std::string>>& states, std::list<std::string>& viewPoints, bool& usesShader, std::list<std::string>& allfiles)
 {
     for (int j = 0; j < e->GetEffectLayerCount(); j++)
     {
@@ -6461,6 +6480,8 @@ void xLightsFrame::CheckElement(Element* e, wxFile& f, int& errcount, int& warnc
         for (int k = 0; k < el->GetEffectCount(); k++)
         {
             Effect* ef = el->GetEffect(k);
+            RenderableEffect* eff = effectManager[ef->GetEffectIndex()];
+            allfiles.splice(end(allfiles), eff->GetFileReferences(ef->GetSettings()));
 
             // Check there are nodes to actually render on
             Model* m = AllModels[modelName];
@@ -8978,6 +8999,42 @@ void xLightsFrame::ShowPresetsPanel()
         EffectTreeDlg->InitItems(mSequenceElements.GetEffectsNode());
     }
     EffectTreeDlg->Show();
+}
+
+uint64_t xLightsFrame::BadDriveAccess(const std::list<std::string>& files, std::list<std::pair<std::string, uint64_t>>& slow, uint64_t thresholdUS)
+{
+    uint64_t worst = 0;
+
+    std::list<std::string> folders;
+    std::list<std::string> checkfiles;
+    for (auto it : files)
+    {
+        wxFileName fn(it);
+        if (std::find(begin(folders), end(folders), fn.GetPath()) == end(folders))
+        {
+            folders.push_back(fn.GetPath());
+            checkfiles.push_back(it);
+        }
+    }
+
+    for (auto it : checkfiles)
+    {
+        uint8_t b[8192];
+        wxStopWatch sw;
+        wxFile f;
+        if (f.Open(it))
+        {
+            f.Read(b, sizeof(b));
+            uint64_t t = sw.TimeInMicro().GetValue();
+            if (t > worst) worst = t;
+            if (t > thresholdUS)
+            {
+                slow.push_back({ it, t });
+            }
+        }
+    }
+
+    return worst;
 }
 
 void xLightsFrame::TogglePresetsPanel()
