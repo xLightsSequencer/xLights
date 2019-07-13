@@ -1867,11 +1867,15 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
                                             }
                                         }
                                 }
+                                curl_multi_remove_handle(curlMulti, e);
+                                e = nullptr;
                                 delete curls[x];
                                 curls[x] = nullptr;
                             }
                         }
-                        curl_multi_remove_handle(curlMulti, e);
+                        if (e) {
+                            curl_multi_remove_handle(curlMulti, e);
+                        }
                     }
                 }
             }
