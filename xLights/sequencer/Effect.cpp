@@ -166,6 +166,8 @@ Effect::Effect(EffectLayer* parent,int id, const std::string & name, const std::
     : mParentLayer(parent), mID(id), mEffectIndex(-1), mName(nullptr),
       mStartTime(startTimeMS), mEndTime(endTimeMS), mSelected(Selected), mTagged(false), mProtected(Protected), mCache(nullptr)
 {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     mColorMask = xlColor::NilColor();
     mEffectIndex = (parent->GetParentElement() == nullptr) ? -1 : parent->GetParentElement()->GetSequenceElements()->GetEffectManager().GetEffectIndex(name);
     mSettings.Parse(settings);
@@ -268,7 +270,7 @@ const std::string& Effect::GetEffectName() const
 
     if (GetParentEffectLayer() == nullptr)
     {
-        logger_base.crit("Call to Effect::GetEffectName(int) called but parent effect layer was null ... this will crash.");
+        logger_base.crit("Call to Effect::GetEffectName() called but parent effect layer was null ... this will crash.");
         wxASSERT(false);
     }
     
@@ -435,20 +437,20 @@ void Effect::SetSettings(const std::string &settings, bool keepxsettings)
     SettingsMap x;
     if (keepxsettings)
     {
-        for (auto it = mSettings.begin(); it != mSettings.end(); ++it)
+        for (auto it : mSettings)
         {
-            if (it->first.size() > 2 && it->first[0] == 'X' && it->first[1] == '_')
+            if (it.first.size() > 2 && it.first[0] == 'X' && it.first[1] == '_')
             {
-                x[it->first] = it->second;
+                x[it.first] = it.second;
             }
         }
     }
     mSettings.Parse(settings);
     if (keepxsettings)
     {
-        for (auto it = x.begin(); it != x.end(); ++it)
+        for (auto it : x)
         {
-            mSettings[it->first] = it->second;
+            mSettings[it.first] = it.second;
         }
     }
     IncrementChangeCount();
