@@ -24,6 +24,7 @@
 #include "../models/Model.h"
 #include "../outputs/OutputManager.h"
 #include "../outputs/Output.h"
+#include "../outputs/E131Output.h"
 #include "../outputs/DDPOutput.h"
 #include "../UtilFunctions.h"
 #include "../xLightsVersion.h"
@@ -946,7 +947,7 @@ wxJSONValue FPP::CreateUniverseFile(OutputManager* outputManager, const std::str
 
     wxJSONValue universes;
     // Get universes based on IP
-    std::list<Output*> outputs = outputManager->GetAllOutputs(onlyip, selected);
+    std::list<Output*> outputs = outputManager->GetAllOutputs(onlyip, "", selected, false);
     for (auto it = outputs.begin(); it != outputs.end(); ++it) {
         int c = (*it)->GetStartChannel();
 
@@ -963,6 +964,11 @@ wxJSONValue FPP::CreateUniverseFile(OutputManager* outputManager, const std::str
             universe["type"] = (int)((*it)->GetIP() != "MULTICAST" ? 1 : 0);
             if (!input && ((*it)->GetIP() != "MULTICAST")) {
                 universe["address"] = wxString((*it)->GetIP());
+            }
+            if ((*it)->IsOutputCollection()) {
+                universe["universeCount"] = ((E131Output*)(*it))->GetUniverses();
+            } else {
+                universe["universeCount"] = 1;
             }
             universes.Append(universe);
         } else if ((*it)->GetType() == OUTPUT_DDP) {

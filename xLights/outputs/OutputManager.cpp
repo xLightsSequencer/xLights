@@ -723,7 +723,7 @@ bool OutputManager::AreAllIPOutputs(std::list<int> outputNumbers)
     return true;
 }
 
-std::list<Output*> OutputManager::GetAllOutputs(const std::string& ip, const std::string& hostname, const std::list<int>& selected) const
+std::list<Output*> OutputManager::GetAllOutputs(const std::string& ip, const std::string& hostname, const std::list<int>& selected, bool expandCollections) const
 {
     std::list<Output*> res;
 
@@ -733,7 +733,7 @@ std::list<Output*> OutputManager::GetAllOutputs(const std::string& ip, const std
     {
         if (ip == "" || (it->IsIpOutput() && (it->GetIP() == ip || it->GetIP() == hostname)))
         {
-            if (it->IsOutputCollection())
+            if (it->IsOutputCollection() && expandCollections)
             {
                 auto o = it->GetOutputs();
                 for (auto it2 : o)
@@ -752,7 +752,7 @@ std::list<Output*> OutputManager::GetAllOutputs(const std::string& ip, const std
             {
                 if (it2->GetOutputNumber() == it->GetOutputNumber())
                 {
-                    if (it2->IsOutputCollection())
+                    if (it2->IsOutputCollection() && expandCollections)
                     {
                         auto o = it2->GetOutputs();
                         for (auto it3 : o)
