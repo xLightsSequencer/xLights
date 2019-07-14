@@ -191,16 +191,15 @@ Effect::Effect(EffectLayer* parent,int id, const std::string & name, const std::
     }
 
     // check for any other odd looking blank settings
-    for (auto it = mSettings.begin(); it != mSettings.end(); ++it)
+    for (auto it : mSettings)
     {
-        if (it->second == "")
+        if (it.second == "")
         {
-            static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
             logger_base.warn("Effect '%s' on model '%s' at time '%s' has setting '%s' with a blank value.",
                 (const char *)name.c_str(),
                 (const char *)(parent->GetParentElement() == nullptr ? "" : parent->GetParentElement()->GetName().c_str()),
                 FORMATTIME(startTimeMS),
-                (const char *)it->first.c_str()
+                (const char *)it.first.c_str()
                 );
         }
     }
@@ -258,17 +257,34 @@ void Effect::SetEffectIndex(int effectIndex)
     }
 }
 
-const std::string &Effect::GetEffectName() const
+const std::string& Effect::GetEffectName() const
 {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     if (mName != nullptr)
     {
         return *mName;
     }
+
+    if (GetParentEffectLayer() == nullptr)
+    {
+        logger_base.crit("Call to Effect::GetEffectName(int) called but parent effect layer was null ... this will crash.");
+        wxASSERT(false);
+    }
+    
     return GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetEffectManager().GetEffectName(mEffectIndex);
 }
 
 const std::string& Effect::GetEffectName(int index) const
 {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    if (GetParentEffectLayer() == nullptr)
+    {
+        // This really should never happen ... we should be digging into why it does
+        logger_base.crit("Call to Effect::GetEffectName(int) called but parent effect layer was null ... this will crash.");
+        wxASSERT(false);
+    }
+
     if (index < 0)
     {
         return GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetEffectManager().GetEffectName(mEffectIndex);

@@ -4893,6 +4893,7 @@ void LayoutPanel::OnListCharHook(wxKeyEvent& event)
 
 void LayoutPanel::DeleteSelectedModel() {
     if( selectedBaseObject != nullptr && !selectedBaseObject->GetBaseObjectScreenLocation().IsLocked()) {
+        xlights->UnselectEffect(); // we do this just in case the effect is on the model we are deleting
         CreateUndoPoint("All", selectedBaseObject->name);
         // This should delete all selected models
         //xlights->AllModels.Delete(selectedBaseObject->name);
@@ -4947,6 +4948,7 @@ void LayoutPanel::ReplaceModel()
 
     if (dlg.ShowModal() == wxID_OK)
     {
+        xlights->UnselectEffect(); // we do this just in case the effect is on the model we are deleting
         Model* replaceModel = nullptr;
         for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
         {
@@ -5433,6 +5435,7 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event)
         if( mSelectedGroup.IsOk() ) {
             wxString name = TreeListViewModels->GetItemText(mSelectedGroup);
             if (wxMessageBox("Are you sure you want to remove the " + name + " group?", "Confirm Remove?", wxICON_QUESTION | wxYES_NO) == wxYES) {
+                xlights->UnselectEffect(); // we do this just in case the effect is on the model we are deleting
                 xlights->AllModels.Delete(name.ToStdString());
                 selectedBaseObject = nullptr;
                 mSelectedGroup = nullptr;
@@ -5463,6 +5466,7 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event)
                     ++it;
                     if (mg->GetModelCount() == 0)
                     {
+                        xlights->UnselectEffect(); // we do this just in case the effect is on the model we are deleting
                         xlights->AllModels.Delete(mg->GetName());
                         deleted = true;
                     }
