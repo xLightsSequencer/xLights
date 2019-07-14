@@ -527,6 +527,7 @@ void ModelStateDialog::OnNodeRangeGridCellLeftDClick(wxGridEvent& event)
         if (dialog.ShowModal() == wxID_OK)
         {
             NodeRangeGrid->SetCellValue(event.GetRow(), CHANNEL_COL, dialog.GetNodeList());
+            GetValue(NodeRangeGrid, event, stateData[name]);
             dialog.Close();
         }
     }
