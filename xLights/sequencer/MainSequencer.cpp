@@ -239,7 +239,7 @@ MainSequencer::MainSequencer(wxWindow* parent, bool smallWaveform, wxWindowID id
     FlexGridSizer1->Add(ScrollBarEffectsVertical, 1, wxALL|wxEXPAND, 0);
     CheckBox_SuspendRender = new wxCheckBox(this, ID_CHECKBOX1, _("Suspend Render"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
     CheckBox_SuspendRender->SetValue(false);
-    FlexGridSizer1->Add(CheckBox_SuspendRender, 1, wxALL|wxEXPAND, 5);
+    FlexGridSizer1->Add(CheckBox_SuspendRender, 1, wxALL|wxEXPAND, 0);
     ScrollBarEffectsHorizontal = new wxScrollBar(this, ID_SCROLLBAR_EFFECT_GRID_HORZ, wxDefaultPosition, wxDefaultSize, wxSB_HORIZONTAL|wxALWAYS_SHOW_SB, wxDefaultValidator, _T("ID_SCROLLBAR_EFFECT_GRID_HORZ"));
     ScrollBarEffectsHorizontal->SetScrollbar(0, 1, 100, 1);
     FlexGridSizer1->Add(ScrollBarEffectsHorizontal, 1, wxALL|wxEXPAND, 0);
@@ -268,6 +268,12 @@ MainSequencer::MainSequencer(wxWindow* parent, bool smallWaveform, wxWindowID id
     Connect(ID_SCROLLBAR_EFFECT_GRID_HORZ,wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectGridHorzScroll);
     //*)
 
+#ifdef __WXOSX__
+    wxFont fnt = CheckBox_SuspendRender->GetFont();
+    fnt.SetFractionalPointSize(10.0);
+    CheckBox_SuspendRender->SetFont(fnt);
+#endif
+    
     logger_base.debug("                Create time display control");
     timeDisplay = new TimeDisplayControl(this, wxID_ANY);
     FlexGridSizer2->Add(timeDisplay, 1, wxALL |wxEXPAND, 0);
