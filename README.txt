@@ -11,9 +11,14 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2019.35 July 16, 2019
+   -- enh (dkulp)  FPP Connect - don't expand multi-universe E1.31 outputs to multiple lines
+   -- enh (keith)  Add some checks for slow storage and overly outsized images/video that drives rendering work
+   -- enh (keith)  Add toggle presets dialog as a keybinding option
    -- bug (dkulp)  FPP Connect - hopefully fix crash on Windows.  If not, more logging added.
    -- bug (dkulp)  FPP Connect - Fix "Add FPP" button that stopped working a while ago
-   -- enh (dkulp)  FPP Connect - don't expand multi-universe E1.31 outputs to multiple lines
+   -- bug (keith)  Fix crash when model is deleted while sequence is open
+   -- bug (keith)  Model state dialog does not save selected nodes when using node selection dialog
 2019.34 July 12, 2019
    -- enh (dkulp)  FPP Connect - Allow uploading of JUST the UDP outputs needed for that proxy instance
    -- enh (dkulp)  FPP Connect - Use pixel cape information and UDP ouput information to expand ranges used for v2 sparse files
