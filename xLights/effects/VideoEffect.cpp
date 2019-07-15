@@ -25,7 +25,7 @@ VideoEffect::~VideoEffect()
 {
 }
 
-std::list<std::string> VideoEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff)
+std::list<std::string> VideoEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
 {
     std::list<std::string> res;
 
@@ -42,13 +42,12 @@ std::list<std::string> VideoEffect::CheckEffectSettings(const SettingsMap& setti
             res.push_back(wxString::Format("    WARN: Video effect video file '%s' not under show directory. Model '%s', Start %s", filename, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
         }
 
-        VideoReader* videoreader = new VideoReader(filename.ToStdString(), 100, 100, false);
-
+        VideoReader* videoreader = new VideoReader(filename.ToStdString(), 100, 100, false, true);
         if (videoreader == nullptr || videoreader->GetLengthMS() == 0)
         {
             res.push_back(wxString::Format("    ERR: Video effect video file '%s' could not be understood. Format may not be supported. Model '%s', Start %s", filename, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
         }
-        else
+        else if (videoreader != nullptr)
         {
             double starttime = settings.GetDouble("E_TEXTCTRL_Video_Starttime", 0.0);
             wxString treatment = settings.Get("E_CHOICE_Video_DurationTreatment", "Normal");
@@ -60,6 +59,19 @@ std::list<std::string> VideoEffect::CheckEffectSettings(const SettingsMap& setti
                 if (videoduration < effectduration)
                 {
                     res.push_back(wxString::Format("    WARN: Video effect video file '%s' is shorter %s than effect duration %s. Model '%s', Start %s", filename, FORMATTIME(videoduration), FORMATTIME(effectduration), model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+                }
+            }
+
+            if (!renderCache)
+            {
+                int vh = videoreader->GetHeight();
+                int vw = videoreader->GetHeight();
+
+#define VIDEOSIZETHRESHOLD 10
+                if (vh > VIDEOSIZETHRESHOLD * model->GetDefaultBufferHt() || vw > VIDEOSIZETHRESHOLD * model->GetDefaultBufferWi())
+                {
+                    float scale = std::max((float)vh / model->GetDefaultBufferHt(), (float)vw / model->GetDefaultBufferWi());
+                    res.push_back(wxString::Format("    WARN: Video effect video file '%s' is %.1f times the height or width of the model ... xLights is going to need to do lots of work to resize the video. Model '%s', Start %s", filename, scale, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
                 }
             }
         }

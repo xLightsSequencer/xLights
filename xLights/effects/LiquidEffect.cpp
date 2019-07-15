@@ -30,7 +30,7 @@ wxPanel *LiquidEffect::CreatePanel(wxWindow *parent) {
     return new LiquidPanel(parent);
 }
 
-std::list<std::string> LiquidEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff)
+std::list<std::string> LiquidEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
 {
     std::list<std::string> res;
 

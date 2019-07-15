@@ -63,8 +63,9 @@ FacesEffect::~FacesEffect()
     //dtor
 }
 
-std::list<std::string> FacesEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff)
+std::list<std::string> FacesEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
 {
+    wxLogNull logNo;  // suppress popups from png images. See http://trac.wxwidgets.org/ticket/15331
     std::list<std::string> res;
 
     wxString definition = settings.Get("E_CHOICE_Faces_FaceDefinition", "");
@@ -142,6 +143,24 @@ std::list<std::string> FacesEffect::CheckEffectSettings(const SettingsMap& setti
                     else if (!IsFileInShowDir(xLightsFrame::CurrentDir, picture))
                     {
                         res.push_back(wxString::Format("    WARN: Faces effect image file '%s' not under show directory. Model '%s', Start %s", picture, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+                    }
+
+                    if (wxFileExists(picture))
+                    {
+                        wxImage i;
+                        i.LoadFile(picture);
+                        if (i.IsOk())
+                        {
+                            int ih = i.GetHeight();
+                            int iw = i.GetWidth();
+
+#define IMAGESIZETHRESHOLD 10
+                            if (ih > IMAGESIZETHRESHOLD * model->GetDefaultBufferHt() || iw > IMAGESIZETHRESHOLD * model->GetDefaultBufferWi())
+                            {
+                                float scale = std::max((float)ih / model->GetDefaultBufferHt(), (float)iw / model->GetDefaultBufferWi());
+                                res.push_back(wxString::Format("    WARN: Faces effect image file '%s' is %.1f times the height or width of the model ... xLights is going to need to do lots of work to resize the image. Model '%s', Start %s", picture, scale, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+                            }
+                        }
                     }
                 }
             }

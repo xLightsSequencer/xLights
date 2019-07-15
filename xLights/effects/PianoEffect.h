@@ -21,7 +21,7 @@ class PianoEffect : public RenderableEffect
         virtual void SetPanelStatus(Model *cls) override;
         virtual void RenameTimingTrack(std::string oldname, std::string newname, Effect* effect) override;
         virtual int GetColorSupportedCount() const override { return 5; }
-        virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff) override;
+        virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) override;
         virtual bool AppropriateOnNodes() const override { return false; }
         // Currently not possible but I think changes could be made to make it support partial
         //virtual bool CanRenderPartialTimeInterval() const override { return true; }

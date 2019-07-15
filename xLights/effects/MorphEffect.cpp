@@ -59,7 +59,7 @@ AssistPanel *MorphEffect::GetAssistPanel(wxWindow *parent, xLightsFrame* xl_fram
     return assist_panel;
 }
 
-std::list<std::string> MorphEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff)
+std::list<std::string> MorphEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
 {
     std::list<std::string> res;
 

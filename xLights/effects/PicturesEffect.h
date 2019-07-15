@@ -27,7 +27,7 @@ class PicturesEffect : public RenderableEffect
         virtual bool HasAssistPanel() override { return true; }
         virtual bool needToAdjustSettings(const std::string &version) override;
         virtual void adjustSettings(const std::string &version, Effect *effect, bool removeDefaults = true) override;
-        virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff) override;
+        virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) override;
         virtual std::list<std::string> GetFileReferences(const SettingsMap &SettingsMap) const override;
         virtual bool CleanupFileLocations(xLightsFrame* frame, SettingsMap &SettingsMap) override;
         static bool IsPictureFile(std::string filename);

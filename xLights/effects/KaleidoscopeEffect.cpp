@@ -32,7 +32,7 @@ wxPanel *KaleidoscopeEffect::CreatePanel(wxWindow *parent)
     return new KaleidoscopePanel(parent);
 }
 
-std::list<std::string> KaleidoscopeEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff)
+std::list<std::string> KaleidoscopeEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
 {
     std::list<std::string> res;
 

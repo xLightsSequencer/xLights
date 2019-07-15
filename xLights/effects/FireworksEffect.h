@@ -33,7 +33,7 @@ class FireworksEffect : public RenderableEffect
         virtual void SetDefaultParameters() override;
         virtual void SetPanelStatus(Model *cls) override;
         virtual void Render(Effect *effect, SettingsMap &settings, RenderBuffer &buffer) override;
-        virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff) override;
+        virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) override;
         virtual bool AppropriateOnNodes() const override { return false; }
 protected:
         virtual wxPanel *CreatePanel(wxWindow *parent) override;

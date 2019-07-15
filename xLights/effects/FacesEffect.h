@@ -16,7 +16,7 @@ public:
     virtual void SetDefaultParameters() override;
     virtual void Render(Effect* effect, SettingsMap& settings, RenderBuffer& buffer) override;
     virtual void RenameTimingTrack(std::string oldname, std::string newname, Effect* effect) override;
-    virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff) override;
+    virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) override;
     virtual bool AppropriateOnNodes() const override { return false; }
     virtual std::list<std::string> GetFacesUsed(const SettingsMap& SettingsMap) const override;
 protected:

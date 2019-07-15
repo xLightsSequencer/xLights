@@ -21,7 +21,7 @@ class MusicEffect : public RenderableEffect
         void Render(RenderBuffer &buffer,
                     int bars, const std::string& type, int sensitivity, bool scale, const std::string& scalenotes, int offsetx, int startnote, int endnote, const std::string& colourtreatment, bool fade);
         virtual void SetDefaultParameters() override;
-        virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff) override;
+        virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) override;
     
         // Currently not possible but I think changes could be made to make it support partial
         //virtual bool CanRenderPartialTimeInterval() const override { return true; }

@@ -13,7 +13,7 @@ class OffEffect : public RenderableEffect
         virtual std::string GetEffectString() override;
         virtual void SetDefaultParameters() override;
         virtual bool CanRenderPartialTimeInterval() const override { return true; }
-        virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff) override;
+        virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) override;
 
     protected:
         virtual wxPanel *CreatePanel(wxWindow *parent) override;

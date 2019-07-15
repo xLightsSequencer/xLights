@@ -43,7 +43,7 @@ void FillEffect::SetDefaultParameters() {
     SetCheckBoxValue(fp->CheckBox_Fill_Wrap, true);
 }
 
-std::list<std::string> FillEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff)
+std::list<std::string> FillEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
 {
     std::list<std::string> res;
 
