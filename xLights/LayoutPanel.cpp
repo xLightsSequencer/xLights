@@ -5797,7 +5797,7 @@ void LayoutPanel::ImportModelsFromRGBEffects()
         for (auto it : dlg.GetPreviews())
         {
             bool found = false;
-            for (int i = 0; i < ChoiceLayoutGroups->GetCount(); i++)
+            for (size_t i = 0; i < ChoiceLayoutGroups->GetCount(); i++)
             {
                 if (ChoiceLayoutGroups->GetString(i) == it)
                 {
@@ -5839,22 +5839,18 @@ void LayoutPanel::PreviewPrintImage()
 	{
 	public:
 		Printout(xlGLCanvas *canvas) : m_canvas(canvas), m_image(nullptr), m_grabbedImage(false) {}
-		virtual ~Printout()
-		{
+		virtual ~Printout() {
 			clearImage();
 		}
 
-		void clearImage()
-		{
-			if (m_image != nullptr)
-			{
+		void clearImage() {
+			if (m_image != nullptr) {
 				delete m_image;
 				m_image = nullptr;
 			}
 		}
 
-		virtual bool GrabImage()
-		{
+		virtual bool GrabImage() {
 			clearImage();
 
 			wxRect rect = GetLogicalPageRect();
@@ -5866,8 +5862,7 @@ void LayoutPanel::PreviewPrintImage()
 			return m_grabbedImage;
 		}
 
-		virtual bool OnPrintPage(int page) override
-		{
+		virtual bool OnPrintPage(int page) override {
 			if ( GrabImage() == false )
 				return false;
 
@@ -5898,35 +5893,29 @@ void LayoutPanel::PreviewPrintImage()
 	static wxPrintDialogData printDialogData;
 	wxPrinter printer(&printDialogData);
 
-	if (!printer.Print(this, &printout, true))
-	{
-		if (wxPrinter::GetLastError() == wxPRINTER_ERROR)
-		{
+	if (!printer.Print(this, &printout, true)) {
+		if (wxPrinter::GetLastError() == wxPRINTER_ERROR) {
 			DisplayError(wxString::Format("Problem printing. %d", wxPrinter::GetLastError()).ToStdString());
 		}
     }
-	else
-	{
+	else {
 		printDialogData = printer.GetPrintDialogData();
-        if (!printout.grabbedImage())
-        {
+        if (!printout.grabbedImage()) {
             DisplayError("Problem grabbing ModelPreview image for printing", this);
         }
     }
 }
 
-void LayoutPanel::AddPreviewChoice(const std::string &name)
+void LayoutPanel::AddPreviewChoice(const std::string& name)
 {
-    ChoiceLayoutGroups->Insert(name, ChoiceLayoutGroups->GetCount()-1);
+    ChoiceLayoutGroups->Insert(name, ChoiceLayoutGroups->GetCount() - 1);
     model_grp_panel->AddPreviewChoice(name);
 
     // see if we need to switch to this one
     const std::string& storedLayoutGroup = xlights->GetStoredLayoutGroup();
-    if( storedLayoutGroup == name ) {
-        for( int i = 0; i < (int)ChoiceLayoutGroups->GetCount(); i++ )
-        {
-            if( ChoiceLayoutGroups->GetString(i) == storedLayoutGroup )
-            {
+    if (storedLayoutGroup == name) {
+        for (int i = 0; i < (int)ChoiceLayoutGroups->GetCount(); i++) {
+            if (ChoiceLayoutGroups->GetString(i) == storedLayoutGroup) {
                 SetCurrentLayoutGroup(storedLayoutGroup);
                 ChoiceLayoutGroups->SetSelection(i);
                 modelPreview->SetDisplay2DBoundingBox(xlights->GetDisplay2DBoundingBox());
@@ -5949,8 +5938,7 @@ const wxString& LayoutPanel::GetBackgroundImageForSelectedPreview() {
     return previewBackgroundFile;
 }
 
-bool LayoutPanel::GetBackgroundScaledForSelectedPreview()
-{
+bool LayoutPanel::GetBackgroundScaledForSelectedPreview() {
     previewBackgroundScaled = xlights->GetDefaultPreviewBackgroundScaled();
     if (pGrp != nullptr && currentLayoutGroup != "Default" && currentLayoutGroup != "All Models" && currentLayoutGroup != "Unassigned") {
         previewBackgroundScaled = pGrp->GetBackgroundScaled();
@@ -5958,8 +5946,7 @@ bool LayoutPanel::GetBackgroundScaledForSelectedPreview()
     return previewBackgroundScaled;
 }
 
-int LayoutPanel::GetBackgroundBrightnessForSelectedPreview()
-{
+int LayoutPanel::GetBackgroundBrightnessForSelectedPreview() {
     previewBackgroundBrightness = xlights->GetDefaultPreviewBackgroundBrightness();
     if (pGrp != nullptr && currentLayoutGroup != "Default" && currentLayoutGroup != "All Models" && currentLayoutGroup != "Unassigned") {
         previewBackgroundBrightness = pGrp->GetBackgroundBrightness();
@@ -5978,23 +5965,20 @@ int LayoutPanel::GetBackgroundAlphaForSelectedPreview()
 
 void LayoutPanel::SwitchChoiceToCurrentLayoutGroup() {
     ChoiceLayoutGroups->SetSelection(0);
-    for (int i = 0; i < (int)ChoiceLayoutGroups->GetCount(); i++ )
-    {
-        if( ChoiceLayoutGroups->GetString(i) == currentLayoutGroup )
-        {
+    for (int i = 0; i < (int)ChoiceLayoutGroups->GetCount(); i++) {
+        if (ChoiceLayoutGroups->GetString(i) == currentLayoutGroup) {
             ChoiceLayoutGroups->SetSelection(i);
             break;
         }
     }
 }
 
-void LayoutPanel::DeleteCurrentPreview()
-{
+void LayoutPanel::DeleteCurrentPreview() {
     if (wxMessageBox("Are you sure you want to delete the " + currentLayoutGroup + " preview?", "Confirm Delete?", wxICON_QUESTION | wxYES_NO) == wxYES) {
         for (auto it = xlights->LayoutGroups.begin(); it != xlights->LayoutGroups.end(); ++it) {
             LayoutGroup* grp = (LayoutGroup*)(*it);
             if (grp != nullptr) {
-                if( currentLayoutGroup == grp->GetName() ) {
+                if (currentLayoutGroup == grp->GetName()) {
                     xlights->RemovePreviewOption(grp);
                     grp->GetLayoutGroupXml()->GetParent()->RemoveChild(grp->GetLayoutGroupXml());
                     xlights->LayoutGroups.erase(it);
@@ -6006,18 +5990,16 @@ void LayoutPanel::DeleteCurrentPreview()
         }
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::DeleteCurrentPreview");
         mSelectedGroup = nullptr;
-        for( int i = 0; i < (int)ChoiceLayoutGroups->GetCount(); i++ )
-        {
-            if( ChoiceLayoutGroups->GetString(i) == currentLayoutGroup )
-            {
+        for (int i = 0; i < (int)ChoiceLayoutGroups->GetCount(); i++) {
+            if (ChoiceLayoutGroups->GetString(i) == currentLayoutGroup) {
                 ChoiceLayoutGroups->Delete(i);
                 break;
             }
         }
         // change any existing assignments to this preview to be unassigned
         for (auto it = xlights->AllModels.begin(); it != xlights->AllModels.end(); ++it) {
-            Model *model = it->second;
-            if( model->GetLayoutGroup() == currentLayoutGroup) {
+            Model* model = it->second;
+            if (model->GetLayoutGroup() == currentLayoutGroup) {
                 model->SetLayoutGroup("Unassigned");
             }
         }
@@ -6036,8 +6018,7 @@ void LayoutPanel::DeleteCurrentPreview()
     }
 }
 
-void LayoutPanel::ShowPropGrid(bool show)
-{
+void LayoutPanel::ShowPropGrid(bool show) {
     if( !mPropGridActive && show ) {
         ModelSplitter->ReplaceWindow(ModelGroupWindow, propertyEditor);
         ModelGroupWindow->Hide();
@@ -6069,38 +6050,40 @@ void LayoutPanel::SetCurrentLayoutGroup(const std::string& group)
 
 void LayoutPanel::OnItemContextMenu(wxTreeListEvent& event)
 {
-    if( !editing_models ) {
+    if (!editing_models) {
         objects_panel->OnItemContextMenu(event);
         return;
     }
 
     wxMenu mnuContext;
     wxTreeListItem item = event.GetItem();
-    if( item.IsOk() ) {
-        ModelTreeData *data = dynamic_cast<ModelTreeData*>(TreeListViewModels->GetItemData(item));
+    if (item.IsOk()) {
+        ModelTreeData* data = dynamic_cast<ModelTreeData*>(TreeListViewModels->GetItemData(item));
         Model* model = data != nullptr ? data->GetModel() : nullptr;
-        if( model != nullptr ) {
-            if( model->GetDisplayAs() == "ModelGroup" ) {
+        if (model != nullptr) {
+            if (model->GetDisplayAs() == "ModelGroup") {
                 mSelectedGroup = item;
-            } else {
+            }
+            else {
                 mSelectedGroup = nullptr;
                 SelectModel(model, false);
             }
         }
-    } else {
+    }
+    else {
         return;
     }
 
     Model* selectedModel = dynamic_cast<Model*>(selectedBaseObject);
     if (selectedModel != nullptr && selectedModel->GetDisplayAs() != "SubModel") {
-        mnuContext.Append(ID_MNU_DELETE_MODEL,"Delete");
+        mnuContext.Append(ID_MNU_DELETE_MODEL, "Delete");
         mnuContext.AppendSeparator();
     }
 
-    mnuContext.Append(ID_MNU_ADD_MODEL_GROUP,"Add Group");
-    if( mSelectedGroup.IsOk() ) {
-        mnuContext.Append(ID_MNU_DELETE_MODEL_GROUP,"Delete Group");
-        mnuContext.Append(ID_MNU_RENAME_MODEL_GROUP,"Rename Group");
+    mnuContext.Append(ID_MNU_ADD_MODEL_GROUP, "Add Group");
+    if (mSelectedGroup.IsOk()) {
+        mnuContext.Append(ID_MNU_DELETE_MODEL_GROUP, "Delete Group");
+        mnuContext.Append(ID_MNU_RENAME_MODEL_GROUP, "Rename Group");
     }
     mnuContext.Append(ID_MNU_DELETE_EMPTY_MODEL_GROUPS, "Delete Empty Groups");
 
@@ -6135,16 +6118,14 @@ void LayoutPanel::OnItemContextMenu(wxTreeListEvent& event)
         }
     }
 
-    if (foundInvalid)
-    {
+    if (foundInvalid) {
         mnuContext.Append(ID_MNU_MAKEALLSCVALID, "Make All Start Channels Valid");
     }
-    if (foundOverlapping)
-    {
+    if (foundOverlapping) {
         mnuContext.Append(ID_MNU_MAKEALLSCNOTOVERLAPPING, "Make All Start Channels Not Overlapping");
     }
 
-    mnuContext.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&LayoutPanel::OnModelsPopup, nullptr, this);
+    mnuContext.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)& LayoutPanel::OnModelsPopup, nullptr, this);
     PopupMenu(&mnuContext);
 }
 

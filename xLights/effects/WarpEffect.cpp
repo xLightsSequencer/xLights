@@ -488,7 +488,7 @@ void WarpEffect::adjustSettings(const std::string &version, Effect *effect, bool
     }
 }
 
-std::list<std::string> WarpEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff)
+std::list<std::string> WarpEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
 {
     std::list<std::string> res; 
     
