@@ -2818,6 +2818,9 @@ void xLightsFrame::DoASAPWork()
 void xLightsFrame::DoWork(uint32_t work, const std::string& type, Model* m, const std::string& selected)
 {
     static log4cpp::Category& logger_work = log4cpp::Category::getInstance(std::string("log_work"));
+
+    if (work == OutputModelManager::WORK_NOTHING) return;
+
     std::string selectedModel = selected;
     if (selectedModel == "")
         selectedModel = _outputModelManager.GetSelectedModel();

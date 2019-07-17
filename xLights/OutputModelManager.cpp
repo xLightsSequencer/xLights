@@ -21,6 +21,7 @@ void OutputModelManager::Dump(const std::string& type, const std::list<std::pair
 std::string OutputModelManager::DecodeWork(uint32_t work)
 {
     std::string res;
+    if (work & WORK_NOTHING) res += "WORK_NOTHING";
     if (work & WORK_UPDATE_PROPERTYGRID) res += "WORK_UPDATE_PROPERTYGRID";
     if (work & WORK_MODELS_REWORK_STARTCHANNELS) res += " WORK_MODELS_REWORK_STARTCHANNELS";
     if (work & WORK_RELOAD_MODEL_FROM_XML) res += " WORK_RELOAD_MODEL_FROM_XML";

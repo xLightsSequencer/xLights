@@ -4893,6 +4893,8 @@ void LayoutPanel::OnListCharHook(wxKeyEvent& event)
 
 void LayoutPanel::DeleteSelectedModel() {
     if( selectedBaseObject != nullptr && !selectedBaseObject->GetBaseObjectScreenLocation().IsLocked()) {
+        // we suspend deferred work because if the delete model pops a dialog then the ASAP work gets done prematurely
+        xlights->GetOutputModelManager()->SuspendDeferredWork(true);
         xlights->UnselectEffect(); // we do this just in case the effect is on the model we are deleting
         CreateUndoPoint("All", selectedBaseObject->name);
         // This should delete all selected models
@@ -4914,6 +4916,7 @@ void LayoutPanel::DeleteSelectedModel() {
             xlights->AllModels.Delete(selectedBaseObject->name);
         }
         selectedBaseObject = nullptr;
+        xlights->GetOutputModelManager()->SuspendDeferredWork(false);
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::DeleteSelectedModel");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::DeleteSelectedModel");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "LayoutPanel::DeleteSelectedModel");

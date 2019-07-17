@@ -17,6 +17,7 @@ class OutputModelManager {
 	xLightsFrame* _frame = nullptr;
     bool _workRequested = false;
     std::string _selectedModel = "";
+    bool _suspendedDeferredWork = false;
 #ifdef _DEBUG
     std::list<std::pair<uint32_t, std::string>> _sourceASAP;
     std::list < std::pair<uint32_t, std::string>> _sourceLayout;
@@ -27,6 +28,7 @@ class OutputModelManager {
 
 public:
 
+    static const uint32_t WORK_NOTHING                          = 0x0000;
     static const uint32_t WORK_UPDATE_PROPERTYGRID              = 0x0001;
     static const uint32_t WORK_MODELS_REWORK_STARTCHANNELS      = 0x0002;
     static const uint32_t WORK_RELOAD_MODEL_FROM_XML            = 0x0004; // Note the model must remain valid until the message is processed
@@ -50,6 +52,8 @@ public:
 		_frame = frame;
 	}
 	uint32_t GetASAPWork() {
+        if (_suspendedDeferredWork) return WORK_NOTHING;
+
 		auto res = _workASAP;
 		_workASAP = 0;
         _workRequested = false;
@@ -60,7 +64,8 @@ public:
 		return res;
 	}
 	uint32_t GetSetupWork() {
-		auto res = _setupTabWork;
+        if (_suspendedDeferredWork) return WORK_NOTHING;
+        auto res = _setupTabWork;
 		_setupTabWork = 0;
 #ifdef _DEBUG
         Dump("Setup", _sourceSetup);
@@ -69,7 +74,8 @@ public:
         return res;
 	}
 	uint32_t GetLayoutWork() {
-		auto res = _layoutTabWork;
+        if (_suspendedDeferredWork) return WORK_NOTHING;
+        auto res = _layoutTabWork;
 		_layoutTabWork = 0;
 #ifdef _DEBUG
         Dump("Layout", _sourceLayout);
@@ -88,6 +94,15 @@ public:
     void ClearSelectedModel() { _selectedModel = ""; }
     void ForceSelectedModel(const std::string& name) { _selectedModel = name; }
     void ClearModelToReload() { _modelToModelFromXml = nullptr; _workASAP &= ~WORK_RELOAD_MODEL_FROM_XML; }
+    void SuspendDeferredWork(bool suspend) {
+        _suspendedDeferredWork = suspend; 
+        if (!suspend) {
+            _workRequested = false;
+            AddASAPWork(WORK_NOTHING, "Unsuspend deferred");
+        }
+        else 
+            _workRequested = false;
+    }
 };
 
 #endif 
