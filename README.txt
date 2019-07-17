@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (scott)  Fixed buffer transform for "Overlay - Center" and "Overlay - Scaled"
 2019.35 July 16, 2019
    -- enh (dkulp)  FPP Connect - don't expand multi-universe E1.31 outputs to multiple lines
    -- enh (keith)  Add some checks for slow storage and overly outsized images/video that drives rendering work

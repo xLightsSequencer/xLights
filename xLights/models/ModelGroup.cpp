@@ -922,6 +922,7 @@ void ModelGroup::InitRenderBufferNodes(const std::string &tp,
                 }
             }
         }
+        ApplyTransform(transform, Nodes, BufferWi, BufferHt);
     } else {
         if( camera == "2D" && type == "Per Preview" ) {
             Nodes.clear();
