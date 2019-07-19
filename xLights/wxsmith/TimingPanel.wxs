@@ -116,6 +116,7 @@
 												<object class="wxButton" name="ID_BUTTON_ABOUT_LAYERS" variable="Button_About_Layers" member="yes">
 													<label>?</label>
 													<size>25,23</size>
+													<tooltip>About Layer Blending Types</tooltip>
 													<handler function="OnButton_AboutClick" entry="EVT_BUTTON" />
 												</object>
 												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE</flag>
