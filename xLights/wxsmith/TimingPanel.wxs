@@ -112,8 +112,13 @@
 												<border>2</border>
 												<option>1</option>
 											</object>
-											<object class="spacer">
-												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<object class="sizeritem">
+												<object class="wxButton" name="ID_BUTTON_ABOUT_LAYERS" variable="Button_About_Layers" member="yes">
+													<label>?</label>
+													<size>25,23</size>
+													<handler function="OnButton_AboutClick" entry="EVT_BUTTON" />
+												</object>
+												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE</flag>
 												<border>5</border>
 												<option>1</option>
 											</object>

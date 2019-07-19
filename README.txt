@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (scott)  Added Layer Blending Help Button 
    -- bug (scott)  Fixed buffer transform for "Overlay - Center" and "Overlay - Scaled"
 2019.35 July 16, 2019
    -- enh (dkulp)  FPP Connect - don't expand multi-universe E1.31 outputs to multiple lines
