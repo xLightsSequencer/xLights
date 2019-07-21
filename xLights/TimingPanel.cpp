@@ -5,8 +5,11 @@
 #include <wx/intl.h>
 #include <wx/settings.h>
 #include <wx/string.h>
+
 //*)
 
+#include <wx/tooltip.h>
+#include <wx/mimetype.h>
 #include <wx/msgdlg.h>
 #include <wx/config.h>
 
@@ -16,7 +19,6 @@
 #include "LayerSelectDialog.h"
 #include "xLightsMain.h"
 #include "UtilFunctions.h"
-#include <wx\mimetype.h>
 
 //(*IdInit(TimingPanel)
 const long TimingPanel::ID_CHECKBOX_ResetTimingPanel = wxNewId();

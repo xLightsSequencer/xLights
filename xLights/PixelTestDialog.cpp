@@ -2588,7 +2588,7 @@ void PixelTestDialog::OnCheckBox_OutputToLightsClick(wxCommandEvent& event)
 	else
 	{
         Timer1.Stop();
-        wxTimerEvent ev;
+        wxTimerEvent ev(Timer1);
         OnTimer1Trigger(ev);
         _outputManager->StopOutput();
 	}

@@ -635,6 +635,7 @@ void xlGLCanvas::Resized(wxSizeEvent& evt)
             m_context = nullptr;
         }
     }
+    Refresh();
 #endif
 }
 
