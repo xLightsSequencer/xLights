@@ -11,7 +11,6 @@
 
 uint32_t __nextId = 1;
 
-
 PluginManager::PluginState::PluginState(wxDynamicLibrary* dl) : _dl(dl), _started(false), _id(__nextId++)
 {
     if (_dl) {

@@ -1505,7 +1505,7 @@ void xScheduleFrame::UpdateSchedule()
                 }
                 else
                 {
-                    TreeCtrl_PlayListsSchedules->SetItemBackgroundColour(it2, *wxWHITE);
+                    TreeCtrl_PlayListsSchedules->SetItemBackgroundColour(it2, wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
                 }
             }
         }
@@ -2005,7 +2005,7 @@ void xScheduleFrame::UpdateStatus(bool force)
                     }
                     else
                     {
-                        ListView_Running->SetItemBackgroundColour(i, *wxWHITE);
+                        ListView_Running->SetItemBackgroundColour(i, wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
                     }
                     ListView_Running->SetItem(i, 2, "");
                 }
