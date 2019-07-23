@@ -215,7 +215,7 @@ ShaderDownloadDialog::ShaderDownloadDialog(wxWindow* parent, wxWindowID id, cons
 	FlexGridSizer2->Add(TreeCtrl_Navigator, 1, wxALL|wxEXPAND, 5);
 	StaticText1 = new wxStaticText(Panel3, ID_STATICTEXT1, _("Shader sites"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
 	FlexGridSizer2->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	ListView_Sites = new wxListView(Panel3, ID_LISTVIEW1, wxDefaultPosition, wxDefaultSize, wxLC_REPORT|wxLC_ALIGN_LEFT|wxLC_NO_SORT_HEADER|wxVSCROLL, wxDefaultValidator, _T("ID_LISTVIEW1"));
+	ListView_Sites = new wxListView(Panel3, ID_LISTVIEW1, wxDefaultPosition, wxDefaultSize, wxLC_REPORT|wxLC_ALIGN_LEFT|wxLC_NO_HEADER|wxLC_NO_SORT_HEADER|wxVSCROLL, wxDefaultValidator, _T("ID_LISTVIEW1"));
 	FlexGridSizer2->Add(ListView_Sites, 1, wxALL|wxEXPAND, 5);
 	Panel3->SetSizer(FlexGridSizer2);
 	FlexGridSizer2->Fit(Panel3);
@@ -259,7 +259,7 @@ ShaderDownloadDialog::ShaderDownloadDialog(wxWindow* parent, wxWindowID id, cons
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("File cache size: %d", _cache.size());
 
-    ListView_Sites->AppendColumn("Website");
+    ListView_Sites->AppendColumn("", wxListColumnFormat::wxLIST_FORMAT_LEFT);
     ListView_Sites->InsertItem(0, "www.interactiveshaderformat.com/");
     ListView_Sites->InsertItem(0, "www.shadertoy.com/");
     ListView_Sites->InsertItem(0, "glslsandbox.com/");

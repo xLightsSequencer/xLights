@@ -48,7 +48,7 @@
 							</object>
 							<object class="sizeritem">
 								<object class="wxListView" name="ID_LISTVIEW1" variable="ListView_Sites" member="yes">
-									<style>wxLC_REPORT|wxLC_ALIGN_LEFT|wxLC_NO_SORT_HEADER|wxVSCROLL</style>
+									<style>wxLC_REPORT|wxLC_ALIGN_LEFT|wxLC_NO_HEADER|wxLC_NO_SORT_HEADER|wxVSCROLL</style>
 									<handler function="OnListView_SitesItemActivated" entry="EVT_LIST_ITEM_ACTIVATED" />
 								</object>
 								<flag>wxALL|wxEXPAND</flag>

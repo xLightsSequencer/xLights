@@ -7,8 +7,6 @@
     <ClCompile Include="CachedFileDownloader.cpp" />
     <ClCompile Include="ColorManager.cpp" />
     <ClCompile Include="ColorManagerDialog.cpp" />
-    <ClCompile Include="controllers\Pixlite16.cpp" />
-    <ClCompile Include="controllers\SanDevices.cpp" />
     <ClCompile Include="CustomTimingDialog.cpp" />
     <ClCompile Include="EffectTimingDialog.cpp" />
     <ClCompile Include="effects\GIFImage.cpp" />
@@ -49,15 +47,6 @@
     <ClCompile Include="effects\ColorWashPanel.cpp" />
     <ClCompile Include="effects\EffectManager.cpp" />
     <ClCompile Include="effects\EffectPanelUtils.cpp" />
-    <ClCompile Include="effects\GlediatorEffect.cpp" />
-    <ClCompile Include="effects\GlediatorPanel.cpp" />
-    <ClCompile Include="effects\OffEffect.cpp" />
-    <ClCompile Include="effects\OffPanel.cpp" />
-    <ClCompile Include="effects\OnEffect.cpp" />
-    <ClCompile Include="effects\OnPanel.cpp" />
-    <ClCompile Include="effects\RenderableEffect.cpp" />
-    <ClCompile Include="effects\RippleEffect.cpp" />
-    <ClCompile Include="effects\RipplePanel.cpp" />
     <ClCompile Include="effects\StrobeEffect.cpp" />
     <ClCompile Include="effects\StrobePanel.cpp" />
     <ClCompile Include="EffectTreeDialog.cpp" />
@@ -682,6 +671,39 @@
     <ClCompile Include="effects\MeteorsEffect.cpp">
       <Filter>Effects</Filter>
     </ClCompile>
+    <ClCompile Include="effects\RenderableEffect.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\GlediatorPanel.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\GlediatorEffect.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\OnPanel.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\OnEffect.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\OffPanel.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\OffEffect.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="controllers\Pixlite16.cpp">
+      <Filter>Controllers</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\RippleEffect.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\RipplePanel.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="controllers\SanDevices.cpp">
+      <Filter>Controllers</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -690,8 +712,6 @@
     <ClInclude Include="CachedFileDownloader.h" />
     <ClInclude Include="ColorManager.h" />
     <ClInclude Include="ColorManagerDialog.h" />
-    <ClInclude Include="controllers\Pixlite16.h" />
-    <ClInclude Include="controllers\SanDevices.h" />
     <ClInclude Include="EffectTimingDialog.h" />
     <ClInclude Include="FontManager.h" />
     <ClInclude Include="GenerateLyricsDialog.h" />
@@ -726,15 +746,6 @@
     <ClInclude Include="effects\ColorWashPanel.h" />
     <ClInclude Include="effects\EffectManager.h" />
     <ClInclude Include="effects\EffectPanelUtils.h" />
-    <ClInclude Include="effects\GlediatorEffect.h" />
-    <ClInclude Include="effects\GlediatorPanel.h" />
-    <ClInclude Include="effects\OffEffect.h" />
-    <ClInclude Include="effects\OffPanel.h" />
-    <ClInclude Include="effects\OnEffect.h" />
-    <ClInclude Include="effects\OnPanel.h" />
-    <ClInclude Include="effects\RenderableEffect.h" />
-    <ClInclude Include="effects\RippleEffect.h" />
-    <ClInclude Include="effects\RipplePanel.h" />
     <ClInclude Include="effects\StrobeEffect.h" />
     <ClInclude Include="effects\StrobePanel.h" />
     <ClInclude Include="EffectTreeDialog.h" />
@@ -1372,6 +1383,39 @@
     </ClInclude>
     <ClInclude Include="effects\MeteorsEffect.h">
       <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\RenderableEffect.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\GlediatorPanel.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\GlediatorEffect.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\OnPanel.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\OnEffect.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\OffPanel.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\OffEffect.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="controllers\Pixlite16.h">
+      <Filter>Controllers</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\RippleEffect.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\RipplePanel.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="controllers\SanDevices.h">
+      <Filter>Controllers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
