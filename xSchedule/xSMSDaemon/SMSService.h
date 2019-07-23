@@ -194,6 +194,10 @@ class SMSService
                                 {
                                     msg.Censor(_options.GetRejectProfanity());
                                 }
+                                else
+                                {
+                                    msg._message = msg._rawMessage;
+                                }
 
                                 if (msg._message != "")
                                 {

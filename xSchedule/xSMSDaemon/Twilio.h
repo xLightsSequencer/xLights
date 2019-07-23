@@ -15,7 +15,7 @@
 
 class Twilio : public SMSService
 {
-	const std::string TWILIO_API_URL = "https://api.twilio.com/2010-04-01/Accounts/{sid}/Messages.json";
+	const std::string TWILIO_API_URL = "https://api.twilio.com/2010-04-01/Accounts/{user}/Messages.json";
 
     public:
 

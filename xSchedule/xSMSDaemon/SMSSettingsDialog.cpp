@@ -334,14 +334,15 @@ void SMSSettingsDialog::ValidateWindow()
     }
     else if (Choice_SMSService->GetStringSelection() == "Twilio")
     {
-        StaticText_User->SetLabel("UNUSED");
-        StaticText_SID->SetLabel("SID");
+        StaticText_User->SetLabel("Account SID");
+        StaticText_SID->SetLabel("API Key SID");
         StaticText_Token->SetLabel("Auth Token");
 
-        TextCtrl_User->Disable();
+        TextCtrl_User->Enable();
         TextCtrl_Token->Enable();
         if (TextCtrl_TargetMatrix->GetValue() == "" ||
             TextCtrl_Token->GetValue() == "" ||
+            TextCtrl_User->GetValue() == "" ||
             TextCtrl_SID->GetValue() == "")
         {
             Button_Ok->Disable();
