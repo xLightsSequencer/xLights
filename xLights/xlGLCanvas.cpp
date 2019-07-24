@@ -610,7 +610,9 @@ void xlGLCanvas::CreateGLContext() {
             m_context = nullptr;
             CreateGLContext();
 #ifdef __WXOSX__
-        } else if (m_baseContext == nullptr) {
+        } else if (m_baseContext == nullptr
+                   && wxPlatformInfo::Get().CheckOSVersion(10, 14, 5)
+                   && !wxPlatformInfo::Get().CheckOSVersion(10, 14, 6)) {
             //use this as the base context, then create a new one.
             m_baseContext = m_context;
             m_context = nullptr;
@@ -629,7 +631,8 @@ void xlGLCanvas::Resized(wxSizeEvent& evt)
     mWindowResized = true;
 #ifdef __WXOSX__
     if (m_context) {
-        if (wxPlatformInfo::Get().CheckOSVersion(10, 14, 5)) {
+        if (wxPlatformInfo::Get().CheckOSVersion(10, 14, 5)
+            && !wxPlatformInfo::Get().CheckOSVersion(10, 14, 6)) {
             m_context->SetCurrent(*this);
             delete m_context;
             m_context = nullptr;
