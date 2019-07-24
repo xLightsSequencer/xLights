@@ -990,6 +990,7 @@ void xLightsImportChannelMapDialog::LoadMapping(wxCommandEvent& event)
 
     wxFileDialog dlg(this, "Load mapping", wxEmptyString, wxEmptyString, "Mapping Files (*.xmap)|*.xmap|All Files (*.)|*.*", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
     if (dlg.ShowModal() == wxID_OK) {
+        _mappingFile = dlg.GetPath();
         _dataModel->ClearMapping();
 
         for (auto it = _stashedMappings.begin(); it != _stashedMappings.end(); ++it)
@@ -1141,7 +1142,7 @@ void xLightsImportChannelMapDialog::LoadMapping(wxCommandEvent& event)
 
 void xLightsImportChannelMapDialog::SaveMapping(wxCommandEvent& event)
 {
-    wxFileDialog dlg(this, "Save mapping", wxEmptyString, "mapping", "Mapping Files (*.xmap)|*.xmap|All Files (*.)|*.*", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+    wxFileDialog dlg(this, "Save mapping", wxEmptyString, _mappingFile, "Mapping Files (*.xmap)|*.xmap|All Files (*.)|*.*", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     if (dlg.ShowModal() == wxID_OK) {
         wxFileOutputStream output(dlg.GetPath());
         wxTextOutputStream text(output);

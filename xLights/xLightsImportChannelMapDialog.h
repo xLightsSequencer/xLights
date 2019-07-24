@@ -336,6 +336,7 @@ class xLightsImportChannelMapDialog: public wxDialog
 
     bool _dirty;
     wxFileName _filename;
+    wxString _mappingFile = "mapping";
     bool _allowTimingOffset;
     bool _allowTimingTrack;
     bool _allowColorChoice;
