@@ -425,7 +425,7 @@ void NoteImportDialog::OnButton_Piano_FileClick(wxCommandEvent& event)
     }
     else if (notes == "Music XML File")
     {
-        FileDialog1->SetWildcard("Music XML Files|*.mxl;*.mxl|All Files|*.*");
+        FileDialog1->SetWildcard("Music XML Files|*.mxl;*.mxl;*.musicxml|All Files|*.*");
     }
     if (FileDialog1->ShowModal() == wxID_OK)
     {

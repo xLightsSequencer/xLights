@@ -16,10 +16,10 @@ public:
     int duration;
     int durationMS;
     bool IsRest() { return (midi == -1); }
-    void ApplyTiming(int msPerDuration)
+    void ApplyTiming(float msPerDuration)
     {
-        durationMS = duration * msPerDuration;
-        startMS = start * msPerDuration;
+        durationMS = (float)duration * msPerDuration;
+        startMS = (float)start * msPerDuration;
     }
     void Dump();
 };
