@@ -136,6 +136,7 @@
 					<object class="sizeritem">
 						<object class="wxSlider" name="IDD_SLIDER_Pictures_FrameRateAdj" subclass="BulkEditSliderF1" variable="Slider_Pictures_FR" member="yes">
 							<value>10</value>
+							<max>200</max>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>
