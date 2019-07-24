@@ -6609,6 +6609,10 @@ void xLightsFrame::OnMenuItem_Help_DownloadSelected(wxCommandEvent& event)
 
 void xLightsFrame::OnMenuItem_Help_ReleaseNotesSelected(wxCommandEvent& event)
 {
+#ifdef __WXOSX__
+    std::string loc = "https://raw.githubusercontent.com/smeighan/xLights/" + xlights_version_string + "/README.txt";
+    ::wxLaunchDefaultBrowser(loc);
+#else
     wxFileType *ft = wxTheMimeTypesManager->GetFileTypeFromExtension("txt");
     if (ft)
     {
@@ -6616,6 +6620,7 @@ void xLightsFrame::OnMenuItem_Help_ReleaseNotesSelected(wxCommandEvent& event)
         wxUnsetEnv("LD_PRELOAD");
         wxExecute(command);
     }
+#endif
 }
 
 void xLightsFrame::OnMenuItem_Help_Isue_TrackerSelected(wxCommandEvent& event)
