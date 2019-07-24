@@ -42,8 +42,9 @@ std::list<std::string> TextEffect::CheckEffectSettings(const SettingsMap& settin
 
     wxString textFilename = settings.Get("E_FILEPICKERCTRL_Text_File", "");
     wxString text = settings.Get("E_TEXTCTRL_Text", "");
+    wxString lyricTrack = settings.Get("E_CHOICE_Text_LyricTrack", "");
 
-    if (text == "" && textFilename == "")
+    if (text == "" && textFilename == "" && lyricTrack == "")
     {
         res.push_back(wxString::Format("    ERR: Text effect has no actual text. Model '%s', Start %s", model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
     }
@@ -291,6 +292,7 @@ void TextEffect::SetDefaultParameters() {
     SetTextValue(tp->TextCtrl_Text, "");
     tp->FilePickerCtrl1->SetFileName(wxFileName(""));
     SetChoiceValue(tp->Choice_Text_Dir, "none");
+    tp->Choice_LyricTrack->SetSelection(-1);
     SetSliderValue(tp->Slider_Text_Speed, 10);
     SetChoiceValue(tp->Choice_Text_Effect, "normal");
     SetChoiceValue(tp->Choice_Text_Count, "none");
