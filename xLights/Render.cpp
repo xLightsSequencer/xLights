@@ -740,6 +740,7 @@ public:
                     FrameDone(frame);
                 }
             }
+            SetGenericStatus("%s: All done - Completed frame %d " + PrintStatusMap(), endFrame, true);
         } catch ( std::exception &ex) {
             wxASSERT(false); // so when we debug we catch them
             printf("Caught an exception %s", ex.what());
