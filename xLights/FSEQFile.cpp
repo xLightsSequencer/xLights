@@ -937,7 +937,7 @@ public:
         }
         if (m_curFrameInBlock == 0) {
             uint64_t offset = tell();
-            LogDebug(VB_SEQUENCE, "  Preparing to create a compressed block of data starting at frame %d, offset  %" PRIu64 ".\n", frame, offset);
+            //LogDebug(VB_SEQUENCE, "  Preparing to create a compressed block of data starting at frame %d, offset  %" PRIu64 ".\n", frame, offset);
             m_file->m_frameOffsets.push_back(std::pair<uint32_t, uint64_t>(frame, offset));
             int clevel = m_file->m_compressionLevel == -99 ? 10 : m_file->m_compressionLevel;
             if (clevel < -25 || clevel > 25) {
@@ -993,7 +993,7 @@ public:
                 m_outBuffer.pos = 0;
             }
             write(m_outBuffer.dst, m_outBuffer.pos);
-            LogDebug(VB_SEQUENCE, "  Finalized block of data ending at frame %d.  Frames in block: %d.\n", frame, m_curFrameInBlock);
+            //LogDebug(VB_SEQUENCE, "  Finalized block of data ending at frame %d.  Frames in block: %d.\n", frame, m_curFrameInBlock);
             m_outBuffer.pos = 0;
             m_curFrameInBlock = 0;
             m_curBlock++;
@@ -1416,15 +1416,16 @@ void V2FSEQFile::dumpInfo(bool indent) {
     LogDebug(VB_SEQUENCE, "%sSequence File Information\n", ind);
     LogDebug(VB_SEQUENCE, "%scompressionType       : %d\n", ind, m_compressionType);
     LogDebug(VB_SEQUENCE, "%snumBlocks             : %d\n", ind, m_handler->computeMaxBlocks());
-    for (auto &a : m_frameOffsets) {
-        LogDebug(VB_SEQUENCE, "%s      %d              : %" PRIu64 "\n", ind, a.first, a.second);
-    }
+    // Commented out to declutter the logs ... we can add it back in if we start seeing issues
+    //for (auto &a : m_frameOffsets) {
+    //    LogDebug(VB_SEQUENCE, "%s      %d              : %" PRIu64 "\n", ind, a.first, a.second);
+    //}
     LogDebug(VB_SEQUENCE, "%snumRanges             : %d\n", ind, m_sparseRanges.size());
-    for (auto &a : m_sparseRanges) {
-        LogDebug(VB_SEQUENCE, "%s      Start: %d    Len: %d\n", ind, a.first, a.second);
-    }
+    // Commented out to declutter the logs ... we can add it back in if we start seeing issues
+    //for (auto &a : m_sparseRanges) {
+    //    LogDebug(VB_SEQUENCE, "%s      Start: %d    Len: %d\n", ind, a.first, a.second);
+    //}
 }
-
 
 void V2FSEQFile::prepareRead(const std::vector<std::pair<uint32_t, uint32_t>> &ranges) {
     if (m_sparseRanges.empty()) {
