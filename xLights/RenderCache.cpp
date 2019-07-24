@@ -230,6 +230,8 @@ void RenderCache::Close()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
+    if (_cacheFolder == "") return;
+
     logger_base.debug("Closing render cache folder %s.", (const char *)_cacheFolder.c_str());
 
     {
@@ -237,8 +239,12 @@ void RenderCache::Close()
         std::unique_lock<std::mutex> lock(_loadMutex);
     }
 
+    logger_base.debug("    Got lock.");
+
     Purge(nullptr, false);
     _cacheFolder = "";
+
+    logger_base.debug("    Closed.");
 }
 
 static bool doOnEffectsInternal(Element *em, std::function<bool(Effect*)>& func) {
