@@ -590,7 +590,7 @@ void xSMSDaemonFrame::Start()
 {
     if (!_options.IsValid()) return;
 
-    wxTimerEvent e;
+    wxTimerEvent e(SendTimer);
     OnSendTimerTrigger(e);
 
     SendTimer.Start(_options.GetDisplayDuration() * 1000, false); //  , "xSMSDaemon send timer");
