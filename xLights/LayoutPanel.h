@@ -241,6 +241,7 @@ class LayoutPanel: public wxPanel
         void SelectBaseObject(const std::string & name, bool highlight_tree = true);
         void SelectBaseObject(BaseObject *base_object, bool highlight_tree = true);
         void SelectModel(const std::string & name, bool highlight_tree = true);
+        void SelectModelGroupModels(ModelGroup* m, std::list<ModelGroup*>& processed);
         void SelectModel(Model *model, bool highlight_tree = true);
         void UnSelectAllModels(bool addBkgProps = true);
         void SelectAllModels();

@@ -2206,6 +2206,25 @@ void LayoutPanel::SelectModel(const std::string & name, bool highlight_tree)
     }
 }
 
+void LayoutPanel::SelectModelGroupModels(ModelGroup* m, std::list<ModelGroup*>& processed)
+{
+    processed.push_back(m);
+    for (auto& it : m->Models())
+    {
+        if (it->GetDisplayAs() == "ModelGroup")
+        {
+            if (std::find(processed.begin(), processed.end(), it) == processed.end())
+            {
+                SelectModelGroupModels(dynamic_cast<ModelGroup*>(it), processed);
+            }
+        }
+        else
+        {
+            it->GroupSelected = true;
+        }
+    }
+}
+
 void LayoutPanel::SelectModel(Model *m, bool highlight_tree) {
 
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -2236,8 +2255,11 @@ void LayoutPanel::SelectModel(Model *m, bool highlight_tree) {
             else {
                 m->Selected = true;
             }
-        } else {
-            m->Selected = true;
+        }
+        else if (m->GetDisplayAs() == "ModelGroup")
+        {
+            std::list<ModelGroup*> processed;
+            SelectModelGroupModels(dynamic_cast<ModelGroup*>(m), processed);
         }
 
         if( highlight_tree ) {
@@ -6196,11 +6218,15 @@ void LayoutPanel::ModelGroupUpdated(ModelGroup *grp, bool full_refresh) {
 
     if (grp == nullptr) return;
 
-    xlights->UnsavedRgbEffectsChanges = true;
-    xlights->modelsChangeCount++;
-    std::vector<Model *> models;
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::ModelGroupUpdated", nullptr, nullptr, grp->GetName());
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::ModelGroupUpdated");
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "LayoutPanel::ModelGroupUpdated");
 
+    std::vector<Model *> models;
     UpdateModelList(full_refresh, models);
+
+    UnSelectAllModels();
+
     if (full_refresh) return;
 
     TreeListViewModels->Freeze();
