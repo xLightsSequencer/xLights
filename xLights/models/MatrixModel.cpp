@@ -130,7 +130,7 @@ std::list<std::string> MatrixModel::CheckModelSettings()
 {
    std::list<std::string> res;
 
-   if (parm2 % parm3 != 0)
+   if (!Contains(StringType, "Single Color") && parm2 % parm3 != 0)
    {
        res.push_back(wxString::Format("    ERR: Model %s strands are not equally sized %d does not divide into string length %d evenly. As a result only %d of %d nodes are initialised.", GetName(), parm3, parm2, (int)GetNodeCount(), parm1 * parm2));
    }
