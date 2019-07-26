@@ -359,7 +359,7 @@ int StarModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGri
         return 0;
     } else if ("StarRatio" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("starRatio");
-        ModelXml->AddAttribute("starRatio", wxString::Format("%f", event.GetValue().GetDouble()));
+        ModelXml->AddAttribute("starRatio", wxString::Format("%d", event.GetValue().GetDouble()));
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "StarModel::OnPropertyGridChange::StarRatio");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "StarModel::OnPropertyGridChange::StarRatio");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "StarModel::OnPropertyGridChange::StarRatio");
@@ -388,7 +388,7 @@ void StarModel::ExportXlightsModel()
     wxString mb = ModelXml->GetAttribute("ModelBrightness");
     wxString a = ModelXml->GetAttribute("Antialias");
     wxString ss = ModelXml->GetAttribute("starSizes");
-    wxString sr = ModelXml->GetAttribute("starRatio");
+    wxString sr = ModelXml->GetAttribute("starRatio","2.618034");
     wxString sts = ModelXml->GetAttribute("StartSide");
     wxString dir = ModelXml->GetAttribute("Dir");
     wxString sn = ModelXml->GetAttribute("StrandNames");
@@ -466,6 +466,8 @@ void StarModel::ImportXlightsModel(std::string filename, xLightsFrame* xlights, 
 
             // Add any model version conversion logic here
             // Source version will be the program version that created the custom model
+			if (sr.IsEmpty())
+				sr = "2.618034";
 
             SetProperty("parm1", p1);
             SetProperty("parm2", p2);

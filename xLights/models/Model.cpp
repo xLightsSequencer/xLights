@@ -4604,6 +4604,27 @@ Model* Model::GetXlightsModel(Model* model, std::string &last_model, xLightsFram
             model->Selected = true;
             return model;
         }
+		else if (root->GetName() == "circlemodel") {
+
+			// grab the attributes I want to keep
+			std::string startChannel = model->GetModelXml()->GetAttribute("StartChannel", "1").ToStdString();
+			auto x = model->GetHcenterPos();
+			auto y = model->GetVcenterPos();
+			auto w = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleX();
+			auto h = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleY();
+
+			// not a custom model so delete the default model that was created
+			if (model != nullptr) {
+				delete model;
+			}
+			model = xlights->AllModels.CreateDefaultModel("Circle", startChannel);
+			model->SetHcenterPos(x);
+			model->SetVcenterPos(y);
+			//((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScale(w, h);
+			model->SetLayoutGroup(model->GetLayoutGroup());
+			model->Selected = true;
+			return model;
+		}
         else
         {
             cancelled = true;
