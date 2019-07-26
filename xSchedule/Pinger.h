@@ -20,7 +20,7 @@ class APinger
     std::string _ip;
     std::string _why;
     ListenerManager* _listenerManager;
-    std::atomic<int> _failCount = 0;
+    std::atomic<int> _failCount;
 
     void SetPingResult(PINGSTATE result);
 
