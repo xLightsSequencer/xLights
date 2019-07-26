@@ -9012,6 +9012,7 @@ void xLightsFrame::ShowPresetsPanel()
 
 uint64_t xLightsFrame::BadDriveAccess(const std::list<std::string>& files, std::list<std::pair<std::string, uint64_t>>& slow, uint64_t thresholdUS)
 {
+    wxLogNull logNo;  // suppress file access errors
     uint64_t worst = 0;
 
     std::list<std::string> folders;

@@ -686,11 +686,15 @@ void ValueCurvePanel::mouseLeftUp(wxMouseEvent& event)
 
 void ValueCurvePanel::Delete()
 {
-    if (_grabbedPoint >= 0)
+    if (_grabbedPoint > 0.0 && _grabbedPoint < 1.0)
     {
         _vc->DeletePoint(_grabbedPoint);
         _grabbedPoint = -1;
         Refresh();
+    }
+    else
+    {
+        wxBell();
     }
 }
 
