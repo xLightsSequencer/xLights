@@ -15,6 +15,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- bug (scott)  Fixed buffer transform for "Overlay - Center" and "Overlay - Scaled"
    -- enh (scott)  Added Import/Export Model to Circle Model
    -- bug (scott)  Fixed "Blank" Star Model Import Bug
+   -- enh (scott)  Added Toggle Effects Assistant Button to the Window Management Toolbar
 2019.35 July 16, 2019
    -- enh (dkulp)  FPP Connect - don't expand multi-universe E1.31 outputs to multiple lines
    -- enh (keith)  Add some checks for slow storage and overly outsized images/video that drives rendering work

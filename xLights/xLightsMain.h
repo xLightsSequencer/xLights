@@ -354,7 +354,7 @@ public:
     void CreateDebugReport(wxDebugReportCompress *report);
     wxString GetThreadStatusReport();
     void AddTraceMessage(const std::string &msg);
-    
+
 	void SetAudioControls();
     void ImportXLights(const wxFileName &filename);
     void ImportXLights(SequenceElements &se, const std::vector<Element *> &elements, const wxFileName &filename,
@@ -625,6 +625,7 @@ public:
     static const long ID_AUITOOLBARITEM4;
     static const long ID_AUITOOLBARITEM6;
     static const long ID_AUITOOLBARITEM8;
+    static const long ID_AUITOOLBARITEM9;
     static const long ID_AUIWINDOWTOOLBAR;
     static const long ID_PASTE_BY_TIME;
     static const long ID_PASTE_BY_CELL;

@@ -212,6 +212,14 @@
 						</object>
 						<label>Effects</label>
 					</object>
+					<object class="AuiToolBarItem">
+						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM9" variable="AuiToolBarItemEffectsAsst" member="no">
+							<bitmap stock_id="xlART_EFFECTASSISTANT" stock_client="wxART_TOOLBAR" />
+							<shorthelp>Effects Assistant</shorthelp>
+							<handler function="ShowHideEffectAssistWindow" entry="EVT_TOOL" />
+						</object>
+						<label>Effects Assistant</label>
+					</object>
 				</object>
 				<name>Windows Tool Bar</name>
 				<standardpanetype>Toolbar</standardpanetype>

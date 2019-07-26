@@ -331,6 +331,8 @@ wxBitmap xlArtProvider::CreateBitmap(const wxArtID& id,
         return effectBitmaps.get(24, false, id, layers2_16, layers2_24, layers2_32, layers2_48, layers2_64);
     } else if ("xlART_EFFECTSETTINGS" == id) {
         return effectBitmaps.get(24, false, id, effsettings_16, effsettings_24, effsettings_32, effsettings_48, effsettings_64);
+    } else if ("xlART_EFFECTASSISTANT" == id) {
+        return effectBitmaps.get(24, false, id, effassistant_64, effassistant_24, effassistant_32, effassistant_48, effassistant_64);
     } else if ("xlART_MODEL_PREVIEW" == id) {
         return effectBitmaps.get(24, false, id, model_preview_16, model_preview_24, model_preview_32, model_preview_48, model_preview_64);
     } else if ("xlART_HOUSE_PREVIEW" == id) {
