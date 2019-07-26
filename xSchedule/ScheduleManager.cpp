@@ -3588,7 +3588,7 @@ std::string ScheduleManager::GetPingStatus()
         auto ps = _pinger->GetPingers();
 
         bool first = true;
-        for (auto it = ps.begin(); it != ps.end(); ++it)
+        for (auto it : ps)
         {
             if (first)
             {
@@ -3599,7 +3599,7 @@ std::string ScheduleManager::GetPingStatus()
                 res += ",";
             }
 
-            res += "{\"controller\":\"" + (*it)->GetName() + "\",\"result\":\"" + APinger::GetPingResultName((*it)->GetPingResult()) + "\"}";
+            res += "{\"controller\":\"" + it->GetName() + "\",\"result\":\"" + APinger::GetPingResultName(it->GetPingResult()) + "\",\"failcount\":\""+wxString::Format("%d", it->GetFailCount())+"\"}";
         }
     }
 

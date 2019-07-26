@@ -4,7 +4,7 @@
 #include <string>
 #include <list>
 #include "../xLights/outputs/Output.h"
-#include <mutex>
+#include <atomic>
 
 #define PINGINTERVAL 60
 
@@ -16,11 +16,11 @@ class APinger
 {
     PingThread* _pingThread;
 	Output* _output;
-	PINGSTATE _lastResult;
-    std::mutex _lock;
+	std::atomic<PINGSTATE> _lastResult;
     std::string _ip;
     std::string _why;
     ListenerManager* _listenerManager;
+    std::atomic<int> _failCount = 0;
 
     void SetPingResult(PINGSTATE result);
 
@@ -30,14 +30,15 @@ class APinger
 	APinger(ListenerManager* listenerManager, Output* output);
 	APinger(ListenerManager* listenerManager, const std::string ip, const std::string why);
 	virtual ~APinger();
-	PINGSTATE GetPingResult();
-    bool GetPingResult(PINGSTATE state);
+	PINGSTATE GetPingResult() const;
+    bool GetPingResult(PINGSTATE state) const;
     static std::string GetPingResultName(PINGSTATE state);
     void Ping();
 	std::string GetName() const;
     int GetPingInterval() const { return PINGINTERVAL; }
     void Stop();
     std::string GetIP() const { return _ip; }
+    int GetFailCount() const { return  _failCount; }
 };
 
 class Pinger

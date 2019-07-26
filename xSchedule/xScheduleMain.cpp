@@ -727,6 +727,8 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     ListView_Running->AppendColumn("");
 
     ListView_Ping->AppendColumn("Controller");
+    ListView_Ping->AppendColumn("Failures");
+    ListView_Ping->SetColumnWidth(1, wxLIST_AUTOSIZE_USEHEADER);
 
     _otlon = wxBitmap(xs_otlon);
     _otloff = wxBitmap(xs_otloff);
@@ -862,6 +864,8 @@ void xScheduleFrame::LoadSchedule()
     }
     ListView_Ping->ClearAll();
     ListView_Ping->AppendColumn("Controller");
+    ListView_Ping->AppendColumn("Failures");
+    ListView_Ping->SetColumnWidth(1, wxLIST_AUTOSIZE_USEHEADER);
 
     if (__schedule != nullptr)
     {
@@ -3076,31 +3080,45 @@ void xScheduleFrame::UpdateUI(bool force)
 
     if (_pinger != nullptr)
     {
+        ListView_Ping->Freeze();
         auto pingresults = _pinger->GetPingers();
-        for (auto it = pingresults.begin(); it != pingresults.end(); ++it)
+        for (auto it : pingresults)
         {
             // find it in the list
             int item = -1;
             for (int i = 0; i < ListView_Ping->GetItemCount(); i++)
             {
-                if (ListView_Ping->GetItemText(i) == (*it)->GetName())
+                if (ListView_Ping->GetItemText(i) == it->GetName())
                 {
                     item = i;
                     break;
                 }
             }
+
+            wxASSERT(ListView_Ping->GetColumnCount() == 2);
+
             // if not there ... add it
             if (item == -1)
             {
                 item = ListView_Ping->GetItemCount();
-                ListView_Ping->InsertItem(ListView_Ping->GetItemCount(), (*it)->GetName());
+                ListView_Ping->InsertItem(ListView_Ping->GetItemCount(), it->GetName());
+                ListView_Ping->SetItem(item, 1, "");
                 ListView_Ping->SetColumnWidth(0, wxLIST_AUTOSIZE);
             }
 
             // update the colour
             if (item >= 0)
             {
-                switch ((*it)->GetPingResult())
+                if (it->GetFailCount() == 0)
+                {
+                    ListView_Ping->SetItem(item, 1, "");
+                }
+                else
+                {
+                    ListView_Ping->SetItem(item, 1, wxString::Format("%d", it->GetFailCount()));
+                }
+
+                switch (it->GetPingResult())
                 {
                 case PING_OK:
                 case PING_OPEN:
@@ -3129,9 +3147,9 @@ void xScheduleFrame::UpdateUI(bool force)
         for (int i = 0; i < ListView_Ping->GetItemCount(); i ++)
         {
             bool found = false;
-            for (auto it = pingresults.begin(); !found && it != pingresults.end(); ++it)
+            for (auto it : pingresults)
             {
-                if (ListView_Ping->GetItemText(i) == (*it)->GetName())
+                if (ListView_Ping->GetItemText(i) == it->GetName())
                 {
                     found = true;
                 }
@@ -3142,6 +3160,7 @@ void xScheduleFrame::UpdateUI(bool force)
                 i--;
             }
         }
+        ListView_Ping->Thaw();
     }
 
     logger_frame.debug("        Updated ping status %ldms", sw.Time());

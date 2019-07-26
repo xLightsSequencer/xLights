@@ -67,6 +67,7 @@ APinger::APinger(ListenerManager* lm, Output* output)
     _why = "Output";
     _ip = output->GetIP();
     _lastResult = PINGSTATE::PING_UNKNOWN;
+    _failCount = 0;
     _pingThread = new PingThread(this);
     _pingThread->Create();
     _pingThread->Run();
@@ -79,6 +80,7 @@ APinger::APinger(ListenerManager* lm, const std::string ip, const std::string wh
     _ip = ip;
     _why = why;
     _lastResult = PINGSTATE::PING_UNKNOWN;
+    _failCount = 0;
     _pingThread = new PingThread(this);
     _pingThread->Create();
     _pingThread->Run();
@@ -88,13 +90,12 @@ APinger::~APinger()
 {
 }
 
-PINGSTATE APinger::GetPingResult()
+PINGSTATE APinger::GetPingResult() const
 {
-    std::unique_lock<std::mutex> mutLock(_lock);
     return _lastResult;
 }
 
-bool APinger::GetPingResult(PINGSTATE state)
+bool APinger::GetPingResult(PINGSTATE state) const
 {
     switch (state)
     {
@@ -131,22 +132,44 @@ std::string APinger::GetPingResultName(PINGSTATE state)
     return "Unknown";
 }
 
+// if ping fails try this many times before setting the result
+#define PINGRETRIES 3
+
 void APinger::Ping()
 {
+    auto res = PINGSTATE::PING_UNKNOWN;
     if (_output != nullptr)
     {
-        SetPingResult(_output->Ping());
+        for (int i = 0; i < PINGRETRIES; i++)
+        {
+            res = _output->Ping();
+            if (res != PINGSTATE::PING_ALLFAILED)
+            {
+                break;
+            }
+        }
     }
     else
     {
-        SetPingResult(IPOutput::Ping(_ip));
+        for (int i = 0; i < PINGRETRIES; i++)
+        {
+            res = IPOutput::Ping(_ip);
+            if (res != PINGSTATE::PING_ALLFAILED)
+            {
+                break;
+            }
+        }
     }
+    SetPingResult(res);
 }
 
 void APinger::SetPingResult(PINGSTATE result)
 {
-    std::unique_lock<std::mutex> mutLock(_lock);
     _lastResult = result;
+
+    if (result == PINGSTATE::PING_ALLFAILED) _failCount++;
+    if (result == PINGSTATE::PING_OK || result == PINGSTATE::PING_OPEN || result == PINGSTATE::PING_OPENED || result == PINGSTATE::PING_WEBOK) _failCount = 0;
+
     _listenerManager->ProcessPacket("Ping", GetPingResult(result), _ip);
 }
 
@@ -156,7 +179,6 @@ std::string APinger::GetName() const
     {
         return _output->GetPingDescription();
     }
-
     return _ip + " " + _why;
 }
 
