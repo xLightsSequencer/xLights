@@ -384,6 +384,9 @@ class GL3Mesh : public DrawGLUtils::xl3DMesh {
     void Draw(bool wf, float brightness, glm::mat4 &curMatrix,
               ShaderProgram &singleColorProgram, ShaderProgram &meshProgram,
               bool transparent) {
+
+        if (vertices.size() == 0) return;
+
         if (buffers[0] == 0) {
             LOG_GL_ERRORV(glGenBuffers(NUM_BUFFERS, buffers));
 

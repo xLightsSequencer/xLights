@@ -668,7 +668,7 @@ void MeshObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, D
             }
 
             // process any edge lines
-            if (lines.size() > 0) {
+            if (lines.size() > 0 && attrib.vertices.size() > 0) {
                 for (size_t l = 0; l < lines.size() / 2; l++) {
                     float v[2][3];
                     for (int k = 0; k < 3; k++) {
