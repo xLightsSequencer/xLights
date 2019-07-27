@@ -290,11 +290,11 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent)
     SubModelTextDropTarget *mdt = new SubModelTextDropTarget(this, ListCtrl_SubModels, "SubModel");
     ListCtrl_SubModels->SetDropTarget(mdt);
 
-    NodesGrid->DeleteRows(0, NodesGrid->GetNumberRows());
     NodesGrid->SetSelectionBackground(*wxLIGHT_GREY);
     NodesGrid->SetCellHighlightColour(*wxLIGHT_GREY);
     NodesGrid->SetCellHighlightROPenWidth(3);
     NodesGrid->SetCellHighlightPenWidth(3);
+    NodesGrid->DeleteRows(0, NodesGrid->GetNumberRows());
     SetEscapeId(wxID_CANCEL);
 }
 
@@ -934,7 +934,7 @@ void SubModelsDialog::ValidateWindow()
 
             if (!clash)
             {
-                TextCtrl_Name->SetBackgroundColour(*wxWHITE);
+                TextCtrl_Name->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
             }
             else
             {
