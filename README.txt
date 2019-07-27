@@ -11,11 +11,34 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2019.36 July 27, 2019
+   -- enh (keith)  Enhance text display in xSchedule
+   -- enh (keith)  Force valid show folder on xSchedule start
+   -- enh (keith)  Enhance xSchedule ping to show failure count and only count 3 consecutive fails as an actual fail
+   -- enh (keith)  Expand pixture effect frame rate adjustment upper limit to 20
+   -- enh (keith)  Default saving xmap to same name as it was loaded from
    -- enh (scott)  Added Layer Blending Help Button 
-   -- bug (scott)  Fixed buffer transform for "Overlay - Center" and "Overlay - Scaled"
    -- enh (scott)  Added Import/Export Model to Circle Model
-   -- bug (scott)  Fixed "Blank" Star Model Import Bug
    -- enh (scott)  Added Toggle Effects Assistant Button to the Window Management Toolbar
+   -- bug (scott)  Fixed buffer transform for "Overlay - Center" and "Overlay - Scaled"
+   -- bug (scott)  Fixed "Blank" Star Model Import Bug
+   -- bug (keith)  Fixed three point models dont save their RotateX setting
+   -- bug (keith)  Fixed invalid OBJ crashes xLights
+   -- bug (keith)  Fix SMS Daemon settings dont apply immediately
+   -- bug (keith)  Fix SMS Daemon messages containing commas cause issues
+   -- bug (keith)  Fix shader panel does not show scroll bars
+   -- bug (keith)  Fix locked models resize when string properties change
+   -- bug (keith)  Fix model groups dont highlight correctly when changed
+   -- bug (keith)  Fix erroneous check sequence error for single channel matrices 
+   -- bug (keith)  Fix value curve should not allow 0.0 or 1.0 point to be deleted 
+   -- bug (keith)  Fix check sequence reports invalid error when text effect is drawing text from a lyric track
+   -- bug (keith)  Fix crash importing uncompressed music xml file
+   -- bug (keith)  Fix xSchedule white on white problem in dark mode for playlists list
+   -- bug (keith)  Fix Twilio download of SMS messages
+   -- bug (keith)  Fix deleting models when one has an effect on it
+   -- bug (pete)   Fix crash if render state is dumped while not rendering 
+   -- bug (dkulp)  Fix OSX version does not show readme from help menu
+   -- bug (dkulp)  More OpenGL work   
 2019.35 July 16, 2019
    -- enh (dkulp)  FPP Connect - don't expand multi-universe E1.31 outputs to multiple lines
    -- enh (keith)  Add some checks for slow storage and overly outsized images/video that drives rendering work
