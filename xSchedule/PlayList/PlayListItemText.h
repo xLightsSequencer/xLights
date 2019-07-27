@@ -23,11 +23,12 @@ protected:
     std::string _texttype;
     std::string _orientation;
     std::string _movement;
+    bool _newlySet = false;
+    long _msAdj = 0;
     wxFont* _font;
     int _x;
     int _y;
     bool _renderWhenBlank;
-    wxSize _maxSize;
     MatrixMapper* _matrixMapper;
     #pragma endregion Member Variables
 
@@ -53,7 +54,7 @@ public:
     int GetBlendMode() const { return _blendMode; }
     void SetDuration(size_t duration) { if (_durationMS != duration) { _durationMS = duration; _changeCount++; } }
     size_t GetDuration() const { return _durationMS; }
-    void SetText(const wxString& text) { if (_text != text) { _text = text; _changeCount++; } }
+    void SetText(const wxString& text) { if (_text != text) { _text = text; _newlySet = true; _changeCount++; } }
     wxString GetText() const { return _text; }
     void SetFormat(const std::string& format) { if (_format != format) { _format = format; _changeCount++; } }
     std::string GetFormat() const { return _format; }

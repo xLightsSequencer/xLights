@@ -29,7 +29,6 @@ PlayListItemText::PlayListItemText(wxXmlNode* node) : PlayListItem(node)
     _texttype = "Normal";
     _x = 0;
     _y = 0;
-    _maxSize = wxSize(0,0);
 
     PlayListItemText::Load(node);
 }
@@ -112,7 +111,6 @@ PlayListItemText::PlayListItemText() : PlayListItem()
     _texttype = "Normal";
     _x = 0;
     _y = 0;
-    _maxSize = wxSize(0, 0);
 }
 
 PlayListItem* PlayListItemText::Copy() const
@@ -205,7 +203,6 @@ void PlayListItemText::Start(long stepLengthMS)
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     PlayListItem::Start(stepLengthMS);
 
-    _maxSize = wxSize(0, 0);
     auto m = xScheduleFrame::GetScheduleManager()->GetOptions()->GetMatrices();
     for (auto it = m->begin(); it != m->end(); ++it)
     {
@@ -380,6 +377,9 @@ wxString PlayListItemText::GetText(size_t ms)
 
 wxPoint PlayListItemText::GetLocation(size_t ms, wxSize size)
 {
+    // x = 0 is LHS
+    // y = 0 is TOP
+
     wxPoint res(_x + _matrixMapper->GetWidth() / 2 - size.x / 2, _matrixMapper->GetHeight() + (-1 * _y) - 1 - _matrixMapper->GetHeight() / 2 - size.y/2);
 
     if (_movement == "None")
@@ -388,38 +388,51 @@ wxPoint PlayListItemText::GetLocation(size_t ms, wxSize size)
     }
     else if (_movement == "Right to Left")
     {
-        res.x -= ms * _speed / 1000;
+        int maxx = std::max(_matrixMapper->GetWidth(), size.x);
+        res.x = -1 * (ms * _speed / 1000) + 2;
 
-        while (res.x < -1 * size.x)
+        if (maxx > 0)
         {
-            // off the left of the screen
-            res.x += _matrixMapper->GetWidth() + size.x;
+            res.x = res.x % maxx;
         }
     }
     else if (_movement == "Left to Right")
     {
-        res.x += ms * _speed / 1000;
+        res.x = -size.x - 2 + _matrixMapper->GetWidth() + ms * _speed / 1000;
 
-        while (res.x > _matrixMapper->GetWidth())
+        if (size.x > 0)
         {
-            res.x -= _matrixMapper->GetWidth() + size.x;
+            while (res.x > _matrixMapper->GetWidth())
+            {
+                res.x -= size.x;
+            }
         }
     }
     else if (_movement == "Bottom to Top")
     {
-        res.y -= size.y;
+        int toty = _matrixMapper->GetHeight() + size.y;
+        res.y = size.y;
         res.y -= ms * _speed / 1000;
-        res.y = res.y % (_matrixMapper->GetHeight() + 2 * size.y) + size.y;
-        if (res.y < -1 * size.y)
+        if (toty > 0)
         {
-            res.y += _matrixMapper->GetHeight() + 2 * size.y;
+            while (res.y < -toty + size.y)
+            {
+                res.y += toty;
+            }
         }
     }
     else if (_movement == "Top to Bottom")
     {
-        res.y += size.y;
+        int toty = _matrixMapper->GetHeight() + 2 * size.y;
+        res.y = -toty + size.y;
         res.y += ms * _speed / 1000;
-        res.y = res.y % (_matrixMapper->GetHeight() + 2 * size.y) - size.y;
+        if (toty > 0)
+        {
+            while (res.y > size.y)
+            {
+                res.y -= toty;
+            }
+        }
     }
 
     return res;
@@ -438,6 +451,17 @@ void PlayListItemText::Frame(uint8_t* buffer, size_t size, size_t ms, size_t fra
         // work out our Text
         wxString text = GetText(effms);
 
+        // if newly set then wemake effms act as if it was zero now
+        if (_newlySet) {
+            _newlySet = false;
+            _msAdj = effms;
+            effms = 0;
+        }
+        else
+        {
+            effms -= _msAdj;
+        }
+
         if (text == "" && !_renderWhenBlank)
         {
             // dont do anything
@@ -451,19 +475,17 @@ void PlayListItemText::Frame(uint8_t* buffer, size_t size, size_t ms, size_t fra
             dc.SetTextForeground(_colour);
             dc.SetFont(*_font);
             wxSize sz = dc.GetTextExtent(text);
-            if (sz.x > _maxSize.x) _maxSize.x = sz.x;
-            if (sz.y > _maxSize.y) _maxSize.y = sz.y;
 
             if (_orientation == "Normal")
             {
                 // work out where to draw it
-                wxPoint loc = GetLocation(effms, _maxSize);
+                wxPoint loc = GetLocation(effms, sz);
                 dc.DrawText(text, loc);
             }
             else if (_orientation == "Vertical Up" || _orientation == "Vertical Down")
             {
                 // work out where to draw it
-                wxSize sz1(_maxSize.GetHeight(), dc.GetCharHeight() * text.size());
+                wxSize sz1(sz.GetHeight(), dc.GetCharHeight() * text.size());
                 wxPoint loc = GetLocation(effms, sz1);
                 int y = loc.y;
                 for (auto c = text.begin(); c != text.end(); ++c)
@@ -483,13 +505,13 @@ void PlayListItemText::Frame(uint8_t* buffer, size_t size, size_t ms, size_t fra
             }
             else if (_orientation == "Rotate Up 90")
             {
-                wxSize sz1(_maxSize.GetHeight(), _maxSize.GetWidth());
+                wxSize sz1(sz.GetHeight(), sz.GetWidth());
                 wxPoint loc = GetLocation(effms, sz1);
                 dc.DrawRotatedText(text, loc, 90);
             }
             else if (_orientation == "Rotate Down 90")
             {
-                wxSize sz1(_maxSize.GetHeight(), _maxSize.GetWidth());
+                wxSize sz1(sz.GetHeight(), sz.GetWidth());
                 wxPoint loc = GetLocation(effms, sz1);
                 dc.DrawRotatedText(text, loc, -90);
             }
