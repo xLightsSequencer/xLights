@@ -38,7 +38,7 @@ class SMSService
 
     protected:
 
-    const SMSDaemonOptions _options;
+    SMSDaemonOptions _options;
 
     public:
 
@@ -118,9 +118,10 @@ class SMSService
             // return a copy of the messages ... so it can use it in a thread safe manner
 		    return _messages;
 		}
-        void Reset()
+        void Reset(const SMSDaemonOptions& options)
         {
             std::lock_guard<std::recursive_mutex> lock(_threadLock);
+            _options = options;
             _messages.clear();
         }
         void Display(const SMSMessage& msg)
@@ -158,6 +159,8 @@ class SMSService
             static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
             std::lock_guard<std::recursive_mutex> lock(_threadLock);
             bool added = false;
+
+            Replace(msg._rawMessage, ",", ""); // remove commas from messages as these cause issues
 
             int maxAgeMins = _options.GetMaxMessageAge();
 

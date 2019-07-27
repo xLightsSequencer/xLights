@@ -557,7 +557,7 @@ void xSMSDaemonFrame::LoadOptions()
         }
         else
         {
-            _smsService->Reset();
+            _smsService->Reset(_options);
         }
     }
 
