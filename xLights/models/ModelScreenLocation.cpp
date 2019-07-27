@@ -2432,10 +2432,6 @@ void TwoPointScreenLocation::AddSizeLocationProperties(wxPropertyGridInterface *
     prop->SetAttribute("Step", 0.5);
     prop->SetEditor("SpinCtrl");
     prop->SetTextColour(*wxBLUE);
-    prop = propertyEditor->Append(new wxIntProperty("RotateX", "RotateX", rotatex));
-    prop->SetAttribute("Min", "-180");
-    prop->SetAttribute("Max", "180");
-    prop->SetEditor("SpinCtrl");
 }
 
 int TwoPointScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
@@ -2551,18 +2547,6 @@ int TwoPointScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid, 
         return GRIDCHANGE_SUPPRESS_HOLDSIZE;
     }
     else if (_locked && "ModelZ2" == name) {
-        event.Veto();
-        return 0;
-    }
-    else if (!_locked && "RotateX" == name) {
-        rotatex = event.GetValue().GetDouble();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "TwoPointScreenLocation::OnPropertyGridChange::RotateX");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "TwoPointScreenLocation::OnPropertyGridChange::RotateX");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "TwoPointScreenLocation::OnPropertyGridChange::RotateX");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "TwoPointScreenLocation::OnPropertyGridChange::RotateX");
-        return 0;
-    }
-    else if (_locked && "RotateX" == name) {
         event.Veto();
         return 0;
     }
@@ -2785,12 +2769,15 @@ void ThreePointScreenLocation::Read(wxXmlNode *node) {
     height = wxAtof(node->GetAttribute("Height", std::to_string(height)));
     angle = wxAtoi(node->GetAttribute("Angle", "0"));
     shear = wxAtof(node->GetAttribute("Shear", "0.0"));
+    rotatex = wxAtoi(node->GetAttribute("RotateX", "0"));
 }
 
 void ThreePointScreenLocation::Write(wxXmlNode *node) {
     TwoPointScreenLocation::Write(node);
     node->DeleteAttribute("Height");
     node->DeleteAttribute("Locked");
+    node->DeleteAttribute("RotateX");
+    node->AddAttribute("RotateX", wxString::Format("%d", rotatex));
     node->AddAttribute("Height", std::to_string(height));
     if (supportsAngle) {
         node->DeleteAttribute("Angle");
@@ -2818,6 +2805,10 @@ void ThreePointScreenLocation::AddSizeLocationProperties(wxPropertyGridInterface
         prop->SetAttribute("Step", 0.1);
         prop->SetEditor("SpinCtrl");
     }
+    prop = propertyEditor->Append(new wxIntProperty("RotateX", "RotateX", rotatex));
+    prop->SetAttribute("Min", "-180");
+    prop->SetAttribute("Max", "180");
+    prop->SetEditor("SpinCtrl");
 }
 
 int ThreePointScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
@@ -2851,6 +2842,18 @@ int ThreePointScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid
         return 0;
     }
     else if (_locked && "ModelShear" == name) {
+        event.Veto();
+        return 0;
+    }
+    else if (!_locked && "RotateX" == name) {
+        rotatex = event.GetValue().GetDouble();
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "TwoPointScreenLocation::OnPropertyGridChange::RotateX");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "TwoPointScreenLocation::OnPropertyGridChange::RotateX");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "TwoPointScreenLocation::OnPropertyGridChange::RotateX");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "TwoPointScreenLocation::OnPropertyGridChange::RotateX");
+        return 0;
+    }
+    else if (_locked && "RotateX" == name) {
         event.Veto();
         return 0;
     }
