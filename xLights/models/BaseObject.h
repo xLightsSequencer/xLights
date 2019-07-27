@@ -43,9 +43,9 @@ public:
     void SetBack(float y);
     void SetHcenterPos(float pos);
     void SetVcenterPos(float pos);
-    void SetWidth(float w);
-    void SetHeight(float h);
-    void SetDepth(float d);
+    void SetWidth(float w, bool ignoreLock = false);
+    void SetHeight(float h, bool ignoreLock = false);
+    void SetDepth(float d, bool ignoreLock = false);
     bool Scale(float f);
     bool Rotate(int axis, float factor);
 
