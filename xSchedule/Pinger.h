@@ -22,10 +22,9 @@ class APinger
     ListenerManager* _listenerManager;
     std::atomic<int> _failCount;
 
-    void SetPingResult(PINGSTATE result);
-
     public:
 
+    void SetPingResult(PINGSTATE result);
     bool IsOutput() const { return _output != nullptr; }
 	APinger(ListenerManager* listenerManager, Output* output);
 	APinger(ListenerManager* listenerManager, const std::string ip, const std::string why);
@@ -33,7 +32,7 @@ class APinger
 	PINGSTATE GetPingResult() const;
     bool GetPingResult(PINGSTATE state) const;
     static std::string GetPingResultName(PINGSTATE state);
-    void Ping();
+    PINGSTATE Ping();
 	std::string GetName() const;
     int GetPingInterval() const { return PINGINTERVAL; }
     void Stop();

@@ -7,8 +7,8 @@
 class PingThread : public wxThread
 {
     APinger* _pinger;
-    volatile bool _stop;
-    volatile bool _running;
+    std::atomic<bool> _stop;
+    std::atomic<bool> _running;
 
 public:
 
@@ -36,6 +36,9 @@ public:
         _stop = true;
     }
     
+    // if ping fails try this many times before setting the result
+#define PINGRETRIES 3
+
     virtual void* Entry() override
     {
         _running = true;
@@ -45,7 +48,23 @@ public:
 
         while (!_stop)
         {
-            _pinger->Ping();
+
+            auto res = PINGSTATE::PING_UNKNOWN;
+
+            // if it previously failed ... only try once
+            int loops = PINGRETRIES;
+            if (_pinger->GetFailCount() > 0) loops = 1;
+            
+            for (int i = 0; !_stop && i < loops; i++)
+            {
+                res = _pinger->Ping();
+                if (res != ::PING_ALLFAILED)
+                {
+                    break;
+                }
+            }
+            _pinger->SetPingResult(res);
+
             int count = 0;
 
             while (!_stop && count < _pinger->GetPingInterval() * 100)
@@ -132,35 +151,14 @@ std::string APinger::GetPingResultName(PINGSTATE state)
     return "Unknown";
 }
 
-// if ping fails try this many times before setting the result
-#define PINGRETRIES 3
-
-void APinger::Ping()
+PINGSTATE APinger::Ping()
 {
-    auto res = PINGSTATE::PING_UNKNOWN;
     if (_output != nullptr)
     {
-        for (int i = 0; i < PINGRETRIES; i++)
-        {
-            res = _output->Ping();
-            if (res != PINGSTATE::PING_ALLFAILED)
-            {
-                break;
-            }
-        }
+        return _output->Ping();
     }
-    else
-    {
-        for (int i = 0; i < PINGRETRIES; i++)
-        {
-            res = IPOutput::Ping(_ip);
-            if (res != PINGSTATE::PING_ALLFAILED)
-            {
-                break;
-            }
-        }
-    }
-    SetPingResult(res);
+ 
+    return IPOutput::Ping(_ip);
 }
 
 void APinger::SetPingResult(PINGSTATE result)

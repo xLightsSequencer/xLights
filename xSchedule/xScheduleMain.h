@@ -156,6 +156,7 @@ public:
         void OnTreeCtrl_PlayListsSchedulesSelectionChanged(wxTreeEvent& event);
         void OnTreeCtrl_PlayListsSchedulesKeyDown(wxTreeEvent& event);
         void OnMenuItem_SaveSelected(wxCommandEvent& event);
+        bool SelectShowFolder();
         void OnMenuItem_ShowFolderSelected(wxCommandEvent& event);
         void OnTreeCtrl_PlayListsSchedulesItemActivated(wxTreeEvent& event);
         void On_timerTrigger(wxTimerEvent& event);

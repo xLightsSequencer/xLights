@@ -21,6 +21,7 @@
 #include <wx/msgdlg.h>
 #include <wx/config.h>
 #include <wx/file.h>
+#include <wx/dir.h>
 #include <wx/filename.h>
 #include <wx/mimetype.h>
 #include <wx/bitmap.h>
@@ -769,6 +770,11 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
         _showDir = showdir;
     }
 
+    while (!wxDir::Exists(_showDir))
+    {
+        SelectShowFolder();
+    }
+
     logger_base.debug("Loading schedule.");
     LoadSchedule();
 
@@ -854,6 +860,7 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
 void xScheduleFrame::LoadSchedule()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     logger_base.debug("Loading schedule.");
 
     if (_pinger != nullptr)
@@ -1263,14 +1270,22 @@ void xScheduleFrame::OnMenuItem_SaveSelected(wxCommandEvent& event)
     ValidateWindow();
 }
 
-void xScheduleFrame::OnMenuItem_ShowFolderSelected(wxCommandEvent& event)
+bool xScheduleFrame::SelectShowFolder()
 {
     DirDialog1->SetPath(_showDir);
-
     if (DirDialog1->ShowModal() == wxID_OK)
     {
         _showDir = DirDialog1->GetPath().ToStdString();
         SaveShowDir();
+        return true;
+    }
+    return false;
+}
+
+void xScheduleFrame::OnMenuItem_ShowFolderSelected(wxCommandEvent& event)
+{
+    if (SelectShowFolder())
+    {
         _pluginManager.Uninitialise();
         _timerSchedule.Stop();
         _timer.Stop();
