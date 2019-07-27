@@ -246,8 +246,15 @@ wxIMPLEMENT_APP_NO_MAIN(xLightsApp);
 #include <wx/debugrpt.h>
 
 xLightsFrame *topFrame = nullptr;
+
+
+thread_local std::list<std::string> traceMessages;
+
 void AddTraceMessage(const std::string &msg) {
-    if (topFrame) topFrame->AddTraceMessage(msg);
+    traceMessages.push_back(msg);
+    if (traceMessages.size() > 20) {
+        traceMessages.pop_front();
+    }
 }
 
 void handleCrash(void *data) {
@@ -370,15 +377,16 @@ void handleCrash(void *data) {
     {
         report->AddFile(wxFileName(wxGetCwd(), "xLights_l4cpp.log").GetFullPath(), "xLights_l4cpp.log");
     }
-
+    
+    std::list<std::string> trc = traceMessages;
     if (!wxThread::IsMain() && topFrame != nullptr) 
     {
-        topFrame->CallAfter(&xLightsFrame::CreateDebugReport, report);
+        topFrame->CallAfter(&xLightsFrame::CreateDebugReport, report, trc);
         wxSleep(600000);
     } 
     else if (topFrame != nullptr)
     {
-        topFrame->CreateDebugReport(report);
+        topFrame->CreateDebugReport(report, trc);
     }
     else
     {
@@ -386,19 +394,15 @@ void handleCrash(void *data) {
         logger_base.crit("Unable to tell user about debug report. Crash report saved to %s.", (const char *)report->GetCompressedFileName().c_str());
     }
 }
-
-void xLightsFrame::AddTraceMessage(const std::string &trc) {
-    traceMessages.push_back(trc);
-    if (traceMessages.size() > 20) {
-        traceMessages.pop_front();
-    }
-}
-
 wxString xLightsFrame::GetThreadStatusReport() {
     return jobPool.GetThreadStatus();
 }
 
-void xLightsFrame::CreateDebugReport(wxDebugReportCompress *report) {
+void xLightsFrame::AddTraceMessage(const std::string &trc) {
+    ::AddTraceMessage(trc);
+}
+
+void xLightsFrame::CreateDebugReport(wxDebugReportCompress *report, std::list<std::string> trc) {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     static bool inHere = false;
@@ -414,7 +418,14 @@ void xLightsFrame::CreateDebugReport(wxDebugReportCompress *report) {
     status += topFrame->GetThreadStatusReport();
     status += "\nParallel Job Pool:\n";
     status += ParallelJobPool::POOL.GetThreadStatus();
-    status += "\nTraces:\n";
+    if (!trc.empty()) {
+        status += "\nCrashed thread traces:\n";
+        for (auto &a : trc) {
+            status += a;
+            status += "\n";
+        }
+    }
+    status += "\nMain thread traces:\n";
     for (auto &a : traceMessages) {
         status += a;
         status += "\n";

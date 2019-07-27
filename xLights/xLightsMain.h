@@ -351,7 +351,7 @@ public:
     { return SeqData.IsValidData(); }
     void ClearSequenceData();
     void LoadAudioData(xLightsXmlFile& xml_file);
-    void CreateDebugReport(wxDebugReportCompress *report);
+    void CreateDebugReport(wxDebugReportCompress *report, std::list<std::string> trc);
     wxString GetThreadStatusReport();
     void AddTraceMessage(const std::string &msg);
 
@@ -1433,7 +1433,6 @@ private:
 
     int PlaybackPeriod; //used to be able to record the frame being played in an animation preview
 
-    std::list<std::string> traceMessages;
 public:
     //stuf used by layoutPanel for now
     void SetPreviewBackgroundScaled(bool scaled);
