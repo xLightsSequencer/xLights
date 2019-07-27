@@ -3,7 +3,7 @@
 	<object class="wxPanel" name="ShaderPanel">
 		<pos_arg>1</pos_arg>
 		<size_arg>1</size_arg>
-		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
+		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="yes">
 			<cols>1</cols>
 			<growablecols>0</growablecols>
 			<object class="sizeritem">

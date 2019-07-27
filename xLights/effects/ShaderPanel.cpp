@@ -56,7 +56,6 @@ ShaderPanel::ShaderPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
     // I have deliberately given the file picker a ID_- prefix to force it to be processed first
 
 	//(*Initialize(ShaderPanel)
-	wxFlexGridSizer* FlexGridSizer1;
 	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer3;
 
@@ -127,8 +126,10 @@ void ShaderPanel::OnFilePickerCtrl1FileChanged(wxFileDirPickerEvent& event)
     wxString newf = FilePickerCtrl1->GetFileName().GetFullName();
 
     // if shader name hasnt changed dont reset
-    if (newf == last && (newf == "" || wxFile::Exists(FilePickerCtrl1->GetFileName().GetFullPath()))) return;
-    last = newf;
+    if (newf == last && (newf == "" || wxFile::Exists(FilePickerCtrl1->GetFileName().GetFullPath())))
+    {
+        return;
+    }
 
     // restore time to defaults
     BitmapButton_Shader_Speed->SetActive(false);
@@ -139,20 +140,27 @@ void ShaderPanel::OnFilePickerCtrl1FileChanged(wxFileDirPickerEvent& event)
 
     if (wxFile::Exists(FilePickerCtrl1->GetFileName().GetFullPath()))
     {
-        BuildUI(FilePickerCtrl1->GetFileName().GetFullPath());
+        if (BuildUI(FilePickerCtrl1->GetFileName().GetFullPath()))
+        {
+            last = newf;
+        }
     }
     else
     {
         Freeze();
+        last = "";
         FlexGridSizer_Dynamic->DeleteWindows();
         FilePickerCtrl1->UnsetToolTip();
         Thaw();
     }
 }
 
-void ShaderPanel::BuildUI(const wxString& filename)
+bool ShaderPanel::BuildUI(const wxString& filename)
 {
-    if (_shaderConfig != nullptr && _shaderConfig->GetFilename() == filename) return;
+    if (_shaderConfig != nullptr && _shaderConfig->GetFilename() == filename)
+    {
+        return false;
+    }
 
     Freeze();
 
@@ -160,6 +168,7 @@ void ShaderPanel::BuildUI(const wxString& filename)
     FilePickerCtrl1->UnsetToolTip();
 
     _shaderConfig = ShaderEffect::ParseShader(filename);
+    wxWindow* last = BitmapButton_Shader_Speed;
 
     if (_shaderConfig != nullptr)
     {
@@ -188,6 +197,7 @@ void ShaderPanel::BuildUI(const wxString& filename)
                     sizer->Add(vcb, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 2);
                     vcb->GetValue()->SetLimits(it._min*100, it._max*100);
                     vcb->GetValue()->SetDivisor(100);
+                    last = vcb;
                     Connect(id, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)& ShaderPanel::OnVCButtonClick);
 
                     FlexGridSizer_Dynamic->Add(sizer, 1, wxALL | wxEXPAND, 0);
@@ -210,6 +220,7 @@ void ShaderPanel::BuildUI(const wxString& filename)
                     auto vcb = new BulkEditValueCurveButton(this, id, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")), wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW | wxNO_BORDER, wxDefaultValidator, it.GetId(ShaderCtrlType::SHADER_CTRL_VALUECURVE));
                     sizer->Add(vcb, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 2);
                     vcb->GetValue()->SetLimits(it._min, it._max);
+                    last = vcb;
                     Connect(id, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)& ShaderPanel::OnVCButtonClick);
 
                     FlexGridSizer_Dynamic->Add(sizer, 1, wxALL | wxEXPAND, 0);
@@ -229,6 +240,7 @@ void ShaderPanel::BuildUI(const wxString& filename)
                         choice->AppendString(it2);
                     }
                     choice->SetSelection(it._default);
+                    last = choice;
                     FlexGridSizer_Dynamic->Add(choice, 1, wxTOP | wxBOTTOM | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 5);
                     FlexGridSizer_Dynamic->Add(-1, -1, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 2);
                 }
@@ -238,6 +250,7 @@ void ShaderPanel::BuildUI(const wxString& filename)
                     FlexGridSizer_Dynamic->Add(staticText, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 2);
                     auto checkbox = new BulkEditCheckBox(this, wxNewId(), _(""), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, it.GetId(ShaderCtrlType::SHADER_CTRL_CHECKBOX));
                     checkbox->SetValue(it._default == 1);
+                    last = checkbox;
                     FlexGridSizer_Dynamic->Add(checkbox, 1, wxALL | wxEXPAND, 2);
                     FlexGridSizer_Dynamic->Add(-1, -1, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 2);
                 }
@@ -277,6 +290,7 @@ void ShaderPanel::BuildUI(const wxString& filename)
                     sizer->Add(vcb, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 2);
                     vcb->GetValue()->SetLimits(it._minPt.y * 100, it._maxPt.y * 100);
                     vcb->GetValue()->SetDivisor(100);
+                    last = vcb;
                     Connect(id, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)& ShaderPanel::OnVCButtonClick);
 
                     FlexGridSizer_Dynamic->Add(sizer, 1, wxALL | wxEXPAND, 0);
@@ -287,11 +301,20 @@ void ShaderPanel::BuildUI(const wxString& filename)
                 }
             }
         }
-        FlexGridSizer_Dynamic->Layout();
-        Layout();
     }
 
+    Layout();
+
+    SetMinSize(FlexGridSizer1->CalcMin());
+
+    wxScrolledWindow* sw = dynamic_cast<wxScrolledWindow*>(GetParent());
+    sw->FitInside();
+    sw->SetScrollRate(5, 5);
+    sw->Refresh();
+
     Thaw();
+
+    return true;
 }
 
 void ShaderPanel::OnButton_DownloadClick(wxCommandEvent& event)
@@ -307,17 +330,8 @@ void ShaderPanel::OnButton_DownloadClick(wxCommandEvent& event)
         if (dlg.ShowModal() == wxID_OK)
         {
             FilePickerCtrl1->SetFileName(wxFileName(dlg.GetShaderFile()));
-            if (wxFile::Exists(dlg.GetShaderFile()))
-            {
-                BuildUI(dlg.GetShaderFile());
-            }
-            else
-            {
-                Freeze();
-                FlexGridSizer_Dynamic->DeleteWindows();
-                FilePickerCtrl1->UnsetToolTip();
-                Thaw();
-            }
+            wxFileDirPickerEvent e(wxEVT_COMMAND_FILEPICKER_CHANGED, FilePickerCtrl1, ID_0FILEPICKERCTRL_IFS, FilePickerCtrl1->GetFileName().GetFullPath());
+            wxPostEvent(this, e);
         }
     }
     else

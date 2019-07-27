@@ -48,6 +48,7 @@ class ShaderPanel: public wxPanel
 		BulkEditTextCtrlF2* TextCtrl_Shader_Speed;
 		BulkEditValueCurveButton* BitmapButton_Shader_Speed;
 		wxButton* Button_Download;
+		wxFlexGridSizer* FlexGridSizer1;
 		wxFlexGridSizer* FlexGridSizer_Dynamic;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText2;
@@ -83,7 +84,7 @@ class ShaderPanel: public wxPanel
         void OnVCButtonClick(wxCommandEvent& event);
         void OnVCChanged(wxCommandEvent& event);
         void OnLockButtonClick(wxCommandEvent& event);
-        void BuildUI(const wxString& filename);
+        bool BuildUI(const wxString& filename);
 
 		DECLARE_EVENT_TABLE()
 };

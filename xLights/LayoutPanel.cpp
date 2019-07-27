@@ -2261,6 +2261,10 @@ void LayoutPanel::SelectModel(Model *m, bool highlight_tree) {
             std::list<ModelGroup*> processed;
             SelectModelGroupModels(dynamic_cast<ModelGroup*>(m), processed);
         }
+        else
+        {
+            m->Selected = true;
+        }
 
         if( highlight_tree ) {
             for ( wxTreeListItem item = TreeListViewModels->GetFirstItem();
