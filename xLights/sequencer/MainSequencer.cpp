@@ -80,8 +80,6 @@ public:
     TimeDisplayControl(wxPanel* parent, wxWindowID id, const wxPoint &pos=wxDefaultPosition,
                        const wxSize &size=wxDefaultSize, long style=0)
     : xlGLCanvas(parent, id, pos, size, style, "TimeDisplay") {
-    // ReSharper disable once CppVirtualFunctionCallInsideCtor
-        SetBackgroundStyle(wxBG_STYLE_PAINT);
         _time = "Time: 00:00:00";
         _selected = "";
         _fps = "";
@@ -95,8 +93,7 @@ public:
         renderGL();
     }
 
-    void SetGLSize(int w, int h)
-    {
+    void SetGLSize(int w, int h) {
         SetMinSize(wxSize(w, h));
 
         wxSize size = GetSize();
@@ -107,15 +104,11 @@ public:
         mWindowHeight = h;
         mWindowWidth = w;
         mWindowResized = true;
-        if (h > 50)
-        {
+        if (h > 50) {
             _fontSize = 14;
-        }
-        else
-        {
+        } else {
             _fontSize = 10;
         }
-
         Refresh();
         renderGL();
     }
@@ -136,12 +129,9 @@ public:
     virtual bool UsesVertexColorAccumulator() override {return false;}
     virtual bool UsesVertexAccumulator() override {return false;}
     virtual bool UsesAddVertex() override {return false;}
-    void InitializeGLContext() override
-    {
+    void InitializeGLContext() override {
         SetCurrentGLContext();
         xlColor c(ColorManager::instance()->GetColor(ColorManager::COLOR_ROW_HEADER));
-        //c.Set(70,70,70); //54->70
-        //
 
         LOG_GL_ERRORV(glClearColor(((float)c.Red())/255.0f,
                                    ((float)c.Green())/255.0f,
@@ -149,7 +139,7 @@ public:
         LOG_GL_ERRORV(glDisable(GL_BLEND));
         LOG_GL_ERRORV(glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA));
         LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT));
-        prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
+        prepare2DViewport(0, 0, mWindowWidth, mWindowHeight);
     }
 
     void renderGL()
@@ -161,26 +151,26 @@ public:
         glClear(GL_COLOR_BUFFER_BIT);
         prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
 
-        DrawGLUtils::xlVertexTextAccumulator va(ColorManager::instance()->GetColor(ColorManager::COLOR_ROW_HEADER_TEXT));
+        _va.color = ColorManager::instance()->GetColor(ColorManager::COLOR_ROW_HEADER_TEXT);
 #define LINEGAP 1.2
         int y = _fontSize * LINEGAP;
-        va.AddVertex(5, y, _time);
+        _va.AddVertex(5, y, _time);
         y += _fontSize * LINEGAP;
         // only display FPS if we have room
-        if (y + _fontSize * LINEGAP <= mWindowHeight)
-        {
-            va.AddVertex(5, y, _fps);
+        if (y + _fontSize * LINEGAP <= mWindowHeight) {
+            _va.AddVertex(5, y, _fps);
             y += _fontSize * LINEGAP;
         }
-        if (y <= mWindowHeight)
-        {
-            va.AddVertex(5, y, _selected);
+        if (y <= mWindowHeight) {
+            _va.AddVertex(5, y, _selected);
         }
-        DrawGLUtils::Draw(va, _fontSize, GetContentScaleFactor());
+        DrawGLUtils::Draw(_va, _fontSize, GetContentScaleFactor());
         SwapBuffers();
+        _va.Reset();
     }
 
 private:
+    DrawGLUtils::xlVertexTextAccumulator _va;
     std::string _time;
     std::string _fps;
     std::string _selected;

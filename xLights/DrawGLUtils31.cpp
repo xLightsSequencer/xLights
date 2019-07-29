@@ -208,10 +208,7 @@ public:
     }
 
     void SetRenderType(int i) {
-        if (lastRenderType != i) {
-            LOG_GL_ERRORV(glUniform1i(RenderTypeID, i));
-            lastRenderType = i;
-        }
+        LOG_GL_ERRORV(glUniform1i(RenderTypeID, i));
     }
 
     int BindBuffer(int idx, void *data, int sz) {
@@ -357,7 +354,6 @@ public:
     GLuint PointSmoothMinID;
     GLuint PointSmoothMaxID;
     GLuint RenderTypeID;
-    int lastRenderType = -1;
 
     GLuint *buffers;
     BufferInfo *bufferInfo;
