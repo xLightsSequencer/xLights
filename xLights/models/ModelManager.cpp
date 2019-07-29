@@ -608,6 +608,8 @@ bool ModelManager::ReworkStartChannel() const
                 if (it->GetChannels() != std::max((long)1, (long)ch - 1))
                 {
                     logger_zcpp.debug("    Resizing output to %ld channels.", std::max((long)1, (long)ch - 1));
+                    it->AllOff();
+                    it->EndFrame(0);
                     it->SetChannels(std::max((long)1, (long)ch - 1));
                     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ReworkStartChannel", nullptr, it);
                     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "ReworkStartChannel", nullptr, it);
