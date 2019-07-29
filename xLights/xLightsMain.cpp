@@ -9095,7 +9095,7 @@ void xLightsFrame::OnButtonOtherFoldersClick(wxCommandEvent& event)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    FolderSelection dlg(this, showDirectory, mediaDirectory, fseqDirectory, backupDirectory, mAltBackupDir);
+    FolderSelection dlg(this, showDirectory, mediaDirectory, fseqDirectory, renderCacheDirectory, backupDirectory, mAltBackupDir);
 
     int res = dlg.ShowModal();
 
@@ -9106,18 +9106,18 @@ void xLightsFrame::OnButtonOtherFoldersClick(wxCommandEvent& event)
         config->Write(_("xLightsAltBackupDir"), dlg.AltBackupDirectory);
 
         //Always set values in xgb effects setting just in case
-        //if(mediaDirectory != dlg.MediaDirectory || backupDirectory != dlg.BackupDirectory)
-        {
-            SetXmlSetting("fseqDir", dlg.FseqDirectory);
-            SetXmlSetting("backupDir", dlg.BackupDirectory);
-            UnsavedRgbEffectsChanges = true;
-        }
+        SetXmlSetting("fseqDir", dlg.FseqDirectory);
+        SetXmlSetting("renderCacheDir", dlg.RenderCacheDirectory);
+        SetXmlSetting("backupDir", dlg.BackupDirectory);
+        UnsavedRgbEffectsChanges = true;
 
         mediaDirectory = dlg.MediaDirectory;
         logger_base.debug("Media directory set to : %s.", (const char *)mediaDirectory.c_str());
         fseqDirectory = dlg.FseqDirectory;
         FseqDir = fseqDirectory;
         logger_base.debug("FSEQ directory set to : %s.", (const char *)fseqDirectory.c_str());
+        renderCacheDirectory = dlg.RenderCacheDirectory;
+        logger_base.debug("Render Cache directory set to : %s.", (const char*)renderCacheDirectory.c_str());
         backupDirectory = dlg.BackupDirectory;
         logger_base.debug("Backup directory set to : %s.", (const char *)backupDirectory.c_str());
         mAltBackupDir = dlg.AltBackupDirectory;
@@ -9519,7 +9519,7 @@ void xLightsFrame::OnMenuItem_RenderCache(wxCommandEvent& event)
     if (_renderCache.IsEnabled() && CurrentSeqXmlFile != nullptr)
     {
         // this will force a reload of the cache
-        _renderCache.SetSequence(fseqDirectory.ToStdString(), CurrentSeqXmlFile->GetName().ToStdString());
+        _renderCache.SetSequence(renderCacheDirectory.ToStdString(), CurrentSeqXmlFile->GetName().ToStdString());
     }
     else
     {

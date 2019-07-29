@@ -1198,6 +1198,7 @@ public:
     wxString showDirectory;
     wxString mediaDirectory;
     wxString fseqDirectory;
+    wxString renderCacheDirectory;
     wxString backupDirectory;
     SeqDataType SeqData;
     wxTimer _scrollTimer;
