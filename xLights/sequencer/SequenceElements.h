@@ -94,7 +94,7 @@ public:
     void MoveSequenceElement(int index, int dest, int view);
     void MoveElementUp(const std::string &name, int view);
     void MoveElementDown(const std::string &name, int view);
-    void SetFirstVisibleModelRow(int row);
+    int SetFirstVisibleModelRow(int row);
     void SetCurrentView(int view);
     void AddMissingModelsToSequence(const std::string &models, bool visible = true);
     int GetCurrentView() const { return mCurrentView; }

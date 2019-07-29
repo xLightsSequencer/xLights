@@ -59,6 +59,8 @@ class MainSequencer: public wxPanel
         void SetChanged();
         void UnselectAllEffects();
         bool HandleSequencerKeyBinding(wxKeyEvent& event);
+        void ScrollToRow(int row);
+        void UpdateEffectGridHorizontalScrollBar();
 
         void Cut();
         void Copy();
@@ -130,11 +132,9 @@ class MainSequencer: public wxPanel
         void ScrollRight( wxCommandEvent& event);
         void TimelineChanged( wxCommandEvent& event);
         void SequenceChanged( wxCommandEvent& event);
-        void UpdateEffectGridHorizontalScrollBar();
 
         void SavePosition();
         void RestorePosition();
-        void ScrollToRow(int row);
 
         wxWindow *mParent;
         SequenceElements* mSequenceElements;

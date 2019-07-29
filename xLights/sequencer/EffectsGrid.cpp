@@ -2551,6 +2551,44 @@ bool EffectsGrid::IsACActive()
     return xlights->IsACActive();
 }
 
+void EffectsGrid::MakeRowVisible(int row)
+{
+    if (row < mSequenceElements->GetFirstVisibleModelRow())
+    {
+        ((MainSequencer*)mParent)->ScrollToRow(row);
+    }
+    else if (row > mSequenceElements->GetFirstVisibleModelRow() + mSequenceElements->GetMaxModelsDisplayed())
+    {
+        ((MainSequencer*)mParent)->ScrollToRow(std::max(0, row - mSequenceElements->GetMaxModelsDisplayed()));
+    }
+}
+
+void EffectsGrid::MakeColVisible(int col)
+{
+    EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
+    if (tel == nullptr) return;
+    Effect* eff = tel->GetEffect(col);
+    if (eff == nullptr) return;
+
+    int startTime, endTime;
+    ((MainSequencer*)mParent)->PanelTimeLine->GetViewableTimeRange(startTime, endTime);
+
+    if (endTime - startTime < eff->GetEndTimeMS() - eff->GetStartTimeMS())
+    {
+        // full column is not visible
+        ((MainSequencer*)mParent)->PanelTimeLine->SetStartTimeMS(eff->GetStartTimeMS());
+    }
+    else if (startTime > eff->GetStartTimeMS())
+    {
+        ((MainSequencer*)mParent)->PanelTimeLine->SetStartTimeMS(eff->GetStartTimeMS());
+    }
+    else if (endTime < eff->GetEndTimeMS())
+    {
+        ((MainSequencer*)mParent)->PanelTimeLine->SetStartTimeMS(eff->GetEndTimeMS() - (endTime - startTime));
+    }
+    ((MainSequencer*)mParent)->UpdateEffectGridHorizontalScrollBar();
+}
+
 bool EffectsGrid::HandleACKey(wxChar key, bool shift)
 {
     if (HasCapture()) return false;
@@ -2671,7 +2709,7 @@ bool EffectsGrid::HandleACKey(wxChar key, bool shift)
                 }
                 else
                 {
-                    if (mRangeStartRow > mSequenceElements->GetNumberOfTimingRows() + mSequenceElements->GetFirstVisibleModelRow()) {
+                    if (mRangeStartRow > mSequenceElements->GetNumberOfTimingRows()) {
                         mRangeCursorRow--;
                         mRangeStartRow = mRangeCursorRow;
                     }
@@ -2679,7 +2717,7 @@ bool EffectsGrid::HandleACKey(wxChar key, bool shift)
             }
             else
             {
-                if (mRangeCursorRow > mSequenceElements->GetNumberOfTimingRows() + mSequenceElements->GetFirstVisibleModelRow()) {
+                if (mRangeCursorRow > mSequenceElements->GetNumberOfTimingRows()) {
                     mRangeCursorRow--;
                 }
                 mRangeStartRow = mRangeCursorRow;
@@ -2692,6 +2730,7 @@ bool EffectsGrid::HandleACKey(wxChar key, bool shift)
         mDropStartTimeMS = GetMSFromColumn(mRangeCursorCol);
         mDropRow = mRangeCursorRow;
         SetRCToolTip();
+        MakeRowVisible(mRangeCursorRow - mSequenceElements->GetNumberOfTimingRows());
         return true;
     }
     else if (key == (wxChar)WXK_DOWN)
@@ -2732,7 +2771,7 @@ bool EffectsGrid::HandleACKey(wxChar key, bool shift)
                 }
                 else
                 {
-                    if (mRangeEndRow < mSequenceElements->GetVisibleRowInformationSize() + first_row - 1)
+                    if (mRangeEndRow < mSequenceElements->GetRowInformationSize()-1)
                     {
                         mRangeCursorRow++;
                         mRangeEndRow = mRangeCursorRow;
@@ -2741,7 +2780,7 @@ bool EffectsGrid::HandleACKey(wxChar key, bool shift)
             }
             else
             {
-                if (mRangeCursorRow < mSequenceElements->GetVisibleRowInformationSize() + first_row - 1) {
+                if (mRangeCursorRow < mSequenceElements->GetRowInformationSize() - 1) {
                     mRangeCursorRow++;
                 }
                 mRangeStartRow = mRangeCursorRow;
@@ -2755,6 +2794,7 @@ bool EffectsGrid::HandleACKey(wxChar key, bool shift)
         mDropRow = mRangeCursorRow;
 
         SetRCToolTip();
+        MakeRowVisible(mRangeCursorRow- mSequenceElements->GetNumberOfTimingRows()+1);
         return true;
     }
     else if (key == (wxChar)WXK_LEFT)
@@ -2824,6 +2864,7 @@ bool EffectsGrid::HandleACKey(wxChar key, bool shift)
         mDropRow = mRangeCursorRow;
 
         SetRCToolTip();
+        MakeColVisible(mRangeCursorCol);
         return true;
     }
     else if (key == (wxChar)WXK_RIGHT)
@@ -2892,6 +2933,7 @@ bool EffectsGrid::HandleACKey(wxChar key, bool shift)
         mDropRow = mRangeCursorRow;
 
         SetRCToolTip();
+        MakeColVisible(mRangeCursorCol);
         return true;
     }
     return false;
@@ -3347,70 +3389,77 @@ void EffectsGrid::Resize(int position, bool offset, bool control)
     //sendRenderDirtyEvent();
 }
 
+void EffectsGrid::ScrollBy(int by)
+{
+    mSelectedRow -= by;
+}
+
 void EffectsGrid::MoveSelectedEffectUp(bool shift)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     if (mSequenceElements == nullptr) return;
 
-    if( mSequenceElements->GetSelectedTimingRow() == -1 ) {
+    if (mSequenceElements->GetSelectedTimingRow() == -1) {
         mCellRangeSelected = false;
     }
-    if( mCellRangeSelected )
+    if (mCellRangeSelected)
     {
-        if( shift )
+        if (shift)
         {
-            if( mRangeEndRow > mRangeStartRow )
+            if (mRangeEndRow > mRangeStartRow)
             {
                 mRangeEndRow--;
             }
         }
         else
         {
-            if( mRangeStartRow > mSequenceElements->GetNumberOfTimingRows()+ mSequenceElements->GetFirstVisibleModelRow()) {
+            if (mRangeStartRow > mSequenceElements->GetNumberOfTimingRows()) {
                 mRangeStartRow--;
                 mRangeEndRow--;
             }
         }
         SetRCToolTip();
         UpdateSelectedEffects();
+        MakeRowVisible(mRangeEndRow - mSequenceElements->GetNumberOfTimingRows());
         Refresh(false);
     }
-    else if( !MultipleEffectsSelected() && mSelectedEffect != nullptr && !mSelectedEffect->IsLocked() && mSelectedRow > 0)
+    else if (!MultipleEffectsSelected() && mSelectedEffect != nullptr && !mSelectedEffect->IsLocked() && mSelectedRow > 0)
     {
         logger_base.debug("EffectsGrid::MoveSelectedEffectUp moving single effect.");
-        int row = mSelectedRow-1;
+        int row = mSelectedRow - 1;
         EffectLayer* el = mSelectedEffect->GetParentEffectLayer();
-        while( row >= mSequenceElements->GetNumberOfTimingRows() )
+        while (row + mSequenceElements->GetFirstVisibleModelRow() >= mSequenceElements->GetNumberOfTimingRows())
         {
-            EffectLayer* new_el = mSequenceElements->GetVisibleEffectLayer(row);
-            if( new_el != nullptr )
+            EffectLayer* new_el = mSequenceElements->GetEffectLayer(mSequenceElements->GetFirstVisibleModelRow() + row);
+            if (new_el != nullptr)
             {
-                if( new_el->GetRangeIsClearMS( mSelectedEffect->GetStartTimeMS(), mSelectedEffect->GetEndTimeMS()))
+                if (new_el->GetRangeIsClearMS(mSelectedEffect->GetStartTimeMS(), mSelectedEffect->GetEndTimeMS()))
                 {
                     mSequenceElements->get_undo_mgr().CreateUndoStep();
                     Effect* ef = new_el->AddEffect(0,
-                                                   mSelectedEffect->GetEffectName(),
-                                                   mSelectedEffect->GetSettingsAsString(),
-                                                   mSelectedEffect->GetPaletteAsString(),
-                                                   mSelectedEffect->GetStartTimeMS(),
-                                                   mSelectedEffect->GetEndTimeMS(),
-                                                   EFFECT_SELECTED,
-                                                   false);
+                        mSelectedEffect->GetEffectName(),
+                        mSelectedEffect->GetSettingsAsString(),
+                        mSelectedEffect->GetPaletteAsString(),
+                        mSelectedEffect->GetStartTimeMS(),
+                        mSelectedEffect->GetEndTimeMS(),
+                        EFFECT_SELECTED,
+                        false);
                     mSelectedRow = row;
                     mSelectedEffect = ef;
                     el->DeleteSelectedEffects(mSequenceElements->get_undo_mgr());
-                    mSequenceElements->get_undo_mgr().CaptureAddedEffect( new_el->GetParentElement()->GetModelName(), new_el->GetIndex(), ef->GetID() );
+                    mSequenceElements->get_undo_mgr().CaptureAddedEffect(new_el->GetParentElement()->GetModelName(), new_el->GetIndex(), ef->GetID());
                     RaiseSelectedEffectChanged(ef, false, true);
-                    Refresh(false);
                     sendRenderDirtyEvent();
+                    MakeRowVisible(mSelectedRow + mSequenceElements->GetFirstVisibleModelRow() - mSequenceElements->GetNumberOfTimingRows());
+                    Refresh(false);
                     return;
                 }
             }
             row--;
         }
     }
-    else if( MultipleEffectsSelected() )
+    else if (MultipleEffectsSelected())
     {
         logger_base.debug("EffectsGrid::MoveSelectedEffectUp moving multiple effects.");
 
@@ -3418,23 +3467,23 @@ void EffectsGrid::MoveSelectedEffectUp(bool shift)
         bool all_clear = true;
         int first_model_row = mSequenceElements->GetNumberOfTimingRows();
         int num_effects = mSequenceElements->GetEffectLayer(first_model_row)->GetEffectCount();
-        if( num_effects > 0 )
+        if (num_effects > 0)
         {
             all_clear = false;
         }
-        for(int row=first_model_row+1;row<mSequenceElements->GetRowInformationSize() && all_clear;row++)
+        for (int row = first_model_row + 1; row < mSequenceElements->GetRowInformationSize() && all_clear; row++)
         {
-            EffectLayer* el1 = mSequenceElements->GetEffectLayer(row-1);
+            EffectLayer* el1 = mSequenceElements->GetEffectLayer(row - 1);
             EffectLayer* el2 = mSequenceElements->GetEffectLayer(row);
-            if( mSequenceElements->GetEffectLayer(row)->GetSelectedEffectCount() > 0 )
+            if (mSequenceElements->GetEffectLayer(row)->GetSelectedEffectCount() > 0)
             {
                 num_effects = mSequenceElements->GetEffectLayer(row)->GetEffectCount();
-                for( int i = 0; (i < num_effects) && all_clear; ++i )
+                for (int i = 0; (i < num_effects) && all_clear; ++i)
                 {
                     Effect* eff = el2->GetEffect(i);
-                    if( eff->GetSelected() && ! eff->IsLocked())
+                    if (eff->GetSelected() && !eff->IsLocked())
                     {
-                        if( !el1->GetRangeIsClearMS( eff->GetStartTimeMS(), eff->GetEndTimeMS(), true) )
+                        if (!el1->GetRangeIsClearMS(eff->GetStartTimeMS(), eff->GetEndTimeMS(), true))
                         {
                             all_clear = false;
                         }
@@ -3442,34 +3491,34 @@ void EffectsGrid::MoveSelectedEffectUp(bool shift)
                 }
             }
         }
-        if( all_clear ) // all clear so now move them all up
+        if (all_clear) // all clear so now move them all up
         {
             // Tag all selected effects so we don't move them twice
             ((MainSequencer*)mParent)->TagAllSelectedEffects();
 
             mSequenceElements->get_undo_mgr().CreateUndoStep();
-            for(int row=first_model_row+1;row<mSequenceElements->GetRowInformationSize();row++)
+            for (int row = first_model_row + 1; row < mSequenceElements->GetRowInformationSize(); row++)
             {
-                EffectLayer* el1 = mSequenceElements->GetEffectLayer(row-1);
+                EffectLayer* el1 = mSequenceElements->GetEffectLayer(row - 1);
                 EffectLayer* el2 = mSequenceElements->GetEffectLayer(row);
-                if( mSequenceElements->GetEffectLayer(row)->GetTaggedEffectCount() > 0 )
+                if (mSequenceElements->GetEffectLayer(row)->GetTaggedEffectCount() > 0)
                 {
                     num_effects = mSequenceElements->GetEffectLayer(row)->GetEffectCount();
-                    for( int i = 0; (i < num_effects) && all_clear; ++i )
+                    for (int i = 0; (i < num_effects) && all_clear; ++i)
                     {
                         Effect* eff = el2->GetEffect(i);
-                        if( eff->GetSelected() && eff->GetTagged() && !eff->IsLocked())
+                        if (eff->GetSelected() && eff->GetTagged() && !eff->IsLocked())
                         {
                             eff->SetTagged(false);
                             Effect* ef = el1->AddEffect(0,
-                                                    eff->GetEffectName(),
-                                                    eff->GetSettingsAsString(),
-                                                    eff->GetPaletteAsString(),
-                                                    eff->GetStartTimeMS(),
-                                                    eff->GetEndTimeMS(),
-                                                    EFFECT_SELECTED,
-                                                    false);
-                            mSequenceElements->get_undo_mgr().CaptureAddedEffect( el1->GetParentElement()->GetModelName(), el1->GetIndex(), ef->GetID() );
+                                eff->GetEffectName(),
+                                eff->GetSettingsAsString(),
+                                eff->GetPaletteAsString(),
+                                eff->GetStartTimeMS(),
+                                eff->GetEndTimeMS(),
+                                EFFECT_SELECTED,
+                                false);
+                            mSequenceElements->get_undo_mgr().CaptureAddedEffect(el1->GetParentElement()->GetModelName(), el1->GetIndex(), ef->GetID());
                             mSelectedEffect = ef;
                         }
                     }
@@ -3478,10 +3527,11 @@ void EffectsGrid::MoveSelectedEffectUp(bool shift)
                 }
             }
             mCellRangeSelected = false;
-            mRangeStartCol = mRangeEndCol = mRangeStartRow = mRangeEndRow =-1;
+            mRangeStartCol = mRangeEndCol = mRangeStartRow = mRangeEndRow = -1;
             RaiseSelectedEffectChanged(mSelectedEffect, false, false);
-            Refresh(false);
+            MakeRowVisible(mSelectedRow - mSequenceElements->GetNumberOfTimingRows() - 1);
             sendRenderDirtyEvent();
+            Refresh(false);
         }
     }
 }
@@ -3500,20 +3550,21 @@ void EffectsGrid::MoveSelectedEffectDown(bool shift)
     {
         if( shift )
         {
-            if( mRangeEndRow < mSequenceElements->GetVisibleRowInformationSize()+first_row-1 )
+            if (mRangeEndRow < mSequenceElements->GetRowInformationSize() - 1)
             {
                 mRangeEndRow++;
             }
         }
         else
         {
-            if( mRangeStartRow < mSequenceElements->GetVisibleRowInformationSize()+first_row-1 ) {
+            if (mRangeStartRow < mSequenceElements->GetRowInformationSize() - 1) {
                 mRangeStartRow++;
                 mRangeEndRow++;
             }
         }
         SetRCToolTip();
         UpdateSelectedEffects();
+        MakeRowVisible(mRangeEndRow- mSequenceElements->GetNumberOfTimingRows()+1);
         Refresh(false);
     }
     else if( !MultipleEffectsSelected() && mSelectedEffect != nullptr && !mSelectedEffect->IsLocked() && mSelectedRow >= 0)
@@ -3522,9 +3573,9 @@ void EffectsGrid::MoveSelectedEffectDown(bool shift)
 
         int row = mSelectedRow+1;
         EffectLayer* el = mSelectedEffect->GetParentEffectLayer();
-        while( row < mSequenceElements->GetVisibleRowInformationSize() )
+        while( row < mSequenceElements->GetRowInformationSize())
         {
-            EffectLayer* new_el = mSequenceElements->GetVisibleEffectLayer(row);
+            EffectLayer* new_el = mSequenceElements->GetEffectLayer(mSequenceElements->GetFirstVisibleModelRow() + row);
             if( new_el != nullptr )
             {
                 if( new_el->GetRangeIsClearMS( mSelectedEffect->GetStartTimeMS(), mSelectedEffect->GetEndTimeMS()))
@@ -3543,8 +3594,9 @@ void EffectsGrid::MoveSelectedEffectDown(bool shift)
                     el->DeleteSelectedEffects(mSequenceElements->get_undo_mgr());
                     mSequenceElements->get_undo_mgr().CaptureAddedEffect( new_el->GetParentElement()->GetModelName(), new_el->GetIndex(), ef->GetID() );
                     RaiseSelectedEffectChanged(ef, false, true);
-                    Refresh(false);
                     sendRenderDirtyEvent();
+                    MakeRowVisible(mSelectedRow + mSequenceElements->GetFirstVisibleModelRow() - mSequenceElements->GetNumberOfTimingRows() + 1);
+                    Refresh(false);
                     return;
                 }
             }
@@ -3622,6 +3674,7 @@ void EffectsGrid::MoveSelectedEffectDown(bool shift)
             mRangeStartCol = mRangeEndCol = mRangeStartRow = mRangeEndRow = -1;
             RaiseSelectedEffectChanged(mSelectedEffect, false, false);
             sendRenderDirtyEvent();
+            MakeRowVisible(mSelectedRow-mSequenceElements->GetNumberOfTimingRows() + 1);
             Refresh(false);
         }
     }
@@ -3654,6 +3707,7 @@ void EffectsGrid::MoveSelectedEffectRight(bool shift, bool control, bool alt)
             }
             SetRCToolTip();
             UpdateSelectedEffects();
+            MakeColVisible(mRangeEndCol);
             Refresh(false);
         }
     }
@@ -3803,6 +3857,7 @@ void EffectsGrid::MoveSelectedEffectLeft(bool shift, bool control, bool alt)
             }
             SetRCToolTip();
             UpdateSelectedEffects();
+            MakeColVisible(mRangeStartCol);
             Refresh(false);
         }
     }

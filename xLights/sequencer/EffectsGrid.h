@@ -106,6 +106,8 @@ public:
 
     bool HandleACKey(wxChar key, bool shift = false);
     bool IsACActive();
+    void MakeRowVisible(int row);
+    void MakeColVisible(int col);
     std::string TruncateEffectSettings(SettingsMap settings, std::string name, int originalStartMS, int originalEndMS, int startMS, int endMS);
     bool DoACDraw(bool keyboard = false, ACTYPE typeOverride = ACTYPE::NILTYPEOVERRIDE, ACSTYLE styleOverride = ACSTYLE::NILSTYLEOVERRIDE, ACTOOL toolOverride = ACTOOL::NILTOOLOVERRIDE, ACMODE modeOverride = ACMODE::NILMODEOVERRIDE);
 
@@ -134,6 +136,7 @@ public:
     void sendRenderEvent(const std::string &model, int start, int end, bool clear = true);
     void sendRenderDirtyEvent();
     void UnselectEffect(bool force = false);
+    void ScrollBy(int by);
 protected:
     void InitializeGLCanvas() override;
     void InitializeGLContext() override;

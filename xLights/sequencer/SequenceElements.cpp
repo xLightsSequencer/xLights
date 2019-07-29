@@ -1402,8 +1402,10 @@ void SequenceElements::PopulateVisibleRowInformation()
     }
 }
 
-void SequenceElements::SetFirstVisibleModelRow(int row)
+int SequenceElements::SetFirstVisibleModelRow(int row)
 {
+    int old = mFirstVisibleModelRow;
+
     // They all fit on screen. So set to first model element.
     if(mRowInformation.size() <= mMaxRowsDisplayed)
     {
@@ -1425,6 +1427,8 @@ void SequenceElements::SetFirstVisibleModelRow(int row)
         }
     }
     PopulateVisibleRowInformation();
+
+    return mFirstVisibleModelRow - old;
 }
 
 int SequenceElements::GetNumberOfTimingRows() const

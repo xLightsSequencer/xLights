@@ -559,7 +559,7 @@ void RenderCacheItem::AddFrame(RenderBuffer* buffer)
     }
 
     if (frame >= _frames.at(mname).size()) {
-        int maxframe = buffer->curEffEndPer - buffer->curEffStartPer + 1;
+        int maxframe = std::max(frame+1,buffer->curEffEndPer - buffer->curEffStartPer + 1);
         _frames.at(mname).resize(maxframe);
     }
 

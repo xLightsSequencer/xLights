@@ -385,7 +385,8 @@ void MainSequencer::OnScrollBarEffectGridHorzScroll(wxScrollEvent& event)
 void MainSequencer::OnScrollBarEffectsVerticalScrollChanged(wxScrollEvent& event)
 {
     int position = ScrollBarEffectsVertical->GetThumbPosition();
-    mSequenceElements->SetFirstVisibleModelRow(position);
+    int scroll = mSequenceElements->SetFirstVisibleModelRow(position);
+    PanelEffectGrid->ScrollBy(scroll);
     UpdateEffectGridVerticalScrollBar();
 }
 
@@ -419,14 +420,16 @@ void MainSequencer::mouseWheelMoved(wxMouseEvent& event)
             {
                 position++;
                 ScrollBarEffectsVertical->SetThumbPosition(position);
-                mSequenceElements->SetFirstVisibleModelRow(position);
+                int scroll = mSequenceElements->SetFirstVisibleModelRow(position);
+                PanelEffectGrid->ScrollBy(scroll);
             }
         } else if (i > 0) {
             if(position > 0)
             {
                 position--;
                 ScrollBarEffectsVertical->SetThumbPosition(position);
-                mSequenceElements->SetFirstVisibleModelRow(position);
+                int scroll = mSequenceElements->SetFirstVisibleModelRow(position);
+                PanelEffectGrid->ScrollBy(scroll);
             }
         }
         mSequenceElements->PopulateVisibleRowInformation();
