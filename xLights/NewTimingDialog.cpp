@@ -42,7 +42,9 @@ NewTimingDialog::NewTimingDialog(wxWindow* parent,wxWindowID id,const wxPoint& p
 	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
 	//*)
+    StdDialogButtonSizer1->GetAffirmativeButton()->SetDefault();
     SetEscapeId(wxID_CANCEL);
+    Choice_New_Fixed_Timing->SetStringSelection(_("Empty"));
 }
 
 NewTimingDialog::~NewTimingDialog()
@@ -57,8 +59,10 @@ void NewTimingDialog::RemoveChoice(const wxString selection)
     {
         if( Choice_New_Fixed_Timing->GetString(i) == selection )
         {
+            bool removed = false;
+            if (Choice_New_Fixed_Timing->GetSelection() == i) removed = true;
             Choice_New_Fixed_Timing->Delete(i);
-            Choice_New_Fixed_Timing->SetSelection(0);
+            if (removed) Choice_New_Fixed_Timing->SetSelection(0);
             return;
         }
     }

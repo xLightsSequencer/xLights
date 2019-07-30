@@ -2865,39 +2865,39 @@ void xLightsXmlFile::AddNewTimingSection(const std::string & interval_name, xLig
     AddChildXmlNode(node, "EffectLayer");
 }
 
-void xLightsXmlFile::AddFixedTimingSection(const std::string & interval_name, xLightsFrame* xLightsParent)
+void xLightsXmlFile::AddFixedTimingSection(const std::string& interval_name, xLightsFrame* xLightsParent)
 {
-    AddTimingDisplayElement( interval_name, "1", "0" );
+    AddTimingDisplayElement(interval_name, "1", "0");
     wxXmlNode* node;
 
-    if( interval_name == "Empty" )
+    if (interval_name == "Empty" || (interval_name != "25ms" && interval_name != "50ms" && interval_name != "100ms"))
     {
-        if( sequence_loaded )
+        if (sequence_loaded)
         {
             xLightsParent->AddTimingElement(interval_name);
         }
-        node = AddElement( interval_name, "timing" );
+        node = AddElement(interval_name, "timing");
     }
     else
     {
-        int interval = wxAtoi(interval_name);;
-        if( sequence_loaded )
+        int interval = wxAtoi(interval_name);
+        if (sequence_loaded)
         {
             TimingElement* element = xLightsParent->AddTimingElement(interval_name);
             element->SetFixedTiming(interval);
             EffectLayer* effectLayer = element->GetEffectLayer(0);
             int time = 0;
             int end_time = GetSequenceDurationMS();
-            while( time <= end_time )
+            while (time <= end_time)
             {
                 int next_time = (time + interval <= end_time) ? time + interval : end_time;
                 int startTime = TimeLine::RoundToMultipleOfPeriod(time, GetFrequency());
                 int endTime = TimeLine::RoundToMultipleOfPeriod(next_time, GetFrequency());
-                effectLayer->AddEffect(0,"","","",startTime,endTime,EFFECT_NOT_SELECTED,false);
+                effectLayer->AddEffect(0, "", "", "", startTime, endTime, EFFECT_NOT_SELECTED, false);
                 time += interval;
             }
         }
-        node = AddFixedTiming( interval_name, string_format("%d",interval) );
+        node = AddFixedTiming(interval_name, string_format("%d", interval));
     }
 
     AddChildXmlNode(node, "EffectLayer");
@@ -2919,44 +2919,44 @@ void xLightsXmlFile::AdjustEffectSettingsForVersion(SequenceElements& elements, 
     std::vector<RenderableEffect*> effects(xLightsParent->GetEffectManager().size());
     int count = 0;
     for (int x = 0; x < xLightsParent->GetEffectManager().size(); x++) {
-        RenderableEffect *eff = xLightsParent->GetEffectManager()[x];
+        RenderableEffect* eff = xLightsParent->GetEffectManager()[x];
         if (eff->needToAdjustSettings(ver)) {
             effects[x] = eff;
             count++;
         }
     }
     if (count > 0) {
-        for( size_t i = 0; i < elements.GetElementCount(); i++ )  {
+        for (size_t i = 0; i < elements.GetElementCount(); i++) {
             Element* elem = elements.GetElement(i);
-            if( elem->GetType() == ELEMENT_TYPE_MODEL ) {
-                ModelElement *me = dynamic_cast<ModelElement*>(elem);
-                for( int j = 0; j < elem->GetEffectLayerCount(); j++ ) {
+            if (elem->GetType() == ELEMENT_TYPE_MODEL) {
+                ModelElement* me = dynamic_cast<ModelElement*>(elem);
+                for (int j = 0; j < elem->GetEffectLayerCount(); j++) {
                     EffectLayer* layer = elem->GetEffectLayer(j);
-                    for( int k = 0; k < layer->GetEffectCount(); k++ ) {
+                    for (int k = 0; k < layer->GetEffectCount(); k++) {
                         Effect* eff = layer->GetEffect(k);
-                        if (eff != nullptr &&  eff->GetEffectIndex() >= 0 && effects[eff->GetEffectIndex()] != nullptr ) {
+                        if (eff != nullptr && eff->GetEffectIndex() >= 0 && effects[eff->GetEffectIndex()] != nullptr) {
                             effects[eff->GetEffectIndex()]->adjustSettings(ver, eff);
                         }
                     }
                 }
                 for (int s = 0; s < me->GetSubModelAndStrandCount(); s++) {
-                    SubModelElement *se = me->GetSubModel(s);
+                    SubModelElement* se = me->GetSubModel(s);
                     for (int j = 0; j < se->GetEffectLayerCount(); j++) {
                         EffectLayer* layer = se->GetEffectLayer(j);
-                        for( int k = 0; k < layer->GetEffectCount(); k++ ) {
+                        for (int k = 0; k < layer->GetEffectCount(); k++) {
                             Effect* eff = layer->GetEffect(k);
-                            if (eff != nullptr && eff->GetEffectIndex() >= 0 && effects[eff->GetEffectIndex()] != nullptr ) {
-                               effects[eff->GetEffectIndex()]->adjustSettings(ver, eff);
+                            if (eff != nullptr && eff->GetEffectIndex() >= 0 && effects[eff->GetEffectIndex()] != nullptr) {
+                                effects[eff->GetEffectIndex()]->adjustSettings(ver, eff);
                             }
                         }
                     }
                     if (se->GetType() == ELEMENT_TYPE_STRAND) {
-                        StrandElement *ste = dynamic_cast<StrandElement*>(se);
+                        StrandElement* ste = dynamic_cast<StrandElement*>(se);
                         for (int k = 0; k < ste->GetNodeLayerCount(); k++) {
                             NodeLayer* nlayer = ste->GetNodeLayer(k);
-                            for( int l = 0; l < nlayer->GetEffectCount(); l++ ) {
+                            for (int l = 0; l < nlayer->GetEffectCount(); l++) {
                                 Effect* eff = nlayer->GetEffect(l);
-                                if (eff != nullptr && eff->GetEffectIndex() >= 0 && effects[eff->GetEffectIndex()] != nullptr ) {
+                                if (eff != nullptr && eff->GetEffectIndex() >= 0 && effects[eff->GetEffectIndex()] != nullptr) {
                                     effects[eff->GetEffectIndex()]->adjustSettings(ver, eff);
                                 }
                             }

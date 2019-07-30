@@ -640,13 +640,48 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
                         timing_added = true;
                     }
                 }
+                else if (selected_timing == "Empty")
+                {
+                    bool first = true;
+                    wxTextEntryDialog te(this, "Enter a name for the timing track", wxGetTextFromUserPromptStr, selected_timing);
+                    OptimiseDialogPosition(&te);
+                    while (first || xml_file->TimingAlreadyExists(selected_timing, mSequenceElements->GetXLightsFrame()) || selected_timing == "")
+                    {
+                        first = false;
+
+                        auto base = selected_timing;
+
+                        int suffix = 2;
+                        while (xml_file->TimingAlreadyExists(selected_timing, mSequenceElements->GetXLightsFrame()))
+                        {
+                            selected_timing = wxString::Format("%s-%d", base, suffix++);
+                        }
+
+                        te.SetValue(selected_timing);
+                        if (te.ShowModal() == wxID_OK)
+                        {
+                            selected_timing = te.GetValue();
+                        }
+                        else
+                        {
+                            selected_timing = "";
+                            break;
+                        }
+                    }
+
+                    if (selected_timing != "")
+                    {
+                        xml_file->AddFixedTimingSection(selected_timing, mSequenceElements->GetXLightsFrame());
+                        timing_added = true;
+                    }
+                }
                 else if (!xml_file->TimingAlreadyExists(selected_timing, mSequenceElements->GetXLightsFrame()))
                 {
                     name = selected_timing;
                     if (selected_timing == "Metronome")
                     {
                         int base_timing = xml_file->GetFrameMS();
-                        wxNumberEntryDialog dlg(this, "Enter metronome timing", "Milliseconds", "Metronome timing", base_timing, base_timing, 60000);
+                        wxNumberEntryDialog dlg(this, "Enter metronome timing", "Milliseconds", "Metronome timing", 10 * base_timing, base_timing, 60000);
                         OptimiseDialogPosition(&dlg);
                         if (dlg.ShowModal() == wxID_OK)
                         {
