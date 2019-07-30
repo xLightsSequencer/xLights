@@ -179,7 +179,7 @@ public:
     virtual bool CanRenderOnBackgroundThread(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
 
 protected:
-    void SetGLContext(ShaderRenderCache*);
+    bool SetGLContext(ShaderRenderCache*);
     void UnsetGLContext(ShaderRenderCache*);
 
     virtual void RemoveDefaults(const std::string& version, Effect* effect) override;

@@ -50,6 +50,10 @@
     #include "OpenGL/gl3.h"
     #define __gl_h_
     #include <OpenGL/OpenGL.h>
+
+    //defined in xlMacUtils.mm
+    void WXGLUnsetCurrentContext();
+
 #endif
 
 #include "ShaderEffect.h"
@@ -105,7 +109,7 @@ namespace
         glFramebufferRenderbuffer(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, *rbID);
         glFramebufferRenderbuffer(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, *rbID);
 
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        LOG_GL_ERRORV(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 
         return *rbID != 0 && *fbID != 0;
     }
@@ -423,7 +427,9 @@ public:
         if (_shaderConfig != nullptr) delete _shaderConfig;
 #if defined(__WXOSX__)
         if (s_glContext) {
+            WXGLSetCurrentContext(s_glContext);
             DestroyResources();
+            WXGLUnsetCurrentContext();
             WXGLDestroyContext(s_glContext);
         }
 #elif defined(__WXMSW__)
@@ -458,6 +464,13 @@ public:
                                  rbTex,
                                  programId);
             });
+            
+            s_programId = 0;
+            s_vertexArrayId = 0;
+            s_vertexBufferId = 0;
+            s_fbId = 0;
+            s_rbId = 0;
+            s_rbTex = 0;
         }
 #endif
     }
@@ -486,36 +499,36 @@ public:
                          s_rbId,
                          s_rbTex,
                          s_programId);
+        s_programId = 0;
+        s_vertexArrayId = 0;
+        s_vertexBufferId = 0;
+        s_fbId = 0;
+        s_rbId = 0;
+        s_rbTex = 0;
     }
-    static void DestroyResources(unsigned &s_vertexArrayId,
-                                 unsigned &s_vertexBufferId,
-                                 unsigned &s_fbId,
-                                 unsigned &s_rbId,
-                                 unsigned &s_rbTex,
-                                 unsigned &s_programId) {
+    static void DestroyResources(unsigned s_vertexArrayId,
+                                 unsigned s_vertexBufferId,
+                                 unsigned s_fbId,
+                                 unsigned s_rbId,
+                                 unsigned s_rbTex,
+                                 unsigned s_programId) {
         if (s_programId) {
             LOG_GL_ERRORV(glDeleteProgram(s_programId));
-            s_programId = 0;
         }
         if (s_vertexArrayId) {
             LOG_GL_ERRORV(glDeleteVertexArrays(1, &s_vertexArrayId));
-            s_vertexArrayId = 0;
         }
         if (s_vertexBufferId) {
             LOG_GL_ERRORV(glDeleteBuffers(1, &s_vertexBufferId));
-            s_vertexBufferId = 0;
         }
         if (s_fbId) {
             LOG_GL_ERRORV(glDeleteFramebuffers(1, &s_fbId));
-            s_fbId = 0;
         }
         if (s_rbId) {
             LOG_GL_ERRORV(glDeleteRenderbuffers(1, &s_rbId));
-            s_rbId = 0;
         }
         if (s_rbTex) {
             LOG_GL_ERRORV(glDeleteTextures(1, &s_rbTex));
-            s_rbTex = 0;
         }
     }
 
@@ -546,7 +559,9 @@ bool ShaderEffect::CanRenderOnBackgroundThread(Effect* effect, const SettingsMap
 }
 
 void ShaderEffect::UnsetGLContext(ShaderRenderCache* cache) {
-#if defined(__WXMSW__)
+#if defined(__WXOSX__)
+    WXGLUnsetCurrentContext();
+#elif defined(__WXMSW__)
     if (cache->glContextInfo != nullptr) {
         // release it from the thread every time so we never find ourselves in a situation where it has not been released by a thread
         cache->glContextInfo->UnsetCurrent();
@@ -554,7 +569,7 @@ void ShaderEffect::UnsetGLContext(ShaderRenderCache* cache) {
 #endif
 }
 
-void ShaderEffect::SetGLContext(ShaderRenderCache *cache) {
+bool ShaderEffect::SetGLContext(ShaderRenderCache *cache) {
 #if defined(__WXOSX__)
     if (cache->s_glContext == nullptr) {
         wxGLAttributes attributes;
@@ -569,10 +584,27 @@ void ShaderEffect::SetGLContext(ShaderRenderCache *cache) {
                                                             attributes.GetSize(),
                                                             cxtAttrs.GetGLAttrs(),
                                                             cxtAttrs.GetSize());
-        cache->s_glContext = WXGLCreateContext(pixelFormat, nullptr);
-        WXGLDestroyPixelFormat(pixelFormat);
+        if (!pixelFormat) {
+            // couldn't get an AcceleratedCompute format, let's at least try defaults
+            wxGLAttributes attributes2;
+            attributes2.PlatformDefaults().MinRGBA(8, 8, 8, 8).EndList();
+            pixelFormat = WXGLChoosePixelFormat(attributes2.GetGLAttrs(),
+                                                attributes2.GetSize(),
+                                                cxtAttrs.GetGLAttrs(),
+                                                cxtAttrs.GetSize());
+        }
+        if (pixelFormat) {
+            cache->s_glContext = WXGLCreateContext(pixelFormat, nullptr);
+            WXGLDestroyPixelFormat(pixelFormat);
+            if (!cache->s_glContext) {
+                return false;
+            }
+        } else {
+            return false;
+        }
     }
     WXGLSetCurrentContext(cache->s_glContext);
+    return true;
 #elif defined(__WXMSW__)
     ShaderPanel *p = (ShaderPanel *)panel;
     if (cache->glContextInfo == nullptr) {
@@ -596,10 +628,12 @@ void ShaderEffect::SetGLContext(ShaderRenderCache *cache) {
         // we still need to grab the gl context to this thread
         cache->glContextInfo->SetCurrent();
     }
+    return true;
 #else
     ShaderPanel *p = (ShaderPanel *)panel;
     cache->preview = p->_preview;
     p->_preview->SetCurrentGLContext();
+    return true;
 #endif
 }
 
@@ -635,7 +669,7 @@ void ShaderEffect::Render(Effect* eff, SettingsMap& SettingsMap, RenderBuffer& b
     int& s_rbHeight = cache->s_rbHeight;
     long& _timeMS = cache->_timeMS;
 
-    SetGLContext(cache);
+    bool contextSet = SetGLContext(cache);
 
     float oset = buffer.GetEffectTimeIntervalPosition();
     double timeRate = GetValueCurveDouble("Shader_Speed", 100, SettingsMap, oset, SHADER_SPEED_MIN, SHADER_SPEED_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), 1) / 100.0;
@@ -644,18 +678,26 @@ void ShaderEffect::Render(Effect* eff, SettingsMap& SettingsMap, RenderBuffer& b
     {
         buffer.needToInit = false;
         _timeMS = SettingsMap.GetInt("TEXTCTRL_Shader_LeadIn", 0) * buffer.frameTimeInMs;
-        cache->InitialiseShaderConfig(SettingsMap.Get("0FILEPICKERCTRL_IFS", ""));
-        if (_shaderConfig != nullptr)
-        {
-            recompileFromShaderConfig(_shaderConfig, s_programId);
-            if (s_programId != 0)
+        if (contextSet) {
+            cache->InitialiseShaderConfig(SettingsMap.Get("0FILEPICKERCTRL_IFS", ""));
+            if (_shaderConfig != nullptr)
             {
-                logger_base.debug("Fragment shader %s compiled successfully.", (const char*)_shaderConfig->GetFilename().c_str());
+                recompileFromShaderConfig(_shaderConfig, s_programId);
+                if (s_programId != 0)
+                {
+                    logger_base.debug("Fragment shader %s compiled successfully.", (const char*)_shaderConfig->GetFilename().c_str());
+                }
             }
+        } else {
+            logger_base.warn("Could not create/set OpenGL Context for ShaderEffect.  ShaderEffect disabled.");
         }
     }
     else
     {
+        if (!contextSet) {
+            setRenderBufferAll(buffer, *wxYELLOW);
+            return;
+        }
         _timeMS += buffer.frameTimeInMs * timeRate;
     }
 
@@ -805,25 +847,26 @@ void ShaderEffect::Render(Effect* eff, SettingsMap& SettingsMap, RenderBuffer& b
         }
     }
 
-    GLuint vattrib = glGetAttribLocation(programId, "vpos");
-    glVertexAttribPointer(vattrib, 2, GL_FLOAT, GL_FALSE, sizeof(VertexTex), reinterpret_cast<void*>(offsetof(VertexTex, v)));
-    glEnableVertexAttribArray(vattrib);
+    LOG_GL_ERRORV(GLuint vattrib = glGetAttribLocation(programId, "vpos"));
+    LOG_GL_ERRORV(glVertexAttribPointer(vattrib, 2, GL_FLOAT, GL_FALSE, sizeof(VertexTex), reinterpret_cast<void*>(offsetof(VertexTex, v))));
+    LOG_GL_ERRORV(glEnableVertexAttribArray(vattrib));
 
-    GLuint tattrib = glGetAttribLocation(programId, "tpos");
-    glVertexAttribPointer(tattrib, 2, GL_FLOAT, GL_FALSE, sizeof(VertexTex), reinterpret_cast<void*>(offsetof(VertexTex, t)));
-    glEnableVertexAttribArray(tattrib);
+    LOG_GL_ERRORV(GLuint tattrib = glGetAttribLocation(programId, "tpos"));
+    LOG_GL_ERRORV(glVertexAttribPointer(tattrib, 2, GL_FLOAT, GL_FALSE, sizeof(VertexTex), reinterpret_cast<void*>(offsetof(VertexTex, t))));
+    LOG_GL_ERRORV(glEnableVertexAttribArray(tattrib));
 
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    LOG_GL_ERRORV(glDrawArrays(GL_TRIANGLE_STRIP, 0, 4));
 
-    glDisableVertexAttribArray(vattrib);
-    glDisableVertexAttribArray(tattrib);
+    LOG_GL_ERRORV(glDisableVertexAttribArray(vattrib));
+    LOG_GL_ERRORV(glDisableVertexAttribArray(tattrib));
 
-    glBindVertexArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    LOG_GL_ERRORV(glBindVertexArray(0));
+    LOG_GL_ERRORV(glBindBuffer(GL_ARRAY_BUFFER, 0));
 
     xlColorVector& cv(buffer.pixels);
-    glReadPixels(0, 0, buffer.BufferWi, buffer.BufferHt, GL_RGBA, GL_UNSIGNED_BYTE, &cv[0]);
-
+    LOG_GL_ERRORV(glReadPixels(0, 0, buffer.BufferWi, buffer.BufferHt, GL_RGBA, GL_UNSIGNED_BYTE, &cv[0]));
+    LOG_GL_ERRORV(glUseProgram(0));
+    
     UnsetGLContext(cache);
 }
 
@@ -834,8 +877,7 @@ void ShaderEffect::sizeForRenderBuffer(const RenderBuffer& rb,
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    if (!s_shadersInit)
-    {
+    if (!s_shadersInit) {
         VertexTex vt[4] =
         {
            { {  1.f, -1.f }, { 1.f, 0.f } },
@@ -843,15 +885,15 @@ void ShaderEffect::sizeForRenderBuffer(const RenderBuffer& rb,
            { {  1.f,  1.f }, { 1.f, 1.f } },
            { { -1.f,  1.f }, { 0.f, 1.f } }
         };
-        glGenVertexArrays(1, &s_vertexArrayId);
-        glGenBuffers(1, &s_vertexBufferId);
+        LOG_GL_ERRORV(glGenVertexArrays(1, &s_vertexArrayId));
+        LOG_GL_ERRORV(glGenBuffers(1, &s_vertexBufferId));
 
-        glBindVertexArray(s_vertexArrayId);
-        glBindBuffer(GL_ARRAY_BUFFER, s_vertexBufferId);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(VertexTex[4]), vt, GL_STATIC_DRAW);
+        LOG_GL_ERRORV(glBindVertexArray(s_vertexArrayId));
+        LOG_GL_ERRORV(glBindBuffer(GL_ARRAY_BUFFER, s_vertexBufferId));
+        LOG_GL_ERRORV(glBufferData(GL_ARRAY_BUFFER, sizeof(VertexTex[4]), vt, GL_STATIC_DRAW));
 
-        glBindVertexArray(0);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        LOG_GL_ERRORV(glBindVertexArray(0));
+        LOG_GL_ERRORV(glBindBuffer(GL_ARRAY_BUFFER, 0));
         GLenum err = glGetError();
         if ( err != GL_NO_ERROR )
         {
@@ -876,16 +918,16 @@ void ShaderEffect::sizeForRenderBuffer(const RenderBuffer& rb,
     }
     else if (rb.BufferWi > s_rbWidth || rb.BufferHt > s_rbHeight)
     {
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        LOG_GL_ERRORV(glBindFramebuffer(GL_FRAMEBUFFER, 0));
         if (s_fbId)
-            glDeleteFramebuffers(1, &s_fbId);
+            LOG_GL_ERRORV(glDeleteFramebuffers(1, &s_fbId));
         if (s_rbId)
         {
-            glBindRenderbuffer(GL_RENDERBUFFER, 0);
-            glDeleteRenderbuffers(1, &s_rbId);
+            LOG_GL_ERRORV(glBindRenderbuffer(GL_RENDERBUFFER, 0));
+            LOG_GL_ERRORV(glDeleteRenderbuffers(1, &s_rbId));
         }
         if (s_rbTex)
-            glDeleteTextures(1, &s_rbTex);
+            LOG_GL_ERRORV(glDeleteTextures(1, &s_rbTex));
         createOpenGLRenderBuffer(rb.BufferWi, rb.BufferHt, &s_rbId, &s_fbId);
         GLenum err = glGetError();
         if ( err != GL_NO_ERROR )
@@ -907,7 +949,8 @@ void ShaderEffect::recompileFromShaderConfig( const ShaderConfig* cfg, unsigned&
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (s_programId != 0) {
-        glDeleteProgram(s_programId);
+        LOG_GL_ERRORV(glUseProgram(0));
+        LOG_GL_ERRORV(glDeleteProgram(s_programId));
         s_programId = 0;
     }
 

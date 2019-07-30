@@ -220,6 +220,16 @@ void ModalPopup(wxWindow *w, wxMenu &menu) {
     //w->PopupMenu(&menu);
 }
 
+
+
+void WXGLUnsetCurrentContext()
+{
+    [NSOpenGLContext clearCurrentContext];
+}
+
+
+
+
 #ifndef __NO_AUIDO__
 #include "AudioManager.h"
 

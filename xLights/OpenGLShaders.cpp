@@ -144,8 +144,8 @@ unsigned OpenGLShaders::compile( const std::string& vertexSource, const std::str
 {
     AddTraceMessage("In vshader compile");
     LOG_GL_ERRORV(GLuint vertexShader = glCreateShader( GL_VERTEX_SHADER ));
-    const GLchar* vertexShaders[] = { vertexSource.c_str() };
     AddTraceMessage("Setting vshader source");
+    const GLchar* vertexShaders[] = { vertexSource.c_str() };
     LOG_GL_ERRORV(glShaderSource( vertexShader, 1, vertexShaders, NULL ));
     AddTraceMessage("VCompiling");
     LOG_GL_ERRORV(glCompileShader( vertexShader ));

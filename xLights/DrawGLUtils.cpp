@@ -32,13 +32,22 @@ const double PI  =3.141592653589793238463;
 static DrawGLUtils::xlGLCacheInfo *currentCache;
 
 
-#define DO_LOG_GL_MSG(a, ...) logger_opengl.debug(a, ##__VA_ARGS__); printf(a, ##__VA_ARGS__); printf("\n")
+#define DO_LOG_GL_MSG(a, ...) static_logger_opengl->debug(a, ##__VA_ARGS__); printf(a, ##__VA_ARGS__); printf("\n")
+
+static bool isDebugEnabled = false;
+static bool isTraceDebugEnabled = false;
+static log4cpp::Category *static_logger_opengl = nullptr;
+static log4cpp::Category *static_logger_opengl_trace = nullptr;
+void DrawGLUtils::SetupDebugLogging() {
+    if (!static_logger_opengl) {
+        static_logger_opengl = &log4cpp::Category::getInstance(std::string("log_opengl"));
+        static_logger_opengl_trace = &log4cpp::Category::getInstance(std::string("log_opengl_trace"));
+        isTraceDebugEnabled = static_logger_opengl_trace->isDebugEnabled();
+        isDebugEnabled = static_logger_opengl->isDebugEnabled() | isTraceDebugEnabled;
+    }
+}
 
 void DrawGLUtils::LogGLError(const char * file, int line, const char *msg) {
-    static log4cpp::Category &logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
-    static log4cpp::Category &logger_opengl_trace = log4cpp::Category::getInstance(std::string("log_opengl_trace"));
-    static bool isTraceDebugEnabled = logger_opengl_trace.isDebugEnabled();
-    static bool isDebugEnabled = logger_opengl.isDebugEnabled() | isTraceDebugEnabled;
     if (isDebugEnabled) {
         int er = glGetError();
         if (er || isTraceDebugEnabled) {
@@ -51,9 +60,9 @@ void DrawGLUtils::LogGLError(const char * file, int line, const char *msg) {
             }
             if (isTraceDebugEnabled) {
                 if (msg) {
-                    logger_opengl_trace.debug("%s/%d - %s:   %X", f2, line, msg, er);
+                    static_logger_opengl_trace->debug("%s/%d - %s:   %X", f2, line, msg, er);
                 } else {
-                    logger_opengl_trace.debug("%s/%d:   %X", f2, line, er);
+                    static_logger_opengl_trace->debug("%s/%d:   %X", f2, line, er);
                 }
             }
             if (er) {

@@ -518,7 +518,7 @@ namespace DrawGLUtils
     void Scale(float w, float h, float z);
 
     void LogGLError(const char *file, int line, const char *msg = nullptr);
-
+    void SetupDebugLogging();
 
     class DisplayListItem {
     public:
