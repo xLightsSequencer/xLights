@@ -214,6 +214,22 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
+						<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
+							<label>Maximum Messages Per Phone Number</label>
+						</object>
+						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxSpinCtrl" name="ID_SPINCTRL4" variable="SpinCtrl_MaximumMessages" member="yes">
+							<value>0</value>
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
 						<object class="wxStaticText" name="ID_STATICTEXT6" variable="StaticText6" member="yes">
 							<label>Maximum Message Length</label>
 						</object>
@@ -292,7 +308,7 @@
 							<label>Maximum Message Age For Response (mins)</label>
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
+						<border>2</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">

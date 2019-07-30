@@ -39,6 +39,7 @@ class SMSSettingsDialog: public wxDialog
 		wxSpinCtrl* SpinCtrl_MaxMessageAge;
 		wxSpinCtrl* SpinCtrl_MaxMsgAgeMinsForResponse;
 		wxSpinCtrl* SpinCtrl_MaximumMessageLength;
+		wxSpinCtrl* SpinCtrl_MaximumMessages;
 		wxSpinCtrl* SpinCtrl_RetrieveInterval;
 		wxSpinCtrl* SpinCtrl_TimesToDisplay;
 		wxStaticText* StaticText10;
@@ -46,6 +47,7 @@ class SMSSettingsDialog: public wxDialog
 		wxStaticText* StaticText13;
 		wxStaticText* StaticText14;
 		wxStaticText* StaticText15;
+		wxStaticText* StaticText1;
 		wxStaticText* StaticText2;
 		wxStaticText* StaticText3;
 		wxStaticText* StaticText4;
@@ -90,6 +92,8 @@ class SMSSettingsDialog: public wxDialog
 		static const long ID_CHECKBOX2;
 		static const long ID_CHECKBOX4;
 		static const long ID_CHECKBOX8;
+		static const long ID_STATICTEXT1;
+		static const long ID_SPINCTRL4;
 		static const long ID_STATICTEXT6;
 		static const long ID_SPINCTRL3;
 		static const long ID_CHECKBOX5;

@@ -30,6 +30,8 @@ const long SMSSettingsDialog::ID_CHECKBOX7 = wxNewId();
 const long SMSSettingsDialog::ID_CHECKBOX2 = wxNewId();
 const long SMSSettingsDialog::ID_CHECKBOX4 = wxNewId();
 const long SMSSettingsDialog::ID_CHECKBOX8 = wxNewId();
+const long SMSSettingsDialog::ID_STATICTEXT1 = wxNewId();
+const long SMSSettingsDialog::ID_SPINCTRL4 = wxNewId();
 const long SMSSettingsDialog::ID_STATICTEXT6 = wxNewId();
 const long SMSSettingsDialog::ID_SPINCTRL3 = wxNewId();
 const long SMSSettingsDialog::ID_CHECKBOX5 = wxNewId();
@@ -127,6 +129,11 @@ SMSSettingsDialog::SMSSettingsDialog(wxWindow* parent, SMSDaemonOptions* options
 	CheckBox_UsePhoneBlacklist = new wxCheckBox(this, ID_CHECKBOX8, _("Use phone blacklist"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX8"));
 	CheckBox_UsePhoneBlacklist->SetValue(false);
 	FlexGridSizer3->Add(CheckBox_UsePhoneBlacklist, 1, wxALL|wxEXPAND, 2);
+	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Maximum Messages Per Phone Number"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
+	FlexGridSizer3->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+	SpinCtrl_MaximumMessages = new wxSpinCtrl(this, ID_SPINCTRL4, _T("0"), wxDefaultPosition, wxDefaultSize, 0, 0, 100, 0, _T("ID_SPINCTRL4"));
+	SpinCtrl_MaximumMessages->SetValue(_T("0"));
+	FlexGridSizer3->Add(SpinCtrl_MaximumMessages, 1, wxALL|wxEXPAND, 2);
 	StaticText6 = new wxStaticText(this, ID_STATICTEXT6, _("Maximum Message Length"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT6"));
 	FlexGridSizer3->Add(StaticText6, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	SpinCtrl_MaximumMessageLength = new wxSpinCtrl(this, ID_SPINCTRL3, _T("100"), wxDefaultPosition, wxDefaultSize, 0, 10, 1000, 100, _T("ID_SPINCTRL3"));
@@ -150,7 +157,7 @@ SMSSettingsDialog::SMSSettingsDialog(wxWindow* parent, SMSDaemonOptions* options
 	SpinCtrl_MaxMessageAge->SetValue(_T("10"));
 	FlexGridSizer3->Add(SpinCtrl_MaxMessageAge, 1, wxALL|wxEXPAND, 2);
 	StaticText4 = new wxStaticText(this, ID_STATICTEXT16, _("Maximum Message Age For Response (mins)"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT16"));
-	FlexGridSizer3->Add(StaticText4, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer3->Add(StaticText4, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	SpinCtrl_MaxMsgAgeMinsForResponse = new wxSpinCtrl(this, ID_SPINCTRL7, _T("10"), wxDefaultPosition, wxDefaultSize, 0, 0, 1440, 10, _T("ID_SPINCTRL7"));
 	SpinCtrl_MaxMsgAgeMinsForResponse->SetValue(_T("10"));
 	FlexGridSizer3->Add(SpinCtrl_MaxMsgAgeMinsForResponse, 1, wxALL|wxEXPAND, 2);
@@ -216,6 +223,7 @@ SMSSettingsDialog::SMSSettingsDialog(wxWindow* parent, SMSDaemonOptions* options
     SpinCtrl_MaxMessageAge->SetValue(options->GetMaxMessageAge());
     SpinCtrl_MaxMsgAgeMinsForResponse->SetValue(options->GetMaxMsgAgeMinsForResponse());
     SpinCtrl_TimesToDisplay->SetValue(options->GetMaxTimesToDisplay());
+    SpinCtrl_MaximumMessages->SetValue(options->GetMaximumMessagesPerPhone());
 
     CheckBox_UsePurgoMalum->SetValue(options->GetUsePurgoMalum());
     CheckBox_RejectProfanity->SetValue(options->GetRejectProfanity());
@@ -254,6 +262,7 @@ void SMSSettingsDialog::OnButton_OkClick(wxCommandEvent& event)
     _options->SetMaxMessageAge(SpinCtrl_MaxMessageAge->GetValue());
     _options->SetMaxMsgAgeMinsForResponse(SpinCtrl_MaxMsgAgeMinsForResponse->GetValue());
     _options->SetMaxTimesToDisplay(SpinCtrl_TimesToDisplay->GetValue());
+    _options->SetMaximumMessagesPerPhone(SpinCtrl_MaximumMessages->GetValue());
 
     _options->SetUsePurgoMalum(CheckBox_UsePurgoMalum->GetValue());
     _options->SetRejectProfanity(CheckBox_RejectProfanity->GetValue());

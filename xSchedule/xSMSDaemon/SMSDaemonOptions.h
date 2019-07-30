@@ -25,6 +25,7 @@ class SMSDaemonOptions
 	int _maximiumMessageAge = 10;
 	int _maximiumTimesToDisplay = 0;
     int _maxMsgAgeMinsForResponse = 10;
+    int _maxMsgsPerPhone = 0;
 	bool _usePurgoMalum = false;
 	bool _rejectProfanity = true;
 	bool _usePhoneBlacklist = false;
@@ -54,6 +55,9 @@ class SMSDaemonOptions
         void SetSuccessMessage(wxString successMessage) { if (successMessage != _successMessage) { _successMessage = successMessage; _changeCount++; } }
 		wxString GetRejectMessage() const { return _rejectMessage; }
         void SetRejectMessage(wxString rejectMessage) { if (rejectMessage != _rejectMessage) { _rejectMessage = rejectMessage; _changeCount++; } }
+
+        int GetMaximumMessagesPerPhone() const { return _maxMsgsPerPhone; }
+        void SetMaximumMessagesPerPhone(int maxMessages) { if (maxMessages != _maxMsgsPerPhone) { _maxMsgsPerPhone = maxMessages; _changeCount++; } }
 
 		int GetRetrieveInterval() const { return _retrieveInterval; }
         void SetRetrieveInterval(int retrieveInterval) { if (retrieveInterval != _retrieveInterval) { _retrieveInterval = retrieveInterval; _changeCount++; } }

@@ -35,10 +35,33 @@ class SMSService
     std::vector<SMSMessage> _messages;
     std::vector<SMSMessage> _rejectedMessages;
     wxDateTime _lastRetrieved = wxInvalidDateTime;
+    std::map<std::string, int> _msgsReceivedFromPhone;
 
     protected:
 
     SMSDaemonOptions _options;
+
+    int GetMessagesReceivedFromPhone(const std::string& phone)
+    {
+        if (_msgsReceivedFromPhone.find(phone) == _msgsReceivedFromPhone.end())
+        {
+            return 0;
+        }
+        return _msgsReceivedFromPhone[phone];
+    }
+
+    bool MessagesBelowMaximumMessageCount(int max, const std::string& phone)
+    {
+        if (_msgsReceivedFromPhone.find(phone) == _msgsReceivedFromPhone.end())
+        {
+            _msgsReceivedFromPhone[phone] = 0;
+            return true;
+        }
+
+        _msgsReceivedFromPhone[phone] = _msgsReceivedFromPhone[phone] + 1;
+
+        return (max == 0 || _msgsReceivedFromPhone[phone] <= max);
+    }
 
     public:
 
@@ -189,127 +212,136 @@ class SMSService
                 {
                     if (!_options.GetUsePhoneBlacklist() || msg.PassesPhoneBlacklist())
                     {
-                        if (!_options.GetUseLocalBlacklist() || msg.PassesBlacklist())
+                        if (_options.GetMaximumMessagesPerPhone() == 0 || MessagesBelowMaximumMessageCount(_options.GetMaximumMessagesPerPhone(), msg._from))
                         {
-                            if (!_options.GetUseLocalWhitelist() || msg.PassesWhitelist())
+                            if (!_options.GetUseLocalBlacklist() || msg.PassesBlacklist())
                             {
-                                if (_options.GetUsePurgoMalum())
+                                if (!_options.GetUseLocalWhitelist() || msg.PassesWhitelist())
                                 {
-                                    msg.Censor(_options.GetRejectProfanity());
-                                }
-                                else
-                                {
-                                    msg._message = msg._rawMessage;
-                                }
-
-                                if (msg._message != "")
-                                {
-                                    int maxMessageLen = _options.GetMaxMessageLength();
-                                    if (maxMessageLen != 0 && msg._message.size() > maxMessageLen &&
-                                        !_options.GetIgnoreOversizedMessages())
+                                    if (_options.GetUsePurgoMalum())
                                     {
-                                        msg._message = msg._message.substr(0, maxMessageLen);
+                                        msg.Censor(_options.GetRejectProfanity());
+                                    }
+                                    else
+                                    {
+                                        msg._message = msg._rawMessage;
                                     }
 
-                                    // messages have to be under the max
-                                    if (maxMessageLen == 0 || msg._message.size() <= maxMessageLen)
+                                    if (msg._message != "")
                                     {
-                                        if (!_options.GetAcceptOneWordOnly() || msg._message.find(" ") == std::string::npos)
+                                        int maxMessageLen = _options.GetMaxMessageLength();
+                                        if (maxMessageLen != 0 && msg._message.size() > maxMessageLen &&
+                                            !_options.GetIgnoreOversizedMessages())
                                         {
-                                            if (_options.GetUpperCase())
-                                            {
-                                                msg._message = wxString(msg._message).Upper().ToStdString();
-                                            }
+                                            msg._message = msg._message.substr(0, maxMessageLen);
+                                        }
 
-                                            if (Contains(msg._message, "!!u!!") || Contains(msg._message, "!!U!!"))
+                                        // messages have to be under the max
+                                        if (maxMessageLen == 0 || msg._message.size() <= maxMessageLen)
+                                        {
+                                            if (!_options.GetAcceptOneWordOnly() || msg._message.find(" ") == std::string::npos)
                                             {
-                                                auto s = msg._message;
-                                                Replace(s, "!!u!!", "\\u");
-                                                Replace(s, "!!U!!", "\\u");
-                                                std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
-                                                std::wstring wide = converter.from_bytes(s);
-                                                std::wstring w;
-                                                std::string utf;
-                                                int state = 0;
-                                                for (auto c : s)
+                                                if (_options.GetUpperCase())
                                                 {
-                                                    if (state == 1)
-                                                    {
-                                                        if (c == 'u')
-                                                        {
-                                                            state = 2;
-                                                        }
-                                                        else
-                                                        {
-                                                            w += '\\';
-                                                            w += c;
-                                                        }
-                                                    }
-                                                    else if (state == 2)
-                                                    {
-                                                        utf += c;
-                                                        if (utf.size() == 4)
-                                                        {
-                                                            int u;
-                                                            sscanf(utf.c_str(), "%x", &u);
-                                                            w += wchar_t(u);
-                                                            state = 0;
-                                                            utf = "";
-                                                        }
-                                                    }
-                                                    else if (state == 0)
-                                                    {
-                                                        if (c == '\\')
-                                                        {
-                                                            state = 1;
-                                                            utf = "";
-                                                        }
-                                                        else
-                                                        {
-                                                            w += c;
-                                                        }
-                                                    }
+                                                    msg._message = wxString(msg._message).Upper().ToStdString();
                                                 }
-                                                msg._wmessage = w;
-                                            }
 
-                                            _messages.push_back(msg);
-                                            added = true;
-                                            logger_base.info("Accepted Msg: %s", (const char*)msg.GetLog().c_str());
-                                            if (msg._from != GetPhone())
+                                                if (Contains(msg._message, "!!u!!") || Contains(msg._message, "!!U!!"))
+                                                {
+                                                    auto s = msg._message;
+                                                    Replace(s, "!!u!!", "\\u");
+                                                    Replace(s, "!!U!!", "\\u");
+                                                    std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+                                                    std::wstring wide = converter.from_bytes(s);
+                                                    std::wstring w;
+                                                    std::string utf;
+                                                    int state = 0;
+                                                    for (auto c : s)
+                                                    {
+                                                        if (state == 1)
+                                                        {
+                                                            if (c == 'u')
+                                                            {
+                                                                state = 2;
+                                                            }
+                                                            else
+                                                            {
+                                                                w += '\\';
+                                                                w += c;
+                                                            }
+                                                        }
+                                                        else if (state == 2)
+                                                        {
+                                                            utf += c;
+                                                            if (utf.size() == 4)
+                                                            {
+                                                                int u;
+                                                                sscanf(utf.c_str(), "%x", &u);
+                                                                w += wchar_t(u);
+                                                                state = 0;
+                                                                utf = "";
+                                                            }
+                                                        }
+                                                        else if (state == 0)
+                                                        {
+                                                            if (c == '\\')
+                                                            {
+                                                                state = 1;
+                                                                utf = "";
+                                                            }
+                                                            else
+                                                            {
+                                                                w += c;
+                                                            }
+                                                        }
+                                                    }
+                                                    msg._wmessage = w;
+                                                }
+
+                                                _messages.push_back(msg);
+                                                added = true;
+                                                logger_base.info("Accepted Msg: %s", (const char*)msg.GetLog().c_str());
+                                                if (msg._from != GetPhone())
+                                                {
+                                                    SendSuccessMessage(msg, _options.GetSuccessMessage());
+                                                }
+                                            }
+                                            else
                                             {
-                                                SendSuccessMessage(msg, _options.GetSuccessMessage());
+                                                logger_base.warn("Rejected Msg: Not one word : %s", (const char*)msg.GetLog().c_str());
+                                                _rejectedMessages.push_back(msg);
+                                                SendRejectMessage(msg, _options.GetRejectMessage());
                                             }
                                         }
                                         else
                                         {
-                                            logger_base.warn("Rejected Msg: Not one word : %s", (const char*)msg.GetLog().c_str());
+                                            logger_base.warn("Rejected Msg: Too long : %s", (const char*)msg.GetLog().c_str());
                                             _rejectedMessages.push_back(msg);
                                             SendRejectMessage(msg, _options.GetRejectMessage());
                                         }
                                     }
                                     else
                                     {
-                                        logger_base.warn("Rejected Msg: Too long : %s", (const char*)msg.GetLog().c_str());
-                                        _rejectedMessages.push_back(msg);
-                                        SendRejectMessage(msg, _options.GetRejectMessage());
+                                        if (_options.GetRejectProfanity())
+                                        {
+                                            logger_base.warn("Rejected Msg: Censored : %s", (const char*)msg.GetLog().c_str());
+                                            _rejectedMessages.push_back(msg);
+                                            SendRejectMessage(msg, _options.GetRejectMessage());
+                                        }
                                     }
                                 }
                                 else
                                 {
-                                    if (_options.GetRejectProfanity())
-                                    {
-                                        logger_base.warn("Rejected Msg: Censored : %s", (const char*)msg.GetLog().c_str());
-                                        _rejectedMessages.push_back(msg);
-                                        SendRejectMessage(msg, _options.GetRejectMessage());
-                                    }
+                                    logger_base.warn("Rejected Msg: Whitelist : %s", (const char*)msg.GetLog().c_str());
+                                    _rejectedMessages.push_back(msg);
+                                    SendRejectMessage(msg, _options.GetRejectMessage());
                                 }
                             }
                             else
                             {
-                                logger_base.warn("Rejected Msg: Whitelist : %s", (const char*)msg.GetLog().c_str());
+                                logger_base.warn("Rejected Msg: Too many messages from number : %s : %d > %d", (const char*)msg.GetLog().c_str(), GetMessagesReceivedFromPhone(msg._from), _options.GetMaximumMessagesPerPhone());
                                 _rejectedMessages.push_back(msg);
-                                SendRejectMessage(msg, _options.GetRejectMessage());
+                                // SendRejectMessage(msg, _options.GetRejectMessage()); - we dont want to do this
                             }
                         }
                         else
