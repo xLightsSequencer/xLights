@@ -11,6 +11,16 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2019.37 July 30, 2019
+   -- enh (keith)  Add option to SMS plugin to limit messages from a single number
+   -- enh (keith)  Fix workflow around creation of new timing tracks
+   -- enh (keith)  Enhance keyboard arrow key handling on effects grid - add autoscroll
+   -- enh (keith)  Let user control RenderCache location
+   -- bug (keith)  Fix ZCPP not applying additional string properties immediately
+   -- bug (keith)  Fix ZCPP does not turn off bulbs when reducing bulb count
+   -- bug (keith)  Fix blur crash
+   -- bug (keith)  Address screen display over-brightness in transparency change
+   -- bug (dkulp)  Fix Mojave time display turning black
 2019.36 July 27, 2019
    -- enh (keith)  Enhance text display in xSchedule
    -- enh (keith)  Force valid show folder on xSchedule start

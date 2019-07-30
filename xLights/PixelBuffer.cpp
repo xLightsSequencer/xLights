@@ -478,7 +478,7 @@ void PixelBufferClass::SetMixType(int layer, const std::string& MixName)
 void PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColor &fg, xlColor &bg, int layer)
 {
     static const int n = 0;  //increase to change the curve of the crossfade
-    
+
     if (!layers[layer]->buffer.allowAlpha && layers[layer]->fadeFactor != 1.0) {
         //need to fade the first here as we're not mixing anything
         HSVValue hsv0 = fg.asHSV();
@@ -764,14 +764,14 @@ void PixelBufferClass::GetMixedColor(int node, xlColor& c, const std::vector<boo
                 } else {
                     sa = (float)thelayer->saturationadjust / 100.0;
                 }
-                
+
                 float va;
                 if (thelayer->ValueAdjustValueCurve.IsActive()) {
                     va = thelayer->ValueAdjustValueCurve.GetOutputValueAt(offset, thelayer->buffer.GetStartTimeMS(), thelayer->buffer.GetEndTimeMS()) / 100.0;
                 } else {
                     va = (float)thelayer->valueadjust / 100.0;
                 }
-                
+
                 // adjust for HSV adjustments
                 if (ha != 0 || sa != 0 || va != 0) {
                     HSVValue hsv = color.asHSV();
@@ -813,7 +813,7 @@ void PixelBufferClass::GetMixedColor(int node, xlColor& c, const std::vector<boo
                     (thelayer->use_music_sparkle_count ||
                         thelayer->sparkle_count > 0 ||
                         thelayer->SparklesValueCurve.IsActive())) {
-                        
+
                     int sc = thelayer->sparkle_count;
                     if (thelayer->SparklesValueCurve.IsActive()) {
                         sc = (int)thelayer->SparklesValueCurve.GetOutputValueAt(offset, thelayer->buffer.GetStartTimeMS(), thelayer->buffer.GetEndTimeMS());
@@ -943,7 +943,7 @@ void PixelBufferClass::GetMixedColor(int x, int y, xlColor& c, const std::vector
                 } else {
                     thelayer->buffer.GetPixel(x, y, color);
                 }
-                
+
                 float ha;
                 if (thelayer->HueAdjustValueCurve.IsActive())
                 {
@@ -962,7 +962,7 @@ void PixelBufferClass::GetMixedColor(int x, int y, xlColor& c, const std::vector
                 {
                     sa = (float)thelayer->saturationadjust / 100.0;
                 }
-                
+
                 float va;
                 if (thelayer->ValueAdjustValueCurve.IsActive())
                 {
@@ -972,7 +972,7 @@ void PixelBufferClass::GetMixedColor(int x, int y, xlColor& c, const std::vector
                 {
                     va = (float)thelayer->valueadjust / 100.0;
                 }
-                
+
                 // adjust for HSV adjustments
                 if (ha != 0 || sa != 0 || va != 0) {
                     HSVValue hsv = color.asHSV();
@@ -1226,7 +1226,7 @@ static void boxBlurH_4 (const std::vector<float>& scl, std::vector<float>& tcl, 
     }
 }
 
-static void boxBlurT_4 (const std::vector<float>& const scl, std::vector<float>& tcl, int w, int h, float r) {
+static void boxBlurT_4 (const std::vector<float>& scl, std::vector<float>& tcl, int w, int h, float r) {
     float iarr = 1.0f / (r+r+1.0f);
     for(int i=0; i<w; i++) {
         int ti = i;
@@ -1683,7 +1683,7 @@ void ComputeSubBuffer(const std::string &subBuffer, std::vector<NodeBaseClassPtr
     x2 /= 100.0;
     y1 /= 100.0;
     y2 /= 100.0;
-    
+
     int x1Int = std::round(x1);
     int x2Int = std::round(x2);
     int y1Int = std::round(y1);
@@ -1767,24 +1767,24 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
     const std::string &xpivotValueCurve = settingsMap.Get(VALUECURVE_XPivot, STR_EMPTY);
     const std::string &ypivotValueCurve = settingsMap.Get(VALUECURVE_YPivot, STR_EMPTY);
 
-    if (inf->bufferType != type || 
+    if (inf->bufferType != type ||
         inf->camera != camera ||
-        inf->bufferTransform != transform || 
-        inf->subBuffer != subBuffer || 
-        inf->blurValueCurve != blurValueCurve || 
-        inf->sparklesValueCurve != sparklesValueCurve || 
-        inf->zoomValueCurve != zoomValueCurve || 
-        inf->rotationValueCurve != rotationValueCurve || 
-        inf->xrotationValueCurve != xrotationValueCurve || 
-        inf->yrotationValueCurve != yrotationValueCurve || 
-        inf->rotationsValueCurve != rotationsValueCurve || 
-        inf->pivotpointxValueCurve != pivotpointxValueCurve || 
-        inf->pivotpointyValueCurve != pivotpointyValueCurve || 
-        inf->xpivotValueCurve != xpivotValueCurve || 
-        inf->ypivotValueCurve != ypivotValueCurve || 
-        inf->brightnessValueCurve != brightnessValueCurve || 
-        inf->hueAdjustValueCurve != hueAdjustValueCurve || 
-        inf->saturationAdjustValueCurve != saturationAdjustValueCurve || 
+        inf->bufferTransform != transform ||
+        inf->subBuffer != subBuffer ||
+        inf->blurValueCurve != blurValueCurve ||
+        inf->sparklesValueCurve != sparklesValueCurve ||
+        inf->zoomValueCurve != zoomValueCurve ||
+        inf->rotationValueCurve != rotationValueCurve ||
+        inf->xrotationValueCurve != xrotationValueCurve ||
+        inf->yrotationValueCurve != yrotationValueCurve ||
+        inf->rotationsValueCurve != rotationsValueCurve ||
+        inf->pivotpointxValueCurve != pivotpointxValueCurve ||
+        inf->pivotpointyValueCurve != pivotpointyValueCurve ||
+        inf->xpivotValueCurve != xpivotValueCurve ||
+        inf->ypivotValueCurve != ypivotValueCurve ||
+        inf->brightnessValueCurve != brightnessValueCurve ||
+        inf->hueAdjustValueCurve != hueAdjustValueCurve ||
+        inf->saturationAdjustValueCurve != saturationAdjustValueCurve ||
         inf->valueAdjustValueCurve != valueAdjustValueCurve)
     {
         int origNodeCount = inf->buffer.Nodes.size();
@@ -1792,7 +1792,7 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
 
         // If we are a 'Per Model Default' render buffer then we need to ensure we create a full set of pixels
         // so we change the type of the render buffer but just for model initialisation
-        // 2019-02-22 This was "Horizontal Per Model" but it causes DMX Model issues ... 
+        // 2019-02-22 This was "Horizontal Per Model" but it causes DMX Model issues ...
         // so I have changed it to "Single Line". In theory both should create all the nodes
         auto tt = type;
         if (StartsWith(type, "Per Model")) {
@@ -1803,11 +1803,11 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
             inf->buffer.Nodes.clear();
             model->InitRenderBufferNodes(tt, camera, transform, inf->buffer.Nodes, inf->BufferWi, inf->BufferHt);
         }
-        
+
         int curBH = inf->BufferHt;
         int curBW = inf->BufferWi;
         ComputeSubBuffer(subBuffer, inf->buffer.Nodes, inf->BufferWi, inf->BufferHt, 0, inf->buffer.GetStartTimeMS(), inf->buffer.GetEndTimeMS());
-        
+
         curBH = std::max(curBH, inf->BufferHt);
         curBW = std::max(curBW, inf->BufferWi);
 
@@ -1961,7 +1961,7 @@ void PixelBufferClass::GetColors(unsigned char *fdata, const std::vector<bool> &
                             n->GetForChannels(buf);
                             xlColor color(buf[0], buf[0], buf[0]);
                             curve->apply(color);
-                            
+
                             n->SetColor(color);
                         } else {
                             xlColor color;
@@ -1982,10 +1982,10 @@ void PixelBufferClass::SetColors(int layer, const unsigned char *fdata)
     xlColor color;
     for (auto &n : layers[layer]->buffer.Nodes) {
         size_t start = n->ActChan;
-        
+
         n->SetFromChannels(&fdata[start]);
         n->GetColor(color);
-        
+
         DimmingCurve *curve = n->model->modelDimmingCurve;
         if (curve != nullptr) {
             curve->reverse(color);
@@ -2201,7 +2201,7 @@ bool PixelBufferClass::IsVariableSubBuffer(int layer) const
     const std::string &subBuffer = layers[layer]->subBuffer;
     return subBuffer.find("Active=TRUE") != std::string::npos;
 }
-    
+
 MixTypes PixelBufferClass::GetMixType(int layer) const
 {
     return layers[layer]->mixType;
@@ -2233,7 +2233,7 @@ void PixelBufferClass::PrepareVariableSubBuffer(int EffectPeriod, int layer)
     ComputeSubBuffer(subBuffer, layers[layer]->buffer.Nodes, layers[layer]->BufferWi, layers[layer]->BufferHt, offset, layers[layer]->buffer.GetStartTimeMS(), layers[layer]->buffer.GetEndTimeMS());
     layers[layer]->buffer.BufferWi = layers[layer]->BufferWi;
     layers[layer]->buffer.BufferHt = layers[layer]->BufferHt;
-    
+
     if (layers[layer]->buffer.BufferWi == 0) layers[layer]->buffer.BufferWi = 1;
     if (layers[layer]->buffer.BufferHt == 0) layers[layer]->buffer.BufferHt = 1;
 }
@@ -2274,8 +2274,8 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & va
         } else {
             layers[ii]->use_music_sparkle_count = false;
         }
-        
-        
+
+
         double fadeInFactor=1, fadeOutFactor=1;
         layers[ii]->fadeFactor = 1.0;
         layers[ii]->inMaskFactor = 1.0;
@@ -2383,7 +2383,7 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & va
         test++;
     }
     */
-    
+
     parallel_for(0, NodeCount, [this, saveLayer, &validLayers, EffectPeriod] (int i) {
         if (!layers[saveLayer]->buffer.Nodes[i]->IsVisible()) {
             // unmapped pixel - set to black
