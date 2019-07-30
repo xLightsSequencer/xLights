@@ -1148,7 +1148,7 @@ static void boxesForGauss(int d, int n, std::vector<float> &boxes)  // standard 
 #define GREEN(a, b) a[(b)*4 + 1]
 #define BLUE(a, b) a[(b)*4 + 2]
 #define ALPHA(a, b) a[(b)*4 + 3]
-static inline void SET(float *ar, int idx, float r, float g, float b, float a) {
+static inline void SET(std::vector<float>& ar, int idx, float r, float g, float b, float a) {
     idx *= 4;
     ar[idx++] = r;
     ar[idx++] = g;
@@ -1156,7 +1156,7 @@ static inline void SET(float *ar, int idx, float r, float g, float b, float a) {
     ar[idx] = a;
 }
 
-static void boxBlurH_4 (const float  * const scl, float *tcl, int w, int h, float r) {
+static void boxBlurH_4 (const std::vector<float>& scl, std::vector<float>& tcl, int w, int h, float r) {
     float iarr = 1.0f / (r+r+1.0f);
     for(int i=0; i<h; i++) {
         int ti = i*w;
@@ -1226,7 +1226,7 @@ static void boxBlurH_4 (const float  * const scl, float *tcl, int w, int h, floa
     }
 }
 
-static void boxBlurT_4 (const float * const scl, float *tcl, int w, int h, float r) {
+static void boxBlurT_4 (const std::vector<float>& const scl, std::vector<float>& tcl, int w, int h, float r) {
     float iarr = 1.0f / (r+r+1.0f);
     for(int i=0; i<w; i++) {
         int ti = i;
@@ -1298,13 +1298,14 @@ static void boxBlurT_4 (const float * const scl, float *tcl, int w, int h, float
     }
 }
 
-static void boxBlur_4(float *scl, float *tcl, int w, int h, float r, int size) {
-    memcpy(tcl, scl, sizeof(float)*4*size);
+static void boxBlur_4(std::vector<float>& scl, std::vector<float>& tcl, int w, int h, float r, int size) {
+    tcl = scl;
+    //memcpy(tcl, scl, sizeof(float)*4*size);
     boxBlurH_4(tcl, scl, w, h, r);
     boxBlurT_4(scl, tcl, w, h, r);
 }
 
-static void gaussBlur_4(float *scl, float *tcl, int w, int h, int r, int size) {
+static void gaussBlur_4(std::vector<float>& scl, std::vector<float>& tcl, int w, int h, int r, int size) {
     std::vector<float> bxs;
     boxesForGauss(r - 1, 3, bxs);
     boxBlur_4 (scl, tcl, w, h, (bxs[0]-1)/2, size);
@@ -1317,6 +1318,7 @@ static inline int roundInt(float r) {
     tmp += (r-tmp>=.5) - (r-tmp<=-.5);
     return tmp;
 }
+
 void PixelBufferClass::Blur(LayerInfo* layer, float offset)
 {
     int b;
@@ -1335,9 +1337,14 @@ void PixelBufferClass::Blur(LayerInfo* layer, float offset)
     if (b < 2) {
         return;
     } else if (b > 2 && layer->BufferWi > 6 && layer->BufferHt > 6) {
+        int os = std::max((int)layer->buffer.pixels.size(), layer->BufferWi * layer->BufferHt);
         int pixCount = layer->buffer.pixels.size();
-        float * input = new float[pixCount * 4];
-        float * tmp = new float[pixCount * 4];
+        std::vector<float> input;
+        input.resize(os * 4);
+        std::vector<float> tmp;
+        tmp.resize(os * 4);
+        //float * input = new float[pixCount * 4];
+        //float * tmp = new float[pixCount * 4];
         for (int x = 0; x < pixCount; x++) {
             const xlColor &c = layer->buffer.pixels[x];
             input[x * 4] = c.red;
@@ -1353,8 +1360,8 @@ void PixelBufferClass::Blur(LayerInfo* layer, float offset)
                                         roundInt(tmp[x*4 + 2]),
                                         roundInt(tmp[x*4 + 3]));
         }
-        delete [] input;
-        delete [] tmp;
+        //delete [] input;
+        //delete [] tmp;
     } else {
         int d;
         int u;
