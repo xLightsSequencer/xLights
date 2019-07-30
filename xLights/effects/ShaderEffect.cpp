@@ -100,8 +100,8 @@ namespace
         LOG_GL_ERRORV(glBindRenderbuffer(GL_RENDERBUFFER, *rbID));
         LOG_GL_ERRORV(glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA, width, height));
 
-        glGenFramebuffers(1, fbID);
-        glBindFramebuffer(GL_FRAMEBUFFER, *fbID);
+        LOG_GL_ERRORV(glGenFramebuffers(1, fbID));
+        LOG_GL_ERRORV(glBindFramebuffer(GL_FRAMEBUFFER, *fbID));
         glFramebufferRenderbuffer(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, *rbID);
         glFramebufferRenderbuffer(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, *rbID);
 
@@ -487,34 +487,35 @@ public:
                          s_rbTex,
                          s_programId);
     }
-    static void DestroyResources(unsigned s_vertexArrayId,
-                                  unsigned s_vertexBufferId,
-                                  unsigned s_fbId,
-                                  unsigned s_rbId,
-                                  unsigned s_rbTex,
-                                  unsigned s_programId) {
+    static void DestroyResources(unsigned &s_vertexArrayId,
+                                 unsigned &s_vertexBufferId,
+                                 unsigned &s_fbId,
+                                 unsigned &s_rbId,
+                                 unsigned &s_rbTex,
+                                 unsigned &s_programId) {
         if (s_programId) {
-            glDeleteProgram(s_programId);
+            LOG_GL_ERRORV(glDeleteProgram(s_programId));
             s_programId = 0;
         }
         if (s_vertexArrayId) {
-            glDeleteVertexArrays(1, &s_vertexArrayId);
+            LOG_GL_ERRORV(glDeleteVertexArrays(1, &s_vertexArrayId));
             s_vertexArrayId = 0;
         }
         if (s_vertexBufferId) {
-            glDeleteBuffers(1, &s_vertexBufferId);
+            LOG_GL_ERRORV(glDeleteBuffers(1, &s_vertexBufferId));
             s_vertexBufferId = 0;
         }
         if (s_fbId) {
-            glDeleteFramebuffers(1, &s_fbId);
+            LOG_GL_ERRORV(glDeleteFramebuffers(1, &s_fbId));
             s_fbId = 0;
         }
         if (s_rbId) {
-            glDeleteRenderbuffers(1, &s_rbId);
+            LOG_GL_ERRORV(glDeleteRenderbuffers(1, &s_rbId));
             s_rbId = 0;
         }
         if (s_rbTex) {
-            glDeleteTextures(1, &s_rbTex);
+            LOG_GL_ERRORV(glDeleteTextures(1, &s_rbTex));
+            s_rbTex = 0;
         }
     }
 
@@ -679,20 +680,20 @@ void ShaderEffect::Render(Effect* eff, SettingsMap& SettingsMap, RenderBuffer& b
     // We re-use the same framebuffer for rendering all the shader effects
     sizeForRenderBuffer(buffer, s_shadersInit, s_vertexArrayId, s_vertexBufferId, s_rbId, s_fbId, s_rbTex, s_rbWidth, s_rbHeight);
 
-    glBindFramebuffer(GL_FRAMEBUFFER, s_fbId);
+    LOG_GL_ERRORV(glBindFramebuffer(GL_FRAMEBUFFER, s_fbId));
     LOG_GL_ERRORV(glViewport(0, 0, buffer.BufferWi, buffer.BufferHt));
 
-    glClearColor(0.f, 0.f, 0.f, 0.f);
-    glClear(GL_COLOR_BUFFER_BIT);
+    LOG_GL_ERRORV(glClearColor(0.f, 0.f, 0.f, 0.f));
+    LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT));
 
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, s_rbTex);
-    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, buffer.BufferWi, buffer.BufferHt, GL_RGBA, GL_UNSIGNED_BYTE, &buffer.pixels[0]);
-    glBindVertexArray(s_vertexArrayId);
-    glBindBuffer(GL_ARRAY_BUFFER, s_vertexBufferId);
+    LOG_GL_ERRORV(glActiveTexture(GL_TEXTURE0));
+    LOG_GL_ERRORV(glBindTexture(GL_TEXTURE_2D, s_rbTex));
+    LOG_GL_ERRORV(glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, buffer.BufferWi, buffer.BufferHt, GL_RGBA, GL_UNSIGNED_BYTE, &buffer.pixels[0]));
+    LOG_GL_ERRORV(glBindVertexArray(s_vertexArrayId));
+    LOG_GL_ERRORV(glBindBuffer(GL_ARRAY_BUFFER, s_vertexBufferId));
 
     GLuint programId = s_programId;
-    glUseProgram(programId);
+    LOG_GL_ERRORV(glUseProgram(programId));
 
     int colourIndex = 0;
     int loc = glGetUniformLocation(programId, "RENDERSIZE");

@@ -1068,7 +1068,7 @@ public:
         LOG_GL_ERRORV(glActiveTexture(GL_TEXTURE0)); //switch to texture image unit 0
 
         program->UnbindBuffer(0);
-        program->UnbindBuffer(1);
+        program->UnbindBuffer(2);
     }
     
     virtual DrawGLUtils::xl3DMesh *createMesh() override {

@@ -2228,7 +2228,11 @@ void xLightsFrame::TimerRgbSeq(long msec)
         {
             FPSEvent b = fpsEvents.front();
             FPSEvent e = fpsEvents.back();
-            _fps = (float)((double)(fpsSize-1) * 1000.0) / ((e.when - b.when).GetMilliseconds().ToDouble());
+            if (e.when == b.when) {
+                _fps = 0;
+            } else {
+                _fps = (float)((double)(fpsSize-1) * 1000.0) / ((e.when - b.when).GetMilliseconds().ToDouble());
+            }
             if ((frame % 200) == 0) {
                 static log4cpp::Category &logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
                 logger_opengl.debug("Play fps  %f   (%d ms)", _fps, SeqData.FrameTime());
