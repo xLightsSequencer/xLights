@@ -138,27 +138,15 @@ void ArchesModel::InitRenderBufferNodes(const std::string &type, const std::stri
         BufferHi = 1;
         BufferWi = GetNodeCount();
 
-        int NumArches=parm1;
-        int SegmentsPerArch=parm2;
         int cur = 0;
-        for (int y=0; y < NumArches; y++) {
-            for(int x=0; x<SegmentsPerArch; x++) {
-                int idx;
-                if (IsLtoR)
-                {
-                    idx = y * SegmentsPerArch + x;
-                }
-                else
-                {
-                    idx = (NumArches - y) * SegmentsPerArch - x - 1;
-                }
-                newNodes.push_back(NodeBaseClassPtr(Nodes[idx]->clone()));
-                for(size_t c=0; c < newNodes[cur]->Coords.size(); c++) {
-                    newNodes[cur]->Coords[c].bufX=cur;
-                    newNodes[cur]->Coords[c].bufY=0;
-                }
-                cur++;
+        
+        for (int x = 0; x < Nodes.size(); x++) {
+            newNodes.push_back(NodeBaseClassPtr(Nodes[x]->clone()));
+            for(size_t c=0; c < newNodes[cur]->Coords.size(); c++) {
+                newNodes[cur]->Coords[c].bufX=cur;
+                newNodes[cur]->Coords[c].bufY=0;
             }
+            cur++;
         }
         ApplyTransform(transform, newNodes, BufferWi, BufferHi);
     } else {
@@ -167,11 +155,7 @@ void ArchesModel::InitRenderBufferNodes(const std::string &type, const std::stri
 }
 
 void ArchesModel::InitModel() {
-
-    if (!IsLtoR)
-    {
-        isBotToTop = false;
-    }
+    isBotToTop = false;
 
     int NumArches=parm1;
     int SegmentsPerArch=parm2;
@@ -198,12 +182,18 @@ void ArchesModel::InitModel() {
 
     for (int y=0; y < NumArches; y++) {
         for(int x=0; x<SegmentsPerArch; x++) {
-            int idx = (IsLtoR ? y : NumArches - y - 1) * SegmentsPerArch + x;
-            Nodes[idx]->ActChan = stringStartChan[y] + x*GetNodeChannelCount(StringType);
-            Nodes[idx]->StringNum=y;
+            int idx = y * SegmentsPerArch + x;
+            int startChan = stringStartChan[y] + x*GetNodeChannelCount(StringType);
+            if (!IsLtoR) {
+                startChan = stringStartChan[NumArches - y - 1] + (SegmentsPerArch - x - 1)*GetNodeChannelCount(StringType);
+            }
+            
+            Nodes[idx]->ActChan = stringStartChan[IsLtoR ? y : NumArches - y - 1] + x*GetNodeChannelCount(StringType);
+            Nodes[idx]->StringNum = y;
+            
             for(size_t c=0; c < GetCoordCount(idx); c++) {
-                Nodes[idx]->Coords[c].bufX=IsLtoR ? x : SegmentsPerArch-x-1;
-                Nodes[idx]->Coords[c].bufY=isBotToTop ? y : NumArches-y-1;
+                Nodes[idx]->Coords[c].bufX = x;
+                Nodes[idx]->Coords[c].bufY = y;
             }
         }
     }
