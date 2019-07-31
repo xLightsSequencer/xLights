@@ -948,21 +948,22 @@ int CustomModel::NodesPerString(int string) const
 }
 
 std::string CustomModel::ChannelLayoutHtml(OutputManager* outputManager) {
-    size_t NodeCount=GetNodeCount();
+    size_t NodeCount = GetNodeCount();
     std::vector<int> chmap;
-    chmap.resize(BufferHt * BufferWi,0);
-    std::string direction="n/a";
+    chmap.resize(BufferHt * BufferWi, 0);
+    std::string direction = "n/a";
 
     long sc;
     Output* o = outputManager->GetOutput(this->GetFirstChannel(), sc);
 
     std::string html = "<html><body><table border=0>";
-    html+="<tr><td>Name:</td><td>"+name+"</td></tr>";
-    html+="<tr><td>Display As:</td><td>"+DisplayAs+"</td></tr>";
-    html+="<tr><td>String Type:</td><td>"+StringType+"</td></tr>";
-    html+="<tr><td>Start Corner:</td><td>"+direction+"</td></tr>";
-    html+=wxString::Format("<tr><td>Total nodes:</td><td>%d</td></tr>",(int)NodeCount);
-    html+=wxString::Format("<tr><td>Height:</td><td>%d</td></tr>",BufferHt);
+    html += "<tr><td>Name:</td><td>" + name + "</td></tr>";
+    html += "<tr><td>Display As:</td><td>" + DisplayAs + "</td></tr>";
+    html += "<tr><td>String Type:</td><td>" + StringType + "</td></tr>";
+    html += "<tr><td>Start Corner:</td><td>" + direction + "</td></tr>";
+    html += wxString::Format("<tr><td>Total nodes:</td><td>%d</td></tr>", (int)NodeCount);
+    html += wxString::Format("<tr><td>Width:</td><td>%d</td></tr>", BufferWi);
+    html += wxString::Format("<tr><td>Height:</td><td>%d</td></tr>", BufferHt);
     if (o != nullptr)
         html += wxString::Format("<tr><td>Controller:</td><td>%s:%s</td></tr>", (o->GetIP() != "" ? o->GetIP() : o->GetCommPort()), o->GetDescription());
     if ("" != GetControllerProtocol())
@@ -977,11 +978,11 @@ std::string CustomModel::ChannelLayoutHtml(OutputManager* outputManager) {
             html += wxString::Format("<tr><td>Controller Connection:</td><td>%d-%d</td></tr>", GetControllerPort(), GetControllerPort() + _strings - 1);
         }
     }
-    html+="</table><p>Node numbers starting with 1 followed by string number:</p><table border=1>";
+    html += "</table><p>Node numbers starting with 1 followed by string number:</p><table border=1>";
 
     std::string data = GetCustomData();
     if (data == "") {
-            html+="<tr><td>No custom data</td></tr>";
+        html += "<tr><td>No custom data</td></tr>";
     }
 
     std::vector<std::vector<std::vector<wxString>>> _data;
@@ -1036,7 +1037,7 @@ std::string CustomModel::ChannelLayoutHtml(OutputManager* outputManager) {
         html += "</tr>";
     }
 
-    html+="</table></body></html>";
+    html += "</table></body></html>";
     return html;
 }
 

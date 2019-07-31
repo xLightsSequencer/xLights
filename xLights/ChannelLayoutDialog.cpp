@@ -59,9 +59,10 @@ ChannelLayoutDialog::~ChannelLayoutDialog()
     delete HtmlEasyPrint;
 }
 
-
 void ChannelLayoutDialog::OnButton_PrintClick(wxCommandEvent& event)
 {
+    HtmlEasyPrint->SetStandardFonts(7, "Arial");
+    HtmlEasyPrint->PageSetup();
     HtmlEasyPrint->PreviewText(HtmlSource);
 }
 
