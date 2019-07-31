@@ -412,6 +412,8 @@
 		<Unit filename="BufferSizeDialog.h" />
 		<Unit filename="BulkEditControls.cpp" />
 		<Unit filename="BulkEditControls.h" />
+		<Unit filename="BulkEditFontPickerDialog.cpp" />
+		<Unit filename="BulkEditFontPickerDialog.h" />
 		<Unit filename="BulkEditSliderDialog.cpp" />
 		<Unit filename="BulkEditSliderDialog.h" />
 		<Unit filename="CachedFileDownloader.cpp" />
@@ -1148,6 +1150,7 @@
 		<Unit filename="wxsmith/BatchRenderDialog.wxs" />
 		<Unit filename="wxsmith/BufferPanel.wxs" />
 		<Unit filename="wxsmith/BufferSizeDialog.wxs" />
+		<Unit filename="wxsmith/BulkEditFontPickerDialog.wxs" />
 		<Unit filename="wxsmith/BulkEditSliderDialog.wxs" />
 		<Unit filename="wxsmith/ButterflyPanel.wxs" />
 		<Unit filename="wxsmith/CandlePanel.wxs" />
@@ -1473,6 +1476,7 @@
 					<wxDialog wxs="wxsmith/ImportPreviewsModelsDialog.wxs" src="ImportPreviewsModelsDialog.cpp" hdr="ImportPreviewsModelsDialog.h" fwddecl="0" i18n="1" name="ImportPreviewsModelsDialog" language="CPP" />
 					<wxPanel wxs="wxsmith/ShaderPanel.wxs" src="effects/ShaderPanel.cpp" hdr="effects/ShaderPanel.h" fwddecl="0" i18n="1" name="ShaderPanel" language="CPP" />
 					<wxDialog wxs="wxsmith/NoteRangeDialog.wxs" src="NoteRangeDialog.cpp" hdr="NoteRangeDialog.h" fwddecl="0" i18n="1" name="NoteRangeDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/BulkEditFontPickerDialog.wxs" src="BulkEditFontPickerDialog.cpp" hdr="BulkEditFontPickerDialog.h" fwddecl="0" i18n="1" name="BulkEditFontPickerDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>

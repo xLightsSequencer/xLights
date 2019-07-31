@@ -90,7 +90,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxFontPickerCtrl" name="ID_FONTPICKER_Text_Font" variable="FontPickerCtrl" member="no">
+									<object class="wxFontPickerCtrl" name="ID_FONTPICKER_Text_Font" subclass="BulkEditFontPicker" variable="FontPickerCtrl" member="no">
 										<style>wxFNTP_FONTDESC_AS_LABEL</style>
 									</object>
 									<flag>wxALL|wxEXPAND</flag>

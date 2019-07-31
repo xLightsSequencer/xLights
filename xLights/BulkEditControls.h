@@ -6,6 +6,7 @@
 #include <wx/spinctrl.h>
 #include <wx/choice.h>
 #include <wx/checkbox.h>
+#include <wx/fontpicker.h>
 #include "ValueCurveButton.h"
 #include "xlLockButton.h"
 #include <wx/filepicker.h>
@@ -38,6 +39,30 @@ protected:
     void SetSupportsBulkEdit(bool supportsBulkEdit) { _supportsBulkEdit = supportsBulkEdit; }
     bool SupportsBulkEdit() const { return  _supportsBulkEdit; }
     void BulkEdit();
+};
+
+class BulkEditFontPicker : public wxFontPickerCtrl
+{
+protected:
+    long ID_FONTPICKER_BULKEDIT;
+    bool _supportsBulkEdit;
+
+public:
+
+    BulkEditFontPicker(wxWindow* parent,
+        wxWindowID id,
+        const wxFont& initial = wxNullFont,
+        const wxPoint& pos = wxDefaultPosition,
+        const wxSize& size = wxDefaultSize,
+        long style = wxFNTP_DEFAULT_STYLE,
+        const wxValidator& validator = wxDefaultValidator,
+        const wxString& name = wxFontPickerCtrlNameStr);
+        virtual ~BulkEditFontPicker() {}
+    void OnRightDown(wxMouseEvent& event);
+    void OnFontPickerPopup(wxCommandEvent& event);
+    void SetSupportsBulkEdit(bool supportsBulkEdit) { _supportsBulkEdit = supportsBulkEdit; }
+    bool SupportsBulkEdit() const { return  _supportsBulkEdit; }
+    std::string GetValue() const;
 };
 
 class BulkEditSliderF1 : public BulkEditSlider

@@ -704,6 +704,7 @@
     <ClCompile Include="controllers\SanDevices.cpp">
       <Filter>Controllers</Filter>
     </ClCompile>
+    <ClCompile Include="BulkEditFontPickerDialog.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -1417,6 +1418,7 @@
     <ClInclude Include="controllers\SanDevices.h">
       <Filter>Controllers</Filter>
     </ClInclude>
+    <ClInclude Include="BulkEditFontPickerDialog.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

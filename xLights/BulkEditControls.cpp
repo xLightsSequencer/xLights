@@ -8,6 +8,7 @@
 #include "EffectsPanel.h"
 #include "sequencer/MainSequencer.h"
 #include "BulkEditSliderDialog.h"
+#include "BulkEditFontPickerDialog.h"
 #include "UtilFunctions.h"
 
 #include <log4cpp/Category.hh>
@@ -30,6 +31,15 @@ BulkEditSlider::BulkEditSlider(wxWindow *parent, wxWindowID id, int value, int m
     ID_SLIDER_BULKEDIT = wxNewId();
     Connect(wxEVT_COMMAND_SLIDER_UPDATED, (wxObjectEventFunction)&BulkEditSlider::OnSlider_SliderUpdated);
     Connect(wxEVT_RIGHT_DOWN, (wxObjectEventFunction)&BulkEditSlider::OnRightDown, nullptr, this);
+}
+
+BulkEditFontPicker::BulkEditFontPicker(wxWindow* parent, wxWindowID id, const wxFont& initial, const wxPoint& pos, const wxSize& size, long style, const wxValidator& validator, const wxString& name)
+    : wxFontPickerCtrl(parent, id, initial, pos, size, style, validator, name)
+{
+    _supportsBulkEdit = true;
+    ID_FONTPICKER_BULKEDIT = wxNewId();
+    Connect(wxEVT_RIGHT_DOWN, (wxObjectEventFunction)& BulkEditFontPicker::OnRightDown, nullptr, this);
+    this->GetPickerCtrl()->Connect(wxEVT_RIGHT_DOWN, (wxObjectEventFunction)& BulkEditFontPicker::OnRightDown, nullptr, this);
 }
 
 BulkEditTextCtrl::BulkEditTextCtrl(wxWindow *parent, wxWindowID id, wxString value, const wxPoint &pos, const wxSize &size, long style, const wxValidator &validator, const wxString &name) : wxTextCtrl(parent, id, value, pos, size, style, validator, name)
@@ -134,6 +144,17 @@ void BulkEditSlider::OnRightDown(wxMouseEvent& event)
     wxMenu mnu;
     mnu.Append(ID_SLIDER_BULKEDIT, "Bulk Edit");
     mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&BulkEditSlider::OnSliderPopup, nullptr, this);
+    PopupMenu(&mnu);
+}
+
+void BulkEditFontPicker::OnRightDown(wxMouseEvent& event)
+{
+    if (!_supportsBulkEdit) return;
+    if (!IsBulkEditAvailable(GetParent(), false)) return;
+
+    wxMenu mnu;
+    mnu.Append(ID_FONTPICKER_BULKEDIT, "Bulk Edit");
+    mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)& BulkEditFontPicker::OnFontPickerPopup, nullptr, this);
     PopupMenu(&mnu);
 }
 
@@ -326,6 +347,51 @@ void BulkEditSlider::OnSliderPopup(wxCommandEvent &event)
             else
             {
                 xLightsApp::GetFrame()->GetMainSequencer()->ApplyEffectSettingToSelected("", id, value, dlg.BitmapButton_VC->GetValue(), vcid);
+            }
+        }
+    }
+}
+
+std::string BulkEditFontPicker::GetValue() const
+{
+    wxFont f = GetSelectedFont();
+    if (f.IsOk()) {
+        wxString FontDesc = f.GetNativeFontInfoUserDesc();
+        FontDesc.Replace(" unknown-90", "");
+        return FontDesc.ToStdString();
+    }
+    return "";
+}
+
+void BulkEditFontPicker::OnFontPickerPopup(wxCommandEvent& event)
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    if (event.GetId() == ID_FONTPICKER_BULKEDIT)
+    {
+        // Get the label
+        std::string label = "Font";
+
+        BulkEditFontPickerDialog dlg(this, label, GetValue());
+        OptimiseDialogPosition(&dlg);
+
+        if (dlg.ShowModal() == wxID_OK)
+        {
+            wxFont oldfont;
+            oldfont.SetNativeFontInfoUserDesc(dlg.GetValue());
+            SetSelectedFont(oldfont);
+
+            std::string id = GetName().ToStdString();
+            id = FixIdForPanel(GetPanelName(GetParent()), id);
+
+            if (GetPanelName(GetParent()) == "Effect")
+            {
+                std::string effect = ((EffectsPanel*)GetPanel(GetParent()))->EffectChoicebook->GetChoiceCtrl()->GetStringSelection().ToStdString();
+                xLightsApp::GetFrame()->GetMainSequencer()->ApplyEffectSettingToSelected(effect, id, GetValue(), nullptr, "");
+            }
+            else
+            {
+                xLightsApp::GetFrame()->GetMainSequencer()->ApplyEffectSettingToSelected("", id, GetValue(), nullptr, "");
             }
         }
     }

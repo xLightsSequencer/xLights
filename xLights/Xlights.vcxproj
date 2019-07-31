@@ -179,6 +179,7 @@
     <ClCompile Include="AlignmentDialog.cpp" />
     <ClCompile Include="BatchRenderDialog.cpp" />
     <ClCompile Include="BulkEditControls.cpp" />
+    <ClCompile Include="BulkEditFontPickerDialog.cpp" />
     <ClCompile Include="BulkEditSliderDialog.cpp" />
     <ClCompile Include="CachedFileDownloader.cpp" />
     <ClCompile Include="CharMapDialog.cpp" />
@@ -562,6 +563,7 @@
     <ClInclude Include="AlignmentDialog.h" />
     <ClInclude Include="BatchRenderDialog.h" />
     <ClInclude Include="BulkEditControls.h" />
+    <ClInclude Include="BulkEditFontPickerDialog.h" />
     <ClInclude Include="BulkEditSliderDialog.h" />
     <ClInclude Include="CachedFileDownloader.h" />
     <ClInclude Include="CharMapDialog.h" />

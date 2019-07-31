@@ -4234,10 +4234,10 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
         int lastPixelSize = pixelSize;
 
         // layer calculation and map to output
-        size_t NodeCount=Nodes.size();
+        size_t NodeCount = Nodes.size();
         int vcount = 0;
-        for (auto it = Nodes.begin(); it != Nodes.end(); ++it) {
-            vcount += it->get()->Coords.size();
+        for (auto& it : Nodes) {
+            vcount += it.get()->Coords.size();
         }
         if (vcount > maxVertexCount) {
             maxVertexCount = vcount;
