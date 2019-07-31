@@ -710,7 +710,8 @@ void RenderBuffer::InitBuffer(int newBufferHt, int newBufferWi, int newModelBuff
     }
     size_t NumPixels = std::max(BufferHt, ModelBufferHt) * std::max(BufferWi, ModelBufferWi);
     // This is an absurdly high number but there are circumstances right now when creating a buffer based on a zoomed in camera when these can be hit.
-    wxASSERT(NumPixels < 500000);
+    //wxASSERT(NumPixels < 500000);
+    
     pixels.resize(NumPixels);
     tempbuf.resize(NumPixels);
     isTransformed = (bufferTransform != "None");

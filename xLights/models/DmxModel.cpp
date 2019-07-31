@@ -1050,8 +1050,12 @@ void DmxModel::DrawFloodOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
 		beam_color = color;
 	}
 
-	ApplyTransparency(beam_color, trans);
-    ApplyTransparency(ecolor, pixelStyle == 2 ? trans : 100);
+	ApplyTransparency(beam_color, trans, trans);
+    if (pixelStyle == 2) {
+        ecolor = beam_color;
+    } else {
+        ecolor.alpha = 255;
+    }
 
     float rh = ((BoxedScreenLocation)screenLocation).GetMWidth();
     float rw = ((BoxedScreenLocation)screenLocation).GetMHeight();
@@ -1093,8 +1097,12 @@ void DmxModel::DrawFloodOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumula
         beam_color = color;
     }
 
-    ApplyTransparency(beam_color, trans);
-    ApplyTransparency(ecolor, pixelStyle == 2 ? trans : 100);
+    ApplyTransparency(beam_color, trans, trans);
+    if (pixelStyle == 2) {
+        ecolor = beam_color;
+    } else {
+        ecolor.alpha = 255;
+    }
 
 
     float rh = ((BoxedScreenLocation)screenLocation).GetMWidth();
@@ -1175,11 +1183,11 @@ void DmxModel::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
     } else {
         marker_color = beam_color;
     }
-    ApplyTransparency(beam_color, trans);
-    ApplyTransparency(ccolor, trans);
-    ApplyTransparency(base_color, trans);
-    ApplyTransparency(base_color2, trans);
-    ApplyTransparency(pnt_color, trans);
+    ApplyTransparency(beam_color, trans, trans);
+    ApplyTransparency(ccolor, trans, trans);
+    ApplyTransparency(base_color, trans, trans);
+    ApplyTransparency(base_color2, trans, trans);
+    ApplyTransparency(pnt_color, trans, trans);
 
     // retrieve the model state
     float old_pan_angle = 0.0f;
@@ -1308,7 +1316,7 @@ void DmxModel::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
     // Draw the light beam
     if( dmx_style_val != DMX_STYLE_MOVING_HEAD_BARS && dmx_style_val != DMX_STYLE_MOVING_HEAD_3D && shutter_open ) {
         va.AddVertex(sx, sy, beam_color);
-        ApplyTransparency(beam_color, 100);
+        beam_color.alpha = 0;
         va.AddVertex(sx+x1, sy+y1, beam_color);
         va.AddVertex(sx+x2, sy+y2, beam_color);
     }
@@ -1385,11 +1393,11 @@ void DmxModel::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
         xlColor white(xlWHITE);
         xlColor pink(255,51,255);
         xlColor turqoise(64,224,208);
-        ApplyTransparency(red, trans);
-        ApplyTransparency(green, trans);
-        ApplyTransparency(blue, trans);
-        ApplyTransparency(pink, trans);
-        ApplyTransparency(turqoise, trans);
+        ApplyTransparency(red, trans, trans);
+        ApplyTransparency(green, trans, trans);
+        ApplyTransparency(blue, trans, trans);
+        ApplyTransparency(pink, trans, trans);
+        ApplyTransparency(turqoise, trans, trans);
         int stepy = (int)(radius * 0.15f);
         int gapy = (int)(radius * 0.1f);
         if( gapy < 1 ) gapy = 1;
@@ -1420,7 +1428,7 @@ void DmxModel::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
 
     if( dmx_style_val == DMX_STYLE_MOVING_HEAD_3D ) {
         xlColor beam_color_end(beam_color);
-        ApplyTransparency(beam_color_end, 100);
+        beam_color_end.alpha = 0;
 
         while (pan_angle_raw > 360.0f ) pan_angle_raw -= 360.0f;
         pan_angle_raw = 360.0f - pan_angle_raw;
@@ -1529,11 +1537,11 @@ void DmxModel::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumula
     else {
         marker_color = beam_color;
     }
-    ApplyTransparency(beam_color, trans);
-    ApplyTransparency(ccolor, trans);
-    ApplyTransparency(base_color, trans);
-    ApplyTransparency(base_color2, trans);
-    ApplyTransparency(pnt_color, trans);
+    ApplyTransparency(beam_color, trans, trans);
+    ApplyTransparency(ccolor, trans, trans);
+    ApplyTransparency(base_color, trans, trans);
+    ApplyTransparency(base_color2, trans, trans);
+    ApplyTransparency(pnt_color, trans, trans);
 
     // retrieve the model state
     float old_pan_angle = 0.0f;
@@ -1667,7 +1675,7 @@ void DmxModel::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumula
     // Draw the light beam
     if (dmx_style_val != DMX_STYLE_MOVING_HEAD_BARS && dmx_style_val != DMX_STYLE_MOVING_HEAD_3D && shutter_open) {
         va.AddVertex(sx, sy, sz, beam_color);
-        ApplyTransparency(beam_color, 100);
+        beam_color.alpha = 0;
         va.AddVertex(sx + x1, sy + y1, sz, beam_color);
         va.AddVertex(sx + x2, sy + y2, sz, beam_color);
     }
@@ -1744,11 +1752,11 @@ void DmxModel::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumula
         xlColor blue(xlBLUE);
         xlColor pink(255, 51, 255);
         xlColor turqoise(64, 224, 208);
-        ApplyTransparency(red, trans);
-        ApplyTransparency(green, trans);
-        ApplyTransparency(blue, trans);
-        ApplyTransparency(pink, trans);
-        ApplyTransparency(turqoise, trans);
+        ApplyTransparency(red, trans, trans);
+        ApplyTransparency(green, trans, trans);
+        ApplyTransparency(blue, trans, trans);
+        ApplyTransparency(pink, trans, trans);
+        ApplyTransparency(turqoise, trans, trans);
         float offsetx = 0.0f;
         int stepy = (int)(radius * 0.15f);
         int gapy = (int)(radius * 0.1f);
@@ -1783,7 +1791,7 @@ void DmxModel::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumula
 
     if (dmx_style_val == DMX_STYLE_MOVING_HEAD_3D) {
         xlColor beam_color_end(beam_color);
-        ApplyTransparency(beam_color_end, 100);
+        beam_color.alpha = 0;
 
         while (pan_angle_raw > 360.0f) pan_angle_raw -= 360.0f;
         pan_angle_raw = 360.0f - pan_angle_raw;
@@ -1911,13 +1919,13 @@ void DmxModel::DrawSkullModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccu
         eye_color = xlWHITE;
         beam_off = true;
     } else {
-        ApplyTransparency(eye_color, trans);
+        ApplyTransparency(eye_color, trans, trans);
         marker_color = eye_color;
     }
-    ApplyTransparency(ccolor, trans);
-    ApplyTransparency(base_color, trans);
-    ApplyTransparency(base_color2, trans);
-    ApplyTransparency(pnt_color, trans);
+    ApplyTransparency(ccolor, trans, trans);
+    ApplyTransparency(base_color, trans, trans);
+    ApplyTransparency(base_color2, trans, trans);
+    ApplyTransparency(pnt_color, trans, trans);
 
     if( pan_channel > 0 ) {
         channel_value = GetChannelValue(pan_channel-1);
@@ -2209,13 +2217,13 @@ void DmxModel::DrawSkullModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Acc
         beam_off = true;
     }
     else {
-        ApplyTransparency(eye_color, trans);
+        ApplyTransparency(eye_color, trans, trans);
         marker_color = eye_color;
     }
-    ApplyTransparency(ccolor, trans);
-    ApplyTransparency(base_color, trans);
-    ApplyTransparency(base_color2, trans);
-    ApplyTransparency(pnt_color, trans);
+    ApplyTransparency(ccolor, trans, trans);
+    ApplyTransparency(base_color, trans, trans);
+    ApplyTransparency(base_color2, trans, trans);
+    ApplyTransparency(pnt_color, trans, trans);
 
     if (pan_channel > 0) {
         channel_value = GetChannelValue(pan_channel - 1);

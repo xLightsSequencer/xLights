@@ -2,7 +2,7 @@
 name: Feature request
 about: Suggest a new idea for xLights
 title: ''
-labels: ''
+labels: 'Enhancement'
 assignees: ''
 
 ---

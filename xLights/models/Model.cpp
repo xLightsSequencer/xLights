@@ -47,7 +47,7 @@ const std::vector<std::string> Model::DEFAULT_BUFFER_STYLES {DEFAULT, PER_PREVIE
 Model::Model(const ModelManager &manager) : modelDimmingCurve(nullptr),
     parm1(0), parm2(0), parm3(0), pixelStyle(1), pixelSize(2), transparency(0), blackTransparency(0),
     StrobeRate(0), modelManager(manager), CouldComputeStartChannel(false), maxVertexCount(0),
-    splitRGB(false), rgbwHandlingType(0), BufferDp(0), _controller(0), modelTagColour(*wxBLACK)
+    rgbwHandlingType(0), BufferDp(0), _controller(0), modelTagColour(*wxBLACK)
 {
     // These member vars were not initialised so give them some defaults.
     BufferHt = 0;
@@ -3830,43 +3830,39 @@ wxCursor Model::InitializeLocation(int &handle, wxCoord x, wxCoord y, ModelPrevi
 }
 
 //#define SUPPRESSCOLOURTRANSPARENCY
-void Model::ApplyTransparency(xlColor& color, int transparency) const
+void Model::ApplyTransparency(xlColor& color, int transparency, int blackTransparency) const
 {
+    if (color == xlBLACK) {
+        float t = 100.0f - blackTransparency;
+        t *= 2.55f;
+        int i = std::floor(t);
+        color.alpha = i > 255 ? 255 : (i < 0 ? 0 : i);
+    } else {
 #ifdef SUPPRESSCOLOURTRANSPARENCY
-    if (transparency) {
-        float t = 100.0f - transparency;
-        t *= 2.55f;
-        transparency = t;
-        color.alpha = transparency > 255 ? 255 : (transparency < 0 ? 0 : transparency);
-    }
+        if (transparency) {
+            float t = 100.0f - transparency;
+            t *= 2.55f;
+            int i = std::floor(t);
+            color.alpha = i > 255 ? 255 : (i < 0 ? 0 : i);
+        }
 #else
-    int maxCol = std::max(color.red, std::max(color.green, color.blue));
-
-    const int minColorTransparency = 0;
-    int colorTransparency = 255;
-    if (maxCol == 0)
-    {
-        colorTransparency = minColorTransparency;
-    }
-    else if (maxCol < 255)
-    {
-        colorTransparency = minColorTransparency + ((255 - minColorTransparency) * maxCol) / 255;
-        color.red = std::min(255, (255 * color.red) / maxCol);
-        color.green = std::min(255, (255 * color.green) / maxCol);
-        color.blue = std::min(255, (255 * color.blue) / maxCol);
-    }
-
-    if (transparency) {
-        float t = 100.0f - transparency;
-        t *= 2.55f;
-        t *= colorTransparency;
-        t /= 255.0;
-        transparency = t;
-        color.alpha = transparency > 255 ? 255 : (transparency < 0 ? 0 : transparency);
-    }
-    else
-    {
-        color.alpha = colorTransparency;
+        int maxCol = std::max(color.red, std::max(color.green, color.blue));
+        int colorAlpha = 255;
+        if (transparency) {
+            float t = 100.0f - transparency;
+            t *= 2.55f;
+            colorAlpha = std::floor(t);
+        }
+        if (maxCol < 64) {
+            //if we're getting close to black, we'll start migrating toward the black's transparency setting
+            float t = 100.0f - blackTransparency;
+            t *= 2.55f;
+            int blackAlpha = std::floor(t);
+            t = maxCol * colorAlpha + (64 - maxCol) * blackAlpha;
+            t /= 64;
+            colorAlpha = std::floor(t);
+        }
+        color.alpha = colorAlpha;
     }
 #endif
 }
@@ -3961,39 +3957,18 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
             GetModelScreenLocation().TranslatePoint(sx, sy, sz);
 
             if (pixelStyle < 2) {
-                if (splitRGB) {
-                    if ((color.Red() == color.Blue()) && (color.Blue() == color.Green())) {
-                        xlColor c3(color);
-                        ApplyTransparency(c3, color == xlBLACK ? blackTransparency : transparency);
-                        va.AddVertex(sx, sy, c3);
-                    } else {
-                        xlColor c3(color.Red(), 0 , 0);
-                        if (c3 != xlBLACK) {
-                            ApplyTransparency(c3, transparency);
-                            va.AddVertex(sx-pixelSize, sy+pixelSize/2.0f, c3);
-                        }
-                        c3.Set(0, color.Green(), 0);
-                        if (c3 != xlBLACK) {
-                            ApplyTransparency(c3, transparency);
-                            va.AddVertex(sx, sy-pixelSize, c3);
-                        }
-                        c3.Set(0, 0, color.Blue());
-                        if (c3 != xlBLACK) {
-                            ApplyTransparency(c3, transparency);
-                            va.AddVertex(sx+pixelSize, sy+pixelSize/2.0f, c3);
-                        }
-                    }
-                } else {
-                    xlColor c3(color);
-                    ApplyTransparency(c3, color == xlBLACK ? blackTransparency : transparency);
-                    va.AddVertex(sx, sy, c3);
-                }
+                xlColor c3(color);
+                ApplyTransparency(c3, transparency, blackTransparency);
+                va.AddVertex(sx, sy, c3);
             } else {
                 xlColor ccolor(color);
                 xlColor ecolor(color);
-                int trans = color == xlBLACK ? blackTransparency : transparency;
-                ApplyTransparency(ccolor, trans);
-                ApplyTransparency(ecolor, pixelStyle == 2 ? trans : 100);
+                ApplyTransparency(ccolor, transparency, blackTransparency);
+                if (pixelStyle == 2) {
+                    ecolor = ccolor;
+                } else {
+                    ecolor.alpha = 0;
+                }
                 va.AddTrianglesCircle(sx, sy, ((float)pixelSize) / 2.0f, ccolor, ecolor);
             }
         }
@@ -4097,39 +4072,19 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumula
 
             if (pixelStyle < 2) {
                 GetModelScreenLocation().TranslatePoint(sx, sy, sz);
-                if (splitRGB) {
-                    if ((color.Red() == color.Blue()) && (color.Blue() == color.Green())) {
-                        xlColor c3(color);
-                        ApplyTransparency(c3, color == xlBLACK ? blackTransparency : transparency);
-                        va.AddVertex(sx, sy, sz, c3);
-                    } else {
-                        xlColor c3(color.Red(), 0 , 0);
-                        if (c3 != xlBLACK) {
-                            ApplyTransparency(c3, transparency);
-                            va.AddVertex(sx-pixelSize, sy+pixelSize/2.0f, sz, c3);
-                        }
-                        c3.Set(0, color.Green(), 0);
-                        if (c3 != xlBLACK) {
-                            ApplyTransparency(c3, transparency);
-                            va.AddVertex(sx, sy-pixelSize, sz, c3);
-                        }
-                        c3.Set(0, 0, color.Blue());
-                        if (c3 != xlBLACK) {
-                            ApplyTransparency(c3, transparency);
-                            va.AddVertex(sx+pixelSize, sy+pixelSize/2.0f, sz, c3);
-                        }
-                    }
-                } else {
-                    xlColor c3(color);
-                    ApplyTransparency(c3, color == xlBLACK ? blackTransparency : transparency);
-                    va.AddVertex(sx, sy, sz, c3);
-                }
+            
+                xlColor c3(color);
+                ApplyTransparency(c3, transparency, blackTransparency);
+                va.AddVertex(sx, sy, sz, c3);
             } else {
                 xlColor ccolor(color);
                 xlColor ecolor(color);
-                int trans = color == xlBLACK ? blackTransparency : transparency;
-                ApplyTransparency(ccolor, trans);
-                ApplyTransparency(ecolor, pixelStyle == 2 ? trans : 100);
+                ApplyTransparency(ccolor, transparency, blackTransparency);
+                if (pixelStyle == 2) {
+                    ecolor = ccolor;
+                } else {
+                    ecolor.alpha = 0;
+                }
                 va.AddTrianglesCircle(sx, sy, sz, ((float)pixelSize) / 2.0f, ccolor, ecolor,
                                       [this](float &x, float &y, float &z) {
                                           GetModelScreenLocation().TranslatePoint(x, y, z);
@@ -4323,46 +4278,19 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
                 }
 
                 if (lastPixelStyle < 2) {
-                    if (splitRGB) {
-                        float sxn = (sx*scale)+(w/2);
-                        float syn = newsy;
-
-                        if ((color.Red() == color.Blue()) && (color.Blue() == color.Green())) {
-                            xlColor c2(color);
-                            ApplyTransparency(c2, color == xlBLACK ? blackTransparency : transparency);
-                            va.AddVertex(sxn, syn, c2);
-                        } else {
-                            xlColor c2(color.Red(), 0 , 0);
-                            ApplyTransparency(c2, transparency);
-                            if (c2 != xlBLACK) {
-                                ApplyTransparency(c2, transparency);
-                                va.AddVertex(sxn-pixelSize, syn+pixelSize/2.0f, c2);
-                            }
-                            c2.Set(0, color.Green(), 0);
-                            if (c2 != xlBLACK) {
-                                ApplyTransparency(c2, transparency);
-                                va.AddVertex(sxn, syn-pixelSize, c2);
-                            }
-                            c2.Set(0, 0, color.Blue());
-                            if (c2 != xlBLACK) {
-                                ApplyTransparency(c2, transparency);
-                                va.AddVertex(sxn+pixelSize, syn+pixelSize/2.0f, c2);
-                            }
-                        }
-                    } else {
-                        xlColor c2(color);
-                        ApplyTransparency(c2, color == xlBLACK ? Nodes[n]->model->blackTransparency
-                                                            : Nodes[n]->model->transparency);
-
-                        sx = (sx*scale)+(w/2);
-                        va.AddVertex(sx, newsy, c2);
-                    }
+                    xlColor c2(color);
+                    ApplyTransparency(c2, Nodes[n]->model->transparency, Nodes[n]->model->blackTransparency);
+                    sx = (sx*scale)+(w/2);
+                    va.AddVertex(sx, newsy, c2);
                 } else {
                     xlColor ccolor(color);
                     xlColor ecolor(color);
-                    int trans = color == xlBLACK ? Nodes[n]->model->blackTransparency : Nodes[n]->model->transparency;
-                    ApplyTransparency(ccolor, trans);
-                    ApplyTransparency(ecolor, lastPixelStyle == 2 ? trans : 100);
+                    ApplyTransparency(ccolor, Nodes[n]->model->transparency, Nodes[n]->model->blackTransparency);
+                    if (lastPixelStyle == 2) {
+                        ecolor = color;
+                    } else {
+                        ecolor.alpha = 0;
+                    }
                     va.AddTrianglesCircle((sx*scale)+(w/2), newsy, lastPixelSize*pointScale, ccolor, ecolor);
                 }
             }

@@ -158,7 +158,7 @@ protected:
                         int &bufferWi, int &bufferHi) const;
     void AdjustForTransform(const std::string &transform,
                             int &bufferWi, int &bufferHi) const;
-    void ApplyTransparency(xlColor &color, int transparency) const;
+    void ApplyTransparency(xlColor &color, int transparency, int blackTransparency) const;
     void DumpBuffer(std::vector<NodeBaseClassPtr> &newNodes, int bufferWi, int bufferHi) const;
 
     // size of the default buffer
@@ -185,7 +185,6 @@ protected:
     int transparency = 0;
     int blackTransparency = 0;
     wxColour modelTagColour;
-    bool splitRGB;
 
     int StrobeRate;      // 0=no strobing
     bool zeroBased;
