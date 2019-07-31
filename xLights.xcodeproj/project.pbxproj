@@ -151,6 +151,7 @@
 		673C925920A47C5400E59F5D /* JukeboxPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 673C925520A47C5400E59F5D /* JukeboxPanel.cpp */; };
 		673C925A20A47C5400E59F5D /* LinkJukeboxButtonDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 673C925720A47C5400E59F5D /* LinkJukeboxButtonDialog.cpp */; };
 		673C925B20A47CEF00E59F5D /* md5.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67F23F4F1E329AD800F8B985 /* md5.cpp */; };
+		673CAD5622F1D02400836D87 /* BulkEditFontPickerDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 673CAD5422F1D02400836D87 /* BulkEditFontPickerDialog.cpp */; };
 		673D764C214B2F06007C6E83 /* MeshObject.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 673D764B214B2F06007C6E83 /* MeshObject.cpp */; };
 		673E425B17F0D95200F4BC76 /* TabSetup.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 673E425917F0D23E00F4BC76 /* TabSetup.cpp */; };
 		673F03681F322A9B0052A793 /* ChannelBlockModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 673F03671F322A9B0052A793 /* ChannelBlockModel.cpp */; };
@@ -1096,6 +1097,8 @@
 		673C925620A47C5400E59F5D /* JukeboxPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JukeboxPanel.h; sourceTree = "<group>"; };
 		673C925720A47C5400E59F5D /* LinkJukeboxButtonDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = LinkJukeboxButtonDialog.cpp; sourceTree = "<group>"; };
 		673C925820A47C5400E59F5D /* LinkJukeboxButtonDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LinkJukeboxButtonDialog.h; sourceTree = "<group>"; };
+		673CAD5422F1D02400836D87 /* BulkEditFontPickerDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = BulkEditFontPickerDialog.cpp; sourceTree = "<group>"; };
+		673CAD5522F1D02400836D87 /* BulkEditFontPickerDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BulkEditFontPickerDialog.h; sourceTree = "<group>"; };
 		673D764A214B2F06007C6E83 /* MeshObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MeshObject.h; path = models/MeshObject.h; sourceTree = "<group>"; };
 		673D764B214B2F06007C6E83 /* MeshObject.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MeshObject.cpp; path = models/MeshObject.cpp; sourceTree = "<group>"; };
 		673E425717F0D23E00F4BC76 /* TabPreview.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = TabPreview.cpp; sourceTree = "<group>"; };
@@ -3078,6 +3081,8 @@
 		67E7087617B51AB400A22034 /* xLights */ = {
 			isa = PBXGroup;
 			children = (
+				673CAD5422F1D02400836D87 /* BulkEditFontPickerDialog.cpp */,
+				673CAD5522F1D02400836D87 /* BulkEditFontPickerDialog.h */,
 				6731448622C6F98E00764C44 /* NoteRangeDialog.cpp */,
 				6731448722C6F98F00764C44 /* NoteRangeDialog.h */,
 				6743322122B7C24E0038B63E /* OutputModelManager.cpp */,
@@ -4220,6 +4225,7 @@
 				67F7EB791AC2DA2B0023C9B2 /* xlGLCanvas.cpp in Sources */,
 				6784F92C1A5653670018EC0C /* MainSequencer.cpp in Sources */,
 				67B2CF8D1C39D98A003C17CA /* TwinklePanel.cpp in Sources */,
+				673CAD5622F1D02400836D87 /* BulkEditFontPickerDialog.cpp in Sources */,
 				675AB42D1B5ACEDA00853A28 /* PluginLoader.cpp in Sources */,
 				671130B31E4EB18100AF09A7 /* VSAFile.cpp in Sources */,
 				6731448822C6F98F00764C44 /* NoteRangeDialog.cpp in Sources */,
