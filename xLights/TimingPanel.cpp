@@ -479,37 +479,5 @@ void TimingPanel::OnCheckBox_CanvasClick(wxCommandEvent& event)
 
 void TimingPanel::OnButton_AboutClick(wxCommandEvent& event)
 {
-	wxFile f;
-	wxString filename = wxFileName::CreateTempFileName("layerblendhelp") + ".txt";
-
-	f.Open(filename, wxFile::write);
-	if (!f.IsOpened())
-	{
-		DisplayError("Unable to create layerblendhelp file. skip.");
-		return;
-	}
-
-	if (f.IsOpened())
-	{
-		f.Write(Choice_LayerMethod->GetToolTip()->GetTip());
-
-		f.Close();
-
-		wxFileType* ft = wxTheMimeTypesManager->GetFileTypeFromExtension("txt");
-		if (ft != nullptr)
-		{
-			wxString command = ft->GetOpenCommand(filename);
-
-			if (command == "")
-			{
-				DisplayError(wxString::Format("Unable to show layerblendhelp file '%s'.", filename).ToStdString());
-			}
-			else
-			{
-				wxUnsetEnv("LD_PRELOAD");
-				wxExecute(command);
-			}
-			delete ft;
-		}
-	}
+	ViewTempFile(Choice_LayerMethod->GetToolTip()->GetTip(), "layerblendhelp");
 }

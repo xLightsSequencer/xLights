@@ -4,6 +4,7 @@
 #include <wx/sckaddr.h>
 #include <wx/dir.h>
 #include <wx/socket.h>
+#include <wx/mimetype.h>
 
 #include "UtilFunctions.h"
 #include "xLightsVersion.h"
@@ -874,4 +875,41 @@ wxString xLightsRequest(int xFadePort, wxString message, wxString ipAddress)
         logger_base.warn("Unable to connect to xLights on port %d", GetxFadePort(xFadePort));
         return "ERROR_UNABLE_TO_CONNECT";
     }
+}
+
+void ViewTempFile(const wxString& content, const wxString& name,  const wxString& type)
+{
+	wxFile f;
+	const wxString filename = wxFileName::CreateTempFileName(name) + "." + type;
+
+	f.Open(filename, wxFile::write);
+	if (!f.IsOpened())
+	{
+		DisplayError("Unable to create " + filename + " file. skip.");
+		return;
+	}
+
+	if (f.IsOpened())
+	{
+		f.Write(content);
+
+		f.Close();
+
+		wxFileType* ft = wxTheMimeTypesManager->GetFileTypeFromExtension(type);
+		if (ft != nullptr)
+		{
+			const wxString command = ft->GetOpenCommand(filename);
+
+			if (command.IsEmpty())
+			{
+				DisplayError(wxString::Format("Unable to show " + name + " file '%s'.", filename).ToStdString());
+			}
+			else
+			{
+				wxUnsetEnv("LD_PRELOAD");
+				wxExecute(command);
+			}
+			delete ft;
+		}
+	}
 }
