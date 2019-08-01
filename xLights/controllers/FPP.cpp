@@ -124,16 +124,101 @@ static int buffer_writer(char *data, size_t size, size_t nmemb,
     writerData->append(data, size * nmemb);
     return size * nmemb;
 }
+class FPPWriteData {
+public:
+    FPPWriteData() : file(nullptr), progress(nullptr), data(nullptr), dataSize(0), curPos(0),
+        postData(nullptr), postDataSize(0), totalWritten(0), cancelled(false), compressed(false), lastDone(0) {}
+    
+    uint8_t *data;
+    size_t dataSize;
+    size_t curPos;
+    
+    wxFile *file;
+
+    uint8_t *postData;
+    size_t postDataSize;
+
+    wxProgressDialog *progress;
+    std::string progressString;
+    size_t totalWritten;
+    size_t lastDone;
+    bool cancelled;
+    bool compressed;
+    
+    size_t readData(void *ptr, size_t buffer_size) {
+        if (data != nullptr) {
+            size_t remaining = dataSize - curPos;
+            if (remaining) {
+                size_t copy_this_much = remaining;
+                if (copy_this_much > buffer_size) {
+                    copy_this_much = buffer_size;
+                }
+                if (copy_this_much > 8*1024*1024) {
+                    copy_this_much = 8*1024*1024;
+                }
+                memcpy(ptr, &data[curPos], copy_this_much);
+                curPos += copy_this_much;
+                return copy_this_much; /* we copied this many bytes */
+            } else {
+                //done reading from the memory data
+                curPos = 0;
+                if (file == nullptr) {
+                    data = postData;
+                    dataSize = postDataSize;
+                } else {
+                    data = nullptr;
+                    dataSize = 0;
+                }
+            }
+        }
+        if (file != nullptr) {
+            size_t t = file->Read(ptr, buffer_size);
+            totalWritten += t;
+            
+            if (progress) {
+                size_t donePct = totalWritten;
+                donePct *= compressed ? 600 : 1000;
+                donePct /= file->Length();
+                if (compressed) {
+                    donePct += 333;
+                }
+                if (donePct != lastDone) {
+                    lastDone = donePct;
+                    cancelled = !progress->Update(donePct, progressString, &cancelled);
+                    wxYield();
+                }
+            }
+            if (file->Eof()) {
+                data = postData;
+                dataSize = postDataSize;
+                file = nullptr;
+            }
+            if (cancelled) {
+                return CURL_READFUNC_ABORT;
+            }
+            return t;
+        }
+        return 0;
+    }
+};
+
+
+static size_t read_callback(void *ptr, size_t size, size_t nmemb, void *userp) {
+    size_t buffer_size = size*nmemb;
+    struct FPPWriteData *dt = (struct FPPWriteData*)userp;
+    return dt->readData(ptr, buffer_size);
+}
 
 void FPP::setupCurl() {
     if (curl == nullptr) {
         curl = curl_easy_init();
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, buffer_writer);
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &curlInputBuffer);
-        curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
-        curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT_MS, 100);
-        curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, 10000);
     }
+    curl_easy_reset(curl);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, buffer_writer);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &curlInputBuffer);
+    curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+    curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT_MS, 100);
+    curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, 10000);
 }
 bool FPP::GetURLAsString(const std::string& url, std::string& val)  {
     setupCurl();
@@ -142,43 +227,90 @@ bool FPP::GetURLAsString(const std::string& url, std::string& val)  {
     std::string fullUrl = "http://" + ipAddress + url;
     curl_easy_setopt(curl, CURLOPT_URL, fullUrl.c_str());
     curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, &error);
+    
+    if (username != "") {
+        curl_easy_setopt(curl, CURLOPT_USERNAME, username.c_str());
+        curl_easy_setopt(curl, CURLOPT_PASSWORD, password.c_str());
+        curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_BASIC | CURLAUTH_DIGEST | CURLAUTH_NEGOTIATE);
+    }
+    
     bool retValue = false;
     int i = curl_easy_perform(curl);
     if (i == CURLE_OK) {
         val = curlInputBuffer;
-        retValue = true;
+        long response_code;
+        curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
+        if (response_code == 401) {
+            curlInputBuffer.clear();
+            wxPasswordEntryDialog dlg(nullptr, "Password needed to connect to " + ipAddress, "Password Required");
+            int rc = dlg.ShowModal();
+            if (rc == wxID_CANCEL) {
+                return false;
+            }
+            username = "admin";
+            password = dlg.GetValue().ToStdString();
+            return GetURLAsString(url, val);
+        }
+        retValue = (response_code == 200);
     }
     curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, nullptr);
     return retValue;
 
 }
-
-bool FPP::GetURLAsJSON(const std::string& url, wxJSONValue& val) {
+int FPP::PostToURL(const std::string& url, const wxMemoryBuffer &val, const std::string &contentType) {
     setupCurl();
     curlInputBuffer.clear();
     char error[1024];
     std::string fullUrl = "http://" + ipAddress + url;
     curl_easy_setopt(curl, CURLOPT_URL, fullUrl.c_str());
     curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, &error);
-    bool retValue = false;
-    int i = curl_easy_perform(curl);
-    if (i == CURLE_OK) {
-        wxJSONReader reader;
-        reader.Parse(curlInputBuffer, &val);
-        retValue = true;
+    if (username != "") {
+        curl_easy_setopt(curl, CURLOPT_USERNAME, username.c_str());
+        curl_easy_setopt(curl, CURLOPT_PASSWORD, password.c_str());
+        curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_BASIC | CURLAUTH_DIGEST | CURLAUTH_NEGOTIATE);
     }
-    curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, nullptr);
-    return retValue;
+    
+    struct curl_slist *chunk = nullptr;
+    chunk = curl_slist_append(chunk, "Transfer-Encoding: chunked");
+    std::string ct = "Content-Type: " + contentType;
+    chunk = curl_slist_append(chunk, ct.c_str());
+
+    FPPWriteData data;
+    data.data = (uint8_t*)val.GetData();
+    data.dataSize = val.GetDataLen();
+    curl_easy_setopt(curl, CURLOPT_POST, 1L);
+    curl_easy_setopt(curl, CURLOPT_READFUNCTION, read_callback);
+    curl_easy_setopt(curl, CURLOPT_READDATA, &data);
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
+    int i = curl_easy_perform(curl);
+    curl_slist_free_all(chunk);
+    if (i == CURLE_OK) {
+        long response_code;
+        curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
+        return response_code;
+    }
+    return 500;
+}
+
+bool FPP::GetURLAsJSON(const std::string& url, wxJSONValue& val) {
+    std::string sval;
+    if (GetURLAsString(url, sval)) {
+        wxJSONReader reader;
+        reader.Parse(sval, &val);
+        return true;
+    }
+    return false;
 }
 
 
 bool FPP::AuthenticateAndUpdateVersions() {
     std::string conf;
-    GetURLAsString("/config.php", conf);
-    parseConfig(conf);
-    wxJSONValue val;
-    if (GetURLAsJSON("/fppjson.php?command=getSysInfo&simple", val)) {
-        return isFPP && parseSysInfo(val);
+    if (GetURLAsString("/config.php", conf)) {
+        parseConfig(conf);
+        wxJSONValue val;
+        if (GetURLAsJSON("/fppjson.php?command=getSysInfo&simple", val)) {
+            return isFPP && parseSysInfo(val);
+        }
     }
     return false;
 }
@@ -390,26 +522,12 @@ int FPP::PostToURL(const std::string& url, const std::string &val, const std::st
     addString(memBuffPost, val);
     return PostToURL(url, memBuffPost, contentType);
 }
-int FPP::PostToURL(const std::string& url, const wxMemoryBuffer &val, const std::string &contentType) {
-    wxHTTP http;
-    http.Connect(ipAddress);
-    http.SetMethod("POST");
-    http.SetPostBuffer(contentType, val);
-    std::unique_ptr<wxInputStream> httpStream(http.GetInputStream(wxString(url)));
-    return http.GetResponse();
-}
+
 
 
 bool FPP::uploadFile(const std::string &filename, const std::string &file, bool compress)  {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     static int bufLen = 1024*1024*4; //4MB buffer
-
-    //we cannot use wxHTTP for a few reasons:
-    //1) It doesn't support transfers larger than 2GB, including all headers and boundaries and such
-    //2) It has no way to monitor the bytes transferred
-    //3) Cannot use wxSOCKET_NOWAIT_WRITE (which is much faster) as it doesn't actually check
-    //   if all the data was sent
-    //4) Nothing is virtual so cannot even subclass to fix issues
 
     wxString fn;
     wxString ext;
@@ -423,28 +541,27 @@ bool FPP::uploadFile(const std::string &filename, const std::string &file, bool 
         }
     }
 
-    wxIPV4address address;
-    address.Hostname(ipAddress);
-    address.Service(80);
-
-    size_t fileLen = 0;
-    wxMemoryOutputStream mout;
-
     bool cancelled = false;
     wxProgressDialog progress("FPP Upload", "Transferring " + filename + " to " + ipAddress, 1000, parent, wxPD_CAN_ABORT | wxPD_APP_MODAL | wxPD_AUTO_HIDE);
     logger_base.debug("FPP upload via http of %s.", (const char*)filename.c_str());
     progress.Update(0, "Transferring " + filename + " to " + ipAddress, &cancelled);
     int lastDone = 0;
 
-    std::string ct = "Content-Type: application/octet-stream\r\n\r\n";
-
+    std::string ct = "Content-Type: application/octet-stream";
+    bool deleteFile = false;
+    std::string fullFileName = file;
     if (compress) {
         logger_base.debug("Uploading it compressed.");
         //determine size of gzipped data
         progress.Show();
         unsigned char *rbuf = new unsigned char[bufLen];
         wxFile f_in(file);
-        wxZlibOutputStream zlib(mout, wxZ_DEFAULT_COMPRESSION, wxZLIB_GZIP);
+        
+        fullFileName = file + ".gz";
+        deleteFile = true;
+        
+        wxFileOutputStream f_out(fullFileName);
+        wxZlibOutputStream zlib(f_out, wxZ_DEFAULT_COMPRESSION, wxZLIB_GZIP);
         size_t total = f_in.Length();
         size_t read = 0;
         while (!f_in.Eof()) {
@@ -468,159 +585,94 @@ bool FPP::uploadFile(const std::string &filename, const std::string &file, bool 
             }
         }
         zlib.Close();
-        fileLen = mout.GetOutputStreamBuffer()->GetIntPosition();
         //printf("compressed: %zu to %zu    %zu\n", total, fileLen, fileLen*100/total);
-        mout.GetOutputStreamBuffer()->SetIntPosition(0);
         fn += ".gz";
         ext = ".gz";
-        ct = "Content-Type: application/z-gzip\r\n\r\n";
-
+        ct = "Content-Type: application/z-gzip";
         delete [] rbuf;
     } else {
         logger_base.debug("Uploading it uncompressed.");
         compress = false;
-        wxFile f_in(file);
-        fileLen = f_in.Length();
     }
+    
+    
+    setupCurl();
+    curlInputBuffer.clear();
+    char error[1024];
+    std::string fullUrl = "http://" + ipAddress + "/jqupload.php";
+    curl_easy_setopt(curl, CURLOPT_URL, fullUrl.c_str());
+    curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, &error);
+    if (username != "") {
+        curl_easy_setopt(curl, CURLOPT_USERNAME, username.c_str());
+        curl_easy_setopt(curl, CURLOPT_PASSWORD, password.c_str());
+        curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_BASIC | CURLAUTH_DIGEST | CURLAUTH_NEGOTIATE);
+    }
+    const std::string bound = "----WebKitFormBoundaryb29a7c2fe47b9481";
+    struct curl_slist *chunk = nullptr;
+    std::string ctMime = "Content-Type: multipart/form-data; boundary=" + bound;
+    chunk = curl_slist_append(chunk, "Transfer-Encoding: chunked");
+    chunk = curl_slist_append(chunk, ctMime.c_str());
+    chunk = curl_slist_append(chunk, "X-Requested-With: FPPConnect");
+    chunk = curl_slist_append(chunk, "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.77 Safari/537.36");
+    curl_easy_setopt(curl, CURLOPT_POST, 1L);
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
 
-    wxSocketClient socket(wxSOCKET_NOWAIT_WRITE);
-    if (socket.Connect(address)) {
-        progress.Show();
+    
+    wxMemoryBuffer memBuffPost;
+    addString(memBuffPost, "\r\n--");
+    addString(memBuffPost, bound);
+    addString(memBuffPost,"\r\nContent-Disposition: form-data; name=\"\"\r\n\r\nundefined\r\n--");
+    addString(memBuffPost, bound);
+    addString(memBuffPost,"\r\nContent-Disposition: form-data; name=\"\"\r\n\r\nundefined\r\n--");
+    addString(memBuffPost, bound);
+    addString(memBuffPost, "--\r\n");
+    
+    std::string cd = "Content-Disposition: form-data; name=\"myfile\"; filename=\"";
+    cd += fn.ToStdString();
+    cd += "\"\r\n";
+    wxMemoryBuffer memBuffPre;
+    addString(memBuffPre, "--");
+    addString(memBuffPre, bound);
+    addString(memBuffPre, "\r\n");
+    addString(memBuffPre, cd);
+    addString(memBuffPre, ct);
+    addString(memBuffPre, "\r\n\r\n");
 
-        const std::string bound = "----WebKitFormBoundaryb29a7c2fe47b9481";
+    FPPWriteData data;
+    wxFile fileobj(fullFileName);
+    fileobj.Seek(0);
+    data.data = (uint8_t*)memBuffPre.GetData();
+    data.dataSize = memBuffPre.GetDataLen();
+    data.progress = &progress;
+    data.file = &fileobj;
+    data.postData =  (uint8_t*)memBuffPost.GetData();
+    data.postDataSize = memBuffPost.GetDataLen();
+    curl_easy_setopt(curl, CURLOPT_READFUNCTION, read_callback);
+    curl_easy_setopt(curl, CURLOPT_READDATA, &data);
+    
+    data.progress = &progress;
+    data.progressString = "Transferring " + filename + " to " + ipAddress;
+    data.lastDone = lastDone;
+    data.compressed = compress;
 
-        wxMemoryBuffer memBuffPost;
-        addString(memBuffPost, "\r\n--");
-        addString(memBuffPost, bound);
-        addString(memBuffPost,"\r\nContent-Disposition: form-data; name=\"\"\r\n\r\nundefined\r\n--");
-        addString(memBuffPost, bound);
-        addString(memBuffPost,"\r\nContent-Disposition: form-data; name=\"\"\r\n\r\nundefined\r\n--");
-        addString(memBuffPost, bound);
-        addString(memBuffPost, "--\r\n");
-
-        wxMemoryBuffer memBuffHeader;
-        addString(memBuffHeader, "POST /jqupload.php HTTP/1.1\r\n");
-        addString(memBuffHeader, "Host: " + ipAddress + "\r\n");
-        addString(memBuffHeader, "Connection: close\r\n");
-        addString(memBuffHeader, "Accept: application/json, text/javascript, */*; q=0.01\r\n");
-        addString(memBuffHeader, "Origin: http://" + ipAddress + "\r\n");
-        addString(memBuffHeader, "X-Requested-With: XMLHttpRequest\r\n");
-        addString(memBuffHeader, "Content-Type: multipart/form-data; boundary=" + bound + "\r\n");
-        addString(memBuffHeader, "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.77 Safari/537.36\r\n");
-        addString(memBuffHeader, "DNT: 1\r\n");
-        addString(memBuffHeader, "Referer: http://" + ipAddress + "/uploadfile.php\r\n");
-        addString(memBuffHeader, "Accept-Language: en-US,en;q=0.9\r\n");
-
-
-        unsigned char *rbuf = new unsigned char[bufLen];
-
-
-        std::string cd = "Content-Disposition: form-data; name=\"myfile\"; filename=\"";
-        cd += fn.ToStdString();
-        cd += "\"\r\n";
-        wxMemoryBuffer memBuffPre;
-        addString(memBuffPre, "--");
-        addString(memBuffPre, bound);
-        addString(memBuffPre, "\r\n");
-        addString(memBuffPre, cd);
-        addString(memBuffPre, ct);
-
-        size_t totalLen = fileLen + memBuffPre.GetDataLen() + memBuffPost.GetDataLen();
-        size_t totalWritten = 0;
-        addString(memBuffHeader, wxString::Format("Content-Length: %zu\r\n\r\n", totalLen));
-
-        size_t len = memBuffHeader.GetDataLen();
-        const char *data = (const char *) memBuffHeader.GetData();
-        socket.Write(data, len);
-        size_t written = socket.LastWriteCount();
-        while (written < len) {
-            socket.Write(&data[written], len - written);
-            written += socket.LastWriteCount();
-        }
-
-        len = memBuffPre.GetDataLen();
-        data = (const char *) memBuffPre.GetData();
-        socket.Write(data, len);
-        written = socket.LastWriteCount();
-        while (written < len) {
-            socket.Write(&data[written], len - written);
-            written += socket.LastWriteCount();
-        }
-        totalWritten += written;
-
-        int totalReadFromFile = 0;
-        wxFile f_in(file);
-        while (totalReadFromFile < fileLen) {
-            size_t iRead = 0;
-            if (compress) {
-                iRead = mout.GetOutputStreamBuffer()->Read(rbuf, bufLen);
-            } else {
-                iRead = f_in.Read(rbuf, bufLen);
-            }
-            totalReadFromFile += iRead;
-            if (iRead) {
-                socket.Write(rbuf, iRead);
-                written = socket.LastWriteCount();
-                while (written < iRead) {
-                    socket.Write(&rbuf[written], iRead - written);
-                    written += socket.LastWriteCount();
-                }
-            }
-
-            totalWritten += written;
-
-            size_t donePct = totalWritten;
-            donePct *= compress ? 600 : 1000;
-            donePct /= totalLen;
-            if (compress) {
-                donePct += 333;
-            }
-            //printf("%ld / %ld    (%ld)\n", totalWritten, totalLen, donePct);
-            if (donePct != lastDone) {
-                lastDone = donePct;
-                cancelled = !progress.Update(donePct, "Transferring " + filename + " to " + ipAddress, &cancelled);
-                wxYield();
-            }
-            if (cancelled) {
-                delete [] rbuf;
-                f_in.Close();
-                socket.Close();
-                return cancelled;
-            }
-        }
-        f_in.Close();
-
-        len = memBuffPost.GetDataLen();
-        data = (const char *) memBuffPost.GetData();
-        socket.Write(data, len);
-        written = socket.LastWriteCount();
-        while (written < len) {
-            socket.Write(&data[written], len - written);
-            written += socket.LastWriteCount();
-        }
-        logger_base.debug("Uploaded.");
-        if (compress) {
-            progress.Update(999, "Decompressing " + filename, &cancelled);
-            logger_base.debug("Decompressing.");
-        }
-        socket.Read(rbuf, bufLen-1);
-        int i = socket.LastReadCount();
-        rbuf[i] = 0;
-
-        if (strstr((char *)rbuf, fn.c_str()) != nullptr) {
-            //upload OK, now rename
+    int i = curl_easy_perform(curl);
+    curl_slist_free_all(chunk);
+    if (deleteFile) {
+        wxRemoveFile(fullFileName);
+    }
+    if (i == CURLE_OK) {
+        long response_code;
+        curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
+        if (response_code == 200) {
             std::string val;
             GetURLAsString("/fppxml.php?command=moveFile&file=" + URLEncode(filename + ext), val);
             logger_base.debug("Renaming done.");
+        } else {
+            cancelled = true;
         }
-        progress.Update(1000, wxEmptyString, &cancelled);
-        delete [] rbuf;
-
-        socket.Close();
-        return cancelled;
     }
-
-    return true;
+    progress.Update(1000, wxEmptyString, &cancelled);
+    return data.cancelled;
 }
 
 
@@ -906,7 +958,6 @@ void FPP::SetNewRanges(const std::map<int, int> &rngs) {
         }
         rngList += std::to_string(curFirst) + "-" + std::to_string(curLast);
     }
-    printf("o: %s     n: %s\n", ranges.c_str(), rngList.c_str());
     ranges = rngList;
 }
 
@@ -1218,7 +1269,17 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
                         //if the group count is >1, we need to adjust the number of pixels
                         vs["pixelCount"] = vs["pixelCount"].AsInt() * vs["groupCount"].AsInt();
                     }
-                    stringData["outputs"][port->GetPort() - 1]["virtualStrings"].Append(vs);
+                    std::string vsname = "virtualStrings";
+                    if (pvs->_smartRemote == 2) {
+                        vsname += "B";
+                    } else if (pvs->_smartRemote == 3) {
+                        vsname += "C";
+                    }
+                    if (pvs->_smartRemote >= 1) {
+                        stringData["outputs"][port->GetPort() - 1]["differentialType"] = 1;
+                    }
+                    
+                    stringData["outputs"][port->GetPort() - 1][vsname].Append(vs);
                 }
             } else {
                 wxJSONValue vs;
@@ -1295,6 +1356,28 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
             vs["brightness"] = 100;
             vs["gamma"] = wxString("1.0");
             stringData["outputs"][x]["virtualStrings"].Append(vs);
+        }
+        if ((x & 0x3) == 0) {
+            //need to check the group of 4 to see if we need a smartRemote or not
+            int remoteType = 0;
+            for (int z = 0; z < 4; z++) {
+                if ((x + z) < maxport) {
+                    if (stringData["outputs"][x+z].HasMember("virtualStringsC")) {
+                        remoteType = std::max(remoteType, 3);
+                    } else if (stringData["outputs"][x+z].HasMember("virtualStringsB")) {
+                        remoteType = std::max(remoteType, 2);
+                    } else if (stringData["outputs"][x+z].HasMember("differentialType")) {
+                        remoteType = std::max(remoteType, 1);
+                    }
+                }
+            }
+            if (remoteType) {
+                for (int z = 0; z < 4; z++) {
+                    if ((x + z) < maxport) {
+                        stringData["outputs"][x+z]["differentialType"] = remoteType;
+                    }
+                }
+            }
         }
     }
 

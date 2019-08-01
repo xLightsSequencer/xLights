@@ -1054,7 +1054,7 @@ void DmxModel::DrawFloodOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
     if (pixelStyle == 2) {
         ecolor = beam_color;
     } else {
-        ecolor.alpha = 255;
+        ecolor.alpha = 0;
     }
 
     float rh = ((BoxedScreenLocation)screenLocation).GetMWidth();
@@ -1101,7 +1101,7 @@ void DmxModel::DrawFloodOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumula
     if (pixelStyle == 2) {
         ecolor = beam_color;
     } else {
-        ecolor.alpha = 255;
+        ecolor.alpha = 0;
     }
 
 
@@ -1791,7 +1791,7 @@ void DmxModel::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumula
 
     if (dmx_style_val == DMX_STYLE_MOVING_HEAD_3D) {
         xlColor beam_color_end(beam_color);
-        beam_color.alpha = 0;
+        beam_color_end.alpha = 0;
 
         while (pan_angle_raw > 360.0f) pan_angle_raw -= 360.0f;
         pan_angle_raw = 360.0f - pan_angle_raw;
