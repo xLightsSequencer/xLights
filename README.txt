@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (kevin)  Fix non-functional Reverse setting on fold transition
 2019.37 July 30, 2019
    -- enh (keith)  Add option to SMS plugin to limit messages from a single number
    -- enh (keith)  Fix workflow around creation of new timing tracks

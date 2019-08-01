@@ -168,14 +168,14 @@ namespace
 
    const float PI = 3.14159265359f;
 
-   xlColor foldIn( const ColorBuffer& cb0, const RenderBuffer* rb1, double s, double t, float progress )
+   xlColor foldIn( const ColorBuffer& cb0, const RenderBuffer* rb1, double s, double t, float progress, bool isReverse )
    {
       const double CAMERA_DIST = 2.;
       Vec3D ray( s*2-1, t*2-1, CAMERA_DIST );
       float phi = progress * PI;   // rotation angle
 
       // rotated basis vectors
-      Vec3D rx( RenderBuffer::cos( phi ), 0., -RenderBuffer::sin( phi ) );
+      Vec3D rx( RenderBuffer::cos( phi ), 0., isReverse ? RenderBuffer::sin( phi ) : -RenderBuffer::sin( phi ) );
       Vec3D ry( 0., 1., 0. );
       Vec3D rz( -rx.z, 0., rx.x );
 
@@ -204,14 +204,14 @@ namespace
       return xlBLACK;
    }
 
-   xlColor foldOut( const ColorBuffer& cb0, const RenderBuffer* rb1, double s, double t, float progress )
+   xlColor foldOut( const ColorBuffer& cb0, const RenderBuffer* rb1, double s, double t, float progress, bool isReverse )
    {
       const double CAMERA_DIST = 2.;
       Vec3D ray( s*2-1, t*2-1, CAMERA_DIST );
       float phi = progress * PI;   // rotation angle
 
       // rotated basis vectors
-      Vec3D rx( RenderBuffer::cos( phi ), 0., -RenderBuffer::sin( phi ) );
+      Vec3D rx( RenderBuffer::cos( phi ), 0., isReverse ? RenderBuffer::sin( phi ) : -RenderBuffer::sin( phi ) );
       Vec3D ry( 0., 1., 0. );
       Vec3D rz( -rx.z, 0., rx.x );
 
@@ -238,28 +238,28 @@ namespace
       return xlBLACK;
    }
 
-   void foldIn( RenderBuffer& rb0, const ColorBuffer& cb0, const RenderBuffer* rb1, double progress )
+   void foldIn( RenderBuffer& rb0, const ColorBuffer& cb0, const RenderBuffer* rb1, double progress, bool isReverse )
    {
       if ( progress < 0. || progress > 1. )
          return;
-      parallel_for(0, rb0.BufferHt, [&rb0, &cb0, &rb1, progress](int y) {
+      parallel_for(0, rb0.BufferHt, [&rb0, &cb0, &rb1, progress, isReverse](int y) {
          double t = double( y ) / ( rb0.BufferHt - 1 );
          for ( int x = 0; x < rb0.BufferWi; ++x ) {
             double s = double( x ) / ( rb0.BufferWi - 1 );
-            rb0.SetPixel( x, y, foldIn( cb0, rb1, s, t, progress ) );
+            rb0.SetPixel( x, y, foldIn( cb0, rb1, s, t, progress, isReverse ) );
          }
       }, 25);
    }
 
-   void foldOut( RenderBuffer& rb0, const ColorBuffer& cb0, const RenderBuffer* rb1, double progress )
+   void foldOut( RenderBuffer& rb0, const ColorBuffer& cb0, const RenderBuffer* rb1, double progress, bool isReverse )
    {
       if ( progress < 0. || progress > 1. )
          return;
-      parallel_for(0, rb0.BufferHt, [&rb0, &cb0, &rb1, progress](int y) {
+      parallel_for(0, rb0.BufferHt, [&rb0, &cb0, &rb1, progress, isReverse](int y) {
          double t = double( y ) / ( rb0.BufferHt - 1 );
          for ( int x = 0; x < rb0.BufferWi; ++x ) {
             double s = double( x ) / ( rb0.BufferWi - 1 );
-            rb0.SetPixel( x, y, foldOut( cb0, rb1, s, t, progress ) );
+            rb0.SetPixel( x, y, foldOut( cb0, rb1, s, t, progress, isReverse ) );
          }
       }, 25);
    }
@@ -2306,13 +2306,14 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & va
             }
             if (STR_FOLD == layers[ii]->inTransitionType && EffectPeriod < effStartPer + layers[ii]->fadeInSteps )
             {
+               bool isReverse = layers[ii]->inTransitionReverse;
                RenderBuffer& currentRB(layers[ii]->buffer);
                const RenderBuffer *prevRB = nullptr;
                int fakeLayerIndex = numLayers - 1;
                if ( fakeLayerIndex - ii > 1 )
                   prevRB = &layers[ii+1]->buffer;
                double progress = fadeInFactor;
-               foldIn( currentRB, ColorBuffer( currentRB.pixels, currentRB.BufferWi, currentRB.BufferHt ), prevRB, progress );
+               foldIn( currentRB, ColorBuffer( currentRB.pixels, currentRB.BufferWi, currentRB.BufferHt ), prevRB, progress, isReverse );
             }
 
             if (STR_FADE == layers[ii]->outTransitionType) {
@@ -2331,13 +2332,14 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & va
             {
                if ( EffectPeriod >= effEndPer - layers[ii]->fadeOutSteps )
                {
+                  bool isReverse = layers[ii]->outTransitionReverse;
                   RenderBuffer& currentRB(layers[ii]->buffer);
                   const RenderBuffer *prevRB = nullptr;
                   int fakeLayerIndex = numLayers - 1;
                   if ( fakeLayerIndex - ii > 1 )
                      prevRB = &layers[ii+1]->buffer;
                   double progress = 1. - fadeOutFactor;
-                  foldOut( currentRB, ColorBuffer( currentRB.pixels, currentRB.BufferWi, currentRB.BufferHt ), prevRB, progress );
+                  foldOut( currentRB, ColorBuffer( currentRB.pixels, currentRB.BufferWi, currentRB.BufferHt ), prevRB, progress, isReverse );
                }
             } else {
                layers[ii]->calculateMask(isFirstFrame);
