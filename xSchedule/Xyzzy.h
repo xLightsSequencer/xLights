@@ -7,6 +7,7 @@
 //#define SHOWVIRTUALMATRIX
 
 class MatrixMapper;
+class OutputManager;
 
 #ifdef SHOWVIRTUALMATRIX
 class VirtualMatrix;
@@ -25,6 +26,19 @@ class VirtualMatrix;
 #define ROWSCORE3 500
 #define ROWSCORE4 1000
 #define MINDROPSPEED 50
+
+enum class XYZZY2
+{
+    LEFT,
+    RIGHT,
+    UP,
+    DOWN,
+    EMPTY,
+    HEAD,
+    BODY,
+    TAIL,
+    PILL
+};
 
 class XyzzyPiece
 {
@@ -128,59 +142,98 @@ public:
     virtual int GetType() const override { return 6; }
 };
 
-class Xyzzy 
+class XyzzyBase
 {
-    wxLongLong _lastUpdatedMovement;
-    int _highScore;
-    int _score;
-    std::string _playerName;
-    std::string _highScoreOwner;
-    uint8_t _board[BOARDWIDTH*BOARDHEIGHT];
-    int _colsPerSquare;
-    int _rowsPerSquare;
+protected:
     bool _isOk;
-    XyzzyPiece* _currentPiece;
-    XyzzyPiece* _nextPiece;
-    int _dropSpeed;
+    MatrixMapper* _matrixMapper = nullptr;
+    int _colsPerSquare = 1;
+    int _rowsPerSquare = 1;
     int _sideBorder;
     int _bottomBorder;
-    MatrixMapper* _matrixMapper;
-    bool _gameRunning;
-    wxLongLong _fullTime;
+    int _highScore;
+    int _score = 0;
+    std::string _playerName;
+    std::string _highScoreOwner;
+    wxLongLong _lastUpdatedMovement;
+    bool _gameRunning = false;
+    int _bw = -1;
+    int _bh = -1;
 
 #ifdef SHOWVIRTUALMATRIX
     VirtualMatrix* _virtualMatrix;
 #endif
 
-    void SaveHighScore();
-    std::string GetHighScore() const;
+    void BaseReset();
+    void DrawPixel(int x, int y, wxColour c, uint8_t* buffer, size_t size);
+    void DrawNode(int x, int y, wxColour c, uint8_t* buffer, size_t size);
     std::string GetHighScorePlayer() const { return _highScoreOwner; }
+    std::string GetHighScore() const;
     std::string GetScore() const;
+    std::string GameNotRunningResult(const std::string& reference);
+    virtual void Reset() = 0;
+
+public:
+    XyzzyBase() {};
+    virtual bool Frame(uint8_t* buffer, size_t size, bool outputframe) = 0;
+    virtual void Close(wxString& result, const wxString& reference) = 0;
+    virtual bool Action(const wxString& command, const wxString& parameters, wxString& result, const wxString& reference) = 0;
+    void DoInitialise(const wxString& parameters, wxString& result, const wxString& reference, OutputManager* om);
+    virtual void Initialise(const wxString& parameters, wxString& result, const wxString& reference, OutputManager* om)=0;
+    void DrawBlack(uint8_t* buffer, size_t size);
+    bool IsOk() const { return _isOk; }
+};
+
+class Xyzzy : public XyzzyBase
+{
+    uint8_t _board[BOARDWIDTH*BOARDHEIGHT];
+    XyzzyPiece* _currentPiece;
+    XyzzyPiece* _nextPiece;
+    int _dropSpeed;
+    wxLongLong _fullTime;
+
+    void SaveHighScore();
     std::string GetNextPiece() const;
     bool TestMoveLeft() const;
     bool TestMoveRight() const;
     bool TestMoveDown() const;
     bool TestSpin() const;
     void Drop();
-    void DrawPixel(int x, int y, wxColour c, uint8_t* buffer, size_t size);
     bool AdvanceGame();
     void MakePiecePermanent();
-    std::string GameNotRunningResult(const std::string& reference);
-    void DrawNode(int x, int y, wxColour c, uint8_t* buffer, size_t size);
     void CheckFullRow();
-    void Reset();
+    virtual void Reset() override;
     void AddToScore(int add);
 
 public:
 
         Xyzzy();
-        virtual ~Xyzzy();
-        bool Frame(uint8_t* buffer, size_t size, bool outputframe); 
-        void DrawBlack(uint8_t* buffer, size_t size);
-        void Initialise(const wxString& parameters, wxString& result, const wxString& reference);
-        void Close(wxString& result, const wxString& reference);
-        bool Action(const wxString& command, const wxString& parameters, wxString& result, const wxString& reference);
-        bool IsOk() const { return _isOk; }
+        virtual ~Xyzzy() {}
+        virtual bool Frame(uint8_t* buffer, size_t size, bool outputframe) override; 
+        virtual void Close(wxString& result, const wxString& reference) override;
+        virtual bool Action(const wxString& command, const wxString& parameters, wxString& result, const wxString& reference) override;
+        virtual void Initialise(const wxString& parameters, wxString& result, const wxString& reference, OutputManager* om) override;
+};
+
+class Xyzzy2 : public XyzzyBase
+{
+    XYZZY2 _direction;
+    std::list<wxPoint> _body;
+    wxPoint _pill = wxPoint(-1, -1);
+    std::vector<XYZZY2> _board;
+
+    virtual void Reset() override;
+    void SaveHighScore();
+    bool AdvanceGame();
+    wxPoint RandomPill() const;
+
+public:
+    Xyzzy2();
+    virtual ~Xyzzy2() {}
+    virtual bool Frame(uint8_t* buffer, size_t size, bool outputframe) override;
+    virtual void Close(wxString& result, const wxString& reference) override;
+    virtual bool Action(const wxString& command, const wxString& parameters, wxString& result, const wxString& reference) override;
+    virtual void Initialise(const wxString& parameters, wxString& result, const wxString& reference, OutputManager* om) override;
 };
 
 #endif

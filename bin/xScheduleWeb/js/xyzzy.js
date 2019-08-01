@@ -54,7 +54,6 @@ function openXyzzy() {
     console.log("Loaded Last Matrix Setting");
     $('#matrixList')[0].value = xyzzyMatrix;
   }
-
 }
 
 function startXyzzy() {
@@ -83,7 +82,6 @@ function startXyzzy() {
   } else {
     xyzzyStatus = '3';
   }
-
 }
 
 function xyzzyRestart() {
@@ -91,7 +89,6 @@ function xyzzyRestart() {
   openXyzzy();
   xyzzyStatus = "1";
 }
-
 
 //websocket listener
 socket.addEventListener('message', function(event) {

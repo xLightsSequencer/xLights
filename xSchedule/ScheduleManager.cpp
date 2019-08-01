@@ -4960,16 +4960,26 @@ bool ScheduleManager::DoXyzzy(const wxString& command, const wxString& parameter
 
     if (_xyzzy == nullptr)
     {
-        _xyzzy = new Xyzzy();
+        if (command.EndsWith("2"))
+        {
+            _xyzzy = new Xyzzy2();
+        }
+        else
+        {
+            _xyzzy = new Xyzzy();
+        }
         wxCommandEvent event(EVT_SCHEDULECHANGED);
         wxPostEvent(wxGetApp().GetTopWindow(), event);
     }
 
-    if (command == "initialise")
+    wxString c = command;
+    if (c.EndsWith("2")) c = c.SubString(0, c.Length() - 2);
+
+    if (c == "initialise")
     {
-        _xyzzy->Initialise(parameters, result, reference);
+        _xyzzy->Initialise(parameters, result, reference, _outputManager);
     }
-    else if (command == "close")
+    else if (c == "close")
     {
         // clear the screen
         _xyzzy->DrawBlack(_buffer, _outputManager->GetTotalChannels());
@@ -4983,7 +4993,7 @@ bool ScheduleManager::DoXyzzy(const wxString& command, const wxString& parameter
     }
     else
     {
-        _xyzzy->Action(command, parameters, result, reference);
+        _xyzzy->Action(c, parameters, result, reference);
     }
 
     if (_xyzzy != nullptr && !_xyzzy->IsOk())

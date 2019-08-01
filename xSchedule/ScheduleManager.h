@@ -18,7 +18,7 @@ class OutputManager;
 class RunningSchedule;
 class PlayListStep;
 class OutputProcess;
-class Xyzzy;
+class XyzzyBase;
 class PlayListItem;
 class xScheduleFrame;
 class Pinger;
@@ -89,7 +89,7 @@ class ScheduleManager
     wxDatagramSocket* _fppSyncMasterUnicast;
     std::list<OutputProcess*> _outputProcessing;
     ListenerManager* _listenerManager;
-    Xyzzy* _xyzzy;
+    XyzzyBase* _xyzzy;
     wxDateTime _lastXyzzyCommand;
     int _timerAdjustment;
     bool _webRequestToggle;

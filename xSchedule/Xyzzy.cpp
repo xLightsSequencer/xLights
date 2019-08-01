@@ -6,6 +6,7 @@
 #include <wx/config.h>
 #include <log4cpp/Category.hh>
 #include "xScheduleApp.h"
+#include "../xLights/UtilFunctions.h"
 
 #ifdef SHOWVIRTUALMATRIX
 #include "VirtualMatrix.h"
@@ -24,17 +25,47 @@ void XyzzyPiece::Rotate()
     if (_rotation > 3) _rotation = 0;
 }
 
+void XyzzyBase::BaseReset()
+{
+    _lastUpdatedMovement = wxGetUTCTimeMillis();
+    _gameRunning = false;
+    _score = 0;
+    _playerName = "";
+    _colsPerSquare = 0;
+    _rowsPerSquare = 0;
+    _sideBorder = 0;
+    _bottomBorder = 0;
+    _matrixMapper = nullptr;
+    _isOk = false;
+}
+
+void Xyzzy2::Reset()
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("Xyzzy2 reset.");
+    BaseReset();
+    _board.clear();
+    _body.clear();
+    _pill = wxPoint(-1, -1);
+    _direction = XYZZY2::RIGHT;
+#ifdef SHOWVIRTUALMATRIX
+    if (_virtualMatrix != nullptr)
+    {
+        _virtualMatrix->Stop();
+        delete _virtualMatrix;
+        _virtualMatrix = nullptr;
+    }
+#endif
+    wxCommandEvent event(EVT_XYZZY);
+    wxPostEvent(wxGetApp().GetTopWindow(), event);
+}
+
 void Xyzzy::Reset()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("Xyzzy reset.");
-    _lastUpdatedMovement = wxGetUTCTimeMillis();
-    _score = 0;
-    _playerName = "";
+    BaseReset();
     memset(_board, 0xFF, sizeof(_board));
-    _colsPerSquare = 0;
-    _rowsPerSquare = 0;
-    _isOk = false;
     if (_nextPiece != nullptr)
     {
         delete _nextPiece;
@@ -46,9 +77,6 @@ void Xyzzy::Reset()
         _currentPiece = nullptr;
     }
     _dropSpeed = STARTSPEED;
-    _sideBorder = 0;
-    _bottomBorder = 0;
-    _matrixMapper = nullptr;
     _gameRunning = false;
     _fullTime = 0;
 #ifdef SHOWVIRTUALMATRIX
@@ -88,12 +116,30 @@ Xyzzy::Xyzzy()
     wxPostEvent(wxGetApp().GetTopWindow(), event);
 }
 
-Xyzzy::~Xyzzy()
+Xyzzy2::Xyzzy2()
 {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("Xyzzy2 created.");
 
+    wxConfigBase* config = wxConfigBase::Get();
+    _highScore = config->ReadLong(_("Xyzzy2HighScore"), 0);
+    _highScoreOwner = config->Read(_("Xyzzy2HighScoreOwner"), "").ToStdString();
+
+    logger_base.debug("High score %d %s.", _highScore, (const char*)_highScoreOwner.c_str());
+
+    _matrixMapper = nullptr;
+#ifdef SHOWVIRTUALMATRIX
+    _virtualMatrix = nullptr;
+#endif
+
+    Reset();
+
+    //MatrixMapper::Test();
+    wxCommandEvent event(EVT_XYZZY);
+    wxPostEvent(wxGetApp().GetTopWindow(), event);
 }
 
-void Xyzzy::DrawNode(int x, int y, wxColour c, uint8_t* buffer, size_t size)
+void XyzzyBase::DrawNode(int x, int y, wxColour c, uint8_t* buffer, size_t size)
 {
     if (x < 0 || x >= _matrixMapper->GetWidth()) return;
     if (y < 0 || y >= _matrixMapper->GetHeight()) return;
@@ -115,15 +161,15 @@ void Xyzzy::DrawNode(int x, int y, wxColour c, uint8_t* buffer, size_t size)
     }
 }
 
-void Xyzzy::DrawPixel(int x, int y, wxColour c, uint8_t* buffer, size_t size)
+void XyzzyBase::DrawPixel(int x, int y, wxColour c, uint8_t* buffer, size_t size)
 {
     for (int xout = 0; xout < _colsPerSquare; xout++)
     {
-        if (x >= 0 && x < BOARDWIDTH)
+        if (x >= 0 && x < _bw)
         {
             for (int yout = 0; yout < _rowsPerSquare; yout++)
             {
-                if (y >= 0 && y < BOARDHEIGHT)
+                if (y >= 0 && y < _bh)
                 {
                     DrawNode(_sideBorder + x * _colsPerSquare + xout, _bottomBorder + y * _rowsPerSquare + yout, c, buffer, size);
                 }
@@ -132,7 +178,7 @@ void Xyzzy::DrawPixel(int x, int y, wxColour c, uint8_t* buffer, size_t size)
     }
 }
 
-void Xyzzy::DrawBlack(uint8_t* buffer, size_t size)
+void XyzzyBase::DrawBlack(uint8_t* buffer, size_t size)
 {
     if (_matrixMapper == nullptr) return;
 
@@ -162,9 +208,9 @@ bool Xyzzy::Frame(uint8_t* buffer, size_t size, bool outputframe)
         }
 
         // Erase the board background
-        for (int x = _sideBorder; x < _sideBorder + BOARDWIDTH * _colsPerSquare; x++)
+        for (int x = _sideBorder; x < _sideBorder + _bw * _colsPerSquare; x++)
         {
-            for (int y = _bottomBorder; y < _bottomBorder + BOARDHEIGHT * _rowsPerSquare; y++)
+            for (int y = _bottomBorder; y < _bottomBorder + _bh * _rowsPerSquare; y++)
             {
                 DrawNode(x, y, *wxBLACK, buffer, size);
             }
@@ -180,7 +226,7 @@ bool Xyzzy::Frame(uint8_t* buffer, size_t size, bool outputframe)
             }
         }
         // right
-        for (int x = _sideBorder + BOARDWIDTH * _colsPerSquare; x < _matrixMapper->GetWidth(); x++)
+        for (int x = _sideBorder + _bw * _colsPerSquare; x < _matrixMapper->GetWidth(); x++)
         {
             for (int y = 0; y < _matrixMapper->GetHeight(); y++)
             {
@@ -196,7 +242,7 @@ bool Xyzzy::Frame(uint8_t* buffer, size_t size, bool outputframe)
             }
         }
         // top
-        for (int y = _bottomBorder + BOARDHEIGHT * _rowsPerSquare; y < _matrixMapper->GetHeight(); y++)
+        for (int y = _bottomBorder + _bh * _rowsPerSquare; y < _matrixMapper->GetHeight(); y++)
         {
             for (int x = 0; x < _matrixMapper->GetWidth(); x++)
             {
@@ -205,13 +251,13 @@ bool Xyzzy::Frame(uint8_t* buffer, size_t size, bool outputframe)
         }
 
         // draw the board
-        for (int x = 0; x < BOARDWIDTH; x++)
+        for (int x = 0; x < _bw; x++)
         {
-            for (int y = 0; y < BOARDHEIGHT; y++)
+            for (int y = 0; y < _bh; y++)
             {
-                if (_board[y*BOARDWIDTH + x] != 0xFF)
+                if (_board[y*_bw + x] != 0xFF)
                 {
-                    DrawPixel(x, y, __colours[_board[y*BOARDWIDTH + x]], buffer, size);
+                    DrawPixel(x, y, __colours[_board[y*_bw + x]], buffer, size);
                 }
             }
         }
@@ -226,7 +272,7 @@ bool Xyzzy::Frame(uint8_t* buffer, size_t size, bool outputframe)
 
             for (int i = 0; i < _currentPiece->GetY(); ++i)
             {
-                if (_board[i * BOARDWIDTH + _currentPiece->GetX()] == 0xFF)
+                if (_board[i * _bw + _currentPiece->GetX()] == 0xFF)
                 {
                     bool found = false;
                     for (auto it = pixels.begin(); it != pixels.end(); ++it)
@@ -256,8 +302,93 @@ bool Xyzzy::Frame(uint8_t* buffer, size_t size, bool outputframe)
     return true;
 }
 
+bool Xyzzy2::Frame(uint8_t* buffer, size_t size, bool outputframe)
+{
+    if (_matrixMapper == nullptr) return false;
+
+    // actuall advance the game
+    AdvanceGame();
+
+    if (outputframe)
+    {
+        wxColor colour = *wxLIGHT_GREY;
+
+        if (!_gameRunning)
+        {
+            colour = *wxRED;
+        }
+
+        // draw borders
+        // left
+        for (int x = 0; x < _sideBorder; x++)
+        {
+            for (int y = 0; y < _matrixMapper->GetHeight(); y++)
+            {
+                DrawNode(x, y, colour, buffer, size);
+            }
+        }
+        // right
+        for (int x = _sideBorder + _bw * _colsPerSquare; x < _matrixMapper->GetWidth(); x++)
+        {
+            for (int y = 0; y < _matrixMapper->GetHeight(); y++)
+            {
+                DrawNode(x, y, colour, buffer, size);
+            }
+        }
+        // bottom
+        for (int y = 0; y < _bottomBorder; y++)
+        {
+            for (int x = 0; x < _matrixMapper->GetWidth(); x++)
+            {
+                DrawNode(x, y, colour, buffer, size);
+            }
+        }
+        // top
+        for (int y = _bottomBorder + _bh * _rowsPerSquare; y < _matrixMapper->GetHeight(); y++)
+        {
+            for (int x = 0; x < _matrixMapper->GetWidth(); x++)
+            {
+                DrawNode(x, y, colour, buffer, size);
+            }
+        }
+
+        // draw the board
+        for (int x = 0; x < _bw; x++)
+        {
+            for (int y = 0; y < _bh; y++)
+            {
+                if (_board[y * _bw + x] == XYZZY2::PILL)
+                {
+                    DrawPixel(x, y, *wxBLUE, buffer, size);
+                }
+                else if (_board[y * _bw + x] == XYZZY2::HEAD)
+                {
+                    DrawPixel(x, y, *wxYELLOW, buffer, size);
+                }
+                else if (_board[y * _bw + x] == XYZZY2::TAIL || _board[y * _bw + x] == XYZZY2::BODY)
+                {
+                    DrawPixel(x, y, *wxGREEN, buffer, size);
+                }
+                else
+                {
+                    DrawPixel(x, y, *wxBLACK, buffer, size);
+                }
+            }
+        }
+
+#ifdef SHOWVIRTUALMATRIX
+        if (_virtualMatrix != nullptr)
+        {
+            _virtualMatrix->Frame(buffer, size);
+        }
+#endif
+    }
+
+    return true;
+}
+
 // <matrix name>
-void Xyzzy::Initialise(const wxString& parameters, wxString& result, const wxString& reference)
+void XyzzyBase::DoInitialise(const wxString& parameters, wxString& result, const wxString& reference, OutputManager* om)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("Xyzzy initialising.");
@@ -278,14 +409,30 @@ void Xyzzy::Initialise(const wxString& parameters, wxString& result, const wxStr
     }
 
     auto m = xScheduleFrame::GetScheduleManager()->GetOptions()->GetMatrices();
-
-    for (auto it = m->begin(); it != m->end(); ++it)
+    for (auto it : *m)
     {
-        if (wxString((*it)->GetName()).Lower() == p[0].Lower())
+        if (wxString(it->GetName()).Lower() == p[0].Lower())
         {
-            _matrixMapper = *it;
+            _matrixMapper = it;
             break;
         }
+    }
+
+    if (_matrixMapper != nullptr)
+    {
+        if (_bw == -1) {
+            _bw = _matrixMapper->GetWidth();
+            _bh = _matrixMapper->GetHeight();
+        }
+
+        _colsPerSquare = _matrixMapper->GetWidth() / _bw;
+        _rowsPerSquare = _matrixMapper->GetHeight() / _bh;
+
+        if (_colsPerSquare > 2 * _rowsPerSquare) _colsPerSquare = 2 * _rowsPerSquare;
+        if (_rowsPerSquare > 2 * _colsPerSquare) _rowsPerSquare = 2 * _colsPerSquare;
+
+        _sideBorder = (_matrixMapper->GetWidth() - (_bw * _colsPerSquare)) / 2;
+        _bottomBorder = (_matrixMapper->GetHeight() - (_bh * _rowsPerSquare)) / 2;
     }
 
     if (_matrixMapper == nullptr)
@@ -297,24 +444,15 @@ void Xyzzy::Initialise(const wxString& parameters, wxString& result, const wxStr
         return;
     }
 
-    _colsPerSquare = _matrixMapper->GetWidth() / BOARDWIDTH;
-    _rowsPerSquare = _matrixMapper->GetHeight() / BOARDHEIGHT;
-
-    if (_colsPerSquare > 2 * _rowsPerSquare) _colsPerSquare = 2 * _rowsPerSquare;
-    if (_rowsPerSquare > 2 * _colsPerSquare) _rowsPerSquare = 2 * _colsPerSquare;
-
-    _sideBorder = (_matrixMapper->GetWidth() - (BOARDWIDTH * _colsPerSquare)) / 2;
-    _bottomBorder = (_matrixMapper->GetHeight() - (BOARDHEIGHT * _rowsPerSquare)) / 2;
-
 #ifdef SHOWVIRTUALMATRIX
     if (_virtualMatrix == nullptr)
     {
-        _virtualMatrix = new VirtualMatrix();
+        _virtualMatrix = new VirtualMatrix(om);
         _virtualMatrix->SetWidth(_matrixMapper->GetWidth());
         _virtualMatrix->SetHeight(_matrixMapper->GetHeight());
         _virtualMatrix->SetStartChannel(_matrixMapper->GetStartChannel());
         _virtualMatrix->SetTopMost(true);
-        _virtualMatrix->SetScalingQuality(wxIMAGE_QUALITY_NORMAL);
+        _virtualMatrix->SetScalingQuality(wxIMAGE_QUALITY_NORMAL, -1);
         if (p.Count() == 3 && p[2] == "90")
         {
             _virtualMatrix->SetRotation(VMROTATION::VM_90);
@@ -388,7 +526,34 @@ void Xyzzy::Close(wxString& result, const wxString& reference)
     wxPostEvent(wxGetApp().GetTopWindow(), event);
 }
 
-std::string Xyzzy::GameNotRunningResult(const std::string& reference)
+void Xyzzy2::Close(wxString& result, const wxString& reference)
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("Xyzzy2 closing.");
+
+#ifdef SHOWVIRTUALMATRIX
+    if (_virtualMatrix != nullptr)
+    {
+        _virtualMatrix->Stop();
+        delete _virtualMatrix;
+        _virtualMatrix = nullptr;
+    }
+#endif
+
+    SaveHighScore();
+
+    _matrixMapper = nullptr;
+    _gameRunning = false;
+    result = "{\"result\":\"ok\",\"message\":\"Initialised.\",\"highscore\":\"" + GetHighScore() +
+        "\",\"r\":\"" + reference +
+        "\",\"highscoreplayer\":\"" + GetHighScorePlayer() +
+        "\"}";
+
+    wxCommandEvent event(EVT_XYZZY);
+    wxPostEvent(wxGetApp().GetTopWindow(), event);
+}
+
+std::string XyzzyBase::GameNotRunningResult(const std::string& reference)
 {
     if (_isOk)
     {
@@ -614,12 +779,266 @@ bool Xyzzy::Action(const wxString& command, const wxString& parameters, wxString
     return true;
 }
 
-std::string Xyzzy::GetHighScore() const
+void Xyzzy::Initialise(const wxString& parameters, wxString& result, const wxString& reference, OutputManager* om)
+{
+    _bw = BOARDWIDTH;
+    _bh = BOARDHEIGHT;
+    DoInitialise(parameters, result, reference, om);
+}
+
+void Xyzzy2::Initialise(const wxString& parameters, wxString& result, const wxString& reference, OutputManager* om)
+{
+    auto p = wxSplit(parameters, ',');
+
+    if (p.Count() < 2)
+    {
+    }
+    else
+    {
+        auto m = xScheduleFrame::GetScheduleManager()->GetOptions()->GetMatrices();
+        for (auto it : *m)
+        {
+            if (wxString(it->GetName()).Lower() == p[0].Lower())
+            {
+                _bw = it->GetWidth();
+                _bh = it->GetHeight();
+
+                if (_bw >= _bh)
+                {
+                    if (_bw > 21) _bw = 21;
+                    if (_bh > 14) _bh = 14;
+
+                    if (_bw < 21 || _bh < 14)
+                    {
+                        _bw = it->GetWidth();
+                        _bh = it->GetHeight();
+                    }
+                }
+                else
+                {
+                    if (_bh > 21) _bh = 21;
+                    if (_bw > 14) _bw = 14;
+
+                    if (_bh < 21 || _bw < 14)
+                    {
+                        _bw = it->GetWidth();
+                        _bh = it->GetHeight();
+                    }
+                }
+            }
+        }
+    }
+    DoInitialise(parameters, result, reference, om);
+    _board.resize(_bw * _bh);
+    for (auto& it : _board)
+    {
+        it = XYZZY2::EMPTY;
+    }
+}
+
+wxPoint Xyzzy2::RandomPill() const
+{
+    if (_body.size() >= _bw * _bh)
+    {
+        // full grid
+        return wxPoint(-1, -1);
+    }
+    wxPoint p;
+    do
+    {
+        p = wxPoint(rand01() * _bw, rand01() * _bh);
+    } while (std::find(_body.begin(), _body.end(), p) != _body.end());
+    return p;
+}
+
+bool Xyzzy2::Action(const wxString& command, const wxString& parameters, wxString& result, const wxString& reference)
+{
+    if (command == "q") // query state
+    {
+        if (_gameRunning)
+        {
+            result = "{\"result\":\"running\",\"score\":\"" +
+                GetScore() + "\",\"r\":\"" +
+                reference + "\"}";
+        }
+        else
+        {
+            result = GameNotRunningResult(reference);
+        }
+        return true;
+    }
+    else if (command == "l") // left
+    {
+        if (_gameRunning)
+        {
+            _direction = XYZZY2::LEFT;
+            result = "{\"result\":\"ok\",\"score\":\"" +
+                GetScore() + "\",\"r\":\"" +
+                reference + "\"}";
+            wxCommandEvent event(EVT_XYZZYEVENT);
+            event.SetString("movingleft");
+            wxPostEvent(wxGetApp().GetTopWindow(), event);
+        }
+        else
+        {
+            result = GameNotRunningResult(reference);
+        }
+    }
+    else if (command == "r") // right
+    {
+        if (_gameRunning)
+        {
+                _direction = XYZZY2::RIGHT;
+                result = "{\"result\":\"ok\",\"score\":\"" +
+                    GetScore() + "\",\"r\":\"" +
+                    reference + "\"}";
+                wxCommandEvent event(EVT_XYZZYEVENT);
+                event.SetString("movingright");
+                wxPostEvent(wxGetApp().GetTopWindow(), event);
+        }
+        else
+        {
+            result = GameNotRunningResult(reference);
+        }
+    }
+    else if (command == "u") // up
+    {
+        if (_gameRunning)
+        {
+                _direction = XYZZY2::UP;
+                result = "{\"result\":\"ok\",\"score\":\"" +
+                    GetScore() + "\",\"r\":\"" +
+                    reference + "\"}";
+                wxCommandEvent event(EVT_XYZZYEVENT);
+                event.SetString("movingup");
+                wxPostEvent(wxGetApp().GetTopWindow(), event);
+        }
+        else
+        {
+            result = GameNotRunningResult(reference);
+        }
+    }
+    else if (command == "d") // down
+    {
+        if (_gameRunning)
+        {
+            _direction = XYZZY2::DOWN;
+            result = "{\"result\":\"ok\",\"score\":\"" +
+                GetScore() + "\",\"r\":\"" +
+                reference + "\"}";
+            wxCommandEvent event(EVT_XYZZYEVENT);
+            event.SetString("movingdown");
+            wxPostEvent(wxGetApp().GetTopWindow(), event);
+        }
+        else
+        {
+            result = GameNotRunningResult(reference);
+        }
+    }
+    else if (command == "c") // quit game ... but dont close it
+    {
+        if (_gameRunning)
+        {
+            _gameRunning = false;
+            SaveHighScore();
+            result = "{\"result\":\"ok\",\"score\":\"" + GetScore() +
+                "\",\"playername\":\"" + _playerName +
+                "\",\"r\":\"" + reference +
+                "\",\"highscore\":\"" + GetHighScore() +
+                "\",\"highscoreplayer\":\"" + GetHighScorePlayer() +
+                "\"}";
+            wxCommandEvent event(EVT_XYZZYEVENT);
+            event.SetString("gamestopped");
+            wxPostEvent(wxGetApp().GetTopWindow(), event);
+        }
+        else
+        {
+            result = GameNotRunningResult(reference);
+        }
+    }
+    else if (command == "g") // start game
+    {
+        if (_gameRunning)
+        {
+            result = "{\"result\":\"failed\",\"score\":\"" +
+                GetScore() + "\",\"r\":\"" +
+                reference + "\"}";
+        }
+        else
+        {
+            if (parameters != "")
+            {
+                _playerName = parameters;
+            }
+
+            _direction = XYZZY2::RIGHT;
+            _body.clear();
+            _body.push_back(wxPoint(1, rand01() * _bh - 1));
+            _body.push_back(wxPoint(0, _body.front().y));
+            _lastUpdatedMovement = wxGetUTCTimeMillis();
+            _board.clear();
+            _board.resize(_bw * _bh);
+            for (auto& it : _board)
+            {
+                it = XYZZY2::EMPTY;
+            }
+            for (auto it : _body)
+            {
+                if (it == _body.front())
+                {
+                    _board[it.x + it.y * _bw] = XYZZY2::HEAD;
+                }
+                else if (it == _body.back())
+                {
+                    _board[it.x + it.y * _bw] = XYZZY2::TAIL;
+                }
+                else
+                {
+                    _board[it.x + it.y * _bw] = XYZZY2::BODY;
+                }
+            }
+            _pill = wxPoint(rand01() * _bw / 2 + _bw / 2 - 1, rand01() * _bh - 1);
+            _board[_pill.x + _pill.y * _bw] = XYZZY2::PILL;
+            _score = 0;
+            if (parameters != "")
+            {
+                _playerName = parameters;
+            }
+            _gameRunning = true;
+            result = "{\"result\":\"ok\",\"score\":\"" +
+                GetScore() + "\",\"r\":\"" +
+                reference + "\"}";
+            wxCommandEvent event(EVT_XYZZYEVENT);
+            event.SetString("gamestarted");
+            wxPostEvent(wxGetApp().GetTopWindow(), event);
+        }
+    }
+    else if (command == "reset") // reset to pristine state
+    {
+        Reset();
+        result = "{\"result\":\"ok\",\"r\":\"" + reference + "\"}";
+        wxCommandEvent event(EVT_XYZZYEVENT);
+        event.SetString("gamereset");
+        wxPostEvent(wxGetApp().GetTopWindow(), event);
+    }
+    else
+    {
+        result = "{\"result\":\"failed\",\"r\":\"" +
+            reference + "\",\"message\":\"Unknown command '" + command + "'.\"}";
+    }
+
+    wxCommandEvent event(EVT_XYZZY);
+    wxPostEvent(wxGetApp().GetTopWindow(), event);
+
+    return true;
+}
+
+std::string XyzzyBase::GetHighScore() const
 {
     return wxString::Format(wxT("%i"), _highScore).ToStdString();
 }
 
-std::string Xyzzy::GetScore() const
+std::string XyzzyBase::GetScore() const
 {
     return wxString::Format(wxT("%i"), _score).ToStdString();
 }
@@ -633,12 +1052,12 @@ bool Xyzzy::TestMoveLeft() const
 {
     auto pts = _currentPiece->TestLeft();
 
-    for (auto it = pts.begin(); it != pts.end(); ++it)
+    for (auto it : pts)
     {
-        if (it->y < BOARDHEIGHT)
+        if (it.y < _bh)
         {
-            if (it->x < 0) return false;
-            if (_board[(it->y) * BOARDWIDTH + it->x] != 0xFF) return false;
+            if (it.x < 0) return false;
+            if (_board[(it.y) * _bw + it.x] != 0xFF) return false;
         }
     }
 
@@ -649,12 +1068,12 @@ bool Xyzzy::TestMoveRight() const
 {
     auto pts = _currentPiece->TestRight();
 
-    for (auto it = pts.begin(); it != pts.end(); ++it)
+    for (auto it : pts)
     {
-        if (it->y < BOARDHEIGHT)
+        if (it.y < _bh)
         {
-            if (it->x >= BOARDWIDTH) return false;
-            if (_board[(it->y) * BOARDWIDTH + it->x] != 0xFF) return false;
+            if (it.x >= _bw) return false;
+            if (_board[(it.y) * _bw + it.x] != 0xFF) return false;
         }
     }
 
@@ -665,14 +1084,14 @@ bool Xyzzy::TestSpin() const
 {
     auto pts = _currentPiece->TestRotate();
 
-    for (auto it = pts.begin(); it != pts.end(); ++it)
+    for (auto it : pts)
     {
-        if (it->x < 0) return false;
-        if (it->x >= BOARDWIDTH) return false;
+        if (it.x < 0) return false;
+        if (it.x >= _bw) return false;
 
-        if (it->y < BOARDHEIGHT)
+        if (it.y < _bh)
         {
-            if (_board[(it->y) * BOARDWIDTH + it->x] != 0xFF) return false;
+            if (_board[(it.y) * _bw + it.x] != 0xFF) return false;
         }
     }
 
@@ -693,7 +1112,7 @@ void Xyzzy::Drop()
     auto loc = _currentPiece->DrawPoints();
     for (auto it = loc.begin(); it != loc.end(); ++it)
     {
-        if (it->y >= BOARDHEIGHT)
+        if (it->y >= _bh)
         {
             SaveHighScore();
             _gameRunning = false;
@@ -728,10 +1147,10 @@ bool Xyzzy::TestMoveDown() const
 
     for (auto it = pts.begin(); it != pts.end(); ++it)
     {
-        if (it->y < BOARDHEIGHT)
+        if (it->y < _bh)
         {
             if (it->y < 0) return false;
-            if (_board[(it->y) * BOARDWIDTH + it->x] != 0xFF) return false;
+            if (_board[(it->y) * _bw + it->x] != 0xFF) return false;
         }
     }
 
@@ -743,7 +1162,7 @@ void Xyzzy::MakePiecePermanent()
     auto pixels = _currentPiece->DrawPoints();
     for (auto it = pixels.begin(); it != pixels.end(); ++it)
     {
-        _board[it->y * BOARDWIDTH + it->x] = _currentPiece->GetType();
+        _board[it->y * _bw + it->x] = _currentPiece->GetType();
     }
 }
 
@@ -1061,18 +1480,18 @@ bool Xyzzy::AdvanceGame()
     {
         _fullTime = 0;
         // clear any white rows
-        for (int y = 0; y < BOARDHEIGHT; y++)
+        for (int y = 0; y < _bh; y++)
         {
-            if (_board[y * BOARDWIDTH] == 7)
+            if (_board[y * _bw] == 7)
             {
-                if (y < BOARDHEIGHT - 1)
+                if (y < _bh - 1)
                 {
                     // move the rows down
-                    memcpy(&_board[y * BOARDWIDTH], &_board[(y + 1)*BOARDWIDTH], (BOARDHEIGHT - y - 1) * BOARDWIDTH);
+                    memcpy(&_board[y * _bw], &_board[(y + 1)*_bw], (_bh - y - 1) * _bw);
                 }
 
                 // blank top row
-                memset(&_board[(BOARDHEIGHT - 1) * BOARDWIDTH], 0xFF, BOARDWIDTH);
+                memset(&_board[(_bh - 1) * _bw], 0xFF, _bw);
                 y--;
             }
         }
@@ -1118,7 +1537,7 @@ bool Xyzzy::AdvanceGame()
             auto loc = _currentPiece->DrawPoints();
             for (auto it = loc.begin(); it != loc.end(); ++it)
             {
-                if (it->y >= BOARDHEIGHT)
+                if (it->y >= _bh)
                 {
                     SaveHighScore();
                     _gameRunning = false;
@@ -1140,18 +1559,95 @@ bool Xyzzy::AdvanceGame()
     return false;
 }
 
+// true when game over
+bool Xyzzy2::AdvanceGame()
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    if (!_gameRunning) return false;
+
+    auto elapsed = (wxGetUTCTimeMillis() - _lastUpdatedMovement).ToLong();
+
+    int frametime = 300;
+    frametime -= _score * 5;
+    if (frametime < 100) frametime = 100;
+
+    if (elapsed > frametime)
+    {
+        _lastUpdatedMovement = wxGetUTCTimeMillis();
+
+        wxPoint np = _body.front();
+        switch (_direction)
+        {
+        case XYZZY2::LEFT:
+            np = wxPoint(np.x - 1, np.y);
+            break;
+        case XYZZY2::RIGHT:
+            np = wxPoint(np.x + 1, np.y);
+            break;
+        case XYZZY2::UP:
+            np = wxPoint(np.x, np.y + 1);
+            break;
+        case XYZZY2::DOWN:
+            np = wxPoint(np.x, np.y - 1);
+            break;
+        }
+
+        if (np.x < 0 || np.x >= _bw || np.y < 0 || np.y >= _bh || std::find(_body.begin(), _body.end(), np) != _body.end())
+        {
+            SaveHighScore();
+            _gameRunning = false;
+            return true;
+        }
+
+        _body.push_front(np);
+        if (np != _pill)
+        {
+            _body.pop_back();
+        }
+        else
+        {
+            _score++;
+            _pill = RandomPill();
+        }
+
+        for (auto& it : _board)
+        {
+            it = XYZZY2::EMPTY;
+        }
+        for (auto it : _body)
+        {
+            if (it == _body.front())
+            {
+                _board[it.x + it.y * _bw] = XYZZY2::HEAD;
+            }
+            else if (it == _body.back())
+            {
+                _board[it.x + it.y * _bw] = XYZZY2::TAIL;
+            }
+            else
+            {
+                _board[it.x + it.y * _bw] = XYZZY2::BODY;
+            }
+        }
+        _board[_pill.x + _pill.y * _bw] = XYZZY2::PILL;
+    }
+
+    // do game updates here
+    return false;
+}
+
 void Xyzzy::CheckFullRow()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     // now check if any row is complete
     int fullcount = 0;
-    for (int y = 0; y < BOARDHEIGHT; y++)
+    for (int y = 0; y < _bh; y++)
     {
         bool full = true;
-        for (int x = 0; x < BOARDWIDTH; x++)
+        for (int x = 0; x < _bw; x++)
         {
-            if (_board[y * BOARDWIDTH + x] == 0xFF)
+            if (_board[y * _bw + x] == 0xFF)
             {
                 full = false;
                 break;
@@ -1161,9 +1657,9 @@ void Xyzzy::CheckFullRow()
         if (full)
         {
             fullcount++;
-            for (int x = 0; x < BOARDWIDTH; x++)
+            for (int x = 0; x < _bw; x++)
             {
-                _board[y * BOARDWIDTH + x] = 7;
+                _board[y * _bw + x] = 7;
                 _fullTime = wxGetUTCTimeMillis();
             }
         }
@@ -1212,6 +1708,23 @@ void Xyzzy::SaveHighScore()
         wxConfigBase* config = wxConfigBase::Get();
         config->Write(_("XyzzyHighScore"), _highScore);
         config->Write(_("XyzzyHighScoreOwner"), wxString(_highScoreOwner));
+        config->Flush();
+
+        wxCommandEvent event(EVT_XYZZY);
+        wxPostEvent(wxGetApp().GetTopWindow(), event);
+    }
+}
+
+void Xyzzy2::SaveHighScore()
+{
+    if (_score > _highScore)
+    {
+        _highScore = _score;
+        _highScoreOwner = _playerName;
+
+        wxConfigBase* config = wxConfigBase::Get();
+        config->Write(_("Xyzzy2HighScore"), _highScore);
+        config->Write(_("Xyzzy2HighScoreOwner"), wxString(_highScoreOwner));
         config->Flush();
 
         wxCommandEvent event(EVT_XYZZY);

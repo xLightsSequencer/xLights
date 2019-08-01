@@ -467,6 +467,22 @@ bool MyRequestHandler(HttpConnection &connection, HttpRequest &request)
 
         res = true;
     }
+    else if (request.URI().Lower().StartsWith("/xyzzy2"))
+    {
+        wxURI url(request.URI().Lower());
+        std::map<wxString, wxString> parms = ParseURI(url.BuildUnescapedURI());
+        wxString command = parms["c"];
+        wxString parameters = parms["p"];
+        wxString reference = parms["r"];
+
+        wxString result = ProcessXyzzy(connection, command + "2", parameters, reference);
+
+        HttpResponse response(connection, request, HttpStatus::OK);
+        response.MakeFromText(result, "application/json");
+        connection.SendResponse(response);
+
+        res = true;
+    }
     else if (request.URI().Lower().StartsWith("/xyzzy"))
     {
         wxURI url(request.URI().Lower());
@@ -690,6 +706,13 @@ void MyMessageHandler(HttpConnection& connection, WebSocketMessage& message)
             wxString p = root.Get("Parameters", defaultValue).AsString();
             wxString r = root.Get("Reference", defaultValue).AsString();
             result = ProcessQuery(connection, q, p, r);
+        }
+        else if (type == "xyzzy2")
+        {
+            wxString c = root.Get("c", defaultValue).AsString();
+            wxString p = root.Get("p", defaultValue).AsString();
+            wxString r = root.Get("r", defaultValue).AsString();
+            result = ProcessXyzzy(connection, c + "2", p, r);
         }
         else if (type == "xyzzy")
         {
