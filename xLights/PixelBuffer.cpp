@@ -35,6 +35,7 @@
 #include <random>
 #include "Parallel.h"
 #include "UtilFunctions.h"
+#include "DissolveTransitionPattern.h"
 
 // This is needed for visual studio
 #ifdef _MSC_VER
@@ -145,6 +146,18 @@ namespace
    double dot( const Vec2D& a, const Vec2D& b )
    {
       return a.x * b.x + a.y * b.y;
+   }
+
+      struct LinearInterpolater
+   {
+      double operator()( double t ) const { return t; }
+   };
+
+   template <class T> double interpolate( double x, double loIn, double loOut, double hiIn, double hiOut, const T& interpolater )
+   {
+      return ( loIn != hiIn )
+         ? ( loOut + (hiOut - loOut) * interpolater( (x-loIn)/(hiIn-loIn) ) )
+         : ( (loOut + hiOut) / 2 );
    }
 
    struct Vec3D
@@ -260,6 +273,92 @@ namespace
          for ( int x = 0; x < rb0.BufferWi; ++x ) {
             double s = double( x ) / ( rb0.BufferWi - 1 );
             rb0.SetPixel( x, y, foldOut( cb0, rb1, s, t, progress, isReverse ) );
+         }
+      }, 25);
+   }
+
+   xlColor dissolveTex( double s, double t )
+   {
+      const unsigned char *data = DissolveTransitonPattern;
+      s = CLAMP( 0., s, 1. );
+      t = CLAMP( 0., t, 1. );
+
+      int x = int( s * (DissolvePatternWidth - 1 ) );
+      int y = int( t * (DissolvePatternHeight -1 ) );
+
+      const unsigned char *val = data + y * DissolvePatternWidth + x;
+      return xlColor( *val, *val, *val );
+   }
+
+   xlColor dissolveIn( const ColorBuffer& cb, double s, double t, float progress )
+   {
+      xlColor dissolveColor = dissolveTex( s, t );
+      unsigned char byteProgress = (unsigned char)( 255 * progress );
+      return (dissolveColor.red <= byteProgress) ? tex2D( cb, s, t ) : xlBLACK;
+   }
+
+   void dissolveIn( RenderBuffer& rb0, const ColorBuffer& cb0, double progress )
+   {
+      if ( progress < 0. || progress > 1. )
+         return;
+      parallel_for(0, rb0.BufferHt, [&rb0, &cb0, progress](int y) {
+         double t = double( y ) / ( rb0.BufferHt - 1 );
+         for ( int x = 0; x < rb0.BufferWi; ++x ) {
+            double s = double( x ) / ( rb0.BufferWi - 1 );
+            rb0.SetPixel( x, y, dissolveIn( cb0, s, t, progress ) );
+         }
+      }, 25);
+   }
+
+   xlColor dissolveOut( const ColorBuffer& cb, double s, double t, float progress )
+   {
+      xlColor dissolveColor = dissolveTex( s, t );
+      unsigned char byteProgress = (unsigned char)( 255 * progress );
+      return (dissolveColor.red > byteProgress) ? tex2D( cb, s, t ) : xlBLACK;
+   }
+
+   void dissolveOut( RenderBuffer& rb0, const ColorBuffer& cb0, double progress )
+   {
+      if ( progress < 0. || progress > 1. )
+         return;
+      parallel_for(0, rb0.BufferHt, [&rb0, &cb0, progress](int y) {
+         double t = double( y ) / ( rb0.BufferHt - 1 );
+         for ( int x = 0; x < rb0.BufferWi; ++x ) {
+            double s = double( x ) / ( rb0.BufferWi - 1 );
+            rb0.SetPixel( x, y, dissolveOut( cb0, s, t, progress ) );
+         }
+      }, 25);
+   }
+
+   xlColor circularSwirl( const ColorBuffer& cb, const Vec2D& xy, float speed, double s, double t, float progress )
+   {
+      Vec2D uv( s, t );
+      Vec2D dir( uv - xy );
+      double len = dir.Len();
+
+      double radius = (1. - progress) * 0.70710678;
+      if ( len < radius )
+      {
+         Vec2D rotated( dir.Rotate( -speed * len * progress * PI ) );
+         Vec2D scaled( rotated * (1. - progress) + xy );
+
+         Vec2D newUV( Vec2D::lerp( xy, scaled, 1. - progress ) );
+
+         return tex2D( cb, newUV.x, newUV.y );
+      }
+
+      return xlBLACK;
+   }
+
+   void circularSwirl( RenderBuffer& rb0, const ColorBuffer& cb0, const Vec2D& xy, float speed, double progress )
+   {
+      if ( progress < 0. || progress > 1. )
+         return;
+      parallel_for(0, rb0.BufferHt, [&rb0, &cb0, xy, speed, progress](int y) {
+         double t = double( y ) / ( rb0.BufferHt - 1 );
+         for ( int x = 0; x < rb0.BufferWi; ++x ) {
+            double s = double( x ) / ( rb0.BufferWi - 1 );
+            rb0.SetPixel( x, y, circularSwirl( cb0, xy, speed, s, t, progress ) );
          }
       }, 25);
    }
@@ -1473,6 +1572,8 @@ static const std::string STR_NORMAL("Normal");
 static const std::string STR_NONE("None");
 static const std::string STR_FADE("Fade");
 static const std::string STR_FOLD("Fold");
+static const std::string STR_DISSOLVE("Dissolve");
+static const std::string STR_CIRCULAR_SWIRL("Circular Swirl");
 
 static const std::string CHOICE_In_Transition_Type("CHOICE_In_Transition_Type");
 static const std::string CHOICE_Out_Transition_Type("CHOICE_Out_Transition_Type");
@@ -2315,6 +2416,18 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & va
                double progress = fadeInFactor;
                foldIn( currentRB, ColorBuffer( currentRB.pixels, currentRB.BufferWi, currentRB.BufferHt ), prevRB, progress, isReverse );
             }
+            if (STR_DISSOLVE == layers[ii]->inTransitionType && EffectPeriod < effStartPer + layers[ii]->fadeInSteps )
+            {
+               RenderBuffer& currentRB(layers[ii]->buffer);
+               dissolveIn( currentRB, ColorBuffer( currentRB.pixels, currentRB.BufferWi, currentRB.BufferHt ), fadeInFactor );
+            }
+            if (STR_CIRCULAR_SWIRL == layers[ii]->inTransitionType && EffectPeriod < effStartPer + layers[ii]->fadeInSteps )
+            {
+               RenderBuffer& currentRB(layers[ii]->buffer);
+               Vec2D xy( 0.5, 0.5 );
+               float speed = interpolate( 20., 0.0, 1.0, 40.0, 9.0, LinearInterpolater() );
+               circularSwirl( currentRB, ColorBuffer( currentRB.pixels, currentRB.BufferWi, currentRB.BufferHt ), xy, speed, 1.-fadeInFactor );
+            }
 
             if (STR_FADE == layers[ii]->outTransitionType) {
                 if (fadeOutFactor<1) {
@@ -2328,7 +2441,7 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & va
             } else {
                 layers[ii]->outMaskFactor = fadeOutFactor;
             }
-            if (STR_FOLD == layers[ii]->outTransitionType )
+            if ( STR_FOLD == layers[ii]->outTransitionType )
             {
                if ( EffectPeriod >= effEndPer - layers[ii]->fadeOutSteps )
                {
@@ -2340,6 +2453,25 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & va
                      prevRB = &layers[ii+1]->buffer;
                   double progress = 1. - fadeOutFactor;
                   foldOut( currentRB, ColorBuffer( currentRB.pixels, currentRB.BufferWi, currentRB.BufferHt ), prevRB, progress, isReverse );
+               }
+            }
+            if ( STR_CIRCULAR_SWIRL == layers[ii]->outTransitionType )
+            {
+               if ( EffectPeriod >= effEndPer - layers[ii]->fadeOutSteps )
+               {
+                  RenderBuffer& currentRB(layers[ii]->buffer);
+                  double progress = 1. - fadeOutFactor;
+                  Vec2D xy( 0.5, 0.5 );
+                  float speed = interpolate( 20., 0.0, 1.0, 40.0, 9.0, LinearInterpolater() );
+                  circularSwirl( currentRB, ColorBuffer( currentRB.pixels, currentRB.BufferWi, currentRB.BufferHt ), xy, speed, progress );
+               }
+            }
+            if ( STR_DISSOLVE == layers[ii]->outTransitionType )
+            {
+               if ( EffectPeriod >= effEndPer - layers[ii]->fadeOutSteps )
+               {
+                  RenderBuffer& currentRB(layers[ii]->buffer);
+                  dissolveOut( currentRB, ColorBuffer( currentRB.pixels, currentRB.BufferWi, currentRB.BufferHt ), 1. - fadeOutFactor );
                }
             } else {
                layers[ii]->calculateMask(isFirstFrame);
