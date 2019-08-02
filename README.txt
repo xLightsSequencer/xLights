@@ -1,4 +1,4 @@
-xLights is a show sequencer and player/scheduler designed to control
+﻿xLights is a show sequencer and player/scheduler designed to control
 USB/DMX/sACN(e1.31)/ArtNET(e.1.17)/DDP controllers.
 xLights also integrates with the Falcon Player.
 xLights imports and exports sequence data from sequencers such as LOR (SE, PE & SS),
@@ -11,7 +11,8 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
-   -- bug (kevin)  Fix non-functional Reverse setting on fold transition
+   -- enh (kevin)  Add Dissolve and Circular Swirl transitions
+   -- bug (kevin)  Fix non-functional Reverse setting on Fold transition
 2019.37 July 30, 2019
    -- enh (keith)  Add option to SMS plugin to limit messages from a single number
    -- enh (keith)  Fix workflow around creation of new timing tracks
