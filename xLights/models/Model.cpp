@@ -1000,8 +1000,13 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::OnPropertyGridChange::ModelDimmingCurves");
         return 0;
     } else if (event.GetPropertyName() == "ModelChain") {
-        SetModelChain(event.GetValue().GetString());
-        if (event.GetValue().GetString() != "")
+		std::string modelChain = event.GetValue().GetString();
+		if (modelChain == "Beginning")
+		{
+			modelChain = "";
+		}
+        SetModelChain(modelChain);
+        if (modelChain != "")
         {
             ModelXml->DeleteAttribute("Advanced");
             AdjustStringProperties(grid, parm1);
@@ -4676,7 +4681,7 @@ int Model::GetSmartRemote() const
 void Model::SetModelChain(const std::string& modelChain)
 {
     ModelXml->DeleteAttribute("ModelChain");
-    if (modelChain != "")
+    if (modelChain != "" && modelChain != "Beginning")
     {
         ModelXml->AddAttribute("ModelChain", modelChain);
     }
@@ -4691,7 +4696,12 @@ void Model::SetModelChain(const std::string& modelChain)
 
 std::string Model::GetModelChain() const
 {
-    return ModelXml->GetAttribute("ModelChain", "").ToStdString();
+	const std::string chain = ModelXml->GetAttribute("ModelChain", "").ToStdString();
+	if (chain == "Beginning")
+	{
+		return "";
+	}
+    return chain;
 }
 
 void Model::SetControllerName(const std::string& controller)
