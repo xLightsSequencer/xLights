@@ -395,37 +395,45 @@ PANEL_EVENT_HANDLERS(TimingPanel)
 
 void TimingPanel::OnTransitionTypeSelect(wxCommandEvent& event)
 {
-    if (Choice_In_Transition_Type->GetStringSelection() == "Fade" ||
-        Choice_In_Transition_Type->GetStringSelection() == "Slide Bars" ||
-        Choice_In_Transition_Type->GetStringSelection() == "Blend" ||
-        Choice_In_Transition_Type->GetStringSelection() == "Dissolve" ||
-        Choice_In_Transition_Type->GetStringSelection() == "Circular Swirl" ){
-        CheckBox_In_Reverse->Disable();
-    } else {
-        CheckBox_In_Reverse->Enable();
-    }
-    if (Choice_In_Transition_Type->GetStringSelection() == "Fade" ||
-        Choice_In_Transition_Type->GetStringSelection() == "From Middle" ||
-        Choice_In_Transition_Type->GetStringSelection() == "Square Explode" ||
-        Choice_In_Transition_Type->GetStringSelection() == "Circle Explode" ||
-        Choice_In_Transition_Type->GetStringSelection() == "Fold" ||
-        Choice_In_Transition_Type->GetStringSelection() == "Dissolve" ||
-        Choice_In_Transition_Type->GetStringSelection() == "Circular Swirl" )
-        {
-           Slider_In_Adjust->Disable();
-           TextCtrl_In_Adjust->Disable();
-    }
-    else
-    {
-        Slider_In_Adjust->Enable();
-        TextCtrl_In_Adjust->Enable();
-    }
+   auto inTransitionType = Choice_In_Transition_Type->GetStringSelection();
 
-    if (Choice_Out_Transition_Type->GetStringSelection() == "Fade" ||
-        Choice_Out_Transition_Type->GetStringSelection() == "Slide Bars" ||
-        Choice_Out_Transition_Type->GetStringSelection() == "Blend" ||
-        Choice_Out_Transition_Type->GetStringSelection() == "Dissolve" ||
-        Choice_Out_Transition_Type->GetStringSelection() == "Circular Swirl" )
+   if (  inTransitionType == "Fade" ||
+         inTransitionType == "Slide Bars" ||
+         inTransitionType == "Blend" ||
+         inTransitionType == "Dissolve" ||
+         inTransitionType == "Circular Swirl" )
+   {
+      CheckBox_In_Reverse->Disable();
+   }
+   else
+   {
+      CheckBox_In_Reverse->Enable();
+   }
+
+   if ( inTransitionType == "Fade" ||
+        inTransitionType == "From Middle" ||
+        inTransitionType == "Square Explode" ||
+        inTransitionType == "Circle Explode" ||
+        inTransitionType == "Fold" ||
+        inTransitionType == "Dissolve" ||
+        inTransitionType == "Circular Swirl" )
+   {
+      Slider_In_Adjust->Disable();
+      TextCtrl_In_Adjust->Disable();
+   }
+   else
+   {
+      Slider_In_Adjust->Enable();
+      TextCtrl_In_Adjust->Enable();
+   }
+
+   auto outTransitionType = Choice_Out_Transition_Type->GetStringSelection();
+
+   if ( outTransitionType == "Fade" ||
+        outTransitionType == "Slide Bars" ||
+        outTransitionType == "Blend" ||
+        outTransitionType == "Dissolve" ||
+        outTransitionType == "Circular Swirl" )
     {
        CheckBox_Out_Reverse->Disable();
     }
@@ -433,13 +441,14 @@ void TimingPanel::OnTransitionTypeSelect(wxCommandEvent& event)
     {
        CheckBox_Out_Reverse->Enable();
     }
-    if (Choice_Out_Transition_Type->GetStringSelection() == "Fade" ||
-        Choice_Out_Transition_Type->GetStringSelection() == "From Middle" ||
-        Choice_Out_Transition_Type->GetStringSelection() == "Square Explode" ||
-        Choice_Out_Transition_Type->GetStringSelection() == "Circle Explode" ||
-        Choice_Out_Transition_Type->GetStringSelection() == "Fold" ||
-        Choice_Out_Transition_Type->GetStringSelection() == "Dissolve" ||
-        Choice_Out_Transition_Type->GetStringSelection() == "Circular Swirl" )
+
+    if ( outTransitionType == "Fade" ||
+         outTransitionType == "From Middle" ||
+         outTransitionType == "Square Explode" ||
+         outTransitionType == "Circle Explode" ||
+         outTransitionType == "Fold" ||
+         outTransitionType == "Dissolve" ||
+         outTransitionType == "Circular Swirl" )
     {
        Slider_Out_Adjust->Disable();
        TextCtrl_Out_Adjust->Disable();

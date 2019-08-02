@@ -2425,7 +2425,8 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & va
             {
                RenderBuffer& currentRB(layers[ii]->buffer);
                Vec2D xy( 0.5, 0.5 );
-               float speed = interpolate( 20., 0.0, 1.0, 40.0, 9.0, LinearInterpolater() );
+               //double adjust = 0.01 * layers[ii]->inTransitionAdjust;
+               float speed = interpolate( /*adjust*/0.2, 0.0, 1.0, 40.0, 9.0, LinearInterpolater() );
                circularSwirl( currentRB, ColorBuffer( currentRB.pixels, currentRB.BufferWi, currentRB.BufferHt ), xy, speed, 1.-fadeInFactor );
             }
 
@@ -2462,7 +2463,8 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & va
                   RenderBuffer& currentRB(layers[ii]->buffer);
                   double progress = 1. - fadeOutFactor;
                   Vec2D xy( 0.5, 0.5 );
-                  float speed = interpolate( 20., 0.0, 1.0, 40.0, 9.0, LinearInterpolater() );
+                  //double adjust = 0.01 * layers[ii]->outTransitionAdjust;
+                  float speed = interpolate( /*adjust*/0.2, 0.0, 1.0, 40.0, 9.0, LinearInterpolater() );
                   circularSwirl( currentRB, ColorBuffer( currentRB.pixels, currentRB.BufferWi, currentRB.BufferHt ), xy, speed, progress );
                }
             }
