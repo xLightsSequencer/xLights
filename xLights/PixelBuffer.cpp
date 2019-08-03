@@ -122,6 +122,13 @@ namespace
          float sn = RenderBuffer::sin( fAngle );
          return Vec2D( x*cs + y * sn, -x * sn + y * cs );
       }
+      Vec2D    RotateAbout( double angle, const Vec2D& pt ) const
+      {
+         Vec2D p( *this - pt );
+         p = p.Rotate( angle );
+         return p + pt;
+      }
+
       static Vec2D lerp( const Vec2D& a, const Vec2D& b, double progress )
       {
          double x = a.x + progress * ( b.x - a.x );
@@ -2611,13 +2618,8 @@ void PixelBufferClass::LayerInfo::createFromMiddleMask(bool out) {
     Vec2D p1( w_2, 0. );
     Vec2D p2( w_2, buffer.BufferHt );
 
-    p1 -= Vec2D( w_2, h_2 );
-    p1 = p1.Rotate( M_PI_4 );
-    p1 += Vec2D( w_2, h_2 );
-
-    p2 -= Vec2D( w_2, h_2 );
-    p2 = p2.Rotate( M_PI_4 );
-    p2 += Vec2D( w_2, h_2 );
+    p1 = p1.RotateAbout( M_PI_4, Vec2D( w_2, h_2 ) );
+    p2 = p2.RotateAbout( M_PI_4, Vec2D( w_2, h_2 ) );
 
     double p1_p2_len = p2.Dist( p1 );
     double y2_less_y1 = p2.y - p1.y;
@@ -2627,7 +2629,7 @@ void PixelBufferClass::LayerInfo::createFromMiddleMask(bool out) {
 
     double len = ::sqrt( buffer.BufferWi * buffer.BufferWi + buffer.BufferHt * buffer.BufferHt );
     double step = len / 2.0 * factor;
-#if 1
+
    for (int x = 0; x < BufferWi; ++x )
    {
       for ( int y = 0; y < BufferHt; ++y )
@@ -2637,25 +2639,6 @@ void PixelBufferClass::LayerInfo::createFromMiddleMask(bool out) {
          mask[x * BufferHt + y] = c;
       }
    }
-#else
-    int x1 = BufferWi / 2 - step;
-    int x2 = BufferWi / 2 + step;
-    for (int x = 0; x < BufferWi; x++)
-    {
-        uint8_t c;
-        if (x < x1) {
-            c = m1;
-        } else if (x < x2) {
-            c = m2;
-        } else {
-            c = m1;
-        }
-        for (int y = 0; y < BufferHt; y++)
-        {
-            mask[x * BufferHt + y] = c;
-        }
-    }
-#endif
 }
 
 void PixelBufferClass::LayerInfo::createCircleExplodeMask(bool out) {
