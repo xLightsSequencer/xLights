@@ -2599,6 +2599,7 @@ void PixelBufferClass::LayerInfo::createFromMiddleMask(bool out) {
     bool reverse = inTransitionReverse;
     float factor = inMaskFactor;
     int adjust = inTransitionAdjust;
+
     if (out) {
         reverse = outTransitionReverse;
         factor = outMaskFactor;
@@ -2618,8 +2619,9 @@ void PixelBufferClass::LayerInfo::createFromMiddleMask(bool out) {
     Vec2D p1( w_2, 0. );
     Vec2D p2( w_2, buffer.BufferHt );
 
-    p1 = p1.RotateAbout( M_PI_4, Vec2D( w_2, h_2 ) );
-    p2 = p2.RotateAbout( M_PI_4, Vec2D( w_2, h_2 ) );
+    double angle = interpolate( 0.01 * adjust, 0.0, -M_PI_2, 1.0, M_PI_2, LinearInterpolater() );
+    p1 = p1.RotateAbout( angle, Vec2D( w_2, h_2 ) );
+    p2 = p2.RotateAbout( angle, Vec2D( w_2, h_2 ) );
 
     double p1_p2_len = p2.Dist( p1 );
     double y2_less_y1 = p2.y - p1.y;
