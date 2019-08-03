@@ -2591,9 +2591,11 @@ void PixelBufferClass::LayerInfo::clear() {
 void PixelBufferClass::LayerInfo::createFromMiddleMask(bool out) {
     bool reverse = inTransitionReverse;
     float factor = inMaskFactor;
+    int adjust = inTransitionAdjust;
     if (out) {
         reverse = outTransitionReverse;
         factor = outMaskFactor;
+        adjust = outTransitionAdjust;
     }
     uint8_t m1 = 255;
     uint8_t m2 = 0;
@@ -2604,8 +2606,38 @@ void PixelBufferClass::LayerInfo::createFromMiddleMask(bool out) {
         m2 = 255;
     }
 
-    float step = ((float)buffer.BufferWi / 2.0) * factor;
+    double w_2 = 0.5 * buffer.BufferWi;
+    double h_2 = 0.5 * buffer.BufferHt;
+    Vec2D p1( w_2, 0. );
+    Vec2D p2( w_2, buffer.BufferHt );
 
+    p1 -= Vec2D( w_2, h_2 );
+    p1 = p1.Rotate( M_PI_4 );
+    p1 += Vec2D( w_2, h_2 );
+
+    p2 -= Vec2D( w_2, h_2 );
+    p2 = p2.Rotate( M_PI_4 );
+    p2 += Vec2D( w_2, h_2 );
+
+    double p1_p2_len = p2.Dist( p1 );
+    double y2_less_y1 = p2.y - p1.y;
+    double x2_less_x1 = p2.x - p1.x;
+    double offset = p2.x * p1.y - p2.y * p1.x;
+    uint8_t c = 0;
+
+    double len = ::sqrt( buffer.BufferWi * buffer.BufferWi + buffer.BufferHt * buffer.BufferHt );
+    double step = len / 2.0 * factor;
+#if 1
+   for (int x = 0; x < BufferWi; ++x )
+   {
+      for ( int y = 0; y < BufferHt; ++y )
+      {
+         double dist = std::abs( y2_less_y1 * x - x2_less_x1 * y + offset ) / p1_p2_len;
+         c = (dist > step) ? m1 : m2;
+         mask[x * BufferHt + y] = c;
+      }
+   }
+#else
     int x1 = BufferWi / 2 - step;
     int x2 = BufferWi / 2 + step;
     for (int x = 0; x < BufferWi; x++)
@@ -2623,6 +2655,7 @@ void PixelBufferClass::LayerInfo::createFromMiddleMask(bool out) {
             mask[x * BufferHt + y] = c;
         }
     }
+#endif
 }
 
 void PixelBufferClass::LayerInfo::createCircleExplodeMask(bool out) {

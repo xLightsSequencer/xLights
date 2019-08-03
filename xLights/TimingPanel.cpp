@@ -411,7 +411,7 @@ void TimingPanel::OnTransitionTypeSelect(wxCommandEvent& event)
    }
 
    if ( inTransitionType == "Fade" ||
-        inTransitionType == "From Middle" ||
+        //inTransitionType == "From Middle" ||
         inTransitionType == "Square Explode" ||
         inTransitionType == "Circle Explode" ||
         inTransitionType == "Fold" ||
@@ -443,7 +443,7 @@ void TimingPanel::OnTransitionTypeSelect(wxCommandEvent& event)
     }
 
     if ( outTransitionType == "Fade" ||
-         outTransitionType == "From Middle" ||
+         //outTransitionType == "From Middle" ||
          outTransitionType == "Square Explode" ||
          outTransitionType == "Circle Explode" ||
          outTransitionType == "Fold" ||
