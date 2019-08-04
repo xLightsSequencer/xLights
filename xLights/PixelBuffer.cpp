@@ -1808,6 +1808,23 @@ void ComputeSubBuffer(const std::string &subBuffer, std::vector<NodeBaseClassPtr
         }
     }
 }
+namespace
+{
+   ValueCurve valueCurveFromSettingsMap( const SettingsMap &settingsMap, const std::string& name )
+   {
+      ValueCurve vc;
+      std::string vn = "VALUECURVE_" + name;
+      if ( settingsMap.Contains( vn ) )
+      {
+         std::string serializedVC( settingsMap.Get( vn, "" ) );
+
+         vc.SetDivisor( 1 );
+         vc.SetLimits( 0, 100 );
+         vc.Deserialise( serializedVC );
+      }
+      return vc;
+   }
+}
 
 void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMap) {
     LayerInfo *inf = layers[layer];
@@ -1821,6 +1838,8 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
     inf->outTransitionType = settingsMap.Get(CHOICE_Out_Transition_Type, STR_FADE);
     inf->inTransitionAdjust = settingsMap.GetInt(SLIDER_In_Transition_Adjust, 0);
     inf->outTransitionAdjust = settingsMap.GetInt(SLIDER_Out_Transition_Adjust, 0);
+    inf->InTransitionAdjustValueCurve = valueCurveFromSettingsMap( settingsMap, "In_Transition_Adjust" );
+    inf->OutTransitionAdjustValueCurve = valueCurveFromSettingsMap( settingsMap, "Out_Transition_Adjust" );
     inf->inTransitionReverse = settingsMap.GetBool(CHECKBOX_In_Transition_Reverse);
     inf->outTransitionReverse = settingsMap.GetBool(CHECKBOX_Out_Transition_Reverse);
 
@@ -2599,11 +2618,15 @@ void PixelBufferClass::LayerInfo::createFromMiddleMask(bool out) {
     bool reverse = inTransitionReverse;
     float factor = inMaskFactor;
     int adjust = inTransitionAdjust;
+    if ( InTransitionAdjustValueCurve.IsActive() )
+       adjust = static_cast<int>( InTransitionAdjustValueCurve.GetOutputValueAt( factor, buffer.GetStartTimeMS(), buffer.GetEndTimeMS() ) );
 
     if (out) {
         reverse = outTransitionReverse;
         factor = outMaskFactor;
         adjust = outTransitionAdjust;
+        if ( OutTransitionAdjustValueCurve.IsActive() )
+           adjust = static_cast<int>( OutTransitionAdjustValueCurve.GetOutputValueAt( factor, buffer.GetStartTimeMS(), buffer.GetEndTimeMS() ) );
     }
     uint8_t m1 = 255;
     uint8_t m2 = 0;

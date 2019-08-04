@@ -218,7 +218,7 @@
 														</object>
 														<object class="sizeritem">
 															<object class="wxFlexGridSizer" variable="FlexGridSizer11" member="no">
-																<cols>3</cols>
+																<cols>4</cols>
 																<growablecols>1</growablecols>
 																<object class="sizeritem">
 																	<object class="wxStaticText" name="ID_STATICTEXT_In_Transition_Adjust" variable="InAdjustmentText" member="yes">
@@ -234,6 +234,15 @@
 																		<minsize>25,-1d</minsize>
 																	</object>
 																	<flag>wxALL|wxEXPAND</flag>
+																	<option>1</option>
+																</object>
+																<object class="sizeritem">
+																	<object class="wxBitmapButton" name="ID_VALUECURVE_In_Transition_Adjust" subclass="BulkEditValueCurveButton" variable="BitmapButton_In_Transition_Adjust" member="yes">
+																		<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+																		<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+																	</object>
+																	<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																	<border>5</border>
 																	<option>1</option>
 																</object>
 																<object class="sizeritem">

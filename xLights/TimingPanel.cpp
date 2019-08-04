@@ -35,6 +35,7 @@ const long TimingPanel::ID_STATICTEXT_Fadein = wxNewId();
 const long TimingPanel::ID_TEXTCTRL_Fadein = wxNewId();
 const long TimingPanel::ID_STATICTEXT_In_Transition_Adjust = wxNewId();
 const long TimingPanel::ID_SLIDER_In_Transition_Adjust = wxNewId();
+const long TimingPanel::ID_VALUECURVE_In_Transition_Adjust = wxNewId();
 const long TimingPanel::IDD_TEXTCTRL_In_Transition_Adjust = wxNewId();
 const long TimingPanel::ID_CHECKBOX_In_Transition_Reverse = wxNewId();
 const long TimingPanel::ID_PANEL2 = wxNewId();
@@ -171,13 +172,15 @@ TimingPanel::TimingPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	TextCtrl_Fadein->SetMaxLength(4);
 	FlexGridSizer10->Add(TextCtrl_Fadein, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer6->Add(FlexGridSizer10, 1, wxALL|wxEXPAND, 1);
-	FlexGridSizer11 = new wxFlexGridSizer(0, 3, 0, 0);
+	FlexGridSizer11 = new wxFlexGridSizer(0, 4, 0, 0);
 	FlexGridSizer11->AddGrowableCol(1);
 	InAdjustmentText = new wxStaticText(Panel1, ID_STATICTEXT_In_Transition_Adjust, _("Adjustment"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_In_Transition_Adjust"));
 	FlexGridSizer11->Add(InAdjustmentText, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	Slider_In_Adjust = new BulkEditSlider(Panel1, ID_SLIDER_In_Transition_Adjust, 50, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_In_Transition_Adjust"));
 	Slider_In_Adjust->SetMinSize(wxDLG_UNIT(Panel1,wxSize(25,-1)));
 	FlexGridSizer11->Add(Slider_In_Adjust, 1, wxALL|wxEXPAND, 0);
+	BitmapButton_In_Transition_Adjust = new BulkEditValueCurveButton(Panel1, ID_VALUECURVE_In_Transition_Adjust, wxNullBitmap, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_In_Transition_Adjust"));
+	FlexGridSizer11->Add(BitmapButton_In_Transition_Adjust, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_In_Adjust = new BulkEditTextCtrl(Panel1, IDD_TEXTCTRL_In_Transition_Adjust, _("50"), wxDefaultPosition, wxDLG_UNIT(Panel1,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_In_Transition_Adjust"));
 	FlexGridSizer11->Add(TextCtrl_In_Adjust, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	FlexGridSizer6->Add(FlexGridSizer11, 1, wxALL|wxEXPAND, 1);
@@ -256,6 +259,7 @@ TimingPanel::TimingPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	Connect(ID_CHECKBOX_Canvas,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&TimingPanel::OnCheckBox_CanvasClick);
 	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&TimingPanel::OnButton_LayersClick);
 	Connect(ID_CHOICE_In_Transition_Type,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&TimingPanel::OnTransitionTypeSelect);
+	Connect(ID_VALUECURVE_In_Transition_Adjust,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&TimingPanel::OnVCButtonClick);
 	Connect(ID_CHOICE_Out_Transition_Type,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&TimingPanel::OnTransitionTypeSelect);
 	Panel_Sizer->Connect(wxEVT_SIZE,(wxObjectEventFunction)&TimingPanel::OnResize,0,this);
 	//*)
@@ -263,6 +267,10 @@ TimingPanel::TimingPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
     // Turn off bulk edit for this setting
     Slider_EffectLayerMix->SetSupportsBulkEdit(false);
     TextCtrl_EffectLayerMix->SetSupportsBulkEdit(false);
+
+    Connect( wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&TimingPanel::OnVCChanged, 0, this );
+
+    BitmapButton_In_Transition_Adjust->SetLimits( 0, 100 );
 
     SetName("Timing");
 
@@ -366,9 +374,17 @@ wxString TimingPanel::GetTimingString()
         if (CheckBox_In_Reverse->IsEnabled() && CheckBox_In_Reverse->GetValue()) {
             s+="T_CHECKBOX_In_Transition_Reverse=1,";
         }
-        if (Slider_In_Adjust->IsEnabled()) {
+
+        ValueCurve *pVC = BitmapButton_In_Transition_Adjust->GetValue();
+        if ( pVC->IsActive() )
+         {
+            std::string vc( BitmapButton_In_Transition_Adjust->GetValue()->Serialise() );
+            s += wxString::Format( "T_VALUECURVE_In_Transition_Adjust=%s,", wxString( vc.c_str() ) );
+         }
+         else if ( Slider_In_Adjust->IsEnabled() )
+         {
             s+=wxString::Format("T_SLIDER_In_Transition_Adjust=%d,", Slider_In_Adjust->GetValue());
-        }
+         }
     }
     // Fade Out
     if ("" != TextCtrl_Fadeout->GetValue()
@@ -411,7 +427,6 @@ void TimingPanel::OnTransitionTypeSelect(wxCommandEvent& event)
    }
 
    if ( inTransitionType == "Fade" ||
-        //inTransitionType == "From Middle" ||
         inTransitionType == "Square Explode" ||
         inTransitionType == "Circle Explode" ||
         inTransitionType == "Fold" ||
@@ -443,7 +458,6 @@ void TimingPanel::OnTransitionTypeSelect(wxCommandEvent& event)
     }
 
     if ( outTransitionType == "Fade" ||
-         //outTransitionType == "From Middle" ||
          outTransitionType == "Square Explode" ||
          outTransitionType == "Circle Explode" ||
          outTransitionType == "Fold" ||

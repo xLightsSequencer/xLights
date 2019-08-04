@@ -173,6 +173,8 @@ private:
         ValueCurve PivotPointYValueCurve;
         ValueCurve XPivotValueCurve;
         ValueCurve YPivotValueCurve;
+        ValueCurve InTransitionAdjustValueCurve;
+        ValueCurve OutTransitionAdjustValueCurve;
         int sparkle_count;
         bool use_music_sparkle_count;
         float music_sparkle_count_factor;

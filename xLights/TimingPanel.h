@@ -52,6 +52,7 @@ class TimingPanel: public wxPanel
 		BulkEditTextCtrl* TextCtrl_Fadeout;
 		BulkEditTextCtrl* TextCtrl_In_Adjust;
 		BulkEditTextCtrl* TextCtrl_Out_Adjust;
+		BulkEditValueCurveButton* BitmapButton_In_Transition_Adjust;
 		wxButton* Button_About_Layers;
 		wxButton* Button_Layers;
 		wxCheckBox* CheckBox_LayerMorph;
@@ -85,6 +86,7 @@ class TimingPanel: public wxPanel
 		static const long ID_TEXTCTRL_Fadein;
 		static const long ID_STATICTEXT_In_Transition_Adjust;
 		static const long ID_SLIDER_In_Transition_Adjust;
+		static const long ID_VALUECURVE_In_Transition_Adjust;
 		static const long IDD_TEXTCTRL_In_Transition_Adjust;
 		static const long ID_CHECKBOX_In_Transition_Reverse;
 		static const long ID_PANEL2;
