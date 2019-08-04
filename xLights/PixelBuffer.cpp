@@ -122,6 +122,13 @@ namespace
          float sn = RenderBuffer::sin( fAngle );
          return Vec2D( x*cs + y * sn, -x * sn + y * cs );
       }
+      Vec2D    RotateAbout( double angle, const Vec2D& pt ) const
+      {
+         Vec2D p( *this - pt );
+         p = p.Rotate( angle );
+         return p + pt;
+      }
+
       static Vec2D lerp( const Vec2D& a, const Vec2D& b, double progress )
       {
          double x = a.x + progress * ( b.x - a.x );
@@ -1801,6 +1808,23 @@ void ComputeSubBuffer(const std::string &subBuffer, std::vector<NodeBaseClassPtr
         }
     }
 }
+namespace
+{
+   ValueCurve valueCurveFromSettingsMap( const SettingsMap &settingsMap, const std::string& name )
+   {
+      ValueCurve vc;
+      std::string vn = "VALUECURVE_" + name;
+      if ( settingsMap.Contains( vn ) )
+      {
+         std::string serializedVC( settingsMap.Get( vn, "" ) );
+
+         vc.SetDivisor( 1 );
+         vc.SetLimits( 0, 100 );
+         vc.Deserialise( serializedVC );
+      }
+      return vc;
+   }
+}
 
 void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMap) {
     LayerInfo *inf = layers[layer];
@@ -1814,6 +1838,8 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
     inf->outTransitionType = settingsMap.Get(CHOICE_Out_Transition_Type, STR_FADE);
     inf->inTransitionAdjust = settingsMap.GetInt(SLIDER_In_Transition_Adjust, 0);
     inf->outTransitionAdjust = settingsMap.GetInt(SLIDER_Out_Transition_Adjust, 0);
+    inf->InTransitionAdjustValueCurve = valueCurveFromSettingsMap( settingsMap, "In_Transition_Adjust" );
+    inf->OutTransitionAdjustValueCurve = valueCurveFromSettingsMap( settingsMap, "Out_Transition_Adjust" );
     inf->inTransitionReverse = settingsMap.GetBool(CHECKBOX_In_Transition_Reverse);
     inf->outTransitionReverse = settingsMap.GetBool(CHECKBOX_Out_Transition_Reverse);
 
@@ -2591,9 +2617,16 @@ void PixelBufferClass::LayerInfo::clear() {
 void PixelBufferClass::LayerInfo::createFromMiddleMask(bool out) {
     bool reverse = inTransitionReverse;
     float factor = inMaskFactor;
+    int adjust = inTransitionAdjust;
+    if ( InTransitionAdjustValueCurve.IsActive() )
+       adjust = static_cast<int>( InTransitionAdjustValueCurve.GetOutputValueAt( factor, buffer.GetStartTimeMS(), buffer.GetEndTimeMS() ) );
+
     if (out) {
         reverse = outTransitionReverse;
         factor = outMaskFactor;
+        adjust = outTransitionAdjust;
+        if ( OutTransitionAdjustValueCurve.IsActive() )
+           adjust = static_cast<int>( OutTransitionAdjustValueCurve.GetOutputValueAt( factor, buffer.GetStartTimeMS(), buffer.GetEndTimeMS() ) );
     }
     uint8_t m1 = 255;
     uint8_t m2 = 0;
@@ -2604,25 +2637,33 @@ void PixelBufferClass::LayerInfo::createFromMiddleMask(bool out) {
         m2 = 255;
     }
 
-    float step = ((float)buffer.BufferWi / 2.0) * factor;
+    double w_2 = 0.5 * buffer.BufferWi;
+    double h_2 = 0.5 * buffer.BufferHt;
+    Vec2D p1( w_2, 0. );
+    Vec2D p2( w_2, buffer.BufferHt );
 
-    int x1 = BufferWi / 2 - step;
-    int x2 = BufferWi / 2 + step;
-    for (int x = 0; x < BufferWi; x++)
-    {
-        uint8_t c;
-        if (x < x1) {
-            c = m1;
-        } else if (x < x2) {
-            c = m2;
-        } else {
-            c = m1;
-        }
-        for (int y = 0; y < BufferHt; y++)
-        {
-            mask[x * BufferHt + y] = c;
-        }
-    }
+    double angle = interpolate( 0.01 * adjust, 0.0, -M_PI_2, 1.0, M_PI_2, LinearInterpolater() );
+    p1 = p1.RotateAbout( angle, Vec2D( w_2, h_2 ) );
+    p2 = p2.RotateAbout( angle, Vec2D( w_2, h_2 ) );
+
+    double p1_p2_len = p2.Dist( p1 );
+    double y2_less_y1 = p2.y - p1.y;
+    double x2_less_x1 = p2.x - p1.x;
+    double offset = p2.x * p1.y - p2.y * p1.x;
+    uint8_t c = 0;
+
+    double len = ::sqrt( buffer.BufferWi * buffer.BufferWi + buffer.BufferHt * buffer.BufferHt );
+    double step = len / 2.0 * factor;
+
+   for (int x = 0; x < BufferWi; ++x )
+   {
+      for ( int y = 0; y < BufferHt; ++y )
+      {
+         double dist = std::abs( y2_less_y1 * x - x2_less_x1 * y + offset ) / p1_p2_len;
+         c = (dist > step) ? m1 : m2;
+         mask[x * BufferHt + y] = c;
+      }
+   }
 }
 
 void PixelBufferClass::LayerInfo::createCircleExplodeMask(bool out) {
