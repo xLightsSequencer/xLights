@@ -11,7 +11,8 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
-   -- enh (kevin)  Add Dissolve and Circular Swirl transitions
+   -- enh (kevin)  Enable rotation of "From Middle" transition
+   -- enh (kevin)  Add Dissolve and "Circular Swirl" transitions
    -- bug (kevin)  Fix non-functional Reverse setting on Fold transition
 2019.37 July 30, 2019
    -- enh (keith)  Add option to SMS plugin to limit messages from a single number
