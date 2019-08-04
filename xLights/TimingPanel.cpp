@@ -44,6 +44,7 @@ const long TimingPanel::ID_STATICTEXT_Fadeout = wxNewId();
 const long TimingPanel::ID_TEXTCTRL_Fadeout = wxNewId();
 const long TimingPanel::ID_STATICTEXT_Out_Transition_Adjust = wxNewId();
 const long TimingPanel::ID_SLIDER_Out_Transition_Adjust = wxNewId();
+const long TimingPanel::ID_VALUECURVE_Out_Transition_Adjust = wxNewId();
 const long TimingPanel::IDD_TEXTCTRL_Out_Transition_Adjust = wxNewId();
 const long TimingPanel::ID_CHECKBOX_Out_Transition_Reverse = wxNewId();
 const long TimingPanel::ID_PANEL3 = wxNewId();
@@ -218,13 +219,15 @@ TimingPanel::TimingPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	TextCtrl_Fadeout->SetMaxLength(4);
 	FlexGridSizer12->Add(TextCtrl_Fadeout, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer8->Add(FlexGridSizer12, 1, wxALL|wxEXPAND, 1);
-	FlexGridSizer9 = new wxFlexGridSizer(0, 3, 0, 0);
+	FlexGridSizer9 = new wxFlexGridSizer(0, 4, 0, 0);
 	FlexGridSizer9->AddGrowableCol(1);
 	OutAdjustmentText = new wxStaticText(Panel2, ID_STATICTEXT_Out_Transition_Adjust, _("Adjustment"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Out_Transition_Adjust"));
 	FlexGridSizer9->Add(OutAdjustmentText, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	Slider_Out_Adjust = new BulkEditSlider(Panel2, ID_SLIDER_Out_Transition_Adjust, 50, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Out_Transition_Adjust"));
 	Slider_Out_Adjust->SetMinSize(wxDLG_UNIT(Panel2,wxSize(25,-1)));
 	FlexGridSizer9->Add(Slider_Out_Adjust, 1, wxALL|wxEXPAND, 0);
+	BitmapButton_Out_Transition_Adjust = new BulkEditValueCurveButton(Panel2, ID_VALUECURVE_Out_Transition_Adjust, wxNullBitmap, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Out_Transition_Adjust"));
+	FlexGridSizer9->Add(BitmapButton_Out_Transition_Adjust, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_Out_Adjust = new BulkEditTextCtrl(Panel2, IDD_TEXTCTRL_Out_Transition_Adjust, _("50"), wxDefaultPosition, wxDLG_UNIT(Panel2,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Out_Transition_Adjust"));
 	FlexGridSizer9->Add(TextCtrl_Out_Adjust, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	FlexGridSizer8->Add(FlexGridSizer9, 1, wxALL|wxEXPAND, 1);
@@ -261,6 +264,7 @@ TimingPanel::TimingPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	Connect(ID_CHOICE_In_Transition_Type,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&TimingPanel::OnTransitionTypeSelect);
 	Connect(ID_VALUECURVE_In_Transition_Adjust,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&TimingPanel::OnVCButtonClick);
 	Connect(ID_CHOICE_Out_Transition_Type,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&TimingPanel::OnTransitionTypeSelect);
+	Connect(ID_VALUECURVE_Out_Transition_Adjust,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&TimingPanel::OnVCButtonClick);
 	Panel_Sizer->Connect(wxEVT_SIZE,(wxObjectEventFunction)&TimingPanel::OnResize,0,this);
 	//*)
 
@@ -271,6 +275,7 @@ TimingPanel::TimingPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
     Connect( wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&TimingPanel::OnVCChanged, 0, this );
 
     BitmapButton_In_Transition_Adjust->SetLimits( 0, 100 );
+    BitmapButton_Out_Transition_Adjust->SetLimits( 0, 100 );
 
     SetName("Timing");
 
@@ -383,7 +388,7 @@ wxString TimingPanel::GetTimingString()
          }
          else if ( Slider_In_Adjust->IsEnabled() )
          {
-            s+=wxString::Format("T_SLIDER_In_Transition_Adjust=%d,", Slider_In_Adjust->GetValue());
+            s+=wxString::Format( "T_SLIDER_In_Transition_Adjust=%d,", Slider_In_Adjust->GetValue() );
          }
     }
     // Fade Out
@@ -400,8 +405,16 @@ wxString TimingPanel::GetTimingString()
         if (CheckBox_Out_Reverse->IsEnabled() && CheckBox_Out_Reverse->GetValue()) {
             s+="T_CHECKBOX_Out_Transition_Reverse=1,";
         }
-        if (Slider_Out_Adjust->IsEnabled()) {
-            s+=wxString::Format("T_SLIDER_Out_Transition_Adjust=%d,", Slider_Out_Adjust->GetValue());
+
+        ValueCurve *pVC = BitmapButton_Out_Transition_Adjust->GetValue();
+        if ( pVC->IsActive() )
+        {
+           std::string vc( BitmapButton_Out_Transition_Adjust->GetValue()->Serialise() );
+           s += wxString::Format( "T_VALUECURVE_Out_Transition_Adjust=%s,", wxString( vc.c_str() ) );
+        }
+        else if ( Slider_Out_Adjust->IsEnabled() )
+        {
+           s += wxString::Format( "T_SLIDER_Out_Transition_Adjust=%d,", Slider_Out_Adjust->GetValue() );
         }
     }
     return s;
