@@ -110,8 +110,24 @@ git clone https://github.com/facebook/zstd
 export MACOSX_DEPLOYMENT_TARGET=10.10
 make
 
+log4cpp:
+Download latest src release (current 1.1.3)
+export MACOSX_DEPLOYMENT_TARGET=10.10
+export CXXFLAGS="-stdlib=libc++ -flto=thin -std=c++11 -mmacosx-version-min=10.10"
+export OBJCXXFLAGS="-stdlib=libc++ -flto=thin -std=c++11"
+export CPPFLAGS="-stdlib=libc++ -flto=thin"
+export LDFLAGS="-stdlib=libc++ -flto=thin"
+export CXX=clang++
+export CXXCPP="clang++ -E"
+export CC=clang
+export CPP="clang -E"
+export CFLAGS=""
+./configure --prefix=/opt/local
+make
+cp ./src/.libs/liblog4cpp.5.dylib to the libs/osx dir
 
-SDL2:  currently using 2.0.7
+
+SDL2:  currently using 2.0.10
 
 
 wxWidgets git hash history:
