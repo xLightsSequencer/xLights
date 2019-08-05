@@ -54,6 +54,8 @@ const long MusicPanel::ID_CHOICE_Music_Colour = wxNewId();
 const long MusicPanel::ID_BITMAPBUTTON_CHOICE_Music_Colour = wxNewId();
 const long MusicPanel::ID_CHECKBOX_Music_Fade = wxNewId();
 const long MusicPanel::ID_BITMAPBUTTON_CHECKBOX_Music_Fade = wxNewId();
+const long MusicPanel::ID_CHECKBOX_Music_LogarithmicX = wxNewId();
+const long MusicPanel::ID_BITMAPBUTTON_CHECKBOX_Music_LogarithmicX = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(MusicPanel,wxPanel)
@@ -163,6 +165,7 @@ MusicPanel::MusicPanel(wxWindow* parent)
 	BitmapButton_Music_Scaling = new xlLockButton(this, ID_BITMAPBUTTON_CHOICE_Music_Scaling, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHOICE_Music_Scaling"));
 	BitmapButton_Music_Scaling->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer31->Add(BitmapButton_Music_Scaling, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+
 	StaticText6 = new wxStaticText(this, ID_STATICTEXT_Music_Colour, _("Color"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Music_Colour"));
 	FlexGridSizer31->Add(StaticText6, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	Choice_Music_Colour = new BulkEditChoice(this, ID_CHOICE_Music_Colour, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Music_Colour"));
@@ -174,14 +177,25 @@ MusicPanel::MusicPanel(wxWindow* parent)
 	BitmapButton_Music_Colour = new xlLockButton(this, ID_BITMAPBUTTON_CHOICE_Music_Colour, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHOICE_Music_Colour"));
 	BitmapButton_Music_Colour->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer31->Add(BitmapButton_Music_Colour, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer31->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+
 	CheckBox_Music_Fade = new BulkEditCheckBox(this, ID_CHECKBOX_Music_Fade, _("Fade"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Music_Fade"));
 	CheckBox_Music_Fade->SetValue(false);
+	FlexGridSizer31->Add(-1, -1, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer31->Add(CheckBox_Music_Fade, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer31->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	BitmapButton_Music_Fade = new xlLockButton(this, ID_BITMAPBUTTON_CHECKBOX_Music_Fade, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHECKBOX_Music_Fade"));
 	BitmapButton_Music_Fade->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer31->Add(BitmapButton_Music_Fade, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+
+	CheckBox_Music_LogarithmicXAxis = new BulkEditCheckBox(this, ID_CHECKBOX_Music_LogarithmicX, _("Logarithmic X axis"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Music_LogarithmicX"));
+	CheckBox_Music_LogarithmicXAxis->SetValue(false);
+	FlexGridSizer31->Add(-1, -1, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer31->Add(CheckBox_Music_LogarithmicXAxis, 1, wxALL | wxEXPAND, 2);
+	FlexGridSizer31->Add(-1, -1, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
+	BitmapButton_Music_LogarithmicXAxis = new xlLockButton(this, ID_BITMAPBUTTON_CHECKBOX_Music_LogarithmicX, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")), wxART_BUTTON), wxDefaultPosition, wxSize(14, 14), wxBU_AUTODRAW | wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHECKBOX_Music_LogarithmicXAxis"));
+	BitmapButton_Music_LogarithmicXAxis->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
+	FlexGridSizer31->Add(BitmapButton_Music_LogarithmicXAxis, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
+
 	FlexGridSizer42->Add(FlexGridSizer31, 1, wxEXPAND, 2);
 	SetSizer(FlexGridSizer42);
 	FlexGridSizer42->Fit(this);
@@ -203,6 +217,7 @@ MusicPanel::MusicPanel(wxWindow* parent)
 	Connect(ID_BITMAPBUTTON_CHOICE_Music_Scaling,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MusicPanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_CHOICE_Music_Colour,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MusicPanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_CHECKBOX_Music_Fade,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MusicPanel::OnLockButtonClick);
+	Connect(ID_BITMAPBUTTON_CHECKBOX_Music_LogarithmicX, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)& MusicPanel::OnLockButtonClick);
 	//*)
 
     SetName("ID_PANEL_Music");

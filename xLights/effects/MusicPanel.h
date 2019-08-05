@@ -25,6 +25,7 @@ class MusicPanel: public wxPanel
 		//(*Declarations(MusicPanel)
 		BulkEditCheckBox* CheckBox_Music_Fade;
 		BulkEditCheckBox* CheckBox_Music_Scale;
+		BulkEditCheckBox* CheckBox_Music_LogarithmicXAxis;
 		BulkEditChoice* Choice_Music_Colour;
 		BulkEditChoice* Choice_Music_Scaling;
 		BulkEditChoice* Choice_Music_Type;
@@ -51,6 +52,7 @@ class MusicPanel: public wxPanel
 		xlLockButton* BitmapButton_Music_Colour;
 		xlLockButton* BitmapButton_Music_EndNote;
 		xlLockButton* BitmapButton_Music_Fade;
+		xlLockButton* BitmapButton_Music_LogarithmicXAxis;
 		xlLockButton* BitmapButton_Music_Offset;
 		xlLockButton* BitmapButton_Music_Scale;
 		xlLockButton* BitmapButton_Music_Scaling;
@@ -96,6 +98,8 @@ class MusicPanel: public wxPanel
 		static const long ID_BITMAPBUTTON_CHOICE_Music_Colour;
 		static const long ID_CHECKBOX_Music_Fade;
 		static const long ID_BITMAPBUTTON_CHECKBOX_Music_Fade;
+		static const long ID_CHECKBOX_Music_LogarithmicX;
+		static const long ID_BITMAPBUTTON_CHECKBOX_Music_LogarithmicX;
 		//*)
 
 	public:
