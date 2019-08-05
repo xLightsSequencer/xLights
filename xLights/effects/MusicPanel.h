@@ -24,8 +24,8 @@ class MusicPanel: public wxPanel
 
 		//(*Declarations(MusicPanel)
 		BulkEditCheckBox* CheckBox_Music_Fade;
-		BulkEditCheckBox* CheckBox_Music_Scale;
 		BulkEditCheckBox* CheckBox_Music_LogarithmicXAxis;
+		BulkEditCheckBox* CheckBox_Music_Scale;
 		BulkEditChoice* Choice_Music_Colour;
 		BulkEditChoice* Choice_Music_Scaling;
 		BulkEditChoice* Choice_Music_Type;
