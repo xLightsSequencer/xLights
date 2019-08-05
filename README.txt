@@ -11,9 +11,18 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2019.38 August 5, 2019
    -- enh (kevin)  Enable rotation of "From Middle" transition
    -- enh (kevin)  Add Dissolve and "Circular Swirl" transitions
+   -- enh (keith)  Add pixel counts to controller visualiser
+   -- enh (dkulp)  Support FPP upload when UI password set
+   -- enh (keith)  Add text & shapes effect font bulk edit
+   -- enh (scott)  Add open node layout in browser for better printing
    -- bug (kevin)  Fix non-functional Reverse setting on Fold transition
+   -- bug (scott)  Fix model chain shows red even though valid
+   -- bug (keith)  Fix crash due to invalid model pointer in groups of groups
+   -- bug (keith)  Fix single colour shockwave flashes white at the end
+   -- bug (dkulp)  Fix weird behaviour of arches model and layers
 2019.37 July 30, 2019
    -- enh (keith)  Add option to SMS plugin to limit messages from a single number
    -- enh (keith)  Fix workflow around creation of new timing tracks
