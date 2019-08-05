@@ -16,6 +16,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- enh (kevin)  Add Dissolve and "Circular Swirl" transitions
    -- enh (keith)  Add pixel counts to controller visualiser
    -- enh (dkulp)  Support FPP upload when UI password set
+   -- enh (dkulp)  Support FPP upload of SmartReceiver configuration to BBB capes
    -- enh (keith)  Add text & shapes effect font bulk edit
    -- enh (scott)  Add open node layout in browser for better printing
    -- bug (kevin)  Fix non-functional Reverse setting on Fold transition
@@ -23,6 +24,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- bug (keith)  Fix crash due to invalid model pointer in groups of groups
    -- bug (keith)  Fix single colour shockwave flashes white at the end
    -- bug (dkulp)  Fix weird behaviour of arches model and layers
+   -- bug (dkulp)  Fix washed out videos and other matrix color issues introduced in .35
 2019.37 July 30, 2019
    -- enh (keith)  Add option to SMS plugin to limit messages from a single number
    -- enh (keith)  Fix workflow around creation of new timing tracks
