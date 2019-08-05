@@ -399,6 +399,10 @@ void ModelGroup::ResetModels()
     for (int x = 0; x < mn.size(); x++) {
         Model *c = modelManager.GetModel(mn[x].ToStdString());
         if (c != nullptr) {
+            if (c->GetDisplayAs() == "ModelGroup")
+            {
+                static_cast<ModelGroup*>(c)->ResetModels();
+            }
             models.push_back(c);
         }
     }

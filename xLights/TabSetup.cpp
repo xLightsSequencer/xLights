@@ -3089,6 +3089,9 @@ void xLightsFrame::DoWork(uint32_t work, const std::string& type, Model* m, cons
         SaveNetworksFile();
     }
 
+    // ensure all model groups have all valid model pointers
+    AllModels.ResetModelGroups();
+
     // Keep the selected model for any subsequence ASAP work
     _outputModelManager.SetSelectedModelIfASAPWorkExists(selectedModel);
 }
