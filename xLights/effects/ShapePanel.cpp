@@ -177,7 +177,7 @@ ShapePanel::ShapePanel(wxWindow* parent)
     FlexGridSizer8->AddGrowableCol(1);
     FlexGridSizer8->AddGrowableRow(0);
     wxFont PickerFont_1(10,wxFONTFAMILY_SWISS,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_NORMAL,false,_T("Segoe UI Emoji"),wxFONTENCODING_DEFAULT);
-    FontPickerCtrl_Font = new wxFontPickerCtrl(this, ID_FONTPICKER_Shape_Font, PickerFont_1, wxDefaultPosition, wxDefaultSize, wxFNTP_FONTDESC_AS_LABEL|wxFNTP_USEFONT_FOR_LABEL, wxDefaultValidator, _T("ID_FONTPICKER_Shape_Font"));
+    FontPickerCtrl_Font = new BulkEditFontPicker(this, ID_FONTPICKER_Shape_Font, PickerFont_1, wxDefaultPosition, wxDefaultSize, wxFNTP_FONTDESC_AS_LABEL, wxDefaultValidator, _T("ID_FONTPICKER_Shape_Font"));
     wxFont FontPickerCtrl_FontFont(10,wxFONTFAMILY_SWISS,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_NORMAL,false,_T("Segoe UI Emoji"),wxFONTENCODING_DEFAULT);
     FontPickerCtrl_Font->SetFont(FontPickerCtrl_FontFont);
     FlexGridSizer8->Add(FontPickerCtrl_Font, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);

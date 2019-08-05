@@ -46,6 +46,7 @@ class ShapePanel: public wxPanel
 		BulkEditCheckBox* CheckBox_Shapes_RandomMovement;
 		BulkEditChoice* Choice_Shape_ObjectToDraw;
 		BulkEditChoice* Choice_Shape_TimingTrack;
+		BulkEditFontPicker* FontPickerCtrl_Font;
 		BulkEditSlider* Slider_Shape_CentreX;
 		BulkEditSlider* Slider_Shape_CentreY;
 		BulkEditSlider* Slider_Shape_Count;
@@ -78,7 +79,6 @@ class ShapePanel: public wxPanel
 		BulkEditValueCurveButton* BitmapButton_Shapes_Direction;
 		BulkEditValueCurveButton* BitmapButton_Shapes_Velocity;
 		ClickableStaticText* StaticText10;
-		wxFontPickerCtrl* FontPickerCtrl_Font;
 		wxStaticText* StaticText11;
 		wxStaticText* StaticText12;
 		wxStaticText* StaticText13;

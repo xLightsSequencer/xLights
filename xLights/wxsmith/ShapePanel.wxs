@@ -59,7 +59,7 @@
 					<growablecols>1</growablecols>
 					<growablerows>0</growablerows>
 					<object class="sizeritem">
-						<object class="wxFontPickerCtrl" name="ID_FONTPICKER_Shape_Font" variable="FontPickerCtrl_Font" member="yes">
+						<object class="wxFontPickerCtrl" name="ID_FONTPICKER_Shape_Font" subclass="BulkEditFontPicker" variable="FontPickerCtrl_Font" member="yes">
 							<font>
 								<size>10</size>
 								<style>normal</style>
@@ -76,6 +76,7 @@
 								<family>swiss</family>
 								<face>Segoe UI Emoji</face>
 							</font>
+							<style>wxFNTP_FONTDESC_AS_LABEL</style>
 							<handler function="OnFontPickerCtrl_FontFontChanged" entry="EVT_FONTPICKER_CHANGED" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
