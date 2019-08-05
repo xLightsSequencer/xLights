@@ -30,7 +30,7 @@ END_EVENT_TABLE()
 
 #define TOP_BOTTOM_MARGIN 10
 #define VERTICAL_GAP 5
-#define VERTICAL_SIZE 20
+#define VERTICAL_SIZE 40
 #define LEFT_RIGHT_MARGIN TOP_BOTTOM_MARGIN
 #define HORIZONTAL_GAP VERTICAL_GAP
 #define HORIZONTAL_SIZE 120
@@ -262,6 +262,7 @@ void ControllerVisualiseDialog::RenderDiagram(wxDC& dc, int scale)
         dc.SetPen(*wxRED_PEN);
         dc.DrawRoundedRectangle(colPos, rowPos, HORIZONTAL_SIZE * scale, VERTICAL_SIZE * scale, CORNER_ROUNDING * scale);
         dc.DrawText(wxString::Format("Pixel Port %d", i), colPos + 2, rowPos + 2);
+        dc.DrawText(wxString::Format("Pixels: %d", _cud.GetControllerPixelPort(i)->Channels() / 3), colPos + 2, rowPos + 2 + (VERTICAL_SIZE * scale) / 2);
 
         if (_cud.GetControllerPixelPort(i)->GetVirtualStringCount() > 0)
         {
@@ -289,6 +290,7 @@ void ControllerVisualiseDialog::RenderDiagram(wxDC& dc, int scale)
                     dc.SetPen(*wxGREY_PEN);
                     dc.DrawRectangle(colPos, rowPos, (HORIZONTAL_SIZE * scale), VERTICAL_SIZE * scale);
                     dc.DrawText(it->GetName(), colPos + 2, rowPos + 2);
+                    dc.DrawText(wxString::Format("Pixels: %d", it->Channels() / 3), colPos + 2, rowPos + 2 + (VERTICAL_SIZE * scale) / 2);
                     colPos += (HORIZONTAL_SIZE * scale) + (HORIZONTAL_GAP * scale);
                     dc.SetBrush(*wxWHITE_BRUSH);
                 }
@@ -306,6 +308,7 @@ void ControllerVisualiseDialog::RenderDiagram(wxDC& dc, int scale)
         dc.SetPen(*wxGREEN_PEN);
         dc.DrawRoundedRectangle(colPos, rowPos, (HORIZONTAL_SIZE * scale), (VERTICAL_SIZE * scale), (CORNER_ROUNDING * scale));
         dc.DrawText(wxString::Format("Serial Port %d", i), colPos + 2, rowPos + 2);
+        dc.DrawText(wxString::Format("Channels: %d", _cud.GetControllerSerialPort(i)->Channels()), colPos + 2, rowPos + 2 + (VERTICAL_SIZE * scale) / 2);
         colPos += (HORIZONTAL_SIZE * scale) + (HORIZONTAL_GAP * scale);
 
         for (auto it : _cud.GetControllerSerialPort(i)->GetModels())
@@ -313,6 +316,7 @@ void ControllerVisualiseDialog::RenderDiagram(wxDC& dc, int scale)
             dc.SetPen(*wxGREY_PEN);
             dc.DrawRectangle(colPos, rowPos, (HORIZONTAL_SIZE * scale), (VERTICAL_SIZE * scale));
             dc.DrawText(it->GetName(), colPos + 2, rowPos + 2);
+            dc.DrawText(wxString::Format("Channels: %d", it->Channels()), colPos + 2, rowPos + 2 + (VERTICAL_SIZE * scale) / 2);
             colPos += (HORIZONTAL_SIZE * scale) + (HORIZONTAL_GAP * scale);
         }
 
