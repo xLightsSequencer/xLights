@@ -1,4 +1,4 @@
-﻿xLights is a show sequencer and player/scheduler designed to control
+xLights is a show sequencer and player/scheduler designed to control
 USB/DMX/sACN(e1.31)/ArtNET(e.1.17)/DDP controllers.
 xLights also integrates with the Falcon Player.
 xLights imports and exports sequence data from sequencers such as LOR (SE, PE & SS),
@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (dkulp)  Discovery - match IP addresses to resolved hostnames as well
+   -- enh (dkulp)  Add ability to convert ZCPP output to e1.31
 2019.38 August 5, 2019
    -- enh (kevin)  Enable rotation of "From Middle" transition
    -- enh (kevin)  Add Dissolve and "Circular Swirl" transitions

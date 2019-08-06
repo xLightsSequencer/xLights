@@ -1181,6 +1181,7 @@ public:
     void ActivateSelectedNetworks(bool active);
     void DeactivateUnusedNetworks();
     void ChangeSelectedNetwork();
+    void ConvertSelectedNetworkToE131();
     bool AllSelectedSupportIP();
     bool AllSelectedSupportChannels();
     void UpdateSelectedIPAddresses();
@@ -1600,6 +1601,7 @@ private:
     static const long ID_NETWORK_ADDARTNET;
     static const long ID_NETWORK_ADDLOR;
     static const long ID_NETWORK_ADDDDP;
+    static const long ID_NETWORK_CONVERTTOE131;
     static const long ID_NETWORK_BEIPADDR;
     static const long ID_NETWORK_BECHANNELS;
     static const long ID_NETWORK_BEDESCRIPTION;

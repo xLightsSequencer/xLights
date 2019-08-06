@@ -56,6 +56,7 @@ const long xLightsFrame::ID_NETWORK_ADDZCPP = wxNewId();
 const long xLightsFrame::ID_NETWORK_ADDARTNET = wxNewId();
 const long xLightsFrame::ID_NETWORK_ADDLOR = wxNewId();
 const long xLightsFrame::ID_NETWORK_ADDDDP = wxNewId();
+const long xLightsFrame::ID_NETWORK_CONVERTTOE131 = wxNewId();
 const long xLightsFrame::ID_NETWORK_BEIPADDR = wxNewId();
 const long xLightsFrame::ID_NETWORK_BECHANNELS = wxNewId();
 const long xLightsFrame::ID_NETWORK_BEDESCRIPTION = wxNewId();
@@ -847,7 +848,47 @@ void xLightsFrame::ActivateSelectedNetworks(bool active)
         item = GridNetwork->GetNextItem(item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
     }
 }
-
+void xLightsFrame::ConvertSelectedNetworkToE131()
+{
+    long SelectedItem = GetNetworkSelection();
+    if (SelectedItem == -1) {
+        DisplayError(_("Please select a single row first"), this);
+        return;
+    }
+    Output* o = _outputManager.GetOutput(SelectedItem);
+    if (o == nullptr || o->GetType() != "ZCPP") {
+        DisplayError(_("Please select a ZCPP Output"), this);
+        return;
+    }
+    ZCPPOutput *zcp = dynamic_cast<ZCPPOutput*>(o);
+    wxXmlNode *node = zcp->Save();
+    //adjust for e1.31
+    int numChan = zcp->GetEndChannel() - zcp->GetStartChannel() + 1;
+    node->DeleteAttribute("MaxChannels");
+    node->AddAttribute("MaxChannels", "512");
+    int numUniv = (numChan / 512) + 1;
+    node->AddAttribute("NumUniverses", std::to_string(numUniv));
+    node->AddAttribute("AutoStartChannels", "true");
+    
+    node->DeleteAttribute("BaudRate");
+    int universe = 64001;
+    for (int x = 1; x < 64000 && universe == 64001; x++) {
+        Output * op = _outputManager.GetOutput(x, "");
+        if (op == nullptr) {
+            universe = x;
+        }
+    }
+    node->AddAttribute("BaudRate", std::to_string(universe));
+    
+    E131Output *e131 = new E131Output(node);
+    _outputManager.AddOutput(e131, zcp);
+    _outputManager.DeleteOutput(zcp);
+    
+    _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ConvertSelectedNetworkToE131");
+    _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "ConvertSelectedNetworkToE131");
+    _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "ConvertSelectedNetworkToE131");
+    _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "ConvertSelectedNetworkToE131");
+}
 void xLightsFrame::DeleteSelectedNetworks()
 {
     int removed = 0;
@@ -1425,8 +1466,7 @@ void xLightsFrame::OnGridNetworkItemRClick(wxListEvent& event)
     wxMenuItem* beMultiUpload = mnuUploadController->Append(ID_NETWORK_MULTIUPLOAD, "Upload To All Controllers");
     if (_outputManager.GetOutputCount() > 0 && _outputManager.GetIps().size() > 0) {
         beMultiUpload->Enable();
-    }
-    else {
+    } else {
         beMultiUpload->Enable(false);
     }
 
@@ -1635,7 +1675,9 @@ void xLightsFrame::OnGridNetworkItemRClick(wxListEvent& event)
         ma->Enable(false);
         be->Enable(false);
     }
-
+    if (selected && selected->GetType() == "ZCPP") {
+        mnu.Append(ID_NETWORK_CONVERTTOE131, "Convert ZCPP to e1.31");
+    }
     wxMenuItem* mid = mnu.Append(ID_NETWORK_DELETE, "Delete");
     wxMenuItem* mia = mnu.Append(ID_NETWORK_ACTIVATE, "Activate");
     wxMenuItem* mide = mnu.Append(ID_NETWORK_DEACTIVATE, "Deactivate");
@@ -1699,13 +1741,9 @@ void xLightsFrame::OnNetworkPopup(wxCommandEvent &event)
         SetupNullOutput(nullptr, item+1);
     } else if (id == ID_NETWORK_ADDE131) {
         SetupE131(nullptr, item+1);
-    }
-    else if (id == ID_NETWORK_ADDZCPP)
-    {
+    } else if (id == ID_NETWORK_ADDZCPP) {
         SetupZCPP(nullptr, item+1);
-    }
-    else if (id == ID_NETWORK_ADDARTNET)
-    {
+    } else if (id == ID_NETWORK_ADDARTNET) {
         SetupArtNet(nullptr, item+1);
     } else if (id == ID_NETWORK_ADDLOR) {
         SetupLOR(nullptr, item+1);
@@ -1798,18 +1836,18 @@ void xLightsFrame::OnNetworkPopup(wxCommandEvent &event)
         UpdateSelectedIPAddresses();
     } else if (id == ID_NETWORK_BECHANNELS) {
         UpdateSelectedChannels();
-    }
-    else if (id == ID_NETWORK_BEDESCRIPTION) {
-    UpdateSelectedDescriptions();
-    }
-    else if (id == ID_NETWORK_BECONTROLLERTYPE) {
-    UpdateSelectedTypes();
+    } else if (id == ID_NETWORK_BEDESCRIPTION) {
+        UpdateSelectedDescriptions();
+    } else if (id == ID_NETWORK_BECONTROLLERTYPE) {
+        UpdateSelectedTypes();
     } else if (id == ID_NETWORK_BESUPPRESSDUPLICATESYES) {
         UpdateSelectedSuppressDuplicates(true);
     } else if (id == ID_NETWORK_BESUPPRESSDUPLICATESNO) {
         UpdateSelectedSuppressDuplicates(false);
     } else if (id == ID_NETWORK_DELETE) {
         DeleteSelectedNetworks();
+    } else if (id == ID_NETWORK_CONVERTTOE131) {
+        ConvertSelectedNetworkToE131();
     } else if (id == ID_NETWORK_ACTIVATE) {
         ActivateSelectedNetworks(true);
     } else if (id == ID_NETWORK_DEACTIVATE) {
