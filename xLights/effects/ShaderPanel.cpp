@@ -177,7 +177,6 @@ bool ShaderPanel::BuildUI(const wxString& filename)
         if (_shaderConfig->IsCanvasShader())desc += "Use Canvas Mode for this shader.";
         FilePickerCtrl1->SetToolTip(desc);
 
-        int id = 1;
         for (auto it : _shaderConfig->GetParms())
         {
             if (it.ShowParm())

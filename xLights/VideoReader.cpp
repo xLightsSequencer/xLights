@@ -240,7 +240,6 @@ bool VideoReader::IsVideoFile(const std::string& filename)
 
 long VideoReader::GetVideoLength(const std::string& filename)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     av_register_all();
 
     AVFormatContext* formatContext = nullptr;

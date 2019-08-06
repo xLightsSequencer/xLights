@@ -194,8 +194,6 @@ void CharMapDialog::PageChange()
 
 void CharMapDialog::OnMouseMove(wxMouseEvent& event)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     int newHighlighted = -1;
 
     for (int i = 0; i < CHARMAP_ROWS * CHARMAP_COLS; i++)
@@ -258,7 +256,6 @@ void CharMapDialog::OnButton_UpClick(wxCommandEvent& event)
 
 void CharMapDialog::OnTextCtrl_PageText(wxCommandEvent& event)
 {
-    auto mp = GetMaxPage();
     auto v = TextCtrl_Page->GetValue();
     if (wxAtoi(TextCtrl_Page->GetValue()) < 1) TextCtrl_Page->SetValue("1");
     if (wxAtoi(TextCtrl_Page->GetValue()) > GetMaxPage())

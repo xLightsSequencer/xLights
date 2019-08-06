@@ -424,7 +424,6 @@ void ShaderDownloadDialog::ValidateWindow()
 
         if (tid != nullptr && tid != TreeCtrl_Navigator->GetRootItem())
         {
-            int imageCount = 0;
             Button_Download->Enable();
         }
         else

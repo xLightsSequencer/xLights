@@ -49,15 +49,6 @@ namespace
       return std::min( hi, std::max( lo, val ) );
    }
 
-   xlColor lerp( const xlColor& a, const xlColor& b, double progress )
-   {
-      double red   = a.red   + progress * ( b.red   - a.red   );
-      double green = a.green + progress * ( b.green - a.green );
-      double blue  = a.blue  + progress * ( b.blue  - a.blue  );
-
-      return xlColor( uint8_t( red ), uint8_t( green ), uint8_t( blue ) );
-   }
-
    struct ColorBuffer
    {
       ColorBuffer( const xlColorVector& i_cv, int i_w, int i_h ) : cv( i_cv ), w( i_w ), h( i_h ) {}
@@ -137,25 +128,38 @@ namespace
       }
       double x, y;
    };
-   Vec2D operator +( double a, const Vec2D& b )
-   {
-      return Vec2D( a + b.x, a + b.y );
-   }
-   Vec2D operator -( double a, const Vec2D& b )
-   {
-      return Vec2D( a - b.x, a - b.y );
-   }
-   Vec2D operator *( double a, const Vec2D& b )
-   {
-      return Vec2D( a * b.x, a * b.y );
-   }
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused"
+    xlColor lerp( const xlColor& a, const xlColor& b, double progress )
+    {
+        double red   = a.red   + progress * ( b.red   - a.red   );
+        double green = a.green + progress * ( b.green - a.green );
+        double blue  = a.blue  + progress * ( b.blue  - a.blue  );
+        
+        return xlColor( uint8_t( red ), uint8_t( green ), uint8_t( blue ) );
+    }
 
-   double dot( const Vec2D& a, const Vec2D& b )
-   {
-      return a.x * b.x + a.y * b.y;
-   }
+    Vec2D operator +( double a, const Vec2D& b )
+    {
+        return Vec2D( a + b.x, a + b.y );
+    }
+    Vec2D operator -( double a, const Vec2D& b )
+    {
+        return Vec2D( a - b.x, a - b.y );
+    }
+    Vec2D operator *( double a, const Vec2D& b )
+    {
+        return Vec2D( a * b.x, a * b.y );
+    }
 
-      struct LinearInterpolater
+    double dot( const Vec2D& a, const Vec2D& b )
+    {
+        return a.x * b.x + a.y * b.y;
+    }
+#pragma clang diagnostic pop
+
+
+   struct LinearInterpolater
    {
       double operator()( double t ) const { return t; }
    };

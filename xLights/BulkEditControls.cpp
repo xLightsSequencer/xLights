@@ -365,8 +365,6 @@ std::string BulkEditFontPicker::GetValue() const
 
 void BulkEditFontPicker::OnFontPickerPopup(wxCommandEvent& event)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     if (event.GetId() == ID_FONTPICKER_BULKEDIT)
     {
         // Get the label

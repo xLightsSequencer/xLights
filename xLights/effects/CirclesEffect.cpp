@@ -166,7 +166,7 @@ void CirclesEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffe
     int start_y = buffer.BufferHt/2;
     bool fade = SettingsMap.GetBool("CHECKBOX_Circles_Linear_Fade", false);
     bool bubbles = SettingsMap.GetBool("CHECKBOX_Circles_Bubbles", false);
-    bool random = SettingsMap.GetBool("CHECKBOX_Circles_Random_m", false);
+    //bool random = SettingsMap.GetBool("CHECKBOX_Circles_Random_m", false);
     bool collide = SettingsMap.GetBool("CHECKBOX_Circles_Collide", false);
     bool bounce = SettingsMap.GetBool("CHECKBOX_Circles_Bounce", false);
     

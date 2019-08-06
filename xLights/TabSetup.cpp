@@ -804,8 +804,6 @@ void xLightsFrame::UpdateSelectedChannels()
 
 void xLightsFrame::DeactivateUnusedNetworks()
 {
-    bool changed = false;
-
     for (int i = 0; i < GridNetwork->GetItemCount(); i++)
     {
         Output* o = _outputManager.GetOutput(i);

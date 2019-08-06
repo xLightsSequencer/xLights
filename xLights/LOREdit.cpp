@@ -954,7 +954,6 @@ int LOREdit::GetModelLayers(const std::string& model) const
                     if (prop->GetAttribute("name") == model) {
                         for (wxXmlNode* tc = prop->GetChildren(); tc != nullptr; tc = tc->GetNext()) {
                             if (tc->GetName() == "track") {
-                                int tcount = 1;
                                 int l1 = 0;
                                 int l2 = 0;
                                 for (wxXmlNode* ef = tc->GetChildren(); (l1 == 0 || l2 == 0) && ef != nullptr; ef = ef->GetNext()) {
@@ -1211,8 +1210,6 @@ std::vector<LOREditEffect> LOREdit::GetChannelEffects(const std::string& model, 
     {
         channel = channels - 1;
     }
-
-    int strands = GetModelStrands(model);
 
     int mw = m->GetDefaultBufferWi();
     int mh = m->GetDefaultBufferHt();

@@ -4600,8 +4600,6 @@ Model* Model::GetXlightsModel(Model* model, std::string &last_model, xLightsFram
 			std::string startChannel = model->GetModelXml()->GetAttribute("StartChannel", "1").ToStdString();
 			auto x = model->GetHcenterPos();
 			auto y = model->GetVcenterPos();
-			auto w = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleX();
-			auto h = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleY();
 
 			// not a custom model so delete the default model that was created
 			if (model != nullptr) {

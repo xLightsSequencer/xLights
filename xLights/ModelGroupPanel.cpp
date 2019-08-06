@@ -512,7 +512,6 @@ void ModelGroupPanel::SaveGroupChanges()
 void ModelGroupPanel::OnChoicePreviewsSelect(wxCommandEvent& event)
 {
     ModelGroup *g = (ModelGroup*)mModels[mGroup];
-    wxXmlNode *e = g->GetModelXml();
     std::string layout_group = std::string(ChoicePreviews->GetString(ChoicePreviews->GetCurrentSelection()).mb_str());
     mModels[mGroup]->SetLayoutGroup(layout_group);
     layoutPanel->ModelGroupUpdated(g, true);

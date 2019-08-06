@@ -32,6 +32,8 @@ static inline void TranslatePointDoubles(float radians,float x, float y,float &x
     y1 = s*x+(c*y);
 }
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused"
 // used to print matrix when debugging
 static void PrintMatrix(std::string name, glm::mat4& matrix)
 {
@@ -50,6 +52,8 @@ static void PrintRay(std::string name, glm::vec3& origin, glm::vec3& direction)
     logger_base.debug("Ray Origin: %6.2f  %6.2f  %6.2f", origin.x, origin.y, origin.z);
     logger_base.debug("Ray Direct: %6.2f  %6.2f  %6.2f", direction.x, direction.y, direction.z);
 }
+#pragma clang diagnostic pop
+
 
 static wxCursor GetResizeCursor(int cornerIndex, int PreviewRotation) {
     int angleState;

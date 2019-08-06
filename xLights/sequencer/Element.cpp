@@ -145,8 +145,6 @@ EffectLayer* Element::AddEffectLayerInternal()
 
 EffectLayer* Element::InsertEffectLayer(int index)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     // try for 500ms to get the lock ... if i cant get it ... abort rendering and try again
     std::unique_lock<std::recursive_timed_mutex> lock(changeLock, std::defer_lock_t());
     if (!lock.try_lock_for(std::chrono::milliseconds(500)))

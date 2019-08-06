@@ -189,12 +189,9 @@ int ViewObjectPanel::GetObjectTreeIcon(ViewObject* view_object, bool open) {
 #include <log4cpp/Category.hh>
 
 int ViewObjectPanel::AddObjectToTree(ViewObject *view_object, wxTreeListItem* parent, bool expanded, int nativeOrder, bool fullName) {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     int width = 0;
 
     if (view_object == nullptr) return width;
-
-    //logger_base.debug("Adding object %s", (const char *)view_object->GetName().c_str());
 
     wxTreeListItem item = TreeListViewObjects->AppendItem(*parent, fullName ? view_object->GetName() : view_object->name,
                                                          GetObjectTreeIcon(view_object, false),
@@ -202,6 +199,7 @@ int ViewObjectPanel::AddObjectToTree(ViewObject *view_object, wxTreeListItem* pa
                                                          new ObjectTreeData(view_object, nativeOrder));
 
     /*if( model->GetDisplayAs() == "ModelGroup" ) {
+        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         ModelGroup *grp = (ModelGroup*)model;
         int i = 0;
         for (auto it = grp->ModelNames().begin(); it != grp->ModelNames().end(); ++it) {

@@ -992,7 +992,6 @@ bool ModelPreview::StartDrawing(wxDouble pointSize, bool fromPaint)
 
 void ModelPreview::EndDrawing(bool swapBuffers/*=true*/)
 {
-    static log4cpp::Category &logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
     if (is_3d) {
         switch (renderOrder) {
             // 0 or 1 is preferred depending if you want floods shining ONTO glass windows (0) or through (1)
