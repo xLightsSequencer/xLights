@@ -5032,7 +5032,7 @@ void xLightsFrame::CheckSequence(bool display)
         {
             for (auto ito = outputs.begin(); ito != outputs.end(); ++ito)
             {
-                if (*ito != *it && (*it)->GetIP() == (*ito)->GetIP())
+                if (*ito != *it && ((*it)->GetIP() == (*ito)->GetIP() || (*it)->GetIP() == (*ito)->GetResolvedIP()))
                 {
                     wxString msg = wxString::Format("    ERR: ZCPP IP Address '%s' for controller '%s' used on another controller '%s'. This is not allowed.", (const char*)(*it)->GetIP().c_str(), (const char*)(*it)->GetDescription().c_str(), (const char*)(*ito)->GetDescription().c_str());
                     LogAndWrite(f, msg.ToStdString());

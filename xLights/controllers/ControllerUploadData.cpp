@@ -66,7 +66,7 @@ UDController::UDController(const std::string &ip, const std::string &hostname, M
                                     long sc;
                                     Output* oo = om->GetOutput(startChannel, sc);
                                     if (oo != nullptr &&
-                                        ((oo->GetIP() == _ipAddress) || (oo->GetIP() == _hostName)))
+                                        ((oo->GetIP() == _ipAddress) || (oo->GetResolvedIP() == _ipAddress)  || (oo->GetIP() == _hostName)))
                                     {
                                         GetControllerPixelPort(port + i)->AddModel(it->second, om, i);
                                     }

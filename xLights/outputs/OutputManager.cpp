@@ -320,7 +320,7 @@ Output* OutputManager::GetOutput(int universe, const std::string& ip) const
 {
     for (auto it = _outputs.begin(); it != _outputs.end(); ++it)
     {
-        if (universe == (*it)->GetUniverse() && (ip == "" || ip == (*it)->GetIP()))
+        if (universe == (*it)->GetUniverse() && (ip == "" || ip == (*it)->GetIP() || ip == (*it)->GetResolvedIP()))
         {
             return (*it);
         }
@@ -331,7 +331,7 @@ Output* OutputManager::GetOutput(int universe, const std::string& ip) const
 
             for (auto it2 : outputs)
             {
-                if (universe == it2->GetUniverse() && (ip == "" || ip == it2->GetIP()))
+                if (universe == it2->GetUniverse() && (ip == "" || ip == it2->GetIP() || ip == (*it)->GetResolvedIP()))
                 {
                     return (it2);
                 }
@@ -400,7 +400,7 @@ long OutputManager::GetAbsoluteChannel(const std::string& ip, int universe, int 
 
     while (it != o.end())
     {
-        if (universe+1 == (*it)->GetUniverse() && (ip == "" || ip == (*it)->GetIP()))
+        if (universe+1 == (*it)->GetUniverse() && (ip == "" || ip == (*it)->GetIP() || ip == (*it)->GetResolvedIP()))
         {
             break;
         }
@@ -488,7 +488,7 @@ std::list<int> OutputManager::GetIPUniverses(const std::string& ip) const
 
     for (auto it : _outputs)
     {
-        if (ip == "" || ip == it->GetIP())
+        if (ip == "" || (ip == it->GetIP() || ip == it->GetResolvedIP()))
         {
             if (it->IsOutputCollection())
             {
@@ -731,7 +731,7 @@ std::list<Output*> OutputManager::GetAllOutputs(const std::string& ip, const std
 
     for (auto it : _outputs)
     {
-        if (ip == "" || (it->IsIpOutput() && (it->GetIP() == ip || it->GetIP() == hostname)))
+        if (ip == "" || (it->IsIpOutput() && (it->GetIP() == ip || it->GetResolvedIP() == ip || it->GetIP() == hostname)))
         {
             if (it->IsOutputCollection() && expandCollections)
             {

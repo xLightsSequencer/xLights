@@ -3568,7 +3568,7 @@ void ScheduleManager::DisableRemoteOutputs()
             auto outputs = _outputManager->GetOutputs();
             for (auto ito = outputs.begin(); ito != outputs.end(); ++ito)
             {
-                if ((*ito)->IsIpOutput() && *it == (*ito)->GetIP())
+                if ((*ito)->IsIpOutput() && (*it == (*ito)->GetIP() || *it == (*ito)->GetResolvedIP()))
                 {
                     logger_base.debug("Output '%s' disabled as this is a listed remote to receive FPP Sync packets.", (const char*)(*ito)->GetLongDescription().c_str());
                     logger_base.debug("    The only way to re-enable these outputs is to shut down xSchedule and restart it.");

@@ -58,6 +58,7 @@ Output::Output(wxXmlNode* node)
     _nullNumber = -1;
     _startChannel = -1;
     _ip = "";
+    _resolvedIp = "";
     _universe = 0;
     _baudRate = 0;
     _commPort = "";
@@ -96,6 +97,7 @@ Output::Output()
     _dirty = true;
     _channels = 0;
     _ip = "";
+    _resolvedIp = "";
     _ok = true;
     _suppressDuplicateFrames = false;
     _lastOutputTime = 0;
@@ -233,6 +235,10 @@ void Output::SetTransientData(int on, long startChannel, int nullnumber)
 void Output::SetIP(const std::string& ip)
 {
     _ip = IPOutput::CleanupIP(ip);
+    wxIPV4address add;
+    add.Hostname(_ip);
+    _resolvedIp = add.IPAddress();
+
     _dirty = true;
 }
 
@@ -252,7 +258,7 @@ bool Output::operator==(const Output& output) const
 
     if (IsIpOutput())
     {
-        return _universe == output.GetUniverse() && _ip == output.GetIP();
+        return _universe == output.GetUniverse() && (_ip == output.GetIP() || _resolvedIp == output.GetIP() || _resolvedIp == output.GetResolvedIP());
     }
     else
     {

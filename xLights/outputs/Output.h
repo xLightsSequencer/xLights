@@ -44,6 +44,7 @@ protected:
     bool _dirty;
     std::string _description;
     std::string _ip;
+    std::string _resolvedIp;
     std::string _commPort;
     long _channels;
     int _baudRate;
@@ -96,6 +97,7 @@ public:
     void SetDescription(const std::string& description) { _description = description; _dirty = true; }
     void SetSuppressDuplicateFrames(const bool suppressDuplicateFrames) { _suppressDuplicateFrames = suppressDuplicateFrames; _dirty = true; }
     std::string GetIP() const { return _ip; }
+    std::string GetResolvedIP() const { return _resolvedIp; }
     void SetIP(const std::string& ip);
     std::string GetCommPort() const { return _commPort; }
     void SetCommPort(const std::string& commPort) { _commPort = commPort; _dirty = true; }

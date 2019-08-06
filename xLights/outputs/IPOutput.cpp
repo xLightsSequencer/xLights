@@ -21,6 +21,9 @@ std::string IPOutput::__localIP = "";
 IPOutput::IPOutput(wxXmlNode* node) : Output(node)
 {
     _ip = node->GetAttribute("ComPort", "").ToStdString();
+    wxIPV4address add;
+    add.Hostname(_ip);
+    _resolvedIp = add.IPAddress();
     _universe = wxAtoi(node->GetAttribute("BaudRate", "1"));
 }
 
@@ -28,6 +31,7 @@ IPOutput::IPOutput() : Output()
 {
     _universe = 0;
     _ip = "";
+    _resolvedIp = "";
 }
 #pragma endregion Constructors and Destructors
 
@@ -163,7 +167,7 @@ bool IPOutput::operator==(const IPOutput& output) const
 {
     if (GetType() != output.GetType()) return false;
 
-    return _universe == output.GetUniverse() && _ip == output.GetIP();
+    return _universe == output.GetUniverse() && (_ip == output.GetIP() || _ip == output.GetResolvedIP() || _resolvedIp == output.GetIP() || _resolvedIp == output.GetResolvedIP());
 }
 #pragma endregion Operators
 

@@ -661,7 +661,7 @@ std::list<Output*> ZCPPOutput::Discover(OutputManager* outputManager)
                             auto outputs = outputManager->GetOutputs();
                             for (auto it = outputs.begin(); it != outputs.end(); ++it)
                             {
-                                if ((*it)->GetIP() == output->GetIP())
+                                if ((*it)->GetIP() == output->GetIP() || (*it)->GetResolvedIP() == output->GetIP())
                                 {
                                     // we already know about this controller
                                     logger_base.info("ZCPP Discovery we already know about this controller %s.", (const char*)output->GetIP().c_str());

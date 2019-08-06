@@ -1342,9 +1342,9 @@ static bool CheckAllAreSameIPType(OutputManager &outputManager, wxListCtrl *Grid
         
         if (allowAllMulticasts && o->GetIP() == "MULTICAST") {
             //
-        } else if (ip != o->GetIP()) {
+        } else if (ip != o->GetResolvedIP()) {
             if (ip == "") {
-                ip = o->GetIP();
+                ip = o->GetResolvedIP();
             } else {
                 valid = false;
                 break;
@@ -3114,7 +3114,7 @@ void xLightsFrame::VisualiseOutput(Output *e, wxWindow *parent) {
     std::list<int> selected;
     std::string check;
     std::string ip = e->GetIP();
-    UDController cud(ip, ip, &AllModels, &_outputManager, &selected, check);
+    UDController cud(e->GetResolvedIP(), ip, &AllModels, &_outputManager, &selected, check);
     cud.Check(ControllerRegistry::GetRulesForController(e->GetControllerId()), check);
     if (!parent) {
         parent = this;

@@ -720,7 +720,6 @@ LayoutPanel::~LayoutPanel()
 }
 
 void LayoutPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxString name = event.GetPropertyName();
     updatingProperty = true;
     if (name == "BkgBrightness") {

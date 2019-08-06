@@ -203,7 +203,7 @@ bool ZCPPDialog::IsUniqueIP(const std::string& newIP, ZCPPOutput* output, Output
 {
     for (auto it : outputManager->GetOutputs())
     {
-        if (it->GetType() == "ZCPP" && it != output && newIP == it->GetIP())
+        if (it->GetType() == "ZCPP" && it != output && (newIP == it->GetIP() || newIP == it->GetResolvedIP()))
         {
             return false;
         }

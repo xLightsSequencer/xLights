@@ -344,7 +344,7 @@ bool E131Dialog::IsUniqueIP(const std::string& newIP, E131Output* output, Output
 {
 	for (auto it : outputManager->GetOutputs())
 	{
-		if (it->GetType() == "E131" && it != output && newIP == it->GetIP())
+		if (it->GetType() == "E131" && it != output && (newIP == it->GetIP() || newIP == it->GetResolvedIP()))
 		{
 			return false;
 		}
