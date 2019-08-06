@@ -440,4 +440,14 @@ inline void* RetrieveThread::Entry()
     _running = false;
     return nullptr;
 }
+
+class TestService : public SMSService
+{
+public:
+
+    TestService(const SMSDaemonOptions& options) : SMSService(options) {}
+    virtual bool SendSMS(const std::string& number, const std::string& message) override { return true; }
+    virtual std::string GetServiceName() const override { return "Test"; }
+    virtual bool RetrieveMessages() override { return true; }
+};
 #endif

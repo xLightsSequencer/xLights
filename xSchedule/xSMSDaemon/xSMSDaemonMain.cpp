@@ -575,6 +575,10 @@ void xSMSDaemonFrame::LoadOptions()
         {
             _smsService = std::make_unique<Twilio>(_options);
         }
+        else if (_options.GetSMSService() == "Test")
+        {
+            _smsService = std::make_unique<TestService>(_options);
+        }
     }
 
     StaticText_TextItemName->SetLabel(_options.GetTextItem());

@@ -205,6 +205,7 @@ SMSSettingsDialog::SMSSettingsDialog(wxWindow* parent, SMSDaemonOptions* options
     Choice_SMSService->AppendString("Bandwidth");
     Choice_SMSService->AppendString("Twilio");
     Choice_SMSService->AppendString("Voip.ms");
+    Choice_SMSService->AppendString("Test");
     Choice_SMSService->SetSelection(0);
 
     TextCtrl_TargetMatrix->SetValue(options->GetTextItem());
@@ -360,6 +361,17 @@ void SMSSettingsDialog::ValidateWindow()
         {
             Button_Ok->Enable();
         }
+    }
+    else if (Choice_SMSService->GetStringSelection() == "Test")
+    {
+        StaticText_User->SetLabel("N/A");
+        StaticText_SID->SetLabel("N/A");
+        StaticText_Token->SetLabel("N/A");
+
+        TextCtrl_User->Disable();
+        TextCtrl_Token->Disable();
+        TextCtrl_SID->Disable();
+        Button_Ok->Enable();
     }
 
     if (CheckBox_UsePurgoMalum->GetValue())
