@@ -9604,6 +9604,13 @@ bool xLightsFrame::HandleAllKeyBinding(wxKeyEvent& event)
             wxCommandEvent playEvent(EVT_TOGGLE_PLAY);
             wxPostEvent(this, playEvent);
         }
+        else if (type == "FOCUS_SEQUENCER")
+        {
+            if (Notebook1->GetSelection() == NEWSEQUENCER)
+            {
+                SetFocus();
+            }
+        }
         else if (type == "START_OF_SONG")
         {
             wxCommandEvent playEvent(EVT_SEQUENCE_FIRST_FRAME);

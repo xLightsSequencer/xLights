@@ -83,7 +83,8 @@ static  std::vector<std::pair<std::string, KBSCOPE>> KeyBindingTypes =
     { _("MODEL_DISTRIBUTE_VERT"), KBSCOPE::Layout },
     { _("CANCEL_RENDER"), KBSCOPE::Sequence },
     { _("TOGGLE_RENDER"), KBSCOPE::Sequence },
-    { _("PRESETS_TOGGLE"), KBSCOPE::Sequence }
+    { _("PRESETS_TOGGLE"), KBSCOPE::Sequence }, 
+    { _("FOCUS_SEQUENCER"), KBSCOPE::All } // This forces focus to the sequencer for situations where keys dont seem to work. It must be mapped to function key
 };
 
 const std::vector<KeyBinding> DefaultBindings =
@@ -141,6 +142,7 @@ const std::vector<KeyBinding> DefaultBindings =
     KeyBinding(_("X"), false, _("TOGGLE_ELEMENT_EXPAND"), true, false, true),
     KeyBinding(_(""), false, _("SHOW_PRESETS")),
     KeyBinding(_("F10"), false, _("PRESETS_TOGGLE"), true),
+    KeyBinding(_("F12"), false, _("FOCUS_SEQUENCER")),
     KeyBinding(_("F11"), false, _("SEARCH_TOGGLE"), true),
     KeyBinding(_("F12"), false, _("PERSPECTIVES_TOGGLE"), true),
     KeyBinding(_("F5"), false, _("EFFECT_UPDATE")),
@@ -201,7 +203,8 @@ const std::vector<std::pair<std::string, std::string>> ConvertKeys =
     { _("BACKUP"), _("+F10") },
     { _("ALTERNATE_BACKUP"), _("+F11") },
     { _("SELECT_SHOW_FOLDER"), _("+F9") },
-    { _("CANCEL_RENDER"), _("+ESCAPE") }
+    { _("CANCEL_RENDER"), _("+ESCAPE") },
+    { _("FOCUS_SEQUENCER"), _("+F12") }
 };
 
 // These are the keys that we we consider equivalent
@@ -302,6 +305,8 @@ KeyBinding::KeyBinding(const std::string& k, bool disabled, const std::string& t
 #pragma region Static functions
 bool KeyBinding::IsShiftedKey(wxKeyCode ch) noexcept
 {
+    if (ch > 127) return false;
+
     static std::string shiftedChars = "~!@#$%^&*()_+{}|\":<>?";
 
     return (shiftedChars.find(static_cast<char>(ch)) != std::string::npos);
