@@ -2435,6 +2435,32 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & va
             } else {
                 layers[ii]->inMaskFactor = fadeInFactor;
             }
+            if ( STR_FADE == layers[ii]->outTransitionType) {
+               if (fadeOutFactor < 1) {
+                  if (STR_FADE == layers[ii]->inTransitionType && fadeInFactor < 1)
+                     layers[ii]->fadeFactor = (fadeInFactor + fadeOutFactor) / 2.0;
+                  else
+                     layers[ii]->fadeFactor = fadeOutFactor;
+               }
+            }
+            else {
+               layers[ii]->outMaskFactor = fadeOutFactor;
+            }
+            // this is where it gets tricky, since calculateMask() handles both in and out transitions...
+            const RenderBuffer *prevRB = nullptr;
+            int fakeLayerIndex = numLayers - 1;
+            if ( fakeLayerIndex - ii > 1 )
+               prevRB = &layers[ii+1]->buffer;
+            layers[ii]->renderTransitions(isFirstFrame);
+        }
+        else {
+           layers[ii]->mask.clear();
+        }
+
+        // So far, we've handled the fade and mask-type transitions
+        // but some of the newer ones aren't masks...
+
+#if 0
             if (STR_FOLD == layers[ii]->inTransitionType && EffectPeriod < effStartPer + layers[ii]->fadeInSteps )
             {
                bool isReverse = layers[ii]->inTransitionReverse;
@@ -2511,6 +2537,7 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & va
         } else {
             layers[ii]->mask.clear();
         }
+#endif
     }
 
     // layer calculation and map to output
@@ -3082,16 +3109,33 @@ void PixelBufferClass::LayerInfo::createSlideBarsMask(bool out) {
     }
 }
 
-void PixelBufferClass::LayerInfo::calculateMask(bool isFirstFrame) {
+namespace
+{
+   const std::vector<std::string> transitionNames = {
+      "Fold", "Dissolve", "Circular Swirl"
+   };
+   bool nonMaskTransition( const std::string& transitionType )
+   {
+      return std::find( transitionNames.cbegin(), transitionNames.cend(), transitionType ) != transitionNames.cend();
+   }
+}
+
+void PixelBufferClass::LayerInfo::renderTransitions(bool isFirstFrame) {
     bool hasMask = false;
     if (inMaskFactor < 1.0) {
         mask.resize(BufferHt * BufferWi);
-        calculateMask(inTransitionType, false, isFirstFrame);
+        if ( nonMaskTransition( inTransitionType ) )
+           ; // todo
+        else
+           calculateMask(inTransitionType, false, isFirstFrame);
         hasMask = true;
     }
     if (outMaskFactor < 1.0) {
         mask.resize(BufferHt * BufferWi);
-        calculateMask(outTransitionType, true, isFirstFrame);
+        if ( nonMaskTransition( outTransitionType ) )
+           ; // todo
+        else
+           calculateMask(outTransitionType, true, isFirstFrame);
         hasMask = true;
     }
     if (!hasMask) {
