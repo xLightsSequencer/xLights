@@ -354,7 +354,7 @@ void MusicEffect::CreateEvents(RenderBuffer& buffer, std::vector<std::list<Music
             auto pn = pdata->begin();
 
             // skip to start note
-            for (int i = 0; i < startNote; i++)
+            for (int i = 0; i < startNote && pn != pdata->end(); i++)
             {
                 ++pn;
             }
@@ -367,7 +367,7 @@ void MusicEffect::CreateEvents(RenderBuffer& buffer, std::vector<std::list<Music
                 {
                     thisper = LogarithmicScale::GetLogSum(b + 1) - LogarithmicScale::GetLogSum(b);
                 }
-                for (auto n = 0; n < thisper; n++)
+                for (auto n = 0; n < thisper && pn != pdata->end(); n++)
                 {
                     val = std::max(val, *pn);
                     ++pn;
