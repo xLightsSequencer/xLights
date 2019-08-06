@@ -645,10 +645,13 @@ void EffectsGrid::FillRandomEffects()
                                                             eff->GetEndTimeMS(),
                                                             EFFECT_SELECTED,
                                                             false);
-                        lastEffect = ef;
-                        mSequenceElements->get_undo_mgr().CaptureAddedEffect( effectLayer->GetParentElement()->GetModelName(), effectLayer->GetIndex(), ef->GetID() );
-                        RaiseSelectedEffectChanged(ef, true, false);
-                        mSelectedEffect = ef;
+                        if (ef != nullptr)
+                        {
+                            lastEffect = ef;
+                            mSequenceElements->get_undo_mgr().CaptureAddedEffect(effectLayer->GetParentElement()->GetModelName(), effectLayer->GetIndex(), ef->GetID());
+                            RaiseSelectedEffectChanged(ef, true, false);
+                            mSelectedEffect = ef;
+                        }
                     }
                 }
             }
@@ -1968,8 +1971,11 @@ void EffectsGrid::ACCascade(int startMS, int endMS, int startCol, int endCol, in
                                 {
                                     // copy whole
                                     Effect* effNew = elTarget->AddEffect(0, eff->GetEffectName(), eff->GetSettingsAsString(), eff->GetPaletteAsString(), eff->GetStartTimeMS(), eff->GetEndTimeMS(), EFFECT_NOT_SELECTED, false);
-                                    effNew->SetLocked(false);
-                                    mSequenceElements->get_undo_mgr().CaptureAddedEffect(elTarget->GetParentElement()->GetModelName(), elTarget->GetIndex(), effNew->GetID());
+                                    if (effNew != nullptr)
+                                    {
+                                        effNew->SetLocked(false);
+                                        mSequenceElements->get_undo_mgr().CaptureAddedEffect(elTarget->GetParentElement()->GetModelName(), elTarget->GetIndex(), effNew->GetID());
+                                    }
                                 }
                             }
                         }
@@ -2015,8 +2021,11 @@ void EffectsGrid::ACCascade(int startMS, int endMS, int startCol, int endCol, in
                         {
                             // copy whole
                             Effect* effNew = elTarget->AddEffect(0, eff->GetEffectName(), eff->GetSettingsAsString(), eff->GetPaletteAsString(), eff->GetStartTimeMS() + cascadeMS, eff->GetEndTimeMS() + cascadeMS, EFFECT_NOT_SELECTED, false);
-                            effNew->SetLocked(false);
-                            mSequenceElements->get_undo_mgr().CaptureAddedEffect(elTarget->GetParentElement()->GetModelName(), elTarget->GetIndex(), effNew->GetID());
+                            if (effNew != nullptr)
+                            {
+                                effNew->SetLocked(false);
+                                mSequenceElements->get_undo_mgr().CaptureAddedEffect(elTarget->GetParentElement()->GetModelName(), elTarget->GetIndex(), effNew->GetID());
+                            }
                         }
                     }
                 }
@@ -2090,20 +2099,29 @@ void EffectsGrid::DuplicateAndTruncateEffect(EffectLayer* el, SettingsMap settin
     if (name == "On")
     {
         Effect* eff = el->AddEffect(0, name, ss, palette, startMS + offsetMS, endMS + offsetMS, EFFECT_NOT_SELECTED, false);
-        eff->SetLocked(false);
-        mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetModelName(), el->GetIndex(), eff->GetID());
+        if (eff != nullptr)
+        {
+            eff->SetLocked(false);
+            mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetModelName(), el->GetIndex(), eff->GetID());
+        }
     }
     else if (name == "Twinkle")
     {
         Effect* eff = el->AddEffect(0, name, ss, palette, startMS + offsetMS, endMS + offsetMS, EFFECT_NOT_SELECTED, false);
-        eff->SetLocked(false);
-        mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetModelName(), el->GetIndex(), eff->GetID());
+        if (eff != nullptr)
+        {
+            eff->SetLocked(false);
+            mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetModelName(), el->GetIndex(), eff->GetID());
+        }
     }
     else
     {
         Effect* eff = el->AddEffect(0, name, settings.AsString(), palette, startMS + offsetMS, endMS + offsetMS, EFFECT_NOT_SELECTED, false);
-        eff->SetLocked(false);
-        mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetModelName(), el->GetIndex(), eff->GetID());
+        if (eff != nullptr)
+        {
+            eff->SetLocked(false);
+            mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetModelName(), el->GetIndex(), eff->GetID());
+        }
     }
 }
 
@@ -2235,7 +2253,9 @@ void EffectsGrid::CreateACEffect(EffectLayer* el, std::string name, std::string 
             palette += "," + pal;
         }
         Effect* eff = el->AddEffect(0, name, settings, palette, startMS, endMS, (select ? EFFECT_SELECTED : EFFECT_NOT_SELECTED), false);
-        mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetModelName(), el->GetIndex(), eff->GetID());
+        if (eff != nullptr) {
+            mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetModelName(), el->GetIndex(), eff->GetID());
+        }
     }
 }
 
@@ -3445,13 +3465,20 @@ void EffectsGrid::MoveSelectedEffectUp(bool shift)
                         mSelectedEffect->GetEndTimeMS(),
                         EFFECT_SELECTED,
                         false);
-                    mSelectedRow = row;
-                    mSelectedEffect = ef;
-                    el->DeleteSelectedEffects(mSequenceElements->get_undo_mgr());
-                    mSequenceElements->get_undo_mgr().CaptureAddedEffect(new_el->GetParentElement()->GetModelName(), new_el->GetIndex(), ef->GetID());
-                    RaiseSelectedEffectChanged(ef, false, true);
-                    sendRenderDirtyEvent();
-                    MakeRowVisible(mSelectedRow + mSequenceElements->GetFirstVisibleModelRow() - mSequenceElements->GetNumberOfTimingRows());
+                    if (ef != nullptr)
+                    {
+                        mSelectedRow = row;
+                        mSelectedEffect = ef;
+                        el->DeleteSelectedEffects(mSequenceElements->get_undo_mgr());
+                        mSequenceElements->get_undo_mgr().CaptureAddedEffect(new_el->GetParentElement()->GetModelName(), new_el->GetIndex(), ef->GetID());
+                        RaiseSelectedEffectChanged(ef, false, true);
+                        sendRenderDirtyEvent();
+                        MakeRowVisible(mSelectedRow + mSequenceElements->GetFirstVisibleModelRow() - mSequenceElements->GetNumberOfTimingRows());
+                    }
+                    else
+                    {
+                        logger_base.warn("Problem adding effect when moving effect up %s", (const char *)mSelectedEffect->GetEffectName().c_str());
+                    }
                     Refresh(false);
                     return;
                 }
@@ -3518,8 +3545,15 @@ void EffectsGrid::MoveSelectedEffectUp(bool shift)
                                 eff->GetEndTimeMS(),
                                 EFFECT_SELECTED,
                                 false);
-                            mSequenceElements->get_undo_mgr().CaptureAddedEffect(el1->GetParentElement()->GetModelName(), el1->GetIndex(), ef->GetID());
-                            mSelectedEffect = ef;
+                            if (ef != nullptr)
+                            {
+                                mSequenceElements->get_undo_mgr().CaptureAddedEffect(el1->GetParentElement()->GetModelName(), el1->GetIndex(), ef->GetID());
+                                mSelectedEffect = ef;
+                            }
+                            else
+                            {
+                                logger_base.warn("Error adding effect when moving multiple effects up %s", (const char*)eff->GetEffectName().c_str());
+                            }
                         }
                     }
                     mSelectedRow = row;
@@ -3589,13 +3623,20 @@ void EffectsGrid::MoveSelectedEffectDown(bool shift)
                                                    mSelectedEffect->GetEndTimeMS(),
                                                    EFFECT_SELECTED,
                                                    false);
-                    mSelectedRow = row;
-                    mSelectedEffect = ef;
-                    el->DeleteSelectedEffects(mSequenceElements->get_undo_mgr());
-                    mSequenceElements->get_undo_mgr().CaptureAddedEffect( new_el->GetParentElement()->GetModelName(), new_el->GetIndex(), ef->GetID() );
-                    RaiseSelectedEffectChanged(ef, false, true);
-                    sendRenderDirtyEvent();
-                    MakeRowVisible(mSelectedRow + mSequenceElements->GetFirstVisibleModelRow() - mSequenceElements->GetNumberOfTimingRows() + 1);
+                    if (ef != nullptr)
+                    {
+                        mSelectedRow = row;
+                        mSelectedEffect = ef;
+                        el->DeleteSelectedEffects(mSequenceElements->get_undo_mgr());
+                        mSequenceElements->get_undo_mgr().CaptureAddedEffect(new_el->GetParentElement()->GetModelName(), new_el->GetIndex(), ef->GetID());
+                        RaiseSelectedEffectChanged(ef, false, true);
+                        sendRenderDirtyEvent();
+                        MakeRowVisible(mSelectedRow + mSequenceElements->GetFirstVisibleModelRow() - mSequenceElements->GetNumberOfTimingRows() + 1);
+                    }
+                    else
+                    {
+                        logger_base.warn("Error adding effect when moving effects down %s", (const char*)mSelectedEffect->GetEffectName().c_str());
+                    }
                     Refresh(false);
                     return;
                 }
@@ -3662,8 +3703,15 @@ void EffectsGrid::MoveSelectedEffectDown(bool shift)
                                                     eff->GetEndTimeMS(),
                                                     EFFECT_SELECTED,
                                                     false);
-                            mSequenceElements->get_undo_mgr().CaptureAddedEffect( el2->GetParentElement()->GetModelName(), el2->GetIndex(), ef->GetID() );
-                            mSelectedEffect = ef;
+                            if (ef != nullptr)
+                            {
+                                mSequenceElements->get_undo_mgr().CaptureAddedEffect( el2->GetParentElement()->GetModelName(), el2->GetIndex(), ef->GetID() );
+                                mSelectedEffect = ef;
+                            }
+                            else
+                            {
+                                logger_base.warn("Error adding effect when moving multiple effects down %s", (const char*)eff->GetEffectName().c_str());
+                            }
                         }
                     }
                     mSelectedRow = row;

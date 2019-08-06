@@ -2133,6 +2133,7 @@ void LayoutPanel::SelectBaseObject3D()
         }
     }
 }
+
 void LayoutPanel::SelectBaseObject(const std::string & name, bool highlight_tree)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -2152,13 +2153,14 @@ void LayoutPanel::SelectBaseObject(const std::string & name, bool highlight_tree
         }
         if (m != selectedBaseObject)
         {
-            for (auto& it : modelPreview->GetModels())
+            for (auto& it : xlights->AllModels)
             {
-                it->Selected = false;
-                it->Highlighted = false;
-                it->GroupSelected = false;
-                it->SelectHandle(-1);
-                it->GetBaseObjectScreenLocation().SetActiveHandle(-1);
+                Model* model = it.second;
+                model->Selected = false;
+                model->Highlighted = false;
+                model->GroupSelected = false;
+                model->SelectHandle(-1);
+                model->GetBaseObjectScreenLocation().SetActiveHandle(-1);
             }
             SelectModel(m, highlight_tree);
         }
@@ -2364,7 +2366,7 @@ void LayoutPanel::SelectViewObject(ViewObject *v, bool highlight_tree) {
     }
 
     selectedBaseObject = v;
-    if (v != nullptr) {
+    if (selectedBaseObject != nullptr) {
         selectedBaseObject->GetBaseObjectScreenLocation().SetActiveHandle(CENTER_HANDLE);
         selectionLatched = true;
     }

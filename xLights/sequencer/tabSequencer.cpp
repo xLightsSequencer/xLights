@@ -2904,6 +2904,7 @@ TimingElement* xLightsFrame::AddTimingElement(const std::string& name)
 
 void xLightsFrame::DeleteTimingElement(const std::string& name)
 {
+    displayElementsPanel->RemoveModelFromLists(name);
     mSequenceElements.DeleteElement(name);
     wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
     wxPostEvent(this, eventRowHeaderChanged);

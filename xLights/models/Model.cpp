@@ -2854,26 +2854,26 @@ void Model::ApplyTransform(const std::string &type,
         return;
     } else if (type == "Rotate 180") {
         for (size_t x = 0; x < newNodes.size(); x++) {
-            for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); ++it2) {
-                SetCoords(*it2, bufferWi - it2->bufX - 1, bufferHi - it2->bufY - 1);
+            for (auto& it2 : newNodes[x]->Coords) {
+                SetCoords(it2, bufferWi - it2.bufX - 1, bufferHi - it2.bufY - 1);
             }
         }
     } else if (type == "Flip Vertical") {
         for (size_t x = 0; x < newNodes.size(); x++) {
-            for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); ++it2) {
-                SetCoords(*it2, it2->bufX, bufferHi - it2->bufY - 1);
+            for (auto& it2 : newNodes[x]->Coords) {
+                SetCoords(it2, it2.bufX, bufferHi - it2.bufY - 1);
             }
         }
     } else if (type == "Flip Horizontal") {
         for (size_t x = 0; x < newNodes.size(); x++) {
-            for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); ++it2) {
-                SetCoords(*it2, bufferWi - it2->bufX - 1, it2->bufY);
+            for (auto& it2 : newNodes[x]->Coords) {
+                SetCoords(it2, bufferWi - it2.bufX - 1, it2.bufY);
             }
         }
     } else if (type == "Rotate CW 90") {
         for (size_t x = 0; x < newNodes.size(); x++) {
-            for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); ++it2) {
-                SetCoords(*it2, bufferHi - it2->bufY - 1, it2->bufX);
+            for (auto& it2 : newNodes[x]->Coords) {
+                SetCoords(it2, bufferHi - it2.bufY - 1, it2.bufX);
             }
         }
         int tmp = bufferHi;
@@ -2881,8 +2881,8 @@ void Model::ApplyTransform(const std::string &type,
         bufferWi = tmp;
     } else if (type == "Rotate CC 90") {
         for (int x = 0; x < newNodes.size(); x++) {
-            for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); ++it2) {
-                SetCoords(*it2, it2->bufY, bufferWi - it2->bufX - 1);
+            for (auto& it2 : newNodes[x]->Coords) {
+                SetCoords(it2, it2.bufY, bufferWi - it2.bufX - 1);
             }
         }
         int tmp = bufferHi;
@@ -2929,8 +2929,8 @@ void Model::InitRenderBufferNodes(const std::string &type, const std::string &ca
                 logger_base.crit("XXX Model::InitRenderBufferNodes newNodes[x] is null ... this is going to crash.");
                 wxASSERT(false);
             }
-            for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); ++it2) {
-                SetCoords(*it2, cnt, 0);
+            for (auto& it2 : newNodes[x]->Coords) {
+                SetCoords(it2, cnt, 0);
             }
             cnt++;
         }
@@ -2944,8 +2944,8 @@ void Model::InitRenderBufferNodes(const std::string &type, const std::string &ca
                 logger_base.crit("XXX Model::InitRenderBufferNodes newNodes[x] is null ... this is going to crash.");
                 wxASSERT(false);
             }
-            for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); ++it2) {
-                SetCoords(*it2, 0, 0);
+            for (auto& it2 : newNodes[x]->Coords) {
+                SetCoords(it2, 0, 0);
             }
         }
     }
@@ -2970,8 +2970,8 @@ void Model::InitRenderBufferNodes(const std::string &type, const std::string &ca
                     logger_base.crit("AAA Model::InitRenderBufferNodes newNodes[x] is null ... this is going to crash.");
                     wxASSERT(false);
                 }
-                for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); ++it2) {
-                    SetCoords(*it2, strand, cnt, -1, bufferHt, strandLen);
+                for (auto& it2 : newNodes[x]->Coords) {
+                    SetCoords(it2, strand, cnt, -1, bufferHt, strandLen);
                 }
                 cnt++;
                 x++;
@@ -2999,8 +2999,8 @@ void Model::InitRenderBufferNodes(const std::string &type, const std::string &ca
                     logger_base.crit("BBB Model::InitRenderBufferNodes newNodes[x] is null ... this is going to crash.");
                     wxASSERT(false);
                 }
-                for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); ++it2) {
-                    SetCoords(*it2, cnt, strand, bufferWi, -1, strandLen);
+                for (auto& it2 : newNodes[x]->Coords) {
+                    SetCoords(it2, cnt, strand, bufferWi, -1, strandLen);
                 }
                 cnt++;
                 x++;
@@ -3067,9 +3067,9 @@ void Model::InitRenderBufferNodes(const std::string &type, const std::string &ca
                 logger_base.crit("CCC Model::InitRenderBufferNodes newNodes[x] is null ... this is going to crash.");
                 wxASSERT(false);
             }
-            for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); ++it2) {
-                float sx = it2->screenX;
-                float sy = it2->screenY;
+            for (auto& it2 : newNodes[x]->Coords) {
+                float sx = it2.screenX;
+                float sy = it2.screenY;
 
                 if (ModelXml == nullptr)
                 {
@@ -3083,7 +3083,7 @@ void Model::InitRenderBufferNodes(const std::string &type, const std::string &ca
                         // Handle all of the 2D classic transformations
                         //float sz = 0;
                         // reintroducing the z coordinate as otherwise with some rotations we end up with a zero width buffer
-                        float sz = it2->screenZ;
+                        float sz = it2.screenZ;
                         GetModelScreenLocation().TranslatePoint(sx, sy, sz);
                     }
                     else
@@ -3091,7 +3091,7 @@ void Model::InitRenderBufferNodes(const std::string &type, const std::string &ca
                         if (GetDisplayAs() != "ModelGroup")  // ignore for groups since they will have already calculated their node positions from recursion call above
                         {
                             // Handle 3D from an arbitrary camera position
-                            float sz = it2->screenZ;
+                            float sz = it2.screenZ;
                             GetModelScreenLocation().TranslatePoint(sx, sy, sz);
 
                             // really not sure if 400,400 is the best thing to pass in here ... but it seems to work
@@ -3099,8 +3099,8 @@ void Model::InitRenderBufferNodes(const std::string &type, const std::string &ca
                             loc.y *= -1.0f;
                             sx = loc.x;
                             sy = loc.y;
-                            it2->screenX = sx;
-                            it2->screenY = sy;
+                            it2.screenX = sx;
+                            it2.screenY = sy;
                         }
                     }
                 }
@@ -3169,23 +3169,23 @@ void Model::InitRenderBufferNodes(const std::string &type, const std::string &ca
                     logger_base.crit("DDD Model::InitRenderBufferNodes newNodes[x] is null ... this is going to crash.");
                     wxASSERT(false);
                 }
-                for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); ++it2) {
+                for (auto& it2 : newNodes[x]->Coords) {
 
                     // grab the previously transformed coordinate
                     float sx = *itx / factor;
                     float sy = *ity / factor;
 
-                    SetCoords(*it2, std::round(sx - offx), std::round(sy - offy));
-                    if (it2->bufX > bufferWi) {
-                        bufferWi = it2->bufX;
+                    SetCoords(it2, std::round(sx - offx), std::round(sy - offy));
+                    if (it2.bufX > bufferWi) {
+                        bufferWi = it2.bufX;
                     }
-                    if (it2->bufY > bufferHt) {
-                        bufferHt = it2->bufY;
+                    if (it2.bufY > bufferHt) {
+                        bufferHt = it2.bufY;
                     }
 
                     if (noOff) {
-                        it2->screenX = sx;
-                        it2->screenY = sy;
+                        it2.screenX = sx;
+                        it2.screenY = sy;
                     }
 
                     ++itx;

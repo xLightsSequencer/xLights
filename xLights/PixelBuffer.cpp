@@ -1982,15 +1982,16 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
             inf->usingModelBuffers = true;
             const ModelGroup *gp = dynamic_cast<const ModelGroup*>(model);
             int cnt = 0;
-            for (auto it = inf->modelBuffers.begin(); it != inf->modelBuffers.end(); ++it, ++cnt) {
+            for (auto& it : inf->modelBuffers) {
                 std::string ntype = type.substr(10, type.length() - 10);
                 int bw, bh;
-                (*it)->Nodes.clear();
-                gp->Models()[cnt]->InitRenderBufferNodes(ntype, camera, transform, (*it)->Nodes, bw, bh);
+                it->Nodes.clear();
+                gp->Models()[cnt]->InitRenderBufferNodes(ntype, camera, transform, it->Nodes, bw, bh);
                 if (bw == 0) bw = 1; // zero sized buffers are a problem
                 if (bh == 0) bh = 1;
-                (*it)->InitBuffer(bh, bw, bh, bw, transform);
-                (*it)->SetAllowAlphaChannel(inf->buffer.allowAlpha);
+                it->InitBuffer(bh, bw, bh, bw, transform);
+                it->SetAllowAlphaChannel(inf->buffer.allowAlpha);
+                ++cnt;
             }
         } else {
             inf->usingModelBuffers = false;
@@ -2055,11 +2056,10 @@ void PixelBufferClass::SetTimes(int layer, int startTime, int endTime)
 {
     layers[layer]->buffer.SetEffectDuration(startTime, endTime);
     if (layers[layer]->usingModelBuffers) {
-        for (auto it = layers[layer]->modelBuffers.begin(); it != layers[layer]->modelBuffers.end(); ++it)  {
-            (*it)->SetEffectDuration(startTime, endTime);
+        for (auto& it : layers[layer]->modelBuffers)  {
+            it->SetEffectDuration(startTime, endTime);
         }
     }
-
 }
 
 static inline bool IsInRange(const std::vector<bool> &restrictRange, size_t start) {
