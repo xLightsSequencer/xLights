@@ -217,12 +217,12 @@ private:
         std::vector<std::unique_ptr<RenderBuffer>> modelBuffers;
 
         std::vector<uint8_t> mask;
-        void calculateMask(bool isFirstFrame);
+        void renderTransitions(bool isFirstFrame, const RenderBuffer* prevRB);
         void calculateMask(const std::string &type, bool mode, bool isFirstFrame);
         bool isMasked(int x, int y);
-        
+
         void clear();
-        
+
     private:
         void createSquareExplodeMask(bool end);
         void createCircleExplodeMask(bool end);
@@ -284,25 +284,25 @@ public:
     RenderBuffer &BufferForLayer(int i, int idx);
     int BufferCountForLayer(int i);
     void MergeBuffersForLayer(int i);
-    
-    
+
+
     void InitBuffer(const Model &pbc, int layers, int timing, bool zeroBased=false);
     void InitStrandBuffer(const Model &pbc, int strand, int timing, int layers);
     void InitNodeBuffer(const Model &pbc, int strand, int node, int timing);
     void InitPerModelBuffers(const ModelGroup& model, int layer, int timing);
 
     void Clear(int which);
-    
+
     void SetLayerSettings(int layer, const SettingsMap &settings);
     bool IsPersistent(int layer);
-    
+
     void SetMixType(int layer, const std::string& MixName);
     void SetPalette(int layer, xlColorVector& newcolors, xlColorCurveVector& newcc);
     void SetLayer(int newlayer, int period, bool ResetState);
     void SetTimes(int layer, int startTime, int endTime);
 
     void CalcOutput(int EffectPeriod, const std::vector<bool> &validLayers, int saveLayer = 0);
-    void SetColors(int layer, const unsigned char *fdata);    
+    void SetColors(int layer, const unsigned char *fdata);
     void GetColors(unsigned char *fdata, const std::vector<bool> &restrictRange);
 };
 typedef std::unique_ptr<PixelBufferClass> PixelBufferClassPtr;

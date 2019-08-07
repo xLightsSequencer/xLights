@@ -2435,81 +2435,26 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & va
             } else {
                 layers[ii]->inMaskFactor = fadeInFactor;
             }
-            if (STR_FOLD == layers[ii]->inTransitionType && EffectPeriod < effStartPer + layers[ii]->fadeInSteps )
-            {
-               bool isReverse = layers[ii]->inTransitionReverse;
-               RenderBuffer& currentRB(layers[ii]->buffer);
-               const RenderBuffer *prevRB = nullptr;
-               int fakeLayerIndex = numLayers - 1;
-               if ( fakeLayerIndex - ii > 1 )
-                  prevRB = &layers[ii+1]->buffer;
-               double progress = fadeInFactor;
-               foldIn( currentRB, ColorBuffer( currentRB.pixels, currentRB.BufferWi, currentRB.BufferHt ), prevRB, progress, isReverse );
-            }
-            if (STR_DISSOLVE == layers[ii]->inTransitionType && EffectPeriod < effStartPer + layers[ii]->fadeInSteps )
-            {
-               RenderBuffer& currentRB(layers[ii]->buffer);
-               dissolveIn( currentRB, ColorBuffer( currentRB.pixels, currentRB.BufferWi, currentRB.BufferHt ), fadeInFactor );
-            }
-            if (STR_CIRCULAR_SWIRL == layers[ii]->inTransitionType && EffectPeriod < effStartPer + layers[ii]->fadeInSteps )
-            {
-               RenderBuffer& currentRB(layers[ii]->buffer);
-               Vec2D xy( 0.5, 0.5 );
-               //double adjust = 0.01 * layers[ii]->inTransitionAdjust;
-               float speed = interpolate( /*adjust*/0.2, 0.0, 1.0, 40.0, 9.0, LinearInterpolater() );
-               circularSwirl( currentRB, ColorBuffer( currentRB.pixels, currentRB.BufferWi, currentRB.BufferHt ), xy, speed, 1.-fadeInFactor );
-            }
-
-            if (STR_FADE == layers[ii]->outTransitionType) {
-                if (fadeOutFactor<1) {
-                    if (STR_FADE == layers[ii]->inTransitionType
-                        && fadeInFactor<1) {
-                        layers[ii]->fadeFactor = (fadeInFactor+fadeOutFactor)/(double)2.0;
-                    } else {
-                        layers[ii]->fadeFactor = fadeOutFactor;
-                    }
-                }
-            } else {
-                layers[ii]->outMaskFactor = fadeOutFactor;
-            }
-            if ( STR_FOLD == layers[ii]->outTransitionType )
-            {
-               if ( EffectPeriod >= effEndPer - layers[ii]->fadeOutSteps )
-               {
-                  bool isReverse = layers[ii]->outTransitionReverse;
-                  RenderBuffer& currentRB(layers[ii]->buffer);
-                  const RenderBuffer *prevRB = nullptr;
-                  int fakeLayerIndex = numLayers - 1;
-                  if ( fakeLayerIndex - ii > 1 )
-                     prevRB = &layers[ii+1]->buffer;
-                  double progress = 1. - fadeOutFactor;
-                  foldOut( currentRB, ColorBuffer( currentRB.pixels, currentRB.BufferWi, currentRB.BufferHt ), prevRB, progress, isReverse );
+            if ( STR_FADE == layers[ii]->outTransitionType) {
+               if (fadeOutFactor < 1) {
+                  if (STR_FADE == layers[ii]->inTransitionType && fadeInFactor < 1)
+                     layers[ii]->fadeFactor = (fadeInFactor + fadeOutFactor) / 2.0;
+                  else
+                     layers[ii]->fadeFactor = fadeOutFactor;
                }
             }
-            if ( STR_CIRCULAR_SWIRL == layers[ii]->outTransitionType )
-            {
-               if ( EffectPeriod >= effEndPer - layers[ii]->fadeOutSteps )
-               {
-                  RenderBuffer& currentRB(layers[ii]->buffer);
-                  double progress = 1. - fadeOutFactor;
-                  Vec2D xy( 0.5, 0.5 );
-                  //double adjust = 0.01 * layers[ii]->outTransitionAdjust;
-                  float speed = interpolate( /*adjust*/0.2, 0.0, 1.0, 40.0, 9.0, LinearInterpolater() );
-                  circularSwirl( currentRB, ColorBuffer( currentRB.pixels, currentRB.BufferWi, currentRB.BufferHt ), xy, speed, progress );
-               }
+            else {
+               layers[ii]->outMaskFactor = fadeOutFactor;
             }
-            if ( STR_DISSOLVE == layers[ii]->outTransitionType )
-            {
-               if ( EffectPeriod >= effEndPer - layers[ii]->fadeOutSteps )
-               {
-                  RenderBuffer& currentRB(layers[ii]->buffer);
-                  dissolveOut( currentRB, ColorBuffer( currentRB.pixels, currentRB.BufferWi, currentRB.BufferHt ), 1. - fadeOutFactor );
-               }
-            } else {
-               layers[ii]->calculateMask(isFirstFrame);
-            }
-        } else {
-            layers[ii]->mask.clear();
+            // this is where it gets tricky, since calculateMask() handles both in and out transitions...
+            const RenderBuffer *prevRB = nullptr;
+            int fakeLayerIndex = numLayers - 1;
+            if ( fakeLayerIndex - ii > 1 )
+               prevRB = &layers[ii+1]->buffer;
+            layers[ii]->renderTransitions(isFirstFrame, prevRB);
+        }
+        else {
+           layers[ii]->mask.clear();
         }
     }
 
@@ -2747,10 +2692,14 @@ static bool isLeft(const wxPoint &a, const wxPoint &b, const wxPoint &test) {
 void PixelBufferClass::LayerInfo::createWipeMask(bool out)
 {
     int adjust = inTransitionAdjust;
-    bool reverse = inTransitionReverse;
     float factor = inMaskFactor;
+    if ( InTransitionAdjustValueCurve.IsActive() )
+       adjust = static_cast<int>( InTransitionAdjustValueCurve.GetOutputValueAt( factor, buffer.GetStartTimeMS(), buffer.GetEndTimeMS() ) );
+    bool reverse = inTransitionReverse;
     if (out) {
         adjust = outTransitionAdjust;
+        if ( OutTransitionAdjustValueCurve.IsActive() )
+           adjust = static_cast<int>( OutTransitionAdjustValueCurve.GetOutputValueAt( factor, buffer.GetStartTimeMS(), buffer.GetEndTimeMS() ) );
         reverse = outTransitionReverse;
         factor = outMaskFactor;
     }
@@ -2810,12 +2759,16 @@ void PixelBufferClass::LayerInfo::createClockMask(bool out) {
     bool reverse = inTransitionReverse;
     float factor = inMaskFactor;
     int adjust = inTransitionAdjust;
+    if ( InTransitionAdjustValueCurve.IsActive() )
+       adjust = static_cast<int>( InTransitionAdjustValueCurve.GetOutputValueAt( factor, buffer.GetStartTimeMS(), buffer.GetEndTimeMS() ) );
     uint8_t m1 = 255;
     uint8_t m2 = 0;
     if (out) {
         reverse = outTransitionReverse;
         factor = outMaskFactor;
         adjust = outTransitionAdjust;
+        if ( OutTransitionAdjustValueCurve.IsActive() )
+           adjust = static_cast<int>( OutTransitionAdjustValueCurve.GetOutputValueAt( factor, buffer.GetStartTimeMS(), buffer.GetEndTimeMS() ) );
     }
 
     float startradians = 2.0 * M_PI * (float)adjust / 100.0;
@@ -2867,12 +2820,16 @@ void PixelBufferClass::LayerInfo::createBlindsMask(bool out) {
     bool reverse = inTransitionReverse;
     float factor = inMaskFactor;
     int adjust = inTransitionAdjust;
+    if ( InTransitionAdjustValueCurve.IsActive() )
+       adjust = static_cast<int>( InTransitionAdjustValueCurve.GetOutputValueAt( factor, buffer.GetStartTimeMS(), buffer.GetEndTimeMS() ) );
     uint8_t m1 = 255;
     uint8_t m2 = 0;
     if (out) {
         reverse = outTransitionReverse;
         factor = outMaskFactor;
         adjust = outTransitionAdjust;
+        if ( OutTransitionAdjustValueCurve.IsActive() )
+           adjust = static_cast<int>( OutTransitionAdjustValueCurve.GetOutputValueAt( factor, buffer.GetStartTimeMS(), buffer.GetEndTimeMS() ) );
     }
     if (adjust == 0) {
         adjust = 1;
@@ -2910,12 +2867,16 @@ void PixelBufferClass::LayerInfo::createBlendMask(bool out) {
     //bool reverse = inTransitionReverse;
     float factor = inMaskFactor;
     int adjust = inTransitionAdjust;
+    if ( InTransitionAdjustValueCurve.IsActive() )
+       adjust = static_cast<int>( InTransitionAdjustValueCurve.GetOutputValueAt( factor, buffer.GetStartTimeMS(), buffer.GetEndTimeMS() ) );
     uint8_t m1 = 255;
     uint8_t m2 = 0;
     if (out) {
         //reverse = outTransitionReverse;
         factor = outMaskFactor;
         adjust = outTransitionAdjust;
+        if ( OutTransitionAdjustValueCurve.IsActive() )
+           adjust = static_cast<int>( OutTransitionAdjustValueCurve.GetOutputValueAt( factor, buffer.GetStartTimeMS(), buffer.GetEndTimeMS() ) );
     }
 
     std::minstd_rand rng(1234);
@@ -2993,12 +2954,16 @@ void PixelBufferClass::LayerInfo::createSlideChecksMask(bool out) {
     bool reverse = inTransitionReverse;
     float factor = inMaskFactor;
     int adjust = inTransitionAdjust;
+    if ( InTransitionAdjustValueCurve.IsActive() )
+       adjust = static_cast<int>( InTransitionAdjustValueCurve.GetOutputValueAt( factor, buffer.GetStartTimeMS(), buffer.GetEndTimeMS() ) );
     uint8_t m1 = 255;
     uint8_t m2 = 0;
     if (out) {
         reverse = outTransitionReverse;
         factor = outMaskFactor;
         adjust = outTransitionAdjust;
+        if ( OutTransitionAdjustValueCurve.IsActive() )
+           adjust = static_cast<int>( OutTransitionAdjustValueCurve.GetOutputValueAt( factor, buffer.GetStartTimeMS(), buffer.GetEndTimeMS() ) );
     }
 
     if (adjust < 2) {
@@ -3044,12 +3009,16 @@ void PixelBufferClass::LayerInfo::createSlideBarsMask(bool out) {
     //bool reverse = inTransitionReverse;
     float factor = inMaskFactor;
     int adjust = inTransitionAdjust;
+    if ( InTransitionAdjustValueCurve.IsActive() )
+       adjust = static_cast<int>( InTransitionAdjustValueCurve.GetOutputValueAt( factor, buffer.GetStartTimeMS(), buffer.GetEndTimeMS() ) );
     uint8_t m1 = 255;
     uint8_t m2 = 0;
     if (out) {
         //reverse = outTransitionReverse;
         factor = outMaskFactor;
         adjust = outTransitionAdjust;
+        if ( OutTransitionAdjustValueCurve.IsActive() )
+           adjust = static_cast<int>( OutTransitionAdjustValueCurve.GetOutputValueAt( factor, buffer.GetStartTimeMS(), buffer.GetEndTimeMS() ) );
     }
 
     if (adjust == 0) {
@@ -3082,16 +3051,54 @@ void PixelBufferClass::LayerInfo::createSlideBarsMask(bool out) {
     }
 }
 
-void PixelBufferClass::LayerInfo::calculateMask(bool isFirstFrame) {
+namespace
+{
+   const std::vector<std::string> transitionNames = {
+      "Fold", "Dissolve", "Circular Swirl"
+   };
+   bool nonMaskTransition( const std::string& transitionType )
+   {
+      return std::find( transitionNames.cbegin(), transitionNames.cend(), transitionType ) != transitionNames.cend();
+   }
+}
+
+void PixelBufferClass::LayerInfo::renderTransitions(bool isFirstFrame, const RenderBuffer* prevRB) {
     bool hasMask = false;
     if (inMaskFactor < 1.0) {
         mask.resize(BufferHt * BufferWi);
-        calculateMask(inTransitionType, false, isFirstFrame);
+        if ( nonMaskTransition( inTransitionType ) ) {
+            ColorBuffer cb( buffer.pixels, buffer.BufferWi, buffer.BufferHt );
+
+            if ( inTransitionType == "Fold" ) {
+               foldIn( buffer, cb, prevRB, inMaskFactor, inTransitionReverse );
+            } else if ( inTransitionType == "Dissolve" ) {
+               dissolveIn( buffer, cb, inMaskFactor );
+            } else if ( inTransitionType == "Circular Swirl" ) {
+               Vec2D xy( 0.5, 0.5 );
+               double speed = interpolate( 0.2, 0.0, 1.0, 40.0, 9.0, LinearInterpolater() );
+               circularSwirl( buffer, cb, xy, speed, 1.f-inMaskFactor );
+            }
+        } else {
+           calculateMask(inTransitionType, false, isFirstFrame);
+        }
         hasMask = true;
     }
     if (outMaskFactor < 1.0) {
         mask.resize(BufferHt * BufferWi);
-        calculateMask(outTransitionType, true, isFirstFrame);
+        if ( nonMaskTransition( outTransitionType ) ) {
+            ColorBuffer cb( buffer.pixels, buffer.BufferWi, buffer.BufferHt );
+            if ( outTransitionType == "Fold" ) {
+               foldOut( buffer, cb, prevRB, outMaskFactor, outTransitionReverse );
+            } else if ( outTransitionType == "Dissolve" ) {
+               dissolveOut( buffer, cb, 1.f - outMaskFactor );
+            } else if ( outTransitionType == "Circular Swirl" ) {
+               Vec2D xy( 0.5, 0.5 );
+               double speed = interpolate( 0.2, 0.0, 1.0, 40.0, 9.0, LinearInterpolater() );
+               circularSwirl( buffer, cb, xy, speed, 1.f - outMaskFactor );
+            }
+        } else {
+           calculateMask(outTransitionType, true, isFirstFrame);
+        }
         hasMask = true;
     }
     if (!hasMask) {
