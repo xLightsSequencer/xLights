@@ -6220,6 +6220,7 @@ void xLightsFrame::CheckSequence(bool display)
 
 #define SLOWDRIVE 1000
         std::list<std::pair<std::string, uint64_t>> slowaccess;
+        BadDriveAccess(allfiles, slowaccess, SLOWDRIVE);
         if (slowaccess.size() > 0)
         {
             wxString msg = wxString::Format("    WARN: Test of access speed to files your sequence shows the following files take longer than the recommended %dms.", SLOWDRIVE / 1000);
