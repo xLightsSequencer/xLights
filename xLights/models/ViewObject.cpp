@@ -24,7 +24,7 @@ void ViewObject::SetFromXml(wxXmlNode* ObjectNode, bool zeroBased) {
 
     name=ObjectNode->GetAttribute("name").ToStdString();
     DisplayAs=ObjectNode->GetAttribute("DisplayAs").ToStdString();
-    layout_group = ObjectNode->GetAttribute("LayoutGroup","Unassigned");
+    layout_group = "Default"; // objects in 3d can only belong to default as only default is 3d
     active = ObjectNode->GetAttribute("Active", "1") == "1";
 
     GetObjectScreenLocation().Read(ObjectNode);

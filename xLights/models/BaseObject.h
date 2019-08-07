@@ -35,6 +35,7 @@ public:
     void Lock(bool lock);
     virtual void AddASAPWork(uint32_t work, const std::string& from);
 
+    void EnableLayoutGroupProperty(wxPropertyGridInterface* grid, bool enable);
     void SetTop(float y);
     void SetBottom(float y);
     void SetLeft(float x);

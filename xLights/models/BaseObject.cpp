@@ -1,4 +1,5 @@
 #include <wx/xml/xml.h>
+#include <wx/propgrid/propgrid.h>
 
 #include "BaseObject.h"
 #include "ModelScreenLocation.h"
@@ -30,6 +31,14 @@ void BaseObject::SetLayoutGroup(const std::string &grp) {
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "SetLayoutGroup");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "SetLayoutGroup");
         AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "SetLayoutGroup");
+    }
+}
+
+void BaseObject::EnableLayoutGroupProperty(wxPropertyGridInterface* grid, bool enable)
+{
+    if (grid->GetProperty("ModelLayoutGroup") != nullptr)
+    {
+        grid->GetProperty("ModelLayoutGroup")->Enable(enable);
     }
 }
 

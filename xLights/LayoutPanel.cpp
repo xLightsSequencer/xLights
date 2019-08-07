@@ -436,6 +436,16 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     is_3d = config->ReadBool("LayoutMode3D", false);
 
     CheckBox_3D->SetValue(is_3d);
+    if (is_3d)
+    {
+        ChoiceLayoutGroups->Disable();
+        ChoiceLayoutGroups->SetToolTip("3D is only supported in the Default preview.");
+    }
+    else
+    {
+        ChoiceLayoutGroups->Enable();
+        ChoiceLayoutGroups->UnsetToolTip();
+    }
     modelPreview->Set3D(is_3d);
 
     propertyEditor->Connect(wxEVT_PG_CHANGING, (wxObjectEventFunction)&LayoutPanel::OnPropertyGridChanging,0,this);
@@ -469,7 +479,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     AddModelButton("Import Custom", import);
     AddModelButton("Download", download);
     obj_button = AddModelButton("Add Object", object);
-    obj_button->Enable(is_3d);
+    obj_button->Enable(is_3d && ChoiceLayoutGroups->GetStringSelection() == "Default");
 
     logger_base.debug("LayoutPanel model buttons created");
 
@@ -659,6 +669,7 @@ void LayoutPanel::Reset()
             break;
         }
     }
+    obj_button->Enable(is_3d && ChoiceLayoutGroups->GetStringSelection() == "Default");
 }
 
 void LayoutPanel::SetDirtyHiLight(bool dirty) {
@@ -2083,7 +2094,11 @@ void LayoutPanel::SetupPropGrid(BaseObject *base_object) {
     }
 
     base_object->AddProperties(propertyEditor, xlights->GetOutputManager());
-
+    if (is_3d)
+    {
+        base_object->EnableLayoutGroupProperty(propertyEditor, false);
+    }
+    
     if (dynamic_cast<SubModel*>(base_object) == nullptr) {
         wxPGProperty *p2 = propertyEditor->Append(new wxPropertyCategory("Size/Location", "ModelSize"));
 
@@ -4505,7 +4520,7 @@ void LayoutPanel::OnAddObjectPopup(wxCommandEvent& event)
         logger_base.debug("OnAddObjectPopup - ID_ADD_OBJECT_IMAGE");
         CreateUndoPoint("All", "", "");
         vobj = xlights->AllObjects.CreateAndAddObject("Image");
-        vobj->SetLayoutGroup(currentLayoutGroup);
+        vobj->SetLayoutGroup("Default"); // only Default supports 3D and hence objects
         objects_panel->UpdateObjectList(true, currentLayoutGroup);
         object_created = true;
     }
@@ -4514,7 +4529,7 @@ void LayoutPanel::OnAddObjectPopup(wxCommandEvent& event)
         logger_base.debug("OnAddObjectPopup - ID_ADD_OBJECT_GRIDLINES");
         CreateUndoPoint("All", "", "");
         vobj = xlights->AllObjects.CreateAndAddObject("Gridlines");
-        vobj->SetLayoutGroup(currentLayoutGroup);
+        vobj->SetLayoutGroup("Default"); // only Default supports 3D and hence objects
         objects_panel->UpdateObjectList(true, currentLayoutGroup);
         object_created = true;
     }
@@ -4523,7 +4538,7 @@ void LayoutPanel::OnAddObjectPopup(wxCommandEvent& event)
         logger_base.debug("OnAddObjectPopup - ID_ADD_OBJECT_MESH");
         CreateUndoPoint("All", "", "");
         vobj = xlights->AllObjects.CreateAndAddObject("Mesh");
-        vobj->SetLayoutGroup(currentLayoutGroup);
+        vobj->SetLayoutGroup("Default"); // only Default supports 3D and hence objects
         objects_panel->UpdateObjectList(true, currentLayoutGroup);
         object_created = true;
     }
@@ -5771,9 +5786,10 @@ void LayoutPanel::OnChoiceLayoutGroupsSelect(wxCommandEvent& event)
     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnChoiceLayoutGroupsSelect");
 
     xlights->SetStoredLayoutGroup(currentLayoutGroup);
+    obj_button->Enable(is_3d && currentLayoutGroup == "Default");
 }
 
-void LayoutPanel::PreviewSaveImage()
+void LayoutPanel::PreviewSaveImage()    
 {
 	wxImage *image = modelPreview->GrabImage();
 	if (image == nullptr)
@@ -6395,21 +6411,43 @@ std::string CopyPasteBaseObject::Serialise() const
 void LayoutPanel::OnCheckBox_3DClick(wxCommandEvent& event)
 {
     is_3d = CheckBox_3D->GetValue();
+
+    if (is_3d)
+    {
+        if (ChoiceLayoutGroups->GetStringSelection() != "Default")
+        {
+            ChoiceLayoutGroups->SetStringSelection("Default");
+            wxCommandEvent e;
+            OnChoiceLayoutGroupsSelect(e);
+        }
+        ChoiceLayoutGroups->Disable();
+        ChoiceLayoutGroups->SetToolTip("3D is only supported in the Default preview.");
+    }
+    else
+    {
+        ChoiceLayoutGroups->Enable();
+        ChoiceLayoutGroups->UnsetToolTip();
+    }
+
     modelPreview->Set3D(is_3d);
     if (is_3d) {
         if (selectedBaseObject != nullptr) {
             selectionLatched = true;
             highlightedBaseObject = selectedBaseObject;
             selectedBaseObject->GetBaseObjectScreenLocation().SetActiveHandle(CENTER_HANDLE);
+            selectedBaseObject->EnableLayoutGroupProperty(propertyEditor, false);
         }
         else {
             UnSelectAllModels();
         }
 	    Notebook_Objects->AddPage(PanelObjects, _("3D Objects"), false);
     } else {
+        if (selectedBaseObject != nullptr) {
+            selectedBaseObject->EnableLayoutGroupProperty(propertyEditor, true);
+        }
         Notebook_Objects->RemovePage(1);
     }
-    obj_button->Enable(is_3d);
+    obj_button->Enable(is_3d && ChoiceLayoutGroups->GetStringSelection() == "Default");
 
     wxConfigBase* config = wxConfigBase::Get();
     config->Write("LayoutMode3D", is_3d);
