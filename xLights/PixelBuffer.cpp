@@ -2451,93 +2451,11 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & va
             int fakeLayerIndex = numLayers - 1;
             if ( fakeLayerIndex - ii > 1 )
                prevRB = &layers[ii+1]->buffer;
-            layers[ii]->renderTransitions(isFirstFrame);
+            layers[ii]->renderTransitions(isFirstFrame, prevRB);
         }
         else {
            layers[ii]->mask.clear();
         }
-
-        // So far, we've handled the fade and mask-type transitions
-        // but some of the newer ones aren't masks...
-
-#if 0
-            if (STR_FOLD == layers[ii]->inTransitionType && EffectPeriod < effStartPer + layers[ii]->fadeInSteps )
-            {
-               bool isReverse = layers[ii]->inTransitionReverse;
-               RenderBuffer& currentRB(layers[ii]->buffer);
-               const RenderBuffer *prevRB = nullptr;
-               int fakeLayerIndex = numLayers - 1;
-               if ( fakeLayerIndex - ii > 1 )
-                  prevRB = &layers[ii+1]->buffer;
-               double progress = fadeInFactor;
-               foldIn( currentRB, ColorBuffer( currentRB.pixels, currentRB.BufferWi, currentRB.BufferHt ), prevRB, progress, isReverse );
-            }
-            if (STR_DISSOLVE == layers[ii]->inTransitionType && EffectPeriod < effStartPer + layers[ii]->fadeInSteps )
-            {
-               RenderBuffer& currentRB(layers[ii]->buffer);
-               dissolveIn( currentRB, ColorBuffer( currentRB.pixels, currentRB.BufferWi, currentRB.BufferHt ), fadeInFactor );
-            }
-            if (STR_CIRCULAR_SWIRL == layers[ii]->inTransitionType && EffectPeriod < effStartPer + layers[ii]->fadeInSteps )
-            {
-               RenderBuffer& currentRB(layers[ii]->buffer);
-               Vec2D xy( 0.5, 0.5 );
-               //double adjust = 0.01 * layers[ii]->inTransitionAdjust;
-               float speed = interpolate( /*adjust*/0.2, 0.0, 1.0, 40.0, 9.0, LinearInterpolater() );
-               circularSwirl( currentRB, ColorBuffer( currentRB.pixels, currentRB.BufferWi, currentRB.BufferHt ), xy, speed, 1.-fadeInFactor );
-            }
-
-            if (STR_FADE == layers[ii]->outTransitionType) {
-                if (fadeOutFactor<1) {
-                    if (STR_FADE == layers[ii]->inTransitionType
-                        && fadeInFactor<1) {
-                        layers[ii]->fadeFactor = (fadeInFactor+fadeOutFactor)/(double)2.0;
-                    } else {
-                        layers[ii]->fadeFactor = fadeOutFactor;
-                    }
-                }
-            } else {
-                layers[ii]->outMaskFactor = fadeOutFactor;
-            }
-            if ( STR_FOLD == layers[ii]->outTransitionType )
-            {
-               if ( EffectPeriod >= effEndPer - layers[ii]->fadeOutSteps )
-               {
-                  bool isReverse = layers[ii]->outTransitionReverse;
-                  RenderBuffer& currentRB(layers[ii]->buffer);
-                  const RenderBuffer *prevRB = nullptr;
-                  int fakeLayerIndex = numLayers - 1;
-                  if ( fakeLayerIndex - ii > 1 )
-                     prevRB = &layers[ii+1]->buffer;
-                  double progress = 1. - fadeOutFactor;
-                  foldOut( currentRB, ColorBuffer( currentRB.pixels, currentRB.BufferWi, currentRB.BufferHt ), prevRB, progress, isReverse );
-               }
-            }
-            if ( STR_CIRCULAR_SWIRL == layers[ii]->outTransitionType )
-            {
-               if ( EffectPeriod >= effEndPer - layers[ii]->fadeOutSteps )
-               {
-                  RenderBuffer& currentRB(layers[ii]->buffer);
-                  double progress = 1. - fadeOutFactor;
-                  Vec2D xy( 0.5, 0.5 );
-                  //double adjust = 0.01 * layers[ii]->outTransitionAdjust;
-                  float speed = interpolate( /*adjust*/0.2, 0.0, 1.0, 40.0, 9.0, LinearInterpolater() );
-                  circularSwirl( currentRB, ColorBuffer( currentRB.pixels, currentRB.BufferWi, currentRB.BufferHt ), xy, speed, progress );
-               }
-            }
-            if ( STR_DISSOLVE == layers[ii]->outTransitionType )
-            {
-               if ( EffectPeriod >= effEndPer - layers[ii]->fadeOutSteps )
-               {
-                  RenderBuffer& currentRB(layers[ii]->buffer);
-                  dissolveOut( currentRB, ColorBuffer( currentRB.pixels, currentRB.BufferWi, currentRB.BufferHt ), 1. - fadeOutFactor );
-               }
-            } else {
-               layers[ii]->calculateMask(isFirstFrame);
-            }
-        } else {
-            layers[ii]->mask.clear();
-        }
-#endif
     }
 
     // layer calculation and map to output
@@ -3120,22 +3038,43 @@ namespace
    }
 }
 
-void PixelBufferClass::LayerInfo::renderTransitions(bool isFirstFrame) {
+void PixelBufferClass::LayerInfo::renderTransitions(bool isFirstFrame, const RenderBuffer* prevRB) {
     bool hasMask = false;
     if (inMaskFactor < 1.0) {
         mask.resize(BufferHt * BufferWi);
-        if ( nonMaskTransition( inTransitionType ) )
-           ; // todo
-        else
+        if ( nonMaskTransition( inTransitionType ) ) {
+            ColorBuffer cb( buffer.pixels, buffer.BufferWi, buffer.BufferHt );
+
+            if ( inTransitionType == "Fold" ) {
+               foldIn( buffer, cb, prevRB, inMaskFactor, inTransitionReverse );
+            } else if ( inTransitionType == "Dissolve" ) {
+               dissolveIn( buffer, cb, inMaskFactor );
+            } else if ( inTransitionType == "Circular Swirl" ) {
+               Vec2D xy( 0.5, 0.5 );
+               double speed = interpolate( 0.2, 0.0, 1.0, 40.0, 9.0, LinearInterpolater() );
+               circularSwirl( buffer, cb, xy, speed, 1.f-inMaskFactor );
+            }
+        } else {
            calculateMask(inTransitionType, false, isFirstFrame);
+        }
         hasMask = true;
     }
     if (outMaskFactor < 1.0) {
         mask.resize(BufferHt * BufferWi);
-        if ( nonMaskTransition( outTransitionType ) )
-           ; // todo
-        else
+        if ( nonMaskTransition( outTransitionType ) ) {
+            ColorBuffer cb( buffer.pixels, buffer.BufferWi, buffer.BufferHt );
+            if ( outTransitionType == "Fold" ) {
+               foldOut( buffer, cb, prevRB, outMaskFactor, outTransitionReverse );
+            } else if ( outTransitionType == "Dissolve" ) {
+               dissolveOut( buffer, cb, 1.f - outMaskFactor );
+            } else if ( outTransitionType == "Circular Swirl" ) {
+               Vec2D xy( 0.5, 0.5 );
+               double speed = interpolate( 0.2, 0.0, 1.0, 40.0, 9.0, LinearInterpolater() );
+               circularSwirl( buffer, cb, xy, speed, 1.f - outMaskFactor );
+            }
+        } else {
            calculateMask(outTransitionType, true, isFirstFrame);
+        }
         hasMask = true;
     }
     if (!hasMask) {

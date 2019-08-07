@@ -217,7 +217,7 @@ private:
         std::vector<std::unique_ptr<RenderBuffer>> modelBuffers;
 
         std::vector<uint8_t> mask;
-        void renderTransitions(bool isFirstFrame);
+        void renderTransitions(bool isFirstFrame, const RenderBuffer* prevRB);
         void calculateMask(const std::string &type, bool mode, bool isFirstFrame);
         bool isMasked(int x, int y);
 
