@@ -2692,10 +2692,14 @@ static bool isLeft(const wxPoint &a, const wxPoint &b, const wxPoint &test) {
 void PixelBufferClass::LayerInfo::createWipeMask(bool out)
 {
     int adjust = inTransitionAdjust;
-    bool reverse = inTransitionReverse;
     float factor = inMaskFactor;
+    if ( InTransitionAdjustValueCurve.IsActive() )
+       adjust = static_cast<int>( InTransitionAdjustValueCurve.GetOutputValueAt( factor, buffer.GetStartTimeMS(), buffer.GetEndTimeMS() ) );
+    bool reverse = inTransitionReverse;
     if (out) {
         adjust = outTransitionAdjust;
+        if ( OutTransitionAdjustValueCurve.IsActive() )
+           adjust = static_cast<int>( OutTransitionAdjustValueCurve.GetOutputValueAt( factor, buffer.GetStartTimeMS(), buffer.GetEndTimeMS() ) );
         reverse = outTransitionReverse;
         factor = outMaskFactor;
     }
@@ -2755,12 +2759,16 @@ void PixelBufferClass::LayerInfo::createClockMask(bool out) {
     bool reverse = inTransitionReverse;
     float factor = inMaskFactor;
     int adjust = inTransitionAdjust;
+    if ( InTransitionAdjustValueCurve.IsActive() )
+       adjust = static_cast<int>( InTransitionAdjustValueCurve.GetOutputValueAt( factor, buffer.GetStartTimeMS(), buffer.GetEndTimeMS() ) );
     uint8_t m1 = 255;
     uint8_t m2 = 0;
     if (out) {
         reverse = outTransitionReverse;
         factor = outMaskFactor;
         adjust = outTransitionAdjust;
+        if ( OutTransitionAdjustValueCurve.IsActive() )
+           adjust = static_cast<int>( OutTransitionAdjustValueCurve.GetOutputValueAt( factor, buffer.GetStartTimeMS(), buffer.GetEndTimeMS() ) );
     }
 
     float startradians = 2.0 * M_PI * (float)adjust / 100.0;
@@ -2812,12 +2820,16 @@ void PixelBufferClass::LayerInfo::createBlindsMask(bool out) {
     bool reverse = inTransitionReverse;
     float factor = inMaskFactor;
     int adjust = inTransitionAdjust;
+    if ( InTransitionAdjustValueCurve.IsActive() )
+       adjust = static_cast<int>( InTransitionAdjustValueCurve.GetOutputValueAt( factor, buffer.GetStartTimeMS(), buffer.GetEndTimeMS() ) );
     uint8_t m1 = 255;
     uint8_t m2 = 0;
     if (out) {
         reverse = outTransitionReverse;
         factor = outMaskFactor;
         adjust = outTransitionAdjust;
+        if ( OutTransitionAdjustValueCurve.IsActive() )
+           adjust = static_cast<int>( OutTransitionAdjustValueCurve.GetOutputValueAt( factor, buffer.GetStartTimeMS(), buffer.GetEndTimeMS() ) );
     }
     if (adjust == 0) {
         adjust = 1;
@@ -2855,12 +2867,16 @@ void PixelBufferClass::LayerInfo::createBlendMask(bool out) {
     //bool reverse = inTransitionReverse;
     float factor = inMaskFactor;
     int adjust = inTransitionAdjust;
+    if ( InTransitionAdjustValueCurve.IsActive() )
+       adjust = static_cast<int>( InTransitionAdjustValueCurve.GetOutputValueAt( factor, buffer.GetStartTimeMS(), buffer.GetEndTimeMS() ) );
     uint8_t m1 = 255;
     uint8_t m2 = 0;
     if (out) {
         //reverse = outTransitionReverse;
         factor = outMaskFactor;
         adjust = outTransitionAdjust;
+        if ( OutTransitionAdjustValueCurve.IsActive() )
+           adjust = static_cast<int>( OutTransitionAdjustValueCurve.GetOutputValueAt( factor, buffer.GetStartTimeMS(), buffer.GetEndTimeMS() ) );
     }
 
     std::minstd_rand rng(1234);
@@ -2938,12 +2954,16 @@ void PixelBufferClass::LayerInfo::createSlideChecksMask(bool out) {
     bool reverse = inTransitionReverse;
     float factor = inMaskFactor;
     int adjust = inTransitionAdjust;
+    if ( InTransitionAdjustValueCurve.IsActive() )
+       adjust = static_cast<int>( InTransitionAdjustValueCurve.GetOutputValueAt( factor, buffer.GetStartTimeMS(), buffer.GetEndTimeMS() ) );
     uint8_t m1 = 255;
     uint8_t m2 = 0;
     if (out) {
         reverse = outTransitionReverse;
         factor = outMaskFactor;
         adjust = outTransitionAdjust;
+        if ( OutTransitionAdjustValueCurve.IsActive() )
+           adjust = static_cast<int>( OutTransitionAdjustValueCurve.GetOutputValueAt( factor, buffer.GetStartTimeMS(), buffer.GetEndTimeMS() ) );
     }
 
     if (adjust < 2) {
@@ -2989,12 +3009,16 @@ void PixelBufferClass::LayerInfo::createSlideBarsMask(bool out) {
     //bool reverse = inTransitionReverse;
     float factor = inMaskFactor;
     int adjust = inTransitionAdjust;
+    if ( InTransitionAdjustValueCurve.IsActive() )
+       adjust = static_cast<int>( InTransitionAdjustValueCurve.GetOutputValueAt( factor, buffer.GetStartTimeMS(), buffer.GetEndTimeMS() ) );
     uint8_t m1 = 255;
     uint8_t m2 = 0;
     if (out) {
         //reverse = outTransitionReverse;
         factor = outMaskFactor;
         adjust = outTransitionAdjust;
+        if ( OutTransitionAdjustValueCurve.IsActive() )
+           adjust = static_cast<int>( OutTransitionAdjustValueCurve.GetOutputValueAt( factor, buffer.GetStartTimeMS(), buffer.GetEndTimeMS() ) );
     }
 
     if (adjust == 0) {
