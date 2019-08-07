@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (dklup)  Fix FPP connect upload of sequences that take longer than 10 seconds to transmit
    -- enh (dkulp)  Discovery - match IP addresses to resolved hostnames as well
    -- enh (dkulp)  Add ability to convert ZCPP output to e1.31
 2019.38 August 5, 2019

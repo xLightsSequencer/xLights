@@ -189,6 +189,7 @@ public:
                 }
             }
             if (file->Eof()) {
+                curPos = 0;
                 data = postData;
                 dataSize = postDataSize;
                 file = nullptr;
@@ -597,6 +598,9 @@ bool FPP::uploadFile(const std::string &filename, const std::string &file, bool 
     
     
     setupCurl();
+    //if we cannot upload it in 5 minutes, we have serious issues
+    curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, 1000*5*60);
+
     curlInputBuffer.clear();
     char error[1024];
     std::string fullUrl = "http://" + ipAddress + "/jqupload.php";
@@ -665,11 +669,19 @@ bool FPP::uploadFile(const std::string &filename, const std::string &file, bool 
         curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
         if (response_code == 200) {
             std::string val;
-            GetURLAsString("/fppxml.php?command=moveFile&file=" + URLEncode(filename + ext), val);
-            logger_base.debug("Renaming done.");
+            if (!GetURLAsString("/fppxml.php?command=moveFile&file=" + URLEncode(filename + ext), val)) {
+                logger_base.warn("Error trying to rename file.");
+            } else {
+                logger_base.debug("Renaming done.");
+            }
         } else {
+            logger_base.warn("Did not get 200 resonse code:  %d", response_code);
             cancelled = true;
         }
+    } else {
+        long response_code;
+        curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
+        logger_base.warn("Curl did not upload file:  %d   %s", response_code, error);
     }
     progress.Update(1000, wxEmptyString, &cancelled);
     return data.cancelled;
