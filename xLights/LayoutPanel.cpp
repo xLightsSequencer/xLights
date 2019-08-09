@@ -3983,6 +3983,8 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
         {
             CreateUndoPoint("SingleModel", md->name, std::to_string(selected_handle+0x4000));
             md->DeleteHandle(selected_handle);
+            md->SelectHandle(-1);
+            md->GetModelScreenLocation().SelectSegment(-1);
             md->UpdateXmlWithScale();
             md->InitModel();
             //SetupPropGrid(md);
