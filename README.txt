@@ -11,9 +11,20 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
-   -- bug (dklup)  Fix FPP connect upload of sequences that take longer than 10 seconds to transmit
+2019.39 August 9, 2019
    -- enh (dkulp)  Discovery - match IP addresses to resolved hostnames as well
    -- enh (dkulp)  Add ability to convert ZCPP output to e1.31
+   -- enh (keith)  Let user adjust maximum blank frames when generating custom model
+   -- enh (keith)  Have the UI stop the user from setting up previews other than default in 3D as they cant actually be viewed in 3D in playback
+   -- enh (keith)  Make SMS service test work even when no service has been signed up for
+   -- enh (keith)  Add a F12 force keyboard focus in sequencer to allow keyboard recovery from entry fields stealing focus
+   -- enh (pete)   Add logarithmic x Axis to music effect
+   -- bug (dklup)  Fix FPP connect upload of sequences that take longer than 10 seconds to transmit
+   -- bug (keith)  Fix cant delete polyline point in 3D
+   -- bug (keith)  Fix Metronome timing tracks not working
+   -- bug (keith)  Fix changing sequence timing does not immediately change fseq file timing
+   -- bug (keith)  Fix making 2 and 3 point models the same size does not work
+   -- bug (kevin)  Fix broken transitions
 2019.38 August 5, 2019
    -- enh (kevin)  Enable rotation of "From Middle" transition
    -- enh (kevin)  Add Dissolve and "Circular Swirl" transitions
