@@ -454,7 +454,7 @@ void Model::UpdateProperties(wxPropertyGridInterface* grid, OutputManager* outpu
 void Model::ColourClashingChains(wxPGProperty* p)
 {
     std::string tip;
-    if (GetControllerName() != "" && GetControllerProtocol() != "" && GetControllerPort() != 0) {
+    if (GetControllerName() != "" && GetControllerProtocol() != "" && GetControllerPort() != 0 && p->IsEnabled()) {
         if (!modelManager.IsValidControllerModelChain(this, tip)) {
             p->SetHelpString(tip);
             p->SetBackgroundColour(*wxRED);
@@ -534,14 +534,14 @@ void Model::AddProperties(wxPropertyGridInterface *grid, OutputManager* outputMa
 
     if (HasOneString(DisplayAs)) {
         p = grid->Append(new StartChannelProperty(this, 0, "Start Channel", "ModelStartChannel", ModelXml->GetAttribute("StartChannel","1"), modelManager.GetXLightsFrame()->GetSelectedLayoutPanelPreview()));
-        p->Enable(GetControllerName() == "");
+        p->Enable(GetControllerName() == "" || _controller == 0);
     } else {
         bool hasIndiv = ModelXml->GetAttribute("Advanced", "0") == "1";
         p = grid->Append(new wxBoolProperty("Indiv Start Chans", "ModelIndividualStartChannels", hasIndiv));
         p->SetAttribute("UseCheckbox", true);
         p->Enable(parm1 > 1 && GetControllerName() == "");
         sp = grid->AppendIn(p, new StartChannelProperty(this, 0, "Start Channel", "ModelStartChannel", ModelXml->GetAttribute("StartChannel","1"), modelManager.GetXLightsFrame()->GetSelectedLayoutPanelPreview()));
-        sp->Enable(GetControllerName() == "");
+        sp->Enable(GetControllerName() == "" || _controller == 0);
         if (hasIndiv) {
             int c = Model::HasOneString(DisplayAs) ? 1 : parm1;
             for (int x = 0; x < c; x++) {
@@ -570,7 +570,7 @@ void Model::AddProperties(wxPropertyGridInterface *grid, OutputManager* outputMa
         }
     }
     p = grid->Append(new ModelChainProperty(this, "Model Chain", "ModelChain", GetModelChain() == "" ? _("Beginning").ToStdString() : GetModelChain()));
-    p->Enable(GetControllerName() != "" && GetControllerProtocol() != "" && GetControllerPort() != 0);
+    p->Enable(GetControllerName() != "" && GetControllerProtocol() != "" && GetControllerPort() != 0 && _controller != 0);
 
     int layout_group_number = 0;
     for (int grp = 0; grp < LAYOUT_GROUPS.Count(); grp++)
