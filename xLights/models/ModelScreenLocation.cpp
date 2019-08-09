@@ -4176,6 +4176,7 @@ wxCursor PolyPointScreenLocation::CheckIfOverHandles(ModelPreview* preview, int 
 
 void PolyPointScreenLocation::SetActiveHandle(int handle)
 {
+    selected_handle = handle;
     active_handle = handle;
     highlighted_handle = -1;
     SetAxisTool(axis_tool);  // run logic to disallow certain tools
