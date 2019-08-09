@@ -2623,12 +2623,12 @@ float TwoPointScreenLocation::GetLeft() const {
 
 float TwoPointScreenLocation::GetMWidth() const
 {
-    return x2 - worldPos_x;
+    return x2;
 }
 
 float TwoPointScreenLocation::GetMHeight() const
 {
-    return y2 - worldPos_y;
+    return y2;
 }
 
 float TwoPointScreenLocation::GetRight() const {
@@ -2706,7 +2706,7 @@ void TwoPointScreenLocation::SetBack(float i) {
 
 void TwoPointScreenLocation::SetMWidth(float w)
 {
-    x2 = worldPos_x + w;
+    x2 = w;
 }
 
 void TwoPointScreenLocation::SetMDepth(float w)
@@ -2720,7 +2720,7 @@ float TwoPointScreenLocation::GetMDepth() const
 
 void TwoPointScreenLocation::SetMHeight(float h)
 {
-    y2  = worldPos_y + h;
+    y2  = h;
 }
 
 ThreePointScreenLocation::ThreePointScreenLocation(): height(1.0), modelHandlesHeight(false), supportsShear(false), supportsAngle(false), angle(0), shear(0.0) {
