@@ -1252,6 +1252,16 @@ void xLightsFrame::SaveSequence()
     mLastAutosaveCount = mSavedChangeCount;
 }
 
+void xLightsFrame::SetSequenceTiming(int timingMS)
+{
+    if (CurrentSeqXmlFile == nullptr) return;
+
+    if (SeqData.FrameTime() != timingMS)
+    {
+        SeqData.init(GetMaxNumChannels(), CurrentSeqXmlFile->GetSequenceDurationMS() / timingMS, timingMS);
+    }
+}
+
 void xLightsFrame::SaveAsSequence()
 {
    if (SeqData.NumFrames() == 0)

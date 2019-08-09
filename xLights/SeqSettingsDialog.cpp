@@ -1569,6 +1569,7 @@ void SeqSettingsDialog::OnBitmapButton_ModifyTimingClick(wxCommandEvent& event)
 
         TextCtrl_SeqTiming->SetValue(dialog.GetTiming());
         xml_file->SetSequenceTiming(dialog.GetTiming());
+        xLightsParent->SetSequenceTiming(wxAtoi(dialog.GetTiming()));
         xLightsParent->SaveSequence();
         wxString name = xml_file->GetFullPath();
         xLightsParent->CloseSequence();
