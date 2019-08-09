@@ -2870,7 +2870,7 @@ void xLightsXmlFile::AddFixedTimingSection(const std::string& interval_name, xLi
     AddTimingDisplayElement(interval_name, "1", "0");
     wxXmlNode* node;
 
-    if (interval_name == "Empty" || (interval_name != "25ms" && interval_name != "50ms" && interval_name != "100ms"))
+    if (interval_name == "Empty" || (interval_name != "25ms" && interval_name != "50ms" && interval_name != "100ms" && !EndsWith(interval_name, "ms Metronome")))
     {
         if (sequence_loaded)
         {
