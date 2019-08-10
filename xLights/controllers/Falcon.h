@@ -77,6 +77,7 @@ public:
             return 1024 * 3;
         }
     }
+    virtual bool SupportsVirtualStrings() const override { return true; }
     virtual int GetMaxPixelPort() const override
     {
         if (_type == 4)

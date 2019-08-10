@@ -603,6 +603,7 @@ public:
         return "EasyLights";
     }
 
+    virtual bool SupportsVirtualStrings() const override { return true; }
 
 	virtual int GetMaxPixelPortChannels() const override
 	{

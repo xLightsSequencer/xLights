@@ -238,13 +238,18 @@ bool UDController::Check(const ControllerRules* rules, std::string& res)
     }
     else
     {
-        for (auto it = _pixelPorts.begin(); it != _pixelPorts.end(); ++it)
+        for (auto& it : _pixelPorts)
         {
-            success &= it->second->Check(this, true, rules, _outputs, res);
-
-            if (it->second->GetPort() < 1 || it->second->GetPort() > rules->GetMaxPixelPort())
+            if (rules->SupportsVirtualStrings())
             {
-                res += wxString::Format("ERR: Pixel port %d is not valid on this controller. Valid ports %d-%d.\n", it->second->GetPort(), 1, rules->GetMaxPixelPort()).ToStdString();
+                it.second->CreateVirtualStrings(rules->MergeConsecutiveVirtualStrings());
+            }
+
+            success &= it.second->Check(this, true, rules, _outputs, res);
+
+            if (it.second->GetPort() < 1 || it.second->GetPort() > rules->GetMaxPixelPort())
+            {
+                res += wxString::Format("ERR: Pixel port %d is not valid on this controller. Valid ports %d-%d.\n", it.second->GetPort(), 1, rules->GetMaxPixelPort()).ToStdString();
                 success = false;
             }
         }
@@ -737,7 +742,19 @@ long UDControllerPort::GetEndChannel() const
 
 long UDControllerPort::Channels() const
 {
-    return GetEndChannel() - GetStartChannel() + 1;
+    if (_virtualStrings.size() == 0)
+    {
+        return GetEndChannel() - GetStartChannel() + 1;
+    }
+    else
+    {
+        int c = 0;
+        for (auto it : _virtualStrings)
+        {
+            c += it->Channels();
+        }
+        return c;
+    }
 }
 
 std::string UDControllerPort::GetPortName() const

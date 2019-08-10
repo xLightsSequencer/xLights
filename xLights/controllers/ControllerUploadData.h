@@ -34,6 +34,8 @@ public:
     virtual bool UniversesMustBeSequential() const = 0;
     virtual bool SupportsSmartRemotes() const = 0;
     virtual bool SupportsLEDPanelMatrix() const = 0;
+    virtual bool SupportsVirtualStrings() const { return false; }
+    virtual bool MergeConsecutiveVirtualStrings() const { return true; }
 
     virtual const std::string GetControllerId() const = 0;
     virtual const std::string GetControllerManufacturer() const = 0;

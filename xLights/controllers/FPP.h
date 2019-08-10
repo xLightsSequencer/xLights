@@ -50,6 +50,8 @@ public:
     virtual int GetMaxSerialPort() const override {
         return maxDMX;
     }
+    virtual bool SupportsVirtualStrings() const override { return true; }
+    virtual bool MergeConsecutiveVirtualStrings() const override { return false; }
     virtual bool IsValidPixelProtocol(const std::string protocol) const override {
         std::string p(protocol);
         std::transform(p.begin(), p.end(), p.begin(), ::tolower);
