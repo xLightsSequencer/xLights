@@ -188,7 +188,7 @@ void ArchesModel::InitModel() {
                 startChan = stringStartChan[NumArches - y - 1] + (SegmentsPerArch - x - 1)*GetNodeChannelCount(StringType);
             }
             
-            Nodes[idx]->ActChan = stringStartChan[IsLtoR ? y : NumArches - y - 1] + x*GetNodeChannelCount(StringType);
+            Nodes[idx]->ActChan = startChan;
             Nodes[idx]->StringNum = y;
             
             for(size_t c=0; c < GetCoordCount(idx); c++) {
