@@ -14,16 +14,33 @@
 #endif
 
 #include <log4cpp/Category.hh>
-
+#include "../UtilFunctions.h"
 std::string IPOutput::__localIP = "";
+
+static std::map<std::string, std::string> resolvedIPMap;
+static const std::string &resolveIp(const std::string &ip) {
+    if (IsIPValid(ip) || (ip == "MULTICAST")) {
+        return ip;
+    }
+    const std::string &resolvedIp = resolvedIPMap[ip];
+    if (resolvedIp == "") {
+        wxIPV4address add;
+        add.Hostname(ip);
+        std::string r = add.IPAddress();
+        if (r == "0.0.0.0") {
+            r = ip;
+        }
+        resolvedIPMap[ip] = r;
+        return resolvedIPMap[ip];
+    }
+    return resolvedIp;
+}
 
 #pragma region Constructors and Destructors
 IPOutput::IPOutput(wxXmlNode* node) : Output(node)
 {
     _ip = node->GetAttribute("ComPort", "").ToStdString();
-    wxIPV4address add;
-    add.Hostname(_ip);
-    _resolvedIp = add.IPAddress();
+    _resolvedIp = resolveIp(_ip);
     _universe = wxAtoi(node->GetAttribute("BaudRate", "1"));
 }
 
@@ -34,6 +51,13 @@ IPOutput::IPOutput() : Output()
     _resolvedIp = "";
 }
 #pragma endregion Constructors and Destructors
+
+void IPOutput::SetIP(const std::string& ip) {
+    Output::SetIP(ip);
+    _resolvedIp = resolveIp(_ip);
+}
+
+
 
 #pragma region Static Functions
 std::string IPOutput::CleanupIP(const std::string &ip)

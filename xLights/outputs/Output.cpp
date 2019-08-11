@@ -235,10 +235,7 @@ void Output::SetTransientData(int on, long startChannel, int nullnumber)
 void Output::SetIP(const std::string& ip)
 {
     _ip = IPOutput::CleanupIP(ip);
-    wxIPV4address add;
-    add.Hostname(_ip);
-    _resolvedIp = add.IPAddress();
-
+    _resolvedIp = _ip;
     _dirty = true;
 }
 

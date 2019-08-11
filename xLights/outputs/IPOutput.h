@@ -33,6 +33,8 @@ public:
     virtual bool IsIpOutput() const override { return true; }
     virtual bool IsSerialOutput() const override { return false; }
     virtual std::string GetPingDescription() const override;
+    virtual void SetIP(const std::string& ip) override;
+
     #pragma endregion Getters and Setters
 
     #pragma region Operators
