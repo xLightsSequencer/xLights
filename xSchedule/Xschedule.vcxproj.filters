@@ -168,9 +168,6 @@
     <ClCompile Include="events\ListenerFPP.cpp">
       <Filter>Events</Filter>
     </ClCompile>
-    <ClCompile Include="events\ListenerFPPUnicast.cpp">
-      <Filter>Events</Filter>
-    </ClCompile>
     <ClCompile Include="events\ListenerLor.cpp">
       <Filter>Events</Filter>
     </ClCompile>
@@ -516,6 +513,9 @@
     <ClCompile Include="EventMQTTPanel.cpp">
       <Filter>Events</Filter>
     </ClCompile>
+    <ClCompile Include="events\ListenerCSVFPP.cpp">
+      <Filter>Events</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\xLights\AudioManager.h" />
@@ -667,9 +667,6 @@
       <Filter>Events</Filter>
     </ClInclude>
     <ClInclude Include="events\ListenerFPP.h">
-      <Filter>Events</Filter>
-    </ClInclude>
-    <ClInclude Include="events\ListenerFPPUnicast.h">
       <Filter>Events</Filter>
     </ClInclude>
     <ClInclude Include="events\ListenerLor.h">
@@ -1018,6 +1015,9 @@
       <Filter>Events</Filter>
     </ClInclude>
     <ClInclude Include="EventMQTTPanel.h">
+      <Filter>Events</Filter>
+    </ClInclude>
+    <ClInclude Include="events\ListenerCSVFPP.h">
       <Filter>Events</Filter>
     </ClInclude>
   </ItemGroup>

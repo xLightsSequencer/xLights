@@ -1,4 +1,4 @@
-#include "ListenerFPPUnicast.h"
+#include "ListenerCSVFPP.h"
 #include <log4cpp/Category.hh>
 #include <wx/socket.h>
 #include "ListenerManager.h"
@@ -6,7 +6,7 @@
 #include "../Control.h"
 #include "../../xLights/UtilFunctions.h"
 
-bool ListenerFPPUnicast::IsValidHeader(uint8_t* buffer)
+bool ListenerCSVFPP::IsValidHeader(uint8_t* buffer)
 {
     return  buffer[0] == 'F' &&
             buffer[1] == 'P' &&
@@ -17,24 +17,24 @@ bool ListenerFPPUnicast::IsValidHeader(uint8_t* buffer)
             buffer[6] == '0';
 }
 
-ListenerFPPUnicast::ListenerFPPUnicast(ListenerManager* listenerManager) : ListenerBase(listenerManager)
+ListenerCSVFPP::ListenerCSVFPP(ListenerManager* listenerManager) : ListenerBase(listenerManager)
 {
     _socket = nullptr;
 }
 
-void ListenerFPPUnicast::Start()
+void ListenerCSVFPP::Start()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("FPP Unicast listener starting.");
+    logger_base.debug("FPP CSV listener starting.");
     _thread = new ListenerThread(this);
 }
 
-void ListenerFPPUnicast::Stop()
+void ListenerCSVFPP::Stop()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (!_stop)
     {
-        logger_base.debug("FPP Unicast listener stopping.");
+        logger_base.debug("FPP CSV listener stopping.");
         if (_socket != nullptr)
             _socket->SetTimeout(0);
         if (_thread != nullptr)
@@ -45,7 +45,7 @@ void ListenerFPPUnicast::Stop()
     }
 }
 
-void ListenerFPPUnicast::StartProcess()
+void ListenerCSVFPP::StartProcess()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -63,17 +63,17 @@ void ListenerFPPUnicast::StartProcess()
     _socket = new wxDatagramSocket(localaddr, wxSOCKET_NONE);
     if (_socket == nullptr)
     {
-        logger_base.error("Error opening datagram for FPP Unicast reception. %s", (const char *)localaddr.IPAddress().c_str());
+        logger_base.error("Error opening datagram for FPP CSV reception. %s", (const char *)localaddr.IPAddress().c_str());
     }
     else if (!_socket->IsOk())
     {
-        logger_base.error("Error opening datagram for FPP Unicast reception. %s OK : FALSE", (const char *)localaddr.IPAddress().c_str());
+        logger_base.error("Error opening datagram for FPP CSV reception. %s OK : FALSE", (const char *)localaddr.IPAddress().c_str());
         delete _socket;
         _socket = nullptr;
     }
     else if (_socket->Error())
     {
-        logger_base.error("Error opening datagram for FPP Unicast reception. %d : %s %s", _socket->LastError(), (const char*)DecodeIPError(_socket->LastError()).c_str(), (const char *)localaddr.IPAddress().c_str());
+        logger_base.error("Error opening datagram for FPP CSV reception. %d : %s %s", _socket->LastError(), (const char*)DecodeIPError(_socket->LastError()).c_str(), (const char *)localaddr.IPAddress().c_str());
         delete _socket;
         _socket = nullptr;
     }
@@ -81,16 +81,16 @@ void ListenerFPPUnicast::StartProcess()
     {
         _socket->SetTimeout(1);
         _socket->Notify(false);
-        logger_base.info("FPP Unicast reception datagram opened successfully.");
+        logger_base.info("FPP CSV reception datagram opened successfully.");
         _isOk = true;
     }
 }
 
-void ListenerFPPUnicast::StopProcess()
+void ListenerCSVFPP::StopProcess()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (_socket != nullptr) {
-        logger_base.info("FPP Unicast Listener closed.");
+        logger_base.info("FPP CSV Listener closed.");
         _socket->Close();
         delete _socket;
         _socket = nullptr;
@@ -98,7 +98,7 @@ void ListenerFPPUnicast::StopProcess()
     _isOk = false;
 }
 
-void ListenerFPPUnicast::Poll()
+void ListenerCSVFPP::Poll()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 

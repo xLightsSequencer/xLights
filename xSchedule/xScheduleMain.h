@@ -194,7 +194,6 @@ public:
         void OnMenuItem_EditFPPRemotesSelected(wxCommandEvent& event);
         void OnMenuItem_FPPUnicastRemoteSelected(wxCommandEvent& event);
         void OnMenuItem_ConfigureOSCSelected(wxCommandEvent& event);
-        void OnMenuItem_FPPOSCMasterSelected(wxCommandEvent& event);
         void OnMenuItem_OSCMasterSelected(wxCommandEvent& event);
         void OnMenuItem_OSCRemoteSelected(wxCommandEvent& event);
         void OnListView_PingItemActivated(wxListEvent& event);
@@ -212,6 +211,9 @@ public:
         void OnMenuItem_ModeFPPUnicastMasterSelected(wxCommandEvent& event);
         void OnMenuItem_RemoteLatencySelected(wxCommandEvent& event);
         void OnButton_CloneClick(wxCommandEvent& event);
+        void OnMenuItem_ModeFPPMulticastMasterSelected(wxCommandEvent& event);
+        void OnMenuItem_ModeFPPUnicastCSVMasterSelected(wxCommandEvent& event);
+        void OnMenuItem_ModeFPPCSVRemoteSelected(wxCommandEvent& event);
         //*)
 
         bool IsPlayList(wxTreeItemId id) const;
@@ -287,14 +289,16 @@ public:
         static const long ID_MNU_CRASH;
         static const long ID_MNU_TEST;
         static const long ID_MNU_FPP_BROADCASTMASTER;
+        static const long ID_MNU_FPP_MULTICAST;
         static const long ID_MNU_FPP_UNICASTMASTER;
+        static const long ID_MNU_FPP_UNICASTCSVMASTER;
         static const long IDM_MNU_ARTNETMASTER;
         static const long ID_MNU_OSCMASTER;
         static const long MNU_MIDITIMECODE_MASTER;
         static const long ID_MNU_MASTER;
         static const long ID_MNU_MODENORMAL;
         static const long ID_MNU_FPPREMOTE;
-        static const long ID_MNU_FPPUNICASTREMOTE;
+        static const long ID_MNU_FPPCSVREMOTE;
         static const long ID_MNU_ARTNETTIMECODESLAVE;
         static const long ID_MNU_OSCREMOTE;
         static const long MNU_MIDITIMECODEREMOTE;
@@ -364,9 +368,11 @@ public:
         wxMenuItem* MenuItem_ModeArtNetMaster;
         wxMenuItem* MenuItem_ModeArtNetSlave;
         wxMenuItem* MenuItem_ModeFPPBroadcastMaster;
-        wxMenuItem* MenuItem_ModeFPPBroadcastRemote;
+        wxMenuItem* MenuItem_ModeFPPCSVRemote;
+        wxMenuItem* MenuItem_ModeFPPMulticastMaster;
+        wxMenuItem* MenuItem_ModeFPPRemote;
+        wxMenuItem* MenuItem_ModeFPPUnicastCSVMaster;
         wxMenuItem* MenuItem_ModeFPPUnicastMaster;
-        wxMenuItem* MenuItem_ModeFPPUnicastRemote;
         wxMenuItem* MenuItem_ModeMIDIMaster;
         wxMenuItem* MenuItem_ModeMIDISlave;
         wxMenuItem* MenuItem_ModeOSCMaster;

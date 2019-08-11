@@ -445,9 +445,19 @@
 						<handler function="OnMenuItem_FPPMasterSelected" entry="EVT_MENU" />
 						<checkable>1</checkable>
 					</object>
+					<object class="wxMenuItem" name="ID_MNU_FPP_MULTICAST" variable="MenuItem_ModeFPPMulticastMaster" member="yes">
+						<label>FPP Multicast</label>
+						<handler function="OnMenuItem_ModeFPPMulticastMasterSelected" entry="EVT_MENU" />
+						<checkable>1</checkable>
+					</object>
 					<object class="wxMenuItem" name="ID_MNU_FPP_UNICASTMASTER" variable="MenuItem_ModeFPPUnicastMaster" member="yes">
 						<label>FPP Unicast</label>
 						<handler function="OnMenuItem_ModeFPPUnicastMasterSelected" entry="EVT_MENU" />
+						<checkable>1</checkable>
+					</object>
+					<object class="wxMenuItem" name="ID_MNU_FPP_UNICASTCSVMASTER" variable="MenuItem_ModeFPPUnicastCSVMaster" member="yes">
+						<label>FPP Unicast CSV</label>
+						<handler function="OnMenuItem_ModeFPPUnicastCSVMasterSelected" entry="EVT_MENU" />
 						<checkable>1</checkable>
 					</object>
 					<object class="wxMenuItem" name="IDM_MNU_ARTNETMASTER" variable="MenuItem_ModeArtNetMaster" member="yes">
@@ -473,14 +483,14 @@
 						<handler function="OnMenuItem_StandaloneSelected" entry="EVT_MENU" />
 						<radio>1</radio>
 					</object>
-					<object class="wxMenuItem" name="ID_MNU_FPPREMOTE" variable="MenuItem_ModeFPPBroadcastRemote" member="yes">
-						<label>FPP Broadcast</label>
+					<object class="wxMenuItem" name="ID_MNU_FPPREMOTE" variable="MenuItem_ModeFPPRemote" member="yes">
+						<label>FPP</label>
 						<handler function="OnMenuItem_FPPRemoteSelected" entry="EVT_MENU" />
 						<radio>1</radio>
 					</object>
-					<object class="wxMenuItem" name="ID_MNU_FPPUNICASTREMOTE" variable="MenuItem_ModeFPPUnicastRemote" member="yes">
-						<label>FPP Unicast</label>
-						<handler function="OnMenuItem_FPPUnicastRemoteSelected" entry="EVT_MENU" />
+					<object class="wxMenuItem" name="ID_MNU_FPPCSVREMOTE" variable="MenuItem_ModeFPPCSVRemote" member="yes">
+						<label>FPP CSV</label>
+						<handler function="OnMenuItem_ModeFPPCSVRemoteSelected" entry="EVT_MENU" />
 						<radio>1</radio>
 					</object>
 					<object class="wxMenuItem" name="ID_MNU_ARTNETTIMECODESLAVE" variable="MenuItem_ModeArtNetSlave" member="yes">

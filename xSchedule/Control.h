@@ -9,7 +9,6 @@
 // 239.F.P.P
 #define MULTISYNC_MULTICAST_ADDRESS "239.70.80.80"
 
-
 #define CTRL_PKT_CMD   0
 #define CTRL_PKT_SYNC  1
 #define CTRL_PKT_EVENT 2

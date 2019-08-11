@@ -60,6 +60,7 @@
 #include "City.h"
 #include "events/ListenerManager.h"
 #include "ExtraIPsDialog.h"
+#include "SyncFPP.h"
 
 #include "../include/xs_save.xpm"
 #include "../include/xs_otlon.xpm"
@@ -179,14 +180,16 @@ const long xScheduleFrame::ID_MNU_IMPORT = wxNewId();
 const long xScheduleFrame::ID_MNU_CRASH = wxNewId();
 const long xScheduleFrame::ID_MNU_TEST = wxNewId();
 const long xScheduleFrame::ID_MNU_FPP_BROADCASTMASTER = wxNewId();
+const long xScheduleFrame::ID_MNU_FPP_MULTICAST = wxNewId();
 const long xScheduleFrame::ID_MNU_FPP_UNICASTMASTER = wxNewId();
+const long xScheduleFrame::ID_MNU_FPP_UNICASTCSVMASTER = wxNewId();
 const long xScheduleFrame::IDM_MNU_ARTNETMASTER = wxNewId();
 const long xScheduleFrame::ID_MNU_OSCMASTER = wxNewId();
 const long xScheduleFrame::MNU_MIDITIMECODE_MASTER = wxNewId();
 const long xScheduleFrame::ID_MNU_MASTER = wxNewId();
 const long xScheduleFrame::ID_MNU_MODENORMAL = wxNewId();
 const long xScheduleFrame::ID_MNU_FPPREMOTE = wxNewId();
-const long xScheduleFrame::ID_MNU_FPPUNICASTREMOTE = wxNewId();
+const long xScheduleFrame::ID_MNU_FPPCSVREMOTE = wxNewId();
 const long xScheduleFrame::ID_MNU_ARTNETTIMECODESLAVE = wxNewId();
 const long xScheduleFrame::ID_MNU_OSCREMOTE = wxNewId();
 const long xScheduleFrame::MNU_MIDITIMECODEREMOTE = wxNewId();
@@ -552,8 +555,12 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     MenuItem3 = new wxMenu();
     MenuItem_ModeFPPBroadcastMaster = new wxMenuItem(MenuItem3, ID_MNU_FPP_BROADCASTMASTER, _("FPP Broadcast"), wxEmptyString, wxITEM_CHECK);
     MenuItem3->Append(MenuItem_ModeFPPBroadcastMaster);
+    MenuItem_ModeFPPMulticastMaster = new wxMenuItem(MenuItem3, ID_MNU_FPP_MULTICAST, _("FPP Multicast"), wxEmptyString, wxITEM_CHECK);
+    MenuItem3->Append(MenuItem_ModeFPPMulticastMaster);
     MenuItem_ModeFPPUnicastMaster = new wxMenuItem(MenuItem3, ID_MNU_FPP_UNICASTMASTER, _("FPP Unicast"), wxEmptyString, wxITEM_CHECK);
     MenuItem3->Append(MenuItem_ModeFPPUnicastMaster);
+    MenuItem_ModeFPPUnicastCSVMaster = new wxMenuItem(MenuItem3, ID_MNU_FPP_UNICASTCSVMASTER, _("FPP Unicast CSV"), wxEmptyString, wxITEM_CHECK);
+    MenuItem3->Append(MenuItem_ModeFPPUnicastCSVMaster);
     MenuItem_ModeArtNetMaster = new wxMenuItem(MenuItem3, IDM_MNU_ARTNETMASTER, _("ARTNet Timecode"), wxEmptyString, wxITEM_CHECK);
     MenuItem3->Append(MenuItem_ModeArtNetMaster);
     MenuItem_ModeOSCMaster = new wxMenuItem(MenuItem3, ID_MNU_OSCMASTER, _("OSC"), wxEmptyString, wxITEM_CHECK);
@@ -564,10 +571,10 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     Menu6 = new wxMenu();
     MenuItem_ModeRemoteDisabled = new wxMenuItem(Menu6, ID_MNU_MODENORMAL, _("Disabled"), wxEmptyString, wxITEM_RADIO);
     Menu6->Append(MenuItem_ModeRemoteDisabled);
-    MenuItem_ModeFPPBroadcastRemote = new wxMenuItem(Menu6, ID_MNU_FPPREMOTE, _("FPP Broadcast"), wxEmptyString, wxITEM_RADIO);
-    Menu6->Append(MenuItem_ModeFPPBroadcastRemote);
-    MenuItem_ModeFPPUnicastRemote = new wxMenuItem(Menu6, ID_MNU_FPPUNICASTREMOTE, _("FPP Unicast"), wxEmptyString, wxITEM_RADIO);
-    Menu6->Append(MenuItem_ModeFPPUnicastRemote);
+    MenuItem_ModeFPPRemote = new wxMenuItem(Menu6, ID_MNU_FPPREMOTE, _("FPP"), wxEmptyString, wxITEM_RADIO);
+    Menu6->Append(MenuItem_ModeFPPRemote);
+    MenuItem_ModeFPPCSVRemote = new wxMenuItem(Menu6, ID_MNU_FPPCSVREMOTE, _("FPP CSV"), wxEmptyString, wxITEM_RADIO);
+    Menu6->Append(MenuItem_ModeFPPCSVRemote);
     MenuItem_ModeArtNetSlave = new wxMenuItem(Menu6, ID_MNU_ARTNETTIMECODESLAVE, _("ARTNet Timecode"), wxEmptyString, wxITEM_RADIO);
     Menu6->Append(MenuItem_ModeArtNetSlave);
     MenuItem_ModeOSCRemote = new wxMenuItem(Menu6, ID_MNU_OSCREMOTE, _("OSC"), wxEmptyString, wxITEM_RADIO);
@@ -648,13 +655,15 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     Connect(ID_MNU_CRASH,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_CrashSelected);
     Connect(ID_MNU_TEST,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_TestSelected);
     Connect(ID_MNU_FPP_BROADCASTMASTER,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_FPPMasterSelected);
+    Connect(ID_MNU_FPP_MULTICAST,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_ModeFPPMulticastMasterSelected);
     Connect(ID_MNU_FPP_UNICASTMASTER,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_ModeFPPUnicastMasterSelected);
+    Connect(ID_MNU_FPP_UNICASTCSVMASTER,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_ModeFPPUnicastCSVMasterSelected);
     Connect(IDM_MNU_ARTNETMASTER,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_ARTNetTimeCodeMasterSelected);
     Connect(ID_MNU_OSCMASTER,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_OSCMasterSelected);
     Connect(MNU_MIDITIMECODE_MASTER,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_MIDITimeCodeMasterSelected);
     Connect(ID_MNU_MODENORMAL,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_StandaloneSelected);
     Connect(ID_MNU_FPPREMOTE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_FPPRemoteSelected);
-    Connect(ID_MNU_FPPUNICASTREMOTE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_FPPUnicastRemoteSelected);
+    Connect(ID_MNU_FPPCSVREMOTE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_ModeFPPCSVRemoteSelected);
     Connect(ID_MNU_ARTNETTIMECODESLAVE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_ARTNetTimeCodeSlaveSelected);
     Connect(ID_MNU_OSCREMOTE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_OSCRemoteSelected);
     Connect(MNU_MIDITIMECODEREMOTE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_MIDITimeCodeSlaveSelected);
@@ -1562,6 +1571,10 @@ void xScheduleFrame::UpdateSchedule()
 
 void xScheduleFrame::On_timerScheduleTrigger(wxTimerEvent& event)
 {
+    if (__schedule->IsFPPRemoteOrMaster())
+    {
+        SyncFPP::Ping(__schedule->IsSlave());
+    }
     UpdateSchedule();
 }
 
@@ -2582,6 +2595,11 @@ void xScheduleFrame::OnMenuItem_ModeFPPUnicastMasterSelected(wxCommandEvent& eve
     UIToMode();
 }
 
+void xScheduleFrame::OnMenuItem_ModeFPPMulticastMasterSelected(wxCommandEvent& event)
+{
+    UIToMode();
+}
+
 void xScheduleFrame::OnMenuItem_FPPMasterSelected(wxCommandEvent& event)
 {
     UIToMode();
@@ -2685,11 +2703,13 @@ void xScheduleFrame::ModeToUI()
         MenuItem_ModeOSCMaster->Check(false);
         MenuItem_ModeFPPBroadcastMaster->Check(false);
         MenuItem_ModeFPPUnicastMaster->Check(false);
+        MenuItem_ModeFPPUnicastCSVMaster->Check(false);
+        MenuItem_ModeFPPMulticastMaster->Check(false);
         MenuItem_ModeMIDIMaster->Check(false);
 
         MenuItem_ModeRemoteDisabled->Check();
-        MenuItem_ModeFPPUnicastRemote->Check(false);
-        MenuItem_ModeFPPBroadcastRemote->Check(false);
+        MenuItem_ModeFPPRemote->Check(false);
+        MenuItem_ModeFPPCSVRemote->Check(false);
         MenuItem_ModeOSCRemote->Check(false);
         MenuItem_ModeArtNetSlave->Check(false);
         MenuItem_ModeMIDISlave->Check(false);
@@ -2716,6 +2736,15 @@ void xScheduleFrame::ModeToUI()
             MenuItem_ModeFPPBroadcastMaster->Check(false);
         }
 
+        if (mode & static_cast<int>(SYNCMODE::FPPMULTICASTMASTER))
+        {
+            MenuItem_ModeFPPMulticastMaster->Check();
+        }
+        else
+        {
+            MenuItem_ModeFPPMulticastMaster->Check(false);
+        }
+
         if (mode & static_cast<int>(SYNCMODE::FPPUNICASTMASTER))
         {
             MenuItem_ModeFPPUnicastMaster->Check();
@@ -2723,6 +2752,15 @@ void xScheduleFrame::ModeToUI()
         else
         {
             MenuItem_ModeFPPUnicastMaster->Check(false);
+        }
+
+        if (mode & static_cast<int>(SYNCMODE::FPPUNICASTCSVMASTER))
+        {
+            MenuItem_ModeFPPUnicastCSVMaster->Check();
+        }
+        else
+        {
+            MenuItem_ModeFPPUnicastCSVMaster->Check(false);
         }
 
         if (mode & static_cast<int>(SYNCMODE::OSCMASTER))
@@ -2760,15 +2798,15 @@ void xScheduleFrame::ModeToUI()
             if (BitmapButton_IsScheduled->GetToolTipText() != "MIDI remote.")
                 BitmapButton_IsScheduled->SetToolTip("MIDI remote.");
             break;
-        case REMOTEMODE::FPPBROADCASTSLAVE:
-            MenuItem_ModeFPPBroadcastRemote->Check(true);
+        case REMOTEMODE::FPPSLAVE:
+            MenuItem_ModeFPPRemote->Check(true);
             if (BitmapButton_IsScheduled->GetToolTipText() != "FPP remote.")
                 BitmapButton_IsScheduled->SetToolTip("FPP remote.");
             break;
-        case REMOTEMODE::FPPUNICASTSLAVE:
-            MenuItem_ModeFPPUnicastRemote->Check(true);
-            if (BitmapButton_IsScheduled->GetToolTipText() != "FPP remote.")
-                BitmapButton_IsScheduled->SetToolTip("FPP remote.");
+        case REMOTEMODE::FPPCSVSLAVE:
+            MenuItem_ModeFPPCSVRemote->Check(true);
+            if (BitmapButton_IsScheduled->GetToolTipText() != "FPP CSV remote.")
+                BitmapButton_IsScheduled->SetToolTip("FPP CSV remote.");
             break;
         default:
             MenuItem_ModeRemoteDisabled->Check(true);
@@ -2786,7 +2824,9 @@ void xScheduleFrame::UIToMode()
     int mode = (int)SYNCMODE::STANDALONE;
     mode |= MenuItem_ModeArtNetMaster->IsChecked() ? (int)SYNCMODE::ARTNETMASTER : 0;
     mode |= MenuItem_ModeFPPBroadcastMaster->IsChecked() ? (int)SYNCMODE::FPPBROADCASTMASTER : 0;
+    mode |= MenuItem_ModeFPPMulticastMaster->IsChecked() ? (int)SYNCMODE::FPPMULTICASTMASTER : 0;
     mode |= MenuItem_ModeFPPUnicastMaster->IsChecked() ? (int)SYNCMODE::FPPUNICASTMASTER : 0;
+    mode |= MenuItem_ModeFPPUnicastCSVMaster->IsChecked() ? (int)SYNCMODE::FPPUNICASTCSVMASTER : 0;
     mode |= MenuItem_ModeOSCMaster->IsChecked() ? (int)SYNCMODE::OSCMASTER : 0;
     mode |= MenuItem_ModeMIDIMaster->IsChecked() ? (int)SYNCMODE::MIDIMASTER : 0;
 
@@ -2802,13 +2842,13 @@ void xScheduleFrame::UIToMode()
     {
         __schedule->SetMode(mode, REMOTEMODE::ARTNETSLAVE);
     }
-    else if (MenuItem_ModeFPPBroadcastRemote->IsChecked())
+    else if (MenuItem_ModeFPPRemote->IsChecked())
     {
-        __schedule->SetMode(mode, REMOTEMODE::FPPBROADCASTSLAVE);
+        __schedule->SetMode(mode, REMOTEMODE::FPPSLAVE);
     }
-    else if (MenuItem_ModeFPPUnicastRemote->IsChecked())
+    else if (MenuItem_ModeFPPCSVRemote->IsChecked())
     {
-        __schedule->SetMode(mode, REMOTEMODE::FPPUNICASTSLAVE);
+        __schedule->SetMode(mode, REMOTEMODE::FPPCSVSLAVE);
     }
     else
     {
@@ -3435,4 +3475,14 @@ void xScheduleFrame::OnButton_CloneClick(wxCommandEvent& event)
         UpdateSchedule();
         UpdateUI();
     }
+}
+
+void xScheduleFrame::OnMenuItem_ModeFPPUnicastCSVMasterSelected(wxCommandEvent& event)
+{
+    UIToMode();
+}
+
+void xScheduleFrame::OnMenuItem_ModeFPPCSVRemoteSelected(wxCommandEvent& event)
+{
+    UIToMode();
 }

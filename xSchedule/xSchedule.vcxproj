@@ -249,9 +249,9 @@
     <ClCompile Include="events\EventState.cpp" />
     <ClCompile Include="events\ListenerARTNet.cpp" />
     <ClCompile Include="events\ListenerBase.cpp" />
+    <ClCompile Include="events\ListenerCSVFPP.cpp" />
     <ClCompile Include="events\ListenerE131.cpp" />
     <ClCompile Include="events\ListenerFPP.cpp" />
-    <ClCompile Include="events\ListenerFPPUnicast.cpp" />
     <ClCompile Include="events\ListenerLor.cpp" />
     <ClCompile Include="events\ListenerManager.cpp" />
     <ClCompile Include="events\ListenerMIDI.cpp" />
@@ -464,9 +464,9 @@
     <ClInclude Include="events\EventState.h" />
     <ClInclude Include="events\ListenerARTNet.h" />
     <ClInclude Include="events\ListenerBase.h" />
+    <ClInclude Include="events\ListenerCSVFPP.h" />
     <ClInclude Include="events\ListenerE131.h" />
     <ClInclude Include="events\ListenerFPP.h" />
-    <ClInclude Include="events\ListenerFPPUnicast.h" />
     <ClInclude Include="events\ListenerLor.h" />
     <ClInclude Include="events\ListenerManager.h" />
     <ClInclude Include="events\ListenerMIDI.h" />

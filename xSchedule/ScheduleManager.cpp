@@ -1191,6 +1191,15 @@ bool ScheduleManager::IsSlave() const
     return false;
 }
 
+bool ScheduleManager::IsFPPRemoteOrMaster() const
+{
+    if (_syncManager != nullptr)
+    {
+        return _syncManager->IsFPPRemoteOrMaster();
+    }
+    return false;
+}
+
 void ScheduleManager::CreateBrightnessArray()
 {
     for (size_t i = 0; i < 256; i++)
@@ -1732,6 +1741,10 @@ bool ScheduleManager::Action(const wxString& command, const wxString& parameters
                         {
                             mode |= (int)SYNCMODE::FPPUNICASTMASTER;
                         }
+                        else if (m == "master_fppunicastcsv")
+                        {
+                            mode |= (int)SYNCMODE::FPPUNICASTCSVMASTER;
+                        }
                         else if (m == "master_artnet")
                         {
                             mode |= (int)SYNCMODE::ARTNETMASTER;
@@ -1750,7 +1763,7 @@ bool ScheduleManager::Action(const wxString& command, const wxString& parameters
                         }
                         else if (m == "remote_fppunicast")
                         {
-                            remote = REMOTEMODE::FPPUNICASTSLAVE;
+                            remote = REMOTEMODE::FPPSLAVE;
                         }
                         else if (m == "remote_artnet")
                         {
@@ -1758,7 +1771,15 @@ bool ScheduleManager::Action(const wxString& command, const wxString& parameters
                         }
                         else if (m == "remote_fppbroadcast")
                         {
-                            remote = REMOTEMODE::FPPBROADCASTSLAVE;
+                            remote = REMOTEMODE::FPPSLAVE;
+                        }
+                        else if (m == "remote_fpp")
+                        {
+                            remote = REMOTEMODE::FPPSLAVE;
+                        }
+                        else if (m == "remote_fppcsv")
+                        {
+                            remote = REMOTEMODE::FPPCSVSLAVE;
                         }
                         else if (m == "remote_midi")
                         {
@@ -3560,7 +3581,7 @@ void ScheduleManager::DisableRemoteOutputs()
 
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    if (_syncManager->IsMaster(SYNCMODE::FPPBROADCASTMASTER) || _syncManager->IsMaster(SYNCMODE::FPPUNICASTMASTER)) {
+    if (_syncManager->IsMaster(SYNCMODE::FPPBROADCASTMASTER) || _syncManager->IsMaster(SYNCMODE::FPPUNICASTMASTER) || _syncManager->IsMaster(SYNCMODE::FPPUNICASTCSVMASTER) || _syncManager->IsMaster(SYNCMODE::FPPMULTICASTMASTER)) {
         std::list<std::string> remotes = GetOptions()->GetFPPRemotes();
 
         for (auto it = remotes.begin(); it != remotes.end(); ++it)

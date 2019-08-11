@@ -8,9 +8,9 @@
 #include "EventLor.h"
 #include "ListenerE131.h"
 #include "ListenerFPP.h"
+#include "ListenerCSVFPP.h"
 #include "ListenerMIDI.h"
 #include "ListenerMQTT.h"
-#include "ListenerFPPUnicast.h"
 #include "ListenerSerial.h"
 #include "ListenerLor.h"
 #include "ListenerARTNet.h"
@@ -218,6 +218,35 @@ void ListenerManager::StartListeners()
                 }
             }
         }
+        else if ((*it)->GetType() == "FPP CSV")
+        {
+        if (_sync == 6)
+        {
+            ++it;
+        }
+        else
+        {
+            ListenerCSVFPP* l = (ListenerCSVFPP*)(*it);
+            bool found = false;
+            for (auto it2 : *_scheduleManager->GetOptions()->GetEvents())
+            {
+                if (it2->GetType() == "FPP CSV")
+                {
+                    found = true;
+                }
+            }
+            if (!found)
+            {
+                l->Stop();
+                _listeners.erase(it++);
+                delete l;
+            }
+            else
+            {
+                ++it;
+            }
+        }
+        }
         else if ((*it)->GetType() == "OSC")
         {
             if (_sync == 2)
@@ -245,20 +274,6 @@ void ListenerManager::StartListeners()
                 {
                     ++it;
                 }
-            }
-        }
-        else if ((*it)->GetType() == "FPP Unicast")
-        {
-            if (_sync != 4)
-            {
-                ListenerFPPUnicast* l = (ListenerFPPUnicast*)(*it);
-                l->Stop();
-                _listeners.erase(it++);
-                delete l;
-            }
-            else
-            {
-                ++it;
             }
         }
     }
@@ -305,11 +320,13 @@ void ListenerManager::StartListeners()
         }
         else if (it3->GetType() == "FPP")
         {
+            ListenerBase* current = nullptr;
             bool fppExists = false;
             for (auto it2 : _listeners)
             {
                 if (it2->GetType() == "FPP")
                 {
+                    current = it2;
                     fppExists = true;
                     break;
                 }
@@ -318,6 +335,42 @@ void ListenerManager::StartListeners()
             if (!fppExists)
             {
                 _listeners.push_back(new ListenerFPP(this));
+                _listeners.back()->Start();
+            }
+            else
+            {
+                // because FPP binds to the type of sync packet it sees (broadcast/multicast/unicast) we need to delete and recreate to ensure it can pick up anything new
+                current->Stop();
+                _listeners.erase(std::find(_listeners.begin(), _listeners.end(), current));
+                _listeners.push_back(new ListenerFPP(this));
+                _listeners.back()->Start();
+            }
+        }
+        else if (it3->GetType() == "FPP CSV")
+        {
+            ListenerBase* current = nullptr;
+            bool fppExists = false;
+            for (auto it2 : _listeners)
+            {
+                if (it2->GetType() == "FPP CSV")
+                {
+                    current = it2;
+                    fppExists = true;
+                    break;
+                }
+            }
+
+            if (!fppExists)
+            {
+                _listeners.push_back(new ListenerCSVFPP(this));
+                _listeners.back()->Start();
+            }
+            else
+            {
+                // because FPP binds to the type of sync packet it sees (broadcast/multicast/unicast) we need to delete and recreate to ensure it can pick up anything new
+                current->Stop();
+                _listeners.erase(std::find(_listeners.begin(), _listeners.end(), current));
+                _listeners.push_back(new ListenerCSVFPP(this));
                 _listeners.back()->Start();
             }
         }
@@ -497,24 +550,6 @@ void ListenerManager::StartListeners()
             _listeners.back()->Start();
         }
     }
-    else if (_sync == 4)
-    {
-        bool fppUnicastExists = false;
-        for (auto it2 : _listeners)
-        {
-            if (it2->GetType() == "FPP Unicast")
-            {
-                fppUnicastExists = true;
-                break;
-            }
-        }
-
-        if (!fppUnicastExists)
-        {
-            _listeners.push_back(new ListenerFPPUnicast(this));
-            _listeners.back()->Start();
-        }
-    }
     else if (_sync == 5)
     {
         int devid = wxAtoi(wxString(_scheduleManager->GetOptions()->GetMIDITimecodeDevice()).AfterLast(' '));
@@ -537,6 +572,24 @@ void ListenerManager::StartListeners()
             }
         }
     }
+    else if (_sync == 6)
+    {
+        bool fppExists = false;
+        for (auto it2 : _listeners)
+        {
+            if (it2->GetType() == "FPP CSV")
+            {
+                fppExists = true;
+                break;
+            }
+        }
+
+        if (!fppExists)
+        {
+            _listeners.push_back(new ListenerCSVFPP(this));
+            _listeners.back()->Start();
+        }
+    }
 }
 
 void ListenerManager::SetRemoteOSC()
@@ -551,15 +604,15 @@ void ListenerManager::SetRemoteFPP()
     StartListeners();
 }
 
-void ListenerManager::SetRemoteMIDI()
+void ListenerManager::SetRemoteCSVFPP()
 {
-    _sync = 5;
+    _sync = 6;
     StartListeners();
 }
 
-void ListenerManager::SetRemoteFPPUnicast()
+void ListenerManager::SetRemoteMIDI()
 {
-    _sync = 4;
+    _sync = 5;
     StartListeners();
 }
 
@@ -615,8 +668,7 @@ void ListenerManager::MidiRedirect(wxWindow* notify, int deviceId)
 
 int ListenerManager::Sync(const std::string filename, long ms, const std::string& type)
 {
-    if ((_sync == 4 && type == "FPP Unicast") ||
-        (_sync == 1 && type == "FPP"))
+    if ((_sync == 1 && type == "FPP") || (_sync == 6 && type == "FPP CSV"))
     {
         return _scheduleManager->Sync(_scheduleManager->FindStepForFSEQ(filename), ms);
     }

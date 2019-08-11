@@ -2,6 +2,7 @@
 #include "ScheduleOptions.h"
 #include "ScheduleManager.h"
 #include "events/ListenerManager.h"
+#include "../xLights/UtilFunctions.h"
 
 #include "SyncOSC.h"
 #include "SyncFPP.h"
@@ -18,13 +19,26 @@ std::unique_ptr<SyncBase> SyncManager::CreateSync(SYNCMODE sm, REMOTEMODE rm) co
     {
         return std::make_unique<SyncArtNet>(SyncArtNet(sm, rm, *_scheduleManager->GetOptions(), _scheduleManager->GetListenerManager()));
     }
-    else if (sm == SYNCMODE::FPPBROADCASTMASTER || rm == REMOTEMODE::FPPBROADCASTSLAVE)
+    else if (sm == SYNCMODE::FPPBROADCASTMASTER)
     {
         return std::make_unique<SyncBroadcastFPP>(SyncBroadcastFPP(sm, rm, *_scheduleManager->GetOptions(), _scheduleManager->GetListenerManager()));
     }
-    else if (sm == SYNCMODE::FPPUNICASTMASTER || rm == REMOTEMODE::FPPUNICASTSLAVE)
+    else if (sm == SYNCMODE::FPPUNICASTMASTER)
     {
         return std::make_unique<SyncUnicastFPP>(SyncUnicastFPP(sm, rm, *_scheduleManager->GetOptions(), _scheduleManager->GetListenerManager()));
+    }
+    else if (sm == SYNCMODE::FPPUNICASTCSVMASTER || rm == REMOTEMODE::FPPCSVSLAVE)
+    {
+        return std::make_unique<SyncUnicastCSVFPP>(SyncUnicastCSVFPP(sm, rm, *_scheduleManager->GetOptions(), _scheduleManager->GetListenerManager()));
+    }
+    else if (sm == SYNCMODE::FPPMULTICASTMASTER)
+    {
+        return std::make_unique<SyncMulticastFPP>(SyncMulticastFPP(sm, rm, *_scheduleManager->GetOptions(), _scheduleManager->GetListenerManager()));
+    }
+    else if (rm == REMOTEMODE::FPPSLAVE || rm == REMOTEMODE::FPPBROADCASTSLAVE || rm == REMOTEMODE::FPPUNICASTSLAVE)
+    {
+        // really doesnt matter which FPP I create
+        return std::make_unique<SyncMulticastFPP>(SyncMulticastFPP(sm, REMOTEMODE::FPPSLAVE, *_scheduleManager->GetOptions(), _scheduleManager->GetListenerManager()));
     }
     else if (sm == SYNCMODE::MIDIMASTER || rm == REMOTEMODE::MIDISLAVE)
     {
@@ -41,7 +55,7 @@ std::unique_ptr<SyncBase> SyncManager::CreateSync(SYNCMODE sm, REMOTEMODE rm) co
 void SyncManager::AddMaster(SYNCMODE sm)
 {
     RemoveMaster(sm);
-    _masters.emplace_back(CreateSync(sm, REMOTEMODE::DISABLED));
+    _masters.emplace_back(std::move(CreateSync(sm, REMOTEMODE::DISABLED)));
 }
 
 void SyncManager::RemoveMaster(SYNCMODE sm)
@@ -102,6 +116,20 @@ void SyncManager::Start(int mode, REMOTEMODE remoteMode)
         RemoveMaster(SYNCMODE::FPPUNICASTMASTER);
     }
 
+    if (mode & static_cast<int>(SYNCMODE::FPPUNICASTCSVMASTER)) {
+        AddMaster(SYNCMODE::FPPUNICASTCSVMASTER);
+    }
+    else {
+        RemoveMaster(SYNCMODE::FPPUNICASTCSVMASTER);
+    }
+
+    if (mode & static_cast<int>(SYNCMODE::FPPMULTICASTMASTER)) {
+        AddMaster(SYNCMODE::FPPMULTICASTMASTER);
+    }
+    else {
+        RemoveMaster(SYNCMODE::FPPMULTICASTMASTER);
+    }
+
     if (mode & static_cast<int>(SYNCMODE::OSCMASTER)) {
         AddMaster(SYNCMODE::OSCMASTER);
     }
@@ -127,13 +155,19 @@ void SyncManager::Start(int mode, REMOTEMODE remoteMode)
         SetRemote(REMOTEMODE::MIDISLAVE);
     }
     else if (remoteMode == REMOTEMODE::FPPBROADCASTSLAVE) {
-        SetRemote(REMOTEMODE::FPPBROADCASTSLAVE);
+        SetRemote(REMOTEMODE::FPPSLAVE);
     }
     else if (remoteMode == REMOTEMODE::OSCSLAVE) {
         SetRemote(REMOTEMODE::OSCSLAVE);
     }
     else if (remoteMode == REMOTEMODE::FPPUNICASTSLAVE) {
-        SetRemote(REMOTEMODE::FPPUNICASTSLAVE);
+        SetRemote(REMOTEMODE::FPPSLAVE);
+    }
+    else if (remoteMode == REMOTEMODE::FPPCSVSLAVE) {
+        SetRemote(REMOTEMODE::FPPCSVSLAVE);
+    }
+    else if (remoteMode == REMOTEMODE::FPPSLAVE) {
+        SetRemote(REMOTEMODE::FPPSLAVE);
     }
     else if (remoteMode == REMOTEMODE::DISABLED) {
         ClearRemote();
@@ -143,6 +177,16 @@ void SyncManager::Start(int mode, REMOTEMODE remoteMode)
     }
 
     _scheduleManager->GetListenerManager()->StartListeners();
+}
+
+bool SyncManager::IsFPPRemoteOrMaster() const
+{
+    if (_remote != nullptr && Contains(_remote->GetType(), "FPP")) { return true; }
+    for (auto& it : _masters)
+    {
+        if (Contains(it->GetType(), "FPP")) { return true; }
+    }
+    return false;
 }
 
 bool SyncManager::IsMaster(SYNCMODE mode) const

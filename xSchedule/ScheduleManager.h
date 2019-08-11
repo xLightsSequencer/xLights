@@ -208,6 +208,7 @@ class ScheduleManager
         int Sync(const std::string& filename, long ms);
         int DoSync(const std::string& filename, long ms);
         bool IsSlave() const;
+        bool IsFPPRemoteOrMaster() const;
         bool IsTest() const;
         void SetTestMode(bool test) { _testMode = test; }
 };

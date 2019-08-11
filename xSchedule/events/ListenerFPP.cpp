@@ -58,13 +58,13 @@ void ListenerFPP::StartProcess()
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     wxIPV4address localaddr;
-    if (IPOutput::GetLocalIP() == "")
+    //if (IPOutput::GetLocalIP() == "")
     {
         localaddr.AnyAddress();
     }
-    else
+    //else
     {
-        localaddr.Hostname(IPOutput::GetLocalIP());
+    //    localaddr.Hostname(IPOutput::GetLocalIP());
     }
     localaddr.Service(FPP_CTRL_PORT);
 

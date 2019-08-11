@@ -7,18 +7,18 @@
 
 class wxDatagramSocket;
 
-class ListenerFPPUnicast : public ListenerBase
+class ListenerCSVFPP : public ListenerBase
 {
     wxDatagramSocket* _socket;
 
     bool IsValidHeader(uint8_t* buffer);
 
 	public:
-        ListenerFPPUnicast(ListenerManager* _listenerManager);
-		virtual ~ListenerFPPUnicast() {}
+        ListenerCSVFPP(ListenerManager* _listenerManager);
+		virtual ~ListenerCSVFPP() {}
 		virtual void Start() override;
         virtual void Stop() override;
-        virtual std::string GetType() const override { return "FPP Unicast"; }
+        virtual std::string GetType() const override { return "FPP CSV"; }
         virtual void StartProcess() override;
         virtual void StopProcess() override;
         virtual void Poll() override;

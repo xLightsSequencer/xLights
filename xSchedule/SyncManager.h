@@ -24,7 +24,9 @@ enum class SYNCMODE
     FPPUNICASTMASTER = 2,
     ARTNETMASTER = 4,
     OSCMASTER = 8,
-    MIDIMASTER = 16
+    MIDIMASTER = 16,
+    FPPMULTICASTMASTER = 32,
+    FPPUNICASTCSVMASTER = 64
 };
 
 enum class REMOTEMODE
@@ -34,7 +36,9 @@ enum class REMOTEMODE
     FPPUNICASTSLAVE,
     ARTNETSLAVE,
     OSCSLAVE,
-    MIDISLAVE
+    MIDISLAVE,
+    FPPSLAVE,
+    FPPCSVSLAVE
 };
 
 class SyncBase
@@ -83,6 +87,7 @@ class SyncManager
         void SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t stepMS, uint32_t playlistMS, const std::string& fseq, const std::string& media, const std::string& step, const std::string& timeItem) const; // send out to all masters
         void Start(int mode, REMOTEMODE remoteMode);
         bool IsSlave() const { return _remote != nullptr; }
+        bool IsFPPRemoteOrMaster() const;
         bool IsMaster(SYNCMODE mode) const;
         void SendStop() const;
 };

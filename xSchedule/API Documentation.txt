@@ -311,12 +311,14 @@ http://<host:port>/xScheduleCommand?Command=<command>&Parameters=<parameters>
 				Standalone
 				Test
 				Master_FPPUnicast
+				Master_FPPUnicastCSV
 				Master_FPPBroadcast
+				Master_FPPMulticast
 				Master_Artnet
 				Master_MIDI
 				Master_OSC
-				Remote_FPPUnicast
-				Remote_FPPBroadcast
+				Remote_FPPCSV
+				Remote_FPP
 				Remote_Artnet
 				Remote_MIDI
 				Remote_OSC
