@@ -1952,8 +1952,8 @@ void SequenceElements::ImportLyrics(TimingElement* element, wxWindow* parent)
         }
         EffectLayer* phrase_layer = element->AddEffectLayer();
 
-        int start_time = wxAtoi(dlgLyrics->TextCtrl_Lyric_StartTime->GetValue()) * 1000;
-        int end_time = wxAtoi(dlgLyrics->TextCtrl_Lyric_EndTime->GetValue()) * 1000;
+        int start_time = wxAtof(dlgLyrics->TextCtrl_Lyric_StartTime->GetValue()) * 1000;
+        int end_time = wxAtof(dlgLyrics->TextCtrl_Lyric_EndTime->GetValue()) * 1000;
         int total_time = end_time - start_time;
         
         if(total_time <= 0 || total_time > mSequenceEndMS)//is start/end time valid?

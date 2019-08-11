@@ -284,13 +284,15 @@ bool xLightsFrame::SetDir(const wxString& newdir)
     networkFile.SetFullName(_(XLIGHTS_NETWORK_FILE));
     if (networkFile.FileExists())
     {
+        logger_base.debug("Loading networks.");
+        wxStopWatch sww;
         if (!_outputManager.Load(CurrentDir.ToStdString()))
         {
-            DisplayError(wxString::Format("Unable to load network config %s", networkFile.GetFullPath()).ToStdString());
+            DisplayError(wxString::Format("Unable to load network config %s : Time %ldms", networkFile.GetFullPath(), sww.Time()).ToStdString());
         }
         else
         {
-            logger_base.debug("Loaded network config %s", (const char*)networkFile.GetFullPath().c_str());
+            logger_base.debug("Loaded network config %s : Time %ldms", (const char*)networkFile.GetFullPath().c_str(), sww.Time());
             SpinCtrl_SyncUniverse->SetValue(_outputManager.GetSyncUniverse());
         }
     }

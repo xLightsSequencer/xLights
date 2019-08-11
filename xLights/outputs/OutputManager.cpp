@@ -78,6 +78,7 @@ bool OutputManager::Load(const std::string& showdir, bool syncEnabled)
             }
             else if (e->GetName() == "testpreset")
             {
+                logger_base.debug("Loading test presets.");
                 TestPreset* tp = new TestPreset(e);
 
                 bool exists = false;
@@ -106,6 +107,7 @@ bool OutputManager::Load(const std::string& showdir, bool syncEnabled)
         logger_base.warn("Error loading networks file: %s.", (const char *)fn.GetFullPath().c_str());
         return false;
     }
+    logger_base.debug("Networks loaded.");
 
     SomethingChanged();
 
