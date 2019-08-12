@@ -11,7 +11,15 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2019.40 August 12, 2019
    -- enh (scott)  Added "APPLYSETTING" Keybinding Option
+   -- enh (keith)  Add more comprehensive FPP remote/master support in xScheduler
+   -- bug (keith)  Fix falcon smart string upload
+   -- bug (keith)  Fix lyric import does not recognise fraction of seconds for start/end offsets
+   -- bug (keith)  Fix some strings wont upload to falcon where virtual strings have large gaps
+   -- bug (keith)  Fix cant change start channel because it is disabled
+   -- bug (dkulp)  Fix arch start channel problem #1644
+   -- bug (skulp)  Fix slow startup when using multicast
 2019.39 August 9, 2019
    -- enh (dkulp)  Discovery - match IP addresses to resolved hostnames as well
    -- enh (dkulp)  Add ability to convert ZCPP output to e1.31
