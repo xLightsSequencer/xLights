@@ -2038,16 +2038,21 @@ void xLightsFrame::OnEffectSettingsTimerTrigger(wxTimerEvent& event)
         std::string effectText = GetEffectTextFromWindows(palette);
         AddTraceMessage("Selected Effect text: " + selectedEffectString);
         AddTraceMessage("Effect text         : " + effectText);
+        AddTraceMessage("Selected Effect palette: " + selectedEffectPalette);
+        AddTraceMessage("Effect palette         : " + palette);
         if (effectText != selectedEffectString
             || palette != selectedEffectPalette
             || eff->GetEffectIndex() != EffectsPanel1->EffectChoicebook->GetSelection()) {
 
+            AddTraceMessage("Something changed");
             int effectIndex = EffectsPanel1->EffectChoicebook->GetSelection();
             wxString name = EffectsPanel1->EffectChoicebook->GetPageText(effectIndex);
             if (name !=  eff->GetEffectName()) {
+                AddTraceMessage("Effect name changed");
                 eff->SetEffectName(name.ToStdString());
                 eff->SetEffectIndex(EffectsPanel1->EffectChoicebook->GetSelection());
             }
+            AddTraceMessage("Effect name " + name);
 
             EffectLayer* el = eff->GetParentEffectLayer();
 

@@ -19,7 +19,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- bug (keith)  Fix some strings wont upload to falcon where virtual strings have large gaps
    -- bug (keith)  Fix cant change start channel because it is disabled
    -- bug (dkulp)  Fix arch start channel problem #1644
-   -- bug (skulp)  Fix slow startup when using multicast
+   -- bug (dkulp)  Fix slow startup when using multicast
 2019.39 August 9, 2019
    -- enh (dkulp)  Discovery - match IP addresses to resolved hostnames as well
    -- enh (dkulp)  Add ability to convert ZCPP output to e1.31
@@ -28,7 +28,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- enh (keith)  Make SMS service test work even when no service has been signed up for
    -- enh (keith)  Add a F12 force keyboard focus in sequencer to allow keyboard recovery from entry fields stealing focus
    -- enh (pete)   Add logarithmic x Axis to music effect
-   -- bug (dklup)  Fix FPP connect upload of sequences that take longer than 10 seconds to transmit
+   -- bug (dkulp)  Fix FPP connect upload of sequences that take longer than 10 seconds to transmit
    -- bug (keith)  Fix cant delete polyline point in 3D
    -- bug (keith)  Fix Metronome timing tracks not working
    -- bug (keith)  Fix changing sequence timing does not immediately change fseq file timing
