@@ -1087,16 +1087,83 @@ FalconString* Falcon::FindPort(const std::vector<FalconString*>& stringData, int
     return nullptr;
 }
 
-void Falcon::UploadStringPorts(const std::vector<FalconString*>& stringData, int maxMain, int maxDaughter1, int maxDaughter2)
+void Falcon::EnsureSmartStringExists(std::vector<FalconString*>& stringData, int port, int smartRemote)
 {
-    int S = stringData.size();
-    int m = 0;
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
+    bool found = false;
+    for (auto it : stringData)
+    {
+        if (it->port == port && it->smartRemote == smartRemote)
+        {
+            found = true;
+            break;
+        }
+    }
+
+    if (!found)
+    {
+        logger_base.debug("Adding in dummy string for a smart remote Port: %d Smart Remote %d", port + 1, smartRemote + 1);
+        FalconString* string = new FalconString();
+        string->startChannel = 1;
+        string->pixels = 0;
+        string->protocol = 0;
+        string->universe = 1;
+        string->description = "";
+        string->port = port;
+        string->index = stringData.size();
+        string->brightness = 100;
+        string->nullPixels = 0;
+        string->gamma = 1.0;
+        string->colourOrder = "RGB";
+        string->direction = "Forward";
+        string->groupCount = 1;
+        string->smartRemote = smartRemote;
+        stringData.push_back(string);
+    }
+}
+
+void Falcon::UploadStringPorts(std::vector<FalconString*>& stringData, int maxMain, int maxDaughter1, int maxDaughter2)
+{
     int maxPort = 0;
     for (auto sd : stringData)
     {
         maxPort = std::max(maxPort, sd->port);
     }
+
+    // fill in missing smart ports
+    int quads = (maxPort + 3) / 4;
+    for (int i = 0; i < quads; i++)
+    {
+        int maxRemote = 0;
+        for (int j = 0; j < 4; j++)
+        {
+            for (auto it : stringData)
+            {
+                if (it->port == i * 4 + j)
+                {
+                    if (it->smartRemote != 0)
+                    {
+                        maxRemote = std::max(maxRemote, it->smartRemote);
+                    }
+                }
+            }
+        }
+
+        if (maxRemote > 0)
+        {
+            for (int k = 0; k < 4; k++)
+            {
+                for (int j = 0; j < maxRemote; j++)
+                {
+                    EnsureSmartStringExists(stringData, i * 4 + k, j + 1);
+                }
+            }
+        }
+    }
+
+    int S = stringData.size();
+    int m = 0;
 
     if (maxPort+1 > GetDaughter2Threshold())
     {

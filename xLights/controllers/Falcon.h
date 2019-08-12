@@ -192,7 +192,8 @@ class Falcon
     std::string PutURL(const std::string& url, const std::string& request, bool logresult = false);
     int DecodeStringPortProtocol(std::string protocol) const;
     void UploadStringPort(const std::string& request, bool final);
-    void UploadStringPorts(const std::vector<FalconString*>& stringData, int maxMain, int maxDaughter1, int maxDaughter2);
+    void UploadStringPorts(std::vector<FalconString*>& stringData, int maxMain, int maxDaughter1, int maxDaughter2);
+    void EnsureSmartStringExists(std::vector<FalconString*>& stringData, int port, int smartRemote);
     std::string BuildStringPort(FalconString* string) const;
     int DecodeSerialOutputProtocol(std::string protocol) const;
     void UploadSerialOutput(int output, OutputManager* outputManager, int protocol, int portstart, wxWindow* parent);
