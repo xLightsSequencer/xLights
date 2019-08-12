@@ -1114,34 +1114,18 @@ void Falcon::UploadStringPorts(const std::vector<FalconString*>& stringData, int
         base += wxString::Format("&k0=%i&k1=%i&k2=%i", maxMain, maxDaughter1, maxDaughter2).ToStdString();
     }
 
-    bool hasGreaterThan40 = false;
-
-    std::string message = base + "&q=0";
-    for (int i = 0; i < stringData.size(); ++i)
+#define PACKETSIZE 40
+    int packets = (stringData.size() + PACKETSIZE - 1) / PACKETSIZE;
+    for (int p = 0; p < packets; p++)
     {
-        if (stringData[i]->port < 40)
+        std::string message = base + "&q=" + wxString::Format("%d", p).ToStdString();
+
+        for (int i = p * PACKETSIZE; i < stringData.size() && i < (p+1) * PACKETSIZE; ++i)
         {
             message += BuildStringPort(stringData[i]);
         }
-        else
-        {
-            hasGreaterThan40 = true;
-        }
-    }
-    UploadStringPort(message, stringData.size() <= 40);
 
-    if (hasGreaterThan40)
-    {
-        message = base + "&q=1";
-        for (int i = 0; i < stringData.size(); ++i)
-        {
-            if (stringData[i]->port >= 40)
-            {
-                message += BuildStringPort(stringData[i]);
-            }
-        }
-
-        UploadStringPort(message, true);
+        UploadStringPort(message, p == packets - 1);
     }
 }
 
@@ -1190,7 +1174,7 @@ int Falcon::CountStrings(const wxXmlDocument& stringsDoc) const
 
 std::string Falcon::BuildStringPort(FalconString* string) const
 {
-    return wxString::Format("&p%i=%i&t%i=%i&u%i=%i&s%i=%i&c%i=%i&y%i=%s&b%i=%i&n%i=%i&G%i=%i&o%i=%i&d%i=%i&g%i=%i&x%i=%d",
+    return wxString::Format("&p%i=%i&t%i=%i&u%i=%i&s%i=%i&c%i=%i&y%i=%s&b%i=%i&n%i=%i&G%i=%i&o%i=%i&d%i=%i&g%i=%i&w%i=%d",
         string->index, string->port,
         string->index, string->protocol,
         string->index, string->universe,

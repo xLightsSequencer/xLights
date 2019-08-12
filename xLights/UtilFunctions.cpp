@@ -804,6 +804,8 @@ bool IsIPValidOrHostname(const std::string &ip, bool iponly)
         return true;
     }
 
+    if (ip == "") return false;
+
     bool hasChar = false;
     bool hasDot = false;
     //hostnames need at least one char in it if fully qualified

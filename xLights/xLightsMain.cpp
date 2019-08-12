@@ -5635,13 +5635,13 @@ void xLightsFrame::CheckSequence(bool display)
                     }
                     else
                     {
-                        msg = wxString::Format("    ERR: Model '%s' and Model '%s' are on controller IP '%s' Output Connection '%s' but there is a gap of %d channels between them.",
+                        msg = wxString::Format("    WARN: Model '%s' and Model '%s' are on controller IP '%s' Output Connection '%s' but there is a gap of %d channels between them.",
                             (*it2)->GetName(),
                             (*it3)->GetName(),
                             o->GetIP(),
                             (*it2)->GetControllerConnectionString(),
                             m2start - m1end - 1);
-                        errcount++;
+                        warncount++;
                     }
                     LogAndWrite(f, msg.ToStdString());
                 }
