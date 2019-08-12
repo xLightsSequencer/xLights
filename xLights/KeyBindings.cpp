@@ -65,6 +65,7 @@ static  std::vector<std::pair<std::string, KBSCOPE>> KeyBindingTypes =
     { _("STOP"), KBSCOPE::All },
     { _("PAUSE"), KBSCOPE::All },
     { _("EFFECT"), KBSCOPE::Sequence },
+	{ _("APPLYSETTING"), KBSCOPE::Sequence },
     { _("PRESET"), KBSCOPE::Sequence },
     { _("LOCK_MODEL"), KBSCOPE::Layout },
     { _("UNLOCK_MODEL"), KBSCOPE::Layout },
@@ -650,6 +651,18 @@ void KeyBindingMap::Load(const wxFileName &fileName) noexcept
                         std::string presetName = child->GetAttribute("effect").ToStdString();
                         _bindings.emplace_back(KeyBinding(disabled, k, presetName, control, alt, shift));
                     }
+					else if (type == "APPLYSETTING")
+					{
+						std::string settings = "";
+						if (child->GetChildren() != nullptr)
+						{
+							settings = child->GetChildren()->GetContent().ToStdString();
+						}
+						if (settings != "")
+						{
+							_bindings.emplace_back(KeyBinding(disabled, k, settings, child->GetAttribute("xLightsVersion", "4.0"), control, alt, shift));
+						}
+					}
                     else
                     {
                         _bindings.emplace_back(KeyBinding(k, disabled, type, control, alt, shift));
@@ -685,7 +698,7 @@ void KeyBindingMap::Load(const wxFileName &fileName) noexcept
                 auto type = kbt.first;
                 // auto scope = kbt.second;
 
-                if (type != "EFFECT" && type != "PRESET")
+                if (type != "EFFECT" && type != "PRESET" && type != "APPLYSETTING")
                 {
                     bool found = std::find_if(begin(_bindings), end(_bindings), [type](const KeyBinding& b) {return b.GetType() == type; }) != _bindings.end();
                     if (!found)
@@ -769,6 +782,11 @@ void KeyBindingMap::Save(const wxFileName &fileName) const noexcept
         else if (binding.GetType() == "PRESET")
         {
             child->AddAttribute("effect", binding.GetEffectName());
+        }
+        else if (binding.GetType() == "APPLYSETTING")
+        {
+            child->AddAttribute("xLightsVersion", binding.GetEffectDataVersion());
+            child->AddChild(new wxXmlNode(wxXML_TEXT_NODE, "", binding.GetEffectString()));
         }
         root->AddChild(child);
     }

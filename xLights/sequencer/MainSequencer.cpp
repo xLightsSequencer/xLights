@@ -475,6 +475,12 @@ bool MainSequencer::HandleSequencerKeyBinding(wxKeyEvent& event)
             {
                 PanelEffectGrid->Paste(binding->GetEffectName() + "\t" + binding->GetEffectString() + _("\t\n"), binding->GetEffectDataVersion());
             }
+			else if (type == "APPLYSETTING")
+			{
+				SettingsMap newSetting = SettingsMap();
+				newSetting.Parse(binding->GetEffectString());
+				mSequenceElements->GetXLightsFrame()->SetEffectControls(newSetting);
+			}			
             else if (type == "PRESET")
             {
                 mSequenceElements->GetXLightsFrame()->ApplyEffectsPreset(binding->GetEffectName());

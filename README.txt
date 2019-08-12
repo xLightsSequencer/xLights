@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (scott)  Added "APPLYSETTING" Keybinding Option
 2019.39 August 9, 2019
    -- enh (dkulp)  Discovery - match IP addresses to resolved hostnames as well
    -- enh (dkulp)  Add ability to convert ZCPP output to e1.31
