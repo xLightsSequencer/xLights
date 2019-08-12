@@ -70,10 +70,15 @@ void SyncFPP::Ping(bool remote)
     ed[5] = 0;
     ed[6] = 0;
     ed[7] = remote ? 0x08 : 0x06;
-    ed[8] = localaddr.GetAddressData()->sa_data[2];
-    ed[9] = localaddr.GetAddressData()->sa_data[3];
-    ed[10] = localaddr.GetAddressData()->sa_data[4];
-    ed[11] = localaddr.GetAddressData()->sa_data[5];
+
+    auto ipc = wxSplit(localaddr.IPAddress(), '.');
+    if (ipc.size() == 4)
+    {
+        ed[8] = wxAtoi(ipc[0]);
+        ed[9] = wxAtoi(ipc[1]);
+        ed[10] = wxAtoi(ipc[2]);
+        ed[11] = wxAtoi(ipc[3]);
+    }
     strncpy((char*)(ed + 12), (const char*)localaddr.IPAddress().c_str(), 65);
     strncpy((char*)(ed + 12 + strlen(localaddr.IPAddress().c_str())), " xSchedule", 65 - strlen(localaddr.IPAddress().c_str()));
     strncpy((char*)(ed + 77), GetDisplayVersionString().c_str(), 41);
