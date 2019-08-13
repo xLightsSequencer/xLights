@@ -60,6 +60,8 @@ static std::map<std::string, PixelCapeInfo> CONTROLLER_TYPE_MAP = {
     {"F40D-PB", PixelCapeInfo("F40D-PB", "F40D-PB (8 Serial)", 32, 8)},
     {"F40D-PB-36", PixelCapeInfo("F40D-PB-36", "F40D-PB (4 Serial)", 36, 4)},
     {"F40D-PB-40", PixelCapeInfo("F40D-PB-40", "F40D-PB (No Serial)", 40, 0)},
+    {"PB16", PixelCapeInfo("PB16", "PB16 (2 serial)", 16, 2)},
+    {"PB16-EXP", PixelCapeInfo("PB16-EXP", "PB16 w/ Expansion (2 serial)", 32, 2)},
     {"RGBCape24", PixelCapeInfo("RGBCape24", 48, 0)},
     {"RGBCape48C", PixelCapeInfo("RGBCape48C", 48, 0)},
     {"RGBCape48F", PixelCapeInfo("RGBCape48F", 48, 0)},

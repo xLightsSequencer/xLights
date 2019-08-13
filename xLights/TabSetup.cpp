@@ -107,6 +107,8 @@ const long ID_NETWORK_UCOFPP_F32B_48 = wxNewId();
 const long ID_NETWORK_UCOFPP_RGBCape24 = wxNewId();
 const long ID_NETWORK_UCOFPP_RGBCape48C = wxNewId();
 const long ID_NETWORK_UCOFPP_RGBCape48F = wxNewId();
+const long ID_NETWORK_UCOFPP_PB16 = wxNewId();
+const long ID_NETWORK_UCOFPP_PB16_EXP = wxNewId();
 const long ID_NETWORK_UPLOAD_INPUT_CONTROLLER_CONFIGURED = wxNewId();
 
 void CleanupIpAddress(wxString& IpAddr)
@@ -1621,6 +1623,10 @@ void xLightsFrame::OnGridNetworkItemRClick(wxListEvent& event)
         item = fppOutput->Append(ID_NETWORK_UCOFPP_RGBCape48C, "RGBCape48C");
         item->Enable(doEnable);
         item = fppOutput->Append(ID_NETWORK_UCOFPP_RGBCape48F, "RGBCape48F");
+		item->Enable(doEnable);
+		item = fppOutput->Append(ID_NETWORK_UCOFPP_PB16, "PB16");
+		item->Enable(doEnable);
+		item = fppOutput->Append(ID_NETWORK_UCOFPP_PB16_EXP, "PB16 w/ Expansion");
         item->Enable(doEnable);
         item = fppOutput->Append(ID_NETWORK_UCOFPP_PIHAT, "PiHat");
         item->Enable(doEnable);
@@ -1799,6 +1805,10 @@ void xLightsFrame::OnNetworkPopup(wxCommandEvent &event)
         UploadFPPStringOuputs("RGBCape48C");
     } else if (id == ID_NETWORK_UCOFPP_RGBCape48F) {
         UploadFPPStringOuputs("RGBCape48F");
+	} else if (id == ID_NETWORK_UCOFPP_PB16) {
+		UploadFPPStringOuputs("PB16");
+	} else if (id == ID_NETWORK_UCOFPP_PB16_EXP) {
+		UploadFPPStringOuputs("PB16-EXP");
     } else if (id == ID_NETWORK_UCOFPP_PIHAT) {
         UploadFPPStringOuputs("PiHat");
     } else if (id == ID_NETWORK_UCOPIXLITE16) {
