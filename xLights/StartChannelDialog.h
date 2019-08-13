@@ -14,6 +14,8 @@
 
 #include <string>
 #include <map>
+
+class Model;
 class ModelManager;
 class OutputManager;
 
@@ -42,13 +44,14 @@ class StartChannelDialog: public wxDialog
 		wxSpinCtrl* StartChannel;
 		//*)
 
-        void Set(const wxString &start, const ModelManager &models, const std::string& preview);
+        void Set(const wxString &start, const ModelManager &models, const std::string& preview, Model* model);
         void SetUniverseOptionsBasedOnIP(wxString ip);
         std::string Get();
-        void UpdateModels();
-        OutputManager* _outputManager;
+        void UpdateModels(Model* model);
+        OutputManager* _outputManager = nullptr;
         std::map<std::string, std::string> _modelsPreview;
         std::string _preview;
+        Model* _model = nullptr;
 
 	protected:
 

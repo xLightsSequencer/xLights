@@ -5062,7 +5062,7 @@ void xLightsFrame::CheckSequence(bool display)
                         std::map<std::string, std::list<Model*>> pm;
                         modelsByPortByController[o->GetDescription()] = pm;
                     }
-                    modelsByPortByController[o->GetDescription()][wxString(it->second->GetControllerConnectionString()).Lower().ToStdString()].push_back(it->second);
+                    modelsByPortByController[o->GetDescription()][wxString::Format("%s:%d:%d", it->second->IsPixelProtocol() ? _("PIXEL") : _("SERIAL"), it->second->GetControllerPort() ,it->second->GetSmartRemote()).Lower().ToStdString()].push_back(it->second);
                 }
             }
         }
@@ -5186,7 +5186,10 @@ void xLightsFrame::CheckSequence(bool display)
     outputs = _outputManager.GetAllOutputs();
     for (auto o : outputs)
     {
-        useduid[o->GetUniverse()]++;
+        if (o->GetType() != "ZCPP")
+        {
+            useduid[o->GetUniverse()]++;
+        }
     }
 
     for (auto u : useduid)

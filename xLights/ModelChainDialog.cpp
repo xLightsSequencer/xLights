@@ -68,6 +68,7 @@ void ModelChainDialog::Set(Model* m, const ModelManager &models) {
     int port = m->GetControllerPort();
     std::string protocol = m->GetControllerProtocol();
     std::string controller = m->GetControllerName();
+    auto smartRemote = m->GetSmartRemote();
 
     wxArrayString  list;
     list.push_back("Beginning");
@@ -76,6 +77,7 @@ void ModelChainDialog::Set(Model* m, const ModelManager &models) {
             m != it->second && 
             controller == it->second->GetControllerName() &&
             port == it->second->GetControllerPort() &&
+            smartRemote == it->second->GetSmartRemote() &&
             protocol == it->second->GetControllerProtocol()) {
             list.push_back(it->first);
         }

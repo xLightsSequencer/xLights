@@ -280,7 +280,7 @@ public:
         return nullptr;
     }
 protected:
-    Model *m_model;
+    Model *m_model = nullptr;
     int m_tp;
 };
 
@@ -293,7 +293,7 @@ public:
     virtual bool DoShowDialog(wxPropertyGrid* propGrid,
                               wxPGProperty* property) override {
         StartChannelDialog dlg(propGrid);
-        dlg.Set(property->GetValue().GetString(), m_model->GetModelManager(), _preview);
+        dlg.Set(property->GetValue().GetString(), m_model->GetModelManager(), _preview, m_model);
         if (dlg.ShowModal() == wxID_OK) {
             wxVariant v(dlg.Get());
             SetValue(v);
@@ -302,7 +302,7 @@ public:
         return false;
     }
 protected:
-    Model *m_model;
+    Model *m_model = nullptr;
     std::string _preview;
 };
 
@@ -1060,7 +1060,7 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         if (GetControllerName() == "")
         {
             SetModelChain("");
-            SetStartChannel("1");
+            // dont set start channel to one. that way model holds its previously calculated start channel
             if (grid->GetPropertyByName("ModelStartChannel") != nullptr)
             {
                 grid->GetPropertyByName("ModelStartChannel")->Enable();

@@ -376,12 +376,14 @@ bool ModelManager::IsValidControllerModelChain(Model* m, std::string& tip) const
         chain = chain.substr(1);
     }
     auto startModel = m->GetName();
+    auto smartRemote = m->GetSmartRemote();
+    auto isPixel = m->IsPixelProtocol();
 
     for (auto it : *this)
     {
         if (it.first != startModel)
         {
-            if (it.second->GetControllerName() == controllerName && it.second->GetControllerPort() == port)
+            if (it.second->GetControllerName() == controllerName && it.second->GetControllerPort() == port && it.second->GetSmartRemote() == smartRemote && it.second->IsPixelProtocol() == isPixel)
             {
                 auto c = it.second->GetModelChain();
                 if (StartsWith(c, ">"))

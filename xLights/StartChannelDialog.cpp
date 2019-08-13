@@ -131,7 +131,7 @@ StartChannelDialog::~StartChannelDialog()
 	//*)
 }
 
-void StartChannelDialog::UpdateModels()
+void StartChannelDialog::UpdateModels(Model* model)
 {
     auto selected = ModelChoice->GetStringSelection();
     ModelChoice->Freeze();
@@ -141,20 +141,21 @@ void StartChannelDialog::UpdateModels()
     bool contains = false;
     bool exists = false;
 
-    for (auto it = _modelsPreview.begin(); it != _modelsPreview.end(); ++it) {
-        if (it->first == selected) exists = true;
+    for (auto it : _modelsPreview) {
+        if (model != nullptr && it.first == model->GetName()) continue; // dont add ourselves
+        if (it.first == selected) exists = true;
         if (CheckBox_FromThisPreviewOnly->GetValue())
         {
-            if (it->second == "All Previews" || it->second == _preview)
+            if (it.second == "All Previews" || it.second == _preview)
             {
-                if (it->first == selected) contains = true;
-                list.push_back(it->first);
+                if (it.first == selected) contains = true;
+                list.push_back(it.first);
             }
         }
         else
         {
-            if (it->first == selected) contains = true;
-            list.push_back(it->first);
+            if (it.first == selected) contains = true;
+            list.push_back(it.first);
         }
     }
 
@@ -170,9 +171,10 @@ void StartChannelDialog::UpdateModels()
     ModelChoice->SetStringSelection(selected);
 }
 
-void StartChannelDialog::Set(const wxString &s, const ModelManager &models, const std::string& preview) {
+void StartChannelDialog::Set(const wxString &s, const ModelManager &models, const std::string& preview, Model* model) {
     _outputManager = models.GetOutputManager();
     _preview = preview;
+    _model = model;
 
     wxString start = s;
 
@@ -184,7 +186,7 @@ void StartChannelDialog::Set(const wxString &s, const ModelManager &models, cons
         }
     }
 
-    UpdateModels();
+    UpdateModels(model);
 
     OutputChoice->Freeze();
     OutputChoice->Clear();
@@ -457,7 +459,7 @@ void StartChannelDialog::OnipChoiceSelect(wxCommandEvent& event)
 
 void StartChannelDialog::OnCheckBox_FromThisPreviewOnlyClick(wxCommandEvent& event)
 {
-    UpdateModels();
+    UpdateModels(_model);
 }
 
 void StartChannelDialog::OnButton_OkClick(wxCommandEvent& event)
