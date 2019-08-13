@@ -5580,7 +5580,7 @@ void xLightsFrame::CheckSequence(bool display)
             std::string cc = "";
             if (it.second->IsControllerConnectionValid())
             {
-                cc = wxString::Format("%s:%d", it.second->GetControllerProtocol(), it.second->GetControllerPort()).ToStdString();
+                cc = wxString::Format("%s:%d:%d", it.second->GetControllerProtocol(), it.second->GetControllerPort(), it.second->GetSmartRemote()).ToStdString();
             }
             if (cc != "")
             {

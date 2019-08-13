@@ -849,16 +849,24 @@ bool UDControllerPort::Check(const UDController* controller, bool pixel, const C
     }
 
     long ch = -1;
+    int lastSmartRemote = 0;
     for (auto it : _models)
     {
         if (ch == -1) ch = it->GetStartChannel() - 1;
-        if (it->GetStartChannel() > ch + 1)
+        if (it->GetStartChannel() > ch + 1 && lastSmartRemote == it->GetSmartRemote())
         {
-            res += wxString::Format("WARN: Gap in models on port %d channel %ld to %ld.\n", _port, ch, it->GetStartChannel()).ToStdString();
+            if (it->GetSmartRemote() == 0)
+            {
+                res += wxString::Format("WARN: Gap in models on port %d channel %ld to %ld.\n", _port, ch, it->GetStartChannel()).ToStdString();
+            }
+            else
+            {
+                res += wxString::Format("WARN: Gap in models on port %d smart remote %d channel %ld to %ld.\n", _port, it->GetSmartRemote(), ch, it->GetStartChannel()).ToStdString();
+            }
         }
+        lastSmartRemote = it->GetSmartRemote();
         ch = it->GetEndChannel();
     }
-
 
     for (auto it : _models)
     {
