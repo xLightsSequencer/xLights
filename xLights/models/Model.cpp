@@ -2550,54 +2550,54 @@ std::string Model::GetStartChannelInDisplayFormat(OutputManager* outputManager)
 
 std::string Model::GetLastChannelInStartChannelFormat(OutputManager* outputManager)
 {
-    return GetChannelInStartChannelFormat(outputManager, nullptr, GetLastChannel() + 1);
+    return GetChannelInStartChannelFormat(outputManager, GetLastChannel() + 1);
 }
 
-std::string Model::GetChannelInStartChannelFormat(OutputManager* outputManager, std::list<std::string>* visitedModels, unsigned int channel)
+std::string Model::GetChannelInStartChannelFormat(OutputManager* outputManager, unsigned int channel)
 {
-    bool allocated = false;
-    if (visitedModels == nullptr)
-    {
-        allocated = true;
-        visitedModels = new std::list<std::string>();
-    }
-    visitedModels->push_back(GetName());
+    std::list<std::string> visitedModels;
+    visitedModels.push_back(GetName());
 
     std::string modelFormat = ModelStartChannel;
-    char firstChar = ModelStartChannel[0];
+    char firstChar = modelFormat[0];
 
-    if ((firstChar == '@' || firstChar == '>') && CountChar(ModelStartChannel, ':') == 1)
+    bool done = false;
+    while (!done && (firstChar == '@' || firstChar == '>') && CountChar(modelFormat, ':') == 1)
     {
-        std::string referencedModel = ModelStartChannel.substr(1, ModelStartChannel.find(':') - 1);
-        Model *m = modelManager[referencedModel];
+        std::string referencedModel = modelFormat.substr(1, modelFormat.find(':') - 1);
+        Model* m = modelManager[referencedModel];
 
-        if (m != nullptr && std::find(visitedModels->begin(), visitedModels->end(), referencedModel) == visitedModels->end())
+        if (m != nullptr && std::find(visitedModels.begin(), visitedModels.end(), referencedModel) == visitedModels.end())
         {
-            std::string end = m->GetChannelInStartChannelFormat(outputManager, visitedModels, channel);
-            if (end != "")
-            {
-                if (end[0] == '#')
-                {
-                    firstChar = '#';
-                    modelFormat = end;
-                }
-                else if (end[0] == '!')
-                {
-                    firstChar = '!';
-                    modelFormat = end;
-                }
-                else if (CountChar(end, ':') == 1)
-                {
-                    firstChar = '0';
-                    modelFormat = end;
-                }
-            }
+            modelFormat = m->ModelStartChannel;
+            firstChar = modelFormat[0];
         }
+        else
+        {
+            done = true;
+        }
+        visitedModels.push_back(referencedModel);
     }
 
-    if (allocated)
+    if (modelFormat != "")
     {
-        delete visitedModels;
+        if (modelFormat[0] == '#')
+        {
+            firstChar = '#';
+        }
+        else if (modelFormat[0] == '!')
+        {
+            firstChar = '!';
+        }
+        else if (CountChar(modelFormat, ':') == 1)
+        {
+            firstChar = '0';
+        }
+    }
+    else 
+    {
+        firstChar = '0';
+        modelFormat = "0";
     }
 
     if (firstChar == '#')
@@ -2666,7 +2666,7 @@ std::string Model::GetChannelInStartChannelFormat(OutputManager* outputManager, 
 
 std::string Model::GetFirstChannelInStartChannelFormat(OutputManager* outputManager)
 {
-    return GetChannelInStartChannelFormat(outputManager, nullptr, GetFirstChannel() + 1);
+    return GetChannelInStartChannelFormat(outputManager, GetFirstChannel() + 1);
 }
 
 unsigned int Model::GetLastChannel() const {

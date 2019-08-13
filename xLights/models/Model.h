@@ -266,7 +266,7 @@ public:
     void UpdateXmlWithScale() override;
     void SetPosition(double posx, double posy);
     virtual unsigned int GetLastChannel() const;
-    std::string GetChannelInStartChannelFormat(OutputManager* outputManager, std::list<std::string>* visitedModels, unsigned int channel);
+    std::string GetChannelInStartChannelFormat(OutputManager* outputManager, unsigned int channel);
     std::string GetLastChannelInStartChannelFormat(OutputManager* outputManager);
     std::string GetFirstChannelInStartChannelFormat(OutputManager* outputManager);
     std::string GetStartChannelInDisplayFormat(OutputManager* outputManager);
