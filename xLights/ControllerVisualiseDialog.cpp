@@ -13,7 +13,7 @@
 #include <wx/image.h>
 #include <wx/file.h>
 #include "UtilFunctions.h"
-#include "outputs\Output.h"
+#include "outputs/Output.h"
 
 //(*IdInit(ControllerVisualiseDialog)
 const long ControllerVisualiseDialog::ID_PANEL1 = wxNewId();
