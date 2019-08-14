@@ -12,6 +12,7 @@
 #include <wx/prntbase.h>
 
 class ControllerVisualiseDialog;
+class Output;
 
 class ControllerVisualisePrintout : public wxPrintout
 {
@@ -65,7 +66,7 @@ class ControllerVisualiseDialog: public wxDialog
 
         void OnPopupCommand(wxCommandEvent & event);
 
-		void RenderDiagram(wxDC& dc, int scale = 1);
+		void RenderDiagram(wxDC& dc, int scale = 1, bool addHeader = false);
 
 		void SaveCSV();
 
