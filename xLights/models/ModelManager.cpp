@@ -206,51 +206,6 @@ unsigned int ModelManager::GetLastChannel() const {
     return max;
 }
 
-bool ModelManager::NewRecalcStartChannels() const
-{
-    bool changed = false;
-    //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    //wxStopWatch sw;
-    //sw.Start();
-
-    // this is ugly but it solves some const-ness issues
-    std::map<std::string, Model*> ms(models);
-    std::string msg = "Could not calculate start channels for models:\n";
-    bool failed = false;
-
-    for (auto it = models.begin(); it != models.end(); ++it) {
-        it->second->CouldComputeStartChannel = false;
-    }
-
-    for (auto it = models.begin(); it != models.end(); ++it)
-    {
-        if (it->second->GetDisplayAs() != "ModelGroup")
-        {
-            std::list<std::string> used;
-            auto oldsc = it->second->GetFirstChannel();
-            if (!it->second->UpdateStartChannelFromChannelString(ms, used)) {
-                msg += it->second->name + "\n";
-                failed = true;
-            }
-            else
-            {
-                if (oldsc != it->second->GetFirstChannel())
-                {
-                    changed = true;
-                }
-            }
-        }
-    }
-    if (failed) {
-        DisplayError(msg);
-    }
-
-    //long end  = sw.Time();
-    //logger_base.debug("New RecalcStartChannels takes %ld.", end);
-
-    return changed;
-}
-
 void ModelManager::ResetModelGroups() const
 {
     // This goes through all the model groups which hold model pointers and ensure their model pointers are correct
@@ -280,68 +235,98 @@ std::string ModelManager::GetLastModelOnPort(const std::string& controllerName, 
     return last;
 }
 
-bool ModelManager::OldRecalcStartChannels() const {
+bool ModelManager::RecalcStartChannels() const {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    wxStopWatch sw;
     bool changed = false;
-    //wxStopWatch sw;
-    //sw.Start();
-    int countValid = 0;
-    for (auto it = models.begin(); it != models.end(); ++it) {
-        it->second->CouldComputeStartChannel = false;
+    std::list<std::string> modelsDone;
+
+    for (auto& it : models) {
+        it.second->CouldComputeStartChannel = false;
     }
-    for (auto it = models.begin(); it != models.end(); ++it) {
-        if( it->second->GetDisplayAs() != "ModelGroup" ) {
-            auto oldsc = it->second->GetFirstChannel();
-            it->second->SetFromXml(it->second->GetModelXml());
-            if (it->second->CouldComputeStartChannel)
+
+    // first go through all models whose start channels are not dependent on other models
+    for (auto& it : models) {
+        if (it.second->GetDisplayAs() != "ModelGroup")
+        {
+            char first = '0';
+            if (it.second->ModelStartChannel != "") first = it.second->ModelStartChannel[0];
+            if (first != '>' && first != '@')
             {
-                countValid++;
-                if (oldsc != it->second->GetFirstChannel())
+                modelsDone.push_back(it.first);
+                auto oldsc = it.second->GetFirstChannel();
+                it.second->SetFromXml(it.second->GetModelXml());
+                if (oldsc != it.second->GetFirstChannel())
                 {
                     changed = true;
                 }
             }
-        } else {
-            countValid++;
         }
     }
-    while (countValid != models.size()) {
-        int newCountValid = 0;
-        for (auto it = models.begin(); it != models.end(); ++it) {
-            if( it->second->GetDisplayAs() != "ModelGroup" ) {
-                if (!it->second->CouldComputeStartChannel) {
-                    auto oldsc = it->second->GetFirstChannel();
-                    it->second->SetFromXml(it->second->GetModelXml());
-                    if (it->second->CouldComputeStartChannel)
+
+    // now go through all undone models that depend on something
+    bool workDone = false;
+    do
+    {
+        workDone = false;
+
+        for (auto& it : models) {
+            if (it.second->GetDisplayAs() != "ModelGroup")
+            {
+                char first = '0';
+                if (it.second->ModelStartChannel != "") first = it.second->ModelStartChannel[0];
+                if ((first == '>' || first == '@') && !it.second->CouldComputeStartChannel)
+                {
+                    std::string dependsOn = it.second->ModelStartChannel.substr(1, it.second->ModelStartChannel.find(':') - 1);
+                    if (std::find(modelsDone.begin(), modelsDone.end(), dependsOn) != modelsDone.end())
                     {
-                        newCountValid++;
-                        if (oldsc != it->second->GetFirstChannel())
+                        // the depends on model is done
+                        modelsDone.push_back(it.first);
+                        auto oldsc = it.second->GetFirstChannel();
+                        it.second->SetFromXml(it.second->GetModelXml());
+                        if (oldsc != it.second->GetFirstChannel())
                         {
                             changed = true;
                         }
+                        workDone = true;
                     }
-                } else {
-                    newCountValid++;
                 }
-            } else {
-                newCountValid++;
             }
         }
-        if (countValid == newCountValid) {
-            DisplayStartChannelCalcWarning();
 
-            //nothing improved
+    } while (workDone);
 
-            ResetModelGroups();
-
-            return changed;
+    // now process anything unprocessed
+    int countInvalid = 0;
+    for (auto& it : models) {
+        if (it.second->GetDisplayAs() != "ModelGroup")
+        {
+            char first = '0';
+            if (it.second->ModelStartChannel != "") first = it.second->ModelStartChannel[0];
+            if ((first == '>' || first == '@') && !it.second->CouldComputeStartChannel)
+            {
+                modelsDone.push_back(it.first);
+                auto oldsc = it.second->GetFirstChannel();
+                it.second->SetFromXml(it.second->GetModelXml());
+                if (oldsc != it.second->GetFirstChannel())
+                {
+                    changed = true;
+                }
+            }
+            if (!it.second->CouldComputeStartChannel) countInvalid++;
         }
-        countValid = newCountValid;
     }
 
     ResetModelGroups();
 
-    //long end = sw.Time();
-    //logger_base.debug("Old RecalcStartChannels takes %ld.", end);
+    long end = sw.Time();
+    logger_base.debug("RecalcStartChannels takes %ld.", end);
+
+    if (countInvalid > 0) {
+        DisplayStartChannelCalcWarning();
+    }
+
     return changed;
 }
 

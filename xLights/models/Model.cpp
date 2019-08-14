@@ -4384,8 +4384,7 @@ int Model::MapToNodeIndex(int strand, int node) const {
 
 void Model::RecalcStartChannels()
 {
-    modelManager.OldRecalcStartChannels();
-    //modelManager.NewRecalcStartChannels();
+    modelManager.RecalcStartChannels();
 }
 
 void Model::AddSizeLocationProperties(wxPropertyGridInterface *grid) {
