@@ -57,6 +57,7 @@ const long CustomModelDialog::CUSTOMMODELDLGMNU_PASTE = wxNewId();
 const long CustomModelDialog::CUSTOMMODELDLGMNU_FLIPH = wxNewId();
 const long CustomModelDialog::CUSTOMMODELDLGMNU_FLIPV = wxNewId();
 const long CustomModelDialog::CUSTOMMODELDLGMNU_ROTATE90 = wxNewId();
+const long CustomModelDialog::CUSTOMMODELDLGMNU_ROTATE = wxNewId();
 const long CustomModelDialog::CUSTOMMODELDLGMNU_REVERSE = wxNewId();
 const long CustomModelDialog::CUSTOMMODELDLGMNU_SHIFT = wxNewId();
 const long CustomModelDialog::CUSTOMMODELDLGMNU_INSERT = wxNewId();
@@ -989,8 +990,205 @@ void CustomModelDialog::Rotate90()
     }
 
     UpdateBackground();
-
     ValidateWindow();
+}
+
+void CustomModelDialog::CentreModel()
+{
+    int minx = GetActiveGrid()->GetNumberCols() - 1;
+    int miny = GetActiveGrid()->GetNumberRows() - 1;
+    int maxx = 0;
+    int maxy = 0;
+
+    std::vector<std::vector<std::vector<wxString>>> temp;
+    temp.resize(_grids.size(), std::vector<std::vector<wxString>>());
+    for (auto& it : temp)
+    {
+        it.resize(GetActiveGrid()->GetNumberCols(), std::vector<wxString>());
+        for (auto& it2 : it)
+        {
+            it2.resize(GetActiveGrid()->GetNumberRows(), "");
+        }
+    }
+
+    int g = 0;
+    for (auto& grid : _grids)
+    {
+        for (int x = 0; x < grid->GetNumberCols(); x++)
+        {
+            for (int y = 0; y < grid->GetNumberRows(); y++)
+            {
+                if (grid->GetCellValue(x, y) != "")
+                {
+                    minx = std::min(x, minx);
+                    miny = std::min(y, miny);
+                    maxx = std::max(x, maxx);
+                    maxy = std::max(y, maxy);
+                }
+                temp[g][x][y] = grid->GetCellValue(x, y);
+                grid->SetCellValue(x, y, "");
+            }
+        }
+        g++;
+    }
+
+    int deltax = (GetActiveGrid()->GetNumberCols() - (maxx - minx)) / 2;
+    int deltay = (GetActiveGrid()->GetNumberRows() - (maxy - miny)) / 2;
+
+    g = 0;
+    for (auto& grid : _grids)
+    {
+        for (int x = minx; x <= maxx; x++)
+        {
+            for (int y = miny; y <= maxy; y++)
+            {
+                grid->SetCellValue(x + deltax, y + deltay, temp[g][x][y]);
+            }
+        }
+        g++;
+    }
+}
+
+void CustomModelDialog::Rotate()
+{
+    wxNumberEntryDialog dlg(this, "Degrees to rotate.", "Rotate by", "Rotate", 0, -180, 180);
+    if (dlg.ShowModal() == wxID_OK)
+    {
+        auto degrees = -1 * dlg.GetValue();
+
+        if (degrees != 0)
+        {
+            int max = std::max(GetActiveGrid()->GetNumberRows(), GetActiveGrid()->GetNumberCols());
+            for (auto grid : _grids)
+            {
+                grid->AppendRows(2 * max - grid->GetNumberRows());
+                grid->AppendCols(2 * max - grid->GetNumberCols());
+            }
+            WidthSpin->SetValue(GetActiveGrid()->GetNumberCols());
+            HeightSpin->SetValue(GetActiveGrid()->GetNumberRows());
+            ResizeCustomGrid();
+
+            CentreModel();
+
+            int cx = GetActiveGrid()->GetNumberCols() / 2;
+            int cy = GetActiveGrid()->GetNumberRows() / 2;
+
+            std::vector<std::vector<std::vector<wxString>>> temp;
+            temp.resize(_grids.size(), std::vector<std::vector<wxString>>());
+            for (auto& it : temp)
+            {
+                it.resize(GetActiveGrid()->GetNumberCols(), std::vector<wxString>());
+                for (auto& it2 : it)
+                {
+                    it2.resize(GetActiveGrid()->GetNumberRows(), "");
+                }
+            }
+
+            // save the current grid
+            int g = 0;
+            for (auto& grid : _grids)
+            {
+                for (int x = 0; x < grid->GetNumberCols(); x++)
+                {
+                    for (int y = 0; y < grid->GetNumberRows(); y++)
+                    {
+                        temp[g][x][y] = grid->GetCellValue(x, y);
+                        grid->SetCellValue(x, y, "");
+                    }
+                }
+                g++;
+            }
+
+            // now rotate and put it back
+            double rad = (double)degrees * (M_PI / 180);
+            g = 0;
+            for (auto& grid : _grids)
+            {
+                for (int x = 0; x < grid->GetNumberCols(); x++)
+                {
+                    for (int y = 0; y < grid->GetNumberRows(); y++)
+                    {
+                        if (temp[g][x][y] != "")
+                        {
+                            int newx = std::cos(rad) * (x - cx) - std::sin(rad) * (y - cy) + cx;
+                            int newy = std::sin(rad) * (x - cx) + std::cos(rad) * (y - cy) + cy;
+                            if (grid->GetCellValue(newx, newy) != "")
+                            {
+                                // ...
+                                // ..x
+                                // ...
+                                newx++;
+                            }
+                            if (grid->GetCellValue(newx, newy) != "")
+                            {
+                                // ...
+                                // ...
+                                // .x.
+                                newx--;
+                                newy++;
+                            }
+                            if (grid->GetCellValue(newx, newy) != "")
+                            {
+                                // ...
+                                // ...
+                                // ..x
+                                newx++;
+                            }
+                            if (grid->GetCellValue(newx, newy) != "")
+                            {
+                                // ..x
+                                // ...
+                                // ...
+                                newy -= 2;
+                            }
+                            if (grid->GetCellValue(newx, newy) != "")
+                            {
+                                // .x.
+                                // ...
+                                // ...
+                                newx --;
+                            }
+                            if (grid->GetCellValue(newx, newy) != "")
+                            {
+                                // x..
+                                // ...
+                                // ...
+                                newx--;
+                            }
+                            if (grid->GetCellValue(newx, newy) != "")
+                            {
+                                // ...
+                                // x..
+                                // ...
+                                newy++;
+                            }
+                            if (grid->GetCellValue(newx, newy) != "")
+                            {
+                                // ...
+                                // ...
+                                // x..
+                                newy++;
+                            }
+                            if (grid->GetCellValue(newx, newy) == "")
+                            {
+                                grid->SetCellValue(newx, newy, temp[g][x][y]);
+                            }
+                            else
+                            {
+                                // This is a problem i have tried 9 locations and they are all used ... results are not going to be good
+                            }
+                        }
+                    }
+                }
+                g++;
+            }
+
+            TrimSpace();
+
+            UpdateBackground();
+            ValidateWindow();
+        }
+    }
 }
 
 void CustomModelDialog::Insert(int selRow, int selCol)
@@ -1459,6 +1657,10 @@ void CustomModelDialog::OnGridPopup(wxCommandEvent& event)
     {
         Rotate90();
     }
+    else if (id == CUSTOMMODELDLGMNU_ROTATE)
+    {
+        Rotate();
+    }
     else if (id == CUSTOMMODELDLGMNU_REVERSE)
     {
         Reverse();
@@ -1571,6 +1773,7 @@ void CustomModelDialog::OnGridCustomCellRightClick(wxGridEvent& event)
     mnu.Append(CUSTOMMODELDLGMNU_FLIPH, "Horizontal Flip");
     mnu.Append(CUSTOMMODELDLGMNU_FLIPV, "Vertical Flip");
     mnu.Append(CUSTOMMODELDLGMNU_ROTATE90, "Rotate 90");
+    mnu.Append(CUSTOMMODELDLGMNU_ROTATE, "Rotate x");
     mnu.Append(CUSTOMMODELDLGMNU_REVERSE, "Reverse");
     mnu.Append(CUSTOMMODELDLGMNU_SHIFT, "Shift");
     wxMenuItem* menu_insert = mnu.Append(CUSTOMMODELDLGMNU_INSERT, "Insert Prior");

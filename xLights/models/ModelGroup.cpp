@@ -222,6 +222,7 @@ int ModelGroup::GetGridSize() const
 }
 
 bool ModelGroup::Reset(bool zeroBased) {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     this->zeroBased = zeroBased;
     selected = false;
     name = ModelXml->GetAttribute("name").ToStdString();
@@ -247,6 +248,7 @@ bool ModelGroup::Reset(bool zeroBased) {
     models.clear();
     modelNames.clear();
     changeCount = 0;
+    wxString newMn;
     wxArrayString mn = wxSplit(ModelXml->GetAttribute("models"), ',');
     int nc = 0;
     for (int x = 0; x < mn.size(); x++) {
@@ -256,6 +258,8 @@ bool ModelGroup::Reset(bool zeroBased) {
             models.push_back(c);
             changeCount += c->GetChangeCount();
             nc += c->GetNodeCount();
+            if (newMn != "") newMn += ",";
+            newMn += mn[x];
         }
         else if (mn[x] == "")
         {
@@ -263,10 +267,17 @@ bool ModelGroup::Reset(bool zeroBased) {
         }
         else
         {
-            static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
             logger_base.warn("Model group '%s' contains model '%s' that does not exist.", (const char *)GetFullName().c_str(), (const char *)mn[x].c_str());
-            return false;
+//            return false;
         }
+    }
+
+    // if we dropped any models update the xml ... but dont mark it dirty ... it isnt that important
+    if (newMn != ModelXml->GetAttribute("models"))
+    {
+        ModelXml->DeleteAttribute("models");
+        ModelXml->AddAttribute("models", newMn);
+        logger_base.warn("Model group '%s' updated to only contain models '%s'", (const char*)GetFullName().c_str(), (const char*)newMn.c_str());
     }
 
     if (nc) {
