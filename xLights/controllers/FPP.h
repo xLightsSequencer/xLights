@@ -18,14 +18,19 @@ class wxWindow;
 
 class PixelCapeInfo : public ControllerRules {
 public:
-    PixelCapeInfo(const std::string &i, const std::string &d, int s, int dmx) : ControllerRules(), id(i), description(d), maxStrings(s), maxDMX(dmx) {}
-    PixelCapeInfo(const std::string &d, int s, int dmx) : ControllerRules(), id(d), description(d), maxStrings(s), maxDMX(dmx) {}
+    PixelCapeInfo(const std::string &i, const std::string &d, int s, int dmx) : PixelCapeInfo(i, d, s, dmx, {}) {}
+    PixelCapeInfo(const std::string &d, int s, int dmx) : PixelCapeInfo(d, d, s, dmx, {}) {}
+    PixelCapeInfo(const std::string &i, const std::string &d, int s, int dmx, const std::map<int, int> &expansions)
+        : ControllerRules(), id(i), description(d), maxStrings(s), maxDMX(dmx), expansionPorts(expansions) {}
+
     PixelCapeInfo() : ControllerRules(), maxStrings(0), maxDMX(0) {}
-    PixelCapeInfo(const PixelCapeInfo&pci) : ControllerRules(), description(pci.description), id(pci.id), maxStrings(pci.maxStrings), maxDMX(pci.maxDMX) {}
-    std::string id;
-    std::string description;
-    int maxStrings;
-    int maxDMX;
+    PixelCapeInfo(const PixelCapeInfo&pci) : ControllerRules(), description(pci.description), id(pci.id), maxStrings(pci.maxStrings), maxDMX(pci.maxDMX), expansionPorts(pci.expansionPorts) {}
+    
+    const std::string id;
+    const std::string description;
+    const int maxStrings;
+    const int maxDMX;
+    const std::map<int, int> expansionPorts;
 
     virtual const std::string GetControllerId() const override {
         return id;

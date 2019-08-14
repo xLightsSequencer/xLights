@@ -47,12 +47,12 @@ static std::map<std::string, PixelCapeInfo> CONTROLLER_TYPE_MAP = {
     {"F8-B", PixelCapeInfo("F8-B", "F8-B (8 serial)", 12, 8)},
     {"F8-B-16", PixelCapeInfo("F8-B-16", "F8-B (4 serial)", 16, 4)},
     {"F8-B-20", PixelCapeInfo("F8-B-20", "F8-B (No serial)", 20, 0)},
-    {"F8-B-EXP", PixelCapeInfo("F8-B-EXP", "F8-B w/ Expansion (8 serial)", 28, 8)},
-    {"F8-B-EXP-32", PixelCapeInfo("F8-B-EXP-32", "F8-B w/ Expansion (4 serial)", 32, 4)},
-    {"F8-B-EXP-36", PixelCapeInfo("F8-B-EXP-36", "F8-B w/ Expansion (No serial)", 36, 0)},
+    {"F8-B-EXP", PixelCapeInfo("F8-B-EXP", "F8-B w/ Expansion (8 serial)", 28, 8, {{13, 16}})},
+    {"F8-B-EXP-32", PixelCapeInfo("F8-B-EXP-32", "F8-B w/ Expansion (4 serial)", 32, 4, {{17, 16}})},
+    {"F8-B-EXP-36", PixelCapeInfo("F8-B-EXP-36", "F8-B w/ Expansion (No serial)", 36, 0, {{21, 16}})},
     {"F16-B", PixelCapeInfo("F16-B", "F16-B", 16, 8)},
-    {"F16-B-32", PixelCapeInfo("F16-B-32", "F16-B w/ 32 outputs", 32, 8)},
-    {"F16-B-48", PixelCapeInfo("F16-B-48", "F16-B w/ 48 outputs (No Serial)", 48, 0)},
+    {"F16-B-32", PixelCapeInfo("F16-B-32", "F16-B w/ 32 outputs", 32, 8, {{17, 16}})},
+    {"F16-B-48", PixelCapeInfo("F16-B-48", "F16-B w/ 48 outputs (No Serial)", 48, 0, {{17, 16}, {33, 16}})},
     {"F4-B", PixelCapeInfo("F4-B", "F4-B", 4, 1)},
     {"F32-B", PixelCapeInfo("F32-B", "F32-B (8 Serial)", 40, 8)},
     {"F32-B-44", PixelCapeInfo("F32-B-44", "F32-B (4 Serial)", 44, 4)},
@@ -61,10 +61,10 @@ static std::map<std::string, PixelCapeInfo> CONTROLLER_TYPE_MAP = {
     {"F40D-PB-36", PixelCapeInfo("F40D-PB-36", "F40D-PB (4 Serial)", 36, 4)},
     {"F40D-PB-40", PixelCapeInfo("F40D-PB-40", "F40D-PB (No Serial)", 40, 0)},
     {"PB16", PixelCapeInfo("PB16", "PB16 (2 serial)", 16, 2)},
-    {"PB16-EXP", PixelCapeInfo("PB16-EXP", "PB16 w/ Expansion (2 serial)", 32, 2)},
-    {"RGBCape24", PixelCapeInfo("RGBCape24", 48, 0)},
-    {"RGBCape48C", PixelCapeInfo("RGBCape48C", 48, 0)},
-    {"RGBCape48F", PixelCapeInfo("RGBCape48F", 48, 0)},
+    {"PB16-EXP", PixelCapeInfo("PB16-EXP", "PB16 w/ Expansion (2 serial)", 32, 2, {{17, 16}})},
+    {"RGBCape24", PixelCapeInfo("RGBCape24", "RGBCape24", 48, 0, {{1, 8}, {9, 8}, {17, 8}})},
+    {"RGBCape48C", PixelCapeInfo("RGBCape48C", "RGBCape48C", 48, 0, {{1, 8}, {9, 8}, {17, 8}, {25, 8}, {33, 8}, {41, 8}})},
+    {"RGBCape48F", PixelCapeInfo("RGBCape48F", "RGBCape48F", 48, 0, {{1, 8}, {9, 8}, {17, 8}, {25, 8}, {33, 8}, {41, 8}})},
     {"LED Panels", PixelCapeInfo("LED Panels", 0, 0)}
 };
 
@@ -1394,7 +1394,19 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
             }
         }
     }
-
+    for (int x = 0; x < maxport; x++) {
+        if (rules.expansionPorts.find(x+1) != rules.expansionPorts.end()) {
+            int count = rules.expansionPorts.find(x+1)->second;
+            int expansionType = 0;
+            for (int p = 0; p < count; p++) {
+                if (stringData["outputs"][x+p].HasMember("differentialType") && stringData["outputs"][x+p]["differentialType"].AsInt()) {
+                    expansionType = 1;
+                }
+            }
+            stringData["outputs"][x]["expansionType"] = 1;
+        }
+    }
+    
     bool isDMX = true;
     int maxChan = 0;
     bool hasSerial = false;
