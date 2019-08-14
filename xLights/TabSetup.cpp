@@ -1869,7 +1869,11 @@ void xLightsFrame::OnNetworkPopup(wxCommandEvent &event)
     } else if (id == ID_NETWORK_OPENCONTROLLER) {
         Output* o = _outputManager.GetOutput(item);
         if (o != nullptr) {
-            ::wxLaunchDefaultBrowser("http://" + o->GetIP());
+            if (o->GetFPPProxyIP() != "") {
+                ::wxLaunchDefaultBrowser("http://" + o->GetFPPProxyIP() + "/proxy/" + o->GetIP() + "/");
+            } else {
+                ::wxLaunchDefaultBrowser("http://" + o->GetIP());
+            }
         }
     } else if (id == ID_NETWORK_PINGCONTROLLER) {
         Output* o = _outputManager.GetOutput(item);
