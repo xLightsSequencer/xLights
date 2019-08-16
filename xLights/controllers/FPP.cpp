@@ -920,6 +920,7 @@ inline wxString stripInvalidChars(const std::string &str) {
     s.Replace("&", "_");
     s.Replace("<", "_");
     s.Replace(">", "_");
+	s.Replace("\"", "\\\"");
     return s;
 }
 
