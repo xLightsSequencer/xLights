@@ -2167,6 +2167,149 @@ void xLightsXmlFile::ProcessPapagayo(const wxString& dir, const wxArrayString& f
     }
 }
 
+std::string ReadSRTLine(wxTextFile& f, int linenum, long& startMS, long& endMS)
+{
+    startMS = 0;
+    endMS = 0;
+
+    if (f.Eof()) return "";
+
+    int l = 0;
+    if (linenum == 1)
+    {
+        l = wxAtoi(f.GetFirstLine());
+    }
+    else
+    {
+        l = wxAtoi(f.GetNextLine());
+    }
+    while (!f.Eof() && l < linenum)
+    {
+        l = wxAtoi(f.GetNextLine());
+    }
+    if (l > linenum)
+    {
+        return "";
+    }
+
+    if (f.Eof()) return "";
+
+    //00:00:06,580 --> 00:00:08,580
+    auto times = f.GetNextLine();
+    if (Contains(times, "-->"))
+    {
+        int sH, eH, sM, eM, sS, eS, sMS, eMS;
+        wxArrayString c1 = wxSplit(times, ':');
+        if (c1.size() == 5)
+        {
+            sH = wxAtoi(c1[0]);
+            sM = wxAtoi(c1[1]);
+            wxArrayString c2 = wxSplit(c1[2], ',');
+            if (c2.size() == 2)
+            {
+                sS = wxAtoi(c2[0]);
+                wxArrayString c3 = wxSplit(c2[1], ' ');
+                if (c3.size() == 3)
+                {
+                    sMS = wxAtoi(c3[0]);
+                    eH = wxAtoi(c3[2]);
+                    eM = wxAtoi(c1[3]);
+                    wxArrayString c4 = wxSplit(c1[4], ',');
+                    if (c4.size() == 2)
+                    {
+                        eS = wxAtoi(c4[0]);
+                        eMS = wxAtoi(c4[1]);
+                        startMS = sH * 3600000 + sM * 60000 + sS * 1000 + sMS;
+                        endMS = eH * 3600000 + eM * 60000 + eS * 1000 + eMS;
+                    }
+                }
+            }
+        }
+    }
+
+    if (f.Eof()) return "";
+
+    std::string line = "";
+    std::string ll = f.GetNextLine();
+    while (!f.Eof() && ll != "")
+    {
+        if (line != "") line += " ";
+        line += Trim(ll);
+        ll = f.GetNextLine();
+    }
+    return line;
+}
+
+void xLightsXmlFile::ProcessSRT(const wxString& dir, const wxArrayString& filenames, xLightsFrame* xLightsParent)
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    wxTextFile f;
+
+    for (size_t i = 0; i < filenames.Count(); ++i)
+    {
+        wxFileName next_file(filenames[i]);
+        next_file.SetPath(dir);
+
+        logger_base.info("Loading srt file " + std::string(next_file.GetFullPath().c_str()));
+
+        if (!f.Open(next_file.GetFullPath().c_str()))
+        {
+            DisplayError("Failed to open file: " + next_file.GetFullPath());
+            return;
+        }
+
+        wxString name = wxString::Format(next_file.GetName());
+        name = UniqueTimingName(xLightsParent, name);
+        logger_base.info("    Loading into timing track %s.", (const char*)name.c_str());
+
+        Element* element = nullptr;
+        wxXmlNode* timing = nullptr;
+        if (sequence_loaded)
+        {
+            element = xLightsParent->AddTimingElement(std::string(name.c_str()));
+        }
+        else
+        {
+            AddTimingDisplayElement(name, "1", "0");
+            timing = AddElement(name, "timing");
+        }
+
+        wxXmlNode* l1 = nullptr;
+        EffectLayer* el1 = nullptr;
+        if (sequence_loaded)
+        {
+            el1 = element->GetEffectLayer(0);
+        }
+        else
+        {
+            l1 = AddChildXmlNode(timing, "EffectLayer");
+        }
+
+        long startMS;
+        long endMS;
+        int linenum = 1;
+
+        std::string line = ReadSRTLine(f, linenum++, startMS, endMS);
+
+        do {
+
+            if (line != "" && endMS > startMS)
+            {
+                if (sequence_loaded)
+                {
+                    el1->AddEffect(0, line, "", "", startMS, endMS, EFFECT_NOT_SELECTED, false);
+                }
+                else
+                {
+                    AddTimingEffect(l1, line, "0", "0", wxString::Format("%ld", startMS), wxString::Format("%ld", endMS));
+                }
+            }
+
+            line = ReadSRTLine(f, linenum++, startMS, endMS);
+        } while (!f.Eof());
+    }
+}
+
 wxString DecodeLSPTTColour(int att)
 {
     switch (att)

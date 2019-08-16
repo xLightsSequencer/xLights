@@ -170,6 +170,19 @@ inline std::string Lower(const std::string& input) noexcept
     return res;
 }
 
+inline std::string Trim(const std::string& input)
+{
+    if (input == "") return "";
+
+    int firstnonblank = 0;
+    int lastnonblank = input.size()-1;
+
+    while (firstnonblank < input.size() && (input[firstnonblank] == ' ' || input[firstnonblank] == '\t')) { firstnonblank++; }
+    while (lastnonblank > 0 && (input[lastnonblank] == ' ' || input[lastnonblank] == '\t')) { lastnonblank--; }
+    if (lastnonblank < firstnonblank) return "";
+    return input.substr(firstnonblank, lastnonblank - firstnonblank + 1);
+}
+
 static inline double toRadians(float degrees) 
 {
     return 2.0*M_PI*double(degrees) / 360.0;
