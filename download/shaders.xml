@@ -469,6 +469,41 @@
 		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_300,w_300/reiieriadladxepxpunx</image>
 		<rating>3</rating>
 	</shader>
+	<shader>
+		<name>Circle Tunnel</name>
+		<link>https://www.interactiveshaderformat.com/sketches/3775</link>
+		<download>https://www.interactiveshaderformat.com/sketches/3775/download</download>
+		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_300,w_300/vvlesngeujdwwueq51vy</image>
+		<rating>5</rating>
+	</shader>
+	<shader>
+		<name>Square Tunnel</name>
+		<link>https://www.interactiveshaderformat.com/sketches/3776</link>
+		<download>https://www.interactiveshaderformat.com/sketches/3776/download</download>
+		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_300,w_300/ofiqqzdorkbkttcigipf</image>
+		<rating>4</rating>
+	</shader>
+	<shader>
+		<name>Equirec Menger Tunnel</name>
+		<link>https://www.interactiveshaderformat.com/sketches/2961</link>
+		<download>https://www.interactiveshaderformat.com/sketches/2961/download</download>
+		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_300,w_300/rcdnuwm4ddbvobo8n9zy</image>
+		<rating>3</rating>
+	</shader>
+	<shader>
+		<name>Tunnel</name>
+		<link>https://www.interactiveshaderformat.com/sketches/1380</link>
+		<download>https://www.interactiveshaderformat.com/sketches/1380/download</download>
+		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_300,w_300/eawadp6hbfcrdhxqnbwp</image>
+		<rating>5</rating>
+	</shader>
+	<shader>
+		<name>Tunnel V</name>
+		<link>https://www.interactiveshaderformat.com/sketches/2671</link>
+		<download>https://www.interactiveshaderformat.com/sketches/2671/download</download>
+		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_300,w_300/zvcqgvk0cdkq8iimx5sx</image>
+		<rating>3</rating>
+	</shader>
 	<!--shader>
 		<name></name>
 		<link>https://www.interactiveshaderformat.com/sketches/xxx</link>
