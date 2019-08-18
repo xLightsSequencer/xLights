@@ -11,6 +11,20 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2019.41 August 18, 2019
+   -- enh (keith)  Add ability to load SRT subtitle files as timing tracks
+   -- enh (keith)  Move xSchedule sync logging to its own logger to reduce impact on performance
+   -- enh (keith)  Change xSchedule CURL playlist item to support https
+   -- enh (keith)  Add arbitrary custom model data rotation
+   -- enh (keith)  Rework start channel calculation routines. Some configurations should see better layout tab performance
+   -- enh (dkulp)  Track and set the expansion board type on FPP bbb string instances
+   -- enh (dkulp)  Added FPP PB16 and PB16-Exp support
+   -- enh (scott)  Add controller IP and description to controller visualiser
+   -- bug (keith)  Restore controller ping and enable through FPP proxy
+   -- bug (keith)  Fix crash due to too many chained models blows the stack
+   -- bug (keith)  Remove unnecessary discontiguous channel warnings
+   -- bug (keith)  Bunch of auto layout models fixes for dmx and smart receivers
+   -- bug (scott)  Fix cant upload to FPP model names containing quotes
 2019.40 August 12, 2019
    -- enh (scott)  Added "APPLYSETTING" Keybinding Option
    -- enh (keith)  Add more comprehensive FPP remote/master support in xScheduler
