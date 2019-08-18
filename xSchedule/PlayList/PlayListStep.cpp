@@ -754,8 +754,8 @@ bool PlayListStep::IsRunningFSEQ(const std::string& fseqFile)
 
 void PlayListStep::SetSyncPosition(size_t ms, size_t acceptableJitter, bool force)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("SetSyncPosition: MS %ld Force %s.", (long)ms, force ? "true" : "false");
+    static log4cpp::Category &logger_sync = log4cpp::Category::getInstance(std::string("log_sync"));
+    logger_sync.debug("SetSyncPosition: MS %ld Force %s.", (long)ms, force ? "true" : "false");
 
     std::string fseq = GetActiveSyncItemFSEQ();
 
@@ -784,11 +784,11 @@ void PlayListStep::SetSyncPosition(size_t ms, size_t acceptableJitter, bool forc
 
                             if (timeDiff != 0) // if this is zero then we are less than one frame out
                             {
-                                logger_base.debug("Sync: Position was %d:%d - should be %d:%d: %ld:%ld. FORCED ReSync.", pli->GetCurrentFrame(), pli->GetPositionMS(), frame, frame * pli->GetFrameMS(), timeDiff, posDiff);
+                                logger_sync.debug("Sync: Position was %d:%d - should be %d:%d: %ld:%ld. FORCED ReSync.", pli->GetCurrentFrame(), pli->GetPositionMS(), frame, frame * pli->GetFrameMS(), timeDiff, posDiff);
 
                                 if (posDiff > (acceptableJitter * 2)) {
                                     pli->SetPosition(frame, ms);
-                                    logger_base.debug("Way OFF!! Need to SKIP (%ld).", timeDiff); // Add time to current position
+                                    logger_sync.debug("Way OFF!! Need to SKIP (%ld).", timeDiff); // Add time to current position
                                 }
                                 else {
                                     long mscorrection = 0;
@@ -796,12 +796,12 @@ void PlayListStep::SetSyncPosition(size_t ms, size_t acceptableJitter, bool forc
                                     if (timeDiff > 0) {		// Ahead or Behind? 
                                         mscorrection = (long)(acceptableJitter / 20);
                                         fcorrection = 1;
-                                        logger_base.debug("Behind:(%ld)- Need to move Forward - Correction(%ld).", posDiff, mscorrection); // Add time to current position
+                                        logger_sync.debug("Behind:(%ld)- Need to move Forward - Correction(%ld).", posDiff, mscorrection); // Add time to current position
                                     }
                                     else {
                                         mscorrection = -(long)(acceptableJitter / 20);
                                         fcorrection = -1;
-                                        logger_base.debug("Ahead:(%ld)- Need to move Back - Correction(%ld).", posDiff, mscorrection); // Subtract time from current position
+                                        logger_sync.debug("Ahead:(%ld)- Need to move Back - Correction(%ld).", posDiff, mscorrection); // Subtract time from current position
                                     }
 
                                     //pli->SetPosition(frame, pli->GetPositionMS() + mscorrection);
@@ -829,7 +829,7 @@ void PlayListStep::SetSyncPosition(size_t ms, size_t acceptableJitter, bool forc
                                     adjustment = timeDiff / abs(timeDiff) * (int)((float)pli->GetFrameMS() * 0.06);
                                 }
 
-                                logger_base.debug("Sync: Position was %d:%d - should be %d:%d: %ld -> Adjustment to frame time %d.", pli->GetCurrentFrame(), pli->GetPositionMS(), frame, frame * pli->GetFrameMS(), timeDiff, adjustment);
+                                logger_sync.debug("Sync: Position was %d:%d - should be %d:%d: %ld -> Adjustment to frame time %d.", pli->GetCurrentFrame(), pli->GetPositionMS(), frame, frame * pli->GetFrameMS(), timeDiff, adjustment);
                                 if (xScheduleFrame::GetScheduleManager() != nullptr)
                                     xScheduleFrame::GetScheduleManager()->SetTimerAdjustment(adjustment);
                             }
@@ -857,7 +857,7 @@ void PlayListStep::SetSyncPosition(size_t ms, size_t acceptableJitter, bool forc
                         if (force)
                         {
                             long timeDiff = (long)frame * (long)pli->GetFrameMS() - (long)pli->GetPositionMS();
-                            logger_base.debug("Sync: Position was %d:%d - should be %d:%d: %ld. FORCED.", pli->GetCurrentFrame(), pli->GetPositionMS(), frame, frame * pli->GetFrameMS(), timeDiff);
+                            logger_sync.debug("Sync: Position was %d:%d - should be %d:%d: %ld. FORCED.", pli->GetCurrentFrame(), pli->GetPositionMS(), frame, frame * pli->GetFrameMS(), timeDiff);
                             pli->SetPosition(frame, ms);
                             if (xScheduleFrame::GetScheduleManager() != nullptr)
                                 xScheduleFrame::GetScheduleManager()->SetTimerAdjustment(0);
@@ -880,7 +880,7 @@ void PlayListStep::SetSyncPosition(size_t ms, size_t acceptableJitter, bool forc
                                 adjustment = timeDiff / abs(timeDiff) * (int)((float)pli->GetFrameMS() * 0.06);
                             }
 
-                            logger_base.debug("Sync: Position was %d:%d - should be %d:%d: %ld -> Adjustment to frame time %d.", pli->GetCurrentFrame(), pli->GetPositionMS(), frame, frame * pli->GetFrameMS(), timeDiff, adjustment);
+                            logger_sync.debug("Sync: Position was %d:%d - should be %d:%d: %ld -> Adjustment to frame time %d.", pli->GetCurrentFrame(), pli->GetPositionMS(), frame, frame * pli->GetFrameMS(), timeDiff, adjustment);
 
                             if (xScheduleFrame::GetScheduleManager() != nullptr)
                                 xScheduleFrame::GetScheduleManager()->SetTimerAdjustment(adjustment);

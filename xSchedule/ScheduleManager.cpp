@@ -223,7 +223,7 @@ int ScheduleManager::Sync(const std::string& filename, long ms)
 
 int ScheduleManager::DoSync(const std::string& filename, long ms)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category &logger_sync = log4cpp::Category::getInstance(std::string("log_sync"));
     //logger_base.debug("DoSync Enter");
 	
     PlayList* pl = GetRunningPlayList();
@@ -247,7 +247,7 @@ int ScheduleManager::DoSync(const std::string& filename, long ms)
         {
             if (shouldberunning != pl->GetRunningStep())
             {
-                logger_base.debug("Remote sync with no filename ... wrong step was running '%s' switching to '%s'.", (const char *)pl->GetRunningStep()->GetNameNoTime().c_str(), (const char *)shouldberunning->GetNameNoTime().c_str());
+                logger_sync.debug("Remote sync with no filename ... wrong step was running '%s' switching to '%s'.", (const char *)pl->GetRunningStep()->GetNameNoTime().c_str(), (const char *)shouldberunning->GetNameNoTime().c_str());
                 pl->JumpToStep(shouldberunning->GetNameNoTime());
                 wxCommandEvent event2(EVT_SCHEDULECHANGED);
                 wxPostEvent(wxGetApp().GetTopWindow(), event2);
@@ -269,7 +269,7 @@ int ScheduleManager::DoSync(const std::string& filename, long ms)
             }
             else
             {
-                logger_base.debug("Remote sync with no filename ... playlist was not sufficiently long for received sync position %ld.", ms);
+                logger_sync.debug("Remote sync with no filename ... playlist was not sufficiently long for received sync position %ld.", ms);
                 pl->Stop();
             }
         }
@@ -285,13 +285,13 @@ int ScheduleManager::DoSync(const std::string& filename, long ms)
             ms = stepMS;
             if (shouldberunning == nullptr)
             {
-                logger_base.debug("Remote sync with no filename ... playlist was not sufficiently long for received sync position %ld.", ms);
+                logger_sync.debug("Remote sync with no filename ... playlist was not sufficiently long for received sync position %ld.", ms);
                 delete pl;
                 pl = nullptr;
             }
             else
             {
-                logger_base.debug("Remote sync with no filename ... starting playlist '%s' step '%s'.", (const char *)pl->GetNameNoTime().c_str(), (const char *)shouldberunning->GetNameNoTime().c_str());
+                logger_sync.debug("Remote sync with no filename ... starting playlist '%s' step '%s'.", (const char *)pl->GetNameNoTime().c_str(), (const char *)shouldberunning->GetNameNoTime().c_str());
                 pl->Start(false, false, false);
                 pl->JumpToStep(shouldberunning->GetNameNoTime());
                 if (pl->GetRunningStep() != nullptr)
@@ -305,7 +305,7 @@ int ScheduleManager::DoSync(const std::string& filename, long ms)
         }
         else
         {
-            logger_base.warn("Remote sync with no filename ... No playlist found to run.");
+            logger_sync.warn("Remote sync with no filename ... No playlist found to run.");
         }
     }
     else
