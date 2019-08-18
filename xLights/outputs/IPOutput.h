@@ -43,8 +43,8 @@ public:
     
     virtual wxXmlNode* Save() override;
     PINGSTATE Ping() const override;
-    static PINGSTATE Ping(const std::string ip);
-    bool CanPing() const override { return (GetIP() != "MULTICAST") && _fppProxy == ""; }
+    static PINGSTATE Ping(const std::string& ip, const std::string& proxy);
+    bool CanPing() const override { return (GetIP() != "MULTICAST"); }
 
     #pragma region Start and Stop
     virtual bool Open() override { return Output::Open(); }

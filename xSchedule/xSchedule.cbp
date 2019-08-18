@@ -58,6 +58,7 @@
 					<Add library="../lib/windows/Ws2_32.lib" />
 					<Add library="../lib/windows/libportmidi.a" />
 					<Add library="../lib/windows/libzstd_static.lib" />
+					<Add library="../lib/windows/libcurl.lib" />
 					<Add library="libwinmm.a" />
 					<Add directory="$(#wx)/lib/gcc_dll" />
 				</Linker>
@@ -120,6 +121,7 @@
 					<Add library="../lib/windows/swresample.lib" />
 					<Add library="../lib/windows/swscale.lib" />
 					<Add library="../lib/windows/Ws2_32.lib" />
+					<Add library="../lib/windows/libcurl.lib" />
 					<Add library="psapi" />
 					<Add directory="../lib/windows" />
 				</Linker>
@@ -149,7 +151,7 @@
 					<Add directory="../include" />
 				</Compiler>
 				<Linker>
-					<Add option="-lGL -lGLU -lglut -ldl -lX11 -lz -lzstd" />
+					<Add option="-lGL -lGLU -lglut -ldl -lX11 -lz -lzstd -lcurl" />
 					<Add option="`pkg-config --libs libavformat libavcodec libavutil  libswresample libswscale`" />
 					<Add option="`pkg-config --libs log4cpp`" />
 					<Add option="`sdl2-config --libs`" />
@@ -184,7 +186,7 @@
 					<Add directory="../include" />
 				</Compiler>
 				<Linker>
-					<Add option="-lGL -lGLU -lglut -ldl -lX11 -lz -lzstd" />
+					<Add option="-lGL -lGLU -lglut -ldl -lX11 -lz -lzstd -lcurl" />
 					<Add option="`pkg-config --libs libavformat libavcodec libavutil  libswresample libswscale`" />
 					<Add option="`pkg-config --libs log4cpp`" />
 					<Add option="`sdl2-config --libs`" />
@@ -250,6 +252,7 @@
 					<Add library="../lib/windows64/swscale.lib" />
 					<Add library="../lib/windows64/Ws2_32.lib" />
 					<Add library="../lib/windows64/libzstd_static.lib" />
+					<Add library="../lib/windows64/libcurl.lib" />
 					<Add library="psapi" />
 					<Add directory="../lib/windows64" />
 				</Linker>

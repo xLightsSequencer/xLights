@@ -54,6 +54,7 @@
 						<item>POST</item>
 					</content>
 					<selection>0</selection>
+					<handler function="OnChoice_TypeSelect" entry="EVT_CHOICE" />
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
@@ -71,6 +72,20 @@
 				<object class="wxTextCtrl" name="ID_TEXTCTRL4" variable="TextCtrl_Body" member="yes">
 					<style>wxTE_MULTILINE</style>
 				</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxStaticText" name="ID_STATICTEXT6" variable="StaticText6" member="yes">
+					<label>Content Type:</label>
+				</object>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxChoice" name="ID_CHOICE2" variable="Choice_ContentType" member="yes" />
 				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
 				<option>1</option>

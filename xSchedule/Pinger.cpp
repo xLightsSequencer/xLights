@@ -158,7 +158,7 @@ PINGSTATE APinger::Ping()
         return _output->Ping();
     }
  
-    return IPOutput::Ping(_ip);
+    return IPOutput::Ping(_ip, "");
 }
 
 void APinger::SetPingResult(PINGSTATE result)

@@ -6,6 +6,7 @@
 
 #include "PlayListItemCURL.h"
 #include "PlayListItemCURLPanel.h"
+#include "../xSMSDaemon/Curl.h"
 
 #include <log4cpp/Category.hh>
 
@@ -15,6 +16,7 @@ PlayListItemCURL::PlayListItemCURL(wxXmlNode* node) : PlayListItem(node)
     _url = "";
     _curltype = "GET";
     _body = "";
+    _contentType = "";
     PlayListItemCURL::Load(node);
 }
 
@@ -24,6 +26,7 @@ void PlayListItemCURL::Load(wxXmlNode* node)
     _url = node->GetAttribute("URL", "");
     _curltype = node->GetAttribute("Type", "GET");
     _body = node->GetAttribute("Body", "");
+    _contentType = node->GetAttribute("ContentType", "");
 }
 
 PlayListItemCURL::PlayListItemCURL() : PlayListItem()
@@ -33,6 +36,7 @@ PlayListItemCURL::PlayListItemCURL() : PlayListItem()
     _url = "";
     _curltype = "GET";
     _body = "";
+    _contentType = "";
 }
 
 PlayListItem* PlayListItemCURL::Copy() const
@@ -42,6 +46,7 @@ PlayListItem* PlayListItemCURL::Copy() const
     res->_curltype = _curltype;
     res->_body = _body;
     res->_started = false;
+    res->_contentType = _contentType;
     PlayListItem::Copy(res);
 
     return res;
@@ -54,6 +59,7 @@ wxXmlNode* PlayListItemCURL::Save()
     node->AddAttribute("URL", _url);
     node->AddAttribute("Type", _curltype);
     node->AddAttribute("Body", _body);
+    node->AddAttribute("ContentType", _contentType);
 
     PlayListItem::Save(node);
 
@@ -106,42 +112,15 @@ void PlayListItemCURL::Frame(uint8_t* buffer, size_t size, size_t ms, size_t fra
             return;
         }
 
-        wxURI uri(url);
-
-        wxHTTP http;
-        http.SetTimeout(10);
-        http.SetMethod(_curltype);
-        if (http.Connect(uri.GetServer()))
+        if (_curltype == "POST")
         {
-            if (_curltype == "POST")
-            {
-                http.SetPostText("application/x-www-form-urlencoded", _body);
-            }
-            wxString page = uri.GetPath() + "?" + uri.GetQuery();
-            wxInputStream *httpStream = http.GetInputStream(page);
-            if (http.GetError() == wxPROTO_NOERR)
-            {
-                wxString res;
-                wxStringOutputStream out_stream(&res);
-                httpStream->Read(out_stream);
-
-                logger_base.info("CURL: %s", (const char *)res.c_str());
-            }
-            else
-            {
-                logger_base.error("CURL: Error getting page %s from %s.", (const char*)page.c_str(), (const char *)uri.GetServer().c_str());
-            }
-
-            if (_curltype == "POST")
-            {
-                http.SetPostText("", "");
-            }
-            wxDELETE(httpStream);
-	    http.Close();
+            auto res = Curl::HTTPSPost(url, _body, "", "", _contentType);
+            logger_base.info("CURL POST : %s", (const char*)res.c_str());
         }
         else
         {
-            logger_base.error("CURL: Error connecting to %s.", (const char *)uri.GetServer().c_str());
+            auto res = Curl::HTTPSGet(url);
+            logger_base.info("CURL GET: %s", (const char*)res.c_str());
         }
     }
 }

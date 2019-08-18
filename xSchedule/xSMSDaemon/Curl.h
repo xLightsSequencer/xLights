@@ -70,6 +70,31 @@ public:
                 static const char buf2[] = "Content-Type: application/json";
                 headerlist = curl_slist_append(headerlist, buf2);
             }
+            else if (contentType == "XML")
+            {
+                static const char buf2[] = "Content-Type: application/xml";
+                headerlist = curl_slist_append(headerlist, buf2);
+            }
+            else if (contentType == "TEXT XML")
+            {
+                static const char buf2[] = "Content-Type: text/xml";
+                headerlist = curl_slist_append(headerlist, buf2);
+            }
+            else if (contentType == "HTML")
+            {
+                static const char buf2[] = "Content-Type: text/html";
+                headerlist = curl_slist_append(headerlist, buf2);
+            }
+            else if (contentType == "TEXT")
+            {
+                static const char buf2[] = "Content-Type: text/plain";
+                headerlist = curl_slist_append(headerlist, buf2);
+            }
+            else
+            {
+                static const char buf2[] = "Content-Type: application/x-www-form-urlencoded";
+                headerlist = curl_slist_append(headerlist, buf2);
+            }
 
             curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
             if (user != "" || password != "")

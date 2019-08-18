@@ -1020,6 +1020,7 @@
     <ClInclude Include="events\ListenerCSVFPP.h">
       <Filter>Events</Filter>
     </ClInclude>
+    <ClInclude Include="xSMSDaemon\Curl.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

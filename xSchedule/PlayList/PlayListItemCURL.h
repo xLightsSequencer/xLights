@@ -15,6 +15,7 @@ protected:
     std::string _url;
     std::string _curltype;
     std::string _body;
+    std::string _contentType;
     bool _started;
     #pragma endregion Member Variables
 
@@ -36,6 +37,8 @@ public:
     std::string GetCURLType() const { return _curltype; }
     void SetBody(const std::string& body) { if (_body != body) { _body = body; _changeCount++; } }
     std::string GetBody() const { return _body; }
+    void SetContentType(const std::string& contentType) { if (_contentType != contentType) { _contentType = contentType; _changeCount++; } }
+    std::string GetContentType() const { return _contentType; }
     virtual std::string GetTitle() const override;
     #pragma endregion Getters and Setters
 
