@@ -1012,13 +1012,14 @@ void ModelManager::Delete(const std::string &name) {
             if (model != nullptr) {
                 model->GetModelXml()->GetParent()->RemoveChild(model->GetModelXml());
 
-                for (auto it2 = models.begin(); it2 != models.end(); ++it2) {
-                    if (it2->second->GetDisplayAs() == "ModelGroup") {
-                        ModelGroup *group = (ModelGroup*)it2->second;
+                for (auto& it2 : models) {
+                    if (it2.second->GetDisplayAs() == "ModelGroup") {
+                        ModelGroup *group = (ModelGroup*)it2.second;
                         group->ModelRemoved(name);
                     }
                 }
                 models.erase(it);
+                ResetModelGroups();
 
                 // If models are chained to us then make their start channel ... our start channel
                 std::string chainedtous = wxString::Format(">%s:1", model->GetName()).ToStdString();
@@ -1032,7 +1033,6 @@ void ModelManager::Delete(const std::string &name) {
 
                 delete model->GetModelXml();
                 delete model;
-                ResetModelGroups();
                 return;
             }
         }

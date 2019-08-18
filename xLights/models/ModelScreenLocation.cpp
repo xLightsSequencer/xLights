@@ -3931,7 +3931,7 @@ wxCursor PolyPointScreenLocation::CheckIfOverHandles3D(glm::vec3& ray_origin, gl
         if (selected_segment != -1) {
             // add control point handles for selected segments
             int s = selected_segment;
-            if (mPos[s].has_curve) {
+            if (mPos.size() > s && mPos[s].has_curve) {
                 glm::vec3 cp_handle_aabb_min[2];
                 glm::vec3 cp_handle_aabb_max[2];
                 cp_handle_aabb_min[0].x = (mPos[s].curve->get_cp0x() - minX)*scalex - GetRectHandleWidth(zoom, scale);
@@ -5069,6 +5069,7 @@ void PolyPointScreenLocation::DeleteHandle(int handle) {
     mHandlePosition.erase(mHandlePosition.begin() + handle + 1);
     num_points--;
     selected_handle = -1;
+    selected_segment = -1;
 }
 
 wxCursor PolyPointScreenLocation::InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes, ModelPreview* preview) {

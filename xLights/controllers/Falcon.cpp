@@ -110,13 +110,13 @@ int Falcon::GetMaxPixels() const
 Falcon::Falcon(const std::string& ip, const std::string &proxy) : _ip(ip), _fppProxy(proxy), _baseUrl("")
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     _firmwareVersion = "";
     _modelString = "";
     _version = 0;
     _model = 0;
     _usingAbsolute = false;
     
-
     logger_base.debug("Connecting to Falcon on %s.", (const char *)_ip.c_str());
 
     _http.SetMethod("GET");
