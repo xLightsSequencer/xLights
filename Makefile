@@ -1,6 +1,6 @@
 
 DESTDIR    =
-PREFIX          = /usr/local
+PREFIX          = /usr
 
 # Ignore some warnings for now to make compile output cleaner
 # until the issues are cleaned up in the code.
