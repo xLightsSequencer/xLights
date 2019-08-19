@@ -1,5 +1,4 @@
 
-DESTDIR    =
 PREFIX          = /usr
 
 # Ignore some warnings for now to make compile output cleaner
