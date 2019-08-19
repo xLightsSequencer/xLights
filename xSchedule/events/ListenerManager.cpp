@@ -666,22 +666,29 @@ void ListenerManager::MidiRedirect(wxWindow* notify, int deviceId)
     }
 }
 
+#define MIN_SYNC_INTERVAL_MS 500
+
 int ListenerManager::Sync(const std::string filename, long ms, const std::string& type)
 {
     if ((_sync == 1 && type == "FPP") || (_sync == 6 && type == "FPP CSV"))
     {
-        return _scheduleManager->Sync(_scheduleManager->FindStepForFSEQ(filename), ms);
+        _lastFrameMS = _scheduleManager->Sync(_scheduleManager->FindStepForFSEQ(filename), ms);
     }
     else if ((_sync == 3 && type == "ARTNet") ||
         (_sync == 2 && type == "OSC") ||
         (_sync == 5 && type == "MIDI"))
     {
-        return _scheduleManager->Sync(filename, ms);
+		if (_lastSyncMS < 0 || _lastSyncMS >= ms || ms > _lastSyncMS + MIN_SYNC_INTERVAL_MS)
+		{
+			_lastFrameMS = _scheduleManager->Sync(filename, ms);
+		}
+		_lastSyncMS = ms;
     }
     else
     {
-        return 50;
+        _lastFrameMS = 50;
     }
+	return _lastFrameMS;
 }
 
 void ListenerManager::SetFrameMS(int frameMS)

@@ -353,7 +353,7 @@ function loadXyzzyData() {
 
   $.ajax({
     type: "GET",
-    url: '/xyzzy?c=initialise',
+    url: '/xyzzy?c=highscore',
     success: function(response) {
       xyzzyHighScore = JSON.parse('{"highscoreplayer":"' + response.highscoreplayer + '","highscore":' + response.highscore + '}');
     }
@@ -364,7 +364,7 @@ function loadXyzzyData() {
 function loadXyzzy2Data() {
   $.ajax({
     type: "GET",
-    url: '/xyzzy2?c=initialise',
+    url: '/xyzzy2?c=highscore',
     success: function(response) {
       xyzzy2HighScore = JSON.parse('{"highscoreplayer":"' + response.highscoreplayer + '","highscore":' + response.highscore + '}');
     }

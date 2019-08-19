@@ -19,6 +19,8 @@ class ListenerManager
 		bool _pause;
         ScheduleManager* _scheduleManager;
         wxWindow* _notifyScan;
+		long _lastSyncMS = -1;
+		int _lastFrameMS = 50;
 
 	public:
         ListenerManager(ScheduleManager* scheduleManager);

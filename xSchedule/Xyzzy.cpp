@@ -387,6 +387,28 @@ bool Xyzzy2::Frame(uint8_t* buffer, size_t size, bool outputframe)
     return true;
 }
 
+void Xyzzy::GetHighScoreJSON(wxString& result, const wxString& reference)
+{
+    wxConfigBase* config = wxConfigBase::Get();
+    std::string highScore = wxString::Format("%ld", config->ReadLong(_("XyzzyHighScore"), 0)).ToStdString();
+    std::string highScoreOwner = config->Read(_("XyzzyHighScoreOwner"), "").ToStdString();
+    result = "{\"result\":\"ok\",\"message\":\"\",\"highscore\":\"" + highScore +
+        "\",\"r\":\"" + reference +
+        "\",\"highscoreplayer\":\"" + highScoreOwner +
+        "\"}";
+}
+
+void Xyzzy2::GetHighScoreJSON(wxString& result, const wxString& reference)
+{
+    wxConfigBase* config = wxConfigBase::Get();
+    std::string highScore = wxString::Format("%ld", config->ReadLong(_("Xyzzy2HighScore"), 0)).ToStdString();
+    std::string highScoreOwner = config->Read(_("Xyzzy2HighScoreOwner"), "").ToStdString();
+    result = "{\"result\":\"ok\",\"message\":\"\",\"highscore\":\"" + highScore +
+        "\",\"r\":\"" + reference +
+        "\",\"highscoreplayer\":\"" + highScoreOwner +
+        "\"}";
+}
+
 // <matrix name>
 void XyzzyBase::DoInitialise(const wxString& parameters, wxString& result, const wxString& reference, OutputManager* om)
 {

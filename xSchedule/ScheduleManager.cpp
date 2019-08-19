@@ -4979,6 +4979,17 @@ bool ScheduleManager::DoXyzzy(const wxString& command, const wxString& parameter
 {
     _lastXyzzyCommand = wxDateTime::Now();
 
+    if (command == "highscore")
+    {
+        Xyzzy::GetHighScoreJSON(result, reference);
+        return true;
+    }
+    else if (command == "highscore2")
+    {
+        Xyzzy2::GetHighScoreJSON(result, reference);
+        return true;
+    }
+
     if (_xyzzy == nullptr)
     {
         if (command.EndsWith("2"))
@@ -4993,35 +5004,39 @@ bool ScheduleManager::DoXyzzy(const wxString& command, const wxString& parameter
         wxPostEvent(wxGetApp().GetTopWindow(), event);
     }
 
-    wxString c = command;
-    if (c.EndsWith("2")) c = c.SubString(0, c.Length() - 2);
-
-    if (c == "initialise")
+    if (_xyzzy != nullptr)
     {
-        _xyzzy->Initialise(parameters, result, reference, _outputManager);
-    }
-    else if (c == "close")
-    {
-        // clear the screen
-        _xyzzy->DrawBlack(_buffer, _outputManager->GetTotalChannels());
+        wxString c = command;
+        if (c.EndsWith("2")) c = c.SubString(0, c.Length() - 2);
 
-        _xyzzy->Close(result, reference);
-        delete _xyzzy;
-        _xyzzy = nullptr;
+        if (c == "initialise")
+        {
+            _xyzzy->Initialise(parameters, result, reference, _outputManager);
+        }
+        else if (c == "close")
+        {
+            // clear the screen
+            _xyzzy->DrawBlack(_buffer, _outputManager->GetTotalChannels());
 
-        wxCommandEvent event(EVT_SCHEDULECHANGED);
-        wxPostEvent(wxGetApp().GetTopWindow(), event);
-    }
-    else
-    {
-        _xyzzy->Action(c, parameters, result, reference);
-    }
+            _xyzzy->Close(result, reference);
+            delete _xyzzy;
+            _xyzzy = nullptr;
 
-    if (_xyzzy != nullptr && !_xyzzy->IsOk())
-    {
-        delete _xyzzy;
-        _xyzzy = nullptr;
+            wxCommandEvent event(EVT_SCHEDULECHANGED);
+            wxPostEvent(wxGetApp().GetTopWindow(), event);
+        }
+        else
+        {
+            _xyzzy->Action(c, parameters, result, reference);
+        }
+
+        if (_xyzzy != nullptr && !_xyzzy->IsOk())
+        {
+            delete _xyzzy;
+            _xyzzy = nullptr;
+        }
     }
+    else { return false; }
 
     return true;
 }

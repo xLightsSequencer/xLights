@@ -207,6 +207,7 @@ class Xyzzy : public XyzzyBase
 
 public:
 
+    static void GetHighScoreJSON(wxString& result, const wxString& reference);
         Xyzzy();
         virtual ~Xyzzy() {}
         virtual bool Frame(uint8_t* buffer, size_t size, bool outputframe) override; 
@@ -228,6 +229,7 @@ class Xyzzy2 : public XyzzyBase
     wxPoint RandomPill() const;
 
 public:
+    static void GetHighScoreJSON(wxString& result, const wxString& reference);
     Xyzzy2();
     virtual ~Xyzzy2() {}
     virtual bool Frame(uint8_t* buffer, size_t size, bool outputframe) override;
