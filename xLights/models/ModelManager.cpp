@@ -303,7 +303,10 @@ bool ModelManager::RecalcStartChannels() const {
                         {
                             changed = true;
                         }
-                        workDone = true;
+                        if (it.second->CouldComputeStartChannel)
+                        {
+                            workDone = true;
+                        }
                     }
                 }
             }
