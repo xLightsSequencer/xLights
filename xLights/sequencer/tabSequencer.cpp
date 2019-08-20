@@ -2287,6 +2287,10 @@ void xLightsFrame::SetEffectControls(const std::string &modelName, const std::st
                                      bool setDefaults) {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (CurrentSeqXmlFile == nullptr) return;
+    EffectsPanel1->Freeze();
+    timingPanel->Freeze();
+    bufferPanel->Freeze();
+    colorPanel->Freeze();
     SetChoicebook(EffectsPanel1->EffectChoicebook, effectName);
     Model *model = GetModel(modelName);
     if (setDefaults) {
@@ -2314,6 +2318,10 @@ void xLightsFrame::SetEffectControls(const std::string &modelName, const std::st
         colorPanel->SetColorCount(8);
         logger_base.warn("Setting effect controls for unknown effect type: %s", (const char *)effectName.c_str());
     }
+    EffectsPanel1->Thaw();
+    timingPanel->Thaw();
+    bufferPanel->Thaw();
+    colorPanel->Thaw();
 }
 
 bool xLightsFrame::ApplySetting(wxString name, const wxString &value)
