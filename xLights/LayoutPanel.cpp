@@ -1077,7 +1077,7 @@ void LayoutPanel::refreshModelList() {
                     }
                     else
                     {
-                        TreeListViewModels->SetItemText(item, Col_StartChan, "*** " + startStr);
+                        TreeListViewModels->SetItemText(item, Col_StartChan, "*** " + model->ModelStartChannel);
                     }
                 }
                 cv = TreeListViewModels->GetItemText(item, Col_EndChan);
@@ -1187,7 +1187,7 @@ int LayoutPanel::AddModelToTree(Model *model, wxTreeListItem* parent, bool expan
         }
         else
         {
-            TreeListViewModels->SetItemText(item, Col_StartChan, "*** " + startStr);
+            TreeListViewModels->SetItemText(item, Col_StartChan, "*** " + model->ModelStartChannel);
         }
         TreeListViewModels->SetItemText(item, Col_EndChan, endStr);
 
