@@ -773,7 +773,7 @@ int PolyLineModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropert
         {
             sp = grid->GetPropertyByLabel("# Lights");
         }
-        sp->SetValueFromInt(parm2);
+        sp->SetValueFromInt((int)event.GetPropertyValue().GetLong());
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "PolyLineModel::OnPropertyGridChange::PolyLineNodes");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "PolyLineModel::OnPropertyGridChange::PolyLineNodes");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "PolyLineModel::OnPropertyGridChange::PolyLineNodes");
