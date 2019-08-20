@@ -623,124 +623,88 @@ bool ModelManager::ReworkStartChannel() const
     return outputsChanged;
 }
 
-bool ModelManager::LoadGroups(wxXmlNode *groupNode, int previewW, int previewH) {
+bool ModelManager::LoadGroups(wxXmlNode* groupNode, int previewW, int previewH) {
     this->groupNode = groupNode;
-    std::list<ModelGroup*> toBeDone;
     bool changed = false;
 
-    for (wxXmlNode* e=groupNode->GetChildren(); e!=nullptr; e=e->GetNext()) {
+    std::list<wxXmlNode*> toBeDone;
+    std::list<std::string> allModels;
+
+    // do all the models without embedded groups first or where the model order means everything exists
+    for (wxXmlNode* e = groupNode->GetChildren(); e != nullptr; e = e->GetNext()) {
         if (e->GetName() == "modelGroup") {
             std::string name = e->GetAttribute("name").ToStdString();
             if (!name.empty()) {
-                ModelGroup *model = new ModelGroup(e, *this, previewW, previewH);
-                if (model->Reset()) {
-                    auto it = models.find(model->name);
-                    bool reset = false;
-                    if (it != models.end()) {
-                        delete it->second;
-                        it->second = nullptr;
-                        reset = true;
-                    }
+                allModels.push_back(name);
+                if (ModelGroup::AllModelsExist(e, *this))
+                {
+                    ModelGroup* model = new ModelGroup(e, *this, previewW, previewH);
+                    bool reset = model->Reset();
+                    wxASSERT(reset);
                     models[model->name] = model;
-                    if (reset) ResetModelGroups();
-                    model->SetLayoutGroup( e->GetAttribute("LayoutGroup", "Unassigned").ToStdString() );
-                } else {
-                    model->SetLayoutGroup( e->GetAttribute("LayoutGroup", "Unassigned").ToStdString() );
-                    toBeDone.push_back(model);
+                    model->SetLayoutGroup(e->GetAttribute("LayoutGroup", "Unassigned").ToStdString());
+                }
+                else
+                {
+                    toBeDone.push_back(e);
                 }
             }
         }
     }
+
+    // add in models and submodels
+    for (auto it : models)
+    {
+        allModels.push_back(it.second->GetName());
+        for (auto it2 : it.second->GetSubModels())
+        {
+            allModels.push_back(it2->GetFullName());
+        }
+    }
+
+    // remove any totally non existent models from model groups
+    // this stops some end conditions which cant be resolved
+    for (auto& it : toBeDone)
+    {
+        changed |= ModelGroup::RemoveNonExistentModels(it, allModels);
+    }
+
+    // try up to however many models we have left
     int maxIter = toBeDone.size();
-    while (!toBeDone.empty()) {
-        if (maxIter == 0) {
-            std::string msg = "Could not process model groups (possibly due to circular groups or a missing model):";
-            for (auto it = toBeDone.begin(); it != toBeDone.end(); ++it) {
-                ModelGroup *g = *it;
-
-                wxString orig = g->GetModelXml()->GetAttribute("models");
-                wxString newM;
-                wxArrayString mn = wxSplit(orig, ',');
-                std::string modelsRemoved;
-                for (auto it2 = mn.begin(); it2 != mn.end(); ++it2) {
-
-                    wxString submodel = "";
-                    wxString name = *it2;
-                    if (name.Contains("/"))
-                    {
-                        submodel = name.After('/');
-                        name = name.Before('/');
-                    }
-
-                    auto m = models.find(name.ToStdString());
-
-                    if (m != models.end() && submodel != "")
-                    {
-                        if (m->second->GetSubModel(submodel) == nullptr)
-                        {
-                            m = models.end();
-                        }
-                    }
-
-                    if (*it2 == "")
-                    {
-                        // This can happen if a comma is left behind in the string ... just ignore it
-                    }
-                    else if (m == models.end()) {
-                        modelsRemoved += "\n       " + *it2 + " not found";
-                    } else {
-                        if (newM != "") {
-                            newM += ",";
-                        }
-                        newM += *it2;
-                    }
-                }
-                g->GetModelXml()->DeleteAttribute("models");
-                g->GetModelXml()->AddAttribute("models", newM);
-                if (g->Reset()) {
-                    // Model successfully loaded
-                    if (modelsRemoved > "")
-                    {
-                        msg = "Could not process model group " + g->GetName()
-                            + " due to models not being found.  The following models will be removed from the group:"
-                            + modelsRemoved;
-                        DisplayWarning(msg);
-                    }
-                    maxIter = toBeDone.size();
-                    changed = true;
-                } else {
-                    // Load of the new group failed so reset it
-                    msg += "\n" + g->GetName();
-                    msg += modelsRemoved;
-                    g->GetModelXml()->DeleteAttribute("models");
-                    g->GetModelXml()->AddAttribute("models", orig);
-                }
-            }
-            if (maxIter == 0) {
-                // I would prefer NOT to send users to the log but the model group does not get loaded so when we run check sequence you can't see the error.
-                msg += "\n\nCheck log file for more details.";
-                DisplayWarning(msg);
-                //nothing improved
-                break;
-            }
-        }
+    while (maxIter > 0 && toBeDone.size() > 0)
+    {
         maxIter--;
-        std::list<ModelGroup*> processing(toBeDone);
+        std::list<wxXmlNode*> processing(toBeDone);
         toBeDone.clear();
-        for (auto it = processing.begin(); it != processing.end(); ++it) {
-            ModelGroup *model = *it;
-            if (model->Reset()) {
-                auto it2 = models.find(model->name);
-                if (it2 != models.end()) {
-                    delete it2->second;
-                    ResetModelGroups();
-                }
+        for (auto it : processing) {
+            if (ModelGroup::AllModelsExist(it, *this))
+            {
+                ModelGroup* model = new ModelGroup(it, *this, previewW, previewH);
+                bool reset = model->Reset();
+                wxASSERT(reset);
                 models[model->name] = model;
-            } else {
-                toBeDone.push_back(model);
+                model->SetLayoutGroup(it->GetAttribute("LayoutGroup", "Unassigned").ToStdString());
+            }
+            else
+            {
+                toBeDone.push_back(it);
             }
         }
     }
+
+    // anything left in toBeDone is now due to model loops
+    for (auto it : toBeDone) {
+        std::string msg = "Could not process model group " + it->GetName()
+            + " likely due to model groups loops. See Check Sequence for details.";
+        DisplayWarning(msg);
+        wxASSERT(false);
+        ModelGroup* model = new ModelGroup(it, *this, previewW, previewH);
+        bool reset = model->Reset();
+        wxASSERT(!reset); // this should have failed
+        models[model->name] = model;
+        model->SetLayoutGroup(it->GetAttribute("LayoutGroup", "Unassigned").ToStdString());
+    }
+
     return changed;
 }
 

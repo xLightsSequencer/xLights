@@ -271,65 +271,73 @@ void ModelGroupPanel::UpdatePanel(const std::string group)
     ListBoxAddToModelGroup->AppendColumn("Models");
 
     ChoiceModelLayoutType->SetSelection(1);
-    ModelGroup *g = (ModelGroup*)mModels[group];
-    wxXmlNode *e = g->GetModelXml();
-    std::list<std::string> modelsInGroup;
-    modelsInGroup.push_back(g->GetName());
-    for (auto it = g->ModelNames().begin(); it != g->ModelNames().end(); ++it) {
-        ListBoxModelsInGroup->InsertItem(ListBoxModelsInGroup->GetItemCount(), *it);
-        modelsInGroup.push_back(*it);
-    }
 
-    // dont allow any group that contains this group to be added as that would create a loop
-    for (auto it = mModels.begin(); it != mModels.end(); ++it) {
-        if (std::find(modelsInGroup.begin(), modelsInGroup.end(), it->first) != modelsInGroup.end() || (it->second->GetDisplayAs() == "ModelGroup" && (it->first == group || dynamic_cast<ModelGroup*>(it->second)->ContainsModelGroup(g)))) {
-            // dont add this group
+    if (group != "")
+    {
+        ModelGroup* g = (ModelGroup*)mModels[group];
+        wxXmlNode* e = g->GetModelXml();
+        std::list<std::string> modelsInGroup;
+        modelsInGroup.push_back(g->GetName());
+        for (auto it = g->ModelNames().begin(); it != g->ModelNames().end(); ++it) {
+            ListBoxModelsInGroup->InsertItem(ListBoxModelsInGroup->GetItemCount(), *it);
+            modelsInGroup.push_back(*it);
         }
-        else
-        {
-            ListBoxAddToModelGroup->InsertItem(ListBoxAddToModelGroup->GetItemCount(), it->first);
-        }
-        if (CheckBox_ShowSubmodels->GetValue())
-        {
-            for (auto smit = it->second->GetSubModels().begin(); smit != it->second->GetSubModels().end(); ++smit) {
-                Model *sm = *smit;
 
-                if (std::find(g->ModelNames().begin(), g->ModelNames().end(), sm->GetFullName()) == g->ModelNames().end()) {
-                    ListBoxAddToModelGroup->InsertItem(ListBoxAddToModelGroup->GetItemCount(), sm->GetFullName());
+        // dont allow any group that contains this group to be added as that would create a loop
+        for (auto it = mModels.begin(); it != mModels.end(); ++it) {
+            if (std::find(modelsInGroup.begin(), modelsInGroup.end(), it->first) != modelsInGroup.end() || (it->second->GetDisplayAs() == "ModelGroup" && (it->first == group || dynamic_cast<ModelGroup*>(it->second)->ContainsModelGroup(g)))) {
+                // dont add this group
+            }
+            else
+            {
+                ListBoxAddToModelGroup->InsertItem(ListBoxAddToModelGroup->GetItemCount(), it->first);
+            }
+            if (CheckBox_ShowSubmodels->GetValue())
+            {
+                for (auto smit = it->second->GetSubModels().begin(); smit != it->second->GetSubModels().end(); ++smit) {
+                    Model* sm = *smit;
+
+                    if (std::find(g->ModelNames().begin(), g->ModelNames().end(), sm->GetFullName()) == g->ModelNames().end()) {
+                        ListBoxAddToModelGroup->InsertItem(ListBoxAddToModelGroup->GetItemCount(), sm->GetFullName());
+                    }
                 }
             }
         }
-    }
 
-    wxString v = e->GetAttribute("layout", "minimalGrid");
-    if (v == "grid") {
-        ChoiceModelLayoutType->SetSelection(0);
-    }else if (v == "minimalGrid") {
-        ChoiceModelLayoutType->SetSelection(1);
-    } else if (v == "horizontal") {
-        ChoiceModelLayoutType->SetSelection(2);
-    } else if (v == "vertical") {
-        ChoiceModelLayoutType->SetSelection(3);
-    } else {
-        int idx = ChoiceModelLayoutType->FindString(v);
-        if (idx >= 0) {
-            ChoiceModelLayoutType->SetSelection(idx);
-        } else {
-            ChoiceModelLayoutType->Append(v);
-            ChoiceModelLayoutType->SetSelection(ChoiceModelLayoutType->GetCount() - 1);
+        wxString v = e->GetAttribute("layout", "minimalGrid");
+        if (v == "grid") {
+            ChoiceModelLayoutType->SetSelection(0);
         }
-    }
-
-    wxString preview = e->GetAttribute("LayoutGroup", "Default");
-    ChoicePreviews->SetSelection(0);
-    for( int i = 0; i < ChoicePreviews->GetCount(); i++ ) {
-        if( ChoicePreviews->GetString(i) == preview )
-        {
-            ChoicePreviews->SetSelection(i);
+        else if (v == "minimalGrid") {
+            ChoiceModelLayoutType->SetSelection(1);
         }
-    }
+        else if (v == "horizontal") {
+            ChoiceModelLayoutType->SetSelection(2);
+        }
+        else if (v == "vertical") {
+            ChoiceModelLayoutType->SetSelection(3);
+        }
+        else {
+            int idx = ChoiceModelLayoutType->FindString(v);
+            if (idx >= 0) {
+                ChoiceModelLayoutType->SetSelection(idx);
+            }
+            else {
+                ChoiceModelLayoutType->Append(v);
+                ChoiceModelLayoutType->SetSelection(ChoiceModelLayoutType->GetCount() - 1);
+            }
+        }
 
-    SizeSpinCtrl->SetValue(wxAtoi(e->GetAttribute("GridSize", "400")));
+        wxString preview = e->GetAttribute("LayoutGroup", "Default");
+        ChoicePreviews->SetSelection(0);
+        for (int i = 0; i < ChoicePreviews->GetCount(); i++) {
+            if (ChoicePreviews->GetString(i) == preview)
+            {
+                ChoicePreviews->SetSelection(i);
+            }
+        }
+        SizeSpinCtrl->SetValue(wxAtoi(e->GetAttribute("GridSize", "400")));
+    }
 
     ResizeColumns();
 

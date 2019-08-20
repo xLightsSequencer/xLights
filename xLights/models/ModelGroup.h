@@ -11,6 +11,10 @@ class ModelManager;
 class ModelGroup : public ModelWithScreenLocation<BoxedScreenLocation>
 {
     public:
+
+        static bool AllModelsExist(wxXmlNode* node, const ModelManager& models);
+        static bool RemoveNonExistentModels(wxXmlNode* node, const std::list<std::string>& allmodels);
+
         ModelGroup(wxXmlNode *node, const ModelManager &manager, int previewW, int previewH);
         virtual ~ModelGroup();
 

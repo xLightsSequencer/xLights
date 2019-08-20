@@ -6,6 +6,8 @@
 #include "ModelManager.h"
 #include "SingleLineModel.h"
 #include "ModelScreenLocation.h"
+#include "../UtilFunctions.h"
+
 #include <log4cpp/Category.hh>
 
 static const std::string HORIZ("Horizontal Stack");
@@ -184,6 +186,51 @@ const std::vector<std::string> &ModelGroup::GetBufferStyles() const {
     };
     static Initializer ListInitializationGuard;
     return GROUP_BUFFER_STYLES;
+}
+
+bool ModelGroup::AllModelsExist(wxXmlNode* node, const ModelManager& models)
+{
+    wxArrayString mn = wxSplit(node->GetAttribute("models"), ',');
+    for (auto it : mn) {
+        Model* c = models.GetModel(it.ToStdString());
+        if (c == nullptr) return false;
+    }
+    return true;
+}
+
+bool ModelGroup::RemoveNonExistentModels(wxXmlNode* node, const std::list<std::string>& allmodels)
+{
+    bool changed = false;
+
+    std::string models;
+    std::string modelsRemoved;
+
+    wxString name = node->GetAttribute("name", "");
+    wxArrayString mn = wxSplit(node->GetAttribute("models", ""), ',');
+
+    for (auto it : mn) {
+        if (std::find(allmodels.begin(), allmodels.end(), it) == allmodels.end())
+        {
+            if (modelsRemoved != "") modelsRemoved += ", ";
+            modelsRemoved += it;
+            changed = true;
+        }
+        else
+        {
+            if (models != "") models += ",";
+            models += it;
+        }
+    }
+
+    if (changed) {
+        node->DeleteAttribute("models");
+        node->AddAttribute("models", models);
+        DisplayWarning("Could not process model group " + name
+            + " due to models not being found.  The following models will be removed from the group:"
+            + modelsRemoved);
+    }
+
+    return changed;
 }
 
 ModelGroup::ModelGroup(wxXmlNode *node, const ModelManager &m, int w, int h) : ModelWithScreenLocation(m)
