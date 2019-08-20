@@ -46,7 +46,7 @@ protected:
     std::string _ip;
     std::string _resolvedIp;
     std::string _commPort;
-    long _channels;
+    int32_t _channels;
     int _baudRate;
     int _universe;
     bool _enabled;
@@ -54,7 +54,7 @@ protected:
     std::string _controller;
     int _outputNumber; // cached ordinal of this output ... may change when reordered or other output are changed
     int _nullNumber; // cached ordinal of null controllers ... may change when reordered or other output are changed
-    long _startChannel; // cached start channel of this output ... may change when reordered or other output are changed
+    int32_t _startChannel; // cached start channel of this output ... may change when reordered or other output are changed
     long _timer_msec;
     bool _ok;
     bool _suppressDuplicateFrames;
@@ -89,10 +89,10 @@ public:
     void ClearDirty() { _dirty = false; }
     virtual bool IsLookedUpByControllerName() const { return false; }
     virtual bool IsAutoLayoutModels() const { return false; }
-    long GetStartChannel() const { return _startChannel; }
-    long GetActualEndChannel() const { return _startChannel + _channels - 1; }
+    int32_t GetStartChannel() const { return _startChannel; }
+    virtual int32_t GetEndChannel() const { return _startChannel + _channels - 1; }
+    int32_t GetActualEndChannel() const { return _startChannel + _channels - 1; }
     void Suspend(bool suspend) { _suspend = suspend; }
-    virtual long GetEndChannel() const { return _startChannel + _channels - 1; }
     std::string GetDescription() const { return _description; }
     void SetDescription(const std::string& description) { _description = description; _dirty = true; }
     void SetSuppressDuplicateFrames(const bool suppressDuplicateFrames) { _suppressDuplicateFrames = suppressDuplicateFrames; _dirty = true; }
@@ -101,8 +101,8 @@ public:
     virtual void SetIP(const std::string& ip);
     std::string GetCommPort() const { return _commPort; }
     void SetCommPort(const std::string& commPort) { _commPort = commPort; _dirty = true; }
-    long GetChannels() const { return _channels; }
-    virtual void SetChannels(long channels) { _channels = channels; _dirty = true; }
+    int32_t GetChannels() const { return _channels; }
+    virtual void SetChannels(int32_t channels) { _channels = channels; _dirty = true; }
     int GetUniverse() const { return _universe; }
     void SetUniverse(int universe) { _universe = universe; _dirty = true; }
     virtual std::string GetUniverseString() const { return wxString::Format(wxT("%i"), GetUniverse()).ToStdString(); }
@@ -117,7 +117,7 @@ public:
     void SetControllerId(const std::string& id) { _controller = id; _dirty = true; }
     const std::string &GetControllerId() const { return _controller; }
     int GetOutputNumber() const { return _outputNumber; }
-    virtual void SetTransientData(int on, long startChannel, int nullnumber);
+    virtual void SetTransientData(int on, int32_t startChannel, int nullnumber);
     long GetTimer() const { return _timer_msec; }
     bool IsOk() const { return _ok; }
     const std::string GetFPPProxyIP() const { return _fppProxy;}
@@ -129,11 +129,11 @@ public:
     virtual bool IsIpOutput() const = 0;
     virtual bool IsSerialOutput() const = 0;
     virtual bool IsOutputable() const { return true; }
-    virtual Output* GetActualOutput(long startChannel) { return this; }
+    virtual Output* GetActualOutput(int32_t startChannel) { return this; }
     virtual bool IsOutputCollection() const { return false; }
-    virtual std::string GetChannelMapping(long ch) const = 0;
+    virtual std::string GetChannelMapping(int32_t ch) const = 0;
     virtual int GetMaxChannels() const = 0;
-    virtual bool IsValidChannelCount(long channelCount) const = 0;
+    virtual bool IsValidChannelCount(int32_t channelCount) const = 0;
     virtual size_t TxNonEmptyCount() const { return 0; }
     virtual bool TxEmpty() const { return true; }
     bool IsSuppressDuplicateFrames() const { return _suppressDuplicateFrames; }
@@ -162,8 +162,8 @@ public:
     #pragma endregion Frame Handling
 
     #pragma region Data Setting
-    virtual void SetOneChannel(long channel, unsigned char data) = 0;
-    virtual void SetManyChannels(long channel, unsigned char data[], long size);
+    virtual void SetOneChannel(int32_t channel, unsigned char data) = 0;
+    virtual void SetManyChannels(int32_t channel, unsigned char data[], size_t size);
     virtual void AllOff() = 0;
     #pragma endregion Data Setting
 

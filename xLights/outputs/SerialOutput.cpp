@@ -112,15 +112,15 @@ bool SerialOutput::TxEmpty() const
     return true;
 }
 
-std::string SerialOutput::GetChannelMapping(long ch) const
+std::string SerialOutput::GetChannelMapping(int32_t ch) const
 {
-    std::string res = "Channel " + std::string(wxString::Format(wxT("%ld"), ch)) + " maps to ...\n";
+    std::string res = "Channel " + std::string(wxString::Format(wxT("%d"), ch)) + " maps to ...\n";
 
-    long channeloffset = ch - GetStartChannel() + 1;
+    int32_t channeloffset = ch - GetStartChannel() + 1;
 
     res += "Type: " + GetType() + "\n";
     res += "ComPort: " + _commPort + "\n";
-    res += "Channel: " + std::string(wxString::Format(wxT("%ld"), channeloffset)) + "\n";
+    res += "Channel: " + std::string(wxString::Format(wxT("%d"), channeloffset)) + "\n";
 
     if (!_enabled) res += " INACTIVE";
 
@@ -133,8 +133,8 @@ std::string SerialOutput::GetLongDescription() const
 
     if (!_enabled) res += "INACTIVE ";
     res += GetType() + " " + _commPort;
-    res += " [1-" + std::string(wxString::Format(wxT("%ld"), (long)_channels)) + "] ";
-    res += "(" + std::string(wxString::Format(wxT("%ld"), (long)GetStartChannel())) + "-" + std::string(wxString::Format(wxT("%li"), (long)GetEndChannel())) + ") ";
+    res += " [1-" + std::string(wxString::Format(wxT("%d"), _channels)) + "] ";
+    res += "(" + std::string(wxString::Format(wxT("%d"), GetStartChannel())) + "-" + std::string(wxString::Format(wxT("%i"), GetEndChannel())) + ") ";
     res += _description;
 
     return res;

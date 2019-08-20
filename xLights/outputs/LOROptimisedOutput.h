@@ -50,8 +50,8 @@ public:
     #pragma endregion Frame Handling
 
     #pragma region Data Setting
-    virtual void SetOneChannel(long channel, unsigned char data) override;
-    virtual void SetManyChannels(long channel, unsigned char data[], long size) override;
+    virtual void SetOneChannel(int32_t channel, unsigned char data) override;
+    virtual void SetManyChannels(int32_t channel, unsigned char data[], size_t size) override;
     virtual void AllOff() override;
     void GenerateCommand(uint8_t d[], size_t& idx, int unit_id, int bank, bool value_byte, uint8_t dbyte, uint8_t lsb, uint8_t msb);
     #pragma endregion Data Setting

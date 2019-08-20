@@ -195,7 +195,7 @@ protected:
     long parm2;         /* Number of nodes per string in the model or number of segments per arch or cane (except for frames & custom) */
     long parm3;         /* Number of strands per string in the model or number of lights per arch or cane segment (except for frames & custom) */
     bool IsLtoR;         // true=left to right, false=right to left
-    std::vector<long> stringStartChan;
+    std::vector<int32_t> stringStartChan;
     bool isBotToTop;
     std::string StringType; // RGB Nodes, 3 Channel RGB, Single Color Red, Single Color Green, Single Color Blue, Single Color White
     int rgbwHandlingType;
@@ -221,7 +221,7 @@ public:
     void SetTagColour(wxColour colour);
     wxColour GetTagColour() const { return modelTagColour; }
     bool IsPixelProtocol() const;
-    long GetStringStartChan(int x) const {
+    int32_t GetStringStartChan(int x) const {
         if (x < stringStartChan.size()) {
             return stringStartChan[x];
         }
@@ -266,14 +266,14 @@ public:
     int GetNodeStringNumber(size_t nodenum) const;
     void UpdateXmlWithScale() override;
     void SetPosition(double posx, double posy);
-    virtual unsigned int GetLastChannel() const;
-    std::string GetChannelInStartChannelFormat(OutputManager* outputManager, unsigned int channel);
+    std::string GetChannelInStartChannelFormat(OutputManager* outputManager, uint32_t channel);
     std::string GetLastChannelInStartChannelFormat(OutputManager* outputManager);
     std::string GetFirstChannelInStartChannelFormat(OutputManager* outputManager);
     std::string GetStartChannelInDisplayFormat(OutputManager* outputManager);
     bool IsValidStartChannelString() const;
-    virtual unsigned int GetFirstChannel() const;
-    unsigned int GetNumChannels();
+    virtual uint32_t GetFirstChannel() const;
+    virtual uint32_t GetLastChannel() const;
+    uint32_t GetNumChannels();
     int GetNodeNumber(size_t nodenum) const;
     int GetNodeNumber(int bufY, int bufX) const;
     bool UpdateStartChannelFromChannelString(std::map<std::string, Model*>& models, std::list<std::string>& used);
@@ -321,7 +321,7 @@ public:
     wxChar GetChannelColorLetter(wxByte chidx);
     std::string GetRGBOrder() const { return rgbOrder; }
     static char EncodeColour(const xlColor& c);
-    char GetAbsoluteChannelColorLetter(long absoluteChannel); // absolute channel may or may not be in this model ... in which case a ' ' is returned
+    char GetAbsoluteChannelColorLetter(int32_t absoluteChannel); // absolute channel may or may not be in this model ... in which case a ' ' is returned
 
     virtual std::string ChannelLayoutHtml(OutputManager* outputManager);
     virtual void ExportAsCustomXModel() const;
@@ -354,21 +354,21 @@ public:
 
     void GetMinScreenXY(float& minx, float& miny) const;
     virtual int GetNumStrands() const;
-    std::string GetStrandName(size_t x, bool def = false) const {
+    std::string GetStrandName(int x, bool def = false) const {
         if (x < strandNames.size()) {
             return strandNames[x];
         }
         if (def) {
-            return wxString::Format("Strand %ld", (long)x + 1).ToStdString();
+            return wxString::Format("Strand %d", (int32_t)x + 1).ToStdString();
         }
         return "";
     }
-    virtual std::string GetNodeName(size_t x, bool def = false) const {
+    virtual std::string GetNodeName(int x, bool def = false) const {
         if (x < nodeNames.size()) {
             return nodeNames[x];
         }
         if (def) {
-            return wxString::Format("Node %ld", (long)x + 1).ToStdString();
+            return wxString::Format("Node %d", (int32_t)x + 1).ToStdString();
         }
         return "";
     }

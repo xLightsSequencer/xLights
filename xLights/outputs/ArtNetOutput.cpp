@@ -148,7 +148,7 @@ std::list<Output*> ArtNetOutput::Discover(OutputManager* outputManager)
                         if (buffer[0] == 'A' && buffer[1] == 'r' && buffer[2] == 't' && buffer[3] == '-' && buffer[9] == 0x21)
                         {
                             logger_base.debug(" Valid response.");
-                            long channels = 512;
+                            uint32_t channels = 512;
                             ArtNetOutput* output = new ArtNetOutput();
                             output->SetDescription(std::string((char*)& buffer[26]));
                             output->SetChannels(channels);
@@ -425,7 +425,7 @@ void ArtNetOutput::EndFrame(int suppressFrames)
 #pragma endregion Frame Handling
 
 #pragma region Data Setting
-void ArtNetOutput::SetOneChannel(long channel, unsigned char data)
+void ArtNetOutput::SetOneChannel(int32_t channel, unsigned char data)
 {
     wxASSERT(channel < _channels);
 
@@ -435,15 +435,11 @@ void ArtNetOutput::SetOneChannel(long channel, unsigned char data)
     }
 }
 
-void ArtNetOutput::SetManyChannels(long channel, unsigned char data[], long size)
+void ArtNetOutput::SetManyChannels(int32_t channel, unsigned char data[], size_t size)
 {
     wxASSERT(channel + size <= _channels);
 
-#ifdef _MSC_VER
-    long chs = min(size, _channels - channel);
-#else
-    long chs = std::min(size, _channels - channel);
-#endif
+    size_t chs = std::min(size, (size_t)(_channels - channel));
 
     if (memcmp(&_data[channel + ARTNET_PACKET_HEADERLEN], data, chs) == 0)
     {
@@ -475,18 +471,18 @@ std::string ArtNetOutput::GetLongDescription() const
 
     if (!_enabled) res += "INACTIVE ";
     res += "ArtNet " + _ip + " {" + GetUniverseString() + "} ";
-    res += "[1-" + std::string(wxString::Format(wxT("%i"), (long)_channels)) + "] ";
-    res += "(" + std::string(wxString::Format(wxT("%i"), (long)GetStartChannel())) + "-" + std::string(wxString::Format(wxT("%i"), (long)GetEndChannel())) + ") ";
+    res += "[1-" + std::string(wxString::Format(wxT("%i"), _channels)) + "] ";
+    res += "(" + std::string(wxString::Format(wxT("%i"), GetStartChannel())) + "-" + std::string(wxString::Format(wxT("%i"), GetEndChannel())) + ") ";
     res += _description;
 
     return res;
 }
 
-std::string ArtNetOutput::GetChannelMapping(long ch) const
+std::string ArtNetOutput::GetChannelMapping(int32_t ch) const
 {
     std::string res = "Channel " + std::string(wxString::Format(wxT("%i"), ch)) + " maps to ...\n";
 
-    long channeloffset = ch - GetStartChannel() + 1;
+    int32_t channeloffset = ch - GetStartChannel() + 1;
 
     res += "Type: ArtNet\n";
     res += "IP: " + _ip + "\n";

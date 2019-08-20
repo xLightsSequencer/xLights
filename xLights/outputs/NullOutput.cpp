@@ -33,16 +33,16 @@ std::string NullOutput::GetLongDescription() const
 
     if (!_enabled) res += "INACTIVE ";
     res += "NULL (" + std::string(wxString::Format(wxT("%i"), _nullNumber)) + ") ";
-    res += "(" + std::string(wxString::Format(wxT("%ld"), (long)_startChannel)) + "-" + std::string(wxString::Format(wxT("%ld"), GetEndChannel())) + ") ";
+    res += "(" + std::string(wxString::Format(wxT("%d"), _startChannel)) + "-" + std::string(wxString::Format(wxT("%d"), GetEndChannel())) + ") ";
     res += _description;
 
     return res;
 }
 
-std::string NullOutput::GetChannelMapping(long ch) const
+std::string NullOutput::GetChannelMapping(int32_t ch) const
 {
-    std::string res = "Channel " + std::string(wxString::Format(wxT("%ld"), ch)) + " maps to ...\n";
-    res += "Type: NULL (" + std::string(wxString::Format(wxT("%d"), _nullNumber)) + ")\nChannel: " + std::string(wxString::Format(wxT("%ld"), ch - _startChannel)) + "\n";
+    std::string res = "Channel " + std::string(wxString::Format(wxT("%d"), ch)) + " maps to ...\n";
+    res += "Type: NULL (" + std::string(wxString::Format(wxT("%d"), _nullNumber)) + ")\nChannel: " + std::string(wxString::Format(wxT("%d"), ch - _startChannel)) + "\n";
 
     if (!_enabled) res += " INACTIVE";
 

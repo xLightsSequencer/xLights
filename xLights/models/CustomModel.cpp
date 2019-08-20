@@ -682,7 +682,7 @@ void CustomModel::InitCustomMatrix(const std::string& customModel) {
     int height = 1;
     std::vector<int> nodemap;
 
-    long firstStartChan = 999999999;
+    int32_t firstStartChan = 999999999;
     for (auto it: stringStartChan)
     {
         firstStartChan = std::min(it, firstStartChan);
@@ -822,7 +822,7 @@ int CustomModel::GetCustomNodeStringNumber(int node) const
     return string + 1;
 }
 
-std::string CustomModel::GetNodeName(size_t x, bool def) const {
+std::string CustomModel::GetNodeName(int x, bool def) const {
     if (x < Nodes.size()) {
         return Nodes[x]->GetName();
     }
@@ -953,7 +953,7 @@ std::string CustomModel::ChannelLayoutHtml(OutputManager* outputManager) {
     chmap.resize(BufferHt * BufferWi, 0);
     std::string direction = "n/a";
 
-    long sc;
+    int32_t sc;
     Output* o = outputManager->GetOutput(this->GetFirstChannel(), sc);
 
     std::string html = "<html><body><table border=0>";

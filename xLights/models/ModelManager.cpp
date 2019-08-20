@@ -139,21 +139,21 @@ bool ModelManager::RenameInListOnly(const std::string& oldName, const std::strin
 
 bool ModelManager::IsModelOverlapping(Model* model) const
 {
-    long start = model->GetNumberFromChannelString(model->ModelStartChannel);
-    long end = start + model->GetChanCount() - 1;
-    //long sstart = model->GetFirstChannel() + 1;
+    int32_t start = model->GetNumberFromChannelString(model->ModelStartChannel);
+    int32_t end = start + model->GetChanCount() - 1;
+    //int32_t sstart = model->GetFirstChannel() + 1;
     //wxASSERT(sstart == start);
-    //long send = model->GetLastChannel() + 1;
+    //int32_t send = model->GetLastChannel() + 1;
     //wxASSERT(send == end);
     for (auto it = this->begin(); it != this->end(); ++it)
     {
         if (it->second->GetDisplayAs() != "ModelGroup" && it->second->GetName() != model->GetName())
         {
-            long s = it->second->GetNumberFromChannelString(it->second->ModelStartChannel);
-            long e = s + it->second->GetChanCount() - 1;
-            //long ss = it->second->GetFirstChannel() + 1;
+            int32_t s = it->second->GetNumberFromChannelString(it->second->ModelStartChannel);
+            int32_t e = s + it->second->GetChanCount() - 1;
+            //int32_t ss = it->second->GetFirstChannel() + 1;
             //wxASSERT(ss == s);
-            //long se = it->second->GetLastChannel() + 1;
+            //int32_t se = it->second->GetLastChannel() + 1;
             //wxASSERT(se == e);
             if (start <= e && end >= s) return true;
         }
@@ -198,7 +198,7 @@ void ModelManager::LoadModels(wxXmlNode *modelNode, int previewW, int previewH) 
     }
 }
 
-unsigned int ModelManager::GetLastChannel() const {
+uint32_t ModelManager::GetLastChannel() const {
     unsigned int max = 0;
     for (auto it = models.begin(); it != models.end(); ++it) {
         max = std::max(max, it->second->GetLastChannel());
@@ -530,14 +530,14 @@ bool ModelManager::ReworkStartChannel() const
             }
 
             logger_zcpp.debug("    Sorting models:");
-            long ch = 1;
+            int32_t ch = 1;
             for (auto itcc = cmodels.begin(); itcc != cmodels.end(); ++itcc)
             {
                 // order the models
                 std::list<Model*> sortedmodels;
                 std::string last = "";
 
-                long chstart = ch;
+                int32_t chstart = ch;
 
                 while ((*itcc).second.size() > 0)
                 {
@@ -578,7 +578,7 @@ bool ModelManager::ReworkStartChannel() const
                         ((itm->GetModelChain() == "Beginning" || itm->GetModelChain() == "") && last == ""))
                     {
                         auto osc = itm->ModelStartChannel;
-                        sc = "!" + it->GetDescription() + ":" + wxString::Format("%ld", ch);
+                        sc = "!" + it->GetDescription() + ":" + wxString::Format("%d", ch);
                         itm->SetStartChannel(sc);
                         last = itm->GetName();
                         ch += itm->GetChanCount();
@@ -590,7 +590,7 @@ bool ModelManager::ReworkStartChannel() const
                     else
                     {
                         auto osc = itm->ModelStartChannel;
-                        sc = "!" + it->GetDescription() + ":" + wxString::Format("%ld", chstart);
+                        sc = "!" + it->GetDescription() + ":" + wxString::Format("%d", chstart);
                         itm->SetStartChannel(sc);
                         ch = std::max(ch, chstart + itm->GetChanCount());
                         if (osc != itm->ModelStartChannel)
@@ -609,12 +609,12 @@ bool ModelManager::ReworkStartChannel() const
 
             if (it->GetAutoSize())
             {
-                if (it->GetChannels() != std::max((long)1, (long)ch - 1))
+                if (it->GetChannels() != std::max((int32_t)1, (int32_t)ch - 1))
                 {
-                    logger_zcpp.debug("    Resizing output to %ld channels.", std::max((long)1, (long)ch - 1));
+                    logger_zcpp.debug("    Resizing output to %d channels.", std::max((int32_t)1, (int32_t)ch - 1));
                     it->AllOff();
                     it->EndFrame(0);
-                    it->SetChannels(std::max((long)1, (long)ch - 1));
+                    it->SetChannels(std::max((int32_t)1, (int32_t)ch - 1));
                     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ReworkStartChannel", nullptr, it);
                     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "ReworkStartChannel", nullptr, it);
                     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "ReworkStartChannel", nullptr, it);

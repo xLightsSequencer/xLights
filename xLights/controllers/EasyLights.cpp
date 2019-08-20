@@ -1359,7 +1359,7 @@ void EasyLights::UploadSerialOutput(int output, OutputManager* outputManager, in
 		return;
 	}
 
-	long sc;
+	int32_t sc;
 	auto o = outputManager->GetOutput(portstart, sc);
 
 	if(o != nullptr)

@@ -164,7 +164,7 @@ bool DDPOutput::Open()
     if (_fulldata != nullptr) delete _fulldata;
     _fulldata = (uint8_t*)malloc(_channels);
     if (_fulldata == nullptr) {
-        logger_base.error("Problem allocating %ld memory for DDP output '%s'.", _channels, (const char *)_description.c_str());
+        logger_base.error("Problem allocating %d memory for DDP output '%s'.", _channels, (const char *)_description.c_str());
         _ok = false;
         return false;
     }
@@ -233,13 +233,13 @@ void DDPOutput::EndFrame(int suppressFrames)
 
     if (_changed || NeedToOutput(suppressFrames))
     {
-        long index = 0;
-        long chan = _keepChannelNumbers ? (_startChannel - 1) : 0;
-        long tosend = _channels;
+        int32_t index = 0;
+        int32_t chan = _keepChannelNumbers ? (_startChannel - 1) : 0;
+        int32_t tosend = _channels;
 
         while (tosend > 0)
         {
-            long thissend = (tosend < _channelsPerPacket) ? tosend : _channelsPerPacket;
+            int32_t thissend = (tosend < _channelsPerPacket) ? tosend : _channelsPerPacket;
 
             if (__initialised)
             {
@@ -285,7 +285,7 @@ void DDPOutput::EndFrame(int suppressFrames)
 #pragma endregion Frame Handling
 
 #pragma region Data Setting
-void DDPOutput::SetOneChannel(long channel, unsigned char data)
+void DDPOutput::SetOneChannel(int32_t channel, unsigned char data)
 {
     if (_fppProxyOutput) {
         _fppProxyOutput->SetOneChannel(channel, data);
@@ -299,7 +299,7 @@ void DDPOutput::SetOneChannel(long channel, unsigned char data)
     }
 }
 
-void DDPOutput::SetManyChannels(long channel, unsigned char data[], long size)
+void DDPOutput::SetManyChannels(int32_t channel, unsigned char data[], size_t size)
 {
     if (_fppProxyOutput) {
         _fppProxyOutput->SetManyChannels(channel, data, size);
@@ -307,11 +307,7 @@ void DDPOutput::SetManyChannels(long channel, unsigned char data[], long size)
     }
     if (_fulldata == nullptr) return;
 
-#ifdef _MSC_VER
-    long chs = min(size, _channels - channel);
-#else
-    long chs = std::min(size, _channels - channel);
-#endif
+    size_t chs = std::min(size, (size_t)(_channels - channel));
 
     if (memcmp(_fulldata + channel, data, chs) == 0) {
         // nothing changed
@@ -344,21 +340,21 @@ std::string DDPOutput::GetLongDescription() const
 
     if (!_enabled) res += "INACTIVE ";
     res += "DDP " + _ip + " {" + GetUniverseString() + "} ";
-    res += "(" + std::string(wxString::Format(wxT("%li"), (long)GetStartChannel())) + "-" + std::string(wxString::Format(wxT("%li"), (long)GetEndChannel())) + ") ";
+    res += "(" + std::string(wxString::Format(wxT("%i"), GetStartChannel())) + "-" + std::string(wxString::Format(wxT("%i"), GetEndChannel())) + ") ";
     res += _description;
 
     return res;
 }
 
-std::string DDPOutput::GetChannelMapping(long ch) const
+std::string DDPOutput::GetChannelMapping(int32_t ch) const
 {
-    std::string res = "Channel " + std::string(wxString::Format(wxT("%li"), ch)) + " maps to ...\n";
+    std::string res = "Channel " + std::string(wxString::Format(wxT("%i"), ch)) + " maps to ...\n";
 
-    long channeloffset = ch - GetStartChannel() + 1;
+    int32_t channeloffset = ch - GetStartChannel() + 1;
 
     res += "Type: DDP\n";
     res += "IP: " + _ip + "\n";
-    res += "Channel: " + std::string(wxString::Format(wxT("%li"), channeloffset)) + "\n";
+    res += "Channel: " + std::string(wxString::Format(wxT("%i"), channeloffset)) + "\n";
 
     if (!_enabled) res += " INACTIVE";
 

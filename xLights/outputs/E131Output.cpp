@@ -392,7 +392,7 @@ void E131Output::Close()
 }
 #pragma endregion Start and Stop
 
-void E131Output::SetTransientData(int on, long startChannel, int nullnumber)
+void E131Output::SetTransientData(int on, int32_t startChannel, int nullnumber)
 {
     if (_fppProxyOutput) {
         _fppProxyOutput->SetTransientData(on, startChannel, nullnumber);
@@ -404,7 +404,7 @@ void E131Output::SetTransientData(int on, long startChannel, int nullnumber)
         _outputNumber = on;
         _startChannel = startChannel;
         if (nullnumber > 0) _nullNumber = nullnumber;
-        long nextstartchannel = startChannel;
+        int32_t nextstartchannel = startChannel;
         for (auto it = _outputs.begin(); it != _outputs.end(); ++it)
         {
             (*it)->SetTransientData(on, nextstartchannel, nullnumber);
@@ -504,7 +504,7 @@ void E131Output::ResetFrame()
 #pragma endregion Frame Handling
 
 #pragma region Data Setting
-void E131Output::SetOneChannel(long channel, unsigned char data)
+void E131Output::SetOneChannel(int32_t channel, unsigned char data)
 {
     if (!_enabled) return;
     if (_fppProxyOutput) {
@@ -514,9 +514,9 @@ void E131Output::SetOneChannel(long channel, unsigned char data)
 
     if (IsOutputCollection())
     {
-        long unum = channel / _channels;
+        int32_t unum = channel / _channels;
         auto it = _outputs.begin();
-        for (long i = 0; i < unum && it != _outputs.end(); i++)
+        for (int32_t i = 0; i < unum && it != _outputs.end(); i++)
         {
             ++it;
         }
@@ -535,25 +535,25 @@ void E131Output::SetOneChannel(long channel, unsigned char data)
     }
 }
 
-void E131Output::SetManyChannels(long channel, unsigned char data[], long size)
+void E131Output::SetManyChannels(int32_t channel, unsigned char data[], size_t size)
 {
     if (_fppProxyOutput) {
         _fppProxyOutput->SetManyChannels(channel, data, size);
     } else if (IsOutputCollection()) {
-        long startu = (channel) / _channels;
-        long startc = (channel) % _channels;
+        int32_t startu = (channel) / _channels;
+        int32_t startc = (channel) % _channels;
 
         auto o = _outputs.begin();
-        for (long i = 0; i < startu; i++) {
+        for (int32_t i = 0; i < startu; i++) {
             ++o;
         }
 
-        long left = size;
+        size_t left = size;
         while (left > 0 && o != _outputs.end()) {
 #ifdef _MSC_VER
-            long send = min(left, _channels);
+            size_t send = min(left, (size_t)_channels);
 #else
-            long send = std::min(left, _channels);
+            size_t send = std::min(left, (size_t)_channels);
 #endif
             (*o)->SetManyChannels(startc, &data[size - left], send);
             left -= send;
@@ -562,9 +562,9 @@ void E131Output::SetManyChannels(long channel, unsigned char data[], long size)
         }
     } else {
 #ifdef _MSC_VER
-        long chs = min(size, _channels - channel);
+        size_t chs = min(size, (size_t)(_channels - channel));
 #else
-        long chs = std::min(size, GetMaxChannels() - channel);
+        size_t chs = std::min(size, (size_t)(GetMaxChannels() - channel));
 #endif
 
         if (memcmp(&_data[channel + E131_PACKET_HEADERLEN], data, chs) == 0) {
@@ -599,7 +599,7 @@ bool E131Output::IsLookedUpByControllerName() const {
     return GetDescription() != "";
 }
 
-long E131Output::GetEndChannel() const
+int32_t E131Output::GetEndChannel() const
 {
     if (IsOutputCollection())
     {
@@ -611,7 +611,7 @@ long E131Output::GetEndChannel() const
     }
 }
 
-Output* E131Output::GetActualOutput(long startChannel)
+Output* E131Output::GetActualOutput(int32_t startChannel)
 {
     if (!IsOutputCollection())
     {
@@ -641,24 +641,24 @@ std::string E131Output::GetLongDescription() const
     {
         if (!_enabled) res += "INACTIVE ";
         res += "E1.31 " + _ip + " {" + wxString::Format(wxT("%i"), _universe).ToStdString() + "} ";
-        res += "[1-" + std::string(wxString::Format(wxT("%li"), (long)_channels)) + "] ";
-        res += "(" + std::string(wxString::Format(wxT("%li"), (long)GetStartChannel())) + "-" + std::string(wxString::Format(wxT("%li"), (long)GetActualEndChannel())) + ") ";
+        res += "[1-" + std::string(wxString::Format(wxT("%i"), _channels)) + "] ";
+        res += "(" + std::string(wxString::Format(wxT("%i"), GetStartChannel())) + "-" + std::string(wxString::Format(wxT("%i"), GetActualEndChannel())) + ") ";
         res += _description;
     }
 
     return res;
 }
 
-std::string E131Output::GetChannelMapping(long ch) const
+std::string E131Output::GetChannelMapping(int32_t ch) const
 {
     std::string res = "";
 
     if (IsOutputCollection())
     {
-        long unum = (ch - GetStartChannel()) / _channels;
+        int32_t unum = (ch - GetStartChannel()) / _channels;
 
         auto o = _outputs.begin();
-        for (long i = 0; i < unum; i++)
+        for (int32_t i = 0; i < unum; i++)
         {
             ++o;
         }
@@ -667,11 +667,11 @@ std::string E131Output::GetChannelMapping(long ch) const
     }
     else
     {
-        res = "Channel " + std::string(wxString::Format(wxT("%li"), ch)) + " maps to ...\n";
+        res = "Channel " + std::string(wxString::Format(wxT("%i"), ch)) + " maps to ...\n";
 
         res += "Type: E1.31\n";
         // int u = _universe;
-        long channeloffset = ch - GetStartChannel() + 1;
+        int32_t channeloffset = ch - GetStartChannel() + 1;
         if (_numUniverses > 1)
         {
             // u += (ch - GetStartChannel()) / _channels;
@@ -679,7 +679,7 @@ std::string E131Output::GetChannelMapping(long ch) const
         }
         res += "IP: " + _ip + "\n";
         res += "Universe: " + GetUniverseString() + "\n";
-        res += "Channel: " + std::string(wxString::Format(wxT("%li"), channeloffset)) + "\n";
+        res += "Channel: " + std::string(wxString::Format(wxT("%i"), channeloffset)) + "\n";
 
         if (!_enabled) res += " INACTIVE";
     }

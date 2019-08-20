@@ -864,7 +864,7 @@ void ZCPPOutput::Close()
 }
 #pragma endregion Start and Stop
 
-void ZCPPOutput::SetTransientData(int on, long startChannel, int nullnumber)
+void ZCPPOutput::SetTransientData(int on, int32_t startChannel, int nullnumber)
 {
     _outputNumber = on;
     _startChannel = startChannel;
@@ -973,7 +973,7 @@ void ZCPPOutput::ResetFrame()
 #pragma endregion Frame Handling
 
 #pragma region Data Setting
-void ZCPPOutput::SetOneChannel(long channel, unsigned char data)
+void ZCPPOutput::SetOneChannel(int32_t channel, unsigned char data)
 {
     if (!_enabled) return;
 
@@ -983,9 +983,9 @@ void ZCPPOutput::SetOneChannel(long channel, unsigned char data)
     }
 }
 
-void ZCPPOutput::SetManyChannels(long channel, unsigned char data[], long size)
+void ZCPPOutput::SetManyChannels(int32_t channel, unsigned char data[], size_t size)
 {
-        long chs = std::min(size, _channels - channel);
+        size_t chs = std::min(size, (size_t)(_channels - channel));
 
         if (memcmp(&_data[channel], data, chs) == 0)
         {
@@ -1006,12 +1006,12 @@ void ZCPPOutput::AllOff()
 #pragma endregion Data Setting
 
 #pragma region Getters and Setters
-long ZCPPOutput::GetEndChannel() const
+int32_t ZCPPOutput::GetEndChannel() const
 {
     return _startChannel + _channels - 1;
 }
 
-void ZCPPOutput::SetChannels(long channels)
+void ZCPPOutput::SetChannels(int32_t channels)
 {
     if (channels != _channels)
     {
@@ -1033,22 +1033,22 @@ std::string ZCPPOutput::GetLongDescription() const
 
         if (!_enabled) res += "INACTIVE ";
         res += "ZCPP " + _ip;
-        res += " [1-" + std::string(wxString::Format(wxT("%ld"), (long)_channels)) + "] ";
-        res += "(" + std::string(wxString::Format(wxT("%ld"), (long)GetStartChannel())) + "-" + 
-               std::string(wxString::Format(wxT("%ld"), (long)GetActualEndChannel())) + ") ";
+        res += " [1-" + std::string(wxString::Format(wxT("%d"), _channels)) + "] ";
+        res += "(" + std::string(wxString::Format(wxT("%d"), GetStartChannel())) + "-" +
+               std::string(wxString::Format(wxT("%d"), GetActualEndChannel())) + ") ";
         res += _description;
 
     return res;
 }
 
-std::string ZCPPOutput::GetChannelMapping(long ch) const
+std::string ZCPPOutput::GetChannelMapping(int32_t ch) const
 {
-    std::string res = "Channel " + std::string(wxString::Format(wxT("%li"), ch)) + " maps to ...\n";
+    std::string res = "Channel " + std::string(wxString::Format(wxT("%i"), ch)) + " maps to ...\n";
 
     res += "Type: ZCPP\n";
-    long channeloffset = ch - GetStartChannel() + 1;
+    int32_t channeloffset = ch - GetStartChannel() + 1;
     res += "IP: " + _ip + "\n";
-    res += "Channel: " + std::string(wxString::Format(wxT("%li"), channeloffset)) + "\n";
+    res += "Channel: " + std::string(wxString::Format(wxT("%i"), channeloffset)) + "\n";
 
     if (!_enabled) res += " INACTIVE";
     return res;

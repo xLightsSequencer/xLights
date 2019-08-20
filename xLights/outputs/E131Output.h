@@ -53,10 +53,10 @@ public:
     #pragma region Getters and Setters
     virtual std::string GetType() const override { return OUTPUT_E131; }
     virtual std::string GetLongDescription() const override;
-    virtual std::string GetChannelMapping(long ch) const override;
+    virtual std::string GetChannelMapping(int32_t ch) const override;
     virtual int GetMaxChannels() const override { return 512; }
-    virtual bool IsValidChannelCount(long channelCount) const override { return channelCount > 0 && channelCount <= 512; }
-    virtual long GetEndChannel() const override;
+    virtual bool IsValidChannelCount(int32_t channelCount) const override { return channelCount > 0 && channelCount <= 512; }
+    virtual int32_t GetEndChannel() const override;
     virtual std::string GetUniverseString() const override;
     virtual bool IsLookedUpByControllerName() const override;
 	virtual bool IsAutoLayoutModels() const override { return _autoStartChannels; }
@@ -65,8 +65,8 @@ public:
     virtual std::list<Output*> GetOutputs() const override { return _outputs; }
     virtual bool IsOutputCollection() const override { return _numUniverses > 1; }
     virtual int GetUniverses() const override { return _numUniverses; }
-    virtual void SetTransientData(int on, long startChannel, int nullnumber) override;
-    virtual Output* GetActualOutput(long startChannel) override;
+    virtual void SetTransientData(int on, int32_t startChannel, int nullnumber) override;
+    virtual Output* GetActualOutput(int32_t startChannel) override;
     virtual int GetPriority() const {return _priority; }
     virtual void SetPriority(int priority);
 
@@ -88,8 +88,8 @@ public:
     #pragma endregion Frame Handling
 
     #pragma region Data Setting
-    virtual void SetOneChannel(long channel, unsigned char data) override;
-    virtual void SetManyChannels(long channel, unsigned char* data, long size) override;
+    virtual void SetOneChannel(int32_t channel, unsigned char data) override;
+    virtual void SetManyChannels(int32_t channel, unsigned char* data, size_t size) override;
     virtual void AllOff() override;
     #pragma endregion Data Setting
 	

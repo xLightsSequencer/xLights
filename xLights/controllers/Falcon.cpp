@@ -1283,7 +1283,7 @@ void Falcon::UploadSerialOutput(int output, OutputManager* outputManager, int pr
         return;
     }
 
-    long sc;
+    int32_t sc;
     auto o = outputManager->GetOutput(portstart, sc);
 
     if (o != nullptr)

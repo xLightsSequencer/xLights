@@ -140,7 +140,7 @@ void Output::Save(wxXmlNode* node)
         node->AddAttribute("Controller", XmlSafe(_controller));
     }
 
-    node->AddAttribute("MaxChannels", wxString::Format("%ld", _channels));
+    node->AddAttribute("MaxChannels", wxString::Format("%d", _channels));
     
     node->DeleteAttribute("FPPProxy");
     if (IsUsingFPPProxy()) {
@@ -225,7 +225,7 @@ Output* Output::Create(wxXmlNode* node, std::string showDir)
 
 #pragma region Getters and Setters
 
-void Output::SetTransientData(int on, long startChannel, int nullnumber)
+void Output::SetTransientData(int on, int32_t startChannel, int nullnumber)
 {
     _outputNumber = on;
     _startChannel = startChannel;
@@ -292,20 +292,19 @@ void Output::Close() {
 
 #pragma region Data Setting
 // channel here is 0 based
-void Output::SetManyChannels(long channel, unsigned char data[], long size)
+void Output::SetManyChannels(int32_t channel, unsigned char data[], size_t size)
 {
     if (_fppProxyOutput) {
         _fppProxyOutput->SetManyChannels(channel, data, size);
         return;
     }
 #ifdef _MSC_VER
-    long chs = min(size, _channels - channel);
+    size_t chs = min(size, (size_t)(_channels - channel));
 #else
-    long chs = std::min(size, GetMaxChannels() - channel);
+    size_t chs = std::min(size, (size_t)(GetMaxChannels() - channel));
 #endif
 
-    for (long i = 0; i < chs; i++)
-    {
+    for (size_t i = 0; i < chs; i++) {
         SetOneChannel(channel + i, data[i]);
     }
 }

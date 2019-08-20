@@ -98,7 +98,7 @@ void LOROutput::ResetFrame()
 #pragma endregion Frame Handling
 
 #pragma region Data Setting
-void LOROutput::SetOneChannel(long channel, unsigned char data)
+void LOROutput::SetOneChannel(int32_t channel, unsigned char data)
 {
     if (!_enabled || _serial == nullptr || !_ok) return;
 

@@ -30,7 +30,7 @@ public:
     #pragma region Getters and Setters
     virtual std::string GetType() const override { return OUTPUT_PIXELNET; }
     virtual int GetMaxChannels() const override { return PIXELNET_MAX_CHANNELS; }
-    virtual bool IsValidChannelCount(long channelCount) const override { return channelCount > 0 && channelCount <= PIXELNET_MAX_CHANNELS; }
+    virtual bool IsValidChannelCount(int32_t channelCount) const override { return channelCount > 0 && channelCount <= PIXELNET_MAX_CHANNELS; }
     virtual std::string GetSetupHelp() const override;
     virtual bool AllowsBaudRateSetting() const override { return false; }
     #pragma endregion Getters and Setters
@@ -44,7 +44,7 @@ public:
     #pragma endregion Frame Handling
 
     #pragma region Data Setting
-    virtual void SetOneChannel(long channel, unsigned char data) override;
+    virtual void SetOneChannel(int32_t channel, unsigned char data) override;
     virtual void AllOff() override;
     #pragma endregion Data Setting
 };

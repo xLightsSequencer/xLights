@@ -1133,7 +1133,7 @@ std::string CubeModel::ChannelLayoutHtml(OutputManager* outputManager)
 
     std::string direction = GetStartLocation();
 
-    long sc;
+    int32_t sc;
     Output* o = outputManager->GetOutput(this->GetFirstChannel(), sc);
 
     std::string html = "<html><body><table border=0>";

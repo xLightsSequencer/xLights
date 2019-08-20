@@ -61,7 +61,7 @@ void LOROptimisedOutput::EndFrame(int suppressFrames)
 #pragma endregion Frame Handling
 
 #pragma region Data Setting
-void LOROptimisedOutput::SetOneChannel(long channel, unsigned char data)
+void LOROptimisedOutput::SetOneChannel(int32_t channel, unsigned char data)
 {
     if (!_enabled || _serial == nullptr || !_ok) return;
 
@@ -79,7 +79,7 @@ void LOROptimisedOutput::SetOneChannel(long channel, unsigned char data)
     _curData[channel] = data;
 }
 
-void LOROptimisedOutput::SetManyChannels(long channel, unsigned char data[], long size)
+void LOROptimisedOutput::SetManyChannels(int32_t channel, unsigned char data[], size_t size)
 {
     if (!_enabled || _serial == nullptr || !_ok) return;
 

@@ -78,8 +78,8 @@ public:
     void Replace(Output* replacethis, Output* withthis);
     Output* GetOutput(int outputNumber) const;
     Output* GetOutput(const std::string& description) const;
-    Output* GetOutput(long absoluteChannel, long& startChannel) const; // returns the output ... even if it is in a collection
-    Output* GetLevel1Output(long absoluteChannel, long& startChannel) const; // returns the output ... but always level 1
+    Output* GetOutput(int32_t absoluteChannel, int32_t& startChannel) const; // returns the output ... even if it is in a collection
+    Output* GetLevel1Output(int32_t absoluteChannel, int32_t& startChannel) const; // returns the output ... but always level 1
     Output* GetOutput(int universe, const std::string& ip) const;
     std::list<int> GetIPUniverses(const std::string& ip = "") const;
     int GetOutputCount() const { return _outputs.size(); }
@@ -97,12 +97,12 @@ public:
     bool IsDirty() const;
 
     #pragma region Channel Mapping
-    long GetTotalChannels() const;
+    int32_t GetTotalChannels() const;
     
     //both outputNumber and startChannel are 0 based
-    long GetAbsoluteChannel(int outputNumber, int startChannel) const;
-    long GetAbsoluteChannel(const std::string& ip, int universe, int startChannel) const;
-    long DecodeStartChannel(const std::string& startChannelString);
+    int32_t GetAbsoluteChannel(int outputNumber, int32_t startChannel) const;
+    int32_t GetAbsoluteChannel(const std::string& ip, int universe, int32_t startChannel) const;
+    int32_t DecodeStartChannel(const std::string& startChannelString);
     #pragma endregion Channel Mapping
 
     #pragma region Start and Stop
@@ -131,8 +131,8 @@ public:
     #pragma endregion Packet Sync
 
     #pragma region Data Setting
-    void SetOneChannel(long channel, unsigned char data);
-    void SetManyChannels(long channel, unsigned char* data, long size);
+    void SetOneChannel(int32_t channel, unsigned char data);
+    void SetManyChannels(int32_t channel, unsigned char* data, size_t size);
     void AllOff(bool send = true);
     #pragma endregion Data Setting
 
@@ -147,7 +147,7 @@ public:
     std::list<std::string> GetIps() const;
     size_t TxNonEmptyCount();
     bool TxEmpty();
-    std::string GetChannelName(long channel);
+    std::string GetChannelName(int32_t channel);
     void SendHeartbeat();
 
     bool IsOutputOpenInAnotherProcess();

@@ -311,8 +311,8 @@ public:
     void CheckUnsavedChanges();
     void SetStatusText(const wxString &msg, int filename = 0);
     void SetStatusTextColor(const wxString &msg, const wxColor& colour);
-	std::string GetChannelToControllerMapping(long channel);
-    void GetControllerDetailsForChannel(long channel, std::string& type, std::string& description, long& channeloffset, std::string &ip, std::string& u, std::string& inactive, int& output, std::string& baud);
+	std::string GetChannelToControllerMapping(int32_t channel);
+    void GetControllerDetailsForChannel(int32_t channel, std::string& type, std::string& description, int32_t& channeloffset, std::string &ip, std::string& u, std::string& inactive, int& output, std::string& baud);
 
     enum LAYER_OPTIONS_e
     {
@@ -1316,7 +1316,7 @@ public:
     void RenderAll();
 
     void SetXmlSetting(const wxString& settingName,const wxString& value);
-    unsigned int GetMaxNumChannels();
+    uint32_t GetMaxNumChannels();
 
     bool GetSnapToTimingMarks() const { return _snapToTimingMarks; }
 

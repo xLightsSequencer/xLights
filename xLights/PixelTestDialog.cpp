@@ -1370,13 +1370,13 @@ bool PixelTestDialog::AreChannelsAvailable(ModelGroup* modelGroup)
 
 bool PixelTestDialog::AreChannelsAvailable(Model* model)
 {
-    long sc = model->GetFirstChannel() + 1;
-    long ec = model->GetLastChannel() + 1;
-    long current = sc;
+    int32_t sc = model->GetFirstChannel() + 1;
+    int32_t ec = model->GetLastChannel() + 1;
+    int32_t current = sc;
 
     while (current <= ec)
     {
-        long offset;
+        int32_t offset;
         Output* o = _outputManager->GetLevel1Output(current, offset);
 
         if (o == nullptr || o->GetType() == "NULL") return false;

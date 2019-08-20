@@ -404,7 +404,7 @@ bool J1Sys::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, st
                                 j1SysOutputs[bankStart + i].startChannel = 0;
                                 j1SysOutputs[bankStart + i].pixels = 0;
                             }
-                            long sc;
+                            int32_t sc;
                             auto o = outputManager->GetOutput(m->GetStartChannel() + m->Channels() - channels, sc);
                             j1SysOutputs[output].universe = o->GetUniverse();
                             j1SysOutputs[output].startChannel = sc;
@@ -435,7 +435,7 @@ bool J1Sys::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, st
                                 return false;
                             }
 
-                            long sc;
+                            int32_t sc;
                             auto o = outputManager->GetOutput(m->GetStartChannel() + m->Channels() - channels, sc);
                             if (j1SysOutputs[output].universe == 0)
                             {
@@ -531,9 +531,9 @@ bool J1Sys::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, st
                 }
                 j1SysOutputs[sp - 1].universe = port->GetUniverse();
 
-                long sc;
+                int32_t sc;
                 auto o = outputManager->GetOutput(port->GetStartChannel(), sc);
-                long sc2;
+                int32_t sc2;
                 auto o2 = outputManager->GetOutput(port->GetEndChannel(), sc2);
 
                 if (o != o2)

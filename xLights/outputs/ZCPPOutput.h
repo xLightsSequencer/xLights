@@ -56,11 +56,11 @@ public:
     virtual bool NeedsControllerConfig() const override { return true; }
     virtual std::string GetType() const override { return OUTPUT_ZCPP; }
     virtual std::string GetLongDescription() const override;
-    virtual std::string GetChannelMapping(long ch) const override;
+    virtual std::string GetChannelMapping(int32_t ch) const override;
     virtual int GetMaxChannels() const override { return ZCPP_MAXCHANNELS; }
-    virtual bool IsValidChannelCount(long channelCount) const override { return channelCount > 0 && channelCount <= GetMaxChannels(); }
-    virtual long GetEndChannel() const override;
-    virtual void SetChannels(long channels) override;
+    virtual bool IsValidChannelCount(int32_t channelCount) const override { return channelCount > 0 && channelCount <= GetMaxChannels(); }
+    virtual int32_t GetEndChannel() const override;
+    virtual void SetChannels(int32_t channels) override;
     int GetId() const { return _universe; }
     void SetId(int id) { _universe = id; _dirty = true; }
     void SetSupportsVirtualStrings(bool supportsVirtualStrings) { if (_supportsVirtualStrings != supportsVirtualStrings) { _supportsVirtualStrings = supportsVirtualStrings; _dirty = true; } }
@@ -109,9 +109,9 @@ public:
     #pragma endregion Frame Handling
     
     #pragma region Data Setting
-    virtual void SetTransientData(int on, long startChannel, int nullnumber) override;
-    virtual void SetOneChannel(long channel, unsigned char data) override;
-    virtual void SetManyChannels(long channel, unsigned char* data, long size) override;
+    virtual void SetTransientData(int on, int32_t startChannel, int nullnumber) override;
+    virtual void SetOneChannel(int32_t channel, unsigned char data) override;
+    virtual void SetManyChannels(int32_t channel, unsigned char* data, size_t size) override;
     virtual void AllOff() override;
     #pragma endregion Data Setting
     

@@ -1766,55 +1766,55 @@ std::string Model::ComputeStringStartChannel(int i) {
     //{
     //    priorLength = GetStrandLength(i - 1) * GetChanCountPerNode();
     //}
-    long priorStringStartChannel = GetNumberFromChannelString(priorStringStartChannelAsString);
-    long startChannel = priorStringStartChannel + priorLength;
+    int32_t priorStringStartChannel = GetNumberFromChannelString(priorStringStartChannelAsString);
+    int32_t startChannel = priorStringStartChannel + priorLength;
     if (stch.Contains(":")) {
         auto comps = wxSplit(priorStringStartChannelAsString, ':');
         if (comps[0].StartsWith("#"))
         {
-            long ststch;
+            int32_t ststch;
             Output* o = modelManager.GetOutputManager()->GetOutput(startChannel, ststch);
             if (comps.size() == 2)
             {
                 if (o != nullptr)
                 {
-                    return wxString::Format("#%i:%ld", o->GetUniverse(), ststch).ToStdString();
+                    return wxString::Format("#%i:%d", o->GetUniverse(), ststch).ToStdString();
                 }
                 else
                 {
-                    return wxString::Format("%ld", startChannel);
+                    return wxString::Format("%d", startChannel);
                 }
             }
             else
             {
                 if (o != nullptr)
                 {
-                    return wxString::Format("%s:%i:%ld", comps[0], o->GetUniverse(), ststch).ToStdString();
+                    return wxString::Format("%s:%i:%d", comps[0], o->GetUniverse(), ststch).ToStdString();
                 }
                 else
                 {
-                    return wxString::Format("%ld", startChannel);
+                    return wxString::Format("%d", startChannel);
                 }
             }
         }
         else if (comps[0].StartsWith(">") || comps[0].StartsWith("@") || comps[0].StartsWith("!") )
         {
-            return wxString::Format("%s:%ld", comps[0], wxAtol(comps[1]) + priorLength);
+            return wxString::Format("%s:%d", comps[0], wxAtol(comps[1]) + priorLength);
         }
         else {
-            long ststch;
+            int32_t ststch;
             Output* o = modelManager.GetOutputManager()->GetLevel1Output(startChannel, ststch);
             if (o != nullptr)
             {
-                return wxString::Format("%i:%ld", o->GetOutputNumber(), ststch).ToStdString();
+                return wxString::Format("%i:%d", o->GetOutputNumber(), ststch).ToStdString();
             }
             else
             {
-                return wxString::Format("%ld", startChannel);
+                return wxString::Format("%d", startChannel);
             }
         }
     }
-    return wxString::Format("%ld", startChannel);
+    return wxString::Format("%d", startChannel);
 }
 
 int Model::GetNumStrands() const {
@@ -1934,7 +1934,7 @@ bool Model::UpdateStartChannelFromChannelString(std::map<std::string, Model*>& m
 
     std::string dependsonmodel;
     ModelStartChannel = ModelXml->GetAttribute("StartChannel");
-    long StartChannel = GetNumberFromChannelString(ModelStartChannel, valid, dependsonmodel);
+    int32_t StartChannel = GetNumberFromChannelString(ModelStartChannel, valid, dependsonmodel);
     while (!valid && dependsonmodel != "" && std::find(used.begin(), used.end(), dependsonmodel) == used.end())
     {
         Model* m = models[dependsonmodel];
@@ -2211,7 +2211,7 @@ void Model::SetFromXml(wxXmlNode* ModelNode, bool zb) {
 
     CouldComputeStartChannel = false;
     std::string  dependsonmodel;
-    long StartChannel = GetNumberFromChannelString(ModelNode->GetAttribute("StartChannel","1").ToStdString(), CouldComputeStartChannel, dependsonmodel);
+    int32_t StartChannel = GetNumberFromChannelString(ModelNode->GetAttribute("StartChannel","1").ToStdString(), CouldComputeStartChannel, dependsonmodel);
     tempstr=ModelNode->GetAttribute("Dir");
     IsLtoR = tempstr != "R";
     if (ModelNode->HasAttribute("StartSide")) {
@@ -2530,10 +2530,10 @@ char Model::EncodeColour(const xlColor& c)
 
 // Accepts any absolute channel number and if it happens to be used by this model a single character representing the channel colour is returned.
 // If the channel does not map to the model this returns ' '
-char Model::GetAbsoluteChannelColorLetter(long absoluteChannel)
+char Model::GetAbsoluteChannelColorLetter(int32_t absoluteChannel)
 {
-    long fc = GetFirstChannel();
-    if (absoluteChannel < fc + 1 || absoluteChannel > (long)GetLastChannel() + 1) return ' ';
+    int32_t fc = GetFirstChannel();
+    if (absoluteChannel < fc + 1 || absoluteChannel > (int32_t)GetLastChannel() + 1) return ' ';
 
     if (SingleChannel)
     {
@@ -2638,7 +2638,7 @@ std::string Model::GetChannelInStartChannelFormat(OutputManager* outputManager, 
     if (firstChar == '#')
     {
         // universe:channel
-        long startChannel;
+        int32_t startChannel;
         Output* output = outputManager->GetOutput(channel, startChannel);
 
         if (output == nullptr) {
@@ -2653,7 +2653,7 @@ std::string Model::GetChannelInStartChannelFormat(OutputManager* outputManager, 
 
         if (CountChar(modelFormat, ':') == 1)
         {
-            return wxString::Format("#%d:%ld (%u)", output->GetUniverse(), startChannel, channel).ToStdString();
+            return wxString::Format("#%d:%d (%u)", output->GetUniverse(), startChannel, channel).ToStdString();
         }
         else
         {
@@ -2662,20 +2662,20 @@ std::string Model::GetChannelInStartChannelFormat(OutputManager* outputManager, 
             {
                 ip = ((IPOutput*)output)->GetIP();
             }
-            return wxString::Format("#%s:%d:%ld (%u)", ip, output->GetUniverse(), startChannel, channel).ToStdString();
+            return wxString::Format("#%s:%d:%d (%u)", ip, output->GetUniverse(), startChannel, channel).ToStdString();
         }
     }
     else if (firstChar == '!')
     {
         auto comps = wxSplit(modelFormat, ':');
         auto o = outputManager->GetOutput(comps[0].substr(1));
-        long start = 1;
+        int32_t start = 1;
         if (o != nullptr)
         {
             start = o->GetStartChannel();
         }
         unsigned int lastChannel = GetLastChannel() + 1;
-        return wxString(modelFormat).BeforeFirst(':') + ":" + wxString::Format("%ld (%u)", lastChannel - start + 1, lastChannel);
+        return wxString(modelFormat).BeforeFirst(':') + ":" + wxString::Format("%d (%u)", lastChannel - start + 1, lastChannel);
     }
     else if (firstChar == '@' || firstChar == '>' || CountChar(modelFormat, ':') == 0)
     {
@@ -2685,7 +2685,7 @@ std::string Model::GetChannelInStartChannelFormat(OutputManager* outputManager, 
     else
     {
         // output:channel
-        long startChannel;
+        int32_t startChannel;
         Output* output = outputManager->GetLevel1Output(channel, startChannel);
 
         if (output == nullptr)
@@ -2694,7 +2694,7 @@ std::string Model::GetChannelInStartChannelFormat(OutputManager* outputManager, 
         }
         else
         {
-            return wxString::Format("%d:%ld (%u)", output->GetOutputNumber(), startChannel, channel).ToStdString();
+            return wxString::Format("%d:%d (%u)", output->GetOutputNumber(), startChannel, channel).ToStdString();
         }
     }
 }
@@ -2704,8 +2704,8 @@ std::string Model::GetFirstChannelInStartChannelFormat(OutputManager* outputMana
     return GetChannelInStartChannelFormat(outputManager, GetFirstChannel() + 1);
 }
 
-unsigned int Model::GetLastChannel() const {
-    unsigned int LastChan = 0;
+uint32_t Model::GetLastChannel() const {
+    uint32_t LastChan = 0;
     size_t NodeCount = GetNodeCount();
     for (size_t idx = 0; idx < NodeCount; idx++) {
         if (Nodes[idx]->ActChan == (unsigned int)-1)
@@ -2721,13 +2721,12 @@ unsigned int Model::GetLastChannel() const {
     return LastChan;
 }
 
-unsigned int Model::GetFirstChannel() const {
-    unsigned int FirstChan = 0xFFFFFFFF;
+uint32_t Model::GetFirstChannel() const {
+    uint32_t FirstChan = 0xFFFFFFFF;
     size_t NodeCount = GetNodeCount();
     for (size_t idx = 0; idx < NodeCount; idx++) {
-        unsigned int fc = std::min(FirstChan, Nodes[idx]->ActChan);
-        if (fc < FirstChan)
-        {
+        uint32_t fc = std::min(FirstChan, Nodes[idx]->ActChan);
+        if (fc < FirstChan) {
             FirstChan = fc;
         }
     }
@@ -2939,7 +2938,7 @@ void Model::InitRenderBufferNodes(const std::string &type, const std::string &ca
     {
         // This seems to happen when an effect is dropped on a strand with zero pixels
         // Like a polyline segment with no nodes
-        logger_base.warn("Model::InitRenderBufferNodes firstNode + Nodes.size() = %ld. %s::'%s'. This commonly happens on a polyline segement with zero pixels or a cutom model with no nodes but with effects dropped on it.", (long)firstNode + Nodes.size(), (const char *)GetDisplayAs().c_str(), (const char *)GetFullName().c_str());
+        logger_base.warn("Model::InitRenderBufferNodes firstNode + Nodes.size() = %d. %s::'%s'. This commonly happens on a polyline segement with zero pixels or a cutom model with no nodes but with effects dropped on it.", (int32_t)firstNode + Nodes.size(), (const char *)GetDisplayAs().c_str(), (const char *)GetFullName().c_str());
     }
 
     // Don't add model group nodes if its a 3D preview render buffer
@@ -3502,7 +3501,7 @@ size_t Model::GetChannelCoords(wxArrayString& choices) { //wxChoice* choices1, w
 std::string Model::GetNodeXY(const std::string& nodenumstr) {
     size_t NodeCount = GetNodeCount();
     try {
-        long nodenum = std::stod(nodenumstr);
+        int32_t nodenum = std::stod(nodenumstr);
         for (size_t inx = 0; inx < NodeCount; inx++) {
             if (Nodes[inx]->Coords.empty()) continue;
             if (GetNodeNumber(inx) == nodenum) return GetNodeXY(inx);
@@ -3758,7 +3757,7 @@ std::string Model::ChannelLayoutHtml(OutputManager* outputManager)
 
     std::string direction = GetStartLocation();
 
-    long sc;
+    int32_t sc;
     Output* o = outputManager->GetOutput(this->GetFirstChannel(), sc);
 
     std::string html = "<html><body><table border=0>";

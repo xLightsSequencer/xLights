@@ -56,10 +56,10 @@ public:
     void SetArtNetUniverse(int net, int subnet, int universe) { _universe = GetArtNetCombinedUniverse(net, subnet, universe); }
     virtual std::string GetType() const override { return OUTPUT_ARTNET; }
     virtual std::string GetLongDescription() const override;
-    virtual std::string GetChannelMapping(long ch) const override;
+    virtual std::string GetChannelMapping(int32_t ch) const override;
     virtual int GetMaxChannels() const override { return 512; }
     virtual std::string GetUniverseString() const override;
-    virtual bool IsValidChannelCount(long channelCount) const override { return channelCount > 0 && channelCount <= 512; }
+    virtual bool IsValidChannelCount(int32_t channelCount) const override { return channelCount > 0 && channelCount <= 512; }
     #pragma endregion Getters and Setters
 
     #pragma region Start and Stop
@@ -74,8 +74,8 @@ public:
     #pragma endregion Frame Handling
 
     #pragma region Data Setting
-    virtual void SetOneChannel(long channel, unsigned char data) override;
-    virtual void SetManyChannels(long channel, unsigned char* data, long size) override;
+    virtual void SetOneChannel(int32_t channel, unsigned char data) override;
+    virtual void SetManyChannels(int32_t channel, unsigned char* data, size_t size) override;
     virtual void AllOff() override;
     #pragma endregion Data Setting
 

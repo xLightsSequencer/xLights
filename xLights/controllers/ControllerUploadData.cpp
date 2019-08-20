@@ -30,8 +30,8 @@ UDController::UDController(const std::string &ip, const std::string &hostname, M
         {
             if (!ModelProcessed(it->second) && it->second->GetDisplayAs() != "ModelGroup")
             {
-                long modelstart = it->second->GetNumberFromChannelString(it->second->ModelStartChannel);
-                long modelend = modelstart + it->second->GetChanCount() - 1;
+                int32_t modelstart = it->second->GetNumberFromChannelString(it->second->ModelStartChannel);
+                int32_t modelend = modelstart + it->second->GetChanCount() - 1;
                 if ((modelstart >= ito->GetStartChannel() && modelstart <= ito->GetEndChannel()) ||
                     (modelend >= ito->GetStartChannel() && modelend <= ito->GetEndChannel()))
                 {
@@ -62,8 +62,8 @@ UDController::UDController(const std::string &ip, const std::string &hostname, M
                             {
                                 for (int i = 0; i < it->second->GetNumPhysicalStrings(); i++)
                                 {
-                                    long startChannel = it->second->GetStringStartChan(i) + 1;
-                                    long sc;
+                                    int32_t startChannel = it->second->GetStringStartChan(i) + 1;
+                                    int32_t sc;
                                     Output* oo = om->GetOutput(startChannel, sc);
                                     if (oo != nullptr &&
                                         ((oo->GetIP() == _ipAddress) || (oo->GetResolvedIP() == _ipAddress)  || (oo->GetIP() == _hostName)))
@@ -547,13 +547,13 @@ void UDControllerPortModel::Dump() const
 
     if (_string == -1)
     {
-        logger_base.debug("                Model %s. Controller Connection %s. Start Channel %ld. End Channel %ld. Channels %ld. Pixels %d. Start Channel #%d:%d",
+        logger_base.debug("                Model %s. Controller Connection %s. Start Channel %d. End Channel %d. Channels %d. Pixels %d. Start Channel #%d:%d",
             (const char*)_model->GetName().c_str(), (const char *)_model->GetControllerConnectionRangeString().c_str(), 
             _startChannel, _endChannel, Channels(), (int)(Channels() / 3), GetUniverse(), GetUniverseStartChannel());
     }
     else
     {
-        logger_base.debug("                Model %s. String %d. Controller Connection %s. Start Channel %ld. End Channel %ld.",
+        logger_base.debug("                Model %s. String %d. Controller Connection %s. Start Channel %d. End Channel %d.",
             (const char*)_model->GetName().c_str(), _string + 1, (const char *)_model->GetControllerConnectionRangeString().c_str(),
             _startChannel, _endChannel);
     }
@@ -561,8 +561,8 @@ void UDControllerPortModel::Dump() const
 
 bool UDControllerPortModel::ChannelsOnOutputs(std::list<Output*>& outputs) const
 {
-    long lastChecked = _startChannel - 1;
-    long ll = lastChecked;
+    int32_t lastChecked = _startChannel - 1;
+    int32_t ll = lastChecked;
 
     while (lastChecked < _endChannel)
     {
@@ -716,7 +716,7 @@ void UDControllerPort::AddModel(Model* m, OutputManager* om, int string)
     }
 }
 
-long UDControllerPort::GetStartChannel() const
+int32_t UDControllerPort::GetStartChannel() const
 {
     if (_models.size() == 0)
     {
@@ -728,7 +728,7 @@ long UDControllerPort::GetStartChannel() const
     }
 }
 
-long UDControllerPort::GetEndChannel() const
+int32_t UDControllerPort::GetEndChannel() const
 {
     if (_models.size() == 0)
     {
@@ -740,7 +740,7 @@ long UDControllerPort::GetEndChannel() const
     }
 }
 
-long UDControllerPort::Channels() const
+int32_t UDControllerPort::Channels() const
 {
     if (_virtualStrings.size() == 0)
     {
@@ -785,7 +785,7 @@ void UDControllerPort::Dump() const
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    logger_base.debug("            Port %d. Protocol %s. Valid %s. Invalid Reason '%s'. Channels %ld. Pixels %d. Start #%d:%d.", _port, (const char *)_protocol.c_str(), (_valid ? "TRUE" : "FALSE"), (const char *)_invalidReason.c_str(), Channels(), (int)(Channels() / 3), GetUniverse(), GetUniverseStartChannel());
+    logger_base.debug("            Port %d. Protocol %s. Valid %s. Invalid Reason '%s'. Channels %d. Pixels %d. Start #%d:%d.", _port, (const char *)_protocol.c_str(), (_valid ? "TRUE" : "FALSE"), (const char *)_invalidReason.c_str(), Channels(), (int)(Channels() / 3), GetUniverse(), GetUniverseStartChannel());
     for (auto it : _models)
     {
         it->Dump();
@@ -848,7 +848,7 @@ bool UDControllerPort::Check(const UDController* controller, bool pixel, const C
         }
     }
 
-    long ch = -1;
+    int32_t ch = -1;
     int lastSmartRemote = 0;
     for (auto it : _models)
     {
@@ -857,11 +857,11 @@ bool UDControllerPort::Check(const UDController* controller, bool pixel, const C
         {
             if (it->GetSmartRemote() == 0)
             {
-                res += wxString::Format("WARN: Gap in models on port %d channel %ld to %ld.\n", _port, ch, it->GetStartChannel()).ToStdString();
+                res += wxString::Format("WARN: Gap in models on port %d channel %d to %d.\n", _port, ch, it->GetStartChannel()).ToStdString();
             }
             else
             {
-                res += wxString::Format("WARN: Gap in models on port %d smart remote %d channel %ld to %ld.\n", _port, it->GetSmartRemote(), ch, it->GetStartChannel()).ToStdString();
+                res += wxString::Format("WARN: Gap in models on port %d smart remote %d channel %d to %d.\n", _port, it->GetSmartRemote(), ch, it->GetStartChannel()).ToStdString();
             }
         }
         lastSmartRemote = it->GetSmartRemote();
@@ -909,7 +909,7 @@ void UDControllerPort::CreateVirtualStrings(bool mergeSequential)
         _virtualStrings.pop_front();
     }
 
-    long lastEndChannel = -1000;
+    int32_t lastEndChannel = -1000;
     UDVirtualString* current = nullptr;
     for (auto it : _models)
     {

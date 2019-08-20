@@ -60,7 +60,7 @@ void RenardOutput::EndFrame(int suppressFrames)
 #pragma endregion Frame Handling
 
 #pragma region Data Setting
-void RenardOutput::SetOneChannel(long channel, unsigned char data)
+void RenardOutput::SetOneChannel(int32_t channel, unsigned char data)
 {
     uint8_t RenIntensity;
 

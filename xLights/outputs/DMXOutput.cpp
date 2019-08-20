@@ -66,7 +66,7 @@ void DMXOutput::EndFrame(int suppressFrames)
 #pragma endregion Frame Handling
 
 #pragma region Data Setting
-void DMXOutput::SetOneChannel(long channel, unsigned char data)
+void DMXOutput::SetOneChannel(int32_t channel, unsigned char data)
 {
     if (_data[channel + 5] != data)
     {
@@ -75,9 +75,9 @@ void DMXOutput::SetOneChannel(long channel, unsigned char data)
     }
 }
 
-void DMXOutput::SetManyChannels(long channel, unsigned char data[], long size)
+void DMXOutput::SetManyChannels(int32_t channel, unsigned char data[], size_t size)
 {
-    long chs = std::min(size, GetMaxChannels() - channel);
+    size_t chs = std::min(size, (size_t)(GetMaxChannels() - channel));
     
     if (memcmp(&_data[channel + 5], data, chs) == 0)
     {

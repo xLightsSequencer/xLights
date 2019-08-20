@@ -350,9 +350,9 @@ bool xLightsFrame::SetDir(const wxString& newdir)
     return true;
 }
 
-void xLightsFrame::GetControllerDetailsForChannel(long channel, std::string& type, std::string& description, long& channeloffset, std::string &ip, std::string& u, std::string& inactive, int& output, std::string& baud)
+void xLightsFrame::GetControllerDetailsForChannel(int32_t channel, std::string& type, std::string& description, int32_t& channeloffset, std::string &ip, std::string& u, std::string& inactive, int& output, std::string& baud)
 {
-    long ch = 0;
+    int32_t ch = 0;
     Output* o = _outputManager.GetLevel1Output(channel, ch);
     channeloffset = ch;
 
@@ -394,9 +394,9 @@ void xLightsFrame::GetControllerDetailsForChannel(long channel, std::string& typ
     }
 }
 
-std::string xLightsFrame::GetChannelToControllerMapping(long channel)
+std::string xLightsFrame::GetChannelToControllerMapping(int32_t channel)
 {
-    long stch;
+    int32_t stch;
     Output* o = _outputManager.GetLevel1Output(channel, stch);
 
     if (o != nullptr)
@@ -405,7 +405,7 @@ std::string xLightsFrame::GetChannelToControllerMapping(long channel)
     }
     else
     {
-        return wxString::Format("Channel %ld could not be mapped to a controller.", channel).ToStdString();
+        return wxString::Format("Channel %d could not be mapped to a controller.", channel).ToStdString();
     }
 }
 
@@ -435,8 +435,8 @@ void xLightsFrame::UpdateNetworkList()
             GridNetwork->SetItem(newidx, 2, (*e)->GetCommPort() + " : " + (*e)->GetBaudRateString() + " baud");
             GridNetwork->SetItem(newidx, 3, (*e)->GetUniverseString());
         }
-        GridNetwork->SetItem(newidx, 4, wxString::Format(wxT("%ld"), (*e)->GetChannels()));
-        GridNetwork->SetItem(newidx, 5, wxString::Format(wxT("Channels %ld to %ld"), (*e)->GetStartChannel(), (*e)->GetEndChannel()));
+        GridNetwork->SetItem(newidx, 4, wxString::Format(wxT("%d"), (*e)->GetChannels()));
+        GridNetwork->SetItem(newidx, 5, wxString::Format(wxT("Channels %d to %d"), (*e)->GetStartChannel(), (*e)->GetEndChannel()));
         if ((*e)->IsEnabled()) {
             GridNetwork->SetItem(newidx, 6, "Yes");
         } else {
@@ -493,7 +493,7 @@ void xLightsFrame::UpdateChannelNames()
         if (model->GetDisplayAs() != "ModelGroup") {
             NodeCount = model->GetNodeCount();
             ChanPerNode = model->GetChanCountPerNode();
-            FormatSpec = "Ch %ld: " + model->name + " #%d";
+            FormatSpec = "Ch %d: " + model->name + " #%d";
             for (n = 0; n < NodeCount; n++)
             {
                 ChannelNum = model->NodeStartChannel(n);
@@ -2437,7 +2437,7 @@ int xLightsFrame::SetZCPPPort(std::list<ZCPP_packet_t*>& modelDatas, int index, 
     p->protocol = ZCPPOutput::EncodeProtocol(protocol);
     logger_zcpp.debug("       Protocol %d/%s", ZCPPOutput::EncodeProtocol(protocol), (const char *)protocol.c_str());
 
-    long sc = 0;
+    int32_t sc = 0;
     if (vs != nullptr)
     {
         sc = vs->_startChannel - baseStart;
@@ -2451,7 +2451,7 @@ int xLightsFrame::SetZCPPPort(std::list<ZCPP_packet_t*>& modelDatas, int index, 
     }
     if (sc < 0) sc = 0;
     p->startChannel = ntohl(sc);
-    logger_zcpp.debug("       Start Channel %ld", sc);
+    logger_zcpp.debug("       Start Channel %d", sc);
 
     long c = 0;
     if (vs != nullptr)

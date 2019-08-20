@@ -272,7 +272,7 @@ void OutputManager::SuspendAll(bool suspend)
 }
 
 // get an output based on an absolute channel number
-Output* OutputManager::GetOutput(long absoluteChannel, long& startChannel) const
+Output* OutputManager::GetOutput(int32_t absoluteChannel, int32_t& startChannel) const
 {
     for (auto it : _outputs)
     {
@@ -303,7 +303,7 @@ Output* OutputManager::GetOutput(long absoluteChannel, long& startChannel) const
 }
 
 // get an output based on an absolute channel number
-Output* OutputManager::GetLevel1Output(long absoluteChannel, long& startChannel) const
+Output* OutputManager::GetLevel1Output(int32_t absoluteChannel, int32_t& startChannel) const
 {
     for (auto it : _outputs)
     {
@@ -356,16 +356,16 @@ Output* OutputManager::GetOutput(const std::string& description) const
     return nullptr;
 }
 
-long OutputManager::GetTotalChannels() const
+int32_t OutputManager::GetTotalChannels() const
 {
     if (_outputs.size() == 0) return 0;
 
     return _outputs.back()->GetEndChannel();
 }
 
-std::string OutputManager::GetChannelName(long channel)
+std::string OutputManager::GetChannelName(int32_t channel)
 {
-    long startChannel = 0;
+    int32_t startChannel = 0;
     ++channel;
     Output* o = GetLevel1Output(channel, startChannel);
 
@@ -382,7 +382,7 @@ std::string OutputManager::GetChannelName(long channel)
     }
 }
 
-long OutputManager::GetAbsoluteChannel(int outputNumber, int startChannel) const
+int32_t OutputManager::GetAbsoluteChannel(int outputNumber, int32_t startChannel) const
 {
     if (outputNumber >= (int)_outputs.size()) return -1;
 
@@ -395,7 +395,7 @@ long OutputManager::GetAbsoluteChannel(int outputNumber, int startChannel) const
     return (*it)->GetStartChannel() + startChannel;
 }
 
-long OutputManager::GetAbsoluteChannel(const std::string& ip, int universe, int startChannel) const
+int32_t OutputManager::GetAbsoluteChannel(const std::string& ip, int universe, int32_t startChannel) const
 {
     auto o = GetAllOutputs(ip);
     auto it = o.begin();
@@ -414,7 +414,7 @@ long OutputManager::GetAbsoluteChannel(const std::string& ip, int universe, int 
     return (*it)->GetStartChannel() + startChannel;
 }
 
-long OutputManager::DecodeStartChannel(const std::string& startChannelString)
+int32_t OutputManager::DecodeStartChannel(const std::string& startChannelString)
 {
     // Decodes Absolute, Output:StartChannel, #Universe:StartChannel, and #IP:Universe:StartChannel
     // If there is an error 0 is returned
@@ -1002,9 +1002,9 @@ void OutputManager::AllOff(bool send)
 }
 
 // channel here is zero based
-void OutputManager::SetOneChannel(long channel, unsigned char data)
+void OutputManager::SetOneChannel(int32_t channel, unsigned char data)
 {
-    long sc = 0;
+    int32_t sc = 0;
     Output* output = GetLevel1Output(channel + 1, sc);
     if (output != nullptr)
     {
@@ -1016,21 +1016,22 @@ void OutputManager::SetOneChannel(long channel, unsigned char data)
 }
 
 // channel here is zero based
-void OutputManager::SetManyChannels(long channel, unsigned char* data, long size)
+void OutputManager::SetManyChannels(int32_t channel, unsigned char* data, size_t size)
 {
     if (size == 0) return;
 
-    long stch;
+    int32_t stch;
     Output* o = GetLevel1Output(channel + 1, stch);
 
     // if this doesnt map to an output then skip it
     if (o == nullptr) return;
 
-    long left = size;
+    size_t left = size;
 
     while (left > 0 && o != nullptr)
     {
-        long send = std::min(left, (o->GetChannels() * o->GetUniverses()) - stch + 1);
+        size_t mx = (o->GetChannels() * o->GetUniverses()) - stch + 1;
+        size_t send = std::min(left, mx);
         if (o->IsEnabled())
         {
             o->SetManyChannels(stch - 1, &data[size - left], send);

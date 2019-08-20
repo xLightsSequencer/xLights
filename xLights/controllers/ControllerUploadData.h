@@ -47,12 +47,12 @@ public:
 class UDControllerPortModel
 {
 private:
-    long _startChannel;
-    long _endChannel;
+    int32_t _startChannel;
+    int32_t _endChannel;
     int _string;
     Model* _model;
     int _universe;
-    long _universeStartChannel;
+    int32_t _universeStartChannel;
     std::string _protocol;
     int _smartRemote;
 
@@ -70,9 +70,9 @@ public:
         return _smartRemote < cpm._smartRemote;
     }
     int GetChannelsPerPixel();
-    long Channels() const { return _endChannel - _startChannel + 1; }
-    long GetStartChannel() const { return _startChannel; }
-    long GetEndChannel() const { return _endChannel; }
+    int32_t Channels() const { return _endChannel - _startChannel + 1; }
+    int32_t GetStartChannel() const { return _startChannel; }
+    int32_t GetEndChannel() const { return _endChannel; }
     int GetSmartRemote() const { return _smartRemote; }
     Model* GetModel() const { return _model; }
     std::string GetName() const;
@@ -93,11 +93,11 @@ public:
 struct UDVirtualString
 {
     std::string _description;
-    long _startChannel;
-    long _endChannel;
+    int32_t _startChannel;
+    int32_t _endChannel;
     int Channels() const { return _endChannel - _startChannel + 1; }
     int _universe;
-    long _universeStartChannel;
+    int32_t _universeStartChannel;
     std::string _protocol;
     bool _colourOrderSet;
     std::string _colourOrder;
@@ -132,9 +132,9 @@ class UDControllerPort
         UDControllerPortModel* GetFirstModel() const;
         UDControllerPortModel* GetLastModel() const;
 		void AddModel(Model* m, OutputManager* om, int string = 0);
-		long GetStartChannel() const;
-		long GetEndChannel() const;
-		long Channels() const;
+		int32_t GetStartChannel() const;
+		int32_t GetEndChannel() const;
+		int32_t Channels() const;
         int Pixels() const { return Channels() / 3; }
         std::string GetProtocol() const { return _protocol; }
 		std::string GetPortName() const;

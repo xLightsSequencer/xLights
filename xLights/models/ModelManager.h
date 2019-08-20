@@ -23,7 +23,7 @@ class ModelManager : public ObjectManager
         virtual BaseObject *GetObject(const std::string &name) const override;
 
         bool RecalcStartChannels() const;
-        unsigned int GetLastChannel() const;
+        uint32_t GetLastChannel() const;
         void DisplayStartChannelCalcWarning() const;
         bool ReworkStartChannel() const;
 

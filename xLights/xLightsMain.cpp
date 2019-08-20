@@ -3758,8 +3758,8 @@ void xLightsFrame::MarkModelsAsNeedingRender()
     modelsChangeCount++;
 }
 
-unsigned int xLightsFrame::GetMaxNumChannels() {
-    return std::max(_outputManager.GetTotalChannels(), (long)AllModels.GetLastChannel() + 1);
+uint32_t xLightsFrame::GetMaxNumChannels() {
+    return std::max((uint32_t)_outputManager.GetTotalChannels(), (uint32_t)(AllModels.GetLastChannel() + 1));
 }
 
 void xLightsFrame::UpdateSequenceLength()
@@ -4484,8 +4484,8 @@ void xLightsFrame::ExportModels(wxString filename)
         layoutPanel->UnSelectAllModels();
     RecalcModels();
 
-    long minchannel = 99999999;
-    long maxchannel = -1;
+    int32_t minchannel = 99999999;
+    int32_t maxchannel = -1;
 
     f.Write(_("Model Name,Description,Display As,String Type,String Count,Node Count,Light Count,Est Current (Amps),Channels Per Node, Channel Count,Start Channel,Start Channel No,End Channel No,Default Buffer W x H,Preview,Controller Connection,Controller Type,Controller Description,Output,IP,Baud,Universe/Id,Controller Channel,Inactive\n"));
 
@@ -4509,13 +4509,13 @@ void xLightsFrame::ExportModels(wxString filename)
             }
             int w, h;
             model->GetBufferSize("Default", "2D", "None", w, h);
-            f.Write(wxString::Format("\"%s\",\"%s\",\"%s\",,,,,,,%d,,%ld,%ld,%d x %d,%s,,,,,,,,\n",
+            f.Write(wxString::Format("\"%s\",\"%s\",\"%s\",,,,,,,%d,,%d,%d,%d x %d,%s,,,,,,,,\n",
                 model->name,
                 models.c_str(), // No description ... use list of models
                 model->GetDisplayAs(),
                 model->GetChanCount(),
-                (long)model->GetFirstChannel() + 1,
-                (long)model->GetLastChannel() + 1,
+                model->GetFirstChannel() + 1,
+                model->GetLastChannel() + 1,
                 w, h,
                 model->GetLayoutGroup()
             ));
@@ -4525,7 +4525,7 @@ void xLightsFrame::ExportModels(wxString filename)
             wxString stch = model->GetModelXml()->GetAttribute("StartChannel", wxString::Format("%d?", model->NodeStartChannel(0) + 1)); //NOTE: value coming from model is probably not what is wanted, so show the base ch# instead
             int ch = model->GetFirstChannel() + 1;
             std::string type, description, ip, universe, inactive, baud;
-            long channeloffset;
+            int32_t channeloffset;
             int output;
             GetControllerDetailsForChannel(ch, type, description, channeloffset, ip, universe, inactive, output, baud);
 
@@ -4533,7 +4533,7 @@ void xLightsFrame::ExportModels(wxString filename)
 
             wxString stype = wxString(model->GetStringType());
 
-            long lightcount = (long)(model->GetNodeCount() * model->GetLightsPerNode());
+            int32_t lightcount = (long)(model->GetNodeCount() * model->GetLightsPerNode());
             if (!stype.Contains("Node"))
             {
                 if (model->GetNodeCount() == 1)
@@ -4554,17 +4554,17 @@ void xLightsFrame::ExportModels(wxString filename)
             int w, h;
             model->GetBufferSize("Default", "2D", "None", w, h);
 
-            f.Write(wxString::Format("\"%s\",\"%s\",\"%s\",\"%s\",%li,%li,%li,%s,%i,%li,%s,%i,%i,%d x %d,%s,%s,%s,\"%s\",%i,%s,%s,%s,%li,%s\n",
+            f.Write(wxString::Format("\"%s\",\"%s\",\"%s\",\"%s\",%i,%i,%i,%s,%i,%i,%s,%i,%i,%d x %d,%s,%s,%s,\"%s\",%i,%s,%s,%s,%i,%s\n",
                 model->name,
                 model->description,
                 model->GetDisplayAs(),
                 model->GetStringType(),
-                (long)model->GetNumPhysicalStrings(),
-                (long)model->GetNodeCount(),
+                model->GetNumPhysicalStrings(),
+                model->GetNodeCount(),
                 lightcount,
                 current,
                 model->GetChanCountPerNode(),
-                (long)model->GetActChanCount(),
+                model->GetActChanCount(),
                 stch,
                 ch,
                 model->GetLastChannel() + 1,
@@ -4661,8 +4661,8 @@ void xLightsFrame::ExportModels(wxString filename)
     f.Write("\n");
 
     f.Write(wxString::Format("\"Model Count\",%d\n", AllModels.size()));
-    f.Write(wxString::Format("\"First Used Channel\",%ld\n", minchannel));
-    f.Write(wxString::Format("\"Last Used Channel\",%ld\n", maxchannel));
+    f.Write(wxString::Format("\"First Used Channel\",%d\n", minchannel));
+    f.Write(wxString::Format("\"Last Used Channel\",%d\n", maxchannel));
     f.Write(wxString::Format("\"Actual Used Channel\",%d\n", usedchannels));
     f.Write(wxString::Format("\"Bulbs\",%d\n", bulbs));
 
@@ -5336,16 +5336,16 @@ void xLightsFrame::CheckSequence(bool display)
     {
         if (it->second->GetDisplayAs() != "ModelGroup")
         {
-            long start = it->second->GetFirstChannel()+1;
-            long end = it->second->GetLastChannel()+1;
+            int32_t start = it->second->GetFirstChannel()+1;
+            int32_t end = it->second->GetLastChannel()+1;
 
-            long sc;
+            int32_t sc;
             Output* ostart = _outputManager.GetOutput(start, sc);
             Output* oend = _outputManager.GetOutput(end, sc);
 
             if (ostart != nullptr && oend == nullptr)
             {
-                wxString msg = wxString::Format("    ERR: Model '%s' starts on controller '%s' but ends at channel %ld which is not on a controller.", it->first, ostart->GetDescription(), end);
+                wxString msg = wxString::Format("    ERR: Model '%s' starts on controller '%s' but ends at channel %d which is not on a controller.", it->first, ostart->GetDescription(), end);
                 LogAndWrite(f, msg.ToStdString());
                 errcount++;
             }
@@ -5548,9 +5548,9 @@ void xLightsFrame::CheckSequence(bool display)
 
                     if (m2start <= m1end && m2end >= m1start)
                     {
-                        wxString msg = wxString::Format("    WARN: Probable model overlap '%s' (%ld-%ld) and '%s' (%ld-%ld).",
-                            it->first, (long)m1start, (long)m1end,
-                            it2->first, (long)m2start, (long)m2end);
+                        wxString msg = wxString::Format("    WARN: Probable model overlap '%s' (%d-%d) and '%s' (%d-%d).",
+                            it->first, m1start, m1end,
+                            it2->first, m2start, m2end);
                         LogAndWrite(f, msg.ToStdString());
                         warncount++;
                     }
@@ -5582,8 +5582,8 @@ void xLightsFrame::CheckSequence(bool display)
             }
             if (cc != "")
             {
-                long start = it.second->GetFirstChannel() + 1;
-                long sc;
+                int32_t start = it.second->GetFirstChannel() + 1;
+                int32_t sc;
                 Output* o = _outputManager.GetOutput(start, sc);
 
                 if (o != nullptr && o->IsIpOutput() && o->GetIP() != "MULTICAST")
@@ -5615,13 +5615,13 @@ void xLightsFrame::CheckSequence(bool display)
 
             while (it3 != it->second->end())
             {
-                int m1start = (*it2)->GetNumberFromChannelString((*it2)->ModelStartChannel);
-                int m1end = m1start + (*it2)->GetChanCount() - 1;
-                int m2start = (*it3)->GetNumberFromChannelString((*it3)->ModelStartChannel);
+                int32_t m1start = (*it2)->GetNumberFromChannelString((*it2)->ModelStartChannel);
+                int32_t m1end = m1start + (*it2)->GetChanCount() - 1;
+                int32_t m2start = (*it3)->GetNumberFromChannelString((*it3)->ModelStartChannel);
 
                 if (m1end + 1 != m2start && m2start - m1end - 1 > 0)
                 {
-                    long sc;
+                    int32_t sc;
                     Output* o = _outputManager.GetOutput(m1start, sc);
                     wxString msg;
                     if (m2start - m1end - 1 <= 30)
@@ -5974,12 +5974,12 @@ void xLightsFrame::CheckSequence(bool display)
 
     modelssorted.sort(compare_modelstartchannel);
 
-    long last = 0;
+    int32_t last = 0;
     Model* lastm = nullptr;
     for (auto m = modelssorted.begin(); m != modelssorted.end(); ++m)
     {
-        long start = (*m)->GetNumberFromChannelString((*m)->ModelStartChannel);
-        long gap = start - last - 1;
+        int32_t start = (*m)->GetNumberFromChannelString((*m)->ModelStartChannel);
+        int32_t gap = start - last - 1;
         if (gap > 511) // 511 is the maximum acceptable gap ... at that point the user has wasted an entire universe
         {
             wxString level = "WARN";
@@ -5995,11 +5995,11 @@ void xLightsFrame::CheckSequence(bool display)
             wxString msg;
             if (lastm == nullptr)
             {
-                msg = wxString::Format("    %s: First Model '%s' starts at channel %ld leaving a block of %ld of unused channels.", level, (*m)->GetName(), start, start - 1);
+                msg = wxString::Format("    %s: First Model '%s' starts at channel %d leaving a block of %d of unused channels.", level, (*m)->GetName(), start, start - 1);
             }
             else
             {
-                msg = wxString::Format("    %s: Model '%s' starts at channel %ld leaving a block of %ld of unused channels between this and the prior model '%s'.", level, (*m)->GetName(), start, gap, lastm->GetName());
+                msg = wxString::Format("    %s: Model '%s' starts at channel %d leaving a block of %d of unused channels between this and the prior model '%s'.", level, (*m)->GetName(), start, gap, lastm->GetName());
             }
             LogAndWrite(f, msg.ToStdString());
         }

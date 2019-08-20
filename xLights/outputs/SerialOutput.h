@@ -36,7 +36,7 @@ public:
     #pragma region Getters and Setters
     virtual bool IsIpOutput() const override { return false; }
     virtual bool IsSerialOutput() const override { return true; }
-    virtual std::string GetChannelMapping(long ch) const override;
+    virtual std::string GetChannelMapping(int32_t ch) const override;
     virtual std::string GetLongDescription() const override;
     virtual std::string GetPingDescription() const override;
     virtual int GetMaxChannels() const override { return 0; }
