@@ -211,7 +211,8 @@ public:
     wxXmlNode *GetControllerConnection() const;
     std::string GetControllerConnectionString() const;
     std::string GetControllerConnectionRangeString() const;
-    
+    void ReplaceIPInStartChannels(const std::string& oldIP, const std::string& newIP);
+
     static std::list<std::string> GetProtocols();
     static std::list<std::string> GetLCProtocols();
     static bool IsProtocolValid(std::string protocol);

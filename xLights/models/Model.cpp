@@ -2346,6 +2346,41 @@ std::string Model::GetControllerConnectionRangeString() const
     return ret;
 }
 
+void Model::ReplaceIPInStartChannels(const std::string& oldIP, const std::string& newIP)
+{
+    bool changed = false;
+    if (Contains(ModelStartChannel, oldIP))
+    {
+        wxString sc(ModelStartChannel);
+        sc.Replace(oldIP, newIP);
+        SetStartChannel(sc);
+        changed = true;
+    }
+
+    size_t NumberOfStrings = HasOneString(DisplayAs) ? 1 : parm1;
+    for (int i = 0; i < NumberOfStrings; i++) {
+        auto tempstr = StartChanAttrName(i);
+        if (ModelXml->HasAttribute(tempstr)) {
+            wxString sc = ModelXml->GetAttribute(tempstr, "");
+            if (Contains(sc, oldIP))
+            {
+                sc.Replace(oldIP, newIP);
+                ModelXml->DeleteAttribute(tempstr);
+                ModelXml->AddAttribute(tempstr, sc);
+                changed = true;
+            }
+        }
+    }
+    if (changed)
+    {
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Model::ReplaceIPInStartChannels");
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::ReplaceIPInStartChannels");
+        AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "Model::ReplaceIPInStartChannels");
+        AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "Model::ReplaceIPInStartChannels");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "Model::ReplaceIPInStartChannels");
+    }
+}
+
 wxXmlNode *Model::GetControllerConnection() const {
     wxXmlNode *n = GetModelXml()->GetChildren();
     while (n != nullptr) {

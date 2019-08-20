@@ -90,6 +90,7 @@ public:
     std::list<std::string> GetAutoLayoutControllerNames() const;
     void SetParallelTransmission(bool parallel) { _parallelTransmission = parallel; }
     bool GetParallelTransmission() const { return _parallelTransmission; }
+    bool IsOutputUsingIP(const std::string& ip) const;
     #pragma endregion Output Management
 
     void SomethingChanged() const;

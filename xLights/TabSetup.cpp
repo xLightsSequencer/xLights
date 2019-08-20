@@ -662,6 +662,7 @@ void xLightsFrame::UpdateSelectedIPAddresses()
 
     Output* o = _outputManager.GetOutput(item);
 
+    auto oldIP = o->GetIP();
     wxTextEntryDialog dlg(this, "Change controller IP Address", "IP Address", o->GetIP());
     if (dlg.ShowModal() == wxID_OK)
     {
@@ -682,7 +683,18 @@ void xLightsFrame::UpdateSelectedIPAddresses()
 
                 item = GridNetwork->GetNextItem(item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
             }
+            ChangeIP(oldIP, dlg.GetValue().ToStdString());
         }
+    }
+}
+
+void xLightsFrame::ChangeIP(const std::string& oldIP, const std::string& newIP)
+{
+    if (!IsIPValid(oldIP)) return;
+    if (!IsIPValid(newIP)) return;
+    if (!_outputManager.IsOutputUsingIP(oldIP))
+    {
+        AllModels.ReplaceIPInStartChannels(oldIP, newIP);
     }
 }
 
@@ -852,6 +864,7 @@ void xLightsFrame::ActivateSelectedNetworks(bool active)
         item = GridNetwork->GetNextItem(item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
     }
 }
+
 void xLightsFrame::ConvertSelectedNetworkToE131()
 {
     long SelectedItem = GetNetworkSelection();
@@ -893,6 +906,7 @@ void xLightsFrame::ConvertSelectedNetworkToE131()
     _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "ConvertSelectedNetworkToE131");
     _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "ConvertSelectedNetworkToE131");
 }
+
 void xLightsFrame::DeleteSelectedNetworks()
 {
     int removed = 0;
@@ -1130,8 +1144,10 @@ void xLightsFrame::SetupE131(Output* e, int after)
     if (e131 == nullptr) e131 = new E131Output();
     _outputManager.AddOutput(e131, after);
 
+    auto oldIP = e131->GetIP();
     if (e131->Configure(this, &_outputManager, &AllModels) != nullptr)
     {
+        ChangeIP(oldIP, e131->GetIP());
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "SetupE131", nullptr, e131);
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "SetupE131", nullptr, e131);
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "SetupE131", nullptr, e131);
@@ -1153,9 +1169,12 @@ void xLightsFrame::SetupZCPP(Output* e, int after)
     _outputManager.AddOutput(zcpp, after);
 
     std::string oldDesc = zcpp->GetDescription();
+    auto oldIP = zcpp->GetIP();
 
     if (zcpp->Configure(this, &_outputManager, &AllModels) != nullptr)
     {
+        ChangeIP(oldIP, zcpp->GetIP());
+
         std::string newDesc = zcpp->GetDescription();
         if (oldDesc != "" && oldDesc != newDesc)
         {
@@ -1182,8 +1201,10 @@ void xLightsFrame::SetupArtNet(Output* e, int after)
     if (artnet == nullptr) artnet = new ArtNetOutput();
     _outputManager.AddOutput(artnet, after);
 
+    auto oldIP = artnet->GetIP();
     if (artnet->Configure(this, &_outputManager, &AllModels) != nullptr)
     {
+        ChangeIP(oldIP, artnet->GetIP());
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "SetupArtNet", nullptr, artnet);
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "SetupArtNet", nullptr, artnet);
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "SetupArtNet", nullptr, artnet);
@@ -1204,8 +1225,10 @@ void xLightsFrame::SetupDDP(Output* e, int after)
     if (ddp == nullptr) ddp = new DDPOutput();
     _outputManager.AddOutput(ddp, after);
 
+    auto oldIP = ddp->GetIP();
     if (ddp->Configure(this, &_outputManager, &AllModels) != nullptr)
     {
+        ChangeIP(oldIP, ddp->GetIP());
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "SetupDDP", nullptr, ddp);
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "SetupDDP", nullptr, ddp);
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "SetupDDP", nullptr, ddp);

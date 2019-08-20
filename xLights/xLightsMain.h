@@ -1185,6 +1185,7 @@ public:
     bool AllSelectedSupportIP();
     bool AllSelectedSupportChannels();
     void UpdateSelectedIPAddresses();
+    void ChangeIP(const std::string& oldIP, const std::string& newIP);
     void UpdateSelectedChannels();
     void UpdateSelectedDescriptions();
     void UpdateSelectedTypes();

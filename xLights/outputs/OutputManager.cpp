@@ -1259,3 +1259,12 @@ std::list<std::string> OutputManager::GetAutoLayoutControllerNames() const
     }
     return res;
 }
+
+bool OutputManager::IsOutputUsingIP(const std::string& ip) const
+{
+    for (auto it : _outputs)
+    {
+        if (it->GetIP() == ip) return true;
+    }
+    return false;
+}

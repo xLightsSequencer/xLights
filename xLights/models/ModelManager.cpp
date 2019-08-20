@@ -235,6 +235,20 @@ std::string ModelManager::GetLastModelOnPort(const std::string& controllerName, 
     return last;
 }
 
+void ModelManager::ReplaceIPInStartChannels(const std::string& oldIP, const std::string& newIP)
+{
+    for (auto& it : models)
+    {
+        if (it.second->GetDisplayAs() != "ModelGroup")
+        {
+            if (Contains(it.second->ModelStartChannel, oldIP))
+            {
+                it.second->ReplaceIPInStartChannels(oldIP, newIP);
+            }
+        }
+    }
+}
+
 bool ModelManager::RecalcStartChannels() const {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
