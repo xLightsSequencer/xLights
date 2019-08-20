@@ -11,6 +11,14 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2019.42 August 20, 2019
+   -- enh (keith)  When changing an outputs IP address if it is the last output with that IP address then change any models that specifically reference it
+   -- bug (keith)  Fix model groups of groups dropping model groups
+   -- bug (keith)  Fix hang in some invalid start channel situations
+   -- bug (keith)  Fix model group panel does not clear when show folder changed
+   -- bug (keith)  Fix invalid start channels dont show the invalid start channel in model list
+   -- bug (keith)  Fix polyline nodes dont update on model properties when changed
+   -- bug (keith)  Fix OSX xSchedule crash when web interface opened
 2019.41 August 18, 2019
    -- enh (keith)  Add ability to load SRT subtitle files as timing tracks
    -- enh (keith)  Move xSchedule sync logging to its own logger to reduce impact on performance
