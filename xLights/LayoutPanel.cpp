@@ -976,6 +976,11 @@ void LayoutPanel::updatePropertyGrid()
     selectedBaseObject->UpdateProperties(propertyEditor, xlights->GetOutputManager());
 }
 
+void LayoutPanel::ClearSelectedModelGroup()
+{
+    if (model_grp_panel != nullptr) model_grp_panel->UpdatePanel("");
+}
+
 void LayoutPanel::resetPropertyGrid() {
     static log4cpp::Category& logger_work = log4cpp::Category::getInstance(std::string("log_work"));
     logger_work.debug("        resetPropertyGrid.");

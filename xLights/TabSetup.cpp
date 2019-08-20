@@ -146,6 +146,8 @@ bool xLightsFrame::SetDir(const wxString& newdir)
         return false;
     }
 
+    layoutPanel->ClearSelectedModelGroup();
+
     // delete any views that were added to the menu
     for (auto it = LayoutGroups.begin(); it != LayoutGroups.end(); ++it) {
         LayoutGroup* grp = (LayoutGroup*)(*it);
