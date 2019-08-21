@@ -85,7 +85,7 @@ MultiControllerUploadDialog::MultiControllerUploadDialog(wxWindow* parent,wxWind
     auto outputs = _frame->GetOutputManager()->GetOutputs();
     for (auto it = outputs.begin(); it != outputs.end(); ++it)
     {
-        if ((*it)->IsIpOutput() && (*it)->GetIP() != "MULTICAST" && !(*it)->IsAutoLayoutModels())
+        if ((*it)->IsIpOutput() && (*it)->GetIP() != "MULTICAST" && (*it)->GetType() != OUTPUT_ZCPP)
         {
             if (std::find(_ips.begin(), _ips.end(), (*it)->GetIP()) == _ips.end())
             {
