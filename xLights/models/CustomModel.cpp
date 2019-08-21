@@ -933,7 +933,7 @@ int CustomModel::NodesPerString(int string) const
     }
 
     int ss = stringStartChan[string];
-    int len = GetChanCount() - ss;
+    int len = GetChanCount() - (ss - stringStartChan[0]);
     for (int i = 0; i < _strings; i++)
     {
         if (i != string)
