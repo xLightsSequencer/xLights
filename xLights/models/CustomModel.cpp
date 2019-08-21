@@ -932,8 +932,14 @@ int CustomModel::NodesPerString(int string) const
         return NodesPerString();
     }
 
-    int ss = stringStartChan[string];
-    int len = GetChanCount() - (ss - stringStartChan[0]);
+    int32_t lowestStartChannel = 2000000000;
+    for (int i = 0; i < _strings; i++)
+    {
+        if (stringStartChan[i] < lowestStartChannel) lowestStartChannel = stringStartChan[i];
+    }
+
+    int32_t ss = stringStartChan[string];
+    int32_t len = GetChanCount() - (ss - lowestStartChannel);
     for (int i = 0; i < _strings; i++)
     {
         if (i != string)

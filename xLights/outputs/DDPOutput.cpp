@@ -307,7 +307,7 @@ void DDPOutput::SetManyChannels(int32_t channel, unsigned char data[], size_t si
     }
     if (_fulldata == nullptr) return;
 
-    size_t chs = std::min(size, (size_t)(_channels - channel));
+    size_t chs = (std::min)((int32_t)size, _channels - channel);
 
     if (memcmp(_fulldata + channel, data, chs) == 0) {
         // nothing changed

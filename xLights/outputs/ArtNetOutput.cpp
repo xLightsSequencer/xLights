@@ -439,7 +439,7 @@ void ArtNetOutput::SetManyChannels(int32_t channel, unsigned char data[], size_t
 {
     wxASSERT(channel + size <= _channels);
 
-    size_t chs = std::min(size, (size_t)(_channels - channel));
+    size_t chs = (std::min)((int32_t)size, _channels - channel);
 
     if (memcmp(&_data[channel + ARTNET_PACKET_HEADERLEN], data, chs) == 0)
     {
