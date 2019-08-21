@@ -259,6 +259,7 @@ void E131Dialog::OnButton_OkClick(wxCommandEvent& event)
     SaveFields();
     EndDialog(wxID_OK);
 }
+
 void E131Dialog::SaveFields() {
     _e131->SetIP(TextCtrlIpAddr->GetValue().ToStdString());
     _e131->SetUniverse(SpinCtrl_StartUniv->GetValue());
@@ -292,7 +293,7 @@ void E131Dialog::SaveFields() {
     } else {
         _e131->CreateMultiUniverses(SpinCtrl_NumUniv->GetValue());
     }
-
+    _outputManager->SomethingChanged();
 }
 
 void E131Dialog::OnButton_CancelClick(wxCommandEvent& event)

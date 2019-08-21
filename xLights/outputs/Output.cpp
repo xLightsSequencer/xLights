@@ -45,6 +45,7 @@ Output::Output(Output* output)
     _controller = output->GetControllerId();
     _autoSize = output->GetAutoSize();
     _fppProxy = output->GetFPPProxyIP();
+    _startChannel = output->GetStartChannel();
     _fppProxyOutput = nullptr;
 }
 
@@ -227,6 +228,7 @@ Output* Output::Create(wxXmlNode* node, std::string showDir)
 
 void Output::SetTransientData(int on, int32_t startChannel, int nullnumber)
 {
+    wxASSERT(startChannel != -1);
     _outputNumber = on;
     _startChannel = startChannel;
     if (nullnumber > 0) _nullNumber = nullnumber;
