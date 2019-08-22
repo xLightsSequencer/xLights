@@ -1835,10 +1835,10 @@ bool Model::ModelRenamed(const std::string &oldName, const std::string &newName)
     }
 
     std::string mc = ModelXml->GetAttribute("ModelChain", "").ToStdString();
-    if (mc != oldName)
+    if (mc == ">" + oldName)
     {
         ModelXml->DeleteAttribute("ModelChain");
-        ModelXml->AddAttribute("ModelChain", newName);
+        ModelXml->AddAttribute("ModelChain", ">" + newName);
         changed = true;
     }
 
