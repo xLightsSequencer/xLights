@@ -1471,6 +1471,7 @@ public:
     bool IsPaneDocked(wxWindow* window) const;
     ModelPreview* GetHousePreview() const;
     void RenderLayout();
+    ViewsModelsPanel* GetDisplayElementsPanel() const { return displayElementsPanel; }
 
     void UnselectEffect();
 

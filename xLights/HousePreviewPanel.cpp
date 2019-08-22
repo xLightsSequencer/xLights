@@ -157,6 +157,16 @@ void HousePreviewPanel::OnFastForward10ButtonClick(wxCommandEvent& event)
     wxPostEvent(_xLights, playEvent);
 }
 
+void HousePreviewPanel::Set3d(bool is3d)
+{
+    _modelPreview->Set3D(is3d);
+}
+
+bool HousePreviewPanel::Is3d() const
+{
+    return _modelPreview->Is3D();
+}
+
 void HousePreviewPanel::OnEndButtonClick(wxCommandEvent& event)
 {
     wxCommandEvent playEvent(EVT_SEQUENCE_LAST_FRAME);

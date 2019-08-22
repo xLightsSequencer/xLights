@@ -78,6 +78,8 @@ public:
 
 	virtual void UpdateXmlWithScale() = 0;
 
+    bool IsActive() const { return active; }
+
     std::string name;
 
     bool Selected = false;

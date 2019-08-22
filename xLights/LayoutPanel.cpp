@@ -46,6 +46,7 @@
 #include "KeyBindings.h"
 #include "sequencer/MainSequencer.h"
 #include "ImportPreviewsModelsDialog.h"
+#include "ViewsModelsPanel.h"
 
 static wxRect scaledRect(int srcWidth, int srcHeight, int dstWidth, int dstHeight)
 {
@@ -167,7 +168,7 @@ const long LayoutPanel::ID_ADD_OBJECT_MESH = wxNewId();
 
 class ModelTreeData : public wxTreeItemData {
 public:
-    ModelTreeData(Model *m, int NativeOrder) :wxTreeItemData(), model(m) {
+    ModelTreeData(Model *m, int NativeOrder, bool fullname) :wxTreeItemData(), model(m), fullname(fullname) {
         wxASSERT(m != nullptr);
         //a SetFromXML call on the parent (example: recalc start channels) will cause
         //submodel pointers to be deleted.  Need to not save them, but instead, use the parent
@@ -194,6 +195,7 @@ public:
     int startingChannel;
     int endingChannel;
     int nativeOrder;
+    bool fullname;
 private:
     Model *model;
     std::string subModel;
@@ -1049,6 +1051,19 @@ void LayoutPanel::refreshObjectList() {
     objects_panel->refreshObjectList();
 }
 
+std::string LayoutPanel::TreeModelName(const Model* model, bool fullname)
+{
+    std::string name = fullname ? model->GetFullName() : model->name;
+    if (model->IsActive())
+    {
+        return name;
+    }
+    else
+    {
+        return "<" + name + ">";
+    }
+}
+
 void LayoutPanel::refreshModelList() {
 
     static log4cpp::Category& logger_work = log4cpp::Category::getInstance(std::string("log_work"));
@@ -1064,6 +1079,9 @@ void LayoutPanel::refreshModelList() {
         Model *model = data != nullptr ? data->GetModel() : nullptr;
 
         if (model != nullptr ) {
+
+            TreeListViewModels->SetItemText(item, TreeModelName(model, data->fullname));
+
             int end_channel = model->GetLastChannel()+1;
             wxString endStr = model->GetLastChannelInStartChannelFormat(xlights->GetOutputManager());
             if( model->GetDisplayAs() != "ModelGroup" ) {
@@ -1099,7 +1117,7 @@ void LayoutPanel::refreshModelList() {
     TreeListViewModels->Refresh();
 }
 
-void LayoutPanel::RenameModelInTree(Model *model, const std::string new_name)
+void LayoutPanel::RenameModelInTree(Model *model, const std::string& new_name)
 {
     for ( wxTreeListItem item = TreeListViewModels->GetFirstItem();
           item.IsOk();
@@ -1107,7 +1125,14 @@ void LayoutPanel::RenameModelInTree(Model *model, const std::string new_name)
     {
         ModelTreeData *data = dynamic_cast<ModelTreeData*>(TreeListViewModels->GetItemData(item));
         if (data != nullptr && data->GetModel() == model) {
-            TreeListViewModels->SetItemText(item, wxString(new_name.c_str()));
+            if (model->IsActive())
+            {
+                TreeListViewModels->SetItemText(item, new_name);
+            }
+            else
+            {
+                TreeListViewModels->SetItemText(item, "<" + new_name + ">");
+            }
         }
     }
 }
@@ -1174,10 +1199,10 @@ int LayoutPanel::AddModelToTree(Model *model, wxTreeListItem* parent, bool expan
 
     //logger_base.debug("Adding model %s", (const char *)model->GetFullName().c_str());
 
-    wxTreeListItem item = TreeListViewModels->AppendItem(*parent, fullName ? model->GetFullName() : model->name,
+    wxTreeListItem item = TreeListViewModels->AppendItem(*parent, TreeModelName(model, fullName),
                                                          GetModelTreeIcon(model, false),
                                                          GetModelTreeIcon(model, true),
-                                                         new ModelTreeData(model, nativeOrder));
+                                                         new ModelTreeData(model, nativeOrder, fullName));
     if( model->GetDisplayAs() != "ModelGroup" ) {
         wxString endStr = model->GetLastChannelInStartChannelFormat(xlights->GetOutputManager());
         wxString startStr = model->GetStartChannelInDisplayFormat(xlights->GetOutputManager());
@@ -2392,6 +2417,21 @@ void LayoutPanel::SelectViewObject(ViewObject *v, bool highlight_tree) {
     SelectBaseObject3D();
 
     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::SelectViewObject");
+}
+
+bool LayoutPanel::Is3d() const
+{
+    return CheckBox_3D->IsChecked();
+}
+
+void LayoutPanel::Set3d(bool is3d)
+{
+    if (CheckBox_3D->IsChecked() != is3d)
+    {
+        CheckBox_3D->SetValue(is3d);
+        wxCommandEvent e;
+        OnCheckBox_3DClick(e);
+    }
 }
 
 std::string LayoutPanel::GetSelectedModelName() const
@@ -4610,11 +4650,11 @@ std::list<BaseObject*> LayoutPanel::GetSelectedBaseObjects() const
 
     if (editing_models)
     {
-        for (auto it = modelPreview->GetModels().begin(); it!= modelPreview->GetModels().end(); ++it)
+        for (auto it : modelPreview->GetModels())
         {
-            if ((*it) != selectedBaseObject && ((*it)->Selected || (*it)->GroupSelected))
+            if (it != selectedBaseObject && (it->Selected || it->GroupSelected))
             {
-                res.push_back(*it);
+                res.push_back(it);
             }
         }
     }
@@ -4957,11 +4997,13 @@ void LayoutPanel::DeleteSelectedModel() {
                 {
                     selectedModelFound = true;
                 }
+                xlights->GetDisplayElementsPanel()->RemoveModelFromLists(modelPreview->GetModels()[i]->name);
                 xlights->AllModels.Delete(modelPreview->GetModels()[i]->name);
             }
         }
         if (!selectedModelFound)
         {
+            xlights->GetDisplayElementsPanel()->RemoveModelFromLists(selectedBaseObject->name);
             xlights->AllModels.Delete(selectedBaseObject->name);
         }
         selectedBaseObject = nullptr;

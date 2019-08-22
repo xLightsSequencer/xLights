@@ -2495,9 +2495,12 @@ void xLightsFrame::ShowHideAllSequencerWindows(bool show)
             savedPaneShown[info[x].name] = false;
             if (info[x].IsOk())
             {
-                if (info[x].IsFloating() && info[x].IsShown())
+                if (info[x].frame != nullptr)
                 {
-                    savedPaneShown[info[x].name] = true;
+                    if (info[x].IsFloating() && info[x].IsShown())
+                    {
+                        savedPaneShown[info[x].name] = true;
+                    }
                     info[x].frame->Hide();
                 }
             }
@@ -2586,6 +2589,7 @@ void xLightsFrame::OnNotebook1PageChanged1(wxAuiNotebookEvent& event)
     int pagenum=event.GetSelection(); //Notebook1->GetSelection();
 	if (pagenum == LAYOUTTAB)
     {
+        layoutPanel->Set3d(_housePreviewPanel->Is3d());
         GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "OnNotebook1PageChanged");
         SetStatusText(_(""));
         MenuItem_File_Save->Enable(true);
@@ -2593,6 +2597,7 @@ void xLightsFrame::OnNotebook1PageChanged1(wxAuiNotebookEvent& event)
     }
     else if (pagenum == NEWSEQUENCER)
     {
+        _housePreviewPanel->Set3d(layoutPanel->Is3d());
         InitSequencer();
         ShowHideAllSequencerWindows(true);
         EffectSettingsTimer.Start(50, wxTIMER_CONTINUOUS);

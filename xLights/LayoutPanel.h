@@ -270,6 +270,7 @@ class LayoutPanel: public wxPanel
         void OnListCharHook(wxKeyEvent& event);
 
     protected:
+        std::string TreeModelName(const Model* model, bool fullname);
         NewModelBitmapButton* AddModelButton(const std::string &type, const char *imageData[]);
         void UpdateModelsForPreview(const std::string &group, LayoutGroup* layout_grp, std::vector<Model *> &prev_models, bool filtering );
         void CreateModelGroupFromSelected();
@@ -374,6 +375,8 @@ class LayoutPanel: public wxPanel
         void RefreshLayout();
         void RenderLayout();
         std::string GetSelectedModelName() const;
+        bool Is3d() const;
+        void Set3d(bool is3d);
 
     private:
         enum
@@ -454,12 +457,11 @@ class LayoutPanel: public wxPanel
         wxTreeListCtrl* CreateTreeListCtrl(long style, wxPanel* panel);
         int GetModelTreeIcon(Model* model, bool open);
         int AddModelToTree(Model *model, wxTreeListItem* parent, bool expanded, int nativeOrder, bool fullName = false);
-        void RenameModelInTree(Model* model, const std::string new_name);
+        void RenameModelInTree(Model* model, const std::string& new_name);
         void DisplayAddObjectPopup();
         void OnAddObjectPopup(wxCommandEvent& event);
         void AddObjectButton(wxMenu& mnu, const long id, const std::string &name, const char *icon[]);
         void SelectViewObject(ViewObject *v, bool highlight_tree = true);
-
         //int SortElementsFunction(wxTreeListItem item1, wxTreeListItem item2, unsigned sortColumn);
 
         class ModelListComparator : public wxTreeListItemComparator

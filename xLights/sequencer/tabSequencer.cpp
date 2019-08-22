@@ -40,6 +40,7 @@
 #include "../SelectPanel.h"
 #include "../LayoutGroup.h"
 #include "../ViewpointMgr.h"
+#include "../LayoutPanel.h"
 
 #include <log4cpp/Category.hh>
 
