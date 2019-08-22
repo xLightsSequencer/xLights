@@ -934,6 +934,12 @@ void EffectsGrid::mouseMoved(wxMouseEvent& event)
     }
     else if (mDragging)
     {
+        // if we are dragging a yellow box then we dont want an effect selected
+        if (mSelectedEffect != nullptr)
+        {
+            mSelectedEffect = nullptr;
+            UnselectEffect();
+        }
         mDragEndX = event.GetX();
         mDragEndY = event.GetY();
         UpdateSelectionRectangle();
@@ -1254,8 +1260,9 @@ void EffectsGrid::mouseDown(wxMouseEvent& event)
                 mDragStartX = event.GetX();
                 mDragStartY = event.GetY();
                 mDragStartRow = mSequenceElements->GetFirstVisibleModelRow();
-                if(selectedEffect == nullptr)
+                if (selectedEffect == nullptr)
                 {
+                    UnselectEffect();
                     mSelectedEffect = nullptr;
                     mSelectedRow = -1;
                 }
