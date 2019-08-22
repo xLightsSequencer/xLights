@@ -1,4 +1,3 @@
-
 #include <wx/wx.h>
 #include <wx/xml/xml.h>
 
@@ -269,7 +268,6 @@ int ModelGroup::GetGridSize() const
 }
 
 bool ModelGroup::Reset(bool zeroBased) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     this->zeroBased = zeroBased;
     selected = false;
     name = ModelXml->GetAttribute("name").ToStdString();

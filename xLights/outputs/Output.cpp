@@ -232,6 +232,10 @@ void Output::SetTransientData(int on, int32_t startChannel, int nullnumber)
     _outputNumber = on;
     _startChannel = startChannel;
     if (nullnumber > 0) _nullNumber = nullnumber;
+    
+    if (_fppProxyOutput) {
+        _fppProxyOutput->SetTransientData(on, startChannel, nullnumber);
+    }
 }
 
 void Output::SetIP(const std::string& ip)

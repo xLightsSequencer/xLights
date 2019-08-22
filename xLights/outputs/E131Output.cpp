@@ -396,7 +396,6 @@ void E131Output::SetTransientData(int on, int32_t startChannel, int nullnumber)
 {
     if (_fppProxyOutput) {
         _fppProxyOutput->SetTransientData(on, startChannel, nullnumber);
-        return;
     }
 
     if (IsOutputCollection())
