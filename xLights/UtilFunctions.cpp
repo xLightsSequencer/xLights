@@ -190,19 +190,24 @@ wxString FixFile(const wxString& ShowDir, const wxString& file, bool recurse)
 		return file;
 	}
 
+    logger_base.debug("File not found ... attempting to fix location : " + file);
+
 #ifndef __WXMSW__
     wxFileName fnUnix(file, wxPATH_UNIX);
     wxFileName fn3(sd, fnUnix.GetFullName());
+    logger_base.debug("                   trying location : " + fn3.GetFullPath());
     if (fn3.Exists()) {
+        logger_base.debug("File location fixed: " + file + " -> " + fn3.GetFullPath());
         return fn3.GetFullPath();
     }
 #endif
     wxFileName fnWin(file, wxPATH_WIN);
     wxFileName fn4(sd, fnWin.GetFullName());
+    logger_base.debug("                   trying location : " + fn4.GetFullPath());
     if (fn4.Exists()) {
+        logger_base.debug("File location fixed: " + file + " -> " + fn4.GetFullPath());
         return fn4.GetFullPath();
     }
-
 
     wxString sdlc = sd;
     sdlc.LowerCase();
@@ -213,7 +218,7 @@ wxString FixFile(const wxString& ShowDir, const wxString& file, bool recurse)
     wxString fname;
     wxString ext;
     wxFileName::SplitPath(sd, &path, &fname, &ext);
-    wxArrayString parts = wxSplit(path, '\\', 0);
+    //wxArrayString parts = wxSplit(path, '\\', 0);
     if (fname == "")
     {
         // no subdirectory
@@ -237,10 +242,13 @@ wxString FixFile(const wxString& ShowDir, const wxString& file, bool recurse)
     if (appending) {
         newLoc += wxFileName::GetPathSeparator();
         newLoc += fnWin.GetFullName();
+        logger_base.debug("                   trying location : " + newLoc);
         if (wxFileExists(newLoc)) {
+            logger_base.debug("File location fixed: " + file + " -> " + newLoc);
             return newLoc;
         }
     }
+
 #ifndef __WXMSW__
     newLoc = sd;
     appending = false;
@@ -255,12 +263,13 @@ wxString FixFile(const wxString& ShowDir, const wxString& file, bool recurse)
     if (appending) {
         newLoc += wxFileName::GetPathSeparator();
         newLoc += fnUnix.GetFullName();
+        logger_base.debug("                   trying location : " + newLoc);
         if (wxFileExists(newLoc)) {
+            logger_base.debug("File location fixed: " + file + " -> " + newLoc);
             return newLoc;
         }
     }
 #endif
-
 
     if (flc.Contains(sflc))
     {
@@ -272,12 +281,14 @@ wxString FixFile(const wxString& ShowDir, const wxString& file, bool recurse)
         }
         wxFileName sdFn =  wxFileName::DirName(sd);
 
+        logger_base.debug("                   trying location : " + relative);
         if (wxFileExists(relative))
         {
             logger_base.debug("File location fixed: " + file + " -> " + relative);
             return relative;
         }
     }
+
 #ifndef __WXMSW__
     if (ShowDir == "" && fnUnix.GetDirCount() > 0) {
         return FixFile(sd + "/" + fnUnix.GetDirs().Last(), file, true);
