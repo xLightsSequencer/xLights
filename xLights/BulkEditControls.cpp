@@ -26,11 +26,13 @@
 #pragma region Bulk Edit Control Constructors
 BulkEditSlider::BulkEditSlider(wxWindow *parent, wxWindowID id, int value, int minValue, int maxValue, const wxPoint &pos, const wxSize &size, long style, const wxValidator &validator, const wxString &name) : wxSlider(parent, id, value, minValue, maxValue, pos, size, style, validator, name)
 {
+    _default = value;
     _supportsBulkEdit = true;
     _type = BESLIDERTYPE::BE_INT;
     ID_SLIDER_BULKEDIT = wxNewId();
     Connect(wxEVT_COMMAND_SLIDER_UPDATED, (wxObjectEventFunction)&BulkEditSlider::OnSlider_SliderUpdated);
     Connect(wxEVT_RIGHT_DOWN, (wxObjectEventFunction)&BulkEditSlider::OnRightDown, nullptr, this);
+    Connect(wxEVT_RIGHT_DCLICK, (wxObjectEventFunction)& BulkEditSlider::OnDClick, nullptr, this);
 }
 
 BulkEditFontPicker::BulkEditFontPicker(wxWindow* parent, wxWindowID id, const wxFont& initial, const wxPoint& pos, const wxSize& size, long style, const wxValidator& validator, const wxString& name)
@@ -680,6 +682,13 @@ void BulkEditCheckBox::OnCheckBoxPopup(wxCommandEvent& event)
 #pragma endregion
 
 #pragma region Keep associated controls in sync
+void BulkEditSlider::OnDClick(wxMouseEvent& event)
+{
+    SetValue(_default);
+    wxScrollEvent e;
+    OnSlider_SliderUpdated(e);
+}
+
 void BulkEditSlider::OnSlider_SliderUpdated(wxScrollEvent& event)
 {
     BulkEditValueCurveButton* vc = GetSettingValueCurveButton(GetParent(), GetName().ToStdString(), "SLIDER");

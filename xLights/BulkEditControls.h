@@ -28,12 +28,14 @@ protected:
     long ID_SLIDER_BULKEDIT;
     BESLIDERTYPE _type;
     bool _supportsBulkEdit;
+    int _default;
 
     public:
 
     BulkEditSlider(wxWindow *parent, wxWindowID id, int value, int minValue, int maxValue, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize, long style = wxSL_HORIZONTAL, const wxValidator &validator = wxDefaultValidator, const wxString &name = wxSliderNameStr);
     virtual ~BulkEditSlider() {}
     void OnRightDown(wxMouseEvent& event);
+    void OnDClick(wxMouseEvent& event);
     void OnSliderPopup(wxCommandEvent &event);
     void OnSlider_SliderUpdated(wxScrollEvent& event);
     void SetSupportsBulkEdit(bool supportsBulkEdit) { _supportsBulkEdit = supportsBulkEdit; }

@@ -338,6 +338,12 @@ ValueCurveDialog::ValueCurveDialog(wxWindow* parent, ValueCurve* vc, bool slider
     Layout();
     Fit();
 
+    wxSize sz = GetSize();
+
+    if (sz.x < 500) sz.x = 800;
+    if (sz.y < 400) sz.y = 600;
+    SetSize(sz);
+
     ValidateWindow();
 }
 
