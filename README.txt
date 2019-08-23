@@ -11,6 +11,16 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2019.43 August 23, 2019
+   -- enh (keith)  Have layout and house preview 3d state follow each other  
+   -- enh (scott)  FPP Connect Updates: Added Header Tool Tips and Right Click Option to Check/Uncheck Highlighted FSEQ Files
+   -- bug (scott)  Fixed multi controller upload not showing Auto Start Channel E131 and DDP controllers
+   -- bug (keith)  Fix multistring custom model returns incorrect string length
+   -- bug (keith)  Fix e131 one output pressing visualise breaks start channel calcs
+   -- bug (keith)  Fix model rename breaks all model chains
+   -- bug (keith)  Fix clicking off an effect does not properly unselect it
+   -- bug (dkulp)  Fix controller start channel issues when using proxy
+   -- bug (keith)  Fix make models same size is slightly out
 2019.42 August 20, 2019
    -- enh (keith)  When changing an outputs IP address if it is the last output with that IP address then change any models that specifically reference it
    -- bug (keith)  Fix model groups of groups dropping model groups
