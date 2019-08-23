@@ -50,6 +50,8 @@ class FPPConnectDialog: public wxDialog
 
         static const long ID_MNU_SELECTALL;
         static const long ID_MNU_SELECTNONE;
+        static const long ID_MNU_SELECTHIGH;
+        static const long ID_MNU_DESELECTHIGH;
         static const long ID_FPP_INSTANCE_LIST;
 
     
@@ -70,7 +72,7 @@ class FPPConnectDialog: public wxDialog
         void LoadSequences();
         void PopulateFPPInstanceList();
         void AddInstanceRow(const FPP &inst);
-        void AddInstanceHeader(const std::string &h);
+        void AddInstanceHeader(const std::string &h, const std::string &tt = std::string());
 
     
         void OnPopup(wxCommandEvent &event);

@@ -35,6 +35,8 @@ const long FPPConnectDialog::ID_BUTTON_Upload = wxNewId();
 
 const long FPPConnectDialog::ID_MNU_SELECTALL = wxNewId();
 const long FPPConnectDialog::ID_MNU_SELECTNONE = wxNewId();
+const long FPPConnectDialog::ID_MNU_SELECTHIGH = wxNewId();
+const long FPPConnectDialog::ID_MNU_DESELECTHIGH = wxNewId();
 const long FPPConnectDialog::ID_FPP_INSTANCE_LIST = wxNewId();
 
 BEGIN_EVENT_TABLE(FPPConnectDialog,wxDialog)
@@ -145,16 +147,16 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
     FlexGridSizer1->Fit(this);
     FlexGridSizer1->SetSizeHints(this);
     
-    AddInstanceHeader("Upload");
-    AddInstanceHeader("Location");
+    AddInstanceHeader("Upload", "Enable to Upload Files/Configs to this FPP Device.");
+    AddInstanceHeader("Location", "Host and IP Address.");
     AddInstanceHeader("Description");
-    AddInstanceHeader("Version");
-    AddInstanceHeader("FSEQ Type");
-    AddInstanceHeader("Media");
-    AddInstanceHeader("Models");
-    AddInstanceHeader("UDP Out");
-    AddInstanceHeader("Playlist");
-    AddInstanceHeader("Pixel Hat/Cape");
+    AddInstanceHeader("Version", "FPP Software Version.");
+    AddInstanceHeader("FSEQ Type", "FSEQ File Version. FPP 2.6 required for V2 formats.");
+    AddInstanceHeader("Media", "Enable to Upload MP3, MP4 Media Files.");
+    AddInstanceHeader("Models", "Enable to Upload Models for Dispaly Testing.");
+    AddInstanceHeader("UDP Out", "'All' Uploads All E1.31/DDP Ouput Definitions, 'Proxied' Upload E1.31/DDP Ouput Definitions of Proxied Controllers.");
+    AddInstanceHeader("Playlist","Select Playlist to Add Uploaded Sequences Too.");
+    AddInstanceHeader("Pixel Hat/Cape", "Display Hat or Hat Attached to FPP Device, If Found.");
     
     PopulateFPPInstanceList();
     LoadSequences();
@@ -272,10 +274,12 @@ void FPPConnectDialog::PopulateFPPInstanceList() {
     FPPInstanceList->Thaw();
 }
 
-void FPPConnectDialog::AddInstanceHeader(const std::string &h) {
+void FPPConnectDialog::AddInstanceHeader(const std::string &h, const std::string &tt) {
     wxPanel *Panel1 = new wxPanel(FPPInstanceList, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSIMPLE_BORDER|wxTAB_TRAVERSAL, _T("ID_PANEL1"));
     wxBoxSizer *BoxSizer1 = new wxBoxSizer(wxHORIZONTAL);
     wxStaticText *StaticText3 = new wxStaticText(Panel1, wxID_ANY, h, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
+    if(!tt.empty())
+        StaticText3->SetToolTip ( tt );
     BoxSizer1->Add(StaticText3, 1, wxLEFT|wxRIGHT|wxEXPAND, 5);
     Panel1->SetSizer(BoxSizer1);
     BoxSizer1->Fit(Panel1);
@@ -299,6 +303,18 @@ void FPPConnectDialog::OnPopup(wxCommandEvent &event)
     } else if (id == ID_MNU_SELECTNONE) {
         for (size_t i = 0; i < CheckListBox_Sequences->GetItemCount(); i++) {
             if (CheckListBox_Sequences->IsItemChecked(i)) {
+                CheckListBox_Sequences->CheckItem(i, false);
+            }
+        }
+    } else if (id == ID_MNU_SELECTHIGH) {
+        for (size_t i = 0; i < CheckListBox_Sequences->GetItemCount(); i++) {
+            if (!CheckListBox_Sequences->IsItemChecked(i) && CheckListBox_Sequences->IsSelected(i)) {
+                CheckListBox_Sequences->CheckItem(i, true);
+            }
+        }
+    } else if (id == ID_MNU_DESELECTHIGH) {
+        for (size_t i = 0; i < CheckListBox_Sequences->GetItemCount(); i++) {
+            if (CheckListBox_Sequences->IsItemChecked(i) && CheckListBox_Sequences->IsSelected(i)) {
                 CheckListBox_Sequences->CheckItem(i, false);
             }
         }
@@ -875,6 +891,8 @@ void FPPConnectDialog::SequenceListPopup(wxListEvent& event)
     wxMenu mnu;
     mnu.Append(ID_MNU_SELECTALL, "Select All");
     mnu.Append(ID_MNU_SELECTNONE, "Clear Selections");
+    mnu.Append(ID_MNU_SELECTHIGH, "Select Highlighted");
+    mnu.Append(ID_MNU_DESELECTHIGH, "Deselect Highlighted");
     mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&FPPConnectDialog::OnPopup, nullptr, this);
     PopupMenu(&mnu);
 }
