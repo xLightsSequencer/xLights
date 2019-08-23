@@ -21,6 +21,7 @@ bool IsIPValidOrHostname(const std::string &ip, bool iponly = false);
 bool IsVersionOlder(const std::string &compare, const std::string &version);
 std::string UnXmlSafe(const wxString &s);
 std::string XmlSafe(const std::string& s);
+inline bool isOdd(int n) { return n % 2 != 0; }
 void DownloadVamp();
 bool IsFileInShowDir(const wxString& showDir, const std::string filename);
 wxString FixFile(const wxString& ShowDir, const wxString& file, bool recurse = false);

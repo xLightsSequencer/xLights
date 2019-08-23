@@ -181,7 +181,7 @@ void ChannelBlockModel::InitModel() {
         for (auto coord = node->get()->Coords.begin(); coord != node->get()->Coords.end(); ++coord) {
             coord->screenY = 0;
             if (num > 1) {
-                coord->screenX = coord->bufX + (float)count / (float)num + offset;
+                coord->screenX = (float)coord->bufX + (float)count / (float)num + offset;
                 count++;
             }
             else {

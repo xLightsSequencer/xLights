@@ -678,8 +678,8 @@ int CustomModel::GetCustomMaxChannel(const std::string& customModel) const
 }
 
 void CustomModel::InitCustomMatrix(const std::string& customModel) {
-    int width = 1;
-    int height = 1;
+    float width = 1.0;
+    float height = 1.0;
     std::vector<int> nodemap;
 
     int32_t firstStartChan = 999999999;
@@ -697,7 +697,7 @@ void CustomModel::InitCustomMatrix(const std::string& customModel) {
     cols.reserve(100);
 
     split(customModel, '|', layers);
-    int depth = layers.size();
+    float depth = layers.size();
     int layer = 0;
 
     for (auto lv : layers) {
@@ -750,17 +750,17 @@ void CustomModel::InitCustomMatrix(const std::string& customModel) {
 
                         Nodes.back()->AddBufCoord(layer * width + col, height - row - 1);
                         auto& c = Nodes[nodemap[idx]]->Coords.back();
-                        c.screenX = col - width / 2;
-                        c.screenY = height - row - 1 - height / 2;
-                        c.screenZ = depth - layer - 1 - depth / 2;
+                        c.screenX = (float)col - width / 2.0f;
+                        c.screenY = height - (float)row - 1.0f - height / 2.0f;
+                        c.screenZ = depth - (float)layer - 1.0f - depth / 2.0f;
                     }
                     else {
                         // mapped - so add a coord to existing node
                         Nodes[nodemap[idx]]->AddBufCoord(layer * width + col, height - row - 1);
                         auto& c = Nodes[nodemap[idx]]->Coords.back();
-                        c.screenX = col - width / 2;
-                        c.screenY = height - row - 1 - height / 2;
-                        c.screenZ = depth - layer - 1 - depth / 2;
+                        c.screenX = (float)col - width / 2.0f;
+                        c.screenY = height - (float)row - 10 - height / 2.0f;
+                        c.screenZ = depth - (float)layer - 1.0 - depth / 2.0f;
                     }
                 }
                 col++;

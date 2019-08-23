@@ -1619,64 +1619,59 @@ glm::vec2 BoxedScreenLocation::GetScreenOffset(ModelPreview* preview)
 }
 
 float BoxedScreenLocation::GetTop() const {
-    return worldPos_y+(RenderHt*scaley/2);
+    return worldPos_y + (RenderHt * scaley / 2.0f);
 }
 float BoxedScreenLocation::GetLeft() const {
-    return worldPos_x-(RenderWi*scalex/2);
+    return worldPos_x - (RenderWi * scalex / 2.0f);
 }
 float BoxedScreenLocation::GetRight() const {
-    return worldPos_x+(RenderWi*scalex/2);
+    return worldPos_x + (RenderWi * scalex / 2.0f);
 }
 float BoxedScreenLocation::GetBottom() const {
-    return worldPos_y - (RenderHt*scaley / 2);
+    return worldPos_y - (RenderHt * scaley / 2.0f);
 }
 float BoxedScreenLocation::GetFront() const {
-    return worldPos_z + (RenderWi*scalez / 2);
+    return worldPos_z + (RenderWi * scalez / 2.0f);
 }
 float BoxedScreenLocation::GetBack() const {
-    return worldPos_z - (RenderWi*scalez / 2);
+    return worldPos_z - (RenderWi * scalez / 2.0f);
 }
 
 float BoxedScreenLocation::GetMWidth() const {
-    return RenderWi*scalex;
+    return RenderWi * scalex;
 }
-
 float BoxedScreenLocation::GetMHeight() const {
-    return RenderHt*scaley;
+    return RenderHt * scaley;
 }
-void BoxedScreenLocation::SetMWidth(float w)
-{
-    scalex = w / RenderWi;
+void BoxedScreenLocation::SetMWidth(float w) {
+    scalex = w / (RenderWi - 1);
 }
-void BoxedScreenLocation::SetMDepth(float d)
-{
-    scalez = d / RenderWi;
+void BoxedScreenLocation::SetMDepth(float d) {
+    scalez = d / (RenderDp - 1);
 }
-float BoxedScreenLocation::GetMDepth() const
-{
-    return scalez * RenderWi;
+float BoxedScreenLocation::GetMDepth() const {
+    return scalez * RenderDp;
 }
-void BoxedScreenLocation::SetMHeight(float h)
-{
-    scaley = h / RenderHt;
+void BoxedScreenLocation::SetMHeight(float h) {
+    scaley = h / (RenderHt - 1);
 }
 void BoxedScreenLocation::SetLeft(float x) {
-    worldPos_x = x + (RenderWi*scalex / 2.0f);
+    worldPos_x = x + (RenderWi * scalex / 2.0f);
 }
 void BoxedScreenLocation::SetRight(float x) {
-    worldPos_x = x - (RenderWi*scalex / 2.0f);
+    worldPos_x = x - (RenderWi * scalex / 2.0f);
 }
 void BoxedScreenLocation::SetTop(float y) {
-    worldPos_y = y - (RenderHt*scaley / 2.0f);
+    worldPos_y = y - (RenderHt * scaley / 2.0f);
 }
 void BoxedScreenLocation::SetBottom(float y) {
-    worldPos_y = y + (RenderHt*scaley / 2.0f);
+    worldPos_y = y + (RenderHt * scaley / 2.0f);
 }
 void BoxedScreenLocation::SetFront(float z) {
-    worldPos_z = z - (RenderWi*scalez / 2.0f);
+    worldPos_z = z - (RenderWi * scalez / 2.0f);
 }
 void BoxedScreenLocation::SetBack(float z) {
-    worldPos_z = z + (RenderWi*scalez / 2.0f);
+    worldPos_z = z + (RenderWi * scalez / 2.0f);
 }
 
 TwoPointScreenLocation::TwoPointScreenLocation() : ModelScreenLocation(3),
