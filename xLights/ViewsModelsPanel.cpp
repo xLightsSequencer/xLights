@@ -347,7 +347,7 @@ void ViewsModelsPanel::PopulateModels(const std::string& selectModels)
         for (int i = 0; i < _sequenceElements->GetElementCount(); i++)
         {
             Element* elem = _sequenceElements->GetElement(i);
-            if (elem->GetType() == ELEMENT_TYPE_TIMING)
+            if (elem != nullptr && elem->GetType() == ELEMENT_TYPE_TIMING)
             {
                 TimingElement *te = dynamic_cast<TimingElement*>(elem);
                 if (current_view == MASTER_VIEW || _sequenceElements->TimingIsPartOfView(te, current_view))
@@ -368,9 +368,9 @@ void ViewsModelsPanel::PopulateModels(const std::string& selectModels)
             {
                 _sequenceElements->AddMissingModelsToSequence(view->GetModelsString());
                 auto models = view->GetModels();
-                for (auto it = models.begin(); it != models.end(); ++it)
+                for (auto& it : models)
                 {
-                    Element* elem = _sequenceElements->GetElement(*it);
+                    Element* elem = _sequenceElements->GetElement(it);
                     AddModelToList(elem);
                 }
 
@@ -378,7 +378,7 @@ void ViewsModelsPanel::PopulateModels(const std::string& selectModels)
                 for (int i = 0; i < _sequenceElements->GetElementCount(); i++)
                 {
                     Element* elem = _sequenceElements->GetElement(i);
-                    if (elem->GetType() == ELEMENT_TYPE_MODEL && std::find(models.begin(), models.end(), elem->GetName()) == models.end())
+                    if (elem != nullptr && elem->GetType() == ELEMENT_TYPE_MODEL && std::find(models.begin(), models.end(), elem->GetName()) == models.end())
                     {
                         AddModelToNotList(elem);
                     }
@@ -390,7 +390,7 @@ void ViewsModelsPanel::PopulateModels(const std::string& selectModels)
             for (int i = 0; i < _sequenceElements->GetElementCount(); i++)
             {
                 Element* elem = _sequenceElements->GetElement(i);
-                if (elem->GetType() == ELEMENT_TYPE_MODEL)
+                if (elem != nullptr && elem->GetType() == ELEMENT_TYPE_MODEL)
                 {
                     AddModelToList(elem);
                 }
@@ -444,9 +444,9 @@ void ViewsModelsPanel::PopulateModels(const std::string& selectModels)
         {
             wxArrayString models = wxSplit(selectModels, ',');
 
-            for (auto it = models.begin(); it != models.end(); ++it)
+            for (auto& it : models)
             {
-                SelectItem(ListCtrlModels, it->ToStdString(), 2, true);
+                SelectItem(ListCtrlModels, it.ToStdString(), 2, true);
             }
         }
     }

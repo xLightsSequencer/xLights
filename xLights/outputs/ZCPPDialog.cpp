@@ -251,6 +251,7 @@ void ZCPPDialog::OnButton_VisualiseClick(wxCommandEvent& event)
     std::string check;
     std::list<int> nullList;
     UDController cud(TextCtrlIpAddr->GetValue().ToStdString(), TextCtrlIpAddr->GetValue().ToStdString(), _modelManager, _outputManager, &nullList, check);
-    ControllerVisualiseDialog dlg(this, cud);
+    
+    ControllerVisualiseDialog dlg(this, cud, TextCtrlIpAddr->GetValue().ToStdString(), TextCtrl_Description->GetValue().ToStdString());
     dlg.ShowModal();
 }

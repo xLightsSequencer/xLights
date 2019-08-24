@@ -3196,7 +3196,7 @@ void xLightsFrame::VisualiseOutput(Output *e, wxWindow *parent) {
     if (!parent) {
         parent = this;
     }
-    ControllerVisualiseDialog dlg(parent, cud);
+    ControllerVisualiseDialog dlg(parent, cud, e->GetResolvedIP(), e->GetDescription());
     dlg.ShowModal();
 }
 

@@ -420,7 +420,7 @@ AVFrame* VideoReader::GetNextFrame(int timestampMS, int gracetime)
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 #endif
     
-    if (!_valid)
+    if (!_valid || _frames == 0)
     {
         return nullptr;
     }

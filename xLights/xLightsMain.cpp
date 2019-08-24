@@ -4234,6 +4234,10 @@ void xLightsFrame::OnMenuItemOGLRenderOrder(wxCommandEvent& event)
 
 void xLightsFrame::SaveWorkingLayout()
 {
+    // This should be removed in time as it is just a check ... it doesnt fix anything
+    // added so if we get crashes here which i have seen then i will know why it crashed
+    modelPreview->ValidateModels(AllModels);
+
     // update xml with offsets and scale
     for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
     {

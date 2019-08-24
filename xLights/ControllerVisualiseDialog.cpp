@@ -58,7 +58,7 @@ bool ControllerVisualisePrintout::OnPrintPage(int pageNum)
     return true;
 }
 
-ControllerVisualiseDialog::ControllerVisualiseDialog(wxWindow* parent, UDController& cud, wxWindowID id,const wxPoint& pos,const wxSize& size) : _cud(cud)
+ControllerVisualiseDialog::ControllerVisualiseDialog(wxWindow* parent, UDController& cud, const std::string& ip, const std::string& description, wxWindowID id,const wxPoint& pos,const wxSize& size) : _cud(cud), _ip(ip), _description(description)
 {
 	//(*Initialize(ControllerVisualiseDialog)
 	wxFlexGridSizer* FlexGridSizer1;
@@ -93,7 +93,7 @@ ControllerVisualiseDialog::ControllerVisualiseDialog(wxWindow* parent, UDControl
 	Connect(ID_SCROLLBAR2,wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&ControllerVisualiseDialog::OnScrollBar_HorizontalScrollChanged);
 	//*)
 
-	SetLabel(GetLabel() + " " + _cud.GetFirstOutput()->GetIP() + " " + _cud.GetFirstOutput()->GetDescription());
+	SetLabel(GetLabel() + " " + _ip + " " + _description);
 
     int countlines = 0;
     int countcolumns = 1;
@@ -259,9 +259,9 @@ void ControllerVisualiseDialog::RenderDiagram(wxDC& dc, int scale, bool addHeade
     dc.SetTextForeground(*wxBLACK);
 
     int rowPos = TOP_BOTTOM_MARGIN * scale;
-	if (addHeader)
+	if (addHeader )
 	{
-		dc.DrawText(_cud.GetFirstOutput()->GetIP() + " " + _cud.GetFirstOutput()->GetDescription(), LEFT_RIGHT_MARGIN * scale, rowPos);
+		dc.DrawText(_ip + " " + _description, LEFT_RIGHT_MARGIN * scale, rowPos);
 		rowPos += ((VERTICAL_SIZE / 2) * scale) + (VERTICAL_GAP * scale);
 	}
 
@@ -336,7 +336,7 @@ void ControllerVisualiseDialog::RenderDiagram(wxDC& dc, int scale, bool addHeade
 void ControllerVisualiseDialog::SaveCSV()
 {
 	wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
-	wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, _cud.GetFirstOutput()->GetIP(), wxEmptyString, "Export files (*.csv)|*.csv", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+	wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, _ip, wxEmptyString, "Export files (*.csv)|*.csv", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
 
 	if (filename.IsEmpty()) return;	
 
@@ -383,7 +383,7 @@ void ControllerVisualiseDialog::SaveCSV()
 		return;
 	}
 
-	wxString header = _cud.GetFirstOutput()->GetIP() + " " + _cud.GetFirstOutput()->GetDescription() + "\nOutput,";
+	wxString header = _ip + " " + _description + "\nOutput,";
 	for (int i = 1; i <= columnSize; i++)
 	{
 		header += wxString::Format("Model %d,", i);

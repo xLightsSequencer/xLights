@@ -25,10 +25,12 @@ public:
 class ControllerVisualiseDialog: public wxDialog
 {
     UDController& _cud;
+    std::string _ip;
+    std::string _description;
 
 	public:
 
-		ControllerVisualiseDialog(wxWindow* parent, UDController& cud, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
+		ControllerVisualiseDialog(wxWindow* parent, UDController& cud, const std::string& ip, const std::string& description, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
 		virtual ~ControllerVisualiseDialog();
 
 		//(*Declarations(ControllerVisualiseDialog)

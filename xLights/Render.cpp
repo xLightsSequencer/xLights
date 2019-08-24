@@ -1335,9 +1335,6 @@ void xLightsFrame::Render(const std::list<Model*> models,
             for (auto it = ranges.begin(); it != ranges.end(); ++it) {
                 FrameData fd = SeqData[f];
                 fd.Zero(it->start, it->end - it->start + 1);
-                //for (int x = it->start; x <= it->end; ++x) {
-                //    fd[x] = (unsigned char)0;
-                //}
             }
         }
     }
@@ -1365,6 +1362,7 @@ void xLightsFrame::Render(const std::list<Model*> models,
         }
     }
 
+    logger_render.debug("Job pool start size %d.", jobPool.size());
     for (row = 0; row < numRows; ++row) {
         if (jobs[row] && aggregators[row]->getNumAggregated() != 0) {
             //now start the rest
@@ -1372,8 +1370,7 @@ void xLightsFrame::Render(const std::list<Model*> models,
             ++count;
         }
     }
-
-    logger_base.debug("Jobs kicked off %d.", jobPool.size());
+    logger_base.debug("Job pool new size %d.", jobPool.size());
 
     if (count) {
         if (progressDialog) {

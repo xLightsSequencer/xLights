@@ -2906,29 +2906,29 @@ std::list<std::string> xLightsVamp::GetAvailablePlugins(AudioManager* paudio)
 	// Load the plugins in case they have not already been loaded
 	LoadPlugins(paudio);
 
-	for (std::vector<Vamp::Plugin *>::iterator it = _loadedPlugins.begin(); it != _loadedPlugins.end(); ++it)
+	for (auto& it : _loadedPlugins)
 	{
-		Plugin::OutputList outputs = (*it)->getOutputDescriptors();
+		Plugin::OutputList outputs = it->getOutputDescriptors();
 
-		for (Plugin::OutputList::iterator j = outputs.begin(); j != outputs.end(); ++j)
+		for (auto& j : outputs)
 		{
-			if (j->sampleType == Plugin::OutputDescriptor::FixedSampleRate ||
-				j->sampleType == Plugin::OutputDescriptor::OneSamplePerStep ||
-				!j->hasFixedBinCount ||
-				(j->hasFixedBinCount && j->binCount > 1))
+			if (j.sampleType == Plugin::OutputDescriptor::FixedSampleRate ||
+				j.sampleType == Plugin::OutputDescriptor::OneSamplePerStep ||
+				!j.hasFixedBinCount ||
+				(j.hasFixedBinCount && j.binCount > 1))
 			{
 				// We are filering out this from our return array
 				continue;
 			}
 
-			std::string name = std::string(wxString::FromUTF8((*it)->getName().c_str()).c_str());
+			std::string name = std::string(wxString::FromUTF8(it->getName().c_str()).c_str());
 
 			if (outputs.size() > 1)
 			{
 				// This is not the plugin's only output.
 				// Use "plugin name: output name" as the effect name,
 				// unless the output name is the same as the plugin name
-				std::string outputName = std::string(wxString::FromUTF8(j->name.c_str()).c_str());
+				std::string outputName = std::string(wxString::FromUTF8(j.name.c_str()).c_str());
 				if (outputName != name)
 				{
 					std::ostringstream stringStream;
@@ -2937,7 +2937,7 @@ std::list<std::string> xLightsVamp::GetAvailablePlugins(AudioManager* paudio)
 				}
 			}
 
-			_plugins[name] = (*it);
+			_plugins[name] = it;
 		}
 	}
 

@@ -10,6 +10,7 @@
 #include "Color.h"
 #include "xlGLCanvas.h"
 #include "ViewpointMgr.h"
+#include "models/ModelManager.h"
 
 #include <glm/mat4x4.hpp>
 #include <glm/glm.hpp>
@@ -79,6 +80,7 @@ public:
         Refresh();
     }
     const std::vector<Model*> &GetModels();
+    bool ValidateModels(const ModelManager& mm);
     void SetAdditionalModel(Model *m) {
         additionalModel = m;
         Refresh();

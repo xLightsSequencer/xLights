@@ -3062,10 +3062,12 @@ void LayoutPanel::OnPreviewLeftUp(wxMouseEvent& event)
 
 void LayoutPanel::FinalizeModel()
 {
+    xlights->AddTraceMessage("In LayoutPanel::FinalizeModel");
     if (m_polyline_active && m_over_handle > 1) {
         Model *m = newModel;
         if (m != nullptr)
         {
+            xlights->AddTraceMessage("LayoutPanel::FinalizeModel Polyline deleting handle.");
             m->DeleteHandle(m_over_handle);
         }
     }
@@ -3076,10 +3078,12 @@ void LayoutPanel::FinalizeModel()
     m_over_handle = NO_HANDLE;
 
     if (newModel != nullptr) {
+        xlights->AddTraceMessage("LayoutPanel::FinalizeModel New model is not null.");
         // cache the selected button as it may change during a download or some such event
         auto b = selectedButton;
         if (b != nullptr && (b->GetModelType() == "Import Custom" || b->GetModelType() == "Download"))
         {
+            xlights->AddTraceMessage("LayoutPanel::FinalizeModel We were downloading or importing.");
             float min_x = (float)(newModel->GetBaseObjectScreenLocation().GetLeft());
             float max_x = (float)(newModel->GetBaseObjectScreenLocation().GetRight());
             float min_y = (float)(newModel->GetBaseObjectScreenLocation().GetBottom());
@@ -3093,6 +3097,7 @@ void LayoutPanel::FinalizeModel()
             }
             newModel = Model::GetXlightsModel(newModel, _lastXlightsModel, xlights, cancelled, b->GetModelType() == "Download", &prog, 0, 99);
             if (cancelled || newModel == nullptr) {
+                xlights->AddTraceMessage("LayoutPanel::FinalizeModel Downloading or importing cancelled.");
                 newModel = nullptr;
                 modelPreview->SetCursor(wxCURSOR_DEFAULT);
                 b->SetState(0);
@@ -3101,12 +3106,14 @@ void LayoutPanel::FinalizeModel()
                 xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "FinalizeModel");
                 return;
             }
+            xlights->AddTraceMessage("LayoutPanel::FinalizeModel Do the import.");
             newModel->ImportXlightsModel(_lastXlightsModel, xlights, min_x, max_x, min_y, max_y);
             if (b->GetState() == 1)
             {
                 _lastXlightsModel = "";
             }
         }
+        xlights->AddTraceMessage("LayoutPanel::FinalizeModel Adding the model.");
         CreateUndoPoint("All", "", "");
         newModel->UpdateXmlWithScale();
         xlights->AllModels.AddModel(newModel);
@@ -3116,6 +3123,7 @@ void LayoutPanel::FinalizeModel()
         modelPreview->SetCursor(wxCURSOR_DEFAULT);
         modelPreview->SetAdditionalModel(nullptr);
         if (b != nullptr && b->GetState() == 1) {
+            xlights->AddTraceMessage("LayoutPanel::FinalizeModel Exiting done.");
             std::string name = newModel->name;
             newModel = nullptr;
             b->SetState(0);
@@ -3126,6 +3134,7 @@ void LayoutPanel::FinalizeModel()
             SelectBaseObject3D();
         }
         else {
+            xlights->AddTraceMessage("LayoutPanel::FinalizeModel Exiting but can draw another model.");
             newModel = nullptr;
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "FinalizeModel");
         }

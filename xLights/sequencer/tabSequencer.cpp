@@ -2032,6 +2032,19 @@ void xLightsFrame::OnEffectSettingsTimerTrigger(wxTimerEvent& event)
 
     // grab a copy of the pointer in case user clicks off the effect
     Effect* eff = selectedEffect;
+    
+    // This should not be necessary but i have seen enough crashes where accessing the eff at this point bombs out that I want to check it is valid
+    if (eff != nullptr)
+    {
+        if (!mSequenceElements.IsValidEffect(eff))
+        {
+            AddTraceMessage("Effect not null but when we checked validity it failed. THIS WOULD HAVE CRASHED.");
+            wxASSERT(false);
+            eff = nullptr;
+            logger_base.error("OnEffectSettingsTimerTrigger went to use the selectedEffect but the pointer did not point to a valid effect!!!");
+        }
+    }
+
     if (eff != nullptr && timingPanel->BitmapButton_CheckBox_LayerMorph->IsEnabled()) {
         AddTraceMessage("Effect not null and enabled");
 

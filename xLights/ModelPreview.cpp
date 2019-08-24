@@ -284,6 +284,32 @@ const std::vector<Model*> &ModelPreview::GetModels() {
     return tmpModelList;
 }
 
+// Checks that all models in the preview are valid
+bool ModelPreview::ValidateModels(const ModelManager& mm)
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    for (auto it : GetModels())
+    {
+        bool found = false;
+        for (auto it2 : mm)
+        {
+            if (it2.second == it)
+            {
+                found = true;
+                break;
+            }
+        }
+        if (!found)
+        {
+            // pointer to a non-existent model found ... not good
+            wxASSERT(false);
+            logger_base.error("Validating models in model preview %s found model %s was not valid. This may crash!!!!", (const char*)GetName().c_str());
+            return false;
+        }
+    }
+    return true;
+}
+
 void ModelPreview::SetModel(const Model* model) {
     if (model) {
         this->xlights = model->GetModelManager().GetXLightsFrame();

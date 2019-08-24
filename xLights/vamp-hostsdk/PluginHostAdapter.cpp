@@ -325,11 +325,14 @@ PluginHostAdapter::getMaxChannelCount() const
 PluginHostAdapter::OutputList
 PluginHostAdapter::getOutputDescriptors() const
 {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     OutputList list;
     if (!m_handle) {
-//        std::cerr << "PluginHostAdapter::getOutputDescriptors: no handle " << std::endl;
+        logger_base.warn("PluginHostAdapter::getOutputDescriptors: no handle");
         return list;
     }
+
+    logger_base.debug("Getting vamp descriptors for " + getName());
 
     unsigned int count = m_descriptor->getOutputCount(m_handle);
 
