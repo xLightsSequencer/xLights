@@ -5,6 +5,7 @@
 #include <wx/dir.h>
 #include <wx/socket.h>
 #include <wx/mimetype.h>
+#include <wx/display.h>
 
 #include "UtilFunctions.h"
 #include "xLightsVersion.h"
@@ -885,6 +886,20 @@ void OptimiseDialogPosition(wxDialog* dlg)
     wxSize sz = dlg->GetSize();
     pos.x -= sz.GetWidth() / 2;
     pos.y -= sz.GetHeight() / 2;
+
+    // ensure it is on a single screen
+    int d = wxDisplay::GetFromPoint(wxGetMousePosition());
+    if (d < 0) d = 0;
+    wxDisplay display(d);
+    if (display.IsOk())
+    {
+        wxRect displayRect = display.GetClientArea();
+        if (pos.y < displayRect.GetTop()) pos.y = displayRect.GetTop();
+        if (pos.y + sz.GetHeight() > displayRect.GetBottom()) pos.y = displayRect.GetBottom() - sz.GetHeight();
+        if (pos.x < displayRect.GetLeft()) pos.x = displayRect.GetLeft();
+        if (pos.x + sz.GetWidth() > displayRect.GetRight()) pos.x = displayRect.GetRight() - sz.GetWidth();
+    }
+
     dlg->SetPosition(pos);
 }
 
