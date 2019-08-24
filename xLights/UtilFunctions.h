@@ -15,6 +15,7 @@ void DisplayCrit(const std::string& crit, wxWindow* win = nullptr);
 std::string DecodeIPError(wxSocketError err);
 std::string Ordinal(int i);
 std::string DecodeMidi(int midi);
+wxArrayString Split(const wxString& s, const std::vector<char>& delimiters);
 bool DeleteDirectory(std::string directory);
 bool IsIPValid(const std::string &ip);
 bool IsIPValidOrHostname(const std::string &ip, bool iponly = false);

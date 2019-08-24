@@ -156,6 +156,37 @@ bool IsFileInShowDir(const wxString& showDir, const std::string filename)
     return fixedFile.StartsWith(showDir);
 }
 
+wxArrayString Split(const wxString& s, const std::vector<char>& delimiters)
+{
+    wxArrayString res;
+
+    wxString w;
+    for (auto it : s)
+    {
+        bool delim = false;
+        for (auto it2 : delimiters)
+        {
+            if (it == it2)
+            {
+                delim = true;
+                break;
+            }
+        }
+        if (delim)
+        {
+            res.Add(w);
+            w = "";
+        }
+        else
+        {
+            w += it;
+        }
+    }
+    res.Add(w);
+
+    return res;
+}
+
 wxString FixFile(const wxString& ShowDir, const wxString& file, bool recurse)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -195,7 +226,7 @@ wxString FixFile(const wxString& ShowDir, const wxString& file, bool recurse)
 #ifndef __WXMSW__
     wxFileName fnUnix(file, wxPATH_UNIX);
     wxFileName fn3(sd, fnUnix.GetFullName());
-    logger_base.debug("                   trying location : " + fn3.GetFullPath());
+    //logger_base.debug("                   trying location : " + fn3.GetFullPath());
     if (fn3.Exists()) {
         logger_base.debug("File location fixed: " + file + " -> " + fn3.GetFullPath());
         return fn3.GetFullPath();
@@ -203,7 +234,7 @@ wxString FixFile(const wxString& ShowDir, const wxString& file, bool recurse)
 #endif
     wxFileName fnWin(file, wxPATH_WIN);
     wxFileName fn4(sd, fnWin.GetFullName());
-    logger_base.debug("                   trying location : " + fn4.GetFullPath());
+    //logger_base.debug("                   trying location : " + fn4.GetFullPath());
     if (fn4.Exists()) {
         logger_base.debug("File location fixed: " + file + " -> " + fn4.GetFullPath());
         return fn4.GetFullPath();
@@ -242,7 +273,7 @@ wxString FixFile(const wxString& ShowDir, const wxString& file, bool recurse)
     if (appending) {
         newLoc += wxFileName::GetPathSeparator();
         newLoc += fnWin.GetFullName();
-        logger_base.debug("                   trying location : " + newLoc);
+        //logger_base.debug("                   trying location : " + newLoc);
         if (wxFileExists(newLoc)) {
             logger_base.debug("File location fixed: " + file + " -> " + newLoc);
             return newLoc;
@@ -263,7 +294,7 @@ wxString FixFile(const wxString& ShowDir, const wxString& file, bool recurse)
     if (appending) {
         newLoc += wxFileName::GetPathSeparator();
         newLoc += fnUnix.GetFullName();
-        logger_base.debug("                   trying location : " + newLoc);
+        //logger_base.debug("                   trying location : " + newLoc);
         if (wxFileExists(newLoc)) {
             logger_base.debug("File location fixed: " + file + " -> " + newLoc);
             return newLoc;
@@ -281,7 +312,7 @@ wxString FixFile(const wxString& ShowDir, const wxString& file, bool recurse)
         }
         wxFileName sdFn =  wxFileName::DirName(sd);
 
-        logger_base.debug("                   trying location : " + relative);
+        //logger_base.debug("                   trying location : " + relative);
         if (wxFileExists(relative))
         {
             logger_base.debug("File location fixed: " + file + " -> " + relative);

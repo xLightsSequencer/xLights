@@ -6224,20 +6224,8 @@ void xLightsFrame::CheckSequence(bool display)
         errcountsave = errcount;
         warncountsave = warncount;
 
-#define SLOWDRIVE 1000
-        std::list<std::pair<std::string, uint64_t>> slowaccess;
-        BadDriveAccess(allfiles, slowaccess, SLOWDRIVE);
-        if (slowaccess.size() > 0)
-        {
-            wxString msg = wxString::Format("    WARN: Test of access speed to files your sequence shows the following files take longer than the recommended %dms.", SLOWDRIVE / 1000);
-            LogAndWrite(f, msg.ToStdString());
-            for (auto it : slowaccess)
-            {
-                msg = wxString::Format("    %.2fms  %s.", (float)((double)it.second / 1000.0), (const char*)it.first.c_str());
-                LogAndWrite(f, msg);
-            }
-            warncount++;
-        }
+        LogAndWrite(f, "");
+        LogAndWrite(f, "-----------------------------------------------------------------------------------------------------------------");
 
         LogAndWrite(f, "");
         LogAndWrite(f, "If you are planning on importing this sequence be aware the sequence relies on the following items that will not be imported.");
@@ -6262,12 +6250,86 @@ void xLightsFrame::CheckSequence(bool display)
             wxString msg = wxString::Format("        Viewpoint: %s.", it);
             LogAndWrite(f, msg.ToStdString());
         }
+
+        LogAndWrite(f, "");
+        LogAndWrite(f, "-----------------------------------------------------------------------------------------------------------------");
+
     }
     else
     {
         LogAndWrite(f, "");
         LogAndWrite(f, "No sequence loaded so sequence checks skipped.");
     }
+
+    LogAndWrite(f, "");
+    LogAndWrite(f, "Checking problems with file access times.");
+
+#define SLOWDRIVE 1000
+    std::list<std::pair<std::string, uint64_t>> slowaccess;
+    BadDriveAccess(allfiles, slowaccess, SLOWDRIVE);
+    if (slowaccess.size() > 0)
+    {
+        wxString msg = wxString::Format("    WARN: Test of access speed to files your sequence shows the following files take longer than the recommended %dms.", SLOWDRIVE / 1000);
+        LogAndWrite(f, msg.ToStdString());
+        for (auto it : slowaccess)
+        {
+            msg = wxString::Format("    %.2fms  %s.", (float)((double)it.second / 1000.0), (const char*)it.first.c_str());
+            LogAndWrite(f, msg);
+        }
+        warncount++;
+    }
+
+    if (errcount + warncount == errcountsave + warncountsave)
+    {
+        LogAndWrite(f, "    No problems found");
+    }
+
+    errcountsave = errcount;
+    warncountsave = warncount;
+
+    LogAndWrite(f, "");
+    LogAndWrite(f, "Checking problems with file paths containing repeated use of show folder name.");
+
+    std::vector<char> delimiters = { '\\', '/' };
+    for (auto it : allfiles)
+    {
+        wxString showdir = showDirectory;
+        wxString sd2 = showdir.AfterLast('\\');
+        wxString sd3 = showdir.AfterLast('/');
+        if (sd2.Length() > 0 && sd2.Length() < showdir.Length()) showdir = sd2;
+        if (sd3.Length() > 0 && sd3.Length() < showdir.Length()) showdir = sd3;
+
+        wxString ff = FixFile(showDirectory, it);
+        if (wxFile::Exists(ff))
+        {
+            ff = ff.substr(showDirectory.Length());
+            wxArrayString folders = Split(ff, delimiters);
+
+            for (auto it2 : folders)
+            {
+                if (it2 == showdir)
+                {
+                    wxString msg = wxString::Format("    WARN: path to file %s contains the show folder name '%s' more than once. This will make it hard to move sequence to other computers as it wont be able to fix paths automatically.", (const char*)it.c_str(), (const char*)showdir.c_str());
+                    LogAndWrite(f, msg.ToStdString());
+                    warncount++;
+                }
+            }
+        }
+        else
+        {
+            wxString msg = wxString::Format("    WARN: Unable to check file %s because it was not found. If this location is on another computer please run check sequence there to check this condition properly.", (const char*)it.c_str());
+            LogAndWrite(f, msg.ToStdString());
+            warncount++;
+        }
+    }
+
+    if (errcount + warncount == errcountsave + warncountsave)
+    {
+        LogAndWrite(f, "    No problems found");
+    }
+
+    errcountsave = errcount;
+    warncountsave = warncount;
 
     LogAndWrite(f, "");
     LogAndWrite(f, "Check sequence done.");
