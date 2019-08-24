@@ -4,6 +4,10 @@
 #include "EffectPanelUtils.h"
 #include "ShaderDownloadDialog.h"
 
+#include "../xLightsMain.h"
+#include "../xLightsApp.h"
+#include "../TimingPanel.h"
+
 //(*InternalHeaders(ShaderPanel)
 #include <wx/artprov.h>
 #include <wx/bitmap.h>
@@ -174,7 +178,15 @@ bool ShaderPanel::BuildUI(const wxString& filename)
     {
         wxString desc = _shaderConfig->GetDescription();
         if (desc != "") desc += "\n";
-        if (_shaderConfig->IsCanvasShader())desc += "Use Canvas Mode for this shader.";
+		if (_shaderConfig->IsCanvasShader())
+		{
+			desc += "Use Canvas Mode for this shader.";
+
+			// Turn on canvas mode as this really only makes sense in canvas mode
+			xLightsFrame* frame = xLightsApp::GetFrame();
+			TimingPanel* layerBlendingPanel = frame->GetLayerBlendingPanel();
+			layerBlendingPanel->CheckBox_Canvas->SetValue(true);
+		}
         FilePickerCtrl1->SetToolTip(desc);
 
         for (auto it : _shaderConfig->GetParms())
