@@ -131,14 +131,14 @@ PINGSTATE IPOutput::Ping(const std::string& ip, const std::string& proxy)
 
         char SendData[32] = "Data Buffer";
         uint32_t ReplySize = sizeof(ICMP_ECHO_REPLY) + sizeof(SendData);
-        void* ReplyBuffer = malloc(ReplySize);
+        ICMP_ECHO_REPLY* ReplyBuffer = (ICMP_ECHO_REPLY*)malloc(ReplySize);
         if (ReplyBuffer == nullptr) {
             IcmpCloseHandle(hIcmpFile);
             return PINGSTATE::PING_ALLFAILED;
         }
 
         uint32_t dwRetVal = IcmpSendEcho(hIcmpFile, ipaddr, SendData, sizeof(SendData), nullptr, ReplyBuffer, ReplySize, 1000);
-        if (dwRetVal != 0) {
+        if (dwRetVal != 0 && ReplyBuffer->Status == 0) {
             IcmpCloseHandle(hIcmpFile);
             free(ReplyBuffer);
             return PINGSTATE::PING_OK;
