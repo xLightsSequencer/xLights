@@ -225,9 +225,9 @@ void PlayListItemText::Stop()
 
 std::string PlayListItemText::GetTooltip(const std::string& type)
 {
-    std::string tt = "Available variables:\n";
+    std::string tt = GetTagHint();
     
-    tt += "    %TEXT% - text field\n\n";
+    tt += "\n\n    %TEXT% - text field\n\n";
 
     tt += "    Current Date/Time\n";
     tt += "        %DAY%, %MONTH%, %YEAR4%, %YEAR2%\n";
@@ -324,6 +324,7 @@ wxString PlayListItemText::GetText(size_t ms)
         working.Replace("%FILE_DATA%", fileData);
     }
 
+    working = ReplaceTags(working);
     working.Replace("%TEXT%", _text);
 
     // countdown to date
