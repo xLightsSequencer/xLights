@@ -352,7 +352,14 @@ void ControllerVisualiseDialog::SaveCSV()
 
 		for (auto it : _cud.GetControllerPixelPort(i)->GetModels())
 		{
-			line += it->GetName();
+			if (it->GetSmartRemote() > 0)
+			{
+				char remote = ('@' + it->GetSmartRemote());
+				line += "Remote ";
+				line += remote;
+				line += ":";
+			}
+			line += it->GetName();			
 			line += ",";
 		}				
 		
