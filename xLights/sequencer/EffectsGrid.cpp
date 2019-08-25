@@ -328,7 +328,7 @@ void EffectsGrid::rightClick(wxMouseEvent& event)
         wxMenuItem* menu_effect_description = mnuLayer.Append(ID_GRID_MNU_DESCRIPTION, "Description");
         wxMenuItem* menu_effect_lock = mnuLayer.Append(ID_GRID_MNU_LOCK, "Lock");
         wxMenuItem* menu_effect_unlock = mnuLayer.Append(ID_GRID_MNU_UNLOCK, "Unlock");
-        if (mSelectedEffect == nullptr && !MultipleEffectsSelected())
+        if (mSelectedEffect == nullptr && !AtLeastOneEffectSelected())
         {
             menu_effect_description->Enable(false);
             menu_effect_unlock->Enable(false);
@@ -372,7 +372,7 @@ void EffectsGrid::rightClick(wxMouseEvent& event)
         mnuLayer.AppendSeparator();
         wxMenuItem* menu_effect_lock = mnuLayer.Append(ID_GRID_MNU_LOCK, "Lock");
         wxMenuItem* menu_effect_unlock = mnuLayer.Append(ID_GRID_MNU_UNLOCK, "Unlock");
-        if (mSelectedEffect == nullptr && !MultipleEffectsSelected())
+        if (mSelectedEffect == nullptr && !AtLeastOneEffectSelected())
         {
             menu_effect_unlock->Enable(false);
             menu_effect_lock->Enable(false);
@@ -382,7 +382,7 @@ void EffectsGrid::rightClick(wxMouseEvent& event)
         wxMenuItem* menu_copy = mnuLayer.Append(ID_GRID_MNU_COPY,"Copy");
         wxMenuItem* menu_paste = mnuLayer.Append(ID_GRID_MNU_PASTE,"Paste");
         wxMenuItem* menu_delete = mnuLayer.Append(ID_GRID_MNU_DELETE,"Delete");
-        if( mSelectedEffect == nullptr && !MultipleEffectsSelected() ) {
+        if( mSelectedEffect == nullptr && !AtLeastOneEffectSelected()) {
             menu_cut->Enable(false);
             menu_copy->Enable(false);
             menu_delete->Enable(false);
@@ -4055,7 +4055,7 @@ void EffectsGrid::LockEffects(bool lock)
 {
     if (mSequenceElements == nullptr) return;
 
-    if (mSelectedEffect != nullptr || MultipleEffectsSelected())
+    if (mSelectedEffect != nullptr || AtLeastOneEffectSelected())
     {
         auto efs = GetSelectedEffects();
         // add in the selected effect if we didnt get it
@@ -4092,7 +4092,7 @@ void EffectsGrid::SetEffectsDescription()
     if (mSequenceElements == nullptr) return;
 
     bool oktocont = true;
-    if (mSelectedEffect != nullptr || MultipleEffectsSelected())
+    if (mSelectedEffect != nullptr || AtLeastOneEffectSelected())
     {
         auto efs = GetSelectedEffects();
         // add in the selected effect if we didnt get it
