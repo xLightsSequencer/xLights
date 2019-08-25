@@ -759,8 +759,8 @@ void CustomModel::InitCustomMatrix(const std::string& customModel) {
                         Nodes[nodemap[idx]]->AddBufCoord(layer * width + col, height - row - 1);
                         auto& c = Nodes[nodemap[idx]]->Coords.back();
                         c.screenX = (float)col - width / 2.0f;
-                        c.screenY = height - (float)row - 10 - height / 2.0f;
-                        c.screenZ = depth - (float)layer - 1.0 - depth / 2.0f;
+                        c.screenY = height - (float)row - 1.0f - height / 2.0f;
+                        c.screenZ = depth - (float)layer - 1.0f - depth / 2.0f;
                     }
                 }
                 col++;
