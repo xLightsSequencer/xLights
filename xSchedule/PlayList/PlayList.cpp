@@ -1093,9 +1093,9 @@ PlayListStep* PlayList::GetStep(const std::string& step)
 {
     {
         ReentrancyCounter rec(_reentrancyCounter);
-        for (auto it = _steps.begin(); it != _steps.end(); ++it)
+        for (auto& it : _steps)
         {
-            if (wxString((*it)->GetNameNoTime()).Lower() == wxString(step).Lower()) return (*it);
+            if (wxString(it->GetNameNoTime()).Lower() == wxString(step).Lower()) return it;
         }
     }
 
@@ -1298,16 +1298,16 @@ size_t PlayList::GetPosition()
     size_t pos = 0;
     {
         ReentrancyCounter rec(_reentrancyCounter);
-        for (auto it = _steps.begin(); it != _steps.end(); ++it)
+        for (auto& it : _steps)
         {
-            if ((*it) == GetRunningStep())
+            if (it == GetRunningStep())
             {
-                pos += (*it)->GetPosition();
+                pos += it->GetPosition();
                 break;
             }
             else
             {
-                pos += (*it)->GetLengthMS();
+                pos += it->GetLengthMS();
             }
         }
     }
@@ -1330,7 +1330,7 @@ bool PlayList::IsSimple()
 {
     {
         ReentrancyCounter rec(_reentrancyCounter);
-        for (auto it : _steps)
+        for (auto& it : _steps)
         {
             if (!it->IsSimple())
             {
@@ -1338,7 +1338,7 @@ bool PlayList::IsSimple()
             }
         }
 
-        for (auto it: _everySteps)
+        for (auto& it: _everySteps)
         {
             if (!it->IsSimple())
             {
@@ -1354,9 +1354,9 @@ Schedule* PlayList::GetSchedule(int id)
 {
     {
         ReentrancyCounter rec(_reentrancyCounter);
-        for (auto it = _schedules.begin(); it != _schedules.end(); ++it)
+        for (auto& it : _schedules)
         {
-            if ((*it)->GetId() == id) return *it;
+            if (it->GetId() == id) return it;
         }
     }
 
@@ -1367,9 +1367,9 @@ Schedule* PlayList::GetSchedule(const std::string& name)
 {
     {
         ReentrancyCounter rec(_reentrancyCounter);
-        for (auto it = _schedules.begin(); it != _schedules.end(); ++it)
+        for (auto& it : _schedules)
         {
-            if (wxString((*it)->GetName()).Lower() == wxString(name).Lower()) return *it;
+            if (wxString(it->GetName()).Lower() == wxString(name).Lower()) return it;
         }
     }
 
@@ -1390,17 +1390,17 @@ void PlayList::RemoveEmptySteps()
             logger_base.warn("PlayList removing empty steps but we appear to be manipulating it elsewhere. This may not end well.");
         }
 
-        for (auto it = _steps.begin(); it != _steps.end(); ++it)
+        for (auto& it : _steps)
         {
-            if ((*it)->GetItems().size() == 0)
+            if (it->GetItems().size() == 0)
             {
-                toremove.push_back(*it);
+                toremove.push_back(it);
             }
         }
 
-        for (auto it = toremove.begin(); it != toremove.end(); ++it)
+        for (auto& it : toremove)
         {
-            _steps.remove(*it);
+            _steps.remove(it);
         }
     }
 }
@@ -1415,7 +1415,7 @@ PlayListItemText* PlayList::GetRunningText(const std::string& name)
 
         if (ti == nullptr)
         {
-            for (auto it: _everySteps)
+            for (auto& it : _everySteps)
             {
                 ti = it->GetTextItem(name);
                 if (ti != nullptr) break;
@@ -1475,7 +1475,7 @@ PlayListStep* PlayList::GetStepWithFSEQ(const std::string fseqFile)
 {
     {
         ReentrancyCounter rec(_reentrancyCounter);
-        for (auto it: _steps)
+        for (auto& it : _steps)
         {
             if (it->IsRunningFSEQ(fseqFile))
             {
@@ -1491,12 +1491,12 @@ PlayListStep* PlayList::GetStepWithTimingName(const std::string timingName)
 {
     {
         ReentrancyCounter rec(_reentrancyCounter);
-        for (auto it = _steps.begin(); it != _steps.end(); ++it)
+        for (auto& it : _steps)
         {
             size_t ms;
-            if ((*it)->GetTimeSource(ms) != nullptr && (*it)->GetTimeSource(ms)->GetNameNoTime() == timingName)
+            if (it->GetTimeSource(ms) != nullptr && it->GetTimeSource(ms)->GetNameNoTime() == timingName)
             {
-                return *it;
+                return it;
             }
         }
     }
@@ -1510,9 +1510,9 @@ PlayListItem* PlayList::FindRunProcessNamed(const std::string& item)
 
     {
         ReentrancyCounter rec(_reentrancyCounter);
-        for (auto it = _steps.begin(); it != _steps.end(); ++it)
+        for (auto& it : _steps)
         {
-            pli = (*it)->FindRunProcessNamed(item);
+            pli = it->FindRunProcessNamed(item);
 
             if (pli != nullptr) break;
         }
@@ -1525,11 +1525,11 @@ PlayListStep* PlayList::GetStepContainingPlayListItem(wxUint32 id)
 {
     {
         ReentrancyCounter rec(_reentrancyCounter);
-        for (auto it = _steps.begin(); it != _steps.end(); ++it)
+        for (auto& it : _steps)
         {
-            if ((*it)->GetItem(id) != nullptr)
+            if (it->GetItem(id) != nullptr)
             {
-                return *it;
+                return it;
             }
         }
     }
@@ -1543,9 +1543,9 @@ std::string PlayList::GetNextScheduledTime()
 
     {
         ReentrancyCounter rec(_reentrancyCounter);
-        for (auto it = _schedules.begin(); it != _schedules.end(); ++it)
+        for (auto& it : _schedules)
         {
-            wxDateTime dt = (*it)->GetNextTriggerDateTime();
+            wxDateTime dt = it->GetNextTriggerDateTime();
 
             if (dt != wxDateTime(static_cast<time_t>(0)))
             {
@@ -1578,9 +1578,9 @@ PlayListItem* PlayList::GetItem(wxUint32 id)
 {
     {
         ReentrancyCounter rec(_reentrancyCounter);
-        for (auto it = _steps.begin(); it != _steps.end(); ++it)
+        for (auto& it : _steps)
         {
-            auto i = (*it)->GetItem(id);
+            auto i = it->GetItem(id);
             if (i != nullptr) return i;
         }
     }

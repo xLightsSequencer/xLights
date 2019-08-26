@@ -24,7 +24,7 @@ PlayerWindow::PlayerWindow(wxWindow* parent, bool topMost, wxImageResizeQuality 
     _quality = quality;
     _swsQuality = swsQuality;
     _image = wxImage(size, true);
-    _lastImage = wxImage(1, 1, true);
+    _inputImage = wxImage(1, 1, true);
 #ifndef __WXOSX__
     SetDoubleBuffered(true);
 #endif
@@ -67,84 +67,123 @@ PlayerWindow::~PlayerWindow()
 {
 }
 
+bool PlayerWindow::PrepareImage()
+{
+    static log4cpp::Category& logger_frame = log4cpp::Category::getInstance(std::string("log_frame"));
+
+    if (_imageChanged)
+    {
+        if (_mutex.try_lock_for(std::chrono::milliseconds(1)))
+        {
+            wxStopWatch sw;
+
+            if (_inputImage.IsOk())
+            {
+                logger_frame.debug("Updating Player Window image");
+
+                int width = 0;
+                int height = 0;
+                GetSize(&width, &height);
+
+                int srcWidth = _inputImage.GetWidth();
+                int srcHeight = _inputImage.GetHeight();
+
+                if (_swsQuality < 0)
+                {
+                    _image.Destroy();
+                    _image = _inputImage.Copy();
+                    if (srcWidth != width || srcHeight != height)
+                    {
+                        _image.Rescale(width, height, _quality);
+                    }
+                }
+                else
+                {
+                    // THIS DOES NOT WORK YET ... NOT SURE WHY
+                    wxASSERT(false);
+                    if (_image.GetWidth() != width || _image.GetHeight() != height)
+                    {
+                        _image.Destroy();
+                        _image = wxImage(width, height);
+                    }
+
+                    if (srcWidth != width || srcHeight != height)
+                    {
+
+                        SwsContext* swsCtx = sws_getContext(srcWidth, srcHeight, AVPixelFormat::AV_PIX_FMT_RGB24,
+                            width, height, AVPixelFormat::AV_PIX_FMT_RGB24,
+                            _swsQuality, nullptr, nullptr, nullptr);
+
+                        const int srcRow = srcWidth * 3;
+                        const int dstRow = width * 3;
+                        const uint8_t* srcPtr = (uint8_t*)_inputImage.GetData();
+                        uint8_t* const dstPtr = (uint8_t*)_image.GetData();
+
+                        sws_scale(swsCtx,
+                            &srcPtr, &srcRow,
+                            0, height,
+                            &dstPtr, &dstRow);
+
+                        sws_freeContext(swsCtx);
+                    }
+                    else
+                    {
+                        _image.Destroy();
+                        _image = _inputImage.Copy();
+                    }
+                }
+                logger_frame.debug("Player Window image updated %ldms", sw.Time());
+            }
+            _mutex.unlock();
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 void PlayerWindow::SetImage(const wxImage& image)
 {
     static log4cpp::Category &logger_frame = log4cpp::Category::getInstance(std::string("log_frame"));
 
     if (image.IsOk())
     {
-        int width = 0;
-        int height = 0;
-        GetSize(&width, &height);
-
         int srcWidth = image.GetWidth();
-        int srcHeight= image.GetHeight();
+        int srcHeight = image.GetHeight();
 
-        bool changed = srcWidth != _lastImage.GetWidth() ||
-            srcHeight != _lastImage.GetHeight() ||
-            memcmp(_lastImage.GetData(), image.GetData(), srcWidth * srcHeight * 3) != 0;
+        std::unique_lock<std::timed_mutex> lock(_mutex);
+
+        int tgtWidth = _inputImage.GetWidth();
+        int tgtHeight = _inputImage.GetHeight();
+
+        bool changed = srcWidth != tgtWidth ||
+            srcHeight != tgtHeight ||
+            memcmp(_inputImage.GetData(), image.GetData(), srcWidth * srcHeight * 3) != 0;
 
         if (changed)
         {
-            wxStopWatch sw;
-            logger_frame.debug("Updating Player Window image");
-
-            _lastImage.Destroy();
-            _lastImage = image.Copy();
-
-            if (_swsQuality < 0)
-            {
-                _image.Destroy();
-                _image = image.Copy();
-                if (_image.GetWidth() != width || _image.GetHeight() != height)
-                {
-                    _image.Rescale(width, height, _quality);
-                }
-            }
-            else
-            {
-                // THIS DOES NOT WORK YET ... NOT SURE WHY
-                wxASSERT(false);
-                if (_image.GetWidth() != width || _image.GetHeight() != height)
-                {
-                    _image.Destroy();
-                    _image = wxImage(width, height);
-                }
-
-                if (image.GetWidth() != width || image.GetHeight() != height)
-                {
-                    SwsContext *swsCtx = sws_getContext(srcWidth, srcHeight, AVPixelFormat::AV_PIX_FMT_RGB24, 
-                                                         width, height, AVPixelFormat::AV_PIX_FMT_RGB24, 
-                                                         _swsQuality, nullptr, nullptr, nullptr);
-
-                    const int srcRow = srcWidth * 3;
-                    const int dstRow = width * 3;
-                    const uint8_t* srcPtr = (uint8_t*)image.GetData();
-                    uint8_t* const dstPtr = (uint8_t*)_image.GetData();
-
-                    sws_scale(swsCtx, 
-                              &srcPtr, &srcRow, 
-                              0, height, 
-                              &dstPtr, &dstRow);
-
-                    sws_freeContext(swsCtx);
-                }
-                else
-                {
-                    _image.Destroy();
-                    _image = image.Copy();
-                }
-            }
-            logger_frame.debug("Player Window updated %ldms", sw.Time());
+            _inputImage.Destroy();
+            _inputImage = image.Copy();
+            _imageChanged = true;
+            Refresh(false); // force a paint on the main thread
         }
     }
-    Refresh(false);
 }
 
 void PlayerWindow::Paint(wxPaintEvent& event)
 {
-    wxPaintDC dc(this);
+    wxASSERT(wxThread::IsMain());
 
+    // ensure the image is ready for drawing
+    if (!PrepareImage())
+    {
+        Refresh(false); // we failed to get the new image so we will need to paint again
+    }
+
+    wxPaintDC dc(this);
     dc.DrawBitmap(_image, 0, 0);
 }
 

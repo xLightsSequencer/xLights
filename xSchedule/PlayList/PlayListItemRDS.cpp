@@ -20,13 +20,8 @@ class EDMRDSThread : public wxThread
     std::string _commPort;
 
 public:
-    EDMRDSThread(std::string text, std::string stationName, std::string commPort)
-    {
-        _text = text;
-        _stationName = stationName;
-        _commPort = commPort;
-    }
-    virtual ~EDMRDSThread() { }
+    EDMRDSThread(const std::string& text, const std::string& stationName, const std::string& commPort) :
+        _text(text), _stationName(stationName), _commPort(commPort) { }
 
     virtual void* Entry() override
     {
@@ -153,11 +148,6 @@ public:
 
 PlayListItemRDS::PlayListItemRDS(wxXmlNode* node) : PlayListItem(node)
 {
-    _type = "PLIRDS";
-    _started = false;
-    _stationName = "";
-    _commPort = "COM1";
-    _text = "";
     PlayListItemRDS::Load(node);
 }
 
@@ -172,10 +162,6 @@ void PlayListItemRDS::Load(wxXmlNode* node)
 PlayListItemRDS::PlayListItemRDS() : PlayListItem()
 {
     _type = "PLIRDS";
-    _started = false;
-    _stationName = "";
-    _commPort = "COM1";
-    _text = "";
 }
 
 PlayListItemRDS::~PlayListItemRDS() { }

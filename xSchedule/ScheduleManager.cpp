@@ -1926,7 +1926,8 @@ bool ScheduleManager::Action(const wxString& command, const wxString& parameters
                         }
                         else
                         {
-                            rate = p->JumpToNextStep();
+                            p->JumpToNextStep();
+                            rate = 25; // always start fast                        
                         }
                     }
                     scheduleChanged = true;
@@ -1971,7 +1972,8 @@ bool ScheduleManager::Action(const wxString& command, const wxString& parameters
 
                     if (p != nullptr)
                     {
-                        rate = p->JumpToPriorStep();
+                        p->JumpToPriorStep();
+                        rate = 25; // always start fast                        }
                     }
                     scheduleChanged = true;
                 }
@@ -2552,7 +2554,8 @@ bool ScheduleManager::Action(const wxString& command, const wxString& parameters
 
                     if (p != nullptr)
                     {
-                        rate = p->JumpToStep(parameters);
+                        p->JumpToStep(parameters);
+                        rate = 25; // always start fast                        }
                     }
                     scheduleChanged = true;
                 }
@@ -2575,7 +2578,8 @@ bool ScheduleManager::Action(const wxString& command, const wxString& parameters
                         auto r = p->GetRandomStep();
                         if (r != nullptr)
                         {
-                            rate = p->JumpToStep(r->GetNameNoTime());
+                            p->JumpToStep(r->GetNameNoTime());
+                            rate = 25; // always start fast                        }
                             scheduleChanged = true;
                         }
                     }
@@ -4111,15 +4115,15 @@ void ScheduleManager::CheckScheduleIntegrity(bool display)
     int warncountsave = 0;
 
     wxFile f;
-    wxString filename = wxFileName::CreateTempFileName("xLightsCheckSequence") + ".txt";
+    wxString filename = wxFileName::CreateTempFileName("xLightsCheckSchedule") + ".txt";
 
     if (display)
     {
         f.Open(filename, wxFile::write);
         if (!f.IsOpened())
         {
-            logger_base.warn("Unable to create results file for Check Sequence. Aborted.");
-            wxMessageBox(_("Unable to create results file for Check Sequence. Aborted."), _("Error"));
+            logger_base.warn("Unable to create results file for Check Schedule. Aborted.");
+            wxMessageBox(_("Unable to create results file for Check Schedule. Aborted."), _("Error"));
             return;
         }
     }
@@ -5262,7 +5266,7 @@ void ScheduleManager::StartTiming(const std::string timingName)
     {
         logger_base.debug("... Starting %s %s.", (const char *)pl->GetNameNoTime().c_str(), (const char *)pls->GetNameNoTime().c_str());
 
-        size_t rate;
+        size_t rate = 0;
         PlayPlayList(pl, rate, false, pls->GetNameNoTime(), true);
 
         wxCommandEvent event1(EVT_FRAMEMS);
@@ -5304,7 +5308,7 @@ void ScheduleManager::StartStep(const std::string stepName)
     {
         logger_base.debug("... Starting %s %s.", (const char *)pl->GetNameNoTime().c_str(), (const char *)pls->GetNameNoTime().c_str());
 
-        size_t rate;
+        size_t rate = 0;
         PlayPlayList(pl, rate, false, pls->GetNameNoTime(), true);
 
         wxCommandEvent event1(EVT_FRAMEMS);

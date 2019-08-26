@@ -13,10 +13,10 @@ protected:
 
     #pragma region Member Variables
     std::string _url;
-    std::string _curltype;
+    std::string _curltype = "GET";
     std::string _body;
     std::string _contentType;
-    bool _started;
+    bool _started = false;
     #pragma endregion Member Variables
 
 public:

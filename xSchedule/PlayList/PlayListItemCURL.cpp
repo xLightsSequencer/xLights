@@ -10,13 +10,44 @@
 
 #include <log4cpp/Category.hh>
 
+class CurlThread : public wxThread
+{
+    std::string _url;
+    std::string _body;
+    std::string _type;
+    std::string _contenttype;
+
+public:
+    CurlThread(const std::string& url, const std::string& body, const std::string& type, const std::string& contenttype) : 
+        _url(url), _body(body), _type(type), _contenttype(contenttype) { }
+
+    virtual void* Entry() override
+    {
+        log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+        logger_base.debug("PlayListCurl in thread.");
+
+        logger_base.info("Calling URL %s.", (const char*)_url.c_str());
+
+        if (_type == "POST")
+        {
+            auto res = Curl::HTTPSPost(_url, _body, "", "", _contenttype);
+            logger_base.info("CURL POST : %s", (const char*)res.c_str());
+        }
+        else
+        {
+            auto res = Curl::HTTPSGet(_url);
+            logger_base.info("CURL GET: %s", (const char*)res.c_str());
+        }
+
+        logger_base.debug("PlayListCurl thread done.");
+
+        return nullptr;
+    }
+};
+
 PlayListItemCURL::PlayListItemCURL(wxXmlNode* node) : PlayListItem(node)
 {
-    _started = false;
-    _url = "";
-    _curltype = "GET";
-    _body = "";
-    _contentType = "";
     PlayListItemCURL::Load(node);
 }
 
@@ -32,11 +63,6 @@ void PlayListItemCURL::Load(wxXmlNode* node)
 PlayListItemCURL::PlayListItemCURL() : PlayListItem()
 {
     _type = "PLICURL";
-    _started = false;
-    _url = "";
-    _curltype = "GET";
-    _body = "";
-    _contentType = "";
 }
 
 PlayListItem* PlayListItemCURL::Copy() const
@@ -96,6 +122,7 @@ std::string PlayListItemCURL::GetTooltip()
 
 void PlayListItemCURL::Frame(uint8_t* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
 {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (ms >= _delay && !_started)
     {
         _started = true;
@@ -103,25 +130,15 @@ void PlayListItemCURL::Frame(uint8_t* buffer, size_t size, size_t ms, size_t fra
         std::string url = ReplaceTags(_url);
         std::string body = ReplaceTags(_body);
 
-        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.info("Calling URL %s.", (const char *)url.c_str());
-
-        if (url == "")
+        if (_url == "")
         {
-            logger_base.warn("URL '' invalid.", (const char *)url.c_str());
+            logger_base.warn("PlayListItemCURL: URL '%s' invalid.", (const char*)url.c_str());
             return;
         }
 
-        if (_curltype == "POST")
-        {
-            auto res = Curl::HTTPSPost(url, _body, "", "", _contentType);
-            logger_base.info("CURL POST : %s", (const char*)res.c_str());
-        }
-        else
-        {
-            auto res = Curl::HTTPSGet(url);
-            logger_base.info("CURL GET: %s", (const char*)res.c_str());
-        }
+        CurlThread* thread = new CurlThread(url, body, _type, _contentType);
+        thread->Run();
+        wxMicroSleep(1); // encourage the thread to run
     }
 }
 

@@ -870,6 +870,8 @@ void xScheduleFrame::LoadSchedule()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
+    wxASSERT(wxThread::IsMain());
+
     logger_base.debug("Loading schedule.");
 
     if (_pinger != nullptr)
@@ -1484,6 +1486,8 @@ void xScheduleFrame::UpdateSchedule()
 {
     if (__schedule == nullptr) return;
 
+    wxASSERT(wxThread::IsMain());
+
     static log4cpp::Category &logger_frame = log4cpp::Category::getInstance(std::string("log_frame"));
     wxStopWatch sw;
     logger_frame.debug("Updating the schedule.");
@@ -1730,7 +1734,7 @@ void xScheduleFrame::RunAction(wxCommandEvent& event)
 
     if (a.Count() == 2)
     {
-        size_t rate;
+        size_t rate = 0;
         wxString msg;
         __schedule->Action(a[0], a[1], "", nullptr, nullptr, rate, msg);
         if (msg != "")
@@ -1922,7 +1926,7 @@ void xScheduleFrame::OnListView_RunningItemActivated(wxListEvent& event)
 
     if (selected >= 0 && p != nullptr && p->GetRunningStep()->GetNameNoTime() != ListView_Running->GetItemText(selected, 0))
     {
-        size_t rate;
+        size_t rate = 0;
         wxString msg;
         __schedule->Action("Jump to specified step in current playlist", ListView_Running->GetItemText(selected, 0), "", p, nullptr, rate, msg);
     }
@@ -1942,6 +1946,8 @@ std::string FormatTime(size_t timems, bool ms = false)
 
 void xScheduleFrame::UpdateStatus(bool force)
 {
+    wxASSERT(wxThread::IsMain());
+
     wxStopWatch sw;
     static log4cpp::Category &logger_frame = log4cpp::Category::getInstance(std::string("log_frame"));
     logger_frame.debug("            Update Status");
@@ -3044,6 +3050,8 @@ void xScheduleFrame::DoAction(wxCommandEvent& event)
 
 void xScheduleFrame::UpdateUI(bool force)
 {
+    wxASSERT(wxThread::IsMain());
+
     wxStopWatch sw;
     static log4cpp::Category &logger_frame = log4cpp::Category::getInstance(std::string("log_frame"));
     logger_frame.debug("        Update UI");

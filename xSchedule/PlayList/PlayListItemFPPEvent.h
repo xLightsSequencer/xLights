@@ -12,10 +12,10 @@ class PlayListItemFPPEvent : public PlayListItem
 protected:
 
     #pragma region Member Variables
-    int _major;
-    int _minor;
+    int _major = 1;
+    int _minor = 1;
     std::string _ip;
-    bool _started;
+    bool _started = false;
     #pragma endregion Member Variables
 
     std::string GetEventString() const;

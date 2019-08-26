@@ -92,7 +92,7 @@ void PlayListItemRunCommand::Frame(uint8_t* buffer, size_t size, size_t ms, size
         if (_parm2 != "") parms += "," + _parm2;
         if (_parm3 != "") parms += "," + _parm3;
 
-        size_t rate;
+        size_t rate = 0;
         wxString msg;
         if (!xScheduleFrame::GetScheduleManager()->Action(_command, parms, "", nullptr, nullptr, rate, msg))
         {

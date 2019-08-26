@@ -10,13 +10,111 @@
 
 #include <log4cpp/Category.hh>
 
+class MQTTThread : public wxThread
+{
+    std::string _brokerIP;
+    int _port;
+    std::string _username;
+    std::string _password;
+    std::string _topic;
+    std::string _data;
+
+public:
+    MQTTThread(const std::string& brokerIP, int port, const std::string& username, const std::string& password, const std::string& topic, const std::string& data) : 
+        _brokerIP(brokerIP), _port(port), _username(username), _password(password), _topic(topic), _data(data) { }
+
+    virtual void* Entry() override
+    {
+        log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+        logger_base.debug("PlayListMQTT in thread.");
+
+        wxSocketClient client;
+        wxIPV4address addr;
+        addr.Hostname(_brokerIP);
+        addr.Service(_port);
+
+        if (client.Connect(addr, false) || client.WaitOnConnect(0, 500))
+        {
+            uint8_t buffer[1444];
+            memset(buffer, 0x00, sizeof(buffer));
+            int index = 0;
+            buffer[index++] = 0x10; // connect to publish
+            index += PlayListItemMQTT::EncodeInt(&buffer[index], 21);
+            index += PlayListItemMQTT::EncodeString(&buffer[index], "MQTT");
+            buffer[index++] = 0x04; // protocol version
+            uint8_t flags = 0x00;
+            if (_username != "") flags |= 0x80;
+            if (_password != "") flags |= 0x40;
+            buffer[index++] = flags;
+            buffer[index++] = 0x00; // keep alive
+            buffer[index++] = 0x00;
+            index += PlayListItemMQTT::EncodeString(&buffer[index], "xSchedule");
+
+            client.Write(buffer, index);
+            wxASSERT(client.LastWriteCount() == index);
+            memset(buffer, 0x00, sizeof(buffer));
+            client.WaitForRead(0, 500);
+
+            client.Peek(buffer, sizeof(buffer));
+
+            // wait for up to 100ms for data
+            int i = 0;
+            while (client.LastCount() == 0 && i < 100)
+            {
+                wxMilliSleep(1);
+                client.Peek(buffer, sizeof(buffer));
+                i++;
+            }
+
+            client.Read(buffer, std::min((int)client.LastCount(), (int)sizeof(buffer)));
+            if (client.GetLastIOReadSize() > 0)
+            {
+                if ((buffer[0] & 0xF0) >> 4 == 2)
+                {
+                    int used = 0;
+                    unsigned char* pdata = PlayListItemMQTT::PrepareData(_data, used);
+
+                    memset(buffer, 0x00, sizeof(buffer));
+
+                    int index = 0;
+                    buffer[index++] = 0x30; // publish
+                    if (2 + _topic.size() + used > sizeof(buffer))
+                    {
+                        used = 1500 - 2 - _topic.size();
+                    }
+                    index += PlayListItemMQTT::EncodeInt(&buffer[index], 2 + _topic.size() + used);
+                    index += PlayListItemMQTT::EncodeString(&buffer[index], _topic);
+                    memcpy(&buffer[index], pdata, used);
+                    index += used;
+                    client.Write(buffer, index);
+                    wxASSERT(client.LastWriteCount() == index);
+                    logger_base.info("MQTT Sent.");
+                }
+                else
+                {
+                    logger_base.error("Illegal response from MQTT broker for connect.");
+                }
+            }
+            else
+            {
+                logger_base.error("No response from MQTT broker for connect.");
+            }
+            client.Close();
+        }
+        else
+        {
+            logger_base.error("Unable to connect to MQTT broker.");
+        }
+
+        logger_base.debug("PlayListMQTT thread done.");
+
+        return nullptr;
+    }
+};
+
 PlayListItemMQTT::PlayListItemMQTT(wxXmlNode* node) : PlayListItem(node)
 {
-    _brokerIP = "127.0.0.1";
-	_topic = "";
-	_port = 1883;
-    _started = false;
-    _data = "";
     PlayListItemMQTT::Load(node);
 }
 
@@ -32,11 +130,6 @@ void PlayListItemMQTT::Load(wxXmlNode* node)
 PlayListItemMQTT::PlayListItemMQTT() : PlayListItem()
 {
     _type = "PLIMQTT";
-	_brokerIP = "127.0.0.1";
-	_topic = "";
-    _data = "";
-	_port = 1883;
-    _started = false;
 }
 
 PlayListItem* PlayListItemMQTT::Copy() const
@@ -91,7 +184,7 @@ std::string PlayListItemMQTT::GetTooltip()
 
 unsigned char* PlayListItemMQTT::PrepareData(const std::string s, int& used)
 {
-    wxString working = ReplaceTags(s);
+    wxString working = s;
 
     unsigned char* buffer = (unsigned char*)malloc(working.size());
     used = 0;
@@ -221,86 +314,14 @@ void PlayListItemMQTT::Frame(uint8_t* buffer, size_t size, size_t ms, size_t fra
     {
         _started = true;
 
-        logger_base.info("Sending MQTT Event to %s:%d %s", (const char *)_brokerIP.c_str(), _port, (const char *)_topic.c_str());
+        std::string topic = ReplaceTags(_topic);
+        wxString working = ReplaceTags(_data);
 
-        wxSocketClient client;
-        wxIPV4address addr;
-        addr.Hostname(_brokerIP);
-        addr.Service(_port);
+        logger_base.info("Sending MQTT Event to %s:%d %s", (const char*)_brokerIP.c_str(), _port, (const char*)_topic.c_str());
 
-        if (client.Connect(addr, false) || client.WaitOnConnect(0, 500))
-        {
-            uint8_t buffer[1444];
-            memset(buffer, 0x00, sizeof(buffer));
-            int index = 0;
-            buffer[index++] = 0x10; // connect to publish
-            index += EncodeInt(&buffer[index], 21);
-            index += EncodeString(&buffer[index], "MQTT");
-            buffer[index++] = 0x04; // protocol version
-            uint8_t flags = 0x00;
-            if (_username != "") flags |= 0x80;
-            if (_password != "") flags |= 0x40;
-            buffer[index++] = flags;
-            buffer[index++] = 0x00; // keep alive
-            buffer[index++] = 0x00;
-            index += EncodeString(&buffer[index], "xSchedule");
-
-            client.Write(buffer, index);
-            wxASSERT(client.LastWriteCount() == index);
-            memset(buffer, 0x00, sizeof(buffer));
-            client.WaitForRead(0, 500);
-
-            client.Peek(buffer, sizeof(buffer));
-
-            // wait for up to 100ms for data
-            int i = 0;
-            while (client.LastCount() == 0 && i < 100)
-            {
-                wxMilliSleep(1);
-                client.Peek(buffer, sizeof(buffer));
-                i++;
-            }
-
-            client.Read(buffer, std::min((int)client.LastCount(), (int)sizeof(buffer)));
-            if (client.GetLastIOReadSize() > 0)
-            {
-                if ((buffer[0] & 0xF0) >> 4 == 2)
-                {
-                    std::string topic = ReplaceTags(_topic);
-                    int used = 0;
-                    unsigned char* pdata = PrepareData(_data, used);
-
-                    memset(buffer, 0x00, sizeof(buffer));
-
-                    int index = 0;
-                    buffer[index++] = 0x30; // publish
-                    if (2 + topic.size() + used > sizeof(buffer))
-                    {
-                        used = 1500 - 2 - topic.size();
-                    }
-                    index += EncodeInt(&buffer[index], 2 + topic.size() + used);
-                    index += EncodeString(&buffer[index], topic);
-                    memcpy(&buffer[index], pdata, used);
-                    index += used;
-                    client.Write(buffer, index);
-                    wxASSERT(client.LastWriteCount() == index);
-                    logger_base.info("MQTT Sent.");
-                }
-                else
-                {
-                    logger_base.error("Illegal response from MQTT broker for connect.");
-                }
-            }
-            else
-            {
-                logger_base.error("No response from MQTT broker for connect.");
-            }
-            client.Close();
-        }
-        else
-        {
-            logger_base.error("Unable to connect to MQTT broker.");
-        }
+        MQTTThread* thread = new MQTTThread(_brokerIP, _port, _username, _password, topic, working);
+        thread->Run();
+        wxMicroSleep(1); // encourage the thread to run
     }
 }
 

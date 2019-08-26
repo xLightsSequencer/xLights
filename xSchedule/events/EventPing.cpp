@@ -61,7 +61,7 @@ void EventPing::Process(bool success, const std::string& ip, ScheduleManager* sc
             logger_base.debug("Event fired %s:%s:%s:%s -> %s:%s", (const char *)GetType().c_str(), (const char *)GetName().c_str(), (const char *)_ip.c_str(), (const char *)ip.c_str(),
                 (const char *)_command.c_str(), (const char *)parameters.c_str());
 
-            size_t rate;
+            size_t rate = 0;
             wxString msg;
             scheduleManager->Action(_command, parameters, "", nullptr, nullptr, rate, msg);
             logger_base.debug("    Event processed.");

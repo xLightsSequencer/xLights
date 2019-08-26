@@ -375,7 +375,7 @@ bool Action(const char* command, const wchar_t* parameters, const char* data, ch
     std::wstring p(parameters);
     std::string d(data);
     wxString dd(data);
-    size_t rate;
+    size_t rate = 0;
     wxString msg;
     if (((xScheduleFrame*)wxTheApp->GetTopWindow())->GetScheduleManager()->IsQuery(c))
     {

@@ -1,19 +1,25 @@
-#ifndef PLAYERWINDOW_H
-#define PLAYERWINDOW_H
+#pragma once
 
 #include <wx/window.h>
 #include <wx/image.h>
 #include <wx/frame.h>
 
+#include <mutex>
+#include <atomic>
+
 class PlayerWindow: public wxFrame
 {
     wxImage _image;
-    wxImage _lastImage;
+    wxImage _inputImage;
     wxPoint _startDragPos;
     wxPoint _startMousePos;
     bool _dragging;
     wxImageResizeQuality _quality;
     int _swsQuality;
+    std::timed_mutex _mutex;
+    std::atomic<bool> _imageChanged = false;
+
+    bool PrepareImage();
 
 	public:
 
@@ -30,5 +36,3 @@ class PlayerWindow: public wxFrame
 
 		DECLARE_EVENT_TABLE()
 };
-
-#endif

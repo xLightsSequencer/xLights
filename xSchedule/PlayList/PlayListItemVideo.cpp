@@ -199,7 +199,7 @@ void PlayListItemVideo::OpenFiles(bool doCache)
     }
     else
     {
-        _videoReader = new VideoReader(_videoFile, _size.GetWidth(), _size.GetHeight(), false);
+        _videoReader = new VideoReader(_videoFile, _size.GetWidth(), _size.GetHeight(), false); // , true);
         _durationMS = _videoReader->GetLengthMS();
     }
 }

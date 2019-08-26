@@ -12,18 +12,16 @@ protected:
 
 #pragma region Member Variables
     std::string _topic;
-    std::string _brokerIP;
+    std::string _brokerIP = "127.0.0.1";
     std::string _username;
     std::string _password;
-    int _port;
-    bool _started;
+    int _port = 1883;
+    bool _started = false;
     std::string _data;
 #pragma endregion Member Variables
 
-    unsigned char* PrepareData(const std::string s, int& size);
-
 public:
-
+    static unsigned char* PrepareData(const std::string s, int& size);
     static int DecodeInt(uint8_t* pb, int& index);
     static std::string DecodeString(uint8_t* pb, int& index);
     static int EncodeInt(uint8_t* pb, int value);
