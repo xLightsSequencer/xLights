@@ -5,6 +5,9 @@
 #include <wx/wfstream.h>
 #include <wx/dir.h>
 #include <wx/textfile.h>
+#include <wx/mstream.h>
+#include <wx/base64.h>
+#include <zstd.h>
 
 #include "../include/spxml-0.5/spxmlparser.hpp"
 
@@ -22,12 +25,15 @@
 
 #define string_format wxString::Format
 
+//     #define USE_COMPRESSION
+
+
 const wxString xLightsXmlFile::ERASE_MODE = "<rendered: erase-mode>";
 const wxString xLightsXmlFile::CANVAS_MODE = "<rendered: canvas-mode>";
 
 xLightsXmlFile::xLightsXmlFile(const wxFileName &filename)
 	: wxFileName(filename),
-	version_string(wxEmptyString),
+	version_string(wxEmptyString), 
 	seq_duration(30.0),
 	media_file(wxEmptyString),
 	seq_type("Animation"), // default to animation
@@ -1109,7 +1115,24 @@ bool xLightsXmlFile::LoadSequence(const wxString& ShowDir, bool ignore_audio)
     is_open = true;
 
     wxXmlNode* root=seqDocument.GetRoot();
-
+    for(wxXmlNode* e=root->GetChildren(); e!=nullptr; e=e->GetNext()) {
+        if (e->GetName() == "CompressedData") {
+            int size = wxAtoi(e->GetAttribute("size"));
+            wxMemoryBuffer memBuffer = wxBase64Decode(e->GetNodeContent());
+            uint8_t *bytes = new uint8_t[size + 50];
+            int sz = ZSTD_decompress(bytes, size + 50, memBuffer.GetData(), memBuffer.GetDataLen());
+            
+            wxMemoryInputStream in(bytes, sz);
+            wxXmlDocument doc;
+            doc.Load(in);
+            wxXmlNode *c = doc.DetachRoot();
+            root->InsertChildAfter(c, e);
+            root->RemoveChild(e);
+            delete e;
+            e = c;
+            delete [] bytes;
+        }
+    }
     supports_model_blending = "true" == root->GetAttribute("ModelBlending", "false");
 
     if( NeedsTimesCorrected() )
@@ -2943,6 +2966,38 @@ void xLightsXmlFile::Save( SequenceElements& seq_elements)
         }
     }
     UpdateVersion();
+    
+#ifdef USE_COMPRESSION
+    for(wxXmlNode* e=root->GetChildren(); e!=nullptr; e=e->GetNext()) {
+        wxString name = e->GetName();
+        if (name == "ColorPalettes" || name == "EffectDB" || name == "ElementEffects") {
+            wxXmlDocument doc;
+
+            wxXmlNode *next = e->GetNext();
+            root->RemoveChild(e);
+
+            doc.SetRoot(e);
+            wxMemoryOutputStream out;
+            doc.Save(out, wxXML_NO_INDENTATION);
+            
+            int max = out.GetOutputStreamBuffer()->Tell();
+            uint8_t *outBuf = new uint8_t[max];
+            int outSize = ZSTD_compress(outBuf, max,
+                                        out.GetOutputStreamBuffer()->GetBufferStart(), max,
+                                        1);
+            // Manipulate data.....
+            wxString b64 = wxBase64Encode(outBuf, outSize);
+            delete [] outBuf;
+            wxXmlNode *newNode = new wxXmlNode(wxXML_ELEMENT_NODE, "CompressedData");
+            newNode->AddChild(new wxXmlNode(wxXML_TEXT_NODE, "", b64));
+            newNode->AddAttribute("size", std::to_string(max));
+            root->InsertChild(newNode, next);
+            
+            e = newNode;
+        }
+    }
+#endif
+    
     seqDocument.Save(GetFullPath());
 }
 
