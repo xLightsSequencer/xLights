@@ -83,14 +83,10 @@
     <ClCompile Include="outputs\LorControllers.cpp" />
     <ClCompile Include="outputs\LorOptimisedDialog.cpp" />
     <ClCompile Include="outputs\LOROptimisedOutput.cpp" />
-    <ClCompile Include="outputs\NullOutputDialog.cpp" />
     <ClCompile Include="OptionChooser.cpp" />
     <ClCompile Include="osx_utils\TouchBars.cpp" />
     <ClCompile Include="outputs\IPOutput.cpp" />
     <ClCompile Include="outputs\LOROutput.cpp" />
-    <ClCompile Include="outputs\NullOutput.cpp" />
-    <ClCompile Include="outputs\OpenDMXOutput.cpp" />
-    <ClCompile Include="outputs\OpenPixelNetOutput.cpp" />
     <ClCompile Include="outputs\PixelNetOutput.cpp" />
     <ClCompile Include="outputs\RenardOutput.cpp" />
     <ClCompile Include="outputs\TestPreset.cpp" />
@@ -705,6 +701,27 @@
       <Filter>Controllers</Filter>
     </ClCompile>
     <ClCompile Include="BulkEditFontPickerDialog.cpp" />
+    <ClCompile Include="outputs\SyncrolightSerialOutput.cpp">
+      <Filter>Outputs</Filter>
+    </ClCompile>
+    <ClCompile Include="outputs\NullOutput.cpp">
+      <Filter>Outputs</Filter>
+    </ClCompile>
+    <ClCompile Include="outputs\NullOutputDialog.cpp">
+      <Filter>Outputs</Filter>
+    </ClCompile>
+    <ClCompile Include="outputs\OpenDMXOutput.cpp">
+      <Filter>Outputs</Filter>
+    </ClCompile>
+    <ClCompile Include="outputs\OpenPixelNetOutput.cpp">
+      <Filter>Outputs</Filter>
+    </ClCompile>
+    <ClCompile Include="outputs\SyncrolightEthernetOutput.cpp">
+      <Filter>Outputs</Filter>
+    </ClCompile>
+    <ClCompile Include="outputs\SyncrolightDialog.cpp">
+      <Filter>Outputs</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -777,16 +794,12 @@
     <ClInclude Include="outputs\LorControllers.h" />
     <ClInclude Include="outputs\LorOptimisedDialog.h" />
     <ClInclude Include="outputs\LOROptimisedOutput.h" />
-    <ClInclude Include="outputs\NullOutputDialog.h" />
     <ClInclude Include="OptionChooser.h" />
     <ClInclude Include="osxMacUtils.h" />
     <ClInclude Include="osx_utils\TouchBars.h" />
     <ClInclude Include="outputs\Controller.h" />
     <ClInclude Include="outputs\IPOutput.h" />
     <ClInclude Include="outputs\LOROutput.h" />
-    <ClInclude Include="outputs\NullOutput.h" />
-    <ClInclude Include="outputs\OpenDMXOutput.h" />
-    <ClInclude Include="outputs\OpenPixelNetOutput.h" />
     <ClInclude Include="outputs\PixelNetOutput.h" />
     <ClInclude Include="outputs\RenardOutput.h" />
     <ClInclude Include="outputs\TestPreset.h" />
@@ -1419,6 +1432,27 @@
       <Filter>Controllers</Filter>
     </ClInclude>
     <ClInclude Include="BulkEditFontPickerDialog.h" />
+    <ClInclude Include="outputs\SyncrolightSerialOutput.h">
+      <Filter>Outputs</Filter>
+    </ClInclude>
+    <ClInclude Include="outputs\NullOutput.h">
+      <Filter>Outputs</Filter>
+    </ClInclude>
+    <ClInclude Include="outputs\NullOutputDialog.h">
+      <Filter>Outputs</Filter>
+    </ClInclude>
+    <ClInclude Include="outputs\OpenDMXOutput.h">
+      <Filter>Outputs</Filter>
+    </ClInclude>
+    <ClInclude Include="outputs\OpenPixelNetOutput.h">
+      <Filter>Outputs</Filter>
+    </ClInclude>
+    <ClInclude Include="outputs\SyncrolightEthernetOutput.h">
+      <Filter>Outputs</Filter>
+    </ClInclude>
+    <ClInclude Include="outputs\SyncrolightDialog.h">
+      <Filter>Outputs</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

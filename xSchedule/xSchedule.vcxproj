@@ -190,6 +190,8 @@
     <ClCompile Include="..\xLights\outputs\RenardOutput.cpp" />
     <ClCompile Include="..\xLights\outputs\serial.cpp" />
     <ClCompile Include="..\xLights\outputs\SerialOutput.cpp" />
+    <ClCompile Include="..\xLights\outputs\SyncrolightEthernetOutput.cpp" />
+    <ClCompile Include="..\xLights\outputs\SyncrolightSerialOutput.cpp" />
     <ClCompile Include="..\xLights\outputs\TestPreset.cpp" />
     <ClCompile Include="..\xLights\outputs\ZCPPOutput.cpp" />
     <ClCompile Include="..\xLights\Parallel.cpp" />
@@ -414,6 +416,8 @@
     <ClInclude Include="..\xLights\outputs\RenardOutput.h" />
     <ClInclude Include="..\xLights\outputs\serial.h" />
     <ClInclude Include="..\xLights\outputs\SerialOutput.h" />
+    <ClInclude Include="..\xLights\outputs\SyncrolightEthernetOutput.h" />
+    <ClInclude Include="..\xLights\outputs\SyncrolightSerialOutput.h" />
     <ClInclude Include="..\xLights\outputs\TestPreset.h" />
     <ClInclude Include="..\xLights\outputs\ZCPPOutput.h" />
     <ClInclude Include="..\xLights\UtilFunctions.h" />

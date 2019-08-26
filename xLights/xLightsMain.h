@@ -1148,6 +1148,7 @@ public:
     void OnGridNetworkScrollTimer(wxTimerEvent& event);
     void SetupDongle(Output* e, int after = -1);
     void SetupE131(Output* e, int after = -1);
+    void SetupSyncrolightEthernet(Output* e, int after = -1);
     void SetupZCPP(Output* e, int after = -1);
     void SetupArtNet(Output* e, int after = -1);
     void SetupLOR(Output* e, int after = -1);
@@ -1600,6 +1601,7 @@ private:
     static const long ID_NETWORK_ADDUSB;
     static const long ID_NETWORK_ADDNULL;
     static const long ID_NETWORK_ADDE131;
+    static const long ID_NETWORK_ADDSYNCROLIGHTETHERNET;
     static const long ID_NETWORK_ADDZCPP;
     static const long ID_NETWORK_ADDARTNET;
     static const long ID_NETWORK_ADDLOR;

@@ -35,6 +35,7 @@
 #include "outputs/Output.h"
 #include "outputs/NullOutput.h"
 #include "outputs/E131Output.h"
+#include "outputs/SyncrolightEthernetOutput.h"
 #include "outputs/ZCPPOutput.h"
 #include "outputs/ArtNetOutput.h"
 #include "outputs/DDPOutput.h"
@@ -52,6 +53,7 @@
 const long xLightsFrame::ID_NETWORK_ADDUSB = wxNewId();
 const long xLightsFrame::ID_NETWORK_ADDNULL = wxNewId();
 const long xLightsFrame::ID_NETWORK_ADDE131 = wxNewId();
+const long xLightsFrame::ID_NETWORK_ADDSYNCROLIGHTETHERNET = wxNewId();
 const long xLightsFrame::ID_NETWORK_ADDZCPP = wxNewId();
 const long xLightsFrame::ID_NETWORK_ADDARTNET = wxNewId();
 const long xLightsFrame::ID_NETWORK_ADDLOR = wxNewId();
@@ -1164,6 +1166,30 @@ void xLightsFrame::SetupE131(Output* e, int after)
     }
 }
 
+void xLightsFrame::SetupSyncrolightEthernet(Output* e, int after)
+{
+    Output* syncrolight = e;
+    if (syncrolight == nullptr) syncrolight = new SyncrolightEthernetOutput();
+    _outputManager.AddOutput(syncrolight, after);
+
+    auto oldIP = syncrolight->GetIP();
+    if (syncrolight->Configure(this, &_outputManager, &AllModels) != nullptr)
+    {
+        ChangeIP(oldIP, syncrolight->GetIP());
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "SetupSyncrolightEthernet", nullptr, syncrolight);
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "SetupSyncrolightEthernet", nullptr, syncrolight);
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "SetupSyncrolightEthernet", nullptr, syncrolight);
+        _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "SetupSyncrolightEthernet", nullptr, syncrolight);
+    }
+    else
+    {
+        if (e != syncrolight)
+        {
+            _outputManager.DeleteOutput(syncrolight);
+        }
+    }
+}
+
 void xLightsFrame::SetupZCPP(Output* e, int after)
 {
     Output* zcpp = e;
@@ -1466,8 +1492,8 @@ void xLightsFrame::OnGridNetworkItemRClick(wxListEvent& event)
     mnuAdd->Append(ID_NETWORK_ADDLOR, "LOR")->Enable(selcnt == 1);
     mnuAdd->Append(ID_NETWORK_ADDDDP, "DDP")->Enable(selcnt == 1);
     mnuAdd->Append(ID_NETWORK_ADDZCPP, "ZCPP")->Enable(selcnt == 1);
+    mnuAdd->Append(ID_NETWORK_ADDSYNCROLIGHTETHERNET, "Syncrolight Ethernet")->Enable(selcnt == 1);
     mnuAdd->Connect(wxEVT_MENU, (wxObjectEventFunction)&xLightsFrame::OnNetworkPopup, nullptr, this);
-
     
     bool validIpNoType = CheckAllAreSameIPType(_outputManager, GridNetwork, true, false);
     bool allSupportIp = AllSelectedSupportIP();
@@ -1774,6 +1800,8 @@ void xLightsFrame::OnNetworkPopup(wxCommandEvent &event)
         SetupNullOutput(nullptr, item+1);
     } else if (id == ID_NETWORK_ADDE131) {
         SetupE131(nullptr, item+1);
+    } else if (id == ID_NETWORK_ADDSYNCROLIGHTETHERNET) {
+        SetupSyncrolightEthernet(nullptr, item + 1);
     } else if (id == ID_NETWORK_ADDZCPP) {
         SetupZCPP(nullptr, item+1);
     } else if (id == ID_NETWORK_ADDARTNET) {
