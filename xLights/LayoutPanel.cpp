@@ -5724,11 +5724,11 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event)
                     }
                 }
 
-                if (xlights->RenameModel(sel.ToStdString(), name.ToStdString())) {
-                    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::OnModelsPopup::ID_MNU_RENAME_MODEL_GROUP", nullptr, nullptr, name.ToStdString());
-                }
+                xlights->RenameModel(sel.ToStdString(), name.ToStdString());
+                model_grp_panel->UpdatePanel(name.ToStdString());
 
                 //xlights->UpdateModelsList();
+                xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::OnModelsPopup::ID_MNU_RENAME_MODEL_GROUP", nullptr, nullptr, name.ToStdString());
                 xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::OnModelsPopup::ID_MNU_RENAME_MODEL_GROUP");
                 xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "LayoutPanel::OnModelsPopup::ID_MNU_RENAME_MODEL_GROUP");
                 //model_grp_panel->UpdatePanel(name.ToStdString());
