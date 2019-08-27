@@ -1053,6 +1053,12 @@
 		<Unit filename="outputs/SerialOutput.h" />
 		<Unit filename="outputs/SerialPortWithRate.cpp" />
 		<Unit filename="outputs/SerialPortWithRate.h" />
+		<Unit filename="outputs/SyncrolightDialog.cpp" />
+		<Unit filename="outputs/SyncrolightDialog.h" />
+		<Unit filename="outputs/SyncrolightEthernetOutput.cpp" />
+		<Unit filename="outputs/SyncrolightEthernetOutput.h" />
+		<Unit filename="outputs/SyncrolightSerialOutput.cpp" />
+		<Unit filename="outputs/SyncrolightSerialOutput.h" />
 		<Unit filename="outputs/TestPreset.cpp" />
 		<Unit filename="outputs/TestPreset.h" />
 		<Unit filename="outputs/ZCPP.h" />
@@ -1267,6 +1273,7 @@
 		<Unit filename="wxsmith/SubModelGenerateDialog.wxs" />
 		<Unit filename="wxsmith/SubModelsDialog.wxs" />
 		<Unit filename="wxsmith/SuperStarImportDialog.wxs" />
+		<Unit filename="wxsmith/SyncrolightDialog.wxs" />
 		<Unit filename="wxsmith/TendrilPanel.wxs" />
 		<Unit filename="wxsmith/TextPanel.wxs" />
 		<Unit filename="wxsmith/TimingPanel.wxs" />
@@ -1477,6 +1484,7 @@
 					<wxPanel wxs="wxsmith/ShaderPanel.wxs" src="effects/ShaderPanel.cpp" hdr="effects/ShaderPanel.h" fwddecl="0" i18n="1" name="ShaderPanel" language="CPP" />
 					<wxDialog wxs="wxsmith/NoteRangeDialog.wxs" src="NoteRangeDialog.cpp" hdr="NoteRangeDialog.h" fwddecl="0" i18n="1" name="NoteRangeDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/BulkEditFontPickerDialog.wxs" src="BulkEditFontPickerDialog.cpp" hdr="BulkEditFontPickerDialog.h" fwddecl="0" i18n="1" name="BulkEditFontPickerDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/SyncrolightDialog.wxs" src="outputs/SyncrolightDialog.cpp" hdr="outputs/SyncrolightDialog.h" fwddecl="0" i18n="1" name="SyncrolightDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>

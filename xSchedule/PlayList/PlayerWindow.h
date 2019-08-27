@@ -17,7 +17,7 @@ class PlayerWindow: public wxFrame
     wxImageResizeQuality _quality;
     int _swsQuality;
     std::timed_mutex _mutex;
-    std::atomic_bool _imageChanged = false;
+    std::atomic_bool _imageChanged;
 
     bool PrepareImage();
 

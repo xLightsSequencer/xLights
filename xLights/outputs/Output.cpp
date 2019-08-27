@@ -12,6 +12,8 @@
 #include "LOROptimisedOutput.h"
 #include "DLightOutput.h"
 #include "DMXOutput.h"
+#include "SyncrolightSerialOutput.h"
+#include "SyncrolightEthernetOutput.h"
 #include "PixelNetOutput.h"
 #include "RenardOutput.h"
 #include "OpenPixelNetOutput.h"
@@ -188,6 +190,14 @@ Output* Output::Create(wxXmlNode* node, std::string showDir)
     else if (type == OUTPUT_DMX)
     {
         return new DMXOutput(node);
+    }
+    else if (type == OUTPUT_SYNCROLIGHTSERIAL)
+    {
+        return new SyncrolightSerialOutput(node);
+    }
+    else if (type == OUTPUT_SYNCROLIGHTETHERNET)
+    {
+        return new SyncrolightEthernetOutput(node);
     }
     else if (type == OUTPUT_PIXELNET)
     {
