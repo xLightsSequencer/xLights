@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 47;
+	objectVersion = 51;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -155,6 +155,9 @@
 		673D764C214B2F06007C6E83 /* MeshObject.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 673D764B214B2F06007C6E83 /* MeshObject.cpp */; };
 		673E425B17F0D95200F4BC76 /* TabSetup.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 673E425917F0D23E00F4BC76 /* TabSetup.cpp */; };
 		673F03681F322A9B0052A793 /* ChannelBlockModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 673F03671F322A9B0052A793 /* ChannelBlockModel.cpp */; };
+		67405C5C23155675000919E9 /* SyncrolightDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67405C5723155675000919E9 /* SyncrolightDialog.cpp */; };
+		67405C5D23155675000919E9 /* SyncrolightEthernetOutput.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67405C5823155675000919E9 /* SyncrolightEthernetOutput.cpp */; };
+		67405C5E23155675000919E9 /* SyncrolightSerialOutput.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67405C5B23155675000919E9 /* SyncrolightSerialOutput.cpp */; };
 		6743321F22B7C1C30038B63E /* ControllerVisualiseDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6743321D22B7C1C20038B63E /* ControllerVisualiseDialog.cpp */; };
 		6743322222B7C24E0038B63E /* OutputModelManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6743322122B7C24E0038B63E /* OutputModelManager.cpp */; };
 		67447D981C6664900095CDB5 /* WreathModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67447D951C6664900095CDB5 /* WreathModel.cpp */; };
@@ -1105,6 +1108,12 @@
 		673E425917F0D23E00F4BC76 /* TabSetup.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = TabSetup.cpp; sourceTree = "<group>"; };
 		673F03661F322A9B0052A793 /* ChannelBlockModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ChannelBlockModel.h; path = models/ChannelBlockModel.h; sourceTree = "<group>"; };
 		673F03671F322A9B0052A793 /* ChannelBlockModel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ChannelBlockModel.cpp; path = models/ChannelBlockModel.cpp; sourceTree = "<group>"; };
+		67405C5623155675000919E9 /* SyncrolightSerialOutput.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SyncrolightSerialOutput.h; path = outputs/SyncrolightSerialOutput.h; sourceTree = "<group>"; };
+		67405C5723155675000919E9 /* SyncrolightDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SyncrolightDialog.cpp; path = outputs/SyncrolightDialog.cpp; sourceTree = "<group>"; };
+		67405C5823155675000919E9 /* SyncrolightEthernetOutput.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SyncrolightEthernetOutput.cpp; path = outputs/SyncrolightEthernetOutput.cpp; sourceTree = "<group>"; };
+		67405C5923155675000919E9 /* SyncrolightDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SyncrolightDialog.h; path = outputs/SyncrolightDialog.h; sourceTree = "<group>"; };
+		67405C5A23155675000919E9 /* SyncrolightEthernetOutput.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SyncrolightEthernetOutput.h; path = outputs/SyncrolightEthernetOutput.h; sourceTree = "<group>"; };
+		67405C5B23155675000919E9 /* SyncrolightSerialOutput.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SyncrolightSerialOutput.cpp; path = outputs/SyncrolightSerialOutput.cpp; sourceTree = "<group>"; };
 		674298971C20432600B11478 /* wx */ = {isa = PBXFileReference; lastKnownFileType = folder; name = wx; path = /opt/local/lib/wx; sourceTree = "<group>"; };
 		6743321D22B7C1C20038B63E /* ControllerVisualiseDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ControllerVisualiseDialog.cpp; sourceTree = "<group>"; };
 		6743321E22B7C1C30038B63E /* ControllerVisualiseDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ControllerVisualiseDialog.h; sourceTree = "<group>"; };
@@ -2751,6 +2760,12 @@
 		67B2B1F51E19478D0024F0BB /* Outputs */ = {
 			isa = PBXGroup;
 			children = (
+				67405C5723155675000919E9 /* SyncrolightDialog.cpp */,
+				67405C5923155675000919E9 /* SyncrolightDialog.h */,
+				67405C5823155675000919E9 /* SyncrolightEthernetOutput.cpp */,
+				67405C5A23155675000919E9 /* SyncrolightEthernetOutput.h */,
+				67405C5B23155675000919E9 /* SyncrolightSerialOutput.cpp */,
+				67405C5623155675000919E9 /* SyncrolightSerialOutput.h */,
 				677196A9223C98780082576E /* ZCPPDialog.cpp */,
 				677196A8223C98780082576E /* ZCPPDialog.h */,
 				677196AA223C98780082576E /* ZCPPOutput.cpp */,
@@ -3852,7 +3867,6 @@
 				TargetAttributes = {
 					67025C6720D7E80700BF1AC6 = {
 						CreatedOnToolsVersion = 10.0;
-						DevelopmentTeam = U8ZT9RPC6S;
 						ProvisioningStyle = Manual;
 						SystemCapabilities = {
 							com.apple.HardenedRuntime = {
@@ -3876,7 +3890,6 @@
 						};
 					};
 					67E7086C17B51AB400A22034 = {
-						DevelopmentTeam = U8ZT9RPC6S;
 						LastSwiftMigration = 0810;
 						SystemCapabilities = {
 							com.apple.ApplicationGroups.Mac = {
@@ -3905,7 +3918,7 @@
 				};
 			};
 			buildConfigurationList = 67E7086817B51AB400A22034 /* Build configuration list for PBXProject "xLights" */;
-			compatibilityVersion = "Xcode 6.3";
+			compatibilityVersion = "Xcode 10.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -4123,6 +4136,7 @@
 				676D0F711C72BB11009C66FC /* kiss_fft.c in Sources */,
 				67A61A2717B51C0F008E95BB /* ChannelLayoutDialog.cpp in Sources */,
 				6792BF371D0B253B00A5A0CC /* SpinnerModel.cpp in Sources */,
+				67405C5E23155675000919E9 /* SyncrolightSerialOutput.cpp in Sources */,
 				67FF398F1D57F5C000290DB4 /* MusicXML.cpp in Sources */,
 				6761F5F91C4EA041009780DA /* xlGridCanvasPictures.cpp in Sources */,
 				67A61A2C17B51C0F008E95BB /* EffectListDialog.cpp in Sources */,
@@ -4174,6 +4188,7 @@
 				67B2CF731C39D98A003C17CA /* FanPanel.cpp in Sources */,
 				675DE2681B53381800A9BB44 /* FlickerFreeBitmapButton.cpp in Sources */,
 				67B2CFDD1C3A186A003C17CA /* TwinkleEffect.cpp in Sources */,
+				67405C5C23155675000919E9 /* SyncrolightDialog.cpp in Sources */,
 				671D814C1A6723CF005819EA /* EffectDropTarget.cpp in Sources */,
 				67582EC81C73643900850363 /* osx_shared_mutex.cpp in Sources */,
 				676D0F7E1C72BEBD009C66FC /* kiss_fftr.c in Sources */,
@@ -4356,6 +4371,7 @@
 				67DCFC24229E03790032DC47 /* ImportPreviewsModelsDialog.cpp in Sources */,
 				673F03681F322A9B0052A793 /* ChannelBlockModel.cpp in Sources */,
 				672E7C621B4B6B3700409549 /* xlGridCanvas.cpp in Sources */,
+				67405C5D23155675000919E9 /* SyncrolightEthernetOutput.cpp in Sources */,
 				6730747C208E737800D57F99 /* FolderSelection.cpp in Sources */,
 				67623E711AD07E320022667B /* KeyBindings.cpp in Sources */,
 				67A61A4B17B51C0F008E95BB /* SeqElementMismatchDialog.cpp in Sources */,
@@ -4726,6 +4742,7 @@
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 190044;
 				DEVELOPMENT_TEAM = "";
 				ENABLE_HARDENED_RUNTIME = NO;
 				INFOPLIST_FILE = xFade/Info.plist;
@@ -4736,6 +4753,7 @@
 					"$(PROJECT_DIR)/lib/osx",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.10;
+				MARKETING_VERSION = 2019.44;
 				PRODUCT_BUNDLE_IDENTIFIER = org.xlights.xFade;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -4749,7 +4767,8 @@
 				CODE_SIGN_ENTITLEMENTS = xFade/xFade.entitlements;
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				DEVELOPMENT_TEAM = U8ZT9RPC6S;
+				CURRENT_PROJECT_VERSION = 190044;
+				DEVELOPMENT_TEAM = "";
 				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = xFade/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited)";
@@ -4759,6 +4778,7 @@
 					"$(PROJECT_DIR)/lib/osx",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.10;
+				MARKETING_VERSION = 2019.44;
 				OTHER_CODE_SIGN_FLAGS = "--timestamp";
 				PRODUCT_BUNDLE_IDENTIFIER = org.xlights.xFade;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -4771,6 +4791,7 @@
 			buildSettings = {
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				CODE_SIGN_ENTITLEMENTS = "";
+				CURRENT_PROJECT_VERSION = 190044;
 				ENABLE_HARDENED_RUNTIME = NO;
 				INFOPLIST_FILE = xCapture/Info.plist;
 				LIBRARY_SEARCH_PATHS = (
@@ -4778,6 +4799,7 @@
 					/opt/local/lib,
 					"$(PROJECT_DIR)/lib/osx",
 				);
+				MARKETING_VERSION = 2019.44;
 				PRODUCT_BUNDLE_IDENTIFIER = org.xlights.xCapture;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -4788,6 +4810,7 @@
 			buildSettings = {
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				CODE_SIGN_ENTITLEMENTS = xCapture/xCapture.entitlements;
+				CURRENT_PROJECT_VERSION = 190044;
 				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = xCapture/Info.plist;
 				LIBRARY_SEARCH_PATHS = (
@@ -4795,6 +4818,7 @@
 					/opt/local/lib,
 					"$(PROJECT_DIR)/lib/osx",
 				);
+				MARKETING_VERSION = 2019.44;
 				OTHER_CODE_SIGN_FLAGS = "--timestamp";
 				PRODUCT_BUNDLE_IDENTIFIER = org.xlights.xCapture;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -4973,6 +4997,10 @@
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				CODE_SIGN_ENTITLEMENTS = "";
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = 190044;
+				DEVELOPMENT_TEAM = "";
 				ENABLE_HARDENED_RUNTIME = NO;
 				GCC_PREFIX_HEADER = "";
 				INFOPLIST_FILE = "xLights/xLights-Info.plist";
@@ -4980,6 +5008,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/lib/osx",
 				);
+				MARKETING_VERSION = 2019.44;
 				OTHER_CFLAGS = (
 					"$(inherited)",
 					"-IxLights",
@@ -4987,6 +5016,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = org.xlights;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				WRAPPER_EXTENSION = app;
 			};
 			name = Debug;
@@ -4998,6 +5028,9 @@
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				CODE_SIGN_ENTITLEMENTS = xLights/xLights.entitlements;
+				CODE_SIGN_IDENTITY = "-";
+				CURRENT_PROJECT_VERSION = 190044;
+				DEVELOPMENT_TEAM = "";
 				ENABLE_HARDENED_RUNTIME = YES;
 				GCC_PREFIX_HEADER = "";
 				INFOPLIST_FILE = "xLights/xLights-Info.plist";
@@ -5005,6 +5038,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/lib/osx",
 				);
+				MARKETING_VERSION = 2019.44;
 				OTHER_CFLAGS = (
 					"$(inherited)",
 					"-IxLights",
@@ -5013,6 +5047,7 @@
 				"OTHER_CODE_SIGN_FLAGS[sdk=*]" = "--timestamp";
 				PRODUCT_BUNDLE_IDENTIFIER = org.xlights;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				WRAPPER_EXTENSION = app;
 			};
 			name = Release;
@@ -5023,12 +5058,14 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				CODE_SIGN_ENTITLEMENTS = "";
+				CURRENT_PROJECT_VERSION = 190044;
 				ENABLE_HARDENED_RUNTIME = NO;
 				INFOPLIST_FILE = xSchedule/Info.plist;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/lib/osx",
 				);
+				MARKETING_VERSION = 2019.44;
 				OTHER_CFLAGS = (
 					"$(inherited)",
 					"-IxLights/ffmpeg-dev/include/",
@@ -5045,12 +5082,14 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				CODE_SIGN_ENTITLEMENTS = xSchedule/xSchedule.entitlements;
+				CURRENT_PROJECT_VERSION = 190044;
 				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = xSchedule/Info.plist;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/lib/osx",
 				);
+				MARKETING_VERSION = 2019.44;
 				OTHER_CFLAGS = (
 					"$(inherited)",
 					"-IxLights/ffmpeg-dev/include/",
