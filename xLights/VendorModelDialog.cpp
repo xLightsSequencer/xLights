@@ -895,6 +895,8 @@ bool VendorModelDialog::LoadTree(wxProgressDialog* prog, int low, int high)
         delete vd;
     }
 
+    TreeCtrl_Navigator->Freeze();
+
     TreeCtrl_Navigator->DeleteAllItems();
     wxTreeItemId root = TreeCtrl_Navigator->AddRoot("Vendors");
     wxTreeItemId first = root;
@@ -919,6 +921,8 @@ bool VendorModelDialog::LoadTree(wxProgressDialog* prog, int low, int high)
     {
         DeleteEmptyCategories(l1);
     }
+
+    TreeCtrl_Navigator->Thaw();
 
     if (_vendors.size() == 0)
     {

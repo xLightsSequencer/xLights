@@ -14,7 +14,7 @@ class PlayListItemRDS : public PlayListItem
 protected:
 
     #pragma region Member Variables
-    std::atomic_bool _started = false;
+    std::atomic_bool _started;
     std::string _commPort = "COM1";
     std::string _stationName;
     std::string _text;

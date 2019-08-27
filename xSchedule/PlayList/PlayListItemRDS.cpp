@@ -148,6 +148,7 @@ public:
 
 PlayListItemRDS::PlayListItemRDS(wxXmlNode* node) : PlayListItem(node)
 {
+    _started = false;
     PlayListItemRDS::Load(node);
 }
 
@@ -161,6 +162,7 @@ void PlayListItemRDS::Load(wxXmlNode* node)
 
 PlayListItemRDS::PlayListItemRDS() : PlayListItem()
 {
+    _started = false;
     _type = "PLIRDS";
 }
 
