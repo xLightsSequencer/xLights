@@ -1647,10 +1647,10 @@ void BoxedScreenLocation::SetMWidth(float w) {
     scalex = w / (RenderWi - 1);
 }
 void BoxedScreenLocation::SetMDepth(float d) {
-    scalez = d / (RenderDp - 1);
+    scalez = d / (RenderWi - 1);
 }
 float BoxedScreenLocation::GetMDepth() const {
-    return scalez * RenderDp;
+    return scalez * RenderWi;
 }
 void BoxedScreenLocation::SetMHeight(float h) {
     scaley = h / (RenderHt - 1);
@@ -3593,13 +3593,13 @@ void PolyPointScreenLocation::Read(wxXmlNode *ModelNode) {
         scaley = wxAtof(ModelNode->GetAttribute("ScaleY", "100.0"));
         scalez = wxAtof(ModelNode->GetAttribute("ScaleZ", "100.0"));
 
-        if (scalex <= 0) {
+        if (scalex <= 0 || std::isinf(scalex)) {
             scalex = 1.0f;
         }
-        if (scaley <= 0) {
+        if (scaley <= 0 || std::isinf(scaley)) {
             scaley = 1.0f;
         }
-        if (scalez <= 0) {
+        if (scalez <= 0 || std::isinf(scalez)) {
             scalez = 1.0f;
         }
 
