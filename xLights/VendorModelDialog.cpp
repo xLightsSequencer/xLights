@@ -943,23 +943,15 @@ bool VendorModelDialog::DeleteEmptyCategories(wxTreeItemId& parent)
     }
     else if (tid->GetType() == "Category" || tid->GetType() == "Vendor")
     {
-        bool deleted;
-        do
+        wxTreeItemIdValue cookie;
+        for (auto l1 = TreeCtrl_Navigator->GetFirstChild(parent, cookie);
+            l1.IsOk();
+            )
         {
-            deleted = false;
-            wxTreeItemIdValue cookie;
-            for (auto l1 = TreeCtrl_Navigator->GetFirstChild(parent, cookie);
-                l1.IsOk();
-                l1 = TreeCtrl_Navigator->GetNextChild(parent, cookie))
-            {
-                if (DeleteEmptyCategories(l1))
-                {
-                    // item was deleted
-                    deleted = true;
-                    break;
-                }
-            }
-        } while (deleted);
+            auto next = TreeCtrl_Navigator->GetNextChild(parent, cookie);
+            DeleteEmptyCategories(l1);
+            l1 = next;
+        }
     }
     return false;
 }
