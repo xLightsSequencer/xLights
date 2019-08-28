@@ -11,6 +11,21 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2019.44 August 28, 2019
+   -- enh (keith)  Add support for Syncrolight serial protocol
+   -- enh (keith)  Add support for Syncrolight ethernet protocol
+   -- enh (keith)  Move a number of xSchedule items to their own threads to minimise pauses in playback
+   -- enh (keith)  Add extra variables to the xSchedule text playlist item so you can display things like song name
+   -- enh (keith)  Add check sequence check for reuse of the show folder name in subdirectories
+   -- enh (scott)  Add remote details to visualise exported csv file
+   -- enh (scott)  Auto enable canvas mode for shaders that require it
+   -- bug (keith)  Fix polyline model import imports them crazy large
+   -- bug (keith)  Fix model group name does not change immediately on screen when renamed
+   -- bug (keith)  Fix models disappear from layout screen but stay in model list
+   -- bug (keith)  Fix model size matching ... particularly 2 and 3 point models
+   -- bug (keith)  Fix some custom model nodes vertically in the wrong position   
+   -- bug (keith)  Fix xSchedule ping invalidly shows success when it has failed
+   -- bug (keith)  Fix dialog positioning to keep them fully on a single display
 2019.43 August 23, 2019
    -- enh (keith)  Have layout and house preview 3d state follow each other  
    -- enh (scott)  FPP Connect Updates: Added Header Tool Tips and Right Click Option to Check/Uncheck Highlighted FSEQ Files
