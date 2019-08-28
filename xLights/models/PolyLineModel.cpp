@@ -1005,89 +1005,11 @@ void PolyLineModel::ImportXlightsModel(std::string filename, xLightsFrame* xligh
                 }
             }
 
-            // read in the point data from xml
-            std::vector<xlPolyPoint> pPos(num_points);
-            wxArrayString point_array = wxSplit(point_data, ',');
-            for( int i = 0; i < num_points; ++i ) {
-                pPos[i].x = wxAtof(point_array[i*3]);
-                pPos[i].y = wxAtof(point_array[i*3+1]);
-                pPos[i].z = wxAtof(point_array[i*3+2]);
-                pPos[i].has_curve = false;
-                pPos[i].curve = nullptr;
-            }
-            wxArrayString cpoint_array = wxSplit(cpoint_data, ',');
-            glm::vec3 def_scaling(100.0f, 100.0f, 100.0f);
-            glm::vec3 def_pos(0.0f, 0.0f, 0.0f);
-            int num_curves = cpoint_array.size() / 7;
-            for( int i = 0; i < num_curves; ++i ) {
-                int seg_num = wxAtoi(cpoint_array[i*7]);
-                pPos[seg_num].has_curve = true;
-                pPos[seg_num].curve = new BezierCurveCubic3D();
-                pPos[seg_num].curve->set_p0(pPos[seg_num].x, pPos[seg_num].y, pPos[seg_num].z);
-                pPos[seg_num].curve->set_p1(pPos[seg_num+1].x, pPos[seg_num+1].y, pPos[seg_num+1].z);
-                pPos[seg_num].curve->set_cp0( wxAtof(cpoint_array[i*7+1]), wxAtof(cpoint_array[i*7+2]), wxAtof(cpoint_array[i*7+3]) );
-                pPos[seg_num].curve->set_cp1( wxAtof(cpoint_array[i*7+4]), wxAtof(cpoint_array[i*7+5]), wxAtof(cpoint_array[i*7+6]));
-                pPos[seg_num].curve->SetPositioning(def_scaling, def_pos);
-                pPos[seg_num].curve->UpdatePoints();
-            }
-
-            float min_z = 0.0f;
-            float max_z = 100.0f;
-            float deltax = max_x-min_x;
-            float deltay = max_y-min_y;
-            float deltaz = max_z-min_z;
-
-            // adjust points for new min/max
-            for( int i = 0; i < num_points; ++i ) {
-                pPos[i].x = (pPos[i].x * deltax) + min_x;
-                pPos[i].y = (pPos[i].y * deltay) + min_y;
-                pPos[i].z = (pPos[i].z * deltaz) + min_z;
-                if( pPos[i].has_curve ) {
-                    float cp0x = pPos[i].curve->get_cp0x();
-                    float cp0y = pPos[i].curve->get_cp0y();
-                    float cp0z = pPos[i].curve->get_cp0z();
-                    float cp1x = pPos[i].curve->get_cp1x();
-                    float cp1y = pPos[i].curve->get_cp1y();
-                    float cp1z = pPos[i].curve->get_cp1z();
-                    cp0x = (cp0x * deltax) + min_x;
-                    cp0y = (cp0y * deltay) + min_y;
-                    cp0z = (cp0z * deltaz) + min_z;
-                    cp1x = (cp1x * deltax) + min_x;
-                    cp1y = (cp1y * deltay) + min_y;
-                    cp1z = (cp1z * deltaz) + min_z;
-                    pPos[i].curve->set_cp0(cp0x, cp0y, cp0z);
-                    pPos[i].curve->set_cp1(cp1x, cp1y, cp1z);
-                }
-            }
-
             ModelXml->DeleteAttribute("PointData");
             ModelXml->DeleteAttribute("cPointData");
-            point_data = "";
-            for( int i = 0; i < num_points; ++i ) {
-                point_data += wxString::Format("%f,", pPos[i].x );
-                point_data += wxString::Format("%f,", pPos[i].y);
-                point_data += wxString::Format("%f", pPos[i].z);
-                if( i != num_points-1 ) {
-                    point_data += ",";
-                }
-            }
-            cpoint_data = "";
-            for( int i = 0; i < num_points; ++i ) {
-                if( pPos[i].has_curve ) {
-                    cpoint_data += wxString::Format( "%d,%f,%f,%f,%f,%f,%f,", i, pPos[i].curve->get_cp0x(), pPos[i].curve->get_cp0y(), pPos[i].curve->get_cp0z(),
-                                                               pPos[i].curve->get_cp1x(), pPos[i].curve->get_cp1y(), pPos[i].curve->get_cp1z());
-                }
-            }
+
             ModelXml->AddAttribute("PointData", point_data);
             ModelXml->AddAttribute("cPointData", cpoint_data);
-
-            // cleanup curves
-            for( int i = 0; i < num_points; ++i ) {
-                if( pPos[i].has_curve ) {
-                    delete pPos[i].curve;
-                    pPos[i].curve = nullptr;
-                }
-            }
 
             GetModelScreenLocation().Read(ModelXml);
 

@@ -3089,6 +3089,7 @@ void LayoutPanel::FinalizeModel()
             float min_y = (float)(newModel->GetBaseObjectScreenLocation().GetBottom());
             float max_y = (float)(newModel->GetBaseObjectScreenLocation().GetTop());
             bool cancelled = false;
+            auto pos = newModel->GetBaseObjectScreenLocation().GetWorldPosition();
 
             wxProgressDialog prog("Model download", "Downloading models ...", 100, this, wxPD_APP_MODAL | wxPD_AUTO_HIDE);
             if (b->GetModelType() == "Download")
@@ -3108,6 +3109,10 @@ void LayoutPanel::FinalizeModel()
             }
             xlights->AddTraceMessage("LayoutPanel::FinalizeModel Do the import.");
             newModel->ImportXlightsModel(_lastXlightsModel, xlights, min_x, max_x, min_y, max_y);
+            if (newModel->GetDisplayAs() == "Poly Line")
+            {
+                newModel->SetPosition(pos.x, pos.y);
+            }
             if (b->GetState() == 1)
             {
                 _lastXlightsModel = "";
