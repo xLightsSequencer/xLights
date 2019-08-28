@@ -1485,14 +1485,14 @@ void xLightsFrame::OnGridNetworkItemRClick(wxListEvent& event)
 
     wxMenu mnu;
     wxMenu* mnuAdd = new wxMenu();
-    mnuAdd->Append(ID_NETWORK_ADDUSB, "USB")->Enable(selcnt == 1);
-    mnuAdd->Append(ID_NETWORK_ADDNULL, "NULL")->Enable(selcnt == 1);
-    mnuAdd->Append(ID_NETWORK_ADDE131, "E1.31")->Enable(selcnt == 1);
-    mnuAdd->Append(ID_NETWORK_ADDARTNET, "ArtNET")->Enable(selcnt == 1);
-    mnuAdd->Append(ID_NETWORK_ADDLOR, "LOR")->Enable(selcnt == 1);
-    mnuAdd->Append(ID_NETWORK_ADDDDP, "DDP")->Enable(selcnt == 1);
-    mnuAdd->Append(ID_NETWORK_ADDZCPP, "ZCPP")->Enable(selcnt == 1);
-    mnuAdd->Append(ID_NETWORK_ADDSYNCROLIGHTETHERNET, "Syncrolight Ethernet")->Enable(selcnt == 1);
+    mnuAdd->Append(ID_NETWORK_ADDUSB, "USB");
+    mnuAdd->Append(ID_NETWORK_ADDNULL, "NULL");
+    mnuAdd->Append(ID_NETWORK_ADDE131, "E1.31");
+    mnuAdd->Append(ID_NETWORK_ADDARTNET, "ArtNET");
+    mnuAdd->Append(ID_NETWORK_ADDLOR, "LOR");
+    mnuAdd->Append(ID_NETWORK_ADDDDP, "DDP");
+    mnuAdd->Append(ID_NETWORK_ADDZCPP, "ZCPP");
+    mnuAdd->Append(ID_NETWORK_ADDSYNCROLIGHTETHERNET, "Syncrolight Ethernet");
     mnuAdd->Connect(wxEVT_MENU, (wxObjectEventFunction)&xLightsFrame::OnNetworkPopup, nullptr, this);
     
     bool validIpNoType = CheckAllAreSameIPType(_outputManager, GridNetwork, true, false);
@@ -1726,14 +1726,15 @@ void xLightsFrame::OnGridNetworkItemRClick(wxListEvent& event)
     mnuBulkEdit->Append(ID_NETWORK_BESUPPRESSDUPLICATES, "Suppress duplicate frames", mnuBulkEditSD, "")->Enable(selcnt > 0);
     mnuBulkEdit->Connect(wxEVT_MENU, (wxObjectEventFunction)&xLightsFrame::OnNetworkPopup, nullptr, this);
 
-    wxMenuItem* ma =  mnu.Append(ID_NETWORK_ADD, "Insert After", mnuAdd, "");
+    std::string addtext = "Insert After";
+    if (selcnt == 0) {
+        addtext = "Add";
+    }
+
+    wxMenuItem* ma =  mnu.Append(ID_NETWORK_ADD, addtext, mnuAdd, "");
     wxMenuItem* be = mnu.Append(ID_NETWORK_BULKEDIT, "Bulk Edit", mnuBulkEdit, "");
     mnu.AppendSeparator();
 
-    if (!ButtonAddE131->IsEnabled()) {
-        ma->Enable(false);
-        be->Enable(false);
-    }
     if (selected && selected->GetType() == "ZCPP") {
         mnu.Append(ID_NETWORK_CONVERTTOE131, "Convert ZCPP to e1.31");
     }
@@ -1778,13 +1779,48 @@ void xLightsFrame::OnGridNetworkItemRClick(wxListEvent& event)
 	}
 
     if (!ButtonAddE131->IsEnabled()) {
+        ma->Enable(false);
         mia->Enable(false);
         mid->Enable(false);
         mide->Enable(false);
         mideu->Enable(false);
+        be->Enable(false);
     }
 
     mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&xLightsFrame::OnNetworkPopup, nullptr, this);
+    PopupMenu(&mnu);
+    GridNetwork->SetFocus();
+}
+
+void xLightsFrame::OnGridNetworkRClick(wxListEvent& event)
+{
+    GridNetwork->SetFocus();
+
+    int selcnt = GridNetwork->GetSelectedItemCount();
+
+    wxMenu mnu;
+    wxMenu* mnuAdd = new wxMenu();
+    mnuAdd->Append(ID_NETWORK_ADDUSB, "USB");
+    mnuAdd->Append(ID_NETWORK_ADDNULL, "NULL");
+    mnuAdd->Append(ID_NETWORK_ADDE131, "E1.31");
+    mnuAdd->Append(ID_NETWORK_ADDARTNET, "ArtNET");
+    mnuAdd->Append(ID_NETWORK_ADDLOR, "LOR");
+    mnuAdd->Append(ID_NETWORK_ADDDDP, "DDP");
+    mnuAdd->Append(ID_NETWORK_ADDZCPP, "ZCPP");
+    mnuAdd->Append(ID_NETWORK_ADDSYNCROLIGHTETHERNET, "Syncrolight Ethernet");
+    mnuAdd->Connect(wxEVT_MENU, (wxObjectEventFunction)& xLightsFrame::OnNetworkPopup, nullptr, this);
+
+    wxMenuItem* ma = mnu.Append(ID_NETWORK_ADD, "Add", mnuAdd, "");
+    wxMenuItem* mideu = mnu.Append(ID_NETWORK_DEACTIVATEUNUSED, "Deactivate Unused");
+
+    mideu->Enable(true);
+
+    if (!ButtonAddE131->IsEnabled()) {
+        ma->Enable(false);
+        mideu->Enable(false);
+    }
+
+    mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)& xLightsFrame::OnNetworkPopup, nullptr, this);
     PopupMenu(&mnu);
     GridNetwork->SetFocus();
 }
@@ -1793,23 +1829,24 @@ void xLightsFrame::OnNetworkPopup(wxCommandEvent &event)
 {
     int id = event.GetId();
     int item = GridNetwork->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+    int selcount = GridNetwork->GetSelectedItemCount();
 
     if (id == ID_NETWORK_ADDUSB) {
-        SetupDongle(nullptr, item+1);
+        SetupDongle(nullptr, selcount == 1 ? item+1 : -1);
     } else if (id == ID_NETWORK_ADDNULL) {
-        SetupNullOutput(nullptr, item+1);
+        SetupNullOutput(nullptr, selcount == 1 ? item + 1 : -1);
     } else if (id == ID_NETWORK_ADDE131) {
-        SetupE131(nullptr, item+1);
+        SetupE131(nullptr, selcount == 1 ? item + 1 : -1);
     } else if (id == ID_NETWORK_ADDSYNCROLIGHTETHERNET) {
-        SetupSyncrolightEthernet(nullptr, item + 1);
+        SetupSyncrolightEthernet(nullptr, selcount == 1 ? item + 1 : -1);
     } else if (id == ID_NETWORK_ADDZCPP) {
-        SetupZCPP(nullptr, item+1);
+        SetupZCPP(nullptr, selcount == 1 ? item + 1 : -1);
     } else if (id == ID_NETWORK_ADDARTNET) {
-        SetupArtNet(nullptr, item+1);
+        SetupArtNet(nullptr, selcount == 1 ? item + 1 : -1);
     } else if (id == ID_NETWORK_ADDLOR) {
-        SetupLOR(nullptr, item+1);
+        SetupLOR(nullptr, selcount == 1 ? item + 1 : -1);
     } else if (id == ID_NETWORK_ADDDDP) {
-        SetupDDP(nullptr, item + 1);
+        SetupDDP(nullptr, selcount == 1 ? item + 1 : -1);
     } else if (id == ID_NETWORK_UCIFPPB) {
         UploadFPPBridgeInput();
     } else if (id == ID_NETWORK_MULTIUPLOAD) {

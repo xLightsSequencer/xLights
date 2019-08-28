@@ -1470,6 +1470,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     //*)
 
     Connect(wxID_ANY, wxEVT_CHAR_HOOK, wxKeyEventHandler(xLightsFrame::OnCharHook), nullptr, this);
+    Connect(ID_LISTCTRL_NETWORKS, wxEVT_CONTEXT_MENU, (wxObjectEventFunction)& xLightsFrame::OnGridNetworkRClick);
 
     _suppressDuplicateFrames = 0;
 

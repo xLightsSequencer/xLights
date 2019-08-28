@@ -493,6 +493,7 @@ public:
     void OnMenuItem_Help_FacebookSelected(wxCommandEvent& event);
     void OnMenuItem_ExportEffectsSelected(wxCommandEvent& event);
     void OnGridNetworkItemRClick(wxListEvent& event);
+    void OnGridNetworkRClick(wxListEvent& event);
     void OnGridNetworkItemSelect(wxListEvent& event);
     void OnGridNetworkItemDeselect(wxListEvent& event);
     void OnGridNetworkItemFocused(wxListEvent& event);
