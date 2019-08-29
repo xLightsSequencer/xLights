@@ -59,7 +59,7 @@ public:
     std::list<std::string> GetFacesUsed(EffectManager& em) const;
     bool CleanupFileLocations(xLightsFrame* frame, EffectManager& em);
     Effect* SelectEffectUsingDescription(std::string description);
-    bool IsEffectValid(Effect* e) const;
+    virtual bool IsEffectValid(Effect* e) const;
     Effect* SelectEffectUsingLayerTime(int layer, int time);
 	virtual std::vector<int> GetLayersWithEffectsByTime(int startMs, int endMS) const;
 
@@ -190,6 +190,7 @@ public:
     virtual EffectLayer* GetEffectLayerFromExclusiveIndex(int index) override;
     virtual ElementType GetType() const override { return ELEMENT_TYPE_STRAND; }
     virtual NodeLayer* GetNodeEffectLayer(int index) const override;
+    virtual bool IsEffectValid(Effect* e) const override;
 
     int GetStrand() const { return mStrand; }
     

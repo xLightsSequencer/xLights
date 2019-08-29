@@ -1678,6 +1678,23 @@ bool SequenceElements::IsValidEffect(Effect* ef) const
             {
                 return true;
             }
+            if (e->GetType() == ELEMENT_TYPE_MODEL) {
+                ModelElement* mel = dynamic_cast<ModelElement*>(e);
+                if (mel != nullptr)
+                {
+                    for (int x = 0; x < mel->GetSubModelAndStrandCount(); ++x)
+                    {
+                        SubModelElement* sme = mel->GetSubModel(x);
+                        if (sme != nullptr)
+                        {
+                            if (sme->IsEffectValid(ef))
+                            {
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 

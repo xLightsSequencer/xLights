@@ -726,6 +726,28 @@ Effect* Element::SelectEffectUsingDescription(std::string description)
     return nullptr;
 }
 
+bool StrandElement::IsEffectValid(Effect* e) const
+{
+    for (int j = 0; j < GetEffectLayerCount(); j++)
+    {
+        EffectLayer* el = GetEffectLayer(j);
+        if (el->IsEffectValid(e))
+        {
+            return true;
+        }
+    }
+
+    for (int j = 0; j < GetNodeLayerCount(); j++)
+    {
+        if (GetNodeEffectLayer(j)->IsEffectValid(e))
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 bool Element::IsEffectValid(Effect* e) const
 {
     for (int j = 0; j < GetEffectLayerCount(); j++)
