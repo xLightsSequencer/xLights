@@ -101,11 +101,14 @@ bool SyncrolightEthernetOutput::Open()
     _remoteAddr.Hostname(_ip.c_str());
     _remoteAddr.Service(SYNCROLIGHT_PORT);
 
+    Heartbeat(0);
+
     return _ok && _datagram != nullptr;
 }
 
 void SyncrolightEthernetOutput::Close()
 {
+    Heartbeat(9);
     if (_datagram != nullptr)
     {
         delete _datagram;
@@ -134,6 +137,73 @@ void SyncrolightEthernetOutput::StartFrame(long msec)
     _timer_msec = msec;
 }
 
+void SyncrolightEthernetOutput::Heartbeat(int mode)
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static wxLongLong __lastTime = 0;
+    static wxIPV4address __remoteAddr;
+    static uint8_t __pkt[] = { 0x80, 0x01, 0x00, 0x81 };
+    static wxDatagramSocket* __datagram = nullptr;
+
+    if (mode == 1)
+    {
+        // output
+        if (__datagram == nullptr) return;
+
+        wxLongLong now = wxGetUTCTimeMillis();
+        if (__lastTime + SYNCROLIGHT_HEARTBEATINTERVAL < now)
+        {
+            __datagram->SendTo(__remoteAddr, __pkt, sizeof(__pkt));
+            __lastTime = now;
+        }
+    }
+    else if (mode == 0)
+    {
+        // initialise
+        if (__datagram != nullptr) return;
+
+        wxIPV4address localaddr;
+        if (IPOutput::__localIP == "")
+        {
+            localaddr.AnyAddress();
+        }
+        else
+        {
+            localaddr.Hostname(IPOutput::__localIP.c_str());
+        }
+        __remoteAddr.Hostname("224.0.0.0");
+        __remoteAddr.Service(SYNCROLIGHT_PORT);
+
+        __datagram = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);
+
+        if (__datagram != nullptr)
+        {
+            if (!__datagram->IsOk() || __datagram->Error() != wxSOCKET_NOERROR)
+            {
+                logger_base.error("SyncrolightEthernetOutput: %s Error creating SyncrolightEthernet heartbeat datagram => %d : %s.",
+                    (const char*)localaddr.IPAddress().c_str(),
+                    __datagram->LastError(),
+                    (const char*)DecodeIPError(__datagram->LastError()).c_str());
+                delete __datagram;
+                __datagram = nullptr;
+            }
+        }
+        else
+        {
+            logger_base.error("SyncrolightEthernetOutput: %s Error creating SyncrolightEthernet heartbeat datagram.",
+                (const char*)localaddr.IPAddress().c_str());
+        }
+    }
+    else if (mode == 9)
+    {
+        // close
+        if (__datagram == nullptr) return;
+        __datagram->Close();
+        delete __datagram;
+        __datagram = nullptr;
+    }
+}
+
 void SyncrolightEthernetOutput::EndFrame(int suppressFrames)
 {
     if (!_enabled || _suspend) return;
@@ -160,6 +230,7 @@ void SyncrolightEthernetOutput::EndFrame(int suppressFrames)
                 current += 900;
             }
             FrameOutput();
+            Heartbeat(1);
         }
         else
         {

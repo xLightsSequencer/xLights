@@ -12,6 +12,7 @@ protected:
     static const unsigned int SYNCROLIGHTETHERNET_PACKET_FOOTERLEN = 1;
     static const unsigned int SYNCROLIGHTETHERNET_MAX_CHANNELS = 4096*3;
     static const unsigned int SYNCROLIGHT_PORT = 11000;
+    static const unsigned int SYNCROLIGHT_HEARTBEATINTERVAL = 25;
     #pragma endregion Syncrolight Constants
 
     #pragma region Member Variables
@@ -21,6 +22,8 @@ protected:
     wxDatagramSocket* _datagram = nullptr;
     int _port = 0;
     #pragma endregion Member Variables
+
+    static void Heartbeat(int mode);
 
 public:
 
