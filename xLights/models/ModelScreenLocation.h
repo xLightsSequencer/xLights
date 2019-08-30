@@ -130,6 +130,9 @@ protected:
     virtual float GetMWidth() const = 0;
     virtual float GetMHeight() const = 0;
     virtual float GetMDepth() const = 0;
+    virtual float GetRestorableMWidth() const { return GetMWidth(); }
+    virtual float GetRestorableMHeight() const { return GetMHeight(); }
+    virtual float GetRestorableMDepth() const { return GetMDepth(); }
 
     void SetRenderSize(float NewWi, float NewHt, float NewDp = 0.0f);
     bool IsLocked() const { return _locked; }
@@ -305,6 +308,9 @@ public:
     virtual float GetMWidth() const override;
     virtual float GetMHeight() const override;
     virtual float GetMDepth() const override;
+    virtual float GetRestorableMWidth() const override;
+    virtual float GetRestorableMHeight() const override;
+    virtual float GetRestorableMDepth() const override;
 
     int GetRotation() const {
         return rotatez;

@@ -1637,6 +1637,12 @@ float BoxedScreenLocation::GetBack() const {
     return worldPos_z - (RenderWi * scalez / 2.0f);
 }
 
+float BoxedScreenLocation::GetRestorableMWidth() const {
+    return (RenderWi-1) * scalex;
+}
+float BoxedScreenLocation::GetRestorableMHeight() const {
+    return (RenderHt-1) * scaley;
+}
 float BoxedScreenLocation::GetMWidth() const {
     return RenderWi * scalex;
 }
@@ -1651,6 +1657,9 @@ void BoxedScreenLocation::SetMDepth(float d) {
 }
 float BoxedScreenLocation::GetMDepth() const {
     return scalez * RenderWi;
+}
+float BoxedScreenLocation::GetRestorableMDepth() const {
+    return scalez * (RenderWi-1);
 }
 void BoxedScreenLocation::SetMHeight(float h) {
     scaley = h / (RenderHt - 1);
@@ -2623,7 +2632,7 @@ float TwoPointScreenLocation::GetMWidth() const
 
 float TwoPointScreenLocation::GetMHeight() const
 {
-    return std::abs(y2 - worldPos_y);
+    return y2;
 }
 
 float TwoPointScreenLocation::GetRight() const {

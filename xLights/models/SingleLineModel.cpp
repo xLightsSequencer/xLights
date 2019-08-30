@@ -94,25 +94,26 @@ const std::vector<std::string> &SingleLineModel::GetBufferStyles() const {
 void SingleLineModel::InitModel() {
     InitLine();
 
-
-    for (auto node = Nodes.begin(); node != Nodes.end(); ++node) {
-        int count = 0;
-        int num = node->get()->Coords.size();
-        float offset = 0.0;
-        if (num == 1) {
-            offset = 0.5;
-        } else {
-            offset = (float)1 / (float)num / 2.0;
-        }
-        for (auto coord = node->get()->Coords.begin(); coord != node->get()->Coords.end(); ++coord) {
-            coord->screenY = 0;
-            if (num > 1) {
-                coord->screenX = coord->bufX + (float)count / (float)num + offset ;
-                count++;
-            } else {
-                coord->screenX = coord->bufX + offset ;
+    if ( Nodes.size() > 0 && (BufferWi > 1 || Nodes.front()->Coords.size() > 1))
+    {
+        int lightcount = BufferWi * Nodes.front()->Coords.size();
+        float bulbOffset = BufferWi / (lightcount - 1.0);
+        float currentX = 0;
+        for (auto& n : Nodes)
+        {
+            for (auto& c : n->Coords)
+            {
+                c.screenY = 0;
+                c.screenX = currentX;
+                currentX += bulbOffset;
             }
         }
+    }
+    else if (Nodes.size() > 0)
+    {
+        // 1 node 1 light
+        Nodes.front()->Coords.front().screenY = 0.0;
+        Nodes.front()->Coords.front().screenX = 0.5;
     }
     screenLocation.SetRenderSize(BufferWi, 1);
 }

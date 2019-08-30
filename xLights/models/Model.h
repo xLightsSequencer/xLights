@@ -344,12 +344,7 @@ public:
     float _savedWidth = 0;
     float _savedHeight = 0;
     float _savedDepth = 0;
-    void SaveDisplayDimensions()
-    {
-        _savedWidth = GetWidth();
-        _savedHeight = GetHeight();
-        _savedDepth = GetDepth();
-    }
+    void SaveDisplayDimensions();
     void RestoreDisplayDimensions();
 
     void GetMinScreenXY(float& minx, float& miny) const;

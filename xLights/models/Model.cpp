@@ -4950,6 +4950,13 @@ void Model::GetMinScreenXY(float& minx, float& miny) const
     }
 }
 
+void Model::SaveDisplayDimensions()
+{
+    _savedWidth = GetModelScreenLocation().GetRestorableMWidth();
+    _savedHeight = GetModelScreenLocation().GetRestorableMHeight();
+    _savedDepth = GetModelScreenLocation().GetRestorableMDepth();
+}
+
 void Model::RestoreDisplayDimensions()
 {
     SetWidth(_savedWidth, true);
