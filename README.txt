@@ -11,6 +11,11 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2019.45 August 30, 2019
+   -- bug (keith)  Fix Syncrolight ethernet controller flicker
+   -- bug (keith)  Fix effects on strands, nodes and submodels dont render automatically
+   -- bug (keith)  Fix a bunch of model sizing issues
+   -- bug (keith)  Fix model preview model accessing invalid models crashes   )
 2019.44 August 28, 2019
    -- enh (keith)  Add support for Syncrolight serial protocol
    -- enh (keith)  Add support for Syncrolight ethernet protocol
