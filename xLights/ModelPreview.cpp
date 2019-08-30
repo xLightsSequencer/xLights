@@ -303,7 +303,7 @@ bool ModelPreview::ValidateModels(const ModelManager& mm)
         {
             // pointer to a non-existent model found ... not good
             wxASSERT(false);
-            logger_base.error("Validating models in model preview %s found model %s was not valid. This may crash!!!!", (const char*)GetName().c_str());
+            logger_base.error("Validating models in model preview %s found model that was not valid. This may crash!!!!", (const char*)GetName().c_str());
             return false;
         }
     }
