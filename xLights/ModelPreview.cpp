@@ -403,31 +403,46 @@ void ModelPreview::Render()
     if (!models.empty()) {
         bool isModelSelected = false;
         for (auto m : models) {
-            if (m->Selected || m->GroupSelected) {
-                isModelSelected = true;
+            if (xlights->AllModels.IsModelValid(m)) { // this IsModelValid should not be necessary but we are getting crashes due to invalid models
+                if (m->Selected || m->GroupSelected) {
+                    isModelSelected = true;
+                    break;
+                }
+            }
+            else
+            {
+                wxASSERT(false); // why did we get here
             }
         }
         const xlColor *defColor = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_MODEL_DEFAULT);
         const xlColor *selColor = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_MODEL_SELECTED);
         const xlColor *overlapColor = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_MODEL_OVERLAP);
         for (auto m : models) {
-            const xlColor *color = defColor;
-            if (m->Selected || m->GroupSelected) {
-                color = selColor;
-            } else if (m->Overlapping && isModelSelected) {
-                color = overlapColor;
+            if (xlights->AllModels.IsModelValid(m)) { // this IsModelValid should not be necessary but we are getting crashes due to invalid models
+                const xlColor* color = defColor;
+                if (m->Selected || m->GroupSelected) {
+                    color = selColor;
+                }
+                else if (m->Overlapping && isModelSelected) {
+                    color = overlapColor;
+                }
+                if (!allowSelected) {
+                    color = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_MODEL_DEFAULT);
+                }
+                if (is_3d) {
+                    m->DisplayModelOnWindow(this, solidAccumulator3d, transparentAccumulator3d, true, color, allowSelected);
+                }
+                else {
+                    m->DisplayModelOnWindow(this, solidAccumulator, transparentAccumulator, false, color, allowSelected);
+                    // FIXME:  Delete when not needed for debugging
+                    //if ((*PreviewModels)[i]->Highlighted) {
+                    //    (*PreviewModels)[i]->GetModelScreenLocation().DrawBoundingBox(accumulator);
+                    //}
+                }
             }
-            if (!allowSelected) {
-                color = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_MODEL_DEFAULT);
-            }
-            if (is_3d) {
-                m->DisplayModelOnWindow(this, solidAccumulator3d, transparentAccumulator3d, true, color, allowSelected);
-            } else {
-                m->DisplayModelOnWindow(this, solidAccumulator, transparentAccumulator, false, color, allowSelected);
-                // FIXME:  Delete when not needed for debugging
-                //if ((*PreviewModels)[i]->Highlighted) {
-                //    (*PreviewModels)[i]->GetModelScreenLocation().DrawBoundingBox(accumulator);
-                //}
+            else
+            {
+                wxASSERT(false); // why did we get here
             }
         }
     }
