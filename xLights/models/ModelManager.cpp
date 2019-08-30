@@ -61,6 +61,15 @@ BaseObject *ModelManager::GetObject(const std::string &name) const
     return GetModel(name);
 }
 
+bool ModelManager::IsModelValid(Model* m) const
+{
+    for (auto it : models)
+    {
+        if (it.second == m) return true;
+    }
+    return false;
+}
+
 Model *ModelManager::GetModel(const std::string &name) const {
     auto it = models.find(name);
     if (it == models.end()) {
@@ -77,6 +86,7 @@ Model *ModelManager::GetModel(const std::string &name) const {
     }
     return it->second;
 }
+
 Model *ModelManager::operator[](const std::string &name) const {
     return GetModel(name);
 }

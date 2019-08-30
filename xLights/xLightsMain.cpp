@@ -4242,7 +4242,10 @@ void xLightsFrame::SaveWorkingLayout()
     // update xml with offsets and scale
     for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
     {
-        modelPreview->GetModels()[i]->UpdateXmlWithScale();
+        if (AllModels.IsModelValid(modelPreview->GetModels()[i]))
+        {
+            modelPreview->GetModels()[i]->UpdateXmlWithScale();
+        }
     }
     for (auto it = AllObjects.begin(); it != AllObjects.end(); ++it) {
         ViewObject *view_object = it->second;
