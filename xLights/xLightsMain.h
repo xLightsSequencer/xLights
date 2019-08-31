@@ -1263,6 +1263,7 @@ private:
     int ChooseRandomEffect();
 
 public:
+    bool IsNewModel(Model* m) const;
     int GetCurrentPlayTime();
     bool InitPixelBuffer(const std::string &modelName, PixelBufferClass &buffer, int layerCount, bool zeroBased = false);
     Model *GetModel(const std::string& name) const;

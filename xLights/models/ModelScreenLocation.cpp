@@ -2627,7 +2627,7 @@ float TwoPointScreenLocation::GetLeft() const {
 
 float TwoPointScreenLocation::GetMWidth() const
 {
-    return std::abs(x2 - worldPos_x);
+    return x2;
 }
 
 float TwoPointScreenLocation::GetMHeight() const

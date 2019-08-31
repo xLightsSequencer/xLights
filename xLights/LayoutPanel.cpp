@@ -6625,3 +6625,9 @@ void LayoutPanel::OnNotebook_ObjectsPageChanged(wxNotebookEvent& event)
         editing_models = false;
     }
 }
+
+bool LayoutPanel::IsNewModel(Model* m) const
+{
+    if (m == nullptr) return false;
+    return m == newModel;
+}

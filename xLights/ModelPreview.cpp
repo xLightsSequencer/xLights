@@ -403,7 +403,7 @@ void ModelPreview::Render()
     if (!models.empty()) {
         bool isModelSelected = false;
         for (auto m : models) {
-            if (xlights->AllModels.IsModelValid(m)) { // this IsModelValid should not be necessary but we are getting crashes due to invalid models
+            if (xlights->AllModels.IsModelValid(m) || xlights->IsNewModel(m)) { // this IsModelValid should not be necessary but we are getting crashes due to invalid models
                 if (m->Selected || m->GroupSelected) {
                     isModelSelected = true;
                     break;
@@ -418,7 +418,7 @@ void ModelPreview::Render()
         const xlColor *selColor = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_MODEL_SELECTED);
         const xlColor *overlapColor = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_MODEL_OVERLAP);
         for (auto m : models) {
-            if (xlights->AllModels.IsModelValid(m)) { // this IsModelValid should not be necessary but we are getting crashes due to invalid models
+            if (xlights->AllModels.IsModelValid(m) || xlights->IsNewModel(m)) { // this IsModelValid should not be necessary but we are getting crashes due to invalid models
                 const xlColor* color = defColor;
                 if (m->Selected || m->GroupSelected) {
                     color = selColor;

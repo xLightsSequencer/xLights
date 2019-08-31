@@ -235,6 +235,7 @@ class LayoutPanel: public wxPanel
         void ImportModelsFromRGBEffects();
 
     public:
+        bool IsNewModel(Model* m) const;
         void ClearUndo() { undoBuffer.clear(); }
         void SaveEffects();
         void UpdatePreview();

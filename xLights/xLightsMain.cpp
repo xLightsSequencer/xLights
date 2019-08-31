@@ -4238,7 +4238,7 @@ void xLightsFrame::SaveWorkingLayout()
     // update xml with offsets and scale
     for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
     {
-        if (AllModels.IsModelValid(modelPreview->GetModels()[i])) { // this IsModelValid should not be necessary but we are getting crashes due to invalid models
+        if (AllModels.IsModelValid(modelPreview->GetModels()[i]) || IsNewModel(modelPreview->GetModels()[i])) { // this IsModelValid should not be necessary but we are getting crashes due to invalid models
             modelPreview->GetModels()[i]->UpdateXmlWithScale();
         }
         else
@@ -10299,4 +10299,9 @@ void xLightsFrame::OnMenuItem61Selected(wxCommandEvent& event)
 {
     mSuppressFadeHints = event.IsChecked();
     mainSequencer->PanelEffectGrid->Refresh();
+}
+
+bool xLightsFrame::IsNewModel(Model* m) const
+{
+    return layoutPanel->IsNewModel(m);
 }
