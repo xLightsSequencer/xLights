@@ -28,6 +28,8 @@ class EventMQTTPanel: public EventPanel
 		wxStaticText* StaticText3;
 		wxStaticText* StaticText4;
 		wxStaticText* StaticText5;
+		wxStaticText* StaticText6;
+		wxTextCtrl* TextCtrl_ClientId;
 		wxTextCtrl* TextCtrl_IP;
 		wxTextCtrl* TextCtrl_Password;
 		wxTextCtrl* TextCtrl_Path;
@@ -41,6 +43,8 @@ class EventMQTTPanel: public EventPanel
 		static const long ID_TEXTCTRL2;
 		static const long ID_STATICTEXT3;
 		static const long ID_SPINCTRL1;
+		static const long ID_STATICTEXT6;
+		static const long ID_TEXTCTRL5;
 		static const long ID_STATICTEXT1;
 		static const long ID_TEXTCTRL1;
 		static const long ID_STATICTEXT4;
@@ -54,6 +58,7 @@ class EventMQTTPanel: public EventPanel
 		//(*Handlers(EventMQTTPanel)
 		void OnTextCtrl_PathText(wxCommandEvent& event);
 		void OnTextCtrl_IPText(wxCommandEvent& event);
+		void OnTextCtrl_ClientIdText(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

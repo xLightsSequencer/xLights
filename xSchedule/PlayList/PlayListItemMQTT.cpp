@@ -351,12 +351,14 @@ void PlayListItemMQTT::Start(long stepLengthMS)
 void PlayListItemMQTT::SetClientId(const std::string& clientId)
 {
     if (clientId == "") {
+        _changeCount++;
         SetDefaultClientId();
     }
     else
     {
         if (_clientId != clientId) { 
-            _clientId = clientId; _changeCount++; 
+            _clientId = clientId; 
+            _changeCount++; 
         } 
     }
 }

@@ -8,6 +8,7 @@ EventMQTT::EventMQTT() : EventBase()
     _topic = "/xSchedule/Event";
     _ip = "127.0.0.1";
     _port = 1883;
+    SetDefaultClientId();
 }
 
 EventMQTT::EventMQTT(wxXmlNode* node) : EventBase(node)
@@ -16,7 +17,10 @@ EventMQTT::EventMQTT(wxXmlNode* node) : EventBase(node)
     _ip = node->GetAttribute("IP", "127.0.0.1").ToStdString();
     _username = node->GetAttribute("Username", "").ToStdString();
     _password = node->GetAttribute("Password", "").ToStdString();
+    _clientId = node->GetAttribute("ClientId", "").ToStdString();
     _port = wxAtoi(node->GetAttribute("Port", "1883"));
+
+    if (_clientId == "") SetDefaultClientId();
 }
 
 wxXmlNode* EventMQTT::Save()
@@ -26,6 +30,7 @@ wxXmlNode* EventMQTT::Save()
     en->AddAttribute("IP", _ip);
     en->AddAttribute("Username", _username);
     en->AddAttribute("Password", _password);
+    en->AddAttribute("ClientId", _clientId);
     en->AddAttribute("Port", wxString::Format("%d", _port));
     EventBase::Save(en);
     return en;
@@ -100,4 +105,19 @@ void EventMQTT::Process(const std::string& topic, const std::string& data, Sched
 std::string EventMQTT::GetParmToolTip()
 {
     return "Available:\n\n   %DATA% - entire payload\n   %DATA1% - payload first CSV value\n   %DATA2% - payload second CSV value\n   %DATA3% - payload third CSV value\n";
+}
+
+void EventMQTT::SetClientId(std::string clientId)
+{
+    if (clientId == "") {
+        _changeCount++;
+        SetDefaultClientId();
+    }
+    else
+    {
+        if (_clientId != clientId) {
+            _clientId = clientId;
+            _changeCount++;
+        }
+    }
 }

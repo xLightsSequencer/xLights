@@ -10,12 +10,13 @@
 
 #include <log4cpp/Category.hh>
 
-ListenerMQTT::ListenerMQTT(ListenerManager* listenerManager, const std::string& ip, int port, const std::string& username, const std::string& password) : ListenerBase(listenerManager)
+ListenerMQTT::ListenerMQTT(ListenerManager* listenerManager, const std::string& ip, int port, const std::string& username, const std::string& password, const std::string& clientId) : ListenerBase(listenerManager)
 {
     _ip = ip;
     _port = port;
     _username = username;
     _password = password;
+    _clientId = clientId;
 }
 
 void ListenerMQTT::Start()
@@ -54,16 +55,25 @@ void ListenerMQTT::StartProcess()
         memset(buffer, 0x00, sizeof(buffer));
         int index = 0;
         buffer[index++] = 0x10; // connect to publish
-        index += PlayListItemMQTT::EncodeInt(&buffer[index], 21);
+        index += PlayListItemMQTT::EncodeInt(&buffer[index], 0); // packer length
         index += PlayListItemMQTT::EncodeString(&buffer[index], "MQTT");
         buffer[index++] = 0x04; // protocol version
         uint8_t flags = 0x00;
-        if (_username != "") flags |= 0x80;
-        if (_password != "") flags |= 0x40;
+        if (_username != "" && _password != "")
+        {
+            flags |= 0x80;
+            flags |= 0x40;
+        }
         buffer[index++] = flags;
         buffer[index++] = 0x00; // keep alive
         buffer[index++] = 0x00;
-        index += PlayListItemMQTT::EncodeString(&buffer[index], "xSchedule");
+        index += PlayListItemMQTT::EncodeString(&buffer[index], _clientId);
+        if (_username != "" && _password != "")
+        {
+            index += PlayListItemMQTT::EncodeString(&buffer[index], _username);
+            index += PlayListItemMQTT::EncodeString(&buffer[index], _password);
+        }
+        PlayListItemMQTT::EncodeInt(&buffer[1], index - 2); // set the packet length
 
         _client.Write(buffer, index);
         wxASSERT(_client.LastWriteCount() == index);
@@ -92,12 +102,22 @@ void ListenerMQTT::StartProcess()
     }
 }
 
-void ListenerMQTT::Subscribe(const std::string& topic)
+bool ListenerMQTT::Subscribe(const std::string& topic)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     static int __msgid = 1;
-    if (!_isOk) return;
+
+    if (!_isOk)
+    {
+        std::unique_lock<std::mutex> lock(_topicLock);
+
+        if (std::find(begin(_toSubscribe), end(_toSubscribe), topic) == end(_toSubscribe))
+        {
+            _toSubscribe.push_back(topic);
+        }
+        return false;
+    }
 
     uint8_t buffer[1444];
     memset(buffer, 0x00, sizeof(buffer));
@@ -113,36 +133,11 @@ void ListenerMQTT::Subscribe(const std::string& topic)
     index += PlayListItemMQTT::EncodeString(&buffer[index], topic);
     buffer[index++] = 0x00;
 
+    logger_base.info("MQTT subscribing to topic %s.", (const char*)topic.c_str());
     _client.Write(buffer, index);
     wxASSERT(_client.LastWriteCount() == index);
-    /*
-    memset(buffer, 0x00, sizeof(buffer));
-    _client.WaitForRead(0, 500);
 
-    _client.Peek(buffer, sizeof(buffer));
-
-    // wait for up to 100ms for data
-    int i = 0;
-    while (_client.LastCount() == 0 && i < 100)
-    {
-        wxMilliSleep(1);
-        _client.Peek(buffer, sizeof(buffer));
-        i++;
-    }
-
-    _client.Read(buffer, std::min((int)_client.LastCount(), (int)sizeof(buffer)));
-    if (_client.GetLastIOReadSize() > 0)
-    {
-        if ((buffer[0] & 0xF0) >> 4 == 9)
-        {
-            // all good
-        }
-        else
-        {
-            logger_base.error("Failed to MQTT subscribe to %s.", (const char*)topic.c_str());
-        }
-    }
-    */
+    return true;
 }
 
 void ListenerMQTT::StopProcess()
@@ -202,6 +197,20 @@ void ListenerMQTT::Poll()
             else
             {
                 logger_base.error("Invalid MQTT Packet.");
+            }
+        }
+
+        {
+            std::unique_lock<std::mutex> lock(_topicLock);
+
+            int lastSize = 0;
+            while (_toSubscribe.size() != 0 && _toSubscribe.size() != lastSize)
+            {
+                lastSize = _toSubscribe.size();
+                if (Subscribe(_toSubscribe.front()))
+                {
+                    _toSubscribe.pop_front();
+                }
             }
         }
     }

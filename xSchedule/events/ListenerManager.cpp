@@ -451,7 +451,7 @@ void ListenerManager::StartListeners()
 
             if (!portExists)
             {
-                _listeners.push_back(new ListenerMQTT(this, e->GetBrokerIP(), e->GetBrokerPort(), e->GetUsername(), e->GetPassword()));
+                _listeners.push_back(new ListenerMQTT(this, e->GetBrokerIP(), e->GetBrokerPort(), e->GetUsername(), e->GetPassword(), e->GetClientId()));
                 _listeners.back()->Start();
                 ((ListenerMQTT*)_listeners.back())->Subscribe(e->GetTopic());
             }
