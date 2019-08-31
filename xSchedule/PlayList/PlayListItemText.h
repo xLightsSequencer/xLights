@@ -18,11 +18,14 @@ protected:
     std::string _format;
     wxColour _colour;
     int _speed;
+    std::string _lastTwitter;
+    long _lastTwitterTime = 0;
     APPLYMETHOD _blendMode;
     std::string _matrix;
     std::string _texttype;
     std::string _orientation;
     std::string _movement;
+    std::string _parameter1; // %TWITTER_FOLLOWERS% this is the twitter account
     bool _newlySet = false;
     long _msAdj = 0;
     wxFont* _font;
@@ -56,6 +59,8 @@ public:
     size_t GetDuration() const { return _durationMS; }
     void SetText(const wxString& text) { if (_text != text) { _text = text; _newlySet = true; _changeCount++; } }
     wxString GetText() const { return _text; }
+    void SetParameter1(const std::string& parameter1) { if (_parameter1 != parameter1) { _parameter1 = parameter1; _changeCount++; } }
+    std::string GetParameter1() const { return _parameter1; }
     void SetFormat(const std::string& format) { if (_format != format) { _format = format; _changeCount++; } }
     std::string GetFormat() const { return _format; }
     void SetColour(const wxColour& colour) { if (_colour != colour) { _colour = colour; _changeCount++; } }

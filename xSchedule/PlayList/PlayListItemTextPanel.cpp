@@ -45,6 +45,8 @@ const long PlayListItemTextPanel::ID_STATICTEXT9 = wxNewId();
 const long PlayListItemTextPanel::ID_TEXTCTRL3 = wxNewId();
 const long PlayListItemTextPanel::ID_STATICTEXT15 = wxNewId();
 const long PlayListItemTextPanel::ID_TEXTCTRL5 = wxNewId();
+const long PlayListItemTextPanel::ID_STATICTEXT16 = wxNewId();
+const long PlayListItemTextPanel::ID_TEXTCTRL6 = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(PlayListItemTextPanel,wxPanel)
@@ -144,6 +146,10 @@ PlayListItemTextPanel::PlayListItemTextPanel(wxWindow* parent, PlayListItemText*
 	FlexGridSizer1->Add(StaticText14, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_Delay = new wxTextCtrl(this, ID_TEXTCTRL5, _("0.000"), wxDefaultPosition, wxDefaultSize, wxTE_RIGHT, wxDefaultValidator, _T("ID_TEXTCTRL5"));
 	FlexGridSizer1->Add(TextCtrl_Delay, 1, wxALL|wxEXPAND, 5);
+	StaticText15 = new wxStaticText(this, ID_STATICTEXT16, _("Parameter 1:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT16"));
+	FlexGridSizer1->Add(StaticText15, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	TextCtrl_Parameter1 = new wxTextCtrl(this, ID_TEXTCTRL6, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL6"));
+	FlexGridSizer1->Add(TextCtrl_Parameter1, 1, wxALL|wxEXPAND, 5);
 	SetSizer(FlexGridSizer1);
 	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
@@ -164,6 +170,7 @@ PlayListItemTextPanel::PlayListItemTextPanel(wxWindow* parent, PlayListItemText*
     TextCtrl_Name->SetValue(text->GetRawName());
     TextCtrl_Text->SetValue(text->GetText());
     TextCtrl_Format->SetValue(text->GetFormat());
+    TextCtrl_Parameter1->SetValue(text->GetParameter1());
     SpinCtrl_Speed->SetValue(text->GetSpeed());
     FontPickerCtrl1->SetSelectedFont(*text->GetFont());
     FontPickerCtrl1->SetSelectedColour(text->GetColour());
@@ -189,6 +196,7 @@ PlayListItemTextPanel::~PlayListItemTextPanel()
 
     _text->SetText(TextCtrl_Text->GetValue().ToStdString());
     _text->SetFormat(TextCtrl_Format->GetValue().ToStdString());
+    _text->SetParameter1(TextCtrl_Parameter1->GetValue().ToStdString());
     _text->SetSpeed(SpinCtrl_Speed->GetValue());
     _text->SetFont(new wxFont(FontPickerCtrl1->GetSelectedFont()));
     _text->SetColour(FontPickerCtrl1->GetSelectedColour());

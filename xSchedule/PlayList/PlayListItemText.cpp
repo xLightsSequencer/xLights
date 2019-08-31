@@ -3,6 +3,7 @@
 #include <wx/notebook.h>
 #include <wx/wfstream.h>
 #include <wx/txtstrm.h>
+#include <wx/regex.h>
 #include "PlayListItemTextPanel.h"
 #include <log4cpp/Category.hh>
 #include <wx/font.h>
@@ -10,9 +11,11 @@
 #include "../xScheduleMain.h"
 #include "../ScheduleManager.h"
 #include "../ScheduleOptions.h"
+#include "../xSMSDaemon/Curl.h"
 
 PlayListItemText::PlayListItemText(wxXmlNode* node) : PlayListItem(node)
 {
+    _parameter1 = "";
     _matrixMapper = nullptr;
     _font = nullptr;
     _blendMode = APPLYMETHOD::METHOD_OVERWRITEIFBLACK;
@@ -58,6 +61,7 @@ void PlayListItemText::Load(wxXmlNode* node)
     wxASSERT(_font->IsOk());
     _format = node->GetAttribute("Format", "").ToStdString();
     _text = node->GetAttribute("Text", "").ToStdString();
+    _parameter1 = node->GetAttribute("Parameter1", "").ToStdString();
     _matrix = node->GetAttribute("Matrix", "").ToStdString();
     _movement = node->GetAttribute("Movement", "None").ToStdString();
     _renderWhenBlank = (node->GetAttribute("RenderWhenBlank", "True") == "True");
@@ -111,6 +115,7 @@ PlayListItemText::PlayListItemText() : PlayListItem()
     _texttype = "Normal";
     _x = 0;
     _y = 0;
+    _parameter1 = "";
 }
 
 PlayListItem* PlayListItemText::Copy() const
@@ -127,6 +132,7 @@ PlayListItem* PlayListItemText::Copy() const
     res->_y = _y;
     res->_blendMode = _blendMode;
     res->_colour = _colour;
+    res->_parameter1 = _parameter1;
     res->_font = new wxFont(_font->GetPointSize(), _font->GetFamily(), _font->GetStyle(), _font->GetWeight(),
         _font->GetUnderlined(), _font->GetFaceName(), _font->GetEncoding());
     res->_format = _format;
@@ -153,6 +159,7 @@ wxXmlNode* PlayListItemText::Save()
         node->AddAttribute("RenderWhenBlank", "False");
     }
     node->AddAttribute("Orientation", _orientation);
+    node->AddAttribute("Parameter1", _parameter1);
     node->AddAttribute("Type", _texttype);
     node->AddAttribute("Speed", wxString::Format(wxT("%i"), _speed));
     node->AddAttribute("X", wxString::Format(wxT("%i"), _x));
@@ -203,6 +210,8 @@ void PlayListItemText::Start(long stepLengthMS)
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     PlayListItem::Start(stepLengthMS);
 
+    _lastTwitterTime = 0;
+    _lastTwitter = "";
     auto m = xScheduleFrame::GetScheduleManager()->GetOptions()->GetMatrices();
     for (auto it = m->begin(); it != m->end(); ++it)
     {
@@ -232,7 +241,9 @@ std::string PlayListItemText::GetTooltip(const std::string& type)
     tt += "    Current Date/Time\n";
     tt += "        %DAY%, %MONTH%, %YEAR4%, %YEAR2%\n";
     tt += "        %HOUR24%, %HOUR12%, %MIN%, %SEC%, %MS%, %AMPM%\n\n";
-    
+    tt += "    Twitter followers - Parameter 1 = Twitter handle (without @\n";
+    tt += "        %TWITTER_FOLLOWERS%\n\n";
+
     if (type == "Countdown")
     {
         tt += "    Time until countdowndate\n";
@@ -264,6 +275,8 @@ std::string PlayListItemText::GetTooltip(const std::string& type)
 
 wxString PlayListItemText::GetText(size_t ms)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     wxString working = wxString(_format);
 
     wxTimeSpan plicountdown = wxTimeSpan::Milliseconds(_durationMS - ms);
@@ -326,6 +339,39 @@ wxString PlayListItemText::GetText(size_t ms)
 
     working = ReplaceTags(working);
     working.Replace("%TEXT%", _text);
+
+    if (working.Contains("%TWITTER_FOLLOWERS%"))
+    {
+        wxString followers = "ERROR";
+
+        if (_parameter1 != "")
+        {
+            // we only update twitter first time ... otherwise we may pause playback
+            if (_lastTwitter == "") // || wxGetUTCTime() - _lastTwitterTime > 60)
+            {
+                auto resp = Curl::HTTPSGet("https://cdn.syndication.twimg.com/widgets/followbutton/info.json?screen_names=" + _parameter1, "", "", 2);
+                static wxRegEx f("\"followers_count\":([0-9]*)", wxRE_ADVANCED);
+                if (f.Matches(resp))
+                {
+                    followers = f.GetMatch(resp, 1);
+                }
+                else
+                {
+                    logger_base.warn("Getting twitter followers failed: %s", (const char*)resp.c_str());
+                }
+                _lastTwitter = followers;
+                _lastTwitterTime = wxGetUTCTime();
+            }
+            else {
+                followers = _lastTwitter;
+            }
+        }
+        else
+        {
+            logger_base.warn("No twitter account specified.");
+        }
+        working.Replace("%TWITTER_FOLLOWERS%", followers);
+    }
 
     // countdown to date
     working.Replace("%CDD_DAYS%", wxString::Format(wxT("%i"), countdown.GetDays()));
