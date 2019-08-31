@@ -11,6 +11,11 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2019.46 August 31, 2019
+   -- enh (keith)  Add option to hide the body of moving head lights
+   -- bug (keith)  Fix bug where model does not show as you are drawing it
+   -- bug (keith)  Fix bug where DMX models shrink to zero size when property changed
+   -- bug (keith)  Fix bug where 3 point models change size when node count changes
 2019.45 August 30, 2019
    -- bug (keith)  Fix Syncrolight ethernet controller flicker
    -- bug (keith)  Fix effects on strands, nodes and submodels dont render automatically
