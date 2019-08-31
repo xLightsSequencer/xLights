@@ -78,6 +78,7 @@ class DmxModel : public ModelWithScreenLocation<BoxedScreenLocation>
         void Draw3DDMXBaseRight(DrawGLUtils::xl3Accumulator &va, const xlColor &c, float &sx, float &sy, float &sz, float &scale, float &pan_angle, float& rot_angle);
         void Draw3DDMXHead(DrawGLUtils::xl3Accumulator &va, const xlColor &c, float &sx, float &sy, float &sz, float &scale, float &pan_angle, float &tilt_angle);
 
+        bool hide_body = false;
         bool style_changed;
         std::string dmx_style;
         int dmx_style_val;
