@@ -4959,7 +4959,10 @@ void Model::SaveDisplayDimensions()
 
 void Model::RestoreDisplayDimensions()
 {
-    SetWidth(_savedWidth, true);
-    SetHeight(_savedHeight, true);
-    SetDepth(_savedDepth, true);
+    if (DisplayAs != "DMX")
+    {
+        SetWidth(_savedWidth, true);
+        SetHeight(_savedHeight, true);
+        SetDepth(_savedDepth, true);
+    }
 }
