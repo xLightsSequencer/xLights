@@ -10,6 +10,8 @@
 //(*IdInit(PlayListItemMQTTPanel)
 const long PlayListItemMQTTPanel::ID_STATICTEXT3 = wxNewId();
 const long PlayListItemMQTTPanel::ID_TEXTCTRL3 = wxNewId();
+const long PlayListItemMQTTPanel::ID_STATICTEXT9 = wxNewId();
+const long PlayListItemMQTTPanel::ID_TEXTCTRL7 = wxNewId();
 const long PlayListItemMQTTPanel::ID_STATICTEXT1 = wxNewId();
 const long PlayListItemMQTTPanel::ID_TEXTCTRL1 = wxNewId();
 const long PlayListItemMQTTPanel::ID_STATICTEXT4 = wxNewId();
@@ -41,11 +43,15 @@ PlayListItemMQTTPanel::PlayListItemMQTTPanel(wxWindow* parent, PlayListItemMQTT*
 	Create(parent, id, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("id"));
 	FlexGridSizer1 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer1->AddGrowableCol(1);
-	FlexGridSizer1->AddGrowableRow(6);
+	FlexGridSizer1->AddGrowableRow(7);
 	StaticText3 = new wxStaticText(this, ID_STATICTEXT3, _("Name:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
 	FlexGridSizer1->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_OSCName = new wxTextCtrl(this, ID_TEXTCTRL3, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL3"));
 	FlexGridSizer1->Add(TextCtrl_OSCName, 1, wxALL|wxEXPAND, 5);
+	StaticText9 = new wxStaticText(this, ID_STATICTEXT9, _("Client Id:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT9"));
+	FlexGridSizer1->Add(StaticText9, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	TextCtrl_ClientId = new wxTextCtrl(this, ID_TEXTCTRL7, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL7"));
+	FlexGridSizer1->Add(TextCtrl_ClientId, 1, wxALL|wxEXPAND, 5);
 	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Topic:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
 	FlexGridSizer1->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_Path = new wxTextCtrl(this, ID_TEXTCTRL1, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL1"));
@@ -62,12 +68,10 @@ PlayListItemMQTTPanel::PlayListItemMQTTPanel(wxWindow* parent, PlayListItemMQTT*
 	StaticText6 = new wxStaticText(this, ID_STATICTEXT6, _("User name:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT6"));
 	FlexGridSizer1->Add(StaticText6, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_Username = new wxTextCtrl(this, ID_TEXTCTRL5, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL5"));
-	TextCtrl_Username->Disable();
 	FlexGridSizer1->Add(TextCtrl_Username, 1, wxALL|wxEXPAND, 5);
 	StaticText7 = new wxStaticText(this, ID_STATICTEXT7, _("Password:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT7"));
 	FlexGridSizer1->Add(StaticText7, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_Password = new wxTextCtrl(this, ID_TEXTCTRL10, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL10"));
-	TextCtrl_Password->Disable();
 	FlexGridSizer1->Add(TextCtrl_Password, 1, wxALL|wxEXPAND, 5);
 	StaticText8 = new wxStaticText(this, ID_STATICTEXT8, _("Data:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT8"));
 	FlexGridSizer1->Add(StaticText8, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
@@ -85,6 +89,7 @@ PlayListItemMQTTPanel::PlayListItemMQTTPanel(wxWindow* parent, PlayListItemMQTT*
 	Connect(ID_TEXTCTRL2,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&PlayListItemMQTTPanel::OnTextCtrl_DelayText);
 	//*)
 
+    TextCtrl_ClientId->SetValue(MQTT->GetClientId());
     TextCtrl_OSCName->SetValue(MQTT->GetRawName());
     TextCtrl_IPAddress->SetValue(MQTT->GetIPAddress());
     TextCtrl_Path->SetValue(MQTT->GetTopic());
@@ -111,6 +116,7 @@ PlayListItemMQTTPanel::~PlayListItemMQTTPanel()
     _MQTT->SetPassword(TextCtrl_Password->GetValue().ToStdString());
     _MQTT->SetData(TextCtrl_Data->GetValue().ToStdString());
     _MQTT->SetDelay(wxAtof(TextCtrl_Delay->GetValue())*1000);
+    _MQTT->SetClientId(TextCtrl_ClientId->GetValue().ToStdString());
 }
 
 void PlayListItemMQTTPanel::OnTextCtrl_DelayText(wxCommandEvent& event)

@@ -31,6 +31,8 @@ class PlayListItemMQTTPanel: public wxPanel
 		wxStaticText* StaticText6;
 		wxStaticText* StaticText7;
 		wxStaticText* StaticText8;
+		wxStaticText* StaticText9;
+		wxTextCtrl* TextCtrl_ClientId;
 		wxTextCtrl* TextCtrl_Data;
 		wxTextCtrl* TextCtrl_Delay;
 		wxTextCtrl* TextCtrl_IPAddress;
@@ -45,6 +47,8 @@ class PlayListItemMQTTPanel: public wxPanel
 		//(*Identifiers(PlayListItemMQTTPanel)
 		static const long ID_STATICTEXT3;
 		static const long ID_TEXTCTRL3;
+		static const long ID_STATICTEXT9;
+		static const long ID_TEXTCTRL7;
 		static const long ID_STATICTEXT1;
 		static const long ID_TEXTCTRL1;
 		static const long ID_STATICTEXT4;
