@@ -24,6 +24,11 @@ const long BatchRenderDialog::ID_BUTTON1 = wxNewId();
 const long BatchRenderDialog::ID_BUTTON2 = wxNewId();
 //*)
 
+const long BatchRenderDialog::ID_MNU_SELECTALL = wxNewId();
+const long BatchRenderDialog::ID_MNU_SELECTNONE = wxNewId();
+const long BatchRenderDialog::ID_MNU_SELECTHIGH = wxNewId();
+const long BatchRenderDialog::ID_MNU_DESELECTHIGH = wxNewId();
+
 BEGIN_EVENT_TABLE(BatchRenderDialog,wxDialog)
 	//(*EventTable(BatchRenderDialog)
 	//*)
@@ -55,7 +60,7 @@ BatchRenderDialog::BatchRenderDialog(wxWindow* parent)
 	FolderChoice = new wxChoice(this, ID_CHOICE_FOLDER, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_FOLDER"));
 	FlexGridSizer2->Add(FolderChoice, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 5);
-	SequenceList = new wxCheckListBox(this, ID_CHECKLISTBOX_SEQUENCES, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHECKLISTBOX_SEQUENCES"));
+	SequenceList = new wxCheckListBox(this, ID_CHECKLISTBOX_SEQUENCES, wxDefaultPosition, wxDefaultSize, 0, 0, wxLB_EXTENDED, wxDefaultValidator, _T("ID_CHECKLISTBOX_SEQUENCES"));
 	SequenceList->SetMinSize(wxDLG_UNIT(this,wxSize(150,200)));
 	FlexGridSizer1->Add(SequenceList, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer3 = new wxFlexGridSizer(0, 3, 0, 0);
@@ -85,8 +90,10 @@ BatchRenderDialog::BatchRenderDialog(wxWindow* parent)
 void BatchRenderDialog::OnPreviewRightDown(wxMouseEvent& event)
 {
     wxMenu mnu;
-    mnu.Append(1, "Select All");
-    mnu.Append(2, "Select None");
+    mnu.Append(ID_MNU_SELECTALL, "Select All");
+    mnu.Append(ID_MNU_SELECTNONE, "Select None");
+    mnu.Append(ID_MNU_SELECTHIGH, "Select Highlighted");
+    mnu.Append(ID_MNU_DESELECTHIGH, "Deselect Highlighted");
 
     mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&BatchRenderDialog::OnPopupCommand, nullptr, this);
     PopupMenu(&mnu);
@@ -94,8 +101,16 @@ void BatchRenderDialog::OnPreviewRightDown(wxMouseEvent& event)
 
 void BatchRenderDialog::OnPopupCommand(wxCommandEvent &event)
 {
-    for (int x = 0; x < SequenceList->GetCount(); x++) {
-        SequenceList->Check(x, event.GetId() == 1);
+    if (event.GetId() == ID_MNU_SELECTALL || event.GetId() == ID_MNU_SELECTNONE ) {
+        for (int x = 0; x < SequenceList->GetCount(); x++) {
+            SequenceList->Check(x, event.GetId() == ID_MNU_SELECTALL);
+        }
+    } else if (event.GetId() == ID_MNU_SELECTHIGH || event.GetId() == ID_MNU_DESELECTHIGH ) {
+        for (int x = 0; x < SequenceList->GetCount(); x++) {
+            if (SequenceList->IsSelected(x)) {
+                SequenceList->Check(x, event.GetId() == ID_MNU_SELECTHIGH);
+            }
+        }
     }
     ValidateWindow();
 }

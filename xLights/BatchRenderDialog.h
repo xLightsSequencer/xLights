@@ -48,6 +48,11 @@ protected:
 		static const long ID_BUTTON1;
 		static const long ID_BUTTON2;
 		//*)
+		
+        static const long ID_MNU_SELECTALL;
+        static const long ID_MNU_SELECTNONE;
+        static const long ID_MNU_SELECTHIGH;
+        static const long ID_MNU_DESELECTHIGH;
 
 	public:
 

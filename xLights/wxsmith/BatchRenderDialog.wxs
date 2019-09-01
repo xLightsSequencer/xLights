@@ -59,6 +59,7 @@
 			<object class="sizeritem">
 				<object class="wxCheckListBox" name="ID_CHECKLISTBOX_SEQUENCES" variable="SequenceList" member="yes">
 					<minsize>150,200d</minsize>
+					<style>wxLB_EXTENDED</style>
 					<handler function="OnSequenceListToggled" entry="EVT_CHECKLISTBOX" />
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
