@@ -1792,12 +1792,16 @@ void xLightsFrame::OnGridNetworkItemRClick(wxListEvent& event)
     GridNetwork->SetFocus();
 }
 
-void xLightsFrame::OnGridNetworkRClick(wxListEvent& event)
+void xLightsFrame::OnGridNetworkRClick(wxContextMenuEvent& event)
 {
     GridNetwork->SetFocus();
 
-    int selcnt = GridNetwork->GetSelectedItemCount();
-
+    int flags;
+    int i = GridNetwork->HitTest(GridNetwork->ScreenToClient(event.GetPosition()), flags);
+    if (i >= 0) {
+        event.Skip();
+        return;
+    }
     wxMenu mnu;
     wxMenu* mnuAdd = new wxMenu();
     mnuAdd->Append(ID_NETWORK_ADDUSB, "USB");
