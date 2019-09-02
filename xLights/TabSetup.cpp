@@ -1794,6 +1794,14 @@ void xLightsFrame::OnGridNetworkItemRClick(wxListEvent& event)
 
 void xLightsFrame::OnGridNetworkRClick(wxContextMenuEvent& event)
 {
+    // If there is an item selected then use the item right click
+    if (GridNetwork->GetSelectedItemCount() > 0)
+    {
+        wxListEvent e(wxEVT_COMMAND_LIST_ITEM_RIGHT_CLICK);
+        wxPostEvent(this, e);
+        return;
+    }
+
     GridNetwork->SetFocus();
 
     int flags;
