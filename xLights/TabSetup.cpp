@@ -1794,20 +1794,20 @@ void xLightsFrame::OnGridNetworkItemRClick(wxListEvent& event)
 
 void xLightsFrame::OnGridNetworkRClick(wxContextMenuEvent& event)
 {
-    // If there is an item selected then use the item right click
-    if (GridNetwork->GetSelectedItemCount() > 0)
-    {
-        wxListEvent e(wxEVT_COMMAND_LIST_ITEM_RIGHT_CLICK);
-        wxPostEvent(this, e);
-        return;
-    }
-
     GridNetwork->SetFocus();
 
     int flags;
+    //if the click is in the area where there are items, ignore the event and
+    //let the normal ItemRClick stuff handle it
     int i = GridNetwork->HitTest(GridNetwork->ScreenToClient(event.GetPosition()), flags);
     if (i >= 0) {
         event.Skip();
+        return;
+    }
+    // If there is an item selected then use the item right click
+    if (GridNetwork->GetSelectedItemCount() > 0) {
+        wxListEvent e(wxEVT_COMMAND_LIST_ITEM_RIGHT_CLICK);
+        OnGridNetworkItemRClick(e);
         return;
     }
     wxMenu mnu;
