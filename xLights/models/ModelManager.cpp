@@ -63,7 +63,7 @@ BaseObject *ModelManager::GetObject(const std::string &name) const
 
 bool ModelManager::IsModelValid(Model* m) const
 {
-    for (auto it : models)
+    for (auto& it : models)
     {
         if (it.second == m) return true;
     }
@@ -101,15 +101,15 @@ bool ModelManager::Rename(const std::string &oldName, const std::string &newName
     model->name = newName;
     if (dynamic_cast<SubModel*>(model) == nullptr) {
         bool changed = false;
-        for (auto it2 = models.begin(); it2 != models.end(); ++it2) {
-            changed |= it2->second->ModelRenamed(oldName, newName);
+        for (auto& it2 : models) {
+            changed |= it2.second->ModelRenamed(oldName, newName);
         }
         models.erase(models.find(oldName));
         models[newName] = model;
 
         // go through all the model groups looking for things that might need to be renamed
-        for (auto it = models.begin(); it != models.end(); ++it) {
-            ModelGroup* mg = dynamic_cast<ModelGroup*>(it->second);
+        for (auto& it : models) {
+            ModelGroup* mg = dynamic_cast<ModelGroup*>(it.second);
             if (mg != nullptr)
             {
                 changed |= mg->ModelRenamed(oldName, newName);
@@ -126,11 +126,11 @@ bool ModelManager::RenameSubModel(const std::string &oldName, const std::string 
 
     bool changed = false;
 
-    for (auto m = begin(); m != end(); ++m)
+    for (auto& m : *this)
     {
-        if (m->second->GetDisplayAs() == "ModelGroup")
+        if (m.second->GetDisplayAs() == "ModelGroup")
         {
-            ModelGroup* mg = dynamic_cast<ModelGroup*>(m->second);
+            ModelGroup* mg = dynamic_cast<ModelGroup*>(m.second);
             changed |= mg->SubModelRenamed(oldName, newName);
         }
     }

@@ -86,7 +86,7 @@ void ShockwaveEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuf
     blend_pct = color_pct1 - (double)color_index;
     buffer.Get2ColorBlend(std::min(color_index, num_colors - 1), std::min(color_index+1,num_colors-1), std::min( blend_pct, 1.0), color);
 
-    if (color == *wxWHITE) wxASSERT(false);
+    //if (color == *wxWHITE) wxASSERT(false);
 
     int xc_adj = center_x * buffer.BufferWi / 100;
     int yc_adj = center_y * buffer.BufferHt / 100;

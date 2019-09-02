@@ -1894,6 +1894,8 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
                 event->settingsMap = &SettingsMap;
                 event->ResetEffectState = &resetEffectState;
 
+                wxASSERT(event->layer < event->buffer->GetLayerCount());
+
                 std::unique_lock<std::mutex> lock(event->mutex);
 
                 std::unique_lock<std::mutex> qlock(renderEventLock);
