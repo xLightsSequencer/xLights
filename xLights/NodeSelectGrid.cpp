@@ -796,7 +796,7 @@ wxString NodeSelectGrid::EncodeNodeLine(const std::vector<wxString> &nodes) cons
     std::transform(nodes.begin(), nodes.end(), std::back_inserter(iNodes),
         [](const std::string& str) { return std::stoi(str); });
 
-    std::sort(iNodes.begin(), iNodes.end());
+    //std::sort(iNodes.begin(), iNodes.end());
     iNodes.erase(std::unique(iNodes.begin(), iNodes.end()), iNodes.end());
 
     int firstValue = -1;;
@@ -809,7 +809,7 @@ wxString NodeSelectGrid::EncodeNodeLine(const std::vector<wxString> &nodes) cons
             continue;
         }
 
-        if (item != prevValue + 1)
+        if (item != prevValue + 1 && item != prevValue - 1)
         {
             if (firstValue != prevValue)
                 rowValue += wxString::Format(wxT("%i-%i,"), firstValue, prevValue);
@@ -820,7 +820,7 @@ wxString NodeSelectGrid::EncodeNodeLine(const std::vector<wxString> &nodes) cons
 
         if (&item == &iNodes.back())
         {
-            if (item == prevValue + 1)
+            if (item == prevValue + 1 || item == prevValue - 1)
                 rowValue += wxString::Format(wxT("%i-%i"), firstValue, item);
             else
                 rowValue += wxString::Format(wxT("%i"), item);
