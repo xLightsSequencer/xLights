@@ -606,7 +606,7 @@ bool EffectLayer::IsEffectValid(Effect* e) const
 {
     for (int i = 0; i < mEffects.size(); i++)
     {
-        if (mEffects[i] == e)
+        if ((void*)mEffects[i] == (void*)e)
         {
             return true;
         }
