@@ -43,6 +43,7 @@ public:
     #pragma region Getters and Setters
     virtual std::string GetType() const override { return OUTPUT_LOR_OPT; }
     virtual std::string GetSetupHelp() const override;
+    virtual std::string GetExport() const override;
     #pragma endregion Getters and Setters
 
     #pragma region Frame Handling

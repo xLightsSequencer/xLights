@@ -236,6 +236,17 @@ std::list<std::string> SerialOutput::GetPossibleBaudRates()
     return res;
 }
 
+std::string SerialOutput::GetExport() const
+{
+    std::string enabled = _enabled ? _("Y") : _("N");
+    std::string suppress = _suppressDuplicateFrames ? _("Y") : _("N");
+    // "Output Number,Start Absolute,End Absolute,Type,IP,Multicast,Universe/Id,Comm Port,Baud Rate,Description,Channels,Active,Suppress Duplicates,Auto Size,
+    // FPP Proxy,Keep Channel Numbers,Channels Per Packet,Port,Dont Configure,Priority,Vendor,Model,Supports Virtual Strings,Supports Smart Remotes";
+    return wxString::Format("%d,%ld,%ld,%s,,,%i,%s,%i,%s,%i,%s,%s,,,,,,,,,,,",
+        _outputNumber, GetStartChannel(), GetEndChannel(), GetType(), GetId(), GetCommPort(), GetBaudRate(), _description, _channels,
+        enabled, suppress).ToStdString();
+}
+
 std::list<std::string> SerialOutput::GetAvailableSerialPorts()
 {
     std::list<std::string> res;

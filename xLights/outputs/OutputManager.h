@@ -54,6 +54,7 @@ public:
     static void SetRetryOpen(bool retryOpen) { _isRetryOpen = retryOpen; }
     static bool IsInteractive() { return _isInteractive; }
     static void SetInteractive(bool interactive) { _isInteractive = interactive; }
+    static std::string GetExportHeader();
     #pragma endregion Static Functions
 
     #pragma region Save and Load

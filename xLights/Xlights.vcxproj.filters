@@ -78,14 +78,8 @@
     <ClCompile Include="NewTimingDialog.cpp" />
     <ClCompile Include="NodesGridCellEditor.cpp" />
     <ClCompile Include="NoteImportDialog.cpp" />
-    <ClCompile Include="outputs\LorController.cpp" />
-    <ClCompile Include="outputs\LorControllerDialog.cpp" />
-    <ClCompile Include="outputs\LorControllers.cpp" />
-    <ClCompile Include="outputs\LorOptimisedDialog.cpp" />
-    <ClCompile Include="outputs\LOROptimisedOutput.cpp" />
     <ClCompile Include="OptionChooser.cpp" />
     <ClCompile Include="osx_utils\TouchBars.cpp" />
-    <ClCompile Include="outputs\LOROutput.cpp" />
     <ClCompile Include="outputs\PixelNetOutput.cpp" />
     <ClCompile Include="outputs\RenardOutput.cpp" />
     <ClCompile Include="outputs\TestPreset.cpp" />
@@ -724,6 +718,24 @@
     <ClCompile Include="outputs\IPOutput.cpp">
       <Filter>Outputs</Filter>
     </ClCompile>
+    <ClCompile Include="outputs\LorController.cpp">
+      <Filter>Outputs</Filter>
+    </ClCompile>
+    <ClCompile Include="outputs\LorControllerDialog.cpp">
+      <Filter>Outputs</Filter>
+    </ClCompile>
+    <ClCompile Include="outputs\LorControllers.cpp">
+      <Filter>Outputs</Filter>
+    </ClCompile>
+    <ClCompile Include="outputs\LorOptimisedDialog.cpp">
+      <Filter>Outputs</Filter>
+    </ClCompile>
+    <ClCompile Include="outputs\LOROptimisedOutput.cpp">
+      <Filter>Outputs</Filter>
+    </ClCompile>
+    <ClCompile Include="outputs\LOROutput.cpp">
+      <Filter>Outputs</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -791,16 +803,10 @@
     <ClInclude Include="NewTimingDialog.h" />
     <ClInclude Include="NodesGridCellEditor.h" />
     <ClInclude Include="NoteImportDialog.h" />
-    <ClInclude Include="outputs\LorController.h" />
-    <ClInclude Include="outputs\LorControllerDialog.h" />
-    <ClInclude Include="outputs\LorControllers.h" />
-    <ClInclude Include="outputs\LorOptimisedDialog.h" />
-    <ClInclude Include="outputs\LOROptimisedOutput.h" />
     <ClInclude Include="OptionChooser.h" />
     <ClInclude Include="osxMacUtils.h" />
     <ClInclude Include="osx_utils\TouchBars.h" />
     <ClInclude Include="outputs\Controller.h" />
-    <ClInclude Include="outputs\LOROutput.h" />
     <ClInclude Include="outputs\PixelNetOutput.h" />
     <ClInclude Include="outputs\RenardOutput.h" />
     <ClInclude Include="outputs\TestPreset.h" />
@@ -1455,6 +1461,24 @@
       <Filter>Outputs</Filter>
     </ClInclude>
     <ClInclude Include="outputs\IPOutput.h">
+      <Filter>Outputs</Filter>
+    </ClInclude>
+    <ClInclude Include="outputs\LorController.h">
+      <Filter>Outputs</Filter>
+    </ClInclude>
+    <ClInclude Include="outputs\LorControllerDialog.h">
+      <Filter>Outputs</Filter>
+    </ClInclude>
+    <ClInclude Include="outputs\LorControllers.h">
+      <Filter>Outputs</Filter>
+    </ClInclude>
+    <ClInclude Include="outputs\LorOptimisedDialog.h">
+      <Filter>Outputs</Filter>
+    </ClInclude>
+    <ClInclude Include="outputs\LOROptimisedOutput.h">
+      <Filter>Outputs</Filter>
+    </ClInclude>
+    <ClInclude Include="outputs\LOROutput.h">
       <Filter>Outputs</Filter>
     </ClInclude>
   </ItemGroup>

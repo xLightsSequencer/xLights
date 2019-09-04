@@ -58,6 +58,17 @@ int ArtNetOutput::GetArtNetCombinedUniverse(int net, int subnet, int universe)
     return ((net & 0x007F) << 8) + ((subnet & 0x000F) << 4) + (universe & 0x000F);
 }
 
+std::string ArtNetOutput::GetExport() const
+{
+    std::string enabled = _enabled ? _("Y") : _("N");
+    std::string suppress = _suppressDuplicateFrames ? _("Y") : _("N");
+    // "Output Number,Start Absolute,End Absolute,Type,IP,Multicast,Universe/Id,Comm Port,Baud Rate,Description,Channels,Active,Suppress Duplicates,Auto Size,
+    // FPP Proxy,Keep Channel Numbers,Channels Per Packet,Port,Dont Configure,Priority,Vendor,Model,Supports Virtual Strings,Supports Smart Remotes";
+    return wxString::Format("%d,%ld,%ld,%s,%s,,%s,,,%s,%ld,%s,%s,,,,,,,,,,,",
+        _outputNumber, GetStartChannel(), GetEndChannel(), GetType(), GetIP(), GetUniverseString(), _description, _channels, 
+        enabled, suppress).ToStdString();
+}
+
 std::list<Output*> ArtNetOutput::Discover(OutputManager* outputManager)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));

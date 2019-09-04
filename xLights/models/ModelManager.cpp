@@ -602,7 +602,7 @@ bool ModelManager::ReworkStartChannel() const
                         auto osc = itm->ModelStartChannel;
                         sc = "!" + it->GetDescription() + ":" + wxString::Format("%d", chstart);
                         itm->SetStartChannel(sc);
-                        ch = std::max(ch, chstart + itm->GetChanCount());
+                        ch = std::max(ch, (int32_t)(chstart + itm->GetChanCount()));
                         if (osc != itm->ModelStartChannel)
                         {
                             outputsChanged = true;

@@ -60,6 +60,7 @@ public:
     virtual std::string GetUniverseString() const override;
     virtual bool IsLookedUpByControllerName() const override;
 	virtual bool IsAutoLayoutModels() const override { return _autoStartChannels; }
+    virtual std::string GetExport() const override;
 
     // These are required because one e1.31 output can actually be multiple
     virtual std::list<Output*> GetOutputs() const override { return _outputs; }

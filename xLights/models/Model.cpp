@@ -3367,15 +3367,15 @@ int Model::GetNodeChannelCount(const std::string & nodeType) {
 }
 
 // returns a number where the first node is 1
-int Model::GetNodeNumber(size_t nodenum) const {
+uint32_t Model::GetNodeNumber(size_t nodenum) const {
     if (nodenum >= Nodes.size()) return 0;
     int sn=Nodes[nodenum]->StringNum;
     return (Nodes[nodenum]->ActChan - stringStartChan[sn]) / 3 + sn*NodesPerString() + 1;
 }
 
-int Model::GetNodeNumber(int bufY, int bufX) const
+uint32_t Model::GetNodeNumber(int bufY, int bufX) const
 {
-    int count = 0;
+    uint32_t count = 0;
     for (const auto& it : Nodes)
     {
         if (it->Coords.size() > 0)
@@ -3390,26 +3390,26 @@ int Model::GetNodeNumber(int bufY, int bufX) const
     return 0;
 }
 
-size_t Model::GetNodeCount() const {
+uint32_t Model::GetNodeCount() const {
     return Nodes.size();
 }
 
-size_t Model::GetActChanCount() const
+uint32_t Model::GetActChanCount() const
 {
-    size_t NodeCnt = GetNodeCount();
+    uint32_t NodeCnt = GetNodeCount();
     if (NodeCnt == 0) {
         return 0;
     }
 
-    size_t count = 0;
-    for (int x = 0; x < NodeCnt; x++) {
+    uint32_t count = 0;
+    for (uint32_t x = 0; x < NodeCnt; x++) {
         count += Nodes[x]->GetChanCount();
     }
 
     return count;
 }
 
-int Model::GetChanCount() const {
+uint32_t Model::GetChanCount() const {
     size_t NodeCnt=GetNodeCount();
     if (NodeCnt == 0) {
         return 0;
@@ -3438,7 +3438,7 @@ int Model::GetChanCountPerNode() const {
     return Nodes[0]->GetChanCount();
 }
 
-size_t Model::GetCoordCount(size_t nodenum) const {
+uint32_t Model::GetCoordCount(size_t nodenum) const {
     return nodenum < Nodes.size() ? Nodes[nodenum]->Coords.size() : 0;
 }
 

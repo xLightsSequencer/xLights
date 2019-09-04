@@ -42,6 +42,11 @@ OutputManager::~OutputManager()
 #pragma endregion Constructors and Destructors
 
 #pragma region Save and Load
+std::string OutputManager::GetExportHeader()
+{
+    return "Output Number,Start Absolute,End Absolute,Type,IP,Multicast,Universe/Id,Comm Port,Baud Rate,Description,Channels,Active,Suppress Duplicates,Auto Size,FPP Proxy,Keep Channel Numbers,Channels Per Packet,Port,Dont Configure,Priority,Vendor,Model,Supports Virtual Strings,Supports Smart Remotes";
+}
+
 bool OutputManager::Load(const std::string& showdir, bool syncEnabled)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));

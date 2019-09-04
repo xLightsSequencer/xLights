@@ -43,6 +43,18 @@ SyncrolightEthernetOutput::SyncrolightEthernetOutput(SyncrolightEthernetOutput* 
 }
 #pragma endregion Constructors and Destructors
 
+std::string SyncrolightEthernetOutput::GetExport() const
+{
+    std::string enabled = _enabled ? _("Y") : _("N");
+    std::string suppress = _suppressDuplicateFrames ? _("Y") : _("N");
+
+    // "Output Number,Start Absolute,End Absolute,Type,IP,Multicast,Universe/Id,Comm Port,Baud Rate,Description,Channels,Active,Suppress Duplicates,Auto Size,
+    // FPP Proxy,Keep Channel Numbers,Channels Per Packet,Port,Dont Configure,Priority,Vendor,Model,Supports Virtual Strings,Supports Smart Remotes";
+    return wxString::Format("%d,%ld,%ld,%s,%s,,,,,%s,%i,%s,%s,,,,,%i,,,,,,",
+        _outputNumber, GetStartChannel(), GetEndChannel(), GetType(), GetIP(), _description, _channels,
+        enabled, suppress, _port).ToStdString();
+}
+
 wxXmlNode* SyncrolightEthernetOutput::Save()
 {
     wxXmlNode* node = new wxXmlNode(wxXML_ELEMENT_NODE, "network");

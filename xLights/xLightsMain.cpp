@@ -4496,14 +4496,14 @@ void xLightsFrame::ExportModels(wxString filename)
         layoutPanel->UnSelectAllModels();
     RecalcModels();
 
-    int32_t minchannel = 99999999;
+    uint32_t minchannel = 99999999;
     int32_t maxchannel = -1;
 
     f.Write(_("Model Name,Description,Display As,String Type,String Count,Node Count,Light Count,Est Current (Amps),Channels Per Node, Channel Count,Start Channel,Start Channel No,End Channel No,Default Buffer W x H,Preview,Controller Connection,Controller Type,Controller Description,Output,IP,Baud,Universe/Id,Controller Channel,Inactive\n"));
 
-    for (auto m = AllModels.begin(); m != AllModels.end(); ++m)
+    for (auto m : AllModels)
     {
-        Model* model = m->second;
+        Model* model = m.second;
         if (model->GetDisplayAs() == "ModelGroup")
         {
             ModelGroup* mg = static_cast<ModelGroup*>(model);
@@ -4521,7 +4521,7 @@ void xLightsFrame::ExportModels(wxString filename)
             }
             int w, h;
             model->GetBufferSize("Default", "2D", "None", w, h);
-            f.Write(wxString::Format("\"%s\",\"%s\",\"%s\",,,,,,,%d,,%d,%d,%d x %d,%s,,,,,,,,\n",
+            f.Write(wxString::Format("\"%s\",\"%s\",\"%s\",,,,,,,%lu,,%lu,%lu,%d x %d,%s,,,,,,,,\n",
                 model->name,
                 models.c_str(), // No description ... use list of models
                 model->GetDisplayAs(),
@@ -4535,7 +4535,7 @@ void xLightsFrame::ExportModels(wxString filename)
         else
         {
             wxString stch = model->GetModelXml()->GetAttribute("StartChannel", wxString::Format("%d?", model->NodeStartChannel(0) + 1)); //NOTE: value coming from model is probably not what is wanted, so show the base ch# instead
-            int ch = model->GetFirstChannel() + 1;
+            uint32_t ch = model->GetFirstChannel() + 1;
             std::string type, description, ip, universe, inactive, baud;
             int32_t channeloffset;
             int output;
@@ -4566,7 +4566,7 @@ void xLightsFrame::ExportModels(wxString filename)
             int w, h;
             model->GetBufferSize("Default", "2D", "None", w, h);
 
-            f.Write(wxString::Format("\"%s\",\"%s\",\"%s\",\"%s\",%i,%i,%i,%s,%i,%i,%s,%i,%i,%d x %d,%s,%s,%s,\"%s\",%i,%s,%s,%s,%i,%s\n",
+            f.Write(wxString::Format("\"%s\",\"%s\",\"%s\",\"%s\",%i,%i,%i,%s,%i,%i,%s,%i,%i,%i x %i,%s,%s,%s,\"%s\",%i,%s,%s,%s,%i,%s\n",
                 model->name,
                 model->description,
                 model->GetDisplayAs(),
@@ -4595,15 +4595,15 @@ void xLightsFrame::ExportModels(wxString filename)
             {
                 minchannel = ch;
             }
-            if (ch + model->GetChanCount() - 1 > maxchannel)
+            if ((int32_t)(ch + model->GetChanCount() - 1) > maxchannel)
             {
                 maxchannel = ch + model->GetChanCount() - 1;
             }
         }
     }
 
-    int bulbs = 0;
-    int usedchannels = 0;
+    uint32_t bulbs = 0;
+    uint32_t usedchannels = 0;
     if (minchannel == 99999999)
     {
         // No channels so we dont do this
@@ -4615,9 +4615,9 @@ void xLightsFrame::ExportModels(wxString filename)
         int* chused = (int*)malloc((maxchannel - minchannel + 1) * sizeof(int));
         memset(chused, 0x00, (maxchannel - minchannel + 1) * sizeof(int));
 
-        for (auto m = AllModels.begin(); m != AllModels.end(); ++m)
+        for (auto m : AllModels)
         {
-            Model* model = m->second;
+            Model* model = m.second;
             if (model->GetDisplayAs() != "ModelGroup")
             {
                 wxString stch = model->GetModelXml()->GetAttribute("StartChannel", wxString::Format("%d?", model->NodeStartChannel(0) + 1)); //NOTE: value coming from model is probably not what is wanted, so show the base ch# instead
@@ -4672,11 +4672,20 @@ void xLightsFrame::ExportModels(wxString filename)
 
     f.Write("\n");
 
-    f.Write(wxString::Format("\"Model Count\",%d\n", AllModels.size()));
-    f.Write(wxString::Format("\"First Used Channel\",%d\n", minchannel));
-    f.Write(wxString::Format("\"Last Used Channel\",%d\n", maxchannel));
-    f.Write(wxString::Format("\"Actual Used Channel\",%d\n", usedchannels));
-    f.Write(wxString::Format("\"Bulbs\",%d\n", bulbs));
+    f.Write(wxString::Format("\"Model Count\",%i\n", (uint32_t)AllModels.size()));
+    f.Write(wxString::Format("\"First Used Channel\",%i\n", minchannel));
+    f.Write(wxString::Format("\"Last Used Channel\",%i\n", maxchannel));
+    f.Write(wxString::Format("\"Actual Used Channel\",%i\n", usedchannels));
+    f.Write(wxString::Format("\"Bulbs\",%i\n", bulbs));
+
+    f.Write("\n");
+    f.Write("\n");
+
+    f.Write(_outputManager.GetExportHeader() + "\n");
+    for (auto it : _outputManager.GetAllOutputs())
+    {
+        f.Write(it->GetExport() + "\n");
+    }
 
     f.Close();
 }

@@ -46,6 +46,7 @@ public:
     int GetPort() const { return _port; }
     void SetPort(int port) { _port = port; _dirty = true; }
     virtual std::string GetChannelMapping(int32_t ch) const override;
+    virtual std::string GetExport() const override;
     #pragma endregion Getters and Setters
 
     virtual wxXmlNode* Save() override;

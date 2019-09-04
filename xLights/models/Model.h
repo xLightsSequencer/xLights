@@ -258,11 +258,11 @@ public:
 
     void SetFromXml(wxXmlNode* ModelNode, bool zeroBased=false) override;
     virtual bool ModelRenamed(const std::string &oldName, const std::string &newName);
-    size_t GetNodeCount() const;
-    int GetChanCount() const;
-    size_t GetActChanCount() const;
+    uint32_t GetNodeCount() const;
+    uint32_t GetChanCount() const;
+    uint32_t GetActChanCount() const;
     int GetChanCountPerNode() const;
-    size_t GetCoordCount(size_t nodenum) const;
+    uint32_t GetCoordCount(size_t nodenum) const;
     int GetNodeStringNumber(size_t nodenum) const;
     void UpdateXmlWithScale() override;
     void SetPosition(double posx, double posy);
@@ -274,8 +274,8 @@ public:
     virtual uint32_t GetFirstChannel() const;
     virtual uint32_t GetLastChannel() const;
     uint32_t GetNumChannels();
-    int GetNodeNumber(size_t nodenum) const;
-    int GetNodeNumber(int bufY, int bufX) const;
+    uint32_t GetNodeNumber(size_t nodenum) const;
+    uint32_t GetNodeNumber(int bufY, int bufX) const;
     bool UpdateStartChannelFromChannelString(std::map<std::string, Model*>& models, std::list<std::string>& used);
     int GetNumberFromChannelString(const std::string &sc) const;
     int GetNumberFromChannelString(const std::string &sc, bool &valid, std::string& dependsonmodel) const;

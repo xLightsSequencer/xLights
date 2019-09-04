@@ -255,6 +255,23 @@ void ZCPPOutput::ExtractUsedChannelsFromModelData()
     logger_base.debug("    usedChannels %ld, _channels %ld.", (long)_usedChannels, (long)_channels);
 }
 
+std::string ZCPPOutput::GetExport() const
+{
+    std::string enabled = _enabled ? _("Y") : _("N");
+    std::string suppress = _suppressDuplicateFrames ? _("Y") : _("N");
+    std::string autosize = _autoSize ? _("Y") : _("N");
+    std::string dontconfigure = _dontConfigure ? _("Y") : _("N");
+    std::string multicast = _multicast ? _("Y") : _("N");
+    std::string supportsvirtualstrings = _supportsVirtualStrings ? _("Y") : _("N");
+    std::string supportssmartremotes = _supportsSmartRemotes ? _("Y") : _("N");
+
+    // "Output Number,Start Absolute,End Absolute,Type,IP,Multicast,Universe/Id,Comm Port,Baud Rate,Description,Channels,Active,Suppress Duplicates,Auto Size,
+    // FPP Proxy,Keep Channel Numbers,Channels Per Packet,Port,Dont Configure,Priority,Vendor,Model,Supports Virtual Strings,Supports Smart Remotes";
+    return wxString::Format("%d,%ld,%ld,%s,%s,%s,,,,%s,%i,%s,%s,%s,,,,,%s,%d,%d,%d,%s,%s",
+        _outputNumber, GetStartChannel(), GetEndChannel(), GetType(), GetIP(), multicast, _description, _channels,
+        enabled, suppress, autosize, dontconfigure, _priority, _vendor, _model, supportsvirtualstrings, supportssmartremotes).ToStdString();
+}
+
 void ZCPPOutput::AllOn()
 {
     // turn everything to a dim white

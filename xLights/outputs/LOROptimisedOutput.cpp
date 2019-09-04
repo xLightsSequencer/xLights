@@ -79,6 +79,17 @@ void LOROptimisedOutput::SetOneChannel(int32_t channel, unsigned char data)
     _curData[channel] = data;
 }
 
+std::string LOROptimisedOutput::GetExport() const
+{
+    std::string enabled = _enabled ? _("Y") : _("N");
+    std::string suppress = _suppressDuplicateFrames ? _("Y") : _("N");
+    // "Output Number,Start Absolute,End Absolute,Type,IP,Multicast,Universe/Id,Comm Port,Baud Rate,Description,Channels,Active,Suppress Duplicates,Auto Size,
+    // FPP Proxy,Keep Channel Numbers,Channels Per Packet,Port,Dont Configure,Priority,Vendor,Model,Supports Virtual Strings,Supports Smart Remotes";
+    return wxString::Format("%d,%ld,%ld,%s,,,%i,%s,%i,%s,%i,%s,%s,,,,,,,,,,,",
+        _outputNumber, GetStartChannel(), GetEndChannel(), GetType(), GetId(), GetCommPort(), GetBaudRate(), _description, _channels,
+        enabled, suppress).ToStdString();
+}
+
 void LOROptimisedOutput::SetManyChannels(int32_t channel, unsigned char data[], size_t size)
 {
     if (!_enabled || _serial == nullptr || !_ok) return;

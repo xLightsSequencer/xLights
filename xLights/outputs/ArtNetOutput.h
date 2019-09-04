@@ -60,6 +60,7 @@ public:
     virtual int GetMaxChannels() const override { return 512; }
     virtual std::string GetUniverseString() const override;
     virtual bool IsValidChannelCount(int32_t channelCount) const override { return channelCount > 0 && channelCount <= 512; }
+    virtual std::string GetExport() const override;
     #pragma endregion Getters and Setters
 
     #pragma region Start and Stop
