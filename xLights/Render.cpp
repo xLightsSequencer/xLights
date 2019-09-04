@@ -1905,6 +1905,7 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
                 event->period = period;
                 event->settingsMap = &SettingsMap;
                 event->ResetEffectState = &resetEffectState;
+                event->buffer = &buffer;
 
                 std::unique_lock<std::mutex> lock(event->mutex);
 
