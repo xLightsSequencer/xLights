@@ -145,6 +145,7 @@ bool ModelGroup::ContainsModel(Model* m, std::list<Model*>& visited)
             if (std::find(visited.begin(), visited.end(), it) == visited.end())
             {
                 found |= dynamic_cast<ModelGroup*>(it)->ContainsModel(m, visited);
+                if (found) break;
             }
             else
             {
@@ -156,6 +157,7 @@ bool ModelGroup::ContainsModel(Model* m, std::list<Model*>& visited)
             if (m == it)
             {
                 found = true;
+                break;
             }
         }
     }
@@ -329,7 +331,7 @@ bool ModelGroup::Reset(bool zeroBased) {
     float miny = 99999;
     float maxy = -1;
 
-    int minChan = 9999999;
+    uint32_t minChan = 9999999;
     for (auto& it : Nodes) {
         for (auto& coord : it->Coords) {
             minx = std::min(minx, coord.screenX);
