@@ -6,9 +6,8 @@
 #include "CandyCaneModel.h"
 #include "ModelScreenLocation.h"
 
-CandyCaneModel::CandyCaneModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased) : ModelWithScreenLocation(manager), _reverse(false), caneheight(1.0)
+CandyCaneModel::CandyCaneModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased) : ModelWithScreenLocation(manager)
 {
-    _sticks = false;
     screenLocation.SetModelHandleHeight(true);
     screenLocation.SetSupportsAngle(true);
     SetFromXml(node, zeroBased);
@@ -47,7 +46,7 @@ void CandyCaneModel::AddTypeProperties(wxPropertyGridInterface *grid) {
     if (SingleNode) {
         p->Hide(true);
     }
-    p = grid->Append(new wxFloatProperty("Height", "CandyCaneHeight", caneheight));
+    p = grid->Append(new wxFloatProperty("Height", "CandyCaneHeight", _caneheight));
     p->SetAttribute("Precision", 2);
     p->SetAttribute("Step", 0.1);
     p->SetEditor("SpinCtrl");
@@ -64,6 +63,9 @@ void CandyCaneModel::AddTypeProperties(wxPropertyGridInterface *grid) {
 	p = grid->Append(new wxBoolProperty("Sticks", "CandyCaneSticks", _sticks));
 	p->SetEditor("CheckBox");
 
+    p = grid->Append(new wxBoolProperty("Alternate Nodes", "AlternateNodes", _alternateNodes));
+    p->SetEditor("CheckBox");
+
     grid->Append(new wxEnumProperty("Starting Location", "CandyCaneStart", LEFT_RIGHT, IsLtoR ? 0 : 1));
 }
 
@@ -77,7 +79,6 @@ void CandyCaneModel::UpdateTypeProperties(wxPropertyGridInterface* grid) {
     }
 
     grid->GetPropertyByName("CandyCaneReverse")->Enable(!_sticks);
-
 }
 
 int CandyCaneModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
@@ -150,6 +151,15 @@ int CandyCaneModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxProper
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "CandyCaneModel::OnPropertyGridChange::CandyCaneSticks");
         AddASAPWork(OutputModelManager::WORK_UPDATE_PROPERTYGRID, "CandyCaneModel::OnPropertyGridChange::CandyCaneSticks");
         return 0;
+    }
+    else if ("AlternateNodes" == event.GetPropertyName()) {
+        ModelXml->DeleteAttribute("AlternateNodes");
+        ModelXml->AddAttribute("AlternateNodes", event.GetPropertyValue().GetBool() ? "true" : "false");
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CandyCaneModel::OnPropertyGridChange::AlternateNodes");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CandyCaneModel::OnPropertyGridChange::AlternateNodes");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CandyCaneModel::OnPropertyGridChange::AlternateNodes");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "CandyCaneModel::OnPropertyGridChange::AlternateNodes");
+        return 0;
     } else if ("CandyCaneStart" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("Dir");
         ModelXml->AddAttribute("Dir", event.GetValue().GetLong() == 0 ? "L" : "R");
@@ -211,12 +221,13 @@ void CandyCaneModel::InitModel() {
     int SegmentsPerCane=parm2;
 	_reverse = (ModelXml->GetAttribute("CandyCaneReverse", "false") == "true");
 	_sticks = (ModelXml->GetAttribute("CandyCaneSticks", "false") == "true");
+    _alternateNodes = (ModelXml->GetAttribute("AlternateNodes", "false") == "true");
     if (ModelXml->HasAttribute("CandyCaneSkew")) {
         ModelXml->DeleteAttribute("CandyCaneSkew");
         int skew = wxAtoi(ModelXml->GetAttribute("CandyCaneSkew", "0"));
         screenLocation.SetAngle(skew);
     }
-    caneheight = wxAtof(ModelXml->GetAttribute("CandyCaneHeight", "1.0"));
+    _caneheight = wxAtof(ModelXml->GetAttribute("CandyCaneHeight", "1.0"));
 
     SetNodeCount(NumCanes, SegmentsPerCane, rgbOrder);
     if (SingleNode) {
@@ -249,7 +260,21 @@ void CandyCaneModel::InitModel() {
             Nodes[idx]->StringNum=y;
             for(size_t c=0; c < GetCoordCount(idx); c++) {
                 Nodes[idx]->Coords[c].bufX=y;
-                Nodes[idx]->Coords[c].bufY=x;
+                if (_alternateNodes)
+                {
+                    if (x + 1 <= (SegmentsPerCane + 1) / 2)
+                    {
+                        Nodes[idx]->Coords[c].bufY = 2 * x;
+                    }
+                    else
+                    {
+                        Nodes[idx]->Coords[c].bufY = (SegmentsPerCane - (x + 1)) * 2 + 1;
+                    }
+                }
+                else
+                {
+                    Nodes[idx]->Coords[c].bufY = x;
+                }
             }
         }
     }
@@ -259,15 +284,18 @@ void CandyCaneModel::InitModel() {
 int CandyCaneModel::MapToNodeIndex(int strand, int node) const {
     return strand * parm2 + node;
 }
+
 int CandyCaneModel::GetNumStrands() const {
      return parm1;
 }
+
 int CandyCaneModel::CalcCannelsPerString() {
     if (SingleNode) {
         return GetNodeChannelCount(StringType);
     }
     return GetNodeChannelCount(StringType) * parm2;
 }
+
 static inline double toRadians(float degrees) {
     return 2.0*M_PI*double(degrees)/360.0;
 }
@@ -313,7 +341,7 @@ void CandyCaneModel::SetCaneCoord() {
     height = lightspercane - widthPerCane/2.0;
 
     if (_sticks) {
-        height = lightspercane * caneheight;
+        height = lightspercane * _caneheight;
         for (int i = 0; i < NumCanes; i++){
             int y = 0;
             double x = i*(widthPerCane + caneGap) + widthPerCane / 2.0;
@@ -321,7 +349,7 @@ void CandyCaneModel::SetCaneCoord() {
                 size_t CoordCount = GetCoordCount(n);
                 for (size_t c = 0; c < CoordCount; c++) {
                     Nodes[n + i * SegmentsPerCane]->Coords[c].screenX = x;
-                    Nodes[n + i * SegmentsPerCane]->Coords[c].screenY = caneheight * (float)y * screenLocation.GetHeight();
+                    Nodes[n + i * SegmentsPerCane]->Coords[c].screenY = _caneheight * (float)y * screenLocation.GetHeight();
                     rotate_point(x, 0, angle,
                                  Nodes[n + i * SegmentsPerCane]->Coords[c].screenX,
                                  Nodes[n + i * SegmentsPerCane]->Coords[c].screenY);
@@ -355,7 +383,7 @@ void CandyCaneModel::SetCaneCoord() {
                 }
                 for (size_t c = 0; c < CoordCount; c++) {
                     Nodes[curNode + i * SegmentsPerCane]->Coords[c].screenX = x;
-                    Nodes[curNode + i * SegmentsPerCane]->Coords[c].screenY = caneheight * (float)y * screenLocation.GetHeight();
+                    Nodes[curNode + i * SegmentsPerCane]->Coords[c].screenY = _caneheight * (float)y * screenLocation.GetHeight();
                     rotate_point(x, 0, angle,
                                  Nodes[curNode + i * SegmentsPerCane]->Coords[c].screenX,
                                  Nodes[curNode + i * SegmentsPerCane]->Coords[c].screenY);
@@ -387,7 +415,7 @@ void CandyCaneModel::SetCaneCoord() {
                     } else {
                         Nodes[curNode + i * SegmentsPerCane]->Coords[c].screenX = x + x2;
                     }
-                    Nodes[curNode + i * SegmentsPerCane]->Coords[c].screenY = caneheight * (float)(y * screenLocation.GetHeight() + y2);
+                    Nodes[curNode + i * SegmentsPerCane]->Coords[c].screenY = _caneheight * (float)(y * screenLocation.GetHeight() + y2);
                     rotate_point(ox , 0, angle,
                                  Nodes[curNode + i * SegmentsPerCane]->Coords[c].screenX,
                                  Nodes[curNode + i * SegmentsPerCane]->Coords[c].screenY);

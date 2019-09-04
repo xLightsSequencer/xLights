@@ -1619,7 +1619,13 @@ void Model::ParseFaceInfo(wxXmlNode *f, std::map<std::string, std::map<std::stri
         {
             if (att->GetName().Left(5) == "Mouth" || att->GetName().Left(4) == "Eyes")
             {
-                faceInfo[name][att->GetName().ToStdString()] = FixFile("", att->GetValue());
+                if (type == "Matrix")
+                {
+                    faceInfo[name][att->GetName().ToStdString()] = FixFile("", att->GetValue());
+                }
+                else {
+                    faceInfo[name][att->GetName().ToStdString()] = att->GetValue();
+                }
             }
             else
             {
