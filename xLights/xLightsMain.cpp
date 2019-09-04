@@ -6429,7 +6429,7 @@ void xLightsFrame::CheckEffect(Effect* ef, wxFile& f, int& errcount, int& warnco
     if (sm.Get("T_CHECKBOX_Canvas", "0") == "1")
     {
         // Warp and off have more complicated logic which is implemented in those effects
-        if ((ef->GetEffectName() != "Off" && ef->GetEffectName() != "Warp" && ef->GetEffectName() != "Kaleidoscope"))
+        if ((ef->GetEffectName() != "Off" && ef->GetEffectName() != "Warp" && ef->GetEffectName() != "Kaleidoscope" && ef->GetEffectName() != "Shader"))
         {
             wxString msg = wxString::Format("    WARN: Canvas mode enabled on an effect it is not normally used on. This will slow down rendering. Effect: %s, Model: %s, Start %s", ef->GetEffectName(), modelName, FORMATTIME(ef->GetStartTimeMS()));
             LogAndWrite(f, msg.ToStdString());
