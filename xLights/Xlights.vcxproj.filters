@@ -85,7 +85,6 @@
     <ClCompile Include="outputs\LOROptimisedOutput.cpp" />
     <ClCompile Include="OptionChooser.cpp" />
     <ClCompile Include="osx_utils\TouchBars.cpp" />
-    <ClCompile Include="outputs\IPOutput.cpp" />
     <ClCompile Include="outputs\LOROutput.cpp" />
     <ClCompile Include="outputs\PixelNetOutput.cpp" />
     <ClCompile Include="outputs\RenardOutput.cpp" />
@@ -722,6 +721,9 @@
     <ClCompile Include="outputs\SyncrolightDialog.cpp">
       <Filter>Outputs</Filter>
     </ClCompile>
+    <ClCompile Include="outputs\IPOutput.cpp">
+      <Filter>Outputs</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -798,7 +800,6 @@
     <ClInclude Include="osxMacUtils.h" />
     <ClInclude Include="osx_utils\TouchBars.h" />
     <ClInclude Include="outputs\Controller.h" />
-    <ClInclude Include="outputs\IPOutput.h" />
     <ClInclude Include="outputs\LOROutput.h" />
     <ClInclude Include="outputs\PixelNetOutput.h" />
     <ClInclude Include="outputs\RenardOutput.h" />
@@ -1451,6 +1452,9 @@
       <Filter>Outputs</Filter>
     </ClInclude>
     <ClInclude Include="outputs\SyncrolightDialog.h">
+      <Filter>Outputs</Filter>
+    </ClInclude>
+    <ClInclude Include="outputs\IPOutput.h">
       <Filter>Outputs</Filter>
     </ClInclude>
   </ItemGroup>

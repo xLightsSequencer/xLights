@@ -47,6 +47,8 @@
 #include "sequencer/MainSequencer.h"
 #include "ImportPreviewsModelsDialog.h"
 #include "ViewsModelsPanel.h"
+#include "outputs/OutputManager.h"
+#include "outputs/Output.h"
 
 static wxRect scaledRect(int srcWidth, int srcHeight, int dstWidth, int dstHeight)
 {
@@ -643,7 +645,7 @@ wxTreeListCtrl* LayoutPanel::CreateTreeListCtrl(long style, wxPanel* panel)
     tree->AppendColumn("Ctrlr Conn",
                        wxCOL_WIDTH_AUTOSIZE,
                        wxALIGN_LEFT,
-                       wxCOL_RESIZABLE);
+                       wxCOL_RESIZABLE | wxCOL_SORTABLE);
     tree->SetSortColumn(0, true);
     return tree;
 }
@@ -2529,8 +2531,50 @@ int LayoutPanel::ModelListComparator::SortElementsFunction(wxTreeListCtrl *treel
         if (ia > ib)
             return 1;
         if (ia < ib)
-    return -1;
+            return -1;
         return NumberAwareStringCompare(a->name, b->name);
+    }
+    else if (sortColumn == 3)
+    {
+        int32_t sc;
+        // group controllers first
+        Output* oa = xlights->GetOutputManager()->GetOutput(data1->startingChannel, sc);
+        std::string sna = "";
+        if (oa != nullptr) sna = oa->GetSortName();
+        Output* ob = xlights->GetOutputManager()->GetOutput(data2->startingChannel, sc);
+        std::string snb = "";
+        if (ob != nullptr) snb = ob->GetSortName();
+
+        if (sna == snb)
+        {
+            // then protocol
+            std::string pra = data1->GetModel()->GetControllerProtocol();
+            std::string prb = data2->GetModel()->GetControllerProtocol();
+            if (pra > prb)
+                return 1;
+            if (pra < prb)
+                return -1;
+
+            // then start port
+            int pa = data1->GetModel()->GetControllerPort();
+            int pb = data2->GetModel()->GetControllerPort();
+
+            if (pa > pb)
+                return 1;
+            if (pa < pb)
+                return -1;
+
+            // then start channel
+            if (data1->startingChannel > data2->startingChannel)
+                return 1;
+            if (data1->startingChannel < data2->startingChannel)
+                return -1;
+            return 0;
+        }
+        else
+        {
+            return NumberAwareStringCompare(sna, snb);
+        }
     }
 
     // Dont sort things with parents

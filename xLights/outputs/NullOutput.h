@@ -31,6 +31,7 @@ public:
     virtual bool IsValidChannelCount(int32_t channelCount) const override { return channelCount > 0; }
     int GetId() const { return _universe; }
     void SetId(int id) { _universe = id; _dirty = true;}
+    virtual std::string GetSortName() const override;
     #pragma endregion Getters and Setters
 
     #pragma region Start and Stop

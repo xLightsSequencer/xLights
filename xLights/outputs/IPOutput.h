@@ -34,7 +34,7 @@ public:
     virtual bool IsSerialOutput() const override { return false; }
     virtual std::string GetPingDescription() const override;
     virtual void SetIP(const std::string& ip) override;
-
+    virtual std::string GetSortName() const override { return GetIP(); }
     #pragma endregion Getters and Setters
 
     #pragma region Operators

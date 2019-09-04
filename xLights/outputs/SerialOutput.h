@@ -47,6 +47,7 @@ public:
     virtual bool TxEmpty() const override;
     int GetId() const { return _universe; }
     void SetId(int id) { _universe = id; _dirty = true; }
+    virtual std::string GetSortName() const override { return GetCommPort(); }
     #pragma endregion Getters and Setters
 
     #pragma region Operators

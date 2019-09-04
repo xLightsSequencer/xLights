@@ -141,6 +141,7 @@ public:
     bool IsSuppressDuplicateFrames() const { return _suppressDuplicateFrames; }
     virtual PINGSTATE Ping() const = 0;
     virtual bool CanPing() const = 0;
+    virtual std::string GetSortName() const = 0;
     #pragma endregion Getters and Setters
 
     #pragma region Operators

@@ -48,6 +48,11 @@ std::string NullOutput::GetChannelMapping(int32_t ch) const
 
     return res;
 }
+
+std::string NullOutput::GetSortName() const
+{
+    return wxString::Format("NULL%02d", _nullNumber).ToStdString();
+}
 #pragma endregion Getters and Setters
 
 
