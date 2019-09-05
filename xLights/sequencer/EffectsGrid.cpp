@@ -613,6 +613,7 @@ void EffectsGrid::OnGridPopup(wxCommandEvent& event)
 
 void EffectsGrid::FillRandomEffects()
 {
+    SetCursor(wxCURSOR_WAIT);
     int row1 = mRangeStartRow;
     int row2 = mRangeEndRow;
     if( row1 > row2 ) {
@@ -628,6 +629,10 @@ void EffectsGrid::FillRandomEffects()
         }
         Effect *lastEffect = nullptr;
         if (timingIndex1 != -1 && timingIndex2 != -1) {
+            wxProgressDialog prog("Generating random effects", "This may take some time", 100, this, wxPD_APP_MODAL | wxPD_AUTO_HIDE);
+            prog.Show();
+            float progValue = 0;
+            float per = 100.0 / (float)((row2 - row1 + 1) * (timingIndex2 - timingIndex1 + 1));
             mSequenceElements->get_undo_mgr().CreateUndoStep();
             for( int row = row1; row <= row2; row++)
             {
@@ -653,8 +658,11 @@ void EffectsGrid::FillRandomEffects()
                             mSelectedEffect = ef;
                         }
                     }
+                    progValue += per;
+                    prog.Update(progValue);
                 }
             }
+            prog.Update(100);
             mCellRangeSelected = false;
             RaiseSelectedEffectChanged(lastEffect, false, true);
         }
@@ -687,6 +695,7 @@ void EffectsGrid::FillRandomEffects()
             }
         }
     }
+    SetCursor(wxCURSOR_ARROW);
 }
 
 void EffectsGrid::ProcessDroppedEffect(Effect* effect)
@@ -6572,15 +6581,21 @@ int EffectsGrid::GetRow(int y) const
     return y/DEFAULT_ROW_HEADING_HEIGHT;
 }
 
-void EffectsGrid::RaiseSelectedEffectChanged(Effect* effect, bool isNew, bool updateUI) const
+void EffectsGrid::RaiseSelectedEffectChanged(Effect* effect, bool isNew, bool updateUI, bool async) const
 {
     if (effect == nullptr) return;
 
     // Place effect pointer in client data
     SelectedEffectChangedEvent eventEffectChanged(effect, isNew, updateUI);
-    // Pass it this way to prevent risk of effect being deleted before pointer is used
-    GetParent()->GetEventHandler()->ProcessEvent(eventEffectChanged);
-    //wxPostEvent(GetParent(), eventEffectChanged);
+    if (async)
+    {
+        wxPostEvent(GetParent(), eventEffectChanged);
+    }
+    else
+    {
+        // Pass it this way to prevent risk of effect being deleted before pointer is used
+        GetParent()->GetEventHandler()->ProcessEvent(eventEffectChanged);
+    }
 }
 
 void EffectsGrid::RaisePlayModelEffect(Element* element, Effect* effect, bool renderEffect) const

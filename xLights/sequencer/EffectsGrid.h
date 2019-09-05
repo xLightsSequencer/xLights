@@ -121,7 +121,7 @@ public:
     int GetEndRow() { return mRangeStartRow < mRangeEndRow ? mRangeEndRow : mRangeStartRow; }
     int GetMSFromColumn(int col) const;
     Element* GetActiveTimingElement() const;
-    void RaiseSelectedEffectChanged(Effect* effect, bool isNew, bool updateUI = true) const;
+    void RaiseSelectedEffectChanged(Effect* effect, bool isNew, bool updateUI = true, bool async = false) const;
     void LockEffects(bool lock);
 
     void SetRenderDataSources(xLightsFrame *xl, const SequenceData *data) {

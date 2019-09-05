@@ -123,9 +123,9 @@ int StarModel::GetNumStrands() const {
 bool StarModel::AllNodesAllocated() const 
 {
     int allocated = 0;
-    for (auto it = starSizes.begin(); it != starSizes.end(); ++it)
+    for (auto it : starSizes)
     {
-        allocated += *it;
+        allocated += it;
     }
 
     return (allocated == GetNodeCount());

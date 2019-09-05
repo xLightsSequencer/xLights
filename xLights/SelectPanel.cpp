@@ -317,14 +317,14 @@ void SelectPanel::OnButton_Select_SearchClick(wxCommandEvent& event)
 
 void SelectPanel::OnButton_Select_Model_AllClick(wxCommandEvent& event)
 {
-    for (int i = 0; i < ListBox_Select_Found->GetCount(); ++i)
+    for (size_t i = 0; i < ListBox_Select_Found->GetCount(); ++i)
         ListBox_Select_Found->SetSelection(i);
     populateEffectsList();
 }
 
 void SelectPanel::OnButton_Select_Effect_AllClick(wxCommandEvent& event)
 {
-    for (int i = 0; i < ListBox_Select_Types->GetCount(); ++i)
+    for (size_t i = 0; i < ListBox_Select_Types->GetCount(); ++i)
         ListBox_Select_Types->SetSelection(i);
     SelectEffects();
 }
