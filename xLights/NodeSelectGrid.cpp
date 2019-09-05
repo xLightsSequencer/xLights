@@ -173,10 +173,66 @@ class DrawGrid : public wxGrid
         }
     }
 
+    void HandleOnMouseWheel(wxMouseEvent& event)
+    {
+        m_wheelRotation += event.GetWheelRotation();
+        int lines = m_wheelRotation / event.GetWheelDelta();
+        m_wheelRotation -= lines * event.GetWheelDelta();
+
+        if (lines != 0)
+        {
+
+            wxScrollWinEvent newEvent;
+
+            newEvent.SetPosition(0);
+            newEvent.SetOrientation(event.GetWheelAxis() == 0 ? wxVERTICAL : wxHORIZONTAL);
+
+            if(event.ShiftDown())
+            {
+                if (newEvent.GetOrientation() == wxVERTICAL)
+                {
+                    newEvent.SetOrientation(wxHORIZONTAL);
+                }
+                else
+                {
+                    newEvent.SetOrientation(wxVERTICAL);
+                }
+            }
+
+            newEvent.SetEventObject(m_win);
+
+            if (event.GetWheelAxis() == wxMOUSE_WHEEL_HORIZONTAL)
+                lines = -lines;
+
+            if (event.IsPageScroll())
+            {
+                if (lines > 0)
+                    newEvent.SetEventType(wxEVT_SCROLLWIN_PAGEUP);
+                else
+                    newEvent.SetEventType(wxEVT_SCROLLWIN_PAGEDOWN);
+
+                m_win->GetEventHandler()->ProcessEvent(newEvent);
+            }
+            else
+            {
+                lines *= event.GetLinesPerAction();
+                if (lines > 0)
+                    newEvent.SetEventType(wxEVT_SCROLLWIN_LINEUP);
+                else
+                    newEvent.SetEventType(wxEVT_SCROLLWIN_LINEDOWN);
+
+                int times = abs(lines);
+                for (; times > 0; times--)
+                    m_win->GetEventHandler()->ProcessEvent(newEvent);
+            }
+        }
+    }
+
 public:
     DrawGrid(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style, const wxString& name) : wxGrid(parent, id, pos, size, style, name)
     {
         Connect(wxEVT_CHAR, (wxObjectEventFunction)&DrawGrid::DoOnChar, 0, this);
+        Connect(wxEVT_MOUSEWHEEL, (wxObjectEventFunction)&DrawGrid::HandleOnMouseWheel, 0, this);
     }
 
     virtual ~DrawGrid()
@@ -219,13 +275,13 @@ public:
 };
 
 //overloading contructor
-NodeSelectGrid::NodeSelectGrid(Model *m, const wxString& row, wxWindow* parent, wxWindowID id)
-    : NodeSelectGrid(m, std::vector<wxString>(1, row), parent, id)
+NodeSelectGrid::NodeSelectGrid(const wxString &title, Model *m, const wxString& row, wxWindow* parent, wxWindowID id)
+    : NodeSelectGrid(title, m, std::vector<wxString>(1, row), parent, id)
 {
 
 }
 
-NodeSelectGrid::NodeSelectGrid(Model *m, const std::vector<wxString>& rows, wxWindow* parent, wxWindowID id)
+NodeSelectGrid::NodeSelectGrid(const wxString &title, Model *m, const std::vector<wxString>& rows, wxWindow* parent, wxWindowID id)
 : model(m),
   bkg_image(nullptr),
   renderer(nullptr),
@@ -339,6 +395,9 @@ NodeSelectGrid::NodeSelectGrid(Model *m, const std::vector<wxString>& rows, wxWi
 
     renderer = new wxModelGridCellRenderer(bkg_image, *GridNodes);
     GridNodes->SetDefaultRenderer(renderer);
+
+    if(!title.IsEmpty())
+        SetTitle(GetTitle() + " - " + title);
 
     LoadGrid(rows);
 

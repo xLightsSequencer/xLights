@@ -519,10 +519,9 @@ void ModelStateDialog::OnStateTypeChoicePageChanged(wxChoicebookEvent& event)
 void ModelStateDialog::OnNodeRangeGridCellLeftDClick(wxGridEvent& event)
 {
     if (event.GetCol() == CHANNEL_COL) {
-        std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
-        wxColor c = NodeRangeGrid->GetCellBackgroundColour(event.GetRow(), CHANNEL_COL);
-
-        NodeSelectGrid dialog(model, NodeRangeGrid->GetCellValue(event.GetRow(), CHANNEL_COL), this);
+        const std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
+        const wxString title = name + " - " + NodeRangeGrid->GetCellValue(event.GetRow(), NAME_COL);
+        NodeSelectGrid dialog(title, model, NodeRangeGrid->GetCellValue(event.GetRow(), CHANNEL_COL), this);
 
         if (dialog.ShowModal() == wxID_OK)
         {

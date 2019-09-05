@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (scott)  Added SubModel/Phoneme/State name to Node Select dialog header text
+   -- enh (scott)  Added shift scroll wheel horizontal scrolling to Node Select dialog
 2019.46 August 31, 2019
    -- enh (keith)  Add option to hide the body of moving head lights
    -- bug (keith)  Fix bug where model does not show as you are drawing it

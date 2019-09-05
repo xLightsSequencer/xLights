@@ -1636,13 +1636,13 @@ wxArrayString SubModelsDialog::getModelList(ModelManager* modelManager)
 
 void SubModelsDialog::OnButton_Draw_ModelClick(wxCommandEvent& event)
 {
-    wxString name = GetSelectedName();
+    const wxString name = GetSelectedName();
     if (name == "") {
         return;
     }
 
     SubModelInfo* sm = GetSubModelInfo(name);
-    NodeSelectGrid dialog(model, sm->strands, this);
+    NodeSelectGrid dialog(name, model, sm->strands, this);
 
     if (dialog.ShowModal() == wxID_OK)
     {
@@ -1665,13 +1665,15 @@ void SubModelsDialog::OnNodesGridLabelLeftDClick(wxGridEvent& event)
 void SubModelsDialog::OnNodesGridCellLeftDClick(wxGridEvent& event)
 {
     int row = event.GetRow();
-    wxString name = GetSelectedName();
+    const wxString name = GetSelectedName();
     if (name == "" || row == -1) {
         return;
     }
 
     SubModelInfo* sm = GetSubModelInfo(name);
-    NodeSelectGrid dialog(model, sm->strands[sm->strands.size() - 1 - row], this);
+
+    const wxString title = name + " - " + NodesGrid->GetRowLabelValue(row);
+    NodeSelectGrid dialog(title, model, sm->strands[sm->strands.size() - 1 - row], this);
 
     if (dialog.ShowModal() == wxID_OK)
     {

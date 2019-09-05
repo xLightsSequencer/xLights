@@ -834,10 +834,9 @@ void ModelFaceDialog::OnFaceTypeChoicePageChanged(wxChoicebookEvent& event)
 void ModelFaceDialog::OnNodeRangeGridCellLeftDClick(wxGridEvent& event)
 {
     if (event.GetCol() == CHANNEL_COL) {
-        std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
-        wxColor c = NodeRangeGrid->GetCellBackgroundColour(event.GetRow(), CHANNEL_COL);
-
-        NodeSelectGrid dialog(model, NodeRangeGrid->GetCellValue(event.GetRow(), CHANNEL_COL), this);
+        const std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
+        const wxString title = name + " - " + NodeRangeGrid->GetRowLabelValue(event.GetRow());
+        NodeSelectGrid dialog(title, model, NodeRangeGrid->GetCellValue(event.GetRow(), CHANNEL_COL), this);
 
         if (dialog.ShowModal() == wxID_OK)
         {
@@ -848,7 +847,7 @@ void ModelFaceDialog::OnNodeRangeGridCellLeftDClick(wxGridEvent& event)
         }
     }
     else if (event.GetCol() == COLOR_COL) {
-        std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
+        const std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
         wxColor c = NodeRangeGrid->GetCellBackgroundColour(event.GetRow(), COLOR_COL);
         _colorData.SetColour(c);
         wxColourDialog dlg(this, &_colorData);

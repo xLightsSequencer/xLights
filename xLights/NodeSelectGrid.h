@@ -28,8 +28,8 @@ class NodeSelectGrid: public wxDialog
 {
 	public:
 
-		NodeSelectGrid(Model *m, const std::vector<wxString> &rows, wxWindow* parent,wxWindowID id=wxID_ANY);
-        NodeSelectGrid(Model *m, const wxString &row, wxWindow* parent, wxWindowID id = wxID_ANY);
+		NodeSelectGrid(const wxString &title, Model *m, const std::vector<wxString> &rows, wxWindow* parent,wxWindowID id=wxID_ANY);
+        NodeSelectGrid(const wxString &title, Model *m, const wxString &row, wxWindow* parent, wxWindowID id = wxID_ANY);
 
 		virtual ~NodeSelectGrid();
 
