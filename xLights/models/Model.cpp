@@ -4965,7 +4965,7 @@ void Model::SaveDisplayDimensions()
 
 void Model::RestoreDisplayDimensions()
 {
-    if (DisplayAs != "DMX")
+    if (DisplayAs != "DMX" && DisplayAs != "Image")
     {
         SetWidth(_savedWidth, true);
         SetHeight(_savedHeight, true);
