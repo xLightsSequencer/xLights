@@ -5925,7 +5925,15 @@ void LayoutPanel::PreviewSaveImage()
 void LayoutPanel::ImportModelsFromRGBEffects()
 {
     wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
-    wxString filename = wxFileSelector(_("Choose RGB Effects file to import from"), wxEmptyString, XLIGHTS_RGBEFFECTS_FILE, wxEmptyString, "RGB Effects Files (xlights_rgbeffects.xml)|xlights_rgbeffects.xml", wxFD_FILE_MUST_EXIST | wxFD_OPEN);
+#ifdef __WXOSX__
+    wxString wildcard = "*.xml";
+#else
+    wxString wildcard = "xlights_rgbeffects.xml";
+#endif
+    wxString filename = wxFileSelector(_("Choose RGB Effects file to import from"), wxEmptyString,
+                                       XLIGHTS_RGBEFFECTS_FILE, wxEmptyString,
+                                       "RGB Effects Files (xlights_rgbeffects.xml)|" + wildcard,
+                                       wxFD_FILE_MUST_EXIST | wxFD_OPEN);
     if (filename.IsEmpty()) return;
 
     ImportPreviewsModelsDialog dlg(this, filename, xlights->AllModels, xlights->LayoutGroups);
