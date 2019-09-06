@@ -1452,14 +1452,12 @@ std::string xLightsFrame::CreateEffectStringRandom(std::string &settings, std::s
 
 int xLightsFrame::ChooseRandomEffect()
 {
-    int eff, count = 0;
-    const static int MAX_TRIES = 10;
+    if (_randomEffectsToUse.size() == 0)
+    {
+        return 0;
+    }
 
-    do {
-        count++;
-        eff = rand() % effectManager.size();
-    } while (!effectManager[eff]->CanBeRandom() && count < MAX_TRIES);
-
-    if (count == MAX_TRIES) eff = 0; // we failed to find a good effect after MAX_TRIES attempts
-    return eff;
+    const int select = rand() % _randomEffectsToUse.size();
+    const wxString effect = _randomEffectsToUse[select];
+    return effectManager.GetEffectIndex(effect);
 }

@@ -585,6 +585,7 @@ public:
     void OnMenuItem_MHS_LargeSelected(wxCommandEvent& event);
     void OnMenuItem_MHS_ExtraLargeSelected(wxCommandEvent& event);
     void OnMenuItem61Selected(wxCommandEvent& event);
+    void OnMenuItem_Random_SetSelected(wxCommandEvent& event);
     //*)
     void OnCharHook(wxKeyEvent& event);
 private:
@@ -841,6 +842,7 @@ public:
     static const long ID_MENUITEM21;
     static const long ID_MENUITEM22;
     static const long ID_MENUITEM1;
+    static const long ID_MENUITEM_RANDON;
     static const long ID_MNU_MANUAL;
     static const long ID_MNU_ZOOM;
     static const long ID_MNU_KEYBINDINGS;
@@ -1011,6 +1013,7 @@ public:
     wxMenuItem* MenuItem_RC_Disable;
     wxMenuItem* MenuItem_RC_Enable;
     wxMenuItem* MenuItem_RC_LockedOnly;
+    wxMenuItem* MenuItem_Random_Set;
     wxMenuItem* MenuItem_SD_10;
     wxMenuItem* MenuItem_SD_20;
     wxMenuItem* MenuItem_SD_40;
@@ -1119,6 +1122,7 @@ public:
     bool _wasMaximised = false;
     wxSocketServer* _xFadeSocket = nullptr;
     bool _suspendRender = false;
+    wxArrayString _randomEffectsToUse;
 
     void OnxFadeSocketEvent(wxSocketEvent & event);
     void OnxFadeServerEvent(wxSocketEvent & event);

@@ -74,6 +74,7 @@
 #include "effects/FacesEffect.h"
 #include "effects/StateEffect.h"
 #include "ShaderDownloadDialog.h"
+#include "CheckboxSelectDialog.h"
 
 // Linux needs this
 #include <wx/stdpaths.h>
@@ -361,6 +362,7 @@ const long xLightsFrame::ID_MNU_SNAP_TO_TIMING = wxNewId();
 const long xLightsFrame::ID_MENUITEM21 = wxNewId();
 const long xLightsFrame::ID_MENUITEM22 = wxNewId();
 const long xLightsFrame::ID_MENUITEM1 = wxNewId();
+const long xLightsFrame::ID_MENUITEM_RANDON = wxNewId();
 const long xLightsFrame::ID_MNU_MANUAL = wxNewId();
 const long xLightsFrame::ID_MNU_ZOOM = wxNewId();
 const long xLightsFrame::ID_MNU_KEYBINDINGS = wxNewId();
@@ -1196,6 +1198,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     MenuItemFSEQV2 = new wxMenuItem(MenuItem54, ID_MENUITEM22, _("V2"), wxEmptyString, wxITEM_RADIO);
     MenuItem54->Append(MenuItemFSEQV2);
     MenuSettings->Append(ID_MENUITEM1, _("FSEQ Version"), MenuItem54, wxEmptyString);
+    MenuItem_Random_Set = new wxMenuItem(MenuSettings, ID_MENUITEM_RANDON, _("Set Allowed Random Effects"), wxEmptyString, wxITEM_NORMAL);
+    MenuSettings->Append(MenuItem_Random_Set);
     MenuBar->Append(MenuSettings, _("&Settings"));
     MenuHelp = new wxMenu();
     MenuItem_UserManual = new wxMenuItem(MenuHelp, ID_MNU_MANUAL, _("User Manual"), wxEmptyString, wxITEM_NORMAL);
@@ -1448,6 +1452,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     Connect(ID_MNU_SNAP_TO_TIMING,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_SnapToTimingMarksSelected);
     Connect(ID_MENUITEM21,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemFSEQV1Selected);
     Connect(ID_MENUITEM22,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemFSEQV2Selected);
+    Connect(ID_MENUITEM_RANDON,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_Random_SetSelected);
     Connect(ID_MNU_MANUAL,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_UserManualSelected);
     Connect(ID_MNU_ZOOM,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_ZoomSelected);
     Connect(ID_MNU_KEYBINDINGS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_ShowKeyBindingsSelected);
@@ -1643,6 +1648,25 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     MenuItem_QuietVol->Check(playVolume == 33);
     MenuItem_VQuietVol->Check(playVolume == 10);
     SDL::SetGlobalVolume(playVolume);
+
+    wxString randomEffects = "";
+    config->Read("xLightsRandomEffects", &randomEffects);
+    if(randomEffects.IsEmpty())
+    {
+        for (int i = 0; i < effectManager.size(); i++)
+        {
+            if (effectManager[i]->CanBeRandom())
+            {
+                _randomEffectsToUse.Add(effectManager[i]->Name());
+            }
+        }
+        randomEffects = wxJoin(_randomEffectsToUse, ',');
+        config->Write("xLightsRandomEffects", randomEffects);
+    }
+    else
+    {
+        _randomEffectsToUse = wxSplit(randomEffects, ',');
+    }
 
     logger_base.debug("xLightsFrame constructor creating sequencer.");
 
@@ -10313,4 +10337,29 @@ void xLightsFrame::OnMenuItem61Selected(wxCommandEvent& event)
 bool xLightsFrame::IsNewModel(Model* m) const
 {
     return layoutPanel->IsNewModel(m);
+}
+
+void xLightsFrame::OnMenuItem_Random_SetSelected(wxCommandEvent& event)
+{
+    wxArrayString effects;
+    for (int i = 0; i < effectManager.size(); i++)
+    {
+        if (effectManager[i]->CanBeRandom())
+        {
+            effects.Add(effectManager[i]->Name());
+        }
+    }
+
+    CheckboxSelectDialog dlg(this, effects, _randomEffectsToUse);
+    OptimiseDialogPosition(&dlg);
+
+    if (dlg.ShowModal() == wxID_OK)
+    {
+        _randomEffectsToUse = dlg.GetSelectedItems();
+
+        const wxString randomEffects = wxJoin(_randomEffectsToUse, ',');
+        wxConfigBase* config = wxConfigBase::Get();
+        config->Write("xLightsRandomEffects", randomEffects);
+        config->Flush();
+    }
 }

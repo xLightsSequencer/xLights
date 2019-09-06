@@ -183,6 +183,7 @@
     <ClCompile Include="BulkEditSliderDialog.cpp" />
     <ClCompile Include="CachedFileDownloader.cpp" />
     <ClCompile Include="CharMapDialog.cpp" />
+    <ClCompile Include="CheckboxSelectDialog.cpp" />
     <ClCompile Include="ColorManager.cpp" />
     <ClCompile Include="ColorManagerDialog.cpp" />
     <ClCompile Include="controllers\ControllerRegistry.cpp" />
@@ -570,6 +571,7 @@
     <ClInclude Include="BulkEditSliderDialog.h" />
     <ClInclude Include="CachedFileDownloader.h" />
     <ClInclude Include="CharMapDialog.h" />
+    <ClInclude Include="CheckboxSelectDialog.h" />
     <ClInclude Include="ColorManager.h" />
     <ClInclude Include="ColorManagerDialog.h" />
     <ClInclude Include="controllers\ControllerRegistry.h" />

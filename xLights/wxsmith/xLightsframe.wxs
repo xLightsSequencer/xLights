@@ -1779,6 +1779,10 @@
 						<radio>1</radio>
 					</object>
 				</object>
+				<object class="wxMenuItem" name="ID_MENUITEM_RANDON" variable="MenuItem_Random_Set" member="yes">
+					<label>Set Allowed Random Effects</label>
+					<handler function="OnMenuItem_Random_SetSelected" entry="EVT_MENU" />
+				</object>
 			</object>
 			<object class="wxMenu" variable="MenuHelp" member="no">
 				<label>&amp;Help</label>
