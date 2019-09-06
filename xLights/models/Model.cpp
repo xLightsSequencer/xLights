@@ -3189,8 +3189,8 @@ void Model::InitRenderBufferNodes(const std::string &type, const std::string &ca
         maxY /= factor;
         //logger_base.debug("Factor '%f':", factor);
 
-        int offx = minX;
-        int offy = minY;
+        float offx = minX;
+        float offy = minY;
         bool noOff = type == PER_PREVIEW_NO_OFFSET;
 
         if (noOff) {
