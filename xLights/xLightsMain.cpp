@@ -10359,7 +10359,7 @@ void xLightsFrame::OnMenuItem_Random_SetSelected(wxCommandEvent& event)
         }
     }
 
-    CheckboxSelectDialog dlg(this, effects, _randomEffectsToUse);
+    CheckboxSelectDialog dlg(this, "Select Effects for Generate Random", effects, _randomEffectsToUse);
     OptimiseDialogPosition(&dlg);
 
     if (dlg.ShowModal() == wxID_OK)

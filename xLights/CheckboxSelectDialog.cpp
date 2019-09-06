@@ -21,7 +21,7 @@ BEGIN_EVENT_TABLE(CheckboxSelectDialog,wxDialog)
 	//*)
 END_EVENT_TABLE()
 
-CheckboxSelectDialog::CheckboxSelectDialog(wxWindow* parent, const wxArrayString& items, const wxArrayString& itemsSelected, wxWindowID id,const wxPoint& pos,const wxSize& size)
+CheckboxSelectDialog::CheckboxSelectDialog(wxWindow* parent, const wxString &title, const wxArrayString& items, const wxArrayString& itemsSelected, wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
 	//(*Initialize(CheckboxSelectDialog)
 	wxFlexGridSizer* FlexGridSizer1;
@@ -61,6 +61,8 @@ CheckboxSelectDialog::CheckboxSelectDialog(wxWindow* parent, const wxArrayString
             CheckListBox_Items->Check(CheckListBox_Items->GetCount() - 1);
         }
     }
+
+	SetTitle(title);
 
     SetEscapeId(Button_Cancel->GetId());
 

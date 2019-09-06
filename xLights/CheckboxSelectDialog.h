@@ -14,7 +14,7 @@ class CheckboxSelectDialog: public wxDialog
 
 	public:
 
-        CheckboxSelectDialog(wxWindow* parent, const wxArrayString& items, const wxArrayString& itemsSelected = wxArrayString(), wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
+        CheckboxSelectDialog(wxWindow* parent, const wxString &title, const wxArrayString& items, const wxArrayString& itemsSelected = wxArrayString(), wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
 		virtual ~CheckboxSelectDialog();
         wxArrayString GetSelectedItems() const;
 
