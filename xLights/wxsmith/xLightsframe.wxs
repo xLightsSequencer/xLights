@@ -1783,6 +1783,10 @@
 					<label>Set Allowed Random Effects</label>
 					<handler function="OnMenuItem_Random_SetSelected" entry="EVT_MENU" />
 				</object>
+				<object class="wxMenuItem" name="ID_MNU_EMAIL" variable="MenuItem_EmailAddress" member="yes">
+					<label>eMail Address</label>
+					<handler function="OnMenuItem_EmailAddressSelected" entry="EVT_MENU" />
+				</object>
 			</object>
 			<object class="wxMenu" variable="MenuHelp" member="no">
 				<label>&amp;Help</label>

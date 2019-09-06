@@ -692,6 +692,14 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     Connect(wxID_ANY, EVT_XYZZYEVENT, (wxObjectEventFunction)&xScheduleFrame::DoXyzzyEvent);
     Connect(wxID_ANY, wxEVT_CHAR_HOOK, (wxObjectEventFunction)&xScheduleFrame::OnKeyDown);
 
+    wxString userEmail;
+    wxConfig* xlconfig = new wxConfig(_("xLights"));
+    if (xlconfig != nullptr)
+    {
+        xlconfig->Read("xLightsUserEmail", &userEmail, "");
+        if (userEmail != "noone@nowhere.xlights.org" && userEmail != "") logger_base.debug("User email address: <email>%s</email>", (const char*)userEmail.c_str());
+    }
+
     _timer.SetName("xSchedule frame timer");
     _timerSchedule.SetName("xSchedule schedule timer");
 

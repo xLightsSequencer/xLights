@@ -821,6 +821,26 @@ std::string Ordinal(int i)
     }
 }
 
+bool IsEmailValid(const std::string& email)
+{
+    wxString e = wxString(email).Trim(false).Trim(true);
+    if (e == "")
+    {
+        return false;
+    }
+    else
+    {
+        //static wxRegEx regxEmail("^[a-zA-Z0-9\\.!#$%&+\\/=?^_`{|}~\\-]+@[a-zA-Z0-9\\-]+\\.[a-zA-Z0-9-\\.]*$");
+        static wxRegEx regxEmail("^([a-zA-Z][a-zA-Z0-9\\.!#$%&+\\/=?^_`{|}~\\-]*@[a-zA-Z0-9\\-]+\\.[a-zA-Z0-9\\=\\.]+)$");
+
+        if (regxEmail.Matches(e))
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
 bool IsIPValid(const std::string &ip)
 {
     wxString ips = wxString(ip).Trim(false).Trim(true);

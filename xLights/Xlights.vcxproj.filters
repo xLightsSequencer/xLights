@@ -737,6 +737,7 @@
       <Filter>Outputs</Filter>
     </ClCompile>
     <ClCompile Include="CheckboxSelectDialog.cpp" />
+    <ClCompile Include="EmailDialog.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -1483,6 +1484,7 @@
       <Filter>Outputs</Filter>
     </ClInclude>
     <ClInclude Include="CheckboxSelectDialog.h" />
+    <ClInclude Include="EmailDialog.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

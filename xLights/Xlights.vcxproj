@@ -217,6 +217,7 @@
     <ClCompile Include="effects\LiquidPanel.cpp" />
     <ClCompile Include="effects\ServoEffect.cpp" />
     <ClCompile Include="effects\ServoPanel.cpp" />
+    <ClCompile Include="EmailDialog.cpp" />
     <ClCompile Include="FolderSelection.cpp" />
     <ClCompile Include="FontManager.cpp" />
     <ClCompile Include="FSEQFile.cpp" />
@@ -602,6 +603,7 @@
     <ClInclude Include="effects\WarpEffect.h" />
     <ClInclude Include="effects\WarpPanel.h" />
     <ClInclude Include="EffectTimingDialog.h" />
+    <ClInclude Include="EmailDialog.h" />
     <ClInclude Include="FolderSelection.h" />
     <ClInclude Include="FontManager.h" />
     <ClInclude Include="FSEQFile.h" />

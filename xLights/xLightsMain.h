@@ -586,6 +586,7 @@ public:
     void OnMenuItem_MHS_ExtraLargeSelected(wxCommandEvent& event);
     void OnMenuItem61Selected(wxCommandEvent& event);
     void OnMenuItem_Random_SetSelected(wxCommandEvent& event);
+    void OnMenuItem_EmailAddressSelected(wxCommandEvent& event);
     //*)
     void OnCharHook(wxKeyEvent& event);
 private:
@@ -843,6 +844,7 @@ public:
     static const long ID_MENUITEM22;
     static const long ID_MENUITEM1;
     static const long ID_MENUITEM_RANDON;
+    static const long ID_MNU_EMAIL;
     static const long ID_MNU_MANUAL;
     static const long ID_MNU_ZOOM;
     static const long ID_MNU_KEYBINDINGS;
@@ -977,6 +979,7 @@ public:
     wxMenuItem* MenuItem_CrashXLights;
     wxMenuItem* MenuItem_Donate;
     wxMenuItem* MenuItem_DownloadSequences;
+    wxMenuItem* MenuItem_EmailAddress;
     wxMenuItem* MenuItem_ExcludeAudioPackagedSequence;
     wxMenuItem* MenuItem_ExcludePresetsFromPackagedSequences;
     wxMenuItem* MenuItem_ExportEffects;
@@ -1105,6 +1108,7 @@ public:
     EffectManager effectManager;
     int effGridPrevX;
     int effGridPrevY;
+    wxString _userEmail;
     bool _backupSubfolders;
     bool _excludePresetsFromPackagedSequences;
     bool _excludeAudioFromPackagedSequences;
@@ -1124,6 +1128,7 @@ public:
     bool _suspendRender = false;
     wxArrayString _randomEffectsToUse;
 
+    void CollectUserEmail();
     void OnxFadeSocketEvent(wxSocketEvent & event);
     void OnxFadeServerEvent(wxSocketEvent & event);
     void StartxFadeListener();

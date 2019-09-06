@@ -1511,21 +1511,16 @@ void FileConverter::ReadGlediatorFile(ConvertParameters& params)
 #ifndef FPP
 void FileConverter::ReadConductorFile(ConvertParameters& params)
 {
-    wxFile f;
-    int i,j,ch;
-    char row[16384];
-    int period=0;
     wxArrayString ChannelNames;
     wxArrayInt ChannelColors;
-
-    long TotChannels=params._outputManager->GetTotalChannels();
-    for (int x = 0; x < TotChannels; x++) {
+    int32_t TotChannels = params._outputManager->GetTotalChannels();
+    for (int32_t x = 0; x < TotChannels; x++) {
         ChannelColors.push_back(0);
         ChannelNames.push_back("");
     }
     params.seq_data.init(0, 0, params.sequence_interval);
 
-    if( params.read_mode == ConvertParameters::READ_MODE_LOAD_MAIN ) {
+    if (params.read_mode == ConvertParameters::READ_MODE_LOAD_MAIN) {
         wxWindow* parent;
         if (params.convertDialog != nullptr)
         {
@@ -1535,31 +1530,35 @@ void FileConverter::ReadConductorFile(ConvertParameters& params)
         {
             parent = params.xLightsFrm;
         }
-        wxFileDialog mediaDialog(parent,wxString("Select associated media file, or cancel if this is an animation"));
+        wxFileDialog mediaDialog(parent, wxString("Select associated media file, or cancel if this is an animation"));
         if (mediaDialog.ShowModal() == wxID_OK)
         {
             *params.media_filename = mediaDialog.GetPath();
         }
     }
+
+    wxFile f;
     if (!f.Open(params.inp_filename.c_str()))
     {
-        params.PlayerError(wxString("Unable to load sequence:\n")+params.inp_filename);
+        params.PlayerError(wxString("Unable to load sequence:\n") + params.inp_filename);
         return;
     }
-    int numPeriods=f.Length()/16384;
 
+    int numPeriods = f.Length() / 16384;
+    int period = 0;
+    char row[16384];
     params.seq_data.init(16384, numPeriods, 50);
-    while (f.Read(row,16384) == 16384)
+    while (f.Read(row, 16384) == 16384)
     {
         wxYield();
-        for (i=0; i < 4096; i++)
+        for (size_t i = 0; i < 4096; i++)
         {
-            for (j=0; j < 4; j++)
+            for (size_t j = 0; j < 4; j++)
             {
-                ch=j * 4096 + i;
+                int32_t ch = j * 4096 + i;
                 if (ch < params.seq_data.NumChannels())
                 {
-                    params.seq_data[period][ch] = row[i*4+j];
+                    params.seq_data[period][ch] = row[i * 4 + j];
                 }
             }
         }
@@ -1567,13 +1566,13 @@ void FileConverter::ReadConductorFile(ConvertParameters& params)
     }
     f.Close();
 
-    if( params.data_layer != nullptr )
+    if (params.data_layer != nullptr)
     {
         params.data_layer->SetNumFrames(params.seq_data.NumFrames());
         params.data_layer->SetNumChannels(params.seq_data.NumChannels());
     }
 
-    if( params.channels_off_at_end )
+    if (params.channels_off_at_end)
     {
         ClearLastPeriod(params.seq_data);
     }

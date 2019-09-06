@@ -472,6 +472,8 @@
 		<Unit filename="Effects.h" />
 		<Unit filename="EffectsPanel.cpp" />
 		<Unit filename="EffectsPanel.h" />
+		<Unit filename="EmailDialog.cpp" />
+		<Unit filename="EmailDialog.h" />
 		<Unit filename="ExportModelSelect.cpp" />
 		<Unit filename="ExportModelSelect.h" />
 		<Unit filename="FSEQFile.cpp" />
@@ -1184,6 +1186,7 @@
 		<Unit filename="wxsmith/EffectTimingDialog.wxs" />
 		<Unit filename="wxsmith/EffectTreeDialog.wxs" />
 		<Unit filename="wxsmith/EffectsPanel.wxs" />
+		<Unit filename="wxsmith/EmailDialog.wxs" />
 		<Unit filename="wxsmith/ExportModelSelect.wxs" />
 		<Unit filename="wxsmith/FPPConnectDialog.wxs" />
 		<Unit filename="wxsmith/FacesPanel.wxs" />
@@ -1489,6 +1492,7 @@
 					<wxDialog wxs="wxsmith/BulkEditFontPickerDialog.wxs" src="BulkEditFontPickerDialog.cpp" hdr="BulkEditFontPickerDialog.h" fwddecl="0" i18n="1" name="BulkEditFontPickerDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/SyncrolightDialog.wxs" src="outputs/SyncrolightDialog.cpp" hdr="outputs/SyncrolightDialog.h" fwddecl="0" i18n="1" name="SyncrolightDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/CheckboxSelectDialog.wxs" src="CheckboxSelectDialog.cpp" hdr="CheckboxSelectDialog.h" fwddecl="0" i18n="1" name="CheckboxSelectDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/EmailDialog.wxs" src="EmailDialog.cpp" hdr="EmailDialog.h" fwddecl="0" i18n="1" name="EmailDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>
