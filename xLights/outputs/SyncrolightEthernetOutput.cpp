@@ -11,23 +11,20 @@
 #include "../UtilFunctions.h"
 
 #pragma region Constructors and Destructors
-SyncrolightEthernetOutput::SyncrolightEthernetOutput(wxXmlNode* node) : IPOutput(node)
-{
+SyncrolightEthernetOutput::SyncrolightEthernetOutput(wxXmlNode* node) : IPOutput(node) {
     _universe = 64001;
     _port = wxAtoi(node->GetAttribute("Port", "1"));
     _data = (uint8_t*)malloc(_channels + SYNCROLIGHTETHERNET_PACKET_HEADERLEN + SYNCROLIGHTETHERNET_PACKET_FOOTERLEN);
     memset(_data, 0, _channels + SYNCROLIGHTETHERNET_PACKET_HEADERLEN + SYNCROLIGHTETHERNET_PACKET_FOOTERLEN);
 }
 
-SyncrolightEthernetOutput::SyncrolightEthernetOutput() : IPOutput()
-{
+SyncrolightEthernetOutput::SyncrolightEthernetOutput() : IPOutput() {
     _universe = 64001;
     _data = (uint8_t*)malloc(_channels + SYNCROLIGHTETHERNET_PACKET_HEADERLEN + SYNCROLIGHTETHERNET_PACKET_FOOTERLEN);
     memset(_data, 0, _channels + SYNCROLIGHTETHERNET_PACKET_HEADERLEN + SYNCROLIGHTETHERNET_PACKET_FOOTERLEN);
 }
 
 SyncrolightEthernetOutput::~SyncrolightEthernetOutput() {
-
     if (_data != nullptr)
     {
         free(_data);
@@ -35,16 +32,14 @@ SyncrolightEthernetOutput::~SyncrolightEthernetOutput() {
     }
 }
 
-SyncrolightEthernetOutput::SyncrolightEthernetOutput(SyncrolightEthernetOutput* output) : IPOutput(output)
-{
+SyncrolightEthernetOutput::SyncrolightEthernetOutput(SyncrolightEthernetOutput* output) : IPOutput(output) {
     _port = output->_port;
     _data = (uint8_t*)malloc(_channels);
     memset(_data, 0, _channels);
 }
 #pragma endregion Constructors and Destructors
 
-std::string SyncrolightEthernetOutput::GetExport() const
-{
+std::string SyncrolightEthernetOutput::GetExport() const {
     std::string enabled = _enabled ? _("Y") : _("N");
     std::string suppress = _suppressDuplicateFrames ? _("Y") : _("N");
 
@@ -55,8 +50,7 @@ std::string SyncrolightEthernetOutput::GetExport() const
         enabled, suppress, _port).ToStdString();
 }
 
-wxXmlNode* SyncrolightEthernetOutput::Save()
-{
+wxXmlNode* SyncrolightEthernetOutput::Save() {
     wxXmlNode* node = new wxXmlNode(wxXML_ELEMENT_NODE, "network");
     IPOutput::Save(node);
 
@@ -66,8 +60,7 @@ wxXmlNode* SyncrolightEthernetOutput::Save()
 }
 
 #pragma region Start and Stop
-void SyncrolightEthernetOutput::OpenDatagram()
-{
+void SyncrolightEthernetOutput::OpenDatagram() {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     if (_datagram != nullptr) return;
@@ -101,8 +94,7 @@ void SyncrolightEthernetOutput::OpenDatagram()
     }
 }
 
-bool SyncrolightEthernetOutput::Open()
-{
+bool SyncrolightEthernetOutput::Open() {
     if (!_enabled) return true;
 
     _ok = IPOutput::Open();
@@ -118,8 +110,7 @@ bool SyncrolightEthernetOutput::Open()
     return _ok && _datagram != nullptr;
 }
 
-void SyncrolightEthernetOutput::Close()
-{
+void SyncrolightEthernetOutput::Close() {
     Heartbeat(9);
     if (_datagram != nullptr)
     {
@@ -131,8 +122,7 @@ void SyncrolightEthernetOutput::Close()
 #pragma endregion Start and Stop
 
 #pragma region Frame Handling
-void SyncrolightEthernetOutput::StartFrame(long msec)
-{
+void SyncrolightEthernetOutput::StartFrame(long msec) {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     if (!_enabled) return;
@@ -149,8 +139,7 @@ void SyncrolightEthernetOutput::StartFrame(long msec)
     _timer_msec = msec;
 }
 
-void SyncrolightEthernetOutput::Heartbeat(int mode)
-{
+void SyncrolightEthernetOutput::Heartbeat(int mode) {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     static wxLongLong __lastTime = 0;
     static wxIPV4address __remoteAddr;
@@ -216,8 +205,7 @@ void SyncrolightEthernetOutput::Heartbeat(int mode)
     }
 }
 
-void SyncrolightEthernetOutput::EndFrame(int suppressFrames)
-{
+void SyncrolightEthernetOutput::EndFrame(int suppressFrames) {
     if (!_enabled || _suspend) return;
 
         if (_datagram == nullptr) return;
@@ -230,9 +218,8 @@ void SyncrolightEthernetOutput::EndFrame(int suppressFrames)
                 _packet[0] = 0x80;
                 _packet[1] = _port;
                 _packet[2] = 0x1c;
-                _packet[3] = i; // packet fragment
-                _packet[4] = (uint8_t)(((current / 3) >> 8) & 0xFF); // high start pixel
-                _packet[5] = (uint8_t)((current / 3) & 0xFF); // low start pixel
+                _packet[3] = (uint8_t)(((current / 3) >> 8) & 0xFF); // high start pixel
+                _packet[4] = (uint8_t)((current / 3) & 0xFF); // low start pixel
                 int ch = (std::min)((int)_channels - current, 900);
                 _packet[5] = (uint8_t)((ch >> 8) & 0xFF); // high pixels per packet
                 _packet[6] = (uint8_t)(ch & 0xFF); // low pixels per packet
@@ -262,8 +249,7 @@ void SyncrolightEthernetOutput::SetOneChannel(int32_t channel, unsigned char dat
         }
 }
 
-void SyncrolightEthernetOutput::SetManyChannels(int32_t channel, unsigned char data[], size_t size)
-{
+void SyncrolightEthernetOutput::SetManyChannels(int32_t channel, unsigned char data[], size_t size) {
     size_t chs = (std::min)(size, (size_t)(GetMaxChannels() - channel));
     if (memcmp(&_data[channel], data, chs) == 0) {
         // nothing changed
