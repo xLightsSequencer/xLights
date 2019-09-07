@@ -344,4 +344,6 @@ CommandManager::CommandManager()
     _commands.push_back(new Command("Fire plugin event", 1, s, false, false, false, false, true, true, true, false));
     _commands.push_back(new Command("Set step position", 1, i, false, false, true, false, false, true, true, false));
     _commands.push_back(new Command("Set step position ms", 1, i, false, false, true, false, false, true, true, false));
+    _commands.push_back(new Command("Adjust frame interval by ms", 1, i, false, false, true, false, false, true, true, false));
+    _commands.push_back(new Command("Set frame interval to ms", 1, i, false, false, true, false, false, true, true, false));
 }

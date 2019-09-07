@@ -1179,6 +1179,12 @@ int ScheduleManager::Frame(bool outputframe, xScheduleFrame* frame)
     reentry = false;
     if (rate == 0) rate = 50;
     oldrate = rate;
+
+    if (_overrideMS != 0)
+    {
+        rate = _overrideMS;
+    }
+
     return rate;
 }
 
@@ -1502,6 +1508,11 @@ int ScheduleManager::CheckSchedule()
         }
     }
 
+    if (_overrideMS != 0)
+    {
+        framems = _overrideMS;
+    }
+
     return framems;
 }
 
@@ -1562,7 +1573,7 @@ bool ScheduleManager::IsQueuedPlaylistRunning() const
 // localhost/xScheduleCommand?Command=<command>&Parameters=<comma separated parameters>
 bool ScheduleManager::Action(const wxString& command, const wxString& parameters, const wxString& data, PlayList* selplaylist, Schedule* selschedule, size_t& rate, wxString& msg)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     bool result = true;
     bool scheduleChanged = false;
@@ -1585,7 +1596,7 @@ bool ScheduleManager::Action(const wxString& command, const wxString& parameters
             if (_mainThread != wxThread::GetCurrentId())
             {
                 logger_base.debug("Action '%s':'%s' arrived not on main thread ... switching threads.",
-                    (const char *)command.c_str(), (const char *)parameters.c_str());
+                    (const char*)command.c_str(), (const char*)parameters.c_str());
 
                 // Because of what this function can do calling it on the main thread is dangerous ... so we need to switch threads
                 ActionMessageData* amd = new ActionMessageData(command, parameters, data);
@@ -1596,7 +1607,7 @@ bool ScheduleManager::Action(const wxString& command, const wxString& parameters
             else
             {
                 logger_base.debug("Action '%s':'%s'.",
-                    (const char *)command.c_str(), (const char *)parameters.c_str());
+                    (const char*)command.c_str(), (const char*)parameters.c_str());
                 if (command == "Stop all now")
                 {
                     // we cant stop here as this might be in the middle of playing the playlist
@@ -1632,6 +1643,64 @@ bool ScheduleManager::Action(const wxString& command, const wxString& parameters
                         }
                     }
                     scheduleChanged = true;
+                }
+                else if (command == "Adjust frame interval by ms")
+                {
+                    if (_overrideMS != 0)
+                    {
+                        rate = _overrideMS;
+                    }
+                    else if (GetRunningPlayList() != nullptr)
+                    {
+                        rate = GetRunningPlayList()->GetFrameMS();
+                    }
+                    else
+                    {
+                        rate = 2 * rate;
+                    }
+                    rate += wxAtoi(parameters);
+                    if (rate != 0)
+                    {
+                        if (rate < 15) rate = 15;
+                        if (rate > 10000) rate = 10000;
+                    }
+                    if (rate == 0)
+                    {
+                        _overrideMS = 0;
+                        if (GetRunningPlayList() != nullptr)
+                        {
+                            rate = GetRunningPlayList()->GetFrameMS();
+                        }
+                        logger_base.debug("Frame rate override cleared. Frame rate now %dms", rate);
+                    }
+                    else
+                    {
+                        _overrideMS = rate;
+                        logger_base.debug("Frame rate adjusted by %dms to %dms", wxAtoi(parameters), rate);
+                    }
+                }
+                else if (command == "Set frame interval to ms")
+                {
+                    rate = wxAtoi(parameters);
+                    if (rate != 0)
+                    {
+                        if (rate < 15) rate = 15;
+                        if (rate > 10000) rate = 10000;
+                    }
+                    if (rate == 0)
+                    {
+                        _overrideMS = 0;
+                        if (GetRunningPlayList() != nullptr)
+                        {
+                            rate = GetRunningPlayList()->GetFrameMS();
+                        }
+                        logger_base.debug("Frame rate override cleared. Frame rate now %dms", rate);
+                    }
+                    else
+                    {
+                        _overrideMS = rate;
+                        logger_base.debug("Frame rate set to %dms", rate);
+                    }
                 }
                 else if (command == "Play selected playlist looped")
                 {
@@ -3154,6 +3223,11 @@ bool ScheduleManager::Action(const wxString& command, const wxString& parameters
         wxPostEvent(wxGetApp().GetTopWindow(), event);
     }
 
+    if (_overrideMS != 0)
+    {
+        rate = _overrideMS;
+    }
+
     return result;
 }
 
@@ -3171,6 +3245,10 @@ bool ScheduleManager::Action(const wxString& label, PlayList* selplaylist, Sched
     else
     {
         msg = "Unknown button.";
+        if (_overrideMS != 0)
+        {
+            rate = _overrideMS;
+        }
         return false;
     }
 }
@@ -5269,6 +5347,11 @@ void ScheduleManager::StartTiming(const std::string timingName)
         size_t rate = 0;
         PlayPlayList(pl, rate, false, pls->GetNameNoTime(), true);
 
+        if (_overrideMS != 0)
+        {
+            rate = _overrideMS;
+        }
+
         wxCommandEvent event1(EVT_FRAMEMS);
         event1.SetInt(rate);
         wxPostEvent(wxGetApp().GetTopWindow(), event1);
@@ -5310,6 +5393,11 @@ void ScheduleManager::StartStep(const std::string stepName)
 
         size_t rate = 0;
         PlayPlayList(pl, rate, false, pls->GetNameNoTime(), true);
+
+        if (_overrideMS != 0)
+        {
+            rate = _overrideMS;
+        }
 
         wxCommandEvent event1(EVT_FRAMEMS);
         event1.SetInt(rate);

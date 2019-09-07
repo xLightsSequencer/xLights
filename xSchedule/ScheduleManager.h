@@ -75,6 +75,7 @@ class ScheduleManager
     PlayList* _immediatePlay = nullptr;
     PlayList* _backgroundPlayList = nullptr;
     std::list<PlayList*> _eventPlayLists;
+    int _overrideMS = 0;
     std::list<PixelData*> _overlayData;
     CommandManager _commandManager;
     PlayList* _queuedSongs = nullptr;
