@@ -11,9 +11,24 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2019.47 September 7, 2019
    -- enh (scott)  Added Random Effect Selection Dialog
    -- enh (scott)  Added SubModel/Phoneme/State name to Node Select dialog header text
    -- enh (scott)  Added shift scroll wheel horizontal scrolling to Node Select dialog
+   -- enh (keith)  Add xSchedule API for speeding up/slowing down animation playback
+   -- enh (keith)  Add option inclusion of user email in logs to help us reach out to people experiencing issues 
+                   where we need more information
+   -- enh (keith)  Add progress while generating random effects as it runs slowly and it looks like it has hung
+   -- enh (keith)  Add setup export to models export
+   -- enh (keith)  Add sorting to controller connection column on layout tab
+   -- enh (keith)  Add alernate wiring to candy cane model
+   -- enh (keith)  Add the ability to display twitter account followers in xSchedule
+   -- enh (keith)  Add MQTT user/password support
+   -- bug (keith)  Make candy cane model consistent with arches model in the way it uploads to controller
+   -- bug (keith)  Fix some model groups dont include bottom line of pixels
+   -- bug (dkulp)  Fix layout import not working on OSX
+   -- bug (dkulp)  Fix setup tab right click menu not working ... particularly on OSX
+   -- bug (keith)  Fix image model shrinks to zero size when property changed
 2019.46 August 31, 2019
    -- enh (keith)  Add option to hide the body of moving head lights
    -- bug (keith)  Fix bug where model does not show as you are drawing it
