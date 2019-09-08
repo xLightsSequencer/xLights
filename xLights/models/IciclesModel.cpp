@@ -18,6 +18,7 @@ IciclesModel::~IciclesModel()
 
 void IciclesModel::InitModel() {
     wxString dropPattern = GetModelXml()->GetAttribute("DropPattern", "3,4,5,4");
+    _alternateNodes = (ModelXml->GetAttribute("AlternateNodes", "false") == "true");
     wxArrayString pat = wxSplit(dropPattern, ',');
     int numStrings = parm1;
     int lightsPerString = parm2;
@@ -41,6 +42,7 @@ void IciclesModel::InitModel() {
         int lights = lightsPerString;
         int y = 0;
         int curDrop = 0;
+        int nodesInDrop = dropSizes[curDrop];
         width++;
         while (lights) {
             if (curCoord >= Nodes[curNode]->Coords.size()) {
@@ -54,11 +56,24 @@ void IciclesModel::InitModel() {
                 if (curDrop >= dropSizes.size()) {
                     curDrop = 0;
                 }
+                nodesInDrop = dropSizes[curDrop];
             }
             Nodes[curNode]->ActChan = stringStartChan[0] + curNode*GetNodeChannelCount(StringType);
             Nodes[curNode]->StringNum=x;
             Nodes[curNode]->Coords[curCoord].bufX = width;
-            Nodes[curNode]->Coords[curCoord].bufY = maxH - y - 1;
+            if (_alternateNodes) {
+                if (y + 1 <= (nodesInDrop + 1) / 2)
+                {
+                    Nodes[curNode]->Coords[curCoord].bufY = maxH - 1 - (2 * y);
+                }
+                else
+                {
+                    Nodes[curNode]->Coords[curCoord].bufY = maxH - 1 - ((nodesInDrop - (y + 1)) * 2 + 1);
+                }
+            }
+            else {
+                Nodes[curNode]->Coords[curCoord].bufY = maxH - y - 1;
+            }
             Nodes[curNode]->Coords[curCoord].screenX = width;
             Nodes[curNode]->Coords[curCoord].screenY = y;
             lights--;
@@ -104,6 +119,9 @@ void IciclesModel::AddTypeProperties(wxPropertyGridInterface *grid) {
         p->SetEditor("SpinCtrl");
     }
 
+    p = grid->Append(new wxBoolProperty("Alternate Nodes", "AlternateNodes", _alternateNodes));
+    p->SetEditor("CheckBox");
+
     grid->Append(new wxStringProperty("Drop Pattern", "IciclesDrops", GetModelXml()->GetAttribute("DropPattern", "3,4,5,4")));
 
     grid->Append(new wxEnumProperty("Starting Location", "IciclesStart", LEFT_RIGHT, IsLtoR ? 0 : 1));
@@ -147,6 +165,14 @@ int IciclesModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxProperty
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "IciclesModel::OnPropertyGridChange::IciclesStart");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "IciclesModel::OnPropertyGridChange::IciclesStart");
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "IciclesModel::OnPropertyGridChange::IciclesStart");
+        return 0;
+    } else if ("AlternateNodes" == event.GetPropertyName()) {
+        ModelXml->DeleteAttribute("AlternateNodes");
+        ModelXml->AddAttribute("AlternateNodes", event.GetPropertyValue().GetBool() ? "true" : "false");
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "IciclesModel::OnPropertyGridChange::AlternateNodes");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "IciclesModel::OnPropertyGridChange::AlternateNodes");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "IciclesModel::OnPropertyGridChange::AlternateNodes");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "IciclesModel::OnPropertyGridChange::AlternateNodes");
         return 0;
     }
     return Model::OnPropertyGridChange(grid, event);

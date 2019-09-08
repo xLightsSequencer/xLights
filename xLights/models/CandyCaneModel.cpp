@@ -151,8 +151,7 @@ int CandyCaneModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxProper
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "CandyCaneModel::OnPropertyGridChange::CandyCaneSticks");
         AddASAPWork(OutputModelManager::WORK_UPDATE_PROPERTYGRID, "CandyCaneModel::OnPropertyGridChange::CandyCaneSticks");
         return 0;
-    }
-    else if ("AlternateNodes" == event.GetPropertyName()) {
+    } else if ("AlternateNodes" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("AlternateNodes");
         ModelXml->AddAttribute("AlternateNodes", event.GetPropertyValue().GetBool() ? "true" : "false");
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CandyCaneModel::OnPropertyGridChange::AlternateNodes");
