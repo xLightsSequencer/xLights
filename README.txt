@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (scott)  Changed Node Select Dialog to select nodes on highlight.
 2019.47 September 7, 2019
    -- enh (scott)  Added Random Effect Selection Dialog
    -- enh (scott)  Added SubModel/Phoneme/State name to Node Select dialog header text

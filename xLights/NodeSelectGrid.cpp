@@ -20,11 +20,8 @@
 #include "UtilFunctions.h"
 
 //(*IdInit(NodeSelectGrid)
-const long NodeSelectGrid::ID_BUTTON_SELECT = wxNewId();
-const long NodeSelectGrid::ID_BUTTON_DESELECT = wxNewId();
 const long NodeSelectGrid::ID_BUTTON_SELECT_ALL = wxNewId();
 const long NodeSelectGrid::ID_BUTTON_SELECT_NONE = wxNewId();
-const long NodeSelectGrid::ID_CHECKBOX_FREE_HAND = wxNewId();
 const long NodeSelectGrid::ID_BUTTON_LOAD_MODEL = wxNewId();
 const long NodeSelectGrid::ID_BUTTON_ZOOM_PLUS = wxNewId();
 const long NodeSelectGrid::ID_BUTTON_ZOOM_MINUS = wxNewId();
@@ -78,62 +75,6 @@ private:
 // Subclassing wxGrid
 class DrawGrid : public wxGrid
 {
-    bool _drawMode = false;
-    bool _mouseDown = false;
-    int _prevRow = -1;
-    int _prevCol = -1;
-    void DisableRangeHandler(wxGridRangeSelectEvent &ev)
-    {
-        if (ev.Selecting() && (ev.GetTopRow() != ev.GetBottomRow()))
-        {
-            ev.StopPropagation();
-            ev.Veto();
-        }
-    }
-
-    void DisableCtrlMaiusHandler(wxGridEvent &ev)
-    {
-        ev.Skip();
-    }
-
-    void DisableDraggingHandler(wxMouseEvent &ev)
-    {
-        if (ev.Dragging())
-        {
-            ev.Skip(false);
-        }
-    }
-    void OnMouseMove( wxMouseEvent& event )
-    {
-        if(_drawMode && _mouseDown)
-        {
-            const wxPoint realPoint = CalcUnscrolledPosition(event.GetPosition());
-            wxGridCellCoords cell = XYToCell(realPoint.x, realPoint.y);
-
-            if (cell.GetRow() == -1 || cell.GetCol() == -1)
-                return;
-
-            if (!(cell.GetRow() == _prevRow && cell.GetCol() == _prevCol))
-            {
-                DrawGridEvent newevent(DRAW_GRID_CLICKED, GetId(), cell.GetRow(), cell.GetCol(), event.HasAnyModifiers());
-                newevent.SetEventObject(this);
-                wxPostEvent(this->GetParent(), newevent);
-                _prevRow = cell.GetRow();
-                _prevCol = cell.GetCol();
-            }
-        }
-    }
-
-    void OnMouseLeftDown(wxMouseEvent& event)
-    {
-        _mouseDown = true;
-    }
-
-    void OnMouseLeftUp(wxMouseEvent& event)
-    {
-        _mouseDown = false;
-    }
-
     void DoOnChar(wxKeyEvent& event)
     {
         wxChar uc = event.GetUnicodeKey();
@@ -238,40 +179,6 @@ public:
     virtual ~DrawGrid()
     {
     }
-
-    void SetDrawMode(bool enabled)
-    {
-        if (_drawMode == enabled)
-        {
-            return;
-        }
-        if (enabled)
-        {
-            Bind(wxEVT_GRID_RANGE_SELECT, &DrawGrid::DisableRangeHandler, this);
-            Bind(wxEVT_GRID_CELL_LEFT_CLICK, &DrawGrid::DisableCtrlMaiusHandler, this);
-            GetGridWindow()->Bind(wxEVT_MOTION, &DrawGrid::DisableDraggingHandler, this);
-            ((wxWindow *)m_gridWin)->Connect(wxEVT_MOTION, wxMouseEventHandler(DrawGrid::OnMouseMove), 0, this);
-            ((wxWindow *)m_gridWin)->Connect(wxEVT_LEFT_DOWN, wxMouseEventHandler(DrawGrid::OnMouseLeftDown), 0, this);
-            ((wxWindow *)m_gridWin)->Connect(wxEVT_LEFT_UP, wxMouseEventHandler(DrawGrid::OnMouseLeftUp), 0, this);
-            _drawMode = true;
-        }
-        else
-        {
-            Unbind(wxEVT_GRID_RANGE_SELECT, &DrawGrid::DisableRangeHandler, this);
-            //Unbind(wxEVT_GRID_SELECT_CELL, &DrawGrid::DisableRangeSelectCellHandler, this);
-            Unbind(wxEVT_GRID_CELL_LEFT_CLICK, &DrawGrid::DisableCtrlMaiusHandler, this);
-            GetGridWindow()->Unbind(wxEVT_MOTION, &DrawGrid::DisableDraggingHandler, this);
-            ((wxWindow *)m_gridWin)->Disconnect(wxEVT_MOTION, wxMouseEventHandler(DrawGrid::OnMouseMove), 0, this);
-            ((wxWindow *)m_gridWin)->Disconnect(wxEVT_LEFT_DOWN, wxMouseEventHandler(DrawGrid::OnMouseLeftDown), 0, this);
-            ((wxWindow *)m_gridWin)->Disconnect(wxEVT_LEFT_UP, wxMouseEventHandler(DrawGrid::OnMouseLeftUp), 0, this);
-            _drawMode = false;
-        }
-    }
-
-    void SetMouseDown(bool down)
-    {
-        _mouseDown = down;
-    }
 };
 
 //overloading contructor
@@ -308,17 +215,10 @@ NodeSelectGrid::NodeSelectGrid(const wxString &title, Model *m, const std::vecto
 	FlexGridSizer4 = new wxFlexGridSizer(0, 1, 0, 0);
 	StaticBoxSizer3 = new wxStaticBoxSizer(wxVERTICAL, this, _("Selection"));
 	FlexGridSizer3 = new wxFlexGridSizer(0, 2, 0, 0);
-	Button_Select = new wxButton(this, ID_BUTTON_SELECT, _("Select"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SELECT"));
-	FlexGridSizer3->Add(Button_Select, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	ButtonDeselect = new wxButton(this, ID_BUTTON_DESELECT, _("Deselect"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_DESELECT"));
-	FlexGridSizer3->Add(ButtonDeselect, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	ButtonSelectAll = new wxButton(this, ID_BUTTON_SELECT_ALL, _("Select All"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SELECT_ALL"));
 	FlexGridSizer3->Add(ButtonSelectAll, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	ButtonSelectNone = new wxButton(this, ID_BUTTON_SELECT_NONE, _("Select None"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SELECT_NONE"));
 	FlexGridSizer3->Add(ButtonSelectNone, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	CheckBoxFreeHand = new wxCheckBox(this, ID_CHECKBOX_FREE_HAND, _("Free Hand"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_FREE_HAND"));
-	CheckBoxFreeHand->SetValue(false);
-	FlexGridSizer3->Add(CheckBoxFreeHand, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	ButtonLoadModel = new wxButton(this, ID_BUTTON_LOAD_MODEL, _("From Model"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_LOAD_MODEL"));
 	FlexGridSizer3->Add(ButtonLoadModel, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticBoxSizer3->Add(FlexGridSizer3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -362,11 +262,8 @@ NodeSelectGrid::NodeSelectGrid(const wxString &title, Model *m, const std::vecto
 	SetSizer(wxBoxSizerMain);
 	Layout();
 
-	Connect(ID_BUTTON_SELECT,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&NodeSelectGrid::OnButton_SelectClick);
-	Connect(ID_BUTTON_DESELECT,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&NodeSelectGrid::OnButtonDeselectClick);
 	Connect(ID_BUTTON_SELECT_ALL,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&NodeSelectGrid::OnButtonSelectAllClick);
 	Connect(ID_BUTTON_SELECT_NONE,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&NodeSelectGrid::OnButtonSelectNoneClick);
-	Connect(ID_CHECKBOX_FREE_HAND,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&NodeSelectGrid::OnCheckBoxFreeHandClick);
 	Connect(ID_BUTTON_LOAD_MODEL,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&NodeSelectGrid::OnButtonLoadModelClick);
 	Connect(ID_BUTTON_ZOOM_PLUS,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&NodeSelectGrid::OnButtonZoomPlusClick);
 	Connect(ID_BUTTON_ZOOM_MINUS,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&NodeSelectGrid::OnButtonZoomMinusClick);
@@ -384,14 +281,15 @@ NodeSelectGrid::NodeSelectGrid(const wxString &title, Model *m, const std::vecto
     GridNodes->Connect(wxEVT_TEXT_COPY, (wxObjectEventFunction)&NodeSelectGrid::OnCopy, 0, this);
     GridNodes->Connect(wxEVT_TEXT_PASTE, (wxObjectEventFunction)&NodeSelectGrid::OnPaste, 0, this);
 
-    Bind(DRAW_GRID_CLICKED, &NodeSelectGrid::OnDrawGridEvent, this, ID_GRID_NODES);
+	GridNodes->Connect(wxEVT_GRID_RANGE_SELECT, (wxObjectEventFunction)&NodeSelectGrid::OnGridNodesCellSelect, 0, this);
 
-    GridNodes->EnableDragGridSize(false);
     GridNodes->DisableDragColSize();
     GridNodes->DisableDragRowSize();
-    GridNodes->SetCellHighlightPenWidth(0);
 
     GridNodes->SetSelectionMode(wxGrid::wxGridSelectCells);
+
+	GridNodes->DisableCellEditControl();
+	GridNodes->DisableDragGridSize();
 
     renderer = new wxModelGridCellRenderer(bkg_image, *GridNodes);
     GridNodes->SetDefaultRenderer(renderer);
@@ -496,28 +394,6 @@ void NodeSelectGrid::ValidateWindow() const
     ButtonNodeSelectOK->Enable(false);
 }
 
-void NodeSelectGrid::OnButton_SelectClick(wxCommandEvent& event)
-{
-    for (auto x = 0; x < GridNodes->GetNumberCols(); x++)
-    {
-        for (auto y = 0; y < GridNodes->GetNumberRows(); y++)
-        {
-            const wxString value = GridNodes->GetCellValue(y, x);
-            if (!value.IsNull() && !value.IsEmpty())
-            {
-                if (GridNodes->IsInSelection(y, x))
-                {
-                    GridNodes->SetCellTextColour(y, x, selectColor);
-                    GridNodes->SetCellBackgroundColour(y, x, selectBackColor);
-                }
-            }
-        }
-    }
-    GridNodes->ClearSelection();
-    GridNodes->Refresh();
-    ValidateWindow();
-}
-
 void NodeSelectGrid::OnButtonSelectAllClick(wxCommandEvent& event)
 {
     for (auto x = 0; x < GridNodes->GetNumberCols(); x++)
@@ -556,28 +432,6 @@ void NodeSelectGrid::OnButtonSelectNoneClick(wxCommandEvent& event)
     ValidateWindow();
 }
 
-void NodeSelectGrid::OnButtonDeselectClick(wxCommandEvent& event)
-{
-    for (auto x = 0; x < GridNodes->GetNumberCols(); x++)
-    {
-        for (auto y = 0; y < GridNodes->GetNumberRows(); y++)
-        {
-            const wxString value = GridNodes->GetCellValue(y, x);
-            if (!value.IsNull() && !value.IsEmpty())
-            {
-                if (GridNodes->IsInSelection(y, x))
-                {
-                    GridNodes->SetCellTextColour(y, x, unselectColor);
-                    GridNodes->SetCellBackgroundColour(y, x, unselectBackColor);
-                }
-            }
-        }
-    }
-    GridNodes->ClearSelection();
-    GridNodes->Refresh();
-    ValidateWindow();
-}
-
 void NodeSelectGrid::OnButtonNodeSelectOKClick(wxCommandEvent& event)
 {
     EndDialog(wxID_OK);
@@ -586,12 +440,6 @@ void NodeSelectGrid::OnButtonNodeSelectOKClick(wxCommandEvent& event)
 void NodeSelectGrid::OnButtonNodeSelectCancelClick(wxCommandEvent& event)
 {
     EndDialog(wxID_CANCEL);
-}
-
-void NodeSelectGrid::OnCheckBoxFreeHandClick(wxCommandEvent& event)
-{
-    GridNodes->ClearSelection();
-    GridNodes->SetDrawMode(event.IsChecked());
 }
 
 void NodeSelectGrid::OnGridNodesCellLeftDClick(wxGridEvent& event)
@@ -634,24 +482,46 @@ void NodeSelectGrid::OnGridNodesCellRightDClick(wxGridEvent& event)
     }
 }
 
-void NodeSelectGrid::OnDrawGridEvent(DrawGridEvent& event)
+void NodeSelectGrid::OnGridNodesCellSelect(wxGridRangeSelectEvent& event)
 {
-    const wxString value = GridNodes->GetCellValue(event.GetRow(), event.GetCol());
-    if (!value.IsNull() && !value.IsEmpty())
+    //skip while mouse is dragging out
+    if (!event.Selecting())
     {
-        if (event.GetModifier())
-        {
-            GridNodes->SetCellTextColour(event.GetRow(), event.GetCol(), unselectColor);
-            GridNodes->SetCellBackgroundColour(event.GetRow(), event.GetCol(), unselectBackColor);
-        }
-        else
-        {
-            GridNodes->SetCellTextColour(event.GetRow(), event.GetCol(), selectColor);
-            GridNodes->SetCellBackgroundColour(event.GetRow(), event.GetCol(), selectBackColor);
-        }
-        GridNodes->Refresh();
-        ValidateWindow();
+        event.Skip();
+        return;
     }
+
+    //skip selecting for Cut, Copy, & Paste
+    if (event.CmdDown() || event.ControlDown() || event.ShiftDown())
+    {
+        event.Skip();
+        return;
+    }
+
+    //select highlighted cells
+    for (auto x = event.GetLeftCol(); x <= event.GetRightCol(); x++)
+    {
+        for (auto y = event.GetTopRow(); y <= event.GetBottomRow(); y++)
+        {
+            const wxString value = GridNodes->GetCellValue(y, x);
+            if (!value.IsNull() && !value.IsEmpty())
+            {
+                if (GridNodes->GetCellTextColour(y, x) == selectColor)
+                {
+                    GridNodes->SetCellTextColour(y, x, unselectColor);
+                    GridNodes->SetCellBackgroundColour(y, x, unselectBackColor);
+                }
+                else
+                {
+                    GridNodes->SetCellTextColour(y, x, selectColor);
+                    GridNodes->SetCellBackgroundColour(y, x, selectBackColor);
+                }
+            }
+        }
+    }
+    GridNodes->ClearSelection();
+    GridNodes->Refresh();
+    ValidateWindow();
 }
 
 void NodeSelectGrid::OnButtonLoadModelClick(wxCommandEvent& event)
@@ -1163,3 +1033,5 @@ void NodeSelectGrid::UpdateBackground()
         }
     }
 }
+
+

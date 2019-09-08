@@ -4,7 +4,6 @@
 //(*Headers(NodeSelectGrid)
 #include <wx/bmpbuttn.h>
 #include <wx/button.h>
-#include <wx/checkbox.h>
 #include <wx/dialog.h>
 #include <wx/filepicker.h>
 #include <wx/grid.h>
@@ -37,7 +36,6 @@ class NodeSelectGrid: public wxDialog
 		DrawGrid* GridNodes;
 		ImageFilePickerCtrl* FilePickerCtrl1;
 		wxBitmapButton* BitmapButton1;
-		wxButton* ButtonDeselect;
 		wxButton* ButtonLoadModel;
 		wxButton* ButtonNodeSelectCancel;
 		wxButton* ButtonNodeSelectOK;
@@ -45,8 +43,6 @@ class NodeSelectGrid: public wxDialog
 		wxButton* ButtonSelectNone;
 		wxButton* ButtonZoomMinus;
 		wxButton* ButtonZoomPlus;
-		wxButton* Button_Select;
-		wxCheckBox* CheckBoxFreeHand;
 		wxSlider* SliderImgBrightness;
 		//*)
 
@@ -60,11 +56,8 @@ class NodeSelectGrid: public wxDialog
 	protected:
 
 		//(*Identifiers(NodeSelectGrid)
-		static const long ID_BUTTON_SELECT;
-		static const long ID_BUTTON_DESELECT;
 		static const long ID_BUTTON_SELECT_ALL;
 		static const long ID_BUTTON_SELECT_NONE;
-		static const long ID_CHECKBOX_FREE_HAND;
 		static const long ID_BUTTON_LOAD_MODEL;
 		static const long ID_BUTTON_ZOOM_PLUS;
 		static const long ID_BUTTON_ZOOM_MINUS;
@@ -83,14 +76,11 @@ class NodeSelectGrid: public wxDialog
 	private:
 
 		//(*Handlers(NodeSelectGrid)
-		void OnButton_SelectClick(wxCommandEvent& event);
 		void OnButtonSelectAllClick(wxCommandEvent& event);
 		void OnButtonSelectNoneClick(wxCommandEvent& event);
-		void OnButtonDeselectClick(wxCommandEvent& event);
 		void OnButtonNodeSelectOKClick(wxCommandEvent& event);
 		void OnButtonNodeSelectCancelClick(wxCommandEvent& event);
 		void OnGridNodesCellLeftDClick(wxGridEvent& event);
-		void OnCheckBoxFreeHandClick(wxCommandEvent& event);
 		void OnGridNodesCellRightDClick(wxGridEvent& event);
 		void OnButtonLoadModelClick(wxCommandEvent& event);
 		void OnGridNodesCellRightClick(wxGridEvent& event);
@@ -99,6 +89,7 @@ class NodeSelectGrid: public wxDialog
 		void OnButtonZoomMinusClick(wxCommandEvent& event);
 		void OnBitmapButton1Click(wxCommandEvent& event);
 		void OnFilePickerCtrl1FileChanged(wxFileDirPickerEvent& event);
+		void OnGridNodesCellSelect(wxGridRangeSelectEvent& event);
 		//*)
 
         void OnCut(wxCommandEvent& event);
@@ -110,7 +101,6 @@ class NodeSelectGrid: public wxDialog
         void UpdateBackground();
         void Paste();
 
-        void OnDrawGridEvent(DrawGridEvent& event);
         void LoadGrid(const std::vector<wxString>& rows);
         void ValidateWindow() const;
         std::vector<int> DecodeNodeList(const std::vector<wxString> &rows) const;
