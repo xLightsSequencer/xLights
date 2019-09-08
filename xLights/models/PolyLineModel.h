@@ -68,7 +68,7 @@ class PolyLineModel : public ModelWithScreenLocation<PolyPointScreenLocation>
         std::vector<int> polyLineSegDropSizes;
         unsigned int numDropPoints;
         float height;
-
+        bool _alternateNodes = false;
 };
 
 #endif // POLYLINEMODEL_H

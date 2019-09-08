@@ -191,6 +191,7 @@ void PolyLineModel::SetSegsCollapsed(bool collapsed)
 }
 
 void PolyLineModel::InitModel() {
+    _alternateNodes = (ModelXml->GetAttribute("AlternateNodes", "false") == "true");
     wxString dropPattern = GetModelXml()->GetAttribute("DropPattern", "1");
     wxArrayString pat = wxSplit(dropPattern, ',');
 
@@ -423,6 +424,7 @@ void PolyLineModel::InitModel() {
     int width = 0;
     int curNode = 0;
     int curCoord = 0;
+    int nodesInDrop = dropSizes[drop_index];
     while (lights) {
         if (curCoord >= Nodes[curNode]->Coords.size()) {
             curNode++;
@@ -435,6 +437,7 @@ void PolyLineModel::InitModel() {
             if (drop_index >= dropSizes.size()) {
                 drop_index = 0;
             }
+            nodesInDrop = dropSizes[drop_index];
         }
         if (Nodes[curNode]->StringNum != LastStringNum) {
             LastStringNum=Nodes[curNode]->StringNum;
@@ -442,7 +445,19 @@ void PolyLineModel::InitModel() {
         }
         Nodes[curNode]->ActChan = chan;
         Nodes[curNode]->Coords[curCoord].bufX = width;
-        Nodes[curNode]->Coords[curCoord].bufY = maxH - y - 1;
+        if (_alternateNodes) {
+            if (y + 1 <= (nodesInDrop + 1) / 2)
+            {
+                Nodes[curNode]->Coords[curCoord].bufY = maxH - 1 - (2 * y);
+            }
+            else
+            {
+                Nodes[curNode]->Coords[curCoord].bufY = maxH - 1 - ((nodesInDrop - (y + 1)) * 2 + 1);
+            }
+        }
+        else {
+            Nodes[curNode]->Coords[curCoord].bufY = maxH - y - 1;
+        }
         Nodes[curNode]->Coords[curCoord].screenX = width;
         Nodes[curNode]->Coords[curCoord].screenY = maxH - y - 1;
         if (!SingleNode)
@@ -731,6 +746,9 @@ void PolyLineModel::AddTypeProperties(wxPropertyGridInterface *grid) {
 
     grid->Append(new wxStringProperty("Drop Pattern", "IciclesDrops", GetModelXml()->GetAttribute("DropPattern", "1")));
 
+    p = grid->Append(new wxBoolProperty("Alternate Drop Nodes", "AlternateNodes", _alternateNodes));
+    p->SetEditor("CheckBox");
+
     p = grid->Append(new wxFloatProperty("Height", "ModelHeight", height));
     p->SetAttribute("Precision", 2);
     p->SetAttribute("Step", 0.1);
@@ -873,8 +891,15 @@ int PolyLineModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropert
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "PolyLineModel::OnPropertyGridChange::IciclesDrops");
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "PolyLineModel::OnPropertyGridChange::IciclesDrops");
         return 0;
-    }
-    else if (!GetModelScreenLocation().IsLocked() && "ModelHeight" == event.GetPropertyName()) {
+    } else if ("AlternateNodes" == event.GetPropertyName()) {
+        ModelXml->DeleteAttribute("AlternateNodes");
+        ModelXml->AddAttribute("AlternateNodes", event.GetPropertyValue().GetBool() ? "true" : "false");
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "PolyLineModel::OnPropertyGridChange::AlternateNodes");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "PolyLineModel::OnPropertyGridChange::AlternateNodes");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "PolyLineModel::OnPropertyGridChange::AlternateNodes");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "PolyLineModel::OnPropertyGridChange::AlternateNodes");
+        return 0;
+    } else if (!GetModelScreenLocation().IsLocked() && "ModelHeight" == event.GetPropertyName()) {
         height = event.GetValue().GetDouble();
         if (std::abs(height) < 0.01f) {
             if (height < 0.0f) {
