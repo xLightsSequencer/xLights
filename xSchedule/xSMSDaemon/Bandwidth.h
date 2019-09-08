@@ -40,7 +40,7 @@ class Bandwidth : public SMSService
             b.Replace("{message}", message);
             std::string res = Curl::HTTPSPost(url, b, sid, token, "JSON");
 
-            logger_base.debug("%s", (const char*)url.c_str());
+            //logger_base.debug("%s", (const char*)url.c_str());
             logger_base.debug("%s", (const char*)res.c_str());
             return true;
 		}
@@ -60,7 +60,7 @@ class Bandwidth : public SMSService
             Replace(url, "{token}", token);
             url += "/messages?page=0&size=100";
             std::string res = Curl::HTTPSGet(url, sid, token);
-            logger_base.debug("%s", (const char*)url.c_str());
+            //logger_base.debug("%s", (const char*)url.c_str());
             logger_base.debug("%s", (const char*)res.c_str());
 
             // construct the JSON root object

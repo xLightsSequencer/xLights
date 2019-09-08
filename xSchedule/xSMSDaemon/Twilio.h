@@ -39,7 +39,7 @@ class Twilio : public SMSService
             vars.push_back(Curl::Var("Body", message));
 
             std::string res = Curl::HTTPSPost(url, vars, sid, token);
-            logger_base.debug("%s", (const char*)url.c_str());
+            //logger_base.debug("%s", (const char*)url.c_str());
             logger_base.debug("%s", (const char*)res.c_str());
             return true;
 		}
@@ -59,7 +59,7 @@ class Twilio : public SMSService
             Replace(url, "{token}", token);
 
             std::string res = Curl::HTTPSGet(url, sid, token);
-            logger_base.debug("%s", (const char*)url.c_str());
+            //logger_base.debug("%s", (const char*)url.c_str());
             logger_base.debug("%s", (const char*)res.c_str());
 
             // construct the JSON root object
