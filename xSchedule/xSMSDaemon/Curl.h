@@ -165,7 +165,9 @@ public:
             curl_easy_setopt(curl, CURLOPT_TIMEOUT, timeout);
             std::string buffer = "";
             curl_easy_setopt(curl, CURLOPT_WRITEDATA, &buffer);
+
             CURLcode res = curl_easy_perform(curl);
+            
             curl_easy_cleanup(curl);
             curl_formfree(formpost);
             if (headerlist != nullptr)
