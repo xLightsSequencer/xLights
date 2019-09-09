@@ -11,7 +11,15 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2019.48 September 9, 2019
    -- enh (scott)  Changed Node Select Dialog to select nodes on highlight.
+   -- enh (keith)  Add alternate drop nodes to Icicles and Polyline Icicles models
+   -- bug (keith)  Make polyline blue start behave consistently with other models.
+   -- bug (keith)  Fix a crash in falcon upload where status.xml does not download
+   -- bug (keith)  Fix bug with single line where start set to blue renders backwards
+   -- bug (keith)  Fix ZCPP to E131 conversion leaves E131 in a really bad state
+   -- bug (keith)  Fix syncrolight ethernet does not save id correctly
+   -- bug (keith)  Fix syncrolight outputs with more than 300 pixels dont display correctly
 2019.47 September 7, 2019
    -- enh (scott)  Added Random Effect Selection Dialog
    -- enh (scott)  Added SubModel/Phoneme/State name to Node Select dialog header text
