@@ -99,11 +99,6 @@ void SingleLineModel::InitModel() {
         int lightcount = BufferWi * Nodes.front()->Coords.size();
         float bulbOffset = BufferWi / (lightcount - 1.0);
         float currentX = 0;
-        if (!IsLtoR)
-        {
-            currentX = BufferWi;
-            bulbOffset *= -1;
-        }
         for (auto& n : Nodes)
         {
             for (auto& c : n->Coords)
@@ -135,19 +130,26 @@ void SingleLineModel::InitLine() {
     int chan = 0;
     int ChanIncr = GetNodeChannelCount(StringType);
     size_t NodeCount=GetNodeCount();
+    if (!IsLtoR) {
+        ChanIncr = -ChanIncr;
+    }
 
     int idx = 0;
     for(size_t n=0; n<NodeCount; n++) {
         if (Nodes[n]->StringNum != LastStringNum) {
             LastStringNum=Nodes[n]->StringNum;
             chan=stringStartChan[LastStringNum];
+            if (!IsLtoR) {
+                chan += NodesPerString(LastStringNum) * GetNodeChannelCount(StringType);
+                chan += ChanIncr;
+            }
         }
         Nodes[n]->ActChan=chan;
         chan+=ChanIncr;
         Nodes[n]->Coords.resize(SingleNode?parm2:parm3);
         size_t CoordCount=GetCoordCount(n);
         for(size_t c=0; c < CoordCount; c++) {
-            Nodes[n]->Coords[c].bufX=IsLtoR ? idx : (SingleNode ? idx : numLights-idx-1);
+            Nodes[n]->Coords[c].bufX=idx;
             Nodes[n]->Coords[c].bufY=0;
         }
         idx++;
