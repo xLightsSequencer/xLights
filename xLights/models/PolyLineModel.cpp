@@ -468,6 +468,19 @@ void PolyLineModel::InitModel() {
         lights--;
         curCoord++;
     }
+
+    // if line is reversed then we reverse all the bufX coordinates
+    if (!IsLtoR)
+    {
+        for (auto& n : Nodes)
+        {
+            for (auto& c : n->Coords)
+            {
+                c.bufX = width - c.bufX;
+            }
+        }
+    }
+
     SetBufferSize(maxH, SingleNode?1:width+1);
     screenLocation.SetRenderSize(1.0, maxH);
 

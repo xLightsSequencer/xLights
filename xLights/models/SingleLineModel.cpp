@@ -99,6 +99,11 @@ void SingleLineModel::InitModel() {
         int lightcount = BufferWi * Nodes.front()->Coords.size();
         float bulbOffset = BufferWi / (lightcount - 1.0);
         float currentX = 0;
+        if (!IsLtoR)
+        {
+            currentX = BufferWi;
+            bulbOffset *= -1;
+        }
         for (auto& n : Nodes)
         {
             for (auto& c : n->Coords)
