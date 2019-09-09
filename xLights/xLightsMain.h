@@ -335,6 +335,7 @@ public:
         EFFECT_ASSIST_NOT_IN_PERSPECTIVE
     };
 
+    wxString _userEmail;
     static wxString CurrentDir; //expose current folder name -DJ
     static wxString FseqDir; //expose current fseq name
     static wxString PlaybackMarker; //keep track of where we are within grid -DJ
@@ -1108,7 +1109,6 @@ public:
     EffectManager effectManager;
     int effGridPrevX;
     int effGridPrevY;
-    wxString _userEmail;
     bool _backupSubfolders;
     bool _excludePresetsFromPackagedSequences;
     bool _excludeAudioFromPackagedSequences;

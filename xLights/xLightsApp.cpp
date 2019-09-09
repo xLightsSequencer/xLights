@@ -346,6 +346,8 @@ void handleCrash(void *data) {
     //trace += topFrame->GetThreadStatusReport();
     //trace += ParallelJobPool::POOL.GetThreadStatus();
 
+    trace += "\n<email>"+ topFrame->_userEmail +"</email>\n";
+
     report->AddText("backtrace.txt", trace, "Backtrace");
 
     logger_base.crit("%s", (const char *)trace.c_str());

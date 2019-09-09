@@ -139,39 +139,53 @@ Falcon::Falcon(const std::string& ip, const std::string &proxy) : _ip(ip), _fppP
 
         wxStringInputStream stream(versionxml);
         wxXmlDocument xml(stream);
-        wxXmlNode *node = xml.GetRoot()->GetChildren();
-        while (node) {
-            if (node->GetName() == "v" || node->GetName() == "fv") {
-                _firmwareVersion = node->GetNodeContent();
-            } else if (node->GetName() == "a") {
-                _usingAbsolute = node->GetNodeContent() == "0";
-            } else if (node->GetName() == "n") {
-                _name = node->GetNodeContent().Trim();
-            } else if (node->GetName() == "p") {
-                DecodeModelVersion(wxAtoi(node->GetNodeContent()), _model, _version);
-                _modelString = wxString::Format("F%dv%d", _model, _version).ToStdString();
-            }
-            node = node->GetNext();
+        if (!xml.IsOk() || xml.GetRoot() == nullptr)
+        {
+            logger_base.error("     Status XML parses as invalid.");
+            _firmwareVersion = "UNKNOWN";
+            _usingAbsolute = false;
+            _name = "UNKNOWN";
+            _modelString = "UNKNOWN";
+            _connected = false;
         }
-
-        if (_version == 0 || _model == 0 || _firmwareVersion == "") {
-            std::string version = GetURL("/index.htm");
-            if (version == "") {
-                logger_base.error("    Error retrieving index.htm from falcon controller.");
-                _connected = false;
-                return;
+        else
+        {
+            wxXmlNode* node = xml.GetRoot()->GetChildren();
+            while (node) {
+                if (node->GetName() == "v" || node->GetName() == "fv") {
+                    _firmwareVersion = node->GetNodeContent();
+                }
+                else if (node->GetName() == "a") {
+                    _usingAbsolute = node->GetNodeContent() == "0";
+                }
+                else if (node->GetName() == "n") {
+                    _name = node->GetNodeContent().Trim();
+                }
+                else if (node->GetName() == "p") {
+                    DecodeModelVersion(wxAtoi(node->GetNodeContent()), _model, _version);
+                    _modelString = wxString::Format("F%dv%d", _model, _version).ToStdString();
+                }
+                node = node->GetNext();
             }
+            if (_version == 0 || _model == 0 || _firmwareVersion == "") {
+                std::string version = GetURL("/index.htm");
+                if (version == "") {
+                    logger_base.error("    Error retrieving index.htm from falcon controller.");
+                    _connected = false;
+                    return;
+                }
 
-            if (_firmwareVersion == "") {
-                //<title>F4V2            - v1.10</title>
-                static wxRegEx firmwareversionregex("(title.*?v)([0-9]+\\.[0-9]+)\\<\\/title\\>", wxRE_ADVANCED | wxRE_NEWLINE);
-                if (firmwareversionregex.Matches(wxString(version))) {
-                    _firmwareVersion = firmwareversionregex.GetMatch(wxString(version), 2).ToStdString();
+                if (_firmwareVersion == "") {
+                    //<title>F4V2            - v1.10</title>
+                    static wxRegEx firmwareversionregex("(title.*?v)([0-9]+\\.[0-9]+)\\<\\/title\\>", wxRE_ADVANCED | wxRE_NEWLINE);
+                    if (firmwareversionregex.Matches(wxString(version))) {
+                        _firmwareVersion = firmwareversionregex.GetMatch(wxString(version), 2).ToStdString();
+                    }
                 }
             }
-        }
 
-        logger_base.debug("Connected to falcon - p=%d Model: '%s' Firmware Version '%s'. F%d:V%d", p, (const char*)_modelString.c_str(), (const char*)_firmwareVersion.c_str(), _model, _version);
+            logger_base.debug("Connected to falcon - p=%d Model: '%s' Firmware Version '%s'. F%d:V%d", p, (const char*)_modelString.c_str(), (const char*)_firmwareVersion.c_str(), _model, _version);
+        }
     } else {
         logger_base.error("Error connecting to falcon controller on %s.", (const char *)_ip.c_str());
     }

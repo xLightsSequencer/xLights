@@ -2466,10 +2466,13 @@ void LayoutPanel::SaveEffects()
     // update xml with offsets and scale
     for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
     {
-        modelPreview->GetModels()[i]->UpdateXmlWithScale();
+        if (xlights->AllModels.IsModelValid(modelPreview->GetModels()[i]) || 
+            IsNewModel(modelPreview->GetModels()[i])) { // this IsModelValid should not be necessary but we are getting crashes due to invalid models
+            modelPreview->GetModels()[i]->UpdateXmlWithScale();
+        }
     }
-    for (auto it = xlights->AllObjects.begin(); it != xlights->AllObjects.end(); ++it) {
-        ViewObject *view_object = it->second;
+    for (auto& it : xlights->AllObjects) {
+        ViewObject *view_object = it.second;
         view_object->UpdateXmlWithScale();
     }
     xlights->SaveEffectsFile();
