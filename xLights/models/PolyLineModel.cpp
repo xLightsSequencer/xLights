@@ -80,7 +80,7 @@ void PolyLineModel::InitRenderBufferNodes(const std::string &type, const std::st
                 size_t CoordCount=GetCoordCount(idx);
                 int location = seg_idx * scale + scale / 2.0;
                 for(size_t c=0; c < CoordCount; c++) {
-                    newNodes[idx]->Coords[c].bufX=IsLtoR ? location : (SingleNode ? location : BufferWi-location-1);
+                    newNodes[idx]->Coords[c].bufX = location;
                     newNodes[idx]->Coords[c].bufY = m;
                     newNodes[idx]->Coords[c].bufZ = 0;
                 }
@@ -418,6 +418,9 @@ void PolyLineModel::InitModel() {
     int chan = 0;
     int LastStringNum=-1;
     int ChanIncr = GetNodeChannelCount(StringType);
+    if (!IsLtoR) {
+        ChanIncr = - ChanIncr;
+    }
     int lights = numLights;
     int y = 0;
     drop_index = 0;
@@ -442,6 +445,10 @@ void PolyLineModel::InitModel() {
         if (Nodes[curNode]->StringNum != LastStringNum) {
             LastStringNum=Nodes[curNode]->StringNum;
             chan=stringStartChan[LastStringNum];
+            if (!IsLtoR) {
+                chan += NodesPerString(LastStringNum) * GetNodeChannelCount(StringType);
+                chan += ChanIncr;
+            }
         }
         Nodes[curNode]->ActChan = chan;
         Nodes[curNode]->Coords[curCoord].bufX = width;
@@ -469,17 +476,6 @@ void PolyLineModel::InitModel() {
         curCoord++;
     }
 
-    // if line is reversed then we reverse all the bufX coordinates
-    if (!IsLtoR)
-    {
-        for (auto& n : Nodes)
-        {
-            for (auto& c : n->Coords)
-            {
-                c.bufX = width - c.bufX;
-            }
-        }
-    }
 
     SetBufferSize(maxH, SingleNode?1:width+1);
     screenLocation.SetRenderSize(1.0, maxH);
@@ -493,7 +489,7 @@ void PolyLineModel::InitModel() {
 
     // place the nodes/coords along each line segment
     drop_index = 0;
-    idx = IsLtoR ? 0 : numLights-1;
+    idx = 0;
     float loc_x;
     if (hasIndivSeg) {
         // distribute the lights as defined by the polysize string
@@ -522,9 +518,8 @@ void PolyLineModel::InitModel() {
                     Nodes[idx]->Coords[c].screenX = v.x;
                     Nodes[idx]->Coords[c].screenY = v.y - z * mheight;
                     Nodes[idx]->Coords[c].screenZ = v.z;
-                    if (!SingleNode)
-                    {
-                        IsLtoR ? idx++ : idx--;
+                    if (!SingleNode) {
+                        idx++;
                     }
                 }
                 drop_index %= dropSizes.size();
@@ -583,9 +578,8 @@ void PolyLineModel::InitModel() {
                                 Nodes[idx]->Coords[c].screenX = v.x;
                                 Nodes[idx]->Coords[c].screenY = v.y - z * mheight;
                                 Nodes[idx]->Coords[c].screenZ = v.z;
-                                if (!SingleNode)
-                                {
-                                    IsLtoR ? idx++ : idx--;
+                                if (!SingleNode) {
+                                    idx++;
                                 }
                             }
                             drop_index %= dropSizes.size();
@@ -601,7 +595,7 @@ void PolyLineModel::InitModel() {
         int lights_to_distribute = SingleNode ? numDropPoints : numDropPoints * coords_per_node;
         float offset = total_length / (float)lights_to_distribute;
         float current_pos = offset / 2.0f;
-        idx = (IsLtoR || SingleNode) ? 0 : numLights-1;
+        idx = 0;
         size_t c=0;
         int segment = 0;
         int sub_segment = 0;
@@ -651,7 +645,7 @@ void PolyLineModel::InitModel() {
                 } else {
                     c = 0;
                     if (!SingleNode) {
-                        IsLtoR ? idx++ : idx--;
+                        idx++;
                     }
                 }
             }
@@ -702,24 +696,21 @@ void PolyLineModel::DistributeLightsAcrossCurveSegment(int lights, int segment, 
                 Nodes[0]->Coords[idx].screenX = v.x;
                 Nodes[0]->Coords[idx].screenY = v.y - z * mheight;
                 Nodes[0]->Coords[idx].screenZ = v.z;
-                IsLtoR ? idx++ : idx--;
+                idx++;
             }
             drop_index++;
             drop_index %= dropSizes.size();
-        }
-        else {
+        } else {
             for (auto z = 0; z < drops_this_node; z++) {
                 Nodes[idx]->Coords[c].screenX = v.x;
                 Nodes[idx]->Coords[c].screenY = v.y - z * mheight;
                 Nodes[idx]->Coords[c].screenZ = v.z;
-                IsLtoR ? idx++ : idx--;
+                idx++;
             }
             if (c < coords_per_node - 1) {
                 c++;
-            }
-            else {
+            } else {
                 c = 0;
-                //IsLtoR ? idx++ : idx--;
             }
             drop_index++;
             drop_index %= dropSizes.size();
