@@ -14,6 +14,7 @@
 SyncrolightEthernetOutput::SyncrolightEthernetOutput(wxXmlNode* node) : IPOutput(node) {
     _universe = 64001;
     _port = wxAtoi(node->GetAttribute("Port", "1"));
+    SetId(wxAtoi(node->GetAttribute("Id", "0")));
     _data = (uint8_t*)malloc(_channels + SYNCROLIGHTETHERNET_PACKET_HEADERLEN + SYNCROLIGHTETHERNET_PACKET_FOOTERLEN);
     memset(_data, 0, _channels + SYNCROLIGHTETHERNET_PACKET_HEADERLEN + SYNCROLIGHTETHERNET_PACKET_FOOTERLEN);
 }
@@ -52,9 +53,11 @@ std::string SyncrolightEthernetOutput::GetExport() const {
 
 wxXmlNode* SyncrolightEthernetOutput::Save() {
     wxXmlNode* node = new wxXmlNode(wxXML_ELEMENT_NODE, "network");
-    IPOutput::Save(node);
 
+    node->AddAttribute("Id", wxString::Format(wxT("%i"), GetId()));
     node->AddAttribute("Port",wxString::Format(wxT("%i"), _port));
+    
+    IPOutput::Save(node);
 
     return node;
 }
