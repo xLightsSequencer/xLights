@@ -890,6 +890,7 @@ void xLightsFrame::ConvertSelectedNetworkToE131()
     int numUniv = (numChan / 512) + 1;
     node->AddAttribute("NumUniverses", std::to_string(numUniv));
     node->AddAttribute("AutoStartChannels", "true");
+    node->DeleteAttribute("AutoSize");
     
     node->DeleteAttribute("BaudRate");
     int universe = 64001;

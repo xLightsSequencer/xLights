@@ -13,6 +13,8 @@
 #pragma region Constructors and Destructors
 E131Output::E131Output(wxXmlNode* node) : IPOutput(node)
 {
+    if (_channels > 512) SetChannels(512);
+    if (_autoSize) SetAutoSize(false);
     _numUniverses = wxAtoi(node->GetAttribute("NumUniverses", "1"));
     _priority = wxAtoi(node->GetAttribute("Priority","100"));
 	_autoStartChannels = (node->GetAttribute("AutoStartChannels", "false") == "true");
@@ -581,9 +583,9 @@ void E131Output::AllOff()
     if (_fppProxyOutput) {
         _fppProxyOutput->AllOff();
     } if (IsOutputCollection()) {
-        for (auto it = _outputs.begin(); it != _outputs.end(); ++it)
+        for (auto& it : _outputs)
         {
-            (*it)->AllOff();
+            it->AllOff();
         }
     }
     else

@@ -18,6 +18,8 @@ bool ArtNetOutput::__initialised = false;
 #pragma region Constructors and Destructors
 ArtNetOutput::ArtNetOutput(wxXmlNode* node) : IPOutput(node)
 {
+    if (_channels > 512) SetChannels(512);
+    if (_autoSize) SetAutoSize(false);
     _sequenceNum = 0;
     _datagram = nullptr;
     memset(_data, 0, sizeof(_data));
