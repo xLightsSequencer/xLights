@@ -6340,35 +6340,38 @@ void xLightsFrame::CheckSequence(bool display)
     LogAndWrite(f, "Checking problems with file paths containing repeated use of show folder name.");
 
     std::vector<char> delimiters = { '\\', '/' };
+    wxString showdir = showDirectory;
+    wxString sd2 = showdir.AfterLast('\\');
+    wxString sd3 = showdir.AfterLast('/');
+    if (sd2.Length() > 0 && sd2.Length() < showdir.Length()) showdir = sd2;
+    if (sd3.Length() > 0 && sd3.Length() < showdir.Length()) showdir = sd3;
+
     for (auto it : allfiles)
     {
-        wxString showdir = showDirectory;
-        wxString sd2 = showdir.AfterLast('\\');
-        wxString sd3 = showdir.AfterLast('/');
-        if (sd2.Length() > 0 && sd2.Length() < showdir.Length()) showdir = sd2;
-        if (sd3.Length() > 0 && sd3.Length() < showdir.Length()) showdir = sd3;
-
         wxString ff = FixFile(showDirectory, it);
-        if (wxFile::Exists(ff))
+        if (ff.StartsWith(showDirectory)) // only check files in show folder
         {
-            ff = ff.substr(showDirectory.Length());
-            wxArrayString folders = Split(ff, delimiters);
-
-            for (auto it2 : folders)
+            if (wxFile::Exists(ff))
             {
-                if (it2 == showdir)
+                ff = ff.substr(showDirectory.Length());
+                wxArrayString folders = Split(ff, delimiters);
+
+                for (auto it2 : folders)
                 {
-                    wxString msg = wxString::Format("    WARN: path to file %s contains the show folder name '%s' more than once. This will make it hard to move sequence to other computers as it wont be able to fix paths automatically.", (const char*)it.c_str(), (const char*)showdir.c_str());
-                    LogAndWrite(f, msg.ToStdString());
-                    warncount++;
+                    if (it2 == showdir)
+                    {
+                        wxString msg = wxString::Format("    WARN: path to file %s contains the show folder name '%s' more than once. This will make it hard to move sequence to other computers as it wont be able to fix paths automatically.", (const char*)it.c_str(), (const char*)showdir.c_str());
+                        LogAndWrite(f, msg.ToStdString());
+                        warncount++;
+                    }
                 }
             }
-        }
-        else
-        {
-            wxString msg = wxString::Format("    WARN: Unable to check file %s because it was not found. If this location is on another computer please run check sequence there to check this condition properly.", (const char*)it.c_str());
-            LogAndWrite(f, msg.ToStdString());
-            warncount++;
+            else
+            {
+                wxString msg = wxString::Format("    WARN: Unable to check file %s because it was not found. If this location is on another computer please run check sequence there to check this condition properly.", (const char*)it.c_str());
+                LogAndWrite(f, msg.ToStdString());
+                warncount++;
+            }
         }
     }
 
