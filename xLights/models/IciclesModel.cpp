@@ -65,17 +65,19 @@ void IciclesModel::InitModel() {
                 if (y + 1 <= (nodesInDrop + 1) / 2)
                 {
                     Nodes[curNode]->Coords[curCoord].bufY = maxH - 1 - (2 * y);
+                    Nodes[curNode]->Coords[curCoord].screenY = (2 * y);
                 }
                 else
                 {
                     Nodes[curNode]->Coords[curCoord].bufY = maxH - 1 - ((nodesInDrop - (y + 1)) * 2 + 1);
+                    Nodes[curNode]->Coords[curCoord].screenY = ((nodesInDrop - (y + 1)) * 2 + 1);
                 }
             }
             else {
                 Nodes[curNode]->Coords[curCoord].bufY = maxH - y - 1;
+                Nodes[curNode]->Coords[curCoord].screenY = y;
             }
             Nodes[curNode]->Coords[curCoord].screenX = width;
-            Nodes[curNode]->Coords[curCoord].screenY = y;
             lights--;
             y++;
             curCoord++;
