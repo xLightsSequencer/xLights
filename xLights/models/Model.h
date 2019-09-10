@@ -168,6 +168,7 @@ protected:
     std::vector<NodeBaseClassPtr> Nodes;
     const ModelManager &modelManager;
 
+    int FindNodeAtXY(int bufx, int bufy);
     virtual void InitModel();
     virtual int CalcCannelsPerString();
     virtual void SetStringStartChannels(bool zeroBased, int NumberOfStrings, int StartChannel, int ChannelsPerString);

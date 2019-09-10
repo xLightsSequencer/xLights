@@ -2451,6 +2451,19 @@ void Model::SetStringStartChannels(bool zeroBased, int NumberOfStrings, int Star
     }
 }
 
+int Model::FindNodeAtXY(int bufx, int bufy)
+{
+    for (int i = 0; i < Nodes.size(); ++i)
+    {
+        if ((bufx == -1 || Nodes[i]->Coords[0].bufX == bufx) && (bufy == -1 || Nodes[i]->Coords[0].bufY == bufy))
+        {
+            return i;
+        }
+    }
+    wxASSERT(false);
+    return -1;
+}
+
 void Model::InitModel() {
 }
 

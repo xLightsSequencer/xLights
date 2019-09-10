@@ -90,12 +90,13 @@ UDController::UDController(const std::string &ip, const std::string &hostname, M
     for (auto it : _noConnectionModels)
     {
         bool ok = false;
-        for (auto p = _pixelPorts.begin(); !ok && p != _pixelPorts.end(); ++p)
+        for (auto& p : _pixelPorts)
         {
-            if (p->second->GetStartChannel() <= it->GetFirstChannel()+1 &&
-                p->second->GetEndChannel() >= it->GetLastChannel()+1)
+            if (p.second->GetStartChannel() <= it->GetFirstChannel()+1 &&
+                p.second->GetEndChannel() >= it->GetLastChannel()+1)
             {
                 ok = true;
+                break;
             }
         }
 
