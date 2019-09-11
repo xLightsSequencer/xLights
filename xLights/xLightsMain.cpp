@@ -10359,10 +10359,7 @@ void xLightsFrame::OnMenuItem_Random_SetSelected(wxCommandEvent& event)
     wxArrayString effects;
     for (int i = 0; i < effectManager.size(); i++)
     {
-        if (effectManager[i]->CanBeRandom())
-        {
-            effects.Add(effectManager[i]->Name());
-        }
+        effects.Add(effectManager[i]->Name());
     }
 
     CheckboxSelectDialog dlg(this, "Select Effects for Generate Random", effects, _randomEffectsToUse);
