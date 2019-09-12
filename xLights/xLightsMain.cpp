@@ -10118,7 +10118,7 @@ void xLightsFrame::OnMenuItem_PrepareAudioSelected(wxCommandEvent& event)
             {
                 wxString music = wxFileSelector("Choose your copy of " + it.file + ".",
                     CurrentDir, wxEmptyString, wxEmptyString,
-                    "Audio files|*.mp3;*.ogg;*.m4p;*.mp4;*.avi;*.wma;*.au;*.wav;*.m4a;*.mid;*.mkv;*.mov;*.mpg;*.asf;*.flv;*.mpeg",
+                    "Audio files|*.mp3;*.ogg;*.m4p;*.mp4;*.avi;*.wma;*.wmv;*.au;*.wav;*.m4a;*.mid;*.mkv;*.mov;*.mpg;*.asf;*.flv;*.mpeg",
                     wxFD_OPEN | wxFD_FILE_MUST_EXIST, this);
 
                 if (music != "")

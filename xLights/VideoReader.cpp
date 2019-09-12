@@ -127,7 +127,7 @@ VideoReader::VideoReader(const std::string& filename, int maxwidth, int maxheigh
 	{
         if (_videoStream->avg_frame_rate.den != 0)
         {
-            _lengthMS = (double)_formatContext->duration * (double)_videoStream->avg_frame_rate.num / (double)_videoStream->avg_frame_rate.den;
+            _lengthMS = (double)_formatContext->duration / 1000.0;
             _frames = (long)(_lengthMS  * (double)_videoStream->avg_frame_rate.num / (double)(_videoStream->avg_frame_rate.den) / 1000.0);
         }
         else
@@ -228,6 +228,7 @@ bool VideoReader::IsVideoFile(const std::string& filename)
         ext == "asf" ||
         ext == "flv" ||
         ext == "mpg" ||
+        ext == "wmv" ||
         ext == "mpeg" ||
         ext == "m4v"
         )

@@ -1369,7 +1369,7 @@ void SeqSettingsDialog::MediaLoad(wxFileName name_and_path)
 
 void SeqSettingsDialog::MediaChooser()
 {
-	wxFileDialog OpenDialog(this, "Choose Audio file", wxEmptyString, wxEmptyString, "FPP 2.x+ Audio files|*.mp3;*.ogg;*.m4p;*.mp4;*.m4a|FPP 1.x Audio files|*.mp3;*.ogg;*.m4p;*.mp4|xLights Audio files|*.mp3;*.ogg;*.m4p;*.mp4;*.avi;*.wma;*.au;*.wav;*.m4a;*.mid;*.mkv;*.mov;*.mpg;*.asf;*.flv;*.mpeg", wxFD_OPEN | wxFD_FILE_MUST_EXIST, wxDefaultPosition);
+	wxFileDialog OpenDialog(this, "Choose Audio file", wxEmptyString, wxEmptyString, "FPP 2.x+ Audio files|*.mp3;*.ogg;*.m4p;*.mp4;*.m4a|FPP 1.x Audio files|*.mp3;*.ogg;*.m4p;*.mp4|xLights Audio files|*.mp3;*.ogg;*.m4p;*.mp4;*.avi;*.wma;*.au;*.wav;*.m4a;*.mid;*.mkv;*.mov;*.mpg;*.asf;*.flv;*.mpeg;*.wmv", wxFD_OPEN | wxFD_FILE_MUST_EXIST, wxDefaultPosition);
     if (wxDir::Exists(media_directory))
     {
         OpenDialog.SetDirectory(media_directory);
