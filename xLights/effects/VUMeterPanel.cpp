@@ -272,6 +272,8 @@ VUMeterPanel::VUMeterPanel(wxWindow* parent)
     Choice_VUMeter_Type->Append(_("Level Bar"));
     Choice_VUMeter_Type->Append(_("Level Color"));
     Choice_VUMeter_Type->Append(_("Level Pulse"));
+    Choice_VUMeter_Type->Append(_("Level Jump"));
+    Choice_VUMeter_Type->Append(_("Level Jump 100"));
     Choice_VUMeter_Type->Append(_("Level Pulse Color"));
     Choice_VUMeter_Type->Append(_("Level Shape"));
     Choice_VUMeter_Type->Append(_("Timing Event Bar"));
@@ -290,6 +292,8 @@ VUMeterPanel::VUMeterPanel(wxWindow* parent)
     Choice_VUMeter_Type->Append(_("Timing Event Pulse Color"));
     Choice_VUMeter_Type->Append(_("Note On"));
     Choice_VUMeter_Type->Append(_("Note Level Pulse"));
+    Choice_VUMeter_Type->Append(_("Note Level Jump"));
+    Choice_VUMeter_Type->Append(_("Note Level Jump 100"));
     Choice_VUMeter_Type->Append(_("Note Level Bar"));
 
     Choice_VUMeter_Type->SetStringSelection(_("Waveform"));
@@ -335,11 +339,15 @@ void VUMeterPanel::ValidateWindow()
         type == "Level Bar" ||
         type == "Level Color" ||
         type == "Level Pulse" || 
+        type == "Level Jump" ||
+        type == "Level Jump 100" ||
         type == "Level Pulse Color" ||
         type == "Timing Event Jump" ||
         type == "Note On" ||
         type == "Note Level Bar" ||
         type == "Note Level Pulse" ||
+        type == "Note Level Jump" ||
+        type == "Note Level Jump 100" ||
         type == "Spectrogram Circle Line" ||
         type == "Level Shape")
     {
@@ -378,6 +386,8 @@ void VUMeterPanel::ValidateWindow()
     }
 
     if (type == "Level Pulse" ||
+        type == "Level Jump" ||
+        type == "Level Jump 100" ||
         type == "Level Pulse Color" ||
         type == "Level Shape" ||
         type == "Level Bar" ||
@@ -386,6 +396,8 @@ void VUMeterPanel::ValidateWindow()
         type == "Spectrogram Peak" ||
         type == "Spectrogram Line" ||
         type == "Spectrogram Circle Line" ||
+        type == "Note Level Jump" ||
+        type == "Note Level Jump 100" ||
         type == "Note Level Pulse")
     {
         Slider_VUMeter_Sensitivity->Enable();
@@ -454,6 +466,8 @@ void VUMeterPanel::ValidateWindow()
         type == "Spectrogram Peak" ||
         type == "Note On" ||
         type == "Note Level Bar" ||
+        type == "Note Level Jump" ||
+        type == "Note Level Jump 100" ||
         type == "Note Level Pulse")
     {
         Slider_VUMeter_EndNote->Enable();

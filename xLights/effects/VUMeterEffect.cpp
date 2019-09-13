@@ -54,7 +54,11 @@ namespace RenderType
         TIMING_EVENT_TIMED_SWEEP,
         TIMING_EVENT_TIMED_SWEEP2,
         TIMING_EVENT_ALTERNATE_TIMED_SWEEP,
-        TIMING_EVENT_ALTERNATE_TIMED_SWEEP2
+        TIMING_EVENT_ALTERNATE_TIMED_SWEEP2,
+        LEVEL_JUMP,
+        LEVEL_JUMP100,
+        NOTE_LEVEL_JUMP,
+        NOTE_LEVEL_JUMP100
     };
 }
 
@@ -108,6 +112,8 @@ std::list<std::string> VUMeterEffect::CheckEffectSettings(const SettingsMap& set
             type == "Level Bar" ||
             type == "Note Level Bar" ||
             type == "Level Pulse" ||
+            type == "Level Jump" ||
+            type == "Level Jump 100" ||
             type == "Level Pulse Color" ||
         type == "Level Shape" ||
         type == "Color On" ||
@@ -327,7 +333,15 @@ int VUMeterEffect::DecodeType(const std::string& type)
 	{
 		return RenderType::LEVEL_PULSE;
 	}
-	else if (type == "Level Shape")
+    else if (type == "Level Jump")
+    {
+        return RenderType::LEVEL_JUMP;
+    }
+    else if (type == "Level Jump 100")
+    {
+        return RenderType::LEVEL_JUMP100;
+    }
+    else if (type == "Level Shape")
 	{
 		return RenderType::LEVEL_SHAPE;
 	}
@@ -346,6 +360,14 @@ int VUMeterEffect::DecodeType(const std::string& type)
     else if (type == "Note Level Pulse")
     {
         return RenderType::NOTE_LEVEL_PULSE;
+    }
+    else if (type == "Note Level Jump")
+    {
+        return RenderType::NOTE_LEVEL_JUMP;
+    }
+    else if (type == "Note Level Jump 100")
+    {
+        return RenderType::NOTE_LEVEL_JUMP100;
     }
     else if (type == "Timing Event Jump")
     {
@@ -595,7 +617,13 @@ void VUMeterEffect::Render(RenderBuffer &buffer, SequenceElements *elements, int
 		case RenderType::LEVEL_PULSE:
 			RenderLevelPulseFrame(buffer, usebars, sensitivity, _lasttimingmark, gain);
 			break;
-		case RenderType::LEVEL_SHAPE:
+        case RenderType::LEVEL_JUMP:
+            RenderLevelJumpFrame(buffer, usebars, sensitivity, _lasttimingmark, gain, false, _lastsize);
+            break;
+        case RenderType::LEVEL_JUMP100:
+            RenderLevelJumpFrame(buffer, usebars, sensitivity, _lasttimingmark, gain, true, _lastsize);
+            break;
+        case RenderType::LEVEL_SHAPE:
 			RenderLevelShapeFrame(buffer, shape, _lastsize, sensitivity, slowdownfalls, xoffset, yoffset, usebars, gain);
 			break;
         case RenderType::COLOR_ON:
@@ -609,6 +637,12 @@ void VUMeterEffect::Render(RenderBuffer &buffer, SequenceElements *elements, int
             break;
         case RenderType::NOTE_LEVEL_PULSE:
             RenderNoteLevelPulseFrame(buffer, usebars, sensitivity, _lasttimingmark, startnote, endnote, gain);
+            break;
+        case RenderType::NOTE_LEVEL_JUMP:
+            RenderNoteLevelJumpFrame(buffer, usebars, sensitivity, _lasttimingmark, startnote, endnote, gain, false, _lastsize);
+            break;
+        case RenderType::NOTE_LEVEL_JUMP100:
+            RenderNoteLevelJumpFrame(buffer, usebars, sensitivity, _lasttimingmark, startnote, endnote, gain, true, _lastsize);
             break;
         case RenderType::TIMING_EVENT_JUMP:
             RenderTimingEventJumpFrame(buffer, usebars, timingtrack, _lastsize, true, gain);
@@ -1479,6 +1513,54 @@ void VUMeterEffect::RenderLevelPulseFrame(RenderBuffer &buffer, int fadeframes, 
 			}
 		}
 	}
+}
+
+void VUMeterEffect::RenderLevelJumpFrame(RenderBuffer& buffer, int fadeframes, int sensitivity, int& lasttimingmark, int gain, bool fullJump, float& lastVal)
+{
+    if (buffer.GetMedia() == nullptr) return;
+
+    float f = 0.0;
+    std::list<float>* pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_HIGH, "");
+    if (pf != nullptr)
+    {
+        f = ApplyGain(*pf->begin(), gain);
+    }
+
+    if (f > (float)sensitivity / 100.0)
+    {
+        lasttimingmark = buffer.curPeriod;
+
+        if (fullJump)
+        {
+            lastVal = 1.0;
+        }
+        else
+        {
+            lastVal = f;
+        }
+    }
+
+    if (fadeframes > 0 && buffer.curPeriod - lasttimingmark < fadeframes)
+    {
+        float ff = lastVal - (lastVal * (((float)buffer.curPeriod - (float)lasttimingmark)) / (float)fadeframes);
+        if (ff < 0)
+        {
+            ff = 0;
+        }
+
+        if (ff > 0.0)
+        {
+            for (int y = 0; y < ff * (float)buffer.BufferHt; y++)
+            {
+                xlColor color1;
+                buffer.GetMultiColorBlend((float)y / (float)buffer.BufferHt, false, color1);
+                for (int x = 0; x < buffer.BufferWi; x++)
+                {
+                    buffer.SetPixel(x, y, color1);
+                }
+            }
+        }
+    }
 }
 
 void VUMeterEffect::RenderLevelPulseColourFrame(RenderBuffer &buffer, int fadeframes, int sensitivity, int& lasttimingmark, int& colourindex, int gain)
@@ -2559,6 +2641,64 @@ void VUMeterEffect::RenderNoteLevelPulseFrame(RenderBuffer& buffer, int fadefram
                 for (int x = 0; x < buffer.BufferWi; x++)
                 {
                     for (int y = 0; y < buffer.BufferHt; y++)
+                    {
+                        buffer.SetPixel(x, y, color1);
+                    }
+                }
+            }
+        }
+    }
+}
+
+void VUMeterEffect::RenderNoteLevelJumpFrame(RenderBuffer& buffer, int fadeframes, int sensitivity, int& lasttimingmark, int startNote, int endNote, int gain, bool fullJump, float& lastsize)
+{
+    if (buffer.GetMedia() == nullptr) return;
+
+    std::list<float>* pdata = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_VU, "");
+
+    if (pdata != nullptr && pdata->size() != 0)
+    {
+        int i = 0;
+        float level = 0.0;
+        for (auto it : *pdata)
+        {
+            if (i > startNote && i <= endNote)
+            {
+                level = std::max(it, level);
+            }
+            i++;
+        }
+
+        level = ApplyGain(level, gain);
+
+        if (level > (float)sensitivity / 100.0)
+        {
+            lasttimingmark = buffer.curPeriod;
+            if (fullJump)
+            {
+                lastsize = 1;
+            }
+            else
+            {
+                lastsize = level;
+            }
+        }
+
+        if (fadeframes > 0 && buffer.curPeriod - lasttimingmark < fadeframes)
+        {
+            float ff = lastsize - ((lastsize * ((float)buffer.curPeriod - (float)lasttimingmark)) / (float)fadeframes);
+            if (ff < 0)
+            {
+                ff = 0;
+            }
+
+            if (ff > 0.0)
+            {
+                for (int y = 0; y < ff * (float)buffer.BufferHt; y++)
+                {
+                    xlColor color1;
+                    buffer.GetMultiColorBlend((float)y / (float)buffer.BufferHt, false, color1);
+                    for (int x = 0; x < buffer.BufferWi; x++)
                     {
                         buffer.SetPixel(x, y, color1);
                     }
