@@ -4,16 +4,16 @@
 #include <wx/filename.h>
 
 //(*Headers(ModelFaceDialog)
+#include <wx/button.h>
+#include <wx/checkbox.h>
+#include <wx/choice.h>
+#include <wx/choicebk.h>
+#include <wx/dialog.h>
+#include <wx/grid.h>
 #include <wx/notebook.h>
+#include <wx/panel.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
-#include <wx/checkbox.h>
-#include <wx/panel.h>
-#include <wx/grid.h>
-#include <wx/choice.h>
-#include <wx/button.h>
-#include <wx/dialog.h>
-#include <wx/choicebk.h>
 //*)
 
 #include <map>
@@ -23,6 +23,8 @@
 class Model;
 class ModelPreview;
 class FaceGrid;
+class xLightsFrame;
+class ModelManager;
 
 class ModelFaceDialog: public wxDialog
 {
@@ -42,23 +44,28 @@ class ModelFaceDialog: public wxDialog
 		virtual ~ModelFaceDialog();
 
 		//(*Declarations(ModelFaceDialog)
+		wxButton* ButtonImport;
+		wxButton* Button_DownloadImages;
+		wxButton* DeleteButton;
 		wxCheckBox* CustomColorNodeRanges;
-		wxPanel* ModelPreviewPanelLocation;
-		wxPanel* Panel_SingleNode;
+		wxCheckBox* CustomColorSingleNode;
 		wxChoice* MatrixImagePlacementChoice;
+		wxChoice* NameChoice;
+		wxChoicebook* FaceTypeChoice;
+		wxGrid* MatrixModelsGrid;
+		wxGrid* NodeRangeGrid;
+		wxGrid* SingleNodeGrid;
+		wxPanel* Matrix;
+		wxPanel* ModelPreviewPanelLocation;
 		wxPanel* Panel_Matrix;
 		wxPanel* Panel_NodeRanges;
-		wxGrid* MatrixModelsGrid;
-		wxGrid* SingleNodeGrid;
+		wxPanel* Panel_SingleNode;
 		wxStaticText* StaticText3;
-		wxButton* Button_DownloadImages;
-		wxPanel* Matrix;
-		wxCheckBox* CustomColorSingleNode;
-		wxButton* DeleteButton;
-		wxChoicebook* FaceTypeChoice;
-		wxGrid* NodeRangeGrid;
-		wxChoice* NameChoice;
 		//*)
+
+        static const long FACES_DIALOG_IMPORT_SUB;
+        static const long FACES_DIALOG_IMPORT_MODEL;
+        static const long FACES_DIALOG_IMPORT_FILE;
 
         void SetFaceInfo(Model *cls, std::map<std::string, std::map<std::string, std::string> > &info);
         void GetFaceInfo(std::map<std::string, std::map<std::string, std::string> > &info);
@@ -68,6 +75,7 @@ class ModelFaceDialog: public wxDialog
 		static const long ID_STATICTEXT2;
 		static const long ID_CHOICE3;
 		static const long ID_BUTTON3;
+		static const long ID_BUTTON_IMPORT;
 		static const long ID_BUTTON4;
 		static const long ID_PANEL4;
 		static const long ID_CHECKBOX1;
@@ -109,16 +117,27 @@ class ModelFaceDialog: public wxDialog
 		void OnNodeRangeGridCellSelect(wxGridEvent& event);
 		void Paint(wxPaintEvent& event);
 		void OnButton_DownloadImagesClick(wxCommandEvent& event);
+		void OnNodeRangeGridCellRightClick(wxGridEvent& event);
+		void OnNodeRangeGridLabelLeftDClick(wxGridEvent& event);
+		void OnButtonImportClick(wxCommandEvent& event);
 		//*)
 
+        void OnAddBtnPopup(wxCommandEvent& event);
+
 		DECLARE_EVENT_TABLE()
-    
+
     std::map<std::string, std::map<std::string, std::string> > faceData;
     void SelectFaceModel(const std::string &s);
     ModelPreview *modelPreview;
     Model *model;
     void UpdatePreview(const std::string& channels, wxColor c);
-    void GetValue(wxGrid *grid, wxGridEvent &event, std::map<std::string, std::string> &info);
+    void GetValue(wxGrid *grid, wxGridEvent& event, std::map<std::string, std::string> &info);
+    void OnGridPopup(const int rightEventID, wxGridEvent& gridEvent);
+    void ImportSubmodel(wxGridEvent& event);
+    wxString getSubmodelNodes(Model* sm);
+    void ImportFaces(const wxString& filename);
+    void ImportFacesFromModel();
+    wxArrayString getModelList(ModelManager* modelManager);
 };
 
 #endif

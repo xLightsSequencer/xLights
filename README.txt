@@ -11,6 +11,9 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (scott)  Added Import From Model/File to Faces and States Dialog.
+   -- enh (scott)  Added Import From Submodel to Faces and States Dialog.
+   -- enh (scott)  Added Right Click Highlight Selected to Random Effect Selection Dialog
 2019.48 September 9, 2019
    -- enh (scott)  Changed Node Select Dialog to select nodes on highlight.
    -- enh (keith)  Add alternate drop nodes to Icicles and Polyline Icicles models

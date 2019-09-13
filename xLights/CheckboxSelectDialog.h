@@ -34,7 +34,8 @@ class CheckboxSelectDialog: public wxDialog
 
 		static const long ID_MCU_SELECTALL;
 		static const long ID_MCU_SELECTNONE;
-		static const long ID_MCU_SELECTPOPULATED;
+		static const long ID_MCU_SELECT_HIGH;
+        static const long ID_MCU_DESELECT_HIGH;
 
 	private:
 
@@ -47,8 +48,8 @@ class CheckboxSelectDialog: public wxDialog
 		void OnListRClick(wxContextMenuEvent& event);
 		void OnPopup(wxCommandEvent &event);
 
-		void DeselectAllLayers();
-		void SelectAllLayers();
+        void SelectAllLayers(bool select = true);
+		void SelectHighLightedLayers(bool select = true);
 
 		DECLARE_EVENT_TABLE()
 };

@@ -15,6 +15,8 @@ const long CheckboxSelectDialog::ID_BUTTONCANCEL = wxNewId();
 
 const long CheckboxSelectDialog::ID_MCU_SELECTALL = wxNewId();
 const long CheckboxSelectDialog::ID_MCU_SELECTNONE = wxNewId();
+const long CheckboxSelectDialog::ID_MCU_SELECT_HIGH = wxNewId();
+const long CheckboxSelectDialog::ID_MCU_DESELECT_HIGH = wxNewId();
 
 BEGIN_EVENT_TABLE(CheckboxSelectDialog,wxDialog)
 	//(*EventTable(CheckboxSelectDialog)
@@ -88,15 +90,6 @@ wxArrayString CheckboxSelectDialog::GetSelectedItems() const
     return res;
 }
 
-void CheckboxSelectDialog::SelectAllLayers()
-{
-    for (int i = 0; i < CheckListBox_Items->GetCount(); i++)
-    {
-        CheckListBox_Items->Check(i);
-    }
-}
-
-
 void CheckboxSelectDialog::OnButton_CancelClick(wxCommandEvent& event)
 {
     EndDialog(wxID_CANCEL);
@@ -131,6 +124,8 @@ void CheckboxSelectDialog::OnListRClick(wxContextMenuEvent& event)
 	wxMenu mnu;
 	mnu.Append(ID_MCU_SELECTALL, "Select All");
 	mnu.Append(ID_MCU_SELECTNONE, "Deselect All");
+    mnu.Append(ID_MCU_SELECT_HIGH, "Select Highlighted");
+    mnu.Append(ID_MCU_DESELECT_HIGH, "Deselect Highlighted");
 
 	mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&CheckboxSelectDialog::OnPopup, nullptr, this);
 	PopupMenu(&mnu);
@@ -144,14 +139,33 @@ void CheckboxSelectDialog::OnPopup(wxCommandEvent& event)
 	}
 	else if (event.GetId() == ID_MCU_SELECTNONE)
 	{
-		DeselectAllLayers();
+        SelectAllLayers(false);
 	}
+    else if (event.GetId() == ID_MCU_SELECT_HIGH)
+    {
+        SelectHighLightedLayers();
+    }
+    else if (event.GetId() == ID_MCU_DESELECT_HIGH)
+    {
+        SelectHighLightedLayers(false);
+    }
 }
 
-void CheckboxSelectDialog::DeselectAllLayers()
+void CheckboxSelectDialog::SelectAllLayers(bool select)
+{
+    for (int i = 0; i < CheckListBox_Items->GetCount(); i++)
+    {
+        CheckListBox_Items->Check(i, select);
+    }
+}
+
+void CheckboxSelectDialog::SelectHighLightedLayers(bool select)
 {
 	for (size_t i = 0; i < CheckListBox_Items->GetCount(); i++)
 	{
-		CheckListBox_Items->Check(i, false);
+        if (CheckListBox_Items->IsSelected(i))
+        {
+            CheckListBox_Items->Check(i, select);
+        }
 	}
 }

@@ -15,7 +15,7 @@
 					<growablerows>1</growablerows>
 					<object class="sizeritem">
 						<object class="wxFlexGridSizer" variable="FlexGridSizer7" member="no">
-							<cols>4</cols>
+							<cols>5</cols>
 							<growablecols>1</growablecols>
 							<object class="sizeritem">
 								<object class="wxStaticText" name="ID_STATICTEXT2" variable="StaticText3" member="yes">
@@ -39,9 +39,19 @@
 									<label>Add</label>
 									<handler function="OnButtonMatrixAddClicked" entry="EVT_BUTTON" />
 								</object>
-								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<flag>wxTOP|wxBOTTOM|wxLEFT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 								<border>5</border>
 								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxButton" name="ID_BUTTON_IMPORT" variable="ButtonImport" member="yes">
+									<label>...</label>
+									<size>20,-1</size>
+									<minsize>20,-1</minsize>
+									<handler function="OnButtonImportClick" entry="EVT_BUTTON" />
+								</object>
+								<flag>wxTOP|wxBOTTOM|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
 							</object>
 							<object class="sizeritem">
 								<object class="wxButton" name="ID_BUTTON4" variable="DeleteButton" member="yes">
@@ -187,7 +197,9 @@
 														</rowlabels>
 														<minsize>-1,200d</minsize>
 														<handler function="OnNodeRangeGridCellLeftClick" entry="EVT_CMD_GRID_CELL_LEFT_CLICK" />
+														<handler function="OnNodeRangeGridCellRightClick" entry="EVT_CMD_GRID_CELL_RIGHT_CLICK" />
 														<handler function="OnNodeRangeGridCellLeftDClick" entry="EVT_CMD_GRID_CELL_LEFT_DCLICK" />
+														<handler function="OnNodeRangeGridLabelLeftDClick" entry="EVT_CMD_GRID_LABEL_LEFT_DCLICK" />
 														<handler function="OnNodeRangeGridCellChange" entry="EVT_CMD_GRID_CELL_CHANGE" />
 														<handler function="OnNodeRangeGridCellSelect" entry="EVT_CMD_GRID_SELECT_CELL" />
 													</object>
