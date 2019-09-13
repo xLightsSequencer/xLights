@@ -63,7 +63,7 @@ class PolyLineModel : public ModelWithScreenLocation<PolyPointScreenLocation>
         bool hasIndivSeg;
         bool segs_collapsed;
         virtual void DistributeLightsAcrossCurveSegment(int lights, int segment, size_t &idx, std::vector<xlPolyPoint> &pPos,
-                                                        std::vector<unsigned int>& dropSizes, unsigned int& drop_index, float& mheight);
+                                                        std::vector<unsigned int>& dropSizes, unsigned int& drop_index, float& mheight, int& xx, int maxH);
         void NormalizePointData();
         std::vector<int> polyLineSegDropSizes;
         unsigned int numDropPoints;

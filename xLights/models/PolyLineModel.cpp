@@ -539,7 +539,8 @@ void PolyLineModel::InitModel() {
                     }
                 }
                 if( pPos[segment].has_curve ) {
-                    DistributeLightsAcrossCurveSegment(polyLineSizes[segment], segment, c, pPos, dropSizes, drop_index, mheight );
+                    int xx = 0;
+                    DistributeLightsAcrossCurveSegment(polyLineSizes[segment], segment, c, pPos, dropSizes, drop_index, mheight, xx, maxH);
                     segment++;
                     for(int x=segment; x < polyLineSizes.size(); ++x ) {
                         if( polyLineSizes[x] == 0 ) {
@@ -554,7 +555,7 @@ void PolyLineModel::InitModel() {
             int xx = 0;
             for(size_t m=0; m<num_segments; m++) {
                 if( pPos[m].has_curve ) {
-                    DistributeLightsAcrossCurveSegment(polyLineSizes[m], m, idx, pPos, dropSizes, drop_index, mheight);
+                    DistributeLightsAcrossCurveSegment(polyLineSizes[m], m, idx, pPos, dropSizes, drop_index, mheight, xx, maxH);
                 } else {
                     int seg_idx = 0;
                     for(size_t n=0; n<polyLineSizes[m]; n++) {
@@ -677,7 +678,7 @@ void PolyLineModel::InitModel() {
 }
 
 void PolyLineModel::DistributeLightsAcrossCurveSegment(int lights, int segment, size_t &idx, std::vector<xlPolyPoint> &pPos,
-    std::vector<unsigned int>& dropSizes, unsigned int& drop_index, float& mheight)
+    std::vector<unsigned int>& dropSizes, unsigned int& drop_index, float& mheight, int& xx, int maxH)
 {
     // distribute the lights evenly across the line segments
     int coords_per_node = Nodes[0].get()->Coords.size();
@@ -710,9 +711,10 @@ void PolyLineModel::DistributeLightsAcrossCurveSegment(int lights, int segment, 
             drop_index %= dropSizes.size();
         } else {
             for (auto z = 0; z < drops_this_node; z++) {
-                Nodes[idx]->Coords[c].screenX = v.x;
-                Nodes[idx]->Coords[c].screenY = v.y - z * mheight;
-                Nodes[idx]->Coords[c].screenZ = v.z;
+                auto node = FindNodeAtXY(xx, maxH - z - 1);
+                Nodes[node]->Coords[c].screenX = v.x;
+                Nodes[node]->Coords[c].screenY = v.y - z * mheight;
+                Nodes[node]->Coords[c].screenZ = v.z;
                 idx++;
             }
             if (c < coords_per_node - 1) {
@@ -724,6 +726,7 @@ void PolyLineModel::DistributeLightsAcrossCurveSegment(int lights, int segment, 
             drop_index %= dropSizes.size();
         }
         current_pos += offset;
+        xx++;
     }
 }
 
