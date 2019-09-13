@@ -3,7 +3,7 @@
 	<object class="wxDialog" name="ModelFaceDialog">
 		<title>Face Definition</title>
 		<id_arg>0</id_arg>
-		<style>wxCAPTION|wxRESIZE_BORDER|wxMAXIMIZE_BOX</style>
+		<style>wxCAPTION|wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxMAXIMIZE_BOX</style>
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
 			<cols>2</cols>
 			<growablecols>1</growablecols>
