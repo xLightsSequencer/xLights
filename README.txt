@@ -11,10 +11,19 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2019.49 September 13, 2019
    -- enh (scott)  Added Import From Model/File to Faces and States Dialog.
    -- enh (scott)  Added Import From Submodel to Faces and States Dialog.
    -- enh (scott)  Added Right Click Highlight Selected to Random Effect Selection Dialog
    -- enh (scott)  Added Autosize Channels to DDP output
+   -- enh (keith)  Added Level & Level Note versions of the Jump and Jump 100 to VU Meter
+   -- enh (keith)  Add WMV video file support
+   -- enh (keith)  Add right click reset to all preview windows
+   -- enh (keith)  Add latitude control to the sphere model
+   -- bug (keith)  Fix maintaining 3D mode between sequencer and layout tabs
+   -- bug (keith)  Fix icicles and candy cane alternate wiring not display correctly on preview
+   -- bug (keith)  Fix check sequence check when files are not in show folder
+   -- bug (dkulp)  Fix single line & polyline Blue/Green start rendering backwards
 2019.48 September 9, 2019
    -- enh (scott)  Changed Node Select Dialog to select nodes on highlight.
    -- enh (keith)  Add alternate drop nodes to Icicles and Polyline Icicles models
@@ -2339,7 +2348,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 2016.23  May 03, 2016
    -- enh (keith) Added new option "Tools, Generate Custom Model"
    -- enh (dkulp) Upgrade to newer OpenGL library.
-                  The OpenGL rendering has been updated from the “fixed pipeline” code
+                  The OpenGL rendering has been updated from the “fixed pipeline�? code
 				  (which was state of the art in 1998) to using modern OpenGL shaders (>2010).
 				  This allows us to better use the capabilities of modern video cards.
 				  However, to support older machines, we can drop down to OpenGL 2.1 shaders
@@ -3436,7 +3445,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 3.4.24   Oct 28, 2014
    -enh (dpitts) New feature to allow creating views. A view is a collection of models. When you select a view it acts
       like a filter and only shows you the models contained in your view. T
-    -enh (dkulp) Star model can now have multiple star size “layers” to model exploding star type things
+    -enh (dkulp) Star model can now have multiple star size “layers�? to model exploding star type things
                      Example: a 100 node star may have 50 for the outer layer, 30 for the middle, 20 for the inner.
    -bug (djulien) Fixed multi-cell morph (caused Papagayo flicker), avoid error if try to save file with no pgo data
    -enh (sean) Increased custom model from 300x300 to 1000x1000
