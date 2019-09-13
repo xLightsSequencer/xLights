@@ -23,6 +23,8 @@ protected:
     virtual void InitModel() override;
 private:
     void SetSphereCoord();
+    double _startLatitude = -86;
+    double _endLatitude = 86;
 };
 
 #endif // SPHEREMODEL_H
