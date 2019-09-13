@@ -23,6 +23,8 @@ const long DDPDialog::ID_CHECKBOX1 = wxNewId();
 const long DDPDialog::ID_TEXTCTRL2 = wxNewId();
 const long DDPDialog::ID_CHOICE1 = wxNewId();
 const long DDPDialog::ID_CHECKBOX_AUTO_CHANNELS = wxNewId();
+const long DDPDialog::ID_STATICTEXT2 = wxNewId();
+const long DDPDialog::ID_CHECKBOX_AUTO_SIZE_OUTPUT = wxNewId();
 const long DDPDialog::ID_TEXTCTRL3 = wxNewId();
 const long DDPDialog::ID_BUTTON1 = wxNewId();
 const long DDPDialog::ID_BUTTON2 = wxNewId();
@@ -106,6 +108,11 @@ DDPDialog::DDPDialog(wxWindow* parent, DDPOutput* DDP, OutputManager* outputMana
 	CheckBox_Auto_Channels = new wxCheckBox(this, ID_CHECKBOX_AUTO_CHANNELS, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_AUTO_CHANNELS"));
 	CheckBox_Auto_Channels->SetValue(false);
 	FlexGridSizer4->Add(CheckBox_Auto_Channels, 1, wxALL|wxEXPAND, 5);
+	StaticText10 = new wxStaticText(this, ID_STATICTEXT2, _("Autosize Output"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
+	FlexGridSizer4->Add(StaticText10, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox_AutoSize_Output = new wxCheckBox(this, ID_CHECKBOX_AUTO_SIZE_OUTPUT, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_AUTO_SIZE_OUTPUT"));
+	CheckBox_AutoSize_Output->SetValue(false);
+	FlexGridSizer4->Add(CheckBox_AutoSize_Output, 1, wxALL|wxEXPAND, 5);
 	StaticText9 = new wxStaticText(this, wxID_ANY, _("FPP Proxy Host/IP"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
 	FlexGridSizer4->Add(StaticText9, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	FPPProxyHost = new wxTextCtrl(this, ID_TEXTCTRL3, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL3"));
@@ -140,6 +147,7 @@ DDPDialog::DDPDialog(wxWindow* parent, DDPOutput* DDP, OutputManager* outputMana
     CheckBox1->SetValue(DDP->IsSuppressDuplicateFrames());
     SpinCtrl1->SetValue(DDP->GetId());
     CheckBox_Auto_Channels->SetValue(DDP->IsAutoLayoutModels());
+    CheckBox_AutoSize_Output->SetValue(DDP->GetAutoSize());
 
     ControllerTypeChoice->Append("Unknown");
     int idx = 0;
@@ -190,6 +198,7 @@ void DDPDialog::SaveDDPFields() {
     _DDP->SetId(SpinCtrl1->GetValue());
     _DDP->SetFPPProxyIP(FPPProxyHost->GetValue());
     _DDP->SetAutoStartChannels(CheckBox_Auto_Channels->GetValue());
+    _DDP->SetAutoSize(CheckBox_AutoSize_Output->IsChecked());
     int idx = ControllerTypeChoice->GetSelection();
     if (idx == 0) {
         _DDP->SetControllerId("");

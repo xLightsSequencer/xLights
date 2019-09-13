@@ -32,11 +32,13 @@ class DDPDialog: public wxDialog
 		wxButton* VisualizeButton;
 		wxCheckBox* CheckBox1;
 		wxCheckBox* CheckBoxKeepChannels;
+		wxCheckBox* CheckBox_AutoSize_Output;
 		wxCheckBox* CheckBox_Auto_Channels;
 		wxChoice* ControllerTypeChoice;
 		wxSpinCtrl* SpinCtrl1;
 		wxSpinCtrl* SpinCtrlChannels;
 		wxSpinCtrl* SpinCtrl_ChannelsPerPacket;
+		wxStaticText* StaticText10;
 		wxStaticText* StaticText1;
 		wxTextCtrl* FPPProxyHost;
 		wxTextCtrl* TextCtrlDescription;
@@ -56,6 +58,8 @@ class DDPDialog: public wxDialog
 		static const long ID_TEXTCTRL2;
 		static const long ID_CHOICE1;
 		static const long ID_CHECKBOX_AUTO_CHANNELS;
+		static const long ID_STATICTEXT2;
+		static const long ID_CHECKBOX_AUTO_SIZE_OUTPUT;
 		static const long ID_TEXTCTRL3;
 		static const long ID_BUTTON1;
 		static const long ID_BUTTON2;
