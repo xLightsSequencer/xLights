@@ -481,42 +481,49 @@ void ModelPreview::Render(const unsigned char *data, bool swapBuffers/*=true*/) 
 }
 
 void ModelPreview::rightClick(wxMouseEvent& event) {
-    if (allowPreviewChange && xlights != nullptr) {
-        wxMenu mnu;
-        mnu.Append(0x2001, "Reset");
-        wxMenuItem* item = mnu.Append(0x1001, "3D", wxEmptyString, wxITEM_CHECK);
-        item->Check(is_3d);
-        mnu.AppendSeparator();
-        mnu.Append(1, "House Preview");
-        int index = 2;
-        for (auto a : xlights->LayoutGroups) {
-            mnu.Append(index++, a->GetName());
-        }
-        // ViewPoint menus
-        mnu.AppendSeparator();
-        if (is_3d) {
-            if (xlights->viewpoint_mgr.GetNum3DCameras() > 0) {
-                wxMenu* mnuViewPoint = new wxMenu();
-                for (size_t i = 0; i < xlights->viewpoint_mgr.GetNum3DCameras(); ++i) {
-                    PreviewCamera* camera = xlights->viewpoint_mgr.GetCamera3D(i);
-                    mnuViewPoint->Append(camera->GetMenuId(), camera->GetName());
+    if (xlights != nullptr)
+    {
+        if (currentLayoutGroup != "")
+        {
+            wxMenu mnu;
+            mnu.Append(0x2001, "Reset");
+            if (allowPreviewChange) {
+                wxMenuItem* item = mnu.Append(0x1001, "3D", wxEmptyString, wxITEM_CHECK);
+                item->Check(is_3d);
+                mnu.AppendSeparator();
+                mnu.Append(1, "House Preview");
+                int index = 2;
+                for (auto a : xlights->LayoutGroups) {
+                    mnu.Append(index++, a->GetName());
                 }
-                mnuViewPoint->Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&ModelPreview::OnPopup, nullptr, this);
-                mnu.Append(ID_VIEWPOINT3D, "Load ViewPoint", mnuViewPoint, "");
-            }
-        } else {
-            if (xlights->viewpoint_mgr.GetNum2DCameras() > 0) {
-                wxMenu* mnuViewPoint = new wxMenu();
-                for (size_t i = 0; i < xlights->viewpoint_mgr.GetNum2DCameras(); ++i) {
-                    PreviewCamera* camera = xlights->viewpoint_mgr.GetCamera2D(i);
-                    mnuViewPoint->Append(camera->GetMenuId(), camera->GetName());
+                // ViewPoint menus
+                mnu.AppendSeparator();
+                if (is_3d) {
+                    if (xlights->viewpoint_mgr.GetNum3DCameras() > 0) {
+                        wxMenu* mnuViewPoint = new wxMenu();
+                        for (size_t i = 0; i < xlights->viewpoint_mgr.GetNum3DCameras(); ++i) {
+                            PreviewCamera* camera = xlights->viewpoint_mgr.GetCamera3D(i);
+                            mnuViewPoint->Append(camera->GetMenuId(), camera->GetName());
+                        }
+                        mnuViewPoint->Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)& ModelPreview::OnPopup, nullptr, this);
+                        mnu.Append(ID_VIEWPOINT3D, "Load ViewPoint", mnuViewPoint, "");
+                    }
                 }
-                mnuViewPoint->Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&ModelPreview::OnPopup, nullptr, this);
-                mnu.Append(ID_VIEWPOINT2D, "Load ViewPoint", mnuViewPoint, "");
+                else {
+                    if (xlights->viewpoint_mgr.GetNum2DCameras() > 0) {
+                        wxMenu* mnuViewPoint = new wxMenu();
+                        for (size_t i = 0; i < xlights->viewpoint_mgr.GetNum2DCameras(); ++i) {
+                            PreviewCamera* camera = xlights->viewpoint_mgr.GetCamera2D(i);
+                            mnuViewPoint->Append(camera->GetMenuId(), camera->GetName());
+                        }
+                        mnuViewPoint->Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)& ModelPreview::OnPopup, nullptr, this);
+                        mnu.Append(ID_VIEWPOINT2D, "Load ViewPoint", mnuViewPoint, "");
+                    }
+                }
             }
+            mnu.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)& ModelPreview::OnPopup, nullptr, this);
+            PopupMenu(&mnu);
         }
-        mnu.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&ModelPreview::OnPopup, nullptr, this);
-        PopupMenu(&mnu);
     }
 }
 
