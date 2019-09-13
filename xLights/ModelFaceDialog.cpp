@@ -519,7 +519,7 @@ void ModelFaceDialog::OnMatrixModelsGridCellChange(wxGridEvent& event)
     faceData[name][key.ToStdString()] = MatrixModelsGrid->GetCellValue(r, c);
 }
 
-static const wxString strSupportedImageTypes = "Image files|*.png;*.bmp;*.jpg;*.gif|All files (*.*)|*.*";
+static const wxString strSupportedImageTypes = "Image files|*.png;*.bmp;*.jpg;*.gif;*.jpeg|All files (*.*)|*.*";
 void ModelFaceDialog::OnMatrixModelsGridCellLeftClick(wxGridEvent& event)
 {
     std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
