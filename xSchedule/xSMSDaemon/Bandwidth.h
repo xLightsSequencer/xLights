@@ -38,6 +38,11 @@ class Bandwidth : public SMSService
             b.Replace("{phone}", GetPhone());
             b.Replace("{tophone}", number);
             b.Replace("{message}", message);
+
+            logger_base.debug("Sending SMS tophone:'%s' phone:'%s' message:'%s'.",
+                              (const char*)number.c_str(),
+                              (const char*)GetPhone().c_str(),
+                              (const char*)message.c_str());
             std::string res = Curl::HTTPSPost(url, b, sid, token, "JSON");
 
             //logger_base.debug("%s", (const char*)url.c_str());
@@ -59,6 +64,7 @@ class Bandwidth : public SMSService
             Replace(url, "{user}", GetUser());
             Replace(url, "{token}", token);
             url += "/messages?page=0&size=100";
+            logger_base.debug("Retrieving messages.");
             std::string res = Curl::HTTPSGet(url, sid, token);
             //logger_base.debug("%s", (const char*)url.c_str());
             logger_base.debug("%s", (const char*)res.c_str());
@@ -97,6 +103,7 @@ class Bandwidth : public SMSService
                             SMSMessage msg;
                             auto timestamp = m.Get("time", defaultValue).AsString();
                             msg._timestamp.ParseISOCombined(timestamp);
+                            msg._timestamp += wxTimeSpan(0, _options.GetTimezoneAdjust());
                             msg._from = m.Get("from", defaultValue).AsString().ToStdString();
                             msg._rawMessage = m.Get("text", defaultValue).AsString().ToStdString();
 

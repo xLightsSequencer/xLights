@@ -385,7 +385,7 @@ class SMSService
             for (auto m : msgs)
             {
                 SMSMessage msg;
-                msg._timestamp = wxDateTime::Now().MakeGMT();
+                msg._timestamp = wxDateTime::Now().MakeGMT() + wxTimeSpan(0, _options.GetTimezoneAdjust());
                 msg._from = "TEST";
                 msg._rawMessage = m;
                 AddMessage(msg);

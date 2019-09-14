@@ -2,6 +2,7 @@
 
 #include <wx/xml/xml.h>
 #include <wx/file.h>
+#include <wx/filename.h>
 #include "../../xLights/UtilFunctions.h"
 
 #include <log4cpp/Category.hh>
@@ -17,7 +18,7 @@ void SMSDaemonOptions::Load(const std::string& showDir)
     wxString options = showDir;
     if (options != "" && !options.EndsWith("/") && !options.EndsWith("\\"))
     {
-        options += "/";
+        options += wxFileName::GetPathSeparator();
     }
     options += "xSMSDaemon.xSMSDaemon";
 
@@ -49,6 +50,7 @@ void SMSDaemonOptions::Load(const std::string& showDir)
             _maximiumTimesToDisplay = wxAtoi(n->GetAttribute("MaxDisplays", "0"));
             _maxMsgAgeMinsForResponse = wxAtoi(n->GetAttribute("MaxMsgAgeMinsForResponse", "10"));
             _maximiumMessageAge = wxAtoi(n->GetAttribute("MaxMsgAge", "10"));
+            _timezoneAdjust = wxAtoi(n->GetAttribute("TimezoneAdjust", "0"));
 
             _rejectProfanity = n->GetAttribute("RejectProfanity", "TRUE") == "TRUE";
             _usePurgoMalum = n->GetAttribute("UsePurgoMalum", "FALSE") == "TRUE";
@@ -76,7 +78,7 @@ void SMSDaemonOptions::Save(const std::string& showDir)
     wxString options = showDir;
     if (options != "" && !options.EndsWith("/") && !options.EndsWith("\\"))
     {
-        options += "/";
+        options += wxFileName::GetPathSeparator();
     }
     options += "xSMSDaemon.xSMSDaemon";
 
@@ -98,6 +100,7 @@ void SMSDaemonOptions::Save(const std::string& showDir)
     node->AddAttribute("DisplayDuration", wxString::Format("%d", _displayDuration));
     node->AddAttribute("MaxMsgLen", wxString::Format("%d", _maximiumMessageLength));
     node->AddAttribute("MaxMsgAge", wxString::Format("%d", _maximiumMessageAge));
+    node->AddAttribute("TimezoneAdjust", wxString::Format("%d", _timezoneAdjust));
     node->AddAttribute("MaxDisplays", wxString::Format("%d", _maximiumTimesToDisplay));
     node->AddAttribute("MaxMsgAgeMinsForResponse", wxString::Format("%d", _maxMsgAgeMinsForResponse));
 

@@ -25,6 +25,8 @@ const long SMSSettingsDialog::ID_STATICTEXT5 = wxNewId();
 const long SMSSettingsDialog::ID_TEXTCTRL3 = wxNewId();
 const long SMSSettingsDialog::ID_STATICTEXT10 = wxNewId();
 const long SMSSettingsDialog::ID_TEXTCTRL5 = wxNewId();
+const long SMSSettingsDialog::ID_STATICTEXT17 = wxNewId();
+const long SMSSettingsDialog::ID_SPINCTRL8 = wxNewId();
 const long SMSSettingsDialog::ID_CHECKBOX1 = wxNewId();
 const long SMSSettingsDialog::ID_CHECKBOX7 = wxNewId();
 const long SMSSettingsDialog::ID_CHECKBOX2 = wxNewId();
@@ -109,6 +111,11 @@ SMSSettingsDialog::SMSSettingsDialog(wxWindow* parent, SMSDaemonOptions* options
 	FlexGridSizer3->Add(StaticText10, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	TextCtrl_Phone = new wxTextCtrl(this, ID_TEXTCTRL5, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL5"));
 	FlexGridSizer3->Add(TextCtrl_Phone, 1, wxALL|wxEXPAND, 2);
+	StaticText5 = new wxStaticText(this, ID_STATICTEXT17, _("Timezone Adjust (mins)"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT17"));
+	FlexGridSizer3->Add(StaticText5, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	SpinCtrl_TimezoneAdjust = new wxSpinCtrl(this, ID_SPINCTRL8, _T("0"), wxDefaultPosition, wxDefaultSize, 0, -780, 780, 0, _T("ID_SPINCTRL8"));
+	SpinCtrl_TimezoneAdjust->SetValue(_T("0"));
+	FlexGridSizer3->Add(SpinCtrl_TimezoneAdjust, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer3->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	CheckBox_UsePurgoMalum = new wxCheckBox(this, ID_CHECKBOX1, _("Use PurgoMalum online profanity filter"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
 	CheckBox_UsePurgoMalum->SetValue(false);
@@ -218,6 +225,7 @@ SMSSettingsDialog::SMSSettingsDialog(wxWindow* parent, SMSDaemonOptions* options
     TextCtrl_RejectMessage->SetValue(options->GetRejectMessage());
     Choice_SMSService->SetStringSelection(options->GetSMSService());
 
+    SpinCtrl_TimezoneAdjust->SetValue(options->GetTimezoneAdjust());
     SpinCtrl_RetrieveInterval->SetValue(options->GetRetrieveInterval());
     SpinCtrl_DisplayDuration->SetValue(options->GetDisplayDuration());
     SpinCtrl_MaximumMessageLength->SetValue(options->GetMaxMessageLength());
@@ -264,6 +272,7 @@ void SMSSettingsDialog::OnButton_OkClick(wxCommandEvent& event)
     _options->SetMaxMsgAgeMinsForResponse(SpinCtrl_MaxMsgAgeMinsForResponse->GetValue());
     _options->SetMaxTimesToDisplay(SpinCtrl_TimesToDisplay->GetValue());
     _options->SetMaximumMessagesPerPhone(SpinCtrl_MaximumMessages->GetValue());
+    _options->SetTimezoneAdjust(SpinCtrl_TimezoneAdjust->GetValue());
 
     _options->SetUsePurgoMalum(CheckBox_UsePurgoMalum->GetValue());
     _options->SetRejectProfanity(CheckBox_RejectProfanity->GetValue());

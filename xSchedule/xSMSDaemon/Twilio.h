@@ -38,6 +38,10 @@ class Twilio : public SMSService
             vars.push_back(Curl::Var("From", GetPhone()));
             vars.push_back(Curl::Var("Body", message));
 
+            logger_base.debug("Sending SMS to:'%s' from:'%s' body:'%s'.",
+                              (const char*)number.c_str(),
+                              (const char*)GetPhone().c_str(),
+                              (const char*)message.c_str());
             std::string res = Curl::HTTPSPost(url, vars, sid, token);
             //logger_base.debug("%s", (const char*)url.c_str());
             logger_base.debug("%s", (const char*)res.c_str());
@@ -58,6 +62,7 @@ class Twilio : public SMSService
             Replace(url, "{user}", GetUser());
             Replace(url, "{token}", token);
 
+            logger_base.debug("Retrieving messages.");
             std::string res = Curl::HTTPSGet(url, sid, token);
             //logger_base.debug("%s", (const char*)url.c_str());
             logger_base.debug("%s", (const char*)res.c_str());
@@ -98,6 +103,7 @@ class Twilio : public SMSService
                             wxString::const_iterator end;
                             //"Sat, 10 Jun 2017 14:03:59 +0000"
                             msg._timestamp.ParseFormat(timestamp, "%a, %d %b %Y %H:%M:%S ", &end);
+                            msg._timestamp += wxTimeSpan(0, _options.GetTimezoneAdjust());
                             msg._from = m.Get("from", defaultValue).AsString().ToStdString();
                             msg._rawMessage = m.Get("body", defaultValue).AsString().ToStdString();
 

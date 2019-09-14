@@ -1876,7 +1876,7 @@ void xScheduleFrame::OnMenuItem_ViewLogSelected(wxCommandEvent& event)
     else
     {
         logger_base.warn("Unable to view log file %s.", (const char *)fn.c_str());
-        wxMessageBox(_("Unable to show log file."), _("Error"));
+        wxMessageBox(wxString::Format("Unable to show log file '%s'.", fn.c_str()), _("Error"));
     }
 }
 

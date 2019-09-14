@@ -416,7 +416,7 @@ void xSMSDaemonFrame::OnMenuItem_ViewLogSelected(wxCommandEvent& event)
     wxString fileName = "xSMSDaemon_l4cpp.log";
 #ifdef __WXMSW__
     wxGetEnv("APPDATA", &dir);
-    wxString filename = dir + "/" + fileName;
+    wxString filename = dir + wxFileName::GetPathSeparator() + fileName;
 #endif
 #ifdef __WXOSX_MAC__
     wxFileName home;

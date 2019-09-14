@@ -26,6 +26,7 @@ class SMSDaemonOptions
 	int _maximiumTimesToDisplay = 0;
     int _maxMsgAgeMinsForResponse = 10;
     int _maxMsgsPerPhone = 0;
+    int _timezoneAdjust = 0;
 	bool _usePurgoMalum = false;
 	bool _rejectProfanity = true;
 	bool _usePhoneBlacklist = false;
@@ -58,6 +59,9 @@ class SMSDaemonOptions
 
         int GetMaximumMessagesPerPhone() const { return _maxMsgsPerPhone; }
         void SetMaximumMessagesPerPhone(int maxMessages) { if (maxMessages != _maxMsgsPerPhone) { _maxMsgsPerPhone = maxMessages; _changeCount++; } }
+
+        int GetTimezoneAdjust() const { return _timezoneAdjust; }
+        void SetTimezoneAdjust(int timezoneAdjust) { if (timezoneAdjust != _timezoneAdjust) { _timezoneAdjust = timezoneAdjust; _changeCount++; } }
 
 		int GetRetrieveInterval() const { return _retrieveInterval; }
         void SetRetrieveInterval(int retrieveInterval) { if (retrieveInterval != _retrieveInterval) { _retrieveInterval = retrieveInterval; _changeCount++; } }

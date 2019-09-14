@@ -38,6 +38,7 @@ class Voip_ms : public SMSService
             vars.push_back(Curl::Var("message", message));
 
             //logger_base.debug("HTTPS Post %s", (const char*)url.c_str());
+            logger_base.debug("Sending SMS response did:'%s' dst:'%s' message:'%s'", (const char*)GetPhone().c_str(), (const char*)number.c_str(), (const char*)message.c_str());
             std::string res = Curl::HTTPSPost(url, vars);
             logger_base.debug("%s", (const char*)res.c_str());
             return Contains(res, "status\":\"success");
@@ -62,6 +63,7 @@ class Voip_ms : public SMSService
             vars.push_back(Curl::Var("timezone", "0"));
 
             //logger_base.debug("HTTPS Post %s", (const char*)url.c_str());
+            logger_base.debug("Retrieving messages.");
             std::string res = Curl::HTTPSPost(url, vars);
             logger_base.debug("Result %s", (const char*)res.c_str());
 
@@ -102,6 +104,7 @@ class Voip_ms : public SMSService
                                 wxString timestamp = m.Get("date", defaultValue).AsString();
                                 wxString::const_iterator end;
                                 msg._timestamp.ParseFormat(timestamp, "%Y-%m-%d %H:%M:%S", &end);
+                                msg._timestamp += wxTimeSpan(0, _options.GetTimezoneAdjust());
                                 wxASSERT(end == timestamp.end());
                                 msg._from = m.Get("contact", defaultValue).AsString().ToStdString();
                                 msg._rawMessage = m.Get("message", defaultValue).AsString().ToStdString();
