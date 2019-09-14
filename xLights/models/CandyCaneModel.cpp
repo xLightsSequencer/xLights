@@ -6,6 +6,8 @@
 #include "CandyCaneModel.h"
 #include "ModelScreenLocation.h"
 
+#include <log4cpp/Category.hh>
+
 CandyCaneModel::CandyCaneModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased) : ModelWithScreenLocation(manager)
 {
     screenLocation.SetModelHandleHeight(true);
@@ -65,6 +67,9 @@ void CandyCaneModel::AddTypeProperties(wxPropertyGridInterface *grid) {
 
     p = grid->Append(new wxBoolProperty("Alternate Nodes", "AlternateNodes", _alternateNodes));
     p->SetEditor("CheckBox");
+    if (SingleNode) {
+        p->Enable(false);
+    }
 
     grid->Append(new wxEnumProperty("Starting Location", "CandyCaneStart", LEFT_RIGHT, IsLtoR ? 0 : 1));
 }
@@ -72,10 +77,12 @@ void CandyCaneModel::AddTypeProperties(wxPropertyGridInterface *grid) {
 void CandyCaneModel::UpdateTypeProperties(wxPropertyGridInterface* grid) {
     if (SingleNode) {
         grid->GetPropertyByName("CandyCaneLights")->Hide(true);
+        grid->GetPropertyByName("AlternateNodes")->Enable(false);
     }
     else
     {
         grid->GetPropertyByName("CandyCaneLights")->Hide(false);
+        grid->GetPropertyByName("AlternateNodes")->Enable();
     }
 
     grid->GetPropertyByName("CandyCaneReverse")->Enable(!_sticks);
@@ -318,6 +325,9 @@ static void rotate_point(float cx,float cy, float angle, float &x, float &y)
 }
 
 void CandyCaneModel::SetCaneCoord() {
+
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     int NumCanes = parm1;
     size_t SegmentsPerCane = parm2;
     int LightsPerNode = parm3;
@@ -346,14 +356,36 @@ void CandyCaneModel::SetCaneCoord() {
             double x = i*(widthPerCane + caneGap) + widthPerCane / 2.0;
             for (size_t n = 0; n < SegmentsPerCane; n++) {
                 size_t CoordCount = GetCoordCount(n);
-                auto node = FindNodeAtXY(i, y);
-                for (size_t c = 0; c < CoordCount; c++) {
-                    Nodes[node]->Coords[c].screenX = x;
-                    Nodes[node]->Coords[c].screenY = _caneheight * (float)y * screenLocation.GetHeight();
-                    rotate_point(x, 0, angle,
-                        Nodes[node]->Coords[c].screenX,
-                        Nodes[node]->Coords[c].screenY);
-                    y++;
+                if (SingleNode)
+                {
+                    auto node = n + i * SegmentsPerCane;
+                    for (size_t c = 0; c < CoordCount; c++) {
+                        Nodes[node]->Coords[c].screenX = x;
+                        Nodes[node]->Coords[c].screenY = _caneheight * (float)y * screenLocation.GetHeight();
+                        rotate_point(x, 0, angle,
+                            Nodes[node]->Coords[c].screenX,
+                            Nodes[node]->Coords[c].screenY);
+                        y++;
+                    }
+                }
+                else
+                {
+                    auto node = FindNodeAtXY(i, y);
+                    for (size_t c = 0; c < CoordCount; c++) {
+                        if (node == -1)
+                        {
+                            logger_base.error("Candy Cane buffer x,y %d, %d not found.", i, y);
+                        }
+                        else
+                        {
+                            Nodes[node]->Coords[c].screenX = x;
+                            Nodes[node]->Coords[c].screenY = _caneheight * (float)y * screenLocation.GetHeight();
+                            rotate_point(x, 0, angle,
+                                Nodes[node]->Coords[c].screenX,
+                                Nodes[node]->Coords[c].screenY);
+                        }
+                        y++;
+                    }
                 }
             }
         }
@@ -378,21 +410,39 @@ void CandyCaneModel::SetCaneCoord() {
             double ox = x;
             while (curLight < upright) {
                 size_t CoordCount = GetCoordCount(curNode);
-                if (SingleNode) {
+                if (SingleNode)
+                {
                     CoordCount = upright;
+                    int node = curNode + i * SegmentsPerCane;
+                    for (size_t c = 0; c < CoordCount; c++) {
+                        Nodes[node]->Coords[c].screenX = x;
+                        Nodes[node]->Coords[c].screenY = _caneheight * (float)y * screenLocation.GetHeight();
+                        rotate_point(x, 0, angle,
+                            Nodes[node]->Coords[c].screenX,
+                            Nodes[node]->Coords[c].screenY);
+                        y++;
+                        curLight++;
+                    }
                 }
-                auto node = FindNodeAtXY(i, y);
-                for (size_t c = 0; c < CoordCount; c++) {
-                    Nodes[node]->Coords[c].screenX = x;
-                    Nodes[node]->Coords[c].screenY = _caneheight * (float)y * screenLocation.GetHeight();
-                    rotate_point(x, 0, angle,
-                                 Nodes[node]->Coords[c].screenX,
-                                 Nodes[node]->Coords[c].screenY);
-
-                    y++;
-                    curLight++;
-                }
-                if (!SingleNode) {
+                else
+                {
+                    auto node = FindNodeAtXY(i, y);
+                    for (size_t c = 0; c < CoordCount; c++) {
+                        if (node == -1)
+                        {
+                            logger_base.error("Candy Cane buffer x,y %d, %d not found.", i, y);
+                        }
+                        else
+                        {
+                            Nodes[node]->Coords[c].screenX = x;
+                            Nodes[node]->Coords[c].screenY = _caneheight * (float)y * screenLocation.GetHeight();
+                            rotate_point(x, 0, angle,
+                                Nodes[node]->Coords[c].screenX,
+                                Nodes[node]->Coords[c].screenY);
+                        }
+                        y++;
+                        curLight++;
+                    }
                     curNode++;
                 }
             }
@@ -401,27 +451,58 @@ void CandyCaneModel::SetCaneCoord() {
             while (curLight < lightspercane) {
                 size_t CoordCount = GetCoordCount(curNode);
                 size_t c = 0;
-                if (SingleNode) {
+                if (SingleNode)
+                {
                     CoordCount = lightspercane;
                     c = curLight;
-                }
-                auto node = FindNodeAtXY(i, curLight);
-                for (; c < CoordCount; c++)
-                {
-                    // drawing left to right
-                    double aangle = M_PI - M_PI * (curLight - upright + 1) / arclights;
-                    double y2 = sin(aangle)*widthPerCane/2 * screenLocation.GetHeight();
-                    double x2 = cos(aangle)*widthPerCane/2 * screenLocation.GetHeight();
-                    if (_reverse) {
-                        Nodes[node]->Coords[c].screenX = x - x2;
-                    } else {
-                        Nodes[node]->Coords[c].screenX = x + x2;
+                    int node = curNode + i * SegmentsPerCane;
+                    for (; c < CoordCount; c++)
+                    {
+                        // drawing left to right
+                        double aangle = M_PI - M_PI * (curLight - upright + 1) / arclights;
+                        double y2 = sin(aangle) * widthPerCane / 2 * screenLocation.GetHeight();
+                        double x2 = cos(aangle) * widthPerCane / 2 * screenLocation.GetHeight();
+                        if (_reverse) {
+                            Nodes[node]->Coords[c].screenX = x - x2;
+                        }
+                        else {
+                            Nodes[node]->Coords[c].screenX = x + x2;
+                        }
+                        Nodes[node]->Coords[c].screenY = _caneheight * (float)(y * screenLocation.GetHeight() + y2);
+                        rotate_point(ox, 0, angle,
+                            Nodes[node]->Coords[c].screenX,
+                            Nodes[node]->Coords[c].screenY);
+                        curLight++;
                     }
-                    Nodes[node]->Coords[c].screenY = _caneheight * (float)(y * screenLocation.GetHeight() + y2);
-                    rotate_point(ox , 0, angle,
-                        Nodes[node]->Coords[c].screenX,
-                        Nodes[node]->Coords[c].screenY);
-                    curLight++;
+                }
+                else
+                {
+                    auto node = FindNodeAtXY(i, curLight);
+                    for (; c < CoordCount; c++)
+                    {
+                        // drawing left to right
+                        double aangle = M_PI - M_PI * (curLight - upright + 1) / arclights;
+                        double y2 = sin(aangle) * widthPerCane / 2 * screenLocation.GetHeight();
+                        double x2 = cos(aangle) * widthPerCane / 2 * screenLocation.GetHeight();
+                        if (node == -1)
+                        {
+                            logger_base.error("Candy Cane buffer x,y %d, %d not found.", i, curLight);
+                        }
+                        else
+                        {
+                            if (_reverse) {
+                                Nodes[node]->Coords[c].screenX = x - x2;
+                            }
+                            else {
+                                Nodes[node]->Coords[c].screenX = x + x2;
+                            }
+                            Nodes[node]->Coords[c].screenY = _caneheight * (float)(y * screenLocation.GetHeight() + y2);
+                            rotate_point(ox, 0, angle,
+                                Nodes[node]->Coords[c].screenX,
+                                Nodes[node]->Coords[c].screenY);
+                        }
+                        curLight++;
+                    }
                 }
                 curNode++;
             }
