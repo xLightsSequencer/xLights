@@ -2,6 +2,7 @@
 
 #include <map>
 #include <string.h>
+#include <cctype>
 
 #include <curl/curl.h>
 
