@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2019.50 September 14, 2019
+   -- bug (keith)  Fix issues with single channel candy canes and polylines
 2019.49 September 13, 2019
    -- enh (scott)  Added Import From Model/File to Faces and States Dialog.
    -- enh (scott)  Added Import From Submodel to Faces and States Dialog.
