@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (gil)    Fix Marquee rendering on Single Lines to work like prior to 2019.12.
 2019.50 September 14, 2019
    -- bug (keith)  Fix issues with single channel candy canes and polylines
 2019.49 September 13, 2019
