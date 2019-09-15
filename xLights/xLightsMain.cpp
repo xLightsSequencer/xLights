@@ -2368,7 +2368,12 @@ void xLightsFrame::OnIdle(wxIdleEvent& event) {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("Idle event called");
     Unbind(wxEVT_IDLE, &xLightsFrame::OnIdle,this);
-    CheckForUpdate(false);
+ 
+    // dont check for updates if batch rendering
+    if (!_renderMode)
+    {
+        CheckForUpdate(false);
+    }
 }
 
 void xLightsFrame::DoMenuAction(wxMenuEvent &evt) {
