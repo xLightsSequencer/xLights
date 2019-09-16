@@ -1879,41 +1879,41 @@ void xLightsFrame::OnNetworkPopup(wxCommandEvent &event)
     } else if (id == ID_NETWORK_UCOESPIXELSTICK) {
         UploadESPixelStickOutput();
     } else if (id == ID_NETWORK_UCOFPP_F4B) {
-        UploadFPPStringOuputs("F4-B");
+        UploadFPPStringOutputs("F4-B");
     } else if (id == ID_NETWORK_UCOFPP_F8B) {
-        UploadFPPStringOuputs("F8-B");
+        UploadFPPStringOutputs("F8-B");
     } else if (id == ID_NETWORK_UCOFPP_F8B_16) {
-        UploadFPPStringOuputs("F8-B-16");
+        UploadFPPStringOutputs("F8-B-16");
     } else if (id == ID_NETWORK_UCOFPP_F8B_20) {
-        UploadFPPStringOuputs("F8-B-20");
+        UploadFPPStringOutputs("F8-B-20");
     } else if (id == ID_NETWORK_UCOFPP_F8B_EXP) {
-        UploadFPPStringOuputs("F8-B-EXP");
+        UploadFPPStringOutputs("F8-B-EXP");
     } else if (id == ID_NETWORK_UCOFPP_F8B_EXP_32) {
-        UploadFPPStringOuputs("F8-B-EXP-32");
+        UploadFPPStringOutputs("F8-B-EXP-32");
     } else if (id == ID_NETWORK_UCOFPP_F8B_EXP_36) {
-        UploadFPPStringOuputs("F8-B-EXP-36");
+        UploadFPPStringOutputs("F8-B-EXP-36");
     } else if (id == ID_NETWORK_UCOFPP_F16B) {
-        UploadFPPStringOuputs("F16-B");
+        UploadFPPStringOutputs("F16-B");
     } else if (id == ID_NETWORK_UCOFPP_F16B_32) {
-        UploadFPPStringOuputs("F16-B-32");
+        UploadFPPStringOutputs("F16-B-32");
     } else if (id == ID_NETWORK_UCOFPP_F16B_48) {
-        UploadFPPStringOuputs("F16-B-48");
+        UploadFPPStringOutputs("F16-B-48");
     } else if (id == ID_NETWORK_UCOFPP_F32B) {
-        UploadFPPStringOuputs("F32-B");
+        UploadFPPStringOutputs("F32-B");
     } else if (id == ID_NETWORK_UCOFPP_F32B_48) {
-        UploadFPPStringOuputs("F32-B-48");
+        UploadFPPStringOutputs("F32-B-48");
     } else if (id == ID_NETWORK_UCOFPP_RGBCape24) {
-        UploadFPPStringOuputs("RGBCape24");
+        UploadFPPStringOutputs("RGBCape24");
     } else if (id == ID_NETWORK_UCOFPP_RGBCape48C) {
-        UploadFPPStringOuputs("RGBCape48C");
+        UploadFPPStringOutputs("RGBCape48C");
     } else if (id == ID_NETWORK_UCOFPP_RGBCape48F) {
-        UploadFPPStringOuputs("RGBCape48F");
+        UploadFPPStringOutputs("RGBCape48F");
 	} else if (id == ID_NETWORK_UCOFPP_PB16) {
-		UploadFPPStringOuputs("PB16");
+		UploadFPPStringOutputs("PB16");
 	} else if (id == ID_NETWORK_UCOFPP_PB16_EXP) {
-		UploadFPPStringOuputs("PB16-EXP");
+		UploadFPPStringOutputs("PB16-EXP");
     } else if (id == ID_NETWORK_UCOFPP_PIHAT) {
-        UploadFPPStringOuputs("PiHat");
+        UploadFPPStringOutputs("PiHat");
     } else if (id == ID_NETWORK_UCOPIXLITE16) {
         UploadPixlite16Output();
     } else if (id == ID_NETWORK_PROXY_OUTPUT) {
@@ -1935,7 +1935,7 @@ void xLightsFrame::OnNetworkPopup(wxCommandEvent &event)
         Output *selected = _outputManager.GetOutput(item);
         const ControllerRules * rules = ControllerRegistry::GetRulesForController(selected->GetControllerId());
         if (rules->GetControllerManufacturer() == "FPP") {
-            UploadFPPStringOuputs(rules->GetControllerId());
+            UploadFPPStringOutputs(rules->GetControllerId());
         } else if (rules->GetControllerManufacturer() == "Falcon") {
             UploadFalconOutput();
         } else if (rules->GetControllerManufacturer() == "ESPixelStick") {
@@ -2237,7 +2237,7 @@ void xLightsFrame::UploadFPPProxyOuputs() {
 
 }
 
-void xLightsFrame::UploadFPPStringOuputs(const std::string &controller) {
+void xLightsFrame::UploadFPPStringOutputs(const std::string &controller) {
     SetStatusText("");
     const PixelCapeInfo &ci = FPP::GetCapeRules(controller);
     if (wxMessageBox("This will upload the output controller configuration for a " + ci.description

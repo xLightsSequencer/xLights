@@ -4932,6 +4932,11 @@ std::string Model::GetControllerProtocol() const
     return s.ToStdString();
 }
 
+int Model::GetControllerDMXChannel() const
+{
+    return wxAtoi(GetControllerConnection()->GetAttribute("channel", "1"));
+}
+
 int Model::GetControllerPort(int string) const
 {
     wxString p = wxString::Format("%d", string);

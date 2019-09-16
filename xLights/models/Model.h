@@ -233,6 +233,7 @@ public:
     void SetControllerPort(int port);
     std::string GetControllerName() const;
     std::string GetControllerProtocol() const;
+    int GetControllerDMXChannel() const;
     int GetSmartRemote() const;
     int GetControllerPort(int string = 1) const;
     void SetModelChain(const std::string& modelChain);

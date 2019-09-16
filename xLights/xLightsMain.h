@@ -1179,7 +1179,7 @@ public:
     void UploadJ1SYSOutput();
     void UploadESPixelStickOutput();
     void UploadPixlite16Output();
-    void UploadFPPStringOuputs(const std::string &controllers);
+    void UploadFPPStringOutputs(const std::string &controllers);
     void UploadFPPProxyOuputs();
 	void PingController(Output* e);
     void SetModelData(ZCPPOutput* zcpp, ModelManager* modelManager, OutputManager* outputManager, std::string showDir);
