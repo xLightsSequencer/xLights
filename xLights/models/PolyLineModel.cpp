@@ -870,6 +870,7 @@ int PolyLineModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropert
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "PolyLineModel::OnPropertyGridChange::PolyLineNodes");
         AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "PolyLineModel::OnPropertyGridChange::PolyLineNodes");
         AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "PolyLineModel::OnPropertyGridChange::PolyLineNodes");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "PolyLineModel::OnPropertyGridChange::PolyLineNodes");
         return 0;
     } else if ("PolyLineLights" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm3");
@@ -962,6 +963,7 @@ int PolyLineModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropert
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "PolyLineModel::OnPropertyGridChange::IciclesDrops");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "PolyLineModel::OnPropertyGridChange::IciclesDrops");
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "PolyLineModel::OnPropertyGridChange::IciclesDrops");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "PolyLineModel::OnPropertyGridChange::IciclesDrops");
         return 0;
     } else if ("AlternateNodes" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("AlternateNodes");
