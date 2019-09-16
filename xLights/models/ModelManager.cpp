@@ -66,6 +66,11 @@ bool ModelManager::IsModelValid(Model* m) const
     for (auto& it : models)
     {
         if (it.second == m) return true;
+
+        for (auto it2 : it.second->GetSubModels())
+        {
+            if (it2 == m) return true;
+        }
     }
     return false;
 }

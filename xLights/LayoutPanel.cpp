@@ -1421,7 +1421,14 @@ void LayoutPanel::UpdateModelsForPreview(const std::string &group, LayoutGroup* 
                         if (mark_selected) {
                             if (selectedBaseObject == nullptr)
                             {
-                                SelectModel(m, false);
+                                // This code here used to choose the first model in the group
+                                // which was great if you wanted to align to that model but it causes
+                                // problems when trying to display the selected submodels.
+                                // Given the model selected to the user was essentially random it is
+                                // of limited value (and they can always shift click to select a particular
+                                // model for alignment so i am removing this and setting it to the group
+                                // itself
+                                SelectModel(model, false);
                             }
                             m->GroupSelected = true;
                             m->Highlighted = true;

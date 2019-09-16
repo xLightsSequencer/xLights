@@ -397,9 +397,52 @@ void ModelPreview::render(wxPaintEvent& event)
     }
 }
 
+void ModelPreview::RenderModels(const std::vector<Model*>& models, bool isModelSelected)
+{
+    const xlColor* defColor = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_MODEL_DEFAULT);
+    const xlColor* selColor = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_MODEL_SELECTED);
+    const xlColor* overlapColor = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_MODEL_OVERLAP);
+    for (auto m : models) {
+        if (xlights->AllModels.IsModelValid(m) || xlights->IsNewModel(m)) { // this IsModelValid should not be necessary but we are getting crashes due to invalid models
+            const xlColor* color = defColor;
+            if (m->Selected || m->GroupSelected) {
+                color = selColor;
+            }
+            else if (m->Overlapping && isModelSelected) {
+                color = overlapColor;
+            }
+            if (!allowSelected) {
+                color = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_MODEL_DEFAULT);
+            }
+
+            if (m->GetDisplayAs() == "SubModel" && !m->GroupSelected)
+            {
+                // we dont display submodels if they are not selected
+            }
+            else
+            {
+                if (is_3d) {
+                    m->DisplayModelOnWindow(this, solidAccumulator3d, transparentAccumulator3d, true, color, allowSelected);
+                }
+                else {
+                    m->DisplayModelOnWindow(this, solidAccumulator, transparentAccumulator, false, color, allowSelected);
+                    // FIXME:  Delete when not needed for debugging
+                    //if ((*PreviewModels)[i]->Highlighted) {
+                    //    (*PreviewModels)[i]->GetModelScreenLocation().DrawBoundingBox(accumulator);
+                    //}
+                }
+            }
+        }
+        else
+        {
+            wxASSERT(false); // why did we get here
+        }
+    }
+}
+
 void ModelPreview::Render()
 {
-    const std::vector<Model*> &models = GetModels();
+    const std::vector<Model*>& models = GetModels();
     if (!models.empty()) {
         bool isModelSelected = false;
         for (auto m : models) {
@@ -414,42 +457,13 @@ void ModelPreview::Render()
                 wxASSERT(false); // why did we get here
             }
         }
-        const xlColor *defColor = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_MODEL_DEFAULT);
-        const xlColor *selColor = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_MODEL_SELECTED);
-        const xlColor *overlapColor = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_MODEL_OVERLAP);
-        for (auto m : models) {
-            if (xlights->AllModels.IsModelValid(m) || xlights->IsNewModel(m)) { // this IsModelValid should not be necessary but we are getting crashes due to invalid models
-                const xlColor* color = defColor;
-                if (m->Selected || m->GroupSelected) {
-                    color = selColor;
-                }
-                else if (m->Overlapping && isModelSelected) {
-                    color = overlapColor;
-                }
-                if (!allowSelected) {
-                    color = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_MODEL_DEFAULT);
-                }
-                if (is_3d) {
-                    m->DisplayModelOnWindow(this, solidAccumulator3d, transparentAccumulator3d, true, color, allowSelected);
-                }
-                else {
-                    m->DisplayModelOnWindow(this, solidAccumulator, transparentAccumulator, false, color, allowSelected);
-                    // FIXME:  Delete when not needed for debugging
-                    //if ((*PreviewModels)[i]->Highlighted) {
-                    //    (*PreviewModels)[i]->GetModelScreenLocation().DrawBoundingBox(accumulator);
-                    //}
-                }
-            }
-            else
-            {
-                wxASSERT(false); // why did we get here
-            }
-        }
+        RenderModels(models, isModelSelected);
     }
+
     // draw all the view objects
     if (is_3d) {
         for (auto it = xlights->AllObjects.begin(); it != xlights->AllObjects.end(); ++it) {
-            ViewObject *view_object = it->second;
+            ViewObject* view_object = it->second;
             view_object->Draw(this, solidViewObjectAccumulator, transparentViewObjectAccumulator, allowSelected);
         }
     }
