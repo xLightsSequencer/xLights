@@ -137,6 +137,7 @@ class ModelFaceDialog: public wxDialog
     wxString getSubmodelNodes(Model* sm);
     void ImportFaces(const wxString& filename);
     void ImportFacesFromModel();
+    void AddFaces(std::map<std::string, std::map<std::string, std::string> > faces);
     wxArrayString getModelList(ModelManager* modelManager);
 };
 

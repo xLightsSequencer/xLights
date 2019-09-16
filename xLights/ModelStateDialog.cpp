@@ -851,20 +851,8 @@ void ModelStateDialog::ImportStatesFromModel()
             return;
         }
 
-        for (const auto& state : m->stateInfo)
-        {
-            auto fname = state.first;
-            const auto basefname = fname;
-            int suffix = 1;
-            while (NameChoice->FindString(fname) != wxNOT_FOUND)
-            {
-                fname = wxString::Format("%s-%d", basefname, suffix);
-                suffix++;
-            }
-            NameChoice->Append(fname);
-            stateData[fname] = state.second;
+        AddStates(m->stateInfo);
 
-        }
         NameChoice->Enable();
         StateTypeChoice->Enable();
         DeleteButton->Enable();
@@ -893,20 +881,12 @@ void ModelStateDialog::ImportStates(const wxString & filename)
                 {
                     std::map<std::string, std::map<std::string, std::string> > stateInfo;
                     Model::ParseStateInfo(n, stateInfo);
-                    for (const auto& state : stateInfo)
+                    if (stateInfo.size() == 0)
                     {
-                        auto fname = state.first;
-                        const auto basefname = fname;
-                        int suffix = 1;
-                        while (NameChoice->FindString(fname) != wxNOT_FOUND)
-                        {
-                            fname = wxString::Format("%s-%d", basefname, suffix);
-                            suffix++;
-                        }
-                        stateFound = true;
-                        NameChoice->Append(fname);
-                        stateData[fname] = state.second;
+                        continue;
                     }
+                    stateFound = true;
+                    AddStates(stateInfo);
                 }
             }
         }
@@ -929,6 +909,46 @@ void ModelStateDialog::ImportStates(const wxString & filename)
     else
     {
         DisplayError(filename + " Failure loading xModel file.");
+    }
+}
+
+void ModelStateDialog::AddStates(std::map<std::string, std::map<std::string, std::string> > states)
+{
+    bool overRide = false;
+    bool showDialog = true;
+
+    for (const auto& state : states)
+    {
+        auto fname = state.first;
+
+        if (NameChoice->FindString(fname) != wxNOT_FOUND)
+        {
+            if (showDialog)
+            {
+                wxMessageDialog confirm(this, _("State(s) with the Same Name Already Exist.\n Would you Like to Override Them ALL?"), _("Override States"), wxYES_NO);
+                int returnCode = confirm.ShowModal();
+                if (returnCode == wxID_YES)
+                    overRide = true;
+                showDialog = false;
+            }
+            if (!overRide)
+            {
+                const auto basefname = fname;
+                int suffix = 1;
+                while (NameChoice->FindString(fname) != wxNOT_FOUND)
+                {
+                    fname = wxString::Format("%s-%d", basefname, suffix);
+                    suffix++;
+                }
+                NameChoice->Append(fname);
+            }
+        }
+        else
+        {
+            NameChoice->Append(fname);
+        }
+
+        stateData[fname] = state.second;
     }
 }
 

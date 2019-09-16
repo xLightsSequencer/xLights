@@ -118,6 +118,7 @@ class ModelStateDialog: public wxDialog
     wxString getSubmodelNodes(Model* sm);
     void ImportStates(const wxString& filename);
     void ImportStatesFromModel();
+    void AddStates(std::map<std::string, std::map<std::string, std::string> > states);
     wxArrayString getModelList(ModelManager* modelManager);
 };
 

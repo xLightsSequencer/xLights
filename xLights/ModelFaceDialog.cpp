@@ -1234,19 +1234,7 @@ void ModelFaceDialog::ImportFacesFromModel()
             return;
         }
 
-        for (const auto& face : m->faceInfo)
-        {
-            auto fname = face.first;
-            const auto basefname = fname;
-            int suffix = 1;
-            while (NameChoice->FindString(fname) != wxNOT_FOUND)
-            {
-                fname = wxString::Format("%s-%d", basefname, suffix);
-                suffix++;
-            }
-            NameChoice->Append(fname);
-            faceData[fname] = face.second;
-        }
+        AddFaces(m->faceInfo);
 
         NameChoice->Enable();
         FaceTypeChoice->Enable();
@@ -1275,20 +1263,12 @@ void ModelFaceDialog::ImportFaces(const wxString& filename)
                 {
                     std::map<std::string, std::map<std::string, std::string> > faceInfo;
                     Model::ParseFaceInfo(n, faceInfo);
-                    for (const auto& face: faceInfo)
+                    if (faceInfo.size() == 0)
                     {
-                        auto fname = face.first;
-                        const auto basefname = fname;
-                        int suffix = 1;
-                        while (NameChoice->FindString(fname) != wxNOT_FOUND)
-                        {
-                            fname = wxString::Format("%s-%d", basefname, suffix);
-                            suffix++;
-                        }
-                        facesFound = true;
-                        NameChoice->Append(fname);
-                        faceData[fname] = face.second;
+                        continue;
                     }
+                    facesFound = true;
+                    AddFaces(faceInfo);
                 }
             }
         }
@@ -1310,6 +1290,46 @@ void ModelFaceDialog::ImportFaces(const wxString& filename)
     else
     {
         DisplayError(filename + " Failure loading xModel file.");
+    }
+}
+
+void ModelFaceDialog::AddFaces(std::map<std::string, std::map<std::string, std::string> > faces)
+{
+    bool overRide = false;
+    bool showDialog = true;
+
+    for (const auto& face : faces)
+    {
+        auto fname = face.first;
+
+        if (NameChoice->FindString(fname) != wxNOT_FOUND)
+        {
+            if (showDialog)
+            {
+                wxMessageDialog confirm(this, _("Faces(s) with the Same Name Already Exist.\n Would you Like to Override Them ALL?"), _("Override Faces"), wxYES_NO);
+                int returnCode = confirm.ShowModal();
+                if (returnCode == wxID_YES)
+                    overRide = true;
+                showDialog = false;
+            }
+            if (!overRide)
+            {
+                const auto basefname = fname;
+                int suffix = 1;
+                while (NameChoice->FindString(fname) != wxNOT_FOUND)
+                {
+                    fname = wxString::Format("%s-%d", basefname, suffix);
+                    suffix++;
+                }
+                NameChoice->Append(fname);
+            }
+        }
+        else
+        {
+            NameChoice->Append(fname);
+        }
+
+        faceData[fname] = face.second;
     }
 }
 
