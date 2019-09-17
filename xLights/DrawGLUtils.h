@@ -166,20 +166,43 @@ namespace DrawGLUtils
         void AddVertex(float x, float y, const xlColor &c) {
             AddVertex(x, y, 0, c);
         }
-        void AddVertex(float x, float y, float z, const xlColor &c) {
-            PreAlloc(1);
-            int i = count*coordsPerVertex;
-            vertices[i++] = x;
-            vertices[i++] = y;
-            if (coordsPerVertex == 3) {
-                vertices[i] = z;
+        void AddVertex(float x, float y, float z, const xlColor &c, bool replace = false) {
+
+            bool found = false;
+            if (replace)
+            {
+                for (int i = 0; i < count; i ++)
+                {
+                    int base = i * coordsPerVertex;
+                    if (vertices[base] == x && vertices[base + 1] == y && (coordsPerVertex == 2 || vertices[base + 2] == z))
+                    {
+                        found = true;
+                        base = i * 4;
+                        colors[base] = c.Red();
+                        colors[base+1] = c.Green();
+                        colors[base+2] = c.Blue();
+                        colors[base+3] = c.Alpha();
+                        return;
+                    }
+                }
             }
-            i = count*4;
-            colors[i++] = c.Red();
-            colors[i++] = c.Green();
-            colors[i++] = c.Blue();
-            colors[i] = c.Alpha();
-            count++;
+
+            if (!found)
+            {
+                PreAlloc(1);
+                int i = count * coordsPerVertex;
+                vertices[i++] = x;
+                vertices[i++] = y;
+                if (coordsPerVertex == 3) {
+                    vertices[i] = z;
+                }
+                i = count * 4;
+                colors[i++] = c.Red();
+                colors[i++] = c.Green();
+                colors[i++] = c.Blue();
+                colors[i] = c.Alpha();
+                count++;
+            }
         }
 
         
@@ -221,7 +244,7 @@ namespace DrawGLUtils
         void AddTrianglesCircle(float x, float y, float z, float radius, const xlColor &center, const xlColor &edge);
         void AddTrianglesCircle(float ox, float oy, float oz, float radius,
                                 const xlColor &center, const xlColor &edge,
-                                std::function<void(float &x, float &y, float &z)> &&translateFunction);
+                                std::function<void(float &x, float &y, float &z)> &&translateFunction, bool replace = false);
 
 
         uint8_t *colors;

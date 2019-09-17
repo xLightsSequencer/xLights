@@ -4086,6 +4086,8 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumula
     int buffLast = -1;
     bool left = true;
 
+    bool replaceVertices = allowSelected && GroupSelected && DisplayAs == "SubModel";
+
     while (first < last) {
         int n;
         if (left) {
@@ -4133,7 +4135,7 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumula
             
                 xlColor c3(color);
                 ApplyTransparency(c3, transparency, blackTransparency);
-                va.AddVertex(sx, sy, sz, c3);
+                va.AddVertex(sx, sy, sz, c3, replaceVertices);
             } else {
                 xlColor ccolor(color);
                 xlColor ecolor(color);
@@ -4146,7 +4148,7 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumula
                 va.AddTrianglesCircle(sx, sy, sz, ((float)pixelSize) / 2.0f, ccolor, ecolor,
                                       [this](float &x, float &y, float &z) {
                                           GetModelScreenLocation().TranslatePoint(x, y, z);
-                                      });;
+                                      }, replaceVertices);
             }
         }
     }

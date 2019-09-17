@@ -1223,9 +1223,10 @@ void DrawGLUtils::xlVertexColorAccumulator::AddTrianglesCircle(float cx, float c
         AddVertex(cx, cy, cz, center);
     }
 }
+
 void DrawGLUtils::xlVertexColorAccumulator::AddTrianglesCircle(float ocx, float ocy, float ocz, float radius,
                                                                const xlColor &center, const xlColor &edge,
-                                                               std::function<void(float &x, float &y, float &z)> &&translateFunction) {
+                                                               std::function<void(float &x, float &y, float &z)> &&translateFunction, bool replace) {
     int num_segments = radius;
     if (num_segments < 16) {
         num_segments = 16;
@@ -1254,13 +1255,12 @@ void DrawGLUtils::xlVertexColorAccumulator::AddTrianglesCircle(float ocx, float 
     float x = radius;//we start at angle = 0
     float y = 0;
     
-    
     for(int ii = 0; ii < num_segments; ii++) {
         tx = x + ocx;
         ty = y + ocy;
         tz = ocz;
         translateFunction(tx, ty, tz);
-        AddVertex(tx, ty, tz, edge);
+        AddVertex(tx, ty, tz, edge, replace);
         //calculate the tangential vector
         //remember, the radial vector is (x, y)
         //to get the tangential vector we flip those coordinates and negate one of them
@@ -1276,10 +1276,11 @@ void DrawGLUtils::xlVertexColorAccumulator::AddTrianglesCircle(float ocx, float 
         ty = y + ocy;
         tz = ocz;
         translateFunction(tx, ty, tz);
-        AddVertex(tx, ty, tz, edge);
-        AddVertex(cx, cy, cz, center);
+        AddVertex(tx, ty, tz, edge, replace);
+        AddVertex(cx, cy, cz, center, replace);
     }
 }
+
 void DrawGLUtils::xlVertexColorAccumulator::AddTrianglesRotatedCircle(float cx, float cy, float cz, glm::vec3 rotation, float radius, const xlColor &center, const xlColor &edge)
 {
     int num_segments = radius;
