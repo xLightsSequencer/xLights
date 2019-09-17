@@ -111,7 +111,7 @@ public:
 
     bool IsNoCurrentModel() { return currentModel == "&---none---&"; }
     void SetRenderOrder(int i) { renderOrder = i; Refresh(); }
-    
+
     void AddBoundingBoxToAccumulator(int x1, int y1, int x2, int y2);
 protected:
     virtual void InitializeGLCanvas() override;
@@ -138,9 +138,9 @@ private:
     //void mouseReleased(wxMouseEvent& event);
 	void rightClick(wxMouseEvent& event);
 	void mouseLeftWindow(wxMouseEvent& event);
-    
+
     void OnZoomGesture(wxZoomGestureEvent& event);
-    
+
     void OnPopup(wxCommandEvent& event);
 	void drawGrid(float size, float step);
     void OnSysColourChanged(wxSysColourChangedEvent& event);

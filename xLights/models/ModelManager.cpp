@@ -193,24 +193,27 @@ void ModelManager::LoadModels(wxXmlNode *modelNode, int previewW, int previewH) 
             }
         }
     }
-    while (countValid != models.size()) {
-        int newCountValid = 0;
-        for (auto it = models.begin(); it != models.end(); ++it) {
-            if (!it->second->CouldComputeStartChannel) {
-                it->second->SetFromXml(it->second->GetModelXml());
-                newCountValid += it->second->CouldComputeStartChannel ? 1 : 0;
-            } else {
-                newCountValid++;
-            }
-        }
-        if (countValid == newCountValid) {
-            DisplayStartChannelCalcWarning();
 
-            //nothing improved
-            return;
-        }
-        countValid = newCountValid;
-    }
+    RecalcStartChannels();
+
+    //while (countValid != models.size()) {
+    //    int newCountValid = 0;
+    //    for (auto it = models.begin(); it != models.end(); ++it) {
+    //        if (!it->second->CouldComputeStartChannel) {
+    //            it->second->SetFromXml(it->second->GetModelXml());
+    //            newCountValid += it->second->CouldComputeStartChannel ? 1 : 0;
+    //        } else {
+    //            newCountValid++;
+    //        }
+    //    }
+    //    if (countValid == newCountValid) {
+    //        DisplayStartChannelCalcWarning();
+
+    //        //nothing improved
+    //        return;
+    //    }
+    //    countValid = newCountValid;
+    //}
 }
 
 uint32_t ModelManager::GetLastChannel() const {

@@ -223,7 +223,7 @@ bool ModelGroup::RemoveNonExistentModels(wxXmlNode* node, const std::list<std::s
         }
     }
 
-    if (changed) {
+    if (changed && modelsRemoved != "") {
         node->DeleteAttribute("models");
         node->AddAttribute("models", models);
         DisplayWarning("Could not process model group " + name
