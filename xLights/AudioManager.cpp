@@ -2314,6 +2314,7 @@ void AudioManager::DoLoadAudioData(AVFormatContext* formatContext, AVCodecContex
 						av_free(out_buffer);
 						av_frame_free(&frame);
                         avformat_close_input(&formatContext);
+                        std::unique_lock<std::shared_timed_mutex> locker(_mutexAudioLoad);
                         _trackSize = _loadedData; // makes it looks like we are done
                         return;
 					}
@@ -2399,6 +2400,7 @@ void AudioManager::DoLoadAudioData(AVFormatContext* formatContext, AVCodecContex
 					av_free(out_buffer);
 					av_frame_free(&frame);
                     avformat_close_input(&formatContext);
+                    std::unique_lock<std::shared_timed_mutex> locker(_mutexAudioLoad);
                     _trackSize = _loadedData; // makes it looks like we are done
                     return;
 				}
@@ -2439,7 +2441,9 @@ void AudioManager::DoLoadAudioData(AVFormatContext* formatContext, AVCodecContex
 	}
 
 #ifdef RESAMPLE_RATE
+    std::unique_lock<std::shared_timed_mutex> locker(_mutexAudioLoad);
     _trackSize = _loadedData;
+    locker.unlock();
 #endif
     wxASSERT(_trackSize == _loadedData);
 

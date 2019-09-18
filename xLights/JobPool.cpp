@@ -32,9 +32,9 @@ const std::string Job::EMPTY_STRING = "";
 class JobPoolWorker
 {
     JobPool *pool;
-    volatile bool stopped;
+    std::atomic_bool stopped;
     std::atomic<Job  *> currentJob;
-    enum {
+    enum STATUS_TYPE {
         STARTING,
         IDLE,
         RUNNING_JOB,
@@ -42,7 +42,8 @@ class JobPoolWorker
         FINISHED_JOB,
         STOPPED,
         UNKNOWN
-    } status;
+    };
+    std::atomic<STATUS_TYPE> status;
     std::thread *thread;
     std::thread::id tid;
 public:
@@ -272,7 +273,7 @@ void JobPoolWorker::ProcessJob(Job *job)
 	}
 }
 
-JobPool::JobPool(const std::string &n) : threadLock(false), queueLock(), signal(), queue(), numThreads(0), maxNumThreads(8),  idleThreads(0), inFlight(0), threadNameBase(n)
+JobPool::JobPool(const std::string &n) : threadLock(), queueLock(), signal(), queue(), numThreads(0), maxNumThreads(8),  idleThreads(0), inFlight(0), threadNameBase(n)
 {
 }
 
@@ -289,12 +290,12 @@ JobPool::~JobPool()
 }
 
 void JobPool::LockThreads() {
-    while (threadLock.exchange(true, std::memory_order_relaxed)) std::this_thread::yield();
+    threadLock.lock();
     std::atomic_thread_fence(std::memory_order_acquire);
 }
 void JobPool::UnlockThreads() {
     std::atomic_thread_fence(std::memory_order_release);
-    threadLock.store(false, std::memory_order_relaxed);
+    threadLock.unlock();
 }
 
 void JobPool::RemoveWorker(JobPoolWorker *w) {

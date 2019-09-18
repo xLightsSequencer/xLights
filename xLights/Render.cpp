@@ -644,13 +644,13 @@ public:
         try {
             //for (int layer = 0; layer < numLayers; ++layer) {
             for (int layer = numLayers - 1; layer >= 0; --layer) {
-                wxString msg = wxString::Format("Finding starting effect for %s, layer %d and startFrame %d", name, layer, startFrame) + PrintStatusMap();
+                wxString msg = wxString::Format("Finding starting effect for %s, layer %d and startFrame %d", name, layer, (int)startFrame) + PrintStatusMap();
                 SetStatus(msg);
                 
                 EffectLayer *elayer = rowToRender->GetEffectLayer(layer);
                 std::unique_lock<std::recursive_mutex> elock(elayer->GetLock());
                 mainModelInfo.currentEffects[layer] = findEffectForFrame(elayer, startFrame, mainModelInfo.currentEffectIdxs[layer]);
-                msg = wxString::Format("Initializing starting effect for %s, layer %d and startFrame %d", name, layer, startFrame) + PrintStatusMap();
+                msg = wxString::Format("Initializing starting effect for %s, layer %d and startFrame %d", name, layer, (int)startFrame) + PrintStatusMap();
                 SetStatus(msg);
                 initialize(layer, startFrame, mainModelInfo.currentEffects[layer], mainModelInfo.settingsMaps[layer], mainBuffer);
                 mainModelInfo.effectStates[layer] = true;
@@ -685,7 +685,7 @@ public:
                 if (!subModelInfos.empty()) {
                     for (auto a = subModelInfos.begin(); a != subModelInfos.end(); ++a) {
                         EffectLayerInfo *info = *a;
-                        cleared |= ProcessFrame(frame, info->element, *info, info->buffer.get(), info->strand, supportsModelBlending ? true : cleared);
+                        ProcessFrame(frame, info->element, *info, info->buffer.get(), info->strand, supportsModelBlending ? true : cleared);
                     }
                 }
                 if (!nodeBuffers.empty()) {
@@ -826,10 +826,10 @@ private:
 
     ModelElement *rowToRender;
     std::string name;
-    int startFrame;
-    int endFrame;
     PixelBufferClass *mainBuffer;
     int numLayers;
+    std::atomic_int startFrame;
+    std::atomic_int endFrame;
     xLightsFrame *xLights;
     SequenceData *seqData;
     std::vector<bool> rangeRestriction;
@@ -936,18 +936,14 @@ void xLightsFrame::LogRenderStatus()
     logger_base.debug("Logging render status ***************");
     logger_base.debug("Render tree size. %d entries.", renderTree.data.size());
     logger_base.debug("Render Thread status:\n%s", (const char *)GetThreadStatusReport().c_str());
-    for (auto it : renderProgressInfo)
-    {
+    for (auto it : renderProgressInfo) {
         int frames = it->endFrame - it->startFrame + 1;
         logger_base.debug("Render progress rows %d, start frame %d, end frame %d, frames %d.", it->numRows, it->startFrame, it->endFrame, frames);
-        for (int i = 0; i < it->numRows; i++)
-        {
-            if (it->jobs[i] != nullptr)
-            {
+        for (int i = 0; i < it->numRows; i++) {
+            if (it->jobs[i] != nullptr) {
                 auto job = it->jobs[i];
                 int curFrame = job->GetCurrentFrame();
-                if (curFrame > it->endFrame || curFrame == END_OF_RENDER_FRAME)
-                {
+                if (curFrame > it->endFrame || curFrame == END_OF_RENDER_FRAME) {
                     curFrame = it->endFrame;
                 }
 
@@ -957,11 +953,10 @@ void xLightsFrame::LogRenderStatus()
 
                 bool blocked = job->GetwxStatus().StartsWith("Initializing rendering thread");
                 auto row = job->GetModelElement();
-                if (row != nullptr)
-                {
-                    logger_base.debug("             Element %s, Blocked %d, Wait Count %d.", (const char *)row->GetModelName().c_str(), blocked,
-                    row->GetWaitCount()
-                        );
+                if (row != nullptr) {
+                    logger_base.debug("             Element %s, Blocked %d, Wait Count %d.",
+                                      (const char *)row->GetModelName().c_str(), blocked,
+                                      row->GetWaitCount());
                 }
             }
         }
@@ -1104,8 +1099,7 @@ public:
     RenderTreeData(Model *e): model(e) {
 
         static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        if (e == nullptr)
-        {
+        if (e == nullptr) {
             logger_base.crit("Render tree has a null model ... this is not going to end well.");
         }
 
@@ -1266,17 +1260,13 @@ void xLightsFrame::Render(const std::list<Model*> models,
 
         Element *rowEl = mSequenceElements.GetElement((*it)->GetName());
 
-        if (rowEl == nullptr)
-        {
+        if (rowEl == nullptr) {
             //logger_base.crit("xLightsFrame::Render rowEl is nullptr ... this is going to crash looking for '%s'.", (const char *)(*it)->GetName().c_str());
-        }
-        else
-        {
+        } else {
             if (rowEl->GetType() == ELEMENT_TYPE_MODEL) {
                 ModelElement *me = dynamic_cast<ModelElement *>(rowEl);
 
-                if (me == nullptr)
-                {
+                if (me == nullptr) {
                     logger_base.crit("xLightsFrame::Render me is nullptr ... this is going to crash.");
                 }
 
@@ -1285,8 +1275,7 @@ void xLightsFrame::Render(const std::list<Model*> models,
                 if (hasEffects || (isRestricted && clear)) {
                     RenderJob *job = new RenderJob(me, SeqData, this, false);
 
-                    if (job == nullptr)
-                    {
+                    if (job == nullptr) {
                         logger_base.crit("xLightsFrame::Render job is nullptr ... this is going to crash.");
                     }
 
@@ -1824,8 +1813,7 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     static log4cpp::Category &logger_render = log4cpp::Category::getInstance(std::string("log_render"));
 
-    if (layer >= buffer.GetLayerCount())
-    {
+    if (layer >= buffer.GetLayerCount()) {
         logger_base.error("Model %s Effect %s at frame %d tried to render on a layer %d that does not exist (Only %d found).", 
             (const char*)buffer.GetModel()->GetName().c_str(), (const char*)effectObj->GetEffectName().c_str(), period, layer+1, buffer.GetLayerCount());
         wxASSERT(false);

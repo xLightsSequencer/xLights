@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (dkulp)  Fix problems of submodel rendering not honoring if "Blend between models" is turned off
+   -- bug (dkulp)  Fix a bunch of undefined behavior warnings from Xcode 11's analyzers
    -- bug (gil)    Fix Marquee rendering on Single Lines to work like prior to 2019.12.
 2019.50 September 14, 2019
    -- bug (keith)  Fix issues with single channel candy canes and polylines

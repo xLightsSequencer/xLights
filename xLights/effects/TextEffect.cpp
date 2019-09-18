@@ -671,7 +671,7 @@ struct CachedTextInfoHasher {
         for (auto a : t.color) {
             h1 ^= a.GetRGB() << 3;
         }
-        h1 ^= (t.rect.x << 8) + (t.rect.y << 16);
+        h1 ^= (std::abs(t.rect.x) << 8) + (std::abs(t.rect.y) << 16);
         return h1;
     }
 };
