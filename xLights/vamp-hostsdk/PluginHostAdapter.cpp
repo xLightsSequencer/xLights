@@ -37,8 +37,9 @@
 #include "PluginHostAdapter.h"
 #include <cstdlib>
 #include <log4cpp/Category.hh>
+#include "Files.h"
 
-#if ( VAMP_SDK_MAJOR_VERSION != 2 || VAMP_SDK_MINOR_VERSION != 6 )
+#if ( VAMP_SDK_MAJOR_VERSION != 2 || VAMP_SDK_MINOR_VERSION != 8 )
 #error Unexpected version of Vamp SDK header included
 #endif
 
@@ -52,15 +53,18 @@ PluginHostAdapter::PluginHostAdapter(const VampPluginDescriptor *descriptor,
     Plugin(inputSampleRate),
     m_descriptor(descriptor)
 {
+//    std::cerr << "PluginHostAdapter::PluginHostAdapter (plugin = " << descriptor->name << ")" << std::endl;
     m_handle = m_descriptor->instantiate(m_descriptor, inputSampleRate);
     if (!m_handle) {
         static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         logger_base.warn("PluginHostAdapter: Plugin instantiation failed for plugin " + std::string(m_descriptor->name));
+//        std::cerr << "WARNING: PluginHostAdapter: Plugin instantiation failed for plugin " << m_descriptor->name << std::endl;
     }
 }
 
 PluginHostAdapter::~PluginHostAdapter()
 {
+//    std::cerr << "PluginHostAdapter::~PluginHostAdapter (plugin = " << m_descriptor->name << ")" << std::endl;
     if (m_handle) m_descriptor->cleanup(m_handle);
 }
 
@@ -71,15 +75,10 @@ PluginHostAdapter::getPluginPath()
     std::vector<std::string> path;
     std::string envPath;
 
-    char *cpath = getenv("VAMP_PATH");
-    if (cpath)
-    {
-        logger_base.info("VAMP_PATH was set to '%s'", cpath);
-        envPath = cpath;
-    }
-    else
-    {
-        logger_base.info("VAMP_PATH was not set.");
+    if (Files::isNonNative32Bit()) {
+        (void)Files::getEnvUtf8("VAMP_PATH_32", envPath);
+    } else {
+        (void)Files::getEnvUtf8("VAMP_PATH", envPath);
     }
 
 #ifdef _WIN32
@@ -96,9 +95,8 @@ PluginHostAdapter::getPluginPath()
 
     if (envPath == "") {
         envPath = DEFAULT_VAMP_PATH;
-        char *chome = getenv("HOME");
-        if (chome) {
-            std::string home(chome);
+        std::string home;
+        if (Files::getEnvUtf8("HOME", home)) {
             std::string::size_type f;
             while ((f = envPath.find("$HOME")) != std::string::npos &&
                     f < envPath.length()) {
@@ -106,9 +104,10 @@ PluginHostAdapter::getPluginPath()
             }
         }
 #ifdef _WIN32
-        char *cpfiles = getenv("ProgramFiles");
-        if (!cpfiles) cpfiles = (char *)"C:\\Program Files";
-        std::string pfiles(cpfiles);
+        std::string pfiles;
+        if (!Files::getEnvUtf8("ProgramFiles", pfiles)) {
+            pfiles = "C:\\Program Files";
+        }
         std::string::size_type f;
         while ((f = envPath.find("%ProgramFiles%")) != std::string::npos &&
                f < envPath.length()) {
@@ -116,7 +115,7 @@ PluginHostAdapter::getPluginPath()
         }
 #endif
     }
-
+    logger_base.info("VAMP_PATH was set to '%s'", (const char *)envPath.c_str());
     std::string::size_type index = 0, newindex = 0;
 
     while ((newindex = envPath.find(PATH_SEPARATOR, index)) < envPath.size()) {
@@ -135,7 +134,11 @@ PluginHostAdapter::initialise(size_t channels,
                               size_t blockSize)
 {
     if (!m_handle) return false;
-    return m_descriptor->initialise(m_handle, channels, stepSize, blockSize) ?
+    return m_descriptor->initialise
+        (m_handle,
+         (unsigned int)channels,
+         (unsigned int)stepSize,
+         (unsigned int)blockSize) ?
         true : false;
 }
 
@@ -329,57 +332,52 @@ PluginHostAdapter::getOutputDescriptors() const
     OutputList list;
     if (!m_handle) {
         logger_base.warn("PluginHostAdapter::getOutputDescriptors: no handle");
+//        std::cerr << "PluginHostAdapter::getOutputDescriptors: no handle " << std::endl;
         return list;
     }
-
-    logger_base.debug("Getting vamp descriptors for " + getName());
-
+    logger_base.debug("Getting vamp descriptors for %s", (const char *)getName().c_str());
     unsigned int count = m_descriptor->getOutputCount(m_handle);
 
     for (unsigned int i = 0; i < count; ++i) {
         VampOutputDescriptor *sd = m_descriptor->getOutputDescriptor(m_handle, i);
-        if (sd != nullptr)
-        {
-            OutputDescriptor d;
-            d.identifier = sd->identifier;
-            d.name = sd->name;
-            d.description = sd->description;
-            d.unit = sd->unit;
-            d.hasFixedBinCount = sd->hasFixedBinCount;
-            d.binCount = sd->binCount;
-            if (d.hasFixedBinCount && sd->binNames) {
-                for (unsigned int j = 0; j < sd->binCount; ++j) {
-                    d.binNames.push_back(sd->binNames[j] ? sd->binNames[j] : "");
-                }
+        OutputDescriptor d;
+        d.identifier = sd->identifier;
+        d.name = sd->name;
+        d.description = sd->description;
+        d.unit = sd->unit;
+        d.hasFixedBinCount = sd->hasFixedBinCount;
+        d.binCount = sd->binCount;
+        if (d.hasFixedBinCount && sd->binNames) {
+            for (unsigned int j = 0; j < sd->binCount; ++j) {
+                d.binNames.push_back(sd->binNames[j] ? sd->binNames[j] : "");
             }
-            d.hasKnownExtents = sd->hasKnownExtents;
-            d.minValue = sd->minValue;
-            d.maxValue = sd->maxValue;
-            d.isQuantized = sd->isQuantized;
-            d.quantizeStep = sd->quantizeStep;
-
-            switch (sd->sampleType) {
-            case vampOneSamplePerStep:
-                d.sampleType = OutputDescriptor::OneSamplePerStep; break;
-            case vampFixedSampleRate:
-                d.sampleType = OutputDescriptor::FixedSampleRate; break;
-            case vampVariableSampleRate:
-                d.sampleType = OutputDescriptor::VariableSampleRate; break;
-            }
-
-            d.sampleRate = sd->sampleRate;
-
-            if (m_descriptor->vampApiVersion >= 2) {
-                d.hasDuration = sd->hasDuration;
-            }
-            else {
-                d.hasDuration = false;
-            }
-
-            list.push_back(d);
-
-            m_descriptor->releaseOutputDescriptor(sd);
         }
+        d.hasKnownExtents = sd->hasKnownExtents;
+        d.minValue = sd->minValue;
+        d.maxValue = sd->maxValue;
+        d.isQuantized = sd->isQuantized;
+        d.quantizeStep = sd->quantizeStep;
+
+        switch (sd->sampleType) {
+        case vampOneSamplePerStep:
+            d.sampleType = OutputDescriptor::OneSamplePerStep; break;
+        case vampFixedSampleRate:
+            d.sampleType = OutputDescriptor::FixedSampleRate; break;
+        case vampVariableSampleRate:
+            d.sampleType = OutputDescriptor::VariableSampleRate; break;
+        }
+
+        d.sampleRate = sd->sampleRate;
+
+        if (m_descriptor->vampApiVersion >= 2) {
+            d.hasDuration = sd->hasDuration;
+        } else {
+            d.hasDuration = false;
+        }
+
+        list.push_back(d);
+
+        m_descriptor->releaseOutputDescriptor(sd);
     }
 
     return list;
