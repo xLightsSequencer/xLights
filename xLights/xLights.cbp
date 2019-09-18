@@ -1226,6 +1226,7 @@
 		<Unit filename="wxsmith/ModelDimmingCurveDialog.wxs" />
 		<Unit filename="wxsmith/ModelFaceDialog.wxs" />
 		<Unit filename="wxsmith/ModelGroupPanel.wxs" />
+		<Unit filename="wxsmith/ModelPreview3DDialog.wxs" />
 		<Unit filename="wxsmith/ModelStateDialog.wxs" />
 		<Unit filename="wxsmith/MorphPanel.wxs" />
 		<Unit filename="wxsmith/MultiControllerUploadDialog.wxs" />
@@ -1493,6 +1494,7 @@
 					<wxDialog wxs="wxsmith/SyncrolightDialog.wxs" src="outputs/SyncrolightDialog.cpp" hdr="outputs/SyncrolightDialog.h" fwddecl="0" i18n="1" name="SyncrolightDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/CheckboxSelectDialog.wxs" src="CheckboxSelectDialog.cpp" hdr="CheckboxSelectDialog.h" fwddecl="0" i18n="1" name="CheckboxSelectDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/EmailDialog.wxs" src="EmailDialog.cpp" hdr="EmailDialog.h" fwddecl="0" i18n="1" name="EmailDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/ModelPreview3DDialog.wxs" src="ModelPreview3DDialog.cpp" hdr="ModelPreview3DDialog.h" fwddecl="0" i18n="1" name="ModelPreview3DDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>

@@ -738,6 +738,7 @@
     </ClCompile>
     <ClCompile Include="CheckboxSelectDialog.cpp" />
     <ClCompile Include="EmailDialog.cpp" />
+    <ClCompile Include="ModelPreview3DDialog.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -1485,6 +1486,7 @@
     </ClInclude>
     <ClInclude Include="CheckboxSelectDialog.h" />
     <ClInclude Include="EmailDialog.h" />
+    <ClInclude Include="ModelPreview3DDialog.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

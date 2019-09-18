@@ -85,6 +85,9 @@ public:
     DimmingCurve *modelDimmingCurve;
     int _controller; // this is used to pass the selected controller name between property create and property change only
 
+    int GetPixelSize() const { return pixelSize; }
+    void SetPixelSize(int size) { pixelSize = size; } // temporarily changes pixel size
+
     virtual bool AllNodesAllocated() const { return true; }
     static void ParseFaceInfo(wxXmlNode *fiNode, std::map<std::string, std::map<std::string, std::string> > &faceInfo);
     static void WriteFaceInfo(wxXmlNode *fiNode, const std::map<std::string, std::map<std::string, std::string> > &faceInfo);
@@ -282,7 +285,7 @@ public:
     int GetNumberFromChannelString(const std::string &sc) const;
     int GetNumberFromChannelString(const std::string &sc, bool &valid, std::string& dependsonmodel) const;
     virtual void DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &solidVa, DrawGLUtils::xlAccumulator &transparentVa, bool is_3d = false, const xlColor *color = NULL, bool allowSelected = false);
-    virtual void DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator &solidVa3, DrawGLUtils::xl3Accumulator &transparentVa3, bool is_3d = false, const xlColor *color =  NULL, bool allowSelected = false);
+    virtual void DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator &solidVa3, DrawGLUtils::xl3Accumulator &transparentVa3, DrawGLUtils::xl3Accumulator& lva, bool is_3d = false, const xlColor *color =  NULL, bool allowSelected = false, bool wiring = false, bool highlightFirst = false);
     virtual void DisplayEffectOnWindow(ModelPreview* preview, double pointSize);
     virtual int NodeRenderOrder() {return 0;}
     wxString GetNodeNear(ModelPreview* preview, wxPoint pt);

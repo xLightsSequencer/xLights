@@ -16,9 +16,11 @@
 #include <wx/image.h>
 #include <wx/intl.h>
 #include <wx/notebook.h>
+#include <wx/panel.h>
 #include <wx/sizer.h>
 #include <wx/slider.h>
 #include <wx/spinctrl.h>
+#include <wx/splitter.h>
 #include <wx/stattext.h>
 #include <wx/string.h>
 //*)
@@ -28,12 +30,14 @@
 #include "wxModelGridCellRenderer.h"
 #include "UtilClasses.h"
 #include "UtilFunctions.h"
+#include "ModelPreview.h"
 
 //(*IdInit(CustomModelDialog)
 const long CustomModelDialog::ID_SPINCTRL1 = wxNewId();
 const long CustomModelDialog::ID_SPINCTRL2 = wxNewId();
 const long CustomModelDialog::ID_STATICTEXT1 = wxNewId();
 const long CustomModelDialog::ID_SPINCTRL3 = wxNewId();
+const long CustomModelDialog::ID_CHECKBOX1 = wxNewId();
 const long CustomModelDialog::ID_BUTTON3 = wxNewId();
 const long CustomModelDialog::ID_BITMAPBUTTON_CUSTOM_CUT = wxNewId();
 const long CustomModelDialog::ID_BITMAPBUTTON_CUSTOM_COPY = wxNewId();
@@ -49,6 +53,9 @@ const long CustomModelDialog::ID_SPINCTRL_NEXT_CHANNEL = wxNewId();
 const long CustomModelDialog::ID_BUTTON1 = wxNewId();
 const long CustomModelDialog::ID_BUTTON2 = wxNewId();
 const long CustomModelDialog::ID_NOTEBOOK1 = wxNewId();
+const long CustomModelDialog::ID_PANEL2 = wxNewId();
+const long CustomModelDialog::ID_PANEL1 = wxNewId();
+const long CustomModelDialog::ID_SPLITTERWINDOW1 = wxNewId();
 //*)
 
 const long CustomModelDialog::CUSTOMMODELDLGMNU_CUT = wxNewId();
@@ -249,6 +256,7 @@ CustomModelDialog::CustomModelDialog(wxWindow* parent)
   next_channel(1)
 {
 	//(*Initialize(CustomModelDialog)
+	wxFlexGridSizer* FlexGridSizer11;
 	wxFlexGridSizer* FlexGridSizer1;
 	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer3;
@@ -257,6 +265,7 @@ CustomModelDialog::CustomModelDialog(wxWindow* parent)
 	wxFlexGridSizer* FlexGridSizer6;
 	wxFlexGridSizer* FlexGridSizer7;
 	wxFlexGridSizer* FlexGridSizer8;
+	wxFlexGridSizer* FlexGridSizer9;
 	wxFlexGridSizer* Sizer2;
 	wxStaticBoxSizer* StaticBoxSizer1;
 	wxStaticBoxSizer* StaticBoxSizer2;
@@ -291,6 +300,9 @@ CustomModelDialog::CustomModelDialog(wxWindow* parent)
 	FlexGridSizer2->Add(SpinCtrl_Depth, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Sizer2->Add(FlexGridSizer2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer8 = new wxFlexGridSizer(0, 1, 0, 0);
+	CheckBox_ShowWiring = new wxCheckBox(this, ID_CHECKBOX1, _("Show wiring in model preview"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
+	CheckBox_ShowWiring->SetValue(false);
+	FlexGridSizer8->Add(CheckBox_ShowWiring, 1, wxALL|wxEXPAND, 5);
 	ButtonWiring = new wxButton(this, ID_BUTTON3, _("Wiring View"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON3"));
 	FlexGridSizer8->Add(ButtonWiring, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Sizer2->Add(FlexGridSizer8, 1, wxALL|wxALIGN_CENTER_HORIZONTAL, 5);
@@ -355,8 +367,32 @@ CustomModelDialog::CustomModelDialog(wxWindow* parent)
 	FlexGridSizer7->Add(ButtonCancel, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Sizer2->Add(FlexGridSizer7, 1, wxALL|wxALIGN_BOTTOM|wxALIGN_CENTER_HORIZONTAL, 5);
 	Sizer1->Add(Sizer2, 1, wxALL|wxEXPAND, 5);
-	Notebook1 = new CustomNotebook(this, ID_NOTEBOOK1, wxDefaultPosition, wxDefaultSize, 0, _T("ID_NOTEBOOK1"));
-	Sizer1->Add(Notebook1, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer9 = new wxFlexGridSizer(0, 1, 0, 0);
+	FlexGridSizer9->AddGrowableCol(0);
+	FlexGridSizer9->AddGrowableRow(0);
+	SplitterWindow1 = new wxSplitterWindow(this, ID_SPLITTERWINDOW1, wxDefaultPosition, wxDefaultSize, wxSP_3D, _T("ID_SPLITTERWINDOW1"));
+	SplitterWindow1->SetMinimumPaneSize(0);
+	SplitterWindow1->SetSashGravity(0.5);
+	Panel11 = new wxPanel(SplitterWindow1, ID_PANEL2, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL2"));
+	FlexGridSizer11 = new wxFlexGridSizer(0, 1, 0, 0);
+	FlexGridSizer11->AddGrowableCol(0);
+	FlexGridSizer11->AddGrowableRow(0);
+	Notebook1 = new CustomNotebook(Panel11, ID_NOTEBOOK1, wxDefaultPosition, wxDefaultSize, 0, _T("ID_NOTEBOOK1"));
+	FlexGridSizer11->Add(Notebook1, 1, wxALL|wxEXPAND, 5);
+	Panel11->SetSizer(FlexGridSizer11);
+	FlexGridSizer11->Fit(Panel11);
+	FlexGridSizer11->SetSizeHints(Panel11);
+	Panel1 = new wxPanel(SplitterWindow1, ID_PANEL1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL1"));
+	FlexGridSizer10 = new wxFlexGridSizer(0, 1, 0, 0);
+	FlexGridSizer10->AddGrowableCol(0);
+	FlexGridSizer10->AddGrowableRow(0);
+	Panel1->SetSizer(FlexGridSizer10);
+	FlexGridSizer10->Fit(Panel1);
+	FlexGridSizer10->SetSizeHints(Panel1);
+	SplitterWindow1->SplitHorizontally(Panel11, Panel1);
+	SplitterWindow1->SetSashPosition(30);
+	FlexGridSizer9->Add(SplitterWindow1, 1, wxALL|wxEXPAND, 2);
+	Sizer1->Add(FlexGridSizer9, 1, wxALL|wxEXPAND, 5);
 	SetSizer(Sizer1);
 	SetSizer(Sizer1);
 	Layout();
@@ -365,6 +401,7 @@ CustomModelDialog::CustomModelDialog(wxWindow* parent)
 	Connect(ID_SPINCTRL1,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&CustomModelDialog::OnWidthSpinChange);
 	Connect(ID_SPINCTRL2,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&CustomModelDialog::OnHeightSpinChange);
 	Connect(ID_SPINCTRL3,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&CustomModelDialog::OnSpinCtrl_DepthChange);
+	Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&CustomModelDialog::OnCheckBox_ShowWiringClick);
 	Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CustomModelDialog::OnButtonWiringClick);
 	Connect(ID_BITMAPBUTTON_CUSTOM_CUT,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CustomModelDialog::OnBitmapButtonCustomCutClick);
 	Connect(ID_BITMAPBUTTON_CUSTOM_COPY,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CustomModelDialog::OnBitmapButtonCustomCopyClick);
@@ -386,6 +423,17 @@ CustomModelDialog::CustomModelDialog(wxWindow* parent)
 
     SetEscapeId(ButtonCancel->GetId());
 
+    SplitterWindow1->SetSashPosition(SplitterWindow1->GetSize().GetHeight() - 150);
+    SplitterWindow1->SetMinimumPaneSize(5);
+
+    _modelPreview = new ModelPreview(Panel1, nullptr, true);
+    _modelPreview->Set3D(true);
+    FlexGridSizer10->Add(_modelPreview, 1, wxALL | wxEXPAND, 0);
+    FlexGridSizer10->Fit(Panel1);
+    FlexGridSizer10->SetSizeHints(Panel1);
+
+    Layout();
+
     ValidateWindow();
 }
 
@@ -393,6 +441,11 @@ CustomModelDialog::~CustomModelDialog()
 {
 	//(*Destroy(CustomModelDialog)
 	//*)
+
+    if (_modelPreview != nullptr)
+    {
+        delete _modelPreview;
+    }
 
 	if( bkg_image != nullptr ) {
         delete bkg_image;
@@ -403,7 +456,24 @@ void CustomModelDialog::ValidateWindow()
 {
 }
 
+void CustomModelDialog::UpdatePreview(int width, int height, int depth, const std::string& modelData)
+{
+    _model->GetBaseObjectScreenLocation().SetMDepth(depth);
+    _model->UpdateModel(width, height, depth, modelData);
+    if (_model != nullptr && _modelPreview != nullptr) {
+        _modelPreview->RenderModel(_model, CheckBox_ShowWiring->IsChecked(), true);
+    }
+}
+
+void CustomModelDialog::UpdatePreview()
+{
+    UpdatePreview(WidthSpin->GetValue(), HeightSpin->GetValue(), SpinCtrl_Depth->GetValue(), GetModelData());
+}
+
 void CustomModelDialog::Setup(CustomModel *m) {
+
+    _model = m;
+    _modelPreview->SetModel(m, CheckBox_ShowWiring->IsChecked(), true);
     name = m->GetName();
     background_image = m->GetCustomBackground();
     FilePickerCtrl1->SetFileName(wxFileName(background_image));
@@ -466,6 +536,13 @@ void CustomModelDialog::Setup(CustomModel *m) {
     HeightSpin->SetValue(GetActiveGrid()->GetNumberRows());
     SpinCtrl_Depth->SetValue(Notebook1->GetPageCount());
 
+    _saveWidth = WidthSpin->GetValue();
+    _saveHeight = HeightSpin->GetValue();
+    _saveDepth = SpinCtrl_Depth->GetValue();
+    _saveModelData = data;
+
+    UpdatePreview();
+
     wxBookCtrlEvent e;
     e.SetSelection(0);
     OnNotebook1PageChanged(e);
@@ -495,6 +572,7 @@ void CustomModelDialog::Setup(CustomModel *m) {
     //        GridCustom->SetCellEditor(r, c, reditor);
     //    }
     //}
+    UpdatePreview();
     ValidateWindow();
 }
 
@@ -530,10 +608,8 @@ wxString StripIllegalChars(const wxString& s)
     return res;
 }
 
-void CustomModelDialog::Save(CustomModel *m) {
-    m->SetCustomHeight(HeightSpin->GetValue());
-    m->SetCustomWidth(WidthSpin->GetValue());
-    m->SetCustomDepth(SpinCtrl_Depth->GetValue());
+std::string CustomModelDialog::GetModelData()
+{
     std::string customChannelData = "";
     for (int layer = 0; layer < Notebook1->GetPageCount(); layer++) {
         if (layer > 0) customChannelData += "|";
@@ -550,6 +626,14 @@ void CustomModelDialog::Save(CustomModel *m) {
             }
         }
     }
+    return customChannelData;
+}
+
+void CustomModelDialog::Save(CustomModel *m) {
+    m->SetCustomHeight(HeightSpin->GetValue());
+    m->SetCustomWidth(WidthSpin->GetValue());
+    m->SetCustomDepth(SpinCtrl_Depth->GetValue());
+    std::string customChannelData = GetModelData();
     m->SetCustomData(customChannelData);
     m->SetCustomLightness(lightness);
     m->SetCustomBackground(FilePickerCtrl1->GetFileName().GetFullPath());
@@ -558,11 +642,27 @@ void CustomModelDialog::Save(CustomModel *m) {
 void CustomModelDialog::OnWidthSpinChange(wxSpinEvent& event)
 {
     ResizeCustomGrid();
+    UpdatePreview();
 }
 
 void CustomModelDialog::OnHeightSpinChange(wxSpinEvent& event)
 {
     ResizeCustomGrid();
+    UpdatePreview();
+}
+
+void CustomModelDialog::OnSpinCtrl_DepthChange(wxSpinEvent& event)
+{
+    while (Notebook1->GetPageCount() < SpinCtrl_Depth->GetValue())
+    {
+        AddPage();
+    }
+
+    while (Notebook1->GetPageCount() > SpinCtrl_Depth->GetValue())
+    {
+        RemovePage();
+    }
+    UpdatePreview();
 }
 
 void CustomModelDialog::OnButton_CustomModelZoomInClick(wxCommandEvent& event)
@@ -614,6 +714,7 @@ void CustomModelDialog::OnButtonCustomModelHelpClick(wxCommandEvent& event)
 
 void CustomModelDialog::OnGridCustomCellChange(wxGridEvent& event)
 {
+    UpdatePreview();
 }
 
 #ifdef __WXOSX__
@@ -623,6 +724,7 @@ wxString GetOSXFormattedClipboardData();
 void CustomModelDialog::OnBitmapButtonCustomCutClick(wxCommandEvent& event)
 {
     CutOrCopyToClipboard(true);
+    UpdatePreview();
 }
 
 void CustomModelDialog::OnBitmapButtonCustomCopyClick(wxCommandEvent& event)
@@ -802,6 +904,7 @@ void CustomModelDialog::Paste()
 void CustomModelDialog::OnBitmapButtonCustomPasteClick(wxCommandEvent& event)
 {
     Paste();
+    UpdatePreview();
 }
 
 void CustomModelDialog::UpdateBackground()
@@ -854,6 +957,7 @@ void CustomModelDialog::OnGridCustomCellLeftClick(wxGridEvent& event)
             next_channel++;
             SpinCtrlNextChannel->SetValue(next_channel);
         }
+        UpdatePreview();
     }
     event.Skip();
 }
@@ -885,11 +989,13 @@ void CustomModelDialog::OnCheckBox_RearViewClick(wxCommandEvent& event)
 
 void CustomModelDialog::OnButtonCancelClick(wxCommandEvent& event)
 {
+    UpdatePreview(_saveWidth, _saveHeight, _saveDepth, _saveModelData);
     EndDialog(wxID_CANCEL);
 }
 
 void CustomModelDialog::OnButtonOkClick(wxCommandEvent& event)
 {
+    UpdatePreview(_saveWidth, _saveHeight, _saveDepth, _saveModelData);
     EndDialog(wxID_OK);
 }
 
@@ -928,6 +1034,7 @@ void CustomModelDialog::FlipHorizontal()
     }
 
     UpdateBackground();
+    UpdatePreview();
 
     ValidateWindow();
 }
@@ -953,6 +1060,7 @@ void CustomModelDialog::FlipVertical()
     }
 
     UpdateBackground();
+    UpdatePreview();
 
     ValidateWindow();
 }
@@ -990,6 +1098,7 @@ void CustomModelDialog::Rotate90()
     }
 
     UpdateBackground();
+    UpdatePreview();
     ValidateWindow();
 }
 
@@ -1047,6 +1156,7 @@ void CustomModelDialog::CentreModel()
         }
         g++;
     }
+    UpdatePreview();
 }
 
 void CustomModelDialog::Rotate()
@@ -1186,6 +1296,7 @@ void CustomModelDialog::Rotate()
             TrimSpace();
 
             UpdateBackground();
+            UpdatePreview();
             ValidateWindow();
         }
     }
@@ -1227,6 +1338,7 @@ void CustomModelDialog::Insert(int selRow, int selCol)
         {
             AdjustNodeBy(current, toinsert);
         }
+        UpdatePreview();
     }
 }
 
@@ -1290,6 +1402,7 @@ void CustomModelDialog::Compress()
             adjust--;
         }
     }
+    UpdatePreview();
 }
 
 void CustomModelDialog::Reverse()
@@ -1348,6 +1461,7 @@ void CustomModelDialog::Reverse()
     }
 
     UpdateBackground();
+    UpdatePreview();
     ValidateWindow();
 }
 
@@ -1580,6 +1694,7 @@ void CustomModelDialog::Shift()
             }
 
             UpdateBackground();
+            UpdatePreview();
             ValidateWindow();
         }
     }
@@ -1588,6 +1703,7 @@ void CustomModelDialog::Shift()
 void CustomModelDialog::OnPaste(wxCommandEvent& event)
 {
     Paste();
+    UpdatePreview();
 }
 
 void CustomModelDialog::OnGridKey(wxCommandEvent& event)
@@ -1714,6 +1830,7 @@ void CustomModelDialog::OnGridPopup(wxCommandEvent& event)
 void CustomModelDialog::OnCut(wxCommandEvent& event)
 {
     CutOrCopyToClipboard(true);
+    UpdatePreview();
 }
 
 void CustomModelDialog::OnCopy(wxCommandEvent& event)
@@ -1804,19 +1921,6 @@ void CustomModelDialog::OnGridCustomCellRightClick(wxGridEvent& event)
 
     mnu.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&CustomModelDialog::OnGridPopup, nullptr, this);
     PopupMenu(&mnu);
-}
-
-void CustomModelDialog::OnSpinCtrl_DepthChange(wxSpinEvent& event)
-{
-    while (Notebook1->GetPageCount() < SpinCtrl_Depth->GetValue())
-    {
-        AddPage();
-    }
-
-    while (Notebook1->GetPageCount() > SpinCtrl_Depth->GetValue())
-    {
-        RemovePage();
-    }
 }
 
 void CustomModelDialog::AddPage()
@@ -1949,4 +2053,10 @@ void CustomModelDialog::OnNotebook1PageChanged(wxNotebookEvent& event)
             }
         }
     }
+}
+
+void CustomModelDialog::OnCheckBox_ShowWiringClick(wxCommandEvent& event)
+{
+    _modelPreview->SetModel(_model, CheckBox_ShowWiring->IsChecked(), true);
+    UpdatePreview();
 }

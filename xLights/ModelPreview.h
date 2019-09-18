@@ -72,10 +72,11 @@ public:
     void Render();
     void Render(const unsigned char *data, bool swapBuffers=true);
     void RenderModels(const std::vector<Model*>& models, bool selected);
+    void RenderModel(Model* m, bool wiring = false, bool highlightFirst = false);
 
     double calcPixelSize(double i);
 
-    void SetModel(const Model* model);
+    void SetModel(const Model* model, bool wiring = false, bool highlightFirst = false);
     void SetActiveLayoutGroup(const std::string &grp = "Default") {
         currentLayoutGroup = grp;
         Refresh();
@@ -174,7 +175,10 @@ private:
     DrawGLUtils::xl3Accumulator transparentViewObjectAccumulator;
     DrawGLUtils::xl3Accumulator solidAccumulator3d;
     DrawGLUtils::xl3Accumulator transparentAccumulator3d;
+    DrawGLUtils::xl3Accumulator linesAccumulator3d;
     bool is_3d;
+    bool _wiring = false;
+    bool _highlightFirst = false;
     bool m_mouse_down;
     bool m_wheel_down;
     int m_last_mouse_x, m_last_mouse_y;
@@ -186,7 +190,6 @@ private:
     PreviewCamera* camera2d;
     static const long ID_VIEWPOINT2D;
     static const long ID_VIEWPOINT3D;
-
     double currentPixelScaleFactor = 1.0;
 
 	DECLARE_EVENT_TABLE()

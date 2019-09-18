@@ -9,6 +9,8 @@ class CustomModel : public ModelWithScreenLocation<BoxedScreenLocation>
         CustomModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased = false);
         virtual ~CustomModel();
 
+        void UpdateModel(int width, int height, int depth, const std::string& modelData);
+
         virtual const std::vector<std::string> &GetBufferStyles() const override;
         virtual void GetBufferSize(const std::string &type, const std::string &camera, const std::string &transform, int &BufferWi, int &BufferHi) const override;
         virtual void InitRenderBufferNodes(const std::string &type, const std::string &camera, const std::string &transform,
