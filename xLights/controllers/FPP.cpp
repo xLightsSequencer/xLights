@@ -865,7 +865,7 @@ bool FPP::UploadPlaylist(const std::string &name) {
         origJson["mainPlaylist"].Append(entry);
     }
     origJson.Remove(wxString("playlistInfo"));
-
+    origJson["name"] = name;
 
     if (IsDrive()) {
         WriteJSONToPath(fn, origJson);

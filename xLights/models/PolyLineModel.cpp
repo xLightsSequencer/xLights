@@ -251,14 +251,14 @@ void PolyLineModel::InitModel() {
     } else {
         parm1 = 1;
         int lights = parm2;
-        while(lights > 0) {
+        while (lights > 0) {
             unsigned int lights_this_drop = dropSizes[drop_index++];
             numLights += lights_this_drop;
             drop_index %= dropSizes.size();
             numDropPoints++;
             lights -= lights_this_drop;
         }
-        if( numLights != parm2 ) {
+        if (numLights != parm2) {
             parm2 = numLights;
             ModelXml->DeleteAttribute("parm2");
             ModelXml->AddAttribute("parm2", wxString::Format("%ld", parm2));
@@ -333,8 +333,8 @@ void PolyLineModel::InitModel() {
     // calculate segment lengths if we need to auto-distribute lights
     total_length = 0.0f;
     if (!hasIndivSeg) {
-        for( int i = 0; i < num_points-1; ++i ) {
-            if( pPos[i].has_curve ) {
+        for (int i = 0; i < num_points-1; ++i) {
+            if (pPos[i].has_curve) {
                 total_length += pPos[i].curve->GetLength();
             } else {
                 float length = std::sqrt((pPos[i+1].z - pPos[i].z)*(pPos[i+1].z - pPos[i].z) + (pPos[i+1].y - pPos[i].y)*(pPos[i+1].y - pPos[i].y) + (pPos[i+1].x - pPos[i].x)*(pPos[i+1].x - pPos[i].x));
@@ -642,21 +642,22 @@ void PolyLineModel::InitModel() {
         float segment_length = pPos[segment].has_curve ? pPos[segment].curve->GetSegLength(sub_segment) : pPos[segment].length;
         float seg_end = seg_start + segment_length;
         int xx = 0;
-        for(size_t m=0; m<lights_to_distribute; m++) {
-            while( current_pos > seg_end ) {
+        for (int x = 0; x < polyLineSizes.size(); x++) {
+            polyLineSizes[x] = 0;
+            polyLineSegDropSizes[x] = 0;
+        }
+        for (size_t m = 0; m < lights_to_distribute; m++) {
+            while (current_pos > seg_end) {
                 sub_segment++;
-                if( pPos[segment].has_curve && (sub_segment < pPos[segment].curve->GetNumSegments()) ) {
+                if (pPos[segment].has_curve && (sub_segment < pPos[segment].curve->GetNumSegments())) {
                     seg_start = seg_end;
                     segment_length = pPos[segment].curve->GetSegLength(sub_segment);
                     seg_end = seg_start + segment_length;
                 } else {
-                    if (segment == polyLineSizes.size() - 1)
-                    {
+                    if (segment == polyLineSizes.size() - 1) {
                         // cant increase segment ... so just fudge the segment end
                         seg_end += 0.0001f;
-                    }
-                    else
-                    {
+                    } else {
                         sub_segment = 0;
                         polyLineSizes[segment] = m - last_seg_light_num;
                         last_seg_light_num = m;
