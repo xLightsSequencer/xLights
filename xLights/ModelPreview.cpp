@@ -310,11 +310,15 @@ bool ModelPreview::ValidateModels(const ModelManager& mm)
     return true;
 }
 
-void ModelPreview::SetModel(const Model* model) {
+void ModelPreview::SetModel(const Model* model, bool wiring, bool highlightFirst) {
     if (model) {
+        _wiring = wiring;
+        _highlightFirst = highlightFirst;
         this->xlights = model->GetModelManager().GetXLightsFrame();
         currentModel = model->GetName();
     } else {
+        _wiring = false;
+        _highlightFirst = false;
         currentModel = "";
     }
 }
@@ -389,7 +393,14 @@ void ModelPreview::render(wxPaintEvent& event)
     } else {
         Model *model = xlights ? xlights->GetModel(currentModel) : nullptr;
         if (model != nullptr) {
-            model->DisplayEffectOnWindow(this, 2);
+            if (is_3d)
+            {
+                RenderModel(model, _wiring, _highlightFirst);
+            }
+            else
+            {
+                model->DisplayEffectOnWindow(this, 2);
+            }
         } else {
             if (!StartDrawing(mPointSize, true)) return;
             EndDrawing();
@@ -422,7 +433,7 @@ void ModelPreview::RenderModels(const std::vector<Model*>& models, bool isModelS
             else
             {
                 if (is_3d) {
-                    m->DisplayModelOnWindow(this, solidAccumulator3d, transparentAccumulator3d, true, color, allowSelected);
+                    m->DisplayModelOnWindow(this, solidAccumulator3d, transparentAccumulator3d, linesAccumulator3d, true, color, allowSelected);
                 }
                 else {
                     m->DisplayModelOnWindow(this, solidAccumulator, transparentAccumulator, false, color, allowSelected);
@@ -437,6 +448,24 @@ void ModelPreview::RenderModels(const std::vector<Model*>& models, bool isModelS
         {
             wxASSERT(false); // why did we get here
         }
+    }
+}
+
+void ModelPreview::RenderModel(Model* m, bool wiring, bool highlightFirst)
+{
+    const xlColor* defColor = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_MODEL_DEFAULT);
+
+    if (StartDrawing(mPointSize)) {
+        if (is_3d) {
+            int oldpixelSize = m->GetPixelSize();
+            if (oldpixelSize < 5) m->SetPixelSize(5);
+            m->DisplayModelOnWindow(this, solidAccumulator3d, transparentAccumulator3d, linesAccumulator3d, true, defColor, false, wiring, highlightFirst);
+            m->SetPixelSize(oldpixelSize);
+        }
+        else {
+            m->DisplayModelOnWindow(this, solidAccumulator, transparentAccumulator, false, defColor, false);
+        }
+        EndDrawing();
     }
 }
 
@@ -461,7 +490,7 @@ void ModelPreview::Render()
     }
 
     // draw all the view objects
-    if (is_3d) {
+    if (is_3d && xlights != nullptr) {
         for (auto it = xlights->AllObjects.begin(); it != xlights->AllObjects.end(); ++it) {
             ViewObject* view_object = it->second;
             view_object->Draw(this, solidViewObjectAccumulator, transparentViewObjectAccumulator, allowSelected);
@@ -479,7 +508,7 @@ void ModelPreview::Render(const unsigned char *data, bool swapBuffers/*=true*/) 
                 m->SetNodeChannelValues(n, &data[start]);
             }
             if (is_3d)
-                m->DisplayModelOnWindow(this, solidAccumulator3d, transparentAccumulator3d, true);
+                m->DisplayModelOnWindow(this, solidAccumulator3d, transparentAccumulator3d, linesAccumulator3d, true);
             else
                 m->DisplayModelOnWindow(this, solidAccumulator, transparentAccumulator, false);
         }
@@ -1065,12 +1094,14 @@ void ModelPreview::EndDrawing(bool swapBuffers/*=true*/)
             // 2 is the 2019.04 order, floods are OK, no transparent windows
             case 0:
                 DrawGLUtils::Draw(solidViewObjectAccumulator);
+                DrawGLUtils::Draw(linesAccumulator3d);
                 DrawGLUtils::Draw(solidAccumulator3d);
                 DrawGLUtils::Draw(transparentViewObjectAccumulator);
                 DrawGLUtils::Draw(transparentAccumulator3d);
                 break;
             case 1:
                 DrawGLUtils::Draw(solidViewObjectAccumulator);
+                DrawGLUtils::Draw(linesAccumulator3d);
                 DrawGLUtils::Draw(solidAccumulator3d);
                 DrawGLUtils::Draw(transparentAccumulator3d);
                 DrawGLUtils::Draw(transparentViewObjectAccumulator);
@@ -1078,22 +1109,26 @@ void ModelPreview::EndDrawing(bool swapBuffers/*=true*/)
             case 2:
                 DrawGLUtils::Draw(solidViewObjectAccumulator);
                 DrawGLUtils::Draw(transparentViewObjectAccumulator);
+                DrawGLUtils::Draw(linesAccumulator3d);
                 DrawGLUtils::Draw(solidAccumulator3d);
                 DrawGLUtils::Draw(transparentAccumulator3d);
                 break;
             case 3:
+                DrawGLUtils::Draw(linesAccumulator3d);
                 DrawGLUtils::Draw(solidAccumulator3d);
                 DrawGLUtils::Draw(solidViewObjectAccumulator);
                 DrawGLUtils::Draw(transparentViewObjectAccumulator);
                 DrawGLUtils::Draw(transparentAccumulator3d);
                 break;
             case 4:
+                DrawGLUtils::Draw(linesAccumulator3d);
                 DrawGLUtils::Draw(solidAccumulator3d);
                 DrawGLUtils::Draw(solidViewObjectAccumulator);
                 DrawGLUtils::Draw(transparentAccumulator3d);
                 DrawGLUtils::Draw(transparentViewObjectAccumulator);
                 break;
             case 5:
+                DrawGLUtils::Draw(linesAccumulator3d);
                 DrawGLUtils::Draw(solidAccumulator3d);
                 DrawGLUtils::Draw(transparentAccumulator3d);
                 DrawGLUtils::Draw(solidViewObjectAccumulator);
@@ -1110,6 +1145,7 @@ void ModelPreview::EndDrawing(bool swapBuffers/*=true*/)
     }
     solidViewObjectAccumulator.Reset();
     transparentViewObjectAccumulator.Reset();
+    linesAccumulator3d.Reset();
     solidAccumulator3d.Reset();
     transparentAccumulator3d.Reset();
     solidAccumulator.Reset();

@@ -4043,7 +4043,7 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
 
 // display model using colors stored in each node
 // used when preview is running
-void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator &sva, DrawGLUtils::xl3Accumulator &tva, bool is_3d, const xlColor *c, bool allowSelected) {
+void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator &sva, DrawGLUtils::xl3Accumulator &tva, DrawGLUtils::xl3Accumulator& lva, bool is_3d, const xlColor *c, bool allowSelected, bool wiring, bool highlightFirst) {
     if (!active && preview->IsNoCurrentModel()) { return; }
     size_t NodeCount = Nodes.size();
     xlColor color;
@@ -4077,8 +4077,12 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumula
     if (pixelStyle == 3 || transparency != 0 || blackTransparency != 0) {
         needTransparent = true;
     }
-    DrawGLUtils::xl3Accumulator &va = needTransparent ? tva : sva;
+
+    DrawGLUtils::xl3Accumulator& va = needTransparent ? tva : sva;
     va.PreAlloc(maxVertexCount);
+
+    DrawGLUtils::xl3Accumulator& vaLines = lva;
+    vaLines.PreAlloc(2*maxVertexCount);
 
     int first = 0;
     int last = NodeCount;
@@ -4086,7 +4090,14 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumula
     int buffLast = -1;
     bool left = true;
 
+    float lastX = -99999999.0;
+    float lastY = -99999999.0;
+    float lastZ = -99999999.0;
+    uint32_t lastChan = 0;
+    xlColor cLine(0x49, 0x80, 0x49);
+
     bool replaceVertices = allowSelected && GroupSelected && DisplayAs == "SubModel";
+    bool firstNode = true;
 
     while (first < last) {
         int n;
@@ -4134,11 +4145,23 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumula
                 GetModelScreenLocation().TranslatePoint(sx, sy, sz);
             
                 xlColor c3(color);
+
+                if (firstNode && highlightFirst)
+                {
+                    c3 = xlYELLOW;
+                }
                 ApplyTransparency(c3, transparency, blackTransparency);
                 va.AddVertex(sx, sy, sz, c3, replaceVertices);
             } else {
                 xlColor ccolor(color);
                 xlColor ecolor(color);
+
+                if (firstNode && highlightFirst)
+                {
+                    ccolor = xlYELLOW;
+                    ecolor = xlYELLOW;
+                }
+
                 ApplyTransparency(ccolor, transparency, blackTransparency);
                 if (pixelStyle == 2) {
                     ecolor = ccolor;
@@ -4150,11 +4173,29 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumula
                                           GetModelScreenLocation().TranslatePoint(x, y, z);
                                       }, replaceVertices);
             }
+            firstNode = false;
+            if (wiring) {
+                if (Nodes[n]->ActChan == lastChan + 3) {
+                    if (lastX != 99999999.0) {
+                        vaLines.AddVertex(lastX, lastY, lastZ, cLine, false);
+                        vaLines.AddVertex(sx, sy, sz, cLine, false);
+                    }
+                }
+                lastX = sx;
+                lastY = sy;
+                lastZ = sz;
+                lastChan = Nodes[n]->ActChan;
+            }
         }
+    }
+
+    if (wiring && vaLines.count > 0) {
+        vaLines.Finish(GL_LINES, GL_LINE_SMOOTH, 1.7f);
     }
     if (pixelStyle > 1) {
         va.Finish(GL_TRIANGLES);
-    } else {
+    }
+    else {
         va.Finish(GL_POINTS, pixelStyle == 1 ? GL_POINT_SMOOTH : 0, preview->calcPixelSize(pixelSize));
     }
     if ((Selected || (Highlighted && is_3d)) && c != nullptr && allowSelected) {
@@ -4183,7 +4224,6 @@ wxString Model::GetNodeNear(ModelPreview* preview, wxPoint pt)
 
     float px = pt.x;
     float py = h - pt.y;
-
 
     int i = 1;
     for (auto it = Nodes.begin(); it != Nodes.end(); ++it) {
@@ -4327,6 +4367,7 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
                     || lastPixelSize != Nodes[n]->model->pixelSize) {
 
                     if (va.count && (lastPixelStyle < 2 || Nodes[n]->model->pixelStyle < 2)) {
+
                         if (lastPixelStyle > 1) {
                             va.Finish(GL_TRIANGLES);
                         } else {

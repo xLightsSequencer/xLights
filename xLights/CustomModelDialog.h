@@ -10,9 +10,12 @@ class wxFilePickerCtrl;
 class wxFlexGridSizer;
 class wxNotebook;
 class wxNotebookEvent;
+class wxPanel;
 class wxSlider;
 class wxSpinCtrl;
 class wxSpinEvent;
+class wxSplitterEvent;
+class wxSplitterWindow;
 class wxStaticBoxSizer;
 class wxStaticText;
 //*)
@@ -28,11 +31,21 @@ class CustomNotebook;
 class CopyPasteGrid;
 class wxModelGridCellRenderer;
 class ImageFilePickerCtrl;
+class ModelPreview;
 
 wxDECLARE_EVENT(EVT_GRID_KEY, wxCommandEvent);
 
 class CustomModelDialog: public wxDialog
 {
+    int _saveWidth = 0;
+    int _saveHeight = 0;
+    int _saveDepth = 0;
+    std::string _saveModelData;
+    CustomModel* _model = nullptr;
+
+    std::string GetModelData();
+    void UpdatePreview(int width, int height, int depth, const std::string& modelData);
+    void UpdatePreview();
     void ValidateWindow();
 
     static const long CUSTOMMODELDLGMNU_CUT;
@@ -74,12 +87,17 @@ class CustomModelDialog: public wxDialog
 		wxButton* Button_CustomModelZoomOut;
 		wxCheckBox* CheckBoxAutoIncrement;
 		wxCheckBox* CheckBoxAutoNumber;
+		wxCheckBox* CheckBox_ShowWiring;
+		wxFlexGridSizer* FlexGridSizer10;
 		wxFlexGridSizer* Sizer1;
+		wxPanel* Panel11;
+		wxPanel* Panel1;
 		wxSlider* SliderCustomLightness;
 		wxSpinCtrl* HeightSpin;
 		wxSpinCtrl* SpinCtrlNextChannel;
 		wxSpinCtrl* SpinCtrl_Depth;
 		wxSpinCtrl* WidthSpin;
+		wxSplitterWindow* SplitterWindow1;
 		wxStaticText* StaticText4;
 		//*)
 
@@ -98,6 +116,7 @@ class CustomModelDialog: public wxDialog
 		static const long ID_SPINCTRL2;
 		static const long ID_STATICTEXT1;
 		static const long ID_SPINCTRL3;
+		static const long ID_CHECKBOX1;
 		static const long ID_BUTTON3;
 		static const long ID_BITMAPBUTTON_CUSTOM_CUT;
 		static const long ID_BITMAPBUTTON_CUSTOM_COPY;
@@ -113,6 +132,9 @@ class CustomModelDialog: public wxDialog
 		static const long ID_BUTTON1;
 		static const long ID_BUTTON2;
 		static const long ID_NOTEBOOK1;
+		static const long ID_PANEL2;
+		static const long ID_PANEL1;
+		static const long ID_SPLITTERWINDOW1;
 		//*)
 
 		std::string background_image;
@@ -127,6 +149,7 @@ class CustomModelDialog: public wxDialog
         int _selCol = 0;
         std::vector<CopyPasteGrid*> _grids;
         std::vector<wxModelGridCellRenderer*> _renderers;
+        ModelPreview* _modelPreview = nullptr;
 
 	public:
 
@@ -154,8 +177,11 @@ class CustomModelDialog: public wxDialog
 		void OnGridCustomCellRightClick(wxGridEvent& event);
 		void OnSpinCtrl_DepthChange(wxSpinEvent& event);
 		void OnNotebook1PageChanged(wxNotebookEvent& event);
+		void OnResize(wxSizeEvent& event);
+		void OnCheckBox_ShowWiringClick(wxCommandEvent& event);
 		//*)
 
+        void OnMove(wxMoveEvent& event);
         void OnCut(wxCommandEvent& event);
         void OnCopy(wxCommandEvent& event);
         void OnPaste(wxCommandEvent& event);

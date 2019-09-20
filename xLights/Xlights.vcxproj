@@ -232,6 +232,7 @@
     <ClCompile Include="LyricUserDictDialog.cpp" />
     <ClCompile Include="MatrixFaceDownloadDialog.cpp" />
     <ClCompile Include="ModelChainDialog.cpp" />
+    <ClCompile Include="ModelPreview3DDialog.cpp" />
     <ClCompile Include="models\BaseObject.cpp" />
     <ClCompile Include="models\ChannelBlockModel.cpp" />
     <ClCompile Include="models\CubeModel.cpp" />
@@ -616,6 +617,7 @@
     <ClInclude Include="LyricUserDictDialog.h" />
     <ClInclude Include="MatrixFaceDownloadDialog.h" />
     <ClInclude Include="ModelChainDialog.h" />
+    <ClInclude Include="ModelPreview3DDialog.h" />
     <ClInclude Include="models\BaseObject.h" />
     <ClInclude Include="models\ChannelBlockModel.h" />
     <ClInclude Include="models\CubeModel.h" />

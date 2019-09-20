@@ -171,7 +171,7 @@ namespace DrawGLUtils
             bool found = false;
             if (replace)
             {
-                for (int i = 0; i < count; i ++)
+                for (unsigned int i = 0; i < count; i ++)
                 {
                     int base = i * coordsPerVertex;
                     if (vertices[base] == x && vertices[base + 1] == y && (coordsPerVertex == 2 || vertices[base + 2] == z))
