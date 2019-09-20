@@ -591,6 +591,8 @@ void ModelPreview::Reset()
     if (is_3d)
     {
         camera3d->Reset();
+        SetCameraPos(0, 0, false, true);
+        SetCameraView(0, 0, false, true);
     }
     else
     {
