@@ -519,7 +519,6 @@
     <ClCompile Include="ValueCurveDialog.cpp" />
     <ClCompile Include="vamp-hostsdk\acsymbols.c" />
     <ClCompile Include="vamp-hostsdk\FFT.cpp" />
-    <ClCompile Include="vamp-hostsdk\FFTimpl.cpp" />
     <ClCompile Include="vamp-hostsdk\Files.cpp" />
     <ClCompile Include="vamp-hostsdk\host-c.cpp" />
     <ClCompile Include="vamp-hostsdk\PluginBufferingAdapter.cpp" />

@@ -140,10 +140,8 @@
     <ClCompile Include="ValueCurveDialog.cpp" />
     <ClCompile Include="vamp-hostsdk\acsymbols.c" />
     <ClCompile Include="vamp-hostsdk\FFT.cpp" />
-    <ClCompile Include="vamp-hostsdk\FFTimpl.cpp" />
     <ClCompile Include="vamp-hostsdk\Files.cpp" />
     <ClCompile Include="vamp-hostsdk\host-c.cpp" />
-    <ClCompile Include="vamp-hostsdk\PluginBufferingAdapter.cpp" />
     <ClCompile Include="vamp-hostsdk\PluginChannelAdapter.cpp" />
     <ClCompile Include="vamp-hostsdk\PluginHostAdapter.cpp" />
     <ClCompile Include="vamp-hostsdk\PluginInputDomainAdapter.cpp" />
@@ -738,6 +736,7 @@
     </ClCompile>
     <ClCompile Include="CheckboxSelectDialog.cpp" />
     <ClCompile Include="EmailDialog.cpp" />
+    <ClCompile Include="vamp-hostsdk\PluginBufferingAdapter.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
