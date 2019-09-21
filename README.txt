@@ -11,9 +11,19 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2019.51 September 21, 2019
+   -- enh (keith)  Add 3D custom model preview with live wiring view when building custom models
+   -- enh (keith)  Suppress version upgrade check when command line rendering
+   -- enh (keith)  Add ability to adjust for timezone problems with SMS service responses
    -- bug (dkulp)  Fix problems of submodel rendering not honoring if "Blend between models" is turned off
    -- bug (dkulp)  Fix a bunch of undefined behavior warnings from Xcode 11's analyzers
    -- bug (gil)    Fix Marquee rendering on Single Lines to work like prior to 2019.12.
+   -- bug (gil)    Fix after model preview reset next rotate jumps
+   -- bug (keith)  Fix S5 import of archived models
+   -- bug (keith)  When importing S5 single channel model import it at the model level rather than node level
+   -- bug (keith)  Remove syncrolight 1024 pixel per output limitation
+   -- bug (keith)  Get submodels in groups highlighting correctly in layout
+   -- bug (keith)  Fix auto layout of DMX models not producing sensible results
 2019.50 September 14, 2019
    -- bug (keith)  Fix issues with single channel candy canes and polylines
 2019.49 September 13, 2019
