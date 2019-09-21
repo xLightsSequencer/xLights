@@ -55,10 +55,11 @@ std::string VixenEffect::GetSettings() const
 
 std::string VixenEffect::GetXLightsType() const
 {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     if (type == "PlasmaData") return "Plasma";
     if (type == "TwinkleData") return "Twinkle";
     if (type == "PulseData") return "On";
-    if (type == "Data") return ""; // this should go to timing
     if (type == "SetLevelData") return "On";
     if (type == "WipeData") return "Color Wash";
     if (type == "AlternatingData") return "Marquee";
@@ -76,10 +77,35 @@ std::string VixenEffect::GetXLightsType() const
     if (type == "TextData") return "Text";
     if (type == "SpirographData") return "Spirograph";
     if (type == "FireData") return "Fire";
-    if (type == "NutcrackerModuleData") return ""; // not sure what to do with this
-    if (type == "SpinData") return "";
+    if (type == "LipSyncData") return "Faces";
+    if (type == "FireworksData") return "Fireworks";
+    if (type == "SnowstormData") return "Snow Storm";
+    if (type == "Data")
+    {
+        logger_base.warn("Vixen3: Unable to convert Data effect ... inserting an On effect.");
+        return "On"; // this should go to timing
+    }
+    if (type == "NutcrackerModuleData")
+    {
+        logger_base.warn("Vixen3: Unable to convert NutcrackerModuleData effect ... inserting an off effect.");
+        return "Off"; // not sure what to do with this
+    }
+    if (type == "DissolveData")
+    {
+        logger_base.warn("Vixen3: Unable to convert DissolveData effect ... inserting an off effect.");
+        return "Off"; // not sure what to do with this
+    }
+    if (type == "ColorWashData") return "Color Wash";
+    if (type == "SpinData") return "Pinwheel";
+    {
+        logger_base.warn("Vixen3: Unable to convert SpinData effect ... inserting an Pinwheel effect.");
+        return "Pinwheel";
+    }
+    if (type == "StrobeData") return "Strobe";
 
-    return "";
+    logger_base.warn("Vixen3: Unknown effect %s ... inserting an off effect.", (const char*)type.c_str());
+
+    return "Off";
 }
 
 void Vixen3::ProcessNode(wxXmlNode* n, std::map<std::string, std::string>& models)
@@ -159,6 +185,7 @@ Vixen3::Vixen3(const std::string& filename, const std::string& system)
 
     std::map<std::string, wxXmlNode*> effectSettings;
     wxArrayString markNames;
+    int unnamed = 1;
     for (wxXmlNode *n = doc.GetRoot(); n != nullptr; n = n->GetNext())
     {
         if (n->GetName() == "TimedSequenceData")
@@ -191,22 +218,177 @@ Vixen3::Vixen3(const std::string& filename, const std::string& system)
                                             {
                                                 markTime = markTime.AfterFirst('T');
                                             }
+                                            float mins = 0;
+                                            if (markTime.Contains('M'))
+                                            {
+                                                mins = wxAtof(markTime.BeforeFirst('M'));
+                                                markTime = markTime.AfterFirst('M');
+                                            }
+                                            float secs = 0;
                                             if (markTime.EndsWith("S"))
                                             {
-                                                markTime = markTime.BeforeLast('S');
+                                                secs = wxAtof(markTime.BeforeLast('S'));
                                             }
-                                            float mt = wxAtof(markTime);
-                                            timing.push_back(VixenTiming(last, mt));
+                                            float mt = mins * 60.0 + secs;
+                                            timing.push_back(VixenTiming(last, mt, ""));
                                             last = mt;
                                         }
                                     }
                                 }
                             }
                             _timingData[name] = timing;
+                            _timingType[name] = "Generic";
                         }
                     }
                 }
-                else if (nn->GetName() == "_effectNodeSurrogates")
+                else if (nn->GetName() == "LabeledMarkCollections")
+                {
+                    for (wxXmlNode* nnn = nn->GetChildren(); nnn != nullptr; nnn = nnn->GetNext())
+                    {
+                        if (nnn->GetName() == "d1p1:anyType")
+                        {
+                            std::list<VixenTiming> timing;
+                            std::string name = ""; 
+                            std::string type = "Generic";
+
+                            for (wxXmlNode* nnnn = nnn->GetChildren(); nnnn != nullptr; nnnn = nnnn->GetNext())
+                            {
+                                if (nnnn->GetName() == "d2p1:Name")
+                                {
+                                    if (nnnn->GetChildren() != nullptr)
+                                    {
+                                        name = nnnn->GetChildren()->GetContent().ToStdString();
+                                    }
+                                }
+                                else if (nnnn->GetName() == "d2p1:CollectionType")
+                                {
+                                    if (nnnn->GetChildren() != nullptr)
+                                    {
+                                        type = nnnn->GetChildren()->GetContent().ToStdString();
+                                    }
+                                }
+                                else if (nnnn->GetName() == "d2p1:Marks")
+                                {
+                                    float last = 0;
+                                    for (wxXmlNode* nnnnn = nnnn->GetChildren(); nnnnn != nullptr; nnnnn = nnnnn->GetNext())
+                                    {
+                                        float duration = 0;
+                                        float end = 0;
+                                        std::string label = "";
+                                        if (nnnnn->GetName() == "d1p1:anyType")
+                                        {
+                                            for (wxXmlNode* nnnnnn = nnnnn->GetChildren(); nnnnnn != nullptr; nnnnnn = nnnnnn->GetNext())
+                                            {
+                                                if (nnnnnn->GetName() == "d2p1:StartTime")
+                                                {
+                                                    wxString markTime = nnnnnn->GetChildren()->GetContent();
+                                                    if (markTime.StartsWith("PT"))
+                                                    {
+                                                        markTime = markTime.AfterFirst('T');
+                                                    }
+
+                                                    float mins = 0;
+                                                    if (markTime.Contains("M"))
+                                                    {
+                                                        mins = wxAtof(markTime.BeforeFirst('M'));
+                                                        markTime = markTime.AfterFirst('M');
+                                                    }
+
+                                                    float secs = 0;
+                                                    if (markTime.EndsWith("S"))
+                                                    {
+                                                        markTime = markTime.BeforeLast('S');
+                                                        secs = wxAtof(markTime);
+                                                    }
+
+                                                    end = mins * 60 + secs;
+                                                }
+                                                else if (nnnnnn->GetName() == "d2p1:Duration")
+                                                {
+                                                    wxString markTime = nnnnnn->GetChildren()->GetContent();
+                                                    if (markTime.StartsWith("PT"))
+                                                    {
+                                                        markTime = markTime.AfterFirst('T');
+                                                    }
+
+                                                    float mins = 0;
+                                                    if (markTime.Contains("M"))
+                                                    {
+                                                        mins = wxAtof(markTime.BeforeFirst('M'));
+                                                        markTime = markTime.AfterFirst('M');
+                                                    }
+
+                                                    float secs = 0;
+                                                    if (markTime.EndsWith("S"))
+                                                    {
+                                                        markTime = markTime.BeforeLast('S');
+                                                        secs = wxAtof(markTime);
+                                                    }
+
+                                                    duration = mins * 60 + secs;
+                                                }
+                                                else if (nnnnnn->GetName() == "d2p1:Text")
+                                                {
+                                                    if (nnnnnn->GetChildren() != nullptr)
+                                                    {
+                                                        label = nnnnnn->GetChildren()->GetContent().ToStdString();
+                                                    }
+                                                }
+                                            }
+                                            if (label == "")
+                                            {
+                                                // if labels are blank then we ignore duration
+                                                if (end != 0 && end > last)
+                                                {
+                                                    timing.push_back(VixenTiming(last, end, ""));
+                                                    last = end;
+                                                }
+                                                else
+                                                {
+                                                    //wxASSERT(false);
+                                                }
+                                            }
+                                            else
+                                            {
+                                                // end is actually the start and we trust the duration
+                                                if (duration > 0)
+                                                {
+                                                    float s = std::max(last, end);
+                                                    if (s < end + duration)
+                                                    {
+                                                        float e = s + duration;
+                                                        if (last > end)
+                                                        {
+                                                            duration -= (last - end);
+                                                        }
+                                                        timing.push_back(VixenTiming(s, e, label));
+                                                        last = e;
+                                                    }
+                                                    else
+                                                    {
+                                                        //wxASSERT(false);
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    //wxASSERT(false);
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            if (name == "")
+                            {
+                                name = wxString::Format("Unnamed %d", unnamed++).ToStdString();
+                            }
+                            _timingData[name] = timing;
+                            _timingType[name] = type;
+                        }
+                    }
+                }
+                else if (nn->GetName() == "_effectNodeSurrogates" && models.size() > 0)
                 {
                     for (wxXmlNode* nnn = nn->GetChildren(); nnn != nullptr; nnn = nnn->GetNext())
                     {
@@ -229,11 +411,18 @@ Vixen3::Vixen3(const std::string& filename, const std::string& system)
                                     {
                                         markTime = markTime.AfterFirst('T');
                                     }
+                                    float mins = 0;
+                                    if (markTime.Contains('M'))
+                                    {
+                                        mins = wxAtof(markTime.BeforeFirst('M'));
+                                        markTime = markTime.AfterFirst('M');
+                                    }
+                                    float secs = 0;
                                     if (markTime.EndsWith("S"))
                                     {
-                                        markTime = markTime.BeforeLast('S');
+                                        secs = wxAtof(markTime.BeforeLast('S'));
                                     }
-                                    start = wxAtof(markTime);
+                                    start = mins * 60.0 + secs;
                                 }
                                 else if (nnnn->GetName() == "TimeSpan")
                                 {
@@ -242,11 +431,18 @@ Vixen3::Vixen3(const std::string& filename, const std::string& system)
                                     {
                                         markTime = markTime.AfterFirst('T');
                                     }
+                                    float mins = 0;
+                                    if (markTime.Contains('M'))
+                                    {
+                                        mins = wxAtof(markTime.BeforeFirst('M'));
+                                        markTime = markTime.AfterFirst('M');
+                                    }
+                                    float secs = 0;
                                     if (markTime.EndsWith("S"))
                                     {
-                                        markTime = markTime.BeforeLast('S');
+                                        secs = wxAtof(markTime.BeforeLast('S'));
                                     }
-                                    duration = wxAtof(markTime);
+                                    duration = mins * 60.0 + secs;
                                 }
                                 else if (nnnn->GetName() == "TargetNodes")
                                 {
@@ -273,10 +469,15 @@ Vixen3::Vixen3(const std::string& filename, const std::string& system)
                             {
                                 _effectData[m->second].push_back(ve);
                             }
+                            else
+                            {
+                                logger_base.warn("Vixen3: model not found for effect. %s", (const char*)modelId.c_str());
+                                wxASSERT(false);
+                            }
                         }
                     }
                 }
-                else if (nn->GetName() == "_dataModels")
+                else if (nn->GetName() == "_dataModels" && models.size() > 0)
                 {
                     for (wxXmlNode* nnn = nn->GetChildren(); nnn != nullptr; nnn = nnn->GetNext())
                     {
@@ -345,10 +546,24 @@ std::list<std::string> Vixen3::GetTimings() const
 
     for (auto it : _timingData)
     {
-        res.push_back(it.first);
+        if (_timingType.at(it.first) == "Generic" || _timingType.at(it.first) == "Phrase")
+        {
+            res.push_back(it.first);
+        }
     }
 
     return res;
+}
+
+std::string Vixen3::GetTimingType(const std::string& timing) const
+{
+    return _timingType.at(timing);
+}
+
+// type must be Phoneme or Word
+std::list<VixenTiming> Vixen3::GetRelatedTiming(const std::string& timing, const std::string& type) const
+{
+    return GetTimings(timing + " " + type);
 }
 
 std::list<VixenTiming> Vixen3::GetTimings(const std::string& timing) const

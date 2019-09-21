@@ -4132,7 +4132,7 @@ void MapS5Effects(const EffectManager& effectManager, Element* model, const LORE
             }
             else
             {
-                for (int i = 0; i < m->GetNodeCount(); i++)
+                for (uint32_t i = 0; i < m->GetNodeCount(); i++)
                 {
                     NodeLayer* nl = model->GetNodeEffectLayer(i);
                     if (nl != nullptr)
@@ -4488,7 +4488,8 @@ bool xLightsFrame::ImportVixen3(const wxFileName &filename)
         - which effect\n\
         - which setting you had to fine tune\n\
         - what it was when it was converted\n\
-        - what you changed it to.\n");
+        - what you changed it to.\n\n\n\
+AT THIS POINT IT JUST BRINGS IN THE EFFECTS. WE MAKE NO EFFORT TO GET THE SETTINGS RIGHT!");
 
     Vixen3 vixen(filename.GetFullPath().ToStdString());
 
@@ -4530,39 +4531,30 @@ bool xLightsFrame::ImportVixen3(const wxFileName &filename)
     for (size_t tt = 0; tt < dlg.TimingTrackListBox->GetCount(); ++tt) {
         if (dlg.TimingTrackListBox->IsChecked(tt)) {
             std::string name = dlg.TimingTrackListBox->GetString(tt).ToStdString();
-            TimingElement *target = (TimingElement*)mSequenceElements.AddElement(name, "timing", true, true, false, false);
-            char cnt = '1';
-            while (target == nullptr) {
-                target = (TimingElement*)mSequenceElements.AddElement(name + "-" + cnt++, "timing", true, true, false, false);
-            }
-            if (target->GetEffectLayerCount() == 0)
+
+            if (vixen.GetTimingType(name) == "Phrase")
             {
-                target->AddEffectLayer();
-            }
-
-            EffectLayer *targetLayer = target->GetEffectLayer(0);
-
-            auto timing = vixen.GetTimings(name);
-
-            if (timing.size() > 0)
-            {
-                for (auto it : timing)
-                {
-                    long s = Vixen3::ConvertTiming(it.start + offset, CurrentSeqXmlFile->GetFrameMS());
-                    long e = Vixen3::ConvertTiming(it.end + offset, CurrentSeqXmlFile->GetFrameMS());
-                    targetLayer->AddEffect(0, "", "", "", s, e, false, false);
+                TimingElement* element = AddTimingElement(name);
+                EffectLayer* effectLayer = element->GetEffectLayer(0);
+                if (effectLayer == nullptr) {
+                    effectLayer = element->AddEffectLayer();
                 }
+
+                xLightsXmlFile::AddMarksToLayer(vixen.GetTimings(name), effectLayer, CurrentSeqXmlFile->GetFrameMS());
+                effectLayer = element->AddEffectLayer();
+                xLightsXmlFile::AddMarksToLayer(vixen.GetRelatedTiming(name, "Word"), effectLayer, CurrentSeqXmlFile->GetFrameMS());
+                effectLayer = element->AddEffectLayer();
+                xLightsXmlFile::AddMarksToLayer(vixen.GetRelatedTiming(name, "Phoneme"), effectLayer, CurrentSeqXmlFile->GetFrameMS());
             }
             else
             {
-                auto data = vixen.GetEffects(name);
-
-                for (auto it : data)
-                {
-                    long s = Vixen3::ConvertTiming(it.start + offset, CurrentSeqXmlFile->GetFrameMS());
-                    long e = Vixen3::ConvertTiming(it.end + offset, CurrentSeqXmlFile->GetFrameMS());
-                    targetLayer->AddEffect(0, it.settings["Description"], "", "", s, e, false, false);
+                TimingElement* element = AddTimingElement(name);
+                EffectLayer* effectLayer = element->GetEffectLayer(0);
+                if (effectLayer == nullptr) {
+                    effectLayer = element->AddEffectLayer();
                 }
+
+                xLightsXmlFile::AddMarksToLayer(vixen.GetTimings(name), effectLayer, CurrentSeqXmlFile->GetFrameMS());
             }
         }
     }

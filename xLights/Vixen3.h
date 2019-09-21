@@ -8,9 +8,10 @@
 
 struct VixenTiming
 {
-    VixenTiming(float s, float e) : start(s), end(e) { }
+    VixenTiming(float s, float e, const std::string& l) : start(s), end(e), label(l) { }
     float start;
     float end;
+    std::string label;
 };
 
 class VixenEffect
@@ -36,6 +37,7 @@ class Vixen3 {
     std::string _filename;
     std::string _systemFile;
     std::map<std::string, std::list<VixenTiming>> _timingData;
+    std::map<std::string, std::string> _timingType;
     std::map<std::string, std::list<VixenEffect>> _effectData;
 
     void ProcessNode(wxXmlNode* n, std::map<std::string, std::string>& models);
@@ -53,6 +55,8 @@ class Vixen3 {
 
     std::list<std::string> GetTimings() const;
     std::list<VixenTiming> GetTimings(const std::string& timing) const;
+    std::string GetTimingType(const std::string& timing) const;
+    std::list<VixenTiming> GetRelatedTiming(const std::string& timing, const std::string& type) const;
 
     std::list<std::string> GetModelsWithEffects() const;
     std::list<VixenEffect> GetEffects(const std::string& model) const;

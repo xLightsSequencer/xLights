@@ -2572,6 +2572,26 @@ void xLightsXmlFile::ProcessXLightsTiming(const wxString& dir, const wxArrayStri
     xLightsParent->SetCursor(wxCURSOR_ARROW);
 }
 
+void xLightsXmlFile::AddMarksToLayer(const std::list<VixenTiming>& marks, EffectLayer* effectLayer, int frameMS) {
+    int32_t last = 0;
+    for (auto it : marks)
+    {
+        int st = Vixen3::ConvertTiming(it.start, frameMS);
+        int en = Vixen3::ConvertTiming(it.end, frameMS);
+
+        if (st < last) st = last;
+        if (st < en)
+        {
+            effectLayer->AddEffect(0, it.label, "", "", st, en, EFFECT_NOT_SELECTED, false);
+            last = en;
+        }
+        else
+        {
+            // Timing mark dropped because we could not fit it in
+        }
+    }
+}
+
 void xLightsXmlFile::ProcessVixen3Timing(const wxString& dir, const wxArrayString& filenames, xLightsFrame* xLightsParent) {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -2600,22 +2620,32 @@ void xLightsXmlFile::ProcessVixen3Timing(const wxString& dir, const wxArrayStrin
             wxArrayInt selections = dlg.GetSelections();
 
             for (int i1 = 0; i1 < selections.size(); i1++) {
+                
                 wxString sel = markNames[selections[i1]];
 
-                TimingElement* element = xLightsParent->AddTimingElement(sel);
-                EffectLayer* effectLayer = element->GetEffectLayer(0);
-                if (effectLayer == nullptr) {
-                    effectLayer = element->AddEffectLayer();
-                }
-
-                auto marks = vixenFile.GetTimings(sel.ToStdString());
-
-                for (auto it : marks)
+                if (vixenFile.GetTimingType(sel) == "Phrase")
                 {
-                    int st = Vixen3::ConvertTiming(it.start, GetFrameMS());
-                    int en = Vixen3::ConvertTiming(it.end, GetFrameMS());
+                    TimingElement* element = xLightsParent->AddTimingElement(sel);
+                    EffectLayer* effectLayer = element->GetEffectLayer(0);
+                    if (effectLayer == nullptr) {
+                        effectLayer = element->AddEffectLayer();
+                    }
 
-                    effectLayer->AddEffect(0, "", "", "", st, en, EFFECT_NOT_SELECTED, false);
+                    AddMarksToLayer(vixenFile.GetTimings(sel.ToStdString()), effectLayer, GetFrameMS());
+                    effectLayer = element->AddEffectLayer();
+                    AddMarksToLayer(vixenFile.GetRelatedTiming(sel.ToStdString(), "Word"), effectLayer, GetFrameMS());
+                    effectLayer = element->AddEffectLayer();
+                    AddMarksToLayer(vixenFile.GetRelatedTiming(sel.ToStdString(), "Phoneme"), effectLayer, GetFrameMS());
+                }
+                else
+                {
+                    TimingElement* element = xLightsParent->AddTimingElement(sel);
+                    EffectLayer* effectLayer = element->GetEffectLayer(0);
+                    if (effectLayer == nullptr) {
+                        effectLayer = element->AddEffectLayer();
+                    }
+
+                    AddMarksToLayer(vixenFile.GetTimings(sel.ToStdString()), effectLayer, GetFrameMS());
                 }
             }
         }

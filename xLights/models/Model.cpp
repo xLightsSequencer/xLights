@@ -4090,9 +4090,9 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumula
     int buffLast = -1;
     bool left = true;
 
-    float lastX = -99999999.0;
-    float lastY = -99999999.0;
-    float lastZ = -99999999.0;
+    float lastX = -99999999.0f;
+    float lastY = -99999999.0f;
+    float lastZ = -99999999.0f;
     uint32_t lastChan = 0;
     xlColor cLine(0x49, 0x80, 0x49);
 
