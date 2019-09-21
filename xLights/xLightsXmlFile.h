@@ -6,6 +6,7 @@
 #include "sequencer/SequenceElements.h"
 #include "DataLayer.h"
 #include "AudioManager.h"
+#include "Vixen3.h"
 
 class SequenceElements;  // forward declaration needed due to circular dependency
 class xLightsFrame;
@@ -105,6 +106,7 @@ class xLightsXmlFile : public wxFileName
         void ProcessLSPTiming(const wxString& dir, const wxArrayString& filenames, xLightsFrame* xLightsParent);
         void ProcessXLightsTiming(const wxString& dir, const wxArrayString& filenames, xLightsFrame* xLightsParent);
         void ProcessVixen3Timing(const wxString& dir, const wxArrayString& filenames, xLightsFrame* xLightsParent);
+        static void AddMarksToLayer(const std::list<VixenTiming>& marks, EffectLayer* effectLayer, int frameMS);
         wxString UniqueTimingName(xLightsFrame* xLightsParent, wxString name) const;
         void UpdateVersion();
         void UpdateVersion(const std::string &version);

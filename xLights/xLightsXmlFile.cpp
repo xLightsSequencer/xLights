@@ -20,6 +20,7 @@
 #include "xLightsVersion.h"
 #include "UtilFunctions.h"
 #include "sequencer/TimeLine.h"
+#include "Vixen3.h"
 
 #include <log4cpp/Category.hh>
 
@@ -2571,6 +2572,26 @@ void xLightsXmlFile::ProcessXLightsTiming(const wxString& dir, const wxArrayStri
     xLightsParent->SetCursor(wxCURSOR_ARROW);
 }
 
+void xLightsXmlFile::AddMarksToLayer(const std::list<VixenTiming>& marks, EffectLayer* effectLayer, int frameMS) {
+    int32_t last = 0;
+    for (auto it : marks)
+    {
+        int st = Vixen3::ConvertTiming(it.start, frameMS);
+        int en = Vixen3::ConvertTiming(it.end, frameMS);
+
+        if (st < last) st = last;
+        if (st < en)
+        {
+            effectLayer->AddEffect(0, it.label, "", "", st, en, EFFECT_NOT_SELECTED, false);
+            last = en;
+        }
+        else
+        {
+            // Timing mark dropped because we could not fit it in
+        }
+    }
+}
+
 void xLightsXmlFile::ProcessVixen3Timing(const wxString& dir, const wxArrayString& filenames, xLightsFrame* xLightsParent) {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -2584,43 +2605,13 @@ void xLightsXmlFile::ProcessVixen3Timing(const wxString& dir, const wxArrayStrin
 
         logger_base.info("Loading Vixen 3 file " + std::string(next_file.GetFullPath().c_str()));
 
-        wxXmlDocument doc(next_file.GetFullPath());
+        Vixen3 vixenFile(next_file.GetFullPath());
 
+        auto timings = vixenFile.GetTimings();
         wxArrayString markNames;
-        for (wxXmlNode* n = doc.GetRoot(); n != nullptr; n = n->GetNext())
+        for (auto it: timings)
         {
-            if (n->GetName() == "TimedSequenceData")
-            {
-                for (wxXmlNode* nn = n->GetChildren(); nn != nullptr; nn = nn->GetNext())
-                {
-                    if (nn->GetName() == "MarkCollections")
-                    {
-                        for (wxXmlNode* nnn = nn->GetChildren(); nnn != nullptr; nnn = nnn->GetNext())
-                        {
-                            if (nnn->GetName() == "MarkCollection")
-                            {
-                                for (wxXmlNode* nnnn = nnn->GetChildren(); nnnn != nullptr; nnnn = nnnn->GetNext())
-                                {
-                                    if (nnnn->GetName() == "Name")
-                                    {
-                                        markNames.push_back(nnnn->GetChildren()->GetContent());
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    else if (nn->GetName() == "LabeledMarkCollections")
-                    {
-                        for (wxXmlNode* nnn = nn->GetChildren(); nnn != nullptr; nnn = nnn->GetNext())
-                        {
-                            if (nnn->GetName() == "d1p1:anyType")
-                            {
-                                markNames.push_back(wxString::Format("Unnamed %d", unnamed++).ToStdString());
-                            }
-                        }
-                    }
-                }
-            }
+            markNames.push_back(it);
         }
 
         wxMultiChoiceDialog dlg(xLightsParent, "Select timing tracks to import", "Import Timing Tracks", markNames);
@@ -2629,198 +2620,37 @@ void xLightsXmlFile::ProcessVixen3Timing(const wxString& dir, const wxArrayStrin
             wxArrayInt selections = dlg.GetSelections();
 
             for (int i1 = 0; i1 < selections.size(); i1++) {
+                
+                wxString sel = markNames[selections[i1]];
 
-                int count = 0;
-                for (wxXmlNode* n = doc.GetRoot(); n != nullptr; n = n->GetNext())
+                if (vixenFile.GetTimingType(sel) == "Phrase")
                 {
-                    if (n->GetName() == "TimedSequenceData")
-                    {
-                        for (wxXmlNode* nn = n->GetChildren(); nn != nullptr; nn = nn->GetNext())
-                        {
-                            if (nn->GetName() == "MarkCollections")
-                            {
-                                for (wxXmlNode* nnn = nn->GetChildren(); nnn != nullptr; nnn = nnn->GetNext())
-                                {
-                                    if (nnn->GetName() == "MarkCollection")
-                                    {
-                                        if (count == selections[i1])
-                                        {
-                                            TimingElement* element = xLightsParent->AddTimingElement(markNames[selections[i1]]);
-                                            EffectLayer* effectLayer = element->GetEffectLayer(0);
-                                            if (effectLayer == nullptr) {
-                                                effectLayer = element->AddEffectLayer();
-                                            }
-
-                                            // This is the one we are importing
-                                            for (wxXmlNode* nnnn = nnn->GetChildren(); nnnn != nullptr; nnnn = nnnn->GetNext())
-                                            {
-                                                if (nnnn->GetName() == "Marks")
-                                                {
-                                                    int last = 0;
-                                                    for (wxXmlNode* nnnnn = nnnn->GetChildren(); nnnnn != nullptr; nnnnn = nnnnn->GetNext())
-                                                    {
-                                                        if (nnnnn->GetName() == "d3p1:duration")
-                                                        {
-                                                            auto markTime = nnnnn->GetChildren()->GetContent();
-                                                            if (markTime.StartsWith("PT"))
-                                                            {
-                                                                markTime = markTime.AfterFirst('T');
-                                                            }
-                                                            float mins = 0;
-                                                            if (markTime.Contains("M"))
-                                                            {
-                                                                mins = wxAtof(markTime.BeforeFirst('M'));
-                                                                markTime = markTime.AfterFirst('M');
-                                                            }
-
-                                                            float secs = 0;
-                                                            if (markTime.EndsWith("S"))
-                                                            {
-                                                                markTime = markTime.BeforeLast('S');
-                                                                secs = wxAtof(markTime);
-                                                            }
-
-                                                            int current = std::round((mins*60+secs) * 1000.0 / (float)GetFrameMS()) * GetFrameMS();
-
-                                                            effectLayer->AddEffect(0, "", "", "", last, current, EFFECT_NOT_SELECTED, false);
-
-                                                            last = current;
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-
-                                        count++;
-                                    }
-                                }
-                            }
-                            else if (nn->GetName() == "LabeledMarkCollections")
-                            {
-                                for (wxXmlNode* nnn = nn->GetChildren(); nnn != nullptr; nnn = nnn->GetNext())
-                                {
-                                    if (nnn->GetName() == "d1p1:anyType")
-                                    {
-                                        if (count == selections[i1])
-                                        {
-                                            TimingElement* element = xLightsParent->AddTimingElement(markNames[selections[i1]]);
-                                            EffectLayer* effectLayer = element->GetEffectLayer(0);
-                                            if (effectLayer == nullptr) {
-                                                effectLayer = element->AddEffectLayer();
-                                            }
-
-                                            for (wxXmlNode* nnnn = nnn->GetChildren(); nnnn != nullptr; nnnn = nnnn->GetNext())
-                                            {
-                                                if (nnnn->GetName() == "d2p1:Marks")
-                                                {
-                                                    int32_t last = 0;
-                                                    for (wxXmlNode* nnnnn = nnnn->GetChildren(); nnnnn != nullptr; nnnnn = nnnnn->GetNext())
-                                                    {
-                                                        int32_t duration = 0;
-                                                        int32_t end = 0;
-                                                        std::string label = "";
-                                                        if (nnnnn->GetName() == "d1p1:anyType")
-                                                        {
-                                                            for (wxXmlNode* nnnnnn = nnnnn->GetChildren(); nnnnnn != nullptr; nnnnnn = nnnnnn->GetNext())
-                                                            {
-                                                                if (nnnnnn->GetName() == "d2p1:StartTime")
-                                                                {
-                                                                    wxString markTime = nnnnnn->GetChildren()->GetContent();
-                                                                    if (markTime.StartsWith("PT"))
-                                                                    {
-                                                                        markTime = markTime.AfterFirst('T');
-                                                                    }
-
-                                                                    float mins = 0;
-                                                                    if (markTime.Contains("M"))
-                                                                    {
-                                                                        mins = wxAtof(markTime.BeforeFirst('M'));
-                                                                        markTime = markTime.AfterFirst('M');
-                                                                    }
-
-                                                                    float secs = 0;
-                                                                    if (markTime.EndsWith("S"))
-                                                                    {
-                                                                        markTime = markTime.BeforeLast('S');
-                                                                        secs = wxAtof(markTime);
-                                                                    }
-
-                                                                    end = std::round((mins*60+secs) * 1000.0 / (float)GetFrameMS()) * GetFrameMS();
-                                                                }
-                                                                else if (nnnnnn->GetName() == "d2p1:Duration")
-                                                                {
-                                                                    wxString markTime = nnnnnn->GetChildren()->GetContent();
-                                                                    if (markTime.StartsWith("PT"))
-                                                                    {
-                                                                        markTime = markTime.AfterFirst('T');
-                                                                    }
-
-                                                                    float mins = 0;
-                                                                    if (markTime.Contains("M"))
-                                                                    {
-                                                                        mins = wxAtof(markTime.BeforeFirst('M'));
-                                                                        markTime = markTime.AfterFirst('M');
-                                                                    }
-
-                                                                    float secs = 0;
-                                                                    if (markTime.EndsWith("S"))
-                                                                    {
-                                                                        markTime = markTime.BeforeLast('S');
-                                                                        secs = wxAtof(markTime);
-                                                                    }
-
-                                                                    duration = std::round((mins * 60 + secs) * 1000.0 / (float)GetFrameMS()) * GetFrameMS();
-                                                                }
-                                                                else if (nnnnnn->GetName() == "d2p1:Text")
-                                                                {
-                                                                    if (nnnnnn->GetChildren() != nullptr)
-                                                                    {
-                                                                        label = nnnnnn->GetChildren()->GetContent().ToStdString();
-                                                                    }
-                                                                }
-                                                            }
-                                                            if (label == "")
-                                                            {
-                                                                // if labels are blank then we ignore duration
-                                                                if (end != 0 && end > last)
-                                                                {
-                                                                    effectLayer->AddEffect(0, label, "", "", last, end, EFFECT_NOT_SELECTED, false);
-                                                                    last = end;
-                                                                }
-                                                            }
-                                                            else
-                                                            {
-                                                                // end is actually the start and we trust the duration
-                                                                if (duration > 0)
-                                                                {
-                                                                    int32_t s = std::max(last, end);
-                                                                    if (s < end + duration)
-                                                                    {
-                                                                        int32_t e = s + duration;
-                                                                        if (last > end)
-                                                                        {
-                                                                            duration -= (last - end);
-                                                                        }
-                                                                        effectLayer->AddEffect(0, label, "", "", s, e, EFFECT_NOT_SELECTED, false);
-                                                                        last = e;
-                                                                    }
-                                                                }
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                        count++;
-                                    }
-                                }
-                            }
-                        }
+                    TimingElement* element = xLightsParent->AddTimingElement(sel);
+                    EffectLayer* effectLayer = element->GetEffectLayer(0);
+                    if (effectLayer == nullptr) {
+                        effectLayer = element->AddEffectLayer();
                     }
+
+                    AddMarksToLayer(vixenFile.GetTimings(sel.ToStdString()), effectLayer, GetFrameMS());
+                    effectLayer = element->AddEffectLayer();
+                    AddMarksToLayer(vixenFile.GetRelatedTiming(sel.ToStdString(), "Word"), effectLayer, GetFrameMS());
+                    effectLayer = element->AddEffectLayer();
+                    AddMarksToLayer(vixenFile.GetRelatedTiming(sel.ToStdString(), "Phoneme"), effectLayer, GetFrameMS());
+                }
+                else
+                {
+                    TimingElement* element = xLightsParent->AddTimingElement(sel);
+                    EffectLayer* effectLayer = element->GetEffectLayer(0);
+                    if (effectLayer == nullptr) {
+                        effectLayer = element->AddEffectLayer();
+                    }
+
+                    AddMarksToLayer(vixenFile.GetTimings(sel.ToStdString()), effectLayer, GetFrameMS());
                 }
             }
         }
     }
+
     xLightsParent->SetCursor(wxCURSOR_ARROW);
 }
 

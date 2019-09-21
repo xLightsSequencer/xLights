@@ -37,6 +37,7 @@
 #include "effects/MeteorsEffect.h"
 #include "effects/PinwheelEffect.h"
 #include "effects/SnowflakesEffect.h"
+#include "Vixen3.h"
 
 #include "osxMacUtils.h"
 #include <log4cpp/Category.hh>
@@ -1042,6 +1043,7 @@ void xLightsFrame::OnMenuItemImportEffects(wxCommandEvent& event)
     filters.push_back("xLights Sequence (*.xml)|*.xml");
     filters.push_back("HLS hlsIdata Sequences(*.hlsIdata)|*.hlsIdata");
     filters.push_back("Vixen 2.x Sequence(*.vix)|*.vix");
+    filters.push_back("Vixen 3.x Sequence(*.tim)|*.tim");
     filters.push_back("LSP 2.x Sequence(*.msq)|*.msq");
     filters.push_back("VSA Files(*.vsa)|*.vsa");
 
@@ -1108,6 +1110,9 @@ void xLightsFrame::OnMenuItemImportEffects(wxCommandEvent& event)
         }
         else if (ext == "sup") {
             ImportSuperStar(fn);
+        }
+        else if (ext == "tim") {
+            ImportVixen3(fn);
         }
         else if (ext == "vix") {
             ImportVix(fn);
@@ -4127,7 +4132,7 @@ void MapS5Effects(const EffectManager& effectManager, Element* model, const LORE
             }
             else
             {
-                for (int i = 0; i < m->GetNodeCount(); i++)
+                for (uint32_t i = 0; i < m->GetNodeCount(); i++)
                 {
                     NodeLayer* nl = model->GetNodeEffectLayer(i);
                     if (nl != nullptr)
@@ -4427,6 +4432,209 @@ bool xLightsFrame::ImportLPE(wxXmlDocument &input_xml, const wxFileName &filenam
     }
 
     logger_base.debug("    Importing LPE effects done.");
+
+    return true;
+}
+
+void MapVixen3(const EffectManager& effect_manager, int i, EffectLayer* layer, const Vixen3& vixen, const wxString& model, bool left, long offset, int frameMS)
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    auto effects = vixen.GetEffects(model.ToStdString());
+
+    for (auto it : effects)
+    {
+        long s = Vixen3::ConvertTiming(it.start + offset, frameMS);
+        long e = Vixen3::ConvertTiming(it.end + offset, frameMS);
+
+        if (!layer->HasEffectsInTimeRange(s, e))
+        {
+            // now we need to create the effect
+            std::string newpalette = it.GetPalette();
+            std::string newsettings = it.GetSettings();
+            std::string type = it.GetXLightsType();
+            if (type != "")
+            {
+                if (layer->GetParentElement()->GetSequenceElements()->GetEffectManager().GetEffectIndex(type) < 0)
+                {
+                    logger_base.debug("Vixen 3 import %s -> %s is not a valid effect.", (const char*)it.type.c_str(), (const char*)type.c_str());
+                }
+                else
+                {
+                    layer->AddEffect(0, type, newsettings, newpalette, s, e, false, false);
+                }
+            }
+        }
+    }
+}
+
+void MapVixen3Effects(const EffectManager& effectManager, Element* model, const Vixen3& vixen, const wxString& mapping, long offset, int frameMS)
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    // TODO need to handle multiple layers
+    int layer = 0;
+    logger_base.debug("Creating effects on model %s layer %d from %s",
+        (const char *)model->GetFullName().c_str(), layer + 1, (const char *)mapping.c_str());
+    MapVixen3(effectManager, 0, model->GetEffectLayer(layer), vixen, mapping, true, offset, frameMS);
+}
+
+bool xLightsFrame::ImportVixen3(const wxFileName &filename)
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    wxMessageBox(
+"WARNING: As at this release Vixen3 import is experimental and its improvement relies on your feedback.\nIf it doesnt do a good job let us know by telling us:\n\
+        - which effect\n\
+        - which setting you had to fine tune\n\
+        - what it was when it was converted\n\
+        - what you changed it to.\n\n\n\
+AT THIS POINT IT JUST BRINGS IN THE EFFECTS. WE MAKE NO EFFORT TO GET THE SETTINGS RIGHT!");
+
+    Vixen3 vixen(filename.GetFullPath().ToStdString());
+
+    xLightsImportChannelMapDialog dlg(this, filename, true, true, false, false);
+    dlg.mSequenceElements = &mSequenceElements;
+    dlg.xlights = this;
+
+    auto models = vixen.GetModelsWithEffects();
+    for (auto it: models)
+    {
+        auto effects = vixen.GetEffects(it);
+
+        if (effects.front().type == "Data")
+        {
+            dlg.timingTracks.push_back(it);
+        }
+        else
+        {
+            dlg.channelNames.push_back(it);
+        }
+    }
+    std::sort(dlg.channelNames.begin(), dlg.channelNames.end(), stdlistNumberAwareStringCompare);
+    auto timings = vixen.GetTimings();
+    for (auto it : timings)
+    {
+        dlg.timingTracks.push_back(it);
+    }
+
+    dlg.InitImport();
+
+    if (dlg.ShowModal() != wxID_OK || dlg._dataModel == nullptr) {
+        return false;
+    }
+
+    logger_base.debug("Importing Vixen 3 effects from %s.", (const char *)filename.GetFullPath().c_str());
+
+    int offset = dlg.TimeAdjustSpinCtrl->GetValue();
+
+    for (size_t tt = 0; tt < dlg.TimingTrackListBox->GetCount(); ++tt) {
+        if (dlg.TimingTrackListBox->IsChecked(tt)) {
+            std::string name = dlg.TimingTrackListBox->GetString(tt).ToStdString();
+
+            if (vixen.GetTimingType(name) == "Phrase")
+            {
+                TimingElement* element = AddTimingElement(name);
+                EffectLayer* effectLayer = element->GetEffectLayer(0);
+                if (effectLayer == nullptr) {
+                    effectLayer = element->AddEffectLayer();
+                }
+
+                xLightsXmlFile::AddMarksToLayer(vixen.GetTimings(name), effectLayer, CurrentSeqXmlFile->GetFrameMS());
+                effectLayer = element->AddEffectLayer();
+                xLightsXmlFile::AddMarksToLayer(vixen.GetRelatedTiming(name, "Word"), effectLayer, CurrentSeqXmlFile->GetFrameMS());
+                effectLayer = element->AddEffectLayer();
+                xLightsXmlFile::AddMarksToLayer(vixen.GetRelatedTiming(name, "Phoneme"), effectLayer, CurrentSeqXmlFile->GetFrameMS());
+            }
+            else
+            {
+                TimingElement* element = AddTimingElement(name);
+                EffectLayer* effectLayer = element->GetEffectLayer(0);
+                if (effectLayer == nullptr) {
+                    effectLayer = element->AddEffectLayer();
+                }
+
+                xLightsXmlFile::AddMarksToLayer(vixen.GetTimings(name), effectLayer, CurrentSeqXmlFile->GetFrameMS());
+            }
+        }
+    }
+
+    for (size_t i = 0; i < dlg._dataModel->GetChildCount(); ++i)
+    {
+        xLightsImportModelNode* m = dlg._dataModel->GetNthChild(i);
+        std::string modelName = m->_model.ToStdString();
+        ModelElement* model = nullptr;
+        for (size_t x = 0; x < mSequenceElements.GetElementCount(); x++) {
+            if (mSequenceElements.GetElement(x)->GetType() == ELEMENT_TYPE_MODEL
+                && modelName == mSequenceElements.GetElement(x)->GetName()) {
+                model = dynamic_cast<ModelElement*>(mSequenceElements.GetElement(x));
+                break;
+            }
+        }
+
+        if (m->_mapping != "") {
+            if (model == nullptr) {
+                model = AddModel(GetModel(modelName), mSequenceElements);
+            }
+            if (model == nullptr)
+            {
+                logger_base.error("Attempt to add model %s during Vixen 3 import failed.", (const char *)modelName.c_str());
+            }
+            else
+            {
+                MapVixen3Effects(effectManager, model, vixen, m->_mapping, offset, CurrentSeqXmlFile->GetFrameMS());
+            }
+        }
+
+        int str = 0;
+        for (size_t j = 0; j < m->GetChildCount(); j++)
+        {
+            xLightsImportModelNode* s = m->GetNthChild(j);
+
+            if ("" != s->_mapping) {
+                if (model == nullptr) {
+                    model = AddModel(GetModel(modelName), mSequenceElements);
+                }
+                if (model == nullptr)
+                {
+                    logger_base.error("Attempt to add model %s during Vixen 3 import failed.", (const char *)modelName.c_str());
+                }
+                else
+                {
+                        SubModelElement *ste = model->GetSubModel(str);
+                        if (ste != nullptr) {
+                            MapVixen3Effects(effectManager, ste, vixen, s->_mapping, offset, CurrentSeqXmlFile->GetFrameMS());
+                        }
+                }
+            }
+            for (size_t n = 0; n < s->GetChildCount(); n++) {
+                xLightsImportModelNode* ns = s->GetNthChild(n);
+                if ("" != ns->_mapping) {
+                    if (model == nullptr) {
+                        model = AddModel(GetModel(modelName), mSequenceElements);
+                    }
+                    if (model == nullptr)
+                    {
+                        logger_base.error("Attempt to add model %s during Vixen 3 import failed.", (const char *)modelName.c_str());
+                    }
+                    else
+                    {
+                        SubModelElement *ste = model->GetSubModel(str);
+                        StrandElement *stre = dynamic_cast<StrandElement *>(ste);
+                        if (stre != nullptr) {
+                            NodeLayer *nl = stre->GetNodeLayer(n, true);
+                            if (nl != nullptr) {
+                                MapVixen3(effectManager, 0, nl, vixen, ns->_mapping, true, offset, CurrentSeqXmlFile->GetFrameMS());
+                            }
+                        }
+                    }
+                }
+            }
+            str++;
+        }
+    }
+
+    logger_base.debug("    Importing Vixen 3 effects done.");
 
     return true;
 }

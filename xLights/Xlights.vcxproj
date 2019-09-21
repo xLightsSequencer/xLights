@@ -539,6 +539,7 @@
     <ClCompile Include="ViewpointDialog.cpp" />
     <ClCompile Include="ViewpointMgr.cpp" />
     <ClCompile Include="ViewsModelsPanel.cpp" />
+    <ClCompile Include="Vixen3.cpp" />
     <ClCompile Include="VSAFile.cpp" />
     <ClCompile Include="VsaImportDialog.cpp" />
     <ClCompile Include="WiringDialog.cpp" />
@@ -931,6 +932,7 @@
     <ClInclude Include="ViewpointDialog.h" />
     <ClInclude Include="ViewpointMgr.h" />
     <ClInclude Include="ViewsModelsPanel.h" />
+    <ClInclude Include="Vixen3.h" />
     <ClInclude Include="VSAFile.h" />
     <ClInclude Include="VsaImportDialog.h" />
     <ClInclude Include="wininet.h" />

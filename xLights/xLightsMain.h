@@ -385,6 +385,7 @@ public:
                          int imageResizeType, const wxSize &modelSize, const wxString& layerBlend);
     bool ImportLMS(wxXmlDocument &doc, const wxFileName &filename);
     bool ImportLPE(wxXmlDocument &doc, const wxFileName &filename);
+    bool ImportVixen3(const wxFileName &filename);
     bool ImportS5(wxXmlDocument &doc, const wxFileName &filename);
 
     void SuspendRender(bool suspend) { _suspendRender = suspend; }

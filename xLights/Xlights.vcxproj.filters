@@ -471,6 +471,7 @@
     <ClCompile Include="effects\MorphEffect.cpp">
       <Filter>Effects</Filter>
     </ClCompile>
+    <ClCompile Include="Vixen3.cpp" />
     <ClCompile Include="effects\MusicEffect.cpp">
       <Filter>Effects</Filter>
     </ClCompile>
@@ -1213,6 +1214,7 @@
     <ClInclude Include="controllers\ControllerRegistry.h">
       <Filter>Controllers</Filter>
     </ClInclude>
+    <ClInclude Include="Vixen3.h" />
     <ClInclude Include="effects\MorphPanel.h">
       <Filter>Effects</Filter>
     </ClInclude>
