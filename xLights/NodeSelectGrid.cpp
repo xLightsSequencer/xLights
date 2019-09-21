@@ -651,7 +651,7 @@ std::vector<wxString> NodeSelectGrid::GetRowData()
     return returnValue;
 }
 
-wxString NodeSelectGrid::GetNodeList()
+wxString NodeSelectGrid::GetNodeList(const bool sort)
 {
     //encode with dashs
     std::vector<wxString> nodeList;
@@ -667,7 +667,7 @@ wxString NodeSelectGrid::GetNodeList()
         }
     }
     //encode with dashs
-    return EncodeNodeLine(nodeList);
+    return EncodeNodeLine(nodeList, sort);
 }
 
 std::vector<int> NodeSelectGrid::DecodeNodeList(const std::vector<wxString> &rows) const
@@ -718,18 +718,19 @@ std::vector<int> NodeSelectGrid::DecodeNodeList(const std::vector<wxString> &row
 }
 
 //encode node list with dashs
-wxString NodeSelectGrid::EncodeNodeLine(const std::vector<wxString> &nodes) const
+wxString NodeSelectGrid::EncodeNodeLine(const std::vector<wxString> &nodes, const bool sort) const
 {
     wxString rowValue;
     std::vector<int> iNodes;
     std::transform(nodes.begin(), nodes.end(), std::back_inserter(iNodes),
         [](const std::string& str) { return std::stoi(str); });
 
-    //std::sort(iNodes.begin(), iNodes.end());
+    if(sort)
+        std::sort(iNodes.begin(), iNodes.end());
     iNodes.erase(std::unique(iNodes.begin(), iNodes.end()), iNodes.end());
 
-    int firstValue = -1;;
-    int prevValue = -1;;
+    int firstValue = -1;
+    int prevValue = -1;
     for (auto& item : iNodes)
     {
         if (&item == &iNodes.front())

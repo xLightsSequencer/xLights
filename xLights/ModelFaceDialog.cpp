@@ -756,19 +756,17 @@ void ModelFaceDialog::OnCustomColorCheckboxClick(wxCommandEvent& event)
     }
 }
 
-void ModelFaceDialog::GetValue(wxGrid *grid, wxGridEvent &event, std::map<std::string, std::string> &info) {
-    int r = event.GetRow();
-    int c = event.GetCol();
-    wxString key = grid->GetRowLabelValue(r).ToStdString();
+void ModelFaceDialog::GetValue(wxGrid *grid, const int row, const int col, std::map<std::string, std::string> &info) {
+    wxString key = grid->GetRowLabelValue(row).ToStdString();
     key.Replace(" ", "");
-    if (c == 1) {
+    if (col == 1) {
         key += "-Color";
-        xlColor color = grid->GetCellBackgroundColour(r, c);
+        xlColor color = grid->GetCellBackgroundColour(row, col);
         info[key.ToStdString()] = color;
     } else {
-        info[key.ToStdString()] = grid->GetCellValue(r, c);
+        info[key.ToStdString()] = grid->GetCellValue(row, col);
     }
-    UpdatePreview(grid->GetCellValue(r, CHANNEL_COL).ToStdString(), grid->GetCellBackgroundColour(r, COLOR_COL));
+    UpdatePreview(grid->GetCellValue(row, CHANNEL_COL).ToStdString(), grid->GetCellBackgroundColour(row, COLOR_COL));
 }
 
 void ModelFaceDialog::UpdatePreview(const std::string& channels, wxColor c)
@@ -815,13 +813,13 @@ void ModelFaceDialog::UpdatePreview(const std::string& channels, wxColor c)
 void ModelFaceDialog::OnNodeRangeGridCellChange(wxGridEvent& event)
 {
     std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
-    GetValue(NodeRangeGrid, event, faceData[name]);
+    GetValue(NodeRangeGrid, event.GetRow(), event.GetCol(), faceData[name]);
 }
 
 void ModelFaceDialog::OnSingleNodeGridCellChange(wxGridEvent& event)
 {
     std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
-    GetValue(SingleNodeGrid, event, faceData[name]);
+    GetValue(SingleNodeGrid, event.GetRow(), event.GetCol(), faceData[name]);
 }
 
 void ModelFaceDialog::OnFaceTypeChoicePageChanged(wxChoicebookEvent& event)
@@ -854,7 +852,7 @@ void ModelFaceDialog::OnNodeRangeGridCellLeftDClick(wxGridEvent& event)
         {
             NodeRangeGrid->SetCellValue(event.GetRow(), CHANNEL_COL, dialog.GetNodeList());
             NodeRangeGrid->Refresh();
-            GetValue(NodeRangeGrid, event, faceData[name]);
+            GetValue(NodeRangeGrid, event.GetRow(), event.GetCol(), faceData[name]);
             dialog.Close();
         }
     }
@@ -867,7 +865,7 @@ void ModelFaceDialog::OnNodeRangeGridCellLeftDClick(wxGridEvent& event)
             _colorData = dlg.GetColourData();
             NodeRangeGrid->SetCellBackgroundColour(event.GetRow(), COLOR_COL, dlg.GetColourData().GetColour());
             NodeRangeGrid->Refresh();
-            GetValue(NodeRangeGrid, event, faceData[name]);
+            GetValue(NodeRangeGrid, event.GetRow(), event.GetCol(), faceData[name]);
         }
     }
     UpdatePreview(NodeRangeGrid->GetCellValue(event.GetRow(), CHANNEL_COL).ToStdString(), NodeRangeGrid->GetCellBackgroundColour(event.GetRow(), COLOR_COL));
@@ -884,7 +882,7 @@ void ModelFaceDialog::OnSingleNodeGridCellLeftDClick(wxGridEvent& event)
             _colorData = dlg.GetColourData();
             SingleNodeGrid->SetCellBackgroundColour(event.GetRow(), COLOR_COL, dlg.GetColourData().GetColour());
             SingleNodeGrid->Refresh();
-            GetValue(SingleNodeGrid, event, faceData[name]);
+            GetValue(SingleNodeGrid, event.GetRow(), event.GetCol(), faceData[name]);
         }
     }
     UpdatePreview(SingleNodeGrid->GetCellValue(event.GetRow(), CHANNEL_COL).ToStdString(), SingleNodeGrid->GetCellBackgroundColour(event.GetRow(), COLOR_COL));
@@ -1141,7 +1139,7 @@ void ModelFaceDialog::OnNodeRangeGridLabelLeftDClick(wxGridEvent& event)
     {
         NodeRangeGrid->SetCellValue(event.GetRow(), CHANNEL_COL, dialog.GetNodeList());
         NodeRangeGrid->Refresh();
-        GetValue(NodeRangeGrid, event, faceData[name]);
+        GetValue(NodeRangeGrid, event.GetRow(), CHANNEL_COL, faceData[name]);
         dialog.Close();
     }
 }
@@ -1172,7 +1170,7 @@ void ModelFaceDialog::ImportSubmodel(wxGridEvent& event)
         const auto nodes = getSubmodelNodes(sm);
         NodeRangeGrid->SetCellValue(event.GetRow(), CHANNEL_COL, nodes);
         NodeRangeGrid->Refresh();
-        GetValue(NodeRangeGrid, event, faceData[name]);
+        GetValue(NodeRangeGrid, event.GetRow(), CHANNEL_COL, faceData[name]);
         dlg.Close();
     }
 }

@@ -131,7 +131,7 @@ class ModelFaceDialog: public wxDialog
     ModelPreview *modelPreview;
     Model *model;
     void UpdatePreview(const std::string& channels, wxColor c);
-    void GetValue(wxGrid *grid, wxGridEvent& event, std::map<std::string, std::string> &info);
+    void GetValue(wxGrid *grid, const int row, const int col, std::map<std::string, std::string> &info);
     void OnGridPopup(const int rightEventID, wxGridEvent& gridEvent);
     void ImportSubmodel(wxGridEvent& event);
     wxString getSubmodelNodes(Model* sm);

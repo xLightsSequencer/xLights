@@ -51,7 +51,7 @@ class NodeSelectGrid: public wxDialog
         static const long NODESELECT_PASTE;
 
         std::vector<wxString> GetRowData();
-        wxString GetNodeList();
+        wxString GetNodeList(const bool sort = true);
 
 	protected:
 
@@ -104,7 +104,7 @@ class NodeSelectGrid: public wxDialog
         void LoadGrid(const std::vector<wxString>& rows);
         void ValidateWindow() const;
         std::vector<int> DecodeNodeList(const std::vector<wxString> &rows) const;
-        wxString EncodeNodeLine(const std::vector<wxString> &nodes) const;
+        wxString EncodeNodeLine(const std::vector<wxString> &nodes, const bool sort) const;
         void ImportModel(const std::string &filename);
         void ImportModelXML(wxXmlNode* xmlData);
 

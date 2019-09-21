@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (scott)  Fix Node Select Dialog selection not saving in Faces and States Dialog.
 2019.51 September 21, 2019
    -- enh (keith)  Add 3D custom model preview with live wiring view when building custom models
    -- enh (keith)  Suppress version upgrade check when command line rendering

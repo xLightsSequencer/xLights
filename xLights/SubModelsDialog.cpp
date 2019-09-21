@@ -1677,7 +1677,7 @@ void SubModelsDialog::OnNodesGridCellLeftDClick(wxGridEvent& event)
 
     if (dialog.ShowModal() == wxID_OK)
     {
-        sm->strands[sm->strands.size() - 1 - row] = dialog.GetNodeList();
+        sm->strands[sm->strands.size() - 1 - row] = dialog.GetNodeList(false);
 
         Select(GetSelectedName());
         dialog.Close();
