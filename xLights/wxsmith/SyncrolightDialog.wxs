@@ -85,7 +85,7 @@
 						<object class="wxSpinCtrl" name="ID_SPINCTRL2" variable="SpinCtrl_Pixels" member="yes">
 							<value>1</value>
 							<min>1</min>
-							<max>1024</max>
+							<max>4096</max>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>5</border>

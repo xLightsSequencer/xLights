@@ -66,7 +66,7 @@ SyncrolightDialog::SyncrolightDialog(wxWindow* parent, SyncrolightEthernetOutput
 	FlexGridSizer2->Add(SpinCtrl_Port, 1, wxALL|wxEXPAND, 5);
 	StaticText4 = new wxStaticText(this, ID_STATICTEXT4, _("Pixels:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
 	FlexGridSizer2->Add(StaticText4, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	SpinCtrl_Pixels = new wxSpinCtrl(this, ID_SPINCTRL2, _T("1"), wxDefaultPosition, wxDefaultSize, 0, 1, 1024, 1, _T("ID_SPINCTRL2"));
+	SpinCtrl_Pixels = new wxSpinCtrl(this, ID_SPINCTRL2, _T("1"), wxDefaultPosition, wxDefaultSize, 0, 1, 4096, 1, _T("ID_SPINCTRL2"));
 	SpinCtrl_Pixels->SetValue(_T("1"));
 	FlexGridSizer2->Add(SpinCtrl_Pixels, 1, wxALL|wxEXPAND, 5);
 	StaticText9 = new wxStaticText(this, wxID_ANY, _("Suppress duplicate frames"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));

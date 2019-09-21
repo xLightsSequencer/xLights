@@ -41,7 +41,10 @@
 #include <cctype> // tolower
 
 #include <cstring>
+
+// xLights
 #include <log4cpp/Category.hh>
+// end xLights
 
 #ifdef _WIN32
 
@@ -74,8 +77,14 @@ Files::listLibraryFiles()
 vector<string>
 Files::listLibraryFilesMatching(Filter filter)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    
+    // xLights
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    for (auto it : filter.libraryNames)
+    {
+        logger_base.debug("Vamp: List library files matching %s.", (const char*)it.c_str());
+    }
+    // end xLights
+
     vector<string> path = Vamp::PluginHostAdapter::getPluginPath();
     vector<string> libraryFiles;
 
@@ -93,11 +102,15 @@ Files::listLibraryFilesMatching(Filter filter)
     }
 
     for (size_t i = 0; i < path.size(); ++i) {
-        logger_base.debug("Vamp: Looking in path %s.", (const char *)path[i].c_str());
+
+        // xLights
+        logger_base.debug("Vamp: Looking in path %s.", (const char*)path[i].c_str());
+        // end xLights
+
         vector<string> files = listFiles(path[i], PLUGIN_SUFFIX);
 
         for (vector<string>::iterator fi = files.begin();
-             fi != files.end(); ++fi) {
+            fi != files.end(); ++fi) {
 
             // we match case-insensitively, but only with ascii range
             // characters (this string is expected to be utf-8)
@@ -114,7 +127,7 @@ Files::listLibraryFilesMatching(Filter filter)
             if (pi != string::npos) {
                 cleaned = cleaned.substr(0, pi);
             }
-            
+
             bool matched = false;
 
             switch (filter.type) {
@@ -144,12 +157,16 @@ Files::listLibraryFilesMatching(Filter filter)
             }
 
             if (!matched) continue;
-            
+
             string fullPath = path[i];
             fullPath = splicePath(fullPath, *fi);
-            logger_base.debug("Vamp: Adding file %s.", (const char *)fullPath.c_str());
-	    libraryFiles.push_back(fullPath);
-	}
+
+            // xLights
+            logger_base.debug("Vamp: Adding file %s.", (const char*)fullPath.c_str());
+            // end xLights
+            
+            libraryFiles.push_back(fullPath);
+        }
     }
 
     return libraryFiles;
@@ -176,8 +193,12 @@ Files::loadLibrary(string path)
     handle = LoadLibrary(path.c_str());
 #endif
     if (!handle) {
+
+        // xLights
         static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.error("Vamp: HostExt: Unable to load library %s: %ld.", (const std::string*)path.c_str(), GetLastError());
+        logger_base.error("Vamp: HostExt: Unable to load library %s: %ld.", (const char*)path.c_str(), ::GetLastError());
+        // end xLights
+       
         cerr << "Vamp::HostExt: Unable to load library \""
              << path << "\"" << endl;
     }

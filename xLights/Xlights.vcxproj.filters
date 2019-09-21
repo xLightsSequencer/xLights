@@ -1484,7 +1484,6 @@
     </ClInclude>
     <ClInclude Include="CheckboxSelectDialog.h" />
     <ClInclude Include="EmailDialog.h" />
-    <ClInclude Include="ModelPreview3DDialog.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />
