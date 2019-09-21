@@ -948,10 +948,20 @@ int LOREdit::GetModelLayers(const std::string& model) const
 {
     int count = 0;
     for (wxXmlNode* e = _input_xml.GetRoot()->GetChildren(); e != nullptr; e = e->GetNext()) {
-        if (e->GetName() == "SequenceProps") {
+        if (e->GetName() == "SequenceProps" || e->GetName() == "ArchivedProps") {
             for (wxXmlNode* prop = e->GetChildren(); prop != nullptr; prop = prop->GetNext()) {
-                if (prop->GetName() == "SeqProp") {
-                    if (prop->GetAttribute("name") == model) {
+                if (prop->GetName() == "SeqProp" || prop->GetName() == "ArchiveProp") {
+                    std::string name = prop->GetAttribute("name").ToStdString();
+                    if (name == "")
+                    {
+                        for (wxXmlNode* ap = prop->GetChildren(); ap != nullptr; ap = ap->GetNext()) {
+                            if (ap->GetName() == "PropClass")
+                            {
+                                name = ap->GetAttribute("Name");
+                            }
+                        }
+                    }
+                    if (name == model) {
                         for (wxXmlNode* tc = prop->GetChildren(); tc != nullptr; tc = tc->GetNext()) {
                             if (tc->GetName() == "track") {
                                 int l1 = 0;
@@ -982,10 +992,20 @@ int LOREdit::GetModelChannels(const std::string& model, int& rows, int& cols) co
     cols = 0;
     int count = 0;
     for (wxXmlNode* e = _input_xml.GetRoot()->GetChildren(); e != nullptr; e = e->GetNext()) {
-        if (e->GetName() == "SequenceProps") {
+        if (e->GetName() == "SequenceProps" || e->GetName() == "ArchivedProps") {
             for (wxXmlNode* prop = e->GetChildren(); prop != nullptr; prop = prop->GetNext()) {
-                if (prop->GetName() == "SeqProp") {
-                    if (prop->GetAttribute("name") == model)
+                if (prop->GetName() == "SeqProp" || prop->GetName() == "ArchiveProp") {
+                    std::string name = prop->GetAttribute("name").ToStdString();
+                    if (name == "")
+                    {
+                        for (wxXmlNode* ap = prop->GetChildren(); ap != nullptr; ap = ap->GetNext()) {
+                            if (ap->GetName() == "PropClass")
+                            {
+                                name = ap->GetAttribute("Name");
+                            }
+                        }
+                    }
+                    if (name == model)
                     {
                         for (wxXmlNode* tc = prop->GetChildren(); tc != nullptr; tc = tc->GetNext()) {
                             if (tc->GetName() == "channel") {
@@ -1010,10 +1030,20 @@ int LOREdit::GetModelChannels(const std::string& model, int& rows, int& cols) co
 loreditType LOREdit::GetSequencingType(const std::string& model) const
 {
     for (wxXmlNode* e = _input_xml.GetRoot()->GetChildren(); e != nullptr; e = e->GetNext()) {
-        if (e->GetName() == "SequenceProps") {
+        if (e->GetName() == "SequenceProps" || e->GetName() == "ArchivedProps") {
             for (wxXmlNode* prop = e->GetChildren(); prop != nullptr; prop = prop->GetNext()) {
-                if (prop->GetName() == "SeqProp") {
-                    if (prop->GetAttribute("name") == model)
+                if (prop->GetName() == "SeqProp" || prop->GetName() == "ArchiveProp") {
+                    std::string name = prop->GetAttribute("name").ToStdString();
+                    if (name == "")
+                    {
+                        for (wxXmlNode* ap = prop->GetChildren(); ap != nullptr; ap = ap->GetNext()) {
+                            if (ap->GetName() == "PropClass")
+                            {
+                                name = ap->GetAttribute("Name");
+                            }
+                        }
+                    }
+                    if (name == model)
                     {
                         for (wxXmlNode* tc = prop->GetChildren(); tc != nullptr; tc = tc->GetNext()) {
                             if (tc->GetName() == "channel" && tc->GetChildren() != nullptr) {
@@ -1036,13 +1066,26 @@ std::vector<std::string> LOREdit::GetModelsWithEffects() const
 {
     std::vector<std::string> res;
     for (wxXmlNode* e = _input_xml.GetRoot()->GetChildren(); e != nullptr; e = e->GetNext()) {
-        if (e->GetName() == "SequenceProps") {
+        if (e->GetName() == "SequenceProps" || e->GetName() == "ArchivedProps") {
             for (wxXmlNode* prop = e->GetChildren(); prop != nullptr; prop = prop->GetNext()) {
-                if (prop->GetName() == "SeqProp") {
-                    for (wxXmlNode* tc = prop->GetChildren(); tc != nullptr; tc = tc->GetNext()) {
-                        if ((tc->GetName() == "channel" || tc->GetName() == "track") && tc->GetChildren() != nullptr) {
-                            res.push_back(prop->GetAttribute("name").ToStdString());
-                            break;
+                if (prop->GetName() == "SeqProp" || prop->GetName() == "ArchiveProp") {
+                    std::string name = prop->GetAttribute("name").ToStdString();
+                    if (name == "")
+                    {
+                        for (wxXmlNode* ap = prop->GetChildren(); ap != nullptr; ap = ap->GetNext()) {
+                            if (ap->GetName() == "PropClass")
+                            {
+                                name = ap->GetAttribute("Name");
+                            }
+                        }
+                    }
+                    if (name != "")
+                    {
+                        for (wxXmlNode* tc = prop->GetChildren(); tc != nullptr; tc = tc->GetNext()) {
+                            if ((tc->GetName() == "channel" || tc->GetName() == "track") && tc->GetChildren() != nullptr) {
+                                res.push_back(name);
+                                break;
+                            }
                         }
                     }
                 }
@@ -1150,10 +1193,20 @@ std::vector<LOREditEffect> LOREdit::GetTrackEffects(const std::string& model, in
     std::vector<LOREditEffect> res;
 
     for (wxXmlNode* e = _input_xml.GetRoot()->GetChildren(); e != nullptr; e = e->GetNext()) {
-        if (e->GetName() == "SequenceProps") {
+        if (e->GetName() == "SequenceProps" || e->GetName() == "ArchivedProps") {
             for (wxXmlNode* prop = e->GetChildren(); prop != nullptr; prop = prop->GetNext()) {
-                if (prop->GetName() == "SeqProp") {
-                    if (prop->GetAttribute("name") == model)
+                if (prop->GetName() == "SeqProp" || prop->GetName() == "ArchiveProp") {
+                    std::string name = prop->GetAttribute("name").ToStdString();
+                    if (name == "")
+                    {
+                        for (wxXmlNode* ap = prop->GetChildren(); ap != nullptr; ap = ap->GetNext()) {
+                            if (ap->GetName() == "PropClass")
+                            {
+                                name = ap->GetAttribute("Name");
+                            }
+                        }
+                    }
+                    if (name == model)
                     {
                         int tcount = 0;
                         for (wxXmlNode* tc = prop->GetChildren(); tc != nullptr; tc = tc->GetNext()) {
@@ -1235,10 +1288,20 @@ std::vector<LOREditEffect> LOREdit::GetChannelEffects(const std::string& model, 
     int targetCol = bufx;
 
     for (wxXmlNode* e = _input_xml.GetRoot()->GetChildren(); e != nullptr; e = e->GetNext()) {
-        if (e->GetName() == "SequenceProps") {
+        if (e->GetName() == "SequenceProps" || e->GetName() == "ArchivedProps") {
             for (wxXmlNode* prop = e->GetChildren(); prop != nullptr; prop = prop->GetNext()) {
-                if (prop->GetName() == "SeqProp") {
-                    if (prop->GetAttribute("name") == model)
+                if (prop->GetName() == "SeqProp" || prop->GetName() == "ArchiveProp") {
+                    std::string name = prop->GetAttribute("name").ToStdString();
+                    if (name == "")
+                    {
+                        for (wxXmlNode* ap = prop->GetChildren(); ap != nullptr; ap = ap->GetNext()) {
+                            if (ap->GetName() == "PropClass")
+                            {
+                                name = ap->GetAttribute("Name");
+                            }
+                        }
+                    }
+                    if (name == model)
                     {
                         for (wxXmlNode* tc = prop->GetChildren(); tc != nullptr; tc = tc->GetNext()) {
                             if ((tc->GetName() == "channel")) {

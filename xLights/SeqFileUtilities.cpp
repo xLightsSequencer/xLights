@@ -2925,10 +2925,19 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml, const wxFileName &filenam
 bool LPEHasEffects(const wxXmlDocument& input_xml, const wxString& model, int layer, bool left)
 {
     for (wxXmlNode* e = input_xml.GetRoot()->GetChildren(); e != nullptr; e = e->GetNext()) {
-        if (e->GetName() == "SequenceProps") {
+        if (e->GetName() == "SequenceProps" || e->GetName() == "ArchivedProps") {
             for (wxXmlNode* prop = e->GetChildren(); prop != nullptr; prop = prop->GetNext()) {
-                if (prop->GetName() == "SeqProp") {
+                if (prop->GetName() == "SeqProp" || prop->GetName() == "ArchiveProp") {
                     std::string name = prop->GetAttribute("name").ToStdString();
+                    if (name == "")
+                    {
+                        for (wxXmlNode* ap = prop->GetChildren(); ap != nullptr; ap = ap->GetNext()) {
+                            if (ap->GetName() == "PropClass")
+                            {
+                                name = ap->GetAttribute("Name");
+                            }
+                        }
+                    }
                     if (name == model)
                     {
                         for (wxXmlNode* track = prop->GetChildren(); track != nullptr; track = track->GetNext())
@@ -3807,10 +3816,19 @@ void MapLPE(const EffectManager& effect_manager, int i, EffectLayer* layer, cons
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     for (wxXmlNode* e = input_xml.GetRoot()->GetChildren(); e != nullptr; e = e->GetNext()) {
-        if (e->GetName() == "SequenceProps") {
+        if (e->GetName() == "SequenceProps" || e->GetName() == "ArchivedProps") {
             for (wxXmlNode* prop = e->GetChildren(); prop != nullptr; prop = prop->GetNext()) {
-                if (prop->GetName() == "SeqProp") {
+                if (prop->GetName() == "SeqProp" || prop->GetName() == "ArchiveProp") {
                     std::string name = prop->GetAttribute("name").ToStdString();
+                    if (name == "")
+                    {
+                        for (wxXmlNode* ap = prop->GetChildren(); ap != nullptr; ap = ap->GetNext()) {
+                            if (ap->GetName() == "PropClass")
+                            {
+                                name = ap->GetAttribute("Name");
+                            }
+                        }
+                    }
                     if (name == model)
                     {
                         for (wxXmlNode* track = prop->GetChildren(); track != nullptr; track = track->GetNext())
@@ -4100,12 +4118,22 @@ void MapS5Effects(const EffectManager& effectManager, Element* model, const LORE
         }
         else
         {
-            for (int i = 0; i < m->GetNodeCount(); i++)
+            int lr, lc;
+            lorEdit.GetModelChannels(mapping, lr, lc);
+
+            if (lr == 1 && lc == 1)
             {
-                NodeLayer* nl = model->GetNodeEffectLayer(i);
-                if (nl != nullptr)
+                MapS5ChannelEffects(effectManager, 0, model->GetEffectLayer(0), m, lorEdit, mapping, frequency, offset);
+            }
+            else
+            {
+                for (int i = 0; i < m->GetNodeCount(); i++)
                 {
-                    MapS5ChannelEffects(effectManager, i, nl, m, lorEdit, mapping, frequency, offset);
+                    NodeLayer* nl = model->GetNodeEffectLayer(i);
+                    if (nl != nullptr)
+                    {
+                        MapS5ChannelEffects(effectManager, i, nl, m, lorEdit, mapping, frequency, offset);
+                    }
                 }
             }
         }
@@ -4287,10 +4315,19 @@ bool xLightsFrame::ImportLPE(wxXmlDocument &input_xml, const wxFileName &filenam
     std::map<std::string, wxXmlNode*> timingTracks;
 
     for (wxXmlNode* e = input_xml.GetRoot()->GetChildren(); e != nullptr; e = e->GetNext()) {
-        if (e->GetName() == "SequenceProps") {
+        if (e->GetName() == "SequenceProps" || e->GetName() == "ArchivedProps") {
             for (wxXmlNode* prop = e->GetChildren(); prop != nullptr; prop = prop->GetNext()) {
-                if (prop->GetName() == "SeqProp") {
+                if (prop->GetName() == "SeqProp" || prop->GetName() == "ArchiveProp") {
                     std::string name = prop->GetAttribute("name").ToStdString();
+                    if (name == "")
+                    {
+                        for (wxXmlNode* ap = prop->GetChildren(); ap != nullptr; ap = ap->GetNext()) {
+                            if (ap->GetName() == "PropClass")
+                            {
+                                name = ap->GetAttribute("Name");
+                            }
+                        }
+                    }
                     dlg.channelNames.push_back(name);
                     dlg.channelColors[name] = xlBLACK;
                 }
