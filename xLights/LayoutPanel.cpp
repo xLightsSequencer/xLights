@@ -1992,6 +1992,15 @@ void LayoutPanel::UnSelectAllModels(bool addBkgProps)
                 m->GroupSelected = false;
                 m->SelectHandle(-1);
                 m->GetBaseObjectScreenLocation().SetActiveHandle(-1);
+
+                for (auto& sm : m->GetSubModels())
+                {
+                    sm->Selected = false;
+                    sm->Highlighted = false;
+                    sm->GroupSelected = false;
+                    sm->SelectHandle(-1);
+                    sm->GetBaseObjectScreenLocation().SetActiveHandle(-1);
+                }
             }
             else
             {

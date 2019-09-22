@@ -442,6 +442,23 @@ void ModelPreview::RenderModels(const std::vector<Model*>& models, bool isModelS
                     //    (*PreviewModels)[i]->GetModelScreenLocation().DrawBoundingBox(accumulator);
                     //}
                 }
+
+                // Because submodels are not always in the list (but sometimes are) I am going to have to go looing for selected submodels
+                if (allowSelected) {
+                    color = selColor;
+                    for (auto& sm : m->GetSubModels())
+                    {
+                        if (sm->GroupSelected || m->Selected)
+                        {
+                            if (is_3d) {
+                                sm->DisplayModelOnWindow(this, solidAccumulator3d, transparentAccumulator3d, linesAccumulator3d, true, color, allowSelected);
+                            }
+                            else {
+                                sm->DisplayModelOnWindow(this, solidAccumulator, transparentAccumulator, false, color, allowSelected);
+                            }
+                        }
+                    }
+                }
             }
         }
         else
@@ -474,7 +491,7 @@ void ModelPreview::Render()
     const std::vector<Model*>& models = GetModels();
     if (!models.empty()) {
         bool isModelSelected = false;
-        for (auto m : models) {
+        for (auto& m : models) {
             if (xlights->AllModels.IsModelValid(m) || xlights->IsNewModel(m)) { // this IsModelValid should not be necessary but we are getting crashes due to invalid models
                 if (m->Selected || m->GroupSelected) {
                     isModelSelected = true;

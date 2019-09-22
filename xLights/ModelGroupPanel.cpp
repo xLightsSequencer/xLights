@@ -13,6 +13,8 @@
 #include "models/ModelManager.h"
 #include "models/ModelGroup.h"
 #include "LayoutPanel.h"
+#include "OutputModelManager.h"
+#include "xLightsMain.h"
 
 // This event is fired when a model is dropped between lists
 wxDEFINE_EVENT(EVT_MGDROP, wxCommandEvent);
@@ -227,8 +229,8 @@ bool canAddToGroup(ModelGroup *g, ModelManager &models, const std::string &model
         return false;
     }
 
-    for (auto it = modelGroupsInGroup.begin(); it != modelGroupsInGroup.end(); ++it) {
-        if (*it == model) {
+    for (auto it : modelGroupsInGroup) {
+        if (it == model) {
             return false;
         }
 
@@ -238,16 +240,16 @@ bool canAddToGroup(ModelGroup *g, ModelManager &models, const std::string &model
             if (grp != nullptr) {
 
                 // If we have already visited this group dont look at it again
-                for (auto it3 = visitedGroups.begin(); it3 != visitedGroups.end(); ++it3) {
-                    if (*it3 == grp->GetName())
+                for (auto& it3 : visitedGroups) {
+                    if (it3 == grp->GetName())
                     {
                         return false;
                     }
                 }
                 visitedGroups.push_back(grp->GetName());
 
-                for (auto it2 = grp->ModelNames().begin(); it2 != grp->ModelNames().end(); ++it2) {
-                    if (!canAddToGroup(g, models, *it2, modelGroupsInGroup, visitedGroups)) {
+                for (auto& it2 : grp->ModelNames()) {
+                    if (!canAddToGroup(g, models, it2, modelGroupsInGroup, visitedGroups)) {
                         return false;
                     }
                 }
@@ -278,24 +280,24 @@ void ModelGroupPanel::UpdatePanel(const std::string group)
         wxXmlNode* e = g->GetModelXml();
         std::list<std::string> modelsInGroup;
         modelsInGroup.push_back(g->GetName());
-        for (auto it = g->ModelNames().begin(); it != g->ModelNames().end(); ++it) {
-            ListBoxModelsInGroup->InsertItem(ListBoxModelsInGroup->GetItemCount(), *it);
-            modelsInGroup.push_back(*it);
+        for (auto& it : g->ModelNames()) {
+            ListBoxModelsInGroup->InsertItem(ListBoxModelsInGroup->GetItemCount(), it);
+            modelsInGroup.push_back(it);
         }
 
         // dont allow any group that contains this group to be added as that would create a loop
-        for (auto it = mModels.begin(); it != mModels.end(); ++it) {
-            if (std::find(modelsInGroup.begin(), modelsInGroup.end(), it->first) != modelsInGroup.end() || (it->second->GetDisplayAs() == "ModelGroup" && (it->first == group || dynamic_cast<ModelGroup*>(it->second)->ContainsModelGroup(g)))) {
+        for (auto& it : mModels) {
+            if (std::find(modelsInGroup.begin(), modelsInGroup.end(), it.first) != modelsInGroup.end() || (it.second->GetDisplayAs() == "ModelGroup" && (it.first == group || dynamic_cast<ModelGroup*>(it.second)->ContainsModelGroup(g)))) {
                 // dont add this group
             }
             else
             {
-                ListBoxAddToModelGroup->InsertItem(ListBoxAddToModelGroup->GetItemCount(), it->first);
+                ListBoxAddToModelGroup->InsertItem(ListBoxAddToModelGroup->GetItemCount(), it.first);
             }
             if (CheckBox_ShowSubmodels->GetValue())
             {
-                for (auto smit = it->second->GetSubModels().begin(); smit != it->second->GetSubModels().end(); ++smit) {
-                    Model* sm = *smit;
+                for (auto& smit : it.second->GetSubModels()) {
+                    Model* sm = smit;
 
                     if (std::find(g->ModelNames().begin(), g->ModelNames().end(), sm->GetFullName()) == g->ModelNames().end()) {
                         ListBoxAddToModelGroup->InsertItem(ListBoxAddToModelGroup->GetItemCount(), sm->GetFullName());
@@ -816,6 +818,8 @@ void ModelGroupPanel::AddSelectedModels(int index)
             Model* model = mModels[modelName];
             if (model != nullptr) {
                 model->GroupSelected = true;
+                model->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ModelGroupPanel::AddSelectedModels");
+                model->AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "ModelGroupPanel::AddSelectedModels");
             }
             i--;
             added++;
@@ -849,6 +853,8 @@ void ModelGroupPanel::RemoveSelectedModels()
                     int idx = ListBoxAddToModelGroup->InsertItem(0, modelName);
                     ListBoxAddToModelGroup->SetItemState(idx, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
                 }
+                model->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ModelGroupPanel::RemoveSelectedModels");
+                model->AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "ModelGroupPanel::RemoveSelectedModels");
                 model->GroupSelected = false;
             }
             ListBoxModelsInGroup->DeleteItem(i);
