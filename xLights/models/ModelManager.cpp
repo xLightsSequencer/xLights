@@ -478,21 +478,21 @@ bool ModelManager::IsValidControllerModelChain(Model* m, std::string& tip) const
 
 bool ModelManager::ReworkStartChannel() const
 {
-    static log4cpp::Category &logger_zcpp = log4cpp::Category::getInstance(std::string("log_zcpp"));
+    static log4cpp::Category& logger_zcpp = log4cpp::Category::getInstance(std::string("log_zcpp"));
     static log4cpp::Category& logger_work = log4cpp::Category::getInstance(std::string("log_work"));
     logger_work.debug("        ReworkStartChannel.");
 
     bool  outputsChanged = false;
 
     OutputManager* outputManager = xlights->GetOutputManager();
-    for (auto it : outputManager->GetOutputs())
+    for (auto& it : outputManager->GetOutputs())
     {
         if (it->IsAutoLayoutModels())
         {
             std::map<std::string, std::list<Model*>> cmodels;
             for (auto itm : models)
             {
-                if (itm.second->GetControllerName() == it->GetDescription() && 
+                if (itm.second->GetControllerName() == it->GetDescription() &&
                     itm.second->GetControllerPort() != 0 &&
                     itm.second->GetControllerProtocol() != ""
                     ) // we dont muck with unassigned models or no protocol models
@@ -510,52 +510,52 @@ bool ModelManager::ReworkStartChannel() const
             // first of all fix any weirdness ...
             for (auto itcc = cmodels.begin(); itcc != cmodels.end(); ++itcc)
             {
-logger_zcpp.debug("Fixing weirdness on %s - %s", (const char*)it->GetDescription().c_str(), (const char*)itcc->first.c_str());
-logger_zcpp.debug("    Models at start:");
+                logger_zcpp.debug("Fixing weirdness on %s - %s", (const char*)it->GetDescription().c_str(), (const char*)itcc->first.c_str());
+                logger_zcpp.debug("    Models at start:");
 
-// build a list of model names on the port
-std::list<std::string> models;
-for (auto itmm : itcc->second)
-{
-    logger_zcpp.debug("        %s Chained to '%s'", (const char*)itmm->GetName().c_str(), (const char*)itmm->GetModelChain().c_str());
-    models.push_back(itmm->GetName());
-}
+                // build a list of model names on the port
+                std::list<std::string> models;
+                for (auto itmm : itcc->second)
+                {
+                    logger_zcpp.debug("        %s Chained to '%s'", (const char*)itmm->GetName().c_str(), (const char*)itmm->GetModelChain().c_str());
+                    models.push_back(itmm->GetName());
+                }
 
-logger_zcpp.debug("    Fixing weirdness:");
+                logger_zcpp.debug("    Fixing weirdness:");
 
-// If a model refers to a chained model not on the port then move it to beginning ... so next step can move it again
-bool beginningFound = false;
-for (auto itmm : itcc->second)
-{
-    auto ch = itmm->GetModelChain();
-    if (ch == "" || ch == "Beginning")
-    {
-        beginningFound = true;
-    }
-    else
-    {
-        ch = ch.substr(1); // string off leading >
-        if (std::find(models.begin(), models.end(), ch) == models.end())
-        {
-            logger_zcpp.debug("    Model %s set to beginning because the model it is chained to does not exist.", (const char*)itmm->GetName().c_str());
-            itmm->SetModelChain("");
-            beginningFound = true;
-            outputsChanged = true;
-        }
-    }
-}
+                // If a model refers to a chained model not on the port then move it to beginning ... so next step can move it again
+                bool beginningFound = false;
+                for (auto itmm : itcc->second)
+                {
+                    auto ch = itmm->GetModelChain();
+                    if (ch == "" || ch == "Beginning")
+                    {
+                        beginningFound = true;
+                    }
+                    else
+                    {
+                        ch = ch.substr(1); // string off leading >
+                        if (std::find(models.begin(), models.end(), ch) == models.end())
+                        {
+                            logger_zcpp.debug("    Model %s set to beginning because the model it is chained to does not exist.", (const char*)itmm->GetName().c_str());
+                            itmm->SetModelChain("");
+                            beginningFound = true;
+                            outputsChanged = true;
+                        }
+                    }
+                }
 
-// If no model is set as beginning ... then just make the first one beginning
-if (!beginningFound)
-{
-    logger_zcpp.debug("    Model %s set to beginning because no other model was.", (const char*)itcc->second.front()->GetName().c_str());
-    itcc->second.front()->SetModelChain("");
-    outputsChanged = true;
-}
+                // If no model is set as beginning ... then just make the first one beginning
+                if (!beginningFound)
+                {
+                    logger_zcpp.debug("    Model %s set to beginning because no other model was.", (const char*)itcc->second.front()->GetName().c_str());
+                    itcc->second.front()->SetModelChain("");
+                    outputsChanged = true;
+                }
 
-// Now I would love to give any more than the first model a default to chain to but this is
-// not as easy as it looks ... so for now i am going to leave multiple models at the beginning
-// and let the user sort it out rather than creating loops
+                // Now I would love to give any more than the first model a default to chain to but this is
+                // not as easy as it looks ... so for now i am going to leave multiple models at the beginning
+                // and let the user sort it out rather than creating loops
             }
 
             logger_zcpp.debug("    Sorting models:");
@@ -663,6 +663,7 @@ if (!beginningFound)
                             auto osc = itm->ModelStartChannel;
                             sc = "!" + it->GetDescription() + ":" + wxString::Format("%d", chstart);
                             itm->SetStartChannel(sc);
+                            last = itm->GetName();
                             ch = std::max(ch, (int32_t)(chstart + itm->GetChanCount()));
                             if (osc != itm->ModelStartChannel)
                             {
@@ -675,7 +676,7 @@ if (!beginningFound)
                         // when chained the use next channel
                         if (last != "" &&
                             (itm->GetModelChain() == last ||
-                            itm->GetModelChain() == ">" + last))
+                                itm->GetModelChain() == ">" + last))
                         {
                             auto osc = itm->ModelStartChannel;
                             sc = "!" + it->GetDescription() + ":" + wxString::Format("%d", ch);
