@@ -1998,8 +1998,6 @@ void LayoutPanel::UnSelectAllModels(bool addBkgProps)
                     sm->Selected = false;
                     sm->Highlighted = false;
                     sm->GroupSelected = false;
-                    sm->SelectHandle(-1);
-                    sm->GetBaseObjectScreenLocation().SetActiveHandle(-1);
                 }
             }
             else
