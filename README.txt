@@ -11,7 +11,14 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2019.52 September 23 2019
+   -- enh (keith)  Add support for additional vixen 3 timing tracks and lyric tracks
+   -- enh (keith)  Add rudimentary vixen 3 sequence import
+   -- enh (keith)  Add ability to suppress vendor downloads you dont want
    -- bug (scott)  Fix Node Select Dialog selection not saving in Faces and States Dialog.
+   -- bug (keith)  Fix auto start channels all models on same port get the same start channel
+   -- bug (keith)  Remove some check sequence warnings for serial protocols
+   -- bug (keith)  Fix some quirks with submodel display
 2019.51 September 21, 2019
    -- enh (keith)  Add 3D custom model preview with live wiring view when building custom models
    -- enh (keith)  Suppress version upgrade check when command line rendering
