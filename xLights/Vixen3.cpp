@@ -96,7 +96,7 @@ std::string VixenEffect::GetXLightsType() const
         return "Off"; // not sure what to do with this
     }
     if (type == "ColorWashData") return "Color Wash";
-    if (type == "SpinData") return "Pinwheel";
+    if (type == "SpinData") 
     {
         logger_base.warn("Vixen3: Unable to convert SpinData effect ... inserting an Pinwheel effect.");
         return "Pinwheel";
