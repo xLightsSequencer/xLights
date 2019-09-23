@@ -1261,7 +1261,7 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
                         vs["gamma"] = wxString("1.0");
                     }
                     if (pvs->_reverseSet) {
-                        vs["reverse"] = pvs->_reverse;
+                        vs["reverse"] = pvs->_reverse == "Reverse" ? 1 : 0;
                     }
                     if (pvs->_gammaSet) {
                         char buf[16];
