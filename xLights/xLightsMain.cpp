@@ -5132,47 +5132,58 @@ void xLightsFrame::CheckSequence(bool display)
         // Loops in model chains
 
         // for each controller
-        for (auto it = modelsByPortByController.begin(); it != modelsByPortByController.end(); ++it)
+        for (auto& it : modelsByPortByController)
         {
             //it->first is controller
             //it->second is a list of ports
 
-            Output* o = _outputManager.GetOutput(it->first);
+            Output* o = _outputManager.GetOutput(it.first);
 
             // for each port
-            for (auto itp = it->second.begin(); itp != it->second.end(); ++itp)
+            for (auto& itp : it.second)
             {
                 // itp->first is the port name
                 // itp->second  is the model list
 
-                    // order the models
-                std::string last = "";
-
-                while (itp->second.size() > 0)
+                // dont scan serial because the chaining rules are different
+                if (Contains(itp.first, "pixel"))
                 {
-                    bool pushed = false;
-                    for (auto itms = itp->second.begin(); itms != itp->second.end(); ++itms)
-                    {
-                        if (((*itms)->GetModelChain() == "Beginning" && last == "") ||
-                            (*itms)->GetModelChain() == last ||
-                            (*itms)->GetModelChain() == ">" + last)
-                        {
-                            pushed = true;
-                            last = (*itms)->GetName();
-                            itp->second.erase(itms);
-                            break;
-                        }
-                    }
+                    // validate that all chained
 
-                    if (!pushed && itp->second.size() > 0)
+                    // order the models
+                    std::string last = "";
+
+                    while (itp.second.size() > 0)
                     {
-                        // chain is broken ... so just put the rest in in random order
-                        while (itp->second.size() > 0)
+                        bool pushed = false;
+                        for (auto itms = begin(itp.second); itms != end(itp.second); ++itms)
                         {
-                            wxString msg = wxString::Format("    ERR: Model %s on ZCPP controller '%s:%s' on port '%s' has invalid Model Chain '%s'. It may be a duplicate or point to a non existent model on this controller port or there may be a loop.", (const char*)itp->second.front()->GetName().c_str(), (const char*)o->GetIP().c_str(), (const char*)o->GetDescription().c_str(), (const char*)itp->second.front()->GetControllerConnectionString().c_str(), (const char*)itp->second.front()->GetModelChain().c_str());
-                            LogAndWrite(f, msg.ToStdString());
-                            errcount++;
-                            itp->second.pop_front();
+                            if (((*itms)->GetModelChain() == "Beginning" && last == "") ||
+                                (*itms)->GetModelChain() == last ||
+                                (*itms)->GetModelChain() == ">" + last)
+                            {
+                                pushed = true;
+                                last = (*itms)->GetName();
+                                itp.second.erase(itms);
+                                break;
+                            }
+                        }
+
+                        if (!pushed && itp.second.size() > 0)
+                        {
+                            // chain is broken ... so just put the rest in in random order
+                            while (itp.second.size() > 0)
+                            {
+                                wxString msg = wxString::Format("    ERR: Model %s on ZCPP controller '%s:%s' on port '%s' has invalid Model Chain '%s'. It may be a duplicate or point to a non existent model on this controller port or there may be a loop.",
+                                    (const char*)itp.second.front()->GetName().c_str(),
+                                    (const char*)o->GetIP().c_str(),
+                                    (const char*)o->GetDescription().c_str(),
+                                    (const char*)itp.second.front()->GetControllerConnectionString().c_str(),
+                                    (const char*)itp.second.front()->GetModelChain().c_str());
+                                LogAndWrite(f, msg.ToStdString());
+                                errcount++;
+                                itp.second.pop_front();
+                            }
                         }
                     }
                 }
@@ -5640,7 +5651,7 @@ void xLightsFrame::CheckSequence(bool display)
             std::string cc = "";
             if (it.second->IsControllerConnectionValid())
             {
-                cc = wxString::Format("%s:%d:%d", it.second->GetControllerProtocol(), it.second->GetControllerPort(), it.second->GetSmartRemote()).ToStdString();
+                cc = wxString::Format("%s:%s:%d:%d", it.second->IsPixelProtocol() ? _("pixel") : _("serial"), it.second->GetControllerProtocol(), it.second->GetControllerPort(), it.second->GetSmartRemote()).ToStdString();
             }
             if (cc != "")
             {
@@ -5661,21 +5672,21 @@ void xLightsFrame::CheckSequence(bool display)
         }
     }
 
-    for (auto it = modelsByPort.begin(); it != modelsByPort.end(); ++it)
+    for (auto it : modelsByPort)
     {
-        if (it->second->size() == 1)
+        if (it.second->size() == 1 || Contains(it.first, "serial"))
         {
-            // we dont need to check this one
+            // we dont need to check this one because one model or a serial protocol
         }
         else
         {
-            it->second->sort(compare_modelstartchannel);
+            it.second->sort(compare_modelstartchannel);
 
-            auto it2 = it->second->begin();
+            auto it2 = it.second->begin();
             auto it3 = it2;
             ++it3;
 
-            while (it3 != it->second->end())
+            while (it3 != it.second->end())
             {
                 int32_t m1start = (*it2)->GetNumberFromChannelString((*it2)->ModelStartChannel);
                 int32_t m1end = m1start + (*it2)->GetChanCount() - 1;
@@ -5713,8 +5724,8 @@ void xLightsFrame::CheckSequence(bool display)
                 ++it3;
             }
         }
-        delete it->second;
-        it->second = nullptr;
+        delete it.second;
+        it.second = nullptr;
     }
 
     if (errcount + warncount == errcountsave + warncountsave)
