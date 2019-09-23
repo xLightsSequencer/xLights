@@ -1,15 +1,19 @@
 <vendors>
-	<!-- model vendors just use the model tag -->
-    <vendor>
-        <name>Boscoyo</name>
-        <link>http://hohenseefamily.com/xlights/boscoyo.xml</link>
-    </vendor>
-    <musicvendor>
-        <name>Free</name>
-        <link>http://nutcracker123.com/xlights/vendors/xlights_music_free.xml</link>
-    </musicvendor>
-    <musicvendor>
-        <name>Singing Faces Project</name>
-        <link>http://xlightssharing.com/music.xml</link>
-    </musicvendor>
+	<!--  model vendors just use the model tag  -->
+	<vendor>
+		<name>Boscoyo Studio, LLC</name>
+		<link>http://hohenseefamily.com/xlights/boscoyo.xml</link>
+	</vendor>
+	<vendor>
+		<name>DMX Fixture Library</name>
+		<link>http://nutcracker123.com/xlights/dmxmodels/dmx_fixtures.xml</link>
+	</vendor>
+	<musicvendor>
+		<name>Free</name>
+		<link>http://nutcracker123.com/xlights/vendors/xlights_music_free.xml</link>
+	</musicvendor>
+	<musicvendor>
+		<name>Singing Faces Project</name>
+		<link>http://xlightssharing.com/music.xml</link>
+	</musicvendor>
 </vendors>

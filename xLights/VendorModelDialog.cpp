@@ -9,6 +9,7 @@
 #include <wx/msgdlg.h>
 #include <wx/stopwatch.h>
 #include <wx/progdlg.h>
+#include <wx/config.h>
 
 #include "CachedFileDownloader.h"
 #include "UtilFunctions.h"
@@ -437,7 +438,7 @@ public:
     wxFileName _logoFile;
     std::list<MVendorCategory*> _categories;
     std::list<MModel*> _models;
-    int _maxModels;
+    int _maxModels = 0;
 
     std::list<MModel*> GetModels(std::string categoryId)
     {
@@ -503,6 +504,11 @@ public:
         }
 
         return desc;
+    }
+
+    MVendor(const std::string& name)
+    {
+        _name = name;
     }
 
     MVendor(wxXmlDocument* doc, int maxModels)
@@ -667,6 +673,7 @@ private:
 //(*IdInit(VendorModelDialog)
 const long VendorModelDialog::ID_TREECTRL1 = wxNewId();
 const long VendorModelDialog::ID_PANEL3 = wxNewId();
+const long VendorModelDialog::ID_CHECKBOX1 = wxNewId();
 const long VendorModelDialog::ID_STATICBITMAP1 = wxNewId();
 const long VendorModelDialog::ID_TEXTCTRL1 = wxNewId();
 const long VendorModelDialog::ID_STATICTEXT8 = wxNewId();
@@ -696,14 +703,14 @@ END_EVENT_TABLE()
 VendorModelDialog::VendorModelDialog(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size)
 {
 	//(*Initialize(VendorModelDialog)
-	wxFlexGridSizer* FlexGridSizer4;
-	wxFlexGridSizer* FlexGridSizer3;
-	wxFlexGridSizer* FlexGridSizer5;
+	wxFlexGridSizer* FlexGridSizer1;
 	wxFlexGridSizer* FlexGridSizer2;
+	wxFlexGridSizer* FlexGridSizer3;
+	wxFlexGridSizer* FlexGridSizer4;
+	wxFlexGridSizer* FlexGridSizer5;
+	wxFlexGridSizer* FlexGridSizer6;
 	wxFlexGridSizer* FlexGridSizer7;
 	wxFlexGridSizer* FlexGridSizer8;
-	wxFlexGridSizer* FlexGridSizer6;
-	wxFlexGridSizer* FlexGridSizer1;
 
 	Create(parent, id, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxCAPTION|wxRESIZE_BORDER|wxCLOSE_BOX|wxMAXIMIZE_BOX, _T("id"));
 	SetClientSize(wxSize(800,600));
@@ -714,7 +721,6 @@ VendorModelDialog::VendorModelDialog(wxWindow* parent, wxWindowID id, const wxPo
 	FlexGridSizer1->AddGrowableRow(0);
 	SplitterWindow1 = new wxSplitterWindow(this, ID_SPLITTERWINDOW1, wxDefaultPosition, wxDefaultSize, wxSP_3D, _T("ID_SPLITTERWINDOW1"));
 	SplitterWindow1->SetMinSize(wxSize(10,10));
-	SplitterWindow1->SetMinimumPaneSize(10);
 	SplitterWindow1->SetSashGravity(0.5);
 	Panel3 = new wxPanel(SplitterWindow1, ID_PANEL3, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL3"));
 	FlexGridSizer2 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -734,6 +740,9 @@ VendorModelDialog::VendorModelDialog(wxWindow* parent, wxWindowID id, const wxPo
 	FlexGridSizer4 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer4->AddGrowableCol(0);
 	FlexGridSizer4->AddGrowableRow(1);
+	CheckBox_DontDownload = new wxCheckBox(PanelVendor, ID_CHECKBOX1, _("Don\'t download this vendors list of models"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
+	CheckBox_DontDownload->SetValue(false);
+	FlexGridSizer4->Add(CheckBox_DontDownload, 1, wxALL|wxEXPAND, 5);
 	StaticBitmap_VendorImage = new wxStaticBitmap(PanelVendor, ID_STATICBITMAP1, wxNullBitmap, wxDefaultPosition, wxSize(256,128), wxSIMPLE_BORDER, _T("ID_STATICBITMAP1"));
 	StaticBitmap_VendorImage->SetMinSize(wxSize(256,128));
 	FlexGridSizer4->Add(StaticBitmap_VendorImage, 1, wxALL|wxEXPAND, 5);
@@ -801,6 +810,7 @@ VendorModelDialog::VendorModelDialog(wxWindow* parent, wxWindowID id, const wxPo
 
 	Connect(ID_TREECTRL1,wxEVT_COMMAND_TREE_ITEM_ACTIVATED,(wxObjectEventFunction)&VendorModelDialog::OnTreeCtrl_NavigatorItemActivated);
 	Connect(ID_TREECTRL1,wxEVT_COMMAND_TREE_SEL_CHANGED,(wxObjectEventFunction)&VendorModelDialog::OnTreeCtrl_NavigatorSelectionChanged);
+	Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&VendorModelDialog::OnCheckBox_DontDownloadClick);
 	Connect(ID_HYPERLINKCTRL4,wxEVT_COMMAND_HYPERLINK,(wxObjectEventFunction)&VendorModelDialog::OnHyperlinkCtrl_FacebookClick);
 	Connect(ID_HYPERLINKCTRL2,wxEVT_COMMAND_HYPERLINK,(wxObjectEventFunction)&VendorModelDialog::OnHyperlinkCtrl_WebsiteClick);
 	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&VendorModelDialog::OnButton_PriorClick);
@@ -863,6 +873,7 @@ bool VendorModelDialog::LoadTree(wxProgressDialog* prog, int low, int high)
             {
                 int maxModels = -1;
                 std::string url = "";
+                std::string name = "";
 
                 for (auto link = v->GetChildren(); link != nullptr; link = link->GetNext())
                 {
@@ -874,17 +885,29 @@ bool VendorModelDialog::LoadTree(wxProgressDialog* prog, int low, int high)
                     {
                         maxModels = wxAtoi(link->GetNodeContent());
                     }
+                    else if (link->GetName().Lower() == "name")
+                    {
+                        name =link->GetNodeContent();
+                    }
                 }
 
-                if (url != "")
+                if (name != "" && IsVendorSuppressed(name))
                 {
-                    std::string vfilename;
-                    wxXmlDocument* d = GetXMLFromURL(wxURI(url), vfilename, prog, low, high);
-                    if (d != nullptr && d->IsOk())
+                    MVendor* mv = new MVendor(name);
+                    _vendors.push_back(mv);
+                }
+                else
+                {
+                    if (url != "")
                     {
-                        MVendor* mv = new MVendor(d, maxModels);
-                        _vendors.push_back(mv);
-                        delete d;
+                        std::string vfilename;
+                        wxXmlDocument* d = GetXMLFromURL(wxURI(url), vfilename, prog, low, high);
+                        if (d != nullptr && d->IsOk())
+                        {
+                            MVendor* mv = new MVendor(d, maxModels);
+                            _vendors.push_back(mv);
+                            delete d;
+                        }
                     }
                 }
             }
@@ -907,7 +930,10 @@ bool VendorModelDialog::LoadTree(wxProgressDialog* prog, int low, int high)
         {
             first = v;
         }
-        AddHierachy(v, *it, (*it)->_categories);
+        if (!IsVendorSuppressed((*it)->_name))
+        {
+            AddHierachy(v, *it, (*it)->_categories);
+        }
         TreeCtrl_Navigator->Expand(v);
     }
 
@@ -1244,6 +1270,8 @@ void VendorModelDialog::PopulateVendorPanel(MVendor* vendor)
         return;
     }
 
+    CheckBox_DontDownload->SetValue(IsVendorSuppressed(vendor->_name));
+
     if (vendor->_logoFile.Exists())
     {
         _vendorImage.LoadFile(vendor->_logoFile.GetFullPath());
@@ -1469,4 +1497,62 @@ void VendorModelDialog::OnResize(wxSizeEvent& event)
 
     ItemImagePanel->Refresh();
     PanelVendor->Refresh();
+}
+
+void VendorModelDialog::OnCheckBox_DontDownloadClick(wxCommandEvent& event)
+{
+    std::string vendor = "";
+    wxTreeItemId startid = TreeCtrl_Navigator->GetSelection();
+
+    if (TreeCtrl_Navigator->GetSelection().IsOk())
+    {
+        wxTreeItemData* tid = TreeCtrl_Navigator->GetItemData(startid);
+
+        if (tid != nullptr)
+        {
+            std::string type = ((VendorBaseTreeItemData*)tid)->GetType();
+
+            if (type == "Vendor")
+            {
+                vendor = ((MVendorTreeItemData*)tid)->GetVendor()->_name;
+            }
+        }
+    }
+
+    if (vendor == "") return;
+
+    if (!event.IsChecked())
+    {
+        wxMessageBox("Close and open the vendor download to load this vendor's model list.");
+    }
+
+    SuppressVendor(vendor, event.IsChecked());
+}
+
+bool VendorModelDialog::IsVendorSuppressed(const std::string& vendor)
+{
+    wxConfigBase* config = wxConfigBase::Get();
+
+    auto suppress = config->Read("xLightsVendorSuppress", "DMX Fixture Library|");
+
+    return suppress.Contains(vendor);
+}
+
+void VendorModelDialog::SuppressVendor(const std::string& vendor, bool suppress)
+{
+    wxConfigBase* config = wxConfigBase::Get();
+
+    auto s = config->Read("xLightsVendorSuppress", "|DMX Fixture Library");
+
+    if (suppress && !s.Contains(vendor))
+    {
+        if (!s.EndsWith('|')) s += "|";
+        s += vendor;
+    }
+    else if (!suppress && s.Contains(vendor))
+    {
+        s.Replace(vendor, "");
+        s.Replace("||", "|");
+    }
+    config->Write("xLightsVendorSuppress", s);
 }

@@ -3164,7 +3164,9 @@ void LayoutPanel::FinalizeModel()
             newModel = Model::GetXlightsModel(newModel, _lastXlightsModel, xlights, cancelled, b->GetModelType() == "Download", &prog, 0, 99);
             if (cancelled || newModel == nullptr) {
                 xlights->AddTraceMessage("LayoutPanel::FinalizeModel Downloading or importing cancelled.");
+                delete newModel; // I am not sure this may cause issues ... but if we dont have it i think it leaks
                 newModel = nullptr;
+                modelPreview->SetAdditionalModel(nullptr);
                 modelPreview->SetCursor(wxCURSOR_DEFAULT);
                 b->SetState(0);
                 selectedButton = nullptr;
