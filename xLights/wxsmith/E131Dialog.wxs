@@ -126,7 +126,7 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxStaticText" name="wxID_ANY" variable="StaticText6" member="no">
-							<label>Last Channel</label>
+							<label>Universe Size</label>
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>

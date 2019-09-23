@@ -94,7 +94,7 @@ E131Dialog::E131Dialog(wxWindow* parent, E131Output* e131, OutputManager* output
     MultiE131CheckBox = new wxCheckBox(this, ID_CHECKBOX1, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
     MultiE131CheckBox->SetValue(false);
     FlexGridSizer2->Add(MultiE131CheckBox, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    StaticText6 = new wxStaticText(this, wxID_ANY, _("Last Channel"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
+    StaticText6 = new wxStaticText(this, wxID_ANY, _("Universe Size"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
     FlexGridSizer2->Add(StaticText6, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     SpinCtrl_LastChannel = new wxSpinCtrl(this, ID_SPINCTRL_LAST_CHANNEL, _T("512"), wxDefaultPosition, wxDefaultSize, 0, 1, 512, 512, _T("ID_SPINCTRL_LAST_CHANNEL"));
     SpinCtrl_LastChannel->SetValue(_T("512"));
