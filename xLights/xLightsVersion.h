@@ -3,7 +3,7 @@
 
 // Update these before building a release
 static const wxString xlights_qualifier       = ""; // " BETA,ALPHA,PROD";
-static const wxString xlights_version_string  = "2019.52";
+static const wxString xlights_version_string  = "2019.53";
 static const wxString xlights_build_date      = "September 23, 2019";
 
 const wxString &GetBitness();

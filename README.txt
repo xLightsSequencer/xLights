@@ -12,6 +12,8 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2019.52 September 23 2019
+   -- bug (keith)  Fix crash moving models
+2019.52 September 23 2019
    -- enh (keith)  Add support for additional vixen 3 timing tracks and lyric tracks
    -- enh (keith)  Add rudimentary vixen 3 sequence import
    -- enh (keith)  Add ability to suppress vendor downloads you dont want
