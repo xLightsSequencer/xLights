@@ -4493,6 +4493,12 @@ AT THIS POINT IT JUST BRINGS IN THE EFFECTS. WE MAKE NO EFFORT TO GET THE SETTIN
 
     Vixen3 vixen(filename.GetFullPath().ToStdString());
 
+    if (!vixen.IsSystemFound())
+    {
+        wxMessageBox("SystemConfig.xml could not be found. Import impossible.");
+        return false;
+    }
+
     xLightsImportChannelMapDialog dlg(this, filename, true, true, false, false);
     dlg.mSequenceElements = &mSequenceElements;
     dlg.xlights = this;

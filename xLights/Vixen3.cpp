@@ -130,6 +130,7 @@ Vixen3::Vixen3(const std::string& filename, const std::string& system)
     _filename = filename;
     _systemFile = system;
 
+    _systemFound = true;
     if (system == "" || !wxFile::Exists(_systemFile))
     {
         wxFileName seq(_filename);
@@ -151,6 +152,7 @@ Vixen3::Vixen3(const std::string& filename, const std::string& system)
         if (!wxFile::Exists(_systemFile))
         {
             logger_base.debug("Looking for Vixen SystemConfig ... FAILED ... NOT FOUND");
+            _systemFound = false;
         }
     }
 

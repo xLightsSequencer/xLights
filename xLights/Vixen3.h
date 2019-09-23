@@ -39,6 +39,7 @@ class Vixen3 {
     std::map<std::string, std::list<VixenTiming>> _timingData;
     std::map<std::string, std::string> _timingType;
     std::map<std::string, std::list<VixenEffect>> _effectData;
+    bool _systemFound = false;
 
     void ProcessNode(wxXmlNode* n, std::map<std::string, std::string>& models);
 
@@ -52,6 +53,7 @@ class Vixen3 {
         return std::round(time * 1000.0 / (float)frame) * frame;
     }
     const std::string& GetFilename() const { return _filename; }
+    bool IsSystemFound() const { return _systemFound; }
 
     std::list<std::string> GetTimings() const;
     std::list<VixenTiming> GetTimings(const std::string& timing) const;
