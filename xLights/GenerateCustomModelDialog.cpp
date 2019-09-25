@@ -1109,7 +1109,7 @@ void GenerateCustomModelDialog::DoStartFrameIdentify()
         _vr = nullptr;
     }
 
-    _vr = new VideoReader(std::string(TextCtrl_GCM_Filename->GetValue().c_str()), 800, 600, true);
+    _vr = new VideoReader(std::string(TextCtrl_GCM_Filename->GetValue().c_str()), 800, 600, true, false, false);
 
     if (_vr == nullptr)
     {

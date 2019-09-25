@@ -48,7 +48,7 @@ void SequenceVideoPanel::SetMediaPath(const std::string& path)
     }
     else
     {
-        _videoReader.reset(new VideoReader(path, 0, 0, false, true));
+        _videoReader.reset(new VideoReader(path, 0, 0, false, true, false));
         if (_videoReader->IsValid())
         {
             _isValidVideo = true;

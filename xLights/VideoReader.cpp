@@ -7,7 +7,7 @@
 #include <algorithm>
 #include <wx/filename.h>
 
-VideoReader::VideoReader(const std::string& filename, int maxwidth, int maxheight, bool keepaspectratio, bool usenativeresolution/*false*/)
+VideoReader::VideoReader(const std::string& filename, int maxwidth, int maxheight, bool keepaspectratio, bool usenativeresolution/*false*/, bool wantAlpha)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     _filename = filename;
@@ -18,7 +18,15 @@ VideoReader::VideoReader(const std::string& filename, int maxwidth, int maxheigh
 	_videoStream = nullptr;
 	_dstFrame = nullptr;
     _srcFrame = nullptr;
-	_pixelFmt = AVPixelFormat::AV_PIX_FMT_RGB24;
+    _wantAlpha = wantAlpha;
+    if (_wantAlpha)
+    {
+        _pixelFmt = AVPixelFormat::AV_PIX_FMT_RGBA;
+    }
+    else
+    {
+        AVPixelFormat::AV_PIX_FMT_RGB24;
+    }
 	_atEnd = false;
 	_swsCtx = nullptr;
     _dtspersec = 1.0;
@@ -156,8 +164,8 @@ VideoReader::VideoReader(const std::string& filename, int maxwidth, int maxheigh
 	_dstFrame = av_frame_alloc();
 	_dstFrame->width = _width;
 	_dstFrame->height = _height;
-	_dstFrame->linesize[0] = _width * 3;
-	_dstFrame->data[0] = (uint8_t *)av_malloc(_width * _height * 3 * sizeof(uint8_t));
+	_dstFrame->linesize[0] = _width * GetPixelChannels();
+	_dstFrame->data[0] = (uint8_t *)av_malloc(_width * _height * GetPixelChannels() * sizeof(uint8_t));
 
     _srcFrame = av_frame_alloc();
     _srcFrame->pkt_pts = 0;
@@ -182,6 +190,8 @@ VideoReader::VideoReader(const std::string& filename, int maxwidth, int maxheigh
     logger_base.info("      Source size: %dx%d", _codecContext->width, _codecContext->height);
     logger_base.info("      Source coded size: %dx%d", _codecContext->coded_width, _codecContext->coded_height);
     logger_base.info("      Output size: %dx%d", _width, _height);
+    if (_wantAlpha)
+        logger_base.info("      Alpha: TRUE");
     if (_frames != 0)
     {
         logger_base.info("      Frame ms %f", _lengthMS / (double)_frames);

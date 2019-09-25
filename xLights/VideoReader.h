@@ -15,7 +15,7 @@ class VideoReader
 public:
     static bool IsVideoFile(const std::string &filename);
     static long GetVideoLength(const std::string& filename);
-	VideoReader(const std::string& filename, int width, int height, bool keepaspectratio, bool usenativeresolution=false);
+	VideoReader(const std::string& filename, int width, int height, bool keepaspectratio, bool usenativeresolution = false, bool wantAlpha = false);
 	~VideoReader();
 	int GetLengthMS() const { return (int)_lengthMS; };
 	void Seek(int timestampMS);
@@ -26,6 +26,7 @@ public:
 	bool AtEnd() const { return _atEnd; };
     int GetPos();
     std::string GetFilename() const { return _filename; }
+    int GetPixelChannels() const { return _wantAlpha ? 4 : 3; }
 
 private:
 	bool _valid;
@@ -33,6 +34,7 @@ private:
     double _dtspersec;
     long _frames;
     int _frameMS;
+    bool _wantAlpha = false;
 	AVFormatContext* _formatContext;
 	AVCodecContext* _codecContext;
 	AVStream* _videoStream;

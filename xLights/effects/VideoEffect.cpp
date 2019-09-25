@@ -42,7 +42,7 @@ std::list<std::string> VideoEffect::CheckEffectSettings(const SettingsMap& setti
             res.push_back(wxString::Format("    WARN: Video effect video file '%s' not under show directory. Model '%s', Start %s", filename, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
         }
 
-        VideoReader* videoreader = new VideoReader(filename.ToStdString(), 100, 100, false, true);
+        VideoReader* videoreader = new VideoReader(filename.ToStdString(), 100, 100, false, true, true);
         if (videoreader == nullptr || videoreader->GetLengthMS() == 0)
         {
             res.push_back(wxString::Format("    ERR: Video effect video file '%s' could not be understood. Format may not be supported. Model '%s', Start %s", filename, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
@@ -312,7 +312,7 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
             // have to open the file
             int width = buffer.BufferWi * 100 / (cropRight - cropLeft);
             int height = buffer.BufferHt * 100 / (cropTop - cropBottom);
-            _videoreader = new VideoReader(filename, width, height, aspectratio);
+            _videoreader = new VideoReader(filename, width, height, aspectratio, false, true);
 
             if (_videoreader == nullptr)
             {
@@ -427,11 +427,12 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
         // check it looks valid
         if (image != nullptr && frame >= 0)
         {
+            int ch = _videoreader->GetPixelChannels();
             // draw the image
             xlColor c;
             for (int y = 0; y < _videoreader->GetHeight() - yoffset - ytail; y++)
             {
-                uint8_t* ptr = image->data[0] + (_videoreader->GetHeight() - 1 - y - yoffset) * _videoreader->GetWidth() * 3 + xoffset * 3;
+                uint8_t* ptr = image->data[0] + (_videoreader->GetHeight() - 1 - y - yoffset) * _videoreader->GetWidth() * ch + xoffset * ch;
 
                 for (int x = 0; x < _videoreader->GetWidth() - xoffset - xtail; x++)
                 {
@@ -439,7 +440,7 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
                     {
                         c.Set(*(ptr),
                             *(ptr + 1),
-                            *(ptr + 2), 255);
+                            *(ptr + 2), ch == 3 ? 255 : *(ptr+3));
                     }
                     catch (...)
                     {
@@ -460,7 +461,7 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
                         buffer.SetPixel(x + startx, y + starty, c);
                     }
 
-                    ptr += 3;
+                    ptr += ch;
                 }
             }
             //logger_base.debug("Video render %s frame %d timestamp %ldms took %ldms.", (const char *)filename.c_str(), buffer.curPeriod, frame, sw.Time());
