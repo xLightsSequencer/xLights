@@ -28,7 +28,8 @@ class MatrixModel : public ModelWithScreenLocation<BoxedScreenLocation>
     
         MatrixModel(const ModelManager &manager);
         virtual void InitModel() override;
-    
+        void InitSingleChannelModel();
+
         void InitVMatrix(int firstExportStrand = 0);
         void InitHMatrix();
     

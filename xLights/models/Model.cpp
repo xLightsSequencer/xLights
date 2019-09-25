@@ -4466,9 +4466,9 @@ int Model::GetStrandLength(int strand) const {
 }
 
 int Model::MapToNodeIndex(int strand, int node) const {
-    if ((DisplayAs == wxT("Vert Matrix") || DisplayAs == wxT("Horiz Matrix") || DisplayAs == wxT("Matrix")) && SingleChannel) {
-        return node;
-    }
+    //if ((DisplayAs == wxT("Vert Matrix") || DisplayAs == wxT("Horiz Matrix") || DisplayAs == wxT("Matrix")) && SingleChannel) {
+    //    return node;
+    //}
     if (GetNumStrands() == 1) {
         return node;
     }

@@ -145,14 +145,51 @@ int MatrixModel::GetNumStrands() const {
     return parm1*parm3;
 }
 
+// We do this separately as derived models such as Tree assume BufX/Y is set as if it was not single channel
+// This goes back and sets them to more appropriate values.
+void MatrixModel::InitSingleChannelModel()
+{
+    // rework bufX/bufY for singleChannel
+    if (SingleNode)
+    {
+        int NumStrands = parm1 * parm3;
+        int PixelsPerStrand = parm2 / parm3;
+        if (vMatrix)
+        {
+            SetBufferSize(SingleNode ? 1 : PixelsPerStrand, SingleNode ? parm1 : NumStrands);
+            int x = 0;
+            for (size_t n = 0; n < Nodes.size(); n++) {
+                for (auto& c : Nodes[n]->Coords)
+                {
+                    c.bufX = IsLtoR ? x : NumStrands - x - 1;
+                    c.bufY = 0;
+                }
+                x++;
+            }
+        }
+        else
+        {
+            SetBufferSize(SingleNode ? parm1 : NumStrands, SingleNode ? 1 : PixelsPerStrand);
+            int y = 0;
+            for (size_t n = 0; n < Nodes.size(); n++) {
+                for (auto& c : Nodes[n]->Coords)
+                {
+                    c.bufY = IsLtoR ? y : NumStrands - y - 1;
+                    c.bufX = 0;
+                }
+                y++;
+            }
+        }
+    }
+}
+
 void MatrixModel::InitModel() {
     if (DisplayAs == "Vert Matrix") {
         InitVMatrix();
-        CopyBufCoord2ScreenCoord();
     } else if (DisplayAs == "Horiz Matrix") {
         InitHMatrix();
-        CopyBufCoord2ScreenCoord();
     }
+    InitSingleChannelModel();
     DisplayAs = "Matrix";
     screenLocation.RenderDp = 10.0f;  // give the bounding box a little depth
 }
@@ -163,36 +200,54 @@ void MatrixModel::InitModel() {
 // parm3=StrandsPerString
 void MatrixModel::InitVMatrix(int firstExportStrand) {
     vMatrix = true;
-    int y,x, stringnum,segmentnum;
+    int stringnum,segmentnum;
     if (parm3 > parm2) {
         parm3 = parm2;
     }
     int NumStrands=parm1*parm3;
     int PixelsPerStrand=parm2/parm3;
     int PixelsPerString=PixelsPerStrand*parm3;
-    SetBufferSize(PixelsPerStrand,NumStrands);
+    SetBufferSize(PixelsPerStrand, NumStrands);
     SetNodeCount(parm1,PixelsPerString, rgbOrder);
     screenLocation.SetRenderSize(NumStrands, PixelsPerStrand, 2.0f);
     int chanPerNode = GetNodeChannelCount(StringType);
 
     // create output mapping
     if (SingleNode) {
-        x=0;
+        int x=0;
+        float sx = 0;
         for (size_t n=0; n<Nodes.size(); n++) {
             Nodes[n]->ActChan = stringStartChan[n];
-            y=0;
+            float sy = 0;
+            for (auto& c : Nodes[n]->Coords)
+            {
+                c.screenX = isBotToTop ? sx : (NumStrands * parm3) - sx - 1;
+                c.screenX -= ((float)NumStrands - 1.0) / 2.0;
+                c.screenY = sy - ((float)PixelsPerStrand - 1.0) / 2.0;
+                c.screenZ = 0;
+                sy++;
+                if (sy >= PixelsPerStrand)
+                {
+                    sy = 0;
+                    sx++;
+                }
+            }
+
+            int y = 0;
             int yincr = 1;
-            for (size_t c=0; c<PixelsPerString; c++) {
-                Nodes[n]->Coords[c].bufX=IsLtoR ? x : NumStrands-x-1;
-                Nodes[n]->Coords[c].bufY=y;
-                y+=yincr;
+            for (size_t c = 0; c < PixelsPerString; c++) {
+                Nodes[n]->Coords[c].bufX = IsLtoR ? x : NumStrands - x - 1;
+                Nodes[n]->Coords[c].bufY = y;
+                y += yincr;
                 if (y < 0 || y >= PixelsPerStrand) {
-                    yincr=-yincr;
-                    y+=yincr;
+                    yincr = -yincr;
+                    y += yincr;
                     x++;
                 }
             }
         }
+        GetModelScreenLocation().SetRenderSize(NumStrands, PixelsPerStrand, GetModelScreenLocation().GetRenderDp());
+
     } else {
         std::vector<int> strandStartChan;
         strandStartChan.clear();
@@ -212,10 +267,10 @@ void MatrixModel::InitVMatrix(int firstExportStrand) {
             }
         }
 
-        for (x=0; x < NumStrands; x++) {
+        for (int x=0; x < NumStrands; x++) {
             stringnum = x / parm3;
             segmentnum = x % parm3;
-            for(y=0; y < PixelsPerStrand; y++) {
+            for(int y=0; y < PixelsPerStrand; y++) {
                 int idx = stringnum * PixelsPerString + segmentnum * PixelsPerStrand + y;
                 Nodes[idx]->ActChan = strandStartChan[x] + y*chanPerNode;
                 Nodes[idx]->Coords[0].bufX=IsLtoR ? x : NumStrands-x-1;
@@ -223,6 +278,7 @@ void MatrixModel::InitVMatrix(int firstExportStrand) {
                 Nodes[idx]->StringNum=stringnum;
             }
         }
+        CopyBufCoord2ScreenCoord();
     }
 }
 
@@ -233,14 +289,14 @@ void MatrixModel::InitVMatrix(int firstExportStrand) {
 // parm3=StrandsPerString
 void MatrixModel::InitHMatrix() {
     vMatrix = false;
-    int y,x,idx,stringnum,segmentnum,xincr;
+    int idx,stringnum,segmentnum,xincr;
     if (parm3 > parm2) {
         parm3 = parm2;
     }
     int NumStrands=parm1*parm3;
     int PixelsPerStrand=parm2/parm3;
     int PixelsPerString=PixelsPerStrand*parm3;
-    SetBufferSize(NumStrands,PixelsPerStrand);
+    SetBufferSize(NumStrands, PixelsPerStrand);
     SetNodeCount(parm1,PixelsPerString,rgbOrder);
     screenLocation.SetRenderSize(PixelsPerStrand, NumStrands, 2.0f);
     
@@ -248,27 +304,45 @@ void MatrixModel::InitHMatrix() {
 
     // create output mapping
     if (SingleNode) {
-        y=0;
+        int y=0;
+        float sy = 0;
         for (size_t n=0; n<Nodes.size(); n++) {
             Nodes[n]->ActChan = stringStartChan[n];
-            x=0;
-            xincr=1;
-            for (size_t c=0; c<PixelsPerString; c++) {
-                Nodes[n]->Coords[c].bufX=x;
-                Nodes[n]->Coords[c].bufY=isBotToTop ? y :NumStrands-y-1;
-                x+=xincr;
+            float sx = 0;
+            for (auto& c : Nodes[n]->Coords)
+            {
+                c.screenY = isBotToTop ? sy : (NumStrands * parm3) - sy - 1;
+                c.screenY -= ((float)NumStrands-1.0) / 2.0;
+                c.screenX = sx - ((float)PixelsPerStrand-1.0) / 2.0;
+                c.screenZ = 0;
+                sx++;
+                if (sx >= PixelsPerStrand)
+                {
+                    sx = 0;
+                    sy++;
+                }
+            }
+
+            int x = 0;
+            xincr = 1;
+            for (size_t c = 0; c < PixelsPerString; c++) {
+                Nodes[n]->Coords[c].bufX = x;
+                Nodes[n]->Coords[c].bufY = isBotToTop ? y : NumStrands - y - 1;
+                x += xincr;
                 if (x < 0 || x >= PixelsPerStrand) {
-                    xincr=-xincr;
-                    x+=xincr;
+                    xincr = -xincr;
+                    x += xincr;
                     y++;
                 }
             }
         }
+        GetModelScreenLocation().SetRenderSize(PixelsPerStrand, NumStrands, GetModelScreenLocation().GetRenderDp());
+
     } else {
-        for (y=0; y < NumStrands; y++) {
+        for (int y=0; y < NumStrands; y++) {
             stringnum=y / parm3;
             segmentnum=y % parm3;
-            for(x=0; x<PixelsPerStrand; x++) {
+            for(int x=0; x<PixelsPerStrand; x++) {
                 idx=stringnum * PixelsPerString + segmentnum * PixelsPerStrand + x;
                 Nodes[idx]->ActChan = stringStartChan[stringnum] + segmentnum * PixelsPerStrand*chanPerNode + x*chanPerNode;
                 Nodes[idx]->Coords[0].bufX=IsLtoR != (segmentnum % 2 == 0) ? PixelsPerStrand-x-1 : x;
@@ -276,6 +350,7 @@ void MatrixModel::InitHMatrix() {
                 Nodes[idx]->StringNum=stringnum;
             }
         }
+        CopyBufCoord2ScreenCoord();
     }
 }
 

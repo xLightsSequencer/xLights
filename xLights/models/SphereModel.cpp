@@ -31,6 +31,7 @@ void SphereModel::InitModel() {
     InitVMatrix(0);
     screenLocation.SetPerspective2D(0.1f);
     SetSphereCoord();
+    InitSingleChannelModel();
     DisplayAs = "Sphere";
 }
 

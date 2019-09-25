@@ -52,6 +52,7 @@ void TreeModel::InitModel() {
     perspective =  wxAtof(ModelXml->GetAttribute("TreePerspective", "0.2"));
     screenLocation.SetPerspective2D(perspective);
     SetTreeCoord(degrees);
+    InitSingleChannelModel();
     DisplayAs = "Tree";
 }
 
