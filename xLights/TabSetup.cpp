@@ -631,6 +631,7 @@ void xLightsFrame::ChangeSelectedNetwork()
 
     Output* o = _outputManager.GetOutput(item);
     std::string oldDesc = o->GetDescription();
+    auto oldIP = o->GetIP();
     Output* newoutput = o->Configure(this, &_outputManager, &AllModels);
     if (newoutput != nullptr)
     {
@@ -640,6 +641,7 @@ void xLightsFrame::ChangeSelectedNetwork()
         }
         else
         {
+            ChangeIP(oldIP, o->GetIP());
             std::string newDesc = o->GetDescription();
             if (o->IsLookedUpByControllerName() && oldDesc != "" && oldDesc != newDesc)
             {
