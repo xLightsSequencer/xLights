@@ -113,6 +113,11 @@ void ModelPreview::mouseMoved(wxMouseEvent& event) {
                     Render(&xlights->SeqData[xlights->GetCurrentPlayTime() / xlights->SeqData.FrameTime()][0]);
                 }
             }
+            else
+            {
+                Refresh();
+                Update();
+            }
         }
     } else if (m_wheel_down) {
         float new_x = event.GetX() - m_last_mouse_x;
@@ -156,6 +161,11 @@ void ModelPreview::mouseMoved(wxMouseEvent& event) {
                 if (xlights->GetPlayStatus() == PLAY_TYPE_MODEL_PAUSED || xlights->GetPlayStatus() == PLAY_TYPE_EFFECT_PAUSED) {
                     Render(&xlights->SeqData[xlights->GetCurrentPlayTime() / xlights->SeqData.FrameTime()][0]);
                 }
+            }
+            else
+            {
+                Refresh();
+                Update();
             }
         }
     }
