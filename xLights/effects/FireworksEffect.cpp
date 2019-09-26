@@ -289,17 +289,7 @@ void FireworksEffect::SetPanelTimingTracks() const
     }
 
     // Load the names of the timing tracks
-    std::string timingtracks = "";
-    for (size_t i = 0; i < mSequenceElements->GetElementCount(); i++)
-    {
-        Element* e = mSequenceElements->GetElement(i);
-        if (e->GetEffectLayerCount() == 1 && e->GetType() == ELEMENT_TYPE_TIMING)
-        {
-            if (timingtracks != "") timingtracks += "|";
-            timingtracks += e->GetName();
-        }
-    }
-
+    std::string timingtracks = GetTimingTracks(1);
     wxCommandEvent event(EVT_SETTIMINGTRACKS);
     event.SetString(timingtracks);
     wxPostEvent(fp, event);
@@ -439,28 +429,15 @@ void FireworksEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuf
         else
         {
             // Load the names of the timing tracks
-            Element* t = nullptr;
-            for (size_t l = 0; l < mSequenceElements->GetElementCount(); l++)
-            {
-                Element* e = mSequenceElements->GetElement(l);
-                if (e->GetEffectLayerCount() == 1 && e->GetType() == ELEMENT_TYPE_TIMING)
-                {
-                    if (e->GetName() == timing)
-                    {
-                        t = e;
-                        break;
-                    }
-                }
-            }
+            EffectLayer* el = GetTiming(timing);
 
-            if (t == nullptr)
+            if (el == nullptr)
             {
                 // timing track not found ... this shouldnt happen
             }
             else
             {
                 sinceLastTriggered = 0;
-                EffectLayer* el = t->GetEffectLayer(0);
                 for (int j = 0; j < el->GetEffectCount(); j++)
                 {
                     if (buffer.curPeriod == el->GetEffect(j)->GetStartTimeMS() / buffer.frameTimeInMs ||

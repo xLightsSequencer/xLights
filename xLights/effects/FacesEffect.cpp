@@ -175,6 +175,10 @@ std::list<std::string> FacesEffect::CheckEffectSettings(const SettingsMap& setti
     {
         res.push_back(wxString::Format("    ERR: Face effect with no timing selected. Model '%s', Start %s", model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
     }
+    else if (timing != "" && GetTiming(timing) == nullptr)
+    {
+        res.push_back(wxString::Format("    ERR: Face effect with unknown timing (%s) selected. Model '%s', Start %s", timing, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+    }
 
     return res;
 }
@@ -185,22 +189,18 @@ void FacesEffect::SetPanelStatus(Model *cls) {
 
     fp->Choice_Faces_TimingTrack->Clear();
     fp->Face_FaceDefinitonChoice->Clear();
-    if (mSequenceElements == nullptr) {
-        return;
+    for (auto& it : wxSplit(GetTimingTracks(0, 3), '|'))
+    {
+        fp->Choice_Faces_TimingTrack->Append(it);
     }
-    for (size_t i = 0; i < mSequenceElements->GetElementCount(); i++) {
-        if (mSequenceElements->GetElement(i)->GetEffectLayerCount() == 3
-            && mSequenceElements->GetElement(i)->GetType() == ELEMENT_TYPE_TIMING) {
-            fp->Choice_Faces_TimingTrack->Append(mSequenceElements->GetElement(i)->GetName());
-        }
-    }
+
     bool addRender = true;
     if (cls != nullptr) {
-        for (std::map<std::string, std::map<std::string, std::string> >::iterator it = cls->faceInfo.begin(); it != cls->faceInfo.end(); ++it) {
-            if (it->first != "")
+        for (auto& it : cls->faceInfo) {
+            if (it.first != "")
             {
-                fp->Face_FaceDefinitonChoice->Append(it->first);
-                if (it->second["Type"] == "Coro" || it->second["Type"] == "SingleNode" || it->second["Type"] == "NodeRange") {
+                fp->Face_FaceDefinitonChoice->Append(it.first);
+                if (it.second["Type"] == "Coro" || it.second["Type"] == "SingleNode" || it.second["Type"] == "NodeRange") {
                     addRender = false;
                 }
             }

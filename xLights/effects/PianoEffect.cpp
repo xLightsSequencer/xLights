@@ -64,20 +64,7 @@ void PianoEffect::SetPanelTimingTracks()
     }
 
     // Load the names of the timing tracks
-    std::string timingtracks = "";
-    for (size_t i = 0; i < mSequenceElements->GetElementCount(); i++)
-    {
-        Element* e = mSequenceElements->GetElement(i);
-        if (e->GetEffectLayerCount() == 1 && e->GetType() == ELEMENT_TYPE_TIMING)
-        {
-            if (timingtracks != "")
-            {
-                timingtracks += "|";
-            }
-            timingtracks += e->GetName();
-        }
-    }
-
+    std::string timingtracks = GetTimingTracks(1);
     wxCommandEvent event(EVT_SETTIMINGTRACKS);
     event.SetString(timingtracks);
     wxPostEvent(fp, event);
@@ -738,27 +725,14 @@ std::map<int, std::list<float>> PianoEffect::LoadTimingTrack(std::string track, 
     }
 
     // Load the names of the timing tracks
-    Element* t = nullptr;
-    for (size_t i = 0; i < mSequenceElements->GetElementCount(); i++)
-    {
-        Element* e = mSequenceElements->GetElement(i);
-        if (e->GetEffectLayerCount() == 1 && e->GetType() == ELEMENT_TYPE_TIMING)
-        {
-            if (e->GetName() == track)
-            {
-                t = e;
-                break;
-            }
-        }
-    }
+    EffectLayer* el = GetTiming(track);
 
-    if (t == nullptr)
+    if (el == nullptr)
     {
         logger_pianodata.debug("Timing track not found.");
         return res;
     }
 
-    EffectLayer* el = t->GetEffectLayer(0);
     for (int j = 0; j < el->GetEffectCount(); j++)
     {
         std::list<float> notes;

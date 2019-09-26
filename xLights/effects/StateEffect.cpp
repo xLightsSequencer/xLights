@@ -43,7 +43,10 @@ std::list<std::string> StateEffect::CheckEffectSettings(const SettingsMap& setti
     {
         res.push_back(wxString::Format("    ERR: State effect with no timing selected. Model '%s', Start %s", model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
     }
-
+    else if (timing != "" && GetTiming(timing.ToStdString()) == nullptr)
+    {
+        res.push_back(wxString::Format("    ERR: State effect with unknown timing (%s) selected. Model '%s', Start %s", timing, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+    }
     return res;
 }
 
@@ -66,15 +69,10 @@ void StateEffect::SetPanelStatus(Model *cls) {
 
     fp->Choice_State_TimingTrack->Clear();
     fp->Choice_StateDefinitonChoice->Clear();
-    if (mSequenceElements == nullptr) {
-        return;
-    }
 
-    for (size_t i = 0; i < mSequenceElements->GetElementCount(); i++) {
-        if (mSequenceElements->GetElement(i)->GetEffectLayerCount() == 1
-            && mSequenceElements->GetElement(i)->GetType() == ELEMENT_TYPE_TIMING) {
-            fp->Choice_State_TimingTrack->Append(mSequenceElements->GetElement(i)->GetName());
-        }
+    for (auto& it : wxSplit(GetTimingTracks(1), '|'))
+    {
+        fp->Choice_State_TimingTrack->Append(it);
     }
 
     if (fp->Choice_State_TimingTrack->GetCount() > 0)
@@ -83,10 +81,10 @@ void StateEffect::SetPanelStatus(Model *cls) {
     }
 
     if (cls != nullptr) {
-        for (std::map<std::string, std::map<std::string, std::string> >::iterator it = cls->stateInfo.begin(); it != cls->stateInfo.end(); ++it) {
-            if (it->second.size() > 30) // actually it should be about 120
+        for (auto& it : cls->stateInfo) {
+            if (it.second.size() > 30) // actually it should be about 120
             {
-                fp->Choice_StateDefinitonChoice->Append(it->first);
+                fp->Choice_StateDefinitonChoice->Append(it.first);
             }
         }
     }
@@ -104,16 +102,16 @@ std::list<std::string> StateEffect::GetStates(Model *cls, std::string model) {
     std::list<std::string> res;
 
     if (cls != nullptr) {
-        for (std::map<std::string, std::map<std::string, std::string> >::iterator it = cls->stateInfo.begin(); it != cls->stateInfo.end(); ++it)
+        for (auto& it : cls->stateInfo)
         {
-            if (model == it->first)
+            if (model == it.first)
             {
-                for (auto it2 = it->second.begin(); it2 != it->second.end(); ++it2)
+                for (auto& it2 : it.second)
                 {
-                    wxString f(it2->first);
-                    if (f.EndsWith("-Name") && it2->second != "")
+                    wxString f(it2.first);
+                    if (f.EndsWith("-Name") && it2.second != "")
                     {
-                        res.push_back(it2->second);
+                        res.push_back(it2.second);
                     }
                 }
             }

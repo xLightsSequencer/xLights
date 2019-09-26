@@ -126,17 +126,23 @@ std::list<std::string> VUMeterEffect::CheckEffectSettings(const SettingsMap& set
 
     wxString timing = settings.Get("E_CHOICE_VUMeter_TimingTrack", "");
 
-    if (timing == "" &&
-        (type == "Timing Event Spike" ||
-         type == "Timing Event Sweep" ||
-            type == "Timing Event Bar" ||
-            type == "Timing Event Bars" ||
-            type == "Timing Event Color" ||
-            type == "Timing Event Pulse" ||
-            type == "Timing Event Jump 100" ||
-            type == "Timing Event Jump"))
+    if (type == "Timing Event Spike" ||
+        type == "Timing Event Sweep" ||
+        type == "Timing Event Bar" ||
+        type == "Timing Event Bars" ||
+        type == "Timing Event Color" ||
+        type == "Timing Event Pulse" ||
+        type == "Timing Event Jump 100" ||
+        type == "Timing Event Jump")
     {
-        res.push_back(wxString::Format("    ERR: VU Meter effect '%s' needs a timing track. Model '%s', Start %s", type, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+        if (timing == "")
+        {
+            res.push_back(wxString::Format("    ERR: VU Meter effect '%s' needs a timing track. Model '%s', Start %s", type, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+        }
+        else if (GetTiming(timing) == nullptr)
+        {
+            res.push_back(wxString::Format("    ERR: VU Meter effect '%s' has unknown timing track (%s). Model '%s', Start %s", type, timing, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+        }
     }
 
     return res;
@@ -1122,201 +1128,155 @@ void VUMeterEffect::RenderWaveformFrame(RenderBuffer &buffer, int usebars, int y
     }
 }
 
-void VUMeterEffect::RenderTimingEventFrame(RenderBuffer &buffer, int usebars, int nType, std::string timingtrack, std::list<int> &timingmarks)
+void VUMeterEffect::RenderTimingEventFrame(RenderBuffer& buffer, int usebars, int nType, std::string timingtrack, std::list<int>& timingmarks)
 {
-	if (timingtrack != "")
-	{
-		Element* t = nullptr;
-		for (int i = 0; i < mSequenceElements->GetElementCount(); i++)
-		{
-			Element* e = mSequenceElements->GetElement(i);
-			if (e->GetEffectLayerCount() == 1 && e->GetType() == ELEMENT_TYPE_TIMING && e->GetName() == timingtrack)
-			{
-				t = e;
-				break;
-			}
-		}
+    EffectLayer* el = GetTiming(timingtrack);
 
-		if (t != nullptr)
-		{
-			int start = buffer.curPeriod - usebars;
-			int cols = buffer.BufferWi / usebars;
-			int x = 0;
-			for (int i = 0; i < usebars; i++)
-			{
-				if (start + i >= 0)
-				{
-					EffectLayer* el = t->GetEffectLayer(0);
-					int ms = (start + i)*buffer.frameTimeInMs;
-					bool effectPresent = false;
-					for (int j = 0; j < el->GetEffectCount(); j++)
-					{
-						if (el->GetEffect(j)->GetStartTimeMS() == ms)
-						{
-							effectPresent = true;
-							break;
-						}
-					}
-					if (effectPresent)
-					{
-						timingmarks.remove(start + i);
-						timingmarks.push_back(start + i);
-						for (int j = 0; j < cols; j++)
-						{
-                            xlColor color1;
-                            buffer.GetMultiColorBlend((double)j / cols, false, color1);
-                            for (int y = 0; y < buffer.BufferHt; y++)
-							{
-								if (nType == RenderType::TIMING_EVENT_SWEEP)
-								{
-									buffer.GetMultiColorBlend((double)y / (double)buffer.BufferHt, false, color1);
-								}
-                                else if (nType == RenderType::TIMING_EVENT_SWEEP2)
+    if (el == nullptr) return;
+
+    int start = buffer.curPeriod - usebars;
+    int cols = buffer.BufferWi / usebars;
+    int x = 0;
+    for (int i = 0; i < usebars; i++)
+    {
+        if (start + i >= 0)
+        {
+            int ms = (start + i) * buffer.frameTimeInMs;
+            bool effectPresent = false;
+            for (int j = 0; j < el->GetEffectCount(); j++)
+            {
+                if (el->GetEffect(j)->GetStartTimeMS() == ms)
+                {
+                    effectPresent = true;
+                    break;
+                }
+            }
+            if (effectPresent)
+            {
+                timingmarks.remove(start + i);
+                timingmarks.push_back(start + i);
+                for (int j = 0; j < cols; j++)
+                {
+                    xlColor color1;
+                    buffer.GetMultiColorBlend((double)j / cols, false, color1);
+                    for (int y = 0; y < buffer.BufferHt; y++)
+                    {
+                        if (nType == RenderType::TIMING_EVENT_SWEEP)
+                        {
+                            buffer.GetMultiColorBlend((double)y / (double)buffer.BufferHt, false, color1);
+                        }
+                        else if (nType == RenderType::TIMING_EVENT_SWEEP2)
+                        {
+                            // use x axis colour
+                        }
+                        else
+                        {
+                            buffer.GetMultiColorBlend(0, false, color1);
+                        }
+                        buffer.SetPixel(x, y, color1);
+                    }
+                    x++;
+                }
+            }
+            else
+            {
+                if (nType == 5)
+                {
+                    // remove any no longer required
+                    while (timingmarks.size() != 0 && *timingmarks.begin() < start - 10)
+                    {
+                        timingmarks.pop_front();
+                    }
+
+                    if (timingmarks.size() > 0)
+                    {
+                        int left = cols;
+
+                        for (std::list<int>::iterator it = timingmarks.begin(); it != timingmarks.end(); ++it)
+                        {
+                            if (((start + i) > * it) && ((start + i) < *it + 10))
+                            {
+                                float yt = (10 - (start + i - *it)) / 10.0;
+                                if (yt < 0)
                                 {
-                                    // use x axis colour
+                                    yt = 0;
                                 }
-								else
-								{
-                                    buffer.GetMultiColorBlend(0, false, color1);
+                                xlColor color1;
+                                buffer.GetMultiColorBlend(1.0 - yt, false, color1);
+                                for (int j = 0; j < cols; j++)
+                                {
+                                    for (int y = 0; y < buffer.BufferHt; y++)
+                                    {
+                                        buffer.SetPixel(x, y, color1);
+                                    }
+                                    x++;
+                                    left--;
                                 }
-								buffer.SetPixel(x, y, color1);
-							}
-							x++;
-						}
-					}
-					else
-					{
-						if (nType == 5)
-						{
-							// remove any no longer required
-							while (timingmarks.size() != 0 && *timingmarks.begin() < start - 10)
-							{
-								timingmarks.pop_front();
-							}
-
-							if (timingmarks.size() > 0)
-							{
-								int left = cols;
-
-								for (std::list<int>::iterator it = timingmarks.begin(); it != timingmarks.end(); ++it)
-								{
-									if (((start + i) > *it) && ((start + i) < *it + 10))
-									{
-										float yt = (10 - (start + i - *it)) / 10.0;
-										if (yt < 0)
-										{
-											yt = 0;
-										}
-										xlColor color1;
-										buffer.GetMultiColorBlend(1.0 - yt, false, color1);
-										for (int j = 0; j < cols; j++)
-										{
-											for (int y = 0; y < buffer.BufferHt; y++)
-											{
-												buffer.SetPixel(x, y, color1);
-											}
-											x++;
-											left--;
-										}
-									}
-								}
-								x += left;
-							}
-							else
-							{
-								x += cols;
-							}
-						}
-						else
-						{
-							x += cols;
-						}
-					}
-				}
-				else
-				{
-					x += cols;
-				}
-			}
-		}
-	}
+                            }
+                        }
+                        x += left;
+                    }
+                    else
+                    {
+                        x += cols;
+                    }
+                }
+                else
+                {
+                    x += cols;
+                }
+            }
+        }
+        else
+        {
+            x += cols;
+        }
+    }
 }
 
 void VUMeterEffect::RenderTimingEventTimedSweepFrame(RenderBuffer& buffer, int usebars, int nType, std::string timingtrack, int& nCount)
 {
-    if (timingtrack != "")
+    Effect* timing = GetCurrentTiming(buffer, timingtrack);
+
+    if (timing == nullptr) return;
+
+    if (buffer.curPeriod * buffer.frameTimeInMs == timing->GetStartTimeMS())
     {
-        Element* t = nullptr;
-        for (int i = 0; i < mSequenceElements->GetElementCount(); i++)
+        nCount++;
+    }
+
+    // we have a timing mark
+    double lengthOfTiming = timing->GetEndTimeMS() - timing->GetStartTimeMS();
+    double lengthOfTimingFrames = lengthOfTiming / buffer.frameTimeInMs;
+    double distanceToTravel = buffer.BufferWi;
+    if (nType == RenderType::TIMING_EVENT_TIMED_SWEEP || nType == RenderType::TIMING_EVENT_ALTERNATE_TIMED_SWEEP)
+    {
+        distanceToTravel += 2 * usebars;
+    }
+    else
+    {
+        distanceToTravel -= usebars;
+    }
+    double perFrameDistance = distanceToTravel / lengthOfTimingFrames;
+    double posInTiming = (buffer.curPeriod * buffer.frameTimeInMs - timing->GetStartTimeMS()) / buffer.frameTimeInMs;
+    int startX = perFrameDistance * posInTiming;
+    if (nType == RenderType::TIMING_EVENT_TIMED_SWEEP || nType == RenderType::TIMING_EVENT_ALTERNATE_TIMED_SWEEP)
+    {
+        startX -= usebars;
+    }
+    for (int x = 0; x < usebars; x++)
+    {
+        xlColor color1;
+        buffer.GetMultiColorBlend((double)x / usebars, false, color1);
+        for (int y = 0; y < buffer.BufferHt; y++)
         {
-            Element* e = mSequenceElements->GetElement(i);
-            if (e->GetEffectLayerCount() == 1 && e->GetType() == ELEMENT_TYPE_TIMING && e->GetName() == timingtrack)
+            if ((nType == RenderType::TIMING_EVENT_ALTERNATE_TIMED_SWEEP || nType == RenderType::TIMING_EVENT_ALTERNATE_TIMED_SWEEP2) && nCount % 2 == 0)
             {
-                t = e;
-                break;
+                buffer.SetPixel(buffer.BufferWi - (x + startX) - 1, y, color1);
             }
-        }
-
-        if (t != nullptr)
-        {
-            // we have a timing track
-
-            // find the timing mark
-            int currentMS = buffer.curPeriod * buffer.frameTimeInMs;
-            Effect* timing = nullptr;
-            EffectLayer* el = t->GetEffectLayer(0);
-            for (int j = 0; j < el->GetEffectCount(); j++)
+            else
             {
-                if (el->GetEffect(j)->GetStartTimeMS() <=  currentMS &&
-                    el->GetEffect(j)->GetEndTimeMS() > currentMS)
-                {
-                    timing = el->GetEffect(j);
-                    break;
-                }
-            }
-
-            if (timing != nullptr)
-            {
-                if (buffer.curPeriod * buffer.frameTimeInMs == timing->GetStartTimeMS())
-                {
-                    nCount++;
-                }
-
-                // we have a timing mark
-                double lengthOfTiming = timing->GetEndTimeMS() - timing->GetStartTimeMS();
-                double lengthOfTimingFrames = lengthOfTiming / buffer.frameTimeInMs;
-                double distanceToTravel = buffer.BufferWi;
-                if (nType == RenderType::TIMING_EVENT_TIMED_SWEEP || nType == RenderType::TIMING_EVENT_ALTERNATE_TIMED_SWEEP)
-                {
-                    distanceToTravel += 2 * usebars;
-                }
-                else
-                {
-                    distanceToTravel -= usebars;
-                }
-                double perFrameDistance = distanceToTravel / lengthOfTimingFrames;
-                double posInTiming = (buffer.curPeriod * buffer.frameTimeInMs - timing->GetStartTimeMS()) / buffer.frameTimeInMs;
-                int startX = perFrameDistance * posInTiming;
-                if (nType == RenderType::TIMING_EVENT_TIMED_SWEEP || nType == RenderType::TIMING_EVENT_ALTERNATE_TIMED_SWEEP)
-                {
-                    startX -= usebars;
-                }
-                for (int x = 0; x < usebars; x++)
-                {
-                    xlColor color1;
-                    buffer.GetMultiColorBlend((double)x / usebars, false, color1);
-                    for (int y = 0; y < buffer.BufferHt; y++)
-                    {
-                        if ((nType == RenderType::TIMING_EVENT_ALTERNATE_TIMED_SWEEP || nType == RenderType::TIMING_EVENT_ALTERNATE_TIMED_SWEEP2) && nCount % 2 == 0)
-                        {
-                            buffer.SetPixel(buffer.BufferWi - (x + startX) - 1, y, color1);
-                        }
-                        else
-                        {
-                            buffer.SetPixel(x + startX, y, color1);
-                        }
-                    }
-                }
+                buffer.SetPixel(x + startX, y, color1);
             }
         }
     }
@@ -1368,67 +1328,52 @@ void VUMeterEffect::RenderOnColourFrame(RenderBuffer& buffer, int gain)
     }
 }
 
-void VUMeterEffect::RenderPulseFrame(RenderBuffer &buffer, int fadeframes, std::string timingtrack, int& lasttimingmark)
+void VUMeterEffect::RenderPulseFrame(RenderBuffer& buffer, int fadeframes, std::string timingtrack, int& lasttimingmark)
 {
-	if (timingtrack != "")
-	{
-		Element* t = nullptr;
-		for (int i = 0; i < mSequenceElements->GetElementCount(); i++)
-		{
-			Element* e = mSequenceElements->GetElement(i);
-			if (e->GetEffectLayerCount() == 1 && e->GetType() == ELEMENT_TYPE_TIMING
-                && e->GetName() == timingtrack)
-			{
-				t = e;
-				break;
-			}
-		}
+    EffectLayer* el = GetTiming(timingtrack);
 
-		if (t != nullptr)
-		{
-			EffectLayer* el = t->GetEffectLayer(0);
-			int ms = buffer.curPeriod*buffer.frameTimeInMs;
-			bool effectPresent = false;
-			for (int j = 0; j < el->GetEffectCount(); j++)
-			{
-				if (el->GetEffect(j)->GetStartTimeMS() == ms)
-				{
-					effectPresent = true;
-					break;
-				}
-			}
-			if (effectPresent)
-			{
-				lasttimingmark = buffer.curPeriod;
-			}
+    if (el == nullptr) return;
 
-			float f = 0.0;
+    int ms = buffer.curPeriod * buffer.frameTimeInMs;
+    bool effectPresent = false;
+    for (int j = 0; j < el->GetEffectCount(); j++)
+    {
+        if (el->GetEffect(j)->GetStartTimeMS() == ms)
+        {
+            effectPresent = true;
+            break;
+        }
+    }
+    if (effectPresent)
+    {
+        lasttimingmark = buffer.curPeriod;
+    }
 
-			if (lasttimingmark >= 0)
-			{
-				f = 1.0 - (((float)buffer.curPeriod - (float)lasttimingmark) / (float)fadeframes);
-				if (f < 0)
-				{
-					f = 0;
-				}
-			}
+    float f = 0.0;
 
-			if (f > 0.0)
-			{
-				xlColor color1;
-				buffer.palette.GetColor(0, color1);
-				color1.alpha = f * (float)255;
+    if (lasttimingmark >= 0)
+    {
+        f = 1.0 - (((float)buffer.curPeriod - (float)lasttimingmark) / (float)fadeframes);
+        if (f < 0)
+        {
+            f = 0;
+        }
+    }
 
-				for (int x = 0; x < buffer.BufferWi; x++)
-				{
-					for (int y = 0; y < buffer.BufferHt; y++)
-					{
-						buffer.SetPixel(x, y, color1);
-					}
-				}
-			}
-		}
-	}
+    if (f > 0.0)
+    {
+        xlColor color1;
+        buffer.palette.GetColor(0, color1);
+        color1.alpha = f * (float)255;
+
+        for (int x = 0; x < buffer.BufferWi; x++)
+        {
+            for (int y = 0; y < buffer.BufferHt; y++)
+            {
+                buffer.SetPixel(x, y, color1);
+            }
+        }
+    }
 }
 
 void VUMeterEffect::RenderIntensityWaveFrame(RenderBuffer &buffer, int usebars, int gain)

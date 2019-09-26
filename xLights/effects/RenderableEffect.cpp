@@ -3,6 +3,7 @@
 #include "EffectManager.h"
 #include "assist/xlGridCanvasEmpty.h"
 #include "../UtilFunctions.h"
+#include "../sequencer/SequenceElements.h"
 
 #include <wx/fontpicker.h>
 #include <wx/filepicker.h>
@@ -990,3 +991,58 @@ int RenderableEffect::GetValueCurveInt(const std::string &name, int def, Setting
 
     return res;
 }
+
+EffectLayer* RenderableEffect::GetTiming(const std::string& timingtrack) const
+{
+    if (timingtrack == "") return nullptr;
+
+    for (int i = 0; i < mSequenceElements->GetElementCount(); i++)
+    {
+        Element* e = mSequenceElements->GetElement(i);
+        if (e->GetType() == ELEMENT_TYPE_TIMING && e->GetName() == timingtrack)
+        {
+            return e->GetEffectLayer(0);
+            break;
+        }
+    }
+    return nullptr;
+}
+
+std::string RenderableEffect::GetTimingTracks(const int max, const int equals) const
+{
+    std::string timingtracks = "";
+    for (size_t i = 0; i < mSequenceElements->GetElementCount(); i++)
+    {
+        Element* e = mSequenceElements->GetElement(i);
+        if (e->GetType() == ELEMENT_TYPE_TIMING && (max < 1 || e->GetEffectLayerCount() <= max) && (equals == 0 || e->GetEffectLayerCount() == equals))
+        {
+            if (timingtracks != "")
+            {
+                timingtracks += "|";
+            }
+            timingtracks += e->GetName();
+        }
+    }
+    return timingtracks;
+}
+
+Effect* RenderableEffect::GetCurrentTiming(const RenderBuffer& buffer, const std::string& timingtrack) const
+{
+    EffectLayer* el = GetTiming(timingtrack);
+
+    if (el == nullptr) return nullptr;
+
+    int currentMS = buffer.curPeriod * buffer.frameTimeInMs;
+    Effect* timing = nullptr;
+    for (int j = 0; j < el->GetEffectCount(); j++)
+    {
+        if (el->GetEffect(j)->GetStartTimeMS() <= currentMS &&
+            el->GetEffect(j)->GetEndTimeMS() > currentMS)
+        {
+            return el->GetEffect(j);
+        }
+    }
+
+    return nullptr;
+}
+
