@@ -2597,7 +2597,6 @@ void xLightsXmlFile::ProcessVixen3Timing(const wxString& dir, const wxArrayStrin
 
     xLightsParent->SetCursor(wxCURSOR_WAIT);
 
-    int unnamed = 1;
     for (size_t i = 0; i < filenames.Count(); ++i)
     {
         wxFileName next_file(filenames[i]);

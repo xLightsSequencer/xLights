@@ -2675,22 +2675,16 @@ void xLightsFrame::OnButtonLightsOffClick(wxCommandEvent& event)
 bool xLightsFrame::EnableOutputs(bool ignoreCheck)
 {
     bool ok = true;
-
-    if (CheckBoxLightOutput->IsChecked() && !_outputManager.IsOutputting())
-    {
-        if (!ignoreCheck && _outputManager.IsOutputOpenInAnotherProcess())
-        {
+    if (CheckBoxLightOutput->IsChecked() && !_outputManager.IsOutputting()) {
+        if (!ignoreCheck && _outputManager.IsOutputOpenInAnotherProcess()) {
             DisplayWarning("Another process seems to be outputing to lights right now. This may not generate the result expected.", this);
         }
 
         ok = _outputManager.StartOutput();
-        if (ok)
-        {
+        if (ok) {
             CheckBoxLightOutput->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_OUTPUT_LIGHTS_ON")), wxART_TOOLBAR));
         }
-    }
-    else if (!CheckBoxLightOutput->IsChecked() && _outputManager.IsOutputting())
-    {
+    } else if (!CheckBoxLightOutput->IsChecked() && _outputManager.IsOutputting()) {
         _outputManager.AllOff();
         _outputManager.StopOutput();
         CheckBoxLightOutput->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_OUTPUT_LIGHTS")),wxART_TOOLBAR));

@@ -1,8 +1,16 @@
-#!/bin/sh
+#!/bin/bash
 
 #clean the build area to make sure we have a super clean build
-xcodebuild -alltargets clean
-rm -rf build
+if [ "$1" != "-noclean" ]; then
+    xcodebuild -alltargets clean
+    rm -rf build
+else
+    shift
+fi
+
+VER=$1
+
+echo "Building $VER"
 
 if [ -f ~/.apple-notarize-info ]; then
     #Load the stored signing info
@@ -30,8 +38,6 @@ else
 fi
 
 cd build/Release
-
-VER=$1
 
 if [ "${NOTARIZE_PWD}x" != "x" ]; then
     # if we have a notarize password, we need to package the apps into a dmg

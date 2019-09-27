@@ -1033,7 +1033,6 @@ Effect* RenderableEffect::GetCurrentTiming(const RenderBuffer& buffer, const std
     if (el == nullptr) return nullptr;
 
     int currentMS = buffer.curPeriod * buffer.frameTimeInMs;
-    Effect* timing = nullptr;
     for (int j = 0; j < el->GetEffectCount(); j++)
     {
         if (el->GetEffect(j)->GetStartTimeMS() <= currentMS &&

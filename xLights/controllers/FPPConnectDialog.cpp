@@ -425,11 +425,13 @@ void FPPConnectDialog::LoadSequencesFromFolder(wxString dir) const
                     if (wxFile::Exists(frame->mediaDirectory + wxFileName::GetPathSeparator() + fn.GetFullName())) {
                         mediaName = frame->mediaDirectory + wxFileName::GetPathSeparator() + fn.GetFullName();
                     } else {
+                        std::string tmn = frame->mediaDirectory + wxFileName::GetPathSeparator() + fn.GetFullName();
+                        logger_base.info("Could not find media: %s  OR   %s", mediaName.c_str(), tmn.c_str());
                         mediaName = "";
                     }
                 }
             }
-            
+            logger_base.debug("XML:  %s   IsSeq:  %d    FSEQ:  %s   Media:  %s", file.ToStdString().c_str(), isSequence, fseqName.c_str(), mediaName.c_str());
             if (isSequence) {
                 long index = CheckListBox_Sequences->GetItemCount();
                 CheckListBox_Sequences->InsertItem(index, fseqName);

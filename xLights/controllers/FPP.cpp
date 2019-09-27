@@ -1094,7 +1094,6 @@ bool FPP::SetInputUniversesBridge(std::list<int>& selected, OutputManager* outpu
 bool FPP::UploadPixelOutputs(ModelManager* allmodels,
                              OutputManager* outputManager,
                              const std::list<int>& selected) {
-
     int maxString = 1;
     int maxdmx = 0;
     PixelCapeInfo &rules = GetCapeRules(pixelControllerType);
@@ -1126,17 +1125,25 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
             } else {
                 GetURLAsJSON("/fppjson.php?command=getChannelOutputs&file=channelOutputsJSON", origJson);
             }
+            bool changed = true;
             for (int x = 0; x < origJson["channelOutputs"].Size(); x++) {
                 if (origJson["channelOutputs"][x]["type"].AsString() == "LEDPanelMatrix") {
-                    origJson["channelOutputs"][x]["startChannel"] = startChannel;
+                    if (origJson["channelOutputs"][x].HasMember("startChannel")
+                        && origJson["channelOutputs"][x]["startChannel"].AsInt() == startChannel) {
+                        changed = false;
+                    } else {
+                        origJson["channelOutputs"][x]["startChannel"] = startChannel;
+                    }
                     rngs[startChannel - 1] = origJson["channelOutputs"][x]["channelCount"].AsLong();
                 }
             }
 
-            if (IsDrive()) {
-                WriteJSONToPath(ipAddress + wxFileName::GetPathSeparator() + "config" + wxFileName::GetPathSeparator() + "channeloutputs.json", origJson);
-            } else {
-                PostJSONToURLAsFormData("/fppjson.php", "command=setChannelOutputs&file=channelOutputsJSON", origJson);
+            if (changed) {
+                if (IsDrive()) {
+                    WriteJSONToPath(ipAddress + wxFileName::GetPathSeparator() + "config" + wxFileName::GetPathSeparator() + "channeloutputs.json", origJson);
+                } else {
+                    PostJSONToURLAsFormData("/fppjson.php", "command=setChannelOutputs&file=channelOutputsJSON", origJson);
+                }
             }
         }
         SetNewRanges(rngs);
@@ -1168,6 +1175,7 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
             }
         }
     }
+    
     wxString pinout = "1.x";
     std::map<std::string, wxJSONValue> origStrings;
     if (origJson["channelOutputs"].IsArray()) {
@@ -1180,10 +1188,12 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
                 }
             }
             for (int o = 0; o < f["outputs"].Size(); o++) {
-                for (int vs = 0; vs < f["outputs"][o]["virtualStrings"].Size(); vs++) {
-                    wxJSONValue val = f["outputs"][o]["virtualStrings"][vs];
-                    if (val["description"].AsString() != "") {
-                        origStrings[val["description"].AsString()] = val;
+                if (f["outputs"][o].HasMember("virtualStrings")) {
+                    for (int vs = 0; vs < f["outputs"][o]["virtualStrings"].Size(); vs++) {
+                        wxJSONValue val = f["outputs"][o]["virtualStrings"][vs];
+                        if (val["description"].AsString() != "") {
+                            origStrings[val["description"].AsString()] = val;
+                        }
                     }
                 }
             }
@@ -1359,7 +1369,9 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
     }
 
     for (int x = 0; x < maxport; x++) {
-        if (stringData["outputs"][x]["virtualStrings"].IsNull() || stringData["outputs"][x]["virtualStrings"].Size() == 0) {
+        if (!stringData["outputs"][x].HasMember("virtualStrings")
+            || stringData["outputs"][x]["virtualStrings"].IsNull()
+            || stringData["outputs"][x]["virtualStrings"].Size() == 0) {
             wxJSONValue vs;
             vs["description"] = wxString("");
             vs["startChannel"] = 0;
@@ -1476,21 +1488,22 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
         stringData["subType"] = dev;
     }
 
-    wxFileName fn;
-    fn.AssignTempFileName("pixelOutputs");
-    file = fn.GetFullPath().ToStdString();
-    wxFileOutputStream ufile(fn.GetFullPath());
-    wxJSONWriter writer(wxJSONWRITER_STYLED, 0, 3);
-    writer.Write(root, ufile);
-    ufile.Close();
+    if (!origJson.IsSameAs(root)) {
+        wxFileName fn;
+        fn.AssignTempFileName("pixelOutputs");
+        file = fn.GetFullPath().ToStdString();
+        wxFileOutputStream ufile(fn.GetFullPath());
+        wxJSONWriter writer(wxJSONWRITER_STYLED, 0, 3);
+        writer.Write(root, ufile);
+        ufile.Close();
 
-    if (IsDrive()) {
-        WriteJSONToPath(ipAddress + wxFileName::GetPathSeparator() + "config" + wxFileName::GetPathSeparator() + fppFileName +".json", root);
-    } else {
-        PostJSONToURLAsFormData("/fppjson.php", "command=setChannelOutputs&file=" + fppFileName, root);
+        if (IsDrive()) {
+            WriteJSONToPath(ipAddress + wxFileName::GetPathSeparator() + "config" + wxFileName::GetPathSeparator() + fppFileName +".json", root);
+        } else {
+            PostJSONToURLAsFormData("/fppjson.php", "command=setChannelOutputs&file=" + fppFileName, root);
+        }
     }
     SetNewRanges(rngs);
-
     return false;
 }
 

@@ -25,7 +25,7 @@ VideoReader::VideoReader(const std::string& filename, int maxwidth, int maxheigh
     }
     else
     {
-        AVPixelFormat::AV_PIX_FMT_RGB24;
+        _pixelFmt = AVPixelFormat::AV_PIX_FMT_RGB24;
     }
 	_atEnd = false;
 	_swsCtx = nullptr;
