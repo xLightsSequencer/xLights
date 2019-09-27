@@ -802,7 +802,8 @@ bool ModelManager::LoadGroups(wxXmlNode* groupNode, int previewW, int previewH) 
 
     // anything left in toBeDone is now due to model loops
     for (auto it : toBeDone) {
-        std::string msg = "Could not process model group " + it->GetName()
+        std::string name = it->GetAttribute("name").ToStdString();
+        std::string msg = "Could not process model group " + name
             + " likely due to model groups loops. See Check Sequence for details.";
         DisplayWarning(msg);
         wxASSERT(false);

@@ -193,8 +193,11 @@ bool ModelGroup::AllModelsExist(wxXmlNode* node, const ModelManager& models)
 {
     wxArrayString mn = wxSplit(node->GetAttribute("models"), ',');
     for (auto it : mn) {
-        Model* c = models.GetModel(it.ToStdString());
-        if (c == nullptr) return false;
+        if (it != "")
+        {
+            Model* c = models.GetModel(it.ToStdString());
+            if (c == nullptr) return false;
+        }
     }
     return true;
 }
