@@ -11,7 +11,16 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
-2019.52 September 23 2019
+2019.54 September 27 2019
+   -- enh (keith)  Add support for video files with an alpha channel to video effect
+   -- bug (keith)  Fix double click output changing IP address (where last output with that ip address) does not update 
+                   models that refer to the ip address
+   -- bug (keith)  Fix 3D preview of custom model data does not render correctly if no sequence is open
+   -- bug (keith)  Make vu meter timing track effects work with multi-layer timing tracks (but it will only use the top layer)
+   -- bug (keith)  Fix issues with single channel matrices not behaving correctly
+   -- bug (keith)  Fix model group warning on startup when there is a blank model name in the list
+   -- bug (dkulp)  Fix FPP upload of reverse setting on virtual strings
+2019.53 September 23 2019
    -- bug (keith)  Fix crash moving models
 2019.52 September 23 2019
    -- enh (keith)  Add support for additional vixen 3 timing tracks and lyric tracks
