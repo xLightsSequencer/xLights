@@ -846,14 +846,22 @@ void RenderBuffer::Get2ColorAlphaBlend(const xlColor& c1, const xlColor& c2, flo
     color.Set(ChannelBlend(c1.Red(),c2.Red(),ratio), ChannelBlend(c1.Green(),c2.Green(),ratio), ChannelBlend(c1.Blue(),c2.Blue(),ratio));
 }
 
+inline uint8_t SumUInt8(uint8_t c1, uint8_t c2)
+{
+    int x = c1;
+    x += c2;
+    if (x > 255) x = 255;
+    return x;
+}
+
 HSVValue RenderBuffer::Get2ColorAdditive(HSVValue& hsv1, HSVValue& hsv2)
 {
     xlColor rgb;
     xlColor rgb1(hsv1);
     xlColor rgb2(hsv2);
-    rgb.red = rgb1.red + rgb2.red;
-    rgb.green = rgb1.green + rgb2.green;
-    rgb.blue = rgb1.blue + rgb2.blue;
+    rgb.red = SumUInt8(rgb1.red, rgb2.red);
+    rgb.green = SumUInt8(rgb1.green, rgb2.green);
+    rgb.blue = SumUInt8(rgb1.blue, rgb2.blue);
     return rgb.asHSV();
 }
 // 0 <= n < 1
@@ -1137,25 +1145,29 @@ void RenderBuffer::DrawFadingCircle(int x0, int y0, int radius, const xlColor& r
 {
     HSVValue hsv(rgb);
     xlColor color(rgb);
-    int r = radius;
-    if (allowAlpha) {
-        while(r >= 0)
-        {
-            color.alpha = (double)rgb.alpha * (1.0 - (double)(r) / (double)radius);
-            DrawCircle(x0, y0, r, color, wrap);
-            r--;
-        }
-    } else {
-        double full_brightness = hsv.value;
-        while(r >= 0)
-        {
-            hsv.value = full_brightness * (1.0 - (double)(r) / (double)radius);
-            if( hsv.value > 0.0 )
-            {
-                color = hsv;
-                DrawCircle(x0, y0, r, color, wrap);
+
+    double full_brightness = hsv.value;
+
+    for (int x = -radius; x < radius; ++x) {
+        for (int y = -radius; y < radius; ++y) {
+            double d = std::sqrt(x * x + y * y);
+            if (d <= radius) {
+                if (allowAlpha) {
+                    double alpha = (double)rgb.alpha - ((double)rgb.alpha * d) / double(radius);
+                    if (alpha > 0.0) {
+                        color.alpha = alpha;
+                        SetPixel(x + x0, y + y0, color, wrap, true);
+                    }
+                }
+                else {
+                    double alpha = full_brightness - (full_brightness * d) / (double)radius;
+                    if (alpha > 0.0) {
+                        hsv.value = alpha;
+                        color = hsv;
+                        SetPixel(x + x0, y + y0, color, wrap);
+                    }
+                }
             }
-            r--;
         }
     }
 }

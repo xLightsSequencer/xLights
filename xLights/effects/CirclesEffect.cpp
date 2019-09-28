@@ -1,7 +1,5 @@
 #include "CirclesEffect.h"
 #include "CirclesPanel.h"
-
-
 #include "../sequencer/Effect.h"
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
@@ -21,10 +19,10 @@ CirclesEffect::~CirclesEffect()
 {
     //dtor
 }
+
 wxPanel *CirclesEffect::CreatePanel(wxWindow *parent) {
     return new CirclesPanel(parent);
 }
-
 
 class RgbBalls
 {
@@ -39,61 +37,60 @@ public:
     float _angle;
     float _spd;
     int _colorindex;
-    
+
     void Reset(float x, float y, float speed, float angle, float radius, int colorindex)
     {
         _angle = angle;
         _spd = speed;
-        _x=x;
-        _y=y;
-        _dx=speed*cos(angle);
-        _dy=speed*sin(angle);
+        _x = x;
+        _y = y;
+        _dx = speed * cos(angle);
+        _dy = speed * sin(angle);
         _radius = radius;
         _colorindex = colorindex;
-        _t=(float)M_PI/6.0;
-        dir =1.0f;
+        _t = (float)M_PI / 6.0;
+        dir = 1.0f;
     }
-    void updatePositionArc(int x,int y, int r)
+    void updatePositionArc(int x, int y, int r)
     {
-        _x=x+r*cos(_t);
-        _y=y+r*sin(_t);
-        _t+=dir* (M_PI/9.0);
-        dir *= _t < M_PI/6.0 || _t > (2*M_PI)/3?-1.0:1.0;
+        _x = x + r * cos(_t);
+        _y = y + r * sin(_t);
+        _t += dir * (M_PI / 9.0);
+        dir *= _t < M_PI / 6.0 || _t >(2 * M_PI) / 3 ? -1.0 : 1.0;
     }
     void updatePosition(float incr, int width, int height)
     {
-        _x+=_dx*incr;
-        _x = _x>width?0:_x;
-        _x = _x<0?width:_x;
-        _y+=_dy*incr;
-        _y = _y>height?0:_y;
-        _y = _y<0?height:_y;
+        _x += _dx * incr;
+        _x = _x > width ? 0 : _x;
+        _x = _x < 0 ? width : _x;
+        _y += _dy * incr;
+        _y = _y > height ? 0 : _y;
+        _y = _y < 0 ? height : _y;
     }
-    
+
     void Bounce(int width, int height)
     {
-        if (_x-_radius<=0)
+        if (_x - _radius <= 0)
         {
-            _dx=fabs(_dx);
-            if (_dx < 0.2f) _dx=0.2f;
+            _dx = fabs(_dx);
+            if (_dx < 0.2f) _dx = 0.2f;
         }
-        if (_x+_radius>=width)
+        if (_x + _radius >= width)
         {
-            _dx=-fabs(_dx);
-            if (_dx > -0.2f) _dx=-0.2f;
+            _dx = -fabs(_dx);
+            if (_dx > -0.2f) _dx = -0.2f;
         }
-        if (_y-_radius<=0)
+        if (_y - _radius <= 0)
         {
-            _dy=fabs(_dy);
-            if (_dy < 0.2f) _dy=0.2f;
+            _dy = fabs(_dy);
+            if (_dy < 0.2f) _dy = 0.2f;
         }
-        if (_y+_radius>=height)
+        if (_y + _radius >= height)
         {
-            _dy=-fabs(_dy);
-            if (_dy > -0.2f) _dy=-0.2f;
+            _dy = -fabs(_dy);
+            if (_dy > -0.2f) _dy = -0.2f;
         }
     }
-    
 };
 
 class MetaBall : public RgbBalls
@@ -102,15 +99,12 @@ public:
     float Equation(float x, float y)
     {
         //            if(x==_x || y==_y) return 1; //this is incorrect
-        if((x==_x) && (y==_y)) return 1; //only return 1 if *both* coordinates match; else gives extraneous horiz or vert lines -DJ
-        return (_radius/(sqrt(pow(x-_x,2)+pow(y-_y,2))));
+        if ((x == _x) && (y == _y)) return 1; //only return 1 if *both* coordinates match; else gives extraneous horiz or vert lines -DJ
+        return (_radius / (sqrt(pow(x - _x, 2) + pow(y - _y, 2))));
     }
 };
 
-
-
 static const int MAX_RGB_BALLS = 20;
-
 
 class CirclesRenderCache : public EffectRenderCache {
 public:
@@ -184,7 +178,7 @@ void CirclesEffect::Render(Effect* effect, SettingsMap& SettingsMap, RenderBuffe
     }
     int effectState = (buffer.curPeriod - buffer.curEffStartPer) * circleSpeed * buffer.frameTimeInMs / 50;
 
-    if (radial)
+    if (radial || radial_3D)
     {
         RenderRadial(buffer, start_x, start_y, radius, colorCnt, number, radial_3D, effectState);
         return; //radial is the easiest case so just get out.
@@ -271,7 +265,7 @@ void CirclesEffect::RenderCirclesUpdate(RenderBuffer& buffer, int ballCnt, RgbBa
 {
     for (int ii = 0; ii < ballCnt; ii++)
     {
-        effObjs[ii].updatePosition((float)circleSpeed * buffer.frameTimeInMs / 200.0, buffer.BufferWi, buffer.BufferHt);
+        effObjs[ii].updatePosition((float)circleSpeed * (float)buffer.frameTimeInMs / 200.0, buffer.BufferWi, buffer.BufferHt);
     }
 }
 
@@ -296,7 +290,7 @@ void CirclesEffect::RenderRadial(RenderBuffer& buffer, int x, int y, int thickne
 
         if (radial_3D)
         {
-            hsv.hue = 1.0 * (ii + effectState) / (maxRadius / number);
+            hsv.hue = (float)(ii + effectState) / ((float)maxRadius / (float)number);
             if (hsv.hue > 1.0) hsv.hue = hsv.hue - (long)hsv.hue;
             hsv.saturation = 1.0;
             hsv.value = 1.0;
