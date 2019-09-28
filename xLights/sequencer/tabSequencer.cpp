@@ -136,15 +136,15 @@ void xLightsFrame::CreateSequencer()
 
     m_mgr->AddPane(perspectivePanel,wxAuiPaneInfo().Name(wxT("Perspectives")).Caption(wxT("Perspectives")).Left().Layer(1).Hide());
     m_mgr->AddPane(effectsPnl,wxAuiPaneInfo().Name(wxT("Effect")).Caption(wxT("Effect Settings")).
-                   Left().Layer(1));
+                   Left().Layer(0).Row(1));
 
     logger_base.debug("CreateSequencer: Adding Select Effects Panel.");
     _selectPanel = new SelectPanel(&mSequenceElements, mainSequencer, PanelSequencer);
     m_mgr->AddPane(_selectPanel, wxAuiPaneInfo().Name(wxT("SelectEffect")).Caption(wxT("Select Effects")).
         Left().Layer(1).Hide());
 
-    m_mgr->AddPane(effectPalettePanel,wxAuiPaneInfo().Name(wxT("EffectDropper")).Caption(wxT("Effects")).Top().Layer(0));
-    m_mgr->AddPane(jukeboxPanel,wxAuiPaneInfo().Name(wxT("Jukebox")).Caption(wxT("Jukebox")).Top().Layer(0));
+    m_mgr->AddPane(effectPalettePanel,wxAuiPaneInfo().Name(wxT("EffectDropper")).Caption(wxT("Effects")).Top().Layer(0).Hide());
+    m_mgr->AddPane(jukeboxPanel,wxAuiPaneInfo().Name(wxT("Jukebox")).Caption(wxT("Jukebox")).Top().Layer(0).Hide());
     m_mgr->AddPane(colorPanel,wxAuiPaneInfo().Name(wxT("Color")).Caption(wxT("Color")).Top().Layer(0));
     m_mgr->AddPane(timingPanel,wxAuiPaneInfo().Name(wxT("LayerTiming")).Caption(wxT("Layer Blending")).Top().Layer(0));
     m_mgr->AddPane(bufferPanel,wxAuiPaneInfo().Name(wxT("LayerSettings")).Caption(wxT("Layer Settings")).Top().Layer(0));
@@ -156,7 +156,7 @@ void xLightsFrame::CreateSequencer()
     m_mgr->AddPane(mainSequencer,wxAuiPaneInfo().Name(_T("Main Sequencer")).CenterPane().Caption(_("Main Sequencer")));
 
     logger_base.debug("CreateSequencer: Updating the layout.");
-    m_mgr->Update(); // <== KW: I have seen crashes on this line -107374819
+    m_mgr->Update();
     logger_base.debug("CreateSequencer: Resizing everything.");
     mainSequencer->Layout();
     logger_base.debug("CreateSequencer: Done.");
@@ -168,14 +168,14 @@ void xLightsFrame::ResetWindowsToDefaultPositions(wxCommandEvent& event)
 {
     m_mgr->GetPane("ModelPreview").Caption("Model Preview").Dock().Left().Layer(1).Show();
     m_mgr->GetPane("HousePreview").Caption("House Preview").Dock().Left().Layer(1).Show();
-    m_mgr->GetPane("EffectAssist").Caption("Effect Assist").Dock().Left().Layer(1).Show();
+    m_mgr->GetPane("EffectAssist").Caption("Effect Assist").Dock().Left().Layer(1).Hide();
 
     m_mgr->GetPane("DisplayElements").Caption("Display Elements").Float().Hide();
     m_mgr->GetPane("Perspectives").Caption("Perspectives").Dock().Left().Layer(1).Hide();
-    m_mgr->GetPane("Effect").Caption("Effect").Dock().Left().Layer(1).Show();
+    m_mgr->GetPane("Effect").Caption("Effect").Dock().Left().Layer(0).Show().Row(1);
     m_mgr->GetPane("SelectEffect").Caption("SelectEffect").Dock().Left().Layer(1).Hide();
 
-    m_mgr->GetPane("EffectDropper").Caption("Effects").Dock().Top().Layer(0).Show();
+    m_mgr->GetPane("EffectDropper").Caption("Effects").Dock().Top().Layer(0).Hide();
     m_mgr->GetPane("Color").Caption("Color").Top().Dock().Layer(0).Show();
     m_mgr->GetPane("LayerTiming").Caption("Layer Blending").Dock().Top().Layer(0).Show();
     m_mgr->GetPane("LayerSettings").Caption("Layer Settings").Dock().Top().Layer(0).Show();
