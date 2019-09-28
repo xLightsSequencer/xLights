@@ -176,10 +176,10 @@
 		<rating>4</rating>
 	</shader>
 	<shader>
-		<name>Searching for Something</name>
-		<link>https://www.interactiveshaderformat.com/sketches/3748</link>
-		<download>https://www.interactiveshaderformat.com/sketches/3748/download</download>
-		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_300,w_300/m14bgrntej9pykvnasjk</image>
+		<name>Searching For Something</name>
+		<link>https://www.interactiveshaderformat.com/sketches/129</link>
+		<download>https://www.interactiveshaderformat.com/sketches/129/download</download>
+		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_300,w_300/rv8rw633t5whkv0uxmao</image>
 		<rating>5</rating>
 	</shader>
 	<shader>
@@ -193,7 +193,7 @@
 		<name>Equi Rec Spriograph Spectrum</name>
 		<link>https://www.interactiveshaderformat.com/sketches/3234</link>
 		<download>https://www.interactiveshaderformat.com/sketches/3234/download</download>
-		<image></image>
+		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_300,w_300/p7ys6ditt3itrsjc1dkv</image>
 		<rating>5</rating>
 	</shader>
 	<shader>
@@ -328,13 +328,6 @@
 		<download>https://www.interactiveshaderformat.com/sketches/462/download</download>
 		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_300,w_300/untxpx5mqy1i18nw9bgw</image>
 		<rating>4</rating>
-	</shader>
-	<shader>
-		<name>Searching For Something</name>
-		<link>https://www.interactiveshaderformat.com/sketches/129</link>
-		<download>https://www.interactiveshaderformat.com/sketches/129/download</download>
-		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_300,w_300/rv8rw633t5whkv0uxmao</image>
-		<rating>5</rating>
 	</shader>
 	<!--shader>
 		<name>Sleepy Rays</name>
@@ -505,7 +498,7 @@
 		<rating>3</rating>
 	</shader>
 	<shader>
-		<name></name>
+		<name>Hex Truch Warp Flow</name>
 		<link>https://www.interactiveshaderformat.com/sketches/3469</link>
 		<download>https://www.interactiveshaderformat.com/sketches/3469/download</download>
 		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_300,w_300/czfbbi0oupibbxq6dvux</image>
@@ -538,13 +531,6 @@
 		<download>https://www.interactiveshaderformat.com/sketches/4735/download</download>
 		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_300,w_300/uhvielqup7emfd7wwl7n</image>
 		<rating>4</rating>
-	</shader>
-	<shader>
-		<name>Triangle Square Twist</name>
-		<link>https://www.interactiveshaderformat.com/sketches/4713</link>
-		<download>https://www.interactiveshaderformat.com/sketches/4713/download</download>
-		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_300,w_300/cd02k7up10vmvyobhqhx</image>
-		<rating>2</rating>
 	</shader>
 	<shader>
 		<name>W Noise Particle Cluster</name>
