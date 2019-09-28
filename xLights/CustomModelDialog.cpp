@@ -273,7 +273,7 @@ CustomModelDialog::CustomModelDialog(wxWindow* parent)
 	wxStaticText* StaticText2;
 	wxStaticText* StaticText3;
 
-	Create(parent, wxID_ANY, _("Custom Model"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxMAXIMIZE_BOX, _T("wxID_ANY"));
+	Create(parent, wxID_ANY, _("Custom Model"), wxDefaultPosition, wxDefaultSize, wxCAPTION|wxRESIZE_BORDER|wxMAXIMIZE_BOX, _T("wxID_ANY"));
 	SetClientSize(wxDLG_UNIT(parent,wxSize(450,350)));
 	SetMinSize(wxDLG_UNIT(parent,wxSize(300,200)));
 	Sizer1 = new wxFlexGridSizer(0, 2, 0, 0);
@@ -460,6 +460,10 @@ void CustomModelDialog::UpdatePreview(int width, int height, int depth, const st
 {
     _model->GetBaseObjectScreenLocation().SetMDepth(depth);
     _model->UpdateModel(width, height, depth, modelData);
+    _model->GetModelScreenLocation().SetWorldPosition(glm::vec3(0, 0, 0)); // centre the model
+    int maxxy = std::max(width, height);
+    float scale = 1500.0 / maxxy;
+    _model->GetModelScreenLocation().SetScaleMatrix(glm::vec3(scale, scale, scale));
     if (_model != nullptr && _modelPreview != nullptr) {
         _modelPreview->RenderModel(_model, CheckBox_ShowWiring->IsChecked(), true);
     }
@@ -536,6 +540,8 @@ void CustomModelDialog::Setup(CustomModel *m) {
     HeightSpin->SetValue(GetActiveGrid()->GetNumberRows());
     SpinCtrl_Depth->SetValue(Notebook1->GetPageCount());
 
+    _saveScale = m->GetModelScreenLocation().GetScaleMatrix();
+    _saveWorldPos = m->GetModelScreenLocation().GetWorldPosition();
     _saveWidth = WidthSpin->GetValue();
     _saveHeight = HeightSpin->GetValue();
     _saveDepth = SpinCtrl_Depth->GetValue();
@@ -990,12 +996,16 @@ void CustomModelDialog::OnCheckBox_RearViewClick(wxCommandEvent& event)
 void CustomModelDialog::OnButtonCancelClick(wxCommandEvent& event)
 {
     UpdatePreview(_saveWidth, _saveHeight, _saveDepth, _saveModelData);
+    _model->GetModelScreenLocation().SetWorldPosition(_saveWorldPos);
+    _model->GetModelScreenLocation().SetScaleMatrix(_saveScale);
     EndDialog(wxID_CANCEL);
 }
 
 void CustomModelDialog::OnButtonOkClick(wxCommandEvent& event)
 {
     UpdatePreview(_saveWidth, _saveHeight, _saveDepth, _saveModelData);
+    _model->GetModelScreenLocation().SetWorldPosition(_saveWorldPos);
+    _model->GetModelScreenLocation().SetScaleMatrix(_saveScale);
     EndDialog(wxID_OK);
 }
 

@@ -1104,7 +1104,7 @@ public:
         }
 
         size_t cn = e->GetChanCountPerNode();
-        for (int node = 0; node < e->GetNodeCount(); ++node) {
+        for (size_t node = 0; node < e->GetNodeCount(); ++node) {
             unsigned int start = e->NodeStartChannel(node);
             AddRange(start, start + cn - 1);
         }
@@ -1744,7 +1744,7 @@ void xLightsFrame::ExportModel(wxCommandEvent &command) {
             }
         } else {
             Model *m2 = GetModel(model);
-            for (int frame = 0; frame < SeqData.NumFrames(); ++frame) {
+            for (size_t frame = 0; frame < SeqData.NumFrames(); ++frame) {
                 for (int x = 0; x < job->getBuffer()->GetNodeCount(); ++x) {
                     //chan in main buffer
                     int ostart = m2->NodeStartChannel(x);

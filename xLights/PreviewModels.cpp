@@ -185,48 +185,48 @@ PreviewModels::~PreviewModels()
 void PreviewModels::OnButtonAddToModelGroupClick(wxCommandEvent& event)
 {
     int selectedIndex = ListBoxAddToModelGroup->GetSelection();
-    if(selectedIndex !=  wxNOT_FOUND)
+    if (selectedIndex != wxNOT_FOUND)
     {
         ListBoxModelsInGroup->Append(ListBoxAddToModelGroup->GetString(selectedIndex));
         ListBoxAddToModelGroup->Delete(selectedIndex);
     }
-    if(selectedIndex<ListBoxAddToModelGroup->GetCount())
+    if (selectedIndex < (int)ListBoxAddToModelGroup->GetCount())
     {
-        ListBoxAddToModelGroup->SetSelection(selectedIndex,TRUE);
+        ListBoxAddToModelGroup->SetSelection(selectedIndex, TRUE);
     }
     else
     {
-        ListBoxAddToModelGroup->SetSelection(ListBoxAddToModelGroup->GetCount()-1,TRUE);
+        ListBoxAddToModelGroup->SetSelection(ListBoxAddToModelGroup->GetCount() - 1, TRUE);
     }
 }
 
 void PreviewModels::OnButtonRemoveFromModelGroupClick(wxCommandEvent& event)
 {
     int selectedIndex = ListBoxModelsInGroup->GetSelection();
-    if(selectedIndex !=  wxNOT_FOUND)
+    if (selectedIndex != wxNOT_FOUND)
     {
         ListBoxAddToModelGroup->Append(ListBoxModelsInGroup->GetString(selectedIndex));
         ListBoxModelsInGroup->Delete(selectedIndex);
     }
-    if(selectedIndex<ListBoxModelsInGroup->GetCount())
+    if (selectedIndex < (int)ListBoxModelsInGroup->GetCount())
     {
-        ListBoxModelsInGroup->SetSelection(selectedIndex,TRUE);
+        ListBoxModelsInGroup->SetSelection(selectedIndex, TRUE);
     }
     else
     {
-        ListBoxModelsInGroup->SetSelection(ListBoxModelsInGroup->GetCount()-1,TRUE);
+        ListBoxModelsInGroup->SetSelection(ListBoxModelsInGroup->GetCount() - 1, TRUE);
     }
 }
 
 void PreviewModels::UpdateModelGroup()
 {
-    ModelGroup *g = (ModelGroup*)mModels[mGroup];
-    wxXmlNode *e = g->GetModelXml();
+    ModelGroup* g = (ModelGroup*)mModels[mGroup];
+    wxXmlNode* e = g->GetModelXml();
 
-    wxString ModelsInGroup="";
-    for(int i=0;i<ListBoxModelsInGroup->GetCount();i++)
+    wxString ModelsInGroup = "";
+    for (size_t i = 0; i < ListBoxModelsInGroup->GetCount(); i++)
     {
-        if (i<ListBoxModelsInGroup->GetCount()-1)
+        if (i < ListBoxModelsInGroup->GetCount() - 1)
         {
             ModelsInGroup += ListBoxModelsInGroup->GetString(i) + ",";
         }
@@ -261,7 +261,6 @@ void PreviewModels::UpdateModelGroup()
     g->Reset();
 }
 
-
 void PreviewModels::OnButtonUpClick(wxCommandEvent& event)
 {
     int selectedIndex = ListBoxModelsInGroup->GetSelection();
@@ -277,7 +276,7 @@ void PreviewModels::OnButtonUpClick(wxCommandEvent& event)
 void PreviewModels::OnButtonDownClick(wxCommandEvent& event)
 {
     int selectedIndex = ListBoxModelsInGroup->GetSelection();
-    if(selectedIndex !=  wxNOT_FOUND && selectedIndex < (ListBoxModelsInGroup->GetCount() - 1))
+    if(selectedIndex !=  wxNOT_FOUND && selectedIndex < ((int)ListBoxModelsInGroup->GetCount() - 1))
     {
         wxString v = ListBoxModelsInGroup->GetString(selectedIndex);
         ListBoxModelsInGroup->Delete(selectedIndex);

@@ -762,7 +762,7 @@ void RenderModelOnImage(wxImage& image, Model* model, uint8_t* framedata, int st
     }
 
     // Now process each node
-    for (auto i = 0; i < model->GetNodeCount(); i++)
+    for (size_t i = 0; i < model->GetNodeCount(); i++)
     {
         xlColor c = model->GetNodeColor(i);
 

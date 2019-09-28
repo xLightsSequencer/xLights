@@ -26,6 +26,8 @@ class wxStaticText;
 #include <wx/filepicker.h>
 #include <wx/notebook.h>
 
+#include <glm/mat3x3.hpp>
+
 class CustomModel;
 class CustomNotebook;
 class CopyPasteGrid;
@@ -37,6 +39,8 @@ wxDECLARE_EVENT(EVT_GRID_KEY, wxCommandEvent);
 
 class CustomModelDialog: public wxDialog
 {
+    glm::vec3 _saveWorldPos = glm::vec3(0, 0, 0);
+    glm::vec3 _saveScale = glm::vec3(1, 1, 1);
     int _saveWidth = 0;
     int _saveHeight = 0;
     int _saveDepth = 0;

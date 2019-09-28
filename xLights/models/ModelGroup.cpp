@@ -610,7 +610,7 @@ void ModelGroup::GetBufferSize(const std::string &tp, const std::string &camera,
     int models = 0;
     int strands = 0;
     int maxStrandLen = 0;
-    int maxNodes = 0;
+    size_t maxNodes = 0;
     int total = 0;
 
     int totWid = 0;
@@ -853,7 +853,7 @@ void ModelGroup::InitRenderBufferNodes(const std::string &tp,
                 if (cnt != 0) {
                     cx /= cnt;
                     cy /= cnt;
-                    for (int x = 0; x < c->GetNodeCount(); x++) {
+                    for (size_t x = 0; x < c->GetNodeCount(); x++) {
                         for (auto &coord : Nodes[start + x]->Coords) {
                             coord.bufX = cx;
                             coord.bufY = cy;

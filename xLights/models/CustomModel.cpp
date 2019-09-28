@@ -36,16 +36,20 @@ public:
     virtual bool DoShowDialog(wxPropertyGrid* propGrid,
                               wxPGProperty* WXUNUSED(property) ) override {
         m_model->SaveDisplayDimensions();
+        auto oldAutoSave = m_model->GetModelManager().GetXLightsFrame()->_suspendAutoSave;
+        m_model->GetModelManager().GetXLightsFrame()->_suspendAutoSave = true; // because we will tamper with model we need to suspend autosave
         CustomModelDialog dlg(propGrid);
         dlg.Setup(m_model);
+        bool res = false;
         if (dlg.ShowModal() == wxID_OK) {
             dlg.Save(m_model);
             m_model->RestoreDisplayDimensions();
             wxVariant v(CLICK_TO_EDIT);
             SetValue(v);
-            return true;
+            res = true;
         }
-        return false;
+        m_model->GetModelManager().GetXLightsFrame()->_suspendAutoSave = oldAutoSave;
+        return res;
     }
 protected:
     CustomModel *m_model;
@@ -857,7 +861,7 @@ std::list<std::string> CustomModel::CheckModelSettings()
 
     // check for node gaps
     int maxn = 0;
-    for (int ii = 0; ii < GetNodeCount(); ii++)
+    for (size_t ii = 0; ii < GetNodeCount(); ii++)
     {
         int nn = GetNodeStringNumber(ii);
         if (nn > maxn) maxn = nn;
@@ -874,7 +878,7 @@ std::list<std::string> CustomModel::CheckModelSettings()
     {
         memset(chs, 0x00, chssize);
 
-        for (int ii = 0; ii < GetNodeCount(); ii++)
+        for (size_t ii = 0; ii < GetNodeCount(); ii++)
         {
             int nn = GetNodeStringNumber(ii);
             chs[nn + 1]++;
@@ -908,7 +912,7 @@ std::list<std::string> CustomModel::CheckModelSettings()
         }
 
         int multinodecount = 0;
-        for (int ii = 0; ii < GetNodeCount(); ii++)
+        for (size_t ii = 0; ii < GetNodeCount(); ii++)
         {
             std::vector<wxPoint> pts;
             GetNodeCoords(ii, pts);
@@ -921,13 +925,16 @@ std::list<std::string> CustomModel::CheckModelSettings()
         // >0% but less than 10% multi-nodes ... these may be accidental duplicates
         if (multinodecount > 0 && multinodecount < 0.1 * maxn)
         {
-            for (int ii = 0; ii < GetNodeCount(); ii++)
+            for (size_t ii = 0; ii < GetNodeCount(); ii++)
             {
                 std::vector<wxPoint> pts;
                 GetNodeCoords(ii, pts);
                 if (pts.size() > 1)
                 {
-                    res.push_back(wxString::Format("    WARN: Custom model '%s' %s node has %d instances but multi instance nodes are rare in this model so this may be unintended.", (const char *)GetName().c_str(), Ordinal(ii + 1), (int)pts.size()).ToStdString());
+                    res.push_back(wxString::Format("    WARN: Custom model '%s' %s node has %d instances but multi instance nodes are rare in this model so this may be unintended.", 
+                        (const char *)GetName().c_str(), 
+                        Ordinal(ii + 1), 
+                        (int)pts.size()).ToStdString());
                 }
             }
         }

@@ -752,7 +752,7 @@ void PolyLineModel::DistributeLightsAcrossCurveSegment(int lights, int segment, 
         }
         glm::vec3 v = glm::vec3(*pPos[segment].curve->GetMatrix(sub_segment) * glm::vec4((current_pos - seg_start) / segment_length, 0, 0, 1));
         if (SingleNode) {
-            for (auto z = 0; z < drops_this_node; z++) {
+            for (size_t z = 0; z < drops_this_node; z++) {
                 Nodes[0]->Coords[idx].screenX = v.x;
                 Nodes[0]->Coords[idx].screenY = v.y - z * mheight;
                 Nodes[0]->Coords[idx].screenZ = v.z;
@@ -761,7 +761,7 @@ void PolyLineModel::DistributeLightsAcrossCurveSegment(int lights, int segment, 
             drop_index++;
             drop_index %= dropSizes.size();
         } else {
-            for (auto z = 0; z < drops_this_node; z++) {
+            for (size_t z = 0; z < drops_this_node; z++) {
                 auto node = FindNodeAtXY(xx, maxH - z - 1);
                 if (node == -1)
                 {

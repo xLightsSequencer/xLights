@@ -579,11 +579,11 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
                     int lastDone = 0;
                     static const int FRAMES_TO_BUFFER = 50;
                     std::vector<std::vector<uint8_t>> frames(FRAMES_TO_BUFFER);
-                    for (int x = 0; x < frames.size(); x++) {
+                    for (size_t x = 0; x < frames.size(); x++) {
                         frames[x].resize(seq->getMaxChannel() + 1);
                     }
                     
-                    for (int frame = 0; frame < seq->getNumFrames() && !cancelled; frame++) {
+                    for (size_t frame = 0; frame < seq->getNumFrames() && !cancelled; frame++) {
                         int donePct = frame * 1000 / seq->getNumFrames();
                         if (donePct != lastDone) {
                             lastDone = donePct;
@@ -592,7 +592,7 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
                         }
 
                         int lastBuffered = 0;
-                        int startFrame = frame;
+                        size_t startFrame = frame;
                         //Read a bunch of frames so each parallel thread has more info to work with before returning out here
                         while (lastBuffered < FRAMES_TO_BUFFER && frame < seq->getNumFrames()) {
                             FSEQFile::FrameData *f = seq->getFrame(frame);

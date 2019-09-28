@@ -173,8 +173,10 @@ protected:
         _startOnXAxis = b;
     }
     glm::vec3 GetWorldPosition() const { return glm::vec3(worldPos_x, worldPos_y, worldPos_z); }
+    void SetWorldPosition(const glm::vec3& worldPos) { worldPos_x = worldPos.x; worldPos_y = worldPos.y; worldPos_z = worldPos.z; }
     glm::vec3 GetRotation() const { return glm::vec3(rotatex, rotatey, rotatez); }
     glm::vec3 GetScaleMatrix() const { return glm::vec3(scalex, scaley, scalez); }
+    void SetScaleMatrix(const glm::vec3& scale) { scalex = scale.x; scaley = scale.y; scalez = scale.z; }
 
 protected:
     ModelScreenLocation(int points);

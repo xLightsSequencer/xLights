@@ -756,7 +756,7 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
     }
 
     if (cache->nodeNameCache.empty()) {
-        for (int x = 0; x < model_info->GetNodeCount(); x++) {
+        for (size_t x = 0; x < model_info->GetNodeCount(); x++) {
             cache->nodeNameCache[model_info->GetNodeName(x, true)] = x;
         }
     }
