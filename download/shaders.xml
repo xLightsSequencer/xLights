@@ -511,6 +511,62 @@
 		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_300,w_300/czfbbi0oupibbxq6dvux</image>
 		<rating>4</rating>
 	</shader>
+	<shader>
+		<name>Corner Colour Tint</name>
+		<link>https://www.interactiveshaderformat.com/sketches/3548</link>
+		<download>https://www.interactiveshaderformat.com/sketches/3548/download</download>
+		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_300,w_300/gkbdtth4lmcc08qcbpms</image>
+		<rating>2</rating>
+	</shader>
+	<shader>
+		<name>Electro Bands</name>
+		<link>https://www.interactiveshaderformat.com/sketches/4818</link>
+		<download>https://www.interactiveshaderformat.com/sketches/4818/download</download>
+		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_300,w_300/cotgql0bcs9fqkjqupzb</image>
+		<rating>2</rating>
+	</shader>
+	<shader>
+		<name>The Grid</name>
+		<link>https://www.interactiveshaderformat.com/sketches/4802</link>
+		<download>https://www.interactiveshaderformat.com/sketches/4802/download</download>
+		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_300,w_300/j4yuukh3y1plpdoobcal</image>
+		<rating>4</rating>
+	</shader>
+	<shader>
+		<name>Perlin Noise Fun</name>
+		<link>https://www.interactiveshaderformat.com/sketches/4735</link>
+		<download>https://www.interactiveshaderformat.com/sketches/4735/download</download>
+		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_300,w_300/uhvielqup7emfd7wwl7n</image>
+		<rating>4</rating>
+	</shader>
+	<shader>
+		<name>Triangle Square Twist</name>
+		<link>https://www.interactiveshaderformat.com/sketches/4713</link>
+		<download>https://www.interactiveshaderformat.com/sketches/4713/download</download>
+		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_300,w_300/cd02k7up10vmvyobhqhx</image>
+		<rating>2</rating>
+	</shader>
+	<shader>
+		<name>W Noise Particle Cluster</name>
+		<link>https://www.interactiveshaderformat.com/sketches/4729</link>
+		<download>https://www.interactiveshaderformat.com/sketches/4729/download</download>
+		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_300,w_300/oqapsnhn9wpebyncee8g</image>
+		<rating>4</rating>
+	</shader>
+	<shader>
+		<name>Fly Through</name>
+		<link>https://www.interactiveshaderformat.com/sketches/4712</link>
+		<download>https://www.interactiveshaderformat.com/sketches/4712/download</download>
+		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_300,w_300/khxvm4wtzgjcgswzlnk1</image>
+		<rating>3</rating>
+	</shader>
+	<shader>
+		<name>Input-Sound+</name>
+		<link>https://www.interactiveshaderformat.com/sketches/4682</link>
+		<download>https://www.interactiveshaderformat.com/sketches/4682/download</download>
+		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_300,w_300/x0qizxw7f67r8tird6cr</image>
+		<rating>3</rating>
+	</shader>
 	<!--shader>
 		<name></name>
 		<link>https://www.interactiveshaderformat.com/sketches/xxx</link>
