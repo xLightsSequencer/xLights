@@ -381,7 +381,7 @@ void ModelFaceDialog::SetFaceInfo(Model *cls, std::map< std::string, std::map<st
 
     wxArrayString names;
     names.push_back("");
-    for (int x = 0; x < cls->GetNodeCount(); x++) {
+    for (size_t x = 0; x < cls->GetNodeCount(); x++) {
         wxString nn = cls->GetNodeName(x, true);
         names.push_back(nn);
     }
@@ -800,7 +800,7 @@ void ModelFaceDialog::UpdatePreview(const std::string& channels, wxColor c)
             std::list<int> ch = model->ParseFaceNodes(channels);
             for (auto& it : ch)
             {
-                if (it < model->GetNodeCount())
+                if (it < (int)model->GetNodeCount())
                 {
                     model->SetNodeColor(it, c);
                 }

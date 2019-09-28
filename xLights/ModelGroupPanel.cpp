@@ -332,7 +332,7 @@ void ModelGroupPanel::UpdatePanel(const std::string group)
 
         wxString preview = e->GetAttribute("LayoutGroup", "Default");
         ChoicePreviews->SetSelection(0);
-        for (int i = 0; i < ChoicePreviews->GetCount(); i++) {
+        for (size_t i = 0; i < ChoicePreviews->GetCount(); i++) {
             if (ChoicePreviews->GetString(i) == preview)
             {
                 ChoicePreviews->SetSelection(i);

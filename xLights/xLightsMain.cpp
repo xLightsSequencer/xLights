@@ -3210,6 +3210,26 @@ void xLightsFrame::OnAuiToolBarItemPlayButtonClick(wxCommandEvent& event)
     }
 }
 
+Effect* xLightsFrame::GetPersistentEffectOnModelStartingAtTime(const std::string& model, uint32_t startms) const
+{
+    Element* e = mSequenceElements.GetElement(model);
+
+    if (e == nullptr) return nullptr;
+
+    for (size_t i = 0; i < e->GetEffectLayerCount(); ++i)
+    {
+        Effect* ef = e->GetEffectLayer(i)->GetEffectStartingAtTime(startms);
+        if (ef != nullptr)
+        {
+            if (ef->IsPersistent())
+            {
+                return ef;
+            }
+        }
+    }
+    return nullptr;
+}
+
 void xLightsFrame::EnableToolbarButton(wxAuiToolBar* toolbar,int id, bool enable)
 {
     wxAuiToolBarItem* button = toolbar->FindTool(id);

@@ -344,10 +344,10 @@ void FireworksPanel::SetTimingTracks(wxCommandEvent& event)
 
     // check if anything has been removed ... if it has clear the list and we will have to rebuild it as you cant delete items from a combo box
     bool removed = false;
-    for (auto i = 0; i < Choice_TimingTrack->GetCount(); i++)
+    for (size_t i = 0; i < Choice_TimingTrack->GetCount(); i++)
     {
         bool found = false;
-        for (auto it : timingtracks)
+        for (auto& it : timingtracks)
         {
             if (it == Choice_TimingTrack->GetString(i))
             {
@@ -364,10 +364,10 @@ void FireworksPanel::SetTimingTracks(wxCommandEvent& event)
     }
 
     // add any new timing tracks
-    for (auto it : timingtracks)
+    for (auto& it : timingtracks)
     {
         bool found = false;
-        for (auto i = 0; i < Choice_TimingTrack->GetCount(); i++)
+        for (size_t i = 0; i < Choice_TimingTrack->GetCount(); i++)
         {
             if (it == Choice_TimingTrack->GetString(i))
             {

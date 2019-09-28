@@ -564,6 +564,11 @@ void Effect::FixBuffer(const Model* m)
     }
 }
 
+bool Effect::IsPersistent() const
+{
+    return mSettings.GetBool("B_CHECKBOX_OverlayBkg", false);
+}
+
 std::string Effect::GetPaletteAsString() const
 {
     std::unique_lock<std::recursive_mutex> lock(settingsLock);

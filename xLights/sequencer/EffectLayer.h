@@ -59,11 +59,12 @@ class EffectLayer
         bool HitTestEffectBetweenTime(int t1MS, int t2MS) const;
 
         Effect* GetEffectAtTime(int ms) const;
+        Effect* GetEffectStartingAtTime(int ms) const;
         Effect* GetEffectBeforeTime(int ms) const;
         Effect* GetEffectAfterTime(int ms) const;
         Effect* GetEffectBeforeEmptyTime(int ms) const;
         Effect* GetEffectAfterEmptyTime(int ms) const;
-        std::list<Effect*> GetAllEffects();
+        std::list<Effect*> GetAllEffects() const;
 
         bool GetRangeIsClearMS(int startTimeMS, int endTimeMS, bool ignore_selected = false);
 

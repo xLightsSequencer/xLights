@@ -106,6 +106,7 @@ public:
     const SettingsMap &GetSettings() const { return mSettings; }
     void CopySettingsMap(SettingsMap &target, bool stripPfx = false) const;
     void FixBuffer(const Model* m);
+    bool IsPersistent() const;
 
     const xlColorVector &GetPalette() const { return mColors; }
     int GetPaletteSize() const { return mColors.size(); }

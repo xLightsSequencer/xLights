@@ -338,6 +338,16 @@ Effect* EffectLayer::GetEffectAtTime(int timeMS) const
     return nullptr;
 }
 
+Effect* EffectLayer::GetEffectStartingAtTime(int timeMS) const
+{
+    for (int i = 0; i < mEffects.size(); i++) {
+        if (timeMS == mEffects[i]->GetStartTimeMS()) {
+            return mEffects[i];
+        }
+    }
+    return nullptr;
+}
+
 Effect* EffectLayer::GetEffectBeforeEmptyTime(int ms) const
 {
     int i;
@@ -378,7 +388,7 @@ Effect* EffectLayer::GetEffectAfterEmptyTime(int ms) const
     }
 }
 
-std::list<Effect*> EffectLayer::GetAllEffects()
+std::list<Effect*> EffectLayer::GetAllEffects() const
 {
     std::list<Effect*> res;
 

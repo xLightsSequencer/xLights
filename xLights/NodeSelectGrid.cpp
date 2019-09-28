@@ -331,8 +331,8 @@ void NodeSelectGrid::LoadGrid(const std::vector<wxString>& rows)
     float maxsx = -1;
     float maxsy = -1;
 
-    const auto nodeCount = model->GetNodeCount();
-    for (auto i = 0; i < nodeCount; i++)
+    const uint32_t nodeCount = model->GetNodeCount();
+    for (uint32_t i = 0; i < nodeCount; i++)
     {
         std::vector<wxPoint> pts;
         model->GetNodeCoords(i, pts);
@@ -357,7 +357,7 @@ void NodeSelectGrid::LoadGrid(const std::vector<wxString>& rows)
     GridNodes->AppendCols(sizex);
     GridNodes->AppendRows(sizey);
 
-    for (auto i = 0; i < nodeCount; i++)
+    for (uint32_t i = 0; i < nodeCount; i++)
     {
         std::vector<wxPoint> pts;
         model->GetNodeCoords(i, pts);
@@ -697,7 +697,7 @@ std::vector<int> NodeSelectGrid::DecodeNodeList(const std::vector<wxString> &row
             auto n = start2;
             while (!done)
             {
-                if (n < model->GetNodeCount())
+                if (n < (int)model->GetNodeCount())
                 {
                     nodeList.push_back(n);
                 }

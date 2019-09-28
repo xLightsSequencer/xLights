@@ -122,7 +122,7 @@ void PinwheelEffect::Render(Effect* effect, SettingsMap& SettingsMap, RenderBuff
         float tmax = (pinwheel_thickness / 100.0) * degrees_per_arm;
 
         // Force single visible line in case width is narrower than visible
-        float pi_180 = M_PI / 180.0f;
+        float pi_180 = (float)M_PI / 180.0f;
         for (int a = 0; a < pinwheel_arms; a++)
         {
             int ColorIdx = a % pinwheel_arms;
@@ -290,12 +290,12 @@ void PinwheelEffect::Draw_arm(RenderBuffer& buffer,
     int xc_adj, int yc_adj, int colorIdx, PinwheelEffect::Pinwheel3DType pw3dType, float round)
 {
     //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    float pi_180 = M_PI / 180;
+    float pi_180 = (float)M_PI / 180.0f;
 
-    int xc = buffer.BufferWi / 2.0;
-    int yc = buffer.BufferHt / 2.0;
-    xc = xc + (xc_adj / 100.0) * xc; // xc_adj is from -100 to 100
-    yc = yc + (yc_adj / 100.0) * yc;
+    int xc = buffer.BufferWi / 2;
+    int yc = buffer.BufferHt / 2;
+    xc = xc + (xc_adj / 100) * xc; // xc_adj is from -100 to 100
+    yc = yc + (yc_adj / 100) * yc;
 
     bool isSpatial = buffer.palette.IsSpatial(colorIdx);
     xlColor color;
@@ -306,7 +306,7 @@ void PinwheelEffect::Draw_arm(RenderBuffer& buffer,
         adjustColor(pw3dType, color, hsv, buffer.allowAlpha, round);
     }
 
-    for (float r = 0.0; r <= max_radius; r += 0.5) {
+    for (float r = 0.0f; r <= max_radius; r += 0.5f) {
         int degrees_twist = (r / max_radius) * pinwheel_twist;
         int degrees = base_degrees + degrees_twist;
         float phi = degrees * pi_180;

@@ -491,7 +491,7 @@ void ModelStateDialog::UpdatePreview(const std::string& channels, wxColor c)
             std::list<int> ch = model->ParseFaceNodes(channels);
             for (auto it = ch.begin(); it != ch.end(); ++it)
             {
-                if (*it < model->GetNodeCount())
+                if (*it < (int)model->GetNodeCount())
                 {
                     model->SetNodeColor(*it, c);
                 }

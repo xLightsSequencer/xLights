@@ -439,6 +439,8 @@ void ShaderDownloadDialog::ValidateWindow()
 
 void ShaderDownloadDialog::PopulateShaderPanel(MShader* shader)
 {
+    wxLogNull logNo; //kludge: avoid error message when trying to load image
+
     if (shader == nullptr)
     {
         StaticBitmap_VendorImage->Hide();
@@ -452,14 +454,15 @@ void ShaderDownloadDialog::PopulateShaderPanel(MShader* shader)
     shader->DownloadImages();
     if (wxFile::Exists(shader->_imageFile))
     {
-        _shaderImage.LoadFile(shader->_imageFile);
-        if (_shaderImage.IsOk())
+        if (_shaderImage.LoadFile(shader->_imageFile) && _shaderImage.IsOk())
         {
             StaticBitmap_VendorImage->Show();
             LoadImage(StaticBitmap_VendorImage, &_shaderImage);
         }
         else
         {
+            wxRemoveFile(shader->_imageFile);
+            shader->_imageFile = "";
             StaticBitmap_VendorImage->Hide();
         }
     }

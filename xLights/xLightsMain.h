@@ -1570,6 +1570,7 @@ private:
     bool isRandom_(wxControl* ctl, const char*debug);
     void SetSyncUniverse(int syncUniverse);
 
+    Effect* GetPersistentEffectOnModelStartingAtTime(const std::string& model, uint32_t startms) const;
     void EnableToolbarButton(wxAuiToolBar* toolbar, int id, bool enable);
     void CheckForAndCreateDefaultPerpective();
     void ResizeAndMakeEffectsScroll();

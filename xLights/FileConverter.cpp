@@ -1555,7 +1555,7 @@ void FileConverter::ReadConductorFile(ConvertParameters& params)
         {
             for (size_t j = 0; j < 4; j++)
             {
-                int32_t ch = j * 4096 + i;
+                uint32_t ch = j * 4096 + i;
                 if (ch < params.seq_data.NumChannels())
                 {
                     params.seq_data[period][ch] = row[i * 4 + j];

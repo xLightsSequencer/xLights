@@ -483,7 +483,7 @@ public:
         if (!rng.empty()) {
             rangeRestriction.resize(rng.back().end + 1);
             for (auto i : rng) {
-                for (int s = i.start; s <= i.end; s++) {
+                for (auto s = i.start; s <= i.end; s++) {
                     rangeRestriction[s] = true;
                 }
             }
@@ -1587,10 +1587,27 @@ void xLightsFrame::RenderEffectForModel(const std::string &model, int startms, i
         renderTree.data.size());
 
     int startframe = startms / SeqData.FrameTime();// -1; by expanding the range we end up rendering more than necessary for no obvious reason
+
+    // If there is an effect at the start time that has the persistent flag set then include the prior frame
+    // This expands the render time but only when it absolutely must
+    if (GetPersistentEffectOnModelStartingAtTime(model, startms) != nullptr)
+    {
+        startframe -= 1;
+    }
+
     if (startframe < 0) {
         startframe = 0;
     }
     int endframe = endms / SeqData.FrameTime();// +1; by expanding the range we end up rendering more than necessary for no obvious reason
+
+    // If there is an effect at the end time that has the persistent flag set then include the nextframe
+    // This expands the render time but only when it absolutely must
+    Effect* persistentEffectAfter = GetPersistentEffectOnModelStartingAtTime(model, endms);
+    if (persistentEffectAfter != nullptr)
+    {
+        endframe = persistentEffectAfter->GetEndTimeMS() / SeqData.FrameTime();
+    }
+
     if (endframe >= SeqData.NumFrames()) {
         endframe = SeqData.NumFrames() - 1;
     }
@@ -1664,7 +1681,6 @@ void xLightsFrame::RenderTimeSlice(int startms, int endms, bool clear) {
     if (endframe < startframe) {
         return;
     }
-    
     
     EnableSequenceControls(false);
     mRendering = true;
