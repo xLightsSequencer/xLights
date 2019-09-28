@@ -422,12 +422,15 @@ void FPPConnectDialog::LoadSequencesFromFolder(wxString dir) const
             if (mediaName != "") {
                 if (!wxFile::Exists(mediaName)) {
                     wxFileName fn(mediaName);
-                    if (wxFile::Exists(frame->mediaDirectory + wxFileName::GetPathSeparator() + fn.GetFullName())) {
-                        mediaName = frame->mediaDirectory + wxFileName::GetPathSeparator() + fn.GetFullName();
+                    std::string tmn = frame->mediaDirectory + wxFileName::GetPathSeparator() + fn.GetFullName();
+                    if (wxFile::Exists(tmn)) {
+                        mediaName = tmn;
                     } else {
-                        std::string tmn = frame->mediaDirectory + wxFileName::GetPathSeparator() + fn.GetFullName();
-                        logger_base.info("Could not find media: %s  OR   %s", mediaName.c_str(), tmn.c_str());
-                        mediaName = "";
+                        std::string fixedMN = FixFile(frame->CurrentDir, mediaName);
+                        if (!wxFile::Exists(fixedMN)) {
+                            logger_base.info("Could not find media: %s  OR   %s   OR   %s", mediaName.c_str(), tmn.c_str(), fixedMN.c_str());
+                            mediaName = "";
+                        }
                     }
                 }
             }
