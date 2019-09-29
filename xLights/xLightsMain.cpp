@@ -76,6 +76,8 @@
 #include "ShaderDownloadDialog.h"
 #include "CheckboxSelectDialog.h"
 #include "EmailDialog.h"
+#include "ValueCurveButton.h"
+#include "ValueCurvesPanel.h"
 
 // Linux needs this
 #include <wx/stdpaths.h>
@@ -256,6 +258,7 @@ const long xLightsFrame::ID_MENUITEM15 = wxNewId();
 const long xLightsFrame::ID_MENUITEM16 = wxNewId();
 const long xLightsFrame::ID_MENUITEM9 = wxNewId();
 const long xLightsFrame::ID_MENUITEM17 = wxNewId();
+const long xLightsFrame::ID_MNU_VALUECURVES = wxNewId();
 const long xLightsFrame::ID_MENUITEM_EFFECT_ASSIST_WINDOW = wxNewId();
 const long xLightsFrame::ID_MENUITEM_SELECT_EFFECT = wxNewId();
 const long xLightsFrame::ID_MENUITEM_VIDEOPREVIEW = wxNewId();
@@ -499,6 +502,7 @@ BEGIN_EVENT_TABLE(xLightsFrame,wxFrame)
     wx__DECLARE_EVT1(EVT_SELECTED_EFFECT_CHANGED, wxID_ANY, &xLightsFrame::SelectedEffectChanged)
     EVT_COMMAND(29898, EVT_TURNONOUTPUTTOLIGHTS, xLightsFrame::TurnOnOutputToLights)
     EVT_COMMAND(29899, EVT_PLAYJUKEBOXITEM, xLightsFrame::PlayJukeboxItem)
+    EVT_COMMAND(wxID_ANY, EVT_VC_CHANGED, xLightsFrame::VCChanged)
 
 
 END_EVENT_TABLE()
@@ -970,6 +974,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     MenuItem18->Append(MenuItem32);
     MenuItem25 = new wxMenuItem(MenuItem18, ID_MENUITEM17, _("Effect Dropper"), wxEmptyString, wxITEM_NORMAL);
     MenuItem18->Append(MenuItem25);
+    MenuItem_ValueCurves = new wxMenuItem(MenuItem18, ID_MNU_VALUECURVES, _("Value Curves"), wxEmptyString, wxITEM_NORMAL);
+    MenuItem18->Append(MenuItem_ValueCurves);
     MenuItemEffectAssistWindow = new wxMenuItem(MenuItem18, ID_MENUITEM_EFFECT_ASSIST_WINDOW, _("Effect Assist"), wxEmptyString, wxITEM_NORMAL);
     MenuItem18->Append(MenuItemEffectAssistWindow);
     MenuItemSelectEffect = new wxMenuItem(MenuItem18, ID_MENUITEM_SELECT_EFFECT, _("Select Effect"), wxEmptyString, wxITEM_NORMAL);
@@ -1365,6 +1371,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     Connect(ID_MENUITEM16,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ShowHideLayerTimingWindow);
     Connect(ID_MENUITEM9,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ShowHideBufferSettingsWindow);
     Connect(ID_MENUITEM17,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ShowHideEffectDropper);
+    Connect(ID_MNU_VALUECURVES,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_ValueCurvesSelected);
     Connect(ID_MENUITEM_EFFECT_ASSIST_WINDOW,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ShowHideEffectAssistWindow);
     Connect(ID_MENUITEM_SELECT_EFFECT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemSelectEffectSelected);
     Connect(ID_MENUITEM_VIDEOPREVIEW,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemShowHideVideoPreview);
@@ -2168,6 +2175,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
         }
     }
 
+    _valueCurvesPanel->UpdateValueCurveButtons();
+
     MixTypeChanged=true;
 
     // This is used by xSchedule
@@ -2239,7 +2248,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
         OpenSequence(xLightsApp::sequenceFiles[0], nullptr);
     }
 
-	SetAudioControls();
+    SetAudioControls();
 
 #ifdef __WXOSX_MAC__
     // we remove this on OSX because xSchedule is not simple to locate ... at least I dont know how to do it
@@ -2368,7 +2377,7 @@ void xLightsFrame::OnIdle(wxIdleEvent& event) {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("Idle event called");
     Unbind(wxEVT_IDLE, &xLightsFrame::OnIdle,this);
- 
+
     // dont check for updates if batch rendering
     if (!_renderMode)
     {
@@ -10427,4 +10436,16 @@ void xLightsFrame::CollectUserEmail()
     wxConfigBase* config = wxConfigBase::Get();
     config->Write("xLightsUserEmail", _userEmail);
     logger_base.info("User email changed to %s", (const char*)_userEmail.c_str());
+}
+
+void xLightsFrame::OnMenuItem_ValueCurvesSelected(wxCommandEvent& event)
+{
+    InitSequencer();
+    bool visible = m_mgr->GetPane("ValueCurveDropper").IsShown();
+    if (visible) {
+        m_mgr->GetPane("ValueCurveDropper").Hide();
+    } else {
+        m_mgr->GetPane("ValueCurveDropper").Show();
+    }
+    m_mgr->Update();
 }

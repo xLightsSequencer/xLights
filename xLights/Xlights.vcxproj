@@ -199,6 +199,7 @@
     <ClCompile Include="controllers\WebSocketClient.cpp" />
     <ClCompile Include="CustomTimingDialog.cpp" />
     <ClCompile Include="DissolveTransitionPattern.cpp" />
+    <ClCompile Include="DragValueCurveBitmapButton.cpp" />
     <ClCompile Include="effects\KaleidoscopeEffect.cpp" />
     <ClCompile Include="effects\KaleidoscopePanel.cpp" />
     <ClCompile Include="effects\LinesEffect.cpp" />
@@ -517,6 +518,7 @@
     <ClCompile Include="ValueCurve.cpp" />
     <ClCompile Include="ValueCurveButton.cpp" />
     <ClCompile Include="ValueCurveDialog.cpp" />
+    <ClCompile Include="ValueCurvesPanel.cpp" />
     <ClCompile Include="vamp-hostsdk\acsymbols.c" />
     <ClCompile Include="vamp-hostsdk\FFT.cpp" />
     <ClCompile Include="vamp-hostsdk\Files.cpp" />
@@ -587,6 +589,7 @@
     <ClInclude Include="controllers\SanDevices.h" />
     <ClInclude Include="controllers\WebSocketClient.h" />
     <ClInclude Include="DissolveTransitionPattern.h" />
+    <ClInclude Include="DragValueCurveBitmapButton.h" />
     <ClInclude Include="effects\assist\AssistPanel.h" />
     <ClInclude Include="effects\assist\PicturesAssistPanel.h" />
     <ClInclude Include="effects\assist\xlGridCanvasEmpty.h" />
@@ -902,6 +905,7 @@
     <ClInclude Include="ValueCurve.h" />
     <ClInclude Include="ValueCurveButton.h" />
     <ClInclude Include="ValueCurveDialog.h" />
+    <ClInclude Include="ValueCurvesPanel.h" />
     <ClInclude Include="vamp-hostsdk\Files.h" />
     <ClInclude Include="vamp-hostsdk\host-c.h" />
     <ClInclude Include="vamp-hostsdk\hostguard.h" />

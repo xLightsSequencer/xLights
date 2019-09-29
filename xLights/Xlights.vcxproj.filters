@@ -738,6 +738,8 @@
     <ClCompile Include="CheckboxSelectDialog.cpp" />
     <ClCompile Include="EmailDialog.cpp" />
     <ClCompile Include="vamp-hostsdk\PluginBufferingAdapter.cpp" />
+    <ClCompile Include="DragValueCurveBitmapButton.cpp" />
+    <ClCompile Include="ValueCurvesPanel.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -1486,6 +1488,8 @@
     </ClInclude>
     <ClInclude Include="CheckboxSelectDialog.h" />
     <ClInclude Include="EmailDialog.h" />
+    <ClInclude Include="DragValueCurveBitmapButton.h" />
+    <ClInclude Include="ValueCurvesPanel.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

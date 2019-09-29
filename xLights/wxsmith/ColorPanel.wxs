@@ -3,9 +3,11 @@
 	<object class="wxPanel" name="ColorPanel">
 		<id_arg>0</id_arg>
 		<handler function="OnResize" entry="EVT_SIZE" />
-		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
+		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="yes">
 			<cols>1</cols>
 			<rows>1</rows>
+			<growablecols>0</growablecols>
+			<growablerows>0</growablerows>
 			<object class="sizeritem">
 				<object class="wxPanel" name="ID_PANEL1" variable="Panel_Sizer" member="yes">
 					<object class="wxFlexGridSizer" variable="FlexGridSizer3" member="no">

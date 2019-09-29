@@ -612,6 +612,11 @@ bool MainSequencer::HandleSequencerKeyBinding(wxKeyEvent& event)
             {
                 mSequenceElements->GetXLightsFrame()->TogglePresetsPanel();
             }
+            else if (type == "VALUECURVES_TOGGLE")
+            {
+                wxCommandEvent e;
+                mSequenceElements->GetXLightsFrame()->OnMenuItem_ValueCurvesSelected(e);
+            }
             else if (type == "SEARCH_TOGGLE")
             {
                 wxCommandEvent e;

@@ -24,6 +24,7 @@
 #include "ModelPreview.h"
 #include "ViewsModelsPanel.h"
 #include "PerspectivesPanel.h"
+#include "ValueCurvesPanel.h"
 #include "sequencer/MainSequencer.h"
 
 #include <log4cpp/Category.hh>
@@ -1395,6 +1396,7 @@ void xLightsFrame::EnableSequenceControls(bool enable)
     enableAllChildControls(perspectivePanel, enable && SeqData.NumFrames() > 0);
     enableAllChildControls(colorPanel, enable && SeqData.NumFrames() > 0 && !IsACActive());
     enableAllChildControls(effectPalettePanel, enable && SeqData.NumFrames() > 0 && !IsACActive());
+    enableAllChildControls(_valueCurvesPanel, enable && SeqData.NumFrames() > 0 && !IsACActive());
     enableAllChildControls(jukeboxPanel, enable && SeqData.NumFrames() > 0 && !IsACActive());
     UpdateACToolbar(enable);
 
@@ -1460,4 +1462,16 @@ int xLightsFrame::ChooseRandomEffect()
     const int select = rand() % _randomEffectsToUse.size();
     const wxString effect = _randomEffectsToUse[select];
     return effectManager.GetEffectIndex(effect);
+}
+
+void xLightsFrame::VCChanged(wxCommandEvent& event)
+{
+    _valueCurvesPanel->Freeze();
+    if (event.GetInt() == 0)
+    {
+        _valueCurvesPanel->UpdateValueCurveButtons();
+    }
+    enableAllChildControls(_valueCurvesPanel, true); // enable and disable otherwise if anything has been added while disabled wont be disabled.
+    enableAllChildControls(_valueCurvesPanel, SeqData.NumFrames() > 0 && !IsACActive());
+    _valueCurvesPanel->Thaw();
 }

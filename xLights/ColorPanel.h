@@ -97,6 +97,7 @@ public:
 		BulkEditValueCurveButton* BitmapButton_VCBrightness;
 		ColourList* BitmapButton_ColourChoice;
 		wxCheckBox* CheckBox_ResetColorPanel;
+		wxFlexGridSizer* FlexGridSizer1;
 		wxFlexGridSizer* FlexGridSizer_Palette;
 		wxPanel* Panel_Sizer;
 		wxScrolledWindow* ColorScrollWindow;

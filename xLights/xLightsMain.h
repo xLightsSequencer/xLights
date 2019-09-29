@@ -83,6 +83,7 @@ class HousePreviewPanel;
 class SelectPanel;
 class SequenceVideoPanel;
 class EffectIconPanel;
+class ValueCurvesPanel;
 class JukeboxPanel;
 class TimingPanel;
 class ColorPanel;
@@ -589,6 +590,7 @@ public:
     void OnMenuItem61Selected(wxCommandEvent& event);
     void OnMenuItem_Random_SetSelected(wxCommandEvent& event);
     void OnMenuItem_EmailAddressSelected(wxCommandEvent& event);
+    void OnMenuItem_ValueCurvesSelected(wxCommandEvent& event);
     //*)
     void OnCharHook(wxKeyEvent& event);
 private:
@@ -738,6 +740,7 @@ public:
     static const long ID_MENUITEM16;
     static const long ID_MENUITEM9;
     static const long ID_MENUITEM17;
+    static const long ID_MNU_VALUECURVES;
     static const long ID_MENUITEM_EFFECT_ASSIST_WINDOW;
     static const long ID_MENUITEM_SELECT_EFFECT;
     static const long ID_MENUITEM_VIDEOPREVIEW;
@@ -1031,6 +1034,7 @@ public:
     wxMenuItem* MenuItem_Update;
     wxMenuItem* MenuItem_UserManual;
     wxMenuItem* MenuItem_VQuietVol;
+    wxMenuItem* MenuItem_ValueCurves;
     wxMenuItem* MenuItem_VideoTutorials;
     wxMenuItem* MenuItem_ViewLog;
     wxMenuItem* MenuItem_ViewZoomIn;
@@ -1508,7 +1512,8 @@ private:
     ColorPanel* colorPanel = nullptr;
     TimingPanel* timingPanel = nullptr;
     PerspectivesPanel* perspectivePanel = nullptr;
-    EffectIconPanel *effectPalettePanel = nullptr;
+    EffectIconPanel* effectPalettePanel = nullptr;
+    ValueCurvesPanel* _valueCurvesPanel = nullptr;
     JukeboxPanel *jukeboxPanel = nullptr;
     BufferPanel *bufferPanel = nullptr;
     ViewsModelsPanel *displayElementsPanel = nullptr;
@@ -1554,6 +1559,7 @@ private:
     void ModelSelected(wxCommandEvent& event);
     void PlaySequence(wxCommandEvent& event);
     void PauseSequence(wxCommandEvent& event);
+    void VCChanged(wxCommandEvent& event);
     void StopSequence(wxCommandEvent& event);
     void SequenceFirstFrame(wxCommandEvent& event);
     void SequenceLastFrame(wxCommandEvent& event);

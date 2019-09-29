@@ -2,8 +2,61 @@
 
 #include <wx/artprov.h>
 #include <wx/dcmemory.h>
+#include <wx/dnd.h>
 
 wxDEFINE_EVENT(EVT_VC_CHANGED, wxCommandEvent);
+
+class ValueCurveButton;
+
+class VCTextDropTarget : public wxTextDropTarget
+{
+public:
+    VCTextDropTarget(ValueCurveButton* owner, wxString type) { _owner = owner; _type = type; };
+
+    virtual bool OnDropText(wxCoord x, wxCoord y, const wxString& data) override;
+    virtual wxDragResult OnDragOver(wxCoord x, wxCoord y, wxDragResult def) override;
+
+    ValueCurveButton* _owner;
+    wxString _type;
+};
+
+wxDragResult VCTextDropTarget::OnDragOver(wxCoord x, wxCoord y, wxDragResult def)
+{
+    if (_owner->IsEnabled())
+    {
+        return wxDragCopy;
+    }
+    return wxDragNone;
+}
+
+bool VCTextDropTarget::OnDropText(wxCoord x, wxCoord y, const wxString& data)
+{
+    if (data == "") return false;
+
+    if (!_owner->IsEnabled()) return false;
+
+    if (data == "VALUECURVE_CLEAR")
+    {
+        _owner->SetActive(false);
+    }
+    else
+    {
+        if (!data.Contains("ID_VALUECURVE_XVC")) return false;
+
+        ValueCurve vc(data);
+        ValueCurve* pvc = _owner->GetValue();
+        vc.SetId(pvc->GetId());
+        vc.SetLimits(pvc->GetMin(), pvc->GetMax());
+        vc.SetDivisor(pvc->GetDivisor());
+        vc.FixChangedScale(pvc->GetMin(), pvc->GetMax(), 1);
+
+        _owner->GetValue()->Deserialise(vc.Serialise());
+
+        _owner->UpdateBitmap();
+    }
+
+    return true;
+}
 
 ValueCurveButton::ValueCurveButton(wxWindow *parent,
     wxWindowID id,
@@ -15,8 +68,10 @@ ValueCurveButton::ValueCurveButton(wxWindow *parent,
     const wxString& name) : wxBitmapButton(parent, id, bitmap, pos, size, style, validator, name)
 {
     _vc = new ValueCurve(name.ToStdString());
-}
 
+    VCTextDropTarget* vcdt = new VCTextDropTarget(this, "ValueCurve");
+    SetDropTarget(vcdt);
+}
 
 ValueCurveButton::~ValueCurveButton()
 {

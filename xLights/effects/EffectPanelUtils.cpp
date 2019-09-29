@@ -22,6 +22,8 @@
 #include "../BitmapCache.h"
 #include "../ValueCurveButton.h"
 #include "../ValueCurveDialog.h"
+#include "../xLightsApp.h"
+#include "../xLightsMain.h"
 #include <wx/valnum.h>
 
 #include "UtilFunctions.h"
@@ -267,4 +269,7 @@ void EffectPanelUtils::OnVCButtonClick(wxCommandEvent& event)
             txt->Enable();
         }
     }
+    wxCommandEvent e(EVT_VC_CHANGED);
+    e.SetInt(0);
+    wxPostEvent(xLightsApp::GetFrame(), e);
 }

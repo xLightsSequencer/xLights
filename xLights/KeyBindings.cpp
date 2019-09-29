@@ -85,7 +85,8 @@ static  std::vector<std::pair<std::string, KBSCOPE>> KeyBindingTypes =
     { _("CANCEL_RENDER"), KBSCOPE::Sequence },
     { _("TOGGLE_RENDER"), KBSCOPE::Sequence },
     { _("PRESETS_TOGGLE"), KBSCOPE::Sequence }, 
-    { _("FOCUS_SEQUENCER"), KBSCOPE::All } // This forces focus to the sequencer for situations where keys dont seem to work. It must be mapped to function key
+    { _("FOCUS_SEQUENCER"), KBSCOPE::All }, // This forces focus to the sequencer for situations where keys dont seem to work. It must be mapped to function key
+    { _("VALUECURVES_TOGGLE"), KBSCOPE::Sequence }
 };
 
 const std::vector<KeyBinding> DefaultBindings =
@@ -143,6 +144,7 @@ const std::vector<KeyBinding> DefaultBindings =
     KeyBinding(_("X"), false, _("TOGGLE_ELEMENT_EXPAND"), true, false, true),
     KeyBinding(_(""), false, _("SHOW_PRESETS")),
     KeyBinding(_("F10"), false, _("PRESETS_TOGGLE"), true),
+    KeyBinding(_("F12"), false, _("VALUECURVES_TOGGLE"), false, true),
     KeyBinding(_("F12"), false, _("FOCUS_SEQUENCER")),
     KeyBinding(_("F11"), false, _("SEARCH_TOGGLE"), true),
     KeyBinding(_("F12"), false, _("PERSPECTIVES_TOGGLE"), true),

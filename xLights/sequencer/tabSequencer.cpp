@@ -12,6 +12,7 @@
 #include "SequenceElements.h"
 #include "../TopEffectsPanel.h"
 #include "../EffectIconPanel.h"
+#include "../ValueCurvesPanel.h"
 #include "Element.h"
 #include "Effect.h"
 #include "../BufferPanel.h"
@@ -111,8 +112,11 @@ void xLightsFrame::CreateSequencer()
     logger_base.debug("        Perspective.");
     perspectivePanel = new PerspectivesPanel(PanelSequencer);
 
-    logger_base.debug("        Effect.");
+    logger_base.debug("        Effect Icons.");
     effectPalettePanel = new EffectIconPanel(effectManager, PanelSequencer);
+
+    logger_base.debug("        Value Curves.");
+    _valueCurvesPanel = new ValueCurvesPanel(PanelSequencer);
 
     logger_base.debug("        Jukebox.");
     jukeboxPanel = new JukeboxPanel(PanelSequencer);
@@ -144,6 +148,7 @@ void xLightsFrame::CreateSequencer()
         Left().Layer(1).Hide());
 
     m_mgr->AddPane(effectPalettePanel,wxAuiPaneInfo().Name(wxT("EffectDropper")).Caption(wxT("Effects")).Top().Layer(0).Hide());
+    m_mgr->AddPane(_valueCurvesPanel, wxAuiPaneInfo().Name(wxT("ValueCurveDropper")).Caption(wxT("Value Curves")).Top().Layer(0).Hide());
     m_mgr->AddPane(jukeboxPanel,wxAuiPaneInfo().Name(wxT("Jukebox")).Caption(wxT("Jukebox")).Top().Layer(0).Hide());
     m_mgr->AddPane(colorPanel,wxAuiPaneInfo().Name(wxT("Color")).Caption(wxT("Color")).Top().Layer(0));
     m_mgr->AddPane(timingPanel,wxAuiPaneInfo().Name(wxT("LayerTiming")).Caption(wxT("Layer Blending")).Top().Layer(0));
