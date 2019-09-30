@@ -26,7 +26,7 @@ class EffectLayer
         virtual ~EffectLayer();
 
         Effect *AddEffect(int id, const std::string &name, const std::string &settings, const std::string &palette,
-                          int startTimeMS, int endTimeMS, int Selected, bool Protected);
+                          int startTimeMS, int endTimeMS, int Selected, bool Protected, bool suppress_sort = false);
         Effect* GetEffect(int index) const;
         Effect* GetEffectByTime(int ms);
         Effect* GetEffectFromID(int id);
@@ -95,7 +95,7 @@ class EffectLayer
         void DeleteSelectedEffects(UndoManager& undo_mgr);
         void DeleteEffect(int id);
         void DeleteEffectByIndex(int idx);
-    static bool ShouldDeleteSelected(Effect *eff);
+        static bool ShouldDeleteSelected(Effect *eff);
         static bool SortEffectByStartTime(Effect* e1,Effect* e2);
         void UpdateAllSelectedEffects(const std::string& palette);
 
@@ -106,6 +106,7 @@ class EffectLayer
         bool IsFixedTimingLayer();
 
         void CleanupAfterRender();
+        void NumberEffects();
     protected:
     private:
         void SortEffects();

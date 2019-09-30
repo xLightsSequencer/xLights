@@ -193,18 +193,18 @@ Effect::Effect(EffectLayer* parent,int id, const std::string & name, const std::
     }
 
     // check for any other odd looking blank settings
-    for (auto it : mSettings)
-    {
-        if (it.second == "")
-        {
-            logger_base.warn("Effect '%s' on model '%s' at time '%s' has setting '%s' with a blank value.",
-                (const char *)name.c_str(),
-                (const char *)(parent->GetParentElement() == nullptr ? "" : parent->GetParentElement()->GetName().c_str()),
-                FORMATTIME(startTimeMS),
-                (const char *)it.first.c_str()
-                );
-        }
-    }
+    //for (auto it : mSettings)
+    //{
+    //    if (it.second == "")
+    //    {
+    //        logger_base.warn("Effect '%s' on model '%s' at time '%s' has setting '%s' with a blank value.",
+    //            (const char *)name.c_str(),
+    //            (const char *)(parent->GetParentElement() == nullptr ? "" : parent->GetParentElement()->GetName().c_str()),
+    //            FORMATTIME(startTimeMS),
+    //            (const char *)it.first.c_str()
+    //            );
+    //    }
+    //}
 
     if (mEndTime < mStartTime)
     {

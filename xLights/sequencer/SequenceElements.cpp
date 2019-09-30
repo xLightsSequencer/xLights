@@ -736,8 +736,12 @@ void SequenceElements::LoadEffects(EffectLayer *effectLayer,
                 effectName = effect->GetAttribute(STR_LABEL);
 
             }
-            effectLayer->AddEffect(id, effectName, settings,
-                palette == -1 ? STR_EMPTY : colorPalettes[palette],
+            std::string pal = STR_EMPTY;
+            if (palette != -1)
+            {
+                pal = colorPalettes[palette];
+            }
+            effectLayer->AddEffect(id, effectName, settings, pal,
                 startTime, endTime, EFFECT_NOT_SELECTED, bProtected);
         }
         else if (effect->GetName() == STR_NODE && effectLayerNode->GetName() == STR_STRAND) {
@@ -870,24 +874,30 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file, const wxStrin
                         }
                         if (interval > 0)
                         {
+                            if (interval != TimeLine::RoundToMultipleOfPeriod(interval, mFrequency))
+                            {
+                                int newinterval = TimeLine::RoundToMultipleOfPeriod(interval, mFrequency);
+                                if (newinterval == 0) newinterval = 1000/mFrequency;
+                                logger_base.warn("Timing interval of %dms not a multiple of frame time so changed to %dms.", interval, newinterval);
+                                interval = newinterval;
+                            }
                             dynamic_cast<TimingElement*>(element)->SetFixedTiming(interval);
                             EffectLayer* effectLayer = element->AddEffectLayer();
                             int time = 0;
-                            int end_time = xml_file.GetSequenceDurationMS();
-                            while (time <= end_time)
+                            int end_time = TimeLine::RoundToMultipleOfPeriod(xml_file.GetSequenceDurationMS(), mFrequency);
+                            while (time < end_time)
                             {
-                                int next_time = (time + interval <= end_time) ? time + interval : end_time;
-                                int startTime = TimeLine::RoundToMultipleOfPeriod(time, mFrequency);
-                                int endTime = TimeLine::RoundToMultipleOfPeriod(next_time, mFrequency);
-                                effectLayer->AddEffect(0, "", "", "", startTime, endTime, EFFECT_NOT_SELECTED, false);
+                                int startTime = time;
+                                int endTime = time + interval;
+                                effectLayer->AddEffect(0, "", "", "", startTime, endTime, EFFECT_NOT_SELECTED, false, true); // we can suppress sort because we know we are adding them in time order
                                 time += interval;
                             }
+                            effectLayer->NumberEffects();
                         }
                         else
                         {
                             for (wxXmlNode* effectLayerNode = elementNode->GetChildren(); effectLayerNode != nullptr; effectLayerNode = effectLayerNode->GetNext())
                             {
-
                                 EffectLayer* effectLayer = nullptr;
                                 if (effectLayerNode->GetName() == STR_EFFECTLAYER) {
                                     effectLayer = element->AddEffectLayer();

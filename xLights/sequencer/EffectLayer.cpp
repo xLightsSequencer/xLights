@@ -105,7 +105,7 @@ void EffectLayer::RemoveEffect(int index)
             IncrementChangeCount(e->GetStartTimeMS(), e->GetEndTimeMS());
             e->SetTimeToDelete();
             mEffectsToDelete.push_back(e);
-            SortEffects();
+            NumberEffects();
         }
     }
 }
@@ -121,7 +121,7 @@ void EffectLayer::DeleteEffect(int id)
             mEffects[i]->SetTimeToDelete();
             mEffectsToDelete.push_back(mEffects[i]);
             mEffects.erase(mEffects.begin() + i);
-            SortEffects();
+            NumberEffects();
             return;
         }
     }
@@ -146,7 +146,7 @@ void EffectLayer::RemoveAllEffects(UndoManager *undo_mgr)
 }
 
 Effect* EffectLayer::AddEffect(int id, const std::string &n, const std::string &settings, const std::string &palette,
-                               int startTimeMS, int endTimeMS, int Selected, bool Protected)
+                               int startTimeMS, int endTimeMS, int Selected, bool Protected, bool suppress_sort)
 {
     std::unique_lock<std::recursive_mutex> locker(lock);
     std::string name(n);
@@ -169,21 +169,30 @@ Effect* EffectLayer::AddEffect(int id, const std::string &n, const std::string &
 
     // KW - I am putting this here because in the past we have forgotten to prevent this and it has caused overlapping effects
     //      with this here debug runs a bit slower but any overlap will ASSERT but it wont impact release build
-    wxASSERT(!HasEffectsInTimeRange(startTimeMS, endTimeMS));
+    //wxASSERT(!HasEffectsInTimeRange(startTimeMS, endTimeMS));
 
     Effect *e = new Effect(this, id, name, settings, palette, startTimeMS, endTimeMS, Selected, Protected);
+    wxASSERT(e != nullptr);
     mEffects.push_back(e);
-    SortEffects();
+    if (!suppress_sort)
+    {
+        SortEffects();
+    }
     IncrementChangeCount(startTimeMS, endTimeMS);
     return e;
 }
 
-void EffectLayer::SortEffects()
+void EffectLayer::NumberEffects()
 {
-    std::sort(mEffects.begin(),mEffects.end(),SortEffectByStartTime);
     for (int x = 0; x < mEffects.size(); x++) {
         mEffects[x]->SetID(x);
     }
+}
+
+void EffectLayer::SortEffects()
+{
+    std::sort(mEffects.begin(), mEffects.end(), SortEffectByStartTime);
+    NumberEffects();
 }
 
 bool EffectLayer::IsStartTimeLinked(int index) const
