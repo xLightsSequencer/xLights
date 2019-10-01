@@ -2518,7 +2518,7 @@ void VUMeterEffect::RenderNoteOnFrame(RenderBuffer& buffer, int startNote, int e
     {
         int i = 0;
         float level = 0.0;
-        for (auto it : *pdata)
+        for (const auto& it : *pdata)
         {
             if (i > startNote && i <= endNote)
             {
@@ -2553,7 +2553,7 @@ void VUMeterEffect::RenderNoteLevelPulseFrame(RenderBuffer& buffer, int fadefram
     {
         int i = 0;
         float level = 0.0;
-        for (auto it : *pdata)
+        for (const auto& it : *pdata)
         {
             if (i > startNote && i <= endNote)
             {
@@ -2605,7 +2605,7 @@ void VUMeterEffect::RenderNoteLevelJumpFrame(RenderBuffer& buffer, int fadeframe
     {
         int i = 0;
         float level = 0.0;
-        for (auto it : *pdata)
+        for (const auto& it : *pdata)
         {
             if (i > startNote && i <= endNote)
             {
@@ -2796,7 +2796,7 @@ void VUMeterEffect::RenderNoteLevelBarFrame(RenderBuffer &buffer, int bars, int 
     {
         int i = 0;
         float level = 0.0;
-        for (auto it : *pdata)
+        for (const auto& it : *pdata)
         {
             if (i > startNote && i <= endNote)
             {

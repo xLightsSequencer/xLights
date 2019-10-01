@@ -655,8 +655,8 @@ void BufferPanel::UpdateBufferStyles(const Model* model)
     BufferStyleChoice->Clear();
     if (model != nullptr) {
         const std::vector<std::string> &types = model->GetBufferStyles();
-        for (auto it = types.begin(); it != types.end(); ++it) {
-            BufferStyleChoice->Append(*it);
+        for (const auto& it : types) {
+            BufferStyleChoice->Append(it);
         }
     }
     if (BufferStyleChoice->IsEmpty()) {
@@ -673,8 +673,8 @@ void BufferPanel::SetDefaultControls(const Model *model, bool optionbased) {
         BufferStyleChoice->Clear();
         if (model != nullptr) {
             const std::vector<std::string> &types = model->GetBufferStyles();
-            for (auto it = types.begin(); it != types.end(); ++it) {
-                BufferStyleChoice->Append(*it);
+            for (const auto& it : types) {
+                BufferStyleChoice->Append(it);
             }
         }
         if (BufferStyleChoice->IsEmpty()) {

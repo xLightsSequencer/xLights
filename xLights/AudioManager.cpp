@@ -63,28 +63,28 @@ void fill_audio(void *udata, Uint8 *stream, int len)
 
     auto media = __sdl.GetAudio();
 
-    for (auto it = media.begin(); it != media.end(); ++it)
+    for (const auto& it : media)
     {
-        if ((*it)->_audio_len == 0 || (*it)->_paused)		/*  Only  play  if  we  have  data  left and not paused */
+        if (it->_audio_len == 0 || it->_paused)		/*  Only  play  if  we  have  data  left and not paused */
         {
             // no data left
         }
         else
         {
-            len = (len > (*it)->_audio_len ? (*it)->_audio_len : len);	/*  Mix  as  much  data  as  possible  */
-            int volume = (*it)->_volume;
+            len = (len > it->_audio_len ? it->_audio_len : len);	/*  Mix  as  much  data  as  possible  */
+            int volume = it->_volume;
             if (__globalVolume != 100)
             {
                 volume = (volume * __globalVolume) / 100;
             }
 //#ifdef __WXMSW__
-            SDL_MixAudioFormat(stream, (*it)->_audio_pos, AUDIO_S16SYS, len, volume);
+            SDL_MixAudioFormat(stream, it->_audio_pos, AUDIO_S16SYS, len, volume);
 //#else
             // TODO we need to replace this on OSX/Linux
-//            SDL_MixAudio(stream, (*it)->_audio_pos, len, volume);
+//            SDL_MixAudio(stream, it->_audio_pos, len, volume);
 //#endif
-            (*it)->_audio_pos += len;
-            (*it)->_audio_len -= len;
+            it->_audio_pos += len;
+            it->_audio_len -= len;
         }
     }
 }
@@ -646,9 +646,9 @@ void SDL::Reopen()
 
     std::unique_lock<std::mutex> locker(_audio_Lock);
 
-    for (auto it = _audioData.begin(); it != _audioData.end(); ++it)
+    for (const auto& it : _audioData)
     {
-        (*it)->SavePos();
+        it->SavePos();
     }
 
     CloseAudioDevice();
@@ -659,9 +659,9 @@ void SDL::Reopen()
     }
     else
     {
-        for (auto it = _audioData.begin(); it != _audioData.end(); ++it)
+        for (const auto& it : _audioData)
         {
-            (*it)->RestorePos();
+            it->RestorePos();
         }
 
         if (oldstate == SDLSTATE::SDLPLAYING)
@@ -709,9 +709,9 @@ void SDL::SetVolume(int id, int volume)
 
 AudioData* SDL::GetData(int id)
 {
-    for (auto it = _audioData.begin(); it != _audioData.end(); ++it)
+    for (const auto& it : _audioData)
     {
-        if ((*it)->_id == id) return *it;
+        if (it->_id == id) return it;
     }
 
     return nullptr;
@@ -1395,9 +1395,9 @@ void AudioManager::DoPolyphonicTranscription(wxProgressDialog* dlg, AudioManager
                 {
                     long ms = i * _intervalMS;
                     std::string keys = "";
-                    for (auto it2 = _frameData[i][4].begin(); it2 != _frameData[i][4].end(); ++it2)
+                    for (const auto& it2 : _frameData[i][4])
                     {
-                        keys += " " + std::string(wxString::Format("%f", *it2).c_str());
+                        keys += " " + std::string(wxString::Format("%f", it2).c_str());
                     }
                     logger_pianodata.debug("%ld,%s", ms, (const char *)keys.c_str());
                 }
@@ -2656,7 +2656,7 @@ void AudioManager::GetLeftDataMinMax(long start, long end, float& minimum, float
     {
         // grab it from my cache if i have it
         float* data = nullptr;
-        for (auto it : _filtered)
+        for (const auto& it : _filtered)
         {
             if (it->lowNote == lowNote && it->highNote == highNote)
             {
@@ -2910,11 +2910,11 @@ std::list<std::string> xLightsVamp::GetAvailablePlugins(AudioManager* paudio)
 	// Load the plugins in case they have not already been loaded
 	LoadPlugins(paudio);
 
-	for (auto& it : _loadedPlugins)
+	for (const auto& it : _loadedPlugins)
 	{
 		Plugin::OutputList outputs = it->getOutputDescriptors();
 
-		for (auto& j : outputs)
+		for (const auto& j : outputs)
 		{
 			if (j.sampleType == Plugin::OutputDescriptor::FixedSampleRate ||
 				j.sampleType == Plugin::OutputDescriptor::OneSamplePerStep ||

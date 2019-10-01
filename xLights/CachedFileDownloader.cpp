@@ -138,11 +138,11 @@ void CachedFileDownloader::SaveCache()
         f.Write(lit.c_str(), lit.size());
 
         int i = 0;
-        for (auto it = _cacheItems.begin(); it != _cacheItems.end(); ++it)
+        for (const auto& it : _cacheItems)
         {
-            if ((*it)->ShouldSave())
+            if (it->ShouldSave())
             {
-                (*it)->Save(f);
+                it->Save(f);
                 i++;
             }
         }
@@ -202,11 +202,11 @@ void CachedFileDownloader::LoadCache()
 
 FileCacheItem* CachedFileDownloader::Find(wxURI url)
 {
-    for (auto it = _cacheItems.begin(); it != _cacheItems.end(); ++it)
+    for (const auto& it : _cacheItems)
     {
-        if (**it == url)
+        if (*it == url)
         {
-            return *it;
+            return it;
         }
     }
 
@@ -271,9 +271,9 @@ void CachedFileDownloader::ClearCache()
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     logger_base.debug("File Cache cleared.");
-    for (auto it=  _cacheItems.begin(); it != _cacheItems.end(); ++it)
+    for (const auto& it :  _cacheItems)
     {
-        (*it)->Delete();
+        it->Delete();
     }
 }
 
@@ -282,9 +282,9 @@ void CachedFileDownloader::PurgeAgedItems()
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     logger_base.debug("File Cache purging aged items.");
-    for (auto it=  _cacheItems.begin(); it != _cacheItems.end(); ++it)
+    for (const auto& it : _cacheItems)
     {
-        (*it)->PurgeIfAged();
+        it->PurgeIfAged();
     }
 }
 

@@ -587,7 +587,7 @@ bool xLightsFrame::CloseSequence()
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("Closing sequence.");
 
-    if (CurrentSeqXmlFile != nullptr && _autoSavePerspecive)
+    if (_autoSavePerspecive)
     {
         // save perspective on this machine so we can restore it next time
         wxConfigBase* config = wxConfigBase::Get();
@@ -1257,7 +1257,7 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
     std::vector<std::string> timingTrackNames;
     std::map<std::string, TimingElement*> timingTracks;
 
-    for (auto it : elements) {
+    for (const auto& it : elements) {
         Element *e = it;
         if (e->GetType() == ELEMENT_TYPE_MODEL)
         {
@@ -4028,7 +4028,7 @@ void MapS5(const EffectManager& effect_manager, int layer, EffectLayer* el, cons
     {
         auto effects = lorEdit.GetChannelEffects(model, 0, m, offset);
 
-        for (auto it : effects)
+        for (const auto& it : effects)
         {
             if (!el->HasEffectsInTimeRange(it.startMS, it.endMS))
             {
@@ -4047,7 +4047,7 @@ void MapS5(const EffectManager& effect_manager, int layer, EffectLayer* el, cons
         // pixel effects on a node ... not useful but whatever
         auto effects = lorEdit.GetTrackEffects(model, layer, offset);
 
-        for (auto it : effects)
+        for (const auto& it : effects)
         {
             if (!el->HasEffectsInTimeRange(it.startMS, it.endMS))
             {
@@ -4073,7 +4073,7 @@ void MapS5ChannelEffects(const EffectManager& effectManager, int node, EffectLay
     {
         auto effects = lorEdit.GetChannelEffects(mapping, node, m, offset);
 
-        for (auto it : effects)
+        for (const auto& it : effects)
         {
             if (!nl->HasEffectsInTimeRange(it.startMS, it.endMS))
             {
@@ -4092,7 +4092,7 @@ void MapS5ChannelEffects(const EffectManager& effectManager, int node, EffectLay
         // pixel effects on a node ... not useful but whatever
         auto effects = lorEdit.GetTrackEffects(mapping, 0, offset);
 
-        for (auto it : effects)
+        for (const auto& it : effects)
         {
             if (!nl->HasEffectsInTimeRange(it.startMS, it.endMS))
             {
@@ -4442,7 +4442,7 @@ void MapVixen3(const EffectManager& effect_manager, int i, EffectLayer* layer, c
 
     auto effects = vixen.GetEffects(model.ToStdString());
 
-    for (auto it : effects)
+    for (const auto& it : effects)
     {
         long s = Vixen3::ConvertTiming(it.start + offset, frameMS);
         long e = Vixen3::ConvertTiming(it.end + offset, frameMS);
@@ -4519,7 +4519,7 @@ AT THIS POINT IT JUST BRINGS IN THE EFFECTS. WE MAKE NO EFFORT TO GET THE SETTIN
     }
     std::sort(dlg.channelNames.begin(), dlg.channelNames.end(), stdlistNumberAwareStringCompare);
     auto timings = vixen.GetTimings();
-    for (auto it : timings)
+    for (const auto& it : timings)
     {
         dlg.timingTracks.push_back(it);
     }

@@ -162,7 +162,7 @@ wxArrayString Split(const wxString& s, const std::vector<char>& delimiters)
     wxArrayString res;
 
     wxString w;
-    for (auto it : s)
+    for (const auto& it : s)
     {
         bool delim = false;
         for (auto it2 : delimiters)

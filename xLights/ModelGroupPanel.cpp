@@ -229,7 +229,7 @@ bool canAddToGroup(ModelGroup *g, ModelManager &models, const std::string &model
         return false;
     }
 
-    for (auto it : modelGroupsInGroup) {
+    for (const auto& it : modelGroupsInGroup) {
         if (it == model) {
             return false;
         }
@@ -280,13 +280,13 @@ void ModelGroupPanel::UpdatePanel(const std::string group)
         wxXmlNode* e = g->GetModelXml();
         std::list<std::string> modelsInGroup;
         modelsInGroup.push_back(g->GetName());
-        for (auto& it : g->ModelNames()) {
+        for (const auto& it : g->ModelNames()) {
             ListBoxModelsInGroup->InsertItem(ListBoxModelsInGroup->GetItemCount(), it);
             modelsInGroup.push_back(it);
         }
 
         // dont allow any group that contains this group to be added as that would create a loop
-        for (auto& it : mModels) {
+        for (const auto& it : mModels) {
             if (std::find(modelsInGroup.begin(), modelsInGroup.end(), it.first) != modelsInGroup.end() || (it.second->GetDisplayAs() == "ModelGroup" && (it.first == group || dynamic_cast<ModelGroup*>(it.second)->ContainsModelGroup(g)))) {
                 // dont add this group
             }

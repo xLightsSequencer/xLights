@@ -2574,7 +2574,7 @@ void xLightsXmlFile::ProcessXLightsTiming(const wxString& dir, const wxArrayStri
 
 void xLightsXmlFile::AddMarksToLayer(const std::list<VixenTiming>& marks, EffectLayer* effectLayer, int frameMS) {
     int32_t last = 0;
-    for (auto it : marks)
+    for (const auto& it : marks)
     {
         int st = Vixen3::ConvertTiming(it.start, frameMS);
         int en = Vixen3::ConvertTiming(it.end, frameMS);

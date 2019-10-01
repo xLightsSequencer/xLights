@@ -153,7 +153,7 @@ class UDControllerPort
         UDVirtualString* GetVirtualString(int index) const
         {
             int i = 0;
-            for (auto it : _virtualStrings)
+            for (const auto& it : _virtualStrings)
             {
                 if (i == index) return it;
                 i++;

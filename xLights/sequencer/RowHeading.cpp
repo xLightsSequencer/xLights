@@ -612,7 +612,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
             }
             else
             {
-                for (auto it : plugins)
+                for (const auto& it : plugins)
                 {
                     dialog.Choice_New_Fixed_Timing->Append(it);
                 }

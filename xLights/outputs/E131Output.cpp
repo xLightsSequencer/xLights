@@ -583,7 +583,7 @@ void E131Output::AllOff()
     if (_fppProxyOutput) {
         _fppProxyOutput->AllOff();
     } if (IsOutputCollection()) {
-        for (auto& it : _outputs)
+        for (const auto& it : _outputs)
         {
             it->AllOff();
         }

@@ -520,7 +520,7 @@ void Model::AddProperties(wxPropertyGridInterface *grid, OutputManager* outputMa
     CONTROLLERS.clear();
     CONTROLLERS.Add("Use Start Channel");
 
-    for (auto it : outputManager->GetAutoLayoutControllerNames())
+    for (const auto& it : outputManager->GetAutoLayoutControllerNames())
     {
         if (GetControllerName() == it)
         {
@@ -714,7 +714,7 @@ void Model::AddControllerProperties(wxPropertyGridInterface *grid) {
     protocol.LowerCase();
     int idx = -1;
     int i = 0;
-    for (auto it : CONTROLLER_PROTOCOLS) {
+    for (const auto& it : CONTROLLER_PROTOCOLS) {
         if (protocol == it.Lower()) {
             idx = i;
             break;
@@ -4291,7 +4291,7 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
         // layer calculation and map to output
         size_t NodeCount = Nodes.size();
         int vcount = 0;
-        for (auto& it : Nodes) {
+        for (const auto& it : Nodes) {
             vcount += it.get()->Coords.size();
         }
         if (vcount > maxVertexCount) {
@@ -5007,7 +5007,7 @@ void Model::GetMinScreenXY(float& minx, float& miny) const
 
     minx = 99999999.0f;
     miny = 99999999.0f;
-    for (auto& it : Nodes)
+    for (const auto& it : Nodes)
     {
         for (auto it2 : it->Coords)
         {

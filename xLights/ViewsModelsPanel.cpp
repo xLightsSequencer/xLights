@@ -368,7 +368,7 @@ void ViewsModelsPanel::PopulateModels(const std::string& selectModels)
             {
                 _sequenceElements->AddMissingModelsToSequence(view->GetModelsString());
                 auto models = view->GetModels();
-                for (auto& it : models)
+                for (const auto& it : models)
                 {
                     Element* elem = _sequenceElements->GetElement(it);
                     AddModelToList(elem);
@@ -444,7 +444,7 @@ void ViewsModelsPanel::PopulateModels(const std::string& selectModels)
         {
             wxArrayString models = wxSplit(selectModels, ',');
 
-            for (auto& it : models)
+            for (const auto& it : models)
             {
                 SelectItem(ListCtrlModels, it.ToStdString(), 2, true);
             }

@@ -141,7 +141,7 @@ void StartChannelDialog::UpdateModels(Model* model)
     bool contains = false;
     bool exists = false;
 
-    for (auto it : _modelsPreview) {
+    for (const auto& it : _modelsPreview) {
         if (model != nullptr && it.first == model->GetName()) continue; // dont add ourselves
         if (it.first == selected) exists = true;
         if (CheckBox_FromThisPreviewOnly->GetValue())

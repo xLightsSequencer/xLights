@@ -34,11 +34,11 @@ std::vector<std::string> ControllerRegistry::GetControllerIds(bool sortByDescrip
     std::vector<std::string> keys;
     keys.reserve(controllers.size());
     if (sortByDescription) {
-        for (auto &c : controllersByDescription) {
+        for (const auto &c : controllersByDescription) {
             keys.push_back(c.second);
         }
     } else {
-        for (auto &c : controllers) {
+        for (const auto &c : controllers) {
             keys.push_back(c.first);
         }
     }

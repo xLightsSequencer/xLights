@@ -298,7 +298,7 @@ bool ImportPreviewsModelsDialog::ModelExists(const std::string& modelName) const
 
 bool ImportPreviewsModelsDialog::LayoutExists(const std::string& layoutName) const
 {
-    for (auto it : _layoutGroups)
+    for (const auto& it : _layoutGroups)
     {
         if (it->GetName() == layoutName) return true;
     }

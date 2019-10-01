@@ -347,7 +347,7 @@ void FireworksPanel::SetTimingTracks(wxCommandEvent& event)
     for (size_t i = 0; i < Choice_TimingTrack->GetCount(); i++)
     {
         bool found = false;
-        for (auto& it : timingtracks)
+        for (const auto& it : timingtracks)
         {
             if (it == Choice_TimingTrack->GetString(i))
             {
@@ -364,7 +364,7 @@ void FireworksPanel::SetTimingTracks(wxCommandEvent& event)
     }
 
     // add any new timing tracks
-    for (auto& it : timingtracks)
+    for (const auto& it : timingtracks)
     {
         bool found = false;
         for (size_t i = 0; i < Choice_TimingTrack->GetCount(); i++)

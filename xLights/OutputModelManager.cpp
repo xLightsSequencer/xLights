@@ -10,7 +10,7 @@ void OutputModelManager::Dump(const std::string& type, const std::list<std::pair
     static log4cpp::Category& logger_work = log4cpp::Category::getInstance(std::string("log_work"));
 
     logger_work.debug("    Dump explaining how we got here : %s", (const char*)type.c_str());
-    for (auto it : source)
+    for (const auto& it : source)
     {
         logger_work.debug("          0x%04x  %s  %s", it.first, (const char*)DecodeWork(it.first).c_str(), (const char*)it.second.c_str());
     }

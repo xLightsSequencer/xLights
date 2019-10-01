@@ -244,7 +244,7 @@ std::string RenderableEffect::GetEffectString() {
 
 bool RenderableEffect::SupportsRenderCache(const SettingsMap& settings) const
 {
-    for (auto it : settings)
+    for (const auto& it : settings)
     {
         // we want to cache blur because of compute cost
         if (Contains(it.first, "SLIDER_Blur") ||

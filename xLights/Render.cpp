@@ -936,7 +936,7 @@ void xLightsFrame::LogRenderStatus()
     logger_base.debug("Logging render status ***************");
     logger_base.debug("Render tree size. %d entries.", renderTree.data.size());
     logger_base.debug("Render Thread status:\n%s", (const char *)GetThreadStatusReport().c_str());
-    for (auto it : renderProgressInfo) {
+    for (const auto& it : renderProgressInfo) {
         int frames = it->endFrame - it->startFrame + 1;
         logger_base.debug("Render progress rows %d, start frame %d, end frame %d, frames %d.", it->numRows, it->startFrame, it->endFrame, frames);
         for (int i = 0; i < it->numRows; i++) {
@@ -1930,6 +1930,14 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
                     //queue and thus effectively blocking.   We'll yield periodically to
                     //allow the main thread to hopefully continue
                     wxThread::Yield();
+
+                    // After yield who knows what may or may not be valid so we need to revalidate it
+                    if (!mSequenceElements.IsValidEffect(event->effect))
+                    {
+                        logger_base.error("In RenderEffectFromMap after Yield() call checked the effect was still valid ... and it isnt ... this would likely have crashed.");
+                        wxASSERT(false);
+                        break; // exit the for loop
+                    }
                 }
             }
         }

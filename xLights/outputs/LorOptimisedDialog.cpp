@@ -244,7 +244,7 @@ void LorOptimisedDialog::EditSelected()
     int id = ListView_Controllers->GetItemData(ListView_Controllers->GetFirstSelected());
     LorController* e = nullptr;
     int old_unit_id = 1;
-    for (auto& it : *_lorControllers->GetControllers())
+    for (const auto& it : *_lorControllers->GetControllers())
     {
         if (it->GetUnitId() == id)
         {

@@ -70,7 +70,7 @@ void StateEffect::SetPanelStatus(Model *cls) {
     fp->Choice_State_TimingTrack->Clear();
     fp->Choice_StateDefinitonChoice->Clear();
 
-    for (auto& it : wxSplit(GetTimingTracks(1), '|'))
+    for (const auto& it : wxSplit(GetTimingTracks(1), '|'))
     {
         fp->Choice_State_TimingTrack->Append(it);
     }
@@ -81,7 +81,7 @@ void StateEffect::SetPanelStatus(Model *cls) {
     }
 
     if (cls != nullptr) {
-        for (auto& it : cls->stateInfo) {
+        for (const auto& it : cls->stateInfo) {
             if (it.second.size() > 30) // actually it should be about 120
             {
                 fp->Choice_StateDefinitonChoice->Append(it.first);
@@ -102,11 +102,11 @@ std::list<std::string> StateEffect::GetStates(Model *cls, std::string model) {
     std::list<std::string> res;
 
     if (cls != nullptr) {
-        for (auto& it : cls->stateInfo)
+        for (const auto& it : cls->stateInfo)
         {
             if (model == it.first)
             {
-                for (auto& it2 : it.second)
+                for (const auto& it2 : it.second)
                 {
                     wxString f(it2.first);
                     if (f.EndsWith("-Name") && it2.second != "")

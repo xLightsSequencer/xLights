@@ -279,7 +279,7 @@ void ControllerVisualiseDialog::RenderDiagram(wxDC& dc, int scale, bool addHeade
             {
                 colPos = (LEFT_RIGHT_MARGIN * scale) + (HORIZONTAL_SIZE * scale) + (HORIZONTAL_GAP * scale);
 
-                for (auto it : _cud.GetControllerPixelPort(i)->GetVirtualString(j)->_models)
+                for (const auto& it : _cud.GetControllerPixelPort(i)->GetVirtualString(j)->_models)
                 {
                     switch (it->GetSmartRemote())
                     {
@@ -320,7 +320,7 @@ void ControllerVisualiseDialog::RenderDiagram(wxDC& dc, int scale, bool addHeade
         dc.DrawText(wxString::Format("Channels: %d", _cud.GetControllerSerialPort(i)->Channels()), colPos + 2, rowPos + 2 + (VERTICAL_SIZE * scale) / 2);
         colPos += (HORIZONTAL_SIZE * scale) + (HORIZONTAL_GAP * scale);
 
-        for (auto it : _cud.GetControllerSerialPort(i)->GetModels())
+        for (const auto& it : _cud.GetControllerSerialPort(i)->GetModels())
         {
             dc.SetPen(*wxGREY_PEN);
             dc.DrawRectangle(colPos, rowPos, (HORIZONTAL_SIZE * scale), (VERTICAL_SIZE * scale));
@@ -350,7 +350,7 @@ void ControllerVisualiseDialog::SaveCSV()
 		if (columnSize < _cud.GetControllerPixelPort(i)->GetModels().size())
 			columnSize = _cud.GetControllerPixelPort(i)->GetModels().size();
 
-		for (auto it : _cud.GetControllerPixelPort(i)->GetModels())
+		for (const auto& it : _cud.GetControllerPixelPort(i)->GetModels())
 		{
 			if (it->GetSmartRemote() > 0)
 			{
@@ -373,7 +373,7 @@ void ControllerVisualiseDialog::SaveCSV()
 			columnSize = _cud.GetControllerSerialPort(i)->GetModels().size();
 
 		wxString line = wxString::Format("Serial Port %d,", i);
-		for (auto it : _cud.GetControllerSerialPort(i)->GetModels())
+		for (const auto& it : _cud.GetControllerSerialPort(i)->GetModels())
 		{
 			line += it->GetName();
 			line += ",";

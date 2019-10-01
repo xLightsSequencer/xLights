@@ -2175,7 +2175,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
         }
     }
 
-    _valueCurvesPanel->UpdateValueCurveButtons();
+    _valueCurvesPanel->UpdateValueCurveButtons(false);
 
     MixTypeChanged=true;
 
@@ -2427,7 +2427,7 @@ void xLightsFrame::LogPerspective(const wxString & perspective) const
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxArrayString entries = wxSplit(perspective, '|');
-    for (auto it : entries)
+    for (const auto& it : entries)
     {
         logger_base.debug("    %s", (const char *)it.c_str());
     }
@@ -4746,7 +4746,7 @@ void xLightsFrame::ExportModels(wxString filename)
     f.Write("\n");
 
     f.Write(_outputManager.GetExportHeader() + "\n");
-    for (auto it : _outputManager.GetAllOutputs())
+    for (const auto& it : _outputManager.GetAllOutputs())
     {
         f.Write(it->GetExport() + "\n");
     }
@@ -4974,7 +4974,7 @@ void xLightsFrame::CheckSequence(bool display)
 
     LogAndWrite(f, "");
     LogAndWrite(f, "IP Addresses on this machine:");
-    for (auto it : GetLocalIPs())
+    for (const auto& it : GetLocalIPs())
     {
         LogAndWrite(f, wxString::Format("    %s", it));
     }
@@ -5214,7 +5214,7 @@ void xLightsFrame::CheckSequence(bool display)
         }
 
         // Apply the vendor specific validations
-        for (auto it : zcppOutputs)
+        for (const auto& it : zcppOutputs)
         {
             wxString msg = wxString::Format("        Applying controller rules for %s:%s", it->GetIP(), it->GetDescription());
             LogAndWrite(f, msg.ToStdString());
@@ -5539,7 +5539,7 @@ void xLightsFrame::CheckSequence(bool display)
         }
     }
 
-    for (auto it : AllModels)
+    for (const auto& it : AllModels)
     {
         if (it.second->GetDisplayAs() != "ModelGroup")
         {
@@ -5667,7 +5667,7 @@ void xLightsFrame::CheckSequence(bool display)
     std::map<std::string, std::list<Model*>*> modelsByPort;
 
     // Check for non contiguous models on the same controller connection
-    for (auto it : AllModels)
+    for (const auto& it : AllModels)
     {
         if (it.second->GetDisplayAs() != "ModelGroup")
         {
@@ -5695,7 +5695,7 @@ void xLightsFrame::CheckSequence(bool display)
         }
     }
 
-    for (auto it : modelsByPort)
+    for (auto& it : modelsByPort)
     {
         if (it.second->size() == 1 || Contains(it.first, "serial"))
         {
@@ -5784,7 +5784,7 @@ void xLightsFrame::CheckSequence(bool display)
     LogAndWrite(f, "");
     LogAndWrite(f, "Models with issues");
 
-    for (auto it : AllModels)
+    for (const auto& it : AllModels)
     {
         std::list<std::string> warnings = it.second->CheckModelSettings();
         for (auto s = warnings.begin(); s != warnings.end(); ++s)
@@ -5801,7 +5801,7 @@ void xLightsFrame::CheckSequence(bool display)
         }
     }
 
-    for (auto it : AllObjects)
+    for (const auto& it : AllObjects)
     {
         std::list<std::string> warnings = it.second->CheckModelSettings();
         for (auto s = warnings.begin(); s != warnings.end(); ++s)
@@ -5828,7 +5828,7 @@ void xLightsFrame::CheckSequence(bool display)
     LogAndWrite(f, "");
     LogAndWrite(f, "Model Groups containing models from different previews");
 
-    for (auto it : AllModels)
+    for (const auto& it : AllModels)
     {
         if (it.second->GetDisplayAs() == "ModelGroup")
         {
@@ -5904,7 +5904,7 @@ void xLightsFrame::CheckSequence(bool display)
 
     std::list<std::string> emptyModelGroups;
 
-    for (auto it : AllModels)
+    for (const auto& it : AllModels)
     {
         if (it.second->GetDisplayAs() == "ModelGroup")
         {
@@ -6197,7 +6197,7 @@ void xLightsFrame::CheckSequence(bool display)
             wxArrayString modelnames = wxSplit(models, ',');
 
             std::list<std::string> seenmodels;
-            for (auto it : modelnames)
+            for (const auto& it : modelnames)
             {
                 Model* m = AllModels.GetModel(it.ToStdString());
                 if (m == nullptr)
@@ -6322,21 +6322,21 @@ void xLightsFrame::CheckSequence(bool display)
         LogAndWrite(f, "If you are planning on importing this sequence be aware the sequence relies on the following items that will not be imported.");
         LogAndWrite(f, "");
         LogAndWrite(f, "Model Faces used by this sequence:");
-        for (auto it : faces)
+        for (const auto& it : faces)
         {
             wxString msg = wxString::Format("        Model: %s, Face: %s.", it.first, it.second);
             LogAndWrite(f, msg.ToStdString());
         }
         LogAndWrite(f, "");
         LogAndWrite(f, "Model States used by this sequence:");
-        for (auto it : states)
+        for (const auto& it : states)
         {
             wxString msg = wxString::Format("        Model: %s, State: %s.", it.first, it.second);
             LogAndWrite(f, msg.ToStdString());
         }
         LogAndWrite(f, "");
         LogAndWrite(f, "View Points used by this sequence:");
-        for (auto it : viewPoints)
+        for (const auto& it : viewPoints)
         {
             wxString msg = wxString::Format("        Viewpoint: %s.", it);
             LogAndWrite(f, msg.ToStdString());
@@ -6362,7 +6362,7 @@ void xLightsFrame::CheckSequence(bool display)
     {
         wxString msg = wxString::Format("    WARN: Test of access speed to files your sequence shows the following files take longer than the recommended %dms.", SLOWDRIVE / 1000);
         LogAndWrite(f, msg.ToStdString());
-        for (auto it : slowaccess)
+        for (const auto& it : slowaccess)
         {
             msg = wxString::Format("    %.2fms  %s.", (float)((double)it.second / 1000.0), (const char*)it.first.c_str());
             LogAndWrite(f, msg);
@@ -6388,7 +6388,7 @@ void xLightsFrame::CheckSequence(bool display)
     if (sd2.Length() > 0 && sd2.Length() < showdir.Length()) showdir = sd2;
     if (sd3.Length() > 0 && sd3.Length() < showdir.Length()) showdir = sd3;
 
-    for (auto it : allfiles)
+    for (const auto& it : allfiles)
     {
         wxString ff = FixFile(showDirectory, it);
         if (ff.StartsWith(showDirectory)) // only check files in show folder
@@ -6480,7 +6480,7 @@ void xLightsFrame::CheckEffect(Effect* ef, wxFile& f, int& errcount, int& warnco
     // check we are not doing sub-buffers on Per Model* buffer styles
     bool isPerModel = false;
     bool isSubBuffer = false;
-    for (auto it : sm)
+    for (const auto& it : sm)
     {
         isPerModel |= (it.first == "B_CHOICE_BufferStyle" && StartsWith(it.second, "Per Model"));
         isSubBuffer |= (it.first == "B_CUSTOM_SubBuffer");
@@ -6581,7 +6581,7 @@ void xLightsFrame::CheckEffect(Effect* ef, wxFile& f, int& errcount, int& warnco
 
         if (ef->GetEffectName() == "Faces")
         {
-            for (auto it : static_cast<FacesEffect*>(re)->GetFacesUsed(sm))
+            for (const auto& it : static_cast<FacesEffect*>(re)->GetFacesUsed(sm))
             {
                 bool found = false;
                 for (auto it2 : faces)
@@ -6599,7 +6599,7 @@ void xLightsFrame::CheckEffect(Effect* ef, wxFile& f, int& errcount, int& warnco
         }
         else if (ef->GetEffectName() == "State")
         {
-            for (auto it : static_cast<StateEffect*>(re)->GetStatesUsed(sm))
+            for (const auto& it : static_cast<StateEffect*>(re)->GetStatesUsed(sm))
             {
                 bool found = false;
                 for (auto it2 : states)
@@ -6616,7 +6616,7 @@ void xLightsFrame::CheckEffect(Effect* ef, wxFile& f, int& errcount, int& warnco
             }
         }
 
-        for (auto it : sm)
+        for (const auto& it : sm)
         {
             if (it.first == "B_CHOICE_PerPreviewCamera")
             {
@@ -9179,7 +9179,7 @@ uint64_t xLightsFrame::BadDriveAccess(const std::list<std::string>& files, std::
 
     std::list<std::string> folders;
     std::list<std::string> checkfiles;
-    for (auto it : files)
+    for (const auto& it : files)
     {
         wxFileName fn(it);
         if (std::find(begin(folders), end(folders), fn.GetPath()) == end(folders))
@@ -9189,7 +9189,7 @@ uint64_t xLightsFrame::BadDriveAccess(const std::list<std::string>& files, std::
         }
     }
 
-    for (auto it : checkfiles)
+    for (const auto& it : checkfiles)
     {
         uint8_t b[8192];
         wxStopWatch sw;
@@ -10149,7 +10149,7 @@ void xLightsFrame::OnMenuItem_PrepareAudioSelected(wxCommandEvent& event)
         // load the audio files
         std::map<std::string, AudioManager*> sourceSongs;
         double outputLength = 0;
-        for (auto it : edits)
+        for (const auto& it : edits)
         {
             outputLength = std::max(outputLength, it.start + it.length);
 
@@ -10174,7 +10174,7 @@ void xLightsFrame::OnMenuItem_PrepareAudioSelected(wxCommandEvent& event)
         bool ok = true;
 
         long outputRate = -1;
-        for (auto it : sourceSongs)
+        for (const auto& it : sourceSongs)
         {
             if (it.second != nullptr)
             {
@@ -10209,7 +10209,7 @@ void xLightsFrame::OnMenuItem_PrepareAudioSelected(wxCommandEvent& event)
             std::vector<float> left(totalSamples);
             std::vector<float> right(totalSamples);
 
-            for (auto it : edits)
+            for (const auto& it : edits)
             {
                 auto audio = sourceSongs[it.file];
                 if (audio != nullptr)
@@ -10352,7 +10352,7 @@ void xLightsFrame::OnMenuItem_PrepareAudioSelected(wxCommandEvent& event)
             SetStatusText("Audio file creation failed.");
         }
 
-        for (auto it : sourceSongs)
+        for (const auto& it : sourceSongs)
         {
             delete it.second;
         }

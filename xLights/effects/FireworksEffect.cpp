@@ -182,7 +182,7 @@ public:
 
     bool AllGone() const
     {
-        for (auto it : _particles)
+        for (const auto& it : _particles)
         {
             if (!it.Done()) return false;
         }
@@ -462,7 +462,7 @@ void FireworksEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuf
 
     if (!useTiming && !useMusic && firePeriods.size() > 0)
     {
-        for (auto it : firePeriods)
+        for (const auto& it : firePeriods)
         {
             if (it == buffer.curPeriod)
             {

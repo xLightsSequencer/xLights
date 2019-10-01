@@ -446,7 +446,7 @@ void PixelBufferClass::reset(int nlayers, int timing, bool isNode)
 }
 
 void PixelBufferClass::InitPerModelBuffers(const ModelGroup &model, int layer, int timing) {
-    for (auto it : model.Models()) {
+    for (const auto& it : model.Models()) {
         Model *m = it;
         wxASSERT(m != nullptr);
         RenderBuffer* buf = new RenderBuffer(frame);
@@ -1986,7 +1986,7 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
             inf->usingModelBuffers = true;
             const ModelGroup *gp = dynamic_cast<const ModelGroup*>(model);
             int cnt = 0;
-            for (auto& it : inf->modelBuffers) {
+            for (const auto& it : inf->modelBuffers) {
                 std::string ntype = type.substr(10, type.length() - 10);
                 int bw, bh;
                 it->Nodes.clear();
@@ -2023,18 +2023,33 @@ int PixelBufferClass::BufferCountForLayer(int layer)
 }
 
 void PixelBufferClass::MergeBuffersForLayer(int layer) {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (layers[layer]->usingModelBuffers) {
         //get all the data
         xlColor color;
         int nc = 0;
         for (const auto& modelBuffer : layers[layer]->modelBuffers) {
             for (const auto& node : modelBuffer->Nodes) {
-                wxASSERT(nc < layers[layer]->buffer.Nodes.size());
-                modelBuffer->GetPixel(node->Coords[0].bufX, node->Coords[0].bufY, color);
-                for (const auto& coord : layers[layer]->buffer.Nodes[nc]->Coords) {
-                    layers[layer]->buffer.SetPixel(coord.bufX, coord.bufY, color);
+                if (nc < layers[layer]->buffer.Nodes.size())
+                {
+                    modelBuffer->GetPixel(node->Coords[0].bufX, node->Coords[0].bufY, color);
+                    for (const auto& coord : layers[layer]->buffer.Nodes[nc]->Coords) {
+                        layers[layer]->buffer.SetPixel(coord.bufX, coord.bufY, color);
+                    }
+                    nc++;
                 }
-                nc++;
+                else
+                {
+                    // I really dont know why this happens but i have seen it with per model default model groups
+                    if (layers[layer]->buffer.curPeriod == layers[layer]->buffer.curEffStartPer)
+                    {
+                        wxASSERT(false);
+                        logger_base.error("PixelBufferClass::MergeBuffersForLayer(%d) nc %d >= layers[%d]->buffer.Nodes.size() %d. Model '%s' Transform '%s' Type '%s' Camera '%s' Layers %d.",
+                            layer, nc, layer, (int)layers[layer]->buffer.Nodes.size(),
+                            (const char*)modelName.c_str(), (const char*)layers[0]->bufferTransform.c_str(), (const char*)layers[0]->bufferType.c_str(),
+                            (const char*)layers[0]->camera.c_str(), numLayers);
+                    }
+                }
             }
         }
     }
@@ -2060,7 +2075,7 @@ void PixelBufferClass::SetTimes(int layer, int startTime, int endTime)
 {
     layers[layer]->buffer.SetEffectDuration(startTime, endTime);
     if (layers[layer]->usingModelBuffers) {
-        for (auto& it : layers[layer]->modelBuffers)  {
+        for (const auto& it : layers[layer]->modelBuffers)  {
             it->SetEffectDuration(startTime, endTime);
         }
     }

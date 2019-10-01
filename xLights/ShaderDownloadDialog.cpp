@@ -321,7 +321,7 @@ bool ShaderDownloadDialog::LoadTree(wxProgressDialog* prog, int low, int high)
     TreeCtrl_Navigator->Freeze();
     TreeCtrl_Navigator->DeleteAllItems();
     wxTreeItemId root = TreeCtrl_Navigator->AddRoot("Shaders");
-    for (auto it : _shaders)
+    for (const auto& it : _shaders)
     {
         TreeCtrl_Navigator->AppendItem(root, it->_name, -1, -1, new ShaderTreeItemData(it));
     }
@@ -348,7 +348,7 @@ ShaderDownloadDialog::~ShaderDownloadDialog()
 
     _cache.Save();
 
-    for (auto it : _shaders)
+    for (const auto& it : _shaders)
     {
         delete it;
     }

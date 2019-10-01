@@ -981,7 +981,7 @@ void CustomModelDialog::OnCheckBox_RearViewClick(wxCommandEvent& event)
                 vals.push_front(grid->GetCellValue(r, c));
             }
             auto c = 0;
-            for (auto it : vals)
+            for (const auto& it : vals)
             {
                 grid->SetCellValue(r, c++, it);
             }
@@ -1036,7 +1036,7 @@ void CustomModelDialog::FlipHorizontal()
                 vals.push_front(grid->GetCellValue(r, c));
             }
             auto c = 0;
-            for (auto it : vals)
+            for (const auto& it : vals)
             {
                 grid->SetCellValue(r, c++, it);
             }
@@ -1062,7 +1062,7 @@ void CustomModelDialog::FlipVertical()
                 vals.push_front(grid->GetCellValue(r, c));
             }
             auto r = 0;
-            for (auto it : vals)
+            for (const auto& it : vals)
             {
                 grid->SetCellValue(r++, c, it);
             }
@@ -1206,7 +1206,7 @@ void CustomModelDialog::Rotate()
 
             // save the current grid
             int g = 0;
-            for (auto& grid : _grids)
+            for (const auto& grid : _grids)
             {
                 for (int x = 0; x < grid->GetNumberCols(); x++)
                 {

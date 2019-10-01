@@ -1446,6 +1446,8 @@ void ValueCurveDialog::OnButtonExportClick(wxCommandEvent& event)
     _vcp->ClearUndo();
 
     PopulatePresets();
+
+    _exported = true;
 }
 
 void ValueCurveDialog::ProcessPresetDir(wxDir& directory, bool subdirs)
@@ -1462,7 +1464,7 @@ void ValueCurveDialog::ProcessPresetDir(wxDir& directory, bool subdirs)
     {
         wxFileName fn(directory.GetNameWithSep() + filename);
         bool found = false;
-        for (auto it : existing)
+        for (const auto& it : existing)
         {
             if (it->GetWindow()->GetLabel() == fn.GetFullPath())
             {

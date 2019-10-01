@@ -123,7 +123,7 @@ int StarModel::GetNumStrands() const {
 bool StarModel::AllNodesAllocated() const 
 {
     int allocated = 0;
-    for (auto it : starSizes)
+    for (const auto& it : starSizes)
     {
         allocated += it;
     }

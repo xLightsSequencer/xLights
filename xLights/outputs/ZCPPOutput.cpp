@@ -213,7 +213,7 @@ void ZCPPOutput::ExtractUsedChannelsFromModelData()
 
     _usedChannels = 1;
 
-    for (auto it : _modelData)
+    for (const auto& it : _modelData)
     {
         int ports = it->Configuration.ports;
         wxASSERT(ports <= ZCPP_CONFIG_MAX_PORT_PER_PACKET);
@@ -353,12 +353,12 @@ bool ZCPPOutput::SetModelData(std::list<ZCPP_packet_t*> modelData, std::list<ZCP
     }
 
     // and replace it with our new data
-    for (auto it : modelData)
+    for (const auto& it : modelData)
     {
         _modelData.push_back(it);
     }
 
-    for (auto it : extraConfig)
+    for (const auto& it : extraConfig)
     {
         _extraConfig.push_back(it);
     }
@@ -379,7 +379,7 @@ bool ZCPPOutput::SetModelData(std::list<ZCPP_packet_t*> modelData, std::list<ZCP
     {
         zf.Write(ZCPP_token, sizeof(ZCPP_token));
         
-        for (auto it : _modelData)
+        for (const auto& it : _modelData)
         {
             wxASSERT(it->Configuration.ports <= ZCPP_CONFIG_MAX_PORT_PER_PACKET);
             uint8_t type = 0x00;
@@ -393,7 +393,7 @@ bool ZCPPOutput::SetModelData(std::list<ZCPP_packet_t*> modelData, std::list<ZCP
             zf.Write(it, sizeof(ZCPP_packet_t));
         }
 
-        for (auto it : _extraConfig)
+        for (const auto& it : _extraConfig)
         {
             uint8_t type = 0x01;
             zf.Write(&type, sizeof(type));
@@ -424,7 +424,7 @@ void ZCPPOutput::DeserialiseProtocols(const std::string& protocols)
 {
     auto ps = wxSplit(protocols, '|');
 
-    for (auto it : ps)
+    for (const auto& it : ps)
     {
         AddProtocol(it);
     }
@@ -433,7 +433,7 @@ void ZCPPOutput::DeserialiseProtocols(const std::string& protocols)
 std::string ZCPPOutput::SerialiseProtocols()
 {
     std::string res;
-    for (auto it : _protocols)
+    for (const auto& it : _protocols)
     {
         if (res != "") res += "|";
         res += it;

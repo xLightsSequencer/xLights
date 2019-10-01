@@ -21,7 +21,7 @@ UDController::UDController(const std::string &ip, const std::string &hostname, M
     // get the list of outputs going to this controller
     _outputs = om->GetAllOutputs(_ipAddress, _hostName, *selected);
 
-    for (auto ito : _outputs)
+    for (const auto& ito : _outputs)
     {
         // this universe is sent to the falcon
 
@@ -87,10 +87,10 @@ UDController::UDController(const std::string &ip, const std::string &hostname, M
         }
     }
 
-    for (auto it : _noConnectionModels)
+    for (const auto& it : _noConnectionModels)
     {
         bool ok = false;
-        for (auto& p : _pixelPorts)
+        for (const auto& p : _pixelPorts)
         {
             if (p.second->GetStartChannel() <= it->GetFirstChannel()+1 &&
                 p.second->GetEndChannel() >= it->GetLastChannel()+1)
@@ -239,7 +239,7 @@ bool UDController::Check(const ControllerRules* rules, std::string& res)
     }
     else
     {
-        for (auto& it : _pixelPorts)
+        for (const auto& it : _pixelPorts)
         {
             if (rules->SupportsVirtualStrings())
             {
@@ -259,7 +259,7 @@ bool UDController::Check(const ControllerRules* rules, std::string& res)
     if (!rules->SupportsMultipleInputProtocols())
     {
         std::string protocol = "";
-        for (auto o : _outputs)
+        for (const auto& o : _outputs)
         {
             if (protocol == "")
             {
@@ -279,7 +279,7 @@ bool UDController::Check(const ControllerRules* rules, std::string& res)
     if (!rules->SupportsMultipleProtocols())
     {
         std::string protocol;
-        for (auto it : _pixelPorts)
+        for (const auto& it : _pixelPorts)
         {
             if (protocol == "") protocol = it.second->GetProtocol();
 
@@ -305,9 +305,9 @@ bool UDController::Check(const ControllerRules* rules, std::string& res)
 
     if (!rules->SupportsSmartRemotes())
     {
-        for (auto it : _pixelPorts)
+        for (const auto& it : _pixelPorts)
         {
-            for (auto it2: it.second->GetModels())
+            for (const auto& it2 : it.second->GetModels())
             {
                 if (it2->GetSmartRemote() != 0)
                 {
@@ -320,11 +320,11 @@ bool UDController::Check(const ControllerRules* rules, std::string& res)
     }
     else
     {
-        for (auto it : _pixelPorts)
+        for (const auto& it : _pixelPorts)
         {
             int countNoSmart = 0;
             int countSmart = 0;
-            for (auto it2 : it.second->GetModels())
+            for (const auto& it2 : it.second->GetModels())
             {
                 if (it2->GetSmartRemote() == 0)
                 {
@@ -347,7 +347,7 @@ bool UDController::Check(const ControllerRules* rules, std::string& res)
     if (rules->AllUniversesSameSize())
     {
         int size = -1;
-        for (auto it : _outputs)
+        for (const auto& it : _outputs)
         {
             if (size == -1) size = it->GetChannels();
             if (size != it->GetChannels())
@@ -362,7 +362,7 @@ bool UDController::Check(const ControllerRules* rules, std::string& res)
     {
         int seq = -1;
 
-        for (auto it : _outputs)
+        for (const auto& it : _outputs)
         {
             if (seq == -1) seq = it->GetUniverse() - 1;
             if (seq + 1 != it->GetUniverse())
@@ -377,7 +377,7 @@ bool UDController::Check(const ControllerRules* rules, std::string& res)
     auto inputprotocols = rules->GetSupportedInputProtocols();
     if (inputprotocols.size() > 0)
     {
-        for (auto it : _outputs)
+        for (const auto& it : _outputs)
         {
             if (std::find(inputprotocols.begin(), inputprotocols.end(), it->GetType()) == inputprotocols.end())
             {
@@ -394,7 +394,7 @@ bool UDController::Check(const ControllerRules* rules, std::string& res)
     }
     else
     {
-        for (auto it : _serialPorts)
+        for (const auto& it : _serialPorts)
         {
             success &= it.second->Check(this, false, rules, _outputs, res);
 
@@ -418,7 +418,7 @@ Output* UDController::GetFirstOutput() const
 
 bool UDController::HasPixelPort(int port) const
 {
-    for (auto it : _pixelPorts)
+    for (const auto& it : _pixelPorts)
     {
         if (it.second->GetPort() == port)
         {
@@ -430,7 +430,7 @@ bool UDController::HasPixelPort(int port) const
 
 bool UDController::ModelProcessed(Model* m)
 {
-    for (auto it : _pixelPorts)
+    for (const auto& it : _pixelPorts)
     {
         if (it.second->ContainsModel(m))
         {
@@ -438,7 +438,7 @@ bool UDController::ModelProcessed(Model* m)
         }
     }
 
-    for (auto it : _serialPorts)
+    for (const auto& it : _serialPorts)
     {
         if (it.second->ContainsModel(m))
         {
@@ -567,7 +567,7 @@ bool UDControllerPortModel::ChannelsOnOutputs(std::list<Output*>& outputs) const
 
     while (lastChecked < _endChannel)
     {
-        for (auto it : outputs)
+        for (const auto& it : outputs)
         {
             if (lastChecked + 1 >= it->GetStartChannel() &&
                 lastChecked + 1 <= it->GetEndChannel())
@@ -617,7 +617,7 @@ UDControllerPortModel* UDControllerPort::GetFirstModel() const
     wxASSERT(_models.size() > 0);
     UDControllerPortModel* first = _models.front();
 
-    for (auto it : _models)
+    for (const auto& it : _models)
     {
         if (*it < *first)
         {
@@ -633,7 +633,7 @@ UDControllerPortModel* UDControllerPort::GetLastModel() const
     wxASSERT(_models.size() > 0);
     UDControllerPortModel* last = _models.front();
 
-    for (auto it : _models)
+    for (const auto& it : _models)
     {
         if (it->GetEndChannel() > last->GetEndChannel())
         {
@@ -750,7 +750,7 @@ int32_t UDControllerPort::Channels() const
     else
     {
         int c = 0;
-        for (auto it : _virtualStrings)
+        for (const auto& it : _virtualStrings)
         {
             c += it->Channels();
         }
@@ -787,7 +787,7 @@ void UDControllerPort::Dump() const
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     logger_base.debug("            Port %d. Protocol %s. Valid %s. Invalid Reason '%s'. Channels %d. Pixels %d. Start #%d:%d.", _port, (const char *)_protocol.c_str(), (_valid ? "TRUE" : "FALSE"), (const char *)_invalidReason.c_str(), Channels(), (int)(Channels() / 3), GetUniverse(), GetUniverseStartChannel());
-    for (auto it : _models)
+    for (const auto& it : _models)
     {
         it->Dump();
     }
@@ -807,7 +807,7 @@ bool UDControllerPort::Check(const UDController* controller, bool pixel, const C
         }
         else
         {
-            for (auto it : _models)
+            for (const auto& it : _models)
             {
                 if (it->GetProtocol() != _protocol)
                 {
@@ -833,7 +833,7 @@ bool UDControllerPort::Check(const UDController* controller, bool pixel, const C
         }
         else
         {
-            for (auto it : _models)
+            for (const auto& it : _models)
             {
                 if (it->GetProtocol() != _protocol)
                 {
@@ -851,7 +851,7 @@ bool UDControllerPort::Check(const UDController* controller, bool pixel, const C
 
     int32_t ch = -1;
     int lastSmartRemote = 0;
-    for (auto it : _models)
+    for (const auto& it : _models)
     {
         if (ch == -1) ch = it->GetStartChannel() - 1;
         if (it->GetStartChannel() > ch + 1 && lastSmartRemote == it->GetSmartRemote())
@@ -869,7 +869,7 @@ bool UDControllerPort::Check(const UDController* controller, bool pixel, const C
         ch = it->GetEndChannel();
     }
 
-    for (auto it : _models)
+    for (const auto& it : _models)
     {
         // all models must be fully contained within the outputs on this controller
         success &= it->Check(this, pixel, rules, outputs, res);
@@ -912,7 +912,7 @@ void UDControllerPort::CreateVirtualStrings(bool mergeSequential)
 
     int32_t lastEndChannel = -1000;
     UDVirtualString* current = nullptr;
-    for (auto it : _models)
+    for (const auto& it : _models)
     {
         bool first = false;
         int brightness = it->GetBrightness(-9999);

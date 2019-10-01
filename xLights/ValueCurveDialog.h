@@ -66,6 +66,7 @@ private:
 
 class ValueCurveDialog: public wxDialog
 {
+    bool _exported = false;
     ValueCurve* _vc;
     ValueCurve _backup;
     bool _slideridd;
@@ -87,6 +88,7 @@ class ValueCurveDialog: public wxDialog
 
 		ValueCurveDialog(wxWindow* parent, ValueCurve* vc, bool slideridd, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~ValueCurveDialog();
+        bool DidExport() const { return _exported; }
 
 		//(*Declarations(ValueCurveDialog)
 		wxButton* ButtonExport;

@@ -189,7 +189,7 @@ void FacesEffect::SetPanelStatus(Model *cls) {
 
     fp->Choice_Faces_TimingTrack->Clear();
     fp->Face_FaceDefinitonChoice->Clear();
-    for (auto& it : wxSplit(GetTimingTracks(0, 3), '|'))
+    for (const auto& it : wxSplit(GetTimingTracks(0, 3), '|'))
     {
         fp->Choice_Faces_TimingTrack->Append(it);
     }

@@ -679,7 +679,7 @@ void ShapePanel::SetTimingTracks(wxCommandEvent& event)
     }
 
     // add any new timing tracks
-    for (auto it : timingtracks)
+    for (const auto& it : timingtracks)
     {
         bool found = false;
         for (size_t i = 0; i < Choice_Shape_TimingTrack->GetCount(); i++)
@@ -720,7 +720,7 @@ void ShapePanel::SetTimingTracks(wxCommandEvent& event)
 void ShapePanel::EmojiMenu(wxContextMenuEvent& event)
 {
     wxMenu mnuEmoji;
-    for (auto it : _emojis)
+    for (const auto& it : _emojis)
     {
         mnuEmoji.Append(wxNewId(), it->GetName());
     }
@@ -733,7 +733,7 @@ void ShapePanel::OnPopupEmoji(wxCommandEvent& event)
     wxMenu* eo = (wxMenu*)event.GetEventObject();
     auto item = eo->GetLabelText(event.GetId());
 
-    for (auto it : _emojis)
+    for (const auto& it : _emojis)
     {
         if (it->GetName() == item)
         {

@@ -257,6 +257,12 @@ void EffectPanelUtils::OnVCButtonClick(wxCommandEvent& event)
             vc->SetActive(false);
         }
         vc->UpdateState();
+        if (vcd.DidExport())
+        {
+            wxCommandEvent e(EVT_VC_CHANGED);
+            e.SetInt(-1);
+            wxPostEvent(xLightsApp::GetFrame(), e);
+        }
     }
     else
     {
@@ -269,7 +275,4 @@ void EffectPanelUtils::OnVCButtonClick(wxCommandEvent& event)
             txt->Enable();
         }
     }
-    wxCommandEvent e(EVT_VC_CHANGED);
-    e.SetInt(0);
-    wxPostEvent(xLightsApp::GetFrame(), e);
 }

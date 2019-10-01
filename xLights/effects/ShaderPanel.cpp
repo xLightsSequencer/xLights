@@ -189,7 +189,7 @@ bool ShaderPanel::BuildUI(const wxString& filename)
 		}
         FilePickerCtrl1->SetToolTip(desc);
 
-        for (auto it : _shaderConfig->GetParms())
+        for (const auto& it : _shaderConfig->GetParms())
         {
             if (it.ShowParm())
             {

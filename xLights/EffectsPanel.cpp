@@ -56,7 +56,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, EffectManager *manager) : effectMan
 
     SetName("Effect");
 
-    for (auto it : *effectManager) {
+    for (const auto& it : *effectManager) {
         RenderableEffect *p = it;
         wxScrolledWindow* sw = new wxScrolledWindow(EffectChoicebook, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL" + p->Name()));
         wxPanel *panel = p->GetPanel(sw);

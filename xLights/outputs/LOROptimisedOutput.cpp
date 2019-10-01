@@ -104,7 +104,7 @@ void LOROptimisedOutput::SetManyChannels(int32_t channel, unsigned char data[], 
     int cur_channel = channel;
     int total_bytes_sent = 0;
 
-    for (auto it : *_controllers.GetControllers())
+    for (const auto& it : *_controllers.GetControllers())
     {
 		int channel_count = it->GetNumChannels();
         int unit_id = it->GetUnitId();
@@ -309,7 +309,7 @@ void LOROptimisedOutput::AllOff()
     log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("    LOROptimisedOutput: AllOff starting");
 
-    for (auto it : *_controllers.GetControllers())
+    for (const auto& it : *_controllers.GetControllers())
     {
         int unit_id = it->GetUnitId();
 
@@ -432,7 +432,7 @@ void LOROptimisedOutput::CalcTotalChannels()
         unit_id_in_use[i] = false;
     }
     unit_id_in_use[0] = true;  // we don't use id 0
-    for (auto it : *_controllers.GetControllers())
+    for (const auto& it : *_controllers.GetControllers())
     {
         channel_count = it->GetNumChannels();
         int unit_id = it->GetUnitId();

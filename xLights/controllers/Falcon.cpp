@@ -63,7 +63,7 @@ static std::vector<FalconControllerRules> CONTROLLER_TYPE_MAP = {
     FalconControllerRules(7)
 };
 void Falcon::RegisterControllers() {
-    for (auto &a : CONTROLLER_TYPE_MAP) {
+    for (const auto &a : CONTROLLER_TYPE_MAP) {
         ControllerRegistry::AddController(&a);
     }
 }
@@ -318,17 +318,17 @@ bool Falcon::SetInputUniverses(OutputManager* outputManager, std::list<int>& sel
         return false;
     }
 
-    for (auto it = outputs.begin(); it != outputs.end(); ++it) {
+    for (const auto& it : outputs) {
         int t = -1;
-        if ((*it)->GetType() == "E131") {
+        if (it->GetType() == "E131") {
             t = 0;
-        } else if ((*it)->GetType() == "ArtNet") {
+        } else if (it->GetType() == "ArtNet") {
             t = 1;
         }
         request += wxString::Format("&u%d=%d&s%d=%d&c%d=%d&t%d=%d",
-            output, (*it)->GetUniverse(),
-            output, (int)(*it)->GetChannels(),
-            output, (int)(*it)->GetStartChannel(),
+            output, it->GetUniverse(),
+            output, (int)it->GetChannels(),
+            output, (int)it->GetStartChannel(),
             output, t);
         output++;
     }
@@ -360,7 +360,7 @@ std::string Falcon::SafeDescription(const std::string description) const
 int Falcon::GetPixelCount(const std::vector<FalconString*> &stringData, int port) const
 {
     int count = 0;
-    for (auto sd : stringData)
+    for (const auto& sd : stringData)
     {
         if (sd->port == port)
         {
@@ -372,7 +372,7 @@ int Falcon::GetPixelCount(const std::vector<FalconString*> &stringData, int port
 
 void Falcon::DumpStringData(std::vector<FalconString*> stringData) const
 {
-    for (auto sd: stringData)
+    for (const auto& sd: stringData)
     {
         sd->Dump();
     }
@@ -497,7 +497,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
             port->CreateVirtualStrings(true);
 
             FalconString* firstString = nullptr;            
-            for (auto sd: stringData)
+            for (const auto& sd: stringData)
             {
                 if (sd->port == pp - 1)
                 {
@@ -515,7 +515,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
 
             // need to add virtual strings
             bool first = true;
-            for (auto vs : port->GetVirtualStrings())
+            for (const auto& vs : port->GetVirtualStrings())
             {
                 FalconString* fs;
                 if (first)
@@ -594,7 +594,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
         }
         else
         {
-            for (auto sd: stringData)
+            for (const auto& sd: stringData)
             {
                 if (sd->port == pp-1)
                 {
@@ -607,7 +607,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
     stringData = newStringData;
 
     // delete any read strings we didnt keep
-    for (auto d : toDelete)
+    for (const auto& d : toDelete)
     {
         delete d;
     }
@@ -1042,7 +1042,7 @@ void Falcon::InitialiseStrings(std::vector<FalconString*>& stringsData, int max)
     for (int i = 0; i < max; i++)
     {
         bool added = false;
-        for (auto sd: stringsData)
+        for (const auto& sd: stringsData)
         {
             if (sd->port == i)
             {
@@ -1106,7 +1106,7 @@ void Falcon::EnsureSmartStringExists(std::vector<FalconString*>& stringData, int
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     bool found = false;
-    for (auto it : stringData)
+    for (const auto& it : stringData)
     {
         if (it->port == port && it->smartRemote == smartRemote)
         {
@@ -1140,7 +1140,7 @@ void Falcon::EnsureSmartStringExists(std::vector<FalconString*>& stringData, int
 void Falcon::UploadStringPorts(std::vector<FalconString*>& stringData, int maxMain, int maxDaughter1, int maxDaughter2)
 {
     int maxPort = 0;
-    for (auto sd : stringData)
+    for (const auto& sd : stringData)
     {
         maxPort = std::max(maxPort, sd->port);
     }
@@ -1152,7 +1152,7 @@ void Falcon::UploadStringPorts(std::vector<FalconString*>& stringData, int maxMa
         int maxRemote = 0;
         for (int j = 0; j < 4; j++)
         {
-            for (auto it : stringData)
+            for (const auto& it : stringData)
             {
                 if (it->port == i * 4 + j)
                 {

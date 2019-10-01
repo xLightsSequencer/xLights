@@ -434,7 +434,7 @@ void xLightsFrame::CheckForValidModels()
 
     std::vector<std::string> AllNames;
     std::vector<std::string> ModelNames;
-    for (auto it : AllModels) {
+    for (const auto& it : AllModels) {
         if (it.second != nullptr)
         {
             AllNames.push_back(it.first);
@@ -1975,7 +1975,7 @@ void xLightsFrame::RandomizeEffect(wxCommandEvent& event)
 
                 // Keep canvas mode if it was set as the effect is unlikely to work 
                 // properly without it
-                for (auto it : oldSettings)
+                for (const auto& it : oldSettings)
                 {
                     //if (StartsWith(it.first, "B_") || StartsWith(it.first, "T_"))
                     //{
@@ -2522,7 +2522,7 @@ void xLightsFrame::ApplyLast(wxCommandEvent& event)
 
 void xLightsFrame::SetEffectControlsApplyLast(const SettingsMap &settings) {
     // Now Apply those settings with APPLYLAST in their name ... last
-    for (auto it : settings) {
+    for (const auto& it : settings) {
         if (it.first.find("APPLYLAST") != std::string::npos)
         {
             ApplySetting(wxString(it.first.c_str()), wxString(it.second.c_str()));
@@ -2535,7 +2535,7 @@ void xLightsFrame::SetEffectControls(const SettingsMap &settings) {
     bool applylast = false;
 
 	// Apply those settings without APPLYLAST in their name first
-    for (auto it : settings) {
+    for (const auto& it : settings) {
 		if (it.first.find("APPLYLAST") == std::string::npos)
 		{
 			ApplySetting(wxString(it.first.c_str()), wxString(it.second.c_str()));

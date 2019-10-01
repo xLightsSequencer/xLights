@@ -1385,7 +1385,7 @@ int EasyLights::Check_And_Return_Controllers_Network_Type(std::list<Output*>& ou
 {
 	int Type = 0;
 
-    for (auto it : outputs)
+    for (const auto& it : outputs)
 	{
 		int tt = 0;
 
@@ -1425,7 +1425,7 @@ int EasyLights::Build_E131_Channel_Map(std::list<Output*>& outputs)
 		return 1;
 	}
 
-	for (auto it : outputs)
+	for (const auto& it : outputs)
 	{
 		int U = it->GetUniverse();
 		int CH = it->GetChannels();
@@ -1606,7 +1606,7 @@ int EasyLights::Send_E131_Data_to_Controller(std::list<Output*>& outputs)
 
 	std::vector<EasyLights_E131*> U_CH_Array;
 
-    for(auto it : outputs) {
+    for (const auto& it : outputs) {
 		int U = it->GetUniverse();
 		int CH = it->GetChannels();
 		int SC = it->GetStartChannel();

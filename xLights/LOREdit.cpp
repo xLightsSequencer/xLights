@@ -930,7 +930,7 @@ int LOREdit::GetModelStrands(const std::string& model) const
                     if (prop->GetAttribute("name") == model) {
                         wxString grid = prop->GetAttribute("ChannelGrid");
                         int strands = 1;
-                        for (auto it : grid) {
+                        for (const auto& it : grid) {
                             if (it == ';') strands++;
                         }
                         return strands;

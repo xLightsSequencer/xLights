@@ -76,7 +76,7 @@ const std::string &FPP::PixelContollerDescription() const {
     return CONTROLLER_TYPE_MAP[pixelControllerType].description;
 }
 void FPP::RegisterCapes() {
-    for (auto &a : CONTROLLER_TYPE_MAP) {
+    for (const auto &a : CONTROLLER_TYPE_MAP) {
         ControllerRegistry::AddController(&a.second);
     }
 }
@@ -803,7 +803,7 @@ bool FPP::PrepareUploadSequence(const FSEQFile &file,
     outputFile->initializeFromFSEQ(file);
     if (type == 2 && ranges != "") {
         wxArrayString r1 = wxSplit(wxString(ranges), ',');
-        for (auto a : r1) {
+        for (const auto& a : r1) {
             wxArrayString r = wxSplit(a, '-');
             int start = wxAtoi(r[0]);
             int len = 4; //at least 4
@@ -847,7 +847,7 @@ bool FPP::UploadPlaylist(const std::string &name) {
         GetURLAsJSON("/api/playlist/" + URLEncode(name), origJson);
     }
 
-    for (auto info : sequences) {
+    for (const auto& info : sequences) {
         wxJSONValue entry;
         if (info.second != "") {
             entry["type"] = wxString("both");
@@ -898,8 +898,8 @@ bool FPP::UploadUDPOut(const wxJSONValue &udp) {
 
 std::string FPP::CreateModelMemoryMap(ModelManager* allmodels) {
     std::string ret;
-    for (auto m = allmodels->begin(); m != allmodels->end(); ++m) {
-        Model* model = m->second;
+    for (const auto& m : *allmodels) {
+        Model* model = m.second;
         wxString stch = model->GetModelXml()->GetAttribute("StartChannel", wxString::Format("%d?", model->NodeStartChannel(0) + 1)); //NOTE: value coming from model is probably not what is wanted, so show the base ch# instead
         int ch = model->GetNumberFromChannelString(model->ModelStartChannel);
         wxString name(model->name);
@@ -928,7 +928,7 @@ inline wxString stripInvalidChars(const std::string &str) {
 void FPP::FillRanges(std::map<int, int> &rngs) {
     if (ranges != "") {
         wxArrayString r1 = wxSplit(wxString(ranges), ',');
-        for (auto a : r1) {
+        for (const auto& a : r1) {
             wxArrayString r = wxSplit(a, '-');
             int start = wxAtoi(r[0]);
             int len = 4; //at least 4
@@ -947,7 +947,7 @@ void FPP::SetNewRanges(const std::map<int, int> &rngs) {
     std::string rngList;
     int curFirst = -1;
     int curLast = -1;
-    for (auto &a : rngs) {
+    for (const auto &a : rngs) {
         int s = a.first;
         int l = a.second;
         if (curFirst == -1) {
@@ -1015,42 +1015,42 @@ wxJSONValue FPP::CreateUniverseFile(OutputManager* outputManager, const std::str
     wxJSONValue universes;
     // Get universes based on IP
     std::list<Output*> outputs = outputManager->GetAllOutputs(onlyip, "", selected, false);
-    for (auto it = outputs.begin(); it != outputs.end(); ++it) {
-        int c = (*it)->GetStartChannel();
+    for (const auto& it : outputs) {
+        int c = it->GetStartChannel();
 
         wxJSONValue universe;
-        universe["active"] = (*it)->IsEnabled() ? 1 : 0;
-        universe["description"] = stripInvalidChars((*it)->GetDescription());
-        universe["id"] = (*it)->GetUniverse();
+        universe["active"] = it->IsEnabled() ? 1 : 0;
+        universe["description"] = stripInvalidChars(it->GetDescription());
+        universe["id"] = it->GetUniverse();
         universe["startChannel"] = c;
-        universe["channelCount"] = (*it)->GetChannels();
+        universe["channelCount"] = it->GetChannels();
         universe["priority"] = 0;
         universe["address"] = wxString("");
 
-        if ((*it)->GetType() == OUTPUT_E131) {
-            universe["type"] = (int)((*it)->GetIP() != "MULTICAST" ? 1 : 0);
-            if (!input && ((*it)->GetIP() != "MULTICAST")) {
-                universe["address"] = wxString((*it)->GetIP());
+        if (it->GetType() == OUTPUT_E131) {
+            universe["type"] = (int)(it->GetIP() != "MULTICAST" ? 1 : 0);
+            if (!input && (it->GetIP() != "MULTICAST")) {
+                universe["address"] = wxString(it->GetIP());
             }
-            if ((*it)->IsOutputCollection()) {
-                universe["universeCount"] = ((E131Output*)(*it))->GetUniverses();
+            if (it->IsOutputCollection()) {
+                universe["universeCount"] = ((E131Output*)it)->GetUniverses();
             } else {
                 universe["universeCount"] = 1;
             }
             universes.Append(universe);
-        } else if ((*it)->GetType() == OUTPUT_DDP) {
+        } else if (it->GetType() == OUTPUT_DDP) {
             if (!input) {
-                universe["address"] = wxString((*it)->GetIP());
-                DDPOutput *ddp = (DDPOutput*)(*it);
+                universe["address"] = wxString(it->GetIP());
+                DDPOutput *ddp = (DDPOutput*)it;
                 universe["type"] = ddp->IsKeepChannelNumbers() ? 4 : 5;
                 universes.Append(universe);
             } else {
                 //don't need to do anything to configure DDP input
             }
-        } else if ((*it)->GetType() == OUTPUT_ARTNET) {
-            universe["type"] = (int)(((*it)->GetIP() != "MULTICAST") + 2);
-            if (!input && ((*it)->GetIP() != "MULTICAST")) {
-                universe["address"] = wxString((*it)->GetIP());
+        } else if (it->GetType() == OUTPUT_ARTNET) {
+            universe["type"] = (int)((it->GetIP() != "MULTICAST") + 2);
+            if (!input && (it->GetIP() != "MULTICAST")) {
+                universe["address"] = wxString(it->GetIP());
             }
             universes.Append(universe);
         }
@@ -1240,7 +1240,7 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
             UDControllerPort* port = cud.GetControllerPixelPort(pp);
             if (doVirtualString) {
                 port->CreateVirtualStrings(false);
-                for (auto pvs : port->GetVirtualStrings()) {
+                for (const auto& pvs : port->GetVirtualStrings()) {
                     wxJSONValue vs;
                     vs["description"] = pvs->_description;
                     vs["startChannel"] = pvs->_startChannel - 1; // we need 0 based
@@ -1544,7 +1544,7 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
     AddTraceMessage("Running FPP Discovery");
     std::vector<CurlData*> curls;
     CURLM * curlMulti = curl_multi_init();
-    for (auto &a : addresses) {
+    for (const auto &a : addresses) {
         std::string fullAddress = "http://" + a + "/fppjson.php?command=getFPPSystems";
         CurlData *data = new CurlData(fullAddress);
         curls.push_back(data);
@@ -1588,7 +1588,7 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
     }
     
     auto localIPs = GetLocalIPs();
-    for (auto ip : localIPs) {
+    for (const auto& ip : localIPs) {
         if (ip == "127.0.0.1") {
             continue;
         }
@@ -1607,7 +1607,7 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
     wxIPV4address bcAddress;
     bcAddress.BroadcastAddress();
     bcAddress.Service(FPP_CTRL_PORT);
-    for (auto socket : sockets) {
+    for (const auto& socket : sockets) {
         socket->SendTo(bcAddress, buffer, 207);
     }
     
@@ -1616,7 +1616,7 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
     while (running || (wxGetLocalTimeMillis().GetValue() < endBroadcastTime)) {
         memset(buffer, 0x00, sizeof(buffer));
         int readSize = 0;
-        for (auto socket : sockets) {
+        for (const auto& socket : sockets) {
             if (socket->IsOk()) {
                 socket->Read(&buffer[0], sizeof(buffer));
                 readSize = socket->GetLastIOReadSize();
@@ -1636,7 +1636,7 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
                 std::string hostname = (char *)&buffer[19];
                 std::string ipStr = ip;
                 FPP *found = nullptr;
-                for (auto a : instances) {
+                for (const auto& a : instances) {
                     if (a->hostName == hostname || a->ipAddress == hostname || a->ipAddress == ipStr) {
                         found = a;
                     }
@@ -1765,9 +1765,9 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
                                     case 4:
                                         parsed = reader.Parse(curls[x]->buffer, &origJson) == 0;
                                         if (parsed) curls[x]->fpp->parseProxies(origJson);
-                                        for (auto address : curls[x]->fpp->proxies) {
+                                        for (const auto& address : curls[x]->fpp->proxies) {
                                             bool found = false;
-                                            for (auto f : instances) {
+                                            for (const auto& f : instances) {
                                                 if (f->ipAddress == address
                                                     && f->proxy == curls[x]->fpp->ipAddress) {
                                                     found = true;
@@ -1904,7 +1904,7 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
                                                 continue;
                                             }
                                             FPP *found = nullptr;
-                                            for (auto &b : instances) {
+                                            for (const auto &b : instances) {
                                                 if (b->ipAddress == address) {
                                                     found = b;
                                                 } else if (b->ipAddress == hostName || (b->hostName == hostName && b->ipAddress == "")) {
@@ -2012,7 +2012,7 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
             }
         }
     }
-    for (auto data : curls) {
+    for (const auto& data : curls) {
         if (data) {
             AddTraceMessage("Still had a curl outstanding");
             curl_multi_remove_handle(curlMulti, data->curl);
@@ -2022,14 +2022,14 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
     AddTraceMessage("Closing network resources");
     curl_multi_cleanup(curlMulti);
     
-    for (auto socket : sockets) {
+    for (const auto& socket : sockets) {
         socket->Close();
         delete socket;
     }
     AddTraceMessage("Checking instances and applying fixups");
 
     std::list<FPP*> toRemove;
-    for (auto a : instances) {
+    for (const auto& a : instances) {
         //apply some fixups
         if (a->platform == "") {
             a->platform = a->model;
@@ -2044,14 +2044,14 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
             }
         }
     }
-    for (auto a : toRemove) {
+    for (const auto& a : toRemove) {
         instances.remove(a);
         delete a;
     }
     AddTraceMessage("Done discovery");
 
     /*
-    for (auto a : instances) {
+    for (const auto& a : instances) {
         printf("%s/%s:\n", a.hostName.c_str(), a.ipAddress.c_str());
         printf("    version: %s    %d.%d\n", a.fullVersion.c_str(), a.majorVersion, a.minorVersion);
         printf("    platform: %s\n", a.platform.c_str());

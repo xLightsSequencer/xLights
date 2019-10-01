@@ -546,7 +546,7 @@ std::list<std::string> Vixen3::GetTimings() const
 {
     std::list<std::string> res;
 
-    for (auto it : _timingData)
+    for (const auto& it : _timingData)
     {
         if (_timingType.at(it.first) == "Generic" || _timingType.at(it.first) == "Phrase")
         {

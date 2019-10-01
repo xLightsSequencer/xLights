@@ -569,7 +569,7 @@ void ShapeEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer 
         context->Clear();
     }
 
-    for (auto& it : _shapes)
+    for (const auto& it : _shapes)
     {
         // if location is not random then update it to whatever the current location is
         // as it may be value curve controlled

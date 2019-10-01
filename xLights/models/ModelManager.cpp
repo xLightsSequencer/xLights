@@ -63,7 +63,7 @@ BaseObject *ModelManager::GetObject(const std::string &name) const
 
 bool ModelManager::IsModelValid(Model* m) const
 {
-    for (auto& it : models)
+    for (const auto& it : models)
     {
         if (it.second == m) return true;
 
@@ -113,7 +113,7 @@ bool ModelManager::Rename(const std::string &oldName, const std::string &newName
         models[newName] = model;
 
         // go through all the model groups looking for things that might need to be renamed
-        for (auto& it : models) {
+        for (const auto& it : models) {
             ModelGroup* mg = dynamic_cast<ModelGroup*>(it.second);
             if (mg != nullptr)
             {
@@ -239,7 +239,7 @@ std::string ModelManager::GetLastModelOnPort(const std::string& controllerName, 
     std::string last = "";
     unsigned int highestEndChannel = 0;
 
-    for (auto it : models)
+    for (const auto& it : models)
     {
         if (it.second->GetDisplayAs() != "ModelGroup" && 
             it.second->GetControllerName() == controllerName && 
@@ -255,7 +255,7 @@ std::string ModelManager::GetLastModelOnPort(const std::string& controllerName, 
 
 void ModelManager::ReplaceIPInStartChannels(const std::string& oldIP, const std::string& newIP)
 {
-    for (auto& it : models)
+    for (const auto& it : models)
     {
         if (it.second->GetDisplayAs() != "ModelGroup")
         {
@@ -274,12 +274,12 @@ bool ModelManager::RecalcStartChannels() const {
     bool changed = false;
     std::list<std::string> modelsDone;
 
-    for (auto& it : models) {
+    for (const auto& it : models) {
         it.second->CouldComputeStartChannel = false;
     }
 
     // first go through all models whose start channels are not dependent on other models
-    for (auto& it : models) {
+    for (const auto& it : models) {
         if (it.second->GetDisplayAs() != "ModelGroup")
         {
             char first = '0';
@@ -303,7 +303,7 @@ bool ModelManager::RecalcStartChannels() const {
     {
         workDone = false;
 
-        for (auto& it : models) {
+        for (const auto& it : models) {
             if (it.second->GetDisplayAs() != "ModelGroup")
             {
                 char first = '0';
@@ -334,7 +334,7 @@ bool ModelManager::RecalcStartChannels() const {
 
     // now process anything unprocessed
     int countInvalid = 0;
-    for (auto& it : models) {
+    for (const auto& it : models) {
         if (it.second->GetDisplayAs() != "ModelGroup")
         {
             char first = '0';
@@ -410,7 +410,7 @@ bool ModelManager::IsValidControllerModelChain(Model* m, std::string& tip) const
         }
     }
 
-    for (auto it : *this)
+    for (const auto& it : *this)
     {
         if (it.first != startModel)
         {
@@ -448,7 +448,7 @@ bool ModelManager::IsValidControllerModelChain(Model* m, std::string& tip) const
     while (checks <= sameOutput.size())
     {
         bool found = false;
-        for (auto it : sameOutput)
+        for (const auto& it : sameOutput)
         {
             if (it->GetName() == next)
             {
@@ -485,7 +485,7 @@ bool ModelManager::ReworkStartChannel() const
     bool  outputsChanged = false;
 
     OutputManager* outputManager = xlights->GetOutputManager();
-    for (auto& it : outputManager->GetOutputs())
+    for (const auto& it : outputManager->GetOutputs())
     {
         if (it->IsAutoLayoutModels())
         {
@@ -761,7 +761,7 @@ bool ModelManager::LoadGroups(wxXmlNode* groupNode, int previewW, int previewH) 
     }
 
     // add in models and submodels
-    for (auto it : models)
+    for (const auto& it : models)
     {
         allModels.push_back(it.second->GetName());
         for (auto it2 : it.second->GetSubModels())
@@ -772,7 +772,7 @@ bool ModelManager::LoadGroups(wxXmlNode* groupNode, int previewW, int previewH) 
 
     // remove any totally non existent models from model groups
     // this stops some end conditions which cant be resolved
-    for (auto& it : toBeDone)
+    for (const auto& it : toBeDone)
     {
         changed |= ModelGroup::RemoveNonExistentModels(it, allModels);
     }
@@ -784,7 +784,7 @@ bool ModelManager::LoadGroups(wxXmlNode* groupNode, int previewW, int previewH) 
         maxIter--;
         std::list<wxXmlNode*> processing(toBeDone);
         toBeDone.clear();
-        for (auto it : processing) {
+        for (const auto& it : processing) {
             if (ModelGroup::AllModelsExist(it, *this))
             {
                 ModelGroup* model = new ModelGroup(it, *this, previewW, previewH);
@@ -801,7 +801,7 @@ bool ModelManager::LoadGroups(wxXmlNode* groupNode, int previewW, int previewH) 
     }
 
     // anything left in toBeDone is now due to model loops
-    for (auto it : toBeDone) {
+    for (const auto& it : toBeDone) {
         std::string name = it->GetAttribute("name").ToStdString();
         std::string msg = "Could not process model group " + name
             + " likely due to model groups loops. See Check Sequence for details.";

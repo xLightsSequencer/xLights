@@ -70,7 +70,7 @@ bool Element::HasEffects() const {
 bool TimingElement::HasLyrics(int layer) const {
     if (mEffectLayers.size() > layer)
     {
-        for (auto it : mEffectLayers[layer]->GetAllEffects())
+        for (const auto& it : mEffectLayers[layer]->GetAllEffects())
         {
             if (it->GetEffectName() != "") return true;
         }

@@ -41,7 +41,7 @@ int ValueCurvesPanel::ProcessPresetDir(wxDir& directory, bool subdirs)
     {
         wxFileName fn(directory.GetNameWithSep() + filename);
         bool found = false;
-        for (auto it : existing)
+        for (const auto& it : existing)
         {
             if (it->GetWindow()->GetLabel() == fn.GetFullPath())
             {
@@ -54,16 +54,23 @@ int ValueCurvesPanel::ProcessPresetDir(wxDir& directory, bool subdirs)
         {
             ValueCurve vc("");
             vc.LoadXVC(fn);
-            long id = wxNewId();
+            if (vc.IsOk())
+            {
+                long id = wxNewId();
 
-            wxString iid = wxString::Format("ID_BITMAPBUTTON_%d", (int)GridSizer1->GetItemCount());
-            DragValueCurveBitmapButton *bmb = new DragValueCurveBitmapButton(ScrolledWindow1, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(30,30),
-                                                                                    wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, iid);
-            bmb->SetLabel(fn.GetFullPath());
-            bmb->SetToolTip(fn.GetFullPath());
-            bmb->SetValueCurve(vc.Serialise());
-            GridSizer1->Add(bmb);
-            added++;
+                wxString iid = wxString::Format("ID_BITMAPBUTTON_%d", (int)GridSizer1->GetItemCount());
+                DragValueCurveBitmapButton* bmb = new DragValueCurveBitmapButton(ScrolledWindow1, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(30, 30),
+                    wxBU_AUTODRAW | wxNO_BORDER, wxDefaultValidator, iid);
+                bmb->SetLabel(fn.GetFullPath());
+                bmb->SetToolTip(fn.GetFullPath());
+                bmb->SetValueCurve(vc.Serialise());
+                GridSizer1->Add(bmb);
+                added++;
+            }
+            else
+            {
+                logger_base.warn("ValueCurvesPanel::ProcessPresetDir Unable to load " + fn.GetFullPath());
+            }
         }
 
         cont = directory.GetNext(&filename);
@@ -83,11 +90,46 @@ int ValueCurvesPanel::ProcessPresetDir(wxDir& directory, bool subdirs)
     return added;
 }
 
-void ValueCurvesPanel::UpdateValueCurveButtons() {
+void ValueCurvesPanel::UpdateValueCurveButtons(bool reload) {
 
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
+    if (reload)
+    {
+        auto existing = ScrolledWindow1->GetChildren();
+        for (const auto& it : existing)
+        {
+            GridSizer1->Detach(it);
+        }
+        ScrolledWindow1->DestroyChildren();
+        wxASSERT(ScrolledWindow1->GetChildren().size() == 0);
+    }
+
     int added = 0;
+
+    auto existing = GridSizer1->GetChildren();
+    bool found = false;
+    for (const auto& it : existing)
+    {
+        if (it->GetWindow()->GetLabel() == "VALUECURVE_CLEAR")
+        {
+            // already there
+            found = true;
+            break;
+        }
+    }
+
+    if (!found)
+    {
+        DragValueCurveBitmapButton* bmb = new DragValueCurveBitmapButton(ScrolledWindow1, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(30, 30),
+            wxBU_AUTODRAW | wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_0"));
+        bmb->SetLabel("VALUECURVE_CLEAR");
+        bmb->UnsetToolTip();
+        bmb->SetValueCurve("VALUECURVE_CLEAR");
+        bmb->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_colorpanel_delete_xpm"))));
+        added++;
+    }
+
     wxDir dir;
 
     if (wxDir::Exists(xLightsFrame::CurrentDir))
@@ -168,14 +210,7 @@ ValueCurvesPanel::ValueCurvesPanel(wxWindow* parent,wxWindowID id,const wxPoint&
     ScrolledWindow1->SetScrollRate(0, 5);
     GridSizer1->SetCols(10);
 
-    DragValueCurveBitmapButton* bmb = new DragValueCurveBitmapButton(ScrolledWindow1, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(30, 30),
-        wxBU_AUTODRAW | wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_0"));
-    bmb->SetLabel("");
-    bmb->UnsetToolTip();
-    bmb->SetValueCurve("VALUECURVE_CLEAR");
-    bmb->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_colorpanel_delete_xpm"))));
-
-    UpdateValueCurveButtons();
+    UpdateValueCurveButtons(false);
     
     wxSizeEvent evt;
     OnResize(evt);

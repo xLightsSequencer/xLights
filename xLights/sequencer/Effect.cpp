@@ -193,7 +193,7 @@ Effect::Effect(EffectLayer* parent,int id, const std::string & name, const std::
     }
 
     // check for any other odd looking blank settings
-    //for (auto it : mSettings)
+    //for (const auto& it : mSettings)
     //{
     //    if (it.second == "")
     //    {
@@ -368,7 +368,7 @@ void Effect::ConvertTo(int effectIndex)
         SetEffectIndex(effectIndex);
         SettingsMap newSettings;
         // remove any E_ settings as the effect type has changed
-        for (auto it : mSettings)
+        for (const auto& it : mSettings)
         {
             if (!StartsWith(it.first, "E_"))
             {
@@ -437,7 +437,7 @@ void Effect::SetSettings(const std::string &settings, bool keepxsettings)
     SettingsMap x;
     if (keepxsettings)
     {
-        for (auto it : mSettings)
+        for (const auto& it : mSettings)
         {
             if (it.first.size() > 2 && it.first[0] == 'X' && it.first[1] == '_')
             {
@@ -448,7 +448,7 @@ void Effect::SetSettings(const std::string &settings, bool keepxsettings)
     mSettings.Parse(settings);
     if (keepxsettings)
     {
-        for (auto it : x)
+        for (const auto& it : x)
         {
             mSettings[it.first] = it.second;
         }

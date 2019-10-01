@@ -38,7 +38,7 @@ private:
         wxArrayString files;
         dir.GetAllFiles(cacheFolder, &files, "*.cache");
 
-        for (auto it : files)
+        for (const auto& it : files)
         {
             // allow up to 3 times physical memory
             // This means the render cache will be swapped out ... but I think that is still better than re-rendering
@@ -166,7 +166,7 @@ bool RenderCache::IsEffectOkForCaching(Effect* effect) const
 
     bool locked = false;
 
-    for (auto it : effect->GetSettings()) {
+    for (const auto& it : effect->GetSettings()) {
         // we cant cache effects with canvas turned on
         if (it.first == "T_CHECKBOX_Canvas" && it.second == "1") {
             return false;

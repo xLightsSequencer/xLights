@@ -941,11 +941,11 @@ bool IsAssociatedControl(wxWindow* source, wxWindow* target)
     wxString tail = "";
     wxString sourceName = source->GetName();
 
-    for (auto it = names.begin(); it != names.end(); ++it)
+    for (const auto& it : names)
     {
-        if (sourceName.StartsWith(*it))
+        if (sourceName.StartsWith(it))
         {
-            tail = sourceName.SubString(it->size(), sourceName.size() - it->size());
+            tail = sourceName.SubString(it.size(), sourceName.size() - it.size());
             break;
         }
     }

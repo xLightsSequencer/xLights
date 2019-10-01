@@ -139,7 +139,7 @@ public:
             struct curl_httppost *formpost = nullptr;
             struct curl_httppost *lastptr = nullptr;
 
-            for (auto it : vars)
+            for (const auto& it : vars)
             {
                 curl_formadd(&formpost,
                     &lastptr,

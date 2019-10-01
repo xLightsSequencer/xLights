@@ -117,14 +117,14 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
     if (config->Read("FPPConnectForcedIPs", &force)) {
         wxArrayString ips = wxSplit(force, '|');
         wxString newForce;
-        for (auto &a : ips) {
+        for (const auto &a : ips) {
             startAddresses.push_back(a);
         }
     }
     FPP::Discover(startAddresses, instances);
     wxString newForce = "";
-    for (auto &a : startAddresses) {
-        for (auto fpp : instances) {
+    for (const auto &a : startAddresses) {
+        for (const auto& fpp : instances) {
             if (a == fpp->hostName || a == fpp->ipAddress) {
                 if (newForce != "") {
                     newForce.append(",");
@@ -181,7 +181,7 @@ void FPPConnectDialog::PopulateFPPInstanceList() {
     }
 
     int row = 0;
-    for (auto inst : instances) {
+    for (const auto& inst : instances) {
         std::string rowStr = std::to_string(row);
         wxCheckBox *CheckBox1 = new wxCheckBox(FPPInstanceList, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, CHECK_COL + rowStr);
         CheckBox1->SetValue(true);
@@ -241,7 +241,7 @@ void FPPConnectDialog::PopulateFPPInstanceList() {
             std::list<std::string> playlists;
             inst->LoadPlaylists(playlists);
             ComboBox1->Append(_(""));
-            for (auto pl : playlists) {
+            for (const auto& pl : playlists) {
                 ComboBox1->Append(pl);
             }
             wxFont font = ComboBox1->GetFont();
@@ -326,7 +326,7 @@ FPPConnectDialog::~FPPConnectDialog()
 	//(*Destroy(FPPConnectDialog)
 	//*)
     
-    for (auto a : instances) {
+    for (const auto& a : instances) {
         delete a;
     }
 }
@@ -528,7 +528,7 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
     row = 0;
     xLightsFrame* frame = static_cast<xLightsFrame*>(GetParent());
     wxJSONValue outputs = FPP::CreateOutputUniverseFile(_outputManager);
-    for (auto inst : instances) {
+    for (const auto& inst : instances) {
         std::string rowStr = std::to_string(row);
         if (!cancelled && doUpload[row]) {
             std::string playlist = GetChoiceValue(PLAYLIST_COL + rowStr);
@@ -557,7 +557,7 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
             FSEQFile *seq = FSEQFile::openFSEQFile(fseq);
             if (seq) {
                 row = 0;
-                for (auto &inst : instances) {
+                for (const auto& inst : instances) {
                     std::string rowStr = std::to_string(row);
                     if (!cancelled && doUpload[row]) {
                         inst->parent = this;
@@ -620,7 +620,7 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
                     prgs.Hide();
                 }
                 row = 0;
-                for (auto &inst : instances) {
+                for (const auto &inst : instances) {
                     if (!cancelled && doUpload[row]) {
                         cancelled |= inst->FinalizeUploadSequence();
                     }
@@ -632,7 +632,7 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
     }
     row = 0;
     std::string memoryMaps = FPP::CreateModelMemoryMap(&frame->AllModels);
-    for (auto inst : instances) {
+    for (const auto& inst : instances) {
         std::string rowStr = std::to_string(row);
         if (!cancelled && doUpload[row]) {
             std::string playlist = GetChoiceValue(PLAYLIST_COL + rowStr);
@@ -657,7 +657,7 @@ void FPPConnectDialog::CreateDriveList()
     wxArrayString drives;
 #ifdef __WXMSW__
     wxArrayString ud = wxFSVolume::GetVolumes(wxFS_VOL_REMOVABLE | wxFS_VOL_MOUNTED, 0);
-    for (auto &a : ud) {
+    for (const auto &a : ud) {
         if (wxDir::Exists(a + "\\sequences")) {
             drives.push_back(a);
         }
@@ -699,7 +699,7 @@ void FPPConnectDialog::CreateDriveList()
     }
 #endif
 
-    for (auto a : drives) {
+    for (const auto& a : drives) {
         FPP *inst = new FPP();
         inst->hostName = "FPP";
         inst->ipAddress = a;
@@ -817,7 +817,7 @@ void FPPConnectDialog::SaveSettings()
     wxConfigBase* config = wxConfigBase::Get();
     config->Write("FPPConnectSelectedSequences", selected);
     int row = 0;
-    for (auto inst : instances) {
+    for (const auto& inst : instances) {
         std::string rowStr = std::to_string(row);
         wxString keyPostfx = inst->ipAddress;
         keyPostfx.Replace(":", "_");
@@ -852,7 +852,7 @@ void FPPConnectDialog::ApplySavedHostSettings()
     wxConfigBase* config = wxConfigBase::Get();
     if (config != nullptr) {
         int row = 0;
-        for (auto inst : instances) {
+        for (const auto& inst : instances) {
             std::string rowStr = std::to_string(row);
             wxString keyPostfx = inst->ipAddress;
             keyPostfx.Replace(":", "_");
@@ -920,7 +920,7 @@ void FPPConnectDialog::OnAddFPPButtonClick(wxCommandEvent& event)
             add.push_back(ipAd);
             FPP::Probe(add, instances);
             int cur = 0;
-            for (auto &fpp : instances) {
+            for (const auto &fpp : instances) {
                 if (cur >= curSize) {
                     prgs.Pulse("Gathering configuration for " + fpp->hostName + " - " + fpp->ipAddress);
                     fpp->AuthenticateAndUpdateVersions();

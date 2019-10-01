@@ -29,7 +29,7 @@ MeshObject::MeshObject(wxXmlNode *node, const ViewObjectManager &manager)
 
 MeshObject::~MeshObject()
 {
-    for (auto it : textures) {
+    for (const auto& it : textures) {
         if (it.second != nullptr) {
             delete it.second;
         }

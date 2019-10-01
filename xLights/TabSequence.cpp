@@ -1467,9 +1467,9 @@ int xLightsFrame::ChooseRandomEffect()
 void xLightsFrame::VCChanged(wxCommandEvent& event)
 {
     _valueCurvesPanel->Freeze();
-    if (event.GetInt() == 0)
+    if (event.GetInt() == -1)
     {
-        _valueCurvesPanel->UpdateValueCurveButtons();
+        _valueCurvesPanel->UpdateValueCurveButtons(true);
     }
     enableAllChildControls(_valueCurvesPanel, true); // enable and disable otherwise if anything has been added while disabled wont be disabled.
     enableAllChildControls(_valueCurvesPanel, SeqData.NumFrames() > 0 && !IsACActive());

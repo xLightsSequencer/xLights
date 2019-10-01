@@ -18,7 +18,7 @@ class ValueCurvesPanel: public wxPanel
 		ValueCurvesPanel(
                         wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~ValueCurvesPanel();
-		void UpdateValueCurveButtons();
+		void UpdateValueCurveButtons(bool reload);
 
 		//(*Declarations(ValueCurvesPanel)
 		wxFlexGridSizer* FlexGridSizer1;

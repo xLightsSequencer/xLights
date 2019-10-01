@@ -88,7 +88,7 @@ void SyncrolightSerialOutput::EndFrame(int suppressFrames)
 							values.push_back(_data[i*8+j]);
 						}
 					}
-					for (auto it : values)
+					for (const auto& it : values)
 					{
 						uint8_t mask = 0;
 						uint8_t m = 0x01;

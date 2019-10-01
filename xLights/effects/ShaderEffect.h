@@ -54,7 +54,7 @@ struct ShaderParm
     {
         std::vector<wxString> res;
 
-        for (auto it : _valueOptions)
+        for (const auto& it : _valueOptions)
         {
             res.push_back(it.second);
         }
@@ -62,9 +62,9 @@ struct ShaderParm
         return res;
     }
 
-    int EncodeChoice(const wxString& value)
+    int EncodeChoice(const wxString& value) const
     {
-        for (auto it : _valueOptions)
+        for (const auto& it : _valueOptions)
         {
             if (it.second == value) return it.first;
         }

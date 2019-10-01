@@ -788,7 +788,7 @@ void ShaderEffect::Render(Effect* eff, SettingsMap& SettingsMap, RenderBuffer& b
         glUniform1i(loc, 0);
     }
 
-    for (auto it : _shaderConfig->GetParms())
+    for (const auto& it : _shaderConfig->GetParms())
     {
         loc = glGetUniformLocation(programId, it._name.c_str());
         if (loc >= 0)

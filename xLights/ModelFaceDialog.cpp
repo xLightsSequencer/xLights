@@ -798,7 +798,7 @@ void ModelFaceDialog::UpdatePreview(const std::string& channels, wxColor c)
         }
         else if (FaceTypeChoice->GetSelection() == NODE_RANGE_FACE) {
             std::list<int> ch = model->ParseFaceNodes(channels);
-            for (auto& it : ch)
+            for (const auto& it : ch)
             {
                 if (it < (int)model->GetNodeCount())
                 {

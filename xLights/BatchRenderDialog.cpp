@@ -206,9 +206,9 @@ bool BatchRenderDialog::Prepare(const wxString &showDir)
         {
             wxArrayString items = wxSplit(itcsv, ',');
 
-            for (auto it = items.begin(); it != items.end(); ++it)
+            for (const auto& it : items)
             {
-                int index = SequenceList->FindString(*it);
+                int index = SequenceList->FindString(it);
                 if (index != wxNOT_FOUND)
                 {
                     SequenceList->Check(index, true);
@@ -235,8 +235,8 @@ void BatchRenderDialog::OnFilterChoiceSelect(wxCommandEvent& event)
     SequenceList->Clear();
 
     int type = FilterChoice->GetSelection();
-    for (auto a = allFiles.begin(); a != allFiles.end(); ++a) {
-        const wxString name = *a;
+    for (const auto& a : allFiles) {
+        const wxString name = a;
         switch (type) {
         case 0:
             FolderChoice->Enable();
@@ -260,9 +260,9 @@ void BatchRenderDialog::OnFilterChoiceSelect(wxCommandEvent& event)
         }
     }
 
-    for (auto it = filelist.begin(); it != filelist.end(); ++it)
+    for (const auto& it : filelist)
     {
-        int index = SequenceList->FindString(*it);
+        int index = SequenceList->FindString(it);
         if (index != wxNOT_FOUND)
         {
             SequenceList->Check(index, true);

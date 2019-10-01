@@ -215,7 +215,7 @@ bool OutputManager::Discover(wxWindow* frame, std::map<std::string, std::string>
     }
 
     auto e131 = E131Output::Discover(this);
-    for (auto it : e131)
+    for (const auto& it : e131)
     {
         if (std::find(outputs.begin(), outputs.end(), it) == outputs.end())
         {
@@ -225,7 +225,7 @@ bool OutputManager::Discover(wxWindow* frame, std::map<std::string, std::string>
     }
 
     auto artnet = ArtNetOutput::Discover(this);
-    for (auto it : artnet)
+    for (const auto& it : artnet)
     {
         if (std::find(outputs.begin(), outputs.end(), it) == outputs.end())
         {
@@ -235,7 +235,7 @@ bool OutputManager::Discover(wxWindow* frame, std::map<std::string, std::string>
     }
 
     auto ddp = DDPOutput::Discover(this);
-    for (auto it : ddp)
+    for (const auto& it : ddp)
     {
         if (std::find(outputs.begin(), outputs.end(), it) == outputs.end())
         {
@@ -270,7 +270,7 @@ void OutputManager::SetShowDir(const std::string& showDir)
 
 void OutputManager::SuspendAll(bool suspend)
 {
-    for (auto it : _outputs)
+    for (const auto& it : _outputs)
     {
         it->Suspend(suspend);
     }
@@ -279,7 +279,7 @@ void OutputManager::SuspendAll(bool suspend)
 // get an output based on an absolute channel number
 Output* OutputManager::GetOutput(int32_t absoluteChannel, int32_t& startChannel) const
 {
-    for (auto it : _outputs)
+    for (const auto& it : _outputs)
     {
         if (it->IsOutputCollection() && absoluteChannel >= it->GetStartChannel() && absoluteChannel <= it->GetEndChannel())
         {
@@ -310,7 +310,7 @@ Output* OutputManager::GetOutput(int32_t absoluteChannel, int32_t& startChannel)
 // get an output based on an absolute channel number
 Output* OutputManager::GetLevel1Output(int32_t absoluteChannel, int32_t& startChannel) const
 {
-    for (auto it : _outputs)
+    for (const auto& it : _outputs)
     {
         if (absoluteChannel >= it->GetStartChannel() && absoluteChannel <= it->GetEndChannel())
         {
@@ -478,7 +478,7 @@ bool OutputManager::IsDirty() const
 {
     if (_dirty) return _dirty;
 
-    for (auto it : _outputs)
+    for (const auto& it : _outputs)
     {
         if (it->IsDirty())
         {
@@ -493,7 +493,7 @@ std::list<int> OutputManager::GetIPUniverses(const std::string& ip) const
 {
     std::list<int> res;
 
-    for (auto it : _outputs)
+    for (const auto& it : _outputs)
     {
         if (ip == "" || (ip == it->GetIP() || ip == it->GetResolvedIP()))
         {
@@ -525,7 +525,7 @@ std::list<std::string> OutputManager::GetIps() const
 {
     std::list<std::string> res;
 
-    for (auto it : _outputs)
+    for (const auto& it : _outputs)
     {
         if (it->IsIpOutput())
         {
@@ -542,7 +542,7 @@ std::list<std::string> OutputManager::GetIps() const
 size_t OutputManager::TxNonEmptyCount()
 {
     size_t res = 0;
-    for (auto it : _outputs)
+    for (const auto& it : _outputs)
     {
         res += it->TxNonEmptyCount();
     }
@@ -552,7 +552,7 @@ size_t OutputManager::TxNonEmptyCount()
 
 bool OutputManager::TxEmpty()
 {
-    for (auto it : _outputs)
+    for (const auto& it : _outputs)
     {
         if (!it->TxEmpty()) return false;
     }
@@ -566,7 +566,7 @@ void OutputManager::SomethingChanged() const
     int nullcnt = 0;
     int cnt = 0;
     int start = 1;
-    for (auto it : _outputs)
+    for (const auto& it : _outputs)
     {
         cnt++;
         if (it->GetType() == OUTPUT_NULL)
@@ -600,7 +600,7 @@ void OutputManager::AddOutput(Output* output, Output* after)
     {
         std::list<Output*> newoutputs;
         bool added = false;
-        for (auto it : _outputs)
+        for (const auto& it : _outputs)
         {
             newoutputs.push_back(it);
             if (it == after)
@@ -632,7 +632,7 @@ void OutputManager::AddOutput(Output* output, int pos)
         std::list<Output*> newoutputs;
         int cnt = 0;
         bool added = false;
-        for (auto it : _outputs)
+        for (const auto& it : _outputs)
         {
             cnt++;
             if (cnt == pos+1)
@@ -671,7 +671,7 @@ void OutputManager::DeleteAllOutputs()
 {
     _dirty = true;
 
-    for (auto it : _outputs)
+    for (const auto& it : _outputs)
     {
         delete (it);
     }
@@ -686,7 +686,7 @@ void OutputManager::MoveOutput(Output* output, int toOutputNumber)
     std::list<Output*> res;
     int i = 1;
     bool added = false;
-    for (auto it : _outputs)
+    for (const auto& it : _outputs)
     {
         if (i == toOutputNumber + 1)
         {
@@ -719,7 +719,7 @@ bool OutputManager::AreAllIPOutputs(std::list<int> outputNumbers)
 {
     auto outputs = GetAllOutputs(outputNumbers);
 
-    for (auto it : outputs)
+    for (const auto& it : outputs)
     {
         if (!it->IsIpOutput())
         {
@@ -736,7 +736,7 @@ std::list<Output*> OutputManager::GetAllOutputs(const std::string& ip, const std
 
     std::list<Output*> sel = GetAllOutputs(selected);
 
-    for (auto it : _outputs)
+    for (const auto& it : _outputs)
     {
         if (ip == "" || (it->IsIpOutput() && (it->GetIP() == ip || it->GetResolvedIP() == ip || it->GetIP() == hostname)))
         {
@@ -783,7 +783,7 @@ std::list<Output*> OutputManager::GetAllOutputs(const std::list<int>& outputNumb
 {
     std::list<Output*> res;
 
-    for (auto it : outputNumbers)
+    for (const auto& it : outputNumbers)
     {
         Output* o = GetOutput(it);
         if (o != nullptr)
@@ -810,7 +810,7 @@ std::list<Output*> OutputManager::GetAllOutputs() const
 {
     std::list<Output*> res;
 
-    for (auto it : _outputs)
+    for (const auto& it : _outputs)
     {
         if (it->IsOutputCollection())
         {
@@ -833,7 +833,7 @@ void OutputManager::Replace(Output* replacethis, Output* withthis)
 {
     std::list<Output*> newoutputs;
 
-    for (auto it : _outputs)
+    for (const auto& it : _outputs)
     {
         if (it == replacethis)
         {
@@ -995,7 +995,7 @@ void OutputManager::StopOutput()
 void OutputManager::AllOff(bool send)
 {
     if (!_outputCriticalSection.TryEnter()) return;
-    for (auto it : _outputs)
+    for (const auto& it : _outputs)
     {
         it->AllOff();
         if (send)
@@ -1051,7 +1051,7 @@ void OutputManager::SetManyChannels(int32_t channel, unsigned char* data, size_t
 #pragma region Sync
 bool OutputManager::UseE131() const
 {
-    for (auto it : _outputs)
+    for (const auto& it : _outputs)
     {
         if (it->GetType() == OUTPUT_E131)
         {
@@ -1064,7 +1064,7 @@ bool OutputManager::UseE131() const
 
 bool OutputManager::UseArtnet() const
 {
-    for (auto it : _outputs)
+    for (const auto& it : _outputs)
     {
         if (it->GetType() == OUTPUT_ARTNET)
         {
@@ -1077,7 +1077,7 @@ bool OutputManager::UseArtnet() const
 
 bool OutputManager::UseDDP() const
 {
-    for (auto it : _outputs)
+    for (const auto& it : _outputs)
     {
         if (it->GetType() == OUTPUT_DDP)
         {
@@ -1090,7 +1090,7 @@ bool OutputManager::UseDDP() const
 
 bool OutputManager::UseZCPP() const
 {
-    for (auto it : _outputs)
+    for (const auto& it : _outputs)
     {
         if (it->GetType() == OUTPUT_ZCPP)
         {
@@ -1234,7 +1234,7 @@ std::list<std::string> OutputManager::GetControllerNames() const
 {
     std::list<std::string> res;
 
-    for (auto it : _outputs)
+    for (const auto& it : _outputs)
     {
         if (it->IsLookedUpByControllerName())
         {
@@ -1252,7 +1252,7 @@ std::list<std::string> OutputManager::GetAutoLayoutControllerNames() const
 {
     std::list<std::string> res;
 
-    for (auto it : _outputs)
+    for (const auto& it : _outputs)
     {
         if (it->IsAutoLayoutModels())
         {
@@ -1268,7 +1268,7 @@ std::list<std::string> OutputManager::GetAutoLayoutControllerNames() const
 
 bool OutputManager::IsOutputUsingIP(const std::string& ip) const
 {
-    for (auto it : _outputs)
+    for (const auto& it : _outputs)
     {
         if (it->GetIP() == ip) return true;
     }

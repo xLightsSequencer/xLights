@@ -1386,7 +1386,7 @@ void LayoutPanel::UpdateModelsForPreview(const std::string &group, LayoutGroup* 
 {
     std::set<std::string> modelsAdded;
 
-    for (auto& it : xlights->AllModels) {
+    for (const auto& it : xlights->AllModels) {
         Model *model = it.second;
         if (model->GetDisplayAs() != "ModelGroup") {
             if (group == "All Models" ||
@@ -1404,7 +1404,7 @@ void LayoutPanel::UpdateModelsForPreview(const std::string &group, LayoutGroup* 
         selected_group_name = TreeListViewModels->GetItemText(mSelectedGroup);
     }
 
-    for (auto it : xlights->AllModels) {
+    for (const auto& it : xlights->AllModels) {
         Model *model = it.second;
         bool mark_selected = false;
         if (mSelectedGroup.IsOk() && filtering && (model->name == selected_group_name)) {
@@ -1694,7 +1694,7 @@ void LayoutPanel::BulkEditControllerName()
     int sel = 0;
     int i = 1;
     cn.push_back("");
-    for (auto it : xlights->GetOutputManager()->GetAutoLayoutControllerNames())
+    for (const auto& it : xlights->GetOutputManager()->GetAutoLayoutControllerNames())
     {
         if (it == name) sel = i;
         cn.push_back(it);
@@ -2006,7 +2006,7 @@ void LayoutPanel::UnSelectAllModels(bool addBkgProps)
             }
         }
     } else {
-        for (auto it : xlights->AllObjects) {
+        for (const auto& it : xlights->AllObjects) {
             ViewObject *view_object = it.second;
             if (view_object != nullptr)
             {
@@ -2215,7 +2215,7 @@ void LayoutPanel::SelectBaseObject(const std::string & name, bool highlight_tree
         }
         if (m != selectedBaseObject)
         {
-            for (auto& it : xlights->AllModels)
+            for (const auto& it : xlights->AllModels)
             {
                 Model* model = it.second;
                 model->Selected = false;
@@ -2234,7 +2234,7 @@ void LayoutPanel::SelectBaseObject(const std::string & name, bool highlight_tree
         }
         if (v != selectedBaseObject)
         {
-            for (auto& it : xlights->AllObjects) {
+            for (const auto& it : xlights->AllObjects) {
                 ViewObject* view_object = it.second;
                 view_object->Selected = false;
                 view_object->Highlighted = false;
@@ -2273,7 +2273,7 @@ void LayoutPanel::SelectModel(const std::string & name, bool highlight_tree)
 void LayoutPanel::SelectModelGroupModels(ModelGroup* m, std::list<ModelGroup*>& processed)
 {
     processed.push_back(m);
-    for (auto& it : m->Models())
+    for (const auto& it : m->Models())
     {
         if (it->GetDisplayAs() == "ModelGroup")
         {
@@ -2487,7 +2487,7 @@ void LayoutPanel::SaveEffects()
             modelPreview->GetModels()[i]->UpdateXmlWithScale();
         }
     }
-    for (auto& it : xlights->AllObjects) {
+    for (const auto& it : xlights->AllObjects) {
         ViewObject *view_object = it.second;
         view_object->UpdateXmlWithScale();
     }
@@ -4729,7 +4729,7 @@ std::list<BaseObject*> LayoutPanel::GetSelectedBaseObjects() const
 
     if (editing_models)
     {
-        for (auto it : modelPreview->GetModels())
+        for (const auto& it : modelPreview->GetModels())
         {
             if (it != selectedBaseObject && (it->Selected || it->GroupSelected))
             {
@@ -4780,7 +4780,7 @@ void LayoutPanel::Nudge(int key)
             lastKey = key;
         }
 
-        for (auto it : selectedBaseObjects)
+        for (const auto& it : selectedBaseObjects)
         {
             float deltax = 0;
             float deltay = 0;
@@ -5245,7 +5245,7 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
                     {
                         moved = false;
                         // is there a model in the same location of the same type ... if so offset the pasting of the model
-                        for (auto it : xlights->AllModels)
+                        for (const auto& it : xlights->AllModels)
                         {
                             if (nda == it.second->GetModelXml()->GetAttribute("DisplayAs"))
                             {
@@ -5284,7 +5284,7 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
 						{
 							unsigned int highestch = 0;
 							Model* highest = nullptr;
-							for (auto it : xlights->AllModels)
+							for (const auto& it : xlights->AllModels)
 							{
 								if (it.second->GetDisplayAs() != "ModelGroup")
 								{
@@ -5976,7 +5976,7 @@ void LayoutPanel::ImportModelsFromRGBEffects()
             xlights->AllModels.createAndAddModel(it2.second, modelPreview->getWidth(), modelPreview->getHeight());
         }
 
-        for (auto it : dlg.GetPreviews())
+        for (const auto& it : dlg.GetPreviews())
         {
             bool found = false;
             for (size_t i = 0; i < ChoiceLayoutGroups->GetCount(); i++)

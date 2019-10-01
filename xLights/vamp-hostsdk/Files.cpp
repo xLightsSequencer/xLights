@@ -79,7 +79,7 @@ Files::listLibraryFilesMatching(Filter filter)
 {
     // xLights
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    for (auto it : filter.libraryNames)
+    for (const auto& it : filter.libraryNames)
     {
         logger_base.debug("Vamp: List library files matching %s.", (const char*)it.c_str());
     }

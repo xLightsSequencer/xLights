@@ -298,7 +298,7 @@ const std::vector<Model*> &ModelPreview::GetModels() {
 bool ModelPreview::ValidateModels(const ModelManager& mm)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    for (auto it : GetModels())
+    for (const auto& it : GetModels())
     {
         bool found = false;
         for (auto it2 : mm)

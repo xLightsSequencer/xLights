@@ -189,7 +189,7 @@ void ZCPPDialog::OnButton_CancelClick(wxCommandEvent& event)
 
 bool ZCPPDialog::IsUniqueDescription(const std::string& newDescription, ZCPPOutput* output, OutputManager* outputManager)
 {
-    for (auto it : outputManager->GetOutputs())
+    for (const auto& it : outputManager->GetOutputs())
     {
         if (it->GetType() == "ZCPP" && it != output && newDescription == it->GetDescription())
         {
@@ -201,7 +201,7 @@ bool ZCPPDialog::IsUniqueDescription(const std::string& newDescription, ZCPPOutp
 
 bool ZCPPDialog::IsUniqueIP(const std::string& newIP, ZCPPOutput* output, OutputManager* outputManager)
 {
-    for (auto it : outputManager->GetOutputs())
+    for (const auto& it : outputManager->GetOutputs())
     {
         if (it->GetType() == "ZCPP" && it != output && (newIP == it->GetIP() || newIP == it->GetResolvedIP()))
         {

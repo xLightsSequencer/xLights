@@ -331,7 +331,7 @@ void E131Dialog::OnControllerChoiceSelect(wxCommandEvent& event)
 
 bool E131Dialog::IsUniqueDescription(const std::string& newDescription, E131Output* output, OutputManager* outputManager)
 {
-	for (auto it : outputManager->GetOutputs())
+	for (const auto& it : outputManager->GetOutputs())
 	{
 		if (it->GetType() == "E131" &&  it != output && newDescription == it->GetDescription())
 		{
@@ -343,7 +343,7 @@ bool E131Dialog::IsUniqueDescription(const std::string& newDescription, E131Outp
 
 bool E131Dialog::IsUniqueIP(const std::string& newIP, E131Output* output, OutputManager* outputManager)
 {
-	for (auto it : outputManager->GetOutputs())
+	for (const auto& it : outputManager->GetOutputs())
 	{
 		if (it->GetType() == "E131" && it != output && (newIP == it->GetIP() || newIP == it->GetResolvedIP()))
 		{
