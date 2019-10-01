@@ -7,6 +7,8 @@ assignees: ''
 
 ---
 
+NOTE: IF YOU DO NOT ATTACH A SEQUENCE THAT DEMONSTRATES YOUR PROBLEM THEN THERE IS A HIGH PROBABILITY YOUR ISSUE WILL JUST BE CLOSED AND NOT INVESTIGATED.
+
 **Describe the bug**
 A clear and concise description of what the bug is.
 
