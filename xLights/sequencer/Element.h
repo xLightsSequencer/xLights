@@ -251,9 +251,9 @@ class ModelElement : public Element
         virtual NodeLayer* GetNodeEffectLayer(int index) const override;
 
         std::recursive_timed_mutex &GetRenderLock() { return changeLock; }
-        int GetWaitCount();
-        void IncWaitCount();
-        void DecWaitCount();
+        int GetWaitCount() const { return waitCount; }
+        void IncWaitCount() { waitCount++; }
+        void DecWaitCount() { waitCount--; }
 
         StrandElement *GetStrand(int strand, bool create = false);
         StrandElement *GetStrand(int strand) const;

@@ -1985,6 +1985,7 @@ void LayoutPanel::UnSelectAllModels(bool addBkgProps)
         for (size_t i = 0; i < models.size(); i++)
         {
             Model* m = modelPreview->GetModels()[i];
+            xlights->AddTraceMessage("LayoutPanel::UnSelectAllModels Model " + m->GetName());
             if (m != nullptr)
             {
                 m->Selected = false;
@@ -2008,6 +2009,7 @@ void LayoutPanel::UnSelectAllModels(bool addBkgProps)
     } else {
         for (const auto& it : xlights->AllObjects) {
             ViewObject *view_object = it.second;
+            xlights->AddTraceMessage("LayoutPanel::UnSelectAllModels Object " + view_object->GetName());
             if (view_object != nullptr)
             {
                 view_object->Selected = false;
@@ -3159,6 +3161,7 @@ void LayoutPanel::FinalizeModel()
             {
                 prog.Show();
             }
+            auto oldNewModel = newModel;
             newModel = Model::GetXlightsModel(newModel, _lastXlightsModel, xlights, cancelled, b->GetModelType() == "Download", &prog, 0, 99);
             if (cancelled || newModel == nullptr) {
                 xlights->AddTraceMessage("LayoutPanel::FinalizeModel Downloading or importing cancelled.");
@@ -3172,8 +3175,15 @@ void LayoutPanel::FinalizeModel()
                 xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "FinalizeModel");
                 return;
             }
-            xlights->AddTraceMessage("LayoutPanel::FinalizeModel Do the import.");
+            if (oldNewModel != newModel)
+            {
+                xlights->AddTraceMessage("LayoutPanel::FinalizeModel Download changed model.");
+                modelPreview->SetAdditionalModel(newModel); // download changed the model
+            }
+            xlights->AddTraceMessage("LayoutPanel::FinalizeModel Do the import. " + _lastXlightsModel);
+            xlights->AddTraceMessage("LayoutPanel::FinalizeModel Model type " + newModel->GetDisplayAs());
             newModel->ImportXlightsModel(_lastXlightsModel, xlights, min_x, max_x, min_y, max_y);
+            xlights->AddTraceMessage("LayoutPanel::FinalizeModel Import done.");
             if (newModel->GetDisplayAs() == "Poly Line")
             {
                 newModel->SetPosition(pos.x, pos.y);
@@ -6329,14 +6339,17 @@ static inline void SetToolTipForTreeList(wxTreeListCtrl *tv, const std::string &
 
 void LayoutPanel::OnSelectionChanged(wxTreeListEvent& event)
 {
+    log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     UnSelectAllModels(false);
     if( editing_models ) {
         wxTreeListItem item = event.GetItem();
         if (item.IsOk()) {
 
             ModelTreeData *data = (ModelTreeData*)TreeListViewModels->GetItemData(item);
+            if (data == nullptr) logger_base.crit("LayoutPanel::OnSelectionChanged ModelTreeData pointer was unexpectantly null ... this is going to crash");
             Model *model = ((data != nullptr) ? data->GetModel() : nullptr);
             if (model != nullptr) {
+                wxASSERT(xlights->AllModels.IsModelValid(model));
                 if (model->GetDisplayAs() == "ModelGroup") {
                     mSelectedGroup = item;
                     ShowPropGrid(false);

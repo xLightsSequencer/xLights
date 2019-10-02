@@ -4507,6 +4507,7 @@ void Model::ExportXlightsModel()
 
 Model* Model::GetXlightsModel(Model* model, std::string &last_model, xLightsFrame* xlights, bool &cancelled, bool download, wxProgressDialog* prog, int low, int high)
 {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (last_model == "")
     {
         if (download)
@@ -4575,6 +4576,7 @@ Model* Model::GetXlightsModel(Model* model, std::string &last_model, xLightsFram
             // not a custom model so delete the default model that was created
             std::string startChannel = model->GetModelXml()->GetAttribute("StartChannel", "1").ToStdString();
             if( model != nullptr ) {
+                xlights->AddTraceMessage("GetXlightsModel converted model to PolyLine");
                 delete model;
             }
             model = xlights->AllModels.CreateDefaultModel("Poly Line", startChannel);
@@ -4593,6 +4595,7 @@ Model* Model::GetXlightsModel(Model* model, std::string &last_model, xLightsFram
 
             // not a custom model so delete the default model that was created
             if (model != nullptr) {
+                xlights->AddTraceMessage("GetXlightsModel converted model to Matrix");
                 delete model;
             }
             model = xlights->AllModels.CreateDefaultModel("Matrix", startChannel);
@@ -4614,6 +4617,7 @@ Model* Model::GetXlightsModel(Model* model, std::string &last_model, xLightsFram
 
             // not a custom model so delete the default model that was created
             if (model != nullptr) {
+                xlights->AddTraceMessage("GetXlightsModel converted model to Arches");
                 delete model;
             }
             model = xlights->AllModels.CreateDefaultModel("Arches", startChannel);
@@ -4637,6 +4641,7 @@ Model* Model::GetXlightsModel(Model* model, std::string &last_model, xLightsFram
 
             // not a custom model so delete the default model that was created
             if (model != nullptr) {
+                xlights->AddTraceMessage("GetXlightsModel converted model to Star");
                 delete model;
             }
             model = xlights->AllModels.CreateDefaultModel("Star", startChannel);
@@ -4658,6 +4663,7 @@ Model* Model::GetXlightsModel(Model* model, std::string &last_model, xLightsFram
 
             // not a custom model so delete the default model that was created
             if (model != nullptr) {
+                xlights->AddTraceMessage("GetXlightsModel converted model to Tree");
                 delete model;
             }
             model = xlights->AllModels.CreateDefaultModel("Tree", startChannel);
@@ -4679,6 +4685,7 @@ Model* Model::GetXlightsModel(Model* model, std::string &last_model, xLightsFram
 
             // not a custom model so delete the default model that was created
             if (model != nullptr) {
+                xlights->AddTraceMessage("GetXlightsModel converted model to DMX");
                 delete model;
             }
             model = xlights->AllModels.CreateDefaultModel("DMX", startChannel);
@@ -4698,7 +4705,8 @@ Model* Model::GetXlightsModel(Model* model, std::string &last_model, xLightsFram
 
 			// not a custom model so delete the default model that was created
 			if (model != nullptr) {
-				delete model;
+                xlights->AddTraceMessage("GetXlightsModel converted model to Circle");
+                delete model;
 			}
 			model = xlights->AllModels.CreateDefaultModel("Circle", startChannel);
 			model->SetHcenterPos(x);
@@ -4710,6 +4718,8 @@ Model* Model::GetXlightsModel(Model* model, std::string &last_model, xLightsFram
 		}
         else
         {
+            logger_base.error("GetXlightsModel no code to convert to " + root->GetName());
+            xlights->AddTraceMessage("GetXlightsModel no code to convert to " + root->GetName());
             cancelled = true;
         }
     }

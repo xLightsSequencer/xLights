@@ -18,6 +18,9 @@
 #include "SpiralsEffect.h"
 #include "PinwheelEffect.h"
 
+#include "../xLightsApp.h"
+#include "../xLightsMain.h"
+
 RenderableEffect::RenderableEffect(int i, std::string n,
                                    const char **data16,
                                    const char **data24,
@@ -910,7 +913,12 @@ double RenderableEffect::GetValueCurveDouble(const std::string &name, double def
     }
 
     wxString vn = "VALUECURVE_" + name;
+
     wxString vc = SettingsMap.Get(vn, "");
+
+    // Temporary logging to try to find why we get a shader crash here
+    xLightsApp::GetFrame()->AddTraceMessage("RenderableEffect::GetValueCurveDouble '" + name + "' '" + vn + "' '" + vc + "'");
+
     if (vc != "")
     {
         bool needsUpgrade = !vc.Contains("RV=TRUE");

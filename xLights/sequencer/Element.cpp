@@ -411,18 +411,6 @@ NodeLayer* ModelElement::GetNodeEffectLayer(int index) const
     return nullptr;
 }
 
-int ModelElement::GetWaitCount() {
-    return waitCount;
-}
-void ModelElement::IncWaitCount() {
-    waitCount++;
-}
-void ModelElement::DecWaitCount() {
-    waitCount--;
-}
-
-
-
 std::list<Effect*> GetEffectsBetween(EffectLayer* layer, int start, int end)
 {
     std::list<Effect*> res;
@@ -513,13 +501,13 @@ std::string  TimingElement::GetPapagayoExport(int fps) const
         res += "\t\t" + std::string(wxString::Format("%d", l1->GetEffect(i)->GetEndTimeMS() / ms).c_str()) + "\n";
         std::list<Effect*> words = GetEffectsBetween(l2, l1->GetEffect(i)->GetStartTimeMS(), l1->GetEffect(i)->GetEndTimeMS());
         res += "\t\t" + std::string(wxString::Format("%d", words.size()).c_str()) + "\n";
-        for (auto w = words.begin(); w != words.end(); w++)
+        for (const auto& w : words)
         {
-            std::list<Effect*> ph = GetEffectsBetween(l3, (*w)->GetStartTimeMS(), (*w)->GetEndTimeMS());
-            res += "\t\t\t" + (*w)->GetEffectName() + " " + std::string(wxString::Format("%d", (*w)->GetStartTimeMS() / ms).c_str()) + " " + std::string(wxString::Format("%d", (*w)->GetEndTimeMS() / ms).c_str()) + " " + std::string(wxString::Format("%d", ph.size()).c_str()) + "\n";
-            for (auto p = ph.begin(); p != ph.end(); p++)
+            std::list<Effect*> ph = GetEffectsBetween(l3, w->GetStartTimeMS(), w->GetEndTimeMS());
+            res += "\t\t\t" + w->GetEffectName() + " " + std::string(wxString::Format("%d", w->GetStartTimeMS() / ms).c_str()) + " " + std::string(wxString::Format("%d", w->GetEndTimeMS() / ms).c_str()) + " " + std::string(wxString::Format("%d", ph.size()).c_str()) + "\n";
+            for (const auto& p : ph)
             {
-                res += "\t\t\t\t" + std::string(wxString::Format("%d", (*p)->GetStartTimeMS() / ms).c_str()) + " " + (*p)->GetEffectName() + "\n";
+                res += "\t\t\t\t" + std::string(wxString::Format("%d", p->GetStartTimeMS() / ms).c_str()) + " " + p->GetEffectName() + "\n";
             }
         }
     }
@@ -531,14 +519,14 @@ std::string TimingElement::GetExport() const
 {
     std::string res = "";
 
-    for (auto l = mEffectLayers.begin(); l != mEffectLayers.end(); ++l)
+    for (const auto& l : mEffectLayers)
     {
         res += "   <EffectLayer>\n";
-        for (int i = 0; i < (*l)->GetEffectCount(); i++)
+        for (int i = 0; i < l->GetEffectCount(); i++)
         {
-            res += "      <Effect label=\""+(*l)->GetEffect(i)->GetEffectName()+
-                              "\" starttime=\"" + std::string(wxString::Format("%d",(*l)->GetEffect(i)->GetStartTimeMS()))+
-                              "\" endtime=\"" + std::string(wxString::Format("%d", (*l)->GetEffect(i)->GetEndTimeMS())) + 
+            res += "      <Effect label=\"" + l->GetEffect(i)->GetEffectName()+
+                              "\" starttime=\"" + std::string(wxString::Format("%d",l->GetEffect(i)->GetStartTimeMS()))+
+                              "\" endtime=\"" + std::string(wxString::Format("%d", l->GetEffect(i)->GetEndTimeMS())) + 
                               "\" />\n";
         }
         res += "   </EffectLayer>\n";
@@ -564,9 +552,9 @@ void ModelElement::Init(Model &model) {
         //no strands for a whole house model
         return;
     }
-    for (auto sm : model.GetSubModels()) {
+    for (const auto& sm : model.GetSubModels()) {
         bool found = false;
-        for (auto sm2 : mSubModels) {
+        for (const auto& sm2 : mSubModels) {
             if (sm2->GetName() == sm->Name())
             {
                 found = true;
@@ -653,14 +641,14 @@ void ModelElement::AddSubModel(SubModelElement* sme) {
 }
 
 SubModelElement *ModelElement::GetSubModel(const std::string &name, bool create) {
-    for (auto a = mSubModels.begin(); a != mSubModels.end(); ++a) {
-        if (name == (*a)->GetName()) {
-            return *a;
+    for (const auto& a : mSubModels) {
+        if (name == a->GetName()) {
+            return a;
         }
     }
-    for (auto a = mStrands.begin(); a != mStrands.end(); ++a) {
-        if (name == (*a)->GetName()) {
-            return *a;
+    for (const auto& a : mStrands) {
+        if (name == a->GetName()) {
+            return a;
         }
     }
     if (create) {
