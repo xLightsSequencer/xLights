@@ -705,6 +705,37 @@ static inline void SetCoords(NodeBaseClass::CoordStruct &it2, int x, int y, int 
     it2.bufY = y;
 }
 
+// This code should be uncommented and use to find root cause of model groups that create buffers with different numbers of nodes
+//void ModelGroup::TestNodeInit() const
+//{
+//    int x, y;
+//    std::vector<NodeBaseClassPtr> mgNodesDefault;
+//    Model::InitRenderBufferNodes("Default", "2D", "None", mgNodesDefault, x, y);
+
+//    std::vector<NodeBaseClassPtr> mgNodesPerPreview;
+//    Model::InitRenderBufferNodes("Per Preview", "2D", "None", mgNodesPerPreview, x, y);
+
+//    int totalPerModelDefault = 0;
+//    int totalSingleLine = 0;
+//    for (const auto& it : modelNames) {
+//        Model* m = modelManager[it];
+//        if (m != nullptr) {
+//            std::vector<NodeBaseClassPtr> nodesDefault;
+//            m->InitRenderBufferNodes("Default", "2D", "None", nodesDefault, x, y);
+//            totalPerModelDefault += nodesDefault.size();
+
+//            std::vector<NodeBaseClassPtr> nodesSingleLine;
+//            m->InitRenderBufferNodes("Single Line", "2D", "None", nodesSingleLine, x, y);
+//            totalSingleLine += nodesSingleLine.size();
+
+//            wxASSERT(nodesDefault.size() == nodesSingleLine.size());
+//        }
+//    }
+//    wxASSERT(mgNodesDefault.size() == mgNodesPerPreview.size());
+//    wxASSERT(mgNodesDefault.size() == totalPerModelDefault);
+//    wxASSERT(mgNodesDefault.size() == totalSingleLine);
+//}
+
 void ModelGroup::InitRenderBufferNodes(const std::string &tp,
                                        const std::string& camera,
                                        const std::string &transform,

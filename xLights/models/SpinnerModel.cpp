@@ -367,12 +367,15 @@ void SpinnerModel::InitRenderBufferNodes(const std::string &type, const std::str
         int cur = 0;
         if (SingleNode)
         {
-            newNodes.push_back(NodeBaseClassPtr(Nodes[0]->clone()));
-            for (size_t c = 0; c < newNodes[cur]->Coords.size(); c++) {
-                newNodes[cur]->Coords[c].bufX = cur;
-                newNodes[cur]->Coords[c].bufY = 0;
+            for (int i = 0; i < stringcount; i++)
+            {
+                newNodes.push_back(NodeBaseClassPtr(Nodes[i]->clone()));
+                for (size_t c = 0; c < newNodes[cur]->Coords.size(); c++) {
+                    newNodes[cur]->Coords[c].bufX = cur;
+                    newNodes[cur]->Coords[c].bufY = 0;
+                }
+                cur++;
             }
-            cur++;
         }
         else
         {

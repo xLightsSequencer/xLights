@@ -347,13 +347,13 @@ bool SDL::CloseInputAudioDevice()
 void SDL::PurgeAllButInputAudio(int ms)
 {
     uint8_t buffer[8192];
-    int bytesNeeded = DEFAULT_RATE * ms / 1000 * 2;
+    uint32_t bytesNeeded = DEFAULT_RATE * ms / 1000 * 2;
 
     while (SDL_GetQueuedAudioSize(_inputdev) > bytesNeeded)
     {
-        int avail = SDL_GetQueuedAudioSize(_inputdev);
-        int toread = std::min(avail - bytesNeeded, (int)sizeof(buffer));
-        int read = SDL_DequeueAudio(_inputdev, buffer, toread);
+        uint32_t avail = SDL_GetQueuedAudioSize(_inputdev);
+        uint32_t toread = std::min(avail - bytesNeeded, (uint32_t)sizeof(buffer));
+        uint32_t read = SDL_DequeueAudio(_inputdev, buffer, toread);
         wxASSERT(read == toread);
     }
 }

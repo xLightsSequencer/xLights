@@ -1918,6 +1918,12 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
         inf->saturationAdjustValueCurve != saturationAdjustValueCurve ||
         inf->valueAdjustValueCurve != valueAdjustValueCurve)
     {
+        // This function is useful for testing issues where PixelBufferClass::MergeBuffersForLayer asserts
+        //if (model->GetDisplayAs() == "ModelGroup")
+        //{
+        //    dynamic_cast<const ModelGroup*>(model)->TestNodeInit();
+        //}
+
         int origNodeCount = inf->buffer.Nodes.size();
         inf->buffer.Nodes.clear();
 
@@ -2040,14 +2046,21 @@ void PixelBufferClass::MergeBuffersForLayer(int layer) {
                 }
                 else
                 {
-                    // I really dont know why this happens but i have seen it with per model default model groups
+                    // Where this happens it is usually a sign that there is a bug in one of our models where it creates a different number of nodes depending on the render buffer size
+                    // To find the cause uncomment the model group function TestNodeInit and the call in PixelBuffer::SetLayerSettings
+
                     if (layers[layer]->buffer.curPeriod == layers[layer]->buffer.curEffStartPer)
                     {
+                        logger_base.warn("PixelBufferClass::MergeBuffersForLayer(%d) Model '%s' Mismatch in number of nodes across layers.", layer, (const char*)modelName.c_str());
+                        for (int i = 0; i < GetLayerCount(); i++)
+                        {
+                            logger_base.warn("    Layer %d node count %d buffer '%s'", i, (int)layers[i]->buffer.Nodes.size(), (const char*)layers[i]->bufferType.c_str());
+                        }
+                        int mbnodes = 0;
+                        for (const auto& mb : layers[layer]->modelBuffers) {
+                            mbnodes += mb->Nodes.size();
+                        }
                         wxASSERT(false);
-                        logger_base.error("PixelBufferClass::MergeBuffersForLayer(%d) nc %d >= layers[%d]->buffer.Nodes.size() %d. Model '%s' Transform '%s' Type '%s' Camera '%s' Layers %d.",
-                            layer, nc, layer, (int)layers[layer]->buffer.Nodes.size(),
-                            (const char*)modelName.c_str(), (const char*)layers[0]->bufferTransform.c_str(), (const char*)layers[0]->bufferType.c_str(),
-                            (const char*)layers[0]->camera.c_str(), numLayers);
                     }
                 }
             }

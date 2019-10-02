@@ -18,6 +18,7 @@ class ModelGroup : public ModelWithScreenLocation<BoxedScreenLocation>
         ModelGroup(wxXmlNode *node, const ModelManager &manager, int previewW, int previewH);
         virtual ~ModelGroup();
 
+        // void TestNodeInit() const; // This function should be uncommented for testing issues where model group buffer styles create different numbers of nodes
         virtual unsigned int GetFirstChannel() const override;
         virtual unsigned int GetLastChannel() const override;
         void ModelRemoved(const std::string &name);
