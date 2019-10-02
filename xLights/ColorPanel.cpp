@@ -152,7 +152,7 @@ class ColourTextDropTarget : public wxTextDropTarget
 public:
     ColourTextDropTarget(ColorCurveButton* owner) { _owner = owner; };
 
-    virtual bool OnDropText(wxCoord x, wxCoord y, const wxString& data);
+    virtual bool OnDropText(wxCoord x, wxCoord y, const wxString& data) override;
     virtual wxDragResult OnDragOver(wxCoord x, wxCoord y, wxDragResult def) override;
 
     ColorCurveButton* _owner;

@@ -61,7 +61,7 @@ void DragColoursBitmapButton::OnMouseLeftDown (wxMouseEvent& event)
     wxCursor dragCursor(GetBitmap().ConvertToImage());
 #endif
 
-    wxDropSource dragSource(this,dragCursor,dragCursor,dragCursor );
+    wxDropSource dragSource(GetParent(),dragCursor,dragCursor,dragCursor );
 
     dragSource.SetData( dragData );
     dragSource.DoDragDrop( wxDragCopy );

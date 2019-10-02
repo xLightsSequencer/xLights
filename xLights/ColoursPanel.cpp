@@ -28,14 +28,14 @@ END_EVENT_TABLE()
 
 int ColoursPanel::UpdateButtons()
 {
-    auto existing = GridSizer1->GetChildren();
+    auto existing = ScrolledWindow1->GetChildren();
     int added = 0;
     for (auto c : _colours)
     {
         bool found = false;
         for (const auto& it : existing)
         {
-            if (((DragColoursBitmapButton*)it->GetWindow())->GetColour() == c)
+            if (((DragColoursBitmapButton*)it)->GetColour() == c)
             {
                 // already there
                 found = true;
@@ -44,8 +44,6 @@ int ColoursPanel::UpdateButtons()
         }
         if (!found)
         {
-            long id = wxNewId();
-
             wxString iid = wxString::Format("ID_BITMAPBUTTON_%d", (int)GridSizer1->GetItemCount());
             DragColoursBitmapButton* bmb = new DragColoursBitmapButton(ScrolledWindow1, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(30, 30),
                 wxBU_AUTODRAW | wxNO_BORDER, wxDefaultValidator, iid);

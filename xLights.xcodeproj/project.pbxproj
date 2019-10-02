@@ -142,6 +142,8 @@
 		6730747C208E737800D57F99 /* FolderSelection.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6730747A208E737800D57F99 /* FolderSelection.cpp */; };
 		6731448822C6F98F00764C44 /* NoteRangeDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6731448622C6F98E00764C44 /* NoteRangeDialog.cpp */; };
 		6733CF051E60659F00B97F60 /* xschedule.mac.properties in Resources */ = {isa = PBXBuildFile; fileRef = 6733CF041E60659E00B97F60 /* xschedule.mac.properties */; };
+		67372761234AB2FD00C6C2F2 /* ColoursPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6737275D234AB2FD00C6C2F2 /* ColoursPanel.cpp */; };
+		67372762234AB2FD00C6C2F2 /* DragColoursBitmapButton.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67372760234AB2FD00C6C2F2 /* DragColoursBitmapButton.cpp */; };
 		6738541021E515A500A71071 /* CubeModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6738540E21E515A500A71071 /* CubeModel.cpp */; };
 		673930DF202B6103000A33B4 /* SelectPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 673930DD202B6103000A33B4 /* SelectPanel.cpp */; };
 		673B3D4E223BF203000F1D7E /* libcurl.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 671E47FC2231CEC900049DC9 /* libcurl.tbd */; };
@@ -568,6 +570,8 @@
 		67C9E660211FC07E00379E2A /* ViewpointDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C9E65C211FC07E00379E2A /* ViewpointDialog.cpp */; };
 		67C9E661211FC07E00379E2A /* ViewpointMgr.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C9E65D211FC07E00379E2A /* ViewpointMgr.cpp */; };
 		67C9E664211FC08C00379E2A /* VectorMath.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C9E662211FC08C00379E2A /* VectorMath.cpp */; };
+		67CA2D3D2344189A0053409E /* ValueCurvesPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67CA2D3C2344189A0053409E /* ValueCurvesPanel.cpp */; };
+		67CA2D4023441CD80053409E /* DragValueCurveBitmapButton.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67CA2D3E23441CD80053409E /* DragValueCurveBitmapButton.cpp */; };
 		67CA858018BE86B800A6268C /* heartbeat.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67CA857E18BE86B800A6268C /* heartbeat.cpp */; };
 		67CB9F2B1C6E1FF400390753 /* VUMeterPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67CB9F281C6E1FF400390753 /* VUMeterPanel.cpp */; };
 		67CB9F2C1C6E1FF400390753 /* VUMeterEffect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67CB9F2A1C6E1FF400390753 /* VUMeterEffect.cpp */; };
@@ -1091,6 +1095,10 @@
 		6731448622C6F98E00764C44 /* NoteRangeDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = NoteRangeDialog.cpp; sourceTree = "<group>"; };
 		6731448722C6F98F00764C44 /* NoteRangeDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NoteRangeDialog.h; sourceTree = "<group>"; };
 		6733CF041E60659E00B97F60 /* xschedule.mac.properties */ = {isa = PBXFileReference; lastKnownFileType = text; name = xschedule.mac.properties; path = bin/xschedule.mac.properties; sourceTree = "<group>"; };
+		6737275D234AB2FD00C6C2F2 /* ColoursPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ColoursPanel.cpp; sourceTree = "<group>"; };
+		6737275E234AB2FD00C6C2F2 /* ColoursPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ColoursPanel.h; sourceTree = "<group>"; };
+		6737275F234AB2FD00C6C2F2 /* DragColoursBitmapButton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DragColoursBitmapButton.h; sourceTree = "<group>"; };
+		67372760234AB2FD00C6C2F2 /* DragColoursBitmapButton.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DragColoursBitmapButton.cpp; sourceTree = "<group>"; };
 		6738540E21E515A500A71071 /* CubeModel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = CubeModel.cpp; path = models/CubeModel.cpp; sourceTree = "<group>"; };
 		6738540F21E515A500A71071 /* CubeModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CubeModel.h; path = models/CubeModel.h; sourceTree = "<group>"; };
 		673930DD202B6103000A33B4 /* SelectPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SelectPanel.cpp; sourceTree = "<group>"; };
@@ -1823,6 +1831,10 @@
 		67C9E65F211FC07E00379E2A /* ViewpointDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ViewpointDialog.h; sourceTree = "<group>"; };
 		67C9E662211FC08C00379E2A /* VectorMath.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = VectorMath.cpp; path = support/VectorMath.cpp; sourceTree = "<group>"; };
 		67C9E663211FC08C00379E2A /* VectorMath.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = VectorMath.h; path = support/VectorMath.h; sourceTree = "<group>"; };
+		67CA2D3B2344189A0053409E /* ValueCurvesPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ValueCurvesPanel.h; sourceTree = "<group>"; };
+		67CA2D3C2344189A0053409E /* ValueCurvesPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ValueCurvesPanel.cpp; sourceTree = "<group>"; };
+		67CA2D3E23441CD80053409E /* DragValueCurveBitmapButton.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DragValueCurveBitmapButton.cpp; sourceTree = "<group>"; };
+		67CA2D3F23441CD80053409E /* DragValueCurveBitmapButton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DragValueCurveBitmapButton.h; sourceTree = "<group>"; };
 		67CA857E18BE86B800A6268C /* heartbeat.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = heartbeat.cpp; sourceTree = "<group>"; };
 		67CA857F18BE86B800A6268C /* heartbeat.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = heartbeat.h; sourceTree = "<group>"; };
 		67CB9F271C6E1FF400390753 /* VUMeterPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = VUMeterPanel.h; path = effects/VUMeterPanel.h; sourceTree = "<group>"; };
@@ -3107,6 +3119,14 @@
 		67E7087617B51AB400A22034 /* xLights */ = {
 			isa = PBXGroup;
 			children = (
+				6737275D234AB2FD00C6C2F2 /* ColoursPanel.cpp */,
+				6737275E234AB2FD00C6C2F2 /* ColoursPanel.h */,
+				67372760234AB2FD00C6C2F2 /* DragColoursBitmapButton.cpp */,
+				6737275F234AB2FD00C6C2F2 /* DragColoursBitmapButton.h */,
+				67CA2D3E23441CD80053409E /* DragValueCurveBitmapButton.cpp */,
+				67CA2D3F23441CD80053409E /* DragValueCurveBitmapButton.h */,
+				67CA2D3C2344189A0053409E /* ValueCurvesPanel.cpp */,
+				67CA2D3B2344189A0053409E /* ValueCurvesPanel.h */,
 				677E58472251277400861ABF /* AlignmentDialog.cpp */,
 				677E58462251277400861ABF /* AlignmentDialog.h */,
 				67FA9FD21C67837500FED13B /* AudioManager.cpp */,
@@ -4123,6 +4143,7 @@
 				67C0EEE31C755ABE002FE25E /* MatrixModel.cpp in Sources */,
 				67E5C5DD22B2B32D00D6AF68 /* ShaderDownloadDialog.cpp in Sources */,
 				67D8F45A1A1A584400522413 /* TabSequence.cpp in Sources */,
+				67372761234AB2FD00C6C2F2 /* ColoursPanel.cpp in Sources */,
 				67BF80061F278956002F118D /* Falcon.cpp in Sources */,
 				67B32DD31A16972000143B0F /* TabPreview.cpp in Sources */,
 				67BF80081F278956002F118D /* FPP.cpp in Sources */,
@@ -4147,6 +4168,7 @@
 				67278C7E1CF74A01000DCFFB /* ValueCurve.cpp in Sources */,
 				67AAF8FD1B642E6C00585431 /* LyricsDialog.cpp in Sources */,
 				67B2CFF21C3A186A003C17CA /* FacesEffect.cpp in Sources */,
+				67CA2D3D2344189A0053409E /* ValueCurvesPanel.cpp in Sources */,
 				679BD33D1C3757F6000539FE /* EffectManager.cpp in Sources */,
 				67ACBAB81C63DDA400BFA7D6 /* SingleLineModel.cpp in Sources */,
 				67B2CF931C39D98A003C17CA /* CurtainEffect.cpp in Sources */,
@@ -4356,6 +4378,7 @@
 				675DE26F1B53381800A9BB44 /* xlSlider.cpp in Sources */,
 				67FF398D1D57F54D00290DB4 /* Shapes.cpp in Sources */,
 				67CE25902138234000ADF180 /* BaseObject.cpp in Sources */,
+				67CA2D4023441CD80053409E /* DragValueCurveBitmapButton.cpp in Sources */,
 				6784F92E1A5653670018EC0C /* SequenceElements.cpp in Sources */,
 				67B2CFEE1C3A186A003C17CA /* GalaxyEffect.cpp in Sources */,
 				679484AE1CD8E998001A7B4F /* VideoReader.cpp in Sources */,
@@ -4392,6 +4415,7 @@
 				673F03681F322A9B0052A793 /* ChannelBlockModel.cpp in Sources */,
 				672E7C621B4B6B3700409549 /* xlGridCanvas.cpp in Sources */,
 				67405C5D23155675000919E9 /* SyncrolightEthernetOutput.cpp in Sources */,
+				67372762234AB2FD00C6C2F2 /* DragColoursBitmapButton.cpp in Sources */,
 				6730747C208E737800D57F99 /* FolderSelection.cpp in Sources */,
 				67623E711AD07E320022667B /* KeyBindings.cpp in Sources */,
 				67A61A4B17B51C0F008E95BB /* SeqElementMismatchDialog.cpp in Sources */,
