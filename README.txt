@@ -11,6 +11,18 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2019.55 October 2 2019
+   -- enh (dkulp)  Optimize FPP config upload to not upload file that is the same to avoid restart flag being set
+   -- enh (keith)  Add value curve drag and drop mode for fast sequencing using saved value curves
+   -- bug (keith)  Maybe fix some crash on sequence load problems
+   -- bug (keith)  Possible fixes for some crashes and more logging to help isolate others
+   -- bug (keith)  Fix poor default size of custom model wiring preview
+   -- bug (keith)  Suppress shader file download error for image file
+   -- bug (keith)  Improve the default sequencer panel layout
+   -- bug (keith)  Fix a bunch of issues with the circles effect not displaying correctly
+   -- bug (keith)  Fix single channel spinner model causes crashes when used in a model group
+   -- bug (keith)  Prevent model group render buffers of different sizes causing crashes
+   -- bug (dkulp)  In FPP upload use filename fixups to find media files
 2019.54 September 27 2019
    -- enh (keith)  Add support for video files with an alpha channel to video effect
    -- bug (keith)  Fix double click output changing IP address (where last output with that ip address) does not update 
