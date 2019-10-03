@@ -781,9 +781,9 @@ void xLightsImportChannelMapDialog::AddModel(Model *m, int &ms) {
         {
             auto modelNames = grp->ModelNames();
 
-            for (auto it = modelNames.begin(); it != modelNames.end(); ++it)
+            for (const auto& it : modelNames)
             {
-                if (std::find(it->begin(), it->end(), '/') != it->end())
+                if (std::find(it.begin(), it.end(), '/') != it.end())
                 {
                     // this is a submodel ... dont add it
 
@@ -793,8 +793,11 @@ void xLightsImportChannelMapDialog::AddModel(Model *m, int &ms) {
                 }
                 else
                 {
-                    Model* mdl = grp->GetModel(*it);
-                    AddModel(mdl, ms);
+                    Model* mdl = grp->GetModel(it);
+                    if (mdl != nullptr)
+                    {
+                        AddModel(mdl, ms);
+                    }
                 }
             }
         }

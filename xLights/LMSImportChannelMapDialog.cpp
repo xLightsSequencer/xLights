@@ -192,7 +192,11 @@ void LMSImportChannelMapDialog::SetupByNode() {
         ChannelMapGrid->DeleteRows(0, ChannelMapGrid->GetNumberRows());
     }
     for (size_t x = 0; x < modelNames.size(); x++) {
-        AddModel(*xlights->GetModel(modelNames[x]));
+        Model* m = xlights->GetModel(modelNames[x]);
+        if (m != nullptr)
+        {
+            AddModel(*m);
+        }
     }
 }
 void LMSImportChannelMapDialog::SetupByStrand() {
@@ -201,7 +205,11 @@ void LMSImportChannelMapDialog::SetupByStrand() {
         ChannelMapGrid->DeleteRows(0, ChannelMapGrid->GetNumberRows());
     }
     for (size_t x = 0; x < modelNames.size(); x++) {
-        AddModel(*xlights->GetModel(modelNames[x]));
+        Model* m = xlights->GetModel(modelNames[x]);
+        if (m != nullptr)
+        {
+            AddModel(*m);
+        }
     }
 }
 
@@ -281,7 +289,10 @@ void LMSImportChannelMapDialog::OnAddModelButtonClick(wxCommandEvent& event)
     }
     modelNames.push_back(name);
     Model *cls = xlights->GetModel(name);
-    AddModel(*cls);
+    if (cls != nullptr)
+    {
+        AddModel(*cls);
+    }
     Refresh();
     _dirty = true;
 }
