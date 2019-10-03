@@ -1751,8 +1751,8 @@ void SubModelsDialog::ImportCustomModel(std::string filename)
     {
         wxXmlNode* root = doc.GetRoot();
 
-        // it must be a 1 depth custom model
-        if (root->GetName() == "custommodel" && root->GetAttribute("Depth", "1") == "1")
+        // it must be a 1 depth custom model or empty from pre 3D models
+        if (root->GetName() == "custommodel" && (root->GetAttribute("Depth", "1") == "1" || root->GetAttribute("Depth", "").IsEmpty()))
         {
             int width = wxAtoi(root->GetAttribute("parm1", "1"));
             int height = wxAtoi(root->GetAttribute("parm2", "1"));
