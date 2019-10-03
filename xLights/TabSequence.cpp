@@ -1126,10 +1126,16 @@ void xLightsFrame::SaveSequence()
     {
         wxString NewFilename;
 
+        wxString startname = CurrentSeqXmlFile->GetName();
+        if (startname.IsEmpty() && !CurrentSeqXmlFile->GetMediaFile().empty() )
+        {
+            startname = wxFileName(CurrentSeqXmlFile->GetMediaFile()).GetName();
+        }
+
         wxFileDialog fd(this,
                         "Choose filename to Save Sequence:",
                         CurrentDir,
-                        CurrentSeqXmlFile->GetName(),
+                        startname,
                         strSequenceSaveAsFileTypes,
                         wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
 
