@@ -661,8 +661,8 @@ void LayoutPanel::Reset()
     ChoiceLayoutGroups->Append("Default");
     ChoiceLayoutGroups->Append("All Models");
     ChoiceLayoutGroups->Append("Unassigned");
-    for (auto it = xlights->LayoutGroups.begin(); it != xlights->LayoutGroups.end(); ++it) {
-        LayoutGroup* grp = (LayoutGroup*)(*it);
+    for (const auto& it : xlights->LayoutGroups) {
+        LayoutGroup* grp = (LayoutGroup*)(it);
         ChoiceLayoutGroups->Append(grp->GetName());
     }
     ChoiceLayoutGroups->Append("<Create New Preview>");
@@ -1195,8 +1195,7 @@ int LayoutPanel::AddModelToTree(Model *model, wxTreeListItem* parent, bool expan
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     int width = 0;
 
-    if (model == nullptr)
-    {
+    if (model == nullptr) {
         logger_base.crit("LayoutPanel::AddModelToTree model is null ... this is going to crash.");
         wxASSERT(false);
     }
@@ -1232,12 +1231,12 @@ int LayoutPanel::AddModelToTree(Model *model, wxTreeListItem* parent, bool expan
     if( model->GetDisplayAs() == "ModelGroup" ) {
         ModelGroup *grp = (ModelGroup*)model;
         int i = 0;
-        for (auto it = grp->ModelNames().begin(); it != grp->ModelNames().end(); ++it) {
-            Model *m = xlights->AllModels[*it];
+        for (const auto& it : grp->ModelNames()) {
+            Model *m = xlights->AllModels[it];
 
             if (m == nullptr)
             {
-                logger_base.error("Model group %s thought it contained model. '%s' but it didnt. This would have crashed.", (const char *)grp->GetName().c_str(), (const char *)it->c_str());
+                logger_base.error("Model group %s thought it contained model. '%s' but it didnt. This would have crashed.", (const char *)grp->GetName().c_str(), (const char *)it.c_str());
             }
             else if (m == grp)
             {
@@ -1277,8 +1276,8 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
     std::vector<Model *> dummy_models;
 
     // Update all the custom previews
-    for (auto it = xlights->LayoutGroups.begin(); it != xlights->LayoutGroups.end(); ++it) {
-        LayoutGroup* grp = (LayoutGroup*)(*it);
+    for (const auto& it : xlights->LayoutGroups) {
+        LayoutGroup* grp = (LayoutGroup*)(it);
         dummy_models.clear();
         if (grp->GetName() == currentLayoutGroup) {
             UpdateModelsForPreview(currentLayoutGroup, grp, models, true);
@@ -1327,8 +1326,8 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
 
         wxTreeListItem root = TreeListViewModels->GetRootItem();
         // add all the model groups
-        for (auto it = xlights->AllModels.begin(); it != xlights->AllModels.end(); ++it) {
-            Model *model = it->second;
+        for (const auto& it : xlights->AllModels) {
+            Model *model = it.second;
             if (model->GetDisplayAs() == "ModelGroup") {
                 if (currentLayoutGroup == "All Models" || model->GetLayoutGroup() == currentLayoutGroup
                     || (model->GetLayoutGroup() == "All Previews" && currentLayoutGroup != "Unassigned")) {
@@ -1339,8 +1338,8 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
         }
 
         // add all the models
-        for (auto it = models.begin(); it != models.end(); ++it) {
-            Model *model = *it;
+        for (const auto& it : models) {
+            Model *model = it;
             if (model->GetDisplayAs() != "ModelGroup" && model->GetDisplayAs() != "SubModel") {
                 bool expand = (std::find(expanded.begin(), expanded.end(), model->GetName()) != expanded.end());
                 width = std::max(width, AddModelToTree(model, &root, expand, 0));
@@ -1415,7 +1414,7 @@ void LayoutPanel::UpdateModelsForPreview(const std::string &group, LayoutGroup* 
             if (group == "All Models" ||
                 model->GetLayoutGroup() == group ||
                 (model->GetLayoutGroup() == "All Previews" && group != "Unassigned")) {
-                for (auto it2 : grp->ModelNames()) {
+                for (const auto& it2 : grp->ModelNames()) {
                     Model *m = xlights->AllModels[it2];
                     if (m != nullptr) {
                         if (mark_selected) {
@@ -1441,37 +1440,37 @@ void LayoutPanel::UpdateModelsForPreview(const std::string &group, LayoutGroup* 
                         else if (m->DisplayAs == "ModelGroup") {
                             ModelGroup *mg = (ModelGroup*)m;
                             if (mark_selected) {
-                                for (auto it3 = mg->Models().begin(); it3 != mg->Models().end(); ++it3) {
-                                    if ((*it3)->DisplayAs != "ModelGroup") {
+                                for (const auto& it3 : mg->Models()) {
+                                    if (it3->DisplayAs != "ModelGroup") {
                                         if (selectedBaseObject == nullptr)
                                         {
-                                            SelectModel((*it3), false);
+                                            SelectModel(it3, false);
                                         }
-                                        (*it3)->GroupSelected = true;
-                                        (*it3)->Highlighted = true;
-                                        prev_models.push_back(*it3);
+                                        it3->GroupSelected = true;
+                                        it3->Highlighted = true;
+                                        prev_models.push_back(it3);
                                     }
                                     else
                                     {
                                         // need to process groups within groups ... safely
-                                        for (auto itm = xlights->AllModels.begin(); itm != xlights->AllModels.end(); ++itm)
+                                        for (const auto& itm : xlights->AllModels)
                                         {
-                                            if (itm->second->GetDisplayAs() == "ModelGroup")
+                                            if (itm.second->GetDisplayAs() == "ModelGroup")
                                             {
                                                 // ignore these
                                             }
                                             else
                                             {
-                                                if (dynamic_cast<ModelGroup*>(*it3)->ContainsModel(itm->second))
+                                                if (dynamic_cast<ModelGroup*>(it3)->ContainsModel(itm.second))
                                                 {
-                                                    if (std::find(prev_models.begin(), prev_models.end(), itm->second) == prev_models.end())
+                                                    if (std::find(prev_models.begin(), prev_models.end(), itm.second) == prev_models.end())
                                                     {
-                                                        if (modelsAdded.find(itm->first) == modelsAdded.end()) {
-                                                            modelsAdded.insert(itm->first);
+                                                        if (modelsAdded.find(itm.first) == modelsAdded.end()) {
+                                                            modelsAdded.insert(itm.first);
                                                         }
-                                                        prev_models.push_back(itm->second);
+                                                        prev_models.push_back(itm.second);
                                                     }
-                                                    itm->second->GroupSelected = true;
+                                                    itm.second->GroupSelected = true;
                                                 }
                                             }
                                         }
@@ -1570,11 +1569,11 @@ void LayoutPanel::BulkEditDimmingCurves()
                 }
                 f1 = new wxXmlNode(wxXML_ELEMENT_NODE, "dimmingCurve");
                 modelPreview->GetModels()[i]->GetModelXml()->AddChild(f1);
-                for (auto it = dimmingInfo.begin(); it != dimmingInfo.end(); ++it) {
-                    wxXmlNode *dc = new wxXmlNode(wxXML_ELEMENT_NODE, it->first);
+                for (const auto& it : dimmingInfo) {
+                    wxXmlNode *dc = new wxXmlNode(wxXML_ELEMENT_NODE, it.first);
                     f1->AddChild(dc);
-                    for (auto it2 = it->second.begin(); it2 != it->second.end(); ++it2) {
-                        dc->AddAttribute(it2->first, it2->second);
+                    for (const auto& it2 : it.second) {
+                        dc->AddAttribute(it2.first, it2.second);
                     }
                 }
                 xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "BulkEditDimmingCurves");
@@ -1648,11 +1647,11 @@ void LayoutPanel::BulkEditControllerConnection(int id)
 
         // reselect all the models
         wxArrayString models = wxSplit(selected, ',');
-        for (auto it = models.begin(); it != models.end(); ++it)
+        for (const auto& it : models)
         {
             for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
             {
-                if (modelPreview->GetModels()[i]->GetName() == it->ToStdString())
+                if (modelPreview->GetModels()[i]->GetName() == it.ToStdString())
                 {
                     modelPreview->GetModels()[i]->GroupSelected = true;
                 }
@@ -1717,11 +1716,11 @@ void LayoutPanel::BulkEditControllerName()
 
         // reselect all the models
         wxArrayString models = wxSplit(selected, ',');
-        for (auto it = models.begin(); it != models.end(); ++it)
+        for (const auto& it : models)
         {
             for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
             {
-                if (modelPreview->GetModels()[i]->GetName() == it->ToStdString())
+                if (modelPreview->GetModels()[i]->GetName() == it.ToStdString())
                 {
                     modelPreview->GetModels()[i]->GroupSelected = true;
                 }
@@ -1778,11 +1777,11 @@ void LayoutPanel::BulkEditTagColour()
 
         // reselect all the models
         wxArrayString models = wxSplit(selected, ',');
-        for (auto it = models.begin(); it != models.end(); ++it)
+        for (const auto& it : models)
         {
             for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
             {
-                if (modelPreview->GetModels()[i]->GetName() == it->ToStdString())
+                if (modelPreview->GetModels()[i]->GetName() == it.ToStdString())
                 {
                     modelPreview->GetModels()[i]->GroupSelected = true;
                 }
@@ -1823,9 +1822,9 @@ void LayoutPanel::BulkEditControllerPreview()
     wxArrayString choices = Model::GetLayoutGroups(xlights->AllModels);
     int sel = 0;
     int j = 0;
-    for (auto it = choices.begin(); it != choices.end(); ++it)
+    for (const auto& it : choices)
     {
-        if (*it == p) {
+        if (it == p) {
             sel = j;
             break;
         }
@@ -1849,11 +1848,11 @@ void LayoutPanel::BulkEditControllerPreview()
 
         // reselect all the models
         wxArrayString models = wxSplit(selected, ',');
-        for (auto it = models.begin(); it != models.end(); ++it)
+        for (const auto& it : models)
         {
             for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
             {
-                if (modelPreview->GetModels()[i]->GetName() == it->ToStdString())
+                if (modelPreview->GetModels()[i]->GetName() == it.ToStdString())
                 {
                     modelPreview->GetModels()[i]->GroupSelected = true;
                 }
@@ -1925,11 +1924,11 @@ void LayoutPanel::CreateModelGroupFromSelected()
         //ShowPropGrid(false);
         //SelectBaseObject(name.ToStdString());
         wxArrayString models = wxSplit(ModelsInGroup, ',');
-        for (auto it = models.begin(); it != models.end(); ++it)
+        for (const auto& it : models)
         {
             for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
             {
-                if (modelPreview->GetModels()[i]->GetName() == it->ToStdString())
+                if (modelPreview->GetModels()[i]->GetName() == it.ToStdString())
                 {
                     modelPreview->GetModels()[i]->GroupSelected = true;
                 }
@@ -1994,7 +1993,7 @@ void LayoutPanel::UnSelectAllModels(bool addBkgProps)
                 m->SelectHandle(-1);
                 m->GetBaseObjectScreenLocation().SetActiveHandle(-1);
 
-                for (auto& sm : m->GetSubModels())
+                for (const auto& sm : m->GetSubModels())
                 {
                     sm->Selected = false;
                     sm->Highlighted = false;
@@ -2110,8 +2109,8 @@ void LayoutPanel::SelectAllModels()
         }
     }
     else {
-        for (auto it = xlights->AllObjects.begin(); it != xlights->AllObjects.end(); ++it) {
-            ViewObject* view_object = it->second;
+        for (const auto& it : xlights->AllObjects) {
+            ViewObject* view_object = it.second;
 
             if (selectedBaseObject == nullptr)
             {
@@ -3446,8 +3445,8 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
                     }
                 }
             } else {
-                for (auto it = xlights->AllObjects.begin(); it != xlights->AllObjects.end(); ++it) {
-                    ViewObject *view_object = it->second;
+                for (const auto& it : xlights->AllObjects) {
+                    ViewObject *view_object = it.second;
                     if (view_object->GetBaseObjectScreenLocation().HitTest3D(ray_origin, ray_direction, intersection_distance)) {
                         if (intersection_distance < distance) {
                             distance = intersection_distance;
@@ -3529,8 +3528,8 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
                             }
                         }
                     } else {
-                        for (auto it = xlights->AllObjects.begin(); it != xlights->AllObjects.end(); ++it) {
-                            ViewObject *view_object = it->second;
+                        for (const auto& it : xlights->AllObjects) {
+                            ViewObject *view_object = it.second;
                             if (view_object->GetBaseObjectScreenLocation().HitTest3D(ray_origin, ray_direction, intersection_distance)) {
                                 if (intersection_distance < distance) {
                                     distance = intersection_distance;
@@ -4563,8 +4562,8 @@ int LayoutPanel::ModelsSelectedCount() const
 int LayoutPanel::ViewObjectsSelectedCount() const
 {
     int selectedObjectCount = 0;
-    for (auto it = xlights->AllObjects.begin(); it != xlights->AllObjects.end(); ++it) {
-        ViewObject *view_object = it->second;
+    for (const auto& it : xlights->AllObjects) {
+        ViewObject *view_object = it.second;
         if(view_object->Selected || view_object->GroupSelected)
         {
             selectedObjectCount++;
@@ -4594,16 +4593,16 @@ void LayoutPanel::OnSplitterWindowSashPosChanged(wxSplitterEvent& event)
 }
 
 void LayoutPanel::OnNewModelTypeButtonClicked(wxCommandEvent& event) {
-    for (auto it = buttons.begin(); it != buttons.end(); ++it) {
-        if (event.GetId() == (*it)->GetId()) {
-            if ((*it)->GetModelType() == "Add Object") {
+    for (const auto& it : buttons) {
+        if (event.GetId() == it->GetId()) {
+            if (it->GetModelType() == "Add Object") {
                 DisplayAddObjectPopup();
             }
             else {
-                int state = (*it)->GetState();
-                (*it)->SetState(state + 1);
-                if ((*it)->GetState()) {
-                    selectedButton = (*it);
+                int state = it->GetState();
+                it->SetState(state + 1);
+                if (it->GetState()) {
+                    selectedButton = it;
                     UnSelectAllModels();
                     modelPreview->SetFocus();
                 }
@@ -4614,8 +4613,8 @@ void LayoutPanel::OnNewModelTypeButtonClicked(wxCommandEvent& event) {
                 Notebook_Objects->ChangeSelection(0);
                 editing_models = true;
             }
-        } else if ((*it)->GetState()) {
-            (*it)->SetState(0);
+        } else if (it->GetState()) {
+            it->SetState(0);
         }
     }
 }
@@ -4706,14 +4705,14 @@ Model *LayoutPanel::CreateNewModel(const std::string &type) const
     {
         unsigned int highestch = 0;
         Model* highest = nullptr;
-        for (auto it = xlights->AllModels.begin(); it != xlights->AllModels.end(); ++it)
+        for (const auto& it : xlights->AllModels)
         {
-            if (it->second->GetDisplayAs() != "ModelGroup")
+            if (it.second->GetDisplayAs() != "ModelGroup")
             {
-                if (it->second->GetLastChannel() > highestch)
+                if (it.second->GetLastChannel() > highestch)
                 {
-                    highestch = it->second->GetLastChannel();
-                    highest = it->second;
+                    highestch = it.second->GetLastChannel();
+                    highest = it.second;
                 }
             }
         }
@@ -5674,31 +5673,31 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event)
         {
             Model* lastModel = nullptr;
             unsigned int lastModelEndChannel = 0;
-            for (auto it = xlights->AllModels.begin(); it != xlights->AllModels.end(); ++it)
+            for (const auto& it : xlights->AllModels)
             {
-                if (it->second->GetLastChannel() > lastModelEndChannel)
+                if (it.second->GetLastChannel() > lastModelEndChannel)
                 {
-                    if (it->second->GetDisplayAs() != "ModelGroup" && it->second->CouldComputeStartChannel && it->second->IsValidStartChannelString())
+                    if (it.second->GetDisplayAs() != "ModelGroup" && it.second->CouldComputeStartChannel && it.second->IsValidStartChannelString())
                     {
-                        lastModelEndChannel = it->second->GetLastChannel();
-                        lastModel = it->second;
+                        lastModelEndChannel = it.second->GetLastChannel();
+                        lastModel = it.second;
                     }
                 }
             }
 
-            for (auto it = xlights->AllModels.begin(); it != xlights->AllModels.end(); ++it)
+            for (const auto& it : xlights->AllModels)
             {
-                if (it->second->GetDisplayAs() != "ModelGroup" && (!it->second->CouldComputeStartChannel || !it->second->IsValidStartChannelString()))
+                if (it.second->GetDisplayAs() != "ModelGroup" && (!it.second->CouldComputeStartChannel || !it.second->IsValidStartChannelString()))
                 {
                     if (lastModel == nullptr)
                     {
-                        it->second->SetStartChannel("1");
-                        lastModel = it->second;
+                        it.second->SetStartChannel("1");
+                        lastModel = it.second;
                     }
                     else
                     {
-                        it->second->SetStartChannel(">" + lastModel->GetName() + ":1");
-                        lastModel = it->second;
+                        it.second->SetStartChannel(">" + lastModel->GetName() + ":1");
+                        lastModel = it.second;
                     }
                 }
             }
@@ -5715,31 +5714,31 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event)
         {
             Model* lastModel = nullptr;
             unsigned int lastModelEndChannel = 0;
-            for (auto it = xlights->AllModels.begin(); it != xlights->AllModels.end(); ++it)
+            for (const auto& it : xlights->AllModels)
             {
-                if (it->second->GetLastChannel() > lastModelEndChannel)
+                if (it.second->GetLastChannel() > lastModelEndChannel)
                 {
-                    if (it->second->GetDisplayAs() != "ModelGroup" && it->second->CouldComputeStartChannel && it->second->IsValidStartChannelString())
+                    if (it.second->GetDisplayAs() != "ModelGroup" && it.second->CouldComputeStartChannel && it.second->IsValidStartChannelString())
                     {
-                        lastModelEndChannel = it->second->GetLastChannel();
-                        lastModel = it->second;
+                        lastModelEndChannel = it.second->GetLastChannel();
+                        lastModel = it.second;
                     }
                 }
             }
 
-            for (auto it = xlights->AllModels.begin(); it != xlights->AllModels.end(); ++it)
+            for (const auto& it : xlights->AllModels)
             {
-                if (it->second->GetDisplayAs() != "ModelGroup" && xlights->AllModels.IsModelOverlapping(it->second))
+                if (it.second->GetDisplayAs() != "ModelGroup" && xlights->AllModels.IsModelOverlapping(it.second))
                 {
                     if (lastModel == nullptr)
                     {
-                        it->second->SetStartChannel("1");
-                        lastModel = it->second;
+                        it.second->SetStartChannel("1");
+                        lastModel = it.second;
                     }
                     else
                     {
-                        it->second->SetStartChannel(">" + lastModel->GetName() + ":1");
-                        lastModel = it->second;
+                        it.second->SetStartChannel(">" + lastModel->GetName() + ":1");
+                        lastModel = it.second;
                     }
                 }
             }
@@ -5759,14 +5758,14 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event)
                 Model* selectedModel = dynamic_cast<Model*>(selectedBaseObject);
                 Model* lastModel = nullptr;
                 unsigned int lastModelEndChannel = 0;
-                for (auto it = xlights->AllModels.begin(); it != xlights->AllModels.end(); ++it)
+                for (const auto& it : xlights->AllModels)
                 {
-                    if (it->second->GetLastChannel() > lastModelEndChannel)
+                    if (it.second->GetLastChannel() > lastModelEndChannel)
                     {
-                        if (it->second->GetDisplayAs() != "ModelGroup" && it->second->CouldComputeStartChannel && it->second->IsValidStartChannelString())
+                        if (it.second->GetDisplayAs() != "ModelGroup" && it.second->CouldComputeStartChannel && it.second->IsValidStartChannelString())
                         {
-                            lastModelEndChannel = it->second->GetLastChannel();
-                            lastModel = it->second;
+                            lastModelEndChannel = it.second->GetLastChannel();
+                            lastModel = it.second;
                         }
                     }
                 }
@@ -5855,8 +5854,8 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event)
 
 LayoutGroup* LayoutPanel::GetLayoutGroup(const std::string &name)
 {
-    for (auto it = xlights->LayoutGroups.begin(); it != xlights->LayoutGroups.end(); ++it) {
-        LayoutGroup* grp = (LayoutGroup*)(*it);
+    for (const auto& it : xlights->LayoutGroups) {
+        LayoutGroup* grp = (LayoutGroup*)(it);
         if( grp->GetName() == name ) {
             return grp;
         }
@@ -5868,8 +5867,8 @@ void LayoutPanel::OnChoiceLayoutGroupsSelect(wxCommandEvent& event)
 {
     UnSelectAllModels();
 
-    //for (auto it = xlights->AllModels.begin(); it != xlights->AllModels.end(); ++it) {
-    //    Model *model = it->second;
+    //for (const auto& it : xlights->AllModels) {
+    //    Model *model = it.second;
     //    model->Selected = false;
     //    model->GroupSelected = false;
     //    model->Highlighted = false;
@@ -5971,7 +5970,7 @@ void LayoutPanel::ImportModelsFromRGBEffects()
     OptimiseDialogPosition(&dlg);
     if (dlg.ShowModal() == wxID_OK)
     {
-        for (auto it2 : dlg.GetModelsInPreview(""))
+        for (const auto& it2 : dlg.GetModelsInPreview(""))
         {
             std::string newName = it2.first;
             if (xlights->AllModels.GetModel(newName) != nullptr) {
@@ -6009,7 +6008,7 @@ void LayoutPanel::ImportModelsFromRGBEffects()
                 xlights->AddPreviewOption(grp);
                 AddPreviewChoice(it.ToStdString());
             }
-            for (auto it2 : dlg.GetModelsInPreview(it))
+            for (const auto& it2 : dlg.GetModelsInPreview(it))
             {
                 std::string newName = it2.first;
                 if (xlights->AllModels.GetModel(newName) != nullptr) {
@@ -6189,8 +6188,8 @@ void LayoutPanel::DeleteCurrentPreview() {
             }
         }
         // change any existing assignments to this preview to be unassigned
-        for (auto it = xlights->AllModels.begin(); it != xlights->AllModels.end(); ++it) {
-            Model* model = it->second;
+        for (const auto& it : xlights->AllModels) {
+            Model* model = it.second;
             if (model->GetLayoutGroup() == currentLayoutGroup) {
                 model->SetLayoutGroup("Unassigned");
             }
@@ -6227,8 +6226,8 @@ void LayoutPanel::ShowPropGrid(bool show) {
 void LayoutPanel::SetCurrentLayoutGroup(const std::string& group)
 {
     currentLayoutGroup = group;
-    for (auto it = xlights->LayoutGroups.begin(); it != xlights->LayoutGroups.end(); ++it) {
-        LayoutGroup* grp = (LayoutGroup*)(*it);
+    for (const auto& it : xlights->LayoutGroups) {
+        LayoutGroup* grp = (LayoutGroup*)(it);
         if (grp != nullptr) {
             if( currentLayoutGroup == grp->GetName() ) {
                 pGrp = grp;
@@ -6295,15 +6294,15 @@ void LayoutPanel::OnItemContextMenu(wxTreeListEvent& event)
         }
     }
 
-    for (auto it = xlights->AllModels.begin(); it != xlights->AllModels.end(); ++it)
+    for (const auto& it : xlights->AllModels)
     {
-        if (it->second->GetDisplayAs() != "ModelGroup")
+        if (it.second->GetDisplayAs() != "ModelGroup")
         {
-            if (!foundInvalid && (!it->second->CouldComputeStartChannel || !it->second->IsValidStartChannelString()))
+            if (!foundInvalid && (!it.second->CouldComputeStartChannel || !it.second->IsValidStartChannelString()))
             {
                 foundInvalid = true;
             }
-            if (!foundOverlapping && xlights->AllModels.IsModelOverlapping(it->second))
+            if (!foundOverlapping && xlights->AllModels.IsModelOverlapping(it.second))
             {
                 foundOverlapping = true;
             }
@@ -6419,10 +6418,9 @@ void LayoutPanel::ModelGroupUpdated(ModelGroup *grp, bool full_refresh) {
                     child = TreeListViewModels->GetFirstChild(item);
                 }
                 int i = 0;
-                for (auto it = grp->ModelNames().begin(); it != grp->ModelNames().end(); ++it) {
-                    Model *m = xlights->AllModels[*it];
-                    if (m != nullptr)
-                    {
+                for (const auto& it : grp->ModelNames()) {
+                    Model *m = xlights->AllModels[it];
+                    if (m != nullptr) {
                         if (currentLayoutGroup == "All Models" ||
                             m->GetLayoutGroup() == currentLayoutGroup ||
                             (m->GetLayoutGroup() == "All Previews" && currentLayoutGroup != "Unassigned"))
@@ -6456,13 +6454,13 @@ void LayoutPanel::ModelGroupUpdated(ModelGroup *grp, bool full_refresh) {
         }
     }
 
-    for (auto a = toRemove.begin(); a != toRemove.end(); ++a) {
-        TreeListViewModels->DeleteItem(*a);
+    for (const auto& a : toRemove) {
+        TreeListViewModels->DeleteItem(a);
     }
 
-    for (auto a = modelsToAdd.begin(); a != modelsToAdd.end(); ++a) {
+    for (const auto& a : modelsToAdd) {
         TreeListViewModels->GetRootItem();
-        AddModelToTree(*a, &root, false, 0);
+        AddModelToTree(a, &root, false, 0);
     }
 
     TreeListViewModels->Thaw();
