@@ -5,6 +5,7 @@
 #include <wx/graphics.h>
 #include <wx/file.h>
 #include <wx/numdlg.h>
+#include <wx/config.h>
 
 //(*InternalHeaders(CustomModelDialog)
 #include <wx/artprov.h>
@@ -423,7 +424,12 @@ CustomModelDialog::CustomModelDialog(wxWindow* parent)
 
     SetEscapeId(ButtonCancel->GetId());
 
-    SplitterWindow1->SetSashPosition(SplitterWindow1->GetSize().GetHeight() - 150);
+    wxConfigBase* config = wxConfigBase::Get();
+    int sashPos = config->Read("xLightsCustomDialogSash", 30);
+    if (sashPos < 5) sashPos = 5;
+    if (sashPos > 95) sashPos = 95;
+
+    SplitterWindow1->SetSashPosition((SplitterWindow1->GetSize().GetHeight() * (100 - sashPos)) / 100);
     SplitterWindow1->SetMinimumPaneSize(5);
 
     _modelPreview = new ModelPreview(Panel1, nullptr, true);
@@ -441,6 +447,10 @@ CustomModelDialog::~CustomModelDialog()
 {
 	//(*Destroy(CustomModelDialog)
 	//*)
+
+    wxConfigBase* config = wxConfigBase::Get();
+    int sashPos = ((SplitterWindow1->GetSize().GetHeight() - SplitterWindow1->GetSashPosition()) * 100) / SplitterWindow1->GetSize().GetHeight();
+    int sashPost = config->Write("xLightsCustomDialogSash", sashPos);
 
     if (_modelPreview != nullptr)
     {

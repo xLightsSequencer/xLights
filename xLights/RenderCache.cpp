@@ -334,6 +334,8 @@ void RenderCache::CleanupCache(SequenceElements* sequenceElements)
         Element* em = sequenceElements->GetElement(i);
         purgeCache(em, false);
     }
+
+    logger_base.debug("    Cache purge done.");
 }
 
 void RenderCache::Purge(SequenceElements* sequenceElements, bool dodelete)

@@ -666,9 +666,10 @@ void Effect::AddFrame(RenderBuffer &buffer, RenderCache &renderCache) {
 void Effect::PurgeCache(bool deleteCache) {
     std::unique_lock<std::recursive_mutex> lock(settingsLock);
     if (mCache) {
-        if (!deleteCache) {
-            mCache->PurgeFrames();
-        }
+        // Dont need this as delete also calls PurgeFrames
+        //if (!deleteCache) {
+        //    mCache->PurgeFrames();
+        //}
         mCache->Delete();
         mCache = nullptr;
     }
