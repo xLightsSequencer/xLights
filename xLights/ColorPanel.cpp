@@ -5,6 +5,8 @@
 #include "ColorCurve.h"
 #include "effects/EffectPanelUtils.h"
 #include "UtilFunctions.h"
+#include "xLightsApp.h"
+#include "xLightsMain.h"
 
 //(*InternalHeaders(ColorPanel)
 #include <wx/artprov.h>
@@ -15,6 +17,7 @@
 #include <wx/string.h>
 //*)
 
+#include <wx/dnd.h>
 #include <wx/valnum.h>
 #include <wx/wfstream.h>
 #include <wx/txtstrm.h>
@@ -143,6 +146,47 @@ public:
         }
     }
 };
+
+class ColourTextDropTarget : public wxTextDropTarget
+{
+public:
+    ColourTextDropTarget(ColorCurveButton* owner) { _owner = owner; };
+
+    virtual bool OnDropText(wxCoord x, wxCoord y, const wxString& data);
+    virtual wxDragResult OnDragOver(wxCoord x, wxCoord y, wxDragResult def) override;
+
+    ColorCurveButton* _owner;
+};
+
+wxDragResult ColourTextDropTarget::OnDragOver(wxCoord x, wxCoord y, wxDragResult def)
+{
+    if (_owner->IsEnabled())
+    {
+        _owner->SetFocus();
+        return wxDragCopy;
+    }
+    return wxDragNone;
+}
+
+bool ColourTextDropTarget::OnDropText(wxCoord x, wxCoord y, const wxString& data)
+{
+    if (data == "") return false;
+
+    if (!_owner->IsEnabled()) return false;
+
+    if (ColorCurve::IsColorCurve(data))
+    {
+        _owner->SetValue(data);
+        _owner->SetActive(true);
+    }
+    else
+    {
+        _owner->SetColor(data, false);
+    }
+    _owner->NotifyChange();
+
+    return true;
+}
 
 BEGIN_EVENT_TABLE(ColorPanel,wxPanel)
 	//(*EventTable(ColorPanel)
@@ -368,6 +412,7 @@ ColorPanel::ColorPanel(wxWindow* parent, wxWindowID id,const wxPoint& pos,const 
         wxString ids = wxString::Format("ID_BUTTON_Palette%d", (x + 1));
         long id2 = wxNewId();
         ColorCurveButton *bb = new ColorCurveButton(ColorScrollWindow, id2, wxNullBitmap, wxDefaultPosition, wxSize(21 * scl, 21 * scl), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, ids);
+        bb->SetDropTarget(new ColourTextDropTarget(bb));
         FlexGridSizer_Palette->Add(bb, 0, wxALIGN_LEFT|wxALIGN_TOP, 0);
         buttons.push_back(bb);
         Connect(wxID_ANY, EVT_CC_CHANGED, (wxObjectEventFunction)&ColorPanel::OnCCChanged, 0, this);
@@ -940,6 +985,10 @@ void ColorPanel::OnCCChanged(wxCommandEvent& event)
         }
     }
 
+    wxCommandEvent e(EVT_COLOUR_CHANGED);
+    e.SetInt(-1);
+    wxPostEvent(xLightsApp::GetFrame(), e);
+
     Refresh();
     ValidateWindow();
 }
@@ -1233,6 +1282,7 @@ void ColorPanel::OnCCButtonClick(wxCommandEvent& event)
     {
         ccb->GetValue()->NextTimeCurve(_supportslinear, _supportsradial);
     }
+
     ValidateWindow();
 }
 

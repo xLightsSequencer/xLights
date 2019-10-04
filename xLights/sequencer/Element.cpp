@@ -67,6 +67,7 @@ bool Element::HasEffects() const {
     return false;
 }
 
+
 bool TimingElement::HasLyrics(int layer) const {
     if (mEffectLayers.size() > layer)
     {

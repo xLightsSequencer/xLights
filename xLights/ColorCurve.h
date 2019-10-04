@@ -1,11 +1,11 @@
-#ifndef COLORCURVE_H
-#define COLORCURVE_H
+#pragma once
 
 #include <wx/position.h>
 #include <wx/string.h>
 #include <wx/wx.h>
 #include <wx/colour.h>
 #include <wx/colourdata.h>
+
 #include <list>
 
 #include "Color.h"
@@ -159,22 +159,24 @@ class ColorCurve
     const ccSortableColorPoint* GetNextActivePoint(float x, float& duration) const;
 
 public:
+    static std::string GetColorCurveFolder(const std::string& showFolder);
+    static bool IsColorCurve(const std::string& s);
+    bool IsOk() const { return _id != ""; }
     void NextTimeCurve(bool supportslinear, bool supportsradial);
     void SetValidTimeCurve(bool supportslinear, bool supportsradial);
     int GetTimeCurve() const { return _timecurve; }
     std::string GetId() const { return _id; }
-    void SetId(std::string& id) { _id = id; }
-    ColorCurve() { ColorCurve(""); _active = false; _timecurve = TC_TIME; };
+    void SetId(const std::string& id) { _id = id; }
+    ColorCurve();
     ColorCurve(const std::string& serialised);
     ColorCurve(const std::string& id, const std::string type, xlColor c = xlBLACK);
     std::string Serialise();
-    bool IsOk() const
-    { return _id != ""; }
     void Deserialise(const std::string& s);
     void SetType(std::string type);
     xlColor GetValueAt(float offset) const;
     ccSortableColorPoint* GetPointAt(float offset);
-	wxBitmap GetImage(int x, int y, bool bars);
+    wxBitmap GetImage(int x, int y, bool bars);
+    static wxBitmap GetSolidColourImage(int x, int y, const wxColour& c);
     void SetActive(bool a) { _active = a; }
     bool IsActive() const
     { return IsOk() && _active; }
@@ -193,6 +195,7 @@ public:
     float FindMinPointLessThan(float point);
     float FindMaxPointGreaterThan(float point);
     void SetDefault(const wxColor& color);
+    void LoadXCC(const std::string& filename);
 };
 
 wxDECLARE_EVENT(EVT_CC_CHANGED, wxCommandEvent);
@@ -203,7 +206,6 @@ class ColorCurveButton :
     ColorCurve* _cc;
     std::string _color;
     static wxColourData _colorData;
-    void NotifyChange();
     void LeftClick(wxCommandEvent& event);
     void RightClick(wxContextMenuEvent& event);
 
@@ -226,6 +228,5 @@ public:
     std::string GetColor() const { return _color; }
     void SetColor(std::string color, bool notify = true);
     void SetDefaultCC(const std::string& color);
+    void NotifyChange();
 };
-
-#endif

@@ -120,6 +120,20 @@ int xLightsXmlFile::GetLastView() const
     return 0;
 }
 
+wxXmlNode* xLightsXmlFile::GetPalettesNode() const
+{
+    wxXmlNode* root = seqDocument.GetRoot();
+
+    for (wxXmlNode* e = root->GetChildren(); e != nullptr; e = e->GetNext())
+    {
+        if (e->GetName() == "ColorPalettes")
+        {
+            return e;
+        }
+    }
+    return nullptr;
+}
+
 bool xLightsXmlFile::SaveCopy() const
 {
     wxString archive_dir = xLightsFrame::CurrentDir + GetPathSeparators() + "ArchiveV3";
@@ -403,7 +417,6 @@ int xLightsXmlFile::AddColorPalette(StringIntMap &paletteCache, const wxString &
     paletteCache[palette] = 1;
     return cnt;
 }
-
 
 wxXmlNode* xLightsXmlFile::AddElement( const wxString& name, const wxString& type )
 {

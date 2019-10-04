@@ -1,5 +1,4 @@
-#ifndef KEYBINDINGS_H
-#define KEYBINDINGS_H
+#pragma once
 
 // These classes have been updated to try to make them
 // Const correct
@@ -113,5 +112,3 @@ public:
 private:
     std::vector<KeyBinding> _bindings;
 };
-
-#endif // KEYBINDINGS_H

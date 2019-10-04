@@ -435,6 +435,8 @@
 		<Unit filename="ColorManagerDialog.h" />
 		<Unit filename="ColorPanel.cpp" />
 		<Unit filename="ColorPanel.h" />
+		<Unit filename="ColoursPanel.cpp" />
+		<Unit filename="ColoursPanel.h" />
 		<Unit filename="ControllerConnectionDialog.cpp" />
 		<Unit filename="ControllerConnectionDialog.h" />
 		<Unit filename="ControllerVisualiseDialog.cpp" />
@@ -456,6 +458,8 @@
 		<Unit filename="DimmingCurvePanel.cpp" />
 		<Unit filename="DimmingCurvePanel.h" />
 		<Unit filename="DissolveTransitionPattern.cpp" />
+		<Unit filename="DragColoursBitmapButton.cpp" />
+		<Unit filename="DragColoursBitmapButton.h" />
 		<Unit filename="DragValueCurveBitmapButton.cpp" />
 		<Unit filename="DragValueCurveBitmapButton.h" />
 		<Unit filename="DrawGLUtils.cpp" />
@@ -1176,6 +1180,7 @@
 		<Unit filename="wxsmith/ColorCurveDialog.wxs" />
 		<Unit filename="wxsmith/ColorManagerDialog.wxs" />
 		<Unit filename="wxsmith/ColorPanel.wxs" />
+		<Unit filename="wxsmith/ColoursPanel.wxs" />
 		<Unit filename="wxsmith/ColorWashPanel.wxs" />
 		<Unit filename="wxsmith/ControllerConnectionDialog.wxs" />
 		<Unit filename="wxsmith/ControllerVisualiseDialog.wxs" />
@@ -1438,6 +1443,7 @@
 					<wxPanel wxs="wxsmith/TopEffectsPanel.wxs" src="TopEffectsPanel.cpp" hdr="TopEffectsPanel.h" fwddecl="0" i18n="1" name="TopEffectsPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/EffectIconPanel.wxs" src="EffectIconPanel.cpp" hdr="EffectIconPanel.h" fwddecl="0" i18n="1" name="EffectIconPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/ValueCurvesPanel.wxs" src="ValueCurvesPanel.cpp" hdr="ValueCurvesPanel.h" fwddecl="0" i18n="1" name="ValueCurvesPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/ColoursPanel.wxs" src="ColoursPanel.cpp" hdr="ColoursPanel.h" fwddecl="0" i18n="1" name="ColoursPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/PerspectivesPanel.wxs" src="PerspectivesPanel.cpp" hdr="PerspectivesPanel.h" fwddecl="0" i18n="1" name="PerspectivesPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/xlColorPickerFields.wxs" src="xlColorPickerFields.cpp" hdr="xlColorPickerFields.h" fwddecl="0" i18n="1" name="xlColorPickerFields" language="CPP" />
 					<wxPanel wxs="wxsmith/EffectAssist.wxs" src="EffectAssist.cpp" hdr="EffectAssist.h" fwddecl="0" i18n="1" name="EffectAssist" language="CPP" />

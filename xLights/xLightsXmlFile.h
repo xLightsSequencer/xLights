@@ -130,6 +130,8 @@ class xLightsXmlFile : public wxFileName
 
         int GetLastView() const;
 
+        wxXmlNode* GetPalettesNode() const;
+
         // static methods
         static void FixVersionDifferences(const wxString& filename);
         static void FixEffectPresets(wxXmlNode* effects_node);

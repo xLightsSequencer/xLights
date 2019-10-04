@@ -84,6 +84,7 @@ class SelectPanel;
 class SequenceVideoPanel;
 class EffectIconPanel;
 class ValueCurvesPanel;
+class ColoursPanel;
 class JukeboxPanel;
 class TimingPanel;
 class ColorPanel;
@@ -164,6 +165,7 @@ wxDECLARE_EVENT(EVT_RGBEFFECTS_CHANGED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_TURNONOUTPUTTOLIGHTS, wxCommandEvent);
 wxDECLARE_EVENT(EVT_PLAYJUKEBOXITEM, wxCommandEvent);
 wxDECLARE_EVENT(EVT_EFFECT_PALETTE_UPDATED, wxCommandEvent);
+wxDECLARE_EVENT(EVT_COLOUR_CHANGED, wxCommandEvent);
 
 static const wxString xlights_base_name       = "xLights";
 static const wxString strSupportedFileTypes = "LOR Music Sequences (*.lms)|*.lms|LOR Animation Sequences (*.las)|*.las|HLS hlsIdata Sequences(*.hlsIdata)|*.hlsIdata|Vixen Sequences (*.vix)|*.vix|Glediator Record File (*.gled)|*.gled)|Lynx Conductor Sequences (*.seq)|*.seq|xLights Sequences(*.xseq)|*.xseq|xLights Imports(*.iseq)|*.iseq|Falcon Pi Player Sequences (*.fseq)|*.fseq";
@@ -591,6 +593,7 @@ public:
     void OnMenuItem_Random_SetSelected(wxCommandEvent& event);
     void OnMenuItem_EmailAddressSelected(wxCommandEvent& event);
     void OnMenuItem_ValueCurvesSelected(wxCommandEvent& event);
+    void OnMenuItem_ColourDropperSelected(wxCommandEvent& event);
     //*)
     void OnCharHook(wxKeyEvent& event);
 private:
@@ -741,6 +744,7 @@ public:
     static const long ID_MENUITEM9;
     static const long ID_MENUITEM17;
     static const long ID_MNU_VALUECURVES;
+    static const long ID_MNU_COLOURDROPPER;
     static const long ID_MENUITEM_EFFECT_ASSIST_WINDOW;
     static const long ID_MENUITEM_SELECT_EFFECT;
     static const long ID_MENUITEM_VIDEOPREVIEW;
@@ -981,6 +985,7 @@ public:
     wxMenuItem* MenuItem_BkpPWeek;
     wxMenuItem* MenuItem_BkpPYear;
     wxMenuItem* MenuItem_CleanupFileLocations;
+    wxMenuItem* MenuItem_ColourDropper;
     wxMenuItem* MenuItem_CrashXLights;
     wxMenuItem* MenuItem_Donate;
     wxMenuItem* MenuItem_DownloadSequences;
@@ -1361,10 +1366,10 @@ protected:
     wxXmlDocument EffectsXml;
 	SequenceViewManager _sequenceViewManager;
     wxXmlNode* EffectsNode = nullptr;
-    wxXmlNode* PalettesNode = nullptr;
     wxXmlNode* PerspectivesNode = nullptr;
 public:
     bool RebuildControllerConfig(OutputManager* outputManager, ModelManager* modelManager);
+    wxXmlNode* PalettesNode = nullptr;
     wxXmlNode* ModelsNode = nullptr;
     wxXmlNode* ModelGroupsNode = nullptr;
     wxXmlNode* LayoutGroupsNode = nullptr;
@@ -1514,6 +1519,7 @@ private:
     PerspectivesPanel* perspectivePanel = nullptr;
     EffectIconPanel* effectPalettePanel = nullptr;
     ValueCurvesPanel* _valueCurvesPanel = nullptr;
+    ColoursPanel* _coloursPanel = nullptr;
     JukeboxPanel *jukeboxPanel = nullptr;
     BufferPanel *bufferPanel = nullptr;
     ViewsModelsPanel *displayElementsPanel = nullptr;
@@ -1560,6 +1566,7 @@ private:
     void PlaySequence(wxCommandEvent& event);
     void PauseSequence(wxCommandEvent& event);
     void VCChanged(wxCommandEvent& event);
+    void ColourChanged(wxCommandEvent& event);
     void StopSequence(wxCommandEvent& event);
     void SequenceFirstFrame(wxCommandEvent& event);
     void SequenceLastFrame(wxCommandEvent& event);
@@ -1685,6 +1692,7 @@ public:
     std::string MoveToShowFolder(const std::string& file, const std::string& subdirectory);
     bool IsInShowFolder(const std::string & file) const;
     bool FilesMatch(const std::string & file1, const std::string & file2) const;
+    ColorPanel* GetColorPanel() const { return colorPanel; }
 
     std::string GetEffectTextFromWindows(std::string &palette) const;
 

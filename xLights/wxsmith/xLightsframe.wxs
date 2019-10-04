@@ -1262,6 +1262,10 @@
 						<label>Value Curves</label>
 						<handler function="OnMenuItem_ValueCurvesSelected" entry="EVT_MENU" />
 					</object>
+					<object class="wxMenuItem" name="ID_MNU_COLOURDROPPER" variable="MenuItem_ColourDropper" member="yes">
+						<label>Color Dropper</label>
+						<handler function="OnMenuItem_ColourDropperSelected" entry="EVT_MENU" />
+					</object>
 					<object class="wxMenuItem" name="ID_MENUITEM_EFFECT_ASSIST_WINDOW" variable="MenuItemEffectAssistWindow" member="yes">
 						<label>Effect Assist</label>
 						<handler function="ShowHideEffectAssistWindow" entry="EVT_MENU" />

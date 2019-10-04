@@ -430,7 +430,7 @@ void MainSequencer::mouseWheelMoved(wxMouseEvent& event)
 
 bool MainSequencer::HandleSequencerKeyBinding(wxKeyEvent& event)
 {
-    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     if (mSequenceElements != nullptr) {
 
@@ -475,12 +475,12 @@ bool MainSequencer::HandleSequencerKeyBinding(wxKeyEvent& event)
             {
                 PanelEffectGrid->Paste(binding->GetEffectName() + "\t" + binding->GetEffectString() + _("\t\n"), binding->GetEffectDataVersion());
             }
-			else if (type == "APPLYSETTING")
-			{
-				SettingsMap newSetting = SettingsMap();
-				newSetting.Parse(binding->GetEffectString());
-				mSequenceElements->GetXLightsFrame()->SetEffectControls(newSetting);
-			}			
+            else if (type == "APPLYSETTING")
+            {
+                SettingsMap newSetting = SettingsMap();
+                newSetting.Parse(binding->GetEffectString());
+                mSequenceElements->GetXLightsFrame()->SetEffectControls(newSetting);
+            }
             else if (type == "PRESET")
             {
                 mSequenceElements->GetXLightsFrame()->ApplyEffectsPreset(binding->GetEffectName());
@@ -616,6 +616,11 @@ bool MainSequencer::HandleSequencerKeyBinding(wxKeyEvent& event)
             {
                 wxCommandEvent e;
                 mSequenceElements->GetXLightsFrame()->OnMenuItem_ValueCurvesSelected(e);
+            }
+            else if (type == "COLOR_DROPPER_TOGGLE")
+            {
+                wxCommandEvent e;
+                mSequenceElements->GetXLightsFrame()->OnMenuItem_ColourDropperSelected(e);
             }
             else if (type == "SEARCH_TOGGLE")
             {

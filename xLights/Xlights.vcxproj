@@ -186,6 +186,7 @@
     <ClCompile Include="CheckboxSelectDialog.cpp" />
     <ClCompile Include="ColorManager.cpp" />
     <ClCompile Include="ColorManagerDialog.cpp" />
+    <ClCompile Include="ColoursPanel.cpp" />
     <ClCompile Include="controllers\ControllerRegistry.cpp" />
     <ClCompile Include="controllers\ControllerUploadData.cpp" />
     <ClCompile Include="controllers\EasyLights.cpp" />
@@ -199,6 +200,7 @@
     <ClCompile Include="controllers\WebSocketClient.cpp" />
     <ClCompile Include="CustomTimingDialog.cpp" />
     <ClCompile Include="DissolveTransitionPattern.cpp" />
+    <ClCompile Include="DragColoursBitmapButton.cpp" />
     <ClCompile Include="DragValueCurveBitmapButton.cpp" />
     <ClCompile Include="effects\KaleidoscopeEffect.cpp" />
     <ClCompile Include="effects\KaleidoscopePanel.cpp" />
@@ -577,6 +579,7 @@
     <ClInclude Include="CheckboxSelectDialog.h" />
     <ClInclude Include="ColorManager.h" />
     <ClInclude Include="ColorManagerDialog.h" />
+    <ClInclude Include="ColoursPanel.h" />
     <ClInclude Include="controllers\ControllerRegistry.h" />
     <ClInclude Include="controllers\ControllerUploadData.h" />
     <ClInclude Include="controllers\EasyLights.h" />
@@ -589,6 +592,7 @@
     <ClInclude Include="controllers\SanDevices.h" />
     <ClInclude Include="controllers\WebSocketClient.h" />
     <ClInclude Include="DissolveTransitionPattern.h" />
+    <ClInclude Include="DragColoursBitmapButton.h" />
     <ClInclude Include="DragValueCurveBitmapButton.h" />
     <ClInclude Include="effects\assist\AssistPanel.h" />
     <ClInclude Include="effects\assist\PicturesAssistPanel.h" />

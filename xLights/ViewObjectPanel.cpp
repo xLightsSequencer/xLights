@@ -343,8 +343,8 @@ void ViewObjectPanel::UpdateObjectsForPreview(const std::string &group, LayoutGr
 {
     std::set<std::string> objectsAdded;
 
-    for (auto it = layoutPanel->xlights->AllObjects.begin(); it != layoutPanel->xlights->AllObjects.end(); ++it) {
-        ViewObject *view_object = it->second;
+    for (const auto& it : layoutPanel->xlights->AllObjects) {
+        ViewObject *view_object = it.second;
         if (view_object->GetDisplayAs() != "ObjectGroup") {
             if (group == "All Models" ||
                 view_object->GetLayoutGroup() == group ||

@@ -40,6 +40,7 @@
 #include "Vixen3.h"
 
 #include "osxMacUtils.h"
+
 #include <log4cpp/Category.hh>
 
 void xLightsFrame::AddAllModelsToSequence()
@@ -587,7 +588,7 @@ bool xLightsFrame::CloseSequence()
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("Closing sequence.");
 
-    if (_autoSavePerspecive)
+    if (_autoSavePerspecive && CurrentSeqXmlFile != nullptr)
     {
         // save perspective on this machine so we can restore it next time
         wxConfigBase* config = wxConfigBase::Get();
