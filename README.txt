@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (scott)  Added Folder/Filter Selection to the FPP Connect Dialog.
 2019.55 October 2 2019
    -- enh (dkulp)  Optimize FPP config upload to not upload file that is the same to avoid restart flag being set
    -- enh (keith)  Add value curve drag and drop mode for fast sequencing using saved value curves
