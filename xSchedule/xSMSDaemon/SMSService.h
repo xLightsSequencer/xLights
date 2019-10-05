@@ -380,12 +380,12 @@ class SMSService
             }
         }
 
-        void AddTestMessages(wxArrayString msgs)
+        void AddTestMessages(wxArrayString msgs, bool suppressTimezoneAdjust = false)
         {
             for (auto m : msgs)
             {
                 SMSMessage msg;
-                msg._timestamp = wxDateTime::Now().MakeGMT() + wxTimeSpan(0, _options.GetTimezoneAdjust());
+                msg._timestamp = wxDateTime::Now().MakeGMT() + (suppressTimezoneAdjust ? 0 : wxTimeSpan(0, _options.GetTimezoneAdjust()));
                 msg._from = "TEST";
                 msg._rawMessage = m;
                 AddMessage(msg);

@@ -715,7 +715,7 @@ void xSMSDaemonFrame::OnMenuItem_InsertTestMessagesSelected(wxCommandEvent& even
             auto msgs = dlg.TextCtrl_Messages->GetValue();
             auto ms = wxSplit(msgs, '\n');
             logger_base.debug("Inserting %d test messages.", (int)ms.size());
-            _smsService->AddTestMessages(ms);
+            _smsService->AddTestMessages(ms, true);
             RefreshList();
         }
     }
