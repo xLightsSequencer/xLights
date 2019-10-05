@@ -339,16 +339,16 @@ class SMSService
                             }
                             else
                             {
-                                logger_base.warn("Rejected Msg: Too many messages from number : %s : %d > %d", (const char*)msg.GetLog().c_str(), GetMessagesReceivedFromPhone(msg._from), _options.GetMaximumMessagesPerPhone());
+                                logger_base.warn("Rejected Msg: Blacklist : %s", (const char*)msg.GetLog().c_str());
                                 _rejectedMessages.push_back(msg);
-                                // SendRejectMessage(msg, _options.GetRejectMessage()); - we dont want to do this
+                                SendRejectMessage(msg, _options.GetRejectMessage());
                             }
                         }
                         else
                         {
-                            logger_base.warn("Rejected Msg: Blacklist : %s", (const char*)msg.GetLog().c_str());
+                            logger_base.warn("Rejected Msg: Too many messages from number : %s : %d > %d", (const char*)msg.GetLog().c_str(), GetMessagesReceivedFromPhone(msg._from), _options.GetMaximumMessagesPerPhone());
                             _rejectedMessages.push_back(msg);
-                            SendRejectMessage(msg, _options.GetRejectMessage());
+                            //SendRejectMessage(msg, _options.GetRejectMessage()); //  - we dont want to do this
                         }
                     }
                     else
