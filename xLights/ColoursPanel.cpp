@@ -2,7 +2,7 @@
 #include "UtilFunctions.h"
 #include "ColorCurve.h"
 #include "xLightsMain.h"
-#include "DragColourBitmapButton.h"
+#include "DragColoursBitmapButton.h"
 #include "ColorPanel.h"
 
 //(*InternalHeaders(ColoursPanel)

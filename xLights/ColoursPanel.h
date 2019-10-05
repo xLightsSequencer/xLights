@@ -8,8 +8,6 @@
 
 #include <wx/dir.h>
 
-#include "DragValueCurveBitmapButton.h"
-
 class xLightsFrame;
 
 class ColoursPanel: public wxPanel
