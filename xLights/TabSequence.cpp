@@ -25,6 +25,7 @@
 #include "ViewsModelsPanel.h"
 #include "PerspectivesPanel.h"
 #include "ValueCurvesPanel.h"
+#include "ColoursPanel.h"
 #include "sequencer/MainSequencer.h"
 
 #include <log4cpp/Category.hh>
@@ -1403,6 +1404,7 @@ void xLightsFrame::EnableSequenceControls(bool enable)
     enableAllChildControls(colorPanel, enable && SeqData.NumFrames() > 0 && !IsACActive());
     enableAllChildControls(effectPalettePanel, enable && SeqData.NumFrames() > 0 && !IsACActive());
     enableAllChildControls(_valueCurvesPanel, enable && SeqData.NumFrames() > 0 && !IsACActive());
+    enableAllChildControls(_coloursPanel, enable && SeqData.NumFrames() > 0 && !IsACActive());
     enableAllChildControls(jukeboxPanel, enable && SeqData.NumFrames() > 0 && !IsACActive());
     UpdateACToolbar(enable);
 
@@ -1480,4 +1482,16 @@ void xLightsFrame::VCChanged(wxCommandEvent& event)
     enableAllChildControls(_valueCurvesPanel, true); // enable and disable otherwise if anything has been added while disabled wont be disabled.
     enableAllChildControls(_valueCurvesPanel, SeqData.NumFrames() > 0 && !IsACActive());
     _valueCurvesPanel->Thaw();
+}
+
+void xLightsFrame::ColourChanged(wxCommandEvent& event)
+{
+    _coloursPanel->Freeze();
+    if (event.GetInt() == -1)
+    {
+        _coloursPanel->UpdateColourButtons(true, this);
+    }
+    enableAllChildControls(_coloursPanel, true); // enable and disable otherwise if anything has been added while disabled wont be disabled.
+    enableAllChildControls(_coloursPanel, SeqData.NumFrames() > 0 && !IsACActive());
+    _coloursPanel->Thaw();
 }

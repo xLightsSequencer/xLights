@@ -13,6 +13,7 @@
 #include "../TopEffectsPanel.h"
 #include "../EffectIconPanel.h"
 #include "../ValueCurvesPanel.h"
+#include "../ColoursPanel.h"
 #include "Element.h"
 #include "Effect.h"
 #include "../BufferPanel.h"
@@ -118,6 +119,9 @@ void xLightsFrame::CreateSequencer()
     logger_base.debug("        Value Curves.");
     _valueCurvesPanel = new ValueCurvesPanel(PanelSequencer);
 
+    logger_base.debug("        Colours.");
+    _coloursPanel = new ColoursPanel(PanelSequencer);
+
     logger_base.debug("        Jukebox.");
     jukeboxPanel = new JukeboxPanel(PanelSequencer);
 
@@ -149,6 +153,7 @@ void xLightsFrame::CreateSequencer()
 
     m_mgr->AddPane(effectPalettePanel,wxAuiPaneInfo().Name(wxT("EffectDropper")).Caption(wxT("Effects")).Top().Layer(0).Hide());
     m_mgr->AddPane(_valueCurvesPanel, wxAuiPaneInfo().Name(wxT("ValueCurveDropper")).Caption(wxT("Value Curves")).Top().Layer(0).Hide());
+    m_mgr->AddPane(_coloursPanel, wxAuiPaneInfo().Name(wxT("ColourDropper")).Caption(wxT("Colours")).Top().Layer(0).Hide());
     m_mgr->AddPane(jukeboxPanel,wxAuiPaneInfo().Name(wxT("Jukebox")).Caption(wxT("Jukebox")).Top().Layer(0).Hide());
     m_mgr->AddPane(colorPanel,wxAuiPaneInfo().Name(wxT("Color")).Caption(wxT("Color")).Top().Layer(0));
     m_mgr->AddPane(timingPanel,wxAuiPaneInfo().Name(wxT("LayerTiming")).Caption(wxT("Layer Blending")).Top().Layer(0));
@@ -233,11 +238,6 @@ void xLightsFrame::InitSequencer()
         return;
     }
 
-    if (mCurrentPerpective != nullptr)
-    {
-        DoLoadPerspective(mCurrentPerpective);
-    }
-
     // if we have a saved perspective on this machine then make that the current one
     if (_autoSavePerspecive)
     {
@@ -245,11 +245,33 @@ void xLightsFrame::InitSequencer()
         wxString machinePerspective = config->Read("xLightsMachinePerspective", "");
         if (machinePerspective != "")
         {
-            m_mgr->LoadPerspective(machinePerspective);
-            logger_base.debug("Loaded AutoSave perspective.");
+            if (!m_mgr->LoadPerspective(machinePerspective, true))
+            {
+                logger_base.debug("Failed to load AutoSave perspective.");
+            }
+            else
+            {
+                logger_base.debug("Loaded AutoSave perspective.");
+                ShowHideAllSequencerWindows(true);
+                _modelPreviewPanel->Refresh(false);
+                _housePreviewPanel->Refresh(false);
+                m_mgr->Update();
+            }
             LogPerspective(machinePerspective);
         }
+        else
+        {
+            if (mCurrentPerpective != nullptr)
+            {
+                DoLoadPerspective(mCurrentPerpective);
+            }
+        }
     }
+    else if (mCurrentPerpective != nullptr)
+    {
+        DoLoadPerspective(mCurrentPerpective);
+    }
+
 
     mSequencerInitialize = true;
     _housePreviewPanel->GetModelPreview()->InitializePreview(mBackgroundImage, mBackgroundBrightness, mBackgroundAlpha, GetDisplay2DCenter0());
@@ -785,6 +807,8 @@ void xLightsFrame::LoadSequencer(xLightsXmlFile& xml_file)
     _housePreviewPanel->Refresh();
     m_mgr->Update();
     _selectPanel->ReloadModels();
+
+    _coloursPanel->UpdateColourButtons(true, this);
 
     logger_base.debug("Sequence all loaded.");
 }

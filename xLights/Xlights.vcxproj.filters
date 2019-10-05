@@ -740,6 +740,8 @@
     <ClCompile Include="vamp-hostsdk\PluginBufferingAdapter.cpp" />
     <ClCompile Include="DragValueCurveBitmapButton.cpp" />
     <ClCompile Include="ValueCurvesPanel.cpp" />
+    <ClCompile Include="ColoursPanel.cpp" />
+    <ClCompile Include="DragColoursBitmapButton.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -1490,6 +1492,8 @@
     <ClInclude Include="EmailDialog.h" />
     <ClInclude Include="DragValueCurveBitmapButton.h" />
     <ClInclude Include="ValueCurvesPanel.h" />
+    <ClInclude Include="ColoursPanel.h" />
+    <ClInclude Include="DragColoursBitmapButton.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

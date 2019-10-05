@@ -1,5 +1,4 @@
-#ifndef COLORCURVEDIALOG_H
-#define COLORCURVEDIALOG_H
+#pragma once
 
 //(*Headers(ColorCurveDialog)
 #include <wx/button.h>
@@ -83,7 +82,6 @@ class ColorCurveDialog: public wxDialog
     void ValidateWindow();
     ColorCurvePanel* _ccp;
 
-    void LoadXCC(ColorCurve * cc, const wxString& filename);
     void PopulatePresets();
     void ProcessPresetDir(wxDir& directory, bool subdirs);
 
@@ -132,5 +130,3 @@ class ColorCurveDialog: public wxDialog
 
 		DECLARE_EVENT_TABLE()
 };
-
-#endif

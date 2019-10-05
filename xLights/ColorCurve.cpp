@@ -1,15 +1,18 @@
-#include "ColorCurve.h"
 #include <wx/wx.h>
 #include <wx/string.h>
-#include <log4cpp/Category.hh>
+#include <wx/xml/xml.h>
 #include <wx/bitmap.h>
-#include "ColorCurveDialog.h"
-
 #include <wx/colour.h>
 #include <wx/colordlg.h>
 #include <wx/graphics.h>
+
+#include "ColorCurve.h"
+#include "ColorCurveDialog.h"
 #include "UtilFunctions.h"
 #include "ColorPanel.h"
+
+#include <log4cpp/Category.hh>
+
 #if wxUSE_GRAPHICS_CONTEXT == 0
 #error Please refer to README.windows to make necessary changes to wxWidgets setup.h file.
 #error You will also need to rebuild wxWidgets once the change is made.
@@ -26,18 +29,42 @@ ColorCurve::ColorCurve(const std::string& id, const std::string type, xlColor c)
     _active = false;
 }
 
-ColorCurve::ColorCurve(const std::string& s)
+ColorCurve::ColorCurve()
 {
     _type = "Gradient";
     _values.clear();
     _active = false;
     _timecurve = TC_TIME;
-    Deserialise(s);
+    _values.push_back(ccSortableColorPoint(0.5, *wxBLACK));
+    _id = "";
+}
+
+ColorCurve::ColorCurve(const std::string& s)
+{
+    _id = "";
+    _type = "Gradient";
+    _values.clear();
+    _active = false;
+    _timecurve = TC_TIME;
+
+    if (!IsColorCurve(s))
+    {
+        // dont try to deserialise
+    }
+    else
+    {
+        Deserialise(s);
+    }
 
     if (_values.size() == 0)
     {
         _values.push_back(ccSortableColorPoint(0.5, *wxBLACK));
     }
+}
+
+bool ColorCurve::IsColorCurve(const std::string& s)
+{
+    return Contains(s, "Active=");
 }
 
 void ColorCurve::Deserialise(const std::string& s)
@@ -368,6 +395,37 @@ void ColorCurve::SetDefault(const wxColor& color)
     }
 }
 
+void ColorCurve::LoadXCC(const std::string& filename)
+{
+    // reset everything
+    auto oldid = _id;
+    _id = "";
+    _type = "Gradient";
+    _values.clear();
+    _active = false;
+    _timecurve = TC_TIME;
+
+    wxXmlDocument doc(filename);
+
+    if (doc.IsOk())
+    {
+        wxXmlNode* root = doc.GetRoot();
+
+        if (root->GetName() == "colorcurve")
+        {
+            wxString data = root->GetAttribute("data");
+            wxString v = root->GetAttribute("SourceVersion");
+
+            // Add any colorcurve version conversion logic here
+            // Source version will be the program version that created the custom model
+
+            Deserialise(data.ToStdString());
+            SetActive(true);
+        }
+    }
+    _id = oldid;
+}
+
 void ColorCurve::SetValueAt(float offset, xlColor c)
 {
     auto it = _values.begin();
@@ -417,6 +475,34 @@ wxBitmap ColorCurve::GetImage(int x, int y, bool bars)
         dc.DrawRectangle(0, 0, x, y);
     }
     return b;
+}
+
+wxBitmap ColorCurve::GetSolidColourImage(int x, int y, const wxColour& c)
+{
+    wxImage bmp(x, y);
+    wxBitmap b(bmp);
+    wxMemoryDC dc(b);
+    dc.SetPen(wxPen(c));
+    dc.SetBrush(wxBrush(c));
+    dc.DrawRectangle(0, 0, x, y);
+    dc.SetBrush(*wxTRANSPARENT_BRUSH);
+    dc.SetPen(wxPen(wxSystemSettings::GetColour(wxSYS_COLOUR_FRAMEBK)));
+    dc.DrawRectangle(0, 0, x, y);
+    return b;
+}
+
+std::string ColorCurve::GetColorCurveFolder(const std::string& showFolder)
+{
+    std::string ccf = showFolder + "/colorcurves";
+    if (!wxDir::Exists(ccf))
+    {
+        wxMkdir(ccf);
+        if (!wxDir::Exists(ccf))
+        {
+            return "";
+        }
+    }
+    return ccf;
 }
 
 bool ColorCurve::NearPoint(float x)
@@ -498,7 +584,7 @@ ColorCurveButton::ColorCurveButton(wxWindow *parent,
     const wxString& name) : wxBitmapButton(parent, id, bitmap, pos, size, style, validator, name)
 {
     _color = "#FFFFFF";
-    _cc = new ColorCurve(name.ToStdString());
+    _cc = new ColorCurve(name.ToStdString(), "Gradient", _color);
     Connect(id, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ColorCurveButton::LeftClick);
     Connect(id, wxEVT_CONTEXT_MENU, (wxObjectEventFunction)&ColorCurveButton::RightClick);
 }
@@ -603,6 +689,7 @@ void ColorCurveButton::UpdateState(bool notify)
 void ColorCurveButton::SetValue(const wxString& value)
 {
     _cc->Deserialise(value.ToStdString());
+    _cc->SetId(GetName().ToStdString());
     UpdateState();
 }
 

@@ -143,7 +143,7 @@ void Effect::ParseColorMap(const SettingsMap &mPaletteMap, xlColorVector &mColor
         int sz = BUTTON_IDS.size();
         for (int x = 0; x < sz; ++x) {
             if (mPaletteMap.GetBool(CHECKBOX_IDS[x])) {
-                if (mPaletteMap[BUTTON_IDS[x]].find("Active") != std::string::npos)
+                if (ColorCurve::IsColorCurve(mPaletteMap[BUTTON_IDS[x]]))
                 {
                     mCC.push_back(ColorCurve(mPaletteMap[BUTTON_IDS[x]]));
                     ColorCurve cv = ColorCurve(mPaletteMap[BUTTON_IDS[x]]);
@@ -151,7 +151,7 @@ void Effect::ParseColorMap(const SettingsMap &mPaletteMap, xlColorVector &mColor
                 }
                 else
                 {
-                    mCC.push_back(ColorCurve(""));
+                    mCC.push_back(ColorCurve());
                     mColors.push_back(xlColor(mPaletteMap[BUTTON_IDS[x]]));
                 }
             }
