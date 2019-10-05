@@ -33,9 +33,9 @@ void DragColoursBitmapButton::SetColour(const std::string& colour)
 {
     wxSize size = GetSize();
     _c = colour;
-    ColorCurve cc(colour);
 
-    if (cc.IsOk()) {
+    if (ColorCurve::IsColorCurve(colour)) {
+        ColorCurve cc(colour);
         const wxBitmap &bbmp = cc.GetImage(size.GetWidth(), size.GetHeight(), false);
         SetBitmap(bbmp);
     }

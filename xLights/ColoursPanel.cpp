@@ -70,16 +70,16 @@ void ColoursPanel::ProcessColourCurveDir(wxDir& directory, bool subdirs)
     while (cont)
     {
         wxFileName fn(directory.GetNameWithSep() + filename);
+        if (fn.Exists())
+        {
             ColorCurve cc;
             cc.LoadXCC(fn.GetFullPath());
-            if (cc.IsOk())
-            {
-                AddColour(cc.Serialise());
-            }
-            else
-            {
-                logger_base.warn("ColoursPanel::ProcessColourCurveDir Unable to load " + fn.GetFullPath());
-            }
+            AddColour(cc.Serialise());
+        }
+        else
+        {
+            logger_base.warn("ColoursPanel::ProcessColourCurveDir Unable to load " + fn.GetFullPath());
+        }
 
         cont = directory.GetNext(&filename);
     }
@@ -282,12 +282,20 @@ int ColoursPanel::AddColour(const std::string& colour)
 {
     if (colour == "") return 0;
 
-    if (std::find(_colours.begin(), _colours.end(), colour) != _colours.end())
+    std::string c(colour);
+
+    if (Contains(c, "ID_BUTTON_Palette"))
+    {
+        int loc = c.find("ID_BUTTON_Palette");
+        c = c.substr(0, loc) + c.substr(loc + 18);
+    }
+
+    if (std::find(_colours.begin(), _colours.end(), c) != _colours.end())
     {
         // already there
         return 0;
     }
-    _colours.push_back(colour);
+    _colours.push_back(c);
     return 1;
 }
 
