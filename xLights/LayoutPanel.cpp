@@ -145,6 +145,7 @@ const long LayoutPanel::ID_MNU_DELETE_MODEL = wxNewId();
 const long LayoutPanel::ID_MNU_DELETE_MODEL_GROUP = wxNewId();
 const long LayoutPanel::ID_MNU_DELETE_EMPTY_MODEL_GROUPS = wxNewId();
 const long LayoutPanel::ID_MNU_RENAME_MODEL_GROUP = wxNewId();
+const long LayoutPanel::ID_MNU_CLONE_MODEL_GROUP = wxNewId();
 const long LayoutPanel::ID_MNU_MAKESCVALID = wxNewId();
 const long LayoutPanel::ID_MNU_MAKEALLSCVALID = wxNewId();
 const long LayoutPanel::ID_MNU_MAKEALLSCNOTOVERLAPPING = wxNewId();
@@ -5603,18 +5604,18 @@ void LayoutPanel::CreateUndoPoint(const std::string &type, const std::string &mo
 
 void LayoutPanel::OnModelsPopup(wxCommandEvent& event)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     int id = event.GetId();
-    if(id == ID_MNU_DELETE_MODEL)
+    if (id == ID_MNU_DELETE_MODEL)
     {
         logger_base.debug("LayoutPanel::OnModelsPopup DELETE_MODEL");
         DeleteSelectedModel();
     }
-    else if(id == ID_MNU_DELETE_MODEL_GROUP)
+    else if (id == ID_MNU_DELETE_MODEL_GROUP)
     {
         logger_base.debug("LayoutPanel::OnModelsPopup DELETE_MODEL_GROUP");
-        if( mSelectedGroup.IsOk() ) {
+        if (mSelectedGroup.IsOk()) {
             wxString name = TreeListViewModels->GetItemText(mSelectedGroup);
             if (wxMessageBox("Are you sure you want to remove the " + name + " group?", "Confirm Remove?", wxICON_QUESTION | wxYES_NO) == wxYES) {
                 xlights->UnselectEffect(); // we do this just in case the effect is on the model we are deleting
@@ -5630,7 +5631,7 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event)
             }
         }
     }
-    else if(id == ID_MNU_DELETE_EMPTY_MODEL_GROUPS)
+    else if (id == ID_MNU_DELETE_EMPTY_MODEL_GROUPS)
     {
         logger_base.debug("LayoutPanel::OnModelsPopup DELETE_EMPTY_MODEL_GROUPS");
 
@@ -5786,7 +5787,7 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event)
     else if (id == ID_MNU_RENAME_MODEL_GROUP)
     {
         logger_base.debug("LayoutPanel::OnModelsPopup RENAME_MODEL_GROUP");
-        if( mSelectedGroup.IsOk() ) {
+        if (mSelectedGroup.IsOk()) {
             wxString sel = TreeListViewModels->GetItemText(mSelectedGroup);
             wxTextEntryDialog dlg(this, "Enter new name for group " + sel, "Rename " + sel, sel);
             OptimiseDialogPosition(&dlg);
@@ -5798,7 +5799,8 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event)
                     OptimiseDialogPosition(&dlg2);
                     if (dlg2.ShowModal() == wxID_OK) {
                         name = wxString(Model::SafeModelName(dlg2.GetValue().ToStdString()));
-                    } else {
+                    }
+                    else {
                         return;
                     }
                 }
@@ -5814,7 +5816,7 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event)
             }
         }
     }
-    else if(id == ID_MNU_ADD_MODEL_GROUP)
+    else if (id == ID_MNU_ADD_MODEL_GROUP)
     {
         logger_base.debug("LayoutPanel::OnModelsPopup ADD_MODEL_GROUP");
         wxTextEntryDialog dlg(this, "Enter name for new group", "Enter name for new group");
@@ -5826,11 +5828,12 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event)
                 OptimiseDialogPosition(&dlg2);
                 if (dlg2.ShowModal() == wxID_OK) {
                     name = wxString(Model::SafeModelName(dlg2.GetValue().ToStdString()));
-                } else {
+                }
+                else {
                     return;
                 }
             }
-            wxXmlNode *node = new wxXmlNode(wxXML_ELEMENT_NODE, "modelGroup");
+            wxXmlNode* node = new wxXmlNode(wxXML_ELEMENT_NODE, "modelGroup");
             xlights->ModelGroupsNode->AddChild(node);
             node->AddAttribute("selected", "0");
             node->AddAttribute("name", name);
@@ -5849,6 +5852,35 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event)
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::OnModelsPopup::ID_MNU_ADD_MODEL_GROUP");
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "LayoutPanel::OnModelsPopup::ID_MNU_ADD_MODEL_GROUP");
         }
+    }
+    else if (id == ID_MNU_CLONE_MODEL_GROUP)
+    {
+        logger_base.debug("LayoutPanel::OnModelsPopup CLONE_MODEL_GROUP");
+
+        wxString sel = TreeListViewModels->GetItemText(mSelectedGroup);
+        ModelGroup* mg = dynamic_cast<ModelGroup*>(xlights->AllModels.GetModel(sel));
+        if (mg == nullptr) return;
+        std::string name = xlights->AllModels.GenerateModelName(sel);
+
+        wxXmlNode* node = new wxXmlNode(wxXML_ELEMENT_NODE, "modelGroup");
+        for (auto it = mg->GetModelXml()->GetAttributes(); it != nullptr; it = it->GetNext())
+        {
+            if (it->GetName() == "name")
+            {
+                node->AddAttribute("name", name);
+            }
+            else
+            {
+                node->AddAttribute(it->GetName(), it->GetValue());
+            }
+        }
+        xlights->AllModels.AddModel(xlights->AllModels.CreateModel(node));
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::OnModelsPopup::ID_MNU_CLONE_MODEL_GROUP", nullptr, nullptr, name);
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::OnModelsPopup::ID_MNU_CLONE_MODEL_GROUP");
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "LayoutPanel::OnModelsPopup::ID_MNU_CLONE_MODEL_GROUP");
+        model_grp_panel->UpdatePanel(name);
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::OnModelsPopup::ID_MNU_CLONE_MODEL_GROUP");
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "LayoutPanel::OnModelsPopup::ID_MNU_CLONE_MODEL_GROUP");
     }
 }
 
@@ -6275,6 +6307,7 @@ void LayoutPanel::OnItemContextMenu(wxTreeListEvent& event)
     if (mSelectedGroup.IsOk()) {
         mnuContext.Append(ID_MNU_DELETE_MODEL_GROUP, "Delete Group");
         mnuContext.Append(ID_MNU_RENAME_MODEL_GROUP, "Rename Group");
+        mnuContext.Append(ID_MNU_CLONE_MODEL_GROUP, "Clone Group");
     }
     mnuContext.Append(ID_MNU_DELETE_EMPTY_MODEL_GROUPS, "Delete Empty Groups");
 
