@@ -249,6 +249,7 @@ bottom: 0;
 .btn-xyzzy{
   padding: 40px 40px;
 }
+
 tr {
 width: 100%;
 display: inline-table;
@@ -265,3 +266,49 @@ table-layout: fixed;
   width: 80%;
   position: absolute;
 }*/
+
+/* SMS Plugin styles */
+.btn-filled-red {
+    background-color: #e68983;
+	border: 5;
+	border-radius: 14px;
+	width: 100px;
+	padding-top: 5px;
+	padding-bottom: 5px;
+    &:hover {
+        background-color: darken($color, 10);
+    }
+}
+.btn-filled-red:hover {
+    background-color: #b56a65;
+}
+
+.btn-filled-green {
+    background-color: #8bf794;
+	border: 5;
+	padding-top: 5px;
+	padding-bottom: 5px;
+	border-radius: 14px;
+	width: 100px;
+    &:hover {
+        background-color: darken($color, 10);
+    }
+}
+.btn-filled-green:hover {
+    background-color: #65b56c;
+}
+
+.btn-filled-amber {
+    background-color: #f7d88b;
+	border: 5;
+	padding-top: 5px;
+	padding-bottom: 5px;
+	border-radius: 14px;
+	width: 100px;
+    &:hover {
+        background-color: darken($color, 10);
+    }
+}
+.btn-filled-amber:hover {
+    background-color: #b09a64;
+}

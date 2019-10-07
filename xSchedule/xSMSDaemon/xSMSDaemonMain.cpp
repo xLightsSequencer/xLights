@@ -145,12 +145,13 @@ xSMSDaemonFrame::xSMSDaemonFrame(wxWindow* parent, const std::string& showDir, c
     FlexGridSizer4->AddGrowableCol(0);
     FlexGridSizer4->AddGrowableRow(0);
     Grid1 = new wxGrid(this, ID_GRID1, wxDefaultPosition, wxDefaultSize, 0, _T("ID_GRID1"));
-    Grid1->CreateGrid(0,3);
+    Grid1->CreateGrid(0,4);
     Grid1->EnableEditing(false);
     Grid1->EnableGridLines(true);
     Grid1->SetColLabelValue(0, _("Timestamp"));
     Grid1->SetColLabelValue(1, _("Status"));
     Grid1->SetColLabelValue(2, _("Message"));
+    Grid1->SetColLabelValue(3, _("Moderate"));
     Grid1->SetDefaultCellFont( Grid1->GetFont() );
     Grid1->SetDefaultCellTextColour( Grid1->GetForegroundColour() );
     FlexGridSizer4->Add(Grid1, 1, wxALL|wxEXPAND, 2);
@@ -183,6 +184,8 @@ xSMSDaemonFrame::xSMSDaemonFrame(wxWindow* parent, const std::string& showDir, c
     FlexGridSizer1->Fit(this);
     FlexGridSizer1->SetSizeHints(this);
 
+    Connect(ID_GRID1,wxEVT_GRID_CELL_CHANGED,(wxObjectEventFunction)&xSMSDaemonFrame::OnGrid1CellChanged);
+    Connect(ID_GRID1,wxEVT_GRID_SELECT_CELL,(wxObjectEventFunction)&xSMSDaemonFrame::OnGrid1CellSelect);
     Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xSMSDaemonFrame::OnButton_PauseClick);
     Connect(ID_MNU_OPTIONS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xSMSDaemonFrame::OnMenuItem_OptionsSelected);
     Connect(ID_MNU_VIEWLOG,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xSMSDaemonFrame::OnMenuItem_ViewLogSelected);
@@ -263,7 +266,9 @@ xSMSDaemonFrame::~xSMSDaemonFrame()
 
 bool xSMSDaemonFrame::Action(const std::string& command, const std::wstring& parameters, const std::wstring& data, const std::wstring& reference, std::wstring& response)
 {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     auto c = wxString(command).Lower();
+    // http://127.0.0.1/xScheduleCommand?Command=getsmsqueue&Parameters=
     if (c == "getsmsqueue")
     {
         if (_smsService != nullptr)
@@ -278,14 +283,7 @@ bool xSMSDaemonFrame::Action(const std::string& command, const std::wstring& par
                 std::string st = it.GetStatus();
                 response += std::wstring(st.begin(), st.end());
                 response += _("\",\"message\":\"");
-                if (it._wmessage != "")
-                {
-                    response += it._wmessage;
-                }
-                else
-                {
-                    response += std::wstring(it._message.begin(), it._message.end());
-                }
+                response += it.GetUIMessage();
                 if (it._displayed)
                 {
                     response += _("\",\"displayed\":\"true");
@@ -293,6 +291,21 @@ bool xSMSDaemonFrame::Action(const std::string& command, const std::wstring& par
                 else
                 {
                     response += _("\",\"displayed\":\"false");
+                }
+                if (_options.GetManualModeration())
+                {
+                    if (it.IsModeratedOk())
+                    {
+                        response += _("\",\"moderatedok\":\"true");
+                    }
+                    else
+                    {
+                        response += _("\",\"moderatedok\":\"false");
+                    }
+                }
+                else
+                {
+                    response += _("\",\"moderatedok\":\"disabled");
                 }
                 response += _("\"},");
             }
@@ -310,11 +323,51 @@ bool xSMSDaemonFrame::Action(const std::string& command, const std::wstring& par
             return false;
         }
     }
+    // http://127.0.0.1/xScheduleCommand?Command=moderatesms&Parameters=
     else if (c == "moderatesms")
     {
-        response = _("{\"result\":\"failed\",\"reference\":\"") + reference + _("\",\"command\":\"") +
-            command + _("\",\"message\":\"Not implemented.\"}");
-        return true;
+        if (_options.GetManualModeration())
+        {
+            if (data.size() < 3)
+            {
+                // not valid
+                response = _("{\"result\":\"failed\",\"reference\":\"") + reference + _("\",\"command\":\"") +
+                    command + _("\",\"message\":\"Moderation received invalid request.\"}");
+                return false;
+            }
+            else
+            {
+                bool v = data[0] == 'y';
+                wxString m = data.substr(2);
+
+                if (_smsService->Moderate(m, v))
+                {
+                    // we we de-moderated a message which is currently displayed ... immediately hide it
+                    if (!v && _smsService->IsDisplayed(m))
+                    {
+                        Stop();
+                        Start();
+                    }
+
+                    RefreshList();
+                    response = _("{\"result\":\"ok\",\"reference\":\"") + reference + _("\",\"command\":\"") +
+                        command + _("\"}");
+                    return true;
+                }
+                else
+                {
+                    response = _("{\"result\":\"failed\",\"reference\":\"") + reference + _("\",\"command\":\"") +
+                        command + _("\",\"message\":\"Moderation did not change the moderation state.\"}");
+                    return false;
+                }
+            }
+        }
+        else
+        {
+            response = _("{\"result\":\"failed\",\"reference\":\"") + reference + _("\",\"command\":\"") +
+                command + _("\",\"message\":\"Moderation received but moderation is not enabled.\"}");
+            return false;
+        }
     }
 
     response = _("{\"result\":\"failed\",\"reference\":\"") + reference + _("\",\"command\":\"") +
@@ -661,7 +714,16 @@ void xSMSDaemonFrame::OnSendTimerTrigger(wxTimerEvent& event)
     {
         _smsService->ClearDisplayed();
         _smsService->PrepareMessages(_options.GetMaxMessageAge());
-        auto msgs = _smsService->GetMessages();
+
+        std::vector<SMSMessage> msgs;
+        if (_options.GetManualModeration())
+        {
+            msgs = _smsService->GetModeratedMessages();
+        }
+        else
+        {
+            msgs = _smsService->GetMessages();
+        }
         if (msgs.size() > 0)
         {
             wxArrayString texts = wxSplit(_options.GetTextItem(), ',');
@@ -723,6 +785,7 @@ void xSMSDaemonFrame::OnMenuItem_InsertTestMessagesSelected(wxCommandEvent& even
 
 void xSMSDaemonFrame::RefreshList()
 {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (_smsService != nullptr)
     {
         auto msgs = _smsService->GetMessages();
@@ -731,21 +794,35 @@ void xSMSDaemonFrame::RefreshList()
             Grid1->Freeze();
             if (Grid1->GetNumberRows() > 0)
             {
+                logger_base.debug("Deleting %d rows", (int)Grid1->GetNumberRows());
                 Grid1->DeleteRows(0, Grid1->GetNumberRows());
             }
+            logger_base.debug("Adding %d rows", (int)msgs.size());
             for (auto it : msgs)
             {
+                _suppressGridUpdate = true;
                 Grid1->AppendRows(1);
+                _suppressGridUpdate = false;;
                 int row = Grid1->GetNumberRows() - 1;
                 Grid1->SetCellValue(row, 0, it._timestamp.FromTimezone(wxDateTime::TZ::GMT0).FormatTime());
+                Grid1->SetReadOnly(row, 0);
                 Grid1->SetCellValue(row, 1, it.GetStatus());
-                if (it._wmessage != "")
+                Grid1->SetReadOnly(row, 1);
+                Grid1->SetCellValue(row, 2, it.GetUIMessage());
+                Grid1->SetReadOnly(row, 2);
+
+                if (_options.GetManualModeration())
                 {
-                    Grid1->SetCellValue(row, 2, wxString(it._from) + ": " + wxString(it._wmessage));
-                }
-                else
-                {
-                    Grid1->SetCellValue(row, 2, it._from + ": " + it._message);
+                    Grid1->SetCellRenderer(row, 3, new wxGridCellBoolRenderer);
+                    Grid1->SetCellEditor(row, 3, new wxGridCellBoolEditor);
+                    Grid1->SetCellValue(row, 3, it.IsModeratedOk() ? _("1") : _(""));
+                    if (!it.IsModeratedOk())
+                    {
+                        Grid1->SetCellBackgroundColour(row, 0, *wxLIGHT_GREY);
+                        Grid1->SetCellBackgroundColour(row, 1, *wxLIGHT_GREY);
+                        Grid1->SetCellBackgroundColour(row, 2, *wxLIGHT_GREY);
+                    }
+                    Grid1->SetReadOnly(row, 3, false);
                 }
                 if (it._displayed)
                 {
@@ -754,12 +831,23 @@ void xSMSDaemonFrame::RefreshList()
                     Grid1->SetCellBackgroundColour(row, 2, *wxYELLOW);
                 }
             }
+
+            if (_options.GetManualModeration())
+            {
+                Grid1->EnableEditing(true);
+            }
+            else
+            {
+                Grid1->EnableEditing(false);
+            }
+
             Grid1->Thaw();
         }
         else
         {
             if (Grid1->GetNumberRows() > 0)
             {
+                logger_base.debug("Deleting %d rows", (int)Grid1->GetNumberRows());
                 Grid1->DeleteRows(0, Grid1->GetNumberRows());
             }
         }
@@ -769,6 +857,7 @@ void xSMSDaemonFrame::RefreshList()
     {
         if (Grid1->GetNumberRows() > 0)
         {
+            logger_base.debug("Deleting %d rows", (int)Grid1->GetNumberRows());
             Grid1->DeleteRows(0, Grid1->GetNumberRows());
         }
     }
@@ -791,5 +880,40 @@ void xSMSDaemonFrame::OnClose(wxCloseEvent& event)
         event.Veto();
     } else{
         event.Skip();
+    }
+}
+
+void xSMSDaemonFrame::OnGrid1CellChanged(wxGridEvent& event)
+{
+    if (_suppressGridUpdate) return;
+    UpdateModeration();
+}
+
+void xSMSDaemonFrame::OnGrid1CellSelect(wxGridEvent& event)
+{
+    if (_suppressGridUpdate) return;
+    UpdateModeration();
+}
+
+void xSMSDaemonFrame::UpdateModeration()
+{
+    bool changed = false;
+    for (size_t i = 0; i < Grid1->GetNumberRows(); ++i)
+    {
+        bool c = _smsService->Moderate(Grid1->GetCellValue(i, 2), Grid1->GetCellValue(i, 3) == "1");
+
+        // we we de-moderated a message which is currently displayed ... immediately hide it
+        if (c && Grid1->GetCellValue(i, 3) != "1" &&_smsService->IsDisplayed(Grid1->GetCellValue(i, 2)))
+        {
+            Stop();
+            Start();
+        }
+
+        changed |= c;
+    }
+
+    if (changed)
+    {
+        RefreshList();
     }
 }

@@ -49,6 +49,8 @@ class xSMSDaemonFrame : public wxFrame
     SMSDaemonOptions _options;
     std::unique_ptr<SMSService> _smsService;
     p_xSchedule_Action _action;
+    bool _suppressGridUpdate = false;
+
 
     void RefreshList();
     void ValidateWindow();
@@ -71,6 +73,7 @@ public:
         xSMSDaemonFrame(wxWindow* parent, const std::string& showdir, const std::string& xScheduleURL, p_xSchedule_Action action, wxWindowID id = -1);
         virtual ~xSMSDaemonFrame();
         bool Action(const std::string& command, const std::wstring& parameters, const std::wstring& data, const std::wstring& reference, std::wstring& response);
+        void UpdateModeration();
 
     private:
 
@@ -86,6 +89,8 @@ public:
         void OnMenuItem_InsertTestMessagesSelected(wxCommandEvent& event);
         void OnTimer_SecondTrigger(wxTimerEvent& event);
         void OnClose(wxCloseEvent& event);
+        void OnGrid1CellChanged(wxGridEvent& event);
+        void OnGrid1CellSelect(wxGridEvent& event);
         //*)
 
         //(*Identifiers(xSMSDaemonFrame)

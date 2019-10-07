@@ -141,6 +141,23 @@ class SMSService
             // return a copy of the messages ... so it can use it in a thread safe manner
 		    return _messages;
 		}
+        std::vector<SMSMessage> GetModeratedMessages()
+        {
+            std::lock_guard<std::recursive_mutex> lock(_threadLock);
+            // return a copy of the messages ... so it can use it in a thread safe manner
+
+            std::vector<SMSMessage> res;
+
+            for (const auto& it : _messages)
+            {
+                if (it.IsModeratedOk())
+                {
+                    res.push_back(it);
+                }
+            }
+
+            return res;
+        }
         void Reset(const SMSDaemonOptions& options)
         {
             std::lock_guard<std::recursive_mutex> lock(_threadLock);
@@ -168,6 +185,33 @@ class SMSService
             {
                 SendSMS(msg._from, successMessage);
             }
+        }
+        bool Moderate(const wxString& msg, bool moderate)
+        {
+            for (auto& it : _messages)
+            {
+                if (it.GetUIMessage().StartsWith(msg))
+                {
+                    if (it.IsModeratedOk() != moderate)
+                    {
+                        it.SetModeratedOk(moderate);
+                        return true;
+                    }
+                    return false;
+                }
+            }
+            return false;
+        }
+        bool IsDisplayed(const wxString& msg)
+        {
+            for (auto& it : _messages)
+            {
+                if (it.GetUIMessage() == msg)
+                {
+                    return it._displayed;
+                }
+            }
+            return false;
         }
         void SendRejectMessage(const SMSMessage& msg, const wxString& rejectMessage)
         {

@@ -93,14 +93,17 @@
 					<growablerows>0</growablerows>
 					<object class="sizeritem">
 						<object class="wxGrid" name="ID_GRID1" variable="Grid1" member="yes">
-							<cols>3</cols>
+							<cols>4</cols>
 							<readonly>1</readonly>
 							<labelcolwidth>0</labelcolwidth>
 							<collabels>
 								<item>Timestamp</item>
 								<item>Status</item>
 								<item>Message</item>
+								<item>Moderate</item>
 							</collabels>
+							<handler function="OnGrid1CellChanged" entry="EVT_CMD_GRID_CELL_CHANGED" />
+							<handler function="OnGrid1CellSelect" entry="EVT_CMD_GRID_SELECT_CELL" />
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>

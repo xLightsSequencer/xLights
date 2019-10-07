@@ -33,6 +33,7 @@ class SMSDaemonOptions
 	bool _useLocalBlacklist = false;
 	bool _useLocalWhitelist = false;
 	bool _acceptOneWordOnly = false;
+    bool _manualModeration = false;
 	bool _ignoreOversizedMessages = false;
     bool _upperCase = false;
 
@@ -81,7 +82,9 @@ class SMSDaemonOptions
         }
         void SetMaxTimesToDisplay(int maximiumTimesToDisplay) { if (maximiumTimesToDisplay != _maximiumTimesToDisplay) { _maximiumTimesToDisplay = maximiumTimesToDisplay; _changeCount++; } }
 
-		bool GetUsePurgoMalum() const { return _usePurgoMalum; }
+        bool GetManualModeration() const { return _manualModeration; }
+        void SetManualModeration(bool manualModeration) { if (manualModeration != _manualModeration) { _manualModeration = manualModeration; _changeCount++; } }
+        bool GetUsePurgoMalum() const { return _usePurgoMalum; }
         void SetUsePurgoMalum(bool usePurgoMalum) { if (usePurgoMalum != _usePurgoMalum) { _usePurgoMalum = usePurgoMalum; _changeCount++; } }
 		bool GetRejectProfanity() const { return _rejectProfanity; }
         void SetRejectProfanity(bool rejectProfanity) { if (rejectProfanity != _rejectProfanity) { _rejectProfanity = rejectProfanity; _changeCount++; } }

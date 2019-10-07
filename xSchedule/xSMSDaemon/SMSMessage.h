@@ -28,12 +28,15 @@ class SMSMessage
     int _displayCount = 0;
     bool _displayed = false;
     bool _filtered = false;
+    bool _moderatedOk = false;
 
     bool Censored() const
     {
         return _filtered || _rawMessage == "" || _message != "";
     }
 
+    bool IsModeratedOk() const { return _moderatedOk; }
+    void SetModeratedOk(bool moderatedOk) { _moderatedOk = moderatedOk; }
     void Censor(bool reject)
     {
         if (reject)
@@ -74,6 +77,18 @@ class SMSMessage
     {
         _displayCount++;
         _displayed = true;
+    }
+
+    wxString GetUIMessage() const
+    {
+        if (_wmessage != "")
+        {
+            return wxString(_from) + ": " + wxString(_wmessage);
+        }
+        else
+        {
+            return _from + ": " + _message;
+        }
     }
 
     int GetAgeMins() const

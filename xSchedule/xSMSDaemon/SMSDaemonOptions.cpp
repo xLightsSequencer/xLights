@@ -58,6 +58,7 @@ void SMSDaemonOptions::Load(const std::string& showDir)
             _useLocalBlacklist = n->GetAttribute("UseLocalBlacklist", "FALSE") == "TRUE";
             _useLocalWhitelist = n->GetAttribute("UseLocalWhitelist", "FALSE") == "TRUE";
             _acceptOneWordOnly = n->GetAttribute("AcceptOneWordOnly", "FALSE") == "TRUE";
+            _manualModeration = n->GetAttribute("ManualModeration", "FALSE") == "TRUE";
             _ignoreOversizedMessages = n->GetAttribute("IgnoreOversizedMessages", "FALSE") == "TRUE";
             _upperCase = n->GetAttribute("UpperCase", "FALSE") == "TRUE";
         }
@@ -110,6 +111,7 @@ void SMSDaemonOptions::Save(const std::string& showDir)
     if (_useLocalBlacklist) node->AddAttribute("UseLocalBlacklist", "TRUE");
     if (_useLocalWhitelist) node->AddAttribute("UseLocalWhitelist", "TRUE");
     if (_acceptOneWordOnly) node->AddAttribute("AcceptOneWordOnly", "TRUE");
+    if (_manualModeration) node->AddAttribute("ManualModeration", "TRUE");
     if (_ignoreOversizedMessages) node->AddAttribute("IgnoreOversizedMessages", "TRUE");
     if (_upperCase) node->AddAttribute("UpperCase", "TRUE");
 

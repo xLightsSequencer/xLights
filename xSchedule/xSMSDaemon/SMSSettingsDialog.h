@@ -8,6 +8,7 @@
 #include <wx/dialog.h>
 #include <wx/sizer.h>
 #include <wx/spinctrl.h>
+#include <wx/statline.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
 //*)
@@ -27,6 +28,7 @@ class SMSSettingsDialog: public wxDialog
 		wxButton* Button_Cancel;
 		wxButton* Button_Ok;
 		wxCheckBox* CheckBox_IgnoreOversized;
+		wxCheckBox* CheckBox_Moderation;
 		wxCheckBox* CheckBox_OneWordOnly;
 		wxCheckBox* CheckBox_RejectProfanity;
 		wxCheckBox* CheckBox_UpperCase;
@@ -43,6 +45,10 @@ class SMSSettingsDialog: public wxDialog
 		wxSpinCtrl* SpinCtrl_RetrieveInterval;
 		wxSpinCtrl* SpinCtrl_TimesToDisplay;
 		wxSpinCtrl* SpinCtrl_TimezoneAdjust;
+		wxStaticLine* StaticLine1;
+		wxStaticLine* StaticLine2;
+		wxStaticLine* StaticLine3;
+		wxStaticLine* StaticLine4;
 		wxStaticText* StaticText10;
 		wxStaticText* StaticText11;
 		wxStaticText* StaticText13;
@@ -91,11 +97,16 @@ class SMSSettingsDialog: public wxDialog
 		static const long ID_TEXTCTRL5;
 		static const long ID_STATICTEXT17;
 		static const long ID_SPINCTRL8;
+		static const long ID_STATICLINE1;
+		static const long ID_STATICLINE2;
+		static const long ID_CHECKBOX9;
 		static const long ID_CHECKBOX1;
 		static const long ID_CHECKBOX7;
 		static const long ID_CHECKBOX2;
 		static const long ID_CHECKBOX4;
 		static const long ID_CHECKBOX8;
+		static const long ID_STATICLINE3;
+		static const long ID_STATICLINE4;
 		static const long ID_STATICTEXT1;
 		static const long ID_SPINCTRL4;
 		static const long ID_STATICTEXT6;

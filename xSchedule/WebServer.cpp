@@ -661,102 +661,110 @@ void MyMessageHandler(HttpConnection& connection, WebSocketMessage& message)
 
     if (message.Type() == WebSocketMessage::Text)
     {
-        wxString text((char*)message.Content().GetData(), message.Content().GetDataLen());
-        logger_base.info("Received " + text);
-
-        // construct the JSON root object
-        wxJSONValue  root;
-
-        // construct a JSON parser
-        wxJSONReader reader;
-
-        // now read the JSON text and store it in the 'root' structure
-        // check for errors before retreiving values...
-        int numErrors = reader.Parse(text, &root);
-        if (numErrors > 0) {
-            logger_base.error("The JSON document is not well-formed: " + text);
-            const wxArrayString & errors = reader.GetErrors();
-            for (auto it = errors.begin(); it != errors.end(); ++it)
-            {
-                logger_base.error("    " + std::string(it->c_str()));
-            }
-            WebSocketMessage wsm("{\"result\":\"failed\",\"message\":\"JSON message not well formed.\"}");
-            connection.SendMessage(wsm);
-            return;
-        }
-
-        wxJSONValue defaultValue = wxString("");
-        std::string plugin;
-
-        // extract the type of request
-        wxString type = root.Get("Type", defaultValue).AsString().Lower();
-
         wxString result;
-        if (type == "command")
+        wxString text((char*)message.Content().GetData(), message.Content().GetDataLen());
+
+        if (text != "")
         {
-            wxString c = root.Get("Command", defaultValue).AsString();
-            wxString p = root.Get("Parameters", defaultValue).AsString();
-            wxString d = root.Get("Data", defaultValue).AsString();
-            wxString r = root.Get("Reference", defaultValue).AsString();
-            result = ProcessCommand(connection, c, p, d, r);
-        }
-        else if (type == "query")
-        {
-            wxString q = root.Get("Query", defaultValue).AsString();
-            wxString p = root.Get("Parameters", defaultValue).AsString();
-            wxString r = root.Get("Reference", defaultValue).AsString();
-            result = ProcessQuery(connection, q, p, r);
-        }
-        else if (type == "xyzzy2")
-        {
-            wxString c = root.Get("c", defaultValue).AsString();
-            wxString p = root.Get("p", defaultValue).AsString();
-            wxString r = root.Get("r", defaultValue).AsString();
-            result = ProcessXyzzy(connection, c + "2", p, r);
-        }
-        else if (type == "xyzzy")
-        {
-            wxString c = root.Get("c", defaultValue).AsString();
-            wxString p = root.Get("p", defaultValue).AsString();
-            wxString r = root.Get("r", defaultValue).AsString();
-            result = ProcessXyzzy(connection, c, p, r);
-        }
-        else if (type == "login")
-        {
-            wxString c = root.Get("Credential", defaultValue).AsString();
-            wxString r = root.Get("Reference", defaultValue).AsString();
-            result = ProcessLogin(connection, c, r);
-        }
-        else if (type == "stash")
-        {
-            wxString c = root.Get("Command", defaultValue).AsString();
-            wxString k = root.Get("Key", defaultValue).AsString();
-            wxString d = root.Get("Data", defaultValue).AsString();
-            wxString r = root.Get("Reference", defaultValue).AsString();
-            result = ProcessStash(connection, c, k, d, r);
-            if (result == "")
-            {
-                result = d;
+            logger_base.info("Received " + text);
+
+            // construct the JSON root object
+            wxJSONValue  root;
+
+            // construct a JSON parser
+            wxJSONReader reader;
+
+            // now read the JSON text and store it in the 'root' structure
+            // check for errors before retreiving values...
+            int numErrors = reader.Parse(text, &root);
+            if (numErrors > 0) {
+                logger_base.error("The JSON document is not well-formed: " + text);
+                const wxArrayString& errors = reader.GetErrors();
+                for (auto it = errors.begin(); it != errors.end(); ++it)
+                {
+                    logger_base.error("    " + std::string(it->c_str()));
+                }
+                WebSocketMessage wsm("{\"result\":\"failed\",\"message\":\"JSON message not well formed.\"}");
+                connection.SendMessage(wsm);
+                return;
             }
-        }
-        else
-        {
-            plugin = ((xScheduleFrame*)wxTheApp->GetTopWindow())->GetWebPluginRequest(type);
-            if (plugin != "")
+
+            wxJSONValue defaultValue = wxString("");
+            std::string plugin;
+
+            // extract the type of request
+            wxString type = root.Get("Type", defaultValue).AsString().Lower();
+
+            if (type == "command")
             {
                 wxString c = root.Get("Command", defaultValue).AsString();
                 wxString p = root.Get("Parameters", defaultValue).AsString();
                 wxString d = root.Get("Data", defaultValue).AsString();
                 wxString r = root.Get("Reference", defaultValue).AsString();
-                result = ProcessPluginRequest(connection, plugin, c, p, d, r);
+                result = ProcessCommand(connection, c, p, d, r);
+            }
+            else if (type == "query")
+            {
+                wxString q = root.Get("Query", defaultValue).AsString();
+                wxString p = root.Get("Parameters", defaultValue).AsString();
+                wxString r = root.Get("Reference", defaultValue).AsString();
+                result = ProcessQuery(connection, q, p, r);
+            }
+            else if (type == "xyzzy2")
+            {
+                wxString c = root.Get("c", defaultValue).AsString();
+                wxString p = root.Get("p", defaultValue).AsString();
+                wxString r = root.Get("r", defaultValue).AsString();
+                result = ProcessXyzzy(connection, c + "2", p, r);
+            }
+            else if (type == "xyzzy")
+            {
+                wxString c = root.Get("c", defaultValue).AsString();
+                wxString p = root.Get("p", defaultValue).AsString();
+                wxString r = root.Get("r", defaultValue).AsString();
+                result = ProcessXyzzy(connection, c, p, r);
+            }
+            else if (type == "login")
+            {
+                wxString c = root.Get("Credential", defaultValue).AsString();
+                wxString r = root.Get("Reference", defaultValue).AsString();
+                result = ProcessLogin(connection, c, r);
+            }
+            else if (type == "stash")
+            {
+                wxString c = root.Get("Command", defaultValue).AsString();
+                wxString k = root.Get("Key", defaultValue).AsString();
+                wxString d = root.Get("Data", defaultValue).AsString();
+                wxString r = root.Get("Reference", defaultValue).AsString();
+                result = ProcessStash(connection, c, k, d, r);
+                if (result == "")
+                {
+                    result = d;
+                }
             }
             else
             {
-                wxString r = root.Get("Reference", defaultValue).AsString();
-                WebSocketMessage wsm("{\"result\":\"failed\",\"reference\":\"" + r + "\",\"message\":\"Unknown request type or plugin not running.\"}");
-                connection.SendMessage(wsm);
-                return;
+                plugin = ((xScheduleFrame*)wxTheApp->GetTopWindow())->GetWebPluginRequest(type);
+                if (plugin != "")
+                {
+                    wxString c = root.Get("Command", defaultValue).AsString();
+                    wxString p = root.Get("Parameters", defaultValue).AsString();
+                    wxString d = root.Get("Data", defaultValue).AsString();
+                    wxString r = root.Get("Reference", defaultValue).AsString();
+                    result = ProcessPluginRequest(connection, plugin, c, p, d, r);
+                }
+                else
+                {
+                    wxString r = root.Get("Reference", defaultValue).AsString();
+                    WebSocketMessage wsm("{\"result\":\"failed\",\"reference\":\"" + r + "\",\"message\":\"Unknown request type or plugin not running.\"}");
+                    connection.SendMessage(wsm);
+                    return;
+                }
             }
+        }
+        else
+        {
+            result = "{\"result\":\"failed\",\"reference\":\"\",\"message\":\"Empty request.\"}";
         }
 
         WebSocketMessage wsm(result);
