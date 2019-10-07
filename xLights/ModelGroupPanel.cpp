@@ -16,6 +16,8 @@
 #include "OutputModelManager.h"
 #include "xLightsMain.h"
 
+#include <log4cpp/Category.hh>
+
 // This event is fired when a model is dropped between lists
 wxDEFINE_EVENT(EVT_MGDROP, wxCommandEvent);
 
@@ -261,6 +263,8 @@ bool canAddToGroup(ModelGroup *g, ModelManager &models, const std::string &model
 
 void ModelGroupPanel::UpdatePanel(const std::string group)
 {
+    // static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     mModels.ResetModelGroups(); // make sure all our pointers are valid
     mGroup = group;
     LabelModelGroupName->SetLabel(group);
@@ -287,8 +291,10 @@ void ModelGroupPanel::UpdatePanel(const std::string group)
 
         // dont allow any group that contains this group to be added as that would create a loop
         for (const auto& it : mModels) {
-            if (std::find(modelsInGroup.begin(), modelsInGroup.end(), it.first) != modelsInGroup.end() || (it.second->GetDisplayAs() == "ModelGroup" && (it.first == group || dynamic_cast<ModelGroup*>(it.second)->ContainsModelGroup(g)))) {
+            if (std::find(modelsInGroup.begin(), modelsInGroup.end(), it.first) != modelsInGroup.end() || 
+                (it.second->GetDisplayAs() == "ModelGroup" && (it.first == group || dynamic_cast<ModelGroup*>(it.second)->ContainsModelGroup(g)))) {
                 // dont add this group
+                // logger_base.debug("Model not eligible to be added to group or already in group " + group + " : " + it.first);
             }
             else
             {
