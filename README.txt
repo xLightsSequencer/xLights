@@ -12,6 +12,17 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
    -- enh (scott)  Added Folder/Filter Selection to the FPP Connect Dialog.
+   -- enh (keith)  Add the ability to manually moderate SMS messages
+   -- enh (keith)  Add an extensive SMS blacklist
+   -- enh (keith)  Add model group clone
+   -- enh (keith)  Add colour dropper panel
+   -- bug (keith)  Fix submodels show start channels as invalid
+   -- bug (keith)  Fix 3d preview latch is global causing jump when first moving a preview
+   -- bug (keith)  Fix when previewing in 3d any rotation causes models to flash white
+   -- bug (keith)  Fix when using keybindings to drop effects the panel reset is not respected on change in effect
+   -- bug (keith)  Fix multi light per node candy canes dont display correctly
+   -- bug (keith)  Fix timezone SMS adjust breaks test message feature
+   -- bug (keith)  Fix blacklist filtered messages not sending SMS response but blacklisted phone was
 2019.55 October 2 2019
    -- enh (dkulp)  Optimize FPP config upload to not upload file that is the same to avoid restart flag being set
    -- enh (keith)  Add value curve drag and drop mode for fast sequencing using saved value curves
