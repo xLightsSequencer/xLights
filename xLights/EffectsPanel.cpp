@@ -101,7 +101,7 @@ void EffectsPanel::OnRightDownChoice(wxMouseEvent& event)
     PopupMenu(&mnu);
 }
 
-void EffectsPanel::SetDefaultEffectValues(Model *cls, AudioManager* audio, const wxString &name) {
+void EffectsPanel::SetDefaultEffectValues(const wxString &name) {
     RenderableEffect *eff = effectManager->GetEffect(name.ToStdString());
     if (eff != nullptr) {
         eff->SetDefaultParameters();
@@ -254,7 +254,7 @@ void EffectsPanel::EffectSelected(wxChoicebookEvent& event)
     wxScrolledWindow* w = (wxScrolledWindow*)EffectChoicebook->GetPage(EffectChoicebook->GetSelection());
 
     wxString ef = EffectChoicebook->GetPageText(EffectChoicebook->GetSelection());
-    SetDefaultEffectValues(nullptr, nullptr, ef);
+    SetDefaultEffectValues(ef);
 
     if (!_suppressChangeEvent)
     {
@@ -288,7 +288,7 @@ void EffectsPanel::OnChoicePopup(wxCommandEvent& event)
     {
         SetEffectType(dlg.GetSelection());
 
-        SetDefaultEffectValues(nullptr, nullptr, dlg.GetStringSelection());
+        SetDefaultEffectValues(dlg.GetStringSelection());
 
         xLightsApp::GetFrame()->GetMainSequencer()->ConvertSelectedEffectsTo(dlg.GetStringSelection());
 

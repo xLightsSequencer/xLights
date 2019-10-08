@@ -1012,16 +1012,7 @@ void xLightsFrame::SelectedEffectChanged(SelectedEffectChangedEvent& event)
         if (EffectsPanel1->EffectChoicebook->GetSelection()!=pageIndex) {
             EffectsPanel1->SetEffectType(pageIndex);
 
-            timingPanel->SetDefaultControls(nullptr, true);
-            bufferPanel->SetDefaultControls(nullptr, true);
-            colorPanel->SetDefaultSettings(true);
-
-            // do the effect setting last as it may want to override some of the above
-            // this should be used sparingly ...
-            RenderableEffect *eff = GetEffectManager().GetEffect(EffectsPanel1->EffectChoicebook->GetChoiceCtrl()->GetStringSelection());
-            if (eff != nullptr) {
-                eff->SetDefaultParameters();
-            }
+            ResetPanelDefaultSettings(EffectsPanel1->EffectChoicebook->GetChoiceCtrl()->GetStringSelection(), nullptr, true);
         } else {
             event.updateUI = false;
         }
@@ -2338,15 +2329,9 @@ void xLightsFrame::SetEffectControls(const std::string &modelName, const std::st
     Model *model = GetModel(modelName);
     if (setDefaults) {
         if (modelName == "") {
-            EffectsPanel1->SetDefaultEffectValues(nullptr, CurrentSeqXmlFile->GetMedia(), effectName);
-            timingPanel->SetDefaultControls(nullptr);
-            bufferPanel->SetDefaultControls(nullptr);
-            colorPanel->SetDefaultSettings();
+            ResetPanelDefaultSettings(effectName, nullptr, false);
         } else {
-            EffectsPanel1->SetDefaultEffectValues(model, CurrentSeqXmlFile->GetMedia(), effectName);
-            timingPanel->SetDefaultControls(model);
-            bufferPanel->SetDefaultControls(model);
-            colorPanel->SetDefaultSettings();
+            ResetPanelDefaultSettings(effectName, model, false);
         }
     }
 
@@ -2551,6 +2536,21 @@ void xLightsFrame::SetEffectControlsApplyLast(const SettingsMap &settings) {
         {
             ApplySetting(wxString(it.first.c_str()), wxString(it.second.c_str()));
         }
+    }
+}
+
+void xLightsFrame::ResetPanelDefaultSettings(const std::string& effect, const Model* model, bool optionbased)
+{
+    SetChoicebook(EffectsPanel1->EffectChoicebook, effect);
+    timingPanel->SetDefaultControls(model, optionbased);
+    bufferPanel->SetDefaultControls(model, optionbased);
+    colorPanel->SetDefaultSettings(optionbased);
+
+    // do the effect setting last as it may want to override some of the above
+    // this should be used sparingly ...
+    RenderableEffect* eff = GetEffectManager().GetEffect(effect);
+    if (eff != nullptr) {
+        eff->SetDefaultParameters();
     }
 }
 

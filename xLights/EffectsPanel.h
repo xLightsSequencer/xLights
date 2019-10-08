@@ -25,7 +25,7 @@ public:
     EffectsPanel(wxWindow *parent, EffectManager *effects);
     virtual ~EffectsPanel();
 
-    void SetDefaultEffectValues(Model *cls, AudioManager* audio, const wxString &name);
+    void SetDefaultEffectValues(const wxString &name);
     void SetEffectPanelStatus(Model *cls, const wxString &name);
     void SetSequenceElements(SequenceElements *els);
     void SetEffectType(int effectId);

@@ -13,6 +13,7 @@
 #include "TimeLine.h"
 #include "../UtilFunctions.h"
 #include "../xLightsVersion.h"
+#include "../EffectsPanel.h"
 
 #include <log4cpp/Category.hh>
 
@@ -473,6 +474,10 @@ bool MainSequencer::HandleSequencerKeyBinding(wxKeyEvent& event)
             }
             else if (type == "EFFECT")
             {
+                if (binding->GetEffectName() != mSequenceElements->GetXLightsFrame()->GetEffectsPanel()->EffectChoicebook->GetChoiceCtrl()->GetStringSelection())
+                {
+                    mSequenceElements->GetXLightsFrame()->ResetPanelDefaultSettings(binding->GetEffectName(), nullptr, true);
+                }
                 PanelEffectGrid->Paste(binding->GetEffectName() + "\t" + binding->GetEffectString() + _("\t\n"), binding->GetEffectDataVersion());
             }
             else if (type == "APPLYSETTING")

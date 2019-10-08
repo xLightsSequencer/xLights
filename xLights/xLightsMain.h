@@ -1494,6 +1494,8 @@ public:
     ModelPreview* GetHousePreview() const;
     void RenderLayout();
     ViewsModelsPanel* GetDisplayElementsPanel() const { return displayElementsPanel; }
+    EffectsPanel* GetEffectsPanel() const { return EffectsPanel1; }
+    void ResetPanelDefaultSettings(const std::string& effect, const Model* model, bool optionbased);
 
     void UnselectEffect();
 
