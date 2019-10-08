@@ -661,6 +661,12 @@ ModelPreview::ModelPreview(wxPanel* parent, xLightsFrame* xlights_, bool a, int 
     SetBackgroundStyle(wxBG_STYLE_CUSTOM);
     setupCameras();
     
+    _cameraView_latched_x = camera3d->GetAngleX();
+    _cameraView_latched_y = camera3d->GetAngleY();
+
+    _cameraPos_latched_x = camera3d->GetPosX();
+    _cameraPos_latched_y = camera3d->GetPosY();
+
     if (!allowSelected) {
         EnableTouchEvents(wxTOUCH_ZOOM_GESTURE);
         Connect(wxEVT_GESTURE_ZOOM, (wxObjectEventFunction)&ModelPreview::OnZoomGesture, nullptr, this);
@@ -680,6 +686,12 @@ ModelPreview::ModelPreview(wxPanel* parent, xLightsFrame *xl)
     SetBackgroundStyle(wxBG_STYLE_CUSTOM);
     setupCameras();
     
+    _cameraView_latched_x = camera3d->GetAngleX();
+    _cameraView_latched_y = camera3d->GetAngleY();
+
+    _cameraPos_latched_x = camera3d->GetPosX();
+    _cameraPos_latched_y = camera3d->GetPosY();
+
     EnableTouchEvents(wxTOUCH_ZOOM_GESTURE);
     Connect(wxEVT_GESTURE_ZOOM, (wxObjectEventFunction)&ModelPreview::OnZoomGesture, nullptr, this);
     
@@ -875,58 +887,48 @@ void ModelPreview::SetActive(bool show) {
 
 void ModelPreview::SetCameraView(int camerax, int cameray, bool latch, bool reset)
 {
-	static int last_offsetx = 0;
-	static int last_offsety = 0;
-	static int latched_x = camera3d->GetAngleX();
-	static int latched_y = camera3d->GetAngleY();
-
 	if( reset ) {
-        last_offsetx = 0;
-        last_offsety = 0;
-        latched_x = camera3d->GetAngleX();
-        latched_y = camera3d->GetAngleY();
+        _cameraView_last_offsetx = 0;
+        _cameraView_last_offsety = 0;
+        _cameraView_latched_x = camera3d->GetAngleX();
+        _cameraView_latched_y = camera3d->GetAngleY();
 	} else {
         if (latch) {
-            camera3d->SetAngleX(latched_x + last_offsetx);
-            camera3d->SetAngleY(latched_y + last_offsety);
-            latched_x = camera3d->GetAngleX();
-            latched_y = camera3d->GetAngleY();
-            last_offsetx = 0;
-            last_offsety = 0;
+            camera3d->SetAngleX(_cameraView_latched_x + _cameraView_last_offsetx);
+            camera3d->SetAngleY(_cameraView_latched_y + _cameraView_last_offsety);
+            _cameraView_latched_x = camera3d->GetAngleX();
+            _cameraView_latched_y = camera3d->GetAngleY();
+            _cameraView_last_offsetx = 0;
+            _cameraView_last_offsety = 0;
         }
         else {
-            camera3d->SetAngleX(latched_x + cameray / 2);
-            camera3d->SetAngleY(latched_y + camerax / 2);
-            last_offsetx = cameray / 2;
-            last_offsety = camerax / 2;
+            camera3d->SetAngleX(_cameraView_latched_x + cameray / 2);
+            camera3d->SetAngleY(_cameraView_latched_y + camerax / 2);
+            _cameraView_last_offsetx = cameray / 2;
+            _cameraView_last_offsety = camerax / 2;
         }
 	}
 }
 
 void ModelPreview::SetCameraPos(int camerax, int cameraz, bool latch, bool reset)
 {
-	static int last_offsetx = 0;
-	static int last_offsety = 0;
-	static int latched_x = camera3d->GetPosX();
-	static int latched_y = camera3d->GetPosY();
-
 	if( reset ) {
-        last_offsetx = 0;
-        last_offsety = 0;
-        latched_x = camera3d->GetPosX();
-        latched_y = camera3d->GetPosY();
+        _cameraPos_last_offsetx = 0;
+        _cameraPos_last_offsety = 0;
+        _cameraPos_latched_x = camera3d->GetPosX();
+        _cameraPos_latched_y = camera3d->GetPosY();
 	} else {
         if (latch) {
-            camera3d->SetPosX(latched_x + last_offsetx);
-            camera3d->SetPosY(latched_y + last_offsety);
-            latched_x = camera3d->GetPosX();
-            latched_y = camera3d->GetPosY();
+            camera3d->SetPosX(_cameraPos_latched_x + _cameraPos_last_offsetx);
+            camera3d->SetPosY(_cameraPos_latched_y + _cameraPos_last_offsety);
+            _cameraPos_latched_x = camera3d->GetPosX();
+            _cameraPos_latched_y = camera3d->GetPosY();
         }
         else {
-            camera3d->SetPosX(latched_x + camerax);
-            camera3d->SetPosY(latched_y + cameraz);
-            last_offsetx = camerax;
-            last_offsety = cameraz;
+            camera3d->SetPosX(_cameraPos_latched_x + camerax);
+            camera3d->SetPosY(_cameraPos_latched_y + cameraz);
+            _cameraPos_last_offsetx = camerax;
+            _cameraPos_last_offsety = cameraz;
         }
 	}
 }

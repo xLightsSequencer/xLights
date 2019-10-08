@@ -24,6 +24,15 @@ class xlVertex3Accumulator;
 
 class ModelPreview : public xlGLCanvas
 {
+    int _cameraView_last_offsetx = 0;
+    int _cameraView_last_offsety = 0;
+    int _cameraView_latched_x = 0;
+    int _cameraView_latched_y = 0;
+
+    int _cameraPos_last_offsetx = 0;
+    int _cameraPos_last_offsety = 0;
+    int _cameraPos_latched_x = 0;
+    int _cameraPos_latched_y = 0;
 
 public:
     ModelPreview(wxPanel* parent, xLightsFrame* xlights = nullptr);
