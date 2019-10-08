@@ -106,17 +106,12 @@ void ModelPreview::mouseMoved(wxMouseEvent& event) {
 		int delta_y = event.GetPosition().y - m_last_mouse_y;
 		SetCameraView(delta_x, delta_y, false);
         if (xlights != nullptr) {
-            if (xlights->GetPlayStatus() == PLAY_TYPE_STOPPED || xlights->GetPlayStatus() == PLAY_TYPE_MODEL_PAUSED || xlights->GetPlayStatus() == PLAY_TYPE_EFFECT_PAUSED) {
+            if (xlights->GetPlayStatus() == PLAY_TYPE_STOPPED || xlights->GetPlayStatus() == PLAY_TYPE_MODEL_PAUSED || xlights->GetPlayStatus() == PLAY_TYPE_EFFECT_PAUSED || currentModel != "&---none---&") {
                 Refresh();
                 Update();
                 if (xlights->GetPlayStatus() == PLAY_TYPE_MODEL_PAUSED || xlights->GetPlayStatus() == PLAY_TYPE_EFFECT_PAUSED) {
                     Render(&xlights->SeqData[xlights->GetCurrentPlayTime() / xlights->SeqData.FrameTime()][0]);
                 }
-            }
-            else
-            {
-                Refresh();
-                Update();
             }
         }
     } else if (m_wheel_down) {
