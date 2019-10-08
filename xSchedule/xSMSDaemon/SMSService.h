@@ -186,11 +186,11 @@ class SMSService
                 SendSMS(msg._from, successMessage);
             }
         }
-        bool Moderate(const wxString& msg, bool moderate)
+        bool Moderate(int id, bool moderate)
         {
             for (auto& it : _messages)
             {
-                if (it.GetUIMessage().StartsWith(msg))
+                if (it == id)
                 {
                     if (it.IsModeratedOk() != moderate)
                     {
@@ -202,11 +202,11 @@ class SMSService
             }
             return false;
         }
-        bool IsDisplayed(const wxString& msg)
+        bool IsDisplayed(int id)
         {
             for (auto& it : _messages)
             {
-                if (it.GetUIMessage() == msg)
+                if (it == id)
                 {
                     return it._displayed;
                 }

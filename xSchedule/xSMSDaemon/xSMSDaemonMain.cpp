@@ -302,6 +302,7 @@ bool xSMSDaemonFrame::Action(const std::string& command, const std::wstring& par
                     {
                         response += _("\",\"moderatedok\":\"false");
                     }
+                    response += _("\",\"id\":\"") + wxString::Format("%d", it.GetId());
                 }
                 else
                 {
@@ -338,12 +339,12 @@ bool xSMSDaemonFrame::Action(const std::string& command, const std::wstring& par
             else
             {
                 bool v = data[0] == 'y';
-                wxString m = data.substr(2);
+                int id = wxAtoi(data.substr(2));
 
-                if (_smsService->Moderate(m, v))
+                if (_smsService->Moderate(id, v))
                 {
                     // we we de-moderated a message which is currently displayed ... immediately hide it
-                    if (!v && _smsService->IsDisplayed(m))
+                    if (!v && _smsService->IsDisplayed(id))
                     {
                         Stop();
                         Start();
@@ -786,6 +787,7 @@ void xSMSDaemonFrame::OnMenuItem_InsertTestMessagesSelected(wxCommandEvent& even
 void xSMSDaemonFrame::RefreshList()
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    _rowIds.empty();
     if (_smsService != nullptr)
     {
         auto msgs = _smsService->GetMessages();
@@ -804,6 +806,7 @@ void xSMSDaemonFrame::RefreshList()
                 Grid1->AppendRows(1);
                 _suppressGridUpdate = false;;
                 int row = Grid1->GetNumberRows() - 1;
+                _rowIds.push_back(it.GetId());
                 Grid1->SetCellValue(row, 0, it._timestamp.FromTimezone(wxDateTime::TZ::GMT0).FormatTime());
                 Grid1->SetReadOnly(row, 0);
                 Grid1->SetCellValue(row, 1, it.GetStatus());
@@ -900,10 +903,11 @@ void xSMSDaemonFrame::UpdateModeration()
     bool changed = false;
     for (size_t i = 0; i < Grid1->GetNumberRows(); ++i)
     {
-        bool c = _smsService->Moderate(Grid1->GetCellValue(i, 2), Grid1->GetCellValue(i, 3) == "1");
+        int id = _rowIds[i];
+        bool c = _smsService->Moderate(id, Grid1->GetCellValue(i, 3) == "1");
 
         // we we de-moderated a message which is currently displayed ... immediately hide it
-        if (c && Grid1->GetCellValue(i, 3) != "1" &&_smsService->IsDisplayed(Grid1->GetCellValue(i, 2)))
+        if (c && Grid1->GetCellValue(i, 3) != "1" &&_smsService->IsDisplayed(id))
         {
             Stop();
             Start();

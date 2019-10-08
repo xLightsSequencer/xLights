@@ -18,8 +18,10 @@ class SMSMessage
     static std::set<std::string> _phoneBlacklist;
     static std::set<std::string> _blacklist;
     static std::set<std::string> _whitelist;
-    
+    static int __nextId;
+
     public:
+    int _id;
     wxDateTime _timestamp;
 	std::string _rawMessage;
 	std::string _message;
@@ -29,6 +31,11 @@ class SMSMessage
     bool _displayed = false;
     bool _filtered = false;
     bool _moderatedOk = false;
+
+    SMSMessage()
+    {
+        _id = __nextId++;
+    }
 
     bool Censored() const
     {
@@ -91,10 +98,20 @@ class SMSMessage
         }
     }
 
+    int GetId() const
+    {
+        return _id;
+    }
+
     int GetAgeMins() const
     {
         wxTimeSpan age = wxDateTime::Now().MakeGMT() - _timestamp;
         return age.GetDays() * 24 * 60 + age.GetHours() * 60 + age.GetMinutes();
+    }
+
+    bool operator==(const int i) const
+    {
+        return _id == i;
     }
 
 	bool operator==(const SMSMessage& other) const

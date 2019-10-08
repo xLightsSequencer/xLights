@@ -96,11 +96,11 @@ function populateSMS(response){
 	{
 		if (response.messages[i].moderatedok == "true")
 		{
-			tr += '<td style="width: 20%;"><button id="mod'+i+'" class="btn-filled-red" onclick="AllowMessage(\''+response.messages[i].message+'\', false, '+i+')">Suppress</button></td>';
+			tr += '<td style="width: 20%;"><button id="mod'+i+'" class="btn-filled-red" onclick="AllowMessage(\''+response.messages[i].id+'\', false, '+i+')">Suppress</button></td>';
 		}
 		else
 		{
-			tr += '<td style="width: 20%;"><button id="mod'+i+'" class="btn-filled-green" onclick="AllowMessage(\''+response.messages[i].message+'\', true, '+i+')">Allow</button></td>';
+			tr += '<td style="width: 20%;"><button id="mod'+i+'" class="btn-filled-green" onclick="AllowMessage(\''+response.messages[i].id+'\', true, '+i+')">Allow</button></td>';
 		}
 	}
 	tr += "<td>" + response.messages[i].message + "</td>"  

@@ -50,7 +50,7 @@ class xSMSDaemonFrame : public wxFrame
     std::unique_ptr<SMSService> _smsService;
     p_xSchedule_Action _action;
     bool _suppressGridUpdate = false;
-
+    std::vector<int> _rowIds;
 
     void RefreshList();
     void ValidateWindow();
