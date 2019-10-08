@@ -188,6 +188,7 @@ class SMSService
         }
         bool Moderate(int id, bool moderate)
         {
+            static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
             for (auto& it : _messages)
             {
                 if (it == id)
@@ -195,6 +196,14 @@ class SMSService
                     if (it.IsModeratedOk() != moderate)
                     {
                         it.SetModeratedOk(moderate);
+                        if (it.IsFirstModeratedOk())
+                        {
+                            logger_base.info("Moderated Accepted Msg: %s", (const char*)it.GetLog().c_str());
+                            if (it._from != GetPhone())
+                            {
+                                SendSuccessMessage(it, _options.GetSuccessMessage());
+                            }
+                        }
                         return true;
                     }
                     return false;

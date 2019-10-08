@@ -31,6 +31,7 @@ class SMSMessage
     bool _displayed = false;
     bool _filtered = false;
     bool _moderatedOk = false;
+    int _moderatedOkCount = 0;
 
     SMSMessage()
     {
@@ -43,7 +44,15 @@ class SMSMessage
     }
 
     bool IsModeratedOk() const { return _moderatedOk; }
-    void SetModeratedOk(bool moderatedOk) { _moderatedOk = moderatedOk; }
+    void SetModeratedOk(bool moderatedOk) 
+    { 
+        _moderatedOk = moderatedOk; 
+        if (_moderatedOk)
+        {
+            _moderatedOkCount++;
+        }
+    }
+    int IsFirstModeratedOk() const { return _moderatedOkCount == 1 && _moderatedOk; }
     void Censor(bool reject)
     {
         if (reject)
