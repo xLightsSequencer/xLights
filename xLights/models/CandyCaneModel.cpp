@@ -370,7 +370,7 @@ void CandyCaneModel::SetCaneCoord() {
                 }
                 else
                 {
-                    auto node = FindNodeAtXY(i, y);
+                    auto node = FindNodeAtXY(i, y / parm3);
                     for (size_t c = 0; c < CoordCount; c++) {
                         if (node == -1)
                         {
@@ -426,7 +426,7 @@ void CandyCaneModel::SetCaneCoord() {
                 }
                 else
                 {
-                    auto node = FindNodeAtXY(i, y);
+                    auto node = FindNodeAtXY(i, y / parm3);
                     for (size_t c = 0; c < CoordCount; c++) {
                         if (node == -1)
                         {
@@ -477,7 +477,7 @@ void CandyCaneModel::SetCaneCoord() {
                 }
                 else
                 {
-                    auto node = FindNodeAtXY(i, curLight);
+                    auto node = FindNodeAtXY(i, curLight / parm3);
                     for (; c < CoordCount; c++)
                     {
                         // drawing left to right
