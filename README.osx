@@ -94,11 +94,20 @@ https://www.videolan.org/developers/x264.html
 make
 make install
 
-ffmpeg:   currently using 3.4.4 - needs x264 installed as above
+ffmpeg:   currently using 4.2.1 - needs x264 installed as above
 export MACOSX_DEPLOYMENT_TARGET=10.10
-./configure --disable-videotoolbox --disable-vda --disable-x86asm --disable-securetransport --enable-shared --extra-cflags="-mmacosx-version-min=10.10 -Dx264_bit_depth=8" --disable-indev=lavfi --enable-libx264 --enable-gpl --enable-opengl
+export CXXFLAGS="-stdlib=libc++ -std=c++1z"
+export OBJCXXFLAGS="-stdlib=libc++ -std=c++1z"
+export CPPFLAGS="-stdlib=libc++"
+export LDFLAGS="-stdlib=libc++"
+export CXX=clang++
+export CXXCPP="clang++ -E"
+export CC=clang
+export CPP="clang -E"
+export CFLAGS=""
+./configure  --disable-x86asm --disable-securetransport --enable-shared --extra-cflags="-mmacosx-version-min=10.10 -Dx264_bit_depth=8" --disable-indev=lavfi --enable-libx264 --enable-gpl --enable-opengl
 make
-cp ./libavcodec/libavcodec.57.dylib ./libswresample/libswresample.2.dylib ./libswscale/libswscale.4.dylib ./libavformat/libavformat.57.dylib ./libavutil/libavutil.55.dylib ~/working/xLights/lib/osx/
+cp ./libavcodec/libavcodec.58.dylib ./libswresample/libswresample.3.dylib ./libswscale/libswscale.5.dylib ./libavformat/libavformat.58.dylib ./libavutil/libavutil.56.dylib ~/working/xLights/lib/osx/
 
 
 portmidi:

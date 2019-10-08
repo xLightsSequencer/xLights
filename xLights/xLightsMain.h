@@ -594,6 +594,7 @@ public:
     void OnMenuItem_EmailAddressSelected(wxCommandEvent& event);
     void OnMenuItem_ValueCurvesSelected(wxCommandEvent& event);
     void OnMenuItem_ColourDropperSelected(wxCommandEvent& event);
+    void OnMenuItemHardwareVideoDecoderToggle(wxCommandEvent& event);
     //*)
     void OnCharHook(wxKeyEvent& event);
 private:
@@ -854,6 +855,7 @@ public:
     static const long ID_MENUITEM1;
     static const long ID_MENUITEM_RANDON;
     static const long ID_MNU_EMAIL;
+    static const long ID_MENU_HARDWARE_VIDEO_DECODE;
     static const long ID_MNU_MANUAL;
     static const long ID_MNU_ZOOM;
     static const long ID_MNU_KEYBINDINGS;
@@ -964,6 +966,7 @@ public:
     wxMenuItem* MenuItemGridIconBackgroundOn;
     wxMenuItem* MenuItemGridNodeValuesOff;
     wxMenuItem* MenuItemGridNodeValuesOn;
+    wxMenuItem* MenuItemHardwareDecoder;
     wxMenuItem* MenuItemLoadEditPerspective;
     wxMenuItem* MenuItemRenderCanvasMode;
     wxMenuItem* MenuItemRenderEraseMode;

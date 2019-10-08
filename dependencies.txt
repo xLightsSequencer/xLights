@@ -42,8 +42,8 @@ Library:     libavcodec/ffmpeg
 Usage:       Audio and Video processing
 Link:        https://www.ffmpeg.org/
 Source:      https://github.com/FFmpeg/FFmpeg
-Last Pulled: ?
-Version:     ?
+Last Pulled: Oct 10, 2019 - Windows binaries directly from ffmpeg.org
+Version:     4.2.1
 License:     LGPL
 Strategy:    Windows: Selected header files are included in the xLights repository along with precompiled libraries and DLLs.
 

@@ -7,6 +7,30 @@
 #include <algorithm>
 #include <wx/filename.h>
 
+
+extern "C" {
+#include <libavcodec/avcodec.h>
+}
+
+#ifdef __WXOSX__
+extern void InitVideoToolboxAcceleration();
+extern bool SetupVideoToolboxAcceleration(AVCodecContext *s, bool enabled);
+extern void CleanupVideoToolbox(AVCodecContext *s);
+extern void VideoToolboxScaleImage(AVCodecContext *codecContext, AVFrame *frame, AVFrame *dstFrame);
+extern bool IsVideoToolboxAcceleratedFrame(AVFrame *frame);
+#else
+extern void InitVideoToolboxAcceleration() {}
+static inline bool SetupVideoToolboxAcceleration(AVCodecContext *s, bool enabled) { return false; }
+static inline void CleanupVideoToolbox(AVCodecContext *s) {}
+static inline void VideoToolboxScaleImage(AVCodecContext *codecContext, AVFrame *frame, AVFrame *dstFrame) {}
+static inline bool IsVideoToolboxAcceleratedFrame(AVFrame *frame) { return false; }
+#endif
+
+bool VideoReader::HW_ACCELERATION_ENABLED = false;
+
+void VideoReader::InitHWAcceleration() {
+    InitVideoToolboxAcceleration();
+}
 VideoReader::VideoReader(const std::string& filename, int maxwidth, int maxheight, bool keepaspectratio, bool usenativeresolution/*false*/, bool wantAlpha)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -17,8 +41,11 @@ VideoReader::VideoReader(const std::string& filename, int maxwidth, int maxheigh
 	_codecContext = nullptr;
 	_videoStream = nullptr;
 	_dstFrame = nullptr;
+    _dstFrame2 = nullptr;
     _srcFrame = nullptr;
+    _curPos = -1000;
     _wantAlpha = wantAlpha;
+    _videoToolboxAccelerated = false;
     if (_wantAlpha)
     {
         _pixelFmt = AVPixelFormat::AV_PIX_FMT_RGBA;
@@ -35,38 +62,28 @@ VideoReader::VideoReader(const std::string& filename, int maxwidth, int maxheigh
 	av_register_all();
 
 	int res = avformat_open_input(&_formatContext, filename.c_str(), nullptr, nullptr);
-	if (res != 0)
-	{
+	if (res != 0) {
         logger_base.error("Error opening the file " + filename);
 		return;
 	}
 
-	if (avformat_find_stream_info(_formatContext, nullptr) < 0)
-	{
+	if (avformat_find_stream_info(_formatContext, nullptr) < 0) {
         logger_base.error("VideoReader: Error finding the stream info in " + filename);
 		return;
 	}
 
 	// Find the video stream
-    AVCodec* cdc;
-	_streamIndex = av_find_best_stream(_formatContext, AVMEDIA_TYPE_VIDEO, -1, -1, &cdc, 0);
-	if (_streamIndex < 0)
-	{
+	_streamIndex = av_find_best_stream(_formatContext, AVMEDIA_TYPE_VIDEO, -1, -1, nullptr, 0);
+	if (_streamIndex < 0) {
         logger_base.error("VideoReader: Could not find any video stream in " + filename);
 		return;
 	}
 
 	_videoStream = _formatContext->streams[_streamIndex];
     _videoStream->discard = AVDISCARD_NONE;
-	_codecContext = _videoStream->codec;
-
-    _codecContext->active_thread_type = FF_THREAD_FRAME;
-    _codecContext->thread_count = 1;
-	if (avcodec_open2(_codecContext, cdc, nullptr) != 0)
-	{
-        logger_base.error("VideoReader: Couldn't open the context with the decoder in " + filename);
-		return;
-	}
+    
+    reopenContext();
+    
 
 	// at this point it is open and ready
    if ( usenativeresolution )
@@ -166,12 +183,19 @@ VideoReader::VideoReader(const std::string& filename, int maxwidth, int maxheigh
 	_dstFrame->height = _height;
 	_dstFrame->linesize[0] = _width * GetPixelChannels();
 	_dstFrame->data[0] = (uint8_t *)av_malloc(_width * _height * GetPixelChannels() * sizeof(uint8_t));
+    _dstFrame->format = _pixelFmt;
+    _dstFrame2 = av_frame_alloc();
+    _dstFrame2->width = _width;
+    _dstFrame2->height = _height;
+    _dstFrame2->linesize[0] = _width * GetPixelChannels();
+    _dstFrame2->data[0] = (uint8_t *)av_malloc(_width * _height * GetPixelChannels() * sizeof(uint8_t));
+    _dstFrame2->format = _pixelFmt;
 
+    
     _srcFrame = av_frame_alloc();
-    _srcFrame->pkt_pts = 0;
 
-    _swsCtx = sws_getContext(_codecContext->width, _codecContext->height,
-                             _codecContext->pix_fmt, _width, _height, _pixelFmt, SWS_BICUBIC, nullptr,
+    _swsCtx = sws_getContext(_codecContext->width, _codecContext->height, _codecContext->pix_fmt,
+                             _width, _height, _pixelFmt, SWS_BICUBIC, nullptr,
                              nullptr, nullptr);
 
     av_init_packet(&_packet);
@@ -205,6 +229,47 @@ VideoReader::VideoReader(const std::string& filename, int maxwidth, int maxheigh
     }
 }
 
+void VideoReader::reopenContext() {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    if (_codecContext != nullptr) {
+        CleanupVideoToolbox(_codecContext);
+        avcodec_close(_codecContext);
+        _codecContext = nullptr;
+    }
+    AVCodec *dec = avcodec_find_decoder(_videoStream->codecpar->codec_id);
+    if (!dec) {
+        logger_base.error("VideoReader: Could not find video codec for %s", _filename.c_str());
+        return;
+    }
+    _codecContext = avcodec_alloc_context3(dec);
+    if (!_codecContext) {
+        logger_base.error("VideoReader: Failed to allocate codec context for %s", _filename.c_str());
+        return;
+    }
+    _codecContext->thread_safe_callbacks = 1;
+    _codecContext->thread_type = 0;
+    _codecContext->thread_count = 1;
+    _codecContext->skip_frame = AVDISCARD_NONE;
+    _codecContext->skip_loop_filter = AVDISCARD_NONE;
+    _codecContext->skip_idct = AVDISCARD_NONE;
+    
+    _videoToolboxAccelerated = SetupVideoToolboxAcceleration(_codecContext, HW_ACCELERATION_ENABLED);
+
+    // Copy codec parameters from input stream to output codec context
+    if (avcodec_parameters_to_context(_codecContext, _videoStream->codecpar) < 0) {
+        logger_base.error("VideoReader: Failed to copy %s codec parameters to decoder context", _filename.c_str());
+        return;
+    }
+    //  Init the decoders, with or without reference counting
+    AVDictionary *opts = NULL;
+    //av_dict_set(&opts, "refcounted_frames", "0", 0);
+    if (avcodec_open2(_codecContext, dec, &opts) < 0) {
+        logger_base.error("VideoReader: Couldn't open the context with the decoder in %s", _filename.c_str());
+        return;
+    }
+}
+
+
 static int64_t MStoDTS(int ms, double dtspersec)
 {
     return (int64_t)(((double)ms * dtspersec) / 1000.0);
@@ -223,7 +288,7 @@ static int DTStoMS(int64_t dts , double dtspersec)
 
 int VideoReader::GetPos()
 {
-    return DTStoMS(_srcFrame->pkt_dts, _dtspersec);
+    return _curPos;
 }
 
 bool VideoReader::IsVideoFile(const std::string& filename)
@@ -323,17 +388,23 @@ VideoReader::~VideoReader()
         av_free(_srcFrame);
         _srcFrame = nullptr;
     }
-	if (_dstFrame != nullptr)
-	{
-		if (_dstFrame->data[0] != nullptr)
-		{
+	if (_dstFrame != nullptr) {
+		if (_dstFrame->data[0] != nullptr) {
 			av_free(_dstFrame->data[0]);
 		}
 		av_free(_dstFrame);
 		_dstFrame = nullptr;
 	}
+    if (_dstFrame2 != nullptr) {
+        if (_dstFrame2->data[0] != nullptr) {
+            av_free(_dstFrame2->data[0]);
+        }
+        av_free(_dstFrame2);
+        _dstFrame2 = nullptr;
+    }
 	if (_codecContext != nullptr)
 	{
+        CleanupVideoToolbox(_codecContext);
 		avcodec_close(_codecContext);
 		_codecContext = nullptr;
 	}
@@ -349,17 +420,19 @@ void VideoReader::Seek(int timestampMS)
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     
     // we have to be valid
-	if (_valid)
-	{
+	if (_valid) {
 #ifdef VIDEO_EXTRALOGGING
         logger_base.info("VideoReader: Seeking to %d ms.", timestampMS);
 #endif
-        if (timestampMS < _lengthMS)
-		{
+        if (_atEnd && _videoToolboxAccelerated) {
+            // once the end is reached, the hardware decoder is done
+            // so we need to reopen it to be able continue decoding
+            reopenContext();
+        }
+        
+        if (timestampMS < _lengthMS) {
 			_atEnd = false;
-		}
-		else
-		{
+		} else {
 			// dont seek past the end of the file
 			_atEnd = true;
             avcodec_flush_buffers(_codecContext);
@@ -368,62 +441,50 @@ void VideoReader::Seek(int timestampMS)
 		}
 
         avcodec_flush_buffers(_codecContext);
-        int f = av_seek_frame(_formatContext, _streamIndex, MStoDTS(timestampMS, _dtspersec), AVSEEK_FLAG_BACKWARD);
-        if (f != 0)
-        {
-            logger_base.info("       VideoReader: Error seeking to %d.", timestampMS);
+        
+        if (timestampMS <= 0) {
+            int f = av_seek_frame(_formatContext, _streamIndex, 0, AVSEEK_FLAG_FRAME);
+            if (f != 0) {
+                logger_base.info("       VideoReader: Error seeking to %d.", timestampMS);
+            }
+        } else {
+            int f = av_seek_frame(_formatContext, _streamIndex, MStoDTS(timestampMS, _dtspersec), AVSEEK_FLAG_BACKWARD);
+            if (f != 0) {
+                logger_base.info("       VideoReader: Error seeking to %d.", timestampMS);
+            }
         }
 		
-        int currenttime = -999999;
-
-        AVPacket pkt2;
-        // Stop seeking 100ms before where we need ... that way we can read up to the frame we need
-        while (currenttime + (_frameMS / 2.0) < timestampMS - 100 && av_read_frame(_formatContext, &_packet) >= 0)
-		{
-
-			// Is this a packet from the video stream?
-			if (_packet.stream_index == _streamIndex)
-			{
-				// Decode video frame
-                pkt2 = _packet;
-                while (pkt2.size) {
-                    int frameFinished = 0;
-                    int ret = avcodec_decode_video2(_codecContext, _srcFrame, &frameFinished,
-                        &pkt2);
-
-                    // Did we get a video frame?
-                    if (frameFinished)
-                    {
-                        currenttime = GetPos();
-
-                        // only prepare the image if we are close to the desired frame
-                        if ((double)currenttime / (double)_frames >= ((double)timestampMS / (double)_frames) - 2.0)
-                        {
-#ifdef VIDEO_EXTRALOGGING
-                            logger_base.debug("    Seek video %s decoding frame %d.", (const char *)_filename.c_str(), currenttime);
-#endif
-
-                            sws_scale(_swsCtx, _srcFrame->data, _srcFrame->linesize, 0,
-                                _codecContext->height, _dstFrame->data,
-                                _dstFrame->linesize);
-                        }
-                    }
-                    if (ret >= 0) {
-                        ret = FFMIN(ret, pkt2.size); /* guard against bogus return values */
-                        pkt2.data += ret;
-                        pkt2.size -= ret;
-                    }
-                    else {
-                        pkt2.size = 0;
-                    }
-                }
-            }
-
-			// Free the packet that was allocated by av_read_frame
-			av_packet_unref(&_packet);
-		}
+        _curPos = -1000;
+        GetNextFrame(timestampMS, 0);
 	}
 }
+
+bool VideoReader::readFrame(int timestampMS) {
+    int rc = 0;
+    if ((rc = avcodec_receive_frame(_codecContext, _srcFrame)) == 0) {
+        _curPos = DTStoMS(_srcFrame->pts, _dtspersec);
+        //int curPosDTS = DTStoMS(_srcFrame->pkt_dts, _dtspersec);
+        //printf("    Pos: %d    DTS: %d    Repeat: %d      PTS: %lld\n", _curPos, curPosDTS, _srcFrame->repeat_pict, _srcFrame->pts);
+
+        if ((double)_curPos / (double)_frames >= ((double)timestampMS / (double)_frames) - 2.0) {
+    #ifdef VIDEO_EXTRALOGGING
+            logger_base.debug("    Decoding video frame %d.", _curPos);
+    #endif
+            if (_videoToolboxAccelerated && IsVideoToolboxAcceleratedFrame(_srcFrame)) {
+                VideoToolboxScaleImage(_codecContext, _srcFrame, _dstFrame2);
+            } else {
+                sws_scale(_swsCtx, _srcFrame->data, _srcFrame->linesize, 0,
+                          _codecContext->height, _dstFrame2->data,
+                          _dstFrame2->linesize);
+            }
+            std::swap(_dstFrame, _dstFrame2);
+        }
+        av_frame_unref(_srcFrame);
+        return true;
+    }
+    return false;
+}
+
 
 AVFrame* VideoReader::GetNextFrame(int timestampMS, int gracetime)
 {
@@ -446,8 +507,19 @@ AVFrame* VideoReader::GetNextFrame(int timestampMS, int gracetime)
     logger_base.debug("Video %s getting frame %d.", (const char *)_filename.c_str(), timestampMS);
 #endif
 
-    // If the caller is after an old frame we have to seek first
     int currenttime = GetPos();
+    int timeOfNextFrame = currenttime + _frameMS;
+    int timeOfPrevFrame = currenttime - _frameMS;
+    if (timestampMS >= currenttime && timestampMS < timeOfNextFrame) {
+        //same frame, just return
+        return _dstFrame;
+    }
+    if (timestampMS >= timeOfPrevFrame && timestampMS < currenttime) {
+        //prev frame, just return, avoids a seek
+        return _dstFrame2;
+    }
+    
+    // If the caller is after an old frame we have to seek first
     if (currenttime > timestampMS + gracetime)
     {
 #ifdef VIDEO_EXTRALOGGING
@@ -457,75 +529,56 @@ AVFrame* VideoReader::GetNextFrame(int timestampMS, int gracetime)
         currenttime = GetPos();
     }
 
-	if (timestampMS <= _lengthMS)
-	{
-		AVPacket pkt2;
-
+	if (timestampMS <= _lengthMS) {
         bool firstframe = false;
-        if (currenttime == 0 && timestampMS == 0)
-        {
+        if (currenttime <= 0 && timestampMS == 0) {
             firstframe = true;
         }
 
-		while ((firstframe || currenttime + (_frameMS / 2.0) < timestampMS) && 
-               (av_read_frame(_formatContext, &_packet)) >= 0 &&  
-               currenttime <= _lengthMS)
-		{
+		while ((firstframe || ((currenttime + (_frameMS / 2.0)) < timestampMS)) &&
+               currenttime <= _lengthMS &&
+               (av_read_frame(_formatContext, &_packet)) == 0) {
             // Is this a packet from the video stream?
-			if (_packet.stream_index == _streamIndex)
-			{
+			if (_packet.stream_index == _streamIndex) {
 				// Decode video frame
-                pkt2 = _packet;
-                while (pkt2.size) {
-                    int frameFinished = 0;
-                    int ret = avcodec_decode_video2(_codecContext, _srcFrame, &frameFinished,
-                                                &pkt2);
-
-                    // Did we get a video frame?
-                    if (frameFinished)
-                    {
+                int tryCount = 0;
+                while (avcodec_send_packet(_codecContext, &_packet) && tryCount < 5) {
+                    tryCount++;
+                    if (readFrame(timestampMS)) {
                         firstframe = false;
-                        currenttime = GetPos();
-                        // only prepare the image if we are close to the desired frame
-                        if ((double)currenttime / (double)_frames >= ((double)timestampMS / (double)_frames) - 2.0)
-                        {
-#ifdef VIDEO_EXTRALOGGING
-                            logger_base.debug("    Decoding video frame %d.", currenttime);
-#endif
-
-                            sws_scale(_swsCtx, _srcFrame->data, _srcFrame->linesize, 0,
-                                _codecContext->height, _dstFrame->data,
-                                _dstFrame->linesize);
-                        }
-                    }
-
-                    if (ret >= 0) {
-                        ret = FFMIN(ret, pkt2.size); /* guard against bogus return values */
-                        pkt2.data += ret;
-                        pkt2.size -= ret;
-                    } else {
-                        pkt2.size = 0;
+                        currenttime = _curPos;
                     }
                 }
+                if (tryCount >= 5) {
+                    //errors decoding....  need to reset and reseek
+                    _atEnd = true;
+                    Seek(timestampMS - _frameMS);
+                }
 			}
-
 			// Free the packet that was allocated by av_read_frame
 			av_packet_unref(&_packet);
 		}
-	}
-	else
-	{
+    } else {
 		_atEnd = true;
 		return nullptr;
 	}
 
-	if (_dstFrame->data[0] == nullptr || currenttime > _lengthMS)
-	{
+	if (_dstFrame->data[0] == nullptr || currenttime > _lengthMS) {
 		_atEnd = true;
 		return nullptr;
-	}
-	else
-	{
+	} else {
+        int currenttime = GetPos();
+        int timeOfNextFrame = currenttime + _frameMS;
+        int timeOfPrevFrame = currenttime - _frameMS;
+        if (timestampMS >= currenttime && timestampMS < timeOfNextFrame) {
+            //same frame, just return
+            return _dstFrame;
+        }
+        if (timestampMS >= timeOfPrevFrame && timestampMS < currenttime) {
+            //prev frame, just return, avoids a seek
+            return _dstFrame2;
+        }
+
 		return _dstFrame;
 	}
 }

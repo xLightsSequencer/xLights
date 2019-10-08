@@ -56,8 +56,6 @@ int ValueCurvesPanel::ProcessPresetDir(wxDir& directory, bool subdirs)
             vc.LoadXVC(fn);
             if (vc.IsOk())
             {
-                long id = wxNewId();
-
                 wxString iid = wxString::Format("ID_BITMAPBUTTON_%d", (int)GridSizer1->GetItemCount());
                 DragValueCurveBitmapButton* bmb = new DragValueCurveBitmapButton(ScrolledWindow1, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(30, 30),
                     wxBU_AUTODRAW | wxNO_BORDER, wxDefaultValidator, iid);

@@ -1795,6 +1795,12 @@
 					<label>eMail Address</label>
 					<handler function="OnMenuItem_EmailAddressSelected" entry="EVT_MENU" />
 				</object>
+				<object class="wxMenuItem" name="ID_MENU_HARDWARE_VIDEO_DECODE" variable="MenuItemHardwareDecoder" member="yes">
+					<label>Hardware Video Decoder</label>
+					<help>Use Hardware Video Decoder if available</help>
+					<handler function="OnMenuItemHardwareVideoDecoderToggle" entry="EVT_MENU" />
+					<checkable>1</checkable>
+				</object>
 			</object>
 			<object class="wxMenu" variable="MenuHelp" member="no">
 				<label>&amp;Help</label>

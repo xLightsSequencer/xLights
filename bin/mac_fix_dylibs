@@ -56,8 +56,8 @@ fi
 fi
 
 
-if [ -f "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/Frameworks/libavutil.55.dylib" ]; then
-    LIBS="libswresample.2 libavutil.55 libavformat.57 libavcodec.57 libswscale.4"
+if [ -f "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/Frameworks/libavutil.56.dylib" ]; then
+    LIBS="libswresample.3 libavutil.56 libavformat.58 libavcodec.58 libswscale.5"
     for LS in $LIBS
     do
         for LT in $LIBS
@@ -78,10 +78,6 @@ done
 
 
 if [ -z "${CODE_SIGN_IDENTITY}" ] ; then
-    exit 0
-fi
-
-if [ "${CODE_SIGN_IDENTITY}" == "-" ]; then
     exit 0
 fi
 

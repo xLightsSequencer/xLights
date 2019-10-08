@@ -89,11 +89,11 @@ Source: "bin64\libwinpthread-1.dll"; DestDir: "{app}";  Flags: "ignoreversion"
 Source: "bin64/liblog4cpp.dll"; DestDir: "{app}";  Flags: "ignoreversion"
 
 ; avlib - video and audio
-Source: "bin64/avcodec-57.dll"; DestDir: "{app}";  Flags: "ignoreversion"
-Source: "bin64/avformat-57.dll"; DestDir: "{app}";  Flags: "ignoreversion"
-Source: "bin64/avutil-55.dll"; DestDir: "{app}";  Flags: "ignoreversion"
-Source: "bin64/swresample-2.dll"; DestDir: "{app}";  Flags: "ignoreversion"
-Source: "bin64/swscale-4.dll"; DestDir: "{app}";  Flags: "ignoreversion"
+Source: "bin64/avcodec-58.dll"; DestDir: "{app}";  Flags: "ignoreversion"
+Source: "bin64/avformat-58.dll"; DestDir: "{app}";  Flags: "ignoreversion"
+Source: "bin64/avutil-56.dll"; DestDir: "{app}";  Flags: "ignoreversion"
+Source: "bin64/swresample-3.dll"; DestDir: "{app}";  Flags: "ignoreversion"
+Source: "bin64/swscale-5.dll"; DestDir: "{app}";  Flags: "ignoreversion"
 
 ; SDL - audio playing
 Source: "bin64/SDL2.dll"; DestDir: "{app}";  Flags: "ignoreversion"

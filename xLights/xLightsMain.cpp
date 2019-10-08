@@ -370,6 +370,7 @@ const long xLightsFrame::ID_MENUITEM22 = wxNewId();
 const long xLightsFrame::ID_MENUITEM1 = wxNewId();
 const long xLightsFrame::ID_MENUITEM_RANDON = wxNewId();
 const long xLightsFrame::ID_MNU_EMAIL = wxNewId();
+const long xLightsFrame::ID_MENU_HARDWARE_VIDEO_DECODE = wxNewId();
 const long xLightsFrame::ID_MNU_MANUAL = wxNewId();
 const long xLightsFrame::ID_MNU_ZOOM = wxNewId();
 const long xLightsFrame::ID_MNU_KEYBINDINGS = wxNewId();
@@ -1216,6 +1217,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     MenuSettings->Append(MenuItem_Random_Set);
     MenuItem_EmailAddress = new wxMenuItem(MenuSettings, ID_MNU_EMAIL, _("eMail Address"), wxEmptyString, wxITEM_NORMAL);
     MenuSettings->Append(MenuItem_EmailAddress);
+    MenuItemHardwareDecoder = new wxMenuItem(MenuSettings, ID_MENU_HARDWARE_VIDEO_DECODE, _("Hardware Video Decoder"), _("Use Hardware Video Decoder if available"), wxITEM_CHECK);
+    MenuSettings->Append(MenuItemHardwareDecoder);
     MenuBar->Append(MenuSettings, _("&Settings"));
     MenuHelp = new wxMenu();
     MenuItem_UserManual = new wxMenuItem(MenuHelp, ID_MNU_MANUAL, _("User Manual"), wxEmptyString, wxITEM_NORMAL);
@@ -1472,6 +1475,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     Connect(ID_MENUITEM22,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemFSEQV2Selected);
     Connect(ID_MENUITEM_RANDON,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_Random_SetSelected);
     Connect(ID_MNU_EMAIL,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_EmailAddressSelected);
+    Connect(ID_MENU_HARDWARE_VIDEO_DECODE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemHardwareVideoDecoderToggle);
     Connect(ID_MNU_MANUAL,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_UserManualSelected);
     Connect(ID_MNU_ZOOM,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_ZoomSelected);
     Connect(ID_MNU_KEYBINDINGS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_ShowKeyBindingsSelected);
@@ -2257,10 +2261,19 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     }
 
     SetAudioControls();
+    
+    config->Read(_("xLightsVideoReaderAccelerated"), &VideoReader::HW_ACCELERATION_ENABLED, true);
+    MenuItemHardwareDecoder->Check(VideoReader::HW_ACCELERATION_ENABLED);
+
 
 #ifdef __WXOSX_MAC__
     // we remove this on OSX because xSchedule is not simple to locate ... at least I dont know how to do it
     MenuItem_xSchedule->GetMenu()->Remove(MenuItem_xSchedule->GetId());
+    
+    VideoReader::InitHWAcceleration();
+#else
+    // at this point, only OSX supports hardware accelerated video decoding, remove the option on other platforms
+    MenuSettings->Remove(MenuItemHardwareDecoder->GetId());
 #endif
 
     DrawingContext::Initialize(this);
@@ -10469,3 +10482,11 @@ void xLightsFrame::OnMenuItem_ColourDropperSelected(wxCommandEvent& event)
     }
     m_mgr->Update();
 }
+
+void xLightsFrame::OnMenuItemHardwareVideoDecoderToggle(wxCommandEvent& event)
+{
+    VideoReader::HW_ACCELERATION_ENABLED = !VideoReader::HW_ACCELERATION_ENABLED;
+    wxConfigBase* config = wxConfigBase::Get();
+    config->Write("xLightsVideoReaderAccelerated", VideoReader::HW_ACCELERATION_ENABLED);
+}
+

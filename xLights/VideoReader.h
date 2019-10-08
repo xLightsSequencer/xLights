@@ -28,7 +28,13 @@ public:
     std::string GetFilename() const { return _filename; }
     int GetPixelChannels() const { return _wantAlpha ? 4 : 3; }
 
+    
+    static bool HW_ACCELERATION_ENABLED;
+    static void InitHWAcceleration();
 private:
+    bool readFrame(int timestampMS);
+    void reopenContext();
+    
 	bool _valid;
     double _lengthMS;
     double _dtspersec;
@@ -42,11 +48,14 @@ private:
 	int _width;
 	int _height;
 	AVFrame* _dstFrame; // the last frame
-    AVFrame* _srcFrame;
+    AVFrame* _dstFrame2; // the second to the last frame
+    AVFrame* _srcFrame; // the src frame
+    int _curPos;
     SwsContext *_swsCtx;
     AVPacket _packet;
 	AVPixelFormat _pixelFmt;
 	bool _atEnd;
     std::string _filename;
+    bool _videoToolboxAccelerated; 
 };
 #endif // VIDEOREADER_H

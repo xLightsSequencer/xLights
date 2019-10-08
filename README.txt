@@ -11,6 +11,10 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (dkulp)  Optional support to use VideoToolbox API's on OSX to use
+                   hardware video decoders for Video effect.  Can be enabled/disabled
+                   on the Settings menu
+   -- enh (dkulp)  Upgrade to ffmpeg 4.2.1
 2019.56 October 9 2019
    -- enh (scott)  Added Folder/Filter Selection to the FPP Connect Dialog.
    -- enh (keith)  Add the ability to manually moderate SMS messages

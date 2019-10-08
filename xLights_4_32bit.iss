@@ -82,11 +82,11 @@ Source: "C:\Program Files (x86)\mingw-w64\i686-7.2.0-posix-dwarf-rt_v5-rev1\ming
 Source: "bin/liblog4cpp.dll"; DestDir: "{app}";  Flags: "ignoreversion"
 
 ; avlib - video and audio
-Source: "bin/avcodec-57.dll"; DestDir: "{app}";  Flags: "ignoreversion"
-Source: "bin/avformat-57.dll"; DestDir: "{app}";  Flags: "ignoreversion"
-Source: "bin/avutil-55.dll"; DestDir: "{app}";  Flags: "ignoreversion"
-Source: "bin/swresample-2.dll"; DestDir: "{app}";  Flags: "ignoreversion"
-Source: "bin/swscale-4.dll"; DestDir: "{app}";  Flags: "ignoreversion"
+Source: "bin/avcodec-58.dll"; DestDir: "{app}";  Flags: "ignoreversion"
+Source: "bin/avformat-58.dll"; DestDir: "{app}";  Flags: "ignoreversion"
+Source: "bin/avutil-56.dll"; DestDir: "{app}";  Flags: "ignoreversion"
+Source: "bin/swresample-3.dll"; DestDir: "{app}";  Flags: "ignoreversion"
+Source: "bin/swscale-5.dll"; DestDir: "{app}";  Flags: "ignoreversion"
 
 ; SDL - audio playing
 Source: "bin/SDL2.dll"; DestDir: "{app}";  Flags: "ignoreversion"
