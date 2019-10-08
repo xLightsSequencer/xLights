@@ -1094,7 +1094,7 @@ void LayoutPanel::refreshModelList() {
                 wxString startStr = model->GetStartChannelInDisplayFormat(xlights->GetOutputManager());
                 if (cv != startStr) {
                     data->startingChannel = model->GetNumberFromChannelString(model->ModelStartChannel);
-                    if ((model->CouldComputeStartChannel || model->GetDisplayAs() == "SubModel") && model->IsValidStartChannelString())
+                    if (model->GetDisplayAs() == "SubModel" || (model->CouldComputeStartChannel && model->IsValidStartChannelString()))
                     {
                         TreeListViewModels->SetItemText(item, Col_StartChan, startStr);
                     }
