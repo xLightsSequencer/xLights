@@ -203,6 +203,7 @@ class SMSMessage
 
     bool PassesBlacklist() const
     {
+        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         LoadBlackList();
 
         wxStringTokenizer tkz(_rawMessage, wxT(" ,;:.)([]\\/<>-_*&^%$#~`\"?"));
@@ -211,6 +212,7 @@ class SMSMessage
             wxString token = tkz.GetNextToken().Lower();
             if (_blacklist.find(token.ToStdString()) != _blacklist.end())
             {
+                logger_base.debug("Blacklist failed on '%s'", (const char*)token.c_str());
                 return false;
             }
         }
@@ -219,13 +221,20 @@ class SMSMessage
 
     bool PassesPhoneBlacklist() const
     {
+        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         LoadPhoneBlackList();
 
-        return _phoneBlacklist.find(_from) == _phoneBlacklist.end();
+        if (_phoneBlacklist.find(_from) == _phoneBlacklist.end())
+        {
+            return true;
+        }
+        logger_base.debug("Phone blacklist failed on '%s'", (const char*)_from.c_str());
+        return false;
     }
 
     bool PassesWhitelist() const
     {
+        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         LoadWhiteList();
 
         wxStringTokenizer tkz(_rawMessage, wxT(" ,;:.!|)([]\\/<>-_*&^%$#@~`\"?"));
@@ -234,6 +243,7 @@ class SMSMessage
             wxString token = tkz.GetNextToken().Lower();
             if (_whitelist.find(token.ToStdString()) == _whitelist.end())
             {
+                logger_base.debug("Whitelist failed on '%s'", (const char*)token.c_str());
                 return false;
             }
         }
