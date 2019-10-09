@@ -141,6 +141,38 @@ ZCPPOutput::ZCPPOutput(wxXmlNode* node, std::string showdir) : IPOutput(node)
     }
 }
 
+wxArrayString ZCPPOutput::GetVendors()
+{
+    wxArrayString res;
+    res.push_back("Falcon");
+    res.push_back("ESP Pixel Stick");
+    res.push_back("Unknown");
+    return res;
+}
+
+int ZCPPOutput::EncodeVendor(const std::string& vendor)
+{
+    if (vendor == "Falcon") return ZCPP_VENDOR_FALCON;
+    if (vendor == "FPP") return ZCPP_VENDOR_FPP;
+    if (vendor == "ESP Pixel Stick") return ZCPP_VENDOR_ESPIXELSTICK;
+    return ZCPP_VENDOR_UNKNOWN;
+}
+
+std::string ZCPPOutput::DecodeVendor(int vendor)
+{
+    switch (vendor)
+    {
+    case ZCPP_VENDOR_FALCON:
+        return "Falcon";
+    case ZCPP_VENDOR_FPP:
+        return "FPP";
+    case ZCPP_VENDOR_ESPIXELSTICK:
+        return "ESP Pixel Stick";
+    default:
+        return "Unknown";
+    }
+}
+
 ZCPPOutput::ZCPPOutput() : IPOutput()
 {
     _multicast = false;
@@ -150,7 +182,7 @@ ZCPPOutput::ZCPPOutput() : IPOutput()
     _usedChannels = 1;
     _universe = -1;
     _sequenceNum = 0;
-    _supportsVirtualStrings = false;
+    _supportsVirtualStrings = true;
     _supportsSmartRemotes = false;
     _datagram = nullptr;
     _vendor = -1;
@@ -447,8 +479,17 @@ wxXmlNode* ZCPPOutput::Save()
     node->AddAttribute("Vendor", wxString::Format("%d", _vendor));
     node->AddAttribute("Model", wxString::Format("%d", _model));
     node->AddAttribute("Priority", wxString::Format("%d", _priority));
-    if (_supportsVirtualStrings)node->AddAttribute("SupportsVirtualStrings", "TRUE");
-    if (_supportsSmartRemotes)node->AddAttribute("SupportsSmartRemotes", "TRUE");
+    if (_supportsVirtualStrings) { 
+        node->AddAttribute("SupportsVirtualStrings", "TRUE"); 
+    } else { 
+        node->AddAttribute("SupportsVirtualStrings", "FALSE"); 
+    }
+    if (_supportsSmartRemotes) {
+        node->AddAttribute("SupportsSmartRemotes", "TRUE");
+    }
+    else {
+        node->AddAttribute("SupportsSmartRemotes", "FALSE");
+    }
     if (_dontConfigure)node->AddAttribute("DontConfigure", "TRUE");
     if (_multicast)node->AddAttribute("Multicast", "TRUE");
     node->AddAttribute("Protocols", SerialiseProtocols());

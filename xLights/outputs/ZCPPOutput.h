@@ -50,6 +50,9 @@ public:
     static std::string DecodeProtocol(int protocol);
     static int EncodeProtocol(const std::string& protocol);
     static int EncodeColourOrder(const std::string& colourOrder);
+    static wxArrayString GetVendors();
+    static int EncodeVendor(const std::string& vendor);
+    static std::string DecodeVendor(int vendor);
     #pragma endregion Static Functions
 
     #pragma region Getters and Setters
