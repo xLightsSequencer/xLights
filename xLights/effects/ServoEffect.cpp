@@ -38,7 +38,7 @@ void ServoEffect::SetDefaultParameters() {
 void ServoEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
     double eff_pos = buffer.GetEffectTimeIntervalPosition();
     std::string sel_chan = SettingsMap["CHOICE_Channel"];
-    float position = GetValueCurveDouble("Servo", 0, SettingsMap, eff_pos, SERVO_MIN, SERVO_MAX, SERVO_DIVISOR, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    float position = GetValueCurveDouble("Servo", 0, SettingsMap, eff_pos, SERVO_MIN, SERVO_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), SERVO_DIVISOR);
     bool is_16bit = SettingsMap.GetBool("CHECKBOX_16bit");
 
     if (buffer.cur_model == "") {
