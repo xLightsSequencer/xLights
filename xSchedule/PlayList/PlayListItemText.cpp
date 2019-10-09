@@ -276,7 +276,13 @@ std::string PlayListItemText::GetTooltip(const std::string& type)
 wxString PlayListItemText::GetText(size_t ms)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    
+
+    // if the text value starts with a backspace the drop the backspace and just return the string ignoring any formatting
+    if (_text.size() > 0 && _text[0] == '\b')
+    {
+        return _text.substr(1);
+    }
+
     wxString working = wxString(_format);
 
     wxTimeSpan plicountdown = wxTimeSpan::Milliseconds(_durationMS - ms);

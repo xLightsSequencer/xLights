@@ -51,7 +51,7 @@ class SMSDaemonOptions
         void SetPhone(std::string phone) { if (phone != _phone) { _phone = phone; _changeCount++; } }
 		std::string GetSMSService() const { return _smsService; }
         void SetSMSService(std::string smsService) { if (smsService != _smsService) { _smsService = smsService; _changeCount++; } }
-		std::string GetDefaultMessage() const { return _defaultMessage; }
+		std::string GetDefaultMessage() const { return "\b" + _defaultMessage; }
         void SetDefaultMessage(std::string defaultMessage) { if (defaultMessage != _defaultMessage) { _defaultMessage = defaultMessage; _changeCount++; } }
 		wxString GetSuccessMessage() const { return _successMessage; }
         void SetSuccessMessage(wxString successMessage) { if (successMessage != _successMessage) { _successMessage = successMessage; _changeCount++; } }
