@@ -187,7 +187,10 @@ const std::vector<KeyBinding> DefaultBindings =
     KeyBinding(_("w"), false, _("Color Wash"), _(""), xlights_version_string),
     KeyBinding(_("n"), false, _("Snowflakes"), _(""), xlights_version_string),
     KeyBinding(_("O"), false, _("Off"), _(""), xlights_version_string, false, false, true),
-    KeyBinding(_("F"), false, _("Fan"), _(""), xlights_version_string, false, false, true)
+    KeyBinding(_("F"), false, _("Fan"), _(""), xlights_version_string, false, false, true),
+    KeyBinding(false, _("U"),_("T_TEXTCTRL_Fadein=1.00"), xlights_version_string, false, false, true),
+    KeyBinding(false, _("D"), _("T_TEXTCTRL_Fadeout=1.00"), xlights_version_string, false, false, true),
+
 };
 
 // These are the keys that were hard coded before 2018.28 and thus need to be inserted if they are not present
