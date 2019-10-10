@@ -42,8 +42,10 @@ bool VideoExporter::Export(const char *path)
 
     m_logger_base.debug("Video size %d,%d", width, height);
 
-	avcodec_register_all();
-	av_register_all();
+    #if LIBAVFORMAT_VERSION_MAJOR < 58
+    avcodec_register_all();
+    av_register_all();
+    #endif
 
 	AVOutputFormat* fmt = av_guess_format(nullptr, path, nullptr);
 	AVCodec *videoCodec = avcodec_find_encoder(fmt->video_codec);

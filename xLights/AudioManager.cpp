@@ -1049,7 +1049,9 @@ size_t AudioManager::GetAudioFileLength(std::string filename)
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     AVFormatContext* formatContext = nullptr;
 
+    #if LIBAVFORMAT_VERSION_MAJOR < 58
     av_register_all();
+    #endif
 
     int res = avformat_open_input(&formatContext, filename.c_str(), nullptr, nullptr);
     if (res != 0)
@@ -2065,7 +2067,9 @@ int AudioManager::OpenMediaFile()
 	}
 
 	// Initialize FFmpeg codecs
-	av_register_all();
+    #if LIBAVFORMAT_VERSION_MAJOR < 58
+    av_register_all();
+    #endif
 
 	AVFormatContext* formatContext = nullptr;
 	int res = avformat_open_input(&formatContext, _audio_file.c_str(), nullptr, nullptr);
@@ -3107,8 +3111,10 @@ bool AudioManager::CreateAudioFile(const std::vector<float>& left, const std::ve
         }
     };
 
+    #if LIBAVFORMAT_VERSION_MAJOR < 58
     avcodec_register_all();
     av_register_all();
+    #endif
 
     AVOutputFormat* fmt = av_guess_format(nullptr, targetFile.c_str(), nullptr);
     AVCodec *audioCodec = avcodec_find_encoder(fmt->audio_codec);

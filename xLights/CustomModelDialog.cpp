@@ -450,7 +450,7 @@ CustomModelDialog::~CustomModelDialog()
 
     wxConfigBase* config = wxConfigBase::Get();
     int sashPos = ((SplitterWindow1->GetSize().GetHeight() - SplitterWindow1->GetSashPosition()) * 100) / SplitterWindow1->GetSize().GetHeight();
-    int sashPost = config->Write("xLightsCustomDialogSash", sashPos);
+    config->Write("xLightsCustomDialogSash", sashPos);
 
     if (_modelPreview != nullptr)
     {

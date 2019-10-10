@@ -59,7 +59,9 @@ VideoReader::VideoReader(const std::string& filename, int maxwidth, int maxheigh
     _dtspersec = 1.0;
     _frames = 0;
 
-	av_register_all();
+    #if LIBAVFORMAT_VERSION_MAJOR < 58
+    av_register_all();
+    #endif
 
 	int res = avformat_open_input(&_formatContext, filename.c_str(), nullptr, nullptr);
 	if (res != 0) {
@@ -316,7 +318,9 @@ bool VideoReader::IsVideoFile(const std::string& filename)
 
 long VideoReader::GetVideoLength(const std::string& filename)
 {
+    #if LIBAVFORMAT_VERSION_MAJOR < 58
     av_register_all();
+    #endif
 
     AVFormatContext* formatContext = nullptr;
     int res = avformat_open_input(&formatContext, filename.c_str(), nullptr, nullptr);

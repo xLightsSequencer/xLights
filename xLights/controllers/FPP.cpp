@@ -221,7 +221,7 @@ void FPP::setupCurl() {
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, buffer_writer);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &curlInputBuffer);
     curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
-    curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT_MS, 100);
+    curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT_MS, 500);
     curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, 10000);
 }
 bool FPP::GetURLAsString(const std::string& url, std::string& val)  {

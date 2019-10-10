@@ -858,7 +858,9 @@ void xLightsFrame:: WriteVideoModelFile(const wxString& filenames, long numChans
 
     av_log_set_callback(my_av_log_callback);
 
+    #if LIBAVFORMAT_VERSION_MAJOR < 58
     av_register_all();
+    #endif
 
     const char *filename = filenames.c_str();
     AVOutputFormat* fmt = av_guess_format(nullptr, filename, nullptr);
