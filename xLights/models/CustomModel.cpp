@@ -379,7 +379,7 @@ void CustomModel::SetStringStartChannels(bool zeroBased, int NumberOfStrings, in
     if (SingleNode) {
         NumberOfStrings=maxval;
     } else {
-        ChannelsPerString=maxval*GetNodeChannelCount(StringType);
+        ChannelsPerString=maxval*GetNodeChannelCount(StringType) / _strings;
     }
 
     if (_strings == 1)
@@ -393,8 +393,11 @@ void CustomModel::SetStringStartChannels(bool zeroBased, int NumberOfStrings, in
 
         for (int i = 0; i<_strings; i++) {
             wxString nm = StartChanAttrName(i);
-            int node = wxAtoi(ModelXml->GetAttribute(nm, "1"));
-            if (node < 0) node = 0; // prevent invalid start nodes
+            int node = wxAtoi(ModelXml->GetAttribute(nm, "-1"));
+            if (node < 0)
+            {
+                node = ((ChannelsPerString * i) / GetNodeChannelCount(StringType)) + 1;
+            }
             if (node > maxval) node = maxval;
             stringStartChan[i] = (zeroBased ? 0 : StartChannel - 1) + (node - 1) * GetNodeChannelCount(StringType);
         }
