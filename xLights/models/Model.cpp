@@ -1050,7 +1050,7 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
             SetControllerName(CONTROLLERS[event.GetValue().GetInteger()]);
             if (GetControllerPort() != 0)
             {
-                SetModelChain(">" + modelManager.GetLastModelOnPort(CONTROLLERS[event.GetValue().GetInteger()], GetControllerPort(), GetName()));
+                SetModelChain(">" + modelManager.GetLastModelOnPort(CONTROLLERS[event.GetValue().GetInteger()], GetControllerPort(), GetName(), GetControllerProtocol()));
             }
             else
             {
@@ -1119,7 +1119,7 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
                     grid->GetPropertyByName("ModelIndividualStartChannels.ModelStartChannel")->SetValue(ModelXml->GetAttribute("StartChannel", "1"));
                 }
                 // when the port changes we have to assume any existing model chain will break
-                SetModelChain(">" + modelManager.GetLastModelOnPort(GetControllerName(), event.GetValue().GetLong(), GetName()));
+                SetModelChain(">" + modelManager.GetLastModelOnPort(GetControllerName(), event.GetValue().GetLong(), GetName(), GetControllerProtocol()));
             }
         }
 
@@ -4784,7 +4784,7 @@ int Model::GetSmartRemote() const
 void Model::SetModelChain(const std::string& modelChain)
 {
     ModelXml->DeleteAttribute("ModelChain");
-    if (modelChain != "" && modelChain != "Beginning")
+    if (modelChain != "" && modelChain != "Beginning" && modelChain != ">")
     {
         ModelXml->AddAttribute("ModelChain", modelChain);
     }

@@ -2524,9 +2524,19 @@ int xLightsFrame::SetZCPPPort(std::list<ZCPP_packet_t*>& modelDatas, int index, 
     }
     else if (port != nullptr)
     {
-        if (port->GetModels().size() > 0)
+        if (port->IsPixelProtocol())
         {
-            sc = port->GetStartChannel() - baseStart;
+            if (port->GetModels().size() > 0)
+            {
+                sc = port->GetStartChannel() - baseStart;
+            }
+        }
+        else
+        {
+            if (port->GetModels().size() > 0)
+            {
+                sc = port->GetStartChannel() - baseStart - port->GetFirstModel()->GetDMXChannelOffset() + 1;
+            }
         }
     }
     if (sc < 0) sc = 0;
@@ -2540,9 +2550,19 @@ int xLightsFrame::SetZCPPPort(std::list<ZCPP_packet_t*>& modelDatas, int index, 
     }
     else if (port != nullptr)
     {
-        if (port->GetModels().size() > 0)
+        if (port->IsPixelProtocol())
         {
-            c = port->Channels();
+            if (port->GetModels().size() > 0)
+            {
+                c = port->Channels();
+            }
+        }
+        else
+        {
+            if (port->GetModels().size() > 0)
+            {
+                c = port->GetEndChannel() - baseStart + 1;
+            }
         }
     }
     p->channels = ntohl(c);

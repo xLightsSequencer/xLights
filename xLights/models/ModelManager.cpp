@@ -234,7 +234,7 @@ void ModelManager::ResetModelGroups() const
     }
 }
 
-std::string ModelManager::GetLastModelOnPort(const std::string& controllerName, int port, const std::string& excludeModel) const
+std::string ModelManager::GetLastModelOnPort(const std::string& controllerName, int port, const std::string& excludeModel, const std::string& protocol) const
 {
     std::string last = "";
     unsigned int highestEndChannel = 0;
@@ -244,6 +244,7 @@ std::string ModelManager::GetLastModelOnPort(const std::string& controllerName, 
         if (it.second->GetDisplayAs() != "ModelGroup" && 
             it.second->GetControllerName() == controllerName && 
             it.second->GetControllerPort() == port && 
+            it.second->GetControllerProtocol() == protocol &&
             it.second->GetLastChannel() > highestEndChannel && it.first != excludeModel)
         {
             last = it.first;

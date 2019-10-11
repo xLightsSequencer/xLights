@@ -137,6 +137,7 @@ class UDControllerPort
 		int32_t Channels() const;
         int Pixels() const { return Channels() / 3; }
         std::string GetProtocol() const { return _protocol; }
+        bool IsPixelProtocol() const;
 		std::string GetPortName() const;
 		int GetPort() const { return _port; }
         bool ContainsModel(Model* m) const;

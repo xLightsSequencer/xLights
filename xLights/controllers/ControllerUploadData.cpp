@@ -758,6 +758,11 @@ int32_t UDControllerPort::Channels() const
     }
 }
 
+bool UDControllerPort::IsPixelProtocol() const
+{
+    return Model::IsPixelProtocol(_protocol);
+}
+
 std::string UDControllerPort::GetPortName() const
 {
     if (_models.size() == 0)
