@@ -5,6 +5,9 @@
 
 #include "CoreImage/CIImage.h"
 #include "CoreImage/CIContext.h"
+#include "CoreImage/CIKernel.h"
+#include "CoreImage/CIFilter.h"
+#include "CoreImage/CISampler.h"
 
 extern "C" {
 #include "libavcodec/videotoolbox.h"
@@ -45,6 +48,8 @@ void CleanupVideoToolbox(AVCodecContext *s) {
     }
 }
 static CIContext *ciContext = nullptr;
+static CIColorKernel *rbFlipKernel = nullptr;
+
 void InitVideoToolboxAcceleration() {
     NSDictionary *dict = @{
         kCIContextHighQualityDownsample: @YES,
@@ -55,6 +60,8 @@ void InitVideoToolboxAcceleration() {
         kCIContextAllowLowPower: @YES
     };
     ciContext = [[CIContext alloc] initWithOptions:dict];
+    rbFlipKernel = [CIColorKernel kernelWithString: @"kernel vec4 swapRedAndGreenAmount(__sample s) { return s.bgra; }" ];
+    [rbFlipKernel retain];
 }
 
 
@@ -64,6 +71,22 @@ bool IsVideoToolboxAcceleratedFrame(AVFrame *frame) {
     }
     return frame->data[3] != nullptr;
 }
+
+@interface CIRBFlipFilter: CIFilter {
+    @public CIImage *inputImage;
+}
+@end
+
+@implementation CIRBFlipFilter
+
+
+- (CIImage *)outputImage
+{
+    CIImage *ci = inputImage;
+    return [rbFlipKernel applyWithExtent:ci.extent arguments:@[ci] ];
+}
+@end
+
 
 void VideoToolboxScaleImage(AVCodecContext *codecContext, AVFrame *frame, AVFrame *dstFrame) {
     CVPixelBufferRef pixbuf = (CVPixelBufferRef)frame->data[3];
@@ -91,7 +114,14 @@ void VideoToolboxScaleImage(AVCodecContext *codecContext, AVFrame *frame, AVFram
     
         CIImage *image = [CIImage imageWithCVImageBuffer:pixbuf];
         CIImage *scaledimage = [image imageByApplyingTransform:CGAffineTransformMakeScale(w, h) highQualityDownsample:TRUE];
-        [ciContext render:scaledimage toCVPixelBuffer:scaledBuf];
+        
+        CIRBFlipFilter *filter = [[CIRBFlipFilter alloc] init];
+        filter->inputImage = scaledimage;
+        
+        CIImage *swappedImage =  [filter outputImage];
+  
+        //[ciContext render:scaledimage toCVPixelBuffer:scaledBuf];
+        [ciContext render:swappedImage toCVPixelBuffer:scaledBuf];
         pixbuf = nil;
         
         CVPixelBufferLockBaseAddress(scaledBuf, kCVPixelBufferLock_ReadOnly);
@@ -100,23 +130,18 @@ void VideoToolboxScaleImage(AVCodecContext *codecContext, AVFrame *frame, AVFram
         
         //copy data to dest frame
         if (linesize) {
-            uint8_t *dst = (uint8_t*)dstFrame->data[0];
-            uint8_t *src = (uint8_t*)data;
-            
-            int rgbLoc = 0;
-            for (int y = 0; y < dstFrame->height; y++) {
-                for (int w = 0; w < linesize; w += 4) {
-                    dst[rgbLoc] = src[w + 2];
+            if (dstFrame->format == AV_PIX_FMT_RGBA) {
+                memcpy(dstFrame->data[0], data, linesize*dstFrame->height);
+            } else {
+                uint8_t *dst = (uint8_t*)dstFrame->data[0];
+                uint8_t *src = (uint8_t*)data;
+
+                int total = dstFrame->height * linesize;
+                for (int w = 0, rgbLoc = 0; w < total; w += 4, rgbLoc += 3) {
+                    dst[rgbLoc] = src[w];
                     dst[rgbLoc + 1] = src[w + 1];
-                    dst[rgbLoc + 2] = src[w];
-                    if (dstFrame->format == AV_PIX_FMT_RGBA) {
-                        dst[rgbLoc + 3] = src[w + 3];
-                        rgbLoc += 4;
-                    } else {
-                        rgbLoc += 3;
-                    }
+                    dst[rgbLoc + 2] = src[w + 2];
                 }
-                src += linesize;
             }
         }
         CVPixelBufferUnlockBaseAddress(scaledBuf, kCVPixelBufferLock_ReadOnly);

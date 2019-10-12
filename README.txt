@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (dkulp)  Point Queen Mary for OSX to digitally signed versions for Catalina
    -- enh (dkulp)  Optional support to use VideoToolbox API's on OSX to use
                    hardware video decoders for Video effect.  Can be enabled/disabled
                    on the Settings menu

@@ -419,8 +419,8 @@ void DownloadVamp()
         ::wxLaunchDefaultBrowser("http://xlights.org/downloads/Vamp_Plugin32.exe");
     }
 #elif defined __WXOSX__
-    // I hope this is right
-    ::wxLaunchDefaultBrowser("https://code.soundsoftware.ac.uk/attachments/download/105/qm-vamp-plugins-1.7-osx-universal.tar.gz");
+    // I hope this is right - need a digitally signed version
+    ::wxLaunchDefaultBrowser("https://dankulp.com/xlights/qm-vamp-plugins-1.7.1.dmg");
 #else
     // I hope this is right
     ::wxLaunchDefaultBrowser("https://code.soundsoftware.ac.uk/attachments/download/107/qm-vamp-plugins-1.7-amd64-linux.tar.gz");
