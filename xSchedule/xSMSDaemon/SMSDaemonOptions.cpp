@@ -93,7 +93,12 @@ void SMSDaemonOptions::Save(const std::string& showDir)
     node->AddAttribute("Token", _token);
     node->AddAttribute("Phone", _phone);
     node->AddAttribute("SMSService", _smsService);
-    node->AddAttribute("DefaultMessage", _defaultMessage);
+    wxString def = _defaultMessage;
+    if (def.StartsWith('\b'))
+    {
+        def = def.substr(1);
+    }
+    node->AddAttribute("DefaultMessage", def);
     node->AddAttribute("SuccessMessage", _successMessage);
     node->AddAttribute("RejectMessage", _rejectMessage);
 
@@ -132,6 +137,19 @@ bool SMSDaemonOptions::IsValid() const
         if (_sid == "" || _textItem == "" || _user == "") return false;
     }
     return true;
+}
+
+void SMSDaemonOptions::SetDefaultMessage(std::string defaultMessage) 
+{ 
+    wxString def = defaultMessage;
+    if (def.StartsWith('\b'))
+    {
+        def = def.substr(1);
+    }
+    if (def != _defaultMessage) 
+    { 
+        _defaultMessage = def; _changeCount++; 
+    } 
 }
 
 bool SMSDaemonOptions::IsDirty() const

@@ -231,7 +231,7 @@ SMSSettingsDialog::SMSSettingsDialog(wxWindow* parent, SMSDaemonOptions* options
     TextCtrl_SID->SetValue(options->GetSID());
     TextCtrl_Token->SetValue(options->GetToken());
     TextCtrl_Phone->SetValue(options->GetPhone());
-    TextCtrl_DefaultMessage->SetValue(options->GetDefaultMessage());
+    TextCtrl_DefaultMessage->SetValue(options->GetUnderlyingDefaultMessage());
     TextCtrl_SuccessMessage->SetValue(options->GetSuccessMessage());
     TextCtrl_RejectMessage->SetValue(options->GetRejectMessage());
     Choice_SMSService->SetStringSelection(options->GetSMSService());
