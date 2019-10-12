@@ -2321,11 +2321,12 @@ void xLightsFrame::SetEffectControls(const std::string &modelName, const std::st
                                      bool setDefaults) {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (CurrentSeqXmlFile == nullptr) return;
-    EffectsPanel1->Freeze();
     timingPanel->Freeze();
     bufferPanel->Freeze();
     colorPanel->Freeze();
     SetChoicebook(EffectsPanel1->EffectChoicebook, effectName);
+    //wxWindow* p = EffectsPanel1->GetSelectedPanel();
+    //p->Freeze();
     Model *model = GetModel(modelName);
     if (setDefaults) {
         if (modelName == "") {
@@ -2346,7 +2347,7 @@ void xLightsFrame::SetEffectControls(const std::string &modelName, const std::st
         colorPanel->SetColorCount(8);
         logger_base.warn("Setting effect controls for unknown effect type: %s", (const char *)effectName.c_str());
     }
-    EffectsPanel1->Thaw();
+    //p->Thaw();
     timingPanel->Thaw();
     bufferPanel->Thaw();
     colorPanel->Thaw();
@@ -2548,10 +2549,7 @@ void xLightsFrame::ResetPanelDefaultSettings(const std::string& effect, const Mo
 
     // do the effect setting last as it may want to override some of the above
     // this should be used sparingly ...
-    RenderableEffect* eff = GetEffectManager().GetEffect(effect);
-    if (eff != nullptr) {
-        eff->SetDefaultParameters();
-    }
+    EffectsPanel1->SetDefaultEffectValues(effect);
 }
 
 void xLightsFrame::SetEffectControls(const SettingsMap &settings) {

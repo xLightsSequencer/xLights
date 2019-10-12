@@ -1234,17 +1234,26 @@ void EffectsGrid::mouseDown(wxMouseEvent& event)
             mEffectLayer = mSequenceElements->GetVisibleEffectLayer(row);
             Element* element = mEffectLayer->GetParentElement();
 
-            mSelectedEffect = selectedEffect;
             if(element->GetType() != ELEMENT_TYPE_TIMING)
             {
-                mSelectedRow = row;
-                mSelectedEffect = selectedEffect;
-                RaiseSelectedEffectChanged(mSelectedEffect, false);
+                if (selectedEffect != mSelectedEffect)
+                {
+                    mSelectedEffect = selectedEffect;
+                    RaiseSelectedEffectChanged(mSelectedEffect, false);
+                }
                 RaisePlayModelEffect(element,mSelectedEffect,false);
-                wxCommandEvent eventRowChanged(EVT_SELECTED_ROW_CHANGED);
-                eventRowChanged.SetInt(mSelectedRow);
-                eventRowChanged.SetString(element->GetModelName());
-                wxPostEvent(GetParent(), eventRowChanged);
+                if (row != mSelectedRow)
+                {
+                    mSelectedRow = row;
+                    wxCommandEvent eventRowChanged(EVT_SELECTED_ROW_CHANGED);
+                    eventRowChanged.SetInt(mSelectedRow);
+                    eventRowChanged.SetString(element->GetModelName());
+                    wxPostEvent(GetParent(), eventRowChanged);
+                }
+            }
+            else
+            {
+                mSelectedEffect = selectedEffect;
             }
         }
         Refresh(false);

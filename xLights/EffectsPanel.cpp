@@ -248,6 +248,11 @@ bool EffectsPanel::WantOverlayBkg(void) const
     return false;
 }
 
+wxWindow* EffectsPanel::GetSelectedPanel() const
+{
+    return GetWindowPanel(EffectChoicebook->GetPage(EffectChoicebook->GetSelection()));
+}
+
 void EffectsPanel::EffectSelected(wxChoicebookEvent& event)
 {
     EffectChanged=true;

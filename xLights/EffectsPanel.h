@@ -33,6 +33,7 @@ public:
     wxString GetRandomEffectString(int effidx);
     bool isRandom_() const;
     bool WantOverlayBkg() const; //selectable clear canvas before render -DJ
+    wxWindow* GetSelectedPanel() const;
 
     //(*Declarations(EffectsPanel)
     wxChoicebook* EffectChoicebook;
