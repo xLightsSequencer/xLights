@@ -1156,7 +1156,7 @@ void RenderBuffer::DrawFadingCircle(int x0, int y0, int radius, const xlColor& r
                     double alpha = (double)rgb.alpha - ((double)rgb.alpha * d) / double(radius);
                     if (alpha > 0.0) {
                         color.alpha = alpha;
-                        SetPixel(x + x0, y + y0, color, wrap, true);
+                        SetPixel(x + x0, y + y0, color, wrap, false);
                     }
                 }
                 else {
