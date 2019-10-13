@@ -1010,6 +1010,7 @@ void xLightsFrame::SelectedEffectChanged(SelectedEffectChangedEvent& event)
         int pageIndex = event.GetInt();
         // Dont change page if it is already on correct page
         if (EffectsPanel1->EffectChoicebook->GetSelection()!=pageIndex) {
+            EffectsPanel1->SetEffectType(pageIndex);
             ResetPanelDefaultSettings(EffectsPanel1->EffectChoicebook->GetChoiceCtrl()->GetStringSelection(), nullptr, true);
         } else {
             event.updateUI = false;
