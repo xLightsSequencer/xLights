@@ -11,11 +11,19 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2019.57 October 13 2019
    -- enh (dkulp)  Point Queen Mary for OSX to digitally signed versions for Catalina
    -- enh (dkulp)  Optional support to use VideoToolbox API's on OSX to use
                    hardware video decoders for Video effect.  Can be enabled/disabled
                    on the Settings menu
    -- enh (dkulp)  Upgrade to ffmpeg 4.2.1
+   -- enh (scott)  Add shift-U and shift-D key bindings to add fade in/out for one second to selected effects 
+                   - mostly there as an example of how to set these up
+   -- bug (keith)  Address effect selection lag
+   -- bug (keith)  Restore circles fade behaviour
+   -- bug (keith)  Fix corrupting xml by SMS options
+   -- bug (keith)  Fix dmx channel issues with ZCPP (affects only serial outputs where first model was not on channel 1)
+   -- bug (keith)  Fix multistring custome model without set indiv start nodes gets string lengths wrong
 2019.56 October 9 2019
    -- enh (scott)  Added Folder/Filter Selection to the FPP Connect Dialog.
    -- enh (keith)  Add the ability to manually moderate SMS messages
