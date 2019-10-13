@@ -12,6 +12,8 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2019.57 October 13 2019
+   -- bug (keith)  Fix dragging effects does not change effect to the right effect
+2019.57 October 13 2019
    -- enh (dkulp)  Point Queen Mary for OSX to digitally signed versions for Catalina
    -- enh (dkulp)  Optional support to use VideoToolbox API's on OSX to use
                    hardware video decoders for Video effect.  Can be enabled/disabled
