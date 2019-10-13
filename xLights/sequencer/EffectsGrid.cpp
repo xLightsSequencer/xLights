@@ -935,7 +935,6 @@ void EffectsGrid::mouseMoved(wxMouseEvent& event)
 
     if(mResizing)
     {
-        //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         //logger_base.debug("EffectsGrid::mouseMoved sizing or moving effects.");
         Resize(event.GetX(), event.AltDown(), event.ControlDown());
         Refresh(false);
@@ -3103,180 +3102,178 @@ bool EffectsGrid::DoACDraw(bool keyboard, ACTYPE typeOverride, ACSTYLE styleOver
 
 void EffectsGrid::mouseReleased(wxMouseEvent& event)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
-    if (mSequenceElements == nullptr) {
-        return;
-    }
+    if (mSequenceElements == nullptr) return;
 
     if (mDragging && xlights->IsACActive())
     {
         ReleaseMouse();
         mDragging = false;
 
-        if (!DoACDraw())
+        if (DoACDraw())
         {
-            return;
+            mRangeCursorCol = mRangeStartCol;
+            mRangeCursorRow = mRangeStartRow;
+            mRangeStartRow = -1;
+            mRangeStartCol = -1;
+            mRangeEndRow = -1;
+            mRangeEndCol = -1;
+            mCellRangeSelected = false;
+            SetRCToolTip();
         }
-
-        mRangeCursorCol = mRangeStartCol;
-        mRangeCursorRow = mRangeStartRow;
-        mRangeStartRow = -1;
-        mRangeStartCol = -1;
-        mRangeEndRow = -1;
-        mRangeEndCol = -1;
-        mCellRangeSelected = false;
-        SetRCToolTip();
-
-        return;
     }
-
-    bool checkForEmptyCell = false;
-    if (mResizing)
+    else
     {
-        ReleaseMouse();
-        if (mEffectLayer->GetParentElement()->GetType() != ELEMENT_TYPE_TIMING)
+        bool checkForEmptyCell = false;
+        if (mResizing)
         {
-            logger_base.debug("EffectsGrid::mouseReleased model effect released.");
-            if (MultipleEffectsSelected()) {
-                std::string lastModel;
-                int startMS = 99999999;
-                int endMS = -1;
-                for(int row=0;row<mSequenceElements->GetRowInformationSize();row++)
-                {
-                    EffectLayer* el = mSequenceElements->GetEffectLayer(row);
-                    if (el->GetParentElement()->GetModelName() != lastModel) {
-                        if (endMS != -1) {
-                            sendRenderEvent(lastModel, startMS, endMS);
+            ReleaseMouse();
+            if (mEffectLayer->GetParentElement()->GetType() != ELEMENT_TYPE_TIMING)
+            {
+                if (MultipleEffectsSelected()) {
+                    std::string lastModel;
+                    int startMS = 99999999;
+                    int endMS = -1;
+                    for (int row = 0; row < mSequenceElements->GetRowInformationSize(); row++)
+                    {
+                        EffectLayer* el = mSequenceElements->GetEffectLayer(row);
+                        if (el->GetParentElement()->GetModelName() != lastModel) {
+                            if (endMS != -1) {
+                                sendRenderEvent(lastModel, startMS, endMS);
+                            }
+                            startMS = 99999999;
+                            endMS = -1;
+                            lastModel = el->GetParentElement()->GetModelName();
                         }
-                        startMS = 99999999;
-                        endMS = -1;
-                        lastModel = el->GetParentElement()->GetModelName();
+                        if (el->GetSelectedEffectCount() > 0) {
+                            int startDirty, endDirty;
+                            el->GetParentElement()->GetDirtyRange(startDirty, endDirty);
+                            if (startDirty != -1) {
+                                adjustMS(startDirty, startMS, endMS);
+                                adjustMS(endDirty, startMS, endMS);
+                            }
+                        }
                     }
-                    if (el->GetSelectedEffectCount() > 0) {
+                    if (endMS != -1) {
+                        sendRenderEvent(lastModel, startMS, endMS);
+                    }
+                }
+                else {
+                    int stime = mStartResizeTimeMS;
+                    int timeMS = mTimeline->GetAbsoluteTimeMSfromPosition(event.GetX());
+                    int min = stime;
+                    int max = stime;
+                    adjustMS(timeMS, min, max);
+                    Effect* effect = mEffectLayer->GetEffect(mResizeEffectIndex);
+                    if (effect)
+                    {
+                        adjustMS(mEffectLayer->GetEffect(mResizeEffectIndex)->GetStartTimeMS(), min, max);
+                        adjustMS(mEffectLayer->GetEffect(mResizeEffectIndex)->GetEndTimeMS(), min, max);
+                        if (mSelectedEffect != nullptr &&
+                            mSelectedEffect->GetSelected() == EFFECT_LT_SELECTED &&
+                            mResizeEffectIndex > 0) {
+                            //also have to re-render the effect to the left
+                            adjustMS(mEffectLayer->GetEffect(mResizeEffectIndex - 1)->GetStartTimeMS(), min, max);
+                            adjustMS(mEffectLayer->GetEffect(mResizeEffectIndex - 1)->GetEndTimeMS(), min, max);
+                        }
+                        else if (mSelectedEffect != nullptr &&
+                            mSelectedEffect->GetSelected() == EFFECT_RT_SELECTED &&
+                            mResizeEffectIndex < (mEffectLayer->GetEffectCount() - 1)) {
+                            adjustMS(mEffectLayer->GetEffect(mResizeEffectIndex + 1)->GetStartTimeMS(), min, max);
+                            adjustMS(mEffectLayer->GetEffect(mResizeEffectIndex + 1)->GetEndTimeMS(), min, max);
+                        }
                         int startDirty, endDirty;
-                        el->GetParentElement()->GetDirtyRange(startDirty, endDirty);
+                        mEffectLayer->GetParentElement()->GetDirtyRange(startDirty, endDirty);
                         if (startDirty != -1) {
-                            adjustMS(startDirty, startMS, endMS);
-                            adjustMS(endDirty, startMS, endMS);
+                            adjustMS(startDirty, min, max);
+                            adjustMS(endDirty, min, max);
                         }
+                        sendRenderEvent(mEffectLayer->GetParentElement()->GetModelName(), min, max);
+                        RaisePlayModelEffect(mEffectLayer->GetParentElement(), effect, false);
                     }
-                }
-                if (endMS != -1) {
-                    sendRenderEvent(lastModel, startMS, endMS);
-                }
-            } else {
-                int stime = mStartResizeTimeMS;
-                int timeMS = mTimeline->GetAbsoluteTimeMSfromPosition(event.GetX());
-                int min = stime;
-                int max = stime;
-                adjustMS(timeMS, min, max);
-                Effect* effect = mEffectLayer->GetEffect(mResizeEffectIndex);
-                if(effect)
-                {
-                    adjustMS(mEffectLayer->GetEffect(mResizeEffectIndex)->GetStartTimeMS(), min, max);
-                    adjustMS(mEffectLayer->GetEffect(mResizeEffectIndex)->GetEndTimeMS(), min, max);
-                    if (mSelectedEffect != nullptr &&
-                        mSelectedEffect->GetSelected() == EFFECT_LT_SELECTED &&
-                        mResizeEffectIndex > 0) {
-                        //also have to re-render the effect to the left
-                        adjustMS(mEffectLayer->GetEffect(mResizeEffectIndex - 1)->GetStartTimeMS(), min, max);
-                        adjustMS(mEffectLayer->GetEffect(mResizeEffectIndex - 1)->GetEndTimeMS(), min, max);
-                    } else if (mSelectedEffect != nullptr &&
-                               mSelectedEffect->GetSelected() == EFFECT_RT_SELECTED &&
-                               mResizeEffectIndex < (mEffectLayer->GetEffectCount() - 1)) {
-                        adjustMS(mEffectLayer->GetEffect(mResizeEffectIndex + 1)->GetStartTimeMS(), min, max);
-                        adjustMS(mEffectLayer->GetEffect(mResizeEffectIndex + 1)->GetEndTimeMS(), min, max);
-                    }
-                    int startDirty, endDirty;
-                    mEffectLayer->GetParentElement()->GetDirtyRange(startDirty, endDirty);
-                    if (startDirty != -1) {
-                        adjustMS(startDirty, min, max);
-                        adjustMS(endDirty, min, max);
-                    }
-                    sendRenderEvent(mEffectLayer->GetParentElement()->GetModelName(), min, max);
-                    RaisePlayModelEffect(mEffectLayer->GetParentElement(), effect, false);
                 }
             }
-        }
 
-        // if dragging an effect endpoint move the selection point with it so it will
-        // focus on that spot if you zoom afterwards.
-        if (mSelectedEffect != nullptr && mSelectedEffect->GetSelected() == EFFECT_LT_SELECTED )
-        {
-            int selected_time = (int)(mSelectedEffect->GetStartTimeMS());
-            UpdateZoomPosition(selected_time);
+            // if dragging an effect endpoint move the selection point with it so it will
+            // focus on that spot if you zoom afterwards.
+            if (mSelectedEffect != nullptr && mSelectedEffect->GetSelected() == EFFECT_LT_SELECTED)
+            {
+                int selected_time = (int)(mSelectedEffect->GetStartTimeMS());
+                UpdateZoomPosition(selected_time);
+            }
+            else if (mSelectedEffect != nullptr && mSelectedEffect->GetSelected() == EFFECT_RT_SELECTED)
+            {
+                int selected_time = (int)(mSelectedEffect->GetEndTimeMS());
+                UpdateZoomPosition(selected_time);
+            }
         }
-        else if (mSelectedEffect != nullptr &&  mSelectedEffect->GetSelected() == EFFECT_RT_SELECTED )
-        {
-            int selected_time = (int)(mSelectedEffect->GetEndTimeMS());
-            UpdateZoomPosition(selected_time);
+        else if (mDragging) {
+            UnsetToolTip();
+            ReleaseMouse();
+            mDragging = false;
+            if ((mDragStartX == event.GetX() && mDragStartY == event.GetY()) || (mSequenceElements->GetNumberOfActiveTimingEffects() > 0)) {
+                checkForEmptyCell = true;
+            }
         }
-    } else if (mDragging) {
-        UnsetToolTip();
-        ReleaseMouse();
-        mDragging = false;
-        if((mDragStartX == event.GetX() && mDragStartY == event.GetY()) || (mSequenceElements->GetNumberOfActiveTimingEffects() > 0) ) {
+        else if (!event.ControlDown()) {
             checkForEmptyCell = true;
         }
-    } else if( !event.ControlDown() ) {
-        checkForEmptyCell = true;
-    }
 
-    if (checkForEmptyCell) {
-        int row = GetRow(event.GetY());
-        if (mSequenceElements->GetSelectedTimingRow() >= 0 && row < mSequenceElements->GetVisibleRowInformationSize())
-        {
-            CheckForPartialCell(event.GetX());
-            if( mPartialCellSelected )
+        if (checkForEmptyCell) {
+            int row = GetRow(event.GetY());
+            if (mSequenceElements->GetSelectedTimingRow() >= 0 && row < mSequenceElements->GetVisibleRowInformationSize())
             {
-                mSelectedRow = -1;
-                mSequenceElements->UnSelectAllEffects();
-                UnselectEffect(true);
+                CheckForPartialCell(event.GetX());
+                if (mPartialCellSelected)
+                {
+                    mSelectedRow = -1;
+                    mSequenceElements->UnSelectAllEffects();
+                    UnselectEffect(true);
+                }
+                else if (!mCellRangeSelected)
+                {
+                    EffectLayer* el = mSequenceElements->GetVisibleEffectLayer(row);
+                    if (el != nullptr) {
+                        mDropStartTimeMS = mTimeline->GetAbsoluteTimeMSfromPosition(event.GetX());
+                        mDropEndTimeMS = mDropStartTimeMS + 1000;
+                        mDropStartX = mTimeline->GetPositionFromTimeMS(mDropStartTimeMS);
+                        mDropEndX = mTimeline->GetPositionFromTimeMS(mDropEndTimeMS);
+                        AdjustDropLocations(event.GetX(), el);
+                        mPartialCellSelected = true;
+                        mDropRow = row;
+                        mSequenceElements->UnSelectAllEffects();
+                        UnselectEffect(true);
+                    }
+                }
             }
-            else if( !mCellRangeSelected )
-            {
+            else if (row >= 0 && row < mSequenceElements->GetVisibleRowInformationSize()) {
                 EffectLayer* el = mSequenceElements->GetVisibleEffectLayer(row);
+                int startTime = mTimeline->GetAbsoluteTimeMSfromPosition(event.GetX());
+                int effectIndex = 0;
                 if (el != nullptr) {
-                    mDropStartTimeMS = mTimeline->GetAbsoluteTimeMSfromPosition(event.GetX());
-                    mDropEndTimeMS = mDropStartTimeMS + 1000;
-                    mDropStartX = mTimeline->GetPositionFromTimeMS(mDropStartTimeMS);
-                    mDropEndX = mTimeline->GetPositionFromTimeMS(mDropEndTimeMS);
-                    AdjustDropLocations(event.GetX(), el);
-                    mPartialCellSelected = true;
-                    mDropRow = row;
-                    mSequenceElements->UnSelectAllEffects();
-                    UnselectEffect(true);
+                    if (el->HitTestEffectByTime(startTime, effectIndex)) {
+                        el->GetEffect(effectIndex)->SetSelected(EFFECT_SELECTED);
+                    }
+                    else {
+                        mDropStartTimeMS = mTimeline->GetAbsoluteTimeMSfromPosition(event.GetX());
+                        mDropEndTimeMS = mDropStartTimeMS + 1000;
+                        mDropStartX = mTimeline->GetPositionFromTimeMS(mDropStartTimeMS);
+                        mDropEndX = mTimeline->GetPositionFromTimeMS(mDropEndTimeMS);
+                        AdjustDropLocations(event.GetX(), el);
+                        mPartialCellSelected = true;
+                        mDropRow = row;
+                        mSequenceElements->UnSelectAllEffects();
+                        UnselectEffect(true);
+                    }
                 }
             }
         }
-        else if (row >= 0 && row < mSequenceElements->GetVisibleRowInformationSize()) {
-            EffectLayer* el = mSequenceElements->GetVisibleEffectLayer(row);
-            int startTime = mTimeline->GetAbsoluteTimeMSfromPosition(event.GetX());
-            int effectIndex = 0;
-            if (el != nullptr) {
-                if (el->HitTestEffectByTime(startTime, effectIndex)) {
-                    el->GetEffect(effectIndex)->SetSelected(EFFECT_SELECTED);
-                } else {
-                    mDropStartTimeMS = mTimeline->GetAbsoluteTimeMSfromPosition(event.GetX());
-                    mDropEndTimeMS = mDropStartTimeMS + 1000;
-                    mDropStartX = mTimeline->GetPositionFromTimeMS(mDropStartTimeMS);
-                    mDropEndX = mTimeline->GetPositionFromTimeMS(mDropEndTimeMS);
-                    AdjustDropLocations(event.GetX(), el);
-                    mPartialCellSelected = true;
-                    mDropRow = row;
-                    mSequenceElements->UnSelectAllEffects();
-                    UnselectEffect(true);
-                }
-            }
-        }
-    }
 
-    mResizing = false;
-    mDragDropping = false;
-    Refresh(false);
-    mSequenceElements->get_undo_mgr().SetCaptureUndo(false);
-    mSequenceElements->get_undo_mgr().RemoveUnusedMarkers();
+        mResizing = false;
+        mDragDropping = false;
+        Refresh(false);
+        mSequenceElements->get_undo_mgr().SetCaptureUndo(false);
+        mSequenceElements->get_undo_mgr().RemoveUnusedMarkers();
+    }
 }
 
 void EffectsGrid::CheckForPartialCell(int x_pos)

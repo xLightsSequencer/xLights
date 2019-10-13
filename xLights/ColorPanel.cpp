@@ -985,9 +985,14 @@ void ColorPanel::OnCCChanged(wxCommandEvent& event)
         }
     }
 
-    wxCommandEvent e(EVT_COLOUR_CHANGED);
-    e.SetInt(-1);
-    wxPostEvent(xLightsApp::GetFrame(), e);
+    // only where a new colour has been added or a colour curve changed or exported we need to do this
+    // This is signified by the event int being non zero
+    if (event.GetInt() != 0)
+    {
+        wxCommandEvent e(EVT_COLOUR_CHANGED);
+        e.SetInt(-1);
+        wxPostEvent(xLightsApp::GetFrame(), e);
+    }
 
     Refresh();
     ValidateWindow();

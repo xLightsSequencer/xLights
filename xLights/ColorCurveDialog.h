@@ -81,6 +81,7 @@ class ColorCurveDialog: public wxDialog
     ColorCurve _backup;
     void ValidateWindow();
     ColorCurvePanel* _ccp;
+    bool _exported = false;
 
     void PopulatePresets();
     void ProcessPresetDir(wxDir& directory, bool subdirs);
@@ -90,6 +91,7 @@ class ColorCurveDialog: public wxDialog
 		ColorCurveDialog(wxWindow* parent, ColorCurve* cc, wxColourData& colorData, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~ColorCurveDialog();
         void OnCCPChanged(wxCommandEvent& event);
+        bool DidExport() const { return _exported; }
 
 		//(*Declarations(ColorCurveDialog)
 		wxButton* ButtonExport;

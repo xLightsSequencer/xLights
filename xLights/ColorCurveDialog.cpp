@@ -840,6 +840,8 @@ void ColorCurveDialog::OnButtonExportClick(wxCommandEvent& event)
     f.Write("</colorcurve>");
     f.Close();
 
+    _exported = true;
+
     _ccp->ClearUndo();
 
     PopulatePresets();

@@ -993,8 +993,6 @@ void xLightsFrame::EffectUpdated(wxCommandEvent& event)
 
 void xLightsFrame::SelectedEffectChanged(SelectedEffectChangedEvent& event)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     // prevent re-entry notification of effect selected changed
     static bool reentry = false;
     if (reentry)
@@ -1003,6 +1001,8 @@ void xLightsFrame::SelectedEffectChanged(SelectedEffectChangedEvent& event)
     }
     reentry = true;
 
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     bool OnlyChoiceBookPage = event.effect==nullptr?true:false;
     Effect* effect = nullptr;
     if(OnlyChoiceBookPage)
@@ -1010,8 +1010,6 @@ void xLightsFrame::SelectedEffectChanged(SelectedEffectChangedEvent& event)
         int pageIndex = event.GetInt();
         // Dont change page if it is already on correct page
         if (EffectsPanel1->EffectChoicebook->GetSelection()!=pageIndex) {
-            EffectsPanel1->SetEffectType(pageIndex);
-
             ResetPanelDefaultSettings(EffectsPanel1->EffectChoicebook->GetChoiceCtrl()->GetStringSelection(), nullptr, true);
         } else {
             event.updateUI = false;
@@ -2321,9 +2319,9 @@ void xLightsFrame::SetEffectControls(const std::string &modelName, const std::st
                                      bool setDefaults) {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (CurrentSeqXmlFile == nullptr) return;
-    timingPanel->Freeze();
-    bufferPanel->Freeze();
-    colorPanel->Freeze();
+    //timingPanel->Freeze();
+    //bufferPanel->Freeze();
+    //colorPanel->Freeze();
     SetChoicebook(EffectsPanel1->EffectChoicebook, effectName);
     //wxWindow* p = EffectsPanel1->GetSelectedPanel();
     //p->Freeze();
@@ -2348,9 +2346,9 @@ void xLightsFrame::SetEffectControls(const std::string &modelName, const std::st
         logger_base.warn("Setting effect controls for unknown effect type: %s", (const char *)effectName.c_str());
     }
     //p->Thaw();
-    timingPanel->Thaw();
-    bufferPanel->Thaw();
-    colorPanel->Thaw();
+    //timingPanel->Thaw();
+    //bufferPanel->Thaw();
+    //colorPanel->Thaw();
 }
 
 bool xLightsFrame::ApplySetting(wxString name, const wxString &value)
@@ -2528,6 +2526,10 @@ void xLightsFrame::ApplyLast(wxCommandEvent& event)
     SettingsMap* pSettingsMap = (SettingsMap*)event.GetClientData();
     SetEffectControlsApplyLast(*pSettingsMap);
     delete pSettingsMap;
+
+    timingPanel->ValidateWindow();
+    bufferPanel->ValidateWindow();
+    colorPanel->ValidateWindow();
 }
 
 void xLightsFrame::SetEffectControlsApplyLast(const SettingsMap &settings) {
@@ -2538,6 +2540,10 @@ void xLightsFrame::SetEffectControlsApplyLast(const SettingsMap &settings) {
             ApplySetting(wxString(it.first.c_str()), wxString(it.second.c_str()));
         }
     }
+
+    timingPanel->ValidateWindow();
+    bufferPanel->ValidateWindow();
+    colorPanel->ValidateWindow();
 }
 
 void xLightsFrame::ResetPanelDefaultSettings(const std::string& effect, const Model* model, bool optionbased)
@@ -2560,13 +2566,16 @@ void xLightsFrame::SetEffectControls(const SettingsMap &settings) {
     for (const auto& it : settings) {
 		if (it.first.find("APPLYLAST") == std::string::npos)
 		{
-			ApplySetting(wxString(it.first.c_str()), wxString(it.second.c_str()));
+			ApplySetting(it.first, it.second);
 		}
         else
         {
             applylast = true;
         }
     }
+
+    MixTypeChanged = true;
+    FadesChanged = true;
 
     if (applylast)
     {
@@ -2575,13 +2584,12 @@ void xLightsFrame::SetEffectControls(const SettingsMap &settings) {
         event.SetClientData(new SettingsMap(settings));
         wxPostEvent(this, event);
     }
-
-    MixTypeChanged=true;
-    FadesChanged=true;
-
-    timingPanel->ValidateWindow();
-    bufferPanel->ValidateWindow();
-    colorPanel->ValidateWindow();
+    else
+    {
+        timingPanel->ValidateWindow();
+        bufferPanel->ValidateWindow();
+        colorPanel->ValidateWindow();
+    }
 }
 
 std::string xLightsFrame::GetEffectTextFromWindows(std::string &palette) const

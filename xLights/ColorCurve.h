@@ -228,5 +228,5 @@ public:
     std::string GetColor() const { return _color; }
     void SetColor(std::string color, bool notify = true);
     void SetDefaultCC(const std::string& color);
-    void NotifyChange();
+    void NotifyChange(bool coloursPanelReload = false);
 };

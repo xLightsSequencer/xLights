@@ -819,9 +819,9 @@ void xLightsFrame::SetChoicebook(wxChoicebook* cb, const wxString& PageName)
 {
     if (cb->GetChoiceCtrl()->GetStringSelection() == PageName) return; // no need to change
 
-    RenderableEffect *reff = effectManager.GetEffect(PageName.ToStdString());
+    RenderableEffect* reff = effectManager.GetEffect(PageName.ToStdString());
     if (reff != nullptr) {
-        for(size_t i=0; i<cb->GetPageCount(); i++)
+        for (size_t i = 0; i < cb->GetPageCount(); i++)
         {
             if (cb->GetPageText(i) == reff->ToolTip())
             {

@@ -603,7 +603,7 @@ void ColorCurveButton::LeftClick(wxCommandEvent& event)
         _color = color.GetAsString();
         _cc->SetDefault(color);
         UpdateBitmap();
-        NotifyChange();
+        NotifyChange(true);
     }
 }
 
@@ -616,7 +616,14 @@ void ColorCurveButton::RightClick(wxContextMenuEvent& event)
     {
         w->SetActive(true);
         UpdateBitmap();
-        NotifyChange();
+        NotifyChange(true);
+    }
+    else
+    {
+        if (ccd.DidExport())
+        {
+            NotifyChange(true);
+        }
     }
 }
 
@@ -693,9 +700,10 @@ void ColorCurveButton::SetValue(const wxString& value)
     UpdateState();
 }
 
-void ColorCurveButton::NotifyChange()
+void ColorCurveButton::NotifyChange(bool coloursPanelReload)
 {
     wxCommandEvent eventCCChange(EVT_CC_CHANGED);
+    eventCCChange.SetInt(coloursPanelReload);
     eventCCChange.SetEventObject(this);
     wxPostEvent(GetParent(), eventCCChange);
 }
