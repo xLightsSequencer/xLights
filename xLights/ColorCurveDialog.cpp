@@ -186,7 +186,9 @@ ColorCurveDialog::ColorCurveDialog(wxWindow* parent, ColorCurve* cc, wxColourDat
 void ColorCurveDialog::ProcessPresetDir(wxDir& directory, bool subdirs)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.info("Scanning directory for *.xcc files: %s.", (const char *)directory.GetNameWithSep().c_str());
+    logger_base.info("ColorCurveDialog Scanning directory for *.xcc files: %s.", (const char *)directory.GetNameWithSep().c_str());
+
+    int count = 0;
 
     wxString filename;
     auto existing = PresetSizer->GetChildren();
@@ -195,6 +197,7 @@ void ColorCurveDialog::ProcessPresetDir(wxDir& directory, bool subdirs)
 
     while (cont)
     {
+        count++;
         wxFileName fn(directory.GetNameWithSep() + filename);
         bool found = false;
         for (const auto& it : existing)
@@ -209,8 +212,9 @@ void ColorCurveDialog::ProcessPresetDir(wxDir& directory, bool subdirs)
         if (!found)
         {
             ColorCurve cc;
+            cc.SetId("Dummy");
             cc.LoadXCC(fn.GetFullPath());
-            if (cc.IsOk())
+            if (cc.IsActive()) // will only be active if it loaded ok
             {
                 long id = wxNewId();
                 wxBitmapButton* bmb = new wxBitmapButton(this, id, cc.GetImage(30, 30, false), wxDefaultPosition,
@@ -224,6 +228,7 @@ void ColorCurveDialog::ProcessPresetDir(wxDir& directory, bool subdirs)
 
         cont = directory.GetNext(&filename);
     }
+    logger_base.info("    Found %d.", count);
 
     if (subdirs)
     {

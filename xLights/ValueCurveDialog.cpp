@@ -1453,16 +1453,18 @@ void ValueCurveDialog::OnButtonExportClick(wxCommandEvent& event)
 void ValueCurveDialog::ProcessPresetDir(wxDir& directory, bool subdirs)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.info("Scanning directory for *.xvc files: %s.", (const char *)directory.GetNameWithSep().c_str());
+    logger_base.info("ValueCurveDialog Scanning directory for *.xvc files: %s.", (const char *)directory.GetNameWithSep().c_str());
 
     wxString filename;
     auto existing = PresetSizer->GetChildren();
 
     bool cont = directory.GetFirst(&filename, "*.xvc", wxDIR_FILES);
+    int count = 0;
 
     while (cont)
     {
         wxFileName fn(directory.GetNameWithSep() + filename);
+        count++;
         bool found = false;
         for (const auto& it : existing)
         {
@@ -1488,6 +1490,7 @@ void ValueCurveDialog::ProcessPresetDir(wxDir& directory, bool subdirs)
 
         cont = directory.GetNext(&filename);
     }
+    logger_base.info("    Found %d.", count);
 
     if (subdirs)
     {

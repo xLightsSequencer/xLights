@@ -28,9 +28,10 @@ END_EVENT_TABLE()
 int ValueCurvesPanel::ProcessPresetDir(wxDir& directory, bool subdirs)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.info("Scanning directory for *.xvc files: %s.", (const char*)directory.GetNameWithSep().c_str());
+    logger_base.info("ValueCurvesPanel Scanning directory for *.xvc files: %s.", (const char*)directory.GetNameWithSep().c_str());
 
     int added = 0;
+    int count = 0;
 
     wxString filename;
     auto existing = GridSizer1->GetChildren();
@@ -41,6 +42,7 @@ int ValueCurvesPanel::ProcessPresetDir(wxDir& directory, bool subdirs)
     {
         wxFileName fn(directory.GetNameWithSep() + filename);
         bool found = false;
+        count++;
         for (const auto& it : existing)
         {
             if (it->GetWindow()->GetLabel() == fn.GetFullPath())
@@ -73,6 +75,7 @@ int ValueCurvesPanel::ProcessPresetDir(wxDir& directory, bool subdirs)
 
         cont = directory.GetNext(&filename);
     }
+    logger_base.info("    Found %d.", count);
 
     if (subdirs)
     {

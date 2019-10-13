@@ -59,19 +59,22 @@ int ColoursPanel::UpdateButtons()
 void ColoursPanel::ProcessColourCurveDir(wxDir& directory, bool subdirs)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.info("Scanning directory for *.xcc files: %s.", (const char*)directory.GetNameWithSep().c_str());
+    logger_base.info("ColoursPanel Scanning directory for *.xcc files: %s.", (const char*)directory.GetNameWithSep().c_str());
+
+    int count = 0;
 
     wxString filename;
-
     bool cont = directory.GetFirst(&filename, "*.xcc", wxDIR_FILES);
 
     while (cont)
     {
+        count++;
         wxFileName fn(directory.GetNameWithSep() + filename);
         if (fn.Exists())
         {
             ColorCurve cc;
             cc.LoadXCC(fn.GetFullPath());
+            cc.SetId("ID_BUTTON_PaletteX");
             AddColour(cc.Serialise());
         }
         else
@@ -81,6 +84,7 @@ void ColoursPanel::ProcessColourCurveDir(wxDir& directory, bool subdirs)
 
         cont = directory.GetNext(&filename);
     }
+    logger_base.info("    Found %d.", count);
 
     if (subdirs)
     {
@@ -97,14 +101,16 @@ void ColoursPanel::ProcessColourCurveDir(wxDir& directory, bool subdirs)
 void ColoursPanel::ProcessPaletteDir(wxDir& directory, bool subdirs)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.info("Scanning directory for *.xpalette files: %s.", (const char*)directory.GetNameWithSep().c_str());
+    logger_base.info("ColoursPanel Scanning directory for *.xpalette files: %s.", (const char*)directory.GetNameWithSep().c_str());
+
+    int count = 0;
 
     wxString filename;
-
     bool cont = directory.GetFirst(&filename, "*.xpalette", wxDIR_FILES);
 
     while (cont)
     {
+        count++;
         wxFileName fn(directory.GetNameWithSep() + filename);
 
         wxFile f;
@@ -124,6 +130,7 @@ void ColoursPanel::ProcessPaletteDir(wxDir& directory, bool subdirs)
 
         cont = directory.GetNext(&filename);
     }
+    logger_base.info("    Found %d.", count);
 
     if (subdirs)
     {
@@ -234,9 +241,9 @@ void ColoursPanel::UpdateColourButtons(bool reload, xLightsFrame* xlights) {
     wxStandardPaths stdp = wxStandardPaths::Get();
 
 #ifndef __WXMSW__
-    d = wxStandardPaths::Get().GetResourcesDir() + "/colourcurves";
+    d = wxStandardPaths::Get().GetResourcesDir() + "/colorcurves";
 #else
-    d = wxFileName(stdp.GetExecutablePath()).GetPath() + "/colourcurves";
+    d = wxFileName(stdp.GetExecutablePath()).GetPath() + "/colorcurves";
 #endif
     if (wxDir::Exists(d))
     {
