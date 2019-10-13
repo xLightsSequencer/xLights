@@ -935,6 +935,7 @@ void EffectsGrid::mouseMoved(wxMouseEvent& event)
 
     if(mResizing)
     {
+        //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         //logger_base.debug("EffectsGrid::mouseMoved sizing or moving effects.");
         Resize(event.GetX(), event.AltDown(), event.ControlDown());
         Refresh(false);
