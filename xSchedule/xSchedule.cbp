@@ -106,6 +106,7 @@
 					<Add option="-Wl,--large-address-aware" />
 					<Add option="-lpthread" />
 					<Add option="-lz" />
+					<Add option="-lole32" />
 					<Add library="../lib/windows/avcodec.lib" />
 					<Add library="../lib/windows/avformat.lib" />
 					<Add library="../lib/windows/avutil.lib" />
@@ -237,6 +238,7 @@
 					<Add option="-Wl,-Map=../bin64/xSchedule.map" />
 					<Add option="-lpthread" />
 					<Add option="-lz" />
+					<Add option="-lole32" />
 					<Add library="../lib/windows64/avcodec.lib" />
 					<Add library="../lib/windows64/avformat.lib" />
 					<Add library="../lib/windows64/avutil.lib" />
@@ -289,6 +291,8 @@
 		<Unit filename="../xLights/kiss_fft/tools/kiss_fftr.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="../xLights/msw_utils/d3video.cpp" />
+		<Unit filename="../xLights/msw_utils/d3video.h" />
 		<Unit filename="../xLights/outputs/ArtNetDialog.h" />
 		<Unit filename="../xLights/outputs/ArtNetOutput.cpp" />
 		<Unit filename="../xLights/outputs/ArtNetOutput.h" />

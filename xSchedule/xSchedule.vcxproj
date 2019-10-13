@@ -169,6 +169,7 @@
     <ClCompile Include="..\xLights\JobPool.cpp" />
     <ClCompile Include="..\xLights\kiss_fft\kiss_fft.c" />
     <ClCompile Include="..\xLights\kiss_fft\tools\kiss_fftr.c" />
+    <ClCompile Include="..\xLights\msw_utils\d3video.cpp" />
     <ClCompile Include="..\xLights\outputs\ArtNetDialog.cpp" />
     <ClCompile Include="..\xLights\outputs\ArtNetOutput.cpp" />
     <ClCompile Include="..\xLights\outputs\DDPOutput.cpp" />
@@ -395,6 +396,7 @@
     <ClInclude Include="..\xLights\FSEQFile.h" />
     <ClInclude Include="..\xLights\kiss_fft\_kiss_fft_guts.h" />
     <ClInclude Include="..\xLights\MSWStackWalk.h" />
+    <ClInclude Include="..\xLights\msw_utils\d3video.h" />
     <ClInclude Include="..\xLights\outputs\ArtNetOutput.h" />
     <ClInclude Include="..\xLights\outputs\DDPOutput.h" />
     <ClInclude Include="..\xLights\outputs\DLightOutput.h" />

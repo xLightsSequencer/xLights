@@ -1,6 +1,7 @@
 #ifndef VIDEOREADER_H
 #define VIDEOREADER_H
 
+#include <wx/wx.h>
 #include <string>
 
 extern "C"
@@ -9,6 +10,8 @@ extern "C"
 #include <libavformat/avformat.h>
 #include <libswscale/swscale.h>
 }
+
+#include "msw_utils/d3video.h"
 
 class VideoReader
 {
@@ -28,13 +31,14 @@ public:
     std::string GetFilename() const { return _filename; }
     int GetPixelChannels() const { return _wantAlpha ? 4 : 3; }
 
-    
     static bool HW_ACCELERATION_ENABLED;
     static void InitHWAcceleration();
 private:
     bool readFrame(int timestampMS);
     void reopenContext();
     
+    int _maxwidth = 0;
+    int _maxheight = 0;
 	bool _valid;
     double _lengthMS;
     double _dtspersec;
@@ -57,5 +61,6 @@ private:
 	bool _atEnd;
     std::string _filename;
     bool _videoToolboxAccelerated; 
+    D3Video_va_dxva2_t* _dxva = nullptr;
 };
 #endif // VIDEOREADER_H

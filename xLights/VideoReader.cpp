@@ -1,5 +1,4 @@
 #include "VideoReader.h"
-#include <log4cpp/Category.hh>
 
 //#define VIDEO_EXTRALOGGING
 
@@ -7,10 +6,11 @@
 #include <algorithm>
 #include <wx/filename.h>
 
-
 extern "C" {
 #include <libavcodec/avcodec.h>
 }
+
+#include <log4cpp/Category.hh>
 
 #ifdef __WXOSX__
 extern void InitVideoToolboxAcceleration();
@@ -26,7 +26,11 @@ static inline void VideoToolboxScaleImage(AVCodecContext *codecContext, AVFrame 
 static inline bool IsVideoToolboxAcceleratedFrame(AVFrame *frame) { return false; }
 #endif
 
+#ifdef __WXMSW__
+bool VideoReader::HW_ACCELERATION_ENABLED = true;
+#else
 bool VideoReader::HW_ACCELERATION_ENABLED = false;
+#endif
 
 void VideoReader::InitHWAcceleration() {
     InitVideoToolboxAcceleration();
@@ -34,6 +38,8 @@ void VideoReader::InitHWAcceleration() {
 VideoReader::VideoReader(const std::string& filename, int maxwidth, int maxheight, bool keepaspectratio, bool usenativeresolution/*false*/, bool wantAlpha)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    _maxwidth = maxwidth;
+    _maxheight = maxheight;
     _filename = filename;
     _valid = false;
 	_lengthMS = 0.0;
@@ -86,7 +92,6 @@ VideoReader::VideoReader(const std::string& filename, int maxwidth, int maxheigh
     
     reopenContext();
     
-
 	// at this point it is open and ready
    if ( usenativeresolution )
    {
@@ -254,7 +259,9 @@ void VideoReader::reopenContext() {
     _codecContext->skip_frame = AVDISCARD_NONE;
     _codecContext->skip_loop_filter = AVDISCARD_NONE;
     _codecContext->skip_idct = AVDISCARD_NONE;
-    
+    //_codecContext->width = _maxwidth; // desired dimensions
+    //_codecContext->height = _maxheight;
+
     _videoToolboxAccelerated = SetupVideoToolboxAcceleration(_codecContext, HW_ACCELERATION_ENABLED);
 
     // Copy codec parameters from input stream to output codec context
@@ -262,6 +269,30 @@ void VideoReader::reopenContext() {
         logger_base.error("VideoReader: Failed to copy %s codec parameters to decoder context", _filename.c_str());
         return;
     }
+
+    if (HW_ACCELERATION_ENABLED)
+    {
+        _dxva = D3Video_va_NewDxva2(_codecContext->codec_id);
+        if (_dxva != nullptr)
+        {
+            int res = D3Video_Setup(_dxva, &_codecContext->hwaccel_context, &_codecContext->pix_fmt, _codecContext->width, _codecContext->height);
+
+            if (res < 0) {
+                logger_base.warn("Error initialising DirectX hardware video acceleration.");
+                D3Video_Close(_dxva);
+                _dxva = nullptr;
+            }
+            else
+            {
+                _codecContext->opaque = _dxva;
+            }
+        }
+        else
+        {
+            logger_base.warn("Error initialising DirectX hardware video acceleration.");
+        }
+    }
+
     //  Init the decoders, with or without reference counting
     AVDictionary *opts = NULL;
     //av_dict_set(&opts, "refcounted_frames", "0", 0);
@@ -406,7 +437,14 @@ VideoReader::~VideoReader()
         av_free(_dstFrame2);
         _dstFrame2 = nullptr;
     }
-	if (_codecContext != nullptr)
+
+    if (_dxva != nullptr)
+    {
+        D3Video_Close(_dxva);
+        _dxva = nullptr;
+    }
+
+    if (_codecContext != nullptr)
 	{
         CleanupVideoToolbox(_codecContext);
 		avcodec_close(_codecContext);
