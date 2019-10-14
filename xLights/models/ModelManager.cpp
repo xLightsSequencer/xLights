@@ -871,6 +871,8 @@ Model* ModelManager::CreateDefaultModel(const std::string &type, const std::stri
         node->AddAttribute("parm1", "16");
         node->DeleteAttribute("StringType");
         node->AddAttribute("StringType", "Single Color White");
+        node->DeleteAttribute("PixelSize");
+        node->AddAttribute("PixelSize", "12");
         model = new ChannelBlockModel(node, *this, false);
     } else if (type == "Circle") {
         node->DeleteAttribute("parm3");

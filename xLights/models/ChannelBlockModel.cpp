@@ -164,7 +164,6 @@ void ChannelBlockModel::InitModel() {
     StringType = "Single Color Custom";
     customColor = xlWHITE;
     SingleNode = true;
-    pixelSize = 12;
 
     InitChannelBlock();
 
