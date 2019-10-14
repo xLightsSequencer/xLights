@@ -1180,6 +1180,14 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
 
         UpdateControllerProperties(grid);
         std::string newProtocol = GetControllerProtocol();
+
+        if (!IsPixelProtocol(newProtocol))
+        {
+            if (GetControllerConnection()->GetAttribute("channel", "-1") == "-1")
+            {
+                GetControllerConnection()->AddAttribute("channel", "1");
+            }
+        }
         if (
             ((newProtocol == "DMX" || newProtocol == "PixelNet" || newProtocol == "Renard" || newProtocol == "LOR") && IsPixelProtocol(oldProtocol)) ||
             ((oldProtocol == "DMX" || oldProtocol == "PixelNet" || oldProtocol == "Renard" || oldProtocol == "LOR") && IsPixelProtocol(newProtocol)) ||
