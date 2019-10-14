@@ -522,7 +522,6 @@
     <ClCompile Include="..\xLights\outputs\SyncrolightEthernetOutput.cpp">
       <Filter>Outputs</Filter>
     </ClCompile>
-    <ClCompile Include="..\xLights\msw_utils\d3video.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\xLights\AudioManager.h" />
@@ -1034,7 +1033,6 @@
     <ClInclude Include="..\xLights\outputs\SyncrolightEthernetOutput.h">
       <Filter>Outputs</Filter>
     </ClInclude>
-    <ClInclude Include="..\xLights\msw_utils\d3video.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

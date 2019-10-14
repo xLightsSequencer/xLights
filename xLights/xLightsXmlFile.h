@@ -96,7 +96,7 @@ class xLightsXmlFile : public wxFileName
         void SetTimingSectionName(const std::string & section, const std::string & name);
         bool TimingAlreadyExists(const std::string & section, xLightsFrame* xLightsParent);
         wxArrayString GetTimingList() const { return timing_list; }
-        wxArrayString GetTimingList(SequenceElements& seq_elements);
+        wxArrayString GetTimingList(const SequenceElements& seq_elements);
         void ProcessAudacityTimingFiles(const wxString& dir, const wxArrayString& filenames, xLightsFrame* xLightsParent);
         void ProcessLorTiming(const wxString& dir, const wxArrayString& filenames, xLightsFrame* xLightsParent);
         void ProcessXTiming(const wxString& dir, const wxArrayString& filenames, xLightsFrame* xLightsParent);

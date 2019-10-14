@@ -246,7 +246,6 @@
     <ClCompile Include="models\ViewObject.cpp" />
     <ClCompile Include="models\ViewObjectManager.cpp" />
     <ClCompile Include="models\WholeHouseModel.cpp" />
-    <ClCompile Include="msw_utils\d3video.cpp" />
     <ClCompile Include="MultiControllerUploadDialog.cpp" />
     <ClCompile Include="NoteRangeDialog.cpp" />
     <ClCompile Include="OpenGLShaders.cpp" />
@@ -647,7 +646,6 @@
     <ClInclude Include="effects\ServoEffect.h" />
     <ClInclude Include="effects\ServoPanel.h" />
     <ClInclude Include="IPEntryDialog.h" />
-    <ClInclude Include="msw_utils\d3video.h" />
     <ClInclude Include="MultiControllerUploadDialog.h" />
     <ClInclude Include="NoteRangeDialog.h" />
     <ClInclude Include="OpenGLShaders.h" />

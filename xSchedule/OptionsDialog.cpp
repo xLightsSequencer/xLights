@@ -27,6 +27,7 @@ const long OptionsDialog::ID_CHECKBOX6 = wxNewId();
 const long OptionsDialog::ID_CHECKBOX7 = wxNewId();
 const long OptionsDialog::ID_CHECKBOX8 = wxNewId();
 const long OptionsDialog::ID_CHECKBOX9 = wxNewId();
+const long OptionsDialog::ID_CHECKBOX10 = wxNewId();
 const long OptionsDialog::ID_STATICTEXT2 = wxNewId();
 const long OptionsDialog::ID_LISTVIEW1 = wxNewId();
 const long OptionsDialog::ID_BUTTON5 = wxNewId();
@@ -105,6 +106,9 @@ OptionsDialog::OptionsDialog(wxWindow* parent, CommandManager* commandManager, S
 	CheckBox_SuppressAudioOnRemotes = new wxCheckBox(this, ID_CHECKBOX9, _("Suppress audio on remotes"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX9"));
 	CheckBox_SuppressAudioOnRemotes->SetValue(true);
 	FlexGridSizer7->Add(CheckBox_SuppressAudioOnRemotes, 1, wxALL|wxEXPAND, 5);
+	CheckBox_HWAcceleratedVideo = new wxCheckBox(this, ID_CHECKBOX10, _("Use hardware accelerated video"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX10"));
+	CheckBox_HWAcceleratedVideo->SetValue(true);
+	FlexGridSizer7->Add(CheckBox_HWAcceleratedVideo, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer1->Add(FlexGridSizer7, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer5 = new wxFlexGridSizer(0, 3, 0, 0);
 	FlexGridSizer5->AddGrowableCol(1);
@@ -233,6 +237,7 @@ OptionsDialog::OptionsDialog(wxWindow* parent, CommandManager* commandManager, S
     CheckBox_RetryOpen->SetValue(options->IsRetryOpen());
     CheckBox_RemoteAllOff->SetValue(options->IsRemoteAllOff());
     CheckBox_SuppressAudioOnRemotes->SetValue(options->IsSuppressAudioOnRemotes());
+    CheckBox_HWAcceleratedVideo->SetValue(options->IsHardwareAcceleratedVideo());
 
     SpinCtrl_WebServerPort->SetValue(options->GetWebServerPort());
     SpinCtrl_PasswordTimeout->SetValue(options->GetPasswordTimeout());
@@ -310,6 +315,7 @@ void OptionsDialog::OnButton_OkClick(wxCommandEvent& event)
     _options->SetSync(CheckBox_Sync->GetValue());
     _options->SetSendOffWhenNotRunning(CheckBox_SendOffWhenNotRunning->GetValue());
     _options->SetParallelTransmission(CheckBox_MultithreadedTransmission->GetValue());
+    _options->SetHardwareAcceleratedVideo(CheckBox_HWAcceleratedVideo->GetValue());
     _options->SetRetryOutputOpen(CheckBox_RetryOpen->GetValue());
     _options->SetSendBackgroundWhenNotRunning(CheckBox_RunBackground->GetValue());
     _options->SetWebServerPort(SpinCtrl_WebServerPort->GetValue());

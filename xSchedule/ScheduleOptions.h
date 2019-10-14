@@ -186,6 +186,7 @@ class ScheduleOptions
     bool _remoteAllOff;
     bool _retryOutputOpen;
     bool _suppressAudioOnRemotes;
+    bool _hardwareAcceleratedVideo;
 
     public:
 
@@ -223,6 +224,8 @@ class ScheduleOptions
         bool IsSuppressAudioOnRemotes() const { return _suppressAudioOnRemotes; }
         void SetSendBackgroundWhenNotRunning(bool send) { if (_sendBackgroundWhenNotRunning != send) { _sendBackgroundWhenNotRunning = send; _changeCount++; } }
         bool IsSendBackgroundWhenNotRunning() const { return _sendBackgroundWhenNotRunning; }
+        void SetHardwareAcceleratedVideo(bool hardwareAcceleratedVideo) { if (_hardwareAcceleratedVideo != hardwareAcceleratedVideo) { _hardwareAcceleratedVideo = hardwareAcceleratedVideo; _changeCount++; } }
+        bool IsHardwareAcceleratedVideo() const { return _hardwareAcceleratedVideo; }
         void SetArtNetTimeCodeFormat(TIMECODEFORMAT artNetTimeCodeFormat) { if (artNetTimeCodeFormat != _artNetTimeCodeFormat) { _artNetTimeCodeFormat = artNetTimeCodeFormat; _changeCount++; } }
         TIMECODEFORMAT GetARTNetTimeCodeFormat() const { return _artNetTimeCodeFormat; }
         std::string GetCrashBehaviour() const { return _crashBehaviour; }

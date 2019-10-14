@@ -61,6 +61,7 @@
 #include "events/ListenerManager.h"
 #include "ExtraIPsDialog.h"
 #include "SyncFPP.h"
+#include "../xLights/VideoReader.h"
 
 #include "../include/xs_save.xpm"
 #include "../include/xs_otlon.xpm"
@@ -800,6 +801,8 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
         logger_base.error("Error loading schedule.");
         Close();
     }
+
+    VideoReader::InitHWAcceleration();
 
     __schedule->GetListenerManager()->ProcessPacket("State", "Startup");
 

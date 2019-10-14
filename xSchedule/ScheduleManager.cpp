@@ -34,6 +34,7 @@
 #include "Pinger.h"
 #include "events/ListenerManager.h"
 #include "wxJSON/jsonreader.h"
+#include "../xLights/VideoReader.h"
 
 #include <memory>
 
@@ -142,6 +143,17 @@ ScheduleManager::ScheduleManager(xScheduleFrame* frame, const std::string& showD
         _outputManager->SetParallelTransmission(_scheduleOptions->IsParallelTransmission());
         _outputManager->SetSyncEnabled(_scheduleOptions->IsSync());
         OutputManager::SetRetryOpen(_scheduleOptions->IsRetryOpen());
+    }
+
+    VideoReader::SetHardwareAcceleratedVideo(_scheduleOptions->IsHardwareAcceleratedVideo());
+
+    if (VideoReader::IsHardwareAcceleratedVideo())
+    {
+        logger_base.debug("Hardware accelerated video enabled.");
+    }
+    else
+    {
+        logger_base.debug("Hardware accelerated video disabled.");
     }
 
     _outputManager->Load(_showDir, _scheduleOptions->IsSync());

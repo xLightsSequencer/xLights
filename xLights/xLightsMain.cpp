@@ -2262,17 +2262,19 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
 
     SetAudioControls();
     
-    config->Read(_("xLightsVideoReaderAccelerated"), &VideoReader::HW_ACCELERATION_ENABLED, true);
-    MenuItemHardwareDecoder->Check(VideoReader::HW_ACCELERATION_ENABLED);
-
+    bool hwaccelvideo;
+    config->Read(_("xLightsVideoReaderAccelerated"), &hwaccelvideo, true);
+    VideoReader::SetHardwareAcceleratedVideo(hwaccelvideo);
+    MenuItemHardwareDecoder->Check(VideoReader::IsHardwareAcceleratedVideo());
 
 #ifdef __WXOSX_MAC__
     // we remove this on OSX because xSchedule is not simple to locate ... at least I dont know how to do it
     MenuItem_xSchedule->GetMenu()->Remove(MenuItem_xSchedule->GetId());
     
     VideoReader::InitHWAcceleration();
-#else
-    // at this point, only OSX supports hardware accelerated video decoding, remove the option on other platforms
+#endif
+
+#ifdef __LINUX__
     MenuSettings->Remove(MenuItemHardwareDecoder->GetId());
 #endif
 
@@ -10485,8 +10487,7 @@ void xLightsFrame::OnMenuItem_ColourDropperSelected(wxCommandEvent& event)
 
 void xLightsFrame::OnMenuItemHardwareVideoDecoderToggle(wxCommandEvent& event)
 {
-    VideoReader::HW_ACCELERATION_ENABLED = !VideoReader::HW_ACCELERATION_ENABLED;
+    VideoReader::SetHardwareAcceleratedVideo(!VideoReader::IsHardwareAcceleratedVideo());
     wxConfigBase* config = wxConfigBase::Get();
-    config->Write("xLightsVideoReaderAccelerated", VideoReader::HW_ACCELERATION_ENABLED);
+    config->Write("xLightsVideoReaderAccelerated", VideoReader::IsHardwareAcceleratedVideo());
 }
-

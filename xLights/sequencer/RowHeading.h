@@ -61,9 +61,9 @@ private:
     wxBitmap papagayox_icon;
     wxBitmap model_group_icon;
 
-    int mSelectedRow;
-    SequenceElements* mSequenceElements;
-    bool mCanPaste;
+    int mSelectedRow = -1;
+    SequenceElements* mSequenceElements = nullptr;
+    bool mCanPaste = false;
     const int _minRowHeadingWidth = 158;
     bool _dragging = false;
 

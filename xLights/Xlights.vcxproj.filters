@@ -742,7 +742,6 @@
     <ClCompile Include="ValueCurvesPanel.cpp" />
     <ClCompile Include="ColoursPanel.cpp" />
     <ClCompile Include="DragColoursBitmapButton.cpp" />
-    <ClCompile Include="msw_utils\d3video.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -1495,7 +1494,6 @@
     <ClInclude Include="ValueCurvesPanel.h" />
     <ClInclude Include="ColoursPanel.h" />
     <ClInclude Include="DragColoursBitmapButton.h" />
-    <ClInclude Include="msw_utils\d3video.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

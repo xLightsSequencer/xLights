@@ -55,8 +55,7 @@ void PlayListItemVideo::Load(wxXmlNode* node)
     _cacheVideo = (node->GetAttribute("CacheVideo", "FALSE") == "TRUE");
     _loopVideo = (node->GetAttribute("LoopVideo", "FALSE") == "TRUE");
     _suppressVirtualMatrix = (node->GetAttribute("SuppressVM", "FALSE") == "TRUE");
-    OpenFiles(false);
-    CloseFiles();
+    _durationMS = VideoReader::GetVideoLength(_videoFile);
 }
 
 PlayListItemVideo::PlayListItemVideo() : PlayListItem()

@@ -11,8 +11,6 @@ extern "C"
 #include <libswscale/swscale.h>
 }
 
-#include "msw_utils/d3video.h"
-
 class VideoReader
 {
 public:
@@ -30,10 +28,11 @@ public:
     int GetPos();
     std::string GetFilename() const { return _filename; }
     int GetPixelChannels() const { return _wantAlpha ? 4 : 3; }
-
-    static bool HW_ACCELERATION_ENABLED;
+    static void SetHardwareAcceleratedVideo(bool accel);
+    static bool IsHardwareAcceleratedVideo() { return HW_ACCELERATION_ENABLED; }
     static void InitHWAcceleration();
 private:
+    static bool HW_ACCELERATION_ENABLED;
     bool readFrame(int timestampMS);
     void reopenContext();
     
@@ -45,22 +44,24 @@ private:
     long _frames;
     int _frameMS;
     bool _wantAlpha = false;
-	AVFormatContext* _formatContext;
-	AVCodecContext* _codecContext;
-	AVStream* _videoStream;
+	AVFormatContext* _formatContext = nullptr;
+	AVCodecContext* _codecContext = nullptr;
+	AVStream* _videoStream = nullptr;
+    AVCodec* _decoder = nullptr;
+    AVBufferRef* _hw_device_ctx = nullptr;
 	int _streamIndex;
 	int _width;
 	int _height;
-	AVFrame* _dstFrame; // the last frame
-    AVFrame* _dstFrame2; // the second to the last frame
-    AVFrame* _srcFrame; // the src frame
+	AVFrame* _dstFrame = nullptr; // the last frame
+    AVFrame* _dstFrame2 = nullptr; // the second to the last frame
+    AVFrame* _srcFrame = nullptr; // the src frame
+    AVFrame* _srcFrame2 = nullptr; // the src frame
     int _curPos;
-    SwsContext *_swsCtx;
+    SwsContext *_swsCtx = nullptr;
     AVPacket _packet;
 	AVPixelFormat _pixelFmt;
 	bool _atEnd;
     std::string _filename;
     bool _videoToolboxAccelerated; 
-    D3Video_va_dxva2_t* _dxva = nullptr;
 };
 #endif // VIDEOREADER_H

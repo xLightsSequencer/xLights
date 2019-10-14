@@ -2666,7 +2666,7 @@ void xLightsXmlFile::ProcessVixen3Timing(const wxString& dir, const wxArrayStrin
     xLightsParent->SetCursor(wxCURSOR_ARROW);
 }
 
-wxArrayString xLightsXmlFile::GetTimingList(SequenceElements& seq_elements)
+wxArrayString xLightsXmlFile::GetTimingList(const SequenceElements& seq_elements)
 {
     timing_list.Clear();
     int num_elements = seq_elements.GetElementCount();

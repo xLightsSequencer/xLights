@@ -291,8 +291,6 @@
 		<Unit filename="../xLights/kiss_fft/tools/kiss_fftr.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="../xLights/msw_utils/d3video.cpp" />
-		<Unit filename="../xLights/msw_utils/d3video.h" />
 		<Unit filename="../xLights/outputs/ArtNetDialog.h" />
 		<Unit filename="../xLights/outputs/ArtNetOutput.cpp" />
 		<Unit filename="../xLights/outputs/ArtNetOutput.h" />

@@ -1017,8 +1017,6 @@
 		<Unit filename="models/WindowFrameModel.h" />
 		<Unit filename="models/WreathModel.cpp" />
 		<Unit filename="models/WreathModel.h" />
-		<Unit filename="msw_utils/d3video.cpp" />
-		<Unit filename="msw_utils/d3video.h" />
 		<Unit filename="osx_utils/TouchBars.cpp" />
 		<Unit filename="osx_utils/TouchBars.h" />
 		<Unit filename="outputs/ArtNetDialog.cpp" />
