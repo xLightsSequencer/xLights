@@ -2793,6 +2793,8 @@ AudioScanJob::AudioScanJob(AudioManager* audio)
 // Run the job
 void AudioScanJob::Process()
 {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("Audio scan job thread id 0x%x or %d", wxThread::GetCurrentId(), wxThread::GetCurrentId());
 	_status = "Processing.";
 	_audio->DoPrepareFrameData();
 	_status = "Done.";
@@ -2813,6 +2815,8 @@ AudioLoadJob::AudioLoadJob(AudioManager* audio, AVFormatContext* formatContext, 
 // Run the job
 void AudioLoadJob::Process()
 {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("Audio load job thread id 0x%x or %d", wxThread::GetCurrentId(), wxThread::GetCurrentId());
     _status = "Processing.";
     _audio->DoLoadAudioData(_formatContext, _codecContext, _audioStream, _frame);
     _status = "Done.";
