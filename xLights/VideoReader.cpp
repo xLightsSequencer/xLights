@@ -30,18 +30,6 @@ static inline bool IsVideoToolboxAcceleratedFrame(AVFrame *frame) { return false
 
 #ifdef __WXMSW__
 static enum AVPixelFormat __hw_pix_fmt = AV_PIX_FMT_NONE;
-#endif
-
-bool VideoReader::HW_ACCELERATION_ENABLED = false;
-
-void VideoReader::SetHardwareAcceleratedVideo(bool accel)
-{
-#ifdef __LINUX__
-    HW_ACCELERATION_ENABLED = false;
-#else
-    HW_ACCELERATION_ENABLED = accel;
-#endif
-}
 
 static enum AVPixelFormat get_hw_format(AVCodecContext* ctx, const enum AVPixelFormat* pix_fmts)
 {
@@ -56,6 +44,19 @@ static enum AVPixelFormat get_hw_format(AVCodecContext* ctx, const enum AVPixelF
     logger_base.error("Failed to get HW surface format. This is bad.");
     return AV_PIX_FMT_NONE;
 }
+#endif
+
+bool VideoReader::HW_ACCELERATION_ENABLED = false;
+
+void VideoReader::SetHardwareAcceleratedVideo(bool accel)
+{
+#ifdef __LINUX__
+    HW_ACCELERATION_ENABLED = false;
+#else
+    HW_ACCELERATION_ENABLED = accel;
+#endif
+}
+
 
 void VideoReader::InitHWAcceleration() {
     InitVideoToolboxAcceleration();
