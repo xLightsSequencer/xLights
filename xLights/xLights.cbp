@@ -126,6 +126,7 @@
 					<Add option="-lz" />
 					<Add option="-Wl,--large-address-aware" />
 					<Add option="-lpthread" />
+					<Add option="-lole32" />
 					<Add library="../lib/windows/libwxmsw31u.a" />
 					<Add library="../lib/windows/libwxmsw31u_gl.a" />
 					<Add library="../lib/windows/DbgHelp.Lib" />
@@ -294,6 +295,7 @@
 					<Add option="-lopengl32" />
 					<Add option="-Wl,-Map=../bin64/xLights.map" />
 					<Add option="-lz" />
+					<Add option="-lole32" />
 					<Add library="../lib/windows64/libwxmsw31u.a" />
 					<Add library="../lib/windows64/libwxmsw31u_gl.a" />
 					<Add library="../lib/windows64/libDbgHelp.a" />
@@ -1180,8 +1182,8 @@
 		<Unit filename="wxsmith/ColorCurveDialog.wxs" />
 		<Unit filename="wxsmith/ColorManagerDialog.wxs" />
 		<Unit filename="wxsmith/ColorPanel.wxs" />
-		<Unit filename="wxsmith/ColoursPanel.wxs" />
 		<Unit filename="wxsmith/ColorWashPanel.wxs" />
+		<Unit filename="wxsmith/ColoursPanel.wxs" />
 		<Unit filename="wxsmith/ControllerConnectionDialog.wxs" />
 		<Unit filename="wxsmith/ControllerVisualiseDialog.wxs" />
 		<Unit filename="wxsmith/ConvertDialog.wxs" />

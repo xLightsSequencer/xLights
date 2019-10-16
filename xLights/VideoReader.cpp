@@ -1,5 +1,4 @@
 #include "VideoReader.h"
-#include <log4cpp/Category.hh>
 
 //#define VIDEO_EXTRALOGGING
 
@@ -7,10 +6,13 @@
 #include <algorithm>
 #include <wx/filename.h>
 
-
 extern "C" {
 #include <libavcodec/avcodec.h>
+#include <libavutil/pixdesc.h>
+#include <libavutil/hwcontext.h>
 }
+
+#include <log4cpp/Category.hh>
 
 #ifdef __WXOSX__
 extern void InitVideoToolboxAcceleration();
@@ -26,14 +28,44 @@ static inline void VideoToolboxScaleImage(AVCodecContext *codecContext, AVFrame 
 static inline bool IsVideoToolboxAcceleratedFrame(AVFrame *frame) { return false; }
 #endif
 
+#ifdef __WXMSW__
+static enum AVPixelFormat __hw_pix_fmt = AV_PIX_FMT_NONE;
+#endif
+
 bool VideoReader::HW_ACCELERATION_ENABLED = false;
+
+void VideoReader::SetHardwareAcceleratedVideo(bool accel)
+{
+#ifdef __LINUX__
+    HW_ACCELERATION_ENABLED = false;
+#else
+    HW_ACCELERATION_ENABLED = accel;
+#endif
+}
+
+static enum AVPixelFormat get_hw_format(AVCodecContext* ctx, const enum AVPixelFormat* pix_fmts)
+{
+    const enum AVPixelFormat* p;
+    for (p = pix_fmts; *p != -1; p++) {
+        if (*p == __hw_pix_fmt)
+        {
+            return *p;
+        }
+    }
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.error("Failed to get HW surface format. This is bad.");
+    return AV_PIX_FMT_NONE;
+}
 
 void VideoReader::InitHWAcceleration() {
     InitVideoToolboxAcceleration();
 }
+
 VideoReader::VideoReader(const std::string& filename, int maxwidth, int maxheight, bool keepaspectratio, bool usenativeresolution/*false*/, bool wantAlpha)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    _maxwidth = maxwidth;
+    _maxheight = maxheight;
     _filename = filename;
     _valid = false;
 	_lengthMS = 0.0;
@@ -75,7 +107,7 @@ VideoReader::VideoReader(const std::string& filename, int maxwidth, int maxheigh
 	}
 
 	// Find the video stream
-	_streamIndex = av_find_best_stream(_formatContext, AVMEDIA_TYPE_VIDEO, -1, -1, nullptr, 0);
+	_streamIndex = av_find_best_stream(_formatContext, AVMEDIA_TYPE_VIDEO, -1, -1, &_decoder, 0);
 	if (_streamIndex < 0) {
         logger_base.error("VideoReader: Could not find any video stream in " + filename);
 		return;
@@ -83,9 +115,14 @@ VideoReader::VideoReader(const std::string& filename, int maxwidth, int maxheigh
 
 	_videoStream = _formatContext->streams[_streamIndex];
     _videoStream->discard = AVDISCARD_NONE;
-    
+
+    _width = _maxwidth;
+    _height = _maxheight;
+
     reopenContext();
-    
+
+    int origWidth = _width;
+    int origHeight = _height;
 
 	// at this point it is open and ready
    if ( usenativeresolution )
@@ -193,12 +230,30 @@ VideoReader::VideoReader(const std::string& filename, int maxwidth, int maxheigh
     _dstFrame2->data[0] = (uint8_t *)av_malloc(_width * _height * GetPixelChannels() * sizeof(uint8_t));
     _dstFrame2->format = _pixelFmt;
 
-    
-    _srcFrame = av_frame_alloc();
 
-    _swsCtx = sws_getContext(_codecContext->width, _codecContext->height, _codecContext->pix_fmt,
-                             _width, _height, _pixelFmt, SWS_BICUBIC, nullptr,
-                             nullptr, nullptr);
+    _srcFrame = av_frame_alloc();
+    _srcFrame2 = av_frame_alloc();
+
+#ifdef __WXMSW__
+    if (IsHardwareAcceleratedVideo() && _codecContext->hw_device_ctx != nullptr)
+    {
+        // we defer swsctx creation until we know the format
+    }
+    else
+#endif
+    {
+        _swsCtx = sws_getContext(_codecContext->width, _codecContext->height, _codecContext->pix_fmt,
+            _width, _height, _pixelFmt, SWS_BICUBIC, nullptr, nullptr, nullptr);
+        if (_swsCtx == nullptr)
+        {
+            logger_base.error("VideoReader: Error creating SWSContext");
+        }
+        else
+        {
+            logger_base.debug("Pixel format conversion %s -> %s.", av_get_pix_fmt_name(_codecContext->pix_fmt), av_get_pix_fmt_name(_pixelFmt));
+            logger_base.debug("Size conversion %d,%d -> %d,%d.", _codecContext->width, _codecContext->height, _width, _height);
+        }
+    }
 
     av_init_packet(&_packet);
 	_valid = true;
@@ -238,23 +293,59 @@ void VideoReader::reopenContext() {
         avcodec_close(_codecContext);
         _codecContext = nullptr;
     }
-    AVCodec *dec = avcodec_find_decoder(_videoStream->codecpar->codec_id);
-    if (!dec) {
-        logger_base.error("VideoReader: Could not find video codec for %s", _filename.c_str());
-        return;
+
+#ifdef __WXMSW__
+    enum AVHWDeviceType type;
+    if (IsHardwareAcceleratedVideo())
+    {
+        std::list<std::string> hwdecoders = { "d3d11va", "dxva2", "cuda", "qsv" };
+
+        for (const auto& it : hwdecoders)
+        {
+            type = av_hwdevice_find_type_by_name(it.c_str());
+            if (type == AV_HWDEVICE_TYPE_NONE) {
+                logger_base.debug("Device type %s is not supported.", (const char*)it.c_str());
+            }
+            else
+            {
+                logger_base.debug("Using device type %s.", (const char*)it.c_str());
+                break;
+            }
+        }
+        if (__hw_pix_fmt == AV_PIX_FMT_NONE)
+        {
+            for (int i = 0;; i++) {
+                const AVCodecHWConfig* config = avcodec_get_hw_config(_decoder, i);
+                if (!config) {
+                    logger_base.debug("Decoder %s does not support device type %s.",
+                        _decoder->name, av_hwdevice_get_type_name(type));
+                    type = AV_HWDEVICE_TYPE_NONE;
+                    break;
+                }
+                if (config->methods & AV_CODEC_HW_CONFIG_METHOD_HW_DEVICE_CTX &&
+                    config->device_type == type) {
+                    __hw_pix_fmt = config->pix_fmt;
+                    break;
+                }
+            }
+        }
+        logger_base.debug("Decoder Pixfmt %s.\n", av_get_pix_fmt_name(__hw_pix_fmt));
     }
-    _codecContext = avcodec_alloc_context3(dec);
+#endif
+
+    _codecContext = avcodec_alloc_context3(_decoder);
     if (!_codecContext) {
         logger_base.error("VideoReader: Failed to allocate codec context for %s", _filename.c_str());
         return;
     }
+
     _codecContext->thread_safe_callbacks = 1;
     _codecContext->thread_type = 0;
     _codecContext->thread_count = 1;
     _codecContext->skip_frame = AVDISCARD_NONE;
     _codecContext->skip_loop_filter = AVDISCARD_NONE;
     _codecContext->skip_idct = AVDISCARD_NONE;
-    
+
     _videoToolboxAccelerated = SetupVideoToolboxAcceleration(_codecContext, HW_ACCELERATION_ENABLED);
 
     // Copy codec parameters from input stream to output codec context
@@ -262,15 +353,41 @@ void VideoReader::reopenContext() {
         logger_base.error("VideoReader: Failed to copy %s codec parameters to decoder context", _filename.c_str());
         return;
     }
+
+#ifdef __WXMSW__
+    _codecContext->hwaccel_context = nullptr;
+    if (_codecContext->codec_id != AV_CODEC_ID_H264 && _codecContext->codec_id != AV_CODEC_ID_WMV3 && _codecContext->codec_id != AV_CODEC_ID_MPEG2VIDEO)
+    {
+        // dont enable hardware acceleration
+        logger_base.debug("Hardware decoding disabled for codec '%s'", _codecContext->codec->long_name);
+    }
+    else
+    {
+        if (IsHardwareAcceleratedVideo() && type != AV_HWDEVICE_TYPE_NONE)
+        {
+            if (av_hwdevice_ctx_create(&_hw_device_ctx, type, nullptr, nullptr, 0) < 0)
+            {
+                logger_base.debug("Failed to create specified HW device.");
+                type = AV_HWDEVICE_TYPE_NONE;
+            }
+            else
+            {
+                _codecContext->hw_device_ctx = av_buffer_ref(_hw_device_ctx);
+                _codecContext->get_format = get_hw_format;
+                logger_base.debug("Hardware decoding enabled for codec '%s'", _codecContext->codec->long_name);
+            }
+        }
+    }
+#endif
+
     //  Init the decoders, with or without reference counting
-    AVDictionary *opts = NULL;
+    AVDictionary *opts = nullptr;
     //av_dict_set(&opts, "refcounted_frames", "0", 0);
-    if (avcodec_open2(_codecContext, dec, &opts) < 0) {
+    if (avcodec_open2(_codecContext, _decoder, &opts) < 0) {
         logger_base.error("VideoReader: Couldn't open the context with the decoder in %s", _filename.c_str());
         return;
     }
 }
-
 
 static int64_t MStoDTS(int ms, double dtspersec)
 {
@@ -406,7 +523,8 @@ VideoReader::~VideoReader()
         av_free(_dstFrame2);
         _dstFrame2 = nullptr;
     }
-	if (_codecContext != nullptr)
+
+    if (_codecContext != nullptr)
 	{
         CleanupVideoToolbox(_codecContext);
 		avcodec_close(_codecContext);
@@ -417,12 +535,17 @@ VideoReader::~VideoReader()
 		avformat_close_input(&_formatContext);
 		_formatContext = nullptr;
 	}
+    if (_hw_device_ctx != nullptr)
+    {
+        av_buffer_unref(&_hw_device_ctx);
+        _hw_device_ctx = nullptr;
+    }
 }
 
 void VideoReader::Seek(int timestampMS)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    
+
     // we have to be valid
 	if (_valid) {
 #ifdef VIDEO_EXTRALOGGING
@@ -433,7 +556,7 @@ void VideoReader::Seek(int timestampMS)
             // so we need to reopen it to be able continue decoding
             reopenContext();
         }
-        
+
         if (timestampMS < _lengthMS) {
 			_atEnd = false;
 		} else {
@@ -445,7 +568,7 @@ void VideoReader::Seek(int timestampMS)
 		}
 
         avcodec_flush_buffers(_codecContext);
-        
+
         if (timestampMS <= 0) {
             int f = av_seek_frame(_formatContext, _streamIndex, 0, AVSEEK_FLAG_FRAME);
             if (f != 0) {
@@ -457,13 +580,14 @@ void VideoReader::Seek(int timestampMS)
                 logger_base.info("       VideoReader: Error seeking to %d.", timestampMS);
             }
         }
-		
+
         _curPos = -1000;
         GetNextFrame(timestampMS, 0);
 	}
 }
 
 bool VideoReader::readFrame(int timestampMS) {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     int rc = 0;
     if ((rc = avcodec_receive_frame(_codecContext, _srcFrame)) == 0) {
         _curPos = DTStoMS(_srcFrame->pts, _dtspersec);
@@ -471,19 +595,57 @@ bool VideoReader::readFrame(int timestampMS) {
         //printf("    Pos: %d    DTS: %d    Repeat: %d      PTS: %lld\n", _curPos, curPosDTS, _srcFrame->repeat_pict, _srcFrame->pts);
 
         if ((double)_curPos / (double)_frames >= ((double)timestampMS / (double)_frames) - 2.0) {
-    #ifdef VIDEO_EXTRALOGGING
+            #ifdef VIDEO_EXTRALOGGING
             logger_base.debug("    Decoding video frame %d.", _curPos);
-    #endif
+            #endif
             if (_videoToolboxAccelerated && IsVideoToolboxAcceleratedFrame(_srcFrame)) {
                 VideoToolboxScaleImage(_codecContext, _srcFrame, _dstFrame2);
             } else {
-                sws_scale(_swsCtx, _srcFrame->data, _srcFrame->linesize, 0,
-                          _codecContext->height, _dstFrame2->data,
+                AVFrame* f = nullptr;
+#ifdef __WXMSW__
+                if (IsHardwareAcceleratedVideo() && _codecContext->hw_device_ctx != nullptr && _srcFrame->format == __hw_pix_fmt) {
+                    /* retrieve data from GPU to CPU */
+                    if (av_hwframe_transfer_data(_srcFrame2, _srcFrame, 0) < 0) {
+                        f = _srcFrame;
+                    }
+                    else
+                    {
+                        f = _srcFrame2;
+                    }
+                    if (_swsCtx == nullptr)
+                    {
+                        logger_base.debug("Hardware format %s -> Software format %s.", av_get_pix_fmt_name((AVPixelFormat)_srcFrame->format), av_get_pix_fmt_name((AVPixelFormat)_srcFrame2->format));
+                        _swsCtx = sws_getContext(f->width, f->height, (AVPixelFormat)f->format,
+                            _width, _height, _pixelFmt, SWS_BICUBIC, nullptr, nullptr, nullptr);
+                        if (_swsCtx == nullptr)
+                        {
+                            logger_base.error("VideoReader: Error creating SWSContext");
+                        }
+                        else
+                        {
+                            logger_base.debug("Pixel format conversion %s -> %s.", av_get_pix_fmt_name(_codecContext->pix_fmt), av_get_pix_fmt_name(_pixelFmt));
+                            logger_base.debug("Size conversion %d,%d -> %d,%d.", _codecContext->width, _codecContext->height, _width, _height);
+                        }
+                    }
+                }
+                else
+#endif
+                {
+                    f = _srcFrame;
+                }
+
+                sws_scale(_swsCtx, f->data, f->linesize, 0,
+                          f->height, _dstFrame2->data,
                           _dstFrame2->linesize);
             }
             std::swap(_dstFrame, _dstFrame2);
         }
         av_frame_unref(_srcFrame);
+#ifdef __WXMSW__
+        if (IsHardwareAcceleratedVideo() && _codecContext->hw_device_ctx != nullptr && _srcFrame->format == __hw_pix_fmt) {
+            av_frame_unref(_srcFrame2);
+        }
+#endif
         return true;
     }
     return false;
@@ -495,7 +657,7 @@ AVFrame* VideoReader::GetNextFrame(int timestampMS, int gracetime)
 #ifdef VIDEO_EXTRALOGGING
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 #endif
-    
+
     if (!_valid || _frames == 0)
     {
         return nullptr;
@@ -522,7 +684,7 @@ AVFrame* VideoReader::GetNextFrame(int timestampMS, int gracetime)
         //prev frame, just return, avoids a seek
         return _dstFrame2;
     }
-    
+
     // If the caller is after an old frame we have to seek first
     if (currenttime > timestampMS + gracetime)
     {
@@ -552,6 +714,10 @@ AVFrame* VideoReader::GetNextFrame(int timestampMS, int gracetime)
                         firstframe = false;
                         currenttime = _curPos;
                     }
+                    //else
+                    //{
+                    //    break;
+                    //}
                 }
                 if (tryCount >= 5) {
                     //errors decoding....  need to reset and reseek
