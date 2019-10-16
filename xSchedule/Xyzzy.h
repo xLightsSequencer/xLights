@@ -174,7 +174,8 @@ protected:
     virtual void Reset() = 0;
 
 public:
-    XyzzyBase() {};
+    XyzzyBase() {}
+    virtual ~XyzzyBase() {}
     virtual bool Frame(uint8_t* buffer, size_t size, bool outputframe) = 0;
     virtual void Close(wxString& result, const wxString& reference) = 0;
     virtual bool Action(const wxString& command, const wxString& parameters, wxString& result, const wxString& reference) = 0;
