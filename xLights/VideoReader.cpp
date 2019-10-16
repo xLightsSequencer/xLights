@@ -505,18 +505,21 @@ VideoReader::~VideoReader()
         sws_freeContext(_swsCtx);
         _swsCtx = nullptr;
     }
-
     if (_srcFrame != nullptr) {
         av_free(_srcFrame);
         _srcFrame = nullptr;
     }
-	if (_dstFrame != nullptr) {
-		if (_dstFrame->data[0] != nullptr) {
-			av_free(_dstFrame->data[0]);
-		}
-		av_free(_dstFrame);
-		_dstFrame = nullptr;
-	}
+    if (_srcFrame2 != nullptr) {
+        av_free(_srcFrame2);
+        _srcFrame2 = nullptr;
+    }
+    if (_dstFrame != nullptr) {
+        if (_dstFrame->data[0] != nullptr) {
+            av_free(_dstFrame->data[0]);
+        }
+        av_free(_dstFrame);
+        _dstFrame = nullptr;
+    }
     if (_dstFrame2 != nullptr) {
         if (_dstFrame2->data[0] != nullptr) {
             av_free(_dstFrame2->data[0]);
