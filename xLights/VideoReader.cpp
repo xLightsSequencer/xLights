@@ -18,13 +18,13 @@ extern "C" {
 extern void InitVideoToolboxAcceleration();
 extern bool SetupVideoToolboxAcceleration(AVCodecContext *s, bool enabled);
 extern void CleanupVideoToolbox(AVCodecContext *s);
-extern void VideoToolboxScaleImage(AVCodecContext *codecContext, AVFrame *frame, AVFrame *dstFrame);
+extern bool VideoToolboxScaleImage(AVCodecContext *codecContext, AVFrame *frame, AVFrame *dstFrame);
 extern bool IsVideoToolboxAcceleratedFrame(AVFrame *frame);
 #else
 extern void InitVideoToolboxAcceleration() {}
 static inline bool SetupVideoToolboxAcceleration(AVCodecContext *s, bool enabled) { return false; }
 static inline void CleanupVideoToolbox(AVCodecContext *s) {}
-static inline void VideoToolboxScaleImage(AVCodecContext *codecContext, AVFrame *frame, AVFrame *dstFrame) {}
+static inline bool VideoToolboxScaleImage(AVCodecContext *codecContext, AVFrame *frame, AVFrame *dstFrame) {}
 static inline bool IsVideoToolboxAcceleratedFrame(AVFrame *frame) { return false; }
 #endif
 
@@ -575,15 +575,20 @@ bool VideoReader::readFrame(int timestampMS) {
         _curPos = DTStoMS(_srcFrame->pts, _dtspersec);
         //int curPosDTS = DTStoMS(_srcFrame->pkt_dts, _dtspersec);
         //printf("    Pos: %d    DTS: %d    Repeat: %d      PTS: %lld\n", _curPos, curPosDTS, _srcFrame->repeat_pict, _srcFrame->pts);
-
+        bool unrefSrcFrame2 = false;
         if ((double)_curPos / (double)_frames >= ((double)timestampMS / (double)_frames) - 2.0) {
             #ifdef VIDEO_EXTRALOGGING
             logger_base.debug("    Decoding video frame %d.", _curPos);
             #endif
+            bool hardwareScaled = false;
             if (_videoToolboxAccelerated && IsVideoToolboxAcceleratedFrame(_srcFrame)) {
-                VideoToolboxScaleImage(_codecContext, _srcFrame, _dstFrame2);
+                hardwareScaled = VideoToolboxScaleImage(_codecContext, _srcFrame, _dstFrame2);
+                if (!hardwareScaled && _swsCtx == nullptr) {
+                    _swsCtx = sws_getContext(_srcFrame->width, _srcFrame->height, (AVPixelFormat)_srcFrame->format,
+                                             _width, _height, _pixelFmt, SWS_BICUBIC, nullptr, nullptr, nullptr);
+                }
             }
-            else {
+            if (!hardwareScaled) {
 
                 AVFrame* f = nullptr;
 #ifdef __WXMSW__
@@ -594,6 +599,7 @@ bool VideoReader::readFrame(int timestampMS) {
                     }
                     else
                     {
+                        unrefSrcFrame2 = true;
                         f = _srcFrame2;
                     }
                 }
@@ -646,11 +652,9 @@ bool VideoReader::readFrame(int timestampMS) {
             std::swap(_dstFrame, _dstFrame2);
         }
         av_frame_unref(_srcFrame);
-#ifdef __WXMSW__
-        if (IsHardwareAcceleratedVideo() && _codecContext->hw_device_ctx != nullptr && _srcFrame->format == __hw_pix_fmt) {
+        if (unrefSrcFrame2) {
             av_frame_unref(_srcFrame2);
         }
-#endif
         return true;
     }
     return false;

@@ -249,13 +249,28 @@ xLightsFrame *topFrame = nullptr;
 
 
 thread_local std::list<std::string> traceMessages;
+static const std::string CONTEXT_MARKER = "--context--";
 
 void AddTraceMessage(const std::string &msg) {
     traceMessages.push_back(msg);
     if (traceMessages.size() > 20) {
-        traceMessages.pop_front();
+        if (traceMessages.front() != CONTEXT_MARKER) {
+            traceMessages.pop_front();
+        }
     }
 }
+void PushTraceContext() {
+    traceMessages.push_back(CONTEXT_MARKER);
+}
+void PopTraceContext() {
+    while (!traceMessages.empty() && (traceMessages.back() != CONTEXT_MARKER)) {
+        traceMessages.pop_back();
+    }
+    if (!traceMessages.empty() &&  (traceMessages.back() == CONTEXT_MARKER)) {
+        traceMessages.pop_back();
+    }
+}
+
 
 void handleCrash(void *data) {
     static volatile bool inCrashHandler = false;
