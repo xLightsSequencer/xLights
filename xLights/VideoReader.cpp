@@ -231,30 +231,8 @@ VideoReader::VideoReader(const std::string& filename, int maxwidth, int maxheigh
     _dstFrame2->data[0] = (uint8_t *)av_malloc(_width * _height * GetPixelChannels() * sizeof(uint8_t));
     _dstFrame2->format = _pixelFmt;
 
-
     _srcFrame = av_frame_alloc();
     _srcFrame2 = av_frame_alloc();
-
-#ifdef __WXMSW__
-    if (IsHardwareAcceleratedVideo() && _codecContext->hw_device_ctx != nullptr)
-    {
-        // we defer swsctx creation until we know the format
-    }
-    else
-#endif
-    {
-        _swsCtx = sws_getContext(_codecContext->width, _codecContext->height, _codecContext->pix_fmt,
-            _width, _height, _pixelFmt, SWS_BICUBIC, nullptr, nullptr, nullptr);
-        if (_swsCtx == nullptr)
-        {
-            logger_base.error("VideoReader: Error creating SWSContext");
-        }
-        else
-        {
-            logger_base.debug("Pixel format conversion %s -> %s.", av_get_pix_fmt_name(_codecContext->pix_fmt), av_get_pix_fmt_name(_pixelFmt));
-            logger_base.debug("Size conversion %d,%d -> %d,%d.", _codecContext->width, _codecContext->height, _width, _height);
-        }
-    }
 
     av_init_packet(&_packet);
 	_valid = true;
@@ -604,7 +582,9 @@ bool VideoReader::readFrame(int timestampMS) {
             #endif
             if (_videoToolboxAccelerated && IsVideoToolboxAcceleratedFrame(_srcFrame)) {
                 VideoToolboxScaleImage(_codecContext, _srcFrame, _dstFrame2);
-            } else {
+            }
+            else {
+
                 AVFrame* f = nullptr;
 #ifdef __WXMSW__
                 if (IsHardwareAcceleratedVideo() && _codecContext->hw_device_ctx != nullptr && _srcFrame->format == __hw_pix_fmt) {
@@ -616,8 +596,18 @@ bool VideoReader::readFrame(int timestampMS) {
                     {
                         f = _srcFrame2;
                     }
-                    if (_swsCtx == nullptr)
-                    {
+                }
+                else
+#endif
+                {
+                    f = _srcFrame;
+                }
+
+                // first time through we wont have a scale context so create it
+                if (_swsCtx == nullptr)
+                {
+#ifdef __WXMSW__
+                    if (IsHardwareAcceleratedVideo() && _codecContext->hw_device_ctx != nullptr && _srcFrame->format == __hw_pix_fmt) {
                         logger_base.debug("Hardware format %s -> Software format %s.", av_get_pix_fmt_name((AVPixelFormat)_srcFrame->format), av_get_pix_fmt_name((AVPixelFormat)_srcFrame2->format));
                         _swsCtx = sws_getContext(f->width, f->height, (AVPixelFormat)f->format,
                             _width, _height, _pixelFmt, SWS_BICUBIC, nullptr, nullptr, nullptr);
@@ -627,15 +617,26 @@ bool VideoReader::readFrame(int timestampMS) {
                         }
                         else
                         {
-                            logger_base.debug("Pixel format conversion %s -> %s.", av_get_pix_fmt_name(_codecContext->pix_fmt), av_get_pix_fmt_name(_pixelFmt));
+                            logger_base.debug("Hardware Decoding Pixel format conversion %s -> %s.", av_get_pix_fmt_name((AVPixelFormat)_srcFrame2->format), av_get_pix_fmt_name(_pixelFmt));
                             logger_base.debug("Size conversion %d,%d -> %d,%d.", _codecContext->width, _codecContext->height, _width, _height);
                         }
                     }
-                }
-                else
+                    else
 #endif
-                {
-                    f = _srcFrame;
+                    {
+                        // software decoding
+                        _swsCtx = sws_getContext(_codecContext->width, _codecContext->height, _codecContext->pix_fmt,
+                            _width, _height, _pixelFmt, SWS_BICUBIC, nullptr, nullptr, nullptr);
+                        if (_swsCtx == nullptr)
+                        {
+                            logger_base.error("VideoReader: Error creating SWSContext");
+                        }
+                        else
+                        {
+                            logger_base.debug("Software Decoding Pixel format conversion %s -> %s.", av_get_pix_fmt_name(_codecContext->pix_fmt), av_get_pix_fmt_name(_pixelFmt));
+                            logger_base.debug("Size conversion %d,%d -> %d,%d.", _codecContext->width, _codecContext->height, _width, _height);
+                        }
+                    }
                 }
 
                 sws_scale(_swsCtx, f->data, f->linesize, 0,
