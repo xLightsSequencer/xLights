@@ -24,13 +24,11 @@ extern bool IsVideoToolboxAcceleratedFrame(AVFrame *frame);
 extern void InitVideoToolboxAcceleration() {}
 static inline bool SetupVideoToolboxAcceleration(AVCodecContext *s, bool enabled) { return false; }
 static inline void CleanupVideoToolbox(AVCodecContext *s) {}
-static inline bool VideoToolboxScaleImage(AVCodecContext *codecContext, AVFrame *frame, AVFrame *dstFrame) {}
+static inline bool VideoToolboxScaleImage(AVCodecContext *codecContext, AVFrame *frame, AVFrame *dstFrame) { return false; }
 static inline bool IsVideoToolboxAcceleratedFrame(AVFrame *frame) { return false; }
 #endif
 
-#ifdef __WXMSW__
 static enum AVPixelFormat __hw_pix_fmt = AV_PIX_FMT_NONE;
-
 static enum AVPixelFormat get_hw_format(AVCodecContext* ctx, const enum AVPixelFormat* pix_fmts)
 {
     const enum AVPixelFormat* p;
@@ -44,7 +42,6 @@ static enum AVPixelFormat get_hw_format(AVCodecContext* ctx, const enum AVPixelF
     logger_base.error("Failed to get HW surface format. This is bad.");
     return AV_PIX_FMT_NONE;
 }
-#endif
 
 bool VideoReader::HW_ACCELERATION_ENABLED = false;
 
@@ -273,11 +270,16 @@ void VideoReader::reopenContext() {
         _codecContext = nullptr;
     }
 
-#ifdef __WXMSW__
     enum AVHWDeviceType type;
     if (IsHardwareAcceleratedVideo())
     {
+#if defined(__WXMSW__)
         std::list<std::string> hwdecoders = { "d3d11va", "dxva2", "cuda", "qsv" };
+#elif defined(__WXOSX__)
+        std::list<std::string> hwdecoders = { "videotoolbox" };
+#else
+        std::list<std::string> hwdecoders = { "vaapi", "vdpau" };
+#endif
 
         for (const auto& it : hwdecoders)
         {
@@ -310,7 +312,6 @@ void VideoReader::reopenContext() {
         }
         logger_base.debug("Decoder Pixfmt %s.\n", av_get_pix_fmt_name(__hw_pix_fmt));
     }
-#endif
 
     _codecContext = avcodec_alloc_context3(_decoder);
     if (!_codecContext) {
@@ -333,14 +334,15 @@ void VideoReader::reopenContext() {
         return;
     }
 
-#ifdef __WXMSW__
     _codecContext->hwaccel_context = nullptr;
+#ifdef __WXMSW__
     if (_codecContext->codec_id != AV_CODEC_ID_H264 && _codecContext->codec_id != AV_CODEC_ID_WMV3 && _codecContext->codec_id != AV_CODEC_ID_MPEG2VIDEO)
     {
         // dont enable hardware acceleration
         logger_base.debug("Hardware decoding disabled for codec '%s'", _codecContext->codec->long_name);
     }
     else
+#endif
     {
         if (IsHardwareAcceleratedVideo() && type != AV_HWDEVICE_TYPE_NONE)
         {
@@ -357,7 +359,6 @@ void VideoReader::reopenContext() {
             }
         }
     }
-#endif
 
     //  Init the decoders, with or without reference counting
     AVDictionary *opts = nullptr;
@@ -581,17 +582,12 @@ bool VideoReader::readFrame(int timestampMS) {
             logger_base.debug("    Decoding video frame %d.", _curPos);
             #endif
             bool hardwareScaled = false;
-            if (_videoToolboxAccelerated && IsVideoToolboxAcceleratedFrame(_srcFrame)) {
+            if (IsVideoToolboxAcceleratedFrame(_srcFrame)) {
                 hardwareScaled = VideoToolboxScaleImage(_codecContext, _srcFrame, _dstFrame2);
-                if (!hardwareScaled && _swsCtx == nullptr) {
-                    _swsCtx = sws_getContext(_srcFrame->width, _srcFrame->height, (AVPixelFormat)_srcFrame->format,
-                                             _width, _height, _pixelFmt, SWS_BICUBIC, nullptr, nullptr, nullptr);
-                }
             }
             if (!hardwareScaled) {
 
                 AVFrame* f = nullptr;
-#ifdef __WXMSW__
                 if (IsHardwareAcceleratedVideo() && _codecContext->hw_device_ctx != nullptr && _srcFrame->format == __hw_pix_fmt) {
                     /* retrieve data from GPU to CPU */
                     if (av_hwframe_transfer_data(_srcFrame2, _srcFrame, 0) < 0) {
@@ -604,7 +600,6 @@ bool VideoReader::readFrame(int timestampMS) {
                     }
                 }
                 else
-#endif
                 {
                     f = _srcFrame;
                 }
@@ -612,7 +607,6 @@ bool VideoReader::readFrame(int timestampMS) {
                 // first time through we wont have a scale context so create it
                 if (_swsCtx == nullptr)
                 {
-#ifdef __WXMSW__
                     if (IsHardwareAcceleratedVideo() && _codecContext->hw_device_ctx != nullptr && _srcFrame->format == __hw_pix_fmt) {
                         logger_base.debug("Hardware format %s -> Software format %s.", av_get_pix_fmt_name((AVPixelFormat)_srcFrame->format), av_get_pix_fmt_name((AVPixelFormat)_srcFrame2->format));
                         _swsCtx = sws_getContext(f->width, f->height, (AVPixelFormat)f->format,
@@ -628,7 +622,6 @@ bool VideoReader::readFrame(int timestampMS) {
                         }
                     }
                     else
-#endif
                     {
                         // software decoding
                         _swsCtx = sws_getContext(_codecContext->width, _codecContext->height, _codecContext->pix_fmt,
