@@ -286,7 +286,8 @@ void SyncUnicastFPP::SendFPPSync(const std::string& item, uint32_t stepMS, uint3
     }
     else
     {
-        fileType = SYNC_FILE_MEDIA;
+        sp->fileType = SYNC_FILE_MEDIA;
+        sp->frameNumber = 0;
     }
 
     if (fileType == SYNC_FILE_SEQ)
@@ -322,7 +323,8 @@ void SyncUnicastCSVFPP::SendFPPSync(const std::string& item, uint32_t stepMS, ui
     }
     else
     {
-        fileType = SYNC_FILE_MEDIA;
+        sp->fileType = SYNC_FILE_MEDIA;
+        sp->frameNumber = 0;
     }
 
     if (fileType == SYNC_FILE_SEQ)
