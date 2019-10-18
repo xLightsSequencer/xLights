@@ -270,6 +270,7 @@ void VideoReader::reopenContext() {
         _codecContext = nullptr;
     }
 
+    #if LIBAVFORMAT_VERSION_MAJOR > 57
     enum AVHWDeviceType type;
     if (IsHardwareAcceleratedVideo())
     {
@@ -312,6 +313,7 @@ void VideoReader::reopenContext() {
         }
         logger_base.debug("Decoder Pixfmt %s.\n", av_get_pix_fmt_name(__hw_pix_fmt));
     }
+    #endif
 
     _codecContext = avcodec_alloc_context3(_decoder);
     if (!_codecContext) {
@@ -334,6 +336,7 @@ void VideoReader::reopenContext() {
         return;
     }
 
+    #if LIBAVFORMAT_VERSION_MAJOR > 57
     _codecContext->hwaccel_context = nullptr;
 #ifdef __WXMSW__
     if (_codecContext->codec_id != AV_CODEC_ID_H264 && _codecContext->codec_id != AV_CODEC_ID_WMV3 && _codecContext->codec_id != AV_CODEC_ID_MPEG2VIDEO)
@@ -359,6 +362,7 @@ void VideoReader::reopenContext() {
             }
         }
     }
+    #endif
 
     //  Init the decoders, with or without reference counting
     AVDictionary *opts = nullptr;
@@ -588,6 +592,7 @@ bool VideoReader::readFrame(int timestampMS) {
             if (!hardwareScaled) {
 
                 AVFrame* f = nullptr;
+                #if LIBAVFORMAT_VERSION_MAJOR > 57
                 if (IsHardwareAcceleratedVideo() && _codecContext->hw_device_ctx != nullptr && _srcFrame->format == __hw_pix_fmt) {
                     /* retrieve data from GPU to CPU */
                     if (av_hwframe_transfer_data(_srcFrame2, _srcFrame, 0) < 0) {
@@ -600,6 +605,7 @@ bool VideoReader::readFrame(int timestampMS) {
                     }
                 }
                 else
+                #endif
                 {
                     f = _srcFrame;
                 }
@@ -607,6 +613,7 @@ bool VideoReader::readFrame(int timestampMS) {
                 // first time through we wont have a scale context so create it
                 if (_swsCtx == nullptr)
                 {
+                    #if LIBAVFORMAT_VERSION_MAJOR > 57
                     if (IsHardwareAcceleratedVideo() && _codecContext->hw_device_ctx != nullptr && _srcFrame->format == __hw_pix_fmt) {
                         logger_base.debug("Hardware format %s -> Software format %s.", av_get_pix_fmt_name((AVPixelFormat)_srcFrame->format), av_get_pix_fmt_name((AVPixelFormat)_srcFrame2->format));
                         _swsCtx = sws_getContext(f->width, f->height, (AVPixelFormat)f->format,
@@ -622,6 +629,7 @@ bool VideoReader::readFrame(int timestampMS) {
                         }
                     }
                     else
+                    #endif
                     {
                         // software decoding
                         _swsCtx = sws_getContext(_codecContext->width, _codecContext->height, _codecContext->pix_fmt,
