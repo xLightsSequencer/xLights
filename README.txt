@@ -11,8 +11,9 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (gil)    Fix PolyLine model rotation when it contains curves.  Fixes #1460.
 2019.59 October 19 2019
-   -- enh (keith)  Implement hardware video decoding on windows ... this is short of the OSX decoding as image  
+   -- enh (keith)  Implement hardware video decoding on windows ... this is short of the OSX decoding as image
                    sizing is still done in software
    -- bug (keith)  Consistently show the dmx channel on models in the model list on the layout tab
    -- bug (keith)  Fix channel block does not respect user node display size wishes
@@ -25,7 +26,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                    hardware video decoders for Video effect.  Can be enabled/disabled
                    on the Settings menu
    -- enh (dkulp)  Upgrade to ffmpeg 4.2.1
-   -- enh (scott)  Add shift-U and shift-D key bindings to add fade in/out for one second to selected effects 
+   -- enh (scott)  Add shift-U and shift-D key bindings to add fade in/out for one second to selected effects
                    - mostly there as an example of how to set these up
    -- bug (keith)  Address effect selection lag
    -- bug (keith)  Restore circles fade behaviour
@@ -61,7 +62,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- bug (dkulp)  In FPP upload use filename fixups to find media files
 2019.54 September 27 2019
    -- enh (keith)  Add support for video files with an alpha channel to video effect
-   -- bug (keith)  Fix double click output changing IP address (where last output with that ip address) does not update 
+   -- bug (keith)  Fix double click output changing IP address (where last output with that ip address) does not update
                    models that refer to the ip address
    -- bug (keith)  Fix 3D preview of custom model data does not render correctly if no sequence is open
    -- bug (keith)  Make vu meter timing track effects work with multi-layer timing tracks (but it will only use the top layer)
@@ -120,7 +121,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- enh (scott)  Added SubModel/Phoneme/State name to Node Select dialog header text
    -- enh (scott)  Added shift scroll wheel horizontal scrolling to Node Select dialog
    -- enh (keith)  Add xSchedule API for speeding up/slowing down animation playback
-   -- enh (keith)  Add option inclusion of user email in logs to help us reach out to people experiencing issues 
+   -- enh (keith)  Add option inclusion of user email in logs to help us reach out to people experiencing issues
                    where we need more information
    -- enh (keith)  Add progress while generating random effects as it runs slowly and it looks like it has hung
    -- enh (keith)  Add setup export to models export
@@ -155,11 +156,11 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- bug (keith)  Fix model group name does not change immediately on screen when renamed
    -- bug (keith)  Fix models disappear from layout screen but stay in model list
    -- bug (keith)  Fix model size matching ... particularly 2 and 3 point models
-   -- bug (keith)  Fix some custom model nodes vertically in the wrong position   
+   -- bug (keith)  Fix some custom model nodes vertically in the wrong position
    -- bug (keith)  Fix xSchedule ping invalidly shows success when it has failed
    -- bug (keith)  Fix dialog positioning to keep them fully on a single display
 2019.43 August 23, 2019
-   -- enh (keith)  Have layout and house preview 3d state follow each other  
+   -- enh (keith)  Have layout and house preview 3d state follow each other
    -- enh (scott)  FPP Connect Updates: Added Header Tool Tips and Right Click Option to Check/Uncheck Highlighted FSEQ Files
    -- bug (scott)  Fixed multi controller upload not showing Auto Start Channel E131 and DDP controllers
    -- bug (keith)  Fix multistring custom model returns incorrect string length
@@ -243,7 +244,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- enh (keith)  Enhance xSchedule ping to show failure count and only count 3 consecutive fails as an actual fail
    -- enh (keith)  Expand pixture effect frame rate adjustment upper limit to 20
    -- enh (keith)  Default saving xmap to same name as it was loaded from
-   -- enh (scott)  Added Layer Blending Help Button 
+   -- enh (scott)  Added Layer Blending Help Button
    -- enh (scott)  Added Import/Export Model to Circle Model
    -- enh (scott)  Added Toggle Effects Assistant Button to the Window Management Toolbar
    -- bug (scott)  Fixed buffer transform for "Overlay - Center" and "Overlay - Scaled"
@@ -255,16 +256,16 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- bug (keith)  Fix shader panel does not show scroll bars
    -- bug (keith)  Fix locked models resize when string properties change
    -- bug (keith)  Fix model groups dont highlight correctly when changed
-   -- bug (keith)  Fix erroneous check sequence error for single channel matrices 
-   -- bug (keith)  Fix value curve should not allow 0.0 or 1.0 point to be deleted 
+   -- bug (keith)  Fix erroneous check sequence error for single channel matrices
+   -- bug (keith)  Fix value curve should not allow 0.0 or 1.0 point to be deleted
    -- bug (keith)  Fix check sequence reports invalid error when text effect is drawing text from a lyric track
    -- bug (keith)  Fix crash importing uncompressed music xml file
    -- bug (keith)  Fix xSchedule white on white problem in dark mode for playlists list
    -- bug (keith)  Fix Twilio download of SMS messages
    -- bug (keith)  Fix deleting models when one has an effect on it
-   -- bug (pete)   Fix crash if render state is dumped while not rendering 
+   -- bug (pete)   Fix crash if render state is dumped while not rendering
    -- bug (dkulp)  Fix OSX version does not show readme from help menu
-   -- bug (dkulp)  More OpenGL work   
+   -- bug (dkulp)  More OpenGL work
 2019.35 July 16, 2019
    -- enh (dkulp)  FPP Connect - don't expand multi-universe E1.31 outputs to multiple lines
    -- enh (keith)  Add some checks for slow storage and overly outsized images/video that drives rendering work
@@ -299,7 +300,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- bug (keith)  Fix model bulk edit sometimes misses the focussed model
    -- bug (keith)  Fix cant see node numbers on custom model dialog on OSX dark mode
    -- bug (keith)  Fix bulk edit controller type not updating for all controller types
-   -- bug (dkulp)  Fix bug with FPP not always finding FPP instances   
+   -- bug (dkulp)  Fix bug with FPP not always finding FPP instances
 2019.32 June 30, 2019
    -- enh (keith)  Add MQTT support to xSchedule ... both publish and subscribe
    -- enh (keith)  Add support for static and dynamic PS to xSchedule RDS
@@ -423,7 +424,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 2019.22 April 21, 2019
    -- enh (scott)   Add right click print to controller visualiser
    -- enh (scott)   Add right click export to csv file to controller visualiser
-   -- enh (scott)   Updated Sandevice upload to support color order, brightness, group count, null pixel, and 
+   -- enh (scott)   Updated Sandevice upload to support color order, brightness, group count, null pixel, and
                     reverse controller settings on FIRST model.
    -- enh (scott)   Add Sandevice Controller types to e1.31 dialog.
    -- enh (keith)   Upgrade J1SYS P12 support to support a broader range of models
@@ -487,7 +488,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- enh (keith)   Move SMS retrieval to a separate thread
    -- bug (keith)   Fix a number of issues with models resizing when parameters change
    -- bug (keith)   Fix #1510 Model preview does not always centre model group
-   -- bug (keith)   Fix 3D model handles don't hold size while zooming   
+   -- bug (keith)   Fix 3D model handles don't hold size while zooming
 2019.16 March 9, 2019
    -- enh (scott)   Added Cut/Copy/Paste Support for 3D Objects in the Layout Tab
    -- enh (scott)   Added Arrow Key Support for 3D Objects in the Layout Tab

@@ -4722,14 +4722,18 @@ int PolyPointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, boo
             glm::vec3 world_new(pt.x, pt.y, pt.z);
             for (int i = 0; i < num_points; ++i) {
                 if (mPos[i].has_curve) {
+                    pt = glm::vec3(mPos[i].curve->get_cp0x() * scalex + worldPos_x, mPos[i].curve->get_cp0y() * scaley + worldPos_y, mPos[i].curve->get_cp0z() * scalez + worldPos_z);
+                    pt = glm::vec3(translateBack * Rotate * translateToOrigin * glm::vec4(pt, 1.0f));
+                    mPos[i].curve->set_cp0((pt.x - world_new.x) / scalex, (pt.y - world_new.y) / scaley, (pt.z - world_new.z) / scalez);
+                    pt = glm::vec3(mPos[i].curve->get_cp1x() * scalex + worldPos_x, mPos[i].curve->get_cp1y() * scaley + worldPos_y, mPos[i].curve->get_cp1z() * scalez + worldPos_z);
+                    pt = glm::vec3(translateBack * Rotate * translateToOrigin * glm::vec4(pt, 1.0f));
+                    mPos[i].curve->set_cp1((pt.x - world_new.x) / scalex, (pt.y - world_new.y) / scaley, (pt.z - world_new.z) / scalez);
                 }
-                else {
-                    pt = glm::vec3(mPos[i].x * scalex + worldPos_x, mPos[i].y * scaley + worldPos_y, mPos[i].z * scalez + worldPos_z);
-                    pt = glm::vec3(translateBack * Rotate * translateToOrigin* glm::vec4(pt, 1.0f));
-                    mPos[i].x = (pt.x - world_new.x) / scalex;
-                    mPos[i].y = (pt.y - world_new.y) / scaley;
-                    mPos[i].z = (pt.z - world_new.z) / scalez;
-                }
+                pt = glm::vec3(mPos[i].x * scalex + worldPos_x, mPos[i].y * scaley + worldPos_y, mPos[i].z * scalez + worldPos_z);
+                pt = glm::vec3(translateBack * Rotate * translateToOrigin* glm::vec4(pt, 1.0f));
+                mPos[i].x = (pt.x - world_new.x) / scalex;
+                mPos[i].y = (pt.y - world_new.y) / scaley;
+                mPos[i].z = (pt.z - world_new.z) / scalez;
             }
             worldPos_x = world_new.x;
             worldPos_y = world_new.y;
