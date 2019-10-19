@@ -11,7 +11,13 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
-2019.57 October 13 2019
+2019.59 October 19 2019
+   -- enh (keith)  Implement hardware video decoding on windows ... this is short of the OSX decoding as image  
+                   sizing is still done in software
+   -- bug (keith)  Consistently show the dmx channel on models in the model list on the layout tab
+   -- bug (keith)  Fix channel block does not respect user node display size wishes
+   -- bug (keith)  Fix xcc files not loading on colour curve and colours panel
+2019.58 October 13 2019
    -- bug (keith)  Fix dragging effects does not change effect to the right effect
 2019.57 October 13 2019
    -- enh (dkulp)  Point Queen Mary for OSX to digitally signed versions for Catalina

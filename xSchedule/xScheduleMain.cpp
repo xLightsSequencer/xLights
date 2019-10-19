@@ -1663,6 +1663,8 @@ void xScheduleFrame::OnMenuItem_OptionsSelected(wxCommandEvent& event)
         OutputManager::SetRetryOpen(__schedule->GetOptions()->IsRetryOpen());
         __schedule->GetOutputManager()->SetSyncEnabled(__schedule->GetOptions()->IsSync());
 
+        VideoReader::SetHardwareAcceleratedVideo(__schedule->GetOptions()->IsHardwareAcceleratedVideo());
+
         __schedule->OptionsChanged();
 
         CreateButtons();

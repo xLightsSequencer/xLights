@@ -342,7 +342,7 @@ void VideoReader::reopenContext() {
     if (_codecContext->codec_id != AV_CODEC_ID_H264 && _codecContext->codec_id != AV_CODEC_ID_WMV3 && _codecContext->codec_id != AV_CODEC_ID_MPEG2VIDEO)
     {
         // dont enable hardware acceleration
-        logger_base.debug("Hardware decoding disabled for codec '%s'", _codecContext->codec->long_name);
+        logger_base.debug("Hardware decoding disabled for codec '%s' going with software decoding.", _codecContext->codec->long_name);
     }
     else
 #endif
@@ -360,6 +360,10 @@ void VideoReader::reopenContext() {
                 _codecContext->get_format = get_hw_format;
                 logger_base.debug("Hardware decoding enabled for codec '%s'", _codecContext->codec->long_name);
             }
+        }
+        else
+        {
+            logger_base.debug("Software decoding enabled for codec '%s'", _codecContext->codec->long_name);
         }
     }
     #endif
