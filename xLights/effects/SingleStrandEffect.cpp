@@ -95,15 +95,15 @@ void SingleStrandEffect::Render(Effect *effect, SettingsMap &SettingsMap, Render
                                 SettingsMap["CHOICE_Skips_Direction"],
                                 SettingsMap.GetInt("SLIDER_Skips_Advance", 0));
     } else {
-        float offset = (float)buffer.curPeriod / ((float)buffer.curEffEndPer - (float)buffer.curEffStartPer);
+        double eff_pos = buffer.GetEffectTimeIntervalPosition();
         RenderSingleStrandChase(buffer,
                                 SettingsMap.Get("CHOICE_SingleStrand_Colors", "Palette"),
-                                GetValueCurveInt("Number_Chases", 1, SettingsMap, offset, SINGLESTRAND_CHASES_MIN, SINGLESTRAND_CHASES_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
-                                GetValueCurveInt("Color_Mix1", 10, SettingsMap, offset, SINGLESTRAND_COLOURMIX_MIN, SINGLESTRAND_COLOURMIX_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
+                                GetValueCurveInt("Number_Chases", 1, SettingsMap, eff_pos, SINGLESTRAND_CHASES_MIN, SINGLESTRAND_CHASES_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
+                                GetValueCurveInt("Color_Mix1", 10, SettingsMap, eff_pos, SINGLESTRAND_COLOURMIX_MIN, SINGLESTRAND_COLOURMIX_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
                                 SettingsMap.Get("CHOICE_Chase_Type1", "Left-Right"),
                                 SettingsMap.GetBool("CHECKBOX_Chase_3dFade1", false),
                                 SettingsMap.GetBool("CHECKBOX_Chase_Group_All", false),
-                                GetValueCurveDouble("Chase_Rotations", 1.0, SettingsMap, offset, SINGLESTRAND_ROTATIONS_MIN, SINGLESTRAND_ROTATIONS_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), 10)
+                                GetValueCurveDouble("Chase_Rotations", 1.0, SettingsMap, eff_pos, SINGLESTRAND_ROTATIONS_MIN, SINGLESTRAND_ROTATIONS_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), 10)
                                 );
     }
 }
