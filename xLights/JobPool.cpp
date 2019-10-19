@@ -69,16 +69,18 @@ static void startFunc(JobPoolWorker *jpw) {
 JobPoolWorker::JobPoolWorker(JobPool *p)
 : pool(p), stopped(false), currentJob(nullptr), status(STARTING), thread(nullptr)
 {
-    static log4cpp::Category &logger_jobpool = log4cpp::Category::getInstance(std::string("log_jobpool"));
-    logger_jobpool.debug("JobPoolWorker created  %X\n", this);
+    //static log4cpp::Category& logger_jobpool = log4cpp::Category::getInstance(std::string("log_jobpool"));
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     thread = new std::thread(startFunc, this);
     tid = thread->get_id();
+    logger_base.debug("JobPoolWorker created  0x%x", tid);
 }
 
 JobPoolWorker::~JobPoolWorker()
 {
-    static log4cpp::Category &logger_jobpool = log4cpp::Category::getInstance(std::string("log_jobpool"));
-    logger_jobpool.debug("JobPoolWorker destroyed  %X\n", this);
+    //static log4cpp::Category &logger_jobpool = log4cpp::Category::getInstance(std::string("log_jobpool"));
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("JobPoolWorker destroyed 0x%x", tid);
     status = UNKNOWN;
     thread->detach();
     delete thread;
@@ -195,7 +197,8 @@ std::string JobPoolWorker::GetThreadName() const
 void JobPoolWorker::Entry()
 {
     static log4cpp::Category &logger_jobpool = log4cpp::Category::getInstance(std::string("log_jobpool"));
-    logger_jobpool.debug("JobPoolWorker started  %X\n", this);
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("JobPoolWorker started  0x%x", tid);
 
     try {
         SetThreadName(pool->threadNameBase);
@@ -228,19 +231,21 @@ void JobPoolWorker::Entry()
         throw;
 #endif // HAVE_ABI_FORCEDUNWIND
     } catch ( ... ) {
-        logger_jobpool.warn("JobPoolWorker::Entry exiting due to unknown exception.  %X", this);
+        logger_base.error("JobPoolWorker::Entry exiting due to unknown exception. 0x%x", tid);
         --pool->numThreads;
         status = STOPPED;
         pool->RemoveWorker(this);
         wxTheApp->OnUnhandledException();
+        logger_base.debug("JobPoolWorker done 0x%x", tid);
         return;
     }
-    logger_jobpool.debug("JobPoolWorker::Entry exiting.  %X", this);
+    logger_base.debug("JobPoolWorker exiting 0x%x", tid);
     --pool->numThreads;
     status = STOPPED;
     pool->RemoveWorker(this);
-    logger_jobpool.debug("JobPoolWorker::Entry removed.  %X", this);
+    logger_jobpool.debug("JobPoolWorker::Entry removed.  0x%X", this);
     RemoveThreadName();
+    logger_base.debug("JobPoolWorker done 0x%x", tid);
 }
 
 void JobPoolWorker::ProcessJob(Job *job)
@@ -279,11 +284,13 @@ JobPool::JobPool(const std::string &n) : threadLock(), queueLock(), signal(), qu
 
 JobPool::~JobPool()
 {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if ( !queue.empty() ) {
         std::deque<Job*>::iterator iter = queue.begin();
         for (; iter != queue.end(); ++iter) {
             delete (*iter);
         }
+        logger_base.debug("Clearing JobPool queue.");
         queue.clear();
     }
     Stop();
