@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2019.60 October 20 2019
+   -- bug (dkulp)  Attempt to fix crash on thread exit
    -- bug (gil)    Fix value curves for Single Strand effect.  Fixes #1355.
    -- bug (gil)    Fix PolyLine model rotation when it contains curves.  Fixes #1460.
 2019.59 October 19 2019
