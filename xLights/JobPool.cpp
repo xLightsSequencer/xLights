@@ -26,6 +26,9 @@
 #include <log4cpp/Category.hh>
 
 
+// defined in xLightsMain
+extern void ClearTraceMessages();
+
 const std::string Job::EMPTY_STRING = "";
 
 
@@ -246,6 +249,8 @@ void JobPoolWorker::Entry()
     logger_jobpool.debug("JobPoolWorker::Entry removed.  0x%X", this);
     RemoveThreadName();
     logger_base.debug("JobPoolWorker done 0x%x", tid);
+    //clear trace messages for this thread
+    ClearTraceMessages();
 }
 
 void JobPoolWorker::ProcessJob(Job *job)
@@ -282,8 +287,6 @@ JobPool::JobPool(const std::string &n) : threadLock(), queueLock(), signal(), qu
 {
 }
 
-// defined in xLightsMain
-void ClearTraceMessages();
 
 JobPool::~JobPool()
 {

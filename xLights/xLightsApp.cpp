@@ -275,6 +275,7 @@ void ClearTraceMessages()
     while (!traceMessages.empty()) {
         traceMessages.pop_back();
     }
+    traceMessages.clear();
 }
 
 void handleCrash(void *data) {
