@@ -338,8 +338,6 @@ void VideoReader::reopenContext() {
     _codecContext->skip_loop_filter = AVDISCARD_NONE;
     _codecContext->skip_idct = AVDISCARD_NONE;
 
-    _videoToolboxAccelerated = SetupVideoToolboxAcceleration(_codecContext, HW_ACCELERATION_ENABLED);
-
     // Copy codec parameters from input stream to output codec context
     if (avcodec_parameters_to_context(_codecContext, _videoStream->codecpar) < 0) {
         logger_base.error("VideoReader: Failed to copy %s codec parameters to decoder context", _filename.c_str());
@@ -377,6 +375,7 @@ void VideoReader::reopenContext() {
         }
     }
     #endif
+    _videoToolboxAccelerated = SetupVideoToolboxAcceleration(_codecContext, HW_ACCELERATION_ENABLED);
 
     //  Init the decoders, with or without reference counting
     AVDictionary *opts = nullptr;
