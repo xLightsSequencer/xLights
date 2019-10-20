@@ -282,9 +282,13 @@ JobPool::JobPool(const std::string &n) : threadLock(), queueLock(), signal(), qu
 {
 }
 
+// defined in xLightsMain
+void ClearTraceMessages();
+
 JobPool::~JobPool()
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    ClearTraceMessages();
     if ( !queue.empty() ) {
         std::deque<Job*>::iterator iter = queue.begin();
         for (; iter != queue.end(); ++iter) {

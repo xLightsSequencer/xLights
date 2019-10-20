@@ -270,7 +270,12 @@ void PopTraceContext() {
         traceMessages.pop_back();
     }
 }
-
+void ClearTraceMessages()
+{
+    while (!traceMessages.empty()) {
+        traceMessages.pop_back();
+    }
+}
 
 void handleCrash(void *data) {
     static volatile bool inCrashHandler = false;
@@ -417,6 +422,10 @@ wxString xLightsFrame::GetThreadStatusReport() {
 
 void xLightsFrame::AddTraceMessage(const std::string &trc) {
     ::AddTraceMessage(trc);
+}
+
+void xLightsFrame::ClearTraceMessages() {
+    ::ClearTraceMessages();
 }
 
 void xLightsFrame::CreateDebugReport(wxDebugReportCompress *report, std::list<std::string> trc) {

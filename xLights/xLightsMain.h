@@ -358,6 +358,7 @@ public:
     void CreateDebugReport(wxDebugReportCompress *report, std::list<std::string> trc);
     wxString GetThreadStatusReport();
     void AddTraceMessage(const std::string &msg);
+    void ClearTraceMessages();
 
 	void SetAudioControls();
     void ImportXLights(const wxFileName &filename);
