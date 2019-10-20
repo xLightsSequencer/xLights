@@ -18,7 +18,6 @@ extern "C" {
 }
 
 #ifdef __WXMSW__
-#include <d3d9helper.h>
 #include <d3d9.h>
 #include <d3dcompiler.h>
 #endif
@@ -667,14 +666,17 @@ bool VideoReader::readFrame(int timestampMS) {
                                         }
                                     }
 
-                                    int pixsize = 4;
-                                    D3DFORMAT desired = D3DFORMAT::D3DFMT_A8R8G8B8;
+                                    //int pixsize = 4;
+                                    //D3DFORMAT desired = D3DFORMAT::D3DFMT_A8R8G8B8;
 // I WOULD LIKE TO DO CONVERSION TO RGB here but just as ARGB doesnt work so doesnt RGB .. but worse
                                     //if (!_wantAlpha)
                                     //{
                                     //    desired = D3DFORMAT::D3DFMT_R8G8B8;
                                     //    pixsize = 3;
                                     //}
+
+                                    // Lets not try to do format conversion as it does not work.
+                                    D3DFORMAT desired = surfaceDesc.Format;
 
                                     LPDIRECT3DSURFACE9 backBuffer = nullptr;
                                     hr = device->CreateRenderTarget(_width, _height, desired, surfaceDesc.MultiSampleType,
@@ -685,9 +687,6 @@ bool VideoReader::readFrame(int timestampMS) {
                                     }
                                     else
                                     {
-// PROBLEM I WAS HOPING THIS WOULD DO THE COLOURSPACE CONVERSION BUT IT DOESNT SEEM TO
-// INSTEAD I GET A VIDEO FRAME WITH AN EXTREME BLUE TINGE TO IT
-
                                         // copy the current surface to my render target - shrink and convert format
                                         hr = device->StretchRect(surface, NULL, backBuffer, NULL, D3DTEXF_NONE);
 
@@ -724,22 +723,37 @@ bool VideoReader::readFrame(int timestampMS) {
                                                 av_frame_unref(_srcFrame2);
 
                                                 //if (_wantAlpha)
-                                                {
-                                                    _srcFrame2->format = AV_PIX_FMT_ARGB;
-                                                }
+                                                //{
+                                                //    _srcFrame2->format = AV_PIX_FMT_ARGB;
+                                                //}
                                                 //else
                                                 //{
                                                 //    _srcFrame2->format = AV_PIX_FMT_RGB24;
                                                 //}
+                                                _srcFrame2->format = AV_PIX_FMT_NV12;
+
                                                 _srcFrame2->width = _width;
                                                 _srcFrame2->height = _height;
 
                                                 int ret = av_frame_get_buffer(_srcFrame2, 32);
                                                 wxASSERT(ret >= 0);
 
+                                                // This is the code for copying down RGB/RGBA data
+                                                //for (int i = 0; i < _height; i++)
+                                                //{
+                                                //    memcpy(_srcFrame2->data[0] + i * _srcFrame2->linesize[0], (uint8_t*)LockedRect.pBits + i * LockedRect.Pitch, _width * pixsize);
+                                                //}
+
+                                                // This is a manual download of the NV12 data into an AVFrame ... but we do it from our resized surface
+                                                // Copy Y
                                                 for (int i = 0; i < _height; i++)
                                                 {
-                                                    memcpy(_srcFrame2->data[0] + i * _srcFrame2->linesize[0], (uint8_t*)LockedRect.pBits + i * LockedRect.Pitch, _width * pixsize);
+                                                    memcpy(_srcFrame2->data[0] + i * _srcFrame2->linesize[0], (uint8_t*)LockedRect.pBits + i * LockedRect.Pitch, _width * 1);
+                                                }
+                                                // Copy UV
+                                                for (int i = 0; i < _height / 2; i++)
+                                                {
+                                                    memcpy(_srcFrame2->data[1] + i * _srcFrame2->linesize[1], (uint8_t*)LockedRect.pBits + _height * LockedRect.Pitch + i * LockedRect.Pitch, _width * 2);
                                                 }
 
                                                 backBuffer->UnlockRect();
