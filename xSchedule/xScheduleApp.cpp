@@ -176,6 +176,35 @@ void InitialiseLogging(bool fromMain)
 
 xScheduleFrame *topFrame = nullptr;
 
+thread_local std::list<std::string> traceMessages;
+static const std::string CONTEXT_MARKER = "--context--";
+
+void AddTraceMessage(const std::string& msg) {
+    traceMessages.push_back(msg);
+    if (traceMessages.size() > 20) {
+        if (traceMessages.front() != CONTEXT_MARKER) {
+            traceMessages.pop_front();
+        }
+    }
+}
+void PushTraceContext() {
+    traceMessages.push_back(CONTEXT_MARKER);
+}
+void PopTraceContext() {
+    while (!traceMessages.empty() && (traceMessages.back() != CONTEXT_MARKER)) {
+        traceMessages.pop_back();
+    }
+    if (!traceMessages.empty() && (traceMessages.back() == CONTEXT_MARKER)) {
+        traceMessages.pop_back();
+    }
+}
+void ClearTraceMessages()
+{
+    while (!traceMessages.empty()) {
+        traceMessages.pop_back();
+    }
+}
+
 #ifndef __WXMSW__
 #include <execinfo.h>
 #else
