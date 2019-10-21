@@ -171,6 +171,15 @@ Effect* EffectLayer::AddEffect(int id, const std::string &n, const std::string &
     //      with this here debug runs a bit slower but any overlap will ASSERT but it wont impact release build
     //wxASSERT(!HasEffectsInTimeRange(startTimeMS, endTimeMS));
 
+    if (startTimeMS < 0 && endTimeMS <= 0)
+    {
+        // This effect is not visible ... so lets not load it
+        return nullptr;
+    }
+
+    // make sure they dont hang over the left side
+    if (startTimeMS < 0) startTimeMS = 0;
+
     Effect *e = new Effect(this, id, name, settings, palette, startTimeMS, endTimeMS, Selected, Protected);
     wxASSERT(e != nullptr);
     mEffects.push_back(e);
