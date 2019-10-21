@@ -606,7 +606,7 @@ bool VideoReader::readFrame(int timestampMS) {
 
                 AVFrame* f = nullptr;
 #if LIBAVFORMAT_VERSION_MAJOR > 57
-                if (IsHardwareAcceleratedVideo() && _codecContext->hw_device_ctx != nullptr && _srcFrame->format == __hw_pix_fmt) {
+                if (IsHardwareAcceleratedVideo() && _codecContext->hw_device_ctx != nullptr && _srcFrame->format == __hw_pix_fmt && !_abandonHardwareDecode) {
 
     #ifdef __WXMSW__
                     bool hwscale = false;
@@ -622,6 +622,7 @@ bool VideoReader::readFrame(int timestampMS) {
                         if (hr != D3D_OK || device == nullptr)
                         {
                             logger_base.error("Unable to get DirectX device 0x%x", hr);
+                            _abandonHardwareDecode = true;
                         }
                         else
                         {
@@ -629,6 +630,7 @@ bool VideoReader::readFrame(int timestampMS) {
                             if (hr != D3D_OK)
                             {
                                 logger_base.error("Unable to begin DirectX scene 0x%x", hr);
+                                _abandonHardwareDecode = true;
                             }
                             else
                             {
@@ -637,6 +639,7 @@ bool VideoReader::readFrame(int timestampMS) {
                                 if (hr != D3D_OK)
                                 {
                                     logger_base.error("Unable to get DirectX surface description 0x%x", hr);
+                                    _abandonHardwareDecode = true;
                                 }
                                 else
                                 {
@@ -678,20 +681,36 @@ bool VideoReader::readFrame(int timestampMS) {
                                     D3DFORMAT desired = surfaceDesc.Format;
 
                                     LPDIRECT3DSURFACE9 backBuffer = nullptr;
+
+                                    bool useLock = true;
                                     hr = device->CreateRenderTarget(_width, _height, desired, surfaceDesc.MultiSampleType,
                                         surfaceDesc.MultiSampleQuality, true, &backBuffer, nullptr);
                                     if (hr != D3D_OK || backBuffer == nullptr)
                                     {
+                                        logger_base.debug("Tried to create render target %d,%d multisample type %d quality %d",
+                                            _width, _height, surfaceDesc.MultiSampleType, surfaceDesc.MultiSampleQuality);
                                         logger_base.error("Unable to create a render target 0x%x", hr);
+                                        logger_base.debug("Trying without a lock");
+                                        useLock = false;
+                                        hr = device->CreateRenderTarget(_width, _height, desired, surfaceDesc.MultiSampleType,
+                                            surfaceDesc.MultiSampleQuality, false, &backBuffer, nullptr);
+                                        if (hr != D3D_OK || backBuffer == nullptr)
+                                        {
+                                            logger_base.error("Unable to create a render target 0x%x without a lock", hr);
+                                            _abandonHardwareDecode = true;
+                                        }
                                     }
-                                    else
+
+                                    if (hr == D3D_OK && backBuffer != nullptr)
                                     {
                                         // copy the current surface to my render target - shrink and convert format
-                                        hr = device->StretchRect(surface, NULL, backBuffer, NULL, D3DTEXF_NONE);
+                                        // D3DTEXF_POINT or D3DTEXF_CONVOLUTIONMONO or D3DTEXF_LINEAR or D3DTEXF_GAUSSIANQUAD or D3DTEXF_NONE
+                                        hr = device->StretchRect(surface, nullptr, backBuffer, nullptr, D3DTEXF_LINEAR);
 
                                         if (hr != D3D_OK)
                                         {
                                             logger_base.error("Unable to scale and convert format in hardware 0x%x", hr);
+                                            _abandonHardwareDecode = true;
                                         }
                                         else
                                         {
@@ -710,10 +729,14 @@ bool VideoReader::readFrame(int timestampMS) {
 
                                             // copy down the data into _srcFrame2
                                             D3DLOCKED_RECT LockedRect;
-                                            hr = backBuffer->LockRect(&LockedRect, &tgtRect, D3DLOCK_READONLY);
+                                            if (useLock)
+                                            {
+                                                hr = backBuffer->LockRect(&LockedRect, &tgtRect, D3DLOCK_READONLY);
+                                            }
                                             if (hr != D3D_OK)
                                             {
                                                 logger_base.error("Unable to lock rect to copy down data 0x%x", hr);
+                                                _abandonHardwareDecode = true;
                                             }
                                             else
                                             {
@@ -755,7 +778,10 @@ bool VideoReader::readFrame(int timestampMS) {
                                                     memcpy(_srcFrame2->data[1] + i * _srcFrame2->linesize[1], (uint8_t*)LockedRect.pBits + _height * LockedRect.Pitch + i * LockedRect.Pitch, _width * 2);
                                                 }
 
-                                                backBuffer->UnlockRect();
+                                                if (useLock)
+                                                {
+                                                    backBuffer->UnlockRect();
+                                                }
 
                                                 hwscale = true;
 
@@ -796,8 +822,13 @@ bool VideoReader::readFrame(int timestampMS) {
                 // first time through we wont have a scale context so create it
                 if (_swsCtx == nullptr)
                 {
+                    if (_abandonHardwareDecode)
+                    {
+                        logger_base.warn("VideoReader: Hardware decoding abandoned due to directx error.");
+                    }
+
                     #if LIBAVFORMAT_VERSION_MAJOR > 57
-                    if (IsHardwareAcceleratedVideo() && _codecContext->hw_device_ctx != nullptr && _srcFrame->format == __hw_pix_fmt) {
+                    if (IsHardwareAcceleratedVideo() && _codecContext->hw_device_ctx != nullptr && _srcFrame->format == __hw_pix_fmt && !_abandonHardwareDecode) {
                         logger_base.debug("Hardware format %s -> Software format %s.", av_get_pix_fmt_name((AVPixelFormat)_srcFrame->format), av_get_pix_fmt_name((AVPixelFormat)_srcFrame2->format));
                         _swsCtx = sws_getContext(f->width, f->height, (AVPixelFormat)f->format,
                             _width, _height, _pixelFmt, SWS_BICUBIC, nullptr, nullptr, nullptr);

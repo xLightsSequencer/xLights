@@ -60,8 +60,9 @@ private:
     SwsContext *_swsCtx = nullptr;
     AVPacket _packet;
 	AVPixelFormat _pixelFmt;
-	bool _atEnd;
+	bool _atEnd = false;
     std::string _filename;
     bool _videoToolboxAccelerated; 
+    bool _abandonHardwareDecode = false;
 };
 #endif // VIDEOREADER_H
