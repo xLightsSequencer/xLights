@@ -1650,10 +1650,24 @@ float BoxedScreenLocation::GetMHeight() const {
     return RenderHt * scaley;
 }
 void BoxedScreenLocation::SetMWidth(float w) {
-    scalex = w / (RenderWi - 1);
+    if (RenderWi == 1)
+    { 
+        scalex = 1;
+    }
+    else
+    {
+        scalex = w / (RenderWi - 1);
+    }
 }
 void BoxedScreenLocation::SetMDepth(float d) {
-    scalez = d / (RenderWi - 1);
+    if (RenderWi == 1)
+    {
+        scalez = 1;
+    }
+    else
+    {
+        scalez = d / (RenderWi - 1);
+    }
 }
 float BoxedScreenLocation::GetMDepth() const {
     return scalez * RenderWi;
@@ -1662,7 +1676,14 @@ float BoxedScreenLocation::GetRestorableMDepth() const {
     return scalez * (RenderWi-1);
 }
 void BoxedScreenLocation::SetMHeight(float h) {
-    scaley = h / (RenderHt - 1);
+    if (RenderHt == 1)
+    {
+        scaley = 1;
+    }
+    else
+    {
+        scaley = h / (RenderHt - 1);
+    }
 }
 void BoxedScreenLocation::SetLeft(float x) {
     worldPos_x = x + (RenderWi * scalex / 2.0f);
@@ -5300,12 +5321,26 @@ float PolyPointScreenLocation::GetMWidth() const
 
 void PolyPointScreenLocation::SetMWidth(float w)
 {
-    scalex = w / (maxX - minX);
+    if (maxX == minX)
+    {
+        scalex = 1;
+    }
+    else
+    {
+        scalex = w / (maxX - minX);
+    }
 }
 
 void PolyPointScreenLocation::SetMDepth(float d)
 {
-    scalez = d / (maxZ - minZ);
+    if (maxZ == minZ)
+    {
+        scalez = 1;
+    }
+    else
+    {
+        scalez = d / (maxZ - minZ);
+    }
 }
 
 float PolyPointScreenLocation::GetMDepth() const
@@ -5315,7 +5350,14 @@ float PolyPointScreenLocation::GetMDepth() const
 
 void PolyPointScreenLocation::SetMHeight(float h)
 {
-    scaley = h / (maxY - minY);
+    if (maxY == minY)
+    {
+        scaley = 1;
+    }
+    else
+    {
+        scaley = h / (maxY - minY);
+    }
 }
 
 float PolyPointScreenLocation::GetRight() const {
