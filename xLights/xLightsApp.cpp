@@ -275,7 +275,8 @@ void ClearTraceMessages()
     while (!traceMessages.empty()) {
         traceMessages.pop_back();
     }
-    traceMessages.clear();
+    // This clear call is causing the crash
+    // traceMessages.clear();
 }
 
 void handleCrash(void *data) {
