@@ -59,6 +59,15 @@ static const std::string PLAYLIST_COL = "ID_PLAYLIST_";
 static const std::string UPLOAD_CONTROLLER_COL = "ID_CONTROLLER_";
 
 
+static inline int case_insensitive_match(std::string s1, std::string s2) {
+   //convert s1 and s2 into lower case strings
+   transform(s1.begin(), s1.end(), s1.begin(), ::tolower);
+   transform(s2.begin(), s2.end(), s2.begin(), ::tolower);
+   if(s1.compare(s2) == 0)
+      return 1; //The strings are same
+   return 0; //not matched
+}
+
 FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManager, wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
     _outputManager = outputManager;
@@ -154,7 +163,7 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
     wxString newForce = "";
     for (const auto &a : startAddresses) {
         for (const auto& fpp : instances) {
-            if (a == fpp->hostName || a == fpp->ipAddress) {
+            if (case_insensitive_match(a, fpp->hostName) || case_insensitive_match(a, fpp->ipAddress)) {
                 if (newForce != "") {
                     newForce.append(",");
                 }
@@ -164,6 +173,7 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
     }
     if (newForce != force) {
         config->Write("FPPConnectForcedIPs", newForce);
+        config->Flush();
     }
 
     prgs.Pulse("Checking for mounted media drives");
@@ -591,7 +601,10 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
     row = 0;
     xLightsFrame* frame = static_cast<xLightsFrame*>(GetParent());
     wxJSONValue outputs = FPP::CreateOutputUniverseFile(_outputManager);
+    wxProgressDialog prgs("", "", 1001, this, wxPD_CAN_ABORT | wxPD_APP_MODAL | wxPD_AUTO_HIDE);
     for (const auto& inst : instances) {
+        inst->progressDialog = &prgs;
+        inst->parent = this;
         std::string rowStr = std::to_string(row);
         if (!cancelled && doUpload[row]) {
             std::string playlist = GetChoiceValue(PLAYLIST_COL + rowStr);
@@ -623,7 +636,6 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
                 for (const auto& inst : instances) {
                     std::string rowStr = std::to_string(row);
                     if (!cancelled && doUpload[row]) {
-                        inst->parent = this;
                         std::string m2 = media;
                         if (!GetCheckValue(MEDIA_COL + rowStr)) {
                             m2 = "";
@@ -637,7 +649,8 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
                     row++;
                 }
                 if (!cancelled) {
-                    wxProgressDialog prgs("Generating FSEQ Files", "Generating " + fseq, 1000, this, wxPD_CAN_ABORT | wxPD_APP_MODAL);
+                    prgs.SetTitle("Generating FSEQ Files");
+                    prgs.Update(0, "Generating " + fseq, &cancelled);
                     prgs.Show();
                     int lastDone = 0;
                     static const int FRAMES_TO_BUFFER = 50;
@@ -680,7 +693,6 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
                         };
                         parallel_for(instances, func);
                     }
-                    prgs.Hide();
                 }
                 row = 0;
                 for (const auto &inst : instances) {
@@ -709,6 +721,8 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
         }
         row++;
     }
+    prgs.Update(1001);
+    prgs.Hide();
     if (!cancelled) {
         SaveSettings();
         EndDialog(wxID_CLOSE);

@@ -546,9 +546,9 @@ bool FPP::uploadFile(const std::string &filename, const std::string &file, bool 
     }
 
     bool cancelled = false;
-    wxProgressDialog progress("FPP Upload", "Transferring " + filename + " to " + ipAddress, 1000, parent, wxPD_CAN_ABORT | wxPD_APP_MODAL | wxPD_AUTO_HIDE);
+    progressDialog->SetTitle("FPP Upload");
     logger_base.debug("FPP upload via http of %s.", (const char*)filename.c_str());
-    progress.Update(0, "Transferring " + filename + " to " + ipAddress, &cancelled);
+    progressDialog->Update(0, "Transferring " + filename + " to " + ipAddress, &cancelled);
     int lastDone = 0;
 
     std::string ct = "Content-Type: application/octet-stream";
@@ -557,7 +557,7 @@ bool FPP::uploadFile(const std::string &filename, const std::string &file, bool 
     if (compress) {
         logger_base.debug("Uploading it compressed.");
         //determine size of gzipped data
-        progress.Show();
+        progressDialog->Show();
         unsigned char *rbuf = new unsigned char[bufLen];
         wxFile f_in(file);
         
@@ -579,7 +579,7 @@ bool FPP::uploadFile(const std::string &filename, const std::string &file, bool 
             f /= 3;
             if (f != lastDone) {
                 lastDone = f;
-                cancelled = !progress.Update(f, "Compressing " + filename, &cancelled);
+                cancelled = !progressDialog->Update(f, "Compressing " + filename, &cancelled);
                 wxYield();
                 if (cancelled) {
                     delete [] rbuf;
@@ -650,14 +650,14 @@ bool FPP::uploadFile(const std::string &filename, const std::string &file, bool 
     fileobj.Seek(0);
     data.data = (uint8_t*)memBuffPre.GetData();
     data.dataSize = memBuffPre.GetDataLen();
-    data.progress = &progress;
+    data.progress = progressDialog;
     data.file = &fileobj;
     data.postData =  (uint8_t*)memBuffPost.GetData();
     data.postDataSize = memBuffPost.GetDataLen();
     curl_easy_setopt(curl, CURLOPT_READFUNCTION, read_callback);
     curl_easy_setopt(curl, CURLOPT_READDATA, &data);
     
-    data.progress = &progress;
+    data.progress = progressDialog;
     data.progressString = "Transferring " + filename + " to " + ipAddress;
     data.lastDone = lastDone;
     data.compressed = compress;
@@ -686,7 +686,7 @@ bool FPP::uploadFile(const std::string &filename, const std::string &file, bool 
         curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
         logger_base.warn("Curl did not upload file:  %d   %s", response_code, error);
     }
-    progress.Update(1000, wxEmptyString, &cancelled);
+    progressDialog->Update(1000, wxEmptyString, &cancelled);
     return data.cancelled;
 }
 
@@ -697,10 +697,10 @@ bool FPP::copyFile(const std::string &filename,
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     bool cancelled = false;
 
-    wxProgressDialog progress("FPP Upload", "Transferring " + filename + " to " + ipAddress, 100, parent, wxPD_CAN_ABORT | wxPD_APP_MODAL | wxPD_AUTO_HIDE);
+    progressDialog->SetTitle("FPP Upload");
     logger_base.debug("FPP upload via file copy of %s.", (const char*)filename.c_str());
-    progress.Update(0, "Transferring " + filename + " to " + ipAddress, &cancelled);
-    progress.Show();
+    progressDialog->Update(0, "Transferring " + filename + " to " + ipAddress, &cancelled);
+    progressDialog->Show();
     wxFile in;
     in.Open(file);
 
@@ -722,21 +722,21 @@ bool FPP::copyFile(const std::string &filename,
                 }
                 done += read;
 
-                int prgs = done * 100 / length;
-                progress.Update(prgs, wxEmptyString, &cancelled);
+                int prgs = done * 1000 / length;
+                progressDialog->Update(prgs, wxEmptyString, &cancelled);
                 if (!cancelled) {
-                    cancelled = progress.WasCancelled();
+                    cancelled = progressDialog->WasCancelled();
                 }
             }
-            progress.Update(100, wxEmptyString);
+            progressDialog->Update(1000, wxEmptyString);
             in.Close();
             out.Close();
         } else {
-            progress.Update(100, wxEmptyString);
+            progressDialog->Update(1000, wxEmptyString);
             logger_base.warn("   Copy of file %s failed ... target file %s could not be opened.", (const char *)file.c_str(), (const char *)target.c_str());
         }
     } else {
-        progress.Update(100, wxEmptyString);
+        progressDialog->Update(1000, wxEmptyString);
         logger_base.warn("   Copy of file %s failed ... file could not be opened.", (const char *)file.c_str());
     }
     return cancelled;
@@ -1454,10 +1454,10 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
             }
             int sc = vport->GetStartChannel() - dmxOffset + 1;
             port["startChannel"] = sc;
-            port["channelCount"] = isDMX ? maxChan : 4096;
+            port["channelCount"] = isDMX ? (maxChan < 16 ? 16 : maxChan) : 4096;
             hasSerial = true;
             
-            rngs[sc] = isDMX ? maxChan : 4096;
+            rngs[sc] = isDMX ? (maxChan < 16 ? 16 : maxChan) : 4096;
         } else {
             port["startChannel"] = 0;
             port["channelCount"] = 0;
@@ -1469,7 +1469,7 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
         isDMX = true;
         hasSerial = false;
     }
-    dmxData["channelCount"] = isDMX ? maxChan : 4096;
+    dmxData["channelCount"] = isDMX ? (maxChan < 16 ? 16 : maxChan) : 4096;
     if (maxChan == 0) {
         dmxData["enabled"] = 0;
         dmxData["subType"] = wxString("off");

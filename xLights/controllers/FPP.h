@@ -15,6 +15,7 @@ class FSEQFile;
 class wxMemoryBuffer;
 typedef void CURL;
 class wxWindow;
+class wxProgressDialog;
 
 class PixelCapeInfo : public ControllerRules {
 public:
@@ -124,6 +125,7 @@ class FPP {
     bool isFPP;
 
     wxWindow *parent;
+    wxProgressDialog *progressDialog = nullptr;
 
     bool AuthenticateAndUpdateVersions();
     void LoadPlaylists(std::list<std::string> &playlists);

@@ -11,6 +11,9 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (dkulp)  FPP/BBB DMX strings - set minimum length to 16 channels.  Several controllers have issues with less than that
+   -- enh (dkulp)  FPP Connect - use a single progress dialog to avoid stealing focus for each thing transferred
+   -- bug (dkulp)  FPP Connect - only remembered manually added FPP instance hostnames if they exactly matched (case sensitive)
 2019.60 October 20 2019
    -- bug (dkulp)  Attempt to fix crash on thread exit
    -- bug (gil)    Fix value curves for Single Strand effect.  Fixes #1355.
