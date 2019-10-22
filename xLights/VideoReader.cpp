@@ -607,7 +607,6 @@ bool VideoReader::readFrame(int timestampMS) {
                 AVFrame* f = nullptr;
 #if LIBAVFORMAT_VERSION_MAJOR > 57
                 if (IsHardwareAcceleratedVideo() && _codecContext->hw_device_ctx != nullptr && _srcFrame->format == __hw_pix_fmt && !_abandonHardwareDecode) {
-
     #ifdef __WXMSW__
                     bool hwscale = false;
                     if (__hw_pix_fmt == AV_PIX_FMT_DXVA2_VLD)
@@ -825,6 +824,7 @@ bool VideoReader::readFrame(int timestampMS) {
                     if (_abandonHardwareDecode)
                     {
                         logger_base.warn("VideoReader: Hardware decoding abandoned due to directx error.");
+                        f = _srcFrame;
                     }
 
                     #if LIBAVFORMAT_VERSION_MAJOR > 57
