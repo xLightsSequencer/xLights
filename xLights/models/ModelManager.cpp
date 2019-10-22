@@ -498,7 +498,15 @@ bool ModelManager::ReworkStartChannel() const
                     itm.second->GetControllerProtocol() != ""
                     ) // we dont muck with unassigned models or no protocol models
                 {
-                    wxString cc = wxString::Format("%s:%d:%02d", itm.second->GetControllerProtocol(), itm.second->GetSmartRemote(), itm.second->GetControllerPort()).Lower();
+                    wxString cc;
+                    if (Model::IsPixelProtocol(itm.second->GetControllerProtocol()))
+                    {
+                        cc = wxString::Format("%s:%d:%02d", itm.second->GetControllerProtocol(), itm.second->GetSmartRemote(), itm.second->GetControllerPort()).Lower();
+                    }
+                    else
+                    {
+                        cc = wxString::Format("%s:%02d", itm.second->GetControllerProtocol(), itm.second->GetControllerPort()).Lower();
+                    }
                     if (cmodels.find(cc) == cmodels.end())
                     {
                         std::list<Model*> ml;
@@ -697,7 +705,7 @@ bool ModelManager::ReworkStartChannel() const
                             sc = "!" + it->GetDescription() + ":" + wxString::Format("%d", msc);
                             itm->SetStartChannel(sc);
                             last = itm->GetName();
-                            ch = msc + itm->GetChanCount();
+                            ch = std::max(ch, (int32_t)msc + (int32_t)itm->GetChanCount());
                             if (osc != itm->ModelStartChannel)
                             {
                                 outputsChanged = true;

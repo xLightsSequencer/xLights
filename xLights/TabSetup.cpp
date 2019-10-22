@@ -313,7 +313,6 @@ bool xLightsFrame::SetDir(const wxString& newdir)
 
     logger_base.debug("Updating networks on setup tab.");
     _outputModelManager.AddImmediateWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "SetDir");
-    _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "SetDir");
     logger_base.debug("    Networks updated.");
 
     wxFileName kbf;
@@ -322,6 +321,11 @@ bool xLightsFrame::SetDir(const wxString& newdir)
     mainSequencer->keyBindings.Load(kbf);
 
     LoadEffectsFile();
+
+    logger_base.debug("Get start channels right.");
+    _outputModelManager.AddImmediateWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "SetDir");
+    _outputModelManager.AddImmediateWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "SetDir");
+    logger_base.debug("Start channels done.");
 
     if (mBackupOnLaunch)
     {
@@ -2533,10 +2537,17 @@ int xLightsFrame::SetZCPPPort(std::list<ZCPP_packet_t*>& modelDatas, int index, 
         }
         else
         {
-            if (port->GetModels().size() > 0)
+            sc = 999999999;
+            for (const auto it : port->GetModels())
             {
-                sc = port->GetStartChannel() - baseStart - port->GetFirstModel()->GetDMXChannelOffset() + 1;
+                // we ignore chained models as they cant be the first
+                if (it->GetModel()->GetModelChain() == "" || it->GetModel()->GetModelChain() == "Beginning")
+                {
+                    sc = std::min(sc, (int32_t)it->GetStartChannel() - (int32_t)baseStart - it->GetDMXChannelOffset() + 1);
+                    break;
+                }
             }
+            if (sc == 999999999) sc = 0;
         }
     }
     if (sc < 0) sc = 0;
@@ -2559,9 +2570,9 @@ int xLightsFrame::SetZCPPPort(std::list<ZCPP_packet_t*>& modelDatas, int index, 
         }
         else
         {
-            if (port->GetModels().size() > 0)
+            for (const auto& it : port->GetModels())
             {
-                c = port->GetEndChannel() - baseStart + 1;
+                c = std::max(c, it->GetEndChannel() - sc - baseStart + 1);
             }
         }
     }

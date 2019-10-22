@@ -498,7 +498,7 @@ int UDControllerPortModel::GetDMXChannelOffset()
 {
     wxXmlNode* node = _model->GetControllerConnection();
     if (node->HasAttribute("channel"))  return wxAtoi(node->GetAttribute("channel"));
-    return 0;
+    return 1;
 }
 
 UDControllerPortModel::UDControllerPortModel(Model* m, OutputManager* om, int string)
