@@ -2500,6 +2500,14 @@ void LayoutPanel::SaveEffects()
 
 void LayoutPanel::OnButtonSavePreviewClick(wxCommandEvent& event)
 {
+    // if we have auto layout make sure everything is up to date ... and update zcpp files
+    if (xlights->GetOutputManager()->GetAutoLayoutControllerNames().size() > 0)
+    {
+        xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::OnButtonSavePreviewClick");
+        xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "LayoutPanel::OnButtonSavePreviewClick");
+        xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "LayoutPanel::OnButtonSavePreviewClick");
+    }
+
     SaveEffects();
 }
 

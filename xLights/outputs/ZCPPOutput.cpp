@@ -318,7 +318,18 @@ bool ZCPPOutput::SetModelData(std::list<ZCPP_packet_t*> modelData, std::list<ZCP
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("ZCPP setting the model data %s.", (const char*)_description.c_str());
 
-    if (_modelData.size() != modelData.size() || _extraConfig.size() != extraConfig.size())
+    wxString fileName = GetIP();
+
+    if (_multicast)
+    {
+        fileName = ZCPP_MULTICAST_DATA_ADDRESS + wxString(GetIP()).AfterLast('.');
+    }
+
+    fileName.Replace(".", "_");
+    fileName += ".zcpp";
+    fileName = showDir + wxFileName::GetPathSeparator() + fileName;
+
+    if (_modelData.size() != modelData.size() || _extraConfig.size() != extraConfig.size() || !wxFile::Exists(fileName))
     {
         // different size so must be different
     }
@@ -394,17 +405,6 @@ bool ZCPPOutput::SetModelData(std::list<ZCPP_packet_t*> modelData, std::list<ZCP
     {
         _extraConfig.push_back(it);
     }
-
-    wxString fileName = GetIP();
-
-    if (_multicast)
-    {
-        fileName = ZCPP_MULTICAST_DATA_ADDRESS + wxString(GetIP()).AfterLast('.');
-    }
-
-    fileName.Replace(".", "_");
-    fileName += ".zcpp";
-    fileName = showDir + wxFileName::GetPathSeparator() + fileName;
 
     wxFile zf;
     if (zf.Create(fileName, true))
