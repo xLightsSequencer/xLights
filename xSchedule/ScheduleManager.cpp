@@ -1557,6 +1557,7 @@ bool ScheduleManager::IsQuery(const wxString& command)
         c == "getplaylistschedules" ||
         c == "getplaylistschedule" ||
         c == "getplayingstatus" ||
+        c == "getrangesset" ||
         c == "getbuttons")
     {
         return true;
@@ -3321,7 +3322,8 @@ bool ScheduleManager::Query(const wxString& command, const wxString& parameters,
 
     bool result = true;
     data = "";
-    if (command == "GetPlayLists")
+    std::string c = command.Lower();
+    if (c == "getplaylists")
     {
         data = "{\"playlists\":[";
         for (auto it = _playLists.begin(); it != _playLists.end(); ++it)
@@ -3337,7 +3339,7 @@ bool ScheduleManager::Query(const wxString& command, const wxString& parameters,
         }
         data += "],\"reference\":\""+reference+"\"}";
     }
-    else if (command == "GetPlayListSteps")
+    else if (c == "getplayliststeps")
     {
         PlayList* p = GetPlayList(DecodePlayList(parameters));
 
@@ -3386,7 +3388,7 @@ bool ScheduleManager::Query(const wxString& command, const wxString& parameters,
             msg = "Playlist '" + parameters + "' not found.";
         }
     }
-    else if (command == "GetMatrices")
+    else if (c == "getmatrices")
     {
         data = "{\"matrices\":[";
         auto ms = _scheduleOptions->GetMatrices();
@@ -3400,7 +3402,24 @@ bool ScheduleManager::Query(const wxString& command, const wxString& parameters,
         }
         data += "],\"reference\":\""+reference+"\"}";
     }
-    else if (command == "GetQueuedSteps")
+    else if (c == "getrangesset")
+    {
+        bool first = true;
+        data = "{\"overlaychannels\":[";
+        for (const auto& it : _overlayData)
+        {
+            if (!first)
+            {
+                data += ",";
+            }
+            data += "{\"startchannel\":\"" + wxString::Format("%ld", (long)it->GetStartChannel()) +
+                "\",\"channels\":\"" + wxString::Format(wxT("%ld"), (long)it->GetSize()) +
+                "\"}";
+            first = false;
+        }
+        data += "],\"reference\":\"" + reference + "\"}";
+    }
+    else if (c == "getqueuedsteps")
     {
         PlayList* p = _queuedSongs;
 
@@ -3418,7 +3437,7 @@ bool ScheduleManager::Query(const wxString& command, const wxString& parameters,
         }
         data += "],\"reference\":\""+reference+"\"}";
     }
-    else if (command == "ListWebFolders")
+    else if (c == "listwebfolders")
     {
         if (wxString(parameters).Contains(".."))
         {
@@ -3475,7 +3494,7 @@ bool ScheduleManager::Query(const wxString& command, const wxString& parameters,
             }
         }
     }
-    else if (command == "GetNextScheduledPlayList")
+    else if (c == "getnextscheduledplaylist")
     {
         PlayList* p = nullptr;
         Schedule* s = nullptr;;
@@ -3520,7 +3539,7 @@ bool ScheduleManager::Query(const wxString& command, const wxString& parameters,
                 "}";
         }
     }
-    else if (command == "GetPlayListSchedules")
+    else if (c == "getplaylistschedules")
     {
         PlayList* p = GetPlayList(DecodePlayList(parameters));
         if (p != nullptr)
@@ -3544,7 +3563,7 @@ bool ScheduleManager::Query(const wxString& command, const wxString& parameters,
             msg = "Playlist '" + parameters + "' not found.";
         }
     }
-    else if (command == "GetPlayListSchedule")
+    else if (c == "getplaylistschedule")
     {
         wxArrayString plsc = wxSplit(parameters, ',');
 
@@ -3577,7 +3596,7 @@ bool ScheduleManager::Query(const wxString& command, const wxString& parameters,
             msg = "Incorrect parameters. Playlist and schedule expected: " + parameters;
         }
     }
-    else if (command == "GetPlayingStatus")
+    else if (c == "getplayingstatus")
     {
         PlayList* p = GetRunningPlayList();
         if (p == nullptr || p->GetRunningStep() == nullptr)
@@ -3654,7 +3673,7 @@ bool ScheduleManager::Query(const wxString& command, const wxString& parameters,
             //logger_base.info("%s", (const char*)data.c_str());
         }
     }
-    else if (command == "GetButtons")
+    else if (c == "getbuttons")
     {
         data = _scheduleOptions->GetButtonsJSON(_commandManager, reference);
     }
