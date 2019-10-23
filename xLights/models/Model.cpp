@@ -1048,7 +1048,7 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         if (GetControllerName() != CONTROLLERS[event.GetValue().GetInteger()])
         {
             SetControllerName(CONTROLLERS[event.GetValue().GetInteger()]);
-            if (GetControllerPort() != 0)
+            if (GetControllerPort() != 0 && IsPixelProtocol())
             {
                 SetModelChain(">" + modelManager.GetLastModelOnPort(CONTROLLERS[event.GetValue().GetInteger()], GetControllerPort(), GetName(), GetControllerProtocol()));
             }
@@ -1118,8 +1118,16 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
                 {
                     grid->GetPropertyByName("ModelIndividualStartChannels.ModelStartChannel")->SetValue(ModelXml->GetAttribute("StartChannel", "1"));
                 }
-                // when the port changes we have to assume any existing model chain will break
-                SetModelChain(">" + modelManager.GetLastModelOnPort(GetControllerName(), event.GetValue().GetLong(), GetName(), GetControllerProtocol()));
+                if (IsPixelProtocol())
+                {
+                    // we only do this for pixels as dmx have the channel to base it off
+                    // when the port changes we have to assume any existing model chain will break
+                    SetModelChain(">" + modelManager.GetLastModelOnPort(GetControllerName(), event.GetValue().GetLong(), GetName(), GetControllerProtocol()));
+                }
+                else
+                {
+                    SetModelChain("Beginning");
+                }
             }
         }
 
