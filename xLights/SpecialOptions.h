@@ -20,7 +20,7 @@ public:
         if (showDir != "") __showDir = showDir;
         return __showDir;
     }
-    static std::string GetOption(const std::string& option, const std::string& default = "")
+    static std::string GetOption(const std::string& option, const std::string& defaultValue = "")
     {
         static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         static bool __loaded = false;
@@ -46,7 +46,7 @@ public:
                 __loaded = true;
             }
             __cache.clear();
-            return default;
+            return defaultValue;
         }
 
         if (!__loaded)
@@ -74,15 +74,15 @@ public:
             else
             {
                 logger_base.error("Unable to load " + file + " invalid xml.");
-                return default;
+                return defaultValue;
             }
         }
 
-        if (option == "") return default;
+        if (option == "") return defaultValue;
 
         if (__cache.find(option) == __cache.end())
         {
-            return default;
+            return defaultValue;
         }
 
         return __cache.at(option);
