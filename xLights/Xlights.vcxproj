@@ -889,6 +889,7 @@
     <ClInclude Include="SequenceViewManager.h" />
     <ClInclude Include="SevenSegmentDialog.h" />
     <ClInclude Include="ShaderDownloadDialog.h" />
+    <ClInclude Include="SpecialOptions.h" />
     <ClInclude Include="SplashDialog.h" />
     <ClInclude Include="StartChannelDialog.h" />
     <ClInclude Include="StrandNodeNamesDialog.h" />

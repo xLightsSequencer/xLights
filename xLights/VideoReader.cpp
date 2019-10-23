@@ -22,6 +22,8 @@ extern "C" {
 #include <d3dcompiler.h>
 #endif
 
+#include "SpecialOptions.h"
+
 #include <log4cpp/Category.hh>
 
 #ifdef __WXOSX__
@@ -357,7 +359,14 @@ void VideoReader::reopenContext() {
     {
         if (IsHardwareAcceleratedVideo() && type != AV_HWDEVICE_TYPE_NONE)
         {
-            if (av_hwdevice_ctx_create(&_hw_device_ctx, type, nullptr, nullptr, 0) < 0)
+            const char* opt = nullptr;
+
+#ifdef __WXMSW__
+            std::string so;
+            so = SpecialOptions::GetOption("dxva2_device", "0").c_str();
+            opt = (const char*)so.c_str();
+#endif
+            if (av_hwdevice_ctx_create(&_hw_device_ctx, type, opt, nullptr, 0) < 0)
             {
                 logger_base.debug("Failed to create specified HW device.");
                 type = AV_HWDEVICE_TYPE_NONE;

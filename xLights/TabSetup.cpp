@@ -44,6 +44,7 @@
 #include "osxMacUtils.h"
 #include "UtilFunctions.h"
 #include "models/Model.h"
+#include "SpecialOptions.h"
 
 #include "controllers/ControllerUploadData.h"
 #include "MultiControllerUploadDialog.h"
@@ -257,6 +258,9 @@ bool xLightsFrame::SetDir(const wxString& newdir)
     _outputManager.DeleteAllOutputs();
     CurrentDir = newdir;
     showDirectory = newdir;
+
+    SpecialOptions::StashShowDir(CurrentDir.ToStdString());
+    SpecialOptions::GetOption("", ""); // resets special options
 
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("Show directory set to : %s.", (const char *)showDirectory.c_str());

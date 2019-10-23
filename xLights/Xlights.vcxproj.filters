@@ -1494,6 +1494,7 @@
     <ClInclude Include="ValueCurvesPanel.h" />
     <ClInclude Include="ColoursPanel.h" />
     <ClInclude Include="DragColoursBitmapButton.h" />
+    <ClInclude Include="SpecialOptions.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

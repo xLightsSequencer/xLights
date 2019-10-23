@@ -420,6 +420,7 @@
     <ClInclude Include="..\xLights\outputs\SyncrolightSerialOutput.h" />
     <ClInclude Include="..\xLights\outputs\TestPreset.h" />
     <ClInclude Include="..\xLights\outputs\ZCPPOutput.h" />
+    <ClInclude Include="..\xLights\SpecialOptions.h" />
     <ClInclude Include="..\xLights\UtilFunctions.h" />
     <ClInclude Include="..\xLights\VideoReader.h" />
     <ClInclude Include="..\xLights\xLightsTimer.h" />

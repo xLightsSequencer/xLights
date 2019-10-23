@@ -1033,6 +1033,7 @@
     <ClInclude Include="..\xLights\outputs\SyncrolightEthernetOutput.h">
       <Filter>Outputs</Filter>
     </ClInclude>
+    <ClInclude Include="..\xLights\SpecialOptions.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

@@ -62,6 +62,7 @@
 #include "ExtraIPsDialog.h"
 #include "SyncFPP.h"
 #include "../xLights/VideoReader.h"
+#include "../xLights/SpecialOptions.h"
 
 #include "../include/xs_save.xpm"
 #include "../include/xs_otlon.xpm"
@@ -882,6 +883,10 @@ void xScheduleFrame::LoadSchedule()
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     wxASSERT(wxThread::IsMain());
+
+    // reset our special options
+    SpecialOptions::StashShowDir(_showDir);
+    SpecialOptions::GetOption("", "");
 
     logger_base.debug("Loading schedule.");
 
