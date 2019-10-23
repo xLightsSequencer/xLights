@@ -1009,7 +1009,7 @@ void PacketData::CopyFrom(PacketData* source, long targetType)
         if (_type == xFadeFrame::ID_E131SOCKET)
         {
             memset(&_data[44], 0x00, 64);
-            strcpy((char*)&_data[44], _tag.c_str());
+            strncpy((char*)&_data[44], _tag.c_str(), 64);
             _data[111] = GetNextSequenceNum(_universe);
         }
         else if (_type == xFadeFrame::ID_ARTNETSOCKET)
@@ -1027,7 +1027,7 @@ void PacketData::CopyFrom(PacketData* source, long targetType)
             InitialiseE131Header();
             memcpy(source->GetDataPtr(), GetDataPtr(), GetDataLength());
             memset(&_data[44], 0x00, 64);
-            strcpy((char*)&_data[44], _tag.c_str());
+            strncpy((char*)&_data[44], _tag.c_str(), 64);
             _data[111] = GetNextSequenceNum(_universe);
         }
         else if (_type == xFadeFrame::ID_ARTNETSOCKET)
