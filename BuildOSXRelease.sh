@@ -11,6 +11,7 @@ fi
 VER=$1
 
 echo "Building $VER"
+echo "static const wxString xlights_version_string  = \"${VER}\";" > xLights/xlights_build_version.h
 
 if [ -f ~/.apple-notarize-info ]; then
     #Load the stored signing info
@@ -128,3 +129,6 @@ if [ "${NOTARIZE_PWD}x" != "x" ]; then
     # staple the DMG's notarization to the dmg
     xcrun stapler staple -v xLights-$VER.dmg
 fi
+
+# cleanup the build version file
+rm xLights/xlights_build_version.h

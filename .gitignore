@@ -40,3 +40,4 @@ lib/linux/libliquidfun.a
 *.opensdf
 *.cbp.mak.orig
 ._*
+xLights/xlights_build_version.h
