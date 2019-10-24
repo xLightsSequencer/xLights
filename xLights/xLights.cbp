@@ -656,6 +656,8 @@
 		<Unit filename="TimingPanel.h" />
 		<Unit filename="TopEffectsPanel.cpp" />
 		<Unit filename="TopEffectsPanel.h" />
+		<Unit filename="TraceLog.cpp" />
+		<Unit filename="TraceLog.h" />
 		<Unit filename="UpdaterDialog.cpp" />
 		<Unit filename="UpdaterDialog.h" />
 		<Unit filename="UtilFunctions.cpp" />

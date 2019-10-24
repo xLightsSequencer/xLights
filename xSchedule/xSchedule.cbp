@@ -279,6 +279,8 @@
 		<Unit filename="../xLights/Parallel.cpp" />
 		<Unit filename="../xLights/Parallel.h" />
 		<Unit filename="../xLights/SequenceData.cpp" />
+		<Unit filename="../xLights/TraceLog.cpp" />
+		<Unit filename="../xLights/TraceLog.h" />
 		<Unit filename="../xLights/UtilFunctions.cpp" />
 		<Unit filename="../xLights/UtilFunctions.h" />
 		<Unit filename="../xLights/VideoReader.cpp" />
