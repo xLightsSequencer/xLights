@@ -14,7 +14,7 @@ class DragColoursBitmapButton : public wxBitmapButton
         void OnMouseLeftDown (wxMouseEvent& event);
         void SetBitmap(const wxBitmap &bmp);
         void SetColour(const std::string& colour);
-        std::string GetColour() const { return _c; }
+        const std::string &GetColour() const { return _c; }
 
     protected:
     private:
