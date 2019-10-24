@@ -74,12 +74,12 @@ static bool canUseFramebufferObjects()
 #endif
 
 #include "OpenGLShaders.h"
-
 #include "DrawGLUtils.h"
-
 #include <log4cpp/Category.hh>
 
-extern void AddTraceMessage(const std::string &msg);
+#include "TraceLog.h"
+using namespace TraceLog;
+
 
 namespace
 {

@@ -41,7 +41,8 @@
 #include "SanDevices.h"
 #include "J1Sys.h"
 
-
+#include "TraceLog.h"
+using namespace TraceLog;
 
 static std::map<std::string, PixelCapeInfo> CONTROLLER_TYPE_MAP = {
     {"PiHat", PixelCapeInfo("PiHat", 2, 0)},
@@ -1535,9 +1536,6 @@ public:
 };
 
 #define FPP_CTRL_PORT 32320
-
-//defined in xLightsMain
-void AddTraceMessage(const std::string &msg);
 
 void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &instances, bool doBroadcast, bool allPlatforms) {
 

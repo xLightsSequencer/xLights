@@ -10,6 +10,7 @@
 #include <functional>
 #include "xLightsVersion.h"
 #include "UtilFunctions.h"
+#include "TraceLog.h"
 
 #pragma region RenderCache
 
@@ -61,7 +62,7 @@ private:
         }
 
         logger_base.debug("Cache contained %d files.", (int)files.size());
-
+        TraceLog::ClearTraceMessages();
         return nullptr;
     }
 };

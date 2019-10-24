@@ -24,6 +24,7 @@
 #include "xLightsVersion.h"
 #include "Parallel.h"
 #include "UtilFunctions.h"
+#include "TraceLog.h"
 
 #include <log4cpp/Category.hh>
 #include <log4cpp/PropertyConfigurator.hh>
@@ -247,38 +248,6 @@ wxIMPLEMENT_APP_NO_MAIN(xLightsApp);
 
 xLightsFrame *topFrame = nullptr;
 
-
-thread_local std::list<std::string> traceMessages;
-static const std::string CONTEXT_MARKER = "--context--";
-
-void AddTraceMessage(const std::string &msg) {
-    traceMessages.push_back(msg);
-    if (traceMessages.size() > 20) {
-        if (traceMessages.front() != CONTEXT_MARKER) {
-            traceMessages.pop_front();
-        }
-    }
-}
-void PushTraceContext() {
-    traceMessages.push_back(CONTEXT_MARKER);
-}
-void PopTraceContext() {
-    while (!traceMessages.empty() && (traceMessages.back() != CONTEXT_MARKER)) {
-        traceMessages.pop_back();
-    }
-    if (!traceMessages.empty() &&  (traceMessages.back() == CONTEXT_MARKER)) {
-        traceMessages.pop_back();
-    }
-}
-void ClearTraceMessages()
-{
-    while (!traceMessages.empty()) {
-        traceMessages.pop_back();
-    }
-    // This clear call is causing the crash
-    // traceMessages.clear();
-}
-
 void handleCrash(void *data) {
     static volatile bool inCrashHandler = false;
     
@@ -402,8 +371,9 @@ void handleCrash(void *data) {
         report->AddFile(wxFileName(wxGetCwd(), "xLights_l4cpp.log").GetFullPath(), "xLights_l4cpp.log");
     }
     
-    std::list<std::string> trc = traceMessages;
-    if (!wxThread::IsMain() && topFrame != nullptr) 
+    std::list<std::string> trc;
+    TraceLog::GetTraceMessages(trc);
+    if (!wxThread::IsMain() && topFrame != nullptr)
     {
         topFrame->CallAfter(&xLightsFrame::CreateDebugReport, report, trc);
         wxSleep(600000);
@@ -423,11 +393,11 @@ wxString xLightsFrame::GetThreadStatusReport() {
 }
 
 void xLightsFrame::AddTraceMessage(const std::string &trc) {
-    ::AddTraceMessage(trc);
+    TraceLog::AddTraceMessage(trc);
 }
 
 void xLightsFrame::ClearTraceMessages() {
-    ::ClearTraceMessages();
+    TraceLog::ClearTraceMessages();
 }
 
 void xLightsFrame::CreateDebugReport(wxDebugReportCompress *report, std::list<std::string> trc) {
@@ -454,13 +424,13 @@ void xLightsFrame::CreateDebugReport(wxDebugReportCompress *report, std::list<st
         }
     }
     status += "\nMain thread traces:\n";
+    std::list<std::string> traceMessages;
+    TraceLog::GetTraceMessages(traceMessages);
     for (auto &a : traceMessages) {
         status += a;
         status += "\n";
     }
-
     
-
     wxFileName fileName(report->GetDirectory(), "backtrace.txt");
     wxFile file(fileName.GetFullPath(),  wxFile::write_append);
     file.Write("\n");

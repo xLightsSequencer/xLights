@@ -334,7 +334,6 @@
 		6794272621CC0E6500F7ED59 /* libzstd.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6794272521CC0E6500F7ED59 /* libzstd.a */; };
 		679484AD1CD8E998001A7B4F /* GenerateCustomModelDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 679484A91CD8E998001A7B4F /* GenerateCustomModelDialog.cpp */; };
 		679484AE1CD8E998001A7B4F /* VideoReader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 679484AB1CD8E998001A7B4F /* VideoReader.cpp */; };
-		6796BAE421DAF37C00F18EF7 /* FSEQFile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6796BAE321DAF35900F18EF7 /* FSEQFile.cpp */; };
 		6796BAE521DAF44600F18EF7 /* libzstd.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6794272521CC0E6500F7ED59 /* libzstd.a */; };
 		6797A1361F427205007CF7A0 /* EffectTimingDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6797A1341F427205007CF7A0 /* EffectTimingDialog.cpp */; };
 		679B1E371AD6C73200927259 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 679B1E361AD6C73200927259 /* Images.xcassets */; };
@@ -790,6 +789,9 @@
 		67F4C6171A097A35003E978F /* Image.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67F4C6141A097A35003E978F /* Image.cpp */; };
 		67F4C6181A097A35003E978F /* XlightsDrawable.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67F4C6151A097A35003E978F /* XlightsDrawable.cpp */; };
 		67F7EB791AC2DA2B0023C9B2 /* xlGLCanvas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67F7EB771AC2DA2B0023C9B2 /* xlGLCanvas.cpp */; };
+		67F89AF42361E21B00BD52A5 /* TraceLog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67F89AF32361E21B00BD52A5 /* TraceLog.cpp */; };
+		67F89AF62361F0B200BD52A5 /* TraceLog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67F89AF32361E21B00BD52A5 /* TraceLog.cpp */; };
+		67F89AF72361F0C800BD52A5 /* FSEQFile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6794272221CC075B00F7ED59 /* FSEQFile.cpp */; };
 		67FA9FD31C67837500FED13B /* AudioManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67FA9FD21C67837500FED13B /* AudioManager.cpp */; };
 		67FB9D1B1F4D21EB00983072 /* ShapePanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67FB9D181F4D21EB00983072 /* ShapePanel.cpp */; };
 		67FB9D1C1F4D21EB00983072 /* ShapeEffect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67FB9D1A1F4D21EB00983072 /* ShapeEffect.cpp */; };
@@ -1421,7 +1423,6 @@
 		679484AA1CD8E998001A7B4F /* GenerateCustomModelDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GenerateCustomModelDialog.h; sourceTree = "<group>"; };
 		679484AB1CD8E998001A7B4F /* VideoReader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = VideoReader.cpp; sourceTree = "<group>"; };
 		679484AC1CD8E998001A7B4F /* VideoReader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VideoReader.h; sourceTree = "<group>"; };
-		6796BAE321DAF35900F18EF7 /* FSEQFile.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = FSEQFile.cpp; path = xLights/FSEQFile.cpp; sourceTree = "<group>"; };
 		6797A1341F427205007CF7A0 /* EffectTimingDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = EffectTimingDialog.cpp; sourceTree = "<group>"; };
 		6797A1351F427205007CF7A0 /* EffectTimingDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EffectTimingDialog.h; sourceTree = "<group>"; };
 		679B1E361AD6C73200927259 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = xLights/Images.xcassets; sourceTree = "<group>"; };
@@ -2139,6 +2140,8 @@
 		67F4C6151A097A35003E978F /* XlightsDrawable.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = XlightsDrawable.cpp; sourceTree = "<group>"; };
 		67F7EB771AC2DA2B0023C9B2 /* xlGLCanvas.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = xlGLCanvas.cpp; sourceTree = "<group>"; };
 		67F7EB781AC2DA2B0023C9B2 /* xlGLCanvas.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = xlGLCanvas.h; sourceTree = "<group>"; };
+		67F89AF22361E21B00BD52A5 /* TraceLog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TraceLog.h; sourceTree = "<group>"; };
+		67F89AF32361E21B00BD52A5 /* TraceLog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TraceLog.cpp; sourceTree = "<group>"; };
 		67FA9FD11C67837500FED13B /* AudioManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AudioManager.h; sourceTree = "<group>"; };
 		67FA9FD21C67837500FED13B /* AudioManager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = AudioManager.cpp; sourceTree = "<group>"; };
 		67FB9D171F4D21EB00983072 /* ShapePanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ShapePanel.h; path = effects/ShapePanel.h; sourceTree = "<group>"; };
@@ -2989,7 +2992,6 @@
 		67E7086417B51AB400A22034 = {
 			isa = PBXGroup;
 			children = (
-				6796BAE321DAF35900F18EF7 /* FSEQFile.cpp */,
 				676CFAEB207D2BBD002EB5E7 /* wxJSON */,
 				677989A01F321BC200A26FA9 /* valuecurves */,
 				6733CF041E60659E00B97F60 /* xschedule.mac.properties */,
@@ -3125,6 +3127,8 @@
 		67E7087617B51AB400A22034 /* xLights */ = {
 			isa = PBXGroup;
 			children = (
+				67F89AF32361E21B00BD52A5 /* TraceLog.cpp */,
+				67F89AF22361E21B00BD52A5 /* TraceLog.h */,
 				6737275D234AB2FD00C6C2F2 /* ColoursPanel.cpp */,
 				6737275E234AB2FD00C6C2F2 /* ColoursPanel.h */,
 				67372760234AB2FD00C6C2F2 /* DragColoursBitmapButton.cpp */,
@@ -4139,6 +4143,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				67F89AF42361E21B00BD52A5 /* TraceLog.cpp in Sources */,
 				6794272421CC075C00F7ED59 /* FSEQFile.cpp in Sources */,
 				673C925B20A47CEF00E59F5D /* md5.cpp in Sources */,
 				3D585F311E7E541400A3F84F /* UtilFunctions.cpp in Sources */,
@@ -4545,11 +4550,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				67F89AF72361F0C800BD52A5 /* FSEQFile.cpp in Sources */,
+				67F89AF62361F0B200BD52A5 /* TraceLog.cpp in Sources */,
 				672CD318234E45D000B0AF4E /* xlVideoToolboxUtils.mm in Sources */,
 				675BECE42323DF070077C764 /* SyncrolightEthernetOutput.cpp in Sources */,
 				675BECE52323DF070077C764 /* SyncrolightSerialOutput.cpp in Sources */,
 				6758DE0622C5BBD300B24351 /* ZCPPOutput.cpp in Sources */,
-				6796BAE421DAF37C00F18EF7 /* FSEQFile.cpp in Sources */,
 				67B31CBA21AC2F0D005ECB82 /* Parallel.cpp in Sources */,
 				672F88C920E10BD1005BE1F4 /* PlayListItemMicrophone.cpp in Sources */,
 				670827FE2024C39C0002B617 /* LorController.cpp in Sources */,

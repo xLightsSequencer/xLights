@@ -46,7 +46,11 @@ int gettimeofday(struct timeval * tp, struct timezone * tzp)
 
 #include "FSEQFile.h"
 
-#if defined(PLATFORM_PI) || defined(PLATFORM_BBB) || defined(PLATFORM_ODROID) || defined(PLATFORM_ORANGEPI) || defined(PLATFORM_UNKNOWN)
+#if defined(PLATFORM_OSX)
+#define PLATFORM_UNKNOWN
+#endif
+
+#if defined(PLATFORM_PI) || defined(PLATFORM_BBB) || defined(PLATFORM_ODROID) || defined(PLATFORM_ORANGEPI) || defined(PLATFORM_UNKNOWN) || defined(PLATFORM_DOCKER)
 //for FPP, use FPP logging
 #include "log.h"
 #else
@@ -521,24 +525,16 @@ public:
         }
     }
 
-    virtual bool readFrame(uint8_t *data, size_t channels) {
+    virtual bool readFrame(uint8_t *data, uint32_t maxChannels) {
         if (m_data == nullptr) return false;
         uint32_t offset = 0;
         for (auto &rng : m_ranges) {
             uint32_t toRead = rng.second;
             if (offset + toRead <= m_size) {
-                uint32_t toCopy = std::min(toRead, (uint32_t)channels - rng.first);
-#ifdef _DEBUG
-#ifdef _WX_WX_H_
-                // this would have crashed if we didnt override toRead
-                if (toCopy != toRead) wxASSERT(false);
-#endif
-#endif
+                uint32_t toCopy = std::min(toRead, maxChannels - rng.first);
                 memcpy(&data[rng.first], &m_data[offset], toCopy);
                 offset += toRead;
-            }
-            else
-            {
+            } else {
                 return false;
             }
         }
@@ -904,7 +900,8 @@ public:
             //read the ranges into the buffer
             for (auto &rng : data->m_ranges) {
                 if (rng.first < m_file->getChannelCount()) {
-                    memcpy(&data->m_data[sz], &fdata[fidx + rng.first], rng.second);
+                    int start = fidx + rng.first;
+                    memcpy(&data->m_data[sz], &fdata[start], rng.second);
                     sz += rng.second;
                 }
             }
@@ -1237,14 +1234,21 @@ void V2FSEQFile::writeHeader() {
     if (!m_sparseRanges.empty()) {
         //make sure the sparse ranges fit, and then
         //recalculate the channel count for in the fseq
+        std::vector<std::pair<uint32_t, uint32_t>> newRanges;
         for (auto &a : m_sparseRanges) {
-            if (a.first + a.second > m_seqChannelCount) {
-                a.second = m_seqChannelCount - a.first;
+            if (a.first < m_seqChannelCount) {
+                if (a.first + a.second > m_seqChannelCount) {
+                    a.second = m_seqChannelCount - a.first;
+                }
+                newRanges.push_back(a);
             }
         }
-        m_seqChannelCount = 0;
-        for (auto &a : m_sparseRanges) {
-            m_seqChannelCount += a.second;
+        m_sparseRanges = newRanges;
+        if (!m_sparseRanges.empty()) {
+            m_seqChannelCount = 0;
+            for (auto &a : m_sparseRanges) {
+                m_seqChannelCount += a.second;
+            }
         }
     }
 
@@ -1429,16 +1433,24 @@ void V2FSEQFile::dumpInfo(bool indent) {
 
 void V2FSEQFile::prepareRead(const std::vector<std::pair<uint32_t, uint32_t>> &ranges) {
     if (m_sparseRanges.empty()) {
-        m_rangesToRead = ranges;
+        m_rangesToRead.clear();
         m_dataBlockSize = 0;
-        for (auto &rng : m_rangesToRead) {
+        for (auto rng : ranges) {
             //make sure we don't read beyond the end of the sequence data
             int toRead = rng.second;
-            if ((rng.first + toRead) > m_seqChannelCount) {
-                toRead = m_seqChannelCount - rng.first;
-                rng.second = toRead;
+            
+            if (rng.first < m_seqChannelCount) {
+                if ((rng.first + toRead) > m_seqChannelCount) {
+                    toRead = m_seqChannelCount - rng.first;
+                    rng.second = toRead;
+                }
+                m_dataBlockSize += toRead;
+                m_rangesToRead.push_back(rng);
             }
-            m_dataBlockSize += toRead;
+        }
+        if (m_dataBlockSize == 0) {
+            m_rangesToRead.push_back(std::pair<uint32_t, uint32_t>(0, getMaxChannel() + 1));
+            m_dataBlockSize = getMaxChannel();
         }
     } else if (m_compressionType != CompressionType::none) {
         //with compression, there is no way to NOT read the entire frame of data, we'll just

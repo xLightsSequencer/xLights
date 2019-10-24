@@ -25,9 +25,9 @@
 
 #include <log4cpp/Category.hh>
 
+#include "TraceLog.h"
+using namespace TraceLog;
 
-// defined in xLightsMain
-extern void ClearTraceMessages();
 
 const std::string Job::EMPTY_STRING = "";
 
@@ -291,7 +291,6 @@ JobPool::JobPool(const std::string &n) : threadLock(), queueLock(), signal(), qu
 JobPool::~JobPool()
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    ClearTraceMessages();
     if ( !queue.empty() ) {
         std::deque<Job*>::iterator iter = queue.begin();
         for (; iter != queue.end(); ++iter) {

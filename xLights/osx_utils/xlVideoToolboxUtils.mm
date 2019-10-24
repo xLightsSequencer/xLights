@@ -17,12 +17,13 @@ extern "C" {
 
 #include <log4cpp/Category.hh>
 
+#include "TraceLog.h"
+using namespace TraceLog;
+
 static CIContext *ciContext = nullptr;
 static CIColorKernel *rbFlipKernel = nullptr;
 
-extern void AddTraceMessage(const std::string &msg);
-extern void PushTraceContext();
-extern void PopTraceContext();
+
 
 
 static AVPixelFormat negotiate_pixel_format(AVCodecContext *s, const AVPixelFormat *fmt) {
