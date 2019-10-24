@@ -830,7 +830,7 @@ bool VideoReader::readFrame(int timestampMS) {
                 // first time through we wont have a scale context so create it
                 if (_swsCtx == nullptr)
                 {
-                    if (_abandonHardwareDecode)
+                    if (_abandonHardwareDecode || f == nullptr)
                     {
                         logger_base.warn("VideoReader: Hardware decoding abandoned due to directx error.");
                         f = _srcFrame;
@@ -855,6 +855,7 @@ bool VideoReader::readFrame(int timestampMS) {
                     #endif
                     {
                         // software decoding
+                        logger_base.debug("Software format %s -> Software format %s.", av_get_pix_fmt_name((AVPixelFormat)f->format), av_get_pix_fmt_name((AVPixelFormat)_pixelFmt));
                         _swsCtx = sws_getContext(f->width, f->height, (AVPixelFormat)f->format,
                             _width, _height, _pixelFmt, SWS_BICUBIC, nullptr, nullptr, nullptr);
                         if (_swsCtx == nullptr)
