@@ -264,7 +264,7 @@ MainSequencer::MainSequencer(wxWindow* parent, bool smallWaveform, wxWindowID id
     fnt.SetFractionalPointSize(10.0);
     CheckBox_SuspendRender->SetFont(fnt);
 #endif
-    
+
     logger_base.debug("                Create time display control");
     timeDisplay = new TimeDisplayControl(this, wxID_ANY);
     FlexGridSizer2->Add(timeDisplay, 1, wxALL |wxEXPAND, 0);
@@ -895,6 +895,20 @@ void MainSequencer::OnChar(wxKeyEvent& event)
                 event.StopPropagation();
             }
             break;
+        case 'y':
+        case 'Y':
+        case WXK_CONTROL_Y:
+            if (event.CmdDown() || event.ControlDown()) {
+                if( mSequenceElements != nullptr &&
+                   mSequenceElements->get_undo_mgr().CanRedo() ) {
+                    mSequenceElements->get_undo_mgr().RedoLastStep();
+                    PanelEffectGrid->ClearSelection();
+                    PanelEffectGrid->Refresh();
+                    PanelEffectGrid->sendRenderDirtyEvent();
+                }
+                event.StopPropagation();
+            }
+            break;
         case WXK_ESCAPE: {
             static bool escapeReenter = false;
 
@@ -981,6 +995,14 @@ void MainSequencer::DoUndo(wxCommandEvent& event) {
 }
 
 void MainSequencer::DoRedo(wxCommandEvent& event) {
+    if (PanelEffectGrid == nullptr) return;
+
+    if (mSequenceElements != nullptr && mSequenceElements->get_undo_mgr().CanRedo() ) {
+        mSequenceElements->get_undo_mgr().RedoLastStep();
+        PanelEffectGrid->ClearSelection();
+        PanelEffectGrid->Refresh();
+        PanelEffectGrid->sendRenderDirtyEvent();
+    }
 }
 
 void MainSequencer::SetLargeWaveform()

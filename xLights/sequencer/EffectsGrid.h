@@ -186,7 +186,7 @@ private:
     void CheckForPartialCell(int x_pos);
     void RaiseEffectDropped(int x, int y) const;
     void RaisePlayModelEffect(Element* element, Effect* effect,bool renderEffect) const;
-    
+
     std::set<EffectLayer *> GetLayersWithSelectedEffects() const;
     bool MultipleEffectsSelected() const;
     std::list<Effect*> GetSelectedEffects() const;
@@ -290,6 +290,7 @@ private:
     static const long ID_GRID_MNU_UNLOCK;
     static const long ID_GRID_MNU_TIMING;
     static const long ID_GRID_MNU_UNDO;
+    static const long ID_GRID_MNU_REDO;
     static const long ID_GRID_MNU_PRESETS;
     static const long ID_GRID_MNU_BREAKDOWN_PHRASE;
     static const long ID_GRID_MNU_HALVETIMINGS;

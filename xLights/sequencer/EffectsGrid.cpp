@@ -64,6 +64,7 @@ const long EffectsGrid::ID_GRID_MNU_LOCK = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_UNLOCK = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_TIMING = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_UNDO = wxNewId();
+const long EffectsGrid::ID_GRID_MNU_REDO = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_PRESETS = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_BREAKDOWN_PHRASE = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_HALVETIMINGS = wxNewId();
@@ -295,6 +296,13 @@ void EffectsGrid::rightClick(wxMouseEvent& event)
             menu_undo->Enable(false);
         }
 
+        // Redo
+        wxString redo_string = mSequenceElements->get_undo_mgr().GetRedoString();
+        wxMenuItem* menu_redo = mnuLayer.Append(ID_GRID_MNU_REDO,redo_string);
+        if( !mSequenceElements->get_undo_mgr().CanRedo() ) {
+            menu_redo->Enable(false);
+        }
+
         // Alignment
         mnuLayer.AppendSeparator();
         wxMenu *mnuAlignment = new wxMenu();
@@ -462,6 +470,13 @@ void EffectsGrid::OnGridPopup(wxCommandEvent& event)
         logger_base.debug("OnGridPopup - UNDO");
         mSelectedEffect = nullptr; // lets clear it as the undo may delete that effect ... and i cant be sure
         mSequenceElements->get_undo_mgr().UndoLastStep();
+        sendRenderDirtyEvent();
+    }
+    else if(id == ID_GRID_MNU_REDO)
+    {
+        logger_base.debug("OnGridPopup - REDO");
+        mSelectedEffect = nullptr; // lets clear it as the redo may delete that effect ... and i cant be sure
+        mSequenceElements->get_undo_mgr().RedoLastStep();
         sendRenderDirtyEvent();
     }
     else if( id == ID_GRID_MNU_ALIGN_START_TIMES )
@@ -6433,7 +6448,7 @@ void EffectsGrid::Draw()
 {
     if(!IsShownOnScreen()) return;
     if(!mIsInitialized) { InitializeGLCanvas(); }
-    
+
     if (mWindowResized && mTimeline != nullptr) {
         mTimeline->RecalcEndTime();  // force a recalc of the Timeline end time so that timing effect positions will calculate correct during redraw
     }

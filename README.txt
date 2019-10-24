@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (gil)    Add Redo option for the sequencer grid.  Fixes #555.
    -- enh (dkulp)  FPP/BBB DMX strings - set minimum length to 16 channels.  Several controllers have issues with less than that
    -- enh (dkulp)  FPP Connect - use a single progress dialog to avoid stealing focus for each thing transferred
    -- bug (dkulp)  FPP Connect - only remembered manually added FPP instance hostnames if they exactly matched (case sensitive)
