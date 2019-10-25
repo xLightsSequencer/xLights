@@ -51,7 +51,12 @@ static enum AVPixelFormat get_hw_format(AVCodecContext* ctx, const enum AVPixelF
         }
     }
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.error("Failed to get HW surface format. This is bad.");
+    logger_base.error("Failed to get HW surface format. This is bad - we will have to abandon video read. Suggest you turn off hardware video decoding or force change the device.");
+    logger_base.error("   Looking for %s but only found:", av_get_pix_fmt_name(__hw_pix_fmt));
+    for (p = pix_fmts; *p != -1; p++) {
+        logger_base.error("       %s", av_get_pix_fmt_name(*p));
+    }
+
     return AV_PIX_FMT_NONE;
 }
 
@@ -882,6 +887,11 @@ bool VideoReader::readFrame(int timestampMS) {
         }
         return true;
     }
+    else
+    {
+        logger_base.debug("avcodec_receive_frame failed %d - abandoning video read.", rc);
+        _abort = true;
+    }
     return false;
 }
 
@@ -935,14 +945,14 @@ AVFrame* VideoReader::GetNextFrame(int timestampMS, int gracetime)
             firstframe = true;
         }
 
-		while ((firstframe || ((currenttime + (_frameMS / 2.0)) < timestampMS)) &&
+		while (!_abort && (firstframe || ((currenttime + (_frameMS / 2.0)) < timestampMS)) &&
                currenttime <= _lengthMS &&
                (av_read_frame(_formatContext, &_packet)) == 0) {
             // Is this a packet from the video stream?
 			if (_packet.stream_index == _streamIndex) {
 				// Decode video frame
                 int tryCount = 0;
-                while (avcodec_send_packet(_codecContext, &_packet) && tryCount < 5) {
+                while (!_abort && avcodec_send_packet(_codecContext, &_packet) && tryCount < 5) {
                     tryCount++;
                     if (readFrame(timestampMS)) {
                         firstframe = false;

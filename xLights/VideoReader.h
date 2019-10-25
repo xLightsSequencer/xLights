@@ -62,6 +62,7 @@ private:
 	AVPixelFormat _pixelFmt;
 	bool _atEnd = false;
     std::string _filename;
+    bool _abort = false;
     bool _videoToolboxAccelerated; 
     bool _abandonHardwareDecode = false;
 };
