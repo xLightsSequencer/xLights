@@ -226,6 +226,7 @@ void FPP::setupCurl() {
     curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, 10000);
 }
 bool FPP::GetURLAsString(const std::string& url, std::string& val)  {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     setupCurl();
     curlInputBuffer.clear();
     char error[1024];
@@ -241,9 +242,9 @@ bool FPP::GetURLAsString(const std::string& url, std::string& val)  {
     
     bool retValue = false;
     int i = curl_easy_perform(curl);
+    long response_code = 0;
     if (i == CURLE_OK) {
         val = curlInputBuffer;
-        long response_code;
         curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
         if (response_code == 401) {
             curlInputBuffer.clear();
@@ -259,10 +260,12 @@ bool FPP::GetURLAsString(const std::string& url, std::string& val)  {
         retValue = (response_code == 200);
     }
     curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, nullptr);
+    logger_base.info("FPPConnect GET %s  - Return: %d - RC: %d  - %s", fullUrl.c_str(), i, response_code, val.c_str());
     return retValue;
 
 }
 int FPP::PostToURL(const std::string& url, const wxMemoryBuffer &val, const std::string &contentType) {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     setupCurl();
     curlInputBuffer.clear();
     char error[1024];
@@ -289,11 +292,12 @@ int FPP::PostToURL(const std::string& url, const wxMemoryBuffer &val, const std:
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
     int i = curl_easy_perform(curl);
     curl_slist_free_all(chunk);
+    long response_code = 0;
     if (i == CURLE_OK) {
-        long response_code;
         curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
         return response_code;
     }
+    logger_base.info("FPPConnect Post %s  - RC: %d - Return %d", fullUrl.c_str(), response_code, i);
     return 500;
 }
 
@@ -668,8 +672,8 @@ bool FPP::uploadFile(const std::string &filename, const std::string &file, bool 
     if (deleteFile) {
         wxRemoveFile(fullFileName);
     }
+    long response_code = 0;
     if (i == CURLE_OK) {
-        long response_code;
         curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
         if (response_code == 200) {
             std::string val;
@@ -683,11 +687,12 @@ bool FPP::uploadFile(const std::string &filename, const std::string &file, bool 
             cancelled = true;
         }
     } else {
-        long response_code;
         curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
         logger_base.warn("Curl did not upload file:  %d   %s", response_code, error);
     }
     progressDialog->Update(1000, wxEmptyString, &cancelled);
+    logger_base.info("FPPConnect Upload file %s  - Return: %d - RC: %d - File: %s", fullUrl.c_str(), i, response_code, filename.c_str());
+
     return data.cancelled;
 }
 
