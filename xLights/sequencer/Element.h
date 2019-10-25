@@ -215,10 +215,8 @@ public:
 
 private:
     int mStrand;
-
     bool mShowNodes = false;
     std::vector<NodeLayer*> mNodeLayers;
-    
 };
 
 class ModelElement : public Element

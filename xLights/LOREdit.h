@@ -60,6 +60,7 @@ class LOREdit {
     std::vector<std::string> GetModelsWithEffects() const;
     std::vector<LOREditEffect> GetTrackEffects(const std::string& model, int layer, int offset = 0) const;
     std::vector<LOREditEffect> GetChannelEffects(const std::string& model, int channel, Model* m, int offset) const;
+    std::vector<LOREditEffect> GetChannelEffects(const std::string& model, int channel, int nodes, int offset) const;
     std::vector<LOREditEffect> AddEffects(wxXmlNode* track, bool left, int offset) const;
     static void GetLayers(const std::string& settings, int& ll1, int& ll2);
 };

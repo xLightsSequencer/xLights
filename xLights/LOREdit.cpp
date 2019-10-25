@@ -1017,6 +1017,7 @@ int LOREdit::GetModelChannels(const std::string& model, int& rows, int& cols) co
                                 }
                             }
                         }
+                        break;
                     }
                 }
             }
@@ -1331,6 +1332,135 @@ std::vector<LOREditEffect> LOREdit::GetChannelEffects(const std::string& model, 
                                                     effect.endIntensity = 100;
                                                 }
                                                 effect.startColour = xlColor((si & 0xFF0000) >> 16,(si & 0xFF00) >> 8, si & 0xFF);
+                                                effect.endColour = effect.startColour;
+                                            }
+                                            else
+                                            {
+                                                effect.startIntensity = si;
+                                                effect.endIntensity = si;
+                                                effect.startColour = xlWHITE;
+                                                effect.endColour = xlWHITE;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            si = wxAtoi(ef->GetAttribute("startIntensity", "9999"));
+                                            if (si != 9999)
+                                            {
+                                                if (si < 0)
+                                                {
+                                                    if (ef->GetAttribute("settings") == "DMX_INTENSITY")
+                                                    {
+                                                        effect.startIntensity = 255;
+                                                        effect.endIntensity = 255;
+                                                    }
+                                                    else
+                                                    {
+                                                        effect.startIntensity = 100;
+                                                        effect.endIntensity = 100;
+                                                    }
+                                                    effect.startColour = xlColor((si & 0xFF0000) >> 16, (si & 0xFF00) >> 8, si & 0xFF);
+                                                    int ei = wxAtoi(ef->GetAttribute("endIntensity", "-1"));
+                                                    effect.endColour = xlColor((ei & 0xFF0000) >> 16, (ei & 0xFF00) >> 8, ei & 0xFF);
+                                                }
+                                                else
+                                                {
+                                                    effect.startIntensity = si;
+                                                    effect.endIntensity = wxAtoi(ef->GetAttribute("endIntensity", "100"));
+                                                    effect.startColour = xlWHITE;
+                                                    effect.endColour = xlWHITE;
+                                                }
+                                            }
+                                        }
+                                        effect.type = loreditType::CHANNELS;
+                                        effect.effectType = ef->GetAttribute("settings");
+                                        res.push_back(effect);
+                                    }
+                                    return res;
+                                }
+                            }
+                        }
+                        return res;
+                    }
+                }
+            }
+        }
+    }
+
+    return res;
+}
+
+std::vector<LOREditEffect> LOREdit::GetChannelEffects(const std::string& model, int channel, int nodes, int offset) const
+{
+    std::vector<LOREditEffect> res;
+
+    int rows = 0;
+    int cols = 0;
+    int channels = GetModelChannels(model, rows, cols);
+
+    if (channel >= channels)
+    {
+        channel = channels - 1;
+    }
+
+    int targetRow = 0;
+    int targetCol = 0;
+
+    if (rows > 1)
+    {
+        targetRow = channel;
+        if (channel >= rows) return res;
+    }
+    else
+    {
+        targetCol = channel;
+        if (channel >= cols) return res;
+    }
+
+    for (wxXmlNode* e = _input_xml.GetRoot()->GetChildren(); e != nullptr; e = e->GetNext()) {
+        if (e->GetName() == "SequenceProps" || e->GetName() == "ArchivedProps") {
+            for (wxXmlNode* prop = e->GetChildren(); prop != nullptr; prop = prop->GetNext()) {
+                if (prop->GetName() == "SeqProp" || prop->GetName() == "ArchiveProp") {
+                    std::string name = prop->GetAttribute("name").ToStdString();
+                    if (name == "")
+                    {
+                        for (wxXmlNode* ap = prop->GetChildren(); ap != nullptr; ap = ap->GetNext()) {
+                            if (ap->GetName() == "PropClass")
+                            {
+                                name = ap->GetAttribute("Name");
+                            }
+                        }
+                    }
+                    if (name == model)
+                    {
+                        for (wxXmlNode* tc = prop->GetChildren(); tc != nullptr; tc = tc->GetNext()) {
+                            if ((tc->GetName() == "channel")) {
+                                int row = wxAtoi(tc->GetAttribute("row", "0"));
+                                int col = wxAtoi(tc->GetAttribute("col", "0"));
+
+                                if (row == targetRow && col == targetCol)
+                                {
+                                    for (wxXmlNode* ef = tc->GetChildren(); ef != nullptr; ef = ef->GetNext()) {
+                                        LOREditEffect effect;
+                                        effect.pixelChannels = prop->GetAttribute("EnablePixelChannels", "0") == "1";
+                                        effect.startMS = wxAtoi(ef->GetAttribute("startCentisecond")) * 10 + offset;
+                                        effect.endMS = wxAtoi(ef->GetAttribute("endCentisecond")) * 10 + offset;
+                                        int si = wxAtoi(ef->GetAttribute("intensity", "9999"));
+                                        if (si != 9999)
+                                        {
+                                            if (si < 0)
+                                            {
+                                                if (ef->GetAttribute("settings") == "DMX_INTENSITY")
+                                                {
+                                                    effect.startIntensity = 255;
+                                                    effect.endIntensity = 255;
+                                                }
+                                                else
+                                                {
+                                                    effect.startIntensity = 100;
+                                                    effect.endIntensity = 100;
+                                                }
+                                                effect.startColour = xlColor((si & 0xFF0000) >> 16, (si & 0xFF00) >> 8, si & 0xFF);
                                                 effect.endColour = effect.startColour;
                                             }
                                             else
