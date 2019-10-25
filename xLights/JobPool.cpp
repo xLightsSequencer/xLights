@@ -72,18 +72,18 @@ static void startFunc(JobPoolWorker *jpw) {
 JobPoolWorker::JobPoolWorker(JobPool *p)
 : pool(p), stopped(false), currentJob(nullptr), status(STARTING), thread(nullptr)
 {
-    //static log4cpp::Category& logger_jobpool = log4cpp::Category::getInstance(std::string("log_jobpool"));
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category& logger_jobpool = log4cpp::Category::getInstance(std::string("log_jobpool"));
+    //static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     thread = new std::thread(startFunc, this);
     tid = thread->get_id();
-    logger_base.debug("JobPoolWorker created  0x%x", tid);
+    logger_jobpool.debug("JobPoolWorker created  0x%x", tid);
 }
 
 JobPoolWorker::~JobPoolWorker()
 {
-    //static log4cpp::Category &logger_jobpool = log4cpp::Category::getInstance(std::string("log_jobpool"));
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("JobPoolWorker destroyed 0x%x", tid);
+    static log4cpp::Category &logger_jobpool = log4cpp::Category::getInstance(std::string("log_jobpool"));
+    //static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_jobpool.debug("JobPoolWorker destroyed 0x%x", tid);
     status = UNKNOWN;
     thread->detach();
     delete thread;
@@ -201,7 +201,7 @@ void JobPoolWorker::Entry()
 {
     static log4cpp::Category &logger_jobpool = log4cpp::Category::getInstance(std::string("log_jobpool"));
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("JobPoolWorker started  0x%x", tid);
+    logger_jobpool.debug("JobPoolWorker started  0x%x", tid);
 
     try {
         SetThreadName(pool->threadNameBase);
@@ -242,13 +242,13 @@ void JobPoolWorker::Entry()
         logger_base.debug("JobPoolWorker done 0x%x", tid);
         return;
     }
-    logger_base.debug("JobPoolWorker exiting 0x%x", tid);
+    logger_jobpool.debug("JobPoolWorker exiting 0x%x", tid);
     --pool->numThreads;
     status = STOPPED;
     pool->RemoveWorker(this);
     logger_jobpool.debug("JobPoolWorker::Entry removed.  0x%X", this);
     RemoveThreadName();
-    logger_base.debug("JobPoolWorker done 0x%x", tid);
+    logger_jobpool.debug("JobPoolWorker done 0x%x", tid);
     //clear trace messages for this thread
     ClearTraceMessages();
 }
@@ -290,13 +290,14 @@ JobPool::JobPool(const std::string &n) : threadLock(), queueLock(), signal(), qu
 
 JobPool::~JobPool()
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category& logger_jobpool = log4cpp::Category::getInstance(std::string("log_jobpool"));
+    //static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if ( !queue.empty() ) {
         std::deque<Job*>::iterator iter = queue.begin();
         for (; iter != queue.end(); ++iter) {
             delete (*iter);
         }
-        logger_base.debug("Clearing JobPool queue.");
+        logger_jobpool.debug("Clearing JobPool queue.");
         queue.clear();
     }
     Stop();
