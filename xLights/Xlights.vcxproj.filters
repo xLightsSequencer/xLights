@@ -742,6 +742,7 @@
     <ClCompile Include="ValueCurvesPanel.cpp" />
     <ClCompile Include="ColoursPanel.cpp" />
     <ClCompile Include="DragColoursBitmapButton.cpp" />
+    <ClCompile Include="TraceLog.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -1495,6 +1496,7 @@
     <ClInclude Include="ColoursPanel.h" />
     <ClInclude Include="DragColoursBitmapButton.h" />
     <ClInclude Include="SpecialOptions.h" />
+    <ClInclude Include="TraceLog.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

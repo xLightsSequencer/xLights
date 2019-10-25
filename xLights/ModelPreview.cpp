@@ -431,7 +431,7 @@ void ModelPreview::RenderModels(const std::vector<Model*>& models, bool isModelS
                 color = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_MODEL_DEFAULT);
             }
 
-            if (m->GetDisplayAs() == "SubModel" && !m->GroupSelected)
+            if (m->GetDisplayAs() == "SubModel" && !m->GroupSelected && !m->Selected)
             {
                 // we dont display submodels if they are not selected
             }
@@ -453,7 +453,7 @@ void ModelPreview::RenderModels(const std::vector<Model*>& models, bool isModelS
                     color = selColor;
                     for (auto& sm : m->GetSubModels())
                     {
-                        if (sm->GroupSelected || m->Selected)
+                        if (sm->GroupSelected || sm->Selected)
                         {
                             if (is_3d) {
                                 sm->DisplayModelOnWindow(this, solidAccumulator3d, transparentAccumulator3d, linesAccumulator3d, true, color, allowSelected);

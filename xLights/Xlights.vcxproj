@@ -515,6 +515,7 @@
     <ClCompile Include="TimingPanel.cpp" />
     <ClCompile Include="tmGridCell.cpp" />
     <ClCompile Include="TopEffectsPanel.cpp" />
+    <ClCompile Include="TraceLog.cpp" />
     <ClCompile Include="UpdaterDialog.cpp" />
     <ClCompile Include="UtilFunctions.cpp" />
     <ClCompile Include="ValueCurve.cpp" />
@@ -904,6 +905,7 @@
     <ClInclude Include="TimingPanel.h" />
     <ClInclude Include="tmGridCell.h" />
     <ClInclude Include="TopEffectsPanel.h" />
+    <ClInclude Include="TraceLog.h" />
     <ClInclude Include="UpdaterDialog.h" />
     <ClInclude Include="UtilClasses.h" />
     <ClInclude Include="UtilFunctions.h" />
