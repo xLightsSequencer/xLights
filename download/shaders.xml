@@ -553,6 +553,13 @@
 		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_300,w_300/x0qizxw7f67r8tird6cr</image>
 		<rating>3</rating>
 	</shader>
+	<shader>
+		<name>RainbowGlowRing</name>
+		<link>https://www.interactiveshaderformat.com/sketches/4947</link>
+		<download>https://www.interactiveshaderformat.com/sketches/4947/download</download>
+		<image>https://res.cloudinary.com/dgqcnpnmj/image/upload/v1571972247/RainbowGlowRing_gwdgb3.png</image>
+		<rating>4</rating>
+	</shader>
 	<!--shader>
 		<name></name>
 		<link>https://www.interactiveshaderformat.com/sketches/xxx</link>
