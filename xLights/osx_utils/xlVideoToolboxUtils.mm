@@ -181,7 +181,19 @@ bool VideoToolboxScaleImage(AVCodecContext *codecContext, AVFrame *frame, AVFram
         CVPixelBufferLockBaseAddress(scaledBuf, kCVPixelBufferLock_ReadOnly);
         uint8_t *data = (uint8_t *)CVPixelBufferGetBaseAddress(scaledBuf);
         int linesize = CVPixelBufferGetBytesPerRow(scaledBuf);
-        
+        if (data == nullptr) {
+            AddTraceMessage("VideoToolbox - No data returned");
+        }
+        if (dstFrame->data[0] == nullptr) {
+            AddTraceMessage("VideoToolbox - No data in target frame");
+        }
+        if (CVPixelBufferGetHeight(scaledBuf) != dstFrame->height) {
+            AddTraceMessage("VideoToolbox - Heights don't match " + std::to_string(CVPixelBufferGetHeight(scaledBuf)) + ":" + std::to_string(dstFrame->height));
+        }
+        if (CVPixelBufferGetWidth(scaledBuf) != dstFrame->width) {
+            AddTraceMessage("VideoToolbox - Widths don't match " + std::to_string(CVPixelBufferGetWidth(scaledBuf)) + ":" + std::to_string(dstFrame->width));
+        }
+
         //copy data to dest frame
         if (linesize) {
             if (dstFrame->format == AV_PIX_FMT_RGBA) {
