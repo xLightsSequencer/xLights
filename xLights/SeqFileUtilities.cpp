@@ -4226,75 +4226,76 @@ bool xLightsFrame::ImportS5(wxXmlDocument &input_xml, const wxFileName &filename
                 break;
             }
         }
+        if (model != nullptr) {
+            Model* mdl = model->GetSequenceElements()->GetXLightsFrame()->AllModels[model->GetModelName()];
 
-        Model* mdl = model->GetSequenceElements()->GetXLightsFrame()->AllModels[model->GetModelName()];
-
-        if (m->_mapping != "") {
-            if (model == nullptr) {
-                model = AddModel(GetModel(modelName), mSequenceElements);
-            }
-            if (model == nullptr)
-            {
-                logger_base.error("Attempt to add model %s during S5 import failed.", (const char *)modelName.c_str());
-            }
-            else
-            {
-                MapS5Effects(effectManager, model, lorEdit, m->_mapping, CurrentSeqXmlFile->GetFrequency(), offset);
-            }
-        }
-
-        int str = 0;
-        for (size_t j = 0; j < m->GetChildCount(); j++)
-        {
-            xLightsImportModelNode* s = m->GetNthChild(j);
-
-            if ("" != s->_mapping) {
+            if (m->_mapping != "") {
                 if (model == nullptr) {
                     model = AddModel(GetModel(modelName), mSequenceElements);
                 }
                 if (model == nullptr)
                 {
-                    logger_base.error("Attempt to add model %s during S5 import failed.", (const char *)modelName.c_str());
+                    logger_base.error("Attempt to add model %s during S5 import failed.", (const char*)modelName.c_str());
                 }
                 else
                 {
-                    SubModelElement *ste = model->GetSubModel(str);
-                    if (ste != nullptr) {
-                        MapS5Effects(effectManager, ste, lorEdit, s->_mapping, CurrentSeqXmlFile->GetFrequency(), offset);
-                    }
+                    MapS5Effects(effectManager, model, lorEdit, m->_mapping, CurrentSeqXmlFile->GetFrequency(), offset);
                 }
             }
-            for (size_t n = 0; n < s->GetChildCount(); n++) {
-                xLightsImportModelNode* ns = s->GetNthChild(n);
-                if ("" != ns->_mapping) {
+
+            int str = 0;
+            for (size_t j = 0; j < m->GetChildCount(); j++)
+            {
+                xLightsImportModelNode* s = m->GetNthChild(j);
+
+                if ("" != s->_mapping) {
                     if (model == nullptr) {
                         model = AddModel(GetModel(modelName), mSequenceElements);
                     }
                     if (model == nullptr)
                     {
-                        logger_base.error("Attempt to add model %s during S5 import failed.", (const char *)modelName.c_str());
+                        logger_base.error("Attempt to add model %s during S5 import failed.", (const char*)modelName.c_str());
                     }
                     else
                     {
-                        SubModelElement *ste = model->GetSubModel(str);
-                        StrandElement *stre = dynamic_cast<StrandElement *>(ste);
-                        if (stre != nullptr) {
-                            NodeLayer *nl = stre->GetNodeLayer(n, true);
-                            if (nl != nullptr) {
-                                auto st = lorEdit.GetSequencingType(ns->_mapping);
-                                if (st == loreditType::CHANNELS) {
-                                    MapS5ChannelEffects(effectManager, i, nl, mdl, lorEdit, ns->_mapping, CurrentSeqXmlFile->GetFrequency(), offset);
-                                }
-                                else if (st == loreditType::TRACKS) {
-                                    // no layers so we just map the first
-                                    MapS5(effectManager, 0, nl, lorEdit, ns->_mapping, mdl, CurrentSeqXmlFile->GetFrequency(), offset);
+                        SubModelElement* ste = model->GetSubModel(str);
+                        if (ste != nullptr) {
+                            MapS5Effects(effectManager, ste, lorEdit, s->_mapping, CurrentSeqXmlFile->GetFrequency(), offset);
+                        }
+                    }
+                }
+                for (size_t n = 0; n < s->GetChildCount(); n++) {
+                    xLightsImportModelNode* ns = s->GetNthChild(n);
+                    if ("" != ns->_mapping) {
+                        if (model == nullptr) {
+                            model = AddModel(GetModel(modelName), mSequenceElements);
+                        }
+                        if (model == nullptr)
+                        {
+                            logger_base.error("Attempt to add model %s during S5 import failed.", (const char*)modelName.c_str());
+                        }
+                        else
+                        {
+                            SubModelElement* ste = model->GetSubModel(str);
+                            StrandElement* stre = dynamic_cast<StrandElement*>(ste);
+                            if (stre != nullptr) {
+                                NodeLayer* nl = stre->GetNodeLayer(n, true);
+                                if (nl != nullptr) {
+                                    auto st = lorEdit.GetSequencingType(ns->_mapping);
+                                    if (st == loreditType::CHANNELS) {
+                                        MapS5ChannelEffects(effectManager, i, nl, mdl, lorEdit, ns->_mapping, CurrentSeqXmlFile->GetFrequency(), offset);
+                                    }
+                                    else if (st == loreditType::TRACKS) {
+                                        // no layers so we just map the first
+                                        MapS5(effectManager, 0, nl, lorEdit, ns->_mapping, mdl, CurrentSeqXmlFile->GetFrequency(), offset);
+                                    }
                                 }
                             }
                         }
                     }
                 }
+                str++;
             }
-            str++;
         }
     }
 
