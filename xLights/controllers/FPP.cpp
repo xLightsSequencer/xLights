@@ -1716,6 +1716,13 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
                                         parsed = reader.Parse(curls[x]->buffer, &origJson) == 0;
                                         if (parsed) {
                                             curls[x]->fpp->parseSysInfo(origJson);
+                                            if (!origJson["channelRanges"].IsNull()) {
+                                                std::string r = origJson["channelRanges"].AsString().ToStdString();
+                                                if (r.size() > curls[x]->fpp->ranges.size()) {
+                                                    curls[x]->fpp->ranges = r;
+                                                }
+                                            }
+                                            
                                             std::string file = "co-pixelStrings";
                                             if (curls[x]->fpp->platform.find("Beagle") != std::string::npos) {
                                                 file = "co-bbbStrings";
