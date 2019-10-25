@@ -448,9 +448,6 @@
     <ClCompile Include="outputs\RenardOutput.cpp" />
     <ClCompile Include="outputs\serial.cpp" />
     <ClCompile Include="outputs\SerialOutput.cpp" />
-    <ClCompile Include="outputs\SyncrolightDialog.cpp" />
-    <ClCompile Include="outputs\SyncrolightEthernetOutput.cpp" />
-    <ClCompile Include="outputs\SyncrolightSerialOutput.cpp" />
     <ClCompile Include="outputs\TestPreset.cpp" />
     <ClCompile Include="outputs\ZCPPDialog.cpp" />
     <ClCompile Include="outputs\ZCPPOutput.cpp" />
@@ -839,9 +836,6 @@
     <ClInclude Include="outputs\RenardOutput.h" />
     <ClInclude Include="outputs\serial.h" />
     <ClInclude Include="outputs\SerialOutput.h" />
-    <ClInclude Include="outputs\SyncrolightDialog.h" />
-    <ClInclude Include="outputs\SyncrolightEthernetOutput.h" />
-    <ClInclude Include="outputs\SyncrolightSerialOutput.h" />
     <ClInclude Include="outputs\TestPreset.h" />
     <ClInclude Include="outputs\ZCPP.h" />
     <ClInclude Include="outputs\ZCPPDialog.h" />

@@ -4,16 +4,16 @@
 
 #include <wx/socket.h>
 
-class SyncrolightEthernetOutput : public IPOutput
+class xxxEthernetOutput : public IPOutput
 {
 protected:
-    #pragma region Syncrolight Constants
-    static const unsigned int SYNCROLIGHTETHERNET_PACKET_HEADERLEN = 7;
-    static const unsigned int SYNCROLIGHTETHERNET_PACKET_FOOTERLEN = 1;
-    static const unsigned int SYNCROLIGHTETHERNET_MAX_CHANNELS = 4096*3;
-    static const unsigned int SYNCROLIGHT_PORT = 11000;
-    static const unsigned int SYNCROLIGHT_HEARTBEATINTERVAL = 25;
-    #pragma endregion Syncrolight Constants
+    #pragma region xxx Constants
+    static const unsigned int xxxETHERNET_PACKET_HEADERLEN = 7;
+    static const unsigned int xxxETHERNET_PACKET_FOOTERLEN = 1;
+    static const unsigned int xxxETHERNET_MAX_CHANNELS = 4096*3;
+    static const unsigned int xxx_PORT = 11000;
+    static const unsigned int xxx_HEARTBEATINTERVAL = 25;
+    #pragma endregion xxx Constants
 
     #pragma region Member Variables
     uint8_t _packet[908];
@@ -28,17 +28,17 @@ protected:
 public:
 
     #pragma region Constructors and Destructors
-    SyncrolightEthernetOutput(wxXmlNode* node);
-    SyncrolightEthernetOutput(SyncrolightEthernetOutput* output);
-    SyncrolightEthernetOutput();
-    virtual ~SyncrolightEthernetOutput() override;
+    xxxEthernetOutput(wxXmlNode* node);
+    xxxEthernetOutput(xxxEthernetOutput* output);
+    xxxEthernetOutput();
+    virtual ~xxxEthernetOutput() override;
     #pragma endregion Constructors and Destructors
 
     #pragma region Getters and Setters
-    virtual std::string GetType() const override { return OUTPUT_SYNCROLIGHTETHERNET; }
-    virtual int32_t GetMaxChannels() const override { return SYNCROLIGHTETHERNET_MAX_CHANNELS; }
-    static int GetMaxSyncrolightChannels() { return SYNCROLIGHTETHERNET_MAX_CHANNELS; }
-    virtual bool IsValidChannelCount(int32_t channelCount) const override { return channelCount > 0 && channelCount <= SYNCROLIGHTETHERNET_MAX_CHANNELS; }
+    virtual std::string GetType() const override { return OUTPUT_xxxETHERNET; }
+    virtual int32_t GetMaxChannels() const override { return xxxETHERNET_MAX_CHANNELS; }
+    static int GetMaxxxxChannels() { return xxxETHERNET_MAX_CHANNELS; }
+    virtual bool IsValidChannelCount(int32_t channelCount) const override { return channelCount > 0 && channelCount <= xxxETHERNET_MAX_CHANNELS; }
     virtual bool IsLookedUpByControllerName() const override;
     int GetId() const { return _universe; }
     void SetId(int id) { _universe = id; _dirty = true; }

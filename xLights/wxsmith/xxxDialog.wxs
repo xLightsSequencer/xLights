@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <wxsmith>
-	<object class="wxDialog" name="SyncrolightDialog">
-		<title>Syncrolight Ethernet</title>
+	<object class="wxDialog" name="xxxDialog">
+		<title>xxx Ethernet</title>
 		<pos_arg>1</pos_arg>
 		<size_arg>1</size_arg>
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
@@ -10,7 +10,7 @@
 			<growablerows>1</growablerows>
 			<object class="sizeritem">
 				<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
-					<label>Sets up a Syncrolight ethernet output for&#x0A;a port on a Syncrolight controller.</label>
+					<label>Sets up a xxx ethernet output for&#x0A;a port on a xxx controller.</label>
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>

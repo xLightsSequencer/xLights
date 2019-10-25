@@ -693,9 +693,6 @@
       <Filter>Controllers</Filter>
     </ClCompile>
     <ClCompile Include="BulkEditFontPickerDialog.cpp" />
-    <ClCompile Include="outputs\SyncrolightSerialOutput.cpp">
-      <Filter>Outputs</Filter>
-    </ClCompile>
     <ClCompile Include="outputs\NullOutput.cpp">
       <Filter>Outputs</Filter>
     </ClCompile>
@@ -706,12 +703,6 @@
       <Filter>Outputs</Filter>
     </ClCompile>
     <ClCompile Include="outputs\OpenPixelNetOutput.cpp">
-      <Filter>Outputs</Filter>
-    </ClCompile>
-    <ClCompile Include="outputs\SyncrolightEthernetOutput.cpp">
-      <Filter>Outputs</Filter>
-    </ClCompile>
-    <ClCompile Include="outputs\SyncrolightDialog.cpp">
       <Filter>Outputs</Filter>
     </ClCompile>
     <ClCompile Include="outputs\IPOutput.cpp">
@@ -1447,9 +1438,6 @@
       <Filter>Controllers</Filter>
     </ClInclude>
     <ClInclude Include="BulkEditFontPickerDialog.h" />
-    <ClInclude Include="outputs\SyncrolightSerialOutput.h">
-      <Filter>Outputs</Filter>
-    </ClInclude>
     <ClInclude Include="outputs\NullOutput.h">
       <Filter>Outputs</Filter>
     </ClInclude>
@@ -1460,12 +1448,6 @@
       <Filter>Outputs</Filter>
     </ClInclude>
     <ClInclude Include="outputs\OpenPixelNetOutput.h">
-      <Filter>Outputs</Filter>
-    </ClInclude>
-    <ClInclude Include="outputs\SyncrolightEthernetOutput.h">
-      <Filter>Outputs</Filter>
-    </ClInclude>
-    <ClInclude Include="outputs\SyncrolightDialog.h">
       <Filter>Outputs</Filter>
     </ClInclude>
     <ClInclude Include="outputs\IPOutput.h">

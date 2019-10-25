@@ -1,51 +1,51 @@
-#include "SyncrolightDialog.h"
+#include "xxxDialog.h"
 
-//(*InternalHeaders(SyncrolightDialog)
+//(*InternalHeaders(xxxDialog)
 #include <wx/intl.h>
 #include <wx/string.h>
 //*)
 
-#include "SyncrolightEthernetOutput.h"
+#include "xxxEthernetOutput.h"
 #include "OutputManager.h"
 #include "../UtilFunctions.h"
 
-//(*IdInit(SyncrolightDialog)
-const long SyncrolightDialog::ID_STATICTEXT1 = wxNewId();
-const long SyncrolightDialog::ID_STATICTEXT6 = wxNewId();
-const long SyncrolightDialog::ID_SPINCTRL3 = wxNewId();
-const long SyncrolightDialog::ID_STATICTEXT2 = wxNewId();
-const long SyncrolightDialog::ID_TEXTCTRL1 = wxNewId();
-const long SyncrolightDialog::ID_STATICTEXT3 = wxNewId();
-const long SyncrolightDialog::ID_SPINCTRL1 = wxNewId();
-const long SyncrolightDialog::ID_STATICTEXT4 = wxNewId();
-const long SyncrolightDialog::ID_SPINCTRL2 = wxNewId();
-const long SyncrolightDialog::ID_CHECKBOX2 = wxNewId();
-const long SyncrolightDialog::ID_STATICTEXT5 = wxNewId();
-const long SyncrolightDialog::ID_TEXTCTRL2 = wxNewId();
-const long SyncrolightDialog::ID_BUTTON_OK = wxNewId();
-const long SyncrolightDialog::ID_BUTTON_CANCEL = wxNewId();
+//(*IdInit(xxxDialog)
+const long xxxDialog::ID_STATICTEXT1 = wxNewId();
+const long xxxDialog::ID_STATICTEXT6 = wxNewId();
+const long xxxDialog::ID_SPINCTRL3 = wxNewId();
+const long xxxDialog::ID_STATICTEXT2 = wxNewId();
+const long xxxDialog::ID_TEXTCTRL1 = wxNewId();
+const long xxxDialog::ID_STATICTEXT3 = wxNewId();
+const long xxxDialog::ID_SPINCTRL1 = wxNewId();
+const long xxxDialog::ID_STATICTEXT4 = wxNewId();
+const long xxxDialog::ID_SPINCTRL2 = wxNewId();
+const long xxxDialog::ID_CHECKBOX2 = wxNewId();
+const long xxxDialog::ID_STATICTEXT5 = wxNewId();
+const long xxxDialog::ID_TEXTCTRL2 = wxNewId();
+const long xxxDialog::ID_BUTTON_OK = wxNewId();
+const long xxxDialog::ID_BUTTON_CANCEL = wxNewId();
 //*)
 
-BEGIN_EVENT_TABLE(SyncrolightDialog,wxDialog)
-	//(*EventTable(SyncrolightDialog)
+BEGIN_EVENT_TABLE(xxxDialog,wxDialog)
+	//(*EventTable(xxxDialog)
 	//*)
 END_EVENT_TABLE()
 
-SyncrolightDialog::SyncrolightDialog(wxWindow* parent, SyncrolightEthernetOutput* syncrolight, OutputManager* outputManager, wxWindowID id,const wxPoint& pos,const wxSize& size)
+xxxDialog::xxxDialog(wxWindow* parent, xxxEthernetOutput* xxx, OutputManager* outputManager, wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
-	//(*Initialize(SyncrolightDialog)
+	//(*Initialize(xxxDialog)
 	wxFlexGridSizer* FlexGridSizer1;
 	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer3;
 	wxStaticText* StaticText9;
 
-	Create(parent, id, _("Syncrolight Ethernet"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE, _T("id"));
+	Create(parent, id, _("xxx Ethernet"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE, _T("id"));
 	SetClientSize(wxDefaultSize);
 	Move(wxDefaultPosition);
 	FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer1->AddGrowableCol(0);
 	FlexGridSizer1->AddGrowableRow(1);
-	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Sets up a Syncrolight ethernet output for\na port on a Syncrolight controller."), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
+	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Sets up a xxx ethernet output for\na port on a xxx controller."), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
 	FlexGridSizer1->Add(StaticText1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer2 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer2->AddGrowableCol(1);
@@ -90,60 +90,60 @@ SyncrolightDialog::SyncrolightDialog(wxWindow* parent, SyncrolightEthernetOutput
 	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
 
-	Connect(ID_TEXTCTRL1,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&SyncrolightDialog::OnTextCtrl_IPAddressText);
-	Connect(ID_TEXTCTRL2,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&SyncrolightDialog::OnTextCtrl_DescriptionText);
-	Connect(ID_BUTTON_OK,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SyncrolightDialog::OnButton_OkClick);
-	Connect(ID_BUTTON_CANCEL,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SyncrolightDialog::OnButton_CancelClick);
+	Connect(ID_TEXTCTRL1,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&xxxDialog::OnTextCtrl_IPAddressText);
+	Connect(ID_TEXTCTRL2,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&xxxDialog::OnTextCtrl_DescriptionText);
+	Connect(ID_BUTTON_OK,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xxxDialog::OnButton_OkClick);
+	Connect(ID_BUTTON_CANCEL,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xxxDialog::OnButton_CancelClick);
 	//*)
 
-    _syncrolight = syncrolight;
+    _xxx = xxx;
     _outputManager = outputManager;
     SetEscapeId(ID_BUTTON_CANCEL);
 
-    SpinCtrl_Id->SetValue(_syncrolight->GetId());
-    SpinCtrl_Port->SetValue(_syncrolight->GetPort());
-    SpinCtrl_Pixels->SetValue(_syncrolight->GetChannels() / 3);
-    TextCtrl_Description->SetValue(_syncrolight->GetDescription());
-    TextCtrl_IPAddress->SetValue(_syncrolight->GetIP());
-    CheckBox_SuppressDuplicates->SetValue(_syncrolight->IsSuppressDuplicateFrames());
+    SpinCtrl_Id->SetValue(_xxx->GetId());
+    SpinCtrl_Port->SetValue(_xxx->GetPort());
+    SpinCtrl_Pixels->SetValue(_xxx->GetChannels() / 3);
+    TextCtrl_Description->SetValue(_xxx->GetDescription());
+    TextCtrl_IPAddress->SetValue(_xxx->GetIP());
+    CheckBox_SuppressDuplicates->SetValue(_xxx->IsSuppressDuplicateFrames());
 
     ValidateWindow();
 }
 
-SyncrolightDialog::~SyncrolightDialog()
+xxxDialog::~xxxDialog()
 {
-	//(*Destroy(SyncrolightDialog)
+	//(*Destroy(xxxDialog)
 	//*)
 }
 
-void SyncrolightDialog::OnButton_OkClick(wxCommandEvent& event)
+void xxxDialog::OnButton_OkClick(wxCommandEvent& event)
 {
-    _syncrolight->SetIP(TextCtrl_IPAddress->GetValue().ToStdString());
-    _syncrolight->SetId(SpinCtrl_Id->GetValue());
-    _syncrolight->SetPort(SpinCtrl_Port->GetValue());
-    _syncrolight->SetChannels(SpinCtrl_Pixels->GetValue()*3);
-    _syncrolight->SetDescription(TextCtrl_Description->GetValue().ToStdString());
-    _syncrolight->SetSuppressDuplicateFrames(CheckBox_SuppressDuplicates->IsChecked());
+    _xxx->SetIP(TextCtrl_IPAddress->GetValue().ToStdString());
+    _xxx->SetId(SpinCtrl_Id->GetValue());
+    _xxx->SetPort(SpinCtrl_Port->GetValue());
+    _xxx->SetChannels(SpinCtrl_Pixels->GetValue()*3);
+    _xxx->SetDescription(TextCtrl_Description->GetValue().ToStdString());
+    _xxx->SetSuppressDuplicateFrames(CheckBox_SuppressDuplicates->IsChecked());
     _outputManager->SomethingChanged();
     EndDialog(wxID_OK);
 }
 
-void SyncrolightDialog::OnTextCtrl_IPAddressText(wxCommandEvent& event)
+void xxxDialog::OnTextCtrl_IPAddressText(wxCommandEvent& event)
 {
     ValidateWindow();
 }
 
-void SyncrolightDialog::OnButton_CancelClick(wxCommandEvent& event)
+void xxxDialog::OnButton_CancelClick(wxCommandEvent& event)
 {
     EndDialog(wxID_CANCEL);
 }
 
-void SyncrolightDialog::OnTextCtrl_DescriptionText(wxCommandEvent& event)
+void xxxDialog::OnTextCtrl_DescriptionText(wxCommandEvent& event)
 {
     ValidateWindow();
 }
 
-void SyncrolightDialog::ValidateWindow() {
+void xxxDialog::ValidateWindow() {
     if (TextCtrl_IPAddress->GetValue().IsEmpty() ||
         !IsIPValidOrHostname(TextCtrl_IPAddress->GetValue().ToStdString(), true))
     {

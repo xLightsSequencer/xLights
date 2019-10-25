@@ -1,7 +1,7 @@
-#ifndef SYNCROLIGHTDIALOG_H
-#define SYNCROLIGHTDIALOG_H
+#ifndef xxxDIALOG_H
+#define xxxDIALOG_H
 
-//(*Headers(SyncrolightDialog)
+//(*Headers(xxxDialog)
 #include <wx/button.h>
 #include <wx/checkbox.h>
 #include <wx/dialog.h>
@@ -11,23 +11,23 @@
 #include <wx/textctrl.h>
 //*)
 
-#include "SyncrolightEthernetOutput.h"
+#include "xxxEthernetOutput.h"
 
-class SyncrolightEthernetOutput;
+class xxxEthernetOutput;
 class OutputManager;
 
-class SyncrolightDialog: public wxDialog
+class xxxDialog: public wxDialog
 {
-    SyncrolightEthernetOutput* _syncrolight;
+    xxxEthernetOutput* _xxx;
     OutputManager* _outputManager;
     void ValidateWindow();
 
 	public:
 
-		SyncrolightDialog(wxWindow* parent, SyncrolightEthernetOutput* syncrolight, OutputManager* outputManager, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
-		virtual ~SyncrolightDialog();
+		xxxDialog(wxWindow* parent, xxxEthernetOutput* xxx, OutputManager* outputManager, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
+		virtual ~xxxDialog();
 
-		//(*Declarations(SyncrolightDialog)
+		//(*Declarations(xxxDialog)
 		wxButton* Button_Cancel;
 		wxButton* Button_Ok;
 		wxCheckBox* CheckBox_SuppressDuplicates;
@@ -46,7 +46,7 @@ class SyncrolightDialog: public wxDialog
 
 	protected:
 
-		//(*Identifiers(SyncrolightDialog)
+		//(*Identifiers(xxxDialog)
 		static const long ID_STATICTEXT1;
 		static const long ID_STATICTEXT6;
 		static const long ID_SPINCTRL3;
@@ -65,7 +65,7 @@ class SyncrolightDialog: public wxDialog
 
 	private:
 
-		//(*Handlers(SyncrolightDialog)
+		//(*Handlers(xxxDialog)
 		void OnButton_OkClick(wxCommandEvent& event);
 		void OnTextCtrl_IPAddressText(wxCommandEvent& event);
 		void OnButton_CancelClick(wxCommandEvent& event);

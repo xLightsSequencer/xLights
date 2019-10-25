@@ -1,9 +1,9 @@
-#include "SyncrolightSerialOutput.h"
+#include "xxxSerialOutput.h"
 
 #include <wx/xml/xml.h>
 
 #pragma region Constructors and Destructors
-SyncrolightSerialOutput::SyncrolightSerialOutput(SerialOutput* output) : SerialOutput(output)
+xxxSerialOutput::xxxSerialOutput(SerialOutput* output) : SerialOutput(output)
 {
     memset(_lastSent, 0x00, sizeof(_lastSent));
     memset(_notSentCount, 0x00, sizeof(_notSentCount));
@@ -11,7 +11,7 @@ SyncrolightSerialOutput::SyncrolightSerialOutput(SerialOutput* output) : SerialO
     memset(_data, 0, sizeof(_data));
 }
 
-SyncrolightSerialOutput::SyncrolightSerialOutput(wxXmlNode* node) : SerialOutput(node)
+xxxSerialOutput::xxxSerialOutput(wxXmlNode* node) : SerialOutput(node)
 {
     memset(_lastSent, 0x00, sizeof(_lastSent));
     memset(_notSentCount, 0x00, sizeof(_notSentCount));
@@ -19,7 +19,7 @@ SyncrolightSerialOutput::SyncrolightSerialOutput(wxXmlNode* node) : SerialOutput
     memset(_data, 0, sizeof(_data));
 }
 
-SyncrolightSerialOutput::SyncrolightSerialOutput() : SerialOutput()
+xxxSerialOutput::xxxSerialOutput() : SerialOutput()
 {
     memset(_lastSent, 0x00, sizeof(_lastSent));
     memset(_notSentCount, 0x00, sizeof(_notSentCount));
@@ -28,7 +28,7 @@ SyncrolightSerialOutput::SyncrolightSerialOutput() : SerialOutput()
 }
 #pragma endregion Constructors and Destructors
 
-void SyncrolightSerialOutput::SendHeartbeat() const
+void xxxSerialOutput::SendHeartbeat() const
 {
     if (!_enabled || _serial == nullptr || !_ok) return;
 
@@ -44,7 +44,7 @@ void SyncrolightSerialOutput::SendHeartbeat() const
 }
 
 #pragma region Start and Stop
-bool SyncrolightSerialOutput::Open()
+bool xxxSerialOutput::Open()
 {
     if (!_enabled) return true;
 
@@ -61,12 +61,12 @@ bool SyncrolightSerialOutput::Open()
 #pragma endregion Start and Stop
 
 #pragma region Frame Handling
-void SyncrolightSerialOutput::ResetFrame()
+void xxxSerialOutput::ResetFrame()
 {
     _lastheartbeat = -1;
 }
 
-void SyncrolightSerialOutput::EndFrame(int suppressFrames)
+void xxxSerialOutput::EndFrame(int suppressFrames)
 {
     if (!_enabled || _suspend || _serial == nullptr || !_ok) return;
 
@@ -137,11 +137,11 @@ void SyncrolightSerialOutput::EndFrame(int suppressFrames)
 #pragma endregion Frame Handling
 
 #pragma region Data Setting
-void SyncrolightSerialOutput::SetOneChannel(int32_t channel, unsigned char data)
+void xxxSerialOutput::SetOneChannel(int32_t channel, unsigned char data)
 {
     if (!_enabled || _serial == nullptr || !_ok) return;
 
-    // because Syncrolight sends the channel number in the packet we can skip sending data that hasnt changed ... I think
+    // because xxx sends the channel number in the packet we can skip sending data that hasnt changed ... I think
     // Copied this from the way FPP seems to handle it - KW
     if (_lastSent[channel] != data || _notSentCount[channel] > 200)
     {
@@ -170,7 +170,7 @@ void SyncrolightSerialOutput::SetOneChannel(int32_t channel, unsigned char data)
     }
 }
 
-void SyncrolightSerialOutput::SetManyChannels(int32_t channel, unsigned char data[], size_t size)
+void xxxSerialOutput::SetManyChannels(int32_t channel, unsigned char data[], size_t size)
 {
     size_t chs = std::min(size, (size_t)(GetMaxChannels() - channel));
     
@@ -185,7 +185,7 @@ void SyncrolightSerialOutput::SetManyChannels(int32_t channel, unsigned char dat
     }
 }
 
-void SyncrolightSerialOutput::AllOff()
+void xxxSerialOutput::AllOff()
 {
     // force everything to be sent
     memset(_notSentCount, 0xF0, sizeof(_notSentCount));
@@ -195,8 +195,8 @@ void SyncrolightSerialOutput::AllOff()
 #pragma endregion Data Setting
 
 #pragma region Getters and Setters
-std::string SyncrolightSerialOutput::GetSetupHelp() const
+std::string xxxSerialOutput::GetSetupHelp() const
 {
-    return "Syncrolight controllers attached to any Syncrolight dongle.\nMax of 8 channels at 9600 baud.\nMax of 48 channels at 57600 baud.\nMax of 96 channels at 115200 baud.";
+    return "xxx controllers attached to any xxx dongle.\nMax of 8 channels at 9600 baud.\nMax of 48 channels at 57600 baud.\nMax of 96 channels at 115200 baud.";
 }
 #pragma endregion Getters and Setters

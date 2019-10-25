@@ -10,7 +10,7 @@
 #include "DLightOutput.h"
 #include "RenardOutput.h"
 #include "DMXOutput.h"
-#include "SyncrolightSerialOutput.h"
+//#include "xxxSerialOutput.h"
 #include "PixelNetOutput.h"
 #include "OpenDMXOutput.h"
 #include "OpenPixelNetOutput.h"
@@ -440,10 +440,10 @@ SerialOutput* SerialOutput::Mutate(const std::string& newtype)
     {
         return new PixelNetOutput(this);
     }
-    else if (newtype == OUTPUT_SYNCROLIGHTSERIAL)
-    {
-        return new SyncrolightSerialOutput(this);
-    }
+//    else if (newtype == OUTPUT_xxxSERIAL)
+//    {
+//        return new xxxSerialOutput(this);
+//    }
     else if (newtype == OUTPUT_LOR)
     {
         return new LOROutput(this);

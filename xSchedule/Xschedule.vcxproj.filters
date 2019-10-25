@@ -516,12 +516,7 @@
     <ClCompile Include="events\ListenerCSVFPP.cpp">
       <Filter>Events</Filter>
     </ClCompile>
-    <ClCompile Include="..\xLights\outputs\SyncrolightSerialOutput.cpp">
-      <Filter>Outputs</Filter>
-    </ClCompile>
-    <ClCompile Include="..\xLights\outputs\SyncrolightEthernetOutput.cpp">
-      <Filter>Outputs</Filter>
-    </ClCompile>
+    <ClCompile Include="..\xLights\TraceLog.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\xLights\AudioManager.h" />
@@ -1027,13 +1022,8 @@
       <Filter>Events</Filter>
     </ClInclude>
     <ClInclude Include="xSMSDaemon\Curl.h" />
-    <ClInclude Include="..\xLights\outputs\SyncrolightSerialOutput.h">
-      <Filter>Outputs</Filter>
-    </ClInclude>
-    <ClInclude Include="..\xLights\outputs\SyncrolightEthernetOutput.h">
-      <Filter>Outputs</Filter>
-    </ClInclude>
     <ClInclude Include="..\xLights\SpecialOptions.h" />
+    <ClInclude Include="..\xLights\TraceLog.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

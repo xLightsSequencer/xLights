@@ -336,10 +336,6 @@
 		<Unit filename="../xLights/outputs/SerialOutput.cpp" />
 		<Unit filename="../xLights/outputs/SerialOutput.h" />
 		<Unit filename="../xLights/outputs/SerialPortWithRate.h" />
-		<Unit filename="../xLights/outputs/SyncrolightEthernetOutput.cpp" />
-		<Unit filename="../xLights/outputs/SyncrolightEthernetOutput.h" />
-		<Unit filename="../xLights/outputs/SyncrolightSerialOutput.cpp" />
-		<Unit filename="../xLights/outputs/SyncrolightSerialOutput.h" />
 		<Unit filename="../xLights/outputs/TestPreset.cpp" />
 		<Unit filename="../xLights/outputs/TestPreset.h" />
 		<Unit filename="../xLights/outputs/ZCPPDialog.h" />
