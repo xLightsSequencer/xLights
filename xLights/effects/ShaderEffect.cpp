@@ -757,6 +757,12 @@ void ShaderEffect::Render(Effect* eff, SettingsMap& SettingsMap, RenderBuffer& b
             logger_base.warn("Unable to bind to TIME\n%s", (const char*)_shaderConfig->GetCode().c_str());
     }
 
+    loc = glGetUniformLocation(programId, "TIMEDELTA");
+    if (loc >= 0) {
+        float delta = buffer.frameTimeInMs /1000.f;
+        glUniform1f(loc, delta);
+    }
+
     loc = glGetUniformLocation(programId, "DATE");
     if (loc >= 0) {
         wxDateTime dt = wxDateTime::Now();
@@ -1133,6 +1139,7 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
     // and the uniforms that correspond to user-visible settings
     wxString prependText = _("#version 330\n\n"
     "uniform float TIME;\n"
+    "uniform float TIMEDELTA;\n"
     "uniform vec2 RENDERSIZE;\n"
     "uniform bool clearBuffer;\n"
     "uniform bool resetNow;\n"
