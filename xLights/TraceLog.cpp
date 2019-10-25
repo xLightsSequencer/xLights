@@ -8,6 +8,8 @@
 
 static const std::string CONTEXT_MARKER = "--context--";
 static volatile bool TRACE_LOG_VALID = false;
+thread_local std::list<std::string> *threadLog = nullptr;
+
 class TraceLogHolder {
 public:
     TraceLogHolder() {TRACE_LOG_VALID = true;}
@@ -29,11 +31,15 @@ public:
             delete search->second;
             LOG_MESSAGES.erase(search);
         }
+        threadLog = nullptr;
     }
 
     std::list<std::string>* GetMessagesForThread(bool create = true) {
         if (!TRACE_LOG_VALID) {
             return nullptr;
+        }
+        if (threadLog) {
+            return threadLog;
         }
         std::unique_lock<std::mutex> lock(MESSAGE_MAP_LOCK);
         std::thread::id id = std::this_thread::get_id();
@@ -46,6 +52,7 @@ public:
             ret = new std::list<std::string>();
             LOG_MESSAGES[id] = ret;
         }
+        threadLog = ret;
         return ret;
     }
 };
