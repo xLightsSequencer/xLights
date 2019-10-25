@@ -1543,6 +1543,7 @@ public:
 #define FPP_CTRL_PORT 32320
 
 void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &instances, bool doBroadcast, bool allPlatforms) {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     AddTraceMessage("Running FPP Discovery");
     std::vector<CurlData*> curls;
@@ -1696,6 +1697,7 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
                         curl_easy_getinfo(e, CURLINFO_HTTP_CODE, &response_code);
                         for (int x = 0; x < curls.size(); x++) {
                             if (curls[x] && curls[x]->curl == e) {
+                                logger_base.info("FPP Discovery %s - RC: %d", curls[x]->url.c_str(), response_code);
                                 /*
                                 if (curls[x]->errorBuffer[0]) {
                                     printf("error:  %s    %d\n      %s\n", curls[x]->url.c_str(), curls[x]->type, curls[x]->errorBuffer);
@@ -1968,7 +1970,11 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
                                                     if (found->model == "") {
                                                         found->model = inst.model;
                                                     }
-                                                    if (found->ranges == "") {
+                                                    if (inst.ranges.size() > found->ranges.size()) {
+                                                        //if the json has the ranges, use it as the json can have a more exact set of ranges
+                                                        //the Ping packet is limited to either 40 (v2) or 120 (v3) characters so
+                                                        //the range may be squashed a bit.   The json has no limit so can have the
+                                                        //full set of range definitions
                                                         found->ranges = inst.ranges;
                                                     }
                                                 }
