@@ -266,7 +266,7 @@ bool RenderableEffect::SupportsRenderCache(const SettingsMap& settings) const
 }
 
 bool RenderableEffect::needToAdjustSettings(const std::string &version) {
-    return IsVersionOlder("2018.50", version);
+    return IsVersionOlder("2019.61", version);
 }
 
 void RenderableEffect::adjustSettings(const std::string &version, Effect *effect, bool removeDefaults) {
@@ -295,34 +295,30 @@ void RenderableEffect::adjustSettings(const std::string &version, Effect *effect
         }
     }
 
-    if (IsVersionOlder("2017.24", version))
+    if (IsVersionOlder("2019.61", version))
     {
         SettingsMap& sm = effect->GetSettings();
 
         wxString rzRotations = sm.Get("B_VALUECURVE_Rotations", "");
-        if (rzRotations != "")
+        if (rzRotations.Contains("VALUECURVE") && !rzRotations.Contains("RV=TRUE"))
         {
-            ValueCurve vc(rzRotations.ToStdString());
-            if (vc.IsActive())
-            {
-                vc.SetLimits(0, 200);
-                vc.SetDivisor(10);
-                sm["B_VALUECURVE_Rotations"] = vc.Serialise();
-            }
+            ValueCurve vc;
+            vc.SetLimits(0, 200);
+            vc.SetDivisor(10);
+            vc.Deserialise(rzRotations);
+            sm["B_VALUECURVE_Rotations"] = vc.Serialise();
+            wxASSERT(vc.IsRealValue());
         }
 
         wxString rzZoom = sm.Get("B_VALUECURVE_Zoom", "");
-        if (rzZoom != "")
+        if (rzZoom.Contains("VALUECURVE") && !rzZoom.Contains("RV=TRUE"))
         {
             ValueCurve vc;
             vc.SetLimits(0, 30);
             vc.SetDivisor(10);
-            vc.Deserialise(rzZoom.ToStdString(), false);
-            vc.FixScale(10); // This seems to be required because of some anomally in the way I stored this compared to all other value curves with divisors
-            if (vc.IsActive())
-            {
-                sm["B_VALUECURVE_Zoom"] = vc.Serialise();
-            }
+            vc.Deserialise(rzZoom);
+            sm["B_VALUECURVE_Zoom"] = vc.Serialise();
+            wxASSERT(vc.IsRealValue());
         }
     }
 
