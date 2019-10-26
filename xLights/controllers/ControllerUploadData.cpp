@@ -942,6 +942,7 @@ void UDControllerPort::CreateVirtualStrings(bool mergeSequential)
             if ((brightness != -9999 && current->_brightness != brightness) ||
                 (nullPixels != -9999) ||
                 (current->_smartRemote != smartRemote) ||
+                (reverse == "unknown" && current->_reverse == "Reverse") ||
                 (reverse != "unknown" && (current->_reverse != reverse || current->_reverse == "Reverse")) ||
                 (colourOrder != "unknown" && current->_colourOrder != colourOrder) ||
                 (gamma != -9999 && current->_gamma != gamma) ||
