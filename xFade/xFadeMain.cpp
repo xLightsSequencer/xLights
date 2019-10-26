@@ -123,16 +123,27 @@ void xFadeFrame::StashPacket(long type, wxByte* packet, int len)
 
     if (_suspendListen) return;
 
-    bool left = IsLeft(type ,packet, len);
+    if (type == ID_E131SOCKET) {
+        if (len < E131_PACKET_HEADERLEN) {
+            return;
+        }
+        wxASSERT(len <= E131_PACKET_HEADERLEN + 512);
+    }
+    else if (type == ID_ARTNETSOCKET) {
+        if (len < ARTNET_PACKET_HEADERLEN) {
+            return;
+        }
+        wxASSERT(len <= ARTNET_PACKET_HEADERLEN + 512);
+    }
+
+    bool left = IsLeft(type, packet, len);
     bool right = IsRight(type, packet, len);
     int universe = -1;
 
-    if (type == ID_E131SOCKET)
-    {
+    if (type == ID_E131SOCKET) {
         universe = ((int)packet[113] << 8) + (int)packet[114];
     }
-    else if (type == ID_ARTNETSOCKET)
-    {
+    else if (type == ID_ARTNETSOCKET) {
         universe = ((int)packet[15] << 8) + (int)packet[14];
     }
 
@@ -638,14 +649,12 @@ void xFadeFrame::OnAbout(wxCommandEvent& event)
 PacketData::PacketData()
 {
     memset(_data, 0x00, sizeof(_data));
-    _length = 0;
-    _type = 0;
-    _universe = 0;
     _tag = wxString::Format("xFade %d", wxGetProcessId()).ToStdString();
 }
 
 wxByte PacketData::GetData(int c)
 {
+    wxASSERT(c >= 0 && c < 512);
     if (_type == xFadeFrame::ID_E131SOCKET)
     {
         if (_length >= c + E131_PACKET_HEADERLEN)
@@ -680,6 +689,7 @@ wxByte* PacketData::GetDataPtr()
 
 void PacketData::SetData(int c, wxByte dd)
 {
+    wxASSERT(c >= 0 && c < 512);
     if (_type == xFadeFrame::ID_E131SOCKET)
     {
         if (_length >= c + E131_PACKET_HEADERLEN)
@@ -715,6 +725,7 @@ bool PacketData::Update(long type, wxByte* packet, int len)
         _universe = ((int)_data[113] << 8) + (int)_data[114];
         _type = type;
         _length = len;
+        wxASSERT(_length >= E131_PACKET_HEADERLEN && _length <= E131_PACKET_HEADERLEN + 512);
         memcpy(_data, packet, len);
     }
     else if (type == xFadeFrame::ID_ARTNETSOCKET)
@@ -733,6 +744,7 @@ bool PacketData::Update(long type, wxByte* packet, int len)
         _universe = ((int)_data[15] << 8) + (int)_data[14];
         _type = type;
         _length = len;
+        wxASSERT(_length >= ARTNET_PACKET_HEADERLEN && _length <= ARTNET_PACKET_HEADERLEN + 512);
         memcpy(_data, packet, len);
     }
 
@@ -819,10 +831,14 @@ int PacketData::GetDataLength() const
 {
     if (_type == xFadeFrame::ID_E131SOCKET)
     {
+        if (_length < E131_PACKET_HEADERLEN) return 0;
+        wxASSERT(_length - E131_PACKET_HEADERLEN <= 512);
         return _length - E131_PACKET_HEADERLEN;
     }
     else if (_type == xFadeFrame::ID_ARTNETSOCKET)
     {
+        if (_length < ARTNET_PACKET_HEADERLEN) return 0;
+        wxASSERT(_length - ARTNET_PACKET_HEADERLEN <= 512);
         return _length - ARTNET_PACKET_HEADERLEN;
     }
     return 0;
@@ -830,12 +846,13 @@ int PacketData::GetDataLength() const
 
 int PacketData::GetNextSequenceNum(int u)
 {
-    _sequenceNum[u] = _sequenceNum[u] == 255 ? 0 : _sequenceNum[u] + 1;
+    _sequenceNum[u] = _sequenceNum[u] >= 255 ? 0 : _sequenceNum[u] + 1;
     return _sequenceNum[u];
 }
 
 void PacketData::InitialiseArtNETHeader()
 {
+    memset(_data, 0x00, sizeof(_data));
     int channels = GetDataLength();
 
     _data[0] = 'A';   // ID[8]
@@ -858,6 +875,7 @@ void PacketData::InitialiseArtNETHeader()
 
 void PacketData::InitialiseE131Header()
 {
+    memset(_data, 0x00, sizeof(_data));
     _data[1] = 0x10;   // RLP preamble size (low)
     _data[4] = 0x41;   // ACN Packet Identifier (12 bytes)
     _data[5] = 0x53;
@@ -934,14 +952,14 @@ void PacketData::InitialiseE131Header()
 
 int PacketData::GetSequenceNum() const
 {
-    if (_length <= 0) return -1;
-
     if (_type == xFadeFrame::ID_E131SOCKET)
     {
+        if (_length <= E131_PACKET_HEADERLEN) return -1;
         return (int)_data[111];
     }
     else if (_type == xFadeFrame::ID_ARTNETSOCKET)
     {
+        if (_length <= ARTNET_PACKET_HEADERLEN) return -1;
         return (int)_data[12];
     }
     return -1;
@@ -955,10 +973,12 @@ void PacketData::InitialiseLength(long type, int length, int universe)
 
     if (_type == xFadeFrame::ID_E131SOCKET)
     {
+        wxASSERT(_length >= E131_PACKET_HEADERLEN && _length <= E131_PACKET_HEADERLEN + 512);
         InitialiseE131Header();
     }
     else if (_type == xFadeFrame::ID_ARTNETSOCKET)
     {
+        wxASSERT(_length >= ARTNET_PACKET_HEADERLEN && _length <= ARTNET_PACKET_HEADERLEN + 512);
         InitialiseArtNETHeader();
     }
 }
@@ -997,6 +1017,7 @@ void PacketData::ApplyBrightness(int brightness, std::list<int> excludeChannels)
 
 void PacketData::CopyFrom(PacketData* source, long targetType)
 {
+    wxASSERT(source != nullptr);
     _length = 0;
     _type = targetType;
     _universe = source->_universe;
@@ -1005,15 +1026,18 @@ void PacketData::CopyFrom(PacketData* source, long targetType)
     {
         memcpy(_data, source->_data, sizeof(_data));
         _length = source->_length;
+        wxASSERT(_length >= 0 && _length <= sizeof(_data));
 
         if (_type == xFadeFrame::ID_E131SOCKET)
         {
+            wxASSERT(_length >= E131_PACKET_HEADERLEN && _length <= E131_PACKET_HEADERLEN + 512);
             memset(&_data[44], 0x00, 64);
             strncpy((char*)&_data[44], _tag.c_str(), 64);
             _data[111] = GetNextSequenceNum(_universe);
         }
         else if (_type == xFadeFrame::ID_ARTNETSOCKET)
         {
+            wxASSERT(_length >= ARTNET_PACKET_HEADERLEN && _length <= ARTNET_PACKET_HEADERLEN + 512);
             // nothing to do
             _data[12] = GetNextSequenceNum(_universe);
         }

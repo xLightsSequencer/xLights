@@ -87,25 +87,23 @@ public:
 
             {
                 // output the frames now
-                auto ips = _emitter->GetIps();
-
-                for (auto it = ips.begin(); it != ips.end(); ++it)
+                for (const auto& it : _emitter->GetIps())
                 {
-                    std::list<int> excludeChannels = _emitter->GetSettings()->GetExcludeChannels(it->first);
+                    std::list<int> excludeChannels = _emitter->GetSettings()->GetExcludeChannels(it.first);
 
-                    auto l = _emitter->GetLeft(it->first);
-                    auto r = _emitter->GetRight(it->first);
+                    PacketData l = _emitter->GetLeft(it.first);
+                    PacketData r = _emitter->GetRight(it.first);
 
                     if (l._length == 0 && r._length > 0)
                     {
-                        l.InitialiseLength(r._type, r._length, it->first);
+                        l.InitialiseLength(r._type, r._length, it.first);
                     }
                     else if (r._length == 0 && l._length > 0)
                     {
-                        r.InitialiseLength(l._type, l._length, it->first);
+                        r.InitialiseLength(l._type, l._length, it.first);
                     }
 
-                    auto protocol = _emitter->GetProtocol(it->first);
+                    auto protocol = _emitter->GetProtocol(it.first);
 
                     float pos = _emitter->GetPos();
 
@@ -130,7 +128,7 @@ public:
                         PrepareData(&sendData, &l, protocol);
                     }
 
-                    sendData.Send(it->second);
+                    sendData.Send(it.second);
                     _emitter->IncrementSent();
                 }
 

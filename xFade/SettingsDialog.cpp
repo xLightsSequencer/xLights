@@ -5,6 +5,7 @@
 
 #include <wx/file.h>
 #include <wx/filename.h>
+#include <wx/choicdlg.h>
 
 #include "Settings.h"
 #include "SettingsDialog.h"
@@ -418,18 +419,35 @@ void SettingsDialog::OnListView_UniversesItemActivated(wxListEvent& event)
 
 void SettingsDialog::OnButton_ForceInputClick(wxCommandEvent& event)
 {
-    IPEntryDialog dlg(this);
-    dlg.TextCtrl_IPAddress->SetValue(_localInputIPCopy);
+    wxArrayString choices;
+    choices.push_back("");
+    choices.push_back("127.0.0.1");
+    for (const auto& it : GetLocalIPs())
+    {
+        choices.push_back(it);
+    }
+
+    int sel = 0;
+    for (const auto& it : choices)
+    {
+        if (it == _localInputIPCopy) break;
+        sel++;
+    }
+    if (sel >= choices.size()) sel = 0;
+
+    wxSingleChoiceDialog dlg(this, "Choose interface to listen on", "", choices);
+
+    dlg.SetSelection(sel);
 
     if (dlg.ShowModal() == wxID_OK)
     {
-        if (dlg.TextCtrl_IPAddress->GetValue() == "")
+        if (dlg.GetStringSelection() == "")
         {
             _localInputIPCopy = _settings->_defaultIP;
         }
         else
         {
-            _localInputIPCopy = dlg.TextCtrl_IPAddress->GetValue();
+            _localInputIPCopy = dlg.GetStringSelection();
         }
         StaticText_InputIP->SetLabel(_localInputIPCopy);
     }
@@ -437,18 +455,34 @@ void SettingsDialog::OnButton_ForceInputClick(wxCommandEvent& event)
 
 void SettingsDialog::OnButton_ForceOutputClick(wxCommandEvent& event)
 {
-    IPEntryDialog dlg(this);
-    dlg.TextCtrl_IPAddress->SetValue(_localOutputIPCopy);
+    wxArrayString choices;
+    choices.push_back("");
+    for (const auto& it : GetLocalIPs())
+    {
+        choices.push_back(it);
+    }
+
+    int sel = 0;
+    for (const auto& it : choices)
+    {
+        if (it == _localInputIPCopy) break;
+        sel++;
+    }
+    if (sel >= choices.size()) sel = 0;
+
+    wxSingleChoiceDialog dlg(this, "Choose interface to output to", "", choices);
+
+    dlg.SetSelection(sel);
 
     if (dlg.ShowModal() == wxID_OK)
     {
-        if (dlg.TextCtrl_IPAddress->GetValue() == "")
+        if (dlg.GetStringSelection() == "")
         {
             _localOutputIPCopy = _settings->_defaultIP;
         }
         else
         {
-            _localOutputIPCopy = dlg.TextCtrl_IPAddress->GetValue();
+            _localOutputIPCopy = dlg.GetStringSelection();
         }
         StaticText_OutputIP->SetLabel(_localOutputIPCopy);
     }

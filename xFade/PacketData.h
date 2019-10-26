@@ -13,12 +13,12 @@ class PacketData
 {
 public:
     wxByte _data[1533];
-    long _type;
-    int _universe;
-    int _length;
+    long _type = 0;
+    int _universe = 0;
+    int _length = 0;
     std::map<int, int> _sequenceNum;
-    std::string _tag;
-    std::string _localIP;
+    std::string _tag = "";
+    std::string _localIP = "";
 
     virtual ~PacketData() { }
     PacketData();
