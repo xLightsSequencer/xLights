@@ -763,7 +763,7 @@ public:
             //let the next know we're done
             SetGenericStatus("%s: Notifying next renderer of final frame", 0);
             FrameDone(END_OF_RENDER_FRAME);
-            xLights->CallAfter(&xLightsFrame::SetStatusText, wxString("Done Rendering " + rowToRender->GetModelName()), 0);
+            xLights->CallAfter(&xLightsFrame::SetStatusText, wxString("Done Rendering \"" + rowToRender->GetModelName() + "\""), 0);
         } else {
             xLights->CallAfter(&xLightsFrame::RenderDone);
         }
