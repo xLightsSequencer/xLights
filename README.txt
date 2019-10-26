@@ -11,11 +11,27 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
-   -- bug (kevin)  Fix certain shaders from ISF failing to compile
+2019.61 October 26 2019
    -- enh (gil)    Add Redo option for the sequencer grid.  Fixes #555.
    -- enh (dkulp)  FPP/BBB DMX strings - set minimum length to 16 channels.  Several controllers have issues with less than that
    -- enh (dkulp)  FPP Connect - use a single progress dialog to avoid stealing focus for each thing transferred
+   -- enh (keith)  Add special.options file for technical options
+   -- enh (keith)  Add xSchedule API for querying pixels which have been set via the API
+   -- rem (keith)  Remove Syncrolight support due to legal threats
    -- bug (dkulp)  FPP Connect - only remembered manually added FPP instance hostnames if they exactly matched (case sensitive)
+   -- bug (kevin)  Fix certain shaders from ISF failing to compile
+   -- bug (keith)  Fix loredit import crashes on strand mapping import
+   -- bug (keith)  Fix loredit does not import all nodes on a strand
+   -- bug (keith)  Fix reversed model should always be on a new virtual string
+   -- bug (keith)  Put a bunch of extra defense in xFade against corrupt packets
+   -- bug (keith)  Fix render cache purged when sequence closed
+   -- bug (keith)  Fix some old rotozoom value curve errors
+   -- bug (keith)  Bunch of windows hardware video decoding fixes
+   -- bug (keith)  Fix submodels dont highlight when clicking on them in model list
+   -- bug (keith)  Dont auto chain DMX models   
+   -- bug (keith)  Fix auto serial start channels not correct when models overlap
+   -- bug (keith)  Fix boxed models generate illegal scale if x or y dimension is 1
+   -- bug (keith)  Weird effects grid behaviour if effect starts and ends < 0ms
 2019.60 October 20 2019
    -- bug (dkulp)  Attempt to fix crash on thread exit
    -- bug (gil)    Fix value curves for Single Strand effect.  Fixes #1355.
