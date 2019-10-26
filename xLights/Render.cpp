@@ -602,8 +602,9 @@ public:
     }
 
     virtual void Process() override {
-        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.debug("Render job thread id 0x%x or %d", wxThread::GetCurrentId(), wxThread::GetCurrentId());
+        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        static log4cpp::Category& logger_jobpool = log4cpp::Category::getInstance(std::string("log_jobpool"));
+        logger_jobpool.debug("Render job thread id 0x%x or %d", wxThread::GetCurrentId(), wxThread::GetCurrentId());
 
         SetGenericStatus("Initializing rendering thread for %s", 0);
         int maxFrameBeforeCheck = -1;

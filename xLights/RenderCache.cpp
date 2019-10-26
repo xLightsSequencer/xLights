@@ -500,8 +500,13 @@ bool RenderCacheItem::IsMatch(Effect* effect, RenderBuffer* buffer)
 
 void RenderCacheItem::Delete()
 {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    wxLogNull logNo; //kludge: avoid user error messahe
     if (!_purged && wxFile::Exists(_cacheFile)) {
-        wxRemoveFile(_cacheFile);
+        if (!wxRemoveFile(_cacheFile))
+        {
+            logger_base.warn("Unable to remove cache file " + _cacheFile);
+        }
     }
     PurgeFrames();
     _renderCache->RemoveItem(this);

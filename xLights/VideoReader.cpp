@@ -835,7 +835,7 @@ bool VideoReader::readFrame(int timestampMS) {
                 // first time through we wont have a scale context so create it
                 if (_swsCtx == nullptr)
                 {
-                    if (_abandonHardwareDecode || f == nullptr)
+                    if (f == nullptr)
                     {
                         logger_base.warn("VideoReader: Hardware decoding abandoned due to directx error.");
                         f = _srcFrame;
@@ -875,9 +875,12 @@ bool VideoReader::readFrame(int timestampMS) {
                     }
                 }
 
-                sws_scale(_swsCtx, f->data, f->linesize, 0,
-                          f->height, _dstFrame2->data,
-                          _dstFrame2->linesize);
+                if (_swsCtx != nullptr)
+                {
+                    sws_scale(_swsCtx, f->data, f->linesize, 0,
+                        f->height, _dstFrame2->data,
+                        _dstFrame2->linesize);
+                }
             }
             std::swap(_dstFrame, _dstFrame2);
         }
