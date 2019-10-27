@@ -838,9 +838,9 @@ void PlayListDialog::DeleteSelectedItem()
                 PlayListStep* playliststep = (PlayListStep*)((MyTreeItemData*)TreeCtrl_PlayList->GetItemData(TreeCtrl_PlayList->GetItemParent(treeitem)))->GetData();
                 playliststep->RemoveItem(playlistitem);
                 auto items = playliststep->GetItems();
-                for (auto it = items.begin(); it != items.end(); ++it)
+                for (const auto& it : items)
                 {
-                    (*it)->SetStepLength(playliststep->GetLengthMS());
+                    it->SetStepLength(playliststep->GetLengthMS());
                 }
 
                 PopulateTree(_playlist, playliststep, nullptr);
@@ -962,13 +962,19 @@ void PlayListDialog::UpdateTree()
     for (wxTreeItemId it = TreeCtrl_PlayList->GetFirstChild(root, tid); it != nullptr; it = TreeCtrl_PlayList->GetNextChild(root, tid))
     {
         PlayListStep* pls = (PlayListStep*)((MyTreeItemData*)TreeCtrl_PlayList->GetItemData(it))->GetData();
-        TreeCtrl_PlayList->SetItemText(it, pls->GetName());
+        if (pls != nullptr)
+        {
+            TreeCtrl_PlayList->SetItemText(it, pls->GetName());
+        }
 
         wxTreeItemIdValue tid2;
         for (wxTreeItemId it2 = TreeCtrl_PlayList->GetFirstChild(it, tid2); it2 != nullptr; it2 = TreeCtrl_PlayList->GetNextChild(it, tid2))
         {
             PlayListItem* pli = (PlayListItem*)((MyTreeItemData*)TreeCtrl_PlayList->GetItemData(it2))->GetData();
-            TreeCtrl_PlayList->SetItemText(it2, pli->GetName());
+            if (pli != nullptr)
+            {
+                TreeCtrl_PlayList->SetItemText(it2, pli->GetName());
+            }
         }
     }
     ValidateWindow();
@@ -1058,9 +1064,9 @@ void PlayListDialog::AddItem(PlayList* playlist, PlayListStep* step, PlayListIte
     pls->AddItem(newitem);
 
     auto items = pls->GetItems();
-    for (auto it = items.begin(); it != items.end(); ++it)
+    for (const auto& it : items)
     {
-        (*it)->SetStepLength(pls->GetLengthMS());
+        it->SetStepLength(pls->GetLengthMS());
     }
 
     PopulateTree(_playlist, pls, newitem);

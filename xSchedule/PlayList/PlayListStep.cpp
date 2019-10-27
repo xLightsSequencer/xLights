@@ -294,9 +294,9 @@ void PlayListStep::Load(OutputManager* outputManager, wxXmlNode* node)
 
     _items.sort(compare_priority);
 
-    for (auto it = _items.begin(); it != _items.end(); ++it)
+    for (const auto& it : _items)
     {
-        (*it)->SetStepLength(GetLengthMS());
+        it->SetStepLength(GetLengthMS());
     }
 }
 

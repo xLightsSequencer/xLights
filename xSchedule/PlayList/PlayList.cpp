@@ -829,9 +829,9 @@ size_t PlayList::GetLengthMS()
     size_t length = 0;
     {
         ReentrancyCounter rec(_reentrancyCounter);
-        for (auto it = _steps.begin(); it != _steps.end(); ++it)
+        for (const auto& it : _steps)
         {
-            length += (*it)->GetLengthMS();
+            length += it->GetLengthMS();
         }
     }
 
@@ -1278,7 +1278,7 @@ PlayListStep* PlayList::GetStepAtTime(long ms, long& newMS)
 
     {
         ReentrancyCounter rec(_reentrancyCounter);
-        for (auto it : _steps)
+        for (const auto& it : _steps)
         {
             if (at + it->GetLengthMS() > ms)
             {
@@ -1298,7 +1298,7 @@ size_t PlayList::GetPosition()
     size_t pos = 0;
     {
         ReentrancyCounter rec(_reentrancyCounter);
-        for (auto& it : _steps)
+        for (const auto& it : _steps)
         {
             if (it == GetRunningStep())
             {
