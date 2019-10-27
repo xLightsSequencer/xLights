@@ -2780,10 +2780,8 @@ bool LayoutPanel::SelectMultipleModels(int x,int y)
 
 void LayoutPanel::SetSelectedModelToGroupSelected()
 {
-    for (size_t i = 0; i<modelPreview->GetModels().size(); i++)
-    {
-        if(modelPreview->GetModels()[i]->Selected)
-        {
+    for (size_t i = 0; i<modelPreview->GetModels().size(); i++) {
+        if(modelPreview->GetModels()[i]->Selected) {
             modelPreview->GetModels()[i]->Selected = false;
             modelPreview->GetModels()[i]->GroupSelected = true;
         }
@@ -5079,32 +5077,36 @@ void LayoutPanel::OnListCharHook(wxKeyEvent& event)
 }
 
 void LayoutPanel::DeleteSelectedModel() {
+
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     if( selectedBaseObject != nullptr && !selectedBaseObject->GetBaseObjectScreenLocation().IsLocked()) {
         // we suspend deferred work because if the delete model pops a dialog then the ASAP work gets done prematurely
         xlights->GetOutputModelManager()->SuspendDeferredWork(true);
         xlights->UnselectEffect(); // we do this just in case the effect is on the model we are deleting
+
         CreateUndoPoint("All", selectedBaseObject->name);
+
         // This should delete all selected models
-        //xlights->AllModels.Delete(selectedBaseObject->name);
         bool selectedModelFound = false;
-        for (size_t i = 0; i<modelPreview->GetModels().size(); i++)
-        {
-            if (modelPreview->GetModels()[i]->GroupSelected)
-            {
-                if (!selectedModelFound && modelPreview->GetModels()[i]->name == selectedBaseObject->name)
-                {
+        for (size_t i = 0; i<modelPreview->GetModels().size(); i++) {
+            if (modelPreview->GetModels()[i]->GroupSelected || modelPreview->GetModels()[i]->Selected) {
+                if (!selectedModelFound && modelPreview->GetModels()[i] == selectedBaseObject) {
                     selectedModelFound = true;
                 }
                 xlights->GetDisplayElementsPanel()->RemoveModelFromLists(modelPreview->GetModels()[i]->name);
                 xlights->AllModels.Delete(modelPreview->GetModels()[i]->name);
             }
         }
-        if (!selectedModelFound)
-        {
+
+        if (!selectedModelFound){
+            logger_base.debug("This is really suspicious ... why did we not find the selected model when we went through the list ... maybe this will crash");
             xlights->GetDisplayElementsPanel()->RemoveModelFromLists(selectedBaseObject->name);
             xlights->AllModels.Delete(selectedBaseObject->name);
         }
+
         selectedBaseObject = nullptr;
+
         xlights->GetOutputModelManager()->SuspendDeferredWork(false);
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::DeleteSelectedModel");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::DeleteSelectedModel");
