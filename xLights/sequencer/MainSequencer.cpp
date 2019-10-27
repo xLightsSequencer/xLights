@@ -1394,118 +1394,99 @@ void MainSequencer::InsertTimingMarkFromRange()
     bool is_range = true;
     int x1;
     int x2;
-    if (mPlayType == PLAY_TYPE_MODEL)
-    {
+    if (mPlayType == PLAY_TYPE_MODEL) {
         x1 = PanelTimeLine->GetPlayMarker();
         x2 = x1;
     }
-    else
-    {
+    else {
         x1 = PanelTimeLine->GetSelectedPositionStart();
         x2 = PanelTimeLine->GetSelectedPositionEnd();
 
         int pm = PanelTimeLine->GetPlayMarker();
-        if ((x1 == -1 || x2 == -1 || x1 == x2) && pm != -1)
-        {
+        if ((x1 == -1 || x2 == -1 || x1 == x2) && pm != -1) {
             x1 = pm;
             x2 = x1;
         }
     }
     if (x2 == -1) x2 = x1;
     if (x1 == x2) is_range = false;
+
     int selectedTiming = mSequenceElements->GetSelectedTimingRow();
-    if (selectedTiming >= 0)
-    {
+    if (selectedTiming >= 0) {
         int t1 = PanelTimeLine->GetAbsoluteTimeMSfromPosition(x1);
         int t2 = PanelTimeLine->GetAbsoluteTimeMSfromPosition(x2);
-        if (t2 > PanelTimeLine->GetTimeLength())
-        {
+        if (t2 > PanelTimeLine->GetTimeLength()) {
             t2 = PanelTimeLine->GetTimeLength();
         }
-        if (is_range)
-        {
+        if (is_range) {
             Element* e = mSequenceElements->GetVisibleRowInformation(selectedTiming)->element;
-            EffectLayer* el = e->GetEffectLayer(mSequenceElements->GetVisibleRowInformation(selectedTiming)->layerIndex);
+            if (e != nullptr) {
+                EffectLayer* el = e->GetEffectLayer(mSequenceElements->GetVisibleRowInformation(selectedTiming)->layerIndex);
+                if (el != nullptr) {
+                    int i1 = -1;
+                    int i2 = -1;
+                    el->HitTestEffectByTime(t1, i1);
+                    el->HitTestEffectByTime(t2, i2);
 
-            if (el == nullptr)
-            {
-                logger_base.crit("MainSequencer::InsertTimingMarkFromRange el is nullptr ... this is going to crash.");
-            }
-
-            int i1 = -1;
-            int i2 = -1;
-
-            el->HitTestEffectByTime(t1, i1);
-            el->HitTestEffectByTime(t2, i2);
-
-            if ((!el->HitTestEffectByTime(t1, i1) && !el->HitTestEffectByTime(t2, i2) && !el->HitTestEffectBetweenTime(t1, t2)) ||
-                (!el->HitTestEffectBetweenTime(t1, t2) && i1 != i2))
-            {
-                std::string name, settings;
-                el->AddEffect(0, name, settings, "", t1, t2, false, false);
-                PanelEffectGrid->ForceRefresh();
-            }
-            else
-            {
-                DisplayError("Timing placement error: Timing exists already in the selected region", this);
+                    if ((!el->HitTestEffectByTime(t1, i1) && !el->HitTestEffectByTime(t2, i2) && !el->HitTestEffectBetweenTime(t1, t2)) ||
+                        (!el->HitTestEffectBetweenTime(t1, t2) && i1 != i2)) {
+                        std::string name, settings;
+                        el->AddEffect(0, name, settings, "", t1, t2, false, false);
+                        PanelEffectGrid->ForceRefresh();
+                    }
+                    else
+                    {
+                        DisplayError("Timing placement error: Timing exists already in the selected region", this);
+                    }
+                }
             }
         }
         else
         {
             // x1 and x2 are the same. Insert from end time of timing to the left to x2
             Element* e = mSequenceElements->GetVisibleRowInformation(selectedTiming)->element;
-            EffectLayer* el = e->GetEffectLayer(mSequenceElements->GetVisibleRowInformation(selectedTiming)->layerIndex);
+            if (e != nullptr) {
+                EffectLayer* el = e->GetEffectLayer(mSequenceElements->GetVisibleRowInformation(selectedTiming)->layerIndex);
+                if (el != nullptr) {
+                    int index = 0;
+                    if (!el->HitTestEffectByTime(t2, index)) {
+                        // get effect to left and right
+                        Effect* lefteffect = nullptr;
+                        Effect* righteffect = nullptr;
+                        for (int x = 0; x < el->GetEffectCount(); x++) {
+                            Effect* eff = el->GetEffect(x);
+                            if (eff->GetEndTimeMS() < t2 && (lefteffect == nullptr || lefteffect->GetEndTimeMS() < eff->GetEndTimeMS())) {
+                                lefteffect = eff;
+                            }
+                            if (righteffect == nullptr && eff->GetStartTimeMS() > t2) {
+                                righteffect = eff;
+                                break;
+                            }
+                        }
 
-            if (el == nullptr)
-            {
-                logger_base.crit("MainSequencer::InsertTimingMarkFromRange [2] el is nullptr ... this is going to crash.");
-            }
+                        std::string name;
+                        std::string settings;
+                        if (lefteffect != nullptr && righteffect != nullptr) {
+                            // fill to left and right
+                            el->AddEffect(0, name, settings, "", lefteffect->GetEndTimeMS(), t2, false, false);
+                            el->AddEffect(0, name, settings, "", t2, righteffect->GetStartTimeMS(), false, false);
+                        }
+                        else if (lefteffect != nullptr) {
+                            el->AddEffect(0, name, settings, "", lefteffect->GetEndTimeMS(), t2, false, false);
+                        }
+                        else if (righteffect != nullptr) {
+                            el->AddEffect(0, name, settings, "", t2, righteffect->GetStartTimeMS(), false, false);
+                        }
+                        else {
+                            el->AddEffect(0, name, settings, "", 0, t2, false, false);
+                        }
 
-            int index;
-            if (!el->HitTestEffectByTime(t2, index))
-            {
-                // get effect to left and right
-                Effect * lefteffect = nullptr;
-                Effect * righteffect = nullptr;
-
-                for (int x = 0; x < el->GetEffectCount(); x++) {
-                    Effect * eff = el->GetEffect(x);
-                    if (eff->GetEndTimeMS() < t2 && (lefteffect == nullptr || lefteffect->GetEndTimeMS() < eff->GetEndTimeMS()))
-                    {
-                        lefteffect = eff;
+                        PanelEffectGrid->ForceRefresh();
                     }
-                    if (righteffect == nullptr && eff->GetStartTimeMS() > t2) {
-                        righteffect = eff;
-                        break;
+                    else {
+                        SplitTimingMark();  // inserting a timing mark inside a timing mark same as a split
                     }
                 }
-
-                std::string name;
-                std::string settings;
-                if (lefteffect != nullptr && righteffect != nullptr)
-                {
-                    // fill to left and right
-                    el->AddEffect(0, name, settings, "", lefteffect->GetEndTimeMS(), t2, false, false);
-                    el->AddEffect(0, name, settings, "", t2, righteffect->GetStartTimeMS(), false, false);
-                }
-                else if (lefteffect != nullptr)
-                {
-                    el->AddEffect(0, name, settings, "", lefteffect->GetEndTimeMS(), t2, false, false);
-                }
-                else if (righteffect != nullptr)
-                {
-                    el->AddEffect(0, name, settings, "", t2, righteffect->GetStartTimeMS(), false, false);
-                }
-                else
-                {
-                    el->AddEffect(0, name, settings, "", 0, t2, false, false);
-                }
-
-                PanelEffectGrid->ForceRefresh();
-            }
-            else
-            {
-                SplitTimingMark();  // inserting a timing mark inside a timing mark same as a split
             }
         }
     }
