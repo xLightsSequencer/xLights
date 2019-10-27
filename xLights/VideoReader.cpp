@@ -511,19 +511,24 @@ long VideoReader::GetVideoLength(const std::string& filename)
 
 VideoReader::~VideoReader()
 {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (_swsCtx != nullptr) {
+        logger_base.debug("Releasing sws Context.");
         sws_freeContext(_swsCtx);
         _swsCtx = nullptr;
     }
     if (_srcFrame != nullptr) {
+        logger_base.debug("Releasing srcFrame.");
         av_free(_srcFrame);
         _srcFrame = nullptr;
     }
     if (_srcFrame2 != nullptr) {
+        logger_base.debug("Releasing srcFrame2.");
         av_free(_srcFrame2);
         _srcFrame2 = nullptr;
     }
     if (_dstFrame != nullptr) {
+        logger_base.debug("Releasing dstFrame.");
         if (_dstFrame->data[0] != nullptr) {
             av_free(_dstFrame->data[0]);
         }
@@ -531,26 +536,26 @@ VideoReader::~VideoReader()
         _dstFrame = nullptr;
     }
     if (_dstFrame2 != nullptr) {
+        logger_base.debug("Releasing dstFrame2.");
         if (_dstFrame2->data[0] != nullptr) {
             av_free(_dstFrame2->data[0]);
         }
         av_free(_dstFrame2);
         _dstFrame2 = nullptr;
     }
-
-    if (_codecContext != nullptr)
-	{
+    if (_codecContext != nullptr) {
+        logger_base.debug("Releasing codecContext.");
         CleanupVideoToolbox(_codecContext);
-		avcodec_close(_codecContext);
+        avcodec_close(_codecContext);
 		_codecContext = nullptr;
 	}
-	if (_formatContext != nullptr)
-	{
-		avformat_close_input(&_formatContext);
+	if (_formatContext != nullptr) {
+        logger_base.debug("Releasing formatContext.");
+        avformat_close_input(&_formatContext);
 		_formatContext = nullptr;
 	}
-    if (_hw_device_ctx != nullptr)
-    {
+    if (_hw_device_ctx != nullptr) {
+        logger_base.debug("Releasing hardware device context.");
         av_buffer_unref(&_hw_device_ctx);
         _hw_device_ctx = nullptr;
     }
@@ -725,8 +730,7 @@ bool VideoReader::readFrame(int timestampMS) {
                                             logger_base.error("Unable to scale and convert format in hardware 0x%x", hr);
                                             _abandonHardwareDecode = true;
                                         }
-                                        else
-                                        {
+                                        else {
 // THIS CODE IS INCOMPLETE AND LIKELY COMPLETELY WRONG
 // AND I AM NOT SURE EXACTLY HOW AND WHEN THE SHADER WOULD RUN TO DO COLOUR CONVERSION
 // DO I RESIZE FIRST THEN DO THE NV12->RGBA or RGB conversion
@@ -819,8 +823,7 @@ bool VideoReader::readFrame(int timestampMS) {
                         if (av_hwframe_transfer_data(_srcFrame2, _srcFrame, 0) < 0) {
                             f = _srcFrame;
                         }
-                        else
-                        {
+                        else {
                             unrefSrcFrame2 = true;
                             f = _srcFrame2;
                         }
@@ -832,26 +835,26 @@ bool VideoReader::readFrame(int timestampMS) {
                     f = _srcFrame;
                 }
 
-                // first time through we wont have a scale context so create it
-                if (_swsCtx == nullptr)
-                {
-                    if (f == nullptr)
-                    {
-                        logger_base.warn("VideoReader: Hardware decoding abandoned due to directx error.");
-                        f = _srcFrame;
-                    }
+                // make sure f is valid
+                if (f == nullptr) {
+                    logger_base.warn("VideoReader: Strange f was not valid so setting it to the source frame.");
+                    f = _srcFrame;
+                }
 
+                // first time through we wont have a scale context so create it
+                if (_swsCtx == nullptr) {
+                    if (_abandonHardwareDecode) {
+                        logger_base.warn("VideoReader: Hardware decoding abandoned due to directx error.");
+                    }
                     #if LIBAVFORMAT_VERSION_MAJOR > 57
                     if (IsHardwareAcceleratedVideo() && _codecContext->hw_device_ctx != nullptr && _srcFrame->format == __hw_pix_fmt && !_abandonHardwareDecode) {
                         logger_base.debug("Hardware format %s -> Software format %s.", av_get_pix_fmt_name((AVPixelFormat)_srcFrame->format), av_get_pix_fmt_name((AVPixelFormat)_srcFrame2->format));
                         _swsCtx = sws_getContext(f->width, f->height, (AVPixelFormat)f->format,
                             _width, _height, _pixelFmt, SWS_BICUBIC, nullptr, nullptr, nullptr);
-                        if (_swsCtx == nullptr)
-                        {
+                        if (_swsCtx == nullptr) {
                             logger_base.error("VideoReader: Error creating SWSContext");
                         }
-                        else
-                        {
+                        else {
                             logger_base.debug("Hardware Decoding Pixel format conversion %s -> %s.", av_get_pix_fmt_name((AVPixelFormat)_srcFrame2->format), av_get_pix_fmt_name(_pixelFmt));
                             logger_base.debug("Size conversion %d,%d -> %d,%d.", f->width, f->height, _width, _height);
                         }
@@ -863,20 +866,17 @@ bool VideoReader::readFrame(int timestampMS) {
                         logger_base.debug("Software format %s -> Software format %s.", av_get_pix_fmt_name((AVPixelFormat)f->format), av_get_pix_fmt_name((AVPixelFormat)_pixelFmt));
                         _swsCtx = sws_getContext(f->width, f->height, (AVPixelFormat)f->format,
                             _width, _height, _pixelFmt, SWS_BICUBIC, nullptr, nullptr, nullptr);
-                        if (_swsCtx == nullptr)
-                        {
+                        if (_swsCtx == nullptr) {
                             logger_base.error("VideoReader: Error creating SWSContext");
                         }
-                        else
-                        {
+                        else {
                             logger_base.debug("Software Decoding Pixel format conversion %s -> %s.", av_get_pix_fmt_name(_codecContext->pix_fmt), av_get_pix_fmt_name(_pixelFmt));
                             logger_base.debug("Size conversion %d,%d -> %d,%d.", f->width, f->height, _width, _height);
                         }
                     }
                 }
 
-                if (_swsCtx != nullptr)
-                {
+                if (_swsCtx != nullptr) {
                     sws_scale(_swsCtx, f->data, f->linesize, 0,
                         f->height, _dstFrame2->data,
                         _dstFrame2->linesize);
@@ -890,8 +890,7 @@ bool VideoReader::readFrame(int timestampMS) {
         }
         return true;
     }
-    else
-    {
+    else {
         logger_base.debug("avcodec_receive_frame failed %d - abandoning video read.", rc);
         _abort = true;
     }
