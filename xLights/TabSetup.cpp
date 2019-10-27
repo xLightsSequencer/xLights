@@ -3007,6 +3007,18 @@ void xLightsFrame::DoASAPWork()
     DoWork(_outputModelManager.GetASAPWork(), "ASAP");
 }
 
+bool xLightsFrame::DoAllWork()
+{
+    static log4cpp::Category& logger_work = log4cpp::Category::getInstance(std::string("log_work"));
+    logger_work.debug("Doing All Work.");
+    DoWork(_outputModelManager.GetSetupWork(), "Setup");
+    DoWork(_outputModelManager.GetLayoutWork(), "Layout");
+    DoWork(_outputModelManager.GetASAPWork(), "ASAP");
+    return (_outputModelManager.GetASAPWork() == OutputModelManager::WORK_NOTHING && 
+            _outputModelManager.GetSetupWork() == OutputModelManager::WORK_NOTHING && 
+            _outputModelManager.GetLayoutWork() == OutputModelManager::WORK_NOTHING);
+}
+
 void xLightsFrame::DoWork(uint32_t work, const std::string& type, Model* m, const std::string& selected)
 {
     static log4cpp::Category& logger_work = log4cpp::Category::getInstance(std::string("log_work"));

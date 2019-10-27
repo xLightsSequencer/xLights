@@ -357,7 +357,7 @@ bool ModelManager::RecalcStartChannels() const {
     ResetModelGroups();
 
     long end = sw.Time();
-    logger_base.debug("RecalcStartChannels takes %ld.", end);
+    logger_base.debug("RecalcStartChannels takes %ldms.", end);
 
     if (countInvalid > 0) {
         DisplayStartChannelCalcWarning();

@@ -381,6 +381,7 @@ public:
     void DoASAPWork();
     void DoSetupWork();
     void DoLayoutWork();
+    bool DoAllWork();
 
     EffectManager &GetEffectManager() { return effectManager; }
 

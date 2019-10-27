@@ -2138,8 +2138,10 @@ void PixelBufferClass::GetColors(unsigned char *fdata, const std::vector<bool> &
 
 void PixelBufferClass::SetColors(int layer, const unsigned char *fdata)
 {
+    if (layer >= layers.size()) return;
+
     xlColor color;
-    for (auto &n : layers[layer]->buffer.Nodes) {
+    for (const auto &n : layers[layer]->buffer.Nodes) {
         size_t start = n->ActChan;
 
         n->SetFromChannels(&fdata[start]);
@@ -2149,11 +2151,8 @@ void PixelBufferClass::SetColors(int layer, const unsigned char *fdata)
         if (curve != nullptr) {
             curve->reverse(color);
         }
-        for (auto &a : n->Coords) {
-            layers[layer]->buffer.SetPixel(a.bufX,
-                                           a.bufY,
-                                           color);
-
+        for (const auto &a : n->Coords) {
+            layers[layer]->buffer.SetPixel(a.bufX, a.bufY, color);
         }
     }
 }

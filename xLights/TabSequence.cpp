@@ -1194,6 +1194,10 @@ void xLightsFrame::SaveSequence()
     }
 
     if (mRenderOnSave) {
+
+        // make sure any pending layout work is done before rendering
+        while (!DoAllWork()) {}
+
         SetStatusText(_("Saving ") + xlightsFilename + _(" ... Rendering."));
 
         // If number of channels is wrong then lets just dump and reallocate before render
