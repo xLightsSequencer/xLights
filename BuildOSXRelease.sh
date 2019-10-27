@@ -131,4 +131,5 @@ if [ "${NOTARIZE_PWD}x" != "x" ]; then
 fi
 
 # cleanup the build version file
+cd ../..
 rm xLights/xlights_build_version.h

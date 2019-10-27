@@ -179,11 +179,11 @@ bool VideoToolboxScaleImage(AVCodecContext *codecContext, AVFrame *frame, AVFram
         
         AddTraceMessage("VideoToolbox - Copy data from buffer to dstFrame");
         CVPixelBufferLockBaseAddress(scaledBuf, kCVPixelBufferLock_ReadOnly);
+        AddTraceMessage("Locked the scaled buffer");
         uint8_t *data = (uint8_t *)CVPixelBufferGetBaseAddress(scaledBuf);
+        AddTraceMessage(data == nullptr ? "Dataptr is null" : "Dataptr is not null");
         int linesize = CVPixelBufferGetBytesPerRow(scaledBuf);
-        if (data == nullptr) {
-            AddTraceMessage("VideoToolbox - No data returned");
-        }
+        AddTraceMessage("Line size: " + std::to_string(linesize) + " for size " + std::to_string(dstFrame->width) + "x" + std::to_string(dstFrame->height));
         if (dstFrame->data[0] == nullptr) {
             AddTraceMessage("VideoToolbox - No data in target frame");
         }

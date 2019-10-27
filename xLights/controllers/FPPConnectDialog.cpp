@@ -994,8 +994,21 @@ void FPPConnectDialog::OnAddFPPButtonClick(wxCommandEvent& event)
         prgs.Pulse("Gathering configuration for " + ipAd);
         prgs.Show();
 
-        FPP inst(ipAd);
-        if (inst.AuthenticateAndUpdateVersions()) {
+        FPP *inst = new FPP(ipAd);
+        if (inst->AuthenticateAndUpdateVersions()) {
+            bool found = false;
+            for (const auto &fpp : instances) {
+                if (inst->ipAddress == fpp->ipAddress
+                    || inst->ipAddress == fpp->hostName
+                    || fpp->hostName == inst->ipAddress) {
+                    found = true;
+                }
+            }
+            if (found) {
+                delete inst;
+            } else {
+                instances.push_back(inst);
+            }
             std::list<std::string> add;
             add.push_back(ipAd);
             FPP::Probe(add, instances);
@@ -1022,6 +1035,8 @@ void FPPConnectDialog::OnAddFPPButtonClick(wxCommandEvent& event)
                 config->Flush();
             }
             PopulateFPPInstanceList();
+        } else {
+            delete inst;
         }
         prgs.Hide();
     }
