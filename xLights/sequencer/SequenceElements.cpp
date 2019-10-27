@@ -1163,14 +1163,18 @@ wxXmlNode *GetModelNode(wxXmlNode *root, const std::string & name) {
     return nullptr;
 }
 
-void addSubModelElement(SubModelElement *elem,
-                        std::vector<Row_Information_Struct> &mRowInformation,
-                        int &rowIndex, xLightsFrame *xframe,
-                        std::vector <Element*> &elements) {
-    if(!elem->GetCollapsed())
-    {
-        for(int j =0; j<elem->GetEffectLayerCount();j++)
-        {
+void addSubModelElement(SubModelElement* elem,
+    std::vector<Row_Information_Struct>& mRowInformation,
+    int& rowIndex, xLightsFrame* xframe,
+    std::vector <Element*>& elements) {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    if (elem == nullptr) {
+        logger_base.error("addSubModelElement attempted to add null element.");
+        return;
+    }
+
+    if (!elem->GetCollapsed()) {
+        for (int j = 0; j < elem->GetEffectLayerCount(); j++) {
             Row_Information_Struct ri;
             ri.element = elem;
             ri.displayName = elem->GetFullName();
@@ -1182,8 +1186,7 @@ void addSubModelElement(SubModelElement *elem,
             mRowInformation.push_back(ri);
         }
     }
-    else
-    {
+    else {
         Row_Information_Struct ri;
         ri.element = elem;
         ri.Collapsed = elem->GetCollapsed();
@@ -1196,11 +1199,11 @@ void addSubModelElement(SubModelElement *elem,
     }
 }
 
-void addModelElement(ModelElement *elem, std::vector<Row_Information_Struct> &mRowInformation,
-                     int &rowIndex, xLightsFrame *xframe,
-                     std::vector <Element*> &elements,
-                     bool submodel) {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+void addModelElement(ModelElement* elem, std::vector<Row_Information_Struct>& mRowInformation,
+    int& rowIndex, xLightsFrame* xframe,
+    std::vector <Element*>& elements,
+    bool submodel) {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     if (elem == nullptr)
     {
@@ -1208,9 +1211,9 @@ void addModelElement(ModelElement *elem, std::vector<Row_Information_Struct> &mR
         return;
     }
 
-    if(!elem->GetCollapsed())
+    if (!elem->GetCollapsed())
     {
-        for(int j =0; j<elem->GetEffectLayerCount();j++)
+        for (int j = 0; j < elem->GetEffectLayerCount(); j++)
         {
             Row_Information_Struct ri;
             ri.element = elem;
@@ -1235,16 +1238,16 @@ void addModelElement(ModelElement *elem, std::vector<Row_Information_Struct> &mR
         ri.submodel = submodel;
         mRowInformation.push_back(ri);
     }
-    Model *cls = xframe->GetModel(elem->GetModelName());
+    Model* cls = xframe->GetModel(elem->GetModelName());
     if (cls == nullptr) {
-        logger_base.error("addModelElement model not found %s.", (const char *)elem->GetModelName().c_str());
+        logger_base.error("addModelElement model not found %s.", (const char*)elem->GetModelName().c_str());
         return;
     }
     elem->Init(*cls);
     if (cls->GetDisplayAs() == "ModelGroup" && elem->ShowStrands()) {
-        ModelGroup *grp = dynamic_cast<ModelGroup*>(cls);
-        for (auto it = grp->ModelNames().begin(); it != grp->ModelNames().end(); ++it) {
-            std::string modelName = *it;
+        ModelGroup* grp = dynamic_cast<ModelGroup*>(cls);
+        for (const auto& it : grp->ModelNames()) {
+            std::string modelName = it;
             std::string subModel = "";
             int slsh = modelName.find('/');
             if (slsh != -1) {
@@ -1253,19 +1256,21 @@ void addModelElement(ModelElement *elem, std::vector<Row_Information_Struct> &mR
             }
             for (size_t x = 0; x < elements.size(); x++) {
                 if (elements[x]->GetModelName() == modelName) {
-                    ModelElement *melem = dynamic_cast<ModelElement*>(elements[x]);
+                    ModelElement* melem = dynamic_cast<ModelElement*>(elements[x]);
                     if (subModel != "") {
-                        SubModelElement *selem = melem->GetSubModel(subModel);
+                        SubModelElement* selem = melem->GetSubModel(subModel);
                         addSubModelElement(selem, mRowInformation, rowIndex, xframe, elements);
-                    } else {
+                    }
+                    else {
                         addModelElement(melem, mRowInformation, rowIndex, xframe, elements, true);
                     }
                 }
             }
         }
-    } else if (elem->ShowStrands()) {
+    }
+    else if (elem->ShowStrands()) {
         for (size_t s = 0; s < elem->GetSubModelAndStrandCount(); s++) {
-            SubModelElement *se = elem->GetSubModel(s);
+            SubModelElement* se = elem->GetSubModel(s);
             int m = se->GetEffectLayerCount();
             if (se->GetCollapsed()) {
                 m = 1;
@@ -1288,7 +1293,7 @@ void addModelElement(ModelElement *elem, std::vector<Row_Information_Struct> &mR
             }
 
             if (se->GetType() == ELEMENT_TYPE_STRAND && ((StrandElement*)se)->ShowNodes()) {
-                StrandElement *ste = dynamic_cast<StrandElement*>(se);
+                StrandElement* ste = dynamic_cast<StrandElement*>(se);
                 for (int n = 0; n < ste->GetNodeLayerCount(); n++) {
                     Row_Information_Struct ri;
                     ri.element = se;
