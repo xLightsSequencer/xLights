@@ -621,6 +621,7 @@ bool VideoReader::readFrame(int timestampMS) {
             if (IsVideoToolboxAcceleratedFrame(_srcFrame)) {
                 hardwareScaled = VideoToolboxScaleImage(_codecContext, _srcFrame, _dstFrame2);
             }
+
             if (!hardwareScaled) {
 
                 AVFrame* f = nullptr;
@@ -700,7 +701,6 @@ bool VideoReader::readFrame(int timestampMS) {
 
                                     LPDIRECT3DSURFACE9 backBuffer = nullptr;
 
-                                    bool useLock = true;
                                     hr = device->CreateRenderTarget(_width, _height, desired, surfaceDesc.MultiSampleType,
                                         surfaceDesc.MultiSampleQuality, true, &backBuffer, nullptr);
                                     if (hr != D3D_OK || backBuffer == nullptr)
@@ -708,22 +708,51 @@ bool VideoReader::readFrame(int timestampMS) {
                                         logger_base.debug("Tried to create render target %d,%d multisample type %d quality %d",
                                             _width, _height, surfaceDesc.MultiSampleType, surfaceDesc.MultiSampleQuality);
                                         logger_base.error("Unable to create a render target 0x%x", hr);
-                                        logger_base.debug("Trying without a lock");
-                                        useLock = false;
-                                        hr = device->CreateRenderTarget(_width, _height, desired, surfaceDesc.MultiSampleType,
-                                            surfaceDesc.MultiSampleQuality, false, &backBuffer, nullptr);
-                                        if (hr != D3D_OK || backBuffer == nullptr)
-                                        {
-                                            logger_base.error("Unable to create a render target 0x%x without a lock", hr);
-                                            _abandonHardwareDecode = true;
-                                        }
+                                        _abandonHardwareDecode = true;
                                     }
 
                                     if (hr == D3D_OK && backBuffer != nullptr)
                                     {
+                                        D3DSAMPLERSTATETYPE growshrink = D3DSAMPLERSTATETYPE::D3DSAMP_MINFILTER;
+                                        if (_codecContext->width + _codecContext->height < _width + _height)
+                                        {
+                                            growshrink = D3DSAMPLERSTATETYPE::D3DSAMP_MAGFILTER;
+                                            if (_swsCtx == nullptr)
+                                            {
+                                                logger_base.debug("Expanding video.");
+                                            }
+                                        }
+                                        else
+                                        {
+                                            if (_swsCtx == nullptr)
+                                            {
+                                                logger_base.debug("Shrinking video.");
+                                            }
+                                        }
+
+                                        static std::vector<D3DTEXTUREFILTERTYPE> filters = { D3DTEXF_ANISOTROPIC, D3DTEXF_PYRAMIDALQUAD, D3DTEXF_GAUSSIANQUAD, D3DTEXF_LINEAR, D3DTEXF_POINT, D3DTEXF_NONE };
+                                        hr = 1;
+                                        for (auto it = filters.begin(); it != filters.end() && hr != D3D_OK; ++it)
+                                        {
+                                            hr = device->SetSamplerState(0, growshrink, *it);
+                                            if (hr == D3D_OK && _swsCtx == nullptr)
+                                            {
+                                                logger_base.debug("Chosen Min Filter Type %d", *it);
+                                            }
+                                        }
+
                                         // copy the current surface to my render target - shrink and convert format
                                         // D3DTEXF_POINT or D3DTEXF_CONVOLUTIONMONO or D3DTEXF_LINEAR or D3DTEXF_GAUSSIANQUAD or D3DTEXF_NONE
-                                        hr = device->StretchRect(surface, nullptr, backBuffer, nullptr, D3DTEXF_LINEAR);
+                                        // I am not enormously happy with this stretch rect ... it tends to produce really harsh looking video
+                                        hr = 1;
+                                        for (auto it = filters.begin(); it != filters.end() && hr != D3D_OK; ++it)
+                                        {
+                                            hr = device->StretchRect(surface, nullptr, backBuffer, nullptr, *it);
+                                            if (hr == D3D_OK && _swsCtx == nullptr)
+                                            {
+                                                logger_base.debug("Chosen D3D Texture Filter Type %d", *it);
+                                            }
+                                        }
 
                                         if (hr != D3D_OK)
                                         {
@@ -746,11 +775,8 @@ bool VideoReader::readFrame(int timestampMS) {
 
                                             // copy down the data into _srcFrame2
                                             D3DLOCKED_RECT LockedRect;
-                                            if (useLock)
-                                            {
-                                                hr = backBuffer->LockRect(&LockedRect, &tgtRect, D3DLOCK_READONLY);
-                                            }
-                                            if (hr != D3D_OK)
+                                            hr = backBuffer->LockRect(&LockedRect, &tgtRect, D3DLOCK_READONLY);
+                                            if (hr != D3D_OK || LockedRect.pBits == nullptr)
                                             {
                                                 logger_base.error("Unable to lock rect to copy down data 0x%x", hr);
                                                 _abandonHardwareDecode = true;
@@ -770,7 +796,6 @@ bool VideoReader::readFrame(int timestampMS) {
                                                 //    _srcFrame2->format = AV_PIX_FMT_RGB24;
                                                 //}
                                                 _srcFrame2->format = AV_PIX_FMT_NV12;
-
                                                 _srcFrame2->width = _width;
                                                 _srcFrame2->height = _height;
 
@@ -785,25 +810,32 @@ bool VideoReader::readFrame(int timestampMS) {
 
                                                 // This is a manual download of the NV12 data into an AVFrame ... but we do it from our resized surface
                                                 // Copy Y
-                                                for (int i = 0; i < _height; i++)
-                                                {
-                                                    memcpy(_srcFrame2->data[0] + i * _srcFrame2->linesize[0], (uint8_t*)LockedRect.pBits + i * LockedRect.Pitch, _width * 1);
+                                                if (_srcFrame2->data[0] != nullptr && LockedRect.pBits != nullptr) {
+                                                    for (int i = 0; i < _height; i++) {
+                                                        memcpy(_srcFrame2->data[0] + i * _srcFrame2->linesize[0], (uint8_t*)LockedRect.pBits + i * LockedRect.Pitch, _width * 1);
+                                                    }
                                                 }
                                                 // Copy UV
-                                                for (int i = 0; i < _height / 2; i++)
-                                                {
-                                                    memcpy(_srcFrame2->data[1] + i * _srcFrame2->linesize[1], (uint8_t*)LockedRect.pBits + _height * LockedRect.Pitch + i * LockedRect.Pitch, _width * 2);
+                                                if (_srcFrame2->data[1] != nullptr && LockedRect.pBits != nullptr) {
+                                                    for (int i = 0; i < _height / 2; i++) {
+                                                        memcpy(_srcFrame2->data[1] + i * _srcFrame2->linesize[1], (uint8_t*)LockedRect.pBits + _height * LockedRect.Pitch + i * LockedRect.Pitch, _width * 2);
+                                                    }
                                                 }
 
-                                                if (useLock)
+                                                backBuffer->UnlockRect();
+
+                                                if (_srcFrame2->data[0] != nullptr && _srcFrame2->data[1] != nullptr)
                                                 {
-                                                    backBuffer->UnlockRect();
+                                                    hwscale = true;
+
+                                                    // we will still run sws_scale on this but it should be faster as it is already the right size and in ARGB format
+                                                    f = _srcFrame2;
                                                 }
-
-                                                hwscale = true;
-
-                                                // we will still run sws_scale on this but it should be faster as it is already the right size and in ARGB format
-                                                f = _srcFrame2;
+                                                else
+                                                {
+                                                    logger_base.warn("Failed to copy data from hardware decode because at least one of the frame data pointers was null");
+                                                    _abandonHardwareDecode = true;
+                                                }
                                             }
                                             //shaderObject->Release();
                                         }
@@ -827,6 +859,11 @@ bool VideoReader::readFrame(int timestampMS) {
                             unrefSrcFrame2 = true;
                             f = _srcFrame2;
                         }
+                    }
+
+                    if (_abandonHardwareDecode && _swsCtx != nullptr)
+                    {
+                        logger_base.warn("VideoReader: This could get ugly ... we have abandoned hardware decode but we already had a sws Context.");
                     }
                 }
                 else
