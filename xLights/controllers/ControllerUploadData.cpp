@@ -676,7 +676,7 @@ void UDControllerPort::AddModel(Model* m, OutputManager* om, int string)
 
             for (; it2 != _models.end(); ++it2)
             {
-                if ((*it2)->GetStartChannel() <= (*it)->GetEndChannel())
+                if ((*it2)->GetStartChannel() <= (*it)->GetEndChannel() && (*it)->GetSmartRemote() == (*it2)->GetSmartRemote())
                 {
                     // this model overlaps at least slightly
                     if ((*it2)->GetEndChannel() <= (*it)->GetEndChannel())
@@ -689,7 +689,7 @@ void UDControllerPort::AddModel(Model* m, OutputManager* om, int string)
                         _models.erase(it2);
                         erased = true;
                     }
-                    else if ((*it)->GetStartChannel() == (*it2)->GetStartChannel() && (*it2)->GetEndChannel() > (*it)->GetEndChannel())
+                    else if ((*it)->GetStartChannel() == (*it2)->GetStartChannel() && (*it2)->GetEndChannel() > (*it)->GetEndChannel() && (*it)->GetSmartRemote() == (*it2)->GetSmartRemote())
                     {
                         // i1 totally inside it2
                         logger_base.debug("CUD add model removed model %s as it totally overlaps with model %s",
@@ -699,7 +699,7 @@ void UDControllerPort::AddModel(Model* m, OutputManager* om, int string)
                         _models.erase(it);
                         erased = true;
                     }
-                    else
+                    else if ((*it)->GetSmartRemote() == (*it2)->GetSmartRemote())
                     {
                         // so this is the difficult partial overlap case ... to prevent issues i will just erase model 2 and the user will need to fix it
                         logger_base.debug("CUD add model removed model %s as it PARTIALLY overlaps with model %s. This will cause issues but it cannot be handled by the upload.",

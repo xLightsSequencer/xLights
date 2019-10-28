@@ -2173,7 +2173,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
 #endif
 #else
     // only keep the crash option if the special option is set
-    if (SpecialOptions::GetOption("EnableCrash", "false").Lower() == "true")
+    if (Lower(SpecialOptions::GetOption("EnableCrash", "false")) == "true")
     {
         MenuItem_CrashXLights->GetMenu()->Remove(MenuItem_CrashXLights);
         MenuItem_CrashXLights = nullptr;
