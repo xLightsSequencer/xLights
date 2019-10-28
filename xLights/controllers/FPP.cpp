@@ -1131,7 +1131,8 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
         int startChannel = -1;
         if (cud.GetMaxPixelPort()) {
             //The matrix actually has the controller connection defined, we'll use it
-            startChannel = cud.GetControllerPixelPort(0)->GetStartChannel();
+            startChannel = cud.GetControllerPixelPort(1)->GetStartChannel();
+            startChannel--;
         } else if (!cud.GetNoConnectionModels().empty()) {
             startChannel = cud.GetNoConnectionModels().front()->GetStringStartChan(0);
         }
