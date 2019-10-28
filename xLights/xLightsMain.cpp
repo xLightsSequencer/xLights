@@ -79,6 +79,7 @@
 #include "ValueCurveButton.h"
 #include "ValueCurvesPanel.h"
 #include "ColoursPanel.h"
+#include "SpecialOptions.h"
 
 // Linux needs this
 #include <wx/stdpaths.h>
