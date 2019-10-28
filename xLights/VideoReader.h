@@ -11,6 +11,10 @@ extern "C"
 #include <libswscale/swscale.h>
 }
 
+#ifdef __WXMSW__
+#include <d3d9.h>
+#endif
+
 class VideoReader
 {
 public:
@@ -65,5 +69,8 @@ private:
     bool _abort = false;
     bool _videoToolboxAccelerated; 
     bool _abandonHardwareDecode = false;
+#ifdef __WXMSW__
+    std::list<D3DTEXTUREFILTERTYPE> _dxva2_filters = { D3DTEXF_ANISOTROPIC, D3DTEXF_PYRAMIDALQUAD, D3DTEXF_GAUSSIANQUAD, D3DTEXF_LINEAR, D3DTEXF_POINT, D3DTEXF_NONE };
+#endif
 };
 #endif // VIDEOREADER_H

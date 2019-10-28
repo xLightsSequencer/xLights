@@ -18,7 +18,6 @@ extern "C" {
 }
 
 #ifdef __WXMSW__
-#include <d3d9.h>
 #include <d3dcompiler.h>
 #endif
 
@@ -370,6 +369,9 @@ void VideoReader::reopenContext() {
             std::string so;
             so = SpecialOptions::GetOption("dxva2_device", "0").c_str();
             opt = (const char*)so.c_str();
+
+            int priorityFilter = wxAtoi(SpecialOptions::GetOption("dxva2_filter", "-1"));
+            if (priorityFilter != -1) _dxva2_filters.push_front((D3DTEXTUREFILTERTYPE)priorityFilter);
 #endif
             if (av_hwdevice_ctx_create(&_hw_device_ctx, type, opt, nullptr, 0) < 0)
             {
@@ -730,9 +732,8 @@ bool VideoReader::readFrame(int timestampMS) {
                                             }
                                         }
 
-                                        static std::vector<D3DTEXTUREFILTERTYPE> filters = { D3DTEXF_ANISOTROPIC, D3DTEXF_PYRAMIDALQUAD, D3DTEXF_GAUSSIANQUAD, D3DTEXF_LINEAR, D3DTEXF_POINT, D3DTEXF_NONE };
                                         hr = 1;
-                                        for (auto it = filters.begin(); it != filters.end() && hr != D3D_OK; ++it)
+                                        for (auto it = _dxva2_filters.begin(); it != _dxva2_filters.end() && hr != D3D_OK; ++it)
                                         {
                                             hr = device->SetSamplerState(0, growshrink, *it);
                                             if (hr == D3D_OK && _swsCtx == nullptr)
@@ -745,7 +746,7 @@ bool VideoReader::readFrame(int timestampMS) {
                                         // D3DTEXF_POINT or D3DTEXF_CONVOLUTIONMONO or D3DTEXF_LINEAR or D3DTEXF_GAUSSIANQUAD or D3DTEXF_NONE
                                         // I am not enormously happy with this stretch rect ... it tends to produce really harsh looking video
                                         hr = 1;
-                                        for (auto it = filters.begin(); it != filters.end() && hr != D3D_OK; ++it)
+                                        for (auto it = _dxva2_filters.begin(); it != _dxva2_filters.end() && hr != D3D_OK; ++it)
                                         {
                                             hr = device->StretchRect(surface, nullptr, backBuffer, nullptr, *it);
                                             if (hr == D3D_OK && _swsCtx == nullptr)

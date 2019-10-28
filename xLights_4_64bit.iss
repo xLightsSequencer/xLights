@@ -52,6 +52,7 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "D
 Source: "bin64/xLights.exe"; DestDir: "{app}"
 Source: "bin64/xlights.map"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "bin/xlights.windows.properties"; DestDir: "{app}"; Flags: "ignoreversion"
+Source: "bin/special.options"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "include\xlights64.ico"; DestDir: "{app}"
 Source: "include\xLights_nutcracker.ico"; DestDir: "{app}"
 

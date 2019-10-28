@@ -1,0 +1,15 @@
+<!-- This file sould be in your show directory.-->
+<!-- It sets obscure options not available via the UI-->
+
+<SpecialOptions>
+
+  <!-- When set to true adds a menu item to the tools menu to crash xLights-->
+  <!--Option name="EnableCrash" value="false"/-->
+
+  <!-- Allows control over device used in windows directx9 hardware video decode-->
+  <!--Option name="dxva2_device" value="0"/-->
+
+  <!-- Prioritises the D3DTEXTUREFILTERTYPE used in windows directx9 hardware video decode-->
+  <!--Option name="dxva2_filter" value="-1"/-->
+
+</SpecialOptions>

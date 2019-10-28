@@ -305,7 +305,8 @@ void handleCrash(void *data) {
             report->AddFile(fnb.GetFullPath(), fnb.GetName());
         }
     }
-    wxString trace = wxString::Format("xLights version %s\n\n", GetDisplayVersionString());
+    wxString trace = wxString::Format("xLights version %s\n", GetDisplayVersionString());
+    trace += "Time: " + wxDateTime::Now().FormatISOCombined() + "\n\n";
 
 #ifndef __WXMSW__
     void* callstack[128];

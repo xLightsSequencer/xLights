@@ -1502,27 +1502,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
 
     _suppressDuplicateFrames = 0;
 
-    // This is for keith ... I like my debug version to be distinctive so I can tell it apart from the prior version
-    #ifndef NDEBUG
-        logger_base.debug("xLights Crash Menu item not removed.");
-        #ifdef _MSC_VER
-            Notebook1->SetBackgroundColour(*wxGREEN);
-        #endif
-    #else
-        // only keep the crash option if the EnableCrash.txt file exists
-        if (!wxFile::Exists("EnableCrash.txt"))
-        {
-            MenuItem_CrashXLights->GetMenu()->Remove(MenuItem_CrashXLights);
-            MenuItem_CrashXLights = nullptr;
-            MenuItem_LogRenderState->GetMenu()->Remove(MenuItem_LogRenderState);
-            MenuItem_LogRenderState = nullptr;
-        }
-        else
-        {
-            logger_base.debug("xLights Crash Menu item not removed.");
-        }
-    #endif
-
     // Suppress OSX display of a warning when reading config ... "entry %s appears more than once in group '%s'
     wxLogNull logNo;
 
@@ -2185,6 +2164,27 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
             return;
         }
     }
+
+    // This is for keith ... I like my debug version to be distinctive so I can tell it apart from the prior version
+#ifndef NDEBUG
+    logger_base.debug("xLights Crash Menu item not removed.");
+#ifdef _MSC_VER
+    Notebook1->SetBackgroundColour(*wxGREEN);
+#endif
+#else
+    // only keep the crash option if the special option is set
+    if (SpecialOptions::GetOption("EnableCrash", "false").Lower() == "true")
+    {
+        MenuItem_CrashXLights->GetMenu()->Remove(MenuItem_CrashXLights);
+        MenuItem_CrashXLights = nullptr;
+        MenuItem_LogRenderState->GetMenu()->Remove(MenuItem_LogRenderState);
+        MenuItem_LogRenderState = nullptr;
+    }
+    else
+    {
+        logger_base.debug("xLights Crash Menu item not removed.");
+    }
+#endif
 
     _valueCurvesPanel->UpdateValueCurveButtons(false);
     _coloursPanel->UpdateColourButtons(false, this);
