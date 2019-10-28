@@ -1193,7 +1193,7 @@ wxString ModelFaceDialog::getSubmodelNodes(Model* sm)
                 rows.Add(l);
                 line++;
             }
-            row = wxJoin(rows, ',');
+            row = wxJoin(rows, ',', '\0');
         }
     }
 
