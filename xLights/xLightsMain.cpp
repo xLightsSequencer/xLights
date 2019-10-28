@@ -2263,7 +2263,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     SetAudioControls();
     
     bool hwaccelvideo;
-    config->Read(_("xLightsVideoReaderAccelerated"), &hwaccelvideo, true);
+    config->Read(_("xLightsVideoReaderAccelerated"), &hwaccelvideo, false);
     VideoReader::SetHardwareAcceleratedVideo(hwaccelvideo);
     MenuItemHardwareDecoder->Check(VideoReader::IsHardwareAcceleratedVideo());
 
