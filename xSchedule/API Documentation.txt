@@ -52,7 +52,7 @@ http://<host:port>/xScheduleQuery?Query=<query>&Parameters=<parameters>
 		GetPlayListSchedule <playlist name><schedule name>
 			- get the details of the named schedule on the named playlist. These parameters should be expressed as "PlayListName,ScheduleName". The data returned is the same as GetPlayListSchedules
 
-		GetRangeSet
+		GetRangesSet
 		    - Provides back a list of channel ranges set by the "Set pixel range" and "Set pixels"
 		
 		GetPlayingStatus
