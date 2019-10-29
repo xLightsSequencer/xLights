@@ -9,6 +9,7 @@ class Settings
 public:
 
     int _frameMS;
+    bool _minimiseUIUpdates;
     std::string _leftIP;
     std::string _rightIP;
     std::string _localInputIP;
@@ -47,4 +48,4 @@ public:
     const std::list<std::string>& GetFadeExclude() const { return _fadeExclude; }
 };
 
-#endif 
+#endif

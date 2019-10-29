@@ -59,33 +59,33 @@ class xFadeFrame : public wxFrame
 
     std::map<int, PacketData> _leftData;
     std::map<int, PacketData> _rightData;
-    unsigned long _leftReceived;
-    unsigned long _rightReceived;
+    uint32_t _leftReceived;
+    uint32_t _rightReceived;
     bool _suspendListen;
     wxString _leftTag;
     wxString _rightTag;
     Settings _settings;
-    wxDatagramSocket* _e131SocketReceive;
-    wxDatagramSocket* _artNETSocketReceive;
-    Emitter* _emitter;
+    wxDatagramSocket* _e131SocketReceive = nullptr;
+    wxDatagramSocket* _artNETSocketReceive = nullptr;
+    Emitter* _emitter = nullptr;
     std::list<MIDIListener*> _midiListeners;
     std::mutex _lock;
     int _direction; // auto fade direction
-    wxLed* Led_Left;
-    wxLed* Led_Right;
-    wxFont* _selectedButtonFont;
+    wxLed* Led_Left = nullptr;
+    wxLed* Led_Right = nullptr;
+    wxFont* _selectedButtonFont = nullptr;
 
     void StartMIDIListeners();
-    std::string ExtractE131Tag(wxByte* packet);
+    std::string ExtractE131Tag(uint8_t* packet);
     void SetFade();
     void SetTiming();
     void RestartInterfaces();
     void CloseSockets(bool force = false);
     void CreateE131Listener();
     void CreateArtNETListener();
-    void StashPacket(long type, wxByte* packet, int len);
-    bool IsLeft(long type, wxByte* packet, int len);
-    bool IsRight(long type, wxByte* packet, int len);
+    void StashPacket(long type, uint8_t* packet, int len);
+    bool IsLeft(long type, uint8_t* packet, int len);
+    bool IsRight(long type, uint8_t* packet, int len);
     bool IsUniverseToBeCaptured(int universe);
     void LoadState();
     void SaveState();

@@ -2,8 +2,11 @@
 #include <log4cpp/Category.hh>
 #include <wx/wx.h>
 #include <wx/thread.h>
+#include <wx/socket.h>
+#include "../xLights/UtilFunctions.h"
 #include "xFadeMain.h"
 #include "Settings.h"
+#include "PacketData.h"
 
 class EmitterThread : public wxThread
 {
@@ -35,7 +38,7 @@ public:
         _stop = true;
     }
     
-    void Blend(wxByte* buffer, wxByte* blendBuffer, size_t channels, float pos, std::list<int> excludeChannels)
+    void Blend(uint8_t* buffer, uint8_t* blendBuffer, size_t channels, float pos, std::list<int> excludeChannels)
     {
         float inv = 1.0 - pos;
         for (size_t i = 0; i < channels; ++i)
@@ -53,7 +56,7 @@ public:
             }
             else
             {
-                *(buffer + i) = (wxByte)((float)*(buffer + i) * inv + (float)*(blendBuffer + i) * pos);
+                *(buffer + i) = (uint8_t)((float)*(buffer + i) * inv + (float)*(blendBuffer + i) * pos);
             }
         }
     }
@@ -74,11 +77,61 @@ public:
 
     virtual void* Entry() override
     {
-        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         logger_base.debug("Emitter thread started");
 
+        std::map<int, std::string> ips = _emitter->GetIps();
+
         PacketData sendData;
-        sendData.SetLocalIP(_emitter->GetLocalIP());
+
+        wxIPV4address localaddr;
+        wxDatagramSocket* e131SocketSend = nullptr;
+        wxDatagramSocket* artNETSocketSend = nullptr;
+
+        if (_emitter->GetLocalIP() == "")
+        {
+            localaddr.AnyAddress();
+        }
+        else
+        {
+            localaddr.Hostname(_emitter->GetLocalIP());
+        }
+
+        e131SocketSend = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);
+        if (e131SocketSend == nullptr)
+        {
+            logger_base.error("E131 Output: Error opening datagram. Network may not be connected? OK : FALSE, From %s", (const char*)localaddr.IPAddress().c_str());
+        }
+        else if (!e131SocketSend->IsOk())
+        {
+            logger_base.error("E131 Output: Error opening datagram. Network may not be connected? OK : FALSE, From %s", (const char*)localaddr.IPAddress().c_str());
+            delete e131SocketSend;
+            e131SocketSend = nullptr;
+        }
+        else if (e131SocketSend->Error() != wxSOCKET_NOERROR)
+        {
+            logger_base.error("Error creating E131 datagram => %d : %s, from %s.", e131SocketSend->LastError(), (const char*)DecodeIPError(e131SocketSend->LastError()).c_str(), (const char*)localaddr.IPAddress().c_str());
+            delete e131SocketSend;
+            e131SocketSend = nullptr;
+        }
+
+        artNETSocketSend = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);
+        if (artNETSocketSend == nullptr)
+        {
+            logger_base.error("artNET Output: Error opening datagram. Network may not be connected? OK : FALSE, From %s", (const char*)localaddr.IPAddress().c_str());
+        }
+        else if (!artNETSocketSend->IsOk())
+        {
+            logger_base.error("artNET Output: Error opening datagram. Network may not be connected? OK : FALSE, From %s", (const char*)localaddr.IPAddress().c_str());
+            delete artNETSocketSend;
+            artNETSocketSend = nullptr;
+        }
+        else if (artNETSocketSend->Error() != wxSOCKET_NOERROR)
+        {
+            logger_base.error("Error creating artNET datagram => %d : %s, from %s.", artNETSocketSend->LastError(), (const char*)DecodeIPError(artNETSocketSend->LastError()).c_str(), (const char*)localaddr.IPAddress().c_str());
+            delete artNETSocketSend;
+            artNETSocketSend = nullptr;
+        }
 
         while (!_stop)
         {
@@ -87,7 +140,7 @@ public:
 
             {
                 // output the frames now
-                for (const auto& it : _emitter->GetIps())
+                for (const auto& it : ips)
                 {
                     std::list<int> excludeChannels = _emitter->GetSettings()->GetExcludeChannels(it.first);
 
@@ -128,11 +181,9 @@ public:
                         PrepareData(&sendData, &l, protocol);
                     }
 
-                    sendData.Send(it.second);
+                    sendData.Send(e131SocketSend, artNETSocketSend, it.second);
                     _emitter->IncrementSent();
                 }
-
-                // int ms = _emitter->GetFrameMS();
 
                 auto diff = wxDateTime::UNow() - start;
                 diffMS = _emitter->GetFrameMS() - diff.GetMilliseconds().ToLong();
@@ -141,6 +192,21 @@ public:
             if (diffMS > 0)
                 wxMilliSleep(diffMS);
         }
+
+        if (e131SocketSend != nullptr)
+        {
+            e131SocketSend->Close();
+            delete e131SocketSend;
+            e131SocketSend = nullptr;
+        }
+
+        if (artNETSocketSend != nullptr)
+        {
+            artNETSocketSend->Close();
+            delete artNETSocketSend;
+            artNETSocketSend = nullptr;
+        }
+
         logger_base.debug("Emitter thread exiting.");
         return nullptr;
     }
@@ -209,9 +275,9 @@ std::map<int, std::string> Emitter::GetIps() const
 
     if (!_stop)
     {
-        for (auto it = _targetIP->begin(); it != _targetIP->end(); ++it)
+        for (const auto& it : *_targetIP)
         {
-            res[it->first] = it->second;
+            res[it.first] = it.second;
         }
     }
 

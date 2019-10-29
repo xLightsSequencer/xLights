@@ -117,85 +117,88 @@ BEGIN_EVENT_TABLE(xFadeFrame,wxFrame)
     EVT_COMMAND(wxID_ANY, EVT_MIDI, xFadeFrame::OnMIDIEvent)
 END_EVENT_TABLE()
 
-void xFadeFrame::StashPacket(long type, wxByte* packet, int len)
+void xFadeFrame::StashPacket(long type, uint8_t* packet, int len)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     if (_suspendListen) return;
 
     if (type == ID_E131SOCKET) {
-        if (len < E131_PACKET_HEADERLEN) {
+        if (len < E131_PACKET_HEADERLEN || len > E131_PACKET_HEADERLEN + 512) {
             return;
         }
-        wxASSERT(len <= E131_PACKET_HEADERLEN + 512);
     }
     else if (type == ID_ARTNETSOCKET) {
-        if (len < ARTNET_PACKET_HEADERLEN) {
+        if (len < ARTNET_PACKET_HEADERLEN || len > ARTNET_PACKET_HEADERLEN + 512) {
             return;
         }
-        wxASSERT(len <= ARTNET_PACKET_HEADERLEN + 512);
     }
 
-    bool left = IsLeft(type, packet, len);
-    bool right = IsRight(type, packet, len);
     int universe = -1;
-
     if (type == ID_E131SOCKET) {
         universe = ((int)packet[113] << 8) + (int)packet[114];
     }
     else if (type == ID_ARTNETSOCKET) {
         universe = ((int)packet[15] << 8) + (int)packet[14];
     }
-
     if (universe == -1) return;
 
     if (!IsUniverseToBeCaptured(universe)) return;
-
     {
-        std::unique_lock<std::mutex> mutLock(_lock);
+        bool flash = false;
+        bool left = IsLeft(type, packet, len);
+        bool right = IsRight(type, packet, len);
 
-        if (left)
         {
-            if (!_leftData[universe].Update(type, packet, len))
+            std::unique_lock<std::mutex> mutLock(_lock);
+            if (left)
             {
-                logger_base.debug("Invalid packet.");
-            }
-            else
-            {
-                _leftReceived++;
-                // only flash the LED based on receipt of data for the first universe
-                if (universe == _leftData.begin()->second._universe)
+                if (!_leftData[universe].Update(type, packet, len))
                 {
-                    if (_leftData[universe].GetSequenceNum() % 10 == 0)
+                    logger_base.debug("Invalid packet.");
+                }
+                else
+                {
+                    _leftReceived++;
+                    // only flash the LED based on receipt of data for the first universe
+                    if (universe == _leftData.begin()->second._universe)
                     {
-                        Led_Left->Enable(!Led_Left->IsEnabled());
+                        if (_leftData[universe].GetSequenceNum() % 20 == 0)
+                        {
+                            flash = true;
+                        }
+                    }
+                }
+            }
+            else if (right)
+            {
+                if (!_rightData[universe].Update(type, packet, len))
+                {
+                    logger_base.debug("Invalid packet.");
+                }
+                else
+                {
+                    _rightReceived++;
+                    // only flash the LED based on receipt of data for the first universe
+                    if (universe == _rightData.begin()->second._universe)
+                    {
+                        if (_rightData[universe].GetSequenceNum() % 20 == 0)
+                        {
+                            flash = true;
+                        }
                     }
                 }
             }
         }
-        else if (right)
+        if (!_settings._minimiseUIUpdates)
         {
-            if (!_rightData[universe].Update(type, packet, len))
-            {
-                logger_base.debug("Invalid packet.");
-            }
-            else
-            {
-                _rightReceived++;
-                // only flash the LED based on receipt of data for the first universe
-                if (universe == _rightData.begin()->second._universe)
-                {
-                    if (_rightData[universe].GetSequenceNum() % 10 == 0)
-                    {
-                        Led_Right->Enable(!Led_Right->IsEnabled());
-                    }
-                }
-            }
+            if (flash && left) Led_Left->Enable(!Led_Left->IsEnabled());
+            if (flash && right) Led_Right->Enable(!Led_Right->IsEnabled());
         }
     }
 }
 
-bool xFadeFrame::IsLeft(long type, wxByte* packet, int len)
+bool xFadeFrame::IsLeft(long type, uint8_t* packet, int len)
 {
     if (type == ID_E131SOCKET)
     {
@@ -224,7 +227,7 @@ bool xFadeFrame::IsLeft(long type, wxByte* packet, int len)
     return false;
 }
 
-bool xFadeFrame::IsRight(long type, wxByte* packet, int len)
+bool xFadeFrame::IsRight(long type, uint8_t* packet, int len)
 {
     if (type == ID_E131SOCKET)
     {
@@ -462,6 +465,31 @@ xFadeFrame::xFadeFrame(wxWindow* parent, wxWindowID id)
 
     _emitter = new Emitter(&_settings._targetIP, &_leftData, &_rightData, &_settings._targetProtocol, &_lock, _settings._localOutputIP, &_settings);
 
+    if (_settings._minimiseUIUpdates)
+    {
+        Led_Left->SetColor("FFFF00");
+        Led_Right->SetColor("FFFF00");
+        Led_Left->Enable();
+        Led_Right->Enable();
+        StatusBar1->SetStatusText("", 0);
+        if (_emitter == nullptr)
+        {
+            StatusBar1->SetStatusText("UI Updates Minimised - Sending Disabled", 1);
+        }
+        else
+        {
+            StatusBar1->SetStatusText("UI Updates Minimised", 1);
+        }
+        StatusBar1->SetStatusText("", 2);
+    }
+    else
+    {
+        Led_Left->SetColor("00FF00");
+        Led_Right->SetColor("00FF00");
+        Led_Left->Disable();
+        Led_Right->Disable();
+    }
+
     for (int i = 0; i < JUKEBOXBUTTONS; i++)
     {
         wxButton* button = new wxButton(Panel_Left, wxID_ANY, wxString::Format("%d", i + 1), wxDefaultPosition, wxSize(BUTTONWIDTH, BUTTONHEIGHT),
@@ -536,7 +564,7 @@ void xFadeFrame::LoadState()
 
 xFadeFrame::~xFadeFrame()
 {
-    for (auto it: _midiListeners)
+    for (const auto& it: _midiListeners)
     {
         it->Stop();
         //delete it;
@@ -652,7 +680,7 @@ PacketData::PacketData()
     _tag = wxString::Format("xFade %d", wxGetProcessId()).ToStdString();
 }
 
-wxByte PacketData::GetData(int c)
+uint8_t PacketData::GetData(int c)
 {
     wxASSERT(c >= 0 && c < 512);
     if (_type == xFadeFrame::ID_E131SOCKET)
@@ -673,7 +701,7 @@ wxByte PacketData::GetData(int c)
     return 0;
 }
 
-wxByte* PacketData::GetDataPtr()
+uint8_t* PacketData::GetDataPtr()
 {
     if (_type == xFadeFrame::ID_E131SOCKET)
     {
@@ -687,7 +715,7 @@ wxByte* PacketData::GetDataPtr()
     return nullptr;
 }
 
-void PacketData::SetData(int c, wxByte dd)
+void PacketData::SetData(int c, uint8_t dd)
 {
     wxASSERT(c >= 0 && c < 512);
     if (_type == xFadeFrame::ID_E131SOCKET)
@@ -706,7 +734,7 @@ void PacketData::SetData(int c, wxByte dd)
     }
 }
 
-bool PacketData::Update(long type, wxByte* packet, int len)
+bool PacketData::Update(long type, uint8_t* packet, int len)
 {
     if (type == xFadeFrame::ID_E131SOCKET)
     {
@@ -751,79 +779,29 @@ bool PacketData::Update(long type, wxByte* packet, int len)
     return true;
 }
 
-void PacketData::Send(std::string ip) const
+void PacketData::Send(wxDatagramSocket* e131Socket, wxDatagramSocket* artNETSocket, const std::string& ip) const
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    wxIPV4address remoteaddr;
+    if (wxString(ip).StartsWith("239.255.") || ip == "MULTICAST")
+    {
+        // multicast - universe number must be in lower 2 bytes
+        wxString ipaddrWithUniv = wxString::Format("%d.%d.%d.%d", 239, 255, (int)UniverseHigh(), (int)UniverseLow());
+        remoteaddr.Hostname(ipaddrWithUniv);
+    }
+    else
+    {
+        remoteaddr.Hostname(ip.c_str());
+    }
+
     if (_type == xFadeFrame::ID_E131SOCKET)
     {
-        wxIPV4address localaddr;
-        if (_localIP == "")
-        {
-            localaddr.AnyAddress();
-        }
-        else
-        {
-            localaddr.Hostname(_localIP);
-        }
-
-        wxDatagramSocket datagram(localaddr, wxSOCKET_NOWAIT);
-
-        if (!datagram.IsOk())
-        {
-            logger_base.error("E131 Output: Error opening datagram. Network may not be connected? OK : FALSE, Universe %d, From %s", _universe, (const char *)localaddr.IPAddress().c_str());
-        }
-        else if (datagram.Error() != wxSOCKET_NOERROR)
-        {
-            logger_base.error("Error creating E131 datagram => %d : %s, Universe %d from %s.", datagram.LastError(), (const char *)DecodeIPError(datagram.LastError()).c_str(), _universe, (const char *)localaddr.IPAddress().c_str());
-        }
-        else
-        {
-            wxIPV4address remoteaddr;
-            if (wxString(ip).StartsWith("239.255.") || ip == "MULTICAST")
-            {
-                // multicast - universe number must be in lower 2 bytes
-                wxString ipaddrWithUniv = wxString::Format("%d.%d.%d.%d", 239, 255, (int)UniverseHigh(), (int)UniverseLow());
-                remoteaddr.Hostname(ipaddrWithUniv);
-            }
-            else
-            {
-                remoteaddr.Hostname(ip.c_str());
-            }
-            remoteaddr.Service(E131PORT);
-
-            datagram.SendTo(remoteaddr, _data, _length);
-        }
+        remoteaddr.Service(E131PORT);
+        if (e131Socket != nullptr) e131Socket->SendTo(remoteaddr, _data, _length);
     }
-    else if (_type == xFadeFrame::ID_ARTNETSOCKET)
+    else
     {
-        wxIPV4address localaddr;
-        if (_localIP == "")
-        {
-            localaddr.AnyAddress();
-        }
-        else
-        {
-            localaddr.Hostname(_localIP);
-        }
-
-        wxDatagramSocket datagram(localaddr, wxSOCKET_NOWAIT);
-
-        if (!datagram.IsOk())
-        {
-            logger_base.error("ArtNET Output: Error opening datagram. Network may not be connected? OK : FALSE, Universe %d from %s", _universe, (const char *)localaddr.IPAddress().c_str());
-        }
-        else if (datagram.Error() != wxSOCKET_NOERROR)
-        {
-            logger_base.error("Error creating ArtNET datagram => %d : %s, Universe %d from %s.", datagram.LastError(), (const char *)DecodeIPError(datagram.LastError()).c_str(), _universe, (const char *)localaddr.IPAddress().c_str());
-        }
-        else
-        {
-            wxIPV4address remoteaddr;
-            remoteaddr.Hostname(ip.c_str());
-            remoteaddr.Service(ARTNETPORT);
-
-            datagram.SendTo(remoteaddr, _data, _length);
-        }
+        remoteaddr.Service(ARTNETPORT);
+        if (artNETSocket != nullptr) artNETSocket->SendTo(remoteaddr, _data, _length);
     }
 }
 
@@ -867,8 +845,8 @@ void PacketData::InitialiseArtNETHeader()
     _data[14] = (_universe & 0xFF);
     _data[15] = ((_universe & 0xFF00) >> 8);
     _data[16] = 0x02; // we are going to send all 512 bytes
-    _data[16] = (wxByte)(channels >> 8);  // Property value count (high)
-    _data[17] = (wxByte)(channels & 0xff);  // Property value count (low)}
+    _data[16] = (uint8_t)(channels >> 8);  // Property value count (high)
+    _data[17] = (uint8_t)(channels & 0xff);  // Property value count (low)}
 }
 
 #define XLIGHTS_UUID "c0de0080-c69b-11e0-9572-0800200c9a66"
@@ -902,7 +880,7 @@ void PacketData::InitialiseE131Header()
         wxChar lsb = id.GetChar(i + 1);
         msb -= isdigit(msb) ? 0x30 : 0x57;
         lsb -= isdigit(lsb) ? 0x30 : 0x57;
-        _data[j++] = (wxByte)((msb << 4) | lsb);
+        _data[j++] = (uint8_t)((msb << 4) | lsb);
     }
 
     _data[38] = 0x72;  // Framing Protocol flags and length (high)
@@ -924,15 +902,15 @@ void PacketData::InitialiseE131Header()
 
     int channels = GetDataLength();
     int i = channels;
-    wxByte NumHi = (channels + 1) >> 8;   // Channels (high)
-    wxByte NumLo = (channels + 1) & 0xff; // Channels (low)
+    uint8_t NumHi = (channels + 1) >> 8;   // Channels (high)
+    uint8_t NumLo = (channels + 1) & 0xff; // Channels (low)
 
     _data[123] = NumHi;  // Property value count (high)
     _data[124] = NumLo;  // Property value count (low)
 
     i = E131_PACKET_LEN - 16 - (512 - channels);
-    wxByte hi = i >> 8;   // (high)
-    wxByte lo = i & 0xff; // (low)
+    uint8_t hi = i >> 8;   // (high)
+    uint8_t lo = i & 0xff; // (low)
 
     _data[16] = hi + 0x70;  // RLP Protocol flags and length (high)
     _data[17] = lo;  // 0x26e = E131_PACKET_LEN - 16
@@ -983,7 +961,7 @@ void PacketData::InitialiseLength(long type, int length, int universe)
     }
 }
 
-void PacketData::ApplyBrightness(int brightness, std::list<int> excludeChannels)
+void PacketData::ApplyBrightness(int brightness, const std::list<int>& excludeChannels)
 {
     if (brightness == 100) return;
 
@@ -995,21 +973,21 @@ void PacketData::ApplyBrightness(int brightness, std::list<int> excludeChannels)
         }
         else
         {
-            wxByte* p = GetDataPtr();
+            uint8_t* p = GetDataPtr();
             for (int i = 0; i < GetDataLength(); i++)
             {
-                *(p + i) = (wxByte)((int)*(p + i) * brightness / 100);
+                *(p + i) = (uint8_t)((int)*(p + i) * brightness / 100);
             }
         }
     }
     else
     {
-        wxByte* p = GetDataPtr();
+        uint8_t* p = GetDataPtr();
         for (int i = 0; i < GetDataLength(); i++)
         {
             if (std::find(excludeChannels.begin(), excludeChannels.end(), i + 1) == excludeChannels.end())
             {
-                *(p + i) = (wxByte)((int)*(p + i) * brightness / 100);
+                *(p + i) = (uint8_t)((int)*(p + i) * brightness / 100);
             }
         }
     }
@@ -1093,10 +1071,10 @@ void xFadeFrame::CreateE131Listener()
 
     logger_base.debug("E131 listening on %s", (const char*)_settings._localInputIP.c_str());
 
-    for (auto it = _settings._targetIP.begin(); it != _settings._targetIP.end(); ++it)
+    for (const auto& it : _settings._targetIP)
     {
         struct ip_mreq mreq;
-        wxString ip = wxString::Format("239.255.%d.%d", it->first >> 8, it->first & 0xFF);
+        wxString ip = wxString::Format("239.255.%d.%d", it.first >> 8, it.first & 0xFF);
         logger_base.debug("E131 registering for multicast on %s.", (const char *)ip.c_str());
         mreq.imr_multiaddr.s_addr = inet_addr(ip.c_str());
         mreq.imr_interface.s_addr = inet_addr(_settings._localInputIP.c_str()); // this will only listen on the default interface
@@ -1148,10 +1126,10 @@ void xFadeFrame::CreateArtNETListener()
 
     logger_base.debug("ARTNet listening on %s", (const char*)_settings._localInputIP.c_str());
 
-    for (auto it = _settings._targetIP.begin(); it != _settings._targetIP.end(); ++it)
+    for (const auto& it : _settings._targetIP)
     {
         struct ip_mreq mreq;
-        wxString ip = wxString::Format("239.255.%d.%d", it->first >> 8, it->first & 0xFF);
+        wxString ip = wxString::Format("239.255.%d.%d", it.first >> 8, it.first & 0xFF);
         logger_base.debug("ARTNet registering for multicast on %s.", (const char *)ip.c_str());
         mreq.imr_multiaddr.s_addr = inet_addr(ip.c_str());
         mreq.imr_interface.s_addr = inet_addr(_settings._localInputIP.c_str()); // this will only listen on the default interface
@@ -1179,10 +1157,10 @@ void xFadeFrame::CreateArtNETListener()
 void xFadeFrame::OnMIDIEvent(wxCommandEvent& event)
 {
     int device = wxAtoi(event.GetString());
-    wxByte status = (event.GetInt() >> 24) & 0xFF;
-    wxByte channel = (event.GetInt() >> 16) & 0xFF;
-    wxByte data1 = (event.GetInt() >> 8) & 0xFF;
-    wxByte data2 = event.GetInt() & 0xFF;
+    uint8_t status = (event.GetInt() >> 24) & 0xFF;
+    uint8_t channel = (event.GetInt() >> 16) & 0xFF;
+    uint8_t data1 = (event.GetInt() >> 8) & 0xFF;
+    uint8_t data2 = event.GetInt() & 0xFF;
 
     wxString controlName = _settings.LookupMIDI(device, status, channel, data1, data2);
 
@@ -1315,22 +1293,23 @@ void xFadeFrame::OnE131SocketEvent(wxSocketEvent& event)
 
     wxASSERT(event.GetSocket() == _e131SocketReceive);
 
-    wxIPV4address addr;
-    addr.Service(E131PORT);
-    wxByte buf[E131_PACKET_LEN];
     switch (event.GetSocketEvent())
     {
     case wxSOCKET_INPUT:
     {
-        _e131SocketReceive->Notify(false);
+        //_e131SocketReceive->Notify(false);
+        wxIPV4address addr;
+        addr.Service(E131PORT);
+        uint8_t buf[E131_PACKET_LEN];
         size_t n = _e131SocketReceive->RecvFrom(addr, buf, sizeof(buf)).LastCount();
         if (!n) {
             logger_base.error("ERROR: failed to receive E131 data");
+            //_e131SocketReceive->Notify(true);
             return;
         }
         //logger_base.debug("E131 packet received.");
         StashPacket(ID_E131SOCKET, buf, n);
-        _e131SocketReceive->Notify(true);
+        //_e131SocketReceive->Notify(true);
     }
         break;
     default:
@@ -1353,22 +1332,23 @@ void xFadeFrame::OnArtNETSocketEvent(wxSocketEvent & event)
 
     wxASSERT(event.GetSocket() == _artNETSocketReceive);
 
-    wxIPV4address addr;
-    addr.Service(ARTNETPORT);
-    wxByte buf[ARTNET_PACKET_LEN];
     switch (event.GetSocketEvent())
     {
     case wxSOCKET_INPUT:
     {
-        _artNETSocketReceive->Notify(false);
+        //_artNETSocketReceive->Notify(false);
+        wxIPV4address addr;
+        addr.Service(ARTNETPORT);
+        uint8_t buf[ARTNET_PACKET_LEN];
         size_t n = _artNETSocketReceive->RecvFrom(addr, buf, sizeof(buf)).LastCount();
         if (!n) {
             logger_base.error("ERROR: failed to receive ArtNET data");
+            //_artNETSocketReceive->Notify(true);
             return;
         }
         //logger_base.debug("ArtNet packet received.");
         StashPacket(ID_ARTNETSOCKET, buf, n);
-        _artNETSocketReceive->Notify(true);
+        //_artNETSocketReceive->Notify(true);
     }
         break;
     default:
@@ -1442,10 +1422,10 @@ void xFadeFrame::StartMIDIListeners()
             ++it;
         }
     }
-    for (auto it : _settings.GetUsedMIDIDevices())
+    for (const auto& it : _settings.GetUsedMIDIDevices())
     {
         bool found = false;
-        for (auto it2 : _midiListeners)
+        for (const auto& it2 : _midiListeners)
         {
             if (it2->GetDeviceId() == it)
             {
@@ -1460,7 +1440,7 @@ void xFadeFrame::StartMIDIListeners()
     }
 }
 
-std::string xFadeFrame::ExtractE131Tag(wxByte* packet)
+std::string xFadeFrame::ExtractE131Tag(uint8_t* packet)
 {
     std::string res((char*)&packet[44]);
     res = res.substr(0, std::min(64, (int)res.size()));
@@ -1541,10 +1521,10 @@ void xFadeFrame::PressJukeboxButton(int button, bool left)
         if (result.StartsWith("SUCCESS"))
         {
             auto buttons = panel->GetChildren();
-            for (auto bb = buttons.begin(); bb != buttons.end(); ++bb)
+            for (const auto& bb : buttons)
             {
-                ((wxButton*)*bb)->SetForegroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNTEXT));
-                ((wxButton*)*bb)->SetFont(wxNullFont);
+                ((wxButton*)bb)->SetForegroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNTEXT));
+                ((wxButton*)bb)->SetFont(wxNullFont);
             }
 
             b->SetForegroundColour(*wxBLUE);
@@ -1556,11 +1536,11 @@ void xFadeFrame::PressJukeboxButton(int button, bool left)
 int xFadeFrame::GetActiveButton(wxWindow* panel)
 {
     auto buttons = panel->GetChildren();
-    for (auto bb = buttons.begin(); bb != buttons.end(); ++bb)
+    for (const auto& bb : buttons)
     {
-        if ((*bb)->GetForegroundColour() == *wxBLUE)
+        if (bb->GetForegroundColour() == *wxBLUE)
         {
-            return wxAtoi((*bb)->GetLabel());
+            return wxAtoi(bb->GetLabel());
         }
     }
 
@@ -1571,11 +1551,11 @@ wxButton* xFadeFrame::GetJukeboxButton(int button, wxWindow* panel)
 {
     wxString s = wxString::Format("%d", button);
     auto buttons = panel->GetChildren();
-    for (auto bb = buttons.begin(); bb != buttons.end(); ++bb)
+    for (const auto& bb : buttons)
     {
-        if ((*bb)->GetLabel() == s)
+        if (bb->GetLabel() == s)
         {
-            return (wxButton*)*bb;
+            return (wxButton*)bb;
         }
     }
 
@@ -1699,23 +1679,23 @@ void xFadeFrame::OnButton_ConnectToxLightsClick(wxCommandEvent& event)
         auto tips = wxSplit(result, '|');
 
         int i = 0;
-        for (auto it = tips.begin(); it != tips.end(); ++it)
+        for (const auto& it : tips)
         {
             if (i > 0)
             {
                 wxString s = wxString::Format("%d", i);
                 auto buttons = Panel_Left->GetChildren();
-                for (auto b = buttons.begin(); b != buttons.end(); ++b)
+                for (const auto& b : buttons)
                 {
-                    if ((*b)->GetLabel() == s)
+                    if (b->GetLabel() == s)
                     {
-                        if (*it == "")
+                        if (it == "")
                         {
-                            (*b)->UnsetToolTip();
+                            b->UnsetToolTip();
                         }
                         else
                         {
-                            (*b)->SetToolTip(*it);
+                            b->SetToolTip(it);
                         }
                     }
                 }
@@ -1729,23 +1709,23 @@ void xFadeFrame::OnButton_ConnectToxLightsClick(wxCommandEvent& event)
             auto bs = wxSplit(result, '|');
 
             i = 0;
-            for (auto it = bs.begin(); it != bs.end(); ++it)
+            for (const auto& it : bs)
             {
                 if (i > 0)
                 {
                     wxString s = wxString::Format("%d", i);
                     auto buttons = Panel_Left->GetChildren();
-                    for (auto b = buttons.begin(); b != buttons.end(); ++b)
+                    for (const auto& b : buttons)
                     {
-                        if ((*b)->GetLabel() == s)
+                        if (b->GetLabel() == s)
                         {
-                            if (*it == "")
+                            if (it == "")
                             {
-                                (*b)->SetBackgroundColour(wxColour(255, 108, 108));
+                                b->SetBackgroundColour(wxColour(255, 108, 108));
                             }
                             else
                             {
-                                (*b)->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
+                                b->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
                             }
                         }
                     }
@@ -1790,23 +1770,23 @@ void xFadeFrame::OnButton_ConnectToxLightsClick(wxCommandEvent& event)
         auto tips = wxSplit(result, '|');
 
         int i = 0;
-        for (auto it = tips.begin(); it != tips.end(); ++it)
+        for (const auto& it : tips)
         {
             if (i > 0)
             {
                 wxString s = wxString::Format("%d", i);
                 auto buttons = Panel_Right->GetChildren();
-                for (auto b = buttons.begin(); b != buttons.end(); ++b)
+                for (const auto& b : buttons)
                 {
-                    if ((*b)->GetLabel() == s)
+                    if (b->GetLabel() == s)
                     {
-                        if (*it == "")
+                        if (it == "")
                         {
-                            (*b)->UnsetToolTip();
+                            b->UnsetToolTip();
                         }
                         else
                         {
-                            (*b)->SetToolTip(*it);
+                            b->SetToolTip(it);
                         }
                     }
                 }
@@ -1820,23 +1800,23 @@ void xFadeFrame::OnButton_ConnectToxLightsClick(wxCommandEvent& event)
             auto bs = wxSplit(result, '|');
 
             i = 0;
-            for (auto it = bs.begin(); it != bs.end(); ++it)
+            for (const auto& it : bs)
             {
                 if (i > 0)
                 {
                     wxString s = wxString::Format("%d", i);
                     auto buttons = Panel_Right->GetChildren();
-                    for (auto b = buttons.begin(); b != buttons.end(); ++b)
+                    for (const auto& b : buttons)
                     {
-                        if ((*b)->GetLabel() == s)
+                        if (b->GetLabel() == s)
                         {
-                            if (*it == "")
+                            if (it == "")
                             {
-                                (*b)->SetBackgroundColour(wxColour(255, 108, 108));
+                                b->SetBackgroundColour(wxColour(255, 108, 108));
                             }
                             else
                             {
-                                (*b)->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
+                                b->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
                             }
                         }
                     }
@@ -1875,8 +1855,30 @@ void xFadeFrame::OnButton_ConnectToxLightsClick(wxCommandEvent& event)
 
     _leftReceived = 0;
     _rightReceived = 0;
-    Led_Left->Disable();
-    Led_Right->Disable();
+    if (_settings._minimiseUIUpdates)
+    {
+        Led_Left->SetColor("FFFF00");
+        Led_Right->SetColor("FFFF00");
+        Led_Left->Enable();
+        Led_Right->Enable();
+        StatusBar1->SetStatusText("", 0);
+        if (_emitter == nullptr)
+        {
+            StatusBar1->SetStatusText("UI Updates Minimised - Sending Disabled", 1);
+        }
+        else
+        {
+            StatusBar1->SetStatusText("UI Updates Minimised", 1);
+        }
+        StatusBar1->SetStatusText("", 2);
+    }
+    else
+    {
+        Led_Left->SetColor("00FF00");
+        Led_Right->SetColor("00FF00");
+        Led_Left->Disable();
+        Led_Right->Disable();
+    }
     _emitter->ZeroSent();
 
     // un suspend listening for packets
@@ -1916,10 +1918,33 @@ void xFadeFrame::OnButton_ConfigureClick(wxCommandEvent& event)
     SetTiming();
     SetFade();
 
+    if (_settings._minimiseUIUpdates)
+    {
+        Led_Left->SetColor("FFFF00");
+        Led_Right->SetColor("FFFF00");
+        Led_Left->Enable();
+        Led_Right->Enable();
+        StatusBar1->SetStatusText("", 0);
+        if (_emitter == nullptr)
+        {
+            StatusBar1->SetStatusText("UI Updates Minimised - Sending Disabled", 1);
+        }
+        else
+        {
+            StatusBar1->SetStatusText("UI Updates Minimised", 1);
+        }
+        StatusBar1->SetStatusText("", 2);
+    }
+    else
+    {
+        Led_Left->SetColor("00FF00");
+        Led_Right->SetColor("00FF00");
+        Led_Left->Disable();
+        Led_Right->Disable();
+    }
+
     _leftReceived = 0;
     _rightReceived = 0;
-    Led_Left->Disable();
-    Led_Right->Disable();
     _suspendListen = false;
 
     RestartInterfaces();
@@ -1992,7 +2017,10 @@ void xFadeFrame::OnButton_AdvanceClick(wxCommandEvent& event)
 void xFadeFrame::OnTimer_StatusTrigger(wxTimerEvent& event)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    static unsigned long count = 0;
+
+    if (_settings._minimiseUIUpdates) return;
+
+    static uint32_t count = 0;
     count++;
     StatusBar1->SetStatusText(wxString::Format("Left: %lu", _leftReceived), 0);
     StatusBar1->SetStatusText(wxString::Format("Right: %lu", _rightReceived), 2);

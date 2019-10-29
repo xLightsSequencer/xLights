@@ -52,6 +52,7 @@ class SettingsDialog: public wxDialog
 		wxButton* Button_Ok;
 		wxCheckBox* CheckBox_ArtNET;
 		wxCheckBox* CheckBox_E131;
+		wxCheckBox* CheckBox_minimiseUIupdates;
 		wxChoice* Choice_FrameTiming;
 		wxListView* ListViewFadeExclude;
 		wxListView* ListView_Universes;
@@ -87,6 +88,7 @@ class SettingsDialog: public wxDialog
 		static const long ID_TEXTCTRL2;
 		static const long ID_STATICTEXT9;
 		static const long ID_CHOICE1;
+		static const long ID_CHECKBOX1;
 		static const long ID_STATICTEXT4;
 		static const long ID_LISTVIEW_UNIVERSES;
 		static const long ID_BUTTON3;

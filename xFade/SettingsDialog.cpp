@@ -30,6 +30,7 @@ const long SettingsDialog::ID_STATICTEXT11 = wxNewId();
 const long SettingsDialog::ID_TEXTCTRL2 = wxNewId();
 const long SettingsDialog::ID_STATICTEXT9 = wxNewId();
 const long SettingsDialog::ID_CHOICE1 = wxNewId();
+const long SettingsDialog::ID_CHECKBOX1 = wxNewId();
 const long SettingsDialog::ID_STATICTEXT4 = wxNewId();
 const long SettingsDialog::ID_LISTVIEW_UNIVERSES = wxNewId();
 const long SettingsDialog::ID_BUTTON3 = wxNewId();
@@ -116,6 +117,11 @@ SettingsDialog::SettingsDialog(wxWindow* parent, Settings* settings, wxWindowID 
     Choice_FrameTiming->Append(_("100ms"));
     FlexGridSizer6->Add(Choice_FrameTiming, 1, wxALL|wxEXPAND, 5);
     FlexGridSizer6->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer6->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    CheckBox_minimiseUIupdates = new wxCheckBox(this, ID_CHECKBOX1, _("Minimise UI updates for performance"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
+    CheckBox_minimiseUIupdates->SetValue(false);
+    FlexGridSizer6->Add(CheckBox_minimiseUIupdates, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer6->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer1->Add(FlexGridSizer6, 1, wxALL|wxEXPAND, 5);
     FlexGridSizer4 = new wxFlexGridSizer(0, 2, 0, 0);
     FlexGridSizer4->AddGrowableCol(0);
@@ -280,9 +286,9 @@ void SettingsDialog::LoadUniverses()
 
     auto itd = _targetDescCopy.begin();
     auto itp = _targetProtocolCopy.begin();
-    for (auto it = _targetIPCopy.begin(); it != _targetIPCopy.end(); ++it)
+    for (const auto& it : _targetIPCopy)
     {
-        if (lastu != it->first - 1 || lastip != it->second)
+        if (lastu != it.first - 1 || lastip != it.second)
         {
             if (lastu != 0)
             {
@@ -292,24 +298,24 @@ void SettingsDialog::LoadUniverses()
                 ListView_Universes->SetItem(ListView_Universes->GetItemCount() - 1, 3, lastdesc);
                 ListView_Universes->SetItem(ListView_Universes->GetItemCount() - 1, 4, lastprotocol);
 
-                startu = it->first;
-                lastu = it->first;
-                lastip = it->second;
+                startu = it.first;
+                lastu = it.first;
+                lastip = it.second;
                 lastdesc = itd->second;
                 lastprotocol = itp->second;
             }
             else
             {
-                startu = it->first;
-                lastu = it->first;
-                lastip = it->second;
+                startu = it.first;
+                lastu = it.first;
+                lastip = it.second;
                 lastdesc = itd->second;
                 lastprotocol = itp->second;
             }
         }
         else
         {
-            lastu = it->first;
+            lastu = it.first;
         }
 
         ++itd;
@@ -342,6 +348,7 @@ void SettingsDialog::Apply()
     _settings->_targetProtocol = _targetProtocolCopy;
     _settings->_leftIP = TextCtrl_LeftIP->GetValue();
     _settings->_rightIP = TextCtrl_RightIP->GetValue();
+    _settings->_minimiseUIUpdates = CheckBox_minimiseUIupdates->GetValue();
 
     wxString frm = Choice_FrameTiming->GetStringSelection();
     if (frm == "25ms")
@@ -379,6 +386,7 @@ void SettingsDialog::PopulateFields()
     _localInputIPCopy = _settings->_localInputIP;
     TextCtrl_LeftIP->SetValue(_settings->_leftIP);
     TextCtrl_RightIP->SetValue(_settings->_rightIP);
+    CheckBox_minimiseUIupdates->SetValue(_settings->_minimiseUIUpdates);
 
     LoadUniverses();
     LoadFadeExclude();
@@ -658,9 +666,9 @@ void SettingsDialog::LoadFadeExclude()
 
     ListViewFadeExclude->DeleteAllItems();
 
-    for (auto it = _settings->GetFadeExclude().begin(); it != _settings->GetFadeExclude().end(); ++it)
+    for (const auto& it : _settings->GetFadeExclude())
     {
-        ListViewFadeExclude->InsertItem(ListViewFadeExclude->GetItemCount(), *it);
+        ListViewFadeExclude->InsertItem(ListViewFadeExclude->GetItemCount(), it);
     }
 
     ListViewFadeExclude->Select(sel);

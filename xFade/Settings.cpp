@@ -16,6 +16,7 @@ Settings::Settings(std::string settings)
 
     _defaultIP = addr.IPAddress();
 
+    _minimiseUIUpdates = false;
     _leftIP = "127.0.0.1";
     _rightIP = "127.0.0.1";
     _localInputIP = "";
@@ -169,7 +170,10 @@ std::string Settings::Serialise()
     {
         res += "|IPR:" + _rightIP;
     }
-
+    if (_minimiseUIUpdates)
+    {
+        res += "|MUIU:";
+    }
     if (_frameMS != 50)
     {
         res += "|FRM:" + wxString::Format("%d", _frameMS);
@@ -328,6 +332,10 @@ void Settings::Load(std::string settings)
             else if (s2[0] == "IPR")
             {
                 _rightIP = s2[1];
+            }
+            else if (s2[0] == "MUIU")
+            {
+                _minimiseUIUpdates = true;
             }
             else if (s2[0] == "MIDI")
             {

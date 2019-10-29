@@ -15,20 +15,20 @@ class Settings;
 
 class Emitter
 {
-    unsigned long _sent = 0;
-    EmitterThread* _emitterThread;
+    uint32_t _sent = 0;
+    EmitterThread* _emitterThread = nullptr;
     std::map<int, std::string>* _targetIP;
     std::map<int, std::string>* _protocol;
     std::map<int, PacketData>* _leftData;
     std::map<int, PacketData>* _rightData;
-    int _frameMS;
-    float _pos;
-    bool _stop;
+    int _frameMS = 50;
+    float _pos = 0;
+    bool _stop = false;
     std::mutex* _lock;
     std::string _localIP;
     int _leftBrightness;
     int _rightBrightness;
-    Settings* _settings;
+    Settings* _settings = nullptr;
 
     public:
 
@@ -50,7 +50,7 @@ class Emitter
     void SetRightBrightness(int brightness) { _rightBrightness = brightness; }
     int GetLeftBrightness() const { return _leftBrightness; }
     int GetRightBrightness() const { return _rightBrightness; }
-    unsigned long GetSent() const { return _sent; }
+    uint32_t GetSent() const { return _sent; }
     void IncrementSent() { _sent++; }
     void ZeroSent() { _sent = 0; }
     Settings* GetSettings() const { return _settings; }
