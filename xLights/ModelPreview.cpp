@@ -333,31 +333,36 @@ void ModelPreview::mouseWheelMoved(wxMouseEvent& event) {
         //rotation of 0 is sometimes generated for other gestures (pinch/zoom), ignore
         return;
     }
-    bool fromTrackPad = IsMouseEventFromTouchpad();
-    if (!fromTrackPad || event.ControlDown()) {
-        SetZoomDelta(event.GetWheelRotation() > 0 ? -0.1f : 0.1f);
-    } else {
-        float delta_x = event.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ? 0 : -event.GetWheelRotation();
-        float delta_y = event.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ? -event.GetWheelRotation() : 0;
-        if (is_3d) {
-            if (event.ShiftDown()) {
-                SetPan(delta_x, delta_y, 0.0f);
-            } else {
-                SetCameraView(delta_x, delta_y, false);
-                SetCameraView(0, 0, true);
+    if (!m_wheel_down) {
+        bool fromTrackPad = IsMouseEventFromTouchpad();
+        if (!fromTrackPad || event.ControlDown()) {
+            SetZoomDelta(event.GetWheelRotation() > 0 ? -0.1f : 0.1f);
+        }
+        else {
+            float delta_x = event.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ? 0 : -event.GetWheelRotation();
+            float delta_y = event.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ? -event.GetWheelRotation() : 0;
+            if (is_3d) {
+                if (event.ShiftDown()) {
+                    SetPan(delta_x, delta_y, 0.0f);
+                }
+                else {
+                    SetCameraView(delta_x, delta_y, false);
+                    SetCameraView(0, 0, true);
+                }
             }
-        } else {
-            // account for grid rotation
-            float angle = glm::radians(GetCameraRotationY());
-            float new_x = delta_x;
-            float new_y = delta_y;
-            delta_x = new_x * std::cos(angle) - new_y * std::sin(angle);
-            delta_y = new_y * std::cos(angle) + new_x * std::sin(angle);
-            delta_x *= GetZoom() * 2.0f;
-            delta_y *= GetZoom() * 2.0f;
-            SetPan(delta_x, delta_y, 0.0f);
-            m_last_mouse_x = event.GetX();
-            m_last_mouse_y = event.GetY();
+            else {
+                // account for grid rotation
+                float angle = glm::radians(GetCameraRotationY());
+                float new_x = delta_x;
+                float new_y = delta_y;
+                delta_x = new_x * std::cos(angle) - new_y * std::sin(angle);
+                delta_y = new_y * std::cos(angle) + new_x * std::sin(angle);
+                delta_x *= GetZoom() * 2.0f;
+                delta_y *= GetZoom() * 2.0f;
+                SetPan(delta_x, delta_y, 0.0f);
+                m_last_mouse_x = event.GetX();
+                m_last_mouse_y = event.GetY();
+            }
         }
     }
     if (xlights != nullptr) {

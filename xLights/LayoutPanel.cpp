@@ -3314,39 +3314,46 @@ void LayoutPanel::OnPreviewMouseWheel(wxMouseEvent& event)
         //rotation of 0 is sometimes generated for other gestures (pinch/zoom), ignore
         return;
     }
-    bool fromTrackPad = IsMouseEventFromTouchpad();
-    if (is_3d) {
-        if (!fromTrackPad || event.ControlDown()) {
-            modelPreview->SetZoomDelta(event.GetWheelRotation() > 0 ? -0.1f : 0.1f);
-        } else {
-            float delta_x = event.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ? 0 : -event.GetWheelRotation();
-            float delta_y = event.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ? -event.GetWheelRotation() : 0;
-            if (event.ShiftDown()) {
-                modelPreview->SetPan(delta_x, delta_y, 0.0f);
-            } else {
-                modelPreview->SetCameraView(delta_x, delta_y, false);
-                modelPreview->SetCameraView(0, 0, true);
+    // Don't allow zoom if panning
+    if (!m_wheel_down) {
+        bool fromTrackPad = IsMouseEventFromTouchpad();
+        if (is_3d) {
+            if (!fromTrackPad || event.ControlDown()) {
+                modelPreview->SetZoomDelta(event.GetWheelRotation() > 0 ? -0.1f : 0.1f);
+            }
+            else {
+                float delta_x = event.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ? 0 : -event.GetWheelRotation();
+                float delta_y = event.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ? -event.GetWheelRotation() : 0;
+                if (event.ShiftDown()) {
+                    modelPreview->SetPan(delta_x, delta_y, 0.0f);
+                }
+                else {
+                    modelPreview->SetCameraView(delta_x, delta_y, false);
+                    modelPreview->SetCameraView(0, 0, true);
+                }
             }
         }
-    } else {
-        if (!fromTrackPad || event.ControlDown()) {
-            modelPreview->SetZoomDelta(event.GetWheelRotation() > 0 ? -0.1f : 0.1f);
-        } else {
-            float new_x = event.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ? 0 : -event.GetWheelRotation();
-            float new_y = event.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ? -event.GetWheelRotation() : 0;
+        else {
+            if (!fromTrackPad || event.ControlDown()) {
+                modelPreview->SetZoomDelta(event.GetWheelRotation() > 0 ? -0.1f : 0.1f);
+            }
+            else {
+                float new_x = event.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ? 0 : -event.GetWheelRotation();
+                float new_y = event.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ? -event.GetWheelRotation() : 0;
 
-            // account for grid rotation
-            float angle = glm::radians(modelPreview->GetCameraRotationY());
-            float delta_x = new_x * std::cos(angle) - new_y * std::sin(angle);
-            float delta_y = new_y * std::cos(angle) + new_x * std::sin(angle);
-            delta_x *= modelPreview->GetZoom() * 2.0f;
-            delta_y *= modelPreview->GetZoom() * 2.0f;
-            modelPreview->SetPan(delta_x, delta_y, 0.0f);
-            m_previous_mouse_x = event.GetX();
-            m_previous_mouse_y = event.GetY();
+                // account for grid rotation
+                float angle = glm::radians(modelPreview->GetCameraRotationY());
+                float delta_x = new_x * std::cos(angle) - new_y * std::sin(angle);
+                float delta_y = new_y * std::cos(angle) + new_x * std::sin(angle);
+                delta_x *= modelPreview->GetZoom() * 2.0f;
+                delta_y *= modelPreview->GetZoom() * 2.0f;
+                modelPreview->SetPan(delta_x, delta_y, 0.0f);
+                m_previous_mouse_x = event.GetX();
+                m_previous_mouse_y = event.GetY();
+            }
         }
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewMouseWheel");
     }
-    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewMouseWheel");
 }
 
 void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
