@@ -1393,9 +1393,9 @@ void ModelFaceDialog::RenameFace()
             NameChoice->Delete(index);
             NameChoice->Insert(n, index);
 
-            auto face = faceData.extract(currentName);
-            face.key() = n;
-            faceData.insert(std::move(face));
+            auto const face = std::move(faceData[currentName]);
+            faceData[n] = std::move(face);
+            faceData.erase(currentName);
 
             NameChoice->SetSelection(index);
             NameChoice->SetStringSelection(NameChoice->GetString(index));
