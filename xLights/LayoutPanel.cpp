@@ -6396,7 +6396,6 @@ void LayoutPanel::OnSelectionChanged(wxTreeListEvent& event)
         if (item.IsOk()) {
 
             ModelTreeData *data = (ModelTreeData*)TreeListViewModels->GetItemData(item);
-            if (data == nullptr) logger_base.crit("LayoutPanel::OnSelectionChanged ModelTreeData pointer was unexpectantly null ... this is going to crash");
             Model *model = ((data != nullptr) ? data->GetModel() : nullptr);
             if (model != nullptr) {
                 wxASSERT(xlights->AllModels.IsModelValid(model));

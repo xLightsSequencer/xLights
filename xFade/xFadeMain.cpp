@@ -13,23 +13,27 @@
  //*)
 
 #include "xFadeMain.h"
+
 #include <wx/msgdlg.h>
 #include <wx/config.h>
 #include <wx/protocol/http.h>
-#include <log4cpp/Category.hh>
 #include <wx/file.h>
 #include <wx/filename.h>
-#include "../xLights/xLightsVersion.h"
 #include <wx/debugrpt.h>
+
+#include "../xLights/xLightsVersion.h"
+#include "../xLights/UtilFunctions.h"
 #include "../xLights/osxMacUtils.h"
 #include "UniverseEntryDialog.h"
 #include "Emitter.h"
-#include "../xLights/UtilFunctions.h"
 #include "MIDIListener.h"
 #include "SettingsDialog.h"
 #include "MIDIAssociateDialog.h"
+#include "UniverseData.h"
 #include "E131Receiver.h"
 #include "ArtNETReceiver.h"
+
+#include <log4cpp/Category.hh>
 
 #include "../include/xLights.xpm"
 #include "../include/xLights-16.xpm"
