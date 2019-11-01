@@ -198,6 +198,8 @@ class ViewsModelsPanel: public wxPanel
 		void OnButton_MoveUpClick(wxCommandEvent& event);
 		void OnButton_MakeMasterClick(wxCommandEvent& event);
 		void OnListCtrlNonModelsColumnClick(wxListEvent& event);
+		void OnListCtrlNonModelsItemActivated(wxListEvent& event);
+		void OnListCtrlModelsItemActivated(wxListEvent& event);
 		//*)
 
         void OnDrop(wxCommandEvent& event);

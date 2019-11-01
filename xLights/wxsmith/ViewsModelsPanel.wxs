@@ -188,6 +188,7 @@
 					<style>wxLC_REPORT|wxVSCROLL|wxHSCROLL</style>
 					<handler function="OnListView_ViewItemsBeginDrag" entry="EVT_LIST_BEGIN_DRAG" />
 					<handler function="OnListView_ViewItemsItemSelect" entry="EVT_LIST_ITEM_SELECTED" />
+					<handler function="OnListCtrlModelsItemActivated" entry="EVT_LIST_ITEM_ACTIVATED" />
 					<handler function="OnListCtrlModelsItemRClick" entry="EVT_LIST_ITEM_RIGHT_CLICK" />
 					<handler function="OnListView_ViewItemsKeyDown" entry="EVT_LIST_KEY_DOWN" />
 				</object>
@@ -204,6 +205,7 @@
 					<style>wxLC_REPORT</style>
 					<handler function="OnListCtrlNonModelsBeginDrag" entry="EVT_LIST_BEGIN_DRAG" />
 					<handler function="OnListCtrlNonModelsItemSelect" entry="EVT_LIST_ITEM_SELECTED" />
+					<handler function="OnListCtrlNonModelsItemActivated" entry="EVT_LIST_ITEM_ACTIVATED" />
 					<handler function="OnListCtrlNonModelsKeyDown" entry="EVT_LIST_KEY_DOWN" />
 					<handler function="OnListCtrlNonModelsColumnClick" entry="EVT_LIST_COL_CLICK" />
 				</object>

@@ -102,6 +102,8 @@ class ModelGroupPanel: public wxPanel
 		void OnListBoxModelsInGroupBeginDrag(wxListEvent& event);
 		void OnListBoxModelsInGroupItemSelect(wxListEvent& event);
 		void OnCheckBox_ShowSubmodelsClick(wxCommandEvent& event);
+		void OnListBoxAddToModelGroupItemActivated(wxListEvent& event);
+		void OnListBoxModelsInGroupItemActivated(wxListEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

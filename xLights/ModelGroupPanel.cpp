@@ -192,12 +192,14 @@ ModelGroupPanel::ModelGroupPanel(wxWindow* parent,ModelManager &Models,LayoutPan
 	Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ModelGroupPanel::OnCheckBox_ShowSubmodelsClick);
 	Connect(ID_LISTCTRL1,wxEVT_COMMAND_LIST_BEGIN_DRAG,(wxObjectEventFunction)&ModelGroupPanel::OnListBoxAddToModelGroupBeginDrag);
 	Connect(ID_LISTCTRL1,wxEVT_COMMAND_LIST_ITEM_SELECTED,(wxObjectEventFunction)&ModelGroupPanel::OnListBoxAddToModelGroupItemSelect);
+	Connect(ID_LISTCTRL1,wxEVT_COMMAND_LIST_ITEM_ACTIVATED,(wxObjectEventFunction)&ModelGroupPanel::OnListBoxAddToModelGroupItemActivated);
 	Connect(ID_BITMAPBUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelGroupPanel::OnButtonAddToModelGroupClick);
 	Connect(ID_BITMAPBUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelGroupPanel::OnButtonRemoveFromModelGroupClick);
 	Connect(ID_BITMAPBUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelGroupPanel::OnButtonUpClick);
 	Connect(ID_BITMAPBUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelGroupPanel::OnButtonDownClick);
 	Connect(ID_LISTCTRL2,wxEVT_COMMAND_LIST_BEGIN_DRAG,(wxObjectEventFunction)&ModelGroupPanel::OnListBoxModelsInGroupBeginDrag);
 	Connect(ID_LISTCTRL2,wxEVT_COMMAND_LIST_ITEM_SELECTED,(wxObjectEventFunction)&ModelGroupPanel::OnListBoxModelsInGroupItemSelect);
+	Connect(ID_LISTCTRL2,wxEVT_COMMAND_LIST_ITEM_ACTIVATED,(wxObjectEventFunction)&ModelGroupPanel::OnListBoxModelsInGroupItemActivated);
 	//*)
 
     ChoicePreviews->Append("Default");
@@ -291,7 +293,7 @@ void ModelGroupPanel::UpdatePanel(const std::string group)
 
         // dont allow any group that contains this group to be added as that would create a loop
         for (const auto& it : mModels) {
-            if (std::find(modelsInGroup.begin(), modelsInGroup.end(), it.first) != modelsInGroup.end() || 
+            if (std::find(modelsInGroup.begin(), modelsInGroup.end(), it.first) != modelsInGroup.end() ||
                 (it.second->GetDisplayAs() == "ModelGroup" && (it.first == group || dynamic_cast<ModelGroup*>(it.second)->ContainsModelGroup(g)))) {
                 // dont add this group
                 // logger_base.debug("Model not eligible to be added to group or already in group " + group + " : " + it.first);
@@ -938,4 +940,16 @@ void ModelGroupPanel::ClearSelections(wxListCtrl* listCtrl, long stateMask)
 void ModelGroupPanel::OnCheckBox_ShowSubmodelsClick(wxCommandEvent& event)
 {
     UpdatePanel(mGroup);
+}
+
+void ModelGroupPanel::OnListBoxAddToModelGroupItemActivated(wxListEvent& event)
+{
+    wxCommandEvent e;
+    OnButtonAddToModelGroupClick(e);
+}
+
+void ModelGroupPanel::OnListBoxModelsInGroupItemActivated(wxListEvent& event)
+{
+    wxCommandEvent e;
+    OnButtonRemoveFromModelGroupClick(e);
 }
