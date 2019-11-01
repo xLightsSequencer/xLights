@@ -11,6 +11,8 @@
 
 static const std::string HORIZ("Horizontal Stack");
 static const std::string VERT("Vertical Stack");
+static const std::string HORIZ_SCALED("Horizontal Stack - Scaled");
+static const std::string VERT_SCALED("Vertical Stack - Scaled");
 static const std::string HORIZ_PER_MODEL("Horizontal Per Model");
 static const std::string VERT_PER_MODEL("Vertical Per Model");
 static const std::string SINGLELINE_AS_PIXEL("Single Line Model As A Pixel");
@@ -171,6 +173,8 @@ const std::vector<std::string> &ModelGroup::GetBufferStyles() const {
             GROUP_BUFFER_STYLES = Model::DEFAULT_BUFFER_STYLES;
             GROUP_BUFFER_STYLES.push_back(HORIZ);
             GROUP_BUFFER_STYLES.push_back(VERT);
+            GROUP_BUFFER_STYLES.push_back(HORIZ_SCALED);
+            GROUP_BUFFER_STYLES.push_back(VERT_SCALED);
             GROUP_BUFFER_STYLES.push_back(HORIZ_PER_MODEL);
             GROUP_BUFFER_STYLES.push_back(VERT_PER_MODEL);
             GROUP_BUFFER_STYLES.push_back(HORIZ_PER_MODELSTRAND);
@@ -666,6 +670,12 @@ void ModelGroup::GetBufferSize(const std::string &tp, const std::string &camera,
     } else if (type == VERT) {
         BufferHt = totHi;
         BufferWi = maxWid;
+    } else if (type == HORIZ_SCALED) {
+        BufferHt = maxHi;
+        BufferWi = maxWid * models;
+    } else if (type == VERT_SCALED) {
+        BufferHt = maxHi * models;
+        BufferWi = maxWid;
     } else if (type == SINGLELINE_AS_PIXEL) {
         BufferHt = 1;
         BufferWi = models;
@@ -816,6 +826,52 @@ void ModelGroup::InitRenderBufferNodes(const std::string &tp,
                 }
                 BufferHt += y;
                 modelY += y;
+            }
+        }
+        ApplyTransform(transform, Nodes, BufferWi, BufferHt);
+    }
+    else if (type == HORIZ_SCALED) {
+        int modelX = 0;
+        int numOfModels = modelNames.size();
+        GetBufferSize(type, "2D", "None", BufferWi, BufferHt);
+        int modBufferWi = BufferWi / numOfModels;
+        for (const auto& it : modelNames) {
+            Model* m = modelManager[it];
+            if (m != nullptr) {
+                int start = Nodes.size();
+                int x, y;
+                m->InitRenderBufferNodes("Default", "2D", "None", Nodes, x, y);
+                while (start < Nodes.size()) {
+                    for (auto& it2 : Nodes[start]->Coords) {
+                        it2.bufX = it2.bufX * (modBufferWi / x) + modelX;
+                        it2.bufY = it2.bufY * (BufferHt / y);
+                    }
+                    start++;
+                }
+                modelX += modBufferWi;
+            }
+        }
+        ApplyTransform(transform, Nodes, BufferWi, BufferHt);
+    }
+    else if (type == VERT_SCALED) {
+        int modelY = 0;
+        int numOfModels = modelNames.size();
+        GetBufferSize(type, "2D", "None", BufferWi, BufferHt);
+        int modBufferHt = BufferHt / numOfModels;
+        for (const auto& it : modelNames) {
+            Model* m = modelManager[it];
+            if (m != nullptr) {
+                int start = Nodes.size();
+                int x, y;
+                m->InitRenderBufferNodes("Default", "2D", "None", Nodes, x, y);
+                while (start < Nodes.size()) {
+                    for (auto& it2 : Nodes[start]->Coords) {
+                        it2.bufX = it2.bufX * (BufferWi / x);
+                        it2.bufY = it2.bufY * (modBufferHt / y) + modelY;
+                    }
+                    start++;
+                }
+                modelY += modBufferHt;
             }
         }
         ApplyTransform(transform, Nodes, BufferWi, BufferHt);

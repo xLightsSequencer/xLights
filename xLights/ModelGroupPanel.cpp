@@ -127,6 +127,8 @@ ModelGroupPanel::ModelGroupPanel(wxWindow* parent,ModelManager &Models,LayoutPan
 	ChoiceModelLayoutType->Append(_("Minimal Grid"));
 	ChoiceModelLayoutType->Append(_("Horizontal Stack"));
 	ChoiceModelLayoutType->Append(_("Vertical Stack"));
+	ChoiceModelLayoutType->Append(_("Horizontal Stack - Scaled"));
+	ChoiceModelLayoutType->Append(_("Vertical Stack - Scaled"));
 	ChoiceModelLayoutType->Append(_("Horizontal Per Model"));
 	ChoiceModelLayoutType->Append(_("Vertical Per Model"));
 	ChoiceModelLayoutType->Append(_("Horizontal Per Model/Strand"));

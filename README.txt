@@ -12,6 +12,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
    -- enh (gil)    Prevent a zoom action from occurring while panning.  Fixes #1782.
+   -- enh (scott)  Added 'Horizontal Stack - Scaled' & 'Vertical Stack - Scaled' Group Render Styles
 2019.61 October 26 2019
    -- enh (gil)    Add Redo option for the sequencer grid.  Fixes #555.
    -- enh (dkulp)  FPP/BBB DMX strings - set minimum length to 16 channels.  Several controllers have issues with less than that

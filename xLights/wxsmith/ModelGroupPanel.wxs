@@ -45,6 +45,8 @@
 										<item>Minimal Grid</item>
 										<item>Horizontal Stack</item>
 										<item>Vertical Stack</item>
+										<item>Horizontal Stack - Scaled</item>
+										<item>Vertical Stack - Scaled</item>
 										<item>Horizontal Per Model</item>
 										<item>Vertical Per Model</item>
 										<item>Horizontal Per Model/Strand</item>
