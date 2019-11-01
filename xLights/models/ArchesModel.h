@@ -33,6 +33,7 @@ class ArchesModel : public ModelWithScreenLocation<ThreePointScreenLocation>
     private:
         void SetArchCoord();
         int arc;
+        int _gap = 0;
 };
 
 #endif // ARCHESMODEL_H

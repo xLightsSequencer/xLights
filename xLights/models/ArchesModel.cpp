@@ -55,6 +55,11 @@ void ArchesModel::AddTypeProperties(wxPropertyGridInterface *grid) {
     p->SetAttribute("Max", 180);
     p->SetEditor("SpinCtrl");
 
+    p = grid->Append(new wxIntProperty("Gap Between Arches", "ArchesGap", _gap));
+    p->SetAttribute("Min", 0);
+    p->SetAttribute("Max", 500);
+    p->SetEditor("SpinCtrl");
+
     grid->Append(new wxEnumProperty("Starting Location", "ArchesStart", LEFT_RIGHT, IsLtoR ? 0 : 1));
 }
 
@@ -110,6 +115,15 @@ int ArchesModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyG
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "ArchesModel::OnPropertyGridChange::ArchesSkew");
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ArchesModel::OnPropertyGridChange::ArchesSkew");
         return 0;
+    }
+    else if ("ArchesGap" == event.GetPropertyName()) {
+        _gap = event.GetPropertyValue().GetLong();
+        ModelXml->DeleteAttribute("Gap");
+        ModelXml->AddAttribute("Gap", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ArchesModel::OnPropertyGridChange::ArchesSkew");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "ArchesModel::OnPropertyGridChange::ArchesSkew");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ArchesModel::OnPropertyGridChange::ArchesSkew");
+        return 0;
     } else if ("ArchesStart" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("Dir");
         ModelXml->AddAttribute("Dir", event.GetValue().GetLong() == 0 ? "L" : "R");
@@ -160,6 +174,7 @@ void ArchesModel::InitModel() {
     int NumArches=parm1;
     int SegmentsPerArch=parm2;
     arc = wxAtoi(ModelXml->GetAttribute("arc", "180"));
+    _gap = wxAtoi(ModelXml->GetAttribute("Gap", "0"));
 
     if (ModelXml->HasAttribute("ArchesSkew")) {
         ModelXml->DeleteAttribute("ArchesSkew");
@@ -243,12 +258,13 @@ void ArchesModel::SetArchCoord() {
     double width = parm2 * parm3 * 2 - x;
 
     double minY = 999999;
+    int gaps = 0;
     for (size_t n = 0; n < NodeCount; n++) {
         double xoffset = Nodes[n]->StringNum * width;
         size_t CoordCount = GetCoordCount(n);
         for (size_t c = 0; c < CoordCount; c++) {
             double angle2 = -M_PI / 2.0 + start + total * ((double)(Nodes[n]->Coords[c].bufX * parm3 + c)) / midpt / 2.0;
-            x = xoffset + midpt * sin(angle2) * 2.0 + parm2 * parm3;
+            x = xoffset + midpt * sin(angle2) * 2.0 + parm2 * parm3 + gaps * _gap;
             double y = (parm2 * parm3) * cos(angle2);
             Nodes[n]->Coords[c].screenX = x;
             Nodes[n]->Coords[c].screenY = y * screenLocation.GetHeight();
@@ -256,6 +272,10 @@ void ArchesModel::SetArchCoord() {
                 Nodes[n]->Coords[c].screenX,
                 Nodes[n]->Coords[c].screenY);
             minY = std::min(minY, y);
+        }
+        if ((n + 1) % (parm2 * parm3) == 0)
+        {
+            gaps++;
         }
     }
     float renderHt = parm2 * parm3;
@@ -267,7 +287,7 @@ void ArchesModel::SetArchCoord() {
             }
         }
     }
-    screenLocation.SetRenderSize(width * parm1, renderHt);
+    screenLocation.SetRenderSize(width * parm1 + (parm1 - 1) * _gap, renderHt);
 }
 
 void ArchesModel::ExportXlightsModel()

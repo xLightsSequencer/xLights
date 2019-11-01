@@ -241,6 +241,10 @@
 		<Unit filename="../xSchedule/wxMIDI/src/wxMidi.cpp" />
 		<Unit filename="../xSchedule/wxMIDI/src/wxMidi.h" />
 		<Unit filename="../xSchedule/wxMIDI/src/wxMidiDatabase.cpp" />
+		<Unit filename="ArtNETReceiver.cpp" />
+		<Unit filename="ArtNETReceiver.h" />
+		<Unit filename="E131Receiver.cpp" />
+		<Unit filename="E131Receiver.h" />
 		<Unit filename="Emitter.cpp" />
 		<Unit filename="Emitter.h" />
 		<Unit filename="FadeExcludeDialog.cpp" />
@@ -249,10 +253,13 @@
 		<Unit filename="MIDIAssociateDialog.h" />
 		<Unit filename="MIDIListener.cpp" />
 		<Unit filename="MIDIListener.h" />
+		<Unit filename="PacketData.cpp" />
 		<Unit filename="Settings.cpp" />
 		<Unit filename="Settings.h" />
 		<Unit filename="SettingsDialog.cpp" />
 		<Unit filename="SettingsDialog.h" />
+		<Unit filename="UniverseData.cpp" />
+		<Unit filename="UniverseData.h" />
 		<Unit filename="UniverseEntryDialog.cpp" />
 		<Unit filename="UniverseEntryDialog.h" />
 		<Unit filename="resource.rc">
