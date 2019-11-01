@@ -17,6 +17,10 @@
     <ClCompile Include="wxLED.cpp" />
     <ClCompile Include="MIDIAssociateDialog.cpp" />
     <ClCompile Include="FadeExcludeDialog.cpp" />
+    <ClCompile Include="E131Receiver.cpp" />
+    <ClCompile Include="PacketData.cpp" />
+    <ClCompile Include="UniverseData.cpp" />
+    <ClCompile Include="ArtNETReceiver.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\xLights\xLightsVersion.h" />
@@ -35,6 +39,9 @@
     <ClInclude Include="wxLED.h" />
     <ClInclude Include="MIDIAssociateDialog.h" />
     <ClInclude Include="FadeExcludeDialog.h" />
+    <ClInclude Include="E131Receiver.h" />
+    <ClInclude Include="ArtNETReceiver.h" />
+    <ClInclude Include="UniverseData.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

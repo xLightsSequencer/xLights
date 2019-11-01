@@ -12,31 +12,24 @@
  #include <wx/string.h>
  //*)
 
-#define ZERO 0
-#define E131PORT 5568
-#define ARTNETPORT 0x1936
-
 #include "xFadeMain.h"
 #include <wx/msgdlg.h>
 #include <wx/config.h>
+#include <wx/protocol/http.h>
 #include <log4cpp/Category.hh>
 #include <wx/file.h>
 #include <wx/filename.h>
 #include "../xLights/xLightsVersion.h"
 #include <wx/debugrpt.h>
 #include "../xLights/osxMacUtils.h"
-#include <wx/protocol/http.h>
 #include "UniverseEntryDialog.h"
 #include "Emitter.h"
 #include "../xLights/UtilFunctions.h"
 #include "MIDIListener.h"
 #include "SettingsDialog.h"
 #include "MIDIAssociateDialog.h"
-
-#ifndef __WXMSW__
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#endif
+#include "E131Receiver.h"
+#include "ArtNETReceiver.h"
 
 #include "../include/xLights.xpm"
 #include "../include/xLights-16.xpm"
@@ -106,167 +99,26 @@ const long xFadeFrame::ID_TIMER1 = wxNewId();
 const long xFadeFrame::ID_TIMER2 = wxNewId();
 //*)
 
-const long xFadeFrame::ID_E131SOCKET = wxNewId();
-const long xFadeFrame::ID_ARTNETSOCKET = wxNewId();
 const long xFadeFrame::ID_LED1 = wxNewId();
 const long xFadeFrame::ID_LED2 = wxNewId();
+
+wxDEFINE_EVENT(EVT_FLASH, wxCommandEvent);
+wxDEFINE_EVENT(EVT_TAG, wxCommandEvent);
 
 BEGIN_EVENT_TABLE(xFadeFrame,wxFrame)
     //(*EventTable(xFadeFrame)
     //*)
     EVT_COMMAND(wxID_ANY, EVT_MIDI, xFadeFrame::OnMIDIEvent)
+    EVT_COMMAND(wxID_ANY, EVT_FLASH, xFadeFrame::OnFlash)
+    EVT_COMMAND(wxID_ANY, EVT_TAG, xFadeFrame::OnTag)
 END_EVENT_TABLE()
-
-void xFadeFrame::StashPacket(long type, uint8_t* packet, int len)
-{
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
-    if (_suspendListen) return;
-
-    if (type == ID_E131SOCKET) {
-        if (len < E131_PACKET_HEADERLEN || len > E131_PACKET_HEADERLEN + 512) {
-            return;
-        }
-    }
-    else if (type == ID_ARTNETSOCKET) {
-        if (len < ARTNET_PACKET_HEADERLEN || len > ARTNET_PACKET_HEADERLEN + 512) {
-            return;
-        }
-    }
-
-    int universe = -1;
-    if (type == ID_E131SOCKET) {
-        universe = ((int)packet[113] << 8) + (int)packet[114];
-    }
-    else if (type == ID_ARTNETSOCKET) {
-        universe = ((int)packet[15] << 8) + (int)packet[14];
-    }
-    if (universe == -1) return;
-
-    if (!IsUniverseToBeCaptured(universe)) return;
-    {
-        bool flash = false;
-        bool left = IsLeft(type, packet, len);
-        bool right = IsRight(type, packet, len);
-
-        {
-            std::unique_lock<std::mutex> mutLock(_lock);
-            if (left)
-            {
-                if (!_leftData[universe].Update(type, packet, len))
-                {
-                    logger_base.debug("Invalid packet.");
-                }
-                else
-                {
-                    _leftReceived++;
-                    // only flash the LED based on receipt of data for the first universe
-                    if (universe == _leftData.begin()->second._universe)
-                    {
-                        if (_leftData[universe].GetSequenceNum() % 20 == 0)
-                        {
-                            flash = true;
-                        }
-                    }
-                }
-            }
-            else if (right)
-            {
-                if (!_rightData[universe].Update(type, packet, len))
-                {
-                    logger_base.debug("Invalid packet.");
-                }
-                else
-                {
-                    _rightReceived++;
-                    // only flash the LED based on receipt of data for the first universe
-                    if (universe == _rightData.begin()->second._universe)
-                    {
-                        if (_rightData[universe].GetSequenceNum() % 20 == 0)
-                        {
-                            flash = true;
-                        }
-                    }
-                }
-            }
-        }
-        if (!_settings._minimiseUIUpdates)
-        {
-            if (flash && left) Led_Left->Enable(!Led_Left->IsEnabled());
-            if (flash && right) Led_Right->Enable(!Led_Right->IsEnabled());
-        }
-    }
-}
-
-bool xFadeFrame::IsLeft(long type, uint8_t* packet, int len)
-{
-    if (type == ID_E131SOCKET)
-    {
-        std::string tag = ExtractE131Tag(packet);
-        if (tag == _leftTag) return true;
-        if (tag == _rightTag) return false;
-
-        if (_leftTag == "")
-        {
-            _leftTag = tag;
-            TextCtrl_LeftTag->SetValue(_leftTag);
-            return true;
-        }
-    }
-    else if (type == ID_ARTNETSOCKET)
-    {
-        if (_leftTag == "ARTNET") return true;
-        if (_rightTag == "ARTNET") return false;
-        if (_leftTag == "" && _rightTag != "")
-        {
-            _leftTag = "ARTNET";
-            TextCtrl_LeftTag->SetValue(_leftTag);
-            return true;
-        }
-    }
-    return false;
-}
-
-bool xFadeFrame::IsRight(long type, uint8_t* packet, int len)
-{
-    if (type == ID_E131SOCKET)
-    {
-        std::string tag = ExtractE131Tag(packet);
-        if (tag == _rightTag) return true;
-        if (tag == _leftTag) return false;
-
-        if (_leftTag != "" && _rightTag == "")
-        {
-            _rightTag = tag;
-            TextCtrl_RightTag->SetValue(_rightTag);
-            return true;
-        }
-    }
-    else if (type == ID_ARTNETSOCKET)
-    {
-        if (_leftTag == "ARTNET") return false;
-        if (_rightTag == "ARTNET") return true;
-        if (_rightTag == "")
-        {
-            _rightTag = "ARTNET";
-            TextCtrl_RightTag->SetValue(_rightTag);
-            return true;
-        }
-    }
-    return false;
-}
-
-bool xFadeFrame::IsUniverseToBeCaptured(int universe)
-{
-    return _settings._targetIP.find(universe) != _settings._targetIP.end();
-}
 
 xFadeFrame::xFadeFrame(wxWindow* parent, wxWindowID id)
 {
     // static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    _e131SocketReceive = nullptr;
-    _artNETSocketReceive = nullptr;
+    _e131Receiver = nullptr;
+    _artNETReceiver = nullptr;
     _emitter = nullptr;
     _selectedButtonFont = new wxFont(14, wxFONTFAMILY_SWISS, wxFontStyle::wxFONTSTYLE_NORMAL, wxFontWeight::wxFONTWEIGHT_BOLD);
 
@@ -424,8 +276,6 @@ xFadeFrame::xFadeFrame(wxWindow* parent, wxWindowID id)
     Connect(ID_TIMER2,wxEVT_TIMER,(wxObjectEventFunction)&xFadeFrame::OnTimer_StatusTrigger);
     //*)
 
-    _suspendListen = false;
-
     Led_Left = new wxLed(this, ID_LED1, "808080", wxDefaultPosition, wxDefaultSize);
     Led_Left->Disable();
     Led_Left->SetColor("00FF00");
@@ -434,9 +284,6 @@ xFadeFrame::xFadeFrame(wxWindow* parent, wxWindowID id)
     Led_Right->SetColor("00FF00");
     Led_Right->Disable();
     FlexGridSizer3->Insert(2, Led_Right, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
-
-    Connect(ID_E131SOCKET, wxEVT_SOCKET, (wxObjectEventFunction)&xFadeFrame::OnE131SocketEvent);
-    Connect(ID_ARTNETSOCKET, wxEVT_SOCKET, (wxObjectEventFunction)&xFadeFrame::OnArtNETSocketEvent);
 
     Connect(Button_Advance->GetId(), wxEVT_CONTEXT_MENU, (wxObjectEventFunction)&xFadeFrame::OnButtonRClickAdvance);
     Connect(Button_Left->GetId(), wxEVT_CONTEXT_MENU, (wxObjectEventFunction)&xFadeFrame::OnButtonRClickFadeLeft);
@@ -460,35 +307,9 @@ xFadeFrame::xFadeFrame(wxWindow* parent, wxWindowID id)
 
     LoadState();
 
-    _leftReceived = 0;
-    _rightReceived = 0;
+    OpenAll();
 
-    _emitter = new Emitter(&_settings._targetIP, &_leftData, &_rightData, &_settings._targetProtocol, &_lock, _settings._localOutputIP, &_settings);
-
-    if (_settings._minimiseUIUpdates)
-    {
-        Led_Left->SetColor("FFFF00");
-        Led_Right->SetColor("FFFF00");
-        Led_Left->Enable();
-        Led_Right->Enable();
-        StatusBar1->SetStatusText("", 0);
-        if (_emitter == nullptr)
-        {
-            StatusBar1->SetStatusText("UI Updates Minimised - Sending Disabled", 1);
-        }
-        else
-        {
-            StatusBar1->SetStatusText("UI Updates Minimised", 1);
-        }
-        StatusBar1->SetStatusText("", 2);
-    }
-    else
-    {
-        Led_Left->SetColor("00FF00");
-        Led_Right->SetColor("00FF00");
-        Led_Left->Disable();
-        Led_Right->Disable();
-    }
+    InitialiseLEDs();
 
     for (int i = 0; i < JUKEBOXBUTTONS; i++)
     {
@@ -523,9 +344,6 @@ xFadeFrame::xFadeFrame(wxWindow* parent, wxWindowID id)
     SetFade();
     SetTiming();
 
-    if (_settings._ArtNET) CreateArtNETListener();
-    if (_settings._E131) CreateE131Listener();
-
     TextCtrl_LeftSequence->SetValue("");
     TextCtrl_RightSequence->SetValue("");
     TextCtrl_LeftTag->SetValue("");
@@ -534,6 +352,89 @@ xFadeFrame::xFadeFrame(wxWindow* parent, wxWindowID id)
     StartMIDIListeners();
 
     ValidateWindow();
+}
+
+void xFadeFrame::InitialiseLEDs()
+{
+    if (_settings._minimiseUIUpdates)
+    {
+        Led_Left->SetColor("FFFF00");
+        Led_Right->SetColor("FFFF00");
+        Led_Left->Enable();
+        Led_Right->Enable();
+        StatusBar1->SetStatusText("", 0);
+        if (_emitter == nullptr)
+        {
+            StatusBar1->SetStatusText("UI Updates Minimised - Sending Disabled", 1);
+        }
+        else
+        {
+            StatusBar1->SetStatusText("UI Updates Minimised", 1);
+        }
+        StatusBar1->SetStatusText("", 2);
+    }
+    else
+    {
+        Led_Left->SetColor("00FF00");
+        Led_Right->SetColor("00FF00");
+        Led_Left->Disable();
+        Led_Right->Disable();
+    }
+}
+
+void xFadeFrame::CloseAll()
+{
+    if (_emitter != nullptr)
+    {
+        _emitter->Stop();
+        wxMilliSleep(100);
+        delete _emitter;
+        _emitter = nullptr;
+    }
+
+    if (_e131Receiver != nullptr)
+    {
+        _e131Receiver->Stop();
+        wxMilliSleep(100);
+        delete _e131Receiver;
+        _e131Receiver = nullptr;
+    }
+
+    if (_artNETReceiver != nullptr)
+    {
+        _artNETReceiver->Stop();
+        wxMilliSleep(100);
+        delete _artNETReceiver;
+        _artNETReceiver = nullptr;
+    }
+
+    for (auto it : _universeData)
+    {
+        delete it.second;
+    }
+    _universeData.clear();
+}
+
+void xFadeFrame::OpenAll()
+{
+    CloseAll();
+
+    UniverseData::ClearTags();
+
+    for (auto it : _settings._targetIP)
+    {
+        _universeData[it.first] = new UniverseData(it.first, it.second, _settings._targetProtocol[it.first], _settings.GetExcludeChannels(it.first));
+    }
+
+    if (_settings._ArtNET)
+    {
+        _artNETReceiver = new ArtNETReceiver(this, _universeData, _settings._localInputIP);
+    }
+    if (_settings._E131)
+    {
+        _e131Receiver = new E131Receiver(this, _universeData, _settings._localInputIP);
+    }
+    _emitter = new Emitter(_universeData, _settings._localOutputIP, &_settings);
 }
 
 void xFadeFrame::ValidateWindow()
@@ -572,22 +473,9 @@ xFadeFrame::~xFadeFrame()
 
     wxMilliSleep(100);
 
-    if (_emitter != nullptr)
-    {
-        _emitter->Stop();
-    }
-
-    wxMilliSleep(100);
+    CloseAll();
 
     SaveState();
-
-    CloseSockets(true);
-
-    if (_emitter != nullptr)
-    {
-        delete _emitter;
-        _emitter = nullptr;
-    }
 
     if (_selectedButtonFont != nullptr)
     {
@@ -616,38 +504,6 @@ void xFadeFrame::SaveState()
     config->Flush();
 }
 
-// close not required sockets
-void xFadeFrame::CloseSockets(bool force)
-{
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
-    if (force || !_settings._E131)
-    {
-        if (_e131SocketReceive != nullptr)
-        {
-            logger_base.debug("Closing E131 receive socket.");
-            _e131SocketReceive->Notify(false);
-            wxYield(); // let any pending events process
-            _e131SocketReceive->Close();
-            delete _e131SocketReceive;
-            _e131SocketReceive = nullptr;
-        }
-    }
-
-    if (force || !_settings._ArtNET)
-    {
-        if (_artNETSocketReceive != nullptr)
-        {
-            logger_base.debug("Closing ArtNET receive socket.");
-            _artNETSocketReceive->Notify(false);
-            wxYield(); // let any pending events process
-            _artNETSocketReceive->Close();
-            delete _artNETSocketReceive;
-            _artNETSocketReceive = nullptr;
-        }
-    }
-}
-
 void xFadeFrame::AddFadeTimeButton(std::string label)
 {
     wxString l = label;
@@ -664,7 +520,7 @@ void xFadeFrame::AddFadeTimeButton(std::string label)
 
 void xFadeFrame::OnQuit(wxCommandEvent& event)
 {
-    if (_emitter != nullptr) _emitter->Stop();
+    CloseAll();
     Close();
 }
 
@@ -674,484 +530,31 @@ void xFadeFrame::OnAbout(wxCommandEvent& event)
     wxMessageBox(about, _("Welcome to..."));
 }
 
-PacketData::PacketData()
+void xFadeFrame::OnFlash(wxCommandEvent& event)
 {
-    memset(_data, 0x00, sizeof(_data));
-    _tag = wxString::Format("xFade %d", wxGetProcessId()).ToStdString();
-}
-
-uint8_t PacketData::GetData(int c)
-{
-    wxASSERT(c >= 0 && c < 512);
-    if (_type == xFadeFrame::ID_E131SOCKET)
+    if (!_settings._minimiseUIUpdates)
     {
-        if (_length >= c + E131_PACKET_HEADERLEN)
+        if (event.GetInt() == 0)
         {
-            return _data[c + E131_PACKET_HEADERLEN];
-        }
-    }
-    else if (_type == xFadeFrame::ID_ARTNETSOCKET)
-    {
-        if (_length >= c + ARTNET_PACKET_HEADERLEN)
-        {
-            return _data[c + ARTNET_PACKET_HEADERLEN];
-        }
-    }
-
-    return 0;
-}
-
-uint8_t* PacketData::GetDataPtr()
-{
-    if (_type == xFadeFrame::ID_E131SOCKET)
-    {
-        return &_data[E131_PACKET_HEADERLEN];
-    }
-    else if (_type == xFadeFrame::ID_ARTNETSOCKET)
-    {
-        return &_data[ARTNET_PACKET_HEADERLEN];
-    }
-
-    return nullptr;
-}
-
-void PacketData::SetData(int c, uint8_t dd)
-{
-    wxASSERT(c >= 0 && c < 512);
-    if (_type == xFadeFrame::ID_E131SOCKET)
-    {
-        if (_length >= c + E131_PACKET_HEADERLEN)
-        {
-            _data[c + E131_PACKET_HEADERLEN] = dd;
-        }
-    }
-    else if (_type == xFadeFrame::ID_ARTNETSOCKET)
-    {
-        if (_length >= c + ARTNET_PACKET_HEADERLEN)
-        {
-            _data[c + ARTNET_PACKET_HEADERLEN] = dd;
-        }
-    }
-}
-
-bool PacketData::Update(long type, uint8_t* packet, int len)
-{
-    if (type == xFadeFrame::ID_E131SOCKET)
-    {
-        // validate the packet
-        if (len < E131_PACKET_HEADERLEN) return false;
-        if (packet[4] != 0x41) return false;
-        if (packet[5] != 0x53) return false;
-        if (packet[6] != 0x43) return false;
-        if (packet[7] != 0x2d) return false;
-        if (packet[8] != 0x45) return false;
-        if (packet[9] != 0x31) return false;
-        if (packet[10] != 0x2e) return false;
-        if (packet[11] != 0x31) return false;
-        if (packet[12] != 0x37) return false;
-
-        _universe = ((int)_data[113] << 8) + (int)_data[114];
-        _type = type;
-        _length = len;
-        wxASSERT(_length >= E131_PACKET_HEADERLEN && _length <= E131_PACKET_HEADERLEN + 512);
-        memcpy(_data, packet, len);
-    }
-    else if (type == xFadeFrame::ID_ARTNETSOCKET)
-    {
-        // validate the packet
-        if (len < ARTNET_PACKET_HEADERLEN) return false;
-        if (packet[0] != 'A') return false;
-        if (packet[1] != 'r') return false;
-        if (packet[2] != 't') return false;
-        if (packet[3] != '-') return false;
-        if (packet[4] != 'N') return false;
-        if (packet[5] != 'e') return false;
-        if (packet[6] != 't') return false;
-        if (packet[9] != 0x50) return true; // pretend success as otherwise I will log excessively
-
-        _universe = ((int)_data[15] << 8) + (int)_data[14];
-        _type = type;
-        _length = len;
-        wxASSERT(_length >= ARTNET_PACKET_HEADERLEN && _length <= ARTNET_PACKET_HEADERLEN + 512);
-        memcpy(_data, packet, len);
-    }
-
-    return true;
-}
-
-void PacketData::Send(wxDatagramSocket* e131Socket, wxDatagramSocket* artNETSocket, const std::string& ip) const
-{
-    wxIPV4address remoteaddr;
-    if (wxString(ip).StartsWith("239.255.") || ip == "MULTICAST")
-    {
-        // multicast - universe number must be in lower 2 bytes
-        wxString ipaddrWithUniv = wxString::Format("%d.%d.%d.%d", 239, 255, (int)UniverseHigh(), (int)UniverseLow());
-        remoteaddr.Hostname(ipaddrWithUniv);
-    }
-    else
-    {
-        remoteaddr.Hostname(ip.c_str());
-    }
-
-    if (_type == xFadeFrame::ID_E131SOCKET)
-    {
-        remoteaddr.Service(E131PORT);
-        if (e131Socket != nullptr) e131Socket->SendTo(remoteaddr, _data, _length);
-    }
-    else
-    {
-        remoteaddr.Service(ARTNETPORT);
-        if (artNETSocket != nullptr) artNETSocket->SendTo(remoteaddr, _data, _length);
-    }
-}
-
-int PacketData::GetDataLength() const
-{
-    if (_type == xFadeFrame::ID_E131SOCKET)
-    {
-        if (_length < E131_PACKET_HEADERLEN) return 0;
-        wxASSERT(_length - E131_PACKET_HEADERLEN <= 512);
-        return _length - E131_PACKET_HEADERLEN;
-    }
-    else if (_type == xFadeFrame::ID_ARTNETSOCKET)
-    {
-        if (_length < ARTNET_PACKET_HEADERLEN) return 0;
-        wxASSERT(_length - ARTNET_PACKET_HEADERLEN <= 512);
-        return _length - ARTNET_PACKET_HEADERLEN;
-    }
-    return 0;
-}
-
-int PacketData::GetNextSequenceNum(int u)
-{
-    _sequenceNum[u] = _sequenceNum[u] >= 255 ? 0 : _sequenceNum[u] + 1;
-    return _sequenceNum[u];
-}
-
-void PacketData::InitialiseArtNETHeader()
-{
-    memset(_data, 0x00, sizeof(_data));
-    int channels = GetDataLength();
-
-    _data[0] = 'A';   // ID[8]
-    _data[1] = 'r';
-    _data[2] = 't';
-    _data[3] = '-';
-    _data[4] = 'N';
-    _data[5] = 'e';
-    _data[6] = 't';
-    _data[9] = 0x50;
-    _data[11] = 0x0E; // Protocol version Low
-    _data[14] = (_universe & 0xFF);
-    _data[15] = ((_universe & 0xFF00) >> 8);
-    _data[16] = 0x02; // we are going to send all 512 bytes
-    _data[16] = (uint8_t)(channels >> 8);  // Property value count (high)
-    _data[17] = (uint8_t)(channels & 0xff);  // Property value count (low)}
-}
-
-#define XLIGHTS_UUID "c0de0080-c69b-11e0-9572-0800200c9a66"
-
-void PacketData::InitialiseE131Header()
-{
-    memset(_data, 0x00, sizeof(_data));
-    _data[1] = 0x10;   // RLP preamble size (low)
-    _data[4] = 0x41;   // ACN Packet Identifier (12 bytes)
-    _data[5] = 0x53;
-    _data[6] = 0x43;
-    _data[7] = 0x2d;
-    _data[8] = 0x45;
-    _data[9] = 0x31;
-    _data[10] = 0x2e;
-    _data[11] = 0x31;
-    _data[12] = 0x37;
-    _data[16] = 0x72;  // RLP Protocol flags and length (high)
-    _data[17] = 0x6e;  // 0x26e = 638 - 16
-    _data[21] = 0x04;
-
-    // CID/UUID
-
-    wxString id = XLIGHTS_UUID;
-    id.Replace("-", "");
-    id.MakeLower();
-    if (id.Len() != 32) throw "invalid CID";
-    for (int i = 0, j = 22; i < 32; i += 2)
-    {
-        wxChar msb = id.GetChar(i);
-        wxChar lsb = id.GetChar(i + 1);
-        msb -= isdigit(msb) ? 0x30 : 0x57;
-        lsb -= isdigit(lsb) ? 0x30 : 0x57;
-        _data[j++] = (uint8_t)((msb << 4) | lsb);
-    }
-
-    _data[38] = 0x72;  // Framing Protocol flags and length (high)
-    _data[39] = 0x58;  // 0x258 = 638 - 38
-    _data[43] = 0x02;
-    // Source Name (64 bytes)
-    memset(&_data[44], 0x00, 64);
-    strcpy((char*)&_data[44], _tag.c_str());
-    _data[108] = 100;  // Priority
-    _data[113] = _universe >> 8;  // Universe Number (high)
-    _data[114] = _universe & 0xff;  // Universe Number (low)
-    _data[115] = 0x72;  // DMP Protocol flags and length (high)
-    _data[116] = 0x0b;  // 0x20b = 638 - 115
-    _data[117] = 0x02;  // DMP Vector (Identifies DMP Set Property Message PDU)
-    _data[118] = 0xa1;  // DMP Address Type & Data Type
-    _data[122] = 0x01;  // Address Increment (low)
-    _data[123] = 0x02;  // Property value count (high)
-    _data[124] = 0x01;  // Property value count (low)
-
-    int channels = GetDataLength();
-    int i = channels;
-    uint8_t NumHi = (channels + 1) >> 8;   // Channels (high)
-    uint8_t NumLo = (channels + 1) & 0xff; // Channels (low)
-
-    _data[123] = NumHi;  // Property value count (high)
-    _data[124] = NumLo;  // Property value count (low)
-
-    i = E131_PACKET_LEN - 16 - (512 - channels);
-    uint8_t hi = i >> 8;   // (high)
-    uint8_t lo = i & 0xff; // (low)
-
-    _data[16] = hi + 0x70;  // RLP Protocol flags and length (high)
-    _data[17] = lo;  // 0x26e = E131_PACKET_LEN - 16
-
-    i = E131_PACKET_LEN - 38 - (512 - channels);
-    hi = i >> 8;   // (high)
-    lo = i & 0xff; // (low)
-    _data[38] = hi + 0x70;  // Framing Protocol flags and length (high)
-    _data[39] = lo;  // 0x258 = E131_PACKET_LEN - 38
-
-    i = E131_PACKET_LEN - 115 - (512 - channels);
-    hi = i >> 8;   // (high)
-    lo = i & 0xff; // (low)
-    _data[115] = hi + 0x70;  // DMP Protocol flags and length (high)
-    _data[116] = lo;  // 0x20b = E131_PACKET_LEN - 115
-}
-
-int PacketData::GetSequenceNum() const
-{
-    if (_type == xFadeFrame::ID_E131SOCKET)
-    {
-        if (_length <= E131_PACKET_HEADERLEN) return -1;
-        return (int)_data[111];
-    }
-    else if (_type == xFadeFrame::ID_ARTNETSOCKET)
-    {
-        if (_length <= ARTNET_PACKET_HEADERLEN) return -1;
-        return (int)_data[12];
-    }
-    return -1;
-}
-
-void PacketData::InitialiseLength(long type, int length, int universe)
-{
-    _type = type;
-    _length = length;
-    _universe = universe;
-
-    if (_type == xFadeFrame::ID_E131SOCKET)
-    {
-        wxASSERT(_length >= E131_PACKET_HEADERLEN && _length <= E131_PACKET_HEADERLEN + 512);
-        InitialiseE131Header();
-    }
-    else if (_type == xFadeFrame::ID_ARTNETSOCKET)
-    {
-        wxASSERT(_length >= ARTNET_PACKET_HEADERLEN && _length <= ARTNET_PACKET_HEADERLEN + 512);
-        InitialiseArtNETHeader();
-    }
-}
-
-void PacketData::ApplyBrightness(int brightness, const std::list<int>& excludeChannels)
-{
-    if (brightness == 100) return;
-
-    if (excludeChannels.size() == 0)
-    {
-        if (brightness == 0)
-        {
-            memset(GetDataPtr(), 0x00, GetDataLength());
+            Led_Left->Enable(!Led_Left->IsEnabled());
         }
         else
         {
-            uint8_t* p = GetDataPtr();
-            for (int i = 0; i < GetDataLength(); i++)
-            {
-                *(p + i) = (uint8_t)((int)*(p + i) * brightness / 100);
-            }
+            Led_Right->Enable(!Led_Right->IsEnabled());
         }
+    }
+}
+
+void xFadeFrame::OnTag(wxCommandEvent& event)
+{
+    if (event.GetInt() == 0)
+    {
+        TextCtrl_LeftTag->SetValue(event.GetString());
     }
     else
     {
-        uint8_t* p = GetDataPtr();
-        for (int i = 0; i < GetDataLength(); i++)
-        {
-            if (std::find(excludeChannels.begin(), excludeChannels.end(), i + 1) == excludeChannels.end())
-            {
-                *(p + i) = (uint8_t)((int)*(p + i) * brightness / 100);
-            }
-        }
+        TextCtrl_RightTag->SetValue(event.GetString());
     }
-}
-
-void PacketData::CopyFrom(PacketData* source, long targetType)
-{
-    wxASSERT(source != nullptr);
-    _length = 0;
-    _type = targetType;
-    _universe = source->_universe;
-
-    if (source->_type == targetType)
-    {
-        memcpy(_data, source->_data, sizeof(_data));
-        _length = source->_length;
-        wxASSERT(_length >= 0 && _length <= sizeof(_data));
-
-        if (_type == xFadeFrame::ID_E131SOCKET)
-        {
-            wxASSERT(_length >= E131_PACKET_HEADERLEN && _length <= E131_PACKET_HEADERLEN + 512);
-            memset(&_data[44], 0x00, 64);
-            strncpy((char*)&_data[44], _tag.c_str(), 64);
-            _data[111] = GetNextSequenceNum(_universe);
-        }
-        else if (_type == xFadeFrame::ID_ARTNETSOCKET)
-        {
-            wxASSERT(_length >= ARTNET_PACKET_HEADERLEN && _length <= ARTNET_PACKET_HEADERLEN + 512);
-            // nothing to do
-            _data[12] = GetNextSequenceNum(_universe);
-        }
-    }
-    else
-    {
-        if (_type == xFadeFrame::ID_E131SOCKET)
-        {
-            // converting from ARTNET
-            _length = E131_PACKET_HEADERLEN + source->GetDataLength();
-            InitialiseE131Header();
-            memcpy(source->GetDataPtr(), GetDataPtr(), GetDataLength());
-            memset(&_data[44], 0x00, 64);
-            strncpy((char*)&_data[44], _tag.c_str(), 64);
-            _data[111] = GetNextSequenceNum(_universe);
-        }
-        else if (_type == xFadeFrame::ID_ARTNETSOCKET)
-        {
-            // converting from E131
-            _length = ARTNET_PACKET_HEADERLEN + source->GetDataLength();
-            InitialiseArtNETHeader();
-            memcpy(source->GetDataPtr(), GetDataPtr(), GetDataLength());
-            _data[12] = GetNextSequenceNum(_universe);
-        }
-    }
-}
-
-void xFadeFrame::CreateE131Listener()
-{
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
-    if (_e131SocketReceive != nullptr) return;
-
-    //Local address to bind to
-    wxIPV4address addr;
-    addr.AnyAddress();
-    addr.Service(E131PORT);
-    //create and bind to the address above
-    _e131SocketReceive = new wxDatagramSocket(addr);
-
-    if (_e131SocketReceive == nullptr)
-    {
-        logger_base.error("Problem listening for e131.");
-        return;
-    }
-    else if (!_e131SocketReceive->IsOk())
-    {
-        logger_base.error("Problem listening for e131.");
-        delete _e131SocketReceive;
-        _e131SocketReceive = nullptr;
-        return;
-    }
-
-    logger_base.debug("E131 listening on %s", (const char*)_settings._localInputIP.c_str());
-
-    for (const auto& it : _settings._targetIP)
-    {
-        struct ip_mreq mreq;
-        wxString ip = wxString::Format("239.255.%d.%d", it.first >> 8, it.first & 0xFF);
-        logger_base.debug("E131 registering for multicast on %s.", (const char *)ip.c_str());
-        mreq.imr_multiaddr.s_addr = inet_addr(ip.c_str());
-        mreq.imr_interface.s_addr = inet_addr(_settings._localInputIP.c_str()); // this will only listen on the default interface
-        if (!_e131SocketReceive->SetOption(IPPROTO_IP, IP_ADD_MEMBERSHIP, (const char *)&mreq, sizeof(mreq)))
-        {
-            logger_base.warn("    Error opening E131 multicast listener %s.", (const char *)ip.c_str());
-        }
-        else
-        {
-            logger_base.debug("    E131 multicast listener %s registered.", (const char *)ip.c_str());
-        }
-    }
-
-    //enable event handling
-    logger_base.debug("    Setting E131 event handler.");
-    _e131SocketReceive->SetEventHandler(*this, ID_E131SOCKET);
-
-    //Notify us about incomming data
-    logger_base.debug("    Turning on E131 notifications.");
-    _e131SocketReceive->SetNotify(wxSOCKET_INPUT_FLAG);
-    //enable event handling
-    _e131SocketReceive->Notify(true);
-}
-
-void xFadeFrame::CreateArtNETListener()
-{
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    if (_artNETSocketReceive != nullptr) return;
-
-    //Local address to bind to
-    wxIPV4address addr;
-    addr.AnyAddress();
-    addr.Service(ARTNETPORT);
-    //create and bind to the address above
-    _artNETSocketReceive = new wxDatagramSocket(addr);
-
-    if (_artNETSocketReceive == nullptr)
-    {
-        logger_base.error("Problem listening for ArtNET.");
-        return;
-    }
-    else if (!_artNETSocketReceive->IsOk())
-    {
-        logger_base.error("Problem listening for ArtNET.");
-        delete _artNETSocketReceive;
-        _artNETSocketReceive = nullptr;
-        return;
-    }
-
-    logger_base.debug("ARTNet listening on %s", (const char*)_settings._localInputIP.c_str());
-
-    for (const auto& it : _settings._targetIP)
-    {
-        struct ip_mreq mreq;
-        wxString ip = wxString::Format("239.255.%d.%d", it.first >> 8, it.first & 0xFF);
-        logger_base.debug("ARTNet registering for multicast on %s.", (const char *)ip.c_str());
-        mreq.imr_multiaddr.s_addr = inet_addr(ip.c_str());
-        mreq.imr_interface.s_addr = inet_addr(_settings._localInputIP.c_str()); // this will only listen on the default interface
-        if (!_artNETSocketReceive->SetOption(IPPROTO_IP, IP_ADD_MEMBERSHIP, (const char *)&mreq, sizeof(mreq)))
-        {
-            logger_base.warn("    Error opening ARTNet multicast listener %s.", (const char *)ip.c_str());
-        }
-        else
-        {
-            logger_base.warn("    ARTNet multicast listener %s registered.", (const char *)ip.c_str());
-        }
-    }
-
-    //enable event handling
-    logger_base.debug("    Setting ArtNET event handler.");
-    _artNETSocketReceive->SetEventHandler(*this, ID_ARTNETSOCKET);
-
-    //Notify us about incomming data
-    logger_base.debug("    Turning on ArtNET notifications.");
-    _artNETSocketReceive->SetNotify(wxSOCKET_INPUT_FLAG);
-    //enable event handling
-    _artNETSocketReceive->Notify(true);
 }
 
 void xFadeFrame::OnMIDIEvent(wxCommandEvent& event)
@@ -1280,84 +683,6 @@ void xFadeFrame::OnKeyDown(wxKeyEvent& event)
     ValidateWindow();
 }
 
-void xFadeFrame::OnE131SocketEvent(wxSocketEvent& event)
-{
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
-    if (_e131SocketReceive == nullptr)
-    {
-        logger_base.error("ERROR: E131 socket received a packet but socket is null");
-        wxASSERT(false);
-        return;
-    }
-
-    wxASSERT(event.GetSocket() == _e131SocketReceive);
-
-    switch (event.GetSocketEvent())
-    {
-    case wxSOCKET_INPUT:
-    {
-        //_e131SocketReceive->Notify(false);
-        wxIPV4address addr;
-        addr.Service(E131PORT);
-        uint8_t buf[E131_PACKET_LEN];
-        size_t n = _e131SocketReceive->RecvFrom(addr, buf, sizeof(buf)).LastCount();
-        if (!n) {
-            logger_base.error("ERROR: failed to receive E131 data");
-            //_e131SocketReceive->Notify(true);
-            return;
-        }
-        //logger_base.debug("E131 packet received.");
-        StashPacket(ID_E131SOCKET, buf, n);
-        //_e131SocketReceive->Notify(true);
-    }
-        break;
-    default:
-        wxASSERT(false);
-        logger_base.warn("OnE131SocketEvent: Unexpected event !");
-        break;
-    }
-}
-
-void xFadeFrame::OnArtNETSocketEvent(wxSocketEvent & event)
-{
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
-    if (_artNETSocketReceive == nullptr)
-    {
-        logger_base.error("ERROR: ArtNET socket received a packet but socket is null");
-        wxASSERT(false);
-        return;
-    }
-
-    wxASSERT(event.GetSocket() == _artNETSocketReceive);
-
-    switch (event.GetSocketEvent())
-    {
-    case wxSOCKET_INPUT:
-    {
-        //_artNETSocketReceive->Notify(false);
-        wxIPV4address addr;
-        addr.Service(ARTNETPORT);
-        uint8_t buf[ARTNET_PACKET_LEN];
-        size_t n = _artNETSocketReceive->RecvFrom(addr, buf, sizeof(buf)).LastCount();
-        if (!n) {
-            logger_base.error("ERROR: failed to receive ArtNET data");
-            //_artNETSocketReceive->Notify(true);
-            return;
-        }
-        //logger_base.debug("ArtNet packet received.");
-        StashPacket(ID_ARTNETSOCKET, buf, n);
-        //_artNETSocketReceive->Notify(true);
-    }
-        break;
-    default:
-        wxASSERT(false);
-        logger_base.warn("OnArtNETSocketEvent: Unexpected event !");
-        break;
-    }
-}
-
 void xFadeFrame::OnUITimerTrigger(wxTimerEvent& event)
 {
     // this is where i need to move the fade slider
@@ -1440,13 +765,6 @@ void xFadeFrame::StartMIDIListeners()
     }
 }
 
-std::string xFadeFrame::ExtractE131Tag(uint8_t* packet)
-{
-    std::string res((char*)&packet[44]);
-    res = res.substr(0, std::min(64, (int)res.size()));
-    return res;
-}
-
 void xFadeFrame::SetFade()
 {
     if (_emitter != nullptr)
@@ -1461,20 +779,6 @@ void xFadeFrame::SetTiming()
     {
         _emitter->SetFrameMS(_settings._frameMS);
     }
-}
-
-void xFadeFrame::RestartInterfaces()
-{
-    CloseSockets(true);
-    if (_settings._E131)
-    {
-        CreateE131Listener();
-    }
-    if (_settings._ArtNET)
-    {
-        CreateArtNETListener();
-    }
-    ValidateWindow();
 }
 
 void xFadeFrame::OnButtonClickLeft(wxCommandEvent& event)
@@ -1663,7 +967,8 @@ void xFadeFrame::OnButton_ConnectToxLightsClick(wxCommandEvent& event)
     logger_base.debug("Connecting to xLights ...");
 
     // suspend listening for packets
-    _suspendListen = true;
+    if (_e131Receiver != nullptr) _e131Receiver->Suspend(true);
+    if (_artNETReceiver != nullptr) _artNETReceiver->Suspend(true);
 
     _leftTag = "";
     _rightTag = "";
@@ -1853,36 +1158,14 @@ void xFadeFrame::OnButton_ConnectToxLightsClick(wxCommandEvent& event)
         Panel_Right->Enable(false);
     }
 
-    _leftReceived = 0;
-    _rightReceived = 0;
-    if (_settings._minimiseUIUpdates)
-    {
-        Led_Left->SetColor("FFFF00");
-        Led_Right->SetColor("FFFF00");
-        Led_Left->Enable();
-        Led_Right->Enable();
-        StatusBar1->SetStatusText("", 0);
-        if (_emitter == nullptr)
-        {
-            StatusBar1->SetStatusText("UI Updates Minimised - Sending Disabled", 1);
-        }
-        else
-        {
-            StatusBar1->SetStatusText("UI Updates Minimised", 1);
-        }
-        StatusBar1->SetStatusText("", 2);
-    }
-    else
-    {
-        Led_Left->SetColor("00FF00");
-        Led_Right->SetColor("00FF00");
-        Led_Left->Disable();
-        Led_Right->Disable();
-    }
+    if (_e131Receiver != nullptr) _e131Receiver->ZeroReceived();
+    if (_artNETReceiver != nullptr) _artNETReceiver->ZeroReceived();
     _emitter->ZeroSent();
+    InitialiseLEDs();
 
     // un suspend listening for packets
-    _suspendListen = false;
+    if (_e131Receiver != nullptr) _e131Receiver->Suspend(false);
+    if (_artNETReceiver != nullptr) _artNETReceiver->Suspend(false);
 
     logger_base.debug("    Connecting to xLights done!");
 }
@@ -1897,59 +1180,36 @@ void xFadeFrame::OnButton_ConfigureClick(wxCommandEvent& event)
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("Configure ...");
 
-    _suspendListen = true;
+    if (_e131Receiver != nullptr) _e131Receiver->Suspend(true);
+    if (_artNETReceiver != nullptr) _artNETReceiver->Suspend(true);
 
     SettingsDialog dlg(this, &_settings);
 
-    CloseSockets();
-
-    _emitter->Stop();
-    delete _emitter;
-    _emitter = nullptr;
+    CloseAll();
 
     if (dlg.ShowModal() == wxID_OK)
     {
         SaveState();
     }
 
-    _emitter = new Emitter(&_settings._targetIP, &_leftData, &_rightData, &_settings._targetProtocol, &_lock, _settings._localOutputIP, &_settings);
+    OpenAll();
+
     _emitter->SetLeftBrightness(Slider_LeftBrightness->GetValue());
     _emitter->SetRightBrightness(Slider_RightBrightness->GetValue());
     SetTiming();
     SetFade();
 
-    if (_settings._minimiseUIUpdates)
-    {
-        Led_Left->SetColor("FFFF00");
-        Led_Right->SetColor("FFFF00");
-        Led_Left->Enable();
-        Led_Right->Enable();
-        StatusBar1->SetStatusText("", 0);
-        if (_emitter == nullptr)
-        {
-            StatusBar1->SetStatusText("UI Updates Minimised - Sending Disabled", 1);
-        }
-        else
-        {
-            StatusBar1->SetStatusText("UI Updates Minimised", 1);
-        }
-        StatusBar1->SetStatusText("", 2);
-    }
-    else
-    {
-        Led_Left->SetColor("00FF00");
-        Led_Right->SetColor("00FF00");
-        Led_Left->Disable();
-        Led_Right->Disable();
-    }
+    if (_e131Receiver != nullptr) _e131Receiver->ZeroReceived();
+    if (_artNETReceiver != nullptr) _artNETReceiver->ZeroReceived();
+    _emitter->ZeroSent();
+    InitialiseLEDs();
 
-    _leftReceived = 0;
-    _rightReceived = 0;
-    _suspendListen = false;
-
-    RestartInterfaces();
+    if (_e131Receiver != nullptr) _e131Receiver->Suspend(false);
+    if (_artNETReceiver != nullptr) _artNETReceiver->Suspend(false);
 
     logger_base.debug("    Configuring done!");
+
+    ValidateWindow();
 }
 
 void xFadeFrame::OnSlider_LeftBrightnessCmdSliderUpdated(wxScrollEvent& event)
@@ -2022,14 +1282,16 @@ void xFadeFrame::OnTimer_StatusTrigger(wxTimerEvent& event)
 
     static uint32_t count = 0;
     count++;
-    StatusBar1->SetStatusText(wxString::Format("Left: %lu", _leftReceived), 0);
-    StatusBar1->SetStatusText(wxString::Format("Right: %lu", _rightReceived), 2);
+    uint32_t leftReceived = (_e131Receiver != nullptr ? _e131Receiver->GetLeftReceived() : 0) + (_artNETReceiver != nullptr ? _artNETReceiver->GetLeftReceived() : 0);
+    uint32_t rightReceived = (_e131Receiver != nullptr ? _e131Receiver->GetRightReceived() : 0) + (_artNETReceiver != nullptr ? _artNETReceiver->GetRightReceived() : 0);
+    StatusBar1->SetStatusText(wxString::Format("Left: %lu", leftReceived), 0);
+    StatusBar1->SetStatusText(wxString::Format("Right: %lu", rightReceived), 2);
     if (_emitter != nullptr)
     {
         StatusBar1->SetStatusText(wxString::Format("Sent: %lu", _emitter->GetSent()), 1);
         if (count % 60 == 0)
         {
-            logger_base.debug("Activity - Left Received %lu, Right Received %lu, Sent %lu.", _leftReceived, _rightReceived, _emitter->GetSent());
+            logger_base.debug("Activity - Left Received %lu, Right Received %lu, Sent %lu.", leftReceived, rightReceived, _emitter->GetSent());
         }
     }
     else
@@ -2037,7 +1299,7 @@ void xFadeFrame::OnTimer_StatusTrigger(wxTimerEvent& event)
         StatusBar1->SetStatusText("Sending disabled", 1);
         if (count % 60 == 0)
         {
-            logger_base.debug("Activity - Left Received %lu, Right Received %lu, Sent DISABLED.", _leftReceived, _rightReceived);
+            logger_base.debug("Activity - Left Received %lu, Right Received %lu, Sent DISABLED.", leftReceived, rightReceived);
         }
     }
 }

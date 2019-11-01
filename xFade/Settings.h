@@ -1,5 +1,5 @@
-#ifndef SETTINGS_H
-#define SETTINGS_H
+#pragma once
+
 #include <string>
 #include <map>
 #include <list>
@@ -47,5 +47,3 @@ public:
     void LookupMIDI(std::string controlName, int& midiDevice, int& status, int& channel, int& data1, int& data2);
     const std::list<std::string>& GetFadeExclude() const { return _fadeExclude; }
 };
-
-#endif

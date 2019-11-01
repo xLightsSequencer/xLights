@@ -4,6 +4,10 @@
 #include <wx/wx.h>
 #include <map>
 
+#define ZERO 0
+#define E131PORT 5568
+#define ARTNETPORT 0x1936
+
 #define ARTNET_PACKET_HEADERLEN 18
 #define ARTNET_PACKET_LEN (ARTNET_PACKET_HEADERLEN + 512)
 #define E131_PACKET_HEADERLEN 126
@@ -26,7 +30,7 @@ public:
     uint8_t GetData(int c);
     uint8_t* GetDataPtr();
     void SetData(int c, uint8_t dd);
-    bool Update(long type, uint8_t* packet, int len);
+    bool Update(long type, uint8_t packet[], int len);
     void Send(wxDatagramSocket* e131Socket, wxDatagramSocket* artNETSocket, const std::string& ip) const;
     int GetDataLength() const;
     uint8_t UniverseHigh() const { return (_universe >> 8) & 0xFF; }
