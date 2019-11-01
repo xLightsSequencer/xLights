@@ -66,6 +66,8 @@ class ModelFaceDialog: public wxDialog
         static const long FACES_DIALOG_IMPORT_SUB;
         static const long FACES_DIALOG_IMPORT_MODEL;
         static const long FACES_DIALOG_IMPORT_FILE;
+        static const long FACES_DIALOG_COPY;
+        static const long FACES_DIALOG_RENAME;
 
         void SetFaceInfo(Model *cls, std::map<std::string, std::map<std::string, std::string> > &info);
         void GetFaceInfo(std::map<std::string, std::map<std::string, std::string> > &info);
@@ -139,6 +141,8 @@ class ModelFaceDialog: public wxDialog
     void ImportFacesFromModel();
     void AddFaces(std::map<std::string, std::map<std::string, std::string> > faces);
     wxArrayString getModelList(ModelManager* modelManager);
+    void CopyFaceData();
+    void RenameFace();
 };
 
 #endif

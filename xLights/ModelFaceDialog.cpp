@@ -69,6 +69,8 @@ const long ModelFaceDialog::ID_PANEL1 = wxNewId();
 const long ModelFaceDialog::FACES_DIALOG_IMPORT_SUB = wxNewId();
 const long ModelFaceDialog::FACES_DIALOG_IMPORT_MODEL = wxNewId();
 const long ModelFaceDialog::FACES_DIALOG_IMPORT_FILE = wxNewId();
+const long ModelFaceDialog::FACES_DIALOG_COPY = wxNewId();
+const long ModelFaceDialog::FACES_DIALOG_RENAME = wxNewId();
 
 BEGIN_EVENT_TABLE(ModelFaceDialog,wxDialog)
 	//(*EventTable(ModelFaceDialog)
@@ -1213,6 +1215,14 @@ void ModelFaceDialog::OnAddBtnPopup(wxCommandEvent& event)
 
         ImportFaces(filename);
     }
+    else if (event.GetId() == FACES_DIALOG_COPY)
+    {
+        CopyFaceData();
+    }
+    else if (event.GetId() == FACES_DIALOG_RENAME)
+    {
+        RenameFace();
+    }
 }
 
 void ModelFaceDialog::ImportFacesFromModel()
@@ -1334,11 +1344,66 @@ void ModelFaceDialog::AddFaces(std::map<std::string, std::map<std::string, std::
 void ModelFaceDialog::OnButtonImportClick(wxCommandEvent& event)
 {
     wxMenu mnu;
+    if (DeleteButton->IsEnabled())
+    {
+        mnu.Append(FACES_DIALOG_COPY, "Copy");
+        mnu.Append(FACES_DIALOG_RENAME, "Rename");
+        mnu.AppendSeparator();
+    }
     mnu.Append(FACES_DIALOG_IMPORT_MODEL, "Import From Model");
     mnu.Append(FACES_DIALOG_IMPORT_FILE, "Import From File");
 
     mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)& ModelFaceDialog::OnAddBtnPopup, nullptr, this);
     PopupMenu(&mnu);
+}
+
+void ModelFaceDialog::CopyFaceData()
+{
+    auto const index = NameChoice->GetSelection();
+    if (index == -1)
+        return;
+    auto const& currentName = NameChoice->GetString(index);
+    wxTextEntryDialog dlg(this, "Copy Face", "Enter name for copied face definition", currentName);
+    if (dlg.ShowModal() == wxID_OK) {
+        std::string n = dlg.GetValue().ToStdString();
+        if (NameChoice->FindString(n) == wxNOT_FOUND) {
+            NameChoice->Append(n);
+
+            faceData[n] = faceData[currentName];
+
+            NameChoice->SetSelection(NameChoice->GetCount() - 1);
+            NameChoice->SetStringSelection(NameChoice->GetString(NameChoice->GetCount() - 1));
+            SelectFaceModel(NameChoice->GetString(NameChoice->GetCount() - 1).ToStdString());
+        } else {
+            DisplayError("'" + n + "' face definition already exists.");
+        }
+    }
+}
+
+void ModelFaceDialog::RenameFace()
+{
+    auto const index = NameChoice->GetSelection();
+    if (index == -1)
+        return;
+    auto const& currentName = NameChoice->GetString(index);
+    wxTextEntryDialog dlg(this, "Rename Face", "Enter new name for face definition", currentName);
+    if (dlg.ShowModal() == wxID_OK) {
+        std::string n = dlg.GetValue().ToStdString();
+        if (NameChoice->FindString(n) == wxNOT_FOUND) {
+            NameChoice->Delete(index);
+            NameChoice->Insert(n, index);
+
+            auto face = faceData.extract(currentName);
+            face.key() = n;
+            faceData.insert(std::move(face));
+
+            NameChoice->SetSelection(index);
+            NameChoice->SetStringSelection(NameChoice->GetString(index));
+            SelectFaceModel(NameChoice->GetString(index).ToStdString());
+        } else {
+            DisplayError("'" + n + "' face definition already exists.");
+        }
+    }
 }
 
 wxArrayString ModelFaceDialog::getModelList(ModelManager* modelManager)
