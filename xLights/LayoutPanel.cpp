@@ -1570,6 +1570,7 @@ void LayoutPanel::BulkEditDimmingCurves()
                 }
                 f1 = new wxXmlNode(wxXML_ELEMENT_NODE, "dimmingCurve");
                 modelPreview->GetModels()[i]->GetModelXml()->AddChild(f1);
+                modelPreview->GetModels()[i]->IncrementChangeCount();
                 for (const auto& it : dimmingInfo) {
                     wxXmlNode *dc = new wxXmlNode(wxXML_ELEMENT_NODE, it.first);
                     f1->AddChild(dc);
@@ -1579,6 +1580,7 @@ void LayoutPanel::BulkEditDimmingCurves()
                 }
                 xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "BulkEditDimmingCurves");
                 xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "BulkEditDimmingCurves");
+                xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "BulkEditDimmingCurves");
             }
         }
     }
