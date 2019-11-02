@@ -13,6 +13,7 @@
 #include "kiss_fft/tools/kiss_fftr.h"
 #include "../xSchedule/md5.h"
 #include "osxMacUtils.h"
+#include "Parallel.h"
 
 extern "C"
 {
@@ -22,7 +23,6 @@ extern "C"
 }
 
 #include <log4cpp/Category.hh>
-#include "parallel.h"
 
 using namespace Vamp;
 
