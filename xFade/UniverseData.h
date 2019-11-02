@@ -23,6 +23,8 @@ public:
     static std::string __rightTag;
 
     static void ClearTags() { __leftTag = ""; __rightTag = ""; }
+    static void SetLeftTag(const std::string& left) { __leftTag = left; }
+    static void SetRightTag(const std::string& right) { __rightTag = right; }
     int GetUniverse() const { return _universe; }
     std::mutex& GetLock() { return _lock; }
     std::string GetTargetIP() const { return _targetIP; }

@@ -1053,6 +1053,7 @@ void xFadeFrame::OnButton_ConnectToxLightsClick(wxCommandEvent& event)
             _leftTag = "";
         }
         TextCtrl_LeftTag->SetValue(_leftTag);
+        UniverseData::SetLeftTag(_leftTag);
 
         result = xLightsRequest(1, "GET_SEQUENCE_NAME", _settings._leftIP);
         if (result.StartsWith("SUCCESS "))
@@ -1144,6 +1145,7 @@ void xFadeFrame::OnButton_ConnectToxLightsClick(wxCommandEvent& event)
             _rightTag = "";
         }
         TextCtrl_RightTag->SetValue(_rightTag);
+        UniverseData::SetRightTag(_rightTag);
 
         result = xLightsRequest(2, "GET_SEQUENCE_NAME", _settings._rightIP);
         if (result.StartsWith("SUCCESS "))

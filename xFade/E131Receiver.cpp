@@ -122,7 +122,7 @@ public:
             {
                 //logger_base.debug(" Read done. %ldms", sw.Time());
                 int read = e131SocketReceive->GetLastIOReadSize();
-                _receiver->StashPacket(buffer, read);
+                if (read > 0) _receiver->StashPacket(buffer, read);
             }
         }
 
