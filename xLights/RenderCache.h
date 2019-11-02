@@ -36,6 +36,7 @@ public:
     void Delete();
     void Save();
     bool IsDone(RenderBuffer* buffer) const;
+    const std::string& Description() const { return _cacheFile; }
 };
 
 class RenderCache
