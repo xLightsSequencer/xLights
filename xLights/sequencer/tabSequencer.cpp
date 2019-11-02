@@ -1888,25 +1888,25 @@ void xLightsFrame::UpdateEffectPalette(wxCommandEvent& event) {
     std::string palette = colorPanel->GetColorString(true);
 
     mSequenceElements.get_undo_mgr().CreateUndoStep();
-    for(size_t i=0;i<mSequenceElements.GetVisibleRowInformationSize();i++) {
-        Element* element = mSequenceElements.GetVisibleRowInformation(i)->element;
-        EffectLayer* el = mSequenceElements.GetVisibleEffectLayer(i);
+    for (size_t i = 0; i < mSequenceElements.GetRowInformationSize(); i++) {
+        Element* element = mSequenceElements.GetRowInformation(i)->element;
+        EffectLayer* el = mSequenceElements.GetEffectLayer(i);
 
         int startms = 99999999;
         int endms = -1;
-        for(int j=0;j< el->GetEffectCount();j++) {
-            if(el->GetEffect(j)->GetSelected() != EFFECT_NOT_SELECTED) {
-                Effect *ef = el->GetEffect(j);
+        for (int j = 0; j < el->GetEffectCount(); j++) {
+            if (el->GetEffect(j)->GetSelected() != EFFECT_NOT_SELECTED) {
+                Effect* ef = el->GetEffect(j);
                 mSequenceElements.get_undo_mgr().CaptureModifiedEffect(element->GetModelName(),
-                                                                       el->GetIndex(),
-                                                                       ef);
+                    el->GetIndex(),
+                    ef);
                 // only set the colours ... not other settings like sparkles
                 ef->SetColourOnlyPalette(palette);
                 startms = std::min(startms, ef->GetStartTimeMS());
                 endms = std::max(endms, ef->GetEndTimeMS());
             }
         }
-        if(startms <= endms) {
+        if (startms <= endms) {
             playType = PLAY_TYPE_EFFECT;
             playStartMS = -1;
             if (!_suspendRender) {
