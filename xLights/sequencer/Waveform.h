@@ -95,6 +95,7 @@ class Waveform : public xlGLCanvas
         static const long ID_WAVE_MNU_TREBLE;
         static const long ID_WAVE_MNU_ALTO;
         static const long ID_WAVE_MNU_CUSTOM;
+        static const long ID_WAVE_MNU_NONVOCALS;
 
         class WaveView
         {

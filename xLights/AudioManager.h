@@ -31,7 +31,8 @@ enum class AUDIOSAMPLETYPE
     BASS,
     TREBLE,
     CUSTOM,
-    ALTO
+    ALTO,
+    NONVOCALS
 };
 
 class xLightsVamp
@@ -167,9 +168,11 @@ public:
 
 struct FilteredAudioData
 {
+    AUDIOSAMPLETYPE type;
     int lowNote;
     int highNote;
     float* data;
+    int16_t *pcmdata;
 };
 
 class AudioManager
@@ -263,6 +266,7 @@ public:
 	long LengthMS() const { return _lengthMS; };
 	float GetRightData(long offset);
 	float GetLeftData(long offset);
+    void SwitchTo(AUDIOSAMPLETYPE type, int lowNote = 0, int highNote = 127);
     void GetLeftDataMinMax(long start, long end, float& minimum, float& maximum, AUDIOSAMPLETYPE type, int lowNote = 0, int highNote = 127);
 	float* GetRightDataPtr(long offset);
 	float* GetLeftDataPtr(long offset);

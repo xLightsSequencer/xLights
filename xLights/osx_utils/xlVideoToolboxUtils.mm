@@ -53,7 +53,7 @@ bool SetupVideoToolboxAcceleration(AVCodecContext *s, bool enabled) {
     return false;
 }
 void CleanupVideoToolbox(AVCodecContext *s) {
-    if (s->hwaccel_context == NULL) {
+    if (s->hwaccel_context != NULL) {
         av_videotoolbox_default_free(s);
     }
 }
@@ -197,6 +197,7 @@ bool VideoToolboxScaleImage(AVCodecContext *codecContext, AVFrame *frame, AVFram
         //copy data to dest frame
         if (linesize) {
             if (dstFrame->format == AV_PIX_FMT_RGBA) {
+                AddTraceMessage("VideoToolbox - Copying frame of size " + std::to_string(dstFrame->width * linesize));
                 memcpy(dstFrame->data[0], data, linesize*dstFrame->height);
             } else {
                 uint8_t *dst = (uint8_t*)dstFrame->data[0];

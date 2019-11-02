@@ -22,6 +22,7 @@ extern "C"
 }
 
 #include <log4cpp/Category.hh>
+#include "parallel.h"
 
 using namespace Vamp;
 
@@ -1997,7 +1998,12 @@ AudioManager::~AudioManager()
 
     while (_filtered.size() > 0)
     {
-        free(_filtered.back()->data);
+        if (_filtered.back()->data) {
+            free(_filtered.back()->data);
+        }
+        if (_filtered.back()->pcmdata) {
+            free(_filtered.back()->pcmdata);
+        }
         delete _filtered.back();
         _filtered.pop_back();
     }
@@ -2609,49 +2615,76 @@ std::string AudioManager::MidiToNote(int midi)
     return wxString::Format("%s%d", notes[offset], octave).ToStdString();
 }
 
-void AudioManager::GetLeftDataMinMax(long start, long end, float& minimum, float& maximum, AUDIOSAMPLETYPE type, int lowNote, int highNote)
-{
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+void AudioManager::SwitchTo(AUDIOSAMPLETYPE type, int lowNote, int highNote) {
     static const double pi2 = 6.283185307;
-    while (!IsDataLoaded(end - 1))
-    {
-        logger_base.debug("GetLeftDataMinMax waiting for data to be loaded.");
-        wxMilliSleep(100);
-    }
-
-    minimum = 0;
-    maximum = 0;
-
-    if (type == AUDIOSAMPLETYPE::BASS)
-    {
+    if (type == AUDIOSAMPLETYPE::BASS) {
         lowNote = 48;
         highNote = 60;
-    }
-    else if (type == AUDIOSAMPLETYPE::TREBLE)
-    {
+    } else if (type == AUDIOSAMPLETYPE::TREBLE) {
         lowNote = 60;
         highNote = 72;
-    }
-    else if (type == AUDIOSAMPLETYPE::ALTO)
-    {
+    } else if (type == AUDIOSAMPLETYPE::ALTO) {
         lowNote = 72;
         highNote = 84;
     }
 
-    if (_data[0] == nullptr)
-    {
+    if (_data[0] == nullptr) {
         return;
     }
-
-    switch (type)
-    {
-    case AUDIOSAMPLETYPE::RAW:
-    {
-        for (int j = start; j < std::min(end, _trackSize); j++) {
-            minimum = std::min(minimum, _data[0][j]);
-            maximum = std::max(maximum, _data[0][j]);
-        }
+    if (_filtered.empty()) {
+        //save original pcm
+        FilteredAudioData *fad = new FilteredAudioData();
+        fad->data = nullptr;
+        fad->pcmdata = (int16_t*)malloc(_trackSize * _channels * sizeof(uint16_t));
+        memcpy(fad->pcmdata, _pcmdata, _trackSize * _channels * sizeof(uint16_t));
+        fad->lowNote = 0;
+        fad->highNote = 0;
+        fad->type = AUDIOSAMPLETYPE::RAW;
+        _filtered.push_back(fad);
     }
+    
+    FilteredAudioData* fad = nullptr;
+    switch (type) {
+        case AUDIOSAMPLETYPE::NONVOCALS:
+        {
+            // grab it from my cache if i have it
+            for (const auto& it : _filtered) {
+                if (it->type == type) {
+                    fad = it;
+                }
+            }
+            if (fad == nullptr)  {
+                fad = new FilteredAudioData();
+                fad->data = (float*)malloc(sizeof(float) * _trackSize);
+                fad->pcmdata = (int16_t*)malloc(_trackSize * _channels * sizeof(uint16_t));
+                
+                for (int i = 0; i < _trackSize; ++i) {
+                    float v = _data[0][i];
+                    if (_data[1]) {
+                        float v1 = _data[1][i];
+                        v = (v - v1);
+                    }
+                    fad->data[i] = v;
+                                     
+                    v = v * 32768;
+                    int v2 = (int)v;
+                    fad->pcmdata[i * 2] = v2;
+                    fad->pcmdata[i * 2 + 1] = v2;
+                }
+                fad->lowNote = 0;
+                fad->highNote = 0;
+                fad->type = type;
+                _filtered.push_back(fad);
+            }
+        }
+        break;
+    case AUDIOSAMPLETYPE::RAW:
+        // grab it from my cache if i have it
+        for (const auto& it : _filtered) {
+            if (it->type == type) {
+                fad = it;
+            }
+        }
     break;
     case AUDIOSAMPLETYPE::ALTO:
     case AUDIOSAMPLETYPE::BASS:
@@ -2659,21 +2692,21 @@ void AudioManager::GetLeftDataMinMax(long start, long end, float& minimum, float
     case AUDIOSAMPLETYPE::CUSTOM:
     {
         // grab it from my cache if i have it
-        float* data = nullptr;
-        for (const auto& it : _filtered)
-        {
-            if (it->lowNote == lowNote && it->highNote == highNote)
-            {
-                data = it->data;
+        for (const auto& it : _filtered) {
+            if (it->lowNote == lowNote && it->highNote == highNote) {
+                fad = it;
             }
         }
 
         // if we didnt find it ... create it
-        if (data == nullptr)
-        {
+        if (fad == nullptr)  {
             double lowHz = MidiToFrequency(lowNote);
             double highHz = MidiToFrequency(highNote);
-            data = (float*)malloc(sizeof(float) * _trackSize);
+
+            fad = new FilteredAudioData();
+
+            fad->data = (float*)malloc(sizeof(float) * _trackSize);
+            fad->pcmdata = (int16_t*)malloc(_trackSize * _channels * sizeof(uint16_t));
 
             //Normalize f_c and w_c so that pi is equal to the Nyquist angular frequency
             float f1_c = lowHz / _rate;
@@ -2683,49 +2716,109 @@ void AudioManager::GetLeftDataMinMax(long start, long end, float& minimum, float
             float w1_c = pi2 * f1_c;
             float w2_c = pi2 * f2_c;
             int middle = order / 2.0; /*Integer division, dropping remainder*/
-            for (int i = -1 * (order / 2); i <= order / 2; i++)
-            {
-                if (i == 0)
-                {
+            for (int i = -1 * (order / 2); i <= order / 2; i++) {
+                if (i == 0) {
                     a[middle] = (2.0 * f2_c) - (2.0 * f1_c);
-                }
-                else
-                {
+                } else {
                     a[i + middle] = sin(w2_c * i) / (M_PI * i) - sin(w1_c * i) / (M_PI * i);
                 }
             }
             //Now apply a windowing function to taper the edges of the filter, e.g.
-            for (int i = 0; i < _trackSize; ++i)
-            {
-                float value = 0;
-                for (int j = 0; j < order; j++)
-                {
+            parallel_for(0, _trackSize, [fad, this, a, order](int i) {
+                float lvalue = 0;
+                float rvalue = 0;
+                for (int j = 0; j < order; j++) {
                     int jj = i + j - order;
-                    if (jj >= 0 && jj < _trackSize)
-                    {
-                        value += _data[0][jj] * a[order - j - 1];
+                    if (jj >= 0 && jj < _trackSize) {
+                        lvalue += _data[0][jj] * a[order - j - 1];
+                        if (_data[1]) {
+                            rvalue += _data[1][jj] * a[order - j - 1];
+                        }
                     }
                 }
-                data[i] = value;
-            }
+                fad->data[i] = lvalue;
+                
+                lvalue = lvalue * 32768;
+                int v2 = (int)lvalue;
+                fad->pcmdata[i * 2] = v2;
+                if (_data[1]) {
+                    rvalue = rvalue * 32768;
+                    v2 = (int)rvalue;
+                    fad->pcmdata[i * 2 + 1] = v2;
+                } else {
+                    fad->pcmdata[i * 2 + 1] = v2;
+                }
+            });
 
-            FilteredAudioData* fad = new FilteredAudioData();
             fad->lowNote = lowNote;
             fad->highNote = highNote;
-            fad->data = data;
+            fad->type = type;
             _filtered.push_back(fad);
-        }
-
-        // now if we have it work out the min/max
-        if (data != nullptr)
-        {
-            for (int j = start; j < std::min(end, _trackSize); j++) {
-                minimum = std::min(minimum, data[j]);
-                maximum = std::max(maximum, data[j]);
-            }
         }
     }
     break;
+    }
+
+    if (fad && fad->pcmdata) {
+        memcpy(_pcmdata, fad->pcmdata, _trackSize * _channels * sizeof(uint16_t));
+    }
+}
+
+void AudioManager::GetLeftDataMinMax(long start, long end, float& minimum, float& maximum, AUDIOSAMPLETYPE type, int lowNote, int highNote)
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    while (!IsDataLoaded(end - 1))
+    {
+        logger_base.debug("GetLeftDataMinMax waiting for data to be loaded.");
+        wxMilliSleep(100);
+    }
+
+    minimum = 0;
+    maximum = 0;
+    
+    if (type == AUDIOSAMPLETYPE::NONVOCALS || type == AUDIOSAMPLETYPE::RAW) {
+        lowNote = 0;
+        highNote = 0;
+    } else if (type == AUDIOSAMPLETYPE::BASS) {
+        lowNote = 48;
+        highNote = 60;
+    } else if (type == AUDIOSAMPLETYPE::TREBLE) {
+        lowNote = 60;
+        highNote = 72;
+    } else if (type == AUDIOSAMPLETYPE::ALTO) {
+        lowNote = 72;
+        highNote = 84;
+    }
+
+    FilteredAudioData *fad = nullptr;
+    for (const auto& it : _filtered) {
+        if (it->type == type && it->lowNote == lowNote && it->highNote == highNote) {
+            fad = it;
+        }
+    }
+    if (!fad) {
+        return;
+    }
+
+    switch (type) {
+    case AUDIOSAMPLETYPE::ALTO:
+    case AUDIOSAMPLETYPE::BASS:
+    case AUDIOSAMPLETYPE::TREBLE:
+    case AUDIOSAMPLETYPE::CUSTOM:
+    case AUDIOSAMPLETYPE::NONVOCALS:
+        if (fad != nullptr) {
+            for (int j = start; j < std::min(end, _trackSize); j++) {
+                minimum = std::min(minimum, fad->data[j]);
+                maximum = std::max(maximum, fad->data[j]);
+            }
+        }
+        break;
+    case AUDIOSAMPLETYPE::RAW:
+        for (int j = start; j < std::min(end, _trackSize); j++) {
+            minimum = std::min(minimum, _data[0][j]);
+            maximum = std::max(maximum, _data[0][j]);
+        }
+        break;
     }
 }
 

@@ -47,6 +47,7 @@ const long Waveform::ID_WAVE_MNU_BASS = wxNewId();
 const long Waveform::ID_WAVE_MNU_ALTO = wxNewId();
 const long Waveform::ID_WAVE_MNU_TREBLE = wxNewId();
 const long Waveform::ID_WAVE_MNU_CUSTOM = wxNewId();
+const long Waveform::ID_WAVE_MNU_NONVOCALS = wxNewId();
 
 Waveform::Waveform(wxPanel* parent, wxWindowID id, const wxPoint &pos, const wxSize &size,
                    long style, const wxString &name):
@@ -181,6 +182,7 @@ void Waveform::rightClick(wxMouseEvent& event)
         mnuWave.AppendRadioItem(ID_WAVE_MNU_TREBLE, "Treble waveform")->Check(_type == AUDIOSAMPLETYPE::TREBLE);
         mnuWave.AppendRadioItem(ID_WAVE_MNU_ALTO, "Alto waveform")->Check(_type == AUDIOSAMPLETYPE::ALTO);
         mnuWave.AppendRadioItem(ID_WAVE_MNU_CUSTOM, "Custom filtered waveform")->Check(_type == AUDIOSAMPLETYPE::CUSTOM);
+        mnuWave.AppendRadioItem(ID_WAVE_MNU_NONVOCALS, "Non Vocals waveform")->Check(_type == AUDIOSAMPLETYPE::NONVOCALS);
     }
     if (mnuWave.GetMenuItemCount() > 0)
     {
@@ -216,6 +218,10 @@ void Waveform::OnGridPopup(wxCommandEvent& event)
     {
         _type = AUDIOSAMPLETYPE::ALTO;
     }
+    else if (id == ID_WAVE_MNU_NONVOCALS)
+    {
+        _type = AUDIOSAMPLETYPE::NONVOCALS;
+    }
     else if (id == ID_WAVE_MNU_CUSTOM)
     {
         NoteRangeDialog dlg(GetParent(), _lowNote, _highNote);
@@ -245,7 +251,7 @@ void Waveform::OnGridPopup(wxCommandEvent& event)
             }
         }
     }
-
+    _media->SwitchTo(_type, _lowNote, _highNote);
     if (mCurrentWaveView == NO_WAVE_VIEW_SELECTED)
     {
         float samplesPerLine = GetSamplesPerLineFromZoomLevel(mZoomLevel);
@@ -367,6 +373,7 @@ int Waveform::OpenfileMedia(AudioManager* media, wxString& error)
 {
     _type = AUDIOSAMPLETYPE::RAW;
     _media = media;
+    _media->SwitchTo(AUDIOSAMPLETYPE::RAW);
     views.clear();
 	if (_media != nullptr)
 	{
