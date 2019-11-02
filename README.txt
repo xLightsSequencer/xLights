@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (gil)    Fix preview windows flashing white while panning.
    -- enh (gil)    Prevent a zoom action from occurring while panning.  Fixes #1782.
    -- enh (scott)  Added 'Horizontal Stack - Scaled' & 'Vertical Stack - Scaled' Group Render Styles
    -- enh (scott)  Added Copy & Rename to Model Faces Dialog
