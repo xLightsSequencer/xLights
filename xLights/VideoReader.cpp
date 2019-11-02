@@ -135,6 +135,11 @@ VideoReader::VideoReader(const std::string& filename, int maxwidth, int maxheigh
 
     reopenContext();
 
+    if (_codecContext == nullptr)
+    {
+        return;
+    }
+
     int origWidth = _width;
     int origHeight = _height;
 
@@ -231,6 +236,9 @@ VideoReader::VideoReader(const std::string& filename, int maxwidth, int maxheigh
         logger_base.warn("Attempts to determine length of video have not been successful. Problems ahead.");
 	}
 
+    // Guess the keyframe frequency
+    _keyFrameCount = _codecContext->keyint_min;
+
 	_dstFrame = av_frame_alloc();
 	_dstFrame->width = _width;
 	_dstFrame->height = _height;
@@ -263,6 +271,7 @@ VideoReader::VideoReader(const std::string& filename, int maxwidth, int maxheigh
     logger_base.info("      Source size: %dx%d", _codecContext->width, _codecContext->height);
     logger_base.info("      Source coded size: %dx%d", _codecContext->coded_width, _codecContext->coded_height);
     logger_base.info("      Output size: %dx%d", _width, _height);
+    logger_base.info("      Guessed key frame frequency: %d", _keyFrameCount);
     if (_wantAlpha)
         logger_base.info("      Alpha: TRUE");
     if (_frames != 0)
@@ -327,7 +336,7 @@ void VideoReader::reopenContext() {
                 }
             }
         }
-        logger_base.debug("Decoder Pixfmt %s.\n", av_get_pix_fmt_name(__hw_pix_fmt));
+        logger_base.debug("Decoder Pixfmt %s.", av_get_pix_fmt_name(__hw_pix_fmt));
     }
     #endif
 
@@ -546,6 +555,12 @@ VideoReader::~VideoReader()
         _dstFrame2 = nullptr;
     }
     if (_codecContext != nullptr) {
+
+        if (_keyFrameCount != _codecContext->keyint_min)
+        {
+            logger_base.debug("Key frame count was adjusted from %d to %d.", _codecContext->keyint_min, _keyFrameCount);
+        }
+
         logger_base.debug("Releasing codecContext.");
         CleanupVideoToolbox(_codecContext);
         avcodec_close(_codecContext);
@@ -563,7 +578,7 @@ VideoReader::~VideoReader()
     }
 }
 
-void VideoReader::Seek(int timestampMS)
+void VideoReader::Seek(int timestampMS, bool readFrame)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -603,7 +618,10 @@ void VideoReader::Seek(int timestampMS)
         }
 
         _curPos = -1000;
-        GetNextFrame(timestampMS, 0);
+        if (readFrame)
+        {
+            GetNextFrame(timestampMS, 0);
+        }
 	}
 }
 
@@ -975,7 +993,7 @@ AVFrame* VideoReader::GetNextFrame(int timestampMS, int gracetime)
 #ifdef VIDEO_EXTRALOGGING
         logger_base.debug("    Video %s seeking back from %d to %d.", (const char *)_filename.c_str(), currenttime, timestampMS);
 #endif
-        Seek(timestampMS);
+        Seek(timestampMS, false);
         currenttime = GetPos();
     }
 
@@ -985,28 +1003,40 @@ AVFrame* VideoReader::GetNextFrame(int timestampMS, int gracetime)
             firstframe = true;
         }
 
+        bool seekedForward = false;
 		while (!_abort && (firstframe || ((currenttime + (_frameMS / 2.0)) < timestampMS)) &&
                currenttime <= _lengthMS &&
                (av_read_frame(_formatContext, &_packet)) == 0) {
             // Is this a packet from the video stream?
 			if (_packet.stream_index == _streamIndex) {
-				// Decode video frame
-                int tryCount = 0;
-                while (!_abort && avcodec_send_packet(_codecContext, &_packet) && tryCount < 5) {
-                    tryCount++;
+
+                // Decode video frame
+                while (!_abort && avcodec_send_packet(_codecContext, &_packet)) {
                     if (readFrame(timestampMS)) {
                         firstframe = false;
                         currenttime = _curPos;
                     }
-                    //else
-                    //{
-                    //    break;
-                    //}
                 }
-                if (tryCount >= 5) {
-                    //errors decoding....  need to reset and reseek
-                    _atEnd = true;
-                    Seek(timestampMS - _frameMS);
+
+                // I am taking _codecContext->keyint_min as likely keyframe frequency - if we are a long way short of the target time try seeking forward ... once
+                // the 2 fudge factor is under the assumption that the cost of a seek forward 2 frames is more expensive than just reading the 2 frames
+                // 2 may or may not be the best fudge factor
+                if (currenttime != -1000 && currenttime < timestampMS - _frameMS * (_keyFrameCount + 2))
+                {
+                    if (seekedForward)
+                    {
+                        // we should not have gotten here so keyframecount must be too small
+                        _keyFrameCount++;
+                    }
+                    else
+                    {
+                        seekedForward = true;
+#ifdef VIDEO_EXTRALOGGING
+                        logger_base.debug("    Video %s seeking forward from %d to %d.", (const char*)_filename.c_str(), currenttime, timestampMS);
+#endif
+                        Seek(timestampMS, false);
+                        currenttime = GetPos();
+                    }
                 }
 			}
 			// Free the packet that was allocated by av_read_frame

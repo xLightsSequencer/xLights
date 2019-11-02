@@ -23,7 +23,7 @@ public:
 	VideoReader(const std::string& filename, int width, int height, bool keepaspectratio, bool usenativeresolution = false, bool wantAlpha = false);
 	~VideoReader();
 	int GetLengthMS() const { return (int)_lengthMS; };
-	void Seek(int timestampMS);
+	void Seek(int timestampMS, bool readFrame = true);
 	AVFrame* GetNextFrame(int timestampMS, int gracetime = 0); // grace time is the minimum the video must be ahead before we bother to seek back to a frame
 	bool IsValid() const { return _valid; };
 	int GetWidth() const { return _width; };
@@ -47,6 +47,7 @@ private:
     double _dtspersec;
     long _frames;
     int _frameMS;
+    int _keyFrameCount = 20;
     bool _wantAlpha = false;
 	AVFormatContext* _formatContext = nullptr;
 	AVCodecContext* _codecContext = nullptr;
