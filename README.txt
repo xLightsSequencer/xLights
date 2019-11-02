@@ -11,10 +11,28 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
-   -- bug (gil)    Fix preview windows flashing white while panning.
+2019.62 November 2 2019
    -- enh (gil)    Prevent a zoom action from occurring while panning.  Fixes #1782.
    -- enh (scott)  Added 'Horizontal Stack - Scaled' & 'Vertical Stack - Scaled' Group Render Styles
    -- enh (scott)  Added Copy & Rename to Model Faces Dialog
+   -- enh (keith)  Add some directx9 technical controls to special.options
+   -- enh (keith)  Add an arch gap model property
+   -- enh (keith)  Add option to double click an item to move between lists on model group panel and sequence elements panel
+   -- enh (keith)  Add some optional render cache logging to help detect issues with the cache
+   -- enh (keith)  Add quick seek to video reader for situations where the current position is well behind where it needs to be
+   -- enh (keith)  Add an option to xSchedule so that on restart scheduled sequences which have missed their start times start
+                   where they would have been up to - great for crash recovery situations
+   -- bug (gil)    Fix preview windows flashing white while panning.
+   -- bug (keith)  Improve stability of xFade under high load and improve throughput to over 300 universes
+   -- bug (keith)  A number of tweaks to hardware video decoding to improve stability and fallback to software decoding.
+                   Also default to software decoding until we have better reliability
+   -- bug (dkulp)  Some tweaks to FPP connect to improve discovery
+   -- bug (scott)  Fix importing submodels adds invalid data
+   -- bug (scott)  Fix FPP connect not uploading panel start channel if port is defined
+   -- bug (keith)  Models that fully overlap but are on different smart remotes should be uploaded on separate virtual strings
+   -- bug (keith)  Fix set pixels api has wrong definition
+   -- bug (keith)  Fix bulk edit dimming curves dont immediately apply to sequenced effects
+   -- bug (keith)  Fix colour panel update does not apply to effects that are not visible
 2019.61 October 26 2019
    -- enh (gil)    Add Redo option for the sequencer grid.  Fixes #555.
    -- enh (dkulp)  FPP/BBB DMX strings - set minimum length to 16 channels.  Several controllers have issues with less than that
