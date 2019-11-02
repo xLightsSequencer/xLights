@@ -251,7 +251,9 @@ void Waveform::OnGridPopup(wxCommandEvent& event)
             }
         }
     }
-    _media->SwitchTo(_type, _lowNote, _highNote);
+    if (_media) {
+        _media->SwitchTo(_type, _lowNote, _highNote);
+    }
     if (mCurrentWaveView == NO_WAVE_VIEW_SELECTED)
     {
         float samplesPerLine = GetSamplesPerLineFromZoomLevel(mZoomLevel);
@@ -373,10 +375,10 @@ int Waveform::OpenfileMedia(AudioManager* media, wxString& error)
 {
     _type = AUDIOSAMPLETYPE::RAW;
     _media = media;
-    _media->SwitchTo(AUDIOSAMPLETYPE::RAW);
     views.clear();
 	if (_media != nullptr)
 	{
+        _media->SwitchTo(AUDIOSAMPLETYPE::RAW);
 		float samplesPerLine = GetSamplesPerLineFromZoomLevel(mZoomLevel);
 		WaveView wv(mZoomLevel, samplesPerLine, media, _type, _lowNote, _highNote);
 		views.push_back(wv);
