@@ -2616,7 +2616,8 @@ std::string AudioManager::MidiToNote(int midi)
 }
 
 void AudioManager::SwitchTo(AUDIOSAMPLETYPE type, int lowNote, int highNote) {
-    while (!IsDataLoaded())
+    while (!IsDataLoaded()) {
+        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         logger_base.debug("SwitchTo waiting for data to be loaded.");
         wxMilliSleep(50);
     }
