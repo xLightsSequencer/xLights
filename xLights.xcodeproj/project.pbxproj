@@ -365,6 +365,10 @@
 		67A14C9120DD49CE006EFCFA /* libiconv.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 67A14C7D20DD324D006EFCFA /* libiconv.tbd */; };
 		67A260EE1AB71EE3006B140D /* DrawGLUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A260EC1AB71EE3006B140D /* DrawGLUtils.cpp */; };
 		67A327031836A04A00EABDF4 /* ExportModelSelect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A327021836A04A00EABDF4 /* ExportModelSelect.cpp */; };
+		67A4ABE1236DC37E009F747C /* PacketData.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A4ABDA236DC37D009F747C /* PacketData.cpp */; };
+		67A4ABE2236DC37E009F747C /* E131Receiver.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A4ABDB236DC37D009F747C /* E131Receiver.cpp */; };
+		67A4ABE3236DC37E009F747C /* ArtNETReceiver.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A4ABDC236DC37D009F747C /* ArtNETReceiver.cpp */; };
+		67A4ABE4236DC37E009F747C /* UniverseData.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A4ABDD236DC37D009F747C /* UniverseData.cpp */; };
 		67A4E02C1E85AF1E00EBFAD9 /* CustomTimingDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A4E02A1E85AF1E00EBFAD9 /* CustomTimingDialog.cpp */; };
 		67A54DB421DCF8030021B17B /* ConfigureTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A54DB221DCF8030021B17B /* ConfigureTest.cpp */; };
 		67A61A2717B51C0F008E95BB /* ChannelLayoutDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A619BE17B51C0F008E95BB /* ChannelLayoutDialog.cpp */; };
@@ -1451,6 +1455,13 @@
 		67A260EC1AB71EE3006B140D /* DrawGLUtils.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DrawGLUtils.cpp; sourceTree = "<group>"; };
 		67A260ED1AB71EE3006B140D /* DrawGLUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DrawGLUtils.h; sourceTree = "<group>"; };
 		67A327021836A04A00EABDF4 /* ExportModelSelect.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ExportModelSelect.cpp; sourceTree = "<group>"; };
+		67A4ABDA236DC37D009F747C /* PacketData.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PacketData.cpp; sourceTree = "<group>"; };
+		67A4ABDB236DC37D009F747C /* E131Receiver.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = E131Receiver.cpp; sourceTree = "<group>"; };
+		67A4ABDC236DC37D009F747C /* ArtNETReceiver.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ArtNETReceiver.cpp; sourceTree = "<group>"; };
+		67A4ABDD236DC37D009F747C /* UniverseData.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = UniverseData.cpp; sourceTree = "<group>"; };
+		67A4ABDE236DC37D009F747C /* UniverseData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UniverseData.h; sourceTree = "<group>"; };
+		67A4ABDF236DC37D009F747C /* ArtNETReceiver.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ArtNETReceiver.h; sourceTree = "<group>"; };
+		67A4ABE0236DC37D009F747C /* E131Receiver.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = E131Receiver.h; sourceTree = "<group>"; };
 		67A4E02A1E85AF1E00EBFAD9 /* CustomTimingDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CustomTimingDialog.cpp; sourceTree = "<group>"; };
 		67A4E02B1E85AF1E00EBFAD9 /* CustomTimingDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CustomTimingDialog.h; sourceTree = "<group>"; };
 		67A54DB221DCF8030021B17B /* ConfigureTest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ConfigureTest.cpp; sourceTree = "<group>"; };
@@ -2290,6 +2301,13 @@
 		67025C6920D7E80800BF1AC6 /* xFade */ = {
 			isa = PBXGroup;
 			children = (
+				67A4ABDC236DC37D009F747C /* ArtNETReceiver.cpp */,
+				67A4ABDF236DC37D009F747C /* ArtNETReceiver.h */,
+				67A4ABDB236DC37D009F747C /* E131Receiver.cpp */,
+				67A4ABE0236DC37D009F747C /* E131Receiver.h */,
+				67A4ABDA236DC37D009F747C /* PacketData.cpp */,
+				67A4ABDD236DC37D009F747C /* UniverseData.cpp */,
+				67A4ABDE236DC37D009F747C /* UniverseData.h */,
 				67FDFA34210EA77A001587BC /* FadeExcludeDialog.cpp */,
 				67FDFA35210EA77A001587BC /* FadeExcludeDialog.h */,
 				67025C8A20D7E85100BF1AC6 /* Emitter.cpp */,
@@ -4090,9 +4108,11 @@
 				67025CA920D7EEA300BF1AC6 /* wxMidi.h in Sources */,
 				67025CAA20D7EEA300BF1AC6 /* wxMidiDatabase.cpp in Sources */,
 				67025CA620D7EE8100BF1AC6 /* xLightsTimer.cpp in Sources */,
+				67A4ABE1236DC37E009F747C /* PacketData.cpp in Sources */,
 				67025CA720D7EE8100BF1AC6 /* xLightsTimer.h in Sources */,
 				67025CA220D7EDC500BF1AC6 /* UtilFunctions.cpp in Sources */,
 				67025CA120D7EDB500BF1AC6 /* xLightsVersion.cpp in Sources */,
+				67A4ABE3236DC37E009F747C /* ArtNETReceiver.cpp in Sources */,
 				67025C9F20D7ED7800BF1AC6 /* IPEntryDialog.cpp in Sources */,
 				67025CA020D7ED7800BF1AC6 /* IPEntryDialog.h in Sources */,
 				67025C9020D7E85100BF1AC6 /* MIDIAssociateDialog.cpp in Sources */,
@@ -4103,7 +4123,9 @@
 				67025C8D20D7E85100BF1AC6 /* UniverseEntryDialog.cpp in Sources */,
 				67FDFA36210EA77A001587BC /* FadeExcludeDialog.cpp in Sources */,
 				67025C9220D7E85100BF1AC6 /* MIDIListener.cpp in Sources */,
+				67A4ABE4236DC37E009F747C /* UniverseData.cpp in Sources */,
 				67025C9320D7E85100BF1AC6 /* xFadeApp.cpp in Sources */,
+				67A4ABE2236DC37E009F747C /* E131Receiver.cpp in Sources */,
 				67025C9120D7E85100BF1AC6 /* xFadeMain.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
