@@ -744,9 +744,9 @@ void ScheduleManager::AllOff()
     }
 
     // apply any output processing
-    for (auto it = _outputProcessing.begin(); it != _outputProcessing.end(); ++it)
+    for (const auto& it : _outputProcessing)
     {
-        (*it)->Frame(_buffer, _outputManager->GetTotalChannels());
+        it->Frame(_buffer, _outputManager->GetTotalChannels());
     }
 
     if (_brightness < 100)
@@ -765,10 +765,9 @@ void ScheduleManager::AllOff()
         }
     }
 
-    auto vm = GetOptions()->GetVirtualMatrices();
-    for (auto it = vm->begin(); it != vm->end(); ++it)
+    for (const auto& it : *GetOptions()->GetVirtualMatrices())
     {
-        (*it)->Frame(_buffer, _outputManager->GetTotalChannels());
+        it->Frame(_buffer, _outputManager->GetTotalChannels());
     }
 
     _outputManager->SetManyChannels(0, _buffer, _outputManager->GetTotalChannels());
@@ -1323,6 +1322,16 @@ int ScheduleManager::CheckSchedule()
                     RunningSchedule* rs = new RunningSchedule(*it, *it2);
                     _activeSchedules.push_back(rs);
                     rs->GetPlayList()->StartSuspended(rs->GetSchedule()->GetLoop(), rs->GetSchedule()->GetRandom(), rs->GetSchedule()->GetLoops());
+
+                    if (_scheduleOptions->IsLateStartingScheduleUsesTime())
+                    {
+                        long late = rs->GetSchedule()->GetTimeSinceStartTime().GetSeconds().ToLong();
+                        if (late>5)
+                        {
+                            logger_base.debug("Schedule %s started %ld seconds late so jumping ahead.", (const char*)rs->GetSchedule()->GetName().c_str(), late);
+                            rs->GetPlayList()->SetPosition(late);
+                        }
+                    }
 
                     logger_base.info("   Scheduler starting suspended playlist %s due to schedule %s.", (const char*)(*it)->GetNameNoTime().c_str(),  (const char *)(*it2)->GetName().c_str());
                 }

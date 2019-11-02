@@ -1034,21 +1034,27 @@ void PlayList::RestartCurrentStep()
     }
 }
 
-bool PlayList::JumpToStep(const std::string& step)
+bool PlayList::JumpToStep(PlayListStep* pls)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("PlayList: JumpToStep %s", (const char*)step.c_str());
-
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    if (pls != nullptr)
+    {
+        logger_base.debug("PlayList: JumpToStep %s", (const char*)pls->GetNameNoTime().c_str());
+    }
+    else
+    {
+        logger_base.debug("PlayList: JumpToStep but step not found");
+    }
     bool success = true;
 
     _lastLoop = false;
     _loopStep = false;
     _forceNextStep = "";
 
-    if (_currentStep != nullptr && wxString(_currentStep->GetNameNoTime()).Lower() == wxString(step).Lower())
+    if (_currentStep != nullptr && _currentStep == pls)
     {
         _currentStep->Restart();
-        for (auto it: _everySteps)
+        for (auto it : _everySteps)
         {
             it->Restart();
         }
@@ -1058,25 +1064,35 @@ bool PlayList::JumpToStep(const std::string& step)
     if (_currentStep != nullptr)
     {
         _currentStep->Stop();
-        for (auto it: _everySteps)
+        for (auto it : _everySteps)
         {
             it->Stop();
         }
     }
 
-    _currentStep = GetStep(step);
+    _currentStep = pls;
     if (_currentStep == nullptr)
     {
         return false;
     }
 
     _currentStep->Start(-1);
-    for (auto it: _everySteps)
+    for (auto it : _everySteps)
     {
         it->Start(-1);
     }
 
     return success;
+}
+
+bool PlayList::JumpToStep(const std::string& step)
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("PlayList: JumpToStep %s", (const char*)step.c_str());
+
+    PlayListStep* pls = GetStep(step);
+
+    return JumpToStep(pls);
 }
 
 bool PlayList::JumpToEndStepsAtEndOfCurrentStep()
@@ -1143,6 +1159,26 @@ bool PlayList::SupportsRandom()
 
     // 3 is the minimum number of eligible steps to support random
     return (count > 3);
+}
+
+void PlayList::SetPosition(long secs)
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    long len = GetLengthMS();
+    if (len == 0) return;
+    long plpos = secs * 1000 % len;
+    long plspos = 0;
+    PlayListStep* pls = GetStepAtTime(plpos, plspos);
+    JumpToStep(pls);
+    if (pls != nullptr)
+    {
+        pls->Advance(plspos / 1000);
+        logger_base.debug("PlayList::SetPosition %lds %s:%lds", secs, (const char*)pls->GetNameNoTime().c_str(), plspos / 1000);
+    }
+    else
+    {
+        logger_base.debug("PlayList::SetPosition failed because could not determine step.");
+    }
 }
 
 PlayListStep* PlayList::GetRandomStep()

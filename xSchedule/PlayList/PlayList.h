@@ -51,6 +51,7 @@ protected:
     void ForgetChildren();
     void DeleteChildren();
     static bool IsInSlaveMode();
+    bool JumpToStep(PlayListStep* pls);
 
 public:
 
@@ -85,6 +86,7 @@ public:
     Schedule* GetSchedule(const std::string& name);
     int GetChangeCount() const { return _changeCount; }
     bool SupportsRandom();
+    void SetPosition(long secs);
     bool IsRandom() const { return _random || _alwaysShuffle; }
     bool SetRandom(bool random) { _random = random; if (random) _played.clear(); return true; }
     bool SetLooping(bool looping) { _looping = looping; return true; }

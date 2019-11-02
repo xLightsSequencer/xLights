@@ -44,6 +44,7 @@ class OptionsDialog: public wxDialog
 		wxButton* Button_Ok;
 		wxCheckBox* CheckBox_APIOnly;
 		wxCheckBox* CheckBox_HWAcceleratedVideo;
+		wxCheckBox* CheckBox_LastStartingSequenceUsesTime;
 		wxCheckBox* CheckBox_MultithreadedTransmission;
 		wxCheckBox* CheckBox_RemoteAllOff;
 		wxCheckBox* CheckBox_RetryOpen;
@@ -86,6 +87,7 @@ class OptionsDialog: public wxDialog
 		static const long ID_CHECKBOX8;
 		static const long ID_CHECKBOX9;
 		static const long ID_CHECKBOX10;
+		static const long ID_CHECKBOX11;
 		static const long ID_STATICTEXT2;
 		static const long ID_LISTVIEW1;
 		static const long ID_BUTTON5;

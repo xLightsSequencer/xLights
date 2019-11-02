@@ -78,6 +78,7 @@ class Schedule
         wxDateTime GetEndDate() const { return _endDate; }
         wxDateTime GetStartTime() const;
         wxDateTime GetNextFireTime() const;
+        wxTimeSpan GetTimeSinceStartTime() const;
         void SetStartDate(const wxDateTime& start) { if (_startDate != start) { _startDate = start; _changeCount++; } }
         void SetEndDate(const wxDateTime& end) { if (_endDate != end) { _endDate = end; _changeCount++; } }
         bool IsDirty() const { return _lastSavedChangeCount != _changeCount; }

@@ -47,6 +47,7 @@ ScheduleOptions::ScheduleOptions(OutputManager* outputManager, wxXmlNode* node, 
     _suppressAudioOnRemotes = node->GetAttribute("SuppressAudioOnRemotes", "TRUE") == "TRUE";
     _sendBackgroundWhenNotRunning = node->GetAttribute("SendBackgroundWhenNotRunning", "FALSE") == "TRUE";
     _hardwareAcceleratedVideo = node->GetAttribute("HardwareAcceleratedVideo", "TRUE") == "TRUE";
+    _lateStartingScheduleUsesTime = node->GetAttribute("LateStartingScheduleUsesTime", "FALSE") == "TRUE";
 #ifdef __WXMSW__
     _port = wxAtoi(node->GetAttribute("WebServerPort", "80"));
 #else
@@ -187,6 +188,7 @@ ScheduleOptions::ScheduleOptions()
     _wwwRoot = "xScheduleWeb";
     _audioDevice = "";
     _hardwareAcceleratedVideo = true;
+    _lateStartingScheduleUsesTime = false;
 #ifdef __WXMSW__
     _port = 80;
 #else
@@ -255,6 +257,10 @@ wxXmlNode* ScheduleOptions::Save()
     if (_advancedMode)
     {
         res->AddAttribute("AdvancedMode", "TRUE");
+    }
+    if (_lateStartingScheduleUsesTime)
+    {
+        res->AddAttribute("LateStartingScheduleUsesTime", "TRUE");
     }
     if (_hardwareAcceleratedVideo)
     {

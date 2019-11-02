@@ -3182,7 +3182,7 @@ void xScheduleFrame::UpdateUI(bool force)
             if (item == -1)
             {
                 item = ListView_Ping->GetItemCount();
-                ListView_Ping->InsertItem(ListView_Ping->GetItemCount(), it->GetName());
+                item = ListView_Ping->InsertItem(item, it->GetName());
                 ListView_Ping->SetItem(item, 1, "");
                 ListView_Ping->SetColumnWidth(0, wxLIST_AUTOSIZE);
             }

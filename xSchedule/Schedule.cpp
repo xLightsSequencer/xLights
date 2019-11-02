@@ -75,6 +75,26 @@ wxDateTime Schedule::GetNextFireTime() const
     return res;
 }
 
+wxTimeSpan Schedule::GetTimeSinceStartTime() const
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    wxDateTime now = wxDateTime::Now();
+    wxDateTime st = GetStartTime();
+    wxDateTime start = wxDateTime(now.GetDay(), now.GetMonth(), now.GetYear(), st.GetHour(), st.GetMinute(), 0);
+
+    logger_base.debug("last start time %s.", (const char*)start.FormatISOCombined().c_str());
+    logger_base.debug("now %s.", (const char*)now.FormatISOCombined().c_str());
+
+    if (start > now)
+    {
+        start -= wxTimeSpan(24);
+        logger_base.debug("last start time adjusted by 24 hrs %s.", (const char*)start.FormatISOCombined().c_str());
+    }
+
+    return now - start;
+}
+
 void Schedule::Load(wxXmlNode* node)
 {
     _changeCount = 0;
