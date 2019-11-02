@@ -2616,6 +2616,11 @@ std::string AudioManager::MidiToNote(int midi)
 }
 
 void AudioManager::SwitchTo(AUDIOSAMPLETYPE type, int lowNote, int highNote) {
+    while (!IsDataLoaded())
+        logger_base.debug("SwitchTo waiting for data to be loaded.");
+        wxMilliSleep(50);
+    }
+    
     static const double pi2 = 6.283185307;
     if (type == AUDIOSAMPLETYPE::BASS) {
         lowNote = 48;
