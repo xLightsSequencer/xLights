@@ -120,33 +120,40 @@ void ModelPreview::mouseMoved(wxMouseEvent& event) {
         if (!is_3d) {
             new_y *= -1.0f;
         }
-        // account for grid rotation
-        float angleX = glm::radians(GetCameraRotationX());
-        float angleY = glm::radians(GetCameraRotationY());
-        float delta_x = 0.0f;
-        float delta_y = 0.0f;
-        float delta_z = 0.0f;
-        bool top_view = (angleX > glm::radians(45.0f)) && (angleX < glm::radians(135.0f));
-        bool bottom_view = (angleX > glm::radians(225.0f)) && (angleX < glm::radians(315.0f));
-        bool upside_down_view = (angleX >= glm::radians(135.0f)) && (angleX <= glm::radians(225.0f));
-        if( top_view ) {
-            delta_x = new_x * std::cos(angleY) - new_y * std::sin(angleY);
-            delta_z = new_y * std::cos(angleY) + new_x * std::sin(angleY);
-        } else if( bottom_view ) {
-            delta_x = -new_x * std::sin(angleY) - new_y * std::cos(angleY);
-            delta_z = new_y * std::sin(angleY) - new_x * std::cos(angleY);
-        } else {
-            delta_x = new_x * std::cos(angleY);
-            delta_y = new_y;
-            delta_z = new_x * std::sin(angleY);
-            if( !upside_down_view && is_3d) {
-                delta_y *= -1.0f;
-            }
+        if (!is_3d) {
+            SetPan(new_x / GetZoom(), new_y / GetZoom(), 0.0f);
         }
-        delta_x *= GetZoom() * 2.0f;
-        delta_y *= GetZoom() * 2.0f;
-        delta_z *= GetZoom() * 2.0f;
-        SetPan(delta_x, delta_y, delta_z);
+        else {
+            // account for grid rotation
+            float angleX = glm::radians(GetCameraRotationX());
+            float angleY = glm::radians(GetCameraRotationY());
+            float delta_x = 0.0f;
+            float delta_y = 0.0f;
+            float delta_z = 0.0f;
+            bool top_view = (angleX > glm::radians(45.0f)) && (angleX < glm::radians(135.0f));
+            bool bottom_view = (angleX > glm::radians(225.0f)) && (angleX < glm::radians(315.0f));
+            bool upside_down_view = (angleX >= glm::radians(135.0f)) && (angleX <= glm::radians(225.0f));
+            if (top_view) {
+                delta_x = new_x * std::cos(angleY) - new_y * std::sin(angleY);
+                delta_z = new_y * std::cos(angleY) + new_x * std::sin(angleY);
+            }
+            else if (bottom_view) {
+                delta_x = -new_x * std::sin(angleY) - new_y * std::cos(angleY);
+                delta_z = new_y * std::sin(angleY) - new_x * std::cos(angleY);
+            }
+            else {
+                delta_x = new_x * std::cos(angleY);
+                delta_y = new_y;
+                delta_z = new_x * std::sin(angleY);
+                if (!upside_down_view && is_3d) {
+                    delta_y *= -1.0f;
+                }
+            }
+            delta_x *= GetZoom() * 2.0f;
+            delta_y *= GetZoom() * 2.0f;
+            delta_z *= GetZoom() * 2.0f;
+            SetPan(delta_x, delta_y, delta_z);
+        }
         m_last_mouse_x = event.GetX();
         m_last_mouse_y = event.GetY();
         if (xlights != nullptr) {
@@ -172,7 +179,7 @@ void ModelPreview::mouseMoved(wxMouseEvent& event) {
 
         x -= (double)w / 2.0;
         y -= (double)h / 2.0;
-        
+
         x /= camera2d->GetZoom();
         y /= camera2d->GetZoom();
 
@@ -218,7 +225,7 @@ void ModelPreview::mouseLeftDClick(wxMouseEvent& event)
     }
     else
     {
-        
+
     }
 }
 
@@ -660,7 +667,7 @@ ModelPreview::ModelPreview(wxPanel* parent, xLightsFrame* xlights_, bool a, int 
 {
     SetBackgroundStyle(wxBG_STYLE_CUSTOM);
     setupCameras();
-    
+
     _cameraView_latched_x = camera3d->GetAngleX();
     _cameraView_latched_y = camera3d->GetAngleY();
 
@@ -671,7 +678,7 @@ ModelPreview::ModelPreview(wxPanel* parent, xLightsFrame* xlights_, bool a, int 
         EnableTouchEvents(wxTOUCH_ZOOM_GESTURE);
         Connect(wxEVT_GESTURE_ZOOM, (wxObjectEventFunction)&ModelPreview::OnZoomGesture, nullptr, this);
     }
-    
+
     wxConfigBase* config = wxConfigBase::Get();
     config->Read("OGLRenderOrder", &renderOrder, 0);
 }
@@ -685,7 +692,7 @@ ModelPreview::ModelPreview(wxPanel* parent, xLightsFrame *xl)
 {
     SetBackgroundStyle(wxBG_STYLE_CUSTOM);
     setupCameras();
-    
+
     _cameraView_latched_x = camera3d->GetAngleX();
     _cameraView_latched_y = camera3d->GetAngleY();
 
@@ -694,7 +701,7 @@ ModelPreview::ModelPreview(wxPanel* parent, xLightsFrame *xl)
 
     EnableTouchEvents(wxTOUCH_ZOOM_GESTURE);
     Connect(wxEVT_GESTURE_ZOOM, (wxObjectEventFunction)&ModelPreview::OnZoomGesture, nullptr, this);
-    
+
     wxConfigBase* config = wxConfigBase::Get();
     config->Read("OGLRenderOrder", &renderOrder, 0);
 }
@@ -772,7 +779,7 @@ void ModelPreview::InitializeGLCanvas()
 void ModelPreview::InitializeGLContext()
 {
     SetCurrentGLContext();
-    
+
     if (allowSelected) {
         wxColor c = GetBackgroundColor();
         LOG_GL_ERRORV(glClearColor(c.Red()/255.0f, c.Green()/255.0f, c.Blue()/255.0, 1.0f));

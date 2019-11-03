@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (gil)    Fix panning so it's 1:1 in 2D.
 2019.63 November 3 2019
    -- bug (dkulp)  Fix audio dropout
 2019.62 November 2 2019
