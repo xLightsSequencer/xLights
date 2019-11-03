@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2019.63 November 3 2019
+   -- bug (dkulp)  Fix audio dropout
 2019.62 November 2 2019
    -- enh (gil)    Prevent a zoom action from occurring while panning.  Fixes #1782.
    -- enh (scott)  Added 'Horizontal Stack - Scaled' & 'Vertical Stack - Scaled' Group Render Styles
