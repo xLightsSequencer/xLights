@@ -45,21 +45,48 @@ std::string LOREditEffect::GetPalette() const
 
     std::string palette;
 
+    int cnum = 0;
     wxArrayString c = wxSplit(effectSettings[0], ';');
     for (int i = 0; i < c.size(); i++)
     {
-        wxArrayString cc = wxSplit(c[i], ',');
+        wxString n = wxString::Format("%d", cnum + 1);
 
-        if (cc.size() >= 2)
+        wxArrayString cc = wxSplit(c[i], ',');
+        if (cc.size() == 2)
         {
             wxString c1 = cc[0].substr(2); // drop transparency
             wxString active = cc[1];
 
-            palette += ",C_BUTTON_Palette" + wxString::Format("%d", i + 1) + "=#" + c1;
+            palette += ",C_BUTTON_Palette" + n + "=#" + c1;
             if (active == "1")
             {
-                palette += ",C_CHECKBOX_Palette" + wxString::Format("%d", i + 1) + "=" + active;
+                palette += ",C_CHECKBOX_Palette" + n + "=" + active;
             }
+            cnum++;
+        }
+        else if (cc.size() == 3)
+        {
+            wxString c1 = cc[0].substr(2); // drop transparency
+            wxString c2 = cc[1].substr(2); // drop transparency
+            wxString active = cc[2];
+
+            if (c1 == c2)
+            {
+                palette += ",C_BUTTON_Palette" + n + "=#" + c1;
+                if (active == "1")
+                {
+                    palette += ",C_CHECKBOX_Palette" + n + "=" + active;
+                }
+            }
+            else
+            {
+                palette += "C_BUTTON_Palette" + n + "=Active=TRUE|Id=ID_BUTTON_Palette" + n + "|Values=x=0.000^c=#" + c1 + ";x=1.000^c=#" + c2 + "|";
+                if (active == "1")
+                {
+                    palette += ",C_CHECKBOX_Palette" + n + "=" + active;
+                }
+            }
+            cnum++;
         }
         else
         {
