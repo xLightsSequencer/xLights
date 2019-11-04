@@ -278,25 +278,12 @@ void SyncUnicastFPP::SendFPPSync(const std::string& item, uint32_t stepMS, uint3
         pktType = SYNC_PKT_SYNC;
     }
 
-    uint8_t fileType;
     wxFileName fn(item);
-    if (fn.GetExt().Lower() == "fseq")
-    {
-        fileType = SYNC_FILE_SEQ;
-    }
-    else
-    {
-        fileType = SYNC_FILE_MEDIA;
-    }
-
-    if (fileType == SYNC_FILE_SEQ)
-    {
         for (auto it : _remotes)
         {
             SendUnicastSync(it, fn.GetFullName().ToStdString(), stepMS, frameMS, pktType);
         }
     }
-}
 
 void SyncUnicastCSVFPP::SendFPPSync(const std::string& item, uint32_t stepMS, uint32_t frameMS) const
 {
@@ -314,25 +301,13 @@ void SyncUnicastCSVFPP::SendFPPSync(const std::string& item, uint32_t stepMS, ui
         pktType = SYNC_PKT_SYNC;
     }
 
-    uint8_t fileType;
     wxFileName fn(item);
-    if (fn.GetExt().Lower() == "fseq")
-    {
-        fileType = SYNC_FILE_SEQ;
-    }
-    else
-    {
-        fileType = SYNC_FILE_MEDIA;
-    }
 
-    if (fileType == SYNC_FILE_SEQ)
-    {
         for (auto it : _remotes)
         {
             SendUnicastSync(it, fn.GetFullName().ToStdString(), stepMS, frameMS, pktType);
         }
     }
-}
 
 void SyncMulticastFPP::SendFPPSync(const std::string& item, uint32_t stepMS, uint32_t frameMS) const
 {
