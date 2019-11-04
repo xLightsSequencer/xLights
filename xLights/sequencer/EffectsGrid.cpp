@@ -4291,7 +4291,7 @@ void EffectsGrid::AlignSelectedEffects(EFF_ALIGN_MODE align_mode)
     mSequenceElements->get_undo_mgr().CreateUndoStep();
     int rows_to_process = mSequenceElements->GetRowInformationSize();
     std::vector<bool> reserved;
-    int first_model_row = mSequenceElements->GetFirstVisibleModelRow();
+    int first_model_row = mSequenceElements->GetNumberOfTimingRows();
     for (int i = first_model_row; i < rows_to_process; i++)
     {
         Element* element = mSequenceElements->GetRowInformation(i)->element;
