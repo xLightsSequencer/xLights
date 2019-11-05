@@ -25,6 +25,7 @@ private:
     void SetSphereCoord();
     double _startLatitude = -86;
     double _endLatitude = 86;
+    double _sphereDegrees = 360;
 };
 
 #endif // SPHEREMODEL_H
