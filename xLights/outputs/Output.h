@@ -1,6 +1,7 @@
 #ifndef OUTPUT_H
 #define OUTPUT_H
 
+#include <list>
 #include <wx/window.h>
 #include <wx/time.h>
 

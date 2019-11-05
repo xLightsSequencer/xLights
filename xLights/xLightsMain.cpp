@@ -368,6 +368,8 @@ const long xLightsFrame::ID_MNU_DEFAULTMODELBLENDOFF = wxNewId();
 const long xLightsFrame::ID_MNU_SNAP_TO_TIMING = wxNewId();
 const long xLightsFrame::ID_MENUITEM21 = wxNewId();
 const long xLightsFrame::ID_MENUITEM22 = wxNewId();
+const long xLightsFrame::ID_MENUITEM27 = wxNewId();
+const long xLightsFrame::ID_MENUITEM28 = wxNewId();
 const long xLightsFrame::ID_MENUITEM1 = wxNewId();
 const long xLightsFrame::ID_MENUITEM_RANDON = wxNewId();
 const long xLightsFrame::ID_MNU_EMAIL = wxNewId();
@@ -1211,8 +1213,12 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     MenuItem54 = new wxMenu();
     MenuItemFSEQV1 = new wxMenuItem(MenuItem54, ID_MENUITEM21, _("V1"), wxEmptyString, wxITEM_RADIO);
     MenuItem54->Append(MenuItemFSEQV1);
-    MenuItemFSEQV2 = new wxMenuItem(MenuItem54, ID_MENUITEM22, _("V2"), wxEmptyString, wxITEM_RADIO);
+    MenuItemFSEQV2 = new wxMenuItem(MenuItem54, ID_MENUITEM22, _("V2 ZSTD"), wxEmptyString, wxITEM_RADIO);
     MenuItem54->Append(MenuItemFSEQV2);
+    MenuItemFSEQV2Uncompressed = new wxMenuItem(MenuItem54, ID_MENUITEM27, _("V2 Uncompressed"), wxEmptyString, wxITEM_RADIO);
+    MenuItem54->Append(MenuItemFSEQV2Uncompressed);
+    MenuItemFSEQV2ZLIB = new wxMenuItem(MenuItem54, ID_MENUITEM28, _("V2 ZLIB"), wxEmptyString, wxITEM_RADIO);
+    MenuItem54->Append(MenuItemFSEQV2ZLIB);
     MenuSettings->Append(ID_MENUITEM1, _("FSEQ Version"), MenuItem54, wxEmptyString);
     MenuItem_Random_Set = new wxMenuItem(MenuSettings, ID_MENUITEM_RANDON, _("Set Allowed Random Effects"), wxEmptyString, wxITEM_NORMAL);
     MenuSettings->Append(MenuItem_Random_Set);
@@ -1474,6 +1480,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     Connect(ID_MNU_SNAP_TO_TIMING,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_SnapToTimingMarksSelected);
     Connect(ID_MENUITEM21,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemFSEQV1Selected);
     Connect(ID_MENUITEM22,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemFSEQV2Selected);
+    Connect(ID_MENUITEM27,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemFSEQV2UncompressedSelected);
+    Connect(ID_MENUITEM28,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemFSEQV2ZLIBSelected);
     Connect(ID_MENUITEM_RANDON,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_Random_SetSelected);
     Connect(ID_MNU_EMAIL,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_EmailAddressSelected);
     Connect(ID_MENU_HARDWARE_VIDEO_DECODE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemHardwareVideoDecoderToggle);
@@ -1644,6 +1652,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     config->Read("xLightsFSEQVersion", &_fseqVersion, 2);
     MenuItemFSEQV1->Check(_fseqVersion == 1);
     MenuItemFSEQV2->Check(_fseqVersion == 2);
+    MenuItemFSEQV2Uncompressed->Check(_fseqVersion == 3);
+    MenuItemFSEQV2ZLIB->Check(_fseqVersion == 4);
 
     config->Read("xLightsPlayVolume", &playVolume, 100);
     MenuItem_LoudVol->Check(playVolume == 100);
@@ -2262,7 +2272,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     }
 
     SetAudioControls();
-    
+
     bool hwaccelvideo;
     config->Read(_("xLightsVideoReaderAccelerated"), &hwaccelvideo, false);
     VideoReader::SetHardwareAcceleratedVideo(hwaccelvideo);
@@ -2271,7 +2281,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
 #ifdef __WXOSX_MAC__
     // we remove this on OSX because xSchedule is not simple to locate ... at least I dont know how to do it
     MenuItem_xSchedule->GetMenu()->Remove(MenuItem_xSchedule->GetId());
-    
+
     VideoReader::InitHWAcceleration();
 #endif
 
@@ -9901,6 +9911,15 @@ void xLightsFrame::OnMenuItemFSEQV2Selected(wxCommandEvent& event)
 {
     _fseqVersion = 2;
 }
+void xLightsFrame::OnMenuItemFSEQV2UncompressedSelected(wxCommandEvent& event)
+{
+    _fseqVersion = 3;
+}
+
+void xLightsFrame::OnMenuItemFSEQV2ZLIBSelected(wxCommandEvent& event)
+{
+    _fseqVersion = 4;
+}
 
 void xLightsFrame::OnMenuItem_PrepareAudioSelected(wxCommandEvent& event)
 {
@@ -10492,3 +10511,4 @@ void xLightsFrame::OnMenuItemHardwareVideoDecoderToggle(wxCommandEvent& event)
     wxConfigBase* config = wxConfigBase::Get();
     config->Write("xLightsVideoReaderAccelerated", VideoReader::IsHardwareAcceleratedVideo());
 }
+

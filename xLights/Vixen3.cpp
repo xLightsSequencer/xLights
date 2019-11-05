@@ -1,5 +1,7 @@
 #include "Vixen3.h"
 
+#include <list>
+
 #include <wx/wx.h>
 #include <wx/file.h>
 #include <wx/filename.h>

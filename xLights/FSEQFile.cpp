@@ -37,7 +37,9 @@ int gettimeofday(struct timeval * tp, struct timezone * tzp)
 }
 #define ftello _ftelli64
 #define fseeko _fseeki64
-#define NO_ZLIB
+
+//  We need to have zlib available, zstd is not available on things like arduino
+//  #define NO_ZLIB
 
 #else
 #include <sys/time.h>

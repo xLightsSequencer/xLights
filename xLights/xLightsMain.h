@@ -597,6 +597,8 @@ public:
     void OnMenuItem_ValueCurvesSelected(wxCommandEvent& event);
     void OnMenuItem_ColourDropperSelected(wxCommandEvent& event);
     void OnMenuItemHardwareVideoDecoderToggle(wxCommandEvent& event);
+    void OnMenuItemFSEQV2UncompressedSelected(wxCommandEvent& event);
+    void OnMenuItemFSEQV2ZLIBSelected(wxCommandEvent& event);
     //*)
     void OnCharHook(wxKeyEvent& event);
 private:
@@ -854,6 +856,8 @@ public:
     static const long ID_MNU_SNAP_TO_TIMING;
     static const long ID_MENUITEM21;
     static const long ID_MENUITEM22;
+    static const long ID_MENUITEM27;
+    static const long ID_MENUITEM28;
     static const long ID_MENUITEM1;
     static const long ID_MENUITEM_RANDON;
     static const long ID_MNU_EMAIL;
@@ -964,6 +968,8 @@ public:
     wxMenuItem* MenuItemEffectAssistWindow;
     wxMenuItem* MenuItemFSEQV1;
     wxMenuItem* MenuItemFSEQV2;
+    wxMenuItem* MenuItemFSEQV2Uncompressed;
+    wxMenuItem* MenuItemFSEQV2ZLIB;
     wxMenuItem* MenuItemGridIconBackgroundOff;
     wxMenuItem* MenuItemGridIconBackgroundOn;
     wxMenuItem* MenuItemGridNodeValuesOff;

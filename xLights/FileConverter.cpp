@@ -1687,8 +1687,26 @@ void FileConverter::WriteFalconPiFile(ConvertParameters& params)
     logger_conversion.debug("Start fseq write");
     
     
-    const wxUint8 vMajor = params.xLightsFrm->_fseqVersion;
-    FSEQFile *file = FSEQFile::createFSEQFile(params.out_filename, vMajor, FSEQFile::CompressionType::zstd, 2);
+    const wxUint8 fType = params.xLightsFrm->_fseqVersion;
+    int vMajor = 2;
+    int clevel = 2;
+    FSEQFile::CompressionType ctype = FSEQFile::CompressionType::zstd;
+    switch (fType) {
+        case 1:
+            vMajor = 1;
+            break;
+        case 3:
+            ctype = FSEQFile::CompressionType::none;
+            break;
+        case 4:
+            ctype = FSEQFile::CompressionType::zlib;
+            clevel = 1;
+            break;
+        default:
+            break;
+    }
+    
+    FSEQFile *file = FSEQFile::createFSEQFile(params.out_filename, vMajor, ctype, clevel);
     if (!file) {
         params.ConversionError(wxString("Unable to create file: ") + params.out_filename);
         return;

@@ -1782,8 +1782,18 @@
 						<radio>1</radio>
 					</object>
 					<object class="wxMenuItem" name="ID_MENUITEM22" variable="MenuItemFSEQV2" member="yes">
-						<label>V2</label>
+						<label>V2 ZSTD</label>
 						<handler function="OnMenuItemFSEQV2Selected" entry="EVT_MENU" />
+						<radio>1</radio>
+					</object>
+					<object class="wxMenuItem" name="ID_MENUITEM27" variable="MenuItemFSEQV2Uncompressed" member="yes">
+						<label>V2 Uncompressed</label>
+						<handler function="OnMenuItemFSEQV2UncompressedSelected" entry="EVT_MENU" />
+						<radio>1</radio>
+					</object>
+					<object class="wxMenuItem" name="ID_MENUITEM28" variable="MenuItemFSEQV2ZLIB" member="yes">
+						<label>V2 ZLIB</label>
+						<handler function="OnMenuItemFSEQV2ZLIBSelected" entry="EVT_MENU" />
 						<radio>1</radio>
 					</object>
 				</object>
