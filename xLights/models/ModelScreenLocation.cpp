@@ -1676,7 +1676,7 @@ float BoxedScreenLocation::GetRestorableMDepth() const {
     return scalez * (RenderWi-1);
 }
 void BoxedScreenLocation::SetMHeight(float h) {
-    if (RenderHt == 1)
+    if (RenderHt == 1 || h == 0)
     {
         scaley = 1;
     }
@@ -5350,7 +5350,7 @@ float PolyPointScreenLocation::GetMDepth() const
 
 void PolyPointScreenLocation::SetMHeight(float h)
 {
-    if (maxY == minY)
+    if (maxY == minY || h == 0)
     {
         scaley = 1;
     }
