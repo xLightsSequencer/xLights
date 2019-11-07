@@ -101,7 +101,7 @@ template<typename... Args> static void LogDebug(int i, const char *fmt, Args... 
 #include <zstd.h>
 #endif
 #ifndef NO_ZLIB
-#include <zlib.h>
+#include <zlib/zlib.h>
 #endif
 
 using FrameData = FSEQFile::FrameData;
