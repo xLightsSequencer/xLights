@@ -29,11 +29,12 @@ LyricsDialog::LyricsDialog(int endtime, wxWindow* parent,wxWindowID id,const wxP
 	wxFlexGridSizer* FlexGridSizer1;
 	wxStdDialogButtonSizer* StdDialogButtonSizer1;
 
-	Create(parent, id, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE, _T("id"));
+	Create(parent, id, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxCAPTION|wxRESIZE_BORDER|wxMAXIMIZE_BOX, _T("id"));
 	SetClientSize(wxDefaultSize);
 	Move(wxDefaultPosition);
 	FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer1->AddGrowableCol(0);
+	FlexGridSizer1->AddGrowableRow(2);
 	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Type or Paste Lyrics:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
 	wxFont StaticText1Font(14,wxFONTFAMILY_SWISS,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_NORMAL,false,wxEmptyString,wxFONTENCODING_DEFAULT);
 	StaticText1->SetFont(StaticText1Font);
@@ -42,7 +43,7 @@ LyricsDialog::LyricsDialog(int endtime, wxWindow* parent,wxWindowID id,const wxP
 	FlexGridSizer1->Add(__SpacerSize_1.GetWidth(),__SpacerSize_1.GetHeight(),1, wxTOP|wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	TextCtrlLyrics = new wxTextCtrl(this, ID_TEXTCTRL_Lyrics, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE, wxDefaultValidator, _T("ID_TEXTCTRL_Lyrics"));
 	TextCtrlLyrics->SetMinSize(wxDLG_UNIT(this,wxSize(250,250)));
-	FlexGridSizer1->Add(TextCtrlLyrics, 1, wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, wxDLG_UNIT(this,wxSize(20,0)).GetWidth());
+	FlexGridSizer1->Add(TextCtrlLyrics, 1, wxLEFT|wxRIGHT|wxEXPAND, wxDLG_UNIT(this,wxSize(20,0)).GetWidth());
 	BoxSizer1 = new wxBoxSizer(wxHORIZONTAL);
 	StaticText3 = new wxStaticText(this, ID_STATICTEXT3, _("Start Time (sec):"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
 	BoxSizer1->Add(StaticText3, 0, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE, 5);

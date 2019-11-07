@@ -3,9 +3,11 @@
 	<object class="wxDialog" name="LyricsDialog">
 		<pos_arg>1</pos_arg>
 		<size_arg>1</size_arg>
+		<style>wxCAPTION|wxRESIZE_BORDER|wxMAXIMIZE_BOX</style>
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
 			<cols>1</cols>
 			<growablecols>0</growablecols>
+			<growablerows>2</growablerows>
 			<object class="sizeritem">
 				<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
 					<label>Type or Paste Lyrics:</label>
@@ -32,7 +34,7 @@
 					<minsize>250,250d</minsize>
 					<style>wxTE_MULTILINE</style>
 				</object>
-				<flag>wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxLEFT|wxRIGHT|wxEXPAND</flag>
 				<border>20d</border>
 				<option>1</option>
 			</object>
