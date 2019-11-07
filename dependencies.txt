@@ -181,3 +181,12 @@ Last Pulled:
 Version:
 License:     BSD
 Strategy:    zstd.h header added to xLights repository, static libraries added to lib for OSX/Windows
+
+Library:     zlib
+Usage:       read/write of v2 FSEQ files
+Link:        http://zlib.net/
+Source:      https://github.com/madler/zlib
+Last Pulled:
+Version:     1.2.11
+License:     zlib
+Strategy:    header added to xLights repository include/zlib, static libraries added to lib for Windows
