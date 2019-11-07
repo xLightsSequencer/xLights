@@ -2274,11 +2274,15 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     SetAudioControls();
 
     bool hwaccelvideo;
+#ifdef __WXOSX__
+    config->Read(_("xLightsVideoReaderAccelerated"), &hwaccelvideo, true);
+#else
     config->Read(_("xLightsVideoReaderAccelerated"), &hwaccelvideo, false);
+#endif
     VideoReader::SetHardwareAcceleratedVideo(hwaccelvideo);
     MenuItemHardwareDecoder->Check(VideoReader::IsHardwareAcceleratedVideo());
 
-#ifdef __WXOSX_MAC__
+#ifdef __WXOSX__
     // we remove this on OSX because xSchedule is not simple to locate ... at least I dont know how to do it
     MenuItem_xSchedule->GetMenu()->Remove(MenuItem_xSchedule->GetId());
 
