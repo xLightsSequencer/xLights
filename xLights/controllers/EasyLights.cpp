@@ -10,6 +10,7 @@
 #include "../models/ModelManager.h"
 #include "ControllerUploadData.h"
 #include "UtilFunctions.h"
+#include "ControllerRegistry.h"
 
 #include <log4cpp/Category.hh>
 
@@ -570,13 +571,13 @@ void EasyLightsString::Dump() const
 		Slots );
 }
 
-static const std::string EASYLIGHTS_24 = "EasyLights 24";
+static const std::string EASYLIGHTS_24 = "EasyLights 24"; //this Controller  propably doesn't work........
 static const std::string EASYLIGHTS_PIX16 = "EasyLights PIX16";
 
 class EasyLightsControllerRules: public ControllerRules
 {
 	int _type;
-	int _version;
+	//int _version;    //unused varible
 	int _expansions;
 
 public:
@@ -585,7 +586,7 @@ public:
 	{
 		_expansions = 0;
 		_type = type;
-		_version = version;
+		//_version = version;  //unused varible
 	}
 
     virtual ~EasyLightsControllerRules() {}
@@ -628,7 +629,7 @@ public:
 			return 0;
 		}
 
-		return 48;
+		return 48; //unreachable code....
 	}
 
 	virtual int GetMaxSerialPortChannels() const override
@@ -638,7 +639,7 @@ public:
 
 	virtual int GetMaxSerialPort() const override
 	{
-		if(_type == 1)
+		if(_type == 1)//unneeded code....
 		{
 			return 1;
 		}
@@ -693,7 +694,19 @@ public:
 	{
 		return false;
 	}
+
+	virtual bool SingleUpload() const override { return true; }
 };
+
+static std::vector<EasyLightsControllerRules> CONTROLLER_TYPE_MAP = {
+	EasyLightsControllerRules(1, 1)
+};
+
+void EasyLights::RegisterControllers() {
+	for (auto &a : CONTROLLER_TYPE_MAP) {
+		ControllerRegistry::AddController(&a);
+	}
+}
 
 int EasyLights::GetMaxPixels() const
 {

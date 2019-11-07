@@ -272,7 +272,7 @@ bool SimpleHTTP::MyBuildRequest(const wxString& path, const wxString& method, wx
     return ret_value;
 }
 
-void SanDevices::RegisterController() {
+void SanDevices::RegisterControllers() {
     for (auto &a : CONTROLLER_TYPE_MAP) {
         ControllerRegistry::AddController(&a);
     }

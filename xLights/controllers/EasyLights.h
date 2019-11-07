@@ -252,6 +252,8 @@ public:
     virtual ~EasyLights();
     bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, std::list<int>& selected, wxWindow* parent);
 	bool Test_Reset_Complete() const;
+
+	static void RegisterControllers();
 };
 
 #endif

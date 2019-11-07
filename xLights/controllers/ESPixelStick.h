@@ -52,6 +52,8 @@ public:
         return res;
     };
     virtual bool UniversesMustBeSequential() const override { return true; }
+
+    virtual bool SingleUpload() const override { return true; }
 };
 
 class ESPixelStick

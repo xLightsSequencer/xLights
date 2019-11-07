@@ -13,6 +13,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
    -- bug (gil)    Fix effect alignment bug if some effects are offscreen above visible area. Fixes #1192.
    -- bug (gil)    Fix panning so it's 1:1 in 2D.
+   -- enh (scott)  Added Pixlite and EasyLights Controllers to the Controller Selection Dropdown.
 2019.63 November 3 2019
    -- bug (dkulp)  Fix audio dropout
 2019.62 November 2 2019

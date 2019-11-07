@@ -92,6 +92,8 @@ public:
     bool IsConnected() const { return _connected; };
     ~Pixlite16();
     bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, std::list<int>& selected, wxWindow* parent);
+
+    static void RegisterControllers();
 };
 
 #endif

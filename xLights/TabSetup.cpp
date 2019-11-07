@@ -1538,7 +1538,7 @@ void xLightsFrame::OnGridNetworkItemRClick(wxListEvent& event)
 
     if (hasControllerConfigured) {
         auto rules = ControllerRegistry::GetRulesForController(selected->GetControllerId());
-        if (selected->GetType() == OUTPUT_E131 && rules->GetControllerManufacturer() != "ESPixelStick") {
+        if (selected->GetType() == OUTPUT_E131 && !rules->SingleUpload() ) {
             std::string description = rules->GetControllerDescription();
             mnuUploadController->Append(ID_NETWORK_UPLOAD_INPUT_CONTROLLER_CONFIGURED, "E1.31 Input Definition - " + description);
         }
@@ -1584,8 +1584,8 @@ void xLightsFrame::OnGridNetworkItemRClick(wxListEvent& event)
     if (hasControllerConfigured) {
         auto rules = ControllerRegistry::GetRulesForController(selected->GetControllerId());
         std::string description = rules->GetControllerDescription();
-        if (rules->GetControllerManufacturer() == "ESPixelStick") {
-            //ESPixelStick uploads inputs and outputs together as one
+        if (rules->SingleUpload()) {
+            //ESPixelStick and PixLite uploads inputs and outputs together as one
             mnuUploadController->Append(ID_NETWORK_UPLOAD_CONTROLLER_CONFIGURED, description);
         } else {
             mnuUploadController->Append(ID_NETWORK_UPLOAD_CONTROLLER_CONFIGURED, "Output - " + description);
@@ -1952,6 +1952,10 @@ void xLightsFrame::OnNetworkPopup(wxCommandEvent &event)
             UploadESPixelStickOutput();
         } else if (rules->GetControllerManufacturer() == "SanDevices") {
             UploadSanDevicesOutput();
+        } else if (rules->GetControllerManufacturer() == "PixLite") {
+            UploadPixlite16Output();
+        } else if (rules->GetControllerManufacturer() == "EasyLights") {
+            UploadEasyLightsOutput();
         }
         //FIXME - other targets
     } else if (id == ID_NETWORK_VISUALISE) {

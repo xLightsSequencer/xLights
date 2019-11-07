@@ -281,7 +281,7 @@ public:
     bool SetInputUniverses(OutputManager* outputManager, std::list<int>& selected);
     bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, std::list<int>& selected, wxWindow* parent);
 
-    static void RegisterController();
+    static void RegisterControllers();
     
     std::string GetModelName() { return EncodeControllerType(); }
     const std::string &GetVersion() { return _version; }

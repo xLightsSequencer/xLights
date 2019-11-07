@@ -5,6 +5,7 @@
 #include "SanDevices.h"
 #include "J1Sys.h"
 #include "EasyLights.h"
+#include "Pixlite16.h"
 
 std::map<std::string, const ControllerRules*> ControllerRegistry::controllers;
 std::map<std::string, std::string> ControllerRegistry::controllersByDescription;
@@ -55,6 +56,8 @@ void ControllerRegistry::loadControllers() {
     Falcon::RegisterControllers();
     FPP::RegisterCapes();
     ESPixelStick::RegisterControllers();
-    SanDevices::RegisterController();
+    SanDevices::RegisterControllers();
     J1Sys::RegisterControllers();
+    Pixlite16::RegisterControllers();
+    EasyLights::RegisterControllers();
 }

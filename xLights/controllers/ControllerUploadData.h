@@ -42,6 +42,8 @@ public:
     virtual const std::string GetControllerDescription() const {
         return GetControllerManufacturer() + " " + GetControllerId();
     }
+
+    virtual bool SingleUpload() const { return false; }
 };
 
 class UDControllerPortModel

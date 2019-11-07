@@ -7,6 +7,7 @@
 #include "outputs/Output.h"
 #include "UtilFunctions.h"
 #include "ControllerUploadData.h"
+#include "ControllerRegistry.h"
 
 class PixLite16ControllerRules : public ControllerRules
 {
@@ -21,9 +22,16 @@ public:
         _pixelPorts = config._realOutputs;
         _dmxPorts = config._realDMX;
     }
+
+    PixLite16ControllerRules(int pixelsPerOutput, int pixelPorts, int dmxPorts) : ControllerRules()
+    {
+        _maxChannelsPerOutput = pixelsPerOutput * 3;
+        _pixelPorts = pixelPorts;
+        _dmxPorts = dmxPorts;
+    }
     virtual ~PixLite16ControllerRules() {}
     virtual const std::string GetControllerId() const override {
-        return std::string("PixLite") + std::to_string(_pixelPorts);
+        return std::to_string(_pixelPorts) + std::string((_maxChannelsPerOutput > 2040) ? " MkII" : "");
     }
     virtual const std::string GetControllerManufacturer() const override {
         return "PixLite";
@@ -73,6 +81,15 @@ public:
         return res;
     };
     virtual bool UniversesMustBeSequential() const override { return true; }
+
+    virtual bool SingleUpload() const override { return true; }
+};
+
+static std::vector<PixLite16ControllerRules> CONTROLLER_TYPE_MAP = {
+    PixLite16ControllerRules(680, 4, 1),
+    PixLite16ControllerRules(340, 16, 4),
+    PixLite16ControllerRules(1020, 4, 1),
+    PixLite16ControllerRules(1020, 16, 4)
 };
 
 bool Pixlite16::ParseV4Config(uint8_t* data)
@@ -1018,5 +1035,11 @@ void Pixlite16::DumpConfiguration() const
     for (int i = 0; i < _config._numBanks; i++)
     {
         logger_base.debug("        Voltage Bank %d : %.1f ", i + 1, (float)_config._bankVoltage[i] / 10.0);
+    }
+}
+
+void Pixlite16::RegisterControllers() {
+    for (auto &a : CONTROLLER_TYPE_MAP) {
+        ControllerRegistry::AddController(&a);
     }
 }
