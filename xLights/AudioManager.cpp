@@ -2634,7 +2634,7 @@ void AudioManager::SwitchTo(AUDIOSAMPLETYPE type, int lowNote, int highNote) {
         highNote = 84;
     }
 
-    if (_data[0] == nullptr) {
+    if (_data[0] == nullptr || _pcmdata == nullptr) {
         return;
     }
     if (_filtered.empty()) {
@@ -2674,8 +2674,11 @@ void AudioManager::SwitchTo(AUDIOSAMPLETYPE type, int lowNote, int highNote) {
                                      
                     v = v * 32768;
                     int v2 = (int)v;
-                    fad->pcmdata[i * 2] = v2;
-                    fad->pcmdata[i * 2 + 1] = v2;
+                    fad->pcmdata[i * _channels] = v2;
+                    if (_channels > 1)
+                    {
+                        fad->pcmdata[i * _channels + 1] = v2;
+                    }
                 }
                 fad->lowNote = 0;
                 fad->highNote = 0;
@@ -2746,13 +2749,17 @@ void AudioManager::SwitchTo(AUDIOSAMPLETYPE type, int lowNote, int highNote) {
                 
                 lvalue = lvalue * 32768;
                 int v2 = (int)lvalue;
-                fad->pcmdata[i * 2] = v2;
-                if (_data[1]) {
-                    rvalue = rvalue * 32768;
-                    v2 = (int)rvalue;
-                    fad->pcmdata[i * 2 + 1] = v2;
-                } else {
-                    fad->pcmdata[i * 2 + 1] = v2;
+                fad->pcmdata[i * _channels] = v2;
+                if (_channels > 1)
+                {
+                    if (_data[1]) {
+                        rvalue = rvalue * 32768;
+                        v2 = (int)rvalue;
+                        fad->pcmdata[i * _channels + 1] = v2;
+                    }
+                    else {
+                        fad->pcmdata[i * _channels + 1] = v2;
+                    }
                 }
             });
 
