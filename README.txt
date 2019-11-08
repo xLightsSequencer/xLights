@@ -11,9 +11,19 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2019.64 November 9 2019
+   -- enh (scott)  Added Pixlite and EasyLights Controllers to the Controller Selection Dropdown.
+   -- enh (keith)  Make lyrics entry dialog resizable
+   -- enh (dkulp)  Add zlib compressed FSEQ support
+   -- enh (keith)  Add degrees setting to sphere model
    -- bug (gil)    Fix effect alignment bug if some effects are offscreen above visible area. Fixes #1192.
    -- bug (gil)    Fix panning so it's 1:1 in 2D.
-   -- enh (scott)  Added Pixlite and EasyLights Controllers to the Controller Selection Dropdown.
+   -- bug (keith)  Fix falcon upload virtual strings on smart remotes dont load in correct order
+   -- bug (keith)  Fix falcon dmx upload wont take start channel greater than 512 if in absolute addressing mode
+   -- bug (keith)  Fix crash loading mono audio files
+   -- bug (keith)  Fix 3D model scaling issues for one high boxed models
+   -- bug (keith)  Fix 2 colour LPE/LOREDIT colours not importing correctly
+   -- bug (runion) Fix unicast does not send FPP media sync
 2019.63 November 3 2019
    -- bug (dkulp)  Fix audio dropout
 2019.62 November 2 2019
