@@ -237,10 +237,11 @@ Falcon::~Falcon()
 void FalconString::Dump() const
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("    Index %02d Port %02d SmartRemote %d Prot %d Desc '%s' Uni %d StartChan %d Pixels %d Group %d Direction %s ColorOrder %s Nulls %d Brightness %d Gamma %.1f",
+    logger_base.debug("    Index %02d Port %02d SmartRemote %d VirtualString %d Prot %d Desc '%s' Uni %d StartChan %d Pixels %d Group %d Direction %s ColorOrder %s Nulls %d Brightness %d Gamma %.1f",
         index,
         port+1,
         smartRemote,
+        virtualStringIndex,
         protocol,
         (const char*)description.c_str(),
         universe,
@@ -530,6 +531,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
                 // ignore index ... we will fix them up when done
                 fs->port = firstString->port;
                 fs->index = index++;
+                fs->virtualStringIndex = vs->_index;
                 fs->protocol = DecodeStringPortProtocol(vs->_protocol);
                 fs->universe = vs->_universe;
                 if (_usingAbsolute) {
@@ -895,6 +897,7 @@ void Falcon::ReadStringData(const wxXmlDocument& stringsDoc, std::vector<FalconS
         string->direction = DecodeDirection(wxAtoi(e->GetAttribute("d", "0")));
         string->groupCount = wxAtoi(e->GetAttribute("g", "1"));
         string->smartRemote = wxAtoi(e->GetAttribute("x", "0"));
+        string->virtualStringIndex = wxAtoi(e->GetAttribute("si", "0"));
         string->index = i;
         stringData[i] = string;
 
@@ -1054,6 +1057,7 @@ void Falcon::InitialiseStrings(std::vector<FalconString*>& stringsData, int max)
         {
             FalconString* string = new FalconString();
             string->startChannel = 1;
+            string->virtualStringIndex = 0;
             string->pixels = MINIMUMPIXELS;
             string->protocol = 0;
             string->universe = 1;
@@ -1119,6 +1123,7 @@ void Falcon::EnsureSmartStringExists(std::vector<FalconString*>& stringData, int
         logger_base.debug("Adding in dummy string for a smart remote Port: %d Smart Remote %d", port + 1, smartRemote + 1);
         FalconString* string = new FalconString();
         string->startChannel = 1;
+        string->virtualStringIndex = 0;
         string->pixels = 0;
         string->protocol = 0;
         string->universe = 1;
@@ -1254,8 +1259,9 @@ int Falcon::CountStrings(const wxXmlDocument& stringsDoc) const
 
 std::string Falcon::BuildStringPort(FalconString* string) const
 {
-    return wxString::Format("&p%i=%i&t%i=%i&u%i=%i&s%i=%i&c%i=%i&y%i=%s&b%i=%i&n%i=%i&G%i=%i&o%i=%i&d%i=%i&g%i=%i&w%i=%d",
+    return wxString::Format("&p%i=%i&x%i=%i&t%i=%i&u%i=%i&s%i=%i&c%i=%i&y%i=%s&b%i=%i&n%i=%i&G%i=%i&o%i=%i&d%i=%i&g%i=%i&w%i=%d",
         string->index, string->port,
+        string->index, string->virtualStringIndex,
         string->index, string->protocol,
         string->index, string->universe,
         string->index, string->startChannel,

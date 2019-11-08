@@ -158,6 +158,7 @@ public:
 class FalconString
 {
 public:
+    int virtualStringIndex;
     int protocol;
     int universe;
     int startChannel;

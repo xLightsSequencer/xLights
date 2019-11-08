@@ -94,6 +94,7 @@ public:
 
 struct UDVirtualString
 {
+    int _index = -1;
     std::string _description;
     int32_t _startChannel;
     int32_t _endChannel;

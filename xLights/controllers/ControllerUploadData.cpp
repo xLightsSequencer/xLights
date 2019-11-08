@@ -1032,4 +1032,16 @@ void UDControllerPort::CreateVirtualStrings(bool mergeSequential)
             }
         }
     }
+
+    int lastremote = 0;
+    int count = 0;
+    for (auto& vs : _virtualStrings)
+    {
+        if (vs->_smartRemote != lastremote)
+        {
+            count = 0;
+        }
+        vs->_index = count++;
+        lastremote = vs->_smartRemote;
+    }
 }
