@@ -4482,6 +4482,7 @@ int Model::GetStrandLength(int strand) const {
 }
 
 int Model::MapToNodeIndex(int strand, int node) const {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     //if ((DisplayAs == wxT("Vert Matrix") || DisplayAs == wxT("Horiz Matrix") || DisplayAs == wxT("Matrix")) && SingleChannel) {
     //    return node;
     //}
@@ -4491,6 +4492,7 @@ int Model::MapToNodeIndex(int strand, int node) const {
     if (SingleNode) {
         return strand;
     }
+    if (parm3 == 0) logger_base.crit("Map node to index with illegal parm3 = 0.");
     return (strand * parm2 / parm3) + node;
 }
 

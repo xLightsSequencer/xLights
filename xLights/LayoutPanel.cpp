@@ -5383,11 +5383,14 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
 }
 
 void LayoutPanel::DoUndo(wxCommandEvent& event) {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("LayoutPanel::DoUndo");
     int sz = undoBuffer.size() - 1;
     if (sz >= 0) {
         UnSelectAllModels();
 
         if (undoBuffer[sz].type == "Background") {
+            logger_base.debug("LayoutPanel::DoUndo Background");
             wxPropertyGridEvent pgEvent;
             pgEvent.SetPropertyGrid(propertyEditor);
             wxStringProperty wsp("Background", undoBuffer[sz].key, undoBuffer[sz].data);
@@ -5397,6 +5400,7 @@ void LayoutPanel::DoUndo(wxCommandEvent& event) {
             OnPropertyGridChange(pgEvent);
             UnSelectAllModels();
         } else if (undoBuffer[sz].type == "ModelProperty") {
+            logger_base.debug("LayoutPanel::DoUndo ModelProperty");
             SelectModel(undoBuffer[sz].model);
             wxPropertyGridEvent event2;
             event2.SetPropertyGrid(propertyEditor);
@@ -5409,6 +5413,7 @@ void LayoutPanel::DoUndo(wxCommandEvent& event) {
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "LayoutPanel::DoUndo");
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::DoUndo");
         } else if (undoBuffer[sz].type == "ObjectProperty") {
+            logger_base.debug("LayoutPanel::DoUndo ObjectProperty");
             ViewObject* vobj = xlights->AllObjects[undoBuffer[sz].model];
             SelectViewObject(vobj);
             wxPropertyGridEvent event2;
@@ -5422,6 +5427,7 @@ void LayoutPanel::DoUndo(wxCommandEvent& event) {
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "LayoutPanel::DoUndo");
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::DoUndo");
         } else if (undoBuffer[sz].type == "SingleModel") {
+            logger_base.debug("LayoutPanel::DoUndo SingleModel");
             Model *m = xlights->AllModels[undoBuffer[sz].model];
             if (m != nullptr) {
                 wxStringInputStream min(undoBuffer[sz].data);
@@ -5440,6 +5446,7 @@ void LayoutPanel::DoUndo(wxCommandEvent& event) {
                 xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "LayoutPanel::DoUndo");
             }
         } else if (undoBuffer[sz].type == "All") {
+            logger_base.debug("LayoutPanel::DoUndo All");
             UnSelectAllModels();
 
             wxStringInputStream gin(undoBuffer[sz].groups);
@@ -5493,6 +5500,7 @@ void LayoutPanel::DoUndo(wxCommandEvent& event) {
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "LayoutPanel::DoUndo");
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::DoUndo", nullptr, nullptr, undoBuffer[sz].model);
         } else if (undoBuffer[sz].type == "ModelName") {
+            logger_base.debug("LayoutPanel::DoUndo ModelName");
             std::string origName = undoBuffer[sz].model;
             std::string newName = undoBuffer[sz].key;
             if (lastModelName == newName) {
@@ -5504,6 +5512,7 @@ void LayoutPanel::DoUndo(wxCommandEvent& event) {
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::DoUndo");
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "LayoutPanel::DoUndo");
         } else if (undoBuffer[sz].type == "ObjectName") {
+            logger_base.debug("LayoutPanel::DoUndo ObjectName");
             std::string origName = undoBuffer[sz].model;
             std::string newName = undoBuffer[sz].key;
             xlights->RenameObject(newName, origName);

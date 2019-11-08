@@ -6716,6 +6716,7 @@ void EffectsGrid::MoveAllSelectedEffects(int deltaMS, bool offset) const
                 }
             }
         }
+        if (start_row == end_row) logger_base.crit("MoveAllSelectedEffect start_row == end_row ... this is going to crash.");
         int delta_step = deltaMS / (end_row - start_row);
         delta_step = mTimeline->RoundToMultipleOfPeriod(delta_step, mSequenceElements->GetFrequency());
         for (int row = start_row; row <= end_row; row++)
