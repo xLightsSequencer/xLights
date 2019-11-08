@@ -62,13 +62,12 @@ static std::vector<FalconControllerRules> CONTROLLER_TYPE_MAP = {
     FalconControllerRules(6),
     FalconControllerRules(7)
 };
+
 void Falcon::RegisterControllers() {
     for (const auto &a : CONTROLLER_TYPE_MAP) {
         ControllerRegistry::AddController(&a);
     }
 }
-
-
 
 bool Falcon::IsEnhancedV2Firmware() const
 {
@@ -775,7 +774,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
     }
     else
     {
-        if (GetMaxStringOutputs() > 0)
+        if (cud.GetMaxPixelPort() > 0 && GetMaxStringOutputs() > 0 && check != "")
         {
             DisplayError("Not uploaded due to errors.\n" + check);
             check = "";
@@ -1297,19 +1296,28 @@ void Falcon::UploadSerialOutput(int output, OutputManager* outputManager, int pr
         return;
     }
 
-    int32_t sc;
-    auto o = outputManager->GetOutput(portstart, sc);
-
-    if (o != nullptr)
+    if (_usingAbsolute)
     {
-        wxString request = wxString::Format("btnSave=Save&t%d=%d&u%d=%d&s%d=%d", 
-            output-1, protocol, 
-            output-1, o->GetUniverse(), 
-            output-1, (int)sc);
+        wxString request = wxString::Format("btnSave=Save&t%d=%d&s%d=%d",
+            output - 1, protocol,
+            output - 1, portstart);
         PutURL("/SerialOutputs.htm", request.ToStdString());
     }
     else
     {
-        DisplayError("Error uploading serial output to falcon. "+ wxString::Format("%i", portstart) +" does not map to a universe.");
+        int32_t sc;
+        auto o = outputManager->GetOutput(portstart, sc);
+        if (o != nullptr)
+        {
+            wxString request = wxString::Format("btnSave=Save&t%d=%d&u%d=%d&s%d=%d",
+                output - 1, protocol,
+                output - 1, o->GetUniverse(),
+                output - 1, (int)sc);
+            PutURL("/SerialOutputs.htm", request.ToStdString());
+        }
+        else
+        {
+            DisplayError("Error uploading serial output to falcon. " + wxString::Format("%i", portstart) + " does not map to a universe.");
+        }
     }
 }
