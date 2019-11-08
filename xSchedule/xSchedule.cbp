@@ -105,7 +105,6 @@
 					<Add option="-Wl,-Map=../bin/xSchedule.map" />
 					<Add option="-Wl,--large-address-aware" />
 					<Add option="-lpthread" />
-					<Add option="-lz" />
 					<Add option="-lole32" />
 					<Add library="../lib/windows/avcodec.lib" />
 					<Add library="../lib/windows/avformat.lib" />
@@ -124,6 +123,7 @@
 					<Add library="../lib/windows/Ws2_32.lib" />
 					<Add library="../lib/windows/libcurl.lib" />
 					<Add library="psapi" />
+					<Add library="../lib/windows/libz.a" />
 					<Add directory="../lib/windows" />
 				</Linker>
 			</Target>
@@ -235,10 +235,9 @@
 					<Add option="-O2" />
 					<Add option="-s" />
 					<Add option="-m64" />
+					<Add option="-lole32" />
 					<Add option="-Wl,-Map=../bin64/xSchedule.map" />
 					<Add option="-lpthread" />
-					<Add option="-lz" />
-					<Add option="-lole32" />
 					<Add library="../lib/windows64/avcodec.lib" />
 					<Add library="../lib/windows64/avformat.lib" />
 					<Add library="../lib/windows64/avutil.lib" />
@@ -256,6 +255,7 @@
 					<Add library="../lib/windows64/libzstd_static.lib" />
 					<Add library="../lib/windows64/libcurl.lib" />
 					<Add library="psapi" />
+					<Add library="../lib/windows64/libz.a" />
 					<Add directory="../lib/windows64" />
 				</Linker>
 			</Target>

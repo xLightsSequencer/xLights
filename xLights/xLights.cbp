@@ -123,7 +123,6 @@
 					<Add option="-m32" />
 					<Add option="-lopengl32" />
 					<Add option="-Wl,-Map=../bin/xLights.map" />
-					<Add option="-lz" />
 					<Add option="-Wl,--large-address-aware" />
 					<Add option="-lpthread" />
 					<Add option="-lole32" />
@@ -144,6 +143,7 @@
 					<Add library="../lib/windows/libzstd_static.lib" />
 					<Add library="../lib/windows/LIBCURL.LIB" />
 					<Add library="Psapi" />
+					<Add library="../lib/windows/libz.a" />
 					<Add directory="lib/windows" />
 					<Add directory="../lib/windows" />
 				</Linker>
@@ -158,8 +158,8 @@
 				<Option projectLinkerOptionsRelation="2" />
 				<Compiler>
 					<Add option="-Wall" />
-					<Add option="-g" />
 					<Add option="-std=c++1z" />
+					<Add option="-g" />
 					<Add option="-std=gnu++17" />
 					<Add option="`wx-config --version=3.1 --cflags`" />
 					<Add option="`pkg-config --cflags libavformat libavcodec libavutil  libswresample libswscale`" />
@@ -294,7 +294,6 @@
 					<Add option="-mthreads" />
 					<Add option="-lopengl32" />
 					<Add option="-Wl,-Map=../bin64/xLights.map" />
-					<Add option="-lz" />
 					<Add option="-lole32" />
 					<Add library="../lib/windows64/libwxmsw31u.a" />
 					<Add library="../lib/windows64/libwxmsw31u_gl.a" />
@@ -313,6 +312,7 @@
 					<Add library="../lib/windows64/libzstd_static.lib" />
 					<Add library="../lib/windows64/LIBCURL.LIB" />
 					<Add library="Psapi" />
+					<Add library="../lib/windows64/libz.a" />
 				</Linker>
 			</Target>
 			<Target title="64bit MinGW_Debug">
