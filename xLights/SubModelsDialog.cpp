@@ -245,6 +245,7 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent)
 	Connect(ID_BUTTON_DRAW_MODEL,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnButton_Draw_ModelClick);
 	//*)
 
+    Connect(ID_NOTEBOOK1, wxEVT_NOTEBOOK_PAGE_CHANGED, (wxObjectEventFunction)& SubModelsDialog::OnTypeNotebookPageChanged);
     Connect(wxID_ANY, EVT_SMDROP, (wxObjectEventFunction)&SubModelsDialog::OnDrop);
     Connect(ID_GRID1,wxEVT_GRID_CELL_CHANGED,(wxObjectEventFunction)&SubModelsDialog::OnNodesGridCellChange);
     //Connect(ID_GRID1, wxEVT_CHAR, (wxObjectEventFunction)&SubModelsDialog::OnGridChar);
@@ -595,6 +596,7 @@ void SubModelsDialog::OnTypeNotebookPageChanged(wxBookCtrlEvent& event)
     {
         sm->isRanges = TypeNotebook->GetSelection() == 0;
     }
+    Select(name);
 }
 
 void SubModelsDialog::OnSubBufferRangeChange(wxCommandEvent& event)
@@ -1011,6 +1013,11 @@ void SubModelsDialog::Select(const wxString &name)
         SelectRow(0);
     } else {
         TypeNotebook->SetSelection(1);
+        NodesGrid->BeginBatch();
+        if (NodesGrid->GetNumberRows() > 0) {
+            NodesGrid->DeleteRows(0, NodesGrid->GetNumberRows());
+        }
+        NodesGrid->AppendRows(1); // we always need one row
         subBufferPanel->SetValue(sm->subBuffer.ToStdString());
         DisplayRange(sm->subBuffer);
     }
