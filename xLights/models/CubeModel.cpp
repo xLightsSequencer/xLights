@@ -1281,3 +1281,13 @@ void CubeModel::ExportAsCustomXModel() const {
     f.Write("</custommodel>");
     f.Close();
 }
+
+int CubeModel::NodesPerString() const
+{
+    int strings = GetStrings();
+    if (strings == 0) strings = 1;
+    int width = parm1;
+    int height = parm2;
+    int depth = parm3;
+    return (width * height * depth) / strings;
+}

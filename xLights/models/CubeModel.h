@@ -27,6 +27,7 @@ class CubeModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual int GetNumStrands() const override { return _strands; };
         virtual int MapToNodeIndex(int strand, int node) const override;
         virtual void ExportAsCustomXModel() const override;
+        virtual int NodesPerString() const override;
 
         virtual std::string ChannelLayoutHtml(OutputManager * outputManager) override;
 
