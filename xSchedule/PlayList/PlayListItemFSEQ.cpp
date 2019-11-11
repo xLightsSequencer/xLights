@@ -179,7 +179,7 @@ long PlayListItemFSEQ::GetFSEQChannels() const
 {
     if (_fseqFile != nullptr)
     {
-        return _fseqFile->getMaxChannel() + 1;
+        return _fseqFile->getMaxChannel(); // +1;
     }
     else
     {
@@ -187,7 +187,7 @@ long PlayListItemFSEQ::GetFSEQChannels() const
         {
             std::unique_ptr<FSEQFile> fseqFile(FSEQFile::openFSEQFile(_fseqFileName));
             if (fseqFile) {
-                long ch = fseqFile->getMaxChannel() + 1;
+                long ch = fseqFile->getMaxChannel(); // +1;
                 return ch;
             }
         }

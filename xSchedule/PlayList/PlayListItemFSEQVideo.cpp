@@ -852,14 +852,14 @@ long PlayListItemFSEQVideo::GetFSEQChannels() const
 {
     if (_fseqFile != nullptr)
     {
-        return _fseqFile->getMaxChannel() + 1;
+        return _fseqFile->getMaxChannel(); // +1;
     }
     else
     {
         if (wxFile::Exists(_fseqFileName))
         {
             std::unique_ptr<FSEQFile> fseqFile(FSEQFile::openFSEQFile(_fseqFileName));
-            long ch = fseqFile->getMaxChannel() + 1;
+            long ch = fseqFile->getMaxChannel(); // +1;
             return ch;
         }
         else
