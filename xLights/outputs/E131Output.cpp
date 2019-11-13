@@ -552,22 +552,14 @@ void E131Output::SetManyChannels(int32_t channel, unsigned char data[], size_t s
 
         size_t left = size;
         while (left > 0 && o != _outputs.end()) {
-#ifdef _MSC_VER
-            size_t send = min(left, (size_t)_channels);
-#else
-            size_t send = std::min(left, (size_t)_channels);
-#endif
+            size_t send = (std::min)(left, (size_t)_channels);
             (*o)->SetManyChannels(startc, &data[size - left], send);
             left -= send;
             ++o;
             startc = 0;
         }
     } else {
-#ifdef _MSC_VER
-        size_t chs = min(size, (size_t)(_channels - channel));
-#else
-        size_t chs = std::min(size, (size_t)(GetMaxChannels() - channel));
-#endif
+        size_t chs = (std::min)(size, (size_t)(GetMaxChannels() - channel));
 
         if (memcmp(&_data[channel + E131_PACKET_HEADERLEN], data, chs) == 0) {
             // nothing changed

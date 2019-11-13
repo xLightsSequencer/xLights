@@ -314,11 +314,7 @@ void Output::SetManyChannels(int32_t channel, unsigned char data[], size_t size)
         _fppProxyOutput->SetManyChannels(channel, data, size);
         return;
     }
-#ifdef _MSC_VER
-    size_t chs = min(size, (size_t)(_channels - channel));
-#else
-    size_t chs = std::min(size, (size_t)(GetMaxChannels() - channel));
-#endif
+    size_t chs = (std::min)(size, (size_t)(GetMaxChannels() - channel));
 
     for (size_t i = 0; i < chs; i++) {
         SetOneChannel(channel + i, data[i]);
