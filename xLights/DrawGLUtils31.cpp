@@ -17,9 +17,11 @@
         #include "GL/glext.h"
         //#include "GL/glut.h"
     #else
+        #include <GL/glx.h>
         #include <GL/glext.h>
     #endif
 #endif
+
 
 #include "DrawGLUtils.h"
 #include <stack>
