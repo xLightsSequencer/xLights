@@ -102,7 +102,7 @@ MultiControllerUploadDialog::MultiControllerUploadDialog(wxWindow* parent,wxWind
     {
         if ((*it)->IsIpOutput() && (*it)->GetIP() != "MULTICAST" && (*it)->GetType() != OUTPUT_ZCPP)
         {
-            if (std::find_if(_controllers.begin(), _controllers.end(), [&ip = (*it)->GetIP()](auto const& controller){return ip == controller.IP;}) == _controllers.end())
+            if (std::find_if(_controllers.begin(), _controllers.end(), [it](auto const& controller){return (*it)->GetIP() == controller.IP;}) == _controllers.end())
             {
                 _controllers.push_back(ControllerInfo(*it));
 
