@@ -12,12 +12,22 @@
 //*)
 
 class xLightsFrame;
+class Output;
+
+struct ControllerInfo
+{
+	std::string const IP;
+	std::string const ProxyIP;
+	std::string const ControllerId;
+	std::string const Type;
+
+	ControllerInfo(Output* output);
+};
 
 class MultiControllerUploadDialog: public wxDialog
 {
     xLightsFrame* _frame;
-    std::vector<std::string> _ips;
-    std::vector<std::string> _proxies;
+	std::vector < ControllerInfo > _controllers;
     void ValidateWindow();
 
 	public:

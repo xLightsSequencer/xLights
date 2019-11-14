@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (scott)  Added J1Sys, EasyLights, and FPP Controllers to the Multi-Controller Upload Dialog.
 2019.64 November 9 2019
    -- enh (scott)  Added Pixlite and EasyLights Controllers to the Controller Selection Dropdown.
    -- enh (keith)  Make lyrics entry dialog resizable

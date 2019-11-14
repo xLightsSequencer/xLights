@@ -14,6 +14,10 @@
 #include "controllers/SanDevices.h"
 #include "controllers/Pixlite16.h"
 #include "controllers/Falcon.h"
+#include "controllers/J1Sys.h"
+#include "controllers/EasyLights.h"
+#include "controllers/FPP.h"
+#include "controllers/ControllerRegistry.h"
 
 //(*IdInit(MultiControllerUploadDialog)
 const long MultiControllerUploadDialog::ID_STATICTEXT1 = wxNewId();
@@ -28,10 +32,17 @@ const long MultiControllerUploadDialog::ID_TEXTCTRL1 = wxNewId();
 const long MultiControllerUploadDialog::ID_MCU_SELECTALL = wxNewId();
 const long MultiControllerUploadDialog::ID_MCU_SELECTNONE = wxNewId();
 
-BEGIN_EVENT_TABLE(MultiControllerUploadDialog,wxDialog)
+BEGIN_EVENT_TABLE(MultiControllerUploadDialog, wxDialog)
 	//(*EventTable(MultiControllerUploadDialog)
 	//*)
 END_EVENT_TABLE()
+
+
+ControllerInfo::ControllerInfo(Output* output)
+    : IP(output->GetIP()), ProxyIP(output->GetFPPProxyIP()), ControllerId(output->GetControllerId()), Type(output->GetType())
+{
+
+}
 
 MultiControllerUploadDialog::MultiControllerUploadDialog(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
@@ -59,6 +70,10 @@ MultiControllerUploadDialog::MultiControllerUploadDialog(wxWindow* parent,wxWind
 	Choice1->Append(_("San Devices"));
 	Choice1->Append(_("ESP Pixel Stick"));
 	Choice1->Append(_("PixLite/PixCon"));
+	Choice1->Append(_("J1Sys"));
+	Choice1->Append(_("EasyLights"));
+	Choice1->Append(_("FPP Capes/Hats"));
+	Choice1->Append(_("Auto"));
 	FlexGridSizer2->Add(Choice1, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 5);
 	CheckListBox_Controllers = new wxCheckListBox(this, ID_CHECKLISTBOX1, wxDefaultPosition, wxDefaultSize, 0, 0, wxLB_ALWAYS_SB|wxVSCROLL, wxDefaultValidator, _T("ID_CHECKLISTBOX1"));
@@ -87,15 +102,14 @@ MultiControllerUploadDialog::MultiControllerUploadDialog(wxWindow* parent,wxWind
     {
         if ((*it)->IsIpOutput() && (*it)->GetIP() != "MULTICAST" && (*it)->GetType() != OUTPUT_ZCPP)
         {
-            if (std::find(_ips.begin(), _ips.end(), (*it)->GetIP()) == _ips.end())
+            if (std::find_if(_controllers.begin(), _controllers.end(), [&ip = (*it)->GetIP()](auto const& controller){return ip == controller.IP;}) == _controllers.end())
             {
-                _ips.push_back((*it)->GetIP());
-                _proxies.push_back((*it)->GetFPPProxyIP());
-                
+                _controllers.push_back(ControllerInfo(*it));
+
                 if ((*it)->GetFPPProxyIP() != "") {
-                    CheckListBox_Controllers->AppendString((*it)->GetIP() + " (via FPP " + (*it)->GetFPPProxyIP() + ") " + (*it)->GetDescription());
+                    CheckListBox_Controllers->AppendString((*it)->GetIP() + " (via FPP " + (*it)->GetFPPProxyIP() + ") " + (*it)->GetDescription() + " " + (*it)->GetControllerId());
                 } else {
-                    CheckListBox_Controllers->AppendString((*it)->GetIP() + " " + (*it)->GetDescription());
+                    CheckListBox_Controllers->AppendString((*it)->GetIP() + " " + (*it)->GetDescription() + " " + (*it)->GetControllerId());
                 }
             }
         }
@@ -124,15 +138,26 @@ void MultiControllerUploadDialog::OnButton_UploadClick(wxCommandEvent& event)
     // ensure all start channels etc are up to date
     _frame->RecalcModels();
 
-    auto selected = Choice1->GetStringSelection();
-
     wxArrayInt ch;
     CheckListBox_Controllers->GetCheckedItems(ch);
     std::list<int> fake;
 
     for (int i = 0; i < ch.Count() && wxGetKeyState(WXK_ESCAPE) == false; i++) {
-        wxString ip = _ips[ch[i]];
-        wxString proxy = _proxies[ch[i]];
+        wxString const ip = _controllers[ch[i]].IP;
+        wxString const proxy = _controllers[ch[i]].ProxyIP;
+        wxString const id = _controllers[ch[i]].ControllerId;
+        auto selected = Choice1->GetStringSelection();
+
+        if (selected == "Auto") {
+            if (!id.empty()) {
+                auto rules = ControllerRegistry::GetRulesForController(id);
+                selected = rules->GetControllerManufacturer();
+            } else {
+                TextCtrl_Log->AppendText("Controller Upload FAILED to " + ip + ", no controller type selected.\n");
+                continue;
+            }
+        }
+
         TextCtrl_Log->AppendText("Processing " + ip + ".\n");
         if (selected == "Falcon") {
             Falcon falcon(ip.ToStdString(), proxy.ToStdString());
@@ -150,7 +175,7 @@ void MultiControllerUploadDialog::OnButton_UploadClick(wxCommandEvent& event)
             } else {
                 TextCtrl_Log->AppendText("Falcon Output Upload FAILED to " + ip + ".\n");
             }
-        } else if (selected == "San Devices") {
+        } else if (selected == "San Devices" || selected == "SanDevices") {
             // Input + Output
             SanDevices sanDevices(ip.ToStdString(), proxy);
             if (sanDevices.IsConnected()) {
@@ -171,7 +196,7 @@ void MultiControllerUploadDialog::OnButton_UploadClick(wxCommandEvent& event)
                 TextCtrl_Log->AppendText("SanDevices Upload FAILED to " + ip + ".\n");
             }
         }
-        else if (selected == "ESP Pixel Stick")
+        else if (selected == "ESP Pixel Stick" || selected == "ESPixelStick")
         {
             // Output
             ESPixelStick esPixelStick(ip.ToStdString());
@@ -187,7 +212,7 @@ void MultiControllerUploadDialog::OnButton_UploadClick(wxCommandEvent& event)
                 TextCtrl_Log->AppendText("ES Pixel Stick Upload FAILED to " + ip + ".\n");
             }
         }
-        else if (selected == "PixLite/PixCon")
+        else if (selected == "PixLite/PixCon" || selected == "PixLite")
         {
             Pixlite16 pixlite(ip.ToStdString());
             if (pixlite.IsConnected()) {
@@ -198,6 +223,61 @@ void MultiControllerUploadDialog::OnButton_UploadClick(wxCommandEvent& event)
                 }
             } else {
                 TextCtrl_Log->AppendText("PixLite/PixCon Upload FAILED to " + ip + ".\n");
+            }
+        }
+        else if (selected == "J1Sys")
+        {
+            J1Sys j1sys(ip.ToStdString(), proxy);
+            if (j1sys.IsConnected()) {
+                if (j1sys.SetOutputs(&_frame->AllModels, _frame->GetOutputManager(), fake, this)) {
+                    TextCtrl_Log->AppendText("J1Sys Upload Complete to " + ip + ".\n");
+                } else {
+                    TextCtrl_Log->AppendText("J1Sys Upload FAILED to " + ip + ".\n");
+                }
+            } else {
+                TextCtrl_Log->AppendText("J1Sys Upload FAILED to " + ip + ".\n");
+            }
+        }
+        else if (selected == "EasyLights")
+        {
+            EasyLights easyLight(ip.ToStdString(), 0);
+            if (easyLight.SetOutputs(&_frame->AllModels, _frame->GetOutputManager(), fake, this)) {
+                TextCtrl_Log->AppendText("EasyLights Upload Complete to " + ip + ".\n");
+            } else {
+                TextCtrl_Log->AppendText("EasyLights Upload FAILED to " + ip + ".\n");
+            }
+        }
+        else if (selected == "FPP Capes/Hats" || selected == "FPP")
+        {
+            if (id.empty()) {
+                TextCtrl_Log->AppendText("FPP Upload FAILED to " + ip + ", no controller type selected.\n");
+                continue;
+            }
+            FPP fpp(ip.ToStdString());
+            fpp.parent = _frame;
+            fpp.pixelControllerType = id;
+
+            fpp.username = "FPP";
+            fpp.password = "falcon";
+            bool faled = false;
+
+            if (!fpp.AuthenticateAndUpdateVersions()) {
+                TextCtrl_Log->AppendText("FPP Capes/Hats Upload FAILED to " + ip + ".\n");
+                continue;
+            }
+
+            if (_controllers[ch[i]].Type == OUTPUT_E131) {
+                faled |= fpp.SetInputUniversesBridge(fake, _frame->GetOutputManager());
+            }
+
+            if (!faled) {
+                faled |= fpp.UploadPixelOutputs(&_frame->AllModels, _frame->GetOutputManager(), fake);
+            }
+
+            if (faled) {
+                TextCtrl_Log->AppendText("FPP Capes/Hats Upload FAILED to " + ip + ".\n");
+            } else {
+                TextCtrl_Log->AppendText("FPP Capes/Hats Upload Complete to " + ip + ".\n");
             }
         }
     }
@@ -242,9 +322,11 @@ void MultiControllerUploadDialog::OnPopup(wxCommandEvent& event)
         for (size_t i = 0; i < CheckListBox_Controllers->GetCount(); i++) {
             CheckListBox_Controllers->Check(i);
         }
+        ValidateWindow();
     } else if (event.GetId() == ID_MCU_SELECTNONE) {
         for (size_t i = 0; i < CheckListBox_Controllers->GetCount(); i++) {
             CheckListBox_Controllers->Check(i, false);
         }
+        ValidateWindow();
     }
 }
