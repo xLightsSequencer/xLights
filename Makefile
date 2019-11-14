@@ -45,7 +45,7 @@ wxwidgets31: FORCE
 	@printf "Checking wxwidgets\n"
 	@if test "`wx-config --version`" != "3.1.3"; \
 		then if test ! -d wxWidgets-3.1.3; \
-			then echo Downloading wxwidgets; wget --no-verbose -c https://github.com/wxWidgets/wxWidgets/releases/download/v3.1.2/wxWidgets-3.1.3.tar.bz2; \
+			then echo Downloading wxwidgets; wget --no-verbose -c https://github.com/wxWidgets/wxWidgets/releases/download/v3.1.3/wxWidgets-3.1.3.tar.bz2; \
 			tar xfj wxWidgets-3.1.3.tar.bz2; \
 		fi; \
 		cd wxWidgets-3.1.3; \
