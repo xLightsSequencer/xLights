@@ -1,10 +1,12 @@
-#include "PlayListItemAudio.h"
-#include "wx/xml/xml.h"
+#include <wx/xml/xml.h>
 #include <wx/notebook.h>
+
+#include "PlayListItemAudio.h"
 #include "PlayListItemAudioPanel.h"
 #include "../../xLights/AudioManager.h"
-#include <log4cpp/Category.hh>
 #include "../../xLights/UtilFunctions.h"
+
+#include <log4cpp/Category.hh>
 
 PlayListItemAudio::PlayListItemAudio(wxXmlNode* node) : PlayListItem(node)
 {
@@ -166,15 +168,23 @@ void PlayListItemAudio::Configure(wxNotebook* notebook)
 
 std::string PlayListItemAudio::GetNameNoTime() const
 {
-    wxFileName fn(_audioFile);
-    if (fn.GetName() == "")
+    // only recalc the name if the underlying file name has changed
+    if (_audioFile != _lastNameFile)
     {
-        return "Audio";
+        _lastNameFile = _audioFile;
+
+        wxFileName fn(_audioFile);
+        if (fn.GetName() == "")
+        {
+            _lastName = "Audio";
+        }
+        else
+        {
+            _lastName = fn.GetName().ToStdString();
+        }
     }
-    else
-    {
-        return fn.GetName().ToStdString();
-    }
+
+    return _lastName;
 }
 
 void PlayListItemAudio::SetAudioFile(const std::string& audioFile)

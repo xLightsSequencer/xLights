@@ -15,11 +15,13 @@ class PlayListItemAudio : public PlayListItem
 protected:
 
     #pragma region Member Variables
-    std::string _audioFile;
-    AudioManager* _audioManager;
-    size_t _durationMS;
-    bool _controlsTimingCache;
-    bool _fastStartAudio;
+    std::string _audioFile = "";
+    mutable std::string _lastNameFile = "";
+    mutable std::string _lastName = "";
+    AudioManager* _audioManager = nullptr;
+    size_t _durationMS = 0;
+    bool _controlsTimingCache = false;
+    bool _fastStartAudio = false;
     #pragma endregion Member Variables
 
     void LoadFiles();

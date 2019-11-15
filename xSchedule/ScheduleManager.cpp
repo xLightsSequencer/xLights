@@ -487,7 +487,10 @@ ScheduleManager::~ScheduleManager()
     delete _outputManager;
     _syncManager = nullptr;
 
-    free(_buffer);
+    if (_buffer != nullptr)
+    {
+        free(_buffer);
+    }
 
     logger_base.info("Closed schedule.");
 }

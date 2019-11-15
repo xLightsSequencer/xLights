@@ -30,6 +30,9 @@ void ListenerMIDI::Stop()
         {
             _stop = true;
             _thread->Stop();
+            _thread->Delete();
+            delete _thread;
+            _thread = nullptr;
         }
     }
 }

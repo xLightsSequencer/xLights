@@ -700,6 +700,8 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     {
         xlconfig->Read("xLightsUserEmail", &userEmail, "");
         if (userEmail != "noone@nowhere.xlights.org" && userEmail != "") logger_base.debug("User email address: <email>%s</email>", (const char*)userEmail.c_str());
+        delete xlconfig;
+        xlconfig = nullptr;
     }
 
     _timer.SetName("xSchedule frame timer");
@@ -962,33 +964,36 @@ void xScheduleFrame::LoadSchedule()
 
 void xScheduleFrame::AddIPs()
 {
-    _pinger->RemoveNonOutputIPs();
-
-    auto fppremotes = __schedule->GetOptions()->GetFPPRemotes();
-    for (auto it = fppremotes.begin(); it != fppremotes.end(); ++it)
+    if (_pinger != nullptr)
     {
-        _pinger->AddIP(*it, "FPPRemote");
-    }
+        _pinger->RemoveNonOutputIPs();
 
-    if (__schedule->GetOptions()->GetOSCOptions() != nullptr)
-    {
-        _pinger->AddIP(__schedule->GetOptions()->GetOSCOptions()->GetIPAddress(), "OSCTarget");
-    }
-
-    auto plis = __schedule->GetPlayListIps();
-    for (auto it = plis.begin(); it != plis.end(); ++it)
-    {
-        if ((*it)->GetTitle() == "OSC")
+        auto fppremotes = __schedule->GetOptions()->GetFPPRemotes();
+        for (auto it = fppremotes.begin(); it != fppremotes.end(); ++it)
         {
-            PlayListItemOSC* osc = (PlayListItemOSC*)*it;
-            _pinger->AddIP(osc->GetIP(), "OSC Play List Item");
+            _pinger->AddIP(*it, "FPPRemote");
         }
-    }
 
-    auto extras = __schedule->GetOptions()->GetExtraIPs();
-    for (auto it : *extras)
-    {
-        _pinger->AddIP(it->GetIP(), it->GetDescription());
+        if (__schedule->GetOptions()->GetOSCOptions() != nullptr)
+        {
+            _pinger->AddIP(__schedule->GetOptions()->GetOSCOptions()->GetIPAddress(), "OSCTarget");
+        }
+
+        auto plis = __schedule->GetPlayListIps();
+        for (auto it = plis.begin(); it != plis.end(); ++it)
+        {
+            if ((*it)->GetTitle() == "OSC")
+            {
+                PlayListItemOSC* osc = (PlayListItemOSC*)* it;
+                _pinger->AddIP(osc->GetIP(), "OSC Play List Item");
+            }
+        }
+
+        auto extras = __schedule->GetOptions()->GetExtraIPs();
+        for (auto it : *extras)
+        {
+            _pinger->AddIP(it->GetIP(), it->GetDescription());
+        }
     }
 }
 
@@ -1450,6 +1455,8 @@ void xScheduleFrame::On_timerTrigger(wxTimerEvent& event)
 
     if (__schedule == nullptr) return;
 
+    CheckMemoryUsage("Frame Timer Start", true);
+
     static long long lastms = 0;
     long long now = wxGetLocalTimeMillis().GetValue();
     logger_frame.info("Timer: Start frame %d", (int)(now - lastms));
@@ -1650,9 +1657,12 @@ void xScheduleFrame::OnMenuItem_OptionsSelected(wxCommandEvent& event)
 
     if (dlg.ShowModal() == wxID_OK)
     {
-        if (oldport != __schedule->GetOptions()->GetWebServerPort())
+        if (oldport != __schedule->GetOptions()->GetWebServerPort() || _webServer == nullptr)
         {
-            delete _webServer;
+            if (_webServer != nullptr)
+            {
+                delete _webServer;
+            }
             _webServer = new WebServer(__schedule->GetOptions()->GetWebServerPort(), __schedule->GetOptions()->GetAPIOnly(),
                 __schedule->GetOptions()->GetPassword(), __schedule->GetOptions()->GetPasswordTimeout());
         }
@@ -2993,6 +3003,7 @@ void xScheduleFrame::OnMenu_OutputProcessingSelected(wxCommandEvent& event)
 // This is called when anything interesting happens in schedule manager
 void xScheduleFrame::ScheduleChange(wxCommandEvent& event)
 {
+    CheckMemoryUsage("Schedule Change Start", true);
     UpdateUI();
 }
 
@@ -3003,6 +3014,7 @@ void xScheduleFrame::Sync(wxCommandEvent& event)
 
 void xScheduleFrame::DoCheckSchedule(wxCommandEvent& event)
 {
+    CheckMemoryUsage("DoCheckSchedule Start", true);
     UpdateSchedule();
     UpdateUI();
 }

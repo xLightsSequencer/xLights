@@ -417,6 +417,8 @@ std::list<float> SDL::GetInputSpectrum(int ms)
 
     int n = std::min(read/2, samplesNeeded);
     float* in = (float*)malloc(n * sizeof(float));
+    if (in == nullptr) return res;
+
     int j = 0;
     for (int i = std::max(0, read - samplesNeeded * 2); i < read - 1; i += 2)
     {
@@ -468,6 +470,8 @@ std::list<float> SDL::GetInputSpectrum(int ms)
 
         free(out);
     }
+
+    free(in);
 
     return res;
 }
@@ -2230,6 +2234,7 @@ void AudioManager::LoadTrackData(AVFormatContext* formatContext, AVCodecContext*
     {
         logger_base.error("Error allocating memory for pcm data: %ld", (long)_pcmdatasize + 16384);
         _ok = false;
+        av_frame_free(&frame);
         return;
     }
 
@@ -2240,7 +2245,11 @@ void AudioManager::LoadTrackData(AVFormatContext* formatContext, AVCodecContext*
 
 void AudioManager::DoLoadAudioData(AVFormatContext* formatContext, AVCodecContext* codecContext, AVStream* audioStream, AVFrame* frame)
 {
-    if (formatContext == nullptr || codecContext == nullptr || audioStream == nullptr || frame == nullptr) return;
+    if (formatContext == nullptr || codecContext == nullptr || audioStream == nullptr || frame == nullptr)
+    {
+        av_frame_free(&frame);
+        return;
+    }
 
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("DoLoadAudioData: Doing load of song data.");
@@ -2451,9 +2460,10 @@ void AudioManager::DoLoadAudioData(AVFormatContext* formatContext, AVCodecContex
 	}
 
 #ifdef RESAMPLE_RATE
-    std::unique_lock<std::shared_timed_mutex> locker(_mutexAudioLoad);
-    _trackSize = _loadedData;
-    locker.unlock();
+    {
+        std::unique_lock<std::shared_timed_mutex> locker(_mutexAudioLoad);
+        _trackSize = _loadedData;
+    }
 #endif
     wxASSERT(_trackSize == _loadedData);
 
@@ -2548,8 +2558,8 @@ void AudioManager::GetTrackMetrics(AVFormatContext* formatContext, AVCodecContex
 	}
 
 	// Clean up!
-	av_free(frame);
-
+    av_frame_free(&frame);
+    
 	_lengthMS = (long)(((Uint64)_trackSize * 1000) / ((codecContext->time_base.den)));
 #ifdef RESAMPLE_RATE
     //if we resample, we need to estimate the new size
@@ -3075,20 +3085,20 @@ std::list<std::string> xLightsVamp::GetAllAvailablePlugins(AudioManager* paudio)
 	// load the plugins if they have not already been loaded
 	LoadPlugins(paudio);
 
-	for (std::vector<Vamp::Plugin *>::iterator it = _loadedPlugins.begin(); it != _loadedPlugins.end(); ++it)
+	for (const auto& it : _loadedPlugins)
 	{
-		Plugin::OutputList outputs = (*it)->getOutputDescriptors();
+		Plugin::OutputList outputs = it->getOutputDescriptors();
 
-		for (Plugin::OutputList::iterator j = outputs.begin(); j != outputs.end(); ++j)
+		for (const auto& j : outputs)
 		{
-			std::string name = std::string(wxString::FromUTF8((*it)->getName().c_str()).c_str());
+			std::string name = std::string(wxString::FromUTF8(it->getName().c_str()).c_str());
 
 			if (outputs.size() > 1)
 			{
 				// This is not the plugin's only output.
 				// Use "plugin name: output name" as the effect name,
 				// unless the output name is the same as the plugin name
-				std::string outputName = std::string(wxString::FromUTF8(j->name.c_str()).c_str());
+				std::string outputName = std::string(wxString::FromUTF8(j.name.c_str()).c_str());
 				if (outputName != name)
 				{
 					std::ostringstream stringStream;
@@ -3097,13 +3107,13 @@ std::list<std::string> xLightsVamp::GetAllAvailablePlugins(AudioManager* paudio)
 				}
 			}
 
-			_allplugins[name] = *it;
+			_allplugins[name] = it;
 		}
 	}
 
-	for (std::map<std::string, Vamp::Plugin *>::iterator it = _allplugins.begin(); it != _allplugins.end(); ++it)
+	for (const auto& it : _allplugins)
 	{
-		ret.push_back(it->first);
+		ret.push_back(it.first);
 	}
 
 	return ret;

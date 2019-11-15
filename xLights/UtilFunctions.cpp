@@ -992,3 +992,29 @@ void ViewTempFile(const wxString& content, const wxString& name,  const wxString
 		}
 	}
 }
+
+void CheckMemoryUsage(const std::string& reason, bool onchangeOnly)
+{
+#if defined(TURN_THIS_OFF) && defined(__WXMSW__)
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static long lastPrivate = 0;
+    static long lastWorking = 0;
+    PROCESS_MEMORY_COUNTERS_EX memoryCounters;
+    memoryCounters.cb = sizeof(memoryCounters);
+    ::GetProcessMemoryInfo(::GetCurrentProcess(), (PROCESS_MEMORY_COUNTERS*)&memoryCounters, sizeof(memoryCounters));
+    long privateMem = (long)(memoryCounters.PrivateUsage / 1024);
+    long workingMem = (long)(memoryCounters.WorkingSetSize / 1024);
+    if (!onchangeOnly || privateMem != lastPrivate)
+    {
+        logger_base.debug("Memory Usage: %s : private %ldKB (%ldKB) working %ldKB (%ldKB).",
+            (const char*)reason.c_str(),
+            privateMem,
+            privateMem - lastPrivate,
+            workingMem,
+            workingMem - lastWorking
+        );
+    }
+    lastPrivate = privateMem;
+    lastWorking = workingMem;
+#endif
+}

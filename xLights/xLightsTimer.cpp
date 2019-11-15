@@ -64,6 +64,9 @@ xLightsTimer::~xLightsTimer()
     if (_t != nullptr)
     {
         _t->Stop();
+        _t->Delete();
+        delete _t;
+        _t = nullptr;
     }
 }
 

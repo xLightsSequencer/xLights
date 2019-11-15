@@ -186,7 +186,7 @@ void APinger::Stop()
     if (_pingThread != nullptr)
     {
         _pingThread->Stop();
-        _pingThread->Wait();
+        _pingThread->Delete();
         delete _pingThread;
         _pingThread = nullptr;
     }
