@@ -1956,6 +1956,8 @@ void xLightsFrame::OnNetworkPopup(wxCommandEvent &event)
             UploadPixlite16Output();
         } else if (rules->GetControllerManufacturer() == "EasyLights") {
             UploadEasyLightsOutput();
+        } else if (rules->GetControllerManufacturer() == "J1Sys") {
+            UploadJ1SYSOutput();
         }
         //FIXME - other targets
     } else if (id == ID_NETWORK_VISUALISE) {
