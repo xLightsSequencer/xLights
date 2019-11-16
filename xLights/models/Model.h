@@ -341,6 +341,7 @@ public:
     std::string GetNodeXY(int nodeinx);
 
     void GetNodeCoords(int nodeidx, std::vector<wxPoint> &pts);
+    void GetNodeScreenCoords(int nodeidx, std::vector<wxRealPoint> &pts);
 
     bool GetIsLtoR() const {return IsLtoR;}
     bool GetIsBtoT() const {return isBotToTop;}

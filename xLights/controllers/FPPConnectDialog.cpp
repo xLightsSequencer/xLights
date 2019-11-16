@@ -706,7 +706,9 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
         }
     }
     row = 0;
+    
     std::string memoryMaps = FPP::CreateModelMemoryMap(&frame->AllModels);
+    std::string displayMap = FPP::CreateVirtualDisplayMap(&frame->AllModels, frame->GetDisplay2DCenter0());
     for (const auto& inst : instances) {
         std::string rowStr = std::to_string(row);
         if (!cancelled && doUpload[row]) {
@@ -716,6 +718,7 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
             }
             if (GetCheckValue(MODELS_COL + rowStr)) {
                 cancelled |= inst->UploadModels(memoryMaps);
+                cancelled |= inst->UploadDisplayMap(displayMap);
                 inst->SetRestartFlag();
             }
         }

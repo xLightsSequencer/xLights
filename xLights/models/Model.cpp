@@ -3475,6 +3475,12 @@ int Model::GetNodeStringNumber(size_t nodenum) const {
     return nodenum < Nodes.size() ? Nodes[nodenum]->StringNum : 0;
 }
 
+void Model::GetNodeScreenCoords(int nodeidx, std::vector<wxRealPoint> &pts) {
+    for (int x = 0; x < Nodes[nodeidx]->Coords.size(); x++) {
+        pts.push_back(wxPoint(Nodes[nodeidx]->Coords[x].screenX, Nodes[nodeidx]->Coords[x].screenY));
+    }
+}
+
 void Model::GetNodeCoords(int nodeidx, std::vector<wxPoint> &pts) {
     if (nodeidx >= Nodes.size()) return;
     for (int x = 0; x < Nodes[nodeidx]->Coords.size(); x++) {

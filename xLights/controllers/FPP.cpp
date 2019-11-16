@@ -904,6 +904,17 @@ bool FPP::UploadModels(const std::string &models) {
     }
     return false;
 }
+bool FPP::UploadDisplayMap(const std::string &displayMap) {
+    if (IsDrive()) {
+        wxFileName fn = (ipAddress + wxFileName::GetPathSeparator() + "config/virtualdisplaymap");
+        wxFile tf(fn.GetFullPath());
+        tf.Write(displayMap);
+        tf.Close();
+    } else if (IsVersionAtLeast(2, 6)) {
+        PostToURL("/api/configfile/virtualdisplaymap", displayMap);
+    }
+    return false;
+}
 bool FPP::UploadUDPOut(const wxJSONValue &udp) {
     if (IsDrive()) {
         std::string fn = (ipAddress + wxFileName::GetPathSeparator() + "config" + wxFileName::GetPathSeparator() + "co-universes.json");
@@ -931,6 +942,91 @@ std::string FPP::CreateModelMemoryMap(ModelManager* allmodels) {
                                                      1).ToStdString();
         }
     }
+    return ret;
+}
+
+std::string FPP::CreateVirtualDisplayMap(ModelManager* allmodels, bool center0) {
+    std::string ret;
+
+    int ch = 0;
+    std::vector<wxRealPoint> pts;
+    int first = 1;
+    std::string stringType;
+
+    int xoffset = 0;
+    for (auto m = allmodels->begin(); m != allmodels->end(); ++m)
+    {
+        Model* model = m->second;
+
+        if (model->GetLayoutGroup() != "Default")
+            continue;
+
+        if (model->GetDisplayAs() == "ModelGroup")
+            continue;
+
+        if (first)
+        {
+            first = 0;
+            ret += "# Preview Size\n";
+            ret += wxString::Format("%d,%d\n", model->GetModelScreenLocation().previewW, model->GetModelScreenLocation().previewH);
+            
+            if (center0) {
+                xoffset = model->GetModelScreenLocation().previewW / 2;
+            }
+        }
+
+        stringType = model->GetStringType();
+
+        if (stringType == "RGB Nodes")
+            stringType = "RGB";
+        else if (stringType == "RBG Nodes")
+            stringType = "RBG";
+        else if (stringType == "GBR Nodes")
+            stringType = "GBR";
+        else if (stringType == "BGR Nodes")
+            stringType = "BGR";
+        else if (stringType == "3 Channel RGB")
+            stringType = "RGB";
+        else if (stringType == "4 Channel RGBW")
+            stringType = "RGBW";
+        else if (stringType == "Strobes")
+            stringType = "White";
+        else if (stringType == "Single Color Red")
+            stringType = "Red";
+        else if ((stringType == "Single Color Green") || (stringType == "G"))
+            stringType = "Green";
+        else if ((stringType == "Single Color Blue") || (stringType == "B"))
+            stringType = "Blue";
+        else if ((stringType == "Single Color White") || (stringType == "W"))
+            stringType = "White";
+        else if (stringType == "Single Color Custom")
+        {
+            stringType = "White";
+        }
+
+        ret += wxString::Format("# Model: '%s', %d nodes\n", model->GetName().c_str(), model->GetNodeCount());
+
+        float x, y, z;
+        for (int i = 0; i < model->GetNodeCount(); i++)
+        {
+            pts.clear();
+            model->GetNodeScreenCoords(i, pts);
+            ch = model->NodeStartChannel(i);
+
+            for (int i = 0; i < pts.size(); i++)
+            {
+                x = pts[i].x;
+                y = pts[i].y;
+                z = 0;
+                model->GetModelScreenLocation().TranslatePoint(x, y, z);
+                x += xoffset;
+                ret += wxString::Format("%d,%d,%d,%d,%s\n",
+                    (int)x, (int)y, ch,
+                    model->GetChanCountPerNode(), stringType.c_str());
+            }
+        }
+    }
+
     return ret;
 }
 

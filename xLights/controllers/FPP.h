@@ -148,6 +148,7 @@ class FPP {
     
     bool UploadPlaylist(const std::string &playlist);
     bool UploadModels(const std::string &models);
+    bool UploadDisplayMap(const std::string &displayMap);
     bool UploadUDPOut(const wxJSONValue &udp);
 
     bool UploadPixelOutputs(ModelManager* allmodels,
@@ -162,6 +163,7 @@ class FPP {
     static void Probe(const std::list<std::string> &addresses, std::list<FPP*> &instances);
 
     static std::string CreateModelMemoryMap(ModelManager* allmodels);
+    static std::string CreateVirtualDisplayMap(ModelManager* allmodels, bool center0);
     static wxJSONValue CreateOutputUniverseFile(OutputManager* outputManager);
 private:
     void FillRanges(std::map<int, int> &rngs);
