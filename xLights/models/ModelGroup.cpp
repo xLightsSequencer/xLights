@@ -28,17 +28,28 @@ static const std::string PER_MODEL_SINGLE_LINE("Per Model Single Line");
 
 std::vector<std::string> ModelGroup::GROUP_BUFFER_STYLES;
 
-Model* ModelGroup::GetModel(std::string modelName)
+Model* ModelGroup::GetModel(std::string modelName) const
 {
-    for (auto it = models.begin(); it != models.end(); ++it)
+    for (const auto& it : models)
     {
-        if ((*it)->GetFullName() == modelName)
+        if (it->GetFullName() == modelName)
         {
-            return *it;
+            return it;
         }
     }
 
     return nullptr;
+}
+
+Model* ModelGroup::GetFirstModel() const
+{
+    for (const auto& it : models)
+    {
+        if (it->GetDisplayAs() != "ModelGroup" && it->GetDisplayAs() != "SubModel")
+        {
+            return it;
+        }
+    }
 }
 
 bool ModelGroup::ContainsModelGroup(ModelGroup* mg)

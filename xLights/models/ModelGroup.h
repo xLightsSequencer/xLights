@@ -30,7 +30,8 @@ class ModelGroup : public ModelWithScreenLocation<BoxedScreenLocation>
         bool IsSelected() const { return selected;}
         const std::vector<std::string> &ModelNames() const { return modelNames;}
         const std::vector<Model *> &Models() const { return models;}
-        Model* GetModel(std::string modelName);
+        Model* GetModel(std::string modelName) const;
+        Model* GetFirstModel() const;
         bool ContainsModelGroup(ModelGroup* mg);
         bool ContainsModelGroup(ModelGroup* mg, std::list<Model*>& visited);
         bool ContainsModel(Model* mg);

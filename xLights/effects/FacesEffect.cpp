@@ -4,6 +4,7 @@
 #include "FacesPanel.h"
 #include "../models/Model.h"
 #include "../models/SubModel.h"
+#include "../models/ModelGroup.h"
 #include "../sequencer/SequenceElements.h"
 #include "../sequencer/Effect.h"
 #include "../RenderBuffer.h"
@@ -196,12 +197,27 @@ void FacesEffect::SetPanelStatus(Model *cls) {
 
     bool addRender = true;
     if (cls != nullptr) {
-        for (auto& it : cls->faceInfo) {
-            if (it.first != "")
-            {
-                fp->Face_FaceDefinitonChoice->Append(it.first);
-                if (it.second["Type"] == "Coro" || it.second["Type"] == "SingleNode" || it.second["Type"] == "NodeRange") {
-                    addRender = false;
+
+        Model* m = cls;
+
+        if (cls->GetDisplayAs() == "ModelGroup")
+        {
+            m = ((ModelGroup*)cls)->GetFirstModel();
+        }
+        else if (cls->GetDisplayAs() == "SubModel")
+        {
+            m = ((SubModel*)cls)->GetParent();
+        }
+
+        if (m != nullptr)
+        {
+            for (auto& it : m->faceInfo) {
+                if (it.first != "")
+                {
+                    fp->Face_FaceDefinitonChoice->Append(it.first);
+                    if (it.second["Type"] == "Coro" || it.second["Type"] == "SingleNode" || it.second["Type"] == "NodeRange") {
+                        addRender = false;
+                    }
                 }
             }
         }
