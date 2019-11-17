@@ -629,7 +629,14 @@ bool VideoReader::readFrame(int timestampMS) {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     int rc = 0;
     if ((rc = avcodec_receive_frame(_codecContext, _srcFrame)) == 0) {
-        _curPos = DTStoMS(_srcFrame->pts, _dtspersec);
+        if (_srcFrame->pts == 0x8000000000000000)
+        {
+            _curPos = (_srcFrame->pkt_dts * _lengthMS) / _frames;
+        }
+        else
+        {
+            _curPos = DTStoMS(_srcFrame->pts, _dtspersec);
+        }
         //int curPosDTS = DTStoMS(_srcFrame->pkt_dts, _dtspersec);
         //printf("    Pos: %d    DTS: %d    Repeat: %d      PTS: %lld\n", _curPos, curPosDTS, _srcFrame->repeat_pict, _srcFrame->pts);
         bool unrefSrcFrame2 = false;
