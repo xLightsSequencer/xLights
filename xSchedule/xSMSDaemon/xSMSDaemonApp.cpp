@@ -12,16 +12,7 @@
 #include <wx/image.h>
 //*)
 
-#include "xSMSDaemonApp.h"
-
 #include <wx/wx.h>
-#include <log4cpp/Category.hh>
-#include <log4cpp/PropertyConfigurator.hh>
-#include <log4cpp/Configurator.hh>
-#include <wx/file.h>
-#include <wx/msgdlg.h>
-
-#include "../../xLights/xLightsVersion.h"
 #include <wx/filename.h>
 #include <wx/stdpaths.h>
 #include <wx/debugrpt.h>
@@ -31,6 +22,64 @@
 
 #ifdef __WXMSW__
 #include <wx/msw/private.h>
+#endif
+
+#include "xSMSDaemonApp.h"
+
+#include <log4cpp/Category.hh>
+#include <log4cpp/PropertyConfigurator.hh>
+#include <log4cpp/Configurator.hh>
+#include <wx/file.h>
+#include <wx/msgdlg.h>
+
+#include "../../xLights/xLightsVersion.h"
+
+#ifdef _MSC_VER
+#ifdef _DEBUG
+#pragma comment(lib, "wxbase31ud.lib")
+#pragma comment(lib, "wxbase31ud_net.lib")
+#pragma comment(lib, "wxmsw31ud_core.lib")
+#pragma comment(lib, "wxscintillad.lib")
+#pragma comment(lib, "wxregexud.lib")
+#pragma comment(lib, "wxbase31ud_xml.lib")
+#pragma comment(lib, "wxtiffd.lib")
+#pragma comment(lib, "wxjpegd.lib")
+#pragma comment(lib, "wxpngd.lib")
+//        #pragma comment(lib, "wxmsw31ud_adv.lib")
+//        #pragma comment(lib, "wxmsw31ud_aui.lib")
+//        #pragma comment(lib, "wxmsw31ud_gl.lib")
+#pragma comment(lib, "wxzlibd.lib")
+//        #pragma comment(lib, "wxmsw31ud_xrc.lib")
+//        #pragma comment(lib, "wxmsw31ud_stc.lib")
+#pragma comment(lib, "wxmsw31ud_qa.lib")
+//        #pragma comment(lib, "wxmsw31ud_html.lib")
+//        #pragma comment(lib, "wxmsw31ud_richtext.lib")
+//        #pragma comment(lib, "wxmsw31ud_propgrid.lib")
+//        #pragma comment(lib, "wxmsw31ud_ribbon.lib")
+//        #pragma comment(lib, "wxmsw31ud_webview.lib")
+//        #pragma comment(lib, "wxmsw31ud_media.lib")
+#pragma comment(lib, "wxexpatd.lib")
+#endif
+#pragma comment(lib, "msvcprtd.lib")
+#pragma comment(lib, "iphlpapi.lib")
+//    #pragma comment(lib, "libdbghelp.a")
+//    #pragma comment(lib, "log4cppd.lib")
+#pragma comment(lib, "WS2_32.Lib")
+#pragma comment(lib, "comdlg32.lib")
+#pragma comment(lib, "comctl32.lib")
+#pragma comment(lib, "Rpcrt4.lib")
+#pragma comment(lib, "uuid.lib")
+#pragma comment(lib, "advapi32.lib")
+#pragma comment(lib, "shell32.lib")
+#pragma comment(lib, "ole32.lib")
+#pragma comment(lib, "oleaut32.lib")
+#pragma comment(lib, "odbc32.lib") 
+#pragma comment(lib, "odbccp32.lib")
+#pragma comment(lib, "kernel32.lib")
+#pragma comment(lib, "user32.lib")
+#pragma comment(lib, "winspool.lib")
+#pragma comment(lib, "gdi32.lib")
+#pragma comment(lib, "winmm.lib")
 #endif
 
 #ifndef __WXOSX__
@@ -152,7 +201,7 @@ static void InitialiseLogging(bool fromMain)
         int argc = 0;
         char** argv = NULL;
         if (!wxEntryStart(argc, argv) || !wxTheApp || !wxTheApp->CallOnInit())
-            return false; 
+            return false;
 #endif
 
         __started = true;

@@ -210,6 +210,7 @@
 					<Add option="-pedantic" />
 					<Add option="-std=c++1z" />
 					<Add option="-m64" />
+					<Add option="-g" />
 					<Add option="-pipe" />
 					<Add option="-mthreads" />
 					<Add option="-static-libgcc" />
@@ -232,8 +233,6 @@
 					<Add directory="$(#wx)/lib/gcc_dll/mswu" />
 				</ResourceCompiler>
 				<Linker>
-					<Add option="-O2" />
-					<Add option="-s" />
 					<Add option="-m64" />
 					<Add option="-lole32" />
 					<Add option="-Wl,-Map=../bin64/xSchedule.map" />

@@ -40,6 +40,54 @@
 #include "MSWStackWalk.h"
 #endif
 
+#ifdef _MSC_VER
+#ifdef _DEBUG
+#pragma comment(lib, "wxbase31ud.lib")
+#pragma comment(lib, "wxbase31ud_net.lib")
+#pragma comment(lib, "wxmsw31ud_core.lib")
+#pragma comment(lib, "wxscintillad.lib")
+#pragma comment(lib, "wxregexud.lib")
+#pragma comment(lib, "wxbase31ud_xml.lib")
+#pragma comment(lib, "wxtiffd.lib")
+#pragma comment(lib, "wxjpegd.lib")
+#pragma comment(lib, "wxpngd.lib")
+//        #pragma comment(lib, "wxmsw31ud_adv.lib")
+        #pragma comment(lib, "wxmsw31ud_aui.lib")
+        #pragma comment(lib, "wxmsw31ud_gl.lib")
+#pragma comment(lib, "wxzlibd.lib")
+//        #pragma comment(lib, "wxmsw31ud_xrc.lib")
+//        #pragma comment(lib, "wxmsw31ud_stc.lib")
+#pragma comment(lib, "wxmsw31ud_qa.lib")
+        #pragma comment(lib, "wxmsw31ud_html.lib")
+//        #pragma comment(lib, "wxmsw31ud_richtext.lib")
+        #pragma comment(lib, "wxmsw31ud_propgrid.lib")
+//        #pragma comment(lib, "wxmsw31ud_ribbon.lib")
+//        #pragma comment(lib, "wxmsw31ud_webview.lib")
+//        #pragma comment(lib, "wxmsw31ud_media.lib")
+#pragma comment(lib, "wxexpatd.lib")
+//        #pragma comment(lib, "log4cppd.lib")
+#endif
+#pragma comment(lib, "msvcprtd.lib")
+#pragma comment(lib, "iphlpapi.lib")
+//    #pragma comment(lib, "libdbghelp.a")
+#pragma comment(lib, "WS2_32.Lib")
+#pragma comment(lib, "comdlg32.lib")
+#pragma comment(lib, "comctl32.lib")
+#pragma comment(lib, "Rpcrt4.lib")
+#pragma comment(lib, "uuid.lib")
+#pragma comment(lib, "advapi32.lib")
+#pragma comment(lib, "shell32.lib")
+#pragma comment(lib, "ole32.lib")
+#pragma comment(lib, "oleaut32.lib")
+#pragma comment(lib, "odbc32.lib") 
+#pragma comment(lib, "odbccp32.lib")
+#pragma comment(lib, "kernel32.lib")
+#pragma comment(lib, "user32.lib")
+#pragma comment(lib, "winspool.lib")
+#pragma comment(lib, "gdi32.lib")
+#pragma comment(lib, "winmm.lib")
+#endif
+
 xLightsFrame* xLightsApp::__frame = nullptr;
 
 void InitialiseLogging(bool fromMain)
@@ -85,7 +133,7 @@ void InitialiseLogging(bool fromMain)
                 log4cpp::PropertyConfigurator::configure(initFileName);
 				static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-                wxDateTime now = wxDateTime::Now();    
+                wxDateTime now = wxDateTime::Now();
                 int millis = wxGetUTCTimeMillis().GetLo() % 1000;
                 wxString ts = wxString::Format("%04d-%02d-%02d_%02d-%02d-%02d-%03d", now.GetYear(), now.GetMonth(), now.GetDay(), now.GetHour(), now.GetMinute(), now.GetSecond(), millis);
                 logger_base.info("Start Time: %s.", (const char *)ts.c_str());
@@ -250,13 +298,13 @@ xLightsFrame *topFrame = nullptr;
 
 void handleCrash(void *data) {
     static volatile bool inCrashHandler = false;
-    
+
     if (inCrashHandler) {
         //need to ignore any crashes in the crash handler
         return;
     }
     inCrashHandler = true;
-    
+
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.crit("Crash handler called.");
 	wxDebugReportCompress *report = new wxDebugReportCompress();
@@ -324,13 +372,13 @@ void handleCrash(void *data) {
     if (wxThread::IsMain()) {
         trace += wxString::Format("\nCrashed thread the Main Thread\n");
     } else {
-        
+
         std::stringstream ret;
         ret << std::showbase // show the 0x prefix
             << std::internal // fill between the prefix and the number
             << std::setfill('0') << std::setw(10)
             << std::hex << std::this_thread::get_id();
-        
+
         std::string id = ret.str();
         trace += wxString::Format("\nCrashed thread id: %s\n", id.c_str());
     }
@@ -371,14 +419,14 @@ void handleCrash(void *data) {
     {
         report->AddFile(wxFileName(wxGetCwd(), "xLights_l4cpp.log").GetFullPath(), "xLights_l4cpp.log");
     }
-    
+
     std::list<std::string> trc;
     TraceLog::GetTraceMessages(trc);
     if (!wxThread::IsMain() && topFrame != nullptr)
     {
         topFrame->CallAfter(&xLightsFrame::CreateDebugReport, report, trc);
         wxSleep(600000);
-    } 
+    }
     else if (topFrame != nullptr)
     {
         topFrame->CreateDebugReport(report, trc);
@@ -431,7 +479,7 @@ void xLightsFrame::CreateDebugReport(wxDebugReportCompress *report, std::list<st
         status += a;
         status += "\n";
     }
-    
+
     wxFileName fileName(report->GetDirectory(), "backtrace.txt");
     wxFile file(fileName.GetFullPath(),  wxFile::write_append);
     file.Write("\n");
@@ -461,6 +509,7 @@ void xLightsFrame::CreateDebugReport(wxDebugReportCompress *report, std::list<st
 LONG WINAPI windows_exception_handler(EXCEPTION_POINTERS * ExceptionInfo)
 {
     handleCrash(ExceptionInfo->ContextRecord);
+    return 0;
 }
 #endif
 
