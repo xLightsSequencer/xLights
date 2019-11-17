@@ -131,7 +131,7 @@ static int buffer_writer(char *data, size_t size, size_t nmemb,
 class FPPWriteData {
 public:
     FPPWriteData() : file(nullptr), progress(nullptr), data(nullptr), dataSize(0), curPos(0),
-        postData(nullptr), postDataSize(0), totalWritten(0), cancelled(false), compressed(false), lastDone(0) {}
+        postData(nullptr), postDataSize(0), totalWritten(0), cancelled(false), lastDone(0) {}
     
     uint8_t *data;
     size_t dataSize;
@@ -147,7 +147,6 @@ public:
     size_t totalWritten;
     size_t lastDone;
     bool cancelled;
-    bool compressed;
     
     size_t readData(void *ptr, size_t buffer_size) {
         if (data != nullptr) {
@@ -181,11 +180,8 @@ public:
             
             if (progress) {
                 size_t donePct = totalWritten;
-                donePct *= compressed ? 600 : 1000;
+                donePct *= 1000;
                 donePct /= file->Length();
-                if (compressed) {
-                    donePct += 333;
-                }
                 if (donePct != lastDone) {
                     lastDone = donePct;
                     cancelled = !progress->Update(donePct, progressString, &cancelled);
@@ -546,7 +542,7 @@ int FPP::PostToURL(const std::string& url, const std::string &val, const std::st
 
 
 
-bool FPP::uploadFile(const std::string &filename, const std::string &file, bool compress)  {
+bool FPP::uploadFile(const std::string &filename, const std::string &file)  {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     static int bufLen = 1024*1024*4; //4MB buffer
 
@@ -571,51 +567,6 @@ bool FPP::uploadFile(const std::string &filename, const std::string &file, bool 
     std::string ct = "Content-Type: application/octet-stream";
     bool deleteFile = false;
     std::string fullFileName = file;
-    if (compress) {
-        logger_base.debug("Uploading it compressed.");
-        //determine size of gzipped data
-        progressDialog->Show();
-        unsigned char *rbuf = new unsigned char[bufLen];
-        wxFile f_in(file);
-        
-        fullFileName = file + ".gz";
-        deleteFile = true;
-        
-        wxFileOutputStream f_out(fullFileName);
-        wxZlibOutputStream zlib(f_out, wxZ_DEFAULT_COMPRESSION, wxZLIB_GZIP);
-        size_t total = f_in.Length();
-        size_t read = 0;
-        while (!f_in.Eof()) {
-            size_t t = f_in.Read(rbuf, bufLen);
-            zlib.WriteAll(rbuf, t);
-            read += t;
-
-            size_t f = read;
-            f *= 1000;
-            f /= total;
-            f /= 3;
-            if (f != lastDone) {
-                lastDone = f;
-                cancelled = !progressDialog->Update(f, "Compressing " + filename, &cancelled);
-                wxYield();
-                if (cancelled) {
-                    delete [] rbuf;
-                    f_in.Close();
-                    return cancelled;
-                }
-            }
-        }
-        zlib.Close();
-        //printf("compressed: %zu to %zu    %zu\n", total, fileLen, fileLen*100/total);
-        fn += ".gz";
-        ext = ".gz";
-        ct = "Content-Type: application/z-gzip";
-        delete [] rbuf;
-    } else {
-        logger_base.debug("Uploading it uncompressed.");
-        compress = false;
-    }
-    
     
     setupCurl();
     //if we cannot upload it in 5 minutes, we have serious issues
@@ -677,7 +628,6 @@ bool FPP::uploadFile(const std::string &filename, const std::string &file, bool 
     data.progress = progressDialog;
     data.progressString = "Transferring " + filename + " to " + ipAddress;
     data.lastDone = lastDone;
-    data.compressed = compress;
 
     int i = curl_easy_perform(curl);
     curl_slist_free_all(chunk);
@@ -761,12 +711,11 @@ bool FPP::copyFile(const std::string &filename,
 }
 bool FPP::uploadOrCopyFile(const std::string &filename,
                                    const std::string &file,
-                                   bool compress,
                                    const std::string &dir) {
     if (IsDrive()) {
         return copyFile(filename, file, dir);
     }
-    return uploadFile(filename, file, compress);
+    return uploadFile(filename, file);
 }
 
 
@@ -790,7 +739,7 @@ bool FPP::PrepareUploadSequence(const FSEQFile &file,
         wxFileName mfn(media);
         mediaBaseName = mfn.GetFullName();
 
-        cancelled |= uploadOrCopyFile(mediaBaseName, media, false, "music");
+        cancelled |= uploadOrCopyFile(mediaBaseName, media, "music");
         if (cancelled) {
             return cancelled;
         }
@@ -804,17 +753,16 @@ bool FPP::PrepareUploadSequence(const FSEQFile &file,
         tempFileName = wxFileName::CreateTempFileName(baseName);
         fileName = tempFileName;
     }
-    uploadCompressed = type == 0 && IsVersionAtLeast(2, 5);  // no sense compressing V2 as they are already compressed, just wastes time
     if ((type == 0 && file.getVersionMajor() == 1)
         || fn.GetExt() == "eseq") {
 
         //these just get uploaded directly
-        return uploadOrCopyFile(baseName, seq, uploadCompressed, fn.GetExt() == "eseq" ? "effects" : "sequences");
+        return uploadOrCopyFile(baseName, seq, fn.GetExt() == "eseq" ? "effects" : "sequences");
     }
 
     if (type == 1 && file.getVersionMajor() == 2) {
         // Full v2 file, upload directly
-        return uploadOrCopyFile(baseName, seq, false, fn.GetExt() == "eseq" ? "effects" : "sequences");
+        return uploadOrCopyFile(baseName, seq, fn.GetExt() == "eseq" ? "effects" : "sequences");
     }
     baseSeqName = baseName;
     outputFile = FSEQFile::createFSEQFile(fileName, type == 0 ? 1 : 2);
@@ -848,7 +796,7 @@ bool FPP::FinalizeUploadSequence() {
         delete outputFile;
         outputFile = nullptr;
         if (tempFileName != "") {
-            cancelled = uploadOrCopyFile(baseSeqName, tempFileName, uploadCompressed, "sequences");
+            cancelled = uploadOrCopyFile(baseSeqName, tempFileName, "sequences");
             ::wxRemoveFile(tempFileName);
             tempFileName = "";
         }

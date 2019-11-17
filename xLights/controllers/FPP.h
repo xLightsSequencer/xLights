@@ -181,11 +181,9 @@ private:
     int PostToURL(const std::string& url, const wxMemoryBuffer &val, const std::string &contentType = "application/octet-stream");
     bool uploadOrCopyFile(const std::string &filename,
                           const std::string &file,
-                          bool compress,
                           const std::string &dir);
     bool uploadFile(const std::string &filename,
-                    const std::string &file,
-                    bool compress);
+                    const std::string &file);
     bool copyFile(const std::string &filename,
                   const std::string &file,
                   const std::string &dir);
@@ -199,7 +197,6 @@ private:
     std::map<std::string, std::string> sequences;
     std::string tempFileName;
     std::string baseSeqName;
-    bool uploadCompressed = false;
     FSEQFile *outputFile = nullptr;
 
     void setupCurl();
