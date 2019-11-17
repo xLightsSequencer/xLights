@@ -5838,17 +5838,12 @@ void xLightsFrame::CheckSequence(bool display)
             }
         }
 
-#ifdef __WXMSW__
-        if (it.second->GetPixelStyle() == 2 || it.second->GetPixelStyle() == 3)
+        if ((it.second->GetPixelStyle() == 2 || it.second->GetPixelStyle() == 3) && it.second->GetNodeCount() > 100)
         {
-            if (it.second->GetNodeCount() > 100)
-            {
-                wxString msg = wxString::Format("    WARN: model '%s' uses pixel style '%s' which is known to render really slowly on Windows. Consider using a different pixel style.", it.first, Model::GetPixelStyleDescription(it.second->GetPixelStyle()));
-                LogAndWrite(f, msg.ToStdString());
-                warncount++;
-            }
+            wxString msg = wxString::Format("    WARN: model '%s' uses pixel style '%s' which is known to render really slowly. Consider using a different pixel style.", it.first, Model::GetPixelStyleDescription(it.second->GetPixelStyle()));
+            LogAndWrite(f, msg.ToStdString());
+            warncount++;
         }
-#endif
     }
 
     for (const auto& it : AllObjects)
