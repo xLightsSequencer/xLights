@@ -140,9 +140,6 @@ VideoReader::VideoReader(const std::string& filename, int maxwidth, int maxheigh
         return;
     }
 
-    int origWidth = _width;
-    int origHeight = _height;
-
 	// at this point it is open and ready
    if ( usenativeresolution )
    {

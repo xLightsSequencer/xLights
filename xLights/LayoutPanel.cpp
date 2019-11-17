@@ -6403,7 +6403,6 @@ static inline void SetToolTipForTreeList(wxTreeListCtrl *tv, const std::string &
 
 void LayoutPanel::OnSelectionChanged(wxTreeListEvent& event)
 {
-    log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     UnSelectAllModels(false);
     if( editing_models ) {
         wxTreeListItem item = event.GetItem();

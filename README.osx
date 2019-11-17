@@ -157,3 +157,4 @@ Jan 6, 2019 - 81de073d3b06d61ed8959d417692e27d49ec17eb  Move to c++17, fixes for
 Jun 30, 2019 - 51bce4ec0b2f1d6e38e1d5ae75e0ad1cec9bae13 Contains fixes for opengl window resizing
 July 21, 2019 - 9ede90257fa5813bbb6c32f949b8d69619e14c03 add --enable-mimetype
 July 27, 2019 - d50b91554ada145c8031db4540008b0f641bed28 fixes for some openGL issues, wxGrid crashes
+Nov 17, 2019 - 099a4c8b77ccca16870d8761ba724be4e4d13643 Update to wxWidget 3.1.3

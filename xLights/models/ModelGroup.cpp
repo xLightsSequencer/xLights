@@ -50,6 +50,7 @@ Model* ModelGroup::GetFirstModel() const
             return it;
         }
     }
+    return nullptr;
 }
 
 bool ModelGroup::ContainsModelGroup(ModelGroup* mg)

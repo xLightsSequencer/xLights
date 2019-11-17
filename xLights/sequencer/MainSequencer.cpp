@@ -1389,8 +1389,6 @@ void MainSequencer::Paste(bool row_paste) {
 
 void MainSequencer::InsertTimingMarkFromRange()
 {
-    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     bool is_range = true;
     int x1;
     int x2;
