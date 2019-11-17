@@ -33,6 +33,16 @@
 
 #include <log4cpp/Category.hh>
 
+static wxArrayString NODE_TYPES;
+static wxArrayString RGBW_HANDLING;
+static wxArrayString PIXEL_STYLES;
+static wxArrayString LAYOUT_GROUPS;
+static wxArrayString CONTROLLER_PROTOCOLS;
+static wxArrayString SMART_REMOTES;
+static wxArrayString CONTROLLER_DIRECTION;
+static wxArrayString CONTROLLER_COLORORDER;
+static wxArrayString CONTROLLERS;
+
 static const std::string DEFAULT("Default");
 static const std::string PER_PREVIEW("Per Preview");
 static const std::string SINGLE_LINE("Single Line");
@@ -49,6 +59,45 @@ Model::Model(const ModelManager &manager) : modelDimmingCurve(nullptr),
     StrobeRate(0), modelManager(manager), CouldComputeStartChannel(false), maxVertexCount(0),
     rgbwHandlingType(0), BufferDp(0), _controller(0), modelTagColour(*wxBLACK)
 {
+    if (PIXEL_STYLES.empty()) {
+        PIXEL_STYLES.push_back("Square");
+        PIXEL_STYLES.push_back("Smooth");
+        PIXEL_STYLES.push_back("Solid Circle");
+        PIXEL_STYLES.push_back("Blended Circle");
+
+        NODE_TYPES.push_back("RGB Nodes");
+        NODE_TYPES.push_back("RBG Nodes");
+        NODE_TYPES.push_back("GBR Nodes");
+        NODE_TYPES.push_back("GRB Nodes");
+        NODE_TYPES.push_back("BRG Nodes");
+        NODE_TYPES.push_back("BGR Nodes");
+
+        NODE_TYPES.push_back("3 Channel RGB");
+        NODE_TYPES.push_back("4 Channel RGBW");
+        NODE_TYPES.push_back("4 Channel WRGB");
+        NODE_TYPES.push_back("Strobes");
+        NODE_TYPES.push_back("Single Color");
+        NODE_TYPES.push_back("Single Color Intensity");
+
+        NODE_TYPES.push_back("WRGB Nodes");
+        NODE_TYPES.push_back("WRBG Nodes");
+        NODE_TYPES.push_back("WGBR Nodes");
+        NODE_TYPES.push_back("WGRB Nodes");
+        NODE_TYPES.push_back("WBRG Nodes");
+        NODE_TYPES.push_back("WBGR Nodes");
+
+        NODE_TYPES.push_back("RGBW Nodes");
+        NODE_TYPES.push_back("RBGW Nodes");
+        NODE_TYPES.push_back("GBRW Nodes");
+        NODE_TYPES.push_back("GRBW Nodes");
+        NODE_TYPES.push_back("BRGW Nodes");
+        NODE_TYPES.push_back("BGRW Nodes");
+
+        RGBW_HANDLING.push_back("R=G=B -> W");
+        RGBW_HANDLING.push_back("RGB Only");
+        RGBW_HANDLING.push_back("White Only");
+    }
+
     // These member vars were not initialised so give them some defaults.
     BufferHt = 0;
     BufferWi = 0;
@@ -352,16 +401,6 @@ protected:
     Model *m_model;
 };
 
-static wxArrayString NODE_TYPES;
-static wxArrayString RGBW_HANDLING;
-static wxArrayString PIXEL_STYLES;
-static wxArrayString LAYOUT_GROUPS;
-static wxArrayString CONTROLLER_PROTOCOLS;
-static wxArrayString SMART_REMOTES;
-static wxArrayString CONTROLLER_DIRECTION;
-static wxArrayString CONTROLLER_COLORORDER;
-static wxArrayString CONTROLLERS;
-
 wxArrayString Model::GetLayoutGroups(const ModelManager& mm)
 {
     wxArrayString lg;
@@ -468,46 +507,16 @@ void Model::ColourClashingChains(wxPGProperty* p)
     }
 }
 
-void Model::AddProperties(wxPropertyGridInterface *grid, OutputManager* outputManager) {
-    if (PIXEL_STYLES.empty()) {
-        PIXEL_STYLES.push_back("Square");
-        PIXEL_STYLES.push_back("Smooth");
-        PIXEL_STYLES.push_back("Solid Circle");
-        PIXEL_STYLES.push_back("Blended Circle");
-
-        NODE_TYPES.push_back("RGB Nodes");
-        NODE_TYPES.push_back("RBG Nodes");
-        NODE_TYPES.push_back("GBR Nodes");
-        NODE_TYPES.push_back("GRB Nodes");
-        NODE_TYPES.push_back("BRG Nodes");
-        NODE_TYPES.push_back("BGR Nodes");
-
-        NODE_TYPES.push_back("3 Channel RGB");
-        NODE_TYPES.push_back("4 Channel RGBW");
-        NODE_TYPES.push_back("4 Channel WRGB");
-        NODE_TYPES.push_back("Strobes");
-        NODE_TYPES.push_back("Single Color");
-        NODE_TYPES.push_back("Single Color Intensity");
-
-        NODE_TYPES.push_back("WRGB Nodes");
-        NODE_TYPES.push_back("WRBG Nodes");
-        NODE_TYPES.push_back("WGBR Nodes");
-        NODE_TYPES.push_back("WGRB Nodes");
-        NODE_TYPES.push_back("WBRG Nodes");
-        NODE_TYPES.push_back("WBGR Nodes");
-
-        NODE_TYPES.push_back("RGBW Nodes");
-        NODE_TYPES.push_back("RBGW Nodes");
-        NODE_TYPES.push_back("GBRW Nodes");
-        NODE_TYPES.push_back("GRBW Nodes");
-        NODE_TYPES.push_back("BRGW Nodes");
-        NODE_TYPES.push_back("BGRW Nodes");
-
-        RGBW_HANDLING.push_back("R=G=B -> W");
-        RGBW_HANDLING.push_back("RGB Only");
-        RGBW_HANDLING.push_back("White Only");
+std::string Model::GetPixelStyleDescription(int pixelStyle)
+{
+    if (pixelStyle < PIXEL_STYLES.size())
+    {
+        return PIXEL_STYLES[pixelStyle];
     }
+    return "";
+}
 
+void Model::AddProperties(wxPropertyGridInterface *grid, OutputManager* outputManager) {
     LAYOUT_GROUPS = Model::GetLayoutGroups(modelManager);
 
     wxPGProperty *sp;

@@ -78,6 +78,8 @@ public:
     virtual std::string GetFullName() const { return name;}
     void Rename(std::string newName);
     int GetNumStrings() const { return parm1; }
+    int GetPixelStyle() const { return pixelStyle; }
+    static std::string GetPixelStyleDescription(int pixelStyle);
     virtual int GetNumPhysicalStrings() const { return parm1; }
 
     std::string description;
