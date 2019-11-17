@@ -3805,7 +3805,10 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
         if (editing_models && (selectedBaseObject != nullptr))
         {
             Model* model = dynamic_cast<Model*>(selectedBaseObject);
-            mnu.Append(ID_PREVIEW_MODEL_NODELAYOUT, "Node Layout");
+            if (model != nullptr && model->GetDisplayAs() != "ModelGroup" && model->GetDisplayAs() != "SubModel")
+            {
+                mnu.Append(ID_PREVIEW_MODEL_NODELAYOUT, "Node Layout");
+            }
             mnu.Append(ID_PREVIEW_MODEL_LOCK, "Lock");
             mnu.Append(ID_PREVIEW_MODEL_UNLOCK, "Unlock");
             if (model->SupportsExportAsCustom())
@@ -4224,7 +4227,7 @@ void LayoutPanel::PreviewModelAlignWithGround()
 void LayoutPanel::ShowNodeLayout()
 {
     Model* md = dynamic_cast<Model*>(selectedBaseObject);
-    if (md == nullptr) return;
+    if (md == nullptr || md->GetDisplayAs() == "ModelGoup" || md->GetDisplayAs() == "SubModel") return;
     wxString html = md->ChannelLayoutHtml(xlights->GetOutputManager());
     ChannelLayoutDialog dialog(this);
     dialog.SetHtmlSource(html);
@@ -4234,7 +4237,7 @@ void LayoutPanel::ShowNodeLayout()
 void LayoutPanel::ShowWiring()
 {
     Model* md = dynamic_cast<Model*>(selectedBaseObject);
-    if (md == nullptr) return;
+    if (md == nullptr || md->GetDisplayAs() == "ModelGoup" || md->GetDisplayAs() == "SubModel") return;
     WiringDialog dlg(this, md->GetName());
     dlg.SetData(md);
     dlg.ShowModal();
