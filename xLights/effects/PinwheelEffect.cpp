@@ -114,8 +114,8 @@ void PinwheelEffect::Render(Effect* effect, SettingsMap& SettingsMap, RenderBuff
         for (int i = 0; i < pinwheel_arms; i++) { colorarray[i] = (i + 1) % buffer.GetColorCount(); }
 
         int xc = (int)(ceil(std::hypot(buffer.BufferWi, buffer.BufferHt) / 2));
-        xc_adj = xc_adj * buffer.BufferWi / 200;
-        yc_adj = yc_adj * buffer.BufferHt / 200;
+        xc_adj = (xc_adj * buffer.BufferWi) / 200;
+        yc_adj = (yc_adj * buffer.BufferHt) / 200;
 
         int max_radius = xc * armsize;
         if (pinwheel_thickness == 0) pinwheel_thickness = 1;
@@ -137,7 +137,7 @@ void PinwheelEffect::Render(Effect* effect, SettingsMap& SettingsMap, RenderBuff
                 angle = angle - 90 - pos;
             }
 
-            if (max_radius > 0)
+            if (max_radius != 0)
             {
                 for (float r = 0; r <= max_radius; r += 0.5)
                 {
@@ -156,7 +156,7 @@ void PinwheelEffect::Render(Effect* effect, SettingsMap& SettingsMap, RenderBuff
         }
 
         // Draw actual pinwheel arms
-        if (max_radius > 0)
+        if (max_radius != 0)
         {
             for (int x = 0; x < buffer.BufferWi; x++)
             {
@@ -300,8 +300,8 @@ void PinwheelEffect::Draw_arm(RenderBuffer& buffer,
 
     int xc = buffer.BufferWi / 2;
     int yc = buffer.BufferHt / 2;
-    xc = xc + (xc_adj / 100) * xc; // xc_adj is from -100 to 100
-    yc = yc + (yc_adj / 100) * yc;
+    xc = xc + ((xc_adj * xc) / 100); // xc_adj is from -100 to 100
+    yc = yc + ((yc_adj * yc) / 100);
 
     bool isSpatial = buffer.palette.IsSpatial(colorIdx);
     xlColor color;
@@ -312,7 +312,7 @@ void PinwheelEffect::Draw_arm(RenderBuffer& buffer,
         adjustColor(pw3dType, color, hsv, buffer.allowAlpha, round);
     }
 
-    if (max_radius > 0)
+    if (max_radius != 0)
     {
         for (float r = 0.0f; r <= max_radius; r += 0.5f) {
             int degrees_twist = (r / max_radius) * pinwheel_twist;
