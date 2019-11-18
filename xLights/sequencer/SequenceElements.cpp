@@ -2088,7 +2088,15 @@ void SequenceElements::BreakdownWord(EffectLayer* phoneme_layer, int start_time,
             short_interval = GetMinPeriod();
         }
         // our adjusted interval for non MBP/etc once split evenly
-        double adjusted_interval = (end_time - start_time - countShort * short_interval) / (phonemes.Count() - countShort);
+        double adjusted_interval = default_interval_ms;
+        if (phonemes.Count() > 1)
+        {
+            adjusted_interval = (end_time - start_time - countShort * short_interval) / (phonemes.Count() - countShort);
+        }
+        else
+        {
+            short_interval = default_interval_ms;
+        }
 
         int phoneme_start_time = start_time;
         int shorts = 0;

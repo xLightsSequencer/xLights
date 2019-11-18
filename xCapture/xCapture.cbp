@@ -63,7 +63,7 @@
 					<Add option="-march=i586" />
 					<Add option="-O2" />
 					<Add option="-pedantic" />
-					<Add option="-std=c++14" />
+					<Add option="-std=c++1z" />
 					<Add option="-m32" />
 					<Add option="-pipe" />
 					<Add option="-mthreads" />
@@ -87,6 +87,7 @@
 					<Add directory="$(#wx)/lib/gcc_dll/mswu" />
 				</ResourceCompiler>
 				<Linker>
+					<Add option="-O2" />
 					<Add option="-s" />
 					<Add option="-m32" />
 					<Add option="-lopengl32" />
@@ -176,7 +177,7 @@
 				<Compiler>
 					<Add option="-O2" />
 					<Add option="-pedantic" />
-					<Add option="-std=c++14" />
+					<Add option="-std=c++1z" />
 					<Add option="-m64" />
 					<Add option="-pipe" />
 					<Add option="-mthreads" />
@@ -200,6 +201,7 @@
 					<Add directory="$(#wx)/lib/gcc_dll/mswu" />
 				</ResourceCompiler>
 				<Linker>
+					<Add option="-O2" />
 					<Add option="-s" />
 					<Add option="-m64" />
 					<Add option="-Wl,-Map=../bin64/xCapture.map" />

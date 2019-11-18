@@ -119,6 +119,7 @@
 					<Add directory="$(#wx)/lib/gcc_dll/mswu" />
 				</ResourceCompiler>
 				<Linker>
+					<Add option="-O2" />
 					<Add option="-s" />
 					<Add option="-m32" />
 					<Add option="-lopengl32" />
@@ -289,6 +290,7 @@
 					<Add directory="$(#wx)/lib/gcc_dll/mswud" />
 				</ResourceCompiler>
 				<Linker>
+					<Add option="-O2" />
 					<Add option="-s" />
 					<Add option="-m64" />
 					<Add option="-mthreads" />
