@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (will)   Added Test Mode (BETA) plugin to xSchedule Web interface
 2019.65 November 18 2019
    -- enh (keith)  Support face effects on model group when all models have the same face definition
    -- enh (keith)  Warn about slow rendering due to certain pixel styles
@@ -1354,7 +1355,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- enh (keith)  Add waveform colours to the colour manager
    -- enh (keith)  Add a screen mapper playlist item ... in theory this lets you do real time video on an element ... amongst other things.
 2018.4 Jan 30, 2018
-   -- bug (Billy)  Fixed xScheduleWeb to display proper version number
+   -- bug (will)  Fixed xScheduleWeb to display proper version number
    -- bug (dkulp)  Fix convert to effects not recognizing down ramps that hit the last frame
    -- bug (dkulp)  Fix problems with LOR v4 lcb only outputting 100% effect values
    -- bug (dkulp)  Convert To Effects only working for first node in model
@@ -1419,7 +1420,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- enh (keith)  Add number aware model name sorting (layout, display elements, import effects)
    -- enh (keith)  Enhance handling of invalid mappings loaded from mapping files so mappings are not lost when saved and invalid mappings are highlighted
    -- enh (keith)  Add download of vendor custom models from licensed vendors
-   -- enh (Billy)  Added Controller Status to xSchedule WebUI
+   -- enh (will)  Added Controller Status to xSchedule WebUI
    -- enh (scott)  Added Right Click Ping controller Option To Setup Tab
 2018.1 Jan 04, 2018
    -- enh (k.mojek) Add "Print Layout" option to Layout popup menu
@@ -1434,7 +1435,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- enh (k.mojek) Add ability to save the layout as an image via right click menu
    -- bug (gil)    Last release broke DMX effect panel label updating.
    -- bug (craig)  Fix crash of randomize effect after effect is deleted. Fixes #1052
-   -- bug (billy)  Fixed xSchedule webui timeout, it will now reconnect automatically.
+   -- bug (will)  Fixed xSchedule webui timeout, it will now reconnect automatically.
 2017.45  Dec 29, 2017
    -- enh (craig)  Added a randomize current selected effect button
    -- bug (craig)  Fixed the create random effects to generate random settings
@@ -1937,7 +1938,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- enh (keith)   Add custom frame rates to new sequence setup
    -- bug (keith)   Fix triangle wave left to right not working
    -- bug (keith)   Fix some rounding issues that was throwing video timing off when aligned to audio track.
-   -- enh (billy)   Enhance scheduler web interface. More functionality. More responsive.
+   -- enh (will)   Enhance scheduler web interface. More functionality. More responsive.
 2017.6  Feb 27, 2017
    -- bug (dkulp)   Fix xScheduler logging on OSX
    -- enh (keith)   Add duration treatments to glediator effect
