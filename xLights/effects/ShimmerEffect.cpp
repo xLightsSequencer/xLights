@@ -63,14 +63,14 @@ void ShimmerEffect::adjustSettings(const std::string &version, Effect *effect, b
     }
 }
 
-void ShimmerEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
+void ShimmerEffect::Render(Effect* effect, SettingsMap& SettingsMap, RenderBuffer& buffer) {
 
     float oset = buffer.GetEffectTimeIntervalPosition();
     int Duty_Factor = GetValueCurveInt("Shimmer_Duty_Factor", 50, SettingsMap, oset, SHIMMER_DUTYFACTOR_MIN, SHIMMER_DUTYFACTOR_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     bool Use_All_Colors = SettingsMap.GetBool("CHECKBOX_Shimmer_Use_All_Colors", false);
     double cycles = GetValueCurveDouble("Shimmer_Cycles", 1.0, SettingsMap, oset, SHIMMER_CYCLES_MIN, SHIMMER_CYCLES_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), 10);
     bool pre2017_7 = SettingsMap.GetBool("CHECKBOX_PRE_2017_7", false);
-    int colorcnt=buffer.GetColorCount();
+    int colorcnt = buffer.GetColorCount();
 
     int ColorIdx = 0;
     if (pre2017_7)
@@ -120,18 +120,18 @@ void ShimmerEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffe
 
     xlColor color;
     buffer.palette.GetColor(ColorIdx, color);
-    for (int y=0; y<buffer.BufferHt; y++) {
-        for (int x=0; x<buffer.BufferWi; x++) {
-            if(Use_All_Colors) { // Should we randomly assign colors from palette or cycle thru sequentially?
-                ColorIdx=rand() % colorcnt; // Select random numbers from 0 up to number of colors the user has checked. 0-5 if 6 boxes checked
+    for (int y = 0; y < buffer.BufferHt; y++) {
+        for (int x = 0; x < buffer.BufferWi; x++) {
+            if (Use_All_Colors) { // Should we randomly assign colors from palette or cycle thru sequentially?
+                ColorIdx = rand() % colorcnt; // Select random numbers from 0 up to number of colors the user has checked. 0-5 if 6 boxes checked
                 buffer.palette.GetColor(ColorIdx, color); // Now go and get the hsv value for this ColorIdx
             }
             else
             {
                 buffer.palette.GetSpatialColor(ColorIdx, (float)x / (float)buffer.BufferWi, (float)y / (float)buffer.BufferHt, color);
             }
-            
-            buffer.SetPixel(x,y,color); // Turn pixel
+
+            buffer.SetPixel(x, y, color); // Turn pixel
         }
     }
 }

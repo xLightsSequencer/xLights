@@ -67,14 +67,17 @@ int TwinkleEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x2,
         std::string vcs = e->GetPaletteMap().Get("C_VALUECURVE_Brightness", "");
         if (vcs == "")
         {
-            starti = e->GetSettings().GetInt("C_SLIDER_Brightness", 100);
+            starti = e->GetPaletteMap().GetInt("C_SLIDER_Brightness", 100);
+            if (starti > 100) starti = 100;
             endi = starti;
         }
         else
         {
             ValueCurve vc(vcs);
             starti = vc.GetOutputValueAt(0.0, e->GetStartTimeMS(), e->GetEndTimeMS());
+            if (starti > 100) starti = 100;
             endi = vc.GetOutputValueAt(1.0, e->GetStartTimeMS(), e->GetEndTimeMS());
+            if (endi > 100) endi = 100;
         }
 
         xlColor color = e->GetPalette()[0];

@@ -47,8 +47,6 @@
     <ClCompile Include="effects\ColorWashPanel.cpp" />
     <ClCompile Include="effects\EffectManager.cpp" />
     <ClCompile Include="effects\EffectPanelUtils.cpp" />
-    <ClCompile Include="effects\StrobeEffect.cpp" />
-    <ClCompile Include="effects\StrobePanel.cpp" />
     <ClCompile Include="EffectTreeDialog.cpp" />
     <ClCompile Include="ExportModelSelect.cpp" />
     <ClCompile Include="FileConverter.cpp" />
@@ -734,6 +732,12 @@
     <ClCompile Include="ColoursPanel.cpp" />
     <ClCompile Include="DragColoursBitmapButton.cpp" />
     <ClCompile Include="TraceLog.cpp" />
+    <ClCompile Include="effects\StrobeEffect.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\StrobePanel.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -776,8 +780,6 @@
     <ClInclude Include="effects\ColorWashPanel.h" />
     <ClInclude Include="effects\EffectManager.h" />
     <ClInclude Include="effects\EffectPanelUtils.h" />
-    <ClInclude Include="effects\StrobeEffect.h" />
-    <ClInclude Include="effects\StrobePanel.h" />
     <ClInclude Include="EffectTreeDialog.h" />
     <ClInclude Include="ExportModelSelect.h" />
     <ClInclude Include="FileConverter.h" />
@@ -1479,6 +1481,12 @@
     <ClInclude Include="DragColoursBitmapButton.h" />
     <ClInclude Include="SpecialOptions.h" />
     <ClInclude Include="TraceLog.h" />
+    <ClInclude Include="effects\StrobeEffect.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\StrobePanel.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />
