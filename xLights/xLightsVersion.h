@@ -6,10 +6,10 @@
 #if __has_include("xlights_build_version.h")
 #include "xlights_build_version.h"
 #else
-static const wxString xlights_version_string  = "2019.64";
+static const wxString xlights_version_string  = "2019.65";
 #endif
 static const wxString xlights_qualifier       = ""; // " BETA,ALPHA,PROD";
-static const wxString xlights_build_date      = "November 9, 2019";
+static const wxString xlights_build_date      = "November 18, 2019";
 
 const wxString &GetBitness();
 wxString GetDisplayVersionString();

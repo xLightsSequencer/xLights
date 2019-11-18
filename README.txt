@@ -11,9 +11,11 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2019.65 November 18 2019
    -- enh (keith)  Support face effects on model group when all models have the same face definition
-   -- enh (keith)  Warn about slow rendering due to certain pixel styles on windows
+   -- enh (keith)  Warn about slow rendering due to certain pixel styles
    -- enh (keith)  Move to wxWidgets 3.1.3 and gcc 8.1.0 on windows   
+   -- enh (keith)  Move to wxWidgets 3.1.3 on OSX   
    -- enh (keith)  Make snowstorm support colour curves
    -- enh (chris)  Move to wxWidgets 3.1.3 on Linux
    -- enh (scott)  Added J1Sys, EasyLights, and FPP Controllers to the Multi-Controller Upload Dialog.
@@ -25,6 +27,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- bug (keith)  Fix xSchedule incorrectly warns about sequence size
    -- bug (keith)  Fix cube model does not calculate string lengths correctly when uploading to controllers
    -- bug (keith)  Fix some submodel dialog issues with changing type of submodel
+   -- bug (keith)  Fix papagayo does not breakdown words with just a single short phoneme
+   -- bug (keith)  Fix twinkle AC ramps draw style is wrong if start/end brightness > 100
 2019.64 November 9 2019
    -- enh (scott)  Added Pixlite and EasyLights Controllers to the Controller Selection Dropdown.
    -- enh (keith)  Make lyrics entry dialog resizable
