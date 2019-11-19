@@ -3357,7 +3357,7 @@ void Model::SetNodeCount(size_t NumStrings, size_t NodesPerString, const std::st
             }
         } else if (StringType=="4 Channel WRGB") {
             for(n = 0; n < NumStrings; n++) {
-                Nodes.push_back(NodeBaseClassPtr(new NodeClassRGBW(n, NodesPerString, "RGB", true, rgbwHandlingType, GetNextName())));
+                Nodes.push_back(NodeBaseClassPtr(new NodeClassRGBW(n, NodesPerString, "RGB", false, rgbwHandlingType, GetNextName())));
                 Nodes.back()->model = this;
             }
         } else {
