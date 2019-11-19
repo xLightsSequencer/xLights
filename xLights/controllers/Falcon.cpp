@@ -1028,6 +1028,8 @@ int Falcon::DecodeStringPortProtocol(std::string protocol) const
     if (p == "tls3001") return 4;
     if (p == "lpd6803") return 5;
     if (p == "gece") return 6;
+    if (p == "lpd8806") return 7;
+    if (p == "apa102") return 8;
 
     return -1;
 }

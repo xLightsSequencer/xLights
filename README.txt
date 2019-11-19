@@ -12,6 +12,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
    -- enh (will)   Added Test Mode (BETA) plugin to xSchedule Web interface
+   -- enh (scott)  Added APA102 pixel protocol support.
 2019.65 November 18 2019
    -- enh (keith)  Support face effects on model group when all models have the same face definition
    -- enh (keith)  Warn about slow rendering due to certain pixel styles

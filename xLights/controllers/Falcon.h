@@ -121,6 +121,8 @@ public:
         if (p == "tls3001") return true;
         if (p == "lpd6803") return true;
         if (p == "gece") return true;
+        if (p == "lpd8806") return true;
+        if (p == "apa102") return true;
 
         return false;
     }

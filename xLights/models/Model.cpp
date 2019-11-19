@@ -671,6 +671,7 @@ static inline void setupProtocolList() {
         CONTROLLER_PROTOCOLS.push_back("WS2801");
         CONTROLLER_PROTOCOLS.push_back("TLS3001");
         CONTROLLER_PROTOCOLS.push_back("LPD6803");
+        CONTROLLER_PROTOCOLS.push_back("APA102");
         CONTROLLER_PROTOCOLS.push_back("DMX");
         CONTROLLER_PROTOCOLS.push_back("PixelNet");
         CONTROLLER_PROTOCOLS.push_back("Renard");
