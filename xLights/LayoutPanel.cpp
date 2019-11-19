@@ -3025,6 +3025,12 @@ void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
         m_bound_end_x = m_bound_start_x;
         m_bound_end_y = m_bound_start_y;
     }
+    else if (event.AltDown())
+    {
+        m_previous_mouse_x = event.GetX();
+        m_previous_mouse_y = event.GetY();
+        m_wheel_down = true;
+    }
     else if (m_over_handle != -1)
     {
         if ((m_over_handle & 0x10000) > 0) {
@@ -3101,6 +3107,12 @@ void LayoutPanel::OnPreviewLeftUp(wxMouseEvent& event)
 {
     if (m_polyline_active) {
         m_mouse_down = false;
+        return;
+    }
+
+    if (m_wheel_down)
+    {
+        m_wheel_down = false;
         return;
     }
 
