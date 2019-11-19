@@ -1069,6 +1069,8 @@ char SanDevices::EncodeStringPortProtocolV5(const std::string& protocol) const
     if (p == "tm18xx") return 'D';
     if (p == "ws2801") return 'C';
     if (p == "lpd6803") return 'B';
+    if (p == "apa102") return 'G';
+    if (p == "lpd8806") return 'E';
     if (p == "gece") return 'O';
     if (p == "dmx") return 'K';
     if (p == "renard") return 'N';

@@ -70,6 +70,8 @@ public:
         if (p == "tm18xx") return true;
         if (p == "ws2801") return true;
         if (p == "tls3001" && _firmware == 4) return true;
+        if (p == "apa102" && _firmware == 5) return true;
+        if (p == "lpd8806" && _firmware == 5) return true;
         if (p == "lpd6803") return true;
         if (p == "gece") return true;
 
