@@ -159,11 +159,11 @@ public:
     void UpdateForProgress(float progress)
     {
         int i = 0;
-        for (auto it = cc.begin(); it != cc.end(); ++it)
+        for (const auto& it : cc)
         {
-            if (it->IsActive())
+            if (it.IsActive())
             {
-                color[i] = xlColor(it->GetValueAt(progress));
+                color[i] = xlColor(it.GetValueAt(progress));
                 hsv[i] = color[i].asHSV();
             }
             i++;
@@ -175,9 +175,9 @@ public:
         wxASSERT(newcolors.size() == newcc.size());
 
         cc = newcc;
-        color=newcolors;
+        color = newcolors;
         hsv.clear();
-        for(size_t i=0; i<newcolors.size(); i++)
+        for (size_t i = 0; i < newcolors.size(); i++)
         {
             hsv.push_back(newcolors[i].asHSV());
         }
@@ -196,14 +196,14 @@ public:
         return cc[idx];
     }
 
-    const xlColor &GetColor(size_t idx) const {
+    const xlColor& GetColor(size_t idx) const {
         if (idx >= color.size()) {
             return xlWHITE;
         }
 
-            return color[idx];
+        return color[idx];
     }
-    
+
     xlColor GetColor(size_t idx, float progress) const {
         if (idx >= color.size()) {
             return xlWHITE;
@@ -215,7 +215,7 @@ public:
         }
         return color[idx];
     }
-    
+
     void GetColor(size_t idx, xlColor& c) const
     {
         if (idx >= color.size())
@@ -236,23 +236,37 @@ public:
 
     xlColor CalcRoundColor(int idx, double round, int type) const
     {
-        if (type == TC_CW)
+        if (idx < cc.size())
         {
-            return cc[idx].GetValueAt(round);
+            if (type == TC_CW)
+            {
+                return cc[idx].GetValueAt(round);
+            }
+            else
+            {
+                return cc[idx].GetValueAt(1.0 - round);
+            }
         }
         else
         {
-            return cc[idx].GetValueAt(1.0 - round);
+            return xlWHITE;
         }
     }
 
     xlColor CalcRadialColour(int idx, int centrex, int centrey, int maxradius, int x, int y, int type) const
     {
-        double len = sqrt((x - centrex) * (x - centrex) + (y - centrey) * (y - centrey));
-        if (type == TC_RADIALIN)
-            return cc[idx].GetValueAt(1.0 - len / maxradius);
+        if (idx < cc.size())
+        {
+            double len = sqrt((x - centrex) * (x - centrex) + (y - centrey) * (y - centrey));
+            if (type == TC_RADIALIN)
+                return cc[idx].GetValueAt(1.0 - len / maxradius);
+            else
+                return cc[idx].GetValueAt(len / maxradius);
+        }
         else
-            return cc[idx].GetValueAt(len / maxradius);
+        {
+            return xlWHITE;
+        }
     }
 
     void GetSpatialColor(size_t idx, float xcentre, float ycentre, float x, float y, float round, float maxradius, xlColor& c) const
@@ -263,7 +277,7 @@ public:
         }
         else
         {
-            if (cc[idx].IsActive())
+            if (idx < cc.size() && cc[idx].IsActive())
             {
                 switch (cc[idx].GetTimeCurve())
                 {
@@ -299,7 +313,7 @@ public:
         }
         else
         {
-            if (cc[idx].IsActive())
+            if (idx < cc.size() && cc[idx].IsActive())
             {
                 switch (cc[idx].GetTimeCurve())
                 {
@@ -326,6 +340,7 @@ public:
             }
         }
     }
+
     void GetColor(size_t idx, xlColor& c, float progress) const
     {
         if (idx >= color.size())
@@ -334,7 +349,7 @@ public:
         }
         else
         {
-            if (cc[idx].IsActive())
+            if (idx < cc.size() && cc[idx].IsActive())
             {
                 c = cc[idx].GetValueAt(progress);
             }
@@ -371,7 +386,7 @@ public:
         }
         else
         {
-            if (cc[idx].IsActive())
+            if (idx < cc.size() && cc[idx].IsActive())
             {
                 c = xlColor(cc[idx].GetValueAt(progress)).asHSV();
             }
