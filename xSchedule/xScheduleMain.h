@@ -58,7 +58,8 @@ wxDECLARE_EVENT(EVT_CHANGESHOWFOLDER, wxCommandEvent);
 
 class xScheduleFrame : public wxFrame
 {
-    WebServer* _webServer;
+    FILE* _f = nullptr;
+    WebServer* _webServer = nullptr;
     static ScheduleManager* __schedule;
     std::string _showDir;
     wxDateTime _statusSetAt;

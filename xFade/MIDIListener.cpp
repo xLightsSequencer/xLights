@@ -111,10 +111,9 @@ void* ListenerThread::Entry()
 	_midiIn = new wxMidiInDevice(_deviceId, 1);
     if (_midiIn != nullptr)
     {
-        wxASSERT(_midiIn->IsInputPort());
-        if (_midiIn->Open() != wxMIDI_NO_ERROR)
+        if (!_midiIn->IsInputPort() || _midiIn->Open() != wxMIDI_NO_ERROR)
         {
-            logger_base.error("    Failed to open MIDI.");
+            logger_base.error("    Failed to open MIDI or not an input.");
             delete _midiIn;
             _midiIn = nullptr;
             _running = false;

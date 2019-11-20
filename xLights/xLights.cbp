@@ -127,7 +127,6 @@
 					<Add option="-Wl,--large-address-aware" />
 					<Add option="-lpthread" />
 					<Add option="-lole32" />
-					<Add library="../lib/windows/libwxmsw31u.a" />
 					<Add library="../lib/windows/libwxmsw31u_gl.a" />
 					<Add library="../lib/windows/DbgHelp.Lib" />
 					<Add library="../lib/windows/ImageHlp.Lib" />
@@ -145,6 +144,22 @@
 					<Add library="../lib/windows/LIBCURL.LIB" />
 					<Add library="Psapi" />
 					<Add library="../lib/windows/libz.a" />
+					<Add library="../lib/windows/libwxbase31u.a" />
+					<Add library="../lib/windows/libwxbase31u_net.a" />
+					<Add library="../lib/windows/libwxbase31u_xml.a" />
+					<Add library="../lib/windows/libwxexpat.a" />
+					<Add library="../lib/windows/libwxjpeg.a" />
+					<Add library="../lib/windows/libwxmsw31u_aui.a" />
+					<Add library="../lib/windows/libwxmsw31u_core.a" />
+					<Add library="../lib/windows/libwxmsw31u_gl.a" />
+					<Add library="../lib/windows/libwxmsw31u_html.a" />
+					<Add library="../lib/windows/libwxmsw31u_propgrid.a" />
+					<Add library="../lib/windows/libwxmsw31u_qa.a" />
+					<Add library="../lib/windows/libwxpng.a" />
+					<Add library="../lib/windows/libwxregexu.a" />
+					<Add library="../lib/windows/libwxscintilla.a" />
+					<Add library="../lib/windows/libwxtiff.a" />
+					<Add library="../lib/windows/libwxzlib.a" />
 					<Add directory="lib/windows" />
 					<Add directory="../lib/windows" />
 				</Linker>
@@ -297,7 +312,6 @@
 					<Add option="-lopengl32" />
 					<Add option="-Wl,-Map=../bin64/xLights.map" />
 					<Add option="-lole32" />
-					<Add library="../lib/windows64/libwxmsw31u.a" />
 					<Add library="../lib/windows64/libwxmsw31u_gl.a" />
 					<Add library="../lib/windows64/libDbgHelp.a" />
 					<Add library="../lib/windows64/libImageHlp.a" />
@@ -315,6 +329,22 @@
 					<Add library="../lib/windows64/LIBCURL.LIB" />
 					<Add library="Psapi" />
 					<Add library="../lib/windows64/libz.a" />
+					<Add library="../lib/windows64/libwxbase31u.a" />
+					<Add library="../lib/windows64/libwxbase31u_net.a" />
+					<Add library="../lib/windows64/libwxbase31u_xml.a" />
+					<Add library="../lib/windows64/libwxexpat.a" />
+					<Add library="../lib/windows64/libwxjpeg.a" />
+					<Add library="../lib/windows64/libwxmsw31u_aui.a" />
+					<Add library="../lib/windows64/libwxmsw31u_core.a" />
+					<Add library="../lib/windows64/libwxmsw31u_gl.a" />
+					<Add library="../lib/windows64/libwxmsw31u_html.a" />
+					<Add library="../lib/windows64/libwxmsw31u_propgrid.a" />
+					<Add library="../lib/windows64/libwxmsw31u_qa.a" />
+					<Add library="../lib/windows64/libwxpng.a" />
+					<Add library="../lib/windows64/libwxregexu.a" />
+					<Add library="../lib/windows64/libwxscintilla.a" />
+					<Add library="../lib/windows64/libwxtiff.a" />
+					<Add library="../lib/windows64/libwxzlib.a" />
 				</Linker>
 			</Target>
 			<Target title="64bit MinGW_Debug">

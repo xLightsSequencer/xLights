@@ -19,6 +19,6 @@
     <ClInclude Include="..\xLights\UtilFunctions.h" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />
+    <ResourceCompile Include="resource.rc" />
   </ItemGroup>
 </Project>

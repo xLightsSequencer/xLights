@@ -1,5 +1,4 @@
 #include "PlayListSimpleDialog.h"
-
 #include "PlayList.h"
 #include "PlayListStep.h"
 #include "PlayListItem.h"
@@ -24,6 +23,8 @@
 #include <wx/string.h>
 //*)
 
+#include <log4cpp/Category.hh>
+
 //(*IdInit(PlayListSimpleDialog)
 const long PlayListSimpleDialog::ID_TREECTRL1 = wxNewId();
 const long PlayListSimpleDialog::ID_BUTTON3 = wxNewId();
@@ -47,6 +48,7 @@ END_EVENT_TABLE()
 
 PlayListSimpleDialog::PlayListSimpleDialog(wxWindow* parent, OutputManager* outputManager, PlayList* playlist, wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     _outputManager = outputManager;
     _playlist = playlist;
 
@@ -105,7 +107,7 @@ PlayListSimpleDialog::PlayListSimpleDialog(wxWindow* parent, OutputManager* outp
 	FlexGridSizer4->Fit(Panel2);
 	FlexGridSizer4->SetSizeHints(Panel2);
 	SplitterWindow1->SplitVertically(Panel1, Panel2);
-	FlexGridSizer1->Add(SplitterWindow1, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer1->Add(SplitterWindow1, 1, wxALL|wxEXPAND, 2);
 	SetSizer(FlexGridSizer1);
 	FileDialog1 = new wxFileDialog(this, _("Select files"), wxEmptyString, wxEmptyString, wxFileSelectorDefaultWildcardStr, wxFD_DEFAULT_STYLE|wxFD_OPEN|wxFD_FILE_MUST_EXIST|wxFD_MULTIPLE, wxDefaultPosition, wxDefaultSize, _T("wxFileDialog"));
 	FlexGridSizer1->Fit(this);

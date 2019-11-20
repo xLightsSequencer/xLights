@@ -1489,9 +1489,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />
-  </ItemGroup>
-  <ItemGroup>
     <Filter Include="Models">
       <UniqueIdentifier>{b79fdd8e-7e7c-4782-993b-6823a86b5147}</UniqueIdentifier>
     </Filter>
@@ -1504,5 +1501,8 @@
     <Filter Include="Controllers">
       <UniqueIdentifier>{be70286a-a106-4f14-a344-f7ce82c3c438}</UniqueIdentifier>
     </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="resource.rc" />
   </ItemGroup>
 </Project>

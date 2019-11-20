@@ -54,11 +54,8 @@ Here are the steps to compile xLights for Windows using the MinGW compiler.
 	 6) If you have previously built wxWidgets before and are using the same directory you will need to make the same change as above to the setup.h file in two
 	    more locations: wxWidgets\lib\gcc_dll\mswu\wx\setup.h and wxWidgets\lib\gcc_dll\mswud\wx\setup.h.
 	 7) Also if you have built wxWidgets before you should delete the following 2 folders to force the setup.h change to be included
-	    - wxWidgets\build\msw\gcc_mswuddll
 		- wxWidgets\build\msw\gcc_mswudll
-     8) run: mingw32-make -f makefile.gcc --debug TARGET_CPU=X86 GCCFLAGS="-m32" MONOLITHIC=1 SHARED=1 UNICODE=1 CXXFLAGS="-std=gnu++14 -m32" BUILD=debug -j 10
-			NOTE: If it fails the first time try it again ... and sometimes again
-     9) run: mingw32-make -f makefile.gcc --debug TARGET_CPU=X86 GCCFLAGS="-m32" MONOLITHIC=1 SHARED=1 UNICODE=1 CXXFLAGS="-std=gnu++14 -m32" BUILD=release -j 10
+     9) run: mingw32-make -f makefile.gcc --debug TARGET_CPU=X86 GCCFLAGS="-m32" USE_QA=1 MONOLITHIC=0 SHARED=1 UNICODE=1 CXXFLAGS="-std=gnu++14 -m32" BUILD=release -j 10
 			NOTE: If it fails the first time try it again ... and sometimes again
      10) If you downloaded the zip or 7z version of wxWidgets instead of the Windows installer version,
         then you need to update your path environment variable to include C:\wxWidgets\lib\gcc_dll
@@ -137,11 +134,8 @@ Here are the steps to compile xLights for Windows using the MinGW 64-bit compile
 	 6) If you have previously built wxWidgets64 before and are using the same directory you will need to make the same change as above to the setup.h file in two
 	    more locations: wxWidgets\lib\gcc_dll\mswu\wx\setup.h and wxWidgets\lib\gcc_dll\mswud\wx\setup.h.
 	 7) Also if you have built wxWidgets64 before you should delete the following 2 folders to force the setup.h change to be included
-	    - wxWidgets\build\msw\gcc_mswuddll
 		- wxWidgets\build\msw\gcc_mswudll
-     8) run: mingw32-make -f makefile.gcc --debug TARGET_CPU=X64 MONOLITHIC=1 SHARED=1 UNICODE=1 CXXFLAGS="-std=gnu++14 - m64" BUILD=debug -j 10
-			NOTE: If it fails the first time try it again ... and sometimes again
-     9) run: mingw32-make -f makefile.gcc --debug TARGET_CPU=X64 MONOLITHIC=1 SHARED=1 UNICODE=1 CXXFLAGS="-std=gnu++14 - m64" BUILD=release -j 10
+     9) run: mingw32-make -f makefile.gcc --debug TARGET_CPU=X64 USE_QA=1 MONOLITHIC=0 SHARED=1 UNICODE=1 CXXFLAGS="-std=gnu++14 -m64" BUILD=release -j 10
 			NOTE: If it fails the first time try it again ... and sometimes again
      10) If you downloaded the zip or 7z version of wxWidgets instead of the Windows installer version,
         then you need to update your path environment variable to include C:\wxWidgets\lib\gcc_dll

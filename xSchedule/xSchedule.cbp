@@ -116,7 +116,6 @@
 					<Add library="../lib/windows/libSDL2.dll.a" />
 					<Add library="../lib/windows/libzstd_static.lib" />
 					<Add library="libwinmm.a" />
-					<Add library="../lib/windows/libwxmsw31u.a" />
 					<Add library="../lib/windows/libwxmsw31u_gl.a" />
 					<Add library="../lib/windows/swresample.lib" />
 					<Add library="../lib/windows/swscale.lib" />
@@ -124,6 +123,18 @@
 					<Add library="../lib/windows/libcurl.lib" />
 					<Add library="psapi" />
 					<Add library="../lib/windows/libz.a" />
+					<Add library="../lib/windows/libwxbase31u.a" />
+					<Add library="../lib/windows/libwxbase31u_net.a" />
+					<Add library="../lib/windows/libwxmsw31u_core.a" />
+					<Add library="../lib/windows/libwxscintilla.a" />
+					<Add library="../lib/windows/libwxregexu.a" />
+					<Add library="../lib/windows/libwxbase31u_xml.a" />
+					<Add library="../lib/windows/libwxtiff.a" />
+					<Add library="../lib/windows/libwxjpeg.a" />
+					<Add library="../lib/windows/libwxpng.a" />
+					<Add library="../lib/windows/libwxzlib.a" />
+					<Add library="../lib/windows/libwxmsw31u_qa.a" />
+					<Add library="../lib/windows/libwxexpat.a" />
 					<Add directory="../lib/windows" />
 				</Linker>
 			</Target>
@@ -247,7 +258,6 @@
 					<Add library="../lib/windows64/libportmidi.a" />
 					<Add library="../lib/windows64/libSDL2.dll.a" />
 					<Add library="libwinmm.a" />
-					<Add library="../lib/windows64/libwxmsw31u.a" />
 					<Add library="../lib/windows64/libwxmsw31u_gl.a" />
 					<Add library="../lib/windows64/swresample.lib" />
 					<Add library="../lib/windows64/swscale.lib" />
@@ -256,6 +266,18 @@
 					<Add library="../lib/windows64/libcurl.lib" />
 					<Add library="psapi" />
 					<Add library="../lib/windows64/libz.a" />
+					<Add library="../lib/windows64/libwxbase31u.a" />
+					<Add library="../lib/windows64/libwxbase31u_net.a" />
+					<Add library="../lib/windows64/libwxmsw31u_core.a" />
+					<Add library="../lib/windows64/libwxscintilla.a" />
+					<Add library="../lib/windows64/libwxregexu.a" />
+					<Add library="../lib/windows64/libwxbase31u_xml.a" />
+					<Add library="../lib/windows64/libwxtiff.a" />
+					<Add library="../lib/windows64/libwxjpeg.a" />
+					<Add library="../lib/windows64/libwxpng.a" />
+					<Add library="../lib/windows64/libwxzlib.a" />
+					<Add library="../lib/windows64/libwxmsw31u_qa.a" />
+					<Add library="../lib/windows64/libwxexpat.a" />
 					<Add directory="../lib/windows64" />
 				</Linker>
 			</Target>

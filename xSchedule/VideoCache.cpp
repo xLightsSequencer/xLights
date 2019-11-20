@@ -1,7 +1,8 @@
 #include "VideoCache.h"
 #include "../xLights/VideoReader.h"
-#include <log4cpp/Category.hh>
 #include "../xLights/UtilFunctions.h"
+
+#include <log4cpp/Category.hh>
 
 //#define VIDEO_EXTRALOGGING
 

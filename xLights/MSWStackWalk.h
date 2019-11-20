@@ -4,10 +4,99 @@
 #ifdef __WXMSW__
     #include <wx/textfile.h>
     #include <wx/stdpaths.h>
+    #include <wx/string.h>
 
     #include <windows.h>
     #include <imagehlp.h>
 
+#ifdef _MSC_VER
+#include <wx/stackwalk.h>
+
+class MyStackWalk : public wxStackWalker
+{
+    wxArrayString& _mapLines;
+public:
+
+    wxString _result = "";
+
+    MyStackWalk(wxArrayString& mapLines) : wxStackWalker(), _mapLines(mapLines) {}
+
+    virtual void OnStackFrame(const wxStackFrame& frame) override
+    {
+        if (frame.GetName() != "")
+        {
+            _result += wxString::Format("%s\t%s\t%s\t%ld\n", frame.GetFileName(), frame.GetModule(), frame.GetName(), (long)frame.GetLine());
+        }
+        else
+        {
+            wxString buffer(wxString::Format("%016llx", frame.GetAddress()));
+            for (size_t x = 1; x < _mapLines.GetCount(); x++) {
+                if (wxString(buffer) < _mapLines[x]) {
+                    buffer += _mapLines[x - 1].AfterFirst('\t');
+                    x = _mapLines.GetCount();
+                }
+            }
+
+            _result += buffer + "\n";
+        }
+    }
+};
+
+#include <iostream>
+#include <fstream>
+
+wxString windows_get_stacktrace(void* data)
+{
+    wxString trace;
+
+    wxArrayString mapLines;
+    wxFileName name = wxStandardPaths::Get().GetExecutablePath();
+    name.SetExt("map");
+
+    std::ifstream infile;
+    infile.open(name.GetFullPath().ToStdString());
+    if (infile.is_open())
+    {
+        while (!infile.eof())
+        {
+            std::string inl;
+            std::getline(infile, inl);
+            wxString line(inl);
+            line.Trim(true).Trim(false);
+            while (line.Replace("  ", " ") > 0);
+            if (line.StartsWith("0") && line.EndsWith(".obj")) {
+                auto comp = wxSplit(line, ' ');
+                if (comp.size() > 3)
+                {
+                    int ln = 0;
+                    for (int i = 3; i < comp.size(); i++)
+                    {
+                        if (comp[i].size() > 2)
+                        {
+                            ln = i;
+                            break;
+                        }
+                    }
+
+                    auto l = wxString::Format("%s\t\t%s\t%s", comp[2], comp[ln], comp[1]);
+                    mapLines.Add(l);
+                    //logger_base.debug("Map file line: %s", (const char *)line.c_str());
+                }
+            }
+        }
+        mapLines.Sort();
+    }
+    else
+    {
+        trace += name.GetFullPath() + " does not exist\n";
+    }
+
+    MyStackWalk sw(mapLines);
+    sw.WalkFromException();
+
+    return sw._result;
+}
+#else
     #ifdef _WIN64
         wxString windows_get_stacktrace(void *data)
         {
@@ -192,6 +281,7 @@
             return trace;
         }
     #endif // _WIN64
+#endif
 #endif
 
 #endif

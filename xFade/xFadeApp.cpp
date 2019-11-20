@@ -19,6 +19,7 @@
 #include <log4cpp/Configurator.hh>
 #include <wx/file.h>
 #include <wx/msgdlg.h>
+#include <wx/stackwalk.h>
 
 #include "../xLights/xLightsVersion.h"
 #include <wx/filename.h>
@@ -38,25 +39,30 @@
 #pragma comment(lib, "wxtiffd.lib")
 #pragma comment(lib, "wxjpegd.lib")
 #pragma comment(lib, "wxpngd.lib")
-//        #pragma comment(lib, "wxmsw31ud_adv.lib")
-//        #pragma comment(lib, "wxmsw31ud_aui.lib")
-//        #pragma comment(lib, "wxmsw31ud_gl.lib")
 #pragma comment(lib, "wxzlibd.lib")
-//        #pragma comment(lib, "wxmsw31ud_xrc.lib")
-//        #pragma comment(lib, "wxmsw31ud_stc.lib")
 #pragma comment(lib, "wxmsw31ud_qa.lib")
-//        #pragma comment(lib, "wxmsw31ud_html.lib")
-//        #pragma comment(lib, "wxmsw31ud_richtext.lib")
-//        #pragma comment(lib, "wxmsw31ud_propgrid.lib")
-//        #pragma comment(lib, "wxmsw31ud_ribbon.lib")
-//        #pragma comment(lib, "wxmsw31ud_webview.lib")
-//        #pragma comment(lib, "wxmsw31ud_media.lib")
 #pragma comment(lib, "wxexpatd.lib")
-#endif
+#pragma comment(lib, "log4cpplibd.lib")
 #pragma comment(lib, "msvcprtd.lib")
+#pragma comment(lib, "portmidid.lib")
+#else
+#pragma comment(lib, "wxbase31u.lib")
+#pragma comment(lib, "wxbase31u_net.lib")
+#pragma comment(lib, "wxmsw31u_core.lib")
+#pragma comment(lib, "wxscintilla.lib")
+#pragma comment(lib, "wxregexu.lib")
+#pragma comment(lib, "wxbase31u_xml.lib")
+#pragma comment(lib, "wxtiff.lib")
+#pragma comment(lib, "wxjpeg.lib")
+#pragma comment(lib, "wxpng.lib")
+#pragma comment(lib, "wxzlib.lib")
+#pragma comment(lib, "wxmsw31u_qa.lib")
+#pragma comment(lib, "wxexpat.lib")
+#pragma comment(lib, "log4cpplib.lib")
+#pragma comment(lib, "msvcprt.lib")
+#pragma comment(lib, "portmidi.lib")
+#endif
 #pragma comment(lib, "iphlpapi.lib")
-//    #pragma comment(lib, "libdbghelp.a")
-//    #pragma comment(lib, "log4cppd.lib")
 #pragma comment(lib, "WS2_32.Lib")
 #pragma comment(lib, "comdlg32.lib")
 #pragma comment(lib, "comctl32.lib")
@@ -73,6 +79,7 @@
 #pragma comment(lib, "winspool.lib")
 #pragma comment(lib, "gdi32.lib")
 #pragma comment(lib, "winmm.lib")
+#pragma comment(lib, "imagehlp.lib")
 #endif
 
 IMPLEMENT_APP(xFadeApp)

@@ -94,13 +94,20 @@
 					<Add option="-Wl,-Map=../bin/xCapture.map" />
 					<Add option="-Wl,--large-address-aware" />
 					<Add option="-lpthread" />
-					<Add library="../lib/windows/libwxmsw31u.a" />
 					<Add library="../lib/windows/libwxmsw31u_gl.a" />
 					<Add library="../lib/windows/liblog4cpp.lib" />
 					<Add library="../lib/windows/imagehlp.lib" />
 					<Add library="../lib/windows/iphlpapi.lib" />
 					<Add library="../lib/windows/Ws2_32.lib" />
 					<Add library="psapi" />
+					<Add library="../lib/windows/libwxbase31u.a" />
+					<Add library="../lib/windows/libwxbase31u_net.a" />
+					<Add library="../lib/windows/libwxbase31u_xml.a" />
+					<Add library="../lib/windows/libwxexpat.a" />
+					<Add library="../lib/windows/libwxjpeg.a" />
+					<Add library="../lib/windows/libwxmsw31u_core.a" />
+					<Add library="../lib/windows/libwxmsw31u_qa.a" />
+					<Add library="../lib/windows/libwxscintilla.a" />
 					<Add directory="../lib/windows" />
 				</Linker>
 			</Target>
@@ -206,13 +213,21 @@
 					<Add option="-m64" />
 					<Add option="-Wl,-Map=../bin64/xCapture.map" />
 					<Add option="-lpthread" />
-					<Add library="../lib/windows64/libwxmsw31u.a" />
 					<Add library="../lib/windows64/libwxmsw31u_gl.a" />
 					<Add library="../lib/windows64/liblog4cpp.a" />
 					<Add library="../lib/windows64/libimagehlp.a" />
 					<Add library="../lib/windows64/iphlpapi.lib" />
 					<Add library="../lib/windows64/Ws2_32.lib" />
 					<Add library="psapi" />
+					<Add library="../lib/windows64/libwxbase31u.a" />
+					<Add library="../lib/windows64/libwxbase31u_net.a" />
+					<Add library="../lib/windows64/libwxbase31u_xml.a" />
+					<Add library="../lib/windows64/libwxexpat.a" />
+					<Add library="../lib/windows64/libwxjpeg.a" />
+					<Add library="../lib/windows64/libwxmsw31u_core.a" />
+					<Add library="../lib/windows64/libwxmsw31u_qa.a" />
+					<Add library="../lib/windows64/libwxregexu.a" />
+					<Add library="../lib/windows64/libwxscintilla.a" />
 					<Add directory="../lib/windows64" />
 				</Linker>
 			</Target>

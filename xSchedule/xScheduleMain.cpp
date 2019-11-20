@@ -890,6 +890,19 @@ void xScheduleFrame::LoadSchedule()
     SpecialOptions::StashShowDir(_showDir);
     SpecialOptions::GetOption("", "");
 
+    if (_f != nullptr)
+    {
+        fclose(_f);
+        wxLog::SetLogLevel(wxLogLevelValues::wxLOG_Error);
+    }
+
+    if (SpecialOptions::GetOption("wxLogging", "false") == "true")
+    {
+        _f = fopen("log.txt", "w");
+        wxLog::SetLogLevel(wxLogLevelValues::wxLOG_Debug);
+        wxLog::SetActiveTarget(new wxLogStderr(_f));
+    }
+
     logger_base.debug("Loading schedule.");
 
     if (_pinger != nullptr)
@@ -1043,6 +1056,11 @@ xScheduleFrame::~xScheduleFrame()
     {
         delete __schedule;
         __schedule = nullptr;
+    }
+
+    if (_f != nullptr)
+    {
+        fclose(_f);
     }
 }
 

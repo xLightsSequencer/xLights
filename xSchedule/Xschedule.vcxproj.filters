@@ -1026,9 +1026,6 @@
     <ClInclude Include="..\xLights\TraceLog.h" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />
-  </ItemGroup>
-  <ItemGroup>
     <Filter Include="PlayList">
       <UniqueIdentifier>{c8225fd2-fdfe-489a-b491-e0ce63e906fc}</UniqueIdentifier>
     </Filter>
@@ -1044,5 +1041,8 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="API Documentation.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="resource.rc" />
   </ItemGroup>
 </Project>

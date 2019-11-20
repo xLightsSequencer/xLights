@@ -1,4 +1,5 @@
 APP_ICON ICON "../include/xlights.ico"
+MAINICON ICON "../include/xlights.ico"
 
 
 #define wxUSE_NO_MANIFEST 1
