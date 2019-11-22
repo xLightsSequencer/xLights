@@ -29,6 +29,7 @@
 #include "controllers/J1Sys.h"
 #include "controllers/ESPixelStick.h"
 #include "controllers/EasyLights.h"
+#include "controllers/AlphaPix.h"
 #include "controllers/ControllerRegistry.h"
 #include "sequencer/MainSequencer.h"
 #include "ViewsModelsPanel.h"
@@ -86,6 +87,7 @@ const long xLightsFrame::ID_NETWORK_UCISANDEVICES = wxNewId();
 const long xLightsFrame::ID_NETWORK_UCOSANDEVICES = wxNewId();
 const long xLightsFrame::ID_NETWORK_UCOPIXLITE16 = wxNewId();
 const long xLightsFrame::ID_NETWORK_UCOJ1SYS = wxNewId();
+const long xLightsFrame::ID_NETWORK_UCOALPHAPIX = wxNewId();
 const long xLightsFrame::ID_NETWORK_UCOESPIXELSTICK = wxNewId();
 const long xLightsFrame::ID_NETWORK_PINGCONTROLLER = wxNewId();
 const long xLightsFrame::ID_NETWORK_UCOEASYLIGHTS = wxNewId();
@@ -1705,6 +1707,19 @@ void xLightsFrame::OnGridNetworkItemRClick(wxListEvent& event)
             }
         }
 
+        wxMenuItem* beUCOAlphaPix = mnuUCOutput->Append(ID_NETWORK_UCOALPHAPIX, "AlphaPix");
+        if (!AllSelectedSupportIP()) {
+            beUCOAlphaPix->Enable(false);
+        }
+        else {
+            if (selcnt == 1) {
+                beUCOAlphaPix->Enable(true);
+            }
+            else {
+                beUCOAlphaPix->Enable(validIpNoType);
+            }
+        }
+
         mnuUploadController->Append(ID_NETWORK_UCOUTPUT, "Output", mnuUCOutput, "");
         mnuUCOutput->Connect(wxEVT_MENU, (wxObjectEventFunction)&xLightsFrame::OnNetworkPopup, nullptr, this);
     }
@@ -1926,6 +1941,8 @@ void xLightsFrame::OnNetworkPopup(wxCommandEvent &event)
         UploadFPPStringOutputs("PiHat");
     } else if (id == ID_NETWORK_UCOPIXLITE16) {
         UploadPixlite16Output();
+    } else if (id == ID_NETWORK_UCOALPHAPIX) {
+        UploadAlphaPixOutput();
     } else if (id == ID_NETWORK_PROXY_OUTPUT) {
         UploadFPPProxyOuputs();
     } else if (id == ID_NETWORK_UPLOAD_INPUT_CONTROLLER_CONFIGURED) {
@@ -1958,6 +1975,10 @@ void xLightsFrame::OnNetworkPopup(wxCommandEvent &event)
             UploadEasyLightsOutput();
         } else if (rules->GetControllerManufacturer() == "J1Sys") {
             UploadJ1SYSOutput();
+        } else if (rules->GetControllerManufacturer() == "AlphaPix") {
+            UploadAlphaPixOutput();
+        } else  {
+            wxASSERT(false);
         }
         //FIXME - other targets
     } else if (id == ID_NETWORK_VISUALISE) {
@@ -2454,6 +2475,46 @@ void xLightsFrame::UploadESPixelStickOutput()
             } else {
                 SetStatusText("ES Pixel Stick Upload Failed.");
             }
+        }
+        SetCursor(wxCURSOR_ARROW);
+    }
+}
+
+void xLightsFrame::UploadAlphaPixOutput()
+
+{
+    SetStatusText("");
+    if (wxMessageBox("This will upload the output controller configuration for a AlphaPix controller. It requires that you have setup the controller connection on your models. Do you want to proceed with the upload?", "Are you sure?", wxYES_NO, this) == wxYES)
+    {
+        SetCursor(wxCURSOR_WAIT);
+        wxString ip;
+        wxString proxy;
+        std::list<int> selected = GetSelectedOutputs(ip, proxy);
+
+        if (ip == "") {
+            wxTextEntryDialog dlg(this, "AlphaPix IP Address", "IP Address", ip);
+            if (dlg.ShowModal() != wxID_OK) {
+                SetCursor(wxCURSOR_ARROW);
+                return;
+            }
+            ip = dlg.GetValue();
+        }
+
+        // Recalc all the models to make sure any changes on setup are incorporated
+        RecalcModels();
+
+        AlphaPix alphapix(ip.ToStdString(), proxy.ToStdString());
+        if (alphapix.IsConnected()) {
+            if (alphapix.SetOutputs(&AllModels, &_outputManager, selected, this)) {
+                SetStatusText("AlphaPix Upload Complete.");
+            }
+            else {
+                SetStatusText("AlphaPix Upload Failed.");
+            }
+        }
+        else
+        {
+            SetStatusText("Unable to connect to AlphaPix.");
         }
         SetCursor(wxCURSOR_ARROW);
     }

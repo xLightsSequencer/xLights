@@ -187,6 +187,7 @@
     <ClCompile Include="ColorManager.cpp" />
     <ClCompile Include="ColorManagerDialog.cpp" />
     <ClCompile Include="ColoursPanel.cpp" />
+    <ClCompile Include="controllers\AlphaPix.cpp" />
     <ClCompile Include="controllers\ControllerRegistry.cpp" />
     <ClCompile Include="controllers\ControllerUploadData.cpp" />
     <ClCompile Include="controllers\EasyLights.cpp" />
@@ -578,6 +579,7 @@
     <ClInclude Include="ColorManager.h" />
     <ClInclude Include="ColorManagerDialog.h" />
     <ClInclude Include="ColoursPanel.h" />
+    <ClInclude Include="controllers\AlphaPix.h" />
     <ClInclude Include="controllers\ControllerRegistry.h" />
     <ClInclude Include="controllers\ControllerUploadData.h" />
     <ClInclude Include="controllers\EasyLights.h" />

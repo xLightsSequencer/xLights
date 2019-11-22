@@ -702,6 +702,8 @@
 		<Unit filename="WiringDialog.h" />
 		<Unit filename="XlightsDrawable.cpp" />
 		<Unit filename="XlightsDrawable.h" />
+		<Unit filename="controllers/AlphaPix.cpp" />
+		<Unit filename="controllers/AlphaPix.h" />
 		<Unit filename="controllers/ControllerRegistry.cpp" />
 		<Unit filename="controllers/ControllerRegistry.h" />
 		<Unit filename="controllers/ControllerUploadData.cpp" />

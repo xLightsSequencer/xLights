@@ -457,6 +457,9 @@
     <ClCompile Include="controllers\EasyLights.cpp">
       <Filter>Controllers</Filter>
     </ClCompile>
+    <ClCompile Include="controllers\AlphaPix.cpp">
+      <Filter>Controllers</Filter>
+    </ClCompile>
     <ClCompile Include="controllers\ControllerUploadData.cpp">
       <Filter>Controllers</Filter>
     </ClCompile>
@@ -1204,6 +1207,9 @@
       <Filter>Controllers</Filter>
     </ClInclude>
     <ClInclude Include="controllers\EasyLights.h">
+      <Filter>Controllers</Filter>
+    </ClInclude>
+    <ClInclude Include="controllers\AlphaPix.h">
       <Filter>Controllers</Filter>
     </ClInclude>
     <ClInclude Include="controllers\ControllerUploadData.h">

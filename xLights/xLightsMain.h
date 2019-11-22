@@ -1202,6 +1202,7 @@ public:
     void UploadPixlite16Output();
     void UploadFPPStringOutputs(const std::string &controllers);
     void UploadFPPProxyOuputs();
+    void UploadAlphaPixOutput();
 	void PingController(Output* e);
     void SetModelData(ZCPPOutput* zcpp, ModelManager* modelManager, OutputManager* outputManager, std::string showDir);
     int SetZCPPPort(std::list<ZCPP_packet_t*>& modelDatas, int index, UDControllerPort* port, int portNum, int virtualString, long baseStart, bool isSerial, ZCPPOutput* zcpp);
@@ -1673,6 +1674,7 @@ private:
     static const long ID_NETWORK_UCOJ1SYS;
     static const long ID_NETWORK_UCOESPIXELSTICK;
     static const long ID_NETWORK_UCOPIXLITE16;
+    static const long ID_NETWORK_UCOALPHAPIX;
     static const long ID_NETWORK_PINGCONTROLLER;
 	static const long ID_NETWORK_UCOEASYLIGHTS;
     static const long ID_NETWORK_UPLOAD_CONTROLLER_CONFIGURED;

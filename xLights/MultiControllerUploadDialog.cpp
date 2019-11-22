@@ -17,6 +17,7 @@
 #include "controllers/J1Sys.h"
 #include "controllers/EasyLights.h"
 #include "controllers/FPP.h"
+#include "controllers/AlphaPix.h"
 #include "controllers/ControllerRegistry.h"
 
 //(*IdInit(MultiControllerUploadDialog)
@@ -73,6 +74,7 @@ MultiControllerUploadDialog::MultiControllerUploadDialog(wxWindow* parent,wxWind
 	Choice1->Append(_("J1Sys"));
 	Choice1->Append(_("EasyLights"));
 	Choice1->Append(_("FPP Capes/Hats"));
+	Choice1->Append(_("AlphaPix"));
 	Choice1->Append(_("Auto"));
 	FlexGridSizer2->Add(Choice1, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 5);
@@ -278,6 +280,19 @@ void MultiControllerUploadDialog::OnButton_UploadClick(wxCommandEvent& event)
                 TextCtrl_Log->AppendText("FPP Capes/Hats Upload FAILED to " + ip + ".\n");
             } else {
                 TextCtrl_Log->AppendText("FPP Capes/Hats Upload Complete to " + ip + ".\n");
+            }
+        }
+        else if (selected == "AlphaPix")
+        {
+            AlphaPix alphapix(ip.ToStdString(), proxy);
+            if (alphapix.IsConnected()) {
+                if (alphapix.SetOutputs(&_frame->AllModels, _frame->GetOutputManager(), fake, this)) {
+                    TextCtrl_Log->AppendText("AlphaPix Upload Complete to " + ip + ".\n");
+                } else {
+                    TextCtrl_Log->AppendText("AlphaPix Upload FAILED to " + ip + ".\n");
+                }
+            } else {
+                TextCtrl_Log->AppendText("AlphaPix Upload FAILED to " + ip + ".\n");
             }
         }
     }

@@ -14,6 +14,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- enh (will)   Added Test Mode (BETA) plugin to xSchedule Web interface
    -- enh (scott)  Added APA102 pixel protocol support.
    -- enh (scott)  Added 'Alt + Left Click' panning to the Layout Tab.
+   -- enh (scott)  Added AlphaPix 4 Controller Upload Support.
 2019.65 November 18 2019
    -- enh (keith)  Support face effects on model group when all models have the same face definition
    -- enh (keith)  Warn about slow rendering due to certain pixel styles
