@@ -190,7 +190,6 @@
     <ClCompile Include="controllers\AlphaPix.cpp" />
     <ClCompile Include="controllers\ControllerRegistry.cpp" />
     <ClCompile Include="controllers\ControllerUploadData.cpp" />
-    <ClCompile Include="controllers\EasyLights.cpp" />
     <ClCompile Include="controllers\ESPixelStick.cpp" />
     <ClCompile Include="controllers\Falcon.cpp" />
     <ClCompile Include="controllers\FPP.cpp" />
@@ -582,7 +581,6 @@
     <ClInclude Include="controllers\AlphaPix.h" />
     <ClInclude Include="controllers\ControllerRegistry.h" />
     <ClInclude Include="controllers\ControllerUploadData.h" />
-    <ClInclude Include="controllers\EasyLights.h" />
     <ClInclude Include="controllers\ESPixelStick.h" />
     <ClInclude Include="controllers\Falcon.h" />
     <ClInclude Include="controllers\FPP.h" />

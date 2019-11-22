@@ -1207,7 +1207,7 @@ public:
     void SetModelData(ZCPPOutput* zcpp, ModelManager* modelManager, OutputManager* outputManager, std::string showDir);
     int SetZCPPPort(std::list<ZCPP_packet_t*>& modelDatas, int index, UDControllerPort* port, int portNum, int virtualString, long baseStart, bool isSerial, ZCPPOutput* zcpp);
     void SetZCPPExtraConfig(std::list<ZCPP_packet_t*>& extraConfig, int portNum, int virtualStringNum, const std::string& name, ZCPPOutput* zcpp);
-    void UploadEasyLightsOutput();
+    //void UploadEasyLightsOutput();
 
     void VisualiseOutput(Output *e, wxWindow *parent = nullptr);
     void DeleteSelectedNetworks();
@@ -1676,7 +1676,7 @@ private:
     static const long ID_NETWORK_UCOPIXLITE16;
     static const long ID_NETWORK_UCOALPHAPIX;
     static const long ID_NETWORK_PINGCONTROLLER;
-	static const long ID_NETWORK_UCOEASYLIGHTS;
+	//static const long ID_NETWORK_UCOEASYLIGHTS;
     static const long ID_NETWORK_UPLOAD_CONTROLLER_CONFIGURED;
     static const long ID_NETWORK_VISUALISE;
     static const long ID_NETWORK_PROXY_OUTPUT;

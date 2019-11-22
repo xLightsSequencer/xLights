@@ -4,7 +4,7 @@
 #include "ESPixelStick.h"
 #include "SanDevices.h"
 #include "J1Sys.h"
-#include "EasyLights.h"
+//#include "EasyLights.h"
 #include "Pixlite16.h"
 #include "AlphaPix.h"
 
@@ -60,6 +60,6 @@ void ControllerRegistry::loadControllers() {
     SanDevices::RegisterControllers();
     J1Sys::RegisterControllers();
     Pixlite16::RegisterControllers();
-    EasyLights::RegisterControllers();
+    //EasyLights::RegisterControllers();
     AlphaPix::RegisterControllers();
 }

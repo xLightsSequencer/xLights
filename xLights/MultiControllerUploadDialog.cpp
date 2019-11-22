@@ -15,7 +15,6 @@
 #include "controllers/Pixlite16.h"
 #include "controllers/Falcon.h"
 #include "controllers/J1Sys.h"
-#include "controllers/EasyLights.h"
 #include "controllers/FPP.h"
 #include "controllers/AlphaPix.h"
 #include "controllers/ControllerRegistry.h"
@@ -72,7 +71,6 @@ MultiControllerUploadDialog::MultiControllerUploadDialog(wxWindow* parent,wxWind
 	Choice1->Append(_("ESP Pixel Stick"));
 	Choice1->Append(_("PixLite/PixCon"));
 	Choice1->Append(_("J1Sys"));
-	Choice1->Append(_("EasyLights"));
 	Choice1->Append(_("FPP Capes/Hats"));
 	Choice1->Append(_("AlphaPix"));
 	Choice1->Append(_("Auto"));
@@ -238,15 +236,6 @@ void MultiControllerUploadDialog::OnButton_UploadClick(wxCommandEvent& event)
                 }
             } else {
                 TextCtrl_Log->AppendText("J1Sys Upload FAILED to " + ip + ".\n");
-            }
-        }
-        else if (selected == "EasyLights")
-        {
-            EasyLights easyLight(ip.ToStdString(), 0);
-            if (easyLight.SetOutputs(&_frame->AllModels, _frame->GetOutputManager(), fake, this)) {
-                TextCtrl_Log->AppendText("EasyLights Upload Complete to " + ip + ".\n");
-            } else {
-                TextCtrl_Log->AppendText("EasyLights Upload FAILED to " + ip + ".\n");
             }
         }
         else if (selected == "FPP Capes/Hats" || selected == "FPP")

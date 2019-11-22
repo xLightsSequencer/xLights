@@ -454,9 +454,6 @@
     <ClCompile Include="controllers\J1Sys.cpp">
       <Filter>Controllers</Filter>
     </ClCompile>
-    <ClCompile Include="controllers\EasyLights.cpp">
-      <Filter>Controllers</Filter>
-    </ClCompile>
     <ClCompile Include="controllers\AlphaPix.cpp">
       <Filter>Controllers</Filter>
     </ClCompile>
@@ -1204,9 +1201,6 @@
       <Filter>Controllers</Filter>
     </ClInclude>
     <ClInclude Include="controllers\J1Sys.h">
-      <Filter>Controllers</Filter>
-    </ClInclude>
-    <ClInclude Include="controllers\EasyLights.h">
       <Filter>Controllers</Filter>
     </ClInclude>
     <ClInclude Include="controllers\AlphaPix.h">

@@ -28,7 +28,7 @@
 #include "controllers/SanDevices.h"
 #include "controllers/J1Sys.h"
 #include "controllers/ESPixelStick.h"
-#include "controllers/EasyLights.h"
+//#include "controllers/EasyLights.h"
 #include "controllers/AlphaPix.h"
 #include "controllers/ControllerRegistry.h"
 #include "sequencer/MainSequencer.h"
@@ -90,7 +90,7 @@ const long xLightsFrame::ID_NETWORK_UCOJ1SYS = wxNewId();
 const long xLightsFrame::ID_NETWORK_UCOALPHAPIX = wxNewId();
 const long xLightsFrame::ID_NETWORK_UCOESPIXELSTICK = wxNewId();
 const long xLightsFrame::ID_NETWORK_PINGCONTROLLER = wxNewId();
-const long xLightsFrame::ID_NETWORK_UCOEASYLIGHTS = wxNewId();
+//const long xLightsFrame::ID_NETWORK_UCOEASYLIGHTS = wxNewId();
 const long xLightsFrame::ID_NETWORK_UPLOAD_CONTROLLER_CONFIGURED = wxNewId();
 const long xLightsFrame::ID_NETWORK_VISUALISE = wxNewId();
 const long xLightsFrame::ID_NETWORK_PROXY_OUTPUT = wxNewId();
@@ -1640,7 +1640,7 @@ void xLightsFrame::OnGridNetworkItemRClick(wxListEvent& event)
                 beUCOJ1SYS->Enable(valid);
             }
         }
-
+        /*
         wxMenuItem* beUCOEasyLights = mnuUCOutput->Append(ID_NETWORK_UCOEASYLIGHTS, "EasyLights");
         if(!AllSelectedSupportIP()) {
             beUCOEasyLights->Enable(false);
@@ -1654,7 +1654,7 @@ void xLightsFrame::OnGridNetworkItemRClick(wxListEvent& event)
                 beUCOEasyLights->Enable(valid);
             }
         }
-
+        */
         wxMenu* fppOutput = new wxMenu();
         mnuUCOutput->AppendSubMenu(fppOutput, "FPP Capes/Hats");
         fppOutput->Connect(wxEVT_MENU, (wxObjectEventFunction)&xLightsFrame::OnNetworkPopup, nullptr, this);
@@ -1971,8 +1971,8 @@ void xLightsFrame::OnNetworkPopup(wxCommandEvent &event)
             UploadSanDevicesOutput();
         } else if (rules->GetControllerManufacturer() == "PixLite") {
             UploadPixlite16Output();
-        } else if (rules->GetControllerManufacturer() == "EasyLights") {
-            UploadEasyLightsOutput();
+        //} else if (rules->GetControllerManufacturer() == "EasyLights") {
+        //    UploadEasyLightsOutput();
         } else if (rules->GetControllerManufacturer() == "J1Sys") {
             UploadJ1SYSOutput();
         } else if (rules->GetControllerManufacturer() == "AlphaPix") {
@@ -2018,9 +2018,9 @@ void xLightsFrame::OnNetworkPopup(wxCommandEvent &event)
     } else if (id == ID_NETWORK_PINGCONTROLLER) {
         Output* o = _outputManager.GetOutput(item);
         PingController(o);
-	} else if(id == ID_NETWORK_UCOEASYLIGHTS) {
-	 	UploadEasyLightsOutput();
-	}
+	} //else if(id == ID_NETWORK_UCOEASYLIGHTS) {
+	// 	UploadEasyLightsOutput();
+	//}
 }
 
 void xLightsFrame::OnGridNetworkItemSelect(wxListEvent& event)
@@ -3393,7 +3393,7 @@ void xLightsFrame::VisualiseOutput(Output *e, wxWindow *parent) {
     ControllerVisualiseDialog dlg(parent, cud, e->GetResolvedIP(), e->GetDescription());
     dlg.ShowModal();
 }
-
+/*
 void xLightsFrame::UploadEasyLightsOutput()
 {
 	SetStatusText("");
@@ -3426,3 +3426,4 @@ void xLightsFrame::UploadEasyLightsOutput()
 		SetCursor(wxCURSOR_ARROW);
 	}
 }
+*/
