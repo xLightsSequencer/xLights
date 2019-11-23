@@ -1,4 +1,7 @@
-set PATH=C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Current\Bin;%PATH%
+set PATH=C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Current\Bin\amd64;%PATH%
+
+cd ..
+cd ..
 
 cd xFade
 msbuild.exe /m xFade.sln /p:Configuration="Release" /p:Platform="x86"
@@ -26,6 +29,9 @@ cd xLights
 msbuild.exe /m xLights.sln /p:Configuration="Release" /p:Platform="x86"
 if %ERRORLEVEL% NEQ 0 goto error
 cd ..
+
+cd build
+cd msw
 
 goto exit
 

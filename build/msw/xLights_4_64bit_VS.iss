@@ -37,7 +37,7 @@ AppName={#MyTitleName}
 AppVersion={#Year}.{#Version}{#Other}
 DefaultDirName={pf64}\{#MyTitleName}{#Other}
 DefaultGroupName={#MyTitleName}{#Other}
-SetupIconFile=include\{#MyTitleName}64.ico
+SetupIconFile=..\..\include\{#MyTitleName}64.ico
 
 UninstallDisplayIcon={app}\{#MyTitleName}.exe
 Compression=lzma2
@@ -49,92 +49,81 @@ OutputBaseFilename={#MyTitleName}{#Bits}_{#Year}_{#Version}{#Other}
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "Do you want to create desktop icon?"; Flags: checkablealone
 
 [Files]
-Source: "xlights/x64/Release/xLights.exe"; DestDir: "{app}"
-Source: "xlights/x64/Release/xlights.map"; DestDir: "{app}"; Flags: "ignoreversion"
-Source: "bin/xlights.windows.properties"; DestDir: "{app}"; Flags: "ignoreversion"
-Source: "bin/special.options"; DestDir: "{app}"; Flags: "ignoreversion"
-Source: "include\xlights64.ico"; DestDir: "{app}"
-Source: "include\xLights_nutcracker.ico"; DestDir: "{app}"
+Source: "../../xlights/x64/Release/xLights.exe"; DestDir: "{app}"
+Source: "../../xlights/x64/Release/xlights.map"; DestDir: "{app}"; Flags: "ignoreversion"
+Source: "../../bin/xlights.windows.properties"; DestDir: "{app}"; Flags: "ignoreversion"
+Source: "../../bin/special.options"; DestDir: "{app}"; Flags: "ignoreversion"
+Source: "../../include\xlights64.ico"; DestDir: "{app}"
+Source: "../../include\xLights_nutcracker.ico"; DestDir: "{app}"
 
 ; xSchedule
-Source: "xSchedule/x64/Release/xSchedule.exe"; DestDir: "{app}"
-Source: "xSchedule/x64/Release/xSchedule.map"; DestDir: "{app}"; Flags: "ignoreversion"
-Source: "bin/xschedule.windows.properties"; DestDir: "{app}"; Flags: "ignoreversion"
-Source: "bin/xScheduleWeb\*.*"; DestDir: "{app}/xScheduleWeb"; Flags: replacesameversion recursesubdirs
-Source: "include\xSchedule64.ico"; DestDir: "{app}"; Flags: "ignoreversion"
+Source: "../../xSchedule/x64/Release/xSchedule.exe"; DestDir: "{app}"
+Source: "../../xSchedule/x64/Release/xSchedule.map"; DestDir: "{app}"; Flags: "ignoreversion"
+Source: "../../bin/xschedule.windows.properties"; DestDir: "{app}"; Flags: "ignoreversion"
+Source: "../../bin/xScheduleWeb\*.*"; DestDir: "{app}/xScheduleWeb"; Flags: replacesameversion recursesubdirs
+Source: "../../include\xSchedule64.ico"; DestDir: "{app}"; Flags: "ignoreversion"
 
 ; xCapture
-Source: "xCapture/x64/Release/xCapture.exe"; DestDir: "{app}"
-Source: "xCapture/x64/Release/xCapture.map"; DestDir: "{app}"; Flags: "ignoreversion"
-Source: "bin/xcapture.windows.properties"; DestDir: "{app}"; Flags: "ignoreversion"
-Source: "include\xcapture64.ico"; DestDir: "{app}"; Flags: "ignoreversion"
+Source: "../../xCapture/x64/Release/xCapture.exe"; DestDir: "{app}"
+Source: "../../xCapture/x64/Release/xCapture.map"; DestDir: "{app}"; Flags: "ignoreversion"
+Source: "../../bin/xcapture.windows.properties"; DestDir: "{app}"; Flags: "ignoreversion"
+Source: "../../include\xcapture64.ico"; DestDir: "{app}"; Flags: "ignoreversion"
 
 ; xFade
-Source: "xFade/x64/Release/xFade.exe"; DestDir: "{app}"
-Source: "xFade/x64/Release/xFade.map"; DestDir: "{app}"; Flags: "ignoreversion"
-Source: "bin/xfade.windows.properties"; DestDir: "{app}"; Flags: "ignoreversion"
-Source: "include\xfade64.ico"; DestDir: "{app}"; Flags: "ignoreversion"
+Source: "../../xFade/x64/Release/xFade.exe"; DestDir: "{app}"
+Source: "../../xFade/x64/Release/xFade.map"; DestDir: "{app}"; Flags: "ignoreversion"
+Source: "../../bin/xfade.windows.properties"; DestDir: "{app}"; Flags: "ignoreversion"
+Source: "../../include\xfade64.ico"; DestDir: "{app}"; Flags: "ignoreversion"
 
 ; xSMSDaemon
-Source: "xSchedule/xSMSDaemon/x64/Release/xSMSDaemon.dll"; DestDir: "{app}"
-Source: "xSchedule/xSMSDaemon/x64/Release/xSMSDaemon.map"; DestDir: "{app}"; Flags: "ignoreversion"
-Source: "xSchedule\xSMSDaemon\Blacklist.txt"; DestDir: "{app}"; Flags: "ignoreversion"
-Source: "xSchedule\xSMSDaemon\Whitelist.txt"; DestDir: "{app}"; Flags: "ignoreversion"
+Source: "../../xSchedule/xSMSDaemon/x64/Release/xSMSDaemon.dll"; DestDir: "{app}"
+Source: "../../xSchedule/xSMSDaemon/x64/Release/xSMSDaemon.map"; DestDir: "{app}"; Flags: "ignoreversion"
+Source: "../../xSchedule\xSMSDaemon\Blacklist.txt"; DestDir: "{app}"; Flags: "ignoreversion"
+Source: "../../xSchedule\xSMSDaemon\Whitelist.txt"; DestDir: "{app}"; Flags: "ignoreversion"
 
 ; wxWidgets
-;Source: "bin64/wxmsw313u_gl_gcc_custom.dll"; DestDir: "{app}"; Flags: "ignoreversion"
-;Source: "bin64/wxbase313u_gcc_custom.dll"; DestDir: "{app}"; Flags: "ignoreversion"
-;Source: "bin64/wxbase313u_net_gcc_custom.dll"; DestDir: "{app}"; Flags: "ignoreversion"
-;Source: "bin64/wxbase313u_xml_gcc_custom.dll"; DestDir: "{app}"; Flags: "ignoreversion"
-;Source: "bin64/wxmsw313u_aui_gcc_custom.dll"; DestDir: "{app}"; Flags: "ignoreversion"
-;Source: "bin64/wxmsw313u_core_gcc_custom.dll"; DestDir: "{app}"; Flags: "ignoreversion"
-;Source: "bin64/wxmsw313u_html_gcc_custom.dll"; DestDir: "{app}"; Flags: "ignoreversion"
-;Source: "bin64/wxmsw313u_propgrid_gcc_custom.dll"; DestDir: "{app}"; Flags: "ignoreversion"
-;Source: "bin64/wxmsw313u_qa_gcc_custom.dll"; DestDir: "{app}"; Flags: "ignoreversion"
+; Statically linkes
 
 ; Take these from the default mingw install directory
 Source: "C:\Program Files\mingw-w64\x86_64-8.1.0-posix-seh-rt_v6-rev0\mingw64\bin\libgcc_s_seh-1.dll";  DestDir: "{app}";  Flags: "ignoreversion"
-;Source: "C:\Program Files\mingw-w64\x86_64-8.1.0-posix-seh-rt_v6-rev0\mingw64\bin\libstdc++-6.dll";     DestDir: "{app}";  Flags: "ignoreversion"
-;Source: "C:\Program Files\mingw-w64\x86_64-8.1.0-posix-seh-rt_v6-rev0\mingw64\bin\libwinpthread-1.dll"; DestDir: "{app}";  Flags: "ignoreversion"
-;Source: "bin64/liblog4cpp.dll"; DestDir: "{app}";  Flags: "ignoreversion"
 
 ; avlib - video and audio
-Source: "bin64/avcodec-58.dll"; DestDir: "{app}";  Flags: "ignoreversion"
-Source: "bin64/avformat-58.dll"; DestDir: "{app}";  Flags: "ignoreversion"
-Source: "bin64/avutil-56.dll"; DestDir: "{app}";  Flags: "ignoreversion"
-Source: "bin64/swresample-3.dll"; DestDir: "{app}";  Flags: "ignoreversion"
-Source: "bin64/swscale-5.dll"; DestDir: "{app}";  Flags: "ignoreversion"
+Source: "../../bin64/avcodec-58.dll"; DestDir: "{app}";  Flags: "ignoreversion"
+Source: "../../bin64/avformat-58.dll"; DestDir: "{app}";  Flags: "ignoreversion"
+Source: "../../bin64/avutil-56.dll"; DestDir: "{app}";  Flags: "ignoreversion"
+Source: "../../bin64/swresample-3.dll"; DestDir: "{app}";  Flags: "ignoreversion"
+Source: "../../bin64/swscale-5.dll"; DestDir: "{app}";  Flags: "ignoreversion"
 
 ; SDL - audio playing
-Source: "bin64/SDL2.dll"; DestDir: "{app}";  Flags: "ignoreversion"
+Source: "../../bin64/SDL2.dll"; DestDir: "{app}";  Flags: "ignoreversion"
 
 ; libcurl
-Source: "bin64/libcurl.dll"; DestDir: "{app}";  Flags: "ignoreversion"
+Source: "../../bin64/libcurl.dll"; DestDir: "{app}";  Flags: "ignoreversion"
 
 ; Added files for doing Papagayo effects
-Source: "bin/extended_dictionary"; DestDir: "{app}"
-Source: "bin/phoneme_mapping";     DestDir: "{app}"
-Source: "bin/standard_dictionary"; DestDir: "{app}"
-Source: "bin/user_dictionary";     DestDir: "{app}"
+Source: "../../bin/extended_dictionary"; DestDir: "{app}"
+Source: "../../bin/phoneme_mapping";     DestDir: "{app}"
+Source: "../../bin/standard_dictionary"; DestDir: "{app}"
+Source: "../../bin/user_dictionary";     DestDir: "{app}"
 
 ; Vamp dll's
-Source: "bin64/Vamp/*.dll"; DestDir: "{app}"; Flags: "ignoreversion"
+Source: "../../bin64/Vamp/*.dll"; DestDir: "{app}"; Flags: "ignoreversion"
 
 ; readmes and licenses
-Source: "License.txt"; DestDir: "{app}";
-Source: "README.txt";  DestDir: "{app}"; Flags: isreadme
+Source: "../../License.txt"; DestDir: "{app}";
+Source: "../../README.txt";  DestDir: "{app}"; Flags: isreadme
 
 ; Color Curves
-Source: "colorcurves\*.*"; DestDir: "{app}/colorcurves"   ; Flags: replacesameversion recursesubdirs
+Source: "../../colorcurves/*.*"; DestDir: "{app}/colorcurves"   ; Flags: replacesameversion recursesubdirs
 
 ; Value Curves
-Source: "valuecurves\*.*"; DestDir: "{app}/valuecurves"   ; Flags: replacesameversion recursesubdirs
+Source: "../../valuecurves/*.*"; DestDir: "{app}/valuecurves"   ; Flags: replacesameversion recursesubdirs
 
 ; Palettes
-Source: "palettes\*.*"; DestDir: "{app}/palettes"   ; Flags: replacesameversion recursesubdirs
+Source: "../../palettes/*.*"; DestDir: "{app}/palettes"   ; Flags: replacesameversion recursesubdirs
 
 ; controllers
-; Source: "controllers\*.*"; DestDir: "{app}/controllers"   ; Flags: replacesameversion recursesubdirs
+; Source: "../../controllers/*.*"; DestDir: "{app}/controllers"   ; Flags: replacesameversion recursesubdirs
 
 [Icons]
 Name: "{group}\xLights64"; Filename: "{app}\xLights.EXE"; WorkingDir: "{app}"

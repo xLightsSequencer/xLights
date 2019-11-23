@@ -18,7 +18,6 @@ thumbs.db
 *cscope*
 xcuserdata
 xcshareddata
-build
 .DS_Store
 *.tlog
 *.idb
