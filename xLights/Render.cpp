@@ -220,10 +220,10 @@ public:
         if (row != nullptr) {
             name = row->GetModelName();
             mainBuffer = new PixelBufferClass(xframe);
-            Model *model = xframe->GetModel(name);
             numLayers = rowToRender->GetEffectLayerCount();
 
             if (xframe->InitPixelBuffer(name, *mainBuffer, numLayers, zeroBased)) {
+                const Model *model = mainBuffer->GetModel();
                 if ("ModelGroup" == model->GetDisplayAs()) {
                     //for (int l = 0; l < numLayers; ++l) {
                     for (int l = numLayers - 1; l >= 0; --l) {
@@ -239,7 +239,7 @@ public:
                             }
                         }
                         if (perModelEffects) {
-                            ModelGroup *grp = dynamic_cast<ModelGroup*>(model);
+                            const ModelGroup *grp = dynamic_cast<const ModelGroup*>(model);
                             mainBuffer->InitPerModelBuffers(*grp, l, data.FrameTime());
                         }
                     }

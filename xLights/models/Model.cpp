@@ -2436,7 +2436,7 @@ void Model::RemoveSubModel(const std::string &name) {
     }
 }
 
-Model *Model::GetSubModel(const std::string &name) {
+Model *Model::GetSubModel(const std::string &name) const {
     for (auto a = subModels.begin(); a != subModels.end(); ++a) {
         if ((*a)->GetName() == name) {
             return *a;
