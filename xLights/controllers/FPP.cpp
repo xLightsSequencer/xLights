@@ -1210,6 +1210,7 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
                     WriteJSONToPath(ipAddress + wxFileName::GetPathSeparator() + "config" + wxFileName::GetPathSeparator() + "channeloutputs.json", origJson);
                 } else {
                     PostJSONToURLAsFormData("/fppjson.php", "command=setChannelOutputs&file=channelOutputsJSON", origJson);
+                    SetRestartFlag();
                 }
             }
         }
@@ -1568,6 +1569,7 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
             WriteJSONToPath(ipAddress + wxFileName::GetPathSeparator() + "config" + wxFileName::GetPathSeparator() + fppFileName +".json", root);
         } else {
             PostJSONToURLAsFormData("/fppjson.php", "command=setChannelOutputs&file=" + fppFileName, root);
+            SetRestartFlag();
         }
     }
     SetNewRanges(rngs);
