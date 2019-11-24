@@ -35,6 +35,8 @@ class WarpPanel: public wxPanel
 		virtual ~WarpPanel();
 
 		//(*Declarations(WarpPanel)
+		BulkEditChoice* Choice_Warp_Treatment;
+		BulkEditChoice* Choice_Warp_Type;
 		BulkEditSlider* Slider_Warp_Cycle_Count;
 		BulkEditSlider* Slider_Warp_Frequency;
 		BulkEditSlider* Slider_Warp_Speed;
@@ -47,8 +49,6 @@ class WarpPanel: public wxPanel
 		BulkEditTextCtrl* TextCtrl_Warp_Y;
 		BulkEditValueCurveButton* BitmapButton_Warp_X;
 		BulkEditValueCurveButton* BitmapButton_Warp_Y;
-		wxChoice* Choice_Warp_Treatment;
-		wxChoice* Choice_Warp_Type;
 		wxStaticText* StaticText10;
 		wxStaticText* StaticText11;
 		wxStaticText* StaticText12;
