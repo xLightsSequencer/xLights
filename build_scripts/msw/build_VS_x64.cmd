@@ -30,7 +30,7 @@ msbuild.exe /m xLights.sln /p:Configuration="Release" /p:Platform="x64"
 if %ERRORLEVEL% NEQ 0 goto error
 cd ..
 
-cd build
+cd build_scripts
 cd msw
 
 goto exit

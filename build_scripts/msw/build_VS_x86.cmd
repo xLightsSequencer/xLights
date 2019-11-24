@@ -26,11 +26,12 @@ cd ..
 cd ..
 
 cd xLights
+del Release\Xlights.ipdb
 msbuild.exe /m xLights.sln /p:Configuration="Release" /p:Platform="x86"
 if %ERRORLEVEL% NEQ 0 goto error
 cd ..
 
-cd build
+cd build_scripts
 cd msw
 
 goto exit
