@@ -1137,12 +1137,17 @@ wxJSONValue FPP::CreateUniverseFile(OutputManager* outputManager, const std::str
 
 bool FPP::SetRestartFlag() {
     std::string val;
-    return GetURLAsString("/fppjson.php?command=setSetting&key=restartFlag&value=1", val);
+    if (!IsDrive()) {
+        return GetURLAsString("/fppjson.php?command=setSetting&key=restartFlag&value=1", val);
+    }
+    return false;
 }
 
 void FPP::SetDescription(const std::string &st) {
-    std::string val;
-    GetURLAsString("/fppjson.php?command=setSetting&key=HostDescription&value=" + URLEncode(st), val);
+    if (!IsDrive()) {
+        std::string val;
+        GetURLAsString("/fppjson.php?command=setSetting&key=HostDescription&value=" + URLEncode(st), val);
+    }
 }
 
 
