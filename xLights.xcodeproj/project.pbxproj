@@ -329,6 +329,7 @@
 		6794272621CC0E6500F7ED59 /* libzstd.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6794272521CC0E6500F7ED59 /* libzstd.a */; };
 		679484AD1CD8E998001A7B4F /* GenerateCustomModelDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 679484A91CD8E998001A7B4F /* GenerateCustomModelDialog.cpp */; };
 		679484AE1CD8E998001A7B4F /* VideoReader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 679484AB1CD8E998001A7B4F /* VideoReader.cpp */; };
+		6794D2D8238A2B16006161F0 /* AlphaPix.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6794D2D7238A2B16006161F0 /* AlphaPix.cpp */; };
 		6796BAE521DAF44600F18EF7 /* libzstd.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6794272521CC0E6500F7ED59 /* libzstd.a */; };
 		6797A1361F427205007CF7A0 /* EffectTimingDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6797A1341F427205007CF7A0 /* EffectTimingDialog.cpp */; };
 		679B1E371AD6C73200927259 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 679B1E361AD6C73200927259 /* Images.xcassets */; };
@@ -1416,6 +1417,8 @@
 		679484AA1CD8E998001A7B4F /* GenerateCustomModelDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GenerateCustomModelDialog.h; sourceTree = "<group>"; };
 		679484AB1CD8E998001A7B4F /* VideoReader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = VideoReader.cpp; sourceTree = "<group>"; };
 		679484AC1CD8E998001A7B4F /* VideoReader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VideoReader.h; sourceTree = "<group>"; };
+		6794D2D6238A2B16006161F0 /* AlphaPix.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AlphaPix.h; path = controllers/AlphaPix.h; sourceTree = "<group>"; };
+		6794D2D7238A2B16006161F0 /* AlphaPix.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = AlphaPix.cpp; path = controllers/AlphaPix.cpp; sourceTree = "<group>"; };
 		6797A1341F427205007CF7A0 /* EffectTimingDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = EffectTimingDialog.cpp; sourceTree = "<group>"; };
 		6797A1351F427205007CF7A0 /* EffectTimingDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EffectTimingDialog.h; sourceTree = "<group>"; };
 		679B1E361AD6C73200927259 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = xLights/Images.xcassets; sourceTree = "<group>"; };
@@ -2874,6 +2877,8 @@
 		67BF7FF31F278946002F118D /* Controllers */ = {
 			isa = PBXGroup;
 			children = (
+				6794D2D7238A2B16006161F0 /* AlphaPix.cpp */,
+				6794D2D6238A2B16006161F0 /* AlphaPix.h */,
 				6701C431224557660004335C /* ControllerRegistry.cpp */,
 				6701C432224557660004335C /* ControllerRegistry.h */,
 				67912999213423A800818B73 /* ControllerUploadData.cpp */,
@@ -4470,6 +4475,7 @@
 				675D1E951D0B54B800CC6C02 /* LayoutGroup.cpp in Sources */,
 				671142EC207BACF200F45296 /* ESPixelStick.cpp in Sources */,
 				6784F92D1A5653670018EC0C /* RowHeading.cpp in Sources */,
+				6794D2D8238A2B16006161F0 /* AlphaPix.cpp in Sources */,
 				6784F9311A5653670018EC0C /* Waveform.cpp in Sources */,
 				676C5EAF1C99D8AF0031A033 /* CandyCaneModel.cpp in Sources */,
 				6780AB8A1A65C3480090B26E /* SequenceData.cpp in Sources */,

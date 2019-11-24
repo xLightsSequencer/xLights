@@ -43,7 +43,7 @@ void AlphaPixData::Dump() const
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("    Name %s Protocol %d UseDmx %d DMXUniverse %d ColorOrder %d InputMode %d",
-        name,
+        name.ToStdString().c_str(),
         protocol,
         useDmx,
         dmxUniverse,
