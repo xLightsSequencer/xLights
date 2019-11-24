@@ -263,7 +263,8 @@ void FPPConnectDialog::PopulateFPPInstanceList() {
             Choice1->SetFont(font);
             Choice1->Append(_("V1"));
             Choice1->Append(_("V2"));
-            Choice1->Append(_("V2 Sparse"));
+            Choice1->Append(_("V2 Sparse/zstd"));
+            Choice1->Append(_("V2 Sparse/Uncompressed"));
             Choice1->SetSelection(inst->mode == "master" ? 1 : 2);
             FPPInstanceSizer->Add(Choice1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
         } else {

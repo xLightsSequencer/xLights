@@ -765,9 +765,13 @@ bool FPP::PrepareUploadSequence(const FSEQFile &file,
         return uploadOrCopyFile(baseName, seq, fn.GetExt() == "eseq" ? "effects" : "sequences");
     }
     baseSeqName = baseName;
-    outputFile = FSEQFile::createFSEQFile(fileName, type == 0 ? 1 : 2);
+    FSEQFile::CompressionType ctype = FSEQFile::CompressionType::zstd;
+    if (type == 3) {
+        ctype = FSEQFile::CompressionType::none;
+    }
+    outputFile = FSEQFile::createFSEQFile(fileName, type == 0 ? 1 : 2, ctype);
     outputFile->initializeFromFSEQ(file);
-    if (type == 2 && ranges != "") {
+    if (type >= 2 && ranges != "") {
         wxArrayString r1 = wxSplit(wxString(ranges), ',');
         for (const auto& a : r1) {
             wxArrayString r = wxSplit(a, '-');
