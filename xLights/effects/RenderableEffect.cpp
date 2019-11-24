@@ -257,7 +257,7 @@ bool RenderableEffect::SupportsRenderCache(const SettingsMap& settings) const
         }
         
         // we want to cache rotations because of compute cost
-        if (Contains(it.first, "Rotation"))
+        if (Contains(it.first, "VALUECURVE_Rotations"))
         {
             return true;
         }
