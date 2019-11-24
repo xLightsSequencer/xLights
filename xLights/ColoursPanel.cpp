@@ -35,7 +35,9 @@ int ColoursPanel::UpdateButtons()
         bool found = false;
         for (const auto& it : existing)
         {
-            if (((DragColoursBitmapButton*)it)->GetColour() == c)
+            //ScrolledWindow1 may have scroll bar children as well as buttons
+            DragColoursBitmapButton *button = dynamic_cast<DragColoursBitmapButton*>(it);
+            if (button && button->GetColour() == c)
             {
                 // already there
                 found = true;
@@ -178,12 +180,12 @@ void ColoursPanel::UpdateColourButtons(bool reload, xLightsFrame* xlights) {
     if (reload)
     {
         auto existing = ScrolledWindow1->GetChildren();
-        for (const auto& it : existing)
-        {
-            GridSizer1->Detach(it);
+        for (const auto& it : existing) {
+            DragColoursBitmapButton *button = dynamic_cast<DragColoursBitmapButton*>(it);
+            if (button) {
+                GridSizer1->Detach(it);
+            }
         }
-        ScrolledWindow1->DestroyChildren();
-        wxASSERT(ScrolledWindow1->GetChildren().size() == 0);
     }
 
     AddBaseColours();
