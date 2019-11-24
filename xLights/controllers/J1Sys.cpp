@@ -132,13 +132,12 @@ static std::vector<J1SysControllerRules> CONTROLLER_TYPE_MAP = {
     J1SysControllerRules(12, 4.0, J1SYS_MODEL_P12S),
     J1SysControllerRules(12, 4.0, J1SYS_MODEL_P12D),
 };
+
 void J1Sys::RegisterControllers() {
     for (auto &a : CONTROLLER_TYPE_MAP) {
         ControllerRegistry::AddController(&a);
     }
 }
-
-
 
 J1Sys::J1Sys(const std::string& ip, const std::string &proxy)
 {
@@ -732,7 +731,7 @@ int J1Sys::DecodeProtocolSpeed(std::string protocol) const
     wxString p(protocol);
     p = p.Lower();
 
-    if (p == "ws2811") return 3600;
+    if (p == "ws2811") return 3200;
     if (p == "ws2801") return 750;
     if (p == "dmx") return 5;
     if (p == "renard") return 3;
