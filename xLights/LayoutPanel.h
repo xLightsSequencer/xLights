@@ -139,6 +139,7 @@ class LayoutPanel: public wxPanel
         static const long ID_PREVIEW_BULKEDIT;
         static const long ID_PREVIEW_BULKEDIT_CONTROLLERCONNECTION;
         static const long ID_PREVIEW_BULKEDIT_CONTROLLERNAME;
+        static const long ID_PREVIEW_BULKEDIT_SMARTREMOTE;
         static const long ID_PREVIEW_BULKEDIT_TAGCOLOUR;
         static const long ID_PREVIEW_BULKEDIT_CONTROLLERDIRECTION;
         static const long ID_PREVIEW_BULKEDIT_CONTROLLERNULLNODES;

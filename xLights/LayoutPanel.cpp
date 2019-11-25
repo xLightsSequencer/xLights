@@ -120,6 +120,7 @@ const long LayoutPanel::ID_PREVIEW_RESIZE_SAMESIZE = wxNewId();
 const long LayoutPanel::ID_PREVIEW_BULKEDIT = wxNewId();
 const long LayoutPanel::ID_PREVIEW_BULKEDIT_CONTROLLERCONNECTION = wxNewId();
 const long LayoutPanel::ID_PREVIEW_BULKEDIT_CONTROLLERNAME = wxNewId();
+const long LayoutPanel::ID_PREVIEW_BULKEDIT_SMARTREMOTE = wxNewId();
 const long LayoutPanel::ID_PREVIEW_BULKEDIT_TAGCOLOUR = wxNewId();
 const long LayoutPanel::ID_PREVIEW_BULKEDIT_CONTROLLERGAMMA = wxNewId();
 const long LayoutPanel::ID_PREVIEW_BULKEDIT_CONTROLLERCOLOURORDER = wxNewId();
@@ -1630,6 +1631,9 @@ void LayoutPanel::BulkEditControllerConnection(int id)
     }
     else if (id == ID_PREVIEW_BULKEDIT_CONTROLLERCOLOURORDER) {
         ccbe = controller_connection_bulkedit::CEBE_CONTROLLERCOLOURORDER;
+    }
+    else if (id == ID_PREVIEW_BULKEDIT_SMARTREMOTE) {
+        ccbe = controller_connection_bulkedit::CEBE_SMARTREMOTE;
     }
     else if (id == ID_PREVIEW_BULKEDIT_CONTROLLERGROUPCOUNT) {
         ccbe = controller_connection_bulkedit::CEBE_CONTROLLERGROUPCOUNT;
@@ -3734,6 +3738,7 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
             mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_CONTROLLERCONNECTION, "Controller Connection");
             if (IsAllSelectedModelsArePixelProtocol())
             {
+                mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_SMARTREMOTE, "Smart Remote");
                 mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_CONTROLLERDIRECTION, "Controller Direction");
                 mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_CONTROLLERBRIGHTNESS, "Controller Brightness");
                 mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_CONTROLLERGAMMA, "Controller Gamma");
@@ -3955,7 +3960,8 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
         event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERCOLOURORDER ||
         event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERGAMMA ||
         event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERGROUPCOUNT ||
-        event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERDIRECTION
+        event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERDIRECTION ||
+        event.GetId() == ID_PREVIEW_BULKEDIT_SMARTREMOTE
         )
     {
         BulkEditControllerConnection(event.GetId());

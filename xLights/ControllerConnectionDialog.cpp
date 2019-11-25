@@ -17,6 +17,8 @@ const long ControllerConnectionDialog::ID_STATICTEXT1 = wxNewId();
 const long ControllerConnectionDialog::ID_CHOICE1 = wxNewId();
 const long ControllerConnectionDialog::ID_STATICTEXT2 = wxNewId();
 const long ControllerConnectionDialog::ID_SPINCTRL1 = wxNewId();
+const long ControllerConnectionDialog::ID_STATICTEXT3 = wxNewId();
+const long ControllerConnectionDialog::ID_CHOICE2 = wxNewId();
 const long ControllerConnectionDialog::ID_CHECKBOX1 = wxNewId();
 const long ControllerConnectionDialog::ID_PIXEL_reverse = wxNewId();
 const long ControllerConnectionDialog::ID_CHECKBOX5 = wxNewId();
@@ -65,6 +67,14 @@ ControllerConnectionDialog::ControllerConnectionDialog(wxWindow* parent, control
 	SpinCtrl_Port = new wxSpinCtrl(this, ID_SPINCTRL1, _T("1"), wxDefaultPosition, wxDefaultSize, 0, 1, 100, 1, _T("ID_SPINCTRL1"));
 	SpinCtrl_Port->SetValue(_T("1"));
 	FlexGridSizer2->Add(SpinCtrl_Port, 1, wxALL|wxEXPAND, 2);
+	SmartRemote = new wxStaticText(this, ID_STATICTEXT3, _("Smart Remote"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
+	FlexGridSizer2->Add(SmartRemote, 1, wxALL|wxEXPAND, 5);
+	Choice_SmartRemote = new wxChoice(this, ID_CHOICE2, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE2"));
+	Choice_SmartRemote->SetSelection( Choice_SmartRemote->Append(_("N/A")) );
+	Choice_SmartRemote->Append(_("*A*->b->c"));
+	Choice_SmartRemote->Append(_("a->*B*->c"));
+	Choice_SmartRemote->Append(_("a->b->*C*"));
+	FlexGridSizer2->Add(Choice_SmartRemote, 1, wxALL|wxEXPAND, 5);
 	CheckBox_PixelDirection = new wxCheckBox(this, ID_CHECKBOX1, _("Set Direction"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
 	CheckBox_PixelDirection->SetValue(false);
 	FlexGridSizer2->Add(CheckBox_PixelDirection, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
@@ -178,6 +188,8 @@ ControllerConnectionDialog::ControllerConnectionDialog(wxWindow* parent, control
         CheckBox_ColorOrder->Hide();
         GroupCount->Hide();
         CheckBox_GroupCount->Hide();
+        SmartRemote->Hide();
+        Choice_SmartRemote->Hide();
         break;
     case controller_connection_bulkedit::CEBE_CONTROLLERBRIGHTNESS:
         StaticText1->Hide();
@@ -194,6 +206,8 @@ ControllerConnectionDialog::ControllerConnectionDialog(wxWindow* parent, control
         CheckBox_ColorOrder->Hide();
         GroupCount->Hide();
         CheckBox_GroupCount->Hide();
+        SmartRemote->Hide();
+        Choice_SmartRemote->Hide();
         break;
     case controller_connection_bulkedit::CEBE_CONTROLLERNULLNODES:
         StaticText1->Hide();
@@ -210,6 +224,26 @@ ControllerConnectionDialog::ControllerConnectionDialog(wxWindow* parent, control
         CheckBox_ColorOrder->Hide();
         GroupCount->Hide();
         CheckBox_GroupCount->Hide();
+        SmartRemote->Hide();
+        Choice_SmartRemote->Hide();
+        break;
+    case controller_connection_bulkedit::CEBE_SMARTREMOTE:
+        StaticText1->Hide();
+        StaticText2->Hide();
+        Choice_Protocol->Hide();
+        SpinCtrl_Port->Hide();
+        PixelDirection->Hide();
+        CheckBox_PixelDirection->Hide();
+        Brightness->Hide();
+        CheckBox_Brightness->Hide();
+        Gamma->Hide();
+        CheckBox_Gamma->Hide();
+        ColorOrder->Hide();
+        CheckBox_ColorOrder->Hide();
+        GroupCount->Hide();
+        CheckBox_GroupCount->Hide();
+        NullNodes->Hide();
+        CheckBox_NullNodes->Hide();
         break;
     case controller_connection_bulkedit::CEBE_CONTROLLERGAMMA:
         StaticText1->Hide();
@@ -226,6 +260,8 @@ ControllerConnectionDialog::ControllerConnectionDialog(wxWindow* parent, control
         CheckBox_ColorOrder->Hide();
         GroupCount->Hide();
         CheckBox_GroupCount->Hide();
+        SmartRemote->Hide();
+        Choice_SmartRemote->Hide();
         break;
     case controller_connection_bulkedit::CEBE_CONTROLLERCOLOURORDER:
         StaticText1->Hide();
@@ -242,6 +278,8 @@ ControllerConnectionDialog::ControllerConnectionDialog(wxWindow* parent, control
         CheckBox_Gamma->Hide();
         GroupCount->Hide();
         CheckBox_GroupCount->Hide();
+        SmartRemote->Hide();
+        Choice_SmartRemote->Hide();
         break;
     case controller_connection_bulkedit::CEBE_CONTROLLERGROUPCOUNT:
         StaticText1->Hide();
@@ -258,6 +296,8 @@ ControllerConnectionDialog::ControllerConnectionDialog(wxWindow* parent, control
         CheckBox_Gamma->Hide();
         ColorOrder->Hide();
         CheckBox_ColorOrder->Hide();
+        SmartRemote->Hide();
+        Choice_SmartRemote->Hide();
         break;
     case controller_connection_bulkedit::CEBE_CONTROLLERDIRECTION:
         StaticText1->Hide();
@@ -274,6 +314,8 @@ ControllerConnectionDialog::ControllerConnectionDialog(wxWindow* parent, control
         CheckBox_ColorOrder->Hide();
         GroupCount->Hide();
         CheckBox_GroupCount->Hide();
+        SmartRemote->Hide();
+        Choice_SmartRemote->Hide();
         break;
     }
 
@@ -351,6 +393,11 @@ void ControllerConnectionDialog::Set(wxXmlNode* node) {
                     GroupCount->SetValue(wxAtoi(node->GetAttribute("groupCount")));
                 }
             }
+            if (_type == controller_connection_bulkedit::CEBE_SMARTREMOTE) {
+                if (node->HasAttribute("SmartRemote")) {
+                    Choice_SmartRemote->SetSelection(wxAtoi(node->GetAttribute("SmartRemote")));
+                }
+            }
         }
         if (_type == controller_connection_bulkedit::CEBE_CONTROLLERCONNECTION) {
             Choice_Protocol->SetFocus();
@@ -390,6 +437,10 @@ void ControllerConnectionDialog::Get(wxXmlNode* node) {
         if (_type == controller_connection_bulkedit::CEBE_CONTROLLERGROUPCOUNT) {
             node->DeleteAttribute("groupCount");
             if (CheckBox_GroupCount->IsChecked()) node->AddAttribute("groupCount", wxString::Format("%d", GroupCount->GetValue()));
+        }
+        if (_type == controller_connection_bulkedit::CEBE_SMARTREMOTE) {
+            node->DeleteAttribute("SmartRemote");
+            node->AddAttribute("SmartRemote", wxString::Format("%d", Choice_SmartRemote->GetSelection()));
         }
         if (_type == controller_connection_bulkedit::CEBE_CONTROLLERDIRECTION) {
             node->DeleteAttribute("reverse");
