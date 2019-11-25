@@ -26,8 +26,8 @@ cd ..
 cd ..
 
 cd xLights
-del Release\Xlights.ipdb
-msbuild.exe /m xLights.sln /p:Configuration="Release" /p:Platform="x86"
+rem del Release\Xlights.ipdb
+msbuild.exe /m xLights.sln /p:Configuration="Release" /p:Platform="x86" /p:PreferredToolArchitecture="x64"
 if %ERRORLEVEL% NEQ 0 goto error
 cd ..
 
