@@ -11,10 +11,24 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2019.66 November 25 2019
    -- enh (will)   Added Test Mode (BETA) plugin to xSchedule Web interface
    -- enh (scott)  Added APA102 pixel protocol support.
-   -- enh (scott)  Added 'Alt + Left Click' panning to the Layout Tab.
+   -- enh (scott)  Added 'Alt + Left Click' panning to the Layout Tab - 2D only.
    -- enh (scott)  Added AlphaPix 4 Controller Upload Support.
+   -- enh (keith)  Add bulk edit of smart remotes
+   -- enh (dkulp)  Add uncompressed sparse v2 fseq file format for really low end controllers
+   -- bug (dkulp)  Take a bunch of effects out of render cache that dont need to be there
+   -- bug (dkulp)  Fix some bugs in setting the FPP restart flag when doing uploads
+   -- bug (dkulp)  Fix a render and export model crash
+   -- bug (keith)  Add bulk edit to warp effect choice fields
+   -- bug (keith)  Fix xSchedule web UI password not working
+   -- bug (keith)  Default J1SYS to 3200 speed
+   -- bug (keith)  To fix errors like blank playlist dialog in xSchedule, memory leak in xSchedule I have moved   
+                   the windows release to visual c++
+   -- bug (keith)  Fix crash changing simple playlist step name
+   -- bug (keith)  Fix 4 channel WRGB strings
+   -- bug (keith)  Fix crash with single colour snowstorm effects
 2019.65 November 18 2019
    -- enh (keith)  Support face effects on model group when all models have the same face definition
    -- enh (keith)  Warn about slow rendering due to certain pixel styles
