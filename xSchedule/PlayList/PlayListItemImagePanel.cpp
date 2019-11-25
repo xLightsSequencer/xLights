@@ -127,7 +127,8 @@ void PlayListItemImagePanel::OnButton_PositionWindowClick(wxCommandEvent& event)
 void PlayListItemImagePanel::OnFilePickerCtrl_ImageFileFileChanged(wxFileDirPickerEvent& event)
 {
     _image->SetImageFile(FilePickerCtrl_ImageFile->GetFileName().GetFullPath().ToStdString());
-    ((PlayListDialog*)GetParent()->GetParent()->GetParent()->GetParent())->UpdateTree();
+    wxCommandEvent e(EVT_UPDATEITEMNAME);
+    wxPostEvent(GetParent()->GetParent()->GetParent()->GetParent(), e);
 }
 
 void PlayListItemImagePanel::OnTextCtrl_DelayText(wxCommandEvent& event)

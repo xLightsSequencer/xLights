@@ -115,5 +115,6 @@ void PlayListItemSerialPanel::OnTextCtrl_DelayText(wxCommandEvent& event)
 void PlayListItemSerialPanel::OnTextCtrl_SerialNameText(wxCommandEvent& event)
 {
     _serial->SetName(TextCtrl_SerialName->GetValue().ToStdString());
-    ((PlayListDialog*)GetParent()->GetParent()->GetParent()->GetParent())->UpdateTree();
+    wxCommandEvent e(EVT_UPDATEITEMNAME);
+    wxPostEvent(GetParent()->GetParent()->GetParent()->GetParent(), e);
 }

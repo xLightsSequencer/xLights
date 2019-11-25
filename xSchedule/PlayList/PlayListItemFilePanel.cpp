@@ -90,7 +90,8 @@ void PlayListItemFilePanel::OnTextCtrl_ContentText(wxCommandEvent& event)
 void PlayListItemFilePanel::OnTextCtrl_FileNameText(wxCommandEvent& event)
 {
     _file->SetName(TextCtrl_FileName->GetValue().ToStdString());
-    ((PlayListDialog*)GetParent()->GetParent()->GetParent()->GetParent())->UpdateTree();
+    wxCommandEvent e(EVT_UPDATEITEMNAME);
+    wxPostEvent(GetParent()->GetParent()->GetParent()->GetParent(), e);
 }
 
 void PlayListItemFilePanel::OnTextCtrl_FNameText(wxCommandEvent& event)

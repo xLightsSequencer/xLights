@@ -13,6 +13,8 @@
 #include <wx/treectrl.h>
 //*)
 
+wxDECLARE_EVENT(EVT_UPDATEITEMNAME, wxCommandEvent);
+
 class OutputManager;
 class PlayList;
 class wxXmlNode;
@@ -135,6 +137,10 @@ class PlayListDialog: public wxDialog
 		void OnButton_DeleteClick(wxCommandEvent& event);
 		void OnButton_CloneClick(wxCommandEvent& event);
 		//*)
+
+        void UpdateItemName(wxCommandEvent& event){
+            UpdateTree();
+        }
 
 		DECLARE_EVENT_TABLE()
 };

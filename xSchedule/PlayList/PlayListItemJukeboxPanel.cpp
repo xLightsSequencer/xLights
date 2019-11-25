@@ -85,7 +85,8 @@ void PlayListItemJukeboxPanel::OnTextCtrl_DelayText(wxCommandEvent& event)
 void PlayListItemJukeboxPanel::OnTextCtrl_JukeboxNameText(wxCommandEvent& event)
 {
     _jukebox->SetName(TextCtrl_JukeboxName->GetValue().ToStdString());
-    ((PlayListDialog*)GetParent()->GetParent()->GetParent()->GetParent())->UpdateTree();
+    wxCommandEvent e(EVT_UPDATEITEMNAME);
+    wxPostEvent(GetParent()->GetParent()->GetParent()->GetParent(), e);
 }
 
 void PlayListItemJukeboxPanel::ValidateWindow()

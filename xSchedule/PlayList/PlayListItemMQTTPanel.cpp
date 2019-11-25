@@ -126,7 +126,8 @@ void PlayListItemMQTTPanel::OnTextCtrl_DelayText(wxCommandEvent& event)
 void PlayListItemMQTTPanel::OnTextCtrl_RunProcessNameText(wxCommandEvent& event)
 {
     _MQTT->SetName(TextCtrl_OSCName->GetValue().ToStdString());
-    ((PlayListDialog*)GetParent()->GetParent()->GetParent()->GetParent())->UpdateTree();
+    wxCommandEvent e(EVT_UPDATEITEMNAME);
+    wxPostEvent(GetParent()->GetParent()->GetParent()->GetParent(), e);
 }
 
 void PlayListItemMQTTPanel::OnChoice_TypeSelect(wxCommandEvent& event)

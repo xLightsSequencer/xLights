@@ -1,6 +1,6 @@
 #include "PlayListItemFSEQPanel.h"
-#include "PlayListItemFSEQ.h"
 #include "PlayListDialog.h"
+#include "PlayListItemFSEQ.h"
 #include "../xScheduleMain.h"
 #include "../ScheduleManager.h"
 #include "../../xLights/outputs/OutputManager.h"
@@ -240,7 +240,8 @@ void PlayListItemFSEQPanel::OnTextCtrl_DelayText(wxCommandEvent& event)
 void PlayListItemFSEQPanel::OnFilePickerCtrl1FileChanged(wxFileDirPickerEvent& event)
 {
     _fseq->SetFSEQFileName(FilePickerCtrl_FSEQFile->GetFileName().GetFullPath().ToStdString());
-    ((PlayListDialog*)GetParent()->GetParent()->GetParent()->GetParent())->UpdateTree();
+    wxCommandEvent e(EVT_UPDATEITEMNAME);
+    wxPostEvent(GetParent()->GetParent()->GetParent()->GetParent(), e);
 
     if (!CheckBox_OverrideAudio->GetValue())
     {

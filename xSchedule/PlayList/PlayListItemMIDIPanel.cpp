@@ -135,5 +135,6 @@ void PlayListItemMIDIPanel::OnTextCtrl_DelayText(wxCommandEvent& event)
 void PlayListItemMIDIPanel::OnTextCtrl_MIDINameText(wxCommandEvent& event)
 {
     _MIDI->SetName(TextCtrl_MIDIName->GetValue().ToStdString());
-    ((PlayListDialog*)GetParent()->GetParent()->GetParent()->GetParent())->UpdateTree();
+    wxCommandEvent e(EVT_UPDATEITEMNAME);
+    wxPostEvent(GetParent()->GetParent()->GetParent()->GetParent(), e);
 }

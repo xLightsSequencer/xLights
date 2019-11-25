@@ -202,7 +202,8 @@ void PlayListItemOSCPanel::OnTextCtrl_DelayText(wxCommandEvent& event)
 void PlayListItemOSCPanel::OnTextCtrl_RunProcessNameText(wxCommandEvent& event)
 {
     _osc->SetName(TextCtrl_OSCName->GetValue().ToStdString());
-    ((PlayListDialog*)GetParent()->GetParent()->GetParent()->GetParent())->UpdateTree();
+    wxCommandEvent e(EVT_UPDATEITEMNAME);
+    wxPostEvent(GetParent()->GetParent()->GetParent()->GetParent(), e);
 }
 
 void PlayListItemOSCPanel::OnChoice_TypeSelect(wxCommandEvent& event)

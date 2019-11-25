@@ -111,7 +111,8 @@ PlayListItemDimPanel::~PlayListItemDimPanel()
 void PlayListItemDimPanel::OnTextCtrl_NameText(wxCommandEvent& event)
 {
     _dim->SetName(TextCtrl_Name->GetValue().ToStdString());
-    ((PlayListDialog*)GetParent()->GetParent()->GetParent()->GetParent())->UpdateTree();
+    wxCommandEvent e(EVT_UPDATEITEMNAME);
+    wxPostEvent(GetParent()->GetParent()->GetParent()->GetParent(), e);
 }
 
 void PlayListItemDimPanel::OnChoice_ModeSelect(wxCommandEvent& event)

@@ -110,7 +110,8 @@ void PlayListItemPluginPanel::OnChoice_ActionSelect(wxCommandEvent& event)
 void PlayListItemPluginPanel::OnTextCtrl_NameText(wxCommandEvent& event)
 {
     _plugin->SetName(TextCtrl_Name->GetValue().ToStdString());
-    ((PlayListDialog*)GetParent()->GetParent()->GetParent()->GetParent())->UpdateTree();
+    wxCommandEvent e(EVT_UPDATEITEMNAME);
+    wxPostEvent(GetParent()->GetParent()->GetParent()->GetParent(), e);
 }
 
 void PlayListItemPluginPanel::ValidateWindow()

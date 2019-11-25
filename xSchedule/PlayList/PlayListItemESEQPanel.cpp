@@ -109,7 +109,8 @@ void PlayListItemESEQPanel::OnTextCtrl_DelayText(wxCommandEvent& event)
 void PlayListItemESEQPanel::OnFilePickerCtrl1FileChanged(wxFileDirPickerEvent& event)
 {
     _ESEQ->SetESEQFileName(FilePickerCtrl_ESEQFile->GetFileName().GetFullPath().ToStdString());
-    ((PlayListDialog*)GetParent()->GetParent()->GetParent()->GetParent())->UpdateTree();
+    wxCommandEvent e(EVT_UPDATEITEMNAME);
+    wxPostEvent(GetParent()->GetParent()->GetParent()->GetParent(), e);
 }
 
 void PlayListItemESEQPanel::ValidateWindow()

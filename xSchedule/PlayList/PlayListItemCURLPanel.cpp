@@ -132,7 +132,8 @@ void PlayListItemCURLPanel::OnTextCtrl_DelayText(wxCommandEvent& event)
 void PlayListItemCURLPanel::OnTextCtrl_CURLNameText(wxCommandEvent& event)
 {
     _curl->SetName(TextCtrl_CURLName->GetValue().ToStdString());
-    ((PlayListDialog*)GetParent()->GetParent()->GetParent()->GetParent())->UpdateTree();
+    wxCommandEvent e(EVT_UPDATEITEMNAME);
+    wxPostEvent(GetParent()->GetParent()->GetParent()->GetParent(), e);
 }
 
 void PlayListItemCURLPanel::OnChoice_TypeSelect(wxCommandEvent& event)

@@ -90,7 +90,8 @@ void PlayListItemFPPEventPanel::OnTextCtrl_DelayText(wxCommandEvent& event)
 void PlayListItemFPPEventPanel::OnTextCtrl_FPPEventNameText(wxCommandEvent& event)
 {
     _fppevent->SetName(TextCtrl_FPPEventName->GetValue().ToStdString());
-    ((PlayListDialog*)GetParent()->GetParent()->GetParent()->GetParent())->UpdateTree();
+    wxCommandEvent e(EVT_UPDATEITEMNAME);
+    wxPostEvent(GetParent()->GetParent()->GetParent()->GetParent(), e);
 }
 
 void PlayListItemFPPEventPanel::OnTextCtrl_IPAddressText(wxCommandEvent& event)

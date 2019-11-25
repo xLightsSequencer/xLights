@@ -99,9 +99,12 @@ const long PlayListDialog::ID_MNU_ADDFPPEVENT = wxNewId();
 const long PlayListDialog::ID_MNU_DELETE = wxNewId();
 const long PlayListDialog::ID_MNU_REMOVEEMPTYSTEPS = wxNewId();
 
+wxDEFINE_EVENT(EVT_UPDATEITEMNAME, wxCommandEvent);
+
 BEGIN_EVENT_TABLE(PlayListDialog,wxDialog)
 	//(*EventTable(PlayListDialog)
 	//*)
+    EVT_COMMAND(wxID_ANY, EVT_UPDATEITEMNAME, PlayListDialog::UpdateItemName)
 END_EVENT_TABLE()
 
 PlayListDialog::PlayListDialog(wxWindow* parent, OutputManager* outputManager, PlayList* playlist, wxWindowID id,const wxPoint& pos,const wxSize& size)

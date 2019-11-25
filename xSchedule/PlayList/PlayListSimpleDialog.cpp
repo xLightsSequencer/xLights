@@ -1,4 +1,5 @@
 #include "PlayListSimpleDialog.h"
+#include "PlayListDialog.h"
 #include "PlayList.h"
 #include "PlayListStep.h"
 #include "PlayListItem.h"
@@ -43,6 +44,7 @@ const long PlayListSimpleDialog::ID_SPLITTERWINDOW1 = wxNewId();
 BEGIN_EVENT_TABLE(PlayListSimpleDialog,wxDialog)
 	//(*EventTable(PlayListSimpleDialog)
 	//*)
+    EVT_COMMAND(wxID_ANY, EVT_UPDATEITEMNAME, PlayListSimpleDialog::UpdateItemName)
 END_EVENT_TABLE()
 
 

@@ -47,6 +47,7 @@
     #pragma comment(lib, "log4cpplibd.lib")
     #pragma comment(lib, "portmidid.lib")
     #pragma comment(lib, "msvcprtd.lib")
+    #pragma comment(lib, "libzstdd_static_VS.lib")
 #else
     #pragma comment(lib, "wxbase31u.lib")
     #pragma comment(lib, "wxbase31u_net.lib")
@@ -379,7 +380,9 @@ bool xScheduleApp::OnInit()
     wxLog::SetLogLevel(wxLOG_FatalError);
 
 #if wxUSE_ON_FATAL_EXCEPTION
-    wxHandleFatalExceptions();
+    #ifndef _DEBUG || !defined(_MSC_VER) 
+        wxHandleFatalExceptions();
+    #endif
 #else
     SetUnhandledExceptionFilter(windows_exception_handler);
 #endif

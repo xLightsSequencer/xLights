@@ -155,7 +155,8 @@ void PlayListItemVideoPanel::OnButton_PositionWindowClick(wxCommandEvent& event)
 void PlayListItemVideoPanel::OnFilePickerCtrl_VideoFileFileChanged(wxFileDirPickerEvent& event)
 {
     _video->SetVideoFile(FilePickerCtrl_VideoFile->GetFileName().GetFullPath().ToStdString());
-    ((PlayListDialog*)GetParent()->GetParent()->GetParent()->GetParent())->UpdateTree();
+    wxCommandEvent e(EVT_UPDATEITEMNAME);
+    wxPostEvent(GetParent()->GetParent()->GetParent()->GetParent(), e);
 }
 
 void PlayListItemVideoPanel::OnTextCtrl_DelayText(wxCommandEvent& event)

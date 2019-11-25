@@ -98,6 +98,10 @@ class PlayListSimpleDialog: public wxDialog
 		void OnButton_CloneClick(wxCommandEvent& event);
 		//*)
 
+        void UpdateItemName(wxCommandEvent& event) {
+            UpdateTree();
+        }
+
 		DECLARE_EVENT_TABLE()
 };
 
