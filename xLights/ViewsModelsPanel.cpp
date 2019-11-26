@@ -112,6 +112,7 @@ const long ViewsModelsPanel::ID_MODELS_SORTBYNAMEGM = wxNewId();
 const long ViewsModelsPanel::ID_MODELS_SORTBYTYPE = wxNewId();
 const long ViewsModelsPanel::ID_MODELS_SORTMODELSUNDERTHISGROUP = wxNewId();
 const long ViewsModelsPanel::ID_MODELS_BUBBLEUPGROUPS = wxNewId();
+const long ViewsModelsPanel::ID_MODELS_SORTBYNAMEGMSIZE = wxNewId();
 
 BEGIN_EVENT_TABLE(ViewsModelsPanel,wxPanel)
 	//(*EventTable(ViewsModelsPanel)
@@ -1458,6 +1459,7 @@ void ViewsModelsPanel::OnListCtrlModelsItemRClick(wxListEvent& event)
 
     mnuSort->Append(ID_MODELS_SORTBYNAME, "By Name")->Enable(models > 0);
     mnuSort->Append(ID_MODELS_SORTBYNAMEGM, "By Name But Groups At Top")->Enable(models > 0);
+    mnuSort->Append(ID_MODELS_SORTBYNAMEGMSIZE, "By Name But Groups At Top by Size")->Enable(models > 0);
     mnuSort->Append(ID_MODELS_SORTBYTYPE, "By Type")->Enable(models > 0);
     mnuSort->Append(ID_MODELS_SORTMODELSUNDERTHISGROUP, "Models Under This Group")->Enable(isGroup);
     mnuSort->Append(ID_MODELS_BUBBLEUPGROUPS, "Bubble Up Groups")->Enable(models > 0);
@@ -1527,6 +1529,10 @@ void ViewsModelsPanel::OnModelsPopup(wxCommandEvent &event)
     else if (id == ID_MODELS_BUBBLEUPGROUPS)
     {
         SortModelsBubbleUpGroups();
+    }
+    else if (id == ID_MODELS_SORTBYNAMEGMSIZE)
+    {
+        SortModelsByNameGM(true);
     }
     ValidateWindow();
 }
@@ -1665,7 +1671,7 @@ void ViewsModelsPanel::SetMasterViewModels(const wxArrayString& models)
     }
 }
 
-void ViewsModelsPanel::SortModelsByNameGM()
+void ViewsModelsPanel::SortModelsByNameGM(bool sortGroupsBySize)
 {
     SaveUndo();
 
@@ -1698,7 +1704,20 @@ void ViewsModelsPanel::SortModelsByNameGM()
         }
     }
 
-    groups.Sort(wxStringNumberAwareStringCompare);
+    if (!sortGroupsBySize)
+    {
+        groups.Sort(wxStringNumberAwareStringCompare);
+    }
+    else
+    {
+        //groups with more models to the top, i.e whole house models
+        auto sortRuleLambda = [this](wxString const& s1, wxString const& s2) -> bool
+        {
+            return GetGroupModels(s1).GetCount() > GetGroupModels(s2).GetCount();
+        };
+
+        std::sort(groups.begin(), groups.end(), sortRuleLambda);
+    }
     modelsOnly.Sort(wxStringNumberAwareStringCompare);
 
     modelArray = MergeStringArrays(groups, modelsOnly);
