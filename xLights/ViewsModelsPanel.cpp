@@ -83,6 +83,7 @@ const long ViewsModelsPanel::ID_BUTTON3 = wxNewId();
 const long ViewsModelsPanel::ID_BUTTON4 = wxNewId();
 const long ViewsModelsPanel::ID_BUTTON5 = wxNewId();
 const long ViewsModelsPanel::ID_BUTTON6 = wxNewId();
+const long ViewsModelsPanel::ID_BUTTON_TOP = wxNewId();
 const long ViewsModelsPanel::ID_BUTTON9 = wxNewId();
 const long ViewsModelsPanel::ID_BUTTON10 = wxNewId();
 const long ViewsModelsPanel::ID_BUTTON1 = wxNewId();
@@ -144,10 +145,13 @@ ViewsModelsPanel::ViewsModelsPanel(xLightsFrame *frame, wxWindow* parent,wxWindo
 	Button_RemoveAll = new wxButton(this, ID_BUTTON6, _("<<"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_BUTTON6"));
 	BoxSizer1->Add(Button_RemoveAll, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	BoxSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	Button_Top = new wxButton(this, ID_BUTTON_TOP, _("^^"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_BUTTON_TOP"));
+	Button_Top->SetToolTip(_("Move to Top of List"));
+	BoxSizer1->Add(Button_Top, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Button_MoveUp = new wxButton(this, ID_BUTTON9, _("^"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_BUTTON9"));
 	BoxSizer1->Add(Button_MoveUp, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Button_MoveDown = new wxButton(this, ID_BUTTON10, _("v"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_BUTTON10"));
-	BoxSizer1->Add(Button_MoveDown, 1, wxALL|wxEXPAND, 5);
+	BoxSizer1->Add(Button_MoveDown, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer5->Add(BoxSizer1, 1, wxALL|wxEXPAND, 0);
 	GridBagSizer1->Add(FlexGridSizer5, wxGBPosition(1, 1), wxGBSpan(3, 1), wxEXPAND, 0);
 	FlexGridSizer8 = new wxFlexGridSizer(5, 1, 0, 0);
@@ -185,6 +189,7 @@ ViewsModelsPanel::ViewsModelsPanel(xLightsFrame *frame, wxWindow* parent,wxWindo
 	Connect(ID_BUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ViewsModelsPanel::OnButton_AddSelectedClick);
 	Connect(ID_BUTTON5,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ViewsModelsPanel::OnButton_RemoveSelectedClick);
 	Connect(ID_BUTTON6,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ViewsModelsPanel::OnButton_RemoveAllClick);
+	Connect(ID_BUTTON_TOP,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ViewsModelsPanel::OnButton_TopClick);
 	Connect(ID_BUTTON9,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ViewsModelsPanel::OnButton_MoveUpClick);
 	Connect(ID_BUTTON10,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ViewsModelsPanel::OnButton_MoveDownClick);
 	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ViewsModelsPanel::OnButton_AddViewClick);
@@ -934,11 +939,13 @@ void ViewsModelsPanel::ValidateWindow()
     {
         Button_MoveUp->Enable(true);
         Button_MoveDown->Enable(true);
+        Button_Top->Enable(true);
     }
     else
     {
         Button_MoveUp->Enable(false);
         Button_MoveDown->Enable(false);
+        Button_Top->Enable(false);
     }
 
     if (_seqData == nullptr || _seqData->NumFrames() == 0)
@@ -2384,6 +2391,66 @@ void ViewsModelsPanel::OnButton_MoveUpClick(wxCommandEvent& event)
             logger_base.debug("Timing count in models list: %d", GetTimingCount());
             logger_base.debug("Moving from %d '%s' to %d '%s'", from, (const char *)_sequenceElements->GetElement(from, currentView)->GetName().c_str(),
                 to, (const char *)(_sequenceElements->GetElement(to, currentView) == nullptr) ? "N/A" : _sequenceElements->GetElement(to, currentView)->GetName().c_str());
+#endif
+
+            _sequenceElements->MoveSequenceElement(from, to, currentView);
+            SelectItem(ListCtrlModels, i, false);
+
+            selcnt++;
+        }
+    }
+
+    if (itemsMoved)
+    {
+        MarkViewsChanged();
+        UpdateModelsForSelectedView();
+        PopulateModels(wxJoin(movedModels, ',').ToStdString());
+        ListCtrlModels->EnsureVisible(firstsel);
+        _xlFrame->DoForceSequencerRefresh();
+    }
+}
+
+void ViewsModelsPanel::OnButton_TopClick(wxCommandEvent& event)
+{
+    if (GetSelectedModelCount() == 0) return;
+
+    SaveUndo();
+    bool itemsMoved = false;
+    int currentView = _sequenceViewManager->GetSelectedViewIndex();
+
+    wxArrayString movedModels;
+    int selcnt = 0;
+    int firstsel = -1;
+
+    for (int i = 0; i < ListCtrlModels->GetItemCount(); ++i)
+    {
+        if (IsItemSelected(ListCtrlModels, i) && ((Element*)ListCtrlModels->GetItemData(i))->GetType() != ELEMENT_TYPE_TIMING)
+        {
+            itemsMoved = true;
+            int from = i;
+
+            movedModels.push_back(ListCtrlModels->GetItemText(i, 2));
+            from -= GetTimingCount();
+
+            // not sure why we need to do this with the master only
+            int to = selcnt;
+            if (currentView == MASTER_VIEW)
+            {
+                from = _sequenceElements->GetIndexOfModelFromModelIndex(from);
+                to = _sequenceElements->GetIndexOfModelFromModelIndex(to);
+            }
+
+            if (to < 0) return;
+
+            if (firstsel < 0)
+            {
+                firstsel = to;
+            }
+#ifdef TRACEMOVES
+            static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+            logger_base.debug("Timing count in models list: %d", GetTimingCount());
+            logger_base.debug("Moving from %d '%s' to %d '%s'", from, (const char*)_sequenceElements->GetElement(from, currentView)->GetName().c_str(),
+                to, (const char*)(_sequenceElements->GetElement(to, currentView) == nullptr) ? "N/A" : _sequenceElements->GetElement(to, currentView)->GetName().c_str());
 #endif
 
             _sequenceElements->MoveSequenceElement(from, to, currentView);

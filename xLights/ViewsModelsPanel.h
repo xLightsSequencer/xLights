@@ -127,6 +127,7 @@ class ViewsModelsPanel: public wxPanel
 		wxButton* Button_MoveUp;
 		wxButton* Button_RemoveAll;
 		wxButton* Button_RemoveSelected;
+		wxButton* Button_Top;
 		wxCheckedListCtrl* ListCtrlModels;
 		wxCheckedListCtrl* ListCtrlViews;
 		wxListCtrl* ListCtrlNonModels;
@@ -142,6 +143,7 @@ class ViewsModelsPanel: public wxPanel
 		static const long ID_BUTTON4;
 		static const long ID_BUTTON5;
 		static const long ID_BUTTON6;
+		static const long ID_BUTTON_TOP;
 		static const long ID_BUTTON9;
 		static const long ID_BUTTON10;
 		static const long ID_BUTTON1;
@@ -201,6 +203,7 @@ class ViewsModelsPanel: public wxPanel
 		void OnListCtrlNonModelsColumnClick(wxListEvent& event);
 		void OnListCtrlNonModelsItemActivated(wxListEvent& event);
 		void OnListCtrlModelsItemActivated(wxListEvent& event);
+		void OnButton_TopClick(wxCommandEvent& event);
 		//*)
 
         void OnDrop(wxCommandEvent& event);

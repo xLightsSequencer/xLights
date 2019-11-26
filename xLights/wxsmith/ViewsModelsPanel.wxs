@@ -63,6 +63,17 @@
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
+								<object class="wxButton" name="ID_BUTTON_TOP" variable="Button_Top" member="yes">
+									<label>^^</label>
+									<size>20,-1d</size>
+									<tooltip>Move to Top of List</tooltip>
+									<handler function="OnButton_TopClick" entry="EVT_BUTTON" />
+								</object>
+								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
 								<object class="wxButton" name="ID_BUTTON9" variable="Button_MoveUp" member="yes">
 									<label>^</label>
 									<size>20,-1d</size>
@@ -78,7 +89,7 @@
 									<size>20,-1d</size>
 									<handler function="OnButton_MoveDownClick" entry="EVT_BUTTON" />
 								</object>
-								<flag>wxALL|wxEXPAND</flag>
+								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 								<border>5</border>
 								<option>1</option>
 							</object>
