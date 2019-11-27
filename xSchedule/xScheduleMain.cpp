@@ -1473,12 +1473,19 @@ void xScheduleFrame::On_timerTrigger(wxTimerEvent& event)
 
     if (__schedule == nullptr) return;
 
-    CheckMemoryUsage("Frame Timer Start", true);
-
-    static long long lastms = 0;
+    static long long lastms = wxGetLocalTimeMillis().GetValue() - 25;
     long long now = wxGetLocalTimeMillis().GetValue();
-    logger_frame.info("Timer: Start frame %d", (int)(now - lastms));
-    if (now - lastms > _timer.GetInterval() * 4)
+    int elapsed = (int)(now - lastms);
+
+    if (elapsed < _timer.GetInterval() - 2)
+    {
+        // this is premature ... maybe it is a backed up timer event ... lets skip it
+        logger_frame.warn("Timer: Frame event fire interval %dms less than frame time %d - 2ms", elapsed, _timer.GetInterval());
+        return;
+    }
+
+    logger_frame.info("Timer: Start frame %d", elapsed);
+    if (elapsed > _timer.GetInterval() * 4)
     {
         if (lastms != 0 && __schedule->IsOutputToLights())
         {
@@ -1508,11 +1515,11 @@ void xScheduleFrame::On_timerTrigger(wxTimerEvent& event)
     wxDateTime frameEnd = wxDateTime::UNow();
     long ms = (frameEnd - frameStart).GetMilliseconds().ToLong();
 
-    if (ms > _timer.GetInterval() / 2)
+    if (ms > _timer.GetInterval())
     {
         // we took too long so next frame has to be an output frame
         _timerOutputFrame = true;
-        logger_frame.debug("Timer: Frame took too long %ld > %d so next frame forced to be output", ms, _timer.GetInterval() / 2);
+        logger_frame.debug("Timer: Frame took too long %ld > %d so next frame forced to be output", ms, _timer.GetInterval());
     }
     else
     {
@@ -3021,7 +3028,6 @@ void xScheduleFrame::OnMenu_OutputProcessingSelected(wxCommandEvent& event)
 // This is called when anything interesting happens in schedule manager
 void xScheduleFrame::ScheduleChange(wxCommandEvent& event)
 {
-    CheckMemoryUsage("Schedule Change Start", true);
     UpdateUI();
 }
 
@@ -3032,7 +3038,6 @@ void xScheduleFrame::Sync(wxCommandEvent& event)
 
 void xScheduleFrame::DoCheckSchedule(wxCommandEvent& event)
 {
-    CheckMemoryUsage("DoCheckSchedule Start", true);
     UpdateSchedule();
     UpdateUI();
 }

@@ -457,6 +457,9 @@
     <ClCompile Include="outputs\serial.cpp" />
     <ClCompile Include="outputs\SerialOutput.cpp" />
     <ClCompile Include="outputs\TestPreset.cpp" />
+    <ClCompile Include="outputs\xxxDialog.cpp" />
+    <ClCompile Include="outputs\xxxEthernetOutput.cpp" />
+    <ClCompile Include="outputs\xxxSerialOutput.cpp" />
     <ClCompile Include="outputs\ZCPPDialog.cpp" />
     <ClCompile Include="outputs\ZCPPOutput.cpp" />
     <ClCompile Include="PaletteMgmtDialog.cpp" />
@@ -845,6 +848,9 @@
     <ClInclude Include="outputs\serial.h" />
     <ClInclude Include="outputs\SerialOutput.h" />
     <ClInclude Include="outputs\TestPreset.h" />
+    <ClInclude Include="outputs\xxxDialog.h" />
+    <ClInclude Include="outputs\xxxEthernetOutput.h" />
+    <ClInclude Include="outputs\xxxSerialOutput.h" />
     <ClInclude Include="outputs\ZCPP.h" />
     <ClInclude Include="outputs\ZCPPDialog.h" />
     <ClInclude Include="outputs\ZCPPOutput.h" />

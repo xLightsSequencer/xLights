@@ -208,6 +208,7 @@ void xxxEthernetOutput::Heartbeat(int mode) {
     }
 }
 
+#define xxxCHANNELSPERPACKET 1200
 void xxxEthernetOutput::EndFrame(int suppressFrames) {
     if (!_enabled || _suspend) return;
 
@@ -216,20 +217,20 @@ void xxxEthernetOutput::EndFrame(int suppressFrames) {
         if (_changed || NeedToOutput(suppressFrames))
         {
             int current = 0;
-            for (int i = 0; i < (_channels - 1) / 900 + 1; i++)
+            for (int i = 0; i < (_channels - 1) / xxxCHANNELSPERPACKET + 1; i++)
             {
                 _packet[0] = 0x80;
                 _packet[1] = _port;
-                _packet[2] = 0x1c;
+                _packet[2] = 0x1d; // 1c
                 _packet[3] = (uint8_t)(((current / 3) >> 8) & 0xFF); // high start pixel
                 _packet[4] = (uint8_t)((current / 3) & 0xFF); // low start pixel
-                int ch = (std::min)((int)_channels - current, 900);
+                int ch = (std::min)((int)_channels - current, xxxCHANNELSPERPACKET);
                 _packet[5] = (uint8_t)((ch >> 8) & 0xFF); // high pixels per packet
                 _packet[6] = (uint8_t)(ch & 0xFF); // low pixels per packet
                 memcpy(&_packet[xxxETHERNET_PACKET_HEADERLEN], &_data[current], ch);
                 _packet[xxxETHERNET_PACKET_HEADERLEN + ch] = 0x81;
                 _datagram->SendTo(_remoteAddr, _packet, xxxETHERNET_PACKET_HEADERLEN + ch + xxxETHERNET_PACKET_FOOTERLEN);
-                current += 900;
+                current += xxxCHANNELSPERPACKET;
             }
             FrameOutput();
             Heartbeat(1);

@@ -16,7 +16,7 @@ protected:
     #pragma endregion xxx Constants
 
     #pragma region Member Variables
-    uint8_t _packet[908];
+    uint8_t _packet[1208];
     uint8_t* _data = nullptr;
     wxIPV4address _remoteAddr;
     wxDatagramSocket* _datagram = nullptr;

@@ -197,6 +197,8 @@
     <ClCompile Include="..\xLights\outputs\serial.cpp" />
     <ClCompile Include="..\xLights\outputs\SerialOutput.cpp" />
     <ClCompile Include="..\xLights\outputs\TestPreset.cpp" />
+    <ClCompile Include="..\xLights\outputs\xxxEthernetOutput.cpp" />
+    <ClCompile Include="..\xLights\outputs\xxxSerialOutput.cpp" />
     <ClCompile Include="..\xLights\outputs\ZCPPOutput.cpp" />
     <ClCompile Include="..\xLights\Parallel.cpp" />
     <ClCompile Include="..\xLights\SequenceData.cpp" />
@@ -422,6 +424,8 @@
     <ClInclude Include="..\xLights\outputs\serial.h" />
     <ClInclude Include="..\xLights\outputs\SerialOutput.h" />
     <ClInclude Include="..\xLights\outputs\TestPreset.h" />
+    <ClInclude Include="..\xLights\outputs\xxxEthernetOutput.h" />
+    <ClInclude Include="..\xLights\outputs\xxxSerialOutput.h" />
     <ClInclude Include="..\xLights\outputs\ZCPPOutput.h" />
     <ClInclude Include="..\xLights\SpecialOptions.h" />
     <ClInclude Include="..\xLights\TraceLog.h" />

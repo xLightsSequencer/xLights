@@ -24,8 +24,8 @@ class wxXmlNode;
 #define OUTPUT_DLIGHT "D-Light"
 #define OUTPUT_RENARD "Renard"
 #define OUTPUT_OPENDMX "OpenDMX"
-//#define OUTPUT_xxxSERIAL "xxx Serial"
-//#define OUTPUT_xxxETHERNET "xxx Ethernet"
+#define OUTPUT_xxxSERIAL "xxx Serial"
+#define OUTPUT_xxxETHERNET "xxx Ethernet"
 #pragma endregion Output Constants
 
 typedef enum

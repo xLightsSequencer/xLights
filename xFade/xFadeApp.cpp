@@ -366,7 +366,9 @@ bool xFadeApp::OnInit()
 #endif
 
 #if wxUSE_ON_FATAL_EXCEPTION
-    wxHandleFatalExceptions();
+    #ifndef _DEBUG || !defined(_MSC_VER) 
+        wxHandleFatalExceptions();
+    #endif
 #else
     SetUnhandledExceptionFilter(windows_exception_handler);
 #endif

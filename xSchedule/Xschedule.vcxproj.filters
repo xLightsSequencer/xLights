@@ -517,6 +517,8 @@
       <Filter>Events</Filter>
     </ClCompile>
     <ClCompile Include="..\xLights\TraceLog.cpp" />
+    <ClCompile Include="..\xLights\outputs\xxxEthernetOutput.cpp" />
+    <ClCompile Include="..\xLights\outputs\xxxSerialOutput.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\xLights\AudioManager.h" />
@@ -1024,6 +1026,8 @@
     <ClInclude Include="xSMSDaemon\Curl.h" />
     <ClInclude Include="..\xLights\SpecialOptions.h" />
     <ClInclude Include="..\xLights\TraceLog.h" />
+    <ClInclude Include="..\xLights\outputs\xxxEthernetOutput.h" />
+    <ClInclude Include="..\xLights\outputs\xxxSerialOutput.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="PlayList">

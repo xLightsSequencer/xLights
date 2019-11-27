@@ -738,6 +738,15 @@
     <ClCompile Include="effects\StrobePanel.cpp">
       <Filter>Effects</Filter>
     </ClCompile>
+    <ClCompile Include="outputs\xxxDialog.cpp">
+      <Filter>Outputs</Filter>
+    </ClCompile>
+    <ClCompile Include="outputs\xxxEthernetOutput.cpp">
+      <Filter>Outputs</Filter>
+    </ClCompile>
+    <ClCompile Include="outputs\xxxSerialOutput.cpp">
+      <Filter>Outputs</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -1486,6 +1495,15 @@
     </ClInclude>
     <ClInclude Include="effects\StrobePanel.h">
       <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="outputs\xxxDialog.h">
+      <Filter>Outputs</Filter>
+    </ClInclude>
+    <ClInclude Include="outputs\xxxEthernetOutput.h">
+      <Filter>Outputs</Filter>
+    </ClInclude>
+    <ClInclude Include="outputs\xxxSerialOutput.h">
+      <Filter>Outputs</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

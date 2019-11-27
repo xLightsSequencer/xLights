@@ -9,6 +9,7 @@
 
 #include "SerialOutput.h"
 #include "OutputManager.h"
+#include "../SpecialOptions.h"
 
 //(*IdInit(SerialPortWithRate)
 const long SerialPortWithRate::ID_CHOICE_PROTOCOL = wxNewId();
@@ -124,7 +125,10 @@ SerialPortWithRate::SerialPortWithRate(wxWindow* parent, SerialOutput** serial, 
     Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SerialPortWithRate::OnButton_CancelClick);
     //*)
 
-//    ChoiceProtocol->Append(_("xxx Serial"));
+    if (SpecialOptions::GetOption("xxx") == "true")
+    {
+        ChoiceProtocol->Append(_("xxx Serial"));
+    }
 
     MainSizer=FlexGridSizer1;
 
