@@ -4,6 +4,11 @@
 
 #include <wx/socket.h>
 
+class wxXmlNode;
+class wxWindow;
+class OutputManager;
+class ModelManager;
+
 class xxxEthernetOutput : public IPOutput
 {
 protected:

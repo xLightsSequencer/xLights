@@ -1,5 +1,8 @@
 #pragma once
+
 #include "SerialOutput.h"
+
+class wxXmlNode;
 
 class xxxSerialOutput : public SerialOutput
 {

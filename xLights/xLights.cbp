@@ -151,7 +151,6 @@
 					<Add library="../lib/windows/libwxjpeg.a" />
 					<Add library="../lib/windows/libwxmsw31u_aui.a" />
 					<Add library="../lib/windows/libwxmsw31u_core.a" />
-					<Add library="../lib/windows/libwxmsw31u_gl.a" />
 					<Add library="../lib/windows/libwxmsw31u_html.a" />
 					<Add library="../lib/windows/libwxmsw31u_propgrid.a" />
 					<Add library="../lib/windows/libwxmsw31u_qa.a" />
@@ -336,7 +335,6 @@
 					<Add library="../lib/windows64/libwxjpeg.a" />
 					<Add library="../lib/windows64/libwxmsw31u_aui.a" />
 					<Add library="../lib/windows64/libwxmsw31u_core.a" />
-					<Add library="../lib/windows64/libwxmsw31u_gl.a" />
 					<Add library="../lib/windows64/libwxmsw31u_html.a" />
 					<Add library="../lib/windows64/libwxmsw31u_propgrid.a" />
 					<Add library="../lib/windows64/libwxmsw31u_qa.a" />
@@ -1112,6 +1110,12 @@
 		<Unit filename="outputs/ZCPPOutput.h" />
 		<Unit filename="outputs/serial.cpp" />
 		<Unit filename="outputs/serial.h" />
+		<Unit filename="outputs/xxxDialog.cpp" />
+		<Unit filename="outputs/xxxDialog.h" />
+		<Unit filename="outputs/xxxEthernetOutput.cpp" />
+		<Unit filename="outputs/xxxEthernetOutput.h" />
+		<Unit filename="outputs/xxxSerialOutput.cpp" />
+		<Unit filename="outputs/xxxSerialOutput.h" />
 		<Unit filename="resource.rc">
 			<Option compilerVar="WINDRES" />
 			<Option target="MinGW_Debug" />

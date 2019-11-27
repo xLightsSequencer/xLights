@@ -365,6 +365,10 @@
 		<Unit filename="../xLights/outputs/ZCPPOutput.h" />
 		<Unit filename="../xLights/outputs/serial.cpp" />
 		<Unit filename="../xLights/outputs/serial.h" />
+		<Unit filename="../xLights/outputs/xxxEthernetOutput.cpp" />
+		<Unit filename="../xLights/outputs/xxxEthernetOutput.h" />
+		<Unit filename="../xLights/outputs/xxxSerialOutput.cpp" />
+		<Unit filename="../xLights/outputs/xxxSerialOutput.h" />
 		<Unit filename="../xLights/vamp-hostsdk/Files.cpp" />
 		<Unit filename="../xLights/vamp-hostsdk/PluginBufferingAdapter.cpp" />
 		<Unit filename="../xLights/vamp-hostsdk/PluginChannelAdapter.cpp" />

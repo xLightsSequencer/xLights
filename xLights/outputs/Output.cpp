@@ -13,7 +13,7 @@
 #include "DLightOutput.h"
 #include "DMXOutput.h"
 #include "xxxSerialOutput.h"
-#include "xxxEthernetOutput.h"
+#include "xxxEthernetOutput.h
 #include "PixelNetOutput.h"
 #include "RenardOutput.h"
 #include "OpenPixelNetOutput.h"
