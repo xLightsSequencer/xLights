@@ -267,6 +267,25 @@ bool xLightsFrame::SetDir(const wxString& newdir)
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("Show directory set to : %s.", (const char *)showDirectory.c_str());
 
+    if (_logfile != nullptr)
+    {
+        wxLog::SetActiveTarget(nullptr);
+        fclose(_logfile);
+        _logfile = nullptr;
+        wxLog::SetLogLevel(wxLogLevelValues::wxLOG_Error);
+    }
+
+    if (SpecialOptions::GetOption("wxLogging", "false") == "true")
+    {
+        _logfile = fopen("wxlog_xlights.txt", "w");
+        wxLog::SetLogLevel(wxLogLevelValues::wxLOG_Debug);
+        wxLog::SetActiveTarget(new wxLogStderr(_logfile));
+    }
+    else
+    {
+        wxLog::SetActiveTarget(new wxLogStderr()); // write to stderr
+    }
+
     long LinkFlag = 0;
     config->Read(_("LinkFlag"), &LinkFlag);
     if( LinkFlag ) {

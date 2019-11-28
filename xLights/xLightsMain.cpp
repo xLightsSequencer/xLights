@@ -2408,6 +2408,14 @@ xLightsFrame::~xLightsFrame()
     //(*Destroy(xLightsFrame)
     //*)
 
+    if (_logfile != nullptr)
+    {
+        wxLog::SetActiveTarget(nullptr);
+        fclose(_logfile);
+        _logfile = nullptr;
+        wxLog::SetLogLevel(wxLogLevelValues::wxLOG_Error);
+    }
+
     reenter = false;
 }
 

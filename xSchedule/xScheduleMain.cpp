@@ -892,7 +892,9 @@ void xScheduleFrame::LoadSchedule()
 
     if (_f != nullptr)
     {
+        wxLog::SetActiveTarget(nullptr);
         fclose(_f);
+		_f = nullptr;
         wxLog::SetLogLevel(wxLogLevelValues::wxLOG_Error);
     }
 
@@ -902,6 +904,10 @@ void xScheduleFrame::LoadSchedule()
         wxLog::SetLogLevel(wxLogLevelValues::wxLOG_Debug);
         wxLog::SetActiveTarget(new wxLogStderr(_f));
     }
+	else
+	{
+        wxLog::SetActiveTarget(new wxLogStderr());
+	}
 
     logger_base.debug("Loading schedule.");
 

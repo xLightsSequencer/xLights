@@ -1687,6 +1687,7 @@ private:
     friend class xLightsApp; //kludge: allow xLightsApp to call OnPaneNutcrackerChar -DJ
 
 public:
+    FILE* _logfile = nullptr;
     std::vector<Model *> PreviewModels;
     std::vector<LayoutGroup *> LayoutGroups;
     std::vector<ModelPreview *> PreviewWindows;
