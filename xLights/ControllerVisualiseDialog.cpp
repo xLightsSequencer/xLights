@@ -84,6 +84,7 @@ ControllerVisualiseDialog::ControllerVisualiseDialog(wxWindow* parent, UDControl
 
 	Panel1->Connect(wxEVT_PAINT,(wxObjectEventFunction)&ControllerVisualiseDialog::OnPanel1Paint,0,this);
 	Panel1->Connect(wxEVT_RIGHT_DOWN,(wxObjectEventFunction)&ControllerVisualiseDialog::OnPanel1RightDown,0,this);
+	Panel1->Connect(wxEVT_MOUSEWHEEL,(wxObjectEventFunction)&ControllerVisualiseDialog::OnPanel1MouseWheel,0,this);
 	Panel1->Connect(wxEVT_SIZE,(wxObjectEventFunction)&ControllerVisualiseDialog::OnPanel1Resize,0,this);
 	Connect(ID_SCROLLBAR1,wxEVT_SCROLL_TOP|wxEVT_SCROLL_BOTTOM|wxEVT_SCROLL_LINEUP|wxEVT_SCROLL_LINEDOWN|wxEVT_SCROLL_PAGEUP|wxEVT_SCROLL_PAGEDOWN|wxEVT_SCROLL_THUMBTRACK|wxEVT_SCROLL_THUMBRELEASE|wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&ControllerVisualiseDialog::OnScrollBar_VerticalScroll);
 	Connect(ID_SCROLLBAR1,wxEVT_SCROLL_THUMBTRACK,(wxObjectEventFunction)&ControllerVisualiseDialog::OnScrollBar_VerticalScrollThumbTrack);
@@ -93,7 +94,7 @@ ControllerVisualiseDialog::ControllerVisualiseDialog(wxWindow* parent, UDControl
 	Connect(ID_SCROLLBAR2,wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&ControllerVisualiseDialog::OnScrollBar_HorizontalScrollChanged);
 	//*)
 
-	SetLabel(GetLabel() + " " + _ip + " " + _description);
+    SetLabel(GetLabel() + " " + _ip + " " + _description);
 
     int countlines = 0;
     int countcolumns = 1;
@@ -146,7 +147,7 @@ void ControllerVisualiseDialog::OnPanel1Paint(wxPaintEvent& event)
 
     dc.SetDeviceOrigin(-xOffset, -yOffset);
 
-	RenderDiagram(dc);
+    RenderDiagram(dc);
 }
 
 void ControllerVisualiseDialog::OnScrollBar_VerticalScroll(wxScrollEvent& event)
@@ -225,45 +226,45 @@ void ControllerVisualiseDialog::OnPopupCommand(wxCommandEvent &event)
     }
     else if (id == CONTROLLERVISUALISE_SAVE_CSV)
     {
-		SaveCSV();
+        SaveCSV();
     }
 }
 
 
 void ControllerVisualiseDialog::RenderPicture(wxBitmap& bitmap, bool printer)
 {
-	wxMemoryDC dc;
-	dc.SelectObject(bitmap);
+    wxMemoryDC dc;
+    dc.SelectObject(bitmap);
 
-	dc.SetTextForeground(*wxWHITE);
+    dc.SetTextForeground(*wxWHITE);
 
-	dc.SetPen(*wxWHITE_PEN);
-	dc.SetBrush(*wxWHITE_BRUSH);
+    dc.SetPen(*wxWHITE_PEN);
+    dc.SetBrush(*wxWHITE_BRUSH);
 
-	dc.DrawRectangle(wxPoint(0, 0), bitmap.GetScaledSize());
+    dc.DrawRectangle(wxPoint(0, 0), bitmap.GetScaledSize());
 
-	dc.SetDeviceOrigin(0, 0);
+    dc.SetDeviceOrigin(0, 0);
 
-	RenderDiagram(dc, PRINTSCALE, true);
+    RenderDiagram(dc, PRINTSCALE, true);
 }
 
 void ControllerVisualiseDialog::RenderDiagram(wxDC& dc, int scale, bool addHeader)
 {
     if (scale != 1)
     {
-		int fontSize = 10 * scale;
-		wxFont font = wxFont(fontSize, wxFONTFAMILY_SWISS, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, _T("Arial"), wxFONTENCODING_DEFAULT);
-		dc.SetFont(font);
+        int fontSize = 10 * scale;
+        wxFont font = wxFont(fontSize, wxFONTFAMILY_SWISS, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, _T("Arial"), wxFONTENCODING_DEFAULT);
+        dc.SetFont(font);
     }
 
     dc.SetTextForeground(*wxBLACK);
 
     int rowPos = TOP_BOTTOM_MARGIN * scale;
-	if (addHeader )
-	{
-		dc.DrawText(_ip + " " + _description, LEFT_RIGHT_MARGIN * scale, rowPos);
-		rowPos += ((VERTICAL_SIZE / 2) * scale) + (VERTICAL_GAP * scale);
-	}
+    if (addHeader )
+    {
+        dc.DrawText(_ip + " " + _description, LEFT_RIGHT_MARGIN * scale, rowPos);
+        rowPos += ((VERTICAL_SIZE / 2) * scale) + (VERTICAL_GAP * scale);
+    }
 
     for (int i = 1; i <= _cud.GetMaxPixelPort(); i++)
     {
@@ -335,72 +336,89 @@ void ControllerVisualiseDialog::RenderDiagram(wxDC& dc, int scale, bool addHeade
 
 void ControllerVisualiseDialog::SaveCSV()
 {
-	wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
-	wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, _ip, wxEmptyString, "Export files (*.csv)|*.csv", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+    wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
+    wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, _ip, wxEmptyString, "Export files (*.csv)|*.csv", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
 
-	if (filename.IsEmpty()) return;	
+    if (filename.IsEmpty()) return;
 
-	std::vector<wxString> lines;
-	int columnSize = 0;
+    std::vector<wxString> lines;
+    int columnSize = 0;
 
-	for (int i = 1; i <= _cud.GetMaxPixelPort(); i++)
-	{
-		wxString line = wxString::Format("Pixel Port %d,", i);
+    for (int i = 1; i <= _cud.GetMaxPixelPort(); i++)
+    {
+        wxString line = wxString::Format("Pixel Port %d,", i);
 
-		if (columnSize < _cud.GetControllerPixelPort(i)->GetModels().size())
-			columnSize = _cud.GetControllerPixelPort(i)->GetModels().size();
+        if (columnSize < _cud.GetControllerPixelPort(i)->GetModels().size())
+            columnSize = _cud.GetControllerPixelPort(i)->GetModels().size();
 
-		for (const auto& it : _cud.GetControllerPixelPort(i)->GetModels())
-		{
-			if (it->GetSmartRemote() > 0)
-			{
-				char remote = ('@' + it->GetSmartRemote());
-				line += "Remote ";
-				line += remote;
-				line += ":";
-			}
-			line += it->GetName();			
-			line += ",";
-		}				
-		
-		line += "\n";
-		lines.push_back(line);
-	}
-	lines.push_back("\n");
-	for (int i = 1; i <= _cud.GetMaxSerialPort(); i++)
-	{
-		if (columnSize < _cud.GetControllerSerialPort(i)->GetModels().size())
-			columnSize = _cud.GetControllerSerialPort(i)->GetModels().size();
+        for (const auto& it : _cud.GetControllerPixelPort(i)->GetModels())
+        {
+            if (it->GetSmartRemote() > 0)
+            {
+                char remote = ('@' + it->GetSmartRemote());
+                line += "Remote ";
+                line += remote;
+                line += ":";
+            }
+            line += it->GetName();
+            line += ",";
+        }
 
-		wxString line = wxString::Format("Serial Port %d,", i);
-		for (const auto& it : _cud.GetControllerSerialPort(i)->GetModels())
-		{
-			line += it->GetName();
-			line += ",";
-		}
-		line += "\n";
-		lines.push_back(line);
-	}
+        line += "\n";
+        lines.push_back(line);
+    }
+       lines.push_back("\n");
+    for (int i = 1; i <= _cud.GetMaxSerialPort(); i++)
+    {
+        if (columnSize < _cud.GetControllerSerialPort(i)->GetModels().size())
+            columnSize = _cud.GetControllerSerialPort(i)->GetModels().size();
 
-	wxFile f(filename);
+        wxString line = wxString::Format("Serial Port %d,", i);
+        for (const auto& it : _cud.GetControllerSerialPort(i)->GetModels())
+        {
+            line += it->GetName();
+            line += ",";
+        }
+        line += "\n";
+        lines.push_back(line);
+    }
 
-	if (!f.Create(filename, true) || !f.IsOpened())
-	{
-		DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
-		return;
-	}
+    wxFile f(filename);
 
-	wxString header = _ip + " " + _description + "\nOutput,";
-	for (int i = 1; i <= columnSize; i++)
-	{
-		header += wxString::Format("Model %d,", i);
-	}
-	header += "\n";
-	f.Write(header);
-	for (const auto& line : lines)
-	{
-		f.Write(line);
-	}
-	
-	f.Close();
+    if (!f.Create(filename, true) || !f.IsOpened())
+    {
+        DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
+        return;
+    }
+
+    wxString header = _ip + " " + _description + "\nOutput,";
+    for (int i = 1; i <= columnSize; i++)
+    {
+        header += wxString::Format("Model %d,", i);
+    }
+    header += "\n";
+    f.Write(header);
+    for (const auto& line : lines)
+    {
+        f.Write(line);
+    }
+    f.Close();
+}
+
+void ControllerVisualiseDialog::OnPanel1MouseWheel(wxMouseEvent& event)
+{
+    if (event.ShiftDown())
+    {
+        int position = ScrollBar_Horizontal->GetThumbPosition();
+        position -= event.GetWheelRotation();
+        ScrollBar_Horizontal->SetThumbPosition(position);
+    }
+    else
+    {
+        int position = ScrollBar_Vertical->GetThumbPosition();
+        position -= event.GetWheelRotation();
+        ScrollBar_Vertical->SetThumbPosition(position);
+    }
+
+    Panel1->Refresh();
 }

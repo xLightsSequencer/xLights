@@ -64,6 +64,7 @@ class ControllerVisualiseDialog: public wxDialog
 		void OnScrollBar_VerticalScrollThumbTrack(wxScrollEvent& event);
 		void OnPanel1Resize(wxSizeEvent& event);
 		void OnPanel1RightDown(wxMouseEvent& event);
+		void OnPanel1MouseWheel(wxMouseEvent& event);
 		//*)
 
         void OnPopupCommand(wxCommandEvent & event);
