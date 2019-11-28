@@ -11,6 +11,12 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2019.67 November 28 2019
+   -- enh (scott)  Add maximise to import dialog
+   -- enh (scott)  Add button to move selected models to top of the model list
+   -- enh (scott)  Added Sort By Name But Groups At Top by Size, this should in theory move larger groups to the top
+   -- bug (keith)  Fix xSchedule double sends data at times when playing 25ms sequences
+   -- bug (keith)  Fix wxLogging causes lockups for some users
 2019.66 November 25 2019
    -- enh (will)   Added Test Mode (BETA) plugin to xSchedule Web interface
    -- enh (scott)  Added APA102 pixel protocol support.

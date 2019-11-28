@@ -380,7 +380,7 @@ bool xScheduleApp::OnInit()
     wxLog::SetLogLevel(wxLOG_FatalError);
 
 #if wxUSE_ON_FATAL_EXCEPTION
-    #ifndef _DEBUG || !defined(_MSC_VER) 
+    #if !defined(_DEBUG) || !defined(_MSC_VER)
         wxHandleFatalExceptions();
     #endif
 #else

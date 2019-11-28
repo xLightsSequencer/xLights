@@ -362,7 +362,7 @@ bool xCaptureApp::OnInit()
 #endif
 
 #if wxUSE_ON_FATAL_EXCEPTION
-    #ifndef _DEBUG || !defined(_MSC_VER) 
+    #if !defined(_DEBUG) || !defined(_MSC_VER)
         wxHandleFatalExceptions();
     #endif
 #else
