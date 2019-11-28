@@ -442,7 +442,7 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(wxWindow* parent, c
 	wxButton* Button02;
 	wxFlexGridSizer* FlexGridSizer2;
 
-	Create(parent, wxID_ANY, _("Map Channels"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER, _T("wxID_ANY"));
+	Create(parent, wxID_ANY, _("Map Channels"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxMAXIMIZE_BOX, _T("wxID_ANY"));
 	OldSizer = new wxFlexGridSizer(0, 1, 0, 0);
 	OldSizer->AddGrowableCol(0);
 	OldSizer->AddGrowableRow(0);
