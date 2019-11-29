@@ -53,6 +53,11 @@ const ControllerRules *ControllerRegistry::GetRulesForController(const std::stri
     return controllers[id];
 }
 
+bool ControllerRegistry::HasController(const std::string& id) 
+{
+    return controllers[id] != nullptr;
+}
+
 void ControllerRegistry::loadControllers() {
     Falcon::RegisterControllers();
     FPP::RegisterCapes();

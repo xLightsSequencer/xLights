@@ -14,6 +14,7 @@ class ControllerRegistry
         static std::vector<std::string> GetControllerIds(bool sortByDescription = true);
         static const ControllerRules *GetRulesForController(const std::string &id);
         static void AddController(const ControllerRules *rules);
+        static bool HasController(const std::string& id);
     
     protected:
 

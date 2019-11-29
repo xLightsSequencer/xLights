@@ -1542,7 +1542,8 @@ void xLightsFrame::OnGridNetworkItemRClick(wxListEvent& event)
                                            wxLIST_STATE_SELECTED);
         selected = _outputManager.GetOutput(idx);
         if (idx >= 0 && selected) {
-            if (selected->GetControllerId() != "") {
+            if (selected->GetControllerId() != "" && 
+                ControllerRegistry::HasController(selected->GetControllerId())) {
                 hasControllerConfigured = true;
             }
             if (selected->GetFPPProxyIP() != "") {
