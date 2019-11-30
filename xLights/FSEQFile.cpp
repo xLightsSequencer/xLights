@@ -38,9 +38,6 @@ int gettimeofday(struct timeval * tp, struct timezone * tzp)
 #define ftello _ftelli64
 #define fseeko _fseeki64
 
-//  We need to have zlib available, zstd is not available on things like arduino
-//  #define NO_ZLIB
-
 #else
 #include <sys/time.h>
 #include <unistd.h>
@@ -63,9 +60,9 @@ template<typename... Args> static void LogErr(int i, const char *fmt, Args... ar
     static log4cpp::Category &fseq_logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     char buf[256];
     const char *nfmt = fmt;
-    if (nfmt[strlen(nfmt) - 1] == '\n') {
+    if (fmt[strlen(fmt) - 1] == '\n') {
         strcpy(buf, fmt);
-        buf[strlen(nfmt) - 1] = 0;
+        buf[strlen(fmt) - 1] = 0;
         nfmt = buf;
     }
     fseq_logger_base.error(nfmt, args...);
@@ -74,9 +71,9 @@ template<typename... Args> static void LogInfo(int i, const char *fmt, Args... a
     static log4cpp::Category &fseq_logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     char buf[256];
     const char *nfmt = fmt;
-    if (nfmt[strlen(nfmt) - 1] == '\n') {
+    if (fmt[strlen(fmt) - 1] == '\n') {
         strcpy(buf, fmt);
-        buf[strlen(nfmt) - 1] = 0;
+        buf[strlen(fmt) - 1] = 0;
         nfmt = buf;
     }
     fseq_logger_base.info(nfmt, args...);
@@ -85,9 +82,9 @@ template<typename... Args> static void LogDebug(int i, const char *fmt, Args... 
     static log4cpp::Category &fseq_logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     char buf[256];
     const char *nfmt = fmt;
-    if (nfmt[strlen(nfmt) - 1] == '\n') {
+    if (fmt[strlen(fmt) - 1] == '\n') {
         strcpy(buf, fmt);
-        buf[strlen(nfmt) - 1] = 0;
+        buf[strlen(fmt) - 1] = 0;
         nfmt = buf;
     }
     fseq_logger_base.debug(nfmt, args...);
@@ -101,7 +98,7 @@ template<typename... Args> static void LogDebug(int i, const char *fmt, Args... 
 #include <zstd.h>
 #endif
 #ifndef NO_ZLIB
-#include <zlib/zlib.h>
+#include <zlib.h>
 #endif
 
 using FrameData = FSEQFile::FrameData;
@@ -527,7 +524,7 @@ public:
         }
     }
 
-    virtual bool readFrame(uint8_t *data, uint32_t maxChannels) {
+    virtual bool readFrame(uint8_t *data, uint32_t maxChannels) override {
         if (m_data == nullptr) return false;
         uint32_t offset = 0;
         for (auto &rng : m_ranges) {
@@ -814,7 +811,7 @@ public:
         m_inBuffer.src = nullptr;
         m_inBuffer.size = 0;
         m_inBuffer.pos = 0;
-        LogDebug(VB_SEQUENCE, "  Prepared to write a ZSTD compress fseq file.\n");
+        LogDebug(VB_SEQUENCE, "  Prepared to read/write a ZSTD compress fseq file.\n");
     }
     virtual ~V2ZSTDCompressionHandler() {
         free(m_outBuffer.dst);

@@ -16,6 +16,7 @@
 #include <wx/zstream.h>
 #include <wx/mstream.h>
 #include <wx/protocol/http.h>
+#include <zstd.h>
 
 #include "../xSchedule/wxJSON/jsonreader.h"
 #include "../xSchedule/wxJSON/jsonwriter.h"
@@ -544,7 +545,6 @@ int FPP::PostToURL(const std::string& url, const std::string &val, const std::st
 
 bool FPP::uploadFile(const std::string &filename, const std::string &file)  {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    static int bufLen = 1024*1024*4; //4MB buffer
 
     wxString fn;
     wxString ext;
@@ -769,7 +769,16 @@ bool FPP::PrepareUploadSequence(const FSEQFile &file,
     if (type == 3) {
         ctype = FSEQFile::CompressionType::none;
     }
-    outputFile = FSEQFile::createFSEQFile(fileName, type == 0 ? 1 : 2, ctype);
+    int clevel = 2;
+    if (model.find(" Zero") != std::string::npos
+        || model.find("Pi Model A") != std::string::npos
+        || model.find("Pi Model B") != std::string::npos) {
+        clevel = 1;
+        if (ZSTD_versionNumber() > 10305) {
+            clevel = -5;
+        }
+    }
+    outputFile = FSEQFile::createFSEQFile(fileName, type == 0 ? 1 : 2, ctype, clevel);
     outputFile->initializeFromFSEQ(file);
     if (type >= 2 && ranges != "") {
         wxArrayString r1 = wxSplit(wxString(ranges), ',');
