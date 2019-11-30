@@ -10497,6 +10497,8 @@ void xLightsFrame::CollectUserEmail()
     }
     wxConfigBase* config = wxConfigBase::Get();
     config->Write("xLightsUserEmail", _userEmail);
+    config->Flush();
+    
     logger_base.info("User email changed to %s", (const char*)_userEmail.c_str());
 }
 
