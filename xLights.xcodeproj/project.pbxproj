@@ -627,6 +627,11 @@
 		67D75E702020EE21005BAC6E /* DDPOutput.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67DD179520167D4A001E7A8B /* DDPOutput.cpp */; };
 		67D7DD041B23C586007A3F20 /* UndoManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67D7DD031B23C586007A3F20 /* UndoManager.cpp */; };
 		67D8F45A1A1A584400522413 /* TabSequence.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67E491B317C45BAF00FE40EA /* TabSequence.cpp */; };
+		67D90BE62390176B007792F2 /* xxxSerialOutput.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67D90BE22390176A007792F2 /* xxxSerialOutput.cpp */; };
+		67D90BE72390176B007792F2 /* xxxEthernetOutput.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67D90BE32390176A007792F2 /* xxxEthernetOutput.cpp */; };
+		67D90BE82390176B007792F2 /* xxxDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67D90BE52390176B007792F2 /* xxxDialog.cpp */; };
+		67D90BE92390179F007792F2 /* xxxEthernetOutput.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67D90BE32390176A007792F2 /* xxxEthernetOutput.cpp */; };
+		67D90BEA2390179F007792F2 /* xxxSerialOutput.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67D90BE22390176A007792F2 /* xxxSerialOutput.cpp */; };
 		67D9B0A81D42A9BA005367DB /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 67E7087017B51AB400A22034 /* Cocoa.framework */; };
 		67DA0AF81E39C8EB00E2A859 /* DimDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67DA0AE81E39C8EB00E2A859 /* DimDialog.cpp */; };
 		67DA0AF91E39C8EB00E2A859 /* DimWhiteDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67DA0AEA1E39C8EB00E2A859 /* DimWhiteDialog.cpp */; };
@@ -1944,6 +1949,12 @@
 		67D75E6A2020ED96005BAC6E /* PlayListItemSerial.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PlayListItemSerial.cpp; path = PlayList/PlayListItemSerial.cpp; sourceTree = "<group>"; };
 		67D75E6B2020ED96005BAC6E /* PlayListItemFPPEvent.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PlayListItemFPPEvent.cpp; path = PlayList/PlayListItemFPPEvent.cpp; sourceTree = "<group>"; };
 		67D7DD031B23C586007A3F20 /* UndoManager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = UndoManager.cpp; path = sequencer/UndoManager.cpp; sourceTree = "<group>"; };
+		67D90BE023901769007792F2 /* xxxSerialOutput.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = xxxSerialOutput.h; path = outputs/xxxSerialOutput.h; sourceTree = "<group>"; };
+		67D90BE12390176A007792F2 /* xxxDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = xxxDialog.h; path = outputs/xxxDialog.h; sourceTree = "<group>"; };
+		67D90BE22390176A007792F2 /* xxxSerialOutput.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = xxxSerialOutput.cpp; path = outputs/xxxSerialOutput.cpp; sourceTree = "<group>"; };
+		67D90BE32390176A007792F2 /* xxxEthernetOutput.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = xxxEthernetOutput.cpp; path = outputs/xxxEthernetOutput.cpp; sourceTree = "<group>"; };
+		67D90BE42390176A007792F2 /* xxxEthernetOutput.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = xxxEthernetOutput.h; path = outputs/xxxEthernetOutput.h; sourceTree = "<group>"; };
+		67D90BE52390176B007792F2 /* xxxDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = xxxDialog.cpp; path = outputs/xxxDialog.cpp; sourceTree = "<group>"; };
 		67DA0AE81E39C8EB00E2A859 /* DimDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DimDialog.cpp; sourceTree = "<group>"; };
 		67DA0AE91E39C8EB00E2A859 /* DimDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DimDialog.h; sourceTree = "<group>"; };
 		67DA0AEA1E39C8EB00E2A859 /* DimWhiteDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DimWhiteDialog.cpp; sourceTree = "<group>"; };
@@ -2802,6 +2813,12 @@
 		67B2B1F51E19478D0024F0BB /* Outputs */ = {
 			isa = PBXGroup;
 			children = (
+				67D90BE52390176B007792F2 /* xxxDialog.cpp */,
+				67D90BE12390176A007792F2 /* xxxDialog.h */,
+				67D90BE32390176A007792F2 /* xxxEthernetOutput.cpp */,
+				67D90BE42390176A007792F2 /* xxxEthernetOutput.h */,
+				67D90BE22390176A007792F2 /* xxxSerialOutput.cpp */,
+				67D90BE023901769007792F2 /* xxxSerialOutput.h */,
 				677196A9223C98780082576E /* ZCPPDialog.cpp */,
 				677196A8223C98780082576E /* ZCPPDialog.h */,
 				677196AA223C98780082576E /* ZCPPOutput.cpp */,
@@ -4173,6 +4190,7 @@
 				67CE25912138234000ADF180 /* ViewObject.cpp in Sources */,
 				67E9F6F818887898000D8182 /* TabConvert.cpp in Sources */,
 				67B5F50E2045B96100F5B99D /* SequenceVideoPreview.cpp in Sources */,
+				67D90BE62390176B007792F2 /* xxxSerialOutput.cpp in Sources */,
 				676CFAF3207D2BBE002EB5E7 /* jsonreader.cpp in Sources */,
 				67694F1B1A069BBE0030D020 /* CurrentPreviewModels.cpp in Sources */,
 				67D5DEE81F792B19002BB5F6 /* SplashDialog.cpp in Sources */,
@@ -4342,6 +4360,7 @@
 				67DAFDE11CA1A63C004B3237 /* Options.cpp in Sources */,
 				67D7DD041B23C586007A3F20 /* UndoManager.cpp in Sources */,
 				67AAC48E214199A7005D55A9 /* NodeSelectGrid.cpp in Sources */,
+				67D90BE72390176B007792F2 /* xxxEthernetOutput.cpp in Sources */,
 				67CB9F2B1C6E1FF400390753 /* VUMeterPanel.cpp in Sources */,
 				67D2B0491D54CC6A006D324F /* ColorCurveDialog.cpp in Sources */,
 				675878DB1A89297200205A75 /* DataLayer.cpp in Sources */,
@@ -4414,6 +4433,7 @@
 				677421D41A68AB3E0082DA5B /* Render.cpp in Sources */,
 				6797A1361F427205007CF7A0 /* EffectTimingDialog.cpp in Sources */,
 				675AB42F1B5ACEDA00853A28 /* PluginWrapper.cpp in Sources */,
+				67D90BE82390176B007792F2 /* xxxDialog.cpp in Sources */,
 				67CF20CF1C3D8D71000FCDF7 /* RenderBuffer.cpp in Sources */,
 				67B2CFE11C3A186A003C17CA /* ShimmerEffect.cpp in Sources */,
 				675AB42C1B5ACEDA00853A28 /* PluginInputDomainAdapter.cpp in Sources */,
@@ -4558,6 +4578,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				67D90BE92390179F007792F2 /* xxxEthernetOutput.cpp in Sources */,
+				67D90BEA2390179F007792F2 /* xxxSerialOutput.cpp in Sources */,
 				67F89AF72361F0C800BD52A5 /* FSEQFile.cpp in Sources */,
 				67F89AF62361F0B200BD52A5 /* TraceLog.cpp in Sources */,
 				672CD318234E45D000B0AF4E /* xlVideoToolboxUtils.mm in Sources */,
