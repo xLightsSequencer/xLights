@@ -4609,7 +4609,7 @@ void xLightsFrame::ExportModels(wxString filename)
     uint32_t minchannel = 99999999;
     int32_t maxchannel = -1;
 
-    f.Write(_("Model Name,Description,Display As,String Type,String Count,Node Count,Light Count,Est Current (Amps),Channels Per Node, Channel Count,Start Channel,Start Channel No,End Channel No,Default Buffer W x H,Preview,Controller Connection,Controller Type,Controller Description,Output,IP,Baud,Universe/Id,Controller Channel,Inactive\n"));
+    f.Write(_("Model Name,Description,Display As,String Type,String Count,Node Count,Light Count,Est Current (Amps),Channels Per Node, Channel Count,Start Channel,Start Channel No,#Universe(or id):Start Channel,End Channel No,Default Buffer W x H,Preview,Controller Connection,Controller Type,Controller Description,Output,IP,Baud,Universe/Id,Controller Channel,Inactive\n"));
 
     for (auto m : AllModels)
     {
@@ -4631,7 +4631,7 @@ void xLightsFrame::ExportModels(wxString filename)
             }
             int w, h;
             model->GetBufferSize("Default", "2D", "None", w, h);
-            f.Write(wxString::Format("\"%s\",\"%s\",\"%s\",,,,,,,%lu,,%lu,%lu,%d x %d,%s,,,,,,,,\n",
+            f.Write(wxString::Format("\"%s\",\"%s\",\"%s\",,,,,,,%lu,,%lu,,%lu,%d x %d,%s,,,,,,,,\n",
                 model->name,
                 models.c_str(), // No description ... use list of models
                 model->GetDisplayAs(),
@@ -4648,8 +4648,10 @@ void xLightsFrame::ExportModels(wxString filename)
             uint32_t ch = model->GetFirstChannel() + 1;
             std::string type, description, ip, universe, inactive, baud;
             int32_t channeloffset;
+            int stu = 0;
+            int stuc = 0;
             int output;
-            GetControllerDetailsForChannel(ch, type, description, channeloffset, ip, universe, inactive, output, baud);
+            GetControllerDetailsForChannel(ch, type, description, channeloffset, ip, universe, inactive, output, baud, stu, stuc);
 
             std::string current = "";
 
@@ -4676,7 +4678,7 @@ void xLightsFrame::ExportModels(wxString filename)
             int w, h;
             model->GetBufferSize("Default", "2D", "None", w, h);
 
-            f.Write(wxString::Format("\"%s\",\"%s\",\"%s\",\"%s\",%i,%i,%i,%s,%i,%i,%s,%i,%i,%i x %i,%s,%s,%s,\"%s\",%i,%s,%s,%s,%i,%s\n",
+            f.Write(wxString::Format("\"%s\",\"%s\",\"%s\",\"%s\",%i,%i,%i,%s,%i,%i,%s,%i,#%i:%i,%i,%i x %i,%s,%s,%s,\"%s\",%i,%s,%s,%s,%i,%s\n",
                 model->name,
                 model->description,
                 model->GetDisplayAs(),
@@ -4689,6 +4691,7 @@ void xLightsFrame::ExportModels(wxString filename)
                 model->GetActChanCount(),
                 stch,
                 ch,
+                stu, stuc,
                 model->GetLastChannel() + 1,
                 w, h,
                 model->GetLayoutGroup(),
@@ -4705,9 +4708,10 @@ void xLightsFrame::ExportModels(wxString filename)
             {
                 minchannel = ch;
             }
-            if ((int32_t)(ch + model->GetChanCount() - 1) > maxchannel)
+            int32_t lastch = model->GetLastChannel() + 1; 
+            if (lastch > maxchannel)
             {
-                maxchannel = ch + model->GetChanCount() - 1;
+                maxchannel = lastch;
             }
         }
     }
@@ -4730,13 +4734,13 @@ void xLightsFrame::ExportModels(wxString filename)
             Model* model = m.second;
             if (model->GetDisplayAs() != "ModelGroup")
             {
-                wxString stch = model->GetModelXml()->GetAttribute("StartChannel", wxString::Format("%d?", model->NodeStartChannel(0) + 1)); //NOTE: value coming from model is probably not what is wanted, so show the base ch# instead
-                int ch = model->GetNumberFromChannelString(model->ModelStartChannel);
-                int endch = ch + model->GetChanCount() - 1;
+                int ch = model->GetFirstChannel() + 1;
+                int endch = model->GetLastChannel() + 1;
 
                 int uniquechannels = 0;
                 for (int i = ch; i <= endch; i++)
                 {
+                    wxASSERT(i - minchannel < maxchannel - minchannel + 1);
                     if (chused[i - minchannel] == 0)
                     {
                         uniquechannels++;

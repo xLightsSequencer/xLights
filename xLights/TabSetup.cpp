@@ -381,7 +381,7 @@ bool xLightsFrame::SetDir(const wxString& newdir)
     return true;
 }
 
-void xLightsFrame::GetControllerDetailsForChannel(int32_t channel, std::string& type, std::string& description, int32_t& channeloffset, std::string &ip, std::string& u, std::string& inactive, int& output, std::string& baud)
+void xLightsFrame::GetControllerDetailsForChannel(int32_t channel, std::string& type, std::string& description, int32_t& channeloffset, std::string &ip, std::string& u, std::string& inactive, int& output, std::string& baud, int& start_universe, int& start_universe_channel)
 {
     int32_t ch = 0;
     Output* o = _outputManager.GetLevel1Output(channel, ch);
@@ -417,6 +417,12 @@ void xLightsFrame::GetControllerDetailsForChannel(int32_t channel, std::string& 
             inactive = "TRUE";
         }
         output = o->GetOutputNumber();
+
+        Output* oo = _outputManager.GetOutput(channel, start_universe_channel);
+        if (oo != nullptr)
+        {
+            start_universe = oo->GetUniverse();
+        }
     }
     else
     {

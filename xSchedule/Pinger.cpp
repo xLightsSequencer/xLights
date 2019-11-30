@@ -210,15 +210,15 @@ Pinger::Pinger(ListenerManager* listenerManager, OutputManager* outputManager)
 
     auto outputs = outputManager->GetOutputs();
 
-    for (auto it = outputs.begin(); it != outputs.end(); ++it)
+    for (const auto& it : outputs)
     {
-        if ((*it)->CanPing() && (*it)->IsEnabled())
+        if (it->CanPing() && it->IsEnabled())
         {
             // check if we have already seen it
             bool found = false;
-            for (auto cit = created.begin(); cit != created.end(); ++cit)
+            for (const auto& cit : created)
             {
-                if (*cit == GetID(*it))
+                if (cit == GetID(it))
                 {
                     // we have seen it
                     found = true;
@@ -228,8 +228,8 @@ Pinger::Pinger(ListenerManager* listenerManager, OutputManager* outputManager)
 
             if (!found)
             {
-                created.push_back(GetID(*it));
-                _pingers.push_back(new APinger(listenerManager, *it));
+                created.push_back(GetID(it));
+                _pingers.push_back(new APinger(listenerManager, it));
             }
         }
     }
@@ -246,9 +246,9 @@ Pinger::~Pinger()
     // give the ping threads some CPU time
     wxMilliSleep(1);
 
-    for (auto it  = _pingers.begin(); it != _pingers.end(); ++it)
+    for (const auto& it : _pingers)
     {
-        delete *it;
+        delete it;
     }
 }
 
@@ -257,9 +257,9 @@ void Pinger::AddIP(const std::string ip, const std::string why)
     if (ip == "") return;
     if (ip == "255.255.255.255") return;
 
-    for (auto it = _pingers.begin(); it != _pingers.end(); ++it)
+    for (const auto& it : _pingers)
     {
-        if ((*it)->GetIP() == ip) return;
+        if (it->GetIP() == ip) return;
     }
 
     _pingers.push_back(new APinger(_listenerManager, ip, why));
@@ -268,7 +268,7 @@ void Pinger::AddIP(const std::string ip, const std::string why)
 void Pinger::RemoveNonOutputIPs()
 {
     std::list<APinger*> newPingers;
-    for (auto it : _pingers)
+    for (const auto& it : _pingers)
     {
         if (!it->IsOutput())
         {
