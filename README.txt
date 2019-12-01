@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (scott)  Added AlphaPix 16 and AlphaPix Flex Controller Upload Support.
 2019.67 November 28 2019
    -- enh (scott)  Add maximise to import dialog
    -- enh (scott)  Add button to move selected models to top of the model list
