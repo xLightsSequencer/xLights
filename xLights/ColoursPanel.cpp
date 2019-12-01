@@ -32,26 +32,30 @@ int ColoursPanel::UpdateButtons()
     int added = 0;
     for (auto c : _colours)
     {
-        bool found = false;
-        for (const auto& it : existing)
+        // dont add more than 100 colours
+        if (added < 100)
         {
-            //ScrolledWindow1 may have scroll bar children as well as buttons
-            DragColoursBitmapButton *button = dynamic_cast<DragColoursBitmapButton*>(it);
-            if (button && button->GetColour() == c)
+            bool found = false;
+            for (const auto& it : existing)
             {
-                // already there
-                found = true;
-                break;
+                //ScrolledWindow1 may have scroll bar children as well as buttons
+                DragColoursBitmapButton* button = dynamic_cast<DragColoursBitmapButton*>(it);
+                if (button && button->GetColour() == c)
+                {
+                    // already there
+                    found = true;
+                    break;
+                }
             }
-        }
-        if (!found)
-        {
-            wxString iid = wxString::Format("ID_BITMAPBUTTON_%d", (int)GridSizer1->GetItemCount());
-            DragColoursBitmapButton* bmb = new DragColoursBitmapButton(ScrolledWindow1, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(30, 30),
-                wxBU_AUTODRAW | wxNO_BORDER, wxDefaultValidator, iid);
-            bmb->SetColour(c);
-            GridSizer1->Add(bmb);
-            added++;
+            if (!found)
+            {
+                wxString iid = wxString::Format("ID_BITMAPBUTTON_%d", (int)GridSizer1->GetItemCount());
+                DragColoursBitmapButton* bmb = new DragColoursBitmapButton(ScrolledWindow1, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(30, 30),
+                    wxBU_AUTODRAW | wxNO_BORDER, wxDefaultValidator, iid);
+                bmb->SetColour(c);
+                GridSizer1->Add(bmb);
+                added++;
+            }
         }
     }
 
@@ -181,7 +185,7 @@ void ColoursPanel::UpdateColourButtons(bool reload, xLightsFrame* xlights) {
     {
         auto existing = ScrolledWindow1->GetChildren();
         for (const auto& it : existing) {
-            DragColoursBitmapButton *button = dynamic_cast<DragColoursBitmapButton*>(it);
+            DragColoursBitmapButton* button = dynamic_cast<DragColoursBitmapButton*>(it);
             if (button) {
                 GridSizer1->Detach(it);
             }
@@ -190,27 +194,7 @@ void ColoursPanel::UpdateColourButtons(bool reload, xLightsFrame* xlights) {
 
     AddBaseColours();
 
-    if (xlights != nullptr)
-    {
-        if (xlights->CurrentSeqXmlFile != nullptr)
-        {
-            for (auto n = xlights->CurrentSeqXmlFile->GetPalettesNode()->GetChildren(); n != nullptr; n = n->GetNext())
-            {
-                if (n->GetName() == "ColorPalette" && n->GetChildren() != nullptr)
-                {
-                    ParsePalette(n->GetChildren()->GetContent());
-                }
-            }
-        }
-
-        if (xlights->GetColorPanel() != nullptr)
-        {
-            ParsePalette(xlights->GetColorPanel()->GetColorString(true));
-        }
-    }
-
     wxDir dir;
-
     if (wxDir::Exists(xLightsFrame::CurrentDir))
     {
         dir.Open(xLightsFrame::CurrentDir);
@@ -270,6 +254,25 @@ void ColoursPanel::UpdateColourButtons(bool reload, xLightsFrame* xlights) {
     else
     {
         logger_base.info("Directory for *.xpalette files not found: %s.", (const char*)d.c_str());
+    }
+
+    if (xlights != nullptr)
+    {
+        if (xlights->CurrentSeqXmlFile != nullptr)
+        {
+            for (auto n = xlights->CurrentSeqXmlFile->GetPalettesNode()->GetChildren(); n != nullptr; n = n->GetNext())
+            {
+                if (n->GetName() == "ColorPalette" && n->GetChildren() != nullptr)
+                {
+                    ParsePalette(n->GetChildren()->GetContent());
+                }
+            }
+        }
+
+        if (xlights->GetColorPanel() != nullptr)
+        {
+            ParsePalette(xlights->GetColorPanel()->GetColorString(true));
+        }
     }
 
     int added = UpdateButtons();
