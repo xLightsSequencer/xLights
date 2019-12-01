@@ -669,12 +669,14 @@ void SequenceElements::MoveElement(int index,int destinationIndex)
     SortElements();
 }
 
-void SequenceElements::LoadEffects(EffectLayer *effectLayer,
+int SequenceElements::LoadEffects(EffectLayer *effectLayer,
     const std::string &type,
     wxXmlNode *effectLayerNode,
     const std::vector<std::string> & effectStrings,
     const std::vector<std::string> & colorPalettes) {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    int loaded = 0;
     for (wxXmlNode* effect = effectLayerNode->GetChildren(); effect != nullptr; effect = effect->GetNext())
     {
         if (effect->GetName() == STR_EFFECT)
@@ -753,7 +755,9 @@ void SequenceElements::LoadEffects(EffectLayer *effectLayer,
 
             LoadEffects(neffectLayer, type, effect, effectStrings, colorPalettes);
         }
+        loaded++;
     }
+    return loaded;
 }
 
 bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file, const wxString &ShowDir)
@@ -859,6 +863,22 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file, const wxStrin
         }
         else if (e->GetName() == "ElementEffects")
         {
+            int count = 0;
+            for (wxXmlNode* elementNode = e->GetChildren(); elementNode != NULL; elementNode = elementNode->GetNext())
+            {
+                if (elementNode->GetName() == STR_ELEMENT)
+                {
+                    for (wxXmlNode* effectLayerNode = elementNode->GetChildren(); effectLayerNode != nullptr; effectLayerNode = effectLayerNode->GetNext())
+                    {
+                        for (wxXmlNode* effect = effectLayerNode->GetChildren(); effect != nullptr; effect = effect->GetNext())
+                        {
+                            count++;
+                        }
+                    }
+                }
+            }
+
+            int loaded = 0;
             for (wxXmlNode* elementNode = e->GetChildren(); elementNode != NULL; elementNode = elementNode->GetNext())
             {
                 if (elementNode->GetName() == STR_ELEMENT)
@@ -923,7 +943,8 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file, const wxStrin
                                     }
                                 }
                                 if (effectLayer != nullptr) {
-                                    LoadEffects(effectLayer, elementNode->GetAttribute(STR_TYPE).ToStdString(), effectLayerNode, effectStrings, colorPalettes);
+                                    loaded += LoadEffects(effectLayer, elementNode->GetAttribute(STR_TYPE).ToStdString(), effectLayerNode, effectStrings, colorPalettes);
+                                    GetXLightsFrame()->SetStatusText(wxString::Format("Effects Loaded: %i%%.", loaded * 100 / count));
                                 }
                             }
                         }

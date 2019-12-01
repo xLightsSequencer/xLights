@@ -270,30 +270,6 @@ bool RenderableEffect::needToAdjustSettings(const std::string &version) {
 }
 
 void RenderableEffect::adjustSettings(const std::string &version, Effect *effect, bool removeDefaults) {
-    if (IsVersionOlder("4.2.20", version)) {
-        // almost all of the settings from older 4.x series need adjustment for speed things
-        AdjustSettingsToBeFitToTime(effect->GetEffectIndex(), effect->GetSettings(), effect->GetStartTimeMS(), effect->GetEndTimeMS(), effect->GetPalette());
-    }
-    if (IsVersionOlder("2016.36", version) && removeDefaults) {
-        RemoveDefaults(version, effect);
-    }
-    if (IsVersionOlder("2016.50", version))
-    {
-        // Fix #622 - circle and square explode on transition out ... this code stops me breaking existing sequences
-        SettingsMap& sm = effect->GetSettings();
-        if (sm.Get("T_CHOICE_Out_Transition_Type", "") == "Square Explode" ||
-            sm.Get("T_CHOICE_Out_Transition_Type", "") == "Circle Explode")
-        {
-            if (sm.GetBool("T_CHECKBOX_Out_Transition_Reverse", false))
-            {
-                sm.erase("T_CHECKBOX_Out_Transition_Reverse");
-            }
-            else
-            {
-                sm["T_CHECKBOX_Out_Transition_Reverse"] = "1";
-            }
-        }
-    }
 
     if (IsVersionOlder("2019.61", version))
     {
@@ -320,93 +296,116 @@ void RenderableEffect::adjustSettings(const std::string &version, Effect *effect
             sm["B_VALUECURVE_Zoom"] = vc.Serialise();
             wxASSERT(vc.IsRealValue());
         }
-    }
 
-    if (IsVersionOlder("2018.12", version))
-    {
-        SettingsMap& sm = effect->GetSettings();
-        wxString layerMethod = sm.Get("T_CHOICE_LayerMethod", "");
-
-        if (layerMethod == "Canvas")
+        if (IsVersionOlder("2018.50", version))
         {
-            sm["T_CHOICE_LayerMethod"] = "Effect 1";
-            sm["T_CHECKBOX_Canvas"] = "1";
-        }
-    }
+            // Try to fix value curve issues
+            for (auto s : sm)
+            {
+                wxString f(s.first);
+                if (f.Contains("VALUECURVE") && !f.Contains("RV=TRUE"))
+                {
+                    ValueCurve vc(s.second);
+                    sm[s.first] = vc.Serialise();
+                }
 
-    if (IsVersionOlder("2018.50", version))
-    {
-        SettingsMap& sm = effect->GetSettings();
-
-        // Try to fix value curve issues
-        for (auto s : sm)
-        {
-            wxString f(s.first);
-            if (f.Contains("VALUECURVE") && !f.Contains("RV=TRUE"))
-            {
-                ValueCurve vc(s.second);
-                sm[s.first] = vc.Serialise();
+                wxString v(s.second);
+                if (v.Contains("ID_VALUECURVE_Blur"))
+                {
+                    ValueCurve vc;
+                    vc.SetLimits(BLUR_MIN, BLUR_MAX);
+                    vc.SetDivisor(1);
+                    vc.Deserialise(s.second);
+                    sm[s.first] = vc.Serialise();
+                    wxASSERT(vc.IsRealValue());
+                }
+                else if (v.Contains("ID_VALUECURVE_Fan_Blade_Angle"))
+                {
+                    ValueCurve vc;
+                    vc.SetLimits(FAN_BLADEANGLE_MIN, FAN_BLADEANGLE_MAX);
+                    vc.SetDivisor(1);
+                    vc.Deserialise(s.second);
+                    sm[s.first] = vc.Serialise();
+                    wxASSERT(vc.IsRealValue());
+                }
+                else if (v.Contains("ID_VALUECURVE_Spirals_Rotation"))
+                {
+                    ValueCurve vc;
+                    vc.SetLimits(SPIRALS_ROTATION_MIN, SPIRALS_ROTATION_MAX);
+                    vc.SetDivisor(SPIRALS_ROTATION_DIVISOR);
+                    vc.Deserialise(s.second);
+                    sm[s.first] = vc.Serialise();
+                    wxASSERT(vc.IsRealValue());
+                }
+                else if (v.Contains("ID_VALUECURVE_Fan_Start_Angle"))
+                {
+                    ValueCurve vc;
+                    vc.SetLimits(FAN_STARTANGLE_MIN, FAN_STARTANGLE_MAX);
+                    vc.Deserialise(s.second);
+                    sm[s.first] = vc.Serialise();
+                    wxASSERT(vc.IsRealValue());
+                }
+                else if (v.Contains("ID_VALUECURVE_PinwheelXC"))
+                {
+                    ValueCurve vc;
+                    vc.SetLimits(PINWHEEL_X_MIN, PINWHEEL_X_MAX);
+                    vc.Deserialise(s.second);
+                    sm[s.first] = vc.Serialise();
+                    wxASSERT(vc.IsRealValue());
+                }
+                else if (v.Contains("ID_VALUECURVE_PinwheelYC"))
+                {
+                    ValueCurve vc;
+                    vc.SetLimits(PINWHEEL_Y_MIN, PINWHEEL_Y_MAX);
+                    vc.Deserialise(s.second);
+                    sm[s.first] = vc.Serialise();
+                    wxASSERT(vc.IsRealValue());
+                }
+                else if (v.Contains("ID_VALUECURVE_Spirals_Count"))
+                {
+                    ValueCurve vc;
+                    vc.SetLimits(SPIRALS_COUNT_MIN, SPIRALS_COUNT_MAX);
+                    vc.Deserialise(s.second);
+                    sm[s.first] = vc.Serialise();
+                    wxASSERT(vc.IsRealValue());
+                }
             }
 
-            wxString v(s.second);
-            if (v.Contains("ID_VALUECURVE_Blur"))
+            if (IsVersionOlder("2018.12", version))
             {
-                ValueCurve vc;
-                vc.SetLimits(BLUR_MIN, BLUR_MAX);
-                vc.SetDivisor(1);
-                vc.Deserialise(s.second);
-                sm[s.first] = vc.Serialise();
-                wxASSERT(vc.IsRealValue());
-            }
-            else if (v.Contains("ID_VALUECURVE_Fan_Blade_Angle"))
-            {
-                ValueCurve vc;
-                vc.SetLimits(FAN_BLADEANGLE_MIN, FAN_BLADEANGLE_MAX);
-                vc.SetDivisor(1);
-                vc.Deserialise(s.second);
-                sm[s.first] = vc.Serialise();
-                wxASSERT(vc.IsRealValue());
-            }
-            else if (v.Contains("ID_VALUECURVE_Spirals_Rotation"))
-            {
-                ValueCurve vc;
-                vc.SetLimits(SPIRALS_ROTATION_MIN, SPIRALS_ROTATION_MAX);
-                vc.SetDivisor(SPIRALS_ROTATION_DIVISOR);
-                vc.Deserialise(s.second);
-                sm[s.first] = vc.Serialise();
-                wxASSERT(vc.IsRealValue());
-            }
-            else if (v.Contains("ID_VALUECURVE_Fan_Start_Angle"))
-            {
-                ValueCurve vc;
-                vc.SetLimits(FAN_STARTANGLE_MIN, FAN_STARTANGLE_MAX);
-                vc.Deserialise(s.second);
-                sm[s.first] = vc.Serialise();
-                wxASSERT(vc.IsRealValue());
-            }
-            else if (v.Contains("ID_VALUECURVE_PinwheelXC"))
-            {
-                ValueCurve vc;
-                vc.SetLimits(PINWHEEL_X_MIN, PINWHEEL_X_MAX);
-                vc.Deserialise(s.second);
-                sm[s.first] = vc.Serialise();
-                wxASSERT(vc.IsRealValue());
-            }
-            else if (v.Contains("ID_VALUECURVE_PinwheelYC"))
-            {
-                ValueCurve vc;
-                vc.SetLimits(PINWHEEL_Y_MIN, PINWHEEL_Y_MAX);
-                vc.Deserialise(s.second);
-                sm[s.first] = vc.Serialise();
-                wxASSERT(vc.IsRealValue());
-            }
-            else if (v.Contains("ID_VALUECURVE_Spirals_Count"))
-            {
-                ValueCurve vc;
-                vc.SetLimits(SPIRALS_COUNT_MIN, SPIRALS_COUNT_MAX);
-                vc.Deserialise(s.second);
-                sm[s.first] = vc.Serialise();
-                wxASSERT(vc.IsRealValue());
+                wxString layerMethod = sm.Get("T_CHOICE_LayerMethod", "");
+
+                if (layerMethod == "Canvas")
+                {
+                    sm["T_CHOICE_LayerMethod"] = "Effect 1";
+                    sm["T_CHECKBOX_Canvas"] = "1";
+                }
+
+                if (IsVersionOlder("2016.50", version))
+                {
+                    // Fix #622 - circle and square explode on transition out ... this code stops me breaking existing sequences
+                    if (sm.Get("T_CHOICE_Out_Transition_Type", "") == "Square Explode" ||
+                        sm.Get("T_CHOICE_Out_Transition_Type", "") == "Circle Explode")
+                    {
+                        if (sm.GetBool("T_CHECKBOX_Out_Transition_Reverse", false))
+                        {
+                            sm.erase("T_CHECKBOX_Out_Transition_Reverse");
+                        }
+                        else
+                        {
+                            sm["T_CHECKBOX_Out_Transition_Reverse"] = "1";
+                        }
+                    }
+
+                    if (IsVersionOlder("2016.36", version) && removeDefaults) {
+                        RemoveDefaults(version, effect);
+
+                        if (IsVersionOlder("4.2.20", version)) {
+                            // almost all of the settings from older 4.x series need adjustment for speed things
+                            AdjustSettingsToBeFitToTime(effect->GetEffectIndex(), effect->GetSettings(), effect->GetStartTimeMS(), effect->GetEndTimeMS(), effect->GetPalette());
+                        }
+                    }
+                }
             }
         }
     }

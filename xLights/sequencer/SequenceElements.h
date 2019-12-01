@@ -191,7 +191,7 @@ public:
     xLightsFrame *GetXLightsFrame() const { return xframe; };
 protected:
 private:
-    void LoadEffects(EffectLayer *layer,
+    int LoadEffects(EffectLayer *layer,
         const std::string &type,
         wxXmlNode *effectLayerNode,
         const std::vector<std::string> & effectStrings,

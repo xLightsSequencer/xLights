@@ -54,6 +54,7 @@ void xLightsFrame::SetStatusText(const wxString &msg, int filename) {
             StatusText->SetLabel(msg);
             StatusText->SetForegroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNTEXT));
         }
+        StatusText->Refresh(); // Draw now so even when we are in CPU bound loops status updates
     }
 }
 
