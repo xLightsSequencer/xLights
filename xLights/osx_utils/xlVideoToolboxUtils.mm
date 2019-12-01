@@ -193,21 +193,40 @@ bool VideoToolboxScaleImage(AVCodecContext *codecContext, AVFrame *frame, AVFram
         if (CVPixelBufferGetWidth(scaledBuf) != dstFrame->width) {
             AddTraceMessage("VideoToolbox - Widths don't match " + std::to_string(CVPixelBufferGetWidth(scaledBuf)) + ":" + std::to_string(dstFrame->width));
         }
-
+        if (linesize != (dstFrame->width*4)) {
+            AddTraceMessage("VideoToolbox - Unexpected line size" + std::to_string(linesize) + ":" + std::to_string(dstFrame->width*4));
+        }
+        
         //copy data to dest frame
         if (linesize) {
             if (dstFrame->format == AV_PIX_FMT_RGBA) {
                 AddTraceMessage("VideoToolbox - Copying frame of size " + std::to_string(dstFrame->width * linesize));
-                memcpy(dstFrame->data[0], data, linesize*dstFrame->height);
+                if (linesize == (dstFrame->width*4)) {
+                    memcpy(dstFrame->data[0], data, linesize*dstFrame->height);
+                } else {
+                    int startPosS = 0;
+                    int startPosD = 0;
+                    for (int x = 0; x < dstFrame->height; x++) {
+                        memcpy(&dstFrame->data[0][startPosD], &data[startPosS], dstFrame->width*4);
+                        startPosS += linesize;
+                        startPosD += dstFrame->width*4;
+                    }
+                }
+                
             } else {
-                uint8_t *dst = (uint8_t*)dstFrame->data[0];
-                uint8_t *src = (uint8_t*)data;
-
-                int total = dstFrame->height * linesize;
-                for (int w = 0, rgbLoc = 0; w < total; w += 4, rgbLoc += 3) {
-                    dst[rgbLoc] = src[w];
-                    dst[rgbLoc + 1] = src[w + 1];
-                    dst[rgbLoc + 2] = src[w + 2];
+                int startPosS = 0;
+                int startPosD = 0;
+                for (int l = 0; l < dstFrame->height; l++) {
+                    uint8_t *dst = (uint8_t*)(&dstFrame->data[0][startPosD]);
+                    uint8_t *src = (uint8_t*)(&data[startPosS]);
+                    for (int w = 0, rgbLoc = 0; w < dstFrame->width*4; w += 4, rgbLoc += 3) {
+                        dst[rgbLoc] = src[w];
+                        dst[rgbLoc + 1] = src[w + 1];
+                        dst[rgbLoc + 2] = src[w + 2];
+                    }
+                    
+                    startPosS += linesize;
+                    startPosD += dstFrame->width*4;
                 }
             }
         }
