@@ -146,6 +146,9 @@ http://<host:port>/xScheduleCommand?Command=<command>&Parameters=<parameters>
 		Jump to random step in specified playlist <playlist name>
 			This starts the named playlist at a random step (excluding any steps flagged as being only played at the beginning or end of the playlist). Randomness requires at least 4 non play-once steps or it will not act randomly. At the end of the step the playlist will continue to play.
 			
+        Play one random step in specified playlist <playlist name>
+			This plays the named playlist at a random step (excluding any steps flagged as being only played at the beginning or end of the playlist). Randomness requires at least 4 non play-once steps or it will not act randomly. At the end of the step the playlist will stop.
+
 		Jump to specified step in current playlist <step name>
 			This jumps to the named step in the currenly playing playlist. At the end of the step the playlist will continue to play.
 			

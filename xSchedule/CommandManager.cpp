@@ -289,6 +289,7 @@ CommandManager::CommandManager()
     _commands.push_back(new Command("Prior step in current playlist", 0, {}, false, false, true, false, false, false, true, false));
     _commands.push_back(new Command("Jump to random step in current playlist", 0, {}, false, false, true, false, false, false, true, false));
     _commands.push_back(new Command("Jump to random step in specified playlist", 1, pl, false, false, false, false, false, false, true, false));
+    _commands.push_back(new Command("Play one random step in specified playlist", 1, pl, false, false, false, false, false, false, true, false));
     _commands.push_back(new Command("Jump to specified step in current playlist", 1, st, false, false, true, false, false, false, true, false));
     _commands.push_back(new Command("Jump to specified step in current playlist at the end of current step", 1, st, false, false, true, false, false, false, true, false));
     _commands.push_back(new Command("Play playlist starting at step", 2, plst, false, false, false, false, false, true, true, false));

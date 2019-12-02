@@ -4,6 +4,7 @@
 #include <wx/notebook.h>
 #include <log4cpp/Category.hh>
 #include "../xScheduleMain.h"
+#include "../xScheduleApp.h"
 #include "../ScheduleManager.h"
 
 PlayListItemRunCommand::PlayListItemRunCommand(wxXmlNode* node) : PlayListItem(node)
@@ -92,12 +93,10 @@ void PlayListItemRunCommand::Frame(uint8_t* buffer, size_t size, size_t ms, size
         if (_parm2 != "") parms += "," + _parm2;
         if (_parm3 != "") parms += "," + _parm3;
 
-        size_t rate = 0;
-        wxString msg;
-        if (!xScheduleFrame::GetScheduleManager()->Action(_command, parms, "", nullptr, nullptr, rate, msg))
-        {
-            logger_base.info("Command failed: %s.", (const char *)msg.c_str());
-        }
+        ActionMessageData* amd = new ActionMessageData(_command, parms, "");
+        wxCommandEvent event(EVT_DOACTION);
+        event.SetClientData(amd);
+        wxPostEvent(wxGetApp().GetTopWindow(), event);
     }
 }
 

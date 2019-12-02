@@ -1266,11 +1266,14 @@ bool ScheduleManager::PlayPlayList(PlayList* playlist, size_t& rate, bool loop, 
 
     _immediatePlay = new PlayList(*playlist);
     wxASSERT(_immediatePlay != nullptr);
-    _immediatePlay->Start(loop, random, plloops);
     if (step != "")
     {
-        _immediatePlay->JumpToStep(step);
+        _immediatePlay->Start(loop, random, plloops, step);
         _immediatePlay->GetRunningStep()->SetLoops(steploops);
+    }
+    else
+    {
+        _immediatePlay->Start(loop, random, plloops);
     }
 
     if (forcelast)
@@ -2688,6 +2691,20 @@ bool ScheduleManager::Action(const wxString& command, const wxString& parameters
                         if (r != nullptr)
                         {
                             PlayPlayList(p, rate, false, r->GetNameNoTime(), false);
+                            scheduleChanged = true;
+                        }
+                    }
+                }
+                else if (command == "Play one random step in specified playlist")
+                {
+                    PlayList* p = GetPlayList(DecodePlayList(parameters));
+
+                    if (p != nullptr)
+                    {
+                        auto r = p->GetRandomStep();
+                        if (r != nullptr)
+                        {
+                            PlayPlayList(p, rate, false, r->GetNameNoTime(), true);
                             scheduleChanged = true;
                         }
                     }
