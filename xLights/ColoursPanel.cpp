@@ -28,36 +28,23 @@ END_EVENT_TABLE()
 
 int ColoursPanel::UpdateButtons()
 {
-    auto existing = ScrolledWindow1->GetChildren();
     int added = 0;
-    for (auto c : _colours)
+    for (const auto& c : _colours)
     {
-        // dont add more than 100 colours
-        if (added < 100)
+        // dont add more than 200 colours
+        if (added < 200)
         {
-            bool found = false;
-            for (const auto& it : existing)
-            {
-                //ScrolledWindow1 may have scroll bar children as well as buttons
-                DragColoursBitmapButton* button = dynamic_cast<DragColoursBitmapButton*>(it);
-                if (button && button->GetColour() == c)
-                {
-                    // already there
-                    found = true;
-                    break;
-                }
-            }
-            if (!found)
-            {
-                wxString iid = wxString::Format("ID_BITMAPBUTTON_%d", (int)GridSizer1->GetItemCount());
-                DragColoursBitmapButton* bmb = new DragColoursBitmapButton(ScrolledWindow1, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(30, 30),
-                    wxBU_AUTODRAW | wxNO_BORDER, wxDefaultValidator, iid);
-                bmb->SetColour(c);
-                GridSizer1->Add(bmb);
-                added++;
-            }
+            wxString iid = wxString::Format("ID_BITMAPBUTTON_%d", (int)GridSizer1->GetItemCount());
+            DragColoursBitmapButton* bmb = new DragColoursBitmapButton(ScrolledWindow1, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(30, 30),
+                wxBU_AUTODRAW | wxNO_BORDER, wxDefaultValidator, iid);
+            bmb->SetColour(c);
+            GridSizer1->Add(bmb);
+            added++;
         }
     }
+
+    wxSizeEvent evt;
+    OnResize(evt);
 
     return added;
 }
@@ -283,9 +270,6 @@ void ColoursPanel::UpdateColourButtons(bool reload, xLightsFrame* xlights) {
         e.SetInt(added);
         wxPostEvent(xlights, e);
     }
-
-    wxSizeEvent evt;
-    OnResize(evt);
 }
 
 int ColoursPanel::AddColour(const std::string& colour)
