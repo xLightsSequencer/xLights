@@ -45,6 +45,10 @@ ScheduleManager::ScheduleManager(xScheduleFrame* frame, const std::string& showD
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.info("Loading schedule from %s.", (const char *)showDir.c_str());
 
+#ifdef __WXMSW__
+    ::SetThreadExecutionState(ES_CONTINUOUS | ES_SYSTEM_REQUIRED | ES_DISPLAY_REQUIRED | ES_AWAYMODE_REQUIRED);
+#endif
+
     // prime fix file with our show directory for any filename fixups
     FixFile(showDir, "");
 
@@ -182,6 +186,9 @@ ScheduleManager::ScheduleManager(xScheduleFrame* frame, const std::string& showD
             }
             DisableRemoteOutputs();
             _outputManager->StartOutput();
+#ifdef __WXMSW__
+            ::SetPriorityClass(::GetCurrentProcess(), ABOVE_NORMAL_PRIORITY_CLASS);
+#endif
         }
         ManageBackground();
         logger_base.info("Started outputting to lights ... even though nothing is running.");
@@ -398,6 +405,9 @@ ScheduleManager::~ScheduleManager()
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     AllOff();
     _outputManager->StopOutput();
+#ifdef __WXMSW__
+    ::SetPriorityClass(::GetCurrentProcess(), NORMAL_PRIORITY_CLASS);
+#endif
     StopVirtualMatrices();
     ManageBackground();
     logger_base.info("Stopped outputting to lights.");
@@ -491,6 +501,10 @@ ScheduleManager::~ScheduleManager()
     {
         free(_buffer);
     }
+
+#ifdef __WXMSW__
+    ::SetThreadExecutionState(ES_CONTINUOUS);
+#endif
 
     logger_base.info("Closed schedule.");
 }
@@ -3976,6 +3990,9 @@ void ScheduleManager::SetOutputToLights(xScheduleFrame* frame, bool otl, bool in
                 }
                 DisableRemoteOutputs();
                 bool success = _outputManager->StartOutput();
+#ifdef __WXMSW__
+                ::SetPriorityClass(::GetCurrentProcess(), ABOVE_NORMAL_PRIORITY_CLASS);
+#endif
                 StartVirtualMatrices();
                 ManageBackground();
                 logger_frame.debug("Turned on output to lights %ldms", sw.Time());
@@ -3991,6 +4008,9 @@ void ScheduleManager::SetOutputToLights(xScheduleFrame* frame, bool otl, bool in
             if (IsOutputToLights())
             {
                 _outputManager->StopOutput();
+#ifdef __WXMSW__
+                ::SetPriorityClass(::GetCurrentProcess(), NORMAL_PRIORITY_CLASS);
+#endif
                 StopVirtualMatrices();
                 ManageBackground();
                 logger_frame.debug("Turned off output to lights %ldms", sw.Time());
@@ -4014,6 +4034,9 @@ void ScheduleManager::ManualOutputToLightsClick(xScheduleFrame* frame)
         }
         DisableRemoteOutputs();
         _outputManager->StartOutput();
+#ifdef __WXMSW__
+            ::SetPriorityClass(::GetCurrentProcess(), ABOVE_NORMAL_PRIORITY_CLASS);
+#endif
         StartVirtualMatrices();
         ManageBackground();
         GetListenerManager()->ProcessPacket("State", "Lights On");
@@ -4021,6 +4044,9 @@ void ScheduleManager::ManualOutputToLightsClick(xScheduleFrame* frame)
     else if (_manualOTL == 0)
     {
         _outputManager->StopOutput();
+#ifdef __WXMSW__
+        ::SetPriorityClass(::GetCurrentProcess(), NORMAL_PRIORITY_CLASS);
+#endif
         StopVirtualMatrices();
         ManageBackground();
         GetListenerManager()->ProcessPacket("State", "Lights Off");
