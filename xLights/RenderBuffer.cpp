@@ -905,11 +905,13 @@ void RenderBuffer::SetPixel(int x, int y, const xlColor &color, bool wrap, bool 
     // I dont like this ... it should actually never happen
     if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && y*BufferWi + x < pixels.size())
     {
-        if (color.alpha == 0)
-        {
+        // if you do this sparkles dont work when 100% transparent on effect ... so dont do it
+        //if (color.alpha == 0)
+        //{
             // transparent ... dont do anything
-        }
-        else if (useAlpha && color.Alpha() != 255)
+        //}
+        //else 
+        if (useAlpha && color.Alpha() != 255)
         {
             xlColor pnew = color;
             xlColor pold = pixels[y*BufferWi + x];
