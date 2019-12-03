@@ -26,25 +26,42 @@ BEGIN_EVENT_TABLE(ColoursPanel,wxPanel)
 	//*)
 END_EVENT_TABLE()
 
+#define ITEMSIZE 33
+
 int ColoursPanel::UpdateButtons()
 {
     int added = 0;
+    auto existing = ScrolledWindow1->GetChildren();
     for (const auto& c : _colours)
     {
         // dont add more than 200 colours
         if (added < 200)
         {
-            wxString iid = wxString::Format("ID_BITMAPBUTTON_%d", (int)GridSizer1->GetItemCount());
-            DragColoursBitmapButton* bmb = new DragColoursBitmapButton(ScrolledWindow1, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(30, 30),
-                wxBU_AUTODRAW | wxNO_BORDER, wxDefaultValidator, iid);
-            bmb->SetColour(c);
-            GridSizer1->Add(bmb);
-            added++;
+            bool found = false;
+            for (const auto& it : existing)
+            {
+                //ScrolledWindow1 may have scroll bar children as well as buttons
+                DragColoursBitmapButton* button = dynamic_cast<DragColoursBitmapButton*>(it);
+                if (button && button->GetColour() == c)
+                {
+                    // already there
+                    found = true;
+                    break;
+                }
+            }
+            if (!found)
+            {
+                wxString iid = wxString::Format("ID_BITMAPBUTTON_%d", (int)GridSizer1->GetItemCount());
+                DragColoursBitmapButton* bmb = new DragColoursBitmapButton(ScrolledWindow1, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(30, 30),
+                    wxBU_AUTODRAW | wxNO_BORDER, wxDefaultValidator, iid);
+                bmb->SetColour(c);
+                GridSizer1->Add(bmb);
+                added++;
+            }
         }
     }
 
-    wxSizeEvent evt;
-    OnResize(evt);
+    SendSizeEvent();
 
     return added;
 }
@@ -170,6 +187,9 @@ void ColoursPanel::UpdateColourButtons(bool reload, xLightsFrame* xlights) {
 
     if (reload)
     {
+        _colours.clear();
+        _colourscmp.clear();
+
         auto existing = ScrolledWindow1->GetChildren();
         for (const auto& it : existing) {
             DragColoursBitmapButton* button = dynamic_cast<DragColoursBitmapButton*>(it);
@@ -177,6 +197,7 @@ void ColoursPanel::UpdateColourButtons(bool reload, xLightsFrame* xlights) {
                 GridSizer1->Detach(it);
             }
         }
+        ScrolledWindow1->DestroyChildren();
     }
 
     AddBaseColours();
@@ -284,12 +305,15 @@ int ColoursPanel::AddColour(const std::string& colour)
         c = c.substr(0, loc) + c.substr(loc + 18);
     }
 
-    if (std::find(_colours.begin(), _colours.end(), c) != _colours.end())
+    std::string lc = ::Lower(c);
+
+    if (std::find(_colourscmp.begin(), _colourscmp.end(), lc) != _colourscmp.end())
     {
         // already there
         return 0;
     }
     _colours.push_back(c);
+    _colourscmp.push_back(lc);
     return 1;
 }
 
@@ -343,14 +367,11 @@ ColoursPanel::ColoursPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,con
 
     ScrolledWindow1->SetScrollRate(0, 5);
     GridSizer1->SetCols(10);
-
-    UpdateColourButtons(false, nullptr);
     
-    wxSizeEvent evt;
-    OnResize(evt);
-
     FlexGridSizer1->Fit(this);
     FlexGridSizer1->SetSizeHints(this);
+
+    UpdateColourButtons(false, nullptr);
 }
 
 ColoursPanel::~ColoursPanel()
@@ -360,11 +381,13 @@ ColoursPanel::~ColoursPanel()
 }
 
 void ColoursPanel::OnResize(wxSizeEvent& event) {
+
     int cnt = GridSizer1->GetItemCount();
+
     if (cnt < 1) cnt = 1;
 
     wxSize wsz = GetSize();
-    if (wsz.GetWidth() <= 10) {
+    if (wsz.GetWidth() <= 50) {
         return;
     }
 
@@ -373,13 +396,10 @@ void ColoursPanel::OnResize(wxSizeEvent& event) {
     Panel_Sizer->SetMaxSize(wsz);
     Panel_Sizer->Refresh();
 
-    int itemsize = 33;
-    int cols = (wsz.GetWidth()-20) / itemsize;
-    if (cols == 0) cols = 1;
+    int cols = (wsz.GetWidth()-20) / ITEMSIZE;
+    if (cols < 1) cols = 1;
     GridSizer1->SetCols(cols);
     int rows = cnt / cols + 1;
-    GridSizer1->SetDimension(0, 0, wsz.GetWidth() - 20, (itemsize + 5) * rows);
-    GridSizer1->Layout();
 
     ScrolledWindow1->SetSize(wsz);
     ScrolledWindow1->SetMinSize(wsz);
@@ -387,4 +407,6 @@ void ColoursPanel::OnResize(wxSizeEvent& event) {
     ScrolledWindow1->FitInside();
     ScrolledWindow1->SetScrollRate(0, 5);
     ScrolledWindow1->Refresh();
+    GridSizer1->SetDimension(0, 0, wsz.GetWidth() - 20, (ITEMSIZE + 5) * rows);
+    Layout();
 }

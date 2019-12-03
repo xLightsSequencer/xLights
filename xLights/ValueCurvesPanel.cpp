@@ -100,10 +100,12 @@ void ValueCurvesPanel::UpdateValueCurveButtons(bool reload) {
         auto existing = ScrolledWindow1->GetChildren();
         for (const auto& it : existing)
         {
-            GridSizer1->Detach(it);
+            DragValueCurveBitmapButton* button = dynamic_cast<DragValueCurveBitmapButton*>(it);
+            if (button) {
+                GridSizer1->Detach(it);
+            }
         }
         ScrolledWindow1->DestroyChildren();
-        wxASSERT(ScrolledWindow1->GetChildren().size() == 0);
     }
 
     int added = 0;

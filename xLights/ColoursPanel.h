@@ -13,6 +13,7 @@ class xLightsFrame;
 class ColoursPanel: public wxPanel
 {
     std::list<std::string> _colours;
+    std::list<std::string> _colourscmp;
 
     int AddBaseColours();
     void ProcessColourCurveDir(wxDir& directory, bool subdirs);
