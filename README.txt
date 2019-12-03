@@ -11,7 +11,18 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2019.68 December 3 2019
    -- enh (scott)  Added AlphaPix 16 and AlphaPix Flex Controller Upload Support.
+   -- enh (dkulp)  Adjust fseq compression depending on Pi model
+   -- enh (keith)  Add #universe/id:startchannel to model export even if model was not defined that way
+   -- enh (keith)  Add "Play one random step in specified playlist" API
+   -- enh (keith)  On windows have xSchedule bump its process priority when outputting to lights
+   -- enh (keith)  On windows have xSchedule ask operating system not to sleep/screen blank etc
+   -- bug (dkulp)  Fix crash where hardware video scaler does not scale image to right size
+   -- bug (keith)  Fix crash which hung the whole machine when loading some sequences
+   -- bug (keith)  Fix crash on exporting models
+   -- bug (keith)  Fix xSchedule hang when playlist step changes active playlist
+   -- bug (keith)  Fix On effect with 100% transparency does not show sparkles ... but it used to
 2019.67 November 28 2019
    -- enh (scott)  Add maximise to import dialog
    -- enh (scott)  Add button to move selected models to top of the model list
