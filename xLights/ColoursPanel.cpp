@@ -194,10 +194,9 @@ void ColoursPanel::UpdateColourButtons(bool reload, xLightsFrame* xlights) {
         for (const auto& it : existing) {
             DragColoursBitmapButton* button = dynamic_cast<DragColoursBitmapButton*>(it);
             if (button) {
-                GridSizer1->Detach(it);
+                delete button;
             }
         }
-        ScrolledWindow1->DestroyChildren();
     }
 
     AddBaseColours();
