@@ -874,6 +874,7 @@ void LayoutPanel::SetDisplay2DCenter0(bool bb) {
 
 void LayoutPanel::OnPropertyGridChanging(wxPropertyGridEvent& event) {
     std::string name = event.GetPropertyName().ToStdString();
+    xlights->AddTraceMessage("LayoutPanel::OnPropertyGridChanging  Property: " + name);
     if (selectedBaseObject != nullptr) {
         if( editing_models ) {
             Model* selectedModel = dynamic_cast<Model*>(selectedBaseObject);
@@ -906,8 +907,7 @@ void LayoutPanel::OnPropertyGridChanging(wxPropertyGridEvent& event) {
                 //objects_panel->GetSelectedObject()->OnPropertyGridChanging(propertyEditor, event);
             }
         }
-    }
-    else {
+    } else {
         CreateUndoPoint("Background", "", name, event.GetProperty()->GetValue().GetString().ToStdString());
     }
 }

@@ -89,7 +89,7 @@ SuperStarImportDialog::SuperStarImportDialog(wxWindow* parent,wxWindowID id,cons
 	FlexGridSizer6->Add(ImageResizeChoice, 1, wxALL|wxEXPAND, 5);
 	StaticText2 = new wxStaticText(this, wxID_ANY, _("Timing Adjustment (ms):"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
 	FlexGridSizer6->Add(StaticText2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	TimeAdjSpinCtrl = new wxSpinCtrl(this, ID_SPINCTRL1, _T("0"), wxDefaultPosition, wxDefaultSize, 0, -10000, 10000, 0, _T("ID_SPINCTRL1"));
+	TimeAdjSpinCtrl = new wxSpinCtrl(this, ID_SPINCTRL1, _T("0"), wxDefaultPosition, wxDefaultSize, 0, -60000, 60000, 0, _T("ID_SPINCTRL1"));
 	TimeAdjSpinCtrl->SetValue(_T("0"));
 	FlexGridSizer6->Add(TimeAdjSpinCtrl, 1, wxALL|wxEXPAND, 5);
 	StaticText3 = new wxStaticText(this, ID_STATICTEXT2, _("Layer Blend:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));

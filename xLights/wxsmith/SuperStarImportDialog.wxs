@@ -169,8 +169,8 @@
 							<object class="sizeritem">
 								<object class="wxSpinCtrl" name="ID_SPINCTRL1" variable="TimeAdjSpinCtrl" member="yes">
 									<value>0</value>
-									<min>-10000</min>
-									<max>10000</max>
+									<min>-60000</min>
+									<max>60000</max>
 								</object>
 								<flag>wxALL|wxEXPAND</flag>
 								<border>5</border>
