@@ -27,6 +27,7 @@ BEGIN_EVENT_TABLE(ColoursPanel,wxPanel)
 END_EVENT_TABLE()
 
 #define ITEMSIZE 33
+#define MAX_COLOURS 200
 
 int ColoursPanel::UpdateButtons()
 {
@@ -34,8 +35,8 @@ int ColoursPanel::UpdateButtons()
     auto existing = ScrolledWindow1->GetChildren();
     for (const auto& c : _colours)
     {
-        // dont add more than 200 colours
-        if (added < 200)
+        // dont add more than MAX_COLOURS colours
+        if (added < MAX_COLOURS)
         {
             bool found = false;
             for (const auto& it : existing)
@@ -267,20 +268,21 @@ void ColoursPanel::UpdateColourButtons(bool reload, xLightsFrame* xlights) {
 
     if (xlights != nullptr)
     {
+        if (xlights->GetColorPanel() != nullptr)
+        {
+            ParsePalette(xlights->GetColorPanel()->GetColorString(true));
+        }
+
         if (xlights->CurrentSeqXmlFile != nullptr)
         {
-            for (auto n = xlights->CurrentSeqXmlFile->GetPalettesNode()->GetChildren(); n != nullptr; n = n->GetNext())
+            // we can bale early if we already have enough colours ... this helps in sequences with a crazy large number of colours
+            for (auto n = xlights->CurrentSeqXmlFile->GetPalettesNode()->GetChildren(); n != nullptr && _colours.size() < MAX_COLOURS; n = n->GetNext())
             {
                 if (n->GetName() == "ColorPalette" && n->GetChildren() != nullptr)
                 {
                     ParsePalette(n->GetChildren()->GetContent());
                 }
             }
-        }
-
-        if (xlights->GetColorPanel() != nullptr)
-        {
-            ParsePalette(xlights->GetColorPanel()->GetColorString(true));
         }
     }
 
