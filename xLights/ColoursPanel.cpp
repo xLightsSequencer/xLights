@@ -194,6 +194,8 @@ void ColoursPanel::UpdateColourButtons(bool reload, xLightsFrame* xlights) {
         for (const auto& it : existing) {
             DragColoursBitmapButton* button = dynamic_cast<DragColoursBitmapButton*>(it);
             if (button) {
+                GridSizer1->Detach(button);
+                ScrolledWindow1->RemoveChild(button);
                 delete button;
             }
         }

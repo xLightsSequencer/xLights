@@ -2,6 +2,7 @@
 <wxsmith>
 	<object class="wxFrame" name="xScheduleFrame">
 		<title>xSchedule</title>
+		<handler function="OnClose" entry="EVT_CLOSE" />
 		<handler function="OnResize" entry="EVT_SIZE" />
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="yes">
 			<cols>1</cols>

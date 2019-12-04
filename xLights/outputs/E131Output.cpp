@@ -377,9 +377,9 @@ void E131Output::Close()
 {
     if (IsOutputCollection())
     {
-        for (auto it = _outputs.begin(); it != _outputs.end(); ++it)
+        for (const auto& it : _outputs)
         {
-            (*it)->Close();
+            it->Close();
         }
     }
     else

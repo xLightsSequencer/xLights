@@ -70,6 +70,9 @@ public:
         n.Replace("@", "", true);
         n.Replace("/", "", true);
         n.Replace("\\", "", true);
+        n.Replace("\t", "", true);
+        n.Replace("\r", "", true);
+        n.Replace("\n", "", true);
         // Other characters I could remove
         // $%^*()?|][{}`.
         return n.ToStdString();

@@ -979,9 +979,9 @@ void OutputManager::StopOutput()
 
     _outputting = false;
 
-    for (auto it = _outputs.begin(); it != _outputs.end(); ++it)
+    for (const auto& it : _outputs)
     {
-        (*it)->Close();
+        it->Close();
     }
 
     SetGlobalOutputtingFlag(false);

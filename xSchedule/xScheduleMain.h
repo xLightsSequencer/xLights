@@ -203,6 +203,7 @@ public:
         void OnMenuItem_ModeFPPMulticastMasterSelected(wxCommandEvent& event);
         void OnMenuItem_ModeFPPUnicastCSVMasterSelected(wxCommandEvent& event);
         void OnMenuItem_ModeFPPCSVRemoteSelected(wxCommandEvent& event);
+        void OnClose(wxCloseEvent& event);
         //*)
 
         bool IsPlayList(wxTreeItemId id) const;

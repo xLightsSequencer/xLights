@@ -677,6 +677,7 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     Connect(idMenuAbout,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnAbout);
     Connect(ID_TIMER1,wxEVT_TIMER,(wxObjectEventFunction)&xScheduleFrame::On_timerTrigger);
     Connect(ID_TIMER2,wxEVT_TIMER,(wxObjectEventFunction)&xScheduleFrame::On_timerScheduleTrigger);
+    Connect(wxID_ANY,wxEVT_CLOSE_WINDOW,(wxObjectEventFunction)&xScheduleFrame::OnClose);
     Connect(wxEVT_SIZE,(wxObjectEventFunction)&xScheduleFrame::OnResize);
     //*)
 
@@ -801,7 +802,7 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
 
     if (__schedule == nullptr)
     {
-        logger_base.error("Error loading schedule.");
+        logger_base.error("Error loading schedule. Closing xSchedule.");
         Close();
     }
 
@@ -1018,6 +1019,9 @@ void xScheduleFrame::AddIPs()
 
 xScheduleFrame::~xScheduleFrame()
 {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("xScheduleFrame destructor start.");
+
     // stop the timers immediately
     _timer.Stop();
     _timerSchedule.Stop();
@@ -1068,10 +1072,15 @@ xScheduleFrame::~xScheduleFrame()
     {
         fclose(_f);
     }
+
+    logger_base.debug("xScheduleFrame destructor end.");
 }
 
 void xScheduleFrame::OnQuit(wxCommandEvent& event)
 {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("OnQuit called.");
+
     if (__schedule->IsDirty())
     {
         if (wxMessageBox("Unsaved changes to the schedule. Save now?", "Unsaved changes", wxYES_NO) == wxYES)
@@ -3552,4 +3561,11 @@ void xScheduleFrame::OnMenuItem_ModeFPPUnicastCSVMasterSelected(wxCommandEvent& 
 void xScheduleFrame::OnMenuItem_ModeFPPCSVRemoteSelected(wxCommandEvent& event)
 {
     UIToMode();
+}
+
+void xScheduleFrame::OnClose(wxCloseEvent& event)
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("xSchedule frame close.");
+    Destroy();
 }

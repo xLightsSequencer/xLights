@@ -102,10 +102,11 @@ void ValueCurvesPanel::UpdateValueCurveButtons(bool reload) {
         {
             DragValueCurveBitmapButton* button = dynamic_cast<DragValueCurveBitmapButton*>(it);
             if (button) {
-                GridSizer1->Detach(it);
+                GridSizer1->Detach(button);
+                ScrolledWindow1->RemoveChild(button);
+                delete button;
             }
         }
-        ScrolledWindow1->DestroyChildren();
     }
 
     int added = 0;
