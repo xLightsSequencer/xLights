@@ -868,6 +868,7 @@ bool VideoReader::readFrame(int timestampMS) {
                                     hr = device->EndScene();
                                 }
                             }
+                            device->Release();
                         }
                     }
 

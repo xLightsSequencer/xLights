@@ -45,6 +45,7 @@
     #pragma comment(lib, "wxmsw31ud_qa.lib")
     #pragma comment(lib, "wxexpatd.lib")
     #pragma comment(lib, "log4cpplibd.lib")
+    //#pragma comment(lib, "log4cppd.lib")
     #pragma comment(lib, "portmidid.lib")
     #pragma comment(lib, "msvcprtd.lib")
     #pragma comment(lib, "libzstdd_static_VS.lib")
@@ -63,6 +64,7 @@
     #pragma comment(lib, "wxexpat.lib")
     #pragma comment(lib, "libzstd_static_VS.lib")
     #pragma comment(lib, "log4cpplib.lib")
+    //#pragma comment(lib, "log4cpp.lib")
     #pragma comment(lib, "portmidi.lib")
     #pragma comment(lib, "msvcprt.lib")
 #endif

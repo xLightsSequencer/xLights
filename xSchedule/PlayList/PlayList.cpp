@@ -1575,37 +1575,53 @@ PlayListStep* PlayList::GetStepContainingPlayListItem(wxUint32 id)
 
 std::string PlayList::GetNextScheduledTime()
 {
-    wxDateTime nextdt = wxDateTime(static_cast<time_t>(0));
+    //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    //logger_base.debug("Getting next scheduled time for playlist.");
+    const wxDateTime nullDate = wxDateTime(static_cast<time_t>(0));
+    wxDateTime nextdt = nullDate;
 
     {
         ReentrancyCounter rec(_reentrancyCounter);
-        for (auto& it : _schedules)
+        for (const auto& it : _schedules)
         {
             wxDateTime dt = it->GetNextTriggerDateTime();
+            //logger_base.debug("   Is it " + dt.Format("%Y-%m-%d %H:%M").ToStdString());
 
-            if (dt != wxDateTime(static_cast<time_t>(0)))
+            if (dt != nullDate)
             {
-                if (nextdt == wxDateTime(static_cast<time_t>(0)))
+                if (nextdt == nullDate)
                 {
+                    //logger_base.debug("      This is the first date we found so we will take it.");
                     nextdt = dt;
                 }
                 else
                 {
                     if (dt < nextdt)
                     {
+                        //logger_base.debug("      It is earlier so this is our best candidate so far.");
                         nextdt = dt;
+                    }
+                    else
+                    {
+                        //logger_base.debug("      Date is NOT a better candidate.");
                     }
                 }
             }
+            //else
+            //{
+                //logger_base.debug("      Date is invalid.");
+            //}
         }
     }
 
-    if (nextdt == wxDateTime(static_cast<time_t>(0)))
+    if (nextdt == nullDate)
     {
+        //logger_base.debug("No good date found.");
         return "";
     }
     else
     {
+        //logger_base.debug("Our earliest date was " + nextdt.Format("%Y-%m-%d %H:%M").ToStdString());
         return nextdt.Format("%Y-%m-%d %H:%M").ToStdString();
     }
 }

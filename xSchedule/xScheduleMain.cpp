@@ -1492,10 +1492,10 @@ void xScheduleFrame::On_timerTrigger(wxTimerEvent& event)
     long long now = wxGetLocalTimeMillis().GetValue();
     int elapsed = (int)(now - lastms);
 
-    if (elapsed < _timer.GetInterval() - 2)
+    if (elapsed < _timer.GetInterval() / 2)
     {
         // this is premature ... maybe it is a backed up timer event ... lets skip it
-        logger_frame.warn("Timer: Frame event fire interval %dms less than frame time %d - 2ms", elapsed, _timer.GetInterval());
+        logger_frame.warn("Timer: Frame event fire interval %dms less than 1/4 frame time %dms", elapsed, _timer.GetInterval() / 2);
         return;
     }
 

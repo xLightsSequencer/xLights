@@ -236,6 +236,7 @@ public:
 	void Seek(long pos) const;
 	void Pause();
 	void Play();
+    bool IsPlaying() const;
     void Play(long posms, long lenms);
     void Stop();
     void AbsoluteStop();

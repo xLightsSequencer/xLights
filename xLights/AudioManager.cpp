@@ -53,6 +53,8 @@ int AudioData::__nextId = 0;
 #define CODEC_FLAG_GLOBAL_HEADER AV_CODEC_FLAG_GLOBAL_HEADER
 #endif
 
+#define PCMFUDGE 16384
+
 void fill_audio(void *udata, Uint8 *stream, int len)
 {
     //SDL 2.0
@@ -986,6 +988,11 @@ void AudioManager::Play(long posms, long lenms)
     __sdl.Play();
     __sdl.Pause(_sdlid, false);
     _media_state = MEDIAPLAYINGSTATE::PLAYING;
+}
+
+bool AudioManager::IsPlaying() const
+{
+    return _media_state == MEDIAPLAYINGSTATE::PLAYING;
 }
 
 void AudioManager::Play()
@@ -2229,10 +2236,11 @@ void AudioManager::LoadTrackData(AVFormatContext* formatContext, AVCodecContext*
     }
 
     _pcmdatasize = _trackSize * out_channels * 2;
-    _pcmdata = (Uint8*)malloc(_pcmdatasize + 16384); // 16384 is a fudge because some ogg files dont read consistently
+    _pcmdata = (Uint8*)malloc(_pcmdatasize + PCMFUDGE); // PCMFUDGE is a fudge because some ogg files dont read consistently
     if (_pcmdata == nullptr)
     {
-        logger_base.error("Error allocating memory for pcm data: %ld", (long)_pcmdatasize + 16384);
+        _pcmdatasize = 0;
+        logger_base.error("Error allocating memory for pcm data: %ld", (long)_pcmdatasize + PCMFUDGE);
         _ok = false;
         av_frame_free(&frame);
         return;
@@ -2349,7 +2357,8 @@ void AudioManager::DoLoadAudioData(AVFormatContext* formatContext, AVCodecContex
 					}
 
 					// copy the PCM data into the PCM buffer for playing
-					memcpy(_pcmdata + (read * out_channels * 2), out_buffer, outSamples * out_channels * 2);
+                    wxASSERT(_pcmdatasize + PCMFUDGE > read* out_channels * sizeof(uint16_t) + outSamples * out_channels * sizeof(uint16_t));
+					memcpy(_pcmdata + (read * out_channels * sizeof(uint16_t)), out_buffer, outSamples * out_channels * sizeof(uint16_t));
 
 					for (int i = 0; i < outSamples; i++)
 					{
@@ -2366,7 +2375,7 @@ void AudioManager::DoLoadAudioData(AVFormatContext* formatContext, AVCodecContex
                     int progress = read * 100 / _trackSize;
                     if (progress >= lastpct + 10)
                     {
-                        logger_base.debug("DoLoadAudioData: Progress %d%%", progress);
+                        //logger_base.debug("DoLoadAudioData: Progress %d%%", progress);
                         lastpct = progress / 10 * 10;
                     }
 				}
@@ -2385,7 +2394,6 @@ void AudioManager::DoLoadAudioData(AVFormatContext* formatContext, AVCodecContex
 	// is set, there can be buffered up frames that need to be flushed, so we'll do that
 	if (codecContext->codec != nullptr && codecContext->codec->capabilities & CODEC_CAP_DELAY)
 	{
-        logger_base.debug("DoLoadAudioData: Cleanup buffered data.");
 		// Decode all the remaining frames in the buffer, until the end is reached
 		int gotFrame = 1;
 		while (gotFrame)
@@ -2435,7 +2443,8 @@ void AudioManager::DoLoadAudioData(AVFormatContext* formatContext, AVCodecContex
                 }
 
                 // copy the PCM data into the PCM buffer for playing
-				memcpy(_pcmdata + (read * out_channels * 2), out_buffer, outSamples * out_channels * 2);
+                wxASSERT(_pcmdatasize + PCMFUDGE > read * out_channels * sizeof(uint16_t) + outSamples * out_channels * sizeof(uint16_t));
+                memcpy(_pcmdata + (read * out_channels * sizeof(uint16_t)), out_buffer, outSamples * out_channels * sizeof(uint16_t));
 
 				for (int i = 0; i < outSamples; i++)
 				{
@@ -2452,7 +2461,7 @@ void AudioManager::DoLoadAudioData(AVFormatContext* formatContext, AVCodecContex
                 int progress = read * 100 / _trackSize;
                 if (progress >= lastpct + 10)
                 {
-                    logger_base.debug("DoLoadAudioData: Progress %d%%", progress);
+                    //logger_base.debug("DoLoadAudioData: Progress %d%%", progress);
                     lastpct = progress / 10 * 10;
                 }
             }
@@ -2468,7 +2477,6 @@ void AudioManager::DoLoadAudioData(AVFormatContext* formatContext, AVCodecContex
     wxASSERT(_trackSize == _loadedData);
 
 	// Clean up!
-    logger_base.debug("DoLoadAudioData: Cleaning up");
     swr_free(&au_convert_ctx);
 	av_free(out_buffer);
 	av_frame_free(&frame);
@@ -2632,6 +2640,13 @@ void AudioManager::SwitchTo(AUDIOSAMPLETYPE type, int lowNote, int highNote) {
         wxMilliSleep(50);
     }
     
+    // Cant be playing when switching
+    bool wasPlaying = IsPlaying();
+    if (wasPlaying)
+    {
+        Pause();
+    }
+
     static const double pi2 = 6.283185307;
     if (type == AUDIOSAMPLETYPE::BASS) {
         lowNote = 48;
@@ -2651,8 +2666,8 @@ void AudioManager::SwitchTo(AUDIOSAMPLETYPE type, int lowNote, int highNote) {
         //save original pcm
         FilteredAudioData *fad = new FilteredAudioData();
         fad->data = nullptr;
-        fad->pcmdata = (int16_t*)malloc(_trackSize * _channels * sizeof(uint16_t));
-        memcpy(fad->pcmdata, _pcmdata, _trackSize * _channels * sizeof(uint16_t));
+        fad->pcmdata = (int16_t*)malloc(_pcmdatasize + PCMFUDGE);
+        memcpy(fad->pcmdata, _pcmdata, _pcmdatasize + PCMFUDGE);
         fad->lowNote = 0;
         fad->highNote = 0;
         fad->type = AUDIOSAMPLETYPE::RAW;
@@ -2672,7 +2687,7 @@ void AudioManager::SwitchTo(AUDIOSAMPLETYPE type, int lowNote, int highNote) {
             if (fad == nullptr)  {
                 fad = new FilteredAudioData();
                 fad->data = (float*)malloc(sizeof(float) * _trackSize);
-                fad->pcmdata = (int16_t*)malloc(_trackSize * _channels * sizeof(uint16_t));
+                fad->pcmdata = (int16_t*)malloc(_pcmdatasize + PCMFUDGE);
                 
                 for (int i = 0; i < _trackSize; ++i) {
                     float v = _data[0][i];
@@ -2725,7 +2740,7 @@ void AudioManager::SwitchTo(AUDIOSAMPLETYPE type, int lowNote, int highNote) {
             fad = new FilteredAudioData();
 
             fad->data = (float*)malloc(sizeof(float) * _trackSize);
-            fad->pcmdata = (int16_t*)malloc(_trackSize * _channels * sizeof(uint16_t));
+            fad->pcmdata = (int16_t*)malloc(_pcmdatasize + PCMFUDGE);
 
             //Normalize f_c and w_c so that pi is equal to the Nyquist angular frequency
             float f1_c = lowHz / _rate;
@@ -2782,8 +2797,13 @@ void AudioManager::SwitchTo(AUDIOSAMPLETYPE type, int lowNote, int highNote) {
     break;
     }
 
-    if (fad && fad->pcmdata) {
-        memcpy(_pcmdata, fad->pcmdata, _trackSize * _channels * sizeof(uint16_t));
+    if (fad && _pcmdata && fad->pcmdata) {
+        memcpy(_pcmdata, fad->pcmdata, _pcmdatasize + PCMFUDGE);
+    }
+
+    if (wasPlaying)
+    {
+        Play();
     }
 }
 
