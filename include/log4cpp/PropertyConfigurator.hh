@@ -45,6 +45,12 @@ namespace log4cpp {
     **/
     class LOG4CPP_EXPORT PropertyConfigurator {
         public:
+        /**
+         *
+         * @param initFileName
+         * @exception ConfigureFailure if the method encountered a read or
+         * syntax error.
+         */
         static void configure(const std::string& initFileName);
     };
 }

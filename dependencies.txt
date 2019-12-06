@@ -15,8 +15,8 @@ Library:     log4cpp
 Usage:       Logging
 Link:        http://log4cpp.sourceforge.net/
 Source:      https://sourceforge.net/p/log4cpp/codegit/ci/master/tree/
-Last Pulled: ?
-Version:     ?
+Last Pulled: July 13 2017
+Version:     1.1.3
 License:     LGPL
 Strategy:    Windows: Selected header files are included in the xLights repository along with precompiled libraries and DLLs.
 
