@@ -1,167 +1,185 @@
-/*
- * Copyright 2002, LifeLine Networks BV (www.lifeline.nl). All rights reserved.
- * Copyright 2002, Bastiaan Bakker. All rights reserved.
- *
- * See the COPYING file for the terms of usage and distribution.
- */
-
-#ifndef _INCLUDE_LOG4CPP_CONFIG_WIN32_H
-#define _INCLUDE_LOG4CPP_CONFIG_WIN32_H 1
+#ifndef _INCLUDE_LOG4CPP_CONFIG_H
+#define _INCLUDE_LOG4CPP_CONFIG_H 1
  
-/* manually edited from include/log4cpp/config.h */
+/* include/log4cpp/config.h. Generated automatically at end of configure. */
+/* include/config.h.  Generated from config.h.in by configure.  */
+/* include/config.h.in.  Generated from configure.in by autoheader.  */
 
-/* Define if you have the syslog function.  */
-/* #undef LOG4CPP_HAVE_SYSLOG */
+/* define if RemoteSyslogAppender is disabled */
+/* #undef LOG4CPP_DISABLE_REMOTE_SYSLOG */
 
-/* Define if you have the `ftime' function. */
+/* define if SmtpAppender is disabled */
+/* #undef LOG4CPP_DISABLE_SMTP */
+
+/* Define to 1 if you have the <dlfcn.h> header file. */
+#ifndef LOG4CPP_HAVE_DLFCN_H 
+#define LOG4CPP_HAVE_DLFCN_H  1 
+#endif
+
+/* Define to 1 if you have the `ftime' function. */
 #ifndef LOG4CPP_HAVE_FTIME 
 #define LOG4CPP_HAVE_FTIME  1 
 #endif
 
-/* Define if you have the `gettimeofday' function. */
-/* #undef LOG4CPP_HAVE_GETTIMEOFDAY */ 
+/* Define to 1 if you have the `gettimeofday' function. */
+#ifndef LOG4CPP_HAVE_GETTIMEOFDAY 
+#define LOG4CPP_HAVE_GETTIMEOFDAY  1 
+#endif
 
 /* define if the compiler has int64_t */
 #ifndef LOG4CPP_HAVE_INT64_T 
-#define LOG4CPP_HAVE_INT64_T
-typedef __int64 int64_t;
-
-/* define if the compiler has in_addr_t */
-#ifndef LOG4CPP_HAVE_IN_ADDR_T 
-#define LOG4CPP_HAVE_IN_ADDR_T
-
-#ifndef u_long 
-typedef unsigned long u_long;
+#define LOG4CPP_HAVE_INT64_T  /**/ 
 #endif
 
-/* u_long is the type of in_addr.s_addr */
-typedef u_long in_addr_t;
-
-/* u_short is the type of sockaddr_in.sin_port */
-// typedef u_short		in_port_t;
-
+/* Define to 1 if you have the <inttypes.h> header file. */
+#ifndef LOG4CPP_HAVE_INTTYPES_H 
+#define LOG4CPP_HAVE_INTTYPES_H  1 
 #endif
 
-#if defined(_MSC_VER) && _MSC_VER < 1300
-#define LOG4CPP_MISSING_INT64_OSTREAM_OP   
-#endif
+/* Define to 1 if you have the <io.h> header file. */
+/* #undef LOG4CPP_HAVE_IO_H */
 
-#endif
-
-/* Define if you have the <io.h> header file.  */
-#ifndef LOG4CPP_HAVE_IO_H
-#define LOG4CPP_HAVE_IO_H 1
-#endif
-
-/* Define if you have the <unistd.h> header file.  */
-/* #undef LOG4CPP_HAVE_UNISTD_H */
-
-/* Define if you have the idsa library (-lidsa).  */
+/* Define to 1 if you have the `idsa' library (-lidsa). */
 /* #undef LOG4CPP_HAVE_LIBIDSA */
 
-/* Define if you have the `strcasecmp' function. */
-/* #undef LOG4CPP_HAVE_STRCASECMP */
-
-/* Name of package */
-#ifndef LOG4CPP_PACKAGE
-#define LOG4CPP_PACKAGE  "log4cpp"
+/* Define to 1 if you have the `localtime_r' function. */
+#ifndef LOG4CPP_HAVE_LOCALTIME_R 
+#define LOG4CPP_HAVE_LOCALTIME_R  1 
 #endif
 
-/* Version number of package */
-#ifndef LOG4CPP_VERSION
-#define LOG4CPP_VERSION  "1.0"
+/* Define to 1 if you have the <memory.h> header file. */
+#ifndef LOG4CPP_HAVE_MEMORY_H 
+#define LOG4CPP_HAVE_MEMORY_H  1 
 #endif
 
 /* define if the compiler implements namespaces */
-#ifndef LOG4CPP_HAVE_NAMESPACES
-#define LOG4CPP_HAVE_NAMESPACES 1
+#ifndef LOG4CPP_HAVE_NAMESPACES 
+#define LOG4CPP_HAVE_NAMESPACES  /**/ 
 #endif
 
-/* define if the compiler has stringstream */
-#ifndef LOG4CPP_HAVE_SSTREAM
-#define LOG4CPP_HAVE_SSTREAM 1
-#endif
-
-#if defined(_MSC_VER)
-#    if _MSC_VER < 1300
-#       define LOG4CPP_HAS_WCHAR_T 0
-#    else
-#       define LOG4CPP_HAS_WCHAR_T 1
-#    endif
-#else
-#   define LOG4CPP_HAS_WCHAR_T 1
+/* Define if you have POSIX threads libraries and header files. */
+#ifndef LOG4CPP_HAVE_PTHREAD 
+#define LOG4CPP_HAVE_PTHREAD  1 
 #endif
 
 /* define if the C library has snprintf */
-#ifndef LOG4CPP_HAVE_SNPRINTF
-#define LOG4CPP_HAVE_SNPRINTF 1
+#ifndef LOG4CPP_HAVE_SNPRINTF 
+#define LOG4CPP_HAVE_SNPRINTF  /**/ 
 #endif
 
-#if defined(_MSC_VER) && _MSC_VER >= 1300
-#define LOG4CPP_HAVE_LOCALTIME_R 1
+/* define if the compiler has stringstream */
+#ifndef LOG4CPP_HAVE_SSTREAM 
+#define LOG4CPP_HAVE_SSTREAM  /**/ 
 #endif
 
-/* define to get around problems with ERROR in windows.h */
+/* define if you have the <stdint.h> header file. */
+#ifndef LOG4CPP_HAVE_STDINT_H 
+#define LOG4CPP_HAVE_STDINT_H  /**/ 
+#endif
+
+/* Define to 1 if you have the <stdlib.h> header file. */
+#ifndef LOG4CPP_HAVE_STDLIB_H 
+#define LOG4CPP_HAVE_STDLIB_H  1 
+#endif
+
+/* Define to 1 if you have the <strings.h> header file. */
+#ifndef LOG4CPP_HAVE_STRINGS_H 
+#define LOG4CPP_HAVE_STRINGS_H  1 
+#endif
+
+/* Define to 1 if you have the <string.h> header file. */
+#ifndef LOG4CPP_HAVE_STRING_H 
+#define LOG4CPP_HAVE_STRING_H  1 
+#endif
+
+/* Define to 1 if you have the `syslog' function. */
+#ifndef LOG4CPP_HAVE_SYSLOG 
+#define LOG4CPP_HAVE_SYSLOG  1 
+#endif
+
+/* Define to 1 if you have the <sys/stat.h> header file. */
+#ifndef LOG4CPP_HAVE_SYS_STAT_H 
+#define LOG4CPP_HAVE_SYS_STAT_H  1 
+#endif
+
+/* Define to 1 if you have the <sys/types.h> header file. */
+#ifndef LOG4CPP_HAVE_SYS_TYPES_H 
+#define LOG4CPP_HAVE_SYS_TYPES_H  1 
+#endif
+
+/* define if threading is enabled */
+#ifndef LOG4CPP_HAVE_THREADING 
+#define LOG4CPP_HAVE_THREADING  1 
+#endif
+
+/* Define to 1 if you have the <unistd.h> header file. */
+#ifndef LOG4CPP_HAVE_UNISTD_H 
+#define LOG4CPP_HAVE_UNISTD_H  1 
+#endif
+
+/* Define to the sub-directory in which libtool stores uninstalled libraries.
+   */
+#ifndef LOG4CPP_LT_OBJDIR 
+#define LOG4CPP_LT_OBJDIR  ".libs/" 
+#endif
+
+/* Name of package */
+#ifndef LOG4CPP_PACKAGE 
+#define LOG4CPP_PACKAGE  "log4cpp" 
+#endif
+
+/* Define to the address where bug reports for this package should be sent. */
+#ifndef LOG4CPP_PACKAGE_BUGREPORT 
+#define LOG4CPP_PACKAGE_BUGREPORT  "" 
+#endif
+
+/* Define to the full name of this package. */
+#ifndef LOG4CPP_PACKAGE_NAME 
+#define LOG4CPP_PACKAGE_NAME  "log4cpp" 
+#endif
+
+/* Define to the full name and version of this package. */
+#ifndef LOG4CPP_PACKAGE_STRING 
+#define LOG4CPP_PACKAGE_STRING  "log4cpp 1.1" 
+#endif
+
+/* Define to the one symbol short name of this package. */
+#ifndef LOG4CPP_PACKAGE_TARNAME 
+#define LOG4CPP_PACKAGE_TARNAME  "log4cpp" 
+#endif
+
+/* Define to the home page for this package. */
+#ifndef LOG4CPP_PACKAGE_URL 
+#define LOG4CPP_PACKAGE_URL  "" 
+#endif
+
+/* Define to the version of this package. */
+#ifndef LOG4CPP_PACKAGE_VERSION 
+#define LOG4CPP_PACKAGE_VERSION  "1.1" 
+#endif
+
+/* Define to necessary symbol if this constant uses a non-standard name on
+   your system. */
+/* #undef LOG4CPP_PTHREAD_CREATE_JOINABLE */
+
+/* Define to 1 if you have the ANSI C header files. */
+#ifndef LOG4CPP_STDC_HEADERS 
+#define LOG4CPP_STDC_HEADERS  1 
+#endif
+
+/* define if pthread library is available */
+#ifndef LOG4CPP_USE_PTHREADS 
+#define LOG4CPP_USE_PTHREADS  1 
+#endif
+
+/* Version number of package */
+#ifndef LOG4CPP_VERSION 
+#define LOG4CPP_VERSION  "1.1" 
+#endif
+
 #ifndef LOG4CPP_FIX_ERROR_COLLISION
 #define LOG4CPP_FIX_ERROR_COLLISION 1
 #endif
 
-/* define WIN32 for Borland */
-#ifndef WIN32
-#define WIN32
-#endif
-
-/* use threads */
-#ifndef LOG4CPP_HAVE_THREADING
-#define LOG4CPP_HAVE_THREADING
-#endif
-
-/* use ms threads */
-#ifndef LOG4CPP_USE_MSTHREADS
-#define LOG4CPP_USE_MSTHREADS
-#endif
-
-/* supply DLL main */
-#ifndef LOG4CPP_SUPPLY_DLLMAIN
-#define LOG4CPP_SUPPLY_DLLMAIN
-#endif
-
-/* MSVCs <cstdlib> and <cstring> headers are broken in the sense that they
-   put functions in the global namespace instead of std::
-   The #defines below enable a workaround for MSVC 6 and lower. If MSVC 7
-   is still broken please adjust the _MSC_VER version check and report it.
-   See also bug report #628211.
-*/
-#if defined(_MSC_VER) && _MSC_VER < 1300
-
-#ifndef LOG4CPP_CSTDLIB_NOT_IN_STD
-#define LOG4CPP_CSTDLIB_NOT_IN_STD
-#endif
-
-#ifndef LOG4CPP_CSTRING_NOT_IN_STD
-#define LOG4CPP_CSTRING_NOT_IN_STD
-#endif
-
-#ifndef LOG4CPP_CTIME_NOT_IN_STD
-#define LOG4CPP_CTIME_NOT_IN_STD
-#endif
-
-#ifndef LOG4CPP_CMATH_NOT_IN_STD
-#define LOG4CPP_CMATH_NOT_IN_STD
-#endif
-
-#endif
-
-/* define mode_t. Move to Portability.hh if more platforms need it */
-#if !defined(__BORLANDC__)
-typedef int mode_t;
-#endif
-
-#if defined(_MSC_VER) && _MSC_VER == 1310
-// warning C4275: interface non dll class 'std::runtime_error' utilisée comme base 
-// d'une interface dll class 'log4cpp::ConfigureFailure'
-#pragma warning(disable: 4275)
-#endif
-
-/* _INCLUDE_LOG4CPP_CONFIG_WIN32_H */
+/* _INCLUDE_LOG4CPP_CONFIG_H */
 #endif
