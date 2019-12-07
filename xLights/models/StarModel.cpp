@@ -282,12 +282,12 @@ void StarModel::AddTypeProperties(wxPropertyGridInterface *grid) {
     if (SingleNode) {
         p = grid->Append(new wxUIntProperty("Lights/String", "StarLightCount", parm2));
         p->SetAttribute("Min", 1);
-        p->SetAttribute("Max", 640);
+        p->SetAttribute("Max", 10000);
         p->SetEditor("SpinCtrl");
     } else {
         p = grid->Append(new wxUIntProperty("Nodes/String", "StarLightCount", parm2));
         p->SetAttribute("Min", 1);
-        p->SetAttribute("Max", 640);
+        p->SetAttribute("Max", 10000);
         p->SetEditor("SpinCtrl");
     }
 
