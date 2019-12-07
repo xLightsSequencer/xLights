@@ -11,6 +11,12 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2019.69 December 7 2019
+   -- enh (dkulp)  Increase SUP import time offset range
+   -- bug (keith)  Fix xSchedule web displays incorrect next play time
+   -- bug (keith)  Attempt to minimise log file rolling crash
+   -- bug (keith)  Fix every step playlist items dont always play if they are delayed
+   -- bug (keith)  Fix windows hardware video decoder memory leak
 2019.68 December 3 2019
    -- enh (scott)  Added AlphaPix 16 and AlphaPix Flex Controller Upload Support.
    -- enh (dkulp)  Adjust fseq compression depending on Pi model
