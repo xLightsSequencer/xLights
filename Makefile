@@ -18,7 +18,7 @@ SUBDIRS         = xLights xSchedule xCapture xFade xSchedule/xSMSDaemon
 
 .NOTPARALLEL:
 
-all: wxwidgets31 cbp2make linkliquid makefile subdirs
+all: wxwidgets31 log4cpp cbp2make linkliquid makefile subdirs
 
 #############################################################################
 
@@ -34,12 +34,28 @@ linkliquid:
 	@printf "Linking libliquid\n"
 	@if test ! -e lib/linux/libliquidfun.a; \
 		then if test "${DEB_HOST_ARCH}" = "i386"; \
-            then ln -s libliquidfun.a.i686 lib/linux/libliquidfun.a; \
-            elif test "${DEB_HOST_ARCH}" = "amd64"; \
-            then ln -s libliquidfun.a.x86_64 lib/linux/libliquidfun.a; \
-            else ln -s libliquidfun.a.`uname -m` lib/linux/libliquidfun.a; \
-        fi; \
+    		then ln -s libliquidfun.a.i686 lib/linux/libliquidfun.a; \
+			elif test "${DEB_HOST_ARCH}" = "amd64"; \
+			then ln -s libliquidfun.a.x86_64 lib/linux/libliquidfun.a; \
+			else ln -s libliquidfun.a.`uname -m` lib/linux/libliquidfun.a; \
+		fi; \
 	fi
+
+log4cpp: FORCE
+	@printf "Checking log4cpp\n"
+	@if test "`log4cpp-config --version`" != "1.1"; \
+		then if test ! -d log4cpp; \
+			then echo Downloading log4cpp; wget --no-verbose -c https://nchc.dl.sourceforge.net/project/log4cpp/log4cpp-1.1.x%20%28new%29/log4cpp-1.1/log4cpp-1.1.3.tar.gz; \
+			tar xfz log4cpp-1.1.3.tar.gz ;\
+		fi; \
+		cd log4cpp; \
+		./configure --prefix=$(PREFIX); \
+		echo Building log4cpp; \
+		${MAKE} -s; \
+		echo Installing log4cpp; \
+		`which sudo` ${MAKE} install DESTDIR=$(DESTDIR); \
+		echo Completed build/install of log4cpp; \
+		fi
 
 wxwidgets31: FORCE
 	@printf "Checking wxwidgets\n"
