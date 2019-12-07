@@ -60,7 +60,6 @@ Instructions for other Linux distributions will vary.
      libavformat-dev
      libswscale-dev
      libsdl2-dev
-     liblog4cpp5-dev
      libportmidi-dev
      libzstd-dev
      libcurl4-openssl-dev
@@ -68,12 +67,12 @@ Instructions for other Linux distributions will vary.
 
      Example command to install packages on Ubuntu
 
-     sudo apt-get install build-essential libgtk2.0-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev freeglut3-dev libmpg123-dev libavcodec-dev libavformat-dev libswscale-dev libsdl2-dev liblog4cpp5-dev libportmidi-dev libzstd-dev libcurl4-openssl-dev cbp2make
+     sudo apt-get install build-essential libgtk2.0-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev freeglut3-dev libmpg123-dev libavcodec-dev libavformat-dev libswscale-dev libsdl2-dev libportmidi-dev libzstd-dev libcurl4-openssl-dev cbp2make
 
      Example commands to install packages on Fedora 31
 
      sudo dnf install https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm https://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm
-     sudo dnf install gcc-c++ gtk2-devel gstreamer1-devel gstreamer1-plugins-base-devel freeglut-devel gstreamer1-plugins-bad-free-devel ffmpeg-devel SDL2-devel log4cpp-devel portmidi-devel libzstd-devel curl-devel
+     sudo dnf install gcc-c++ gtk2-devel gstreamer1-devel gstreamer1-plugins-base-devel freeglut-devel gstreamer1-plugins-bad-free-devel ffmpeg-devel SDL2-devel portmidi-devel libzstd-devel curl-devel
 
 
   b) Get the xLights source code by opening a terminal window and
