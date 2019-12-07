@@ -228,6 +228,44 @@ void InitialiseLogging(bool fromMain)
             try
             {
                 log4cpp::PropertyConfigurator::configure(initFileName);
+                static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+                wxDateTime now = wxDateTime::Now();
+                int millis = wxGetUTCTimeMillis().GetLo() % 1000;
+                wxString ts = wxString::Format("%04d-%02d-%02d_%02d-%02d-%02d-%03d", now.GetYear(), now.GetMonth(), now.GetDay(), now.GetHour(), now.GetMinute(), now.GetSecond(), millis);
+                logger_base.info("Start Time: %s.", (const char*)ts.c_str());
+
+                logger_base.info("Current Working Directory: " + wxGetCwd());
+                logger_base.info("Log4cpp config read from %s.", (const char*)initFileName.c_str());
+
+                auto categories = log4cpp::Category::getCurrentCategories();
+                for (const auto& it : *categories)
+                {
+                    std::string apps = "";
+                    auto appenders = it->getAllAppenders();
+                    for (const auto& it2 : appenders)
+                    {
+                        if (apps != "") apps += ", ";
+                        apps += it2->getName();
+                    }
+
+                    std::string levels = "";
+                    if (it->isAlertEnabled()) levels += "ALERT ";
+                    if (it->isCritEnabled()) levels += "CRIT ";
+                    if (it->isDebugEnabled()) levels += "DEBUG ";
+                    if (it->isEmergEnabled()) levels += "EMERG ";
+                    if (it->isErrorEnabled()) levels += "ERROR ";
+                    if (it->isFatalEnabled()) levels += "FATAL ";
+                    if (it->isInfoEnabled()) levels += "INFO ";
+                    if (it->isNoticeEnabled()) levels += "NOTICE ";
+                    if (it->isWarnEnabled()) levels += "WARN ";
+
+                    logger_base.info("    %s : %s", (const char*)it->getName().c_str(), (const char*)levels.c_str());
+                    if (apps != "")
+                    {
+                        logger_base.info("         " + apps);
+                    }
+                }
             }
             catch (log4cpp::ConfigureFailure& e) {
                 // ignore config failure ... but logging wont work

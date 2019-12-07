@@ -521,22 +521,22 @@ VideoReader::~VideoReader()
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (_swsCtx != nullptr) {
-        logger_base.debug("Releasing sws Context.");
+        //logger_base.debug("Releasing sws Context.");
         sws_freeContext(_swsCtx);
         _swsCtx = nullptr;
     }
     if (_srcFrame != nullptr) {
-        logger_base.debug("Releasing srcFrame.");
+        //logger_base.debug("Releasing srcFrame.");
         av_free(_srcFrame);
         _srcFrame = nullptr;
     }
     if (_srcFrame2 != nullptr) {
-        logger_base.debug("Releasing srcFrame2.");
+        //logger_base.debug("Releasing srcFrame2.");
         av_free(_srcFrame2);
         _srcFrame2 = nullptr;
     }
     if (_dstFrame != nullptr) {
-        logger_base.debug("Releasing dstFrame.");
+        //logger_base.debug("Releasing dstFrame.");
         if (_dstFrame->data[0] != nullptr) {
             av_free(_dstFrame->data[0]);
         }
@@ -544,7 +544,7 @@ VideoReader::~VideoReader()
         _dstFrame = nullptr;
     }
     if (_dstFrame2 != nullptr) {
-        logger_base.debug("Releasing dstFrame2.");
+        //logger_base.debug("Releasing dstFrame2.");
         if (_dstFrame2->data[0] != nullptr) {
             av_free(_dstFrame2->data[0]);
         }
@@ -558,18 +558,18 @@ VideoReader::~VideoReader()
             logger_base.debug("Key frame count was adjusted from %d to %d.", _codecContext->keyint_min, _keyFrameCount);
         }
 
-        logger_base.debug("Releasing codecContext.");
+        //logger_base.debug("Releasing codecContext.");
         CleanupVideoToolbox(_codecContext);
         avcodec_close(_codecContext);
 		_codecContext = nullptr;
 	}
 	if (_formatContext != nullptr) {
-        logger_base.debug("Releasing formatContext.");
+        //logger_base.debug("Releasing formatContext.");
         avformat_close_input(&_formatContext);
 		_formatContext = nullptr;
 	}
     if (_hw_device_ctx != nullptr) {
-        logger_base.debug("Releasing hardware device context.");
+        //logger_base.debug("Releasing hardware device context.");
         av_buffer_unref(&_hw_device_ctx);
         _hw_device_ctx = nullptr;
     }
