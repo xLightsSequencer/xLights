@@ -488,10 +488,12 @@ void FPPConnectDialog::LoadSequencesFromFolder(wxString dir) const
                     if (wxFile::Exists(tmn)) {
                         mediaName = tmn;
                     } else {
-                        std::string fixedMN = FixFile(frame->CurrentDir, mediaName);
+                        const std::string fixedMN = FixFile(frame->CurrentDir, mediaName);
                         if (!wxFile::Exists(fixedMN)) {
                             logger_base.info("Could not find media: %s  OR   %s   OR   %s", mediaName.c_str(), tmn.c_str(), fixedMN.c_str());
                             mediaName = "";
+                        } else {
+                            mediaName = fixedMN;
                         }
                     }
                 }
