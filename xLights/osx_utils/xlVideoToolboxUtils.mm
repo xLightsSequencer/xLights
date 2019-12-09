@@ -216,6 +216,7 @@ bool VideoToolboxScaleImage(AVCodecContext *codecContext, AVFrame *frame, AVFram
             } else {
                 int startPosS = 0;
                 int startPosD = 0;
+                AddTraceMessage("VideoToolbox - Copying frame of size " + std::to_string(dstFrame->width * linesize) + " to RGB");
                 for (int l = 0; l < dstFrame->height; l++) {
                     uint8_t *dst = (uint8_t*)(&dstFrame->data[0][startPosD]);
                     uint8_t *src = (uint8_t*)(&data[startPosS]);
@@ -226,7 +227,7 @@ bool VideoToolboxScaleImage(AVCodecContext *codecContext, AVFrame *frame, AVFram
                     }
                     
                     startPosS += linesize;
-                    startPosD += dstFrame->width*4;
+                    startPosD += dstFrame->width*3;
                 }
             }
         }

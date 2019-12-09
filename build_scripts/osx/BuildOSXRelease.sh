@@ -12,6 +12,7 @@ VER=$1
 
 echo "Building $VER"
 echo "static const wxString xlights_version_string  = \"${VER}\";" > xLights/xlights_build_version.h
+touch xLights/xLightsVersion.h
 
 if [ -f ~/.apple-notarize-info ]; then
     #Load the stored signing info

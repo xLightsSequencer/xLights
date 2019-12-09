@@ -324,7 +324,7 @@ class xLightsImportChannelMapDialog: public wxDialog
 
     void OnBeginDrag(wxDataViewEvent& event);
     void Unmap(const wxDataViewItem& item);
-    void Map(const wxDataViewItem& item, const std::string& mapping);
+    void Map(const wxDataViewItem& item, const wxString& mapping);
     void OnKeyDown(wxKeyEvent& event);
     void SetCCROn();
     void SetCCROff();

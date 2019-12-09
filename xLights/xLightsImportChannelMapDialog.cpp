@@ -836,7 +836,7 @@ void xLightsImportChannelMapDialog::OnItemActivated(wxDataViewEvent& event)
     }
 }
 
-void xLightsImportChannelMapDialog::Map(const wxDataViewItem& item, const std::string& mapping)
+void xLightsImportChannelMapDialog::Map(const wxDataViewItem& item, const wxString& mapping)
 {
     _dirty = true;
     TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant(mapping), item, 1);

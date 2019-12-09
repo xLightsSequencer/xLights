@@ -357,6 +357,8 @@ public:
     void LoadAudioData(xLightsXmlFile& xml_file);
     void CreateDebugReport(wxDebugReportCompress *report, std::list<std::string> trc);
     wxString GetThreadStatusReport();
+    void PushTraceContext();
+    void PopTraceContext();
     void AddTraceMessage(const std::string &msg);
     void ClearTraceMessages();
 

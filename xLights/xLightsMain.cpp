@@ -2484,23 +2484,31 @@ void xLightsFrame::OnAbout(wxCommandEvent& event)
 
 void xLightsFrame::OnTimer1Trigger(wxTimerEvent& event)
 {
+    PushTraceContext();
     wxTimeSpan ts = wxDateTime::UNow() - starttime;
     long curtime = ts.GetMilliseconds().ToLong();
+    AddTraceMessage("Timer1");
     _outputManager.StartFrame(curtime);
-    switch (Notebook1->GetSelection())
-    {
-    case NEWSEQUENCER:
-        if (playAnimation) {
-            TimerRgbSeq(curtime * playSpeed);
+    AddTraceMessage("Output frame started");
+    if (Notebook1) {
+        switch (Notebook1->GetSelection())
+        {
+        case NEWSEQUENCER:
+            if (playAnimation) {
+                TimerRgbSeq(curtime * playSpeed);
+            }
+            else {
+                TimerRgbSeq(curtime);
+            }
+            break;
+        default:
+            break;
         }
-        else {
-            TimerRgbSeq(curtime);
-        }
-        break;
-    default:
-        break;
     }
+    AddTraceMessage("TimerRgbSeq called");
     _outputManager.EndFrame();
+    AddTraceMessage("Output frame complete");
+    PopTraceContext();
 }
 
 void xLightsFrame::OnBitmapButtonTabInfoClick(wxCommandEvent& event)

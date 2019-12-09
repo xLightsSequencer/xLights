@@ -466,6 +466,12 @@ void handleCrash(void *data) {
 wxString xLightsFrame::GetThreadStatusReport() {
     return jobPool.GetThreadStatus();
 }
+void xLightsFrame::PushTraceContext() {
+    TraceLog::PushTraceContext();
+}
+void xLightsFrame::PopTraceContext() {
+    TraceLog::PopTraceContext();
+}
 
 void xLightsFrame::AddTraceMessage(const std::string &trc) {
     TraceLog::AddTraceMessage(trc);

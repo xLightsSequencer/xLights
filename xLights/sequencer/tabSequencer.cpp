@@ -43,6 +43,7 @@
 #include "../LayoutGroup.h"
 #include "../ViewpointMgr.h"
 #include "../LayoutPanel.h"
+#include "../TraceLog.h"
 
 #include <log4cpp/Category.hh>
 
@@ -752,12 +753,15 @@ void xLightsFrame::LoadSequencer(xLightsXmlFile& xml_file)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    logger_base.debug("Load sequence %s", (const char*)xml_file.GetFullPath().c_str());
+    logger_base.debug("Load sequence %s", xml_file.GetFullPath().ToStdString().c_str());
 
     SetFrequency(xml_file.GetFrequency());
+    AddTraceMessage("Frequence set " + std::to_string(xml_file.GetFrequency()));
     mSequenceElements.SetViewsManager(GetViewsManager()); // This must come first before LoadSequencerFile.
+    AddTraceMessage("View Manager Set");
     mSequenceElements.SetModelsNode(ModelsNode);
     mSequenceElements.SetEffectsNode(EffectsNode);
+    AddTraceMessage("Nodes set, loading");
     mSequenceElements.LoadSequencerFile(xml_file, GetShowDirectory());
 
     logger_base.debug("Upgrading sequence");
@@ -2042,10 +2046,12 @@ void xLightsFrame::OnEffectSettingsTimerTrigger(wxTimerEvent& event)
         return;
     }
 
+    TraceLog::PushTraceContext();
     AddTraceMessage("In OnEffectSettingsTimerTrigger");
     UpdateRenderStatus();
     AddTraceMessage("Render Status Updated");
     if (Notebook1->GetSelection() != NEWSEQUENCER) {
+        TraceLog::PopTraceContext();
         return;
     }
 
@@ -2115,19 +2121,22 @@ void xLightsFrame::OnEffectSettingsTimerTrigger(wxTimerEvent& event)
 
             eff->SetSettings(effectText, true);
             eff->SetPalette(palette);
-            AddTraceMessage("Effect settings updated\n");
+            AddTraceMessage("Effect settings updated");
 
             selectedEffectName = eff->GetEffectName();
             selectedEffectString = effectText;
             selectedEffectPalette = palette;
+            AddTraceMessage("SEN: " + selectedEffectName);
 
             playStartTime = eff->GetStartTimeMS();
             playEndTime = eff->GetEndTimeMS();
             playStartMS = -1;
 
             // Update if effect has been modified
-            if( m_mgr->GetPane("EffectAssist").IsShown() ) {
+            if (m_mgr->GetPane("EffectAssist").IsShown()) {
+                AddTraceMessage("EffectAssist was shown");
                 sEffectAssist->ForceRefresh();
+                AddTraceMessage("   and refreshed");
             }
 
             if (!_suspendRender) {
@@ -2145,6 +2154,7 @@ void xLightsFrame::OnEffectSettingsTimerTrigger(wxTimerEvent& event)
             }
         }
     }
+    TraceLog::PopTraceContext();
 }
 
 int xLightsFrame::GetCurrentPlayTime()
