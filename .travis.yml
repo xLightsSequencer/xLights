@@ -7,6 +7,9 @@ git:
 script:
 - docker pull debenham/xlights
 - docker run --name buildvm debenham/xlights /bin/bash Recipe
+env:
+  global:
+    - MAKEFLAGS="-j 2"
 notifications:
   email:
     recipients:
