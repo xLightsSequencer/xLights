@@ -1816,25 +1816,16 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     }
     logger_base.debug("Show directory %s.", (const char *)dir.c_str());
 
-    if (!xLightsApp::mediaDir.IsNull())
-    {
+    if (!xLightsApp::mediaDir.IsNull()) {
         mediaDirectory = xLightsApp::mediaDir;
-    }
-    else if (ok && !config->Read(_("MediaDir"), &mediaDirectory))
-    {
+    } else if (ok && !config->Read(_("MediaDir"), &mediaDirectory)) {
         mediaDirectory=dir;
     }
+    logger_base.debug("Media directory %s.", (const char *)mediaDirectory.c_str());
     ObtainAccessToURL(mediaDirectory.ToStdString());
 
-    config->Read("xLightsUserEmail", &_userEmail, "");
-    if (_userEmail == "") CollectUserEmail();
-    if (_userEmail != "noone@nowhere.xlights.org") logger_base.debug("User email address: <email>%s</email>", (const char*)_userEmail.c_str());
-
-    logger_base.debug("Media directory %s.", (const char *)mediaDirectory.c_str());
-
     wxString tbData = config->Read("ToolbarLocations");
-    if (tbData.StartsWith(TOOLBAR_SAVE_VERSION))
-    {
+    if (tbData.StartsWith(TOOLBAR_SAVE_VERSION)) {
         MainAuiManager->LoadPerspective(tbData.Right(tbData.size() - 5));
     }
     logger_base.debug("Perspectives loaded.");
@@ -2303,6 +2294,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
 #ifdef __WXMSW__
     check32AppOn64Machine();
 #endif
+
+    config->Read("xLightsUserEmail", &_userEmail, "");
+    if (_userEmail == "") CollectUserEmail();
+    if (_userEmail != "noone@nowhere.xlights.org") logger_base.debug("User email address: <email>%s</email>", (const char*)_userEmail.c_str());
 
     logger_base.debug("xLightsFrame construction complete.");
 }
