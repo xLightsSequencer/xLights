@@ -7,9 +7,11 @@
 #include "../sequencer/Effect.h"
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
+#include "../UtilFunctions.h"
+#include "../models/ModelGroup.h"
+
 #include "../../include/state-16.xpm"
 #include "../../include/state-64.xpm"
-#include "../UtilFunctions.h"
 
 #include <log4cpp/Category.hh>
 
@@ -67,6 +69,8 @@ void StateEffect::SetPanelStatus(Model *cls) {
         return;
     }
 
+    auto lastTiming = fp->Choice_State_TimingTrack->GetStringSelection();
+    auto lastState = fp->Choice_StateDefinitonChoice->GetStringSelection();
     fp->Choice_State_TimingTrack->Clear();
     fp->Choice_StateDefinitonChoice->Clear();
 
@@ -81,15 +85,31 @@ void StateEffect::SetPanelStatus(Model *cls) {
     }
 
     if (cls != nullptr) {
-        for (const auto& it : cls->stateInfo) {
-            if (it.second.size() > 30) // actually it should be about 120
-            {
-                fp->Choice_StateDefinitonChoice->Append(it.first);
+
+        Model* m = cls;
+        if (cls->GetDisplayAs() == "ModelGroup")
+        {
+            m = ((ModelGroup*)cls)->GetFirstModel();
+        }
+
+        if (m != nullptr)
+        {
+            for (const auto& it : m->stateInfo) {
+                if (it.second.size() > 30) // actually it should be about 120
+                {
+                    fp->Choice_StateDefinitonChoice->Append(it.first);
+                }
             }
         }
     }
 
-    if (fp->Choice_StateDefinitonChoice->GetCount() > 0)
+    if (lastTiming != "") fp->Choice_State_TimingTrack->SetStringSelection(lastTiming);
+    if (lastState != "")
+    {
+        fp->Choice_StateDefinitonChoice->SetStringSelection(lastState);
+    }
+    
+    if (fp->Choice_StateDefinitonChoice->GetSelection() == -1 && fp->Choice_StateDefinitonChoice->GetCount() > 0)
     {
         fp->Choice_StateDefinitonChoice->SetSelection(0);
     }
@@ -97,21 +117,31 @@ void StateEffect::SetPanelStatus(Model *cls) {
     fp->SetEffect(this, cls);
 }
 
-std::list<std::string> StateEffect::GetStates(Model *cls, std::string model) {
+std::list<std::string> StateEffect::GetStates(Model* cls, std::string model) {
 
     std::list<std::string> res;
 
     if (cls != nullptr) {
-        for (const auto& it : cls->stateInfo)
+
+        Model* m = cls;
+        if (cls->GetDisplayAs() == "ModelGroup")
         {
-            if (model == it.first)
+            m = ((ModelGroup*)cls)->GetFirstModel();
+        }
+
+        if (m != nullptr)
+        {
+            for (const auto& it : m->stateInfo)
             {
-                for (const auto& it2 : it.second)
+                if (model == it.first)
                 {
-                    wxString f(it2.first);
-                    if (f.EndsWith("-Name") && it2.second != "")
+                    for (const auto& it2 : it.second)
                     {
-                        res.push_back(it2.second);
+                        wxString f(it2.first);
+                        if (f.EndsWith("-Name") && it2.second != "")
+                        {
+                            res.push_back(it2.second);
+                        }
                     }
                 }
             }
@@ -158,7 +188,7 @@ void StateEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer 
 
 std::string StateEffect::FindState(std::map<std::string, std::string>& map, std::string name)
 {
-    for (auto it2 : map)
+    for (const auto& it2 : map)
     {
         if (EndsWith(it2.first, "-Name") && it2.second == name)
         {

@@ -117,10 +117,15 @@ void StatePanel::UpdateStateList()
         std::list<std::string> states = _effect->GetStates(_model, Choice_StateDefinitonChoice->GetStringSelection().ToStdString());
 
         Choice_State_State->Append("<ALL>");
-        for (auto it = states.begin(); it != states.end(); ++it)
+        if (selected == "<ALL>")
         {
-            int item = Choice_State_State->Append(*it);
-            if (*it == selected)
+            Choice_State_State->SetSelection(0);
+        }
+
+        for (const auto& it : states)
+        {
+            int item = Choice_State_State->Append(it);
+            if (it == selected)
             {
                 Choice_State_State->SetSelection(item);
             }
