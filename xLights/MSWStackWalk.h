@@ -47,24 +47,29 @@ public:
 
 wxString windows_get_stacktrace(void* data)
 {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxString trace;
 
     wxArrayString mapLines;
     wxFileName name = wxStandardPaths::Get().GetExecutablePath();
     name.SetExt("map");
 
+    logger_base.debug("Loading map file " + name.GetFullPath());
+
     std::ifstream infile;
     infile.open(name.GetFullPath().ToStdString());
     if (infile.is_open())
     {
+        logger_base.debug("    File open.");
+
         while (!infile.eof())
         {
             std::string inl;
             std::getline(infile, inl);
             wxString line(inl);
             line.Trim(true).Trim(false);
-            while (line.Replace("  ", " ") > 0);
             if (line.StartsWith("0") && line.EndsWith(".obj")) {
+                while (line.Replace("  ", " ") > 0);
                 auto comp = wxSplit(line, ' ');
                 if (comp.size() > 3)
                 {
@@ -85,10 +90,12 @@ wxString windows_get_stacktrace(void* data)
             }
         }
         mapLines.Sort();
+        logger_base.debug("    Map file loaded.");
     }
     else
     {
         trace += name.GetFullPath() + " does not exist\n";
+        logger_base.debug("    File not found.");
     }
 
     MyStackWalk sw(mapLines);
