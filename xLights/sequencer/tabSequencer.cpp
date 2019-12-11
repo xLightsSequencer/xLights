@@ -755,10 +755,9 @@ void xLightsFrame::LoadSequencer(xLightsXmlFile& xml_file)
 
     logger_base.debug("Load sequence %s", xml_file.GetFullPath().ToStdString().c_str());
 
+    PushTraceContext();
     SetFrequency(xml_file.GetFrequency());
-    AddTraceMessage("Frequence set " + std::to_string(xml_file.GetFrequency()));
     mSequenceElements.SetViewsManager(GetViewsManager()); // This must come first before LoadSequencerFile.
-    AddTraceMessage("View Manager Set");
     mSequenceElements.SetModelsNode(ModelsNode);
     mSequenceElements.SetEffectsNode(EffectsNode);
     AddTraceMessage("Nodes set, loading");
@@ -815,6 +814,7 @@ void xLightsFrame::LoadSequencer(xLightsXmlFile& xml_file)
     _coloursPanel->UpdateColourButtons(true, this);
 
     logger_base.debug("Sequence all loaded.");
+    PopTraceContext();
 }
 
 void xLightsFrame::Zoom( wxCommandEvent& event)
@@ -2046,12 +2046,12 @@ void xLightsFrame::OnEffectSettingsTimerTrigger(wxTimerEvent& event)
         return;
     }
 
-    TraceLog::PushTraceContext();
+    PushTraceContext();
     AddTraceMessage("In OnEffectSettingsTimerTrigger");
     UpdateRenderStatus();
     AddTraceMessage("Render Status Updated");
     if (Notebook1->GetSelection() != NEWSEQUENCER) {
-        TraceLog::PopTraceContext();
+        PopTraceContext();
         return;
     }
 
@@ -2083,15 +2083,15 @@ void xLightsFrame::OnEffectSettingsTimerTrigger(wxTimerEvent& event)
             || palette != selectedEffectPalette
             || eff->GetEffectIndex() != EffectsPanel1->EffectChoicebook->GetSelection()) {
 
-            AddTraceMessage("Something changed");
+            AddTraceMessage("  Something changed");
             int effectIndex = EffectsPanel1->EffectChoicebook->GetSelection();
             wxString name = EffectsPanel1->EffectChoicebook->GetPageText(effectIndex);
             if (name !=  eff->GetEffectName()) {
-                AddTraceMessage("Effect name changed");
+                AddTraceMessage("  Effect name changed");
                 eff->SetEffectName(name.ToStdString());
                 eff->SetEffectIndex(EffectsPanel1->EffectChoicebook->GetSelection());
             }
-            AddTraceMessage("Effect name " + name);
+            AddTraceMessage("  Effect name " + name);
 
             EffectLayer* el = eff->GetParentEffectLayer();
 
@@ -2116,17 +2116,17 @@ void xLightsFrame::OnEffectSettingsTimerTrigger(wxTimerEvent& event)
             {
                 mSequenceElements.get_undo_mgr().CreateUndoStep();
                 mSequenceElements.get_undo_mgr().CaptureModifiedEffect( elem->GetModelName(), el->GetIndex(), eff->GetID(), selectedEffectString, selectedEffectPalette );
-                AddTraceMessage("Undo step created\n");
+                AddTraceMessage("  Undo step created\n");
             }
 
             eff->SetSettings(effectText, true);
             eff->SetPalette(palette);
-            AddTraceMessage("Effect settings updated");
+            AddTraceMessage("  Effect settings updated");
 
             selectedEffectName = eff->GetEffectName();
             selectedEffectString = effectText;
             selectedEffectPalette = palette;
-            AddTraceMessage("SEN: " + selectedEffectName);
+            AddTraceMessage("  SEN: " + selectedEffectName);
 
             playStartTime = eff->GetStartTimeMS();
             playEndTime = eff->GetEndTimeMS();
@@ -2134,27 +2134,29 @@ void xLightsFrame::OnEffectSettingsTimerTrigger(wxTimerEvent& event)
 
             // Update if effect has been modified
             if (m_mgr->GetPane("EffectAssist").IsShown()) {
-                AddTraceMessage("EffectAssist was shown");
+                AddTraceMessage("  EffectAssist was shown");
                 sEffectAssist->ForceRefresh();
                 AddTraceMessage("   and refreshed");
             }
 
             if (!_suspendRender) {
-                AddTraceMessage("Triggering a render\n");
+                AddTraceMessage("  Triggering a render\n");
                 RenderEffectForModel(elem->GetModelName(), playStartTime, playEndTime);
             }
-            AddTraceMessage("Triggering a refresh\n");
+            AddTraceMessage("  Triggering a refresh\n");
             mainSequencer->PanelEffectGrid->ForceRefresh();
 
             // This ensures colour curves which can be dependent on effect settings are correct
             RenderableEffect *ef = GetEffectManager().GetEffect(selectedEffectName);
             if (ef != nullptr) {
-                AddTraceMessage("Resetting color panel\n");
+                AddTraceMessage("  Resetting color panel\n");
                 colorPanel->SetSupports(ef->SupportsLinearColorCurves(eff->GetSettings()), ef->SupportsRadialColorCurves(eff->GetSettings()));
             }
+        } else {
+            AddTraceMessage("  Nothing changed");
         }
     }
-    TraceLog::PopTraceContext();
+    PopTraceContext();
 }
 
 int xLightsFrame::GetCurrentPlayTime()

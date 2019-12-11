@@ -17,6 +17,7 @@
 #include "../UtilFunctions.h"
 #include "../SequenceViewManager.h"
 #include "../JukeboxPanel.h"
+#include "../TraceLog.h"
 
 #include <log4cpp/Category.hh>
 
@@ -772,10 +773,14 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file, const wxStrin
     wxXmlNode* root = seqDocument.GetRoot();
     std::vector<std::string> effectStrings;
     std::vector<std::string> colorPalettes;
+    TraceLog::AddTraceMessage("About to clear sequence");
     Clear();
+    TraceLog::AddTraceMessage("   Cleared");
     supportsModelBlending = xml_file.supportsModelBlending();
     for (wxXmlNode* e = root->GetChildren(); e != nullptr; e = e->GetNext())
     {
+        TraceLog::PushTraceContext();
+        TraceLog::AddTraceMessage("Processing " + e->GetName());;
         if (e->GetName() == "DisplayElements")
         {
             for (wxXmlNode* element = e->GetChildren(); element != nullptr; element = element->GetNext())
@@ -952,8 +957,8 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file, const wxStrin
                 }
             }
         }
+        TraceLog::PopTraceContext();
     }
-
     for (size_t x = 0; x < GetElementCount(); x++) {
         Element *el = GetElement(x);
         if (el->GetEffectLayerCount() == 0) {
