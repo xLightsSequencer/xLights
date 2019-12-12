@@ -32,7 +32,7 @@ function loadModels() {
 
               <button type="button" onclick="runCommand('Set pixel range', '`+ response.models[i].startchannel + `,` + response.models[i].channels + `,white,')" class="btn btn-info btn-xs" name="button">On</button>
               <button type="button" onclick="setCustomColor('`+ response.models[i].startchannel + `','` + response.models[i].channels + `')" class="btn btn-info btn-xs" name="button">Color</button>
-              <button type="button" onclick="runCommand('Set pixel range', '`+ response.models[i].startchannel + `,` + response.models[i].channels + `,,')" class="btn btn-default btn-xs" name="button">Reset</button>
+              <button type="button" onclick="runCommand('Set pixel range', '`+ response.models[i].startchannel + `,0,,')" class="btn btn-default btn-xs" name="button">Reset</button>
             </td>
           </tr>`;
 

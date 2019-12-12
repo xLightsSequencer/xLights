@@ -3158,25 +3158,28 @@ bool ScheduleManager::Action(const wxString& command, const wxString& parameters
                     }
 
                     PixelData * p = nullptr;
-                    for (auto it = _overlayData.begin(); it != _overlayData.end(); ++it)
+                    for (const auto& it : _overlayData)
                     {
-                        if ((*it)->GetStartChannel() == sc)
+                        if (it->GetStartChannel() == sc)
                         {
-                            p = *it;
+                            p = it;
                             if (data.length() == 0)
                             {
+                                logger_base.debug("Pixel overlay data removed.");
                                 _overlayData.remove(p);
                             }
                             else
                             {
+                                logger_base.debug("Pixel overlay data changed.");
                                 p->SetData(data, blendMode);
                             }
                             break;
                         }
                     }
 
-                    if (p == nullptr)
+                    if (p == nullptr && data.length() != 0)
                     {
+                        logger_base.debug("Pixel overlay data removed.");
                         p = new PixelData(sc, data, blendMode);
                         _overlayData.push_back(p);
                     }
@@ -3200,25 +3203,28 @@ bool ScheduleManager::Action(const wxString& command, const wxString& parameters
                         blendMode = EncodeBlendMode(split[3].ToStdString());
 
                         PixelData * p = nullptr;
-                        for (auto it = _overlayData.begin(); it != _overlayData.end(); ++it)
+                        for (const auto& it : _overlayData)
                         {
-                            if ((*it)->GetStartChannel() == sc && (*it)->GetSize() == ch)
+                            if (it->GetStartChannel() == sc && it->GetSize() == ch)
                             {
-                                p = *it;
+                                p = it;
                                 if (ch == 0)
                                 {
+                                    logger_base.debug("Pixel overlay data removed.");
                                     _overlayData.remove(p);
                                 }
                                 else
                                 {
+                                    logger_base.debug("Pixel overlay data changed.");
                                     p->SetColor(c, blendMode);
                                 }
                                 break;
                             }
                         }
 
-                        if (p == nullptr)
+                        if (p == nullptr && ch != 0)
                         {
+                            logger_base.debug("Pixel overlay data added.");
                             p = new PixelData(sc, ch, c, blendMode);
                             _overlayData.push_back(p);
                         }
