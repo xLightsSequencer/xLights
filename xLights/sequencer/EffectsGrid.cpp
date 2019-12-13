@@ -3140,9 +3140,11 @@ void EffectsGrid::mouseReleased(wxMouseEvent& event)
     else
     {
         bool checkForEmptyCell = false;
+        if (HasCapture()) {
+            ReleaseMouse();
+        }
         if (mResizing)
         {
-            ReleaseMouse();
             if (mEffectLayer->GetParentElement()->GetType() != ELEMENT_TYPE_TIMING)
             {
                 if (MultipleEffectsSelected()) {
@@ -3224,7 +3226,6 @@ void EffectsGrid::mouseReleased(wxMouseEvent& event)
         }
         else if (mDragging) {
             UnsetToolTip();
-            ReleaseMouse();
             mDragging = false;
             if ((mDragStartX == event.GetX() && mDragStartY == event.GetY()) || (mSequenceElements->GetNumberOfActiveTimingEffects() > 0)) {
                 checkForEmptyCell = true;
