@@ -11,6 +11,13 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2019.70 December 13 2019
+   -- enh (keith)  Allows state effect to work on groups of models containing the same states
+   -- enh (scott)  Increase maximum star node count
+   -- enh (chris)  Upgrade unix log3cpp to 1.1.3
+   -- bug (keith)  Fix xSchedule test does not turn off test when reset pressed
+   -- bug (dkulp)  Move email collection later to prevent some crashes 
+   -- bug (scott)  Fix crash on FPP upload if media file has moved   
 2019.69 December 7 2019
    -- enh (dkulp)  Increase SUP import time offset range
    -- bug (keith)  Fix xSchedule web displays incorrect next play time
