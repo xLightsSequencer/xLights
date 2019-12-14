@@ -1384,9 +1384,11 @@ m_handler(nullptr)
             }
         }
         if (m_frameOffsets.size() == 0) {
-            //this is bad... not sure what we can do.  We'll force a "0" block to
-            //avoid a crash, but the data might not load correctly
-            LogErr(VB_SEQUENCE, "FSEQ file corrupt: did not load any block references from header.");
+            if (m_compressionType != CompressionType::none) {
+                //this is bad... not sure what we can do.  We'll force a "0" block to
+                //avoid a crash, but the data might not load correctly
+                LogErr(VB_SEQUENCE, "FSEQ file corrupt: did not load any block references from header.");
+            }
 
             m_frameOffsets.push_back(std::pair<uint32_t, uint64_t>(0, offset));
             offset += this->m_seqFileSize - offset;
