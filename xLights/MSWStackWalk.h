@@ -23,17 +23,19 @@ public:
 
     virtual void OnStackFrame(const wxStackFrame& frame) override
     {
+        long long baseAddress = (long long)::GetModuleHandle(nullptr);
+
         if (frame.GetName() != "")
         {
-            _result += wxString::Format("%s\t%s\t%s\t%ld\n", frame.GetFileName(), frame.GetModule(), frame.GetName(), (long)frame.GetLine());
+            _result += wxString::Format("0x%016llx\t%s\t%s\t%s\t%ld\n", (long long)frame.GetAddress() - baseAddress, frame.GetFileName(), frame.GetModule(), frame.GetName(), (long)frame.GetLine());
         }
         else
         {
-            wxString buffer(wxString::Format("%016llx", frame.GetAddress()));
+            wxString buffer(wxString::Format("%016llx", (long long)frame.GetAddress() - baseAddress));
             for (size_t x = 1; x < _mapLines.GetCount(); x++) {
                 if (wxString(buffer) < _mapLines[x]) {
-                    buffer += _mapLines[x - 1].AfterFirst('\t');
-                    x = _mapLines.GetCount();
+                    buffer = "0x" + buffer + "\t" + _mapLines[x - 1].AfterFirst('\t');
+                    break;
                 }
             }
 
@@ -56,8 +58,12 @@ wxString windows_get_stacktrace(void* data)
 
     logger_base.debug("Loading map file " + name.GetFullPath());
 
+    HMODULE hModule = ::GetModuleHandle(nullptr);
+    logger_base.debug("Base module handle: 0x%016llx", (long long)hModule);
+
     std::ifstream infile;
     infile.open(name.GetFullPath().ToStdString());
+    long long preferedLoadAddress = 0;
     if (infile.is_open())
     {
         logger_base.debug("    File open.");
@@ -68,7 +74,13 @@ wxString windows_get_stacktrace(void* data)
             std::getline(infile, inl);
             wxString line(inl);
             line.Trim(true).Trim(false);
-            if (line.StartsWith("0") && line.EndsWith(".obj")) {
+
+            if (line.Contains("Preferred load address is"))
+            {
+                sscanf(line.substr(28).c_str(), "%llx", &preferedLoadAddress);
+            }
+
+            if (line.StartsWith("0001:") && line.EndsWith(".obj")) {
                 while (line.Replace("  ", " ") > 0);
                 auto comp = wxSplit(line, ' ');
                 if (comp.size() > 3)
@@ -83,7 +95,10 @@ wxString windows_get_stacktrace(void* data)
                         }
                     }
 
-                    auto l = wxString::Format("%s\t\t%s\t%s", comp[2], comp[ln], comp[1]);
+                    long long addr = 0;
+                    sscanf(comp[2].c_str(), "%llx", &addr);
+
+                    auto l = wxString::Format("%016llx\t\t%s\t%s", addr - preferedLoadAddress, comp[ln], comp[1]);
                     mapLines.Add(l);
                     //logger_base.debug("Map file line: %s", (const char *)line.c_str());
                 }
@@ -97,6 +112,8 @@ wxString windows_get_stacktrace(void* data)
         trace += name.GetFullPath() + " does not exist\n";
         logger_base.debug("    File not found.");
     }
+
+    logger_base.debug("Preferred load address: 0x%016llx", preferedLoadAddress);
 
     MyStackWalk sw(mapLines);
     sw.WalkFromException();
