@@ -201,17 +201,14 @@ void PolyLineModel::InitModel() {
     segs_collapsed = GetModelXml()->GetAttribute("SegsCollapsed", "TRUE") == "FALSE";
 
     // parse drop sizes
-    std::vector<unsigned int> dropSizes;
-    //unsigned int dropset_size = 0;
+    std::vector<int> dropSizes;
     unsigned int maxH = 0;
     for (int x = 0; x < pat.size(); x++) {
         dropSizes.push_back(wxAtoi(pat[x]));
-        maxH = std::max(maxH, dropSizes[x]);
-        //dropset_size += dropSizes[x];
+        maxH = std::max(maxH, (unsigned int)std::abs(dropSizes[x]));
     }
     if (dropSizes.size() == 0) {
         dropSizes.push_back(5);
-        //dropset_size = 5;
     }
 
     // establish light and segment counts
@@ -237,7 +234,7 @@ void PolyLineModel::InitModel() {
             int num_drop_points_this_segment = wxAtoi(val);
             unsigned int drop_lights_this_segment = 0;
             for( size_t z = 0; z < num_drop_points_this_segment; z++ ) {
-                drop_lights_this_segment += dropSizes[drop_index++];
+                drop_lights_this_segment += std::abs(dropSizes[drop_index++]);
                 drop_index %= dropSizes.size();
             }
             numLights += drop_lights_this_segment;
@@ -252,7 +249,7 @@ void PolyLineModel::InitModel() {
         parm1 = 1;
         int lights = parm2;
         while (lights > 0) {
-            unsigned int lights_this_drop = dropSizes[drop_index++];
+            unsigned int lights_this_drop = std::abs(dropSizes[drop_index++]);
             numLights += lights_this_drop;
             drop_index %= dropSizes.size();
             numDropPoints++;
@@ -430,20 +427,22 @@ void PolyLineModel::InitModel() {
     int width = 0;
     int curNode = 0;
     int curCoord = 0;
-    int nodesInDrop = dropSizes[drop_index];
+    bool up = dropSizes[drop_index] < 0;
+    int nodesInDrop = std::abs(dropSizes[drop_index]);
     while (lights) {
         if (curCoord >= Nodes[curNode]->Coords.size()) {
             curNode++;
             curCoord = 0;
         }
-        while (y >= dropSizes[drop_index]) {
+        while (y >= std::abs(dropSizes[drop_index])) {
             width++;
             y = 0;
             drop_index++;
             if (drop_index >= dropSizes.size()) {
                 drop_index = 0;
             }
-            nodesInDrop = dropSizes[drop_index];
+            nodesInDrop = std::abs(dropSizes[drop_index]);
+            up = dropSizes[drop_index] < 0;
         }
         if (Nodes[curNode]->StringNum != LastStringNum) {
             LastStringNum=Nodes[curNode]->StringNum;
@@ -458,18 +457,42 @@ void PolyLineModel::InitModel() {
         if (_alternateNodes) {
             if (y + 1 <= (nodesInDrop + 1) / 2)
             {
-                Nodes[curNode]->Coords[curCoord].bufY = maxH - 1 - (2 * y);
-                Nodes[curNode]->Coords[curCoord].screenY = maxH - 1 - (2 * y);
+                if (up)
+                {
+                    Nodes[curNode]->Coords[curCoord].bufY = 2 * y;
+                    Nodes[curNode]->Coords[curCoord].screenY = -(maxH - 1) + (2 * y);
+                }
+                else
+                {
+                    Nodes[curNode]->Coords[curCoord].bufY = maxH - 1 - (2 * y);
+                    Nodes[curNode]->Coords[curCoord].screenY = maxH - 1 - (2 * y);
+                }
             }
             else
             {
-                Nodes[curNode]->Coords[curCoord].bufY = maxH - 1 - ((nodesInDrop - (y + 1)) * 2 + 1);
-                Nodes[curNode]->Coords[curCoord].screenY = maxH - 1 - ((nodesInDrop - (y + 1)) * 2 + 1);
+                if (up)
+                {
+                    Nodes[curNode]->Coords[curCoord].bufY = (nodesInDrop - (y + 1)) * 2 + 1;
+                    Nodes[curNode]->Coords[curCoord].screenY = -(maxH - 1) + ((nodesInDrop - (y + 1)) * 2 + 1);
+                }
+                else
+                {
+                    Nodes[curNode]->Coords[curCoord].bufY = maxH - 1 - ((nodesInDrop - (y + 1)) * 2 + 1);
+                    Nodes[curNode]->Coords[curCoord].screenY = maxH - 1 - ((nodesInDrop - (y + 1)) * 2 + 1);
+                }
             }
         }
         else {
-            Nodes[curNode]->Coords[curCoord].bufY = maxH - y - 1;
-            Nodes[curNode]->Coords[curCoord].screenY = maxH - y - 1;
+            if (up)
+            {
+                Nodes[curNode]->Coords[curCoord].bufY = y;
+                Nodes[curNode]->Coords[curCoord].screenY = y;
+            }
+            else
+            {
+                Nodes[curNode]->Coords[curCoord].bufY = maxH - y - 1;
+                Nodes[curNode]->Coords[curCoord].screenY = maxH - y - 1;
+            }
         }
         Nodes[curNode]->Coords[curCoord].screenX = width;
         if (!SingleNode)
@@ -521,10 +544,18 @@ void PolyLineModel::InitModel() {
 
                     glm::vec3 v = glm::vec3(*pPos[segment].matrix * glm::vec4(loc_x / (float)polyLineSizes[segment], 0, 0, 1));
 
-                    unsigned int drops_this_node = dropSizes[drop_index++];
+                    bool up = dropSizes[drop_index] < 0;
+                    unsigned int drops_this_node = std::abs(dropSizes[drop_index++]);
                     for (size_t z = 0; z < drops_this_node && c < CoordCount; z++) {
                         Nodes[idx]->Coords[c].screenX = v.x;
-                        Nodes[idx]->Coords[c].screenY = v.y - z * mheight;
+                        if (up)
+                        {
+                            Nodes[idx]->Coords[c].screenY = v.y + z * mheight;
+                        }
+                        else
+                        {
+                            Nodes[idx]->Coords[c].screenY = v.y - z * mheight;
+                        }
                         Nodes[idx]->Coords[c].screenZ = v.z;
                         c++;
                         if (!SingleNode) {
@@ -549,7 +580,7 @@ void PolyLineModel::InitModel() {
                     if (pPos[segment].has_curve) {
                         int xx = 0;
                         DistributeLightsAcrossCurveSegment(polyLineSizes[segment], segment, c, pPos, dropSizes, drop_index, mheight, xx, maxH);
-                        c += dropSizes[drop_index];
+                        c += std::abs(dropSizes[drop_index]);
                         segment++;
                         for (int x = segment; x < polyLineSizes.size(); ++x) {
                             if (polyLineSizes[x] == 0) {
@@ -583,7 +614,8 @@ void PolyLineModel::InitModel() {
                         }
                         size_t CoordCount=GetCoordCount(idx);
                         int x_pos = seg_idx;
-                        unsigned int drops_this_node = dropSizes[drop_index++];
+                        bool up = dropSizes[drop_index] < 0;
+                        unsigned int drops_this_node = std::abs(dropSizes[drop_index++]);
                         for(size_t c=0; c < CoordCount; c++) {
                             if (num > 1) {
                                 loc_x = x_pos + offset + ((float)count / (float)num);
@@ -598,7 +630,14 @@ void PolyLineModel::InitModel() {
                                 if (SingleNode)
                                 {
                                     Nodes[idx]->Coords[c].screenX = v.x;
-                                    Nodes[idx]->Coords[c].screenY = v.y - z * mheight;
+                                    if (up)
+                                    {
+                                        Nodes[idx]->Coords[c].screenY = v.y + z * mheight;
+                                    }
+                                    else
+                                    {
+                                        Nodes[idx]->Coords[c].screenY = v.y - z * mheight;
+                                    }
                                     Nodes[idx]->Coords[c].screenZ = v.z;
                                 }
                                 else
@@ -611,7 +650,14 @@ void PolyLineModel::InitModel() {
                                     else
                                     {
                                         Nodes[node]->Coords[c].screenX = v.x;
-                                        Nodes[node]->Coords[c].screenY = v.y - z * mheight;
+                                        if (up)
+                                        {
+                                            Nodes[node]->Coords[c].screenY = v.y + z * mheight;
+                                        }
+                                        else
+                                        {
+                                            Nodes[node]->Coords[c].screenY = v.y - z * mheight;
+                                        }
                                         Nodes[node]->Coords[c].screenZ = v.z;
                                     }
                                 }
@@ -675,17 +721,33 @@ void PolyLineModel::InitModel() {
             } else {
                 v = glm::vec3(*pPos[segment].matrix * glm::vec4(pos, 0, 0, 1));
             }
-            unsigned int drops_this_node = dropSizes[drop_index++];
+            bool up = dropSizes[drop_index] < 0;
+            unsigned int drops_this_node = std::abs(dropSizes[drop_index++]);
             for (size_t z = 0; z < drops_this_node; z++) {
                 if (SingleNode)
                 {
                     Nodes[idx]->Coords[c].screenX = v.x;
-                    Nodes[idx]->Coords[c].screenY = v.y - z * mheight;
+                    if (up)
+                    { 
+                        Nodes[idx]->Coords[c].screenY = v.y + z * mheight;
+                    }
+                    else
+                    {
+                        Nodes[idx]->Coords[c].screenY = v.y - z * mheight;
+                    }
                     Nodes[idx]->Coords[c].screenZ = v.z;
                 }
                 else
                 {
-                    auto node = FindNodeAtXY(xx, maxH - z - 1);
+                    int node = -1;
+                    if (up)
+                    {
+                        node = FindNodeAtXY(xx, z);
+                    }
+                    else
+                    {
+                        node = FindNodeAtXY(xx, maxH - z - 1);
+                    }
                     if (node == -1)
                     {
                         logger_base.error("Polyline buffer x,y %d, %d not found.", xx, maxH - z - 1);
@@ -693,7 +755,14 @@ void PolyLineModel::InitModel() {
                     else
                     {
                         Nodes[node]->Coords[c].screenX = v.x;
-                        Nodes[node]->Coords[c].screenY = v.y - z * mheight;
+                        if (up)
+                        {
+                            Nodes[node]->Coords[c].screenY = v.y + z * mheight;
+                        }
+                        else
+                        {
+                            Nodes[node]->Coords[c].screenY = v.y - z * mheight;
+                        }
                         Nodes[node]->Coords[c].screenZ = v.z;
                     }
                 }
@@ -727,7 +796,7 @@ void PolyLineModel::InitModel() {
 }
 
 void PolyLineModel::DistributeLightsAcrossCurveSegment(int lights, int segment, size_t &idx, std::vector<xlPolyPoint> &pPos,
-    std::vector<unsigned int>& dropSizes, unsigned int& drop_index, float& mheight, int& xx, int maxH)
+    std::vector<int>& dropSizes, unsigned int& drop_index, float& mheight, int& xx, int maxH)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -743,7 +812,8 @@ void PolyLineModel::DistributeLightsAcrossCurveSegment(int lights, int segment, 
     float segment_length = pPos[segment].curve->GetSegLength(sub_segment);
     float seg_end = seg_start + segment_length;
     for (size_t m = 0; m < lights_to_distribute; m++) {
-        unsigned int drops_this_node = dropSizes[drop_index];
+        bool up = dropSizes[drop_index] < 0;
+        unsigned int drops_this_node = std::abs(dropSizes[drop_index]);
         while (current_pos > seg_end) {
             sub_segment++;
             seg_start = seg_end;
@@ -754,7 +824,14 @@ void PolyLineModel::DistributeLightsAcrossCurveSegment(int lights, int segment, 
         if (SingleNode) {
             for (size_t z = 0; z < drops_this_node; z++) {
                 Nodes[0]->Coords[idx].screenX = v.x;
-                Nodes[0]->Coords[idx].screenY = v.y - z * mheight;
+                if (up)
+                {
+                    Nodes[0]->Coords[idx].screenY = v.y + z * mheight;
+                }
+                else
+                {
+                    Nodes[0]->Coords[idx].screenY = v.y - z * mheight;
+                }
                 Nodes[0]->Coords[idx].screenZ = v.z;
                 idx++;
             }
@@ -770,7 +847,14 @@ void PolyLineModel::DistributeLightsAcrossCurveSegment(int lights, int segment, 
                 else
                 {
                     Nodes[node]->Coords[c].screenX = v.x;
-                    Nodes[node]->Coords[c].screenY = v.y - z * mheight;
+                    if (up)
+                    {
+                        Nodes[node]->Coords[c].screenY = v.y + z * mheight;
+                    }
+                    else
+                    {
+                        Nodes[node]->Coords[c].screenY = v.y - z * mheight;
+                    }
                     Nodes[node]->Coords[c].screenZ = v.z;
                 }
                 idx++;
