@@ -657,18 +657,21 @@ void CustomModelDialog::Save(CustomModel *m) {
 
 void CustomModelDialog::OnWidthSpinChange(wxSpinEvent& event)
 {
+    _changed = true;
     ResizeCustomGrid();
     UpdatePreview();
 }
 
 void CustomModelDialog::OnHeightSpinChange(wxSpinEvent& event)
 {
+    _changed = true;
     ResizeCustomGrid();
     UpdatePreview();
 }
 
 void CustomModelDialog::OnSpinCtrl_DepthChange(wxSpinEvent& event)
 {
+    _changed = true;
     while (Notebook1->GetPageCount() < SpinCtrl_Depth->GetValue())
     {
         AddPage();
@@ -730,6 +733,7 @@ void CustomModelDialog::OnButtonCustomModelHelpClick(wxCommandEvent& event)
 
 void CustomModelDialog::OnGridCustomCellChange(wxGridEvent& event)
 {
+    _changed = true;
     UpdatePreview();
 }
 
@@ -739,6 +743,7 @@ wxString GetOSXFormattedClipboardData();
 
 void CustomModelDialog::OnBitmapButtonCustomCutClick(wxCommandEvent& event)
 {
+    _changed = true;
     CutOrCopyToClipboard(true);
     UpdatePreview();
 }
@@ -836,6 +841,7 @@ void CustomModelDialog::CutOrCopyToClipboard(bool IsCut) {
 
 void CustomModelDialog::Paste()
 {
+    _changed = true;
     wxString copy_data = "";
 
 #ifdef __WXOSX__
@@ -919,6 +925,7 @@ void CustomModelDialog::Paste()
 
 void CustomModelDialog::OnBitmapButtonCustomPasteClick(wxCommandEvent& event)
 {
+    _changed = true;
     Paste();
     UpdatePreview();
 }
@@ -938,6 +945,7 @@ void CustomModelDialog::UpdateBackground()
 
 void CustomModelDialog::OnBitmapButtonCustomBkgrdClick(wxCommandEvent& event)
 {
+    _changed = true;
     bkgrd_active = !bkgrd_active;
     GetActiveGrid()->Refresh();
     UpdateBackground();
@@ -968,6 +976,7 @@ void CustomModelDialog::OnSpinCtrlNextChannelChange(wxSpinEvent& event)
 void CustomModelDialog::OnGridCustomCellLeftClick(wxGridEvent& event)
 {
     if( autonumber ) {
+        _changed = true;
         GetActiveGrid()->SetCellValue(event.GetRow(), event.GetCol(), wxString::Format("%d", next_channel) );
         if( autoincrement ) {
             next_channel++;
@@ -1005,6 +1014,14 @@ void CustomModelDialog::OnCheckBox_RearViewClick(wxCommandEvent& event)
 
 void CustomModelDialog::OnButtonCancelClick(wxCommandEvent& event)
 {
+    if (_changed)
+    {
+        if (wxMessageBox("Abandon changes to this custom model?", "Abandon changes", wxYES_NO, this) == wxNO)
+        {
+            return;
+        }
+    }
+
     UpdatePreview(_saveWidth, _saveHeight, _saveDepth, _saveModelData);
     _model->GetModelScreenLocation().SetWorldPosition(_saveWorldPos);
     _model->GetModelScreenLocation().SetScaleMatrix(_saveScale);
@@ -1722,6 +1739,7 @@ void CustomModelDialog::Shift()
 
 void CustomModelDialog::OnPaste(wxCommandEvent& event)
 {
+    _changed = true;
     Paste();
     UpdatePreview();
 }
@@ -1768,6 +1786,7 @@ void CustomModelDialog::OnGridKey(wxCommandEvent& event)
 
 void CustomModelDialog::OnGridPopup(wxCommandEvent& event)
 {
+    _changed = true;
     int id = event.GetId();
     if (id == CUSTOMMODELDLGMNU_CUT)
     {
@@ -1849,6 +1868,7 @@ void CustomModelDialog::OnGridPopup(wxCommandEvent& event)
 
 void CustomModelDialog::OnCut(wxCommandEvent& event)
 {
+    _changed = true;
     CutOrCopyToClipboard(true);
     UpdatePreview();
 }
@@ -1860,6 +1880,7 @@ void CustomModelDialog::OnCopy(wxCommandEvent& event)
 
 void CustomModelDialog::OnFilePickerCtrl1FileChanged(wxFileDirPickerEvent& event)
 {
+    _changed = true;
     background_image = FilePickerCtrl1->GetFileName().GetFullPath();
 
     if (background_image != "") {

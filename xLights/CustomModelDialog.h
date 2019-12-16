@@ -46,6 +46,7 @@ class CustomModelDialog: public wxDialog
     int _saveDepth = 0;
     std::string _saveModelData;
     CustomModel* _model = nullptr;
+    bool _changed = false;
 
     std::string GetModelData();
     void UpdatePreview(int width, int height, int depth, const std::string& modelData);
