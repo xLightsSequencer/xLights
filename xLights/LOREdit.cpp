@@ -1050,6 +1050,12 @@ int LOREdit::GetModelChannels(const std::string& model, int& rows, int& cols) co
             }
         }
     }
+
+    if (count > 1 && rows == 1 && cols == 1)
+    {
+        cols = count;
+    }
+
     return count;
 }
 
@@ -1289,7 +1295,9 @@ std::vector<LOREditEffect> LOREdit::GetChannelEffects(const std::string& model, 
 
     if (channel >= channels)
     {
-        channel = channels - 1;
+        // Tried to map a model with less channels than the target model so stop once we run out
+        return res;
+        //channel = channels - 1;
     }
 
     int mw = m->GetDefaultBufferWi();
@@ -1335,8 +1343,9 @@ std::vector<LOREditEffect> LOREdit::GetChannelEffects(const std::string& model, 
                             if ((tc->GetName() == "channel")) {
                                 int row = wxAtoi(tc->GetAttribute("row", "0"));
                                 int col = wxAtoi(tc->GetAttribute("col", "0"));
+                                int colour = wxAtoi(tc->GetAttribute("color", "0"));
 
-                                if (row == targetRow && col == targetCol)
+                                if ((row == targetRow && col == targetCol) || (row == 0 && col == 0 && colour == targetCol && targetRow == 0))
                                 {
                                     for (wxXmlNode* ef = tc->GetChildren(); ef != nullptr; ef = ef->GetNext()) {
                                         LOREditEffect effect;
