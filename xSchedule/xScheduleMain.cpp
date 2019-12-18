@@ -1209,7 +1209,8 @@ void xScheduleFrame::DeleteSelectedItem()
     wxTreeItemId treeitem = TreeCtrl_PlayListsSchedules->GetSelection();
     if (treeitem.IsOk() && (IsPlayList(treeitem) || IsSchedule(treeitem)))
     {
-        if (wxMessageBox("Are you sure?", "Are you sure?", wxYES_NO) == wxYES)
+        if (wxMessageBox(wxString::Format("Are you sure you want to delete '%s'?", TreeCtrl_PlayListsSchedules->GetItemText(treeitem)),
+            "Are you sure?", wxYES_NO) == wxYES)
         {
             wxTreeItemId parent = TreeCtrl_PlayListsSchedules->GetItemParent(treeitem);
             if (IsPlayList(treeitem))

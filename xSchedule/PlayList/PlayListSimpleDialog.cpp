@@ -449,7 +449,8 @@ void PlayListSimpleDialog::DeleteSelectedItem()
     wxTreeItemId treeitem = TreeCtrl_PlayList->GetSelection();
     if (treeitem.IsOk() && !IsPlayList(treeitem))
     {
-        if (wxMessageBox("Are you sure?", "Are you sure?", wxYES_NO) == wxYES)
+        if (wxMessageBox(wxString::Format("Are you sure you want to delete '%s'?", TreeCtrl_PlayList->GetItemText(treeitem)),
+            "Are you sure?", wxYES_NO) == wxYES)
         {
             SwapPage(nullptr);
             wxTreeItemId parent = TreeCtrl_PlayList->GetItemParent(treeitem);
