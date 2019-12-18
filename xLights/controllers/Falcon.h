@@ -191,6 +191,7 @@ class Falcon
     int _model;
     std::string _name;
     bool _connected;
+    int GetMaxPixelPort(const std::vector<FalconString*>& stringData) const;
     std::string GetURL(const std::string& url, bool logresult = false);
     std::string PutURL(const std::string& url, const std::string& request, bool logresult = false);
     int DecodeStringPortProtocol(std::string protocol) const;

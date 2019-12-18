@@ -357,6 +357,19 @@ std::string Falcon::SafeDescription(const std::string description) const
     return desc.Left(25).ToStdString();
 }
 
+int Falcon::GetMaxPixelPort(const std::vector<FalconString*>& stringData) const
+{
+    int max = 0;
+    for (const auto& sd : stringData)
+    {
+        if (sd->port + 1 > max)
+        {
+            max = sd->port + 1;
+        }
+    }
+    return max;
+}
+
 int Falcon::GetPixelCount(const std::vector<FalconString*> &stringData, int port) const
 {
     int count = 0;
@@ -364,7 +377,8 @@ int Falcon::GetPixelCount(const std::vector<FalconString*> &stringData, int port
     {
         if (sd->port == port)
         {
-            count += sd->pixels;
+            // have to include any null pixels in the count
+            count += sd->pixels + sd->nullPixels;
         }
     }
     return count;
@@ -638,6 +652,8 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
         }
     }
 
+    int maxPort = GetMaxPixelPort(stringData);
+
     if (!SupportsVariableExpansions())
     {
         // minimum of main is 1
@@ -676,12 +692,12 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
             maxMain = 1;
         }
 
-        if (stringData.size() > GetDaughter2Threshold() && maxDaughter2 == 0)
+        if (maxPort > GetDaughter2Threshold() && maxDaughter2 == 0)
         {
             maxDaughter2 = 1;
         }
 
-        if (stringData.size() > GetBank1Threshold() && maxDaughter1 == 0)
+        if (maxPort > GetBank1Threshold() && maxDaughter1 == 0)
         {
             maxDaughter1 = 1;
         }
