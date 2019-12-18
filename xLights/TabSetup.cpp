@@ -28,7 +28,7 @@
 #include "controllers/SanDevices.h"
 #include "controllers/J1Sys.h"
 #include "controllers/ESPixelStick.h"
-//#include "controllers/EasyLights.h"
+#include "controllers/HinksPix.h"
 #include "controllers/AlphaPix.h"
 #include "controllers/ControllerRegistry.h"
 #include "sequencer/MainSequencer.h"
@@ -90,7 +90,8 @@ const long xLightsFrame::ID_NETWORK_UCOJ1SYS = wxNewId();
 const long xLightsFrame::ID_NETWORK_UCOALPHAPIX = wxNewId();
 const long xLightsFrame::ID_NETWORK_UCOESPIXELSTICK = wxNewId();
 const long xLightsFrame::ID_NETWORK_PINGCONTROLLER = wxNewId();
-//const long xLightsFrame::ID_NETWORK_UCOEASYLIGHTS = wxNewId();
+const long xLightsFrame::ID_NETWORK_UCIHINKSPIX = wxNewId();
+const long xLightsFrame::ID_NETWORK_UCOHINKSPIX = wxNewId();
 const long xLightsFrame::ID_NETWORK_UPLOAD_CONTROLLER_CONFIGURED = wxNewId();
 const long xLightsFrame::ID_NETWORK_VISUALISE = wxNewId();
 const long xLightsFrame::ID_NETWORK_PROXY_OUTPUT = wxNewId();
@@ -1609,6 +1610,20 @@ void xLightsFrame::OnGridNetworkItemRClick(wxListEvent& event)
             }
         }
 
+        wxMenuItem* beUCIHinksPix = mnuUCInput->Append(ID_NETWORK_UCIHINKSPIX, "HinksPix");
+        if (!AllSelectedSupportIP()) {
+            beUCIHinksPix->Enable(false);
+        }
+        else {
+            if (selcnt == 1) {
+                beUCIHinksPix->Enable(true);
+            }
+            else {
+                bool valid = CheckAllAreSameIPType(_outputManager, GridNetwork, false, true);
+                beUCIHinksPix->Enable(valid);
+            }
+        }
+
         mnuUploadController->Append(ID_NETWORK_UCINPUT, "E1.31 Input Definition", mnuUCInput, "");
         mnuUCInput->Connect(wxEVT_MENU, (wxObjectEventFunction)&xLightsFrame::OnNetworkPopup, nullptr, this);
     }
@@ -1669,21 +1684,21 @@ void xLightsFrame::OnGridNetworkItemRClick(wxListEvent& event)
                 beUCOJ1SYS->Enable(valid);
             }
         }
-        /*
-        wxMenuItem* beUCOEasyLights = mnuUCOutput->Append(ID_NETWORK_UCOEASYLIGHTS, "EasyLights");
+        
+        wxMenuItem* beUCOHinksPix = mnuUCOutput->Append(ID_NETWORK_UCOHINKSPIX, "HinksPix");
         if(!AllSelectedSupportIP()) {
-            beUCOEasyLights->Enable(false);
+            beUCOHinksPix->Enable(false);
         }
         else {
             if(selcnt == 1) {
-                beUCOEasyLights->Enable(true);
+                beUCOHinksPix->Enable(true);
             }
             else {
                 bool valid = CheckAllAreSameIPType(_outputManager, GridNetwork, false, true);
-                beUCOEasyLights->Enable(valid);
+                beUCOHinksPix->Enable(valid);
             }
         }
-        */
+        
         wxMenu* fppOutput = new wxMenu();
         mnuUCOutput->AppendSubMenu(fppOutput, "FPP Capes/Hats");
         fppOutput->Connect(wxEVT_MENU, (wxObjectEventFunction)&xLightsFrame::OnNetworkPopup, nullptr, this);
@@ -1988,6 +2003,8 @@ void xLightsFrame::OnNetworkPopup(wxCommandEvent &event)
             UploadESPixelStickOutput();
         } else if (rules->GetControllerManufacturer() == "SanDevices") {
             UploadSanDevicesInput();
+        } else if (rules->GetControllerManufacturer() == "HinksPix") {
+            UploadHinksPixInput();
         }
         //FIXME - other targets
     } else if (id == ID_NETWORK_UPLOAD_CONTROLLER_CONFIGURED) {
@@ -2003,8 +2020,8 @@ void xLightsFrame::OnNetworkPopup(wxCommandEvent &event)
             UploadSanDevicesOutput();
         } else if (rules->GetControllerManufacturer() == "PixLite") {
             UploadPixlite16Output();
-        //} else if (rules->GetControllerManufacturer() == "EasyLights") {
-        //    UploadEasyLightsOutput();
+        } else if (rules->GetControllerManufacturer() == "HinksPix") {
+            UploadHinksPixOutput();
         } else if (rules->GetControllerManufacturer() == "J1Sys") {
             UploadJ1SYSOutput();
         } else if (rules->GetControllerManufacturer() == "AlphaPix") {
@@ -2050,9 +2067,11 @@ void xLightsFrame::OnNetworkPopup(wxCommandEvent &event)
     } else if (id == ID_NETWORK_PINGCONTROLLER) {
         Output* o = _outputManager.GetOutput(item);
         PingController(o);
-	} //else if(id == ID_NETWORK_UCOEASYLIGHTS) {
-	// 	UploadEasyLightsOutput();
-	//}
+	} else if(id == ID_NETWORK_UCOHINKSPIX) {
+	 	UploadHinksPixOutput();
+	} else if (id == ID_NETWORK_UCIHINKSPIX) {
+        UploadHinksPixInput();
+    }
 }
 
 void xLightsFrame::OnGridNetworkItemSelect(wxListEvent& event)
@@ -3425,18 +3444,54 @@ void xLightsFrame::VisualiseOutput(Output *e, wxWindow *parent) {
     ControllerVisualiseDialog dlg(parent, cud, e->GetResolvedIP(), e->GetDescription());
     dlg.ShowModal();
 }
-/*
-void xLightsFrame::UploadEasyLightsOutput()
+
+void xLightsFrame::UploadHinksPixInput()
+{
+    SetStatusText("");
+    if (wxMessageBox("This will upload the input controller configuration for an HinksPix controller. Do you want to proceed with the upload?", "Are you sure?", wxYES_NO, this) == wxYES)
+    {
+        SetCursor(wxCURSOR_WAIT);
+        wxString ip;
+        wxString proxy;
+        std::list<int> selected = GetSelectedOutputs(ip, proxy);
+
+        if (ip == "") {
+            wxTextEntryDialog dlg(this, "HinksPix IP Address", "IP Address", ip);
+            if (dlg.ShowModal() != wxID_OK) {
+                SetCursor(wxCURSOR_ARROW);
+                return;
+            }
+            ip = dlg.GetValue();
+        }
+
+        // Recalc all the models to make sure any changes on setup are incorporated
+        RecalcModels();
+
+        HinksPix hinkspix(ip.ToStdString(), proxy.ToStdString());
+        if (hinkspix.IsConnected()) {
+            if (hinkspix.SetInputUniverses(&_outputManager, selected)) {
+                SetStatusText("HinksPix Input Upload Complete.");
+            }
+            else {
+                SetStatusText("HinksPix Input Upload Failed.");
+            }
+        }
+        SetCursor(wxCURSOR_ARROW);
+    }
+}
+
+void xLightsFrame::UploadHinksPixOutput()
 {
 	SetStatusText("");
-	if(wxMessageBox("This uploads your E131, Port Configurations and Resets your EasyLights controller. It requires that you have setup the controller connection on your models. Do you want to proceed with the upload?", "Are you sure?", wxYES_NO, this) == wxYES)
+	if(wxMessageBox("This uploads your Port Configurations and Resets your HinksPix controller. It requires that you have setup the controller connection on your models. Do you want to proceed with the upload?", "Are you sure?", wxYES_NO, this) == wxYES)
 	{
 		SetCursor(wxCURSOR_WAIT);
 		wxString ip;
-		std::list<int> selected = GetSelectedOutputs(ip);
+        wxString proxy;
+        std::list<int> selected = GetSelectedOutputs(ip, proxy);
 
 		if(ip == "") {
-			wxTextEntryDialog dlg(this, "EasyLights IP Address", "IP Address", ip);
+			wxTextEntryDialog dlg(this, "HinksPix IP Address", "IP Address", ip);
 			if(dlg.ShowModal() != wxID_OK) {
 				SetCursor(wxCURSOR_ARROW);
 				return;
@@ -3446,16 +3501,17 @@ void xLightsFrame::UploadEasyLightsOutput()
 
 		// Recalc all the models to make sure any changes on setup are incorporated
 		RecalcModels();
-
-		EasyLights EL(ip.ToStdString(), 0);
-
-		if(EL.SetOutputs(&AllModels, &_outputManager, selected, this)) {
-			SetStatusText("EasyLights Output Upload Complete.");
-        } else {
-			SetStatusText("EasyLights Output Upload Failed.");
-		}
+        
+		HinksPix hinkspix(ip.ToStdString(), proxy.ToStdString());
+        if (hinkspix.IsConnected()) {
+            if (hinkspix.SetOutputs(&AllModels, &_outputManager, selected, this)) {
+                SetStatusText("HinksPix Output Upload Complete.");
+            }
+            else {
+                SetStatusText("HinksPix Output Upload Failed.");
+            }
+        }
 		
 		SetCursor(wxCURSOR_ARROW);
 	}
 }
-*/

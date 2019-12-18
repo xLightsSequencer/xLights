@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (scott)  (beta) Added Hinkspix Pro/Easylights 16 Controller Upload
 2019.70 December 13 2019
    -- enh (keith)  Allows state effect to work on groups of models containing the same states
    -- enh (scott)  Increase maximum star node count

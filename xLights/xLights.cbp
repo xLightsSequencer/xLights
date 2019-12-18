@@ -744,6 +744,8 @@
 		<Unit filename="controllers/FPPConnectDialog.h" />
 		<Unit filename="controllers/Falcon.cpp" />
 		<Unit filename="controllers/Falcon.h" />
+		<Unit filename="controllers/HinksPix.cpp" />
+		<Unit filename="controllers/HinksPix.h" />
 		<Unit filename="controllers/J1Sys.cpp" />
 		<Unit filename="controllers/J1Sys.h" />
 		<Unit filename="controllers/Pixlite16.cpp" />

@@ -17,6 +17,7 @@
 #include "controllers/J1Sys.h"
 #include "controllers/FPP.h"
 #include "controllers/AlphaPix.h"
+#include "controllers/HinksPix.h"
 #include "controllers/ControllerRegistry.h"
 
 //(*IdInit(MultiControllerUploadDialog)
@@ -73,6 +74,7 @@ MultiControllerUploadDialog::MultiControllerUploadDialog(wxWindow* parent,wxWind
 	Choice1->Append(_("J1Sys"));
 	Choice1->Append(_("FPP Capes/Hats"));
 	Choice1->Append(_("AlphaPix"));
+	Choice1->Append(_("HinksPix"));
 	Choice1->Append(_("Auto"));
 	FlexGridSizer2->Add(Choice1, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 5);
@@ -283,6 +285,31 @@ void MultiControllerUploadDialog::OnButton_UploadClick(wxCommandEvent& event)
             } else {
                 TextCtrl_Log->AppendText("AlphaPix Upload FAILED to " + ip + ".\n");
             }
+        }
+        else if (selected == "HinksPix")
+        {
+            HinksPix hinkspix(ip.ToStdString(), proxy);
+            if (hinkspix.IsConnected()) {
+                if (hinkspix.SetInputUniverses(_frame->GetOutputManager(), fake)) {
+                    TextCtrl_Log->AppendText("HinksPix Input Upload Complete to " + ip + ".\n");
+                    if (hinkspix.SetOutputs(&_frame->AllModels, _frame->GetOutputManager(), fake, this)) {
+                        TextCtrl_Log->AppendText("HinksPix Upload Complete to " + ip + ".\n");
+                    }
+                    else {
+                        TextCtrl_Log->AppendText("HinksPix Upload FAILED to " + ip + ".\n");
+                    }
+                }
+                else {
+                    TextCtrl_Log->AppendText("HinksPix Input Upload FAILED to " + ip + ".\n");
+                }
+            }
+            else {
+                TextCtrl_Log->AppendText("HinksPix Upload FAILED to " + ip + ".\n");
+            }
+        }
+        else
+        {
+            wxASSERT(false);
         }
     }
 

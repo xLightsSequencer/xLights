@@ -379,7 +379,7 @@ bool UDController::Check(const ControllerRules* rules, std::string& res)
     {
         for (const auto& it : _outputs)
         {
-            if (std::find(inputprotocols.begin(), inputprotocols.end(), it->GetType()) == inputprotocols.end())
+            if (std::find(inputprotocols.begin(), inputprotocols.end(), wxString(it->GetType()).MakeUpper()) == inputprotocols.end())
             {
                 res += wxString::Format("ERR: Output %s is not a protocol this controller supports.\n", it->GetType()).ToStdString();
                 success = false;
