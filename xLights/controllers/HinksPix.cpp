@@ -271,7 +271,6 @@ bool HinksPix::SetInputUniverses(OutputManager* outputManager, std::list<int>& s
         DisplayError("HinksPix E131 Input command FAILED.");
 
     return worked;
-    //return (response != "");
 }
 
 bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, std::list<int>& selected, wxWindow* parent)
