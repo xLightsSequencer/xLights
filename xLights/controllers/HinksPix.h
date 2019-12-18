@@ -4,6 +4,7 @@
 #include <wx/protocol/http.h>
 #include <list>
 #include <string>
+#include <memory>
 #include "ControllerUploadData.h"
 #include "UtilClasses.h"
 
