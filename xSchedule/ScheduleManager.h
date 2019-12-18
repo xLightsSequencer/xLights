@@ -211,6 +211,6 @@ class ScheduleManager
         bool IsSlave() const;
         bool IsFPPRemoteOrMaster() const;
         bool IsTest() const;
-        void SetTestMode(bool test) { _testMode = test; }
+        void SetTestMode(bool test) { _testMode = test; if (!test) AllOff(); }
 };
 #endif
