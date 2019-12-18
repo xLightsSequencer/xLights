@@ -1,7 +1,5 @@
 #include "PlayListStep.h"
 
-#include <wx/xml/xml.h>
-#include <log4cpp/Category.hh>
 #include "PlayListItemVideo.h"
 #include "PlayListItemImage.h"
 #include "PlayListItemJukebox.h"
@@ -30,10 +28,15 @@
 #include "PlayListItemOSC.h"
 #include "PlayListItemAudio.h"
 #include "PlayListItemARTNetTrigger.h"
-#include <wx/filename.h>
 #include "../xScheduleMain.h"
 #include "../ScheduleManager.h"
 #include "../ReentrancyCounter.h"
+#include "../../xLights/UtilFunctions.h"
+
+#include <wx/filename.h>
+#include <wx/xml/xml.h>
+
+#include <log4cpp/Category.hh>
 
 int __playliststepid = 0;
 
@@ -1067,5 +1070,11 @@ AudioManager* PlayListStep::GetAudioManager()
     return nullptr;
 }
 
-
-
+int PlayListStep::GetStepIdFromName(const std::string& step)
+{
+    if (StartsWith(step, "**id="))
+    {
+        return wxAtoi(step.substr(5, step.size() - 7));
+    }
+    return -1;
+}

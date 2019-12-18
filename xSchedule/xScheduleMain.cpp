@@ -1992,11 +1992,11 @@ void xScheduleFrame::OnListView_RunningItemActivated(wxListEvent& event)
 
     PlayList* p = __schedule->GetRunningPlayList();
 
-    if (selected >= 0 && p != nullptr && p->GetRunningStep()->GetNameNoTime() != ListView_Running->GetItemText(selected, 0))
+    if (selected >= 0 && p != nullptr && p->GetRunningStep()->GetId() != ListView_Running->GetItemData(selected))
     {
         size_t rate = 0;
         wxString msg;
-        __schedule->Action("Jump to specified step in current playlist", ListView_Running->GetItemText(selected, 0), "", p, nullptr, rate, msg);
+        __schedule->Action("Jump to specified step in current playlist", wxString::Format("**id=%d**", (int)ListView_Running->GetItemData(selected)), "", p, nullptr, rate, msg);
     }
 }
 
@@ -2076,6 +2076,7 @@ void xScheduleFrame::UpdateStatus(bool force)
             {
                 ListView_Running->InsertItem(i, it->GetNameNoTime());
                 ListView_Running->SetItem(i, 1, FormatTime(it->GetLengthMS()));
+                ListView_Running->SetItemData(i, it->GetId());
                 i++;
             }
         }
@@ -2096,7 +2097,7 @@ void xScheduleFrame::UpdateStatus(bool force)
         {
             for (int i = 0; i < ListView_Running->GetItemCount(); i++)
             {
-                if (!currenthighlighted && ListView_Running->GetItemText(i, 0) == step->GetNameNoTime())
+                if (!currenthighlighted && ListView_Running->GetItemData(i) == step->GetId())
                 {
                     currenthighlighted = true;
                     ListView_Running->SetItem(i, 2, step->GetStatus());
@@ -2104,7 +2105,7 @@ void xScheduleFrame::UpdateStatus(bool force)
                 }
                 else
                 {
-                    if (next != nullptr && !nexthighlighted && next->GetNameNoTime() == ListView_Running->GetItemText(i,0))
+                    if (next != nullptr && !nexthighlighted && next->GetId() == ListView_Running->GetItemData(i))
                     {
                         nexthighlighted = true;
                         ListView_Running->SetItemBackgroundColour(i, wxColor(244,241,146));

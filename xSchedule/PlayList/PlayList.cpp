@@ -4,13 +4,15 @@
 #include "PlayListItem.h"
 #include "../Schedule.h"
 
-#include <wx/xml/xml.h>
-#include <log4cpp/Category.hh>
 #include "PlayListSimpleDialog.h"
 #include "../xScheduleMain.h"
 #include "../xScheduleApp.h"
 #include "../ScheduleManager.h"
 #include "../ReentrancyCounter.h"
+
+#include <wx/xml/xml.h>
+
+#include <log4cpp/Category.hh>
 
 int __playlistid = 0;
 
@@ -1088,9 +1090,21 @@ bool PlayList::JumpToStep(PlayListStep* pls)
 bool PlayList::JumpToStep(const std::string& step)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("PlayList: JumpToStep %s", (const char*)step.c_str());
 
-    PlayListStep* pls = GetStep(step);
+    PlayListStep* pls = nullptr;
+
+    int stepid = PlayListStep::GetStepIdFromName(step);
+
+    if (stepid >= 0)
+    {
+        logger_base.debug("PlayList: JumpToStep id=%d", stepid);
+        pls = GetStep(stepid);
+    }
+    else
+    {
+        logger_base.debug("PlayList: JumpToStep %s", (const char*)step.c_str());
+        pls = GetStep(step);
+    }
 
     return JumpToStep(pls);
 }
@@ -1109,9 +1123,21 @@ PlayListStep* PlayList::GetStep(const std::string& step)
 {
     {
         ReentrancyCounter rec(_reentrancyCounter);
-        for (auto& it : _steps)
+
+        int id = PlayListStep::GetStepIdFromName(step);
+        if (id >= 0)
         {
-            if (wxString(it->GetNameNoTime()).Lower() == wxString(step).Lower()) return it;
+            for (auto& it : _steps)
+            {
+                if (it->GetId() == id) return it;
+            }
+        }
+        else
+        {
+            for (auto& it : _steps)
+            {
+                if (wxString(it->GetNameNoTime()).Lower() == wxString(step).Lower()) return it;
+            }
         }
     }
 

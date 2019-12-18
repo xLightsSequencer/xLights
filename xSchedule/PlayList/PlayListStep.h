@@ -45,7 +45,8 @@ public:
 #pragma endregion Constructors and Destructors
 
     bool operator==(const PlayListStep& rhs) const { return _id == rhs._id; }
-
+    static int GetStepIdFromName(const std::string& step);
+    
 #pragma region Getters and Setters
     PlayListItemText* GetTextItem(const std::string& name);
     wxUint32 GetId() const { return _id; }
