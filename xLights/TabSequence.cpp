@@ -907,7 +907,7 @@ void xLightsFrame::UpdateModelsList()
 
     playModel = nullptr;
     PreviewModels.clear();
-
+    UnselectEffect();
     modelsChangeCount++;
     AllModels.LoadModels(ModelsNode,
                          modelPreview->GetVirtualCanvasWidth(),

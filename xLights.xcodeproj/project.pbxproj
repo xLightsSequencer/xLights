@@ -114,7 +114,6 @@
 		671E47FB2231CD9700049DC9 /* SMSMessage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671E47F32231CD9600049DC9 /* SMSMessage.cpp */; };
 		671E47FD2231CEC900049DC9 /* libcurl.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 671E47FC2231CEC900049DC9 /* libcurl.tbd */; };
 		671FD6301BD72014003C2E33 /* ResizeImageDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671FD62E1BD72014003C2E33 /* ResizeImageDialog.cpp */; };
-		6722E9F821EC275D0063D54E /* EasyLights.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6722E9F621EC275C0063D54E /* EasyLights.cpp */; };
 		6723D3911E3946ED00355C72 /* xlMacUtils.mm in Sources */ = {isa = PBXBuildFile; fileRef = 67582EC91C73646300850363 /* xlMacUtils.mm */; };
 		6725FAE81F943AD8007F2D7C /* FPPRemotesDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6725FAE51F943AD7007F2D7C /* FPPRemotesDialog.cpp */; };
 		6725FAE91F943AD8007F2D7C /* GammaDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6725FAE61F943AD7007F2D7C /* GammaDialog.cpp */; };
@@ -280,6 +279,7 @@
 		676D0F821C72BEBD009C66FC /* kfc.c in Sources */ = {isa = PBXBuildFile; fileRef = 676D0F7B1C72BEBD009C66FC /* kfc.c */; };
 		676DCBFE1A98E53800FBA86B /* FileConverter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 676DCBF81A98E53800FBA86B /* FileConverter.cpp */; };
 		676DCBFF1A98E53800FBA86B /* LorConvertDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 676DCBFB1A98E53800FBA86B /* LorConvertDialog.cpp */; };
+		676F004223ABD1D900701F3F /* HinksPix.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 676F004123ABD1D900701F3F /* HinksPix.cpp */; };
 		676F5F8622C8DF5600D28330 /* EventMQTT.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 676F5F8222C8DF5500D28330 /* EventMQTT.cpp */; };
 		676F5F8722C8DF5600D28330 /* ListenerMQTT.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 676F5F8322C8DF5500D28330 /* ListenerMQTT.cpp */; };
 		676F5F8A22C8DFA300D28330 /* EventMQTTPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 676F5F8822C8DFA200D28330 /* EventMQTTPanel.cpp */; };
@@ -1040,8 +1040,6 @@
 		671E47FC2231CEC900049DC9 /* libcurl.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libcurl.tbd; path = usr/lib/libcurl.tbd; sourceTree = SDKROOT; };
 		671FD62E1BD72014003C2E33 /* ResizeImageDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ResizeImageDialog.cpp; sourceTree = "<group>"; };
 		671FD62F1BD72014003C2E33 /* ResizeImageDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ResizeImageDialog.h; sourceTree = "<group>"; };
-		6722E9F621EC275C0063D54E /* EasyLights.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EasyLights.cpp; path = controllers/EasyLights.cpp; sourceTree = "<group>"; };
-		6722E9F721EC275D0063D54E /* EasyLights.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EasyLights.h; path = controllers/EasyLights.h; sourceTree = "<group>"; };
 		6725FAE41F943AD7007F2D7C /* GammaDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GammaDialog.h; sourceTree = "<group>"; };
 		6725FAE51F943AD7007F2D7C /* FPPRemotesDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = FPPRemotesDialog.cpp; sourceTree = "<group>"; };
 		6725FAE61F943AD7007F2D7C /* GammaDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = GammaDialog.cpp; sourceTree = "<group>"; };
@@ -1346,6 +1344,8 @@
 		676DCBFB1A98E53800FBA86B /* LorConvertDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = LorConvertDialog.cpp; sourceTree = "<group>"; };
 		676DCBFC1A98E53800FBA86B /* LorConvertDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LorConvertDialog.h; sourceTree = "<group>"; };
 		676DCBFD1A98E53800FBA86B /* tmGridCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = tmGridCell.h; sourceTree = "<group>"; };
+		676F004023ABD1D800701F3F /* HinksPix.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = HinksPix.h; path = controllers/HinksPix.h; sourceTree = "<group>"; };
+		676F004123ABD1D900701F3F /* HinksPix.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = HinksPix.cpp; path = controllers/HinksPix.cpp; sourceTree = "<group>"; };
 		676F5F8222C8DF5500D28330 /* EventMQTT.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EventMQTT.cpp; path = events/EventMQTT.cpp; sourceTree = "<group>"; };
 		676F5F8322C8DF5500D28330 /* ListenerMQTT.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ListenerMQTT.cpp; path = events/ListenerMQTT.cpp; sourceTree = "<group>"; };
 		676F5F8422C8DF5500D28330 /* ListenerMQTT.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ListenerMQTT.h; path = events/ListenerMQTT.h; sourceTree = "<group>"; };
@@ -2894,14 +2894,14 @@
 		67BF7FF31F278946002F118D /* Controllers */ = {
 			isa = PBXGroup;
 			children = (
+				676F004123ABD1D900701F3F /* HinksPix.cpp */,
+				676F004023ABD1D800701F3F /* HinksPix.h */,
 				6794D2D7238A2B16006161F0 /* AlphaPix.cpp */,
 				6794D2D6238A2B16006161F0 /* AlphaPix.h */,
 				6701C431224557660004335C /* ControllerRegistry.cpp */,
 				6701C432224557660004335C /* ControllerRegistry.h */,
 				67912999213423A800818B73 /* ControllerUploadData.cpp */,
 				6791299A213423A800818B73 /* ControllerUploadData.h */,
-				6722E9F621EC275C0063D54E /* EasyLights.cpp */,
-				6722E9F721EC275D0063D54E /* EasyLights.h */,
 				671142EB207BACF200F45296 /* ESPixelStick.cpp */,
 				671142EA207BACF100F45296 /* ESPixelStick.h */,
 				67BF7FFD1F278956002F118D /* Falcon.cpp */,
@@ -4356,7 +4356,6 @@
 				675DE2671B53381800A9BB44 /* EffectAssist.cpp in Sources */,
 				67B2CF951C39D98A003C17CA /* CirclesEffect.cpp in Sources */,
 				6762EFF51D5A323300F28879 /* SubModelsDialog.cpp in Sources */,
-				6722E9F821EC275D0063D54E /* EasyLights.cpp in Sources */,
 				67DAFDE11CA1A63C004B3237 /* Options.cpp in Sources */,
 				67D7DD041B23C586007A3F20 /* UndoManager.cpp in Sources */,
 				67AAC48E214199A7005D55A9 /* NodeSelectGrid.cpp in Sources */,
@@ -4435,6 +4434,7 @@
 				675AB42F1B5ACEDA00853A28 /* PluginWrapper.cpp in Sources */,
 				67D90BE82390176B007792F2 /* xxxDialog.cpp in Sources */,
 				67CF20CF1C3D8D71000FCDF7 /* RenderBuffer.cpp in Sources */,
+				676F004223ABD1D900701F3F /* HinksPix.cpp in Sources */,
 				67B2CFE11C3A186A003C17CA /* ShimmerEffect.cpp in Sources */,
 				675AB42C1B5ACEDA00853A28 /* PluginInputDomainAdapter.cpp in Sources */,
 				67B2CF721C39D98A003C17CA /* FacesPanel.cpp in Sources */,

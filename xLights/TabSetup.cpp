@@ -3240,6 +3240,8 @@ void xLightsFrame::DoWork(uint32_t work, const std::string& type, Model* m, cons
         if (mm != nullptr)
         {
             mm->ReloadModelXml();
+            //must unselect any effect as it might now be pointing at an invalid model/submodel/strand
+            UnselectEffect();
         }
     }
     work = _outputModelManager.ClearWork(type, work,

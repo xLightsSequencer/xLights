@@ -1118,7 +1118,7 @@ void SubModelsDialog::SelectRow(int r)
             bool done = false;
             int n = start2;
             while (!done) {
-                if (n < (int)model->GetNodeCount()) {
+                if (n >= 0 && n < (int)model->GetNodeCount()) {
                     model->SetNodeColor(n, xlWHITE);
                 }
                 if (start2 > end2) {
