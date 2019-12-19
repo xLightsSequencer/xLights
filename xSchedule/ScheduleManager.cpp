@@ -5548,16 +5548,7 @@ std::string ScheduleManager::DecodeStep(const std::string& stepparameter)
     if (wxString(stepparameter).Lower().StartsWith("id:"))
     {
         wxUint32 id = wxAtoi(wxString(stepparameter).Mid(3));
-        for (auto it = _playLists.begin(); it != _playLists.end(); ++it)
-        {
-            auto s = (*it)->GetStep(id);
-            if (s != nullptr)
-            {
-                return s->GetNameNoTime();
-            }
-        }
-
-        return "";
+        return PlayListStep::GetStepNameWithId(id);
     }
 
     return stepparameter;

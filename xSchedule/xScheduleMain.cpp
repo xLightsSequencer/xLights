@@ -1997,7 +1997,7 @@ void xScheduleFrame::OnListView_RunningItemActivated(wxListEvent& event)
     {
         size_t rate = 0;
         wxString msg;
-        __schedule->Action("Jump to specified step in current playlist", wxString::Format("**id=%d**", (int)ListView_Running->GetItemData(selected)), "", p, nullptr, rate, msg);
+        __schedule->Action("Jump to specified step in current playlist", PlayListStep::GetStepNameWithId((int)ListView_Running->GetItemData(selected)), "", p, nullptr, rate, msg);
     }
 }
 

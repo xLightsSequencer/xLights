@@ -1127,14 +1127,14 @@ PlayListStep* PlayList::GetStep(const std::string& step)
         int id = PlayListStep::GetStepIdFromName(step);
         if (id >= 0)
         {
-            for (auto& it : _steps)
+            for (const auto& it : _steps)
             {
                 if (it->GetId() == id) return it;
             }
         }
         else
         {
-            for (auto& it : _steps)
+            for (const auto& it : _steps)
             {
                 if (wxString(it->GetNameNoTime()).Lower() == wxString(step).Lower()) return it;
             }
@@ -1148,9 +1148,9 @@ PlayListStep* PlayList::GetStep(wxUint32 step)
 {
     {
         ReentrancyCounter rec(_reentrancyCounter);
-        for (auto it = _steps.begin(); it != _steps.end(); ++it)
+        for (const auto& it : _steps)
         {
-            if ((*it)->GetId() == step) return (*it);
+            if (it->GetId() == step) return it;
         }
     }
 
@@ -1163,19 +1163,19 @@ bool PlayList::SupportsRandom()
 
     {
         ReentrancyCounter rec(_reentrancyCounter);
-        for (auto it = _steps.begin(); it != _steps.end(); ++it)
+        for (const auto& it : _steps)
         {
-            if (_steps.front()->GetId() == (*it)->GetId() && _firstOnlyOnce)
+            if (_steps.front()->GetId() == it->GetId() && _firstOnlyOnce)
             {
                 count--;
             }
-            else if (_steps.back()->GetId() == (*it)->GetId() && _lastOnlyOnce)
+            else if (_steps.back()->GetId() == it->GetId() && _lastOnlyOnce)
             {
                 count--;
             }
             else
             {
-                if ((*it)->GetExcludeFromRandom())
+                if (it->GetExcludeFromRandom())
                 {
                     count--;
                 }
@@ -1215,9 +1215,9 @@ PlayListStep* PlayList::GetRandomStep()
         int actualsteps = _steps.size();
         if (_firstOnlyOnce) actualsteps--;
         if (_lastOnlyOnce) actualsteps--;
-        for (auto it = _steps.begin(); it != _steps.end(); ++it)
+        for (const auto& it : _steps)
         {
-            if ((*it)->GetExcludeFromRandom())
+            if (it->GetExcludeFromRandom())
             {
                 actualsteps--;
             }
@@ -1392,7 +1392,7 @@ bool PlayList::IsSimple()
 {
     {
         ReentrancyCounter rec(_reentrancyCounter);
-        for (auto& it : _steps)
+        for (const auto& it : _steps)
         {
             if (!it->IsSimple())
             {
@@ -1400,7 +1400,7 @@ bool PlayList::IsSimple()
             }
         }
 
-        for (auto& it: _everySteps)
+        for (const auto& it: _everySteps)
         {
             if (!it->IsSimple())
             {
@@ -1416,7 +1416,7 @@ Schedule* PlayList::GetSchedule(int id)
 {
     {
         ReentrancyCounter rec(_reentrancyCounter);
-        for (auto& it : _schedules)
+        for (const auto& it : _schedules)
         {
             if (it->GetId() == id) return it;
         }
@@ -1429,7 +1429,7 @@ Schedule* PlayList::GetSchedule(const std::string& name)
 {
     {
         ReentrancyCounter rec(_reentrancyCounter);
-        for (auto& it : _schedules)
+        for (const auto& it : _schedules)
         {
             if (wxString(it->GetName()).Lower() == wxString(name).Lower()) return it;
         }
@@ -1452,7 +1452,7 @@ void PlayList::RemoveEmptySteps()
             logger_base.warn("PlayList removing empty steps but we appear to be manipulating it elsewhere. This may not end well.");
         }
 
-        for (auto& it : _steps)
+        for (const auto& it : _steps)
         {
             if (it->GetItems().size() == 0)
             {
@@ -1460,7 +1460,7 @@ void PlayList::RemoveEmptySteps()
             }
         }
 
-        for (auto& it : toremove)
+        for (const auto& it : toremove)
         {
             _steps.remove(it);
         }
@@ -1477,7 +1477,7 @@ PlayListItemText* PlayList::GetRunningText(const std::string& name)
 
         if (ti == nullptr)
         {
-            for (auto& it : _everySteps)
+            for (const auto& it : _everySteps)
             {
                 ti = it->GetTextItem(name);
                 if (ti != nullptr) break;
@@ -1537,7 +1537,7 @@ PlayListStep* PlayList::GetStepWithFSEQ(const std::string fseqFile)
 {
     {
         ReentrancyCounter rec(_reentrancyCounter);
-        for (auto& it : _steps)
+        for (const auto& it : _steps)
         {
             if (it->IsRunningFSEQ(fseqFile))
             {
@@ -1553,7 +1553,7 @@ PlayListStep* PlayList::GetStepWithTimingName(const std::string timingName)
 {
     {
         ReentrancyCounter rec(_reentrancyCounter);
-        for (auto& it : _steps)
+        for (const auto& it : _steps)
         {
             size_t ms;
             if (it->GetTimeSource(ms) != nullptr && it->GetTimeSource(ms)->GetNameNoTime() == timingName)
@@ -1572,7 +1572,7 @@ PlayListItem* PlayList::FindRunProcessNamed(const std::string& item)
 
     {
         ReentrancyCounter rec(_reentrancyCounter);
-        for (auto& it : _steps)
+        for (const auto& it : _steps)
         {
             pli = it->FindRunProcessNamed(item);
 
@@ -1587,7 +1587,7 @@ PlayListStep* PlayList::GetStepContainingPlayListItem(wxUint32 id)
 {
     {
         ReentrancyCounter rec(_reentrancyCounter);
-        for (auto& it : _steps)
+        for (const auto& it : _steps)
         {
             if (it->GetItem(id) != nullptr)
             {
@@ -1656,7 +1656,7 @@ PlayListItem* PlayList::GetItem(wxUint32 id)
 {
     {
         ReentrancyCounter rec(_reentrancyCounter);
-        for (auto& it : _steps)
+        for (const auto& it : _steps)
         {
             auto i = it->GetItem(id);
             if (i != nullptr) return i;

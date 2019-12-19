@@ -1078,3 +1078,8 @@ int PlayListStep::GetStepIdFromName(const std::string& step)
     }
     return -1;
 }
+
+std::string PlayListStep::GetStepNameWithId(int id)
+{
+    return wxString::Format("**id=%d**", id).ToStdString();
+}
