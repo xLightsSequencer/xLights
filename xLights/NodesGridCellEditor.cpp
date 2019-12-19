@@ -134,7 +134,7 @@ void NodesGridCellEditor::Reset()
     while (wtkz.HasMoreTokens()) //single iteration for model name, maybe multiple for node#s
     {
         wxString valstr = wtkz.GetNextToken();
-        for (int i = 0; i < ListBox()->GetCount(); ++i) {
+        for (size_t i = 0; i < ListBox()->GetCount(); ++i) {
             if (ListBox()->GetString(i) == valstr) {
                 ListBox()->SetSelection(i);
             }

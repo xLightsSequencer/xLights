@@ -296,7 +296,7 @@ void BatchRenderDialog::ValidateWindow()
 void BatchRenderDialog::OnButton_OkClick(wxCommandEvent& event)
 {
     wxString selected = "";
-    for (int x = 0; x < SequenceList->GetCount(); x++) {
+    for (size_t x = 0; x < SequenceList->GetCount(); x++) {
         if (SequenceList->IsChecked(x)) {
             if (selected != "")
             {

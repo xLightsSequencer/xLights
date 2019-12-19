@@ -3396,6 +3396,9 @@ void xLightsFrame::OnMenuItem_File_Export_VideoSelected(wxCommandEvent& event)
     if (CurrentSeqXmlFile == nullptr || frameCount == 0)
         return;
 
+    // Ensure all pending work is done before we do anything
+    DoAllWork();
+
     wxAuiPaneInfo& pi = m_mgr->GetPane("HousePreview");
     bool visible = pi.IsShown();
     if (!visible)

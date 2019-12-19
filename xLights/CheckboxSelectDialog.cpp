@@ -153,7 +153,7 @@ void CheckboxSelectDialog::OnPopup(wxCommandEvent& event)
 
 void CheckboxSelectDialog::SelectAllLayers(bool select)
 {
-    for (int i = 0; i < CheckListBox_Items->GetCount(); i++)
+    for (size_t i = 0; i < CheckListBox_Items->GetCount(); i++)
     {
         CheckListBox_Items->Check(i, select);
     }

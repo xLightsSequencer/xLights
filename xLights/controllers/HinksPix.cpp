@@ -130,7 +130,7 @@ wxString HinksPixSerial::BuildCommand() const
 }
 
 void HinksPix::RegisterControllers() {
-    for (auto &a : CONTROLLER_TYPE_MAP) {
+    for (const auto &a : CONTROLLER_TYPE_MAP) {
         ControllerRegistry::AddController(&a);
     }
 }

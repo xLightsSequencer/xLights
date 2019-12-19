@@ -1829,7 +1829,7 @@ void DrawGLUtils::Draw(DrawGLUtils::xlVertexTextAccumulator &va, int size, float
         vat.forceColor = true;
         vat.color = va.color;
     }
-    for (int x = 0; x < va.count; x++) {
+    for (size_t x = 0; x < va.count; x++) {
         FONTS[tsize].Populate(va.vertices[x*2], va.vertices[x*2 + 1], va.text[x], factor, vat);
     }
     LOG_GL_ERRORV(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));

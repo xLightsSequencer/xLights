@@ -69,10 +69,10 @@ LayerSelectDialog::LayerSelectDialog(wxWindow* parent, int startLayer, int endLa
     else
     {
         wxArrayString layers = wxSplit(layersSelected, '|');
-        for (auto it = layers.begin(); it != layers.end(); ++it)
+        for (const auto& it : layers)
         {
-            int l = wxAtoi(*it);
-            if (l < CheckListBox_Layers->GetCount())
+            int l = wxAtoi(it);
+            if (l < (int)CheckListBox_Layers->GetCount())
             {
                 CheckListBox_Layers->Check(l);
             }
@@ -106,7 +106,7 @@ std::string LayerSelectDialog::GetSelectedLayers() const
 
 void LayerSelectDialog::SelectAllLayers()
 {
-    for (int i = 0; i < CheckListBox_Layers->GetCount(); i++)
+    for (size_t i = 0; i < CheckListBox_Layers->GetCount(); i++)
     {
         CheckListBox_Layers->Check(i);
     }

@@ -73,7 +73,7 @@ void SpirographEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBu
     float r = xc*(int_r/100.0); // start little circle at 1/4 of max width
     if (r == 0) {
         // little r cannot be 0 or we get a divide by 0 / INF
-        r = 0.00001;
+        r = 0.00001f;
     }
     if(r>R) r=R;
     float d = xc*(int_d/100.0);
