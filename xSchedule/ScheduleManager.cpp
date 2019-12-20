@@ -3357,6 +3357,36 @@ void ScheduleManager::StopPlayList(PlayList* playlist, bool atendofcurrentstep, 
 	}
 }
 
+void ScheduleManager::GetNextScheduledPlayList(PlayList** p, Schedule** s)
+{
+    *p = nullptr;
+    *s = nullptr;;
+    wxDateTime next = wxDateTime((time_t)0);
+    for (auto pit = _playLists.begin(); pit != _playLists.end(); ++pit)
+    {
+        auto schedules = (*pit)->GetSchedules();
+        for (auto sit = schedules.begin(); sit != schedules.end(); ++sit)
+        {
+            wxDateTime n = (*sit)->GetNextTriggerDateTime();
+            if (n != wxDateTime((time_t)0))
+            {
+                if (next == wxDateTime((time_t)0))
+                {
+                    *p = *pit;
+                    *s = *sit;
+                    next = n;
+                }
+                else if (n < next)
+                {
+                    *p = *pit;
+                    *s = *sit;
+                    next = n;
+                }
+            }
+        }
+    }
+}
+
 // 127.0.0.1/xScheduleStash?Command=Store&Key=<key> ... this must be posted with the data in the body of the request ... key must be filename legal
 // 127.0.0.1/xScheduleStash?Command=Retrieve&Key=<key> ... this returs a text response with the data if successful
 
@@ -3546,31 +3576,8 @@ bool ScheduleManager::Query(const wxString& command, const wxString& parameters,
     else if (c == "getnextscheduledplaylist")
     {
         PlayList* p = nullptr;
-        Schedule* s = nullptr;;
-        wxDateTime next = wxDateTime((time_t)0);
-        for (auto pit = _playLists.begin() ; pit != _playLists.end(); ++pit)
-        {
-            auto schedules = (*pit)->GetSchedules();
-            for (auto sit = schedules.begin(); sit != schedules.end(); ++sit)
-            {
-                wxDateTime n = (*sit)->GetNextTriggerDateTime();
-                if (n != wxDateTime((time_t)0))
-                {
-                    if (next == wxDateTime((time_t)0))
-                    {
-                        p = *pit;
-                        s = *sit;
-                        next = n;
-                    }
-                    else if (n < next)
-                    {
-                        p = *pit;
-                        s = *sit;
-                        next = n;
-                    }
-                }
-            }
-        }
+        Schedule* s = nullptr;
+        GetNextScheduledPlayList(&p, &s);
 
         if (p == nullptr)
         {

@@ -135,6 +135,7 @@ class ScheduleManager
         void SetBackgroundPlayList(PlayList* playlist);
         OutputManager* GetOutputManager() const { return _outputManager; }
         int GetNonStoppedCount() const;
+        void GetNextScheduledPlayList(PlayList** p, Schedule** s);
         RunningSchedule* GetRunningSchedule() const;
         RunningSchedule* GetRunningSchedule(const std::string& schedulename) const;
         RunningSchedule* GetRunningSchedule(Schedule* schedule) const;

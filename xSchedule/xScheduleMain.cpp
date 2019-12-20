@@ -1562,6 +1562,10 @@ void xScheduleFrame::UpdateSchedule()
 
     logger_frame.debug("Schedule checked %ldms", sw.Time());
 
+    PlayList* nextpl = nullptr;
+    Schedule* nextsch = nullptr;
+    __schedule->GetNextScheduledPlayList(&nextpl, &nextsch);
+
     // highlight the state of all schedule items in the tree
     wxTreeItemIdValue tid;
     auto root = TreeCtrl_PlayListsSchedules->GetRootItem();
@@ -1602,6 +1606,14 @@ void xScheduleFrame::UpdateSchedule()
                 else
                 {
                     TreeCtrl_PlayListsSchedules->SetItemBackgroundColour(it2, wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
+                }
+
+                if (nextsch != nullptr)
+                {
+                    if (schedule->GetId() == nextsch->GetId())
+                    {
+                        TreeCtrl_PlayListsSchedules->SetItemTextColour(it2, *wxBLUE);
+                    }
                 }
             }
         }
