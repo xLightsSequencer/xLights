@@ -598,7 +598,7 @@
     <ClInclude Include="controllers\Falcon.h" />
     <ClInclude Include="controllers\FPP.h" />
     <ClInclude Include="controllers\FPPConnectDialog.h" />
-    <ClCompile Include="controllers\HinksPix.h" />
+    <ClInclude Include="controllers\HinksPix.h" />
     <ClInclude Include="controllers\J1Sys.h" />
     <ClInclude Include="controllers\Pixlite16.h" />
     <ClInclude Include="controllers\SanDevices.h" />

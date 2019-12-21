@@ -11,7 +11,19 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2019.71 December 21 2019
    -- enh (scott)  (beta) Added Hinkspix Pro/Easylights 16 Controller Upload
+   -- enh (keith)  Show next schedule which will play in blue text on the UI
+   -- enh (keith)  Add support for negative polyline drops ... sticks
+   -- bug (keith)  Fix falcon split upload calc does not account for nulls and lots of virtual strings
+   -- bug (keith)  Fix jump to step does not work in xSchedule correctly if steps have duplicate names
+   -- bug (keith)  Fix turn off lights when xSchedule test mode is turned off
+   -- bug (keith)  Fix S5 channel effects on multicolour models do not import
+   -- bug (keith)  Prompt when cancelling custom model data edit if something changed
+   -- bug (keith)  Fix windows stack walk not working when xLights crashes
+   -- bug (dkulp)  Fix crash when model changes and we dont unselect any active effect
+   -- bug (dkulp)  Fix crash when loading some sequences
+   -- bug (dkulp)  Fix crash if effect is deleted while mouse is down
 2019.70 December 13 2019
    -- enh (keith)  Allows state effect to work on groups of models containing the same states
    -- enh (scott)  Increase maximum star node count

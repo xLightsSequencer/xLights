@@ -230,5 +230,4 @@ public:
     const int GetNumberOfOutputs() { return _numberOfOutputs; }
     const int GetNumberOfSerial() { return 1; }
 };
-
 #endif

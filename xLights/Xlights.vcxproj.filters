@@ -457,9 +457,6 @@
     <ClCompile Include="controllers\AlphaPix.cpp">
       <Filter>Controllers</Filter>
     </ClCompile>
-    <ClCompile Include="controllers\HinksPix.cpp">
-      <Filter>Controllers</Filter>
-    </ClCompile>
     <ClCompile Include="controllers\ControllerUploadData.cpp">
       <Filter>Controllers</Filter>
     </ClCompile>
@@ -749,6 +746,10 @@
     </ClCompile>
     <ClCompile Include="outputs\xxxSerialOutput.cpp">
       <Filter>Outputs</Filter>
+    </ClCompile>
+    <ClCompile Include="controllers\Pix.cpp" />
+    <ClCompile Include="controllers\HinksPix.cpp">
+      <Filter>Controllers</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1218,9 +1219,6 @@
     <ClInclude Include="controllers\AlphaPix.h">
       <Filter>Controllers</Filter>
     </ClInclude>
-    <ClCompile Include="controllers\HinksPix.h">
-      <Filter>Controllers</Filter>
-    </ClCompile>
     <ClInclude Include="controllers\ControllerUploadData.h">
       <Filter>Controllers</Filter>
     </ClInclude>
@@ -1510,6 +1508,9 @@
     </ClInclude>
     <ClInclude Include="outputs\xxxSerialOutput.h">
       <Filter>Outputs</Filter>
+    </ClInclude>
+    <ClInclude Include="controllers\HinksPix.h">
+      <Filter>Controllers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
