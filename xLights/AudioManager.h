@@ -37,7 +37,7 @@ enum class AUDIOSAMPLETYPE
 
 class xLightsVamp
 {
-	Vamp::HostExt::PluginLoader *_loader;
+	Vamp::HostExt::PluginLoader *_loader = nullptr;
 	std::map<std::string, Vamp::Plugin *> _plugins;
 	std::vector<Vamp::Plugin *> _loadedPlugins;
 	std::map<std::string, Vamp::Plugin *> _allplugins;
@@ -118,13 +118,13 @@ class SDL
     SDLSTATE _state;
     std::list<AudioData*> _audioData;
     std::mutex _audio_Lock;
-    float _playbackrate;
+    float _playbackrate = 1.0f;
     SDL_AudioSpec _wanted_spec;
     SDL_AudioSpec _wanted_inputspec;
-    int _initialisedRate;
+    int _initialisedRate = 44100;
     std::string _device;
     std::string _inputDevice;
-    int _listeners;
+    int _listeners = 0;
 
     void Reopen();
     AudioData* GetData(int id);
@@ -169,48 +169,48 @@ public:
 struct FilteredAudioData
 {
     AUDIOSAMPLETYPE type;
-    int lowNote;
-    int highNote;
-    float* data;
-    int16_t *pcmdata;
+    int lowNote = 0;
+    int highNote = 127;
+    float* data = nullptr;
+    int16_t *pcmdata = nullptr;
 };
 
 class AudioManager
 {
 	JobPool _jobPool;
-	Job* _job;
+	Job* _job = nullptr;
     std::shared_timed_mutex _mutex;
-    Job* _jobAudioLoad;
+    Job* _jobAudioLoad = nullptr;
     std::shared_timed_mutex _mutexAudioLoad;
-    long _loadedData;
+    long _loadedData = 0;
     std::vector<std::vector<std::list<float>>> _frameData;
 	std::string _audio_file;
 	xLightsVamp _vamp;
-	long _rate;
-	int _channels;
-    long _trackSize;
-	int _bits;
-	int _extra;
+	long _rate = 44100;
+	int _channels = 0;
+    long _trackSize = 0;
+	int _bits = 0;
+	int _extra = 0;
 	std::string _resultMessage;
-	int _state;
+	int _state = 0;
 	float *_data[2]; // audio data
-	Uint8* _pcmdata;
-	long _pcmdatasize;
+	Uint8* _pcmdata = nullptr;
+	long _pcmdatasize = 0;
 	std::string _title;
 	std::string _artist;
 	std::string _album;
-	int _intervalMS;
-	long _lengthMS;
-	bool _frameDataPrepared;
-	float _bigmax;
-	float _bigspread;
-	float _bigmin;
-	float _bigspectogrammax;
+	int _intervalMS = 50;
+	long _lengthMS = 0;
+	bool _frameDataPrepared = false;
+	float _bigmax = 0;
+	float _bigspread = 0;
+	float _bigmin = 0;
+	float _bigspectogrammax = 0;
 	MEDIAPLAYINGSTATE _media_state;
-	bool _polyphonicTranscriptionDone;
+	bool _polyphonicTranscriptionDone = false;
     std::vector<FilteredAudioData*> _filtered;
-    int _sdlid;
-    bool _ok;
+    int _sdlid = 0;
+    bool _ok = false;
     std::string _hash;
 
 	void GetTrackMetrics(AVFormatContext* formatContext, AVCodecContext* codecContext, AVStream* audioStream);

@@ -1141,6 +1141,10 @@ void AudioManager::SetLoadedData(long pos)
 bool AudioManager::IsDataLoaded(long pos)
 {
     std::unique_lock<std::shared_timed_mutex> locker(_mutexAudioLoad);
+
+    // if we failed to load the audio file say it is all ok
+    if (!_ok) return true;
+
     if (pos < 0)
     {
         return _loadedData == _trackSize;
@@ -1176,6 +1180,7 @@ AudioManager::AudioManager(const std::string& audio_file, int step, int block)
 	_polyphonicTranscriptionDone = false;
     _sdlid = -1;
     _rate = -1;
+    _trackSize = 0;
 
 	// extra is the extra bytes added to the data we read. This allows analysis functions to exceed the file length without causing memory exceptions
 	_extra = std::max(step, block) + 1;
