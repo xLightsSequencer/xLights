@@ -414,13 +414,9 @@ void PolyLineModel::InitModel() {
     }
 
     // define the buffer positions
-    drop_index = 0;
     int chan = 0;
-    int LastStringNum=-1;
+    int LastStringNum = -1;
     int ChanIncr = GetNodeChannelCount(StringType);
-    if (!IsLtoR) {
-        ChanIncr = - ChanIncr;
-    }
     int lights = numLights;
     int y = 0;
     drop_index = 0;
@@ -429,6 +425,7 @@ void PolyLineModel::InitModel() {
     int curCoord = 0;
     bool up = dropSizes[drop_index] < 0;
     int nodesInDrop = std::abs(dropSizes[drop_index]);
+    int nodesInDropLast = nodesInDrop;
     while (lights) {
         if (curCoord >= Nodes[curNode]->Coords.size()) {
             curNode++;
@@ -442,14 +439,17 @@ void PolyLineModel::InitModel() {
                 drop_index = 0;
             }
             nodesInDrop = std::abs(dropSizes[drop_index]);
+            if (!IsLtoR) {
+                chan -= ((nodesInDropLast + nodesInDrop) * GetNodeChannelCount(StringType));
+            }
+            nodesInDropLast = nodesInDrop;
             up = dropSizes[drop_index] < 0;
         }
         if (Nodes[curNode]->StringNum != LastStringNum) {
             LastStringNum=Nodes[curNode]->StringNum;
             chan=stringStartChan[LastStringNum];
             if (!IsLtoR) {
-                chan += NodesPerString(LastStringNum) * GetNodeChannelCount(StringType);
-                chan += ChanIncr;
+                chan += (NodesPerString(LastStringNum) - nodesInDrop) * GetNodeChannelCount(StringType);
             }
         }
         Nodes[curNode]->ActChan = chan;
@@ -503,7 +503,6 @@ void PolyLineModel::InitModel() {
         lights--;
         curCoord++;
     }
-
 
     SetBufferSize(maxH, SingleNode?1:width+1);
     screenLocation.SetRenderSize(1.0, maxH);

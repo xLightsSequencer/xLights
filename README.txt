@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (gil)    Fix PolyLine Icicle drop channel numbers when Blue Square is selected
 2019.71 December 21 2019
    -- enh (scott)  (beta) Added Hinkspix Pro/Easylights 16 Controller Upload
    -- enh (keith)  Show next schedule which will play in blue text on the UI
