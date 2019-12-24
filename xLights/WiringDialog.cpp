@@ -31,6 +31,7 @@
 const long WiringDialog::ID_STATICBITMAP1 = wxNewId();
 //*)
 
+const long WiringDialog::ID_MNU_RESET = wxNewId();
 const long WiringDialog::ID_MNU_EXPORT = wxNewId();
 const long WiringDialog::ID_MNU_EXPORTLARGE = wxNewId();
 const long WiringDialog::ID_MNU_PRINT = wxNewId();
@@ -73,7 +74,17 @@ WiringDialog::WiringDialog(wxWindow* parent, wxString modelname, wxWindowID id,c
 	Connect(wxEVT_SIZE,(wxObjectEventFunction)&WiringDialog::OnResize);
 	//*)
 
-    Connect(ID_STATICBITMAP1, wxEVT_CONTEXT_MENU, (wxObjectEventFunction)&WiringDialog::RightClick);
+    Connect(ID_STATICBITMAP1, wxEVT_CONTEXT_MENU, (wxObjectEventFunction)& WiringDialog::RightClick);
+
+    // Pan and zoom events
+    StaticBitmap_Wiring->Connect(wxEVT_LEFT_DOWN, (wxObjectEventFunction)& WiringDialog::LeftDown, nullptr, this);
+    StaticBitmap_Wiring->Connect(wxEVT_LEFT_UP, (wxObjectEventFunction)& WiringDialog::LeftUp, nullptr, this);
+    StaticBitmap_Wiring->Connect(wxEVT_MOTION, (wxObjectEventFunction)& WiringDialog::Motion, nullptr, this);
+    StaticBitmap_Wiring->Connect(wxEVT_MOUSE_CAPTURE_LOST, (wxObjectEventFunction)& WiringDialog::CaptureLost, nullptr, this);
+    StaticBitmap_Wiring->Connect(wxEVT_MOUSEWHEEL, (wxObjectEventFunction)& WiringDialog::MouseWheel, nullptr, this);
+    StaticBitmap_Wiring->Connect(wxEVT_MAGNIFY, (wxObjectEventFunction)& WiringDialog::Magnify, nullptr, this);
+    StaticBitmap_Wiring->Connect(wxEVT_LEFT_DCLICK, (wxObjectEventFunction)& WiringDialog::LeftDClick, nullptr, this);
+
     _modelname = modelname;
 
     wxConfigBase* config = wxConfigBase::Get();
@@ -280,7 +291,8 @@ void WiringDialog::RenderNodes(wxBitmap& bitmap, std::map<int, std::map<int, std
                     lastx = pageWidth - lastx + FRONT_X_ADJUST;
                 }
                 int lasty = lastpt.y * pageHeight / height;
-                dc.DrawLine(AdjustX(lastx, printer), AdjustY(lasty), AdjustX(x, printer), AdjustY(y));
+                dc.DrawLine((AdjustX(lastx, printer) * _zoom) + _start.x, (AdjustY(lasty) * _zoom) + _start.y, 
+                            (AdjustX(x, printer) * _zoom) + _start.x, (AdjustY(y) * _zoom) + _start.y);
             }
 
             last = it->first;
@@ -299,7 +311,7 @@ void WiringDialog::RenderNodes(wxBitmap& bitmap, std::map<int, std::map<int, std
                 x = pageWidth - x + FRONT_X_ADJUST;
             }
             int y = it->second.front().y * pageHeight / height;
-            dc.DrawCircle(AdjustX(x, printer), AdjustY(y), r);
+            dc.DrawCircle((AdjustX(x, printer) * _zoom) + _start.x, (AdjustY(y) * _zoom) + _start.y, r);
         }
     }
 
@@ -328,11 +340,11 @@ void WiringDialog::RenderNodes(wxBitmap& bitmap, std::map<int, std::map<int, std
 
             if (_dark && !printer)
             {
-                RenderText(label, dc, AdjustX(x + r + 2, printer), AdjustY(y), *wxLIGHT_GREY, *wxBLACK);
+                RenderText(label, dc, (AdjustX(x + r + 2, printer) * _zoom) + _start.x, (AdjustY(y) * _zoom) + _start.y, *wxLIGHT_GREY, *wxBLACK);
             }
             else
             {
-                RenderText(label, dc, AdjustX(x + r + 2, printer), AdjustY(y), *wxBLACK, *wxWHITE);
+                RenderText(label, dc, AdjustX(x + r + 2, printer) + _start.x, AdjustY(y) + _start.y, *wxBLACK, *wxWHITE);
             }
         }
         string++;
@@ -342,25 +354,25 @@ void WiringDialog::RenderNodes(wxBitmap& bitmap, std::map<int, std::map<int, std
     {
         if (_rear)
         {
-            RenderText("CAUTION: Reverse view", dc, AdjustX(0, printer), 20, *wxGREEN, *wxBLACK);
+            RenderText("CAUTION: Reverse view", dc, AdjustX(0, printer) + _start.x, 20 + _start.y, *wxGREEN, *wxBLACK);
         }
         else
         {
-            RenderText("CAUTION: Front view", dc, AdjustX(0, printer), 20, *wxBLUE, *wxBLACK);
+            RenderText("CAUTION: Front view", dc, AdjustX(0, printer) + _start.x, 20 + _start.y, *wxBLUE, *wxBLACK);
         }
-        RenderText("Model: " + _modelname, dc, AdjustX(0, printer), 20 + fontSize + 4 * printScale, *wxGREEN, *wxBLACK);
+        RenderText("Model: " + _modelname, dc, AdjustX(0, printer) + _start.x, 20 + fontSize + 4 * printScale + _start.y, *wxGREEN, *wxBLACK);
     }
     else
     {
         if (_rear)
         {
-            RenderText("CAUTION: Reverse view", dc, AdjustX(0, printer), 20, *wxBLACK, *wxWHITE);
+            RenderText("CAUTION: Reverse view", dc, AdjustX(0, printer) + _start.x, 20 + _start.y, *wxBLACK, *wxWHITE);
         }
         else
         {
-            RenderText("CAUTION: Front view", dc, AdjustX(0, printer), 20, *wxBLUE, *wxWHITE);
+            RenderText("CAUTION: Front view", dc, AdjustX(0, printer) + _start.x, 20 + _start.y, *wxBLUE, *wxWHITE);
         }
-        RenderText("Model: " + _modelname, dc, AdjustX(0, printer), 20 + fontSize + 4 * printScale, *wxBLACK, *wxWHITE);
+        RenderText("Model: " + _modelname, dc, AdjustX(0, printer) + _start.x, 20 + fontSize + 4 * printScale + _start.y, *wxBLACK, *wxWHITE);
     }
 
     dc.SetPen(*wxBLACK_PEN);
@@ -454,7 +466,7 @@ void WiringDialog::RenderMultiLight(wxBitmap& bitmap, std::map<int, std::map<int
                     x = pageWidth - x + FRONT_X_ADJUST;
                 }
                 int y = it2->y * pageHeight / height;
-                dc.DrawCircle(AdjustX(x, printer), AdjustY(y), r);
+                dc.DrawCircle((AdjustX(x, printer) * _zoom) + _start.x, (AdjustY(y) * _zoom) + _start.y, r);
             }
 
             cindex++;
@@ -488,11 +500,11 @@ void WiringDialog::RenderMultiLight(wxBitmap& bitmap, std::map<int, std::map<int
 
                 if (_dark && !printer)
                 {
-                    RenderText(label, dc, AdjustX(x + r + 2, printer), AdjustY(y), *wxLIGHT_GREY, *wxBLACK);
+                    RenderText(label, dc, (AdjustX(x + r + 2, printer) * _zoom) + _start.x, (AdjustY(y) * _zoom) + _start.y, *wxLIGHT_GREY, *wxBLACK);
                 }
                 else
                 {
-                    RenderText(label, dc, AdjustX(x + r + 2, printer), AdjustY(y), *wxBLACK, *wxWHITE);
+                    RenderText(label, dc, AdjustX(x + r + 2, printer) + _start.x, AdjustY(y) + _start.y, *wxBLACK, *wxWHITE);
                 }
             }
         }
@@ -503,25 +515,25 @@ void WiringDialog::RenderMultiLight(wxBitmap& bitmap, std::map<int, std::map<int
     {
         if (_rear)
         {
-            RenderText("CAUTION: Reverse view", dc, AdjustX(0, printer), 20, *wxGREEN, *wxBLACK);
+            RenderText("CAUTION: Reverse view", dc, AdjustX(0, printer) + _start.x, 20 + _start.y, *wxGREEN, *wxBLACK);
         }
         else
         {
-            RenderText("CAUTION: Front view", dc, AdjustX(0, printer), 20, *wxBLUE, *wxBLACK);
+            RenderText("CAUTION: Front view", dc, AdjustX(0, printer) + _start.x, 20 + _start.y, *wxBLUE, *wxBLACK);
         }
-        RenderText("Model: " + _modelname, dc, AdjustX(0, printer), 20 + fontSize + 4 * printScale, *wxGREEN, *wxBLACK);
+        RenderText("Model: " + _modelname, dc, AdjustX(0, printer) + _start.x, 20 + fontSize + 4 * printScale + _start.y, *wxGREEN, *wxBLACK);
     }
     else
     {
         if (_rear)
         {
-            RenderText("CAUTION: Reverse view", dc, AdjustX(0, printer), 20, *wxBLACK, *wxWHITE);
+            RenderText("CAUTION: Reverse view", dc, AdjustX(0, printer) + _start.x, 20 + _start.y, *wxBLACK, *wxWHITE);
         }
         else
         {
             RenderText("CAUTION: Front view", dc, AdjustX(0, printer), 20, *wxBLUE, *wxWHITE);
         }
-        RenderText("Model: " + _modelname, dc, AdjustX(0, printer), 20 + fontSize + 4 * printScale, *wxBLACK, *wxWHITE);
+        RenderText("Model: " + _modelname, dc, AdjustX(0, printer) + _start.x, 20 + fontSize + 4 * printScale + _start.y, *wxBLACK, *wxWHITE);
     }
 }
 
@@ -573,6 +585,7 @@ void WiringDialog::OnResize(wxSizeEvent& event)
 void WiringDialog::RightClick(wxContextMenuEvent& event)
 {
     wxMenu mnuLayer;
+    mnuLayer.Append(ID_MNU_RESET, "Reset");
     mnuLayer.Append(ID_MNU_EXPORT, "Export");
     mnuLayer.Append(ID_MNU_EXPORTLARGE, "Export Large");
     mnuLayer.Append(ID_MNU_PRINT, "Print");
@@ -606,6 +619,12 @@ void WiringDialog::RightClick(wxContextMenuEvent& event)
 void WiringDialog::OnPopup(wxCommandEvent& event)
 {
     int id = event.GetId();
+    if (id == ID_MNU_RESET)
+    {
+        _zoom = 1.0f;
+        _start = wxPoint(0, 0);
+        Render();
+    }
     if (id == ID_MNU_EXPORT)
     {
         wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, _modelname, wxEmptyString, "PNG File (*.png)|*.png", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
@@ -705,6 +724,12 @@ void WiringDialog::Render()
 
 void WiringDialog::DrawBitmap(wxBitmap& bitmap, bool printer)
 {
+    wxPoint oldStart = _start;
+    float oldZoom = _zoom;
+    if (printer) {
+        _start = wxPoint(0, 0);
+        _zoom = 1.0f;
+    }
     if (_multilight)
     {
         RenderMultiLight(bitmap, _points, _cols, _rows, printer);
@@ -713,4 +738,87 @@ void WiringDialog::DrawBitmap(wxBitmap& bitmap, bool printer)
     {
         RenderNodes(bitmap, _points, _cols, _rows, printer);
     }
+    _start = oldStart;
+    _zoom = oldZoom;
+}
+
+void WiringDialog::LeftDown(wxMouseEvent& event)
+{
+    if (!StaticBitmap_Wiring->HasCapture())
+    {
+        StaticBitmap_Wiring->CaptureMouse();
+    }
+    _lastMouse = event.GetPosition();
+}
+
+void WiringDialog::LeftUp(wxMouseEvent& event)
+{
+    if (StaticBitmap_Wiring->HasCapture())
+    {
+        StaticBitmap_Wiring->ReleaseMouse();
+    }
+}
+
+void WiringDialog::Motion(wxMouseEvent& event)
+{
+    if (StaticBitmap_Wiring->HasCapture())
+    {
+        wxPoint delta = event.GetPosition() - _lastMouse;
+        _start = wxPoint(_start.x + delta.x, _start.y + delta.y);
+        Render();
+    }
+    _lastMouse = event.GetPosition();
+}
+
+void WiringDialog::AdjustZoom(float by, wxPoint mousePos)
+{
+    if (_zoom + by < 0) return;
+
+    // attempt to adjust start so we zoom on where the mouse is
+    // I know this is not quite right but i am not sure what I am missing
+    float adjx = by * mousePos.x;
+    float adjy = by * mousePos.y;
+    _start = wxPoint(_start.x - adjx, _start.y - adjy);
+
+    _zoom += by;
+}
+
+void WiringDialog::MouseWheel(wxMouseEvent& event)
+{
+    if (event.GetWheelRotation() == 0) {
+        //rotation of 0 is sometimes generated for other gestures (pinch/zoom), ignore
+        return;
+    }
+
+    if (event.GetWheelRotation() > 0) {
+        AdjustZoom(0.1f, event.GetPosition());
+    }
+    else
+    {
+        AdjustZoom(-0.1f, event.GetPosition());
+    }
+    Render();
+}
+
+void WiringDialog::Magnify(wxMouseEvent& event)
+{
+    if (event.GetWheelRotation() == 0 || event.GetMagnification() == 0.0f) {
+        //magnification of 0 is sometimes generated for other gestures (pinch/zoom), ignore
+        return;
+    }
+    if (event.GetWheelRotation() > 0) {
+        AdjustZoom(0.1f, event.GetPosition());
+    }
+    else
+    {
+        AdjustZoom(-0.1f, event.GetPosition());
+    }
+    Render();
+}
+
+void WiringDialog::LeftDClick(wxMouseEvent& event)
+{
+    _zoom = 1.0;
+    _start = wxPoint(0, 0);
+    Render();
 }

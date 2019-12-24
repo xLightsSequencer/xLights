@@ -27,6 +27,9 @@ public:
 
 class WiringDialog: public wxDialog
 {
+    float _zoom = 1.0f;
+    wxPoint _start = wxPoint(0, 0);
+    wxPoint _lastMouse = wxPoint(0, 0);
     wxString _modelname;
     wxBitmap _bmp;
     bool _dark;
@@ -42,6 +45,16 @@ class WiringDialog: public wxDialog
     std::map<int, std::list<wxRealPoint>> ExtractPoints(wxGrid* grid, bool reverse);
     void RightClick(wxContextMenuEvent& event);
     void OnPopup(wxCommandEvent& event);
+    void LeftDown(wxMouseEvent& event);
+    void LeftUp(wxMouseEvent& event);
+    void Motion(wxMouseEvent& event);
+    void MouseWheel(wxMouseEvent& event);
+    void Magnify(wxMouseEvent& event);
+    void LeftDClick(wxMouseEvent& event);
+    void CaptureLost(wxMouseCaptureLostEvent& event) {}
+    void AdjustZoom(float by, wxPoint mousePos);
+
+    static const long ID_MNU_RESET;
     static const long ID_MNU_EXPORT;
     static const long ID_MNU_EXPORTLARGE;
     static const long ID_MNU_PRINT;
