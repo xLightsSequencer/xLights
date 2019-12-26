@@ -179,6 +179,14 @@ void LightningEffect::LightningDrawBolt(RenderBuffer &buffer, const int x0_, con
     color2 = hsv2;
     color2 = hsv;
     for(;;) {
+        ///////////////////////////////////////////// DMX Model Support //////////////////////////////////////////
+        // if the model is a DMX model this will write the color into the proper red, green, and blue channels. //
+        //////////////////////////////////////////////////////////////////////////////////////////////////////////
+        if( RenderDMXModel(buffer, color) ) {
+            // function exits here
+            return;
+        }
+
         buffer.SetPixel(x0,y0, color);
         buffer.SetPixel(x0-1,y0, color2);
         buffer.SetPixel(x0+1,y0, color2);

@@ -451,6 +451,14 @@ void MorphEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer 
             if( buffer.allowAlpha ) {
                 tail_color.alpha = 255 * alpha_pct;
             }
+            ///////////////////////////////////////////// DMX Model Support //////////////////////////////////////////
+            // if the model is a DMX model this will write the color into the proper red, green, and blue channels. //
+            //////////////////////////////////////////////////////////////////////////////////////////////////////////
+            if (RenderDMXModel(buffer, tail_color)) {
+                // function exits here
+                return;
+            }
+
             buffer.DrawThickLine( (*v_lngx)[pos_a]+(repeat_x*repeat), (*v_lngy)[pos_a]+(repeat_y*repeat), (*v_shtx)[pos_b]+(repeat_x*repeat), (*v_shty)[pos_b]+(repeat_y*repeat), tail_color, direction >= 0);
         }
 
@@ -460,6 +468,14 @@ void MorphEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer 
             double pct = ((total_length == 0) ? 0.0 : i / total_length);
             pos_a = i;
             pos_b = v_shtx->size() * pct;
+            ///////////////////////////////////////////// DMX Model Support //////////////////////////////////////////
+            // if the model is a DMX model this will write the color into the proper red, green, and blue channels. //
+            //////////////////////////////////////////////////////////////////////////////////////////////////////////
+            if (RenderDMXModel(buffer, head_color)) {
+                // function exits here
+                return;
+            }
+
             buffer.DrawThickLine( (*v_lngx)[pos_a]+(repeat_x*repeat), (*v_lngy)[pos_a]+(repeat_y*repeat), (*v_shtx)[pos_b]+(repeat_x*repeat), (*v_shty)[pos_b]+(repeat_y*repeat), head_color, direction >= 0);
         }
     }

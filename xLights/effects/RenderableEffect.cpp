@@ -17,6 +17,7 @@
 #include "FanEffect.h"
 #include "SpiralsEffect.h"
 #include "PinwheelEffect.h"
+#include "../models/DmxModel.h"
 
 #include "../xLightsApp.h"
 #include "../xLightsMain.h"
@@ -1048,3 +1049,77 @@ Effect* RenderableEffect::GetCurrentTiming(const RenderBuffer& buffer, const std
     return nullptr;
 }
 
+bool RenderableEffect::SupportsDMXModel(RenderBuffer& buffer)
+{
+    if (buffer.cur_model != "") {
+        Model* model_info = buffer.GetModel();
+        if (model_info != nullptr) {
+            if (model_info->GetDisplayAs() == "DMX" && !buffer.IsNodeBuffer()) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+bool RenderableEffect::RenderDMXModelPalette(RenderBuffer& buffer) {
+    xlColor c;
+    int colorcnt = buffer.palette.Size();
+    double eff_pos = buffer.GetEffectTimeIntervalPosition();
+    float slice_pct = 1.0f / (float)colorcnt;
+    float ratio = eff_pos / slice_pct;
+    float pct, intpart;
+    pct = modf(ratio, &intpart);
+    int color2 = ((int)intpart + 1) % colorcnt;
+    buffer.palette.GetColor((int)intpart, c);
+    buffer.Get2ColorBlend((int)intpart, color2, pct, c);
+    return RenderDMXModel(buffer, c);
+}
+
+bool RenderableEffect::RenderDMXModel(RenderBuffer& buffer, const xlColor& color)
+{
+    if (buffer.cur_model != "") {
+        Model* model_info = buffer.GetModel();
+        if (model_info != nullptr) {
+            if (model_info->GetDisplayAs() == "DMX" && !buffer.IsNodeBuffer()) {
+                xlColor c;
+                DmxModel* dmx = (DmxModel*)model_info;
+
+                int white_channel = dmx->GetWhiteChannel();
+                if (white_channel > 0 && color.red == color.green && color.red == color.blue)
+                {
+                    c.red = color.red;
+                    c.green = color.red;
+                    c.blue = color.red;
+                    buffer.SetPixel(white_channel - 1, 0, c);
+                }
+                else
+                {
+                    int red_channel = dmx->GetRedChannel();
+                    int grn_channel = dmx->GetGreenChannel();
+                    int blu_channel = dmx->GetBlueChannel();
+                    if (red_channel != 0) {
+                        c.red = color.red;
+                        c.green = color.red;
+                        c.blue = color.red;
+                        buffer.SetPixel(red_channel - 1, 0, c);
+                    }
+                    if (grn_channel != 0) {
+                        c.red = color.green;
+                        c.green = color.green;
+                        c.blue = color.green;
+                        buffer.SetPixel(grn_channel - 1, 0, c);
+                    }
+                    if (blu_channel != 0) {
+                        c.red = color.blue;
+                        c.green = color.blue;
+                        c.blue = color.blue;
+                        buffer.SetPixel(blu_channel - 1, 0, c);
+                    }
+                }
+                return true;
+            }
+        }
+    }
+    return false;
+}

@@ -133,6 +133,22 @@ void LiquidEffect::SetDefaultParameters() {
 
 void LiquidEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
     float oset = buffer.GetEffectTimeIntervalPosition();
+
+    ///////////////////////////////////////////// DMX Model Support //////////////////////////////////////////
+    // if the model is a DMX model this will write the color into the proper red, green, and blue channels. //
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////
+    if (SupportsDMXModel(buffer)) {
+        xlColor color;
+        double eff_pos = buffer.GetEffectTimeIntervalPosition();
+        int velocity = GetValueCurveInt("Velocity1", 100, SettingsMap, oset, LIQUID_VELOCITY_MIN, LIQUID_VELOCITY_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+        int color_idx = (int)(eff_pos * velocity) % buffer.GetColorCount();
+        buffer.palette.GetColor(color_idx, color);
+        if (RenderDMXModel(buffer, color)) {
+            // function exits here
+            return;
+        }
+    }
+
     Render(buffer,
         SettingsMap.GetBool("CHECKBOX_TopBarrier", false),
         SettingsMap.GetBool("CHECKBOX_BottomBarrier", false),

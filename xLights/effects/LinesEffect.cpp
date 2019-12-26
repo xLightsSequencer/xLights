@@ -250,6 +250,14 @@ void LinesEffect::Render(RenderBuffer &buffer, int objects, int points, int thic
     {
         xlColor c = buffer.palette.GetColor(color++ % buffer.GetColorCount());
 
+        ///////////////////////////////////////////// DMX Model Support //////////////////////////////////////////
+        // if the model is a DMX model this will write the color into the proper red, green, and blue channels. //
+        //////////////////////////////////////////////////////////////////////////////////////////////////////////
+        if (RenderDMXModelPalette(buffer)) {
+            // function exits here
+            return;
+        }
+
         // Draw into a temp buffer and then alpha blend that into the main buffer
         // This minimises artefacts due to over-rendering
         temp.Clear();

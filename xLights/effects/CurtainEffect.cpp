@@ -194,6 +194,14 @@ void CurtainEffect::DrawCurtain(RenderBuffer & buffer, bool LeftEdge, int xlimit
         int x = LeftEdge ? buffer.BufferWi - i - 1 : i;
         for (int y = buffer.BufferHt - 1; y >= 0; y--)
         {
+            ///////////////////////////////////////////// DMX Model Support //////////////////////////////////////////
+            // if the model is a DMX model this will write the color into the proper red, green, and blue channels. //
+            //////////////////////////////////////////////////////////////////////////////////////////////////////////
+            if (RenderDMXModel(buffer, color)) {
+                // function exits here
+                return;
+            }
+
             buffer.SetPixel(x, y, color);
         }
     }
@@ -221,6 +229,14 @@ void CurtainEffect::DrawCurtainVertical(RenderBuffer & buffer, bool topEdge, int
         int y = topEdge ? buffer.BufferHt - i - 1 : i;
         for (int x = buffer.BufferWi - 1; x >= 0; x--)
         {
+            ///////////////////////////////////////////// DMX Model Support //////////////////////////////////////////
+            // if the model is a DMX model this will write the color into the proper red, green, and blue channels. //
+            //////////////////////////////////////////////////////////////////////////////////////////////////////////
+            if (RenderDMXModel(buffer, color)) {
+                // function exits here
+                return;
+            }
+
             buffer.SetPixel(x, y, color);
         }
     }

@@ -28,6 +28,19 @@ wxPanel *LifeEffect::CreatePanel(wxWindow *parent) {
     return new LifePanel(parent);
 }
 
+bool LifeEffect::SetLifePixel(RenderBuffer& buffer, int &x, int &y, xlColor &color)
+{
+    ///////////////////////////////////////////// DMX Model Support //////////////////////////////////////////
+    // if the model is a DMX model this will write the color into the proper red, green, and blue channels. //
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////
+    if (RenderDMXModel(buffer, color)) {
+        return true;
+    }
+
+    buffer.SetPixel(x, y, color);
+    return false;
+}
+
 static int Life_CountNeighbors(RenderBuffer &buffer, int x0, int y0)
 {
     //     2   3   4
@@ -107,7 +120,9 @@ void LifeEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &
     long TempState=effectState % 400 / 20;
     if (TempState == cache->LastLifeState)
     {
-        buffer.pixels=buffer.tempbuf;
+        if (!SupportsDMXModel(buffer)) {
+            buffer.pixels = buffer.tempbuf;
+        }   
         return;
     }
     else
@@ -133,60 +148,60 @@ void LifeEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &
                      */
                     if (isLive && cnt >= 2 && cnt <= 3)
                     {
-                        buffer.SetPixel(x,y,color);
+                        if (SetLifePixel(buffer, x, y, color)) return;  // exit function if a DMX Model
                     }
                     else if (!isLive && cnt == 3)
                     {
                         buffer.GetMultiColorBlend(rand01(),false,color);
-                        buffer.SetPixel(x,y,color);
+                        if (SetLifePixel(buffer, x, y, color)) return;  // exit function if a DMX Model
                     }
                     break;
                 case 1:
                     // B35/S236
                     if (isLive && (cnt == 2 || cnt == 3 || cnt == 6))
                     {
-                        buffer.SetPixel(x,y,color);
+                        if (SetLifePixel(buffer, x, y, color)) return;  // exit function if a DMX Model
                     }
                     else if (!isLive && (cnt == 3 || cnt == 5))
                     {
                         buffer.GetMultiColorBlend(rand01(),false,color);
-                        buffer.SetPixel(x,y,color);
+                        if (SetLifePixel(buffer, x, y, color)) return;  // exit function if a DMX Model
                     }
                     break;
                 case 2:
                     // B357/S1358
                     if (isLive && (cnt == 1 || cnt == 3 || cnt == 5 || cnt == 8))
                     {
-                        buffer.SetPixel(x,y,color);
+                        if (SetLifePixel(buffer, x, y, color)) return;  // exit function if a DMX Model
                     }
                     else if (!isLive && (cnt == 3 || cnt == 5 || cnt == 7))
                     {
                         buffer.GetMultiColorBlend(rand01(),false,color);
-                        buffer.SetPixel(x,y,color);
+                        if (SetLifePixel(buffer, x, y, color)) return;  // exit function if a DMX Model
                     }
                     break;
                 case 3:
                     // B378/S235678
                     if (isLive && (cnt == 2 || cnt == 3 || cnt >= 5))
                     {
-                        buffer.SetPixel(x,y,color);
+                        if (SetLifePixel(buffer, x, y, color)) return;  // exit function if a DMX Model
                     }
                     else if (!isLive && (cnt == 3 || cnt == 7 || cnt == 8))
                     {
                         buffer.GetMultiColorBlend(rand01(),false,color);
-                        buffer.SetPixel(x,y,color);
+                        if (SetLifePixel(buffer, x, y, color)) return;  // exit function if a DMX Model
                     }
                     break;
                 case 4:
                     // B25678/S5678
                     if (isLive && (cnt >= 5))
                     {
-                        buffer.SetPixel(x,y,color);
+                        if (SetLifePixel(buffer, x, y, color)) return;  // exit function if a DMX Model
                     }
                     else if (!isLive && (cnt == 2 || cnt >= 5))
                     {
                         buffer.GetMultiColorBlend(rand01(),false,color);
-                        buffer.SetPixel(x,y,color);
+                        if (SetLifePixel(buffer, x, y, color)) return;  // exit function if a DMX Model
                     }
                     break;
             }

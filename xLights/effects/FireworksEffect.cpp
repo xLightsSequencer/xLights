@@ -486,6 +486,14 @@ void FireworksEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuf
         {
             for (auto p : it.GetParticles())
             {
+                ///////////////////////////////////////////// DMX Model Support //////////////////////////////////////////
+                // if the model is a DMX model this will write the color into the proper red, green, and blue channels. //
+                //////////////////////////////////////////////////////////////////////////////////////////////////////////
+                if (RenderDMXModel(buffer, p.GetColour(buffer.palette, buffer.allowAlpha))) {
+                    // function exits here
+                    return;
+                }
+
                 buffer.SetPixel(p.GetX(), p.GetY(), p.GetColour(buffer.palette, buffer.allowAlpha));
             }
 

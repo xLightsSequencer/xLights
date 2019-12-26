@@ -315,6 +315,14 @@ void FireEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &
                 HSVValue hsv = FirePalette[GetFireBuffer(x,y, cache->FireBuffer, maxMWi, maxMHt)];
                 hsv.hue = hsv.hue +(HueShift/100.0);
                 if (hsv.hue>1.0) hsv.hue=1.0;
+                ///////////////////////////////////////////// DMX Model Support //////////////////////////////////////////
+                // if the model is a DMX model this will write the color into the proper red, green, and blue channels. //
+                //////////////////////////////////////////////////////////////////////////////////////////////////////////
+                if (RenderDMXModel(buffer, xlColor(hsv))) {
+                    // function exits here
+                    return;
+                }
+
                 if (buffer.allowAlpha) {
                     xlColor c(hsv);
                     c.alpha = FirePalette.asAlphaColor(GetFireBuffer(x,y, cache->FireBuffer, maxMWi, maxMHt)).Alpha();
@@ -323,6 +331,14 @@ void FireEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &
                     buffer.SetPixel(xp, yp, hsv);
                 }
             } else {
+                ///////////////////////////////////////////// DMX Model Support //////////////////////////////////////////
+                // if the model is a DMX model this will write the color into the proper red, green, and blue channels. //
+                //////////////////////////////////////////////////////////////////////////////////////////////////////////
+                if (RenderDMXModel(buffer, FirePalette.asColor(GetFireBuffer(x, y, cache->FireBuffer, maxMWi, maxMHt)))) {
+                    // function exits here
+                    return;
+                }
+
                 if (buffer.allowAlpha) {
                     buffer.SetPixel(xp, yp, FirePalette.asAlphaColor(GetFireBuffer(x,y, cache->FireBuffer, maxMWi, maxMHt)));
                 } else {
