@@ -176,19 +176,15 @@ Instructions for MS Visual Studio C++
 
 Here are the steps to compile xLights for Windows using the Visual Studio compiler.
 
-  a) Install Visual Studio 2017 ... the community edition is fine
+  a) Install Visual Studio 2019 ... the community edition is fine
 
   b) Select a base directory to place all your souce code in. From now on this is represented as <basedir>
 
-  c) Download and build wxWidgets for Windows (currently using version 3.1.1)
+  c) Download and build wxWidgets for Windows (currently using version 3.1.3)
 
      Download the version with the Windows installer from here:
         http://www.wxwidgets.org/downloads/
-     The installer only puts the wxWidgets source code on your system, you will need
-     to compile it yourself to create the lib files. The process is described here:
-     http://wiki.wxwidgets.org/Compiling_Using_MSVC_On_The_Commandline
-     To compile it yourself:
-
+		
 	 1) Edit the wxWidgets\include\wx\msw\setup.h and change the following lines
 			#define wxUSE_STD_STRING_CONV_IN_WXSTRING wxUSE_STL
 				to
@@ -197,23 +193,13 @@ Here are the steps to compile xLights for Windows using the Visual Studio compil
 				to
 				#define wxUSE_STD_CONTAINERS 1
             - save the file
-     2) Edit the file wxWidgets\src\msw\anybutton.cpp to comment out lines 1138 through 1146 as follows:
-        /*if ( wxGetWinVersion() >= wxWinVersion_10 )
-        {
-            // buttons have flat appearance so we can fully color them
-            // even outside the "safe" rectangle
-            SelectInHDC brush(hdc, hbrushBackground);
-            COLORREF colTheme = GetPixel(hdc, rectClient.left, rectClient.top);
-            ExtFloodFill(hdc, rectClient.left, rectClient.top, colTheme, FLOODFILLSURFACE);
-        }
-        else*/
-	 3) If you have previously built wxWidgets before and are using the same directory you will need to make the same change as above to the setup.h file in two
+	 2) If you have previously built wxWidgets before and are using the same directory you will need to make the same change as above to the setup.h file in two
 	    more locations: <basedir>\wxWidgets\lib\vc_dll\mswu\wx\setup.h and <basedir>\wxWidgets\lib\vc_dll\mswud\wx\setup.h.
-	 4) Also if you have built wxWidgets before you should delete the following 2 folders to force the setup.h change to be included
+	 3) Also if you have built wxWidgets before you should delete the following 2 folders to force the setup.h change to be included
 	    - <basedir>\wxWidgets\build\msw\vc_mswuddll
 		- <basedir>\wxWidgets\build\msw\vc_mswudll
-	 5) Open the project <basedir>\wxWidgets\build\msw\wx_vc14.sln
-	 6) Compile both a release and a debug version
+	 4) Open the project <basedir>\wxWidgets\build\msw\vc16.sln
+	 5) Compile both a release and a debug version
 
    d) Now open the xlights project <basedir>\xLights\xLights\xLights.sln and build the project
 
