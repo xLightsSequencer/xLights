@@ -93,9 +93,9 @@ Source: "../../bin64/wxmsw313u_propgrid_gcc_custom.dll"; DestDir: "{app}"; Flags
 Source: "../../bin64/wxmsw313u_qa_gcc_custom.dll"; DestDir: "{app}"; Flags: "ignoreversion"
 
 ; Take these from the default mingw install directory
-Source: "C:\Program Files\mingw-w64\x86_64-8.1.0-posix-seh-rt_v6-rev0\mingw64\bin\libgcc_s_seh-1.dll";  DestDir: "{app}";  Flags: "ignoreversion"
-Source: "C:\Program Files\mingw-w64\x86_64-8.1.0-posix-seh-rt_v6-rev0\mingw64\bin\libstdc++-6.dll";     DestDir: "{app}";  Flags: "ignoreversion"
-Source: "C:\Program Files\mingw-w64\x86_64-8.1.0-posix-seh-rt_v6-rev0\mingw64\bin\libwinpthread-1.dll"; DestDir: "{app}";  Flags: "ignoreversion"
+Source: "../../bin64/libgcc_s_seh-1.dll";  DestDir: "{app}";  Flags: "ignoreversion"
+Source: "../../bin64/libstdc++-6.dll";     DestDir: "{app}";  Flags: "ignoreversion"
+Source: "../../bin64/libwinpthread-1.dll"; DestDir: "{app}";  Flags: "ignoreversion"
 Source: "../../bin64/liblog4cpp.dll"; DestDir: "{app}";  Flags: "ignoreversion"
 
 ; avlib - video and audio

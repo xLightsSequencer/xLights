@@ -85,7 +85,7 @@ Source: "../../xSchedule\xSMSDaemon\Whitelist.txt"; DestDir: "{app}"; Flags: "ig
 ; Statically linkes
 
 ; Take these from the default mingw install directory
-Source: "C:\Program Files\mingw-w64\x86_64-8.1.0-posix-seh-rt_v6-rev0\mingw64\bin\libgcc_s_seh-1.dll";  DestDir: "{app}";  Flags: "ignoreversion"
+Source: "../../bin64/libgcc_s_seh-1.dll";  DestDir: "{app}";  Flags: "ignoreversion"
 
 ; avlib - video and audio
 Source: "../../bin64/avcodec-58.dll"; DestDir: "{app}";  Flags: "ignoreversion"
