@@ -3337,7 +3337,21 @@ void LayoutPanel::OnPreviewMouseWheel(wxMouseEvent& event)
         bool fromTrackPad = IsMouseEventFromTouchpad();
         if (is_3d) {
             if (!fromTrackPad || event.ControlDown()) {
-                modelPreview->SetZoomDelta(event.GetWheelRotation() > 0 ? -0.1f : 0.1f);
+                int mouse_x = event.GetX();
+                int mouse_y = event.GetY();
+                int w_c = modelPreview->getWidth() / 2;
+                int h_c = modelPreview->getHeight() / 2;
+                int delta_w = w_c - mouse_x;
+                int delta_h = h_c - mouse_y;
+                float zoom_delta = event.GetWheelRotation() > 0 ? -0.1f : 0.1f;
+                float new_x = -zoom_delta * delta_w * 2;
+                float new_y = zoom_delta * delta_h * 2;
+                float angle = glm::radians(modelPreview->GetCameraRotationY());
+                float delta_x = new_x * std::cos(angle) - new_y * std::sin(angle);
+                float delta_y = new_y * std::cos(angle) + new_x * std::sin(angle);
+                modelPreview->SetPan(delta_x, delta_y, 0.0f);
+
+                modelPreview->SetZoomDelta(zoom_delta);
             }
             else {
                 float delta_x = event.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ? 0 : -event.GetWheelRotation();
@@ -3353,6 +3367,16 @@ void LayoutPanel::OnPreviewMouseWheel(wxMouseEvent& event)
         }
         else {
             if (!fromTrackPad || event.ControlDown()) {
+                int mouse_x = event.GetX();
+                int mouse_y = event.GetY();
+                int w_c = modelPreview->getWidth() / 2;
+                int h_c = modelPreview->getHeight() / 2;
+                int delta_w = w_c - mouse_x;
+                int delta_h = h_c - mouse_y;
+                float zoom_delta = event.GetWheelRotation() > 0 ? -0.1f : 0.1f;
+                float delta_x = -zoom_delta * delta_w * 2;
+                float delta_y = zoom_delta * delta_h * 2;
+                modelPreview->SetPan(delta_x, delta_y, 0.0f);
                 modelPreview->SetZoomDelta(event.GetWheelRotation() > 0 ? -0.1f : 0.1f);
             }
             else {
