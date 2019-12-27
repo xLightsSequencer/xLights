@@ -249,15 +249,6 @@ void CirclesEffect::Render(Effect* effect, SettingsMap& SettingsMap, RenderBuffe
         {
             HSVValue hsv;
             buffer.palette.GetHSV(cache->balls[ii]._colorindex, hsv);
-
-            ///////////////////////////////////////////// DMX Model Support //////////////////////////////////////////
-            // if the model is a DMX model this will write the color into the proper red, green, and blue channels. //
-            //////////////////////////////////////////////////////////////////////////////////////////////////////////
-            if (RenderDMXModel(buffer, xlColor(hsv))) {
-                // function exits here
-                return;
-            }
-
             if (fade)
             {
                 buffer.DrawFadingCircle(cache->balls[ii]._x, cache->balls[ii]._y, cache->balls[ii]._radius, hsv, !bounce && !collide);
@@ -305,15 +296,6 @@ void CirclesEffect::RenderRadial(RenderBuffer& buffer, int x, int y, int thickne
             hsv.value = 1.0;
         }
         xlColor color(hsv);
-
-        ///////////////////////////////////////////// DMX Model Support //////////////////////////////////////////
-        // if the model is a DMX model this will write the color into the proper red, green, and blue channels. //
-        //////////////////////////////////////////////////////////////////////////////////////////////////////////
-        if (RenderDMXModel(buffer, color)) {
-            // function exits here
-            return;
-        }
-
         if (lastColor != color) {
             buffer.DrawCircle(x, y, ii, hsv, true);
             lastColor = color;
@@ -347,14 +329,6 @@ void CirclesEffect::RenderMetaBalls(RenderBuffer& buffer, int numBalls, MetaBall
             }
             if (sum >= 0.90f)
             {
-                ///////////////////////////////////////////// DMX Model Support //////////////////////////////////////////
-                // if the model is a DMX model this will write the color into the proper red, green, and blue channels. //
-                //////////////////////////////////////////////////////////////////////////////////////////////////////////
-                if (RenderDMXModel(buffer, xlColor(hsv))) {
-                    // function exits here
-                    return;
-                }
-
                 buffer.SetPixel(col, row, hsv);
             }
         }

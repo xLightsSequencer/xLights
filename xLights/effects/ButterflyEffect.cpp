@@ -91,7 +91,7 @@ void ButterflyEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuf
     const int xc=buffer.BufferWi/2;
     const int yc=buffer.BufferHt/2;
     int block = buffer.BufferHt * buffer.BufferWi > 100 ? 1 : -1;
-    parallel_for(0, buffer.BufferWi, [&buffer, Style, &xc, &yc, &offset, frame, maxframe, Chunks, colorcnt, Skip, ColorScheme, butterFlySpeed, this](int x) {
+    parallel_for(0, buffer.BufferWi, [&buffer, Style, &xc, &yc, &offset, frame, maxframe, Chunks, colorcnt, Skip, ColorScheme, butterFlySpeed](int x) {
         double  fractpart, intpart;
         double h=0.0,hue1,hue2;
         xlColor color;
@@ -203,28 +203,11 @@ void ButterflyEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuf
                     if (ColorScheme == 0)
                     {
                         hsv.hue=h;
-                        ///////////////////////////////////////////// DMX Model Support //////////////////////////////////////////
-                        // if the model is a DMX model this will write the color into the proper red, green, and blue channels. //
-                        //////////////////////////////////////////////////////////////////////////////////////////////////////////
-                        if (RenderDMXModel(buffer, xlColor(hsv))) {
-                            // function exits here
-                            return;
-                        }
-
                         buffer.SetPixel(x,y,hsv);
                     }
                     else
                     {
                         buffer.GetMultiColorBlend(h,false,color);
-
-                        ///////////////////////////////////////////// DMX Model Support //////////////////////////////////////////
-                        // if the model is a DMX model this will write the color into the proper red, green, and blue channels. //
-                        //////////////////////////////////////////////////////////////////////////////////////////////////////////
-                        if (RenderDMXModel(buffer, color)) {
-                            // function exits here
-                            return;
-                        }
-
                         buffer.SetPixel(x,y,color);
                     }
                 }
@@ -313,14 +296,6 @@ void ButterflyEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuf
                         break;
                 }
                 
-                ///////////////////////////////////////////// DMX Model Support //////////////////////////////////////////
-                // if the model is a DMX model this will write the color into the proper red, green, and blue channels. //
-                //////////////////////////////////////////////////////////////////////////////////////////////////////////
-                if (RenderDMXModel(buffer, color)) {
-                    // function exits here
-                    return;
-                }
-
                 buffer.SetPixel(x,y,color);
             }
         }

@@ -195,14 +195,6 @@ void GalaxyEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer
     double step = GetStep(current_radius+half_width);
     double end_angle_start = end_angle + (inward ? step : -step);
 
-    ///////////////////////////////////////////// DMX Model Support //////////////////////////////////////////
-    // if the model is a DMX model this will write the color into the proper red, green, and blue channels. //
-    //////////////////////////////////////////////////////////////////////////////////////////////////////////
-    if (RenderDMXModel(buffer, color)) {
-        // function exits here
-        return;
-    }
-
     if( current_radius >= half_width && half_width > 0.0 ) {
         for( double i = end_angle_start; current_distance <= half_width; (inward ? i += step : i -= step) )
         {

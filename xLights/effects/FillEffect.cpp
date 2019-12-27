@@ -229,14 +229,6 @@ void FillEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &
             }
             for (int x = 0; x < buffer.BufferWi; x++)
             {
-                ///////////////////////////////////////////// DMX Model Support //////////////////////////////////////////
-                // if the model is a DMX model this will write the color into the proper red, green, and blue channels. //
-                //////////////////////////////////////////////////////////////////////////////////////////////////////////
-                if (RenderDMXModel(buffer, color)) {
-                    // function exits here
-                    return;
-                }
-
                 buffer.SetPixel(x, y_pos, color);
             }
             if (BandSize > 0) {
@@ -273,14 +265,6 @@ void FillEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &
             }
             for (int x = 0; x < buffer.BufferWi; x++)
             {
-                ///////////////////////////////////////////// DMX Model Support //////////////////////////////////////////
-                // if the model is a DMX model this will write the color into the proper red, green, and blue channels. //
-                //////////////////////////////////////////////////////////////////////////////////////////////////////////
-                if (RenderDMXModel(buffer, color)) {
-                    // function exits here
-                    return;
-                }
-
                 buffer.SetPixel(x, y_pos, color);
             }
             if (BandSize > 0) {
@@ -317,14 +301,6 @@ void FillEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &
             }
             for (int y = 0; y < buffer.BufferHt; y++)
             {
-                ///////////////////////////////////////////// DMX Model Support //////////////////////////////////////////
-                // if the model is a DMX model this will write the color into the proper red, green, and blue channels. //
-                //////////////////////////////////////////////////////////////////////////////////////////////////////////
-                if (RenderDMXModel(buffer, color)) {
-                    // function exits here
-                    return;
-                }
-
                 buffer.SetPixel(x_pos, y, color);
             }
             if (BandSize > 0) {
@@ -361,14 +337,6 @@ void FillEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &
             }
             for (int y = 0; y < buffer.BufferHt; y++)
             {
-                ///////////////////////////////////////////// DMX Model Support //////////////////////////////////////////
-                // if the model is a DMX model this will write the color into the proper red, green, and blue channels. //
-                //////////////////////////////////////////////////////////////////////////////////////////////////////////
-                if (RenderDMXModel(buffer, color)) {
-                    // function exits here
-                    return;
-                }
-
                 buffer.SetPixel(x_pos, y, color);
             }
             if (BandSize > 0) {

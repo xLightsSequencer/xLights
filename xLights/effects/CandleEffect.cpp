@@ -212,13 +212,6 @@ void CandleEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer
 
                     //  Now play Candle
                     xlColor c = xlColor(state->flameprimer, state->flameprimeg / 2, 0);
-                    ///////////////////////////////////////////// DMX Model Support //////////////////////////////////////////
-                    // if the model is a DMX model this will write the color into the proper red, green, and blue channels. //
-                    //////////////////////////////////////////////////////////////////////////////////////////////////////////
-                    if (RenderDMXModel(buffer, c)) {
-                        // function exits here
-                        return;
-                    }
                     buffer.SetPixel(x, y, c);
                 }
             }
@@ -240,13 +233,6 @@ void CandleEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer
         {
             for (size_t x = 0; x < buffer.BufferWi; x++)
             {
-                ///////////////////////////////////////////// DMX Model Support //////////////////////////////////////////
-                // if the model is a DMX model this will write the color into the proper red, green, and blue channels. //
-                //////////////////////////////////////////////////////////////////////////////////////////////////////////
-                if (RenderDMXModel(buffer, c)) {
-                    // function exits here
-                    return;
-                }
                 buffer.SetPixel(x, y, c);
             }
         }

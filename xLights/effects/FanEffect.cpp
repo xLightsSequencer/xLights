@@ -223,15 +223,6 @@ void FanEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &b
                                 color = hsv;
                             }
                         }
-
-                        ///////////////////////////////////////////// DMX Model Support //////////////////////////////////////////
-                        // if the model is a DMX model this will write the color into the proper red, green, and blue channels. //
-                        //////////////////////////////////////////////////////////////////////////////////////////////////////////
-                        if (RenderDMXModel(buffer, color)) {
-                            // function exits here
-                            return;
-                        }
-
                         buffer.SetPixel(x, y, color);
                     }
                 }

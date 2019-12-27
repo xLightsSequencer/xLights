@@ -389,14 +389,6 @@ void KaleidoscopeEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuf
                     auto source = GetSourceLocation(x, y, *edge, buffer.BufferWi, buffer.BufferHt);
                     if (source.first >= 0 && source.first < buffer.BufferWi && source.second >= 0 && source.second < buffer.BufferHt) {
                         if (currentUsed[source.first][source.second]) {
-                            ///////////////////////////////////////////// DMX Model Support //////////////////////////////////////////
-                            // if the model is a DMX model this will write the color into the proper red, green, and blue channels. //
-                            //////////////////////////////////////////////////////////////////////////////////////////////////////////
-                            if (RenderDMXModel(buffer, buffer.GetPixel(source.first, source.second))) {
-                                // function exits here
-                                return;
-                            }
-
                             buffer.SetPixel(x, y, buffer.GetPixel(source.first, source.second));
                             currentUsed[x][y] = true;
                             //set++;

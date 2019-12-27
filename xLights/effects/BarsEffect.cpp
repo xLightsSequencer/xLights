@@ -121,27 +121,6 @@ void BarsEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &
 
     xlColor color;
 
-    ///////////////////////////////////////////// DMX Model Support //////////////////////////////////////////
-    // if the model is a DMX model this will write the color into the proper red, green, and blue channels. //
-    //////////////////////////////////////////////////////////////////////////////////////////////////////////
-    if (SupportsDMXModel(buffer)) {
-        ColorIdx = (int)((offset * (float)BarCount)) % colorcnt;
-        int color2 = (ColorIdx + 1) % colorcnt;
-        buffer.palette.GetColor(ColorIdx, color);
-        if (Gradient) {
-            float slice_pct = 1.0f / (float)BarCount;
-            float ratio = offset / slice_pct;
-            float pct, intpart;
-            pct = modf(ratio, &intpart);
-            buffer.Get2ColorBlend(ColorIdx, color2, pct, color);
-        }
-        if (RenderDMXModel(buffer, color)) {
-            // function exits here
-            return;
-        }
-    }
-    ///////////////////////////////////////////// DMX Model Support //////////////////////////////////////////
-
     if (Direction < 4 || Direction == 8 || Direction == 9)
     {
         int BarHt = (int)std::ceil((float)buffer.BufferHt / (float)BarCount);

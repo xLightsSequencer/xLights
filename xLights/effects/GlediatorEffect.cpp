@@ -411,14 +411,6 @@ void GlediatorEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuf
                     int y = (buffer.BufferHt - 1) - (j / buffer.BufferWi);
                     if (x < buffer.BufferWi && y < buffer.BufferHt && y >= 0)
                     {
-                        ///////////////////////////////////////////// DMX Model Support //////////////////////////////////////////
-                        // if the model is a DMX model this will write the color into the proper red, green, and blue channels. //
-                        //////////////////////////////////////////////////////////////////////////////////////////////////////////
-                        if (RenderDMXModel(buffer, color)) {
-                            // function exits here
-                            return;
-                        }
-
                         buffer.SetPixel(x, y, color);
                     }
                 }
@@ -448,14 +440,6 @@ void GlediatorEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuf
             {
                 for (int x = 0; x < buffer.BufferWi; x++)
                 {
-                    ///////////////////////////////////////////// DMX Model Support //////////////////////////////////////////
-                    // if the model is a DMX model this will write the color into the proper red, green, and blue channels. //
-                    //////////////////////////////////////////////////////////////////////////////////////////////////////////
-                    if (RenderDMXModel(buffer, xlBLACK)) {
-                        // function exits here
-                        return;
-                    }
-
                     buffer.SetPixel(x, y, xlBLACK);
                 }
             }
@@ -479,14 +463,6 @@ void GlediatorEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuf
                     int y = (buffer.BufferHt - 1) - (j / (buffer.BufferWi * 3));
                     if (x < buffer.BufferWi && y < buffer.BufferHt && y >= 0)
                     {
-                        ///////////////////////////////////////////// DMX Model Support //////////////////////////////////////////
-                        // if the model is a DMX model this will write the color into the proper red, green, and blue channels. //
-                        //////////////////////////////////////////////////////////////////////////////////////////////////////////
-                        if (RenderDMXModel(buffer, color)) {
-                            // function exits here
-                            return;
-                        }
-
                         buffer.SetPixel(x, y, color);
                     }
                 }
@@ -503,14 +479,6 @@ void GlediatorEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuf
             {
                 for (int x = 0; x < buffer.BufferWi; x++)
                 {
-                    ///////////////////////////////////////////// DMX Model Support //////////////////////////////////////////
-                    // if the model is a DMX model this will write the color into the proper red, green, and blue channels. //
-                    //////////////////////////////////////////////////////////////////////////////////////////////////////////
-                    if (RenderDMXModel(buffer, xlRED)) {
-                        // function exits here
-                        return;
-                    }
-
                     buffer.SetPixel(x, y, xlRED);
                 }
             }

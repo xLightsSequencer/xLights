@@ -91,9 +91,6 @@ class RenderableEffect
         bool IsVersionOlder(const std::string& compare, const std::string& version);
         void AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &settings, int startMS, int endMS, xlColorVector &colors);
         virtual void RemoveDefaults(const std::string &version, Effect *effect);
-        bool SupportsDMXModel(RenderBuffer& buffer);
-        bool RenderDMXModel(RenderBuffer& buffer, const xlColor& color);
-        bool RenderDMXModelPalette(RenderBuffer& buffer);
 
         void initBitmaps(const char **data16,
                          const char **data24,

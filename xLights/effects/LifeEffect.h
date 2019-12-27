@@ -14,8 +14,7 @@ class LifeEffect : public RenderableEffect
         virtual bool AppropriateOnNodes() const override { return false; }
 protected:
         virtual wxPanel *CreatePanel(wxWindow *parent) override;
-        bool SetLifePixel(RenderBuffer& buffer, int& x, int& y, xlColor& color);
-private:
+    private:
 };
 
 #endif // LIFEEFFECT_H

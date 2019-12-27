@@ -102,14 +102,6 @@ void GarlandsEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuff
         ratio=double(buffMax-ring-1)/double(buffMax);
         buffer.GetMultiColorBlend(ratio, false, color);
         
-        ///////////////////////////////////////////// DMX Model Support //////////////////////////////////////////
-        // if the model is a DMX model this will write the color into the proper red, green, and blue channels. //
-        //////////////////////////////////////////////////////////////////////////////////////////////////////////
-        if (RenderDMXModel(buffer, color)) {
-            // function exits here
-            return;
-        }
-
         y = 1.0 + ring*PixelSpacing - positionOffset;
         
         

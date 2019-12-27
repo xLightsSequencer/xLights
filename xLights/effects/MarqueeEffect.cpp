@@ -137,43 +137,27 @@ void MarqueeEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffe
             current_color = colorcnt - current_color - 1;
         }
        // wxLogDebug(wxString::Format("Color: %d,  Pos: %d", current_color, current_pos));
-        bool supports_dmx = SupportsDMXModel(buffer);
-        if (!supports_dmx) {
-            if (corner_y2 != corner_y1) {
-                UpdateMarqueeColor(current_pos, current_color, colorcnt, color_size, thick * (stagger + 1) * sign);
-                for (int x_pos = corner_x1; x_pos <= corner_x2; x_pos++) {
-                    xlColor color = xlCLEAR;
-                    if (current_pos < BandSize) {
-                        buffer.palette.GetColor(current_color, color);
-                    }
-                    buffer.ProcessPixel(x_pos + xoffset_adj, corner_y2 + yoffset_adj, color, wrap_x, wrap_y);
-                    UpdateMarqueeColor(current_pos, current_color, colorcnt, color_size, 1 * sign);
+        if (corner_y2 != corner_y1) {
+            UpdateMarqueeColor(current_pos, current_color, colorcnt, color_size, thick*(stagger + 1) * sign);
+            for (int x_pos = corner_x1; x_pos <= corner_x2; x_pos++) {
+                xlColor color = xlCLEAR;
+                if (current_pos < BandSize) {
+                    buffer.palette.GetColor(current_color, color);
                 }
-                UpdateMarqueeColor(current_pos, current_color, colorcnt, color_size, thick * 2 * sign);
-                for (int y_pos = corner_y2; y_pos >= corner_y1; y_pos--) {
-                    xlColor color = xlCLEAR;
-                    if (current_pos < BandSize) {
-                        buffer.palette.GetColor(current_color, color);
-                    }
-                    buffer.ProcessPixel(corner_x2 + xoffset_adj, y_pos + yoffset_adj, color, wrap_x, wrap_y);
-                    UpdateMarqueeColor(current_pos, current_color, colorcnt, color_size, 1 * sign);
+                buffer.ProcessPixel(x_pos + xoffset_adj, corner_y2 + yoffset_adj, color, wrap_x, wrap_y);
+                UpdateMarqueeColor(current_pos, current_color, colorcnt, color_size, 1 * sign);
+            }
+            UpdateMarqueeColor(current_pos, current_color, colorcnt, color_size, thick * 2 * sign);
+            for (int y_pos = corner_y2; y_pos >= corner_y1; y_pos--) {
+                xlColor color = xlCLEAR;
+                if (current_pos < BandSize) {
+                    buffer.palette.GetColor(current_color, color);
                 }
+                buffer.ProcessPixel(corner_x2 + xoffset_adj, y_pos + yoffset_adj, color, wrap_x, wrap_y);
+                UpdateMarqueeColor(current_pos, current_color, colorcnt, color_size, 1 * sign);
             }
         }
         UpdateMarqueeColor(current_pos, current_color, colorcnt, color_size, thick*2*sign);
-
-        ///////////////////////////////////////////// DMX Model Support //////////////////////////////////////////
-        // if the model is a DMX model this will write the color into the proper red, green, and blue channels. //
-        //////////////////////////////////////////////////////////////////////////////////////////////////////////
-        if (supports_dmx) {
-            xlColor color = xlCLEAR;
-            buffer.palette.GetColor(current_color, color);
-            if (RenderDMXModel(buffer, color)) {
-                // function exits here
-                return;
-            }
-        }
-
         for (int x_pos = corner_x2; x_pos >= corner_x1; x_pos--) {
             xlColor color = xlCLEAR;
             if (current_pos < BandSize) {

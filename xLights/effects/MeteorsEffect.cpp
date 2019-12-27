@@ -195,19 +195,6 @@ void MeteorsEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffe
     int mspeed = cache->effectState / 4;
     cache->effectState -= mspeed * 4;
 
-    ///////////////////////////////////////////// DMX Model Support //////////////////////////////////////////
-    // if the model is a DMX model this will write the color into the proper red, green, and blue channels. //
-    //////////////////////////////////////////////////////////////////////////////////////////////////////////
-    if (SupportsDMXModel(buffer)) {
-        xlColor color;
-        int color_idx = mspeed % buffer.GetColorCount();
-        buffer.palette.GetColor(color_idx, color);
-        if (RenderDMXModel(buffer, color)) {
-            // function exits here
-            return;
-        }
-    }
-
     switch (MeteorsEffect) {
         case METEORS_DOWN: //0:
         case METEORS_UP: //1:
