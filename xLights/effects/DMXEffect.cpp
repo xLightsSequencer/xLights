@@ -230,7 +230,7 @@ bool DMXEffect::SetDMXSinglColorPixel(int chan, int num_channels, SettingsMap &S
         color.red = value;
         color.green = value;
         color.blue = value;
-        buffer.SetPixel(chan-1, 0, color);
+        buffer.SetPixel(chan-1, 0, color, false, false, true);
         return false;
     } else {
         return true;
@@ -272,7 +272,7 @@ bool DMXEffect::SetDMXRGBNode(int node, int num_channels, SettingsMap &SettingsM
         } else {
             return_val = true;
         }
-        buffer.SetPixel(node-1, 0, color);
+        buffer.SetPixel(node-1, 0, color, false, false, true);
     } else {
         return_val = true;
     }

@@ -33,6 +33,7 @@
 #include "xLightsMain.h"
 #include "xLightsXmlFile.h"
 #include "UtilFunctions.h"
+#include "models/DmxModel.h"
 
 #include <log4cpp/Category.hh>
 
@@ -643,6 +644,7 @@ RenderBuffer::RenderBuffer(xLightsFrame *f) : frame(f)
     fadeinsteps = 0;
     fadeoutsteps = 0;
     allowAlpha = false;
+    dmx_buffer = false;
     needToInit = true;
     _nodeBuffer = false;
     frameTimeInMs = 50;
@@ -885,8 +887,13 @@ void RenderBuffer::GetMultiColorBlend(float n, bool circular, xlColor &color, in
 
 
 // 0,0 is lower left
-void RenderBuffer::SetPixel(int x, int y, const xlColor &color, bool wrap, bool useAlpha)
+void RenderBuffer::SetPixel(int x, int y, const xlColor &color, bool wrap, bool useAlpha, bool dmx_ignore)
 {
+    if (!dmx_ignore && dmx_buffer) {
+        SetPixelDMXModel(x, y, color);
+        return;
+    }
+        
     if (wrap) {
         while (x < 0) {
             x += BufferWi;
@@ -959,6 +966,11 @@ void RenderBuffer::ProcessPixel(int x_pos, int y_pos, const xlColor &color, bool
 // 0,0 is lower left
 void RenderBuffer::SetPixel(int x, int y, const HSVValue& hsv, bool wrap)
 {
+    if (dmx_buffer) {
+        SetPixelDMXModel(x, y, xlColor(hsv));
+        return;
+    }
+
     if (wrap) {
         while (x < 0) {
             x += BufferWi;
@@ -1279,6 +1291,13 @@ void RenderBuffer::SetState(int period, bool ResetState, const std::string& mode
     cur_model = model_name;
     curPeriod = period;
     palette.UpdateForProgress(GetEffectTimeIntervalPosition());
+    dmx_buffer = false;
+    Model* m = GetModel();
+    if (m != nullptr) {
+        if (m->GetDisplayAs() == "DMX") {
+            dmx_buffer = true;
+        }
+    }
 }
 
 void RenderBuffer::ClearTempBuf()
@@ -1424,6 +1443,7 @@ RenderBuffer::RenderBuffer(RenderBuffer& buffer)
     tempInt = 0;
     tempInt2 = 0;
     allowAlpha = buffer.allowAlpha;
+    dmx_buffer = false;
     _nodeBuffer = buffer._nodeBuffer;
     BufferHt = buffer.BufferHt;
     BufferWi = buffer.BufferWi;
@@ -1433,4 +1453,48 @@ RenderBuffer::RenderBuffer(RenderBuffer& buffer)
     pixels = buffer.pixels;
     _textDrawingContext = nullptr;
     _pathDrawingContext = nullptr;
+}
+
+void RenderBuffer::SetPixelDMXModel(int x, int y, const xlColor& color)
+{
+    Model* model_info = GetModel();
+    if (model_info != nullptr) {
+        if (x != 0 || y != 0) return;  //Only render colors for the first pixel
+
+        xlColor c;
+        DmxModel* dmx = (DmxModel*)model_info;
+
+        int white_channel = dmx->GetWhiteChannel();
+        if (white_channel > 0 && color.red == color.green && color.red == color.blue)
+        {
+            c.red = color.red;
+            c.green = color.red;
+            c.blue = color.red;
+            pixels[white_channel - 1] = c;
+        }
+        else
+        {
+            int red_channel = dmx->GetRedChannel();
+            int grn_channel = dmx->GetGreenChannel();
+            int blu_channel = dmx->GetBlueChannel();
+            if (red_channel != 0) {
+                c.red = color.red;
+                c.green = color.red;
+                c.blue = color.red;
+                pixels[red_channel - 1] = c;
+            }
+            if (grn_channel != 0) {
+                c.red = color.green;
+                c.green = color.green;
+                c.blue = color.green;
+                pixels[grn_channel - 1] = c;
+            }
+            if (blu_channel != 0) {
+                c.red = color.blue;
+                c.green = color.blue;
+                c.blue = color.blue;
+                pixels[blu_channel - 1] = c;
+            }
+        }
+    }
 }

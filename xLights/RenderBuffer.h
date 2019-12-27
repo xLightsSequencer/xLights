@@ -421,6 +421,7 @@ public:
     void SetPalette(xlColorVector& newcolors, xlColorCurveVector& newcc);
     size_t GetColorCount();
     void SetAllowAlphaChannel(bool a);
+    bool IsDmxBuffer() const { return dmx_buffer; }
 
     void SetState(int period, bool reset, const std::string& model_name);
 
@@ -432,7 +433,7 @@ public:
 
     const xlColor &GetPixel(int x, int y) const;
     void GetPixel(int x, int y, xlColor &color) const;
-    void SetPixel(int x, int y, const xlColor &color, bool wrap = false, bool useAlpha = false);
+    void SetPixel(int x, int y, const xlColor &color, bool wrap = false, bool useAlpha = false, bool dmx_ignore = false);
     void SetPixel(int x, int y, const HSVValue& hsv, bool wrap = false);
     void SetNodePixel(int nodeNum, const xlColor &color);
     void CopyNodeColorsToPixels(std::vector<bool> &done);
@@ -511,6 +512,7 @@ public:
 
     bool needToInit;
     bool allowAlpha;
+    bool dmx_buffer;
 
     /* Places to store and data that is needed from one frame to another */
     std::map<int, EffectRenderCache*> infoCache;
@@ -522,6 +524,8 @@ private:
     std::vector<NodeBaseClassPtr> Nodes;
     PathDrawingContext *_pathDrawingContext;
     TextDrawingContext *_textDrawingContext;
+
+    void SetPixelDMXModel(int x, int y, const xlColor& color);
 };
 
 
