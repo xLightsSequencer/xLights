@@ -287,6 +287,12 @@ xScheduleFrame *topFrame = nullptr;
 #endif
 
 void handleCrash(void *data) {
+
+    // if we crash while in here we dont want to report again.
+    static bool reentry = false;
+    if (reentry) return;
+    reentry = true;
+
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.crit("Crash handler called.");
     wxDebugReportCompress *report = new wxDebugReportCompress();
@@ -375,6 +381,8 @@ void handleCrash(void *data) {
     else {
         topFrame->CreateDebugReport(report);
     }
+
+    reentry = false;
 }
 
 #if !(wxUSE_ON_FATAL_EXCEPTION)
