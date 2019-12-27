@@ -9,3 +9,4 @@ x64/
 Debug/
 Release/
 .vs/
+*.vcxproj.user
