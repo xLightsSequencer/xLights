@@ -1036,6 +1036,7 @@ void xLightsFrame::OnMenuItemImportEffects(wxCommandEvent& event)
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     wxArrayString filters;
+    filters.push_back("All|*.sup;*.lms;*.lpe;*.las;*.loredit;*.xml;*.hlsdata;*.vix;*.tim;*.msq;*.vsa");
     filters.push_back("SuperStar File (*.sup)|*.sup");
     filters.push_back("LOR Music Sequences (*.lms)|*.lms");
     filters.push_back("LOR Pixel Editor Sequences (*.lpe)|*.lpe");
