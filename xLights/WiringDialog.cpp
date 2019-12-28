@@ -775,12 +775,18 @@ void WiringDialog::AdjustZoom(float by, wxPoint mousePos)
     if (_zoom + by < 0) return;
 
     // attempt to adjust start so we zoom on where the mouse is
-    // I know this is not quite right but i am not sure what I am missing
-    float adjx = by * mousePos.x;
-    float adjy = by * mousePos.y;
-    _start = wxPoint(_start.x - adjx, _start.y - adjy);
+
+    // mouse real pos under priort zoom
+    float mx = ((float)(mousePos.x - _start.x) / _zoom);
+    float my = ((float)(mousePos.y - _start.y) / _zoom);
 
     _zoom += by;
+
+    // work out start which would have that point at the current mouse position with the new zoom value
+    float sx = -1 * ((mx * _zoom) - mousePos.x);
+    float sy = -1 * ((my * _zoom) - mousePos.y);
+
+    _start = wxPoint(sx, sy);
 }
 
 void WiringDialog::MouseWheel(wxMouseEvent& event)
