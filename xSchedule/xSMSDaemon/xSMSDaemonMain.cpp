@@ -787,7 +787,7 @@ void xSMSDaemonFrame::OnMenuItem_InsertTestMessagesSelected(wxCommandEvent& even
 void xSMSDaemonFrame::RefreshList()
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    _rowIds.empty();
+    _rowIds.clear();
     if (_smsService != nullptr)
     {
         auto msgs = _smsService->GetMessages();

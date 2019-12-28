@@ -1,7 +1,7 @@
 xLights is a show sequencer and player/scheduler designed to control
 USB/DMX/sACN(e1.31)/ArtNET(e.1.17)/DDP controllers.
 xLights also integrates with the Falcon Player.
-xLights imports and exports sequence data from sequencers such as LOR (SE, PE & SS),
+xLights imports and exports sequence data from sequencers such as LOR (SE, PE, SS and S5),
 Vixen2, LSP, HLS.
 
 Latest releases are found at www.xlights.org
@@ -11,9 +11,16 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2019.72 December 28 2019
    -- enh (gil)    Zoom to mouse pointer in Layout
    -- enh (gil)    DMX Models should now work (they do something) for all effects
+   -- enh (keith)  Add zoom to the wiring view
+   -- enh (keith)  Lay the groundwork for a future where only xSchedule is released as 32 bit
+   -- enh (keith)  Add an Any import type which shows all supported input types when importing sequences
    -- bug (gil)    Fix PolyLine Icicle drop channel numbers when Blue Square is selected
+   -- bug (keith)  Fix xSchedule schedule clone does not work right
+   -- bug (keith)  Bunch of cleanup to build process to eliminate unnecessary complexity
+   -- bug (keith)  Fix hang when opening audio file fails
 2019.71 December 21 2019
    -- enh (scott)  (beta) Added Hinkspix Pro/Easylights 16 Controller Upload
    -- enh (keith)  Show next schedule which will play in blue text on the UI
