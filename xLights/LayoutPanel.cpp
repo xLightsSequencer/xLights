@@ -3339,19 +3339,46 @@ void LayoutPanel::OnPreviewMouseWheel(wxMouseEvent& event)
             if (!fromTrackPad || event.ControlDown()) {
                 int mouse_x = event.GetX();
                 int mouse_y = event.GetY();
-                int w_c = modelPreview->getWidth() / 2;
-                int h_c = modelPreview->getHeight() / 2;
-                int delta_w = w_c - mouse_x;
-                int delta_h = h_c - mouse_y;
+                float centerx = modelPreview->getWidth() / 2.0f;
+                float centery = modelPreview->getHeight() / 2.0f;
+                float deltax = mouse_x - centerx;
+                float deltay = mouse_y - centery;
+                float zoom = modelPreview->GetZoom();
                 float zoom_delta = event.GetWheelRotation() > 0 ? -0.1f : 0.1f;
-                float new_x = -zoom_delta * delta_w * 2;
-                float new_y = zoom_delta * delta_h * 2;
-                float angle = glm::radians(modelPreview->GetCameraRotationY());
-                float delta_x = new_x * std::cos(angle) - new_y * std::sin(angle);
-                float delta_y = new_y * std::cos(angle) + new_x * std::sin(angle);
-                modelPreview->SetPan(delta_x, delta_y, 0.0f);
-
                 modelPreview->SetZoomDelta(zoom_delta);
+                zoom = modelPreview->GetZoom();
+                float new_x = deltax * zoom_delta / zoom;
+                float new_y = deltay * zoom_delta / zoom;
+
+                // account for grid rotation
+                float angleX = glm::radians(modelPreview->GetCameraRotationX());
+                float angleY = glm::radians(modelPreview->GetCameraRotationY());
+                float delta_x = 0.0f;
+                float delta_y = 0.0f;
+                float delta_z = 0.0f;
+                bool top_view = (angleX > glm::radians(45.0f)) && (angleX < glm::radians(135.0f));
+                bool bottom_view = (angleX > glm::radians(225.0f)) && (angleX < glm::radians(315.0f));
+                bool upside_down_view = (angleX >= glm::radians(135.0f)) && (angleX <= glm::radians(225.0f));
+                if (top_view) {
+                    delta_x = new_x * std::cos(angleY) - new_y * std::sin(angleY);
+                    delta_z = new_y * std::cos(angleY) + new_x * std::sin(angleY);
+                }
+                else if (bottom_view) {
+                    delta_x = new_x * std::cos(angleY) + new_y * std::sin(angleY);
+                    delta_z = -new_y * std::cos(angleY) + new_x * std::sin(angleY);
+                }
+                else {
+                    delta_x = new_x * std::cos(angleY);
+                    delta_y = new_y;
+                    delta_z = new_x * std::sin(angleY);
+                    if (!upside_down_view) {
+                        delta_y *= -1.0f;
+                    }
+                }
+                delta_x *= modelPreview->GetZoom() * 2.0f;
+                delta_y *= modelPreview->GetZoom() * 2.0f;
+                delta_z *= modelPreview->GetZoom() * 2.0f;
+                modelPreview->SetPan(delta_x, delta_y, delta_z);
             }
             else {
                 float delta_x = event.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ? 0 : -event.GetWheelRotation();
@@ -3369,19 +3396,24 @@ void LayoutPanel::OnPreviewMouseWheel(wxMouseEvent& event)
             if (!fromTrackPad || event.ControlDown()) {
                 int mouse_x = event.GetX();
                 int mouse_y = event.GetY();
-                int w_c = modelPreview->getWidth() / 2;
-                int h_c = modelPreview->getHeight() / 2;
-                int delta_w = w_c - mouse_x;
-                int delta_h = h_c - mouse_y;
+                float centerx = modelPreview->getWidth() / 2.0f;
+                float centery = modelPreview->getHeight() / 2.0f;
+                float deltax = mouse_x - centerx;
+                float deltay = mouse_y - centery;
+                float zoom = modelPreview->GetZoom();
                 float zoom_delta = event.GetWheelRotation() > 0 ? -0.1f : 0.1f;
-                float delta_x = -zoom_delta * delta_w * 2;
-                float delta_y = zoom_delta * delta_h * 2;
-                modelPreview->SetPan(delta_x, delta_y, 0.0f);
-                modelPreview->SetZoomDelta(event.GetWheelRotation() > 0 ? -0.1f : 0.1f);
+                modelPreview->SetZoomDelta(zoom_delta);
+                zoom = modelPreview->GetZoom();
+                float new_x = deltax * zoom_delta / zoom;
+                float new_y = deltay * zoom_delta / zoom;
+                modelPreview->SetPan(new_x, -new_y, 0.0f);
             }
             else {
                 float new_x = event.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ? 0 : -event.GetWheelRotation();
                 float new_y = event.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ? -event.GetWheelRotation() : 0;
+
+                // GRJ: Pretty sure this should change.  It's trackpad code for a MAC but this is in the 2D
+                //      section so there shouldn't be any grid rotation.  Probably copy paste error from 3D.
 
                 // account for grid rotation
                 float angle = glm::radians(modelPreview->GetCameraRotationY());
