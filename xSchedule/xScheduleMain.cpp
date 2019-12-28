@@ -3543,7 +3543,7 @@ void xScheduleFrame::OnButton_CloneClick(wxCommandEvent& event)
         {
             PlayList* playlist = (PlayList*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(treeitem))->GetData();
             PlayList* newpl = new PlayList(*playlist, true);
-            wxTreeItemId  newitem = TreeCtrl_PlayListsSchedules->AppendItem(TreeCtrl_PlayListsSchedules->GetRootItem(), playlist->GetName(), -1, -1, new MyTreeItemData(newpl));
+            wxTreeItemId  newitem = TreeCtrl_PlayListsSchedules->AppendItem(TreeCtrl_PlayListsSchedules->GetRootItem(), newpl->GetName(), -1, -1, new MyTreeItemData(newpl));
             TreeCtrl_PlayListsSchedules->Expand(newitem);
             TreeCtrl_PlayListsSchedules->EnsureVisible(newitem);
             __schedule->AddPlayList(newpl);
@@ -3554,9 +3554,9 @@ void xScheduleFrame::OnButton_CloneClick(wxCommandEvent& event)
             Schedule* schedule = (Schedule*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(treeitem))->GetData();
             if (plid.IsOk())
             {
-                wxTreeItemId  newitem = TreeCtrl_PlayListsSchedules->AppendItem(plid, GetScheduleName(schedule, __schedule->GetRunningSchedules()), -1, -1, new MyTreeItemData(schedule));
                 PlayList* playlist = (PlayList*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(plid))->GetData();
-                Schedule* newSchedule = new Schedule(*schedule);
+                Schedule* newSchedule = new Schedule(*schedule, true);
+                wxTreeItemId  newitem = TreeCtrl_PlayListsSchedules->AppendItem(plid, GetScheduleName(newSchedule, __schedule->GetRunningSchedules()), -1, -1, new MyTreeItemData(newSchedule));
                 TreeCtrl_PlayListsSchedules->Expand(plid);
                 TreeCtrl_PlayListsSchedules->EnsureVisible(newitem);
                 playlist->AddSchedule(newSchedule);
