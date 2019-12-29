@@ -41,7 +41,7 @@ bool VCTextDropTarget::OnDropText(wxCoord x, wxCoord y, const wxString& data)
     }
     else
     {
-        if (!data.Contains("ID_VALUECURVE_XVC")) return false;
+        if (!data.Contains("ID_VALUECURVE")) return false;
 
         ValueCurve vc(data);
         ValueCurve* pvc = _owner->GetValue();
