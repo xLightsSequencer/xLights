@@ -607,7 +607,7 @@ void HinksPix::UpdateSerialData( HinksPixSerial & pd, UDControllerPort* serialDa
 //Pixels Outputs use a controller start channel, this maps xlights uni/start chan to the controller channel
 int HinksPix::CalcControllerChannel(int universe,int startChan, std::map<int, int> const& uniChan) const
 {
-    if (uniChan.count(universe))
+    if (!uniChan.count(universe))
         return startChan;
     int chan = uniChan.at(universe);
     chan += startChan;
