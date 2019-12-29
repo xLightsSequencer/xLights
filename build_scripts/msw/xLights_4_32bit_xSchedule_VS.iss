@@ -78,11 +78,18 @@ Source: "../../bin/libcurl.dll"; DestDir: "{app}";  Flags: "ignoreversion"
 Source: "../../License.txt"; DestDir: "{app}";
 Source: "../../README.txt";  DestDir: "{app}"; Flags: isreadme
 
+; VC++ Redistributable
+Source: "vcredist/vc_redist.x86.exe"; DestDir: {tmp}; Flags: deleteafterinstall
+
 [Icons] 
 Name: "{group}\xSchedule"; Filename: "{app}\xSchedule.EXE"; WorkingDir: "{app}"
 Name: "{commondesktop}\xSchedule"; Filename: "{app}\xSchedule.EXE";   WorkingDir: "{app}"; Tasks: desktopicon ;   IconFilename: "{app}\xSchedule.ico";
 
 [Run]
+Filename: {tmp}\vc_redist.x86.exe; \
+    Parameters: "/q /passive /Q:a /c:""msiexec /q /i vcredist.msi"""; \
+    StatusMsg: "Installing VC++ Redistributables..."
+
 Filename: "{app}\xSchedule.exe"; Description: "Launch application"; Flags: postinstall nowait skipifsilent 
 
 [Registry]

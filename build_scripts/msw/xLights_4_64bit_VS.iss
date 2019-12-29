@@ -125,6 +125,9 @@ Source: "../../palettes/*.*"; DestDir: "{app}/palettes"   ; Flags: replacesameve
 ; controllers
 ; Source: "../../controllers/*.*"; DestDir: "{app}/controllers"   ; Flags: replacesameversion recursesubdirs
 
+; VC++ Redistributable
+Source: "vcredist/vc_redist.x64.exe"; DestDir: {tmp}; Flags: deleteafterinstall
+
 [Icons]
 Name: "{group}\xLights64"; Filename: "{app}\xLights.EXE"; WorkingDir: "{app}"
 Name: "{group}\xSchedule64"; Filename: "{app}\xSchedule.EXE"; WorkingDir: "{app}"
@@ -132,6 +135,10 @@ Name: "{commondesktop}\xLights64"; Filename: "{app}\xLights.EXE";   WorkingDir: 
 Name: "{commondesktop}\xSchedule64"; Filename: "{app}\xSchedule.EXE"; WorkingDir: "{app}"; Tasks: desktopicon ;   IconFilename: "{app}\xSchedule64.ico";
 
 [Run]
+Filename: {tmp}\vc_redist.x64.exe; \
+    Parameters: "/q /passive /Q:a /c:""msiexec /q /i vcredist.msi"""; \
+    StatusMsg: "Installing VC++ Redistributables..."
+	
 Filename: "{app}\xLights.exe"; Description: "Launch application"; Flags: postinstall nowait skipifsilent 
 
 [Registry]
