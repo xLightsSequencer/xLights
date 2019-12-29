@@ -484,7 +484,15 @@ bool MainSequencer::HandleSequencerKeyBinding(wxKeyEvent& event)
             {
                 SettingsMap newSetting = SettingsMap();
                 newSetting.Parse(binding->GetEffectString());
+                
+                // Apply setting on the UI
                 mSequenceElements->GetXLightsFrame()->SetEffectControls(newSetting);
+
+                // Now apply it to all selected effects
+                for (const auto& s : newSetting)
+                {
+                    ApplyEffectSettingToSelected("", s.first, s.second, nullptr, "");
+                }
             }
             else if (type == "PRESET")
             {
