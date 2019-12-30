@@ -602,20 +602,45 @@ bool Schedule::CheckActiveAt(const wxDateTime& now)
 
 wxDateTime Schedule::GetNextTriggerDateTime()
 {
+#ifdef LOGCALCNEXTTRIGGERTIME
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+#endif
+
     wxDateTime now = wxDateTime::Now();
     wxDateTime end = _endDate.GetDateOnly();
-    if (_everyYear) end.SetYear(now.GetYear() + 1);
+    wxDateTime start = _startDate.GetDateOnly();
+
+    if (_everyYear)
+    {
+        start.SetYear(now.GetYear());
+        end.SetYear(now.GetYear());
+        if (end < start)
+        {
+            end.SetYear(end.GetYear() + 1);
+        }
+
+        if (end < now)
+        {
+            // over already this year ... so set to next year
+            start.SetYear(start.GetYear() + 1);
+            end.SetYear(end.GetYear() + 1);
+        }
+    }
 
     // deal with the simple cases
     if (CheckActive()) return now;
     if (end < now.GetDateOnly()) return wxDateTime((time_t)0);
 
-    if (_startDate.GetDateOnly() > now.GetDateOnly()) // tomorrow or later
+    if (start.GetDateOnly() > now.GetDateOnly()) // tomorrow or later
     {
         // some time in the future
-        wxDateTime next = _startDate;
+        wxDateTime next = start;
 
         SetTime(next, __city, _startTime, _startTimeString);
+
+#ifdef LOGCALCNEXTTRIGGERTIME
+        logger_base.debug("   Checking %s.", (const char*)next.Format("%Y-%m-%d %H:%M").c_str());
+#endif
         if (next > now && CheckActiveAt(next))
         {
             return next;
@@ -624,6 +649,9 @@ wxDateTime Schedule::GetNextTriggerDateTime()
         for (int i = 0; i < 7; i++)
         {
             next += wxTimeSpan(24);
+#ifdef LOGCALCNEXTTRIGGERTIME
+            logger_base.debug("   Checking %s.", (const char*)next.Format("%Y-%m-%d %H:%M").c_str());
+#endif
             if (next > now && CheckActiveAt(next))
             {
                 return next;
@@ -637,9 +665,11 @@ wxDateTime Schedule::GetNextTriggerDateTime()
 
     // check if the right answer is the starttime today
     wxDateTime next = now;
-
     SetTime(next, __city, _startTime, _startTimeString);
     next.SetSecond(0);
+#ifdef LOGCALCNEXTTRIGGERTIME
+    logger_base.debug("   Checking %s.", (const char*)next.Format("%Y-%m-%d %H:%M").c_str());
+#endif
     if (next > now && CheckActiveAt(next))
     {
         return next;
@@ -648,6 +678,9 @@ wxDateTime Schedule::GetNextTriggerDateTime()
     for (int i = 0; i < 7; i++)
     {
         next += wxTimeSpan(24);
+#ifdef LOGCALCNEXTTRIGGERTIME
+        logger_base.debug("   Checking %s.", (const char*)next.Format("%Y-%m-%d %H:%M").c_str());
+#endif
         if (next > now && CheckActiveAt(next))
         {
             return next;

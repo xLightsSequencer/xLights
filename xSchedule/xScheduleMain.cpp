@@ -1605,7 +1605,7 @@ void xScheduleFrame::UpdateSchedule()
                 }
                 else
                 {
-                    TreeCtrl_PlayListsSchedules->SetItemBackgroundColour(it2, wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
+                    TreeCtrl_PlayListsSchedules->SetItemBackgroundColour(it2, wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
                 }
 
                 if (nextsch != nullptr)
@@ -1614,6 +1614,14 @@ void xScheduleFrame::UpdateSchedule()
                     {
                         TreeCtrl_PlayListsSchedules->SetItemTextColour(it2, *wxBLUE);
                     }
+                    else
+                    {
+                        TreeCtrl_PlayListsSchedules->SetItemTextColour(it2, wxSystemSettings::GetColour(wxSYS_COLOUR_BTNTEXT));
+                    }
+                }
+                else
+                {
+                    TreeCtrl_PlayListsSchedules->SetItemTextColour(it2, wxSystemSettings::GetColour(wxSYS_COLOUR_BTNTEXT));
                 }
             }
         }
@@ -2125,7 +2133,7 @@ void xScheduleFrame::UpdateStatus(bool force)
                     }
                     else
                     {
-                        ListView_Running->SetItemBackgroundColour(i, wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
+                        ListView_Running->SetItemBackgroundColour(i, wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
                     }
                     ListView_Running->SetItem(i, 2, "");
                 }

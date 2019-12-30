@@ -3362,24 +3362,24 @@ void ScheduleManager::GetNextScheduledPlayList(PlayList** p, Schedule** s)
     *p = nullptr;
     *s = nullptr;;
     wxDateTime next = wxDateTime((time_t)0);
-    for (auto pit = _playLists.begin(); pit != _playLists.end(); ++pit)
+    for (const auto& pit : _playLists)
     {
-        auto schedules = (*pit)->GetSchedules();
-        for (auto sit = schedules.begin(); sit != schedules.end(); ++sit)
+        auto schedules = pit->GetSchedules();
+        for (const auto& sit : schedules)
         {
-            wxDateTime n = (*sit)->GetNextTriggerDateTime();
+            wxDateTime n = sit->GetNextTriggerDateTime();
             if (n != wxDateTime((time_t)0))
             {
                 if (next == wxDateTime((time_t)0))
                 {
-                    *p = *pit;
-                    *s = *sit;
+                    *p = pit;
+                    *s = sit;
                     next = n;
                 }
                 else if (n < next)
                 {
-                    *p = *pit;
-                    *s = *sit;
+                    *p = pit;
+                    *s = sit;
                     next = n;
                 }
             }
