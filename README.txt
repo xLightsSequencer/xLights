@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (gil)    Fix 3D View Objects rotation...i.e. mesh objects, grids, etc.
 2019.73 December 30 2019
    -- enh (gil)    Improve 3D model rotate tool...single models rotate better and it works with groups
    -- enh (keith)  Add useful status details to buttons plugin web pages

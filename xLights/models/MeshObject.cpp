@@ -472,13 +472,10 @@ void MeshObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, D
     if (obj_loaded) {
         glm::mat4 m = glm::mat4(1.0f);
         glm::mat4 scalingMatrix = glm::scale(m, GetObjectScreenLocation().GetScaleMatrix());
-        glm::vec3 rot = GetObjectScreenLocation().GetRotation();
-        glm::mat4 RotateX = glm::rotate(m, glm::radians((float)-rot.x), glm::vec3(1.0f, 0.0f, 0.0f));
-        glm::mat4 RotateY = glm::rotate(m, glm::radians((float)-rot.y), glm::vec3(0.0f, 1.0f, 0.0f));
-        glm::mat4 RotateZ = glm::rotate(m, glm::radians((float)rot.z), glm::vec3(0.0f, 0.0f, 1.0f));
+        glm::quat rotate_quat = GetObjectScreenLocation().GetRotationQuat();
         glm::mat4 translationMatrix = glm::translate(m, GetObjectScreenLocation().GetWorldPosition());
-        m = translationMatrix * RotateX * RotateY * RotateZ * scalingMatrix;
-        
+        m = translationMatrix * glm::toMat4(rotate_quat);
+
         if (!mesh3d) {
             mesh3d = DrawGLUtils::createMesh();
             // Loop over shapes
