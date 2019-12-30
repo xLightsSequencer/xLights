@@ -3907,10 +3907,6 @@ void Model::UpdateXmlWithScale() {
     IncrementChangeCount();
 }
 
-bool Model::IsContained(ModelPreview* preview, int x1, int y1, int x2, int y2) {
-    return GetModelScreenLocation().IsContained(preview, x1, y1, x2, y2);
-}
-
 bool Model::HitTest(ModelPreview* preview, glm::vec3& ray_origin, glm::vec3& ray_direction) {
     return GetModelScreenLocation().HitTest(ray_origin, ray_direction);
 }

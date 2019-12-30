@@ -1986,48 +1986,48 @@ void LayoutPanel::UnSelectAllModels(bool addBkgProps)
     selectedBaseObject = nullptr;
     selectionLatched = false;
 
-    if( editing_models ) {
-        auto models = modelPreview->GetModels();
-        for (size_t i = 0; i < models.size(); i++)
+    // process all models
+    auto models = modelPreview->GetModels();
+    for (size_t i = 0; i < models.size(); i++)
+    {
+        Model* m = modelPreview->GetModels()[i];
+        xlights->AddTraceMessage("LayoutPanel::UnSelectAllModels Model " + m->GetName());
+        if (m != nullptr)
         {
-            Model* m = modelPreview->GetModels()[i];
-            xlights->AddTraceMessage("LayoutPanel::UnSelectAllModels Model " + m->GetName());
-            if (m != nullptr)
-            {
-                m->Selected = false;
-                m->Highlighted = false;
-                m->GroupSelected = false;
-                m->SelectHandle(-1);
-                m->GetBaseObjectScreenLocation().SetActiveHandle(-1);
+            m->Selected = false;
+            m->Highlighted = false;
+            m->GroupSelected = false;
+            m->SelectHandle(-1);
+            m->GetBaseObjectScreenLocation().SetActiveHandle(-1);
 
-                for (const auto& sm : m->GetSubModels())
-                {
-                    sm->Selected = false;
-                    sm->Highlighted = false;
-                    sm->GroupSelected = false;
-                }
-            }
-            else
+            for (const auto& sm : m->GetSubModels())
             {
-                logger_base.error("Really strange ... unselect all models returned a null model pointer");
+                sm->Selected = false;
+                sm->Highlighted = false;
+                sm->GroupSelected = false;
             }
         }
-    } else {
-        for (const auto& it : xlights->AllObjects) {
-            ViewObject *view_object = it.second;
-            xlights->AddTraceMessage("LayoutPanel::UnSelectAllModels Object " + view_object->GetName());
-            if (view_object != nullptr)
-            {
-                view_object->Selected = false;
-                view_object->Highlighted = false;
-                view_object->GroupSelected = false;
-                view_object->SelectHandle(-1);
-                view_object->GetBaseObjectScreenLocation().SetActiveHandle(-1);
-            }
-            else
-            {
-                logger_base.error("Really strange ... unselect all models returned a null view object pointer");
-            }
+        else
+        {
+            logger_base.error("Really strange ... unselect all models returned a null model pointer");
+        }
+    }
+
+    // process all view objects
+    for (const auto& it : xlights->AllObjects) {
+        ViewObject *view_object = it.second;
+        xlights->AddTraceMessage("LayoutPanel::UnSelectAllModels Object " + view_object->GetName());
+        if (view_object != nullptr)
+        {
+            view_object->Selected = false;
+            view_object->Highlighted = false;
+            view_object->GroupSelected = false;
+            view_object->SelectHandle(-1);
+            view_object->GetBaseObjectScreenLocation().SetActiveHandle(-1);
+        }
+        else
+        {
+            logger_base.error("Really strange ... unselect all models returned a null view object pointer");
         }
     }
 
@@ -2705,25 +2705,43 @@ bool LayoutPanel::SelectSingleModel(int x, int y)
     return false;
 }
 
-void LayoutPanel::SelectAllInBoundingRect()
+void LayoutPanel::SelectAllInBoundingRect(bool models_and_objects)
 {
-    for (size_t i = 0; i<modelPreview->GetModels().size(); i++)
-    {
-        if (modelPreview->GetModels()[i]->IsContained(modelPreview, m_bound_start_x, m_bound_start_y, m_bound_end_x, m_bound_end_y))
+    if (editing_models || models_and_objects) {
+        for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
         {
-            // if we dont have a selected model make the first one we find the selected model so alignment etc works
-            if (selectedBaseObject == nullptr)
+            if (modelPreview->GetModels()[i]->IsContained(modelPreview, m_bound_start_x, m_bound_start_y, m_bound_end_x, m_bound_end_y))
             {
-                SelectBaseObject(modelPreview->GetModels()[i]->GetName(), false);
+                // if we dont have a selected model make the first one we find the selected model so alignment etc works
+                if (selectedBaseObject == nullptr)
+                {
+                    SelectBaseObject(modelPreview->GetModels()[i]->GetName(), false);
+                }
+                modelPreview->GetModels()[i]->GroupSelected = true;
             }
-            modelPreview->GetModels()[i]->GroupSelected = true;
+        }
+    }
+    if (!editing_models || models_and_objects) {
+        for (const auto& it : xlights->AllObjects) {
+            ViewObject* view_object = it.second;
+            {
+                if (view_object->IsContained(modelPreview, m_bound_start_x, m_bound_start_y, m_bound_end_x, m_bound_end_y))
+                {
+                    // if we dont have a selected model make the first one we find the selected model so alignment etc works
+                    if (selectedBaseObject == nullptr)
+                    {
+                        SelectBaseObject(view_object->GetName(), false);
+                    }
+                    view_object->GroupSelected = true;
+                }
+            }
         }
     }
 }
 
-void LayoutPanel::HighlightAllInBoundingRect()
+void LayoutPanel::HighlightAllInBoundingRect(bool models_and_objects)
 {
-    if (editing_models) {
+    if (editing_models || models_and_objects) {
         for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
         {
             if (modelPreview->GetModels()[i]->IsContained(modelPreview, m_bound_start_x, m_bound_start_y, m_bound_end_x, m_bound_end_y)) {
@@ -2735,7 +2753,7 @@ void LayoutPanel::HighlightAllInBoundingRect()
             }
         }
     }
-    else {
+    if (!editing_models || models_and_objects) {
         for (const auto& it : xlights->AllObjects) {
             ViewObject* view_object = it.second;
             if (view_object->GetBaseObjectScreenLocation().IsContained(modelPreview, m_bound_start_x, m_bound_start_y, m_bound_end_x, m_bound_end_y)) {
@@ -3184,7 +3202,7 @@ void LayoutPanel::OnPreviewLeftUp(wxMouseEvent& event)
             m_bound_end_x = ray_origin.x;
             m_bound_end_y = ray_origin.y;
         }
-        SelectAllInBoundingRect();
+        SelectAllInBoundingRect(event.ControlDown() && event.ShiftDown());
         m_creating_bound_rect = false;
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewLeftUp");
     }
@@ -3477,7 +3495,7 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
     {
         m_bound_end_x = event.GetX();
         m_bound_end_y = event.GetY();
-        HighlightAllInBoundingRect();
+        HighlightAllInBoundingRect(event.ControlDown() && event.ShiftDown());
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewMouseMove3D");
         return;
     }
@@ -3541,23 +3559,19 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
                     glm::vec3 new_centerpos = selectedBaseObject->GetBaseObjectScreenLocation().GetCenterPosition();
                     if( selectedBaseObject->GetBaseObjectScreenLocation().GetAxisTool() == TOOL_TRANSLATE ) {
                         glm::vec3 pos_offset = new_centerpos - last_centerpos;
-                        if (editing_models) {
-                            for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
-                            {
-                                if (modelPreview->GetModels()[i]->GroupSelected || modelPreview->GetModels()[i]->Selected) {
-                                    if (modelPreview->GetModels()[i] != selectedBaseObject) {
-                                        modelPreview->GetModels()[i]->AddOffset(pos_offset.x, pos_offset.y, pos_offset.z);
-                                    }
+                        for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
+                        {
+                            if (modelPreview->GetModels()[i]->GroupSelected || modelPreview->GetModels()[i]->Selected) {
+                                if (modelPreview->GetModels()[i] != selectedBaseObject) {
+                                    modelPreview->GetModels()[i]->AddOffset(pos_offset.x, pos_offset.y, pos_offset.z);
                                 }
                             }
                         }
-                        else {
-                            for (const auto& it : xlights->AllObjects) {
-                                ViewObject* view_object = it.second;
-                                if (view_object->GroupSelected || view_object->Selected) {
-                                    if (view_object != selectedBaseObject) {
-                                        view_object->AddOffset(pos_offset.x, pos_offset.y, pos_offset.z);
-                                    }
+                        for (const auto& it : xlights->AllObjects) {
+                            ViewObject* view_object = it.second;
+                            if (view_object->GroupSelected || view_object->Selected) {
+                                if (view_object != selectedBaseObject) {
+                                    view_object->AddOffset(pos_offset.x, pos_offset.y, pos_offset.z);
                                 }
                             }
                         }
@@ -3573,23 +3587,19 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
                         if( rotate_offset.y < -180.0f ) { rotate_offset.y += 360.0f; }
                         if( rotate_offset.z < -180.0f ) { rotate_offset.z += 360.0f; }
                         rotate_offset.x = -rotate_offset.x;
-                        if (editing_models) {
-                            for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
-                            {
-                                if (modelPreview->GetModels()[i]->GroupSelected || modelPreview->GetModels()[i]->Selected) {
-                                    if (modelPreview->GetModels()[i] != selectedBaseObject) {
-                                        modelPreview->GetModels()[i]->RotateAboutPoint(active_handle_position, rotate_offset);
-                                    }
+                        for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
+                        {
+                            if (modelPreview->GetModels()[i]->GroupSelected || modelPreview->GetModels()[i]->Selected) {
+                                if (modelPreview->GetModels()[i] != selectedBaseObject) {
+                                    modelPreview->GetModels()[i]->RotateAboutPoint(active_handle_position, rotate_offset);
                                 }
                             }
                         }
-                        else {
-                            for (const auto& it : xlights->AllObjects) {
-                                ViewObject* view_object = it.second;
-                                if (view_object->GroupSelected || view_object->Selected) {
-                                    if (view_object != selectedBaseObject) {
-                                        view_object->RotateAboutPoint(active_handle_position, rotate_offset);
-                                    }
+                        for (const auto& it : xlights->AllObjects) {
+                            ViewObject* view_object = it.second;
+                            if (view_object->GroupSelected || view_object->Selected) {
+                                if (view_object != selectedBaseObject) {
+                                    view_object->RotateAboutPoint(active_handle_position, rotate_offset);
                                 }
                             }
                         }

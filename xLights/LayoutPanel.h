@@ -245,7 +245,7 @@ class LayoutPanel: public wxPanel
         void SelectModel(const std::string & name, bool highlight_tree = true);
         void SelectModelGroupModels(ModelGroup* m, std::list<ModelGroup*>& processed);
         void SelectModel(Model *model, bool highlight_tree = true);
-        void UnSelectAllModels(bool addBkgProps = true);
+        void UnSelectAllModels(bool addBkgProps = true );
         void SelectAllModels();
         void SetupPropGrid(BaseObject *model);
         void AddPreviewChoice(const std::string &name);
@@ -288,8 +288,8 @@ class LayoutPanel: public wxPanel
 
         bool SelectSingleModel(int x,int y);
         bool SelectMultipleModels(int x,int y);
-        void SelectAllInBoundingRect();
-        void HighlightAllInBoundingRect();
+        void SelectAllInBoundingRect(bool models_and_objects);
+        void HighlightAllInBoundingRect(bool models_and_objects);
         void SetSelectedModelToGroupSelected();
         void Nudge(int key);
 

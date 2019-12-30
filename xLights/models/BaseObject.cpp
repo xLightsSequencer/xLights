@@ -265,3 +265,7 @@ void BaseObject::RotateAboutPoint(glm::vec3 position, glm::vec3 angle) {
     SetFromXml(ModelXml);  // only needed when rotating PolyLine...hope to remove this later and do what's needed in the PolyLine rotate call
 }
 
+bool BaseObject::IsContained(ModelPreview* preview, int x1, int y1, int x2, int y2) {
+    return  GetBaseObjectScreenLocation().IsContained(preview, x1, y1, x2, y2);
+}
+
