@@ -11,7 +11,19 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2019.73 December 30 2019
    -- enh (gil)    Improve 3D model rotate tool...single models rotate better and it works with groups
+   -- enh (keith)  Add useful status details to buttons plugin web pages
+   -- enh (keith)  Include the visual c++ runtimes in the main install file
+   -- eng (keith)  Show current schedule end time in the web UI
+   -- bug (keith)  Fix issue where more than one schedule can show as next
+   -- bug (keith)  Fix issue where next scheduled time is not always calculated   
+   -- bug (keith)  Allow PlayList MQTT item data to include xml special characters
+   -- bug (keith)  Fix arches with > 1 light per node does not respect the gap property
+   -- bug (keith)  Change apply setting key binding so it updates all selected effects ... not just the UI
+   -- bug (keith)  Fix some value curves dont drop on value curve buttons
+   -- bug (scott)  Fix hinkspix channel mapping error
+   -- bug (gil)    Fix paste by cell for single effect does not use cell percentage
 2019.72 December 28 2019
    -- enh (gil)    Zoom to mouse pointer in Layout
    -- enh (gil)    DMX Models should now work (they do something) for all effects
