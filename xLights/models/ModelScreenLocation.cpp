@@ -63,7 +63,7 @@ static void PrintMatrix(std::string name, glm::mat4& matrix)
     logger_base.debug("Row 3: %6.2f  %6.2f  %6.2f  %6.2f", matrix[3][0], matrix[3][1], matrix[3][2], matrix[3][3]);
 }
 
-static glm::vec3 rotationMatrixToEulerAngles(glm::mat3 &R)
+static glm::vec3 rotationMatrixToEulerAngles(const glm::mat3 &R)
 {
     double x, y, z;
     int path = 0;
