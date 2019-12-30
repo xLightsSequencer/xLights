@@ -253,7 +253,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     mSelectedGroup(nullptr), currentLayoutGroup("Default"), pGrp(nullptr), backgroundFile(""), previewBackgroundScaled(false),
     previewBackgroundBrightness(100), previewBackgroundAlpha(100), m_polyline_active(false), mHitTestNextSelectModelIndex(0),
     ModelGroupWindow(nullptr), ViewObjectWindow(nullptr), editing_models(true), m_mouse_down(false), m_wheel_down(false),
-    selectionLatched(false), over_handle(-1), creating_model(false)
+    selectionLatched(false), over_handle(-1), creating_model(false), mouse_state_set(false)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -2784,6 +2784,16 @@ bool LayoutPanel::SelectMultipleModels(int x,int y)
     return false;
 }
 
+void LayoutPanel::SetMouseStateForModels(bool value)
+{
+    if ( mouse_state_set != value) {
+        for (size_t i = 0; i < modelPreview->GetModels().size(); i++) {
+            modelPreview->GetModels()[i]->GetModelScreenLocation().MouseDown(value);
+        }
+        mouse_state_set = value;
+    }
+}
+
 void LayoutPanel::SetSelectedModelToGroupSelected()
 {
     for (size_t i = 0; i<modelPreview->GetModels().size(); i++) {
@@ -2798,6 +2808,7 @@ void LayoutPanel::OnPreviewLeftDClick(wxMouseEvent& event)
 {
     UnSelectAllModels();
     m_mouse_down = false;
+    SetMouseStateForModels(m_mouse_down);
 }
 
 void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
@@ -2828,7 +2839,8 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
                         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::ProcessLeftMouseClick3D");
                         m_moving_handle = true;
                         m_mouse_down = true;
-                        last_worldpos = selectedBaseObject->GetBaseObjectScreenLocation().GetWorldPosition();
+                        last_centerpos = selectedBaseObject->GetBaseObjectScreenLocation().GetCenterPosition();
+                        last_worldrotate = selectedBaseObject->GetBaseObjectScreenLocation().GetRotationAngles();
                     }
                 }
                 else if ((m_over_handle & 0x10000) > 0) {
@@ -3111,6 +3123,7 @@ void LayoutPanel::OnPreviewLeftUp(wxMouseEvent& event)
 {
     if (m_polyline_active) {
         m_mouse_down = false;
+        SetMouseStateForModels(m_mouse_down);
         return;
     }
 
@@ -3129,6 +3142,7 @@ void LayoutPanel::OnPreviewLeftUp(wxMouseEvent& event)
     }
 
     m_mouse_down = false;
+    SetMouseStateForModels(m_mouse_down);
     m_moving_handle = false;
     over_handle = NO_HANDLE;
 
@@ -3484,6 +3498,9 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
                     CreateUndoPoint(editing_models ? "SingleModel" : "SingleObject", selectedBaseObject->name, std::to_string(active_handle));
                 }
                 bool z_scale = selectedBaseObject->GetBaseObjectScreenLocation().GetSupportsZScaling();
+                if (selectedBaseObject->GetBaseObjectScreenLocation().GetAxisTool() == TOOL_ROTATE) {
+                    SetMouseStateForModels(true);
+                }
                 // this is designed to pretend the control and shift keys are down when creating models to
                 // make them scale from the desired handle depending on model type
                 selectedBaseObject->MoveHandle3D(modelPreview, active_handle, event.ShiftDown() | creating_model, event.ControlDown() | (creating_model & z_scale), event.GetX(), event.GetY(), false, z_scale);
@@ -3493,19 +3510,43 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
                 //xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::OnPreviewMouseMove3D");
                 //xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "LayoutPanel::OnPreviewMouseMove3D");
                 if (selectedModelCnt > 1) {
-                    glm::vec3 new_worldpos = selectedBaseObject->GetBaseObjectScreenLocation().GetWorldPosition();
-                    new_worldpos = new_worldpos - last_worldpos;
-                    for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
-                    {
-                        if (modelPreview->GetModels()[i]->GroupSelected || modelPreview->GetModels()[i]->Selected) {
-                            if (modelPreview->GetModels()[i] != selectedBaseObject) {
-                                modelPreview->GetModels()[i]->AddOffset(new_worldpos.x, new_worldpos.y, new_worldpos.z);
+                    glm::vec3 new_centerpos = selectedBaseObject->GetBaseObjectScreenLocation().GetCenterPosition();
+                    if( selectedBaseObject->GetBaseObjectScreenLocation().GetAxisTool() == TOOL_TRANSLATE ) {
+                        glm::vec3 pos_offset = new_centerpos - last_centerpos;
+                        for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
+                        {
+                            if (modelPreview->GetModels()[i]->GroupSelected || modelPreview->GetModels()[i]->Selected) {
+                                if (modelPreview->GetModels()[i] != selectedBaseObject) {
+                                        modelPreview->GetModels()[i]->AddOffset(pos_offset.x, pos_offset.y, pos_offset.z);
+                                }
                             }
                         }
                     }
-                    last_worldpos = selectedBaseObject->GetBaseObjectScreenLocation().GetWorldPosition();
+                    else if( selectedBaseObject->GetBaseObjectScreenLocation().GetAxisTool() == TOOL_ROTATE ) {
+                        glm::vec3 new_worldrotate = selectedBaseObject->GetBaseObjectScreenLocation().GetRotationAngles();
+                        glm::vec3 rotate_offset = new_worldrotate - last_worldrotate;
+                        glm::vec3 active_handle_position = selectedBaseObject->GetBaseObjectScreenLocation().GetActiveHandlePosition();
+                        if( rotate_offset.x > 180.0f ) { rotate_offset.x -= 360.0f; }
+                        if( rotate_offset.y > 180.0f ) { rotate_offset.y -= 360.0f; }
+                        if( rotate_offset.z > 180.0f ) { rotate_offset.z -= 360.0f; }
+                        if( rotate_offset.x < -180.0f ) { rotate_offset.x += 360.0f; }
+                        if( rotate_offset.y < -180.0f ) { rotate_offset.y += 360.0f; }
+                        if( rotate_offset.z < -180.0f ) { rotate_offset.z += 360.0f; }
+                        rotate_offset.x = -rotate_offset.x;
+                        for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
+                        {
+                            if (modelPreview->GetModels()[i]->GroupSelected || modelPreview->GetModels()[i]->Selected) {
+                                if (modelPreview->GetModels()[i] != selectedBaseObject) {
+                                    modelPreview->GetModels()[i]->RotateAboutPoint(active_handle_position, rotate_offset);
+                                }
+                            }
+                        }
+                        last_worldrotate = new_worldrotate;
+                    }
+                    last_centerpos = new_centerpos;
+                    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewMouseMove3D");
                 }
-                xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewMouseMove3D");
+                UpdatePreview();
             }
         }
         else {

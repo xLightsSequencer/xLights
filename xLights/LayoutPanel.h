@@ -295,6 +295,7 @@ class LayoutPanel: public wxPanel
 
         int FindModelsClicked(int x,int y, std::vector<int> &found);
         void GetMouseLocation(int x, int y, glm::vec3& ray_origin, glm::vec3& ray_direction);
+        void SetMouseStateForModels(bool value);
 
         int ModelsSelectedCount() const;
         int ViewObjectsSelectedCount() const;
@@ -338,7 +339,9 @@ class LayoutPanel: public wxPanel
         BaseObject *highlightedBaseObject;
         bool selectionLatched;
         int over_handle;
-        glm::vec3 last_worldpos;
+        glm::vec3 last_centerpos;
+        glm::vec3 last_worldrotate;
+        glm::vec3 last_worldscale;
 
         void clearPropGrid();
         bool stringPropsVisible;
@@ -433,6 +436,7 @@ class LayoutPanel: public wxPanel
         BaseObject* last_highlight;
         int m_last_mouse_x, m_last_mouse_y;
         bool creating_model;
+        bool mouse_state_set;
 
         void OnSelectionChanged(wxTreeListEvent& event);
         void OnItemContextMenu(wxTreeListEvent& event);

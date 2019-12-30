@@ -44,6 +44,7 @@ public:
     void SetBack(float y);
     void SetHcenterPos(float pos);
     void SetVcenterPos(float pos);
+    void SetDcenterPos(float pos);
     void SetWidth(float w, bool ignoreLock = false);
     void SetHeight(float h, bool ignoreLock = false);
     void SetDepth(float d, bool ignoreLock = false);
@@ -58,6 +59,7 @@ public:
     float GetBack();
     float GetHcenterPos();
     float GetVcenterPos();
+    float GetDcenterPos();
     float GetWidth() const;
     float GetHeight() const;
     float GetDepth() const;

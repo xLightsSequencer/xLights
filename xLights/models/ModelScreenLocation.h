@@ -44,6 +44,8 @@ class PreviewCamera;
 #include "Node.h"
 #include <glm/mat4x4.hpp>
 #include <glm/mat3x3.hpp>
+#include <glm/gtc/quaternion.hpp>
+#include <glm/gtx/quaternion.hpp>
 
 namespace DrawGLUtils {
     class xlAccumulator;
@@ -64,6 +66,7 @@ protected:
     virtual void Read(wxXmlNode *node) = 0;
     virtual void Write(wxXmlNode *node) = 0;
     virtual int CheckUpgrade(wxXmlNode *node) = 0;
+    void Reload() { rotation_init = true; }
 
     virtual void PrepareToDraw(bool is_3d, bool allow_selected) const = 0;
     virtual void TranslatePoint(float &x, float &y, float &z) const = 0;
@@ -77,6 +80,7 @@ protected:
     virtual void DrawHandles(DrawGLUtils::xl3Accumulator &va, float zoom, int scale) const = 0;
     virtual int MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) = 0;
     virtual int MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z) = 0;
+    virtual void MouseDown(bool value) { mouse_down = value; }
 
     virtual bool Rotate(int axis, float factor) = 0;
     virtual bool Scale(float factor) = 0;
@@ -108,8 +112,10 @@ protected:
     virtual glm::vec2 GetScreenPosition(int screenwidth, int screenheight, ModelPreview* preview, PreviewCamera* camera, float &sx, float &sy, float &sz) const;
     virtual float GetHcenterPos() const = 0;
     virtual float GetVcenterPos() const = 0;
+    virtual float GetDcenterPos() const = 0;
     virtual void SetHcenterPos(float f) = 0;
     virtual void SetVcenterPos(float f) = 0;
+    virtual void SetDcenterPos(float f) = 0;
 
     //in screen coordinates
     virtual float GetTop() const = 0;
@@ -133,6 +139,7 @@ protected:
     virtual float GetRestorableMWidth() const { return GetMWidth(); }
     virtual float GetRestorableMHeight() const { return GetMHeight(); }
     virtual float GetRestorableMDepth() const { return GetMDepth(); }
+    virtual void RotateAboutPoint(glm::vec3 position, glm::vec3 angle);
 
     void SetRenderSize(float NewWi, float NewHt, float NewDp = 0.0f);
     bool IsLocked() const { return _locked; }
@@ -157,6 +164,7 @@ protected:
     int GetActiveAxis() const { return active_axis; }
     virtual void AdvanceAxisTool() { axis_tool += 1; axis_tool %= (NUM_TOOLS-1); }
     virtual void SetAxisTool(int mode) { axis_tool = mode; }
+    int GetAxisTool() { return axis_tool; }
     bool DragHandle(ModelPreview* preview, int mouseX, int mouseY, bool latch);
     void DrawAxisTool(glm::vec3& pos, DrawGLUtils::xl3Accumulator &va, float zoom, int scale) const;
     void TranslateVector(glm::vec3& point) const;
@@ -177,6 +185,9 @@ protected:
     glm::vec3 GetRotation() const { return glm::vec3(rotatex, rotatey, rotatez); }
     glm::vec3 GetScaleMatrix() const { return glm::vec3(scalex, scaley, scalez); }
     void SetScaleMatrix(const glm::vec3& scale) { scalex = scale.x; scaley = scale.y; scalez = scale.z; }
+    glm::vec3 GetCenterPosition() const { return glm::vec3(GetHcenterPos(), GetVcenterPos(), GetDcenterPos()); }
+    glm::vec3 GetActiveHandlePosition() { return active_handle_pos; }
+    glm::vec3 GetRotationAngles() { return angles; }
 
 protected:
     ModelScreenLocation(int points);
@@ -189,11 +200,12 @@ protected:
     mutable float scalex;
     mutable float scaley;
     mutable float scalez;
-    int rotatex;
-    int rotatey;
-    int rotatez;
+    float rotatex;
+    float rotatey;
+    float rotatez;
     mutable glm::mat4 ModelMatrix;
     mutable glm::mat4 TranslateMatrix;
+    mutable glm::quat rotate_quat;
     mutable glm::vec3 aabb_min;
     mutable glm::vec3 aabb_max;
 
@@ -204,6 +216,7 @@ protected:
     glm::vec3 saved_scale;
     glm::vec3 saved_rotate;
     glm::vec3 drag_delta;
+    glm::vec3 angles;
 
     mutable bool draw_3d;
 
@@ -219,6 +232,8 @@ protected:
     int axis_tool;
     bool supportsZScaling;
     bool _startOnXAxis;
+    bool rotation_init;
+    bool mouse_down;
 };
 
 //Default location that uses a bounding box - 4 corners and a rotate handle
@@ -269,11 +284,17 @@ public:
     virtual float GetVcenterPos() const override {
         return (float)worldPos_y;
     }
+    virtual float GetDcenterPos() const override {
+        return (float)worldPos_z;
+    }
     virtual void SetHcenterPos(float f) override {
 		worldPos_x = f;
     }
     virtual void SetVcenterPos(float f) override {
 		worldPos_y = f;
+    }
+    virtual void SetDcenterPos(float f) override {
+		worldPos_z = f;
     }
 
     virtual void SetPosition(float posx, float posy) override {
@@ -372,8 +393,10 @@ public:
     virtual glm::vec2 GetScreenOffset(ModelPreview* preview) override;
     virtual float GetHcenterPos() const override;
     virtual float GetVcenterPos() const override;
+    virtual float GetDcenterPos() const override;
     virtual void SetHcenterPos(float f) override;
     virtual void SetVcenterPos(float f) override;
+    virtual void SetDcenterPos(float f) override;
     virtual bool IsCenterBased() const override {return false;};
 
     virtual void SetPosition(float posx, float posy) override;
@@ -395,6 +418,7 @@ public:
     virtual float GetMHeight() const override;
     virtual float GetMDepth() const override;
     virtual void SetMDepth(float d) override;
+    virtual void RotateAboutPoint(glm::vec3 position, glm::vec3 angle);
 
     virtual float GetYShear() const {return 0.0;}
 
@@ -531,8 +555,10 @@ public:
     virtual glm::vec2 GetScreenOffset(ModelPreview* preview) override;
     virtual float GetHcenterPos() const override;
     virtual float GetVcenterPos() const override;
+    virtual float GetDcenterPos() const override;
     virtual void SetHcenterPos(float f) override;
     virtual void SetVcenterPos(float f) override;
+    virtual void SetDcenterPos(float f) override;
     virtual bool IsCenterBased() const override {return false;};
 
     virtual void SetPosition(float posx, float posy) override;
@@ -554,6 +580,7 @@ public:
     virtual float GetMWidth() const override;
     virtual float GetMHeight() const override;
     virtual float GetMDepth() const override;
+    virtual void RotateAboutPoint(glm::vec3 position, glm::vec3 angle);
 
     virtual int GetDefaultHandle() override { return END_HANDLE; }
     virtual int GetDefaultTool() override { return TOOL_XY_TRANS; }
@@ -587,6 +614,7 @@ protected:
     mutable glm::mat4 main_matrix;
     mutable glm::vec3 saved_point;
     mutable glm::vec3 center;
+    mutable glm::vec3 rotate_pt;
     float saved_angle;
     void FixCurveHandles();
     void AdjustAllHandles(glm::mat4& mat);

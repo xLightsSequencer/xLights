@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (gil)    Improve 3D model rotate tool...single models rotate better and it works with groups
 2019.72 December 28 2019
    -- enh (gil)    Zoom to mouse pointer in Layout
    -- enh (gil)    DMX Models should now work (they do something) for all effects
