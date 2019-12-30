@@ -187,8 +187,13 @@ function populateTablePlaying() {
     dataType: "json",
     success: function(response) {
 
-      populatePlaylistBox('steps', playingStatus.playlist + ': ');
-
+	  if (playingStatus.scheduleend == 'N/A') {
+	    populatePlaylistBox('steps', playingStatus.playlist + ': ');
+	  }
+	  else {
+	    populatePlaylistBox('steps', playingStatus.playlist + ': until ' + playingStatus.scheduleend);
+	  }
+	  
       for (var i = 0; i < response.steps.length; i++) {
         var playing =
           `<tr id='table` + response.steps[i].id + `'>
