@@ -204,6 +204,7 @@
     <ClCompile Include="controllers\FPP.cpp" />
     <ClCompile Include="controllers\FPPConnectDialog.cpp" />
     <ClCompile Include="controllers\HinksPix.cpp" />
+    <ClCompile Include="controllers\HinksPixExportDialog.cpp" />
     <ClCompile Include="controllers\J1Sys.cpp" />
     <ClCompile Include="controllers\Pixlite16.cpp" />
     <ClCompile Include="controllers\SanDevices.cpp" />
@@ -599,6 +600,7 @@
     <ClInclude Include="controllers\FPP.h" />
     <ClInclude Include="controllers\FPPConnectDialog.h" />
     <ClInclude Include="controllers\HinksPix.h" />
+    <ClInclude Include="controllers\HinksPixExportDialog.h" />
     <ClInclude Include="controllers\J1Sys.h" />
     <ClInclude Include="controllers\Pixlite16.h" />
     <ClInclude Include="controllers\SanDevices.h" />

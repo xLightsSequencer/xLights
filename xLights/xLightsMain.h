@@ -73,6 +73,7 @@
 #include "RenderCache.h"
 #include "outputs/ZCPP.h"
 #include "OutputModelManager.h"
+#include "models/Model.h"
 
 class EffectTreeDialog;
 class ConvertDialog;
@@ -98,6 +99,7 @@ class MainSequencer;
 class ModelPreview;
 class ZCPPOutput;
 class UDControllerPort;
+class Model;
 
 // max number of most recently used show directories on the File menu
 #define MRU_LENGTH 4
@@ -601,6 +603,7 @@ public:
     void OnMenuItemHardwareVideoDecoderToggle(wxCommandEvent& event);
     void OnMenuItemFSEQV2UncompressedSelected(wxCommandEvent& event);
     void OnMenuItemFSEQV2ZLIBSelected(wxCommandEvent& event);
+    void OnMenuItemHinksPixExportSelected(wxCommandEvent& event);
     //*)
     void OnCharHook(wxKeyEvent& event);
 private:
@@ -725,6 +728,7 @@ public:
     static const long ID_EXPORT_MODELS;
     static const long ID_MNU_EXPORT_EFFECTS;
     static const long ID_MENU_FPP_CONNECT;
+    static const long ID_MENU_HINKSPIX_EXPORT;
     static const long ID_MNU_PACKAGESEQUENCE;
     static const long ID_MENU_USER_DICT;
     static const long ID_MNU_DOWNLOADSEQUENCES;
@@ -977,6 +981,7 @@ public:
     wxMenuItem* MenuItemGridNodeValuesOff;
     wxMenuItem* MenuItemGridNodeValuesOn;
     wxMenuItem* MenuItemHardwareDecoder;
+    wxMenuItem* MenuItemHinksPixExport;
     wxMenuItem* MenuItemLoadEditPerspective;
     wxMenuItem* MenuItemRenderCanvasMode;
     wxMenuItem* MenuItemRenderEraseMode;

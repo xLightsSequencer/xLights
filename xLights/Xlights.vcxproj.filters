@@ -747,8 +747,10 @@
     <ClCompile Include="outputs\xxxSerialOutput.cpp">
       <Filter>Outputs</Filter>
     </ClCompile>
-    <ClCompile Include="controllers\Pix.cpp" />
     <ClCompile Include="controllers\HinksPix.cpp">
+      <Filter>Controllers</Filter>
+    </ClCompile>
+    <ClCompile Include="controllers\HinksPixExportDialog.cpp">
       <Filter>Controllers</Filter>
     </ClCompile>
   </ItemGroup>
@@ -1510,6 +1512,9 @@
       <Filter>Outputs</Filter>
     </ClInclude>
     <ClInclude Include="controllers\HinksPix.h">
+      <Filter>Controllers</Filter>
+    </ClInclude>
+    <ClInclude Include="controllers\HinksPixExportDialog.h">
       <Filter>Controllers</Filter>
     </ClInclude>
   </ItemGroup>

@@ -746,6 +746,8 @@
 		<Unit filename="controllers/Falcon.h" />
 		<Unit filename="controllers/HinksPix.cpp" />
 		<Unit filename="controllers/HinksPix.h" />
+		<Unit filename="controllers/HinksPixExportDialog.cpp" />
+		<Unit filename="controllers/HinksPixExportDialog.h" />
 		<Unit filename="controllers/J1Sys.cpp" />
 		<Unit filename="controllers/J1Sys.h" />
 		<Unit filename="controllers/Pixlite16.cpp" />
@@ -1247,6 +1249,7 @@
 		<Unit filename="wxsmith/GenerateCustomModelDialog.wxs" />
 		<Unit filename="wxsmith/GenerateLyricsDialog.wxs" />
 		<Unit filename="wxsmith/GlediatorPanel.wxs" />
+		<Unit filename="wxsmith/HinksPixExportDialog.wxs" />
 		<Unit filename="wxsmith/HousePreviewPanel.wxs" />
 		<Unit filename="wxsmith/IPEntryDialog.wxs" />
 		<Unit filename="wxsmith/ImportPreviewsModelsDialog.wxs" />
@@ -1413,6 +1416,7 @@
 					<wxDialog wxs="wxsmith/FPPConnectDialog.wxs" src="controllers/FPPConnectDialog.cpp" hdr="controllers/FPPConnectDialog.h" fwddecl="0" i18n="1" name="FPPConnectDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/GenerateCustomModelDialog.wxs" src="GenerateCustomModelDialog.cpp" hdr="GenerateCustomModelDialog.h" fwddecl="0" i18n="1" name="GenerateCustomModelDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/GenerateLyricsDialog.wxs" src="GenerateLyricsDialog.cpp" hdr="GenerateLyricsDialog.h" fwddecl="0" i18n="1" name="GenerateLyricsDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/HinksPixExportDialog.wxs" src="controllers/HinksPixExportDialog.cpp" hdr="controllers/HinksPixExportDialog.h" fwddecl="0" i18n="1" name="HinksPixExportDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/ImportPreviewsModelsDialog.wxs" src="ImportPreviewsModelsDialog.cpp" hdr="ImportPreviewsModelsDialog.h" fwddecl="0" i18n="1" name="ImportPreviewsModelsDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/IPEntryDialog.wxs" src="IPEntryDialog.cpp" hdr="IPEntryDialog.h" fwddecl="0" i18n="1" name="IPEntryDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/LayerSelectDialog.wxs" src="LayerSelectDialog.cpp" hdr="LayerSelectDialog.h" fwddecl="0" i18n="1" name="LayerSelectDialog" language="CPP" />

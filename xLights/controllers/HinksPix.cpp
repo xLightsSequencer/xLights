@@ -608,7 +608,11 @@ void HinksPix::UpdateSerialData( HinksPixSerial & pd, UDControllerPort* serialDa
 int HinksPix::CalcControllerChannel(int universe,int startChan, std::map<int, int> const& uniChan) const
 {
     if (!uniChan.count(universe))
-        return startChan;
+    {
+        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        logger_base.error("Unknown Universe: %d Reupload your E131 inputs", universe);
+        return 1;
+    }
     int chan = uniChan.at(universe);
     chan += startChan;
     chan--;         //dont count the first channel in offset calc

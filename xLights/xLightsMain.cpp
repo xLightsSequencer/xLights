@@ -80,6 +80,7 @@
 #include "ValueCurvesPanel.h"
 #include "ColoursPanel.h"
 #include "SpecialOptions.h"
+#include "controllers/HinksPixExportDialog.h"
 
 // Linux needs this
 #include <wx/stdpaths.h>
@@ -235,6 +236,7 @@ const long xLightsFrame::ID_MENUITEM18 = wxNewId();
 const long xLightsFrame::ID_EXPORT_MODELS = wxNewId();
 const long xLightsFrame::ID_MNU_EXPORT_EFFECTS = wxNewId();
 const long xLightsFrame::ID_MENU_FPP_CONNECT = wxNewId();
+const long xLightsFrame::ID_MENU_HINKSPIX_EXPORT = wxNewId();
 const long xLightsFrame::ID_MNU_PACKAGESEQUENCE = wxNewId();
 const long xLightsFrame::ID_MENU_USER_DICT = wxNewId();
 const long xLightsFrame::ID_MNU_DOWNLOADSEQUENCES = wxNewId();
@@ -922,6 +924,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     Menu1->Append(MenuItem_ExportEffects);
     MenuItem_FPP_Connect = new wxMenuItem(Menu1, ID_MENU_FPP_CONNECT, _("&FPP Connect"), wxEmptyString, wxITEM_NORMAL);
     Menu1->Append(MenuItem_FPP_Connect);
+    MenuItemHinksPixExport = new wxMenuItem(Menu1, ID_MENU_HINKSPIX_EXPORT, _("HinkPix Export"), wxEmptyString, wxITEM_NORMAL);
+    Menu1->Append(MenuItemHinksPixExport);
     MenuItem_PackageSequence = new wxMenuItem(Menu1, ID_MNU_PACKAGESEQUENCE, _("Package &Sequence"), wxEmptyString, wxITEM_NORMAL);
     Menu1->Append(MenuItem_PackageSequence);
     MenuItemUserDict = new wxMenuItem(Menu1, ID_MENU_USER_DICT, _("User Lyric Dictionary"), wxEmptyString, wxITEM_NORMAL);
@@ -1361,6 +1365,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     Connect(ID_EXPORT_MODELS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnmExportModelsMenuItemSelected);
     Connect(ID_MNU_EXPORT_EFFECTS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_ExportEffectsSelected);
     Connect(ID_MENU_FPP_CONNECT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_FPP_ConnectSelected);
+    Connect(ID_MENU_HINKSPIX_EXPORT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemHinksPixExportSelected);
     Connect(ID_MNU_PACKAGESEQUENCE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_PackageSequenceSelected);
     Connect(ID_MENU_USER_DICT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemUserDictSelected);
     Connect(ID_MNU_DOWNLOADSEQUENCES,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_DownloadSequencesSelected);
@@ -4714,7 +4719,7 @@ void xLightsFrame::ExportModels(wxString filename)
             {
                 minchannel = ch;
             }
-            int32_t lastch = model->GetLastChannel() + 1; 
+            int32_t lastch = model->GetLastChannel() + 1;
             if (lastch > maxchannel)
             {
                 maxchannel = lastch;
@@ -7469,6 +7474,18 @@ void xLightsFrame::OnMenuItem_FPP_ConnectSelected(wxCommandEvent& event)
     RecalcModels();
 
     FPPConnectDialog dlg(this, &_outputManager);
+
+    dlg.ShowModal();
+}
+
+void xLightsFrame::OnMenuItemHinksPixExportSelected(wxCommandEvent& event)
+{
+    // make sure everything is up to date
+    if (Notebook1->GetSelection() != LAYOUTTAB)
+        layoutPanel->UnSelectAllModels();
+    RecalcModels();
+
+    HinksPixExportDialog dlg(this, &_outputManager);
 
     dlg.ShowModal();
 }
@@ -10508,7 +10525,7 @@ void xLightsFrame::CollectUserEmail()
     wxConfigBase* config = wxConfigBase::Get();
     config->Write("xLightsUserEmail", _userEmail);
     config->Flush();
-    
+
     logger_base.info("User email changed to %s", (const char*)_userEmail.c_str());
 }
 
