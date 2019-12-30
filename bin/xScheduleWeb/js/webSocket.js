@@ -6,14 +6,13 @@ socket.addEventListener('open', function(event) {
   console.log("Socket Opened");
 });
 
-
-
 socket.addEventListener('message', function(event) {
   var response = JSON.parse(event.data);
   if (response.score == undefined && response.highscore == undefined) {
     if (response.status != undefined) {
       playingStatus = response;
       updateNavStatus();
+	  callRegisteredForStatus(response);
     }
 
     if (response.result == 'failed') {

@@ -54,6 +54,7 @@ function updateStatus() {
   });
 }
 
+var registeredForStatus = [];
 var availableMatrices;
 var xyzzyHighScore;
 var xyzzy2HighScore;
@@ -388,4 +389,19 @@ function jsUcfirst(string) {
 //sleep
 function sleep(time) {
   return new Promise((resolve) => setTimeout(resolve, time));
+}
+
+function registerStatusFunction(fnStatus) {
+	if (!registeredForStatus.includes(fnStatus))
+	{
+		registeredForStatus.push(fnStatus);
+	}
+}
+
+function OnStatus(item, index, arr) {
+	item(this);
+}
+
+function callRegisteredForStatus(response) {
+	registeredForStatus.forEach(OnStatus, response);
 }

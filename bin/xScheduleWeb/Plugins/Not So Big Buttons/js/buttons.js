@@ -1,12 +1,15 @@
 $(document).ready(function() {
-loadButtonsData()
+  loadButtonsData()
 
-if (getQueryVariable("args") == 'noheader'){
-  $('#nav').css('display', 'none');
-  $('#header').css('display', 'none');
-  $('#footer').css('display', 'none');
-}
+  if (getQueryVariable("args") == 'noheader'){
+    $('#nav').css('display', 'none');
+    $('#header').css('display', 'none');
+    $('#footer').css('display', 'none');
+  }
+
+  registerStatusFunction(onNSBBStatus);
 })
+
 function loadButtonsData(){
   if (socket.readyState <= '1') {
     socket.send('{"Type":"Query","Query":"GetButtons", "Reference":"populateButtons"}');
@@ -25,6 +28,7 @@ function loadButtonsData(){
     });
   }
 }
+
 function populateButtons(response){
   console.log(response);
   for (var i = 0; i < response.buttons.length; i++) {
@@ -47,3 +51,21 @@ function populateButtons(response){
     $('#buttonContainer').append(button);
   }
 }
+
+function onNSBBStatus(response) {
+  $('#plstatusvolume').html('Volume: ' + response.volume + '%');  
+  $('#plstatusbrightness').html('Brightness: ' + response.brightness + '%'); 
+  if (!response.hasOwnProperty('playlist')) {
+	$('#plstatusplstep').html('Idle');
+  }
+  else {
+	$('#plstatusplstep').html(response.playlist + ' : ' + response.step + ' : ' + response.left.substr(0, response.left.indexOf('.')));
+  }
+  if (response.scheduleend == "N/A") {
+	$('#plstatusendtime').html('Not Scheduled');
+  }
+  else {
+	$('#plstatusendtime').html('End Time: ' + response.scheduleend);
+  }
+}
+
