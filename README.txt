@@ -15,7 +15,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- enh (gil)    Improve 3D model rotate tool...single models rotate better and it works with groups
    -- enh (keith)  Add useful status details to buttons plugin web pages
    -- enh (keith)  Include the visual c++ runtimes in the main install file
-   -- eng (keith)  Show current schedule end time in the web UI
+   -- enh (keith)  Show current schedule end time in the web UI
    -- bug (keith)  Fix issue where more than one schedule can show as next
    -- bug (keith)  Fix issue where next scheduled time is not always calculated   
    -- bug (keith)  Allow PlayList MQTT item data to include xml special characters
