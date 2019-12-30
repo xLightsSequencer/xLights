@@ -131,7 +131,7 @@ void PlayListItemMQTT::Load(wxXmlNode* node)
     _brokerIP = node->GetAttribute("IP", "");
     _topic = node->GetAttribute("Topic", "");
     _port = wxAtoi(node->GetAttribute("Port", ""));
-    _data = node->GetAttribute("Data", "");
+    _data = UnXmlSafe(node->GetAttribute("Data", ""));
     _username = node->GetAttribute("Username", "");
     _password = node->GetAttribute("Password", "");
     _clientId = node->GetAttribute("ClientId", "");
@@ -166,7 +166,7 @@ wxXmlNode* PlayListItemMQTT::Save()
 
     node->AddAttribute("Topic", _topic);
     node->AddAttribute("IP", _brokerIP);
-    node->AddAttribute("Data", _data);
+    node->AddAttribute("Data", XmlSafe(_data));
     node->AddAttribute("Username", _username);
     node->AddAttribute("Password", _password);
     node->AddAttribute("ClientId", _clientId);
