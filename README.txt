@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (gil)    Allow 3D View Objects to be group rotated and translated
    -- bug (gil)    Fix 3D View Objects rotation...i.e. mesh objects, grids, etc.
 2019.73 December 30 2019
    -- enh (gil)    Improve 3D model rotate tool...single models rotate better and it works with groups

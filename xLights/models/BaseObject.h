@@ -3,6 +3,7 @@
 
 #include <string>
 #include "../OutputModelManager.h"
+#include <glm/mat3x3.hpp>
 
 class xLightsFrame;
 class wxPropertyGridInterface;
@@ -76,7 +77,8 @@ public:
 
     virtual void IncrementChangeCount() { ++changeCount;};
 
-	virtual void AddOffset(double deltax, double deltay, double deltaz);
+	void AddOffset(double deltax, double deltay, double deltaz);
+    void RotateAboutPoint(glm::vec3 position, glm::vec3 angle);
 
 	virtual void UpdateXmlWithScale() = 0;
 

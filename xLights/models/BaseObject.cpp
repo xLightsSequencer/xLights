@@ -249,10 +249,19 @@ float BaseObject::GetDcenterPos() {
 }
 
 void BaseObject::AddOffset(double deltax, double deltay, double deltaz) {
-
 	if (GetBaseObjectScreenLocation().IsLocked()) return;
 
 	GetBaseObjectScreenLocation().AddOffset(deltax, deltay, deltaz);
 	GetBaseObjectScreenLocation().Write(ModelXml);
 	IncrementChangeCount();
 }
+
+void BaseObject::RotateAboutPoint(glm::vec3 position, glm::vec3 angle) {
+    if (GetBaseObjectScreenLocation().IsLocked()) return;
+
+    GetBaseObjectScreenLocation().RotateAboutPoint(position, angle);
+    GetBaseObjectScreenLocation().Write(ModelXml);
+    IncrementChangeCount();
+    SetFromXml(ModelXml);  // only needed when rotating PolyLine...hope to remove this later and do what's needed in the PolyLine rotate call
+}
+

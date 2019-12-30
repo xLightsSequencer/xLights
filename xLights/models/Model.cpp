@@ -2790,25 +2790,6 @@ void Model::SetPosition(double posx, double posy) {
     IncrementChangeCount();
 }
 
-void Model::AddOffset(double deltax, double deltay, double deltaz) {
-
-    if (GetModelScreenLocation().IsLocked()) return;
-
-    GetModelScreenLocation().AddOffset(deltax, deltay, deltaz);
-    GetModelScreenLocation().Write(ModelXml);
-    IncrementChangeCount();
-}
-
-void Model::RotateAboutPoint(glm::vec3 position, glm::vec3 angle) {
-
-    if (GetModelScreenLocation().IsLocked()) return;
-
-    GetModelScreenLocation().RotateAboutPoint(position, angle);
-    GetModelScreenLocation().Write(ModelXml);
-    IncrementChangeCount();
-    SetFromXml(ModelXml);  // only needed when rotating PolyLine...hope to remove this later and do what's needed in the PolyLine rotate call
-}
-
 // initialize screen coordinates
 // parm1=Number of Strings/Arches/Canes
 // parm2=Pixels Per String/Arch/Cane

@@ -278,8 +278,6 @@ public:
     void UpdateXmlWithScale() override;
     void SetPosition(double posx, double posy);
     std::string GetChannelInStartChannelFormat(OutputManager* outputManager, uint32_t channel);
-    void AddOffset(double deltax, double deltay, double deltaz);
-    void RotateAboutPoint(glm::vec3 position, glm::vec3 angle);
     std::string GetLastChannelInStartChannelFormat(OutputManager* outputManager);
     std::string GetFirstChannelInStartChannelFormat(OutputManager* outputManager);
     std::string GetStartChannelInDisplayFormat(OutputManager* outputManager);
