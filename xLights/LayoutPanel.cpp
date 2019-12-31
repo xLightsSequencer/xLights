@@ -2962,12 +2962,10 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
         if (editing_models) {
             for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
             {
-                if (modelPreview->GetModels()[i] != selectedBaseObject) {
-                    if (modelPreview->GetModels()[i]->GetBaseObjectScreenLocation().HitTest3D(ray_origin, ray_direction, intersection_distance)) {
-                        if (intersection_distance < distance) {
-                            distance = intersection_distance;
-                            which_object = modelPreview->GetModels()[i];
-                        }
+                if (modelPreview->GetModels()[i]->GetBaseObjectScreenLocation().HitTest3D(ray_origin, ray_direction, intersection_distance)) {
+                    if (intersection_distance < distance) {
+                        distance = intersection_distance;
+                        which_object = modelPreview->GetModels()[i];
                     }
                 }
             }
@@ -3009,19 +3007,32 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
                     which_object->SelectHandle(-1);
                     which_object->GetBaseObjectScreenLocation().SetActiveHandle(-1);
                     selectedBaseObject = nullptr;
-                    // select first model we find
-                    for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
-                    {
-                        if (which_object->GroupSelected) {
-                            selectedBaseObject = modelPreview->GetModels()[i];
-                            selectedBaseObject->GroupSelected = false;
-                            selectedBaseObject->Selected = true;
-                            selectedBaseObject->SelectHandle(-1);
-                            selectedBaseObject->GetBaseObjectScreenLocation().SetActiveHandle(CENTER_HANDLE);
-                            break;
+                    // select first selected model or object we find
+                    if (editing_models) {
+                        for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
+                        {
+                            if (modelPreview->GetModels()[i]->GroupSelected) {
+                                selectedBaseObject = modelPreview->GetModels()[i];
+                                break;
+                            }
                         }
                     }
-                    highlightedBaseObject = selectedBaseObject;
+                    else {
+                        for (const auto& it : xlights->AllObjects) {
+                            ViewObject* view_object = it.second;
+                            if (view_object->GroupSelected) {
+                                selectedBaseObject = view_object;
+                                break;
+                            }
+                        }
+                    }
+                    if (selectedBaseObject != nullptr) {
+                        selectedBaseObject->GroupSelected = false;
+                        selectedBaseObject->Selected = true;
+                        selectedBaseObject->SelectHandle(-1);
+                        selectedBaseObject->GetBaseObjectScreenLocation().SetActiveHandle(CENTER_HANDLE);
+                        highlightedBaseObject = selectedBaseObject;
+                    }
                 }
                 xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::ProcessLeftMouseClick3D");
             }
