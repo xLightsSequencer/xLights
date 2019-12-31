@@ -2872,6 +2872,7 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
                         m_mouse_down = true;
                         last_centerpos = selectedBaseObject->GetBaseObjectScreenLocation().GetCenterPosition();
                         last_worldrotate = selectedBaseObject->GetBaseObjectScreenLocation().GetRotationAngles();
+                        last_worldscale = selectedBaseObject->GetBaseObjectScreenLocation().GetScaleMatrix();
                     }
                 }
                 else if ((m_over_handle & 0x10000) > 0) {
@@ -3359,7 +3360,7 @@ void LayoutPanel::OnPreviewZoomGesture(wxZoomGestureEvent& event) {
     if (selectedBaseObject != nullptr) {
         if (!event.IsGestureStart()) {
             //resize model
-            if (selectedBaseObject->Scale(1.0f - delta)) {
+            if (selectedBaseObject->Scale(glm::vec3(1.0f - delta))) {
                 SetupPropGrid(selectedBaseObject);
                 xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::OnPreviewZoomGesture");
                 xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "LayoutPanel::OnPreviewZoomGesture");
@@ -3554,8 +3555,8 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
                 //xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::OnPreviewMouseMove3D");
                 //xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "LayoutPanel::OnPreviewMouseMove3D");
                 if (selectedModelCnt > 1 || selectedViewObjectCnt > 1) {
-                    glm::vec3 new_centerpos = selectedBaseObject->GetBaseObjectScreenLocation().GetCenterPosition();
                     if( selectedBaseObject->GetBaseObjectScreenLocation().GetAxisTool() == TOOL_TRANSLATE ) {
+                        glm::vec3 new_centerpos = selectedBaseObject->GetBaseObjectScreenLocation().GetCenterPosition();
                         glm::vec3 pos_offset = new_centerpos - last_centerpos;
                         for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
                         {
@@ -3573,6 +3574,7 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
                                 }
                             }
                         }
+                        last_centerpos = new_centerpos;
                     }
                     else if( selectedBaseObject->GetBaseObjectScreenLocation().GetAxisTool() == TOOL_ROTATE ) {
                         glm::vec3 new_worldrotate = selectedBaseObject->GetBaseObjectScreenLocation().GetRotationAngles();
@@ -3603,7 +3605,28 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
                         }
                         last_worldrotate = new_worldrotate;
                     }
-                    last_centerpos = new_centerpos;
+                    /*
+                    if (selectedBaseObject->GetBaseObjectScreenLocation().GetAxisTool() == TOOL_SCALE) {
+                        glm::vec3 new_worldscale = selectedBaseObject->GetBaseObjectScreenLocation().GetScaleMatrix();
+                        glm::vec3 scale_offset = new_worldscale - last_worldscale + glm::vec3(1.0f);
+                        for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
+                        {
+                            if (modelPreview->GetModels()[i]->GroupSelected || modelPreview->GetModels()[i]->Selected) {
+                                if (modelPreview->GetModels()[i] != selectedBaseObject) {
+                                    modelPreview->GetModels()[i]->Scale(scale_offset);
+                                }
+                            }
+                        }
+                        for (const auto& it : xlights->AllObjects) {
+                            ViewObject* view_object = it.second;
+                            if (view_object->GroupSelected || view_object->Selected) {
+                                if (view_object != selectedBaseObject) {
+                                    view_object->Scale(scale_offset);
+                                }
+                            }
+                        }
+                        last_worldscale = new_worldscale;
+                    }*/
                 }
                 xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewMouseMove3D");
             }

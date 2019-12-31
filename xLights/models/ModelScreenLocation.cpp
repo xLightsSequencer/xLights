@@ -726,7 +726,7 @@ int BoxedScreenLocation::CheckUpgrade(wxXmlNode *node)
             node->DeleteAttribute("versionNumber");
             node->AddAttribute("versionNumber", "3");
             glm::mat4 rx = glm::rotate(Identity, glm::radians(rotatex), glm::vec3(1.0f, 0.0f, 0.0f));
-            glm::mat4 ry = glm::rotate(Identity, glm::radians(-rotatey), glm::vec3(0.0f, 1.0f, 0.0f));
+            glm::mat4 ry = glm::rotate(Identity, glm::radians(rotatey), glm::vec3(0.0f, 1.0f, 0.0f));
             glm::mat4 rz = glm::rotate(Identity, glm::radians(rotatez), glm::vec3(0.0f, 0.0f, 1.0f));
             rotate_quat = glm::quat_cast(rz * ry * rx);
             rotation_init = false;
@@ -737,10 +737,16 @@ int BoxedScreenLocation::CheckUpgrade(wxXmlNode *node)
         node->DeleteAttribute("versionNumber");
         node->AddAttribute("versionNumber", "4");
         rotatex = wxAtof(node->GetAttribute("RotateX", "0.0f"));
-        rotatey = wxAtof(node->GetAttribute("RotateY", "0.0f"));
+        rotatey = -wxAtof(node->GetAttribute("RotateY", "0.0f"));
         rotatez = wxAtof(node->GetAttribute("RotateZ", "0.0f"));
+        node->DeleteAttribute("RotateX");
+        node->DeleteAttribute("RotateY");
+        node->DeleteAttribute("RotateZ");
+        node->AddAttribute("RotateX", wxString::Format("%4.8f", rotatex));
+        node->AddAttribute("RotateY", wxString::Format("%4.8f", rotatey));
+        node->AddAttribute("RotateZ", wxString::Format("%4.8f", rotatez));
         glm::mat4 rx = glm::rotate(Identity, glm::radians(rotatex), glm::vec3(1.0f, 0.0f, 0.0f));
-        glm::mat4 ry = glm::rotate(Identity, glm::radians(-rotatey), glm::vec3(0.0f, 1.0f, 0.0f));
+        glm::mat4 ry = glm::rotate(Identity, glm::radians(rotatey), glm::vec3(0.0f, 1.0f, 0.0f));
         glm::mat4 rz = glm::rotate(Identity, glm::radians(rotatez), glm::vec3(0.0f, 0.0f, 1.0f));
         rotate_quat = glm::quat_cast(rx * ry * rz);
         rotation_init = false;
@@ -1492,12 +1498,12 @@ bool BoxedScreenLocation::Rotate(int axis, float factor) {
     return true;
 }
 
-bool BoxedScreenLocation::Scale(float factor) {
+bool BoxedScreenLocation::Scale(glm::vec3& factor) {
     if (_locked) return false;
 
-    scalex *= factor;
-    scaley *= factor;
-    scalez *= factor;
+    scalex *= factor.x;
+    scaley *= factor.y;
+    scalez *= factor.z;
     return true;
 }
 
@@ -2754,6 +2760,24 @@ bool TwoPointScreenLocation::Rotate(int axis, float factor) {
     y2 = end_pt.y - worldPos_y;
     z2 = end_pt.z - worldPos_z;
     return true;
+}
+
+bool TwoPointScreenLocation::Scale(glm::vec3& factor) {
+    return false;
+
+    /*glm::vec3 start_pt = glm::vec3(worldPos_x, worldPos_y, worldPos_z);
+    glm::vec3 end_pt = glm::vec3(x2 + worldPos_x, y2 + worldPos_y, z2 + worldPos_z);
+    glm::mat4 scalingMatrix = glm::scale(Identity, factor);
+    glm::mat4 m = matrix * scalingMatrix;
+    start_pt = glm::vec3(m * glm::vec4(start_pt, 1.0f));
+    end_pt = glm::vec3(m * glm::vec4(end_pt, 1.0f));
+    worldPos_x = start_pt.x;
+    worldPos_y = start_pt.y;
+    worldPos_z = start_pt.z;
+    x2 = end_pt.x - worldPos_x;
+    y2 = end_pt.y - worldPos_y;
+    z2 = end_pt.z - worldPos_z;
+    return true;*/
 }
 
 void TwoPointScreenLocation::UpdateBoundingBox(const std::vector<NodeBaseClassPtr> &Nodes)
@@ -5688,10 +5712,6 @@ void PolyPointScreenLocation::AdjustAllHandles(glm::mat4& mat)
 
 //FIXME - implement these
 
-bool TwoPointScreenLocation::Scale(float factor) {
-    return false;
-}
-
-bool PolyPointScreenLocation::Scale(float factor) {
+bool PolyPointScreenLocation::Scale(glm::vec3& factor) {
     return false;
 }

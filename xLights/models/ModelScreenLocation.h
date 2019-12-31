@@ -83,7 +83,7 @@ protected:
     virtual void MouseDown(bool value) { mouse_down = value; }
 
     virtual bool Rotate(int axis, float factor) = 0;
-    virtual bool Scale(float factor) = 0;
+    virtual bool Scale(glm::vec3& factor) = 0;
 
     virtual void SelectHandle(int handle) = 0;
     virtual int GetSelectedHandle() = 0;
@@ -258,7 +258,7 @@ public:
     virtual int MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) override;
     virtual int MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z) override;
     virtual bool Rotate(int axis, float factor) override;
-    virtual bool Scale(float factor) override;
+    virtual bool Scale(glm::vec3& factor) override;
 
     virtual void SelectHandle(int handle) override {}
     virtual int GetSelectedHandle() override {return -1;}
@@ -374,7 +374,7 @@ public:
     virtual int MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) override;
     virtual int MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z) override;
     virtual bool Rotate(int axis, float factor) override;
-    virtual bool Scale(float factor) override;
+    virtual bool Scale(glm::vec3& factor) override;
     virtual void SelectHandle(int handle) override {}
     virtual int GetSelectedHandle() override {return -1;}
     virtual int GetNumHandles() override {return -1;}
@@ -536,7 +536,7 @@ public:
     virtual int MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) override;
     virtual int MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z) override;
     virtual bool Rotate(int axis, float factor) override;
-    virtual bool Scale(float factor) override;
+    virtual bool Scale(glm::vec3& factor) override;
     virtual void SelectHandle(int handle) override;
     virtual int GetSelectedHandle() override {return selected_handle;}
     virtual int GetNumHandles() override {return num_points;}

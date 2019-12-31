@@ -49,7 +49,6 @@ public:
     void SetWidth(float w, bool ignoreLock = false);
     void SetHeight(float h, bool ignoreLock = false);
     void SetDepth(float d, bool ignoreLock = false);
-    bool Scale(float f);
     bool Rotate(int axis, float factor);
 
     float GetTop();
@@ -79,6 +78,7 @@ public:
 
 	void AddOffset(double deltax, double deltay, double deltaz);
     void RotateAboutPoint(glm::vec3 position, glm::vec3 angle);
+    bool Scale(glm::vec3& factor);
 
     bool IsContained(ModelPreview* preview, int x1, int y1, int x2, int y2);
 

@@ -183,14 +183,6 @@ void BaseObject::SetDcenterPos(float pos) {
     IncrementChangeCount();
 }
 
-bool BaseObject::Scale(float f) {
-    if (GetBaseObjectScreenLocation().IsLocked()) return false;
-
-    bool b = GetBaseObjectScreenLocation().Scale(f);
-    GetBaseObjectScreenLocation().Write(ModelXml);
-    IncrementChangeCount();
-    return b;
-}
 bool BaseObject::Rotate(int axis, float factor) {
     if (GetBaseObjectScreenLocation().IsLocked()) return false;
 
@@ -263,6 +255,17 @@ void BaseObject::RotateAboutPoint(glm::vec3 position, glm::vec3 angle) {
     GetBaseObjectScreenLocation().Write(ModelXml);
     IncrementChangeCount();
     SetFromXml(ModelXml);  // only needed when rotating PolyLine...hope to remove this later and do what's needed in the PolyLine rotate call
+}
+
+bool BaseObject::Scale(glm::vec3& factor)
+{
+    bool return_value = false;
+    if (GetBaseObjectScreenLocation().IsLocked()) return false;
+
+    return_value = GetBaseObjectScreenLocation().Scale(factor);
+    GetBaseObjectScreenLocation().Write(ModelXml);
+    IncrementChangeCount();
+    return return_value;
 }
 
 bool BaseObject::IsContained(ModelPreview* preview, int x1, int y1, int x2, int y2) {
