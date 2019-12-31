@@ -559,10 +559,9 @@ void HinksPixExportDialog::CreateDriveList()
         d2.Open("/media/" + dir);
         wxString dir2;
         bool fcont2 = d2.GetFirst(&dir2, wxEmptyString, wxDIR_DIRS);
-        while (fcont2) {
-
-                drives.push_back("/media/" + dir + "/" + dir2);
-
+        while (fcont2) 
+        {
+            ChoiceSDCards->AppendString("/media/" + dir + "/" + dir2);
             fcont2 = d2.GetNext(&dir2);
         }
         fcont = d.GetNext(&dir);
