@@ -3616,10 +3616,9 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
                         }
                         last_worldrotate = new_worldrotate;
                     }
-                    /*
                     if (selectedBaseObject->GetBaseObjectScreenLocation().GetAxisTool() == TOOL_SCALE) {
                         glm::vec3 new_worldscale = selectedBaseObject->GetBaseObjectScreenLocation().GetScaleMatrix();
-                        glm::vec3 scale_offset = new_worldscale - last_worldscale + glm::vec3(1.0f);
+                        glm::vec3 scale_offset = glm::vec3(new_worldscale / last_worldscale);
                         for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
                         {
                             if (modelPreview->GetModels()[i]->GroupSelected || modelPreview->GetModels()[i]->Selected) {
@@ -3637,7 +3636,7 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
                             }
                         }
                         last_worldscale = new_worldscale;
-                    }*/
+                    }
                 }
                 xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewMouseMove3D");
             }

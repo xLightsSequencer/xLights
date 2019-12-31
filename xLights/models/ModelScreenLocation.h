@@ -436,6 +436,7 @@ protected:
     mutable glm::vec3 point2;
     mutable glm::vec3 saved_point;
     mutable glm::vec3 center;
+    mutable float length;
     float saved_angle;
     bool minMaxSet;
 

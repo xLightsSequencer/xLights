@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (gil)    Add group scaling
    -- bug (gil)    Fix control key not able to remove model from a group
 2019.74 December 31 2019
    -- enh (scott)  Added HinksPix Export Dialog to generate stand alone mode files. No "Foreign" Slave support yet.

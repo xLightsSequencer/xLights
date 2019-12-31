@@ -1944,7 +1944,8 @@ void TwoPointScreenLocation::PrepareToDraw(bool is_3d, bool allow_selected) cons
 
     glm::vec3 a = point2 - origin;
     glm::mat4 rotationMatrix = VectorMath::rotationMatrixFromXAxisToVector2(origin, point2);
-    scalex = scaley = scalez = glm::length(a) / RenderWi;
+    length = glm::length(a);
+    scalex = scaley = scalez = length / RenderWi;
     glm::mat4 scalingMatrix = glm::scale(Identity, glm::vec3(scalex, scaley, scalez));
     TranslateMatrix = translate(Identity, glm::vec3(worldPos_x, worldPos_y, worldPos_z));
     matrix = TranslateMatrix * rotationMatrix * scalingMatrix;
@@ -2312,6 +2313,27 @@ int TwoPointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool
             }
             TwoPointScreenLocation::Rotate(active_axis, new_angle);
             saved_angle = angle;
+        }
+        else if (axis_tool == TOOL_SCALE) {
+            double delta = 0.0f;
+            glm::vec3 scaling = glm::vec3(1.0f);
+            switch (active_axis)
+            {
+            case X_AXIS:
+                delta = (drag_delta.x - saved_position.x) * 2.0f;
+                scaling.x = (length + delta) / length;
+                break;
+            case Y_AXIS:
+                delta = (drag_delta.y - saved_position.y) * 2.0f;
+                scaling.y = (length + delta) / length;
+                break;
+            case Z_AXIS:
+                delta = (drag_delta.z - saved_position.z) * 2.0f;
+                scaling.z = (length + delta) / length;
+                break;
+            }
+            saved_position = drag_delta;
+            TwoPointScreenLocation::Scale(scaling);
         }
     }
     else if (handle == START_HANDLE) {
@@ -2727,6 +2749,7 @@ void TwoPointScreenLocation::RotateAboutPoint(glm::vec3 position, glm::vec3 angl
 }
 
 bool TwoPointScreenLocation::Rotate(int axis, float factor) {
+    if (_locked) return false;
     glm::vec3 start_pt = glm::vec3(worldPos_x, worldPos_y, worldPos_z);
     glm::vec3 end_pt = glm::vec3(x2 + worldPos_x, y2 + worldPos_y, z2 + worldPos_z);
     glm::mat4 translateToOrigin = glm::translate(Identity, -center);
@@ -2763,21 +2786,21 @@ bool TwoPointScreenLocation::Rotate(int axis, float factor) {
 }
 
 bool TwoPointScreenLocation::Scale(const glm::vec3& factor) {
-    return false;
-
-    /*glm::vec3 start_pt = glm::vec3(worldPos_x, worldPos_y, worldPos_z);
+    if (_locked) return false;
+    glm::vec3 start_pt = glm::vec3(worldPos_x, worldPos_y, worldPos_z);
     glm::vec3 end_pt = glm::vec3(x2 + worldPos_x, y2 + worldPos_y, z2 + worldPos_z);
+    glm::mat4 translateToOrigin = glm::translate(Identity, -center);
+    glm::mat4 translateBack = glm::translate(Identity, center);
     glm::mat4 scalingMatrix = glm::scale(Identity, factor);
-    glm::mat4 m = matrix * scalingMatrix;
-    start_pt = glm::vec3(m * glm::vec4(start_pt, 1.0f));
-    end_pt = glm::vec3(m * glm::vec4(end_pt, 1.0f));
+    start_pt = glm::vec3(translateBack * scalingMatrix * translateToOrigin * glm::vec4(start_pt, 1.0f));
+    end_pt = glm::vec3(translateBack * scalingMatrix * translateToOrigin * glm::vec4(end_pt, 1.0f));
     worldPos_x = start_pt.x;
     worldPos_y = start_pt.y;
     worldPos_z = start_pt.z;
     x2 = end_pt.x - worldPos_x;
     y2 = end_pt.y - worldPos_y;
     z2 = end_pt.z - worldPos_z;
-    return true;*/
+    return true;
 }
 
 void TwoPointScreenLocation::UpdateBoundingBox(const std::vector<NodeBaseClassPtr> &Nodes)
@@ -5426,6 +5449,7 @@ void PolyPointScreenLocation::RotateAboutPoint(glm::vec3 position, glm::vec3 ang
 }
 
 bool PolyPointScreenLocation::Rotate(int axis, float factor) {
+    if (_locked) return false;
 
     // Rotate all the points
     glm::mat4 translateToOrigin = glm::translate(Identity, -rotate_pt);
@@ -5472,6 +5496,26 @@ bool PolyPointScreenLocation::Rotate(int axis, float factor) {
     worldPos_x = world_new.x;
     worldPos_y = world_new.y;
     worldPos_z = world_new.z;
+
+    return true;
+}
+
+bool PolyPointScreenLocation::Scale(const glm::vec3& factor) {
+    if (_locked) return false;
+
+    glm::vec3 world_pt = glm::vec3(worldPos_x, worldPos_y, worldPos_z);
+    float cx = (maxX + minX) * scalex / 2.0f + worldPos_x;
+    float cy = (maxY + minY) * scaley / 2.0f + worldPos_y;
+    float cz = (maxZ + minZ) * scalez / 2.0f + worldPos_z;
+    glm::mat4 translateToOrigin = glm::translate(Identity, -glm::vec3(cx, cy, cz));
+    glm::mat4 translateBack = glm::translate(Identity, glm::vec3(cx, cy, cz));
+    glm::mat4 scalingMatrix = glm::scale(Identity, factor);
+    glm::mat4 m = translateBack * scalingMatrix * translateToOrigin;
+    AdjustAllHandles(m);
+    world_pt = glm::vec3(translateBack * scalingMatrix * translateToOrigin * glm::vec4(world_pt, 1.0f));
+    worldPos_x = world_pt.x;
+    worldPos_y = world_pt.y;
+    worldPos_z = world_pt.z;
 
     return true;
 }
@@ -5706,12 +5750,4 @@ void PolyPointScreenLocation::AdjustAllHandles(glm::mat4& mat)
         }
     }
     FixCurveHandles();
-}
-
-
-
-//FIXME - implement these
-
-bool PolyPointScreenLocation::Scale(const glm::vec3& factor) {
-    return false;
 }
