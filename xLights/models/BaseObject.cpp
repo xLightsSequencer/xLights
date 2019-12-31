@@ -257,7 +257,7 @@ void BaseObject::RotateAboutPoint(glm::vec3 position, glm::vec3 angle) {
     SetFromXml(ModelXml);  // only needed when rotating PolyLine...hope to remove this later and do what's needed in the PolyLine rotate call
 }
 
-bool BaseObject::Scale(glm::vec3& factor)
+bool BaseObject::Scale(const glm::vec3& factor)
 {
     bool return_value = false;
     if (GetBaseObjectScreenLocation().IsLocked()) return false;

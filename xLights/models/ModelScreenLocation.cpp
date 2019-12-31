@@ -1498,7 +1498,7 @@ bool BoxedScreenLocation::Rotate(int axis, float factor) {
     return true;
 }
 
-bool BoxedScreenLocation::Scale(glm::vec3& factor) {
+bool BoxedScreenLocation::Scale(const glm::vec3& factor) {
     if (_locked) return false;
 
     scalex *= factor.x;
@@ -2762,7 +2762,7 @@ bool TwoPointScreenLocation::Rotate(int axis, float factor) {
     return true;
 }
 
-bool TwoPointScreenLocation::Scale(glm::vec3& factor) {
+bool TwoPointScreenLocation::Scale(const glm::vec3& factor) {
     return false;
 
     /*glm::vec3 start_pt = glm::vec3(worldPos_x, worldPos_y, worldPos_z);
@@ -5712,6 +5712,6 @@ void PolyPointScreenLocation::AdjustAllHandles(glm::mat4& mat)
 
 //FIXME - implement these
 
-bool PolyPointScreenLocation::Scale(glm::vec3& factor) {
+bool PolyPointScreenLocation::Scale(const glm::vec3& factor) {
     return false;
 }
