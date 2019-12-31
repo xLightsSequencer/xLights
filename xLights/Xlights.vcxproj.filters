@@ -43,8 +43,6 @@
     <ClCompile Include="effects\assist\xlGridCanvasEmpty.cpp" />
     <ClCompile Include="effects\assist\xlGridCanvasMorph.cpp" />
     <ClCompile Include="effects\assist\xlGridCanvasPictures.cpp" />
-    <ClCompile Include="effects\ColorWashEffect.cpp" />
-    <ClCompile Include="effects\ColorWashPanel.cpp" />
     <ClCompile Include="effects\EffectManager.cpp" />
     <ClCompile Include="effects\EffectPanelUtils.cpp" />
     <ClCompile Include="EffectTreeDialog.cpp" />
@@ -753,6 +751,12 @@
     <ClCompile Include="controllers\HinksPixExportDialog.cpp">
       <Filter>Controllers</Filter>
     </ClCompile>
+    <ClCompile Include="effects\ColorWashEffect.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\ColorWashPanel.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -791,8 +795,6 @@
     <ClInclude Include="EffectIconPanel.h" />
     <ClInclude Include="EffectListDialog.h" />
     <ClInclude Include="EffectsPanel.h" />
-    <ClInclude Include="effects\ColorWashEffect.h" />
-    <ClInclude Include="effects\ColorWashPanel.h" />
     <ClInclude Include="effects\EffectManager.h" />
     <ClInclude Include="effects\EffectPanelUtils.h" />
     <ClInclude Include="EffectTreeDialog.h" />
@@ -1516,6 +1518,12 @@
     </ClInclude>
     <ClInclude Include="controllers\HinksPixExportDialog.h">
       <Filter>Controllers</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\ColorWashPanel.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\ColorWashEffect.h">
+      <Filter>Effects</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
