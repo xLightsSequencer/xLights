@@ -5062,6 +5062,59 @@ void xLightsFrame::CheckSequence(bool display)
     warncountsave = warncount;
 
     LogAndWrite(f, "");
+    LogAndWrite(f, "Potentially problematic settings");
+
+    if (!_backupSubfolders)
+    {
+        wxString msg = wxString::Format("    WARN: Backup is not including subfolders. If you store your sequences in subfolders then they are NOT being backed up by xLights.");
+        LogAndWrite(f, msg.ToStdString());
+        warncount++;
+    }
+
+    if (_suspendRender)
+    {
+        wxString msg = wxString::Format("    WARN: Rendering is currently suspended. The FSEQ data may not be up to date.");
+        LogAndWrite(f, msg.ToStdString());
+        warncount++;
+    }
+
+    if (mRenderOnSave)
+    {
+        wxString msg = wxString::Format("    WARN: Render on save is enabled ... this is generally unnecessary.");
+        LogAndWrite(f, msg.ToStdString());
+        warncount++;
+    }
+
+    if (mBackupOnSave)
+    {
+        wxString msg = wxString::Format("    WARN: Backup on save is enabled ... this creates an awful lot of backups.");
+        LogAndWrite(f, msg.ToStdString());
+        warncount++;
+    }
+
+    if (!mSaveFseqOnSave)
+    {
+        wxString msg = wxString::Format("    ERR: Saving FSEQ on save is disabled ... this is almost always a bad idea.");
+        LogAndWrite(f, msg.ToStdString());
+        errcount++;
+    }
+
+    if (AutoSaveInterval <= 0)
+    {
+        wxString msg = wxString::Format("    WARN: Autosave is disabled ... you will lose work if xLights abnormally terminates.");
+        LogAndWrite(f, msg.ToStdString());
+        warncount++;
+    }
+
+    if (errcount + warncount == errcountsave + warncountsave)
+    {
+        LogAndWrite(f, "    No problems found");
+    }
+
+    errcountsave = errcount;
+    warncountsave = warncount;
+
+    LogAndWrite(f, "");
     LogAndWrite(f, "Inactive Outputs");
 
     // Check for inactive outputs
@@ -6233,11 +6286,19 @@ void xLightsFrame::CheckSequence(bool display)
         {
             // set to log if >1MB and autosave is more than every 10 minutes
             wxULongLong size = CurrentSeqXmlFile->GetSize();
-            if (size > 1000000 && AutoSaveInterval < 10)
+            if (size > 1000000 && AutoSaveInterval < 10 && AutoSaveInterval > 0)
             {
                 wxULongLong mbull = size / 100000;
                 double mb = mbull.ToDouble() / 10.0;
                 wxString msg = wxString::Format("    WARN: Sequence file size %.1fMb is large. Consider making autosave less frequent to prevent xlights pausing too often when it autosaves.", mb);
+                LogAndWrite(f, msg.ToStdString());
+                warncount++;
+            }
+            else if (size < 1000000 && AutoSaveInterval > 10)
+            {
+                wxULongLong mbull = size / 100000;
+                double mb = mbull.ToDouble() / 10.0;
+                wxString msg = wxString::Format("    WARN: Sequence file size %.1fMb is small. Consider making autosave more frequent to prevent loss in the event of abnormal termination.", mb);
                 LogAndWrite(f, msg.ToStdString());
                 warncount++;
             }
