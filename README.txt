@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (gil)    Model versions were not being saved with the new version number.  This is fixed now but if you
+                   moved any of your rotations and saved in .73 you will need to fix them.
    -- enh (scott)  Added HinksPix Export Dialog to generate stand alone mode files. No "Foreign" Slave support yet.
    -- enh (gil)    Allow all models and objects to be selected for rotation and translation
    -- enh (gil)    Allow 3D View Objects to be group rotated and translated
