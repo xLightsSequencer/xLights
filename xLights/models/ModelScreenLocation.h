@@ -419,7 +419,7 @@ public:
     virtual float GetMHeight() const override;
     virtual float GetMDepth() const override;
     virtual void SetMDepth(float d) override;
-    virtual void RotateAboutPoint(glm::vec3 position, glm::vec3 angle);
+    virtual void RotateAboutPoint(glm::vec3 position, glm::vec3 angle) override;
 
     virtual float GetYShear() const {return 0.0;}
 
@@ -582,7 +582,7 @@ public:
     virtual float GetMWidth() const override;
     virtual float GetMHeight() const override;
     virtual float GetMDepth() const override;
-    virtual void RotateAboutPoint(glm::vec3 position, glm::vec3 angle);
+    virtual void RotateAboutPoint(glm::vec3 position, glm::vec3 angle) override;
 
     virtual int GetDefaultHandle() override { return END_HANDLE; }
     virtual int GetDefaultTool() override { return TOOL_XY_TRANS; }

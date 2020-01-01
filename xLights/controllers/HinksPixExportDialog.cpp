@@ -296,7 +296,7 @@ void HinksPixExportDialog::PopulateControllerList(wxString const& savedIPs)
         if ((*it)->IsIpOutput() && (*it)->GetIP() != "MULTICAST" && (*it)->GetType() != OUTPUT_ZCPP)
         {
             const ControllerRules* rules = ControllerRegistry::GetRulesForController((*it)->GetControllerId());
-            if (rules->GetControllerManufacturer() == "HinksPix") {
+            if (rules && rules->GetControllerManufacturer() == "HinksPix") {
 
                 if (std::find_if(_hixControllers.begin(), _hixControllers.end(), [it](auto const& controller) {return (*it)->GetIP() == controller; }) == _hixControllers.end())
                 {

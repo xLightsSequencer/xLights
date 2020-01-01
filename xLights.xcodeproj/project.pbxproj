@@ -157,6 +157,7 @@
 		673D764C214B2F06007C6E83 /* MeshObject.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 673D764B214B2F06007C6E83 /* MeshObject.cpp */; };
 		673E425B17F0D95200F4BC76 /* TabSetup.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 673E425917F0D23E00F4BC76 /* TabSetup.cpp */; };
 		673F03681F322A9B0052A793 /* ChannelBlockModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 673F03671F322A9B0052A793 /* ChannelBlockModel.cpp */; };
+		6740DD0723BC2136002500F2 /* HinksPixExportDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6740DD0523BC2136002500F2 /* HinksPixExportDialog.cpp */; };
 		6743321F22B7C1C30038B63E /* ControllerVisualiseDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6743321D22B7C1C20038B63E /* ControllerVisualiseDialog.cpp */; };
 		6743322222B7C24E0038B63E /* OutputModelManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6743322122B7C24E0038B63E /* OutputModelManager.cpp */; };
 		67447D981C6664900095CDB5 /* WreathModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67447D951C6664900095CDB5 /* WreathModel.cpp */; };
@@ -1129,6 +1130,8 @@
 		673E425917F0D23E00F4BC76 /* TabSetup.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = TabSetup.cpp; sourceTree = "<group>"; };
 		673F03661F322A9B0052A793 /* ChannelBlockModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ChannelBlockModel.h; path = models/ChannelBlockModel.h; sourceTree = "<group>"; };
 		673F03671F322A9B0052A793 /* ChannelBlockModel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ChannelBlockModel.cpp; path = models/ChannelBlockModel.cpp; sourceTree = "<group>"; };
+		6740DD0523BC2136002500F2 /* HinksPixExportDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = HinksPixExportDialog.cpp; path = controllers/HinksPixExportDialog.cpp; sourceTree = "<group>"; };
+		6740DD0623BC2136002500F2 /* HinksPixExportDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = HinksPixExportDialog.h; path = controllers/HinksPixExportDialog.h; sourceTree = "<group>"; };
 		674298971C20432600B11478 /* wx */ = {isa = PBXFileReference; lastKnownFileType = folder; name = wx; path = /opt/local/lib/wx; sourceTree = "<group>"; };
 		6743321D22B7C1C20038B63E /* ControllerVisualiseDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ControllerVisualiseDialog.cpp; sourceTree = "<group>"; };
 		6743321E22B7C1C30038B63E /* ControllerVisualiseDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ControllerVisualiseDialog.h; sourceTree = "<group>"; };
@@ -2894,6 +2897,8 @@
 		67BF7FF31F278946002F118D /* Controllers */ = {
 			isa = PBXGroup;
 			children = (
+				6740DD0523BC2136002500F2 /* HinksPixExportDialog.cpp */,
+				6740DD0623BC2136002500F2 /* HinksPixExportDialog.h */,
 				676F004123ABD1D900701F3F /* HinksPix.cpp */,
 				676F004023ABD1D800701F3F /* HinksPix.h */,
 				6794D2D7238A2B16006161F0 /* AlphaPix.cpp */,
@@ -4217,6 +4222,7 @@
 				67FF398F1D57F5C000290DB4 /* MusicXML.cpp in Sources */,
 				6761F5F91C4EA041009780DA /* xlGridCanvasPictures.cpp in Sources */,
 				67A61A2C17B51C0F008E95BB /* EffectListDialog.cpp in Sources */,
+				6740DD0723BC2136002500F2 /* HinksPixExportDialog.cpp in Sources */,
 				67B2CFF31C3A186A003C17CA /* DMXEffect.cpp in Sources */,
 				67B2CF991C39E5B0003C17CA /* ButterflyPanel.cpp in Sources */,
 				67DB97391B05744100FC5ADC /* SuperStarImportDialog.cpp in Sources */,
