@@ -200,6 +200,7 @@ Here are the steps to compile xLights for Windows using the Visual Studio compil
 		- <basedir>\wxWidgets\build\msw\vc_mswudll
 	 4) Open the project <basedir>\wxWidgets\build\msw\vc16.sln
 	 5) Compile both a release and a debug version
+     6) In the Windows System Properties -> Advanced -> Environment variables, create a new environment variable WXWIDGETS_ROOT with the value being the directory where wxWidgets is installed.  (example: c:\wxWidgets-3.1.3 )
 
    d) Now open the xlights project <basedir>\xLights\xLights\xLights.sln and build the project
 

@@ -80,8 +80,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>..\..\wxWidgets\include;..\..\wxWidgets\include\msvc;$(IncludePath);ffmpeg-dev\include;..\include;./ffmpeg-dev/include;$(ProjectDir);..\include\zlib</IncludePath>
-    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;..\..\wxWidgets\lib\vc_x64_lib;..\lib\windows64;GL;..\lib\windows;./ffmpeg-dev/lib;$(VCToolsInstallDir)lib\x64</LibraryPath>
+    <IncludePath>$(WXWIDGETS_ROOT)\include;$(WXWIDGETS_ROOT)\include\msvc;..\..\wxWidgets\include;..\..\wxWidgets\include\msvc;$(IncludePath);ffmpeg-dev\include;..\include;./ffmpeg-dev/include;$(ProjectDir);..\include\zlib</IncludePath>
+    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;..\..\wxWidgets\lib\vc_x64_lib;$(WXWIDGETS_ROOT)\lib\vc_x64_lib;..\lib\windows64;GL;..\lib\windows;./ffmpeg-dev/lib;$(VCToolsInstallDir)lib\x64</LibraryPath>
     <ExecutablePath>$(VC_ExecutablePath_x64);$(WindowsSDK_ExecutablePath);$(VS_ExecutablePath);$(MSBuild_ExecutablePath);$(FxCopDir);$(PATH);..\bin64</ExecutablePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -91,8 +91,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>..\..\wxWidgets\include;..\..\wxWidgets\include\msvc;..\..\wxWidgets\include;..\..\wxWidgets\include\msvc;$(IncludePath);ffmpeg-dev\include;..\include;$(ProjectDir);..\include\zlib</IncludePath>
-    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;..\..\wxWidgets\lib\vc_x64_lib;..\lib\windows64;GL</LibraryPath>
+    <IncludePath>$(WXWIDGETS_ROOT)\include;$(WXWIDGETS_ROOT)\include\msvc;..\..\wxWidgets\include;..\..\wxWidgets\include\msvc;$(IncludePath);ffmpeg-dev\include;..\include;$(ProjectDir);..\include\zlib</IncludePath>
+    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;..\..\wxWidgets\lib\vc_x64_lib;$(WXWIDGETS_ROOT)\lib\vc_x64_lib;..\lib\windows64;GL</LibraryPath>
     <ExecutablePath>$(VC_ExecutablePath_x64);$(WindowsSDK_ExecutablePath);$(VS_ExecutablePath);$(MSBuild_ExecutablePath);$(FxCopDir);$(PATH);..\bin64</ExecutablePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -132,7 +132,12 @@
     </Link>
     <Manifest>
       <AdditionalManifestFiles>xLightsApp64.manifest %(AdditionalManifestFiles)</AdditionalManifestFiles>
+      <EnableDpiAwareness>true</EnableDpiAwareness>
     </Manifest>
+    <PostBuildEvent>
+      <Command>
+      </Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -179,6 +184,14 @@
       <GenerateMapFile>true</GenerateMapFile>
       <IgnoreSpecificDefaultLibraries>libcmt.lib</IgnoreSpecificDefaultLibraries>
     </Link>
+    <Manifest>
+      <AdditionalManifestFiles>xLightsApp64.manifest %(AdditionalManifestFiles)</AdditionalManifestFiles>
+      <OutputManifestFile>$(IntDir)$(TargetName)$(TargetExt).embed.manifest</OutputManifestFile>
+      <EnableDpiAwareness>true</EnableDpiAwareness>
+    </Manifest>
+    <ManifestResourceCompile>
+      <ResourceOutputFileName>$(IntDir)$(TargetName)$(TargetExt).embed.manifest.res</ResourceOutputFileName>
+    </ManifestResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\xSchedule\md5.cpp" />
