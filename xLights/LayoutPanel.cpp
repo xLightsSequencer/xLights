@@ -596,9 +596,11 @@ void LayoutPanel::InitImageList()
     if ( iconSize == wxDefaultSize ) {
         iconSize = wxSize(ScaleWithSystemDPI(scaleFactor, 16),
                           ScaleWithSystemDPI(scaleFactor, 16));
+#if !defined(__WXOSX__) && !defined(__WXMSW__)
     } else {
         iconSize = wxSize(ScaleWithSystemDPI(scaleFactor, iconSize.x),
                           ScaleWithSystemDPI(scaleFactor, iconSize.y));
+#endif
     }
 
     m_imageList = new wxImageList(iconSize.x, iconSize.y);
@@ -710,7 +712,7 @@ std::string LayoutPanel::GetCurrentPreview() const
 
 NewModelBitmapButton* LayoutPanel::AddModelButton(const std::string &type, const char *data[]) {
     wxImage image(data);
-#ifdef __WXOSX__
+#if defined(__WXOSX__) || defined(__WXMSW__)
     wxBitmap bitmap(image, -1, 2.0);
 #else
     image.Rescale(ScaleWithSystemDPI(GetContentScaleFactor(), 24),
@@ -4850,7 +4852,7 @@ void LayoutPanel::AddObjectButton(wxMenu& mnu, const long id, const std::string 
     wxMenuItem* menu_item = mnu.Append(id, name);
     if (icon != nullptr) {
         wxImage image(icon);
-#ifdef __WXOSX__
+#if defined(__WXOSX__) || defined(__WXMSW__)
         wxBitmap bitmap(image, -1, 2.0);
 #else
         image.Rescale(ScaleWithSystemDPI(GetContentScaleFactor(), 24),

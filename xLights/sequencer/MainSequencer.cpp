@@ -84,7 +84,7 @@ public:
         _time = "Time: 00:00:00";
         _selected = "";
         _fps = "";
-        _fontSize = 14;
+        _fontSize = ScaleWithSystemDPI(14);
     }
     virtual ~TimeDisplayControl(){};
 
@@ -105,10 +105,11 @@ public:
         mWindowHeight = h;
         mWindowWidth = w;
         mWindowResized = true;
+        h = UnScaleWithSystemDPI(h);
         if (h > 50) {
-            _fontSize = 14;
+            _fontSize = ScaleWithSystemDPI(14);
         } else {
-            _fontSize = 10;
+            _fontSize = ScaleWithSystemDPI(10);
         }
         Refresh();
         renderGL();

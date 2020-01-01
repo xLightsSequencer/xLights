@@ -100,9 +100,11 @@ void ViewObjectPanel::InitImageList()
     if ( iconSize == wxDefaultSize ) {
         iconSize = wxSize(ScaleWithSystemDPI(scaleFactor, 16),
                           ScaleWithSystemDPI(scaleFactor, 16));
+#if !defined(__WXOSX__) && !defined(__WXMSW__)
     } else {
         iconSize = wxSize(ScaleWithSystemDPI(scaleFactor, iconSize.x),
                           ScaleWithSystemDPI(scaleFactor, iconSize.y));
+#endif
     }
 
     m_imageList = new wxImageList(iconSize.x, iconSize.y);

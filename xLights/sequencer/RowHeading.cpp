@@ -19,7 +19,7 @@
 
 #include <log4cpp/Category.hh>
 
-#define ICON_SPACE 25
+#define ICON_SPACE ScaleWithSystemDPI(25)
 
 BEGIN_EVENT_TABLE(RowHeading, wxWindow)
 EVT_LEFT_DOWN(RowHeading::mouseLeftDown)
@@ -83,7 +83,7 @@ RowHeading::RowHeading(MainSequencer* parent, wxWindowID id, const wxPoint &pos,
 
     DOUBLE_BUFFER(this);
     wxString tooltip;
-#ifdef __WXOSX__
+#if defined(__WXOSX__) || defined(__WXMSW__)
     bool exact = false;
 #else
     bool exact = true;
@@ -1438,7 +1438,7 @@ void RowHeading::Draw()
                         }
                         dc.SetPen(*wxBLACK_PEN);
                         dc.SetBrush(wxBrush(color.asWxColor()));
-                        dc.DrawRectangle(getWidth() - 21, startY + 5, 12, 12);
+                        dc.DrawRectangle(getWidth() - ScaleWithSystemDPI(21), startY + 5, ScaleWithSystemDPI(12), ScaleWithSystemDPI(12));
                         dc.SetPen(penOutline);
                         dc.SetBrush(brush2);
                     }
