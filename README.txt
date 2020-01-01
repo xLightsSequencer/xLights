@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (gil)    Fix mesh object scaling that I broke in 2019.73
    -- enh (gil)    Add group scaling
    -- bug (gil)    Fix control key not able to remove model from a group
 2019.74 December 31 2019

@@ -474,7 +474,7 @@ void MeshObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, D
         glm::mat4 scalingMatrix = glm::scale(m, GetObjectScreenLocation().GetScaleMatrix());
         glm::quat rotate_quat = GetObjectScreenLocation().GetRotationQuat();
         glm::mat4 translationMatrix = glm::translate(m, GetObjectScreenLocation().GetWorldPosition());
-        m = translationMatrix * glm::toMat4(rotate_quat);
+        m = translationMatrix * glm::toMat4(rotate_quat) * scalingMatrix;
 
         if (!mesh3d) {
             mesh3d = DrawGLUtils::createMesh();
