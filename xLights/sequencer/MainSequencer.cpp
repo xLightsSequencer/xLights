@@ -84,7 +84,7 @@ public:
         _time = "Time: 00:00:00";
         _selected = "";
         _fps = "";
-        _fontSize = ScaleWithSystemDPI(14);
+        _fontSize = 14;
     }
     virtual ~TimeDisplayControl(){};
 
@@ -107,9 +107,13 @@ public:
         mWindowResized = true;
         h = UnScaleWithSystemDPI(h);
         if (h > 50) {
-            _fontSize = ScaleWithSystemDPI(14);
+            _fontSize = 14;
+        } else if (h > 36) {
+            _fontSize = 10;
+        } else if (h > 25) {
+            _fontSize = 8;
         } else {
-            _fontSize = ScaleWithSystemDPI(10);
+            _fontSize = 6;
         }
         Refresh();
         renderGL();
@@ -155,18 +159,21 @@ public:
 
         _va.color = ColorManager::instance()->GetColor(ColorManager::COLOR_ROW_HEADER_TEXT);
 #define LINEGAP 1.2
-        int y = _fontSize * LINEGAP;
+        float fs = ScaleWithSystemDPI(_fontSize);
+        float y = fs * LINEGAP;
         _va.AddVertex(5, y, _time);
-        y += _fontSize * LINEGAP;
+        y += fs * LINEGAP;
         // only display FPS if we have room
-        if (y + _fontSize * LINEGAP <= mWindowHeight) {
+        if ((y + fs * LINEGAP <= mWindowHeight)
+            || (_selected == "" && y <= mWindowHeight)) {
             _va.AddVertex(5, y, _fps);
-            y += _fontSize * LINEGAP;
+            y += fs * LINEGAP;
         }
         if (y <= mWindowHeight) {
             _va.AddVertex(5, y, _selected);
         }
-        DrawGLUtils::Draw(_va, _fontSize, GetContentScaleFactor());
+        float factor = translateToBacking(1.0);
+        DrawGLUtils::Draw(_va, fs, factor);
         SwapBuffers();
         _va.Reset();
     }
