@@ -59,12 +59,12 @@ log4cpp: FORCE
 
 wxwidgets31: FORCE
 	@printf "Checking wxwidgets\n"
-	@if test "`wx-config --version`" != "3.1.2"; \
-		then if test ! -d wxWidgets-3.1.2; \
-			then echo Downloading wxwidgets; wget --no-verbose -c https://github.com/wxWidgets/wxWidgets/releases/download/v3.1.2/wxWidgets-3.1.2.tar.bz2; \
-			tar xfj wxWidgets-3.1.2.tar.bz2; \
+	@if test "`wx-config --version`" != "3.1.3"; \
+		then if test ! -d wxWidgets-3.1.3; \
+			then echo Downloading wxwidgets; wget --no-verbose -c https://github.com/wxWidgets/wxWidgets/releases/download/v3.1.3/wxWidgets-3.1.3.tar.bz2; \
+			tar xfj wxWidgets-3.1.3.tar.bz2; \
 		fi; \
-		cd wxWidgets-3.1.2; \
+		cd wxWidgets-3.1.3; \
 		patch -p1 < ../lib/linux/wxwidgets-31.patch; \
 		CXXFLAGS="-std=gnu++14" ./configure --enable-cxx11 --enable-std_containers --enable-std_string --enable-std_string_conv_in_wxstring --enable-backtrace --enable-exceptions --enable-mediactrl --enable-graphics_ctx --enable-monolithic --disable-gtktest --disable-sdltest --with-gtk=2 --disable-pcx --disable-iff --without-libtiff --prefix=$(PREFIX); \
 		echo Building wxwidgets; \
