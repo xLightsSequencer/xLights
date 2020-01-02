@@ -736,7 +736,7 @@ int BoxedScreenLocation::CheckUpgrade(wxXmlNode *node)
     else if (version == 3) {
         node->DeleteAttribute("versionNumber");
         node->AddAttribute("versionNumber", "4");
-        rotatex = wxAtof(node->GetAttribute("RotateX", "0.0f"));
+        rotatex = -wxAtof(node->GetAttribute("RotateX", "0.0f"));
         rotatey = -wxAtof(node->GetAttribute("RotateY", "0.0f"));
         rotatez = wxAtof(node->GetAttribute("RotateZ", "0.0f"));
         node->DeleteAttribute("RotateX");
