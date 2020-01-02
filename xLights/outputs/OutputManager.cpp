@@ -36,6 +36,11 @@ OutputManager::OutputManager()
 
 OutputManager::~OutputManager()
 {
+    if (_outputting)
+    {
+        StopOutput();
+    }
+
     // destroy all out output objects
     DeleteAllOutputs();
 }

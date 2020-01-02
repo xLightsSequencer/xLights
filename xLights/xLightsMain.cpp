@@ -2332,6 +2332,8 @@ xLightsFrame::~xLightsFrame()
     }
 
     selectedEffect = nullptr;
+    _outputManager.AllOff();
+    _outputManager.StopOutput();
     _outputManager.DeleteAllOutputs();
 
     wxConfigBase* config = wxConfigBase::Get();
