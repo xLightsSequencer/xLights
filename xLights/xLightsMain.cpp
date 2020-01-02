@@ -3483,7 +3483,7 @@ void xLightsFrame::OnMenuItem_File_Export_VideoSelected(wxCommandEvent& event)
 
     videoExporter.SetGetVideoFrameCallback(
         [this, housePreview, &captureHelper](unsigned char *buf, int bufSize, int width, int height, float scaleFactor, unsigned frameIndex) {
-        const FrameData frameData = this->SeqData[frameIndex];
+        const FrameData &frameData = this->SeqData[frameIndex];
         const unsigned char *data = frameData[0];
         //logger_base.debug( "Requesting house-preview frame %d for video-export", frameIndex );
         housePreview->Render(data, false);

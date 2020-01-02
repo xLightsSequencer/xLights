@@ -100,7 +100,7 @@ public:
     static void SetAudio(AudioManager* am) { __audioManager = am; }
     static std::string GetValueCurveFolder(const std::string& showFolder);
 
-    ValueCurve() { _divisor = 1; SetDefault(); _min = MINVOIDF; _max = MAXVOIDF; }
+    ValueCurve() { _divisor = 1; _min = MINVOIDF; _max = MAXVOIDF; SetDefault(); }
     ValueCurve(const std::string& serialised);
     ValueCurve(const std::string& id, float min, float max = 100.0f, const std::string type = "Flat", float parameter1 = 0.0f, float parameter2 = 0.0f, float parameter3 = 0.0f, float parameter4 = 0.0f, bool wrap = false, float divisor = 1.0);
     void SetDefault(float min = MINVOIDF, float max = MAXVOIDF, int divisor = MAXVOID);

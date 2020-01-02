@@ -11,6 +11,9 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (dkulp)  Change internal SequenceData storage to allow use of hugepages/superpages, not require a single gigantic storage blob
+   -- bug (dkulp)  Fix a bunch of HiDPI issues on Windows that started with update to VS and wxWidgets 3.1.3
+   -- enh (dkulp)  Upgrade Linux build to wxWidgets 3.1.3
    -- bug (gil)    Also needed to invert X rotation when upgrading model positions
    -- bug (gil)    Fix mesh object scaling that I broke in 2019.73
    -- enh (gil)    Add group scaling

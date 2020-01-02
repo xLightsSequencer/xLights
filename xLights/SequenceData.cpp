@@ -13,11 +13,21 @@
 
 #include <log4cpp/Category.hh>
 
+
+#ifdef __WXOSX__
+#include <sys/mman.h>
+#include <mach/vm_statistics.h>
+#define USE_MMAP_BLOCKS
+#elif defined(LINUX)
+#include <sys/mman.h>
+#define USE_MMAP_BLOCKS
+#else
+//Windows
+#endif
+
 const unsigned char FrameData::_constzero = 0;
 
-SequenceData::SequenceData() {
-    _data = nullptr;
-    _invalidData = nullptr;
+SequenceData::SequenceData() : _invalidFrame() {
     _numFrames = 0;
     _numChannels = 0;
     _bytesPerFrame = 0;
@@ -25,32 +35,165 @@ SequenceData::SequenceData() {
 }
 
 SequenceData::~SequenceData() {
-    if (_data != nullptr) {
-        free(_data);
-    }
-    if (_invalidData != nullptr) {
-        free(_invalidData);
+    Cleanup();
+}
+
+std::list<std::unique_ptr<SequenceData::DataBlock>> SequenceData::HUGE_BLOCK_CACHE;
+
+SequenceData::DataBlock::~DataBlock() {
+    if (data) {
+    #ifdef USE_MMAP_BLOCKS
+        munmap(data, size);
+    #else
+        free(data);
+    #endif
     }
 }
 
-void SequenceData::init(unsigned int numChannels, unsigned int numFrames, unsigned int frameTime, bool roundto4) {
-
+void SequenceData::Cleanup() {
+    _frames.clear();
+    for (auto &p : _dataBlocks) {
+        if (p.get() && p.get()->type == BlockType::HUGE_PAGE) {
+            //save these for later, HUGE_PAGE blocks are limitted and hard to come by
+            //so if we get any, we'll hold onto them
+            HUGE_BLOCK_CACHE.emplace_back(std::move(p));
+        }
+    }
+    _dataBlocks.clear();
+    _invalidFrame._numChannels = 0;
+    free(_invalidFrame._data);
+    _invalidFrame._data = nullptr;
+}
+unsigned char *SequenceData::AllocBlock(size_t requested, size_t &szAllocated) {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
+    unsigned char *data = nullptr;
+    size_t sz = requested;
+    BlockType type = BlockType::NORMAL;
+#ifdef USE_MMAP_BLOCKS
+    // OSX/Linux allows 2MB large pages (or Superpages as they call them on OSX)
+    static const size_t LARGE_PAGE_SIZE = 2 * 1024 * 1024;
+    // max on OSX is 2GB block for the superpage sizes
+    static const size_t MAX_SP_BLOCK_SIZE = LARGE_PAGE_SIZE * 1024;
+    static const size_t MAX_BLOCK_SIZE = 1024 * 1024 * 1024;
+    if (sz > MAX_SP_BLOCK_SIZE) {
+        sz = MAX_SP_BLOCK_SIZE;
+    } else {
+        sz = sz - (sz % LARGE_PAGE_SIZE) + LARGE_PAGE_SIZE;
+    }
+    if (!HUGE_BLOCK_CACHE.empty()) {
+        std::unique_ptr<DataBlock> d = std::move(HUGE_BLOCK_CACHE.front());
+        HUGE_BLOCK_CACHE.pop_front();
+        data = d.get()->data;
+        sz = d.get()->size;
+        memset(data, 0, sz);
+        szAllocated = sz;
+        _dataBlocks.push_back(std::move(d));
+        return data;
+    } else if (!_hugePagesFailed) {
+    #ifdef __WXOSX__
+        type = BlockType::HUGE_PAGE;
+        data = (unsigned char *)mmap(nullptr, sz,
+                                     PROT_READ | PROT_WRITE,
+                                     MAP_ANON  | MAP_PRIVATE,
+                                     VM_FLAGS_SUPERPAGE_SIZE_2MB, 0);
+        if (data == MAP_FAILED && (sz > 256 * 1024 * 1024)) {
+            data = (unsigned char *)mmap(nullptr, 256 * 1024 * 1024,
+                                         PROT_READ | PROT_WRITE,
+                                         MAP_ANON  | MAP_PRIVATE,
+                                         VM_FLAGS_SUPERPAGE_SIZE_2MB, 0);
+            if (data != MAP_FAILED) {
+                sz = 256 * 1024 * 1024;
+            } else {
+                _hugePagesFailed = true;
+            }
+        }
+    #else
+        data = (unsigned char *)mmap(nullptr, sz,
+                                     PROT_READ | PROT_WRITE,
+                                     MAP_ANON  | MAP_PRIVATE | MAP_HUGETLB,
+                                     -1, 0);
+    #endif
+    }
+    if (data == nullptr || data == MAP_FAILED) {
+        _hugePagesFailed = true;
+        type = BlockType::NORMAL;
+        if (sz > MAX_BLOCK_SIZE) {
+            sz = MAX_BLOCK_SIZE;
+        }
+        //could not get a superpage, we'll use the regular 4K pages
+        data = (unsigned char *)mmap(nullptr, sz,
+                                     PROT_READ | PROT_WRITE,
+                                     MAP_ANON  | MAP_PRIVATE,
+                                     -1, 0);
+        if (data == nullptr || data == MAP_FAILED) {
+            //could not allocate the block, we'll try a 128MB block
+            if (sz > 1024*1024*128) {
+                sz = 1024*1024*128;
+                data = (unsigned char *)mmap(nullptr, sz,
+                                             PROT_READ | PROT_WRITE,
+                                             MAP_ANON  | MAP_PRIVATE,
+                                             -1, 0);
+            }
+        }
+        if (data == nullptr || data == MAP_FAILED) {
+            data = nullptr;
+        }
+#ifdef LINUX
+        if (data) {
+            // let the transparent hugepage daemon know it can/should promote to
+            // huge page if at all possible
+            madvise(data, sz, MADV_HUGEPAGE);
+        }
+#endif
+    }
+#else
+    // we'll keep the callocs below 1GB in size.  Should keep pressure off
+    // the VM to find a huge block of space, but still not waste much
+    // memory.  Most users sequences will likely fit in this anyway
+    static const size_t MAX_BLOCK_SIZE = 1024 * 1024 * 1024;
+    if (sz > MAX_BLOCK_SIZE) {
+        sz = MAX_BLOCK_SIZE;
+    }
+    data = (unsigned char *)calloc(1, sz);
+    if (data == nullptr) {
+        //could not allocate the block, we'll try a 128MB block
+        if (sz > 1024*1024*128) {
+            sz = 1024*1024*128;
+            data = (unsigned char *)calloc(1, sz);
+        }
+        if (data == nullptr) {
+            //still could not allocate the block, we'll try a 32MB block
+            if (sz > 1024*1024*32) {
+                sz = 1024*1024*32;
+                data = (unsigned char *)calloc(1, sz);
+            }
+        }
+    }
+#endif
+    wxASSERT(data != nullptr); // if this fails then we have a memory allocation error
+    if (data == nullptr) {
+        logger_base.crit("Error allocating memory for frame data. Frames=%d, Channels=%d, Memory=%ld.", _numFrames, _numChannels, sz);
+        logger_base.crit("***** THIS IS GOING TO CRASH *****");
+        wxString settings = wxString::Format("Frames=%d, Channels=%d, Memory=%ld.", _numFrames, _numChannels, sz);
+        DisplayError("Bad news ... xLights is about to crash because it could not get memory it needed. If you are running 32 bit xLights then moving to 64 bit will probably fix this. Alternatively look to reduce memory usage by shortening sequences and/or reducing channels.\n" + settings);
+    } else {
+        logger_base.debug("Memory allocated for frame data. Block=%d, Frames=%d, Channels=%d, Memory=%ld.", _dataBlocks.size(), _numFrames, _numChannels, sz);
+    }
+    
+    szAllocated = sz;
+    _dataBlocks.push_back(std::make_unique<DataBlock>(sz, data, type));
+    return data;
+}
 
-    if (_data != nullptr) {
-        free(_data);
-        _data = nullptr;
-    }
-    if (_invalidData != nullptr) {
-        free(_invalidData);
-        _invalidData = nullptr;
-    }
-    if (roundto4)
-    {
+
+void SequenceData::init(unsigned int numChannels, unsigned int numFrames, unsigned int frameTime, bool roundto4) {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    Cleanup();
+    _hugePagesFailed = false;
+    if (roundto4) {
         _numChannels = roundTo4(numChannels);
-    }
-    else
-    {
+    } else {
         _numChannels = numChannels;
     }
     _numFrames = numFrames;
@@ -58,45 +201,28 @@ void SequenceData::init(unsigned int numChannels, unsigned int numFrames, unsign
     _bytesPerFrame = roundTo4(numChannels);
 
     if (numFrames > 0 && numChannels > 0) {
-        size_t sz = (size_t)_bytesPerFrame * (size_t)_numFrames;
-        _data = (unsigned char *)calloc(1, sz);
-        wxASSERT(_data != nullptr); // if this fails then we have a memory allocation error
-        if (_data == nullptr)
-        {
-            logger_base.crit("Error allocating memory for frame data. Frames=%d, Channels=%d, Memory=%ld.", _numFrames, _numChannels, sz);
-            logger_base.crit("***** THIS IS GOING TO CRASH *****");
-            wxString settings = wxString::Format("Frames=%d, Channels=%d, Memory=%ld.", _numFrames, _numChannels, sz);
-            DisplayError("Bad news ... xLights is about to crash because it could not get memory it needed. If you are running 32 bit xLights then moving to 64 bit will probably fix this. Alternatively look to reduce memory usage by shortening sequences and/or reducing channels.\n" + settings);
+        _frames.reserve(numFrames);
+        size_t sizeRemaining = (size_t)_bytesPerFrame * (size_t)_numFrames;
+        size_t blockSize = 0;
+        unsigned char *block = AllocBlock(sizeRemaining, blockSize);
+        
+        for (unsigned int frame = 0; frame < numFrames; ++frame) {
+            if (blockSize < _bytesPerFrame) {
+                block = AllocBlock(sizeRemaining, blockSize);
+            }
+            _frames.push_back(FrameData(_numChannels, block));
+            block += _bytesPerFrame;
+            sizeRemaining -= _bytesPerFrame;
+            blockSize -= _bytesPerFrame;
         }
-        else
-        {
-            logger_base.debug("Memory allocated for frame data. Frames=%d, Channels=%d, Memory=%ld.", _numFrames, _numChannels, sz);
-        }
-    }
-    else
-    {
+    } else {
         logger_base.debug("Sequence memory released.");
     }
-    _invalidData = (unsigned char *)calloc(1, _bytesPerFrame);
+    _invalidFrame._data = (unsigned char *)calloc(1, _bytesPerFrame);
+    _invalidFrame._numChannels = _numChannels;
 }
 
-FrameData SequenceData::operator[](unsigned int frame) {
-    if (frame >= _numFrames) {
-        return FrameData(_numChannels, _invalidData);
-    }
-    std::ptrdiff_t offset = frame;
-    offset *= _bytesPerFrame;
-    return FrameData(_numChannels, &_data[offset]);
-}
 
-const FrameData SequenceData::operator[](unsigned int frame) const {
-    if (frame >= _numFrames) {
-        return FrameData(_numChannels, _invalidData);
-    }
-    std::ptrdiff_t offset = frame;
-    offset *= _bytesPerFrame;
-    return FrameData(_numChannels, &_data[offset]);
-}
 
 // This encodes the sequence data grouped by channel
 wxString SequenceData::base64_encode()
