@@ -808,7 +808,11 @@ int ZCPPOutput::EncodeProtocol(const std::string& protocol)
     if (p == "sk6812") return 0x0c;
     if (p == "ucs1903") return 0x0d;
     if (p == "tm18xx") return 0x0e;
-
+    if (p == "renard") return 0x0f;
+    if (p == "lpd8806") return 0x10;
+    if (p == "dm412") return 0x11;
+    if (p == "p9813") return 0x12;
+    if (p == "lor") return 0x13;
     return 0xFE;
 }
 
@@ -846,6 +850,16 @@ std::string ZCPPOutput::DecodeProtocol(int protocol)
         return "ucs1903";
     case 0x0e:
         return "tm18xx";
+    case 0x0f:
+        return "renard";
+    case 0x10:
+        return "lpd8806";
+    case 0x11:
+        return "dm412";
+    case 0x12:
+        return "p9813";
+    case 0x13:
+        return "lor";
     default:
         return "unknown";
     }
@@ -1041,19 +1055,19 @@ void ZCPPOutput::SetOneChannel(int32_t channel, unsigned char data)
     }
 }
 
-void ZCPPOutput::SetManyChannels(int32_t channel, unsigned char data[], size_t size)
+void ZCPPOutput::SetManyChannels(int32_t channel, unsigned char* data, size_t size)
 {
-        size_t chs = std::min(size, (size_t)(_channels - channel));
+    size_t chs = std::min(size, (size_t)(_channels - channel));
 
-        if (memcmp(&_data[channel], data, chs) == 0)
-        {
-            // nothing changed
-        }
-        else
-        {
-            memcpy(&_data[channel], data, chs);
-            _changed = true;
-        }
+    if (memcmp(&_data[channel], data, chs) == 0)
+    {
+        // nothing changed
+    }
+    else
+    {
+        memcpy(&_data[channel], data, chs);
+        _changed = true;
+    }
 }
 
 void ZCPPOutput::AllOff()
