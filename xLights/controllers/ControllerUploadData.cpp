@@ -937,13 +937,13 @@ void UDControllerPort::CreateVirtualStrings(bool mergeSequential)
                     // we seem to have missed one so create a dummy
                     current = new UDVirtualString();
                     _virtualStrings.push_back(current);
-                    current->_endChannel = it->GetStartChannel();
+                    current->_endChannel = it->GetStartChannel()+2;
                     current->_startChannel = it->GetStartChannel();
                     current->_description = "DUMMY";
                     current->_protocol = it->GetProtocol();
                     current->_universe = it->GetUniverse();
                     current->_universeStartChannel = it->GetUniverseStartChannel();
-                    current->_channelsPerPixel = it->GetChannelsPerPixel();
+                    current->_channelsPerPixel = 3;
                     current->_smartRemote = sr;
                     current->_gammaSet = false;
                     current->_gamma = 0;
@@ -987,13 +987,13 @@ void UDControllerPort::CreateVirtualStrings(bool mergeSequential)
                         // we seem to have missed one so create a dummy
                         current = new UDVirtualString();
                         _virtualStrings.push_back(current);
-                        current->_endChannel = it->GetStartChannel();
+                        current->_endChannel = it->GetStartChannel()+2;
                         current->_startChannel = it->GetStartChannel();
                         current->_description = "DUMMY";
                         current->_protocol = it->GetProtocol();
                         current->_universe = it->GetUniverse();
                         current->_universeStartChannel = it->GetUniverseStartChannel();
-                        current->_channelsPerPixel = it->GetChannelsPerPixel();
+                        current->_channelsPerPixel = 3;
                         current->_smartRemote = sr;
                         current->_gammaSet = false;
                         current->_gamma = 0;

@@ -11,14 +11,17 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2020.1 January 3 2020
    -- enh (dkulp)  Change internal SequenceData storage to allow use of hugepages/superpages, not require a single gigantic storage blob
-   -- bug (dkulp)  Fix a bunch of HiDPI issues on Windows that started with update to VS and wxWidgets 3.1.3
    -- enh (dkulp)  Upgrade Linux build to wxWidgets 3.1.3
+   -- enh (gil)    Add group scaling
+   -- bug (dkulp)  Fix a bunch of HiDPI issues on Windows that started with update to VS and wxWidgets 3.1.3
    -- bug (gil)    Fix 3D objects not refreshing when parameter fields are updated
    -- bug (gil)    Also needed to invert X rotation when upgrading model positions
    -- bug (gil)    Fix mesh object scaling that I broke in 2019.73
-   -- enh (gil)    Add group scaling
    -- bug (gil)    Fix control key not able to remove model from a group
+   -- bug (keith)  Fix upload to falcon where a smart remote is skipped does not upload
+   -- bug (keith)  Fix lights dont turn off when xLights exits while outputting to lights
 2019.74 December 31 2019
    -- enh (scott)  Added HinksPix Export Dialog to generate stand alone mode files. No "Foreign" Slave support yet.
    -- enh (gil)    Allow all models and objects to be selected for rotation and translation
