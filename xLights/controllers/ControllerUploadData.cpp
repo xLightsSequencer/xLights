@@ -930,6 +930,36 @@ void UDControllerPort::CreateVirtualStrings(bool mergeSequential)
 
         if (current == nullptr || !mergeSequential)
         {
+            if (smartRemote != 0)
+            {
+                for (int sr = 1; sr < smartRemote; sr++)
+                {
+                    // we seem to have missed one so create a dummy
+                    current = new UDVirtualString();
+                    _virtualStrings.push_back(current);
+                    current->_endChannel = it->GetStartChannel();
+                    current->_startChannel = it->GetStartChannel();
+                    current->_description = "DUMMY";
+                    current->_protocol = it->GetProtocol();
+                    current->_universe = it->GetUniverse();
+                    current->_universeStartChannel = it->GetUniverseStartChannel();
+                    current->_channelsPerPixel = it->GetChannelsPerPixel();
+                    current->_smartRemote = sr;
+                    current->_gammaSet = false;
+                    current->_gamma = 0;
+                    current->_nullPixelsSet = false;
+                    current->_nullPixels = 0;
+                    current->_brightnessSet = false;
+                    current->_brightness = 0;
+                    current->_groupCountSet = false;
+                    current->_groupCount = 0;
+                    current->_reverseSet = false;
+                    current->_reverse = "";
+                    current->_colourOrderSet = false;
+                    current->_colourOrder = "";
+                }
+            }
+
             // this is automatically a new virtual string
             current = new UDVirtualString();
             _virtualStrings.push_back(current);
@@ -949,6 +979,37 @@ void UDControllerPort::CreateVirtualStrings(bool mergeSequential)
                 (groupCount != -9999 && current->_groupCount != groupCount) ||
                 lastEndChannel + 1 != it->GetStartChannel())
             {
+                // smart remote has changed ... but did we miss one
+                if (smartRemote != 0 && current->_smartRemote != smartRemote)
+                {
+                    for (int sr = current->_smartRemote + 1; sr < smartRemote; sr++)
+                    {
+                        // we seem to have missed one so create a dummy
+                        current = new UDVirtualString();
+                        _virtualStrings.push_back(current);
+                        current->_endChannel = it->GetStartChannel();
+                        current->_startChannel = it->GetStartChannel();
+                        current->_description = "DUMMY";
+                        current->_protocol = it->GetProtocol();
+                        current->_universe = it->GetUniverse();
+                        current->_universeStartChannel = it->GetUniverseStartChannel();
+                        current->_channelsPerPixel = it->GetChannelsPerPixel();
+                        current->_smartRemote = sr;
+                        current->_gammaSet = false;
+                        current->_gamma = 0;
+                        current->_nullPixelsSet = false;
+                        current->_nullPixels = 0;
+                        current->_brightnessSet = false;
+                        current->_brightness = 0;
+                        current->_groupCountSet = false;
+                        current->_groupCount = 0;
+                        current->_reverseSet = false;
+                        current->_reverse = "";
+                        current->_colourOrderSet = false;
+                        current->_colourOrder = "";
+                    }
+                }
+
                 current = new UDVirtualString();
                 _virtualStrings.push_back(current);
                 first = true;

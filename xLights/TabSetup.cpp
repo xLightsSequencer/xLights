@@ -2622,13 +2622,16 @@ int xLightsFrame::SetZCPPPort(std::list<ZCPP_packet_t*>& modelDatas, int index, 
     UDControllerPortModel* m = nullptr;
     if (port != nullptr && port->GetModels().size() > 0) m = port->GetFirstModel();
 
+    int vvs = (virtualString & 0x3F);
+    int ssr = (virtualString >> 6);
+
     UDVirtualString* vs = nullptr;
     if (port != nullptr && port->GetVirtualStringCount() > 0)
     {
-        vs = port->GetVirtualString(virtualString);
+        vs = port->GetVirtualString(vvs);
     }
 
-    logger_zcpp.debug("    Port/String %d/%d", portNum, virtualString);
+    logger_zcpp.debug("    Port/String/SmartRemote %d/%d", portNum, vvs, ssr);
 
     ZCPP_PortConfig* p = current->Configuration.PortConfig + (current->Configuration.ports-1);
     wxASSERT((size_t)p < (size_t)current + sizeof(ZCPP_packet_t) - sizeof(ZCPP_PortConfig)); // check pointer has not gone rogue
