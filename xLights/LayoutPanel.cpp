@@ -712,7 +712,7 @@ std::string LayoutPanel::GetCurrentPreview() const
 
 NewModelBitmapButton* LayoutPanel::AddModelButton(const std::string &type, const char *data[]) {
     wxImage image(data);
-#if defined(__WXOSX__) || defined(__WXMSW__)
+#if defined(__WXOSX__) // || defined(__WXMSW__)
     wxBitmap bitmap(image, -1, 2.0);
 #else
     image.Rescale(ScaleWithSystemDPI(GetContentScaleFactor(), 24),
