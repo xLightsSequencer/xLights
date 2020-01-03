@@ -183,6 +183,7 @@ private:
     void EstablishSelectionRectangle();
     void UpdateSelectionRectangle();
     void UpdateSelectedEffects();
+    void SetFirstEffectSelected();
     void CheckForPartialCell(int x_pos);
     void RaiseEffectDropped(int x, int y) const;
     void RaisePlayModelEffect(Element* element, Effect* effect,bool renderEffect) const;

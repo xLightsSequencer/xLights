@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (gil)    Fix lasso'ed effects not properly selecting or setting the selected row
+   -- bug (gil)    Fix an unselected effect on top or bottom row could block a group effect move
 2020.1 January 3 2020
    -- enh (dkulp)  Change internal SequenceData storage to allow use of hugepages/superpages, not require a single gigantic storage blob
    -- enh (dkulp)  Upgrade Linux build to wxWidgets 3.1.3

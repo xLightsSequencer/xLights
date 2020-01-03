@@ -959,12 +959,6 @@ void EffectsGrid::mouseMoved(wxMouseEvent& event)
     }
     else if (mDragging)
     {
-        // if we are dragging a yellow box then we dont want an effect selected
-        if (mSelectedEffect != nullptr)
-        {
-            mSelectedEffect = nullptr;
-            UnselectEffect();
-        }
         mDragEndX = event.GetX();
         mDragEndY = event.GetY();
         UpdateSelectionRectangle();
@@ -3532,7 +3526,7 @@ void EffectsGrid::MoveSelectedEffectUp(bool shift)
         // check if its clear for all effects
         bool all_clear = true;
         int first_model_row = mSequenceElements->GetNumberOfTimingRows();
-        int num_effects = mSequenceElements->GetEffectLayer(first_model_row)->GetEffectCount();
+        int num_effects = mSequenceElements->GetEffectLayer(first_model_row)->GetSelectedEffectCount();
         if (num_effects > 0)
         {
             all_clear = false;
@@ -3689,7 +3683,7 @@ void EffectsGrid::MoveSelectedEffectDown(bool shift)
         // check if its clear for all effects
         bool all_clear = true;
         int first_model_row = mSequenceElements->GetNumberOfTimingRows();
-        int num_effects = mSequenceElements->GetEffectLayer(mSequenceElements->GetRowInformationSize()-1)->GetEffectCount();
+        int num_effects = mSequenceElements->GetEffectLayer(mSequenceElements->GetRowInformationSize()-1)->GetSelectedEffectCount();
         if (num_effects > 0)
         {
             all_clear = false;
@@ -3700,7 +3694,7 @@ void EffectsGrid::MoveSelectedEffectDown(bool shift)
             EffectLayer* el2 = mSequenceElements->GetEffectLayer(row);
             if (mSequenceElements->GetEffectLayer(row-1)->GetSelectedEffectCount() > 0)
             {
-                num_effects = mSequenceElements->GetEffectLayer(row-1)->GetEffectCount();
+                int num_effects = mSequenceElements->GetEffectLayer(row-1)->GetEffectCount();
                 for( int i = 0; (i < num_effects) && all_clear; ++i )
                 {
                     Effect* eff = el1->GetEffect(i);
@@ -3714,7 +3708,7 @@ void EffectsGrid::MoveSelectedEffectDown(bool shift)
                 }
             }
         }
-        if( all_clear ) // all clear so now move them all up
+        if( all_clear ) // all clear so now move them all down
         {
             // Tag all selected effects so we don't move them twice
             ((MainSequencer*)mParent)->TagAllSelectedEffects();
@@ -5678,6 +5672,8 @@ void EffectsGrid::EstablishSelectionRectangle()
 
 void EffectsGrid::UpdateSelectionRectangle()
 {
+    // Unselect all effects and clear mSelectedEffect
+    UnselectEffect();
     mSequenceElements->UnSelectAllEffects();
 
     if (GetRow(mDragEndY) < mSequenceElements->GetNumberOfTimingRows())
@@ -5724,7 +5720,9 @@ void EffectsGrid::UpdateSelectionRectangle()
 
         int startTime = mTimeline->GetAbsoluteTimeMSfromPosition(start_x);
         int endTime = mTimeline->GetAbsoluteTimeMSfromPosition(end_x);
-        mSequenceElements->SelectEffectsInRowAndTimeRange(row1,row2,startTime,endTime);
+        if (mSequenceElements->SelectEffectsInRowAndTimeRange(row1, row2, startTime, endTime)) {
+            SetFirstEffectSelected();
+        }
     }
     SetRCToolTip();
 }
@@ -5774,32 +5772,38 @@ void EffectsGrid::UpdateSelectedEffects()
             }
             else
             {
-                // set the selected effect
-                bool found = false;
-                int first_model_row = mSequenceElements->GetNumberOfTimingRows();
-                for(int row=first_model_row; row < mSequenceElements->GetRowInformationSize() && !found;row++)
+                SetFirstEffectSelected();
+            }
+        }
+    }
+}
+
+void EffectsGrid::SetFirstEffectSelected()
+{
+    // set the selected effect
+    bool found = false;
+    int first_model_row = mSequenceElements->GetNumberOfTimingRows();
+    for (int row = first_model_row; row < mSequenceElements->GetRowInformationSize() && !found; row++)
+    {
+        EffectLayer* el = mSequenceElements->GetEffectLayer(row);
+        Element* element = el->GetParentElement();
+        if (mSequenceElements->GetEffectLayer(row)->GetSelectedEffectCount() > 0)
+        {
+            int num_effects = mSequenceElements->GetEffectLayer(row)->GetEffectCount();
+            for (int i = 0; i < num_effects && !found; ++i)
+            {
+                Effect* eff = el->GetEffect(i);
+                if (eff->GetSelected())
                 {
-                    EffectLayer* el = mSequenceElements->GetEffectLayer(row);
-                    Element* element = el->GetParentElement();
-                    if( mSequenceElements->GetEffectLayer(row)->GetSelectedEffectCount() > 0 )
-                    {
-                        int num_effects = mSequenceElements->GetEffectLayer(row)->GetEffectCount();
-                        for( int i = 0; i < num_effects && !found; ++i )
-                        {
-                            Effect* eff = el->GetEffect(i);
-                            if( eff->GetSelected() )
-                            {
-                                mSelectedEffect = eff;
-                                RaiseSelectedEffectChanged(mSelectedEffect, false);
-                                RaisePlayModelEffect(element,mSelectedEffect,false);
-                                wxCommandEvent eventRowChanged(EVT_SELECTED_ROW_CHANGED);
-                                eventRowChanged.SetInt(mSelectedRow);
-                                eventRowChanged.SetString(element->GetModelName());
-                                wxPostEvent(GetParent(), eventRowChanged);
-                                found = true;
-                            }
-                        }
-                    }
+                    mSelectedRow = row;
+                    mSelectedEffect = eff;
+                    RaiseSelectedEffectChanged(mSelectedEffect, false);
+                    RaisePlayModelEffect(element, mSelectedEffect, false);
+                    wxCommandEvent eventRowChanged(EVT_SELECTED_ROW_CHANGED);
+                    eventRowChanged.SetInt(mSelectedRow);
+                    eventRowChanged.SetString(element->GetModelName());
+                    wxPostEvent(GetParent(), eventRowChanged);
+                    found = true;
                 }
             }
         }
