@@ -381,7 +381,7 @@ public:
     void PlayerError(const wxString& msg);
     void AskCloseSequence();
     void SaveCurrentTab();
-    void DoWork(uint32_t work, const std::string& type, Model* model = nullptr, const std::string& selected = "");
+    void DoWork(uint32_t work, const std::string& type, BaseObject* model = nullptr, const std::string& selected = "");
     void DoASAPWork();
     void DoSetupWork();
     void DoLayoutWork();

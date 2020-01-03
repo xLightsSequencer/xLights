@@ -35,6 +35,7 @@ public:
     void SelectHandle(int handle);
     void Lock(bool lock);
     virtual void AddASAPWork(uint32_t work, const std::string& from);
+    virtual void ReloadModelXml() = 0;
 
     void EnableLayoutGroupProperty(wxPropertyGridInterface* grid, bool enable);
     void SetTop(float y);

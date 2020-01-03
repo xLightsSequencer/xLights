@@ -3140,7 +3140,7 @@ bool xLightsFrame::DoAllWork()
             _outputModelManager.GetLayoutWork() == OutputModelManager::WORK_NOTHING);
 }
 
-void xLightsFrame::DoWork(uint32_t work, const std::string& type, Model* m, const std::string& selected)
+void xLightsFrame::DoWork(uint32_t work, const std::string& type, BaseObject* m, const std::string& selected)
 {
     static log4cpp::Category& logger_work = log4cpp::Category::getInstance(std::string("log_work"));
 
@@ -3238,7 +3238,7 @@ void xLightsFrame::DoWork(uint32_t work, const std::string& type, Model* m, cons
     if (work & OutputModelManager::WORK_RELOAD_MODEL_FROM_XML && !(work & OutputModelManager::WORK_RELOAD_ALLMODELS))
     {
         logger_work.debug("    WORK_RELOAD_MODEL_FROM_XML.");
-        Model* mm = m;
+        BaseObject* mm = m;
         if (mm == nullptr) mm = _outputModelManager.GetModelToReload();
         if (mm != nullptr)
         {

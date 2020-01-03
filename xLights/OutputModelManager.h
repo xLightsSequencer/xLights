@@ -5,12 +5,12 @@
 #include <list>
 
 class xLightsFrame;
-class Model;
+class BaseObject;
 class Output;
 
 class OutputModelManager {
 	
-    Model* _modelToModelFromXml = nullptr;
+    BaseObject* _modelToModelFromXml = nullptr;
 	uint32_t _workASAP = 0;      // work to do asap
 	uint32_t _setupTabWork = 0;  // work to do when we next switch to the setup tab
 	uint32_t _layoutTabWork = 0; // work to do when we next switch to the layout tab
@@ -84,11 +84,11 @@ public:
         return res;
 	}	
     uint32_t ClearWork(const std::string& type, uint32_t currentwork, uint32_t work);
-    void AddImmediateWork(uint32_t work, const std::string& from, Model* m = nullptr, Output* o = nullptr, const std::string& selectedModel = "");
-    void AddASAPWork(uint32_t work, const std::string& from, Model* m = nullptr, Output* o = nullptr, const std::string& selectedModel = "");
-    void AddSetupTabWork(uint32_t work, const std::string& from, Model* m = nullptr, Output* o = nullptr, const std::string& selectedModel = "");
-    void AddLayoutTabWork(uint32_t work, const std::string& from, Model* m = nullptr, Output* o = nullptr, const std::string& selectedModel = "");
-    Model* GetModelToReload();
+    void AddImmediateWork(uint32_t work, const std::string& from, BaseObject* m = nullptr, Output* o = nullptr, const std::string& selectedModel = "");
+    void AddASAPWork(uint32_t work, const std::string& from, BaseObject* m = nullptr, Output* o = nullptr, const std::string& selectedModel = "");
+    void AddSetupTabWork(uint32_t work, const std::string& from, BaseObject* m = nullptr, Output* o = nullptr, const std::string& selectedModel = "");
+    void AddLayoutTabWork(uint32_t work, const std::string& from, BaseObject* m = nullptr, Output* o = nullptr, const std::string& selectedModel = "");
+    BaseObject* GetModelToReload();
     std::string GetSelectedModel();
     void SetSelectedModelIfASAPWorkExists(const std::string& selectedModel);
     void ClearSelectedModel() { _selectedModel = ""; }

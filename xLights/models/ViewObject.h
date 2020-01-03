@@ -22,6 +22,11 @@ public:
     void UpdateXmlWithScale() override;
     virtual void InitModel() = 0;
 
+    void ReloadModelXml() override {
+        GetBaseObjectScreenLocation().Reload();
+        SetFromXml(ModelXml, false);
+    }
+
     bool GetIs3dOnly() { return only_3d; }
 
     virtual const ModelScreenLocation &GetObjectScreenLocation() const = 0;

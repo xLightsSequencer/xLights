@@ -4517,11 +4517,6 @@ void Model::AddSizeLocationProperties(wxPropertyGridInterface *grid) {
     GetModelScreenLocation().AddSizeLocationProperties(grid);
 }
 
-void Model::AddASAPWork(uint32_t work, const std::string& from)
-{
-    modelManager.GetXLightsFrame()->GetOutputModelManager()->AddASAPWork(work, from, this, nullptr, GetName());
-}
-
 bool Model::SupportsXlightsModel()
 {
     return false;

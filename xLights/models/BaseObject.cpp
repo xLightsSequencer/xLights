@@ -71,7 +71,7 @@ void BaseObject::Lock(bool lock)
 
 void BaseObject::AddASAPWork(uint32_t work, const std::string& from)
 {
-    xLightsApp::GetFrame()->GetOutputModelManager()->AddASAPWork(work, from);
+    xLightsApp::GetFrame()->GetOutputModelManager()->AddASAPWork(work, from, this, nullptr, GetName());
 }
 
 void BaseObject::SetTop(float y) {
