@@ -3525,7 +3525,7 @@ void EffectsGrid::MoveSelectedEffectUp(bool shift)
             row--;
         }
     }
-    else if (MultipleEffectsSelected() || AtLeastOneEffectSelected())
+    else if (MultipleEffectsSelected())
     {
         logger_base.debug("EffectsGrid::MoveSelectedEffectUp moving multiple effects.");
 
@@ -3682,7 +3682,7 @@ void EffectsGrid::MoveSelectedEffectDown(bool shift)
             row++;
         }
     }
-    else if( MultipleEffectsSelected() || AtLeastOneEffectSelected())
+    else if( MultipleEffectsSelected() )
     {
         logger_base.debug("EffectsGrid::MoveSelectedEffectDown moving mulitple effects.");
 
