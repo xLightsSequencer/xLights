@@ -10,6 +10,7 @@
 #define SEQUENCEDATA_H
 
 #include <wx/wx.h>
+#include <memory>
 
 class FrameData {
     FrameData(const FrameData&) = delete;
