@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (gil)    View Objects were still saving with version 3 positioning instead of 4 causing rotation changes to keep reversing in X and Y
    -- bug (gil)    Fix lasso'ed effects not properly selecting or setting the selected row
    -- bug (gil)    Fix an unselected effect on top or bottom row could block a group effect move
 2020.1 January 3 2020

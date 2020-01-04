@@ -86,5 +86,5 @@ void ViewObject::UpdateXmlWithScale() {
     GetObjectScreenLocation().Write(ModelXml);
     if (ModelXml->HasAttribute("versionNumber"))
         ModelXml->DeleteAttribute("versionNumber");
-    ModelXml->AddAttribute("versionNumber", "3");
+    ModelXml->AddAttribute("versionNumber", "4");
 }
