@@ -136,7 +136,7 @@ Name: "{commondesktop}\xSchedule64"; Filename: "{app}\xSchedule.EXE"; WorkingDir
 
 [Run]
 Filename: {tmp}\vc_redist.x64.exe; \
-    Parameters: "/q /passive /Q:a /c:""msiexec /q /i vcredist.msi"""; \
+    Parameters: "/q /passive /norestart /Q:a /c:""msiexec /q /i vcredist.msi"""; \
     StatusMsg: "Installing VC++ Redistributables..."
 	
 Filename: "{app}\xLights.exe"; Description: "Launch application"; Flags: postinstall nowait skipifsilent 

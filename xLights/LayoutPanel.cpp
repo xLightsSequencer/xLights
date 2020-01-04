@@ -3252,17 +3252,26 @@ void LayoutPanel::FinalizeModel()
             bool cancelled = false;
             auto pos = newModel->GetBaseObjectScreenLocation().GetWorldPosition();
 
-            wxProgressDialog prog("Model download", "Downloading models ...", 100, this, wxPD_APP_MODAL | wxPD_AUTO_HIDE);
+            wxProgressDialog* prog = nullptr;
             if (b->GetModelType() == "Download")
             {
-                prog.Show();
+                prog = new wxProgressDialog("Model download", "Downloading models ...", 100, this, wxPD_APP_MODAL | wxPD_AUTO_HIDE);
+                prog->Show();
             }
             auto oldNewModel = newModel;
-            newModel = Model::GetXlightsModel(newModel, _lastXlightsModel, xlights, cancelled, b->GetModelType() == "Download", &prog, 0, 99);
+            newModel = Model::GetXlightsModel(newModel, _lastXlightsModel, xlights, cancelled, b->GetModelType() == "Download", prog, 0, 99);
+            if (prog != nullptr)
+            {
+                delete prog;
+            }
             if (cancelled || newModel == nullptr) {
+                _lastXlightsModel = "";
                 xlights->AddTraceMessage("LayoutPanel::FinalizeModel Downloading or importing cancelled.");
-                delete newModel; // I am not sure this may cause issues ... but if we dont have it i think it leaks
-                newModel = nullptr;
+                if (newModel != nullptr)
+                {
+                    delete newModel; // I am not sure this may cause issues ... but if we dont have it i think it leaks
+                    newModel = nullptr;
+                }
                 modelPreview->SetAdditionalModel(nullptr);
                 modelPreview->SetCursor(wxCURSOR_DEFAULT);
                 b->SetState(0);
@@ -3276,6 +3285,7 @@ void LayoutPanel::FinalizeModel()
                 xlights->AddTraceMessage("LayoutPanel::FinalizeModel Download changed model.");
                 modelPreview->SetAdditionalModel(newModel); // download changed the model
             }
+
             xlights->AddTraceMessage("LayoutPanel::FinalizeModel Do the import. " + _lastXlightsModel);
             xlights->AddTraceMessage("LayoutPanel::FinalizeModel Model type " + newModel->GetDisplayAs());
             newModel->ImportXlightsModel(_lastXlightsModel, xlights, min_x, max_x, min_y, max_y);

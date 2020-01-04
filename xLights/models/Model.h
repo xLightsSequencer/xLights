@@ -101,7 +101,7 @@ public:
     std::map<std::string, std::map<std::string, std::string> > faceInfo;
 
     static void ParseStateInfo(wxXmlNode *fiNode, std::map<std::string, std::map<std::string, std::string> > &stateInfo);
-    static void WriteStateInfo(wxXmlNode *fiNode, const std::map<std::string, std::map<std::string, std::string> > &stateInfo);
+    static void WriteStateInfo(wxXmlNode *fiNode, const std::map<std::string, std::map<std::string, std::string> > &stateInfo, bool customColours = false);
     std::map<std::string, std::map<std::string, std::string> > stateInfo;
     void AddFace(wxXmlNode* n);
     void AddState(wxXmlNode* n);
