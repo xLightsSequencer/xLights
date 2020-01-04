@@ -3143,6 +3143,9 @@ void DmxModel::ExportXlightsModel()
 
 void DmxModel::ImportXlightsModel(std::string filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
 {
+    // We have already loaded gdtf properties
+    if (EndsWith(filename, "gdtf")) return;
+
     wxXmlDocument doc(filename);
 
     if (doc.IsOk())
