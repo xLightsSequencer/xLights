@@ -2431,6 +2431,7 @@ void xLightsFrame::OnIdle(wxIdleEvent& event) {
     {
         CheckForUpdate(false);
     }
+    wxIdleEvent::SetMode(wxIDLE_PROCESS_SPECIFIED);
 }
 
 void xLightsFrame::DoMenuAction(wxMenuEvent &evt) {

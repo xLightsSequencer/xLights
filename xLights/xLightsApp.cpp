@@ -774,6 +774,15 @@ void xLightsApp::WipeSettings()
     config->DeleteAll();
 }
 
+bool xLightsApp::ProcessIdle() {
+    uint64_t now = wxGetLocalTimeMillis().GetValue();
+    if (now > _nextIdleTime) {
+        _nextIdleTime = now + 100;
+        return wxApp::ProcessIdle();
+    }
+    return false;
+}
+
 //global flags from command line:
 bool xLightsApp::WantDebug = false;
 wxString xLightsApp::DebugPath;

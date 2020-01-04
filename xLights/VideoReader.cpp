@@ -950,8 +950,7 @@ bool VideoReader::readFrame(int timestampMS) {
             av_frame_unref(_srcFrame2);
         }
         return true;
-    }
-    else {
+    } else if (rc != AVERROR(EAGAIN)) {
         logger_base.debug("avcodec_receive_frame failed %d - abandoning video read.", rc);
         _abort = true;
     }

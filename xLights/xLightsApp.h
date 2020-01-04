@@ -29,7 +29,7 @@ class xLightsApp : public wxApp
     void WipeSettings();
 
 public:
-    virtual bool OnInit();
+    virtual bool OnInit() override;
     static xLightsFrame* GetFrame() { return __frame; }
     static bool WantDebug; //debug flag from command-line -DJ
     static wxString DebugPath; //path name for debug log file -DJ
@@ -38,7 +38,10 @@ public:
     static wxArrayString sequenceFiles;
     static xLightsFrame* __frame;
 
-    virtual void OnFatalException();
+    virtual void OnFatalException() override;
+    
+    virtual bool ProcessIdle() override;
+    uint64_t _nextIdleTime = 0;
 };
 
 #endif // XLIGHTSAPP_H
