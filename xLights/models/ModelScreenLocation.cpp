@@ -724,7 +724,7 @@ int BoxedScreenLocation::CheckUpgrade(wxXmlNode *node)
             node->AddAttribute("RotateY", wxString::Format("%4.8f", rotatey));
             node->AddAttribute("RotateZ", wxString::Format("%4.8f", rotatez));
             node->DeleteAttribute("versionNumber");
-            node->AddAttribute("versionNumber", "3");
+            node->AddAttribute("versionNumber", CUR_MODEL_POS_VER);
             glm::mat4 rx = glm::rotate(Identity, glm::radians(rotatex), glm::vec3(1.0f, 0.0f, 0.0f));
             glm::mat4 ry = glm::rotate(Identity, glm::radians(rotatey), glm::vec3(0.0f, 1.0f, 0.0f));
             glm::mat4 rz = glm::rotate(Identity, glm::radians(rotatez), glm::vec3(0.0f, 0.0f, 1.0f));
@@ -735,7 +735,7 @@ int BoxedScreenLocation::CheckUpgrade(wxXmlNode *node)
     }
     else if (version == 3) {
         node->DeleteAttribute("versionNumber");
-        node->AddAttribute("versionNumber", "4");
+        node->AddAttribute("versionNumber", CUR_MODEL_POS_VER);
         rotatex = -wxAtof(node->GetAttribute("RotateX", "0.0f"));
         rotatey = -wxAtof(node->GetAttribute("RotateY", "0.0f"));
         rotatez = wxAtof(node->GetAttribute("RotateZ", "0.0f"));
@@ -1879,7 +1879,7 @@ int TwoPointScreenLocation::CheckUpgrade(wxXmlNode *node)
             node->AddAttribute("Z2", wxString::Format("%6.4f", z2));
         }
         node->DeleteAttribute("versionNumber");
-        node->AddAttribute("versionNumber", "3");
+        node->AddAttribute("versionNumber", CUR_MODEL_POS_VER);
         return UPGRADE_EXEC_DONE;
     }
     return UPGRADE_NOT_NEEDED;
@@ -3810,7 +3810,7 @@ int PolyPointScreenLocation::CheckUpgrade(wxXmlNode *node)
             node->AddAttribute("cPointData", new_cpoint_data);
         }
         node->DeleteAttribute("versionNumber");
-        node->AddAttribute("versionNumber", "3");
+        node->AddAttribute("versionNumber", CUR_MODEL_POS_VER);
         return UPGRADE_EXEC_READ;
     }
     return UPGRADE_NOT_NEEDED;

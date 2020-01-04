@@ -1,6 +1,7 @@
 #ifndef MODELSCREENLOCATION_H
 #define MODELSCREENLOCATION_H
 
+#define CUR_MODEL_POS_VER      "4"
 
 #define NO_HANDLE              -1
 #define CENTER_HANDLE          0

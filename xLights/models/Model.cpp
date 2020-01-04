@@ -3908,7 +3908,7 @@ void Model::UpdateXmlWithScale() {
     ModelXml->DeleteAttribute("StartChannel");
     if (ModelXml->HasAttribute("versionNumber"))
         ModelXml->DeleteAttribute("versionNumber");
-    ModelXml->AddAttribute("versionNumber", "4");
+    ModelXml->AddAttribute("versionNumber", CUR_MODEL_POS_VER);
     ModelXml->AddAttribute("StartChannel", ModelStartChannel);
     IncrementChangeCount();
 }
