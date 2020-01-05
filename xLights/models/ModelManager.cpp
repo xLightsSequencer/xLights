@@ -12,7 +12,10 @@
 #include "TreeModel.h"
 #include "CubeModel.h"
 #include "CustomModel.h"
-#include "DmxModel.h"
+#include "DMX/DmxSkulltronix.h"
+#include "DMX/DmxFloodlight.h"
+#include "DMX/DmxMovingHead.h"
+#include "DMX/DmxMovingHead3D.h"
 #include "ImageModel.h"
 #include "WholeHouseModel.h"
 #include "SingleLineModel.h"
@@ -886,7 +889,7 @@ Model* ModelManager::CreateDefaultModel(const std::string &type, const std::stri
         node->AddAttribute("parm3", "50");
         node->AddAttribute("InsideOut", "0");
         model = new CircleModel(node, *this, false);
-    } else if (type == "DMX") {
+    } else if (type == "DmxMovingHead") {
         node->DeleteAttribute("parm1");
         node->AddAttribute("parm1", "8");
         node->DeleteAttribute("parm2");
@@ -895,11 +898,37 @@ Model* ModelManager::CreateDefaultModel(const std::string &type, const std::stri
         node->AddAttribute("DmxStyle", "Moving Head Top");
         node->DeleteAttribute("StringType");
         node->AddAttribute("StringType", "Single Color White");
-        node->DeleteAttribute("DmxPanOrient");
-        node->AddAttribute("DmxPanOrient", "0");
-        node->DeleteAttribute("DmxPanDegOfRot");
-        node->AddAttribute("DmxPanDegOfRot", "540");
-        model = new DmxModel(node, *this, false);
+        model = new DmxMovingHead(node, *this, false);
+    } else if (type == "DmxMovingHead3D") {
+         node->DeleteAttribute("parm1");
+         node->AddAttribute("parm1", "8");
+         node->DeleteAttribute("parm2");
+         node->AddAttribute("parm2", "1");
+         node->DeleteAttribute("StringType");
+         node->AddAttribute("StringType", "Single Color White");
+         model = new DmxMovingHead3D(node, *this, false);
+    } else if (type == "DmxFloodlight") {
+        node->DeleteAttribute("parm1");
+        node->AddAttribute("parm1", "3");
+        node->DeleteAttribute("parm2");
+        node->AddAttribute("parm2", "1");
+        node->DeleteAttribute("StringType");
+        node->AddAttribute("StringType", "Single Color White");
+        model = new DmxFloodlight(node, *this, false);
+        /*model->SetPixelSize(200);
+        node->DeleteAttribute("PixelSize");
+        node->AddAttribute("PixelSize", wxString::Format(wxT("%i"), 200));
+        model->SetPixelStyle(3);
+        node->DeleteAttribute("Antialias");
+        node->AddAttribute("Antialias", wxString::Format(wxT("%i"), 3));*/
+    } else if (type == "DmxSkulltronix") {
+        node->DeleteAttribute("parm1");
+        node->AddAttribute("parm1", "26");
+        node->DeleteAttribute("parm2");
+        node->AddAttribute("parm2", "1");
+        node->DeleteAttribute("StringType");
+        node->AddAttribute("StringType", "Single Color White");
+        model = new DmxSkulltronix(node, *this, false);
     } else if (type == "Image") {
         node->DeleteAttribute("parm1");
         node->AddAttribute("parm1", "1");
@@ -988,6 +1017,30 @@ Model *ModelManager::CreateModel(wxXmlNode *node, int previewW, int previewH, bo
         return grp;
     }
     std::string type = node->GetAttribute("DisplayAs").ToStdString();
+
+    // Upgrade older DMX models
+    if (type == "DMX") {
+        std::string style = node->GetAttribute("DmxStyle", "DMX");
+        if (style == "Moving Head Top" ||
+            style == "Moving Head Side" ||
+            style == "Moving Head Bars" ||
+            style == "Moving Head TopBars" ||
+            style == "Moving Head SideBars") {
+            type = "DmxMovingHead";
+        }
+        else if (style == "Moving Head 3D") {
+            type = "DmxMovingHead3D";
+        }
+        else if (style == "Flood Light") {
+            type = "DmxFloodlight";
+        }
+        else if (style == "Skulltronix Skull") {
+            type = "DmxSkulltronix";
+        }
+        node->DeleteAttribute("DisplayAs");
+        node->AddAttribute("DisplayAs", type);
+    }
+
     Model *model;
     if (type == "Star") {
         model = new StarModel(node, *this, zeroBased);
@@ -999,9 +1052,15 @@ Model *ModelManager::CreateModel(wxXmlNode *node, int previewW, int previewH, bo
 		model = new ChannelBlockModel(node, *this, zeroBased);
 	} else if (type == "Circle") {
         model = new CircleModel(node, *this, zeroBased);
-	} else if (type == "DMX") {
-        model = new DmxModel(node, *this, zeroBased);
-	} else if (type == "Image") {
+    } else if (type == "DmxMovingHead") {
+        model = new DmxMovingHead(node, *this, zeroBased);
+    } else if (type == "DmxMovingHead3D") {
+        model = new DmxMovingHead3D(node, *this, zeroBased);
+    } else if (type == "DmxFloodlight") {
+        model = new DmxFloodlight(node, *this, zeroBased);
+    } else if (type == "DmxSkulltronix") {
+        model = new DmxSkulltronix(node, *this, zeroBased);
+    } else if (type == "Image") {
         model = new ImageModel(node, *this, zeroBased);
     } else if (type == "Window Frame") {
         model = new WindowFrameModel(node, *this, zeroBased);

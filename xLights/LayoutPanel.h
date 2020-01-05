@@ -181,6 +181,10 @@ class LayoutPanel: public wxPanel
         static const long ID_ADD_OBJECT_IMAGE;
         static const long ID_ADD_OBJECT_GRIDLINES;
         static const long ID_ADD_OBJECT_MESH;
+        static const long ID_ADD_DMX_MOVING_HEAD;
+        static const long ID_ADD_DMX_MOVING_HEAD_3D;
+        static const long ID_ADD_DMX_SKULLTRONIX;
+        static const long ID_ADD_DMX_FLOODLIGHT;
 
 	public:
 
@@ -353,6 +357,7 @@ class LayoutPanel: public wxPanel
         NewModelBitmapButton *selectedButton;
         NewModelBitmapButton *obj_button;
         std::string _lastXlightsModel;
+        std::string selectedDmxModelType;
         Model *newModel;
         ModelGroupPanel *model_grp_panel;
         ViewObjectPanel *objects_panel;
@@ -468,6 +473,8 @@ class LayoutPanel: public wxPanel
         void DisplayAddObjectPopup();
         void OnAddObjectPopup(wxCommandEvent& event);
         void AddObjectButton(wxMenu& mnu, const long id, const std::string &name, const char *icon[]);
+        void DisplayAddDmxPopup();
+        void OnAddDmxPopup(wxCommandEvent& event);
         void SelectViewObject(ViewObject *v, bool highlight_tree = true);
         //int SortElementsFunction(wxTreeListItem item1, wxTreeListItem item2, unsigned sortColumn);
 

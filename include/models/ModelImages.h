@@ -25,4 +25,8 @@
 #include "add_object_image.xpm"
 #include "add_object_gridlines.xpm"
 #include "add_object_mesh.xpm"
+#include "add_dmx_moving_head.xpm"
+#include "add_dmx_skulltronix.xpm"
+#include "add_dmx.xpm"
+#include "add_dmx_floodlight.xpm"
 #endif

@@ -33,7 +33,8 @@
 #include "xLightsMain.h"
 #include "xLightsXmlFile.h"
 #include "UtilFunctions.h"
-#include "models/DmxModel.h"
+#include "models/DMX/DmxModel.h"
+#include "models/DMX/DmxColorAbility.h"
 
 #include <log4cpp/Category.hh>
 
@@ -1294,7 +1295,7 @@ void RenderBuffer::SetState(int period, bool ResetState, const std::string& mode
     dmx_buffer = false;
     Model* m = GetModel();
     if (m != nullptr) {
-        if (m->GetDisplayAs() == "DMX") {
+        if (m->GetDisplayAs().rfind("Dmx", 0) == 0) {
             dmx_buffer = true;
         }
     }
@@ -1463,37 +1464,40 @@ void RenderBuffer::SetPixelDMXModel(int x, int y, const xlColor& color)
 
         xlColor c;
         DmxModel* dmx = (DmxModel*)model_info;
+        if (dmx->HasColorAbility()) {
+            DmxColorAbility* dmx_color = dmx->GetColorAbility();
 
-        int white_channel = dmx->GetWhiteChannel();
-        if (white_channel > 0 && color.red == color.green && color.red == color.blue)
-        {
-            c.red = color.red;
-            c.green = color.red;
-            c.blue = color.red;
-            pixels[white_channel - 1] = c;
-        }
-        else
-        {
-            int red_channel = dmx->GetRedChannel();
-            int grn_channel = dmx->GetGreenChannel();
-            int blu_channel = dmx->GetBlueChannel();
-            if (red_channel != 0) {
+            int white_channel = dmx_color->GetWhiteChannel();
+            if (white_channel > 0 && color.red == color.green && color.red == color.blue)
+            {
                 c.red = color.red;
                 c.green = color.red;
                 c.blue = color.red;
-                pixels[red_channel - 1] = c;
+                pixels[white_channel - 1] = c;
             }
-            if (grn_channel != 0) {
-                c.red = color.green;
-                c.green = color.green;
-                c.blue = color.green;
-                pixels[grn_channel - 1] = c;
-            }
-            if (blu_channel != 0) {
-                c.red = color.blue;
-                c.green = color.blue;
-                c.blue = color.blue;
-                pixels[blu_channel - 1] = c;
+            else
+            {
+                int red_channel = dmx_color->GetRedChannel();
+                int grn_channel = dmx_color->GetGreenChannel();
+                int blu_channel = dmx_color->GetBlueChannel();
+                if (red_channel != 0) {
+                    c.red = color.red;
+                    c.green = color.red;
+                    c.blue = color.red;
+                    pixels[red_channel - 1] = c;
+                }
+                if (grn_channel != 0) {
+                    c.red = color.green;
+                    c.green = color.green;
+                    c.blue = color.green;
+                    pixels[grn_channel - 1] = c;
+                }
+                if (blu_channel != 0) {
+                    c.red = color.blue;
+                    c.green = color.blue;
+                    c.blue = color.blue;
+                    pixels[blu_channel - 1] = c;
+                }
             }
         }
     }

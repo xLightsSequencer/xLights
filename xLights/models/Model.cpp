@@ -4776,23 +4776,23 @@ Model* Model::GetXlightsModel(Model* model, std::string &last_model, xLightsFram
                         xlights->AddTraceMessage("GetXlightsModel converted model to DMX");
                         delete model;
                     }
-                    model = xlights->AllModels.CreateDefaultModel("DMX", startChannel);
-                    model->SetHcenterPos(x);
-                    model->SetVcenterPos(y);
-                    // I find i need to scale it by 4 for the DMX model to be the same size as the custom
-                    ((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScale(w*4, h*4);
-                    model->GetModelScreenLocation().Write(model->GetModelXml());
-                    model->SetLayoutGroup(lg);
-
-                    model->GetModelXml()->DeleteAttribute("DmxStyle");
                     if (isMovingHead)
                     {
-                        model->GetModelXml()->AddAttribute("DmxStyle", "Moving Head 3D");
+                        model = xlights->AllModels.CreateDefaultModel("DmxMovingHead3D", startChannel);
                     }
                     else
                     {
+                        model = xlights->AllModels.CreateDefaultModel("DmxMovingHead", startChannel);
+                        model->GetModelXml()->DeleteAttribute("DmxStyle");
                         model->GetModelXml()->AddAttribute("DmxStyle", "Moving Head Bars");
                     }
+
+                    model->SetHcenterPos(x);
+                    model->SetVcenterPos(y);
+                    // Multiply by 5 because default custom model has parm1 and parm2 set to 5 and DMX model is 1 pixel
+                    ((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScale(w*5, h*5);
+                    model->GetModelScreenLocation().Write(model->GetModelXml());
+                    model->SetLayoutGroup(lg);
 
                     // number of channels
                     model->GetModelXml()->DeleteAttribute("parm1");
@@ -5015,15 +5015,37 @@ Model* Model::GetXlightsModel(Model* model, std::string &last_model, xLightsFram
             auto h = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleY();
             auto lg = model->GetLayoutGroup();
 
+            std::string dmx_type = root->GetAttribute("DisplayAs");
             // not a custom model so delete the default model that was created
             if (model != nullptr) {
                 xlights->AddTraceMessage("GetXlightsModel converted model to DMX");
                 delete model;
             }
-            model = xlights->AllModels.CreateDefaultModel("DMX", startChannel);
+            // Upgrade older DMX models
+            if (dmx_type == "DMX") {
+                std::string style = root->GetAttribute("DmxStyle", "DMX");
+                if (style == "Moving Head Top" ||
+                    style == "Moving Head Side" ||
+                    style == "Moving Head Bars" ||
+                    style == "Moving Head TopBars" ||
+                    style == "Moving Head SideBars") {
+                    dmx_type = "DmxMovingHead";
+                }
+                else if (style == "Moving Head 3D") {
+                    dmx_type = "DmxMovingHead3D";
+                }
+                else if (style == "Flood Light") {
+                    dmx_type = "DmxFloodlight";
+                }
+                else if (style == "Skulltronix Skull") {
+                    dmx_type = "DmxSkulltronix";
+                }
+            }
+            model = xlights->AllModels.CreateDefaultModel(dmx_type, startChannel);
             model->SetHcenterPos(x);
             model->SetVcenterPos(y);
-            ((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScale(w, h);
+            // Multiply by 5 because default custom model has parm1 and parm2 set to 5 and DMX model is 1 pixel
+            ((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScale(w * 5, h * 5);
             model->SetLayoutGroup(lg);
             model->Selected = true;
             return model;
@@ -5372,7 +5394,7 @@ void Model::SaveDisplayDimensions()
 
 void Model::RestoreDisplayDimensions()
 {
-    if (DisplayAs != "DMX" && DisplayAs != "Image")
+    if ((DisplayAs.rfind("Dmx", 0) != 0) && DisplayAs != "Image")
     {
         SetWidth(_savedWidth, true);
         SetHeight(_savedHeight, true);

@@ -9,7 +9,6 @@
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
 #include "../../include/ColorWash.xpm"
-#include "../models/DmxModel.h"
 
 #include <sstream>
 

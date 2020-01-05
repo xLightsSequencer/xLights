@@ -16,6 +16,9 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <glm/gtc/quaternion.hpp>
+#include <glm/gtx/quaternion.hpp>
+
 #include <wx/bitmap.h>
 #include "DrawGLUtils.h"
 #include "osxMacUtils.h"
@@ -1281,7 +1284,7 @@ void DrawGLUtils::xlVertexColorAccumulator::AddTrianglesCircle(float ocx, float 
     }
 }
 
-void DrawGLUtils::xlVertexColorAccumulator::AddTrianglesRotatedCircle(float cx, float cy, float cz, glm::vec3 rotation, float radius, const xlColor &center, const xlColor &edge)
+void DrawGLUtils::xlVertexColorAccumulator::AddTrianglesRotatedCircle(float cx, float cy, float cz, glm::quat rotation, float radius, const xlColor &center, const xlColor &edge)
 {
     int num_segments = radius;
     if (num_segments < 16) {
@@ -1295,14 +1298,13 @@ void DrawGLUtils::xlVertexColorAccumulator::AddTrianglesRotatedCircle(float cx, 
     float x = radius;//we start at angle = 0
     float y = 0;
 
-    glm::mat4 rotationY = glm::rotate(glm::mat4(1.0f), glm::radians(-rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
-    glm::mat4 rotationX = glm::rotate(glm::mat4(1.0f), glm::radians(-rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
     glm::mat4 translateToOrigin = glm::translate(glm::mat4(1.0f), glm::vec3(-cx, -cy, -cz));
     glm::mat4 translateBack = glm::translate(glm::mat4(1.0f), glm::vec3(cx, cy, cz));
+    glm::mat4 RotationMatrix = glm::toMat4(rotation);
 
     for (int ii = 0; ii < num_segments; ii++) {
         glm::vec4 position = glm::vec4(x + cx, y + cy, cz, 1.0f);
-        position = translateBack * rotationY * rotationX * translateToOrigin * position;
+        position = translateBack * RotationMatrix * translateToOrigin * position;
         AddVertex(position.x, position.y, position.z, edge);
         //calculate the tangential vector
         //remember, the radial vector is (x, y)
@@ -1316,7 +1318,7 @@ void DrawGLUtils::xlVertexColorAccumulator::AddTrianglesRotatedCircle(float cx, 
         x *= radial_factor;
         y *= radial_factor;
         position = glm::vec4(x + cx, y + cy, cz, 1.0f);
-        position = translateBack * rotationY * rotationX * translateToOrigin * position;
+        position = translateBack * RotationMatrix * translateToOrigin * position;
         AddVertex(position.x, position.y, position.z, edge);
         AddVertex(cx, cy, cz, center);
     }

@@ -82,6 +82,7 @@ public:
     void Rename(std::string newName);
     int GetNumStrings() const { return parm1; }
     int GetPixelStyle() const { return pixelStyle; }
+    void SetPixelStyle(int style) { pixelStyle = style; } // temporarily changes pixel style
     static std::string GetPixelStyleDescription(int pixelStyle);
     virtual int GetNumPhysicalStrings() const { return parm1; }
 

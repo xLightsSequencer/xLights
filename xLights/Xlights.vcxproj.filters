@@ -234,9 +234,6 @@
     <ClCompile Include="models\CandyCaneModel.cpp">
       <Filter>Models</Filter>
     </ClCompile>
-    <ClCompile Include="models\DmxModel.cpp">
-      <Filter>Models</Filter>
-    </ClCompile>
     <ClCompile Include="models\CircleModel.cpp">
       <Filter>Models</Filter>
     </ClCompile>
@@ -757,6 +754,27 @@
     <ClCompile Include="effects\ColorWashPanel.cpp">
       <Filter>Effects</Filter>
     </ClCompile>
+    <ClCompile Include="models\DMX\DmxModel.cpp">
+      <Filter>Models\DMX</Filter>
+    </ClCompile>
+    <ClCompile Include="models\DMX\DmxSkulltronix.cpp">
+      <Filter>Models\DMX</Filter>
+    </ClCompile>
+    <ClCompile Include="models\DMX\DmxFloodlight.cpp">
+      <Filter>Models\DMX</Filter>
+    </ClCompile>
+    <ClCompile Include="models\DMX\DmxMovingHead.cpp">
+      <Filter>Models\DMX</Filter>
+    </ClCompile>
+    <ClCompile Include="models\DMX\DmxColorAbility.cpp">
+      <Filter>Models\DMX</Filter>
+    </ClCompile>
+    <ClCompile Include="models\DMX\DmxPanTiltAbility.cpp">
+      <Filter>Models\DMX</Filter>
+    </ClCompile>
+    <ClCompile Include="models\DMX\DmxMovingHead3D.cpp">
+      <Filter>Models\DMX</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -993,9 +1011,6 @@
       <Filter>Models</Filter>
     </ClInclude>
     <ClInclude Include="models\CandyCaneModel.h">
-      <Filter>Models</Filter>
-    </ClInclude>
-    <ClInclude Include="models\DmxModel.h">
       <Filter>Models</Filter>
     </ClInclude>
     <ClInclude Include="models\CircleModel.h">
@@ -1525,6 +1540,28 @@
     <ClInclude Include="effects\ColorWashEffect.h">
       <Filter>Effects</Filter>
     </ClInclude>
+    <ClInclude Include="models\DMX\DmxModel.h">
+      <Filter>Models\DMX</Filter>
+    </ClInclude>
+    <ClInclude Include="models\DMX\DmxSkulltronix.h">
+      <Filter>Models\DMX</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\models\ModelImages.h" />
+    <ClInclude Include="models\DMX\DmxFloodlight.h">
+      <Filter>Models\DMX</Filter>
+    </ClInclude>
+    <ClInclude Include="models\DMX\DmxMovingHead.h">
+      <Filter>Models\DMX</Filter>
+    </ClInclude>
+    <ClInclude Include="models\DMX\DmxColorAbility.h">
+      <Filter>Models\DMX</Filter>
+    </ClInclude>
+    <ClInclude Include="models\DMX\DmxPanTiltAbility.h">
+      <Filter>Models\DMX</Filter>
+    </ClInclude>
+    <ClInclude Include="models\DMX\DmxMovingHead3D.h">
+      <Filter>Models\DMX</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Models">
@@ -1538,6 +1575,9 @@
     </Filter>
     <Filter Include="Controllers">
       <UniqueIdentifier>{be70286a-a106-4f14-a344-f7ce82c3c438}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Models\DMX">
+      <UniqueIdentifier>{4fb623be-9694-497c-b76e-19e9b12e5991}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

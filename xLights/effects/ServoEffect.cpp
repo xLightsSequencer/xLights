@@ -9,7 +9,8 @@
 #include "../sequencer/Effect.h"
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
-#include "../models/DmxModel.h"
+#include "../models/DMX/DmxModel.h"
+#include "../models/DMX/DmxSkulltronix.h"
 
 ServoEffect::ServoEffect(int id) : RenderableEffect(id, "Servo", servo_16, servo_24, servo_32, servo_48, servo_64)
 {
@@ -60,47 +61,53 @@ void ServoEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer 
             if( name == sel_chan ) {
                 int min_limit = 0;
                 int max_limit = 100;
-
-                if( model_info->GetDisplayAs() == "DMX" ) {
+                if( model_info->GetDisplayAs().rfind("Dmx", 0) == 0 ) {
                     DmxModel* dmx = (DmxModel*)model_info;
-                    int pan_channel = dmx->GetPanChannel();
-                    if( pan_channel == (i+1) ) {
-                        min_limit = dmx->GetPanMinLimit();
-                        max_limit = dmx->GetPanMaxLimit();
+                    int brt_channel = -1;
+                    if (model_info->GetDisplayAs() == "DmxSkulltronix") {
+                        DmxSkulltronix* skull = (DmxSkulltronix*)model_info;
+                        int pan_channel = skull->GetPanChannel();
+                        if (pan_channel == (i + 1)) {
+                            min_limit = skull->GetPanMinLimit();
+                            max_limit = skull->GetPanMaxLimit();
+                        }
+                        int tilt_channel = skull->GetTiltChannel();
+                        if (tilt_channel == (i + 1)) {
+                            min_limit = skull->GetTiltMinLimit();
+                            max_limit = skull->GetTiltMaxLimit();
+                        }
+                        int nod_channel = skull->GetNodChannel();
+                        if (nod_channel == (i + 1)) {
+                            min_limit = skull->GetNodMinLimit();
+                            max_limit = skull->GetNodMaxLimit();
+                        }
+                        int jaw_channel = skull->GetJawChannel();
+                        if (jaw_channel == (i + 1)) {
+                            min_limit = skull->GetJawMinLimit();
+                            max_limit = skull->GetJawMaxLimit();
+                        }
+                        int eye_ud_channel = skull->GetEyeUDChannel();
+                        if (eye_ud_channel == (i + 1)) {
+                            min_limit = skull->GetEyeUDMinLimit();
+                            max_limit = skull->GetEyeUDMaxLimit();
+                        }
+                        int eye_lr_channel = skull->GetEyeLRChannel();
+                        if (eye_lr_channel == (i + 1)) {
+                            min_limit = skull->GetEyeLRMinLimit();
+                            max_limit = skull->GetEyeLRMaxLimit();
+                        }
+                        brt_channel = skull->GetEyeBrightnessChannel();
                     }
-                    int tilt_channel = dmx->GetTiltChannel();
-                    if( tilt_channel == (i+1) ) {
-                        min_limit = dmx->GetTiltMinLimit();
-                        max_limit = dmx->GetTiltMaxLimit();
-                    }
-                    int nod_channel = dmx->GetNodChannel();
-                    if( nod_channel == (i+1) ) {
-                        min_limit = dmx->GetNodMinLimit();
-                        max_limit = dmx->GetNodMaxLimit();
-                    }
-                    int jaw_channel = dmx->GetJawChannel();
-                    if( jaw_channel == (i+1) ) {
-                        min_limit = dmx->GetJawMinLimit();
-                        max_limit = dmx->GetJawMaxLimit();
-                    }
-                    int eye_ud_channel = dmx->GetEyeUDChannel();
-                    if( eye_ud_channel == (i+1) ) {
-                        min_limit = dmx->GetEyeUDMinLimit();
-                        max_limit = dmx->GetEyeUDMaxLimit();
-                    }
-                    int eye_lr_channel = dmx->GetEyeLRChannel();
-                    if( eye_lr_channel == (i+1) ) {
-                        min_limit = dmx->GetEyeLRMinLimit();
-                        max_limit = dmx->GetEyeLRMaxLimit();
-                    }
-                    int brt_channel = dmx->GetEyeBrightnessChannel();
-                    int red_channel = dmx->GetRedChannel();
-                    int grn_channel = dmx->GetGreenChannel();
-                    int blu_channel = dmx->GetBlueChannel();
-                    int white_channel = dmx->GetWhiteChannel();
-                    if( red_channel == (i+1) || grn_channel == (i+1) || blu_channel == (i+1) || white_channel == (i+1) || brt_channel == (i+1) ) {
-                        min_limit = 0;
-                        max_limit = 255;
+                    if (dmx->HasColorAbility()) {
+                        DmxColorAbility* dmx_color = dmx->GetColorAbility();
+                        int red_channel = dmx_color->GetRedChannel();
+                        int grn_channel = dmx_color->GetGreenChannel();
+                        int blu_channel = dmx_color->GetBlueChannel();
+                        int white_channel = dmx_color->GetWhiteChannel();
+                        if (red_channel == (i + 1) || grn_channel == (i + 1) || blu_channel == (i + 1) || white_channel == (i + 1) || brt_channel == (i + 1)) {
+                            min_limit = 0;
+                            max_limit = 255;
+                        }
                     }
                 }
 
@@ -116,10 +123,10 @@ void ServoEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer 
                     msb_c.red = msb;
                     msb_c.green = msb;
                     msb_c.blue = msb;
-                    buffer.SetPixel(i, 0, msb_c);
-                    buffer.SetPixel(i+1, 0, lsb_c);
+                    buffer.SetPixel(i, 0, msb_c, false, false, true);
+                    buffer.SetPixel(i+1, 0, lsb_c, false, false, true);
                 } else {
-                    buffer.SetPixel(i, 0, lsb_c);
+                    buffer.SetPixel(i, 0, lsb_c, false, false, true);
                 }
                 break;
             }

@@ -9,7 +9,7 @@
 #include "SeqSettingsDialog.h"
 #include "FileConverter.h"
 #include "DataLayer.h"
-#include "models/DmxModel.h"
+#include "models/DMX/DmxModel.h"
 #include "VSAFile.h"
 #include "LMSImportChannelMapDialog.h"
 #include "xLightsImportChannelMapDialog.h"

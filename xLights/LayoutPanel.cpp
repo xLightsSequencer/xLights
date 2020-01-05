@@ -167,6 +167,10 @@ const long LayoutPanel::ID_PREVIEW_IMPORTMODELSFROMRGBEFFECTS = wxNewId();
 const long LayoutPanel::ID_ADD_OBJECT_IMAGE = wxNewId();
 const long LayoutPanel::ID_ADD_OBJECT_GRIDLINES = wxNewId();
 const long LayoutPanel::ID_ADD_OBJECT_MESH = wxNewId();
+const long LayoutPanel::ID_ADD_DMX_MOVING_HEAD = wxNewId();
+const long LayoutPanel::ID_ADD_DMX_MOVING_HEAD_3D = wxNewId();
+const long LayoutPanel::ID_ADD_DMX_SKULLTRONIX = wxNewId();
+const long LayoutPanel::ID_ADD_DMX_FLOODLIGHT = wxNewId();
 
 #define CHNUMWIDTH "10000000000000"
 
@@ -472,7 +476,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     AddModelButton("Circle", circles);
     AddModelButton("Cube", cube_xpm);
     AddModelButton("Custom", custom);
-    AddModelButton("DMX", dmx_xpm);
+    AddModelButton("DMX", add_dmx_xpm);
     AddModelButton("Image", image_xpm);
     AddModelButton("Icicles", icicles_xpm);
     AddModelButton("Matrix", matrix);
@@ -1162,7 +1166,10 @@ int LayoutPanel::GetModelTreeIcon(Model* model, bool open) {
             return Icon_Cube;
         } else if( type == "Custom" ) {
             return Icon_Custom;
-        } else if( type == "DMX" ) {
+        } else if (type == "DMXFloodlight" ||
+                   type == "DMXMovingHead" ||
+                   type == "DMXMovingHead3D" ||
+                   type == "DMXSkulltronix" ) {
             return Icon_Dmx;
         } else if( type == "Image" ) {
             return Icon_Image;
@@ -2915,13 +2922,19 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
         //create a new model
         int wi, ht;
         modelPreview->GetVirtualCanvasSize(wi, ht);
-        m_moving_handle = true;
         m_creating_bound_rect = false;
         const std::string& model_type = selectedButton->GetModelType();
-        newModel = CreateNewModel(model_type);
-        newModel->SetLayoutGroup(currentLayoutGroup);
+        if (model_type != "DMX") {
+            newModel = CreateNewModel(model_type);
+            newModel->SetLayoutGroup(currentLayoutGroup);
+        }
+        else if (model_type == "DMX" && selectedDmxModelType != "") {
+            newModel = CreateNewModel(selectedDmxModelType);
+            newModel->SetLayoutGroup(currentLayoutGroup);
+        }
 
         if (newModel != nullptr) {
+            m_moving_handle = true;
             if (model_type == "Poly Line") {
                 m_polyline_active = true;
             }
@@ -3308,13 +3321,16 @@ void LayoutPanel::FinalizeModel()
 
         modelPreview->SetCursor(wxCURSOR_DEFAULT);
         modelPreview->SetAdditionalModel(nullptr);
-        if (b != nullptr && b->GetState() == 1) {
+        if ((b != nullptr && b->GetState() == 1) || selectedDmxModelType != "") {
             xlights->AddTraceMessage("LayoutPanel::FinalizeModel Exiting done.");
             std::string name = newModel->name;
             newModel = nullptr;
-            b->SetState(0);
+            if (b != nullptr) {  // needed if dmx model type
+                b->SetState(0);
+            }
             selectedButton = nullptr;
             selectedBaseObject = nullptr;
+            selectedDmxModelType = "";
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "FinalizeModel", nullptr, nullptr, name);
             //SelectBaseObject(name);
             SelectBaseObject3D();
@@ -4837,6 +4853,10 @@ void LayoutPanel::OnNewModelTypeButtonClicked(wxCommandEvent& event) {
             if (it->GetModelType() == "Add Object") {
                 DisplayAddObjectPopup();
             }
+            else if (it->GetModelType() == "DMX") {
+                selectedButton = it;
+                DisplayAddDmxPopup();
+            }
             else {
                 int state = it->GetState();
                 it->SetState(state + 1);
@@ -4862,7 +4882,7 @@ void LayoutPanel::AddObjectButton(wxMenu& mnu, const long id, const std::string 
     wxMenuItem* menu_item = mnu.Append(id, name);
     if (icon != nullptr) {
         wxImage image(icon);
-#if defined(__WXOSX__) || defined(__WXMSW__)
+#if defined(__WXOSX__) //|| defined(__WXMSW__)
         wxBitmap bitmap(image, -1, 2.0);
 #else
         image.Rescale(ScaleWithSystemDPI(GetContentScaleFactor(), 24),
@@ -4927,6 +4947,52 @@ void LayoutPanel::OnAddObjectPopup(wxCommandEvent& event)
     }
 
     Refresh();
+}
+
+void LayoutPanel::DisplayAddDmxPopup() {
+    wxMenu mnuObjects;
+    AddObjectButton(mnuObjects, ID_ADD_DMX_FLOODLIGHT, "Floodlight", add_dmx_floodlight_xpm);
+    AddObjectButton(mnuObjects, ID_ADD_DMX_MOVING_HEAD_3D, "Moving Head 3D", dmx_xpm);
+    AddObjectButton(mnuObjects, ID_ADD_DMX_MOVING_HEAD, "Moving Head", add_dmx_moving_head_xpm);
+    AddObjectButton(mnuObjects, ID_ADD_DMX_SKULLTRONIX, "Skulltronix Skull", add_dmx_skulltronix_xpm);
+    mnuObjects.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&LayoutPanel::OnAddDmxPopup, nullptr, this);
+    selectedDmxModelType = "";
+    PopupMenu(&mnuObjects);
+}
+
+void LayoutPanel::OnAddDmxPopup(wxCommandEvent& event)
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    int id = event.GetId();
+    Model* dmxobj = nullptr;
+    bool object_created = false;
+    if (id == ID_ADD_DMX_FLOODLIGHT) {
+        logger_base.debug("OnAddDmxPopup - ID_ADD_DMX_FLOODLIGHT");
+        selectedDmxModelType = "DmxFloodlight";
+        object_created = true;
+    }
+    else if (id == ID_ADD_DMX_MOVING_HEAD) {
+        logger_base.debug("OnAddDmxPopup - ID_ADD_DMX_MOVING_HEAD");
+        selectedDmxModelType = "DmxMovingHead";
+        object_created = true;
+    }
+    else if (id == ID_ADD_DMX_MOVING_HEAD_3D) {
+        logger_base.debug("OnAddDmxPopup - ID_ADD_DMX_MOVING_HEAD_3D");
+        selectedDmxModelType = "DmxMovingHead3D";
+        object_created = true;
+    }
+    else if (id == ID_ADD_DMX_SKULLTRONIX) {
+        logger_base.debug("OnAddDmxPopup - ID_ADD_DMX_SKULLTRONIX");
+        selectedDmxModelType = "DmxSkulltronix";
+        object_created = true;
+    }
+
+    if (object_created) {
+        UnSelectAllModels();
+        modelPreview->SetFocus();
+        Notebook_Objects->ChangeSelection(0);
+        editing_models = true;
+    }
 }
 
 Model *LayoutPanel::CreateNewModel(const std::string &type) const

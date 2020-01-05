@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (gil)    Reorganized DMX models into separate classes.  Make sure you have backups of your show folder
+                   just in case since it was a huge change.
    -- enh (dkulp)  Reduce number of wxIdleEvent are being processed to reduce CPU usage
    -- bug (dkulp)  Videos with B frames may stop rendering.  Fixes #1902
    -- bug (gil)    View Objects were still saving with version 3 positioning instead of 4 causing rotation changes to keep reversing in X and Y
