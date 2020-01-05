@@ -184,7 +184,7 @@ void xLightsFrame::ResetWindowsToDefaultPositions(wxCommandEvent& event)
     m_mgr->GetPane("DisplayElements").Caption("Display Elements").Float().Hide();
     m_mgr->GetPane("Perspectives").Caption("Perspectives").Dock().Left().Layer(1).Hide();
     m_mgr->GetPane("Effect").Caption("Effect").Dock().Left().Layer(0).Show().Row(1);
-    m_mgr->GetPane("SelectEffect").Caption("SelectEffect").Dock().Left().Layer(1).Hide();
+    m_mgr->GetPane("SelectEffect").Caption("Select Effects").Dock().Left().Layer(1).Hide();
 
     m_mgr->GetPane("EffectDropper").Caption("Effects").Dock().Top().Layer(0).Hide();
     m_mgr->GetPane("Color").Caption("Color").Top().Dock().Layer(0).Show();
@@ -809,7 +809,6 @@ void xLightsFrame::LoadSequencer(xLightsXmlFile& xml_file)
     _modelPreviewPanel->Refresh();
     _housePreviewPanel->Refresh();
     m_mgr->Update();
-    _selectPanel->ReloadModels();
 
     _coloursPanel->UpdateColourButtons(true, this);
 
@@ -2631,7 +2630,6 @@ void xLightsFrame::ForceSequencerRefresh(wxCommandEvent& event)
 void xLightsFrame::DoForceSequencerRefresh()
 {
     mSequenceElements.PopulateRowInformation();
-    _selectPanel->ReloadModels();
     ResizeMainSequencer();
 }
 

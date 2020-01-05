@@ -36,7 +36,6 @@ class EffectLayer
         std::list<std::string> GetFacesUsed(EffectManager& em) const;
         bool CleanupFileLocations(xLightsFrame* frame, EffectManager& em);
 
-        int SelectEffectByTypeInTimeRange(const std::string &type, int startTimeMS, int endTimeMS);
         std::vector<Effect*> GetEffectsByTypeAndTime(const std::string &type, int startTimeMS, int endTimeMS);
         std::vector<Effect*> GetAllEffectsByTime(int startTimeMS, int endTimeMS);
         Effect* SelectEffectUsingDescription(std::string description);
@@ -72,8 +71,8 @@ class EffectLayer
         int SelectEffectsInTimeRange(int startTimeMS, int endTimeMS);
         bool HasEffectsInTimeRange(int startTimeMS, int endTimeMS);
         bool HasEffects();
+        bool HasEffectsByType(const std::string& type) const;
 
-        int SelectEffectsByType(const std::string & type);
         void UnSelectAllEffects();
         void SelectAllEffects();
 

@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (scott)  Rewrote Select Effect Panel. Effects can be selected by Effect Type. Removed Regex Searching.
    -- enh (gil)    Reorganized DMX models into separate classes.  Make sure you have backups of your show folder
                    just in case since it was a huge change.
    -- enh (dkulp)  Reduce number of wxIdleEvent are being processed to reduce CPU usage

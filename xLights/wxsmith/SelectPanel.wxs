@@ -9,43 +9,40 @@
 			<growablerows>3</growablerows>
 			<object class="sizeritem">
 				<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
-					<label>Search</label>
+					<label>Effect Type:</label>
 				</object>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxComboBox" name="ID_COMBOBOX_SELECT_MODELS" variable="ComboBox_Select_Models" member="yes">
-					<style>wxCB_SORT|wxTE_PROCESS_ENTER</style>
-					<handler function="OnComboBox_Select_ModelsTextEnter" entry="EVT_TEXT_ENTER" />
+				<object class="wxComboBox" name="ID_COMBOBOX_SELECT_EFFECT" variable="ComboBox_Select_Effect" member="yes">
+					<style>wxCB_SORT|wxCB_READONLY|wxTE_PROCESS_ENTER</style>
+					<handler function="OnComboBox_Select_EffectSelected" entry="EVT_COMBOBOX" />
+					<handler function="OnComboBox_Select_EffectDropdown" entry="EVT_COMBOBOX_DROPDOWN" />
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
-			<object class="sizeritem">
-				<object class="wxButton" name="ID_BUTTON_SELECT_SEARCH" variable="Button_Select_Search" member="yes">
-					<label>Search</label>
-					<handler function="OnButton_Select_SearchClick" entry="EVT_BUTTON" />
-				</object>
-				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE</flag>
+			<object class="spacer">
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
 				<object class="wxStaticText" name="ID_STATICTEXT2" variable="StaticText2" member="yes">
-					<label>Model</label>
+					<label>Model:</label>
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxListBox" name="ID_LISTBOX_SELECT_FOUND" variable="ListBox_Select_Found" member="yes">
+				<object class="wxListBox" name="ID_LISTBOX_SELECT_MODELS" variable="ListBox_Select_Models" member="yes">
 					<default>-1</default>
 					<style>wxLB_EXTENDED|wxLB_SORT</style>
-					<handler function="OnListBox_Select_FoundSelect" entry="EVT_LISTBOX" />
+					<handler function="OnListBox_Select_ModelsSelect" entry="EVT_LISTBOX" />
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
@@ -62,7 +59,7 @@
 			</object>
 			<object class="sizeritem">
 				<object class="wxStaticText" name="ID_STATICTEXT6" variable="StaticText6" member="yes">
-					<label>Time</label>
+					<label>Time:</label>
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
@@ -127,17 +124,17 @@
 			</object>
 			<object class="sizeritem">
 				<object class="wxStaticText" name="ID_STATICTEXT4" variable="StaticText4" member="yes">
-					<label>Effects</label>
+					<label>Effects&#x0A;by Time:</label>
 				</object>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxListBox" name="ID_LISTBOX_SELECT_TYPES" variable="ListBox_Select_Types" member="yes">
+				<object class="wxListBox" name="ID_LISTBOX_SELECT_EFFECTS" variable="ListBox_Select_Effects" member="yes">
 					<default>-1</default>
 					<style>wxLB_EXTENDED|wxLB_SORT</style>
-					<handler function="OnListBox_Select_TypesSelect" entry="EVT_LISTBOX" />
+					<handler function="OnListBox_Select_EffectsSelect" entry="EVT_LISTBOX" />
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
@@ -159,7 +156,7 @@
 			</object>
 			<object class="sizeritem">
 				<object class="wxButton" name="ID_BUTTON_SELECT_REFRESH" variable="Button_Select_Refresh" member="yes">
-					<label>Reset</label>
+					<label>Refresh</label>
 					<handler function="OnButton_Select_RefreshClick" entry="EVT_BUTTON" />
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>

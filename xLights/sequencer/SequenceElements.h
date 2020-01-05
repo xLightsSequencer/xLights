@@ -62,7 +62,6 @@ public:
     bool LoadSequencerFile(xLightsXmlFile& xml_file, const wxString& ShowDir);
     void Clear();
     void PrepareViews(xLightsXmlFile& xml_file);
-    std::vector < Element*> SearchForElements(const std::string &regex, int view = MASTER_VIEW) const;
     Element* AddElement(const std::string &name, const std::string &type, bool visible, bool collapsed, bool active, bool selected);
     Element* AddElement(int index, const std::string &name, const std::string &type, bool visible, bool collapsed, bool active, bool selected);
     Element* GetElement(const std::string &name) const;
@@ -83,6 +82,7 @@ public:
     Effect* SelectEffectUsingDescription(std::string description);
     Effect* SelectEffectUsingElementLayerTime(std::string element, int layer, int time);
     std::list<std::string> GetAllEffectDescriptions();
+    std::list<std::string> GetAllUsedEffectTypes() const;
     std::list<std::string> GetAllElementNamesWithEffects();
     int GetElementLayerCount(std::string elementName, std::list<int>* layers = nullptr);
     std::list<Effect*> GetElementLayerEffects(std::string elementName, int layer);

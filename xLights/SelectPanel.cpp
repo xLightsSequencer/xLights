@@ -14,10 +14,9 @@
 
 //(*IdInit(SelectPanel)
 const long SelectPanel::ID_STATICTEXT1 = wxNewId();
-const long SelectPanel::ID_COMBOBOX_SELECT_MODELS = wxNewId();
-const long SelectPanel::ID_BUTTON_SELECT_SEARCH = wxNewId();
+const long SelectPanel::ID_COMBOBOX_SELECT_EFFECT = wxNewId();
 const long SelectPanel::ID_STATICTEXT2 = wxNewId();
-const long SelectPanel::ID_LISTBOX_SELECT_FOUND = wxNewId();
+const long SelectPanel::ID_LISTBOX_SELECT_MODELS = wxNewId();
 const long SelectPanel::ID_BUTTON_SELECT_MODEL_ALL = wxNewId();
 const long SelectPanel::ID_STATICTEXT6 = wxNewId();
 const long SelectPanel::ID_STATICTEXT3 = wxNewId();
@@ -26,7 +25,7 @@ const long SelectPanel::ID_STATICTEXT5 = wxNewId();
 const long SelectPanel::ID_TEXTCTRL_SELECT_ENDTIME = wxNewId();
 const long SelectPanel::ID_BUTTON_SELECT_ALL_TIME = wxNewId();
 const long SelectPanel::ID_STATICTEXT4 = wxNewId();
-const long SelectPanel::ID_LISTBOX_SELECT_TYPES = wxNewId();
+const long SelectPanel::ID_LISTBOX_SELECT_EFFECTS = wxNewId();
 const long SelectPanel::ID_BUTTON_SELECT_EFFECT_ALL = wxNewId();
 const long SelectPanel::ID_BUTTON_SELECT_REFRESH = wxNewId();
 //*)
@@ -47,19 +46,18 @@ SelectPanel::SelectPanel(SequenceElements* elements, MainSequencer* sequencer, w
 	FlexGridSizer1 = new wxFlexGridSizer(0, 3, 0, 0);
 	FlexGridSizer1->AddGrowableCol(1);
 	FlexGridSizer1->AddGrowableRow(3);
-	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Search"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
+	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Effect Type:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
 	FlexGridSizer1->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	ComboBox_Select_Models = new wxComboBox(this, ID_COMBOBOX_SELECT_MODELS, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, 0, wxCB_SORT|wxTE_PROCESS_ENTER, wxDefaultValidator, _T("ID_COMBOBOX_SELECT_MODELS"));
-	FlexGridSizer1->Add(ComboBox_Select_Models, 1, wxALL|wxEXPAND, 5);
-	Button_Select_Search = new wxButton(this, ID_BUTTON_SELECT_SEARCH, _("Search"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SELECT_SEARCH"));
-	FlexGridSizer1->Add(Button_Select_Search, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE, 5);
-	StaticText2 = new wxStaticText(this, ID_STATICTEXT2, _("Model"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
+	ComboBox_Select_Effect = new wxComboBox(this, ID_COMBOBOX_SELECT_EFFECT, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, 0, wxCB_SORT|wxCB_READONLY|wxTE_PROCESS_ENTER, wxDefaultValidator, _T("ID_COMBOBOX_SELECT_EFFECT"));
+	FlexGridSizer1->Add(ComboBox_Select_Effect, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	StaticText2 = new wxStaticText(this, ID_STATICTEXT2, _("Model:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
 	FlexGridSizer1->Add(StaticText2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	ListBox_Select_Found = new wxListBox(this, ID_LISTBOX_SELECT_FOUND, wxDefaultPosition, wxDefaultSize, 0, 0, wxLB_EXTENDED|wxLB_SORT, wxDefaultValidator, _T("ID_LISTBOX_SELECT_FOUND"));
-	FlexGridSizer1->Add(ListBox_Select_Found, 1, wxALL|wxEXPAND, 5);
+	ListBox_Select_Models = new wxListBox(this, ID_LISTBOX_SELECT_MODELS, wxDefaultPosition, wxDefaultSize, 0, 0, wxLB_EXTENDED|wxLB_SORT, wxDefaultValidator, _T("ID_LISTBOX_SELECT_MODELS"));
+	FlexGridSizer1->Add(ListBox_Select_Models, 1, wxALL|wxEXPAND, 5);
 	Button_Select_Model_All = new wxButton(this, ID_BUTTON_SELECT_MODEL_ALL, _("Select All"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SELECT_MODEL_ALL"));
 	FlexGridSizer1->Add(Button_Select_Model_All, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE, 5);
-	StaticText6 = new wxStaticText(this, ID_STATICTEXT6, _("Time"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT6"));
+	StaticText6 = new wxStaticText(this, ID_STATICTEXT6, _("Time:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT6"));
 	FlexGridSizer1->Add(StaticText6, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer2 = new wxFlexGridSizer(0, 4, 0, 0);
 	StaticText3 = new wxStaticText(this, ID_STATICTEXT3, _("Start"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
@@ -77,27 +75,27 @@ SelectPanel::SelectPanel(SequenceElements* elements, MainSequencer* sequencer, w
 	FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Button_Select_All_Time = new wxButton(this, ID_BUTTON_SELECT_ALL_TIME, _("Select All "), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SELECT_ALL_TIME"));
 	FlexGridSizer1->Add(Button_Select_All_Time, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE, 5);
-	StaticText4 = new wxStaticText(this, ID_STATICTEXT4, _("Effects"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
+	StaticText4 = new wxStaticText(this, ID_STATICTEXT4, _("Effects\nby Time:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
 	FlexGridSizer1->Add(StaticText4, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	ListBox_Select_Types = new wxListBox(this, ID_LISTBOX_SELECT_TYPES, wxDefaultPosition, wxDefaultSize, 0, 0, wxLB_EXTENDED|wxLB_SORT, wxDefaultValidator, _T("ID_LISTBOX_SELECT_TYPES"));
-	FlexGridSizer1->Add(ListBox_Select_Types, 1, wxALL|wxEXPAND, 5);
+	ListBox_Select_Effects = new wxListBox(this, ID_LISTBOX_SELECT_EFFECTS, wxDefaultPosition, wxDefaultSize, 0, 0, wxLB_EXTENDED|wxLB_SORT, wxDefaultValidator, _T("ID_LISTBOX_SELECT_EFFECTS"));
+	FlexGridSizer1->Add(ListBox_Select_Effects, 1, wxALL|wxEXPAND, 5);
 	Button_Select_Effect_All = new wxButton(this, ID_BUTTON_SELECT_EFFECT_ALL, _("Select All"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SELECT_EFFECT_ALL"));
 	FlexGridSizer1->Add(Button_Select_Effect_All, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE, 5);
 	FlexGridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	Button_Select_Refresh = new wxButton(this, ID_BUTTON_SELECT_REFRESH, _("Reset"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SELECT_REFRESH"));
+	Button_Select_Refresh = new wxButton(this, ID_BUTTON_SELECT_REFRESH, _("Refresh"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SELECT_REFRESH"));
 	FlexGridSizer1->Add(Button_Select_Refresh, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SetSizer(FlexGridSizer1);
 	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
 
-	Connect(ID_COMBOBOX_SELECT_MODELS,wxEVT_COMMAND_TEXT_ENTER,(wxObjectEventFunction)&SelectPanel::OnComboBox_Select_ModelsTextEnter);
-	Connect(ID_BUTTON_SELECT_SEARCH,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SelectPanel::OnButton_Select_SearchClick);
-	Connect(ID_LISTBOX_SELECT_FOUND,wxEVT_COMMAND_LISTBOX_SELECTED,(wxObjectEventFunction)&SelectPanel::OnListBox_Select_FoundSelect);
+	Connect(ID_COMBOBOX_SELECT_EFFECT,wxEVT_COMMAND_COMBOBOX_SELECTED,(wxObjectEventFunction)&SelectPanel::OnComboBox_Select_EffectSelected);
+	Connect(ID_COMBOBOX_SELECT_EFFECT,wxEVT_COMMAND_COMBOBOX_DROPDOWN,(wxObjectEventFunction)&SelectPanel::OnComboBox_Select_EffectDropdown);
+	Connect(ID_LISTBOX_SELECT_MODELS,wxEVT_COMMAND_LISTBOX_SELECTED,(wxObjectEventFunction)&SelectPanel::OnListBox_Select_ModelsSelect);
 	Connect(ID_BUTTON_SELECT_MODEL_ALL,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SelectPanel::OnButton_Select_Model_AllClick);
 	Connect(ID_TEXTCTRL_SELECT_STARTTIME,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&SelectPanel::OnTextCtrl_Select_StartTimeText);
 	Connect(ID_TEXTCTRL_SELECT_ENDTIME,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&SelectPanel::OnTextCtrl_Select_EndTimeText);
 	Connect(ID_BUTTON_SELECT_ALL_TIME,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SelectPanel::OnButton_Select_All_TimeClick);
-	Connect(ID_LISTBOX_SELECT_TYPES,wxEVT_COMMAND_LISTBOX_SELECTED,(wxObjectEventFunction)&SelectPanel::OnListBox_Select_TypesSelect);
+	Connect(ID_LISTBOX_SELECT_EFFECTS,wxEVT_COMMAND_LISTBOX_SELECTED,(wxObjectEventFunction)&SelectPanel::OnListBox_Select_EffectsSelect);
 	Connect(ID_BUTTON_SELECT_EFFECT_ALL,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SelectPanel::OnButton_Select_Effect_AllClick);
 	Connect(ID_BUTTON_SELECT_REFRESH,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SelectPanel::OnButton_Select_RefreshClick);
 	//*)
@@ -112,169 +110,133 @@ SelectPanel::~SelectPanel()
 	//*)
 }
 
-void SelectPanel::ReloadModels()
+void SelectPanel::populateModelsList(const std::string& effectType)
 {
-    std::vector<wxString> keys;
+    if (effectType.empty())return;
 
-    // This causes undesirable effects
-    // mSequenceElements->UnSelectAllEffects();
+    std::vector<wxString> models;
 
-    for (size_t i = 0; i < mSequenceElements->GetElementCount(mSequenceElements->GetCurrentView()); i++)
+    auto const startendtime = GetStartAndEndTime();
+
+    for (int i = 0; i < mSequenceElements->GetElementCount(); i++)
     {
-        if (mSequenceElements->GetElement(i, mSequenceElements->GetCurrentView())->GetType() == ELEMENT_TYPE_TIMING)
+        Element* el = mSequenceElements->GetElement(i);
+        if (el->GetType() == ELEMENT_TYPE_TIMING)
             continue;
-        keys.push_back(mSequenceElements->GetElement(i, mSequenceElements->GetCurrentView())->GetName());
-    }
 
-    keys.erase( std::remove_if( keys.begin(), keys.end(), [](wxString const& s) { return s.IsEmpty(); }), keys.end());
-
-    std::sort(keys.begin(), keys.end());
-    keys.erase(std::unique(keys.begin(), keys.end()), keys.end());
-
-    if (keys.size() != 0)
-    {
-        ComboBox_Select_Models->Set(keys);
-    }
-    TextCtrl_Select_EndTime->SetValue(std::to_string(double(mainSequencer->PanelTimeLine->GetTimeLength() / 1000.0)).substr(0,7));
-}
-
-void SelectPanel::populateModelsList(const std::string& elementName)
-{
-    if (elementName.empty())return;
-
-    if (ComboBox_Select_Models->FindString(elementName, false) == -1)
-        ComboBox_Select_Models->AppendString(elementName);
-
-    mSequenceElements->UnSelectAllEffects();
-    ListBox_Select_Types->Clear();
-
-    std::vector<wxString> keys;
-    std::vector< Element * > els = GetElements(elementName);
-
-    std::transform(std::begin(els), std::end(els), std::back_inserter(keys),
-        [](auto const& row) { return wxString(row->GetFullName()); });
-
-    if (keys.size() != 0)
-    {
-        ListBox_Select_Found->Set(keys);
-        if (keys.size() == 1)
+        for (int i = 0; i < el->GetEffectLayerCount(); ++i)
         {
-            ListBox_Select_Found->SetSelection(0);
-            populateEffectsList();
+            EffectLayer* elay = el->GetEffectLayer(i);
+            if (elay->HasEffectsByType(effectType))
+            {
+                models.push_back(el->GetFullName());
+                break;
+            }
+        }
+        if (el->GetType() == ELEMENT_TYPE_STRAND)
+        {
+            StrandElement* strEl = dynamic_cast<StrandElement*>(el);
+            if (strEl != nullptr)
+            {
+                for (int n = 0; n < strEl->GetNodeLayerCount(); n++)
+                {
+                    NodeLayer* nlayer = strEl->GetNodeLayer(n);
+                    if (nlayer->HasEffectsByType(effectType))
+                    {
+                        models.push_back(strEl->GetFullName());
+                        break;
+                    }
+                }
+            }
         }
     }
-    else
+    std::sort(models.begin(), models.end());
+    ListBox_Select_Models->Set(models);
+
+    if (ListBox_Select_Models->GetCount() == 1)
     {
-        ListBox_Select_Found->Clear();
+        ListBox_Select_Models->SetSelection(0);
+        populateEffectsList();
     }
+
+    TextCtrl_Select_EndTime->SetValue(wxString::Format("%.5f", (mainSequencer->PanelTimeLine->GetTimeLength() / 1000.0)));
 }
 
 void SelectPanel::populateEffectsList()
 {
+    ListBox_Select_Effects->Clear();
     wxArrayInt modelsSelected;
-    ListBox_Select_Found->GetSelections(modelsSelected);
+    ListBox_Select_Models->GetSelections(modelsSelected);
+
+    auto const& type = ComboBox_Select_Effect->GetValue().ToStdString();
 
     if (modelsSelected.size() != 0)
     {
-        std::string modelText;
-
-        auto startendtime = GetStartAndEndTime();
-
-        for (auto value : modelsSelected) {
-            if (!modelText.empty())
-                modelText += "||";
-            modelText += ListBox_Select_Found->GetString(value);
-        }
-
-        mSequenceElements->UnSelectAllEffects();
-        std::vector<wxString> keys;
-        std::vector< Element * > els = GetElements(modelText);
-
-        for (Element * el : els)
+        auto const startendtime = GetStartAndEndTime();
+        std::vector<std::string> models;
+        for (auto value : modelsSelected)
         {
-            for (int i = 0; i < el->GetEffectLayerCount(); ++i) {
+            auto const& modelname = ListBox_Select_Models->GetString(value);
+            Element* el = mSequenceElements->GetElement(modelname);
+            if (el == nullptr || el->GetType() == ELEMENT_TYPE_TIMING)
+                continue;
+
+            auto & tmpname = wxString();
+            if (modelsSelected.size() > 1)
+                tmpname = modelname;
+
+            for (int i = 0; i < el->GetEffectLayerCount(); ++i)
+            {
                 EffectLayer* elay = el->GetEffectLayer(i);
-                std::vector<Effect*> effs = elay->GetAllEffectsByTime(startendtime.first, startendtime.second);
-
-                std::transform(std::begin(effs), std::end(effs), std::back_inserter(keys),
-                    [](auto const& row) { return wxString(row->GetEffectName()); });
+                std::vector<Effect*> effs = elay->GetEffectsByTypeAndTime(type, startendtime.first, startendtime.second);
+                for (Effect* eff : effs)
+                    ListBox_Select_Effects->Append(wxString::Format("[%05.1fs,%05.1fs] %s", eff->GetStartTimeMS() / 1000.0, eff->GetEndTimeMS() / 1000.0, tmpname),(void * )eff);
             }
-            if (el->GetType() == ELEMENT_TYPE_STRAND) {
-                StrandElement *strEl = dynamic_cast<StrandElement*>(el);
-                if (strEl != nullptr) {
-                    for (int n = 0; n < strEl->GetNodeLayerCount(); n++) {
+            if (el->GetType() == ELEMENT_TYPE_STRAND)
+            {
+                StrandElement* strEl = dynamic_cast<StrandElement*>(el);
+                if (strEl != nullptr)
+                {
+                    for (int n = 0; n < strEl->GetNodeLayerCount(); n++)
+                    {
                         NodeLayer* nlayer = strEl->GetNodeLayer(n);
-                        std::vector<Effect*> effs = nlayer->GetAllEffectsByTime(startendtime.first, startendtime.second);
-
-                        std::transform(std::begin(effs), std::end(effs), std::back_inserter(keys),
-                            [](auto const& row) { return wxString(row->GetEffectName()); });
+                        std::vector<Effect*> effs = nlayer->GetEffectsByTypeAndTime(type, startendtime.first, startendtime.second);
+                        for (Effect* eff : effs)
+                            ListBox_Select_Effects->Append(wxString::Format("[%05.1fs,%05.1fs] %s", eff->GetStartTimeMS() / 1000.0, eff->GetEndTimeMS() / 1000.0, modelname), (void*)eff);
                     }
                 }
             }
         }
 
-        std::sort(keys.begin(), keys.end());
-        keys.erase(std::unique(keys.begin(), keys.end()), keys.end());
-        keys.erase(std::remove_if(keys.begin(), keys.end(), [](wxString const& s) { return s.IsEmpty(); }), keys.end());
-
-        if (keys.size() != 0) {
-            ListBox_Select_Types->Set(keys);
-            if (keys.size() == 1)
-                ListBox_Select_Types->SetSelection(0);
-
+        if (ListBox_Select_Effects->GetCount() == 1)
+        {
+            ListBox_Select_Effects->SetSelection(0);
             SelectEffects();
-        }
-        else {
-            ListBox_Select_Types->Clear();
-            mainSequencer->PanelEffectGrid->Refresh();
         }
     }
 }
 
 void SelectPanel::SelectEffects()
 {
-    wxArrayInt modelsSelected;
     wxArrayInt effectsSelected;
-    ListBox_Select_Found->GetSelections(modelsSelected);
-    ListBox_Select_Types->GetSelections(effectsSelected);
+    ListBox_Select_Effects->GetSelections(effectsSelected);
 
-    if (modelsSelected.size() != 0 && effectsSelected.size() != 0) {
-        std::string modelText;
-
-        for (auto value : modelsSelected) {
-            if (!modelText.empty())
-                modelText += "||";
-            modelText += ListBox_Select_Found->GetString(value);
-        }
-
+    if (effectsSelected.size() != 0)
+    {
+        bool first = true;
         mSequenceElements->UnSelectAllEffects();
 
-        std::vector< Element * > els = GetElements(modelText);
-
-        bool first = true;
-
-        auto startendtime = GetStartAndEndTime();
-
-        for (auto value : effectsSelected) {
-            const std::string& effectText = ListBox_Select_Types->GetString(value).ToStdString();
-            for (Element * el : els) {
-                for (int i = 0; i < el->GetEffectLayerCount(); ++i) {
-                    if (el->GetEffectLayer(i)->SelectEffectByTypeInTimeRange(effectText, startendtime.first, startendtime.second) != 0 && first) {
-                        mainSequencer->PanelEffectGrid->RaiseSelectedEffectChanged(el->GetEffectLayer(i)->GetEffectsByTypeAndTime(effectText, startendtime.first, startendtime.second)[0], false);
-                        first = false;
-                    }
-                }
-
-                if (el->GetType() == ELEMENT_TYPE_STRAND) {
-                    StrandElement *strEl = dynamic_cast<StrandElement*>(el);
-                    if (strEl != nullptr) {
-                        for (int n = 0; n < strEl->GetNodeLayerCount(); n++) {
-                            if(strEl->GetNodeLayer(n)->SelectEffectByTypeInTimeRange(effectText, startendtime.first, startendtime.second) != 0 && first) {
-                                mainSequencer->PanelEffectGrid->RaiseSelectedEffectChanged(strEl->GetNodeLayer(n)->GetEffectsByTypeAndTime(effectText, startendtime.first, startendtime.second)[0], false);
-                                first = false;
-                            }
-                        }
-                    }
+        for (auto value : effectsSelected)
+        {
+            const std::string& effectText = ListBox_Select_Effects->GetString(value).ToStdString();
+            Effect* eff = (Effect*)ListBox_Select_Effects->GetClientData(value);
+            if (eff != nullptr)
+            {
+                eff->SetSelected(EFFECT_SELECTED);
+                if (first)
+                {
+                    mainSequencer->PanelEffectGrid->RaiseSelectedEffectChanged(eff, false);
+                    first = false;
                 }
             }
         }
@@ -282,22 +244,15 @@ void SelectPanel::SelectEffects()
     }
 }
 
-std::vector< Element * > SelectPanel::GetElements(const std::string& elementName)
-{
-    std::vector< Element * > elements;
-    if (elementName.empty())return elements;
-    elements = mSequenceElements->SearchForElements(elementName, mSequenceElements->GetCurrentView());
-    return elements;
-}
-
-void SelectPanel::OnListBox_Select_TypesSelect(wxCommandEvent& event)
+void SelectPanel::OnListBox_Select_EffectsSelect(wxCommandEvent& event)
 {
     SelectEffects();
 }
 
 void SelectPanel::OnButton_Select_RefreshClick(wxCommandEvent& event)
 {
-    ReloadModels();
+    populateModelsList(event.GetString().ToStdString());
+    populateEffectsList();
 }
 
 void SelectPanel::OnComboBox_Select_ModelsTextEnter(wxCommandEvent& event)
@@ -305,27 +260,22 @@ void SelectPanel::OnComboBox_Select_ModelsTextEnter(wxCommandEvent& event)
     populateModelsList(event.GetString().ToStdString());
 }
 
-void SelectPanel::OnListBox_Select_FoundSelect(wxCommandEvent& event)
+void SelectPanel::OnListBox_Select_ModelsSelect(wxCommandEvent& event)
 {
     populateEffectsList();
 }
 
-void SelectPanel::OnButton_Select_SearchClick(wxCommandEvent& event)
-{
-    populateModelsList(ComboBox_Select_Models->GetValue().ToStdString());
-}
-
 void SelectPanel::OnButton_Select_Model_AllClick(wxCommandEvent& event)
 {
-    for (size_t i = 0; i < ListBox_Select_Found->GetCount(); ++i)
-        ListBox_Select_Found->SetSelection(i);
+    for (size_t i = 0; i < ListBox_Select_Models->GetCount(); ++i)
+        ListBox_Select_Models->SetSelection(i);
     populateEffectsList();
 }
 
 void SelectPanel::OnButton_Select_Effect_AllClick(wxCommandEvent& event)
 {
-    for (size_t i = 0; i < ListBox_Select_Types->GetCount(); ++i)
-        ListBox_Select_Types->SetSelection(i);
+    for (size_t i = 0; i < ListBox_Select_Effects->GetCount(); ++i)
+        ListBox_Select_Effects->SetSelection(i);
     SelectEffects();
 }
 
@@ -350,5 +300,25 @@ std::pair< int, int > SelectPanel::GetStartAndEndTime()
 void SelectPanel::OnButton_Select_All_TimeClick(wxCommandEvent& event)
 {
     TextCtrl_Select_StartTime->SetValue("0.000");
-    TextCtrl_Select_EndTime->SetValue(std::to_string(double(mainSequencer->PanelTimeLine->GetTimeLength() / 1000.0)).substr(0, 7));
+    TextCtrl_Select_EndTime->SetValue(wxString::Format("%.5f", (mainSequencer->PanelTimeLine->GetTimeLength() / 1000.0)));
+}
+
+void SelectPanel::OnComboBox_Select_EffectDropdown(wxCommandEvent& event)
+{
+    GetEffectTypes();
+}
+
+void SelectPanel::OnComboBox_Select_EffectSelected(wxCommandEvent& event)
+{
+    populateModelsList(ComboBox_Select_Effect->GetValue().ToStdString());
+}
+
+void SelectPanel::GetEffectTypes()
+{
+    auto const& types = mSequenceElements->GetAllUsedEffectTypes();
+    std::vector<wxString> keys;
+    for (std::string const& typ : types)
+        keys.push_back(typ);
+    std::sort(keys.begin(), keys.end());
+    ComboBox_Select_Effect->Set(keys);
 }

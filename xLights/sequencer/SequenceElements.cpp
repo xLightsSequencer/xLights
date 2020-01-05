@@ -4,7 +4,6 @@
 #include <wx/filename.h>
 
 #include <algorithm>
-#include <regex>
 
 #include "SequenceElements.h"
 #include "TimeLine.h"
@@ -149,48 +148,6 @@ EffectLayer* SequenceElements::GetEffectLayer(int row) {
 EffectLayer* SequenceElements::GetVisibleEffectLayer(int row) {
     if (row == -1) return nullptr;
     return GetEffectLayer(GetVisibleRowInformation(row));
-}
-
-std::vector < Element*> SequenceElements::SearchForElements(const std::string &regex, int view) const
-{
-    std::vector < Element*> foundModels;
-    if (mAllViews.size() == 0) return foundModels;
-    try
-    {
-        std::regex reg(regex);
-
-        for (size_t i = 0; i < mAllViews[view].size(); ++i)
-        {
-            Element *el = mAllViews[view][i];
-            if (el->GetFullName().empty()) continue;
-            if (el->GetType() == ELEMENT_TYPE_TIMING) continue;
-            if (std::regex_match(el->GetFullName(), reg))
-            {
-                foundModels.push_back(mAllViews[view][i]);
-            }
-            if (el->GetType() == ELEMENT_TYPE_MODEL) {
-                ModelElement* mel = dynamic_cast<ModelElement*>(el);
-                if (mel != nullptr)
-                {
-                    for (int x = 0; x < mel->GetSubModelAndStrandCount(); ++x)
-                    {
-                        SubModelElement* sme = mel->GetSubModel(x);
-                        if (sme != nullptr)
-                        {
-                            if (sme->GetFullName().empty()) continue;
-                            if (std::regex_match(sme->GetFullName(), reg)) {
-                                foundModels.push_back(sme);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-    catch (std::regex_error& e)
-    {
-    }
-    return foundModels;
 }
 
 static Element* CreateElement(SequenceElements *se, const std::string &name, const std::string &type,
@@ -378,8 +335,8 @@ std::string SequenceElements::GetViewModels(const std::string &viewName) const
     }
     else
     {
-		auto view = _viewsManager->GetView(viewName);
-		result = view->GetModelsString();
+        auto view = _viewsManager->GetView(viewName);
+        result = view->GetModelsString();
     }
     return result;
 }
@@ -976,7 +933,7 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file, const wxStrin
 void SequenceElements::PrepareViews(xLightsXmlFile& xml_file) {
     // Select view and set current view models as visible
     int last_view = xml_file.GetLastView();
-	auto views = _viewsManager->GetViews();
+    auto views = _viewsManager->GetViews();
     for(auto it = views.begin(); it != views.end(); ++it)
     {
         std::vector <Element*> new_view;
@@ -1078,8 +1035,8 @@ void SequenceElements::SetTimingVisibility(const std::string& name)
 
 void SequenceElements::AddTimingToAllViews(const std::string& timing)
 {
-	auto views = _viewsManager->GetViews();
-	for (auto it = views.begin(); it != views.end(); ++it)
+    auto views = _viewsManager->GetViews();
+    for (auto it = views.begin(); it != views.end(); ++it)
     {
         AddTimingToView(timing, (*it)->GetName());
     }
@@ -1781,6 +1738,34 @@ std::list<std::string> SequenceElements::GetAllEffectDescriptions()
                     if (eff->GetDescription() != "" && std::find(res.begin(), res.end(), eff->GetDescription().ToStdString()) == res.end())
                     {
                         res.push_back(eff->GetDescription().ToStdString());
+                    }
+                }
+            }
+        }
+    }
+
+    return res;
+}
+
+std::list<std::string> SequenceElements::GetAllUsedEffectTypes() const
+{
+    std::list<std::string> res;
+
+    for (size_t i = 0; i < GetElementCount(); i++)
+    {
+        Element* e = GetElement(i);
+        if (e->GetType() != ELEMENT_TYPE_TIMING)
+        {
+            for (size_t j = 0; j < e->GetEffectLayerCount(); j++)
+            {
+                EffectLayer* el = e->GetEffectLayer(j);
+                for (int k = 0; k < el->GetEffectCount(); k++)
+                {
+                    Effect* eff = el->GetEffect(k);
+
+                    if (std::find(res.begin(), res.end(), eff->GetEffectName()) == res.end())
+                    {
+                        res.push_back(eff->GetEffectName());
                     }
                 }
             }
