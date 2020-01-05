@@ -181,7 +181,7 @@ void SelectPanel::populateEffectsList()
             if (el == nullptr || el->GetType() == ELEMENT_TYPE_TIMING)
                 continue;
 
-            auto & tmpname = wxString();
+            wxString tmpname;
             if (modelsSelected.size() > 1)
                 tmpname = modelname;
 
