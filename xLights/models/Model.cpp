@@ -4804,6 +4804,7 @@ Model* Model::GetXlightsModel(Model* model, std::string &last_model, xLightsFram
                         model->GetModelXml()->AddAttribute("Description", XmlSafe("Mode: " + mode));
                     }
 
+                    std::vector<std::string> nodeNames = std::vector<std::string>(channels);
                     std::map<std::string, std::map<std::string, std::string> > stateInfo;
 
                     for (const auto& it : _channels)
@@ -4860,7 +4861,29 @@ Model* Model::GetXlightsModel(Model* model, std::string &last_model, xLightsFram
 
                             stateInfo[it->_attribute] = states;
                         }
+
+                        // Build the node names
+                        if (it->_channels == 1)
+                        {
+                            nodeNames[it->_channelStart - 1] = it->_attribute;
+                        }
+                        else
+                        {
+                            for (int i = 0; i < it->_channels; i++)
+                            {
+                                nodeNames[it->_channelStart + i - 1] = it->_attribute + wxString::Format("-%d", i + 1).ToStdString();
+                            }
+                        }
                     }
+
+                    std::string nodenames = "";
+                    for (const auto& s : nodeNames)
+                    {
+                        if (nodenames != "") nodenames += ",";
+                        nodenames += s;
+                    }
+                    model->GetModelXml()->DeleteAttribute("NodeNames");
+                    model->GetModelXml()->AddAttribute("NodeNames", nodenames);
 
                     if (stateInfo.size() > 0)
                     {
