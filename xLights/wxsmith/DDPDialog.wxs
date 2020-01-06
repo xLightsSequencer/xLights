@@ -194,7 +194,9 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxTextCtrl" name="ID_TEXTCTRL3" variable="FPPProxyHost" member="yes" />
+						<object class="wxTextCtrl" name="ID_TEXTCTRL3" variable="FPPProxyHost" member="yes">
+							<handler function="OnFPPProxyHostText" entry="EVT_TEXT" />
+						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>5</border>
 						<option>1</option>

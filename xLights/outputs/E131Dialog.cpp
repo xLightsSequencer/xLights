@@ -148,6 +148,7 @@ E131Dialog::E131Dialog(wxWindow* parent, E131Output* e131, OutputManager* output
     Connect(ID_TEXTCTRL_DESCRIPTION,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&E131Dialog::OnTextCtrl_DescriptionText);
     Connect(ID_CHOICE1,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&E131Dialog::OnControllerChoiceSelect);
     Connect(ID_CHECKBOX_AUTO_CHANNELS,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&E131Dialog::OnCheckBox_Auto_ChannelsClick);
+    Connect(ID_TEXTCTRL1,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&E131Dialog::OnFPPProxyIPText);
     Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&E131Dialog::OnButton_OkClick);
     Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&E131Dialog::OnButton_CancelClick);
     Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&E131Dialog::OnVisualizeButtonClick);
@@ -254,6 +255,11 @@ void E131Dialog::OnCheckBox_Auto_ChannelsClick(wxCommandEvent& event)
     ValidateWindow();
 }
 
+void E131Dialog::OnFPPProxyIPText(wxCommandEvent& event)
+{
+	ValidateWindow();
+}
+
 void E131Dialog::OnButton_OkClick(wxCommandEvent& event)
 {
     SaveFields();
@@ -308,7 +314,8 @@ void E131Dialog::ValidateWindow()
          SpinCtrl_StartUniv->GetValue() + SpinCtrl_NumUniv->GetValue() >= 64000) ||
 		(CheckBox_Auto_Channels->IsChecked() && TextCtrl_Description->GetValue().empty()) ||
 		(CheckBox_Auto_Channels->IsChecked() && !IsUniqueDescription(TextCtrl_Description->GetValue(), _e131, _outputManager)) ||
-			(CheckBox_Auto_Channels->IsChecked() && !IsUniqueIP(TextCtrlIpAddr->GetValue(), _e131, _outputManager)))
+		(CheckBox_Auto_Channels->IsChecked() && !IsUniqueIP(TextCtrlIpAddr->GetValue(), _e131, _outputManager)) ||
+		TextCtrlIpAddr->GetValue() == FPPProxyIP->GetValue())
 	{
         Button_Ok->Enable(false);
     } else {

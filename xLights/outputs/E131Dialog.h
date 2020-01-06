@@ -85,6 +85,7 @@ private:
     void OnVisualizeButtonClick(wxCommandEvent& event);
     void OnControllerChoiceSelect(wxCommandEvent& event);
     void OnCheckBox_Auto_ChannelsClick(wxCommandEvent& event);
+    void OnFPPProxyIPText(wxCommandEvent& event);
     //*)
 
     void SaveFields();

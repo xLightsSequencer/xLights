@@ -132,6 +132,7 @@ DDPDialog::DDPDialog(wxWindow* parent, DDPOutput* DDP, OutputManager* outputMana
 
 	Connect(ID_TEXTCTRL1,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&DDPDialog::OnTextCtrlIPAddressText);
 	Connect(ID_CHOICE1,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&DDPDialog::OnControllerTypeChoiceSelect);
+	Connect(ID_TEXTCTRL3,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&DDPDialog::OnFPPProxyHostText);
 	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&DDPDialog::OnButtonOkClick);
 	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&DDPDialog::OnButtonCancelClick);
 	Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&DDPDialog::OnVisualizeButtonClick);
@@ -184,6 +185,11 @@ void DDPDialog::OnTextCtrlIPAddressText(wxCommandEvent& event)
     ValidateWindow();
 }
 
+void DDPDialog::OnFPPProxyHostText(wxCommandEvent& event)
+{
+	ValidateWindow();
+}
+
 void DDPDialog::OnButtonOkClick(wxCommandEvent& event) {
     SaveDDPFields();
     EndDialog(wxID_OK);
@@ -219,7 +225,7 @@ void DDPDialog::ValidateWindow()
     if (ips == "") {
         ButtonOk->Disable();
     } else {
-        if (IsIPValidOrHostname(ips, true)) {
+        if (IsIPValidOrHostname(ips, true) && TextCtrlIPAddress->GetValue() != FPPProxyHost->GetValue()) {
             ButtonOk->Enable();
         } else {
             ButtonOk->Disable();

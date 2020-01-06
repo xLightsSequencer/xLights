@@ -76,6 +76,7 @@ class DDPDialog: public wxDialog
 		void OnButton1Click(wxCommandEvent& event);
 		void OnVisualizeButtonClick(wxCommandEvent& event);
 		void OnControllerTypeChoiceSelect(wxCommandEvent& event);
+		void OnFPPProxyHostText(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()
