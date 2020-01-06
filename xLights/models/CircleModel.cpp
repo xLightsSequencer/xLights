@@ -189,6 +189,7 @@ int CircleModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyG
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CircleModel::OnPropertyGridChange::CircleStart");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CircleModel::OnPropertyGridChange::CircleStart");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CircleModel::OnPropertyGridChange::CircleStart");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "CircleModel::OnPropertyGridChange::CircleLayerSizes");
         return 0;
     }
 
@@ -272,7 +273,7 @@ void CircleModel::SetCircleCoord() {
     screenLocation.SetRenderSize(maxLights, maxLights);
     int nodesToMap = NodeCount;
     int node = 0;
-    double maxRadius = circleSizes[0] / 2.0;
+    double maxRadius = maxLights/ 2.0;
     double minRadius = (double)parm3 / 100.0 * maxRadius;
     for (int c2 = 0; c2 < circleSizes.size(); c2++) {
         int circle = c2;

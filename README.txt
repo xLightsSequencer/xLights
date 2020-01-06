@@ -19,6 +19,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- bug (gil)    View Objects were still saving with version 3 positioning instead of 4 causing rotation changes to keep reversing in X and Y
    -- bug (gil)    Fix lasso'ed effects not properly selecting or setting the selected row
    -- bug (gil)    Fix an unselected effect on top or bottom row could block a group effect move
+   -- bug (gil)    Fix Circle model display when wiring starts in the center. Fixes #1905
+   -- bug (gil)    Fix Circle model not redrawing when changing wiring start location
 2020.1 January 3 2020
    -- enh (dkulp)  Change internal SequenceData storage to allow use of hugepages/superpages, not require a single gigantic storage blob
    -- enh (dkulp)  Upgrade Linux build to wxWidgets 3.1.3
