@@ -72,6 +72,7 @@ Source: "../../bin/xSMSDaemon.dll"; DestDir: "{app}"
 Source: "../../bin/xSMSDaemon.map"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "../../xSchedule\xSMSDaemon\Blacklist.txt"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "../../xSchedule\xSMSDaemon\Whitelist.txt"; DestDir: "{app}"; Flags: "ignoreversion"
+Source: "../../xSchedule\xSMSDaemon\PhoneBlacklist.txt"; DestDir: "{app}"; Flags: "ignoreversion"
 
 ; wxWidgets
 Source: "../../bin/wxmsw313u_gl_gcc_custom.dll"; DestDir: "{app}"; Flags: "ignoreversion"
