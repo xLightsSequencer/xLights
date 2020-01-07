@@ -59,36 +59,37 @@ void CleanupVideoToolbox(AVCodecContext *s) {
 }
 void InitVideoToolboxAcceleration() {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    NSDictionary *dict = @{
-        kCIContextHighQualityDownsample: @YES,
-        kCIContextCacheIntermediates: @NO,
-        kCIContextOutputPremultiplied: @NO,
-        kCIContextUseSoftwareRenderer: @NO,
-        kCIContextAllowLowPower: @YES
-    };
+    
+    NSMutableDictionary *dict = [[NSMutableDictionary alloc]init];
+    [dict setObject:@NO forKey:kCIContextUseSoftwareRenderer];
+    [dict setObject:@NO forKey:kCIContextOutputPremultiplied];
+    if (__builtin_available(macOS 10.11, *)) {
+        [dict setObject:@YES forKey:kCIContextHighQualityDownsample];
+    }
+    if (__builtin_available(macOS 10.12, *)) {
+        [dict setObject:@NO forKey:kCIContextCacheIntermediates];
+        [dict setObject:@YES forKey:kCIContextAllowLowPower];
+    }
+
     ciContext = [[CIContext alloc] initWithOptions:dict];
 
     if (ciContext == nullptr) {
         logger_base.info("Could not create hardware context for scaling.");
         // wasn't able to create the context, let's try
         // with allowing the software renderer
-        dict = @{
-            kCIContextHighQualityDownsample: @YES,
-            kCIContextCacheIntermediates: @NO,
-            kCIContextOutputPremultiplied: @NO,
-            kCIContextUseSoftwareRenderer: @YES,
-            kCIContextAllowLowPower: @YES
-        };
+        [dict setObject:@YES forKey:kCIContextUseSoftwareRenderer];
         ciContext = [[CIContext alloc] initWithOptions:dict];
     }
     if (ciContext == nullptr) {
         logger_base.info("Could not create context for scaling.");
     } else {
         [ciContext retain];
+
+        rbFlipKernel = [CIColorKernel kernelWithString: @"kernel vec4 swapRedAndGreenAmount(__sample s) { return s.bgra; }" ];
+        [rbFlipKernel retain];
     }
 
-    rbFlipKernel = [CIColorKernel kernelWithString: @"kernel vec4 swapRedAndGreenAmount(__sample s) { return s.bgra; }" ];
-    [rbFlipKernel retain];
+    logger_base.info("Hardware decoder initialized.");
 }
 
 
