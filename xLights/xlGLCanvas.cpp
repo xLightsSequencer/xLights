@@ -181,7 +181,6 @@ xlGLCanvas::xlGLCanvas(wxWindow* parent, wxWindowID id, const wxPoint &pos,
         mWindowResized(false),
         mIsInitialized(false),
         m_context(nullptr),
-        m_baseContext(nullptr),
         m_coreProfile(true),
         cache(nullptr),
         _name(name)
@@ -248,15 +247,12 @@ xlGLCanvas::xlGLCanvas(wxWindow* parent, wxWindowID id, const wxPoint &pos,
 
 xlGLCanvas::~xlGLCanvas()
 {
-    if (m_context) {
+    if (m_context && m_context != m_sharedContext) {
         m_context->SetCurrent(*this);
         if (cache != nullptr) {
             DrawGLUtils::DestroyCache(cache);
         }
         delete m_context;
-    }
-    if (m_baseContext) {
-        delete m_baseContext;
     }
 }
 
@@ -540,9 +536,6 @@ void xlGLCanvas::CreateGLContext() {
     static log4cpp::Category &logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
     if (m_context == nullptr) {
         wxGLContext *base = m_sharedContext;
-        if (m_baseContext) {
-            base = m_baseContext;
-        }
         //trying to detect OGL verions and stuff can result in unwanted logs
         wxLogLevel cur = wxLog::GetLogLevel();
         wxLog::SetLogLevel(wxLOG_Error);
@@ -594,7 +587,7 @@ void xlGLCanvas::CreateGLContext() {
             functionsLoaded = DrawGLUtils::LoadGLFunctions();
             glGetError(); // likely a function not there
         }
-        if (!m_context->IsOK()) {
+        if (m_context && !m_context->IsOK()) {
             LOG_GL_ERRORV(delete m_context);
             _ver = 0;
             m_context = nullptr;
@@ -605,20 +598,13 @@ void xlGLCanvas::CreateGLContext() {
         if (m_context == nullptr) {
             _ver = 0;
             logger_opengl.error("Error creating GL context.");
+            m_context = m_sharedContext;
+            InitializeGLContext();
         } else if (m_sharedContext == nullptr) {
             //use this as the shared context, then create a new one.
             m_sharedContext = m_context;
             m_context = nullptr;
             CreateGLContext();
-#ifdef __WXOSX__
-        } else if (m_baseContext == nullptr
-                   && wxPlatformInfo::Get().CheckOSVersion(10, 14, 5)
-                   && !wxPlatformInfo::Get().CheckOSVersion(10, 14, 6)) {
-            //use this as the base context, then create a new one.
-            m_baseContext = m_context;
-            m_context = nullptr;
-            CreateGLContext();
-#endif
         } else {
             InitializeGLContext();
         }
@@ -631,14 +617,6 @@ void xlGLCanvas::Resized(wxSizeEvent& evt)
     mWindowHeight = evt.GetSize().GetHeight();
     mWindowResized = true;
 #ifdef __WXOSX__
-    if (m_context) {
-        if (wxPlatformInfo::Get().CheckOSVersion(10, 14, 5)
-            && !wxPlatformInfo::Get().CheckOSVersion(10, 14, 6)) {
-            m_context->SetCurrent(*this);
-            delete m_context;
-            m_context = nullptr;
-        }
-    }
     Refresh();
 #endif
 }
