@@ -507,7 +507,7 @@ namespace DrawGLUtils
         virtual void ensureSize(unsigned int i) = 0;
 
         virtual void Ortho(int topleft_x, int topleft_y, int bottomright_x, int bottomright_y) = 0;
-        virtual void Perspective(int topleft_x, int topleft_y, int bottomright_x, int bottomright_y) = 0;
+        virtual void Perspective(int topleft_x, int topleft_y, int bottomright_x, int bottomright_y, int zDepth) = 0;
         virtual void SetCamera(glm::mat4& view_matrix) = 0;
         virtual void PushMatrix() = 0;
         virtual void PopMatrix() = 0;

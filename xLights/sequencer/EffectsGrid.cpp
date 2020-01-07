@@ -6460,6 +6460,7 @@ void EffectsGrid::Draw()
     }
     SetCurrentGLContext();
 
+    LOG_GL_ERRORV(glClearColor(0.0f, 0.0f, 0.0f, 1.0f)); // Black Background
     LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT));
     prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
 

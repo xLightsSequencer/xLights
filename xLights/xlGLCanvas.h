@@ -54,7 +54,9 @@ class xlGLCanvas
 			  unsigned char *tmpBuf;
 		  };
     
+        int GetZDepth() const { return m_zDepth;}
         static wxGLContext *GetSharedContext() { return m_sharedContext; }
+    
     protected:
       	DECLARE_EVENT_TABLE()
 
@@ -88,6 +90,7 @@ class xlGLCanvas
         wxString _name;
         wxGLContext* m_context;
         bool m_coreProfile;
+        int  m_zDepth;
     
         static wxGLContext *m_sharedContext;
 };

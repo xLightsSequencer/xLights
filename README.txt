@@ -11,6 +11,10 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (dkulp)  OpenGL - Allow 24bit depth buffer for OpenGL canvas.
+   -- enh (dkulp)  OpenGL - For <=16bit depth buffer for OpenGL canvas, adjust the near clipping plane to provide more precision for z-depth to use.  This fixes most issues with Render Style 1 on Intel.
+   -- bug/enh (dkulp) OpenGL - Always create canvas with depth buffer.  This is required for SideCar.
+   -- enh (dkulp)  OpenGL - if problems creating context, fallback to using the shared context.  Mostly works fine to share it.  Should happen, but occasionally does with SideCar.
    -- enh (scott)  Rewrote Select Effect Panel. Effects can be selected by Effect Type. Removed Regex Searching.
    -- enh (gil)    Reorganized DMX models into separate classes.  Make sure you have backups of your show folder
                    just in case since it was a huge change.

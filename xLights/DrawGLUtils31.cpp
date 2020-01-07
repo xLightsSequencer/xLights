@@ -1130,11 +1130,15 @@ public:
         matrix = new glm::mat4(m);
     }
 
-    void Perspective(int topleft_x, int topleft_y, int bottomright_x, int bottomright_y) override {
+    void Perspective(int topleft_x, int topleft_y, int bottomright_x, int bottomright_y, int zDepth) override {
         if (matrix) {
             delete matrix;
         }
-        glm::mat4 m = glm::perspective(glm::radians(45.0f), (float) (bottomright_x-topleft_x) / (float)(topleft_y-bottomright_y), 1.0f, 10000.0f);
+        float min = 1.0f;
+        if (zDepth < 24) {
+            min = 50.0f;
+        }
+        glm::mat4 m = glm::perspective(glm::radians(45.0f), (float) (bottomright_x-topleft_x) / (float)(topleft_y-bottomright_y), min, 10000.0f);
         matrix = new glm::mat4(m);
     }
 

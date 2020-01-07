@@ -43,17 +43,13 @@ void DimmingCurvePanel::InitializeGLContext() {
     LOG_GL_ERRORV(glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA));
     LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
     prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
-    mIsInitialized = true;
 }
 void DimmingCurvePanel::render(wxPaintEvent& event) {
     if(!IsShownOnScreen()) return;
     if(!mIsInitialized) { InitializeGLCanvas(); }
 
     wxPaintDC(this);
-    SetCurrentGLContext();
-
-    LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
-    prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
+    InitializeGLContext();
 
     DrawGLUtils::xlVertexAccumulator va;
     va.PreAlloc(16);

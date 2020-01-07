@@ -25,6 +25,7 @@
 #include <wx/graphics.h>
 #include <wx/dcgraph.h>
 #include "Image_Loader.h"
+#include "xlGLCanvas.h"
 
 #include <map>
 #include "Image.h"
@@ -587,10 +588,14 @@ public:
         LOG_GL_ERRORV(glLoadIdentity());
     }
 
-    virtual void Perspective(int topleft_x, int topleft_y, int bottomright_x, int bottomright_y) override {
+    virtual void Perspective(int topleft_x, int topleft_y, int bottomright_x, int bottomright_y, int zDepth) override {
         LOG_GL_ERRORV(glMatrixMode(GL_PROJECTION));
         LOG_GL_ERRORV(glLoadIdentity());
-        glm::mat4 m = glm::perspective(glm::radians(45.0f), (float) (bottomright_x-topleft_x) / (float)(topleft_y-bottomright_y), 1.0f, 10000.0f);
+        float min = 1.0f;
+        if (zDepth < 24) {
+            min = 50.0f;
+        }
+        glm::mat4 m = glm::perspective(glm::radians(45.0f), (float) (bottomright_x-topleft_x) / (float)(topleft_y-bottomright_y), min, 10000.0f);
         LOG_GL_ERRORV(glLoadMatrixf(glm::value_ptr(m)));
 
         LOG_GL_ERRORV(glMatrixMode(GL_MODELVIEW));
@@ -688,10 +693,11 @@ void DrawGLUtils::SetViewport3D(xlGLCanvas &win, int topleft_x, int topleft_y, i
     x2 = bottomright_x;
     y2 = topleft_y;
 
+    int depth = win.GetZDepth();
     xlSetRetinaCanvasViewport(win, x,y,x2,y2);
     LOG_GL_ERRORV(glViewport(x,y,x2-x,y2-y));
 	LOG_GL_ERRORV(glScissor(0, 0, x2 - x, y2 - y));
-    currentCache->Perspective(topleft_x, topleft_y, bottomright_x, bottomright_y);
+    currentCache->Perspective(topleft_x, topleft_y, bottomright_x, bottomright_y, depth);
 	LOG_GL_ERRORV(glClearColor(0,0,0,0));   // background color
 	LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));
 }

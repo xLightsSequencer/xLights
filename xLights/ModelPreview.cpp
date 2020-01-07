@@ -1046,6 +1046,7 @@ bool ModelPreview::StartDrawing(wxDouble pointSize, bool fromPaint)
         // FIXME: transparent background does not draw correctly when depth testing enabled
         // enables depth testing to draw things in proper order
         glEnable(GL_DEPTH_TEST);
+        LOG_GL_ERRORV(glClearColor(0, 0, 0, 0));   // background color
         LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
         glDepthFunc(GL_LESS);
 

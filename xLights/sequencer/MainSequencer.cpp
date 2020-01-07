@@ -153,9 +153,7 @@ public:
         if(!IsShownOnScreen()) return;
         if(!mIsInitialized) { InitializeGLCanvas(); }
 
-        SetCurrentGLContext();
-        glClear(GL_COLOR_BUFFER_BIT);
-        prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
+        InitializeGLContext();
 
         _va.color = ColorManager::instance()->GetColor(ColorManager::COLOR_ROW_HEADER_TEXT);
 #define LINEGAP 1.2

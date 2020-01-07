@@ -38,7 +38,8 @@ void SequenceVideoPreview::paint( wxPaintEvent& evt )
 
    wxPaintDC( this );
    SetCurrentGLContext();
-
+   wxColour bg = GetBackgroundColour();
+   LOG_GL_ERRORV( glClearColor( bg.Red() / 255.f, bg.Green() / 255.f, bg.Blue() / 255.f, 0.f ) );
    LOG_GL_ERRORV( glClear( GL_COLOR_BUFFER_BIT ) );
 
    SwapBuffers();
