@@ -3140,7 +3140,6 @@ void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
         //create a new model
         m_previous_mouse_x = event.GetX();
         m_previous_mouse_y = event.GetY();
-        m_moving_handle = true;
         m_creating_bound_rect = false;
         const std::string& model_type = selectedButton->GetModelType();
 
@@ -3152,6 +3151,7 @@ void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
         }
 
         if (newModel != nullptr) {
+            m_moving_handle = true;
             newModel->SetLayoutGroup(currentLayoutGroup);
             if (model_type == "Poly Line") {
                 m_polyline_active = true;
