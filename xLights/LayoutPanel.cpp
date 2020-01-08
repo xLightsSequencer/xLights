@@ -3143,7 +3143,13 @@ void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
         m_moving_handle = true;
         m_creating_bound_rect = false;
         const std::string& model_type = selectedButton->GetModelType();
-        newModel = CreateNewModel(model_type);
+
+        if (model_type != "DMX") {
+            newModel = CreateNewModel(model_type);
+        }
+        else if (model_type == "DMX" && selectedDmxModelType != "") {
+            newModel = CreateNewModel(selectedDmxModelType);
+        }
 
         if (newModel != nullptr) {
             newModel->SetLayoutGroup(currentLayoutGroup);
