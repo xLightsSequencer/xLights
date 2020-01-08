@@ -1362,7 +1362,7 @@ m_handler(nullptr)
             m_compressionType = CompressionType::zlib;
             break;
             default:
-            LogErr(VB_SEQUENCE, "Unknown compression type: %d", (int)header[32]);
+            LogErr(VB_SEQUENCE, "Unknown compression type: %d", (int)header[20]);
         }
         
         uint32_t maxBlocks = header[21];
