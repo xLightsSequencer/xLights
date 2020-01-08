@@ -316,25 +316,25 @@ void HinksPixExportDialog::OnPopup(wxCommandEvent &event)
 {
     int id = event.GetId();
     if (id == ID_MNU_SELECTALL) {
-        for (size_t i = 0; i < CheckListBox_Sequences->GetItemCount(); i++) {
+        for (int i = 0; i < CheckListBox_Sequences->GetItemCount(); i++) {
             if (!CheckListBox_Sequences->IsItemChecked(i)) {
                 CheckListBox_Sequences->CheckItem(i, true);
             }
         }
     } else if (id == ID_MNU_SELECTNONE) {
-        for (size_t i = 0; i < CheckListBox_Sequences->GetItemCount(); i++) {
+        for (int i = 0; i < CheckListBox_Sequences->GetItemCount(); i++) {
             if (CheckListBox_Sequences->IsItemChecked(i)) {
                 CheckListBox_Sequences->CheckItem(i, false);
             }
         }
     } else if (id == ID_MNU_SELECTHIGH) {
-        for (size_t i = 0; i < CheckListBox_Sequences->GetItemCount(); i++) {
+        for (int i = 0; i < CheckListBox_Sequences->GetItemCount(); i++) {
             if (!CheckListBox_Sequences->IsItemChecked(i) && CheckListBox_Sequences->IsSelected(i)) {
                 CheckListBox_Sequences->CheckItem(i, true);
             }
         }
     } else if (id == ID_MNU_DESELECTHIGH) {
-        for (size_t i = 0; i < CheckListBox_Sequences->GetItemCount(); i++) {
+        for (int i = 0; i < CheckListBox_Sequences->GetItemCount(); i++) {
             if (CheckListBox_Sequences->IsItemChecked(i) && CheckListBox_Sequences->IsSelected(i)) {
                 CheckListBox_Sequences->CheckItem(i, false);
             }
@@ -676,7 +676,7 @@ void HinksPixExportDialog::OnButton_ExportClick(wxCommandEvent& event)
     }
 
     wxProgressDialog prgs("Generating HinksPix Files", "Generating HinksPix Files",
-        CheckListBoxControllers->GetCount() * (CheckListBox_Sequences->GetItemCount()*2) + 10,
+        CheckListBoxControllers->GetCount() * (CheckListBox_Sequences->GetItemCount()*2) + (CheckListBoxControllers->GetCount()*2) +1,
         this, wxPD_CAN_ABORT | wxPD_APP_MODAL | wxPD_AUTO_HIDE);
     prgs.Show();
 
@@ -685,9 +685,9 @@ void HinksPixExportDialog::OnButton_ExportClick(wxCommandEvent& event)
     wxString errorMsg;
     CheckListBoxControllers->GetCheckedItems(ch);
     int count = 0;
-    for (int i = 0; i < ch.Count(); i++)
+    for (auto const& index :ch)
     {
-        wxString const ip = _hixControllers[ch[i]];
+        wxString const ip = _hixControllers[index];
         prgs.Update(++count, "Generating HinksPix Files for " + ip);
         wxString controllerDrive = drive;
         if (ch.Count() > 1)
@@ -717,7 +717,7 @@ void HinksPixExportDialog::OnButton_ExportClick(wxCommandEvent& event)
                 wxString const media = CheckListBox_Sequences->GetItemText(fs, 1);
                 wxString const shortName = createUniqueShortName(fseq, names);
                 wxString const shortHseqName = shortName + ".hseq";
-                prgs.Update(++i, "Generating HSEQ File " + shortHseqName);
+                prgs.Update(++count, "Generating HSEQ File " + shortHseqName);
 
                 bool worked = Create_HinksPix_HSEQ_File(fseq, controllerDrive + wxFileName::GetPathSeparator() + shortHseqName, ip, startChan, endChan, errorMsg);
 
@@ -728,7 +728,7 @@ void HinksPixExportDialog::OnButton_ExportClick(wxCommandEvent& event)
                     uint32_t Sample_Rate_Used;
                     wxString tempFile;
                     auName = shortName + ".au";
-                    prgs.Update(++i, "Generating AU File " + auName);
+                    prgs.Update(++count, "Generating AU File " + auName);
                     worked &= Create_HinksPix_PCM_File(media, tempFile, &Size_PCM_Bytes, &Sample_Rate_Used, errorMsg);
 
                     if (worked)
@@ -744,7 +744,7 @@ void HinksPixExportDialog::OnButton_ExportClick(wxCommandEvent& event)
                     error = true;
             }
         }
-        prgs.Update(++i, "Generating Schedule File");
+        prgs.Update(++count, "Generating Schedule File");
         createPlayList(songs, controllerDrive);
         createSchedule(controllerDrive);
     }
