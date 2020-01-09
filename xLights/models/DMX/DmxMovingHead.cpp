@@ -1036,16 +1036,16 @@ void DmxMovingHead::ImportXlightsModel(std::string filename, xLightsFrame* xligh
                 }
             }
 
-            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DMXModel::ImportXlightsModel");
-            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DMXModel::ImportXlightsModel");
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxMovingHead::ImportXlightsModel");
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxMovingHead::ImportXlightsModel");
         }
         else
         {
-            DisplayError("Failure loading DMX model file.");
+            DisplayError("Failure loading DmxMovingHead model file.");
         }
     }
     else
     {
-        DisplayError("Failure loading DMX model file.");
+        DisplayError("Failure loading DmxMovingHead model file.");
     }
 }

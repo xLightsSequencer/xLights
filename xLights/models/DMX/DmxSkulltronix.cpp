@@ -1277,16 +1277,16 @@ void DmxSkulltronix::ImportXlightsModel(std::string filename, xLightsFrame* xlig
                 }
             }
 
-            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DMXModel::ImportXlightsModel");
-            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DMXModel::ImportXlightsModel");
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxSkulltronix::ImportXlightsModel");
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxSkulltronix::ImportXlightsModel");
         }
         else
         {
-            DisplayError("Failure loading DMX model file.");
+            DisplayError("Failure loading DmxSkulltronix model file.");
         }
     }
     else
     {
-        DisplayError("Failure loading DMX model file.");
+        DisplayError("Failure loading DmxSkulltronix model file.");
     }
 }

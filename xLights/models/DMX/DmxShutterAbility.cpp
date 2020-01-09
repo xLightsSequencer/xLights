@@ -33,17 +33,17 @@ int DmxShutterAbility::OnShutterPropertyGridChange(wxPropertyGridInterface *grid
      if ("DmxShutterChannel" == event.GetPropertyName()) {
          ModelXml->DeleteAttribute("DmxShutterChannel");
          ModelXml->AddAttribute("DmxShutterChannel", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-         base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DMXModel::OnPropertyGridChange::DMXShutterChannel");
-         base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DMXModel::OnPropertyGridChange::DMXShutterChannel");
-         base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DMXModel::OnPropertyGridChange::DMXShutterChannel");
+         base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxShutterAbility::OnPropertyGridChange::DMXShutterChannel");
+         base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxShutterAbility::OnPropertyGridChange::DMXShutterChannel");
+         base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxShutterAbility::OnPropertyGridChange::DMXShutterChannel");
          return 0;
      }
      else if ("DmxShutterOpen" == event.GetPropertyName()) {
          ModelXml->DeleteAttribute("DmxShutterOpen");
          ModelXml->AddAttribute("DmxShutterOpen", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-         base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DMXModel::OnPropertyGridChange::DMXShutterOpen");
-         base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DMXModel::OnPropertyGridChange::DMXShutterOpen");
-         base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DMXModel::OnPropertyGridChange::DMXShutterOpen");
+         base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxShutterAbility::OnPropertyGridChange::DMXShutterOpen");
+         base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxShutterAbility::OnPropertyGridChange::DMXShutterOpen");
+         base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxShutterAbility::OnPropertyGridChange::DMXShutterOpen");
          return 0;
      }
      return -1;
