@@ -270,6 +270,7 @@
     <ClCompile Include="models\DMX\DmxMovingHead.cpp" />
     <ClCompile Include="models\DMX\DmxMovingHead3D.cpp" />
     <ClCompile Include="models\DMX\DmxPanTiltAbility.cpp" />
+    <ClCompile Include="models\DMX\DmxShutterAbility.cpp" />
     <ClCompile Include="models\DMX\DmxSkulltronix.cpp" />
     <ClCompile Include="models\GridlinesObject.cpp" />
     <ClCompile Include="models\ImageModel.cpp" />
@@ -669,6 +670,7 @@
     <ClInclude Include="models\DMX\DmxMovingHead.h" />
     <ClInclude Include="models\DMX\DmxMovingHead3D.h" />
     <ClInclude Include="models\DMX\DmxPanTiltAbility.h" />
+    <ClInclude Include="models\DMX\DmxShutterAbility.h" />
     <ClInclude Include="models\DMX\DmxSkulltronix.h" />
     <ClInclude Include="models\GridlinesObject.h" />
     <ClInclude Include="models\ImageModel.h" />

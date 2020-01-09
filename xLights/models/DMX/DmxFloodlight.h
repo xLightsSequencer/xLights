@@ -3,8 +3,9 @@
 
 #include "DmxModel.h"
 #include "DmxColorAbility.h"
+#include "DmxShutterAbility.h"
 
-class DmxFloodlight : public DmxModel, DmxColorAbility
+class DmxFloodlight : public DmxModel, public DmxColorAbility, public DmxShutterAbility
 {
     public:
         DmxFloodlight(wxXmlNode *node, const ModelManager &manager, bool zeroBased = false);

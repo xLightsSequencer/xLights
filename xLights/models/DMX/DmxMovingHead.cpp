@@ -17,7 +17,7 @@
 
 DmxMovingHead::DmxMovingHead(wxXmlNode *node, const ModelManager &manager, bool zeroBased)
   : DmxModel(node, manager, zeroBased), hide_body(false), style_changed(false), dmx_style("MOVING_HEAD_TOP"),
-    dmx_style_val(0), shutter_channel(0), shutter_threshold(1), beam_length(4)
+    dmx_style_val(0), beam_length(4)
 {
     SetFromXml(node, zeroBased);
     color_ability = this;
@@ -25,7 +25,7 @@ DmxMovingHead::DmxMovingHead(wxXmlNode *node, const ModelManager &manager, bool 
 
 DmxMovingHead::DmxMovingHead(const ModelManager &manager)
   : DmxModel(manager), hide_body(false), style_changed(false), dmx_style("MOVING_HEAD_TOP"),
-    dmx_style_val(0), shutter_channel(0), shutter_threshold(1), beam_length(4)
+    dmx_style_val(0), beam_length(4)
 {
     color_ability = this;
 }
@@ -124,16 +124,7 @@ void DmxMovingHead::AddTypeProperties(wxPropertyGridInterface *grid) {
 
     AddPanTiltTypeProperties(grid);
     AddColorTypeProperties(grid);
-
-    p = grid->Append(new wxUIntProperty("Shutter Channel", "DmxShutterChannel", shutter_channel));
-    p->SetAttribute("Min", 0);
-    p->SetAttribute("Max", 512);
-    p->SetEditor("SpinCtrl");
-
-    p = grid->Append(new wxIntProperty("Shutter Open Threshold", "DmxShutterOpen", shutter_threshold));
-    p->SetAttribute("Min", -255);
-    p->SetAttribute("Max", 255);
-    p->SetEditor("SpinCtrl");
+    AddShutterTypeProperties(grid);
 
     p = grid->Append(new wxFloatProperty("Beam Display Length", "DmxBeamLength", beam_length));
     p->SetAttribute("Min", 0);
@@ -150,6 +141,10 @@ int DmxMovingHead::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropert
     }
 
     if (OnPanTiltPropertyGridChange(grid, event, ModelXml, this) == 0) {
+        return 0;
+    }
+
+    if (OnShutterPropertyGridChange(grid, event, ModelXml, this) == 0) {
         return 0;
     }
 
@@ -185,19 +180,6 @@ int DmxMovingHead::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropert
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DMXModel::OnPropertyGridChange::HideBody");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DMXModel::OnPropertyGridChange::HideBody");
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DMXModel::OnPropertyGridChange::HideBody");
-    } else if ("DmxShutterChannel" == event.GetPropertyName()) {
-        ModelXml->DeleteAttribute("DmxShutterChannel");
-        ModelXml->AddAttribute("DmxShutterChannel", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DMXModel::OnPropertyGridChange::DMXShutterChannel");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DMXModel::OnPropertyGridChange::DMXShutterChannel");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DMXModel::OnPropertyGridChange::DMXShutterChannel");
-        return 0;
-    } else if ("DmxShutterOpen" == event.GetPropertyName()) {
-        ModelXml->DeleteAttribute("DmxShutterOpen");
-        ModelXml->AddAttribute("DmxShutterOpen", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DMXModel::OnPropertyGridChange::DMXShutterOpen");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DMXModel::OnPropertyGridChange::DMXShutterOpen");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DMXModel::OnPropertyGridChange::DMXShutterOpen");
         return 0;
     } else if ("DmxBeamLength" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxBeamLength");

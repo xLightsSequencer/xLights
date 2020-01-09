@@ -28,6 +28,7 @@ void DmxFloodlight::AddTypeProperties(wxPropertyGridInterface* grid) {
 
     DmxModel::AddTypeProperties(grid);
     AddColorTypeProperties(grid);
+    AddShutterTypeProperties(grid);
 }
 
 void DmxFloodlight::DisableUnusedProperties(wxPropertyGridInterface* grid)
@@ -52,6 +53,10 @@ int DmxFloodlight::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropert
         return 0;
     }
 
+    if (OnShutterPropertyGridChange(grid, event, ModelXml, this) == 0) {
+        return 0;
+    }
+
     return DmxModel::OnPropertyGridChange(grid, event);
 }
 
@@ -62,10 +67,26 @@ void DmxFloodlight::InitModel() {
     green_channel = wxAtoi(ModelXml->GetAttribute("DmxGreenChannel", "2"));
     blue_channel = wxAtoi(ModelXml->GetAttribute("DmxBlueChannel", "3"));
     white_channel = wxAtoi(ModelXml->GetAttribute("DmxWhiteChannel", "0"));
+    shutter_channel = wxAtoi(ModelXml->GetAttribute("DmxShutterChannel", "0"));
+    shutter_threshold = wxAtoi(ModelXml->GetAttribute("DmxShutterOpen", "1"));
 }
 
 void DmxFloodlight::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &va, const xlColor *c, float &sx, float &sy, bool active)
 {
+    // determine if shutter is open for floods that support it
+    bool shutter_open = true;
+    if (shutter_channel > 0 && active) {
+        xlColor proxy;
+        Nodes[shutter_channel - 1]->GetColor(proxy);
+        int shutter_value = proxy.red;
+        if (shutter_value >= 0) {
+            shutter_open = shutter_value >= shutter_threshold;
+        }
+        else {
+            shutter_open = shutter_value <= std::abs(shutter_threshold);
+        }
+    }
+
     size_t NodeCount=Nodes.size();
 
     if( red_channel > NodeCount ||
@@ -127,12 +148,29 @@ void DmxFloodlight::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccu
     float rh = ((BoxedScreenLocation)screenLocation).GetMWidth();
     float rw = ((BoxedScreenLocation)screenLocation).GetMHeight();
 	float min_size = (float)(std::min(rh, rw));
-    va.AddTrianglesCircle(sx, sy, min_size/2.0f, beam_color, ecolor);
-    va.Finish(GL_TRIANGLES);
+
+    if (shutter_open) {
+        va.AddTrianglesCircle(sx, sy, min_size / 2.0f, beam_color, ecolor);
+        va.Finish(GL_TRIANGLES);
+    }
 }
 
 void DmxFloodlight::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va, const xlColor *c, float &sx, float &sy, float &sz, bool active)
 {
+    // determine if shutter is open for floods that support it
+    bool shutter_open = true;
+    if (shutter_channel > 0 && active) {
+        xlColor proxy;
+        Nodes[shutter_channel - 1]->GetColor(proxy);
+        int shutter_value = proxy.red;
+        if (shutter_value >= 0) {
+            shutter_open = shutter_value >= shutter_threshold;
+        }
+        else {
+            shutter_open = shutter_value <= std::abs(shutter_threshold);
+        }
+    }
+
     size_t NodeCount = Nodes.size();
 
     if (red_channel > NodeCount ||
@@ -178,8 +216,10 @@ void DmxFloodlight::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Acc
 
     glm::quat rotation = GetModelScreenLocation().GetRotationQuat();
 
-    va.AddTrianglesRotatedCircle(sx, sy, sz, rotation, min_size / 2.0f, beam_color, ecolor);
-    va.Finish(GL_TRIANGLES);
+    if (shutter_open) {
+        va.AddTrianglesRotatedCircle(sx, sy, sz, rotation, min_size / 2.0f, beam_color, ecolor);
+        va.Finish(GL_TRIANGLES);
+    }
 }
 
 void DmxFloodlight::ExportXlightsModel()

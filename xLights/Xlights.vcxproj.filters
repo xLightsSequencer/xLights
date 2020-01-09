@@ -775,6 +775,9 @@
     <ClCompile Include="models\DMX\DmxMovingHead3D.cpp">
       <Filter>Models\DMX</Filter>
     </ClCompile>
+    <ClCompile Include="models\DMX\DmxShutterAbility.cpp">
+      <Filter>Models\DMX</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -1560,6 +1563,9 @@
       <Filter>Models\DMX</Filter>
     </ClInclude>
     <ClInclude Include="models\DMX\DmxMovingHead3D.h">
+      <Filter>Models\DMX</Filter>
+    </ClInclude>
+    <ClInclude Include="models\DMX\DmxShutterAbility.h">
       <Filter>Models\DMX</Filter>
     </ClInclude>
   </ItemGroup>

@@ -4,8 +4,9 @@
 #include "DmxModel.h"
 #include "DmxColorAbility.h"
 #include "DmxPanTiltAbility.h"
+#include "DmxShutterAbility.h"
 
-class DmxMovingHead : public DmxModel, public DmxColorAbility, public DmxPanTiltAbility
+class DmxMovingHead : public DmxModel, public DmxColorAbility, public DmxPanTiltAbility, public DmxShutterAbility
 {
     public:
         DmxMovingHead(wxXmlNode *node, const ModelManager &manager, bool zeroBased = false);
@@ -30,8 +31,6 @@ class DmxMovingHead : public DmxModel, public DmxColorAbility, public DmxPanTilt
         bool style_changed;
         std::string dmx_style;
         int dmx_style_val;
-        int shutter_channel;
-        int shutter_threshold;
         float beam_length;
 
     private:
