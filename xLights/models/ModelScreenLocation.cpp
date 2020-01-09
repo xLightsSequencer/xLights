@@ -1675,6 +1675,7 @@ int BoxedScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool Shif
         if (ShiftKeyPressed) {
             rotatez = (int)(rotatez / 5) * 5;
         }
+        rotate_quat = glm::angleAxis(glm::radians(rotatez), glm::vec3(0.0f, 0.0f, 1.0f));
     }
     else {
         if ((handle == L_TOP_HANDLE) || (handle == R_TOP_HANDLE)) {
