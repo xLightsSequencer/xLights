@@ -1541,6 +1541,7 @@ void xLightsFrame::OnGridNetworkItemRClick(wxListEvent& event)
     bool allSupportIp = AllSelectedSupportIP();
     bool doEnable = allSupportIp && (selcnt == 1 || validIpNoType);
     bool hasControllerConfigured = false;
+    bool isZCPP = false;
     bool hasProxyConfigured = false;
     Output *selected = nullptr;
     if (selcnt == 1) {
@@ -1555,6 +1556,10 @@ void xLightsFrame::OnGridNetworkItemRClick(wxListEvent& event)
             }
             if (selected->GetFPPProxyIP() != "") {
                 hasProxyConfigured = true;
+            }
+            if (selected->GetType() == "ZCPP")
+            {
+                isZCPP = true;
             }
         }
     }
@@ -1814,7 +1819,7 @@ void xLightsFrame::OnGridNetworkItemRClick(wxListEvent& event)
     wxMenuItem* mideu = mnu.Append(ID_NETWORK_DEACTIVATEUNUSED, "Deactivate Unused");
     wxMenuItem* oc = mnu.Append(ID_NETWORK_OPENCONTROLLER, "Open Controller");
     wxMenuItem* pc = mnu.Append(ID_NETWORK_PINGCONTROLLER, "Ping Controller");
-    if (hasControllerConfigured) {
+    if (hasControllerConfigured || isZCPP) {
         mnu.Append(ID_NETWORK_VISUALISE, "Visualise Controller");
     }
 
@@ -2032,7 +2037,7 @@ void xLightsFrame::OnNetworkPopup(wxCommandEvent &event)
         //FIXME - other targets
     } else if (id == ID_NETWORK_VISUALISE) {
         Output *selected = _outputManager.GetOutput(item);
-        VisualiseOutput(selected);
+        VisualiseOutput(selected, this);
     } else if (id == ID_NETWORK_BEIPADDR) {
         UpdateSelectedIPAddresses();
     } else if (id == ID_NETWORK_BECHANNELS) {
@@ -3437,12 +3442,15 @@ void xLightsFrame::DoSetupWork()
     DoWork(_outputModelManager.GetLayoutWork(), "Setup");
 }
 
-void xLightsFrame::VisualiseOutput(Output *e, wxWindow *parent) {
+void xLightsFrame::VisualiseOutput(Output* e, wxWindow* parent) {
     std::list<int> selected;
     std::string check;
     std::string ip = e->GetIP();
     UDController cud(e->GetResolvedIP(), ip, &AllModels, &_outputManager, &selected, check);
-    cud.Check(ControllerRegistry::GetRulesForController(e->GetControllerId()), check);
+    if (e->GetType() != "ZCPP")
+    {
+        cud.Check(ControllerRegistry::GetRulesForController(e->GetControllerId()), check);
+    }
     if (!parent) {
         parent = this;
     }

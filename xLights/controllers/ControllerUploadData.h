@@ -98,7 +98,10 @@ struct UDVirtualString
     std::string _description;
     int32_t _startChannel;
     int32_t _endChannel;
-    int Channels() const { return _endChannel - _startChannel + 1; }
+    int Channels() const { 
+        if (_models.size() == 0) return 0; 
+        return _endChannel - _startChannel + 1; 
+    }
     int _universe;
     int32_t _universeStartChannel;
     std::string _protocol;

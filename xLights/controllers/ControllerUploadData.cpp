@@ -745,6 +745,8 @@ int32_t UDControllerPort::Channels() const
 {
     if (_virtualStrings.size() == 0)
     {
+        if (_models.size() == 0) return 0;
+
         return GetEndChannel() - GetStartChannel() + 1;
     }
     else
