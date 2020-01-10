@@ -1105,7 +1105,7 @@ bool HinksPixExportDialog::Create_HinksPix_PCM_File(wxString const& inAudioFile,
                     {
                         W = (uint16_t*)out_buffer;
 
-                        for (i = 0; i < (outSamples * 2), i++;)	// stereo - two 16 bits words per sample
+                        for (i = 0; i < (outSamples * 2); i++)	// stereo - two 16 bits words per sample
                         {
                             *W = wxUINT16_SWAP_ALWAYS(*W);
                             W++;
@@ -1145,7 +1145,7 @@ bool HinksPixExportDialog::Create_HinksPix_PCM_File(wxString const& inAudioFile,
             {
                 W = (uint16_t*)out_buffer;
 
-                for (i = 0; i < (outSamples * 2), i++;)	// stereo - two 16 bits words per sample
+                for (i = 0; i < (outSamples * 2); i++)	// stereo - two 16 bits words per sample
                 {
                     *W = wxUINT16_SWAP_ALWAYS(*W);
                     W++;
