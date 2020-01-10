@@ -13,11 +13,6 @@ DmxFloodlight::DmxFloodlight(wxXmlNode *node, const ModelManager &manager, bool 
 {
     color_ability = this;
 }
-DmxFloodlight::DmxFloodlight(const ModelManager &manager)
-    : DmxModel(manager)
-{
-    color_ability = this;
-}
 
 DmxFloodlight::~DmxFloodlight()
 {

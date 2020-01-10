@@ -19,11 +19,6 @@ DmxSkulltronix::DmxSkulltronix(wxXmlNode *node, const ModelManager &manager, boo
     color_ability = this;
 }
 
-DmxSkulltronix::DmxSkulltronix(const ModelManager &manager) : DmxModel(manager)
-{
-    color_ability = this;
-}
-
 DmxSkulltronix::~DmxSkulltronix()
 {
     //dtor

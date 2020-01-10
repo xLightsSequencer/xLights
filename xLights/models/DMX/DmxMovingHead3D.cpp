@@ -22,12 +22,6 @@ DmxMovingHead3D::DmxMovingHead3D(wxXmlNode *node, const ModelManager &manager, b
     color_ability = this;
 }
 
-DmxMovingHead3D::DmxMovingHead3D(const ModelManager &manager)
-  : DmxMovingHead(manager)
-{
-    color_ability = this;
-}
-
 DmxMovingHead3D::~DmxMovingHead3D()
 {
     //dtor

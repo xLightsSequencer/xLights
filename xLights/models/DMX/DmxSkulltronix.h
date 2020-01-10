@@ -39,7 +39,6 @@ class DmxSkulltronix : public DmxModel, public DmxColorAbility, public DmxPanTil
         int GetEyeLRMaxLimit() {return eye_lr_max_limit;}
 
     protected:
-        DmxSkulltronix(const ModelManager &manager);
         virtual void InitModel() override;
 
         virtual void ExportXlightsModel() override;

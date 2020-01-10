@@ -18,7 +18,6 @@ class DmxMovingHead : public DmxModel, public DmxColorAbility, public DmxPanTilt
         virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
 
     protected:
-        DmxMovingHead(const ModelManager &manager);
         virtual void InitModel() override;
 
         virtual void ExportXlightsModel() override;
