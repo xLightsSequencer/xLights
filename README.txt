@@ -11,21 +11,26 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2020.2 January 11 2020
    -- enh (dkulp)  OpenGL - Allow 24bit depth buffer for OpenGL canvas.
    -- enh (dkulp)  OpenGL - For <=16bit depth buffer for OpenGL canvas, adjust the near clipping plane to provide more precision for z-depth to use.  This fixes most issues with Render Style 1 on Intel.
-   -- bug/enh (dkulp) OpenGL - Always create canvas with depth buffer.  This is required for SideCar.
    -- enh (dkulp)  OpenGL - if problems creating context, fallback to using the shared context.  Mostly works fine to share it.  Should happen, but occasionally does with SideCar.
    -- enh (scott)  Rewrote Select Effect Panel. Effects can be selected by Effect Type. Removed Regex Searching.
    -- enh (gil)    Reorganized DMX models into separate classes.  Make sure you have backups of your show folder
                    just in case since it was a huge change.
    -- enh (dkulp)  Reduce number of wxIdleEvent are being processed to reduce CPU usage
+   -- eng (keith)  Add support for the GDTF model file format in model import (DMX fixtures)
    -- bug (dkulp)  Videos with B frames may stop rendering.  Fixes #1902
+   -- bug (dkulp)  OpenGL - Always create canvas with depth buffer.  This is required for SideCar.
    -- bug (gil)    View Objects were still saving with version 3 positioning instead of 4 causing rotation changes to keep reversing in X and Y
    -- bug (gil)    Fix lasso'ed effects not properly selecting or setting the selected row
    -- bug (gil)    Fix an unselected effect on top or bottom row could block a group effect move
    -- bug (gil)    Fix Circle model display when wiring starts in the center. Fixes #1905
    -- bug (gil)    Fix Circle model not redrawing when changing wiring start location
    -- bug (gil)    Fix rotation handle not working for 2D square models
+   -- bug (keith)  Fix visualiser displays incorrect number of channels on unused serial output
+   -- bug (keith)  Add phone blacklist file to windows install
+   -- bug (scott)  Fix arches end channel not updating when node count changes
 2020.1 January 3 2020
    -- enh (dkulp)  Change internal SequenceData storage to allow use of hugepages/superpages, not require a single gigantic storage blob
    -- enh (dkulp)  Upgrade Linux build to wxWidgets 3.1.3
