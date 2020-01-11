@@ -216,6 +216,27 @@ void DmxServo::InitModel() {
     transparency = wxAtoi(ModelXml->GetAttribute("Transparency", "0"));
     brightness = wxAtoi(ModelXml->GetAttribute("Brightness", "100"));
 
+    servo_style = ModelXml->GetAttribute("ServoStyle", "Translate X");
+    servo_style_val = SERVO_STYLE_TRANSLATEX;
+    if (servo_style == "Translate X") {
+        servo_style_val = SERVO_STYLE_TRANSLATEX;
+    }
+    else if (servo_style == "Translate Y") {
+        servo_style_val = SERVO_STYLE_TRANSLATEY;
+    }
+    else if (servo_style == "Translate Z") {
+        servo_style_val = SERVO_STYLE_TRANSLATEZ;
+    }
+    else if (servo_style == "Rotate X") {
+        servo_style_val = SERVO_STYLE_ROTATEX;
+    }
+    else if (servo_style == "Rotate Y") {
+        servo_style_val = SERVO_STYLE_ROTATEY;
+    }
+    else if (servo_style == "Rotate Z") {
+        servo_style_val = SERVO_STYLE_ROTATEZ;
+    }
+
     if (static_image != nullptr) {
         static_image->Init(this, true, !motion_image->GetExists());
     }
