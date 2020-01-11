@@ -12,6 +12,8 @@
 #include "TreeModel.h"
 #include "CubeModel.h"
 #include "CustomModel.h"
+#include "DMX/DmxServo.h"
+#include "DMX/DmxServo3d.h"
 #include "DMX/DmxSkulltronix.h"
 #include "DMX/DmxFloodlight.h"
 #include "DMX/DmxMovingHead.h"
@@ -915,12 +917,6 @@ Model* ModelManager::CreateDefaultModel(const std::string &type, const std::stri
         node->DeleteAttribute("StringType");
         node->AddAttribute("StringType", "Single Color White");
         model = new DmxFloodlight(node, *this, false);
-        /*model->SetPixelSize(200);
-        node->DeleteAttribute("PixelSize");
-        node->AddAttribute("PixelSize", wxString::Format(wxT("%i"), 200));
-        model->SetPixelStyle(3);
-        node->DeleteAttribute("Antialias");
-        node->AddAttribute("Antialias", wxString::Format(wxT("%i"), 3));*/
     } else if (type == "DmxSkulltronix") {
         node->DeleteAttribute("parm1");
         node->AddAttribute("parm1", "26");
@@ -929,6 +925,22 @@ Model* ModelManager::CreateDefaultModel(const std::string &type, const std::stri
         node->DeleteAttribute("StringType");
         node->AddAttribute("StringType", "Single Color White");
         model = new DmxSkulltronix(node, *this, false);
+    } else if (type == "DmxServo") {
+        node->DeleteAttribute("parm1");
+        node->AddAttribute("parm1", "2");
+        node->DeleteAttribute("parm2");
+        node->AddAttribute("parm2", "1");
+        node->DeleteAttribute("StringType");
+        node->AddAttribute("StringType", "Single Color White");
+        model = new DmxServo(node, *this, false);
+    }  else if (type == "DmxServo3d") {
+        node->DeleteAttribute("parm1");
+        node->AddAttribute("parm1", "2");
+        node->DeleteAttribute("parm2");
+        node->AddAttribute("parm2", "1");
+        node->DeleteAttribute("StringType");
+        node->AddAttribute("StringType", "Single Color White");
+        model = new DmxServo3d(node, *this, false);
     } else if (type == "Image") {
         node->DeleteAttribute("parm1");
         node->AddAttribute("parm1", "1");
@@ -1060,6 +1072,10 @@ Model *ModelManager::CreateModel(wxXmlNode *node, int previewW, int previewH, bo
         model = new DmxFloodlight(node, *this, zeroBased);
     } else if (type == "DmxSkulltronix") {
         model = new DmxSkulltronix(node, *this, zeroBased);
+    } else if (type == "DmxServo") {
+        model = new DmxServo(node, *this, zeroBased);
+    } else if (type == "DmxServo3d") {
+        model = new DmxServo3d(node, *this, zeroBased);
     } else if (type == "Image") {
         model = new ImageModel(node, *this, zeroBased);
     } else if (type == "Window Frame") {

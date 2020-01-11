@@ -170,6 +170,8 @@ const long LayoutPanel::ID_ADD_OBJECT_MESH = wxNewId();
 const long LayoutPanel::ID_ADD_DMX_MOVING_HEAD = wxNewId();
 const long LayoutPanel::ID_ADD_DMX_MOVING_HEAD_3D = wxNewId();
 const long LayoutPanel::ID_ADD_DMX_SKULLTRONIX = wxNewId();
+const long LayoutPanel::ID_ADD_DMX_SERVO = wxNewId();
+const long LayoutPanel::ID_ADD_DMX_SERVO_3D = wxNewId();
 const long LayoutPanel::ID_ADD_DMX_FLOODLIGHT = wxNewId();
 
 #define CHNUMWIDTH "10000000000000"
@@ -4960,6 +4962,10 @@ void LayoutPanel::DisplayAddDmxPopup() {
     AddObjectButton(mnuObjects, ID_ADD_DMX_FLOODLIGHT, "Floodlight", add_dmx_floodlight_xpm);
     AddObjectButton(mnuObjects, ID_ADD_DMX_MOVING_HEAD_3D, "Moving Head 3D", dmx_xpm);
     AddObjectButton(mnuObjects, ID_ADD_DMX_MOVING_HEAD, "Moving Head", add_dmx_moving_head_xpm);
+    AddObjectButton(mnuObjects, ID_ADD_DMX_SERVO, "Servo", add_dmx_servo_xpm);
+    if (is_3d) {
+        AddObjectButton(mnuObjects, ID_ADD_DMX_SERVO_3D, "Servo 3D", add_dmx_servo3d_xpm);
+    }
     AddObjectButton(mnuObjects, ID_ADD_DMX_SKULLTRONIX, "Skulltronix Skull", add_dmx_skulltronix_xpm);
     mnuObjects.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&LayoutPanel::OnAddDmxPopup, nullptr, this);
     selectedDmxModelType = "";
@@ -4985,6 +4991,16 @@ void LayoutPanel::OnAddDmxPopup(wxCommandEvent& event)
     else if (id == ID_ADD_DMX_MOVING_HEAD_3D) {
         logger_base.debug("OnAddDmxPopup - ID_ADD_DMX_MOVING_HEAD_3D");
         selectedDmxModelType = "DmxMovingHead3D";
+        object_created = true;
+    }
+    else if (id == ID_ADD_DMX_SERVO) {
+        logger_base.debug("OnAddDmxPopup - ID_ADD_DMX_SERVO");
+        selectedDmxModelType = "DmxServo";
+        object_created = true;
+    }
+    else if (id == ID_ADD_DMX_SERVO_3D) {
+        logger_base.debug("OnAddDmxPopup - ID_ADD_DMX_SERVO_3D");
+        selectedDmxModelType = "DmxServo3d";
         object_created = true;
     }
     else if (id == ID_ADD_DMX_SKULLTRONIX) {

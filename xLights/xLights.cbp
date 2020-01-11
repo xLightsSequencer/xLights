@@ -1005,6 +1005,8 @@
 		<Unit filename="models/DMX/DmxColorAbility.h" />
 		<Unit filename="models/DMX/DmxFloodlight.cpp" />
 		<Unit filename="models/DMX/DmxFloodlight.h" />
+		<Unit filename="models/DMX/DmxImage.cpp" />
+		<Unit filename="models/DMX/DmxImage.h" />
 		<Unit filename="models/DMX/DmxModel.cpp" />
 		<Unit filename="models/DMX/DmxModel.h" />
 		<Unit filename="models/DMX/DmxMovingHead.cpp" />
@@ -1013,10 +1015,16 @@
 		<Unit filename="models/DMX/DmxMovingHead3D.h" />
 		<Unit filename="models/DMX/DmxPanTiltAbility.cpp" />
 		<Unit filename="models/DMX/DmxPanTiltAbility.h" />
+		<Unit filename="models/DMX/DmxServo.cpp" />
+		<Unit filename="models/DMX/DmxServo.h" />
+		<Unit filename="models/DMX/DmxServo3D.cpp" />
+		<Unit filename="models/DMX/DmxServo3D.h" />
 		<Unit filename="models/DMX/DmxShutterAbility.cpp" />
 		<Unit filename="models/DMX/DmxShutterAbility.h" />
 		<Unit filename="models/DMX/DmxSkulltronix.cpp" />
 		<Unit filename="models/DMX/DmxSkulltronix.h" />
+		<Unit filename="models/DMX/Mesh.cpp" />
+		<Unit filename="models/DMX/Mesh.h" />
 		<Unit filename="models/DmxModel.h" />
 		<Unit filename="models/GridlinesObject.cpp" />
 		<Unit filename="models/GridlinesObject.h" />
