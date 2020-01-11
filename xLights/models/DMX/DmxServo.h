@@ -32,6 +32,8 @@ class DmxServo : public DmxModel
         int min_limit;
         int max_limit;
         int range_of_motion;
+        int pivot_offset_x;
+        int pivot_offset_y;
         int servo_style_val;
         std::string servo_style;
         int transparency;

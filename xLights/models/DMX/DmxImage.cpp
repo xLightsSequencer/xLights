@@ -268,7 +268,8 @@ int DmxImage::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGrid
 
 void DmxImage::Draw(BaseObject* base, ModelPreview* preview, DrawGLUtils::xlAccumulator& va,
                     glm::mat4& base_matrix, glm::mat4& motion_matrix,
-                    int transparency, float brightness)
+                    int transparency, float brightness,
+                    int pivot_offset_x, int pivot_offset_y, bool use_pivot)
 {
     bool exists = false;
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -319,8 +320,10 @@ void DmxImage::Draw(BaseObject* base, ModelPreview* preview, DrawGLUtils::xlAccu
         glm::mat4 rz = glm::rotate(Identity, glm::radians(rotatez), glm::vec3(0.0f, 0.0f, 1.0f));
         glm::quat rotate_quat = glm::quat_cast(rx * ry * rz);
         glm::mat4 translationMatrix = glm::translate(Identity, glm::vec3(offset_x, offset_y, offset_z));
+        glm::mat4 pivotToZero = glm::translate(Identity, glm::vec3(-pivot_offset_x, -pivot_offset_y, 0.0f));
+        glm::mat4 pivotBack = glm::translate(Identity, glm::vec3(pivot_offset_x, pivot_offset_y, 0.0f));
         glm::mat4 m = translationMatrix * glm::toMat4(rotate_quat) * scalingMatrix;
-        m = base_matrix * m * motion_matrix;
+        m = base_matrix * m * pivotBack * motion_matrix * pivotToZero;
 
         glm::vec4 v = m * glm::vec4(glm::vec3(x1, y1, z1), 1.0f);
         x1 = v.x; y1 = v.y; z1 = v.z;
@@ -347,6 +350,25 @@ void DmxImage::Draw(BaseObject* base, ModelPreview* preview, DrawGLUtils::xlAccu
         va.AddTextureVertex(x3, y3, z3, tx2, image->tex_coord_y);
         int alpha = (100.0 - transparency) * 255.0 / 100.0;
         va.FinishTextures(GL_TRIANGLES, image->getID(), alpha, brightness);
+
+
+        if (use_pivot) {
+            xlColor pink = xlColor(255, 0, 255);
+            float x1 = pivot_offset_x;
+            float y1 = pivot_offset_y;
+            float z1 = 0.0f;
+            glm::vec4 v = m * glm::vec4(glm::vec3(x1, y1, 0.0f), 1.0f);
+            x1 = v.x; y1 = v.y; z1 = v.z + 0.01;
+            float pscale = base_matrix[0].x;
+            va.AddTrianglesCircle(x1, y1, z1, 10.0 * pscale, xlBLACK);
+            va.AddTrianglesCircle(x1, y1, z1+0.01, 9.0 * pscale, pink);
+            va.Finish(GL_TRIANGLES);
+            va.AddVertex(x1 - 7 * pscale, y1 + 7 * pscale, z1+0.02, xlBLACK);
+            va.AddVertex(x1 + 7 * pscale, y1 - 7 * pscale, z1+0.02, xlBLACK);
+            va.AddVertex(x1 - 7 * pscale, y1 - 7 * pscale, z1+0.02, xlBLACK);
+            va.AddVertex(x1 + 7 * pscale, y1 + 7 * pscale, z1+0.02, xlBLACK);
+            va.Finish(GL_LINES);
+        }
     }
     else if (show_empty) {
         float x1 = -0.5f * width * scalex;

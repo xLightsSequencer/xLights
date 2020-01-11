@@ -28,7 +28,8 @@ class DmxImage
 
         void Draw(BaseObject* base, ModelPreview* preview, DrawGLUtils::xlAccumulator& va,
             glm::mat4& base_matrix, glm::mat4& motion_matrix,
-            int transparency, float brightness);
+            int transparency, float brightness,
+            int pivot_offset_x, int pivot_offset_y, bool use_pivot);
 
     protected:
 

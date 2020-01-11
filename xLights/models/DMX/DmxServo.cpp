@@ -95,6 +95,24 @@ void DmxServo::AddTypePropertiesSpecial(wxPropertyGridInterface *grid, bool last
 
     grid->Append(new wxEnumProperty("Servo Style", "ServoStyle", SERVO_STYLES, servo_style_val));
     
+    switch (servo_style_val) {
+    case SERVO_STYLE_ROTATEX:
+    case SERVO_STYLE_ROTATEY:
+    case SERVO_STYLE_ROTATEZ:
+        p = grid->Append(new wxIntProperty("Pivot Offset X", "DmxPivotOffsetX", pivot_offset_x));
+        p->SetAttribute("Min", -10000);
+        p->SetAttribute("Max", 10000);
+        p->SetEditor("SpinCtrl");
+
+        p = grid->Append(new wxIntProperty("Pivot Offset Y", "DmxPivotOffsetY", pivot_offset_y));
+        p->SetAttribute("Min", -10000);
+        p->SetAttribute("Max", 10000);
+        p->SetEditor("SpinCtrl");
+        break;
+    default:
+        break;
+    }
+
     p = grid->Append(new wxUIntProperty("Brightness", "Brightness", (int)brightness));
     p->SetAttribute("Min", 0);
     p->SetAttribute("Max", 100);
@@ -146,6 +164,20 @@ int DmxServo::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGrid
          AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxServo::OnPropertyGridChange::DmxServoRangeOfMotion");
          AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxServo::OnPropertyGridChange::DmxServoRangeOfMotion");
          return 0;
+    } else if ("DmxPivotOffsetX" == event.GetPropertyName()) {
+        ModelXml->DeleteAttribute("DmxPivotOffsetX");
+        ModelXml->AddAttribute("DmxPivotOffsetX", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxServo::OnPropertyGridChange::DmxPivotOffsetX");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxServo::OnPropertyGridChange::DmxPivotOffsetX");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxServo::OnPropertyGridChange::DmxPivotOffsetX");
+        return 0;
+    } else if ("DmxPivotOffsetY" == event.GetPropertyName()) {
+        ModelXml->DeleteAttribute("DmxPivotOffsetY");
+        ModelXml->AddAttribute("DmxPivotOffsetY", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxServo::OnPropertyGridChange::DmxPivotOffsetY");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxServo::OnPropertyGridChange::DmxPivotOffsetY");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxServo::OnPropertyGridChange::DmxPivotOffsetY");
+        return 0;
     } else if ("ServoStyle" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("ServoStyle");
         servo_style_val = event.GetPropertyValue().GetLong();
@@ -212,6 +244,8 @@ void DmxServo::InitModel() {
     min_limit = wxAtoi(ModelXml->GetAttribute("DmxServoMinLimit", "0"));
     max_limit = wxAtoi(ModelXml->GetAttribute("DmxServoMaxLimit", "65535"));
     range_of_motion = wxAtoi(ModelXml->GetAttribute("DmxServoRangeOfMotion", "180"));
+    pivot_offset_x = wxAtoi(ModelXml->GetAttribute("DmxPivotOffsetX", "0"));
+    pivot_offset_y = wxAtoi(ModelXml->GetAttribute("DmxPivotOffsetY", "0"));
 
     transparency = wxAtoi(ModelXml->GetAttribute("Transparency", "0"));
     brightness = wxAtoi(ModelXml->GetAttribute("Brightness", "100"));
@@ -289,7 +323,7 @@ void DmxServo::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
     glm::mat4 base_matrix = translateMatrix * glm::toMat4(rotateQuat) * scalingMatrix;
 
     if (static_image != nullptr) {
-        static_image->Draw(this, preview, va, base_matrix, motion_matrix, transparency, brightness);
+        static_image->Draw(this, preview, va, base_matrix, motion_matrix, transparency, brightness, 0, 0, false);
     }
 
     if (servo_channel > 0 && active) {
@@ -311,6 +345,8 @@ void DmxServo::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
         servo_pos = 0.0f;
     }
 
+    bool use_pivot = false;
+
     switch (servo_style_val) {
     case SERVO_STYLE_TRANSLATEX:
         motion_matrix = glm::translate(Identity, glm::vec3(servo_pos, 0.0f, 0.0f));
@@ -322,18 +358,22 @@ void DmxServo::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
         motion_matrix = glm::translate(Identity, glm::vec3(0.0f, 0.0f, servo_pos));
         break;
     case SERVO_STYLE_ROTATEX:
+        use_pivot = true;
         motion_matrix = glm::rotate(Identity, glm::radians(servo_pos), glm::vec3(1.0f, 0.0f, 0.0f));
         break;
     case SERVO_STYLE_ROTATEY:
+        use_pivot = true;
         motion_matrix = glm::rotate(Identity, glm::radians(servo_pos), glm::vec3(0.0f, 1.0f, 0.0f));
         break;
     case SERVO_STYLE_ROTATEZ:
+        use_pivot = true;
         motion_matrix = glm::rotate(Identity, glm::radians(servo_pos), glm::vec3(0.0f, 0.0f, 1.0f));
         break;
     }
 
     if (motion_image != nullptr) {
-        motion_image->Draw(this, preview, va, base_matrix, motion_matrix, transparency, brightness);
+        use_pivot = use_pivot & !active;
+        motion_image->Draw(this, preview, va, base_matrix, motion_matrix, transparency, brightness, pivot_offset_x, pivot_offset_y, use_pivot);
     }
 }
 
@@ -349,7 +389,7 @@ void DmxServo::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumula
     glm::mat4 base_matrix = translateMatrix * glm::toMat4(rotateQuat) * scalingMatrix;
 
     if (static_image != nullptr) {
-        static_image->Draw(this, preview, va, base_matrix, motion_matrix, transparency, brightness);
+        static_image->Draw(this, preview, va, base_matrix, motion_matrix, transparency, brightness, 0, 0, false);
     }
 
     if (servo_channel > 0 && active) {
@@ -371,6 +411,8 @@ void DmxServo::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumula
         servo_pos = 0.0f;
     }
 
+    bool use_pivot = false;
+
     switch (servo_style_val) {
     case SERVO_STYLE_TRANSLATEX:
         motion_matrix = glm::translate(Identity, glm::vec3(servo_pos, 0.0f, 0.0f));
@@ -382,18 +424,22 @@ void DmxServo::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumula
         motion_matrix = glm::translate(Identity, glm::vec3(0.0f, 0.0f, servo_pos));
         break;
     case SERVO_STYLE_ROTATEX:
+        use_pivot = true;
         motion_matrix = glm::rotate(Identity, glm::radians(servo_pos), glm::vec3(1.0f, 0.0f, 0.0f));
         break;
     case SERVO_STYLE_ROTATEY:
+        use_pivot = true;
         motion_matrix = glm::rotate(Identity, glm::radians(servo_pos), glm::vec3(0.0f, 1.0f, 0.0f));
         break;
     case SERVO_STYLE_ROTATEZ:
+        use_pivot = true;
         motion_matrix = glm::rotate(Identity, glm::radians(servo_pos), glm::vec3(0.0f, 0.0f, 1.0f));
         break;
     }
 
     if (motion_image != nullptr) {
-        motion_image->Draw(this, preview, va, base_matrix, motion_matrix, transparency, brightness);
+        use_pivot = use_pivot & !active;
+        motion_image->Draw(this, preview, va, base_matrix, motion_matrix, transparency, brightness, pivot_offset_x, pivot_offset_y, use_pivot);
     }
 }
 
