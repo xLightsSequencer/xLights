@@ -13,7 +13,7 @@
 #include "CubeModel.h"
 #include "CustomModel.h"
 #include "DMX/DmxServo.h"
-#include "DMX/DmxServo3d.h"
+#include "DMX/DmxServo3D.h"
 #include "DMX/DmxSkulltronix.h"
 #include "DMX/DmxFloodlight.h"
 #include "DMX/DmxMovingHead.h"

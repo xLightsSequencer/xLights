@@ -12,7 +12,7 @@
 #include "../models/DMX/DmxModel.h"
 #include "../models/DMX/DmxSkulltronix.h"
 #include "../models/DMX/DmxServo.h"
-#include "../models/DMX/DmxServo3d.h"
+#include "../models/DMX/DmxServo3D.h"
 
 ServoEffect::ServoEffect(int id) : RenderableEffect(id, "Servo", servo_16, servo_24, servo_32, servo_48, servo_64)
 {
