@@ -256,7 +256,7 @@ int DmxServo::GetChannelValue( int channel )
     return ((msb << 8) | lsb);
 }
 
-void DmxServo::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator& va, const xlColor* c, float& sx, float& sy, float& sz, bool active)
+void DmxServo::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator& va, const xlColor* c, float& sx, float& sy, bool active)
 {
     int channel_value;
     float servo_pos = 0.0;
@@ -316,7 +316,7 @@ void DmxServo::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumula
     }
 }
 
-void DmxServo::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &va, const xlColor *c, float &sx, float &sy, bool active)
+void DmxServo::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator& va, const xlColor* c, float& sx, float& sy, float& sz, bool active)
 {
     int channel_value;
     float servo_pos = 0.0;
@@ -333,38 +333,41 @@ void DmxServo::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
 
     if (servo_channel > 0 && active) {
         channel_value = GetChannelValue(servo_channel - 1);
-        servo_pos = (1.0 - ((channel_value - min_limit) / (float)(max_limit - min_limit))) * range_of_motion - range_of_motion / 2.0;
+        switch (servo_style_val) {
+        case SERVO_STYLE_TRANSLATEX:
+        case SERVO_STYLE_TRANSLATEY:
+        case SERVO_STYLE_TRANSLATEZ:
+            servo_pos = (1.0 - ((channel_value - min_limit) / (float)(max_limit - min_limit))) * -range_of_motion + range_of_motion;
+            break;
+        case SERVO_STYLE_ROTATEX:
+        case SERVO_STYLE_ROTATEY:
+        case SERVO_STYLE_ROTATEZ:
+            servo_pos = (1.0 - ((channel_value - min_limit) / (float)(max_limit - min_limit))) * -range_of_motion + range_of_motion / 2.0;
+            break;
+        }
     }
     else {
         servo_pos = 0.0f;
     }
 
-    glm::mat4 trans_matrix;
-    glm::quat rot_quat;
     switch (servo_style_val) {
     case SERVO_STYLE_TRANSLATEX:
-        trans_matrix = glm::translate(Identity, glm::vec3(servo_pos, 0.0f, 0.0f));
-        translateMatrix = trans_matrix * translateMatrix;
+        motion_matrix = glm::translate(Identity, glm::vec3(servo_pos, 0.0f, 0.0f));
         break;
     case SERVO_STYLE_TRANSLATEY:
-        trans_matrix = glm::translate(Identity, glm::vec3(0.0f, servo_pos, 0.0f));
-        translateMatrix = trans_matrix * translateMatrix;
+        motion_matrix = glm::translate(Identity, glm::vec3(0.0f, servo_pos, 0.0f));
         break;
     case SERVO_STYLE_TRANSLATEZ:
-        trans_matrix = glm::translate(Identity, glm::vec3(0.0f, 0.0f, servo_pos));
-        translateMatrix = trans_matrix * translateMatrix;
+        motion_matrix = glm::translate(Identity, glm::vec3(0.0f, 0.0f, servo_pos));
         break;
     case SERVO_STYLE_ROTATEX:
-        rot_quat = glm::quat_cast(glm::rotate(Identity, glm::radians(servo_pos), glm::vec3(1.0f, 0.0f, 0.0f)));
-        rotateQuat = rot_quat * rotateQuat;
+        motion_matrix = glm::rotate(Identity, glm::radians(servo_pos), glm::vec3(1.0f, 0.0f, 0.0f));
         break;
     case SERVO_STYLE_ROTATEY:
-        rot_quat = glm::quat_cast(glm::rotate(Identity, glm::radians(servo_pos), glm::vec3(0.0f, 1.0f, 0.0f)));
-        rotateQuat = rot_quat * rotateQuat;
+        motion_matrix = glm::rotate(Identity, glm::radians(servo_pos), glm::vec3(0.0f, 1.0f, 0.0f));
         break;
     case SERVO_STYLE_ROTATEZ:
-        rot_quat = glm::quat_cast(glm::rotate(Identity, glm::radians(servo_pos), glm::vec3(0.0f, 0.0f, 1.0f)));
-        rotateQuat = rot_quat * rotateQuat;
+        motion_matrix = glm::rotate(Identity, glm::radians(servo_pos), glm::vec3(0.0f, 0.0f, 1.0f));
         break;
     }
 
