@@ -22,9 +22,9 @@ public:
     HinksPixControllerRules(bool flex) : ControllerRules(), _flex(flex)
     {
         if (_flex) 
-            _outputs = 16;
-        else
             _outputs = 48;
+        else
+            _outputs = 16;
     }
     virtual ~HinksPixControllerRules() {}
 

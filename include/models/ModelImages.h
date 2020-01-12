@@ -29,4 +29,6 @@
 #include "add_dmx_skulltronix.xpm"
 #include "add_dmx.xpm"
 #include "add_dmx_floodlight.xpm"
+#include "add_dmx_servo.xpm"
+#include "add_dmx_servo3d.xpm"
 #endif

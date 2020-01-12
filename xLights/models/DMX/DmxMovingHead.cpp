@@ -23,13 +23,6 @@ DmxMovingHead::DmxMovingHead(wxXmlNode *node, const ModelManager &manager, bool 
     color_ability = this;
 }
 
-DmxMovingHead::DmxMovingHead(const ModelManager &manager)
-  : DmxModel(manager), hide_body(false), style_changed(false), dmx_style("MOVING_HEAD_TOP"),
-    dmx_style_val(0), beam_length(4)
-{
-    color_ability = this;
-}
-
 DmxMovingHead::~DmxMovingHead()
 {
     //dtor

@@ -244,6 +244,7 @@
 		675AC53D1C987AA700C4AFE9 /* CustomModelDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 675AC53C1C987AA700C4AFE9 /* CustomModelDialog.cpp */; };
 		675BECE22323DA780077C764 /* CheckboxSelectDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 675BECDF2323DA770077C764 /* CheckboxSelectDialog.cpp */; };
 		675BECE32323DA780077C764 /* EmailDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 675BECE02323DA770077C764 /* EmailDialog.cpp */; };
+		675CA16823C93FBE007432C6 /* DmxShutterAbility.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 675CA16623C93FBE007432C6 /* DmxShutterAbility.cpp */; };
 		675D1E951D0B54B800CC6C02 /* LayoutGroup.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 675D1E911D0B54B800CC6C02 /* LayoutGroup.cpp */; };
 		675D1E961D0B54B800CC6C02 /* PreviewPane.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 675D1E921D0B54B800CC6C02 /* PreviewPane.cpp */; };
 		675D404B1E896AFD0033C950 /* LiquidEffect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 675D40471E896AFD0033C950 /* LiquidEffect.cpp */; };
@@ -1299,6 +1300,8 @@
 		675BECDF2323DA770077C764 /* CheckboxSelectDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CheckboxSelectDialog.cpp; sourceTree = "<group>"; };
 		675BECE02323DA770077C764 /* EmailDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = EmailDialog.cpp; sourceTree = "<group>"; };
 		675BECE12323DA770077C764 /* EmailDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EmailDialog.h; sourceTree = "<group>"; };
+		675CA16623C93FBE007432C6 /* DmxShutterAbility.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DmxShutterAbility.cpp; sourceTree = "<group>"; };
+		675CA16723C93FBE007432C6 /* DmxShutterAbility.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DmxShutterAbility.h; sourceTree = "<group>"; };
 		675D1E911D0B54B800CC6C02 /* LayoutGroup.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = LayoutGroup.cpp; sourceTree = "<group>"; };
 		675D1E921D0B54B800CC6C02 /* PreviewPane.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PreviewPane.cpp; sourceTree = "<group>"; };
 		675D1E931D0B54B800CC6C02 /* LayoutGroup.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LayoutGroup.h; sourceTree = "<group>"; };
@@ -2504,6 +2507,8 @@
 		67503C4E23C3261F0033449B /* DMX */ = {
 			isa = PBXGroup;
 			children = (
+				675CA16623C93FBE007432C6 /* DmxShutterAbility.cpp */,
+				675CA16723C93FBE007432C6 /* DmxShutterAbility.h */,
 				67503C4F23C3261F0033449B /* DmxPanTiltAbility.cpp */,
 				67503C5023C3261F0033449B /* DmxPanTiltAbility.h */,
 				67503C5123C3261F0033449B /* DmxMovingHead3D.cpp */,
@@ -4536,6 +4541,7 @@
 				676D0F801C72BEBD009C66FC /* kiss_fftnd.c in Sources */,
 				673C45571C79570B00FDED47 /* BufferPanel.cpp in Sources */,
 				67B71D251EC09FDB00690109 /* ColorManagerDialog.cpp in Sources */,
+				675CA16823C93FBE007432C6 /* DmxShutterAbility.cpp in Sources */,
 				67CE7B522111E02E004005BC /* RenderCache.cpp in Sources */,
 				67B2CFE71C3A186A003C17CA /* MorphEffect.cpp in Sources */,
 				67503CB323C3261F0033449B /* SubModel.cpp in Sources */,

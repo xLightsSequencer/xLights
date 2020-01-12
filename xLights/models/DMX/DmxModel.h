@@ -36,8 +36,6 @@ class DmxModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual int GetNumPhysicalStrings() const override { return 1; }
 
     protected:
-
-        DmxModel(const ModelManager &manager);
         virtual void InitModel() override;
 
         virtual int GetChannelValue( int channel );

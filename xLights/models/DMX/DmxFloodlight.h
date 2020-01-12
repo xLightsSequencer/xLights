@@ -12,7 +12,6 @@ class DmxFloodlight : public DmxModel, public DmxColorAbility, public DmxShutter
         virtual ~DmxFloodlight();
 
     protected:
-        DmxFloodlight(const ModelManager &manager);
         virtual void InitModel() override;
 
         virtual void ExportXlightsModel() override;

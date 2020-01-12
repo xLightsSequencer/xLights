@@ -23,11 +23,6 @@ DmxModel::DmxModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased)
 {
     SetFromXml(node, zeroBased);
 }
-DmxModel::DmxModel(const ModelManager &manager)
-    : ModelWithScreenLocation(manager), color_ability(nullptr)
-{
-    //ctor
-}
 
 DmxModel::~DmxModel()
 {

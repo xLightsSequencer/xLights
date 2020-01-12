@@ -11,6 +11,8 @@
 #include "../UtilClasses.h"
 #include "../models/DMX/DmxModel.h"
 #include "../models/DMX/DmxSkulltronix.h"
+#include "../models/DMX/DmxServo.h"
+#include "../models/DMX/DmxServo3D.h"
 
 ServoEffect::ServoEffect(int id) : RenderableEffect(id, "Servo", servo_16, servo_24, servo_32, servo_48, servo_64)
 {
@@ -64,7 +66,17 @@ void ServoEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer 
                 if( model_info->GetDisplayAs().rfind("Dmx", 0) == 0 ) {
                     DmxModel* dmx = (DmxModel*)model_info;
                     int brt_channel = -1;
-                    if (model_info->GetDisplayAs() == "DmxSkulltronix") {
+                    if (model_info->GetDisplayAs() == "DmxServo") {
+                        DmxServo* servo = (DmxServo*)model_info;
+                        min_limit = servo->GetMinLimit();
+                        max_limit = servo->GetMaxLimit();
+                    }
+                    else if (model_info->GetDisplayAs() == "DmxServo3d") {
+                        DmxServo* servo = (DmxServo3d*)model_info;
+                        min_limit = servo->GetMinLimit();
+                        max_limit = servo->GetMaxLimit();
+                    }
+                    else if (model_info->GetDisplayAs() == "DmxSkulltronix") {
                         DmxSkulltronix* skull = (DmxSkulltronix*)model_info;
                         int pan_channel = skull->GetPanChannel();
                         if (pan_channel == (i + 1)) {
