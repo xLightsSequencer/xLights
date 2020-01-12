@@ -16,6 +16,7 @@
 #include "DMX/DmxServo3D.h"
 #include "DMX/DmxSkulltronix.h"
 #include "DMX/DmxFloodlight.h"
+#include "DMX/DmxFloodArea.h"
 #include "DMX/DmxMovingHead.h"
 #include "DMX/DmxMovingHead3D.h"
 #include "ImageModel.h"
@@ -917,6 +918,14 @@ Model* ModelManager::CreateDefaultModel(const std::string &type, const std::stri
         node->DeleteAttribute("StringType");
         node->AddAttribute("StringType", "Single Color White");
         model = new DmxFloodlight(node, *this, false);
+    } else if (type == "DmxFloodArea") {
+        node->DeleteAttribute("parm1");
+        node->AddAttribute("parm1", "3");
+        node->DeleteAttribute("parm2");
+        node->AddAttribute("parm2", "1");
+        node->DeleteAttribute("StringType");
+        node->AddAttribute("StringType", "Single Color White");
+        model = new DmxFloodArea(node, *this, false);
     } else if (type == "DmxSkulltronix") {
         node->DeleteAttribute("parm1");
         node->AddAttribute("parm1", "26");
@@ -1070,6 +1079,8 @@ Model *ModelManager::CreateModel(wxXmlNode *node, int previewW, int previewH, bo
         model = new DmxMovingHead3D(node, *this, zeroBased);
     } else if (type == "DmxFloodlight") {
         model = new DmxFloodlight(node, *this, zeroBased);
+    } else if (type == "DmxFloodArea") {
+        model = new DmxFloodArea(node, *this, zeroBased);
     } else if (type == "DmxSkulltronix") {
         model = new DmxSkulltronix(node, *this, zeroBased);
     } else if (type == "DmxServo") {

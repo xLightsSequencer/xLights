@@ -265,6 +265,7 @@
     <ClCompile Include="models\ChannelBlockModel.cpp" />
     <ClCompile Include="models\CubeModel.cpp" />
     <ClCompile Include="models\DMX\DmxColorAbility.cpp" />
+    <ClCompile Include="models\DMX\DmxFloodArea.cpp" />
     <ClCompile Include="models\DMX\DmxFloodlight.cpp" />
     <ClCompile Include="models\DMX\DmxImage.cpp" />
     <ClCompile Include="models\DMX\DmxModel.cpp" />
@@ -669,6 +670,7 @@
     <ClInclude Include="models\ChannelBlockModel.h" />
     <ClInclude Include="models\CubeModel.h" />
     <ClInclude Include="models\DMX\DmxColorAbility.h" />
+    <ClInclude Include="models\DMX\DmxFloodArea.h" />
     <ClInclude Include="models\DMX\DmxFloodlight.h" />
     <ClInclude Include="models\DMX\DmxImage.h" />
     <ClInclude Include="models\DMX\DmxModel.h" />

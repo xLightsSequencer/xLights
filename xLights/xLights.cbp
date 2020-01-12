@@ -1003,6 +1003,8 @@
 		<Unit filename="models/CustomModel.h" />
 		<Unit filename="models/DMX/DmxColorAbility.cpp" />
 		<Unit filename="models/DMX/DmxColorAbility.h" />
+		<Unit filename="models/DMX/DmxFloodArea.cpp" />
+		<Unit filename="models/DMX/DmxFloodArea.h" />
 		<Unit filename="models/DMX/DmxFloodlight.cpp" />
 		<Unit filename="models/DMX/DmxFloodlight.h" />
 		<Unit filename="models/DMX/DmxImage.cpp" />

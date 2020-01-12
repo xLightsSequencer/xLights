@@ -173,6 +173,7 @@ const long LayoutPanel::ID_ADD_DMX_SKULLTRONIX = wxNewId();
 const long LayoutPanel::ID_ADD_DMX_SERVO = wxNewId();
 const long LayoutPanel::ID_ADD_DMX_SERVO_3D = wxNewId();
 const long LayoutPanel::ID_ADD_DMX_FLOODLIGHT = wxNewId();
+const long LayoutPanel::ID_ADD_DMX_FLOODAREA = wxNewId();
 
 #define CHNUMWIDTH "10000000000000"
 
@@ -4960,6 +4961,7 @@ void LayoutPanel::OnAddObjectPopup(wxCommandEvent& event)
 void LayoutPanel::DisplayAddDmxPopup() {
     wxMenu mnuObjects;
     AddObjectButton(mnuObjects, ID_ADD_DMX_FLOODLIGHT, "Floodlight", add_dmx_floodlight_xpm);
+    AddObjectButton(mnuObjects, ID_ADD_DMX_FLOODAREA, "Area Flood", add_dmx_floodlight_xpm);
     AddObjectButton(mnuObjects, ID_ADD_DMX_MOVING_HEAD_3D, "Moving Head 3D", dmx_xpm);
     AddObjectButton(mnuObjects, ID_ADD_DMX_MOVING_HEAD, "Moving Head", add_dmx_moving_head_xpm);
     AddObjectButton(mnuObjects, ID_ADD_DMX_SERVO, "Servo", add_dmx_servo_xpm);
@@ -4981,6 +4983,11 @@ void LayoutPanel::OnAddDmxPopup(wxCommandEvent& event)
     if (id == ID_ADD_DMX_FLOODLIGHT) {
         logger_base.debug("OnAddDmxPopup - ID_ADD_DMX_FLOODLIGHT");
         selectedDmxModelType = "DmxFloodlight";
+        object_created = true;
+    }
+    else if (id == ID_ADD_DMX_FLOODAREA) {
+        logger_base.debug("OnAddDmxPopup - ID_ADD_DMX_FLOODAREA");
+        selectedDmxModelType = "DmxFloodArea";
         object_created = true;
     }
     else if (id == ID_ADD_DMX_MOVING_HEAD) {
