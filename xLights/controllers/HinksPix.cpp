@@ -51,7 +51,7 @@ void HinksPixOutput::SetConfig(wxString const& data)
         return;
     }
 
-    if (wxAtoi(config[1]) != output) {
+    if (wxAtoi(config[0]) != output) {
         static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         logger_base.error("Mismatched output ports data port:'%d' data:'%s'", output, (const char*)data.c_str());
         return;
@@ -266,6 +266,11 @@ bool HinksPix::SetInputUniverses(OutputManager* outputManager, std::list<int>& s
         if (res != "done")
             worked = false;
     }
+
+    //reboot
+    auto const resetres = GetControllerData(1111);
+    if (resetres != "done")
+        worked = false;
     
     if(!worked)
         DisplayError("HinksPix E131 Input command FAILED.");
@@ -339,7 +344,7 @@ bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
     InitControllerOutputData();
 
     logger_base.info("Figuring Out Pixel Output Information.");
-    progress.Update(40, "Figuring Out Pixel Output Information.");
+    progress.Update(30, "Figuring Out Pixel Output Information.");
 
     //loop to setup string outputs
     for (int port = 1; port <= GetNumberOfOutputs(); port++) {
@@ -352,11 +357,11 @@ bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
     }
 
     logger_base.info("Uploading String Output Information.");
-    progress.Update(60, "Uploading String Output Information.");
+    progress.Update(50, "Uploading String Output Information.");
     UploadPixelOutputs(worked);
 
     logger_base.info("Figuring Out DMX Output Information.");
-    progress.Update(80, "Figuring Out DMX Output Information.");
+    progress.Update(70, "Figuring Out DMX Output Information.");
 
     if (cud.HasSerialPort(1)) {
             UDControllerPort* portData = cud.GetControllerSerialPort(1);
@@ -364,7 +369,7 @@ bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
     }
 
     logger_base.info("Uploading DMX Output Information.");
-    progress.Update(90, "Uploading DMX Output Information.");
+    progress.Update(80, "Uploading DMX Output Information.");
 
     _serialOutput->Dump();
     if (_serialOutput->upload) {
@@ -375,6 +380,14 @@ bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
             worked = false;
         }
     }
+
+    //reboot
+    logger_base.info("Rebooting Controller.");
+    progress.Update(90, "Rebooting Controller.");
+    auto const resetres = GetControllerData(1111);
+    if (resetres != "done")
+        worked = false;
+
     progress.Update(100, "Done.");
     return worked;
 }
@@ -466,8 +479,7 @@ void HinksPix::InitExpansionBoardData(int expansion, int startport, int length)
     }
 
     for (int i = 0; i < length; i++) {
-        _pixelOutputs[(startport - 1) + i].SetConfig(data);
-        _pixelOutputs[(startport - 1) + i].Dump();
+        _pixelOutputs[(startport - 1) + i].SetConfig(portdata[i]);
     }
 }
 
@@ -479,6 +491,7 @@ void HinksPix::UploadExpansionBoardData(int expansion, int startport, int length
     wxString requestString;
 
     for (int i = 0; i < length; i++) {
+        _pixelOutputs[(startport - 1) + i].Dump();
         requestString += _pixelOutputs[(startport - 1) + i].BuildCommand();
     }
     requestString += "||";
