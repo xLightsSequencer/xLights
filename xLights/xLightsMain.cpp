@@ -2837,6 +2837,21 @@ bool xLightsFrame::ShowFolderIsInBackup(const std::string showdir)
     return false;
 }
 
+bool xLightsFrame::ShowFolderIsInProgramFiles(const std::string showdir)
+{
+#ifdef __WXMSW__
+    wxString sd(showdir);
+    wxString first = sd.AfterFirst('\\').BeforeFirst('\\');
+    if (first == "Program Files" || first == "Program Files (x86)")
+    {
+        return true;
+    }
+#endif
+
+    return false;
+
+}
+
 void xLightsFrame::OnButtonStopNowClick(wxCommandEvent& event)
 {
     StopNow();

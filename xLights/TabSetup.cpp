@@ -575,7 +575,7 @@ bool xLightsFrame::PromptForShowDirectory()
 {
     wxDirDialog DirDialog1(this, _("Select Show Directory"), wxEmptyString, wxDD_DEFAULT_STYLE, wxDefaultPosition, wxDefaultSize, _T("wxDirDialog"));
 
-    if (DirDialog1.ShowModal() == wxID_OK)
+    while (DirDialog1.ShowModal() == wxID_OK)
     {
         AbortRender(); // make sure nothing is still rendering
         wxString newdir = DirDialog1.GetPath();
@@ -586,9 +586,18 @@ bool xLightsFrame::PromptForShowDirectory()
             DisplayWarning("WARNING: Opening a show folder inside a backup folder. This is ok but please make sure you change back to your proper show folder and dont make changes in this folder.", this);
         }
 
-        displayElementsPanel->SetSequenceElementsModelsViews(nullptr, nullptr, nullptr, nullptr, nullptr);
-        layoutPanel->ClearUndo();
-        return SetDir(newdir);
+#ifdef __WXMSW__
+        if (ShowFolderIsInProgramFiles(newdir.ToStdString()))
+        {
+            DisplayWarning("ERROR: Show folder inside your Program Files folder either just wont work or will cause you security issues ... so please choose again.", this);
+        }
+        else
+#endif
+        {
+            displayElementsPanel->SetSequenceElementsModelsViews(nullptr, nullptr, nullptr, nullptr, nullptr);
+            layoutPanel->ClearUndo();
+            return SetDir(newdir);
+        }
     }
     return false;
 }
