@@ -273,6 +273,7 @@
     <ClCompile Include="models\DMX\DmxMovingHead3D.cpp" />
     <ClCompile Include="models\DMX\DmxPanTiltAbility.cpp" />
     <ClCompile Include="models\DMX\DmxServo.cpp" />
+    <ClCompile Include="models\DMX\DmxServo3Axis.cpp" />
     <ClCompile Include="models\DMX\DmxServo3D.cpp" />
     <ClCompile Include="models\DMX\DmxShutterAbility.cpp" />
     <ClCompile Include="models\DMX\DmxSkulltronix.cpp" />
@@ -678,6 +679,7 @@
     <ClInclude Include="models\DMX\DmxMovingHead3D.h" />
     <ClInclude Include="models\DMX\DmxPanTiltAbility.h" />
     <ClInclude Include="models\DMX\DmxServo.h" />
+    <ClInclude Include="models\DMX\DmxServo3Axis.h" />
     <ClInclude Include="models\DMX\DmxServo3D.h" />
     <ClInclude Include="models\DMX\DmxShutterAbility.h" />
     <ClInclude Include="models\DMX\DmxSkulltronix.h" />

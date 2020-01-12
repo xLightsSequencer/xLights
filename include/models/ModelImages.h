@@ -31,4 +31,5 @@
 #include "add_dmx_floodlight.xpm"
 #include "add_dmx_servo.xpm"
 #include "add_dmx_servo3d.xpm"
+#include "add_dmx_servo_3axis.xpm"
 #endif

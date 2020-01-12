@@ -1019,6 +1019,8 @@
 		<Unit filename="models/DMX/DmxPanTiltAbility.h" />
 		<Unit filename="models/DMX/DmxServo.cpp" />
 		<Unit filename="models/DMX/DmxServo.h" />
+		<Unit filename="models/DMX/DmxServo3Axis.cpp" />
+		<Unit filename="models/DMX/DmxServo3Axis.h" />
 		<Unit filename="models/DMX/DmxServo3D.cpp" />
 		<Unit filename="models/DMX/DmxServo3D.h" />
 		<Unit filename="models/DMX/DmxShutterAbility.cpp" />
