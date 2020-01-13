@@ -25,6 +25,7 @@ Element::~Element() {
         mLayersToDelete.pop_front();
     }
     mEffectLayers.clear();
+    delete listener;
 }
 
 void Element::CleanupAfterRender() {
