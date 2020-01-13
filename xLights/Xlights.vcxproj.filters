@@ -793,6 +793,9 @@
     <ClCompile Include="models\DMX\DmxFloodArea.cpp">
       <Filter>Models\DMX</Filter>
     </ClCompile>
+    <ClCompile Include="models\DMX\DmxServo3Axis.cpp">
+      <Filter>Models\DMX</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -1596,6 +1599,9 @@
       <Filter>Models\DMX</Filter>
     </ClInclude>
     <ClInclude Include="models\DMX\DmxFloodArea.h">
+      <Filter>Models\DMX</Filter>
+    </ClInclude>
+    <ClInclude Include="models\DMX\DmxServo3Axis.h">
       <Filter>Models\DMX</Filter>
     </ClInclude>
   </ItemGroup>

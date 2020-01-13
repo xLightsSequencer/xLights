@@ -1381,6 +1381,7 @@ protected:
     void UpdateChannelNames();
     void StopNow();
     bool ShowFolderIsInBackup(const std::string showdir);
+    bool ShowFolderIsInProgramFiles(const std::string showdir);
 
     bool Grid1HasFocus; //cut/copy/paste handled differently with grid vs. other text controls -DJ
     wxXmlDocument EffectsXml;
