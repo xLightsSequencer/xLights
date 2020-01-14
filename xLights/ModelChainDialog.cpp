@@ -76,7 +76,8 @@ void ModelChainDialog::Set(Model* m, const ModelManager &models) {
         if (it->second->GetDisplayAs() != "ModelGroup" && 
             m != it->second && 
             controller == it->second->GetControllerName() &&
-            port == it->second->GetControllerPort() &&
+            port >= it->second->GetControllerPort() &&
+            port <= it->second->GetControllerPort() + it->second->GetNumPhysicalStrings() - 1 &&
             smartRemote == it->second->GetSmartRemote() &&
             protocol == it->second->GetControllerProtocol()) {
             list.push_back(it->first);
