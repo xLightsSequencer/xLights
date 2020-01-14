@@ -2406,23 +2406,6 @@ xLightsFrame::~xLightsFrame()
     }
 
     delete CheckBoxLightOutput;
-    delete ButtonPasteByTime;
-    delete ButtonPasteByCell;
-
-    delete Button_ACDisabled;
-    delete Button_ACSelect;
-    delete Button_ACOn;
-    delete Button_ACOff;
-    delete Button_ACTwinkle;
-    delete Button_ACShimmer;
-    delete Button_ACIntensity;
-    delete Button_ACRampUp;
-    delete Button_ACRampDown;
-    delete Button_ACRampUpDown;
-    delete Button_ACFill;
-    delete Button_ACCascade;
-    delete Button_ACForeground;
-    delete Button_ACBackground;
 
     //(*Destroy(xLightsFrame)
     //*)

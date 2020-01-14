@@ -116,7 +116,6 @@ EffectsGrid::EffectsGrid(MainSequencer* parent, wxWindowID id, const wxPoint &po
 
 EffectsGrid::~EffectsGrid()
 {
-    delete playArgs;
 }
 
 void EffectsGrid::UnselectEffect(bool force) {
