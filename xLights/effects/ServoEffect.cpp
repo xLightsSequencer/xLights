@@ -13,6 +13,8 @@
 #include "../models/DMX/DmxSkulltronix.h"
 #include "../models/DMX/DmxServo.h"
 #include "../models/DMX/DmxServo3D.h"
+#include "../models/DMX/DmxServo3Axis.h"
+#include "../models/DMX/Servo.h"
 
 ServoEffect::ServoEffect(int id) : RenderableEffect(id, "Servo", servo_16, servo_24, servo_32, servo_48, servo_64)
 {
@@ -68,13 +70,37 @@ void ServoEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer 
                     int brt_channel = -1;
                     if (model_info->GetDisplayAs() == "DmxServo") {
                         DmxServo* servo = (DmxServo*)model_info;
-                        min_limit = servo->GetMinLimit();
-                        max_limit = servo->GetMaxLimit();
+                        int axis1_channel = servo->GetAxis1()->GetChannel();
+                        if (axis1_channel == (i + 1)) {
+                            min_limit = servo->GetAxis1()->GetMinLimit();
+                            max_limit = servo->GetAxis1()->GetMaxLimit();
+                        }
                     }
                     else if (model_info->GetDisplayAs() == "DmxServo3d") {
-                        DmxServo* servo = (DmxServo3d*)model_info;
-                        min_limit = servo->GetMinLimit();
-                        max_limit = servo->GetMaxLimit();
+                        DmxServo3d* servo = (DmxServo3d*)model_info;
+                        int axis1_channel = servo->GetAxis1()->GetChannel();
+                        if (axis1_channel == (i + 1)) {
+                            min_limit = servo->GetAxis1()->GetMinLimit();
+                            max_limit = servo->GetAxis1()->GetMaxLimit();
+                        }
+                    }
+                    else if (model_info->GetDisplayAs() == "DmxServo3Axis") {
+                        DmxServo3Axis* servo = (DmxServo3Axis*)model_info;
+                        int axis1_channel = servo->GetAxis1()->GetChannel();
+                        int axis2_channel = servo->GetAxis2()->GetChannel();
+                        int axis3_channel = servo->GetAxis3()->GetChannel();
+                        if (axis1_channel == (i + 1)) {
+                            min_limit = servo->GetAxis1()->GetMinLimit();
+                            max_limit = servo->GetAxis1()->GetMaxLimit();
+                        }
+                        else if (axis2_channel == (i + 1)) {
+                            min_limit = servo->GetAxis2()->GetMinLimit();
+                            max_limit = servo->GetAxis2()->GetMaxLimit();
+                        }
+                        else if (axis3_channel == (i + 1)) {
+                            min_limit = servo->GetAxis3()->GetMinLimit();
+                            max_limit = servo->GetAxis3()->GetMaxLimit();
+                        }
                     }
                     else if (model_info->GetDisplayAs() == "DmxSkulltronix") {
                         DmxSkulltronix* skull = (DmxSkulltronix*)model_info;

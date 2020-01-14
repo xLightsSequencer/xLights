@@ -400,18 +400,6 @@ void DmxSkulltronix::InitModel() {
 
 }
 
-int DmxSkulltronix::GetChannelValue( int channel )
-{
-    xlColor color_angle;
-    int lsb = 0;
-    int msb = 0;
-    Nodes[channel]->GetColor(color_angle);
-    msb = color_angle.red;
-    Nodes[channel+1]->GetColor(color_angle);
-    lsb = color_angle.red;
-   return ((msb << 8) | lsb);
-}
-
 void DmxSkulltronix::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &va, const xlColor *c, float &sx, float &sy, bool active)
 {
     float pan_angle, pan_angle_raw, tilt_angle, nod_angle, jaw_pos, eye_x, eye_y;

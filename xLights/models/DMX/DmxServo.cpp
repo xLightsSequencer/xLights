@@ -9,6 +9,7 @@
 
 #include "DmxServo.h"
 #include "DmxImage.h"
+#include "Servo.h"
 
 #include "../../ModelPreview.h"
 #include "../../xLightsVersion.h"
@@ -17,27 +18,37 @@
 #include <log4cpp/Category.hh>
 
 DmxServo::DmxServo(wxXmlNode *node, const ModelManager &manager, bool zeroBased)
-    : DmxModel(node, manager, zeroBased), static_image(nullptr), motion_image(nullptr), servo_style_val(0)
+    : DmxModel(node, manager, zeroBased), transparency(0), brightness(100),
+      static_image(nullptr), motion_image(nullptr), servo1(nullptr)
 {
     wxXmlNode* n = node->GetChildren();
     while (n != nullptr) {
-        if ("staticImage" == n->GetName()) {
+        if ("StaticImage" == n->GetName()) {
             static_image = new DmxImage(n, "StaticImage");
         }
-        else if ("motionImage" == n->GetName()) {
+        else if ("MotionImage" == n->GetName()) {
             motion_image = new DmxImage(n, "MotionImage");
+        }
+        else if ("Servo1" == n->GetName()) {
+            servo1 = new Servo(n, "Servo1", 1);
         }
         n = n->GetNext();
     }
     if (static_image == nullptr) {
-        wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, "staticImage");
+        wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, "StaticImage");
         node->AddChild(new_node);
         static_image = new DmxImage(new_node, "StaticImage");
     }
     if (motion_image == nullptr) {
-        wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, "motionImage");
+        wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, "MotionImage");
         node->AddChild(new_node);
         motion_image = new DmxImage(new_node, "MotionImage");
+        motion_image->SetOffsetZ(0.01f, this);  // offset on creation so its not hidden
+    }
+    if (servo1 == nullptr) {
+        wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, "Servo1");
+        node->AddChild(new_node);
+        servo1 = new Servo(new_node, "Servo1", 1);
     }
 }
 
@@ -45,171 +56,30 @@ DmxServo::~DmxServo()
 {
 }
 
-static wxPGChoices SERVO_STYLES;
-
-enum SERVO_STYLE {
-    SERVO_STYLE_TRANSLATEX,
-    SERVO_STYLE_TRANSLATEY,
-    SERVO_STYLE_TRANSLATEZ,
-    SERVO_STYLE_ROTATEX,
-    SERVO_STYLE_ROTATEY,
-    SERVO_STYLE_ROTATEZ
-};
-
 void DmxServo::AddTypeProperties(wxPropertyGridInterface* grid) {
-    AddTypePropertiesSpecial(grid);
-}
-
-void DmxServo::AddTypePropertiesSpecial(wxPropertyGridInterface *grid, bool last) {
-
     DmxModel::AddTypeProperties(grid);
 
-    wxPGProperty* p = grid->Append(new wxUIntProperty("Servo Channel", "DmxServoChannel", servo_channel));
-    p->SetAttribute("Min", 0);
-    p->SetAttribute("Max", 512);
-    p->SetEditor("SpinCtrl");
-
-    p = grid->Append(new wxUIntProperty("Min Limit", "DmxServoMinLimit", min_limit));
-    p->SetAttribute("Min", 0);
-    p->SetAttribute("Max", 65535);
-    p->SetEditor("SpinCtrl");
-
-    p = grid->Append(new wxUIntProperty("Max Limit", "DmxServoMaxLimit", max_limit));
-    p->SetAttribute("Min", 0);
-    p->SetAttribute("Max", 65535);
-    p->SetEditor("SpinCtrl");
-
-    p = grid->Append(new wxIntProperty("Range of Motion", "DmxServoRangeOfMotion", range_of_motion));
-    p->SetAttribute("Min", -65535);
-    p->SetAttribute("Max", 65535);
-    p->SetEditor("SpinCtrl");
-
-    if (SERVO_STYLES.GetCount() == 0) {
-        SERVO_STYLES.Add("Translate X");
-        SERVO_STYLES.Add("Translate Y");
-        SERVO_STYLES.Add("Translate Z");
-        SERVO_STYLES.Add("Rotate X");
-        SERVO_STYLES.Add("Rotate Y");
-        SERVO_STYLES.Add("Rotate Z");
-    }
-
-    grid->Append(new wxEnumProperty("Servo Style", "ServoStyle", SERVO_STYLES, servo_style_val));
-    
-    switch (servo_style_val) {
-    case SERVO_STYLE_ROTATEX:
-    case SERVO_STYLE_ROTATEY:
-    case SERVO_STYLE_ROTATEZ:
-        p = grid->Append(new wxIntProperty("Pivot Offset X", "DmxPivotOffsetX", pivot_offset_x));
-        p->SetAttribute("Min", -10000);
-        p->SetAttribute("Max", 10000);
-        p->SetEditor("SpinCtrl");
-
-        p = grid->Append(new wxIntProperty("Pivot Offset Y", "DmxPivotOffsetY", pivot_offset_y));
-        p->SetAttribute("Min", -10000);
-        p->SetAttribute("Max", 10000);
-        p->SetEditor("SpinCtrl");
-        break;
-    default:
-        break;
-    }
-
-    p = grid->Append(new wxUIntProperty("Brightness", "Brightness", (int)brightness));
+    wxPGProperty* p = grid->Append(new wxUIntProperty("Brightness", "Brightness", (int)brightness));
     p->SetAttribute("Min", 0);
     p->SetAttribute("Max", 100);
     p->SetEditor("SpinCtrl");
 
-    if (last) {
-        p = grid->Append(new wxUIntProperty("Transparency", "Transparency", transparency));
-        p->SetAttribute("Min", 0);
-        p->SetAttribute("Max", 100);
-        p->SetEditor("SpinCtrl");
+    p = grid->Append(new wxUIntProperty("Transparency", "Transparency", transparency));
+    p->SetAttribute("Min", 0);
+    p->SetAttribute("Max", 100);
+    p->SetEditor("SpinCtrl");
 
-        if (static_image != nullptr) {
-            static_image->AddTypeProperties(grid);
-        }
-        if (motion_image != nullptr) {
-            motion_image->AddTypeProperties(grid);
-        }
-        grid->Append(new wxPropertyCategory("Common Properties", "CommonProperties"));
-    }
+    servo1->AddTypeProperties(grid);
+    static_image->AddTypeProperties(grid);
+    motion_image->AddTypeProperties(grid);
+
+    grid->Append(new wxPropertyCategory("Common Properties", "CommonProperties"));
 }
 
 int DmxServo::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
+    std::string name = event.GetPropertyName().ToStdString();
 
-    if ("DmxServoChannel" == event.GetPropertyName()) {
-        ModelXml->DeleteAttribute("DmxServoChannel");
-        ModelXml->AddAttribute("DmxServoChannel", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxServo::OnPropertyGridChange::DmxServoChannel");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxServo::OnPropertyGridChange::DmxServoChannel");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxServo::OnPropertyGridChange::DmxServoChannel");
-        return 0;
-    } else if ("DmxServoMinLimit" == event.GetPropertyName()) {
-        ModelXml->DeleteAttribute("DmxServoMinLimit");
-        ModelXml->AddAttribute("DmxServoMinLimit", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxServo::OnPropertyGridChange::DmxServoMinLimit");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxServo::OnPropertyGridChange::DmxServoMinLimit");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxServo::OnPropertyGridChange::DmxServoMinLimit");
-        return 0;
-    } else if ("DmxServoMaxLimit" == event.GetPropertyName()) {
-        ModelXml->DeleteAttribute("DmxServoMaxLimit");
-        ModelXml->AddAttribute("DmxServoMaxLimit", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxServo::OnPropertyGridChange::DmxServoMaxLimit");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxServo::OnPropertyGridChange::DmxServoMaxLimit");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxServo::OnPropertyGridChange::DmxServoMaxLimit");
-        return 0;
-    } else if ("DmxServoRangeOfMotion" == event.GetPropertyName()) {
-         ModelXml->DeleteAttribute("DmxServoRangeOfMotion");
-         ModelXml->AddAttribute("DmxServoRangeOfMotion", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxServo::OnPropertyGridChange::DmxServoRangeOfMotion");
-         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxServo::OnPropertyGridChange::DmxServoRangeOfMotion");
-         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxServo::OnPropertyGridChange::DmxServoRangeOfMotion");
-         return 0;
-    } else if ("DmxPivotOffsetX" == event.GetPropertyName()) {
-        ModelXml->DeleteAttribute("DmxPivotOffsetX");
-        ModelXml->AddAttribute("DmxPivotOffsetX", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxServo::OnPropertyGridChange::DmxPivotOffsetX");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxServo::OnPropertyGridChange::DmxPivotOffsetX");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxServo::OnPropertyGridChange::DmxPivotOffsetX");
-        return 0;
-    } else if ("DmxPivotOffsetY" == event.GetPropertyName()) {
-        ModelXml->DeleteAttribute("DmxPivotOffsetY");
-        ModelXml->AddAttribute("DmxPivotOffsetY", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxServo::OnPropertyGridChange::DmxPivotOffsetY");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxServo::OnPropertyGridChange::DmxPivotOffsetY");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxServo::OnPropertyGridChange::DmxPivotOffsetY");
-        return 0;
-    } else if ("ServoStyle" == event.GetPropertyName()) {
-        ModelXml->DeleteAttribute("ServoStyle");
-        servo_style_val = event.GetPropertyValue().GetLong();
-        if (servo_style_val == SERVO_STYLE_TRANSLATEX) {
-            servo_style = "Translate X";
-        }
-        else if (servo_style_val == SERVO_STYLE_TRANSLATEY) {
-            servo_style = "Translate Y";
-        }
-        else if (servo_style_val == SERVO_STYLE_TRANSLATEZ) {
-            servo_style = "Translate Z";
-        }
-        else if (servo_style_val == SERVO_STYLE_ROTATEX) {
-            servo_style = "Rotate X";
-        }
-        else if (servo_style_val == SERVO_STYLE_ROTATEY) {
-            servo_style = "Rotate Y";
-        }
-        else if (servo_style_val == SERVO_STYLE_ROTATEZ) {
-            servo_style = "Rotate Z";
-        }
-        ModelXml->AddAttribute("ServoStyle", servo_style);
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxServo::OnPropertyGridChange::ServoStyle");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxServo::OnPropertyGridChange::ServoStyle");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxServo::OnPropertyGridChange::ServoStyle");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "DmxServo::OnPropertyGridChange::ServoStyle");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxServo::OnPropertyGridChange::ServoStyle");
-        AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "DmxServo::OnPropertyGridChange::ServoStyle");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "DmxServo::OnPropertyGridChange::ServoStyle");
-        return 0;
-    }
-    else if ("Transparency" == event.GetPropertyName()) {
+    if ("Transparency" == name) {
         transparency = (int)event.GetPropertyValue().GetLong();
         ModelXml->DeleteAttribute("Transparency");
         ModelXml->AddAttribute("Transparency", wxString::Format("%d", transparency));
@@ -217,7 +87,7 @@ int DmxServo::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGrid
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxServo::OnPropertyGridChange::Transparency");
         return 0;
     }
-    else if ("Brightness" == event.GetPropertyName()) {
+    else if ("Brightness" == name) {
         brightness = (int)event.GetPropertyValue().GetLong();
         ModelXml->DeleteAttribute("Brightness");
         ModelXml->AddAttribute("Brightness", wxString::Format("%d", (int)brightness));
@@ -226,11 +96,14 @@ int DmxServo::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGrid
         return 0;
     }
 
-    if (static_image != nullptr) {
-        static_image->OnPropertyGridChange(grid, event, this, GetModelScreenLocation().IsLocked());
+    if (servo1->OnPropertyGridChange(grid, event, this, GetModelScreenLocation().IsLocked()) == 0) {
+        return 0;
     }
-    if (motion_image != nullptr) {
-        motion_image->OnPropertyGridChange(grid, event, this, GetModelScreenLocation().IsLocked());
+    if (static_image->OnPropertyGridChange(grid, event, this, GetModelScreenLocation().IsLocked()) == 0) {
+        return 0;
+    }
+    if (motion_image->OnPropertyGridChange(grid, event, this, GetModelScreenLocation().IsLocked()) == 0) {
+        return 0;
     }
 
     return DmxModel::OnPropertyGridChange(grid, event);
@@ -240,44 +113,12 @@ void DmxServo::InitModel() {
     DmxModel::InitModel();
     DisplayAs = "DmxServo";
 
-    servo_channel = wxAtoi(ModelXml->GetAttribute("DmxServoChannel", "1"));
-    min_limit = wxAtoi(ModelXml->GetAttribute("DmxServoMinLimit", "0"));
-    max_limit = wxAtoi(ModelXml->GetAttribute("DmxServoMaxLimit", "65535"));
-    range_of_motion = wxAtoi(ModelXml->GetAttribute("DmxServoRangeOfMotion", "180"));
-    pivot_offset_x = wxAtoi(ModelXml->GetAttribute("DmxPivotOffsetX", "0"));
-    pivot_offset_y = wxAtoi(ModelXml->GetAttribute("DmxPivotOffsetY", "0"));
-
     transparency = wxAtoi(ModelXml->GetAttribute("Transparency", "0"));
     brightness = wxAtoi(ModelXml->GetAttribute("Brightness", "100"));
 
-    servo_style = ModelXml->GetAttribute("ServoStyle", "Translate X");
-    servo_style_val = SERVO_STYLE_TRANSLATEX;
-    if (servo_style == "Translate X") {
-        servo_style_val = SERVO_STYLE_TRANSLATEX;
-    }
-    else if (servo_style == "Translate Y") {
-        servo_style_val = SERVO_STYLE_TRANSLATEY;
-    }
-    else if (servo_style == "Translate Z") {
-        servo_style_val = SERVO_STYLE_TRANSLATEZ;
-    }
-    else if (servo_style == "Rotate X") {
-        servo_style_val = SERVO_STYLE_ROTATEX;
-    }
-    else if (servo_style == "Rotate Y") {
-        servo_style_val = SERVO_STYLE_ROTATEY;
-    }
-    else if (servo_style == "Rotate Z") {
-        servo_style_val = SERVO_STYLE_ROTATEZ;
-    }
-
-    if (static_image != nullptr) {
-        static_image->Init(this, true, !motion_image->GetExists());
-    }
-
-    if (motion_image != nullptr) {
-        motion_image->Init(this, !static_image->GetExists(), !static_image->GetExists());
-    }
+    servo1->Init(this);
+    static_image->Init(this, !motion_image->GetExists());
+    motion_image->Init(this, !static_image->GetExists());
 
     wxString nn = ModelXml->GetAttribute("NodeNames", "");
     wxString tempstr = nn;
@@ -299,21 +140,24 @@ void DmxServo::InitModel() {
     }
 }
 
-int DmxServo::GetChannelValue( int channel )
-{
-    xlColor color_angle;
-    int lsb = 0;
-    int msb = 0;
-    Nodes[channel]->GetColor(color_angle);
-    msb = color_angle.red;
-    Nodes[channel+1]->GetColor(color_angle);
-    lsb = color_angle.red;
-    return ((msb << 8) | lsb);
-}
-
 void DmxServo::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator& va, const xlColor* c, float& sx, float& sy, bool active)
 {
-    int channel_value;
+    if (servo1->GetChannel() > Nodes.size())
+    {
+        // crash protection
+        return;
+    }
+
+    // this if statement scales the motion image so that is has the same size ratio as the original images
+    if (motion_image->ImageSelected() && motion_image->GetExists() && static_image->GetExists()) {
+        if (static_image->GetWidth() != 0) {
+            float new_scale = (float)motion_image->GetWidth() / (float)static_image->GetWidth();
+            motion_image->SetScaleX(new_scale, this);
+            motion_image->SetScaleY(new_scale, this);
+            motion_image->ClearImageSelected();
+        }
+    }
+
     float servo_pos = 0.0;
     glm::mat4 Identity = glm::mat4(1.0f);
     glm::mat4 motion_matrix = Identity;
@@ -322,64 +166,39 @@ void DmxServo::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
     glm::quat rotateQuat = GetModelScreenLocation().GetRotationQuat();
     glm::mat4 base_matrix = translateMatrix * glm::toMat4(rotateQuat) * scalingMatrix;
 
-    if (static_image != nullptr) {
-        static_image->Draw(this, preview, va, base_matrix, motion_matrix, transparency, brightness, 0, 0, false);
-    }
+    static_image->Draw(this, preview, va, base_matrix, motion_matrix, transparency, brightness, !motion_image->GetExists(), 0, 0, false, false);
 
-    if (servo_channel > 0 && active) {
-        channel_value = GetChannelValue(servo_channel - 1);
-        switch (servo_style_val) {
-        case SERVO_STYLE_TRANSLATEX:
-        case SERVO_STYLE_TRANSLATEY:
-        case SERVO_STYLE_TRANSLATEZ:
-            servo_pos = (1.0 - ((channel_value - min_limit) / (float)(max_limit - min_limit))) * -range_of_motion + range_of_motion;
-            break;
-        case SERVO_STYLE_ROTATEX:
-        case SERVO_STYLE_ROTATEY:
-        case SERVO_STYLE_ROTATEZ:
-            servo_pos = (1.0 - ((channel_value - min_limit) / (float)(max_limit - min_limit))) * -range_of_motion + range_of_motion / 2.0;
-            break;
+    if (servo1->GetChannel() > 0 && active) {
+        servo_pos = servo1->GetPosition(GetChannelValue(servo1->GetChannel() - 1));
+        if (servo1->IsTranslate()) {
+            glm::vec3 scale = GetBaseObjectScreenLocation().GetScaleMatrix();
+            servo_pos /= scale.x;
         }
     }
-    else {
-        servo_pos = 0.0f;
-    }
 
-    bool use_pivot = false;
-
-    switch (servo_style_val) {
-    case SERVO_STYLE_TRANSLATEX:
-        motion_matrix = glm::translate(Identity, glm::vec3(servo_pos, 0.0f, 0.0f));
-        break;
-    case SERVO_STYLE_TRANSLATEY:
-        motion_matrix = glm::translate(Identity, glm::vec3(0.0f, servo_pos, 0.0f));
-        break;
-    case SERVO_STYLE_TRANSLATEZ:
-        motion_matrix = glm::translate(Identity, glm::vec3(0.0f, 0.0f, servo_pos));
-        break;
-    case SERVO_STYLE_ROTATEX:
-        use_pivot = true;
-        motion_matrix = glm::rotate(Identity, glm::radians(servo_pos), glm::vec3(1.0f, 0.0f, 0.0f));
-        break;
-    case SERVO_STYLE_ROTATEY:
-        use_pivot = true;
-        motion_matrix = glm::rotate(Identity, glm::radians(servo_pos), glm::vec3(0.0f, 1.0f, 0.0f));
-        break;
-    case SERVO_STYLE_ROTATEZ:
-        use_pivot = true;
-        motion_matrix = glm::rotate(Identity, glm::radians(servo_pos), glm::vec3(0.0f, 0.0f, 1.0f));
-        break;
-    }
-
-    if (motion_image != nullptr) {
-        use_pivot = use_pivot & !active;
-        motion_image->Draw(this, preview, va, base_matrix, motion_matrix, transparency, brightness, pivot_offset_x, pivot_offset_y, use_pivot);
-    }
+    servo1->FillMotionMatrix(servo_pos, motion_matrix);
+    motion_image->Draw(this, preview, va, base_matrix, motion_matrix, transparency, brightness, !static_image->GetExists(),
+                       servo1->GetPivotOffsetX(), servo1->GetPivotOffsetY(), servo1->IsRotate(), !active);
 }
 
 void DmxServo::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator& va, const xlColor* c, float& sx, float& sy, float& sz, bool active)
 {
-    int channel_value;
+    if (servo1->GetChannel() > Nodes.size())
+    {
+        // crash protection
+        return;
+    }
+
+    // this if statement scales the motion image so that is has the same size ratio as the original images
+    if (motion_image->ImageSelected() && motion_image->GetExists() && static_image->GetExists()) {
+        if (static_image->GetWidth() != 0) {
+            float new_scale = (float)motion_image->GetWidth() / (float)static_image->GetWidth();
+            motion_image->SetScaleX(new_scale, this);
+            motion_image->SetScaleY(new_scale, this);
+            motion_image->ClearImageSelected();
+        }
+    }
+
     float servo_pos = 0.0;
     glm::mat4 Identity = glm::mat4(1.0f);
     glm::mat4 motion_matrix = Identity;
@@ -388,59 +207,19 @@ void DmxServo::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumula
     glm::quat rotateQuat = GetModelScreenLocation().GetRotationQuat();
     glm::mat4 base_matrix = translateMatrix * glm::toMat4(rotateQuat) * scalingMatrix;
 
-    if (static_image != nullptr) {
-        static_image->Draw(this, preview, va, base_matrix, motion_matrix, transparency, brightness, 0, 0, false);
-    }
+    static_image->Draw(this, preview, va, base_matrix, motion_matrix, transparency, brightness, !motion_image->GetExists(), 0, 0, false, false);
 
-    if (servo_channel > 0 && active) {
-        channel_value = GetChannelValue(servo_channel - 1);
-        switch (servo_style_val) {
-        case SERVO_STYLE_TRANSLATEX:
-        case SERVO_STYLE_TRANSLATEY:
-        case SERVO_STYLE_TRANSLATEZ:
-            servo_pos = (1.0 - ((channel_value - min_limit) / (float)(max_limit - min_limit))) * -range_of_motion + range_of_motion;
-            break;
-        case SERVO_STYLE_ROTATEX:
-        case SERVO_STYLE_ROTATEY:
-        case SERVO_STYLE_ROTATEZ:
-            servo_pos = (1.0 - ((channel_value - min_limit) / (float)(max_limit - min_limit))) * -range_of_motion + range_of_motion / 2.0;
-            break;
+    if (servo1->GetChannel() > 0 && active) {
+        servo_pos = servo1->GetPosition(GetChannelValue(servo1->GetChannel() - 1));
+        if (servo1->IsTranslate()) {
+            glm::vec3 scale = GetBaseObjectScreenLocation().GetScaleMatrix();
+            servo_pos /= scale.x;
         }
     }
-    else {
-        servo_pos = 0.0f;
-    }
 
-    bool use_pivot = false;
-
-    switch (servo_style_val) {
-    case SERVO_STYLE_TRANSLATEX:
-        motion_matrix = glm::translate(Identity, glm::vec3(servo_pos, 0.0f, 0.0f));
-        break;
-    case SERVO_STYLE_TRANSLATEY:
-        motion_matrix = glm::translate(Identity, glm::vec3(0.0f, servo_pos, 0.0f));
-        break;
-    case SERVO_STYLE_TRANSLATEZ:
-        motion_matrix = glm::translate(Identity, glm::vec3(0.0f, 0.0f, servo_pos));
-        break;
-    case SERVO_STYLE_ROTATEX:
-        use_pivot = true;
-        motion_matrix = glm::rotate(Identity, glm::radians(servo_pos), glm::vec3(1.0f, 0.0f, 0.0f));
-        break;
-    case SERVO_STYLE_ROTATEY:
-        use_pivot = true;
-        motion_matrix = glm::rotate(Identity, glm::radians(servo_pos), glm::vec3(0.0f, 1.0f, 0.0f));
-        break;
-    case SERVO_STYLE_ROTATEZ:
-        use_pivot = true;
-        motion_matrix = glm::rotate(Identity, glm::radians(servo_pos), glm::vec3(0.0f, 0.0f, 1.0f));
-        break;
-    }
-
-    if (motion_image != nullptr) {
-        use_pivot = use_pivot & !active;
-        motion_image->Draw(this, preview, va, base_matrix, motion_matrix, transparency, brightness, pivot_offset_x, pivot_offset_y, use_pivot);
-    }
+    servo1->FillMotionMatrix(servo_pos, motion_matrix);
+    motion_image->Draw(this, preview, va, base_matrix, motion_matrix, transparency, brightness, !static_image->GetExists(),
+        servo1->GetPivotOffsetX(), servo1->GetPivotOffsetY(), servo1->IsRotate(), !active);
 }
 
 void DmxServo::ExportXlightsModel()

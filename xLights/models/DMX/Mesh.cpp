@@ -18,9 +18,12 @@
 Mesh::Mesh(wxXmlNode* node, wxString _name)
  : node_xml(node), _objFile(""),
     width(1), height(1), depth(1), brightness(100),
-    obj_loaded(false), mesh_only(false), controls_size(false),
-    obj_exists(false), mesh3d(nullptr), base_name(_name),
-    show_empty(false)
+    obj_loaded(false), mesh_only(false), obj_exists(false),
+    show_empty(false), controls_size(false),
+    offset_x(0.0f), offset_y(0.0f), offset_z(0.0f),
+    scalex(1.0f), scaley(1.0f), scalez(1.0f),
+    rotatex(0.0f), rotatey(0.0f), rotatez(0.0f),
+    base_name(_name), mesh3d(nullptr)
 {
 }
 
@@ -136,6 +139,8 @@ void Mesh::AddTypeProperties(wxPropertyGridInterface *grid) {
     prop->SetAttribute("Precision", 8);
     prop->SetAttribute("Step", 1.0);
     prop->SetEditor("SpinCtrl");
+
+    grid->Collapse(base_name + "Properties");
 }
 
 int Mesh::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event, BaseObject* base, bool locked) {
@@ -148,7 +153,12 @@ int Mesh::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEven
                 delete it->second;
             }
         }
-        base->GetBaseObjectScreenLocation().SetScaleMatrix(glm::vec3(1.0f, 1.0f, 1.0f));  // reset scale when new model is loaded
+        if (controls_size) {
+            glm::vec3 scale = base->GetBaseObjectScreenLocation().GetScaleMatrix();
+            base->GetBaseObjectScreenLocation().SetRenderSize(width / scale.x, height * scale.y, depth * scale.z);
+            base->GetBaseObjectScreenLocation().SetScaleMatrix(glm::vec3(1.0f, 1.0f, 1.0f));  // reset scale when new image is loaded
+            base->GetBaseObjectScreenLocation().Write(base->GetModelXml());
+        }
         textures.clear();
         uncacheDisplayObjects();
         _objFile = event.GetValue().GetString();

@@ -14,6 +14,7 @@
 #include "CustomModel.h"
 #include "DMX/DmxServo.h"
 #include "DMX/DmxServo3D.h"
+#include "DMX/DmxServo3Axis.h"
 #include "DMX/DmxSkulltronix.h"
 #include "DMX/DmxFloodlight.h"
 #include "DMX/DmxFloodArea.h"
@@ -942,7 +943,7 @@ Model* ModelManager::CreateDefaultModel(const std::string &type, const std::stri
         node->DeleteAttribute("StringType");
         node->AddAttribute("StringType", "Single Color White");
         model = new DmxServo(node, *this, false);
-    }  else if (type == "DmxServo3d") {
+    } else if (type == "DmxServo3d") {
         node->DeleteAttribute("parm1");
         node->AddAttribute("parm1", "2");
         node->DeleteAttribute("parm2");
@@ -950,6 +951,14 @@ Model* ModelManager::CreateDefaultModel(const std::string &type, const std::stri
         node->DeleteAttribute("StringType");
         node->AddAttribute("StringType", "Single Color White");
         model = new DmxServo3d(node, *this, false);
+    } else if (type == "DmxServo3Axis") {
+        node->DeleteAttribute("parm1");
+        node->AddAttribute("parm1", "6");
+        node->DeleteAttribute("parm2");
+        node->AddAttribute("parm2", "1");
+        node->DeleteAttribute("StringType");
+        node->AddAttribute("StringType", "Single Color White");
+        model = new DmxServo3Axis(node, *this, false);
     } else if (type == "Image") {
         node->DeleteAttribute("parm1");
         node->AddAttribute("parm1", "1");
@@ -1087,6 +1096,8 @@ Model *ModelManager::CreateModel(wxXmlNode *node, int previewW, int previewH, bo
         model = new DmxServo(node, *this, zeroBased);
     } else if (type == "DmxServo3d") {
         model = new DmxServo3d(node, *this, zeroBased);
+    } else if (type == "DmxServo3Axis") {
+        model = new DmxServo3Axis(node, *this, zeroBased);
     } else if (type == "Image") {
         model = new ImageModel(node, *this, zeroBased);
     } else if (type == "Window Frame") {

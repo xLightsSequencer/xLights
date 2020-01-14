@@ -14,9 +14,14 @@
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtx/quaternion.hpp>
 
+static const float OFFSET_SCALE = 100.0f;
+
 DmxImage::DmxImage(wxXmlNode* node, wxString _name)
- : node_xml(node), base_name(_name), width(1), height(1),
-    controls_size(false), obj_exists(false), show_empty(false)
+ : node_xml(node), _imageFile(""), width(1), height(1),
+    obj_exists(false), image_selected(false),
+    offset_x(0.0f), offset_y(0.0f), offset_z(0.0f),
+    scalex(1.0f), scaley(1.0f), scalez(1.0f),
+    rotatex(0.0f), rotatey(0.0f), rotatez(0.0f), base_name(_name)
 {
 }
 
@@ -27,13 +32,46 @@ DmxImage::~DmxImage()
     }
 }
 
-void DmxImage::Init(BaseObject* base, bool set_size, bool show_empty_) {
+void DmxImage::SetOffsetZ(float value, BaseObject* base)
+{
+    offset_z = value;
+    node_xml->DeleteAttribute("OffsetZ");
+    node_xml->AddAttribute("OffsetZ", wxString::Format("%6.4f", offset_z));
+    base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxImage::SetOffsetZ");
+    base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxImage::SetOffsetZ");
+    base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxImage::SetOffsetZ");
+    base->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "DmxImage::SetOffsetZ");
+}
+
+void DmxImage::SetScaleX(float value, BaseObject* base)
+{
+    scalex = value;
+    node_xml->DeleteAttribute("ScaleX");
+    node_xml->AddAttribute("ScaleX", wxString::Format("%6.4f", scalex));
+    base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxImage::SetScaleX");
+    base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxImage::SetScaleX");
+    base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxImage::SetScaleX");
+    base->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "DmxImage::SetScaleX");
+}
+
+void DmxImage::SetScaleY(float value, BaseObject* base)
+{
+    scaley = value;
+    node_xml->DeleteAttribute("ScaleY");
+    node_xml->AddAttribute("ScaleY", wxString::Format("%6.4f", scaley));
+    base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxImage::SetScaleY");
+    base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxImage::SetScaleY");
+    base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxImage::SetScaleY");
+    base->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "DmxImage::SetScaleY");
+}
+
+void DmxImage::Init(BaseObject* base, bool set_size) {
 
     _imageFile = FixFile("", node_xml->GetAttribute("Image", ""));
 
-    offset_x = wxAtof(node_xml->GetAttribute("OffsetX", "0.0"));
-    offset_y = wxAtof(node_xml->GetAttribute("OffsetY", "0.0"));
-    offset_z = wxAtof(node_xml->GetAttribute("OffsetZ", "0.0"));
+    offset_x = wxAtof(node_xml->GetAttribute("OffsetX", "0.0")) / OFFSET_SCALE;
+    offset_y = wxAtof(node_xml->GetAttribute("OffsetY", "0.0")) / OFFSET_SCALE;
+    offset_z = wxAtof(node_xml->GetAttribute("OffsetZ", "0.0")) / OFFSET_SCALE;
 
     scalex = wxAtof(node_xml->GetAttribute("ScaleX", "1.0"));
     scaley = wxAtof(node_xml->GetAttribute("ScaleY", "1.0"));
@@ -62,12 +100,6 @@ void DmxImage::Init(BaseObject* base, bool set_size, bool show_empty_) {
     if (rotatez < -180.0f || rotatez > 180.0f) {
         rotatez = 0.0f;
     }
-
-    show_empty = show_empty_;
-    controls_size = set_size;
-    if (controls_size) {
-        base->GetBaseObjectScreenLocation().SetRenderSize(width * scalex, height * scaley, 10.0f);
-    }
 }
 
 void DmxImage::AddTypeProperties(wxPropertyGridInterface *grid) {
@@ -76,16 +108,16 @@ void DmxImage::AddTypeProperties(wxPropertyGridInterface *grid) {
     wxPGProperty* prop = grid->Append(new wxImageFileProperty("Image", base_name + "Image", _imageFile));
     prop->SetAttribute(wxPG_FILE_WILDCARD, "Image files|*.png;*.bmp;*.jpg;*.gif;*.jpeg|All files (*.*)|*.*");
 
-    prop = grid->Append(new wxFloatProperty("Offset X", base_name + "OffsetX", offset_x));
-    prop->SetAttribute("Precision", 2);
+    prop = grid->Append(new wxFloatProperty("Offset X", base_name + "OffsetX", offset_x * OFFSET_SCALE));
+    prop->SetAttribute("Precision", 1);
     prop->SetAttribute("Step", 1.0);
     prop->SetEditor("SpinCtrl");
-    prop = grid->Append(new wxFloatProperty("Offset Y", base_name + "OffsetY", offset_y));
-    prop->SetAttribute("Precision", 2);
+    prop = grid->Append(new wxFloatProperty("Offset Y", base_name + "OffsetY", offset_y * OFFSET_SCALE));
+    prop->SetAttribute("Precision", 1);
     prop->SetAttribute("Step", 1.0);
     prop->SetEditor("SpinCtrl");
-    prop = grid->Append(new wxFloatProperty("Offset Z", base_name + "OffsetZ", offset_z));
-    prop->SetAttribute("Precision", 2);
+    prop = grid->Append(new wxFloatProperty("Offset Z", base_name + "OffsetZ", offset_z * OFFSET_SCALE));
+    prop->SetAttribute("Precision", 1);
     prop->SetAttribute("Step", 1.0);
     prop->SetEditor("SpinCtrl");
     prop = grid->Append(new wxFloatProperty("ScaleX", base_name + "ScaleX", scalex));
@@ -129,11 +161,12 @@ int DmxImage::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGrid
         _images.clear();
         _imageFile = event.GetValue().GetString();
         obj_exists = false;
-        base->GetBaseObjectScreenLocation().SetScaleMatrix(glm::vec3(1.0f, 1.0f, 1.0f));  // reset scale when new image is loaded
+        image_selected = true;
         node_xml->DeleteAttribute("Image");
         node_xml->AddAttribute("Image", _imageFile);
-        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxServo::OnPropertyGridChange::StaticImage");
-        base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxServo::OnPropertyGridChange::StaticImage");
+        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxServo::OnPropertyGridChange::Image");
+        base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxServo::OnPropertyGridChange::Image");
+        base->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "DmxImage::OnPropertyGridChange::Image");
         return 0;
     }
     else if (!locked && base_name + "ScaleX" == name) {
@@ -179,9 +212,9 @@ int DmxImage::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGrid
         return 0;
     }
     else if (!locked && base_name + "OffsetX" == name) {
-        offset_x = event.GetValue().GetDouble();
+        offset_x = event.GetValue().GetDouble() / OFFSET_SCALE;
         node_xml->DeleteAttribute("OffsetX");
-        node_xml->AddAttribute("OffsetX", wxString::Format("%6.4f", offset_x));
+        node_xml->AddAttribute("OffsetX", wxString::Format("%6.4f", offset_x * OFFSET_SCALE));
         base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxImage::OnPropertyGridChange::ModelX");
         base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxImage::OnPropertyGridChange::ModelX");
         base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxImage::OnPropertyGridChange::ModelX");
@@ -193,9 +226,9 @@ int DmxImage::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGrid
         return 0;
     }
     else if (!locked && base_name + "OffsetY" == name) {
-        offset_y = event.GetValue().GetDouble();
+        offset_y = event.GetValue().GetDouble() / OFFSET_SCALE;
         node_xml->DeleteAttribute("OffsetY");
-        node_xml->AddAttribute("OffsetY", wxString::Format("%6.4f", offset_y));
+        node_xml->AddAttribute("OffsetY", wxString::Format("%6.4f", offset_y * OFFSET_SCALE));
         base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxImage::OnPropertyGridChange::ModelY");
         base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxImage::OnPropertyGridChange::ModelY");
         base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxImage::OnPropertyGridChange::ModelY");
@@ -207,9 +240,9 @@ int DmxImage::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGrid
         return 0;
     }
     else if (!locked && base_name + "OffsetZ" == name) {
-        offset_z = event.GetValue().GetDouble();
+        offset_z = event.GetValue().GetDouble() / OFFSET_SCALE;
         node_xml->DeleteAttribute("OffsetZ");
-        node_xml->AddAttribute("OffsetZ", wxString::Format("%6.4f", offset_z));
+        node_xml->AddAttribute("OffsetZ", wxString::Format("%6.4f", offset_z * OFFSET_SCALE));
         base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxImage::OnPropertyGridChange::ModelZ");
         base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxImage::OnPropertyGridChange::ModelZ");
         base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxImage::OnPropertyGridChange::ModelZ");
@@ -268,8 +301,8 @@ int DmxImage::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGrid
 
 void DmxImage::Draw(BaseObject* base, ModelPreview* preview, DrawGLUtils::xlAccumulator& va,
                     glm::mat4& base_matrix, glm::mat4& motion_matrix,
-                    int transparency, float brightness,
-                    int pivot_offset_x, int pivot_offset_y, bool use_pivot)
+                    int transparency, float brightness, bool only_image,
+                    float pivot_offset_x, float pivot_offset_y, bool rotation, bool use_pivot)
 {
     bool exists = false;
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -281,38 +314,37 @@ void DmxImage::Draw(BaseObject* base, ModelPreview* preview, DrawGLUtils::xlAccu
                 (const char*)_imageFile.c_str(),
                 (const char*)preview->GetName().c_str());
             _images[preview->GetName().ToStdString()] = new Image(_imageFile);
-
             width = (_images[preview->GetName().ToStdString()])->width;
             height = (_images[preview->GetName().ToStdString()])->height;
-            if (controls_size) {
-                base->GetBaseObjectScreenLocation().SetRenderSize(width * scalex, height * scaley, 10.0f);
-            }
             exists = true;
+            obj_exists = true;
+            if (image_selected && !only_image) {
+                // Next line is needed to trigger another redraw so the motion image scaling in DmxServo can happen
+                base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxImage::OnPropertyGridChange::Draw");
+            }
         }
     }
     else {
         exists = true;
     }
 
-    float x1 = -0.5f * width;
-    float x2 = -0.5f * width;
-    float x3 = 0.5f * width;
-    float x4 = 0.5f * width;
-    float y1 = -0.5f * height;
-    float y2 = 0.5f * height;
-    float y3 = 0.5f * height;
-    float y4 = -0.5f * height;
+    float x1 = -0.5f;
+    float x2 = -0.5f;
+    float x3 = 0.5f;
+    float x4 = 0.5f;
+    float y1 = -0.5f;
+    float y2 = 0.5f;
+    float y3 = 0.5f;
+    float y4 = -0.5f;
     float z1 = 0.0f;
     float z2 = 0.0f;
     float z3 = 0.0f;
     float z4 = 0.0f;
 
-    if (controls_size) {
-        base->GetBaseObjectScreenLocation().UpdateBoundingBox(width, height);  // FIXME: Modify to only call this when position changes
-    }
-
     if (exists) {
-        obj_exists = true;
+        Image* image = _images[preview->GetName().ToStdString()];
+        //glm::vec3 scale = base->GetBaseObjectScreenLocation().GetScaleMatrix();
+
         glm::mat4 Identity = glm::mat4(1.0f);
         glm::mat4 scalingMatrix = glm::scale(Identity, glm::vec3(scalex, scaley, scalez));
         glm::mat4 rx = glm::rotate(Identity, glm::radians(rotatex), glm::vec3(1.0f, 0.0f, 0.0f));
@@ -320,10 +352,17 @@ void DmxImage::Draw(BaseObject* base, ModelPreview* preview, DrawGLUtils::xlAccu
         glm::mat4 rz = glm::rotate(Identity, glm::radians(rotatez), glm::vec3(0.0f, 0.0f, 1.0f));
         glm::quat rotate_quat = glm::quat_cast(rx * ry * rz);
         glm::mat4 translationMatrix = glm::translate(Identity, glm::vec3(offset_x, offset_y, offset_z));
-        glm::mat4 pivotToZero = glm::translate(Identity, glm::vec3(-pivot_offset_x, -pivot_offset_y, 0.0f));
-        glm::mat4 pivotBack = glm::translate(Identity, glm::vec3(pivot_offset_x, pivot_offset_y, 0.0f));
         glm::mat4 m = translationMatrix * glm::toMat4(rotate_quat) * scalingMatrix;
-        m = base_matrix * m * pivotBack * motion_matrix * pivotToZero;
+        if (rotation) {
+            glm::mat4 pivotToZero = glm::translate(Identity, glm::vec3(-pivot_offset_x, -pivot_offset_y, 0.0f));
+            glm::mat4 pivotBack = glm::translate(Identity, glm::vec3(pivot_offset_x, pivot_offset_y, 0.0f));
+            m = base_matrix * m * pivotBack * motion_matrix * pivotToZero;
+        }
+        else
+        {
+            m = base_matrix * m * motion_matrix;
+        }
+
 
         glm::vec4 v = m * glm::vec4(glm::vec3(x1, y1, z1), 1.0f);
         x1 = v.x; y1 = v.y; z1 = v.z;
@@ -334,12 +373,9 @@ void DmxImage::Draw(BaseObject* base, ModelPreview* preview, DrawGLUtils::xlAccu
         v = m * glm::vec4(glm::vec3(x4, y4, z4), 1.0f);
         x4 = v.x; y4 = v.y; z4 = v.z;
 
-        Image* image = _images[preview->GetName().ToStdString()];
 
         float tx1 = 0;
         float tx2 = image->tex_coord_x;
-
-        //DrawGLUtils::xl3Accumulator& va = transparency == 0 ? va3 : tva3;
 
         va.PreAllocTexture(6);
         va.AddTextureVertex(x1, y1, z1, tx1, -0.5 / (image->textureHeight));
@@ -352,25 +388,24 @@ void DmxImage::Draw(BaseObject* base, ModelPreview* preview, DrawGLUtils::xlAccu
         va.FinishTextures(GL_TRIANGLES, image->getID(), alpha, brightness);
 
 
-        if (use_pivot) {
+        if (use_pivot && rotation) {
             xlColor pink = xlColor(255, 0, 255);
             float x1 = pivot_offset_x;
             float y1 = pivot_offset_y;
             float z1 = 0.0f;
             glm::vec4 v = m * glm::vec4(glm::vec3(x1, y1, 0.0f), 1.0f);
             x1 = v.x; y1 = v.y; z1 = v.z + 0.01;
-            float pscale = base_matrix[0].x;
-            va.AddTrianglesCircle(x1, y1, z1, 10.0 * pscale, xlBLACK);
-            va.AddTrianglesCircle(x1, y1, z1+0.01, 9.0 * pscale, pink);
+            va.AddTrianglesCircle(x1, y1, z1, 2.5, xlBLACK);
+            va.AddTrianglesCircle(x1, y1, z1+0.01, 2, pink);
             va.Finish(GL_TRIANGLES);
-            va.AddVertex(x1 - 7 * pscale, y1 + 7 * pscale, z1+0.02, xlBLACK);
-            va.AddVertex(x1 + 7 * pscale, y1 - 7 * pscale, z1+0.02, xlBLACK);
-            va.AddVertex(x1 - 7 * pscale, y1 - 7 * pscale, z1+0.02, xlBLACK);
-            va.AddVertex(x1 + 7 * pscale, y1 + 7 * pscale, z1+0.02, xlBLACK);
+            va.AddVertex(x1 - 1.5, y1 + 1.5, z1+0.002, xlBLACK);
+            va.AddVertex(x1 + 1.5, y1 - 1.5, z1+0.002, xlBLACK);
+            va.AddVertex(x1 - 1.5, y1 - 1.5, z1+0.002, xlBLACK);
+            va.AddVertex(x1 + 1.5, y1 + 1.5, z1+0.002, xlBLACK);
             va.Finish(GL_LINES);
         }
     }
-    else if (show_empty) {
+    else if (only_image) {
         float x1 = -0.5f * width * scalex;
         float x2 = -0.5f * width * scalex;
         float x3 = 0.5f * width * scalex;

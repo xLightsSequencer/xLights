@@ -1029,6 +1029,8 @@
 		<Unit filename="models/DMX/DmxSkulltronix.h" />
 		<Unit filename="models/DMX/Mesh.cpp" />
 		<Unit filename="models/DMX/Mesh.h" />
+		<Unit filename="models/DMX/Servo.cpp" />
+		<Unit filename="models/DMX/Servo.h" />
 		<Unit filename="models/DmxModel.h" />
 		<Unit filename="models/GridlinesObject.cpp" />
 		<Unit filename="models/GridlinesObject.h" />

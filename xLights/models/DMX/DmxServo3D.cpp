@@ -8,33 +8,42 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "DmxServo3D.h"
+#include "Servo.h"
 #include "../../ModelPreview.h"
 #include "../../xLightsVersion.h"
 #include "../../xLightsMain.h"
 #include "../../UtilFunctions.h"
 
 DmxServo3d::DmxServo3d(wxXmlNode *node, const ModelManager &manager, bool zeroBased)
-    : DmxServo(node, manager, zeroBased), static_mesh(nullptr), motion_mesh(nullptr)
+    : DmxModel(node, manager, zeroBased), brightness(100.0f), static_mesh(nullptr), motion_mesh(nullptr), servo1(nullptr)
 {
     wxXmlNode* n = node->GetChildren();
     while (n != nullptr) {
-        if ("staticMesh" == n->GetName()) {
+        if ("StaticMesh" == n->GetName()) {
             static_mesh = new Mesh(n, "StaticMesh");
         }
-        else if ("motionMesh" == n->GetName()) {
+        else if ("MotionMesh" == n->GetName()) {
             motion_mesh = new Mesh(n, "MotionMesh");
+        }
+        else if ("Servo1" == n->GetName()) {
+            servo1 = new Servo(n, "Servo1", 1);
         }
         n = n->GetNext();
     }
     if (static_mesh == nullptr) {
-        wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, "staticMesh");
+        wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, "StaticMesh");
         node->AddChild(new_node);
         static_mesh = new Mesh(new_node, "StaticMesh");
     }
     if (motion_mesh == nullptr) {
-        wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, "motionMesh");
+        wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, "MotionMesh");
         node->AddChild(new_node);
         motion_mesh = new Mesh(new_node, "MotionMesh");
+    }
+    if (servo1 == nullptr) {
+        wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, "Servo1");
+        node->AddChild(new_node);
+        servo1 = new Servo(new_node, "Servo1", 1);
     }
 }
 
@@ -43,59 +52,48 @@ DmxServo3d::~DmxServo3d()
     //dtor
 }
 
-static wxPGChoices SERVO_STYLES;
+void DmxServo3d::AddTypeProperties(wxPropertyGridInterface* grid) {
+    DmxModel::AddTypeProperties(grid);
 
-enum SERVO_STYLE {
-    SERVO_STYLE_TRANSLATEX,
-    SERVO_STYLE_TRANSLATEY,
-    SERVO_STYLE_TRANSLATEZ,
-    SERVO_STYLE_ROTATEX,
-    SERVO_STYLE_ROTATEY,
-    SERVO_STYLE_ROTATEZ
-};
-
-void DmxServo3d::AddTypeProperties(wxPropertyGridInterface *grid) {
-
-    DmxServo::AddTypePropertiesSpecial(grid, false);
-
-    if (static_mesh != nullptr) {
-        static_mesh->AddTypeProperties(grid);
-    }
-    if (motion_mesh != nullptr) {
-        motion_mesh->AddTypeProperties(grid);
-    }
+    servo1->AddTypeProperties(grid);
+    static_mesh->AddTypeProperties(grid);
+    motion_mesh->AddTypeProperties(grid);
 
     grid->Append(new wxPropertyCategory("Common Properties", "CommonProperties"));
 }
 
 int DmxServo3d::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
 
-    if (static_mesh != nullptr) {
-        static_mesh->OnPropertyGridChange(grid, event, this, GetModelScreenLocation().IsLocked());
+    if (servo1->OnPropertyGridChange(grid, event, this, GetModelScreenLocation().IsLocked()) == 0) {
+        return 0;
     }
-    if (motion_mesh != nullptr) {
-        motion_mesh->OnPropertyGridChange(grid, event, this, GetModelScreenLocation().IsLocked());
+    if (static_mesh->OnPropertyGridChange(grid, event, this, GetModelScreenLocation().IsLocked()) == 0) {
+        return 0;
+    }
+    if (motion_mesh->OnPropertyGridChange(grid, event, this, GetModelScreenLocation().IsLocked()) == 0) {
+        return 0;
     }
 
-    return DmxServo::OnPropertyGridChange(grid, event);
+    return DmxModel::OnPropertyGridChange(grid, event);
 }
 
 void DmxServo3d::InitModel() {
-    DmxServo::InitModel();
+    DmxModel::InitModel();
     DisplayAs = "DmxServo3d";
 
-    if (static_mesh != nullptr) {
-        static_mesh->Init(this, true, !motion_mesh->GetExists());
-    }
-
-    if (motion_mesh != nullptr) {
-        motion_mesh->Init(this, !static_mesh->GetExists(), !static_mesh->GetExists() );
-    }
+    servo1->Init(this);
+    static_mesh->Init(this, true, !motion_mesh->GetExists());
+    motion_mesh->Init(this, !static_mesh->GetExists(), !static_mesh->GetExists() );
 }
 
-void DmxServo3d::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va, const xlColor *c, float &sx, float &sy, float &sz, bool active)
+void DmxServo3d::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator& va, const xlColor* c, float& sx, float& sy, float& sz, bool active)
 {
-    int channel_value;
+    if (servo1->GetChannel() > Nodes.size())
+    {
+        // crash protection
+        return;
+    }
+
     float servo_pos = 0.0;
     glm::mat4 Identity = glm::mat4(1.0f);
     glm::mat4 motion_matrix = Identity;
@@ -104,53 +102,18 @@ void DmxServo3d::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumu
     glm::quat rotateQuat = GetModelScreenLocation().GetRotationQuat();
     glm::mat4 base_matrix = translateMatrix * glm::toMat4(rotateQuat) * scalingMatrix;
 
-    if (static_mesh != nullptr) {
-        static_mesh->Draw(this, preview, va, base_matrix, motion_matrix);
+    static_mesh->Draw(this, preview, va, base_matrix, motion_matrix);
+
+    if (servo1->GetChannel() > 0 && active) {
+        servo_pos = servo1->GetPosition(GetChannelValue(servo1->GetChannel() - 1));
     }
 
-    if (servo_channel > 0 && active) {
-        channel_value = GetChannelValue(servo_channel - 1);
-        switch (servo_style_val) {
-        case SERVO_STYLE_TRANSLATEX:
-        case SERVO_STYLE_TRANSLATEY:
-        case SERVO_STYLE_TRANSLATEZ:
-            servo_pos = (1.0 - ((channel_value - min_limit) / (float)(max_limit - min_limit))) * -range_of_motion + range_of_motion;
-            break;
-        case SERVO_STYLE_ROTATEX:
-        case SERVO_STYLE_ROTATEY:
-        case SERVO_STYLE_ROTATEZ:
-            servo_pos = (1.0 - ((channel_value - min_limit) / (float)(max_limit - min_limit))) * -range_of_motion + range_of_motion / 2.0;
-            break;
-        }
-    }
-    else {
-        servo_pos = 0.0f;
-    }
+    servo1->FillMotionMatrix(servo_pos, motion_matrix);
+    motion_mesh->Draw(this, preview, va, base_matrix, motion_matrix);
+}
 
-    switch (servo_style_val) {
-    case SERVO_STYLE_TRANSLATEX:
-        motion_matrix = glm::translate(Identity, glm::vec3(servo_pos, 0.0f, 0.0f));
-        break;
-    case SERVO_STYLE_TRANSLATEY:
-        motion_matrix = glm::translate(Identity, glm::vec3(0.0f, servo_pos, 0.0f));
-        break;
-    case SERVO_STYLE_TRANSLATEZ:
-        motion_matrix = glm::translate(Identity, glm::vec3(0.0f, 0.0f, servo_pos));
-        break;
-    case SERVO_STYLE_ROTATEX:
-        motion_matrix = glm::rotate(Identity, glm::radians(servo_pos), glm::vec3(1.0f, 0.0f, 0.0f));
-        break;
-    case SERVO_STYLE_ROTATEY:
-        motion_matrix = glm::rotate(Identity, glm::radians(servo_pos), glm::vec3(0.0f, 1.0f, 0.0f));
-        break;
-    case SERVO_STYLE_ROTATEZ:
-        motion_matrix = glm::rotate(Identity, glm::radians(servo_pos), glm::vec3(0.0f, 0.0f, 1.0f));
-        break;
-    }
-
-    if (motion_mesh != nullptr) {
-        motion_mesh->Draw(this, preview, va, base_matrix, motion_matrix);
-    }
+void DmxServo3d::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator& va, const xlColor* c, float& sx, float& sy, bool active)
+{
 }
 
 void DmxServo3d::ExportXlightsModel()

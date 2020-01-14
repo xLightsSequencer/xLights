@@ -278,6 +278,7 @@
     <ClCompile Include="models\DMX\DmxShutterAbility.cpp" />
     <ClCompile Include="models\DMX\DmxSkulltronix.cpp" />
     <ClCompile Include="models\DMX\Mesh.cpp" />
+    <ClCompile Include="models\DMX\Servo.cpp" />
     <ClCompile Include="models\GridlinesObject.cpp" />
     <ClCompile Include="models\ImageModel.cpp" />
     <ClCompile Include="models\ImageObject.cpp" />
@@ -684,6 +685,7 @@
     <ClInclude Include="models\DMX\DmxShutterAbility.h" />
     <ClInclude Include="models\DMX\DmxSkulltronix.h" />
     <ClInclude Include="models\DMX\Mesh.h" />
+    <ClInclude Include="models\DMX\Servo.h" />
     <ClInclude Include="models\GridlinesObject.h" />
     <ClInclude Include="models\ImageModel.h" />
     <ClInclude Include="models\ImageObject.h" />

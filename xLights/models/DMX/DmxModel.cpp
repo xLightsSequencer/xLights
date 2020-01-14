@@ -113,12 +113,12 @@ void DmxModel::InitModel() {
         Nodes[curNode]->ActChan = stringStartChan[0] + curNode*GetNodeChannelCount(StringType);
         Nodes[curNode]->StringNum=0;
         // the screenx/screeny positions are used to fake it into giving a bigger selection area
-        if( x == 1 ) {
-            Nodes[curNode]->Coords[0].screenX = -0.65f;
-            Nodes[curNode]->Coords[0].screenY = -1.0f;
-        } else if( x == 2 ) {
-            Nodes[curNode]->Coords[0].screenX = 0.65f;
-            Nodes[curNode]->Coords[0].screenY = 1.0f;
+        if( x == 0 ) {
+            Nodes[curNode]->Coords[0].screenX = -0.5f;
+            Nodes[curNode]->Coords[0].screenY = -0.5f;
+        } else if( x == 1 ) {
+            Nodes[curNode]->Coords[0].screenX = 0.5f;
+            Nodes[curNode]->Coords[0].screenY = 0.5f;
         } else {
             Nodes[curNode]->Coords[0].screenX = 0;
             Nodes[curNode]->Coords[0].screenY = 0;
@@ -209,12 +209,15 @@ void DmxModel::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accum
     }
 }
 
-int DmxModel::GetChannelValue( int channel )
+int DmxModel::GetChannelValue(int channel)
 {
     xlColor color_angle;
     int lsb = 0;
     int msb = 0;
     Nodes[channel]->GetColor(color_angle);
+    msb = color_angle.red;
+    Nodes[channel + 1]->GetColor(color_angle);
     lsb = color_angle.red;
     return ((msb << 8) | lsb);
 }
+
