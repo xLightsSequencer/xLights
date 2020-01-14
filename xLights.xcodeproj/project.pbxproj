@@ -90,6 +90,11 @@
 		671142EF207BAD5400F45296 /* WebSocketClient.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671142EE207BAD5400F45296 /* WebSocketClient.cpp */; };
 		6711F04B1AEF12E600B56ED0 /* StrandNodeNamesDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6711F0491AEF12E600B56ED0 /* StrandNodeNamesDialog.cpp */; };
 		6715B4FA1F5F15CF00D60087 /* HousePreviewPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6715B4F91F5F15CF00D60087 /* HousePreviewPanel.cpp */; };
+		6716574723CAAA45000B47D3 /* DmxServo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6716573D23CAAA44000B47D3 /* DmxServo.cpp */; };
+		6716574823CAAA45000B47D3 /* DmxImage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6716573E23CAAA44000B47D3 /* DmxImage.cpp */; };
+		6716574923CAAA45000B47D3 /* DmxServo3D.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6716574123CAAA45000B47D3 /* DmxServo3D.cpp */; };
+		6716574A23CAAA45000B47D3 /* DmxFloodArea.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6716574223CAAA45000B47D3 /* DmxFloodArea.cpp */; };
+		6716574B23CAAA45000B47D3 /* Mesh.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6716574623CAAA45000B47D3 /* Mesh.cpp */; };
 		671859E31D61FFF5008F52AA /* SevenSegmentDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671859E11D61FFF5008F52AA /* SevenSegmentDialog.cpp */; };
 		6718EE731CDA4BD400A6E842 /* SubBufferPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6718EE711CDA4BD400A6E842 /* SubBufferPanel.cpp */; };
 		6719BF4B1CCB1D8800899A4B /* MusicEffect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6719BF471CCB1D8800899A4B /* MusicEffect.cpp */; };
@@ -546,6 +551,8 @@
 		67BAE10D203F1D68000EA088 /* EventLor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67BAE108203F1D67000EA088 /* EventLor.cpp */; };
 		67BAE10E203F1D68000EA088 /* EventLorPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67BAE109203F1D67000EA088 /* EventLorPanel.cpp */; };
 		67BAE10F203F1D68000EA088 /* ListenerLor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67BAE10B203F1D67000EA088 /* ListenerLor.cpp */; };
+		67BB68EC23CE2084002C5483 /* DmxServo3Axis.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67BB68E823CE2084002C5483 /* DmxServo3Axis.cpp */; };
+		67BB68ED23CE2084002C5483 /* Servo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67BB68E923CE2084002C5483 /* Servo.cpp */; };
 		67BBF2A91E0C147D0054D264 /* BufferSizeDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67BBF2A71E0C147D0054D264 /* BufferSizeDialog.cpp */; };
 		67BBFD0F208BD72E00A3D5AE /* LayerSelectDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67BBFD0E208BD72D00A3D5AE /* LayerSelectDialog.cpp */; };
 		67BC8BB41D2152C5009B660F /* StateEffect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67BC8BB01D2152C5009B660F /* StateEffect.cpp */; };
@@ -995,6 +1002,16 @@
 		6711F04A1AEF12E600B56ED0 /* StrandNodeNamesDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StrandNodeNamesDialog.h; sourceTree = "<group>"; };
 		6715B4F81F5F15CF00D60087 /* HousePreviewPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HousePreviewPanel.h; sourceTree = "<group>"; };
 		6715B4F91F5F15CF00D60087 /* HousePreviewPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = HousePreviewPanel.cpp; sourceTree = "<group>"; };
+		6716573D23CAAA44000B47D3 /* DmxServo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DmxServo.cpp; sourceTree = "<group>"; };
+		6716573E23CAAA44000B47D3 /* DmxImage.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DmxImage.cpp; sourceTree = "<group>"; };
+		6716573F23CAAA44000B47D3 /* Mesh.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Mesh.h; sourceTree = "<group>"; };
+		6716574023CAAA45000B47D3 /* DmxFloodArea.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DmxFloodArea.h; sourceTree = "<group>"; };
+		6716574123CAAA45000B47D3 /* DmxServo3D.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DmxServo3D.cpp; sourceTree = "<group>"; };
+		6716574223CAAA45000B47D3 /* DmxFloodArea.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DmxFloodArea.cpp; sourceTree = "<group>"; };
+		6716574323CAAA45000B47D3 /* DmxServo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DmxServo.h; sourceTree = "<group>"; };
+		6716574423CAAA45000B47D3 /* DmxServo3D.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DmxServo3D.h; sourceTree = "<group>"; };
+		6716574523CAAA45000B47D3 /* DmxImage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DmxImage.h; sourceTree = "<group>"; };
+		6716574623CAAA45000B47D3 /* Mesh.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Mesh.cpp; sourceTree = "<group>"; };
 		671859E11D61FFF5008F52AA /* SevenSegmentDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SevenSegmentDialog.cpp; sourceTree = "<group>"; };
 		671859E21D61FFF5008F52AA /* SevenSegmentDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SevenSegmentDialog.h; sourceTree = "<group>"; };
 		6718EE711CDA4BD400A6E842 /* SubBufferPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SubBufferPanel.cpp; sourceTree = "<group>"; };
@@ -1806,6 +1823,10 @@
 		67BAE10B203F1D67000EA088 /* ListenerLor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ListenerLor.cpp; path = events/ListenerLor.cpp; sourceTree = "<group>"; };
 		67BAE10C203F1D67000EA088 /* EventLorPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EventLorPanel.h; sourceTree = "<group>"; };
 		67BAE6E21A08252700CB7041 /* spxml-0.5 */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "spxml-0.5"; path = "include/spxml-0.5"; sourceTree = SOURCE_ROOT; };
+		67BB68E823CE2084002C5483 /* DmxServo3Axis.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DmxServo3Axis.cpp; sourceTree = "<group>"; };
+		67BB68E923CE2084002C5483 /* Servo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Servo.cpp; sourceTree = "<group>"; };
+		67BB68EA23CE2084002C5483 /* Servo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Servo.h; sourceTree = "<group>"; };
+		67BB68EB23CE2084002C5483 /* DmxServo3Axis.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DmxServo3Axis.h; sourceTree = "<group>"; };
 		67BBF2A71E0C147D0054D264 /* BufferSizeDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = BufferSizeDialog.cpp; sourceTree = "<group>"; };
 		67BBF2A81E0C147D0054D264 /* BufferSizeDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BufferSizeDialog.h; sourceTree = "<group>"; };
 		67BBFD0D208BD72D00A3D5AE /* LayerSelectDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LayerSelectDialog.h; sourceTree = "<group>"; };
@@ -2507,6 +2528,20 @@
 		67503C4E23C3261F0033449B /* DMX */ = {
 			isa = PBXGroup;
 			children = (
+				67BB68E823CE2084002C5483 /* DmxServo3Axis.cpp */,
+				67BB68EB23CE2084002C5483 /* DmxServo3Axis.h */,
+				67BB68E923CE2084002C5483 /* Servo.cpp */,
+				67BB68EA23CE2084002C5483 /* Servo.h */,
+				6716574223CAAA45000B47D3 /* DmxFloodArea.cpp */,
+				6716574023CAAA45000B47D3 /* DmxFloodArea.h */,
+				6716573E23CAAA44000B47D3 /* DmxImage.cpp */,
+				6716574523CAAA45000B47D3 /* DmxImage.h */,
+				6716573D23CAAA44000B47D3 /* DmxServo.cpp */,
+				6716574323CAAA45000B47D3 /* DmxServo.h */,
+				6716574123CAAA45000B47D3 /* DmxServo3D.cpp */,
+				6716574423CAAA45000B47D3 /* DmxServo3D.h */,
+				6716574623CAAA45000B47D3 /* Mesh.cpp */,
+				6716573F23CAAA44000B47D3 /* Mesh.h */,
 				675CA16623C93FBE007432C6 /* DmxShutterAbility.cpp */,
 				675CA16723C93FBE007432C6 /* DmxShutterAbility.h */,
 				67503C4F23C3261F0033449B /* DmxPanTiltAbility.cpp */,
@@ -4229,6 +4264,7 @@
 				67E5C5DD22B2B32D00D6AF68 /* ShaderDownloadDialog.cpp in Sources */,
 				67D8F45A1A1A584400522413 /* TabSequence.cpp in Sources */,
 				67372761234AB2FD00C6C2F2 /* ColoursPanel.cpp in Sources */,
+				67BB68ED23CE2084002C5483 /* Servo.cpp in Sources */,
 				67BF80061F278956002F118D /* Falcon.cpp in Sources */,
 				67B32DD31A16972000143B0F /* TabPreview.cpp in Sources */,
 				67BF80081F278956002F118D /* FPP.cpp in Sources */,
@@ -4250,6 +4286,7 @@
 				67B2CF7B1C39D98A003C17CA /* MarqueePanel.cpp in Sources */,
 				67BD442A1FAB3B3D0007E083 /* UpdaterDialog.cpp in Sources */,
 				67BF80051F278956002F118D /* J1Sys.cpp in Sources */,
+				6716574923CAAA45000B47D3 /* DmxServo3D.cpp in Sources */,
 				67EE95B21C848A3600C62C95 /* VideoPanel.cpp in Sources */,
 				673E425B17F0D95200F4BC76 /* TabSetup.cpp in Sources */,
 				676D0F7F1C72BEBD009C66FC /* kiss_fftndr.c in Sources */,
@@ -4273,6 +4310,7 @@
 				67DB97391B05744100FC5ADC /* SuperStarImportDialog.cpp in Sources */,
 				673C925A20A47C5400E59F5D /* LinkJukeboxButtonDialog.cpp in Sources */,
 				67B2CF831C39D98A003C17CA /* ShimmerPanel.cpp in Sources */,
+				6716574723CAAA45000B47D3 /* DmxServo.cpp in Sources */,
 				67B2CFDE1C3A186A003C17CA /* WaveEffect.cpp in Sources */,
 				67E9389D1A80FC5A00937772 /* SeqFileUtilities.cpp in Sources */,
 				679BD3431C375D9F000539FE /* OnEffect.cpp in Sources */,
@@ -4373,6 +4411,7 @@
 				67B2CF8D1C39D98A003C17CA /* TwinklePanel.cpp in Sources */,
 				673CAD5622F1D02400836D87 /* BulkEditFontPickerDialog.cpp in Sources */,
 				675AB42D1B5ACEDA00853A28 /* PluginLoader.cpp in Sources */,
+				6716574823CAAA45000B47D3 /* DmxImage.cpp in Sources */,
 				671130B31E4EB18100AF09A7 /* VSAFile.cpp in Sources */,
 				6731448822C6F98F00764C44 /* NoteRangeDialog.cpp in Sources */,
 				67BBFD0F208BD72E00A3D5AE /* LayerSelectDialog.cpp in Sources */,
@@ -4485,8 +4524,10 @@
 				676DCBFE1A98E53800FBA86B /* FileConverter.cpp in Sources */,
 				677421D41A68AB3E0082DA5B /* Render.cpp in Sources */,
 				6797A1361F427205007CF7A0 /* EffectTimingDialog.cpp in Sources */,
+				67BB68EC23CE2084002C5483 /* DmxServo3Axis.cpp in Sources */,
 				675AB42F1B5ACEDA00853A28 /* PluginWrapper.cpp in Sources */,
 				67503C9223C3261F0033449B /* CustomModel.cpp in Sources */,
+				6716574B23CAAA45000B47D3 /* Mesh.cpp in Sources */,
 				67D90BE82390176B007792F2 /* xxxDialog.cpp in Sources */,
 				67CF20CF1C3D8D71000FCDF7 /* RenderBuffer.cpp in Sources */,
 				676F004223ABD1D900701F3F /* HinksPix.cpp in Sources */,
@@ -4533,6 +4574,7 @@
 				67B2CFE01C3A186A003C17CA /* ShockwaveEffect.cpp in Sources */,
 				675AB4261B5ACEDA00853A28 /* PluginBufferingAdapter.cpp in Sources */,
 				6784F9291A5653670018EC0C /* EffectsGrid.cpp in Sources */,
+				6716574A23CAAA45000B47D3 /* DmxFloodArea.cpp in Sources */,
 				67BCD1551E6DAF9100F99935 /* xLightsVersion.cpp in Sources */,
 				677421DA1A6A8FBE0082DA5B /* EffectIconPanel.cpp in Sources */,
 				67B2CF961C39D98A003C17CA /* ButterflyEffect.cpp in Sources */,

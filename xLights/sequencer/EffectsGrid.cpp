@@ -6601,8 +6601,9 @@ void EffectsGrid::mouseWheelMoved(wxMouseEvent& event)
     }
     else
     {
-        wxPostEvent(GetParent()->GetEventHandler(), event);
-        event.Skip();
+        //cannot POST as we need the actual event to be processed inline
+        //so we can tell the source of the event (trackpad vs mouse)
+        GetParent()->GetEventHandler()->SafelyProcessEvent(event);
     }
 }
 

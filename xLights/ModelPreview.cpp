@@ -86,7 +86,7 @@ void ModelPreview::SaveCurrentCameraPosition()
 void ModelPreview::OnZoomGesture(wxZoomGestureEvent& event) {
     if (!event.IsGestureStart()) {
         float delta = (m_last_mouse_x - (event.GetZoomFactor() * 1000)) / 1000.0;
-        SetZoomDelta(delta > 0.0 ? 0.1f : -0.1f);
+        SetZoomDelta(delta);
         if (xlights != nullptr) {
             if (xlights->GetPlayStatus() == PLAY_TYPE_STOPPED || xlights->GetPlayStatus() == PLAY_TYPE_MODEL_PAUSED || xlights->GetPlayStatus() == PLAY_TYPE_EFFECT_PAUSED) {
                 Refresh();
@@ -338,7 +338,12 @@ void ModelPreview::mouseWheelMoved(wxMouseEvent& event) {
     if (!m_wheel_down) {
         bool fromTrackPad = IsMouseEventFromTouchpad();
         if (!fromTrackPad || event.ControlDown()) {
-            SetZoomDelta(event.GetWheelRotation() > 0 ? -0.1f : 0.1f);
+            float delta = event.GetWheelRotation() > 0 ? -0.1f : 0.1f;
+            if (fromTrackPad) {
+                float f = event.GetWheelRotation();
+                delta = -f / 100.0f;
+            }
+            SetZoomDelta(delta);
         }
         else {
             float delta_x = event.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ? 0 : -event.GetWheelRotation();

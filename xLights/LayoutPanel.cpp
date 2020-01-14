@@ -3418,8 +3418,8 @@ void LayoutPanel::OnPreviewZoomGesture(wxZoomGestureEvent& event) {
         } else {
             CreateUndoPoint(editing_models ? "SingleModel" : "SingleObject", selectedBaseObject->name, "Zoom");
         }
-    }  else {
-        modelPreview->SetZoomDelta(delta > 0.0 ? 0.1f : -0.1f);
+    } else if (!event.IsGestureStart()) {
+        modelPreview->SetZoomDelta(delta);
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewZoomGesture");
     }
     m_last_mouse_x = (event.GetZoomFactor() * 1000);
@@ -3452,6 +3452,10 @@ void LayoutPanel::OnPreviewMouseWheel(wxMouseEvent& event)
                 float deltay = mouse_y - centery;
                 float zoom = modelPreview->GetZoom();
                 float zoom_delta = event.GetWheelRotation() > 0 ? -0.1f : 0.1f;
+                if (fromTrackPad) {
+                    float f = event.GetWheelRotation();
+                    zoom_delta = -f / 100.0f;
+                }
                 modelPreview->SetZoomDelta(zoom_delta);
                 zoom = modelPreview->GetZoom();
                 float new_x = deltax * zoom_delta / zoom;
@@ -3509,6 +3513,10 @@ void LayoutPanel::OnPreviewMouseWheel(wxMouseEvent& event)
                 float deltay = mouse_y - centery;
                 float zoom = modelPreview->GetZoom();
                 float zoom_delta = event.GetWheelRotation() > 0 ? -0.1f : 0.1f;
+                if (fromTrackPad) {
+                    float f = event.GetWheelRotation();
+                    zoom_delta = -f / 100.0f;
+                }
                 modelPreview->SetZoomDelta(zoom_delta);
                 zoom = modelPreview->GetZoom();
                 float new_x = deltax * zoom_delta / zoom;

@@ -14,6 +14,7 @@
 #include "../UtilFunctions.h"
 #include "../xLightsVersion.h"
 #include "../EffectsPanel.h"
+#include "osxMacUtils.h"
 
 #include <log4cpp/Category.hh>
 
@@ -389,10 +390,14 @@ void MainSequencer::OnScrollBarEffectsVerticalScrollChanged(wxScrollEvent& event
 
 void MainSequencer::mouseWheelMoved(wxMouseEvent& event)
 {
+    bool fromTrackPad = IsMouseEventFromTouchpad();
     int i = event.GetWheelRotation();
     if (event.GetWheelAxis() == wxMOUSE_WHEEL_HORIZONTAL) {
         int position = ScrollBarEffectsHorizontal->GetThumbPosition();
         int ts = ScrollBarEffectsHorizontal->GetThumbSize() / 10;
+        if (fromTrackPad) {
+            ts = PanelTimeLine->GetTimeMSfromPosition(std::abs(event.GetWheelRotation()));
+        }
         if (ts ==0) {
             ts = 1;
         }
@@ -402,9 +407,9 @@ void MainSequencer::mouseWheelMoved(wxMouseEvent& event)
             }
         } else if (i > 0) {
             position += ts;
-            if (position >= ScrollBarEffectsHorizontal->GetRange()) {
-                position = ScrollBarEffectsHorizontal->GetRange() - 1;
-            }
+        }
+        if (position >= ScrollBarEffectsHorizontal->GetRange()) {
+            position = ScrollBarEffectsHorizontal->GetRange() - 1;
         }
         ScrollBarEffectsHorizontal->SetThumbPosition(position);
         wxCommandEvent eventScroll(EVT_HORIZ_SCROLL);
