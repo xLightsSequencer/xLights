@@ -43,6 +43,9 @@ OutputManager::~OutputManager()
 
     // destroy all out output objects
     DeleteAllOutputs();
+    for (auto&& tp : _testPresets) {
+        delete tp;
+    }
 }
 #pragma endregion Constructors and Destructors
 

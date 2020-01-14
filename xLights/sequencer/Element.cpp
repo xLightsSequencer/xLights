@@ -25,6 +25,7 @@ Element::~Element() {
         mLayersToDelete.pop_front();
     }
     mEffectLayers.clear();
+    listener = nullptr; // dont delete it ... as it was a passed in sequence elements pointer ... but explicitly forget it so someone doesnt delete it later
 }
 
 void Element::CleanupAfterRender() {
