@@ -724,7 +724,7 @@ public:
         //determine a good number of compression blocks
         uint64_t datasize = m_file->getChannelCount() * m_file->getNumFrames();
         uint64_t numBlocks = datasize;
-        numBlocks /= (64*2014); //at least 64K per block
+        numBlocks /= (64*1024); //at least 64K per block
         if (numBlocks > 255) {
             //need a lot of blocks, use as many as we can
             numBlocks = 255;
