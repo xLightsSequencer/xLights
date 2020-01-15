@@ -15,6 +15,7 @@ ViewObjectManager::ViewObjectManager(xLightsFrame* xl) : xlights(xl)
 ViewObjectManager::~ViewObjectManager()
 {
     //dtor
+    clear();
 }
 
 BaseObject* ViewObjectManager::GetObject(const std::string &name) const

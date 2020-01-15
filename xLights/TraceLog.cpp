@@ -12,13 +12,17 @@ thread_local std::list<std::string> *threadLog = nullptr;
 
 class TraceLogHolder {
 public:
-    TraceLogHolder() {TRACE_LOG_VALID = true;}
-    ~TraceLogHolder() {TRACE_LOG_VALID = false;}
-    
-    
     std::mutex MESSAGE_MAP_LOCK;
     std::map<std::thread::id, std::list<std::string>*> LOG_MESSAGES;
-    
+
+    TraceLogHolder() {TRACE_LOG_VALID = true;}
+    ~TraceLogHolder() {
+        TRACE_LOG_VALID = false;
+        for (auto it_thread = LOG_MESSAGES.begin(); it_thread != LOG_MESSAGES.end(); ++it_thread) {
+            delete it_thread->second;
+        }
+        LOG_MESSAGES.clear();
+    }
     
     void ClearTraceMessages() {
         if (!TRACE_LOG_VALID) {
