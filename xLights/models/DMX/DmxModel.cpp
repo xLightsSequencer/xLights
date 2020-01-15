@@ -221,3 +221,35 @@ int DmxModel::GetChannelValue(int channel)
     return ((msb << 8) | lsb);
 }
 
+void DmxModel::SetNodeNames(wxString& default_names) {
+    wxString nn = ModelXml->GetAttribute("NodeNames", "");
+    bool save_names = false;
+    if (nn == "") {
+        // provide default node names
+        nn = default_names;
+        save_names = true;
+    }
+
+    wxString tempstr = nn;
+    nodeNames.clear();
+    while (tempstr.size() > 0) {
+        std::string t2 = tempstr.ToStdString();
+        if (tempstr[0] == ',') {
+            t2 = "";
+            tempstr = tempstr(1, tempstr.length());
+        }
+        else if (tempstr.Contains(",")) {
+            t2 = tempstr.SubString(0, tempstr.Find(",") - 1);
+            tempstr = tempstr.SubString(tempstr.Find(",") + 1, tempstr.length());
+        }
+        else {
+            tempstr = "";
+        }
+        nodeNames.push_back(t2);
+    }
+    if (save_names) {
+        SetProperty("NodeNames", nn);
+        ModelXml->DeleteAttribute("NodeNames");
+        ModelXml->AddAttribute("NodeNames", nn);
+    }
+}

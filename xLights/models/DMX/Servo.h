@@ -11,7 +11,7 @@ class wxXmlNode;
 class Servo
 {
     public:
-        Servo(wxXmlNode* node, wxString _name, int channel_);
+        Servo(wxXmlNode* node, wxString _name);
         virtual ~Servo();
 
         void Init(BaseObject* base);
@@ -21,6 +21,7 @@ class Servo
         int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event, BaseObject* base, bool locked);
 
         int GetChannel() const { return channel; }
+        void SetChannel(int chan, BaseObject* base);
         int GetMinLimit() const { return min_limit; }
         int GetMaxLimit() const { return max_limit; }
         int GetRangeOfMotion() const { return range_of_motion; }

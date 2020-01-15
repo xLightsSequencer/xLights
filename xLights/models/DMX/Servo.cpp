@@ -8,8 +8,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-Servo::Servo(wxXmlNode* node, wxString _name, int channel_)
-    : node_xml(node), base_name(_name), channel(channel_),
+Servo::Servo(wxXmlNode* node, wxString _name)
+    : node_xml(node), base_name(_name), channel(0),
     min_limit(0), max_limit(65535), range_of_motion(180),
     pivot_offset_x(0), pivot_offset_y(0), servo_style_val(0),
     servo_style("Translate X")
@@ -33,8 +33,17 @@ enum SERVO_STYLE {
     SERVO_STYLE_ROTATEZ
 };
 
+void Servo::SetChannel(int chan, BaseObject* base) {
+    channel = chan;
+    node_xml->DeleteAttribute("Channel");
+    node_xml->AddAttribute("Channel", wxString::Format("%d", channel));
+    base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Servo::SetChannel");
+    base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "Servo::SetChannel");
+    base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Servo::SetChannel");
+}
+
 void Servo::Init(BaseObject* base) {
-    channel = wxAtoi(node_xml->GetAttribute("Channel", "1"));
+    channel = wxAtoi(node_xml->GetAttribute("Channel", "0"));
     min_limit = wxAtoi(node_xml->GetAttribute("MinLimit", "0"));
     max_limit = wxAtoi(node_xml->GetAttribute("MaxLimit", "65535"));
     range_of_motion = wxAtoi(node_xml->GetAttribute("RangeOfMotion", "180"));

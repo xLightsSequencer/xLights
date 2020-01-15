@@ -26,7 +26,7 @@ DmxServo3d::DmxServo3d(wxXmlNode *node, const ModelManager &manager, bool zeroBa
             motion_mesh = new Mesh(n, "MotionMesh");
         }
         else if ("Servo1" == n->GetName()) {
-            servo1 = new Servo(n, "Servo1", 1);
+            servo1 = new Servo(n, "Servo1");
         }
         n = n->GetNext();
     }
@@ -43,7 +43,8 @@ DmxServo3d::DmxServo3d(wxXmlNode *node, const ModelManager &manager, bool zeroBa
     if (servo1 == nullptr) {
         wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, "Servo1");
         node->AddChild(new_node);
-        servo1 = new Servo(new_node, "Servo1", 1);
+        servo1 = new Servo(new_node, "Servo1");
+        servo1->SetChannel(1, this);
     }
 }
 
@@ -84,6 +85,8 @@ void DmxServo3d::InitModel() {
     servo1->Init(this);
     static_mesh->Init(this, true, !motion_mesh->GetExists());
     motion_mesh->Init(this, !static_mesh->GetExists(), !static_mesh->GetExists() );
+
+    SetNodeNames(wxString::Format("%s", "Axis1,-Axis1"));
 }
 
 void DmxServo3d::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator& va, const xlColor* c, float& sx, float& sy, float& sz, bool active)

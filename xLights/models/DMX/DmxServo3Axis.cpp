@@ -50,13 +50,13 @@ DmxServo3Axis::DmxServo3Axis(wxXmlNode* node, const ModelManager& manager, bool 
             motion_mesh3 = new Mesh(n, "MotionMesh3");
         }
         else if ("Servo1" == n->GetName()) {
-            servo1 = new Servo(n, "Servo1", 1);
+            servo1 = new Servo(n, "Servo1");
         }
         else if ("Servo2" == n->GetName()) {
-            servo2 = new Servo(n, "Servo2", 1);
+            servo2 = new Servo(n, "Servo2");
         }
         else if ("Servo3" == n->GetName()) {
-            servo3 = new Servo(n, "Servo3", 1);
+            servo3 = new Servo(n, "Servo3");
         }
         n = n->GetNext();
     }
@@ -83,17 +83,20 @@ DmxServo3Axis::DmxServo3Axis(wxXmlNode* node, const ModelManager& manager, bool 
     if (servo1 == nullptr) {
         wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, "Servo1");
         node->AddChild(new_node);
-        servo1 = new Servo(new_node, "Servo1", 1);
+        servo1 = new Servo(new_node, "Servo1");
+        servo1->SetChannel(1, this);
     }
     if (servo2 == nullptr) {
         wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, "Servo2");
         node->AddChild(new_node);
-        servo2 = new Servo(new_node, "Servo2", 3);
+        servo2 = new Servo(new_node, "Servo2");
+        servo2->SetChannel(3, this);
     }
     if (servo3 == nullptr) {
         wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, "Servo3");
         node->AddChild(new_node);
-        servo3 = new Servo(new_node, "Servo3", 5);
+        servo3 = new Servo(new_node, "Servo3");
+        servo3->SetChannel(5, this);
     }
 }
 
@@ -307,6 +310,8 @@ void DmxServo3Axis::InitModel() {
     else if (mesh3_motion_link == "Mesh 2") {
         mesh3_motion_link_val = MESH_LINK_MESH2;
     }
+
+    SetNodeNames(wxString::Format("%s", "Axis1,-Axis1,Axis2,-Axis2,Axis3,-Axis3"));
 }
 
 void DmxServo3Axis::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator& va, const xlColor* c, float& sx, float& sy, float& sz, bool active)

@@ -30,7 +30,7 @@ DmxServo::DmxServo(wxXmlNode *node, const ModelManager &manager, bool zeroBased)
             motion_image = new DmxImage(n, "MotionImage");
         }
         else if ("Servo1" == n->GetName()) {
-            servo1 = new Servo(n, "Servo1", 1);
+            servo1 = new Servo(n, "Servo1");
         }
         n = n->GetNext();
     }
@@ -48,7 +48,8 @@ DmxServo::DmxServo(wxXmlNode *node, const ModelManager &manager, bool zeroBased)
     if (servo1 == nullptr) {
         wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, "Servo1");
         node->AddChild(new_node);
-        servo1 = new Servo(new_node, "Servo1", 1);
+        servo1 = new Servo(new_node, "Servo1");
+        servo1->SetChannel(1, this);
     }
 }
 
@@ -120,24 +121,7 @@ void DmxServo::InitModel() {
     static_image->Init(this, !motion_image->GetExists());
     motion_image->Init(this, !static_image->GetExists());
 
-    wxString nn = ModelXml->GetAttribute("NodeNames", "");
-    wxString tempstr = nn;
-    nodeNames.clear();
-    while (tempstr.size() > 0) {
-        std::string t2 = tempstr.ToStdString();
-        if (tempstr[0] == ',') {
-            t2 = "";
-            tempstr = tempstr(1, tempstr.length());
-        }
-        else if (tempstr.Contains(",")) {
-            t2 = tempstr.SubString(0, tempstr.Find(",") - 1);
-            tempstr = tempstr.SubString(tempstr.Find(",") + 1, tempstr.length());
-        }
-        else {
-            tempstr = "";
-        }
-        nodeNames.push_back(t2);
-    }
+    SetNodeNames(wxString::Format("%s", "Axis1,-Axis1"));
 }
 
 void DmxServo::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator& va, const xlColor* c, float& sx, float& sy, bool active)
