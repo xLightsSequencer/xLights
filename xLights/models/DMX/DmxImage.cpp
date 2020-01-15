@@ -150,6 +150,8 @@ void DmxImage::AddTypeProperties(wxPropertyGridInterface *grid) {
     prop->SetAttribute("Precision", 8);
     prop->SetAttribute("Step", 1.0);
     prop->SetEditor("SpinCtrl");
+
+    grid->Collapse(base_name + "Properties");
 }
 
 int DmxImage::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event, BaseObject* base, bool locked) {

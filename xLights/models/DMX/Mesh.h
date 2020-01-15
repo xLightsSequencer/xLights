@@ -21,7 +21,7 @@ class Mesh
         virtual ~Mesh();
 
         void Init(BaseObject* base, bool set_size, bool show_empty_);
-        bool GetExists() { return obj_exists; }
+        bool GetExists() { return !_objFile.empty(); }
 
         void AddTypeProperties(wxPropertyGridInterface* grid);
         void UpdateTypeProperties(wxPropertyGridInterface* grid) {}

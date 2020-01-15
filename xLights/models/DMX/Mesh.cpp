@@ -552,8 +552,7 @@ void Mesh::Draw(BaseObject* base, ModelPreview* preview, DrawGLUtils::xl3Accumul
         glm::mat4 rz = glm::rotate(Identity, glm::radians(rotatez), glm::vec3(0.0f, 0.0f, 1.0f));
         glm::quat rotate_quat = glm::quat_cast(rx * ry * rz);
         glm::mat4 translationMatrix = glm::translate(Identity, glm::vec3(offset_x, offset_y, offset_z));
-        glm::mat4 m =  translationMatrix * glm::toMat4(rotate_quat) * scalingMatrix;
-        m = base_matrix * m * motion_matrix;
+        glm::mat4 m = base_matrix * translationMatrix * motion_matrix * glm::toMat4(rotate_quat) * scalingMatrix;
 
         if (!mesh3d) {
             mesh3d = DrawGLUtils::createMesh();

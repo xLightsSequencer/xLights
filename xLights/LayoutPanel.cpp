@@ -4976,7 +4976,7 @@ void LayoutPanel::DisplayAddDmxPopup() {
     AddObjectButton(mnuObjects, ID_ADD_DMX_SERVO, "Servo", add_dmx_servo_xpm);
     if (is_3d) {
         AddObjectButton(mnuObjects, ID_ADD_DMX_SERVO_3D, "Servo 3D", add_dmx_servo3d_xpm);
-        //AddObjectButton(mnuObjects, ID_ADD_DMX_SERVO_3AXIS, "Servo 3 Axis", add_dmx_servo_3axis_xpm);
+        AddObjectButton(mnuObjects, ID_ADD_DMX_SERVO_3AXIS, "Servo 3 Axis", add_dmx_servo_3axis_xpm);
     }
     AddObjectButton(mnuObjects, ID_ADD_DMX_SKULLTRONIX, "Skulltronix Skull", add_dmx_skulltronix_xpm);
     mnuObjects.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&LayoutPanel::OnAddDmxPopup, nullptr, this);

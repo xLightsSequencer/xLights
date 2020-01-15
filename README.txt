@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (gil)    Added a DMX 3 Axis Servo model option
    -- enh (gil)    Add new DMX Servo model options (Servo version uses images and Servo 3D version uses OBJ files)
    -- enh (gil)    Add a DMX Area Flood model for a rectangle instead of a circle
 2020.2 January 11 2020

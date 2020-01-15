@@ -14,10 +14,26 @@
 #include "../../xLightsMain.h"
 #include "../../UtilFunctions.h"
 
+enum MESH_LINKS {
+    MESH_LINK_MESH1,
+    MESH_LINK_MESH2,
+    MESH_NOT_LINKED
+};
+
+enum MOTION_LINKS {
+    MOTION_LINK_MESH1,
+    MOTION_LINK_MESH2,
+    MOTION_LINK_MESH3
+};
+
 DmxServo3Axis::DmxServo3Axis(wxXmlNode* node, const ModelManager& manager, bool zeroBased)
     : DmxModel(node, manager, zeroBased), brightness(100.0f), static_mesh(nullptr),
     motion_mesh1(nullptr), motion_mesh2(nullptr), motion_mesh3(nullptr),
-    servo1(nullptr), servo2(nullptr), servo3(nullptr)
+    servo1(nullptr), servo2(nullptr), servo3(nullptr),
+    servo2_motion_link_val(MOTION_LINK_MESH2), servo3_motion_link_val(MOTION_LINK_MESH3),
+    servo2_motion_link("Mesh 2"), servo3_motion_link("Mesh 3"),
+    mesh2_motion_link_val(MESH_NOT_LINKED), mesh3_motion_link_val(MESH_NOT_LINKED),
+    mesh2_motion_link("Not Linked"), mesh3_motion_link("Not Linked")
 {
     wxXmlNode* n = node->GetChildren();
     while (n != nullptr) {
@@ -86,6 +102,10 @@ DmxServo3Axis::~DmxServo3Axis()
     //dtor
 }
 
+static wxPGChoices MESH_LINKS;
+static wxPGChoices MOTION2_LINKS;
+static wxPGChoices MOTION3_LINKS;
+
 void DmxServo3Axis::AddTypeProperties(wxPropertyGridInterface* grid) {
     DmxModel::AddTypeProperties(grid);
 
@@ -96,6 +116,34 @@ void DmxServo3Axis::AddTypeProperties(wxPropertyGridInterface* grid) {
     motion_mesh1->AddTypeProperties(grid);
     motion_mesh2->AddTypeProperties(grid);
     motion_mesh3->AddTypeProperties(grid);
+
+    grid->Append(new wxPropertyCategory("Motion Linkage", "MotionProperties"));
+
+    if (MOTION2_LINKS.GetCount() == 0) {
+        MOTION2_LINKS.Add("Mesh 1");
+        MOTION2_LINKS.Add("Mesh 2");
+    }
+
+    if (MOTION3_LINKS.GetCount() == 0) {
+        MOTION3_LINKS.Add("Mesh 1");
+        MOTION3_LINKS.Add("Mesh 2");
+        MOTION3_LINKS.Add("Mesh 3");
+    }
+
+    if (MESH_LINKS.GetCount() == 0) {
+        MESH_LINKS.Add("Mesh 1");
+        MESH_LINKS.Add("Mesh 2");
+        MESH_LINKS.Add("Not Linked");
+    }
+
+    wxPGProperty* p = grid->Append(new wxEnumProperty("Servo1 Linkage", "Servo1Linkage", MOTION2_LINKS, 0));
+    p->Enable(false);
+    grid->Append(new wxEnumProperty("Servo2 Linkage", "Servo2Linkage", MOTION2_LINKS, servo2_motion_link_val));
+    grid->Append(new wxEnumProperty("Servo3 Linkage", "Servo3Linkage", MOTION3_LINKS, servo3_motion_link_val));
+    grid->Append(new wxEnumProperty("Mesh2 Linkage", "Mesh2Linkage", MESH_LINKS, mesh2_motion_link_val));
+    grid->Append(new wxEnumProperty("Mesh3 Linkage", "Mesh3Linkage", MESH_LINKS, mesh3_motion_link_val));
+
+    grid->Collapse("MotionProperties");
 
     grid->Append(new wxPropertyCategory("Common Properties", "CommonProperties"));
 }
@@ -124,6 +172,94 @@ int DmxServo3Axis::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropert
         return 0;
     }
 
+    std::string name = event.GetPropertyName().ToStdString();
+
+    if ("Servo2Linkage" == name) {
+        ModelXml->DeleteAttribute("Servo2Linkage");
+        servo2_motion_link_val = event.GetPropertyValue().GetLong();
+        if (servo2_motion_link_val == MOTION_LINK_MESH1) {
+            servo2_motion_link = "Mesh 1";
+        }
+        else if (servo2_motion_link_val == MOTION_LINK_MESH2) {
+            servo2_motion_link = "Mesh 2";
+        }
+        ModelXml->AddAttribute("Servo2Linkage", servo2_motion_link);
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxServo3Axis::OnPropertyGridChange::Servo2Linkage");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxServo3Axis::OnPropertyGridChange::Servo2Linkage");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxServo3Axis::OnPropertyGridChange::Servo2Linkage");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "DmxServo3Axis::OnPropertyGridChange::Servo2Linkage");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxServo3Axis::OnPropertyGridChange::Servo2Linkage");
+        AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "DmxServo3Axis::OnPropertyGridChange::Servo2Linkage");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "DmxServo3Axis::OnPropertyGridChange::Servo2Linkage");
+        return 0;
+    }
+    if ("Servo3Linkage" == name) {
+        ModelXml->DeleteAttribute("Servo3Linkage");
+        servo3_motion_link_val = event.GetPropertyValue().GetLong();
+        if (servo3_motion_link_val == MOTION_LINK_MESH1) {
+            servo3_motion_link = "Mesh 1";
+        }
+        else if (servo3_motion_link_val == MOTION_LINK_MESH2) {
+            servo3_motion_link = "Mesh 2";
+        }
+        else if (servo3_motion_link_val == MOTION_LINK_MESH3) {
+            servo3_motion_link = "Mesh 3";
+        }
+        ModelXml->AddAttribute("Servo3Linkage", servo3_motion_link);
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxServo3Axis::OnPropertyGridChange::Servo3Linkage");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxServo3Axis::OnPropertyGridChange::Servo3Linkage");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxServo3Axis::OnPropertyGridChange::Servo3Linkage");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "DmxServo3Axis::OnPropertyGridChange::Servo3Linkage");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxServo3Axis::OnPropertyGridChange::Servo3Linkage");
+        AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "DmxServo3Axis::OnPropertyGridChange::Servo3Linkage");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "DmxServo3Axis::OnPropertyGridChange::Servo3Linkage");
+        return 0;
+    }
+    if ("Mesh2Linkage" == name) {
+        ModelXml->DeleteAttribute("Mesh2Linkage");
+        mesh2_motion_link_val = event.GetPropertyValue().GetLong();
+        if (mesh2_motion_link_val == MESH_NOT_LINKED) {
+            mesh2_motion_link = "Not Linked";
+        }
+        else if (mesh2_motion_link_val == MESH_LINK_MESH1) {
+            mesh2_motion_link = "Mesh 1";
+        }
+        else if (mesh2_motion_link_val == MESH_LINK_MESH2) {
+            mesh2_motion_link = "Mesh 2";
+        }
+        ModelXml->AddAttribute("Mesh2Linkage", mesh2_motion_link);
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxServo3Axis::OnPropertyGridChange::Mesh2Linkage");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxServo3Axis::OnPropertyGridChange::Mesh2Linkage");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxServo3Axis::OnPropertyGridChange::Mesh2Linkage");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "DmxServo3Axis::OnPropertyGridChange::Mesh2Linkage");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxServo3Axis::OnPropertyGridChange::Mesh2Linkage");
+        AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "DmxServo3Axis::OnPropertyGridChange::Mesh2Linkage");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "DmxServo3Axis::OnPropertyGridChange::Mesh2Linkage");
+        return 0;
+    }
+    if ("Mesh3Linkage" == name) {
+        ModelXml->DeleteAttribute("Mesh3Linkage");
+        mesh3_motion_link_val = event.GetPropertyValue().GetLong();
+        if (mesh3_motion_link_val == MESH_NOT_LINKED) {
+            mesh3_motion_link = "Not Linked";
+        }
+        else if (mesh3_motion_link_val == MESH_LINK_MESH1) {
+            mesh3_motion_link = "Mesh 1";
+        }
+        else if (mesh3_motion_link_val == MESH_LINK_MESH2) {
+            mesh3_motion_link = "Mesh 2";
+        }
+        ModelXml->AddAttribute("Mesh3Linkage", mesh3_motion_link);
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxServo3Axis::OnPropertyGridChange::Mesh3Linkage");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxServo3Axis::OnPropertyGridChange::Mesh3Linkage");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxServo3Axis::OnPropertyGridChange::Mesh3Linkage");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "DmxServo3Axis::OnPropertyGridChange::Mesh3Linkage");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxServo3Axis::OnPropertyGridChange::Mesh3Linkage");
+        AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "DmxServo3Axis::OnPropertyGridChange::Mesh3Linkage");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "DmxServo3Axis::OnPropertyGridChange::Mesh3Linkage");
+        return 0;
+    }
+
     return DmxModel::OnPropertyGridChange(grid, event);
 }
 
@@ -138,6 +274,39 @@ void DmxServo3Axis::InitModel() {
     motion_mesh1->Init(this, !static_mesh->GetExists(), !static_mesh->GetExists());
     motion_mesh2->Init(this, !static_mesh->GetExists() && !motion_mesh1->GetExists(), !static_mesh->GetExists() && !motion_mesh1->GetExists());
     motion_mesh3->Init(this, !static_mesh->GetExists() && !motion_mesh1->GetExists() && !motion_mesh2->GetExists(), !static_mesh->GetExists() && !motion_mesh1->GetExists() && !motion_mesh2->GetExists());
+
+    servo2_motion_link = ModelXml->GetAttribute("Servo2Linkage", "Mesh 2");
+    servo2_motion_link_val = MOTION_LINK_MESH2;
+    if (servo2_motion_link == "Mesh 1") {
+        servo2_motion_link_val = MOTION_LINK_MESH1;
+    }
+
+    servo3_motion_link = ModelXml->GetAttribute("Servo3Linkage", "Mesh 3");
+    servo3_motion_link_val = MOTION_LINK_MESH3;
+    if (servo3_motion_link == "Mesh 1") {
+        servo3_motion_link_val = MOTION_LINK_MESH1;
+    }
+    else if (servo3_motion_link == "Mesh 2") {
+        servo3_motion_link_val = MOTION_LINK_MESH2;
+    }
+
+    mesh2_motion_link = ModelXml->GetAttribute("Mesh2Linkage", "Not Linked");
+    mesh2_motion_link_val = MESH_NOT_LINKED;
+    if (mesh2_motion_link == "Mesh 1") {
+        mesh2_motion_link_val = MESH_LINK_MESH1;
+    }
+    else if (mesh2_motion_link == "Mesh 2") {
+        mesh2_motion_link_val = MESH_LINK_MESH2;
+    }
+
+    mesh3_motion_link = ModelXml->GetAttribute("Mesh3Linkage", "Not Linked");
+    mesh3_motion_link_val = MESH_NOT_LINKED;
+    if (mesh3_motion_link == "Mesh 1") {
+        mesh3_motion_link_val = MESH_LINK_MESH1;
+    }
+    else if (mesh3_motion_link == "Mesh 2") {
+        mesh3_motion_link_val = MESH_LINK_MESH2;
+    }
 }
 
 void DmxServo3Axis::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator& va, const xlColor* c, float& sx, float& sy, float& sz, bool active)
@@ -151,8 +320,13 @@ void DmxServo3Axis::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Acc
     }
 
     float servo1_pos = 0.0;
+    float servo2_pos = 0.0;
+    float servo3_pos = 0.0;
     glm::mat4 Identity = glm::mat4(1.0f);
     glm::mat4 motion_matrix = Identity;
+    glm::mat4 motion1_matrix = Identity;
+    glm::mat4 motion2_matrix = Identity;
+    glm::mat4 motion3_matrix = Identity;
     glm::mat4 scalingMatrix = glm::scale(Identity, GetModelScreenLocation().GetScaleMatrix());
     glm::mat4 translateMatrix = glm::translate(Identity, GetModelScreenLocation().GetWorldPosition());
     glm::quat rotateQuat = GetModelScreenLocation().GetRotationQuat();
@@ -163,9 +337,61 @@ void DmxServo3Axis::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Acc
     if (servo1->GetChannel() > 0 && active) {
         servo1_pos = servo1->GetPosition(GetChannelValue(servo1->GetChannel() - 1));
     }
+    if (servo2->GetChannel() > 0 && active) {
+        servo2_pos = servo2->GetPosition(GetChannelValue(servo2->GetChannel() - 1));
+    }
+    if (servo3->GetChannel() > 0 && active) {
+        servo3_pos = servo3->GetPosition(GetChannelValue(servo3->GetChannel() - 1));
+    }
 
-    servo1->FillMotionMatrix(servo1_pos, motion_matrix);
-    motion_mesh1->Draw(this, preview, va, base_matrix, motion_matrix);
+    servo1->FillMotionMatrix(servo1_pos, motion1_matrix);
+    servo2->FillMotionMatrix(servo2_pos, motion2_matrix);
+    servo3->FillMotionMatrix(servo3_pos, motion3_matrix);
+
+    // Draw Mesh 1
+    if (motion_mesh1->GetExists()) {
+        motion_matrix = motion1_matrix;
+        if (servo2_motion_link_val == MOTION_LINK_MESH1) {
+            motion_matrix = motion_matrix * motion2_matrix;
+        }
+        if (servo3_motion_link_val == MOTION_LINK_MESH1) {
+            motion_matrix = motion_matrix * motion3_matrix;
+        }
+        motion_mesh1->Draw(this, preview, va, base_matrix, motion_matrix);
+    }
+
+    // Draw Mesh 2
+    if (motion_mesh2->GetExists()) {
+        motion_matrix = Identity;
+        if (mesh2_motion_link_val == MOTION_LINK_MESH1) {
+            motion_matrix = motion1_matrix;
+        }
+        if (servo2_motion_link_val == MOTION_LINK_MESH2) {
+            motion_matrix = motion_matrix * motion2_matrix;
+        }
+        if (servo3_motion_link_val == MOTION_LINK_MESH2) {
+            motion_matrix =  motion_matrix * motion3_matrix;
+        }
+        motion_mesh2->Draw(this, preview, va, base_matrix, motion_matrix);
+    }
+
+    // Draw Mesh 3
+    if (motion_mesh3->GetExists()) {
+        motion_matrix = Identity;
+        if (mesh3_motion_link_val == MOTION_LINK_MESH1) {
+            motion_matrix = motion1_matrix;
+        }
+        else if (mesh3_motion_link_val == MOTION_LINK_MESH2) {
+            if (mesh2_motion_link_val == MOTION_LINK_MESH1) {
+                motion_matrix = motion1_matrix;
+            }
+            motion_matrix = motion_matrix * motion2_matrix;
+        }
+        if (servo3_motion_link_val == MOTION_LINK_MESH3) {
+            motion_matrix = motion_matrix * motion3_matrix;
+        }
+        motion_mesh3->Draw(this, preview, va, base_matrix, motion_matrix);
+    }
 }
 
 void DmxServo3Axis::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator& va, const xlColor* c, float& sx, float& sy, bool active)

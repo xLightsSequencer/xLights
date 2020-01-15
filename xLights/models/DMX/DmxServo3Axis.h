@@ -37,6 +37,14 @@ private:
     Servo* servo1;
     Servo* servo2;
     Servo* servo3;
+    int servo2_motion_link_val;
+    int servo3_motion_link_val;
+    int mesh2_motion_link_val;
+    int mesh3_motion_link_val;
+    std::string servo2_motion_link;
+    std::string servo3_motion_link;
+    std::string mesh2_motion_link;
+    std::string mesh3_motion_link;
 };
 
 #endif // DMXSERVO3AXIS_H
