@@ -311,7 +311,8 @@ void DmxServo3Axis::InitModel() {
         mesh3_motion_link_val = MESH_LINK_MESH2;
     }
 
-    SetNodeNames(wxString::Format("%s", "Axis1,-Axis1,Axis2,-Axis2,Axis3,-Axis3"));
+    wxString nn = wxString::Format("%s", "Axis1,-Axis1,Axis2,-Axis2,Axis3,-Axis3");
+    SetNodeNames(nn);
 }
 
 void DmxServo3Axis::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator& va, const xlColor* c, float& sx, float& sy, float& sz, bool active)
