@@ -86,7 +86,8 @@ void DmxServo3d::InitModel() {
     static_mesh->Init(this, true, !motion_mesh->GetExists());
     motion_mesh->Init(this, !static_mesh->GetExists(), !static_mesh->GetExists() );
 
-    SetNodeNames(wxString::Format("%s", "Axis1,-Axis1"));
+    wxString nn = wxString::Format("%s", "Axis1,-Axis1");
+    SetNodeNames(nn);
 }
 
 void DmxServo3d::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator& va, const xlColor* c, float& sx, float& sy, float& sz, bool active)
