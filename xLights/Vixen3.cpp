@@ -475,7 +475,7 @@ Vixen3::Vixen3(const std::string& filename, const std::string& system)
                             }
                             else
                             {
-                                logger_base.warn("Vixen3: model not found for effect. %s", (const char*)effectSettingId.c_str());
+                                logger_base.warn("Vixen3: model not found for effect. %s", (const char*)modelId.c_str());
                                 wxASSERT(false);
                             }
                         }
