@@ -454,7 +454,7 @@ Vixen3::Vixen3(const std::string& filename, const std::string& system)
                                     {
                                         if (nnnnn->GetName() == "ChannelNodeReferenceSurrogate")
                                         {
-                                            for (wxXmlNode* nnnnnn = nnnnn->GetChildren(); nnnnnn != nullptr; nnnnnn = nnnnn->GetNext())
+                                            for (wxXmlNode* nnnnnn = nnnnn->GetChildren(); nnnnnn != nullptr; nnnnnn = nnnnnn->GetNext())
                                             {
                                                 if (nnnnnn->GetName() == "NodeId")
                                                 {
@@ -475,7 +475,7 @@ Vixen3::Vixen3(const std::string& filename, const std::string& system)
                             }
                             else
                             {
-                                logger_base.warn("Vixen3: model not found for effect. %s", (const char*)modelId.c_str());
+                                logger_base.warn("Vixen3: model not found for effect. %s", (const char*)effectSettingId.c_str());
                                 wxASSERT(false);
                             }
                         }
