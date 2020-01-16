@@ -184,6 +184,7 @@ void InitialiseLogging(bool fromMain)
 
 					logger_base.info("    %s : %s", (const char *)(*it)->getName().c_str(), (const char *)levels.c_str());
 				}
+                delete categories;
 			}
             catch (log4cpp::ConfigureFailure& e) {
                 // ignore config failure ... but logging wont work

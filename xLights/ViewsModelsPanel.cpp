@@ -821,7 +821,18 @@ void ViewsModelsPanel::OnButton_RemoveAllClick(wxCommandEvent& event)
 void ViewsModelsPanel::Clear()
 {
     ListCtrlModels->ClearAll();
+
+    for (int i = 0; i < ListCtrlNonModels->GetItemCount(); ++i)
+    {
+        Element* e = (Element*)ListCtrlNonModels->GetItemData(i);
+        if (e != nullptr && e->GetType() == ELEMENT_TYPE_MODEL && e->GetSequenceElements() == nullptr)
+        {
+            delete e;
+            ListCtrlNonModels->SetItemPtrData(i, (wxUIntPtr)nullptr);
+        }
+    }
     ListCtrlNonModels->ClearAll();
+
     ListCtrlViews->ClearAll();
     ValidateWindow();
 }
