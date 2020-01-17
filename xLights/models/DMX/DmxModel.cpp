@@ -221,7 +221,7 @@ int DmxModel::GetChannelValue(int channel)
     return ((msb << 8) | lsb);
 }
 
-void DmxModel::SetNodeNames(wxString& default_names) {
+void DmxModel::SetNodeNames(const std::string& default_names) {
     wxString nn = ModelXml->GetAttribute("NodeNames", "");
     bool save_names = false;
     if (nn == "") {

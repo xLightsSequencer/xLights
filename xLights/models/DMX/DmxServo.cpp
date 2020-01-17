@@ -121,8 +121,7 @@ void DmxServo::InitModel() {
     static_image->Init(this, !motion_image->GetExists());
     motion_image->Init(this, !static_image->GetExists());
 
-    wxString nn = wxString::Format("%s", "Axis1,-Axis1");
-    SetNodeNames(nn);
+    SetNodeNames("Axis1,-Axis1");
 }
 
 void DmxServo::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator& va, const xlColor* c, float& sx, float& sy, bool active)

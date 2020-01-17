@@ -39,7 +39,7 @@ class DmxModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual void InitModel() override;
 
         virtual int GetChannelValue( int channel );
-        void SetNodeNames(wxString& default_names);
+        void SetNodeNames(const std::string& default_names);
 
         DmxColorAbility* color_ability;
 
