@@ -454,7 +454,7 @@ Vixen3::Vixen3(const std::string& filename, const std::string& system)
                                     {
                                         if (nnnnn->GetName() == "ChannelNodeReferenceSurrogate")
                                         {
-                                            for (wxXmlNode* nnnnnn = nnnnn->GetChildren(); nnnnnn != nullptr; nnnnnn = nnnnn->GetNext())
+                                            for (wxXmlNode* nnnnnn = nnnnn->GetChildren(); nnnnnn != nullptr; nnnnnn = nnnnnn->GetNext())
                                             {
                                                 if (nnnnnn->GetName() == "NodeId")
                                                 {
