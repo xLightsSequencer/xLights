@@ -1109,7 +1109,7 @@ void VendorModelDialog::OnButton_InsertModelClick(wxCommandEvent& event)
         if (tid != nullptr && ((VendorBaseTreeItemData*)tid)->GetType() == "Wiring")
         {
             ((MWiringTreeItemData*)tid)->GetWiring()->DownloadXModel();
-            if (((MWiringTreeItemData*)tid)->GetWiring()->_xmodelFile.GetExt().Lower() == ".zip")
+            if (((MWiringTreeItemData*)tid)->GetWiring()->_xmodelFile.GetExt().Lower() == "zip")
             {
                 // we need to open the zip ... place the files in the "modeldownload" folder in the show folder
                 logger_base.debug("    opening zipped model " + _modelFile);
@@ -1131,8 +1131,37 @@ void VendorModelDialog::OnButton_InsertModelClick(wxCommandEvent& event)
                         wxZipEntry* ent = zin.GetNextEntry();
                         while (ent != nullptr) {
 
+                            // create any needed subfolders
+                            if (ent->GetName().Contains('\\') || ent->GetName().Contains('/'))
+                            {
+                                wxArrayString aa = wxSplit(ent->GetName(), '\\');
+                                wxArrayString bb = wxSplit(ent->GetName(), '//');
+
+                                auto createdirs = [](const wxString& parent, const wxString& sub) {
+                                    auto d = parent + wxFileName::GetPathSeparator() + sub;
+                                    if (!wxDir::Exists(d))
+                                    {
+                                        logger_base.debug("Creating modeldownload subdirectory " + d);
+                                        wxMkdir(d);
+                                    }
+                                    return d;
+                                };
+
+                                wxString parent = dir;
+                                for (int i = 0; i < aa.size() - 1; i++)
+                                {
+                                    parent = createdirs(parent, aa[i]);
+                                }
+
+                                parent = dir;
+                                for (int i = 0; i < bb.size() - 1; i++)
+                                {
+                                    parent = createdirs(parent, bb[i]);
+                                }
+                            }
+
                             auto file = dir + wxFileName::GetPathSeparator() + ent->GetName();
-                            if (wxFileName(ent->GetName()).GetExt().Lower() == ".xmodel") {
+                            if (wxFileName(ent->GetName()).GetExt().Lower() == "xmodel") {
                                 _modelFile = file;
                             }
 
