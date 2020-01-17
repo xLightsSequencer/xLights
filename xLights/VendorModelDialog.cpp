@@ -929,16 +929,16 @@ bool VendorModelDialog::LoadTree(wxProgressDialog* prog, int low, int high)
     TreeCtrl_Navigator->DeleteAllItems();
     wxTreeItemId root = TreeCtrl_Navigator->AddRoot("Vendors");
     wxTreeItemId first = root;
-    for (auto it = _vendors.begin(); it != _vendors.end(); ++it)
+    for (const auto& it : _vendors)
     {
-        wxTreeItemId v = TreeCtrl_Navigator->AppendItem(root, (*it)->_name, -1, -1, new MVendorTreeItemData(*it));
+        wxTreeItemId v = TreeCtrl_Navigator->AppendItem(root, it->_name, -1, -1, new MVendorTreeItemData(it));
         if (first == root)
         {
             first = v;
         }
-        if (!IsVendorSuppressed((*it)->_name))
+        if (!IsVendorSuppressed(it->_name))
         {
-            AddHierachy(v, *it, (*it)->_categories);
+            AddHierachy(v, it, it->_categories);
         }
         TreeCtrl_Navigator->Expand(v);
     }
@@ -990,12 +990,12 @@ bool VendorModelDialog::DeleteEmptyCategories(wxTreeItemId& parent)
 
 void VendorModelDialog::AddHierachy(wxTreeItemId id, MVendor* vendor, std::list<MVendorCategory*> categories)
 {
-    for (auto it = categories.begin(); it != categories.end(); ++it)
+    for (const auto& it : categories)
     {
-        wxTreeItemId tid = TreeCtrl_Navigator->AppendItem(id, (*it)->_name, -1, -1, new MCategoryTreeItemData(*it));
-        AddHierachy(tid, vendor, (*it)->_categories);
+        wxTreeItemId tid = TreeCtrl_Navigator->AppendItem(id, it->_name, -1, -1, new MCategoryTreeItemData(it));
+        AddHierachy(tid, vendor, it->_categories);
         TreeCtrl_Navigator->Expand(tid);
-        AddModels(tid, vendor, (*it)->_id);
+        AddModels(tid, vendor, it->_id);
     }
 }
 
@@ -1003,28 +1003,28 @@ void VendorModelDialog::AddModels(wxTreeItemId v, MVendor* vendor, std::string c
 {
     auto models = vendor->GetModels(categoryId);
 
-    for (auto it = models.begin(); it != models.end(); ++it)
+    for (const auto& it : models)
     {
-        if ((*it)->_wiring.size() > 1)
+        if (it->_wiring.size() > 1)
         {
-            wxTreeItemId tid = TreeCtrl_Navigator->AppendItem(v, (*it)->_name, -1, -1, new MModelTreeItemData(*it));
-            for (auto it2 = (*it)->_wiring.begin(); it2 != (*it)->_wiring.end(); ++it2)
+            wxTreeItemId tid = TreeCtrl_Navigator->AppendItem(v, it->_name, -1, -1, new MModelTreeItemData(it));
+            for (const auto& it2 : it->_wiring)
             {
-                wxTreeItemId id = TreeCtrl_Navigator->AppendItem(tid, (*it2)->_name, -1, -1, new MWiringTreeItemData(*it2));
-                TreeCtrl_Navigator->SetItemTextColour(id, (*it)->GetColour());
+                wxTreeItemId id = TreeCtrl_Navigator->AppendItem(tid, it2->_name, -1, -1, new MWiringTreeItemData(it2));
+                TreeCtrl_Navigator->SetItemTextColour(id, it->GetColour());
             }
         }
         else
         {
-            if ((*it)->_wiring.size() == 0)
+            if (it->_wiring.size() == 0)
             {
-                wxTreeItemId tid = TreeCtrl_Navigator->AppendItem(v, (*it)->_name, -1, -1, new MModelTreeItemData(*it));
-                TreeCtrl_Navigator->SetItemTextColour(tid, (*it)->GetColour());
+                wxTreeItemId tid = TreeCtrl_Navigator->AppendItem(v, it->_name, -1, -1, new MModelTreeItemData(it));
+                TreeCtrl_Navigator->SetItemTextColour(tid, it->GetColour());
             }
             else
             {
-                wxTreeItemId tid = TreeCtrl_Navigator->AppendItem(v, (*it)->_name, -1, -1, new MWiringTreeItemData((*it)->_wiring.front()));
-                TreeCtrl_Navigator->SetItemTextColour(tid, (*it)->GetColour());
+                wxTreeItemId tid = TreeCtrl_Navigator->AppendItem(v, it->_name, -1, -1, new MWiringTreeItemData(it->_wiring.front()));
+                TreeCtrl_Navigator->SetItemTextColour(tid, it->GetColour());
             }
         }
     }
@@ -1135,7 +1135,7 @@ void VendorModelDialog::OnButton_InsertModelClick(wxCommandEvent& event)
                             if (ent->GetName().Contains('\\') || ent->GetName().Contains('/'))
                             {
                                 wxArrayString aa = wxSplit(ent->GetName(), '\\');
-                                wxArrayString bb = wxSplit(ent->GetName(), '//');
+                                wxArrayString bb = wxSplit(ent->GetName(), '/');
 
                                 auto createdirs = [](const wxString& parent, const wxString& sub) {
                                     auto d = parent + wxFileName::GetPathSeparator() + sub;
