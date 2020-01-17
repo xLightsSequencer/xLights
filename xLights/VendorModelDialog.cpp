@@ -10,6 +10,9 @@
 #include <wx/stopwatch.h>
 #include <wx/progdlg.h>
 #include <wx/config.h>
+#include <wx/dir.h>
+#include <wx/wfstream.h>
+#include <wx/zipstrm.h>
 
 #include "CachedFileDownloader.h"
 #include "UtilFunctions.h"
@@ -700,8 +703,10 @@ BEGIN_EVENT_TABLE(VendorModelDialog,wxDialog)
 	//*)
 END_EVENT_TABLE()
 
-VendorModelDialog::VendorModelDialog(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size)
+VendorModelDialog::VendorModelDialog(wxWindow* parent, const std::string& showFolder, wxWindowID id, const wxPoint& pos, const wxSize& size)
 {
+    _showFolder = showFolder;
+
 	//(*Initialize(VendorModelDialog)
 	wxFlexGridSizer* FlexGridSizer1;
 	wxFlexGridSizer* FlexGridSizer2;
@@ -860,6 +865,7 @@ wxXmlDocument* VendorModelDialog::GetXMLFromURL(wxURI url, std::string& filename
 bool VendorModelDialog::LoadTree(wxProgressDialog* prog, int low, int high)
 {
     const std::string vendorlink = "http://nutcracker123.com/xlights/vendors/xlights_vendors.xml";
+    //const std::string vendorlink = "http://threebuttes.com/Extras/dmx_models/xlights_vendors.xml";
 
     std::string filename;
     wxXmlDocument* vd = GetXMLFromURL(wxURI(vendorlink), filename, prog, low, high);
@@ -1094,6 +1100,8 @@ void VendorModelDialog::OnButton_NextClick(wxCommandEvent& event)
 
 void VendorModelDialog::OnButton_InsertModelClick(wxCommandEvent& event)
 {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     if (TreeCtrl_Navigator->GetSelection().IsOk())
     {
         wxTreeItemData* tid = TreeCtrl_Navigator->GetItemData(TreeCtrl_Navigator->GetSelection());
@@ -1101,7 +1109,59 @@ void VendorModelDialog::OnButton_InsertModelClick(wxCommandEvent& event)
         if (tid != nullptr && ((VendorBaseTreeItemData*)tid)->GetType() == "Wiring")
         {
             ((MWiringTreeItemData*)tid)->GetWiring()->DownloadXModel();
-            _modelFile = ((MWiringTreeItemData*)tid)->GetWiring()->_xmodelFile.GetFullPath();
+            if (((MWiringTreeItemData*)tid)->GetWiring()->_xmodelFile.GetExt().Lower() == ".zip")
+            {
+                // we need to open the zip ... place the files in the "modeldownload" folder in the show folder
+                logger_base.debug("    opening zipped model " + _modelFile);
+
+                auto dir = _showFolder + wxFileName::GetPathSeparator() + "modeldownload";
+                if (!wxDir::Exists(dir))
+                {
+                    logger_base.debug("Creating modeldownload directory " + dir);
+                    wxMkdir(dir);
+                }
+
+                // files should be .jpg/png/bmp/obj ... and one xmodel file
+                wxFileInputStream fin(((MWiringTreeItemData*)tid)->GetWiring()->_xmodelFile.GetFullPath());
+                if (fin.IsOk())
+                {
+                    wxZipInputStream zin(fin);
+                    if (zin.IsOk())
+                    {
+                        wxZipEntry* ent = zin.GetNextEntry();
+                        while (ent != nullptr) {
+
+                            auto file = dir + wxFileName::GetPathSeparator() + ent->GetName();
+                            if (wxFileName(ent->GetName()).GetExt().Lower() == ".xmodel") {
+                                _modelFile = file;
+                            }
+
+                            if (!wxFile::Exists(file))
+                            {
+                                logger_base.debug("        model file " + file + " downloaded.");
+                                wxFileOutputStream fout(file);
+                                zin.Read(fout);
+                            }
+                            else
+                            {
+                                logger_base.warn("        skipping file " + file + " it already exists.");
+                            }
+
+                            ent = zin.GetNextEntry();
+                        }
+                    }
+                    else { 
+                        logger_base.error("Failed to open zip file.");
+                        return; }
+                }
+                else { 
+                    logger_base.error("Failed to open zip file.");
+                    return; }
+            }
+            else
+            {
+                _modelFile = ((MWiringTreeItemData*)tid)->GetWiring()->_xmodelFile.GetFullPath();
+            }
         }
     }
 

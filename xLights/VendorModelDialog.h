@@ -33,6 +33,7 @@ class VendorModelDialog: public wxDialog
 {
     std::list<MVendor*> _vendors;
     std::string _modelFile;
+	std::string _showFolder;
     int _currImage = -1;
     wxImage _vendorImage;
     wxImage _modelImage;
@@ -54,7 +55,7 @@ class VendorModelDialog: public wxDialog
 
 	public:
 
-		VendorModelDialog(wxWindow* parent, wxWindowID id=wxID_ANY, const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
+		VendorModelDialog(wxWindow* parent, const std::string& showFolder, wxWindowID id=wxID_ANY, const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~VendorModelDialog();
         std::string GetModelFile() const { return _modelFile; }
         bool DlgInit(wxProgressDialog* prog, int low, int high);

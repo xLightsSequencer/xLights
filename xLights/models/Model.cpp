@@ -4544,7 +4544,7 @@ Model* Model::GetXlightsModel(Model* model, std::string &last_model, xLightsFram
         if (download)
         {
             xlights->SuspendAutoSave(true);
-            VendorModelDialog dlg(xlights);
+            VendorModelDialog dlg(xlights, xlights->CurrentDir);
             xlights->SetCursor(wxCURSOR_WAIT);
             if (dlg.DlgInit(prog, low, high))
             {
