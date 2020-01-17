@@ -2387,7 +2387,7 @@ void LayoutPanel::SelectModel(Model *m, bool highlight_tree) {
         selectionLatched = true;
     }
 
-    if (CheckBoxOverlap->GetValue()) {
+    if (CheckBoxOverlap->GetValue() && selectedBaseObject != nullptr && selectedBaseObject->GetDisplayAs() != "ModelGroup") {
         for ( wxTreeListItem item = TreeListViewModels->GetFirstItem();
               item.IsOk();
               item = TreeListViewModels->GetNextSibling(item) )
