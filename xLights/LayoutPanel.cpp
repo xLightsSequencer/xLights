@@ -3283,10 +3283,15 @@ void LayoutPanel::FinalizeModel()
             }
             auto oldNewModel = newModel;
             newModel = Model::GetXlightsModel(newModel, _lastXlightsModel, xlights, cancelled, b->GetModelType() == "Download", prog, 0, 99);
+
+            // we get rid of additional model here
+            auto oldam = modelPreview->GetAdditionalModel();
+            modelPreview->SetAdditionalModel(nullptr);
             if (prog != nullptr)
             {
                 delete prog;
             }
+
             if (cancelled || newModel == nullptr) {
                 _lastXlightsModel = "";
                 xlights->AddTraceMessage("LayoutPanel::FinalizeModel Downloading or importing cancelled.");
@@ -3303,10 +3308,16 @@ void LayoutPanel::FinalizeModel()
                 xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "FinalizeModel");
                 return;
             }
+
             if (oldNewModel != newModel)
             {
                 xlights->AddTraceMessage("LayoutPanel::FinalizeModel Download changed model.");
                 modelPreview->SetAdditionalModel(newModel); // download changed the model
+            }
+            else
+            {
+                // restore what it was
+                modelPreview->SetAdditionalModel(oldam); 
             }
 
             xlights->AddTraceMessage("LayoutPanel::FinalizeModel Do the import. " + _lastXlightsModel);
