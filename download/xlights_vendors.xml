@@ -10,7 +10,7 @@
 	</vendor>
 	<vendor>
 		<name>DMX Models Library</name>
-		<link>https://github.com/smeighan/xLights/tree/master/download/dmx_models.xml</link>
+		<link>https://raw.githubusercontent.com/smeighan/xLights/master/download/dmx_models.xml</link>
 	</vendor>
 	<musicvendor>
 		<name>Free</name>
