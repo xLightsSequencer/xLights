@@ -341,10 +341,10 @@ class LayoutPanel: public wxPanel
         bool mPropGridActive;
         wxTreeListItem mSelectedGroup;
 
-        wxPropertyGrid *propertyEditor;
+        wxPropertyGrid *propertyEditor = nullptr;
         bool updatingProperty;
-        BaseObject *selectedBaseObject;
-        BaseObject *highlightedBaseObject;
+        BaseObject *selectedBaseObject = nullptr;
+        BaseObject *highlightedBaseObject = nullptr;
         bool selectionLatched;
         int over_handle;
         glm::vec3 last_centerpos;
@@ -358,15 +358,15 @@ class LayoutPanel: public wxPanel
         bool sizeVisible;
         bool colSizesSet;
         std::vector<NewModelBitmapButton*> buttons;
-        NewModelBitmapButton *selectedButton;
-        NewModelBitmapButton *obj_button;
+        NewModelBitmapButton *selectedButton = nullptr;
+        NewModelBitmapButton *obj_button = nullptr;
         std::string _lastXlightsModel;
         std::string selectedDmxModelType;
-        Model *newModel;
-        ModelGroupPanel *model_grp_panel;
-        ViewObjectPanel *objects_panel;
+        Model *newModel = nullptr;
+        ModelGroupPanel *model_grp_panel = nullptr;
+        ViewObjectPanel *objects_panel = nullptr;
         std::string currentLayoutGroup;
-        LayoutGroup* pGrp;
+        LayoutGroup* pGrp = nullptr;
 
         std::string lastModelName;
 
@@ -428,21 +428,21 @@ class LayoutPanel: public wxPanel
             Col_ControllerConnection
         };
 
-        ModelPreview *modelPreview;
-        wxImage *background;
+        ModelPreview *modelPreview = nullptr;
+        wxImage *background = nullptr;
         wxString backgroundFile;
         wxString previewBackgroundFile;
         bool previewBackgroundScaled;
         int previewBackgroundBrightness;
         int previewBackgroundAlpha;
-        wxPanel* main_sequencer;
-        wxImageList* m_imageList;
+        wxPanel* main_sequencer = nullptr;
+        wxImageList* m_imageList = nullptr;
 
         bool editing_models;
         bool is_3d;
         bool m_mouse_down;
-        BaseObject* last_selection;
-        BaseObject* last_highlight;
+        BaseObject* last_selection = nullptr;
+        BaseObject* last_highlight = nullptr;
         int m_last_mouse_x, m_last_mouse_y;
         bool creating_model;
         bool mouse_state_set;
@@ -491,7 +491,7 @@ class LayoutPanel: public wxPanel
             int SortElementsFunction(wxTreeListCtrl *treelist, wxTreeListItem item1, wxTreeListItem item2, unsigned sortColumn);
             void SetFrame(xLightsFrame* frame) {xlights = frame;}
        private:
-            xLightsFrame* xlights;
+            xLightsFrame* xlights = nullptr;
         };
         ModelListComparator comparator;
 

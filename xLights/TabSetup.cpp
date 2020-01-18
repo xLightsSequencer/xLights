@@ -46,6 +46,7 @@
 #include "UtilFunctions.h"
 #include "models/Model.h"
 #include "SpecialOptions.h"
+#include "LayoutGroup.h"
 
 #include "controllers/ControllerUploadData.h"
 #include "MultiControllerUploadDialog.h"
@@ -155,8 +156,8 @@ bool xLightsFrame::SetDir(const wxString& newdir)
     layoutPanel->ClearSelectedModelGroup();
 
     // delete any views that were added to the menu
-    for (auto it = LayoutGroups.begin(); it != LayoutGroups.end(); ++it) {
-        LayoutGroup* grp = (LayoutGroup*)(*it);
+    for (const auto& it : LayoutGroups) {
+        LayoutGroup* const grp = dynamic_cast<LayoutGroup* const>(it);
         if (grp != nullptr) {
             RemovePreviewOption(grp);
         }

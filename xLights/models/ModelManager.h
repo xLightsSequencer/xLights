@@ -62,9 +62,9 @@ class ModelManager : public ObjectManager
         Model *createAndAddModel(wxXmlNode *node, int previewW, int previewH);
     private:
 
-    wxXmlNode *layoutsNode;
-    OutputManager* _outputManager;
-    xLightsFrame* xlights;
+    wxXmlNode *layoutsNode = nullptr;
+    OutputManager* _outputManager = nullptr;
+    xLightsFrame* xlights = nullptr;
     int previewWidth;
     int previewHeight;
     std::map<std::string, Model *> models;

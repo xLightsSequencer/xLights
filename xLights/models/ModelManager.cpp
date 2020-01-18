@@ -233,9 +233,9 @@ uint32_t ModelManager::GetLastChannel() const {
 void ModelManager::ResetModelGroups() const
 {
     // This goes through all the model groups which hold model pointers and ensure their model pointers are correct
-    for (auto it = models.begin(); it != models.end(); ++it) {
-        if (it->second != nullptr && it->second->GetDisplayAs() == "ModelGroup") {
-            ((ModelGroup*)(it->second))->ResetModels();
+    for (const auto& it : models) {
+        if (it.second != nullptr && it.second->GetDisplayAs() == "ModelGroup") {
+            ((ModelGroup*)(it.second))->ResetModels();
         }
     }
 }

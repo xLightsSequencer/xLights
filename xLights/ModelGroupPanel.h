@@ -84,7 +84,7 @@ class ModelGroupPanel: public wxPanel
 		//*)
 
 	private:
-        LayoutPanel *layoutPanel;
+        LayoutPanel *layoutPanel = nullptr;
         ModelManager &mModels;
         std::string mGroup;
         void SaveGroupChanges();
