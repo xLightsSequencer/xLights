@@ -401,6 +401,37 @@ void DmxServo3Axis::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Acc
 
 void DmxServo3Axis::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator& va, const xlColor* c, float& sx, float& sy, bool active)
 {
+    float x1 = -0.5f;
+    float x2 = -0.5f;
+    float x3 = 0.5f;
+    float x4 = 0.5f;
+    float y1 = -0.5f;
+    float y2 = 0.5f;
+    float y3 = 0.5f;
+    float y4 = -0.5f;
+    float z1 = 0.0f;
+    float z2 = 0.0f;
+    float z3 = 0.0f;
+    float z4 = 0.0f;
+
+    GetBaseObjectScreenLocation().TranslatePoint(x1, y1, z1);
+    GetBaseObjectScreenLocation().TranslatePoint(x2, y2, z2);
+    GetBaseObjectScreenLocation().TranslatePoint(x3, y3, z3);
+    GetBaseObjectScreenLocation().TranslatePoint(x4, y4, z4);
+
+    va.AddVertex(x1, y1, z1, *wxRED);
+    va.AddVertex(x2, y2, z2, *wxRED);
+    va.AddVertex(x2, y2, z2, *wxRED);
+    va.AddVertex(x3, y3, z3, *wxRED);
+    va.AddVertex(x3, y3, z3, *wxRED);
+    va.AddVertex(x4, y4, z4, *wxRED);
+    va.AddVertex(x4, y4, z4, *wxRED);
+    va.AddVertex(x1, y1, z1, *wxRED);
+    va.AddVertex(x1, y1, z1, *wxRED);
+    va.AddVertex(x3, y3, z3, *wxRED);
+    va.AddVertex(x2, y2, z2, *wxRED);
+    va.AddVertex(x4, y4, z4, *wxRED);
+    va.Finish(GL_LINES, GL_LINE_SMOOTH, 5.0f);
 }
 
 void DmxServo3Axis::ExportXlightsModel()
