@@ -8,6 +8,10 @@
 		<name>DMX Fixture Library</name>
 		<link>http://nutcracker123.com/xlights/dmxmodels/dmx_fixtures.xml</link>
 	</vendor>
+	<vendor>
+		<name>DMX Models Library</name>
+		<link>https://github.com/smeighan/xLights/tree/master/download/dmx_models.xml</link>
+	</vendor>
 	<musicvendor>
 		<name>Free</name>
 		<link>http://nutcracker123.com/xlights/vendors/xlights_music_free.xml</link>
