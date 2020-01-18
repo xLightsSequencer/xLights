@@ -11,10 +11,15 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2020.3 January 18 2020
    -- enh (gil)    Add new DMX Servo model options (Servo version uses images and Servo 3D version uses OBJ files)
    -- enh (gil)    Added a DMX 3 Axis Servo model option
    -- enh (gil)    Add a DMX Area Flood model for a rectangle instead of a circle
    -- enh (gil)    Update Import/Export capability of DMX models and provide ability to use model downloader
+   -- enh (keith)  Prevent creation of show folder in program files folder on windows
+   -- bug (keith)  Fix unable to chain model on a port which has a model on it that spanned multiple ports
+   -- bug (dkulp)  Fix some trackpad/mouse scroll event scales
+   -- bug (keith)  Dont show model overlaps when model group is selected
 2020.2 January 11 2020
    -- enh (dkulp)  OpenGL - Allow 24bit depth buffer for OpenGL canvas.
    -- enh (dkulp)  OpenGL - For <=16bit depth buffer for OpenGL canvas, adjust the near clipping plane to provide more precision for z-depth to use.  This fixes most issues with Render Style 1 on Intel.
