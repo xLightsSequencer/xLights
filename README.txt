@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (gil)    Get the servo pivot point working for the DmxServo3D model
 2020.3 January 18 2020
    -- enh (gil)    Add new DMX Servo model options (Servo version uses images and Servo 3D version uses OBJ files)
    -- enh (gil)    Added a DMX 3 Axis Servo model option

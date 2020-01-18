@@ -112,7 +112,7 @@ void DmxServo3d::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumu
     }
 
     servo1->FillMotionMatrix(servo_pos, motion_matrix);
-    motion_mesh->Draw(this, preview, va, base_matrix, motion_matrix);
+    motion_mesh->Draw(this, preview, va, base_matrix, motion_matrix, servo1->GetPivotOffsetX(), servo1->GetPivotOffsetY(), servo1->IsRotate(), !active);
 }
 
 void DmxServo3d::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator& va, const xlColor* c, float& sx, float& sy, bool active)

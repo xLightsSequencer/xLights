@@ -540,7 +540,8 @@ void Mesh::loadObject(BaseObject* base) {
     }
 }
 
-void Mesh::Draw(BaseObject* base, ModelPreview* preview, DrawGLUtils::xl3Accumulator &va, glm::mat4& base_matrix, glm::mat4& motion_matrix)
+void Mesh::Draw(BaseObject* base, ModelPreview* preview, DrawGLUtils::xl3Accumulator &va, glm::mat4& base_matrix, glm::mat4& motion_matrix,
+                float pivot_offset_x, float pivot_offset_y, bool rotation, bool use_pivot)
 {
     if (!obj_loaded) {
         loadObject(base);
@@ -557,7 +558,16 @@ void Mesh::Draw(BaseObject* base, ModelPreview* preview, DrawGLUtils::xl3Accumul
         glm::mat4 rz = glm::rotate(Identity, glm::radians(rotatez), glm::vec3(0.0f, 0.0f, 1.0f));
         glm::quat rotate_quat = glm::quat_cast(rx * ry * rz);
         glm::mat4 translationMatrix = glm::translate(Identity, glm::vec3(offset_x, offset_y, offset_z));
-        glm::mat4 m = base_matrix * translationMatrix * motion_matrix * glm::toMat4(rotate_quat) * scalingMatrix;
+        glm::mat4 m;
+        if (rotation) {
+            glm::mat4 pivotToZero = glm::translate(Identity, glm::vec3(-pivot_offset_x, -pivot_offset_y, 0.0f));
+            glm::mat4 pivotBack = glm::translate(Identity, glm::vec3(pivot_offset_x, pivot_offset_y, 0.0f));
+            m = base_matrix * translationMatrix * pivotBack * motion_matrix * pivotToZero * glm::toMat4(rotate_quat) * scalingMatrix;
+        }
+        else
+        {
+            m = base_matrix * translationMatrix * motion_matrix * glm::toMat4(rotate_quat) * scalingMatrix;
+        }
 
         if (!mesh3d) {
             mesh3d = DrawGLUtils::createMesh();
@@ -762,6 +772,24 @@ void Mesh::Draw(BaseObject* base, ModelPreview* preview, DrawGLUtils::xl3Accumul
         }
         mesh3d->setMatrix(m);
         va.AddMesh(mesh3d, mesh_only, brightness, false);
+
+        // draw the pivot location
+        if (use_pivot && rotation) {
+            xlColor pink = xlColor(255, 0, 255);
+            float x1 = pivot_offset_x;
+            float y1 = pivot_offset_y;
+            float z1 = 0.0f;
+            float offx = base->GetBaseObjectScreenLocation().GetMWidth() / 2.0f;
+            float offz = base->GetBaseObjectScreenLocation().GetMDepth() / 2.0f;
+            glm::vec4 v = base_matrix * translationMatrix * glm::vec4(glm::vec3(x1, y1, 0.0f), 1.0f);
+            x1 = v.x; y1 = v.y; z1 = v.z;
+            va.AddVertex(x1 - offx, y1, z1, pink);
+            va.AddVertex(x1 + offx, y1, z1, pink);
+            va.AddVertex(x1, y1, z1 - offz, pink);
+            va.AddVertex(x1, y1, z1 + offz, pink);
+            va.Finish(GL_LINES);
+        }
+
     }
     else if( show_empty ) {
         float x1 = -0.5f * width * scalex;
