@@ -10,28 +10,52 @@
    </vendor>
    <categories>
       <category>
-         <id>Two Axis Servo Models</id>
-         <name>Two Axis Servo Models</name>
-      </category>
-      <category>
-         <id>One Axis Servo Models</id>
+         <id>OneAxisServoModels</id>
          <name>One Axis Servo Models</name>
 		 <categories>
 		  <category>
-			 <id>With 2D Images</id>
-			 <name>With 2D Images</name>
+			 <id>OneAxis2DImages</id>
+			 <name>2D Images</name>
 		  </category>
 		  <category>
-			 <id>With 3D Models</id>
-			 <name>With 3D Models</name>
+			 <id>OneAxis3DModels</id>
+			 <name>3D Models</name>
+		  </category>
+		 </categories>
+      </category>
+      <category>
+         <id>TwoAxisServoModels</id>
+         <name>Two Axis Servo Models</name>
+		 <categories>
+		  <category>
+			 <id>TwoAxis2DImages</id>
+			 <name>2D Images</name>
+		  </category>
+		  <category>
+			 <id>TwoAxis3DModels</id>
+			 <name>3D Models</name>
+		  </category>
+		 </categories>
+      </category>
+      <category>
+         <id>ThreeAxisServoModels</id>
+         <name>Three Axis Servo Models</name>
+		 <categories>
+		  <category>
+			 <id>ThreeAxis2DImages</id>
+			 <name>2D Images</name>
+		  </category>
+		  <category>
+			 <id>ThreeAxis3DModels</id>
+			 <name>3D Models</name>
 		  </category>
 		 </categories>
       </category>
    </categories>
    <models>
 <model>
-<id>1</id>
-<categoryid>Two Axis Servo Models</categoryid>
+<id>SimpleMovingHead</id>
+<categoryid>TwoAxis3DModels</categoryid>
 <name><![CDATA[Simple Moving Head]]></name>
 <type></type>
 <weblink></weblink>
@@ -39,13 +63,22 @@
 <wiring><xmodellink><![CDATA[https://raw.githubusercontent.com/smeighan/xLights/master/download/dmx_content/SimpleMovingHead.zip]]></xmodellink></wiring>
 </model>
 <model>
-<id>2</id>
-<categoryid>With 2D Images</categoryid>
+<id>Snowman1</id>
+<categoryid>OneAxis2DImages</categoryid>
 <name><![CDATA[Snowman1]]></name>
 <type></type>
 <weblink></weblink>
 <imagefile>https://raw.githubusercontent.com/smeighan/xLights/master/download/dmx_content/Snowman1.png</imagefile>
 <wiring><xmodellink><![CDATA[https://raw.githubusercontent.com/smeighan/xLights/master/download/dmx_content/Snowman1.zip]]></xmodellink></wiring>
+</model>
+<model>
+<id>SantaWaving3D</id>
+<categoryid>OneAxis3DModels</categoryid>
+<name><![CDATA[SantaWaving3D]]></name>
+<type></type>
+<weblink></weblink>
+<imagefile>https://raw.githubusercontent.com/smeighan/xLights/master/download/dmx_content/SantaWaving3D.png</imagefile>
+<wiring><xmodellink><![CDATA[https://raw.githubusercontent.com/smeighan/xLights/master/download/dmx_content/SantaWaving3D.zip]]></xmodellink></wiring>
 </model>
    </models>
 </modelinventory>
