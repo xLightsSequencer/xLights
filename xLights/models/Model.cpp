@@ -5073,7 +5073,55 @@ Model* Model::GetXlightsModel(Model* model, std::string &last_model, xLightsFram
             model->Selected = true;
             return model;
         }
-		else if (root->GetName() == "circlemodel") {
+        else if (root->GetName() == "dmxservo") {
+
+            // grab the attributes I want to keep
+            std::string startChannel = model->GetModelXml()->GetAttribute("StartChannel", "1").ToStdString();
+            auto w = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleX();
+            auto h = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleY();
+            auto x = model->GetHcenterPos();
+            auto y = model->GetVcenterPos();
+            auto lg = model->GetLayoutGroup();
+
+            std::string dmx_type = root->GetAttribute("DisplayAs");
+            // not a custom model so delete the default model that was created
+            if (model != nullptr) {
+                xlights->AddTraceMessage("GetXlightsModel converted model to DMX");
+                delete model;
+            }
+            model = xlights->AllModels.CreateDefaultModel(dmx_type, startChannel);
+            model->SetHcenterPos(x);
+            model->SetVcenterPos(y);
+            // Multiply by 5 because default custom model has parm1 and parm2 set to 5 and DMX model is 1 pixel
+            ((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScale(w * 5, h * 5);
+            model->SetLayoutGroup(lg);
+            model->Selected = true;
+            return model;
+        }
+        else if (root->GetName() == "dmxservo3axis" ||
+                 root->GetName() == "dmxservo3d" ) {
+
+            // grab the attributes I want to keep
+            std::string startChannel = model->GetModelXml()->GetAttribute("StartChannel", "1").ToStdString();
+            auto x = model->GetHcenterPos();
+            auto y = model->GetVcenterPos();
+            auto lg = model->GetLayoutGroup();
+
+            std::string dmx_type = root->GetAttribute("DisplayAs");
+            // not a custom model so delete the default model that was created
+            if (model != nullptr) {
+                xlights->AddTraceMessage("GetXlightsModel converted model to DMX");
+                delete model;
+            }
+            model = xlights->AllModels.CreateDefaultModel(dmx_type, startChannel);
+            model->SetHcenterPos(x);
+            model->SetVcenterPos(y);
+            model->GetModelScreenLocation().SetScaleMatrix(glm::vec3(1,1, 1));
+            model->SetLayoutGroup(lg);
+            model->Selected = true;
+            return model;
+        }
+        else if (root->GetName() == "circlemodel") {
 
 			// grab the attributes I want to keep
 			std::string startChannel = model->GetModelXml()->GetAttribute("StartChannel", "1").ToStdString();

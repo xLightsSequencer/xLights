@@ -30,6 +30,9 @@ class Mesh
 
         void Draw(BaseObject* base, ModelPreview* preview, DrawGLUtils::xl3Accumulator& va, glm::mat4& base_matrix, glm::mat4& motion_matrix);
 
+        void Serialise(wxXmlNode* root, wxFile& f, const wxString& show_dir) const;
+        void Serialise(wxXmlNode* root, wxXmlNode* model_xml, const wxString& show_dir) const;
+
     protected:
 
         void loadObject(BaseObject* base);

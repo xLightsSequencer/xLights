@@ -253,3 +253,69 @@ void DmxModel::SetNodeNames(const std::string& default_names) {
         ModelXml->AddAttribute("NodeNames", nn);
     }
 }
+
+void DmxModel::ExportBaseParameters(wxFile& f)
+{
+    wxString p1 = ModelXml->GetAttribute("parm1");
+    wxString p2 = ModelXml->GetAttribute("parm2");
+    wxString p3 = ModelXml->GetAttribute("parm3");
+    wxString st = ModelXml->GetAttribute("StringType");
+    wxString ps = ModelXml->GetAttribute("PixelSize");
+    wxString t = ModelXml->GetAttribute("Transparency");
+    wxString mb = ModelXml->GetAttribute("ModelBrightness");
+    wxString a = ModelXml->GetAttribute("Antialias");
+    wxString ss = ModelXml->GetAttribute("StartSide");
+    wxString dir = ModelXml->GetAttribute("Dir");
+    wxString sn = ModelXml->GetAttribute("StrandNames");
+    wxString nn = ModelXml->GetAttribute("NodeNames");
+    wxString da = ModelXml->GetAttribute("DisplayAs");
+    wxString v = xlights_version_string;
+
+    f.Write(wxString::Format("name=\"%s\" ", name));
+    f.Write(wxString::Format("parm1=\"%s\" ", p1));
+    f.Write(wxString::Format("parm2=\"%s\" ", p2));
+    f.Write(wxString::Format("parm3=\"%s\" ", p3));
+    f.Write(wxString::Format("DisplayAs=\"%s\" ", da));
+    f.Write(wxString::Format("StringType=\"%s\" ", st));
+    f.Write(wxString::Format("Transparency=\"%s\" ", t));
+    f.Write(wxString::Format("PixelSize=\"%s\" ", ps));
+    f.Write(wxString::Format("ModelBrightness=\"%s\" ", mb));
+    f.Write(wxString::Format("Antialias=\"%s\" ", a));
+    f.Write(wxString::Format("StartSide=\"%s\" ", ss));
+    f.Write(wxString::Format("Dir=\"%s\" ", dir));
+    f.Write(wxString::Format("StrandNames=\"%s\" ", sn));
+    f.Write(wxString::Format("NodeNames=\"%s\" ", nn));
+    f.Write(wxString::Format("SourceVersion=\"%s\" ", v));
+
+}
+
+void DmxModel::ImportBaseParameters(wxXmlNode* root)
+{
+    wxString p1 = root->GetAttribute("parm1");
+    wxString p2 = root->GetAttribute("parm2");
+    wxString p3 = root->GetAttribute("parm3");
+    wxString st = root->GetAttribute("StringType");
+    wxString ps = root->GetAttribute("PixelSize");
+    wxString t = root->GetAttribute("Transparency");
+    wxString mb = root->GetAttribute("ModelBrightness");
+    wxString a = root->GetAttribute("Antialias");
+    wxString ss = root->GetAttribute("StartSide");
+    wxString dir = root->GetAttribute("Dir");
+    wxString sn = root->GetAttribute("StrandNames");
+    wxString nn = root->GetAttribute("NodeNames");
+    wxString da = root->GetAttribute("DisplayAs");
+
+    SetProperty("parm1", p1);
+    SetProperty("parm2", p2);
+    SetProperty("parm3", p3);
+    SetProperty("StringType", st);
+    SetProperty("PixelSize", ps);
+    SetProperty("Transparency", t);
+    SetProperty("ModelBrightness", mb);
+    SetProperty("Antialias", a);
+    SetProperty("StartSide", ss);
+    SetProperty("Dir", dir);
+    SetProperty("StrandNames", sn);
+    SetProperty("NodeNames", nn);
+    SetProperty("DisplayAs", da);
+}

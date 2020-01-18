@@ -213,53 +213,19 @@ void DmxServo::ExportXlightsModel()
     wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, name, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     if (filename.IsEmpty()) return;
     wxFile f(filename);
-    //    bool isnew = !wxFile::Exists(filename);
     if (!f.Create(filename, true) || !f.IsOpened()) DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
-    wxString p1 = ModelXml->GetAttribute("parm1");
-    wxString p2 = ModelXml->GetAttribute("parm2");
-    wxString p3 = ModelXml->GetAttribute("parm3");
-    wxString st = ModelXml->GetAttribute("StringType");
-    wxString ps = ModelXml->GetAttribute("PixelSize");
-    wxString t = ModelXml->GetAttribute("Transparency");
-    wxString mb = ModelXml->GetAttribute("ModelBrightness");
-    wxString a = ModelXml->GetAttribute("Antialias");
-    wxString ss = ModelXml->GetAttribute("StartSide");
-    wxString dir = ModelXml->GetAttribute("Dir");
-    wxString sn = ModelXml->GetAttribute("StrandNames");
-    wxString nn = ModelXml->GetAttribute("NodeNames");
-    wxString da = ModelXml->GetAttribute("DisplayAs");
 
-    wxString svc = ModelXml->GetAttribute("DmxServoChannel", "1");
-    wxString sml = ModelXml->GetAttribute("DmxServoMinLimit", "0");
-    wxString smxl = ModelXml->GetAttribute("DmxServoMaxLimit", "65535");
-    wxString rom = ModelXml->GetAttribute("DmxServoRangeOfMotion", "100");
-    wxString s = ModelXml->GetAttribute("ServoStyle");
+    f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<dmxservo \n");
 
-    wxString v = xlights_version_string;
+    ExportBaseParameters(f);
 
-    f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<dmxmodel \n");
-    f.Write(wxString::Format("name=\"%s\" ", name));
-    f.Write(wxString::Format("parm1=\"%s\" ", p1));
-    f.Write(wxString::Format("parm2=\"%s\" ", p2));
-    f.Write(wxString::Format("parm3=\"%s\" ", p3));
-    f.Write(wxString::Format("DisplayAs=\"%s\" ", da));
-    f.Write(wxString::Format("StringType=\"%s\" ", st));
-    f.Write(wxString::Format("Transparency=\"%s\" ", t));
-    f.Write(wxString::Format("PixelSize=\"%s\" ", ps));
-    f.Write(wxString::Format("ModelBrightness=\"%s\" ", mb));
-    f.Write(wxString::Format("Antialias=\"%s\" ", a));
-    f.Write(wxString::Format("StartSide=\"%s\" ", ss));
-    f.Write(wxString::Format("Dir=\"%s\" ", dir));
-    f.Write(wxString::Format("StrandNames=\"%s\" ", sn));
-    f.Write(wxString::Format("NodeNames=\"%s\" ", nn));
-    f.Write(wxString::Format("SourceVersion=\"%s\" ", v));
-
-    f.Write(wxString::Format("DmxServoChannel=\"%s\" ", svc));
-    f.Write(wxString::Format("DmxServoMinLimit=\"%s\" ", sml));
-    f.Write(wxString::Format("DmxServoMaxLimit=\"%s\" ", smxl));
-    f.Write(wxString::Format("DmxServoRangeOfMotion=\"%s\" ", rom));
-    f.Write(wxString::Format("ServoStyle=\"%s\" ", s));
     f.Write(" >\n");
+
+    wxString show_dir = GetModelManager().GetXLightsFrame()->GetShowDirectory();
+    static_image->Serialise(ModelXml, f, show_dir);
+    motion_image->Serialise(ModelXml, f, show_dir);
+    servo1->Serialise(ModelXml, f, show_dir);
+
     wxString submodel = SerialiseSubmodel();
     if (submodel != "")
     {
@@ -270,7 +236,7 @@ void DmxServo::ExportXlightsModel()
     {
         f.Write(state);
     }
-    f.Write("</dmxmodel>");
+    f.Write("</dmxservo>");
     f.Close();
 }
 
@@ -285,56 +251,24 @@ void DmxServo::ImportXlightsModel(std::string filename, xLightsFrame* xlights, f
     {
         wxXmlNode* root = doc.GetRoot();
 
-        if (root->GetName() == "dmxmodel")
+        if (root->GetName() == "dmxservo")
         {
-            wxString name = root->GetAttribute("name");
-            wxString p1 = root->GetAttribute("parm1");
-            wxString p2 = root->GetAttribute("parm2");
-            wxString p3 = root->GetAttribute("parm3");
-            wxString st = root->GetAttribute("StringType");
-            wxString ps = root->GetAttribute("PixelSize");
-            wxString t = root->GetAttribute("Transparency");
-            wxString mb = root->GetAttribute("ModelBrightness");
-            wxString a = root->GetAttribute("Antialias");
-            wxString ss = root->GetAttribute("StartSide");
-            wxString dir = root->GetAttribute("Dir");
-            wxString sn = root->GetAttribute("StrandNames");
-            wxString nn = root->GetAttribute("NodeNames");
-            wxString v = root->GetAttribute("SourceVersion");
-            wxString da = root->GetAttribute("DisplayAs");
+            ImportBaseParameters(root);
 
-            wxString svc = root->GetAttribute("DmxServoChannel");
-            wxString sml = root->GetAttribute("DmxServoMinLimit");
-            wxString smxl = root->GetAttribute("DmxServoMaxLimit");
-            wxString rom = root->GetAttribute("DmxServoRangeOfMotion");
-            wxString s = root->GetAttribute("ServoStyle");
+            wxString name = root->GetAttribute("name");
+            wxString v = root->GetAttribute("SourceVersion");
 
             // Add any model version conversion logic here
             // Source version will be the program version that created the custom model
 
-            SetProperty("parm1", p1);
-            SetProperty("parm2", p2);
-            SetProperty("parm3", p3);
-            SetProperty("StringType", st);
-            SetProperty("PixelSize", ps);
-            SetProperty("Transparency", t);
-            SetProperty("ModelBrightness", mb);
-            SetProperty("Antialias", a);
-            SetProperty("StartSide", ss);
-            SetProperty("Dir", dir);
-            SetProperty("StrandNames", sn);
-            SetProperty("NodeNames", nn);
-            SetProperty("DisplayAs", da);
-
-            SetProperty("DmxServoChannel", svc);
-            SetProperty("DmxServoMinLimit", sml);
-            SetProperty("DmxServoMaxLimit", smxl);
-            SetProperty("DmxServoRangeOfMotion", rom);
-            SetProperty("ServoStyle", s);
-
             wxString newname = xlights->AllModels.GenerateModelName(name.ToStdString());
             GetModelScreenLocation().Write(ModelXml);
             SetProperty("name", newname, true);
+
+            wxString show_dir = GetModelManager().GetXLightsFrame()->GetShowDirectory();
+            static_image->Serialise(root, ModelXml, show_dir);
+            motion_image->Serialise(root, ModelXml, show_dir);
+            servo1->Serialise(root, ModelXml, show_dir);
 
             for (wxXmlNode* n = root->GetChildren(); n != nullptr; n = n->GetNext())
             {

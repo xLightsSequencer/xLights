@@ -980,19 +980,12 @@ void DmxSkulltronix::ExportXlightsModel()
     wxFile f(filename);
     //    bool isnew = !wxFile::Exists(filename);
     if (!f.Create(filename, true) || !f.IsOpened()) DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
-    wxString p1 = ModelXml->GetAttribute("parm1");
-    wxString p2 = ModelXml->GetAttribute("parm2");
-    wxString p3 = ModelXml->GetAttribute("parm3");
-    wxString st = ModelXml->GetAttribute("StringType");
-    wxString ps = ModelXml->GetAttribute("PixelSize");
-    wxString t = ModelXml->GetAttribute("Transparency");
-    wxString mb = ModelXml->GetAttribute("ModelBrightness");
-    wxString a = ModelXml->GetAttribute("Antialias");
-    wxString ss = ModelXml->GetAttribute("StartSide");
-    wxString dir = ModelXml->GetAttribute("Dir");
-    wxString sn = ModelXml->GetAttribute("StrandNames");
-    wxString nn = ModelXml->GetAttribute("NodeNames");
-    wxString da = ModelXml->GetAttribute("DisplayAs");
+
+    f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<dmxmodel \n");
+
+    f.Write(wxString::Format("name=\"%s\" ", name));
+
+    ExportBaseParameters(f);
 
     wxString pdr = ModelXml->GetAttribute("DmxPanDegOfRot", "180");
     wxString tdr = ModelXml->GetAttribute("DmxTiltDegOfRot", "90");
@@ -1030,21 +1023,6 @@ void DmxSkulltronix::ExportXlightsModel()
 
     wxString v = xlights_version_string;
 
-    f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<dmxmodel \n");
-    f.Write(wxString::Format("name=\"%s\" ", name));
-    f.Write(wxString::Format("parm1=\"%s\" ", p1));
-    f.Write(wxString::Format("parm2=\"%s\" ", p2));
-    f.Write(wxString::Format("parm3=\"%s\" ", p3));
-    f.Write(wxString::Format("DisplayAs=\"%s\" ", da));
-    f.Write(wxString::Format("StringType=\"%s\" ", st));
-    f.Write(wxString::Format("Transparency=\"%s\" ", t));
-    f.Write(wxString::Format("PixelSize=\"%s\" ", ps));
-    f.Write(wxString::Format("ModelBrightness=\"%s\" ", mb));
-    f.Write(wxString::Format("Antialias=\"%s\" ", a));
-    f.Write(wxString::Format("StartSide=\"%s\" ", ss));
-    f.Write(wxString::Format("Dir=\"%s\" ", dir));
-    f.Write(wxString::Format("StrandNames=\"%s\" ", sn));
-    f.Write(wxString::Format("NodeNames=\"%s\" ", nn));
     f.Write(wxString::Format("SourceVersion=\"%s\" ", v));
     f.Write(wxString::Format("DmxPanDegOfRot=\"%s\" ", pdr));
     f.Write(wxString::Format("DmxTiltDegOfRot=\"%s\" ", tdr));
@@ -1107,21 +1085,10 @@ void DmxSkulltronix::ImportXlightsModel(std::string filename, xLightsFrame* xlig
 
         if (root->GetName() == "dmxmodel")
         {
+            ImportBaseParameters(root);
+
             wxString name = root->GetAttribute("name");
-            wxString p1 = root->GetAttribute("parm1");
-            wxString p2 = root->GetAttribute("parm2");
-            wxString p3 = root->GetAttribute("parm3");
-            wxString st = root->GetAttribute("StringType");
-            wxString ps = root->GetAttribute("PixelSize");
-            wxString t = root->GetAttribute("Transparency");
-            wxString mb = root->GetAttribute("ModelBrightness");
-            wxString a = root->GetAttribute("Antialias");
-            wxString ss = root->GetAttribute("StartSide");
-            wxString dir = root->GetAttribute("Dir");
-            wxString sn = root->GetAttribute("StrandNames");
-            wxString nn = root->GetAttribute("NodeNames");
             wxString v = root->GetAttribute("SourceVersion");
-            wxString da = root->GetAttribute("DisplayAs");
 
             wxString pdr = root->GetAttribute("DmxPanDegOfRot");
             wxString tdr = root->GetAttribute("DmxTiltDegOfRot");
@@ -1162,20 +1129,6 @@ void DmxSkulltronix::ImportXlightsModel(std::string filename, xLightsFrame* xlig
 
             // Add any model version conversion logic here
             // Source version will be the program version that created the custom model
-
-            SetProperty("parm1", p1);
-            SetProperty("parm2", p2);
-            SetProperty("parm3", p3);
-            SetProperty("StringType", st);
-            SetProperty("PixelSize", ps);
-            SetProperty("Transparency", t);
-            SetProperty("ModelBrightness", mb);
-            SetProperty("Antialias", a);
-            SetProperty("StartSide", ss);
-            SetProperty("Dir", dir);
-            SetProperty("StrandNames", sn);
-            SetProperty("NodeNames", nn);
-            SetProperty("DisplayAs", da);
 
             SetProperty("DmxPanDegOfRot", pdr);
             SetProperty("DmxTiltDegOfRot", tdr);

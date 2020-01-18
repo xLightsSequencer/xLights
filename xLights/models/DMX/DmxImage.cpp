@@ -1,6 +1,7 @@
 #include <wx/xml/xml.h>
 #include <wx/propgrid/propgrid.h>
 #include <wx/propgrid/advprops.h>
+#include <wx/sstream.h>
 
 #include <algorithm>
 
@@ -439,5 +440,70 @@ void DmxImage::Draw(BaseObject* base, ModelPreview* preview, DrawGLUtils::xlAccu
         va.AddVertex(x2, y2, z2, *wxRED);
         va.AddVertex(x4, y4, z4, *wxRED);
         va.Finish(GL_LINES, GL_LINE_SMOOTH, 5.0f);
+    }
+}
+
+void DmxImage::Serialise(wxXmlNode* root, wxFile& f, const wxString& show_dir) const
+{
+    wxString res = "";
+
+    wxXmlNode* child = root->GetChildren();
+    while (child != nullptr) {
+        if (child->GetName() == base_name) {
+            wxXmlDocument new_doc;
+            new_doc.SetRoot(new wxXmlNode(*child));
+            wxStringOutputStream stream;
+            new_doc.Save(stream);
+            wxString s = stream.GetString();
+            s = s.SubString(s.Find("\n") + 1, s.Length()); // skip over xml format header
+            int index = s.Find(show_dir);
+            while (index != wxNOT_FOUND) {
+                s = s.SubString(0, index - 1) + s.SubString(index + show_dir.Length() + 1, s.Length());
+                index = s.Find(show_dir);
+            }
+            res += s;
+        }
+        child = child->GetNext();
+    }
+
+    if (res != "")
+    {
+        f.Write(res);
+    }
+}
+
+// Serialise for input
+void DmxImage::Serialise(wxXmlNode* root, wxXmlNode* model_xml, const wxString& show_dir) const
+{
+    wxXmlNode* node = nullptr;
+    for (wxXmlNode* n = model_xml->GetChildren(); n != nullptr; n = n->GetNext())
+    {
+        if (n->GetName() == base_name)
+        {
+            node = n;
+            break;
+        }
+    }
+
+    if (node != nullptr) {
+        // add new attributes from import
+        for (wxXmlNode* n = root->GetChildren(); n != nullptr; n = n->GetNext())
+        {
+            if (n->GetName() == base_name)
+            {
+                for (auto a = n->GetAttributes(); a != nullptr; a = a->GetNext())
+                {
+                    wxString s = a->GetValue();
+                    if (a->GetName() == "Image") {
+                        s = show_dir + wxFileName::GetPathSeparator() + s;
+                    }
+                    if (node->HasAttribute(a->GetName())) {
+                        node->DeleteAttribute(a->GetName());
+                    }
+                    node->AddAttribute(a->GetName(), s);
+                }
+                return;
+            }
+        }
     }
 }

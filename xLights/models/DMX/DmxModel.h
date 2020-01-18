@@ -3,6 +3,7 @@
 
 #include "../Model.h"
 class DmxColorAbility;
+class wxFile;
 
 class DmxModel : public ModelWithScreenLocation<BoxedScreenLocation>
 {
@@ -37,6 +38,8 @@ class DmxModel : public ModelWithScreenLocation<BoxedScreenLocation>
 
     protected:
         virtual void InitModel() override;
+        void ExportBaseParameters(wxFile& f);
+        void ImportBaseParameters(wxXmlNode* root);
 
         virtual int GetChannelValue( int channel );
         void SetNodeNames(const std::string& default_names);

@@ -20,6 +20,9 @@ class Servo
 
         int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event, BaseObject* base, bool locked);
 
+        void Serialise(wxXmlNode* root, wxFile& f, const wxString& show_dir) const;
+        void Serialise(wxXmlNode* root, wxXmlNode* model_xml, const wxString& show_dir) const;
+
         int GetChannel() const { return channel; }
         void SetChannel(int chan, BaseObject* base);
         int GetMinLimit() const { return min_limit; }

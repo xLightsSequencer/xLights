@@ -39,6 +39,9 @@ class DmxImage
         void SetScaleX(float value, BaseObject* base);
         void SetScaleY(float value, BaseObject* base);
 
+        void Serialise(wxXmlNode* root, wxFile& f, const wxString& show_dir) const;
+        void Serialise(wxXmlNode* root, wxXmlNode* model_xml, const wxString& show_dir) const;
+
     protected:
 
     private:
