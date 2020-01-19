@@ -31,6 +31,7 @@ class DmxServo3d : public DmxModel
         Mesh* static_mesh;
         Mesh* motion_mesh;
         Servo* servo1;
+        bool _16bit;
 };
 
 #endif // DMXSERVO3D_H

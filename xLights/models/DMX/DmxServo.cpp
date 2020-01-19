@@ -112,9 +112,9 @@ int DmxServo::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGrid
             _16bit = false;
             ModelXml->AddAttribute("Bits16", "0");
         }
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxServo::OnPropertyGridChange::NumServos");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "DmxServo::OnPropertyGridChange::NumServos");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxServo::OnPropertyGridChange::Transparency");
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxServo::OnPropertyGridChange::Bits16");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "DmxServo::OnPropertyGridChange::Bits16");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxServo::OnPropertyGridChange::Bits16");
         return 0;
     }
     if ("Transparency" == name) {
@@ -130,7 +130,7 @@ int DmxServo::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGrid
         ModelXml->DeleteAttribute("Brightness");
         ModelXml->AddAttribute("Brightness", wxString::Format("%d", (int)brightness));
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxServo::OnPropertyGridChange::Brightness");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxServo::OnPropertyGridChange::Transparency");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxServo::OnPropertyGridChange::Brightness");
         return 0;
     }
 

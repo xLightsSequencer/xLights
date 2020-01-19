@@ -45,6 +45,7 @@ private:
     std::string servo3_motion_link;
     std::string mesh2_motion_link;
     std::string mesh3_motion_link;
+    bool _16bit;
 };
 
 #endif // DMXSERVO3AXIS_H

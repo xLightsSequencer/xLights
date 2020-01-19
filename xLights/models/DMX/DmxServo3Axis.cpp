@@ -33,7 +33,7 @@ DmxServo3Axis::DmxServo3Axis(wxXmlNode* node, const ModelManager& manager, bool 
     servo2_motion_link_val(MOTION_LINK_MESH2), servo3_motion_link_val(MOTION_LINK_MESH3),
     servo2_motion_link("Mesh 2"), servo3_motion_link("Mesh 3"),
     mesh2_motion_link_val(MESH_NOT_LINKED), mesh3_motion_link_val(MESH_NOT_LINKED),
-    mesh2_motion_link("Not Linked"), mesh3_motion_link("Not Linked")
+    mesh2_motion_link("Not Linked"), mesh3_motion_link("Not Linked"), _16bit(true)
 {
     wxXmlNode* n = node->GetChildren();
     while (n != nullptr) {
@@ -90,13 +90,13 @@ DmxServo3Axis::DmxServo3Axis(wxXmlNode* node, const ModelManager& manager, bool 
         wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, "Servo2");
         node->AddChild(new_node);
         servo2 = new Servo(new_node, "Servo2", false);
-        servo2->SetChannel(3, this);
+        servo2->SetChannel(_16bit ? 3 : 2, this);
     }
     if (servo3 == nullptr) {
         wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, "Servo3");
         node->AddChild(new_node);
         servo3 = new Servo(new_node, "Servo3", false);
-        servo3->SetChannel(5, this);
+        servo3->SetChannel(_16bit ? 5 : 3, this);
     }
 }
 
@@ -111,6 +111,9 @@ static wxPGChoices MOTION3_LINKS;
 
 void DmxServo3Axis::AddTypeProperties(wxPropertyGridInterface* grid) {
     DmxModel::AddTypeProperties(grid);
+
+    wxPGProperty* p = grid->Append(new wxBoolProperty("16 Bit", "Bits16", _16bit));
+    p->SetAttribute("UseCheckbox", true);
 
     servo1->AddTypeProperties(grid);
     servo2->AddTypeProperties(grid);
@@ -152,6 +155,22 @@ void DmxServo3Axis::AddTypeProperties(wxPropertyGridInterface* grid) {
 }
 
 int DmxServo3Axis::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event) {
+
+    if (event.GetPropertyName() == "Bits16") {
+        ModelXml->DeleteAttribute("Bits16");
+        if (event.GetValue().GetBool()) {
+            _16bit = true;
+            ModelXml->AddAttribute("Bits16", "1");
+        }
+        else {
+            _16bit = false;
+            ModelXml->AddAttribute("Bits16", "0");
+        }
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxServo3Axis::OnPropertyGridChange::Bits16");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "DmxServo3Axis::OnPropertyGridChange::Bits16");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxServo3Axis::OnPropertyGridChange::Bits16");
+        return 0;
+    }
 
     if (servo1->OnPropertyGridChange(grid, event, this, GetModelScreenLocation().IsLocked()) == 0) {
         return 0;
@@ -270,6 +289,16 @@ void DmxServo3Axis::InitModel() {
     DmxModel::InitModel();
     DisplayAs = "DmxServo3Axis";
 
+    _16bit = wxAtoi(ModelXml->GetAttribute("Bits16", "1"));
+
+    int min_channels = _16bit ? 6 : 3;
+    if (parm1 < min_channels) {
+        parm1 = min_channels;
+    }
+
+    servo1->Set16Bit(_16bit);
+    servo2->Set16Bit(_16bit);
+    servo3->Set16Bit(_16bit);
     servo1->Init(this);
     servo2->Init(this);
     servo3->Init(this);
@@ -446,11 +475,13 @@ void DmxServo3Axis::ExportXlightsModel()
 
     ExportBaseParameters(f);
 
+    wxString bits = ModelXml->GetAttribute("Bits16");
     wxString ml2 = ModelXml->GetAttribute("Mesh2Linkage");
     wxString ml3 = ModelXml->GetAttribute("Mesh3Linkage");
     wxString sl1 = ModelXml->GetAttribute("Servo1Linkage");
     wxString sl2 = ModelXml->GetAttribute("Servo2Linkage");
     wxString sl3 = ModelXml->GetAttribute("Servo3Linkage");
+    f.Write(wxString::Format("Bits16=\"%s\" ", bits));
     f.Write(wxString::Format("Mesh2Linkage=\"%s\" ", ml2));
     f.Write(wxString::Format("Mesh3Linkage=\"%s\" ", ml3));
     f.Write(wxString::Format("Servo1Linkage=\"%s\" ", sl1));
@@ -502,12 +533,14 @@ void DmxServo3Axis::ImportXlightsModel(std::string filename, xLightsFrame* xligh
 
             wxString name = root->GetAttribute("name");
             wxString v = root->GetAttribute("SourceVersion");
- 
+            wxString bits = ModelXml->GetAttribute("Bits16");
+
             wxString ml2 = root->GetAttribute("Mesh2Linkage");
             wxString ml3 = root->GetAttribute("Mesh3Linkage");
             wxString sl1 = root->GetAttribute("Servo1Linkage");
             wxString sl2 = root->GetAttribute("Servo2Linkage");
             wxString sl3 = root->GetAttribute("Servo3Linkage");
+            SetProperty("Bits16", bits);
             SetProperty("Mesh2Linkage", ml2);
             SetProperty("Mesh3Linkage", ml3);
             SetProperty("Servo1Linkage", sl1);

@@ -15,7 +15,7 @@
 #include "../../UtilFunctions.h"
 
 DmxServo3d::DmxServo3d(wxXmlNode *node, const ModelManager &manager, bool zeroBased)
-    : DmxModel(node, manager, zeroBased), brightness(100.0f), static_mesh(nullptr), motion_mesh(nullptr), servo1(nullptr)
+    : DmxModel(node, manager, zeroBased), brightness(100.0f), static_mesh(nullptr), motion_mesh(nullptr), servo1(nullptr), _16bit(true)
 {
     wxXmlNode* n = node->GetChildren();
     while (n != nullptr) {
@@ -56,6 +56,9 @@ DmxServo3d::~DmxServo3d()
 void DmxServo3d::AddTypeProperties(wxPropertyGridInterface* grid) {
     DmxModel::AddTypeProperties(grid);
 
+    wxPGProperty* p = grid->Append(new wxBoolProperty("16 Bit", "Bits16", _16bit));
+    p->SetAttribute("UseCheckbox", true);
+
     servo1->AddTypeProperties(grid);
     static_mesh->AddTypeProperties(grid);
     motion_mesh->AddTypeProperties(grid);
@@ -65,6 +68,21 @@ void DmxServo3d::AddTypeProperties(wxPropertyGridInterface* grid) {
 
 int DmxServo3d::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
 
+    if (event.GetPropertyName() == "Bits16") {
+        ModelXml->DeleteAttribute("Bits16");
+        if (event.GetValue().GetBool()) {
+            _16bit = true;
+            ModelXml->AddAttribute("Bits16", "1");
+        }
+        else {
+            _16bit = false;
+            ModelXml->AddAttribute("Bits16", "0");
+        }
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxServo3d::OnPropertyGridChange::Bits16");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "DmxServo3d::OnPropertyGridChange::Bits16");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxServo3d::OnPropertyGridChange::Bits16");
+        return 0;
+    }
     if (servo1->OnPropertyGridChange(grid, event, this, GetModelScreenLocation().IsLocked()) == 0) {
         return 0;
     }
@@ -82,7 +100,15 @@ void DmxServo3d::InitModel() {
     DmxModel::InitModel();
     DisplayAs = "DmxServo3d";
 
+    _16bit = wxAtoi(ModelXml->GetAttribute("Bits16", "1"));
+
+    int min_channels = _16bit ? 2 : 1;
+    if (parm1 < min_channels) {
+        parm1 = min_channels;
+    }
+
     servo1->Init(this);
+    servo1->Set16Bit(_16bit);
     static_mesh->Init(this, true, !motion_mesh->GetExists());
     motion_mesh->Init(this, !static_mesh->GetExists(), !static_mesh->GetExists() );
 
@@ -163,6 +189,9 @@ void DmxServo3d::ExportXlightsModel()
 
     ExportBaseParameters(f);
 
+    wxString bits = ModelXml->GetAttribute("Bits16");
+    f.Write(wxString::Format("Bits16=\"%s\" ", bits));
+
     f.Write(" >\n");
 
     wxString show_dir = GetModelManager().GetXLightsFrame()->GetShowDirectory();
@@ -202,6 +231,7 @@ void DmxServo3d::ImportXlightsModel(std::string filename, xLightsFrame* xlights,
 
             wxString name = root->GetAttribute("name");
             wxString v = root->GetAttribute("SourceVersion");
+            wxString bits = ModelXml->GetAttribute("Bits16");
 
             // Add any model version conversion logic here
             // Source version will be the program version that created the custom model
@@ -209,6 +239,7 @@ void DmxServo3d::ImportXlightsModel(std::string filename, xLightsFrame* xlights,
             wxString newname = xlights->AllModels.GenerateModelName(name.ToStdString());
             GetModelScreenLocation().Write(ModelXml);
             SetProperty("name", newname, true);
+            SetProperty("Bits16", bits);
 
             wxString show_dir = GetModelManager().GetXLightsFrame()->GetShowDirectory();
             static_mesh->Serialise(root, ModelXml, show_dir);
