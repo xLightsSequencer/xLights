@@ -261,10 +261,10 @@ FSEQFile* FSEQFile::createFSEQFile(const std::string &fn,
     if (version == V1FSEQ_MAJOR_VERSION) {
         return new V1FSEQFile(fn);
     } else if (version == V2FSEQ_MAJOR_VERSION) {
-    	return new V2FSEQFile(fn, ct, level);
-	}
-	LogErr(VB_SEQUENCE, "Error creating FSEQ file. Unknown version: %d", version);
-	return nullptr;
+        return new V2FSEQFile(fn, ct, level);
+    }
+    LogErr(VB_SEQUENCE, "Error creating FSEQ file. Unknown version: %d", version);
+    return nullptr;
 }
 std::string FSEQFile::getMediaFilename(const std::string &fn) {
     std::unique_ptr<FSEQFile> file(FSEQFile::openFSEQFile(fn));
@@ -429,8 +429,8 @@ static const int V1FSEQ_HEADER_SIZE = 28;
 V1FSEQFile::V1FSEQFile(const std::string &fn)
   : FSEQFile(fn), m_dataBlockSize(0)
 {
-	m_seqVersionMinor = V1FSEQ_MINOR_VERSION;
-	m_seqVersionMajor = V1FSEQ_MAJOR_VERSION;
+    m_seqVersionMinor = V1FSEQ_MINOR_VERSION;
+    m_seqVersionMajor = V1FSEQ_MAJOR_VERSION;
 }
 
 void V1FSEQFile::writeHeader() {
