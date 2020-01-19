@@ -13,7 +13,7 @@ Servo::Servo(wxXmlNode* node, wxString _name)
     : node_xml(node), base_name(_name), channel(0),
     min_limit(0), max_limit(65535), range_of_motion(180),
     pivot_offset_x(0), pivot_offset_y(0), servo_style_val(0),
-    servo_style("Translate X")
+    servo_style("Translate X"), _16bit(true)
 {
 }
 
@@ -123,12 +123,12 @@ void Servo::AddTypeProperties(wxPropertyGridInterface *grid) {
 
     p = grid->Append(new wxUIntProperty("Min Limit", base_name + "MinLimit", min_limit));
     p->SetAttribute("Min", 0);
-    p->SetAttribute("Max", 65535);
+    p->SetAttribute("Max", _16bit ? 65535 : 255);
     p->SetEditor("SpinCtrl");
 
     p = grid->Append(new wxUIntProperty("Max Limit", base_name + "MaxLimit", max_limit));
     p->SetAttribute("Min", 0);
-    p->SetAttribute("Max", 65535);
+    p->SetAttribute("Max", _16bit ? 65535 : 255);
     p->SetEditor("SpinCtrl");
 
     p = grid->Append(new wxIntProperty("Range of Motion", base_name + "RangeOfMotion", range_of_motion));
@@ -256,6 +256,23 @@ int Servo::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
     }
 
     return -1;
+}
+
+void Servo::Set16Bit(bool value)
+{
+    _16bit = value;
+    if (!_16bit) {
+        if (min_limit > 255) {
+            min_limit = 255;
+            node_xml->DeleteAttribute("DmxServoMinLimit");
+            node_xml->AddAttribute("DmxServoMinLimit", wxString::Format("%d", min_limit));
+        }
+        if (max_limit > 255) {
+            max_limit = 255;
+            node_xml->DeleteAttribute("DmxServoMaxLimit");
+            node_xml->AddAttribute("DmxServoMaxLimit", wxString::Format("%d", max_limit));
+        }
+    }
 }
 
 // Serialise for export

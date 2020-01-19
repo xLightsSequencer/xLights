@@ -36,6 +36,7 @@ class DmxServo : public DmxModel
     private:
         bool update_node_names;
         int num_servos;
+        bool _16bit;
         std::vector<DmxImage*> static_images;
         std::vector<DmxImage*> motion_images;
         std::vector<Servo*> servos;

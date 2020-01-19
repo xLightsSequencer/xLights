@@ -21,7 +21,7 @@ static const int SUPPORTED_SERVOS = 24;
 
 DmxServo::DmxServo(wxXmlNode *node, const ModelManager &manager, bool zeroBased)
     : DmxModel(node, manager, zeroBased), transparency(0), brightness(100),
-      update_node_names(false), num_servos(1)
+      update_node_names(false), num_servos(1), _16bit(true)
 {
     InitModel();
 }
@@ -59,6 +59,9 @@ void DmxServo::AddTypeProperties(wxPropertyGridInterface* grid) {
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", SUPPORTED_SERVOS);
     p->SetEditor("SpinCtrl");
+
+    p = grid->Append(new wxBoolProperty("16 Bit", "Bits16", _16bit));
+    p->SetAttribute("UseCheckbox", true);
 
     p = grid->Append(new wxUIntProperty("Brightness", "Brightness", (int)brightness));
     p->SetAttribute("Min", 0);
@@ -99,6 +102,21 @@ int DmxServo::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGrid
         AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "DmxServo::OnPropertyGridChange::NumServos");
         return 0;
     }
+    else if (event.GetPropertyName() == "Bits16") {
+        ModelXml->DeleteAttribute("Bits16");
+        if (event.GetValue().GetBool()) {
+            _16bit = true;
+            ModelXml->AddAttribute("Bits16", "1");
+        }
+        else {
+            _16bit = false;
+            ModelXml->AddAttribute("Bits16", "0");
+        }
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxServo::OnPropertyGridChange::NumServos");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "DmxServo::OnPropertyGridChange::NumServos");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxServo::OnPropertyGridChange::Transparency");
+        return 0;
+    }
     if ("Transparency" == name) {
         transparency = (int)event.GetPropertyValue().GetLong();
         ModelXml->DeleteAttribute("Transparency");
@@ -107,7 +125,7 @@ int DmxServo::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGrid
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxServo::OnPropertyGridChange::Transparency");
         return 0;
     }
-    else if ("Brightness" == name) {
+    if ("Brightness" == name) {
         brightness = (int)event.GetPropertyValue().GetLong();
         ModelXml->DeleteAttribute("Brightness");
         ModelXml->AddAttribute("Brightness", wxString::Format("%d", (int)brightness));
@@ -138,10 +156,16 @@ int DmxServo::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGrid
 }
 
 void DmxServo::InitModel() {
+    num_servos = wxAtoi(ModelXml->GetAttribute("NumServos", "1"));
+    _16bit = wxAtoi(ModelXml->GetAttribute("Bits16", "1"));
+
+    int min_channels = num_servos * (_16bit ? 2 : 1);
+    if (parm1 < min_channels) {
+        parm1 = min_channels;
+    }
+
     DmxModel::InitModel();
     DisplayAs = "DmxServo";
-
-    num_servos = wxAtoi(ModelXml->GetAttribute("NumServos", "1"));
 
     // clear any extras
     while (servos.size() > num_servos) {
@@ -272,7 +296,7 @@ void DmxServo::InitModel() {
             wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, new_name);
             ModelXml->AddChild(new_node);
             servos[i] = new Servo(new_node, new_name);
-            servos[i]->SetChannel(i*2+1, this);
+            servos[i]->SetChannel(_16bit ? i*2+1 : i+1, this);
         }
     }
 
@@ -281,6 +305,7 @@ void DmxServo::InitModel() {
 
     for (auto it = servos.begin(); it != servos.end(); ++it) {
         (*it)->Init(this);
+        (*it)->Set16Bit(_16bit);
     }
 
     bool last_exists = !motion_images[0]->GetExists();
@@ -383,8 +408,10 @@ void DmxServo::ExportXlightsModel()
 
     ExportBaseParameters(f);
 
+    wxString bits = ModelXml->GetAttribute("Bits16");
     wxString brt = ModelXml->GetAttribute("Brightness");
     wxString trans = ModelXml->GetAttribute("Transparency");
+    f.Write(wxString::Format("Bits16=\"%s\" ", bits));
     f.Write(wxString::Format("Brightness=\"%s\" ", brt));
     f.Write(wxString::Format("Transparency=\"%s\" ", trans));
 
@@ -432,12 +459,14 @@ void DmxServo::ImportXlightsModel(std::string filename, xLightsFrame* xlights, f
 
             wxString name = root->GetAttribute("name");
             wxString v = root->GetAttribute("SourceVersion");
+            wxString bits = ModelXml->GetAttribute("Bits16");
             wxString brt = root->GetAttribute("Brightness");
             wxString trans = root->GetAttribute("Transparency");
 
             // Add any model version conversion logic here
             // Source version will be the program version that created the custom model
 
+            SetProperty("Bits16", bits);
             SetProperty("Brightness", brt);
             SetProperty("Transparency", trans);
 

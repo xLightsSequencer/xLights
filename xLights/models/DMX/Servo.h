@@ -34,6 +34,7 @@ class Servo
         bool IsRotate() const;
         void FillMotionMatrix(float& servo_pos, glm::mat4& motion_matrix);
         float GetPosition(int channel_value);
+        void Set16Bit(bool value);
 
     protected:
 
@@ -48,6 +49,7 @@ class Servo
         float pivot_offset_y;
         int servo_style_val;
         std::string servo_style;
+        bool _16bit;
 };
 
 #endif // SERVO_H
