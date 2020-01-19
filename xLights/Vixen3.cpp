@@ -59,29 +59,53 @@ std::string VixenEffect::GetXLightsType() const
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    if (type == "PlasmaData") return "Plasma";
-    if (type == "TwinkleData") return "Twinkle";
+    if (type == "AlternatingData") return "Marquee";
+    if (type == "CandleData") return "Candle";
+    if (type == "ChaseData") return "Single Strand";
+    if (type == "DissolveData")
+    {
+        logger_base.warn("Vixen3: Unable to convert DissolveData effect ... inserting an off effect.");
+        return "Off"; // not sure what to do with this
+    }
+    if (type == "LipSyncData") return "Faces";
     if (type == "PulseData") return "On";
     if (type == "SetLevelData") return "On";
+    if (type == "SpinData")
+    {
+        logger_base.warn("Vixen3: Unable to convert SpinData effect ... inserting an Pinwheel effect.");
+        return "Pinwheel";
+    }
+    if (type == "StrobeData") return "Strobe";
+    if (type == "TwinkleData") return "Twinkle";
     if (type == "WipeData") return "Color Wash";
-    if (type == "AlternatingData") return "Marquee";
-    if (type == "AudioData") return "VU Meter";
+    if (type == "BarsData") return "Bars";
+    if (type == "BorderData") return "Marquee";
     if (type == "ButterflyData") return "Butterfly";
+    if (type == "CirclesData") return "Circles";
+    if (type == "ColorWashData") return "Color Wash";
+    if (type == "CurtainData") return "Curtain";
+    if (type == "FireData") return "Fire";
+    if (type == "FireworksData") return "Fireworks";
     if (type == "GarlandsData") return "Garlands";
+    if (type == "GlediatorData") return "Glediator";
+    if (type == "LifeData") return "Life";
+    if (type == "LiquidData") return "Liquid";
     if (type == "MeteorsData") return "Meteors";
     if (type == "PictureData") return "Pictures";
-    if (type == "SpiralData") return "Spirals";
     if (type == "PinWheelData") return "Pinwheel";
-    if (type == "VideoData") return "Video";
-    if (type == "ChaseData") return "Single Strand";
-    if (type == "CirclesData") return "Circles";
-    if (type == "BarsData") return "Bars";
-    if (type == "TextData") return "Text";
+    if (type == "PlasmaData") return "Plasma";
+    if (type == "ShapesData") return "Shape";
+    if (type == "ShockwaveData") return "Shockwave";
+    if (type == "SnowflakesData") return "Snowflakes";
+    if (type == "SnowStormData") return "Snowstorm";
+    if (type == "SpiralData") return "Spirals";
     if (type == "SpirographData") return "Spirograph";
-    if (type == "FireData") return "Fire";
-    if (type == "LipSyncData") return "Faces";
-    if (type == "FireworksData") return "Fireworks";
-    if (type == "SnowstormData") return "Snow Storm";
+    if (type == "TextData") return "Text";
+    if (type == "TreeData") return "Tree";
+    if (type == "VideoData") return "Video";
+    if (type == "VUMeterData") return "VU Meter";
+    if (type == "WaveData") return "Wave";
+    
     if (type == "Data")
     {
         logger_base.warn("Vixen3: Unable to convert Data effect ... inserting an On effect.");
@@ -92,18 +116,7 @@ std::string VixenEffect::GetXLightsType() const
         logger_base.warn("Vixen3: Unable to convert NutcrackerModuleData effect ... inserting an off effect.");
         return "Off"; // not sure what to do with this
     }
-    if (type == "DissolveData")
-    {
-        logger_base.warn("Vixen3: Unable to convert DissolveData effect ... inserting an off effect.");
-        return "Off"; // not sure what to do with this
-    }
-    if (type == "ColorWashData") return "Color Wash";
-    if (type == "SpinData") 
-    {
-        logger_base.warn("Vixen3: Unable to convert SpinData effect ... inserting an Pinwheel effect.");
-        return "Pinwheel";
-    }
-    if (type == "StrobeData") return "Strobe";
+    
 
     logger_base.warn("Vixen3: Unknown effect %s ... inserting an off effect.", (const char*)type.c_str());
 
