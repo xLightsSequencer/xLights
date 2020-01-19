@@ -166,6 +166,10 @@ int DmxServo3Axis::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropert
             _16bit = false;
             ModelXml->AddAttribute("Bits16", "0");
         }
+        int min_channels = _16bit ? 6 : 3;
+        if (parm1 < min_channels) {
+            parm1 = min_channels;
+        }
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxServo3Axis::OnPropertyGridChange::Bits16");
         AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "DmxServo3Axis::OnPropertyGridChange::Bits16");
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxServo3Axis::OnPropertyGridChange::Bits16");
