@@ -1263,84 +1263,104 @@ void V2FSEQFile::writeHeader() {
         }
     }
 
-    uint8_t header[V2FSEQ_HEADER_SIZE];
-    memset(header, 0, V2FSEQ_HEADER_SIZE);
+    // Additional file format documentation available at:
+    // https://github.com/FalconChristmas/fpp/blob/master/docs/FSEQ_Sequence_File_Format.txt#L17
+
+    uint8_t maxBlocks = m_handler->computeMaxBlocks() & 0xFF;
+
+    // Compute headerSize to include the header, compression blocks and sparse ranges
+    int headerSize = V2FSEQ_HEADER_SIZE;
+    headerSize += maxBlocks * V2FSEQ_COMPRESSION_BLOCK_SIZE;
+    headerSize += m_sparseRanges.size() * V2FSEQ_SPARSE_RANGE_SIZE;
+
+    // Channel data offset is the headerSize plus size of variable headers
+    // Round to a product of 4 for better memory alignment
+    m_seqChanDataOffset = headerSize;
+    m_seqChanDataOffset += m_variableHeaders.size() * V2FSEQ_VARIABLE_HEADER_SIZE;
+    for (auto &a : m_variableHeaders) {
+        m_seqChanDataOffset += a.data.size();
+    }
+    m_seqChanDataOffset = roundTo4(m_seqChanDataOffset);
+
+    // Use m_seqChanDataOffset for buffer size to avoid additional writes or buffer allocations
+    // It also comes pre-memory aligned to avoid adding padding
+    uint8_t header[m_seqChanDataOffset];
+    memset(header, 0, m_seqChanDataOffset);
+
+    // File identifier (PSEQ) - 4 bytes
     header[0] = 'P';
     header[1] = 'S';
     header[2] = 'E';
     header[3] = 'Q';
 
-    header[6] = m_seqVersionMajor; //minor
-    header[7] = m_seqVersionMajor; //major
+    // Channel data start offset - 2 bytes
+    write2ByteUInt(&header[4], m_seqChanDataOffset);
 
-    // Step Size
+    // File format version - 2 bytes
+    header[6] = m_seqVersionMinor;
+    header[7] = m_seqVersionMajor;
+
+    // Computed header length - 2 bytes
+    write2ByteUInt(&header[8], headerSize);
+    // Channel count - 4 bytes
     write4ByteUInt(&header[10], m_seqChannelCount);
-    // Number of Steps
+    // Number of frames - 4 bytes
     write4ByteUInt(&header[14], m_seqNumFrames);
-    // Step time in ms
-    header[18] = m_seqStepTime;
-    //flags
-    header[19] = 0;
 
-    // compression type
+    // Step time in milliseconds - 1 byte
+    header[18] = m_seqStepTime;
+    // Flags (unused & reserved, should be 0) - 1 byte
+    header[19] = 0;
+    // Compression type - 1 byte
     header[20] = m_handler->getCompressionType();
-    //num blocks in compression index, (ignored if not compressed)
-    header[21] = 0;
-    //num ranges in sparse range index
+    // Number of blocks in compressed channel data (should be 0 if not compressed) - 1 byte
+    header[21] = maxBlocks;
+    // Number of ranges in sparse range index - 1 byte
     header[22] = m_sparseRanges.size();
-    //reserved for future use
+    // Flags (unused & reserved, should be 0) - 1 byte
     header[23] = 0;
 
-
-    //24-31 - timestamp/uuid/identifier
+    // Timestamp based UUID - 8 bytes
     if (m_uniqueId == 0) {
         m_uniqueId = GetTime();
     }
     memcpy(&header[24], &m_uniqueId, sizeof(m_uniqueId));
 
-    // index size
-    uint32_t maxBlocks = m_handler->computeMaxBlocks() & 0xFF;
-    header[21] = maxBlocks;
+    int writePos = V2FSEQ_HEADER_SIZE;
 
-    int headerSize = V2FSEQ_HEADER_SIZE + maxBlocks * 8 + m_sparseRanges.size() * 6;
+    // Empty compression blocks are automatically added when calculating headerSize (see maxBlocks)
+    // Their data is initialized to 0 by memset and computed later
+    writePos += maxBlocks * V2FSEQ_COMPRESSION_BLOCK_SIZE;
 
-    // Fixed header length
-    write2ByteUInt(&header[8], headerSize);
-
-    int dataOffset = headerSize;
-    for (auto &a : m_variableHeaders) {
-        dataOffset += a.data.size() + 4;
-    }
-    dataOffset = roundTo4(dataOffset);
-    write2ByteUInt(&header[4], dataOffset);
-    m_seqChanDataOffset = dataOffset;
-
-    write(header, V2FSEQ_HEADER_SIZE);
-    for (int x = 0; x < maxBlocks; x++) {
-        uint8_t buf[8] = {0, 0, 0, 0, 0, 0, 0, 0};
-        //frame number and len
-        write(buf, 8);
-    }
+    // Sparse ranges
+    // 6 byte size (3 byte value + 3 byte value)
     for (auto &a : m_sparseRanges) {
-        uint8_t buf[6] = {0, 0, 0, 0, 0, 0};
-        write3ByteUInt(buf, a.first);
-        write3ByteUInt(&buf[3], a.second);
-        write(buf, 6);
+        write3ByteUInt(&header[writePos], a.first);
+        write3ByteUInt(&header[writePos + 3], a.second);
+        writePos += V2FSEQ_SPARSE_RANGE_SIZE;
     }
+
+    // Variable headers
+    // 4 byte size minimum (2 byte length + 2 byte code)
     for (auto &a : m_variableHeaders) {
-        uint8_t buf[4];
-        uint32_t len = a.data.size() + 4;
-        write2ByteUInt(buf, len);
-        buf[2] = a.code[0];
-        buf[3] = a.code[1];
-        write(buf, 4);
-        write(&a.data[0], a.data.size());
+        uint32_t len = V2FSEQ_VARIABLE_HEADER_SIZE + a.data.size();
+        write2ByteUInt(&header[writePos], len);
+        header[writePos + 2] = a.code[0];
+        header[writePos + 3] = a.code[1];
+        memcpy(&header[writePos + 4], &a.data[0], a.data.size());
+        writePos += len;
     }
-    uint64_t pos = tell();
-    if (pos != dataOffset) {
-        char buf[4] = {0,0,0,0};
-        write(buf, dataOffset - pos);
+
+    // Validate final write position does not exceed channel data offset
+    if (writePos > m_seqChanDataOffset) {
+        LogErr(VB_SEQUENCE, "Final write position (%d) exceeds channel data offset (%d)! This means the header size failed to compute an accurate buffer size.", writePos, m_seqChanDataOffset);
     }
+
+    // Write full header at once
+    // header buffer is sized to the value of m_seqChanDataOffset, which comes padded for memory alignment
+    // If writePos extends past m_seqChanDataOffset (in error), writing m_seqChanDataOffset prevents data overflow
+    write(header, m_seqChanDataOffset);
+
     LogDebug(VB_SEQUENCE, "Setup for writing v2 FSEQ\n");
     dumpInfo(true);
 }
