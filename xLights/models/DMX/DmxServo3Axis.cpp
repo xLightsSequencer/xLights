@@ -142,7 +142,7 @@ void DmxServo3Axis::AddTypeProperties(wxPropertyGridInterface* grid) {
         MESH_LINKS.Add("Not Linked");
     }
 
-    wxPGProperty* p = grid->Append(new wxEnumProperty("Servo1 Linkage", "Servo1Linkage", MOTION2_LINKS, 0));
+    p = grid->Append(new wxEnumProperty("Servo1 Linkage", "Servo1Linkage", MOTION2_LINKS, 0));
     p->Enable(false);
     grid->Append(new wxEnumProperty("Servo2 Linkage", "Servo2Linkage", MOTION2_LINKS, servo2_motion_link_val));
     grid->Append(new wxEnumProperty("Servo3 Linkage", "Servo3Linkage", MOTION3_LINKS, servo3_motion_link_val));
