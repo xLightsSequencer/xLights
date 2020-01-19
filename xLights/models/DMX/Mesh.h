@@ -29,7 +29,7 @@ class Mesh
         int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event, BaseObject* base, bool locked);
 
         void Draw(BaseObject* base, ModelPreview* preview, DrawGLUtils::xl3Accumulator& va, glm::mat4& base_matrix, glm::mat4& motion_matrix,
-                  float pivot_offset_x = 0, float pivot_offset_y = 0, bool rotation = false, bool use_pivot = false);
+                  float pivot_offset_x = 0, float pivot_offset_y = 0, float pivot_offset_z = 0, bool rotation = false, bool use_pivot = false);
 
         void Serialise(wxXmlNode* root, wxFile& f, const wxString& show_dir) const;
         void Serialise(wxXmlNode* root, wxXmlNode* model_xml, const wxString& show_dir) const;

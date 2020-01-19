@@ -6,6 +6,7 @@
 #include <algorithm>
 
 #include "Mesh.h"
+#include "Servo.h"
 #include "../../UtilFunctions.h"
 #include "../../ModelPreview.h"
 #include "../../xLightsMain.h"
@@ -541,7 +542,7 @@ void Mesh::loadObject(BaseObject* base) {
 }
 
 void Mesh::Draw(BaseObject* base, ModelPreview* preview, DrawGLUtils::xl3Accumulator &va, glm::mat4& base_matrix, glm::mat4& motion_matrix,
-                float pivot_offset_x, float pivot_offset_y, bool rotation, bool use_pivot)
+                float pivot_offset_x, float pivot_offset_y, float pivot_offset_z, bool rotation, bool use_pivot)
 {
     if (!obj_loaded) {
         loadObject(base);
@@ -560,8 +561,8 @@ void Mesh::Draw(BaseObject* base, ModelPreview* preview, DrawGLUtils::xl3Accumul
         glm::mat4 translationMatrix = glm::translate(Identity, glm::vec3(offset_x, offset_y, offset_z));
         glm::mat4 m;
         if (rotation) {
-            glm::mat4 pivotToZero = glm::translate(Identity, glm::vec3(-pivot_offset_x, -pivot_offset_y, 0.0f));
-            glm::mat4 pivotBack = glm::translate(Identity, glm::vec3(pivot_offset_x, pivot_offset_y, 0.0f));
+            glm::mat4 pivotToZero = glm::translate(Identity, glm::vec3(-pivot_offset_x, -pivot_offset_y, -pivot_offset_z));
+            glm::mat4 pivotBack = glm::translate(Identity, glm::vec3(pivot_offset_x, pivot_offset_y, pivot_offset_z));
             m = base_matrix * translationMatrix * pivotBack * motion_matrix * pivotToZero * glm::toMat4(rotate_quat) * scalingMatrix;
         }
         else
@@ -778,10 +779,10 @@ void Mesh::Draw(BaseObject* base, ModelPreview* preview, DrawGLUtils::xl3Accumul
             xlColor pink = xlColor(255, 0, 255);
             float x1 = pivot_offset_x;
             float y1 = pivot_offset_y;
-            float z1 = 0.0f;
+            float z1 = pivot_offset_z;
             float offx = base->GetBaseObjectScreenLocation().GetMWidth() / 2.0f;
             float offz = base->GetBaseObjectScreenLocation().GetMDepth() / 2.0f;
-            glm::vec4 v = base_matrix * translationMatrix * glm::vec4(glm::vec3(x1, y1, 0.0f), 1.0f);
+            glm::vec4 v = base_matrix * translationMatrix * glm::vec4(glm::vec3(x1, y1, z1), 1.0f);
             x1 = v.x; y1 = v.y; z1 = v.z;
             va.AddVertex(x1 - offx, y1, z1, pink);
             va.AddVertex(x1 + offx, y1, z1, pink);

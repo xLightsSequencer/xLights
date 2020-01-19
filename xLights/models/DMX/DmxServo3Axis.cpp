@@ -50,13 +50,13 @@ DmxServo3Axis::DmxServo3Axis(wxXmlNode* node, const ModelManager& manager, bool 
             motion_mesh3 = new Mesh(n, "MotionMesh3");
         }
         else if ("Servo1" == n->GetName()) {
-            servo1 = new Servo(n, "Servo1");
+            servo1 = new Servo(n, "Servo1", true);
         }
         else if ("Servo2" == n->GetName()) {
-            servo2 = new Servo(n, "Servo2");
+            servo2 = new Servo(n, "Servo2", true);
         }
         else if ("Servo3" == n->GetName()) {
-            servo3 = new Servo(n, "Servo3");
+            servo3 = new Servo(n, "Servo3", true);
         }
         n = n->GetNext();
     }
@@ -83,19 +83,19 @@ DmxServo3Axis::DmxServo3Axis(wxXmlNode* node, const ModelManager& manager, bool 
     if (servo1 == nullptr) {
         wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, "Servo1");
         node->AddChild(new_node);
-        servo1 = new Servo(new_node, "Servo1");
+        servo1 = new Servo(new_node, "Servo1", false);
         servo1->SetChannel(1, this);
     }
     if (servo2 == nullptr) {
         wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, "Servo2");
         node->AddChild(new_node);
-        servo2 = new Servo(new_node, "Servo2");
+        servo2 = new Servo(new_node, "Servo2", false);
         servo2->SetChannel(3, this);
     }
     if (servo3 == nullptr) {
         wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, "Servo3");
         node->AddChild(new_node);
-        servo3 = new Servo(new_node, "Servo3");
+        servo3 = new Servo(new_node, "Servo3", false);
         servo3->SetChannel(5, this);
     }
 }
@@ -340,13 +340,13 @@ void DmxServo3Axis::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Acc
     static_mesh->Draw(this, preview, va, base_matrix, motion_matrix);
 
     if (servo1->GetChannel() > 0 && active) {
-        servo1_pos = servo1->GetPosition(GetChannelValue(servo1->GetChannel() - 1));
+        servo1_pos = servo1->GetPosition(GetChannelValue(servo1->GetChannel() - 1, servo2->Is16Bit()));
     }
     if (servo2->GetChannel() > 0 && active) {
-        servo2_pos = servo2->GetPosition(GetChannelValue(servo2->GetChannel() - 1));
+        servo2_pos = servo2->GetPosition(GetChannelValue(servo2->GetChannel() - 1, servo2->Is16Bit()));
     }
     if (servo3->GetChannel() > 0 && active) {
-        servo3_pos = servo3->GetPosition(GetChannelValue(servo3->GetChannel() - 1));
+        servo3_pos = servo3->GetPosition(GetChannelValue(servo3->GetChannel() - 1, servo3->Is16Bit()));
     }
 
     servo1->FillMotionMatrix(servo1_pos, motion1_matrix);

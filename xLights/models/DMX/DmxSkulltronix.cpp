@@ -427,38 +427,38 @@ void DmxSkulltronix::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAcc
     ApplyTransparency(pnt_color, trans, trans);
 
     if( pan_channel > 0 ) {
-        channel_value = GetChannelValue(pan_channel-1);
+        channel_value = GetChannelValue(pan_channel-1, true);
         pan_angle = ((channel_value - pan_min_limit) / (double)(pan_max_limit - pan_min_limit)) * pan_deg_of_rot + pan_orient;
     } else {
         pan_angle = 0.0f;
     }
     pan_angle_raw = pan_angle;
     if( tilt_channel > 0 ) {
-        channel_value = GetChannelValue(tilt_channel-1);
+        channel_value = GetChannelValue(tilt_channel-1, true);
         tilt_angle = (1.0 - ((channel_value - tilt_min_limit) / (double)(tilt_max_limit - tilt_min_limit))) * tilt_deg_of_rot + tilt_orient;
     } else {
         tilt_angle = 0.0f;
     }
     if( nod_channel > 0 ) {
-        channel_value = GetChannelValue(nod_channel-1);
+        channel_value = GetChannelValue(nod_channel-1, true);
         nod_angle = (1.0 - ((channel_value - nod_min_limit) / (double)(nod_max_limit - nod_min_limit))) * nod_deg_of_rot + nod_orient;
     } else {
         nod_angle = 0.0f;
     }
     if( jaw_channel > 0 ) {
-        channel_value = GetChannelValue(jaw_channel-1);
+        channel_value = GetChannelValue(jaw_channel-1, true);
         jaw_pos = ((channel_value - jaw_min_limit) / (double)(jaw_max_limit - jaw_min_limit)) * jaw_range_of_motion - 0.5f;
     } else {
         jaw_pos = -0.5f;
     }
     if( eye_lr_channel > 0 ) {
-        channel_value = GetChannelValue(eye_lr_channel-1);
+        channel_value = GetChannelValue(eye_lr_channel-1, true);
         eye_x = (1.0 - ((channel_value - eye_lr_min_limit) / (double)(eye_lr_max_limit - eye_lr_min_limit))) * eye_range_of_motion - eye_range_of_motion/2.0;
     } else {
         eye_x = 0.0f;
     }
     if( eye_ud_channel > 0 ) {
-        channel_value = GetChannelValue(eye_ud_channel-1);
+        channel_value = GetChannelValue(eye_ud_channel-1, true);
         eye_y = ((channel_value - eye_ud_min_limit) / (double)(eye_ud_max_limit - eye_ud_min_limit)) * eye_range_of_motion - eye_range_of_motion/2.0;
     } else {
         eye_y = 0.0f;
@@ -725,7 +725,7 @@ void DmxSkulltronix::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Ac
     ApplyTransparency(pnt_color, trans, trans);
 
     if (pan_channel > 0) {
-        channel_value = GetChannelValue(pan_channel - 1);
+        channel_value = GetChannelValue(pan_channel - 1, true);
         pan_angle = ((channel_value - pan_min_limit) / (double)(pan_max_limit - pan_min_limit)) * pan_deg_of_rot + pan_orient;
     }
     else {
@@ -733,35 +733,35 @@ void DmxSkulltronix::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Ac
     }
     pan_angle_raw = pan_angle;
     if (tilt_channel > 0) {
-        channel_value = GetChannelValue(tilt_channel - 1);
+        channel_value = GetChannelValue(tilt_channel - 1, true);
         tilt_angle = (1.0 - ((channel_value - tilt_min_limit) / (double)(tilt_max_limit - tilt_min_limit))) * tilt_deg_of_rot + tilt_orient;
     }
     else {
         tilt_angle = 0.0f;
     }
     if (nod_channel > 0) {
-        channel_value = GetChannelValue(nod_channel - 1);
+        channel_value = GetChannelValue(nod_channel - 1, true);
         nod_angle = (1.0 - ((channel_value - nod_min_limit) / (double)(nod_max_limit - nod_min_limit))) * nod_deg_of_rot + nod_orient;
     }
     else {
         nod_angle = 0.0f;
     }
     if (jaw_channel > 0) {
-        channel_value = GetChannelValue(jaw_channel - 1);
+        channel_value = GetChannelValue(jaw_channel - 1, true);
         jaw_pos = ((channel_value - jaw_min_limit) / (double)(jaw_max_limit - jaw_min_limit)) * jaw_range_of_motion - 0.5f;
     }
     else {
         jaw_pos = -0.5f;
     }
     if (eye_lr_channel > 0) {
-        channel_value = GetChannelValue(eye_lr_channel - 1);
+        channel_value = GetChannelValue(eye_lr_channel - 1, true);
         eye_x = (1.0 - ((channel_value - eye_lr_min_limit) / (double)(eye_lr_max_limit - eye_lr_min_limit))) * eye_range_of_motion - eye_range_of_motion / 2.0;
     }
     else {
         eye_x = 0.0f;
     }
     if (eye_ud_channel > 0) {
-        channel_value = GetChannelValue(eye_ud_channel - 1);
+        channel_value = GetChannelValue(eye_ud_channel - 1, true);
         eye_y = ((channel_value - eye_ud_min_limit) / (double)(eye_ud_max_limit - eye_ud_min_limit)) * eye_range_of_motion - eye_range_of_motion / 2.0;
     }
     else {

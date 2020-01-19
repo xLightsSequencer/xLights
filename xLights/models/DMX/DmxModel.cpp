@@ -209,16 +209,25 @@ void DmxModel::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accum
     }
 }
 
-int DmxModel::GetChannelValue(int channel)
+int DmxModel::GetChannelValue(int channel, bool bits16)
 {
     xlColor color_angle;
     int lsb = 0;
     int msb = 0;
-    Nodes[channel]->GetColor(color_angle);
-    msb = color_angle.red;
-    Nodes[channel + 1]->GetColor(color_angle);
-    lsb = color_angle.red;
-    return ((msb << 8) | lsb);
+    int ret_val = 0;
+
+    if (bits16) {
+        Nodes[channel]->GetColor(color_angle);
+        msb = color_angle.red;
+        Nodes[channel + 1]->GetColor(color_angle);
+        lsb = color_angle.red;
+        ret_val = ((msb << 8) | lsb);
+    }
+    else {
+        Nodes[channel]->GetColor(color_angle);
+        ret_val = color_angle.red;
+    }
+    return ret_val;
 }
 
 void DmxModel::SetNodeNames(const std::string& default_names, bool force) {

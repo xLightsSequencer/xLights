@@ -259,7 +259,7 @@ void DmxServo::InitModel() {
             int id = atoi(num.c_str()) - 1;
             if (id < num_servos) {
                 if (servos[id] == nullptr) {
-                    servos[id] = new Servo(n, name);
+                    servos[id] = new Servo(n, name, true);
                 }
             }
         }
@@ -295,7 +295,7 @@ void DmxServo::InitModel() {
             std::string new_name = "Servo" + std::to_string(i + 1);
             wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, new_name);
             ModelXml->AddChild(new_node);
-            servos[i] = new Servo(new_node, new_name);
+            servos[i] = new Servo(new_node, new_name, true);
             servos[i]->SetChannel(_16bit ? i*2+1 : i+1, this);
         }
     }
@@ -371,7 +371,7 @@ void DmxServo::DrawModel(ModelPreview* preview, DrawGLUtils::xlAccumulator& va, 
         glm::mat4 motion_matrix = Identity;
         static_images[i]->Draw(this, preview, va, base_matrix, motion_matrix, transparency, brightness, !motion_images[i]->GetExists(), 0, 0, false, false);
         if (servos[i]->GetChannel() > 0 && active) {
-            servo_pos[i] = servos[i]->GetPosition(GetChannelValue(servos[i]->GetChannel() - 1));
+            servo_pos[i] = servos[i]->GetPosition(GetChannelValue(servos[i]->GetChannel() - 1, servos[i]->Is16Bit()));
             if (servos[i]->IsTranslate()) {
                 glm::vec3 scale = GetBaseObjectScreenLocation().GetScaleMatrix();
                 servo_pos[i] /= scale.x;

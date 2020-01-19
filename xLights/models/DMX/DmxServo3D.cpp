@@ -26,7 +26,7 @@ DmxServo3d::DmxServo3d(wxXmlNode *node, const ModelManager &manager, bool zeroBa
             motion_mesh = new Mesh(n, "MotionMesh");
         }
         else if ("Servo1" == n->GetName()) {
-            servo1 = new Servo(n, "Servo1");
+            servo1 = new Servo(n, "Servo1", false);
         }
         n = n->GetNext();
     }
@@ -43,7 +43,7 @@ DmxServo3d::DmxServo3d(wxXmlNode *node, const ModelManager &manager, bool zeroBa
     if (servo1 == nullptr) {
         wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, "Servo1");
         node->AddChild(new_node);
-        servo1 = new Servo(new_node, "Servo1");
+        servo1 = new Servo(new_node, "Servo1", false);
         servo1->SetChannel(1, this);
     }
 }
@@ -108,11 +108,11 @@ void DmxServo3d::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumu
     static_mesh->Draw(this, preview, va, base_matrix, motion_matrix);
 
     if (servo1->GetChannel() > 0 && active) {
-        servo_pos = servo1->GetPosition(GetChannelValue(servo1->GetChannel() - 1));
+        servo_pos = servo1->GetPosition(GetChannelValue(servo1->GetChannel() - 1, servo1->Is16Bit()));
     }
 
     servo1->FillMotionMatrix(servo_pos, motion_matrix);
-    motion_mesh->Draw(this, preview, va, base_matrix, motion_matrix, servo1->GetPivotOffsetX(), servo1->GetPivotOffsetY(), servo1->IsRotate(), !active);
+    motion_mesh->Draw(this, preview, va, base_matrix, motion_matrix, servo1->GetPivotOffsetX(), servo1->GetPivotOffsetY(), servo1->GetPivotOffsetZ(), servo1->IsRotate(), !active);
 }
 
 void DmxServo3d::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator& va, const xlColor* c, float& sx, float& sy, bool active)

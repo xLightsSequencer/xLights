@@ -9,19 +9,18 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-Servo::Servo(wxXmlNode* node, wxString _name)
+Servo::Servo(wxXmlNode* node, wxString _name, bool _is2d)
     : node_xml(node), base_name(_name), channel(0),
-    min_limit(0), max_limit(65535), range_of_motion(180),
-    pivot_offset_x(0), pivot_offset_y(0), servo_style_val(0),
-    servo_style("Translate X"), _16bit(true)
+    min_limit(0), max_limit(65535), range_of_motion(180.0f),
+    pivot_offset_x(0), pivot_offset_y(0), pivot_offset_z(0),
+    servo_style_val(0), servo_style("Translate X"),
+    _16bit(true), offset_scale(_is2d ? 100.0f : 1.0f), is_2d(_is2d)
 {
 }
 
 Servo::~Servo()
 {
 }
-
-static const float OFFSET_SCALE = 100.0f;
 
 static wxPGChoices SERVO_STYLES;
 
@@ -47,9 +46,10 @@ void Servo::Init(BaseObject* base) {
     channel = wxAtoi(node_xml->GetAttribute("Channel", "0"));
     min_limit = wxAtoi(node_xml->GetAttribute("MinLimit", "0"));
     max_limit = wxAtoi(node_xml->GetAttribute("MaxLimit", "65535"));
-    range_of_motion = wxAtoi(node_xml->GetAttribute("RangeOfMotion", "180"));
-    pivot_offset_x = wxAtof(node_xml->GetAttribute("PivotOffsetX", "0")) / OFFSET_SCALE;
-    pivot_offset_y = wxAtof(node_xml->GetAttribute("PivotOffsetY", "0")) / OFFSET_SCALE;
+    range_of_motion = wxAtof(node_xml->GetAttribute("RangeOfMotion", "180.0f"));
+    pivot_offset_x = wxAtof(node_xml->GetAttribute("PivotOffsetX", "0")) / offset_scale;
+    pivot_offset_y = wxAtof(node_xml->GetAttribute("PivotOffsetY", "0")) / offset_scale;
+    pivot_offset_z = wxAtof(node_xml->GetAttribute("PivotOffsetZ", "0")) / offset_scale;
 
     servo_style = node_xml->GetAttribute("ServoStyle", "Translate X");
     servo_style_val = SERVO_STYLE_TRANSLATEX;
@@ -131,7 +131,9 @@ void Servo::AddTypeProperties(wxPropertyGridInterface *grid) {
     p->SetAttribute("Max", _16bit ? 65535 : 255);
     p->SetEditor("SpinCtrl");
 
-    p = grid->Append(new wxIntProperty("Range of Motion", base_name + "RangeOfMotion", range_of_motion));
+    p = grid->Append(new wxFloatProperty("Range of Motion", base_name + "RangeOfMotion", range_of_motion));
+    p->SetAttribute("Precision", 1);
+    p->SetAttribute("Step", 1.0);
     p->SetAttribute("Min", -65535);
     p->SetAttribute("Max", 65535);
     p->SetEditor("SpinCtrl");
@@ -151,15 +153,22 @@ void Servo::AddTypeProperties(wxPropertyGridInterface *grid) {
     case SERVO_STYLE_ROTATEX:
     case SERVO_STYLE_ROTATEY:
     case SERVO_STYLE_ROTATEZ:
-        p = grid->Append(new wxFloatProperty("Pivot Offset X", base_name + "PivotOffsetX", pivot_offset_x * OFFSET_SCALE));
+        p = grid->Append(new wxFloatProperty("Pivot Offset X", base_name + "PivotOffsetX", pivot_offset_x * offset_scale));
         p->SetAttribute("Precision", 1);
         p->SetAttribute("Step", 1.0);
         p->SetEditor("SpinCtrl");
 
-        p = grid->Append(new wxFloatProperty("Pivot Offset Y", base_name + "PivotOffsetY", pivot_offset_y * OFFSET_SCALE));
+        p = grid->Append(new wxFloatProperty("Pivot Offset Y", base_name + "PivotOffsetY", pivot_offset_y * offset_scale));
         p->SetAttribute("Precision", 1);
         p->SetAttribute("Step", 1.0);
         p->SetEditor("SpinCtrl");
+
+        if (!is_2d) {
+            p = grid->Append(new wxFloatProperty("Pivot Offset Z", base_name + "PivotOffsetZ", pivot_offset_z * offset_scale));
+            p->SetAttribute("Precision", 1);
+            p->SetAttribute("Step", 1.0);
+            p->SetEditor("SpinCtrl");
+        }
         break;
     default:
         break;
@@ -204,9 +213,9 @@ int Servo::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         return 0;
     }
     else if (base_name + "PivotOffsetX" == name) {
-        pivot_offset_x = event.GetValue().GetDouble() / OFFSET_SCALE;
+        pivot_offset_x = event.GetValue().GetDouble() / offset_scale;
         node_xml->DeleteAttribute("PivotOffsetX");
-        node_xml->AddAttribute("PivotOffsetX", wxString::Format("%6.4f", pivot_offset_x * OFFSET_SCALE));
+        node_xml->AddAttribute("PivotOffsetX", wxString::Format("%6.4f", pivot_offset_x * offset_scale));
         base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Servo::OnPropertyGridChange::PivotOffsetX");
         base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Servo::OnPropertyGridChange::PivotOffsetX");
         base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "Servo::OnPropertyGridChange::PivotOffsetX");
@@ -214,13 +223,23 @@ int Servo::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         return 0;
     }
     else if (base_name + "PivotOffsetY" == name) {
-        pivot_offset_y = event.GetValue().GetDouble() / OFFSET_SCALE;
+        pivot_offset_y = event.GetValue().GetDouble() / offset_scale;
         node_xml->DeleteAttribute("PivotOffsetY");
-        node_xml->AddAttribute("PivotOffsetY", wxString::Format("%6.4f", pivot_offset_y * OFFSET_SCALE));
+        node_xml->AddAttribute("PivotOffsetY", wxString::Format("%6.4f", pivot_offset_y * offset_scale));
         base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Servo::OnPropertyGridChange::PivotOffsetY");
         base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Servo::OnPropertyGridChange::PivotOffsetY");
         base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "Servo::OnPropertyGridChange::PivotOffsetY");
         base->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "Servo::OnPropertyGridChange::PivotOffsetY");
+        return 0;
+    }
+    else if (base_name + "PivotOffsetZ" == name) {
+        pivot_offset_z = event.GetValue().GetDouble() / offset_scale;
+        node_xml->DeleteAttribute("PivotOffsetZ");
+        node_xml->AddAttribute("PivotOffsetZ", wxString::Format("%6.4f", pivot_offset_z * offset_scale));
+        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Servo::OnPropertyGridChange::PivotOffsetZ");
+        base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Servo::OnPropertyGridChange::PivotOffsetZ");
+        base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "Servo::OnPropertyGridChange::PivotOffsetZ");
+        base->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "Servo::OnPropertyGridChange::PivotOffsetZ");
         return 0;
     }
     else if (base_name + "ServoStyle" == name) {
