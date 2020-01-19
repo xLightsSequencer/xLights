@@ -80,5 +80,14 @@
 <imagefile>https://raw.githubusercontent.com/smeighan/xLights/master/download/dmx_content/SantaWaving3D.png</imagefile>
 <wiring><xmodellink><![CDATA[https://raw.githubusercontent.com/smeighan/xLights/master/download/dmx_content/SantaWaving3D.zip]]></xmodellink></wiring>
 </model>
+<model>
+<id>SkullHat3D</id>
+<categoryid>OneAxis3DModels</categoryid>
+<name><![CDATA[SkullHat3D]]></name>
+<type></type>
+<weblink></weblink>
+<imagefile>https://raw.githubusercontent.com/smeighan/xLights/master/download/dmx_content/SkullHat3D.png</imagefile>
+<wiring><xmodellink><![CDATA[https://raw.githubusercontent.com/smeighan/xLights/master/download/dmx_content/SkullHat3D.zip]]></xmodellink></wiring>
+</model>
    </models>
 </modelinventory>
