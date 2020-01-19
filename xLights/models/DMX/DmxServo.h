@@ -18,10 +18,14 @@ class DmxServo : public DmxModel
         virtual void AddTypeProperties(wxPropertyGridInterface *grid) override;
         virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
 
-        Servo* GetAxis1() { return servo1; }
+        Servo* GetAxis(int num) { return num < num_servos ? servos[num] : servos[0]; }
+        int GetNumServos() { return num_servos; }
 
     protected:
         virtual void InitModel() override;
+        void Clear();
+
+        virtual void DrawModel(ModelPreview* preview, DrawGLUtils::xlAccumulator& va, const xlColor* c, float& sx, float& sy, bool active);
 
         virtual void ExportXlightsModel() override;
         virtual void ImportXlightsModel(std::string filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) override;
@@ -30,9 +34,11 @@ class DmxServo : public DmxModel
         float brightness;
 
     private:
-        DmxImage* static_image;
-        DmxImage* motion_image;
-        Servo*    servo1;
+        bool update_node_names;
+        int num_servos;
+        std::vector<DmxImage*> static_images;
+        std::vector<DmxImage*> motion_images;
+        std::vector<Servo*> servos;
 };
 
 #endif // DMXSERVO_H

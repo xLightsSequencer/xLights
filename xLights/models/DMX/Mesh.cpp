@@ -792,14 +792,16 @@ void Mesh::Draw(BaseObject* base, ModelPreview* preview, DrawGLUtils::xl3Accumul
 
     }
     else if( show_empty ) {
-        float x1 = -0.5f * width * scalex;
-        float x2 = -0.5f * width * scalex;
-        float x3 = 0.5f * width * scalex;
-        float x4 = 0.5f * width * scalex;
-        float y1 = -0.5f * height * scaley;
-        float y2 = 0.5f * height * scaley;
-        float y3 = 0.5f * height * scaley;
-        float y4 = -0.5f * height * scaley;
+        float rw = base->GetBaseObjectScreenLocation().GetRenderWi();
+        float rh = base->GetBaseObjectScreenLocation().GetRenderHt();
+        float x1 = -0.5f * rw;
+        float x2 = -0.5f * rw;
+        float x3 = 0.5f * rw;
+        float x4 = 0.5f * rw;
+        float y1 = -0.5f * rh;
+        float y2 = 0.5f * rh;
+        float y3 = 0.5f * rh;
+        float y4 = -0.5f * rh;
         float z1 = 0.0f;
         float z2 = 0.0f;
         float z3 = 0.0f;

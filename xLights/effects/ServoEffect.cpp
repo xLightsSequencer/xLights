@@ -70,10 +70,13 @@ void ServoEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer 
                     int brt_channel = -1;
                     if (model_info->GetDisplayAs() == "DmxServo") {
                         DmxServo* servo = (DmxServo*)model_info;
-                        int axis1_channel = servo->GetAxis1()->GetChannel();
-                        if (axis1_channel == (i + 1)) {
-                            min_limit = servo->GetAxis1()->GetMinLimit();
-                            max_limit = servo->GetAxis1()->GetMaxLimit();
+                        for (int k = 0; k < servo->GetNumServos(); ++k) {
+                            int axis_channel = servo->GetAxis(k)->GetChannel();
+                            if (axis_channel == (i + 1)) {
+                                min_limit = servo->GetAxis(k)->GetMinLimit();
+                                max_limit = servo->GetAxis(k)->GetMaxLimit();
+                                break;
+                            }
                         }
                     }
                     else if (model_info->GetDisplayAs() == "DmxServo3d") {
