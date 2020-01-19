@@ -416,9 +416,9 @@ void DmxServo::ExportXlightsModel()
 
     ExportBaseParameters(f);
 
-    wxString bits = ModelXml->GetAttribute("Bits16");
-    wxString brt = ModelXml->GetAttribute("Brightness");
-    wxString trans = ModelXml->GetAttribute("Transparency");
+    wxString bits = ModelXml->GetAttribute("Bits16", "1");
+    wxString brt = ModelXml->GetAttribute("Brightness", "100");
+    wxString trans = ModelXml->GetAttribute("Transparency", "0");
     f.Write(wxString::Format("Bits16=\"%s\" ", bits));
     f.Write(wxString::Format("Brightness=\"%s\" ", brt));
     f.Write(wxString::Format("Transparency=\"%s\" ", trans));
@@ -467,12 +467,37 @@ void DmxServo::ImportXlightsModel(std::string filename, xLightsFrame* xlights, f
 
             wxString name = root->GetAttribute("name");
             wxString v = root->GetAttribute("SourceVersion");
-            wxString bits = ModelXml->GetAttribute("Bits16");
-            wxString brt = root->GetAttribute("Brightness");
-            wxString trans = root->GetAttribute("Transparency");
+            wxString bits = ModelXml->GetAttribute("Bits16", "1");
+            wxString brt = root->GetAttribute("Brightness", "100");
+            wxString trans = root->GetAttribute("Transparency", "0");
 
             // Add any model version conversion logic here
             // Source version will be the program version that created the custom model
+
+            wxXmlNode* n = root->GetChildren();
+            while (n != nullptr) {
+                std::string name = n->GetName();
+
+                if ("StaticImage" == name) {  // convert original name that had no number
+                    // copy attributes to new name
+                    wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, "StaticImage1");
+                    root->AddChild(new_node);
+                    for (auto a = n->GetAttributes(); a != nullptr; a = a->GetNext())
+                    {
+                        new_node->AddAttribute(a->GetName(), a->GetValue());
+                    }
+                }
+                else if ("MotionImage" == name) {  // convert original name that had no number
+                    // copy attributes to new name
+                    wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, "MotionImage1");
+                    root->AddChild(new_node);
+                    for (auto a = n->GetAttributes(); a != nullptr; a = a->GetNext())
+                    {
+                        new_node->AddAttribute(a->GetName(), a->GetValue());
+                    }
+                }
+                n = n->GetNext();
+            }
 
             SetProperty("Bits16", bits);
             SetProperty("Brightness", brt);

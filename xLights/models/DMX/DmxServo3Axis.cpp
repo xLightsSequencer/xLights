@@ -541,7 +541,7 @@ void DmxServo3Axis::ImportXlightsModel(std::string filename, xLightsFrame* xligh
 
             wxString name = root->GetAttribute("name");
             wxString v = root->GetAttribute("SourceVersion");
-            wxString bits = ModelXml->GetAttribute("Bits16");
+            wxString bits = ModelXml->GetAttribute("Bits16", "1");
 
             wxString ml2 = root->GetAttribute("Mesh2Linkage");
             wxString ml3 = root->GetAttribute("Mesh3Linkage");

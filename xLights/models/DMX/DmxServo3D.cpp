@@ -236,7 +236,7 @@ void DmxServo3d::ImportXlightsModel(std::string filename, xLightsFrame* xlights,
 
             wxString name = root->GetAttribute("name");
             wxString v = root->GetAttribute("SourceVersion");
-            wxString bits = ModelXml->GetAttribute("Bits16");
+            wxString bits = ModelXml->GetAttribute("Bits16", "1");
 
             // Add any model version conversion logic here
             // Source version will be the program version that created the custom model
