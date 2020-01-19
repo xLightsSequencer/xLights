@@ -1416,6 +1416,7 @@ m_handler(nullptr)
             }
         }
         if (m_frameOffsets.size() == 0) {
+            // FSEQ files with CompressionType::none will have a (safely) empty m_frameOffsets due to maxBlocks == 0
             if (m_compressionType != CompressionType::none) {
                 //this is bad... not sure what we can do.  We'll force a "0" block to
                 //avoid a crash, but the data might not load correctly
