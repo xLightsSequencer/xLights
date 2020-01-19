@@ -80,7 +80,7 @@ int DmxServo3d::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGr
         }
         int min_channels = _16bit ? 2 : 1;
         if (parm1 < min_channels) {
-            parm1 = min_channels;
+            UpdateChannelCount(min_channels, true);
         }
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxServo3d::OnPropertyGridChange::Bits16");
         AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "DmxServo3d::OnPropertyGridChange::Bits16");
@@ -101,15 +101,15 @@ int DmxServo3d::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGr
 }
 
 void DmxServo3d::InitModel() {
-    DmxModel::InitModel();
-    DisplayAs = "DmxServo3d";
-
     _16bit = wxAtoi(ModelXml->GetAttribute("Bits16", "1"));
 
     int min_channels = _16bit ? 2 : 1;
     if (parm1 < min_channels) {
-        parm1 = min_channels;
+        UpdateChannelCount(min_channels, false);
     }
+
+    DmxModel::InitModel();
+    DisplayAs = "DmxServo3d";
 
     servo1->Init(this);
     servo1->Set16Bit(_16bit);
@@ -121,7 +121,8 @@ void DmxServo3d::InitModel() {
 
 void DmxServo3d::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator& va, const xlColor* c, float& sx, float& sy, float& sz, bool active)
 {
-    if (servo1->GetChannel() > Nodes.size())
+    int min_channels = _16bit ? 2 : 1;
+    if (servo1->GetChannel() > Nodes.size() || min_channels > Nodes.size())
     {
         // crash protection
         return;

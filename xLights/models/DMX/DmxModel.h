@@ -40,6 +40,7 @@ class DmxModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual void InitModel() override;
         void ExportBaseParameters(wxFile& f);
         void ImportBaseParameters(wxXmlNode* root);
+        void UpdateChannelCount(int num_channels, bool do_work);
 
         virtual int GetChannelValue( int channel, bool bits16);
         void SetNodeNames(const std::string& default_names, bool force = false);

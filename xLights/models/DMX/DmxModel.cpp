@@ -81,11 +81,11 @@ void DmxModel::DisableUnusedProperties(wxPropertyGridInterface *grid)
     // Don't remove ModelStates ... these can be used for DMX devices that use a value range to set a colour or behaviour
 }
 
-int DmxModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
-
-    if ("DmxChannelCount" == event.GetPropertyName()) {
-        ModelXml->DeleteAttribute("parm1");
-        ModelXml->AddAttribute("parm1", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+void DmxModel::UpdateChannelCount(int num_channels, bool do_work) {
+    parm1 = num_channels;
+    ModelXml->DeleteAttribute("parm1");
+    ModelXml->AddAttribute("parm1", wxString::Format("%d", num_channels));
+    if (do_work) {
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DMXModel::OnPropertyGridChange::DMXChannelCount");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DMXModel::OnPropertyGridChange::DMXChannelCount");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DMXModel::OnPropertyGridChange::DMXChannelCount");
@@ -93,6 +93,13 @@ int DmxModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGrid
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DMXModel::OnPropertyGridChange::DMXChannelCount");
         AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "DMXModel::OnPropertyGridChange::DMXChannelCount");
         AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "DMXModel::OnPropertyGridChange::DMXChannelCount");
+    }
+}
+
+int DmxModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
+
+    if ("DmxChannelCount" == event.GetPropertyName()) {
+        UpdateChannelCount((int)event.GetPropertyValue().GetLong(), true);
         return 0;
     } 
 

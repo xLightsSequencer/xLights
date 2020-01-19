@@ -114,7 +114,7 @@ int DmxServo::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGrid
         }
         int min_channels = num_servos * (_16bit ? 2 : 1);
         if (parm1 < min_channels) {
-            parm1 = min_channels;
+            UpdateChannelCount(min_channels, true);
         }
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxServo::OnPropertyGridChange::Bits16");
         AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "DmxServo::OnPropertyGridChange::Bits16");
@@ -165,7 +165,7 @@ void DmxServo::InitModel() {
 
     int min_channels = num_servos * (_16bit ? 2 : 1);
     if (parm1 < min_channels) {
-        parm1 = min_channels;
+        UpdateChannelCount(min_channels, false);
     }
 
     DmxModel::InitModel();
@@ -341,6 +341,10 @@ void DmxServo::InitModel() {
 void DmxServo::DrawModel(ModelPreview* preview, DrawGLUtils::xlAccumulator& va, const xlColor* c, float& sx, float& sy, bool active)
 {
     // crash protection
+    int min_channels = num_servos * (_16bit ? 2 : 1);
+    if (min_channels > Nodes.size()) {
+        return;
+    }
     if (motion_images.size() < num_servos) {
         return;
     }

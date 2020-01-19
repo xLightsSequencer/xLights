@@ -168,7 +168,7 @@ int DmxServo3Axis::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropert
         }
         int min_channels = _16bit ? 6 : 3;
         if (parm1 < min_channels) {
-            parm1 = min_channels;
+            UpdateChannelCount(min_channels, true);
         }
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxServo3Axis::OnPropertyGridChange::Bits16");
         AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "DmxServo3Axis::OnPropertyGridChange::Bits16");
@@ -290,15 +290,15 @@ int DmxServo3Axis::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropert
 }
 
 void DmxServo3Axis::InitModel() {
-    DmxModel::InitModel();
-    DisplayAs = "DmxServo3Axis";
-
     _16bit = wxAtoi(ModelXml->GetAttribute("Bits16", "1"));
 
     int min_channels = _16bit ? 6 : 3;
     if (parm1 < min_channels) {
-        parm1 = min_channels;
+        UpdateChannelCount(min_channels, false);
     }
+
+    DmxModel::InitModel();
+    DisplayAs = "DmxServo3Axis";
 
     servo1->Set16Bit(_16bit);
     servo2->Set16Bit(_16bit);
@@ -349,6 +349,10 @@ void DmxServo3Axis::InitModel() {
 
 void DmxServo3Axis::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator& va, const xlColor* c, float& sx, float& sy, float& sz, bool active)
 {
+    int min_channels = _16bit ? 6 : 3;
+    if (min_channels > Nodes.size()) {
+        return;
+    }
     if (servo1->GetChannel() > Nodes.size() ||
         servo2->GetChannel() > Nodes.size() || 
         servo3->GetChannel() > Nodes.size() )
