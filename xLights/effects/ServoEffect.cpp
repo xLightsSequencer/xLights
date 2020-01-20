@@ -197,6 +197,7 @@ void ServoEffect::SetPanelStatus(Model *cls) {
                 choice->Append(name);
             }
         }
+        choice->SetSelection(0);
     }
     p->FlexGridSizer_Main->Layout();
     p->Refresh();

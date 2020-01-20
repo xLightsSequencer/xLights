@@ -344,7 +344,7 @@ void DmxServo3Axis::InitModel() {
         mesh3_motion_link_val = MESH_LINK_MESH2;
     }
 
-    SetNodeNames("Axis1,-Axis1,Axis2,-Axis2,Axis3,-Axis3");
+    SetNodeNames("Servo1,-Servo1,Servo2,-Servo2,Servo3,-Servo3");
 }
 
 void DmxServo3Axis::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator& va, const xlColor* c, float& sx, float& sy, float& sz, bool active)
