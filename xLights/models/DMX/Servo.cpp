@@ -37,9 +37,6 @@ void Servo::SetChannel(int chan, BaseObject* base) {
     channel = chan;
     node_xml->DeleteAttribute("Channel");
     node_xml->AddAttribute("Channel", wxString::Format("%d", channel));
-    base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Servo::SetChannel");
-    base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "Servo::SetChannel");
-    base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Servo::SetChannel");
 }
 
 void Servo::Init(BaseObject* base) {
