@@ -116,7 +116,7 @@ void DmxServo3d::InitModel() {
     static_mesh->Init(this, true, !motion_mesh->GetExists());
     motion_mesh->Init(this, !static_mesh->GetExists(), !static_mesh->GetExists() );
 
-    SetNodeNames("Axis1,-Axis1");
+    SetNodeNames("Servo1,-Servo1");
 }
 
 void DmxServo3d::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator& va, const xlColor* c, float& sx, float& sy, float& sz, bool active)
