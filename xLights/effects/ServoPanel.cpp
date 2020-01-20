@@ -21,6 +21,8 @@
 const long ServoPanel::ID_STATICTEXT_Channel = wxNewId();
 const long ServoPanel::ID_CHOICE_Channel = wxNewId();
 const long ServoPanel::ID_CHECKBOX_16bit = wxNewId();
+const long ServoPanel::ID_CHECKBOX_Timing_Track = wxNewId();
+const long ServoPanel::ID_CHOICE_Servo_TimingTrack = wxNewId();
 const long ServoPanel::ID_STATICTEXT_Servo = wxNewId();
 const long ServoPanel::IDD_SLIDER_Servo = wxNewId();
 const long ServoPanel::ID_VALUECURVE_Servo = wxNewId();
@@ -51,6 +53,12 @@ ServoPanel::ServoPanel(wxWindow* parent)
 	CheckBox_16bit = new BulkEditCheckBox(this, ID_CHECKBOX_16bit, _("16 bit"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_16bit"));
 	CheckBox_16bit->SetValue(true);
 	FlexGridSizer2->Add(CheckBox_16bit, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox_Timing_Track = new BulkEditCheckBox(this, ID_CHECKBOX_Timing_Track, _("Use Timing Track"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Timing_Track"));
+	CheckBox_Timing_Track->SetValue(false);
+	FlexGridSizer2->Add(CheckBox_Timing_Track, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Choice_Servo_TimingTrack = new BulkEditChoice(this, ID_CHOICE_Servo_TimingTrack, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Servo_TimingTrack"));
+	Choice_Servo_TimingTrack->Disable();
+	FlexGridSizer2->Add(Choice_Servo_TimingTrack, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer_Main->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer1 = new wxFlexGridSizer(0, 4, 0, 0);
 	FlexGridSizer1->AddGrowableCol(1);
@@ -67,13 +75,14 @@ ServoPanel::ServoPanel(wxWindow* parent)
 	FlexGridSizer_Main->Fit(this);
 	FlexGridSizer_Main->SetSizeHints(this);
 
+	Connect(ID_CHECKBOX_Timing_Track,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ServoPanel::OnCheckBox_Timing_TrackClick);
 	Connect(ID_VALUECURVE_Servo,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ServoPanel::OnVCButtonClick);
 	//*)
 
     SetName("ID_PANEL_SERVO");
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&ServoPanel::OnVCChanged, nullptr, this);
-    
+
     ValueCurve_Servo->GetValue()->SetLimits(SERVO_MIN, SERVO_MAX);
     ValueCurve_Servo->GetValue()->SetDivisor(SERVO_DIVISOR);
 }
@@ -85,3 +94,13 @@ ServoPanel::~ServoPanel()
 }
 
 PANEL_EVENT_HANDLERS(ServoPanel)
+
+void ServoPanel::OnCheckBox_Timing_TrackClick(wxCommandEvent& event)
+{
+	if (CheckBox_Timing_Track->IsChecked()) {
+		Choice_Servo_TimingTrack->Enable();
+	}
+	else {
+		Choice_Servo_TimingTrack->Disable();
+	}
+}

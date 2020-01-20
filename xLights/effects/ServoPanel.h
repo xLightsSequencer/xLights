@@ -23,7 +23,9 @@ class ServoPanel: public wxPanel
 
 		//(*Declarations(ServoPanel)
 		BulkEditCheckBox* CheckBox_16bit;
+		BulkEditCheckBox* CheckBox_Timing_Track;
 		BulkEditChoice* Choice_Channel;
+		BulkEditChoice* Choice_Servo_TimingTrack;
 		BulkEditSliderF1* Slider_Servo;
 		BulkEditValueCurveButton* ValueCurve_Servo;
 		wxFlexGridSizer* FlexGridSizer_Main;
@@ -37,6 +39,8 @@ class ServoPanel: public wxPanel
 		static const long ID_STATICTEXT_Channel;
 		static const long ID_CHOICE_Channel;
 		static const long ID_CHECKBOX_16bit;
+		static const long ID_CHECKBOX_Timing_Track;
+		static const long ID_CHOICE_Servo_TimingTrack;
 		static const long ID_STATICTEXT_Servo;
 		static const long IDD_SLIDER_Servo;
 		static const long ID_VALUECURVE_Servo;
@@ -46,9 +50,11 @@ class ServoPanel: public wxPanel
 	private:
 
 		//(*Handlers(ServoPanel)
-        void OnLockButtonClick(wxCommandEvent& event);
-        void OnVCButtonClick(wxCommandEvent& event);
-        void OnVCChanged(wxCommandEvent& event);
+		void OnLockButtonClick(wxCommandEvent& event);
+		void OnVCButtonClick(wxCommandEvent& event);
+		void OnVCChanged(wxCommandEvent& event);
+		void OnCheckBox1Click(wxCommandEvent& event);
+		void OnCheckBox_Timing_TrackClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

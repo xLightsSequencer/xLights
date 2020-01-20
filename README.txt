@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (gil)    Servo effect can now be mapped to a Lyric track
    -- enh (gil)    Upgrade the DMX Servo model to be dynamic allowing up to 24 servos
    -- enh (gil)    Get the servo pivot point working for the DmxServo3D model
 2020.3 January 18 2020

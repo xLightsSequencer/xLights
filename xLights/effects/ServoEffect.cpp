@@ -7,8 +7,11 @@
 #include "ServoEffect.h"
 #include "ServoPanel.h"
 #include "../sequencer/Effect.h"
+#include "../sequencer/Element.h"
+#include "../sequencer/SequenceElements.h"
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
+#include "../UtilFunctions.h"
 #include "../models/DMX/DmxModel.h"
 #include "../models/DMX/DmxSkulltronix.h"
 #include "../models/DMX/DmxServo.h"
@@ -29,6 +32,35 @@ ServoEffect::~ServoEffect()
 wxPanel *ServoEffect::CreatePanel(wxWindow *parent) {
     return new ServoPanel(parent);
 }
+
+std::list<std::string> ServoEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
+{
+    std::list<std::string> res;
+
+    wxString timing = settings.Get("E_CHOICE_Servo_TimingTrack", "");
+
+    if (timing == "")
+    {
+        res.push_back(wxString::Format("    ERR: Face effect with no timing selected. Model '%s', Start %s", model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+    }
+    else if (timing != "" && GetTiming(timing) == nullptr)
+    {
+        res.push_back(wxString::Format("    ERR: Face effect with unknown timing (%s) selected. Model '%s', Start %s", timing, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+    }
+
+    return res;
+}
+
+void ServoEffect::RenameTimingTrack(std::string oldname, std::string newname, Effect* effect)
+{
+    wxString timing = effect->GetSettings().Get("E_CHOICE_Servo_TimingTrack", "");
+
+    if (timing.ToStdString() == oldname)
+    {
+        effect->GetSettings()["E_CHOICE_Servo_TimingTrack"] = wxString(newname);
+    }
+}
+
 
 void ServoEffect::SetDefaultParameters() {
     ServoPanel *dp = (ServoPanel*)panel;
@@ -154,6 +186,10 @@ void ServoEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer 
 
                 xlColor lsb_c = xlBLACK;
                 xlColor msb_c = xlBLACK;
+                bool use_lyrics = SettingsMap.GetBool("CHECKBOX_Timing_Track");
+                if (use_lyrics) {
+                    position = GetPhonemeValue(buffer, effect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements(), SettingsMap["CHOICE_Servo_TimingTrack"]);
+                }
                 uint16_t value = min_limit + (max_limit-min_limit) * (position / 100.0f);
                 uint8_t lsb = value & 0xFF;
                 uint8_t msb = value >> 8;
@@ -184,6 +220,12 @@ void ServoEffect::SetPanelStatus(Model *cls) {
         return;
     }
 
+    p->Choice_Servo_TimingTrack->Clear();
+    for (const auto& it : wxSplit(GetTimingTracks(0, 3), '|'))
+    {
+        p->Choice_Servo_TimingTrack->Append(it);
+    }
+
     int num_channels = cls->GetNumChannels();
 
     wxString choice_ctrl = "ID_CHOICE_Channel";
@@ -201,4 +243,55 @@ void ServoEffect::SetPanelStatus(Model *cls) {
     }
     p->FlexGridSizer_Main->Layout();
     p->Refresh();
+}
+
+int ServoEffect::GetPhonemeValue(RenderBuffer& buffer, SequenceElements* elements, const std::string& trackName) {
+    static const std::map<wxString, int> phonemeMap = {
+        {"AI", 90},
+        {"E", 70},
+        {"FV", 20},
+        {"L", 80},
+        {"MBP", 10},
+        {"O", 50},
+        {"U", 15},
+        {"WQ", 35},
+        {"etc", 100},
+        {"rest", 0},
+        {"(off)", 0}
+    };
+
+    Element* track = elements->GetElement(trackName);
+    std::string phoneme = "rest";
+    //GET Phoneme from timing track
+    if (track == nullptr || track->GetEffectLayerCount() < 3) {
+        phoneme = "rest";
+    }
+    else {
+        int startms = -1;
+        int endms = -1;
+
+        EffectLayer* layer = track->GetEffectLayer(2);
+        std::unique_lock<std::recursive_mutex> locker2(layer->GetLock());
+        int time = buffer.curPeriod * buffer.frameTimeInMs + 1;
+        Effect* ef = layer->GetEffectByTime(time);
+        if (ef == nullptr) {
+            phoneme = "rest";
+        }
+        else {
+            startms = ef->GetStartTimeMS();
+            endms = ef->GetEndTimeMS();
+            phoneme = ef->GetEffectName();
+        }
+    }
+
+    wxString pp = phoneme;
+    std::string p = pp.BeforeFirst('-');
+    //bool shimmer = pp.Lower().EndsWith("-shimmer");
+
+    std::map<wxString, int>::const_iterator it = phonemeMap.find(p);
+    int PhonemeInt = 0;
+    if (it != phonemeMap.end()) {
+        PhonemeInt = it->second;
+    }
+    return PhonemeInt;
 }
