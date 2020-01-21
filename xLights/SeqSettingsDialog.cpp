@@ -69,6 +69,7 @@ const long SeqSettingsDialog::ID_PANEL1 = wxNewId();
 const long SeqSettingsDialog::ID_BUTTON_Xml_New_Timing = wxNewId();
 const long SeqSettingsDialog::ID_BUTTON_Xml_Import_Timing = wxNewId();
 const long SeqSettingsDialog::ID_PANEL2 = wxNewId();
+const long SeqSettingsDialog::ID_CHOICE1 = wxNewId();
 const long SeqSettingsDialog::ID_TREECTRL_Data_Layers = wxNewId();
 const long SeqSettingsDialog::ID_BUTTON_Layer_Import = wxNewId();
 const long SeqSettingsDialog::ID_BUTTON_Layer_Delete = wxNewId();
@@ -162,6 +163,7 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
 	//(*Initialize(SeqSettingsDialog)
 	wxFlexGridSizer* FlexGridSizer10;
 	wxFlexGridSizer* FlexGridSizer11;
+	wxFlexGridSizer* FlexGridSizer12;
 	wxFlexGridSizer* FlexGridSizer1;
 	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer3;
@@ -174,6 +176,7 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
 	wxFlexGridSizer* FlexGridSizer_Timing_Grid;
 	wxFlexGridSizer* FlexGridSizer_Timing_Page;
 	wxGridBagSizer* GridBagSizer1;
+	wxStaticText* StaticText2;
 	wxStaticText* StaticText_Xml_Seq_Timing;
 
 	Create(parent, wxID_ANY, _("Sequence Settings"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE, _T("wxID_ANY"));
@@ -218,11 +221,11 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
 	FlexGridSizer10->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_Hash = new wxTextCtrl(PanelInfo, ID_TEXTCTRL1, _("N/A"), wxDefaultPosition, wxDefaultSize, wxTE_READONLY, wxDefaultValidator, _T("ID_TEXTCTRL1"));
 	FlexGridSizer10->Add(TextCtrl_Hash, 1, wxALL|wxEXPAND, 5);
-	FlexGridSizer10->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer10->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer10->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer10->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Button_Download = new wxButton(PanelInfo, ID_BUTTON1, _("Download Sequence and Lyrics"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
 	FlexGridSizer10->Add(Button_Download, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer10->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer10->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer4->Add(FlexGridSizer10, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer6 = new wxFlexGridSizer(0, 4, 0, 0);
 	StaticText_Xml_Total_Length = new wxStaticText(PanelInfo, ID_STATICTEXT_Xml_Total_Length, _("Sequence Duration:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Xml_Total_Length"));
@@ -306,6 +309,14 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
 	Panel_DataLayers = new wxPanel(Notebook_Seq_Settings, ID_PANEL4, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL4"));
 	FlexGridSizer9 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer9->AddGrowableCol(0);
+	FlexGridSizer12 = new wxFlexGridSizer(0, 3, 0, 0);
+	StaticText2 = new wxStaticText(Panel_DataLayers, wxID_ANY, _("Render Mode:"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
+	FlexGridSizer12->Add(StaticText2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	RenderModeChoice = new wxChoice(Panel_DataLayers, ID_CHOICE1, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE1"));
+	RenderModeChoice->SetSelection( RenderModeChoice->Append(_("Erase")) );
+	RenderModeChoice->Append(_("Canvas"));
+	FlexGridSizer12->Add(RenderModeChoice, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer9->Add(FlexGridSizer12, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	TreeCtrl_Data_Layers = new wxTreeCtrl(Panel_DataLayers, ID_TREECTRL_Data_Layers, wxDefaultPosition, wxDLG_UNIT(Panel_DataLayers,wxSize(300,100)), wxTR_EDIT_LABELS|wxTR_DEFAULT_STYLE, wxDefaultValidator, _T("ID_TREECTRL_Data_Layers"));
 	wxTreeItemId TreeCtrl_Data_Layers_Item1 = TreeCtrl_Data_Layers->AddRoot(_T("Layers to Render"));
 	FlexGridSizer9->Add(TreeCtrl_Data_Layers, 1, wxALL|wxEXPAND, 5);
@@ -378,6 +389,7 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
 	Connect(ID_TEXTCTRL_Xml_Comment,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&SeqSettingsDialog::OnTextCtrl_Xml_CommentText);
 	Connect(ID_BUTTON_Xml_New_Timing,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnButton_Xml_New_TimingClick);
 	Connect(ID_BUTTON_Xml_Import_Timing,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnButton_Xml_Import_TimingClick);
+	Connect(ID_CHOICE1,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&SeqSettingsDialog::OnRenderModeChoiceSelect);
 	Connect(ID_TREECTRL_Data_Layers,wxEVT_COMMAND_TREE_BEGIN_DRAG,(wxObjectEventFunction)&SeqSettingsDialog::OnTreeCtrl_Data_LayersBeginDrag);
 	Connect(ID_TREECTRL_Data_Layers,wxEVT_COMMAND_TREE_BEGIN_LABEL_EDIT,(wxObjectEventFunction)&SeqSettingsDialog::OnTreeCtrl_Data_LayersBeginLabelEdit);
 	Connect(ID_TREECTRL_Data_Layers,wxEVT_COMMAND_TREE_END_LABEL_EDIT,(wxObjectEventFunction)&SeqSettingsDialog::OnTreeCtrl_Data_LayersEndLabelEdit);
@@ -469,6 +481,8 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
         TreeCtrl_Data_Layers->AppendItem(branch, wxString::Format("Channel Offset: %d", layer->GetChannelOffset()));
     }
     TreeCtrl_Data_Layers->Expand(root);
+    
+    RenderModeChoice->SetStringSelection(xml_file->GetRenderMode());
 
     UpdateDataLayer();
     needs_render = false;
@@ -1312,7 +1326,6 @@ void SeqSettingsDialog::OnTreeCtrl_Data_LayersBeginLabelEdit(wxTreeEvent& event)
                 xml_file->SetRenderMode(xLightsXmlFile::CANVAS_MODE);
             }
             TreeCtrl_Data_Layers->SetItemText(itemId, wxString::Format("Data: %s", xml_file->GetRenderMode()));
-            xLightsParent->UpdateRenderMode();
         }
     }
 
@@ -1595,4 +1608,10 @@ void SeqSettingsDialog::OnButton_DownloadClick(wxCommandEvent& event)
     {
         DisplayError("Nothing available for this song.", this);
     }
+}
+
+void SeqSettingsDialog::OnRenderModeChoiceSelect(wxCommandEvent& event)
+{
+    xml_file->SetRenderMode(RenderModeChoice->GetStringSelection());
+    UpdateDataLayer();
 }

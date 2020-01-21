@@ -463,8 +463,6 @@
 		<Unit filename="ColorCurveDialog.h" />
 		<Unit filename="ColorManager.cpp" />
 		<Unit filename="ColorManager.h" />
-		<Unit filename="ColorManagerDialog.cpp" />
-		<Unit filename="ColorManagerDialog.h" />
 		<Unit filename="ColorPanel.cpp" />
 		<Unit filename="ColorPanel.h" />
 		<Unit filename="ColoursPanel.cpp" />
@@ -1149,6 +1147,21 @@
 		<Unit filename="outputs/xxxEthernetOutput.h" />
 		<Unit filename="outputs/xxxSerialOutput.cpp" />
 		<Unit filename="outputs/xxxSerialOutput.h" />
+		<Unit filename="preferences/BackupSettingsPanel.cpp" />
+		<Unit filename="preferences/BackupSettingsPanel.h" />
+		<Unit filename="preferences/EffectsGridSettingsPanel.cpp" />
+		<Unit filename="preferences/EffectsGridSettingsPanel.h" />
+		<Unit filename="preferences/OtherSettingsPanel.cpp" />
+		<Unit filename="preferences/OtherSettingsPanel.h" />
+		<Unit filename="preferences/OutputSettingsPanel.cpp" />
+		<Unit filename="preferences/OutputSettingsPanel.h" />
+		<Unit filename="preferences/RandomEffectsSettingsPanel.cpp" />
+		<Unit filename="preferences/RandomEffectsSettingsPanel.h" />
+		<Unit filename="preferences/SequenceFileSettingsPanel.cpp" />
+		<Unit filename="preferences/SequenceFileSettingsPanel.h" />
+		<Unit filename="preferences/ViewSettingsPanel.cpp" />
+		<Unit filename="preferences/ViewSettingsPanel.h" />
+		<Unit filename="preferences/xLightsPreferences.cpp" />
 		<Unit filename="resource.rc">
 			<Option compilerVar="WINDRES" />
 			<Option target="MinGW_Debug" />
@@ -1233,6 +1246,7 @@
 		<Unit filename="wxsmith/AlignmentDialog.wxs" />
 		<Unit filename="wxsmith/ArtNetDialog.wxs" />
 		<Unit filename="wxsmith/AssistPanel.wxs" />
+		<Unit filename="wxsmith/BackupSettingsPanel.wxs" />
 		<Unit filename="wxsmith/BarsPanel.wxs" />
 		<Unit filename="wxsmith/BatchRenderDialog.wxs" />
 		<Unit filename="wxsmith/BufferPanel.wxs" />
@@ -1263,6 +1277,7 @@
 		<Unit filename="wxsmith/EffectIconPanel.wxs" />
 		<Unit filename="wxsmith/EffectTimingDialog.wxs" />
 		<Unit filename="wxsmith/EffectTreeDialog.wxs" />
+		<Unit filename="wxsmith/EffectsGridSettingsPanel.wxs" />
 		<Unit filename="wxsmith/EffectsPanel.wxs" />
 		<Unit filename="wxsmith/EmailDialog.wxs" />
 		<Unit filename="wxsmith/ExportModelSelect.wxs" />
@@ -1317,6 +1332,8 @@
 		<Unit filename="wxsmith/OffPanel.wxs" />
 		<Unit filename="wxsmith/OnPanel.wxs" />
 		<Unit filename="wxsmith/OptionChooser.wxs" />
+		<Unit filename="wxsmith/OtherSettingsPanel.wxs" />
+		<Unit filename="wxsmith/OutputSettingsPanel.wxs" />
 		<Unit filename="wxsmith/PaletteMgmtDialog.wxs" />
 		<Unit filename="wxsmith/PathGenerationDialog.wxs" />
 		<Unit filename="wxsmith/PerspectivesPanel.wxs" />
@@ -1328,6 +1345,7 @@
 		<Unit filename="wxsmith/PlasmaPanel.wxs" />
 		<Unit filename="wxsmith/PreviewModels.wxs" />
 		<Unit filename="wxsmith/PreviewPane.wxs" />
+		<Unit filename="wxsmith/RandomEffectsSettingsPanel.wxs" />
 		<Unit filename="wxsmith/RemapDMXChannelsDialog.wxs" />
 		<Unit filename="wxsmith/RenameTextDialog.wxs" />
 		<Unit filename="wxsmith/RenderProgressDialog.wxs" />
@@ -1339,6 +1357,7 @@
 		<Unit filename="wxsmith/SeqElementMismatchDialog.wxs" />
 		<Unit filename="wxsmith/SeqExportDialog.wxs" />
 		<Unit filename="wxsmith/SeqSettingsDialog.wxs" />
+		<Unit filename="wxsmith/SequenceFileSettingsPanel.wxs" />
 		<Unit filename="wxsmith/SequenceVideoPanel.wxs" />
 		<Unit filename="wxsmith/ServoPanel.wxs" />
 		<Unit filename="wxsmith/SevenSegmentDialog.wxs" />
@@ -1374,6 +1393,7 @@
 		<Unit filename="wxsmith/VendorMusicDialog.wxs" />
 		<Unit filename="wxsmith/VideoPanel.wxs" />
 		<Unit filename="wxsmith/ViewObjectPanel.wxs" />
+		<Unit filename="wxsmith/ViewSettingsPanel.wxs" />
 		<Unit filename="wxsmith/ViewpointDialog.wxs" />
 		<Unit filename="wxsmith/ViewsDialog.wxs" />
 		<Unit filename="wxsmith/ViewsModelsPanel.wxs" />
@@ -1427,7 +1447,6 @@
 					<wxDialog wxs="wxsmith/CharMapDialog.wxs" src="CharMapDialog.cpp" hdr="CharMapDialog.h" fwddecl="0" i18n="1" name="CharMapDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/CheckboxSelectDialog.wxs" src="CheckboxSelectDialog.cpp" hdr="CheckboxSelectDialog.h" fwddecl="0" i18n="1" name="CheckboxSelectDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/ColorCurveDialog.wxs" src="ColorCurveDialog.cpp" hdr="ColorCurveDialog.h" fwddecl="0" i18n="1" name="ColorCurveDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/ColorManagerDialog.wxs" src="ColorManagerDialog.cpp" hdr="ColorManagerDialog.h" fwddecl="0" i18n="1" name="ColorManagerDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/ControllerConnectionDialog.wxs" src="ControllerConnectionDialog.cpp" hdr="ControllerConnectionDialog.h" fwddecl="0" i18n="1" name="ControllerConnectionDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/ControllerVisualiseDialog.wxs" src="ControllerVisualiseDialog.cpp" hdr="ControllerVisualiseDialog.h" fwddecl="0" i18n="1" name="ControllerVisualiseDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/ConvertDialog.wxs" src="ConvertDialog.cpp" hdr="ConvertDialog.h" fwddecl="0" i18n="1" name="ConvertDialog" language="CPP" />
@@ -1576,6 +1595,14 @@
 					<wxPanel wxs="wxsmith/WarpPanel.wxs" src="effects/WarpPanel.cpp" hdr="effects/WarpPanel.h" fwddecl="0" i18n="1" name="WarpPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/ViewObjectPanel.wxs" src="ViewObjectPanel.cpp" hdr="ViewObjectPanel.h" fwddecl="0" i18n="1" name="ViewObjectPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/ShaderPanel.wxs" src="effects/ShaderPanel.cpp" hdr="effects/ShaderPanel.h" fwddecl="0" i18n="1" name="ShaderPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/BackupSettingsPanel.wxs" src="preferences/BackupSettingsPanel.cpp" hdr="preferences/BackupSettingsPanel.h" fwddecl="1" i18n="1" name="BackupSettingsPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/ViewSettingsPanel.wxs" src="preferences/ViewSettingsPanel.cpp" hdr="preferences/ViewSettingsPanel.h" fwddecl="1" i18n="1" name="ViewSettingsPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/SequenceFileSettingsPanel.wxs" src="preferences/SequenceFileSettingsPanel.cpp" hdr="preferences/SequenceFileSettingsPanel.h" fwddecl="1" i18n="1" name="SequenceFileSettingsPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/OutputSettingsPanel.wxs" src="preferences/OutputSettingsPanel.cpp" hdr="preferences/OutputSettingsPanel.h" fwddecl="1" i18n="1" name="OutputSettingsPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/OtherSettingsPanel.wxs" src="preferences/OtherSettingsPanel.cpp" hdr="preferences/OtherSettingsPanel.h" fwddecl="1" i18n="1" name="OtherSettingsPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/EffectsGridSettingsPanel.wxs" src="preferences/EffectsGridSettingsPanel.cpp" hdr="preferences/EffectsGridSettingsPanel.h" fwddecl="1" i18n="1" name="EffectsGridSettingsPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/RandomEffectsSettingsPanel.wxs" src="preferences/RandomEffectsSettingsPanel.cpp" hdr="preferences/RandomEffectsSettingsPanel.h" fwddecl="1" i18n="1" name="RandomEffectsSettingsPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/ColorManagerSettingsPanel.wxs" src="preferences/ColorManagerSettingsPanel.cpp" hdr="preferences/ColorManagerSettingsPanel.h" fwddecl="0" i18n="1" name="ColorManagerSettingsPanel" language="CPP" />
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>

@@ -767,17 +767,6 @@ void xLightsFrame::LoadSequencer(xLightsXmlFile& xml_file)
     xml_file.AdjustEffectSettingsForVersion(mSequenceElements, this);
 
     Menu_Settings_Sequence->Enable(true);
-    MenuSettings->Enable(ID_MENUITEM_RENDER_MODE, true);
-    if( xml_file.GetRenderMode() == xLightsXmlFile::CANVAS_MODE )
-    {
-        MenuItemRenderEraseMode->Check(false);
-        MenuItemRenderCanvasMode->Check(true);
-    }
-    else
-    {
-        MenuItemRenderEraseMode->Check(true);
-        MenuItemRenderCanvasMode->Check(false);
-    }
 
     mSavedChangeCount = mSequenceElements.GetChangeCount();
     mLastAutosaveCount = mSavedChangeCount;
@@ -2705,7 +2694,6 @@ void xLightsFrame::DoLoadPerspective(wxXmlNode *perspective)
         if (!visible)
         {
             mEffectAssistMode = EFFECT_ASSIST_NOT_IN_PERSPECTIVE;
-            MenuItemEffectAssistAlwaysOn->Check(false);
         }
     }
 
@@ -2939,15 +2927,9 @@ void xLightsFrame::ShowHideEffectAssistWindow(wxCommandEvent& event)
     if (visible) {
         m_mgr->GetPane("EffectAssist").Hide();
         mEffectAssistMode = EFFECT_ASSIST_ALWAYS_OFF;
-        MenuItemEffectAssistAlwaysOn->Check(false);
-        MenuItemEffectAssistAlwaysOff->Check(true);
-        MenuItemEffectAssistToggleMode->Check(false);
     } else {
         m_mgr->GetPane("EffectAssist").Show();
         mEffectAssistMode = EFFECT_ASSIST_ALWAYS_ON;
-        MenuItemEffectAssistAlwaysOn->Check(true);
-        MenuItemEffectAssistAlwaysOff->Check(false);
-        MenuItemEffectAssistToggleMode->Check(false);
     }
     m_mgr->Update();
 }

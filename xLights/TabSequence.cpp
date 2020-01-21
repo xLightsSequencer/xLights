@@ -1431,7 +1431,6 @@ void xLightsFrame::EnableSequenceControls(bool enable)
         MenuItem_ExportEffects->Enable(false);
         MenuItem_PurgeRenderCache->Enable(false);
         MenuItem_ImportEffects->Enable(false);
-        MenuSettings->Enable(ID_MENUITEM_RENDER_MODE, false);
     }
     if (!enable && SeqData.NumFrames() > 0) {
         //file is loaded, but we're doing something that requires controls disabled (such as rendering)
@@ -1448,11 +1447,6 @@ void xLightsFrame::EnableSequenceControls(bool enable)
     if (MenuItem_LogRenderState != nullptr)
     {
         MenuItem_LogRenderState->Enable();
-    }
-
-    if (!mSaveFseqOnSave)
-    {
-        mRenderOnSaveMenuItem->Enable(false);
     }
 }
 

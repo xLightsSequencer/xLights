@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<wxsmith>
+	<object class="wxPanel" name="BackupSettingsPanel">
+		<pos_arg>1</pos_arg>
+		<size_arg>1</size_arg>
+		<object class="wxGridBagSizer" variable="GridBagSizer1" member="no">
+			<object class="sizeritem">
+				<object class="wxCheckBox" name="ID_CHECKBOX1" variable="BackupOnSaveCheckBox" member="yes">
+					<label>Backup On Save</label>
+					<handler function="OnBackupOnSaveCheckBoxClick" entry="EVT_CHECKBOX" />
+				</object>
+				<colspan>2</colspan>
+				<col>0</col>
+				<row>0</row>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxCheckBox" name="ID_CHECKBOX2" variable="BackupOnLaunchCheckBox" member="yes">
+					<label>Backup On Launch</label>
+					<handler function="OnBackupOnLaunchCheckBoxClick" entry="EVT_CHECKBOX" />
+				</object>
+				<colspan>2</colspan>
+				<col>0</col>
+				<row>1</row>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxCheckBox" name="ID_CHECKBOX3" variable="BackupSubfoldersCheckBox" member="yes">
+					<label>Backup Subfolders</label>
+					<handler function="OnBackupSubfoldersCheckBoxClick" entry="EVT_CHECKBOX" />
+				</object>
+				<colspan>2</colspan>
+				<col>0</col>
+				<row>2</row>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxChoice" name="ID_CHOICE1" variable="PurgeIntervalChoice" member="yes">
+					<content>
+						<item>Never</item>
+						<item>Older than 360 days</item>
+						<item>Older than 90 days</item>
+						<item>Older than 30 days</item>
+						<item>Older than 7 days</item>
+					</content>
+					<selection>0</selection>
+					<handler function="OnPurgeIntervalChoiceSelect" entry="EVT_CHOICE" />
+				</object>
+				<col>1</col>
+				<row>3</row>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
+					<label>Purge Backups</label>
+				</object>
+				<col>0</col>
+				<row>3</row>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+		</object>
+	</object>
+</wxsmith>

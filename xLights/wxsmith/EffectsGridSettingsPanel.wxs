@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<wxsmith>
+	<object class="wxPanel" name="EffectsGridSettingsPanel">
+		<pos_arg>1</pos_arg>
+		<size_arg>1</size_arg>
+		<object class="wxGridBagSizer" variable="GridBagSizer1" member="no">
+			<object class="sizeritem">
+				<object class="wxStaticText" name="wxID_ANY" variable="StaticText5" member="no">
+					<label>Spacing</label>
+				</object>
+				<col>0</col>
+				<row>0</row>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxChoice" name="ID_CHOICE1" variable="GridSpacingChoice" member="yes">
+					<content>
+						<item>Extra Small</item>
+						<item>Small</item>
+						<item>Medium</item>
+						<item>Large</item>
+						<item>Extra Large</item>
+					</content>
+					<selection>2</selection>
+					<handler function="OnGridSpacingChoiceSelect" entry="EVT_CHOICE" />
+				</object>
+				<col>1</col>
+				<row>0</row>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxCheckBox" name="ID_CHECKBOX1" variable="IconBackgroundsCheckBox" member="yes">
+					<label>Icon Backgrounds</label>
+					<handler function="OnIconBackgroundsCheckBoxClick" entry="EVT_CHECKBOX" />
+				</object>
+				<colspan>2</colspan>
+				<col>0</col>
+				<row>1</row>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxCheckBox" name="ID_CHECKBOX2" variable="NodeValuesCheckBox" member="yes">
+					<label>Node Values</label>
+					<handler function="OnNodeValuesCheckBoxClick" entry="EVT_CHECKBOX" />
+				</object>
+				<colspan>2</colspan>
+				<col>0</col>
+				<row>2</row>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxCheckBox" name="ID_CHECKBOX3" variable="SnapToTimingCheckBox" member="yes">
+					<label>Snap to Timing Marks</label>
+					<handler function="OnSnapToTimingCheckBoxClick" entry="EVT_CHECKBOX" />
+				</object>
+				<colspan>2</colspan>
+				<col>0</col>
+				<row>3</row>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxCheckBox" name="ID_CHECKBOX5" variable="TimingDoubleClickCheckbox" member="yes">
+					<label>Double Click Timing Plays Timeframe</label>
+					<handler function="OnTimingDoubleClickChoiceSelect" entry="EVT_CHECKBOX" />
+				</object>
+				<colspan>2</colspan>
+				<col>0</col>
+				<row>4</row>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxCheckBox" name="ID_CHECKBOX4" variable="SmallWaveformCheckBox" member="yes">
+					<label>Small Waveform</label>
+					<handler function="OnSmallWaveformCheckBoxClick" entry="EVT_CHECKBOX" />
+				</object>
+				<colspan>2</colspan>
+				<col>0</col>
+				<row>5</row>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxCheckBox" name="ID_CHECKBOX6" variable="TransistionMarksCheckBox" member="yes">
+					<label>Display Transition Marks</label>
+					<checked>1</checked>
+					<handler function="OnTransistionMarksCheckBoxClick" entry="EVT_CHECKBOX" />
+				</object>
+				<colspan>2</colspan>
+				<col>0</col>
+				<row>6</row>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+		</object>
+	</object>
+</wxsmith>

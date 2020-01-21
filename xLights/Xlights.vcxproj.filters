@@ -6,7 +6,6 @@
     <ClCompile Include="BulkEditSliderDialog.cpp" />
     <ClCompile Include="CachedFileDownloader.cpp" />
     <ClCompile Include="ColorManager.cpp" />
-    <ClCompile Include="ColorManagerDialog.cpp" />
     <ClCompile Include="CustomTimingDialog.cpp" />
     <ClCompile Include="EffectTimingDialog.cpp" />
     <ClCompile Include="effects\GIFImage.cpp" />
@@ -799,6 +798,33 @@
     <ClCompile Include="models\DMX\Servo.cpp">
       <Filter>Models\DMX</Filter>
     </ClCompile>
+    <ClCompile Include="preferences\BackupSettingsPanel.cpp">
+      <Filter>Preferences</Filter>
+    </ClCompile>
+    <ClCompile Include="preferences\SequenceFileSettingsPanel.cpp">
+      <Filter>Preferences</Filter>
+    </ClCompile>
+    <ClCompile Include="preferences\ViewSettingsPanel.cpp">
+      <Filter>Preferences</Filter>
+    </ClCompile>
+    <ClCompile Include="preferences\xLightsPreferences.cpp">
+      <Filter>Preferences</Filter>
+    </ClCompile>
+    <ClCompile Include="preferences\OtherSettingsPanel.cpp">
+      <Filter>Preferences</Filter>
+    </ClCompile>
+    <ClCompile Include="preferences\OutputSettingsPanel.cpp">
+      <Filter>Preferences</Filter>
+    </ClCompile>
+    <ClCompile Include="preferences\ColorManagerSettingsPanel.cpp">
+      <Filter>Preferences</Filter>
+    </ClCompile>
+    <ClCompile Include="preferences\EffectsGridSettingsPanel.cpp">
+      <Filter>Preferences</Filter>
+    </ClCompile>
+    <ClCompile Include="preferences\RandomEffectsSettingsPanel.cpp">
+      <Filter>Preferences</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -806,7 +832,6 @@
     <ClInclude Include="BulkEditSliderDialog.h" />
     <ClInclude Include="CachedFileDownloader.h" />
     <ClInclude Include="ColorManager.h" />
-    <ClInclude Include="ColorManagerDialog.h" />
     <ClInclude Include="EffectTimingDialog.h" />
     <ClInclude Include="FontManager.h" />
     <ClInclude Include="GenerateLyricsDialog.h" />
@@ -1610,6 +1635,30 @@
     <ClInclude Include="models\DMX\Servo.h">
       <Filter>Models\DMX</Filter>
     </ClInclude>
+    <ClInclude Include="preferences\BackupSettingsPanel.h">
+      <Filter>Preferences</Filter>
+    </ClInclude>
+    <ClInclude Include="preferences\SequenceFileSettingsPanel.h">
+      <Filter>Preferences</Filter>
+    </ClInclude>
+    <ClInclude Include="preferences\ViewSettingsPanel.h">
+      <Filter>Preferences</Filter>
+    </ClInclude>
+    <ClInclude Include="preferences\OtherSettingsPanel.h">
+      <Filter>Preferences</Filter>
+    </ClInclude>
+    <ClInclude Include="preferences\OutputSettingsPanel.h">
+      <Filter>Preferences</Filter>
+    </ClInclude>
+    <ClInclude Include="preferences\ColorManagerSettingsPanel.h">
+      <Filter>Preferences</Filter>
+    </ClInclude>
+    <ClInclude Include="preferences\EffectsGridSettingsPanel.h">
+      <Filter>Preferences</Filter>
+    </ClInclude>
+    <ClInclude Include="preferences\RandomEffectsSettingsPanel.h">
+      <Filter>Preferences</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Models">
@@ -1626,6 +1675,9 @@
     </Filter>
     <Filter Include="Models\DMX">
       <UniqueIdentifier>{4fb623be-9694-497c-b76e-19e9b12e5991}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Preferences">
+      <UniqueIdentifier>{deb253e2-d6a8-4b5f-909d-9a98e9e667e1}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

@@ -37,6 +37,7 @@
 #include <wx/timer.h>
 //*)
 
+#include <wx/preferences.h>
 #include <wx/choicebk.h>
 #include <wx/filename.h>
 #include <wx/xml/xml.h>
@@ -452,21 +453,11 @@ public:
     void ShowHideColorWindow(wxCommandEvent& event);
     void ShowHideLayerTimingWindow(wxCommandEvent& event);
     void ShowHideEffectDropper(wxCommandEvent& event);
-    void SetIconSize(wxCommandEvent& event);
     void ResetToolbarLocations(wxCommandEvent& event);
-    void SetToolIconSize(wxCommandEvent& event);
-    void OnMenuItemRenderEraseModeSelected(wxCommandEvent& event);
-    void OnMenuItemRenderCanvasModeSelected(wxCommandEvent& event);
-    void OnSetGridIconBackground(wxCommandEvent& event);
-    void OnSetGridNodeValues(wxCommandEvent& event);
     void OnMenuItemImportEffects(wxCommandEvent& event);
     void SetPlaySpeed(wxCommandEvent& event);
-    void OnMenuItemRenderOnSave(wxCommandEvent& event);
     void OnNotebook1PageChanging(wxAuiNotebookEvent& event);
     void OnButtonAddNullClick(wxCommandEvent& event);
-    void OnMenuItemEffectAssistAlwaysOnSelected(wxCommandEvent& event);
-    void OnMenuItemEffectAssistAlwaysOffSelected(wxCommandEvent& event);
-    void OnMenuItemEffectAssistToggleModeSelected(wxCommandEvent& event);
     void ShowHidePerspectivesWindow(wxCommandEvent& event);
     void ShowHideDisplayElementsWindow(wxCommandEvent& event);
     void ShowHideEffectAssistWindow(wxCommandEvent& event);
@@ -483,19 +474,14 @@ public:
     void OnMenu_GenerateCustomModelSelected(wxCommandEvent& event);
     void OnPaneClose(wxAuiManagerEvent& event);
     void OnMenuItemPackageDebugFiles(wxCommandEvent& event);
-    void OnMenuOpenGLSelected(wxCommandEvent& event);
     void OnTimer_AutoSaveTrigger(wxTimerEvent& event);
-    void AutoSaveIntervalSelected(wxCommandEvent& event);
     void OnEffectSettingsTimerTrigger(wxTimerEvent& event);
     void OnMenuItemViewSaveAsPerspectiveSelected(wxCommandEvent& event);
-    void OnmBackupOnSaveSelected(wxCommandEvent& event);
     void OnmAltBackupMenuItemSelected(wxCommandEvent& event);
     void OnmExportModelsMenuItemSelected(wxCommandEvent& event);
-    void OnMenuItem_BackupOnLaunchSelected(wxCommandEvent& event);
     void OnMenuItem_ViewLogSelected(wxCommandEvent& event);
     void OnMenuItemCheckSequenceSelected(wxCommandEvent& event);
     void OnSpinCtrl_SyncUniverseChange(wxSpinEvent& event);
-    void OnMenuItem_e131syncSelected(wxCommandEvent& event);
     void OnButtonArtNETClick(wxCommandEvent& event);
     void OnMenuItem_Help_ForumSelected(wxCommandEvent& event);
     void OnMenuItem_Help_DownloadSelected(wxCommandEvent& event);
@@ -512,15 +498,9 @@ public:
     void OnMenuItem_FPP_ConnectSelected(wxCommandEvent& event);
     void OnMenuItemShiftEffectsSelected(wxCommandEvent& event);
     void OnMenuItem_PackageSequenceSelected(wxCommandEvent& event);
-    void OnMenuItem_BackupSubfoldersSelected(wxCommandEvent& event);
     void OnMenuItem_xScheduleSelected(wxCommandEvent& event);
-    void OnMenuItem_ForceLocalIPSelected(wxCommandEvent& event);
     void OnMenuItem_VideoTutorialsSelected(wxCommandEvent& event);
-    void OnMenuItem_ExcludePresetsFromPackagedSequencesSelected(wxCommandEvent& event);
-    void OnMenuItem_ExcludeAudioPackagedSequenceSelected(wxCommandEvent& event);
-    void OnMenuItemColorManagerSelected(wxCommandEvent& event);
     void OnMenuItem_DonateSelected(wxCommandEvent& event);
-    void OnMenuItemTimingPlayOnDClick(wxCommandEvent& event);
     void OnAC_OnClick(wxCommandEvent& event);
     void OnAC_OffClick(wxCommandEvent& event);
     void OnAC_DisableClick(wxCommandEvent& event);
@@ -541,21 +521,12 @@ public:
     void OnAC_SelectClick(wxCommandEvent& event);
     void OnMenuItem_ShowACRampsSelected(wxCommandEvent& event);
     void OnMenuItem_PerspectiveAutosaveSelected(wxCommandEvent& event);
-    void OnMenuItem_SD_10Selected(wxCommandEvent& event);
-    void OnMenuItem_SD_20Selected(wxCommandEvent& event);
-    void OnMenuItem_SD_40Selected(wxCommandEvent& event);
-    void OnMenuItem_SD_NoneSelected(wxCommandEvent& event);
-    void OnMenuItem_PlayControlsOnPreviewSelected(wxCommandEvent& event);
-    void OnMenuItem_AutoShowHousePreviewSelected(wxCommandEvent& event);
     void OnMenuItem_GenerateLyricsSelected(wxCommandEvent& event);
     void OnMenuItem_CrashXLightsSelected(wxCommandEvent& event);
     void OnMenuItemBatchRenderSelected(wxCommandEvent& event);
     void OnMenuItem_UpdateSelected(wxCommandEvent& event);
-    void OnMenuItem_SmallWaveformSelected(wxCommandEvent& event);
     void OnMenuItem_LogRenderStateSelected(wxCommandEvent& event);
-    void OnMenuItem_ModelBlendDefaultOffSelected(wxCommandEvent& event);
     void OnMenuItem_File_Save_Selected(wxCommandEvent& event);
-    void OnMenuItem_SnapToTimingMarksSelected(wxCommandEvent& event);
     void OnMenuItem_PurgeVendorCacheSelected(wxCommandEvent& event);
     void OnButtonAddLORClick(wxCommandEvent& event);
     void OnMenuItem_LoudVolSelected(wxCommandEvent& event);
@@ -569,17 +540,11 @@ public:
     void OnMenuItemShowHideVideoPreview(wxCommandEvent& event);
     void OnButtonAddDDPClick(wxCommandEvent& event);
     void OnButtonOtherFoldersClick(wxCommandEvent& event);
-    void OnMenuItem_BackupPurgeIntervalSelected(wxCommandEvent& event);
     void OnMenuItem_DownloadSequencesSelected(wxCommandEvent& event);
     void OnMenuItem_JukeboxSelected(wxCommandEvent& event);
     void OnMenuItemShiftSelectedEffectsSelected(wxCommandEvent& event);
-    void OnMenuItem_xFadeDisabledSelected(wxCommandEvent& event);
-    void OnMenuItem_XFade_ASelected(wxCommandEvent& event);
-    void OnMenuItem_xFade_BSelected(wxCommandEvent& event);
     void OnMenuItemUserDictSelected(wxCommandEvent& event);
-    void OnmSaveFseqOnSaveMenuItemSelected(wxCommandEvent& event);
     void OnMenuItem_PurgeRenderCacheSelected(wxCommandEvent& event);
-    void OnMenuItem_RenderCache(wxCommandEvent& event);
     void OnMenuItem_ShowKeyBindingsSelected(wxCommandEvent& event);
     void OnChar(wxKeyEvent& event);
     void OnMenuItem_ZoomSelected(wxCommandEvent& event);
@@ -587,23 +552,12 @@ public:
     void OnButton_DiscoverClick(wxCommandEvent& event);
     void OnMenuItem_CleanupFileLocationsSelected(wxCommandEvent& event);
     void OnMenuItem_Generate2DPathSelected(wxCommandEvent& event);
-    void OnMenuItemFSEQV1Selected(wxCommandEvent& event);
-    void OnMenuItemFSEQV2Selected(wxCommandEvent& event);
     void OnMenuItem_PrepareAudioSelected(wxCommandEvent& event);
-    void OnMenuItemOGLRenderOrder(wxCommandEvent& event);
     void OnMenuItem_UserManualSelected(wxCommandEvent& event);
-    void OnMenuItem_MHS_NormalSelected(wxCommandEvent& event);
-    void OnMenuItem_MHS_LargeSelected(wxCommandEvent& event);
-    void OnMenuItem_MHS_ExtraLargeSelected(wxCommandEvent& event);
-    void OnMenuItem61Selected(wxCommandEvent& event);
-    void OnMenuItem_Random_SetSelected(wxCommandEvent& event);
-    void OnMenuItem_EmailAddressSelected(wxCommandEvent& event);
     void OnMenuItem_ValueCurvesSelected(wxCommandEvent& event);
     void OnMenuItem_ColourDropperSelected(wxCommandEvent& event);
-    void OnMenuItemHardwareVideoDecoderToggle(wxCommandEvent& event);
-    void OnMenuItemFSEQV2UncompressedSelected(wxCommandEvent& event);
-    void OnMenuItemFSEQV2ZLIBSelected(wxCommandEvent& event);
     void OnMenuItemHinksPixExportSelected(wxCommandEvent& event);
+    void OnMenuItemPreferencesSelected(wxCommandEvent& event);
     //*)
     void OnCharHook(wxKeyEvent& event);
 private:
@@ -709,6 +663,7 @@ public:
     static const long IS_SAVE_SEQ;
     static const long ID_SAVE_AS_SEQUENCE;
     static const long ID_CLOSE_SEQ;
+    static const long ID_SEQ_SETTINGS;
     static const long ID_EXPORT_VIDEO;
     static const long ID_MENUITEM2;
     static const long ID_FILE_BACKUP;
@@ -777,97 +732,6 @@ public:
     static const long ID_MNU_QUIET;
     static const long ID_MNU_SUPERQUIET;
     static const long ID_IMPORT_EFFECTS;
-    static const long ID_SEQ_SETTINGS;
-    static const long ID_RENDER_ON_SAVE;
-    static const long ID_SAVE_FSEQ_ON_SAVE;
-    static const long ID_BACKUP_ON_SAVE;
-    static const long ID_MENU_BACKUP_ON_LAUNCH;
-    static const long ID_MNU_BKPPURGE_NEVER;
-    static const long ID_MNU_BKPPURGE_YEAR;
-    static const long ID_MNU_BKPPURGE_QUARTER;
-    static const long ID_MNU_BKPPURGE_MONTH;
-    static const long ID_MNU_BKPPURGE_WEEK;
-    static const long ID_MNU_BKP_PURGE;
-    static const long ID_MNU_BACKUP;
-    static const long ID_MNU_EXCLUDEPRESETS;
-    static const long ID_MNU_EXCLUDEAUDIOPKGSEQ;
-    static const long ID_MENUITEM_ICON_SMALL;
-    static const long ID_MENUITEM_ICON_MEDIUM;
-    static const long ID_MENUITEM_ICON_LARGE;
-    static const long ID_MENUITEM_ICON_XLARGE;
-    static const long ID_MENUITEM4;
-    static const long ID_MNU_SMALLWAVEFORM;
-    static const long ID_MENUITEM_GRID_ICON_XSMALL;
-    static const long ID_MENUITEM_GRID_ICON_SMALL;
-    static const long ID_MENUITEM_GRID_ICON_MEDIUM;
-    static const long ID_MENUITEM_GRID_ICON_LARGE;
-    static const long ID_MENUITEM_GRID_ICON_XLARGE;
-    static const long ID_MENUITEM6;
-    static const long ID_MENUITEM24;
-    static const long ID_MENUITEM25;
-    static const long ID_MENUITEM26;
-    static const long ID_MENUITEM23;
-    static const long ID_MENUITEM_GRID_ICON_BACKGROUND_ON;
-    static const long ID_MENUITEM_GRID_ICON_BACKGROUND_OFF;
-    static const long ID_MENUITEM_Grid_Icon_Backgrounds;
-    static const long ID_MENUITEM_GRID_NODE_VALUES_ON;
-    static const long ID_MENUITEM_GRID_NODE_VALUES_OFF;
-    static const long ID_MENUITEM8;
-    static const long ID_COLOR_MANAGER;
-    static const long ID_MNU_RC_ENABLE;
-    static const long ID_MNU_RC_LOCKEDONLY;
-    static const long ID_MNU_RC_DISABLED;
-    static const long ID_MNU_RENDERCACHE;
-    static const long ID_MENU_CANVAS_ERASE_MODE;
-    static const long ID_MENU_CANVAS_CANVAS_MODE;
-    static const long ID_MENUITEM_RENDER_MODE;
-    static const long ID_MENUITEM_EFFECT_ASSIST_ALWAYS_ON;
-    static const long ID_MENUITEM_EFFECT_ASSIST_ALWAYS_OFF;
-    static const long ID_MENUITEM_EFFECT_ASSIST_TOGGLE;
-    static const long ID_MENUITEM_EFFECT_ASSIST;
-    static const long ID_MENU_TIMING_EDIT_MODE;
-    static const long ID_MENU_TIMING_PLAY_MODE;
-    static const long ID_MENUITEM_Timing_DClick_Mode;
-    static const long ID_MENU_OPENGL_AUTO;
-    static const long ID_MENU_OPENGL_3;
-    static const long ID_MENU_OPENGL_1;
-    static const long ID_MENUITEM_OGL_RO1;
-    static const long ID_MENUITEM_OGL_RO2;
-    static const long ID_MENUITEM_OGL_RO3;
-    static const long ID_MENUITEM_OGL_RO4;
-    static const long ID_MENUITEM_OGL_RO5;
-    static const long ID_MENUITEM_OGL_RO6;
-    static const long ID_MENUITEM19;
-    static const long ID_MNU_PLAYCONTROLSONPREVIEW;
-    static const long ID_MNU_AUTOSHOWHOUSEPREVIEW;
-    static const long ID_MNU_SUPPRESS_TRANSITION_HINTS;
-    static const long ID_MENUITEM_AUTOSAVE_0;
-    static const long ID_MENUITEM_AUTOSAVE_3;
-    static const long ID_MENUITEM_AUTOSAVE_10;
-    static const long ID_MENUITEM_AUTOSAVE_15;
-    static const long ID_MENUITEM_AUTOSAVE_30;
-    static const long ID_MENUITEM20;
-    static const long ID_MNU_XFADE_DISABLED;
-    static const long ID_MNU_XFADE_A;
-    static const long ID_MNU_XFADE_B;
-    static const long ID_MNU_XFADE;
-    static const long ID_MNU_SD_None;
-    static const long ID_MNU_SD_10;
-    static const long ID_MNU_SD_20;
-    static const long ID_MNU_SD_40;
-    static const long ID_MNU_SUPPRESSDUPLICATES;
-    static const long ID_E131_Sync;
-    static const long ID_MNU_FORCEIP;
-    static const long ID_MNU_DEFAULTMODELBLENDOFF;
-    static const long ID_MNU_SNAP_TO_TIMING;
-    static const long ID_MENUITEM21;
-    static const long ID_MENUITEM22;
-    static const long ID_MENUITEM27;
-    static const long ID_MENUITEM28;
-    static const long ID_MENUITEM1;
-    static const long ID_MENUITEM_RANDON;
-    static const long ID_MNU_EMAIL;
-    static const long ID_MENU_HARDWARE_VIDEO_DECODE;
     static const long ID_MNU_MANUAL;
     static const long ID_MNU_ZOOM;
     static const long ID_MNU_KEYBINDINGS;
@@ -927,30 +791,14 @@ public:
     wxGridBagSizer* StatusBarSizer;
     wxListCtrl* GridNetwork;
     wxMenu* AudioMenu;
-    wxMenu* AutoSaveMenu;
-    wxMenu* GridSpacingMenu;
     wxMenu* Menu1;
     wxMenu* Menu3;
     wxMenu* MenuFile;
-    wxMenu* MenuItem15;
     wxMenu* MenuItem18;
-    wxMenu* MenuItem1;
-    wxMenu* MenuItem29;
-    wxMenu* MenuItem53;
-    wxMenu* MenuItem54;
-    wxMenu* MenuItem60;
-    wxMenu* MenuItem7;
     wxMenu* MenuItemPerspectives;
-    wxMenu* MenuItemRenderMode;
-    wxMenu* MenuItem_BackupPurge;
-    wxMenu* MenuItem_EnableRenderCache;
-    wxMenu* MenuSettings;
     wxMenu* MenuView;
-    wxMenu* OpenGLMenu;
-    wxMenu* ToolIconSizeMenu;
     wxMenuBar* MenuBar;
     wxMenuItem* ActionTestMenuItem;
-    wxMenuItem* MenuItem16;
     wxMenuItem* MenuItem32;
     wxMenuItem* MenuItem33;
     wxMenuItem* MenuItem34;
@@ -966,50 +814,22 @@ public:
     wxMenuItem* MenuItem52;
     wxMenuItem* MenuItemBackup;
     wxMenuItem* MenuItemCheckSequence;
-    wxMenuItem* MenuItemColorManager;
     wxMenuItem* MenuItemConvert;
-    wxMenuItem* MenuItemEffectAssistAlwaysOff;
-    wxMenuItem* MenuItemEffectAssistAlwaysOn;
-    wxMenuItem* MenuItemEffectAssistToggleMode;
     wxMenuItem* MenuItemEffectAssistWindow;
-    wxMenuItem* MenuItemFSEQV1;
-    wxMenuItem* MenuItemFSEQV2;
-    wxMenuItem* MenuItemFSEQV2Uncompressed;
-    wxMenuItem* MenuItemFSEQV2ZLIB;
-    wxMenuItem* MenuItemGridIconBackgroundOff;
-    wxMenuItem* MenuItemGridIconBackgroundOn;
-    wxMenuItem* MenuItemGridNodeValuesOff;
-    wxMenuItem* MenuItemGridNodeValuesOn;
-    wxMenuItem* MenuItemHardwareDecoder;
     wxMenuItem* MenuItemHinksPixExport;
     wxMenuItem* MenuItemLoadEditPerspective;
-    wxMenuItem* MenuItemRenderCanvasMode;
-    wxMenuItem* MenuItemRenderEraseMode;
     wxMenuItem* MenuItemSelectEffect;
     wxMenuItem* MenuItemShiftEffects;
     wxMenuItem* MenuItemShiftSelectedEffects;
-    wxMenuItem* MenuItemTimingEditMode;
-    wxMenuItem* MenuItemTimingPlayMode;
     wxMenuItem* MenuItemUserDict;
     wxMenuItem* MenuItemViewSaveAsPerspective;
     wxMenuItem* MenuItemViewSavePerspective;
     wxMenuItem* MenuItem_ACLIghts;
-    wxMenuItem* MenuItem_AutoShowHousePreview;
-    wxMenuItem* MenuItem_BackupOnLaunch;
-    wxMenuItem* MenuItem_BackupSubfolders;
-    wxMenuItem* MenuItem_BkpPMonth;
-    wxMenuItem* MenuItem_BkpPNever;
-    wxMenuItem* MenuItem_BkpPQuarter;
-    wxMenuItem* MenuItem_BkpPWeek;
-    wxMenuItem* MenuItem_BkpPYear;
     wxMenuItem* MenuItem_CleanupFileLocations;
     wxMenuItem* MenuItem_ColourDropper;
     wxMenuItem* MenuItem_CrashXLights;
     wxMenuItem* MenuItem_Donate;
     wxMenuItem* MenuItem_DownloadSequences;
-    wxMenuItem* MenuItem_EmailAddress;
-    wxMenuItem* MenuItem_ExcludeAudioPackagedSequence;
-    wxMenuItem* MenuItem_ExcludePresetsFromPackagedSequences;
     wxMenuItem* MenuItem_ExportEffects;
     wxMenuItem* MenuItem_FPP_Connect;
     wxMenuItem* MenuItem_File_Close_Sequence;
@@ -1017,7 +837,6 @@ public:
     wxMenuItem* MenuItem_File_Open_Sequence;
     wxMenuItem* MenuItem_File_Save;
     wxMenuItem* MenuItem_File_SaveAs_Sequence;
-    wxMenuItem* MenuItem_ForceLocalIP;
     wxMenuItem* MenuItem_Generate2DPath;
     wxMenuItem* MenuItem_GenerateLyrics;
     wxMenuItem* MenuItem_Help_Download;
@@ -1029,31 +848,15 @@ public:
     wxMenuItem* MenuItem_Jukebox;
     wxMenuItem* MenuItem_LogRenderState;
     wxMenuItem* MenuItem_LoudVol;
-    wxMenuItem* MenuItem_MHS_ExtraLarge;
-    wxMenuItem* MenuItem_MHS_Large;
-    wxMenuItem* MenuItem_MHS_Normal;
     wxMenuItem* MenuItem_MedVol;
-    wxMenuItem* MenuItem_ModelBlendDefaultOff;
     wxMenuItem* MenuItem_PackageSequence;
     wxMenuItem* MenuItem_PerspectiveAutosave;
-    wxMenuItem* MenuItem_PlayControlsOnPreview;
     wxMenuItem* MenuItem_PrepareAudio;
     wxMenuItem* MenuItem_PurgeRenderCache;
     wxMenuItem* MenuItem_PurgeVendorCache;
     wxMenuItem* MenuItem_QuietVol;
-    wxMenuItem* MenuItem_RC_Disable;
-    wxMenuItem* MenuItem_RC_Enable;
-    wxMenuItem* MenuItem_RC_LockedOnly;
-    wxMenuItem* MenuItem_Random_Set;
-    wxMenuItem* MenuItem_SD_10;
-    wxMenuItem* MenuItem_SD_20;
-    wxMenuItem* MenuItem_SD_40;
-    wxMenuItem* MenuItem_SD_None;
     wxMenuItem* MenuItem_ShowACRamps;
     wxMenuItem* MenuItem_ShowKeyBindings;
-    wxMenuItem* MenuItem_SmallWaveform;
-    wxMenuItem* MenuItem_SnapToTimingMarks;
-    wxMenuItem* MenuItem_SuppressFadeHints;
     wxMenuItem* MenuItem_Update;
     wxMenuItem* MenuItem_UserManual;
     wxMenuItem* MenuItem_VQuietVol;
@@ -1063,19 +866,12 @@ public:
     wxMenuItem* MenuItem_ViewZoomIn;
     wxMenuItem* MenuItem_ViewZoomOut;
     wxMenuItem* MenuItem_Zoom;
-    wxMenuItem* MenuItem_e131sync;
-    wxMenuItem* MenuItem_xFade_A;
-    wxMenuItem* MenuItem_xFade_B;
-    wxMenuItem* MenuItem_xFade_Disabled;
     wxMenuItem* MenuItem_xSchedule;
     wxMenuItem* Menu_GenerateCustomModel;
     wxMenuItem* Menu_Settings_Sequence;
     wxMenuItem* QuitMenuItem;
     wxMenuItem* mAltBackupMenuItem;
-    wxMenuItem* mBackupOnSaveMenuItem;
     wxMenuItem* mExportModelsMenuItem;
-    wxMenuItem* mRenderOnSaveMenuItem;
-    wxMenuItem* mSaveFseqOnSaveMenuItem;
     wxPanel* AUIStatusBar;
     wxPanel* PanelPreview;
     wxPanel* PanelSequencer;
@@ -1140,6 +936,7 @@ public:
     bool _backupSubfolders;
     bool _excludePresetsFromPackagedSequences;
     bool _excludeAudioFromPackagedSequences;
+    bool _hwVideoAccleration;
     bool _showACLights;
     bool _showACRamps;
     wxString _enableRenderCache;
@@ -1162,10 +959,110 @@ public:
     void StartxFadeListener();
     wxString ProcessXFadeMessage(wxString msg);
     void ShowACLights();
+    
     void DoBackup(bool prompt = true, bool startup = false, bool forceallfiles = false);
-    int DecodeBackupPurgeDays(std::string s);
     void DoBackupPurge();
+    void SetBackupPurgeDays(int i);
+    int GetBackupPugeDays() const { return BackupPurgeDays; }
     void DoAltBackup(bool prompt = true);
+    
+    bool BackupOnSave() const {return mBackupOnSave;}
+    void SetBackupOnSave(bool b) { mBackupOnSave = b;}
+    bool BackupOnLaunch() const {return mBackupOnLaunch;}
+    void SetBackupOnLaunch(bool b) { mBackupOnLaunch = b;}
+    bool BackupSubFolders() const {return _backupSubfolders;}
+    void SetBackupSubFolders(bool b) { _backupSubfolders = b;}
+    
+    bool GridNodeValues() const { return mGridNodeValues; }
+    void SetGridNodeValues(bool b);
+    
+    bool GridIconBackgrounds() const { return mGridIconBackgrounds;}
+    void SetGridIconBackgrounds(bool b);
+    
+    bool SmallWaveform() const { return _smallWaveform; }
+    void SetSmallWaveform(bool b);
+    
+    int GridSpacing() const { return mGridSpacing; }
+    void SetGridSpacing(int i);
+    
+    bool TimingPlayOnDClick() const { return mTimingPlayOnDClick;}
+    void SetTimingPlayOnDClick(bool b);
+    
+    int ToolIconSize() const { return mIconSize; }
+    void SetToolIconSize(int size);
+    
+    bool GetSnapToTimingMarks() const { return _snapToTimingMarks; }
+    bool SnapToTimingMarks() const { return _snapToTimingMarks; }
+    void SetSnapToTimingMarks(bool b);
+    
+    int XFadePort() const { return _xFadePort; }
+    void SetXFadePort(int i);
+    
+    bool E131Sync() const {return me131Sync;}
+    void SetE131Sync(bool b);
+    
+    const std::string &LocalIP() const { return mLocalIP; }
+    void SetLocalIP(const std::string &ip);
+    
+    int SuppressDuplicateFrames() const;
+    void SetSuppressDuplicateFrames(int i);
+    
+    bool HardwareVideoAccelerated() const { return _hwVideoAccleration; }
+    void SetHardwareVideoAccelerated(bool b);
+    
+    const wxString &UserEMAIL() const { return _userEmail;}
+    void SetUserEMAIL(const wxString &e);
+    
+    int SaveFSEQVersion() const { return _fseqVersion; }
+    void SetSaveFSEQVersion(int i) { _fseqVersion = i; }
+    
+    bool ExcludePresetsFromPackagedSequences() const { return _excludePresetsFromPackagedSequences;}
+    void SetExcludePresetsFromPackagedSequences(bool b) {_excludePresetsFromPackagedSequences = b;}
+    
+    bool ExcludeAudioFromPackagedSequences() const { return _excludeAudioFromPackagedSequences;}
+    void SetExcludeAudioFromPackagedSequences(bool b) {_excludeAudioFromPackagedSequences = b;}
+    
+    bool ModelBlendDefaultOff() const { return _modelBlendDefaultOff;}
+    void SetModelBlendDefaultOff(bool b) { _modelBlendDefaultOff = b;}
+    
+    const wxString &EnableRenderCache() const { return _enableRenderCache; }
+    void SetEnableRenderCache(const wxString &t);
+    
+    bool RenderOnSave() const { return mRenderOnSave; }
+    void SetRenderOnSave(bool b);
+
+    bool SaveFseqOnSave() const { return mSaveFseqOnSave; }
+    void SetSaveFseqOnSave(bool b);
+    
+    int AutoSaveInterval() const { return mAutoSaveInterval; }
+    void SetAutoSaveInterval(int i);
+    
+    bool IsSuppressFadeHints() const { return mSuppressFadeHints; }
+    bool SuppressFadeHints() const { return mSuppressFadeHints; }
+    void SetSuppressFadeHints(bool b);
+    
+    bool PlayControlsOnPreview() const { return _playControlsOnPreview;}
+    void SetPlayControlsOnPreview(bool b);
+    
+    bool AutoShowHousePreview() const { return _autoShowHousePreview;}
+    void SetAutoShowHousePreview(bool b);
+    
+    int EffectAssistMode() const { return mEffectAssistMode;}
+    void SetEffectAssistMode(int i);
+    
+    int OpenGLVersion() const;
+    void SetOpenGLVersion(int i);
+    
+    int OpenGLRenderOrder() const;
+    void SetOpenGLRenderOrder(int i);
+    
+    int GetModelHandleScale() const { return _modelHandleSize; }
+    int ModelHandleSize() const { return _modelHandleSize;}
+    void SetModelHandleSize(int i);
+    
+    const wxArrayString &RandomEffectsToUse() const { return _randomEffectsToUse;}
+    void SetRandomEffectsToUse(const wxArrayString &e);
+    
     bool EnableOutputs(bool ignoreCheck = false);
     void EnableNetworkChanges();
     void InitEffectsPanel(EffectsPanel* panel);
@@ -1255,7 +1152,6 @@ public:
     int mBackgroundAlpha;
     bool mScaleBackgroundImage = false;
     std::string mStoredLayoutGroup;
-    int _suppressDuplicateFrames;
     bool _suspendAutoSave = false;
 
     // convert
@@ -1353,14 +1249,11 @@ public:
     void UpdateSequenceLength();
 
     void SetSequenceEnd(int ms);
-    void UpdateRenderMode();
     void SetFrequency(int frequency);
     void RenderAll();
 
     void SetXmlSetting(const wxString& settingName,const wxString& value);
     uint32_t GetMaxNumChannels();
-
-    bool GetSnapToTimingMarks() const { return _snapToTimingMarks; }
 
     void UpdateSequenceVideoPanel( const wxString& path );
 
@@ -1406,8 +1299,6 @@ public:
     void SetPasteByTime();
     void ShowSequenceSettings();
     bool HandleAllKeyBinding(wxKeyEvent& event);
-    int GetModelHandleScale() const { return _modelHandleSize; }
-    bool IsSuppressFadeHints() const { return mSuppressFadeHints; }
 
 private:
     wxXmlNode* SettingsNode = nullptr;
@@ -1419,13 +1310,14 @@ private:
     bool SeqChanCtrlColor;
 	bool mLoopAudio;
 
+    std::unique_ptr<wxPreferencesEditor> mPreferencesEditor;
     bool mResetToolbars;
     bool mRenderOnSave;
     bool mBackupOnSave;
     bool mBackupOnLaunch;
     bool me131Sync;
     bool mSuppressFadeHints = false;
-    wxString mLocalIP;
+    std::string mLocalIP;
     wxString mAltBackupDir;
     int mIconSize;
     int mGridSpacing;
@@ -1448,7 +1340,7 @@ private:
         unsigned int renderTreeChangeCount;
         std::list<RenderTreeData*> data;
     } renderTree;
-    int AutoSaveInterval;
+    int mAutoSaveInterval;
     int BackupPurgeDays;
     JobPool jobPool;
 

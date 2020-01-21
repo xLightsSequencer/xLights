@@ -50,6 +50,7 @@ class SeqSettingsDialog: public wxDialog
 		wxCheckBox* BlendingCheckBox;
 		wxCheckBox* CheckBox_Overwrite_Tags;
 		wxChoice* Choice_Xml_Seq_Type;
+		wxChoice* RenderModeChoice;
 		wxNotebook* Notebook_Seq_Settings;
 		wxPanel* PanelInfo;
 		wxPanel* PanelMetaData;
@@ -158,6 +159,7 @@ class SeqSettingsDialog: public wxDialog
 		static const long ID_BUTTON_Xml_New_Timing;
 		static const long ID_BUTTON_Xml_Import_Timing;
 		static const long ID_PANEL2;
+		static const long ID_CHOICE1;
 		static const long ID_TREECTRL_Data_Layers;
 		static const long ID_BUTTON_Layer_Import;
 		static const long ID_BUTTON_Layer_Delete;
@@ -231,6 +233,7 @@ class SeqSettingsDialog: public wxDialog
 		void OnTextCtrl_SeqTimingTextEnter(wxCommandEvent& event);
 		void OnBitmapButton_ModifyTimingClick(wxCommandEvent& event);
 		void OnButton_DownloadClick(wxCommandEvent& event);
+		void OnRenderModeChoiceSelect(wxCommandEvent& event);
 		//*)
 
 		void OnButton_Xml_Rename_TimingClick(wxCommandEvent& event);

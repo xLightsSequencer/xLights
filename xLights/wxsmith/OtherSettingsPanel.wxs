@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<wxsmith>
+	<object class="wxPanel" name="OtherSettingsPanel">
+		<pos_arg>1</pos_arg>
+		<size_arg>1</size_arg>
+		<object class="wxGridBagSizer" variable="GridBagSizer1" member="no">
+			<object class="sizeritem">
+				<object class="wxStaticText" name="wxID_ANY" variable="StaticText1" member="no">
+					<label>eMail Address:</label>
+				</object>
+				<col>0</col>
+				<row>0</row>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxTextCtrl" name="ID_TEXTCTRL1" variable="eMailTextControl" member="yes">
+					<value>noone@nowhere.xlights.org</value>
+					<size>150,-1d</size>
+					<handler function="OneMailTextControlTextEnter" entry="EVT_TEXT" />
+					<handler function="OneMailTextControlTextEnter" entry="EVT_TEXT_ENTER" />
+				</object>
+				<col>1</col>
+				<row>0</row>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxCheckBox" name="ID_CHECKBOX1" variable="HardwareVideoDecodingCheckBox" member="yes">
+					<label>Hardware Video Decoding</label>
+					<handler function="OnHardwareVideoDecodingCheckBoxClick" entry="EVT_CHECKBOX" />
+				</object>
+				<colspan>2</colspan>
+				<col>0</col>
+				<row>1</row>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxStaticBoxSizer" variable="StaticBoxSizer1" member="no">
+					<label>Packaging Sequences</label>
+					<object class="sizeritem">
+						<object class="wxGridBagSizer" variable="GridBagSizer2" member="no">
+							<object class="sizeritem">
+								<object class="wxCheckBox" name="ID_CHECKBOX2" variable="ExcludePresetsCheckBox" member="yes">
+									<label>Exclude Presets</label>
+									<handler function="OnExcludePresetsCheckBoxClick" entry="EVT_CHECKBOX" />
+								</object>
+								<col>0</col>
+								<row>0</row>
+								<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxCheckBox" name="ID_CHECKBOX3" variable="ExcludeAudioCheckBox" member="yes">
+									<label>Exclude Audio</label>
+									<handler function="OnExcludeAudioCheckBoxClick" entry="EVT_CHECKBOX" />
+								</object>
+								<col>0</col>
+								<row>1</row>
+								<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<option>1</option>
+					</object>
+				</object>
+				<colspan>2</colspan>
+				<col>0</col>
+				<row>2</row>
+				<flag>wxALL|wxALIGN_LEFT</flag>
+				<option>1</option>
+			</object>
+		</object>
+	</object>
+</wxsmith>

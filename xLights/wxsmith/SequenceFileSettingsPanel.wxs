@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<wxsmith>
+	<object class="wxPanel" name="SequenceFileSettingsPanel">
+		<pos_arg>1</pos_arg>
+		<size_arg>1</size_arg>
+		<object class="wxGridBagSizer" variable="GridBagSizer1" member="no">
+			<object class="sizeritem">
+				<object class="wxCheckBox" name="ID_CHECKBOX1" variable="RenderOnSaveCheckBox" member="yes">
+					<label>Render on Save</label>
+					<handler function="OnRenderOnSaveCheckBoxClick" entry="EVT_CHECKBOX" />
+				</object>
+				<colspan>2</colspan>
+				<col>0</col>
+				<row>0</row>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxCheckBox" name="ID_CHECKBOX2" variable="FSEQSaveCheckBox" member="yes">
+					<label>Save FSEQ On Save</label>
+					<handler function="OnFSEQSaveCheckBoxClick" entry="EVT_CHECKBOX" />
+				</object>
+				<colspan>2</colspan>
+				<col>0</col>
+				<row>1</row>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxCheckBox" name="ID_CHECKBOX3" variable="ModelBlendCheckBox" member="yes">
+					<label>Model Blending Default Off</label>
+					<handler function="OnModelBlendCheckBoxClick" entry="EVT_CHECKBOX" />
+				</object>
+				<colspan>2</colspan>
+				<col>0</col>
+				<row>2</row>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxStaticText" name="wxID_ANY" variable="StaticText1" member="no">
+					<label>Render Cache</label>
+				</object>
+				<col>0</col>
+				<row>3</row>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxChoice" name="ID_CHOICE1" variable="RenderCacheChoice" member="yes">
+					<content>
+						<item>Enabled</item>
+						<item>Locked Effects Only</item>
+						<item>Disabled</item>
+					</content>
+					<selection>1</selection>
+					<handler function="OnRenderCacheChoiceSelect" entry="EVT_CHOICE" />
+				</object>
+				<col>1</col>
+				<row>3</row>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxStaticText" name="wxID_ANY" variable="StaticText2" member="no">
+					<label>Auto Save Interval</label>
+				</object>
+				<col>0</col>
+				<row>4</row>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxChoice" name="ID_CHOICE2" variable="AutoSaveIntervalChoice" member="yes">
+					<content>
+						<item>Disabled</item>
+						<item>3 Minutes</item>
+						<item>5 Minutes</item>
+						<item>10 Minutes</item>
+						<item>15 Minutes</item>
+						<item>30 Minutes</item>
+					</content>
+					<selection>2</selection>
+					<handler function="OnAutoSaveIntervalChoiceSelect" entry="EVT_CHOICE" />
+				</object>
+				<col>1</col>
+				<row>4</row>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxStaticText" name="wxID_ANY" variable="StaticText3" member="no">
+					<label>FSEQ Version</label>
+				</object>
+				<col>0</col>
+				<row>5</row>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxChoice" name="ID_CHOICE3" variable="FSEQVersionChoice" member="yes">
+					<content>
+						<item>V1</item>
+						<item>V2 ZSTD (Default)</item>
+						<item>V2 Uncompressed</item>
+						<item>V2 ZLIB</item>
+					</content>
+					<selection>1</selection>
+					<handler function="OnFSEQVersionChoiceSelect" entry="EVT_CHOICE" />
+				</object>
+				<col>1</col>
+				<row>5</row>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+		</object>
+	</object>
+</wxsmith>
