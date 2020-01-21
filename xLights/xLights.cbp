@@ -1149,6 +1149,8 @@
 		<Unit filename="outputs/xxxSerialOutput.h" />
 		<Unit filename="preferences/BackupSettingsPanel.cpp" />
 		<Unit filename="preferences/BackupSettingsPanel.h" />
+		<Unit filename="preferences/ColorManagerSettingsPanel.cpp" />
+		<Unit filename="preferences/ColorManagerSettingsPanel.h" />
 		<Unit filename="preferences/EffectsGridSettingsPanel.cpp" />
 		<Unit filename="preferences/EffectsGridSettingsPanel.h" />
 		<Unit filename="preferences/OtherSettingsPanel.cpp" />
