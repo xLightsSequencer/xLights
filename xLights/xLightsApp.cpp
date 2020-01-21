@@ -644,6 +644,8 @@ bool xLightsApp::OnInit()
             wxExecute(cmdlineM, wxEXEC_BLOCK,NULL,NULL);
             exit(0);
         }
+       // Set App Name for when running via appimage
+       SetAppName(wxT("xLights"));
 #endif
 
     wxCmdLineParser parser(cmdLineDesc, argc, argv);
