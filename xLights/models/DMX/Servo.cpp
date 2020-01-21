@@ -186,8 +186,8 @@ int Servo::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         return 0;
     }
     else if (base_name + "MinLimit" == name) {
-        node_xml->DeleteAttribute("DmxServoMinLimit");
-        node_xml->AddAttribute("DmxServoMinLimit", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+        node_xml->DeleteAttribute("MinLimit");
+        node_xml->AddAttribute("MinLimit", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
         base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Servo::OnPropertyGridChange::MinLimit");
         base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "Servo::OnPropertyGridChange::MinLimit");
         base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "Servo::OnPropertyGridChange::MinLimit");
