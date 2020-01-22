@@ -113,8 +113,8 @@ void DmxServo3d::InitModel() {
 
     servo1->Init(this);
     servo1->Set16Bit(_16bit);
-    static_mesh->Init(this, true, !motion_mesh->GetExists());
-    motion_mesh->Init(this, !static_mesh->GetExists(), !static_mesh->GetExists() );
+    static_mesh->Init(this, true);
+    motion_mesh->Init(this, !static_mesh->GetExists());
 
     SetNodeNames("Servo1,-Servo1");
 }
@@ -136,14 +136,14 @@ void DmxServo3d::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumu
     glm::quat rotateQuat = GetModelScreenLocation().GetRotationQuat();
     glm::mat4 base_matrix = translateMatrix * glm::toMat4(rotateQuat) * scalingMatrix;
 
-    static_mesh->Draw(this, preview, va, base_matrix, motion_matrix);
+    static_mesh->Draw(this, preview, va, base_matrix, motion_matrix, !motion_mesh->GetExists());
 
     if (servo1->GetChannel() > 0 && active) {
         servo_pos = servo1->GetPosition(GetChannelValue(servo1->GetChannel() - 1, servo1->Is16Bit()));
     }
 
     servo1->FillMotionMatrix(servo_pos, motion_matrix);
-    motion_mesh->Draw(this, preview, va, base_matrix, motion_matrix, servo1->GetPivotOffsetX(), servo1->GetPivotOffsetY(), servo1->GetPivotOffsetZ(), servo1->IsRotate(), !active);
+    motion_mesh->Draw(this, preview, va, base_matrix, motion_matrix, !static_mesh->GetExists(), servo1->GetPivotOffsetX(), servo1->GetPivotOffsetY(), servo1->GetPivotOffsetZ(), servo1->IsRotate(),  !active);
 }
 
 void DmxServo3d::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator& va, const xlColor* c, float& sx, float& sy, bool active)

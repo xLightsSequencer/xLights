@@ -20,7 +20,7 @@ class Mesh
         Mesh(wxXmlNode* node, wxString _name);
         virtual ~Mesh();
 
-        void Init(BaseObject* base, bool set_size, bool show_empty_);
+        void Init(BaseObject* base, bool set_size);
         bool GetExists() { return !_objFile.empty(); }
 
         void AddTypeProperties(wxPropertyGridInterface* grid);
@@ -29,7 +29,7 @@ class Mesh
         int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event, BaseObject* base, bool locked);
 
         void Draw(BaseObject* base, ModelPreview* preview, DrawGLUtils::xl3Accumulator& va, glm::mat4& base_matrix, glm::mat4& motion_matrix,
-                  float pivot_offset_x = 0, float pivot_offset_y = 0, float pivot_offset_z = 0, bool rotation = false, bool use_pivot = false);
+            bool show_empty, float pivot_offset_x = 0, float pivot_offset_y = 0, float pivot_offset_z = 0, bool rotation = false, bool use_pivot = false);
 
         void Serialise(wxXmlNode* root, wxFile& f, const wxString& show_dir) const;
         void Serialise(wxXmlNode* root, wxXmlNode* model_xml, const wxString& show_dir) const;
@@ -49,7 +49,6 @@ class Mesh
         bool obj_loaded;
         bool mesh_only;
         bool obj_exists;
-        bool show_empty;
         bool controls_size;
         float offset_x;
         float offset_y;

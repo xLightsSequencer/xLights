@@ -21,7 +21,7 @@ Mesh::Mesh(wxXmlNode* node, wxString _name)
  : node_xml(node), _objFile(""),
     width(1), height(1), depth(1), brightness(100),
     obj_loaded(false), mesh_only(false), obj_exists(false),
-    show_empty(false), controls_size(false),
+    controls_size(false),
     offset_x(0.0f), offset_y(0.0f), offset_z(0.0f),
     scalex(1.0f), scaley(1.0f), scalez(1.0f),
     rotatex(0.0f), rotatey(0.0f), rotatez(0.0f),
@@ -41,7 +41,7 @@ Mesh::~Mesh()
     }
 }
 
-void Mesh::Init(BaseObject* base, bool set_size, bool show_empty_) {
+void Mesh::Init(BaseObject* base, bool set_size) {
 	_objFile = FixFile("", node_xml->GetAttribute("ObjFile", ""));
     mesh_only = node_xml->GetAttribute("MeshOnly", "0") == "1";
 
@@ -84,7 +84,6 @@ void Mesh::Init(BaseObject* base, bool set_size, bool show_empty_) {
         rotatez = 0.0f;
     }
 
-    show_empty = show_empty_;
     controls_size = set_size;
     if (controls_size) {
         base->GetBaseObjectScreenLocation().SetRenderSize(width * scalex, height * scaley, depth * scalez);
@@ -542,7 +541,7 @@ void Mesh::loadObject(BaseObject* base) {
 }
 
 void Mesh::Draw(BaseObject* base, ModelPreview* preview, DrawGLUtils::xl3Accumulator &va, glm::mat4& base_matrix, glm::mat4& motion_matrix,
-                float pivot_offset_x, float pivot_offset_y, float pivot_offset_z, bool rotation, bool use_pivot)
+                bool show_empty, float pivot_offset_x, float pivot_offset_y, float pivot_offset_z, bool rotation, bool use_pivot)
 {
     if (!obj_loaded) {
         loadObject(base);

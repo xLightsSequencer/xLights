@@ -306,10 +306,10 @@ void DmxServo3Axis::InitModel() {
     servo1->Init(this);
     servo2->Init(this);
     servo3->Init(this);
-    static_mesh->Init(this, true, !motion_mesh1->GetExists());
-    motion_mesh1->Init(this, !static_mesh->GetExists(), !static_mesh->GetExists());
-    motion_mesh2->Init(this, !static_mesh->GetExists() && !motion_mesh1->GetExists(), !static_mesh->GetExists() && !motion_mesh1->GetExists());
-    motion_mesh3->Init(this, !static_mesh->GetExists() && !motion_mesh1->GetExists() && !motion_mesh2->GetExists(), !static_mesh->GetExists() && !motion_mesh1->GetExists() && !motion_mesh2->GetExists());
+    static_mesh->Init(this, true);
+    motion_mesh1->Init(this, !static_mesh->GetExists());
+    motion_mesh2->Init(this, !static_mesh->GetExists() && !motion_mesh1->GetExists());
+    motion_mesh3->Init(this, !static_mesh->GetExists() && !motion_mesh1->GetExists() && !motion_mesh2->GetExists());
 
     servo2_motion_link = ModelXml->GetAttribute("Servo2Linkage", "Mesh 2");
     servo2_motion_link_val = MOTION_LINK_MESH2;
@@ -374,7 +374,7 @@ void DmxServo3Axis::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Acc
     glm::quat rotateQuat = GetModelScreenLocation().GetRotationQuat();
     glm::mat4 base_matrix = translateMatrix * glm::toMat4(rotateQuat) * scalingMatrix;
 
-    static_mesh->Draw(this, preview, va, base_matrix, motion_matrix);
+    static_mesh->Draw(this, preview, va, base_matrix, motion_matrix, !motion_mesh1->GetExists());
 
     if (servo1->GetChannel() > 0 && active) {
         servo1_pos = servo1->GetPosition(GetChannelValue(servo1->GetChannel() - 1, servo2->Is16Bit()));
@@ -399,7 +399,7 @@ void DmxServo3Axis::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Acc
         if (servo3_motion_link_val == MOTION_LINK_MESH1) {
             motion_matrix = motion_matrix * motion3_matrix;
         }
-        motion_mesh1->Draw(this, preview, va, base_matrix, motion_matrix);
+        motion_mesh1->Draw(this, preview, va, base_matrix, motion_matrix, !static_mesh->GetExists());
     }
 
     // Draw Mesh 2
@@ -414,7 +414,7 @@ void DmxServo3Axis::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Acc
         if (servo3_motion_link_val == MOTION_LINK_MESH2) {
             motion_matrix =  motion_matrix * motion3_matrix;
         }
-        motion_mesh2->Draw(this, preview, va, base_matrix, motion_matrix);
+        motion_mesh2->Draw(this, preview, va, base_matrix, motion_matrix, !static_mesh->GetExists() && !motion_mesh1->GetExists());
     }
 
     // Draw Mesh 3
@@ -432,7 +432,7 @@ void DmxServo3Axis::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Acc
         if (servo3_motion_link_val == MOTION_LINK_MESH3) {
             motion_matrix = motion_matrix * motion3_matrix;
         }
-        motion_mesh3->Draw(this, preview, va, base_matrix, motion_matrix);
+        motion_mesh3->Draw(this, preview, va, base_matrix, motion_matrix, !static_mesh->GetExists() && !motion_mesh1->GetExists() && !motion_mesh2->GetExists());
     }
 }
 
