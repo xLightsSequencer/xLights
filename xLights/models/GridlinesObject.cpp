@@ -113,7 +113,7 @@ int GridlinesObject::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPrope
 
 void GridlinesObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, DrawGLUtils::xl3Accumulator &tva3, bool allowSelected)
 {
-    if( !active ) { return; }
+    if (!IsActive()) { return; }
 
     GetObjectScreenLocation().PrepareToDraw(true, allowSelected);
 

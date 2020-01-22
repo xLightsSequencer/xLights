@@ -85,7 +85,8 @@ public:
 
 	virtual void UpdateXmlWithScale() = 0;
 
-    bool IsActive() const { return active; }
+    bool IsActive() const { return _active; }
+    void SetActive(bool active);
 
     std::string name;
 
@@ -98,7 +99,7 @@ protected:
     wxXmlNode* ModelXml;
     std::string layout_group;
     unsigned long changeCount;
-    bool active;
+    bool _active;
 
 private:
 };

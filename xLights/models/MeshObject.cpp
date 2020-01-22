@@ -459,7 +459,7 @@ void MeshObject::loadObject() {
 
 void MeshObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, DrawGLUtils::xl3Accumulator &tva3, bool allowSelected)
 {
-    if( !active ) { return; }
+    if( !IsActive() ) { return; }
 
     GetObjectScreenLocation().PrepareToDraw(true, allowSelected);
 

@@ -120,6 +120,8 @@ const long LayoutPanel::ID_PREVIEW_RESIZE_SAMESIZE = wxNewId();
 const long LayoutPanel::ID_PREVIEW_BULKEDIT = wxNewId();
 const long LayoutPanel::ID_PREVIEW_BULKEDIT_CONTROLLERCONNECTION = wxNewId();
 const long LayoutPanel::ID_PREVIEW_BULKEDIT_CONTROLLERNAME = wxNewId();
+const long LayoutPanel::ID_PREVIEW_BULKEDIT_SETACTIVE = wxNewId();
+const long LayoutPanel::ID_PREVIEW_BULKEDIT_SETINACTIVE = wxNewId();
 const long LayoutPanel::ID_PREVIEW_BULKEDIT_SMARTREMOTE = wxNewId();
 const long LayoutPanel::ID_PREVIEW_BULKEDIT_TAGCOLOUR = wxNewId();
 const long LayoutPanel::ID_PREVIEW_BULKEDIT_CONTROLLERGAMMA = wxNewId();
@@ -1675,6 +1677,67 @@ void LayoutPanel::BulkEditControllerConnection(int id)
                 {
                     modelPreview->GetModels()[i]->GroupSelected = true;
                 }
+            }
+        }
+    }
+}
+
+void LayoutPanel::BulkEditActive(bool active)
+{
+    // remember the selected models
+    wxString selected = "";
+    for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
+    {
+        if (modelPreview->GetModels()[i]->GroupSelected)
+        {
+            if (selected != "")
+            {
+                selected += ",";
+            }
+            selected += modelPreview->GetModels()[i]->GetName();
+        }
+    }
+
+    std::string sm = GetSelectedModelName();
+
+    for (size_t i = 0; i < modelPreview->GetModels().size(); i++) {
+        if (modelPreview->GetModels()[i]->GroupSelected || modelPreview->GetModels()[i]->Selected) {
+            modelPreview->GetModels()[i]->SetActive(active);
+        }
+    }
+
+    for (const auto& it : xlights->AllObjects) {
+
+        if (it.second->Selected || it.second->GroupSelected)
+        {
+            it.second->SetActive(active);
+        }
+
+        ViewObject* view_object = it.second;
+
+        if (selectedBaseObject == nullptr)
+        {
+            SelectBaseObject(view_object);
+        }
+    }
+
+    if (selectedBaseObject != nullptr)
+    {
+        selectedBaseObject->SetActive(active);
+    }
+
+    xlights->GetOutputModelManager()->ForceSelectedModel(sm);
+    xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "BulkEditActive", nullptr, nullptr, sm);
+
+    // reselect all the models
+    wxArrayString models = wxSplit(selected, ',');
+    for (const auto& it : models)
+    {
+        for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
+        {
+            if (modelPreview->GetModels()[i]->GetName() == it.ToStdString())
+            {
+                modelPreview->GetModels()[i]->GroupSelected = true;
             }
         }
     }
@@ -3975,6 +4038,8 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
     if (selectedObjectCnt > 1)
     {
         wxMenu* mnuBulkEdit = new wxMenu();
+        mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_SETACTIVE, "Active");
+        mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_SETINACTIVE, "Inactive");
         if( editing_models ) {
             if (xlights->GetOutputManager()->GetAutoLayoutControllerNames().size() > 0)
             {
@@ -4215,6 +4280,14 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
     else if (event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERNAME)
     {
         BulkEditControllerName();
+    }
+    else if (event.GetId() == ID_PREVIEW_BULKEDIT_SETACTIVE)
+    {
+        BulkEditActive(true);
+    }
+    else if (event.GetId() == ID_PREVIEW_BULKEDIT_SETINACTIVE)
+    {
+        BulkEditActive(false);
     }
     else if (event.GetId() == ID_PREVIEW_BULKEDIT_TAGCOLOUR)
     {

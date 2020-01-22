@@ -88,7 +88,7 @@ int ImageObject::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyG
 
 void ImageObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, DrawGLUtils::xl3Accumulator &tva3, bool allowSelected)
 {
-    if( !active ) { return; }
+    if( !IsActive() ) { return; }
 
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     bool exists = false;

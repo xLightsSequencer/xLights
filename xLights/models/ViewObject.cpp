@@ -25,7 +25,7 @@ void ViewObject::SetFromXml(wxXmlNode* ObjectNode, bool zeroBased) {
     name=ObjectNode->GetAttribute("name").ToStdString();
     DisplayAs=ObjectNode->GetAttribute("DisplayAs").ToStdString();
     layout_group = "Default"; // objects in 3d can only belong to default as only default is 3d
-    active = ObjectNode->GetAttribute("Active", "1") == "1";
+    _active = ObjectNode->GetAttribute("Active", "1") == "1";
 
     GetObjectScreenLocation().Read(ObjectNode);
 
@@ -39,7 +39,7 @@ void ViewObject::AddProperties(wxPropertyGridInterface *grid, OutputManager* out
     //LAYOUT_GROUPS = Model::GetLayoutGroups(modelManager);
 
     wxPGProperty *p = grid->Append(new wxPropertyCategory(DisplayAs, "ModelType"));
-    p = grid->Append(new wxBoolProperty("Active", "Active", active));
+    p = grid->Append(new wxBoolProperty("Active", "Active", IsActive()));
     p->SetAttribute("UseCheckbox", true);
 
     AddTypeProperties(grid);
@@ -61,17 +61,7 @@ void ViewObject::AddProperties(wxPropertyGridInterface *grid, OutputManager* out
 int ViewObject::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
 
     if (event.GetPropertyName() == "Active") {
-        ModelXml->DeleteAttribute("Active");
-        active = event.GetValue().GetBool();
-        if (active) {
-            ModelXml->AddAttribute("Active", "1");
-        } else
-        {
-            ModelXml->AddAttribute("Active", "0");
-        }
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ViewObject::OnPropertyGridChange::Active");
-        //AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "ViewObject::OnPropertyGridChange::Active");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ViewObject::OnPropertyGridChange::Active");
+        SetActive(event.GetValue().GetBool());
         return 0;
     }
 

@@ -7,7 +7,7 @@
 #include "../xLightsApp.h"
 
 BaseObject::BaseObject()
-: ModelXml(nullptr), changeCount(0), active(true)
+: ModelXml(nullptr), changeCount(0), _active(true)
 {
     //ctor
 }
@@ -270,5 +270,19 @@ bool BaseObject::Scale(const glm::vec3& factor)
 
 bool BaseObject::IsContained(ModelPreview* preview, int x1, int y1, int x2, int y2) {
     return  GetBaseObjectScreenLocation().IsContained(preview, x1, y1, x2, y2);
+}
+
+void BaseObject::SetActive(bool active) {
+	_active = active; 
+    ModelXml->DeleteAttribute("Active");
+    if (active) {
+        ModelXml->AddAttribute("Active", "1");
+    }
+    else
+    {
+        ModelXml->AddAttribute("Active", "0");
+    }
+    AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "BaseObject::SetActive");
+    AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "BaseObject::SetActive");
 }
 
