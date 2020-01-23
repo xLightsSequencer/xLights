@@ -1140,7 +1140,28 @@ void RowHeading::BreakdownTimingPhrases(TimingElement* element)
     EffectLayer* layer = element->GetEffectLayer(0);
     if( element->GetEffectLayerCount() > 1 )
     {
+        bool found_locked = false;
+
         for( int k = element->GetEffectLayerCount()-1; k > 0; k--)
+        {
+            EffectLayer* purge_layer = element->GetEffectLayer(k);
+            for (int ef = 0; ef < purge_layer->GetEffectCount(); ef++)
+            {
+                Effect* e = purge_layer->GetEffect(ef);
+                if (!e->IsLocked())
+                {
+                    found_locked = true;
+                    break;
+                }
+            }
+        }
+
+        if (found_locked)
+        {
+            return;
+        }
+
+        for (int k = element->GetEffectLayerCount() - 1; k > 0; k--)
         {
             element->RemoveEffectLayer(k);
         }
@@ -1158,12 +1179,32 @@ void RowHeading::BreakdownTimingPhrases(TimingElement* element)
 
 void RowHeading::BreakdownTimingWords(TimingElement* element)
 {
+    EffectLayer* word_layer = element->GetEffectLayer(1);
+    EffectLayer* phoneme_layer = nullptr;
+
     if( element->GetEffectLayerCount() > 2 )
     {
+        bool found_locked = false;
+        phoneme_layer = element->GetEffectLayer(2);
+        for (int ef = 0; ef < phoneme_layer->GetEffectCount(); ef++) {
+            Effect* e = phoneme_layer->GetEffect(ef);
+            if (!e->IsLocked())
+            {
+                found_locked = true;
+                break;
+            }
+        }
+
+        if (found_locked)
+        {
+            return;
+        }
+
         element->RemoveEffectLayer(2);
     }
-    EffectLayer* word_layer = element->GetEffectLayer(1);
-    EffectLayer* phoneme_layer = element->AddEffectLayer();
+
+    phoneme_layer = element->AddEffectLayer();
+
     for( int i = 0; i < word_layer->GetEffectCount(); i++ )
     {
         Effect* effect = word_layer->GetEffect(i);

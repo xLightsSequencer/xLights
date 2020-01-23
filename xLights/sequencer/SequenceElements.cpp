@@ -2064,7 +2064,18 @@ void SequenceElements::BreakdownPhrase(EffectLayer* word_layer, int start_time, 
             {
                 word_end_time = end_time;
             }
-            word_layer->AddEffect(0,words[i].ToStdString(),"","",word_start_time,word_end_time,EFFECT_NOT_SELECTED,false);
+
+            // Don't clash with any existing words - it makes a mess
+            if (!(word_layer->GetAllEffectsByTime(word_start_time, word_end_time).size()))
+            {
+                word_layer->AddEffect(0, words[i].ToStdString(), "", "", word_start_time, word_end_time, EFFECT_NOT_SELECTED, false);
+            }
+            else
+            {
+                // If there's only a clash for part of the word, can we fit this one in anyway?
+                // Semantics of this are up for grabs... TBD.
+            }
+
             word_start_time = word_end_time;
         }
     }
@@ -2135,7 +2146,16 @@ void SequenceElements::BreakdownWord(EffectLayer* phoneme_layer, int start_time,
             // only create phonemes with duration
             if (phoneme_end_time > phoneme_start_time)
             {
-                phoneme_layer->AddEffect(0, phoneme.ToStdString(), "", "", phoneme_start_time, phoneme_end_time, EFFECT_NOT_SELECTED, false);
+                // Don't overlay any existing phonemes - it makes a mess
+                if (!(phoneme_layer->GetAllEffectsByTime(phoneme_start_time, phoneme_end_time).size()))
+                {
+                    phoneme_layer->AddEffect(0, phoneme.ToStdString(), "", "", phoneme_start_time, phoneme_end_time, EFFECT_NOT_SELECTED, false);
+                }
+                else
+                {
+                    // If there's only a clash for part of the phoneme, can we fit this one in anyway?
+                    // Semantics of this are up for grabs... TBD.
+                }
             }
             phoneme_start_time = phoneme_end_time;
         }
