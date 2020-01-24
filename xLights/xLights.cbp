@@ -1029,6 +1029,8 @@
 		<Unit filename="models/DMX/Mesh.h" />
 		<Unit filename="models/DMX/Servo.cpp" />
 		<Unit filename="models/DMX/Servo.h" />
+		<Unit filename="models/DMX/ServoConfigDialog.cpp" />
+		<Unit filename="models/DMX/ServoConfigDialog.h" />
 		<Unit filename="models/DmxModel.h" />
 		<Unit filename="models/GridlinesObject.cpp" />
 		<Unit filename="models/GridlinesObject.h" />
@@ -1361,6 +1363,7 @@
 		<Unit filename="wxsmith/SeqSettingsDialog.wxs" />
 		<Unit filename="wxsmith/SequenceFileSettingsPanel.wxs" />
 		<Unit filename="wxsmith/SequenceVideoPanel.wxs" />
+		<Unit filename="wxsmith/ServoConfigDialog.wxs" />
 		<Unit filename="wxsmith/ServoPanel.wxs" />
 		<Unit filename="wxsmith/SevenSegmentDialog.wxs" />
 		<Unit filename="wxsmith/ShaderDownloadDialog.wxs" />
@@ -1505,6 +1508,7 @@
 					<wxDialog wxs="wxsmith/SeqExportDialog.wxs" src="SeqExportDialog.cpp" hdr="SeqExportDialog.h" fwddecl="0" i18n="1" name="SeqExportDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/SeqSettingsDialog.wxs" src="SeqSettingsDialog.cpp" hdr="SeqSettingsDialog.h" fwddecl="0" i18n="1" name="SeqSettingsDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/SerialPortWithRate.wxs" src="outputs/SerialPortWithRate.cpp" hdr="outputs/SerialPortWithRate.h" fwddecl="0" i18n="1" name="SerialPortWithRate" language="CPP" />
+					<wxDialog wxs="wxsmith/ServoConfigDialog.wxs" src="models/DMX/ServoConfigDialog.cpp" hdr="models/DMX/ServoConfigDialog.h" fwddecl="0" i18n="1" name="ServoConfigDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/SevenSegmentDialog.wxs" src="SevenSegmentDialog.cpp" hdr="SevenSegmentDialog.h" fwddecl="0" i18n="1" name="SevenSegmentDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/ShaderDownloadDialog.wxs" src="ShaderDownloadDialog.cpp" hdr="ShaderDownloadDialog.h" fwddecl="0" i18n="1" name="ShaderDownloadDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/SplashDialog.wxs" src="SplashDialog.cpp" hdr="SplashDialog.h" fwddecl="0" i18n="1" name="SplashDialog" language="CPP" />

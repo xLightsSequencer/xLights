@@ -37,6 +37,8 @@ class Servo
         float GetPosition(int channel_value);
         void Set16Bit(bool value);
         bool Is16Bit() { return _16bit; }
+        void SetLink(Servo* val) { link = val; }
+        Servo* GetLink() { return link; }
 
     protected:
 
@@ -55,6 +57,7 @@ class Servo
         bool _16bit;
         float offset_scale;
         bool is_2d;
+        Servo* link;
 };
 
 #endif // SERVO_H

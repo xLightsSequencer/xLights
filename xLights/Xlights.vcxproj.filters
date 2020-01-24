@@ -792,9 +792,6 @@
     <ClCompile Include="models\DMX\DmxFloodArea.cpp">
       <Filter>Models\DMX</Filter>
     </ClCompile>
-    <ClCompile Include="models\DMX\DmxServo3Axis.cpp">
-      <Filter>Models\DMX</Filter>
-    </ClCompile>
     <ClCompile Include="models\DMX\Servo.cpp">
       <Filter>Models\DMX</Filter>
     </ClCompile>
@@ -824,6 +821,9 @@
     </ClCompile>
     <ClCompile Include="preferences\RandomEffectsSettingsPanel.cpp">
       <Filter>Preferences</Filter>
+    </ClCompile>
+    <ClCompile Include="models\DMX\ServoConfigDialog.cpp">
+      <Filter>Models\DMX</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1629,9 +1629,6 @@
     <ClInclude Include="models\DMX\DmxFloodArea.h">
       <Filter>Models\DMX</Filter>
     </ClInclude>
-    <ClInclude Include="models\DMX\DmxServo3Axis.h">
-      <Filter>Models\DMX</Filter>
-    </ClInclude>
     <ClInclude Include="models\DMX\Servo.h">
       <Filter>Models\DMX</Filter>
     </ClInclude>
@@ -1658,6 +1655,9 @@
     </ClInclude>
     <ClInclude Include="preferences\RandomEffectsSettingsPanel.h">
       <Filter>Preferences</Filter>
+    </ClInclude>
+    <ClInclude Include="models\DMX\ServoConfigDialog.h">
+      <Filter>Models\DMX</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

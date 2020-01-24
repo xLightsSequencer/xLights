@@ -34,6 +34,12 @@ class Mesh
         void Serialise(wxXmlNode* root, wxFile& f, const wxString& show_dir) const;
         void Serialise(wxXmlNode* root, wxXmlNode* model_xml, const wxString& show_dir) const;
 
+        void SetLink(Mesh* val) { link = val; }
+        Mesh* GetLink() { return link; }
+
+        float GetWidth() { return width; }
+        float GetHeight() { return height; }
+
     protected:
 
         void loadObject(BaseObject* base);
@@ -70,6 +76,7 @@ class Mesh
         float bmax[3];
 
         DrawGLUtils::xl3DMesh *mesh3d;
+        Mesh* link;
 };
 
 #endif // MESH_H

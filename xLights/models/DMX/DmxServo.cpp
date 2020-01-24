@@ -102,7 +102,7 @@ int DmxServo::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGrid
         AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "DmxServo::OnPropertyGridChange::NumServos");
         return 0;
     }
-    else if (event.GetPropertyName() == "Bits16") {
+    if (event.GetPropertyName() == "Bits16") {
         ModelXml->DeleteAttribute("Bits16");
         if (event.GetValue().GetBool()) {
             _16bit = true;
@@ -508,6 +508,7 @@ void DmxServo::ImportXlightsModel(std::string filename, xLightsFrame* xlights, f
             SetProperty("name", newname, true);
 
             wxString show_dir = GetModelManager().GetXLightsFrame()->GetShowDirectory();
+
             for (auto it = static_images.begin(); it != static_images.end(); ++it) {
                 (*it)->Serialise(root, ModelXml, show_dir);
             }

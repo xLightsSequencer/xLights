@@ -17,21 +17,37 @@ class DmxServo3d : public DmxModel
         virtual void AddTypeProperties(wxPropertyGridInterface* grid) override;
         virtual int OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event) override;
 
-        Servo* GetAxis1() { return servo1; }
+        Servo* GetAxis(int num) { return num < num_servos ? servos[num] : servos[0]; }
+        int GetNumServos() const { return num_servos; }
+        int GetNumStatic() const { return num_static; }
+        int GetNumMotion() const { return num_motion; }
+        void UpdateNodeNames() { update_node_names = true; }
+        bool Is16Bit() const { return _16bit; }
 
     protected:
         virtual void InitModel() override;
+        void Clear();
 
         virtual void ExportXlightsModel() override;
         virtual void ImportXlightsModel(std::string filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) override;
 
-        float brightness;
+        float brightness = 100.0f;
 
     private:
-        Mesh* static_mesh;
-        Mesh* motion_mesh;
-        Servo* servo1;
-        bool _16bit;
+        static const int SUPPORTED_SERVOS = 24;
+
+        bool update_node_names = false;
+        int num_servos = 1;
+        int num_static = 1;
+        int num_motion = 1;
+        bool _16bit = true;
+        bool show_pivot = false;
+        std::vector<Mesh*> static_meshs;
+        std::vector<Mesh*> motion_meshs;
+        std::vector<Servo*> servos;
+        int servo_links[SUPPORTED_SERVOS];
+        int mesh_links[SUPPORTED_SERVOS];
 };
 
 #endif // DMXSERVO3D_H
+

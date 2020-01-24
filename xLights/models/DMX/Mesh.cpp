@@ -25,7 +25,7 @@ Mesh::Mesh(wxXmlNode* node, wxString _name)
     offset_x(0.0f), offset_y(0.0f), offset_z(0.0f),
     scalex(1.0f), scaley(1.0f), scalez(1.0f),
     rotatex(0.0f), rotatey(0.0f), rotatez(0.0f),
-    base_name(_name), mesh3d(nullptr)
+    base_name(_name), mesh3d(nullptr), link(nullptr)
 {
 }
 
@@ -548,8 +548,6 @@ void Mesh::Draw(BaseObject* base, ModelPreview* preview, DrawGLUtils::xl3Accumul
         base->GetBaseObjectScreenLocation().SetSupportsZScaling(true);  // set here instead of constructor so model creation doesn't go up like a tree
     }
 
-    base->GetBaseObjectScreenLocation().UpdateBoundingBox(width, height);  // FIXME: Modify to only call this when position changes
-
     if (obj_loaded) {
         glm::mat4 Identity = glm::mat4(1.0f);
         glm::mat4 scalingMatrix = glm::scale(Identity, glm::vec3(scalex, scaley, scalez));
@@ -567,6 +565,11 @@ void Mesh::Draw(BaseObject* base, ModelPreview* preview, DrawGLUtils::xl3Accumul
         else
         {
             m = base_matrix * translationMatrix * motion_matrix * glm::toMat4(rotate_quat) * scalingMatrix;
+        }
+
+        if (controls_size) {
+            base->GetBaseObjectScreenLocation().SetRenderSize(width * scalex, height * scaley, depth * scalez);
+            base->GetBaseObjectScreenLocation().UpdateBoundingBox(width, height);  // FIXME: Modify to only call this when position changes*/
         }
 
         if (!mesh3d) {
@@ -779,8 +782,8 @@ void Mesh::Draw(BaseObject* base, ModelPreview* preview, DrawGLUtils::xl3Accumul
             float x1 = pivot_offset_x;
             float y1 = pivot_offset_y;
             float z1 = pivot_offset_z;
-            float offx = base->GetBaseObjectScreenLocation().GetMWidth() / 2.0f;
-            float offz = base->GetBaseObjectScreenLocation().GetMDepth() / 2.0f;
+            float offx = width * scalex;
+            float offz = depth * scalez;
             glm::vec4 v = base_matrix * translationMatrix * glm::vec4(glm::vec3(x1, y1, z1), 1.0f);
             x1 = v.x; y1 = v.y; z1 = v.z;
             va.AddVertex(x1 - offx, y1, z1, pink);

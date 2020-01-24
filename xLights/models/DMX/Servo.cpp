@@ -14,7 +14,8 @@ Servo::Servo(wxXmlNode* node, wxString _name, bool _is2d)
     min_limit(0), max_limit(65535), range_of_motion(180.0f),
     pivot_offset_x(0), pivot_offset_y(0), pivot_offset_z(0),
     servo_style_val(0), servo_style("Translate X"),
-    _16bit(true), offset_scale(_is2d ? 100.0f : 1.0f), is_2d(_is2d)
+    _16bit(true), offset_scale(_is2d ? 100.0f : 1.0f),
+    is_2d(_is2d), link(nullptr)
 {
 }
 

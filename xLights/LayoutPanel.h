@@ -187,7 +187,6 @@ class LayoutPanel: public wxPanel
         static const long ID_ADD_DMX_MOVING_HEAD_3D;
         static const long ID_ADD_DMX_SERVO;
         static const long ID_ADD_DMX_SERVO_3D;
-        static const long ID_ADD_DMX_SERVO_3AXIS;
         static const long ID_ADD_DMX_SKULLTRONIX;
         static const long ID_ADD_DMX_FLOODLIGHT;
         static const long ID_ADD_DMX_FLOODAREA;
