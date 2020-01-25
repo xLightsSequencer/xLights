@@ -3,6 +3,9 @@
 
 #include "DmxMovingHead.h"
 
+class Mesh;
+class wxXmlNode;
+
 class DmxMovingHead3D : public DmxMovingHead
 {
     public:
@@ -25,6 +28,13 @@ class DmxMovingHead3D : public DmxMovingHead
         void Draw3DDMXHead(DrawGLUtils::xl3Accumulator &va, const xlColor &c, float &sx, float &sy, float &sz, float &scale, float &pan_angle, float &tilt_angle);
 
     private:
+        void DrawModel(ModelPreview* preview, DrawGLUtils::xlAccumulator& va2, DrawGLUtils::xl3Accumulator& va3, const xlColor* c, float& sx, float& sy, float& sz, bool active, bool is_3d);
+
+        Mesh* base_mesh = nullptr;
+        Mesh* head_mesh = nullptr;
+        wxXmlNode* base_node = nullptr;
+        wxXmlNode* head_node = nullptr;
+        wxString obj_path = "";
 };
 
 #endif // DMXMOVINGHEAD3D_H

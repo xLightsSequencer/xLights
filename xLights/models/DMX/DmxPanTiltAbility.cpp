@@ -26,8 +26,8 @@ void DmxPanTiltAbility::AddPanTiltTypeProperties(wxPropertyGridInterface *grid) 
     p->SetAttribute("Max", 360);
     p->SetEditor("SpinCtrl");
 
-    p = grid->Append(new wxUIntProperty("Pan Deg of Rot", "DmxPanDegOfRot", pan_deg_of_rot));
-    p->SetAttribute("Min", 0);
+    p = grid->Append(new wxIntProperty("Pan Deg of Rot", "DmxPanDegOfRot", pan_deg_of_rot));
+    p->SetAttribute("Min", -1000);
     p->SetAttribute("Max", 1000);
     p->SetEditor("SpinCtrl");
 
@@ -48,8 +48,8 @@ void DmxPanTiltAbility::AddPanTiltTypeProperties(wxPropertyGridInterface *grid) 
     p->SetAttribute("Max", 360);
     p->SetEditor("SpinCtrl");
 
-    p = grid->Append(new wxUIntProperty("Tilt Deg of Rot", "DmxTiltDegOfRot", tilt_deg_of_rot));
-    p->SetAttribute("Min", 0);
+    p = grid->Append(new wxIntProperty("Tilt Deg of Rot", "DmxTiltDegOfRot", tilt_deg_of_rot));
+    p->SetAttribute("Min", -1000);
     p->SetAttribute("Max", 1000);
     p->SetEditor("SpinCtrl");
 
