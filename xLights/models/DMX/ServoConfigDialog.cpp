@@ -63,7 +63,6 @@ ServoConfigDialog::ServoConfigDialog(wxWindow* parent,wxWindowID id,const wxPoin
 	FlexGridSizer1->SetSizeHints(this);
 	//*)
 	Connect(ID_SPINCTRL_NumServos, wxEVT_COMMAND_SPINCTRL_UPDATED, (wxObjectEventFunction)&ServoConfigDialog::OnSpinCtrl_NumServosChange);
-	SpinCtrl_NumMotion->SetRange(1, SpinCtrl_NumServos->GetValue());
 }
 
 ServoConfigDialog::~ServoConfigDialog()

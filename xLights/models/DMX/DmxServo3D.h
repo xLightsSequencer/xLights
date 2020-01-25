@@ -2,7 +2,8 @@
 #define DMXSERVO3D_H
 
 #include "DmxModel.h"
-#include "Mesh.h"
+
+class Mesh;
 class Servo;
 
 class DmxServo3d : public DmxModel

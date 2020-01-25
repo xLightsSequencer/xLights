@@ -8,6 +8,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "DmxServo3D.h"
+#include "Mesh.h"
 #include "Servo.h"
 #include "ServoConfigDialog.h"
 #include "../../ModelPreview.h"
@@ -89,6 +90,7 @@ public:
         dlg.SpinCtrl_NumServos->SetValue(m_model->GetNumServos());
         dlg.SpinCtrl_NumStatic->SetValue(m_model->GetNumStatic());
         dlg.SpinCtrl_NumMotion->SetValue(m_model->GetNumMotion());
+        dlg.SpinCtrl_NumMotion->SetRange(1, m_model->GetNumServos());
 
         if (dlg.ShowModal() == wxID_OK) {
             bool changed = false;
@@ -501,7 +503,7 @@ void DmxServo3d::InitModel() {
         (*it)->Set16Bit(_16bit);
     }
 
-    bool last_exists = num_motion > 0 ? !motion_meshs[0]->GetExists() : false;
+    bool last_exists = num_motion > 0 ? motion_meshs[0]->GetExists() : false;
     for (auto it = static_meshs.begin(); it != static_meshs.end(); ++it) {
         (*it)->Init(this, !last_exists);
         last_exists = (*it)->GetExists();
