@@ -40,6 +40,30 @@ void Servo::SetChannel(int chan, BaseObject* base) {
     node_xml->AddAttribute("Channel", wxString::Format("%d", channel));
 }
 
+void Servo::SetStyle(const std::string& style) {
+    servo_style = style;
+    node_xml->DeleteAttribute("ServoStyle");
+    node_xml->AddAttribute("ServoStyle", style);
+}
+
+void Servo::SetMinLimit(int val) {
+    min_limit = val;
+    node_xml->DeleteAttribute("MinLimit");
+    node_xml->AddAttribute("MinLimit", std::to_string(min_limit));
+}
+
+void Servo::SetMaxLimit(int val) {
+    max_limit = val;
+    node_xml->DeleteAttribute("MaxLimit");
+    node_xml->AddAttribute("MaxLimit", std::to_string(max_limit));
+}
+
+void Servo::SetRangeOfMotion(float val) {
+    range_of_motion = val;
+    node_xml->DeleteAttribute("RangeOfMotion");
+    node_xml->AddAttribute("RangeOfMotion", std::to_string(range_of_motion));
+}
+
 void Servo::Init(BaseObject* base) {
     channel = wxAtoi(node_xml->GetAttribute("Channel", "0"));
     min_limit = wxAtoi(node_xml->GetAttribute("MinLimit", "0"));

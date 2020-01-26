@@ -24,7 +24,6 @@ class Servo
         void Serialise(wxXmlNode* root, wxXmlNode* model_xml, const wxString& show_dir) const;
 
         int GetChannel() const { return channel; }
-        void SetChannel(int chan, BaseObject* base);
         int GetMinLimit() const { return min_limit; }
         int GetMaxLimit() const { return max_limit; }
         int GetRangeOfMotion() const { return range_of_motion; }
@@ -35,10 +34,16 @@ class Servo
         bool IsRotate() const;
         void FillMotionMatrix(float& servo_pos, glm::mat4& motion_matrix);
         float GetPosition(int channel_value);
-        void Set16Bit(bool value);
         bool Is16Bit() { return _16bit; }
-        void SetLink(Servo* val) { link = val; }
         Servo* GetLink() { return link; }
+
+        void SetChannel(int chan, BaseObject* base);
+        void SetMinLimit(int val);
+        void SetMaxLimit(int val);
+        void SetRangeOfMotion(float val);
+        void SetStyle(const std::string& style);
+        void Set16Bit(bool value);
+        void SetLink(Servo* val) { link = val; }
 
     protected:
 

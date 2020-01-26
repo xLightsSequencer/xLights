@@ -779,11 +779,12 @@ void Mesh::Draw(BaseObject* base, ModelPreview* preview, DrawGLUtils::xl3Accumul
         // draw the pivot location
         if (use_pivot && rotation) {
             xlColor pink = xlColor(255, 0, 255);
+            glm::vec3 scale = base->GetBaseObjectScreenLocation().GetScaleMatrix();
             float x1 = pivot_offset_x;
             float y1 = pivot_offset_y;
             float z1 = pivot_offset_z;
-            float offx = width * scalex;
-            float offz = depth * scalez;
+            float offx = width * scalex * scale.x;
+            float offz = depth * scalez * scale.z;
             glm::vec4 v = base_matrix * translationMatrix * glm::vec4(glm::vec3(x1, y1, z1), 1.0f);
             x1 = v.x; y1 = v.y; z1 = v.z;
             va.AddVertex(x1 - offx, y1, z1, pink);

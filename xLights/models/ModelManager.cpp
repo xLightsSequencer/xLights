@@ -942,13 +942,20 @@ Model* ModelManager::CreateDefaultModel(const std::string &type, const std::stri
         node->DeleteAttribute("StringType");
         node->AddAttribute("StringType", "Single Color White");
         model = new DmxServo(node, *this, false);
-    } else if (type == "DmxServo3d") {
+    } else if (type == "DmxServo3d" || type == "DmxServo3Axis") {
         node->DeleteAttribute("parm1");
         node->AddAttribute("parm1", "2");
         node->DeleteAttribute("parm2");
         node->AddAttribute("parm2", "1");
         node->DeleteAttribute("StringType");
         node->AddAttribute("StringType", "Single Color White");
+        if (type == "DmxServo3Axis") {
+            node->DeleteAttribute("DisplayAs");
+            node->AddAttribute("DisplayAs", "DmxServo3d");
+            node->AddAttribute("NumServos", "3");
+            node->AddAttribute("NumStatic", "1");
+            node->AddAttribute("NumMotion", "3");
+        }
         model = new DmxServo3d(node, *this, false);
     } else if (type == "Image") {
         node->DeleteAttribute("parm1");

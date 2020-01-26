@@ -707,8 +707,9 @@ void DmxServo3d::ImportXlightsModel(std::string filename, xLightsFrame* xlights,
     {
         wxXmlNode* root = doc.GetRoot();
 
-        if (root->GetName() == "dmxservo3d")
+        if (root->GetName() == "dmxservo3d" || root->GetName() == "dmxservo3axis")
         {
+            root->SetName("dmxservo3d");
             ImportBaseParameters(root);
 
             wxString name = root->GetAttribute("name");
