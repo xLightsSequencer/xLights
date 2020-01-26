@@ -1,4 +1,5 @@
 #include <wx/propgrid/propgrid.h>
+#include <wx/propgrid/editors.h>
 #include <wx/xml/xml.h>
 #include <wx/stdpaths.h>
 
