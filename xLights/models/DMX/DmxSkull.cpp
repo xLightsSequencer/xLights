@@ -57,10 +57,10 @@ DmxSkull::DmxSkull(wxXmlNode* node, const ModelManager& manager, bool zeroBased)
 
     default_range_of_motion[JAW] = -20;
     default_range_of_motion[PAN] = 180;
-    default_range_of_motion[TILT] = 90;
-    default_range_of_motion[NOD] = -58;
+    default_range_of_motion[TILT] = -90;
+    default_range_of_motion[NOD] = 58;
     default_range_of_motion[EYE_UD] = 70;
-    default_range_of_motion[EYE_LR] = 70;
+    default_range_of_motion[EYE_LR] = -70;
 
     default_node_names = "Jaw,-Jaw Fine,Pan,-Pan Fine,Tilt,-Tilt Fine,Nod,-Nod Fine,Eye UD,-Eye UD Fine,Eye LR,-Eye LR Fine,-Torso,-Torso Fine,Eye Brightness,Eye Red,Eye Green,Eye Blue";
 
@@ -1083,10 +1083,10 @@ void DmxSkull::SetupSkulltronix() {
 
     SetupServo(jaw_servo, 9, 500, 750, -20, true);
     SetupServo(pan_servo, 13, 250, 1250, 180, true);
-    SetupServo(tilt_servo, 19, 442, 836, 90, true);
-    SetupServo(nod_servo, 11, 452, 745, -58, true);
+    SetupServo(tilt_servo, 19, 442, 836, -90, true);
+    SetupServo(nod_servo, 11, 452, 745, 58, true);
     SetupServo(eye_ud_servo, 15, 575, 1000, 70, true);
-    SetupServo(eye_lr_servo, 17, 499, 878, 70, true);
+    SetupServo(eye_lr_servo, 17, 499, 878, -70, true);
 
     ModelXml->DeleteAttribute("DmxPanOrient");
     ModelXml->AddAttribute("DmxPanOrient", "90");
@@ -1094,6 +1094,10 @@ void DmxSkull::SetupSkulltronix() {
     ModelXml->AddAttribute("DmxTiltOrient", "-45");
     ModelXml->DeleteAttribute("DmxNodOrient");
     ModelXml->AddAttribute("DmxNodOrient", "29");
+    ModelXml->DeleteAttribute("DmxEyeUDOrient");
+    ModelXml->AddAttribute("DmxEyeUDOrient", "35");
+    ModelXml->DeleteAttribute("DmxEyeLROrient");
+    ModelXml->AddAttribute("DmxEyeLROrient", "-35");
     ModelXml->DeleteAttribute("DmxEyeBrtChannel");
     ModelXml->AddAttribute("DmxEyeBrtChannel", "23");
     ModelXml->DeleteAttribute("DmxRedChannel");

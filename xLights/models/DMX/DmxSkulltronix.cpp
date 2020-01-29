@@ -17,6 +17,7 @@ DmxSkulltronix::DmxSkulltronix(wxXmlNode *node, const ModelManager &manager, boo
     : DmxModel(node, manager, zeroBased)
 {
     color_ability = this;
+    SetFromXml(node, zeroBased);
 }
 
 DmxSkulltronix::~DmxSkulltronix()
@@ -334,6 +335,7 @@ int DmxSkulltronix::OnPropertyGridChange(wxPropertyGridInterface *grid, wxProper
 void DmxSkulltronix::InitModel() {
     DmxModel::InitModel();
     DisplayAs = "DmxSkulltronix";
+    screenLocation.SetRenderSize(1, 1);
 
     pan_channel = wxAtoi(ModelXml->GetAttribute("DmxPanChannel", "13"));
     pan_orient = wxAtoi(ModelXml->GetAttribute("DmxPanOrient", "90"));
