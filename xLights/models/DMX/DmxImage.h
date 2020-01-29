@@ -18,7 +18,7 @@ class DmxImage
         DmxImage(wxXmlNode* node, wxString _name);
         virtual ~DmxImage();
 
-        void Init(BaseObject* base, bool set_size);
+        void Init(BaseObject* base);
         bool GetExists() { return obj_exists; }
 
         void AddTypeProperties(wxPropertyGridInterface* grid);

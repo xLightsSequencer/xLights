@@ -19,8 +19,8 @@ DmxMovingHead::DmxMovingHead(wxXmlNode *node, const ModelManager &manager, bool 
   : DmxModel(node, manager, zeroBased), hide_body(false), style_changed(false), dmx_style("MOVING_HEAD_TOP"),
     dmx_style_val(0), beam_length(4)
 {
-    SetFromXml(node, zeroBased);
     color_ability = this;
+    SetFromXml(node, zeroBased);
 }
 
 DmxMovingHead::~DmxMovingHead()
@@ -188,7 +188,6 @@ int DmxMovingHead::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropert
 
 void DmxMovingHead::InitModel() {
     DmxModel::InitModel();
-    DisplayAs = "DmxMovingHead";
     StringType = "Single Color White";
     parm2 = 1;
     parm3 = 1;
@@ -221,6 +220,10 @@ void DmxMovingHead::InitModel() {
         dmx_style_val = DMX_STYLE_MOVING_HEAD_TOP_BARS;
     } else if( dmx_style == "Moving Head SideBars" ) {
         dmx_style_val = DMX_STYLE_MOVING_HEAD_SIDE_BARS;
+    }
+    if (DisplayAs != "DmxMovingHead3D") {
+        DisplayAs = "DmxMovingHead";
+        screenLocation.SetRenderSize(1, 1);
     }
 }
 

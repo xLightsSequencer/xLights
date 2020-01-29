@@ -23,7 +23,7 @@ DmxServo::DmxServo(wxXmlNode *node, const ModelManager &manager, bool zeroBased)
     : DmxModel(node, manager, zeroBased), transparency(0), brightness(100),
       update_node_names(false), num_servos(1), _16bit(true)
 {
-    InitModel();
+    SetFromXml(node, zeroBased);
 }
 
 DmxServo::~DmxServo()
@@ -170,6 +170,7 @@ void DmxServo::InitModel() {
 
     DmxModel::InitModel();
     DisplayAs = "DmxServo";
+    screenLocation.SetRenderSize(1, 1);
 
     // clear any extras
     while (servos.size() > num_servos) {
@@ -314,13 +315,13 @@ void DmxServo::InitModel() {
 
     bool last_exists = !motion_images[0]->GetExists();
     for (auto it = static_images.begin(); it != static_images.end(); ++it) {
-        (*it)->Init(this, !last_exists);
+        (*it)->Init(this);
         last_exists = (*it)->GetExists();
     }
 
     last_exists = static_images[0]->GetExists();
     for (auto it = motion_images.begin(); it != motion_images.end(); ++it) {
-        (*it)->Init(this, !last_exists);
+        (*it)->Init(this);
         last_exists = (*it)->GetExists();
     }
 

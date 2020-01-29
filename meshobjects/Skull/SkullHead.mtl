@@ -1,0 +1,15 @@
+#
+## Alias OBJ Material File
+#
+
+newmtl Color_M00
+Ka 0.000000 0.000000 0.000000
+Kd 1.000000 1.000000 1.000000
+Ks 0.330000 0.330000 0.330000
+
+newmtl Stone_Brushed_Khaki
+Ka 0.000000 0.000000 0.000000
+Kd 0.886275 0.772549 0.521569
+Ks 0.330000 0.330000 0.330000
+map_Kd SkullHead/Stone_Brushed_Khaki.jpg
+

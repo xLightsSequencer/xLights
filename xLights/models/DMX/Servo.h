@@ -44,6 +44,9 @@ class Servo
         void SetStyle(const std::string& style);
         void Set16Bit(bool value);
         void SetLink(Servo* val) { link = val; }
+        void SetPivotOffsetX(float val);
+        void SetPivotOffsetY(float val);
+        void SetPivotOffsetZ(float val);
 
     protected:
 

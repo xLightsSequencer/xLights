@@ -130,7 +130,7 @@ void ImageObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, 
     GetObjectScreenLocation().TranslatePoint(x3, y3, z3);
     GetObjectScreenLocation().TranslatePoint(x4, y4, z4);
 
-    GetObjectScreenLocation().UpdateBoundingBox(width, height);  // FIXME: Modify to only call this when position changes
+    GetObjectScreenLocation().UpdateBoundingBox(width, height, 5.0f);  // FIXME: Modify to only call this when position changes
 
     if (exists) {
         Image* image = _images[preview->GetName().ToStdString()];

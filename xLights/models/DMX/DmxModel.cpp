@@ -21,7 +21,6 @@
 DmxModel::DmxModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased)
     : ModelWithScreenLocation(manager), color_ability(nullptr)
 {
-    SetFromXml(node, zeroBased);
 }
 
 DmxModel::~DmxModel()
@@ -107,7 +106,9 @@ int DmxModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGrid
 }
 
 void DmxModel::InitModel() {
-    DisplayAs = "DMX";
+    if (DisplayAs.empty()) {
+        DisplayAs = "DMX";
+    }
     StringType = "Single Color White";
     parm2 = 1;
     parm3 = 1;
@@ -135,7 +136,6 @@ void DmxModel::InitModel() {
         curNode++;
     }
     SetBufferSize(1,parm1);
-    screenLocation.SetRenderSize(1, 1);
 }
 
 void DmxModel::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)

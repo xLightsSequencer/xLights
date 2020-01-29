@@ -39,6 +39,13 @@ class Mesh
 
         float GetWidth() { return width; }
         float GetHeight() { return height; }
+        void SetHalfHeight() { half_height = 0.5f; }
+
+        // These 3 don't write to XML because currently they are only used to offset built-in models
+        // like the skull which uses the offset to draw the same mesh twice.
+        void SetOffsetX(float val) { offset_x = val; }  
+        void SetOffsetY(float val) { offset_y = val; }
+        void SetOffsetZ(float val) { offset_z = val; }
 
     protected:
 
@@ -48,23 +55,24 @@ class Mesh
     private:
         wxXmlNode* node_xml;
         std::string _objFile;
-        float width;
-        float height;
-        float depth;
-        float brightness;
-        bool obj_loaded;
-        bool mesh_only;
-        bool obj_exists;
-        bool controls_size;
-        float offset_x;
-        float offset_y;
-        float offset_z;
-        float scalex;
-        float scaley;
-        float scalez;
-        float rotatex;
-        float rotatey;
-        float rotatez;
+        float width = 1.0f;
+        float height = 1.0f;
+        float depth = 1.0f;
+        float brightness = 100.0f;
+        bool obj_loaded = false;
+        bool mesh_only = false;
+        bool obj_exists = false;
+        bool controls_size = false;
+        float offset_x = 0.0f;
+        float offset_y = 0.0f;
+        float offset_z = 0.0f;
+        float scalex = 1.0f;
+        float scaley = 1.0f;
+        float scalez = 1.0f;
+        float rotatex = 0.0f;
+        float rotatey = 0.0f;
+        float rotatez = 0.0f;
+        float half_height = 1.0f;
         wxString base_name;
 
         tinyobj::attrib_t attrib;
@@ -75,8 +83,8 @@ class Mesh
         float bmin[3];
         float bmax[3];
 
-        DrawGLUtils::xl3DMesh *mesh3d;
-        Mesh* link;
+        DrawGLUtils::xl3DMesh *mesh3d = nullptr;
+        Mesh* link = nullptr;
 };
 
 #endif // MESH_H

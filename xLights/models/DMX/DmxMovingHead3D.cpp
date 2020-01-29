@@ -27,8 +27,8 @@ DmxMovingHead3D::DmxMovingHead3D(wxXmlNode *node, const ModelManager &manager, b
 #else
     obj_path = wxFileName(stdp.GetExecutablePath()).GetPath() + "/meshobjects/MovingHead3D/";
 #endif
-    SetFromXml(node, zeroBased);
     color_ability = this;
+    SetFromXml(node, zeroBased);
 }
 
 DmxMovingHead3D::~DmxMovingHead3D()
@@ -128,8 +128,8 @@ public:
 static wxPGChoices DMX_STYLES;
 
 void DmxMovingHead3D::InitModel() {
-    DmxMovingHead::InitModel();
     DisplayAs = "DmxMovingHead3D";
+    DmxMovingHead::InitModel();
 
     if (base_node == nullptr) {
         wxXmlNode* n = ModelXml->GetChildren();
@@ -164,7 +164,7 @@ void DmxMovingHead3D::InitModel() {
         wxString f = obj_path + "MovingHead3D_Base.obj";
         base_node->AddAttribute("ObjFile", f);
         base_mesh = new Mesh(base_node, "BaseMesh");
-        base_mesh->Init(this, false);
+        base_mesh->Init(this, true);
     }
     if (head_mesh == nullptr) {
         wxString f = obj_path + "MovingHead3D_Head.obj";
@@ -424,8 +424,6 @@ void DmxMovingHead3D::DrawModel(ModelPreview* preview, DrawGLUtils::xlAccumulato
         if (is_3d) {
             glm::mat4 Identity = glm::mat4(1.0f);
             glm::vec3 scaling = GetModelScreenLocation().GetScaleMatrix();
-            scaling.x /= 100;
-            scaling.y /= 100;
             scaling.z = scaling.x;
             glm::mat4 scalingMatrix = glm::scale(Identity, scaling);
             glm::vec3 world = GetModelScreenLocation().GetWorldPosition();

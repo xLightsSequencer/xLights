@@ -99,7 +99,7 @@ protected:
     virtual wxCursor InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes, ModelPreview* preview) = 0;
     virtual void UpdateBoundingBox(const std::vector<NodeBaseClassPtr> &Node) = 0;
     virtual void DrawBoundingBox(xlColor c, DrawGLUtils::xlAccumulator &va) const; // useful for hit test debugging
-    void UpdateBoundingBox(float width, float height);
+    void UpdateBoundingBox(float width, float height, float depth);
 
     virtual void AddSizeLocationProperties(wxPropertyGridInterface *grid) const = 0;
     virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) = 0;
@@ -143,6 +143,7 @@ protected:
     virtual void RotateAboutPoint(glm::vec3 position, glm::vec3 angle);
 
     void SetRenderSize(float NewWi, float NewHt, float NewDp = 0.0f);
+    void AdjustRenderSize(float NewWi, float NewHt, float NewDp, wxXmlNode* node);
     bool IsLocked() const { return _locked; }
     void Lock(bool value = true) { _locked = value; }
     float GetRenderHt() const { return RenderHt; }

@@ -825,6 +825,12 @@
     <ClCompile Include="models\DMX\ServoConfigDialog.cpp">
       <Filter>Models\DMX</Filter>
     </ClCompile>
+    <ClCompile Include="models\DMX\DmxSkull.cpp">
+      <Filter>Models\DMX</Filter>
+    </ClCompile>
+    <ClCompile Include="models\DMX\SkullConfigDialog.cpp">
+      <Filter>Models\DMX</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -1657,6 +1663,12 @@
       <Filter>Preferences</Filter>
     </ClInclude>
     <ClInclude Include="models\DMX\ServoConfigDialog.h">
+      <Filter>Models\DMX</Filter>
+    </ClInclude>
+    <ClInclude Include="models\DMX\DmxSkull.h">
+      <Filter>Models\DMX</Filter>
+    </ClInclude>
+    <ClInclude Include="models\DMX\SkullConfigDialog.h">
       <Filter>Models\DMX</Filter>
     </ClInclude>
   </ItemGroup>

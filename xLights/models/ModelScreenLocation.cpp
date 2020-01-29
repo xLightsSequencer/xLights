@@ -176,6 +176,29 @@ void ModelScreenLocation::SetRenderSize(float NewWi, float NewHt, float NewDp) {
     RenderDp = NewDp;
 }
 
+// This function is used when the render size needs to be adjusted after a mesh is loaded during model creation
+void ModelScreenLocation::AdjustRenderSize(float NewWi, float NewHt, float NewDp, wxXmlNode* node) {
+    if ((NewWi != RenderWi || NewHt != RenderHt || NewDp != RenderDp) && NewWi != 1.0f) {
+        RenderHt = NewHt;
+        RenderWi = NewWi;
+        RenderDp = NewDp;
+        scalex = scaley = scalez = 1.0f;
+        saved_scale = glm::vec3(scalex, scaley, scalez);
+        saved_size = glm::vec3(RenderWi, RenderHt, RenderWi);
+        node->DeleteAttribute("ScaleX");
+        node->DeleteAttribute("ScaleY");
+        node->DeleteAttribute("ScaleZ");
+        node->AddAttribute("ScaleX", wxString::Format("%6.4f", scalex));
+        node->AddAttribute("ScaleY", wxString::Format("%6.4f", scaley));
+        node->AddAttribute("ScaleZ", wxString::Format("%6.4f", scalez));
+    }
+    else {
+        RenderHt = NewHt;
+        RenderWi = NewWi;
+        RenderDp = NewDp;
+    }
+}
+
 void ModelScreenLocation::SetActiveAxis(int axis)
 {
     if (axis_tool == TOOL_ROTATE && axis != -1) {
@@ -641,12 +664,12 @@ bool ModelScreenLocation::HitTest3D(glm::vec3& ray_origin, glm::vec3& ray_direct
     return false;
 }
 
-void ModelScreenLocation::UpdateBoundingBox(float width, float height)
+void ModelScreenLocation::UpdateBoundingBox(float width, float height, float depth)
 {
     // scale the bounding box for selection logic
     aabb_max.x = width / 2.0f * scalex;
     aabb_max.y = height / 2.0f * scaley;
-    aabb_max.z = 5;
+    aabb_max.z = depth / 2.0f * scalez;
     aabb_min.x = -aabb_max.x;
     aabb_min.y = -aabb_max.y;
     aabb_min.z = -aabb_max.z;

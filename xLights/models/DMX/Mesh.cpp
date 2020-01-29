@@ -10,22 +10,13 @@
 #include "../../UtilFunctions.h"
 #include "../../ModelPreview.h"
 #include "../../xLightsMain.h"
-
 #include <log4cpp/Category.hh>
-
 
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtx/quaternion.hpp>
 
 Mesh::Mesh(wxXmlNode* node, wxString _name)
- : node_xml(node), _objFile(""),
-    width(1), height(1), depth(1), brightness(100),
-    obj_loaded(false), mesh_only(false), obj_exists(false),
-    controls_size(false),
-    offset_x(0.0f), offset_y(0.0f), offset_z(0.0f),
-    scalex(1.0f), scaley(1.0f), scalez(1.0f),
-    rotatex(0.0f), rotatey(0.0f), rotatez(0.0f),
-    base_name(_name), mesh3d(nullptr), link(nullptr)
+ : node_xml(node), _objFile(""), base_name(_name)
 {
 }
 
@@ -86,6 +77,9 @@ void Mesh::Init(BaseObject* base, bool set_size) {
 
     controls_size = set_size;
     if (controls_size) {
+        width = wxAtof(node_xml->GetAttribute("Width", "1.0f"));
+        height = wxAtof(node_xml->GetAttribute("Height", "1.0f"));
+        depth = wxAtof(node_xml->GetAttribute("Depth", "1.0f"));
         base->GetBaseObjectScreenLocation().SetRenderSize(width * scalex, height * scaley, depth * scalez);
     }
 }
@@ -159,10 +153,9 @@ int Mesh::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEven
             }
         }
         if (controls_size) {
-            glm::vec3 scale = base->GetBaseObjectScreenLocation().GetScaleMatrix();
-            base->GetBaseObjectScreenLocation().SetRenderSize(width / scale.x, height * scale.y, depth * scale.z);
-            base->GetBaseObjectScreenLocation().SetScaleMatrix(glm::vec3(1.0f, 1.0f, 1.0f));  // reset scale when new image is loaded
-            base->GetBaseObjectScreenLocation().Write(base->GetModelXml());
+            node_xml->DeleteAttribute("Width");
+            node_xml->DeleteAttribute("Height");
+            node_xml->DeleteAttribute("Depth");
         }
         textures.clear();
         uncacheDisplayObjects();
@@ -509,9 +502,6 @@ void Mesh::loadObject(BaseObject* base) {
         width = std::max(std::abs(bmin[0]), bmax[0]) * 2.0f;
         height = std::max(std::abs(bmin[1]), bmax[1]) * 2.0f;
         depth = std::max(std::abs(bmin[2]), bmax[2]) * 2.0f;
-        if (controls_size) {
-            base->GetBaseObjectScreenLocation().SetRenderSize(width * scalex, height * scaley, depth * scalez);
-        }
         obj_loaded = true;
         
         // Load textures
@@ -568,8 +558,13 @@ void Mesh::Draw(BaseObject* base, ModelPreview* preview, DrawGLUtils::xl3Accumul
         }
 
         if (controls_size) {
-            base->GetBaseObjectScreenLocation().SetRenderSize(width * scalex, height * scaley, depth * scalez);
-            base->GetBaseObjectScreenLocation().UpdateBoundingBox(width, height);  // FIXME: Modify to only call this when position changes*/
+            if (!node_xml->HasAttribute("Width")) {
+                base->GetBaseObjectScreenLocation().AdjustRenderSize(width * scalex, height * scaley * half_height, depth * scalez, base->GetModelXml());
+                node_xml->AddAttribute("Width", std::to_string(width));
+                node_xml->AddAttribute("Height", std::to_string(height));
+                node_xml->AddAttribute("Depth", std::to_string(depth));
+            }
+            base->GetBaseObjectScreenLocation().UpdateBoundingBox(width, height, depth);  // FIXME: Modify to only call this when position changes
         }
 
         if (!mesh3d) {

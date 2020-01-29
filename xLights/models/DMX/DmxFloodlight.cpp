@@ -12,6 +12,7 @@ DmxFloodlight::DmxFloodlight(wxXmlNode *node, const ModelManager &manager, bool 
     : DmxModel(node, manager, zeroBased)
 {
     color_ability = this;
+    SetFromXml(node, zeroBased);
 }
 
 DmxFloodlight::~DmxFloodlight()
@@ -64,6 +65,7 @@ void DmxFloodlight::InitModel() {
     white_channel = wxAtoi(ModelXml->GetAttribute("DmxWhiteChannel", "0"));
     shutter_channel = wxAtoi(ModelXml->GetAttribute("DmxShutterChannel", "0"));
     shutter_threshold = wxAtoi(ModelXml->GetAttribute("DmxShutterOpen", "1"));
+    screenLocation.SetRenderSize(1, 1);
 }
 
 void DmxFloodlight::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &va, const xlColor *c, float &sx, float &sy, bool active)

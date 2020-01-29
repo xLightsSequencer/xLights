@@ -64,6 +64,24 @@ void Servo::SetRangeOfMotion(float val) {
     node_xml->AddAttribute("RangeOfMotion", std::to_string(range_of_motion));
 }
 
+void Servo::SetPivotOffsetX(float val) {
+    pivot_offset_x = val;
+    node_xml->DeleteAttribute("PivotOffsetX");
+    node_xml->AddAttribute("PivotOffsetX", std::to_string(range_of_motion * offset_scale));
+}
+
+void Servo::SetPivotOffsetY(float val) {
+    pivot_offset_y = val;
+    node_xml->DeleteAttribute("PivotOffsetY");
+    node_xml->AddAttribute("PivotOffsetY", std::to_string(range_of_motion * offset_scale));
+}
+
+void Servo::SetPivotOffsetZ(float val) {
+    pivot_offset_z = val;
+    node_xml->DeleteAttribute("PivotOffsetY");
+    node_xml->AddAttribute("PivotOffsetY", std::to_string(range_of_motion * offset_scale));
+}
+
 void Servo::Init(BaseObject* base) {
     channel = wxAtoi(node_xml->GetAttribute("Channel", "0"));
     min_limit = wxAtoi(node_xml->GetAttribute("MinLimit", "0"));

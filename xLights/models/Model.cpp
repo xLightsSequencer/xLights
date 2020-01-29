@@ -5106,7 +5106,7 @@ Model* Model::GetXlightsModel(Model* model, std::string &last_model, xLightsFram
             model = xlights->AllModels.CreateDefaultModel(dmx_type, startChannel);
             model->SetHcenterPos(x);
             model->SetVcenterPos(y);
-            model->GetModelScreenLocation().SetScaleMatrix(glm::vec3(1,1, 1));
+            model->GetModelScreenLocation().SetScaleMatrix(glm::vec3(1,1,1));
             model->SetLayoutGroup(lg);
             model->Selected = true;
             return model;

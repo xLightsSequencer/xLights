@@ -171,7 +171,7 @@ const long LayoutPanel::ID_ADD_OBJECT_GRIDLINES = wxNewId();
 const long LayoutPanel::ID_ADD_OBJECT_MESH = wxNewId();
 const long LayoutPanel::ID_ADD_DMX_MOVING_HEAD = wxNewId();
 const long LayoutPanel::ID_ADD_DMX_MOVING_HEAD_3D = wxNewId();
-const long LayoutPanel::ID_ADD_DMX_SKULLTRONIX = wxNewId();
+const long LayoutPanel::ID_ADD_DMX_SKULL = wxNewId();
 const long LayoutPanel::ID_ADD_DMX_SERVO = wxNewId();
 const long LayoutPanel::ID_ADD_DMX_SERVO_3D = wxNewId();
 const long LayoutPanel::ID_ADD_DMX_FLOODLIGHT = wxNewId();
@@ -1174,7 +1174,7 @@ int LayoutPanel::GetModelTreeIcon(Model* model, bool open) {
         } else if (type == "DMXFloodlight" ||
                    type == "DMXMovingHead" ||
                    type == "DMXMovingHead3D" ||
-                   type == "DMXSkulltronix" ) {
+                   type == "DMXSkull" ) {
             return Icon_Dmx;
         } else if( type == "Image" ) {
             return Icon_Image;
@@ -5060,7 +5060,7 @@ void LayoutPanel::DisplayAddDmxPopup() {
     if (is_3d) {
         AddObjectButton(mnuObjects, ID_ADD_DMX_SERVO_3D, "Servo 3D", add_dmx_servo3d_xpm);
     }
-    AddObjectButton(mnuObjects, ID_ADD_DMX_SKULLTRONIX, "Skulltronix Skull", add_dmx_skulltronix_xpm);
+    AddObjectButton(mnuObjects, ID_ADD_DMX_SKULL, "Skull", add_dmx_skulltronix_xpm);
     mnuObjects.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&LayoutPanel::OnAddDmxPopup, nullptr, this);
     selectedDmxModelType = "";
     PopupMenu(&mnuObjects);
@@ -5102,9 +5102,9 @@ void LayoutPanel::OnAddDmxPopup(wxCommandEvent& event)
         selectedDmxModelType = "DmxServo3d";
         object_created = true;
     }
-    else if (id == ID_ADD_DMX_SKULLTRONIX) {
-        logger_base.debug("OnAddDmxPopup - ID_ADD_DMX_SKULLTRONIX");
-        selectedDmxModelType = "DmxSkulltronix";
+    else if (id == ID_ADD_DMX_SKULL) {
+        logger_base.debug("OnAddDmxPopup - ID_ADD_DMX_SKULL");
+        selectedDmxModelType = "DmxSkull";
         object_created = true;
     }
 

@@ -46,7 +46,7 @@ enum MOTION_LINK {
 DmxServo3d::DmxServo3d(wxXmlNode *node, const ModelManager &manager, bool zeroBased)
     : DmxModel(node, manager, zeroBased)
 {
-    InitModel();
+    SetFromXml(node, zeroBased);
 }
 
 DmxServo3d::~DmxServo3d()
@@ -94,6 +94,7 @@ public:
 
         if (dlg.ShowModal() == wxID_OK) {
             bool changed = false;
+
             int _num_servos = dlg.SpinCtrl_NumServos->GetValue();
             if (_num_servos != m_model->GetNumServos()) {
                 m_model->GetModelXml()->DeleteAttribute("NumServos");
@@ -121,7 +122,7 @@ public:
                     m_model->GetModelXml()->AddAttribute("Bits16", "1");
                 }
                 else {
-                    m_model->GetModelXml()->AddAttribute("Bits16", "01");
+                    m_model->GetModelXml()->AddAttribute("Bits16", "0");
                 }
             }
             if (changed) {
@@ -141,10 +142,10 @@ protected:
     DmxServo3d* m_model;
 };
 
-class PopupDialogProperty : public wxStringProperty
+class ServoPopupDialogProperty : public wxStringProperty
 {
 public:
-    PopupDialogProperty(DmxServo3d* m,
+    ServoPopupDialogProperty(DmxServo3d* m,
         const wxString& label,
         const wxString& name,
         const wxString& value,
@@ -175,7 +176,7 @@ static wxPGChoices MOTION_LINKS;
 void DmxServo3d::AddTypeProperties(wxPropertyGridInterface* grid) {
     DmxModel::AddTypeProperties(grid);
 
-    wxPGProperty* p = grid->Append(new PopupDialogProperty(this, "Servo Config", "ServoConfig", CLICK_TO_EDIT, 1));
+    wxPGProperty* p = grid->Append(new ServoPopupDialogProperty(this, "Servo Config", "ServoConfig", CLICK_TO_EDIT, 1));
     grid->LimitPropertyEditing(p);
 
     p = grid->Append(new wxBoolProperty("Show Pivot Axes", "PivotAxes", show_pivot));
@@ -420,7 +421,7 @@ void DmxServo3d::InitModel() {
             int id = atoi(num.c_str()) - 1;
             if (id < num_servos) {
                 if (servos[id] == nullptr) {
-                    servos[id] = new Servo(n, name, true);
+                    servos[id] = new Servo(n, name, false);
                 }
             }
         }
@@ -503,7 +504,7 @@ void DmxServo3d::InitModel() {
         (*it)->Set16Bit(_16bit);
     }
 
-    bool last_exists = num_motion > 0 ? motion_meshs[0]->GetExists() : false;
+    bool last_exists = false;
     for (auto it = static_meshs.begin(); it != static_meshs.end(); ++it) {
         (*it)->Init(this, !last_exists);
         last_exists = (*it)->GetExists();
@@ -709,7 +710,6 @@ void DmxServo3d::ImportXlightsModel(std::string filename, xLightsFrame* xlights,
 
         if (root->GetName() == "dmxservo3d" || root->GetName() == "dmxservo3axis")
         {
-            root->SetName("dmxservo3d");
             ImportBaseParameters(root);
 
             wxString name = root->GetAttribute("name");

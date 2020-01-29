@@ -1021,6 +1021,8 @@
 		<Unit filename="models/DMX/DmxServo3D.h" />
 		<Unit filename="models/DMX/DmxShutterAbility.cpp" />
 		<Unit filename="models/DMX/DmxShutterAbility.h" />
+		<Unit filename="models/DMX/DmxSkull.cpp" />
+		<Unit filename="models/DMX/DmxSkull.h" />
 		<Unit filename="models/DMX/DmxSkulltronix.cpp" />
 		<Unit filename="models/DMX/DmxSkulltronix.h" />
 		<Unit filename="models/DMX/Mesh.cpp" />
@@ -1029,6 +1031,8 @@
 		<Unit filename="models/DMX/Servo.h" />
 		<Unit filename="models/DMX/ServoConfigDialog.cpp" />
 		<Unit filename="models/DMX/ServoConfigDialog.h" />
+		<Unit filename="models/DMX/SkullConfigDialog.cpp" />
+		<Unit filename="models/DMX/SkullConfigDialog.h" />
 		<Unit filename="models/DmxModel.h" />
 		<Unit filename="models/GridlinesObject.cpp" />
 		<Unit filename="models/GridlinesObject.h" />
@@ -1370,6 +1374,7 @@
 		<Unit filename="wxsmith/ShimmerPanel.wxs" />
 		<Unit filename="wxsmith/ShockwavePanel.wxs" />
 		<Unit filename="wxsmith/SingleStrandPanel.wxs" />
+		<Unit filename="wxsmith/SkullConfigDialog.wxs" />
 		<Unit filename="wxsmith/SnowflakesPanel.wxs" />
 		<Unit filename="wxsmith/SnowstormPanel.wxs" />
 		<Unit filename="wxsmith/SpiralsPanel.wxs" />
@@ -1507,6 +1512,7 @@
 					<wxDialog wxs="wxsmith/SeqSettingsDialog.wxs" src="SeqSettingsDialog.cpp" hdr="SeqSettingsDialog.h" fwddecl="0" i18n="1" name="SeqSettingsDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/SerialPortWithRate.wxs" src="outputs/SerialPortWithRate.cpp" hdr="outputs/SerialPortWithRate.h" fwddecl="0" i18n="1" name="SerialPortWithRate" language="CPP" />
 					<wxDialog wxs="wxsmith/ServoConfigDialog.wxs" src="models/DMX/ServoConfigDialog.cpp" hdr="models/DMX/ServoConfigDialog.h" fwddecl="0" i18n="1" name="ServoConfigDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/SkullConfigDialog.wxs" src="models/DMX/SkullConfigDialog.cpp" hdr="models/DMX/SkullConfigDialog.h" fwddecl="0" i18n="1" name="SkullConfigDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/SevenSegmentDialog.wxs" src="SevenSegmentDialog.cpp" hdr="SevenSegmentDialog.h" fwddecl="0" i18n="1" name="SevenSegmentDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/ShaderDownloadDialog.wxs" src="ShaderDownloadDialog.cpp" hdr="ShaderDownloadDialog.h" fwddecl="0" i18n="1" name="ShaderDownloadDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/SplashDialog.wxs" src="SplashDialog.cpp" hdr="SplashDialog.h" fwddecl="0" i18n="1" name="SplashDialog" language="CPP" />

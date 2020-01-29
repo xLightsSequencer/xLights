@@ -14,6 +14,7 @@
 #include "CustomModel.h"
 #include "DMX/DmxServo.h"
 #include "DMX/DmxServo3D.h"
+#include "DMX/DmxSkull.h"
 #include "DMX/DmxSkulltronix.h"
 #include "DMX/DmxFloodlight.h"
 #include "DMX/DmxFloodArea.h"
@@ -926,14 +927,14 @@ Model* ModelManager::CreateDefaultModel(const std::string &type, const std::stri
         node->DeleteAttribute("StringType");
         node->AddAttribute("StringType", "Single Color White");
         model = new DmxFloodArea(node, *this, false);
-    } else if (type == "DmxSkulltronix") {
+    } else if (type == "DmxSkull") {
         node->DeleteAttribute("parm1");
         node->AddAttribute("parm1", "26");
         node->DeleteAttribute("parm2");
         node->AddAttribute("parm2", "1");
         node->DeleteAttribute("StringType");
         node->AddAttribute("StringType", "Single Color White");
-        model = new DmxSkulltronix(node, *this, false);
+        model = new DmxSkull(node, *this, false);
     } else if (type == "DmxServo") {
         node->DeleteAttribute("parm1");
         node->AddAttribute("parm1", "2");
@@ -1094,8 +1095,11 @@ Model *ModelManager::CreateModel(wxXmlNode *node, int previewW, int previewH, bo
         model = new DmxFloodlight(node, *this, zeroBased);
     } else if (type == "DmxFloodArea") {
         model = new DmxFloodArea(node, *this, zeroBased);
+    } else if (type == "DmxSkull") {
+        model = new DmxSkull(node, *this, zeroBased);
     } else if (type == "DmxSkulltronix") {
         model = new DmxSkulltronix(node, *this, zeroBased);
+        wxMessageBox("Alert!  The Skulltronix model type is deprecated and may soon be deleted.  Please switch to either the DmxSkull model or one of the DmxServo models if you were just using this model to control servos not in a skull.", "Alert", wxOK | wxCENTER);
     } else if (type == "DmxServo") {
         model = new DmxServo(node, *this, zeroBased);
     } else if (type == "DmxServo3d") {

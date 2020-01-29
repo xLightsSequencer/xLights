@@ -66,7 +66,7 @@ void DmxImage::SetScaleY(float value, BaseObject* base)
     base->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "DmxImage::SetScaleY");
 }
 
-void DmxImage::Init(BaseObject* base, bool set_size) {
+void DmxImage::Init(BaseObject* base) {
 
     _imageFile = FixFile("", node_xml->GetAttribute("Image", ""));
 
@@ -323,9 +323,9 @@ void DmxImage::Draw(BaseObject* base, ModelPreview* preview, DrawGLUtils::xlAccu
             obj_exists = true;
             if (image_selected && !only_image) {
                 // Next line is needed to trigger another redraw so the motion image scaling in DmxServo can happen
-                base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxImage::OnPropertyGridChange::Draw");
-                base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxImage::OnPropertyGridChange::Draw");
-                base->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "DmxImage::OnPropertyGridChange::Draw");
+                base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxImage::Draw");
+                base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxImage::Draw");
+                base->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "DmxImage::Draw");
             }
         }
     }

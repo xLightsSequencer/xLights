@@ -520,7 +520,7 @@ void ViewObjectPanel::OnPropertyGridChange(wxPropertyGrid *propertyEditor, wxPro
             }
         } else {
             int i = mSelectedObject->OnPropertyGridChange(propertyEditor, event);
-            wxASSERT(i == 0);
+            wxASSERT(i == 0 || i == GRIDCHANGE_SUPPRESS_HOLDSIZE);
         }
     }
 }
