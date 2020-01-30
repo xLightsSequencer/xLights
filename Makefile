@@ -109,6 +109,10 @@ install:
 	cp -r colorcurves/* $(DESTDIR)/${PREFIX}/share/xLights/colorcurves
 	install -d -m 755 $(DESTDIR)/${PREFIX}/share/xLights/controllers
 	cp -r controllers/* $(DESTDIR)/${PREFIX}/share/xLights/controllers
+	install -d -m 755 $(DESTDIR)/${PREFIX}/share/xLights/meshobjects
+	cp -r meshobjects/* $(DESTDIR)/${PREFIX}/share/xLights/meshobjects
+	install -d -m 755 $(DESTDIR)/${PREFIX}/share/xLigts/valuecurves
+	cp -r valuecurves/* $(DESTDIR)/${PREFIX}/share/xLights/valuecurves
 	install -d -m 755 $(DESTDIR)/${PREFIX}/share/xSchedule/xScheduleWeb
 	cp -r bin/xScheduleWeb/* $(DESTDIR)/${PREFIX}/share/xSchedule/xScheduleWeb
 	#install -d -m 755 $(DESTDIR)/${PREFIX}/share/xLights/songs
