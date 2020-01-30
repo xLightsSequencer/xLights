@@ -51,14 +51,14 @@ DmxSkull::DmxSkull(wxXmlNode* node, const ModelManager& manager, bool zeroBased)
 
     default_orient[JAW] = 0;
     default_orient[PAN] = 90;
-    default_orient[TILT] = -45;
+    default_orient[TILT] = -20;
     default_orient[NOD] = 29;
     default_orient[EYE_UD] = 35;
     default_orient[EYE_LR] = -35;
 
     default_range_of_motion[JAW] = -20;
     default_range_of_motion[PAN] = 180;
-    default_range_of_motion[TILT] = -90;
+    default_range_of_motion[TILT] = -40;
     default_range_of_motion[NOD] = 58;
     default_range_of_motion[EYE_UD] = 70;
     default_range_of_motion[EYE_LR] = -70;
@@ -670,6 +670,8 @@ void DmxSkull::DrawModel(ModelPreview* preview, DrawGLUtils::xlAccumulator& va2,
         glm::mat4 head_matrix = pan_matrix * tilt_matrix * nod_matrix;
         glm::mat4 head_base = base_matrix * head_matrix;
         eye_x_matrix = eye_x_matrix * eye_y_matrix;
+        eye_l_mesh->SetColor(eye_color, "EyeColor");
+        eye_r_mesh->SetColor(eye_color, "EyeColor");
         head_mesh->Draw(this, preview, va3, base_matrix, head_matrix, false, 0, 0, 0, false, false);
         jaw_mesh->Draw(this, preview, va3, head_base, jaw_matrix, false, 0, 3.3f, 0.4f, true, false);
         eye_l_mesh->Draw(this, preview, va3, head_base, eye_x_matrix, false, 0, 0, 0, false, false);
@@ -1084,7 +1086,7 @@ void DmxSkull::SetupSkulltronix() {
 
     SetupServo(jaw_servo, 9, 500, 750, -20, true);
     SetupServo(pan_servo, 13, 250, 1250, 180, true);
-    SetupServo(tilt_servo, 19, 442, 836, -90, true);
+    SetupServo(tilt_servo, 19, 442, 836, -40, true);
     SetupServo(nod_servo, 11, 452, 745, 58, true);
     SetupServo(eye_ud_servo, 15, 575, 1000, 70, true);
     SetupServo(eye_lr_servo, 17, 499, 878, -70, true);
@@ -1092,7 +1094,7 @@ void DmxSkull::SetupSkulltronix() {
     ModelXml->DeleteAttribute("DmxPanOrient");
     ModelXml->AddAttribute("DmxPanOrient", "90");
     ModelXml->DeleteAttribute("DmxTiltOrient");
-    ModelXml->AddAttribute("DmxTiltOrient", "-45");
+    ModelXml->AddAttribute("DmxTiltOrient", "-20");
     ModelXml->DeleteAttribute("DmxNodOrient");
     ModelXml->AddAttribute("DmxNodOrient", "29");
     ModelXml->DeleteAttribute("DmxEyeUDOrient");

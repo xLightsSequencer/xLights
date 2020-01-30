@@ -47,6 +47,8 @@ class Mesh
         void SetOffsetY(float val) { offset_y = val; }
         void SetOffsetZ(float val) { offset_z = val; }
 
+        void SetColor(const xlColor& _color, const std::string _name) { new_color = _color; update_color = true; color_name = _name; }
+
     protected:
 
         void loadObject(BaseObject* base);
@@ -63,6 +65,10 @@ class Mesh
         bool mesh_only = false;
         bool obj_exists = false;
         bool controls_size = false;
+        bool update_color = false;
+        std::string color_name;
+        xlColor new_color = xlBLACK;
+        xlColor last_color = xlBLACK;
         float offset_x = 0.0f;
         float offset_y = 0.0f;
         float offset_z = 0.0f;

@@ -567,7 +567,20 @@ void Mesh::Draw(BaseObject* base, ModelPreview* preview, DrawGLUtils::xl3Accumul
             base->GetBaseObjectScreenLocation().UpdateBoundingBox(width, height, depth);  // FIXME: Modify to only call this when position changes
         }
 
-        if (!mesh3d) {
+        // skip updating color if it hasn't changed.
+        if (update_color) {
+            if (new_color != last_color) {
+                last_color = new_color;
+            }
+            else {
+                update_color = false;
+            }
+        }
+        if (!mesh3d || update_color) {
+            if (update_color) {
+                textures.clear();
+                uncacheDisplayObjects();
+            }
             mesh3d = DrawGLUtils::createMesh();
             // Loop over shapes
             for (auto shape : shapes) {
@@ -590,7 +603,7 @@ void Mesh::Draw(BaseObject* base, ModelPreview* preview, DrawGLUtils::xl3Accumul
 
                     if ((current_material_id < 0) ||
                         (current_material_id >= static_cast<int>(materials.size()))) {
-                        // Invaid material ID. Use default material.
+                        // Invalid material ID. Use default material.
                         current_material_id = materials.size() - 1;  // Default material is added to the last item in `materials`.
                     }
 
@@ -598,15 +611,22 @@ void Mesh::Draw(BaseObject* base, ModelPreview* preview, DrawGLUtils::xl3Accumul
                         std::string diffuse_texname = materials[current_material_id].diffuse_texname;
                         if (textures.find(diffuse_texname) != textures.end()) {
                             image_id = textures[diffuse_texname]->getID();
-                        } else {
+                        }
+                        else {
                             image_id = -1;
                         }
                     }
                     last_material_id = current_material_id;
 
                     float diffuse[3];
-                    for (size_t i = 0; i < 3; i++) {
-                        diffuse[i] = materials[current_material_id].diffuse[i];
+                    if (update_color && materials[current_material_id].name == color_name) {
+                        diffuse[0] = new_color.red / 255.0f;
+                        diffuse[1] = new_color.green / 255.0f;
+                        diffuse[2] = new_color.blue / 255.0f;
+                    } else {
+                        for (size_t i = 0; i < 3; i++) {
+                            diffuse[i] = materials[current_material_id].diffuse[i];
+                        }
                     }
 
                     float tc[3][2];
@@ -620,7 +640,8 @@ void Mesh::Draw(BaseObject* base, ModelPreview* preview, DrawGLUtils::xl3Accumul
                             tc[1][1] = 0.0f;
                             tc[2][0] = 0.0f;
                             tc[2][1] = 0.0f;
-                        } else {
+                        }
+                        else {
                             assert(attrib.texcoords.size() >
                                 size_t(2 * idx0.texcoord_index + 1));
                             assert(attrib.texcoords.size() >
@@ -639,7 +660,8 @@ void Mesh::Draw(BaseObject* base, ModelPreview* preview, DrawGLUtils::xl3Accumul
                             //tc[1][1] = 1.0f - attrib.texcoords[2 * idx1.texcoord_index + 1];
                             //tc[2][1] = 1.0f - attrib.texcoords[2 * idx2.texcoord_index + 1];
                         }
-                    } else {
+                    }
+                    else {
                         tc[0][0] = 0.0f;
                         tc[0][1] = 0.0f;
                         tc[1][0] = 0.0f;
@@ -669,7 +691,8 @@ void Mesh::Draw(BaseObject* base, ModelPreview* preview, DrawGLUtils::xl3Accumul
                         if ((nf0 < 0) || (nf1 < 0) || (nf2 < 0)) {
                             // normal index is missing from this face.
                             invalid_normal_index = true;
-                        } else {
+                        }
+                        else {
                             for (int k = 0; k < 3; k++) {
                                 assert(size_t(3 * nf0 + k) < attrib.normals.size());
                                 assert(size_t(3 * nf1 + k) < attrib.normals.size());
@@ -679,7 +702,8 @@ void Mesh::Draw(BaseObject* base, ModelPreview* preview, DrawGLUtils::xl3Accumul
                                 n[2][k] = attrib.normals[3 * nf2 + k];
                             }
                         }
-                    } else {
+                    }
+                    else {
                         invalid_normal_index = true;
                     }
 
@@ -716,7 +740,7 @@ void Mesh::Draw(BaseObject* base, ModelPreview* preview, DrawGLUtils::xl3Accumul
                         n[2][1] = n[0][1];
                         n[2][2] = n[0][2];
                     }
-                    
+
                     uint8_t colors[3][4];
                     for (int k = 0; k < 3; k++) {
 
@@ -767,7 +791,9 @@ void Mesh::Draw(BaseObject* base, ModelPreview* preview, DrawGLUtils::xl3Accumul
                     mesh3d->addLine(v);
                 }
             }
+            update_color = false;
         }
+        
         mesh3d->setMatrix(m);
         va.AddMesh(mesh3d, mesh_only, brightness, false);
 
@@ -827,6 +853,7 @@ void Mesh::Draw(BaseObject* base, ModelPreview* preview, DrawGLUtils::xl3Accumul
     }
 }
 
+// Serialize for output
 void Mesh::Serialise(wxXmlNode* root, wxFile& f, const wxString& show_dir) const
 {
     wxString res = "";
