@@ -36,14 +36,14 @@ DmxSkull::DmxSkull(wxXmlNode* node, const ModelManager& manager, bool zeroBased)
     default_channels[EYE_LR] = 11;
 
     default_min_limit[JAW] = 500;
-    default_min_limit[PAN] = 250;
+    default_min_limit[PAN] = 400;
     default_min_limit[TILT] = 442;
     default_min_limit[NOD] = 452;
     default_min_limit[EYE_UD] = 575;
     default_min_limit[EYE_LR] = 499;
 
     default_max_limit[JAW] = 750;
-    default_max_limit[PAN] = 1250;
+    default_max_limit[PAN] = 1100;
     default_max_limit[TILT] = 836;
     default_max_limit[NOD] = 745;
     default_max_limit[EYE_UD] = 1000;
@@ -1085,7 +1085,7 @@ void DmxSkull::SetupServo(Servo* _servo, int channel, float min_limit, float max
 void DmxSkull::SetupSkulltronix() {
 
     SetupServo(jaw_servo, 9, 500, 750, -20, true);
-    SetupServo(pan_servo, 13, 250, 1250, 180, true);
+    SetupServo(pan_servo, 13, 400, 1100, 180, true);
     SetupServo(tilt_servo, 19, 442, 836, -40, true);
     SetupServo(nod_servo, 11, 452, 745, 58, true);
     SetupServo(eye_ud_servo, 15, 575, 1000, 70, true);
