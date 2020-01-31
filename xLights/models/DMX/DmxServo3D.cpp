@@ -124,6 +124,7 @@ public:
                 else {
                     m_model->GetModelXml()->AddAttribute("Bits16", "0");
                 }
+                m_model->UpdateBits();
             }
             if (changed) {
                 m_model->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxServo3d::ServoConfigDialogAdapter");
@@ -226,6 +227,20 @@ void DmxServo3d::AddTypeProperties(wxPropertyGridInterface* grid) {
 int DmxServo3d::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
     std::string name = event.GetPropertyName().ToStdString();
 
+    if ("DmxChannelCount" == event.GetPropertyName()) {
+        int channels = (int)event.GetPropertyValue().GetLong();
+        int min_channels = num_servos * (_16bit ? 2 : 1);
+        if (channels < min_channels) {
+            wxPGProperty* p = grid->GetPropertyByName("DmxChannelCount");
+            if (p != nullptr) {
+                p->SetValue(min_channels);
+            }
+            std::string msg = wxString::Format("You have %d servos at %d bits so you need %d channels minimum.", num_servos, _16bit ? 16 : 8, min_channels);
+            wxMessageBox(msg, "Minimum Channel Violation", wxOK | wxCENTER);
+            return 0;
+        }
+    }
+
     if ("PivotAxes" == name) {
         if (event.GetValue().GetBool()) {
             show_pivot = true;
@@ -318,6 +333,8 @@ void DmxServo3d::InitModel() {
     int min_channels = num_servos * (_16bit ? 2 : 1);
     if (parm1 < min_channels) {
         UpdateChannelCount(min_channels, false);
+        std::string msg = wxString::Format("Channel count increased to %d to accomodate %d servos at %d bits.", min_channels, num_servos, _16bit ? 16 : 8);
+        wxMessageBox(msg, "Minimum Channel Violation", wxOK | wxCENTER);
     }
 
     DmxModel::InitModel();
@@ -514,6 +531,16 @@ void DmxServo3d::InitModel() {
     for (auto it = motion_meshs.begin(); it != motion_meshs.end(); ++it) {
         (*it)->Init(this, !last_exists);
         last_exists = (*it)->GetExists();
+    }
+
+    // renumber servo changed if number of bits changed
+    if (update_bits) {
+        for (int i = 0; i < num_servos; ++i) {
+            if (servos[i] != nullptr) {
+                servos[i]->SetChannel(_16bit ? i * 2 + 1 : i + 1, this);
+            }
+        }
+        update_bits = false;
     }
 
     // create node names

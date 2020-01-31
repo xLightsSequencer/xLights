@@ -23,6 +23,7 @@ class DmxServo3d : public DmxModel
         int GetNumStatic() const { return num_static; }
         int GetNumMotion() const { return num_motion; }
         void UpdateNodeNames() { update_node_names = true; }
+        void UpdateBits() { update_bits = true; }
         bool Is16Bit() const { return _16bit; }
 
     protected:
@@ -38,6 +39,7 @@ class DmxServo3d : public DmxModel
         static const int SUPPORTED_SERVOS = 24;
 
         bool update_node_names = false;
+        bool update_bits = false;
         int num_servos = 1;
         int num_static = 1;
         int num_motion = 1;

@@ -91,6 +91,19 @@ void DmxServo::AddTypeProperties(wxPropertyGridInterface* grid) {
 int DmxServo::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
     std::string name = event.GetPropertyName().ToStdString();
 
+    if ("DmxChannelCount" == event.GetPropertyName()) {
+        int channels = (int)event.GetPropertyValue().GetLong();
+        int min_channels = num_servos * (_16bit ? 2 : 1);
+        if (channels < min_channels) {
+            wxPGProperty* p = grid->GetPropertyByName("DmxChannelCount");
+            if (p != nullptr) {
+                p->SetValue(min_channels);
+            }
+            std::string msg = wxString::Format("You have %d servos at %d bits so you need %d channels minimum.", num_servos, _16bit ? 16 : 8, min_channels);
+            wxMessageBox(msg, "Minimum Channel Violation", wxOK | wxCENTER);
+            return 0;
+        }
+    }
     if ("NumServos" == name) {
         update_node_names = true;
         num_servos = (int)event.GetPropertyValue().GetLong();
@@ -112,6 +125,13 @@ int DmxServo::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGrid
             _16bit = false;
             ModelXml->AddAttribute("Bits16", "0");
         }
+
+        for (int i = 0; i < num_servos; ++i) {
+            if( servos[i] != nullptr ) {
+                servos[i]->SetChannel(_16bit ? i * 2 + 1 : i + 1, this);
+            }
+        }
+ 
         int min_channels = num_servos * (_16bit ? 2 : 1);
         if (parm1 < min_channels) {
             UpdateChannelCount(min_channels, true);
@@ -166,6 +186,8 @@ void DmxServo::InitModel() {
     int min_channels = num_servos * (_16bit ? 2 : 1);
     if (parm1 < min_channels) {
         UpdateChannelCount(min_channels, false);
+        std::string msg = wxString::Format("Channel count increased to %d to accomodate %d servos at %d bits.", min_channels, num_servos, _16bit ? 16 : 8);
+        wxMessageBox(msg, "Minimum Channel Violation", wxOK | wxCENTER);
     }
 
     DmxModel::InitModel();
