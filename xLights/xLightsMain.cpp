@@ -465,6 +465,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("xLightsFrame being constructed.");
 
+    xLightsApp::__frame = this;
+    
     _exiting = false;
     SplashDialog splash(nullptr);
     splash.Show();
