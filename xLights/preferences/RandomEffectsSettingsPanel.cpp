@@ -63,7 +63,7 @@ bool RandomEffectsSettingsPanel::TransferDataToWindow() {
 bool RandomEffectsSettingsPanel::TransferDataFromWindow() {
     wxArrayString selected;
     for (int x = 0; x <  EffectsGridSizer->GetItemCount(); x++) {
-        wxCheckBox *CheckBox1 = dynamic_cast<wxCheckBox*>(EffectsGridSizer->GetItem(x));
+        wxCheckBox *CheckBox1 = dynamic_cast<wxCheckBox*>(EffectsGridSizer->GetItem(x)->GetWindow());
         if (CheckBox1) {
             wxString n = CheckBox1->GetLabel();
             bool checked = CheckBox1->IsChecked();
