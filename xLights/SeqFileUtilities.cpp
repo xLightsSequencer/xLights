@@ -6134,6 +6134,7 @@ void xLightsFrame::ImportVsa(const wxFileName &filename) {
                     int idx = dlg.trackIndex[m];
                     switch( (VSAFile::vsaControllers)(tracks[idx].controller) )
                     {
+                    case VSAFile::MINISSC_SERVO:
                     case VSAFile::DMX_DIMMER:
                     case VSAFile::DMX_RELAY:
                         is_16bit = false;
