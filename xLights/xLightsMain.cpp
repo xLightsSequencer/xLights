@@ -3645,7 +3645,7 @@ void xLightsFrame::AddDebugFilesToReport(wxDebugReport &report) {
 int xLightsFrame::OpenGLVersion() const {
     int orig;
     wxConfigBase* config = wxConfigBase::Get();
-    config->Read("ForceOpenGLVer", &orig, 0);
+    config->Read("ForceOpenGLVer", &orig, 99);
     return orig;
 }
 void xLightsFrame::SetOpenGLVersion(int i) {
@@ -3659,7 +3659,7 @@ void xLightsFrame::SetOpenGLVersion(int i) {
     }
     int orig;
     wxConfigBase* config = wxConfigBase::Get();
-    config->Read("ForceOpenGLVer", &orig, 0);
+    config->Read("ForceOpenGLVer", &orig, 99);
 
     config->Write("ForceOpenGLVer", i);
     if (i != orig) {
