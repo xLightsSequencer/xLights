@@ -2380,30 +2380,29 @@ void xLightsFrame::UploadOutputToController(ControllerEthernet* controller)
             }
             else if (vendor == "FPP" || vendor == "Kulp")
             {
-                //    FPP fpp(ip);
-                //    fpp.parent = this;
-                //    fpp.pixelControllerType = controller;
-                //    if (fpp.AuthenticateAndUpdateVersions() && !fpp.UploadPixelOutputs(&AllModels, &_outputManager, controller)) {
-                //        SetStatusText("FPP Upload Complete.");
-                //    } else {
-                //        SetStatusText("FPP Upload Failed.");
-                //    }
+                    FPP fpp(controller);
+                    fpp.parent = this;
+                    if (fpp.AuthenticateAndUpdateVersions() && !fpp.UploadPixelOutputs(&AllModels, &_outputManager, controller)) {
+                        SetStatusText("FPP Upload Complete.");
+                    } else {
+                        SetStatusText("FPP Upload Failed.");
+                    }
             }
             else if (vendor == "HolidayCoro")
             {
-                //    AlphaPix alphapix(ip, proxy);
-                //    if (alphapix.IsConnected()) {
-                //        if (alphapix.SetOutputs(&AllModels, &_outputManager, controller, this)) {
-                //            SetStatusText("AlphaPix Upload Complete.");
-                //        }
-                //        else {
-                //            SetStatusText("AlphaPix Upload Failed.");
-                //        }
-                //    }
-                //    else
-                //    {
-                //        SetStatusText("Unable to connect to AlphaPix.");
-                //    }
+                    AlphaPix alphapix(ip, proxy);
+                    if (alphapix.IsConnected()) {
+                        if (alphapix.SetOutputs(&AllModels, &_outputManager, controller, this)) {
+                            SetStatusText("AlphaPix Upload Complete.");
+                        }
+                        else {
+                            SetStatusText("AlphaPix Upload Failed.");
+                        }
+                    }
+                    else
+                    {
+                        SetStatusText("Unable to connect to AlphaPix.");
+                    }
             }
         }
         else

@@ -45,6 +45,9 @@
 #include "TraceLog.h"
 using namespace TraceLog;
 
+static const std::string PIHAT("Pi Hat");
+static const std::string LEDPANELS("LED Panels");
+
 FPP::FPP(const std::string &ad) : majorVersion(0), minorVersion(0), outputFile(nullptr), parent(nullptr), ipAddress(ad), curl(nullptr), isFPP(true) {
     wxIPV4address address;
     if (address.Hostname(ad)) {
@@ -56,6 +59,7 @@ FPP::FPP(const std::string &ad) : majorVersion(0), minorVersion(0), outputFile(n
 FPP::FPP(ControllerEthernet* controller) : majorVersion(0), minorVersion(0), outputFile(nullptr), parent(nullptr), curl(nullptr), isFPP(true) {
     _controller = controller;
     ipAddress = controller->GetIP();
+    pixelControllerType = _controller->GetModel();
     wxIPV4address address;
     if (address.Hostname(ipAddress)) {
         hostName = ipAddress;
@@ -372,14 +376,14 @@ void FPP::parseControllerType(wxJSONValue& val) {
     for (int x = 0; x < val["channelOutputs"].Size(); x++) {
         if (val["channelOutputs"][x]["type"].AsString() == "RPIWS281X") {
             if (val["channelOutputs"][x]["enabled"].AsInt()) {
-                pixelControllerType = "PiHat";
+                pixelControllerType = PIHAT;
             }
         } else if (val["channelOutputs"][x]["type"].AsString() == "BBB48String") {
             if (val["channelOutputs"][x]["enabled"].AsInt()) {
                 pixelControllerType = val["channelOutputs"][x]["subType"].AsString();
             }
         } else if (val["channelOutputs"][x]["type"].AsString() == "LEDPanelMatrix") {
-            pixelControllerType = "LED Panels";
+            pixelControllerType = LEDPANELS;
             int pw = val["channelOutputs"][x]["panelWidth"].AsInt();
             int ph = val["channelOutputs"][x]["panelHeight"].AsInt();
             int nw = 0; int nh = 0;
@@ -1258,7 +1262,7 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
 
     std::string fppFileName = "co-bbbStrings";
     int minPorts = 1;
-    if (pixelControllerType == "PiHat") {
+    if (pixelControllerType == PIHAT) {
         fppFileName = "co-pixelStrings";
         minPorts = 2;
     }
@@ -1323,7 +1327,7 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
         maxport = minPorts;
     }
 
-    if (pixelControllerType == "PiHat") {
+    if (pixelControllerType == PIHAT) {
         stringData["type"] = wxString("RPIWS281X");
         stringData["subType"] = wxString("");
     } else {
@@ -1587,7 +1591,7 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
 
     wxJSONValue root;
     root["channelOutputs"].Append(stringData);
-    if (pixelControllerType != "PiHat") {
+    if (pixelControllerType != PIHAT) {
         root["channelOutputs"].Append(dmxData);
     } else {
         wxString dev = pixelControllerType;

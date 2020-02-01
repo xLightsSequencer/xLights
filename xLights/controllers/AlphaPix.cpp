@@ -128,7 +128,7 @@ AlphaPix::~AlphaPix()
     _serialOutputs.clear();
 }
 
-bool AlphaPix::SetOutputs(ControllerEthernet* controller, ModelManager* allmodels, OutputManager* outputManager, wxWindow* parent)
+bool AlphaPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent)
 {
     wxProgressDialog progress("Uploading ...", "", 100, parent, wxPD_APP_MODAL | wxPD_AUTO_HIDE);
     progress.Show();

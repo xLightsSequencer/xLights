@@ -668,7 +668,7 @@ ControllerEthernet::ControllerEthernet(OutputManager* om, wxXmlNode* node, const
 {
     _type = node->GetAttribute("Protocol");
     InitialiseTypes(_type == OUTPUT_xxxETHERNET);
-    _ip = node->GetAttribute("IP");
+    SetIP(node->GetAttribute("IP"));
     _fppProxy = node->GetAttribute("FPPProxy");
     _priority = wxAtoi(node->GetAttribute("Priority", "100"));
     _dirty = false;
@@ -709,7 +709,7 @@ void ControllerEthernet::Convert(wxXmlNode* node, std::string showDir)
                 _name = _outputManager->UniqueName("Unnamed");
             }
         }
-        _ip = _outputs.front()->GetIP();
+        SetIP(_outputs.front()->GetIP());
         _type = _outputs.front()->GetType();
         _fppProxy = _outputs.front()->GetFPPProxyIP();
         _id = _outputs.front()->GetUniverse();

@@ -134,7 +134,7 @@ public:
     virtual ~AlphaPix();
     bool IsConnected() const { return _connected; };
 
-    bool SetOutputs(ControllerEthernet* controller, ModelManager* allmodels, OutputManager* outputManager, wxWindow* parent);
+    bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent);
 
     void UploadPixelOutputs(bool& worked);
     void UploadFlexPixelOutputs(bool& worked);
