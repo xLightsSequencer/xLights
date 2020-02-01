@@ -38,9 +38,8 @@ std::string NullOutput::GetLongDescription() const
     std::string res = "";
 
     if (!_enabled) res += "INACTIVE ";
-    res += "NULL (" + std::string(wxString::Format(wxT("%i"), _nullNumber)) + ") ";
-    res += "(" + std::string(wxString::Format(wxT("%d"), _startChannel)) + "-" + std::string(wxString::Format(wxT("%d"), GetEndChannel())) + ") ";
-    res += _description;
+    res += "NULL ";
+    res += "(" + std::string(wxString::Format(wxT("%d"), _startChannel)) + "-" + std::string(wxString::Format(wxT("%d"), GetEndChannel())) + ")";
 
     return res;
 }

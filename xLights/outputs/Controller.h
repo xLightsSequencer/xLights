@@ -78,7 +78,8 @@ public:
     const std::string& GetName() const { return _name; }
     void SetName(const std::string& name) { if (_name != name) { _name = name; _dirty = true; } }
     int GetId() const { return _id; }
-    void SetId(int id) { if (_id != id) { _id = id; _dirty = true; } }
+    virtual void SetId(int id) = 0;
+    void SetTheId(int id) { if (_id != id) { _id = id; _dirty = true; } }
     void EnsureUniqueId();
     std::string GetDescription() const { return _description; }
     void SetDescription(const std::string& description) { if (_description != description) { _description = description; _dirty = true; } }

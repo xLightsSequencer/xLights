@@ -39,6 +39,8 @@ public:
     virtual bool SupportsAutoStartChannels() const override { return true; }
     virtual bool SupportsAutoSize() const override { return true; }
     virtual std::string GetUniverseString() const override { return wxString::Format("%d", _id); }
+    virtual std::string GetLongDescription() const override;
+    virtual void SetId(int id) override;
 #pragma endregion Getters and Setters
 
     virtual wxXmlNode* Save() override;

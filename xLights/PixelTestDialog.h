@@ -433,8 +433,9 @@ class PixelTestDialog: public wxDialog
 		void RollUpAll(wxTreeListCtrl* tree, wxTreeListItem start);
 		void DeactivateNotClickableModels(wxTreeListCtrl* tree);
         void SetTreeTooltip(wxTreeListCtrl* tree, wxTreeListItem& item);
-        void AddController(wxTreeListItem root, Output* output);
-        std::string SerialiseSettings();
+		wxTreeListItem AddController(wxTreeListItem root, Controller* controller);
+		void AddOutput(wxTreeListItem root, Output* output);
+		std::string SerialiseSettings();
         void DeserialiseSettings(const std::string& settings);
         TestFunctions GetTestFunction(int notebookSelection);
         void SetCheckBoxItemFromTracker(wxTreeListCtrl* tree, wxTreeListItem item, wxCheckBoxState parentState);

@@ -172,6 +172,7 @@ bool DDPOutput::Open()
     log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     if (!_enabled) return true;
+    if (_ip == "") return false;
 
     if (_fulldata != nullptr) delete _fulldata;
     _fulldata = (uint8_t*)malloc(_channels);
@@ -351,9 +352,8 @@ std::string DDPOutput::GetLongDescription() const
     std::string res = "";
 
     if (!_enabled) res += "INACTIVE ";
-    res += "DDP " + _ip + " {" + GetUniverseString() + "} ";
+    res += "DDP {" + GetUniverseString() + "} ";
     res += "(" + std::string(wxString::Format(wxT("%i"), GetStartChannel())) + "-" + std::string(wxString::Format(wxT("%i"), GetEndChannel())) + ") ";
-    res += _description;
 
     return res;
 }

@@ -1099,6 +1099,7 @@ public:
     void OnControllerPropertyGridChange(wxPropertyGridEvent& event);
     void OnListItemDeselectedControllers(wxListEvent& event);
 
+    void SelectController(const std::string& controllerName);
     void UnselectAllControllers();
     void InitialiseControllersTab();
     void SetControllersProperties();

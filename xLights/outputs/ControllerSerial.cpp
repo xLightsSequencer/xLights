@@ -243,7 +243,7 @@ void ControllerSerial::SetProtocol(const std::string& type)
 
 std::string ControllerSerial::GetChannelMapping(int32_t ch) const
 {
-    return wxString::Format("Channel %ld maps to ...\nType: %s\nName: %s\ComPort: %s\nChannel: %ld", 
+    return wxString::Format("Channel %ld maps to ...\nType: %s\nName: %s\nComPort: %s\nChannel: %ld", 
         ch, GetProtocol(), GetName(), GetPort(), ch - GetStartChannel() + 1) + (IsActive() ? _("\n") : _(" INACTIVE\n"));
 }
 
@@ -265,6 +265,31 @@ Output::PINGSTATE ControllerSerial::Ping()
 {
     _lastPingResult = dynamic_cast<SerialOutput*>(_outputs.front())->Ping();
     return GetLastPingState();
+}
+
+std::string ControllerSerial::GetLongDescription() const
+{
+    std::string res = "";
+
+    if (!IsActive()) res += "INACTIVE ";
+    res += GetName() + " " + GetProtocol() + " " + GetPort();
+    res += " (" + std::string(wxString::Format(wxT("%d"), GetStartChannel())) + "-" + std::string(wxString::Format(wxT("%i"), GetEndChannel())) + ") ";
+    res += _description;
+
+    return res;
+}
+
+void ControllerSerial::SetId(int id)
+{
+    SetTheId(id);
+    if (GetProtocol() == OUTPUT_LOR_OPT)
+    {
+        dynamic_cast<LOROptimisedOutput*>(GetFirstOutput())->SetId(id);
+    }
+    else
+    {
+        dynamic_cast<SerialOutput*>(GetFirstOutput())->SetId(id);
+    }
 }
 
 void ControllerSerial::AddProperties(wxPropertyGrid* propertyGrid)
@@ -520,7 +545,7 @@ void ControllerSerial::ValidateProperties(OutputManager* om, wxPropertyGrid* pro
 
         // Port must be unique
         auto p = propGrid->GetPropertyByName("Port");
-        if (s != nullptr && it->GetName() != GetName() && s->GetPort() == GetPort())
+        if (s != nullptr && it->GetName() != GetName() && s->GetPort() == GetPort() && GetPort() != "NotConnected")
         {
             p->SetBackgroundColour(*wxRED);
             break;

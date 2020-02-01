@@ -72,6 +72,8 @@ public:
     virtual std::string GetUniverseString() const override { return wxString::Format("%d", _id); }
     virtual Output::PINGSTATE Ping() override;
     virtual void AsyncPing() { _lastPingResult = Ping(); }
+    virtual std::string GetLongDescription() const override;
+    virtual void SetId(int id) override;
 #pragma endregion Getters and Setters
 
     virtual wxXmlNode* Save() override;

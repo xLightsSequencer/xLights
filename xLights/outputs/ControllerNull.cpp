@@ -13,6 +13,24 @@ std::string ControllerNull::GetChannelMapping(int32_t ch) const
     return wxString::Format("Channel %ld maps to ...\nTYPE: NULL\nName: %s\nChannel: %ld", ch, GetName(), ch - GetStartChannel() + 1) + (IsActive() ? _("\n") : _(" INACTIVE\n"));
 }
 
+std::string ControllerNull::GetLongDescription() const
+{
+    std::string res = "";
+
+    if (!IsActive()) res += "INACTIVE ";
+    res += GetName() + "  NULL ";
+    res += "(" + std::string(wxString::Format(wxT("%ld"), GetStartChannel())) + "-" + std::string(wxString::Format(wxT("%ld"), GetEndChannel())) + ") ";
+    res += _description;
+
+    return res;
+}
+
+void ControllerNull::SetId(int id)
+{
+    SetTheId(id);
+    dynamic_cast<NullOutput*>(GetFirstOutput())->SetId(id);
+}
+
 wxXmlNode* ControllerNull::Save()
 {
     wxXmlNode* um = Controller::Save();

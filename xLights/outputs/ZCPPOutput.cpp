@@ -1112,12 +1112,11 @@ std::string ZCPPOutput::GetLongDescription() const
 {
     std::string res = "";
 
-        if (!_enabled) res += "INACTIVE ";
-        res += "ZCPP " + _ip;
-        res += " [1-" + std::string(wxString::Format(wxT("%d"), _channels)) + "] ";
-        res += "(" + std::string(wxString::Format(wxT("%d"), GetStartChannel())) + "-" +
-               std::string(wxString::Format(wxT("%d"), GetActualEndChannel())) + ") ";
-        res += _description;
+    if (!_enabled) res += "INACTIVE ";
+    res += "ZCPP ";
+    res += "[1-" + std::string(wxString::Format(wxT("%d"), _channels)) + "] ";
+    res += "(" + std::string(wxString::Format(wxT("%d"), GetStartChannel())) + "-" +
+        std::string(wxString::Format(wxT("%d"), GetActualEndChannel())) + ") ";
 
     return res;
 }

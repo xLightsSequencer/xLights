@@ -106,6 +106,7 @@ public:
     std::string GetIP() const { return _ip; }
     std::string GetResolvedIP() const { return _resolvedIp; }
     virtual void SetIP(const std::string& ip);
+    void SetResolvedIP(const std::string& resolvedIP) { if (resolvedIP != _resolvedIp) { _resolvedIp = resolvedIP; _dirty = true; } }
     std::string GetCommPort() const { return _commPort; }
     void SetCommPort(const std::string& commPort) { _commPort = commPort; _dirty = true; }
     int32_t GetChannels() const { return _channels; }

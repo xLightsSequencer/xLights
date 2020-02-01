@@ -1,5 +1,5 @@
 #include "models/BaseObject.h"
-#include "outputs/Output.h"
+#include "outputs/Controller.h"
 #include "xLightsMain.h"
 #include "OutputModelManager.h"
 #include <log4cpp/Category.hh>
@@ -15,6 +15,7 @@ void OutputModelManager::Dump(const std::string& type, const std::list<std::pair
         logger_work.debug("          0x%04x  %s  %s", it.first, (const char*)DecodeWork(it.first).c_str(), (const char*)it.second.c_str());
     }
     if (_selectedModel != "") logger_work.debug("    Select model '%s'", (const char*)_selectedModel.c_str());
+    if (_selectedController != "") logger_work.debug("    Select controller '%s'", (const char*)_selectedController.c_str());
     if (_modelToModelFromXml != nullptr) logger_work.debug("    Model to reload xml '%s'", (const char*)_modelToModelFromXml->GetName().c_str());
 }
 
@@ -49,22 +50,26 @@ void OutputModelManager::SetSelectedModelIfASAPWorkExists(const std::string& sel
 {
     if (_workASAP != 0)
     {
-        if (selectedModel != "")
-        {
-            _selectedModel = selectedModel;
-        }
+        if (selectedModel != "") _selectedModel = selectedModel;
     }
 }
 
-void OutputModelManager::AddASAPWork(uint32_t work, const std::string& from, BaseObject* m, Output* o, const std::string& selectedModel)
+void OutputModelManager::SetSelectedControllerIfASAPWorkExists(const std::string& selectedController)
+{
+    if (_workASAP != 0)
+    {
+        if (selectedController != "") _selectedController = selectedController;
+    }
+}
+
+void OutputModelManager::AddASAPWork(uint32_t work, const std::string& from, BaseObject* m, Controller* o, const std::string& selectedModel)
 {
 #ifdef _DEBUG
     _sourceASAP.push_back({ work, from });
 #endif
-    if (selectedModel != "")
-    {
-        _selectedModel = selectedModel;
-    }
+    if (selectedModel != "") _selectedModel = selectedModel;
+    if (o != nullptr) _selectedController = o->GetName();
+
     if (work & WORK_RELOAD_MODEL_FROM_XML)
     {
         if (m != nullptr)
@@ -88,15 +93,14 @@ void OutputModelManager::AddASAPWork(uint32_t work, const std::string& from, Bas
     }
 }
 
-void OutputModelManager::AddSetupTabWork(uint32_t work, const std::string& from, BaseObject* m, Output* o, const std::string& selectedModel)
+void OutputModelManager::AddSetupTabWork(uint32_t work, const std::string& from, BaseObject* m, Controller* o, const std::string& selectedModel)
 {
 #ifdef _DEBUG
     _sourceSetup.push_back({ work, from });
 #endif
-    if (selectedModel != "")
-    {
-        _selectedModel = selectedModel;
-    }
+    if (selectedModel != "") _selectedModel = selectedModel;
+    if (o != nullptr) _selectedController = o->GetName();
+
     if (work & WORK_RELOAD_MODEL_FROM_XML)
     {
         // this is not allowed as the model pointer must be valid until this message is processed
@@ -107,15 +111,14 @@ void OutputModelManager::AddSetupTabWork(uint32_t work, const std::string& from,
     _setupTabWork |= work;
 }
 
-void OutputModelManager::AddLayoutTabWork(uint32_t work, const std::string& from, BaseObject* m, Output* o, const std::string& selectedModel)
+void OutputModelManager::AddLayoutTabWork(uint32_t work, const std::string& from, BaseObject* m, Controller* o, const std::string& selectedModel)
 {
 #ifdef _DEBUG
     _sourceLayout.push_back({ work, from });
 #endif
-    if (selectedModel != "")
-    {
-        _selectedModel = selectedModel;
-    }
+    if (selectedModel != "") _selectedModel = selectedModel;
+    if (o != nullptr) _selectedController = o->GetName();
+
     if (work & WORK_RELOAD_MODEL_FROM_XML)
     {
         // this is not allowed as the model pointer must be valid until this message is processed
@@ -141,7 +144,14 @@ std::string OutputModelManager::GetSelectedModel()
     return res;
 }
 
-void OutputModelManager::AddImmediateWork(uint32_t work, const std::string& from, BaseObject* m, Output* o, const std::string& selectedModel)
+std::string OutputModelManager::GetSelectedController()
+{
+    auto res = _selectedController;
+    _selectedController = "";
+    return res;
+}
+
+void OutputModelManager::AddImmediateWork(uint32_t work, const std::string& from, BaseObject* m, Controller* o, const std::string& selectedModel)
 {
     static log4cpp::Category& logger_work = log4cpp::Category::getInstance(std::string("log_work"));
     if (work & WORK_RELOAD_MODEL_FROM_XML)

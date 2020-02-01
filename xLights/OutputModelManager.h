@@ -1,12 +1,10 @@
-
-#ifndef OUTPUT_MODEL_MANAGER_H
-#define OUTPUT_MODEL_MANAGER_H
+#pragma once
 
 #include <list>
 
 class xLightsFrame;
 class BaseObject;
-class Output;
+class Controller;
 
 class OutputModelManager {
 	
@@ -17,6 +15,7 @@ class OutputModelManager {
 	xLightsFrame* _frame = nullptr;
     bool _workRequested = false;
     std::string _selectedModel = "";
+    std::string _selectedController = "";
     bool _suspendedDeferredWork = false;
 #ifdef _DEBUG
     std::list<std::pair<uint32_t, std::string>> _sourceASAP;
@@ -91,15 +90,19 @@ public:
         return res;
 	}	
     uint32_t ClearWork(const std::string& type, uint32_t currentwork, uint32_t work);
-    void AddImmediateWork(uint32_t work, const std::string& from, BaseObject* m = nullptr, Output* o = nullptr, const std::string& selectedModel = "");
-    void AddASAPWork(uint32_t work, const std::string& from, BaseObject* m = nullptr, Output* o = nullptr, const std::string& selectedModel = "");
-    void AddSetupTabWork(uint32_t work, const std::string& from, BaseObject* m = nullptr, Output* o = nullptr, const std::string& selectedModel = "");
-    void AddLayoutTabWork(uint32_t work, const std::string& from, BaseObject* m = nullptr, Output* o = nullptr, const std::string& selectedModel = "");
+    void AddImmediateWork(uint32_t work, const std::string& from, BaseObject* m = nullptr, Controller* o = nullptr, const std::string& selectedModel = "");
+    void AddASAPWork(uint32_t work, const std::string& from, BaseObject* m = nullptr, Controller* o = nullptr, const std::string& selectedModel = "");
+    void AddSetupTabWork(uint32_t work, const std::string& from, BaseObject* m = nullptr, Controller* o = nullptr, const std::string& selectedModel = "");
+    void AddLayoutTabWork(uint32_t work, const std::string& from, BaseObject* m = nullptr, Controller* o = nullptr, const std::string& selectedModel = "");
     BaseObject* GetModelToReload();
     std::string GetSelectedModel();
+    std::string GetSelectedController();
     void SetSelectedModelIfASAPWorkExists(const std::string& selectedModel);
+    void SetSelectedControllerIfASAPWorkExists(const std::string& selectedController);
     void ClearSelectedModel() { _selectedModel = ""; }
     void ForceSelectedModel(const std::string& name) { _selectedModel = name; }
+    void ClearSelectedController() { _selectedController = ""; }
+    void ForceSelectedController(const std::string& name) { _selectedController = name; }
     void ClearModelToReload() { _modelToModelFromXml = nullptr; _workASAP &= ~WORK_RELOAD_MODEL_FROM_XML; }
     void SuspendDeferredWork(bool suspend) {
         _suspendedDeferredWork = suspend; 
@@ -111,5 +114,3 @@ public:
             _workRequested = false;
     }
 };
-
-#endif 

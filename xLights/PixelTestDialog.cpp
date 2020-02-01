@@ -21,7 +21,7 @@
 #include "outputs/TestPreset.h"
 #include "outputs/Output.h"
 #include "UtilFunctions.h"
-#include "outputs/Controller.h"
+#include "outputs/ControllerSerial.h"
 
 bool CompareRange(const wxLongLong& a, const wxLongLong& b)
 {
@@ -404,24 +404,55 @@ public:
     virtual std::string GetType() const override { return "Nodes"; }
 };
 
-class ControllerTestItem : public TestItemBase
+class OutputTestItem : public TestItemBase
 {
     bool _inactive; // true if controller has been deactivated
     std::string _type;
+    std::string _port;
 
 public:
-    virtual ~ControllerTestItem() {}
-    ControllerTestItem(Output* output) : TestItemBase()
+    virtual ~OutputTestItem() {}
+    OutputTestItem(Output* output) : TestItemBase()
     {
         _type = output->GetType();
         _inactive = !output->IsEnabled();
         _absoluteStartChannel = output->GetStartChannel();
         _absoluteEndChannel = output->GetEndChannel();
         _name = output->GetLongDescription();
+        _port = output->GetCommPort();
     }
     bool IsOutputable() const
     {
-        return !_inactive && _type != "NULL";
+        return !_inactive && _type != "NULL" && _port != "NotConnected";
+    }
+    virtual std::string GetType() const override { return "Output"; }
+    virtual bool IsClickable() const override { return IsOutputable(); }
+};
+
+class ControllerTestItem : public TestItemBase
+{
+    bool _inactive; // true if controller has been deactivated
+    std::string _type;
+    std::string _port;
+
+public:
+    virtual ~ControllerTestItem() {}
+    ControllerTestItem(Controller* controller) : TestItemBase()
+    {
+        _type = controller->GetType();
+        _inactive = !controller->IsEnabled();
+        _absoluteStartChannel = controller->GetStartChannel();
+        _absoluteEndChannel = controller->GetEndChannel();
+        _name = controller->GetLongDescription();
+
+        if (dynamic_cast<ControllerSerial*>(controller) != nullptr)
+        {
+            _port = dynamic_cast<ControllerSerial*>(controller)->GetPort();
+        }
+    }
+    bool IsOutputable() const
+    {
+        return !_inactive && _type != "Null" && _port != "NotConnected";
     }
     virtual std::string GetType() const override { return "Controller"; }
     virtual bool IsClickable() const override { return IsOutputable(); }
@@ -1245,16 +1276,29 @@ void PixelTestDialog::DumpSelected()
 
 // Populate the tree functions
 
-void PixelTestDialog::AddController(wxTreeListItem root, Output* output)
+void PixelTestDialog::AddOutput(wxTreeListItem root, Output* output)
 {
-    ControllerTestItem* controller = new ControllerTestItem(output);
+    OutputTestItem* oti = new OutputTestItem(output);
 
-    wxTreeListItem c = TreeListCtrl_Outputs->AppendItem(root, controller->GetName(), -1, -1, (wxClientData*)controller);
-    controller->SetTreeListItem(c);
-    if (controller->IsClickable())
+    wxTreeListItem c = TreeListCtrl_Outputs->AppendItem(root, oti->GetName(), -1, -1, (wxClientData*)oti);
+    oti->SetTreeListItem(c);
+    if (oti->IsClickable())
     {
         TreeListCtrl_Outputs->AppendItem(c, "Dummy");
     }
+}
+
+wxTreeListItem PixelTestDialog::AddController(wxTreeListItem root, Controller* controller)
+{
+    ControllerTestItem* cti = new ControllerTestItem(controller);
+
+    wxTreeListItem c = TreeListCtrl_Outputs->AppendItem(root, cti->GetName(), -1, -1, (wxClientData*)cti);
+    cti->SetTreeListItem(c);
+    //if (cti->IsClickable())
+    //{
+    //    TreeListCtrl_Outputs->AppendItem(c, "Dummy");
+    //}
+    return c;
 }
 
 void PixelTestDialog::PopulateControllerTree(OutputManager* outputManager)
@@ -1263,21 +1307,14 @@ void PixelTestDialog::PopulateControllerTree(OutputManager* outputManager)
     wxTreeListItem r = TreeListCtrl_Outputs->AppendItem(TreeListCtrl_Outputs->GetRootItem(), root->GetName(), -1, -1, (wxClientData*)root);
     root->SetTreeListItem(r);
 
-    auto outputs = outputManager->GetOutputs();
-    for (auto e = outputs.begin(); e != outputs.end(); ++e)
+    for (const auto& c : outputManager->GetControllers())
     {
-        if ((*e)->IsOutputCollection())
+        auto cti = AddController(r, c);
+        for (const auto& o : c->GetOutputs())
         {
-            auto suboutputs = (*e)->GetOutputs();
-            for (auto e1 = suboutputs.begin(); e1 != suboutputs.end(); ++e1)
-            {
-                AddController(r ,*e1);
-            }
+            AddOutput(cti, o);
         }
-        else
-        {
-            AddController(r, *e);
-        }
+        TreeListCtrl_Outputs->Expand(cti);
     }
 
     TreeListCtrl_Outputs->Expand(r);

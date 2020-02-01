@@ -70,6 +70,8 @@ public:
     virtual bool SupportsUpload() const override;
     virtual Output::PINGSTATE Ping() override;
     virtual void AsyncPing() override;
+    virtual std::string GetLongDescription() const override;
+    virtual void SetId(int id) override;
 
     int GetPriority() const { return _priority; }
     void SetPriority(int priority);

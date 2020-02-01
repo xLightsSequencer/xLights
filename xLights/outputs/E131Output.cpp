@@ -257,6 +257,8 @@ void E131Output::OpenDatagram()
 bool E131Output::Open()
 {
     if (!_enabled) return true;
+    if (_ip == "") return false;
+
     _ok = IPOutput::Open();
     if (_fppProxyOutput) {
         return _ok;
@@ -632,7 +634,7 @@ std::string E131Output::GetLongDescription() const
     else
     {
         if (!_enabled) res += "INACTIVE ";
-        res += "E1.31 " + _ip + " {" + wxString::Format(wxT("%i"), _universe).ToStdString() + "} ";
+        res += "E1.31 {" + wxString::Format(wxT("%i"), _universe).ToStdString() + "} ";
         res += "[1-" + std::string(wxString::Format(wxT("%i"), _channels)) + "] ";
         res += "(" + std::string(wxString::Format(wxT("%i"), GetStartChannel())) + "-" + std::string(wxString::Format(wxT("%i"), GetActualEndChannel())) + ") ";
         res += _description;

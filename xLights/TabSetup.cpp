@@ -927,6 +927,12 @@ void xLightsFrame::DoWork(uint32_t work, const std::string& type, BaseObject* m,
         // Updates the list of outputs on the screen
         //UpdateNetworkList();
         InitialiseControllersTab();
+
+        std::string selectedController = _outputModelManager.GetSelectedController();
+        if (selectedController != "")
+        {
+            SelectController(selectedController);
+        }
     }
     work = _outputModelManager.ClearWork(type, work,
         OutputModelManager::WORK_UPDATE_PROPERTYGRID |
@@ -1311,7 +1317,7 @@ void xLightsFrame::OnButtonDiscoverClick(wxCommandEvent& event)
         _outputManager.AddController(controller, -1);
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "OnButton_DiscoverClick", nullptr);
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "OnButton_DiscoverClick", nullptr);
-        _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "OnButton_DiscoverClick", nullptr);
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "OnButton_DiscoverClick", nullptr, controller);
         _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "OnButton_DiscoverClick", nullptr);
         delete fpp;
     }
@@ -1350,28 +1356,31 @@ void xLightsFrame::OnButtonDeleteAllControllersClick(wxCommandEvent& event)
 
 void xLightsFrame::OnButtonAddControllerSerialClick(wxCommandEvent& event)
 {
-    _outputManager.AddController(new ControllerSerial(&_outputManager), -1);
+    auto c = new ControllerSerial(&_outputManager);
+    _outputManager.AddController(c, -1);
     _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "OnButtonAddControllerSerialClick");
     _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "OnButtonAddControllerSerialClick");
-    _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "OnButtonAddControllerSerialClick");
+    _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "OnButtonAddControllerSerialClick", nullptr, c);
     _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "OnButtonAddControllerSerialClick");
 }
 
 void xLightsFrame::OnButtonAddControllerEthernetClick(wxCommandEvent& event)
 {
-    _outputManager.AddController(new ControllerEthernet(&_outputManager), -1);
+    auto c = new ControllerEthernet(&_outputManager);
+    _outputManager.AddController(c, -1);
     _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "OnButtonAddControllerEthernetClick");
     _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "OnButtonAddControllerEthernetClick");
-    _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "OnButtonAddControllerEthernetClick");
+    _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "OnButtonAddControllerEthernetClick", nullptr, c);
     _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "OnButtonAddControllerEthernetClick");
 }
 
 void xLightsFrame::OnButtonAddControllerNullClick(wxCommandEvent& event)
 {
-    _outputManager.AddController(new ControllerNull(&_outputManager), -1);
+    auto c = new ControllerNull(&_outputManager);
+    _outputManager.AddController(c, -1);
     _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "OnButtonAddControllerNullClick");
     _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "OnButtonAddControllerNullClick");
-    _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "OnButtonAddControllerNullClick");
+    _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "OnButtonAddControllerNullClick", nullptr, c);
     _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "OnButtonAddControllerNullClick");
 }
 
@@ -1891,6 +1900,23 @@ void xLightsFrame::DeleteSelectedControllers()
     _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "DeleteSelectedControllers");
 }
 
+void xLightsFrame::SelectController(const std::string& controllerName)
+{
+    auto s = GetSelectedControllerNames();
+
+    if (s.size() == 1 && s.front() == controllerName) return;
+
+    UnselectAllControllers();
+
+    int index = FindControllerInListControllers(controllerName);
+    if (index >= 0)
+    {
+        List_Controllers->SetItemState(index, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
+        List_Controllers->EnsureVisible(index);
+        SetControllersProperties();
+    }
+}
+
 void xLightsFrame::UnselectAllControllers()
 {
     int item = List_Controllers->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
@@ -1976,24 +2002,27 @@ void xLightsFrame::OnListControllerPopup(wxCommandEvent& event)
     int selcount = List_Controllers->GetSelectedItemCount();
 
     if (id == ID_NETWORK_ADDSERIAL) {
-        _outputManager.AddController(new ControllerSerial(&_outputManager), item);
+        auto c = new ControllerSerial(&_outputManager);
+        _outputManager.AddController(c, item);
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "OnListControllerPopup:ADDSERIAL");
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "OnListControllerPopup:ADDSERIAL");
-        _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "OnListControllerPopup:ADDSERIAL");
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "OnListControllerPopup:ADDSERIAL", nullptr, c);
         _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "OnListControllerPopup:ADDSERIAL");
     }
     else if (id == ID_NETWORK_ADDETHERNET) {
-        _outputManager.AddController(new ControllerEthernet(&_outputManager), item);
+        auto c = new ControllerEthernet(&_outputManager);
+        _outputManager.AddController(c, item);
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "OnListControllerPopup:ADDETHERNET");
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "OnListControllerPopup:ADDETHERNET");
-        _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "OnListControllerPopup:ADDETHERNET");
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "OnListControllerPopup:ADDETHERNET", nullptr, c);
         _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "OnListControllerPopup:ADDETHERNET");
     }
     else if (id == ID_NETWORK_ADDNULL) {
-        _outputManager.AddController(new ControllerNull(&_outputManager), item);
+        auto c = new ControllerNull(&_outputManager);
+        _outputManager.AddController(c, item);
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "OnListControllerPopup:ADDNULL");
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "OnListControllerPopup:ADDNULL");
-        _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "OnListControllerPopup:ADDNULL");
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "OnListControllerPopup:ADDNULL", nullptr, c);
         _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "OnListControllerPopup:ADDNULL");
     }
 }

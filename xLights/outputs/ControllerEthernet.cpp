@@ -159,6 +159,31 @@ void ControllerEthernet::AsyncPing()
     _asyncPing = std::async(std::launch::async, &ControllerEthernet::Ping, this);
 }
 
+std::string ControllerEthernet::GetLongDescription() const
+{
+    std::string res = "";
+
+    if (!IsActive()) res += "INACTIVE ";
+    res += GetName() + " " + GetProtocol() + " " + GetIP() + " ";
+    res += "(" + std::string(wxString::Format(wxT("%i"), GetStartChannel())) + "-" + std::string(wxString::Format(wxT("%i"), GetEndChannel())) + ") ";
+    res += _description;
+
+    return res;
+}
+
+void ControllerEthernet::SetId(int id)
+{
+    SetTheId(id);
+    if (GetProtocol() == OUTPUT_DDP)
+    {
+        dynamic_cast<DDPOutput*>(GetFirstOutput())->SetId(id);
+    }
+    else if (GetProtocol() == OUTPUT_ZCPP)
+    {
+        dynamic_cast<ZCPPOutput*>(GetFirstOutput())->SetId(id);
+    }
+}
+
 void ControllerEthernet::SetPriority(int priority)
 {
     if (_priority != priority)
@@ -584,60 +609,54 @@ void ControllerEthernet::ValidateProperties(OutputManager* om, wxPropertyGrid* p
 {
     Controller::ValidateProperties(om, propGrid);
 
-    auto p = propGrid->GetPropertyByName("Protocol");
+    auto p = propGrid->GetPropertyByName("IP");
+    if (GetIP() == "") {
+        p->SetBackgroundColour(*wxRED);
+    }
+    else {
+        p->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
+    }
+
+    p = propGrid->GetPropertyByName("Protocol");
     auto caps = ControllerCaps::GetControllerConfig(this);
-    if (caps != nullptr && p != nullptr)
-    {
+    if (caps != nullptr && p != nullptr) {
         // controller must support the protocol
-        if (!caps->IsValidInputProtocol(Lower(_type)))
-        {
+        if (!caps->IsValidInputProtocol(Lower(_type))) {
             p->SetBackgroundColour(*wxRED);
         }
-        else
-        {
+        else {
             p->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
         }
     }
 
     p = propGrid->GetPropertyByName("Universes");
-    if (caps != nullptr && p != nullptr && (_type == OUTPUT_E131 || _type == OUTPUT_ARTNET))
-    {
-        if (_outputs.size() > caps->GetMaxInputE131Universes())
-        {
+    if (caps != nullptr && p != nullptr && (_type == OUTPUT_E131 || _type == OUTPUT_ARTNET)) {
+        if (_outputs.size() > caps->GetMaxInputE131Universes()) {
             p->SetBackgroundColour(*wxRED);
         }
-        else
-        {
+        else {
             p->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
         }
     }
 
     p = propGrid->GetPropertyByName("Channels");
-    if (caps != nullptr && p != nullptr && (_type == OUTPUT_E131 || _type == OUTPUT_ARTNET))
-    {
-        if (_outputs.front()->GetChannels() > caps->GetMaxInputUniverseChannels())
-        {
+    if (caps != nullptr && p != nullptr && (_type == OUTPUT_E131 || _type == OUTPUT_ARTNET)) {
+        if (_outputs.front()->GetChannels() > caps->GetMaxInputUniverseChannels()) {
             p->SetBackgroundColour(*wxRED);
         }
-        else
-        {
+        else {
             p->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
         }
     }
 
-    if (caps != nullptr && p != nullptr && (_type == OUTPUT_E131 || _type == OUTPUT_ARTNET))
-    {
-        for (const auto& it : _outputs)
-        {
+    if (caps != nullptr && p != nullptr && (_type == OUTPUT_E131 || _type == OUTPUT_ARTNET)) {
+        for (const auto& it : _outputs) {
             p = propGrid->GetPropertyByName("Channels/" + it->GetUniverseString());
-            if (p != nullptr)
-            {
-                if (it->GetChannels() > caps->GetMaxInputUniverseChannels())
-                {
+            if (p != nullptr) {
+                if (it->GetChannels() > caps->GetMaxInputUniverseChannels()) {
                     p->SetBackgroundColour(*wxRED);
                 }
-                else
-                {
+                else {
                     p->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
                 }
             }
@@ -732,6 +751,12 @@ void ControllerEthernet::SetIP(const std::string& ip) {
         _resolvedIp = IPOutput::ResolveIP(_ip);
         _dirty = true;
         _outputManager->UpdateUnmanaged();
+
+        for (auto& it : GetOutputs())
+        {
+            it->SetIP(_ip);
+            it->SetResolvedIP(_resolvedIp);
+        }
     }
 }
 
@@ -815,6 +840,9 @@ void ControllerEthernet::SetProtocol(const std::string& protocol)
     {
         SetIP("");
     }
+
+    SetIP(GetIP()); // this ensures IP cascades as appropriate
+    SetId(GetId()); // this ensure ids cascade as appropriate
 
     while (oldoutputs.size() > 0)
     {
