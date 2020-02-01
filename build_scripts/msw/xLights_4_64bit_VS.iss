@@ -15,7 +15,7 @@
 
 #define MyTitleName "xLights" 
 #define Year 2020
-#define Version 03
+#define Version 04
 #define Bits 64
 #define Other ""
 
@@ -119,6 +119,9 @@ Source: "../../colorcurves/*.*"; DestDir: "{app}/colorcurves"   ; Flags: replace
 
 ; Value Curves
 Source: "../../valuecurves/*.*"; DestDir: "{app}/valuecurves"   ; Flags: replacesameversion recursesubdirs
+
+; Mesh Objects
+Source: "../../meshobjects/*.*"; DestDir: "{app}/meshobjects"   ; Flags: replacesameversion recursesubdirs
 
 ; Palettes
 Source: "../../palettes/*.*"; DestDir: "{app}/palettes"   ; Flags: replacesameversion recursesubdirs
