@@ -32,13 +32,11 @@ class StartChannelDialog: public wxDialog
 		wxCheckBox* CheckBox_FromThisPreviewOnly;
 		wxChoice* ChoiceController;
 		wxChoice* ModelChoice;
-		wxChoice* OutputChoice;
 		wxChoice* ipChoice;
 		wxChoice* universeChoice;
 		wxRadioButton* ControllerButton;
 		wxRadioButton* ModelButton;
 		wxRadioButton* NoneButton;
-		wxRadioButton* OutputButton;
 		wxRadioButton* StartModelButton;
 		wxRadioButton* UniverseButton;
 		wxSpinCtrl* StartChannel;
@@ -58,8 +56,6 @@ class StartChannelDialog: public wxDialog
 		//(*Identifiers(StartChannelDialog)
 		static const long ID_SPINCTRL1;
 		static const long ID_RADIOBUTTON1;
-		static const long ID_RADIOBUTTON2;
-		static const long ID_CHOICE2;
 		static const long ID_RADIOBUTTON5;
 		static const long ID_CHOICE3;
 		static const long ID_CHOICE4;

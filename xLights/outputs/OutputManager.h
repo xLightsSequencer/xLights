@@ -73,12 +73,12 @@ public:
     void UpdateUnmanaged();
     std::string UniqueName(const std::string& prefix);
     int UniqueId();
-    void AddController(Controller* controller, Controller* after);
+    //void AddController(Controller* controller, Controller* after);
     void AddController(Controller* controller, int pos = -1);
     void DeleteController(const std::string& controllerName);
     void DeleteAllControllers();
     void MoveController(Controller* controller, int toControllerNumber);
-    bool ContainsControllerUsingIP(const std::string& ip);
+    //bool ContainsControllerUsingIP(const std::string& ip);
     std::string GetFirstUnusedCommPort() const;
     int GetOutputCount() const;
     std::list<Output*> GetAllOutputs(const std::string& ip, const std::string &hostName = std::string()) const;
@@ -93,14 +93,11 @@ public:
     Output* GetOutput(int outputNumber) const;
     Output* GetOutput(const std::string& description) const;
     Output* GetOutput(int32_t absoluteChannel, int32_t& startChannel) const; // returns the output ... even if it is in a collection
-    //Output* GetLevel1Output(int32_t absoluteChannel, int32_t& startChannel) const; // returns the output ... but always level 1
     Output* GetOutput(int universe, const std::string& ip) const;
     std::list<int> GetIPUniverses(const std::string& ip = std::string()) const;
     Controller* GetController(int32_t absoluteChannel, int32_t& startChannel) const; // returns the controller - equivalent to the old level 1
-    std::list<Output*> GetAllLevel1Outputs() const;
-    Output* GetLevel1Output(int32_t channel, int32_t& stch) const;
     bool ConvertModelStartChannels(wxXmlNode* modelsNode) const;
-    bool IsOutputUsingIP(const std::string& ip) const;
+    //bool IsOutputUsingIP(const std::string& ip) const;
     int GetControllerCount() const { return _controllers.size(); }
     int GetControllerCount(const std::string& type, const std::string& ip) const;
     std::string GetGlobalFPPProxy() const { return _globalFPPProxy; }
@@ -112,8 +109,8 @@ public:
     std::list<std::string> GetAutoLayoutControllerNames() const;
     void SetParallelTransmission(bool parallel) { _parallelTransmission = parallel; }
     bool GetParallelTransmission() const { return _parallelTransmission; }
-    bool IsControllerUsingIP(const std::string& ip) const;
-    bool IsControllerUsingSerial(const std::string& port) const;
+    //bool IsControllerUsingIP(const std::string& ip) const;
+    //bool IsControllerUsingSerial(const std::string& port) const;
     bool DidConvert() const { return _didConvert; }
     #pragma endregion Output Management
 

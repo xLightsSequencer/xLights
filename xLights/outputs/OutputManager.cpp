@@ -557,24 +557,6 @@ Controller* OutputManager::GetController(int32_t absoluteChannel, int32_t& start
     return nullptr;
 }
 
-// get an output based on an absolute channel number
-Output* OutputManager::GetLevel1Output(int32_t absoluteChannel, int32_t& startChannel) const
-{
-    wxASSERT(false);
-    return nullptr;
-
-    //for (const auto& it : _outputs)
-    //{
-    //    if (absoluteChannel >= it->GetStartChannel() && absoluteChannel <= it->GetEndChannel())
-    //    {
-    //        startChannel = absoluteChannel - it->GetStartChannel() + 1;
-    //        return it;
-    //    }
-    //}
-
-    //return nullptr;
-}
-
 bool OutputManager::ConvertStartChannel(const std::string sc, std::string& newsc) const
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -750,7 +732,7 @@ std::string OutputManager::GetChannelName(int32_t channel)
 {
     int32_t startChannel = 0;
     ++channel;
-    //Output* o = GetLevel1Output(channel, startChannel);
+
     Output* o = GetOutput(channel, startChannel);
 
     if (o == nullptr)

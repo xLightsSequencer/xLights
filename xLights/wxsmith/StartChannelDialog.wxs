@@ -54,21 +54,6 @@
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
-								<object class="wxRadioButton" name="ID_RADIOBUTTON2" variable="OutputButton" member="yes">
-									<label>Output Number</label>
-									<handler function="OnButtonSelect" entry="EVT_RADIOBUTTON" />
-								</object>
-								<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-								<border>5</border>
-								<option>1</option>
-							</object>
-							<object class="sizeritem">
-								<object class="wxChoice" name="ID_CHOICE2" variable="OutputChoice" member="yes" />
-								<flag>wxALL|wxEXPAND</flag>
-								<border>5</border>
-								<option>1</option>
-							</object>
-							<object class="sizeritem">
 								<object class="wxRadioButton" name="ID_RADIOBUTTON5" variable="UniverseButton" member="yes">
 									<label>Universe Number</label>
 									<handler function="OnButtonSelect" entry="EVT_RADIOBUTTON" />

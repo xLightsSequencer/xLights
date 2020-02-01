@@ -1086,20 +1086,14 @@
 		<Unit filename="models/WreathModel.h" />
 		<Unit filename="osx_utils/TouchBars.cpp" />
 		<Unit filename="osx_utils/TouchBars.h" />
-		<Unit filename="outputs/ArtNetDialog.cpp" />
-		<Unit filename="outputs/ArtNetDialog.h" />
 		<Unit filename="outputs/ArtNetOutput.cpp" />
 		<Unit filename="outputs/ArtNetOutput.h" />
 		<Unit filename="outputs/Controller.h" />
-		<Unit filename="outputs/DDPDialog.cpp" />
-		<Unit filename="outputs/DDPDialog.h" />
 		<Unit filename="outputs/DDPOutput.cpp" />
 		<Unit filename="outputs/DDPOutput.h" />
 		<Unit filename="outputs/DLightOutput.h" />
 		<Unit filename="outputs/DMXOutput.cpp" />
 		<Unit filename="outputs/DMXOutput.h" />
-		<Unit filename="outputs/E131Dialog.cpp" />
-		<Unit filename="outputs/E131Dialog.h" />
 		<Unit filename="outputs/E131Output.cpp" />
 		<Unit filename="outputs/E131Output.h" />
 		<Unit filename="outputs/IPOutput.cpp" />
@@ -1110,16 +1104,10 @@
 		<Unit filename="outputs/LOROutput.h" />
 		<Unit filename="outputs/LorController.cpp" />
 		<Unit filename="outputs/LorController.h" />
-		<Unit filename="outputs/LorControllerDialog.cpp" />
-		<Unit filename="outputs/LorControllerDialog.h" />
 		<Unit filename="outputs/LorControllers.cpp" />
 		<Unit filename="outputs/LorControllers.h" />
-		<Unit filename="outputs/LorOptimisedDialog.cpp" />
-		<Unit filename="outputs/LorOptimisedDialog.h" />
 		<Unit filename="outputs/NullOutput.cpp" />
 		<Unit filename="outputs/NullOutput.h" />
-		<Unit filename="outputs/NullOutputDialog.cpp" />
-		<Unit filename="outputs/NullOutputDialog.h" />
 		<Unit filename="outputs/OpenDMXOutput.cpp" />
 		<Unit filename="outputs/OpenDMXOutput.h" />
 		<Unit filename="outputs/OpenPixelNetOutput.cpp" />
@@ -1134,19 +1122,13 @@
 		<Unit filename="outputs/RenardOutput.h" />
 		<Unit filename="outputs/SerialOutput.cpp" />
 		<Unit filename="outputs/SerialOutput.h" />
-		<Unit filename="outputs/SerialPortWithRate.cpp" />
-		<Unit filename="outputs/SerialPortWithRate.h" />
 		<Unit filename="outputs/TestPreset.cpp" />
 		<Unit filename="outputs/TestPreset.h" />
 		<Unit filename="outputs/ZCPP.h" />
-		<Unit filename="outputs/ZCPPDialog.cpp" />
-		<Unit filename="outputs/ZCPPDialog.h" />
 		<Unit filename="outputs/ZCPPOutput.cpp" />
 		<Unit filename="outputs/ZCPPOutput.h" />
 		<Unit filename="outputs/serial.cpp" />
 		<Unit filename="outputs/serial.h" />
-		<Unit filename="outputs/xxxDialog.cpp" />
-		<Unit filename="outputs/xxxDialog.h" />
 		<Unit filename="outputs/xxxEthernetOutput.cpp" />
 		<Unit filename="outputs/xxxEthernetOutput.h" />
 		<Unit filename="outputs/xxxSerialOutput.cpp" />
@@ -1250,7 +1232,6 @@
 		<Unit filename="wxModelGridCellRenderer.h" />
 		<Unit filename="wx_pch.h" />
 		<Unit filename="wxsmith/AlignmentDialog.wxs" />
-		<Unit filename="wxsmith/ArtNetDialog.wxs" />
 		<Unit filename="wxsmith/AssistPanel.wxs" />
 		<Unit filename="wxsmith/BackupSettingsPanel.wxs" />
 		<Unit filename="wxsmith/BarsPanel.wxs" />
@@ -1277,7 +1258,6 @@
 		<Unit filename="wxsmith/CurtainPanel.wxs" />
 		<Unit filename="wxsmith/CustomModelDialog.wxs" />
 		<Unit filename="wxsmith/CustomTimingDialog.wxs" />
-		<Unit filename="wxsmith/DDPDialog.wxs" />
 		<Unit filename="wxsmith/DMXPanel.wxs" />
 		<Unit filename="wxsmith/EffectAssist.wxs" />
 		<Unit filename="wxsmith/EffectIconPanel.wxs" />
@@ -1313,9 +1293,7 @@
 		<Unit filename="wxsmith/LinesPanel.wxs" />
 		<Unit filename="wxsmith/LinkJukeboxButtonDialog.wxs" />
 		<Unit filename="wxsmith/LiquidPanel.wxs" />
-		<Unit filename="wxsmith/LorControllerDialog.wxs" />
 		<Unit filename="wxsmith/LorConvertDialog.wxs" />
-		<Unit filename="wxsmith/LorOptimisedDialog.wxs" />
 		<Unit filename="wxsmith/LyricUserDictDialog.wxs" />
 		<Unit filename="wxsmith/LyricsDialog.wxs" />
 		<Unit filename="wxsmith/MainSequencer.wxs" />
@@ -1446,7 +1424,6 @@
 				<resources>
 					<wxFrame wxs="wxsmith/xLightsframe.wxs" src="xLightsMain.cpp" hdr="xLightsMain.h" fwddecl="0" i18n="1" name="xLightsFrame" language="CPP" />
 					<wxDialog wxs="wxsmith/AlignmentDialog.wxs" src="AlignmentDialog.cpp" hdr="AlignmentDialog.h" fwddecl="0" i18n="1" name="AlignmentDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/ArtNetDialog.wxs" src="outputs/ArtNetDialog.cpp" hdr="outputs/ArtNetDialog.h" fwddecl="0" i18n="1" name="ArtNetDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/BatchRenderDialog.wxs" src="BatchRenderDialog.cpp" hdr="BatchRenderDialog.h" fwddecl="1" i18n="1" name="BatchRenderDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/BufferSizeDialog.wxs" src="BufferSizeDialog.cpp" hdr="BufferSizeDialog.h" fwddecl="0" i18n="1" name="BufferSizeDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/BulkEditFontPickerDialog.wxs" src="BulkEditFontPickerDialog.cpp" hdr="BulkEditFontPickerDialog.h" fwddecl="0" i18n="1" name="BulkEditFontPickerDialog" language="CPP" />
@@ -1462,8 +1439,6 @@
 					<wxDialog wxs="wxsmith/CurrentPreviewModels.wxs" src="CurrentPreviewModels.cpp" hdr="CurrentPreviewModels.h" fwddecl="0" i18n="1" name="CurrentPreviewModels" language="CPP" />
 					<wxDialog wxs="wxsmith/CustomModelDialog.wxs" src="CustomModelDialog.cpp" hdr="CustomModelDialog.h" fwddecl="1" i18n="1" name="CustomModelDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/CustomTimingDialog.wxs" src="CustomTimingDialog.cpp" hdr="CustomTimingDialog.h" fwddecl="0" i18n="1" name="CustomTimingDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/DDPDialog.wxs" src="outputs/DDPDialog.cpp" hdr="outputs/DDPDialog.h" fwddecl="0" i18n="1" name="DDPDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/E131Dialog.wxs" src="outputs/E131Dialog.cpp" hdr="outputs/E131Dialog.h" fwddecl="0" i18n="1" name="E131Dialog" language="CPP" />
 					<wxDialog wxs="wxsmith/EffectListDialog.wxs" src="EffectListDialog.cpp" hdr="EffectListDialog.h" fwddecl="0" i18n="1" name="EffectListDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/EffectTimingDialog.wxs" src="EffectTimingDialog.cpp" hdr="EffectTimingDialog.h" fwddecl="0" i18n="1" name="EffectTimingDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/EffectTreeDialog.wxs" src="EffectTreeDialog.cpp" hdr="EffectTreeDialog.h" fwddecl="0" i18n="1" name="EffectTreeDialog" language="CPP" />
@@ -1478,9 +1453,7 @@
 					<wxDialog wxs="wxsmith/LayerSelectDialog.wxs" src="LayerSelectDialog.cpp" hdr="LayerSelectDialog.h" fwddecl="0" i18n="1" name="LayerSelectDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/LinkJukeboxButtonDialog.wxs" src="LinkJukeboxButtonDialog.cpp" hdr="LinkJukeboxButtonDialog.h" fwddecl="0" i18n="1" name="LinkJukeboxButtonDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/LMSImportChannelMapDialog.wxs" src="LMSImportChannelMapDialog.cpp" hdr="LMSImportChannelMapDialog.h" fwddecl="0" i18n="1" name="LMSImportChannelMapDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/LorControllerDialog.wxs" src="outputs/LorControllerDialog.cpp" hdr="outputs/LorControllerDialog.h" fwddecl="0" i18n="1" name="LorControllerDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/LorConvertDialog.wxs" src="LorConvertDialog.cpp" hdr="LorConvertDialog.h" fwddecl="0" i18n="1" name="LorConvertDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/LorOptimisedDialog.wxs" src="outputs/LorOptimisedDialog.cpp" hdr="outputs/LorOptimisedDialog.h" fwddecl="0" i18n="1" name="LorOptimisedDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/LyricsDialog.wxs" src="LyricsDialog.cpp" hdr="LyricsDialog.h" fwddecl="0" i18n="1" name="LyricsDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/LyricUserDictDialog.wxs" src="LyricUserDictDialog.cpp" hdr="LyricUserDictDialog.h" fwddecl="0" i18n="1" name="LyricUserDictDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/MatrixFaceDownloadDialog.wxs" src="MatrixFaceDownloadDialog.cpp" hdr="MatrixFaceDownloadDialog.h" fwddecl="0" i18n="1" name="MatrixFaceDownloadDialog" language="CPP" />
@@ -1494,7 +1467,6 @@
 					<wxDialog wxs="wxsmith/NodeSelectGrid.wxs" src="NodeSelectGrid.cpp" hdr="NodeSelectGrid.h" fwddecl="0" i18n="1" name="NodeSelectGrid" language="CPP" />
 					<wxDialog wxs="wxsmith/NoteImportDialog.wxs" src="NoteImportDialog.cpp" hdr="NoteImportDialog.h" fwddecl="0" i18n="1" name="NoteImportDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/NoteRangeDialog.wxs" src="NoteRangeDialog.cpp" hdr="NoteRangeDialog.h" fwddecl="0" i18n="1" name="NoteRangeDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/NullOutputDialog.wxs" src="outputs/NullOutputDialog.cpp" hdr="outputs/NullOutputDialog.h" fwddecl="0" i18n="1" name="NullOutputDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/OptionChooser.wxs" src="OptionChooser.cpp" hdr="OptionChooser.h" fwddecl="0" i18n="1" name="OptionChooser" language="CPP" />
 					<wxDialog wxs="wxsmith/PaletteMgmtDialog.wxs" src="PaletteMgmtDialog.cpp" hdr="PaletteMgmtDialog.h" fwddecl="0" i18n="1" name="PaletteMgmtDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/PathGenerationDialog.wxs" src="PathGenerationDialog.cpp" hdr="PathGenerationDialog.h" fwddecl="0" i18n="1" name="PathGenerationDialog" language="CPP" />
@@ -1510,7 +1482,6 @@
 					<wxDialog wxs="wxsmith/SeqElementMismatchDialog.wxs" src="SeqElementMismatchDialog.cpp" hdr="SeqElementMismatchDialog.h" fwddecl="0" i18n="1" name="SeqElementMismatchDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/SeqExportDialog.wxs" src="SeqExportDialog.cpp" hdr="SeqExportDialog.h" fwddecl="0" i18n="1" name="SeqExportDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/SeqSettingsDialog.wxs" src="SeqSettingsDialog.cpp" hdr="SeqSettingsDialog.h" fwddecl="0" i18n="1" name="SeqSettingsDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/SerialPortWithRate.wxs" src="outputs/SerialPortWithRate.cpp" hdr="outputs/SerialPortWithRate.h" fwddecl="0" i18n="1" name="SerialPortWithRate" language="CPP" />
 					<wxDialog wxs="wxsmith/ServoConfigDialog.wxs" src="models/DMX/ServoConfigDialog.cpp" hdr="models/DMX/ServoConfigDialog.h" fwddecl="0" i18n="1" name="ServoConfigDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/SkullConfigDialog.wxs" src="models/DMX/SkullConfigDialog.cpp" hdr="models/DMX/SkullConfigDialog.h" fwddecl="0" i18n="1" name="SkullConfigDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/SevenSegmentDialog.wxs" src="SevenSegmentDialog.cpp" hdr="SevenSegmentDialog.h" fwddecl="0" i18n="1" name="SevenSegmentDialog" language="CPP" />
@@ -1531,7 +1502,6 @@
 					<wxDialog wxs="wxsmith/VsaImportDialog.wxs" src="VsaImportDialog.cpp" hdr="VsaImportDialog.h" fwddecl="0" i18n="1" name="VsaImportDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/WiringDialog.wxs" src="WiringDialog.cpp" hdr="WiringDialog.h" fwddecl="0" i18n="1" name="WiringDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/xLightsImportChannelMapDialog.wxs" src="xLightsImportChannelMapDialog.cpp" hdr="xLightsImportChannelMapDialog.h" fwddecl="0" i18n="1" name="xLightsImportChannelMapDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/ZCPPDialog.wxs" src="outputs/ZCPPDialog.cpp" hdr="outputs/ZCPPDialog.h" fwddecl="0" i18n="1" name="ZCPPDialog" language="CPP" />
 					<wxPanel wxs="wxsmith/EffectsPanel.wxs" src="EffectsPanel.cpp" hdr="EffectsPanel.h" fwddecl="0" i18n="1" name="EffectsPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/MainSequencer.wxs" src="sequencer/MainSequencer.cpp" hdr="sequencer/MainSequencer.h" fwddecl="0" i18n="1" name="MainSequencer" language="CPP" />
 					<wxPanel wxs="wxsmith/ColorPanel.wxs" src="ColorPanel.cpp" hdr="ColorPanel.h" fwddecl="0" i18n="1" name="ColorPanel" language="CPP" />

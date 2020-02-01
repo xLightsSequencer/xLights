@@ -358,7 +358,7 @@ bool xLightsFrame::PromptForShowDirectory()
 void xLightsFrame::GetControllerDetailsForChannel(int32_t channel, std::string& type, std::string& description, int32_t& channeloffset, std::string &ip, std::string& u, std::string& inactive, int& output, std::string& baud, int& start_universe, int& start_universe_channel)
 {
     int32_t ch = 0;
-    Output* o = _outputManager.GetLevel1Output(channel, ch);
+    Output* o = _outputManager.GetOutput(channel, ch);
     channeloffset = ch;
 
     type = "Unknown";

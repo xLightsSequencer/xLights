@@ -21,6 +21,7 @@
 #include "outputs/TestPreset.h"
 #include "outputs/Output.h"
 #include "UtilFunctions.h"
+#include "outputs/Controller.h"
 
 bool CompareRange(const wxLongLong& a, const wxLongLong& b)
 {
@@ -1377,10 +1378,10 @@ bool PixelTestDialog::AreChannelsAvailable(Model* model)
     while (current <= ec)
     {
         int32_t offset;
-        Output* o = _outputManager->GetLevel1Output(current, offset);
+        auto c = _outputManager->GetController(current, offset);
 
-        if (o == nullptr || o->GetType() == "NULL") return false;
-        current += o->GetChannels();
+        if (c == nullptr || c->GetType() == "NULL") return false;
+        current += c->GetChannels();
     }
 
     return true;

@@ -1830,16 +1830,8 @@ std::string Model::ComputeStringStartChannel(int i) {
             return wxString::Format("%s:%d", comps[0], wxAtol(comps[1]) + priorLength);
         }
         else {
-            int32_t ststch;
-            Output* o = modelManager.GetOutputManager()->GetLevel1Output(startChannel, ststch);
-            if (o != nullptr)
-            {
-                return wxString::Format("%i:%d", o->GetOutputNumber(), ststch).ToStdString();
-            }
-            else
-            {
-                return wxString::Format("%d", startChannel);
-            }
+            // This used to be on:sc but this is no longer supported
+            return wxString::Format("%d", startChannel);
         }
     }
     return wxString::Format("%d", startChannel);
@@ -1943,12 +1935,6 @@ bool Model::IsValidStartChannelString() const
         {
             return true;
         }
-    }
-    else if ((parts.size() == 2) &&
-             (parts[0].IsNumber() && wxAtol(parts[0]) > 0 && !parts[0].Contains('.')) &&
-             (parts[1].IsNumber() && wxAtol(parts[1]) > 0 && !parts[1].Contains('.'))) // output:startch
-    {
-        return true;
     }
 
     return false;
@@ -2598,7 +2584,7 @@ int CountChar(const std::string& s, char c)
 
 std::string Model::GetStartChannelInDisplayFormat(OutputManager* outputManager)
 {
-    if (ModelStartChannel == "")
+    if (!IsValidStartChannelString())
     {
         return "(1)";
     }
@@ -2614,7 +2600,7 @@ std::string Model::GetStartChannelInDisplayFormat(OutputManager* outputManager)
     {
         return ModelStartChannel + wxString::Format(" (%u)", GetFirstChannel() + 1);
     }
-    else if (ModelStartChannel[0] == '#' || CountChar(ModelStartChannel, ':') > 0)
+    else if (ModelStartChannel[0] == '#')
     {
         return GetFirstChannelInStartChannelFormat(outputManager);
     }
@@ -2725,18 +2711,8 @@ std::string Model::GetChannelInStartChannelFormat(OutputManager* outputManager, 
     }
     else
     {
-        // output:channel
-        int32_t startChannel;
-        Output* output = outputManager->GetLevel1Output(channel, startChannel);
-
-        if (output == nullptr)
-        {
-            return wxString::Format("%u", channel).ToStdString();
-        }
-        else
-        {
-            return wxString::Format("%d:%d (%u)", output->GetOutputNumber(), startChannel, channel).ToStdString();
-        }
+        // This used to be output:sc ... but that is no longer valid
+        return wxString::Format("%u", channel).ToStdString();
     }
 }
 
