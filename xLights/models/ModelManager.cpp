@@ -1069,7 +1069,18 @@ Model *ModelManager::CreateModel(wxXmlNode *node, int previewW, int previewH, bo
         node->DeleteAttribute("DisplayAs");
         node->AddAttribute("DisplayAs", type);
     }
-    if (type == "DmxServo3Axis") {
+    else if (type == "DmxMovingHead3D") {
+        std::string version = node->GetAttribute("versionNumber").ToStdString();
+        // After version 2020.3 the DmxMovingHead3D is being moved back to the DmxMovingHead class so the 3D version is mesh only
+        if (version == "4") {
+            type = "DmxMovingHead";
+            node->DeleteAttribute("DisplayAs");
+            node->AddAttribute("DisplayAs", type);
+            node->DeleteAttribute("DmxStyle");
+            node->AddAttribute("DmxStyle", "Moving Head 3D");
+        }
+    }
+    else if (type == "DmxServo3Axis") {
         type = "DmxServo3d";
         node->DeleteAttribute("DisplayAs");
         node->AddAttribute("DisplayAs", type);
