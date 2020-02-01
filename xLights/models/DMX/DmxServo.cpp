@@ -417,12 +417,15 @@ void DmxServo::DrawModel(ModelPreview* preview, DrawGLUtils::xlAccumulator& va, 
 
 void DmxServo::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator& va, const xlColor* c, float& sx, float& sy, bool active)
 {
-    DrawModel(preview, va, c, sx, sy, active);
+    if (!IsActive()) return;
 
+    DrawModel(preview, va, c, sx, sy, active);
 }
 
 void DmxServo::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator& va, const xlColor* c, float& sx, float& sy, float& sz, bool active)
 {
+    if (!IsActive()) return;
+
     DrawModel(preview, va, c, sx, sy, active);
 }
 

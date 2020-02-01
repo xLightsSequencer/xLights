@@ -481,6 +481,8 @@ void DmxMovingHead3D::DrawModel(ModelPreview* preview, DrawGLUtils::xlAccumulato
 
 void DmxMovingHead3D::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &va, const xlColor *c, float &sx, float &sy, bool active)
 {
+    if (!IsActive()) return;
+    
     float sz = 0;
     DrawGLUtils::xl3Accumulator dummy;
     DrawModel(preview, va, dummy, c, sx, sy, sz, active, false);
@@ -488,6 +490,8 @@ void DmxMovingHead3D::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAc
 
 void DmxMovingHead3D::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va, const xlColor *c, float &sx, float &sy, float &sz, bool active)
 {
+    if (!IsActive()) return;
+
     DrawGLUtils::xlAccumulator dummy;
     DrawModel(preview, dummy, va, c, sx, sy, sz, active, true);
 }

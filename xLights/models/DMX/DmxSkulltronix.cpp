@@ -374,6 +374,8 @@ void DmxSkulltronix::InitModel() {
 
 void DmxSkulltronix::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &va, const xlColor *c, float &sx, float &sy, bool active)
 {
+    if (!IsActive()) return;
+
     float pan_angle, pan_angle_raw, tilt_angle, nod_angle, jaw_pos, eye_x, eye_y;
     float jaw_range_of_motion = -4.0f;
     float eye_range_of_motion = 3.8f;
@@ -671,6 +673,8 @@ void DmxSkulltronix::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAcc
 
 void DmxSkulltronix::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va, const xlColor *c, float &sx, float &sy, float &sz, bool active)
 {
+    if (!IsActive()) return;
+
     float pan_angle, pan_angle_raw, tilt_angle, nod_angle, jaw_pos, eye_x, eye_y;
     float jaw_range_of_motion = -4.0f;
     float eye_range_of_motion = 3.8f;
