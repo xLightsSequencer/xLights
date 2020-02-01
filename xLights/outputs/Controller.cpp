@@ -321,9 +321,10 @@ void Controller::Convert(wxXmlNode* node, std::string showDir)
     {
         _suppressDuplicateFrames = _outputs.front()->IsSuppressDuplicateFrames();
         _autoSize = _outputs.front()->IsAutoSize();
+        _autoStartChannels = _outputs.front()->IsAutoLayoutModels();
     }
 
-    auto c = node->GetAttribute("Controller");
+    auto const c = node->GetAttribute("Controller");
     if (c != "")
     {
         for (const auto& it : __controllerNameMap)

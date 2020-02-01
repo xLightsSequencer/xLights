@@ -37,7 +37,7 @@ void ControllerCaps::LoadControllers()
     wxStandardPaths stdp = wxStandardPaths::Get();
 
 #ifndef __WXMSW__
-    d = wxStandardPaths::Get().GetResourcesDir() + "/valuecurves";
+    d = wxStandardPaths::Get().GetResourcesDir() + "/controllers";
 #else
     d = wxFileName(stdp.GetExecutablePath()).GetPath() + "/controllers";
 #endif
@@ -116,6 +116,10 @@ void ControllerCaps::LoadControllers()
 
             cont = dir.GetNext(&filename);
         }
+    }
+    else
+    {
+        logger_base.error("Controllers folder not found " + d);
     }
 }
 
