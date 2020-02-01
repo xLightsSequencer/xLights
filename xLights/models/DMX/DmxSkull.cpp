@@ -66,6 +66,7 @@ DmxSkull::DmxSkull(wxXmlNode* node, const ModelManager& manager, bool zeroBased)
     default_node_names = "Jaw,-Jaw Fine,Pan,-Pan Fine,Tilt,-Tilt Fine,Nod,-Nod Fine,Eye UD,-Eye UD Fine,Eye LR,-Eye LR Fine,-Torso,-Torso Fine,Eye Brightness,Eye Red,Eye Green,Eye Blue";
 
     SetFromXml(node, zeroBased);
+    screenLocation.CreateWithDepth(true);
 }
 
 DmxSkull::~DmxSkull()
@@ -230,6 +231,9 @@ void DmxSkull::AddTypeProperties(wxPropertyGridInterface* grid) {
     wxPGProperty* p = grid->Append(new SkullPopupDialogProperty(this, "Skull Config", "SkullConfig", CLICK_TO_EDIT, 1));
     grid->LimitPropertyEditing(p);
 
+    p = grid->Append(new wxBoolProperty("Mesh Only", "MeshOnly", mesh_only));
+    p->SetAttribute("UseCheckbox", true);
+
     if (has_jaw && jaw_servo != nullptr) {
         jaw_servo->AddTypeProperties(grid);
     }
@@ -301,6 +305,17 @@ void DmxSkull::AddTypeProperties(wxPropertyGridInterface* grid) {
 }
 
 int DmxSkull::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
+
+    if ("MeshOnly" == event.GetPropertyName()) {
+        ModelXml->DeleteAttribute("MeshOnly");
+        mesh_only = event.GetValue().GetBool();
+        if (mesh_only) {
+            ModelXml->AddAttribute("MeshOnly", "1");
+        }
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxSkull::OnPropertyGridChange::MeshOnly");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxSkull::OnPropertyGridChange::MeshOnly");
+        return 0;
+    }
 
     if (has_color) {
         if (OnColorPropertyGridChange(grid, event, ModelXml, this) == 0) {
@@ -436,6 +451,7 @@ void DmxSkull::AddMesh(Mesh** _mesh, const std::string& name, const std::string&
 void DmxSkull::InitModel() {
     DmxModel::InitModel();
     DisplayAs = "DmxSkull";
+    screenLocation.SetRenderSize(1, 1, 1);
 
     red_channel = wxAtoi(ModelXml->GetAttribute("DmxRedChannel", "16"));
     green_channel = wxAtoi(ModelXml->GetAttribute("DmxGreenChannel", "17"));
@@ -456,6 +472,7 @@ void DmxSkull::InitModel() {
     has_color = wxAtoi(ModelXml->GetAttribute("HasColor", "1"));
     is_skulltronix = wxAtoi(ModelXml->GetAttribute("Skulltronix", "0"));
     _16bit = wxAtoi(ModelXml->GetAttribute("Bits16", "1"));
+    mesh_only = ModelXml->GetAttribute("MeshOnly", "0") == "1";
 
     SetNodeNames(default_node_names);
 
@@ -530,18 +547,16 @@ void DmxSkull::InitModel() {
     if (has_eye_lr) AddServo(&eye_lr_servo, "EyeLeftRightServo", EYE_LR, "Rotate Y");
 
     // create any missing meshes
-    AddMesh(&head_mesh, "HeadMesh", "SkullHead.obj", true);
+    AddMesh(&head_mesh, "HeadMesh", "SkullHead.obj", false);
     head_mesh->SetHalfHeight();  // obj file is shifted up so its twice as tall as it need to be
     AddMesh(&jaw_mesh, "JawMesh", "SkullJaw.obj", false);
     AddMesh(&eye_l_mesh, "EyeMeshL", "Eyeball.obj", false);
     AddMesh(&eye_r_mesh, "EyeMeshR", "Eyeball.obj", false);
 
-    eye_l_mesh->SetOffsetX(-1.0f);
-    eye_l_mesh->SetOffsetY(4.5f);
-    eye_l_mesh->SetOffsetZ(3.2f);
-    eye_r_mesh->SetOffsetX(1.0f);
-    eye_r_mesh->SetOffsetY(4.5f);
-    eye_r_mesh->SetOffsetZ(3.2f);
+    head_mesh->SetMeshOnly(mesh_only);
+    jaw_mesh->SetMeshOnly(mesh_only);
+    eye_l_mesh->SetMeshOnly(mesh_only);
+    eye_r_mesh->SetMeshOnly(mesh_only);
 
     if (setup_skulltronix) {
         SetupSkulltronix();
@@ -666,6 +681,27 @@ void DmxSkull::DrawModel(ModelPreview* preview, DrawGLUtils::xlAccumulator& va2,
         if (has_eye_lr) eye_lr_servo->FillMotionMatrix(eye_x_pos, eye_x_matrix);
         if (has_eye_ud) eye_ud_servo->FillMotionMatrix(eye_y_pos, eye_y_matrix);
 
+        // Adjust scaling to render size of 1
+        float jaw_pivot_y = 3.3f;;
+        float jaw_pivot_z = 0.4f;
+        if (head_mesh->GetExists()) {
+            float w = head_mesh->GetWidth();
+            float scale = 1.0f / w;
+            head_mesh->SetRenderScaling(scale);
+            jaw_mesh->SetRenderScaling(scale);
+            eye_l_mesh->SetRenderScaling(scale);
+            eye_r_mesh->SetRenderScaling(scale);
+            GetBaseObjectScreenLocation().UpdateBoundingBox(head_mesh->GetWidth(), head_mesh->GetHeight(), head_mesh->GetDepth());  // FIXME: Modify to only call this when position changes
+            eye_l_mesh->SetOffsetX(-1.0f * scale);
+            eye_l_mesh->SetOffsetY(4.5f * scale);
+            eye_l_mesh->SetOffsetZ(3.2f * scale);
+            eye_r_mesh->SetOffsetX(1.0f * scale);
+            eye_r_mesh->SetOffsetY(4.5f * scale);
+            eye_r_mesh->SetOffsetZ(3.2f * scale);
+            jaw_pivot_y *= scale;
+            jaw_pivot_z *= scale;
+        }
+
         // Draw Meshs
         glm::mat4 head_matrix = pan_matrix * tilt_matrix * nod_matrix;
         glm::mat4 head_base = base_matrix * head_matrix;
@@ -673,7 +709,7 @@ void DmxSkull::DrawModel(ModelPreview* preview, DrawGLUtils::xlAccumulator& va2,
         eye_l_mesh->SetColor(eye_color, "EyeColor");
         eye_r_mesh->SetColor(eye_color, "EyeColor");
         head_mesh->Draw(this, preview, va3, base_matrix, head_matrix, false, 0, 0, 0, false, false);
-        jaw_mesh->Draw(this, preview, va3, head_base, jaw_matrix, false, 0, 3.3f, 0.4f, true, false);
+        jaw_mesh->Draw(this, preview, va3, head_base, jaw_matrix, false, 0, jaw_pivot_y, jaw_pivot_z, true, false);
         eye_l_mesh->Draw(this, preview, va3, head_base, eye_x_matrix, false, 0, 0, 0, false, false);
         eye_r_mesh->Draw(this, preview, va3, head_base, eye_x_matrix, false, 0, 0, 0, false, false);
     }

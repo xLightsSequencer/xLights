@@ -174,6 +174,9 @@ void ModelScreenLocation::SetRenderSize(float NewWi, float NewHt, float NewDp) {
     RenderHt = NewHt;
     RenderWi = NewWi;
     RenderDp = NewDp;
+    if (RenderHt > 1.0f) {
+        int x = 5;
+    }
 }
 
 // This function is used when the render size needs to be adjusted after a mesh is loaded during model creation
@@ -1740,7 +1743,7 @@ int BoxedScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool Shif
         sx = new_width / RenderWi;
         sy = new_height / RenderHt;
         SetScale(sx, sy);
-        if( supportsZScaling ) {
+        if( supportsZScaling || createWithDepth ) {
             scalez = scalex;
         }
     }
