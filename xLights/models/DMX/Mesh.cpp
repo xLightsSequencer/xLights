@@ -32,6 +32,10 @@ Mesh::~Mesh()
     }
 }
 
+void Mesh::SetRenderScaling(float s) {
+    rscale = s;
+}
+
 void Mesh::Init(BaseObject* base, bool set_size) {
 	_objFile = FixFile("", node_xml->GetAttribute("ObjFile", ""));
     mesh_only = node_xml->GetAttribute("MeshOnly", "0") == "1";
@@ -540,7 +544,7 @@ void Mesh::Draw(BaseObject* base, ModelPreview* preview, DrawGLUtils::xl3Accumul
 
     if (obj_loaded) {
         glm::mat4 Identity = glm::mat4(1.0f);
-        glm::mat4 scalingMatrix = glm::scale(Identity, glm::vec3(scalex, scaley, scalez));
+        glm::mat4 scalingMatrix = glm::scale(Identity, glm::vec3(scalex * rscale, scaley * rscale, scalez * rscale));
         glm::mat4 rx = glm::rotate(Identity, glm::radians(rotatex), glm::vec3(1.0f, 0.0f, 0.0f));
         glm::mat4 ry = glm::rotate(Identity, glm::radians(rotatey), glm::vec3(0.0f, 1.0f, 0.0f));
         glm::mat4 rz = glm::rotate(Identity, glm::radians(rotatez), glm::vec3(0.0f, 0.0f, 1.0f));
@@ -804,8 +808,8 @@ void Mesh::Draw(BaseObject* base, ModelPreview* preview, DrawGLUtils::xl3Accumul
             float x1 = pivot_offset_x;
             float y1 = pivot_offset_y;
             float z1 = pivot_offset_z;
-            float offx = width * scalex * scale.x;
-            float offz = depth * scalez * scale.z;
+            float offx = width * scalex * scale.x * rscale;
+            float offz = depth * scalez * scale.z * rscale;
             glm::vec4 v = base_matrix * translationMatrix * glm::vec4(glm::vec3(x1, y1, z1), 1.0f);
             x1 = v.x; y1 = v.y; z1 = v.z;
             va.AddVertex(x1 - offx, y1, z1, pink);

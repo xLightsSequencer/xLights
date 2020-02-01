@@ -26,6 +26,8 @@ void DmxFloodArea::InitModel() {
 
 void DmxFloodArea::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &va, const xlColor *c, float &sx, float &sy, bool active)
 {
+    if (!IsActive()) return;
+
     // determine if shutter is open for floods that support it
     bool shutter_open = true;
     if (shutter_channel > 0 && active) {
@@ -109,6 +111,8 @@ void DmxFloodArea::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccum
 
 void DmxFloodArea::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va, const xlColor *c, float &sx, float &sy, float &sz, bool active)
 {
+    if (!IsActive()) return;
+
     // determine if shutter is open for floods that support it
     bool shutter_open = true;
     if (shutter_channel > 0 && active) {

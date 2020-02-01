@@ -179,6 +179,9 @@ protected:
     void SetSupportsZScaling(bool b) {
         supportsZScaling = b;
     }
+    void CreateWithDepth(bool b) {
+        createWithDepth = b;
+    }
     void SetStartOnXAxis(bool b) {
         _startOnXAxis = b;
     }
@@ -234,6 +237,7 @@ protected:
     int active_axis;
     int axis_tool;
     bool supportsZScaling;
+    bool createWithDepth;
     bool _startOnXAxis;
     bool rotation_init;
     bool mouse_down;
@@ -307,6 +311,9 @@ public:
     void SetScale(float x, float y) {
         scalex = x;
         scaley = y;
+    }
+    void SetScaleZ(float z) {
+        scalez = z;
     }
 
     void SetRotation(int r) {

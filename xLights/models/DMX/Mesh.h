@@ -39,7 +39,11 @@ class Mesh
 
         float GetWidth() { return width; }
         float GetHeight() { return height; }
+        float GetDepth() { return depth; }
         void SetHalfHeight() { half_height = 0.5f; }
+
+        void SetRenderScaling(float s);
+        void SetMeshOnly(bool val) { mesh_only = val; }
 
         // These 3 don't write to XML because currently they are only used to offset built-in models
         // like the skull which uses the offset to draw the same mesh twice.
@@ -79,6 +83,7 @@ class Mesh
         float rotatey = 0.0f;
         float rotatez = 0.0f;
         float half_height = 1.0f;
+        float rscale = 1.0f;
         wxString base_name;
 
         tinyobj::attrib_t attrib;

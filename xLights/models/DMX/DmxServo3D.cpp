@@ -559,6 +559,8 @@ void DmxServo3d::InitModel() {
 
 void DmxServo3d::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator& va, const xlColor* c, float& sx, float& sy, float& sz, bool active)
 {
+    if (!IsActive()) return;
+
     // crash protection
     int min_channels = num_servos * (_16bit ? 2 : 1);
     if (min_channels > Nodes.size()) {
@@ -647,6 +649,8 @@ void DmxServo3d::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumu
 
 void DmxServo3d::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator& va, const xlColor* c, float& sx, float& sy, bool active)
 {
+    if (!IsActive()) return;
+
     float x1 = -0.5f;
     float x2 = -0.5f;
     float x3 = 0.5f;

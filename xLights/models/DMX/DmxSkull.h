@@ -103,6 +103,7 @@ class DmxSkull : public DmxModel, public DmxColorAbility
         bool has_color = true;
         bool is_skulltronix = false;
         bool setup_skulltronix = false;
+        bool mesh_only = false;
         float default_range_of_motion[6];
         std::string default_node_names;
 

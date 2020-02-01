@@ -32,6 +32,7 @@ void DmxModel::GetBufferSize(const std::string &type, const std::string &camera,
         BufferHi = 1;
         BufferWi = GetNodeCount();
 }
+
 void DmxModel::InitRenderBufferNodes(const std::string &type, const std::string &camera, const std::string &transform,
                                      std::vector<NodeBaseClassPtr> &newNodes, int &BufferWi, int &BufferHi) const {
     BufferHi = 1;
@@ -140,6 +141,8 @@ void DmxModel::InitModel() {
 
 void DmxModel::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
 {
+    if (!IsActive()) return;
+
     bool success = preview->StartDrawing(pointSize);
 
     if(success) {
@@ -170,6 +173,9 @@ void DmxModel::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
 
 // display model using colors
 void DmxModel::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &sva, DrawGLUtils::xlAccumulator &tva, bool is_3d, const xlColor *c, bool allowSelected) {
+
+    if (!IsActive()) return;
+
     int w, h;
     preview->GetVirtualCanvasSize(w, h);
 
@@ -194,6 +200,9 @@ void DmxModel::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumu
 
 // display model using colors
 void DmxModel::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator &sva, DrawGLUtils::xl3Accumulator &tva, DrawGLUtils::xl3Accumulator& lva, bool is_3d, const xlColor *c, bool allowSelected, bool wiring, bool highlightFirst) {
+
+    if (!IsActive()) return;
+
     int w, h;
     preview->GetVirtualCanvasSize(w, h);
 

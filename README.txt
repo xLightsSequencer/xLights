@@ -11,10 +11,13 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2020.4 February 1 2020
    -- enh (dkulp)  Move all settings from Settings menu to new "Preferences" dialog
    -- enh (gil)    Servo effect can now be mapped to a Lyric track
    -- enh (gil)    Upgrade the DMX Servo model to be dynamic allowing up to 24 servos
    -- enh (gil)    Get the servo pivot point working for the DmxServo3D model
+   -- enh (keith)  Add bulk edit to the active property on models and objects
+   -- bug (scott)  Fix ZCPP max channel limit too low
 2020.3 January 18 2020
    -- enh (gil)    Add new DMX Servo model options (Servo version uses images and Servo 3D version uses OBJ files)
    -- enh (gil)    Added a DMX 3 Axis Servo model option
