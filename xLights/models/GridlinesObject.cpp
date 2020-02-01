@@ -200,8 +200,7 @@ void GridlinesObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &v
         va3.AddVertex(sx, sy, sz, yaxis);
 	}
 
-    va3.Finish(GL_LINES);
-
+    va3.Finish(GL_LINES, GL_LINE_SMOOTH);
     GetObjectScreenLocation().UpdateBoundingBox(width, height, 5.0f);  // FIXME: Modify to only call this when position changes
 
     if ((Selected || Highlighted) && allowSelected) {

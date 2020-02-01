@@ -25,7 +25,7 @@ static wxGLAttributes GetAttributes(int zdepth) {
     static log4cpp::Category &logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
     
     wxGLAttributes atts;
-    for (int x = 0; x < 3; x++) {
+    for (int x = 0; x < 6; x++) {
         atts.Reset();
         atts.PlatformDefaults()
             .RGBA()
@@ -42,7 +42,7 @@ static wxGLAttributes GetAttributes(int zdepth) {
     }
     logger_opengl.debug("Could not find an attribs thats working with MnRGBA\n");
     // didn't find a display, try without MinRGBA
-    for (int x = 0; x < 3; x++) {
+    for (int x = 0; x < 6; x++) {
         atts.Reset();
         atts.PlatformDefaults()
             .RGBA()
