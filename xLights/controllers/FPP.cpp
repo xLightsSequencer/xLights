@@ -293,7 +293,7 @@ std::map<int, int> FPP::GetExpansionPorts(ControllerCaps* caps) const
             auto ss = wxSplit(s, ',');
             if (ss.size() == 2)
             {
-                res[wxAtoi(ss[0])] == wxAtoi(ss[1]);
+                res[wxAtoi(ss[0])] = wxAtoi(ss[1]);
             }
         }
     }

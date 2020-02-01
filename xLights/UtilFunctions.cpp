@@ -406,7 +406,7 @@ std::string XmlSafe(const std::string& s)
     return res;
 }
 
-wxString GetXmlNodeAttribute(wxXmlNode* parent, const std::string& path, const std::string& attribute, const std::string& default)
+wxString GetXmlNodeAttribute(wxXmlNode* parent, const std::string& path, const std::string& attribute, const std::string& def)
 {
     wxXmlNode* curr = parent;
     auto pe = wxSplit(path, '/');
@@ -428,10 +428,10 @@ wxString GetXmlNodeAttribute(wxXmlNode* parent, const std::string& path, const s
         }
     }
 
-    return default;
+    return def;
 }
 
-wxString GetXmlNodeContent(wxXmlNode* parent, const std::string& path, const std::string& default)
+wxString GetXmlNodeContent(wxXmlNode* parent, const std::string& path, const std::string& def)
 {
     wxXmlNode* curr = parent;
     auto pe = wxSplit(path, '/');
@@ -445,7 +445,7 @@ wxString GetXmlNodeContent(wxXmlNode* parent, const std::string& path, const std
                 if (it == pe.back())
                 {
                     if (n->GetChildren() != nullptr) return n->GetChildren()->GetContent();
-                    return default;
+                    return def;
                 }
 
                 curr = n;
@@ -454,7 +454,7 @@ wxString GetXmlNodeContent(wxXmlNode* parent, const std::string& path, const std
         }
     }
 
-    return default;
+    return def;
 }
 
 std::list<std::string> GetXmlNodeListContent(wxXmlNode* parent, const std::string& path, const std::string& listNodeName)

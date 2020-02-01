@@ -4,9 +4,6 @@
 
 #include <wx/xml/xml.h>
 #include <log4cpp/Category.hh>
-#ifndef EXCLUDENETWORKUI
-#include "DDPDialog.h"
-#endif
 #include "OutputManager.h"
 #include "../UtilFunctions.h"
 

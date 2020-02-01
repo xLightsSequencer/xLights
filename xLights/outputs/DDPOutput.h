@@ -66,7 +66,7 @@ public:
     virtual int GetMaxChannels() const override { return 1000000; }
     virtual bool IsValidChannelCount(int32_t channelCount) const override { return channelCount > 0 && channelCount <= GetMaxChannels(); }
     virtual bool IsKeepChannelNumbers() const { return _keepChannelNumbers; }
-    virtual void SetKeepChannelNumber(bool b = true) { if (_keepChannelNumbers = b) { _keepChannelNumbers = b; _dirty = true; } }
+    virtual void SetKeepChannelNumber(bool b = true) { if (_keepChannelNumbers != b) { _keepChannelNumbers = b; _dirty = true; } }
     virtual bool IsLookedUpByControllerName() const override;
     virtual bool IsAutoLayoutModels() const override { return _autoStartChannels; }
     virtual void SetAutoStartChannels(bool autoMode) { _autoStartChannels = autoMode; }

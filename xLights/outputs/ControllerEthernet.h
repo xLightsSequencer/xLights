@@ -36,7 +36,7 @@ public:
     ControllerEthernet(OutputManager* om, wxXmlNode* node, const std::string& showDir);
     ControllerEthernet(OutputManager* om, bool acceptDuplicates = false);
     virtual ~ControllerEthernet() { if (_asyncPing.valid()) _asyncPing.wait_for(std::chrono::seconds(2)); }
-    void Convert(wxXmlNode* node, std::string showDir); // loads a legacy networks node
+    void Convert(wxXmlNode* node, std::string showDir) override; // loads a legacy networks node
 #pragma endregion Constructors and Destructors
 
 #pragma region Static Functions

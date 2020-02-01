@@ -656,7 +656,7 @@ void UDControllerPortModel::Dump() const
     }
 }
 
-bool UDControllerPortModel::ChannelsOnOutputs(std::list<Output*>& outputs) const
+bool UDControllerPortModel::ChannelsOnOutputs(const std::list<Output*>& outputs) const
 {
     int32_t lastChecked = _startChannel - 1;
     int32_t ll = lastChecked;

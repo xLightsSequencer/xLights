@@ -29,7 +29,7 @@ private:
     std::string _protocol;
     int _smartRemote;
 
-    bool ChannelsOnOutputs(std::list<Output*>& outputs) const;
+    bool ChannelsOnOutputs(const std::list<Output*>& outputs) const;
 
 public:
     UDControllerPortModel(Model* m, Controller* controller, OutputManager* om, int string);

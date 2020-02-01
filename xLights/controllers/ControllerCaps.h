@@ -60,7 +60,7 @@ public:
     std::list<std::string> GetSerialProtocols() const;
     bool UniversesMustBeInNumericalOrder() const;
     bool UniversesMustBeSequential() const;
-    std::string GetCustomPropertyByPath(const std::string path, const std::string& default = "") const;
+    std::string GetCustomPropertyByPath(const std::string path, const std::string& def = "") const;
     void Dump() const;
     #pragma endregion 
 };

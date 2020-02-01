@@ -54,6 +54,7 @@
 #include "outputs/LOROptimisedOutput.h"
 
 #include <log4cpp/Category.hh>
+#include "../xFade/wxLED.h"
 
 const long xLightsFrame::ID_List_Controllers = wxNewId();
 
@@ -1889,7 +1890,7 @@ void xLightsFrame::DeleteSelectedControllers()
 {
     auto selections = GetSelectedControllerNames();
 
-    for (const auto it : selections)
+    for (const auto &it : selections)
     {
         _outputManager.DeleteController(it);
     }

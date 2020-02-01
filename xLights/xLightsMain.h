@@ -48,7 +48,6 @@
 #include <wx/listctrl.h>
 #include <wx/propgrid/propgrid.h>
 #include <wx/propgrid/advprops.h>
-#include "..\xFade\wxLED.h"
 
 #include <unordered_map>
 #include <map>
@@ -205,6 +204,7 @@ class BufferPanel;
 class LayoutPanel;
 class RenderProgressDialog;
 class RenderProgressInfo;
+class wxLed;
 
 class xlAuiToolBar : public wxAuiToolBar {
 public:

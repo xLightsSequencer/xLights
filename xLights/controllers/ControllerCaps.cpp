@@ -338,9 +338,9 @@ bool ControllerCaps::UniversesMustBeSequential() const
     return DoesXmlNodeExist(_config, "UniversesMustBeSequential");
 }
 
-std::string ControllerCaps::GetCustomPropertyByPath(const std::string name, const std::string& default) const
+std::string ControllerCaps::GetCustomPropertyByPath(const std::string name, const std::string& def) const
 {
-    return GetXmlNodeContent(_config, name, default);
+    return GetXmlNodeContent(_config, name, def);
 }
 
 void ControllerCaps::Dump() const
