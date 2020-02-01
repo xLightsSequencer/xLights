@@ -439,14 +439,17 @@ void DmxMovingHead3D::DrawModel(ModelPreview* preview, DrawGLUtils::xlAccumulato
         }
         else
         {
-            float x1 = -0.5f;
-            float x2 = -0.5f;
-            float x3 = 0.5f;
-            float x4 = 0.5f;
-            float y1 = -0.5f;
-            float y2 = 0.5f;
-            float y3 = 0.5f;
-            float y4 = -0.5f;
+            float w = base_mesh->GetWidth();
+            float h = base_mesh->GetHeight();
+
+            float x1 = -0.5f * w;
+            float x2 = -0.5f * w;
+            float x3 = 0.5f * w;
+            float x4 = 0.5f * w;
+            float y1 = -0.5f * h;
+            float y2 = 0.5f * h;
+            float y3 = 0.5f * h;
+            float y4 = -0.5f * h;
             float z1 = 0.0f;
             float z2 = 0.0f;
             float z3 = 0.0f;
