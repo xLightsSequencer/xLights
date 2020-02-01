@@ -1,5 +1,4 @@
-#ifndef FPP_H
-#define FPP_H
+#pragma once
 
 #include <list>
 #include <map>
@@ -16,94 +15,18 @@ class wxMemoryBuffer;
 typedef void CURL;
 class wxWindow;
 class wxProgressDialog;
-
-class PixelCapeInfo : public ControllerRules {
-public:
-    PixelCapeInfo(const std::string &i, const std::string &d, int s, int dmx) : PixelCapeInfo(i, d, s, dmx, {}) {}
-    PixelCapeInfo(const std::string &d, int s, int dmx) : PixelCapeInfo(d, d, s, dmx, {}) {}
-    PixelCapeInfo(const std::string &i, const std::string &d, int s, int dmx, const std::map<int, int> &expansions)
-        : ControllerRules(), id(i), description(d), maxStrings(s), maxDMX(dmx), expansionPorts(expansions) {}
-
-    PixelCapeInfo() : ControllerRules(), maxStrings(0), maxDMX(0) {}
-    PixelCapeInfo(const PixelCapeInfo&pci) : ControllerRules(), description(pci.description), id(pci.id), maxStrings(pci.maxStrings), maxDMX(pci.maxDMX), expansionPorts(pci.expansionPorts) {}
-    
-    const std::string id;
-    const std::string description;
-    const int maxStrings;
-    const int maxDMX;
-    const std::map<int, int> expansionPorts;
-
-    virtual const std::string GetControllerId() const override {
-        return id;
-    }
-    virtual const std::string GetControllerDescription() const override {
-        return "FPP " + description;
-    }
-    virtual const std::string GetControllerManufacturer() const override { return "FPP"; };
-    virtual bool SupportsLEDPanelMatrix() const override {
-        return maxStrings == 0 && maxDMX == 0;
-    }
-
-    virtual int GetMaxPixelPortChannels() const override {
-        return 1400 * 3;
-    }
-    virtual int GetMaxPixelPort() const override {
-        return maxStrings;
-    }
-    virtual int GetMaxSerialPortChannels() const override {
-        return 4096;
-    }
-    virtual int GetMaxSerialPort() const override {
-        return maxDMX;
-    }
-    virtual bool SupportsVirtualStrings() const override { return true; }
-    virtual bool MergeConsecutiveVirtualStrings() const override { return false; }
-    virtual bool IsValidPixelProtocol(const std::string protocol) const override {
-        std::string p(protocol);
-        std::transform(p.begin(), p.end(), p.begin(), ::tolower);
-        if (p == "ws2811") return true;
-        return false;
-    }
-    virtual bool IsValidSerialProtocol(const std::string protocol) const override {
-        std::string p(protocol);
-        std::transform(p.begin(), p.end(), p.begin(), ::tolower);
-        if (p == "dmx") return true;
-        if (p == "pixelnet") return true;
-        if (p == "renard") return false;
-        return false;
-    }
-    virtual bool SupportsMultipleProtocols() const override {
-        return false;
-    }
-    virtual bool SupportsSmartRemotes() const override {
-        return true;
-    }
-    virtual bool SupportsMultipleInputProtocols() const override {
-        return true;
-
-    }
-    virtual bool AllUniversesSameSize() const override {
-        return false;
-    }
-    virtual std::set<std::string> GetSupportedInputProtocols() const override {
-        std::set<std::string> res = {"E131", "ARTNET", "DDP"};
-        return res;
-    }
-    virtual bool UniversesMustBeSequential() const override {
-        return false;
-    }
-};
+class Controller;
+class ControllerEthernet;
 
 class FPP {
     public:
     FPP() : majorVersion(0), minorVersion(0), outputFile(nullptr), parent(nullptr), curl(nullptr), isFPP(true) {}
     FPP(const std::string &address);
+    FPP(ControllerEthernet* controller);
     FPP(const FPP &c);
     virtual ~FPP();
 
-    static PixelCapeInfo& GetCapeRules(const std::string& type);
-    static void RegisterCapes();
-    
+    ControllerEthernet* _controller = nullptr;
     std::string hostName;
     std::string description;
     std::string ipAddress;
@@ -127,14 +50,13 @@ class FPP {
     wxWindow *parent;
     wxProgressDialog *progressDialog = nullptr;
 
+    std::map<int, int> GetExpansionPorts(ControllerCaps* caps) const;
     bool AuthenticateAndUpdateVersions();
     void LoadPlaylists(std::list<std::string> &playlists);
     void probePixelControllerType();
 
     bool IsVersionAtLeast(uint32_t maj, uint32_t min);
     bool IsDrive();
-
-    const std::string &PixelContollerDescription() const;
 
     bool PrepareUploadSequence(const FSEQFile &file,
                                const std::string &seq,
@@ -153,8 +75,8 @@ class FPP {
 
     bool UploadPixelOutputs(ModelManager* allmodels,
                             OutputManager* outputManager,
-                            const std::list<int>& selected = std::list<int>());
-    bool SetInputUniversesBridge(std::list<int>& selected, OutputManager* outputManager);
+                            Controller* controller);
+    bool SetInputUniversesBridge(Controller* controller);
 
     bool SetRestartFlag();
     void SetDescription(const std::string &st);
@@ -164,11 +86,13 @@ class FPP {
 
     static std::string CreateModelMemoryMap(ModelManager* allmodels);
     static std::string CreateVirtualDisplayMap(ModelManager* allmodels, bool center0);
-    static wxJSONValue CreateOutputUniverseFile(OutputManager* outputManager);
+    static wxJSONValue CreateUniverseFile(const std::list<ControllerEthernet*>& controllers, bool input);
+    static wxJSONValue CreateUniverseFile(ControllerEthernet* controller, bool input);
+    static std::string GetVendor(const std::string& type);
+    static std::string GetModel(const std::string& type);
 private:
     void FillRanges(std::map<int, int> &rngs);
     void SetNewRanges(const std::map<int, int> &rngs);
-    static wxJSONValue CreateUniverseFile(OutputManager* outputManager, const std::string &onlyip, const std::list<int>& selected, bool input);
 
     bool GetPathAsJSON(const std::string &path, wxJSONValue &val);
     bool GetURLAsJSON(const std::string& url, wxJSONValue& val);
@@ -204,4 +128,3 @@ private:
     std::string curlInputBuffer;
 };
 
-#endif

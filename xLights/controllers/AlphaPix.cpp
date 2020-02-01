@@ -8,6 +8,9 @@
 #include "../outputs/OutputManager.h"
 #include "../outputs/Output.h"
 #include "../models/ModelManager.h"
+#include "ControllerCaps.h"
+#include "../outputs/ControllerEthernet.h"
+#include "UtilFunctions.h"
 
 #include <wx/sckstrm.h>
 #include <wx/tokenzr.h>
@@ -15,16 +18,7 @@
 
 #include <log4cpp/Category.hh>
 
-#include "ControllerRegistry.h"
-#include "UtilFunctions.h"
-
 #include <curl/curl.h>
-
-static std::vector<AlphaPixControllerRules> CONTROLLER_TYPE_MAP = {
-    AlphaPixControllerRules(4),
-    AlphaPixControllerRules(16),
-    AlphaPixControllerRules(48)
-};
 
 void AlphaPixOutput::Dump() const
 {
@@ -62,12 +56,6 @@ void AlphaPixSerial::Dump() const
         enabled,
         upload
     );
-}
-
-void AlphaPix::RegisterControllers() {
-    for (auto &a : CONTROLLER_TYPE_MAP) {
-        ControllerRegistry::AddController(&a);
-    }
 }
 
 AlphaPix::AlphaPix(const std::string& ip, const std::string &proxy) : _ip(ip), _fppProxy(proxy), _baseUrl("")
@@ -140,7 +128,7 @@ AlphaPix::~AlphaPix()
     _serialOutputs.clear();
 }
 
-bool AlphaPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, std::list<int>& selected, wxWindow* parent)
+bool AlphaPix::SetOutputs(ControllerEthernet* controller, ModelManager* allmodels, OutputManager* outputManager, wxWindow* parent)
 {
     wxProgressDialog progress("Uploading ...", "", 100, parent, wxPD_APP_MODAL | wxPD_AUTO_HIDE);
     progress.Show();
@@ -149,7 +137,7 @@ bool AlphaPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
     logger_base.debug("AlphaPix Outputs Upload: Uploading to %s", (const char *)_ip.c_str());
 
     // Get universes based on IP
-    std::list<Output*> outputs = outputManager->GetAllOutputs(_ip, selected);
+    std::list<Output*> outputs = controller->GetOutputs();
 
     auto o = outputs.front();
 
@@ -157,11 +145,11 @@ bool AlphaPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
     logger_base.info("Scanning models.");
 
     std::string check;
-    UDController cud(_ip, _ip, allmodels, outputManager, &selected, check);
+    UDController cud(controller, outputManager, allmodels, check);
 
     //first check rules
-    AlphaPixControllerRules rules(_model);
-    const bool success = cud.Check(&rules, check);
+    auto caps = ControllerCaps::GetControllerConfig(controller);
+    const bool success = cud.Check(caps, check);
 
     logger_base.debug(check);
 
@@ -324,12 +312,12 @@ bool AlphaPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
 
     //upload Input Type
     std::string requestInputString;
-    if (o->GetType() == "E131")
+    if (o->GetType() == OUTPUT_E131)
     {
         if (controllerData.inputMode != 0)
             requestInputString = "EP=0";
     }
-    else if (o->GetType() == "ArtNet")
+    else if (o->GetType() == OUTPUT_ARTNET)
     {
         if (controllerData.inputMode != 1)
             requestInputString = "EP=1";

@@ -1,14 +1,11 @@
 #include "E131Output.h"
+#include "OutputManager.h"
+#include "../UtilFunctions.h"
 
 #include <wx/xml/xml.h>
 #include <wx/process.h>
 
 #include <log4cpp/Category.hh>
-#ifndef EXCLUDENETWORKUI
-#include "E131Dialog.h"
-#endif
-#include "OutputManager.h"
-#include "../UtilFunctions.h"
 
 #pragma region Constructors and Destructors
 E131Output::E131Output(wxXmlNode* node) : IPOutput(node)
@@ -394,7 +391,7 @@ void E131Output::Close()
 }
 #pragma endregion Start and Stop
 
-void E131Output::SetTransientData(int on, int32_t startChannel, int nullnumber)
+void E131Output::SetTransientData(int& on, int32_t& startChannel, int nullnumber)
 {
     if (_fppProxyOutput) {
         _fppProxyOutput->SetTransientData(on, startChannel, nullnumber);
@@ -405,19 +402,20 @@ void E131Output::SetTransientData(int on, int32_t startChannel, int nullnumber)
         _outputNumber = on;
         _startChannel = startChannel;
         if (nullnumber > 0) _nullNumber = nullnumber;
-        int32_t nextstartchannel = startChannel;
         for (auto it = _outputs.begin(); it != _outputs.end(); ++it)
         {
-            (*it)->SetTransientData(on, nextstartchannel, nullnumber);
-            nextstartchannel += _channels;
+            int onn = on;
+            (*it)->SetTransientData(onn, startChannel, nullnumber);
+            startChannel += GetChannels();
         }
+        on++;
     }
     else
     {
         wxASSERT(startChannel != -1);
-        _outputNumber = on;
+        _outputNumber = on++;
         _startChannel = startChannel;
-        if (nullnumber > 0) _nullNumber = nullnumber;
+        startChannel += GetChannels();
     }
 }
 
@@ -661,43 +659,6 @@ std::string E131Output::GetExport() const
         enabled, suppress, _fppProxy, _priority).ToStdString();
 }
 
-std::string E131Output::GetChannelMapping(int32_t ch) const
-{
-    std::string res = "";
-
-    if (IsOutputCollection())
-    {
-        int32_t unum = (ch - GetStartChannel()) / _channels;
-
-        auto o = _outputs.begin();
-        for (int32_t i = 0; i < unum; i++)
-        {
-            ++o;
-        }
-
-        res = (*o)->GetChannelMapping(ch);
-    }
-    else
-    {
-        res = "Channel " + std::string(wxString::Format(wxT("%i"), ch)) + " maps to ...\n";
-
-        res += "Type: E1.31\n";
-        // int u = _universe;
-        int32_t channeloffset = ch - GetStartChannel() + 1;
-        if (_numUniverses > 1)
-        {
-            // u += (ch - GetStartChannel()) / _channels;
-            channeloffset -= (ch - GetStartChannel()) / _channels * _channels;
-        }
-        res += "IP: " + _ip + "\n";
-        res += "Universe: " + GetUniverseString() + "\n";
-        res += "Channel: " + std::string(wxString::Format(wxT("%i"), channeloffset)) + "\n";
-
-        if (!_enabled) res += " INACTIVE";
-    }
-        return res;
-}
-
 std::string E131Output::GetUniverseString() const
 {
     if (IsOutputCollection())
@@ -716,21 +677,3 @@ void E131Output::SetPriority(int priority)
 }
 
 #pragma endregion Getters and Setters
-
-#pragma region UI
-#ifndef EXCLUDENETWORKUI
-Output* E131Output::Configure(wxWindow* parent, OutputManager* outputManager, ModelManager* modelManager)
-{
-    E131Dialog dlg(parent, this, outputManager);
-
-    int res = dlg.ShowModal();
-
-    if (res == wxID_CANCEL)
-    {
-        return nullptr;
-    }
-
-    return this;
-}
-#endif
-#pragma endregion UI

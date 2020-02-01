@@ -196,6 +196,7 @@
     </ManifestResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\xFade\wxLED.cpp" />
     <ClCompile Include="..\xSchedule\md5.cpp" />
     <ClCompile Include="..\xSchedule\wxJSON\jsonreader.cpp" />
     <ClCompile Include="..\xSchedule\wxJSON\jsonval.cpp" />
@@ -211,7 +212,7 @@
     <ClCompile Include="ColorManager.cpp" />
     <ClCompile Include="ColoursPanel.cpp" />
     <ClCompile Include="controllers\AlphaPix.cpp" />
-    <ClCompile Include="controllers\ControllerRegistry.cpp" />
+    <ClCompile Include="controllers\ControllerCaps.cpp" />
     <ClCompile Include="controllers\ControllerUploadData.cpp" />
     <ClCompile Include="controllers\ESPixelStick.cpp" />
     <ClCompile Include="controllers\Falcon.cpp" />
@@ -292,7 +293,6 @@
     <ClCompile Include="NoteRangeDialog.cpp" />
     <ClCompile Include="OpenGLShaders.cpp" />
     <ClCompile Include="OutputModelManager.cpp" />
-    <ClCompile Include="outputs\ArtNetDialog.cpp" />
     <ClCompile Include="AudioManager.cpp" />
     <ClCompile Include="BitmapCache.cpp" />
     <ClCompile Include="BufferPanel.cpp" />
@@ -313,9 +313,11 @@
     <ClCompile Include="djdebug.cpp" />
     <ClCompile Include="DrawGLUtils.cpp" />
     <ClCompile Include="DrawGLUtils31.cpp" />
-    <ClCompile Include="outputs\DDPDialog.cpp" />
+    <ClCompile Include="outputs\Controller.cpp" />
+    <ClCompile Include="outputs\ControllerEthernet.cpp" />
+    <ClCompile Include="outputs\ControllerNull.cpp" />
+    <ClCompile Include="outputs\ControllerSerial.cpp" />
     <ClCompile Include="outputs\DDPOutput.cpp" />
-    <ClCompile Include="outputs\E131Dialog.cpp" />
     <ClCompile Include="EffectAssist.cpp" />
     <ClCompile Include="EffectIconPanel.cpp" />
     <ClCompile Include="EffectListDialog.cpp" />
@@ -468,11 +470,8 @@
     <ClCompile Include="NodesGridCellEditor.cpp" />
     <ClCompile Include="NoteImportDialog.cpp" />
     <ClCompile Include="outputs\LorController.cpp" />
-    <ClCompile Include="outputs\LorControllerDialog.cpp" />
     <ClCompile Include="outputs\LorControllers.cpp" />
-    <ClCompile Include="outputs\LorOptimisedDialog.cpp" />
     <ClCompile Include="outputs\LOROptimisedOutput.cpp" />
-    <ClCompile Include="outputs\NullOutputDialog.cpp" />
     <ClCompile Include="OptionChooser.cpp" />
     <ClCompile Include="osx_utils\TouchBars.cpp" />
     <ClCompile Include="outputs\ArtNetOutput.cpp" />
@@ -490,10 +489,8 @@
     <ClCompile Include="outputs\serial.cpp" />
     <ClCompile Include="outputs\SerialOutput.cpp" />
     <ClCompile Include="outputs\TestPreset.cpp" />
-    <ClCompile Include="outputs\xxxDialog.cpp" />
     <ClCompile Include="outputs\xxxEthernetOutput.cpp" />
     <ClCompile Include="outputs\xxxSerialOutput.cpp" />
-    <ClCompile Include="outputs\ZCPPDialog.cpp" />
     <ClCompile Include="outputs\ZCPPOutput.cpp" />
     <ClCompile Include="PaletteMgmtDialog.cpp" />
     <ClCompile Include="Parallel.cpp" />
@@ -541,7 +538,6 @@
     <ClCompile Include="sequencer\TimeLine.cpp" />
     <ClCompile Include="sequencer\UndoManager.cpp" />
     <ClCompile Include="sequencer\Waveform.cpp" />
-    <ClCompile Include="outputs\SerialPortWithRate.cpp" />
     <ClCompile Include="SequenceVideoPanel.cpp" />
     <ClCompile Include="SequenceVideoPreview.cpp" />
     <ClCompile Include="SequenceViewManager.cpp" />
@@ -619,6 +615,7 @@
   <ItemGroup>
     <ClInclude Include="..\include\globals.h" />
     <ClInclude Include="..\include\models\ModelImages.h" />
+    <ClInclude Include="..\xFade\wxLED.h" />
     <ClInclude Include="..\xSchedule\md5.h" />
     <ClInclude Include="..\xSchedule\xSMSDaemon\Curl.h" />
     <ClInclude Include="AlignmentDialog.h" />
@@ -632,7 +629,7 @@
     <ClInclude Include="ColorManager.h" />
     <ClInclude Include="ColoursPanel.h" />
     <ClInclude Include="controllers\AlphaPix.h" />
-    <ClInclude Include="controllers\ControllerRegistry.h" />
+    <ClInclude Include="controllers\ControllerCaps.h" />
     <ClInclude Include="controllers\ControllerUploadData.h" />
     <ClInclude Include="controllers\ESPixelStick.h" />
     <ClInclude Include="controllers\Falcon.h" />
@@ -720,7 +717,6 @@
     <ClInclude Include="NoteRangeDialog.h" />
     <ClInclude Include="OpenGLShaders.h" />
     <ClInclude Include="OutputModelManager.h" />
-    <ClInclude Include="outputs/ArtNetDialog.h" />
     <ClInclude Include="AudioManager.h" />
     <ClInclude Include="BitmapCache.h" />
     <ClInclude Include="BufferPanel.h" />
@@ -739,9 +735,10 @@
     <ClInclude Include="DimmingCurve.h" />
     <ClInclude Include="DimmingCurvePanel.h" />
     <ClInclude Include="DrawGLUtils.h" />
-    <ClInclude Include="outputs\DDPDialog.h" />
+    <ClInclude Include="outputs\ControllerEthernet.h" />
+    <ClInclude Include="outputs\ControllerNull.h" />
+    <ClInclude Include="outputs\ControllerSerial.h" />
     <ClInclude Include="outputs\DDPOutput.h" />
-    <ClInclude Include="outputs\E131Dialog.h" />
     <ClInclude Include="EffectAssist.h" />
     <ClInclude Include="EffectIconPanel.h" />
     <ClInclude Include="EffectListDialog.h" />
@@ -883,11 +880,8 @@
     <ClInclude Include="NodesGridCellEditor.h" />
     <ClInclude Include="NoteImportDialog.h" />
     <ClInclude Include="outputs\LorController.h" />
-    <ClInclude Include="outputs\LorControllerDialog.h" />
     <ClInclude Include="outputs\LorControllers.h" />
-    <ClInclude Include="outputs\LorOptimisedDialog.h" />
     <ClInclude Include="outputs\LOROptimisedOutput.h" />
-    <ClInclude Include="outputs\NullOutputDialog.h" />
     <ClInclude Include="OptionChooser.h" />
     <ClInclude Include="osxMacUtils.h" />
     <ClInclude Include="osx_utils\TouchBars.h" />
@@ -908,11 +902,9 @@
     <ClInclude Include="outputs\serial.h" />
     <ClInclude Include="outputs\SerialOutput.h" />
     <ClInclude Include="outputs\TestPreset.h" />
-    <ClInclude Include="outputs\xxxDialog.h" />
     <ClInclude Include="outputs\xxxEthernetOutput.h" />
     <ClInclude Include="outputs\xxxSerialOutput.h" />
     <ClInclude Include="outputs\ZCPP.h" />
-    <ClInclude Include="outputs\ZCPPDialog.h" />
     <ClInclude Include="outputs\ZCPPOutput.h" />
     <ClInclude Include="PaletteMgmtDialog.h" />
     <ClInclude Include="Parallel.h" />
@@ -960,7 +952,6 @@
     <ClInclude Include="sequencer\TimeLine.h" />
     <ClInclude Include="sequencer\UndoManager.h" />
     <ClInclude Include="sequencer\Waveform.h" />
-    <ClInclude Include="outputs\SerialPortWithRate.h" />
     <ClInclude Include="SequenceVideoPanel.h" />
     <ClInclude Include="SequenceVideoPreview.h" />
     <ClInclude Include="SequenceViewManager.h" />

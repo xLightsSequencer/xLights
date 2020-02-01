@@ -8,6 +8,7 @@
 class ModelManager;
 class Output;
 class OutputManager;
+class ControllerEthernet;
 
 class J1Sys
 {
@@ -59,15 +60,12 @@ public:
     J1Sys(const std::string& ip, const std::string &proxy);
     bool IsConnected() const { return _connected; };
     virtual ~J1Sys();
-    bool SetInputUniverses(OutputManager* outputManager, std::list<int>& selected);
-    bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, std::list<int>& selected, wxWindow* parent);
+    bool SetInputUniverses(ControllerEthernet* controller, OutputManager* outputManager);
+    bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent);
     
     const std::string &GetVersion() const { return _version; }
     const std::string &GetModel() const { return _model; }
     std::string GetPixelControllerTypeString() const;
-    
-    
-    static void RegisterControllers();
 };
 
 #endif

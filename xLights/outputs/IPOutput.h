@@ -1,5 +1,6 @@
-#ifndef IPOUTPUT_H
-#define IPOUTPUT_H
+#pragma once
+
+#include <map>
 
 #include "Output.h"
 
@@ -12,6 +13,7 @@ protected:
 public:
 
     static std::string __localIP;
+    static std::map<std::string, std::string> __resolvedIPMap;
 
     #pragma region Constructors and Destructors
     IPOutput(wxXmlNode* node);
@@ -27,6 +29,7 @@ public:
     static std::string CleanupIP(const std::string &ip);
     static void SetLocalIP(const std::string& localIP) { __localIP = localIP; }
     static std::string GetLocalIP() { return __localIP; }
+    static std::string ResolveIP(const std::string& ip);
     #pragma endregion Static Functions
 
     #pragma region Getters and Setters
@@ -42,13 +45,10 @@ public:
     #pragma endregion Operators
     
     virtual wxXmlNode* Save() override;
-    PINGSTATE Ping() const override;
     static PINGSTATE Ping(const std::string& ip, const std::string& proxy);
-    bool CanPing() const override { return (GetIP() != "MULTICAST"); }
+    //bool CanPing() const override { return (GetIP() != "MULTICAST"); }
 
     #pragma region Start and Stop
     virtual bool Open() override { return Output::Open(); }
     #pragma endregion Start and Stop
 };
-
- #endif

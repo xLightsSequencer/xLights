@@ -4248,7 +4248,7 @@ void MapS5Effects(const EffectManager& effectManager, StrandElement* se, const L
             else
             {
                 int nodes = se->GetNodeLayerCount();
-                for (uint32_t i = 0; i < nodes; i++)
+                for (int i = 0; i < nodes; i++)
                 {
                     NodeLayer* nl = se->GetNodeEffectLayer(i);
                     if (nl != nullptr)

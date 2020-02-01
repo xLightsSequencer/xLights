@@ -6,6 +6,8 @@
 #include "../outputs/OutputManager.h"
 #include "../models/ModelManager.h"
 #include "../models/Model.h"
+#include "../outputs/ControllerEthernet.h"
+#include "ControllerCaps.h"
 
 #include <log4cpp/Category.hh>
 
@@ -13,99 +15,165 @@
 //Need to further reduce the falcon code ... build richer functions
 //like GetMaxPixelChannel(startPort, endPort);
 
-UDController::UDController(const std::string &ip, const std::string &hostname, ModelManager* mm, OutputManager* om, const std::list<int>* selected, std::string& check)
+UDController::UDController(Controller* controller, OutputManager* om, ModelManager* mm, std::string& check)
 {
-    _ipAddress = ip;
-    _hostName = hostname;
+    _controller = controller;
+    _ipAddress = controller->GetColumn2Label();
 
-    // get the list of outputs going to this controller
-    _outputs = om->GetAllOutputs(_ipAddress, _hostName, *selected);
-
-    for (const auto& ito : _outputs)
+    for (auto it = mm->begin(); it != mm->end(); ++it)
     {
-        // this universe is sent to the falcon
-
-        // find all the models in this range
-        for (auto it = mm->begin(); it != mm->end(); ++it)
+        if (!ModelProcessed(it->second) && it->second->GetDisplayAs() != "ModelGroup")
         {
-            if (!ModelProcessed(it->second) && it->second->GetDisplayAs() != "ModelGroup")
+            int32_t modelstart = it->second->GetNumberFromChannelString(it->second->ModelStartChannel);
+            int32_t modelend = modelstart + it->second->GetChanCount() - 1;
+            if ((modelstart >= controller->GetStartChannel() && modelstart <= controller->GetEndChannel()) ||
+                (modelend >= controller->GetStartChannel() && modelend <= controller->GetEndChannel()))
             {
-                int32_t modelstart = it->second->GetNumberFromChannelString(it->second->ModelStartChannel);
-                int32_t modelend = modelstart + it->second->GetChanCount() - 1;
-                if ((modelstart >= ito->GetStartChannel() && modelstart <= ito->GetEndChannel()) ||
-                    (modelend >= ito->GetStartChannel() && modelend <= ito->GetEndChannel()))
+                //logger_base.debug("Model %s start %d end %d found on controller %s output %d start %d end %d.",
+                //    (const char *)it->first.c_str(), modelstart, modelend,
+                //    (const char *)_ip.c_str(), node, currentcontrollerstartchannel, currentcontrollerendchannel);
+                if (!it->second->IsControllerConnectionValid())
                 {
-                    //logger_base.debug("Model %s start %d end %d found on controller %s output %d start %d end %d.",
-                    //    (const char *)it->first.c_str(), modelstart, modelend,
-                    //    (const char *)_ip.c_str(), node, currentcontrollerstartchannel, currentcontrollerendchannel);
-                    if (!it->second->IsControllerConnectionValid())
+                    // only warn if we have not already warned
+                    if (std::find(_noConnectionModels.begin(), _noConnectionModels.end(), it->second) == _noConnectionModels.end())
                     {
-                        // only warn if we have not already warned
-                        if (std::find(_noConnectionModels.begin(), _noConnectionModels.end(), it->second) == _noConnectionModels.end())
+                        _noConnectionModels.push_back(it->second);
+                    }
+                }
+                else
+                {
+                    // model uses channels in this universe
+
+                    int port = it->second->GetControllerPort();
+
+                    if (it->second->IsPixelProtocol())
+                    {
+                        if (it->second->GetNumPhysicalStrings() == 1)
                         {
-                            _noConnectionModels.push_back(it->second);
+                            GetControllerPixelPort(port)->AddModel(it->second, controller, om, -1);
+                        }
+                        else
+                        {
+                            for (int i = 0; i < it->second->GetNumPhysicalStrings(); i++)
+                            {
+                                int32_t startChannel = it->second->GetStringStartChan(i) + 1;
+                                int32_t sc;
+                                Controller* c = om->GetController(startChannel, sc);
+                                if (c != nullptr &&
+                                    controller->GetColumn2Label() == c->GetColumn2Label())
+                                {
+                                    GetControllerPixelPort(port + i)->AddModel(it->second, controller, om, i);
+                                }
+                                else
+                                {
+                                    port = -1 * i;
+                                }
+                            }
                         }
                     }
                     else
                     {
-                        // model uses channels in this universe
-
-                        int port = it->second->GetControllerPort();
-
-                        if (it->second->IsPixelProtocol())
-                        {
-                            if (it->second->GetNumPhysicalStrings() == 1)
-                            {
-                                GetControllerPixelPort(port)->AddModel(it->second, om, -1);
-                            }
-                            else
-                            {
-                                for (int i = 0; i < it->second->GetNumPhysicalStrings(); i++)
-                                {
-                                    int32_t startChannel = it->second->GetStringStartChan(i) + 1;
-                                    int32_t sc;
-                                    Output* oo = om->GetOutput(startChannel, sc);
-                                    if (oo != nullptr &&
-                                        ((oo->GetIP() == _ipAddress) || (oo->GetResolvedIP() == _ipAddress)  || (oo->GetIP() == _hostName)))
-                                    {
-                                        GetControllerPixelPort(port + i)->AddModel(it->second, om, i);
-                                    }
-                                    else
-                                    {
-                                        port = -1 * i;
-                                    }
-                                }
-                            }
-                        }
-                        else
-                        {
-                            GetControllerSerialPort(port)->AddModel(it->second, om, -1);
-                        }
+                        GetControllerSerialPort(port)->AddModel(it->second, controller, om, -1);
                     }
                 }
             }
         }
     }
-
-    for (const auto& it : _noConnectionModels)
-    {
-        bool ok = false;
-        for (const auto& p : _pixelPorts)
-        {
-            if (p.second->GetStartChannel() <= it->GetFirstChannel()+1 &&
-                p.second->GetEndChannel() >= it->GetLastChannel()+1)
-            {
-                ok = true;
-                break;
-            }
-        }
-
-        if (!ok)
-        {
-            check += wxString::Format("WARN: Controller Upload: Model %s on controller %s does not have its Controller Connection details completed. Model ignored.\n", (const char *)it->GetFullName().c_str(), (const char *)ip.c_str()).ToStdString();
-        }
-    }
 }
+
+//UDController::UDController(const std::string &ip, const std::string &hostname, ModelManager* mm, OutputManager* om, const std::list<int>* selected, std::string& check)
+//{
+//    _ipAddress = ip;
+//    _hostName = hostname;
+//
+//    // get the list of outputs going to this controller
+//    _outputs = om->GetAllOutputs(_ipAddress, _hostName, *selected);
+//
+//    for (const auto& ito : _outputs)
+//    {
+//        // this universe is sent to the falcon
+//
+//        // find all the models in this range
+//        for (auto it = mm->begin(); it != mm->end(); ++it)
+//        {
+//            if (!ModelProcessed(it->second) && it->second->GetDisplayAs() != "ModelGroup")
+//            {
+//                int32_t modelstart = it->second->GetNumberFromChannelString(it->second->ModelStartChannel);
+//                int32_t modelend = modelstart + it->second->GetChanCount() - 1;
+//                if ((modelstart >= ito->GetStartChannel() && modelstart <= ito->GetEndChannel()) ||
+//                    (modelend >= ito->GetStartChannel() && modelend <= ito->GetEndChannel()))
+//                {
+//                    //logger_base.debug("Model %s start %d end %d found on controller %s output %d start %d end %d.",
+//                    //    (const char *)it->first.c_str(), modelstart, modelend,
+//                    //    (const char *)_ip.c_str(), node, currentcontrollerstartchannel, currentcontrollerendchannel);
+//                    if (!it->second->IsControllerConnectionValid())
+//                    {
+//                        // only warn if we have not already warned
+//                        if (std::find(_noConnectionModels.begin(), _noConnectionModels.end(), it->second) == _noConnectionModels.end())
+//                        {
+//                            _noConnectionModels.push_back(it->second);
+//                        }
+//                    }
+//                    else
+//                    {
+//                        // model uses channels in this universe
+//
+//                        int port = it->second->GetControllerPort();
+//
+//                        if (it->second->IsPixelProtocol())
+//                        {
+//                            if (it->second->GetNumPhysicalStrings() == 1)
+//                            {
+//                                GetControllerPixelPort(port)->AddModel(it->second, nullptr, om, -1);
+//                            }
+//                            else
+//                            {
+//                                for (int i = 0; i < it->second->GetNumPhysicalStrings(); i++)
+//                                {
+//                                    int32_t startChannel = it->second->GetStringStartChan(i) + 1;
+//                                    int32_t sc;
+//                                    Output* oo = om->GetOutput(startChannel, sc);
+//                                    if (oo != nullptr &&
+//                                        ((oo->GetIP() == _ipAddress) || (oo->GetResolvedIP() == _ipAddress)  || (oo->GetIP() == _hostName)))
+//                                    {
+//                                        GetControllerPixelPort(port + i)->AddModel(it->second, nullptr, om, i);
+//                                    }
+//                                    else
+//                                    {
+//                                        port = -1 * i;
+//                                    }
+//                                }
+//                            }
+//                        }
+//                        else
+//                        {
+//                            GetControllerSerialPort(port)->AddModel(it->second, nullptr, om, -1);
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//    }
+//
+//    for (const auto& it : _noConnectionModels)
+//    {
+//        bool ok = false;
+//        for (const auto& p : _pixelPorts)
+//        {
+//            if (p.second->GetStartChannel() <= it->GetFirstChannel()+1 &&
+//                p.second->GetEndChannel() >= it->GetLastChannel()+1)
+//            {
+//                ok = true;
+//                break;
+//            }
+//        }
+//
+//        if (!ok)
+//        {
+//            check += wxString::Format("WARN: Controller Upload: Model %s on controller %s does not have its Controller Connection details completed. Model ignored.\n", (const char *)it->GetFullName().c_str(), (const char *)ip.c_str()).ToStdString();
+//        }
+//    }
+//}
 
 UDController::~UDController()
 {
@@ -145,15 +213,15 @@ UDControllerPort* UDController::GetControllerSerialPort(int port)
     return _serialPorts[port];
 }
 
-bool UDController::IsValid(ControllerRules* rules) const
+bool UDController::IsValid(ControllerCaps* rules) const
 {
-    for (auto it = _pixelPorts.begin(); it != _pixelPorts.end(); ++it)
+    for (const auto& it : _pixelPorts)
     {
-        if (!it->second->IsValid()) return false;
+        if (!it.second->IsValid()) return false;
     }
-    for (auto it = _serialPorts.begin(); it != _serialPorts.end(); ++it)
+    for (const auto& it : _serialPorts)
     {
-        if (!it->second->IsValid()) return false;
+        if (!it.second->IsValid()) return false;
     }
 
     return true;
@@ -226,8 +294,14 @@ bool UDController::HasSerialPort(int port) const
     return false;
 }
 
-bool UDController::Check(const ControllerRules* rules, std::string& res)
+bool UDController::Check(const ControllerCaps* rules, std::string& res)
 {
+    if (rules == nullptr)
+    {
+        res += "No rules to evaluate.";
+        return false;
+    }
+
     bool success = true;
 
     // all serial ports must be valid ports for this controller
@@ -246,7 +320,7 @@ bool UDController::Check(const ControllerRules* rules, std::string& res)
                 it.second->CreateVirtualStrings(rules->MergeConsecutiveVirtualStrings());
             }
 
-            success &= it.second->Check(this, true, rules, _outputs, res);
+            success &= it.second->Check(_controller, this, true, rules, res);
 
             if (it.second->GetPort() < 1 || it.second->GetPort() > rules->GetMaxPixelPort())
             {
@@ -256,7 +330,7 @@ bool UDController::Check(const ControllerRules* rules, std::string& res)
         }
     }
 
-    if (!rules->SupportsMultipleInputProtocols())
+    if (!rules->SupportsMultipleSimultaneousInputProtocols())
     {
         std::string protocol = "";
         for (const auto& o : _outputs)
@@ -276,7 +350,7 @@ bool UDController::Check(const ControllerRules* rules, std::string& res)
         }
     }
 
-    if (!rules->SupportsMultipleProtocols())
+    if (!rules->SupportsMultipleSimultaneousOutputProtocols())
     {
         std::string protocol;
         for (const auto& it : _pixelPorts)
@@ -291,13 +365,13 @@ bool UDController::Check(const ControllerRules* rules, std::string& res)
         }
 
         protocol = "";
-        for (auto it = _serialPorts.begin(); it != _serialPorts.end(); ++it)
+        for (const auto& it : _serialPorts)
         {
-            if (protocol == "") protocol = it->second->GetProtocol();
+            if (protocol == "") protocol = it.second->GetProtocol();
 
-            if (protocol != it->second->GetProtocol())
+            if (protocol != it.second->GetProtocol())
             {
-                res += wxString::Format("ERR: Serial ports only support a single protocol at a time. %s and %s found.\n", protocol, it->second->GetProtocol()).ToStdString();
+                res += wxString::Format("ERR: Serial ports only support a single protocol at a time. %s and %s found.\n", protocol, it.second->GetProtocol()).ToStdString();
                 success = false;
             }
         }
@@ -311,7 +385,7 @@ bool UDController::Check(const ControllerRules* rules, std::string& res)
             {
                 if (it2->GetSmartRemote() != 0)
                 {
-                    res += wxString::Format("ERR: Port %d has model %s with smart remote set ... but this controller does not support smart remotes.\n", 
+                    res += wxString::Format("ERR: Port %d has model %s with smart remote set ... but this controller does not support smart remotes.\n",
                         it.second->GetPort(), it2->GetName());
                     success = false;
                 }
@@ -344,7 +418,7 @@ bool UDController::Check(const ControllerRules* rules, std::string& res)
         }
     }
 
-    if (rules->AllUniversesSameSize())
+    if (rules->AllInputUniversesMustBeSameSize())
     {
         int size = -1;
         for (const auto& it : _outputs)
@@ -355,6 +429,21 @@ bool UDController::Check(const ControllerRules* rules, std::string& res)
                 res += wxString::Format("ERR: All universes must be the same size. %d and %d found.\n", size, (int)it->GetChannels()).ToStdString();
                 success = false;
             }
+        }
+    }
+
+    if (rules->UniversesMustBeInNumericalOrder())
+    {
+        int last = -1;
+
+        for (const auto& it : _outputs)
+        {
+            if (last >= it->GetUniverse())
+            {
+                res += wxString::Format("ERR: All universes must be in numerical order. %d followed %d.\n", it->GetUniverse(), last).ToStdString();
+                success = false;
+            }
+            last = it->GetUniverse();
         }
     }
 
@@ -374,16 +463,14 @@ bool UDController::Check(const ControllerRules* rules, std::string& res)
         }
     }
 
-    auto inputprotocols = rules->GetSupportedInputProtocols();
-    if (inputprotocols.size() > 0)
+    ControllerEthernet* eth = dynamic_cast<ControllerEthernet*>(_controller);
+
+    if (eth != nullptr)
     {
-        for (const auto& it : _outputs)
+        if (!rules->IsValidInputProtocol(eth->GetProtocol()))
         {
-            if (std::find(inputprotocols.begin(), inputprotocols.end(), wxString(it->GetType()).MakeUpper()) == inputprotocols.end())
-            {
-                res += wxString::Format("ERR: Output %s is not a protocol this controller supports.\n", it->GetType()).ToStdString();
-                success = false;
-            }
+            res += wxString::Format("ERR: %s is not a protocol this controller supports.\n", eth->GetProtocol()).ToStdString();
+            success = false;
         }
     }
 
@@ -396,7 +483,7 @@ bool UDController::Check(const ControllerRules* rules, std::string& res)
     {
         for (const auto& it : _serialPorts)
         {
-            success &= it.second->Check(this, false, rules, _outputs, res);
+            success &= it.second->Check(_controller, this, false, rules, res);
 
             if (it.second->GetPort() < 1 || it.second->GetPort() > rules->GetMaxSerialPort())
             {
@@ -501,7 +588,7 @@ int UDControllerPortModel::GetDMXChannelOffset()
     return 1;
 }
 
-UDControllerPortModel::UDControllerPortModel(Model* m, OutputManager* om, int string)
+UDControllerPortModel::UDControllerPortModel(Model* m, Controller* controller, OutputManager* om, int string)
 {
     _model = m;
     _string = string;
@@ -519,7 +606,16 @@ UDControllerPortModel::UDControllerPortModel(Model* m, OutputManager* om, int st
         _endChannel = _startChannel + _model->NodesPerString(string) * _model->GetChanCountPerNode() - 1;
     }
 
-    Output* o = om->GetOutput(_startChannel, _universeStartChannel);
+    Output* o = nullptr;
+    if (controller != nullptr)
+    {
+        o = controller->GetOutput(_startChannel, _universeStartChannel);
+    }
+    else
+    {
+        Output* o = om->GetOutput(_startChannel, _universeStartChannel);
+    }
+
     if (o == nullptr)
     {
         _universe = -1;
@@ -587,10 +683,10 @@ bool UDControllerPortModel::ChannelsOnOutputs(std::list<Output*>& outputs) const
     return true;
 }
 
-bool UDControllerPortModel::Check(const UDControllerPort* port, bool pixel, const ControllerRules* rules, std::list<Output*>& outputs, std::string& res) const
+bool UDControllerPortModel::Check(Controller* controller, const UDControllerPort* port, bool pixel, const ControllerCaps* rules, std::string& res) const
 {
     bool success = true;
-    if (!ChannelsOnOutputs(outputs))
+    if (!ChannelsOnOutputs(controller->GetOutputs()))
     {
         res += wxString::Format("WARN: Model %s uses channels not being sent to this controller.\n", GetName());
     }
@@ -653,11 +749,11 @@ bool compare_modelsc(const UDControllerPortModel* first, const UDControllerPortM
     return first->GetSmartRemote() < second->GetSmartRemote();
 }
 
-void UDControllerPort::AddModel(Model* m, OutputManager* om, int string)
+void UDControllerPort::AddModel(Model* m, Controller* controller, OutputManager* om, int string)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxASSERT(!ContainsModel(m));
-    _models.push_back(new UDControllerPortModel(m, om, string));
+    _models.push_back(new UDControllerPortModel(m, controller, om, string));
     if (_protocol == "")
     {
         _protocol = m->GetControllerProtocol();
@@ -800,7 +896,7 @@ void UDControllerPort::Dump() const
     }
 }
 
-bool UDControllerPort::Check(const UDController* controller, bool pixel, const ControllerRules* rules, std::list<Output*>& outputs, std::string& res) const
+bool UDControllerPort::Check(Controller* c, const UDController* controller, bool pixel, const ControllerCaps* rules, std::string& res) const
 {
     bool success = true;
 
@@ -879,7 +975,7 @@ bool UDControllerPort::Check(const UDController* controller, bool pixel, const C
     for (const auto& it : _models)
     {
         // all models must be fully contained within the outputs on this controller
-        success &= it->Check(this, pixel, rules, outputs, res);
+        success &= it->Check(c, this, pixel, rules, res);
     }
 
     return success;

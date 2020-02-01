@@ -155,7 +155,7 @@ void TreeEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &
                 }
             //	if(branch>b)
             //	{
-            //		return $rgb_val; // for branches below current, dont dont balnk anything out
+            //		return $rgb_val; // for branches below current, dont dont blank anything out
             //	}
             //	else if(branch==b)
             //	{

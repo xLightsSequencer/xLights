@@ -53,6 +53,7 @@
 #include "JukeboxPanel.h"
 #include "EffectAssist.h"
 #include "EffectsPanel.h"
+#include "MultiControllerUploadDialog.h"
 #include "outputs/IPOutput.h"
 #include "outputs/E131Output.h"
 #include "GenerateLyricsDialog.h"
@@ -80,6 +81,8 @@
 #include "ColoursPanel.h"
 #include "SpecialOptions.h"
 #include "controllers/HinksPixExportDialog.h"
+#include "controllers/ControllerCaps.h"
+#include "outputs/ControllerEthernet.h"
 
 // Linux needs this
 #include <wx/stdpaths.h>
@@ -186,22 +189,22 @@ const long xLightsFrame::ID_BUTTON_OTHER_FOLDERS = wxNewId();
 const long xLightsFrame::ID_BUTTON3 = wxNewId();
 const long xLightsFrame::ID_STATICTEXT4 = wxNewId();
 const long xLightsFrame::ID_BUTTON_SAVE_SETUP = wxNewId();
-const long xLightsFrame::ID_BUTTON_ADD_DONGLE = wxNewId();
-const long xLightsFrame::ID_BUTTON_ADD_E131 = wxNewId();
-const long xLightsFrame::ID_BUTTON1 = wxNewId();
-const long xLightsFrame::ID_BUTTON2 = wxNewId();
-const long xLightsFrame::ID_BUTTON_ADD_LOR = wxNewId();
-const long xLightsFrame::ID_BUTTON_ADD_DDP = wxNewId();
-const long xLightsFrame::ID_BUTTON4 = wxNewId();
-const long xLightsFrame::ID_BUTTON_NETWORK_CHANGE = wxNewId();
-const long xLightsFrame::ID_BUTTON_NETWORK_DELETE = wxNewId();
+const long xLightsFrame::ID_BUTTON9 = wxNewId();
+const long xLightsFrame::ID_BUTTON6 = wxNewId();
+const long xLightsFrame::ID_BUTTON10 = wxNewId();
 const long xLightsFrame::ID_BUTTON_NETWORK_DELETE_ALL = wxNewId();
 const long xLightsFrame::ID_BUTTON5 = wxNewId();
-const long xLightsFrame::ID_STATICTEXT8 = wxNewId();
-const long xLightsFrame::ID_SPINCTRL1 = wxNewId();
 const long xLightsFrame::ID_BITMAPBUTTON1 = wxNewId();
 const long xLightsFrame::ID_BITMAPBUTTON2 = wxNewId();
-const long xLightsFrame::ID_LISTCTRL_NETWORKS = wxNewId();
+const long xLightsFrame::ID_PANEL2 = wxNewId();
+const long xLightsFrame::ID_BUTTON1 = wxNewId();
+const long xLightsFrame::ID_BUTTON2 = wxNewId();
+const long xLightsFrame::ID_BUTTON4 = wxNewId();
+const long xLightsFrame::ID_BUTTON7 = wxNewId();
+const long xLightsFrame::ID_BUTTON8 = wxNewId();
+const long xLightsFrame::ID_STATICTEXT1 = wxNewId();
+const long xLightsFrame::ID_PANEL6 = wxNewId();
+const long xLightsFrame::ID_SPLITTERWINDOW1 = wxNewId();
 const long xLightsFrame::ID_PANEL_SETUP = wxNewId();
 const long xLightsFrame::ID_PANEL_PREVIEW = wxNewId();
 const long xLightsFrame::XLIGHTS_SEQUENCER_TAB = wxNewId();
@@ -241,6 +244,7 @@ const long xLightsFrame::ID_MNU_PACKAGESEQUENCE = wxNewId();
 const long xLightsFrame::ID_MENU_USER_DICT = wxNewId();
 const long xLightsFrame::ID_MNU_DOWNLOADSEQUENCES = wxNewId();
 const long xLightsFrame::ID_MENU_BATCH_RENDER = wxNewId();
+const long xLightsFrame::ID_MNU_BULKUPLOAD = wxNewId();
 const long xLightsFrame::ID_MNU_XSCHEDULE = wxNewId();
 const long xLightsFrame::iD_MNU_VENDORCACHEPURGE = wxNewId();
 const long xLightsFrame::ID_MNU_PURGERENDERCACHE = wxNewId();
@@ -643,41 +647,23 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     GridBagSizer1->Add(ShowDirectoryLabel, wxGBPosition(0, 2), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     StaticBoxSizer1->Add(GridBagSizer1, 1, wxALL|wxEXPAND, 5);
     FlexGridSizerSetup->Add(StaticBoxSizer1, 1, wxALL|wxEXPAND, 5);
-    StaticBoxSizer2 = new wxStaticBoxSizer(wxHORIZONTAL, PanelSetup, _("Lighting Networks"));
+    StaticBoxSizer2 = new wxStaticBoxSizer(wxHORIZONTAL, PanelSetup, _("Controllers"));
     FlexGridSizerNetworks = new wxFlexGridSizer(0, 3, 0, 0);
     FlexGridSizerNetworks->AddGrowableCol(2);
     FlexGridSizerNetworks->AddGrowableRow(0);
     BoxSizer1 = new wxBoxSizer(wxVERTICAL);
-    ButtonSaveSetup = new wxButton(PanelSetup, ID_BUTTON_SAVE_SETUP, _("Save Setup"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SAVE_SETUP"));
-    BoxSizer1->Add(ButtonSaveSetup, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 3);
-    ButtonAddDongle = new wxButton(PanelSetup, ID_BUTTON_ADD_DONGLE, _("Add USB"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_ADD_DONGLE"));
-    BoxSizer1->Add(ButtonAddDongle, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 3);
-    ButtonAddE131 = new wxButton(PanelSetup, ID_BUTTON_ADD_E131, _("Add E1.31"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_ADD_E131"));
-    BoxSizer1->Add(ButtonAddE131, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 3);
-    ButtonAddNull = new wxButton(PanelSetup, ID_BUTTON1, _("Add Null"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
-    BoxSizer1->Add(ButtonAddNull, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    ButtonArtNET = new wxButton(PanelSetup, ID_BUTTON2, _("Add ArtNET"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
-    BoxSizer1->Add(ButtonArtNET, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    ButtonAddLOR = new wxButton(PanelSetup, ID_BUTTON_ADD_LOR, _("Add LOR"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_ADD_LOR"));
-    BoxSizer1->Add(ButtonAddLOR, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    ButtonAddDDP = new wxButton(PanelSetup, ID_BUTTON_ADD_DDP, _("Add DDP"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_ADD_DDP"));
-    BoxSizer1->Add(ButtonAddDDP, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    Button_AddZCPP = new wxButton(PanelSetup, ID_BUTTON4, _("Add ZCPP"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON4"));
-    BoxSizer1->Add(Button_AddZCPP, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    ButtonNetworkChange = new wxButton(PanelSetup, ID_BUTTON_NETWORK_CHANGE, _("Change"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_NETWORK_CHANGE"));
-    BoxSizer1->Add(ButtonNetworkChange, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 3);
-    ButtonNetworkDelete = new wxButton(PanelSetup, ID_BUTTON_NETWORK_DELETE, _("Delete"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_NETWORK_DELETE"));
-    BoxSizer1->Add(ButtonNetworkDelete, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 3);
-    ButtonNetworkDeleteAll = new wxButton(PanelSetup, ID_BUTTON_NETWORK_DELETE_ALL, _("Delete All"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_NETWORK_DELETE_ALL"));
-    BoxSizer1->Add(ButtonNetworkDeleteAll, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 3);
-    Button_Discover = new wxButton(PanelSetup, ID_BUTTON5, _("Discover"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON5"));
-    BoxSizer1->Add(Button_Discover, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    StaticText5 = new wxStaticText(PanelSetup, ID_STATICTEXT8, _("\nE1.31 Sync Universe:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT8"));
-    BoxSizer1->Add(StaticText5, 1, wxALL|wxALIGN_LEFT, 2);
-    SpinCtrl_SyncUniverse = new wxSpinCtrl(PanelSetup, ID_SPINCTRL1, _T("0"), wxDefaultPosition, wxDefaultSize, 0, 0, 63999, 0, _T("ID_SPINCTRL1"));
-    SpinCtrl_SyncUniverse->SetValue(_T("0"));
-    SpinCtrl_SyncUniverse->SetToolTip(_("This should be left as 0 unless you have controllers which support it."));
-    BoxSizer1->Add(SpinCtrl_SyncUniverse, 1, wxALL|wxEXPAND, 5);
+    ButtonSaveSetup = new wxButton(PanelSetup, ID_BUTTON_SAVE_SETUP, _("Save"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SAVE_SETUP"));
+    BoxSizer1->Add(ButtonSaveSetup, 1, wxALL|wxEXPAND, 3);
+    ButtonAddControllerSerial = new wxButton(PanelSetup, ID_BUTTON9, _("Add USB"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON9"));
+    BoxSizer1->Add(ButtonAddControllerSerial, 1, wxALL|wxEXPAND, 3);
+    ButtonAddControllerEthernet = new wxButton(PanelSetup, ID_BUTTON6, _("Add Ethernet"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON6"));
+    BoxSizer1->Add(ButtonAddControllerEthernet, 1, wxALL|wxEXPAND, 3);
+    ButtonAddControllerNull = new wxButton(PanelSetup, ID_BUTTON10, _("Add Null"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON10"));
+    BoxSizer1->Add(ButtonAddControllerNull, 1, wxALL|wxEXPAND, 3);
+    ButtonDeleteAllControllers = new wxButton(PanelSetup, ID_BUTTON_NETWORK_DELETE_ALL, _("Delete All"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_NETWORK_DELETE_ALL"));
+    BoxSizer1->Add(ButtonDeleteAllControllers, 1, wxALL|wxEXPAND, 3);
+    ButtonDiscover = new wxButton(PanelSetup, ID_BUTTON5, _("Discover"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON5"));
+    BoxSizer1->Add(ButtonDiscover, 1, wxALL|wxEXPAND, 3);
     FlexGridSizerNetworks->Add(BoxSizer1, 1, wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL, 0);
     FlexGridSizer9 = new wxFlexGridSizer(0, 1, 0, 0);
     BitmapButtonMoveNetworkUp = new wxBitmapButton(PanelSetup, ID_BITMAPBUTTON1, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_GO_UP")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON1"));
@@ -687,9 +673,44 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     BitmapButtonMoveNetworkDown->SetToolTip(_("Move selected item down"));
     FlexGridSizer9->Add(BitmapButtonMoveNetworkDown, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizerNetworks->Add(FlexGridSizer9, 1, wxBOTTOM|wxLEFT|wxALIGN_LEFT|wxALIGN_TOP, 10);
-    GridNetwork = new wxListCtrl(PanelSetup, ID_LISTCTRL_NETWORKS, wxDefaultPosition, wxDefaultSize, wxLC_REPORT, wxDefaultValidator, _T("ID_LISTCTRL_NETWORKS"));
-    GridNetwork->SetToolTip(_("Drag an item to reorder the list"));
-    FlexGridSizerNetworks->Add(GridNetwork, 1, wxEXPAND, 5);
+    SplitterWindowControllers = new wxSplitterWindow(PanelSetup, ID_SPLITTERWINDOW1, wxDefaultPosition, wxDefaultSize, wxSP_3D, _T("ID_SPLITTERWINDOW1"));
+    SplitterWindowControllers->SetMinimumPaneSize(250);
+    SplitterWindowControllers->SetSashGravity(0.5);
+    Panel2 = new wxPanel(SplitterWindowControllers, ID_PANEL2, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL2"));
+    FlexGridSizerSetupControllers = new wxFlexGridSizer(0, 1, 0, 0);
+    FlexGridSizerSetupControllers->AddGrowableCol(0);
+    FlexGridSizerSetupControllers->AddGrowableRow(0);
+    Panel2->SetSizer(FlexGridSizerSetupControllers);
+    FlexGridSizerSetupControllers->Fit(Panel2);
+    FlexGridSizerSetupControllers->SetSizeHints(Panel2);
+    Panel5 = new wxPanel(SplitterWindowControllers, ID_PANEL6, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL6"));
+    FlexGridSizerSetupRight = new wxFlexGridSizer(0, 1, 0, 0);
+    FlexGridSizerSetupRight->AddGrowableCol(0);
+    FlexGridSizerSetupRight->AddGrowableRow(0);
+    FlexGridSizerSetupProperties = new wxFlexGridSizer(0, 1, 0, 0);
+    FlexGridSizerSetupProperties->AddGrowableCol(0);
+    FlexGridSizerSetupProperties->AddGrowableRow(0);
+    FlexGridSizerSetupRight->Add(FlexGridSizerSetupProperties, 1, wxALL|wxEXPAND, 5);
+    FlexGridSizerSetupControllerButtons = new wxFlexGridSizer(1, 0, 0, 0);
+    ButtonVisualise = new wxButton(Panel5, ID_BUTTON1, _("Visualise ..."), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
+    FlexGridSizerSetupControllerButtons->Add(ButtonVisualise, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    ButtonUploadInput = new wxButton(Panel5, ID_BUTTON2, _("Upload Input"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
+    FlexGridSizerSetupControllerButtons->Add(ButtonUploadInput, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    ButtonUploadOutput = new wxButton(Panel5, ID_BUTTON4, _("Upload Output"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON4"));
+    FlexGridSizerSetupControllerButtons->Add(ButtonUploadOutput, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    ButtonOpen = new wxButton(Panel5, ID_BUTTON7, _("Open"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON7"));
+    FlexGridSizerSetupControllerButtons->Add(ButtonOpen, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    ButtonControllerDelete = new wxButton(Panel5, ID_BUTTON8, _("Delete"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON8"));
+    FlexGridSizerSetupControllerButtons->Add(ButtonControllerDelete, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    StaticTextDummy = new wxStaticText(Panel5, ID_STATICTEXT1, _("Label"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
+    FlexGridSizerSetupControllerButtons->Add(StaticTextDummy, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizerSetupRight->Add(FlexGridSizerSetupControllerButtons, 1, wxALL|wxEXPAND, 5);
+    Panel5->SetSizer(FlexGridSizerSetupRight);
+    FlexGridSizerSetupRight->Fit(Panel5);
+    FlexGridSizerSetupRight->SetSizeHints(Panel5);
+    SplitterWindowControllers->SplitVertically(Panel2, Panel5);
+    SplitterWindowControllers->SetSashPosition(1000);
+    FlexGridSizerNetworks->Add(SplitterWindowControllers, 1, wxALL|wxEXPAND, 5);
     StaticBoxSizer2->Add(FlexGridSizerNetworks, 1, wxALL|wxEXPAND, 5);
     FlexGridSizerSetup->Add(StaticBoxSizer2, 1, wxALL|wxEXPAND, 5);
     PanelSetup->SetSizer(FlexGridSizerSetup);
@@ -704,7 +725,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     FlexGridSizerPreview->SetSizeHints(PanelPreview);
     PanelSequencer = new wxPanel(Notebook1, XLIGHTS_SEQUENCER_TAB, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL|wxWANTS_CHARS, _T("XLIGHTS_SEQUENCER_TAB"));
     m_mgr = new wxAuiManager(PanelSequencer, wxAUI_MGR_ALLOW_FLOATING|wxAUI_MGR_ALLOW_ACTIVE_PANE|wxAUI_MGR_DEFAULT);
-    Notebook1->AddPage(PanelSetup, _("Setup"), true);
+    Notebook1->AddPage(PanelSetup, _("Controllers"), true);
     Notebook1->AddPage(PanelPreview, _("Layout"));
     Notebook1->AddPage(PanelSequencer, _("Sequencer"));
     MainAuiManager->AddPane(Notebook1, wxAuiPaneInfo().Name(_T("MainPain")).CenterPane().Caption(_("Pane caption")).PaneBorder(false));
@@ -826,6 +847,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     Menu1->Append(MenuItem_DownloadSequences);
     MenuItemBatchRender = new wxMenuItem(Menu1, ID_MENU_BATCH_RENDER, _("&Batch Render"), wxEmptyString, wxITEM_NORMAL);
     Menu1->Append(MenuItemBatchRender);
+    MenuItemBulkControllerUpload = new wxMenuItem(Menu1, ID_MNU_BULKUPLOAD, _("Bulk Controller Upload"), wxEmptyString, wxITEM_NORMAL);
+    Menu1->Append(MenuItemBulkControllerUpload);
     MenuItem_xSchedule = new wxMenuItem(Menu1, ID_MNU_XSCHEDULE, _("xSchedu&le"), wxEmptyString, wxITEM_NORMAL);
     Menu1->Append(MenuItem_xSchedule);
     MenuItem_PurgeVendorCache = new wxMenuItem(Menu1, iD_MNU_VENDORCACHEPURGE, _("Purge Download Cache"), wxEmptyString, wxITEM_NORMAL);
@@ -1014,27 +1037,18 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     Connect(ID_BUTTON_OTHER_FOLDERS,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonOtherFoldersClick);
     Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnMenuOpenFolderSelected);
     Connect(ID_BUTTON_SAVE_SETUP,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonSaveSetupClick);
-    Connect(ID_BUTTON_ADD_DONGLE,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonAddDongleClick);
-    Connect(ID_BUTTON_ADD_E131,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonAddE131Click);
-    Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonAddNullClick);
-    Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonArtNETClick);
-    Connect(ID_BUTTON_ADD_LOR,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonAddLORClick);
-    Connect(ID_BUTTON_ADD_DDP,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonAddDDPClick);
-    Connect(ID_BUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButton_AddZCPPClick);
-    Connect(ID_BUTTON_NETWORK_CHANGE,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonNetworkChangeClick);
-    Connect(ID_BUTTON_NETWORK_DELETE,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonNetworkDeleteClick);
-    Connect(ID_BUTTON_NETWORK_DELETE_ALL,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonNetworkDeleteAllClick);
-    Connect(ID_BUTTON5,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButton_DiscoverClick);
-    Connect(ID_SPINCTRL1,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&xLightsFrame::OnSpinCtrl_SyncUniverseChange);
+    Connect(ID_BUTTON9,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonAddControllerSerialClick);
+    Connect(ID_BUTTON6,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonAddControllerEthernetClick);
+    Connect(ID_BUTTON10,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonAddControllerNullClick);
+    Connect(ID_BUTTON_NETWORK_DELETE_ALL,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonDeleteAllControllersClick);
+    Connect(ID_BUTTON5,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonDiscoverClick);
     Connect(ID_BITMAPBUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonNetworkMoveUpClick);
     Connect(ID_BITMAPBUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonNetworkMoveDownClick);
-    Connect(ID_LISTCTRL_NETWORKS,wxEVT_COMMAND_LIST_BEGIN_DRAG,(wxObjectEventFunction)&xLightsFrame::OnGridNetworkBeginDrag);
-    Connect(ID_LISTCTRL_NETWORKS,wxEVT_COMMAND_LIST_ITEM_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnGridNetworkItemSelect);
-    Connect(ID_LISTCTRL_NETWORKS,wxEVT_COMMAND_LIST_ITEM_DESELECTED,(wxObjectEventFunction)&xLightsFrame::OnGridNetworkItemDeselect);
-    Connect(ID_LISTCTRL_NETWORKS,wxEVT_COMMAND_LIST_ITEM_ACTIVATED,(wxObjectEventFunction)&xLightsFrame::OnGridNetworkItemActivated);
-    Connect(ID_LISTCTRL_NETWORKS,wxEVT_COMMAND_LIST_ITEM_FOCUSED,(wxObjectEventFunction)&xLightsFrame::OnGridNetworkItemFocused);
-    Connect(ID_LISTCTRL_NETWORKS,wxEVT_COMMAND_LIST_ITEM_RIGHT_CLICK,(wxObjectEventFunction)&xLightsFrame::OnGridNetworkItemRClick);
-    Connect(ID_LISTCTRL_NETWORKS,wxEVT_COMMAND_LIST_KEY_DOWN,(wxObjectEventFunction)&xLightsFrame::OnGridNetworkKeyDown);
+    Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonVisualiseClick);
+    Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonUploadInputClick);
+    Connect(ID_BUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonUploadOutputClick);
+    Connect(ID_BUTTON7,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonOpenClick);
+    Connect(ID_BUTTON8,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonControllerDeleteClick);
     m_mgr->Connect(wxEVT_AUI_PANE_CLOSE,(wxObjectEventFunction)&xLightsFrame::OnPaneClose,0,this);
     PanelSequencer->Connect(wxEVT_PAINT,(wxObjectEventFunction)&xLightsFrame::OnPanelSequencerPaint,0,this);
     Connect(ID_NOTEBOOK1,wxEVT_COMMAND_AUINOTEBOOK_PAGE_CHANGED,(wxObjectEventFunction)&xLightsFrame::OnNotebook1PageChanged1);
@@ -1071,6 +1085,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     Connect(ID_MENU_USER_DICT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemUserDictSelected);
     Connect(ID_MNU_DOWNLOADSEQUENCES,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_DownloadSequencesSelected);
     Connect(ID_MENU_BATCH_RENDER,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemBatchRenderSelected);
+    Connect(ID_MNU_BULKUPLOAD,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemBulkControllerUploadSelected);
     Connect(ID_MNU_XSCHEDULE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_xScheduleSelected);
     Connect(iD_MNU_VENDORCACHEPURGE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_PurgeVendorCacheSelected);
     Connect(ID_MNU_PURGERENDERCACHE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_PurgeRenderCacheSelected);
@@ -1137,7 +1152,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     //*)
 
     Connect(wxID_ANY, wxEVT_CHAR_HOOK, wxKeyEventHandler(xLightsFrame::OnCharHook), nullptr, this);
-    Connect(ID_LISTCTRL_NETWORKS, wxEVT_CONTEXT_MENU, (wxObjectEventFunction)& xLightsFrame::OnGridNetworkRClick);
+//    Connect(ID_LISTCTRL_NETWORKS, wxEVT_CONTEXT_MENU, (wxObjectEventFunction)& xLightsFrame::OnGridNetworkRClick);
 
     // Suppress OSX display of a warning when reading config ... "entry %s appears more than once in group '%s'
     wxLogNull logNo;
@@ -1333,69 +1348,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     mSavedChangeCount = 0;
     mLastAutosaveCount = 0;
 
-    logger_base.debug("xLightsFrame constructor loading network list.");
-
-    // Load headings into network list
-    wxListItem itemCol;
-
-    itemCol.SetText(_T("Number"));
-    itemCol.SetImage(-1);
-    GridNetwork->InsertColumn(0, itemCol);
-
-    itemCol.SetText(_T("Network Type"));
-    itemCol.SetImage(-1);
-    GridNetwork->InsertColumn(1, itemCol);
-
-    itemCol.SetText(_T("Port"));
-    itemCol.SetAlign(wxLIST_FORMAT_LEFT);
-    GridNetwork->InsertColumn(2, itemCol);
-
-    itemCol.SetText(_T("Universe or Id"));
-    itemCol.SetAlign(wxLIST_FORMAT_CENTRE);
-    GridNetwork->InsertColumn(3, itemCol);
-
-    itemCol.SetText(_T("Num Channels"));
-    itemCol.SetAlign(wxLIST_FORMAT_CENTRE);
-    GridNetwork->InsertColumn(4, itemCol);
-
-    itemCol.SetText(_T("xLights/Vixen/FPP Mapping"));
-    itemCol.SetAlign(wxLIST_FORMAT_LEFT);
-    GridNetwork->InsertColumn(5, itemCol);
-
-    itemCol.SetText(_T("Active"));
-    itemCol.SetAlign(wxLIST_FORMAT_LEFT);
-    GridNetwork->InsertColumn(6, itemCol);
-
-	itemCol.SetText(_T("Description"));
-	itemCol.SetAlign(wxLIST_FORMAT_LEFT);
-	GridNetwork->InsertColumn(7, itemCol);
-
-    itemCol.SetText(_T("Duplicate Suppress"));
-    itemCol.SetAlign(wxLIST_FORMAT_LEFT);
-    GridNetwork->InsertColumn(8, itemCol);
-
-    itemCol.SetText(_T("Controller Type"));
-    itemCol.SetAlign(wxLIST_FORMAT_LEFT);
-    GridNetwork->InsertColumn(9, itemCol);
-
-    itemCol.SetText(_T("FPP Proxy"));
-    itemCol.SetAlign(wxLIST_FORMAT_LEFT);
-    GridNetwork->InsertColumn(10, itemCol);
-
-    GridNetwork->SetColumnWidth(0, wxLIST_AUTOSIZE_USEHEADER);
-    GridNetwork->SetColumnWidth(1, wxLIST_AUTOSIZE_USEHEADER);
-    GridNetwork->SetColumnWidth(2, 100);
-    GridNetwork->SetColumnWidth(3, wxLIST_AUTOSIZE_USEHEADER);
-    GridNetwork->SetColumnWidth(4, 100);
-    GridNetwork->SetColumnWidth(5, 170);
-    GridNetwork->SetColumnWidth(6, wxLIST_AUTOSIZE_USEHEADER);
-	GridNetwork->SetColumnWidth(7, wxLIST_AUTOSIZE);
-    GridNetwork->SetColumnWidth(8, wxLIST_AUTOSIZE_USEHEADER);
-    GridNetwork->SetColumnWidth(9, wxLIST_AUTOSIZE_USEHEADER);
-    GridNetwork->SetColumnWidth(10, wxLIST_AUTOSIZE_USEHEADER);
-
-    _scrollTimer.Connect(wxEVT_TIMER,
-        wxTimerEventHandler(xLightsFrame::OnGridNetworkScrollTimer), nullptr, this);
+    _scrollTimer.Connect(wxEVT_TIMER, wxTimerEventHandler(xLightsFrame::OnListItemScrollTimerControllers), nullptr, this);
 
     // get list of most recently used directories
     wxString dir;
@@ -1649,8 +1602,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
 
     config->Read("xLightse131Sync", &me131Sync, false);
     _outputManager.SetSyncEnabled(me131Sync);
-    logger_base.debug("e1.31 Sync: %s.", me131Sync ? "true" : "false");
-    ShowHideSync();
+    logger_base.debug("Sync: %s.", me131Sync ? "true" : "false");
 
     wxString tmpString;
     config->Read("xLightsLocalIP", &tmpString, "");
@@ -1744,7 +1696,7 @@ xLightsFrame::~xLightsFrame()
     selectedEffect = nullptr;
     _outputManager.AllOff();
     _outputManager.StopOutput();
-    _outputManager.DeleteAllOutputs();
+    _outputManager.DeleteAllControllers();
 
     wxConfigBase* config = wxConfigBase::Get();
     if (mResetToolbars)
@@ -2184,27 +2136,6 @@ bool xLightsFrame::EnableOutputs(bool ignoreCheck)
     }
     EnableNetworkChanges();
     return ok;
-}
-
-void xLightsFrame::EnableNetworkChanges()
-{
-    bool flag=(!_outputManager.IsOutputting() && !CurrentDir.IsEmpty());
-    ButtonAddDongle->Enable(flag);
-    ButtonAddE131->Enable(flag);
-    ButtonAddDDP->Enable(flag);
-    ButtonArtNET->Enable(flag);
-    Button_AddZCPP->Enable(flag);
-    ButtonAddNull->Enable(flag);
-    ButtonAddLOR->Enable(flag);
-    ButtonNetworkChange->Enable(flag);
-    ButtonNetworkDelete->Enable(flag);
-    ButtonNetworkDeleteAll->Enable(flag);
-    BitmapButtonMoveNetworkUp->Enable(flag);
-    BitmapButtonMoveNetworkDown->Enable(flag);
-    Button_Discover->Enable(flag);
-    SpinCtrl_SyncUniverse->Enable(flag);
-    ButtonSaveSetup->Enable(!CurrentDir.IsEmpty());
-    CheckBoxLightOutput->Enable(!CurrentDir.IsEmpty());
 }
 
 void xLightsFrame::OnCheckBoxLightOutputClick(wxCommandEvent& event)
@@ -4498,7 +4429,7 @@ void xLightsFrame::CheckSequence(bool display)
     std::list<Output*> zcppOutputs;
     for (auto it = outputs.begin(); it != outputs.end(); ++it)
     {
-        if ((*it)->GetType() == "ZCPP")
+        if ((*it)->GetType() == OUTPUT_ZCPP)
         {
             zcppOutputs.push_back(*it);
         }
@@ -4637,53 +4568,36 @@ void xLightsFrame::CheckSequence(bool display)
         }
 
         // Apply the vendor specific validations
-        for (const auto& it : zcppOutputs)
+        for (const auto& it : _outputManager.GetControllers())
         {
-            wxString msg = wxString::Format("        Applying controller rules for %s:%s", it->GetIP(), it->GetDescription());
-            LogAndWrite(f, msg.ToStdString());
+            auto eth = dynamic_cast<ControllerEthernet*>(it);
 
-            std::list<int> outputNums;
-            std::string check;
-            UDController edc(it->GetIP(), it->GetIP(), &AllModels, &_outputManager, &outputNums, check);
-            if (check != "")
+            if (eth != nullptr && eth->GetProtocol() == OUTPUT_ZCPP)
             {
-                LogAndWrite(f, check);
-            }
+                wxString msg = wxString::Format("        Applying controller rules for %s:%s:%s", eth->GetName(), eth->GetIP(), it->GetDescription());
+                LogAndWrite(f, msg.ToStdString());
 
-            check = "";
+                std::string check;
+                UDController edc(eth, &_outputManager, &AllModels, check);
+                if (check != "")
+                {
+                    LogAndWrite(f, check);
+                }
 
-            switch(((ZCPPOutput*)it)->GetVendor())
-            {
-            case ZCPP_VENDOR_FALCON:
-                // falcon
+                check = "";
+                auto fcr = ControllerCaps::GetControllerConfig(it->GetVendor(), it->GetModel(), it->GetFirmwareVersion());
+                if (fcr != nullptr)
                 {
-                // FIXME ... need the right rules
-                    FalconControllerRules fcr(((ZCPPOutput*)it)->GetModel());
-                    edc.Check(&fcr, check);
+                    edc.Check(fcr, check);
                 }
-                break;
-            case ZCPP_VENDOR_FPP:
-                // fpp
+                else
                 {
-                    // FIXME ... need the right rules
-                    ControllerRules& fcr = FPP::GetCapeRules("");
-                    edc.Check(&fcr, check);
+                    LogAndWrite(f, "Unknown controller vendor.");
                 }
-            break;
-            case ZCPP_VENDOR_ESPIXELSTICK:
-                // fpp
+                if (check != "")
                 {
-                    ESPixelStickControllerRules epscr;
-                    edc.Check(&epscr, check);
+                    LogAndWrite(f, check);
                 }
-            break;
-            default:
-                LogAndWrite(f, "Unknown controller vendor.");
-                break;
-            }
-            if (check != "")
-            {
-                LogAndWrite(f, check);
             }
         }
 
@@ -4703,7 +4617,7 @@ void xLightsFrame::CheckSequence(bool display)
     outputs = _outputManager.GetAllOutputs();
     for (auto o : outputs)
     {
-        if (o->GetType() != "ZCPP")
+        if (o->GetType() != OUTPUT_ZCPP)
         {
             useduid[o->GetUniverse()]++;
         }
@@ -6164,38 +6078,6 @@ void xLightsFrame::CheckElement(Element* e, wxFile& f, int& errcount, int& warnc
 void xLightsFrame::OnMenuItemCheckSequenceSelected(wxCommandEvent& event)
 {
     CheckSequence(true);
-}
-
-void xLightsFrame::SetE131Sync(bool b)
-{
-    NetworkChange();
-    me131Sync = b;
-    _outputManager.SetSyncEnabled(me131Sync);
-    ShowHideSync();
-    if (me131Sync) {
-        // recycle output connections if necessary
-        if (_outputManager.IsOutputting()) {
-            _outputManager.StopOutput();
-            _outputManager.StartOutput();
-        }
-    }
-    NetworkChange();
-}
-
-void xLightsFrame::ShowHideSync()
-{
-    if (me131Sync)
-    {
-        SpinCtrl_SyncUniverse->Show();
-        StaticText5->Show();
-        SetSyncUniverse(SpinCtrl_SyncUniverse->GetValue());
-    }
-    else
-    {
-        SpinCtrl_SyncUniverse->Hide();
-        StaticText5->Hide();
-        SetSyncUniverse(0);
-    }
 }
 
 void xLightsFrame::OnMenuItem_Help_ForumSelected(wxCommandEvent& event)
@@ -9719,4 +9601,10 @@ void xLightsFrame::SetHardwareVideoAccelerated(bool b)
     VideoReader::SetHardwareAcceleratedVideo(_hwVideoAccleration);
     wxConfigBase* config = wxConfigBase::Get();
     config->Write("xLightsVideoReaderAccelerated", VideoReader::IsHardwareAcceleratedVideo());
+}
+
+void xLightsFrame::OnMenuItemBulkControllerUploadSelected(wxCommandEvent& event)
+{
+    MultiControllerUploadDialog dlg(this);
+    dlg.ShowModal();
 }

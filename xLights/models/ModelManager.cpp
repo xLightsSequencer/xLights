@@ -727,7 +727,7 @@ bool ModelManager::ReworkStartChannel() const
                 }
             }
 
-            if (it->GetAutoSize())
+            if (it->IsAutoSize())
             {
                 if (it->GetChannels() != std::max((int32_t)1, (int32_t)ch - 1))
                 {

@@ -2,11 +2,9 @@
 
 #include <wx/xml/xml.h>
 #include <log4cpp/Category.hh>
-#ifndef EXCLUDENETWORKUI
-#include "ArtNetDialog.h"
-#endif
 #include "OutputManager.h"
 #include "../UtilFunctions.h"
+#include "ControllerEthernet.h"
 
 #pragma region Static Variables
 int ArtNetOutput::__ip1 = -1;
@@ -71,10 +69,10 @@ std::string ArtNetOutput::GetExport() const
         enabled, suppress).ToStdString();
 }
 
-std::list<Output*> ArtNetOutput::Discover(OutputManager* outputManager)
+std::list<ControllerEthernet*> ArtNetOutput::Discover(OutputManager* outputManager)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    std::list<Output*> res;
+    std::list<ControllerEthernet*> res;
 
     wxByte packet[14];
     memset(packet, 0x00, sizeof(packet));
@@ -90,8 +88,6 @@ std::list<Output*> ArtNetOutput::Discover(OutputManager* outputManager)
     packet[11] = 0x0E; // Protocol version Low
     packet[12] = 0x02;
     packet[13] = 0xe0; //Critical messages Only
-    
-    
     
     std::vector<wxDatagramSocket *> sockets;
     wxIPV4address localaddr;
@@ -128,7 +124,6 @@ std::list<Output*> ArtNetOutput::Discover(OutputManager* outputManager)
         socket->SendTo(bcAddress, packet, sizeof(packet));
     }
 
-
     unsigned char buffer[2048];
     uint64_t endBroadcastTime = wxGetLocalTimeMillis().GetValue() + 2000l;
     int readSize = 0;
@@ -148,28 +143,17 @@ std::list<Output*> ArtNetOutput::Discover(OutputManager* outputManager)
                 if (buffer[0] == 'A' && buffer[1] == 'r' && buffer[2] == 't' && buffer[3] == '-' && buffer[9] == 0x21) {
                     logger_base.debug(" Valid response.");
                     uint32_t channels = 512;
-                    ArtNetOutput* output = new ArtNetOutput();
-                    output->SetDescription(std::string((char*)& buffer[26]));
-                    output->SetChannels(channels);
+
+                    ControllerEthernet* c = new ControllerEthernet(outputManager, false);
+                    c->SetProtocol(OUTPUT_ARTNET);
+                    c->SetName(std::string((char*)& buffer[26]));
+                    ArtNetOutput* o = dynamic_cast<ArtNetOutput*>(c->GetOutputs().front());
+                    o->SetChannels(channels);
                     auto ip = wxString::Format("%d.%d.%d.%d", (int)buffer[10], (int)buffer[11], (int)buffer[12], (int)buffer[13]);
-                    output->SetIP(ip.ToStdString());
+                    c->SetIP(ip.ToStdString());
 
-                    // now search for it in outputManager
-                    auto outputs = outputManager->GetOutputs();
-                    for (auto it = outputs.begin(); it != outputs.end(); ++it) {
-                        if ((*it)->GetIP() == output->GetIP()) {
-                            // we already know about this controller
-                            logger_base.info("ArtNet Discovery we already know about this controller %s.", (const char*)output->GetIP().c_str());
-                            delete output;
-                            output = nullptr;
-                            break;
-                        }
-                    }
-
-                    if (output != nullptr) {
-                        logger_base.info("ArtNet Discovery adding controller %s.", (const char*)output->GetIP().c_str());
-                        res.push_back(output);
-                    }
+                    logger_base.info("ArtNet Discovery adding controller %s.", (const char*)c->GetIP().c_str());
+                    res.push_back(c);
                 } else {
                     // non discovery response packet
                     logger_base.info("ArtNet Discovery strange packet received.");
@@ -470,40 +454,4 @@ std::string ArtNetOutput::GetLongDescription() const
 
     return res;
 }
-
-std::string ArtNetOutput::GetChannelMapping(int32_t ch) const
-{
-    std::string res = "Channel " + std::string(wxString::Format(wxT("%i"), ch)) + " maps to ...\n";
-
-    int32_t channeloffset = ch - GetStartChannel() + 1;
-
-    res += "Type: ArtNet\n";
-    res += "IP: " + _ip + "\n";
-    res += "Net: " + wxString::Format(wxT("%i"), GetArtNetNet()).ToStdString() + "\n";
-    res += "Subnet: " + wxString::Format(wxT("%i"), GetArtNetSubnet()).ToStdString() + "\n";
-    res += "Universe: " + wxString::Format(wxT("%i"), GetArtNetUniverse()).ToStdString() + "\n";
-    res += "Channel: " + std::string(wxString::Format(wxT("%i"), channeloffset)) + "\n";
-
-    if (!_enabled) res += " INACTIVE";
-
-    return res;
-}
 #pragma endregion Getters and Setters
-
-#pragma region UI
-#ifndef EXCLUDENETWORKUI
-Output* ArtNetOutput::Configure(wxWindow* parent, OutputManager* outputManager, ModelManager *modelManager)
-{
-    ArtNetDialog dlg(parent, this, outputManager);
-
-    int res = dlg.ShowModal();
-
-    if (res == wxID_CANCEL)
-    {
-        return nullptr;
-    }
-
-    return this;
-}
-#endif
-#pragma endregion UI

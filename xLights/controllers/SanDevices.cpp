@@ -1,29 +1,22 @@
 #include "SanDevices.h"
-#include <wx/msgdlg.h>
-#include <wx/sstream.h>
-#include <wx/regex.h>
-#include <wx/xml/xml.h>
-
 #include "../models/Model.h"
 #include "../outputs/OutputManager.h"
 #include "../outputs/Output.h"
 #include "../models/ModelManager.h"
+#include "../outputs/ControllerEthernet.h"
+#include "ControllerCaps.h"
+#include "UtilFunctions.h"
 
+#include <wx/msgdlg.h>
+#include <wx/sstream.h>
+#include <wx/regex.h>
+#include <wx/xml/xml.h>
 #include <wx/sckstrm.h>
 #include <wx/tokenzr.h>
 #include <wx/progdlg.h>
 
 #include <log4cpp/Category.hh>
 
-#include "ControllerRegistry.h"
-#include "UtilFunctions.h"
-
-static std::vector<SanDevicesControllerRules> CONTROLLER_TYPE_MAP = {
-    SanDevicesControllerRules(682, 4),
-    SanDevicesControllerRules(682, 5),
-    SanDevicesControllerRules(6804, 4),
-    SanDevicesControllerRules(6804, 5)
-};
 
 void SanDevicesOutput::Dump() const
 {
@@ -272,12 +265,6 @@ bool SimpleHTTP::MyBuildRequest(const wxString& path, const wxString& method, wx
     return ret_value;
 }
 
-void SanDevices::RegisterControllers() {
-    for (auto &a : CONTROLLER_TYPE_MAP) {
-        ControllerRegistry::AddController(&a);
-    }
-}
-
 SanDevices::SanDevices(const std::string& ip, const std::string &proxy) : _ip(ip), _fppProxy(proxy), _baseUrl("")
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -394,7 +381,7 @@ std::string SanDevices::GetURL(const std::string& url, bool logresult)
     return (startResult + res).ToStdString();
 }
 
-bool SanDevices::SetInputUniverses(OutputManager* outputManager, std::list<int>& selected)
+bool SanDevices::SetInputUniverses(ControllerEthernet* controller)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     const std::string page = _page;
@@ -412,7 +399,7 @@ bool SanDevices::SetInputUniverses(OutputManager* outputManager, std::list<int>&
     }
 
     // Get universes based on IP
-    std::list<Output*> outputs = outputManager->GetAllOutputs(_ip, selected);
+    std::list<Output*> outputs = controller->GetOutputs();
 
     if (outputs.size() > 12) {
         DisplayError(wxString::Format("Attempt to upload %d universes to SanDevices controller but only 12 are supported.", outputs.size()).ToStdString());
@@ -426,7 +413,7 @@ bool SanDevices::SetInputUniverses(OutputManager* outputManager, std::list<int>&
 
     auto o = outputs.front();
 
-    if (o->GetType() == "E131")
+    if (o->GetType() == OUTPUT_E131)
     {
         if (o->GetIP() == "MULTICAST")
         {
@@ -437,7 +424,7 @@ bool SanDevices::SetInputUniverses(OutputManager* outputManager, std::list<int>&
             t = 1;
         }
     }
-    else if (o->GetType() == "ArtNet")
+    else if (o->GetType() == OUTPUT_ARTNET)
     {
         t = 2;
     }
@@ -578,7 +565,7 @@ bool SanDevices::SetInputUniverses(OutputManager* outputManager, std::list<int>&
     return (GetURL(request.ToStdString()) != "");
 }
 
-bool SanDevices::SetOutputsV4(ModelManager* allmodels, OutputManager* outputManager, std::list<int>& selected, wxWindow* parent)
+bool SanDevices::SetOutputsV4(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent)
 {
     wxProgressDialog progress("Uploading ...", "", 100, parent, wxPD_APP_MODAL | wxPD_AUTO_HIDE);
     progress.Show();
@@ -587,17 +574,17 @@ bool SanDevices::SetOutputsV4(ModelManager* allmodels, OutputManager* outputMana
     logger_base.debug("SanDevices Outputs Upload: Uploading to %s", (const char *)_ip.c_str());
 
     // Get universes based on IP
-    std::list<Output*> outputs = outputManager->GetAllOutputs(_ip, selected);
+    std::list<Output*> outputs = controller->GetOutputs();
 
     progress.Update(0, "Scanning models");
     logger_base.info("Scanning models.");
 
     std::string check;
-    UDController cud(_ip, _ip, allmodels, outputManager, &selected, check);
+    UDController cud(controller, outputManager, allmodels, check);
 
     //first check rules
-    SanDevicesControllerRules rules(static_cast<int>(_model), static_cast<int>(_firmware));
-    bool success = cud.Check(&rules, check);
+    auto rules = ControllerCaps::GetControllerConfig(controller);
+    bool success = cud.Check(rules, check);
 
     logger_base.debug(check);
 
@@ -689,7 +676,7 @@ bool SanDevices::SetOutputsV4(ModelManager* allmodels, OutputManager* outputMana
     return true;
 }
 
-bool SanDevices::SetOutputsV5(ModelManager* allmodels, OutputManager* outputManager, std::list<int>& selected, wxWindow* parent)
+bool SanDevices::SetOutputsV5(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent)
 {
     wxProgressDialog progress("Uploading ...", "", 100, parent, wxPD_APP_MODAL | wxPD_AUTO_HIDE);
     progress.Show();
@@ -699,17 +686,17 @@ bool SanDevices::SetOutputsV5(ModelManager* allmodels, OutputManager* outputMana
     logger_base.debug("SanDevices Outputs Upload: Uploading to %s", (const char *)_ip.c_str());
 
     // Get universes based on IP
-    std::list<Output*> outputs = outputManager->GetAllOutputs(_ip, selected);
+    std::list<Output*> outputs = controller->GetOutputs();
 
     progress.Update(0, "Scanning models");
     logger_base.info("Scanning models.");
 
     std::string check;
-    UDController cud(_ip, _ip, allmodels, outputManager, &selected, check);
+    UDController cud(controller, outputManager, allmodels, check);
 
     //first check rules
-    SanDevicesControllerRules rules(static_cast<int>(_model), static_cast<int>(_firmware));
-    const bool success = cud.Check(&rules, check);
+    auto rules = ControllerCaps::GetControllerConfig(controller);
+    const bool success = cud.Check(rules, check);
 
     logger_base.debug(check);
 
@@ -847,16 +834,16 @@ bool SanDevices::SetOutputsV5(ModelManager* allmodels, OutputManager* outputMana
     return true;
 }
 
-bool SanDevices::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, std::list<int>& selected, wxWindow* parent)
+bool SanDevices::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent)
 {
     if (IsFirmware5())
     {
-        return SetOutputsV5(allmodels, outputManager, selected, parent);
+        return SetOutputsV5(allmodels, outputManager, controller, parent);
     }
 
     if (IsFirmware4())
     {
-        return SetOutputsV4(allmodels, outputManager, selected, parent);
+        return SetOutputsV4(allmodels, outputManager, controller, parent);
     }
     wxASSERT(false);
     return false;

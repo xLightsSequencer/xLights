@@ -4,10 +4,12 @@
 #include <wx/wx.h>
 #include <string>
 #include <wx/socket.h>
+#include <wx/xml/xml.h>
 
 #define FORMATTIME(ms) (const char *)wxString::Format("%d:%02d.%03d", ((uint32_t)ms) / 60000, (((uint32_t)ms) % 60000) / 1000, ((uint32_t)ms) % 1000).c_str()
 
 // Consolidated set of utility functions
+void CleanupIpAddress(wxString& IpAddr);
 void DisplayError(const std::string& err, wxWindow* win = nullptr);
 void DisplayWarning(const std::string& warn, wxWindow* win = nullptr);
 void DisplayInfo(const std::string& info, wxWindow* win = nullptr);
@@ -24,6 +26,10 @@ bool IsVersionOlder(const std::string &compare, const std::string &version);
 std::string UnXmlSafe(const wxString &s);
 std::string XmlSafe(const std::string& s);
 inline bool isOdd(int n) { return n % 2 != 0; }
+wxString GetXmlNodeAttribute(wxXmlNode* parent, const std::string& path, const std::string& attribute, const std::string& default = "");
+wxString GetXmlNodeContent(wxXmlNode* parent, const std::string& path, const std::string& default = "");
+std::list<std::string> GetXmlNodeListContent(wxXmlNode* parent, const std::string& path, const std::string& listNodeName);
+bool DoesXmlNodeExist(wxXmlNode* parent, const std::string& path);
 void DownloadVamp();
 bool IsFileInShowDir(const wxString& showDir, const std::string filename);
 wxString FixFile(const wxString& ShowDir, const wxString& file, bool recurse = false);

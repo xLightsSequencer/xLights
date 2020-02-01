@@ -1,5 +1,4 @@
-#ifndef SanDevices_H
-#define SanDevices_H
+#pragma once
 
 #include <wx/protocol/http.h>
 #include <list>
@@ -11,93 +10,7 @@ class ModelManager;
 class Output;
 class OutputManager;
 class SanDevices;
-
-class SanDevicesControllerRules : public ControllerRules
-{
-    int _type;
-    int _firmware;
-
-public:
-    SanDevicesControllerRules(int type, int firmware) : ControllerRules()
-    {
-        _type = type;
-        _firmware = firmware;
-    }
-    virtual ~SanDevicesControllerRules() {}
-
-    virtual const std::string GetControllerId() const override
-    {
-        return wxString::Format("E%d Firmware %d", _type, _firmware).ToStdString();
-    }
-    virtual const std::string GetControllerManufacturer() const override { return "SanDevices"; };
-
-    virtual bool SupportsLEDPanelMatrix() const override {
-        return false;
-    }
-
-    virtual int GetMaxPixelPortChannels() const override
-    {
-        return 999 * 3;
-
-    }
-    virtual int GetMaxPixelPort() const override
-    {
-        if (_type == 6804)
-        {
-            return 4;
-        }
-
-        if (_type == 682)
-        {
-            return 16;
-        }
-
-        return -1;
-    }
-    virtual int GetMaxSerialPortChannels() const override
-    {
-        return 512;
-    }
-    virtual int GetMaxSerialPort() const override
-    {
-       return 4;
-    }
-    virtual bool IsValidPixelProtocol(const std::string protocol) const override
-    {
-        wxString p(protocol);
-        p = p.Lower();
-        if (p == "ws2811") return true;
-        if (p == "tm18xx") return true;
-        if (p == "ws2801") return true;
-        if (p == "tls3001" && _firmware == 4) return true;
-        if (p == "apa102" && _firmware == 5) return true;
-        if (p == "lpd8806" && _firmware == 5) return true;
-        if (p == "lpd6803") return true;
-        if (p == "gece") return true;
-
-        return false;
-    }
-    virtual bool IsValidSerialProtocol(const std::string protocol) const override
-    {
-        wxString p(protocol);
-        p = p.Lower();
-        if (p == "dmx") return true;
-        if (p == "renard") return true;
-
-        return false;
-    }
-    virtual bool SupportsMultipleProtocols() const override { return true; }
-    virtual bool SupportsSmartRemotes() const override { return false; }
-    virtual bool SupportsMultipleInputProtocols() const override { return false; }
-    virtual bool AllUniversesSameSize() const override { return false; }
-    virtual bool UniversesMustBeSequential() const override { return false; }
-    virtual std::set<std::string> GetSupportedInputProtocols() const override
-    {
-        std::set<std::string> res = { "E131", "ARTNET" };
-        return res;
-    }
-    
-};
+class ControllerEthernet;
 
 class SanDevicesOutput
 {
@@ -218,8 +131,8 @@ class SanDevices
     std::vector < SanDevicesOutputV4*> _outputDataV4;
 
     bool _connected;
-    bool SetOutputsV4(ModelManager* allmodels, OutputManager* outputManager, std::list<int>& selected, wxWindow* parent);
-    bool SetOutputsV5(ModelManager* allmodels, OutputManager* outputManager, std::list<int>& selected, wxWindow* parent);
+    bool SetOutputsV4(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent);
+    bool SetOutputsV5(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent);
     bool ParseV4Webpage(const std::string& page);
     bool ParseV5MainWebpage(const std::string& page);
     bool ParseV5OutputWebpage(const std::string& page);
@@ -280,14 +193,10 @@ public:
     SanDevices(const std::string& ip, const std::string &fppProxy);
     bool IsConnected() const { return _connected; };
     virtual ~SanDevices();
-    bool SetInputUniverses(OutputManager* outputManager, std::list<int>& selected);
-    bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, std::list<int>& selected, wxWindow* parent);
+    bool SetInputUniverses(ControllerEthernet* controller);
+    bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent);
 
-    static void RegisterControllers();
-    
     std::string GetModelName() { return EncodeControllerType(); }
     const std::string &GetVersion() { return _version; }
     std::string GetPixelControllerTypeString() { return wxString::Format("E%d Firmware %d", _model, _firmware).ToStdString(); }
 };
-
-#endif

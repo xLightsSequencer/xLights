@@ -22,6 +22,45 @@
 #define ZCPP_MULTICAST_ADDRESS "224.0.30.5"
 #define ZCPP_MULTICAST_DATA_ADDRESS "224.0.31."
 
+inline std::string ZCPP_GetDataMulticastAddress(const std::string& controllerIP)
+{
+	// trim leading and trailing blanks
+	const auto begin = controllerIP.find_first_not_of(" \t");
+	if (begin == std::string::npos) return ""; // no content
+	const auto end = controllerIP.find_last_not_of(" \t");
+	const auto strRange = end - begin + 1;
+	auto working = controllerIP.substr(begin, strRange);
+
+	// tokenise around '.'
+	std::list<std::string> ipComp;
+	size_t pos = 0;
+	while ((pos = working.find(".")) != std::string::npos) {
+		ipComp.push_back(working.substr(0, pos));
+		working.erase(0, pos + 1);
+	}
+	if (working.size() > 0) {
+		ipComp.push_back(working);
+	}
+
+	// check for 4 values
+	if (ipComp.size() != 4) return "";
+
+	// check each value is in range 0-255
+	for (const auto& it : ipComp)
+	{
+		for (const auto it2 : it)
+		{
+			if (!std::isdigit(it2)) return "";
+		}
+
+		int c = atoi(it.c_str());
+		if (c < 0 || c > 255) return "";
+	}
+
+	// now take the last and return the multicast address
+	return ZCPP_MULTICAST_DATA_ADDRESS + ipComp.back();
+}
+
 // Defaults
 #define ZCPP_PORT 30005
 

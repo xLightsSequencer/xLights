@@ -27,7 +27,6 @@ class LOROptimisedOutput : public LOROutput
     #pragma endregion Member Variables
 
     virtual void Save(wxXmlNode* node) override;
-    void CalcTotalChannels();
 	void CalcChannels(int& channel_count, int& channels_per_pass, int& controller_channels_to_process, LorController* cntrl);
 
 public:
@@ -44,6 +43,8 @@ public:
     virtual std::string GetType() const override { return OUTPUT_LOR_OPT; }
     virtual std::string GetSetupHelp() const override;
     virtual std::string GetExport() const override;
+    LorControllers& GetControllers() { return _controllers; }
+    void CalcTotalChannels();
     #pragma endregion Getters and Setters
 
     #pragma region Frame Handling
@@ -57,9 +58,9 @@ public:
     void GenerateCommand(uint8_t d[], size_t& idx, int unit_id, int bank, bool value_byte, uint8_t dbyte, uint8_t lsb, uint8_t msb);
     #pragma endregion Data Setting
 
-#ifndef EXCLUDENETWORKUI
-    virtual Output* Configure(wxWindow* parent, OutputManager* outputManager, ModelManager* modelManager) override;
-#endif
+//#ifndef EXCLUDENETWORKUI
+//    virtual Output* Configure(wxWindow* parent, OutputManager* outputManager, ModelManager* modelManager) override;
+//#endif
 };
 
 #endif

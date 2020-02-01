@@ -12,66 +12,56 @@
 //*)
 
 class xLightsFrame;
-class Output;
+class ControllerEthernet;
 
-struct ControllerInfo
+class MultiControllerUploadDialog : public wxDialog
 {
-	std::string const IP;
-	std::string const ProxyIP;
-	std::string const ControllerId;
-	std::string const Type;
+	xLightsFrame* _frame = nullptr;
+	std::vector <ControllerEthernet*> _controllers;
+	void ValidateWindow();
 
-	ControllerInfo(Output* output);
-};
+public:
 
-class MultiControllerUploadDialog: public wxDialog
-{
-    xLightsFrame* _frame;
-	std::vector < ControllerInfo > _controllers;
-    void ValidateWindow();
+	MultiControllerUploadDialog(wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
+	virtual ~MultiControllerUploadDialog();
 
-	public:
+	//(*Declarations(MultiControllerUploadDialog)
+	wxButton* Button_Cancel;
+	wxButton* Button_Upload;
+	wxCheckListBox* CheckListBox_Controllers;
+	wxChoice* Choice1;
+	wxStaticText* StaticText1;
+	wxStaticText* StaticText2;
+	wxTextCtrl* TextCtrl_Log;
+	//*)
 
-		MultiControllerUploadDialog(wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
-		virtual ~MultiControllerUploadDialog();
+protected:
 
-		//(*Declarations(MultiControllerUploadDialog)
-		wxButton* Button_Cancel;
-		wxButton* Button_Upload;
-		wxCheckListBox* CheckListBox_Controllers;
-		wxChoice* Choice1;
-		wxStaticText* StaticText1;
-		wxStaticText* StaticText2;
-		wxTextCtrl* TextCtrl_Log;
-		//*)
+	//(*Identifiers(MultiControllerUploadDialog)
+	static const long ID_STATICTEXT1;
+	static const long ID_STATICTEXT2;
+	static const long ID_CHOICE1;
+	static const long ID_CHECKLISTBOX1;
+	static const long ID_BUTTON1;
+	static const long ID_BUTTON2;
+	static const long ID_TEXTCTRL1;
+	//*)
 
-	protected:
+	static const long ID_MCU_SELECTALL;
+	static const long ID_MCU_SELECTNONE;
 
-		//(*Identifiers(MultiControllerUploadDialog)
-		static const long ID_STATICTEXT1;
-		static const long ID_STATICTEXT2;
-		static const long ID_CHOICE1;
-		static const long ID_CHECKLISTBOX1;
-		static const long ID_BUTTON1;
-		static const long ID_BUTTON2;
-		static const long ID_TEXTCTRL1;
-		//*)
+private:
 
-        static const long ID_MCU_SELECTALL;
-        static const long ID_MCU_SELECTNONE;
+	//(*Handlers(MultiControllerUploadDialog)
+	void OnButton_UploadClick(wxCommandEvent& event);
+	void OnButton_CancelClick(wxCommandEvent& event);
+	void OnCheckListBox_ControllersToggled(wxCommandEvent& event);
+	//*)
 
-	private:
+	void OnListRClick(wxContextMenuEvent& event);
+	void OnPopup(wxCommandEvent& event);
 
-		//(*Handlers(MultiControllerUploadDialog)
-		void OnButton_UploadClick(wxCommandEvent& event);
-		void OnButton_CancelClick(wxCommandEvent& event);
-		void OnCheckListBox_ControllersToggled(wxCommandEvent& event);
-        //*)
-
-        void OnListRClick(wxContextMenuEvent& event);
-        void OnPopup(wxCommandEvent &event);
-
-		DECLARE_EVENT_TABLE()
+	DECLARE_EVENT_TABLE()
 };
 
 #endif

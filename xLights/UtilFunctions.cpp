@@ -406,6 +406,112 @@ std::string XmlSafe(const std::string& s)
     return res;
 }
 
+wxString GetXmlNodeAttribute(wxXmlNode* parent, const std::string& path, const std::string& attribute, const std::string& default)
+{
+    wxXmlNode* curr = parent;
+    auto pe = wxSplit(path, '/');
+
+    for (const auto& it : pe)
+    {
+        for (wxXmlNode* n = curr->GetChildren(); n != nullptr; n = n->GetNext())
+        {
+            if (n->GetName() == it)
+            {
+                if (it == pe.back())
+                {
+                    return n->GetAttribute(attribute);
+                }
+
+                curr = n;
+                break;
+            }
+        }
+    }
+
+    return default;
+}
+
+wxString GetXmlNodeContent(wxXmlNode* parent, const std::string& path, const std::string& default)
+{
+    wxXmlNode* curr = parent;
+    auto pe = wxSplit(path, '/');
+
+    for (const auto& it : pe)
+    {
+        for (wxXmlNode* n = curr->GetChildren(); n != nullptr; n = n->GetNext())
+        {
+            if (n->GetName() == it)
+            {
+                if (it == pe.back())
+                {
+                    if (n->GetChildren() != nullptr) return n->GetChildren()->GetContent();
+                    return default;
+                }
+
+                curr = n;
+                break;
+            }
+        }
+    }
+
+    return default;
+}
+
+std::list<std::string> GetXmlNodeListContent(wxXmlNode* parent, const std::string& path, const std::string& listNodeName)
+{
+    std::list<std::string> res;
+
+    wxXmlNode* curr = parent;
+    auto pe = wxSplit(path, '/');
+
+    for (const auto& it : pe)
+    {
+        for (wxXmlNode* n = curr->GetChildren(); n != nullptr; n = n->GetNext())
+        {
+            if (n->GetName() == it)
+            {
+                curr = n;
+                break;
+            }
+        }
+    }
+
+    if (curr != nullptr)
+    {
+        for (wxXmlNode* n = curr->GetChildren(); n != nullptr; n = n->GetNext())
+        {
+            if (n->GetName() == listNodeName && n->GetChildren() != nullptr)
+            {
+                res.push_back(n->GetChildren()->GetContent());
+            }
+        }
+    }
+
+    return res;
+}
+
+bool DoesXmlNodeExist(wxXmlNode* parent, const std::string& path)
+{
+    wxXmlNode* curr = parent;
+    auto pe = wxSplit(path, '/');
+
+    for (const auto& it : pe)
+    {
+        for (wxXmlNode* n = curr->GetChildren(); n != nullptr; n = n->GetNext())
+        {
+            if (n->GetName() == it)
+            {
+                if (it == pe.back()) return true;
+
+                curr = n;
+                break;
+            }
+        }
+    }
+
+    return false;
+}
+
 void DownloadVamp()
 {
     wxMessageBox("We are about to download the Queen Mary Vamp plugins for your platform. Once downloaded please install them and then close and reopen xLights to use them.");
@@ -1017,4 +1123,22 @@ void CheckMemoryUsage(const std::string& reason, bool onchangeOnly)
     lastPrivate = privateMem;
     lastWorking = workingMem;
 #endif
+}
+
+void CleanupIpAddress(wxString& IpAddr)
+{
+    static wxRegEx leadingzero1("(^0+)(?:[1-9]|0\\.)", wxRE_ADVANCED);
+    if (leadingzero1.Matches(IpAddr))
+    {
+        wxString s0 = leadingzero1.GetMatch(IpAddr, 0);
+        wxString s1 = leadingzero1.GetMatch(IpAddr, 1);
+        leadingzero1.ReplaceFirst(&IpAddr, "" + s0.Right(s0.size() - s1.size()));
+    }
+    static wxRegEx leadingzero2("(\\.0+)(?:[1-9]|0\\.|0$)", wxRE_ADVANCED);
+    while (leadingzero2.Matches(IpAddr)) // need to do it several times because the results overlap
+    {
+        wxString s0 = leadingzero2.GetMatch(IpAddr, 0);
+        wxString s1 = leadingzero2.GetMatch(IpAddr, 1);
+        leadingzero2.ReplaceFirst(&IpAddr, "." + s0.Right(s0.size() - s1.size()));
+    }
 }

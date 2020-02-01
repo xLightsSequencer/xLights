@@ -23,6 +23,7 @@
 
 class OutputManager;
 class Output;
+class ControllerEthernet;
 
 class HSEQFile : public V1FSEQFile {
 public:
@@ -105,7 +106,7 @@ class HinksPixExportDialog: public wxDialog
 
         OutputManager* _outputManager;
 
-		std::vector <std::string> _hixControllers;
+		std::vector <ControllerEthernet*> _hixControllers;
 
 	private:
 

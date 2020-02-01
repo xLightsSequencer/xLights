@@ -17,6 +17,8 @@
 #define ARTNET_SYNCPACKET_LEN 14
 #pragma endregion ArtNet Constants
 
+class ControllerEthernet;
+
 class ArtNetOutput : public IPOutput
 {
     #pragma region Member Variables
@@ -46,7 +48,7 @@ public:
     static int GetArtNetUniverse(int u);
     static int GetArtNetCombinedUniverse(int net, int subnet, int u);
     static void SendSync();
-    static std::list<Output*> Discover(OutputManager* outputManager); // Discovers controllers supporting this protocol
+    static std::list<ControllerEthernet*> Discover(OutputManager* outputManager); // Discovers controllers supporting this protocol
     #pragma endregion  Static Functions
 
     #pragma region Getters and Setters
@@ -56,7 +58,6 @@ public:
     void SetArtNetUniverse(int net, int subnet, int universe) { _universe = GetArtNetCombinedUniverse(net, subnet, universe); }
     virtual std::string GetType() const override { return OUTPUT_ARTNET; }
     virtual std::string GetLongDescription() const override;
-    virtual std::string GetChannelMapping(int32_t ch) const override;
     virtual int GetMaxChannels() const override { return 512; }
     virtual std::string GetUniverseString() const override;
     virtual bool IsValidChannelCount(int32_t channelCount) const override { return channelCount > 0 && channelCount <= 512; }
@@ -80,11 +81,11 @@ public:
     virtual void AllOff() override;
     #pragma endregion Data Setting
 
-    #pragma region UI
-#ifndef EXCLUDENETWORKUI
-    virtual Output* Configure(wxWindow* parent, OutputManager* outputManager, ModelManager *modelManager) override;
-#endif
-    #pragma endregion UI
+//    #pragma region UI
+//#ifndef EXCLUDENETWORKUI
+//    virtual Output* Configure(wxWindow* parent, OutputManager* outputManager, ModelManager *modelManager) override;
+//#endif
+//    #pragma endregion UI
 };
 
  #endif

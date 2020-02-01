@@ -1,0 +1,76 @@
+<Vendor Name="Holiday Coro">
+	<Controller Name="AlphaPix 4">
+		<FirmwareVersion Name="">
+			<SupportsUpload/>
+			<MaxInputUniverses>96</MaxInputUniverses>
+			<MaxPixelPort>4</MaxPixelPort>
+			<MaxSerialPort>1</MaxSerialPort>
+			<MaxSerialPortChannels>512</MaxSerialPortChannels>
+			<MaxPixelPortChannels>2040</MaxPixelPortChannels>
+			<AllInputUniversesMustBeSameSize/>
+			<PixelProtocols>
+				<Protocol>ws2811</Protocol>
+				<Protocol>tm18xx</Protocol>
+				<Protocol>ws2801</Protocol>
+				<Protocol>tls3001</Protocol>
+				<Protocol>lpd6803</Protocol>
+			</PixelProtocols>
+			<SerialProtocols>
+				<Protocol>DMX</Protocol>
+			</SerialProtocols>
+			<InputProtocols>
+				<Protocol>E131</Protocol>
+				<Protocol>ArtNet</Protocol>
+			</InputProtocols>
+		</FirmwareVersion>	
+	</Controller>
+	<Controller Name="AlphaPix 16">
+		<FirmwareVersion Name="">
+			<SupportsUpload/>
+			<MaxInputUniverses>96</MaxInputUniverses>
+			<MaxPixelPort>16</MaxPixelPort>
+			<MaxSerialPort>3</MaxSerialPort>
+			<MaxSerialPortChannels>512</MaxSerialPortChannels>
+			<MaxPixelPortChannels>1020</MaxPixelPortChannels>
+			<AllInputUniversesMustBeSameSize/>
+			<PixelProtocols>
+				<Protocol>ws2811</Protocol>
+				<Protocol>tm18xx</Protocol>
+				<Protocol>ws2801</Protocol>
+				<Protocol>tls3001</Protocol>
+				<Protocol>lpd6803</Protocol>
+			</PixelProtocols>
+			<SerialProtocols>
+				<Protocol>DMX</Protocol>
+			</SerialProtocols>
+			<InputProtocols>
+				<Protocol>E131</Protocol>
+				<Protocol>ArtNet</Protocol>
+			</InputProtocols>
+		</FirmwareVersion>	
+	</Controller>
+	<Controller Name="AlphaPix Flex">
+		<FirmwareVersion Name="">
+			<SupportsUpload/>
+			<MaxInputUniverses>96</MaxInputUniverses>
+			<MaxPixelPort>48</MaxPixelPort>
+			<MaxSerialPort>2</MaxSerialPort>
+			<MaxSerialPortChannels>512</MaxSerialPortChannels>
+			<MaxPixelPortChannels>1020</MaxPixelPortChannels>
+			<AllInputUniversesMustBeSameSize/>
+			<PixelProtocols>
+				<Protocol>ws2811</Protocol>
+				<Protocol>tm18xx</Protocol>
+				<Protocol>ws2801</Protocol>
+				<Protocol>lpd6803</Protocol>
+			</PixelProtocols>
+			<SerialProtocols>
+				<Protocol>DMX</Protocol>
+			</SerialProtocols>
+			<InputProtocols>
+				<Protocol>E131</Protocol>
+				<Protocol>ArtNet</Protocol>
+			</InputProtocols>
+		</FirmwareVersion>	
+	</Controller>
+</Vendor>

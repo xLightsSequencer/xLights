@@ -20,6 +20,8 @@
     #endif
 #endif
 
+// Every time this regenerates from code blocks you will need to remove wx/led.h
+
 //(*Headers(xLightsFrame)
 #include <wx/aui/aui.h>
 #include <wx/bmpbuttn.h>
@@ -28,11 +30,10 @@
 #include <wx/frame.h>
 #include <wx/gauge.h>
 #include <wx/gbsizer.h>
-#include <wx/listctrl.h>
 #include <wx/menu.h>
 #include <wx/panel.h>
 #include <wx/sizer.h>
-#include <wx/spinctrl.h>
+#include <wx/splitter.h>
 #include <wx/stattext.h>
 #include <wx/timer.h>
 //*)
@@ -44,6 +45,10 @@
 #include <wx/dir.h>
 #include <wx/treebase.h>
 #include <wx/socket.h>
+#include <wx/listctrl.h>
+#include <wx/propgrid/propgrid.h>
+#include <wx/propgrid/advprops.h>
+#include "..\xFade\wxLED.h"
 
 #include <unordered_map>
 #include <map>
@@ -76,10 +81,12 @@
 #include "OutputModelManager.h"
 #include "models/Model.h"
 
+class wxDebugReport;
+
+class ControllerCaps;
 class EffectTreeDialog;
 class ConvertDialog;
 class ConvertLogDialog;
-class wxDebugReport;
 class RenderTreeData;
 class HousePreviewPanel;
 class SelectPanel;
@@ -101,6 +108,7 @@ class ModelPreview;
 class ZCPPOutput;
 class UDControllerPort;
 class Model;
+class ControllerEthernet;
 
 // max number of most recently used show directories on the File menu
 #define MRU_LENGTH 4
@@ -410,9 +418,6 @@ public:
     void OnButtonNetworkDeleteClick(wxCommandEvent& event);
     void OnButtonNetworkMoveUpClick(wxCommandEvent& event);
     void OnButtonNetworkMoveDownClick(wxCommandEvent& event);
-    void OnGridNetworkBeginDrag(wxListEvent& event);
-    void OnButtonAddE131Click(wxCommandEvent& event);
-    void OnButtonAddDongleClick(wxCommandEvent& event);
     void OnButtonSaveSetupClick(wxCommandEvent& event);
     void OnBitmapButtonTabInfoClick(wxCommandEvent& event);
     void OnButtonLightsOffClick(wxCommandEvent& event);
@@ -462,7 +467,6 @@ public:
     void ShowHideDisplayElementsWindow(wxCommandEvent& event);
     void ShowHideEffectAssistWindow(wxCommandEvent& event);
     void OnMenuItem_File_SaveAs_SequenceSelected(wxCommandEvent& event);
-    void OnGridNetworkItemActivated(wxListEvent& event);
     void OnMenuDockAllSelected(wxCommandEvent& event);
     void ShowHideBufferSettingsWindow(wxCommandEvent& event);
     void ResetWindowsToDefaultPositions(wxCommandEvent& event);
@@ -489,12 +493,6 @@ public:
     void OnMenuItem_Help_Isue_TrackerSelected(wxCommandEvent& event);
     void OnMenuItem_Help_FacebookSelected(wxCommandEvent& event);
     void OnMenuItem_ExportEffectsSelected(wxCommandEvent& event);
-    void OnGridNetworkItemRClick(wxListEvent& event);
-    void OnGridNetworkRClick(wxContextMenuEvent& event);
-    void OnGridNetworkItemSelect(wxListEvent& event);
-    void OnGridNetworkItemDeselect(wxListEvent& event);
-    void OnGridNetworkItemFocused(wxListEvent& event);
-    void OnGridNetworkKeyDown(wxListEvent& event);
     void OnMenuItem_FPP_ConnectSelected(wxCommandEvent& event);
     void OnMenuItemShiftEffectsSelected(wxCommandEvent& event);
     void OnMenuItem_PackageSequenceSelected(wxCommandEvent& event);
@@ -558,6 +556,19 @@ public:
     void OnMenuItem_ColourDropperSelected(wxCommandEvent& event);
     void OnMenuItemHinksPixExportSelected(wxCommandEvent& event);
     void OnMenuItemPreferencesSelected(wxCommandEvent& event);
+    void OnButtonAddControllerClick(wxCommandEvent& event);
+    void OnButtonDeleteControllerClick(wxCommandEvent& event);
+    void OnButtonDiscoverClick(wxCommandEvent& event);
+    void OnButtonDeleteAllControllersClick(wxCommandEvent& event);
+    void OnButtonVisualiseClick(wxCommandEvent& event);
+    void OnButtonUploadInputClick(wxCommandEvent& event);
+    void OnButtonUploadOutputClick(wxCommandEvent& event);
+    void OnButtonOpenClick(wxCommandEvent& event);
+    void OnButtonControllerDeleteClick(wxCommandEvent& event);
+    void OnMenuItemBulkControllerUploadSelected(wxCommandEvent& event);
+    void OnButtonAddControllerSerialClick(wxCommandEvent& event);
+    void OnButtonAddControllerEthernetClick(wxCommandEvent& event);
+    void OnButtonAddControllerNullClick(wxCommandEvent& event);
     //*)
     void OnCharHook(wxKeyEvent& event);
 private:
@@ -633,22 +644,22 @@ public:
     static const long ID_BUTTON3;
     static const long ID_STATICTEXT4;
     static const long ID_BUTTON_SAVE_SETUP;
-    static const long ID_BUTTON_ADD_DONGLE;
-    static const long ID_BUTTON_ADD_E131;
-    static const long ID_BUTTON1;
-    static const long ID_BUTTON2;
-    static const long ID_BUTTON_ADD_LOR;
-    static const long ID_BUTTON_ADD_DDP;
-    static const long ID_BUTTON4;
-    static const long ID_BUTTON_NETWORK_CHANGE;
-    static const long ID_BUTTON_NETWORK_DELETE;
+    static const long ID_BUTTON9;
+    static const long ID_BUTTON6;
+    static const long ID_BUTTON10;
     static const long ID_BUTTON_NETWORK_DELETE_ALL;
     static const long ID_BUTTON5;
-    static const long ID_STATICTEXT8;
-    static const long ID_SPINCTRL1;
     static const long ID_BITMAPBUTTON1;
     static const long ID_BITMAPBUTTON2;
-    static const long ID_LISTCTRL_NETWORKS;
+    static const long ID_PANEL2;
+    static const long ID_BUTTON1;
+    static const long ID_BUTTON2;
+    static const long ID_BUTTON4;
+    static const long ID_BUTTON7;
+    static const long ID_BUTTON8;
+    static const long ID_STATICTEXT1;
+    static const long ID_PANEL6;
+    static const long ID_SPLITTERWINDOW1;
     static const long ID_PANEL_SETUP;
     static const long ID_PANEL_PREVIEW;
     static const long XLIGHTS_SEQUENCER_TAB;
@@ -688,6 +699,7 @@ public:
     static const long ID_MENU_USER_DICT;
     static const long ID_MNU_DOWNLOADSEQUENCES;
     static const long ID_MENU_BATCH_RENDER;
+    static const long ID_MNU_BULKUPLOAD;
     static const long ID_MNU_XSCHEDULE;
     static const long iD_MNU_VENDORCACHEPURGE;
     static const long ID_MNU_PURGERENDERCACHE;
@@ -771,25 +783,27 @@ public:
     wxAuiNotebook* Notebook1;
     wxBitmapButton* BitmapButtonMoveNetworkDown;
     wxBitmapButton* BitmapButtonMoveNetworkUp;
-    wxButton* ButtonAddDDP;
-    wxButton* ButtonAddDongle;
-    wxButton* ButtonAddE131;
-    wxButton* ButtonAddLOR;
-    wxButton* ButtonAddNull;
-    wxButton* ButtonArtNET;
-    wxButton* ButtonNetworkChange;
-    wxButton* ButtonNetworkDelete;
-    wxButton* ButtonNetworkDeleteAll;
+    wxButton* ButtonAddControllerEthernet;
+    wxButton* ButtonAddControllerNull;
+    wxButton* ButtonAddControllerSerial;
+    wxButton* ButtonControllerDelete;
+    wxButton* ButtonDeleteAllControllers;
+    wxButton* ButtonDiscover;
+    wxButton* ButtonOpen;
     wxButton* ButtonOtherFolders;
     wxButton* ButtonSaveSetup;
-    wxButton* Button_AddZCPP;
-    wxButton* Button_Discover;
+    wxButton* ButtonUploadInput;
+    wxButton* ButtonUploadOutput;
+    wxButton* ButtonVisualise;
     wxChoice* ChoiceParm1;
     wxChoice* ChoiceParm2;
+    wxFlexGridSizer* FlexGridSizerSetupControllerButtons;
+    wxFlexGridSizer* FlexGridSizerSetupControllers;
+    wxFlexGridSizer* FlexGridSizerSetupProperties;
+    wxFlexGridSizer* FlexGridSizerSetupRight;
     wxFlexGridSizer* GaugeSizer;
     wxGauge* ProgressBar;
     wxGridBagSizer* StatusBarSizer;
-    wxListCtrl* GridNetwork;
     wxMenu* AudioMenu;
     wxMenu* Menu1;
     wxMenu* Menu3;
@@ -813,6 +827,7 @@ public:
     wxMenuItem* MenuItem51;
     wxMenuItem* MenuItem52;
     wxMenuItem* MenuItemBackup;
+    wxMenuItem* MenuItemBulkControllerUpload;
     wxMenuItem* MenuItemCheckSequence;
     wxMenuItem* MenuItemConvert;
     wxMenuItem* MenuItemEffectAssistWindow;
@@ -873,13 +888,15 @@ public:
     wxMenuItem* mAltBackupMenuItem;
     wxMenuItem* mExportModelsMenuItem;
     wxPanel* AUIStatusBar;
+    wxPanel* Panel2;
+    wxPanel* Panel5;
     wxPanel* PanelPreview;
     wxPanel* PanelSequencer;
     wxPanel* PanelSetup;
-    wxSpinCtrl* SpinCtrl_SyncUniverse;
+    wxSplitterWindow* SplitterWindowControllers;
     wxStaticText* FileNameText;
     wxStaticText* ShowDirectoryLabel;
-    wxStaticText* StaticText5;
+    wxStaticText* StaticTextDummy;
     wxStaticText* StatusText;
     wxTimer EffectSettingsTimer;
     wxTimer Timer_AutoSave;
@@ -923,7 +940,7 @@ public:
     OutputManager _outputManager;
     OutputModelManager _outputModelManager;
     long DragRowIdx;
-    wxListCtrl* DragListBox;
+    //wxListCtrl* DragListBox;
     bool UnsavedNetworkChanges = false;
     bool UnsavedPlaylistChanges = false;
     int mSavedChangeCount;
@@ -1069,63 +1086,57 @@ public:
     void LogPerspective(const wxString& perspective) const;
 
     // setup
+    wxListCtrl* List_Controllers = nullptr;
+    wxPropertyGrid* Controllers_PropertyEditor = nullptr;
+    wxLed* LedPing = nullptr;
+
+    void OnListItemActivatedControllers(wxListEvent& event);
+    void OnListItemFocussedControllers(wxListEvent& event);
+    void OnListKeyDownControllers(wxListEvent& event);
+    void OnListControllersRClick(wxContextMenuEvent& event);
+    void OnListControllersColClick(wxListEvent& event);
+    void OnListControllersItemRClick(wxListEvent& event);
+    void OnControllerPropertyGridChange(wxPropertyGridEvent& event);
+    void OnListItemDeselectedControllers(wxListEvent& event);
+
+    void UnselectAllControllers();
+    void InitialiseControllersTab();
+    void SetControllersProperties();
+    void DeleteSelectedControllers();
+    void SelectAllControllers();
+    ControllerCaps* GetControllerCaps(const std::string& name);
+    void UploadInputToController(ControllerEthernet* controller);
+    void UploadOutputToController(ControllerEthernet* controller);
+    int GetFirstSelectedControllerIndex() const;
+    std::list<std::string> GetSelectedControllerNames() const;
+    std::string GetFocussedController() const;
+    void OnListControllerPopup(wxCommandEvent& event);
+    int GetSelectedControllerCount() const;
+    int FindControllerInListControllers(const std::string& name) const;
+
+    void ValidateControllerProperties();
+    long GetLastNetworkSelection() const;
+    void MoveSelectedControllerRows(bool up);
+    void MoveListControllerRows(int toRow, bool reverse);
+    void OnListItemBeginDragControllers(wxListEvent& event);
+    void OnListItemDragQuitControllers(wxMouseEvent& event);
+    void OnListItemDragEndControllers(wxMouseEvent& event);
+    void OnListItemMoveControllers(wxMouseEvent& event);
+    void OnListItemScrollTimerControllers(wxTimerEvent& event);
+
     void OnMenuMRU(wxCommandEvent& event);
     bool SetDir(const wxString& dirname);
     bool PromptForShowDirectory();
-    void UpdateNetworkList();
-    long GetNetworkSelection() const;
-    long GetLastNetworkSelection() const;
-    int GetNetworkSelectedItemCount() const;
-    void MoveNetworkRows(int toRow, bool reverse);
-    void OnGridNetworkDragQuit(wxMouseEvent& event);
-    void OnGridNetworkDragEnd(wxMouseEvent& event);
-    void OnGridNetworkMove(wxMouseEvent& event);
-    void OnGridNetworkScrollTimer(wxTimerEvent& event);
-    void SetupDongle(Output* e, int after = -1);
-    void SetupE131(Output* e, int after = -1);
-    void SetupxxxEthernet(Output* e, int after = -1);
-    void SetupZCPP(Output* e, int after = -1);
-    void SetupArtNet(Output* e, int after = -1);
-    void SetupLOR(Output* e, int after = -1);
-    void SetupDDP(Output* e, int after = -1);
-    void SetupNullOutput(Output* e, int after = -1);
     bool SaveNetworksFile();
     void NetworkChange();
     void NetworkChannelsChange();
-    std::list<int> GetSelectedOutputs(wxString& ip);
-    std::list<int> GetSelectedOutputs(wxString& ip, wxString &proxy);
-    void UploadFPPBridgeInput();
-    void MultiControllerUpload();
-    void UploadFPPBridgeOutput();
-    void UploadFalconInput();
-    void UploadFalconOutput();
-    void UploadSanDevicesInput();
-    void UploadSanDevicesOutput();
-    void UploadJ1SYSOutput();
-    void UploadESPixelStickOutput();
-    void UploadPixlite16Output();
-    void UploadFPPStringOutputs(const std::string &controllers);
     void UploadFPPProxyOuputs();
-    void UploadAlphaPixOutput();
-	void PingController(Output* e);
-    void SetModelData(ZCPPOutput* zcpp, ModelManager* modelManager, OutputManager* outputManager, std::string showDir);
+	void PingController(Controller* e);
+    void SetModelData(ControllerEthernet* controller, ModelManager* modelManager, OutputManager* outputManager, std::string showDir);
     int SetZCPPPort(std::list<ZCPP_packet_t*>& modelDatas, int index, UDControllerPort* port, int portNum, int virtualString, long baseStart, bool isSerial, ZCPPOutput* zcpp);
     void SetZCPPExtraConfig(std::list<ZCPP_packet_t*>& extraConfig, int portNum, int virtualStringNum, const std::string& name, ZCPPOutput* zcpp);
-    void UploadHinksPixInput();
-    void UploadHinksPixOutput();
 
-    void VisualiseOutput(Output *e, wxWindow *parent = nullptr);
-    void DeleteSelectedNetworks();
-    void ActivateSelectedNetworks(bool active);
-    void DeactivateUnusedNetworks();
-    void ChangeSelectedNetwork();
-    void ConvertSelectedNetworkToE131();
-    bool AllSelectedSupportIP();
-    bool AllSelectedSupportChannels();
-    void UpdateSelectedIPAddresses();
-    void ChangeIP(const std::string& oldIP, const std::string& newIP);
-    void UpdateSelectedChannels();
-    void UpdateSelectedDescriptions();
+    void ActivateSelectedControllers(bool active);
     void UpdateSelectedTypes();
     void UpdateSelectedSuppressDuplicates(bool suppressDuplicates);
 
@@ -1315,7 +1326,7 @@ private:
     bool mRenderOnSave;
     bool mBackupOnSave;
     bool mBackupOnLaunch;
-    bool me131Sync;
+    bool me131Sync = false;
     bool mSuppressFadeHints = false;
     std::string mLocalIP;
     wxString mAltBackupDir;
@@ -1522,7 +1533,6 @@ private:
     void CheckElement(Element* e, wxFile& f, int& errcount, int& warncount, const std::string& name, const std::string& modelName, bool& videoCacheWarning, std::list<std::pair<std::string, std::string>>& faces, std::list<std::pair<std::string, std::string>>& states, std::list<std::string>& viewPoints, bool& usesShader, std::list<std::string>& allfiles);
     void CheckEffect(Effect* ef, wxFile& f, int& errcount, int& warncount, const std::string& name, const std::string& modelName, bool node, bool& videoCacheWarning, std::list<std::pair<std::string, std::string>>& faces, std::list<std::pair<std::string, std::string>>& states, std::list<std::string>& viewPoints);
     bool CheckStart(wxFile& f, const std::string& startmodel, std::list<std::string>& seen, std::string& nextmodel);
-    void ShowHideSync();
     void ValidateWindow();
     void DoDonate();
     void AutoShowHouse();
@@ -1539,49 +1549,10 @@ private:
     static const long ID_MENU_ITEM_PREVIEWS;
     static const long ID_MENU_ITEM_PREVIEWS_SHOW_ALL;
 
-    static const long ID_NETWORK_ADDUSB;
+    static const long ID_List_Controllers;
+    static const long ID_NETWORK_ADDSERIAL;
     static const long ID_NETWORK_ADDNULL;
-    static const long ID_NETWORK_ADDE131;
-    static const long ID_NETWORK_ADDxxxETHERNET;
-    static const long ID_NETWORK_ADDZCPP;
-    static const long ID_NETWORK_ADDARTNET;
-    static const long ID_NETWORK_ADDLOR;
-    static const long ID_NETWORK_ADDDDP;
-    static const long ID_NETWORK_CONVERTTOE131;
-    static const long ID_NETWORK_BEIPADDR;
-    static const long ID_NETWORK_BECHANNELS;
-    static const long ID_NETWORK_BEDESCRIPTION;
-    static const long ID_NETWORK_BECONTROLLERTYPE;
-    static const long ID_NETWORK_BESUPPRESSDUPLICATES;
-    static const long ID_NETWORK_BESUPPRESSDUPLICATESYES;
-    static const long ID_NETWORK_BESUPPRESSDUPLICATESNO;
-    static const long ID_NETWORK_ADD;
-    static const long ID_NETWORK_BULKEDIT;
-    static const long ID_NETWORK_DELETE;
-    static const long ID_NETWORK_ACTIVATE;
-    static const long ID_NETWORK_DEACTIVATE;
-    static const long ID_NETWORK_DEACTIVATEUNUSED;
-    static const long ID_NETWORK_OPENCONTROLLER;
-    static const long ID_NETWORK_UPLOADCONTROLLER;
-    static const long ID_NETWORK_UCOUTPUT;
-    static const long ID_NETWORK_UCINPUT;
-    static const long ID_NETWORK_MULTIUPLOAD;
-    static const long ID_NETWORK_UCIFPPB;
-    static const long ID_NETWORK_UCOFPPB;
-    static const long ID_NETWORK_UCIFALCON;
-    static const long ID_NETWORK_UCOFALCON;
-    static const long ID_NETWORK_UCISANDEVICES;
-    static const long ID_NETWORK_UCOSANDEVICES;
-    static const long ID_NETWORK_UCOJ1SYS;
-    static const long ID_NETWORK_UCOESPIXELSTICK;
-    static const long ID_NETWORK_UCOPIXLITE16;
-    static const long ID_NETWORK_UCOALPHAPIX;
-    static const long ID_NETWORK_PINGCONTROLLER;
-    static const long ID_NETWORK_UCIHINKSPIX;
-    static const long ID_NETWORK_UCOHINKSPIX;
-    static const long ID_NETWORK_UPLOAD_CONTROLLER_CONFIGURED;
-    static const long ID_NETWORK_VISUALISE;
-    static const long ID_NETWORK_PROXY_OUTPUT;
+    static const long ID_NETWORK_ADDETHERNET;
 
     #define isRandom(ctl)  isRandom_(ctl, #ctl) //(buttonState[std::string(ctl->GetName())] == Random)
 

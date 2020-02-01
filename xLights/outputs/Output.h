@@ -1,5 +1,4 @@
-#ifndef OUTPUT_H
-#define OUTPUT_H
+#pragma once
 
 #include <list>
 #include <wx/window.h>
@@ -8,6 +7,10 @@
 class ModelManager;
 class OutputManager;
 class wxXmlNode;
+class OutputModelManager;
+class wxPropertyGrid;
+class wxPropertyGridEvent;
+class ControllerEthernet;
 
 #pragma region Output Constants
 // These are used to identify each output type
@@ -27,17 +30,6 @@ class wxXmlNode;
 #define OUTPUT_xxxSERIAL "xxx Serial"
 #define OUTPUT_xxxETHERNET "xxx Ethernet"
 #pragma endregion Output Constants
-
-typedef enum
-{
-    PING_OK,
-    PING_WEBOK,
-    PING_OPEN,
-    PING_OPENED,
-    PING_ALLFAILED,
-    PING_UNAVAILABLE,
-    PING_UNKNOWN
-} PINGSTATE;
 
 class Output
 {
@@ -67,11 +59,23 @@ protected:
     bool _autoSize;
     std::string _fppProxy;
     Output *_fppProxyOutput;
+    wxXmlNode* _orig = nullptr;
     #pragma endregion Member Variables
 
     virtual void Save(wxXmlNode* node);
 
 public:
+
+    enum class PINGSTATE
+    {
+        PING_OK,
+        PING_WEBOK,
+        PING_OPEN,
+        PING_OPENED,
+        PING_ALLFAILED,
+        PING_UNAVAILABLE,
+        PING_UNKNOWN
+    };
 
     #pragma region Constructors and Destructors
     Output(wxXmlNode* node);
@@ -82,7 +86,7 @@ public:
 
     #pragma region Static Functions
     static Output* Create(wxXmlNode* node, std::string showDir);
-    static std::list<Output*> Discover(OutputManager* outputManager) { return std::list<Output*>(); } // Discovers controllers supporting this protocol
+    static std::list<ControllerEthernet*> Discover(OutputManager* outputManager) { return std::list<ControllerEthernet*>(); } // Discovers controllers supporting this protocol
     #pragma endregion Static Functions
 
     #pragma region Getters and Setters
@@ -114,13 +118,13 @@ public:
     int GetBaudRate() const;
     void SetBaudRate(int baudRate) { _baudRate = baudRate; _dirty = true; }
     void SetAutoSize(bool autosize) { _autoSize = autosize; _dirty = true; }
-    bool GetAutoSize() const { return _autoSize; }
+    bool IsAutoSize() const { return _autoSize; }
     bool IsEnabled() const { return _enabled; }
     void Enable(bool enable) { _enabled = enable; _dirty = true; }
     void SetControllerId(const std::string& id) { _controller = id; _dirty = true; }
     const std::string &GetControllerId() const { return _controller; }
     int GetOutputNumber() const { return _outputNumber; }
-    virtual void SetTransientData(int on, int32_t startChannel, int nullnumber);
+    virtual void SetTransientData(int& on, int32_t& startChannel, int nullnumber);
     long GetTimer() const { return _timer_msec; }
     bool IsOk() const { return _ok; }
     const std::string GetFPPProxyIP() const { return _fppProxy;}
@@ -134,14 +138,13 @@ public:
     virtual bool IsOutputable() const { return true; }
     virtual Output* GetActualOutput(int32_t startChannel) { return this; }
     virtual bool IsOutputCollection() const { return false; }
-    virtual std::string GetChannelMapping(int32_t ch) const = 0;
     virtual int GetMaxChannels() const = 0;
     virtual bool IsValidChannelCount(int32_t channelCount) const = 0;
     virtual size_t TxNonEmptyCount() const { return 0; }
     virtual bool TxEmpty() const { return true; }
     bool IsSuppressDuplicateFrames() const { return _suppressDuplicateFrames; }
-    virtual PINGSTATE Ping() const = 0;
-    virtual bool CanPing() const = 0;
+    //virtual PINGSTATE Ping() const = 0;
+    //virtual bool CanPing() const = 0;
     virtual std::string GetSortName() const = 0;
     virtual std::string GetExport() const = 0;
     #pragma endregion Getters and Setters
@@ -178,9 +181,9 @@ public:
 #ifndef EXCLUDENETWORKUI
     // returns nullptr if cancelled
     // retruns a pointer to a new output if mutated ... otherwise it returns this
-    virtual Output* Configure(wxWindow* parent, OutputManager* outputManager, ModelManager* modelManager) = 0;
-#endif
+//    virtual Output* Configure(wxWindow* parent, OutputManager* outputManager, ModelManager* modelManager) = 0;
+    virtual void AddProperties(wxPropertyGrid* propertyGrid, bool allSameSize) {}
+    virtual bool HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager) { return false; }
+    #endif
     #pragma endregion UI
 };
-
- #endif

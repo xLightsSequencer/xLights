@@ -7,26 +7,15 @@
 #include "outputs/Output.h"
 #include "models/ModelManager.h"
 #include "UtilFunctions.h"
-#include "ControllerRegistry.h"
+#include "ControllerCaps.h"
+#include "../outputs/ControllerEthernet.h"
 
 #include <log4cpp/Category.hh>
+
 #include "../xSchedule/wxJSON/jsonreader.h"
 #include "../xSchedule/wxJSON/jsonwriter.h"
 
-
 // This is tested with a pixel stick running v3.0 of the firmware
-
-static std::vector<ESPixelStickControllerRules> CONTROLLER_TYPE_MAP = {
-    ESPixelStickControllerRules()
-};
-
-void ESPixelStick::RegisterControllers() {
-    for (const auto &a : CONTROLLER_TYPE_MAP) {
-        ControllerRegistry::AddController(&a);
-    }
-}
-
-
 ESPixelStick::ESPixelStick(const std::string& ip)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -103,16 +92,16 @@ bool ESPixelStickcompare_startchannel(const Model* first, const Model* second)
     return firstmodelstart < secondmodelstart;
 }
 
-bool ESPixelStick::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, std::list<int>& selected, wxWindow* parent)
+bool ESPixelStick::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("ESPixelStick Outputs Upload: Uploading to %s", (const char *)_ip.c_str());
 
     std::string check;
-    UDController cud(_ip, _ip, allmodels, outputManager, &selected, check);
+    UDController cud(controller, outputManager, allmodels, check);
 
-    ESPixelStickControllerRules rules;
-    bool success = cud.Check(&rules, check);
+    auto rules = ControllerCaps::GetControllerConfig(controller);
+    bool success = cud.Check(rules, check);
 
     cud.Dump();
 

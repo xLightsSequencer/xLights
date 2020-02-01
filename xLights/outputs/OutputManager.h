@@ -1,5 +1,4 @@
-#ifndef OUTPUTMANAGER_H
-#define OUTPUTMANAGER_H
+#pragma once
 
 #include <wx/thread.h>
 
@@ -7,10 +6,14 @@
 #include <string>
 #include <map>
 
+class wxWindow;
+class wxXmlNode;
+
 class Output;
 class Controller;
 class TestPreset;
-class wxWindow;
+class Controller;
+class ControllerEthernet;
 
 #define NETWORKSFILE "xlights_networks.xml";
 
@@ -18,14 +21,17 @@ class OutputManager
 {
     #pragma region Member Variables
     std::string _filename;
-    std::list<Output*> _outputs;
+    std::list<Controller*> _controllers;
+    std::list<std::pair<Output*, Controller*>> _conversionOutputs;
     std::list<TestPreset*> _testPresets;
-    int _syncUniverse;
-    bool _syncEnabled;
-    bool _dirty;
-    int _suppressFrames;
-    bool _parallelTransmission;
-    bool _outputting; // true if we are currently sending out data
+    int _syncUniverse = 0;
+    bool _syncEnabled = false;
+    bool _dirty = false;
+    int _suppressFrames = 0;
+    bool _parallelTransmission = false;
+    bool _outputting = false; // true if we are currently sending out data
+    bool _didConvert = false;
+    std::string _globalFPPProxy;
     wxCriticalSection _outputCriticalSection; // used to protect areas that must be single threaded
     #pragma endregion Member Variables
 
@@ -38,6 +44,7 @@ class OutputManager
     static bool _isInteractive;
 
     bool SetGlobalOutputtingFlag(bool state, bool force = false);
+    bool ConvertStartChannel(const std::string sc, std::string& newsc) const;
 
 public:
 
@@ -63,27 +70,41 @@ public:
     #pragma endregion Save and Load
 
     #pragma region Output Management
-    void AddOutput(Output* output, Output* after);
-    void AddOutput(Output* output, int pos);
-    void DeleteOutput(Output* output);
-    void DeleteAllOutputs();
-    void MoveOutput(Output* output, int toOutputNumber);
-    bool AreAllIPOutputs(std::list<int> outputNumbers);
-    std::list<Output*> GetAllOutputs(const std::string& ip, const std::list<int>& selected = std::list<int>()) const {
-        return GetAllOutputs(ip, "", selected);
-    }
-    std::list<Output*> GetAllOutputs(const std::string& ip, const std::string &hostName, const std::list<int>& selected = std::list<int>(), bool expandCollections = true) const;
-    std::list<Output*> GetAllOutputs(const std::list<int>& outputNumbers) const;
+    void UpdateUnmanaged();
+    std::string UniqueName(const std::string& prefix);
+    int UniqueId();
+    void AddController(Controller* controller, Controller* after);
+    void AddController(Controller* controller, int pos = -1);
+    void DeleteController(const std::string& controllerName);
+    void DeleteAllControllers();
+    void MoveController(Controller* controller, int toControllerNumber);
+    bool ContainsControllerUsingIP(const std::string& ip);
+    std::string GetFirstUnusedCommPort() const;
+    int GetOutputCount() const;
+    std::list<Output*> GetAllOutputs(const std::string& ip, const std::string &hostName = std::string()) const;
     std::list<Output*> GetAllOutputs() const;
-    std::list<Output*> GetOutputs() const { return _outputs; } // returns a list like that on setup tab
-    void Replace(Output* replacethis, Output* withthis);
+    std::list<Output*> GetOutputs() const { return GetAllOutputs(); }
+    std::list<Controller*> GetControllers() const { return _controllers; }
+    Controller* GetController(const std::string& name) const;
+    std::list<ControllerEthernet*> GetControllers(const std::string& ip);
+    std::list<ControllerEthernet*> GetControllers(const std::string& ip, const std::string hostname);
+    Controller* GetController(int id) const;
+    Controller* GetControllerIndex(int index) const;
     Output* GetOutput(int outputNumber) const;
     Output* GetOutput(const std::string& description) const;
     Output* GetOutput(int32_t absoluteChannel, int32_t& startChannel) const; // returns the output ... even if it is in a collection
-    Output* GetLevel1Output(int32_t absoluteChannel, int32_t& startChannel) const; // returns the output ... but always level 1
+    //Output* GetLevel1Output(int32_t absoluteChannel, int32_t& startChannel) const; // returns the output ... but always level 1
     Output* GetOutput(int universe, const std::string& ip) const;
-    std::list<int> GetIPUniverses(const std::string& ip = "") const;
-    int GetOutputCount() const { return _outputs.size(); }
+    std::list<int> GetIPUniverses(const std::string& ip = std::string()) const;
+    Controller* GetController(int32_t absoluteChannel, int32_t& startChannel) const; // returns the controller - equivalent to the old level 1
+    std::list<Output*> GetAllLevel1Outputs() const;
+    Output* GetLevel1Output(int32_t channel, int32_t& stch) const;
+    bool ConvertModelStartChannels(wxXmlNode* modelsNode) const;
+    bool IsOutputUsingIP(const std::string& ip) const;
+    int GetControllerCount() const { return _controllers.size(); }
+    int GetControllerCount(const std::string& type, const std::string& ip) const;
+    std::string GetGlobalFPPProxy() const { return _globalFPPProxy; }
+    void SetGlobalFPPProxy(const std::string& globalFPPProxy) { if (_globalFPPProxy != globalFPPProxy) { _globalFPPProxy = globalFPPProxy; _dirty = true; } }
     bool Discover(wxWindow* parent, std::map<std::string, std::string>& renames); // discover controllers and add them to the list if they are not already there
     void SetShowDir(const std::string& showDir);
     void SuspendAll(bool suspend);
@@ -91,7 +112,9 @@ public:
     std::list<std::string> GetAutoLayoutControllerNames() const;
     void SetParallelTransmission(bool parallel) { _parallelTransmission = parallel; }
     bool GetParallelTransmission() const { return _parallelTransmission; }
-    bool IsOutputUsingIP(const std::string& ip) const;
+    bool IsControllerUsingIP(const std::string& ip) const;
+    bool IsControllerUsingSerial(const std::string& port) const;
+    bool DidConvert() const { return _didConvert; }
     #pragma endregion Output Management
 
     void SomethingChanged() const;
@@ -121,7 +144,12 @@ public:
     #pragma region Packet Sync
     bool IsSyncEnabled() const { return _syncEnabled; }
     static bool IsSyncEnabled_() { return __isSync; }
-    void SetSyncEnabled(bool syncEnabled) { _syncEnabled = syncEnabled; OutputManager::__isSync = syncEnabled; _dirty = true; }
+    void SetSyncEnabled(bool syncEnabled) {
+        _syncEnabled = syncEnabled;
+        OutputManager::__isSync = syncEnabled;
+        _dirty = true;
+        if (!_syncEnabled) SetSyncUniverse(0);
+    }
     int GetSyncUniverse() const { return _syncUniverse; }
     void SetSyncUniverse(int syncUniverse) { _syncUniverse = syncUniverse; _dirty = true;}
     void SetForceFromIP(const std::string& forceFromIP);
@@ -153,5 +181,3 @@ public:
 
     bool IsOutputOpenInAnotherProcess();
 };
-
-#endif

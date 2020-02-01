@@ -1,16 +1,19 @@
 #include "J1Sys.h"
-#include <wx/msgdlg.h>
-#include <wx/regex.h>
-#include <wx/xml/xml.h>
+#include "UtilFunctions.h"
+#include "ControllerUploadData.h"
+#include "../outputs/ControllerEthernet.h"
+#include "ControllerCaps.h"
 #include "models/Model.h"
-#include <log4cpp/Category.hh>
 #include "outputs/OutputManager.h"
 #include "outputs/Output.h"
 #include "models/ModelManager.h"
+
+#include <wx/msgdlg.h>
+#include <wx/regex.h>
+#include <wx/xml/xml.h>
 #include <wx/sstream.h>
-#include "UtilFunctions.h"
-#include "ControllerUploadData.h"
-#include "ControllerRegistry.h"
+
+#include <log4cpp/Category.hh>
 
 // This code has been tested with
 // ECG-P12S App Version 3.3
@@ -32,112 +35,6 @@ static std::string J1SYS_P2 = "J1Sys P2";
 static std::string J1SYS_MODEL_P12S = "ECG-P12S";
 static std::string J1SYS_MODEL_P12R = "ECG-P12R";
 static std::string J1SYS_MODEL_P12D = "ECG-P12D";
-
-class J1SysControllerRules : public ControllerRules
-{
-    float _firmware = 0.0;
-    int _outputs = 0;
-    std::string _model = "";
-public:
-    J1SysControllerRules(int outputs, float firmware, const std::string& model) : 
-        ControllerRules(), _outputs(outputs), _firmware(firmware), _model(model) {}
-    virtual ~J1SysControllerRules() {}
-    
-    virtual const std::string GetControllerId() const override {
-        if (_outputs == 2) {
-            return J1SYS_P2;
-        }
-        if (_outputs == 12)
-        {
-            if (_model == J1SYS_MODEL_P12S)
-            {
-                return J1SYS_P12S;
-            }
-            if (_model == J1SYS_MODEL_P12R)
-            {
-                return J1SYS_P12R;
-            }
-            return J1SYS_P12D;
-        }
-
-        return J1SYS_P12R;
-    }
-    virtual const std::string GetControllerManufacturer() const override {
-        return "J1Sys";
-    }
-
-    virtual bool SupportsLEDPanelMatrix() const override {
-        return false;
-    }
-
-    virtual int GetMaxPixelPortChannels() const override 
-    { 
-        if (_outputs == 2) return 9999999; // we will detect this in a different way 
-        if (_outputs == 12)
-        {
-            if (GetControllerId() == J1SYS_P12R)
-            {
-                return 170 * 3;
-            }
-            if (_firmware >= 3.4)
-            {
-                return 2 * 170 * 3;
-            }
-            return 170 * 3;
-        }
-        return 0;
-    }
-    virtual int GetMaxPixelPort() const override { return _outputs; }
-    virtual int GetMaxSerialPortChannels() const override { if (_outputs == 12) return 512; return 0; }
-    virtual int GetMaxSerialPort() const override 
-    { 
-        if (_outputs == 12)
-        {
-            if (GetControllerId() == J1SYS_P12R)
-                return 0;
-            return 2;
-        }
-        return 0; 
-    }
-    virtual bool IsValidPixelProtocol(const std::string protocol) const override
-    {
-        wxString p(protocol);
-        p = p.Lower();
-        return (p == "ws2811" || p == "tm180x" || p == "tm18xx" || p == "ws2801" || p == "tls3001" || p == "lpd6803");
-    }
-    virtual bool IsValidSerialProtocol(const std::string protocol) const override
-    {
-        wxString p(protocol);
-        p = p.Lower();
-        return (p == "renard" || p == "dmx");
-    }
-    virtual bool SupportsMultipleProtocols() const override { return true; }
-    virtual bool SupportsSmartRemotes() const override { return false; }
-    virtual bool SupportsMultipleInputProtocols() const override { return false; }
-    virtual bool AllUniversesSameSize() const override { return false; }
-    virtual std::set<std::string> GetSupportedInputProtocols() const override {
-        std::set<std::string> res = {"E131", "ARTNET"};
-        return res;
-    };
-    virtual bool UniversesMustBeSequential() const override { return false; }
-
-    virtual bool SingleUpload() const override { return true; }
-};
-
-
-
-static std::vector<J1SysControllerRules> CONTROLLER_TYPE_MAP = {
-    J1SysControllerRules(2, 1.0, "ECG-P2"),
-    J1SysControllerRules(12, 1.0, J1SYS_MODEL_P12R),
-    J1SysControllerRules(12, 4.0, J1SYS_MODEL_P12S),
-    J1SysControllerRules(12, 4.0, J1SYS_MODEL_P12D),
-};
-
-void J1Sys::RegisterControllers() {
-    for (auto &a : CONTROLLER_TYPE_MAP) {
-        ControllerRegistry::AddController(&a);
-    }
-}
 
 J1Sys::J1Sys(const std::string& ip, const std::string &proxy)
 {
@@ -269,7 +166,7 @@ std::string J1Sys::PutURL(const std::string& url, const std::string& request, bo
     return res.ToStdString();
 }
 
-bool J1Sys::SetInputUniverses(OutputManager* outputManager, std::list<int>& selected)
+bool J1Sys::SetInputUniverses(ControllerEthernet* controller, OutputManager* outputManager)
 {
     wxASSERT(_outputs != 0);
 
@@ -277,15 +174,15 @@ bool J1Sys::SetInputUniverses(OutputManager* outputManager, std::list<int>& sele
     bool artnet = false;
 
     // Get universes based on IP
-    std::list<Output*> outputs = outputManager->GetAllOutputs(_ip, selected);
+    std::list<Output*> outputs = controller->GetOutputs();
 
     for (auto it = outputs.begin(); it != outputs.end(); ++it)
     {
-        if ((*it)->GetType() == "E131")
+        if ((*it)->GetType() == OUTPUT_E131)
         {
             e131 = true;
         }
-        else if ((*it)->GetType() == "ArtNet")
+        else if ((*it)->GetType() == OUTPUT_ARTNET)
         {
             artnet = true;
         }
@@ -332,9 +229,9 @@ bool J1Sys::SetInputUniverses(OutputManager* outputManager, std::list<int>& sele
     return false;
 }
 
-bool J1Sys::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, std::list<int>& selected, wxWindow* parent)
+bool J1Sys::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent)
 {
-    if (!SetInputUniverses(outputManager, selected))
+    if (!SetInputUniverses(controller, outputManager))
     {
         return false;
     }
@@ -346,10 +243,10 @@ bool J1Sys::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, st
     logger_base.debug("J1Sys Outputs Upload: Uploading to %s", (const char*)_ip.c_str());
 
     std::string check;
-    UDController cud(_ip, _ip, allmodels, outputManager, &selected, check);
+    UDController cud(controller, outputManager, allmodels, check);
 
-    J1SysControllerRules rules(_outputs, wxAtof(_version), _model);
-    bool success = cud.Check(&rules, check);
+    auto caps = ControllerCaps::GetControllerConfig(controller);
+    bool success = cud.Check(caps, check);
 
     cud.Dump();
 
@@ -513,7 +410,7 @@ bool J1Sys::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, st
  
     if (success && cud.GetMaxSerialPort() > 0)
     {
-        std::vector<J1SysSerialOutput> j1SysOutputs(rules.GetMaxSerialPort());
+        std::vector<J1SysSerialOutput> j1SysOutputs(caps->GetMaxSerialPort());
 
         ReadCurrentSerialConfig(j1SysOutputs);
         logger_base.debug("Existing config:");
@@ -790,8 +687,9 @@ void J1Sys::Reboot()
 
 
 std::string J1Sys::GetPixelControllerTypeString() const {
-    return  J1SysControllerRules(_outputs, wxAtof(_version), _model).GetControllerId();
-
+    // TODO KW not sure if i need this
+    return "";
+    //return  J1SysControllerRules(_outputs, wxAtof(_version), _model).GetControllerId();
 }
 
 

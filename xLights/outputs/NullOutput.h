@@ -1,5 +1,4 @@
-#ifndef NULLOUTPUT_H
-#define NULLOUTPUT_H
+#pragma once
 
 #include "Output.h"
 
@@ -26,7 +25,6 @@ public:
     virtual bool IsIpOutput() const override { return false; }
     virtual bool IsSerialOutput() const override { return false; }
     virtual bool IsOutputable() const override { return false; }
-    virtual std::string GetChannelMapping(int32_t ch) const override;
     virtual int32_t GetMaxChannels() const override { return 9999999; }
     virtual bool IsValidChannelCount(int32_t channelCount) const override { return channelCount > 0; }
     int GetId() const { return _universe; }
@@ -52,14 +50,14 @@ public:
     virtual void AllOff() override {}
     #pragma endregion Data Setting
 
-    PINGSTATE Ping() const override { return PINGSTATE::PING_UNAVAILABLE; }
-    bool CanPing() const override { return false; }
+    //PINGSTATE Ping() const override { return PINGSTATE::PING_UNAVAILABLE; }
+    //bool CanPing() const override { return false; }
 
     #pragma region UI
 #ifndef EXCLUDENETWORKUI
-    virtual Output* Configure(wxWindow* parent, OutputManager* outputManager, ModelManager *modelManager) override;
-#endif
+//    virtual Output* Configure(wxWindow* parent, OutputManager* outputManager, ModelManager *modelManager) override;
+    virtual void AddProperties(wxPropertyGrid* propertyGrid, bool allSameSize) override;
+    virtual bool HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager) override;
+    #endif
     #pragma endregion UI
 };
-
- #endif

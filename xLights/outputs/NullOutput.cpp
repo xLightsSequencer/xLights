@@ -1,13 +1,19 @@
 #include "NullOutput.h"
+#include "../OutputModelManager.h"
 
 #include <wx/xml/xml.h>
-#ifndef EXCLUDENETWORKUI
-#include "NullOutputDialog.h"
-#endif
+#include <wx/propgrid/propgrid.h>
+#include <wx/propgrid/advprops.h>
+
+//#ifndef EXCLUDENETWORKUI
+//#include "NullOutputDialog.h"
+//#endif
+
 #pragma region Save
 void NullOutput::Save(wxXmlNode* node)
 {
-    node->AddAttribute("Id", wxString::Format(wxT("%i"), GetId()));
+    // Dont need these any more
+    //node->AddAttribute("Id", wxString::Format(wxT("%i"), GetId()));
 
     Output::Save(node);
 }
@@ -39,16 +45,6 @@ std::string NullOutput::GetLongDescription() const
     return res;
 }
 
-std::string NullOutput::GetChannelMapping(int32_t ch) const
-{
-    std::string res = "Channel " + std::string(wxString::Format(wxT("%d"), ch)) + " maps to ...\n";
-    res += "Type: NULL (" + std::string(wxString::Format(wxT("%d"), _nullNumber)) + ")\nChannel: " + std::string(wxString::Format(wxT("%d"), ch - _startChannel)) + "\n";
-
-    if (!_enabled) res += " INACTIVE";
-
-    return res;
-}
-
 std::string NullOutput::GetSortName() const
 {
     return wxString::Format("NULL%02d", _nullNumber).ToStdString();
@@ -62,22 +58,50 @@ std::string NullOutput::GetExport() const
         _outputNumber, GetStartChannel(), GetEndChannel(), GetType(), GetId(), _description, _channels).ToStdString();
 }
 
-#pragma endregion Getters and Setters
-
-#pragma region UI
-#ifndef EXCLUDENETWORKUI
-Output* NullOutput::Configure(wxWindow* parent, OutputManager* outputManager, ModelManager* modelManager)
+void NullOutput::AddProperties(wxPropertyGrid* propertyGrid, bool allSameSize)
 {
-    NullOutputDialog dlg(parent, this, outputManager);
+    wxPGProperty* p = propertyGrid->Append(new wxUIntProperty("Channels", "Channels", GetChannels()));
+    p->SetAttribute("Min", 1);
+    p->SetAttribute("Max", 10000000);
+    p->SetEditor("SpinCtrl");
+}
 
-    int res = dlg.ShowModal();
+bool NullOutput::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager)
+{
+    wxString name = event.GetPropertyName();
+    wxPropertyGrid* grid = dynamic_cast<wxPropertyGrid*>(event.GetEventObject());
 
-    if (res == wxID_CANCEL)
+    if (name == "Channels")
     {
-        return nullptr;
+        SetChannels(event.GetValue().GetLong());
+        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "NullOutput::HandlePropertyEvent::Channels");
+        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "NullOutput::HandlePropertyEvent::Channels", nullptr);
+        outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "NullOutput::HandlePropertyEvent::Channels", nullptr);
+        outputModelManager->AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "NullOutput::HandlePropertyEvent::Channels", nullptr);
+        return true;
     }
 
-    return this;
+    if (Output::HandlePropertyEvent(event, outputModelManager)) return true;
+
+    return false;
 }
-#endif
-#pragma endregion UI
+
+#pragma endregion Getters and Setters
+
+//#pragma region UI
+//#ifndef EXCLUDENETWORKUI
+//Output* NullOutput::Configure(wxWindow* parent, OutputManager* outputManager, ModelManager* modelManager)
+//{
+//    NullOutputDialog dlg(parent, this, outputManager);
+//
+//    int res = dlg.ShowModal();
+//
+//    if (res == wxID_CANCEL)
+//    {
+//        return nullptr;
+//    }
+
+//    return this;
+//}
+//#endif
+//#pragma endregion UI

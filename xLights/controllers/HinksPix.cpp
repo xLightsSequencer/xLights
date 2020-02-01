@@ -1,27 +1,21 @@
 #include "HinksPix.h"
+#include "../models/Model.h"
+#include "../outputs/OutputManager.h"
+#include "../outputs/Output.h"
+#include "../outputs/ControllerEthernet.h"
+#include "../models/ModelManager.h"
+#include "ControllerCaps.h"
+#include "UtilFunctions.h"
+
 #include <wx/msgdlg.h>
 #include <wx/sstream.h>
 #include <wx/regex.h>
 #include <wx/xml/xml.h>
-
-#include "../models/Model.h"
-#include "../outputs/OutputManager.h"
-#include "../outputs/Output.h"
-#include "../models/ModelManager.h"
-
 #include <wx/sckstrm.h>
 #include <wx/tokenzr.h>
 #include <wx/progdlg.h>
 
 #include <log4cpp/Category.hh>
-
-#include "ControllerRegistry.h"
-#include "UtilFunctions.h"
-
-static std::vector<HinksPixControllerRules> CONTROLLER_TYPE_MAP = {
-    HinksPixControllerRules(false),
-    HinksPixControllerRules(true)
-};
 
 void HinksPixOutput::Dump() const
 {
@@ -129,12 +123,6 @@ wxString HinksPixSerial::BuildCommand() const
         e131NumOfChan, ddpStartChannel, ddpNumOfChan);
 }
 
-void HinksPix::RegisterControllers() {
-    for (const auto &a : CONTROLLER_TYPE_MAP) {
-        ControllerRegistry::AddController(&a);
-    }
-}
-
 HinksPix::HinksPix(const std::string& ip, const std::string &proxy) : 
     _ip(ip), _fppProxy(proxy), _baseUrl(""), _numberOfOutputs(0), _Flex(false), _connected(false)
 {
@@ -170,7 +158,7 @@ HinksPix::~HinksPix()
     _pixelOutputs.clear();
 }
 
-bool HinksPix::SetInputUniverses(OutputManager* outputManager, std::list<int>& selected)
+bool HinksPix::SetInputUniverses(ControllerEthernet* controller)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("HinksPix Inputs Upload: Uploading to %s", (const char*)_ip.c_str());
@@ -179,7 +167,7 @@ bool HinksPix::SetInputUniverses(OutputManager* outputManager, std::list<int>& s
     int output = 0;
 
     // Get universes based on IP
-    std::list<Output*> outputs = outputManager->GetAllOutputs(_ip, selected);
+    std::list<Output*> outputs = controller->GetOutputs();
 
     auto const data = GetControllerData(902);
     if (data.empty())
@@ -198,13 +186,13 @@ bool HinksPix::SetInputUniverses(OutputManager* outputManager, std::list<int>& s
     int type = 0;
     int multi = 0;
     int DDPStart = 0;
-    if (out->GetType() == "E131") {
+    if (out->GetType() == OUTPUT_E131) {
         type = 0;
     }
-    else if (out->GetType() == "ArtNet") {
+    else if (out->GetType() == OUTPUT_ARTNET) {
         type = 2;
     }
-    else if (out->GetType() == "DDP") {
+    else if (out->GetType() == OUTPUT_DDP) {
         type = 1;
         DDPStart = out->GetStartChannel();
     }
@@ -278,7 +266,7 @@ bool HinksPix::SetInputUniverses(OutputManager* outputManager, std::list<int>& s
     return worked;
 }
 
-bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, std::list<int>& selected, wxWindow* parent)
+bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent)
 {
     wxProgressDialog progress("Uploading ...", "", 100, parent, wxPD_APP_MODAL | wxPD_AUTO_HIDE);
     progress.Show();
@@ -287,19 +275,19 @@ bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
     logger_base.debug("HinksPix Outputs Upload: Uploading to %s", (const char *)_ip.c_str());
 
     // Get universes based on IP
-    std::list<Output*> outputs = outputManager->GetAllOutputs(_ip, selected);
+    std::list<Output*> outputs = controller->GetOutputs();
 
     auto o = outputs.front();
 
     int mode = 0;
 
-    if (o->GetType() == "E131") {
+    if (o->GetType() == OUTPUT_E131) {
         mode = 0;
     }
-    else if (o->GetType() == "ArtNet") {
+    else if (o->GetType() == OUTPUT_ARTNET) {
         mode = 2;
     }
-    else if (o->GetType() == "DDP") {
+    else if (o->GetType() == OUTPUT_DDP) {
         mode = 1;
     }
 
@@ -307,11 +295,11 @@ bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
     logger_base.info("Scanning models.");
 
     std::string check;
-    UDController cud(_ip, _ip, allmodels, outputManager, &selected, check);
+    UDController cud(controller, outputManager, allmodels, check);
 
     //first check rules
-    HinksPixControllerRules rules(_Flex);
-    const bool success = cud.Check(&rules, check);
+    auto rules = ControllerCaps::GetControllerConfig(controller);
+    const bool success = cud.Check(rules, check);
 
     logger_base.debug(check);
 
@@ -328,7 +316,8 @@ bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
 
     //set DDP mode first
     if (mode == 1 ) {
-        SetInputUniverses(outputManager, selected);
+        // TODO need to fix this KW
+//        SetInputUniverses(outputManager, selected);
     }
 
     std::map<int, int> map;

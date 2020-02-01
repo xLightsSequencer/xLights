@@ -30,8 +30,14 @@ class LorController
         void SetType(std::string type) { _type = type; }
         void SetDescription(std::string description) { _description = description; }
         void SetUnitID(int id) { _unit_id = id; }
-        void SetNumChannels(int channels) { _num_channels = channels; }
+        void SetNumChannels(int channels) {
+            if (_num_channels != channels) { _num_channels = channels; _changeCount++; }
+        }
         void SetMode(AddressMode mode) { _mode = mode; }
+        int GetMaxChannels() { return 16383; }
+        int GetMaxUnitId() {
+            return 255;
+        }
 
     protected:
         int _unit_id;

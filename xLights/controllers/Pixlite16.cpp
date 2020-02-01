@@ -1,96 +1,16 @@
-#include "Pixlite16.h"
 #include <wx/msgdlg.h>
 #include <wx/regex.h>
+
+#include "Pixlite16.h"
 #include "models/Model.h"
-#include <log4cpp/Category.hh>
 #include "outputs/OutputManager.h"
 #include "outputs/Output.h"
 #include "UtilFunctions.h"
 #include "ControllerUploadData.h"
-#include "ControllerRegistry.h"
+#include "../outputs/ControllerEthernet.h"
+#include "ControllerCaps.h"
 
-class PixLite16ControllerRules : public ControllerRules
-{
-    int _maxChannelsPerOutput = 0;
-    int _pixelPorts = 0;
-    int _dmxPorts = 0;
-
-public:
-    PixLite16ControllerRules(Pixlite16::Config& config) : ControllerRules()
-    {
-        _maxChannelsPerOutput = config._maxPixelsPerOutput * 3;
-        _pixelPorts = config._realOutputs;
-        _dmxPorts = config._realDMX;
-    }
-
-    PixLite16ControllerRules(int pixelsPerOutput, int pixelPorts, int dmxPorts) : ControllerRules()
-    {
-        _maxChannelsPerOutput = pixelsPerOutput * 3;
-        _pixelPorts = pixelPorts;
-        _dmxPorts = dmxPorts;
-    }
-    virtual ~PixLite16ControllerRules() {}
-    virtual const std::string GetControllerId() const override {
-        return std::to_string(_pixelPorts) + std::string((_maxChannelsPerOutput > 2040) ? " MkII" : "");
-    }
-    virtual const std::string GetControllerManufacturer() const override {
-        return "PixLite";
-    }
-
-    virtual bool SupportsLEDPanelMatrix() const override {
-        return false;
-    }
-    virtual int GetMaxPixelPortChannels() const override
-    {
-        return _maxChannelsPerOutput;
-    }
-    virtual int GetMaxPixelPort() const override { return _pixelPorts; }
-    virtual int GetMaxSerialPortChannels() const override { return 512; }
-    virtual int GetMaxSerialPort() const override { return _dmxPorts; }
-    virtual bool IsValidPixelProtocol(const std::string protocol) const override
-    {
-        wxString p(protocol);
-        p = p.Lower();
-        return (p == "ws2811" || 
-            p == "tm1803" ||
-            p == "tm1804" ||
-            p == "tm1809" ||
-            p == "tls3001" || 
-            p == "lpd6803" ||
-            p == "sm16716" ||
-            p == "ws2801" ||
-            p == "mb16020" ||
-            p == "my9231" ||
-            p == "apa102" ||
-            p == "my9221" ||
-            p == "sk6812" ||
-            p == "ucs1903");
-    }
-    virtual bool IsValidSerialProtocol(const std::string protocol) const override
-    {
-        wxString p(protocol);
-        p = p.Lower();
-        return (p == "dmx");
-    }
-    virtual bool SupportsMultipleProtocols() const override { return false; }
-    virtual bool SupportsSmartRemotes() const override { return false; }
-    virtual bool SupportsMultipleInputProtocols() const override { return false; }
-    virtual bool AllUniversesSameSize() const override { return false; }
-    virtual std::set<std::string> GetSupportedInputProtocols() const override {
-        std::set<std::string> res = {"E131", "ARTNET"};
-        return res;
-    };
-    virtual bool UniversesMustBeSequential() const override { return true; }
-
-    virtual bool SingleUpload() const override { return true; }
-};
-
-static std::vector<PixLite16ControllerRules> CONTROLLER_TYPE_MAP = {
-    PixLite16ControllerRules(680, 4, 1),
-    PixLite16ControllerRules(340, 16, 4),
-    PixLite16ControllerRules(1020, 4, 1),
-    PixLite16ControllerRules(1020, 16, 4)
-};
+#include <log4cpp/Category.hh>
 
 bool Pixlite16::ParseV4Config(uint8_t* data)
 {
@@ -857,7 +777,7 @@ bool Pixlite16::SendConfig(bool logresult) const
     return true;
 }
 
-bool Pixlite16::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, std::list<int>& selected, wxWindow* parent)
+bool Pixlite16::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent)
 {
     //ResetStringOutputs(); // this shouldnt be used normally
 
@@ -865,21 +785,21 @@ bool Pixlite16::SetOutputs(ModelManager* allmodels, OutputManager* outputManager
     logger_base.debug("PixLite/PixCon Outputs Upload: Uploading to %s", (const char *)_ip.c_str());
     
     std::string check;
-    UDController cud(_ip, _ip, allmodels, outputManager, &selected, check);
+    UDController cud(controller, outputManager, allmodels, check);
 
-    PixLite16ControllerRules rules(_config);
-    bool success = cud.Check(&rules, check);
+    auto rules = ControllerCaps::GetControllerConfig(controller);
+    bool success = cud.Check(rules, check);
 
     cud.Dump();
 
     logger_base.debug(check);
 
     // Get universes based on IP
-    std::list<Output*> outputs = outputManager->GetAllOutputs(_ip, selected);
+    std::list<Output*> outputs = controller->GetOutputs();
 
     if (success && cud.GetMaxPixelPort() > 0)
     {
-        for (int pp = 1; pp <= rules.GetMaxPixelPort(); pp++)
+        for (int pp = 1; pp <= rules->GetMaxPixelPort(); pp++)
         {
             if (cud.HasPixelPort(pp))
             {
@@ -916,7 +836,7 @@ bool Pixlite16::SetOutputs(ModelManager* allmodels, OutputManager* outputManager
     {
         if (cud.GetMaxSerialPort() > 0)
         {
-            for (int sp = 1; sp <= rules.GetMaxSerialPort(); sp++)
+            for (int sp = 1; sp <= rules->GetMaxSerialPort(); sp++)
             {
                 if (cud.HasSerialPort(sp))
                 {
@@ -1035,11 +955,5 @@ void Pixlite16::DumpConfiguration() const
     for (int i = 0; i < _config._numBanks; i++)
     {
         logger_base.debug("        Voltage Bank %d : %.1f ", i + 1, (float)_config._bankVoltage[i] / 10.0);
-    }
-}
-
-void Pixlite16::RegisterControllers() {
-    for (auto &a : CONTROLLER_TYPE_MAP) {
-        ControllerRegistry::AddController(&a);
     }
 }

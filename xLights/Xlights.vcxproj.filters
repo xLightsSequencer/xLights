@@ -205,9 +205,6 @@
     <ClCompile Include="models\ArchesModel.cpp">
       <Filter>Models</Filter>
     </ClCompile>
-    <ClCompile Include="outputs\ArtNetDialog.cpp">
-      <Filter>Outputs</Filter>
-    </ClCompile>
     <ClCompile Include="outputs\ArtNetOutput.cpp">
       <Filter>Outputs</Filter>
     </ClCompile>
@@ -313,19 +310,10 @@
     </ClCompile>
     <ClCompile Include="ImportPreviewsModelsDialog.cpp" />
     <ClCompile Include="ShaderDownloadDialog.cpp" />
-    <ClCompile Include="outputs\ZCPPDialog.cpp">
-      <Filter>Outputs</Filter>
-    </ClCompile>
     <ClCompile Include="outputs\ZCPPOutput.cpp">
       <Filter>Outputs</Filter>
     </ClCompile>
-    <ClCompile Include="outputs\DDPDialog.cpp">
-      <Filter>Outputs</Filter>
-    </ClCompile>
     <ClCompile Include="outputs\DDPOutput.cpp">
-      <Filter>Outputs</Filter>
-    </ClCompile>
-    <ClCompile Include="outputs\E131Dialog.cpp">
       <Filter>Outputs</Filter>
     </ClCompile>
     <ClCompile Include="outputs\E131Output.cpp">
@@ -421,9 +409,6 @@
     <ClCompile Include="effects\KaleidoscopeEffect.cpp">
       <Filter>Effects</Filter>
     </ClCompile>
-    <ClCompile Include="outputs\SerialPortWithRate.cpp">
-      <Filter>Outputs</Filter>
-    </ClCompile>
     <ClCompile Include="outputs\SerialOutput.cpp">
       <Filter>Outputs</Filter>
     </ClCompile>
@@ -452,9 +437,6 @@
       <Filter>Controllers</Filter>
     </ClCompile>
     <ClCompile Include="controllers\ControllerUploadData.cpp">
-      <Filter>Controllers</Filter>
-    </ClCompile>
-    <ClCompile Include="controllers\ControllerRegistry.cpp">
       <Filter>Controllers</Filter>
     </ClCompile>
     <ClCompile Include="effects\MorphPanel.cpp">
@@ -688,9 +670,6 @@
     <ClCompile Include="outputs\NullOutput.cpp">
       <Filter>Outputs</Filter>
     </ClCompile>
-    <ClCompile Include="outputs\NullOutputDialog.cpp">
-      <Filter>Outputs</Filter>
-    </ClCompile>
     <ClCompile Include="outputs\OpenDMXOutput.cpp">
       <Filter>Outputs</Filter>
     </ClCompile>
@@ -703,13 +682,7 @@
     <ClCompile Include="outputs\LorController.cpp">
       <Filter>Outputs</Filter>
     </ClCompile>
-    <ClCompile Include="outputs\LorControllerDialog.cpp">
-      <Filter>Outputs</Filter>
-    </ClCompile>
     <ClCompile Include="outputs\LorControllers.cpp">
-      <Filter>Outputs</Filter>
-    </ClCompile>
-    <ClCompile Include="outputs\LorOptimisedDialog.cpp">
       <Filter>Outputs</Filter>
     </ClCompile>
     <ClCompile Include="outputs\LOROptimisedOutput.cpp">
@@ -731,9 +704,6 @@
     </ClCompile>
     <ClCompile Include="effects\StrobePanel.cpp">
       <Filter>Effects</Filter>
-    </ClCompile>
-    <ClCompile Include="outputs\xxxDialog.cpp">
-      <Filter>Outputs</Filter>
     </ClCompile>
     <ClCompile Include="outputs\xxxEthernetOutput.cpp">
       <Filter>Outputs</Filter>
@@ -831,6 +801,22 @@
     <ClCompile Include="models\DMX\SkullConfigDialog.cpp">
       <Filter>Models\DMX</Filter>
     </ClCompile>
+    <ClCompile Include="controllers\ControllerCaps.cpp">
+      <Filter>Controllers</Filter>
+    </ClCompile>
+    <ClCompile Include="outputs\Controller.cpp">
+      <Filter>Outputs</Filter>
+    </ClCompile>
+    <ClCompile Include="outputs\ControllerEthernet.cpp">
+      <Filter>Outputs</Filter>
+    </ClCompile>
+    <ClCompile Include="outputs\ControllerNull.cpp">
+      <Filter>Outputs</Filter>
+    </ClCompile>
+    <ClCompile Include="outputs\ControllerSerial.cpp">
+      <Filter>Outputs</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xFade\wxLED.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -1040,9 +1026,6 @@
     <ClInclude Include="models\ArchesModel.h">
       <Filter>Models</Filter>
     </ClInclude>
-    <ClInclude Include="outputs/ArtNetDialog.h">
-      <Filter>Outputs</Filter>
-    </ClInclude>
     <ClInclude Include="outputs\ArtNetOutput.h">
       <Filter>Outputs</Filter>
     </ClInclude>
@@ -1152,19 +1135,10 @@
     <ClInclude Include="outputs\ZCPP.h">
       <Filter>Outputs</Filter>
     </ClInclude>
-    <ClInclude Include="outputs\ZCPPDialog.h">
-      <Filter>Outputs</Filter>
-    </ClInclude>
     <ClInclude Include="outputs\ZCPPOutput.h">
       <Filter>Outputs</Filter>
     </ClInclude>
-    <ClInclude Include="outputs\DDPDialog.h">
-      <Filter>Outputs</Filter>
-    </ClInclude>
     <ClInclude Include="outputs\DDPOutput.h">
-      <Filter>Outputs</Filter>
-    </ClInclude>
-    <ClInclude Include="outputs\E131Dialog.h">
       <Filter>Outputs</Filter>
     </ClInclude>
     <ClInclude Include="outputs\E131Output.h">
@@ -1263,9 +1237,6 @@
     <ClInclude Include="effects\KaleidoscopeEffect.h">
       <Filter>Effects</Filter>
     </ClInclude>
-    <ClInclude Include="outputs\SerialPortWithRate.h">
-      <Filter>Outputs</Filter>
-    </ClInclude>
     <ClInclude Include="outputs\SerialOutput.h">
       <Filter>Outputs</Filter>
     </ClInclude>
@@ -1294,9 +1265,6 @@
       <Filter>Controllers</Filter>
     </ClInclude>
     <ClInclude Include="controllers\ControllerUploadData.h">
-      <Filter>Controllers</Filter>
-    </ClInclude>
-    <ClInclude Include="controllers\ControllerRegistry.h">
       <Filter>Controllers</Filter>
     </ClInclude>
     <ClInclude Include="Vixen3.h" />
@@ -1530,9 +1498,6 @@
     <ClInclude Include="outputs\NullOutput.h">
       <Filter>Outputs</Filter>
     </ClInclude>
-    <ClInclude Include="outputs\NullOutputDialog.h">
-      <Filter>Outputs</Filter>
-    </ClInclude>
     <ClInclude Include="outputs\OpenDMXOutput.h">
       <Filter>Outputs</Filter>
     </ClInclude>
@@ -1545,13 +1510,7 @@
     <ClInclude Include="outputs\LorController.h">
       <Filter>Outputs</Filter>
     </ClInclude>
-    <ClInclude Include="outputs\LorControllerDialog.h">
-      <Filter>Outputs</Filter>
-    </ClInclude>
     <ClInclude Include="outputs\LorControllers.h">
-      <Filter>Outputs</Filter>
-    </ClInclude>
-    <ClInclude Include="outputs\LorOptimisedDialog.h">
       <Filter>Outputs</Filter>
     </ClInclude>
     <ClInclude Include="outputs\LOROptimisedOutput.h">
@@ -1573,9 +1532,6 @@
     </ClInclude>
     <ClInclude Include="effects\StrobePanel.h">
       <Filter>Effects</Filter>
-    </ClInclude>
-    <ClInclude Include="outputs\xxxDialog.h">
-      <Filter>Outputs</Filter>
     </ClInclude>
     <ClInclude Include="outputs\xxxEthernetOutput.h">
       <Filter>Outputs</Filter>
@@ -1671,6 +1627,19 @@
     <ClInclude Include="models\DMX\SkullConfigDialog.h">
       <Filter>Models\DMX</Filter>
     </ClInclude>
+    <ClInclude Include="controllers\ControllerCaps.h">
+      <Filter>Controllers</Filter>
+    </ClInclude>
+    <ClInclude Include="outputs\ControllerEthernet.h">
+      <Filter>Outputs</Filter>
+    </ClInclude>
+    <ClInclude Include="outputs\ControllerNull.h">
+      <Filter>Outputs</Filter>
+    </ClInclude>
+    <ClInclude Include="outputs\ControllerSerial.h">
+      <Filter>Outputs</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xFade\wxLED.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Models">

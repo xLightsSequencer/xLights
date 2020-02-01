@@ -19,7 +19,7 @@ public:
 
     void Save(wxXmlNode* node);
 
-    std::list<LorController*>* GetControllers() { return &_controllers; }
+    std::list<LorController*>& GetControllers() { return _controllers; }
     void SetDirty() { _changeCount++; }
     bool IsDirty() const;
     int GetTotalChannels() const;

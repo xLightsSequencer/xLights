@@ -1,0 +1,60 @@
+<Vendor Name="HinksPix">
+	<Controller Name="EasyLights Pix16">
+		<FirmwareVersion Name="">
+			<SupportsUpload/>
+			<SupportsInputOnlyUpload/>
+			<MaxInputUniverses>96</MaxInputUniverses>
+			<MaxPixelPort>16</MaxPixelPort>
+			<MaxSerialPort>1</MaxSerialPort>
+			<MaxSerialPortChannels>512</MaxSerialPortChannels>
+			<MaxPixelPortChannels>2040</MaxPixelPortChannels>
+			<UniversesMustBeSequential/>
+			<SupportsVirtualStrings/>
+			<MergeConsecutiveVirtualStrings/>
+			<PixelProtocols>
+				<Protocol>ws2811</Protocol>
+				<Protocol>ws2801</Protocol>
+				<Protocol>tls3001</Protocol>
+				<Protocol>apa102</Protocol>
+			</PixelProtocols>
+			<SerialProtocols>
+				<Protocol>dmx</Protocol>
+			</SerialProtocols>
+			<InputProtocols>
+				<Protocol>E131</Protocol>
+				<Protocol>ArtNet</Protocol>
+				<Protocol>DDP</Protocol>
+			</InputProtocols>
+			<SupportsMultipleSimultaneousOutputProtocols/>
+		</FirmwareVersion>
+	</Controller>
+	<Controller Name="PRO">
+		<FirmwareVersion Name="">
+			<SupportsUpload/>
+			<SupportsInputOnlyUpload/>
+			<MaxInputUniverses>96</MaxInputUniverses>
+			<MaxPixelPort>48</MaxPixelPort>
+			<MaxSerialPort>1</MaxSerialPort>
+			<MaxSerialPortChannels>512</MaxSerialPortChannels>
+			<MaxPixelPortChannels>2040</MaxPixelPortChannels>
+			<UniversesMustBeSequential/>
+			<SupportsVirtualStrings/>
+			<MergeConsecutiveVirtualStrings/>
+			<PixelProtocols>
+				<Protocol>ws2811</Protocol>
+				<Protocol>ws2801</Protocol>
+				<Protocol>tls3001</Protocol>
+				<Protocol>apa102</Protocol>
+			</PixelProtocols>
+			<SerialProtocols>
+				<Protocol>dmx</Protocol>
+			</SerialProtocols>
+			<InputProtocols>
+				<Protocol>E131</Protocol>
+				<Protocol>ArtNet</Protocol>
+				<Protocol>DDP</Protocol>
+			</InputProtocols>
+			<SupportsMultipleSimultaneousOutputProtocols/>
+		</FirmwareVersion>
+	</Controller>
+</Vendor>

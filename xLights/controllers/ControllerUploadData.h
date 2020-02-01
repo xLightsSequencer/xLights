@@ -1,5 +1,4 @@
-#ifndef CONTROLLERUPLOADDATA_H
-#define CONTROLLERUPLOADDATA_H
+#pragma once
 
 // These classes are used to build the necessary data for uploading controller configuration
 
@@ -15,36 +14,8 @@ class ModelManager;
 class OutputManager;
 class Output;
 class wxWindow;
-
-class ControllerRules
-{
-public:
-    ControllerRules() {}
-    virtual ~ControllerRules() {}
-    virtual int GetMaxPixelPortChannels() const = 0;
-    virtual int GetMaxPixelPort() const = 0;
-    virtual int GetMaxSerialPortChannels() const = 0;
-    virtual int GetMaxSerialPort() const = 0;
-    virtual bool IsValidPixelProtocol(const std::string protocol) const = 0;
-    virtual bool IsValidSerialProtocol(const std::string protocol) const = 0;
-    virtual bool SupportsMultipleProtocols() const = 0;
-    virtual bool AllUniversesSameSize() const = 0;
-    virtual std::set<std::string> GetSupportedInputProtocols() const = 0;
-    virtual bool SupportsMultipleInputProtocols() const = 0;
-    virtual bool UniversesMustBeSequential() const = 0;
-    virtual bool SupportsSmartRemotes() const = 0;
-    virtual bool SupportsLEDPanelMatrix() const = 0;
-    virtual bool SupportsVirtualStrings() const { return false; }
-    virtual bool MergeConsecutiveVirtualStrings() const { return true; }
-
-    virtual const std::string GetControllerId() const = 0;
-    virtual const std::string GetControllerManufacturer() const = 0;
-    virtual const std::string GetControllerDescription() const {
-        return GetControllerManufacturer() + " " + GetControllerId();
-    }
-
-    virtual bool SingleUpload() const { return false; }
-};
+class Controller;
+class ControllerCaps;
 
 class UDControllerPortModel
 {
@@ -61,7 +32,7 @@ private:
     bool ChannelsOnOutputs(std::list<Output*>& outputs) const;
 
 public:
-    UDControllerPortModel(Model* m, OutputManager* om, int string);
+    UDControllerPortModel(Model* m, Controller* controller, OutputManager* om, int string);
     virtual ~UDControllerPortModel() {};
     bool operator<(const UDControllerPortModel& cpm) const
     {
@@ -82,7 +53,7 @@ public:
     int GetUniverse() const { return _universe; }
     int GetUniverseStartChannel() const { return _universeStartChannel; }
     std::string GetProtocol() const { return _protocol; }
-    bool Check(const UDControllerPort* port, bool pixel, const ControllerRules* rules, std::list<Output*>& outputs, std::string& res) const;
+    bool Check(Controller* controller, const UDControllerPort* port, bool pixel, const ControllerCaps* rules, std::string& res) const;
     int GetBrightness(int currentBrightness);
     int GetNullPixels(int currentNullPixels);
     float GetGamma(int currentGamma);
@@ -137,7 +108,7 @@ class UDControllerPort
 		~UDControllerPort();
         UDControllerPortModel* GetFirstModel() const;
         UDControllerPortModel* GetLastModel() const;
-		void AddModel(Model* m, OutputManager* om, int string = 0);
+		void AddModel(Model* m, Controller* controller, OutputManager* om, int string = 0);
 		int32_t GetStartChannel() const;
 		int32_t GetEndChannel() const;
 		int32_t Channels() const;
@@ -151,7 +122,7 @@ class UDControllerPort
         void SetInvalid() { _valid = false; }
         std::string GetInvalidReason() const { return _invalidReason; }
         void Dump() const;
-        bool Check(const UDController* controller, bool pixel, const ControllerRules* rules, std::list<Output*>& outputs, std::string& res) const;
+        bool Check(Controller* c, const UDController* controller, bool pixel, const ControllerCaps* rules, std::string& res) const;
         int GetUniverse() const;
         int GetUniverseStartChannel() const;
         void CreateVirtualStrings(bool mergeSequential);
@@ -173,6 +144,7 @@ class UDControllerPort
 class UDController
 {
 	private:
+        Controller* _controller = nullptr;
 		std::string _ipAddress;
         std::string _hostName;
 		std::list<Output*> _outputs;
@@ -183,20 +155,18 @@ class UDController
         std::list<Model*> _noConnectionModels;
 
 	public:
-        UDController(const std::string &ip, const std::string &hostName, ModelManager* mm, OutputManager* om, const std::list<int>* outputs, std::string& check);
+        UDController(Controller* controller, OutputManager* om, ModelManager* mm, std::string& check);
 		~UDController();
 		UDControllerPort* GetControllerPixelPort(int port);
 		UDControllerPort* GetControllerSerialPort(int port);
-		bool IsValid(ControllerRules* rules) const;
+		bool IsValid(ControllerCaps* rules) const;
         int GetMaxSerialPort() const;
         int GetMaxPixelPort() const;
         void Dump() const;
         bool HasPixelPort(int port) const;
         bool HasSerialPort(int port) const;
-        bool Check(const ControllerRules* rules, std::string& res);
+        bool Check(const ControllerCaps* rules, std::string& res);
         Output* GetFirstOutput() const;
     
         const std::list<Model *> GetNoConnectionModels() const { return _noConnectionModels; }
 };
-
-#endif

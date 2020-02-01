@@ -1,0 +1,233 @@
+<Vendor Name="LOR">
+	<Controller Name="PixCon 16">
+		<FirmwareVersion Name="">
+			<SupportsUpload/>
+			<MaxInputUniverses>96</MaxInputUniverses>
+			<MaxPixelPort>16</MaxPixelPort>
+			<MaxSerialPort>4</MaxSerialPort>
+			<MaxSerialPortChannels>512</MaxSerialPortChannels>
+			<MaxPixelPortChannels>1020</MaxPixelPortChannels>
+			<UniversesMustBeSequential/>
+			<SupportsVirtualStrings/>
+			<MergeConsecutiveVirtualStrings/>
+			<PixelProtocols>
+				<Protocol>ws2811</Protocol>
+				<Protocol>tm18xx</Protocol>
+				<Protocol>tm1803</Protocol>
+				<Protocol>tm1804</Protocol>
+				<Protocol>tm1809</Protocol>
+				<Protocol>ws2801</Protocol>
+				<Protocol>tls3001</Protocol>
+				<Protocol>lpd6803</Protocol>
+				<Protocol>lpd8806</Protocol>
+				<Protocol>apa102</Protocol>
+				<Protocol>sm16716</Protocol>
+				<Protocol>mb16020</Protocol>
+				<Protocol>my9231</Protocol>
+				<Protocol>my9221</Protocol>
+				<Protocol>sk6812</Protocol>
+				<Protocol>ucs1903</Protocol>
+			</PixelProtocols>
+			<SerialProtocols>
+				<Protocol>dmx</Protocol>
+			</SerialProtocols>
+			<InputProtocols>
+				<Protocol>E131</Protocol>
+				<Protocol>ArtNet</Protocol>
+			</InputProtocols>
+		</FirmwareVersion>
+	</Controller>
+	<Controller Name="Pixe 4">
+		<FirmwareVersion Name="">
+			<MaxInputUniverses>0</MaxInputUniverses>
+			<MaxPixelPort>4</MaxPixelPort>
+			<MaxSerialPort>0</MaxSerialPort>
+			<MaxSerialPortChannels>0</MaxSerialPortChannels>
+			<MaxPixelPortChannels>510</MaxPixelPortChannels>
+			<PixelProtocols>
+				<Protocol>ws2811</Protocol>
+				<Protocol>ws2801</Protocol>
+				<Protocol>lpd6803</Protocol>
+				<Protocol>sm16716</Protocol>
+			</PixelProtocols>
+			<SerialProtocols>
+			</SerialProtocols>
+			<InputProtocols>
+				<Protocol>lor</Protocol>
+			</InputProtocols>
+		</FirmwareVersion>
+	</Controller>
+	<Controller Name="Pixie 8">
+		<FirmwareVersion Name="">
+			<MaxInputUniverses>0</MaxInputUniverses>
+			<MaxPixelPort>8</MaxPixelPort>
+			<MaxSerialPort>0</MaxSerialPort>
+			<MaxSerialPortChannels>0</MaxSerialPortChannels>
+			<MaxPixelPortChannels>510</MaxPixelPortChannels>
+			<PixelProtocols>
+				<Protocol>ws2811</Protocol>
+				<Protocol>ws2801</Protocol>
+				<Protocol>lpd6803</Protocol>
+				<Protocol>sm16716</Protocol>
+			</PixelProtocols>
+			<SerialProtocols>
+			</SerialProtocols>
+			<InputProtocols>
+				<Protocol>lor</Protocol>
+			</InputProtocols>
+		</FirmwareVersion>
+	</Controller>
+	<Controller Name="Pixie 16">
+		<FirmwareVersion Name="">
+			<MaxInputUniverses>0</MaxInputUniverses>
+			<MaxPixelPort>16</MaxPixelPort>
+			<MaxSerialPort>0</MaxSerialPort>
+			<MaxSerialPortChannels>0</MaxSerialPortChannels>
+			<MaxPixelPortChannels>510</MaxPixelPortChannels>
+			<PixelProtocols>
+				<Protocol>ws2811</Protocol>
+				<Protocol>ws2801</Protocol>
+				<Protocol>lpd6803</Protocol>
+				<Protocol>sm16716</Protocol>
+			</PixelProtocols>
+			<SerialProtocols>
+			</SerialProtocols>
+			<InputProtocols>
+				<Protocol>lor</Protocol>
+			</InputProtocols>
+		</FirmwareVersion>
+	</Controller>
+	<Controller Name="CTB32">
+		<FirmwareVersion Name="">
+			<MaxInputUniverses>1</MaxInputUniverses>
+			<MaxPixelPort>0</MaxPixelPort>
+			<MaxSerialPort>1</MaxSerialPort>
+			<MaxSerialPortChannels>32</MaxSerialPortChannels>
+			<MaxPixelPortChannels>0</MaxPixelPortChannels>
+			<PixelProtocols>
+			</PixelProtocols>
+			<SerialProtocols>
+				<Protocol>dmx</Protocol>
+				<Protocol>lor</Protocol>
+			</SerialProtocols>
+			<InputProtocols>
+				<Protocol>dmx</Protocol>
+				<Protocol>lor</Protocol>
+			</InputProtocols>
+		</FirmwareVersion>
+	</Controller>
+	<Controller Name="CTB16PC">
+		<FirmwareVersion Name="">
+			<MaxInputUniverses>1</MaxInputUniverses>
+			<MaxPixelPort>0</MaxPixelPort>
+			<MaxSerialPort>1</MaxSerialPort>
+			<MaxSerialPortChannels>16</MaxSerialPortChannels>
+			<MaxPixelPortChannels>0</MaxPixelPortChannels>
+			<PixelProtocols>
+			</PixelProtocols>
+			<SerialProtocols>
+				<Protocol>dmx</Protocol>
+				<Protocol>lor</Protocol>
+			</SerialProtocols>
+			<InputProtocols>
+				<Protocol>dmx</Protocol>
+				<Protocol>lor</Protocol>
+			</InputProtocols>
+		</FirmwareVersion>
+	</Controller>
+	<Controller Name="CTB08">
+		<FirmwareVersion Name="">
+			<MaxInputUniverses>1</MaxInputUniverses>
+			<MaxPixelPort>0</MaxPixelPort>
+			<MaxSerialPort>1</MaxSerialPort>
+			<MaxSerialPortChannels>8</MaxSerialPortChannels>
+			<MaxPixelPortChannels>0</MaxPixelPortChannels>
+			<PixelProtocols>
+			</PixelProtocols>
+			<SerialProtocols>
+				<Protocol>dmx</Protocol>
+				<Protocol>lor</Protocol>
+			</SerialProtocols>
+			<InputProtocols>
+				<Protocol>dmx</Protocol>
+				<Protocol>lor</Protocol>
+			</InputProtocols>
+		</FirmwareVersion>
+	</Controller>
+	<Controller Name="CTB04PC">
+		<FirmwareVersion Name="">
+			<MaxInputUniverses>1</MaxInputUniverses>
+			<MaxPixelPort>0</MaxPixelPort>
+			<MaxSerialPort>1</MaxSerialPort>
+			<MaxSerialPortChannels>4</MaxSerialPortChannels>
+			<MaxPixelPortChannels>0</MaxPixelPortChannels>
+			<PixelProtocols>
+			</PixelProtocols>
+			<SerialProtocols>
+				<Protocol>dmx</Protocol>
+				<Protocol>lor</Protocol>
+			</SerialProtocols>
+			<InputProtocols>
+				<Protocol>dmx</Protocol>
+				<Protocol>lor</Protocol>
+			</InputProtocols>
+		</FirmwareVersion>
+	</Controller>
+	<Controller Name="LOR160x">
+		<FirmwareVersion Name="">
+			<MaxInputUniverses>1</MaxInputUniverses>
+			<MaxPixelPort>0</MaxPixelPort>
+			<MaxSerialPort>1</MaxSerialPort>
+			<MaxSerialPortChannels>16</MaxSerialPortChannels>
+			<MaxPixelPortChannels>0</MaxPixelPortChannels>
+			<PixelProtocols>
+			</PixelProtocols>
+			<SerialProtocols>
+				<Protocol>dmx</Protocol>
+				<Protocol>lor</Protocol>
+			</SerialProtocols>
+			<InputProtocols>
+				<Protocol>dmx</Protocol>
+				<Protocol>lor</Protocol>
+			</InputProtocols>
+		</FirmwareVersion>
+	</Controller>
+	<Controller Name="LOR800">
+		<FirmwareVersion Name="">
+			<MaxInputUniverses>1</MaxInputUniverses>
+			<MaxPixelPort>0</MaxPixelPort>
+			<MaxSerialPort>1</MaxSerialPort>
+			<MaxSerialPortChannels>8</MaxSerialPortChannels>
+			<MaxPixelPortChannels>0</MaxPixelPortChannels>
+			<PixelProtocols>
+			</PixelProtocols>
+			<SerialProtocols>
+				<Protocol>dmx</Protocol>
+				<Protocol>lor</Protocol>
+			</SerialProtocols>
+			<InputProtocols>
+				<Protocol>dmx</Protocol>
+				<Protocol>lor</Protocol>
+			</InputProtocols>
+		</FirmwareVersion>
+	</Controller>
+	<Controller Name="Cosmic Color">
+		<FirmwareVersion Name="">
+			<MaxInputUniverses>0</MaxInputUniverses>
+			<MaxPixelPort>1</MaxPixelPort>
+			<MaxSerialPort>0</MaxSerialPort>
+			<MaxSerialPortChannels>0</MaxSerialPortChannels>
+			<MaxPixelPortChannels>150</MaxPixelPortChannels>
+			<PixelProtocols>
+				<Protocol>ccr</Protocol>
+				<Protocol>ccb</Protocol>
+			</PixelProtocols>
+			<SerialProtocols>
+			</SerialProtocols>
+			<InputProtocols>
+				<Protocol>dmx</Protocol>
+				<Protocol>lor</Protocol>
+			</InputProtocols>
+		</FirmwareVersion>
+	</Controller>
+</Vendor>

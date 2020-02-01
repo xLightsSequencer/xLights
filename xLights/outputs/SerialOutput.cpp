@@ -2,9 +2,6 @@
 #include <wx/msgdlg.h>
 
 #include "SerialOutput.h"
-#ifndef EXCLUDENETWORKUI
-#include "SerialPortWithRate.h"
-#endif
 #include "LOROutput.h"
 #include "LOROptimisedOutput.h"
 #include "DLightOutput.h"
@@ -36,6 +33,21 @@ SerialOutput::SerialOutput(wxXmlNode* node) : Output(node)
     SetId(wxAtoi(node->GetAttribute("Id", "0")));
 }
 
+int SerialOutput::GetStopBits() const
+{
+    std::string s;
+    s += _serialConfig[2];
+    return wxAtoi(s);
+}
+
+std::string SerialOutput::GetParity() const
+{
+    if (_serialConfig[1] == 'N') return "None";
+    if (_serialConfig[1] == 'O') return "Odd";
+    if (_serialConfig[1] == 'E') return "Even";
+    return "None";
+}
+
 SerialOutput::SerialOutput(SerialOutput* output) : Output(output)
 {
     _serial = nullptr;
@@ -48,8 +60,8 @@ SerialOutput::SerialOutput() : Output()
 {
     _serial = nullptr;
     strcpy(_serialConfig, "8N1");
-    _commPort = "";
-    _baudRate = 0;
+    _commPort = GetPossibleSerialPorts().front();
+    _baudRate = 250000;
 }
 
 SerialOutput::~SerialOutput()
@@ -111,21 +123,6 @@ bool SerialOutput::TxEmpty() const
 {
     if (_serial) return (_serial->WaitingToWrite() == 0);
     return true;
-}
-
-std::string SerialOutput::GetChannelMapping(int32_t ch) const
-{
-    std::string res = "Channel " + std::string(wxString::Format(wxT("%d"), ch)) + " maps to ...\n";
-
-    int32_t channeloffset = ch - GetStartChannel() + 1;
-
-    res += "Type: " + GetType() + "\n";
-    res += "ComPort: " + _commPort + "\n";
-    res += "Channel: " + std::string(wxString::Format(wxT("%d"), channeloffset)) + "\n";
-
-    if (!_enabled) res += " INACTIVE";
-
-    return res;
 }
 
 std::string SerialOutput::GetLongDescription() const
@@ -473,21 +470,21 @@ SerialOutput* SerialOutput::Mutate(const std::string& newtype)
     return nullptr;
 }
 
-PINGSTATE SerialOutput::Ping() const
+Output::PINGSTATE SerialOutput::Ping() const
 {
     if (_serial != nullptr && _ok)
     {
-        return PINGSTATE::PING_OPEN;
+        return Output::PINGSTATE::PING_OPEN;
     }
     else
     {
-        PINGSTATE res = PINGSTATE::PING_ALLFAILED;
+        Output::PINGSTATE res = Output::PINGSTATE::PING_ALLFAILED;
         SerialPort* serial = new SerialPort();
 
         int errcode = serial->Open(_commPort, _baudRate, _serialConfig);
         if (errcode >= 0)
         {
-            res = PINGSTATE::PING_OPENED;
+            res = Output::PINGSTATE::PING_OPENED;
             serial->Close();
         }
 
@@ -495,24 +492,3 @@ PINGSTATE SerialOutput::Ping() const
         return res;
     }
 }
-
-#pragma region UI
-#ifndef EXCLUDENETWORKUI
-// This is a bit funky as we will need to create a serial output then mutate it into the correct output type
-Output* SerialOutput::Configure(wxWindow* parent, OutputManager* outputManager, ModelManager* modelManager)
-{
-    SerialOutput* result = this;
-
-    SerialPortWithRate dlg(parent, &result, outputManager);
-
-    int res = dlg.ShowModal();
-
-    if (res == wxID_CANCEL)
-    {
-        return nullptr;
-    }
-
-    return result;
-}
-#endif
-#pragma endregion UI

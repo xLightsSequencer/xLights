@@ -1,11 +1,10 @@
-#ifndef PIXLITE_H
-#define PIXLITE_H
+#pragma once
 
 #include <wx/protocol/http.h>
 #include <list>
 #include "models/ModelManager.h"
 
-class Output;
+class ControllerEthernet;
 class OutputManager;
 
 class Pixlite16
@@ -91,9 +90,6 @@ public:
     Pixlite16(const std::string& ip);
     bool IsConnected() const { return _connected; };
     ~Pixlite16();
-    bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, std::list<int>& selected, wxWindow* parent);
-
-    static void RegisterControllers();
+    bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent);
 };
 
-#endif

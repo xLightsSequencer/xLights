@@ -1,7 +1,4 @@
 #include "LOROptimisedOutput.h"
-#ifndef EXCLUDENETWORKUI
-#include "LorOptimisedDialog.h"
-#endif
 #include <wx/xml/xml.h>
 #include <log4cpp/Category.hh>
 
@@ -104,7 +101,7 @@ void LOROptimisedOutput::SetManyChannels(int32_t channel, unsigned char data[], 
     int cur_channel = channel;
     int total_bytes_sent = 0;
 
-    for (const auto& it : *_controllers.GetControllers())
+    for (const auto& it : _controllers.GetControllers())
     {
 		int channel_count = it->GetNumChannels();
         int unit_id = it->GetUnitId();
@@ -309,7 +306,7 @@ void LOROptimisedOutput::AllOff()
     log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("    LOROptimisedOutput: AllOff starting");
 
-    for (const auto& it : *_controllers.GetControllers())
+    for (const auto& it : _controllers.GetControllers())
     {
         int unit_id = it->GetUnitId();
 
@@ -361,28 +358,28 @@ std::string LOROptimisedOutput::GetSetupHelp() const
 }
 #pragma endregion Getters and Setters
 
-#pragma region UI
-#ifndef EXCLUDENETWORKUI
-// This is a bit funky as we will need to create a serial output then mutate it into the correct output type
-Output* LOROptimisedOutput::Configure(wxWindow* parent, OutputManager* outputManager, ModelManager* modelManager)
-{
-    LOROptimisedOutput* result = this;
-
-    LorOptimisedDialog dlg(parent, &result, &_controllers, outputManager, unit_id_in_use);
-
-    int res = dlg.ShowModal();
-
-    if (res == wxID_CANCEL)
-    {
-        return nullptr;
-    }
-
-    CalcTotalChannels();
-
-    return result;
-}
-#endif
-#pragma endregion UI
+//#pragma region UI
+//#ifndef EXCLUDENETWORKUI
+//// This is a bit funky as we will need to create a serial output then mutate it into the correct output type
+//Output* LOROptimisedOutput::Configure(wxWindow* parent, OutputManager* outputManager, ModelManager* modelManager)
+//{
+//    LOROptimisedOutput* result = this;
+//
+//    LorOptimisedDialog dlg(parent, &result, &_controllers, outputManager, unit_id_in_use);
+//
+//    int res = dlg.ShowModal();
+//
+//    if (res == wxID_CANCEL)
+//    {
+//        return nullptr;
+//    }
+//
+//    CalcTotalChannels();
+//
+//    return result;
+//}
+//#endif
+//#pragma endregion UI
 
 void LOROptimisedOutput::CalcChannels(int& channel_count, int& channels_per_pass, int& controller_channels_to_process, LorController* cntrl)
 {
@@ -432,7 +429,7 @@ void LOROptimisedOutput::CalcTotalChannels()
         unit_id_in_use[i] = false;
     }
     unit_id_in_use[0] = true;  // we don't use id 0
-    for (const auto& it : *_controllers.GetControllers())
+    for (const auto& it : _controllers.GetControllers())
     {
         channel_count = it->GetNumChannels();
         int unit_id = it->GetUnitId();

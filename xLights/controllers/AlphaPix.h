@@ -10,103 +10,7 @@ class ModelManager;
 class Output;
 class OutputManager;
 class AlphaPix;
-
-class AlphaPixControllerRules : public ControllerRules
-{
-    int _model;
-
-public:
-    AlphaPixControllerRules(int model) : ControllerRules()
-    {
-        _model = model;
-    }
-    virtual ~AlphaPixControllerRules() {}
-
-    virtual const std::string GetControllerId() const override
-    {
-        if (_model == 48) return "AlphaPix Flex";
-        return wxString::Format("AlphaPix %d", _model).ToStdString();
-    }
-    virtual const std::string GetControllerManufacturer() const override { return "AlphaPix"; };
-
-    virtual bool SupportsLEDPanelMatrix() const override {
-        return false;
-    }
-
-    virtual int GetMaxPixelPortChannels() const override
-    {
-        if (_model == 4)
-        {
-            return 680 * 3;
-        }
-        else if (_model == 16)
-        {
-            return 340 * 3;
-        }
-        else if (_model == 48)
-        {
-            return 340 * 3;
-        }
-        return 0;
-
-    }
-    virtual int GetMaxPixelPort() const override
-    {
-        return _model;
-    }
-    virtual int GetMaxSerialPortChannels() const override
-    {
-        return 512;
-    }
-    virtual int GetMaxSerialPort() const override
-    {
-        if (_model == 4)
-        {
-            return 1;
-        }
-        else if (_model == 16)
-        {
-            return 3;
-        }
-        else if (_model == 48)
-        {
-            return 2;
-        }
-        return 0;
-    }
-    virtual bool IsValidPixelProtocol(const std::string protocol) const override
-    {
-        wxString p(protocol);
-        p = p.Lower();
-        if (p == "ws2811") return true;
-        if (p == "tm18xx") return true;
-        if (p == "ws2801") return true;
-        if (p == "tls3001" && _model != 48) return true;
-        if (p == "lpd6803") return true;
-
-        return false;
-    }
-    virtual bool IsValidSerialProtocol(const std::string protocol) const override
-    {
-        wxString p(protocol);
-        p = p.Lower();
-        if (p == "dmx") return true;
-
-        return false;
-    }
-    virtual bool SupportsMultipleProtocols() const override { return false; }
-    virtual bool SupportsSmartRemotes() const override { return false; }
-    virtual bool SupportsMultipleInputProtocols() const override { return false; }
-    virtual bool AllUniversesSameSize() const override { return true; }
-    virtual bool UniversesMustBeSequential() const override { return false; }
-    virtual std::set<std::string> GetSupportedInputProtocols() const override
-    {
-        std::set<std::string> res = { "E131", "ARTNET" };
-        return res;
-    }
-    
-    virtual bool SingleUpload() const override { return true; }
-};
+class ControllerEthernet;
 
 class AlphaPixOutput
 {
@@ -230,7 +134,7 @@ public:
     virtual ~AlphaPix();
     bool IsConnected() const { return _connected; };
 
-    bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, std::list<int>& selected, wxWindow* parent);
+    bool SetOutputs(ControllerEthernet* controller, ModelManager* allmodels, OutputManager* outputManager, wxWindow* parent);
 
     void UploadPixelOutputs(bool& worked);
     void UploadFlexPixelOutputs(bool& worked);
@@ -248,8 +152,6 @@ public:
             return 2;
         return 0;
     }
-
-    static void RegisterControllers();
 };
 
 #endif

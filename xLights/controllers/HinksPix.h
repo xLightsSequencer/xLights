@@ -1,5 +1,4 @@
-#ifndef HinksPix_H
-#define HinksPix_H
+#pragma once
 
 #include <wx/protocol/http.h>
 #include <list>
@@ -12,84 +11,7 @@ class ModelManager;
 class Output;
 class OutputManager;
 class HinksPix;
-
-class HinksPixControllerRules : public ControllerRules
-{
-    int _outputs;
-    bool _flex;
-
-public:
-    HinksPixControllerRules(bool flex) : ControllerRules(), _flex(flex)
-    {
-        if (_flex) 
-            _outputs = 48;
-        else
-            _outputs = 16;
-    }
-    virtual ~HinksPixControllerRules() {}
-
-    virtual const std::string GetControllerId() const override
-    {
-        if(_flex)
-            return "HinksPix PRO";
-        else
-            return "EasyLights Pix16";
-    }
-    virtual const std::string GetControllerManufacturer() const override { return "HinksPix"; };
-
-    virtual bool SupportsLEDPanelMatrix() const override {
-        return false;
-    }
-
-    virtual int GetMaxPixelPortChannels() const override
-    {
-            return 680 * 3;
-
-    }
-    virtual int GetMaxPixelPort() const override
-    {
-        return _outputs;
-    }
-    virtual int GetMaxSerialPortChannels() const override
-    {
-        return 512;
-    }
-    virtual int GetMaxSerialPort() const override
-    {
-        return 1;
-    }
-    virtual bool IsValidPixelProtocol(const std::string protocol) const override
-    {
-        wxString p(protocol);
-        p = p.Lower();
-        if (p == "ws2811") return true;
-        if (p == "ws2801") return true;
-        if (p == "tls3001") return true;
-        if (p == "apa102") return true;
-
-        return false;
-    }
-    virtual bool IsValidSerialProtocol(const std::string protocol) const override
-    {
-        wxString p(protocol);
-        p = p.Lower();
-        if (p == "dmx") return true;
-
-        return false;
-    }
-    virtual bool SupportsMultipleProtocols() const override { return true; }
-    virtual bool SupportsSmartRemotes() const override { return false; }
-    virtual bool SupportsMultipleInputProtocols() const override { return false; }
-    virtual bool AllUniversesSameSize() const override { return false; }
-    virtual bool UniversesMustBeSequential() const override { return true; }
-    virtual std::set<std::string> GetSupportedInputProtocols() const override
-    {
-        std::set<std::string> res = { "E131", "ARTNET", "DDP" };
-        return res;
-    }
-    
-    virtual bool SingleUpload() const override { return false; }
-};
+class ControllerEthernet;
 
 class HinksPixOutput
 {
@@ -220,14 +142,11 @@ public:
     virtual ~HinksPix();
     bool IsConnected() const { return _connected; };
 
-    bool SetInputUniverses(OutputManager* outputManager, std::list<int>& selected);
-    bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, std::list<int>& selected, wxWindow* parent);
-
-    static void RegisterControllers();
+    bool SetInputUniverses(ControllerEthernet* controller);
+    bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent);
 
     std::string GetModelName() { return EncodeControllerType(); }
     const std::string GetFirmware() const { return  _firmware; } ;
     const int GetNumberOfOutputs() { return _numberOfOutputs; }
     const int GetNumberOfSerial() { return 1; }
 };
-#endif

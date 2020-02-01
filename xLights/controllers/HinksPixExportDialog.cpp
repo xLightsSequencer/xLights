@@ -17,8 +17,9 @@
 #include "xLightsXmlFile.h"
 #include "outputs/Output.h"
 #include "outputs/OutputManager.h"
-#include "controllers/ControllerRegistry.h"
 #include "UtilFunctions.h"
+#include "ControllerCaps.h"
+#include "../outputs/ControllerEthernet.h"
 
 #include <log4cpp/Category.hh>
 
@@ -290,23 +291,17 @@ HinksPixExportDialog::HinksPixExportDialog(wxWindow* parent, OutputManager* outp
 
 void HinksPixExportDialog::PopulateControllerList(wxString const& savedIPs)
 {
-    auto const outputs = _outputManager->GetOutputs();
-    for (auto it = outputs.begin(); it != outputs.end(); ++it)
+    auto const controllers = _outputManager->GetControllers();
+    for (const auto& it : controllers)
     {
-        if ((*it)->IsIpOutput() && (*it)->GetIP() != "MULTICAST" && (*it)->GetType() != OUTPUT_ZCPP)
+        auto eth = dynamic_cast<ControllerEthernet*>(it);
+        if (eth->GetIP() != "MULTICAST" && eth->GetProtocol() != OUTPUT_ZCPP && eth->GetVendor() == "HinksPix" && eth->IsManaged())
         {
-            const ControllerRules* rules = ControllerRegistry::GetRulesForController((*it)->GetControllerId());
-            if (rules && rules->GetControllerManufacturer() == "HinksPix") {
-
-                if (std::find_if(_hixControllers.begin(), _hixControllers.end(), [it](auto const& controller) {return (*it)->GetIP() == controller; }) == _hixControllers.end())
-                {
-                    _hixControllers.push_back((*it)->GetIP());
-                    CheckListBoxControllers->AppendString((*it)->GetIP() + " " + (*it)->GetDescription() + " " + (*it)->GetControllerId());
-                    if (savedIPs.Contains((*it)->GetIP()))
-                    {
-                        CheckListBoxControllers->Check(CheckListBoxControllers->GetCount() - 1);
-                    }
-                }
+            _hixControllers.push_back(eth);
+            CheckListBoxControllers->AppendString(eth->GetIP() + " " + it->GetName() + " " + it->GetModel() + " " + it->GetDescription());
+            if (savedIPs.Contains(eth->GetIP()))
+            {
+                CheckListBoxControllers->Check(CheckListBoxControllers->GetCount() - 1);
             }
         }
     }
@@ -588,7 +583,7 @@ void HinksPixExportDialog::SaveSettings()
             if (selectedController != "") {
                 selectedController += ",";
             }
-            selectedController += _hixControllers[i];
+            selectedController += _hixControllers[i]->GetIP();
         }
     }
 
@@ -687,7 +682,7 @@ void HinksPixExportDialog::OnButton_ExportClick(wxCommandEvent& event)
     int count = 0;
     for (auto const& index :ch)
     {
-        wxString const ip = _hixControllers[index];
+        wxString const ip = _hixControllers[index]->GetIP();
         prgs.Update(++count, "Generating HinksPix Files for " + ip);
         wxString controllerDrive = drive;
         if (ch.Count() > 1)

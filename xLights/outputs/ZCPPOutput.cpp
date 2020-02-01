@@ -8,9 +8,10 @@
 #include <wx/file.h>
 #include <wx/filename.h>
 
-#include "ZCPPDialog.h"
 #include "OutputManager.h"
 #include "../UtilFunctions.h"
+#include "ControllerEthernet.h"
+#include "../controllers/Falcon.h"
 
 #include <list>
 
@@ -589,10 +590,10 @@ void ZCPPOutput::InitialiseModelDataPacket(ZCPP_packet_t* packet, int seq, uint8
     strncpy(packet->Configuration.userControllerName, description.c_str(), sizeof(packet->Configuration.userControllerName));
 }
 
-std::list<Output*> ZCPPOutput::Discover(OutputManager* outputManager)
+std::list<ControllerEthernet*> ZCPPOutput::Discover(OutputManager* outputManager)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    std::list<Output*> res;
+    std::list<ControllerEthernet*> res;
 
     ZCPP_packet_t packet;
 
@@ -677,15 +678,43 @@ std::list<Output*> ZCPPOutput::Discover(OutputManager* outputManager)
                         {
                             logger_base.debug(" Valid response.");
 
-                            ZCPPOutput* output = new ZCPPOutput();
+                            ControllerEthernet* controller = new ControllerEthernet(outputManager, false);
+                            controller->SetProtocol(OUTPUT_ZCPP);
 
                             int vendor = ZCPP_FromWire16(response.DiscoveryResponse.vendor);
-                            output->SetVendor(vendor);
                             logger_base.debug("   Vendor %d", vendor);
-
                             int model = ZCPP_FromWire16(response.DiscoveryResponse.model);
-                            output->SetModel(model);
                             logger_base.debug("   Model %d", model);
+                            switch (vendor)
+                            {
+                            case ZCPP_VENDOR_FALCON:
+                            {
+                                controller->SetVendor("Falcon");
+                                int m, v;
+                                std::string mod = "";
+                                Falcon::DecodeModelVersion(model, m, v);
+                                if (m == 48)
+                                {
+                                    mod = "F48";
+                                }
+                                else
+                                {
+                                    mod = wxString::Format("F%dV%d", m, v);
+                                }
+                                controller->SetModel(mod);
+                            }
+                                break;
+                            case ZCPP_VENDOR_ESPIXELSTICK:
+                                controller->SetVendor("ESPixelStick");
+                                break;
+                            case ZCPP_VENDOR_FPP:
+                                controller->SetVendor("FPP");
+                                break;
+                            default:
+                                break;
+                            }
+
+                            ZCPPOutput* o = dynamic_cast<ZCPPOutput*>(controller->GetOutputs().front());
 
                             logger_base.debug("   Firmware %s", response.DiscoveryResponse.firmwareVersion);
 
@@ -694,71 +723,51 @@ std::list<Output*> ZCPPOutput::Discover(OutputManager* outputManager)
                                 (int)(uint8_t)((response.DiscoveryResponse.ipv4Address & 0xFF00) >> 8),
                                 (int)(uint8_t)((response.DiscoveryResponse.ipv4Address & 0xFF0000) >> 16),
                                 (int)(uint8_t)((response.DiscoveryResponse.ipv4Address & 0xFF000000) >> 24));
-                            output->SetIP(ip.ToStdString());
+                            controller->SetIP(ip.ToStdString());
                             logger_base.debug("   IP %s", (const char*)ip.c_str());
 
-                            output->SetDescription(response.DiscoveryResponse.userControllerName);
-                            logger_base.debug("   Description %s", (const char*)output->GetDescription().c_str());
+                            controller->SetName(response.DiscoveryResponse.userControllerName);
+                            logger_base.debug("   Name %s", (const char*)controller->GetName().c_str());
 
                             uint32_t channels = ZCPP_FromWire32(response.DiscoveryResponse.maxTotalChannels);
                             logger_base.debug("   Channels %ld", channels);
 
                             bool supportsVirtualStrings = (ZCPP_FromWire16(response.DiscoveryResponse.flags) & ZCPP_DISCOVERY_FLAG_SUPPORTS_VIRTUAL_STRINGS) != 0;
                             logger_base.debug("   Supports Virtual Strings %d", supportsVirtualStrings);
+                            o->SetSupportsVirtualStrings(supportsVirtualStrings);
 
                             bool supportsSmartRemotes = (ZCPP_FromWire16(response.DiscoveryResponse.flags) & ZCPP_DISCOVERY_FLAG_SUPPORTS_SMART_REMOTES) != 0;
                             logger_base.debug("   Supports Smart Remotes %d", supportsSmartRemotes);
+                            o->SetSupportsSmartRemotes(supportsSmartRemotes);
 
                             bool dontConfigure = (ZCPP_FromWire16(response.DiscoveryResponse.flags) & ZCPP_DISCOVERY_FLAG_CONFIGURATION_LOCKED) != 0;
                             logger_base.debug("   Doesnt want to recieve configuration %d", dontConfigure);
+                            o->SetDontConfigure(dontConfigure);
 
                             bool multicast = (ZCPP_FromWire16(response.DiscoveryResponse.flags) & ZCPP_DISCOVERY_FLAG_SEND_DATA_AS_MULTICAST) != 0;
                             logger_base.debug("   Wants to receive data multicast %d", multicast);
+                            o->SetMulticast(multicast);
 
-                            // now search for it in outputManager
-                            auto outputs = outputManager->GetOutputs();
-                            for (auto it = outputs.begin(); it != outputs.end(); ++it)
+                            logger_base.info("ZCPP Discovery found a new controller %s.", (const char*)controller->GetIP().c_str());
+
+                            uint32_t mask = 0x00000001;
+                            uint32_t dp = ZCPP_FromWire32(response.DiscoveryResponse.protocolsSupported);
+                            for (int i = 0; i < 32; i++)
                             {
-                                if ((*it)->GetIP() == output->GetIP() || (*it)->GetResolvedIP() == output->GetIP())
+                                if ((dp & mask) != 0)
                                 {
-                                    // we already know about this controller
-                                    logger_base.info("ZCPP Discovery we already know about this controller %s.", (const char*)output->GetIP().c_str());
-                                    delete output;
-                                    output = nullptr;
-                                    break;
+                                    o->AddProtocol(DecodeProtocol(ZCPP_ConvertDiscoveryProtocolToProtocol(dp & mask)));
+                                    logger_base.debug("   Supports Protocol %s", (const char*)DecodeProtocol(ZCPP_ConvertDiscoveryProtocolToProtocol(dp & mask)).c_str());
                                 }
+                                mask = mask << 1;
                             }
 
-                            if (output != nullptr)
-                            {
-                                logger_base.info("ZCPP Discovery found a new controller %s.", (const char*)output->GetIP().c_str());
-                                output->SetSupportsVirtualStrings(supportsVirtualStrings);
-                                output->SetSupportsSmartRemotes(supportsSmartRemotes);
+                            controller->SetAutoSize(true);
+                            o->SetAutoSize(true);
+                            o->SetChannels(1 /*channels*/); // Set this to one as it defaults to auto size
 
-                                uint32_t mask = 0x00000001;
-                                uint32_t dp = ZCPP_FromWire32(response.DiscoveryResponse.protocolsSupported);
-                                for (int i = 0; i < 32; i++)
-                                {
-                                    if ((dp & mask) != 0)
-                                    {
-                                        output->AddProtocol(DecodeProtocol(ZCPP_ConvertDiscoveryProtocolToProtocol(dp & mask)));
-                                        logger_base.debug("   Supports Protocol %s", (const char*)DecodeProtocol(ZCPP_ConvertDiscoveryProtocolToProtocol(dp & mask)).c_str());
-                                    }
-                                    mask = mask << 1;
-                                }
-
-                                output->SetAutoSize(true);
-                                output->SetChannels(1 /*channels*/); // Set this to one as it defaults to auto size
-                                output->SetDontConfigure(dontConfigure);
-
-                                output->SetMulticast(multicast);
-
-                                if (output != nullptr)
-                                {
-                                    logger_base.info("ZCPP Discovery adding controller %s.", (const char*)output->GetIP().c_str());
-                                    res.push_back(output);
-                                }
-                            }
+                            logger_base.info("ZCPP Discovery adding controller %s.", (const char*)controller->GetIP().c_str());
+                            res.push_back(controller);
                         }
                         else
                         {
@@ -936,11 +945,11 @@ void ZCPPOutput::Close()
 }
 #pragma endregion Start and Stop
 
-void ZCPPOutput::SetTransientData(int on, int32_t startChannel, int nullnumber)
+void ZCPPOutput::SetTransientData(int& on, int32_t& startChannel, int nullnumber)
 {
-    _outputNumber = on;
+    _outputNumber = on++;
     _startChannel = startChannel;
-    if (nullnumber > 0) _nullNumber = nullnumber;
+    startChannel += GetChannels();
 }
 
 #pragma region Frame Handling
@@ -1112,35 +1121,4 @@ std::string ZCPPOutput::GetLongDescription() const
 
     return res;
 }
-
-std::string ZCPPOutput::GetChannelMapping(int32_t ch) const
-{
-    std::string res = "Channel " + std::string(wxString::Format(wxT("%i"), ch)) + " maps to ...\n";
-
-    res += "Type: ZCPP\n";
-    int32_t channeloffset = ch - GetStartChannel() + 1;
-    res += "IP: " + _ip + "\n";
-    res += "Channel: " + std::string(wxString::Format(wxT("%i"), channeloffset)) + "\n";
-
-    if (!_enabled) res += " INACTIVE";
-    return res;
-}
 #pragma endregion Getters and Setters
-
-#pragma region UI
-#ifndef EXCLUDENETWORKUI
-Output* ZCPPOutput::Configure(wxWindow* parent, OutputManager* outputManager, ModelManager* modelManager)
-{
-    ZCPPDialog dlg(parent, this, outputManager, modelManager);
-
-    int res = dlg.ShowModal();
-
-    if (res == wxID_CANCEL)
-    {
-        return nullptr;
-    }
-
-    return this;
-}
-#endif
-#pragma endregion UI

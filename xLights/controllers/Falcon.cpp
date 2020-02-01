@@ -10,10 +10,11 @@
 #include "../outputs/Output.h"
 #include "../models/ModelManager.h"
 #include "ControllerUploadData.h"
+#include "../outputs/ControllerEthernet.h"
+#include "ControllerCaps.h"
+#include "../UtilFunctions.h"
 
 #include <log4cpp/Category.hh>
-#include "../UtilFunctions.h"
-#include "ControllerRegistry.h"
 
 void Falcon::DecodeModelVersion(int p, int& model, int& version)
 {
@@ -45,27 +46,6 @@ void Falcon::DecodeModelVersion(int p, int& model, int& version)
         model = 16;
         version = 3;
         break;
-    }
-}
-
-static std::string FALCON_F4 = "Falcon F4";
-
-const std::string FalconControllerRules::GetControllerId() const {
-    return wxString::Format("F%dv%d", _type, _version).ToStdString();
-}
-
-static std::vector<FalconControllerRules> CONTROLLER_TYPE_MAP = {
-    FalconControllerRules(1),
-    FalconControllerRules(3),
-    FalconControllerRules(4),
-    FalconControllerRules(5),
-    FalconControllerRules(6),
-    FalconControllerRules(7)
-};
-
-void Falcon::RegisterControllers() {
-    for (const auto &a : CONTROLLER_TYPE_MAP) {
-        ControllerRegistry::AddController(&a);
     }
 }
 
@@ -305,13 +285,13 @@ std::string Falcon::PutURL(const std::string& url, const std::string& request, b
     return res.ToStdString();
 }
 
-bool Falcon::SetInputUniverses(OutputManager* outputManager, std::list<int>& selected)
+bool Falcon::SetInputUniverses(ControllerEthernet* controller)
 {
     wxString request;
     int output = 0;
 
     // Get universes based on IP
-    std::list<Output*> outputs = outputManager->GetAllOutputs(_ip, selected);
+    std::list<Output*> outputs = controller->GetOutputs();
 
     if (outputs.size() > 96) {
         DisplayError(wxString::Format("Attempt to upload %d universes to falcon controller but only 96 are supported.", outputs.size()).ToStdString());
@@ -320,9 +300,9 @@ bool Falcon::SetInputUniverses(OutputManager* outputManager, std::list<int>& sel
 
     for (const auto& it : outputs) {
         int t = -1;
-        if (it->GetType() == "E131") {
+        if (it->GetType() == OUTPUT_E131) {
             t = 0;
-        } else if (it->GetType() == "ArtNet") {
+        } else if (it->GetType() == OUTPUT_ARTNET) {
             t = 1;
         }
         request += wxString::Format("&u%d=%d&s%d=%d&c%d=%d&t%d=%d",
@@ -392,7 +372,7 @@ void Falcon::DumpStringData(std::vector<FalconString*> stringData) const
     }
 }
 
-bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, std::list<int>& selected, wxWindow* parent)
+bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent)
 {
     //ResetStringOutputs(); // this shouldnt be used normally
     wxProgressDialog progress("Uploading ...", "", 100, parent, wxPD_APP_MODAL | wxPD_AUTO_HIDE);
@@ -405,10 +385,15 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
     logger_base.info("Scanning models.");
 
     std::string check;
-    UDController cud(_ip, _ip, allmodels, outputManager, &selected, check);
+    UDController cud(controller, outputManager, allmodels, check);
 
-    FalconControllerRules rules(_model, _version);
-    bool success = cud.Check(&rules, check);
+    auto caps = ControllerCaps::GetControllerConfig(controller->GetVendor(), controller->GetModel(), controller->GetFirmwareVersion());
+    bool success = true;
+
+    if (caps != nullptr)
+    {
+        success = cud.Check(caps, check);
+    }
 
     logger_base.debug(check);
 

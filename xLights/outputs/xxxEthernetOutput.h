@@ -50,8 +50,8 @@ public:
     virtual std::string GetLongDescription() const override;
     int GetPort() const { return _port; }
     void SetPort(int port) { _port = port; _dirty = true; }
-    virtual std::string GetChannelMapping(int32_t ch) const override;
     virtual std::string GetExport() const override;
+    virtual std::string GetUniverseString() const override { return wxString::Format(wxT("%i"), GetPort()).ToStdString(); }
     #pragma endregion Getters and Setters
 
     virtual wxXmlNode* Save() override;
@@ -73,9 +73,9 @@ public:
     virtual void AllOff() override;
     #pragma endregion Data Setting
 
-    #pragma region UI
-    #ifndef EXCLUDENETWORKUI
-        virtual Output* Configure(wxWindow* parent, OutputManager* outputManager, ModelManager* modelManager) override;
-    #endif
-    #pragma endregion UI
+//    #pragma region UI
+//    #ifndef EXCLUDENETWORKUI
+//        virtual Output* Configure(wxWindow* parent, OutputManager* outputManager, ModelManager* modelManager) override;
+//    #endif
+//    #pragma endregion UI
 };

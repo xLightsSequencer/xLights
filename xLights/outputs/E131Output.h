@@ -53,7 +53,6 @@ public:
     #pragma region Getters and Setters
     virtual std::string GetType() const override { return OUTPUT_E131; }
     virtual std::string GetLongDescription() const override;
-    virtual std::string GetChannelMapping(int32_t ch) const override;
     virtual int GetMaxChannels() const override { return 512; }
     virtual bool IsValidChannelCount(int32_t channelCount) const override { return channelCount > 0 && channelCount <= 512; }
     virtual int32_t GetEndChannel() const override;
@@ -66,7 +65,7 @@ public:
     virtual std::list<Output*> GetOutputs() const override { return _outputs; }
     virtual bool IsOutputCollection() const override { return _numUniverses > 1; }
     virtual int GetUniverses() const override { return _numUniverses; }
-    virtual void SetTransientData(int on, int32_t startChannel, int nullnumber) override;
+    virtual void SetTransientData(int& on, int32_t& startChannel, int nullnumber) override;
     virtual Output* GetActualOutput(int32_t startChannel) override;
     virtual int GetPriority() const {return _priority; }
     virtual void SetPriority(int priority);
@@ -94,10 +93,10 @@ public:
     virtual void AllOff() override;
     #pragma endregion Data Setting
 	
-    #pragma region UI
-#ifndef EXCLUDENETWORKUI
-    virtual Output* Configure(wxWindow* parent, OutputManager* outputManager, ModelManager* modelManager) override;
-#endif
-    #pragma endregion UI
+//    #pragma region UI
+//#ifndef EXCLUDENETWORKUI
+//    virtual Output* Configure(wxWindow* parent, OutputManager* outputManager, ModelManager* modelManager) override;
+//#endif
+//    #pragma endregion UI
 };
 #endif

@@ -5,6 +5,8 @@
 #include <wx/socket.h>
 #include "ZCPP.h"
 
+class ControllerEthernet;
+
 #define ZCPP_MAXCHANNELS (16 * 1024)
 
 class ZCPPOutput : public IPOutput
@@ -44,7 +46,7 @@ public:
     
     #pragma region Static Functions
     static void SendSync();
-    static std::list<Output*> Discover(OutputManager* outputManager);
+    static std::list<ControllerEthernet*> Discover(OutputManager* outputManager);
     static void InitialiseExtraConfigPacket(ZCPP_packet_t* packet, int seq, uint8_t priority);
     static void InitialiseModelDataPacket(ZCPP_packet_t* packet, int seq, uint8_t priority, const std::string& description);
     static std::string DecodeProtocol(int protocol);
@@ -59,7 +61,6 @@ public:
     virtual bool NeedsControllerConfig() const override { return true; }
     virtual std::string GetType() const override { return OUTPUT_ZCPP; }
     virtual std::string GetLongDescription() const override;
-    virtual std::string GetChannelMapping(int32_t ch) const override;
     virtual int GetMaxChannels() const override { return ZCPP_MAXCHANNELS; }
     virtual bool IsValidChannelCount(int32_t channelCount) const override { return channelCount > 0 && channelCount <= GetMaxChannels(); }
     virtual int32_t GetEndChannel() const override;
@@ -113,16 +114,16 @@ public:
     #pragma endregion Frame Handling
     
     #pragma region Data Setting
-    virtual void SetTransientData(int on, int32_t startChannel, int nullnumber) override;
+    virtual void SetTransientData(int& on, int32_t& startChannel, int nullnumber) override;
     virtual void SetOneChannel(int32_t channel, unsigned char data) override;
     virtual void SetManyChannels(int32_t channel, unsigned char* data, size_t size) override;
     virtual void AllOff() override;
     #pragma endregion Data Setting
     
-    #pragma region UI
-#ifndef EXCLUDENETWORKUI
-    virtual Output* Configure(wxWindow* parent, OutputManager* outputManager, ModelManager* modelManager) override;
-#endif
-    #pragma endregion UI
+//    #pragma region UI
+//#ifndef EXCLUDENETWORKUI
+//    virtual Output* Configure(wxWindow* parent, OutputManager* outputManager, ModelManager* modelManager) override;
+//#endif
+//    #pragma endregion UI
 };
 #endif

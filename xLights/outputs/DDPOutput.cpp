@@ -357,37 +357,4 @@ std::string DDPOutput::GetLongDescription() const
 
     return res;
 }
-
-std::string DDPOutput::GetChannelMapping(int32_t ch) const
-{
-    std::string res = "Channel " + std::string(wxString::Format(wxT("%i"), ch)) + " maps to ...\n";
-
-    int32_t channeloffset = ch - GetStartChannel() + 1;
-
-    res += "Type: DDP\n";
-    res += "IP: " + _ip + "\n";
-    res += "Channel: " + std::string(wxString::Format(wxT("%i"), channeloffset)) + "\n";
-
-    if (!_enabled) res += " INACTIVE";
-
-    return res;
-}
 #pragma endregion Getters and Setters
-
-#pragma region UI
-#ifndef EXCLUDENETWORKUI
-Output* DDPOutput::Configure(wxWindow* parent, OutputManager* outputManager, ModelManager* modelManager)
-{
-    DDPDialog dlg(parent, this, outputManager);
-
-    int res = dlg.ShowModal();
-
-    if (res == wxID_CANCEL)
-    {
-        return nullptr;
-    }
-
-    return this;
-}
-#endif
-#pragma endregion UI

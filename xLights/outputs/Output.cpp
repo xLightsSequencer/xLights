@@ -45,7 +45,7 @@ Output::Output(Output* output)
     _description = output->GetDescription();
     _channels = output->GetChannels();
     _controller = output->GetControllerId();
-    _autoSize = output->GetAutoSize();
+    _autoSize = output->IsAutoSize();
     _fppProxy = output->GetFPPProxyIP();
     _startChannel = output->GetStartChannel();
     _fppProxyOutput = nullptr;
@@ -53,6 +53,9 @@ Output::Output(Output* output)
 
 Output::Output(wxXmlNode* node)
 {
+    // keep a copy for conversion reasons
+    _orig = new wxXmlNode(*node);
+
     _suspend = false;
     _changed = false;
     _autoSize = false;
@@ -107,10 +110,12 @@ Output::Output()
     _skippedFrames = 9999;
     _fppProxyOutput = nullptr;
 }
+
 Output::~Output() {
     if (_fppProxyOutput) {
         delete _fppProxyOutput;
     }
+    if (_orig != nullptr) delete _orig;
 }
 
 #pragma endregion Constructors and Destructors
@@ -236,16 +241,16 @@ Output* Output::Create(wxXmlNode* node, std::string showDir)
 
 #pragma region Getters and Setters
 
-void Output::SetTransientData(int on, int32_t startChannel, int nullnumber)
+void Output::SetTransientData(int& on, int32_t& startChannel, int nullnumber)
 {
     wxASSERT(startChannel != -1);
-    _outputNumber = on;
+    _outputNumber = on++;
     _startChannel = startChannel;
-    if (nullnumber > 0) _nullNumber = nullnumber;
     
     if (_fppProxyOutput) {
         _fppProxyOutput->SetTransientData(on, startChannel, nullnumber);
     }
+    startChannel += GetChannels();
 }
 
 void Output::SetIP(const std::string& ip)

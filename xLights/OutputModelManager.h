@@ -51,7 +51,14 @@ public:
 	{
 		_frame = frame;
 	}
-	uint32_t GetASAPWork() {
+    uint32_t PeekASAPWork() {
+        return _workASAP;
+    }
+    bool IsASAPWork(uint32_t work)
+    {
+        return (_workASAP & work) != 0;
+    }
+    uint32_t GetASAPWork() {
         if (_suspendedDeferredWork) return WORK_NOTHING;
 
 		auto res = _workASAP;

@@ -25,10 +25,10 @@ class NodeBaseClass
 
 protected:
     // color values in rgb order
-    uint8_t c[3];
+    uint8_t c[3] = { 0,0,0 };
     // color channel offsets, rgb would be 0,1,2
-    uint8_t offsets[3];
-    uint16_t chanCnt;
+    uint8_t offsets[3] = { 0,1,2 };
+    uint16_t chanCnt = 3;
 
 public:
     // buffer and screen coordinates for displayed nodes
@@ -39,8 +39,8 @@ public:
     };
 
     uint32_t ActChan = 0;   // 0 is the first channel
-    uint16_t sparkle;
-    uint16_t StringNum; // node is part of this string (0 is the first string)
+    uint16_t sparkle = 0;
+    uint16_t StringNum = 0; // node is part of this string (0 is the first string)
     std::vector<CoordStruct> Coords;
     std::string *name = nullptr;
     const Model *model = nullptr;

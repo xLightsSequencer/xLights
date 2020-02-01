@@ -486,6 +486,13 @@ void xLightsFrame::LoadEffectsFile()
     EffectsNode->DeleteAttribute("version");
     EffectsNode->AddAttribute("version", XLIGHTS_RGBEFFECTS_VERSION);
 
+    // Handle upgrade of networks file to the controller/output structure
+    if (_outputManager.ConvertModelStartChannels(ModelsNode))
+    {
+        UnsavedRgbEffectsChanges = true;
+        wxMessageBox("Your setup tab data has been converted to the new controller centric format.\nIf you choose to save either the Controller (Setup) or Layout Tab data it is critical you save both or some of your model start channels will break.\nIf this happens you can either repair them manually or roll back to a backup copy.");
+    }
+
     displayElementsPanel->SetSequenceElementsModelsViews(&SeqData, &mSequenceElements, ModelsNode, ModelGroupsNode, &_sequenceViewManager);
     layoutPanel->ClearUndo();
     GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LoadEffectsFile");

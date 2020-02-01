@@ -16,6 +16,8 @@
 #include "outputs/Output.h"
 #include "outputs/OutputManager.h"
 #include "UtilFunctions.h"
+#include "../outputs/ControllerEthernet.h"
+#include "ControllerCaps.h"
 
 #include <log4cpp/Category.hh>
 #include "../xSchedule/wxJSON/jsonreader.h"
@@ -314,8 +316,10 @@ void FPPConnectDialog::PopulateFPPInstanceList() {
             FPPInstanceSizer->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
         }
 
-        if (inst->PixelContollerDescription() != "") {
-            std::string desc = inst->PixelContollerDescription();
+        std::string m = FPP::GetModel(inst->pixelControllerType);
+
+        if (m != "") {
+            std::string desc = m;
             if (inst->panelSize != "") {
                 desc += " - " + inst->panelSize;
             }
@@ -603,7 +607,21 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
     }
     row = 0;
     xLightsFrame* frame = static_cast<xLightsFrame*>(GetParent());
-    wxJSONValue outputs = FPP::CreateOutputUniverseFile(_outputManager);
+
+    std::list<ControllerEthernet*> outputControllers;
+    for (const auto& it : _outputManager->GetControllers())
+    {
+        auto eth = dynamic_cast<ControllerEthernet*>(it);
+        if (eth != nullptr)
+        {
+            if (eth->GetProtocol() != OUTPUT_ZCPP)
+            {
+                outputControllers.push_back(eth);
+            }
+        }
+    }
+
+    wxJSONValue outputs = FPP::CreateUniverseFile(outputControllers, false);
     wxProgressDialog prgs("", "", 1001, this, wxPD_CAN_ABORT | wxPD_APP_MODAL | wxPD_AUTO_HIDE);
     for (const auto& inst : instances) {
         inst->progressDialog = &prgs;
@@ -622,8 +640,15 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
                 inst->SetRestartFlag();
             }
             if (GetCheckValue(UPLOAD_CONTROLLER_COL + rowStr)) {
-                cancelled |= inst->UploadPixelOutputs(&frame->AllModels, _outputManager);
-                inst->SetRestartFlag();
+                auto vendor = FPP::GetVendor(inst->pixelControllerType);
+                auto model = FPP::GetModel(inst->pixelControllerType);
+                auto caps = ControllerCaps::GetControllerConfig(vendor, model, "");
+                auto c = _outputManager->GetControllers(inst->ipAddress);
+                if (c.size() == 1)
+                {
+                    cancelled |= inst->UploadPixelOutputs(&frame->AllModels, _outputManager, c.front());
+                    inst->SetRestartFlag();
+                }
             }
         }
         row++;

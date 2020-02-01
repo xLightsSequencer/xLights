@@ -28,15 +28,15 @@
 #include "../outputs/Output.h"
 #include "../outputs/E131Output.h"
 #include "../outputs/DDPOutput.h"
+#include "../outputs/ControllerEthernet.h"
 #include "../UtilFunctions.h"
 #include "../xLightsVersion.h"
 #include "../Parallel.h"
+#include "ControllerCaps.h"
 
 #include <log4cpp/Category.hh>
-#include "ControllerRegistry.h"
 #include "ControllerUploadData.h"
 #include "../FSEQFile.h"
-
 
 #include "Falcon.h"
 #include "SanDevices.h"
@@ -44,50 +44,6 @@
 
 #include "TraceLog.h"
 using namespace TraceLog;
-
-static std::map<std::string, PixelCapeInfo> CONTROLLER_TYPE_MAP = {
-    {"PiHat", PixelCapeInfo("PiHat", 2, 0)},
-    {"F8-B", PixelCapeInfo("F8-B", "F8-B (8 serial)", 12, 8)},
-    {"F8-B-16", PixelCapeInfo("F8-B-16", "F8-B (4 serial)", 16, 4)},
-    {"F8-B-20", PixelCapeInfo("F8-B-20", "F8-B (No serial)", 20, 0)},
-    {"F8-B-EXP", PixelCapeInfo("F8-B-EXP", "F8-B w/ Expansion (8 serial)", 28, 8, {{13, 16}})},
-    {"F8-B-EXP-32", PixelCapeInfo("F8-B-EXP-32", "F8-B w/ Expansion (4 serial)", 32, 4, {{17, 16}})},
-    {"F8-B-EXP-36", PixelCapeInfo("F8-B-EXP-36", "F8-B w/ Expansion (No serial)", 36, 0, {{21, 16}})},
-    {"F16-B", PixelCapeInfo("F16-B", "F16-B", 16, 8)},
-    {"F16-B-32", PixelCapeInfo("F16-B-32", "F16-B w/ 32 outputs", 32, 8, {{17, 16}})},
-    {"F16-B-48", PixelCapeInfo("F16-B-48", "F16-B w/ 48 outputs (No Serial)", 48, 0, {{17, 16}, {33, 16}})},
-    {"F4-B", PixelCapeInfo("F4-B", "F4-B", 4, 1)},
-    {"F32-B", PixelCapeInfo("F32-B", "F32-B (8 Serial)", 40, 8)},
-    {"F32-B-44", PixelCapeInfo("F32-B-44", "F32-B (4 Serial)", 44, 4)},
-    {"F32-B-48", PixelCapeInfo("F32-B-48", "F32-B (No Serial)", 48, 0)},
-    {"F40D-PB", PixelCapeInfo("F40D-PB", "F40D-PB (8 Serial)", 32, 8)},
-    {"F40D-PB-36", PixelCapeInfo("F40D-PB-36", "F40D-PB (4 Serial)", 36, 4)},
-    {"F40D-PB-40", PixelCapeInfo("F40D-PB-40", "F40D-PB (No Serial)", 40, 0)},
-    {"PB16", PixelCapeInfo("PB16", "PB16 (2 serial)", 16, 2)},
-    {"PB16-EXP", PixelCapeInfo("PB16-EXP", "PB16 w/ Expansion (2 serial)", 32, 2, {{17, 16}})},
-    {"RGBCape24", PixelCapeInfo("RGBCape24", "RGBCape24", 48, 0, {{1, 8}, {9, 8}, {17, 8}})},
-    {"RGBCape48C", PixelCapeInfo("RGBCape48C", "RGBCape48C", 48, 0, {{1, 8}, {9, 8}, {17, 8}, {25, 8}, {33, 8}, {41, 8}})},
-    {"RGBCape48F", PixelCapeInfo("RGBCape48F", "RGBCape48F", 48, 0, {{1, 8}, {9, 8}, {17, 8}, {25, 8}, {33, 8}, {41, 8}})},
-    {"LED Panels", PixelCapeInfo("LED Panels", 0, 0)}
-};
-
-const std::string &FPP::PixelContollerDescription() const {
-    if (CONTROLLER_TYPE_MAP.find(pixelControllerType) == CONTROLLER_TYPE_MAP.end()) {
-        return pixelControllerType;
-    }
-    return CONTROLLER_TYPE_MAP[pixelControllerType].description;
-}
-void FPP::RegisterCapes() {
-    for (const auto &a : CONTROLLER_TYPE_MAP) {
-        ControllerRegistry::AddController(&a.second);
-    }
-}
-
-
-PixelCapeInfo& FPP::GetCapeRules(const std::string& type)
-{
-    return CONTROLLER_TYPE_MAP.find(type) != CONTROLLER_TYPE_MAP.end() ? CONTROLLER_TYPE_MAP[type] : CONTROLLER_TYPE_MAP["PiHat"];
-}
 
 FPP::FPP(const std::string &ad) : majorVersion(0), minorVersion(0), outputFile(nullptr), parent(nullptr), ipAddress(ad), curl(nullptr), isFPP(true) {
     wxIPV4address address;
@@ -97,6 +53,15 @@ FPP::FPP(const std::string &ad) : majorVersion(0), minorVersion(0), outputFile(n
     }
 }
 
+FPP::FPP(ControllerEthernet* controller) : majorVersion(0), minorVersion(0), outputFile(nullptr), parent(nullptr), curl(nullptr), isFPP(true) {
+    _controller = controller;
+    ipAddress = controller->GetIP();
+    wxIPV4address address;
+    if (address.Hostname(ipAddress)) {
+        hostName = ipAddress;
+        ipAddress = address.IPAddress();
+    }
+}
 
 FPP::FPP(const FPP &c)
     : majorVersion(c.majorVersion), minorVersion(c.minorVersion), outputFile(nullptr), parent(nullptr), curl(nullptr),
@@ -222,6 +187,7 @@ void FPP::setupCurl() {
     curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT_MS, 2000);
     curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, 30000);
 }
+
 bool FPP::GetURLAsString(const std::string& url, std::string& val)  {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     setupCurl();
@@ -238,7 +204,7 @@ bool FPP::GetURLAsString(const std::string& url, std::string& val)  {
     }
     
     bool retValue = false;
-    int i = curl_easy_perform(curl);
+    int i = ::curl_easy_perform(curl);
     long response_code = 0;
     if (i == CURLE_OK) {
         val = curlInputBuffer;
@@ -308,6 +274,28 @@ bool FPP::GetURLAsJSON(const std::string& url, wxJSONValue& val) {
     return false;
 }
 
+
+std::map<int, int> FPP::GetExpansionPorts(ControllerCaps* caps) const
+{
+    std::map<int, int> res;
+
+    int ports = wxAtoi(caps->GetCustomPropertyByPath("fpp", "0"));
+
+    for (int i = 1; i <= ports; i++)
+    {
+        auto s = caps->GetCustomPropertyByPath(wxString::Format("fpp%d", i), "0,0");
+        if (s != "0,0")
+        {
+            auto ss = wxSplit(s, ',');
+            if (ss.size() == 2)
+            {
+                res[wxAtoi(ss[0])] == wxAtoi(ss[1]);
+            }
+        }
+    }
+
+    return res;
+}
 
 bool FPP::AuthenticateAndUpdateVersions() {
     std::string conf;
@@ -765,9 +753,9 @@ bool FPP::PrepareUploadSequence(const FSEQFile &file,
         return uploadOrCopyFile(baseName, seq, fn.GetExt() == "eseq" ? "effects" : "sequences");
     }
     baseSeqName = baseName;
-    FSEQFile::CompressionType ctype = FSEQFile::CompressionType::zstd;
+    FSEQFile::CompressionType ctype = ::FSEQFile::CompressionType::zstd;
     if (type == 3) {
-        ctype = FSEQFile::CompressionType::none;
+        ctype = ::FSEQFile::CompressionType::none;
     }
     int clevel = 2;
     if (model.find(" Zero") != std::string::npos
@@ -1054,14 +1042,20 @@ void FPP::SetNewRanges(const std::map<int, int> &rngs) {
 
 
 bool FPP::UploadUDPOutputsForProxy(OutputManager* outputManager) {
-    std::list<int> selected;
-    for (int x = 0; x < outputManager->GetOutputCount(); x++) {
-        std::string px = outputManager->GetOutput(x)->GetFPPProxyIP();
-        if (px == hostName || px == ipAddress) {
-            selected.push_back(x);
+    std::list<ControllerEthernet*> selected;
+    for (const auto& it : outputManager->GetControllers())
+    {
+        auto c = dynamic_cast<ControllerEthernet*>(it);
+        if (c != nullptr)
+        {
+            if (c->GetFPPProxy() == ipAddress)
+            {
+                selected.push_back(c);
+            }
         }
     }
-    wxJSONValue f = CreateUniverseFile(outputManager, "-selected-", selected, false);
+
+    wxJSONValue f = CreateUniverseFile(selected, false);
     
     std::map<int, int> rng;
     FillRanges(rng);
@@ -1076,11 +1070,29 @@ bool FPP::UploadUDPOutputsForProxy(OutputManager* outputManager) {
     return UploadUDPOut(f);
 }
 
-wxJSONValue FPP::CreateOutputUniverseFile(OutputManager* outputManager) {
-    std::list<int> selected;
-    return CreateUniverseFile(outputManager, "", selected, false);
+wxJSONValue FPP::CreateUniverseFile(ControllerEthernet* controller, bool input) {
+    std::list<ControllerEthernet*> selected;
+    selected.push_back(controller);
+    return CreateUniverseFile(selected, false);
 }
-wxJSONValue FPP::CreateUniverseFile(OutputManager* outputManager, const std::string &onlyip, const std::list<int>& selected, bool input) {
+
+std::string FPP::GetVendor(const std::string& type)
+{
+    std::string v, m;
+
+    Controller::ConvertOldTypeToVendorModel(type, v, m);
+    return v;
+}
+
+std::string FPP::GetModel(const std::string& type)
+{
+    std::string v, m;
+
+    Controller::ConvertOldTypeToVendorModel(type, v, m);
+    return m;
+}
+
+wxJSONValue FPP::CreateUniverseFile(const std::list<ControllerEthernet*>& selected, bool input) {
     wxJSONValue root;
     root["type"] = wxString("universes");
     root["enabled"] = 1;
@@ -1088,46 +1100,54 @@ wxJSONValue FPP::CreateUniverseFile(OutputManager* outputManager, const std::str
     root["channelCount"] = -1;
 
     wxJSONValue universes;
-    // Get universes based on IP
-    std::list<Output*> outputs = outputManager->GetAllOutputs(onlyip, "", selected, false);
-    for (const auto& it : outputs) {
-        int c = it->GetStartChannel();
 
-        wxJSONValue universe;
-        universe["active"] = it->IsEnabled() ? 1 : 0;
-        universe["description"] = stripInvalidChars(it->GetDescription());
-        universe["id"] = it->GetUniverse();
-        universe["startChannel"] = c;
-        universe["channelCount"] = it->GetChannels();
-        universe["priority"] = 0;
-        universe["address"] = wxString("");
+    for (const auto& it2 : selected)
+    {
+        // Get universes based on IP
+        std::list<Output*> outputs = it2->GetOutputs();
+        for (const auto& it : outputs) {
+            int c = it->GetStartChannel();
 
-        if (it->GetType() == OUTPUT_E131) {
-            universe["type"] = (int)(it->GetIP() != "MULTICAST" ? 1 : 0);
-            if (!input && (it->GetIP() != "MULTICAST")) {
-                universe["address"] = wxString(it->GetIP());
-            }
-            if (it->IsOutputCollection()) {
-                universe["universeCount"] = ((E131Output*)it)->GetUniverses();
-            } else {
-                universe["universeCount"] = 1;
-            }
-            universes.Append(universe);
-        } else if (it->GetType() == OUTPUT_DDP) {
-            if (!input) {
-                universe["address"] = wxString(it->GetIP());
-                DDPOutput *ddp = (DDPOutput*)it;
-                universe["type"] = ddp->IsKeepChannelNumbers() ? 4 : 5;
+            wxJSONValue universe;
+            universe["active"] = it->IsEnabled() ? 1 : 0;
+            universe["description"] = stripInvalidChars(it->GetDescription());
+            universe["id"] = it->GetUniverse();
+            universe["startChannel"] = c;
+            universe["channelCount"] = it->GetChannels();
+            universe["priority"] = 0;
+            universe["address"] = wxString("");
+
+            if (it->GetType() == OUTPUT_E131) {
+                universe["type"] = (int)(it->GetIP() != "MULTICAST" ? 1 : 0);
+                if (!input && (it->GetIP() != "MULTICAST")) {
+                    universe["address"] = wxString(it->GetIP());
+                }
+                if (it->IsOutputCollection()) {
+                    universe["universeCount"] = ((E131Output*)it)->GetUniverses();
+                }
+                else {
+                    universe["universeCount"] = 1;
+                }
                 universes.Append(universe);
-            } else {
-                //don't need to do anything to configure DDP input
             }
-        } else if (it->GetType() == OUTPUT_ARTNET) {
-            universe["type"] = (int)((it->GetIP() != "MULTICAST") + 2);
-            if (!input && (it->GetIP() != "MULTICAST")) {
-                universe["address"] = wxString(it->GetIP());
+            else if (it->GetType() == OUTPUT_DDP) {
+                if (!input) {
+                    universe["address"] = wxString(it->GetIP());
+                    DDPOutput* ddp = (DDPOutput*)it;
+                    universe["type"] = ddp->IsKeepChannelNumbers() ? 4 : 5;
+                    universes.Append(universe);
+                }
+                else {
+                    //don't need to do anything to configure DDP input
+                }
             }
-            universes.Append(universe);
+            else if (it->GetType() == OUTPUT_ARTNET) {
+                universe["type"] = (int)((it2->GetIP() != "MULTICAST") + 2);
+                if (!input && (it->GetIP() != "MULTICAST")) {
+                    universe["address"] = wxString(it->GetIP());
+                }
+                universes.Append(universe);
+            }
         }
     }
 
@@ -1160,10 +1180,13 @@ void FPP::SetDescription(const std::string &st) {
 }
 
 
-bool FPP::SetInputUniversesBridge(std::list<int>& selected, OutputManager* outputManager) {
-    wxJSONValue udp = CreateUniverseFile(outputManager, ipAddress, selected, true);
+bool FPP::SetInputUniversesBridge(Controller* controller) {
+    auto c = dynamic_cast<ControllerEthernet*>(controller);
+    if (c == nullptr) return false;
+
+    wxJSONValue udp = CreateUniverseFile(std::list<ControllerEthernet*>({ c }), true);
     if (IsDrive()) {
-        std::string fn = (ipAddress + wxFileName::GetPathSeparator() + "config" + wxFileName::GetPathSeparator() + "ci-universes.json");
+        std::string fn = (c->GetResolvedIP() + wxFileName::GetPathSeparator() + "config" + wxFileName::GetPathSeparator() + "ci-universes.json");
         WriteJSONToPath(fn, udp);
     } else if (IsVersionAtLeast(2, 4)) {
         PostJSONToURLAsFormData("/fppjson.php", "command=setChannelOutputs&file=universeInputs", udp);
@@ -1173,12 +1196,13 @@ bool FPP::SetInputUniversesBridge(std::list<int>& selected, OutputManager* outpu
 
 bool FPP::UploadPixelOutputs(ModelManager* allmodels,
                              OutputManager* outputManager,
-                             const std::list<int>& selected) {
+                             Controller* controller) {
     int maxString = 1;
     int maxdmx = 0;
-    PixelCapeInfo &rules = GetCapeRules(pixelControllerType);
-    maxdmx = rules.maxDMX;
-    maxString = rules.maxStrings;
+
+    auto rules = ControllerCaps::GetControllerConfig(controller);
+    maxdmx = rules->GetMaxSerialPort();
+    maxString = rules->GetMaxPixelPort();
     
     std::map<int, int> rngs;
     FillRanges(rngs);
@@ -1187,8 +1211,8 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
     logger_base.debug("FPP Outputs Upload: Uploading to %s", (const char *)ipAddress.c_str());
 
     std::string check;
-    UDController cud(ipAddress, hostName, allmodels, outputManager, &selected, check);
-    if (rules.SupportsLEDPanelMatrix()) {
+    UDController cud(controller, outputManager, allmodels, check);
+    if (rules->SupportsLEDPanelMatrix()) {
         //LED panel cape, nothing we can really do except update the start channel
         int startChannel = -1;
         if (cud.GetMaxPixelPort()) {
@@ -1238,7 +1262,7 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
         fppFileName = "co-pixelStrings";
         minPorts = 2;
     }
-    cud.Check(&rules, check);
+    cud.Check(rules, check);
     cud.Dump();
 
     wxFileName fnOrig;
@@ -1317,7 +1341,7 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
         stringData["outputs"].Append(port);
     }
 
-    for (int pp = 1; pp <= rules.GetMaxPixelPort(); pp++) {
+    for (int pp = 1; pp <= rules->GetMaxPixelPort(); pp++) {
         if (cud.HasPixelPort(pp)) {
             UDControllerPort* port = cud.GetControllerPixelPort(pp);
             if (doVirtualString) {
@@ -1490,9 +1514,10 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
             }
         }
     }
+    auto expansionPorts = GetExpansionPorts(rules);
     for (int x = 0; x < maxport; x++) {
-        if (rules.expansionPorts.find(x+1) != rules.expansionPorts.end()) {
-            int count = rules.expansionPorts.find(x+1)->second;
+        if (expansionPorts.find(x+1) != expansionPorts.end()) {
+            int count = expansionPorts.find(x+1)->second;
             int expansionType = 0;
             for (int p = 0; p < count; p++) {
                 if (stringData["outputs"][x+p].HasMember("differentialType") && stringData["outputs"][x+p]["differentialType"].AsInt()) {
@@ -1522,7 +1547,7 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
             maxChan = std::max(mx, maxChan);
         }
     }
-    for (int sp = 1; sp <= rules.GetMaxSerialPort(); sp++) {
+    for (int sp = 1; sp <= rules->GetMaxSerialPort(); sp++) {
         wxJSONValue port;
         port["outputNumber"] = (sp - 1);
         port["outputType"] = isDMX ? wxString("DMX") : wxString("Pixelnet");
@@ -1589,8 +1614,6 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
     SetNewRanges(rngs);
     return false;
 }
-
-
 
 class CurlData {
 public:

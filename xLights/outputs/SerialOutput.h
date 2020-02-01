@@ -36,7 +36,6 @@ public:
     #pragma region Getters and Setters
     virtual bool IsIpOutput() const override { return false; }
     virtual bool IsSerialOutput() const override { return true; }
-    virtual std::string GetChannelMapping(int32_t ch) const override;
     virtual std::string GetLongDescription() const override;
     virtual std::string GetPingDescription() const override;
     virtual int GetMaxChannels() const override { return 0; }
@@ -49,6 +48,9 @@ public:
     void SetId(int id) { _universe = id; _dirty = true; }
     virtual std::string GetSortName() const override { return GetCommPort(); }
     virtual std::string GetExport() const override;
+    std::string GetParity() const;
+    int GetStopBits() const;
+    PINGSTATE Ping() const;
     #pragma endregion Getters and Setters
 
     #pragma region Operators
@@ -65,14 +67,14 @@ public:
     // Create a new serial type of the specified type but copy across this objects settings
     SerialOutput* Mutate(const std::string& newtype);
 
-    PINGSTATE Ping() const override;
-    bool CanPing() const override { return true; }
+    //PINGSTATE Ping() const override;
+    //bool CanPing() const override { return true; }
 
-    #pragma region UI
-#ifndef EXCLUDENETWORKUI
-    virtual Output* Configure(wxWindow* parent, OutputManager* outputManager, ModelManager* modelManager) override;
-#endif
-    #pragma endregion UI
+//    #pragma region UI
+//#ifndef EXCLUDENETWORKUI
+//    virtual Output* Configure(wxWindow* parent, OutputManager* outputManager, ModelManager* modelManager) override;
+//#endif
+//    #pragma endregion UI
 };
 
  #endif

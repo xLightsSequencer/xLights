@@ -680,7 +680,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxStaticBoxSizer" variable="StaticBoxSizer2" member="no">
-										<label>Lighting Networks</label>
+										<label>Controllers</label>
 										<object class="sizeritem">
 											<object class="wxFlexGridSizer" variable="FlexGridSizerNetworks" member="no">
 												<cols>3</cols>
@@ -691,129 +691,56 @@
 														<orient>wxVERTICAL</orient>
 														<object class="sizeritem">
 															<object class="wxButton" name="ID_BUTTON_SAVE_SETUP" variable="ButtonSaveSetup" member="yes">
-																<label>Save Setup</label>
+																<label>Save</label>
 																<handler function="OnButtonSaveSetupClick" entry="EVT_BUTTON" />
 															</object>
-															<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+															<flag>wxALL|wxEXPAND</flag>
 															<border>3</border>
 															<option>1</option>
 														</object>
 														<object class="sizeritem">
-															<object class="wxButton" name="ID_BUTTON_ADD_DONGLE" variable="ButtonAddDongle" member="yes">
+															<object class="wxButton" name="ID_BUTTON9" variable="ButtonAddControllerSerial" member="yes">
 																<label>Add USB</label>
-																<handler function="OnButtonAddDongleClick" entry="EVT_BUTTON" />
-															</object>
-															<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-															<border>3</border>
-															<option>1</option>
-														</object>
-														<object class="sizeritem">
-															<object class="wxButton" name="ID_BUTTON_ADD_E131" variable="ButtonAddE131" member="yes">
-																<label>Add E1.31</label>
-																<handler function="OnButtonAddE131Click" entry="EVT_BUTTON" />
-															</object>
-															<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-															<border>3</border>
-															<option>1</option>
-														</object>
-														<object class="sizeritem">
-															<object class="wxButton" name="ID_BUTTON1" variable="ButtonAddNull" member="yes">
-																<label>Add Null</label>
-																<handler function="OnButtonAddNullClick" entry="EVT_BUTTON" />
-															</object>
-															<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-															<border>5</border>
-															<option>1</option>
-														</object>
-														<object class="sizeritem">
-															<object class="wxButton" name="ID_BUTTON2" variable="ButtonArtNET" member="yes">
-																<label>Add ArtNET</label>
-																<handler function="OnButtonArtNETClick" entry="EVT_BUTTON" />
-															</object>
-															<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-															<border>5</border>
-															<option>1</option>
-														</object>
-														<object class="sizeritem">
-															<object class="wxButton" name="ID_BUTTON_ADD_LOR" variable="ButtonAddLOR" member="yes">
-																<label>Add LOR</label>
-																<handler function="OnButtonAddLORClick" entry="EVT_BUTTON" />
-															</object>
-															<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-															<border>5</border>
-															<option>1</option>
-														</object>
-														<object class="sizeritem">
-															<object class="wxButton" name="ID_BUTTON_ADD_DDP" variable="ButtonAddDDP" member="yes">
-																<label>Add DDP</label>
-																<handler function="OnButtonAddDDPClick" entry="EVT_BUTTON" />
-															</object>
-															<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-															<border>5</border>
-															<option>1</option>
-														</object>
-														<object class="sizeritem">
-															<object class="wxButton" name="ID_BUTTON4" variable="Button_AddZCPP" member="yes">
-																<label>Add ZCPP</label>
-																<handler function="OnButton_AddZCPPClick" entry="EVT_BUTTON" />
-															</object>
-															<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-															<border>5</border>
-															<option>1</option>
-														</object>
-														<object class="sizeritem">
-															<object class="wxButton" name="ID_BUTTON_NETWORK_CHANGE" variable="ButtonNetworkChange" member="yes">
-																<label>Change</label>
-																<handler function="OnButtonNetworkChangeClick" entry="EVT_BUTTON" />
-															</object>
-															<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-															<border>3</border>
-															<option>1</option>
-														</object>
-														<object class="sizeritem">
-															<object class="wxButton" name="ID_BUTTON_NETWORK_DELETE" variable="ButtonNetworkDelete" member="yes">
-																<label>Delete</label>
-																<handler function="OnButtonNetworkDeleteClick" entry="EVT_BUTTON" />
-															</object>
-															<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-															<border>3</border>
-															<option>1</option>
-														</object>
-														<object class="sizeritem">
-															<object class="wxButton" name="ID_BUTTON_NETWORK_DELETE_ALL" variable="ButtonNetworkDeleteAll" member="yes">
-																<label>Delete All</label>
-																<handler function="OnButtonNetworkDeleteAllClick" entry="EVT_BUTTON" />
-															</object>
-															<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-															<border>3</border>
-															<option>1</option>
-														</object>
-														<object class="sizeritem">
-															<object class="wxButton" name="ID_BUTTON5" variable="Button_Discover" member="yes">
-																<label>Discover</label>
-																<handler function="OnButton_DiscoverClick" entry="EVT_BUTTON" />
-															</object>
-															<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-															<border>5</border>
-															<option>1</option>
-														</object>
-														<object class="sizeritem">
-															<object class="wxStaticText" name="ID_STATICTEXT8" variable="StaticText5" member="yes">
-																<label>&#x0A;E1.31 Sync Universe:</label>
-															</object>
-															<flag>wxALL|wxALIGN_LEFT</flag>
-															<border>2</border>
-															<option>1</option>
-														</object>
-														<object class="sizeritem">
-															<object class="wxSpinCtrl" name="ID_SPINCTRL1" variable="SpinCtrl_SyncUniverse" member="yes">
-																<value>0</value>
-																<max>63999</max>
-																<tooltip>This should be left as 0 unless you have controllers which support it.</tooltip>
-																<handler function="OnSpinCtrl_SyncUniverseChange" entry="EVT_SPINCTRL" />
+																<handler function="OnButtonAddControllerSerialClick" entry="EVT_BUTTON" />
 															</object>
 															<flag>wxALL|wxEXPAND</flag>
-															<border>5</border>
+															<border>3</border>
+															<option>1</option>
+														</object>
+														<object class="sizeritem">
+															<object class="wxButton" name="ID_BUTTON6" variable="ButtonAddControllerEthernet" member="yes">
+																<label>Add Ethernet</label>
+																<handler function="OnButtonAddControllerEthernetClick" entry="EVT_BUTTON" />
+															</object>
+															<flag>wxALL|wxEXPAND</flag>
+															<border>3</border>
+															<option>1</option>
+														</object>
+														<object class="sizeritem">
+															<object class="wxButton" name="ID_BUTTON10" variable="ButtonAddControllerNull" member="yes">
+																<label>Add Null</label>
+																<handler function="OnButtonAddControllerNullClick" entry="EVT_BUTTON" />
+															</object>
+															<flag>wxALL|wxEXPAND</flag>
+															<border>3</border>
+															<option>1</option>
+														</object>
+														<object class="sizeritem">
+															<object class="wxButton" name="ID_BUTTON_NETWORK_DELETE_ALL" variable="ButtonDeleteAllControllers" member="yes">
+																<label>Delete All</label>
+																<handler function="OnButtonDeleteAllControllersClick" entry="EVT_BUTTON" />
+															</object>
+															<flag>wxALL|wxEXPAND</flag>
+															<border>3</border>
+															<option>1</option>
+														</object>
+														<object class="sizeritem">
+															<object class="wxButton" name="ID_BUTTON5" variable="ButtonDiscover" member="yes">
+																<label>Discover</label>
+																<handler function="OnButtonDiscoverClick" entry="EVT_BUTTON" />
+															</object>
+															<flag>wxALL|wxEXPAND</flag>
+															<border>3</border>
 															<option>1</option>
 														</object>
 													</object>
@@ -849,18 +776,97 @@
 													<option>1</option>
 												</object>
 												<object class="sizeritem">
-													<object class="wxListCtrl" name="ID_LISTCTRL_NETWORKS" variable="GridNetwork" member="yes">
-														<tooltip>Drag an item to reorder the list</tooltip>
-														<style>wxLC_REPORT</style>
-														<handler function="OnGridNetworkBeginDrag" entry="EVT_LIST_BEGIN_DRAG" />
-														<handler function="OnGridNetworkItemSelect" entry="EVT_LIST_ITEM_SELECTED" />
-														<handler function="OnGridNetworkItemDeselect" entry="EVT_LIST_ITEM_DESELECTED" />
-														<handler function="OnGridNetworkItemActivated" entry="EVT_LIST_ITEM_ACTIVATED" />
-														<handler function="OnGridNetworkItemFocused" entry="EVT_LIST_ITEM_FOCUSED" />
-														<handler function="OnGridNetworkItemRClick" entry="EVT_LIST_ITEM_RIGHT_CLICK" />
-														<handler function="OnGridNetworkKeyDown" entry="EVT_LIST_KEY_DOWN" />
+													<object class="wxSplitterWindow" name="ID_SPLITTERWINDOW1" variable="SplitterWindowControllers" member="yes">
+														<sashpos>1000</sashpos>
+														<minpanesize>250</minpanesize>
+														<orientation>vertical</orientation>
+														<object class="wxPanel" name="ID_PANEL2" variable="Panel2" member="yes">
+															<object class="wxFlexGridSizer" variable="FlexGridSizerSetupControllers" member="yes">
+																<cols>1</cols>
+																<growablecols>0</growablecols>
+																<growablerows>0</growablerows>
+															</object>
+														</object>
+														<object class="wxPanel" name="ID_PANEL6" variable="Panel5" member="yes">
+															<object class="wxFlexGridSizer" variable="FlexGridSizerSetupRight" member="yes">
+																<cols>1</cols>
+																<growablecols>0</growablecols>
+																<growablerows>0</growablerows>
+																<object class="sizeritem">
+																	<object class="wxFlexGridSizer" variable="FlexGridSizerSetupProperties" member="yes">
+																		<cols>1</cols>
+																		<growablecols>0</growablecols>
+																		<growablerows>0</growablerows>
+																	</object>
+																	<flag>wxALL|wxEXPAND</flag>
+																	<border>5</border>
+																	<option>1</option>
+																</object>
+																<object class="sizeritem">
+																	<object class="wxFlexGridSizer" variable="FlexGridSizerSetupControllerButtons" member="yes">
+																		<rows>1</rows>
+																		<object class="sizeritem">
+																			<object class="wxButton" name="ID_BUTTON1" variable="ButtonVisualise" member="yes">
+																				<label>Visualise ...</label>
+																				<handler function="OnButtonVisualiseClick" entry="EVT_BUTTON" />
+																			</object>
+																			<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																			<border>5</border>
+																			<option>1</option>
+																		</object>
+																		<object class="sizeritem">
+																			<object class="wxButton" name="ID_BUTTON2" variable="ButtonUploadInput" member="yes">
+																				<label>Upload Input</label>
+																				<handler function="OnButtonUploadInputClick" entry="EVT_BUTTON" />
+																			</object>
+																			<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																			<border>5</border>
+																			<option>1</option>
+																		</object>
+																		<object class="sizeritem">
+																			<object class="wxButton" name="ID_BUTTON4" variable="ButtonUploadOutput" member="yes">
+																				<label>Upload Output</label>
+																				<handler function="OnButtonUploadOutputClick" entry="EVT_BUTTON" />
+																			</object>
+																			<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																			<border>5</border>
+																			<option>1</option>
+																		</object>
+																		<object class="sizeritem">
+																			<object class="wxButton" name="ID_BUTTON7" variable="ButtonOpen" member="yes">
+																				<label>Open</label>
+																				<handler function="OnButtonOpenClick" entry="EVT_BUTTON" />
+																			</object>
+																			<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																			<border>5</border>
+																			<option>1</option>
+																		</object>
+																		<object class="sizeritem">
+																			<object class="wxButton" name="ID_BUTTON8" variable="ButtonControllerDelete" member="yes">
+																				<label>Delete</label>
+																				<handler function="OnButtonControllerDeleteClick" entry="EVT_BUTTON" />
+																			</object>
+																			<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																			<border>5</border>
+																			<option>1</option>
+																		</object>
+																		<object class="sizeritem">
+																			<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticTextDummy" member="yes">
+																				<label>Label</label>
+																			</object>
+																			<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																			<border>5</border>
+																			<option>1</option>
+																		</object>
+																	</object>
+																	<flag>wxALL|wxEXPAND</flag>
+																	<border>5</border>
+																	<option>1</option>
+																</object>
+															</object>
+														</object>
 													</object>
-													<flag>wxEXPAND</flag>
+													<flag>wxALL|wxEXPAND</flag>
 													<border>5</border>
 													<option>1</option>
 												</object>
@@ -876,7 +882,7 @@
 								</object>
 							</object>
 						</object>
-						<label>Setup</label>
+						<label>Controllers</label>
 						<selected>1</selected>
 					</object>
 					<object class="AuiNotebookPage">
@@ -1167,6 +1173,10 @@
 				<object class="wxMenuItem" name="ID_MENU_BATCH_RENDER" variable="MenuItemBatchRender" member="no">
 					<label>&amp;Batch Render</label>
 					<handler function="OnMenuItemBatchRenderSelected" entry="EVT_MENU" />
+				</object>
+				<object class="wxMenuItem" name="ID_MNU_BULKUPLOAD" variable="MenuItemBulkControllerUpload" member="yes">
+					<label>Bulk Controller Upload</label>
+					<handler function="OnMenuItemBulkControllerUploadSelected" entry="EVT_MENU" />
 				</object>
 				<object class="wxMenuItem" name="ID_MNU_XSCHEDULE" variable="MenuItem_xSchedule" member="yes">
 					<label>xSchedu&amp;le</label>

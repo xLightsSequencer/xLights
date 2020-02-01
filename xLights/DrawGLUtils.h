@@ -87,7 +87,7 @@ namespace DrawGLUtils
             vertices = (float*)malloc(sizeof(float)*_max*coordsPerVertex);
             memcpy(vertices, mv.vertices, count * sizeof(float) * coordsPerVertex);
         }
-        xlVertexAccumulatorBase(xlVertexAccumulatorBase &&mv) {
+        xlVertexAccumulatorBase(xlVertexAccumulatorBase &&mv) noexcept {
             coordsPerVertex = mv.coordsPerVertex;
             vertices = mv.vertices;
             mv.vertices = nullptr;
@@ -150,7 +150,7 @@ namespace DrawGLUtils
         xlVertexColorAccumulator(unsigned int m) : xlVertexAccumulatorBase(m) {
             colors = (uint8_t*)malloc(_max*4);
         }
-        xlVertexColorAccumulator(xlVertexColorAccumulator &&mv) : xlVertexAccumulatorBase(mv) {
+        xlVertexColorAccumulator(xlVertexColorAccumulator &&mv) noexcept : xlVertexAccumulatorBase(mv) {
             colors = mv.colors;
             mv.colors = nullptr;
         }
@@ -266,7 +266,7 @@ namespace DrawGLUtils
         xlVertexTextureAccumulator(GLuint i, uint8_t a) : xlVertexAccumulatorBase(), id(i), alpha(a), forceColor(false), brightness(100.0) {
             tvertices = (float*)malloc(sizeof(float)*_max*2);
         }
-        xlVertexTextureAccumulator(xlVertexTextureAccumulator &&mv) : xlVertexAccumulatorBase(mv) {
+        xlVertexTextureAccumulator(xlVertexTextureAccumulator &&mv) noexcept : xlVertexAccumulatorBase(mv) {
             tvertices = mv.tvertices;
             mv.tvertices = nullptr;
             id = mv.id;
@@ -438,12 +438,12 @@ namespace DrawGLUtils
             int enableCapability;
             float extra;
             GLuint textureId;
-            uint8_t textureAlpha;
-            float textureBrightness;
-            bool useTexturePixelColor;
+            uint8_t textureAlpha = 1;
+            float textureBrightness = 1.0f;
+            bool useTexturePixelColor = false;
             xlColor texturePixelColor;
-            xl3DMesh *mesh;
-            bool meshTransparents;
+            xl3DMesh *mesh = nullptr;
+            bool meshTransparents = false;
         };
         std::list<BufferRangeType> types;
         float *tvertices;
