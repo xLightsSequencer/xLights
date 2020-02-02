@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (gil)    Fix too many node names created for 8-bit servos
 2020.4 February 1 2020
    -- enh (dkulp)  Move all settings from Settings menu to new "Preferences" dialog
    -- enh (gil)    Servo effect can now be mapped to a Lyric track
