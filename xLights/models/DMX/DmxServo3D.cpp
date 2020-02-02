@@ -125,6 +125,7 @@ public:
                     m_model->GetModelXml()->AddAttribute("Bits16", "0");
                 }
                 m_model->UpdateBits();
+                m_model->UpdateNodeNames();
             }
             if (changed) {
                 m_model->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxServo3d::ServoConfigDialogAdapter");
@@ -550,7 +551,12 @@ void DmxServo3d::InitModel() {
         if (!names.empty()) {
             names += ",";
         }
-        names += "Servo" + std::to_string(index) + ",-Servo" + std::to_string(index);
+        if (_16bit) {
+            names += "Servo" + std::to_string(index) + ",-Servo" + std::to_string(index);
+        }
+        else {
+            names += "Servo" + std::to_string(index);
+        }
         index++;
     }
     SetNodeNames(names, update_node_names);

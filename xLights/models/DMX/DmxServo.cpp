@@ -136,6 +136,7 @@ int DmxServo::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGrid
         if (parm1 < min_channels) {
             UpdateChannelCount(min_channels, true);
         }
+        update_node_names = true;
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxServo::OnPropertyGridChange::Bits16");
         AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "DmxServo::OnPropertyGridChange::Bits16");
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxServo::OnPropertyGridChange::Bits16");
@@ -354,7 +355,12 @@ void DmxServo::InitModel() {
         if (!names.empty()) {
             names += ",";
         }
-        names += "Servo" + std::to_string(index) + ",-Servo" + std::to_string(index);
+        if (_16bit) {
+            names += "Servo" + std::to_string(index) + ",-Servo" + std::to_string(index);
+        }
+        else {
+            names += "Servo" + std::to_string(index);
+        }
         index++;
     }
     SetNodeNames(names, update_node_names);
