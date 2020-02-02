@@ -185,6 +185,25 @@ void ControllerSerial::SetChannels(int channels)
     }
 }
 
+std::string ControllerSerial::GetExport() const
+{
+    return wxString::Format("%s,%ld,%ld,%s,%s,,%s,%d,\"%s\",%d,%ld,%s,%s,%s",
+        GetName(),
+        GetStartChannel(),
+        GetEndChannel(),
+        GetVMF(),
+        GetProtocol(),
+        GetPort(),
+        GetSpeed(),
+        GetDescription(),
+        GetId(),
+        GetChannels(),
+        (IsActive() ? _("") : _("DISABLED")),
+        (IsSuppressDuplicateFrames() ? _("SuppressDuplicates") : _("")),
+        (IsAutoSize() ? _("AutoSize") : _(""))
+    );
+}
+
 void ControllerSerial::SetProtocol(const std::string& type)
 {
     if (_outputs.front() != nullptr)

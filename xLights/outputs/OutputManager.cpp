@@ -57,7 +57,7 @@ OutputManager::~OutputManager()
 #pragma region Save and Load
 std::string OutputManager::GetExportHeader()
 {
-    return "Output Number,Start Absolute,End Absolute,Type,IP,Multicast,Universe/Id,Comm Port,Baud Rate,Description,Channels,Active,Suppress Duplicates,Auto Size,FPP Proxy,Keep Channel Numbers,Channels Per Packet,Port,Dont Configure,Priority,Vendor,Model,Supports Virtual Strings,Supports Smart Remotes";
+    return "Controller Name,Start Absolute,End Absolute,Type,Protocol,IP,Comm Port,Baud Rate,Description,Universe/Id,Channels,Active,Suppress Duplicates,Auto Size,FPP Proxy";
 }
 
 // Mark all controllers with the same IP address as unmanaged
@@ -392,7 +392,7 @@ bool OutputManager::Discover(wxWindow* frame, std::map<std::string, std::string>
             for (const auto& itc : _controllers)
             {
                 auto eth = dynamic_cast<ControllerEthernet*>(itc);
-                if (eth->GetProtocol() == OUTPUT_ZCPP && eth->GetName() == it->GetName())
+                if (eth != nullptr && eth->GetProtocol() == OUTPUT_ZCPP && eth->GetName() == it->GetName())
                 {
                     if (wxMessageBox("The discovered ZCPP controller matches an existing ZCPP controllers Description but has a different IP address. Do you want to update the IP address for that existing controller in xLights?", "Mismatch IP", wxYES_NO, frame) == wxYES)
                     {

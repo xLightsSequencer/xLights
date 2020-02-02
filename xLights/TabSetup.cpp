@@ -61,6 +61,9 @@ const long xLightsFrame::ID_List_Controllers = wxNewId();
 const long xLightsFrame::ID_NETWORK_ADDETHERNET = wxNewId();
 const long xLightsFrame::ID_NETWORK_ADDNULL = wxNewId();
 const long xLightsFrame::ID_NETWORK_ADDSERIAL = wxNewId();
+const long xLightsFrame::ID_NETWORK_ACTIVE = wxNewId();
+const long xLightsFrame::ID_NETWORK_INACTIVE = wxNewId();
+const long xLightsFrame::ID_NETWORK_DELETE = wxNewId();
 
 #pragma region Show Directory
 void xLightsFrame::OnMenuMRU(wxCommandEvent& event)
@@ -356,53 +359,58 @@ bool xLightsFrame::PromptForShowDirectory()
 }
 #pragma endregion
 
-void xLightsFrame::GetControllerDetailsForChannel(int32_t channel, std::string& type, std::string& description, int32_t& channeloffset, std::string &ip, std::string& u, std::string& inactive, int& output, std::string& baud, int& start_universe, int& start_universe_channel)
+void xLightsFrame::GetControllerDetailsForChannel(int32_t channel, std::string& controllername, std::string& type, std::string& protocol, std::string& description, int32_t& channeloffset, std::string &ip, std::string& u, std::string& inactive, std::string& baud, int& start_universe, int& start_universe_channel)
 {
-    int32_t ch = 0;
-    Output* o = _outputManager.GetOutput(channel, ch);
-    channeloffset = ch;
+    int32_t sc = 0;
+    int32_t csc = 0;
+    Controller* c = _outputManager.GetController(channel, csc);
+    Output* o = _outputManager.GetOutput(channel, sc);
+    channeloffset = sc;
 
+    channeloffset = -1;
+    start_universe = 0;
+    start_universe_channel = 0;
     type = "Unknown";
+    protocol = "Unknown";
     description = "";
     ip = "";
     u = "";
     inactive = "";
     baud = "";
+    controllername = "";
+
+    if (c != nullptr)
+    {
+        type = c->GetVMF();
+        description = c->GetDescription();
+        channeloffset = csc;
+        controllername = c->GetName();
+
+        auto eth = dynamic_cast<ControllerEthernet*>(c);
+        if (eth != nullptr)
+        {
+            ip = eth->GetIP();
+            u = o->GetUniverseString();
+        }
+
+        auto ser = dynamic_cast<ControllerSerial*>(c);
+        if (ser != nullptr)
+        {
+            ip = ser->GetPort();
+            baud = wxString::Format("%d", ser->GetSpeed());
+        }
+
+        if (!c->IsActive())
+        {
+            inactive = "DISABLED";
+        }
+    }
 
     if (o != nullptr)
     {
-        type = o->GetType();
-        description = o->GetDescription();
-        u = o->GetUniverseString();
-        if (o->IsIpOutput())
-        {
-            ip = o->GetIP();
-        }
-        else
-        {
-            ip = o->GetCommPort();
-            baud = wxString::Format(wxT("%i baud"), o->GetBaudRate()).ToStdString();
-        }
-        if (o->IsEnabled())
-        {
-            inactive = "FALSE";
-        }
-        else
-        {
-            inactive = "TRUE";
-        }
-        output = o->GetOutputNumber();
-
-        Output* oo = _outputManager.GetOutput(channel, start_universe_channel);
-        if (oo != nullptr)
-        {
-            start_universe = oo->GetUniverse();
-        }
-    }
-    else
-    {
-        channeloffset = -1;
-        output = -1;
+        protocol = o->GetType();
+        start_universe = o->GetUniverse();
+        start_universe_channel = sc;
     }
 }
 
@@ -1208,6 +1216,8 @@ void xLightsFrame::OnButtonDiscoverClick(wxCommandEvent& event)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("Running controller discovery.");
+    SetStatusText("Running controller discovery ...");
+    SetCursor(wxCURSOR_WAIT);
 
     std::list<std::string> startAddresses;
     std::list<FPP*> instances;
@@ -1345,6 +1355,7 @@ void xLightsFrame::OnButtonDiscoverClick(wxCommandEvent& event)
             }
         }
     }
+    SetCursor(wxCURSOR_DEFAULT);
     SetStatusText("Discovery complete.");
     logger_base.debug("Controller discovery complete.");
 }
@@ -1396,7 +1407,8 @@ void xLightsFrame::InitialiseControllersTab()
         FlexGridSizerSetupControllers->Add(List_Controllers, 1, wxALL | wxEXPAND, 5);
 
         Connect(ID_List_Controllers, wxEVT_LIST_KEY_DOWN, (wxObjectEventFunction)&xLightsFrame::OnListKeyDownControllers);
-        Connect(ID_List_Controllers, wxEVT_LIST_ITEM_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnListItemActivatedControllers);
+        //Connect(ID_List_Controllers, wxEVT_LIST_ITEM_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnListItemSelectedControllers);
+        Connect(ID_List_Controllers, wxEVT_LIST_ITEM_ACTIVATED, (wxObjectEventFunction)&xLightsFrame::OnListItemActivatedControllers);
         Connect(ID_List_Controllers, wxEVT_RIGHT_DOWN, (wxObjectEventFunction)&xLightsFrame::OnListControllersRClick);
         Connect(ID_List_Controllers, wxEVT_LIST_COL_CLICK, (wxObjectEventFunction)&xLightsFrame::OnListControllersColClick);
         Connect(ID_List_Controllers, wxEVT_LIST_ITEM_RIGHT_CLICK, (wxObjectEventFunction)&xLightsFrame::OnListControllersItemRClick);
@@ -1405,10 +1417,9 @@ void xLightsFrame::InitialiseControllersTab()
         Connect(ID_List_Controllers, wxEVT_LIST_BEGIN_DRAG, (wxObjectEventFunction)&xLightsFrame::OnListItemBeginDragControllers);
 
         List_Controllers->AppendColumn("Name");
-        List_Controllers->AppendColumn("Id");
         List_Controllers->AppendColumn("Protocol");
         List_Controllers->AppendColumn("Address");
-        List_Controllers->AppendColumn("Universes");
+        List_Controllers->AppendColumn("Universes/Id");
         List_Controllers->AppendColumn("Channels");
         List_Controllers->AppendColumn("Description");
     }
@@ -1450,12 +1461,12 @@ void xLightsFrame::InitialiseControllersTab()
         {
             List_Controllers->SetItemState(row, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
         }
-        List_Controllers->SetItem(row, 1, it->GetColumn6Label());
-        List_Controllers->SetItem(row, 2, it->GetColumn1Label());
-        List_Controllers->SetItem(row, 3, it->GetColumn2Label());
-        List_Controllers->SetItem(row, 4, it->GetColumn3Label());
-        List_Controllers->SetItem(row, 5, it->GetColumn4Label());
-        List_Controllers->SetItem(row, 6, it->GetColumn5Label());
+        //List_Controllers->SetItem(row, 1, it->GetColumn6Label());
+        List_Controllers->SetItem(row, 1, it->GetColumn1Label());
+        List_Controllers->SetItem(row, 2, it->GetColumn2Label());
+        List_Controllers->SetItem(row, 3, it->GetColumn3Label());
+        List_Controllers->SetItem(row, 4, it->GetColumn4Label());
+        List_Controllers->SetItem(row, 5, it->GetColumn5Label());
         if (!it->IsActive())
         {
             List_Controllers->SetItemTextColour(row, *wxLIGHT_GREY);
@@ -1846,6 +1857,17 @@ void xLightsFrame::OnListItemFocussedControllers(wxListEvent& event)
 
 void xLightsFrame::OnListItemActivatedControllers(wxListEvent& event)
 {
+    auto name = List_Controllers->GetItemText(event.GetItem());
+    auto controller = dynamic_cast<ControllerEthernet*>(_outputManager.GetController(name));
+    if (controller != nullptr)
+    {
+        if (controller->GetFPPProxy() != "") {
+            ::wxLaunchDefaultBrowser("http://" + controller->GetFPPProxy() + "/proxy/" + controller->GetIP() + "/");
+        }
+        else {
+            ::wxLaunchDefaultBrowser("http://" + controller->GetIP());
+        }
+    }
 }
 
 void xLightsFrame::OnListItemDeselectedControllers(wxListEvent& event)
@@ -1990,6 +2012,9 @@ void xLightsFrame::OnListControllersItemRClick(wxListEvent& event)
     mnu.Append(ID_NETWORK_ADDETHERNET, ethernet)->Enable(ButtonAddControllerSerial->IsEnabled());
     mnu.Append(ID_NETWORK_ADDNULL, "Insert NULL")->Enable(ButtonAddControllerSerial->IsEnabled());
     mnu.Append(ID_NETWORK_ADDSERIAL, "Insert DMX/LOR/DLight/Renard")->Enable(ButtonAddControllerSerial->IsEnabled());
+    mnu.Append(ID_NETWORK_ACTIVE, "Activate")->Enable(ButtonAddControllerSerial->IsEnabled());
+    mnu.Append(ID_NETWORK_INACTIVE, "Inactivate")->Enable(ButtonAddControllerSerial->IsEnabled());
+    mnu.Append(ID_NETWORK_DELETE, "Delete")->Enable(ButtonAddControllerSerial->IsEnabled());
 
     mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&xLightsFrame::OnListControllerPopup, nullptr, this);
     PopupMenu(&mnu);
@@ -2026,12 +2051,31 @@ void xLightsFrame::OnListControllerPopup(wxCommandEvent& event)
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "OnListControllerPopup:ADDNULL", nullptr, c);
         _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "OnListControllerPopup:ADDNULL");
     }
+    else if (id == ID_NETWORK_ACTIVE) {
+        ActivateSelectedControllers(true);
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "OnListControllerPopup:DELETE");
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "OnListControllerPopup:DELETE");
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "OnListControllerPopup:DELETE");
+        _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "OnListControllerPopup:DELETE");
+    }
+    else if (id == ID_NETWORK_INACTIVE) {
+        ActivateSelectedControllers(false);
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "OnListControllerPopup:DELETE");
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "OnListControllerPopup:DELETE");
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "OnListControllerPopup:DELETE");
+        _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "OnListControllerPopup:DELETE");
+    }
+    else if (id == ID_NETWORK_DELETE) {
+        DeleteSelectedControllers();
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "OnListControllerPopup:DELETE");
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "OnListControllerPopup:DELETE");
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "OnListControllerPopup:DELETE");
+        _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "OnListControllerPopup:DELETE");
+    }
 }
-
 #pragma endregion
 
 #pragma region Selected Controller Actions
-
 void xLightsFrame::OnButtonVisualiseClick(wxCommandEvent& event)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));

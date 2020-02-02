@@ -104,6 +104,7 @@ public:
     bool IsSuppressDuplicateFrames() const { return _suppressDuplicateFrames; }
     void SetSuppressDuplicateFrames(bool suppress);
     Output* GetFirstOutput() const { wxASSERT(_outputs.size() > 0); return _outputs.front(); }
+    std::string GetVMF() const;
 
     virtual bool SupportsAutoStartChannels() const { return false; }
     virtual bool SupportsSuppressDuplicateFrames() const { return true; }
@@ -154,9 +155,7 @@ public:
     virtual bool CanPing() const { return false; }
 
     virtual std::string GetSortName() const { return GetName(); }
-    virtual std::string GetExport() const {
-        return wxString::Format("%s,%s,%d,%s", GetName(), GetDescription(), GetId(), IsAutoSize() ? _("Autosize") : _(""));
-    }
+    virtual std::string GetExport() const = 0;
     #pragma endregion Getters and Setters
 
     #pragma region Operators

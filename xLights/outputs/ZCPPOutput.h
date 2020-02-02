@@ -97,7 +97,6 @@ public:
     virtual bool IsLookedUpByControllerName() const override { return true; }
     virtual bool IsAutoLayoutModels() const override { return true; }
     virtual std::string GetUniverseString() const override { return ""; }
-    virtual std::string GetExport() const override;
     #pragma region Getters and Setters
 
     virtual wxXmlNode* Save() override;

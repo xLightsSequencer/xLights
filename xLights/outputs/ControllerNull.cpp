@@ -31,6 +31,21 @@ void ControllerNull::SetId(int id)
     dynamic_cast<NullOutput*>(GetFirstOutput())->SetId(id);
 }
 
+std::string ControllerNull::GetExport() const
+{
+    return wxString::Format("%s,%ld,%ld,%s,NULL,,,,\"%s\",%d,%ld,%s,,%s",
+        GetName(),
+        GetStartChannel(),
+        GetEndChannel(),
+        GetVMF(),
+        GetDescription(),
+        GetId(),
+        GetChannels(),
+        (IsActive() ? _("") : _("DISABLED")),
+        (IsAutoSize() ? _("AutoSize") : _(""))
+    );
+}
+
 wxXmlNode* ControllerNull::Save()
 {
     wxXmlNode* um = Controller::Save();

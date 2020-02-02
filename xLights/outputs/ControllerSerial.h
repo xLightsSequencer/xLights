@@ -57,6 +57,7 @@ public:
     void SetPort(const std::string& port);
     std::string GetPort() const { return _port; }
     void SetSpeed(int speed);
+    int GetSpeed() const { return _speed; }
     void SetChannels(int channels);
     void SetProtocol(const std::string& type);
     std::string GetProtocol() const { return _type; }
@@ -74,6 +75,7 @@ public:
     virtual void AsyncPing() { _lastPingResult = Ping(); }
     virtual std::string GetLongDescription() const override;
     virtual void SetId(int id) override;
+    virtual std::string GetExport() const override;
 #pragma endregion Getters and Setters
 
     virtual wxXmlNode* Save() override;

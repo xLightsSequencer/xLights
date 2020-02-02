@@ -30,7 +30,6 @@ public:
     int GetId() const { return _universe; }
     void SetId(int id) { _universe = id; _dirty = true;}
     virtual std::string GetSortName() const override;
-    virtual std::string GetExport() const override;
     #pragma endregion Getters and Setters
 
     #pragma region Start and Stop

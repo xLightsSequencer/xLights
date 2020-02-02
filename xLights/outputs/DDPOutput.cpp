@@ -110,18 +110,6 @@ void DDPOutput::SendSync()
 }
 #pragma endregion Static Functions
 
-std::string DDPOutput::GetExport() const
-{
-    std::string enabled = _enabled ? _("Y") : _("N");
-    std::string suppress = _suppressDuplicateFrames ? _("Y") : _("N");
-    std::string keepchannelnumbers = _keepChannelNumbers ? _("Y") : _("N");
-    // "Output Number,Start Absolute,End Absolute,Type,IP,Multicast,Universe/Id,Comm Port,Baud Rate,Description,Channels,Active,Suppress Duplicates,Auto Size,
-    // FPP Proxy,Keep Channel Numbers,Channels Per Packet,Port,Dont Configure,Priority,Vendor,Model,Supports Virtual Strings,Supports Smart Remotes";
-    return wxString::Format("%d,%ld,%ld,%s,%s,,%d,,,%s,%ld,%s,%s,,%s,%s,%d,,,,,,,",
-        _outputNumber, GetStartChannel(), GetEndChannel(), GetType(), GetIP(), GetId(), _description, _channels,
-        enabled, suppress,  _fppProxy, keepchannelnumbers, _channelsPerPacket).ToStdString();
-}
-
 wxXmlNode* DDPOutput::Save()
 {
     wxXmlNode* node = new wxXmlNode(wxXML_ELEMENT_NODE, "network");

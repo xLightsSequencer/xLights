@@ -882,7 +882,6 @@
     <ClInclude Include="OptionChooser.h" />
     <ClInclude Include="osxMacUtils.h" />
     <ClInclude Include="osx_utils\TouchBars.h" />
-    <ClInclude Include="outputs\Controller.h" />
     <ClInclude Include="outputs\PixelNetOutput.h" />
     <ClInclude Include="outputs\RenardOutput.h" />
     <ClInclude Include="outputs\TestPreset.h" />
@@ -1218,6 +1217,9 @@
     </ClInclude>
     <ClInclude Include="effects\FillEffect.h">
       <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="outputs\Controller.h">
+      <Filter>Outputs</Filter>
     </ClInclude>
     <ClInclude Include="outputs\DMXOutput.h">
       <Filter>Outputs</Filter>

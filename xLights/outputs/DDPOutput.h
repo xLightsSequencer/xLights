@@ -70,7 +70,6 @@ public:
     virtual bool IsLookedUpByControllerName() const override;
     virtual bool IsAutoLayoutModels() const override { return _autoStartChannels; }
     virtual void SetAutoStartChannels(bool autoMode) { _autoStartChannels = autoMode; }
-    virtual std::string GetExport() const override;
 
     int GetId() const { return _universe; }
     void SetId(int id) { _universe = id; _dirty = true; }

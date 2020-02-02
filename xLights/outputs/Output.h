@@ -147,7 +147,7 @@ public:
     //virtual PINGSTATE Ping() const = 0;
     //virtual bool CanPing() const = 0;
     virtual std::string GetSortName() const = 0;
-    virtual std::string GetExport() const = 0;
+    virtual std::string GetExport() const { return ""; }
     #pragma endregion Getters and Setters
 
     #pragma region Operators

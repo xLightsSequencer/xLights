@@ -645,20 +645,13 @@ std::string E131Output::GetLongDescription() const
 
 std::string E131Output::GetExport() const
 {
-    if (IsOutputCollection())
-    {
-        wxASSERT(false);
-        return "This should not be here";
-    }
-    std::string enabled = _enabled ? _("Y") : _("N");
-    std::string suppress = _suppressDuplicateFrames ? _("Y") : _("N");
-    std::string multicast = GetIP() == "MULTICAST" ? _("Y") : _("N");
-
-    // "Output Number,Start Absolute,End Absolute,Type,IP,Multicast,Universe/Id,Comm Port,Baud Rate,Description,Channels,Active,Suppress Duplicates,Auto Size,
-    // FPP Proxy,Keep Channel Numbers,Channels Per Packet,Port,Dont Configure,Priority,Vendor,Model,Supports Virtual Strings,Supports Smart Remotes";
-    return wxString::Format("%d,%ld,%ld,%s,%s,%s,%i,,,%s,%i,%s,%s,,%s,,,,,%i,,,,",
-        _outputNumber, GetStartChannel(), GetEndChannel(), GetType(), GetIP(), multicast, GetUniverse(), _description, _channels,
-        enabled, suppress, _fppProxy, _priority).ToStdString();
+    return wxString::Format(",%ld,%ld,,%s,%s,,,,%d,%i",
+        GetStartChannel(), 
+        GetEndChannel(), 
+        GetType(),
+        GetIP(),
+        GetUniverse(),
+        GetChannels());
 }
 
 std::string E131Output::GetUniverseString() const

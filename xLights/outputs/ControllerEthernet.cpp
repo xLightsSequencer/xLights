@@ -184,6 +184,25 @@ void ControllerEthernet::SetId(int id)
     }
 }
 
+std::string ControllerEthernet::GetExport() const
+{
+    return wxString::Format("%s,%ld,%ld,%s,%s,%s,,,\"%s\",%s,%ld,%s,%s,%s,%s",
+        GetName(),
+        GetStartChannel(),
+        GetEndChannel(),
+        GetVMF(),
+        GetProtocol(),
+        GetIP(),
+        GetDescription(),
+        GetColumn3Label(),
+        GetChannels(),
+        (IsActive() ? _("") : _("DISABLED")),
+        (IsSuppressDuplicateFrames() ? _("SuppressDuplicates") : _("")),
+        (IsAutoSize() ? _("AutoSize") : _("")),
+        GetFPPProxy()
+    );
+}
+
 void ControllerEthernet::SetPriority(int priority)
 {
     if (_priority != priority)

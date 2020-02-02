@@ -47,7 +47,6 @@ public:
     int GetId() const { return _universe; }
     void SetId(int id) { _universe = id; _dirty = true; }
     virtual std::string GetSortName() const override { return GetCommPort(); }
-    virtual std::string GetExport() const override;
     std::string GetParity() const;
     int GetStopBits() const;
     PINGSTATE Ping() const;

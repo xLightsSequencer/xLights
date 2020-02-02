@@ -72,6 +72,7 @@ public:
     virtual void AsyncPing() override;
     virtual std::string GetLongDescription() const override;
     virtual void SetId(int id) override;
+    virtual std::string GetExport() const override;
 
     int GetPriority() const { return _priority; }
     void SetPriority(int priority);

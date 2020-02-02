@@ -299,6 +299,14 @@ void Controller::SetSuppressDuplicateFrames(bool suppress)
     }
 }
 
+std::string Controller::GetVMF() const
+{
+    std::string res = GetVendor();
+    if (GetModel() != "") res += " " + GetModel();
+    if (GetFirmwareVersion() != "") res += " v" + GetFirmwareVersion();
+    return res;
+}
+
 void Controller::ConvertOldTypeToVendorModel(const std::string& old, std::string& vendor, std::string& model)
 {
     vendor = "";
@@ -353,10 +361,14 @@ void Controller::AddProperties(wxPropertyGrid* propertyGrid)
 
     p = propertyGrid->Append(new wxStringProperty("Description", "ControllerDescription", GetDescription()));
 
-    p = propertyGrid->Append(new wxUIntProperty("Id", "ControllerId", GetId()));
-    p->SetAttribute("Min", 1);
-    p->SetAttribute("Max", 65335);
-    p->SetEditor("SpinCtrl");
+    auto eth = dynamic_cast<ControllerEthernet*>(this);
+    if (eth == nullptr || (eth->GetProtocol() != OUTPUT_E131 && eth->GetProtocol() != OUTPUT_ARTNET && eth->GetProtocol() != OUTPUT_xxxETHERNET))
+    {
+        p = propertyGrid->Append(new wxUIntProperty("Id", "ControllerId", GetId()));
+        p->SetAttribute("Min", 1);
+        p->SetAttribute("Max", 65335);
+        p->SetEditor("SpinCtrl");
+    }
 
     if (SupportsAutoSize())
     {
