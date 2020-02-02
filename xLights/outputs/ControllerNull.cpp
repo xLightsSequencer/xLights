@@ -49,7 +49,7 @@ bool ControllerNull::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModel
 {
     if (Controller::HandlePropertyEvent(event, outputModelManager)) return true;
 
-    wxString name = event.GetPropertyName();
+    wxString const name = event.GetPropertyName();
     wxPropertyGrid* grid = dynamic_cast<wxPropertyGrid*>(event.GetEventObject());
 
     if (_outputs.size() > 0)

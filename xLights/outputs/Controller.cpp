@@ -424,7 +424,7 @@ void Controller::AddProperties(wxPropertyGrid* propertyGrid)
 
 bool Controller::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager)
 {
-    wxString name = event.GetPropertyName();
+    wxString const name = event.GetPropertyName();
     wxPropertyGrid* grid = dynamic_cast<wxPropertyGrid*>(event.GetEventObject());
 
     if (name == "ControllerName")
@@ -491,7 +491,7 @@ bool Controller::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelMana
     }
     else if (name == "Vendor")
     {
-        auto vendors = ControllerCaps::GetVendors();
+        auto const vendors = ControllerCaps::GetVendors();
         auto it = begin(vendors);
         std::advance(it, event.GetValue().GetLong());
         SetVendor(*it);
@@ -500,7 +500,7 @@ bool Controller::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelMana
     }
     else if (name == "Model")
     {
-        auto models = ControllerCaps::GetModels(_vendor);
+        auto const models = ControllerCaps::GetModels(_vendor);
         auto it = begin(models);
         std::advance(it, event.GetValue().GetLong());
         SetModel(*it);
@@ -509,7 +509,7 @@ bool Controller::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelMana
     }
     else if (name == "Version")
     {
-        auto versions = ControllerCaps::GetFirmwareVersions(_vendor, _model);
+        auto const versions = ControllerCaps::GetFirmwareVersions(_vendor, _model);
         auto it = begin(versions);
         std::advance(it, event.GetValue().GetLong());
         SetFirmwareVersion(*it);
@@ -521,8 +521,7 @@ bool Controller::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelMana
 void Controller::ValidateProperties(OutputManager* om, wxPropertyGrid* propGrid) const
 {
     auto p = propGrid->GetPropertyByName("ControllerId");
-    auto name = GetName();
-    auto caps = ControllerCaps::GetControllerConfig(this);
+    auto const name = GetName();
 
     if (p != nullptr)
     {

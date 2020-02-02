@@ -192,9 +192,9 @@ void ControllerSerial::SetProtocol(const std::string& type)
         if (_outputs.front()->GetType() != type)
         {
             _type = type;
-            auto s = _outputs.front()->GetBaudRate();
-            auto p = _outputs.front()->GetCommPort();
-            auto c = _outputs.front()->GetChannels();
+            auto const s = _outputs.front()->GetBaudRate();
+            auto const p = _outputs.front()->GetCommPort();
+            auto const c = _outputs.front()->GetChannels();
             delete _outputs.front();
             _outputs.pop_front();
 
@@ -376,7 +376,7 @@ bool ControllerSerial::HandlePropertyEvent(wxPropertyGridEvent& event, OutputMod
 {
     if (Controller::HandlePropertyEvent(event, outputModelManager)) return true;
 
-    wxString name = event.GetPropertyName();
+    wxString const name = event.GetPropertyName();
     wxPropertyGrid* grid = dynamic_cast<wxPropertyGrid*>(event.GetEventObject());
 
     if (name == "Port")

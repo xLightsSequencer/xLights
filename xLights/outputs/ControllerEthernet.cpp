@@ -204,7 +204,7 @@ void ControllerEthernet::SetPriority(int priority)
         }
     }
 }
-\
+
 bool ControllerEthernet::AllSameSize() const
 {
     int32_t size = -1;
@@ -402,7 +402,7 @@ bool ControllerEthernet::HandlePropertyEvent(wxPropertyGridEvent& event, OutputM
 {
     if (Controller::HandlePropertyEvent(event, outputModelManager)) return true;
 
-    wxString name = event.GetPropertyName();
+    wxString const name = event.GetPropertyName();
     wxPropertyGrid* grid = dynamic_cast<wxPropertyGrid*>(event.GetEventObject());
 
     if (name == "IP")
@@ -745,7 +745,7 @@ void ControllerEthernet::Convert(wxXmlNode* node, std::string showDir)
 }
 
 void ControllerEthernet::SetIP(const std::string& ip) {
-    auto iip = IPOutput::CleanupIP(ip);
+    auto const& iip = IPOutput::CleanupIP(ip);
     if (_ip != iip) {
         _ip = iip;
         _resolvedIp = IPOutput::ResolveIP(_ip);
@@ -763,7 +763,7 @@ void ControllerEthernet::SetIP(const std::string& ip) {
 void ControllerEthernet::SetProtocol(const std::string& protocol)
 {
     int totchannels = GetChannels();
-    auto oldtype = _type;
+    auto const oldtype = _type;
     auto oldoutputs = _outputs;
     int size = _outputs.size();
     _outputs.clear(); // empties the list but doesnt delete anything yet
