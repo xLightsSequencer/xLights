@@ -494,8 +494,14 @@ void DmxServo3d::InitModel() {
         std::string this_link = "Servo" + num + "Linkage";
         std::string this_default = "Mesh " + num;
         std::string link = ModelXml->GetAttribute(this_link, this_default);
+        if (link.length() < 5) {
+            link = "Mesh 1";
+        }
         std::string num2 = link.substr(5, name.length());
         int link_id = atoi(num2.c_str());
+        if (link_id < 1) {
+            link_id = 1;
+        }
         if (link_id != i + 1) {
             servo_links[i] = link_id - 1;
         }
@@ -508,8 +514,14 @@ void DmxServo3d::InitModel() {
         std::string this_link = "Mesh" + num + "Linkage";
         std::string this_default = "Mesh " + num;
         std::string link = ModelXml->GetAttribute(this_link, this_default);
+        if (link.length() < 5) {
+            link = "Mesh 1";
+        }
         std::string num2 = link.substr(5, name.length());
         int link_id = atoi(num2.c_str());
+        if (link_id < 1) {
+            link_id = 1;
+        }
         if (link_id != i + 1) {
             mesh_links[i] = link_id - 1;
         }
