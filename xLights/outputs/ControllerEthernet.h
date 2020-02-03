@@ -59,7 +59,7 @@ public:
     virtual std::string GetColumn1Label() const override { if (_outputs.size() > 0) return _outputs.front()->GetType() + (!_managed ? " (Unmanaged)" : ""); else return Controller::GetColumn1Label(); }
     virtual std::string GetColumn2Label() const override { return _ip; }
     virtual std::string GetColumn3Label() const override;
-    virtual void SetTransientData(int& cn, int& on, int32_t& startChannel, int& nullnumber) override;
+    virtual void SetTransientData(int& on, int32_t& startChannel, int& nullnumber) override;
     virtual bool SupportsAutoSize() const override { return _managed && (_type == OUTPUT_ZCPP || _type == OUTPUT_DDP); }
     bool IsFPPProxyable() const { return _type == OUTPUT_E131 || _type == OUTPUT_DDP; }
     void SetManaged(bool managed) { if (_managed != managed) { _managed = managed; _dirty = true; } }
@@ -71,6 +71,9 @@ public:
     virtual std::string GetLongDescription() const override;
     virtual void SetId(int id) override;
     virtual std::string GetExport() const override;
+    virtual bool IsNeedsId() const override {
+        return (GetProtocol() != OUTPUT_E131 && GetProtocol() != OUTPUT_ARTNET && GetProtocol() != OUTPUT_xxxETHERNET);
+    }
 
     int GetPriority() const { return _priority; }
     void SetPriority(int priority);

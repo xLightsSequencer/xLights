@@ -1,11 +1,9 @@
-#include "Controller.h"
-
 #include <wx/xml/xml.h>
 #include <wx/filename.h>
 #include <wx/stdpaths.h>
 #include <wx/dir.h>
-#include <log4cpp/Category.hh>
 
+#include "Controller.h"
 #include "../UtilFunctions.h"
 #include "Output.h"
 #include "OutputManager.h"
@@ -15,28 +13,28 @@
 #include "ControllerNull.h"
 #include "ControllerSerial.h"
 
+#include <log4cpp/Category.hh>
+
+// This class is used to convert old controller names to the new structure
 class ControllerNameVendorMap
 {
 public:
+    #pragma region Member Variables
     std::string _oldVendor;
     std::string _oldName;
     std::string _vendor;
     std::string _model;
     std::string _firmwareVersion;
+    #pragma endregion
 
-    ControllerNameVendorMap(const std::string& oldVendor, const std::string& oldName, const std::string& vendor, const std::string& model, const std::string& firmwareVersion = "")
-    {
-        _oldVendor = oldVendor;
-        _oldName = oldName;
-        _vendor = vendor;
-        _model = model;
-        _firmwareVersion = firmwareVersion;
-    }
+    #pragma region Constructors and Destructors
+    ControllerNameVendorMap(const std::string& oldVendor, const std::string& oldName, const std::string& vendor, const std::string& model, const std::string& firmwareVersion = "") :
+        _oldVendor(oldVendor), _oldName(oldName), _vendor(vendor), _model(model), _firmwareVersion(firmwareVersion) {}
+    #pragma endregion
 };
 
 const std::vector<ControllerNameVendorMap> __controllerNameMap =
 {
-    //ControllerNameVendorMap("Unknown", "", ""),
     ControllerNameVendorMap("AlphaPix", "AlphaPix 16", "Holiday Coro", "AlphaPix 16"),
     ControllerNameVendorMap("AlphaPix", "AlphaPix 4", "Holiday Coro", "AlphaPix 4"),
     ControllerNameVendorMap("AlphaPix", "AlphaPix Flex", "Holiday Coro", "AlphaPix Flex"),
@@ -85,13 +83,12 @@ const std::vector<ControllerNameVendorMap> __controllerNameMap =
     ControllerNameVendorMap("SanDevices", "E682 Firmware 5", "SanDevices", "E682", "5")
 };
 
-int Controller::EncodeChoices(const wxPGChoices& choices, const std::string& choice)
-{
+#pragma region static private functions
+int Controller::EncodeChoices(const wxPGChoices& choices, const std::string& choice) {
     wxString c(choice);
     c.MakeLower();
 
-    for (size_t i = 0; i < choices.GetCount(); i++)
-    {
+    for (size_t i = 0; i < choices.GetCount(); i++) {
         if (choices[i].GetText().Lower() == c) return i;
     }
     wxASSERT(false);
@@ -106,20 +103,13 @@ std::string Controller::DecodeChoices(const wxPGChoices& choices, int choice)
     }
     return choices[choice].GetText();
 }
-
-void Controller::DeleteAllOutputs()
-{
-    while (_outputs.size() > 0)
-    {
-        delete _outputs.front();
-        _outputs.pop_front();
-    }
-}
+#pragma endregion
 
 #pragma region Constructors and Destructors
 Controller::Controller(OutputManager* om, wxXmlNode* node, const std::string& showDir) : _outputManager(om)
 {
     _dirty = false;
+
     _id = wxAtoi(node->GetAttribute("Id", "64001"));
     _name = node->GetAttribute("Name", om->UniqueName(node->GetName() + "_"));
     _description = node->GetAttribute("Description", "");
@@ -130,13 +120,11 @@ Controller::Controller(OutputManager* om, wxXmlNode* node, const std::string& sh
     _model = node->GetAttribute("Model");
     _firmwareVersion = node->GetAttribute("Firmware");
     _suppressDuplicateFrames = node->GetAttribute("SuppressDuplicates", "0") == "1";
-    for (wxXmlNode* n = node->GetChildren(); n != nullptr; n = n->GetNext())
-    {
-        if (n->GetName() == "network")
-        {
+
+    for (wxXmlNode* n = node->GetChildren(); n != nullptr; n = n->GetNext()) {
+        if (n->GetName() == "network") {
             _outputs.push_back(Output::Create(n, showDir));
-            if (_outputs.back() == nullptr)
-            {
+            if (_outputs.back() == nullptr) {
                 // this shouldnt happen unless we are loading a future file with an output type we dont recognise
                 _outputs.pop_back();
             }
@@ -144,23 +132,20 @@ Controller::Controller(OutputManager* om, wxXmlNode* node, const std::string& sh
     }
 }
 
-Controller::Controller(OutputManager* om) : _outputManager(om)
-{
+Controller::Controller(OutputManager* om) : _outputManager(om) {
     // everything else is initialised in the header
     _id = om->UniqueId();
 }
 
-Controller::~Controller()
-{
+Controller::~Controller() {
     DeleteAllOutputs();
 }
-#pragma endregion 
 
-#pragma region Save
-wxXmlNode* Controller::Save()
-{
-    wxXmlNode* node = new wxXmlNode(wxXML_ELEMENT_NODE, "Controller");
+wxXmlNode* Controller::Save() {
+
     _dirty = false;
+
+    wxXmlNode* node = new wxXmlNode(wxXML_ELEMENT_NODE, "Controller");
     node->AddAttribute("Id", wxString::Format("%d", _id));
     node->AddAttribute("Name", _name);
     node->AddAttribute("Description", _description);
@@ -172,31 +157,28 @@ wxXmlNode* Controller::Save()
     if (_autoStartChannels) node->AddAttribute("AutoStartChannels", "1");
     node->AddAttribute("Active", _active ? "1" : "0");
     node->AddAttribute("SuppressDuplicates", _suppressDuplicateFrames ? "1" : "0");
-    for (const auto& it : _outputs)
-    {
+    for (const auto& it : _outputs) {
         node->AddChild(it->Save());
     }
 
     return node;
 }
-#pragma endregion 
+#pragma endregion
 
 #pragma region Static Functions
-Controller* Controller::Create(OutputManager* om, wxXmlNode* node, std::string showDir)
-{
+Controller* Controller::Create(OutputManager* om, wxXmlNode* node, std::string showDir) {
+
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     std::string type = node->GetAttribute("Type", "").ToStdString();
 
-    if (type == CONTROLLER_NULL)
-    {
+    if (type == CONTROLLER_NULL) {
         return new ControllerNull(om, node, showDir);
     }
-    else if (type == CONTROLLER_ETHERNET)
-    {
+    else if (type == CONTROLLER_ETHERNET) {
         return new ControllerEthernet(om, node, showDir);
     }
-    else if (type == CONTROLLER_SERIAL)
-    {
+    else if (type == CONTROLLER_SERIAL) {
         return new ControllerSerial(om, node, showDir);
     }
 
@@ -204,12 +186,23 @@ Controller* Controller::Create(OutputManager* om, wxXmlNode* node, std::string s
     wxASSERT(false);
     return nullptr;
 }
-#pragma endregion 
+
+void Controller::ConvertOldTypeToVendorModel(const std::string& old, std::string& vendor, std::string& model) {
+    vendor = "";
+    model = "";
+    for (const auto& it : __controllerNameMap) {
+        if (it._oldName == old) {
+            vendor = it._vendor;
+            model = it._model;
+            return;
+        }
+    }
+}
+#pragma endregion
 
 #pragma region Getters and Setters
-// get the nth output from the controller ... output number is ZERO based
-Output* Controller::GetOutput(int outputNumber) const
-{
+Output* Controller::GetOutput(int outputNumber) const {
+
     if (outputNumber < 0 || outputNumber > _outputs.size()) return nullptr;
 
     auto it = _outputs.begin();
@@ -217,10 +210,9 @@ Output* Controller::GetOutput(int outputNumber) const
     return *it;
 }
 
-Output* Controller::GetOutput(int32_t absoluteChannel, int32_t& startChannel) const
-{
-    auto outputs = GetOutputs();
-    for (const auto& it : outputs)
+Output* Controller::GetOutput(int32_t absoluteChannel, int32_t& startChannel) const {
+
+    for (const auto& it : GetOutputs())
     {
         if (absoluteChannel >= it->GetStartChannel() && absoluteChannel <= it->GetEndChannel())
         {
@@ -231,16 +223,26 @@ Output* Controller::GetOutput(int32_t absoluteChannel, int32_t& startChannel) co
     return nullptr;
 }
 
+void Controller::DeleteAllOutputs() {
+
+    while (_outputs.size() > 0) {
+        delete _outputs.front();
+        _outputs.pop_front();
+    }
+}
+
 // Gets the start channel of the first output on this controller
-int32_t Controller::GetStartChannel() const
-{
+int32_t Controller::GetStartChannel() const {
+
     if (_outputs.size() == 0) return 0;
+    
     return _outputs.front()->GetStartChannel();
 }
 
-int32_t Controller::GetEndChannel() const
-{
+int32_t Controller::GetEndChannel() const {
+
     if (_outputs.size() == 0) return 0;
+
     return _outputs.back()->GetEndChannel();
 }
 
@@ -249,130 +251,106 @@ uint32_t Controller::GetChannels() const
     return std::accumulate(begin(_outputs), end(_outputs), 0, [](uint32_t accumulator, Output* const o) { return accumulator + o->GetChannels(); });
 }
 
-bool Controller::IsDirty() const
-{
+bool Controller::IsDirty() const {
+
     if (_dirty) return _dirty;
-    for (const auto& it : _outputs)
-    {
+    for (const auto& it : _outputs) {
         if (it->IsDirty()) return true;
     }
     return false;
 }
-void Controller::ClearDirty()
-{
+
+void Controller::ClearDirty() {
+
     _dirty = false;
-    for (auto& it : _outputs)
-    {
+    for (auto& it : _outputs) {
         it->ClearDirty();
     }
 }
 
-void Controller::EnsureUniqueId()
-{
+void Controller::EnsureUniqueId() {
+
     _id = _outputManager->UniqueId();
 }
 
-void Controller::SetTransientData(int& cn, int& on, int32_t& startChannel, int& nullnumber)
-{
-    _controllerNumber = cn++;
-    for (auto& it : _outputs)
-    {
-        // make sure data which is now kept on the controller is duplicated to the outputs so they behave as expected
-        it->SetSuppressDuplicateFrames(_suppressDuplicateFrames);
-        it->Enable(_active);
+std::string Controller::GetVMF() const {
 
-        it->SetTransientData(on, startChannel, nullnumber);
-        if (it->GetType() == CONTROLLER_NULL)
-        {
-            nullnumber++;
-        }
-    }
-}
-
-void Controller::SetSuppressDuplicateFrames(bool suppress)
-{
-    if (_suppressDuplicateFrames != suppress)
-    {
-        _suppressDuplicateFrames = suppress;
-        _dirty = true;
-        std::for_each(begin(_outputs), end(_outputs), [suppress](Output* o) { o->SetSuppressDuplicateFrames(suppress); });
-    }
-}
-
-std::string Controller::GetVMF() const
-{
     std::string res = GetVendor();
     if (GetModel() != "") res += " " + GetModel();
     if (GetFirmwareVersion() != "") res += " v" + GetFirmwareVersion();
     return res;
 }
 
-void Controller::ConvertOldTypeToVendorModel(const std::string& old, std::string& vendor, std::string& model)
+void Controller::SetSuppressDuplicateFrames(bool suppress) {
+
+    if (_suppressDuplicateFrames != suppress) {
+        _suppressDuplicateFrames = suppress;
+        _dirty = true;
+        std::for_each(begin(_outputs), end(_outputs), [suppress](Output* o) { o->SetSuppressDuplicateFrames(suppress); });
+    }
+}
+#pragma endregion
+
+#pragma region Virtual Functions
+void Controller::SetTransientData(int& on, int32_t& startChannel, int& nullnumber)
 {
-    vendor = "";
-    model = "";
-    for (const auto& it : __controllerNameMap)
-    {
-        if (it._oldName == old)
-        {
-            vendor = it._vendor;
-            model = it._model;
-            return;
-        }
+    for (auto& it : _outputs) {
+
+        // make sure data which is now kept on the controller is duplicated to the outputs so they behave as expected
+        it->SetSuppressDuplicateFrames(_suppressDuplicateFrames);
+        it->Enable(_active);
+
+        it->SetTransientData(on, startChannel, nullnumber);
     }
 }
 
-void Controller::Convert(wxXmlNode* node, std::string showDir)
-{
+void Controller::Convert(wxXmlNode* node, std::string showDir) {
+
     _dirty = true;
-    if (_outputs.size() == 1)
-    {
+
+    if (_outputs.size() == 1) {
         _suppressDuplicateFrames = _outputs.front()->IsSuppressDuplicateFrames();
         _autoSize = _outputs.front()->IsAutoSize();
         _autoStartChannels = _outputs.front()->IsAutoLayoutModels();
     }
 
     auto const c = node->GetAttribute("Controller");
-    if (c != "")
-    {
-        for (const auto& it : __controllerNameMap)
-        {
-            if (it._oldName == c)
-            {
+    if (c != "") {
+
+        for (const auto& it : __controllerNameMap) {
+            if (it._oldName == c) {
                 SetVendor(it._vendor);
                 SetModel(it._model);
                 SetFirmwareVersion(it._firmwareVersion);
                 break;
             }
         }
+
         // vendor didnt convert ... strange
-        if (GetVendor() == "")
-        {
+        if (GetVendor() == "") {
             wxASSERT(false);
         }
     }
 }
-#pragma endregion 
+#pragma endregion
 
+#pragma region UI
 #ifndef EXCLUDENETWORKUI
-void Controller::AddProperties(wxPropertyGrid* propertyGrid)
-{
+void Controller::AddProperties(wxPropertyGrid* propertyGrid) {
+
     wxPGProperty* p = propertyGrid->Append(new wxStringProperty("Name", "ControllerName", GetName()));
     p->SetHelpString("This must be unique.");
 
     p = propertyGrid->Append(new wxStringProperty("Description", "ControllerDescription", GetDescription()));
 
-    auto eth = dynamic_cast<ControllerEthernet*>(this);
-    if (eth == nullptr || (eth->GetProtocol() != OUTPUT_E131 && eth->GetProtocol() != OUTPUT_ARTNET && eth->GetProtocol() != OUTPUT_xxxETHERNET))
-    {
+    if (IsNeedsId()) {
         p = propertyGrid->Append(new wxUIntProperty("Id", "ControllerId", GetId()));
         p->SetAttribute("Min", 1);
         p->SetAttribute("Max", 65335);
         p->SetEditor("SpinCtrl");
     }
 
-    if (SupportsAutoSize())
-    {
+    if (SupportsAutoSize()) {
         p = propertyGrid->Append(new wxBoolProperty("Auto Size", "AutoSize", IsAutoSize()));
         p->SetEditor("CheckBox");
     }
@@ -382,39 +360,31 @@ void Controller::AddProperties(wxPropertyGrid* propertyGrid)
 
     int v = 0;
     wxPGChoices vendors;
-    for (const auto& it : ControllerCaps::GetVendors())
-    {
+    for (const auto& it : ControllerCaps::GetVendors()) {
         vendors.Add(it);
-        if (it == _vendor)
-        {
+        if (it == _vendor) {
             v = vendors.GetCount() - 1;
         }
     }
     p = propertyGrid->Append(new wxEnumProperty("Vendor", "Vendor", vendors, v));
 
-    if (_vendor != "")
-    {
+    if (_vendor != "") {
         int m = 0;
         wxPGChoices models;
-        for (const auto& it : ControllerCaps::GetModels(_vendor))
-        {
+        for (const auto& it : ControllerCaps::GetModels(_vendor)) {
             models.Add(it);
-            if (it == _model)
-            {
+            if (it == _model) {
                 m = models.GetCount() - 1;
             }
         }
         p = propertyGrid->Append(new wxEnumProperty("Model", "Model", models, m));
 
-        if (_model != "")
-        {
+        if (_model != "") {
             int v = 0;
             wxPGChoices versions;
-            for (const auto& it : ControllerCaps::GetFirmwareVersions(_vendor, _model))
-            {
+            for (const auto& it : ControllerCaps::GetFirmwareVersions(_vendor, _model)) {
                 versions.Add(it);
-                if (it == _firmwareVersion)
-                {
+                if (it == _firmwareVersion) {
                     v = versions.GetCount() - 1;
                 }
             }
@@ -422,8 +392,7 @@ void Controller::AddProperties(wxPropertyGrid* propertyGrid)
         }
     }
 
-    if (SupportsSuppressDuplicateFrames())
-    {
+    if (SupportsSuppressDuplicateFrames()) {
         p = propertyGrid->Append(new wxBoolProperty("Suppress Duplicate Frames", "SuppressDuplicates", IsSuppressDuplicateFrames()));
         p->SetEditor("CheckBox");
     }
@@ -434,80 +403,70 @@ bool Controller::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelMana
     wxString const name = event.GetPropertyName();
     wxPropertyGrid* grid = dynamic_cast<wxPropertyGrid*>(event.GetEventObject());
 
-    if (name == "ControllerName")
-    {
-        if (_outputManager->GetController(event.GetValue().GetString()) != nullptr || event.GetValue().GetString() == "")
-        {
-            DisplayError("Controller name '" + event.GetValue().GetString() + "' blank or already used. Controller names must be unique and non blank.");
-            outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "Controller::HandlePropertyEvent::ControllerName", nullptr);
+    if (name == "ControllerName") {
+        auto cn = event.GetValue().GetString();
+        if (_outputManager->GetController(cn) != nullptr || cn == "") {
+            DisplayError("Controller name '" + cn + "' blank or already used. Controller names must be unique and non blank.");
+            outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "Controller::HandlePropertyEvent::ControllerName");
             return false;
         }
-        else
-        {
-            SetName(event.GetValue().GetString());
+        else {
+            SetName(cn);
             outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "Controller::HandlePropertyEvent::ControllerName");
-            outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "Controller::HandlePropertyEvent::ControllerName", nullptr);
-            outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "Controller::HandlePropertyEvent::ControllerName", nullptr);
-            outputModelManager->AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "Controller::HandlePropertyEvent::ControllerName", nullptr);
+            outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "Controller::HandlePropertyEvent::ControllerName");
+            outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "Controller::HandlePropertyEvent::ControllerName");
+            outputModelManager->AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "Controller::HandlePropertyEvent::ControllerName");
             return true;
         }
     }
-    else if (name == "ControllerDescription")
-    {
+    else if (name == "ControllerDescription") {
         SetDescription(event.GetValue().GetString());
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "Controller::HandlePropertyEvent::Controllerdescription");
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "Controller::HandlePropertyEvent::ControllerName", nullptr);
+        outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "Controller::HandlePropertyEvent::ControllerName");
         return true;
     }
-    else if (name == "ControllerId")
-    {
+    else if (name == "ControllerId") {
         SetId(event.GetValue().GetLong());
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "Controller::HandlePropertyEvent::ControllerId");
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "Controller::HandlePropertyEvent::ControllerName", nullptr);
+        outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "Controller::HandlePropertyEvent::ControllerName");
         return true;
     }
-    else if (name == "Active")
-    {
+    else if (name == "Active") {
         SetActive(event.GetValue().GetBool());
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "Controller::HandlePropertyEvent::Active");
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "Controller::HandlePropertyEvent::Active", nullptr);
+        outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "Controller::HandlePropertyEvent::Active");
         return true;
     }
-    else if (name == "SuppressDuplicates")
-    {
+    else if (name == "SuppressDuplicates") {
         SetSuppressDuplicateFrames(event.GetValue().GetBool());
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "Controller::HandlePropertyEvent::SuppressDuplicates");
         return true;
     }
-    else if (name == "AutoSize")
-    {
+    else if (name == "AutoSize") {
         SetAutoSize(event.GetValue().GetBool());
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "Controller::HandlePropertyEvent::AutoSize");
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "Controller::HandlePropertyEvent::AutoSize", nullptr);
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "Controller::HandlePropertyEvent::AutoSize", nullptr);
-        outputModelManager->AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "Controller::HandlePropertyEvent::AutoSize", nullptr);
+        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "Controller::HandlePropertyEvent::AutoSize");
+        outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "Controller::HandlePropertyEvent::AutoSize");
+        outputModelManager->AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "Controller::HandlePropertyEvent::AutoSize");
         return true;
     }
-    else if (name == "Vendor")
-    {
+    else if (name == "Vendor") {
         auto const vendors = ControllerCaps::GetVendors();
         auto it = begin(vendors);
         std::advance(it, event.GetValue().GetLong());
         SetVendor(*it);
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "Controller::HandlePropertyEvent::Vendor");
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "Controller::HandlePropertyEvent::AutoSize", nullptr);
+        outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "Controller::HandlePropertyEvent::AutoSize");
     }
-    else if (name == "Model")
-    {
+    else if (name == "Model") {
         auto const models = ControllerCaps::GetModels(_vendor);
         auto it = begin(models);
         std::advance(it, event.GetValue().GetLong());
         SetModel(*it);
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "Controller::HandlePropertyEvent::Model");
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "Controller::HandlePropertyEvent::AutoSize", nullptr);
+        outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "Controller::HandlePropertyEvent::AutoSize");
     }
-    else if (name == "Version")
-    {
+    else if (name == "Version") {
         auto const versions = ControllerCaps::GetFirmwareVersions(_vendor, _model);
         auto it = begin(versions);
         std::advance(it, event.GetValue().GetLong());
@@ -517,28 +476,24 @@ bool Controller::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelMana
     return false;
 }
 
-void Controller::ValidateProperties(OutputManager* om, wxPropertyGrid* propGrid) const
-{
+void Controller::ValidateProperties(OutputManager* om, wxPropertyGrid* propGrid) const {
+
     auto p = propGrid->GetPropertyByName("ControllerId");
     auto const name = GetName();
 
-    if (p != nullptr)
-    {
+    if (p != nullptr) {
         // Id should be unique
         int id = GetId();
-        for (const auto& it : om->GetControllers())
-        {
-            if (it->GetName() != name && it->GetId() == id)
-            {
+        for (const auto& it : om->GetControllers()) {
+            if (it->GetName() != name && it->GetId() == id) {
                 p->SetBackgroundColour(*wxRED);
                 break;
             }
-            else
-            {
+            else {
                 p->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
             }
-
         }
     }
 }
+#pragma endregion
 #endif

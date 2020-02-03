@@ -94,26 +94,23 @@ std::string ControllerEthernet::GetColumn3Label() const
     return wxString::Format("%d", GetId());
 }
 
-void ControllerEthernet::SetTransientData(int& cn, int& on, int32_t& startChannel, int& nullnumber)
+void ControllerEthernet::SetTransientData(int& on, int32_t& startChannel, int& nullnumber)
 {
     // copy down properties that should be on every output
-    for (auto& it : _outputs)
-    {
-        if (it->GetType() == OUTPUT_E131)
-        {
+    for (auto& it : _outputs) {
+        if (it->GetType() == OUTPUT_E131) {
             dynamic_cast<E131Output*>(it)->SetPriority(_priority);
         }
-        else if (it->GetType() == OUTPUT_ZCPP)
-        {
+        else if (it->GetType() == OUTPUT_ZCPP) {
             dynamic_cast<ZCPPOutput*>(it)->SetPriority(_priority);
         }
     }
 
-    Controller::SetTransientData(cn, on, startChannel, nullnumber);
+    Controller::SetTransientData(on, startChannel, nullnumber);
 }
 
-wxXmlNode* ControllerEthernet::Save()
-{
+wxXmlNode* ControllerEthernet::Save() {
+
     wxXmlNode* um = Controller::Save();
 
     um->AddAttribute("IP", _ip);
@@ -124,14 +121,12 @@ wxXmlNode* ControllerEthernet::Save()
     return um;
 }
 
-bool ControllerEthernet::SupportsUpload() const
-{
+bool ControllerEthernet::SupportsUpload() const {
+
     if (_type == OUTPUT_ZCPP) return false;
 
     auto c = ControllerCaps::GetControllerConfig(_vendor, _model, _firmwareVersion);
-
-    if (c != nullptr)
-    {
+    if (c != nullptr) {
         return c->SupportsUpload();
     }
 
@@ -173,7 +168,7 @@ std::string ControllerEthernet::GetLongDescription() const
 
 void ControllerEthernet::SetId(int id)
 {
-    SetTheId(id);
+    Controller::SetId(id);
     if (GetProtocol() == OUTPUT_DDP)
     {
         dynamic_cast<DDPOutput*>(GetFirstOutput())->SetId(id);
@@ -267,6 +262,7 @@ void ControllerEthernet::AddProperties(wxPropertyGrid* propertyGrid)
     {
         p = propertyGrid->Append(new wxStringProperty("Multicast Address", "MulticastAddressDisplay", ZCPP_GetDataMulticastAddress(_ip)));
         p->ChangeFlag(wxPG_PROP_READONLY, true);
+        p->SetBackgroundColour(*wxLIGHT_GREY);
     }
 
     bool allSameSize = AllSameSize();
@@ -287,24 +283,11 @@ void ControllerEthernet::AddProperties(wxPropertyGrid* propertyGrid)
     {
         p = propertyGrid->Append(new wxBoolProperty("Managed", "Managed", _managed));
         p->SetEditor("CheckBox");
-
-        if (_outputManager->GetControllerCount(GetType(), _ip) == 1)
+        p->SetBackgroundColour(*wxLIGHT_GREY);
+        p->ChangeFlag(wxPG_PROP_READONLY, true);
+        if (!_managed)
         {
-            // leave it editable
-        }
-        else
-        {
-            if (!_managed)
-            {
-                // we cant make it managed as duplicates exist
-                p->ChangeFlag(wxPG_PROP_READONLY, true);
-                p->SetHelpString("This controller cannot be made managed until all other controllers with the same IP address are removed.");
-            }
-            else
-            {
-                // This cant happen
-                wxASSERT(false);
-            }
+            p->SetHelpString("This controller cannot be made managed until all other controllers with the same IP address are removed.");
         }
     }
 
@@ -375,6 +358,7 @@ void ControllerEthernet::AddProperties(wxPropertyGrid* propertyGrid)
         {
             p = propertyGrid->Append(new wxStringProperty(ud, "UniversesDisplay", _outputs.front()->GetUniverseString() + "- " + _outputs.back()->GetUniverseString()));
             p->ChangeFlag(wxPG_PROP_READONLY, true);
+            p->SetBackgroundColour(*wxLIGHT_GREY);
         }
 
         p = propertyGrid->Append(new wxBoolProperty("Individual Sizes", "IndivSizes", !allSameSize || _forceSizes));
@@ -409,6 +393,7 @@ void ControllerEthernet::AddProperties(wxPropertyGrid* propertyGrid)
         if (IsAutoSize())
         {
             p->ChangeFlag(wxPG_PROP_READONLY, true);
+            p->SetBackgroundColour(*wxLIGHT_GREY);
             p->SetHelpString("Channels cannot be changed when an output is set to Auto Size.");
         }
         else

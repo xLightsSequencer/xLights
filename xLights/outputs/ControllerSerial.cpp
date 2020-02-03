@@ -300,7 +300,7 @@ std::string ControllerSerial::GetLongDescription() const
 
 void ControllerSerial::SetId(int id)
 {
-    SetTheId(id);
+    Controller::SetId(id);
     if (GetProtocol() == OUTPUT_LOR_OPT)
     {
         dynamic_cast<LOROptimisedOutput*>(GetFirstOutput())->SetId(id);
@@ -325,6 +325,7 @@ void ControllerSerial::AddProperties(wxPropertyGrid* propertyGrid)
         if (!dynamic_cast<SerialOutput*>(_outputs.front())->AllowsBaudRateSetting())
         {
             p->ChangeFlag(wxPG_PROP_READONLY, true);
+            p->SetBackgroundColour(*wxLIGHT_GREY);
             p->SetHelpString("Speed is fixed for this protocol.");
         }
     }
@@ -340,6 +341,7 @@ void ControllerSerial::AddProperties(wxPropertyGrid* propertyGrid)
     if (IsAutoSize())
     {
         p->ChangeFlag(wxPG_PROP_READONLY, true);
+        p->SetBackgroundColour(*wxLIGHT_GREY);
         p->SetHelpString("Channels cannot be changed when an output is set to Auto Size.");
     }
     else
@@ -381,6 +383,7 @@ void ControllerSerial::AddProperties(wxPropertyGrid* propertyGrid)
 
                 p = propertyGrid->AppendIn(p2, new wxStringProperty("Unit ID - Hex", wxString::Format("DeviceUnitIDHex/%d", i), wxString::Format("0x%02x", it->GetUnitId())));
                 p->ChangeFlag(wxPG_PROP_READONLY, true);
+                p->SetBackgroundColour(*wxLIGHT_GREY);
 
                 p = propertyGrid->AppendIn(p2, new wxEnumProperty("Address Mode", wxString::Format("DeviceAddressMode/%d", i), __lorAddressModes, it->GetAddressMode()));
 

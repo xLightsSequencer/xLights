@@ -246,6 +246,10 @@ void Output::SetTransientData(int& on, int32_t& startChannel, int nullnumber)
     wxASSERT(startChannel != -1);
     _outputNumber = on++;
     _startChannel = startChannel;
+    if (GetType() == OUTPUT_NULL)
+    {
+        _nullNumber = nullnumber++;
+    }
     
     if (_fppProxyOutput) {
         _fppProxyOutput->SetTransientData(on, startChannel, nullnumber);

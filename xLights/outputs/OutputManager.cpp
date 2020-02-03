@@ -290,6 +290,8 @@ bool OutputManager::Load(const std::string& showdir, bool syncEnabled)
     }
     logger_base.debug("Networks loaded.");
 
+    UpdateUnmanaged();
+
     SomethingChanged();
 
     return true;
@@ -926,13 +928,12 @@ bool OutputManager::TxEmpty()
 // Need to call this whenever something may have changed in an output to ensure all the transient data it updated
 void OutputManager::SomethingChanged() const
 {
-    int ccnt = 0;
     int nullcnt = 0;
     int cnt = 0;
     int start = 1;
     for (const auto& it : _controllers)
     {
-        it->SetTransientData(ccnt, cnt, start, nullcnt);
+        it->SetTransientData(cnt, start, nullcnt);
     }
 }
 
@@ -1517,6 +1518,17 @@ std::list<std::string> OutputManager::GetAutoLayoutControllerNames() const
         }
     }
     return res;
+}
+
+int OutputManager::GetControllerIndex(Controller* c)
+{
+    int i = 0;
+    for (const auto& it : _controllers)
+    {
+        if (c == it) return i;
+        i++;
+    }
+    return -1;
 }
 
 // ip can be ip, hostname or port

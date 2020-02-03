@@ -99,6 +99,7 @@ public:
     bool ConvertModelStartChannels(wxXmlNode* modelsNode) const;
     //bool IsOutputUsingIP(const std::string& ip) const;
     int GetControllerCount() const { return _controllers.size(); }
+    int GetControllerIndex(Controller* c);
     int GetControllerCount(const std::string& type, const std::string& ip) const;
     std::string GetGlobalFPPProxy() const { return _globalFPPProxy; }
     void SetGlobalFPPProxy(const std::string& globalFPPProxy) { if (_globalFPPProxy != globalFPPProxy) { _globalFPPProxy = globalFPPProxy; _dirty = true; } }

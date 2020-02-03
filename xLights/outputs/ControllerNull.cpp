@@ -27,7 +27,7 @@ std::string ControllerNull::GetLongDescription() const
 
 void ControllerNull::SetId(int id)
 {
-    SetTheId(id);
+    Controller::SetId(id);
     dynamic_cast<NullOutput*>(GetFirstOutput())->SetId(id);
 }
 

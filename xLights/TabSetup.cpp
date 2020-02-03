@@ -507,7 +507,7 @@ void xLightsFrame::MoveSelectedControllerRows(bool up)
         for (const auto& it : selected)
         {
             auto c = _outputManager.GetController(it);
-            int index = c->GetControllerNumber();
+            int index = _outputManager.GetControllerIndex(c);
             if (index != 0)
             {
                 _outputManager.MoveController(c, index - 1);
@@ -519,7 +519,7 @@ void xLightsFrame::MoveSelectedControllerRows(bool up)
         for (auto it = selected.rbegin(); it != selected.rend(); ++it)
         {
             auto c = _outputManager.GetController(*it);
-            int index = c->GetControllerNumber();
+            int index = _outputManager.GetControllerIndex(c);
             if (index != _outputManager.GetControllerCount() - 1)
             {
                 _outputManager.MoveController(c, index + 1);
@@ -1715,7 +1715,8 @@ void xLightsFrame::OnControllerPropertyGridChange(wxPropertyGridEvent& event) {
             if (processed)
             {
                 // change the value immediately otherwise the focus will be lost
-                int cn = _outputManager.GetController(event.GetValue().GetString())->GetControllerNumber();
+                auto c = _outputManager.GetController(event.GetValue().GetString());
+                int cn = _outputManager.GetControllerIndex(c);
                 List_Controllers->SetItemText(cn, event.GetValue().GetString());
 
                 // This fixes up any start channels dependent on the controller name
