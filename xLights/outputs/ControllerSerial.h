@@ -68,7 +68,7 @@ public:
     virtual std::string GetColumn1Label() const override { if (_outputs.size() > 0) return _outputs.front()->GetType(); else return Controller::GetColumn1Label(); }
     virtual std::string GetColumn2Label() const override { return wxString::Format("%s:%d", _port, _speed); }
     virtual bool SupportsAutoSize() const override { return _type != OUTPUT_LOR_OPT; }
-    bool IsManaged() const override { return true; }
+    bool IsManaged() const override { return false; }
     virtual std::string GetUniverseString() const override { return wxString::Format("%d", _id); }
     virtual Output::PINGSTATE Ping() override;
     virtual void AsyncPing() { _lastPingResult = Ping(); }

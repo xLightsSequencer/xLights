@@ -385,6 +385,9 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
 
 void xLightsFrame::LoadEffectsFile()
 {
+    // Clear out all the models before we load new ones
+    AllModels.clear();
+
     wxStopWatch sw; // start a stopwatch timer
     wxString filename = LoadEffectsFileNoCheck();
     // check version, do we need to convert?
