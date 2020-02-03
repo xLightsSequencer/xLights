@@ -4485,6 +4485,41 @@ void Model::RecalcStartChannels()
     modelManager.RecalcStartChannels();
 }
 
+bool Model::RenameController(const std::string& oldName, const std::string& newName)
+{
+    bool changed = false;
+
+    if (GetControllerName() == oldName)
+    {
+        SetControllerName(newName);
+        changed = true;
+    }
+    if (StartsWith(ModelStartChannel, "!" + oldName))
+    {
+        ModelStartChannel = "!" + newName + ModelStartChannel.substr(oldName.size() + 1);
+        ModelXml->DeleteAttribute("StartChannel");
+        ModelXml->AddAttribute("StartChannel", ModelStartChannel);
+        changed = true;
+    }
+    if (ModelXml->GetAttribute("Advanced") == "1") {
+        for (int i = 0; i < parm1; i++)
+        {
+            auto str = StartChanAttrName(i);
+            if (ModelXml->HasAttribute(str))
+            {
+                auto sc = ModelXml->GetAttribute(str);
+                if (StartsWith(sc, "!" + oldName))
+                {
+                    ModelXml->DeleteAttribute(str);
+                    ModelXml->AddAttribute(str, "!" + newName + sc.substr(oldName.size() + 1));
+                    changed = true;
+                }
+            }
+        }
+    }
+    return changed;
+}
+
 void Model::AddSizeLocationProperties(wxPropertyGridInterface *grid) {
     GetModelScreenLocation().AddSizeLocationProperties(grid);
 }

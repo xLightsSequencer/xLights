@@ -78,6 +78,7 @@ public:
         return n.ToStdString();
     }
 
+    bool RenameController(const std::string& oldName, const std::string& newName);
     virtual std::string GetFullName() const { return name;}
     void Rename(std::string newName);
     int GetNumStrings() const { return parm1; }

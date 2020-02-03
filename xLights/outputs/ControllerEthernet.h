@@ -53,7 +53,7 @@ public:
     std::string GetControllerFPPProxy() const { return _fppProxy; }
     std::string GetFPPProxy() const;
     virtual bool NeedsControllerConfig() const override { return false; }
-    virtual bool IsLookedUpByControllerName() const override { return false; }
+    virtual bool IsLookedUpByControllerName() const override { return true; }
     virtual std::string GetType() const override { return CONTROLLER_ETHERNET; }
     virtual std::string GetChannelMapping(int32_t ch) const override;
     virtual std::string GetColumn1Label() const override { if (_outputs.size() > 0) return _outputs.front()->GetType() + (!_managed ? " (Unmanaged)" : ""); else return Controller::GetColumn1Label(); }

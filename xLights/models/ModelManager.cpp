@@ -832,15 +832,16 @@ bool ModelManager::LoadGroups(wxXmlNode* groupNode, int previewW, int previewH) 
     return changed;
 }
 
-void ModelManager::RenameController(const std::string& oldName, const std::string& newName)
+bool ModelManager::RenameController(const std::string& oldName, const std::string& newName)
 {
-    for (auto it = begin(); it != end(); ++it)
+    bool changed = false;
+
+    for (auto& it : *this)
     {
-        if (it->second->GetControllerName() == oldName)
-        {
-            it->second->SetControllerName(newName);
-        }
+        changed |= it.second->RenameController(oldName, newName);
     }
+
+    return changed;
 }
 
 // generate the next similar model name to the candidateName we are given

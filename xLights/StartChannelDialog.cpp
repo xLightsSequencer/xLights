@@ -7,7 +7,7 @@
 //*)
 
 #include "outputs/OutputManager.h"
-#include "outputs/Output.h"
+#include "outputs/Controller.h"
 
 //(*IdInit(StartChannelDialog)
 const long StartChannelDialog::ID_SPINCTRL1 = wxNewId();
@@ -197,13 +197,9 @@ void StartChannelDialog::Set(const wxString &s, const ModelManager &models, cons
     ipChoice->SetStringSelection("ANY");
     SetUniverseOptionsBasedOnIP(ipChoice->GetStringSelection());
 
-    auto outputs = _outputManager->GetOutputs();
-    for (auto it = outputs.begin(); it != outputs.end(); ++it)
+    for (const auto& it : _outputManager->GetControllers())
     {
-        if ((*it)->IsLookedUpByControllerName())
-        {
-            ChoiceController->AppendString((*it)->GetDescription());
-        }
+        ChoiceController->AppendString(it->GetName());
     }
 
     if (start.Contains(":")) {
