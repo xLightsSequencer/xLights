@@ -94,7 +94,7 @@ void GIFImage::ReadFrameProperties()
     if (_totalTime == 0) {
         _frameTimes.clear();
         _totalTime = 100 * _gifDecoder.GetFrameCount();
-        for (int x = 0; x < _gifDecoder.GetFrameCount(); x++) {
+        for (unsigned int x = 0; x < _gifDecoder.GetFrameCount(); x++) {
             _frameTimes.push_back(100);
         }
     }

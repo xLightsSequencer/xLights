@@ -1,7 +1,8 @@
 #include "EventPingPanel.h"
 #include "events/EventPing.h"
 #include "../xLights/outputs/OutputManager.h"
-#include "../xLights/outputs/Output.h"
+#include "../xLights/outputs/ControllerEthernet.h"
+#include "../xLights/outputs/ControllerSerial.h"
 
 //(*InternalHeaders(EventPingPanel)
 #include <wx/intl.h>
@@ -21,13 +22,17 @@ BEGIN_EVENT_TABLE(EventPingPanel,wxPanel)
 	//*)
 END_EVENT_TABLE()
 
-std::string GetPingID(Output* output)
+std::string GetPingID(Controller* controller)
 {
-    std::string id = output->GetIP();
-
-    if (id == "") id = output->GetCommPort();
-
-    return id;
+    if (dynamic_cast<ControllerEthernet*>(controller) != nullptr)
+    {
+        return dynamic_cast<ControllerEthernet*>(controller)->GetIP();
+    }
+    else if (dynamic_cast<ControllerSerial*>(controller) != nullptr)
+    {
+        return dynamic_cast<ControllerSerial*>(controller)->GetPort();
+    }
+    return "";
 }
 
 EventPingPanel::EventPingPanel(wxWindow* parent, OutputManager* outputManager, wxWindowID id,const wxPoint& pos,const wxSize& size)
@@ -59,16 +64,16 @@ EventPingPanel::EventPingPanel(wxWindow* parent, OutputManager* outputManager, w
     Choice_IPs->Append("All");
 
     std::list<std::string> created;
-    auto outputs = outputManager->GetOutputs();
-    for (auto it = outputs.begin(); it != outputs.end(); ++it)
+    auto controllers = outputManager->GetControllers();
+    for (const auto& it : controllers)
     {
-        if ((*it)->CanPing())
+        if (it->CanPing())
         {
             // check if we have already seen it
             bool found = false;
-            for (auto cit = created.begin(); cit != created.end(); ++cit)
+            for (auto& cit : created)
             {
-                if (*cit == GetPingID(*it))
+                if (cit == GetPingID(it))
                 {
                     // we have seen it
                     found = true;
@@ -78,8 +83,8 @@ EventPingPanel::EventPingPanel(wxWindow* parent, OutputManager* outputManager, w
 
             if (!found)
             {
-                created.push_back(GetPingID(*it));
-                Choice_IPs->Append((*it)->GetPingDescription());
+                created.push_back(GetPingID(it));
+                Choice_IPs->Append(it->GetPingDescription());
             }
         }
     }

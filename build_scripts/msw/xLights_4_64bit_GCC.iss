@@ -134,6 +134,9 @@ Source: "../../valuecurves/*.*"; DestDir: "{app}/valuecurves"   ; Flags: replace
 ; Mesh Objects
 Source: "../../meshobjects/*.*"; DestDir: "{app}/meshobjects"   ; Flags: replacesameversion recursesubdirs
 
+; Mesh Objects
+Source: "../../controllers/*.*"; DestDir: "{app}/controllers"   ; Flags: replacesameversion recursesubdirs
+
 ; Palettes
 Source: "../../palettes/*.*"; DestDir: "{app}/palettes"   ; Flags: replacesameversion recursesubdirs
 

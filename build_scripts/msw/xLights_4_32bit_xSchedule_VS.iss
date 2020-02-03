@@ -69,6 +69,9 @@ Source: "../../bin/avutil-56.dll"; DestDir: "{app}";  Flags: "ignoreversion"
 Source: "../../bin/swresample-3.dll"; DestDir: "{app}";  Flags: "ignoreversion"
 Source: "../../bin/swscale-5.dll"; DestDir: "{app}";  Flags: "ignoreversion"
 
+; Mesh Objects
+Source: "../../controllers/*.*"; DestDir: "{app}/controllers"   ; Flags: replacesameversion recursesubdirs
+
 ; SDL - audio playing
 Source: "../../bin/SDL2.dll"; DestDir: "{app}";  Flags: "ignoreversion"
 
