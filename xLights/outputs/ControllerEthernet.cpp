@@ -47,7 +47,12 @@ void ControllerEthernet::InitialiseTypes(bool forceXXX)
     }
 }
 
-inline std::string ControllerEthernet::GetFPPProxy() const { if (_fppProxy != "") return _fppProxy; return _outputManager->GetGlobalFPPProxy(); }
+std::string ControllerEthernet::GetFPPProxy() const {
+    if (_fppProxy != "") {
+        return _fppProxy;
+    }
+    return _outputManager->GetGlobalFPPProxy();
+}
 
 std::string ControllerEthernet::GetChannelMapping(int32_t ch) const
 {
