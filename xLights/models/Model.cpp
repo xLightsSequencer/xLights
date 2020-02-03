@@ -678,6 +678,7 @@ static inline void setupProtocolList() {
         CONTROLLER_PROTOCOLS.push_back("PixelNet");
         CONTROLLER_PROTOCOLS.push_back("Renard");
         CONTROLLER_PROTOCOLS.push_back("LOR");
+        CONTROLLER_PROTOCOLS.push_back("AC");
     }
     if (SMART_REMOTES.IsEmpty()) {
         SMART_REMOTES.push_back("N/A");
@@ -734,7 +735,7 @@ void Model::AddControllerProperties(wxPropertyGridInterface *grid) {
         i++;
     }
 
-    if (protocol != "dmx" && protocol != "pixelnet" && protocol != "renard" && protocol != "lor" && protocol != "") {
+    if (protocol != "dmx" && protocol != "pixelnet" && protocol != "renard" && protocol != "lor" && protocol != "" && protocol != "ac") {
         sp = grid->AppendIn(p, new wxEnumProperty("Smart Remote", "SmartRemote", SMART_REMOTES, wxArrayInt(), GetSmartRemote()));
     }
 
@@ -5151,7 +5152,7 @@ bool Model::IsPixelProtocol(const std::string &p) {
     }
     wxString protocol = p;
     protocol.MakeLower();
-    return (protocol != "dmx" && protocol != "pixelnet" && protocol != "renard" && protocol != "lor");
+    return (protocol != "dmx" && protocol != "pixelnet" && protocol != "renard" && protocol != "lor" && protocol != "ac");
 }
 
 void Model::SetTagColour(wxColour colour)

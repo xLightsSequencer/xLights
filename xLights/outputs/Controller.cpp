@@ -426,12 +426,6 @@ void Controller::AddProperties(wxPropertyGrid* propertyGrid)
         p = propertyGrid->Append(new wxBoolProperty("Suppress Duplicate Frames", "SuppressDuplicates", IsSuppressDuplicateFrames()));
         p->SetEditor("CheckBox");
     }
-
-    if (SupportsAutoStartChannels())
-    {
-        p = propertyGrid->Append(new wxBoolProperty("Auto Model Start Channel", "AutoStartChannel", IsAutoStartChannel()));
-        p->SetEditor("CheckBox");
-    }
 }
 
 bool Controller::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager)
@@ -483,14 +477,6 @@ bool Controller::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelMana
         SetSuppressDuplicateFrames(event.GetValue().GetBool());
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "Controller::HandlePropertyEvent::SuppressDuplicates");
         return true;
-    }
-    else if (name == "AutoStartChannel")
-    {
-        SetAutoStartChannel(event.GetValue().GetBool());
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "Controller::HandlePropertyEvent::ControllerName");
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "Controller::HandlePropertyEvent::ControllerName", nullptr);
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "Controller::HandlePropertyEvent::ControllerName", nullptr);
-        outputModelManager->AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "Controller::HandlePropertyEvent::ControllerName", nullptr);
     }
     else if (name == "AutoSize")
     {

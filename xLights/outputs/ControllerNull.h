@@ -31,13 +31,12 @@ public:
 #pragma region Getters and Setters
     virtual bool NeedsControllerConfig() const override { return false; }
     virtual bool IsLookedUpByControllerName() const override { return false; }
-    virtual bool IsAutoLayoutModels() const override { return false; }
     virtual std::string GetType() const override { return CONTROLLER_NULL; }
     virtual std::string GetChannelMapping(int32_t ch) const override;
     virtual std::string GetColumn1Label() const override { return "NULL"; }
     virtual bool SupportsSuppressDuplicateFrames() const override { return false; }
-    virtual bool SupportsAutoStartChannels() const override { return true; }
     virtual bool SupportsAutoSize() const override { return true; }
+    bool IsManaged() const override { return true; }
     virtual std::string GetUniverseString() const override { return wxString::Format("%d", _id); }
     virtual std::string GetLongDescription() const override;
     virtual void SetId(int id) override;

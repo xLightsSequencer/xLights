@@ -54,19 +54,17 @@ public:
     std::string GetFPPProxy() const;
     virtual bool NeedsControllerConfig() const override { return false; }
     virtual bool IsLookedUpByControllerName() const override { return false; }
-    virtual bool IsAutoLayoutModels() const override { return _autoStartChannels; }
     virtual std::string GetType() const override { return CONTROLLER_ETHERNET; }
     virtual std::string GetChannelMapping(int32_t ch) const override;
     virtual std::string GetColumn1Label() const override { if (_outputs.size() > 0) return _outputs.front()->GetType() + (!_managed ? " (Unmanaged)" : ""); else return Controller::GetColumn1Label(); }
     virtual std::string GetColumn2Label() const override { return _ip; }
     virtual std::string GetColumn3Label() const override;
     virtual void SetTransientData(int& cn, int& on, int32_t& startChannel, int& nullnumber) override;
-    virtual bool SupportsAutoStartChannels() const override { return _managed; }
     virtual bool SupportsAutoSize() const override { return _managed && (_type == OUTPUT_ZCPP || _type == OUTPUT_DDP); }
     bool IsFPPProxyable() const { return _type == OUTPUT_E131 || _type == OUTPUT_DDP; }
     void SetManaged(bool managed) { if (_managed != managed) { _managed = managed; _dirty = true; } }
     virtual std::string GetUniverseString() const override { return ""; }
-    bool IsManaged() const { return _managed; }
+    bool IsManaged() const override { return _managed; }
     virtual bool SupportsUpload() const override;
     virtual Output::PINGSTATE Ping() override;
     virtual void AsyncPing() override;

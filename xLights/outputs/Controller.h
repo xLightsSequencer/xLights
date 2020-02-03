@@ -85,8 +85,6 @@ public:
     void SetDescription(const std::string& description) { if (_description != description) { _description = description; _dirty = true; } }
     void SetAutoSize(bool autosize) { if (_autoSize != autosize) { _autoSize = autosize; _dirty = true; } }
     bool IsAutoSize() const { return _autoSize; }
-    void SetAutoStartChannel(bool autosc) { if (_autoStartChannels != autosc) { _autoStartChannels = autosc; _dirty = true; } }
-    bool IsAutoStartChannel() const { return _autoStartChannels; }
     bool IsEnabled() const { return std::any_of(begin(_outputs), end(_outputs), [](Output* o) { return o->IsEnabled(); }); }
     void Enable(bool enable) { for (auto& it : _outputs) { it->Enable(enable); } }
     int GetControllerNumber() const { return _controllerNumber; }
@@ -104,13 +102,13 @@ public:
     bool IsSuppressDuplicateFrames() const { return _suppressDuplicateFrames; }
     void SetSuppressDuplicateFrames(bool suppress);
     Output* GetFirstOutput() const { wxASSERT(_outputs.size() > 0); return _outputs.front(); }
-    std::string GetVMF() const;
+    std::string GetVMF() const;  
 
-    virtual bool SupportsAutoStartChannels() const { return false; }
     virtual bool SupportsSuppressDuplicateFrames() const { return true; }
     virtual bool SupportsUpload() const {
         return false;
     }
+    virtual bool IsManaged() const = 0;
 
     // Used on test dialog
     virtual std::string GetLongDescription() const { return GetName() + "\n" + GetDescription(); }
@@ -134,9 +132,6 @@ public:
 
     // True if this controller type can support autosize
     virtual bool SupportsAutoSize() const { return false; }
-
-    // True if we can switch models around at will
-    virtual bool IsAutoLayoutModels() const { return false; }
 
     // Used in tooltip on model dialog
     virtual std::string GetChannelMapping(int32_t ch) const = 0;
