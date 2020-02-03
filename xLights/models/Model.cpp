@@ -1844,7 +1844,7 @@ int Model::GetNumStrands() const {
 bool Model::ModelRenamed(const std::string &oldName, const std::string &newName) {
     bool changed = false;
     std::string sc = ModelXml->GetAttribute("StartChannel","1").ToStdString();
-    if (sc[0] == '@' || sc[0] == '<' || sc[0] == '>') {
+    if ((sc[0] == '@' || sc[0] == '<' || sc[0] == '>') && sc.size() > 1) {
         std::string mn = sc.substr(1, sc.find(':')-1);
         if (mn == oldName) {
             sc = sc[0] + newName + sc.substr(sc.find(':'), sc.size());
@@ -1866,7 +1866,7 @@ bool Model::ModelRenamed(const std::string &oldName, const std::string &newName)
         std::string tempstr = StartChanAttrName(i);
         if (ModelXml->HasAttribute(tempstr)) {
             sc = ModelXml->GetAttribute(tempstr, "1").ToStdString();
-            if (sc[0] == '@' || sc[0] == '<' || sc[0] == '>') {
+            if ((sc[0] == '@' || sc[0] == '<' || sc[0] == '>') && sc.size() > 1) {
                 std::string mn = sc.substr(1, sc.find(':')-1);
                 if (mn == oldName) {
                     sc = sc[0] + newName + sc.substr(sc.find(':'), sc.size());

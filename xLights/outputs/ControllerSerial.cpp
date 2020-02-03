@@ -311,6 +311,7 @@ void ControllerSerial::SetId(int id)
     }
 }
 
+#ifndef EXCLUDENETWORKUI
 void ControllerSerial::AddProperties(wxPropertyGrid* propertyGrid)
 {
     Controller::AddProperties(propertyGrid);
@@ -603,6 +604,7 @@ void ControllerSerial::ValidateProperties(OutputManager* om, wxPropertyGrid* pro
         }
     }
 }
+#endif
 
 ControllerSerial::ControllerSerial(OutputManager* om, wxXmlNode* node, const std::string& showDir) : Controller(om, node, showDir)
 {

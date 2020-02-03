@@ -1,8 +1,12 @@
 #include "Pinger.h"
-#include <log4cpp/Category.hh>
 #include "../xLights/outputs/OutputManager.h"
-#include "../xLights/outputs/IPOutput.h"
 #include "events/ListenerManager.h"
+#include "../xLights/outputs/ControllerEthernet.h"
+#include "../xLights/outputs/ControllerSerial.h"
+
+#include <atomic>
+
+#include <log4cpp/Category.hh>
 
 class PingThread : public wxThread
 {
@@ -49,7 +53,7 @@ public:
         while (!_stop)
         {
 
-            auto res = PINGSTATE::PING_UNKNOWN;
+            auto res = Output::PINGSTATE::PING_UNKNOWN;
 
             // if it previously failed ... only try once
             int loops = PINGRETRIES;
@@ -58,7 +62,7 @@ public:
             for (int i = 0; !_stop && i < loops; i++)
             {
                 res = _pinger->Ping();
-                if (res != ::PING_ALLFAILED)
+                if (res != Output::PINGSTATE::PING_ALLFAILED)
                 {
                     break;
                 }
@@ -79,13 +83,16 @@ public:
     }
 };
 
-APinger::APinger(ListenerManager* lm, Output* output)
+APinger::APinger(ListenerManager* lm, Controller* controller)
 {
     _listenerManager = lm;
-    _output = output;
+    _controller = controller;
     _why = "Output";
-    _ip = output->GetIP();
-    _lastResult = PINGSTATE::PING_UNKNOWN;
+    if (dynamic_cast<ControllerEthernet*>(controller) != nullptr)
+    {
+        _ip = dynamic_cast<ControllerEthernet*>(controller)->GetIP();
+    }
+    _lastResult = Output::PINGSTATE::PING_UNKNOWN;
     _failCount = 0;
     _pingThread = new PingThread(this);
     _pingThread->Create();
@@ -95,10 +102,10 @@ APinger::APinger(ListenerManager* lm, Output* output)
 APinger::APinger(ListenerManager* lm, const std::string ip, const std::string why)
 {
     _listenerManager = lm;
-    _output = nullptr;
+    _controller = nullptr;
     _ip = ip;
     _why = why;
-    _lastResult = PINGSTATE::PING_UNKNOWN;
+    _lastResult = Output::PINGSTATE::PING_UNKNOWN;
     _failCount = 0;
     _pingThread = new PingThread(this);
     _pingThread->Create();
@@ -109,73 +116,73 @@ APinger::~APinger()
 {
 }
 
-PINGSTATE APinger::GetPingResult() const
+Output::PINGSTATE APinger::GetPingResult() const
 {
     return _lastResult;
 }
 
-bool APinger::GetPingResult(PINGSTATE state) const
+bool APinger::GetPingResult(Output::PINGSTATE state) const
 {
     switch (state)
     {
-    case PINGSTATE::PING_ALLFAILED:
+    case Output::PINGSTATE::PING_ALLFAILED:
         return false;
-    case PINGSTATE::PING_OK:
-    case PINGSTATE::PING_WEBOK:
-    case PINGSTATE::PING_OPEN:
-    case PINGSTATE::PING_OPENED:
-    case PINGSTATE::PING_UNKNOWN:
-    case PINGSTATE::PING_UNAVAILABLE:
+    case Output::PINGSTATE::PING_OK:
+    case Output::PINGSTATE::PING_WEBOK:
+    case Output::PINGSTATE::PING_OPEN:
+    case Output::PINGSTATE::PING_OPENED:
+    case Output::PINGSTATE::PING_UNKNOWN:
+    case Output::PINGSTATE::PING_UNAVAILABLE:
     default:
         return true;
     }
 }
 
-std::string APinger::GetPingResultName(PINGSTATE state)
+std::string APinger::GetPingResultName(Output::PINGSTATE state)
 {
     switch(state)
     {
-    case PINGSTATE::PING_ALLFAILED:
+    case Output::PINGSTATE::PING_ALLFAILED:
         return "Failed";
-    case PINGSTATE::PING_UNAVAILABLE:
+    case Output::PINGSTATE::PING_UNAVAILABLE:
         return "Unavailable";
-    case PINGSTATE::PING_OK:
-    case PINGSTATE::PING_WEBOK:
-    case PINGSTATE::PING_OPEN:
-    case PINGSTATE::PING_OPENED:
+    case Output::PINGSTATE::PING_OK:
+    case Output::PINGSTATE::PING_WEBOK:
+    case Output::PINGSTATE::PING_OPEN:
+    case Output::PINGSTATE::PING_OPENED:
         return "Ok";
-    case PINGSTATE::PING_UNKNOWN:
+    case Output::PINGSTATE::PING_UNKNOWN:
         return "Unknown";
     }
 
     return "Unknown";
 }
 
-PINGSTATE APinger::Ping()
+Output::PINGSTATE APinger::Ping()
 {
-    if (_output != nullptr)
+    if (_controller != nullptr)
     {
-        return _output->Ping();
+        return _controller->Ping();
     }
  
     return IPOutput::Ping(_ip, "");
 }
 
-void APinger::SetPingResult(PINGSTATE result)
+void APinger::SetPingResult(Output::PINGSTATE result)
 {
     _lastResult = result;
 
-    if (result == PINGSTATE::PING_ALLFAILED) _failCount++;
-    if (result == PINGSTATE::PING_OK || result == PINGSTATE::PING_OPEN || result == PINGSTATE::PING_OPENED || result == PINGSTATE::PING_WEBOK) _failCount = 0;
+    if (result == Output::PINGSTATE::PING_ALLFAILED) _failCount++;
+    if (result == Output::PINGSTATE::PING_OK || result == Output::PINGSTATE::PING_OPEN || result == Output::PINGSTATE::PING_OPENED || result == Output::PINGSTATE::PING_WEBOK) _failCount = 0;
 
     _listenerManager->ProcessPacket("Ping", GetPingResult(result), _ip);
 }
 
 std::string APinger::GetName() const
 {
-    if (_output != nullptr)
+    if (_controller != nullptr)
     {
-        return _output->GetPingDescription();
+        return _controller->GetPingDescription();
     }
     return _ip + " " + _why;
 }
@@ -190,17 +197,21 @@ void APinger::Stop()
         delete _pingThread;
         _pingThread = nullptr;
     }
-    _output = nullptr;
+    _controller = nullptr;
     _ip = "";
 }
 
-std::string GetID(Output* output)
+std::string GetID(Controller* controller)
 {
-    std::string id = output->GetIP();
-
-    if (id == "") id = output->GetCommPort();
-
-    return id;
+    if (dynamic_cast<ControllerEthernet*>(controller) != nullptr)
+    {
+        return dynamic_cast<ControllerEthernet*>(controller)->GetIP();
+    }
+    else if (dynamic_cast<ControllerSerial*>(controller) != nullptr)
+    {
+        return dynamic_cast<ControllerSerial*>(controller)->GetPort();
+    }
+    return "";
 }
 
 Pinger::Pinger(ListenerManager* listenerManager, OutputManager* outputManager)
@@ -208,9 +219,9 @@ Pinger::Pinger(ListenerManager* listenerManager, OutputManager* outputManager)
     _listenerManager = listenerManager;
     std::list<std::string> created;
 
-    auto outputs = outputManager->GetOutputs();
+    auto controllers = outputManager->GetControllers();
 
-    for (const auto& it : outputs)
+    for (const auto& it : controllers)
     {
         if (it->CanPing() && it->IsEnabled())
         {

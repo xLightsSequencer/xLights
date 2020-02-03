@@ -170,21 +170,23 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\xLights\AudioManager.cpp" />
+    <ClCompile Include="..\xLights\controllers\ControllerCaps.cpp" />
     <ClCompile Include="..\xLights\effects\GIFImage.cpp" />
     <ClCompile Include="..\xLights\FSEQFile.cpp" />
     <ClCompile Include="..\xLights\JobPool.cpp" />
     <ClCompile Include="..\xLights\kiss_fft\kiss_fft.c" />
     <ClCompile Include="..\xLights\kiss_fft\tools\kiss_fftr.c" />
-    <ClCompile Include="..\xLights\outputs\ArtNetDialog.cpp" />
     <ClCompile Include="..\xLights\outputs\ArtNetOutput.cpp" />
+    <ClCompile Include="..\xLights\outputs\Controller.cpp" />
+    <ClCompile Include="..\xLights\outputs\ControllerEthernet.cpp" />
+    <ClCompile Include="..\xLights\outputs\ControllerNull.cpp" />
+    <ClCompile Include="..\xLights\outputs\ControllerSerial.cpp" />
     <ClCompile Include="..\xLights\outputs\DDPOutput.cpp" />
     <ClCompile Include="..\xLights\outputs\DMXOutput.cpp" />
     <ClCompile Include="..\xLights\outputs\E131Output.cpp" />
     <ClCompile Include="..\xLights\outputs\IPOutput.cpp" />
     <ClCompile Include="..\xLights\outputs\LorController.cpp" />
-    <ClCompile Include="..\xLights\outputs\LorControllerDialog.cpp" />
     <ClCompile Include="..\xLights\outputs\LorControllers.cpp" />
-    <ClCompile Include="..\xLights\outputs\LorOptimisedDialog.cpp" />
     <ClCompile Include="..\xLights\outputs\LOROptimisedOutput.cpp" />
     <ClCompile Include="..\xLights\outputs\LOROutput.cpp" />
     <ClCompile Include="..\xLights\outputs\NullOutput.cpp" />
@@ -398,20 +400,23 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\xLights\AudioManager.h" />
+    <ClInclude Include="..\xLights\controllers\ControllerCaps.h" />
     <ClInclude Include="..\xLights\effects\GIFImage.h" />
     <ClInclude Include="..\xLights\FSEQFile.h" />
     <ClInclude Include="..\xLights\kiss_fft\_kiss_fft_guts.h" />
     <ClInclude Include="..\xLights\MSWStackWalk.h" />
     <ClInclude Include="..\xLights\outputs\ArtNetOutput.h" />
+    <ClInclude Include="..\xLights\outputs\Controller.h" />
+    <ClInclude Include="..\xLights\outputs\ControllerEthernet.h" />
+    <ClInclude Include="..\xLights\outputs\ControllerNull.h" />
+    <ClInclude Include="..\xLights\outputs\ControllerSerial.h" />
     <ClInclude Include="..\xLights\outputs\DDPOutput.h" />
     <ClInclude Include="..\xLights\outputs\DLightOutput.h" />
     <ClInclude Include="..\xLights\outputs\DMXOutput.h" />
     <ClInclude Include="..\xLights\outputs\E131Output.h" />
     <ClInclude Include="..\xLights\outputs\IPOutput.h" />
     <ClInclude Include="..\xLights\outputs\LorController.h" />
-    <ClInclude Include="..\xLights\outputs\LorControllerDialog.h" />
     <ClInclude Include="..\xLights\outputs\LorControllers.h" />
-    <ClInclude Include="..\xLights\outputs\LorOptimisedDialog.h" />
     <ClInclude Include="..\xLights\outputs\LOROptimisedOutput.h" />
     <ClInclude Include="..\xLights\outputs\LOROutput.h" />
     <ClInclude Include="..\xLights\outputs\NullOutput.h" />

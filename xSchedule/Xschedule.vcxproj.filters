@@ -66,9 +66,6 @@
     <ClCompile Include="AddReverseDialog.cpp">
       <Filter>OutputProcessing</Filter>
     </ClCompile>
-    <ClCompile Include="..\xLights\outputs\ArtNetDialog.cpp">
-      <Filter>Outputs</Filter>
-    </ClCompile>
     <ClCompile Include="..\xLights\outputs\ArtNetOutput.cpp">
       <Filter>Outputs</Filter>
     </ClCompile>
@@ -186,13 +183,7 @@
     <ClCompile Include="..\xLights\outputs\LorController.cpp">
       <Filter>Outputs</Filter>
     </ClCompile>
-    <ClCompile Include="..\xLights\outputs\LorControllerDialog.cpp">
-      <Filter>Outputs</Filter>
-    </ClCompile>
     <ClCompile Include="..\xLights\outputs\LorControllers.cpp">
-      <Filter>Outputs</Filter>
-    </ClCompile>
-    <ClCompile Include="..\xLights\outputs\LorOptimisedDialog.cpp">
       <Filter>Outputs</Filter>
     </ClCompile>
     <ClCompile Include="..\xLights\outputs\LOROptimisedOutput.cpp">
@@ -519,6 +510,19 @@
     <ClCompile Include="..\xLights\TraceLog.cpp" />
     <ClCompile Include="..\xLights\outputs\xxxEthernetOutput.cpp" />
     <ClCompile Include="..\xLights\outputs\xxxSerialOutput.cpp" />
+    <ClCompile Include="..\xLights\outputs\Controller.cpp">
+      <Filter>Outputs</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xLights\outputs\ControllerEthernet.cpp">
+      <Filter>Outputs</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xLights\outputs\ControllerNull.cpp">
+      <Filter>Outputs</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xLights\outputs\ControllerSerial.cpp">
+      <Filter>Outputs</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xLights\controllers\ControllerCaps.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\xLights\AudioManager.h" />
@@ -690,13 +694,7 @@
     <ClInclude Include="..\xLights\outputs\LorController.h">
       <Filter>Outputs</Filter>
     </ClInclude>
-    <ClInclude Include="..\xLights\outputs\LorControllerDialog.h">
-      <Filter>Outputs</Filter>
-    </ClInclude>
     <ClInclude Include="..\xLights\outputs\LorControllers.h">
-      <Filter>Outputs</Filter>
-    </ClInclude>
-    <ClInclude Include="..\xLights\outputs\LorOptimisedDialog.h">
       <Filter>Outputs</Filter>
     </ClInclude>
     <ClInclude Include="..\xLights\outputs\LOROptimisedOutput.h">
@@ -1028,6 +1026,19 @@
     <ClInclude Include="..\xLights\TraceLog.h" />
     <ClInclude Include="..\xLights\outputs\xxxEthernetOutput.h" />
     <ClInclude Include="..\xLights\outputs\xxxSerialOutput.h" />
+    <ClInclude Include="..\xLights\outputs\Controller.h">
+      <Filter>Outputs</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xLights\outputs\ControllerEthernet.h">
+      <Filter>Outputs</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xLights\outputs\ControllerNull.h">
+      <Filter>Outputs</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xLights\outputs\ControllerSerial.h">
+      <Filter>Outputs</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xLights\controllers\ControllerCaps.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="PlayList">

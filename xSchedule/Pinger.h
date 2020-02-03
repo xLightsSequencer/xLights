@@ -1,38 +1,39 @@
-#ifndef PINGER_H
-#define PINGER_H
+#pragma once
 
 #include <string>
 #include <list>
-#include "../xLights/outputs/Output.h"
 #include <atomic>
+
+#include "../xLights/outputs/Output.h"
 
 #define PINGINTERVAL 60
 
 class OutputManager;
 class PingThread;
 class ListenerManager;
+class Controller;
 
 class APinger
 {
-    PingThread* _pingThread;
-	Output* _output;
-	std::atomic<PINGSTATE> _lastResult;
+    PingThread* _pingThread = nullptr;
+	Controller* _controller = nullptr;
+	std::atomic<Output::PINGSTATE> _lastResult;
     std::string _ip;
     std::string _why;
-    ListenerManager* _listenerManager;
+    ListenerManager* _listenerManager = nullptr;
     std::atomic<int> _failCount;
 
     public:
 
-    void SetPingResult(PINGSTATE result);
-    bool IsOutput() const { return _output != nullptr; }
-	APinger(ListenerManager* listenerManager, Output* output);
+    void SetPingResult(Output::PINGSTATE result);
+    bool IsOutput() const { return _controller != nullptr; }
+	APinger(ListenerManager* listenerManager, Controller* controller);
 	APinger(ListenerManager* listenerManager, const std::string ip, const std::string why);
 	virtual ~APinger();
-	PINGSTATE GetPingResult() const;
-    bool GetPingResult(PINGSTATE state) const;
-    static std::string GetPingResultName(PINGSTATE state);
-    PINGSTATE Ping();
+	Output::PINGSTATE GetPingResult() const;
+    bool GetPingResult(Output::PINGSTATE state) const;
+    static std::string GetPingResultName(Output::PINGSTATE state);
+    Output::PINGSTATE Ping();
 	std::string GetName() const;
     int GetPingInterval() const { return PINGINTERVAL; }
     void Stop();
@@ -42,7 +43,7 @@ class APinger
 
 class Pinger
 {
-    ListenerManager* _listenerManager;
+    ListenerManager* _listenerManager = nullptr;
     std::list<APinger*> _pingers;
 	
 	public:
@@ -52,5 +53,3 @@ class Pinger
         void AddIP(const std::string ip, const std::string why);
         void RemoveNonOutputIPs();
 };
-
-#endif 

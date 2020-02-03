@@ -63,6 +63,7 @@
 #include "SyncFPP.h"
 #include "../xLights/VideoReader.h"
 #include "../xLights/SpecialOptions.h"
+#include "../xLights/outputs/Output.h"
 
 #include "../include/xs_save.xpm"
 #include "../include/xs_otlon.xpm"
@@ -3273,22 +3274,22 @@ void xScheduleFrame::UpdateUI(bool force)
 
                 switch (it->GetPingResult())
                 {
-                case PING_OK:
-                case PING_OPEN:
-                case PING_OPENED:
-                case PING_WEBOK:
+                case Output::PINGSTATE::PING_OK:
+                case Output::PINGSTATE::PING_OPEN:
+                case Output::PINGSTATE::PING_OPENED:
+                case Output::PINGSTATE::PING_WEBOK:
                     ListView_Ping->SetItemTextColour(item, *wxBLACK);
                     ListView_Ping->SetItemBackgroundColour(item, *wxGREEN);
                     break;
-                case PING_ALLFAILED:
+                case Output::PINGSTATE::PING_ALLFAILED:
                     ListView_Ping->SetItemTextColour(item, *wxWHITE);
                     ListView_Ping->SetItemBackgroundColour(item, *wxRED);
                     break;
-                case PING_UNAVAILABLE:
+                case Output::PINGSTATE::PING_UNAVAILABLE:
                     ListView_Ping->SetItemTextColour(item, *wxBLACK);
                     ListView_Ping->SetItemBackgroundColour(item, *wxWHITE);
                     break;
-                case PING_UNKNOWN:
+                case Output::PINGSTATE::PING_UNKNOWN:
                     ListView_Ping->SetItemTextColour(item, *wxBLACK);
                     ListView_Ping->SetItemBackgroundColour(item, wxColour(255, 128, 0));
                     break;

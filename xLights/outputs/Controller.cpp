@@ -354,6 +354,7 @@ void Controller::Convert(wxXmlNode* node, std::string showDir)
 }
 #pragma endregion 
 
+#ifndef EXCLUDENETWORKUI
 void Controller::AddProperties(wxPropertyGrid* propertyGrid)
 {
     wxPGProperty* p = propertyGrid->Append(new wxStringProperty("Name", "ControllerName", GetName()));
@@ -540,3 +541,4 @@ void Controller::ValidateProperties(OutputManager* om, wxPropertyGrid* propGrid)
         }
     }
 }
+#endif

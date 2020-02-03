@@ -242,6 +242,7 @@ bool ControllerEthernet::AllSameSize() const
     return true;
 }
 
+#ifndef EXCLUDENETWORKUI
 void ControllerEthernet::AddProperties(wxPropertyGrid* propertyGrid)
 {
     wxPGProperty* p = nullptr;
@@ -682,6 +683,7 @@ void ControllerEthernet::ValidateProperties(OutputManager* om, wxPropertyGrid* p
         }
     }
 }
+#endif
 
 ControllerEthernet::ControllerEthernet(OutputManager* om, wxXmlNode* node, const std::string& showDir) : Controller(om, node, showDir)
 {

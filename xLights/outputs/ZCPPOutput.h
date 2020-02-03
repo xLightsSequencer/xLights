@@ -46,7 +46,6 @@ public:
     
     #pragma region Static Functions
     static void SendSync();
-    static std::list<ControllerEthernet*> Discover(OutputManager* outputManager);
     static void InitialiseExtraConfigPacket(ZCPP_packet_t* packet, int seq, uint8_t priority);
     static void InitialiseModelDataPacket(ZCPP_packet_t* packet, int seq, uint8_t priority, const std::string& description);
     static std::string DecodeProtocol(int protocol);
@@ -119,10 +118,10 @@ public:
     virtual void AllOff() override;
     #pragma endregion Data Setting
     
-//    #pragma region UI
-//#ifndef EXCLUDENETWORKUI
-//    virtual Output* Configure(wxWindow* parent, OutputManager* outputManager, ModelManager* modelManager) override;
-//#endif
-//    #pragma endregion UI
+    #pragma region UI
+#ifndef EXCLUDENETWORKUI
+    static std::list<ControllerEthernet*> Discover(OutputManager* outputManager);
+#endif
+    #pragma endregion UI
 };
 #endif

@@ -45,12 +45,13 @@ std::string NullOutput::GetSortName() const
     return wxString::Format("NULL%02d", _nullNumber).ToStdString();
 }
 
+#ifndef EXCLUDENETWORKUI
 void NullOutput::AddProperties(wxPropertyGrid* propertyGrid, bool allSameSize)
 {
     wxPGProperty* p = propertyGrid->Append(new wxUIntProperty("Channels", "Channels", GetChannels()));
+    p->SetEditor("SpinCtrl");
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", 10000000);
-    p->SetEditor("SpinCtrl");
 }
 
 bool NullOutput::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager)
@@ -72,5 +73,6 @@ bool NullOutput::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelMana
 
     return false;
 }
+#endif
 
 #pragma endregion Getters and Setters

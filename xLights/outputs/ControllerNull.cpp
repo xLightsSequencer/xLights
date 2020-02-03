@@ -53,6 +53,7 @@ wxXmlNode* ControllerNull::Save()
     return um;
 }
 
+#ifndef EXCLUDENETWORKUI
 void ControllerNull ::AddProperties(wxPropertyGrid* propertyGrid)
 {
     Controller::AddProperties(propertyGrid);
@@ -74,6 +75,7 @@ bool ControllerNull::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModel
 
     return false;
 }
+#endif
 
 ControllerNull::ControllerNull(OutputManager* om, wxXmlNode* node, const std::string& showDir) : Controller(om, node, showDir)
 {

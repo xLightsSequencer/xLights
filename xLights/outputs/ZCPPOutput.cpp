@@ -11,7 +11,10 @@
 #include "OutputManager.h"
 #include "../UtilFunctions.h"
 #include "ControllerEthernet.h"
+
+#ifndef EXCLUDENETWORKUI
 #include "../controllers/Falcon.h"
+#endif
 
 #include <list>
 
@@ -573,6 +576,7 @@ void ZCPPOutput::InitialiseModelDataPacket(ZCPP_packet_t* packet, int seq, uint8
     strncpy(packet->Configuration.userControllerName, description.c_str(), sizeof(packet->Configuration.userControllerName));
 }
 
+#ifndef EXCLUDENETWORKUI
 std::list<ControllerEthernet*> ZCPPOutput::Discover(OutputManager* outputManager)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -770,6 +774,7 @@ std::list<ControllerEthernet*> ZCPPOutput::Discover(OutputManager* outputManager
 
     return res;
 }
+#endif
 
 int ZCPPOutput::EncodeColourOrder(const std::string& colourOrder)
 {

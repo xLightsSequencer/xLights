@@ -45,7 +45,7 @@ public:
     #pragma endregion Operators
     
     virtual wxXmlNode* Save() override;
-    static PINGSTATE Ping(const std::string& ip, const std::string& proxy);
+    static Output::PINGSTATE Ping(const std::string& ip, const std::string& proxy);
     //bool CanPing() const override { return (GetIP() != "MULTICAST"); }
 
     #pragma region Start and Stop
