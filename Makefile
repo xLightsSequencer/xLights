@@ -96,7 +96,7 @@ install:
 	@$(CHK_DIR_EXISTS) $(DESTDIR)/${PREFIX}/bin || $(MKDIR) $(DESTDIR)/${PREFIX}/bin
 	-$(INSTALL_PROGRAM) -D bin/xLights $(DESTDIR)/${PREFIX}/bin/xLights
 	-$(INSTALL_PROGRAM) -D bin/xSchedule $(DESTDIR)/${PREFIX}/bin/xSchedule
-	-$(INSTALL_PROGRAM) -D bin/xSMSDaemon $(DESTDIR)/${PREFIX}/bin/xSMSDaemon
+	-$(INSTALL_PROGRAM) -D bin/xSMSDaemon.so $(DESTDIR)/${PREFIX}/bin/xSMSDaemon.so
 	-$(INSTALL_PROGRAM) -D bin/xCapture $(DESTDIR)/${PREFIX}/bin/xCapture
 	-$(INSTALL_PROGRAM) -D bin/xFade $(DESTDIR)/${PREFIX}/bin/xFade
 	-$(INSTALL_PROGRAM) -D bin/xlights.desktop $(DESTDIR)/${PREFIX}/share/applications/xlights.desktop
@@ -111,7 +111,7 @@ install:
 	cp -r controllers/* $(DESTDIR)/${PREFIX}/share/xLights/controllers
 	install -d -m 755 $(DESTDIR)/${PREFIX}/share/xLights/meshobjects
 	cp -r meshobjects/* $(DESTDIR)/${PREFIX}/share/xLights/meshobjects
-	install -d -m 755 $(DESTDIR)/${PREFIX}/share/xLigts/valuecurves
+	install -d -m 755 $(DESTDIR)/${PREFIX}/share/xLights/valuecurves
 	cp -r valuecurves/* $(DESTDIR)/${PREFIX}/share/xLights/valuecurves
 	install -d -m 755 $(DESTDIR)/${PREFIX}/share/xSchedule/xScheduleWeb
 	cp -r bin/xScheduleWeb/* $(DESTDIR)/${PREFIX}/share/xSchedule/xScheduleWeb

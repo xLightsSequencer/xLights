@@ -956,6 +956,8 @@ Model* ModelManager::CreateDefaultModel(const std::string &type, const std::stri
             node->AddAttribute("NumServos", "3");
             node->AddAttribute("NumStatic", "1");
             node->AddAttribute("NumMotion", "3");
+            node->DeleteAttribute("parm1");
+            node->AddAttribute("parm1", "6");
         }
         model = new DmxServo3d(node, *this, false);
     } else if (type == "Image") {
@@ -1085,6 +1087,8 @@ Model *ModelManager::CreateModel(wxXmlNode *node, int previewW, int previewH, bo
         node->DeleteAttribute("DisplayAs");
         node->AddAttribute("DisplayAs", type);
         node->AddAttribute("NumServos", "3");
+        node->DeleteAttribute("parm1");
+        node->AddAttribute("parm1", "6");
     }
 
     Model *model;
