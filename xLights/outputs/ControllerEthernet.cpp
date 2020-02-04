@@ -267,7 +267,7 @@ void ControllerEthernet::AddProperties(wxPropertyGrid* propertyGrid)
     {
         p = propertyGrid->Append(new wxStringProperty("Multicast Address", "MulticastAddressDisplay", ZCPP_GetDataMulticastAddress(_ip)));
         p->ChangeFlag(wxPG_PROP_READONLY, true);
-        p->SetBackgroundColour(*wxLIGHT_GREY);
+        p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
     }
 
     bool allSameSize = AllSameSize();
@@ -288,7 +288,7 @@ void ControllerEthernet::AddProperties(wxPropertyGrid* propertyGrid)
     {
         p = propertyGrid->Append(new wxBoolProperty("Managed", "Managed", _managed));
         p->SetEditor("CheckBox");
-        p->SetBackgroundColour(*wxLIGHT_GREY);
+        p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
         p->ChangeFlag(wxPG_PROP_READONLY, true);
         if (!_managed)
         {
@@ -363,7 +363,7 @@ void ControllerEthernet::AddProperties(wxPropertyGrid* propertyGrid)
         {
             p = propertyGrid->Append(new wxStringProperty(ud, "UniversesDisplay", _outputs.front()->GetUniverseString() + "- " + _outputs.back()->GetUniverseString()));
             p->ChangeFlag(wxPG_PROP_READONLY, true);
-            p->SetBackgroundColour(*wxLIGHT_GREY);
+            p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
         }
 
         p = propertyGrid->Append(new wxBoolProperty("Individual Sizes", "IndivSizes", !allSameSize || _forceSizes));
@@ -398,7 +398,7 @@ void ControllerEthernet::AddProperties(wxPropertyGrid* propertyGrid)
         if (IsAutoSize())
         {
             p->ChangeFlag(wxPG_PROP_READONLY, true);
-            p->SetBackgroundColour(*wxLIGHT_GREY);
+            p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
             p->SetHelpString("Channels cannot be changed when an output is set to Auto Size.");
         }
         else
@@ -619,15 +619,7 @@ void ControllerEthernet::ValidateProperties(OutputManager* om, wxPropertyGrid* p
 {
     Controller::ValidateProperties(om, propGrid);
 
-    auto p = propGrid->GetPropertyByName("IP");
-    if (GetIP() == "") {
-        p->SetBackgroundColour(*wxRED);
-    }
-    else {
-        p->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
-    }
-
-    p = propGrid->GetPropertyByName("Protocol");
+    auto p = propGrid->GetPropertyByName("Protocol");
     auto caps = ControllerCaps::GetControllerConfig(this);
     if (caps != nullptr && p != nullptr) {
         // controller must support the protocol
@@ -635,6 +627,14 @@ void ControllerEthernet::ValidateProperties(OutputManager* om, wxPropertyGrid* p
             p->SetBackgroundColour(*wxRED);
         }
         else {
+            p->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
+        }
+    }
+    if (GetIP() != "MULTICAST") {
+        p = propGrid->GetPropertyByName("IP");
+        if (GetIP() == "") {
+            p->SetBackgroundColour(*wxRED);
+        } else {
             p->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
         }
     }

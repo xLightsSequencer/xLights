@@ -1494,19 +1494,6 @@ void xLightsFrame::InitialiseControllersTab()
     {
         List_Controllers->SetColumnWidth(lc, List_Controllers->GetSize().GetWidth() - sz);
     }
-
-    // try to ensure what should be visible is visible in roughly the same part of the screen
-    if (itemBottom >= List_Controllers->GetItemCount()) itemBottom = List_Controllers->GetItemCount() - 1;
-    if (itemBottom != -1) {
-        List_Controllers->EnsureVisible(itemBottom);
-    }
-    if (itemSelected >= List_Controllers->GetItemCount()) itemSelected = List_Controllers->GetItemCount() - 1;
-    if (itemSelected != -1) {
-        List_Controllers->EnsureVisible(itemSelected);
-    }
-
-    List_Controllers->Thaw();
-    
     if (LedPing == nullptr)
     {
         LedPing = new wxLed(Panel5, wxID_ANY);
@@ -1525,6 +1512,18 @@ void xLightsFrame::InitialiseControllersTab()
         }
     }
 
+    // try to ensure what should be visible is visible in roughly the same part of the screen
+    if (itemBottom >= List_Controllers->GetItemCount()) itemBottom = List_Controllers->GetItemCount() - 1;
+    if (itemBottom != -1) {
+        List_Controllers->EnsureVisible(itemBottom);
+    }
+    if (itemSelected >= List_Controllers->GetItemCount()) itemSelected = List_Controllers->GetItemCount() - 1;
+    if (itemSelected != -1) {
+        List_Controllers->EnsureVisible(itemSelected);
+    }
+
+    List_Controllers->Thaw();
+    
     Panel2->Layout();
     Panel5->Layout();
     Layout();
