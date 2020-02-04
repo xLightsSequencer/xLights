@@ -32,8 +32,8 @@
 				<Protocol>dmx</Protocol>
 			</SerialProtocols>
 			<InputProtocols>
-				<Protocol>E131</Protocol>
-				<Protocol>ArtNet</Protocol>
+				<Protocol>e131</Protocol>
+				<Protocol>artnet</Protocol>
 			</InputProtocols>
 		</FirmwareVersion>
 	</Controller>
@@ -70,8 +70,8 @@
 				<Protocol>dmx</Protocol>
 			</SerialProtocols>
 			<InputProtocols>
-				<Protocol>E131</Protocol>
-				<Protocol>ArtNet</Protocol>
+				<Protocol>e131</Protocol>
+				<Protocol>artnet</Protocol>
 			</InputProtocols>
 		</FirmwareVersion>
 	</Controller>
@@ -108,8 +108,8 @@
 				<Protocol>dmx</Protocol>
 			</SerialProtocols>
 			<InputProtocols>
-				<Protocol>E131</Protocol>
-				<Protocol>ArtNet</Protocol>
+				<Protocol>e131</Protocol>
+				<Protocol>artnet</Protocol>
 			</InputProtocols>
 		</FirmwareVersion>
 	</Controller>
@@ -146,8 +146,8 @@
 				<Protocol>dmx</Protocol>
 			</SerialProtocols>
 			<InputProtocols>
-				<Protocol>E131</Protocol>
-				<Protocol>ArtNet</Protocol>
+				<Protocol>e131</Protocol>
+				<Protocol>artnet</Protocol>
 			</InputProtocols>
 		</FirmwareVersion>
 	</Controller>

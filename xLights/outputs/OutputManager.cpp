@@ -8,6 +8,7 @@
 #include "ControllerEthernet.h"
 #include "ControllerNull.h"
 #include "ControllerSerial.h"
+#include "SerialOutput.h"
 #include "E131Output.h"
 #include "ZCPPOutput.h"
 #include "ArtNetOutput.h"

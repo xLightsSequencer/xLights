@@ -17,8 +17,8 @@
 			</PixelProtocols>
 			<SerialProtocols/>
 			<InputProtocols>
-				<Protocol>E131</Protocol>
-				<Protocol>ArtNet</Protocol>
+				<Protocol>e131</Protocol>
+				<Protocol>artnet</Protocol>
 			</InputProtocols>
 			<SupportsMultipleSimultaneousOutputProtocols/>
 		</FirmwareVersion>
@@ -39,12 +39,12 @@
 				<Protocol>lpd6803</Protocol>
 			</PixelProtocols>
 			<SerialProtocols>
-				<Protocol>DMX</Protocol>
-				<Protocol>Renard</Protocol>
+				<Protocol>dmx</Protocol>
+				<Protocol>renard</Protocol>
 			</SerialProtocols>
 			<InputProtocols>
-				<Protocol>E131</Protocol>
-				<Protocol>ArtNet</Protocol>
+				<Protocol>e131</Protocol>
+				<Protocol>artnet</Protocol>
 			</InputProtocols>
 			<SupportsMultipleSimultaneousOutputProtocols/>
 		</FirmwareVersion>
@@ -66,8 +66,8 @@
 			</PixelProtocols>
 			<SerialProtocols/>
 			<InputProtocols>
-				<Protocol>E131</Protocol>
-				<Protocol>ArtNet</Protocol>
+				<Protocol>e131</Protocol>
+				<Protocol>artnet</Protocol>
 			</InputProtocols>
 			<SupportsMultipleSimultaneousOutputProtocols/>
 		</FirmwareVersion>
@@ -87,8 +87,8 @@
 			</PixelProtocols>
 			<SerialProtocols/>
 			<InputProtocols>
-				<Protocol>E131</Protocol>
-				<Protocol>ArtNet</Protocol>
+				<Protocol>e131</Protocol>
+				<Protocol>artnet</Protocol>
 			</InputProtocols>
 			<SupportsMultipleSimultaneousOutputProtocols/>
 		</FirmwareVersion>
@@ -109,12 +109,12 @@
 				<Protocol>lpd6803</Protocol>
 			</PixelProtocols>
 			<SerialProtocols>
-				<Protocol>DMX</Protocol>
-				<Protocol>Renard</Protocol>
+				<Protocol>dmx</Protocol>
+				<Protocol>renard</Protocol>
 			</SerialProtocols>
 			<InputProtocols>
-				<Protocol>E131</Protocol>
-				<Protocol>ArtNet</Protocol>
+				<Protocol>e131</Protocol>
+				<Protocol>artnet</Protocol>
 			</InputProtocols>
 			<SupportsMultipleSimultaneousOutputProtocols/>
 		</FirmwareVersion>

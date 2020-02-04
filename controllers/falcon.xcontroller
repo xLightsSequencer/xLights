@@ -31,8 +31,8 @@
 				<Protocol>pixelnet</Protocol>
 			</SerialProtocols>
 			<InputProtocols>
-				<Protocol>E131</Protocol>
-				<Protocol>ArtNet</Protocol>
+				<Protocol>e131</Protocol>
+				<Protocol>artnet</Protocol>
 			</InputProtocols>
 			<SupportsMultipleSimultaneousOutputProtocols/>
 			<SupportsMultipleSimultaneousInputProtocols/>
@@ -63,14 +63,14 @@
 				<Protocol>apa102</Protocol>
 			</PixelProtocols>
 			<SerialProtocols>
-				<Protocol>DMX</Protocol>
-				<Protocol>Renard</Protocol>
-				<Protocol>Pixelnet</Protocol>
+				<Protocol>dmx</Protocol>
+				<Protocol>renard</Protocol>
+				<Protocol>pixelnet</Protocol>
 			</SerialProtocols>
 			<InputProtocols>
-				<Protocol>E131</Protocol>
-				<Protocol>ArtNet</Protocol>
-				<Protocol>ZCPP</Protocol>
+				<Protocol>e131</Protocol>
+				<Protocol>artnet</Protocol>
+				<Protocol>zcpp</Protocol>
 			</InputProtocols>
 			<SupportsMultipleSimultaneousOutputProtocols/>
 			<SupportsMultipleSimultaneousInputProtocols/>
@@ -100,13 +100,13 @@
 				<Protocol>apa102</Protocol>
 			</PixelProtocols>
 			<SerialProtocols>
-				<Protocol>DMX</Protocol>
-				<Protocol>Renard</Protocol>
-				<Protocol>Pixelnet</Protocol>
+				<Protocol>dmx</Protocol>
+				<Protocol>renard</Protocol>
+				<Protocol>pixelnet</Protocol>
 			</SerialProtocols>
 			<InputProtocols>
-				<Protocol>E131</Protocol>
-				<Protocol>ArtNet</Protocol>
+				<Protocol>e131</Protocol>
+				<Protocol>artnet</Protocol>
 			</InputProtocols>
 			<SupportsMultipleSimultaneousOutputProtocols/>
 			<SupportsMultipleSimultaneousInputProtocols/>
@@ -136,13 +136,13 @@
 				<Protocol>apa102</Protocol>
 			</PixelProtocols>
 			<SerialProtocols>
-				<Protocol>DMX</Protocol>
-				<Protocol>Renard</Protocol>
-				<Protocol>Pixelnet</Protocol>
+				<Protocol>dmx</Protocol>
+				<Protocol>renard</Protocol>
+				<Protocol>pixelnet</Protocol>
 			</SerialProtocols>
 			<InputProtocols>
-				<Protocol>E131</Protocol>
-				<Protocol>ArtNet</Protocol>
+				<Protocol>e131</Protocol>
+				<Protocol>artnet</Protocol>
 			</InputProtocols>
 			<SupportsMultipleSimultaneousOutputProtocols/>
 			<SupportsMultipleSimultaneousInputProtocols/>
@@ -173,14 +173,14 @@
 				<Protocol>apa102</Protocol>
 			</PixelProtocols>
 			<SerialProtocols>
-				<Protocol>DMX</Protocol>
-				<Protocol>Renard</Protocol>
-				<Protocol>Pixelnet</Protocol>
+				<Protocol>dmx</Protocol>
+				<Protocol>renard</Protocol>
+				<Protocol>pixelnet</Protocol>
 			</SerialProtocols>
 			<InputProtocols>
-				<Protocol>E131</Protocol>
-				<Protocol>ArtNet</Protocol>
-				<Protocol>ZCPP</Protocol>
+				<Protocol>e131</Protocol>
+				<Protocol>artnet</Protocol>
+				<Protocol>zcpp</Protocol>
 			</InputProtocols>
 			<SupportsMultipleSimultaneousOutputProtocols/>
 			<SupportsMultipleSimultaneousInputProtocols/>
@@ -211,14 +211,14 @@
 				<Protocol>apa102</Protocol>
 			</PixelProtocols>
 			<SerialProtocols>
-				<Protocol>DMX</Protocol>
-				<Protocol>Renard</Protocol>
-				<Protocol>Pixelnet</Protocol>
+				<Protocol>dmx</Protocol>
+				<Protocol>renard</Protocol>
+				<Protocol>pixelnet</Protocol>
 			</SerialProtocols>
 			<InputProtocols>
-				<Protocol>E131</Protocol>
-				<Protocol>ArtNet</Protocol>
-				<Protocol>ZCPP</Protocol>
+				<Protocol>e131</Protocol>
+				<Protocol>artnet</Protocol>
+				<Protocol>zcpp</Protocol>
 			</InputProtocols>
 			<SupportsMultipleSimultaneousOutputProtocols/>
 			<SupportsMultipleSimultaneousInputProtocols/>

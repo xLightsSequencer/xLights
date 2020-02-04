@@ -21,9 +21,9 @@
 				<Protocol>dmx</Protocol>
 			</SerialProtocols>
 			<InputProtocols>
-				<Protocol>E131</Protocol>
-				<Protocol>ArtNet</Protocol>
-				<Protocol>DDP</Protocol>
+				<Protocol>e131</Protocol>
+				<Protocol>artnet</Protocol>
+				<Protocol>ddp</Protocol>
 			</InputProtocols>
 			<SupportsMultipleSimultaneousOutputProtocols/>
 		</FirmwareVersion>
@@ -50,9 +50,9 @@
 				<Protocol>dmx</Protocol>
 			</SerialProtocols>
 			<InputProtocols>
-				<Protocol>E131</Protocol>
-				<Protocol>ArtNet</Protocol>
-				<Protocol>DDP</Protocol>
+				<Protocol>e131</Protocol>
+				<Protocol>artnet</Protocol>
+				<Protocol>ddp</Protocol>
 			</InputProtocols>
 			<SupportsMultipleSimultaneousOutputProtocols/>
 		</FirmwareVersion>

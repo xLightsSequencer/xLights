@@ -15,9 +15,9 @@
 			</PixelProtocols>
 			<SerialProtocols/>
 			<InputProtocols>
-				<Protocol>E131</Protocol>
-				<Protocol>DDP</Protocol>
-				<Protocol>ZCPP</Protocol>
+				<Protocol>e131</Protocol>
+				<Protocol>ddp</Protocol>
+				<Protocol>zcpp</Protocol>
 			</InputProtocols>
 		</FirmwareVersion>	
 	</Controller>

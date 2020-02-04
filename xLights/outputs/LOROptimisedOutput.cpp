@@ -98,6 +98,7 @@ LOROptimisedOutput::LOROptimisedOutput() : LOROutput()
 {
     InitialiseTypes();
     SetupHistory();
+    GetControllers().GetControllers().push_back(new LorController());
 }
 
 LOROptimisedOutput::~LOROptimisedOutput()

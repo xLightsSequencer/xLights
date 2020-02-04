@@ -1,24 +1,31 @@
 #include <wx/xml/xml.h>
 
 #include "ControllerSerial.h"
-#include "OutputManager.h"
-#include "Output.h"
-#include "SerialOutput.h"
 #include "../OutputModelManager.h"
 #include "../UtilFunctions.h"
 #include "../SpecialOptions.h"
 #include "../controllers/ControllerCaps.h"
+#include "OutputManager.h"
+#include "Output.h"
+#include "SerialOutput.h"
+#include "DLightOutput.h"
+#include "DMXOutput.h"
+#include "OpenDMXOutput.h"
+#include "OpenPixelNetOutput.h"
+#include "RenardOutput.h"
+#include "LOROutput.h"
+#include "LOROptimisedOutput.h"
 
+#pragma region Property Choices
 wxPGChoices ControllerSerial::__types;
 wxPGChoices ControllerSerial::__ports;
 wxPGChoices ControllerSerial::__speeds;
 wxPGChoices ControllerSerial::__parities;
 wxPGChoices ControllerSerial::__stopBits;
 
-void ControllerSerial::InitialiseTypes(bool forceXXX)
-{
-    if (__types.GetCount() == 0)
-    {
+void ControllerSerial::InitialiseTypes(bool forceXXX) {
+
+    if (__types.GetCount() == 0)  {
         __types.Add(OUTPUT_DMX);
         __types.Add(OUTPUT_LOR);
         __types.Add(OUTPUT_LOR_OPT);
@@ -26,67 +33,95 @@ void ControllerSerial::InitialiseTypes(bool forceXXX)
         __types.Add(OUTPUT_OPENPIXELNET);
         __types.Add(OUTPUT_RENARD);
         __types.Add(OUTPUT_DLIGHT);
-        if (forceXXX || SpecialOptions::GetOption("xxx") == "true")
-        {
+        if (forceXXX || SpecialOptions::GetOption("xxx") == "true") {
             __types.Add(OUTPUT_xxxSERIAL);
         }
     }
-    else if (forceXXX)
-    {
+    else if (forceXXX) {
         bool found = false;
-        for (size_t i = 0; i < __types.GetCount(); i++)
-        {
-            if (__types.GetLabel(i) == OUTPUT_xxxSERIAL)
-            {
+        for (size_t i = 0; i < __types.GetCount(); i++) {
+            if (__types.GetLabel(i) == OUTPUT_xxxSERIAL) {
                 found = true;
                 break;
             }
         }
-        if (!found)
-        {
+        if (!found) {
             __types.Add(OUTPUT_xxxSERIAL);
         }
     }
 
-    if (__parities.GetCount() == 0)
-    {
+    if (__parities.GetCount() == 0) {
         __parities.Add("None");
         __parities.Add("Odd");
         __parities.Add("Even");
     }
 
-    if (__stopBits.GetCount() == 0)
-    {
+    if (__stopBits.GetCount() == 0) {
         __stopBits.Add("0");
         __stopBits.Add("1");
         __stopBits.Add("2");
     }
 
-    if (__speeds.GetCount() == 0)
-    {
+    if (__speeds.GetCount() == 0) {
         auto s = SerialOutput::GetPossibleBaudRates();
-        for (const auto& it : s)
-        {
+        for (const auto& it : s) {
             __speeds.Add(it);
         }
     }
 
-    if (__ports.GetCount() == 0)
-    {
+    if (__ports.GetCount() == 0) {
         auto p = SerialOutput::GetPossibleSerialPorts();
-        for (const auto& it : p)
-        {
+        for (const auto& it : p) {
             __ports.Add(it);
         }
     }
 }
+#pragma endregion
 
-void ControllerSerial::SetPort(const std::string& port)
-{
-    if (_outputs.front() != nullptr)
-    {
-        if (_outputs.front()->GetCommPort() != port)
-        {
+#pragma region Constructors and Destructors
+ControllerSerial::ControllerSerial(OutputManager* om, wxXmlNode* node, const std::string& showDir) : Controller(om, node, showDir) {
+    _type = node->GetAttribute("Protocol");
+    InitialiseTypes(_type == OUTPUT_xxxSERIAL);
+    _port = node->GetAttribute("Port");
+    _parity = node->GetAttribute("Parity");
+    _speed = wxAtoi(node->GetAttribute("Speed"));
+    _stopBits = wxAtoi(node->GetAttribute("StopBits"));
+    _dirty = false;
+}
+
+ControllerSerial::ControllerSerial(OutputManager* om) : Controller(om) {
+    InitialiseTypes(false);
+    _name = om->UniqueName("Serial_");
+    SerialOutput* o = new DMXOutput();
+    o->SetChannels(512);
+    _outputs.push_back(o);
+    _type = OUTPUT_DMX;
+    _port = _outputManager->GetFirstUnusedCommPort();
+    o->SetCommPort(_port);
+    _speed = o->GetBaudRate();
+    _parity = o->GetParity();
+    _stopBits = o->GetStopBits();
+}
+
+wxXmlNode* ControllerSerial::Save() {
+
+    wxXmlNode* um = Controller::Save();
+
+    um->AddAttribute("Port", _port);
+    um->AddAttribute("Speed", wxString::Format("%d", _speed));
+    um->AddAttribute("Parity", _parity);
+    um->AddAttribute("Bits", wxString::Format("%d", _bits));
+    um->AddAttribute("StopBits", wxString::Format("%d", _stopBits));
+    um->AddAttribute("Protocol", _type);
+
+    return um;
+}
+#pragma endregion
+
+#pragma region Getters and Setters
+void ControllerSerial::SetPort(const std::string& port) {
+    if (_outputs.front() != nullptr) {
+        if (_outputs.front()->GetCommPort() != port) {
             _outputs.front()->SetCommPort(port);
             _port = port;
             _dirty = true;
@@ -94,12 +129,9 @@ void ControllerSerial::SetPort(const std::string& port)
     }
 }
 
-void ControllerSerial::SetSpeed(int speed)
-{
-    if (_outputs.front() != nullptr)
-    {
-        if (_outputs.front()->GetBaudRate() != speed)
-        {
+void ControllerSerial::SetSpeed(int speed) {
+    if (_outputs.front() != nullptr) {
+        if (_outputs.front()->GetBaudRate() != speed) {
             _outputs.front()->SetBaudRate(speed);
             _speed = speed;
             _dirty = true;
@@ -107,20 +139,135 @@ void ControllerSerial::SetSpeed(int speed)
     }
 }
 
-void ControllerSerial::SetChannels(int channels)
-{
-    if (_outputs.front() != nullptr)
-    {
-        if (_outputs.front()->GetChannels() != channels)
-        {
+void ControllerSerial::SetChannels(int channels) {
+    if (_outputs.front() != nullptr) {
+        if (_outputs.front()->GetChannels() != channels) {
             _outputs.front()->SetChannels(channels);
             _dirty = true;
         }
     }
 }
 
-std::string ControllerSerial::GetExport() const
+void ControllerSerial::SetProtocol(const std::string& type)
 {
+    if (_outputs.front() != nullptr) {
+        if (_outputs.front()->GetType() != type) {
+            _type = type;
+            auto const s = _outputs.front()->GetBaudRate();
+            auto const p = _outputs.front()->GetCommPort();
+            auto const c = _outputs.front()->GetChannels();
+            delete _outputs.front();
+            _outputs.pop_front();
+
+            Output* o = nullptr;
+            if (type == OUTPUT_DLIGHT) {
+                o = new DLightOutput();
+            }
+            else if (type == OUTPUT_DMX) {
+                o = new DMXOutput();
+            }
+            else if (type == OUTPUT_LOR) {
+                o = new LOROutput();
+            }
+            else if (type == OUTPUT_LOR_OPT) {
+                o = new LOROptimisedOutput();
+                SetAutoSize(false);
+            }
+            else if (type == OUTPUT_OPENDMX) {
+                o = new OpenDMXOutput();
+            }
+            else if (type == OUTPUT_OPENPIXELNET) {
+                o = new OpenPixelNetOutput();
+            }
+            else if (type == OUTPUT_RENARD) {
+                o = new RenardOutput();
+            }
+            else {
+                wxASSERT(false);
+            }
+
+            o->SetCommPort(p);
+            o->SetBaudRate(s);
+            o->SetChannels(c);
+            _outputs.push_front(o);
+            _dirty = true;
+        }
+    }
+}
+#pragma endregion
+
+#pragma region Virtual Functions
+void ControllerSerial::SetId(int id) {
+
+    Controller::SetId(id);
+    if (GetProtocol() == OUTPUT_LOR_OPT) {
+        dynamic_cast<LOROptimisedOutput*>(GetFirstOutput())->SetId(id);
+    }
+    else {
+        dynamic_cast<SerialOutput*>(GetFirstOutput())->SetId(id);
+    }
+}
+
+std::string ControllerSerial::GetLongDescription() const {
+    std::string res = "";
+
+    if (!IsActive()) res += "INACTIVE ";
+    res += GetName() + " " + GetProtocol() + " " + GetPort();
+    res += " (" + std::string(wxString::Format(wxT("%d"), GetStartChannel())) + "-" + std::string(wxString::Format(wxT("%i"), GetEndChannel())) + ") ";
+    res += _description;
+
+    return res;
+}
+
+void ControllerSerial::Convert(wxXmlNode* node, std::string showDir) {
+
+    Controller::Convert(node, showDir);
+
+    _outputs.push_back(Output::Create(node, showDir));
+    if (_name == "" || StartsWith(_name, "Serial_")) {
+        if (_outputs.back()->GetDescription() != "") {
+            _name = _outputManager->UniqueName(_outputs.back()->GetDescription());
+        }
+        else {
+            _name = _outputManager->UniqueName("Unnamed");
+        }
+    }
+    if (_outputs.back() == nullptr) {
+        // this shouldnt happen unless we are loading a future file with an output type we dont recognise
+        _outputs.pop_back();
+    }
+
+    wxASSERT(_outputs.size() == 1);
+
+    if (_outputs.size() > 0) {
+        _port = _outputs.front()->GetCommPort();
+        _speed = _outputs.front()->GetBaudRate();
+        _parity = dynamic_cast<SerialOutput*>(_outputs.front())->GetParity();
+        _stopBits = dynamic_cast<SerialOutput*>(_outputs.front())->GetStopBits();
+        _type = _outputs.front()->GetType();
+        _id = _outputs.front()->GetUniverse();
+    }
+}
+
+std::string ControllerSerial::GetChannelMapping(int32_t ch) const
+{
+    return wxString::Format("Channel %ld maps to ...\nType: %s\nName: %s\nComPort: %s\nChannel: %ld\n%s",
+        ch, 
+        GetProtocol(), 
+        GetName(), 
+        GetPort(), 
+        ch - GetStartChannel() + 1,
+        (IsActive() ? _("") : _("INACTIVE\n")));
+}
+
+Output::PINGSTATE ControllerSerial::Ping() {
+
+    _lastPingResult = dynamic_cast<SerialOutput*>(_outputs.front())->Ping();
+    return GetLastPingState();
+}
+
+std::string ControllerSerial::GetExport() const {
+
     return wxString::Format("%s,%ld,%ld,%s,%s,,%s,%d,\"%s\",%d,%ld,%s,%s,%s",
         GetName(),
         GetStartChannel(),
@@ -137,114 +284,9 @@ std::string ControllerSerial::GetExport() const
         (IsAutoSize() ? _("AutoSize") : _(""))
     );
 }
+#pragma endregion
 
-void ControllerSerial::SetProtocol(const std::string& type)
-{
-    if (_outputs.front() != nullptr)
-    {
-        if (_outputs.front()->GetType() != type)
-        {
-            _type = type;
-            auto const s = _outputs.front()->GetBaudRate();
-            auto const p = _outputs.front()->GetCommPort();
-            auto const c = _outputs.front()->GetChannels();
-            delete _outputs.front();
-            _outputs.pop_front();
-
-            Output* o = nullptr;
-            if (type == OUTPUT_DLIGHT)
-            {
-                o = new DLightOutput();
-            }
-            else if (type == OUTPUT_DMX)
-            {
-                o = new DMXOutput();
-            }
-            else if (type == OUTPUT_LOR)
-            {
-                o = new LOROutput();
-            }
-            else if (type == OUTPUT_LOR_OPT)
-            {
-                o = new LOROptimisedOutput();
-                SetAutoSize(false);
-            }
-            else if (type == OUTPUT_OPENDMX)
-            {
-                o = new OpenDMXOutput();
-            }
-            else if (type == OUTPUT_OPENPIXELNET)
-            {
-                o = new OpenPixelNetOutput();
-            }
-            else if (type == OUTPUT_RENARD)
-            {
-                o = new RenardOutput();
-            }
-            else
-            {
-                wxASSERT(false);
-            }
-            o->SetCommPort(p);
-            o->SetBaudRate(s);
-            o->SetChannels(c);
-            _outputs.push_front(o);
-            _dirty = true;
-        }
-    }
-}
-
-std::string ControllerSerial::GetChannelMapping(int32_t ch) const
-{
-    return wxString::Format("Channel %ld maps to ...\nType: %s\nName: %s\nComPort: %s\nChannel: %ld", 
-        ch, GetProtocol(), GetName(), GetPort(), ch - GetStartChannel() + 1) + (IsActive() ? _("\n") : _(" INACTIVE\n"));
-}
-
-wxXmlNode* ControllerSerial::Save()
-{
-    wxXmlNode* um = Controller::Save();
-
-    um->AddAttribute("Port", _port);
-    um->AddAttribute("Speed", wxString::Format("%d", _speed));
-    um->AddAttribute("Parity", _parity);
-    um->AddAttribute("Bits", wxString::Format("%d", _bits));
-    um->AddAttribute("StopBits", wxString::Format("%d", _stopBits));
-    um->AddAttribute("Protocol", _type);
-
-    return um;
-}
-
-Output::PINGSTATE ControllerSerial::Ping()
-{
-    _lastPingResult = dynamic_cast<SerialOutput*>(_outputs.front())->Ping();
-    return GetLastPingState();
-}
-
-std::string ControllerSerial::GetLongDescription() const
-{
-    std::string res = "";
-
-    if (!IsActive()) res += "INACTIVE ";
-    res += GetName() + " " + GetProtocol() + " " + GetPort();
-    res += " (" + std::string(wxString::Format(wxT("%d"), GetStartChannel())) + "-" + std::string(wxString::Format(wxT("%i"), GetEndChannel())) + ") ";
-    res += _description;
-
-    return res;
-}
-
-void ControllerSerial::SetId(int id)
-{
-    Controller::SetId(id);
-    if (GetProtocol() == OUTPUT_LOR_OPT)
-    {
-        dynamic_cast<LOROptimisedOutput*>(GetFirstOutput())->SetId(id);
-    }
-    else
-    {
-        dynamic_cast<SerialOutput*>(GetFirstOutput())->SetId(id);
-    }
-}
-
+#pragma region UI
 #ifndef EXCLUDENETWORKUI
 void ControllerSerial::AddProperties(wxPropertyGrid* propertyGrid)
 {
@@ -254,61 +296,58 @@ void ControllerSerial::AddProperties(wxPropertyGrid* propertyGrid)
     p->SetHelpString("This must be unique across all controllers.");
 
     p = propertyGrid->Append(new wxEnumProperty("Speed", "Speed", __speeds, Controller::EncodeChoices(__speeds, wxString::Format("%d", _speed))));
-    if (dynamic_cast<SerialOutput*>(_outputs.front()))
-    {
-        if (!dynamic_cast<SerialOutput*>(_outputs.front())->AllowsBaudRateSetting())
-        {
+    if (dynamic_cast<SerialOutput*>(_outputs.front())) {
+        if (!dynamic_cast<SerialOutput*>(_outputs.front())->AllowsBaudRateSetting()) {
             p->ChangeFlag(wxPG_PROP_READONLY, true);
             p->SetBackgroundColour(*wxLIGHT_GREY);
             p->SetHelpString("Speed is fixed for this protocol.");
         }
     }
+
     //p = propertyGrid->Append(new wxEnumProperty("Stop Bits", "StopBits", __stopBits, Controller::EncodeChoices(__stopBits, wxString::Format("%d", _stopBits))));
     //p = propertyGrid->Append(new wxEnumProperty("Parity", "Parity", __parities, Controller::EncodeChoices(__parities, _parity)));
 
     p = propertyGrid->Append(new wxEnumProperty("Protocol", "Protocol", __types, Controller::EncodeChoices(__types, _type)));
 
-    p = propertyGrid->Append(new wxUIntProperty("Channels", "Channels", _outputs.front()->GetChannels()));
-    p->SetAttribute("Min", 1);
-    p->SetAttribute("Max", _outputs.front()->GetMaxChannels());
+    if (GetFirstOutput()->GetType() != OUTPUT_LOR_OPT)
+    {
+        p = propertyGrid->Append(new wxUIntProperty("Channels", "Channels", _outputs.front()->GetChannels()));
+        p->SetAttribute("Min", 1);
+        p->SetAttribute("Max", _outputs.front()->GetMaxChannels());
 
-    if (IsAutoSize())
-    {
-        p->ChangeFlag(wxPG_PROP_READONLY, true);
-        p->SetBackgroundColour(*wxLIGHT_GREY);
-        p->SetHelpString("Channels cannot be changed when an output is set to Auto Size.");
-    }
-    else
-    {
-        p->SetEditor("SpinCtrl");
+        if (IsAutoSize()) {
+            p->ChangeFlag(wxPG_PROP_READONLY, true);
+            p->SetBackgroundColour(*wxLIGHT_GREY);
+            p->SetHelpString("Channels cannot be changed when an output is set to Auto Size.");
+        }
+        else {
+            p->SetEditor("SpinCtrl");
+        }
     }
 
     if (_outputs.size() > 0) _outputs.front()->AddProperties(propertyGrid, true);
 }
 
-bool ControllerSerial::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager)
-{
+bool ControllerSerial::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager) {
+
     if (Controller::HandlePropertyEvent(event, outputModelManager)) return true;
 
     wxString const name = event.GetPropertyName();
     wxPropertyGrid* grid = dynamic_cast<wxPropertyGrid*>(event.GetEventObject());
 
-    if (name == "Port")
-    {
+    if (name == "Port") {
         SetPort(Controller::DecodeChoices(__ports, event.GetValue().GetLong()));
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ControllerSerial::HandlePropertyEvent::Port");
         outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "ControllerSerial::HandlePropertyEvent::Port", nullptr);
         return true;
     }
-    else if (name == "Speed")
-    {
+    else if (name == "Speed") {
         SetSpeed(wxAtoi(Controller::DecodeChoices(__speeds, event.GetValue().GetLong())));
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ControllerSerial::HandlePropertyEvent::Speed");
         outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "ControllerSerial::HandlePropertyEvent::Speed", nullptr);
         return true;
     }
-    else if (name == "Protocol")
-    {
+    else if (name == "Protocol") {
         SetProtocol(Controller::DecodeChoices(__types, event.GetValue().GetLong()));
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ControllerSerial::HandlePropertyEvent::Protocol");
         outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "ControllerSerial::HandlePropertyEvent::Protocol", nullptr);
@@ -316,8 +355,7 @@ bool ControllerSerial::HandlePropertyEvent(wxPropertyGridEvent& event, OutputMod
         outputModelManager->AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "ControllerSerial::HandlePropertyEvent::Protocol", nullptr);
         return true;
     }
-    else if (name == "Channels")
-    {
+    else if (name == "Channels") {
         SetChannels(event.GetValue().GetLong());
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ControllerSerial::HandlePropertyEvent::Channels");
         outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "ControllerSerial::HandlePropertyEvent::Channels", nullptr);
@@ -326,120 +364,52 @@ bool ControllerSerial::HandlePropertyEvent(wxPropertyGridEvent& event, OutputMod
         return true;
     }
 
-    if (_outputs.size() > 0)
-    {
+    if (_outputs.size() > 0) {
         if (_outputs.front()->HandlePropertyEvent(event, outputModelManager)) return true;
     }
 
     return false;
 }
 
-void ControllerSerial::ValidateProperties(OutputManager* om, wxPropertyGrid* propGrid) const
-{
+void ControllerSerial::ValidateProperties(OutputManager* om, wxPropertyGrid* propGrid) const {
+
     Controller::ValidateProperties(om, propGrid);
 
-    for (const auto& it : om->GetControllers())
-    {
+    for (const auto& it : om->GetControllers()) {
         auto s = dynamic_cast<ControllerSerial*>(it);
 
         // Port must be unique
         auto p = propGrid->GetPropertyByName("Port");
-        if (s != nullptr && it->GetName() != GetName() && s->GetPort() == GetPort() && GetPort() != "NotConnected")
-        {
+        if (s != nullptr && it->GetName() != GetName() && s->GetPort() == GetPort() && GetPort() != "NotConnected") {
             p->SetBackgroundColour(*wxRED);
             break;
         }
-        else
-        {
+        else{
             p->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
         }
     }
 
     auto p = propGrid->GetPropertyByName("Protocol");
     auto caps = ControllerCaps::GetControllerConfig(this);
-    if (caps != nullptr && p != nullptr)   
-    {
+    if (caps != nullptr && p != nullptr) {
         // controller must support the protocol
-        if (!caps->IsValidSerialProtocol(Lower(_type)))
-        {
+        if (!caps->IsValidInputProtocol(Lower(_type))) {
             p->SetBackgroundColour(*wxRED);
         }       
-        else
-        {
+        else {
             p->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
         }
     }
 
     p = propGrid->GetPropertyByName("Channels");
-    if (p != nullptr)
-    {
-        if (_outputs.front()->GetMaxChannels() < GetChannels() || GetChannels() < 1)
-        {
+    if (p != nullptr) {
+        if (_outputs.front()->GetMaxChannels() < GetChannels() || GetChannels() < 1) {
             p->SetBackgroundColour(*wxRED);
         }
-        else
-        {
+        else {
             p->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
         }
     }
 }
 #endif
-
-ControllerSerial::ControllerSerial(OutputManager* om, wxXmlNode* node, const std::string& showDir) : Controller(om, node, showDir)
-{
-    _type = node->GetAttribute("Protocol");
-    InitialiseTypes(_type == OUTPUT_xxxSERIAL);
-    _port = node->GetAttribute("Port");
-    _parity = node->GetAttribute("Parity");
-    _speed = wxAtoi(node->GetAttribute("Speed"));
-    _stopBits = wxAtoi(node->GetAttribute("StopBits"));
-    _dirty = false;
-}
-
-ControllerSerial::ControllerSerial(OutputManager* om) : Controller(om)
-{
-    InitialiseTypes(false);
-    _name = om->UniqueName("Serial_");
-    SerialOutput* o = new DMXOutput();
-    o->SetChannels(512);
-    _outputs.push_back(o);
-    _type = OUTPUT_DMX;
-    _port = _outputManager->GetFirstUnusedCommPort();
-    o->SetCommPort(_port);
-    _speed = o->GetBaudRate();
-    _parity = o->GetParity();
-    _stopBits = o->GetStopBits();
-}
-
-void ControllerSerial::Convert(wxXmlNode* node, std::string showDir)
-{
-    Controller::Convert(node, showDir);
-
-    _outputs.push_back(Output::Create(node, showDir));
-    if (_name == "" || StartsWith(_name, "Serial_"))
-    {
-        if (_outputs.back()->GetDescription() != "")
-        {
-            _name = _outputManager->UniqueName(_outputs.back()->GetDescription());
-        }
-        else
-        {
-            _name = _outputManager->UniqueName("Unnamed");
-        }
-    }
-    if (_outputs.back() == nullptr)
-    {
-        // this shouldnt happen unless we are loading a future file with an output type we dont recognise
-        _outputs.pop_back();
-    }
-
-    if (_outputs.size() > 0)
-    {
-        _port = _outputs.front()->GetCommPort();
-        _speed = _outputs.front()->GetBaudRate();
-        _parity = ((SerialOutput*)_outputs.front())->GetParity();
-        _stopBits = ((SerialOutput*)_outputs.front())->GetStopBits();
-        _type = _outputs.front()->GetType();
-        _id = _outputs.front()->GetUniverse();
-    }
-}
+#pragma endregion

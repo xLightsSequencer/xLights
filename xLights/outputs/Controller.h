@@ -50,7 +50,7 @@ public:
     Controller(OutputManager* om);
     virtual ~Controller();
     virtual wxXmlNode* Save();
-    #pragma endregion Constructors and Destructors
+    #pragma endregion 
 
     #pragma region Static Functions
     // encodes/decodes string lists to indices
@@ -82,7 +82,6 @@ public:
     void SetName(const std::string& name) { if (_name != name) { _name = name; _dirty = true; } }
 
     int GetId() const { return _id; }
-    virtual void SetId(int id) { if (_id != id) { _id = id; _dirty = true; } }
     void EnsureUniqueId();
 
     std::string GetDescription() const { return _description; }
@@ -114,6 +113,8 @@ public:
     #pragma endregion
 
     #pragma region Virtual Functions
+    virtual void SetId(int id) { if (_id != id) { _id = id; _dirty = true; } }
+
     virtual void SetTransientData(int& on, int32_t& startChannel, int& nullnumber);
 
     virtual bool SupportsSuppressDuplicateFrames() const { return true; }

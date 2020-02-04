@@ -356,37 +356,40 @@ void Controller::AddProperties(wxPropertyGrid* propertyGrid) {
     p = propertyGrid->Append(new wxBoolProperty("Active", "Active", IsActive()));
     p->SetEditor("CheckBox");
 
-    int v = 0;
-    wxPGChoices vendors;
-    for (const auto& it : ControllerCaps::GetVendors()) {
-        vendors.Add(it);
-        if (it == _vendor) {
-            v = vendors.GetCount() - 1;
-        }
-    }
-    p = propertyGrid->Append(new wxEnumProperty("Vendor", "Vendor", vendors, v));
-
-    if (_vendor != "") {
-        int m = 0;
-        wxPGChoices models;
-        for (const auto& it : ControllerCaps::GetModels(_vendor)) {
-            models.Add(it);
-            if (it == _model) {
-                m = models.GetCount() - 1;
+    if (_outputs.front()->GetType() != OUTPUT_LOR_OPT)
+    {
+        int v = 0;
+        wxPGChoices vendors;
+        for (const auto& it : ControllerCaps::GetVendors()) {
+            vendors.Add(it);
+            if (it == _vendor) {
+                v = vendors.GetCount() - 1;
             }
         }
-        p = propertyGrid->Append(new wxEnumProperty("Model", "Model", models, m));
+        p = propertyGrid->Append(new wxEnumProperty("Vendor", "Vendor", vendors, v));
 
-        if (_model != "") {
-            int v = 0;
-            wxPGChoices versions;
-            for (const auto& it : ControllerCaps::GetFirmwareVersions(_vendor, _model)) {
-                versions.Add(it);
-                if (it == _firmwareVersion) {
-                    v = versions.GetCount() - 1;
+        if (_vendor != "") {
+            int m = 0;
+            wxPGChoices models;
+            for (const auto& it : ControllerCaps::GetModels(_vendor)) {
+                models.Add(it);
+                if (it == _model) {
+                    m = models.GetCount() - 1;
                 }
             }
-            p = propertyGrid->Append(new wxEnumProperty("Version", "Version", versions, v));
+            p = propertyGrid->Append(new wxEnumProperty("Model", "Model", models, m));
+
+            if (_model != "") {
+                int v = 0;
+                wxPGChoices versions;
+                for (const auto& it : ControllerCaps::GetFirmwareVersions(_vendor, _model)) {
+                    versions.Add(it);
+                    if (it == _firmwareVersion) {
+                        v = versions.GetCount() - 1;
+                    }
+                }
+                p = propertyGrid->Append(new wxEnumProperty("Version", "Version", versions, v));
+            }
         }
     }
 

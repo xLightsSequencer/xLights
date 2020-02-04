@@ -13,9 +13,9 @@
 			<SerialProtocols>
 			</SerialProtocols>
 			<InputProtocols>
-				<Protocol>E131</Protocol>
-				<Protocol>ArtNet</Protocol>
-				<Protocol>DDP</Protocol>
+				<Protocol>e131</Protocol>
+				<Protocol>artnet</Protocol>
+				<Protocol>ddp</Protocol>
 			</InputProtocols>
 			<SupportsMultipleSimultaneousInputProtocols/>
 		</FirmwareVersion>
@@ -39,9 +39,9 @@
 				<Protocol>pixelnet</Protocol>
 			</SerialProtocols>
 			<InputProtocols>
-				<Protocol>E131</Protocol>
-				<Protocol>ArtNet</Protocol>
-				<Protocol>DDP</Protocol>
+				<Protocol>e131</Protocol>
+				<Protocol>artnet</Protocol>
+				<Protocol>ddp</Protocol>
 			</InputProtocols>
 			<SupportsMultipleSimultaneousInputProtocols/>
 		</FirmwareVersion>
@@ -65,9 +65,9 @@
 				<Protocol>pixelnet</Protocol>
 			</SerialProtocols>
 			<InputProtocols>
-				<Protocol>E131</Protocol>
-				<Protocol>ArtNet</Protocol>
-				<Protocol>DDP</Protocol>
+				<Protocol>e131</Protocol>
+				<Protocol>artnet</Protocol>
+				<Protocol>ddp</Protocol>
 			</InputProtocols>
 			<SupportsMultipleSimultaneousInputProtocols/>
 			<fpp>3</fpp>
@@ -95,9 +95,9 @@
 				<Protocol>pixelnet</Protocol>
 			</SerialProtocols>
 			<InputProtocols>
-				<Protocol>E131</Protocol>
-				<Protocol>ArtNet</Protocol>
-				<Protocol>DDP</Protocol>
+				<Protocol>e131</Protocol>
+				<Protocol>artnet</Protocol>
+				<Protocol>ddp</Protocol>
 			</InputProtocols>
 			<SupportsMultipleSimultaneousInputProtocols/>
 			<fpp>6</fpp>
@@ -128,9 +128,9 @@
 				<Protocol>pixelnet</Protocol>
 			</SerialProtocols>
 			<InputProtocols>
-				<Protocol>E131</Protocol>
-				<Protocol>ArtNet</Protocol>
-				<Protocol>DDP</Protocol>
+				<Protocol>e131</Protocol>
+				<Protocol>artnet</Protocol>
+				<Protocol>ddp</Protocol>
 			</InputProtocols>
 			<SupportsMultipleSimultaneousInputProtocols/>
 			<fpp>6</fpp>

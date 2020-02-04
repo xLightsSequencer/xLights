@@ -32,8 +32,8 @@
 				<Protocol>dmx</Protocol>
 			</SerialProtocols>
 			<InputProtocols>
-				<Protocol>E131</Protocol>
-				<Protocol>ArtNet</Protocol>
+				<Protocol>e131</Protocol>
+				<Protocol>artnet</Protocol>
 			</InputProtocols>
 		</FirmwareVersion>
 	</Controller>
@@ -107,8 +107,6 @@
 			<PixelProtocols>
 			</PixelProtocols>
 			<SerialProtocols>
-				<Protocol>dmx</Protocol>
-				<Protocol>lor</Protocol>
 			</SerialProtocols>
 			<InputProtocols>
 				<Protocol>dmx</Protocol>
@@ -126,8 +124,23 @@
 			<PixelProtocols>
 			</PixelProtocols>
 			<SerialProtocols>
+			</SerialProtocols>
+			<InputProtocols>
 				<Protocol>dmx</Protocol>
 				<Protocol>lor</Protocol>
+			</InputProtocols>
+		</FirmwareVersion>
+	</Controller>
+	<Controller Name="DIO32 DMX">
+		<FirmwareVersion Name="">
+			<MaxInputUniverses>1</MaxInputUniverses>
+			<MaxPixelPort>0</MaxPixelPort>
+			<MaxSerialPort>1</MaxSerialPort>
+			<MaxSerialPortChannels>32</MaxSerialPortChannels>
+			<MaxPixelPortChannels>0</MaxPixelPortChannels>
+			<PixelProtocols>
+			</PixelProtocols>
+			<SerialProtocols>
 			</SerialProtocols>
 			<InputProtocols>
 				<Protocol>dmx</Protocol>
@@ -145,8 +158,6 @@
 			<PixelProtocols>
 			</PixelProtocols>
 			<SerialProtocols>
-				<Protocol>dmx</Protocol>
-				<Protocol>lor</Protocol>
 			</SerialProtocols>
 			<InputProtocols>
 				<Protocol>dmx</Protocol>
@@ -164,8 +175,6 @@
 			<PixelProtocols>
 			</PixelProtocols>
 			<SerialProtocols>
-				<Protocol>dmx</Protocol>
-				<Protocol>lor</Protocol>
 			</SerialProtocols>
 			<InputProtocols>
 				<Protocol>dmx</Protocol>
@@ -183,8 +192,6 @@
 			<PixelProtocols>
 			</PixelProtocols>
 			<SerialProtocols>
-				<Protocol>dmx</Protocol>
-				<Protocol>lor</Protocol>
 			</SerialProtocols>
 			<InputProtocols>
 				<Protocol>dmx</Protocol>
@@ -202,8 +209,6 @@
 			<PixelProtocols>
 			</PixelProtocols>
 			<SerialProtocols>
-				<Protocol>dmx</Protocol>
-				<Protocol>lor</Protocol>
 			</SerialProtocols>
 			<InputProtocols>
 				<Protocol>dmx</Protocol>
