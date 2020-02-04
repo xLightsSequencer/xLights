@@ -43,12 +43,6 @@ protected:
     Output::PINGSTATE _lastPingResult = Output::PINGSTATE::PING_UNKNOWN; // last ping result
 #pragma endregion
 
-#pragma region static private functions
-    // encodes/decodes string lists to indices
-    static int EncodeChoices(const wxPGChoices& choices, const std::string& choice);
-    static std::string DecodeChoices(const wxPGChoices& choices, int choice);
-#pragma endregion
-
 public:
 
     #pragma region Constructors and Destructors
@@ -59,6 +53,10 @@ public:
     #pragma endregion Constructors and Destructors
 
     #pragma region Static Functions
+    // encodes/decodes string lists to indices
+    static int EncodeChoices(const wxPGChoices& choices, const std::string& choice);
+    static std::string DecodeChoices(const wxPGChoices& choices, int choice);
+
     static Controller* Create(OutputManager* om, wxXmlNode* node, std::string showDir);
     static std::list<Controller*> Discover(OutputManager* outputManager) { return std::list<Controller*>(); } // Discovers controllers supporting this connection type
     static void ConvertOldTypeToVendorModel(const std::string& old, std::string& vendor, std::string& model);

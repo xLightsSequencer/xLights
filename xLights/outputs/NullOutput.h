@@ -49,9 +49,6 @@ public:
     virtual void AllOff() override {}
     #pragma endregion Data Setting
 
-    //PINGSTATE Ping() const override { return Output::PINGSTATE::PING_UNAVAILABLE; }
-    //bool CanPing() const override { return false; }
-
     #pragma region UI
 #ifndef EXCLUDENETWORKUI
 //    virtual Output* Configure(wxWindow* parent, OutputManager* outputManager, ModelManager *modelManager) override;

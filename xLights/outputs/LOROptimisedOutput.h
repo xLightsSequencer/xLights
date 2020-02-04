@@ -4,6 +4,8 @@
 #include "LOROutput.h"
 #include "LorControllers.h"
 
+#include <wx/propgrid/advprops.h>
+
 // Should be called with: 0 <= chindex <= 3839 (max channels=240*16)
 
 struct LORDataPair {
@@ -24,8 +26,11 @@ class LOROptimisedOutput : public LOROutput
     bool unit_id_in_use[256];
     uint8_t _curData[LOR_MAX_CHANNELS];
     LorControllers _controllers;
+    static wxPGChoices __lorDeviceTypes;
+    static wxPGChoices __lorAddressModes;
     #pragma endregion Member Variables
 
+    void InitialiseTypes();
     virtual void Save(wxXmlNode* node) override;
 	void CalcChannels(int& channel_count, int& channels_per_pass, int& controller_channels_to_process, LorController* cntrl);
 
@@ -57,9 +62,10 @@ public:
     void GenerateCommand(uint8_t d[], size_t& idx, int unit_id, int bank, bool value_byte, uint8_t dbyte, uint8_t lsb, uint8_t msb);
     #pragma endregion Data Setting
 
-//#ifndef EXCLUDENETWORKUI
-//    virtual Output* Configure(wxWindow* parent, OutputManager* outputManager, ModelManager* modelManager) override;
-//#endif
+    #ifndef EXCLUDENETWORKUI
+    virtual void AddProperties(wxPropertyGrid* propertyGrid, bool allSameSize) override;
+    virtual bool HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager) override;
+    #endif
 };
 
 #endif

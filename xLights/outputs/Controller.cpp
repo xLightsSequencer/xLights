@@ -83,28 +83,6 @@ const std::vector<ControllerNameVendorMap> __controllerNameMap =
     ControllerNameVendorMap("SanDevices", "E682 Firmware 5", "SanDevices", "E682", "5")
 };
 
-#pragma region static private functions
-int Controller::EncodeChoices(const wxPGChoices& choices, const std::string& choice) {
-    wxString c(choice);
-    c.MakeLower();
-
-    for (size_t i = 0; i < choices.GetCount(); i++) {
-        if (choices[i].GetText().Lower() == c) return i;
-    }
-    wxASSERT(false);
-    return -1;
-}
-
-std::string Controller::DecodeChoices(const wxPGChoices& choices, int choice)
-{
-    if (choice < 0 || choice >= (int)choices.GetCount()) {
-        wxASSERT(false);
-        return "";
-    }
-    return choices[choice].GetText();
-}
-#pragma endregion
-
 #pragma region Constructors and Destructors
 Controller::Controller(OutputManager* om, wxXmlNode* node, const std::string& showDir) : _outputManager(om)
 {
@@ -166,6 +144,26 @@ wxXmlNode* Controller::Save() {
 #pragma endregion
 
 #pragma region Static Functions
+int Controller::EncodeChoices(const wxPGChoices& choices, const std::string& choice) {
+    wxString c(choice);
+    c.MakeLower();
+
+    for (size_t i = 0; i < choices.GetCount(); i++) {
+        if (choices[i].GetText().Lower() == c) return i;
+    }
+    wxASSERT(false);
+    return -1;
+}
+
+std::string Controller::DecodeChoices(const wxPGChoices& choices, int choice)
+{
+    if (choice < 0 || choice >= (int)choices.GetCount()) {
+        wxASSERT(false);
+        return "";
+    }
+    return choices[choice].GetText();
+}
+
 Controller* Controller::Create(OutputManager* om, wxXmlNode* node, std::string showDir) {
 
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));

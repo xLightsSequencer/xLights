@@ -25,8 +25,6 @@ protected:
     static wxPGChoices __speeds;
     static wxPGChoices __parities;
     static wxPGChoices __stopBits;
-    static wxPGChoices __lorDeviceTypes;
-    static wxPGChoices __lorAddressModes;
 
     static void InitialiseTypes(bool forceXXX);
     static int TypeToProtocol(const std::string& type);
