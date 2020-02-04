@@ -564,6 +564,8 @@ void xLightsFrame::OnButtonNetworkMoveDownClick(wxCommandEvent& event)
 
 void xLightsFrame::OnListItemBeginDragControllers(wxListEvent& event)
 {
+    if (!ButtonAddControllerSerial->IsEnabled()) return;
+
     DragRowIdx = event.GetIndex();	// save the start index
     // do some checks here to make sure valid start
     // ...
@@ -1208,6 +1210,9 @@ void xLightsFrame::EnableNetworkChanges()
     ButtonDiscover->Enable(flag);
     ButtonSaveSetup->Enable(!CurrentDir.IsEmpty());
     CheckBoxLightOutput->Enable(!CurrentDir.IsEmpty());
+    BitmapButtonMoveNetworkDown->Enable(flag);
+    BitmapButtonMoveNetworkUp->Enable(flag);
+    Panel5->Enable(flag);
 }
 
 #pragma region Left Buttons
@@ -1538,7 +1543,7 @@ ControllerCaps* xLightsFrame::GetControllerCaps(const std::string& name)
 #pragma region Controller Properties
 void xLightsFrame::SetControllersProperties()
 {
-    if (GetFirstSelectedControllerIndex() >= 0)
+    if (GetFirstSelectedControllerIndex() >= 0 && ButtonAddControllerSerial->IsEnabled())
     {
         if (Controllers_PropertyEditor->GetPropertyByName("ControllerName") == nullptr || List_Controllers->GetItemText(GetFirstSelectedControllerIndex()) != Controllers_PropertyEditor->GetPropertyByName("ControllerName")->GetValue().GetString())
         {
@@ -1967,6 +1972,8 @@ void xLightsFrame::OnListControllersColClick(wxListEvent& event)
 
 void xLightsFrame::OnListControllersRClick(wxContextMenuEvent& event)
 {
+    if (!ButtonAddControllerSerial->IsEnabled()) return;
+
     // NOTE: This function is only required if you want a right click menu on an empty list ... right now I dont need that
 
     List_Controllers->SetFocus();
@@ -2004,6 +2011,8 @@ void xLightsFrame::OnListControllersRClick(wxContextMenuEvent& event)
 
 void xLightsFrame::OnListControllersItemRClick(wxListEvent& event)
 {
+    if (!ButtonAddControllerSerial->IsEnabled()) return;
+
     wxMenu mnu;
     std::string ethernet = "Insert E1.31/ArtNET/ZCPP/DDP";
     if (SpecialOptions::GetOption("xxx") == "true")

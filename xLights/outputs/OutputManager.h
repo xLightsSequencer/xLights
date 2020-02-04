@@ -45,6 +45,7 @@ class OutputManager
 
     bool SetGlobalOutputtingFlag(bool state, bool force = false);
     bool ConvertStartChannel(const std::string sc, std::string& newsc) const;
+    void AsyncPingAll();
 
 public:
 

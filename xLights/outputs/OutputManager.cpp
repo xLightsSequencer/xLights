@@ -229,7 +229,6 @@ bool OutputManager::Load(const std::string& showdir, bool syncEnabled)
                     {
                         cu = new ControllerSerial(this);
                     }
-
                     AddController(cu, -1);
                     cu->DeleteAllOutputs();
                 }
@@ -290,6 +289,7 @@ bool OutputManager::Load(const std::string& showdir, bool syncEnabled)
     }
     logger_base.debug("Networks loaded.");
 
+    AsyncPingAll();
     UpdateUnmanaged();
 
     SomethingChanged();
@@ -612,6 +612,11 @@ bool OutputManager::ConvertStartChannel(const std::string sc, std::string& newsc
     }
 
     return changed;
+}
+
+void OutputManager::AsyncPingAll()
+{
+    std::for_each(begin(_controllers), end(_controllers), [](Controller* c) { c->AsyncPing(); });
 }
 
 // This function is used purely to locate and fix any outputnumber:startchannel model start channels when the networks file is first converted
