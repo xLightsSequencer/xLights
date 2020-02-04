@@ -4,7 +4,6 @@
 //(*Headers(MultiControllerUploadDialog)
 #include <wx/button.h>
 #include <wx/checklst.h>
-#include <wx/choice.h>
 #include <wx/dialog.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
@@ -29,9 +28,7 @@ public:
 	wxButton* Button_Cancel;
 	wxButton* Button_Upload;
 	wxCheckListBox* CheckListBox_Controllers;
-	wxChoice* Choice1;
 	wxStaticText* StaticText1;
-	wxStaticText* StaticText2;
 	wxTextCtrl* TextCtrl_Log;
 	//*)
 
@@ -39,8 +36,6 @@ protected:
 
 	//(*Identifiers(MultiControllerUploadDialog)
 	static const long ID_STATICTEXT1;
-	static const long ID_STATICTEXT2;
-	static const long ID_CHOICE1;
 	static const long ID_CHECKLISTBOX1;
 	static const long ID_BUTTON1;
 	static const long ID_BUTTON2;

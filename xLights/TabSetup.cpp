@@ -2095,18 +2095,10 @@ void xLightsFrame::OnButtonVisualiseClick(wxCommandEvent& event)
     auto controller = _outputManager.GetController(name);
     if (controller != nullptr)
     {
-        auto caps = GetControllerCaps(name);
-        if (caps != nullptr)
-        {
-            std::string check;
-            UDController cud(controller, &_outputManager, &AllModels, check);
-            ControllerVisualiseDialog dlg(this, cud, controller->GetColumn2Label(), controller->GetDescription());
-            dlg.ShowModal();
-        }
-        else
-        {
-            logger_base.debug("OnButtonVisualiseClick unable to get controller config.");
-        }
+        std::string check;
+        UDController cud(controller, &_outputManager, &AllModels, check);
+        ControllerVisualiseDialog dlg(this, cud, controller->GetColumn2Label(), controller->GetDescription());
+        dlg.ShowModal();
     }
     else
     {

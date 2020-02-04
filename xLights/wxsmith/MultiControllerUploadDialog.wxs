@@ -7,46 +7,10 @@
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
 			<cols>1</cols>
 			<growablecols>0</growablecols>
-			<growablerows>2</growablerows>
+			<growablerows>1</growablerows>
 			<object class="sizeritem">
 				<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
 					<label>Select all the controllers you want to upload to and the type of controller it is.&#x0A;This upload will upload input and output definitions to each controller.</label>
-				</object>
-				<flag>wxALL|wxEXPAND</flag>
-				<border>5</border>
-				<option>1</option>
-			</object>
-			<object class="sizeritem">
-				<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
-					<cols>2</cols>
-					<growablecols>1</growablecols>
-					<object class="sizeritem">
-						<object class="wxStaticText" name="ID_STATICTEXT2" variable="StaticText2" member="yes">
-							<label>Controller Type</label>
-						</object>
-						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
-						<option>1</option>
-					</object>
-					<object class="sizeritem">
-						<object class="wxChoice" name="ID_CHOICE1" variable="Choice1" member="yes">
-							<content>
-								<item>Falcon</item>
-								<item>San Devices</item>
-								<item>ESP Pixel Stick</item>
-								<item>PixLite/PixCon</item>
-								<item>J1Sys</item>
-								<item>FPP Capes/Hats</item>
-								<item>AlphaPix</item>
-								<item>HinksPix</item>
-								<item>Auto</item>
-							</content>
-							<selection>0</selection>
-						</object>
-						<flag>wxALL|wxEXPAND</flag>
-						<border>5</border>
-						<option>1</option>
-					</object>
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>

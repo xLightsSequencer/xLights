@@ -13,8 +13,6 @@
 
 //(*IdInit(MultiControllerUploadDialog)
 const long MultiControllerUploadDialog::ID_STATICTEXT1 = wxNewId();
-const long MultiControllerUploadDialog::ID_STATICTEXT2 = wxNewId();
-const long MultiControllerUploadDialog::ID_CHOICE1 = wxNewId();
 const long MultiControllerUploadDialog::ID_CHECKLISTBOX1 = wxNewId();
 const long MultiControllerUploadDialog::ID_BUTTON1 = wxNewId();
 const long MultiControllerUploadDialog::ID_BUTTON2 = wxNewId();
@@ -36,50 +34,33 @@ MultiControllerUploadDialog::MultiControllerUploadDialog(wxWindow* parent, wxWin
 
     //(*Initialize(MultiControllerUploadDialog)
     wxFlexGridSizer* FlexGridSizer1;
-    wxFlexGridSizer* FlexGridSizer2;
     wxFlexGridSizer* FlexGridSizer4;
 
-    Create(parent, id, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxCAPTION | wxRESIZE_BORDER | wxCLOSE_BOX, _T("id"));
+    Create(parent, id, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxCAPTION|wxRESIZE_BORDER|wxCLOSE_BOX, _T("id"));
     SetClientSize(wxDefaultSize);
     Move(wxDefaultPosition);
     FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizer1->AddGrowableCol(0);
-    FlexGridSizer1->AddGrowableRow(2);
+    FlexGridSizer1->AddGrowableRow(1);
     StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Select all the controllers you want to upload to and the type of controller it is.\nThis upload will upload input and output definitions to each controller."), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
-    FlexGridSizer1->Add(StaticText1, 1, wxALL | wxEXPAND, 5);
-    FlexGridSizer2 = new wxFlexGridSizer(0, 2, 0, 0);
-    FlexGridSizer2->AddGrowableCol(1);
-    StaticText2 = new wxStaticText(this, ID_STATICTEXT2, _("Controller Type"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
-    FlexGridSizer2->Add(StaticText2, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 5);
-    Choice1 = new wxChoice(this, ID_CHOICE1, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE1"));
-    Choice1->SetSelection(Choice1->Append(_("Falcon")));
-    Choice1->Append(_("San Devices"));
-    Choice1->Append(_("ESP Pixel Stick"));
-    Choice1->Append(_("PixLite/PixCon"));
-    Choice1->Append(_("J1Sys"));
-    Choice1->Append(_("FPP Capes/Hats"));
-    Choice1->Append(_("AlphaPix"));
-    Choice1->Append(_("HinksPix"));
-    Choice1->Append(_("Auto"));
-    FlexGridSizer2->Add(Choice1, 1, wxALL | wxEXPAND, 5);
-    FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL | wxEXPAND, 5);
-    CheckListBox_Controllers = new wxCheckListBox(this, ID_CHECKLISTBOX1, wxDefaultPosition, wxDefaultSize, 0, 0, wxLB_ALWAYS_SB | wxVSCROLL, wxDefaultValidator, _T("ID_CHECKLISTBOX1"));
-    FlexGridSizer1->Add(CheckListBox_Controllers, 1, wxALL | wxEXPAND, 5);
+    FlexGridSizer1->Add(StaticText1, 1, wxALL|wxEXPAND, 5);
+    CheckListBox_Controllers = new wxCheckListBox(this, ID_CHECKLISTBOX1, wxDefaultPosition, wxDefaultSize, 0, 0, wxLB_ALWAYS_SB|wxVSCROLL, wxDefaultValidator, _T("ID_CHECKLISTBOX1"));
+    FlexGridSizer1->Add(CheckListBox_Controllers, 1, wxALL|wxEXPAND, 5);
     FlexGridSizer4 = new wxFlexGridSizer(0, 3, 0, 0);
     Button_Upload = new wxButton(this, ID_BUTTON1, _("Upload"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
-    FlexGridSizer4->Add(Button_Upload, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer4->Add(Button_Upload, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Button_Cancel = new wxButton(this, ID_BUTTON2, _("Close"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
-    FlexGridSizer4->Add(Button_Cancel, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer1->Add(FlexGridSizer4, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
-    TextCtrl_Log = new wxTextCtrl(this, ID_TEXTCTRL1, wxEmptyString, wxDefaultPosition, wxSize(0, 300), wxTE_MULTILINE | wxTE_READONLY, wxDefaultValidator, _T("ID_TEXTCTRL1"));
-    FlexGridSizer1->Add(TextCtrl_Log, 1, wxALL | wxEXPAND, 5);
+    FlexGridSizer4->Add(Button_Cancel, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer1->Add(FlexGridSizer4, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    TextCtrl_Log = new wxTextCtrl(this, ID_TEXTCTRL1, wxEmptyString, wxDefaultPosition, wxSize(0,300), wxTE_MULTILINE|wxTE_READONLY, wxDefaultValidator, _T("ID_TEXTCTRL1"));
+    FlexGridSizer1->Add(TextCtrl_Log, 1, wxALL|wxEXPAND, 5);
     SetSizer(FlexGridSizer1);
     FlexGridSizer1->Fit(this);
     FlexGridSizer1->SetSizeHints(this);
 
-    Connect(ID_CHECKLISTBOX1, wxEVT_COMMAND_CHECKLISTBOX_TOGGLED, (wxObjectEventFunction)&MultiControllerUploadDialog::OnCheckListBox_ControllersToggled);
-    Connect(ID_BUTTON1, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&MultiControllerUploadDialog::OnButton_UploadClick);
-    Connect(ID_BUTTON2, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&MultiControllerUploadDialog::OnButton_CancelClick);
+    Connect(ID_CHECKLISTBOX1,wxEVT_COMMAND_CHECKLISTBOX_TOGGLED,(wxObjectEventFunction)&MultiControllerUploadDialog::OnCheckListBox_ControllersToggled);
+    Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MultiControllerUploadDialog::OnButton_UploadClick);
+    Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MultiControllerUploadDialog::OnButton_CancelClick);
     //*)
 
     Connect(ID_CHECKLISTBOX1, wxEVT_CONTEXT_MENU, (wxObjectEventFunction)&MultiControllerUploadDialog::OnListRClick);
@@ -120,7 +101,6 @@ void MultiControllerUploadDialog::OnButton_UploadClick(wxCommandEvent& event)
 {
     SetCursor(wxCURSOR_WAIT);
 
-    Choice1->Disable();
     CheckListBox_Controllers->Disable();
     Button_Upload->Disable();
     Button_Cancel->Disable();
@@ -133,11 +113,13 @@ void MultiControllerUploadDialog::OnButton_UploadClick(wxCommandEvent& event)
     std::list<int> fake;
 
     for (int i = 0; i < ch.Count() && wxGetKeyState(WXK_ESCAPE) == false; i++) {
-        _frame->UploadInputToController(_controllers[ch[i]]);
-        _frame->UploadOutputToController(_controllers[ch[i]]);
+        auto c = _controllers[ch[i]];
+        TextCtrl_Log->AppendText("Uploading to controller '" + c->GetName() + "' [" + c->GetIP() + "] " + c->GetVMF() + "\n");
+        _frame->UploadInputToController(c);
+        _frame->UploadOutputToController(c);
+        TextCtrl_Log->AppendText("    Done.");
     }
 
-    Choice1->Enable();
     CheckListBox_Controllers->Enable();
     Button_Upload->Enable();
     Button_Cancel->Enable();
