@@ -1576,7 +1576,7 @@ void xLightsFrame::SetControllersProperties()
 
     auto selections = GetSelectedControllerNames();
 
-    if (selections.size() != 1)
+    if (selections.size() != 1 || _outputManager.GetController(selections.front()) == nullptr)
     {
         ButtonVisualise->Enable(false);
         ButtonUploadInput->Enable(false);
@@ -1618,58 +1618,60 @@ void xLightsFrame::SetControllersProperties()
     else if (selections.size() == 1)
     {
         auto controller = _outputManager.GetController(selections.front());
-        int usingip = _outputManager.GetControllerCount(controller->GetType(), controller->GetColumn2Label());
+        if (controller != nullptr) {
+            int usingip = _outputManager.GetControllerCount(controller->GetType(), controller->GetColumn2Label());
 
-        if (usingip == 1)
-        {
-            ButtonVisualise->Enable();
-        }
-        else
-        {
-            ButtonVisualise->Enable(false);
-        }
-
-        auto caps = GetControllerCaps(selections.front());
-        if (caps != nullptr && caps->SupportsUpload() && usingip == 1)
-        {
-            if (caps->SupportsInputOnlyUpload())
+            if (usingip == 1)
             {
-                ButtonUploadInput->Enable();
+                ButtonVisualise->Enable();
+            }
+            else
+            {
+                ButtonVisualise->Enable(false);
+            }
+
+            auto caps = GetControllerCaps(selections.front());
+            if (caps != nullptr && caps->SupportsUpload() && usingip == 1)
+            {
+                if (caps->SupportsInputOnlyUpload())
+                {
+                    ButtonUploadInput->Enable();
+                }
+                else
+                {
+                    ButtonUploadInput->Enable(false);
+                }
+                ButtonUploadOutput->Enable();
             }
             else
             {
                 ButtonUploadInput->Enable(false);
+                ButtonUploadOutput->Enable(false);
             }
-            ButtonUploadOutput->Enable();
-        }
-        else
-        {
-            ButtonUploadInput->Enable(false);
-            ButtonUploadOutput->Enable(false);
-        }
-        if (dynamic_cast<ControllerEthernet*>(controller) != nullptr)
-        {
-            ButtonOpen->Enable();
-        }
-        else
-        {
-            ButtonOpen->Enable(false);
-        }
-        ButtonControllerDelete->Enable();
+            if (dynamic_cast<ControllerEthernet*>(controller) != nullptr)
+            {
+                ButtonOpen->Enable();
+            }
+            else
+            {
+                ButtonOpen->Enable(false);
+            }
+            ButtonControllerDelete->Enable();
 
-        auto pingresult = controller->GetLastPingState();
-        if (pingresult == Output::PINGSTATE::PING_ALLFAILED) {
-            LedPing->SetColor("FF0000");
-        }
-        else if (pingresult == Output::PINGSTATE::PING_UNKNOWN || pingresult == Output::PINGSTATE::PING_UNAVAILABLE) {
-            LedPing->SetColor("808000");
-        }
-        else {
-            LedPing->SetColor("00FF00");
-        }
+            auto pingresult = controller->GetLastPingState();
+            if (pingresult == Output::PINGSTATE::PING_ALLFAILED) {
+                LedPing->SetColor("FF0000");
+            }
+            else if (pingresult == Output::PINGSTATE::PING_UNKNOWN || pingresult == Output::PINGSTATE::PING_UNAVAILABLE) {
+                LedPing->SetColor("808000");
+            }
+            else {
+                LedPing->SetColor("00FF00");
+            }
 
-        // one item selected - display selected controller properties
-        controller->AddProperties(Controllers_PropertyEditor, &AllModels);
+            // one item selected - display selected controller properties
+            controller->AddProperties(Controllers_PropertyEditor, &AllModels);
+        }
     }
 
     // restore property grid location
@@ -1808,8 +1810,7 @@ void xLightsFrame::OnControllerPropertyGridChange(wxPropertyGridEvent& event) {
     }
 
     // Only validate if we are not going to reload the list
-    if (!_outputModelManager.IsASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST))
-    {
+    if (!_outputModelManager.IsASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST)) {
         ValidateControllerProperties();
     }
 }
