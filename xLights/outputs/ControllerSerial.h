@@ -84,7 +84,7 @@ public:
 
 #pragma region UI
     #ifndef EXCLUDENETWORKUI
-        virtual void AddProperties(wxPropertyGrid* propertyGrid) override;
+        virtual void AddProperties(wxPropertyGrid* propertyGrid, ModelManager* modelManager) override;
         virtual bool HandlePropertyEvent(wxPropertyGridEvent & event, OutputModelManager * outputModelManager) override;
         virtual void ValidateProperties(OutputManager* om, wxPropertyGrid* propGrid) const override;
     #endif

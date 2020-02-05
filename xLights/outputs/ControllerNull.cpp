@@ -7,6 +7,7 @@
 #include "../SpecialOptions.h"
 #include "../OutputModelManager.h"
 #include "NullOutput.h"
+#include "../models/ModelManager.h"
 
 #pragma region Constructors and Destructors
 ControllerNull::ControllerNull(OutputManager* om, wxXmlNode* node, const std::string& showDir) : Controller(om, node, showDir) {
@@ -88,9 +89,13 @@ std::string ControllerNull::GetExport() const {
 
 #pragma region UI
 #ifndef EXCLUDENETWORKUI
-void ControllerNull::AddProperties(wxPropertyGrid* propertyGrid) {
+void ControllerNull::AddProperties(wxPropertyGrid* propertyGrid, ModelManager* modelManager) {
 
-    Controller::AddProperties(propertyGrid);
+    Controller::AddProperties(propertyGrid, modelManager);
+
+    auto p = propertyGrid->Append(new wxStringProperty("Models", "Models", modelManager->GetModelsOnChannels(GetStartChannel(), GetEndChannel())));
+    p->ChangeFlag(wxPG_PROP_READONLY, true);
+        p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
 
     if (_outputs.size() > 0) _outputs.front()->AddProperties(propertyGrid, true);
 }

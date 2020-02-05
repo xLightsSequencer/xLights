@@ -13,6 +13,7 @@
 class wxXmlNode;
 class OutputManager;
 class OutputModelManager;
+class ModelManager;
 
 #pragma region Controller Constants
 // These are used to identify each output type
@@ -174,7 +175,7 @@ public:
 
     #pragma region UI
     #ifndef EXCLUDENETWORKUI
-        virtual void AddProperties(wxPropertyGrid* propertyGrid);
+        virtual void AddProperties(wxPropertyGrid* propertyGrid, ModelManager* modelManager);
 	    virtual bool HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager);
         virtual void ValidateProperties(OutputManager* om, wxPropertyGrid* propGrid) const;
     #endif

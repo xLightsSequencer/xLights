@@ -1192,6 +1192,25 @@ Model *ModelManager::createAndAddModel(wxXmlNode *node, int previewW, int previe
     return model;
 }
 
+std::string ModelManager::GetModelsOnChannels(uint32_t start, uint32_t end) const
+{
+    std::string res;
+
+    for (const auto& it : *this)
+    {
+        if (it.second->GetDisplayAs() != "ModelGroup")
+        {
+            if (it.second->GetFirstChannel()+1 <= end && it.second->GetLastChannel() + 1 >= start)
+            {
+                if (res != "") res += ",";
+                res += it.first;
+            }
+        }
+    }
+
+	return res;
+}
+
 void ModelManager::Delete(const std::string &name) {
 
     if( xlights->CurrentSeqXmlFile != nullptr )

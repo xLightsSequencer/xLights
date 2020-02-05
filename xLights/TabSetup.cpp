@@ -1669,7 +1669,7 @@ void xLightsFrame::SetControllersProperties()
         }
 
         // one item selected - display selected controller properties
-        controller->AddProperties(Controllers_PropertyEditor);
+        controller->AddProperties(Controllers_PropertyEditor, &AllModels);
     }
 
     // restore property grid location
@@ -1683,6 +1683,8 @@ void xLightsFrame::SetControllersProperties()
     ValidateControllerProperties();
 
     Controllers_PropertyEditor->Thaw();
+
+    Controllers_PropertyEditor->ExpandAll();
 }
 
 void xLightsFrame::ValidateControllerProperties()

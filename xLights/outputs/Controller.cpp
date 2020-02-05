@@ -334,7 +334,7 @@ void Controller::Convert(wxXmlNode* node, std::string showDir) {
 
 #pragma region UI
 #ifndef EXCLUDENETWORKUI
-void Controller::AddProperties(wxPropertyGrid* propertyGrid) {
+void Controller::AddProperties(wxPropertyGrid* propertyGrid, ModelManager* modelManager) {
 
     wxPGProperty* p = propertyGrid->Append(new wxStringProperty("Name", "ControllerName", GetName()));
     p->SetHelpString("This must be unique.");

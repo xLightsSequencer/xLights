@@ -13,6 +13,7 @@
 #include "DDPOutput.h"
 #include "xxxEthernetOutput.h"
 #include "../controllers/ControllerCaps.h"
+#include "../models/ModelManager.h"
 
 wxPGChoices ControllerEthernet::__types;
 
@@ -243,11 +244,11 @@ bool ControllerEthernet::AllSameSize() const
 }
 
 #ifndef EXCLUDENETWORKUI
-void ControllerEthernet::AddProperties(wxPropertyGrid* propertyGrid)
+void ControllerEthernet::AddProperties(wxPropertyGrid* propertyGrid, ModelManager* modelManager)
 {
     wxPGProperty* p = nullptr;
 
-    Controller::AddProperties(propertyGrid);
+    Controller::AddProperties(propertyGrid, modelManager);
 
     if (_type == OUTPUT_E131)
     {
@@ -385,8 +386,8 @@ void ControllerEthernet::AddProperties(wxPropertyGrid* propertyGrid)
                 p->SetAttribute("Min", 1);
                 p->SetAttribute("Max", it->GetMaxChannels());
                 p->SetEditor("SpinCtrl");
+                p->SetHelpString(modelManager->GetModelsOnChannels(it->GetStartChannel(), it->GetEndChannel()));
             }
-            p2->SetExpanded(true);
         }
         else
         {
@@ -394,6 +395,10 @@ void ControllerEthernet::AddProperties(wxPropertyGrid* propertyGrid)
             p->SetAttribute("Min", 1);
             p->SetAttribute("Max", _outputs.front()->GetMaxChannels());
             p->SetEditor("SpinCtrl");
+
+            p = propertyGrid->Append(new wxStringProperty("Models", "Models", modelManager->GetModelsOnChannels(GetStartChannel(), GetEndChannel())));
+            p->ChangeFlag(wxPG_PROP_READONLY, true);
+            p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
         }
     }
     else
@@ -412,6 +417,10 @@ void ControllerEthernet::AddProperties(wxPropertyGrid* propertyGrid)
         {
             p->SetEditor("SpinCtrl");
         }
+
+        p = propertyGrid->Append(new wxStringProperty("Models", "Models", modelManager->GetModelsOnChannels(GetStartChannel(), GetEndChannel())));
+        p->ChangeFlag(wxPG_PROP_READONLY, true);
+        p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
     }
 }
 

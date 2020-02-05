@@ -60,6 +60,8 @@ class ModelManager : public ObjectManager
         xLightsFrame* GetXLightsFrame() const { return xlights; }
         bool IsValidControllerModelChain(Model* m, std::string& tip) const;
         Model *createAndAddModel(wxXmlNode *node, int previewW, int previewH);
+        std::string GetModelsOnChannels(uint32_t start, uint32_t end) const;
+
     private:
 
     wxXmlNode *layoutsNode = nullptr;

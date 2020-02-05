@@ -15,6 +15,7 @@
 #include "RenardOutput.h"
 #include "LOROutput.h"
 #include "LOROptimisedOutput.h"
+#include "../models/ModelManager.h"
 
 #pragma region Property Choices
 wxPGChoices ControllerSerial::__types;
@@ -288,9 +289,9 @@ std::string ControllerSerial::GetExport() const {
 
 #pragma region UI
 #ifndef EXCLUDENETWORKUI
-void ControllerSerial::AddProperties(wxPropertyGrid* propertyGrid)
+void ControllerSerial::AddProperties(wxPropertyGrid* propertyGrid, ModelManager* modelManager)
 {
-    Controller::AddProperties(propertyGrid);
+    Controller::AddProperties(propertyGrid, modelManager);
 
     wxPGProperty* p = propertyGrid->Append(new wxEnumProperty("Port", "Port", __ports, Controller::EncodeChoices(__ports, _port)));
     p->SetHelpString("This must be unique across all controllers.");
@@ -324,6 +325,10 @@ void ControllerSerial::AddProperties(wxPropertyGrid* propertyGrid)
             p->SetEditor("SpinCtrl");
         }
     }
+
+    p = propertyGrid->Append(new wxStringProperty("Models", "Models", modelManager->GetModelsOnChannels(GetStartChannel(), GetEndChannel())));
+    p->ChangeFlag(wxPG_PROP_READONLY, true);
+    p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
 
     if (_outputs.size() > 0) _outputs.front()->AddProperties(propertyGrid, true);
 }

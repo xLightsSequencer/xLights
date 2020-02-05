@@ -2099,6 +2099,7 @@ void xLightsFrame::OnNotebook1PageChanged1(wxAuiNotebookEvent& event)
         MenuItem_File_Save->SetItemLabel("Save Setup\tCTRL-s");
         MenuItem_File_Save->Enable(true);
         SetStatusText(_(""));
+        SetControllersProperties();
     }
     else
     {
