@@ -1699,7 +1699,6 @@ xLightsFrame::~xLightsFrame()
     selectedEffect = nullptr;
     _outputManager.AllOff();
     _outputManager.StopOutput();
-    _outputManager.DeleteAllControllers();
 
     wxConfigBase* config = wxConfigBase::Get();
     if (mResetToolbars)
@@ -1760,9 +1759,15 @@ xLightsFrame::~xLightsFrame()
             w->RemoveEventHandler(m_mgr);
         }
     }
+    
+    //unconnect these as the call to DeleteAllPages will cause pages to change and the page numbers to possibly not match
+    Disconnect(ID_NOTEBOOK1,wxEVT_COMMAND_AUINOTEBOOK_PAGE_CHANGED,(wxObjectEventFunction)&xLightsFrame::OnNotebook1PageChanged1);
+    Disconnect(ID_NOTEBOOK1,wxEVT_COMMAND_AUINOTEBOOK_PAGE_CHANGING,(wxObjectEventFunction)&xLightsFrame::OnNotebook1PageChanging);
     Notebook1->DeleteAllPages();
     delete m_mgr;
     delete MainAuiManager;
+
+    _outputManager.DeleteAllControllers();
 
     if( CurrentSeqXmlFile )
     {
