@@ -1427,6 +1427,11 @@ void xLightsFrame::InitialiseControllersTab()
         List_Controllers->AppendColumn("Universes/Id");
         List_Controllers->AppendColumn("Channels");
         List_Controllers->AppendColumn("Description");
+
+        ButtonAddControllerEthernet->SetToolTip("Use this button to add E1.31, Artnet, DDP and ZCPP controllers.");
+        ButtonAddControllerNull->SetToolTip("Use this button to add channels that you never want to send to a controller.");
+        ButtonAddControllerSerial->SetToolTip("Use this button to add typically USB attached Serial/RS485 devices running protocols like DMX, LOR, and Renard.");
+        ButtonDiscover->SetToolTip("Probe the network for unlisted controllers.");
     }
 
     if (Controllers_PropertyEditor == nullptr)

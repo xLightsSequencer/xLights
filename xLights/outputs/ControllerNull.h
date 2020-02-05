@@ -30,6 +30,7 @@ public:
 
     virtual bool SupportsSuppressDuplicateFrames() const override { return false; }
     virtual bool IsManaged() const override { return true; }
+    virtual bool CanSendData() const override { return false; }
 
     virtual std::string GetLongDescription() const override;
 

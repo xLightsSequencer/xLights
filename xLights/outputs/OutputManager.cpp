@@ -117,7 +117,7 @@ std::string OutputManager::UniqueName(const std::string& prefix)
 int OutputManager::UniqueId()
 {
     int i = 0;
-    while (GetController(++i) != nullptr);
+    while (GetOutput(++i, "") != nullptr);
     return i;
 }
 

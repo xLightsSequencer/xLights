@@ -120,6 +120,7 @@ public:
     virtual bool SupportsSuppressDuplicateFrames() const { return true; }
     virtual bool SupportsUpload() const { return false; }
     virtual bool IsManaged() const = 0;
+    virtual bool CanSendData() const { return true; }
 
     // true if this controller needs the user to be able to edit id
     virtual bool IsNeedsId() const { return true; }

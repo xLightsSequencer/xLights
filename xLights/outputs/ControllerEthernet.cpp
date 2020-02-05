@@ -258,7 +258,14 @@ void ControllerEthernet::AddProperties(wxPropertyGrid* propertyGrid)
     if (_ip != "MULTICAST")
     {
         p = propertyGrid->Append(new wxStringProperty("IP Address", "IP", _ip));
-        p->SetHelpString("This must be unique across all controllers.");
+        if (GetProtocol() == OUTPUT_ZCPP || GetProtocol() == OUTPUT_DDP)
+        {
+            p->SetHelpString("This must be unique across all controllers.");
+        }
+        else
+        {
+            p->SetHelpString("This should ideally be unique across all controllers.");
+        }
     }
 
     p = propertyGrid->Append(new wxEnumProperty("Protocol", "Protocol", __types, EncodeChoices(__types, _type)));
@@ -630,12 +637,29 @@ void ControllerEthernet::ValidateProperties(OutputManager* om, wxPropertyGrid* p
             p->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
         }
     }
+
     if (GetIP() != "MULTICAST") {
         p = propGrid->GetPropertyByName("IP");
         if (GetIP() == "") {
             p->SetBackgroundColour(*wxRED);
-        } else {
-            p->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
+        }
+        // ZCPP and DDP cannot share IP with any other output
+        else if (GetProtocol() == OUTPUT_ZCPP || GetProtocol() == OUTPUT_DDP)
+        {
+            p = propGrid->GetPropertyByName("IP");
+            bool err = false;
+            for (const auto& it : _outputManager->GetControllers(GetIP()))
+            {
+                if (it != this) {
+                    err = true;
+                }
+            }
+            if (err) {
+                p->SetBackgroundColour(*wxRED);
+            }
+            else {
+                p->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
+            }
         }
     }
 

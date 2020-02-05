@@ -83,6 +83,7 @@
 #include "controllers/HinksPixExportDialog.h"
 #include "controllers/ControllerCaps.h"
 #include "outputs/ControllerEthernet.h"
+#include "outputs/ControllerSerial.h"
 
 // Linux needs this
 #include <wx/stdpaths.h>
@@ -4365,16 +4366,15 @@ void xLightsFrame::CheckSequence(bool display)
     warncountsave = warncount;
 
     LogAndWrite(f, "");
-    LogAndWrite(f, "Inactive Outputs");
+    LogAndWrite(f, "Inactive Controllers");
 
     // Check for inactive outputs
-    auto outputs = _outputManager.GetOutputs();
-    for (auto o : outputs)
+    for (const auto& c : _outputManager.GetControllers())
     {
-        if (!o->IsEnabled())
+        if (!c->IsEnabled() && c->CanSendData())
         {
-            wxString msg = wxString::Format("    WARN: Inactive output %d %s:%s:%s:%s:'%s'.",
-                o->GetOutputNumber(), o->GetType(), o->GetIP(), o->GetUniverseString(), o->GetCommPort(), o->GetDescription());
+            wxString msg = wxString::Format("    WARN: Inactive controller %s %s:%s.",
+                c->GetName(), c->GetColumn1Label(), c->GetColumn2Label());
             LogAndWrite(f, msg.ToStdString());
             warncount++;
         }
@@ -4392,16 +4392,21 @@ void xLightsFrame::CheckSequence(bool display)
     LogAndWrite(f, "Multiple outputs sending to same destination");
 
     std::list<std::string> used;
-    outputs = _outputManager.GetAllOutputs();
-    for (auto o : outputs)
+    for (const auto& o : _outputManager.GetAllOutputs())
     {
-        if (o->IsIpOutput())
+        if (o->IsIpOutput() && (o->GetType() == OUTPUT_E131 || o->GetType() == OUTPUT_ARTNET))
         {
             std::string usedval = o->GetIP() + "|" + o->GetUniverseString();
 
             if (std::find(used.begin(), used.end(), usedval) != used.end())
             {
-                wxString msg = wxString::Format("    ERR: Multiple outputs being sent to the same controller '%s' (%s) and universe %s.", (const char*)o->GetDescription().c_str(), (const char*)o->GetIP().c_str(), (const char *)o->GetUniverseString().c_str());
+                int32_t sc;
+                auto c = _outputManager.GetController(o->GetStartChannel(), sc);
+
+                wxString msg = wxString::Format("    ERR: Multiple outputs being sent to the same controller '%s' (%s) and universe %s.", 
+                    (const char*)c->GetName().c_str(), 
+                    (const char*)o->GetIP().c_str(), 
+                    (const char *)o->GetUniverseString().c_str());
                 LogAndWrite(f, msg.ToStdString());
                 errcount++;
             }
@@ -4436,80 +4441,71 @@ void xLightsFrame::CheckSequence(bool display)
     warncountsave = warncount;
 
     // ZCPP Checks
-    std::list<Output*> zcppOutputs;
-    for (auto it = outputs.begin(); it != outputs.end(); ++it)
+    std::list<ControllerEthernet*> uniqueControllers;
+    for (const auto& it : _outputManager.GetControllers())
     {
-        if ((*it)->GetType() == OUTPUT_ZCPP)
+        auto eth = dynamic_cast<ControllerEthernet*>(it);
+        if (eth != nullptr && (eth->GetProtocol() == OUTPUT_ZCPP || eth->GetProtocol() == OUTPUT_DDP))
         {
-            zcppOutputs.push_back(*it);
+            uniqueControllers.push_back(eth);
         }
     }
 
-    if (zcppOutputs.size() > 0)
+    if (uniqueControllers.size() > 0)
     {
         LogAndWrite(f, "");
-        LogAndWrite(f, "ZCPP Checks");
-
-        // zcpp controllers with descriptions that clash with other outputs
-        for (auto it = zcppOutputs.begin(); it != zcppOutputs.end(); ++it)
-        {
-            if ((*it)->GetDescription() == "")
-            {
-                wxString msg = wxString::Format("    ERR: ZCPP controller on IP %s has no description. This is not valid.", (const char*)(*it)->GetIP().c_str());
-                LogAndWrite(f, msg.ToStdString());
-                errcount++;
-            }
-
-            auto sit = it;
-            ++sit;
-            for (; sit != zcppOutputs.end(); ++sit)
-            {
-                if (*it == *sit)
-                {
-                    wxString msg = wxString::Format("    ERR: Multiple ZCPP outputs with the same description '%s'. This is not valid.", (const char*)(*it)->GetDescription().c_str());
-                    LogAndWrite(f, msg.ToStdString());
-                    errcount++;
-                    break;
-                }
-            }
-        }
+        LogAndWrite(f, "ZCPP/DPP Checks");
 
         // zcpp ip address must only be on one output ... no duplicates
-        for (auto it = zcppOutputs.begin(); it != zcppOutputs.end(); ++it)
+        for (const auto& it : uniqueControllers)
         {
-            for (auto ito = outputs.begin(); ito != outputs.end(); ++ito)
+            for (const auto& itc : _outputManager.GetControllers())
             {
-                if (*ito != *it && ((*it)->GetIP() == (*ito)->GetIP() || (*it)->GetIP() == (*ito)->GetResolvedIP()))
+                auto eth = dynamic_cast<ControllerEthernet*>(itc);
+                if (eth != nullptr)
                 {
-                    wxString msg = wxString::Format("    ERR: ZCPP IP Address '%s' for controller '%s' used on another controller '%s'. This is not allowed.", (const char*)(*it)->GetIP().c_str(), (const char*)(*it)->GetDescription().c_str(), (const char*)(*ito)->GetDescription().c_str());
-                    LogAndWrite(f, msg.ToStdString());
-                    errcount++;
-                    break;
+                    if (eth != it && (it->GetIP() == eth->GetIP() || it->GetIP() == eth->GetResolvedIP()))
+                    {
+                        wxString msg = wxString::Format("    ERR: %s IP Address '%s' for controller '%s' used on another controller '%s'. This is not allowed.",
+                            (const char*)it->GetProtocol().c_str(),
+                            (const char*)it->GetIP().c_str(),
+                            (const char*)it->GetName().c_str(),
+                            (const char*)eth->GetName().c_str());
+                        LogAndWrite(f, msg.ToStdString());
+                        errcount++;
+                        break;
+                    }
                 }
             }
         }
 
         std::map<std::string, std::map<std::string, std::list<Model*>>> modelsByPortByController;
-        for (auto it = AllModels.begin(); it != AllModels.end(); ++it)
+        for (const auto& it : AllModels)
         {
-            if (it->second->GetControllerName() != "")
+            if (it.second->GetControllerName() != "")
             {
-                Output* o = _outputManager.GetOutput(it->second->GetControllerName());
-                if (o != nullptr)
+                auto c = _outputManager.GetController(it.second->GetControllerName());
+                auto eth = dynamic_cast<ControllerEthernet*>(c);
+                if (eth != nullptr)
                 {
-                    if (!it->second->IsControllerConnectionValid())
+                    if (!it.second->IsControllerConnectionValid())
                     {
-                        wxString msg = wxString::Format("    ERR: Model %s on ZCPP controller '%s:%s' has invalid controller connection '%s'.", (const char*)it->second->GetName().c_str(), (const char*)o->GetIP().c_str(), (const char*)o->GetDescription().c_str(), (const char*)it->second->GetControllerConnectionString().c_str());
+                        wxString msg = wxString::Format("    ERR: Model %s on %s controller '%s:%s' has invalid controller connection '%s'.",
+                            (const char*)it.second->GetName().c_str(),
+                            (const char*)eth->GetProtocol().c_str(),
+                            (const char*)eth->GetName().c_str(), 
+                            (const char*)eth->GetIP().c_str(), 
+                            (const char*)it.second->GetControllerConnectionString().c_str());
                         LogAndWrite(f, msg.ToStdString());
                         errcount++;
                     }
 
-                    if (modelsByPortByController.find(o->GetDescription()) == modelsByPortByController.end())
+                    if (modelsByPortByController.find(eth->GetName()) == modelsByPortByController.end())
                     {
                         std::map<std::string, std::list<Model*>> pm;
-                        modelsByPortByController[o->GetDescription()] = pm;
+                        modelsByPortByController[eth->GetName()] = pm;
                     }
-                    modelsByPortByController[o->GetDescription()][wxString::Format("%s:%d:%d", it->second->IsPixelProtocol() ? _("PIXEL") : _("SERIAL"), it->second->GetControllerPort() ,it->second->GetSmartRemote()).Lower().ToStdString()].push_back(it->second);
+                    modelsByPortByController[eth->GetName()][wxString::Format("%s:%d:%d", it.second->IsPixelProtocol() ? _("PIXEL") : _("SERIAL"), it.second->GetControllerPort() ,it.second->GetSmartRemote()).Lower().ToStdString()].push_back(it.second);
                 }
             }
         }
@@ -4524,7 +4520,8 @@ void xLightsFrame::CheckSequence(bool display)
             //it->first is controller
             //it->second is a list of ports
 
-            Output* o = _outputManager.GetOutput(it.first);
+            auto c = _outputManager.GetController(it.first);
+            auto eth = dynamic_cast<ControllerEthernet*>(c);
 
             // for each port
             for (auto& itp : it.second)
@@ -4563,8 +4560,8 @@ void xLightsFrame::CheckSequence(bool display)
                             {
                                 wxString msg = wxString::Format("    ERR: Model %s on ZCPP controller '%s:%s' on port '%s' has invalid Model Chain '%s'. It may be a duplicate or point to a non existent model on this controller port or there may be a loop.",
                                     (const char*)itp.second.front()->GetName().c_str(),
-                                    (const char*)o->GetIP().c_str(),
-                                    (const char*)o->GetDescription().c_str(),
+                                    (const char*)eth->GetIP().c_str(),
+                                    (const char*)eth->GetName().c_str(),
                                     (const char*)itp.second.front()->GetControllerConnectionString().c_str(),
                                     (const char*)itp.second.front()->GetModelChain().c_str());
                                 LogAndWrite(f, msg.ToStdString());
@@ -4624,7 +4621,7 @@ void xLightsFrame::CheckSequence(bool display)
     LogAndWrite(f, "Multiple outputs with same universe/id number");
 
     std::map<int, int> useduid;
-    outputs = _outputManager.GetAllOutputs();
+    auto outputs = _outputManager.GetAllOutputs();
     for (auto o : outputs)
     {
         if (o->GetType() != OUTPUT_ZCPP)
@@ -4657,7 +4654,7 @@ void xLightsFrame::CheckSequence(bool display)
     std::map<std::string, int> lastuniverse;
     for (auto n: _outputManager.GetAllOutputs())
     {
-        if (n->IsIpOutput())
+        if (n->IsIpOutput() && (n->GetType() == OUTPUT_E131 || n->GetType() == OUTPUT_ARTNET))
         {
             if (lastuniverse.find(n->GetIP()) == lastuniverse.end())
             {
@@ -4691,22 +4688,24 @@ void xLightsFrame::CheckSequence(bool display)
     LogAndWrite(f, "");
     LogAndWrite(f, "Invalid controller IP addresses");
 
-    outputs = _outputManager.GetOutputs();
-    for (auto o : outputs)
+    for (const auto& c : _outputManager.GetControllers())
     {
-        if (o->IsIpOutput())
+        auto eth = dynamic_cast<ControllerEthernet*>(c);
+        if (eth != nullptr)
         {
-            if (o->GetIP() != "MULTICAST")
+            if (eth->GetIP() != "MULTICAST")
             {
-                if (!IsIPValidOrHostname(o->GetIP()))
+                if (!IsIPValidOrHostname(eth->GetIP()))
                 {
-                    wxString msg = wxString::Format("    WARN: IP address '%s' on controller '%s' universe %s does not look valid.", (const char*)o->GetIP().c_str(), (const char*)o->GetDescription().c_str(), (const char *)o->GetUniverseString().c_str());
+                    wxString msg = wxString::Format("    WARN: IP address '%s' on controller '%s' does not look valid.", 
+                        (const char*)eth->GetIP().c_str(), 
+                        (const char*)eth->GetName().c_str());
                     LogAndWrite(f, msg.ToStdString());
                     warncount++;
                 }
                 else
                 {
-                    wxArrayString ipElements = wxSplit(o->GetIP(), '.');
+                    wxArrayString ipElements = wxSplit(eth->GetIP(), '.');
                     if (ipElements.size() > 3) {
                         //looks like an IP address
                         int ip1 = wxAtoi(ipElements[0]);
@@ -4717,7 +4716,9 @@ void xLightsFrame::CheckSequence(bool display)
                         if (ip1 == 10)
                         {
                             if (ip2 == 255 && ip3 == 255 && ip4 == 255) {
-                                wxString msg = wxString::Format("    ERR: IP address '%s' on controller '%s' universe %s is a broadcast address.", (const char*)o->GetIP().c_str(), (const char*)o->GetDescription().c_str(), (const char *)o->GetUniverseString().c_str());
+                                wxString msg = wxString::Format("    ERR: IP address '%s' on controller '%s' is a broadcast address.", 
+                                    (const char*)eth->GetIP().c_str(), 
+                                    (const char*)eth->GetName().c_str());
                                 LogAndWrite(f, msg.ToStdString());
                                 errcount++;
                             }
@@ -4726,7 +4727,9 @@ void xLightsFrame::CheckSequence(bool display)
                         else if (ip1 == 192 && ip2 == 168)
                         {
                             if (ip3 == 255 && ip4 == 255) {
-                                wxString msg = wxString::Format("    ERR: IP address '%s' on controller '%s' universe %s is a broadcast address.", (const char*)o->GetIP().c_str(), (const char*)o->GetDescription().c_str(), (const char *)o->GetUniverseString().c_str());
+                                wxString msg = wxString::Format("    ERR: IP address '%s' on controller '%s' is a broadcast address.", 
+                                    (const char*)eth->GetIP().c_str(), 
+                                    (const char*)eth->GetName().c_str());
                                 LogAndWrite(f, msg.ToStdString());
                                 errcount++;
                             }
@@ -4738,25 +4741,33 @@ void xLightsFrame::CheckSequence(bool display)
                         }
                         else if (ip1 == 255 && ip2 == 255 && ip3 == 255 && ip4 == 255)
                         {
-                            wxString msg = wxString::Format("    ERR: IP address '%s' on controller '%s' universe %s is a broadcast address.", (const char*)o->GetIP().c_str(), (const char*)o->GetDescription().c_str(), (const char *)o->GetUniverseString().c_str());
+                            wxString msg = wxString::Format("    ERR: IP address '%s' on controller '%s' is a broadcast address.", 
+                                (const char*)eth->GetIP().c_str(), 
+                                (const char*)eth->GetName().c_str());
                             LogAndWrite(f, msg.ToStdString());
                             errcount++;
                         }
                         else if (ip1 == 0)
                         {
-                            wxString msg = wxString::Format("    ERR: IP address '%s' on controller '%s' universe %s not valid.", (const char*)o->GetIP().c_str(), (const char*)o->GetDescription().c_str(), (const char *)o->GetUniverseString().c_str());
+                            wxString msg = wxString::Format("    ERR: IP address '%s' on controller '%s' not valid.", 
+                                (const char*)eth->GetIP().c_str(), 
+                                (const char*)eth->GetName().c_str());
                             LogAndWrite(f, msg.ToStdString());
                             errcount++;
                         }
                         else if (ip1 >= 224 && ip1 <= 239)
                         {
-                            wxString msg = wxString::Format("    ERR: IP address '%s' on controller '%s' universe %s is a multicast address.", (const char*)o->GetIP().c_str(), (const char*)o->GetDescription().c_str(), (const char *)o->GetUniverseString().c_str());
+                            wxString msg = wxString::Format("    ERR: IP address '%s' on controller '%s' is a multicast address.", 
+                                (const char*)eth->GetIP().c_str(), 
+                                (const char*)eth->GetName().c_str());
                             LogAndWrite(f, msg.ToStdString());
                             errcount++;
                         }
                         else
                         {
-                            wxString msg = wxString::Format("    WARN: IP address '%s' on controller '%s' universe %s in internet routable ... are you sure you meant to do this.", (const char*)o->GetIP().c_str(), (const char*)o->GetDescription().c_str(), (const char *)o->GetUniverseString().c_str());
+                            wxString msg = wxString::Format("    WARN: IP address '%s' on controller '%s' in internet routable ... are you sure you meant to do this.", 
+                                (const char*)eth->GetIP().c_str(), 
+                                (const char*)eth->GetName().c_str());
                             LogAndWrite(f, msg.ToStdString());
                             warncount++;
                         }
@@ -4783,12 +4794,16 @@ void xLightsFrame::CheckSequence(bool display)
             int32_t end = it->second->GetLastChannel()+1;
 
             int32_t sc;
-            Output* ostart = _outputManager.GetOutput(start, sc);
-            Output* oend = _outputManager.GetOutput(end, sc);
+            Controller* ostart = _outputManager.GetController(start, sc);
+            Controller* oend = _outputManager.GetController(end, sc);
+            auto eth_ostart = dynamic_cast<ControllerEthernet*>(ostart);
+            auto eth_oend = dynamic_cast<ControllerEthernet*>(oend);
+            auto ser_ostart = dynamic_cast<ControllerSerial*>(ostart);
+            auto ser_oend = dynamic_cast<ControllerSerial*>(oend);
 
             if (ostart != nullptr && oend == nullptr)
             {
-                wxString msg = wxString::Format("    ERR: Model '%s' starts on controller '%s' but ends at channel %d which is not on a controller.", it->first, ostart->GetDescription(), end);
+                wxString msg = wxString::Format("    ERR: Model '%s' starts on controller '%s' but ends at channel %d which is not on a controller.", it->first, ostart->GetName(), end);
                 LogAndWrite(f, msg.ToStdString());
                 errcount++;
             }
@@ -4800,28 +4815,38 @@ void xLightsFrame::CheckSequence(bool display)
             }
             else if (ostart->GetType() != oend->GetType())
             {
-                wxString msg = wxString::Format("    WARN: Model '%s' starts on controller '%s' of type '%s' but ends on a controller '%s' of type '%s'.", it->first, ostart->GetDescription(), ostart->GetType(), oend->GetDescription(), oend->GetType());
+                wxString msg = wxString::Format("    WARN: Model '%s' starts on controller '%s' of type '%s' but ends on a controller '%s' of type '%s'.", it->first, ostart->GetName(), ostart->GetType(), oend->GetDescription(), oend->GetType());
                 LogAndWrite(f, msg.ToStdString());
                 warncount++;
             }
-            else if (ostart->GetIP() == "MULTICAST" && oend->GetIP() == "MULTICAST")
+            else if (eth_ostart != nullptr && eth_oend != nullptr && eth_ostart->GetIP() == "MULTICAST" && eth_oend->GetIP() == "MULTICAST")
             {
                 // ignore these
             }
-            else if (ostart->GetIP() + oend->GetIP() != "")
+            else if (eth_ostart != nullptr && eth_oend != nullptr && eth_ostart->GetIP() + eth_oend->GetIP() != "")
             {
-                if (ostart->GetIP() != oend->GetIP())
+                if (eth_ostart->GetIP() != eth_oend->GetIP())
                 {
-                    wxString msg = wxString::Format("    WARN: Model '%s' starts on controller '%s' with IP '%s' but ends on a controller '%s' with IP '%s'.", it->first, ostart->GetDescription(), ostart->GetIP(), oend->GetDescription(), oend->GetIP());
+                    wxString msg = wxString::Format("    WARN: Model '%s' starts on controller '%s' with IP '%s' but ends on a controller '%s' with IP '%s'.", 
+                        it->first, 
+                        ostart->GetName(), 
+                        eth_ostart->GetIP(), 
+                        oend->GetName(), 
+                        eth_oend->GetIP());
                     LogAndWrite(f, msg.ToStdString());
                     warncount++;
                 }
             }
-            else if (ostart->GetCommPort() + oend->GetCommPort() != "")
+            else if (ser_ostart != nullptr && ser_oend != nullptr && ser_ostart->GetPort() + ser_oend->GetPort() != "")
             {
-                if (ostart->GetCommPort() != oend->GetCommPort())
+                if (ser_ostart->GetPort() != ser_oend->GetPort())
                 {
-                    wxString msg = wxString::Format("    WARN: Model '%s' starts on controller '%s' with CommPort '%s' but ends on a controller '%s' with CommPort '%s'.", it->first, ostart->GetDescription(), ostart->GetCommPort(), oend->GetDescription(), oend->GetCommPort());
+                    wxString msg = wxString::Format("    WARN: Model '%s' starts on controller '%s' with CommPort '%s' but ends on a controller '%s' with CommPort '%s'.", 
+                        it->first, 
+                        ostart->GetName(), 
+                        ser_ostart->GetPort(), 
+                        ser_oend->GetName(), 
+                        ser_oend->GetPort());
                     LogAndWrite(f, msg.ToStdString());
                     warncount++;
                 }
