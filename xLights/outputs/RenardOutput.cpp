@@ -94,8 +94,8 @@ void RenardOutput::AllOff()
 #pragma endregion Data Setting
 
 #pragma region Getters and Setters
-std::string RenardOutput::GetSetupHelp() const
-{
-    return "Renard controllers connected to a serial port or \na USB dongle with virtual comm port. 2 stop bits\nare set automatically.\nMax of 42 channels at 9600 baud.\nMax of 260 channels at 57600 baud.";
-}
+//std::string RenardOutput::GetSetupHelp() const {
+
+//    return "Renard controllers connected to a serial port or \na USB dongle with virtual comm port. 2 stop bits\nare set automatically.\nMax of 42 channels at 9600 baud.\nMax of 260 channels at 57600 baud.";
+//}
 #pragma endregion Getters and Setters

@@ -40,7 +40,7 @@ public:
     virtual std::string GetPingDescription() const override;
     virtual int GetMaxChannels() const override { return 0; }
     virtual std::string GetBaudRateString() const override;
-    virtual std::string GetSetupHelp() const = 0;
+    //virtual std::string GetSetupHelp() const = 0;
     virtual bool AllowsBaudRateSetting() const { return true; }
     virtual size_t TxNonEmptyCount() const override;
     virtual bool TxEmpty() const override;

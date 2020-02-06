@@ -91,8 +91,8 @@ void OpenDMXOutput::AllOff()
 #pragma endregion Data Setting
 
 #pragma region Getters and Setters
-std::string OpenDMXOutput::GetSetupHelp() const
-{
-    return "DMX controllers (or LOR or D-Light controllers in DMX mode)\nattached to an LOR dongle, D-Light dongle, HolidayCoro\nprogramming cable, or Entec Open DMX dongle";
-}
+//std::string OpenDMXOutput::GetSetupHelp() const {
+
+//    return "DMX controllers (or LOR or D-Light controllers in DMX mode)\nattached to an LOR dongle, D-Light dongle, HolidayCoro\nprogramming cable, or Entec Open DMX dongle";
+//}
 #pragma endregion Getters and Setters

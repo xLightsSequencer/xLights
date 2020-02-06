@@ -1,7 +1,7 @@
-#ifndef DDPOUTPUT_H
-#define DDPOUTPUT_H
+#pragma once
 
 #include "IPOutput.h"
+
 #include <wx/sckaddr.h>
 #include <wx/socket.h>
 
@@ -26,7 +26,7 @@
 #define DDP_ID_DISPLAY       1
 #define DDP_ID_CONFIG      250
 #define DDP_ID_STATUS      251
-#pragma endregion DDP Constants
+#pragma endregion 
 
 class DDPOutput : public IPOutput
 {
@@ -35,14 +35,20 @@ class DDPOutput : public IPOutput
     uint8_t _sequenceNum;
     wxIPV4address _remoteAddr;
     wxDatagramSocket *_datagram;
+    uint8_t* _fulldata;
     int _channelsPerPacket;
     bool _keepChannelNumbers;
-    uint8_t* _fulldata;
-    bool _autoStartChannels = false;
+
+    // deprecated variables only kept for conversion
+    // bool _autoStartChannels = false;
 
     // These are used for DDP sync
     static bool __initialised;
-    #pragma  endregion Member Variables
+    #pragma  endregion
+
+    #pragma region Private Functions
+    void OpenDatagram();
+    #pragma  endregion
 
 public:
 
@@ -50,53 +56,46 @@ public:
     DDPOutput(wxXmlNode* node);
     DDPOutput();
     virtual ~DDPOutput() override;
-    #pragma endregion  Constructors and Destructors
+    virtual wxXmlNode* Save() override;
+    #pragma endregion
 
     #pragma region Static Functions
     static void SendSync();
-    #pragma endregion  Static Functions
-
-    virtual wxXmlNode* Save() override;
+    #pragma endregion 
 
     #pragma region Getters and Setters
-    int GetChannelsPerPacket() const { return _channelsPerPacket; }
-    void SetChannelsPerPacket(int cpp) { _channelsPerPacket = cpp; _dirty = true; }
-    virtual std::string GetType() const override { return OUTPUT_DDP; }
-    virtual std::string GetLongDescription() const override;
-    virtual int GetMaxChannels() const override { return 1000000; }
-    virtual bool IsValidChannelCount(int32_t channelCount) const override { return channelCount > 0 && channelCount <= GetMaxChannels(); }
-    virtual bool IsKeepChannelNumbers() const { return _keepChannelNumbers; }
-    virtual void SetKeepChannelNumber(bool b = true) { if (_keepChannelNumbers != b) { _keepChannelNumbers = b; _dirty = true; } }
-    virtual bool IsLookedUpByControllerName() const override;
-    virtual bool IsAutoLayoutModels() const override { return _autoStartChannels; }
-    virtual void SetAutoStartChannels(bool autoMode) { _autoStartChannels = autoMode; }
-
     int GetId() const { return _universe; }
     void SetId(int id) { _universe = id; _dirty = true; }
-    #pragma endregion Getters and Setters
+
+    int GetChannelsPerPacket() const { return _channelsPerPacket; }
+    void SetChannelsPerPacket(int cpp) { _channelsPerPacket = cpp; _dirty = true; }
+
+    virtual bool IsKeepChannelNumbers() const { return _keepChannelNumbers; }
+    virtual void SetKeepChannelNumber(bool b = true) { if (_keepChannelNumbers != b) { _keepChannelNumbers = b; _dirty = true; } }
+
+    virtual std::string GetType() const override { return OUTPUT_DDP; }
+
+    virtual std::string GetLongDescription() const override;
+
+    virtual int GetMaxChannels() const override { return 1000000; }
+    virtual bool IsValidChannelCount(int32_t channelCount) const override { return channelCount > 0 && channelCount <= GetMaxChannels(); }
+
+    //virtual bool IsAutoLayoutModels() const override { return _autoStartChannels; }
+    #pragma endregion
 
     #pragma region Start and Stop
     virtual bool Open() override;
     virtual void Close() override;
-    void OpenDatagram();
-    #pragma endregion Start and Stop
+    #pragma endregion
 
     #pragma region Frame Handling
     virtual void StartFrame(long msec) override;
     virtual void EndFrame(int suppressFrames) override;
-    #pragma endregion Frame Handling
+    #pragma endregion
 
     #pragma region Data Setting
     virtual void SetOneChannel(int32_t channel, unsigned char data) override;
     virtual void SetManyChannels(int32_t channel, unsigned char* data, size_t size) override;
     virtual void AllOff() override;
-    #pragma endregion Data Setting
-
-//    #pragma region UI
-//#ifndef EXCLUDENETWORKUI
-//    virtual Output* Configure(wxWindow* parent, OutputManager* outputManager, ModelManager* modelManager) override;
-//#endif
-//    #pragma endregion UI
+    #pragma endregion
 };
-
- #endif

@@ -46,7 +46,7 @@ public:
 
     #pragma region Getters and Setters
     virtual std::string GetType() const override { return OUTPUT_LOR_OPT; }
-    virtual std::string GetSetupHelp() const override;
+    //virtual std::string GetSetupHelp() const override;
     LorControllers& GetControllers() { return _controllers; }
     void CalcTotalChannels();
     #pragma endregion Getters and Setters

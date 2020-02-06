@@ -92,8 +92,8 @@ void OpenPixelNetOutput::AllOff()
 #pragma endregion Data Setting
 
 #pragma region Getters and Setters
-std::string OpenPixelNetOutput::GetSetupHelp() const
-{
-    return "Pixelnet controllers attached to a generic USB\nto RS485 dongle with FTDI chipset and virtual comm port.";
-}
+//std::string OpenPixelNetOutput::GetSetupHelp() const {
+
+//    return "Pixelnet controllers attached to a generic USB\nto RS485 dongle with FTDI chipset and virtual comm port.";
+//}
 #pragma endregion Getters and Setters

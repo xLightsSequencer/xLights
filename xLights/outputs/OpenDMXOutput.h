@@ -33,7 +33,7 @@ public:
     virtual std::string GetType() const override { return OUTPUT_OPENDMX; }
     virtual int GetMaxChannels() const override { return OPENDMX_MAX_CHANNELS; }
     virtual bool IsValidChannelCount(int32_t channelCount) const override { return channelCount > 0 && channelCount <= OPENDMX_MAX_CHANNELS; }
-    virtual std::string GetSetupHelp() const override;
+    //virtual std::string GetSetupHelp() const override;
     virtual bool AllowsBaudRateSetting() const override { return false; }
     #pragma endregion Getters and Setters
 

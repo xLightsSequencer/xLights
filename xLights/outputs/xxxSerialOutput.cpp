@@ -195,8 +195,8 @@ void xxxSerialOutput::AllOff()
 #pragma endregion Data Setting
 
 #pragma region Getters and Setters
-std::string xxxSerialOutput::GetSetupHelp() const
-{
-    return "xxx controllers attached to any xxx dongle.\nMax of 8 channels at 9600 baud.\nMax of 48 channels at 57600 baud.\nMax of 96 channels at 115200 baud.";
-}
+//std::string xxxSerialOutput::GetSetupHelp() const {
+
+//    return "xxx controllers attached to any xxx dongle.\nMax of 8 channels at 9600 baud.\nMax of 48 channels at 57600 baud.\nMax of 96 channels at 115200 baud.";
+//}
 #pragma endregion Getters and Setters

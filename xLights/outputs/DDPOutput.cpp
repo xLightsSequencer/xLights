@@ -1,30 +1,66 @@
 // http://www.3waylabs.com/ddp/
 
-#include "DDPOutput.h"
-
 #include <wx/xml/xml.h>
-#include <log4cpp/Category.hh>
+
+#include "DDPOutput.h"
 #include "OutputManager.h"
 #include "../UtilFunctions.h"
 
+#include <log4cpp/Category.hh>
+
 #pragma region Static Variables
 bool DDPOutput::__initialised = false;
-#pragma endregion Static Variables
+#pragma endregion
+
+#pragma region Private Functions
+void DDPOutput::OpenDatagram() {
+
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    if (_datagram != nullptr) return;
+
+    wxIPV4address localaddr;
+    if (IPOutput::__localIP == "") {
+        localaddr.AnyAddress();
+    }
+    else {
+        localaddr.Hostname(IPOutput::__localIP);
+    }
+
+    _datagram = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);
+    if (_datagram == nullptr) {
+        logger_base.error("Error initialising DDP datagram for %s. %s", (const char*)_ip.c_str(), (const char*)localaddr.IPAddress().c_str());
+        _ok = false;
+    }
+    else if (!_datagram->IsOk()) {
+        logger_base.error("Error initialising DDP datagram for %s. %s OK: FALSE", (const char*)_ip.c_str(), (const char*)localaddr.IPAddress().c_str());
+        delete _datagram;
+        _datagram = nullptr;
+        _ok = false;
+    }
+    else if (_datagram->Error() != wxSOCKET_NOERROR) {
+        logger_base.error("Error creating DDP datagram => %d : %s. %s", _datagram->LastError(), (const char*)DecodeIPError(_datagram->LastError()).c_str(), (const char*)localaddr.IPAddress().c_str());
+        delete _datagram;
+        _datagram = nullptr;
+        _ok = false;
+    }
+}
+#pragma endregion
 
 #pragma region Constructors and Destructors
-DDPOutput::DDPOutput(wxXmlNode* node) : IPOutput(node)
-{
+DDPOutput::DDPOutput(wxXmlNode* node) : IPOutput(node) {
+
     _fulldata = nullptr;
     _channelsPerPacket = wxAtoi(node->GetAttribute("ChannelsPerPacket"));
     _keepChannelNumbers = wxAtoi(node->GetAttribute("KeepChannelNumbers"));
-    _autoStartChannels = (node->GetAttribute("AutoStartChannels", "false") == "true");
+//    _autoStartChannels = (node->GetAttribute("AutoStartChannels", "false") == "true");
     _sequenceNum = 0;
     _datagram = nullptr;
     memset(_data, 0, sizeof(_data));
 }
 
-DDPOutput::DDPOutput() : IPOutput()
-{
+DDPOutput::DDPOutput() : IPOutput() {
+
     _universe = 64001;
     _fulldata = nullptr;
     _channelsPerPacket = 1440;
@@ -35,23 +71,34 @@ DDPOutput::DDPOutput() : IPOutput()
     memset(_data, 0, sizeof(_data));
 }
 
-DDPOutput::~DDPOutput()
-{
+DDPOutput::~DDPOutput() {
+
     if (_datagram != nullptr) delete _datagram;
     if (_fulldata != nullptr) delete _fulldata;
 }
-#pragma endregion Constructors and Destructors
+
+wxXmlNode* DDPOutput::Save() {
+
+    wxXmlNode* node = new wxXmlNode(wxXML_ELEMENT_NODE, "network");
+
+    node->AddAttribute("ChannelsPerPacket", wxString::Format("%i", _channelsPerPacket));
+    node->AddAttribute("KeepChannelNumbers", _keepChannelNumbers ? "1" : "0");
+    //node->AddAttribute("AutoStartChannels", _autoStartChannels ? "true" : "false");
+    IPOutput::Save(node);
+
+    return node;
+}
+#pragma endregion
 
 #pragma region Static Functions
-void DDPOutput::SendSync()
-{
+void DDPOutput::SendSync() {
+
+    log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     static uint8_t syncdata[DDP_SYNCPACKET_LEN];
     static wxIPV4address syncremoteAddr;
     static wxDatagramSocket *syncdatagram = nullptr;
 
-    if (!__initialised)
-    {
-        log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    if (!__initialised) {
         logger_base.debug("Initialising DDP Sync.");
 
         __initialised = true;
@@ -61,34 +108,28 @@ void DDPOutput::SendSync()
         syncdata[3] = DDP_ID_DISPLAY;
 
         wxIPV4address localaddr;
-        if (IPOutput::__localIP == "")
-        {
+        if (IPOutput::__localIP == "") {
             localaddr.AnyAddress();
         }
-        else
-        {
+        else {
             localaddr.Hostname(IPOutput::__localIP);
         }
 
-        if (syncdatagram != nullptr)
-        {
+        if (syncdatagram != nullptr) {
             delete syncdatagram;
         }
 
         syncdatagram = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT | wxSOCKET_BROADCAST);
-        if (syncdatagram == nullptr)
-        {
+        if (syncdatagram == nullptr) {
             logger_base.error("Error initialising DDP sync datagram. %s", (const char *)localaddr.IPAddress().c_str());
             return;
-        } else if (!syncdatagram->IsOk())
-        {
+        } else if (!syncdatagram->IsOk()) {
             logger_base.error("Error initialising DDP sync datagram ... is network connected? OK: FALSE %s", (const char *)localaddr.IPAddress().c_str());
             delete syncdatagram;
             syncdatagram = nullptr;
             return;
         }
-        else if (syncdatagram->Error() != wxSOCKET_NOERROR)
-        {
+        else if (syncdatagram->Error() != wxSOCKET_NOERROR) {
             logger_base.error("Error creating DDP sync datagram => %d : %s. %s", syncdatagram->LastError(), (const char *)DecodeIPError(syncdatagram->LastError()).c_str(), (const char *)localaddr.IPAddress().c_str());
             delete syncdatagram;
             syncdatagram = nullptr;
@@ -108,52 +149,23 @@ void DDPOutput::SendSync()
         syncdatagram->SendTo(syncremoteAddr, syncdata, DDP_SYNCPACKET_LEN);
     }
 }
-#pragma endregion Static Functions
+#pragma endregion
 
-wxXmlNode* DDPOutput::Save()
-{
-    wxXmlNode* node = new wxXmlNode(wxXML_ELEMENT_NODE, "network");
-    node->AddAttribute("ChannelsPerPacket", wxString::Format("%i", _channelsPerPacket));
-    node->AddAttribute("KeepChannelNumbers", _keepChannelNumbers ? "1" : "0");
-    node->AddAttribute("AutoStartChannels", _autoStartChannels ? "true" : "false");
-    IPOutput::Save(node);
+#pragma region Getters and Setters
+std::string DDPOutput::GetLongDescription() const {
+    std::string res = "";
 
-    return node;
+    if (!_enabled) res += "INACTIVE ";
+    res += "DDP {" + GetUniverseString() + "} ";
+    res += "(" + std::string(wxString::Format(wxT("%i"), GetStartChannel())) + "-" + std::string(wxString::Format(wxT("%i"), GetEndChannel())) + ") ";
+
+    return res;
 }
+#pragma endregion
 
 #pragma region Start and Stop
-void DDPOutput::OpenDatagram()
-{
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+bool DDPOutput::Open() {
 
-    if (_datagram != nullptr) return;
-
-    wxIPV4address localaddr;
-    if (IPOutput::__localIP == "") {
-        localaddr.AnyAddress();
-    } else {
-        localaddr.Hostname(IPOutput::__localIP);
-    }
-
-    _datagram = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);
-    if (_datagram == nullptr) {
-        logger_base.error("Error initialising DDP datagram for %s. %s", (const char *)_ip.c_str(), (const char *)localaddr.IPAddress().c_str());
-        _ok = false;
-    } else if (!_datagram->IsOk()) {
-        logger_base.error("Error initialising DDP datagram for %s. %s OK: FALSE", (const char *)_ip.c_str(), (const char *)localaddr.IPAddress().c_str());
-        delete _datagram;
-        _datagram = nullptr;
-        _ok = false;
-    } else if (_datagram->Error() != wxSOCKET_NOERROR) {
-        logger_base.error("Error creating DDP datagram => %d : %s. %s", _datagram->LastError(), (const char *)DecodeIPError(_datagram->LastError()).c_str(), (const char *)localaddr.IPAddress().c_str());
-        delete _datagram;
-        _datagram = nullptr;
-        _ok = false;
-    }
-}
-
-bool DDPOutput::Open()
-{
     log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     if (!_enabled) return true;
@@ -188,8 +200,8 @@ bool DDPOutput::Open()
     return _ok;
 }
 
-void DDPOutput::Close()
-{
+void DDPOutput::Close() {
+
     if (_datagram != nullptr) {
         delete _datagram;
         _datagram = nullptr;
@@ -200,11 +212,11 @@ void DDPOutput::Close()
     }
     IPOutput::Close();
 }
-#pragma endregion Start and Stop
+#pragma endregion
 
 #pragma region Frame Handling
-void DDPOutput::StartFrame(long msec)
-{
+void DDPOutput::StartFrame(long msec) {
+
     log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     if (!_enabled) return;
@@ -220,8 +232,8 @@ void DDPOutput::StartFrame(long msec)
     _timer_msec = msec;
 }
 
-void DDPOutput::EndFrame(int suppressFrames)
-{
+void DDPOutput::EndFrame(int suppressFrames) {
+
     if (!_enabled || _suspend) return;
     if (_fppProxyOutput) {
         _fppProxyOutput->EndFrame(suppressFrames);
@@ -229,29 +241,23 @@ void DDPOutput::EndFrame(int suppressFrames)
     }
     if (_datagram == nullptr) return;
 
-    if (_changed || NeedToOutput(suppressFrames))
-    {
+    if (_changed || NeedToOutput(suppressFrames)) {
         int32_t index = 0;
         int32_t chan = _keepChannelNumbers ? (_startChannel - 1) : 0;
         int32_t tosend = _channels;
 
-        while (tosend > 0)
-        {
+        while (tosend > 0) {
             int32_t thissend = (tosend < _channelsPerPacket) ? tosend : _channelsPerPacket;
 
-            if (__initialised)
-            {
+            if (__initialised) {
                 // sync packet will boadcast later
                 _data[0] = DDP_FLAGS1_VER1;
             }
-            else
-            {
-                if (tosend == thissend)
-                {
+            else {
+                if (tosend == thissend) {
                     _data[0] = DDP_FLAGS1_VER1 | DDP_FLAGS1_PUSH;
                 }
-                else
-                {
+                else {
                     _data[0] = DDP_FLAGS1_VER1;
                 }
             }
@@ -280,11 +286,11 @@ void DDPOutput::EndFrame(int suppressFrames)
         SkipFrame();
     }
 }
-#pragma endregion Frame Handling
+#pragma endregion
 
 #pragma region Data Setting
-void DDPOutput::SetOneChannel(int32_t channel, unsigned char data)
-{
+void DDPOutput::SetOneChannel(int32_t channel, unsigned char data) {
+
     if (_fppProxyOutput) {
         _fppProxyOutput->SetOneChannel(channel, data);
         return;
@@ -297,8 +303,8 @@ void DDPOutput::SetOneChannel(int32_t channel, unsigned char data)
     }
 }
 
-void DDPOutput::SetManyChannels(int32_t channel, unsigned char data[], size_t size)
-{
+void DDPOutput::SetManyChannels(int32_t channel, unsigned char* data, size_t size) {
+
     if (_fppProxyOutput) {
         _fppProxyOutput->SetManyChannels(channel, data, size);
         return;
@@ -315,8 +321,8 @@ void DDPOutput::SetManyChannels(int32_t channel, unsigned char data[], size_t si
     }
 }
 
-void DDPOutput::AllOff()
-{
+void DDPOutput::AllOff() {
+
     if (_fppProxyOutput) {
         _fppProxyOutput->AllOff();
         return;
@@ -325,21 +331,4 @@ void DDPOutput::AllOff()
     memset(_fulldata, 0x00, _channels);
     _changed = true;
 }
-#pragma endregion Data Setting
-
-#pragma region Getters and Setters
-bool DDPOutput::IsLookedUpByControllerName() const {
-    return GetDescription() != "";
-}
-
-std::string DDPOutput::GetLongDescription() const
-{
-    std::string res = "";
-
-    if (!_enabled) res += "INACTIVE ";
-    res += "DDP {" + GetUniverseString() + "} ";
-    res += "(" + std::string(wxString::Format(wxT("%i"), GetStartChannel())) + "-" + std::string(wxString::Format(wxT("%i"), GetEndChannel())) + ") ";
-
-    return res;
-}
-#pragma endregion Getters and Setters
+#pragma endregion

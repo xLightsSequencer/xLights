@@ -82,8 +82,8 @@ void PixelNetOutput::AllOff()
 #pragma endregion Data Setting
 
 #pragma region Getters and Setters
-std::string PixelNetOutput::GetSetupHelp() const
-{
-    return "Pixelnet controllers attached to a USB Lynx Pixelnet\ndongle";
-}
+//std::string PixelNetOutput::GetSetupHelp() const {
+
+//    return "Pixelnet controllers attached to a USB Lynx Pixelnet\ndongle";
+//}
 #pragma endregion Getters and Setters

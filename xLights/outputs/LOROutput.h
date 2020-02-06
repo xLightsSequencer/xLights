@@ -35,7 +35,7 @@ public:
     virtual int32_t GetMaxChannels() const override { return LOR_MAX_CHANNELS; }
     static int GetMaxLORChannels() { return LOR_MAX_CHANNELS; }
     virtual bool IsValidChannelCount(int32_t channelCount) const override { return channelCount > 0 && channelCount <= LOR_MAX_CHANNELS; }
-    virtual std::string GetSetupHelp() const override;
+    //virtual std::string GetSetupHelp() const override;
     #pragma endregion Getters and Setters
 
     #pragma region Start and Stop
