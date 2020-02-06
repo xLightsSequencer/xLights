@@ -56,7 +56,7 @@ public:
 #pragma region Virtual Functions
     virtual void SetId(int id) override;
 
-    bool IsManaged() const override { return false; }
+    virtual bool IsManaged() const override { return false; }
 
     virtual std::string GetLongDescription() const override;
 
