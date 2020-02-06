@@ -527,6 +527,7 @@ void EffectsGrid::OnGridPopup(wxCommandEvent& event)
         Effect* phrase_effect = mSelectedEffect;
         EffectLayer* word_layer;
         TimingElement* element = dynamic_cast<TimingElement*>(phrase_effect->GetParentEffectLayer()->GetParentElement());
+        bool found_locked = false;
         element->SetFixedTiming(0);
         if( element->GetEffectLayerCount() == 1 )
         {
@@ -536,14 +537,31 @@ void EffectsGrid::OnGridPopup(wxCommandEvent& event)
         {
             word_layer = element->GetEffectLayer(1);
         }
-        mSequenceElements->get_undo_mgr().CreateUndoStep();
-        word_layer->UnSelectAllEffects();
-        word_layer->SelectEffectsInTimeRange(phrase_effect->GetStartTimeMS(), phrase_effect->GetEndTimeMS());
-        word_layer->DeleteSelectedEffects(mSequenceElements->get_undo_mgr());
-        mSequenceElements->BreakdownPhrase(word_layer, phrase_effect->GetStartTimeMS(), phrase_effect->GetEndTimeMS(), phrase_effect->GetEffectName());
-        element->SetCollapsed(false);
-        wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
-        wxPostEvent(mParent, eventRowHeaderChanged);
+
+        for (auto&& e : word_layer->GetAllEffectsByTime(phrase_effect->GetStartTimeMS(), phrase_effect->GetEndTimeMS()))
+        {
+            if (e->IsLocked())
+            {
+                found_locked = true;
+                break;
+            }
+        }
+
+        if (found_locked)
+        {
+            wxMessageBox("Locked words in the way - Can not break down phrase", "Error", wxOK);
+        }
+        else
+        {
+            mSequenceElements->get_undo_mgr().CreateUndoStep();
+            word_layer->UnSelectAllEffects();
+            word_layer->SelectEffectsInTimeRange(phrase_effect->GetStartTimeMS(), phrase_effect->GetEndTimeMS());
+            word_layer->DeleteSelectedEffects(mSequenceElements->get_undo_mgr());
+            mSequenceElements->BreakdownPhrase(word_layer, phrase_effect->GetStartTimeMS(), phrase_effect->GetEndTimeMS(), phrase_effect->GetEffectName());
+            element->SetCollapsed(false);
+            wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
+            wxPostEvent(mParent, eventRowHeaderChanged);
+        }
     }
     else if (id == ID_GRID_MNU_HALVETIMINGS)
     {
@@ -573,6 +591,8 @@ void EffectsGrid::OnGridPopup(wxCommandEvent& event)
         Effect* word_effect = mSelectedEffect;
         EffectLayer* phoneme_layer;
         Element* element = word_effect->GetParentEffectLayer()->GetParentElement();
+        bool found_locked = false;
+
         if( element->GetEffectLayerCount() < 3 )
         {
             phoneme_layer = element->AddEffectLayer();
@@ -581,14 +601,31 @@ void EffectsGrid::OnGridPopup(wxCommandEvent& event)
         {
             phoneme_layer = element->GetEffectLayer(2);
         }
-        mSequenceElements->get_undo_mgr().CreateUndoStep();
-        phoneme_layer->UnSelectAllEffects();
-        phoneme_layer->SelectEffectsInTimeRange(word_effect->GetStartTimeMS(), word_effect->GetEndTimeMS());
-        phoneme_layer->DeleteSelectedEffects(mSequenceElements->get_undo_mgr());
-        mSequenceElements->BreakdownWord(phoneme_layer, word_effect->GetStartTimeMS(), word_effect->GetEndTimeMS(), word_effect->GetEffectName());
-        element->SetCollapsed(false);
-        wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
-        wxPostEvent(mParent, eventRowHeaderChanged);
+
+        for (auto&& e : phoneme_layer->GetAllEffectsByTime(word_effect->GetStartTimeMS(), word_effect->GetEndTimeMS()))
+        {
+            if (e->IsLocked())
+            {
+                found_locked = true;
+                break;
+            }
+        }
+
+        if (found_locked)
+        {
+            wxMessageBox("Locked phonemes in the way - Can not break down word", "Error", wxOK);
+        }
+        else
+        {
+            mSequenceElements->get_undo_mgr().CreateUndoStep();
+            phoneme_layer->UnSelectAllEffects();
+            phoneme_layer->SelectEffectsInTimeRange(word_effect->GetStartTimeMS(), word_effect->GetEndTimeMS());
+            phoneme_layer->DeleteSelectedEffects(mSequenceElements->get_undo_mgr());
+            mSequenceElements->BreakdownWord(phoneme_layer, word_effect->GetStartTimeMS(), word_effect->GetEndTimeMS(), word_effect->GetEffectName());
+            element->SetCollapsed(false);
+            wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
+            wxPostEvent(mParent, eventRowHeaderChanged);
+        }
     }
     else if(id == ID_GRID_MNU_BREAKDOWN_WORDS)
     {
@@ -596,6 +633,8 @@ void EffectsGrid::OnGridPopup(wxCommandEvent& event)
         Effect* word_effect = mSelectedEffect;
         EffectLayer* phoneme_layer;
         Element* element = word_effect->GetParentEffectLayer()->GetParentElement();
+        bool found_locked = false;
+
         if( element->GetEffectLayerCount() < 3 )
         {
             phoneme_layer = element->AddEffectLayer();
@@ -611,19 +650,40 @@ void EffectsGrid::OnGridPopup(wxCommandEvent& event)
         for (int x = 0; x < layer->GetEffectCount(); x++) {
             word_effect = layer->GetEffect(x);
             if (word_effect->GetSelected() != EFFECT_NOT_SELECTED) {
+                for (auto&& e : phoneme_layer->GetAllEffectsByTime(word_effect->GetStartTimeMS(), word_effect->GetEndTimeMS()))
+                {
+                    if (e->IsLocked())
+                    {
+                        found_locked = true;
+                        break;
+                    }
+                }
                 phoneme_layer->SelectEffectsInTimeRange(word_effect->GetStartTimeMS(), word_effect->GetEndTimeMS());
             }
-        }
-        phoneme_layer->DeleteSelectedEffects(mSequenceElements->get_undo_mgr());
-        for (int x = 0; x < layer->GetEffectCount(); x++) {
-            word_effect = layer->GetEffect(x);
-            if (word_effect->GetSelected() != EFFECT_NOT_SELECTED) {
-                mSequenceElements->BreakdownWord(phoneme_layer, word_effect->GetStartTimeMS(), word_effect->GetEndTimeMS(), word_effect->GetEffectName());
+            if (found_locked)
+            {
+                break;
             }
         }
-        element->SetCollapsed(false);
-        wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
-        wxPostEvent(mParent, eventRowHeaderChanged);
+
+        if (found_locked)
+        {
+            wxMessageBox("Locked phonemes in the way - Can not break down words", "Error", wxOK);
+            phoneme_layer->UnSelectAllEffects();
+        }
+        else
+        {
+            phoneme_layer->DeleteSelectedEffects(mSequenceElements->get_undo_mgr());
+            for (int x = 0; x < layer->GetEffectCount(); x++) {
+                word_effect = layer->GetEffect(x);
+                if (word_effect->GetSelected() != EFFECT_NOT_SELECTED) {
+                    mSequenceElements->BreakdownWord(phoneme_layer, word_effect->GetStartTimeMS(), word_effect->GetEndTimeMS(), word_effect->GetEffectName());
+                }
+            }
+            element->SetCollapsed(false);
+            wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
+            wxPostEvent(mParent, eventRowHeaderChanged);
+        }
     }
     Refresh();
 }

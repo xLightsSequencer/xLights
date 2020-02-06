@@ -1142,6 +1142,29 @@ void RowHeading::BreakdownTimingPhrases(TimingElement* element)
     {
         for( int k = element->GetEffectLayerCount()-1; k > 0; k--)
         {
+            EffectLayer* check_layer = element->GetEffectLayer(k);
+            bool found_locked = false;
+            for (auto&& e : check_layer->GetAllEffects())
+            {
+                if (e->IsLocked())
+                {
+                    found_locked = true;
+                    break;
+                }
+            }
+            if (found_locked)
+            {
+                wxMessageBox("Locked words/phonemes in the way - Can not break down phrases", "Error", wxOK);
+                return;
+            }
+        }
+    }
+
+    // No locked elements in the way now
+    if (element->GetEffectLayerCount() > 1)
+    {
+        for (int k = element->GetEffectLayerCount() - 1; k > 0; k--)
+        {
             element->RemoveEffectLayer(k);
         }
     }
@@ -1160,6 +1183,22 @@ void RowHeading::BreakdownTimingWords(TimingElement* element)
 {
     if( element->GetEffectLayerCount() > 2 )
     {
+        EffectLayer* phoneme_layer = element->GetEffectLayer(2);
+        bool found_locked = false;
+        for (auto&& e : phoneme_layer->GetAllEffects())
+        {
+            if (e->IsLocked())
+            {
+                found_locked = true;
+                break;
+            }
+        }
+        if (found_locked)
+        {
+            wxMessageBox("Locked phonemes in the way - Can not break down words", "Error", wxOK);
+            return;
+        }
+
         element->RemoveEffectLayer(2);
     }
     EffectLayer* word_layer = element->GetEffectLayer(1);
