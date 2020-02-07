@@ -21,7 +21,6 @@ public:
     #pragma region Getters and Setters
     virtual std::string GetType() const override { return OUTPUT_NULL; }
     virtual std::string GetLongDescription() const override;
-    virtual std::string GetPingDescription() const override { return ""; }
     virtual bool IsIpOutput() const override { return false; }
     virtual bool IsSerialOutput() const override { return false; }
     virtual bool IsOutputable() const override { return false; }

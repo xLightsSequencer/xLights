@@ -862,24 +862,26 @@ std::list<int> OutputManager::GetIPUniverses(const std::string& ip) const
     {
         if (ip == "" || (ip == it->GetIP() || ip == it->GetResolvedIP()))
         {
-            if (it->IsOutputCollection())
-            {
-                auto coll = it->GetOutputs();
-                for (auto it2 : coll)
-                {
-                    if (std::find(res.begin(), res.end(), it2->GetUniverse()) == res.end())
-                    {
-                        res.push_back(it2->GetUniverse());
-                    }
-                }
-            }
-            else
-            {
+            // this should not be possible
+            wxASSERT(!it->IsOutputCollection_CONVERT());
+            //if (it->IsOutputCollection())
+            //{
+            //    auto coll = it->GetOutputs();
+            //    for (auto it2 : coll)
+            //    {
+            //        if (std::find(res.begin(), res.end(), it2->GetUniverse()) == res.end())
+            //        {
+            //            res.push_back(it2->GetUniverse());
+            //        }
+            //    }
+            //}
+            //else
+            //{
                 if (std::find(res.begin(), res.end(), it->GetUniverse()) == res.end())
                 {
                     res.push_back(it->GetUniverse());
                 }
-            }
+            //}
         }
     }
 
@@ -1031,6 +1033,8 @@ void OutputManager::DeleteAllControllers()
 std::string OutputManager::GetFirstUnusedCommPort() const
 {
     auto ports = SerialOutput::GetAvailableSerialPorts();
+
+    if (ports.size() == 1 && ports.front() == "(no available ports)") return "NotConnected";
 
     for (const auto& it : ports)
     {
@@ -1288,7 +1292,8 @@ void OutputManager::SetManyChannels(int32_t channel, unsigned char* data, size_t
 
     while (left > 0 && o != nullptr)
     {
-        size_t mx = (o->GetChannels() * o->GetUniverses()) - stch + 1;
+        wxASSERT(!o->IsOutputCollection_CONVERT());
+        size_t mx = o->GetChannels() - stch + 1;
         size_t send = std::min(left, mx);
         if (o->IsEnabled())
         {

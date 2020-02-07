@@ -1,66 +1,43 @@
 #include "LorControllers.h"
 
-LorControllers::LorControllers()
-{
-    //ctor
-    _changeCount = 0;
-    _lastSavedChangeCount = 0;
-}
+#include <numeric>
 
-LorControllers::LorControllers(wxXmlNode* node)
-{
+#pragma region Construtors and Destructors
+LorControllers::LorControllers(wxXmlNode* node) {
+
     wxXmlNode* ctrlr_node = node->GetChildren();
-    for(wxXmlNode* e=ctrlr_node->GetChildren(); e!=nullptr; e=e->GetNext() )
-    {
+    for (wxXmlNode* e = ctrlr_node->GetChildren(); e != nullptr; e = e->GetNext()) {
         _controllers.push_back(new LorController(e));
     }
-    _changeCount = 0;
-    _lastSavedChangeCount = 0;
+    _dirty = false;
 }
 
-LorControllers::~LorControllers()
-{
-    //dtor
-}
-
-void LorControllers::Save(wxXmlNode* node)
-{
-    for (const auto& it : _controllers)
-    {
+void LorControllers::Save(wxXmlNode* node) {
+    for (const auto& it : _controllers) {
         wxXmlNode* cntrl_node = new wxXmlNode(wxXML_ELEMENT_NODE, "controller");
         node->AddChild(cntrl_node);
         it->Save(cntrl_node);
     }
+    _dirty = false;
+}
+#pragma endregion
+
+#pragma region Getters and Setters
+int LorControllers::GetTotalChannels() const
+{
+    return std::accumulate(begin(_controllers), end(_controllers), 0, [](uint32_t accumulator, auto const c) { return accumulator + c->GetTotalNumChannels(); });
 }
 
 bool LorControllers::IsDirty() const
 {
-    bool res = _lastSavedChangeCount != _changeCount;
+    if (_dirty) return true;
 
-    for (const auto& it : _controllers)
-    {
-        res = res || it->IsDirty();
-    }
-
-    return res;
-}
-
-int LorControllers::GetTotalChannels() const
-{
-    int res = 0;
-    for (const auto& it : _controllers)
-    {
-        res += it->GetTotalNumChannels();
-    }
-    return res;
+    return std::any_of(begin(_controllers), end(_controllers), [](auto c) { return c->IsDirty(); });
 }
 
 void LorControllers::ClearDirty()
 {
-    _lastSavedChangeCount = _changeCount;
-
-    for (const auto& it : _controllers)
-    {
-        it->ClearDirty();
-    }
+    _dirty = false;
+    std::for_each(begin(_controllers), end(_controllers), [](auto c) { c->ClearDirty(); });
 }
+#pragma endregion

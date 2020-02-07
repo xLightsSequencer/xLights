@@ -92,7 +92,7 @@ Controller::Controller(OutputManager* om, wxXmlNode* node, const std::string& sh
     _name = node->GetAttribute("Name", om->UniqueName(node->GetName() + "_"));
     _description = node->GetAttribute("Description", "");
     _autoSize = node->GetAttribute("AutoSize", "0") == "1";
-    _autoStartChannels = node->GetAttribute("AutoStartChannels", "0") == "1";
+    //_autoStartChannels = node->GetAttribute("AutoStartChannels", "0") == "1";
     _active = node->GetAttribute("Active", "1") == "1";
     _vendor = node->GetAttribute("Vendor");
     _model = node->GetAttribute("Model");
@@ -132,7 +132,7 @@ wxXmlNode* Controller::Save() {
     node->AddAttribute("Model", GetModel());
     node->AddAttribute("Firmware", GetFirmwareVersion());
     if (_autoSize) node->AddAttribute("AutoSize", "1");
-    if (_autoStartChannels) node->AddAttribute("AutoStartChannels", "1");
+    //if (_autoStartChannels) node->AddAttribute("AutoStartChannels", "1");
     node->AddAttribute("Active", _active ? "1" : "0");
     node->AddAttribute("SuppressDuplicates", _suppressDuplicateFrames ? "1" : "0");
     for (const auto& it : _outputs) {
@@ -309,7 +309,7 @@ void Controller::Convert(wxXmlNode* node, std::string showDir) {
     if (_outputs.size() == 1) {
         _suppressDuplicateFrames = _outputs.front()->IsSuppressDuplicateFrames();
         _autoSize = _outputs.front()->IsAutoSize();
-        _autoStartChannels = _outputs.front()->IsAutoLayoutModels();
+        //_autoStartChannels = _outputs.front()->IsAutoLayoutModels();
     }
 
     auto const c = node->GetAttribute("Controller");

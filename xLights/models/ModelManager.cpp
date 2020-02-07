@@ -34,6 +34,7 @@
 #include "../xLightsMain.h"
 #include "UtilFunctions.h"
 #include "outputs/Output.h"
+#include "outputs/Controller.h"
 
 #include <log4cpp/Category.hh>
 
@@ -376,9 +377,9 @@ void ModelManager::DisplayStartChannelCalcWarning() const
 {
     static std::string lastwarn = "";
     std::string msg = "Could not calculate start channels for models:\n";
-    for (auto it = models.begin(); it != models.end(); ++it) {
-        if (it->second->GetDisplayAs() != "ModelGroup" && !it->second->CouldComputeStartChannel) {
-            msg += it->second->name + " : " + it->second->ModelStartChannel + "\n";
+    for (const auto& it : models) {
+        if (it.second->GetDisplayAs() != "ModelGroup" && !it.second->CouldComputeStartChannel) {
+            msg += it.second->name + " : " + it.second->ModelStartChannel + "\n";
         }
     }
 
@@ -492,14 +493,12 @@ bool ModelManager::ReworkStartChannel() const
     bool  outputsChanged = false;
 
     OutputManager* outputManager = xlights->GetOutputManager();
-    for (const auto& it : outputManager->GetOutputs())
+    for (const auto& it : outputManager->GetControllers())
     {
-        if (it->IsAutoLayoutModels())
-        {
             std::map<std::string, std::list<Model*>> cmodels;
             for (auto itm : models)
             {
-                if (itm.second->GetControllerName() == it->GetDescription() &&
+                if (itm.second->GetControllerName() == it->GetName() &&
                     itm.second->GetControllerPort() != 0 &&
                     itm.second->GetControllerProtocol() != ""
                     ) // we dont muck with unassigned models or no protocol models
@@ -525,7 +524,7 @@ bool ModelManager::ReworkStartChannel() const
             // first of all fix any weirdness ...
             for (auto itcc = cmodels.begin(); itcc != cmodels.end(); ++itcc)
             {
-                logger_zcpp.debug("Fixing weirdness on %s - %s", (const char*)it->GetDescription().c_str(), (const char*)itcc->first.c_str());
+                logger_zcpp.debug("Fixing weirdness on %s - %s", (const char*)it->GetName().c_str(), (const char*)itcc->first.c_str());
                 logger_zcpp.debug("    Models at start:");
 
                 // build a list of model names on the port
@@ -664,7 +663,7 @@ bool ModelManager::ReworkStartChannel() const
                             ((itm->GetModelChain() == "Beginning" || itm->GetModelChain() == "") && last == ""))
                         {
                             auto osc = itm->ModelStartChannel;
-                            sc = "!" + it->GetDescription() + ":" + wxString::Format("%d", ch);
+                            sc = "!" + it->GetName() + ":" + wxString::Format("%d", ch);
                             itm->SetStartChannel(sc);
                             last = itm->GetName();
                             ch += itm->GetChanCount();
@@ -676,7 +675,7 @@ bool ModelManager::ReworkStartChannel() const
                         else
                         {
                             auto osc = itm->ModelStartChannel;
-                            sc = "!" + it->GetDescription() + ":" + wxString::Format("%d", chstart);
+                            sc = "!" + it->GetName() + ":" + wxString::Format("%d", chstart);
                             itm->SetStartChannel(sc);
                             last = itm->GetName();
                             ch = std::max(ch, (int32_t)(chstart + itm->GetChanCount()));
@@ -694,7 +693,7 @@ bool ModelManager::ReworkStartChannel() const
                                 itm->GetModelChain() == ">" + last))
                         {
                             auto osc = itm->ModelStartChannel;
-                            sc = "!" + it->GetDescription() + ":" + wxString::Format("%d", ch);
+                            sc = "!" + it->GetName() + ":" + wxString::Format("%d", ch);
                             itm->SetStartChannel(sc);
                             last = itm->GetName();
                             ch += itm->GetChanCount();
@@ -708,7 +707,7 @@ bool ModelManager::ReworkStartChannel() const
                             // when not chained use dmx channel
                             uint32_t msc = chstart + itm->GetControllerDMXChannel() - 1;
                             auto osc = itm->ModelStartChannel;
-                            sc = "!" + it->GetDescription() + ":" + wxString::Format("%d", msc);
+                            sc = "!" + it->GetName() + ":" + wxString::Format("%d", msc);
                             itm->SetStartChannel(sc);
                             last = itm->GetName();
                             ch = std::max(ch, (int32_t)msc + (int32_t)itm->GetChanCount());
@@ -732,16 +731,19 @@ bool ModelManager::ReworkStartChannel() const
                 if (it->GetChannels() != std::max((int32_t)1, (int32_t)ch - 1))
                 {
                     logger_zcpp.debug("    Resizing output to %d channels.", std::max((int32_t)1, (int32_t)ch - 1));
-                    it->AllOff();
-                    it->EndFrame(0);
-                    it->SetChannels(std::max((int32_t)1, (int32_t)ch - 1));
+                    for (auto& it2 : it->GetOutputs())
+                    {
+                        it2->AllOff();
+                        it2->EndFrame(0);
+                    }
+                    // we can only update the first output
+                    it->GetFirstOutput()->SetChannels(std::max((int32_t)1, (int32_t)ch - 1));
                     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ReworkStartChannel");
                     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "ReworkStartChannel");
                     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "ReworkStartChannel");
                     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_SAVE_NETWORKS, "ReworkStartChannel");
                 }
             }
-        }
     }
     return outputsChanged;
 }

@@ -90,12 +90,12 @@ public:
     #pragma endregion Static Functions
 
     #pragma region Getters and Setters
-    virtual std::list<Output*> GetOutputs() const { std::list<Output*> res; return res; }
+    virtual std::list<Output*> GetOutputs_CONVERT() const { std::list<Output*> res; return res; }
     virtual bool NeedsControllerConfig() const { return false; }
     bool IsDirty() const { return _dirty; }
     void ClearDirty() { _dirty = false; }
-    virtual bool IsLookedUpByControllerName() const { return false; }
-    virtual bool IsAutoLayoutModels() const { return false; }
+    //virtual bool IsLookedUpByControllerName() const { return false; }
+    //virtual bool IsAutoLayoutModels() const { return false; }
     int32_t GetStartChannel() const { return _startChannel; }
     virtual int32_t GetEndChannel() const { return _startChannel + _channels - 1; }
     int32_t GetActualEndChannel() const { return _startChannel + _channels - 1; }
@@ -115,7 +115,7 @@ public:
     void SetUniverse(int universe) { _universe = universe; _dirty = true; }
     virtual std::string GetUniverseString() const { return wxString::Format(wxT("%i"), GetUniverse()).ToStdString(); }
     virtual std::string GetBaudRateString() const { return wxString::Format(wxT("%i"), GetBaudRate()).ToStdString(); }
-    virtual int GetUniverses() const { return 1; }
+    virtual int GetUniverses_CONVERT() const { return 1; }
     int GetBaudRate() const;
     void SetBaudRate(int baudRate) { _baudRate = baudRate; _dirty = true; }
     void SetAutoSize(bool autosize) { _autoSize = autosize; _dirty = true; }
@@ -133,12 +133,11 @@ public:
     bool IsUsingFPPProxy() const { return _fppProxy != "";}
     virtual std::string GetType() const = 0;
     virtual std::string GetLongDescription() const = 0;
-    virtual std::string GetPingDescription() const = 0;
     virtual bool IsIpOutput() const = 0;
     virtual bool IsSerialOutput() const = 0;
     virtual bool IsOutputable() const { return true; }
-    virtual Output* GetActualOutput(int32_t startChannel) { return this; }
-    virtual bool IsOutputCollection() const { return false; }
+    virtual Output* GetActualOutput_CONVERT(int32_t startChannel) { return this; }
+    virtual bool IsOutputCollection_CONVERT() const { return false; }
     virtual int GetMaxChannels() const = 0;
     virtual bool IsValidChannelCount(int32_t channelCount) const = 0;
     virtual size_t TxNonEmptyCount() const { return 0; }

@@ -267,9 +267,9 @@ void xxxEthernetOutput::AllOff()
 #pragma endregion Data Setting
 
 #pragma region Getters and Setters
-bool xxxEthernetOutput::IsLookedUpByControllerName() const {
-    return GetDescription() != "";
-}
+//bool xxxEthernetOutput::IsLookedUpByControllerName() const {
+//    return GetDescription() != "";
+//}
 
 std::string xxxEthernetOutput::GetLongDescription() const
 {

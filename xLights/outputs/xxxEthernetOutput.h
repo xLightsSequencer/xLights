@@ -44,7 +44,7 @@ public:
     virtual int32_t GetMaxChannels() const override { return xxxETHERNET_MAX_CHANNELS; }
     static int GetMaxxxxChannels() { return xxxETHERNET_MAX_CHANNELS; }
     virtual bool IsValidChannelCount(int32_t channelCount) const override { return channelCount > 0 && channelCount <= xxxETHERNET_MAX_CHANNELS; }
-    virtual bool IsLookedUpByControllerName() const override;
+    //virtual bool IsLookedUpByControllerName() const override;
     int GetId() const { return _universe; }
     void SetId(int id) { _universe = id; _dirty = true; }
     virtual std::string GetLongDescription() const override;

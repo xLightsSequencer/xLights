@@ -88,10 +88,3 @@ void DMXOutput::AllOff() {
     _changed = true;
 }
 #pragma endregion
-
-#pragma region  Getters and Setters
-//std::string DMXOutput::GetSetupHelp() const {
-
-//    return "DMX controllers (or LOR or D-Light controllers in DMX mode)\nattached to an Entec DMX USB Pro, Lynx DMX dongle,\nDIYC RPM, DMXking.com, or DIY Blinky dongle.\n\nLast Channel should be 512 or less, unless you are using\na DIY Blinky dongle (in which case it can be up to 3036).";
-//}
-#pragma endregion 

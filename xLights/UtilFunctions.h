@@ -24,6 +24,8 @@ bool DeleteDirectory(std::string directory);
 bool IsIPValid(const std::string& ip);
 bool IsEmailValid(const std::string& email);
 bool IsIPValidOrHostname(const std::string &ip, bool iponly = false);
+std::string CleanupIP(const std::string& ip);
+std::string ResolveIP(const std::string& ip);
 bool IsVersionOlder(const std::string &compare, const std::string &version);
 std::string UnXmlSafe(const wxString &s);
 std::string XmlSafe(const std::string& s);

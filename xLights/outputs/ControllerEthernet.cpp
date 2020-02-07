@@ -105,10 +105,10 @@ bool ControllerEthernet::AllSameSize() const {
 #pragma region Getters and Setters
 void ControllerEthernet::SetIP(const std::string& ip) {
 
-    auto const& iip = IPOutput::CleanupIP(ip);
+    auto const& iip = CleanupIP(ip);
     if (_ip != iip) {
         _ip = iip;
-        _resolvedIp = IPOutput::ResolveIP(_ip);
+        _resolvedIp = ResolveIP(_ip);
         _dirty = true;
         _outputManager->UpdateUnmanaged();
 
@@ -277,11 +277,11 @@ void ControllerEthernet::Convert(wxXmlNode* node, std::string showDir) {
         }
     }
 
-    if (_outputs.back()->IsOutputCollection()) {
+    if (_outputs.back()->IsOutputCollection_CONVERT()) {
         auto o = _outputs.back();
         _outputs.pop_back();
 
-        for (auto& it : o->GetOutputs()) {
+        for (auto& it : o->GetOutputs_CONVERT()) {
             if (it->GetType() == OUTPUT_E131) {
                 _outputs.push_back(new E131Output(*dynamic_cast<E131Output*>(it)));
             }
@@ -396,6 +396,7 @@ bool ControllerEthernet::SupportsUpload() const {
 }
 #pragma endregion
 
+#pragma region UI
 #ifndef EXCLUDENETWORKUI
 void ControllerEthernet::AddProperties(wxPropertyGrid* propertyGrid, ModelManager* modelManager) {
 
@@ -780,3 +781,4 @@ void ControllerEthernet::ValidateProperties(OutputManager* om, wxPropertyGrid* p
     }
 }
 #endif
+#pragma endregion

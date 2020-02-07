@@ -136,11 +136,6 @@ std::string SerialOutput::GetLongDescription() const
 
     return res;
 }
-
-std::string SerialOutput::GetPingDescription() const
-{
-    return GetCommPort() + " " + GetDescription();
-}
 #pragma endregion Getters and Setters
 
 #pragma region Static Functions
@@ -366,20 +361,26 @@ bool SerialOutput::Open()
     return _ok;
 }
 
-void SerialOutput::Close()
-{
+void SerialOutput::Close() {
+
     log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    if (_serial != nullptr)
-    {
+
+    if (_serial != nullptr) {
         // throw away any pending data
         _serial->Purge();
 
+        // wait until the die time has passed
+        while (wxGetUTCTimeMillis() < _dieTime) {
+            wxMilliSleep(5);
+        }
+
+        // wait until pending data to send is sent
         int i = 0;
-        while( !TxEmpty() && (i < 200) )
-        {
+        while( !TxEmpty() && (i < 200) ) {
             wxMilliSleep(5);
             i++;
         }
+
         _serial->Close();
         delete _serial;
         _serial = nullptr;

@@ -435,6 +435,8 @@ void Model::Rename(std::string newName)
 
 void Model::SetStartChannel(std::string startChannel)
 {
+    //wxASSERT(!StartsWith(startChannel, "!:"));
+
     if (startChannel == ModelXml->GetAttribute("StartChannel", "xyzzy_kw")) return;
 
     ModelXml->DeleteAttribute("StartChannel");
@@ -2660,11 +2662,12 @@ std::string Model::GetChannelInStartChannelFormat(OutputManager* outputManager, 
             return wxString::Format("%u", channel).ToStdString();
         }
 
-        if (output->IsOutputCollection())
-        {
-            output = output->GetActualOutput(channel);
-            startChannel = channel - output->GetStartChannel() + 1;
-        }
+        // This should not be the case any more
+        //if (output->IsOutputCollection())
+        //{
+        //    output = output->GetActualOutput(channel);
+        //    startChannel = channel - output->GetStartChannel() + 1;
+        //}
 
         if (CountChar(modelFormat, ':') == 1)
         {
@@ -4475,6 +4478,8 @@ void Model::RecalcStartChannels()
 
 bool Model::RenameController(const std::string& oldName, const std::string& newName)
 {
+    wxASSERT(newName != "");
+
     bool changed = false;
 
     if (GetControllerName() == oldName)

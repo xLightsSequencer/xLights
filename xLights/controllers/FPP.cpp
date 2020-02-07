@@ -1126,12 +1126,15 @@ wxJSONValue FPP::CreateUniverseFile(const std::list<ControllerEthernet*>& select
                 if (!input && (it->GetIP() != "MULTICAST")) {
                     universe["address"] = wxString(it->GetIP());
                 }
-                if (it->IsOutputCollection()) {
-                    universe["universeCount"] = ((E131Output*)it)->GetUniverses();
-                }
-                else {
-                    universe["universeCount"] = 1;
-                }
+                
+                // TODO this needs work to restore the loading of multiple universes as a single line
+
+                //if (it->IsOutputCollection()) {
+                //    universe["universeCount"] = ((E131Output*)it)->GetUniverses();
+                //}
+                //else {
+                universe["universeCount"] = 1;
+                //}
                 universes.Append(universe);
             }
             else if (it->GetType() == OUTPUT_DDP) {

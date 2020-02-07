@@ -1,54 +1,62 @@
-#ifndef LORCONTROLLER_H
-#define LORCONTROLLER_H
+#pragma once
 
 #include <string>
+
 #include <wx/xml/xml.h>
 
 class LorController
 {
     public:
-        typedef enum AddressModes {
+        enum class AddressMode {
             LOR_ADDR_MODE_NORMAL,
             LOR_ADDR_MODE_LEGACY,
             LOR_ADDR_MODE_SPLIT
-        } AddressMode;
-        LorController();
-        LorController(wxXmlNode* node);
-
-        virtual ~LorController();
-
-        void Save(wxXmlNode* node);
-        int GetUnitId() const { return _unit_id; }
-        int GetNumChannels() const { return _num_channels; }
-        int GetTotalNumChannels() const;
-        AddressMode GetAddressMode() const { return _mode; }
-        std::string GetModeString() const;
-        std::string GetType() const { return _type; }
-        std::string GetDescription() const { return _description; }
-        bool IsDirty() const { return _lastSavedChangeCount != _changeCount; }
-        void ClearDirty() { _lastSavedChangeCount = _changeCount; }
-        void SetType(std::string type) { _type = type; }
-        void SetDescription(std::string description) { _description = description; }
-        void SetUnitID(int id) { _unit_id = id; }
-        void SetNumChannels(int channels) {
-            if (_num_channels != channels) { _num_channels = channels; _changeCount++; }
-        }
-        void SetMode(AddressMode mode) { _mode = mode; }
-        int GetMaxChannels() { return 16383; }
-        int GetMaxUnitId() {
-            return 255;
-        }
+        };
 
     protected:
-        int _unit_id;
-        int _num_channels;
+    #pragma region Member Variables
+        int _unit_id = 1;
+        int _num_channels = 16;
         std::string _type;
         std::string _description;
-        AddressMode _mode;
+        LorController::AddressMode _mode = LorController::AddressMode::LOR_ADDR_MODE_NORMAL;
+        bool _dirty = false;
+    #pragma endregion
+    
+    public:
 
-    private:
-        int _changeCount;
-        int _lastSavedChangeCount;
+    #pragma region Constructors and Destructors
+        LorController();
+        LorController(wxXmlNode* node);
+        virtual ~LorController() {}
+        void Save(wxXmlNode* node);
+    #pragma endregion
+
+    #pragma region Getters and Setters
+        int GetUnitId() const { return _unit_id; }
+        void SetUnitID(int id) { if (_unit_id != id) { _unit_id = id; _dirty = true; } }
+
+        int GetNumChannels() const { return _num_channels; }
+        void SetNumChannels(int channels) { if (_num_channels != channels) { _num_channels = channels; _dirty = true; } }
+
+        int GetTotalNumChannels() const;
+
+        LorController::AddressMode GetAddressMode() const { return _mode; }
+        void SetMode(LorController::AddressMode mode) { if (_mode != mode) { _mode = mode; _dirty = true; } }
+
+        std::string GetModeString() const;
+
+        std::string GetType() const { return _type; }
+        void SetType(std::string type) { if (_type != type) { _type = type; _dirty = true; } }
+
+        std::string GetDescription() const { return _description; }
+        void SetDescription(std::string description) { if (_description != description) { _description = description; _dirty = true; } }
+
+        bool IsDirty() const { return _dirty; }
+        void ClearDirty() { _dirty = false; }
+
+        int GetMaxChannels() { return 16383; }
+        int GetMaxUnitId() { return 255; }
+    #pragma endregion
 };
 
-#endif // LORCONTROLLER_H

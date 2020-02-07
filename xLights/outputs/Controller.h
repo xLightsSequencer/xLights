@@ -34,7 +34,7 @@ protected:
     std::string _description;                // a description for the controller
     bool _ok = false;                        // controller initiated ok
     bool _autoSize = false;                  // controller flexes the number of outputs to meet the needs of xLights
-    bool _autoStartChannels = false;         // models on this controller can be managed by xLights
+    //bool _autoStartChannels = false;         // models on this controller can be managed by xLights
     std::list<Output*> _outputs;             // the outputs on the controller
     bool _active = true;                     // output to controller is active
     std::string _vendor;                     // the controller vendor

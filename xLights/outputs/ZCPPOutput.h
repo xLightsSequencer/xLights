@@ -93,8 +93,8 @@ public:
         return std::find(_protocols.begin(), _protocols.end(), wxString(protocol).Lower().ToStdString()) != _protocols.end();
     }
     bool SetModelData(std::list<ZCPP_packet_t*> modelData, std::list<ZCPP_packet_t*> extraConfig, std::string showDir);
-    virtual bool IsLookedUpByControllerName() const override { return true; }
-    virtual bool IsAutoLayoutModels() const override { return true; }
+    //virtual bool IsLookedUpByControllerName() const override { return true; }
+    //virtual bool IsAutoLayoutModels() const override { return true; }
     virtual std::string GetUniverseString() const override { return ""; }
     #pragma region Getters and Setters
 

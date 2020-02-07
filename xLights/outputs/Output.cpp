@@ -259,7 +259,7 @@ void Output::SetTransientData(int& on, int32_t& startChannel, int nullnumber)
 
 void Output::SetIP(const std::string& ip)
 {
-    _ip = IPOutput::CleanupIP(ip);
+    _ip = CleanupIP(ip);
     _resolvedIp = _ip;
     _dirty = true;
 }

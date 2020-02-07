@@ -1,29 +1,33 @@
-#ifndef LORCONTROLLERS_H
-#define LORCONTROLLERS_H
+#pragma once
 
 #include <list>
+
 #include <wx/xml/xml.h>
 
 #include "LorController.h"
 
 class LorControllers
 {
+    #pragma region Member Variables
     std::list<LorController*> _controllers;
-    int _changeCount;
-    int _lastSavedChangeCount;
+    bool _dirty = false;
+    #pragma endregion
 
 public:
-    LorControllers();
+
+    #pragma region Construtors and Destructors
+    LorControllers() { _dirty = true; }
     LorControllers(wxXmlNode* node);
-    virtual ~LorControllers();
-
+    virtual ~LorControllers() {}
     void Save(wxXmlNode* node);
+    #pragma endregion
 
+    #pragma region Getters and Setters
     std::list<LorController*>& GetControllers() { return _controllers; }
-    void SetDirty() { _changeCount++; }
-    bool IsDirty() const;
-    int GetTotalChannels() const;
-    void ClearDirty();
-};
 
-#endif // LORCONTROLLERS_H
+    int GetTotalChannels() const;
+
+    bool IsDirty() const;
+    void ClearDirty();
+    #pragma endregion
+};

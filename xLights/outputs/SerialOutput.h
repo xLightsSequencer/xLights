@@ -12,9 +12,11 @@ protected:
     #pragma region Member Variables
     SerialPort* _serial;
     char _serialConfig[4];
+    wxLongLong _dieTime = 0;
     #pragma endregion Member Variables
 
     virtual void Save(wxXmlNode* node) override;
+    void SetDontDieUntil(wxLongLong dieTime) { _dieTime = dieTime; }
 
 public:
 
@@ -37,7 +39,6 @@ public:
     virtual bool IsIpOutput() const override { return false; }
     virtual bool IsSerialOutput() const override { return true; }
     virtual std::string GetLongDescription() const override;
-    virtual std::string GetPingDescription() const override;
     virtual int GetMaxChannels() const override { return 0; }
     virtual std::string GetBaudRateString() const override;
     //virtual std::string GetSetupHelp() const = 0;
