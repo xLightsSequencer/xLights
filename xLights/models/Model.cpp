@@ -2570,18 +2570,6 @@ char Model::GetAbsoluteChannelColorLetter(int32_t absoluteChannel)
     return GetChannelColorLetter((absoluteChannel - fc - 1) % GetChanCountPerNode());
 }
 
-int CountChar(const std::string& s, char c)
-{
-    int count = 0;
-
-    for (int i = 0; i < s.size(); ++i)
-    {
-        if (s[i] == c) count++;
-    }
-
-    return count;
-}
-
 std::string Model::GetStartChannelInDisplayFormat(OutputManager* outputManager)
 {
     if (!IsValidStartChannelString())

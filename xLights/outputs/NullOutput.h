@@ -14,7 +14,7 @@ public:
     NullOutput(wxXmlNode* node);
     NullOutput() : Output() { _channels = 512; _id = 64001; }
     virtual ~NullOutput() override {};
-    #pragma endregion Constructors and Destructors
+    #pragma endregion 
 
     virtual wxXmlNode* Save() override;
 
@@ -30,30 +30,29 @@ public:
     int GetId() const { return _universe; }
     void SetId(int id) { _universe = id; _dirty = true;}
     virtual std::string GetSortName() const override;
-    #pragma endregion Getters and Setters
+    #pragma endregion 
 
     #pragma region Start and Stop
     virtual bool Open() override { return true; }
     virtual void Close() override {}
-    #pragma endregion Start and Stop
+    #pragma endregion 
     
     #pragma region Frame Handling
     virtual void StartFrame(long msec) override {}
     virtual void EndFrame(int suppressFrames) override {}
     virtual void ResetFrame() override {}
-    #pragma endregion Frame Handling
+    #pragma endregion 
     
     #pragma region Data Setting
     virtual void SetOneChannel(int32_t channel, unsigned char data) override {}
     virtual void SetManyChannels(int32_t channel, unsigned char* data, size_t size) override {};
     virtual void AllOff() override {}
-    #pragma endregion Data Setting
+    #pragma endregion 
 
     #pragma region UI
-#ifndef EXCLUDENETWORKUI
-//    virtual Output* Configure(wxWindow* parent, OutputManager* outputManager, ModelManager *modelManager) override;
+    #ifndef EXCLUDENETWORKUI
     virtual void AddProperties(wxPropertyGrid* propertyGrid, bool allSameSize) override;
     virtual bool HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager) override;
     #endif
-    #pragma endregion UI
+    #pragma endregion 
 };

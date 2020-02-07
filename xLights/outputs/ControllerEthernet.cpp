@@ -394,6 +394,7 @@ bool ControllerEthernet::SupportsUpload() const {
     }
     return false;
 }
+#pragma endregion
 
 #ifndef EXCLUDENETWORKUI
 void ControllerEthernet::AddProperties(wxPropertyGrid* propertyGrid, ModelManager* modelManager) {
@@ -425,7 +426,7 @@ void ControllerEthernet::AddProperties(wxPropertyGrid* propertyGrid, ModelManage
     }
 
     bool allSameSize = AllSameSize();
-    if (_outputs.size() > 0) {
+    if (_outputs.size() == 1) {
         _outputs.front()->AddProperties(propertyGrid, allSameSize);
     }
 
@@ -449,20 +450,6 @@ void ControllerEthernet::AddProperties(wxPropertyGrid* propertyGrid, ModelManage
     if (IsFPPProxyable()) {
         p = propertyGrid->Append(new wxStringProperty("FPP Proxy IP/Hostname", "FPPProxy", GetControllerFPPProxy()));
         p->SetHelpString("This is typically the WIFI IP of a FPP instance that bridges two networks.");
-    }
-
-    if (_type == OUTPUT_DDP) {
-        auto ddp = dynamic_cast<DDPOutput*>(_outputs.front());
-
-        if (ddp != nullptr) {
-            p = propertyGrid->Append(new wxUIntProperty("Channels Per Packet", "ChannelsPerPacket", ddp->GetChannelsPerPacket()));
-            p->SetAttribute("Min", 1);
-            p->SetAttribute("Max", 1440);
-            p->SetEditor("SpinCtrl");
-
-            p = propertyGrid->Append(new wxBoolProperty("Keep Channel Numbers", "KeepChannelNumbers", ddp->IsKeepChannelNumbers()));
-            p->SetEditor("CheckBox");
-        }
     }
 
     if (_type == OUTPUT_ZCPP) {
@@ -518,7 +505,7 @@ void ControllerEthernet::AddProperties(wxPropertyGrid* propertyGrid, ModelManage
                 p->SetAttribute("Min", 1);
                 p->SetAttribute("Max", it->GetMaxChannels());
                 p->SetEditor("SpinCtrl");
-                p->SetHelpString(modelManager->GetModelsOnChannels(it->GetStartChannel(), it->GetEndChannel()));
+                p->SetHelpString(wxString::Format("[%ld-%ld]\n", it->GetStartChannel(), it->GetEndChannel()) + modelManager->GetModelsOnChannels(it->GetStartChannel(), it->GetEndChannel(), 4));
             }
         }
         else {
@@ -527,9 +514,10 @@ void ControllerEthernet::AddProperties(wxPropertyGrid* propertyGrid, ModelManage
             p->SetAttribute("Max", _outputs.front()->GetMaxChannels());
             p->SetEditor("SpinCtrl");
 
-            p = propertyGrid->Append(new wxStringProperty("Models", "Models", modelManager->GetModelsOnChannels(GetStartChannel(), GetEndChannel())));
+            p = propertyGrid->Append(new wxStringProperty("Models", "Models", modelManager->GetModelsOnChannels(GetStartChannel(), GetEndChannel(), -1)));
             p->ChangeFlag(wxPG_PROP_READONLY, true);
             p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
+            p->SetHelpString(modelManager->GetModelsOnChannels(GetStartChannel(), GetEndChannel(), 4));
         }
     }
     else {
@@ -546,9 +534,10 @@ void ControllerEthernet::AddProperties(wxPropertyGrid* propertyGrid, ModelManage
             p->SetEditor("SpinCtrl");
         }
 
-        p = propertyGrid->Append(new wxStringProperty("Models", "Models", modelManager->GetModelsOnChannels(GetStartChannel(), GetEndChannel())));
+        p = propertyGrid->Append(new wxStringProperty("Models", "Models", modelManager->GetModelsOnChannels(GetStartChannel(), GetEndChannel(), -1)));
         p->ChangeFlag(wxPG_PROP_READONLY, true);
         p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
+        p->SetHelpString(modelManager->GetModelsOnChannels(GetStartChannel(), GetEndChannel(), 4));
     }
 }
 
@@ -586,16 +575,6 @@ bool ControllerEthernet::HandlePropertyEvent(wxPropertyGridEvent& event, OutputM
     else if (name == "FPPProxy") {
         SetFPPProxy(event.GetValue().GetString());
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ControllerEthernet::HandlePropertyEvent::FPPProxy");
-        return true;
-    }
-    else if (name == "ChannelsPerPacket") {
-        dynamic_cast<DDPOutput*>(_outputs.front())->SetChannelsPerPacket(event.GetValue().GetLong());
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ControllerEthernet::HandlePropertyEvent::ChannelsPerPacket");
-        return true;
-    }
-    else if (name == "KeepChannelNumbers") {
-        dynamic_cast<DDPOutput*>(_outputs.front())->SetKeepChannelNumber(event.GetValue().GetBool());
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ControllerEthernet::HandlePropertyEvent::KeepChannelNumbers");
         return true;
     }
     else if (name == "SupportsVirtualStrings") {
@@ -720,7 +699,7 @@ bool ControllerEthernet::HandlePropertyEvent(wxPropertyGridEvent& event, OutputM
         }
     }
 
-    if (_outputs.size() > 0) {
+    if (_outputs.size() == 1) {
         if (_outputs.front()->HandlePropertyEvent(event, outputModelManager)) return true;
     }
 

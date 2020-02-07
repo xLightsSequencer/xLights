@@ -39,9 +39,6 @@ class DDPOutput : public IPOutput
     int _channelsPerPacket;
     bool _keepChannelNumbers;
 
-    // deprecated variables only kept for conversion
-    // bool _autoStartChannels = false;
-
     // These are used for DDP sync
     static bool __initialised;
     #pragma  endregion
@@ -98,4 +95,12 @@ public:
     virtual void SetManyChannels(int32_t channel, unsigned char* data, size_t size) override;
     virtual void AllOff() override;
     #pragma endregion
+
+    #pragma region UI
+    #ifndef EXCLUDENETWORKUI
+    virtual void AddProperties(wxPropertyGrid* propertyGrid, bool allSameSize) override;
+    virtual bool HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager) override;
+    #endif
+    #pragma endregion UI
+
 };

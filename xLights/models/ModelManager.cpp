@@ -1192,20 +1192,28 @@ Model *ModelManager::createAndAddModel(wxXmlNode *node, int previewW, int previe
     return model;
 }
 
-std::string ModelManager::GetModelsOnChannels(uint32_t start, uint32_t end) const
-{
-    std::string res;
+std::string ModelManager::GetModelsOnChannels(uint32_t start, uint32_t end, int perLine) const {
 
-    for (const auto& it : *this)
-    {
-        if (it.second->GetDisplayAs() != "ModelGroup")
-        {
-            if (it.second->GetFirstChannel()+1 <= end && it.second->GetLastChannel() + 1 >= start)
-            {
-                if (res != "") res += ",";
-                res += it.first;
+    std::string res;
+    std::string line;
+
+    for (const auto& it : *this) {
+        if (it.second->GetDisplayAs() != "ModelGroup") {
+            if (perLine > 0 && CountChar(line, ',') >= perLine - 1) {
+                if (res != "") res += "\n";
+                res += line;
+                line = "";
+            }
+            if (it.second->GetFirstChannel()+1 <= end && it.second->GetLastChannel() + 1 >= start) {
+                if (line != "") line += ", ";
+                line += it.first;
             }
         }
+    }
+
+    if (line != "") {
+        if (res != "") res += "\n";
+        res += line;
     }
 
 	return res;

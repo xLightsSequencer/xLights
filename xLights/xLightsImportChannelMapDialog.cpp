@@ -568,17 +568,6 @@ xLightsImportChannelMapDialog::~xLightsImportChannelMapDialog()
     }
 }
 
-int CountChar(wxString& line, char c)
-{
-    int count = 0;
-    for (size_t x = 0; x < line.size(); x++) {
-        if (line[x] == c) {
-            count++;
-        }
-    }
-    return count;
-}
-
 bool xLightsImportChannelMapDialog::InitImport() {
     if (channelNames.size() == 0)
     {

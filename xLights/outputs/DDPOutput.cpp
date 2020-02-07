@@ -1,10 +1,13 @@
 // http://www.3waylabs.com/ddp/
 
 #include <wx/xml/xml.h>
+#include <wx/propgrid/propgrid.h>
+#include <wx/propgrid/advprops.h>
 
 #include "DDPOutput.h"
 #include "OutputManager.h"
 #include "../UtilFunctions.h"
+#include "../OutputModelManager.h"
 
 #include <log4cpp/Category.hh>
 
@@ -332,3 +335,37 @@ void DDPOutput::AllOff() {
     _changed = true;
 }
 #pragma endregion
+
+#pragma region UI
+#ifndef EXCLUDENETWORKUI
+void DDPOutput::AddProperties(wxPropertyGrid* propertyGrid, bool allSameSize)
+{
+    auto p = propertyGrid->Append(new wxUIntProperty("Channels Per Packet", "ChannelsPerPacket", GetChannelsPerPacket()));
+    p->SetAttribute("Min", 1);
+    p->SetAttribute("Max", 1440);
+    p->SetEditor("SpinCtrl");
+
+    p = propertyGrid->Append(new wxBoolProperty("Keep Channel Numbers", "KeepChannelNumbers", IsKeepChannelNumbers()));
+    p->SetEditor("CheckBox");
+}
+
+bool DDPOutput::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager) {
+
+    wxString const name = event.GetPropertyName();
+    wxPropertyGrid* grid = dynamic_cast<wxPropertyGrid*>(event.GetEventObject());
+
+    if (name == "ChannelsPerPacket") {
+        SetChannelsPerPacket(event.GetValue().GetLong());
+        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "DDPOutput::HandlePropertyEvent::ChannelsPerPacket");
+        return true;
+    }
+    else if (name == "KeepChannelNumbers") {
+        SetKeepChannelNumber(event.GetValue().GetBool());
+        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "DDPOutput::HandlePropertyEvent::KeepChannelNumbers");
+        return true;
+    }
+
+    return false;
+}
+#endif
+#pragma endregion UI

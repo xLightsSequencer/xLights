@@ -2,9 +2,11 @@
 #define UTILFUNCTIONS_H
 
 #include <wx/wx.h>
-#include <string>
 #include <wx/socket.h>
 #include <wx/xml/xml.h>
+
+#include <string>
+#include <algorithm>
 
 #define FORMATTIME(ms) (const char *)wxString::Format("%d:%02d.%03d", ((uint32_t)ms) / 60000, (((uint32_t)ms) % 60000) / 1000, ((uint32_t)ms) % 1000).c_str()
 
@@ -89,13 +91,15 @@ inline char HexToChar(char c)
     return (int)c - 97 + 10;
 }
 
-inline char HexToChar(char c1, char c2)
-{
+inline int CountChar(const std::string& s, char c) {
+    return std::count(begin(s), end(s), c);
+}
+
+inline char HexToChar(char c1, char c2) {
     return (HexToChar(c1) << 4) + HexToChar(c2);
 }
 
-inline bool Contains(const std::string& in, const std::string& contains) noexcept
-{
+inline bool Contains(const std::string& in, const std::string& contains) noexcept {
     return in.find(contains) != std::string::npos;
 }
 
