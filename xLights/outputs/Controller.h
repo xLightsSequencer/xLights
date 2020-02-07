@@ -74,7 +74,7 @@ public:
 
     int32_t GetStartChannel() const;
     int32_t GetEndChannel() const;
-    uint32_t GetChannels() const;
+    int32_t GetChannels() const;
 
     bool IsDirty() const;
     void ClearDirty();
@@ -95,7 +95,7 @@ public:
     void Enable(bool enable) { for (auto& it : _outputs) { it->Enable(enable); } }
 
     bool IsActive() const { return _active; }
-    void SetActive(bool active) { if (_active != active) { _active = active;  _dirty = true; } }
+    void SetActive(bool active);
 
     bool IsOk() const { return _ok; }
 
@@ -116,7 +116,7 @@ public:
     #pragma region Virtual Functions
     virtual void SetId(int id) { if (_id != id) { _id = id; _dirty = true; } }
 
-    virtual void SetTransientData(int& on, int32_t& startChannel, int& nullnumber);
+    virtual void SetTransientData(int32_t& startChannel, int& nullnumber);
 
     virtual bool SupportsSuppressDuplicateFrames() const { return true; }
     virtual bool SupportsUpload() const { return false; }

@@ -175,7 +175,7 @@ bool DDPOutput::Open() {
     if (_fulldata != nullptr) delete _fulldata;
     _fulldata = (uint8_t*)malloc(_channels);
     if (_fulldata == nullptr) {
-        logger_base.error("Problem allocating %d memory for DDP output '%s'.", _channels, (const char *)_description.c_str());
+        logger_base.error("Problem allocating %d memory for DDP output '%s'.", _channels, (const char *)GetIP().c_str());
         _ok = false;
         return false;
     }

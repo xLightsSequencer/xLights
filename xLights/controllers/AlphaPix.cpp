@@ -301,7 +301,7 @@ bool AlphaPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
 
     logger_base.info("Uploading Output Description.");
     progress.Update(70, "Uploading Output Description.");
-    const std::string outName = SafeDescription(o->GetDescription());
+    const std::string outName = SafeDescription(controller->GetName());
     if (!outName.empty() && !controllerData.name.IsSameAs(outName))
     {
         const wxString res = PutURL(GetNameURL(), "name=" + outName);

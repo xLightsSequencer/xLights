@@ -50,8 +50,8 @@ ControllerEthernet::ControllerEthernet(OutputManager* om, wxXmlNode* node, const
     _type = node->GetAttribute("Protocol");
     InitialiseTypes(_type == OUTPUT_xxxETHERNET);
     SetIP(node->GetAttribute("IP"));
-    _fppProxy = node->GetAttribute("FPPProxy");
-    _priority = wxAtoi(node->GetAttribute("Priority", "100"));
+    SetFPPProxy(node->GetAttribute("FPPProxy"));
+    SetPriority(wxAtoi(node->GetAttribute("Priority", "100")));
     _dirty = false;
 }
 
@@ -136,7 +136,6 @@ void ControllerEthernet::SetProtocol(const std::string& protocol) {
         else if (_type == OUTPUT_DDP) {
             _outputs.push_back(new DDPOutput());
         }
-        _outputs.front()->SetAutoSize(oldoutputs.front()->IsAutoSize());
         _outputs.front()->SetChannels(totchannels);
         _outputs.front()->SetFPPProxyIP(oldoutputs.front()->GetFPPProxyIP());
         _outputs.front()->SetIP(oldoutputs.front()->GetIP());
@@ -194,6 +193,17 @@ void ControllerEthernet::SetProtocol(const std::string& protocol) {
     }
 }
 
+void ControllerEthernet::SetFPPProxy(const std::string& proxy) { 
+
+    if (_fppProxy != proxy) { 
+        _fppProxy = proxy; 
+        _dirty = true; 
+        for (auto& it : _outputs) {
+            it->SetFPPProxyIP(proxy);
+        }
+    } 
+}
+
 std::string ControllerEthernet::GetFPPProxy() const {
 
     if (_fppProxy != "") {
@@ -246,7 +256,7 @@ std::string ControllerEthernet::GetLongDescription() const {
 
 void ControllerEthernet::Convert(wxXmlNode* node, std::string showDir) {
 
-    _outputs.push_back(Output::Create(node, showDir));
+    _outputs.push_back(Output::Create(this, node, showDir));
     if (_outputs.back() == nullptr) {
         // this shouldnt happen unless we are loading a future file with an output type we dont recognise
         _outputs.pop_back();
@@ -257,8 +267,8 @@ void ControllerEthernet::Convert(wxXmlNode* node, std::string showDir) {
 
     if (_outputs.size() == 1) {
         if (_name == "" || StartsWith(_name, "Ethernet_")) {
-            if (_outputs.back()->GetDescription() != "") {
-                _name = _outputManager->UniqueName(_outputs.back()->GetDescription());
+            if (_outputs.back()->GetDescription_CONVERT() != "") {
+                _name = _outputManager->UniqueName(_outputs.back()->GetDescription_CONVERT());
             }
             else {
                 _name = _outputManager->UniqueName("Unnamed");
@@ -369,7 +379,7 @@ std::string ControllerEthernet::GetExport() const {
     );
 }
 
-void ControllerEthernet::SetTransientData(int& on, int32_t& startChannel, int& nullnumber) {
+void ControllerEthernet::SetTransientData(int32_t& startChannel, int& nullnumber) {
 
     // copy down properties that should be on every output
     for (auto& it : _outputs) {
@@ -381,7 +391,7 @@ void ControllerEthernet::SetTransientData(int& on, int32_t& startChannel, int& n
         }
     }
 
-    Controller::SetTransientData(on, startChannel, nullnumber);
+    Controller::SetTransientData(startChannel, nullnumber);
 }
 
 bool ControllerEthernet::SupportsUpload() const {

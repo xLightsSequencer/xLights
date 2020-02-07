@@ -66,7 +66,7 @@ public:
     virtual bool IsOutputCollection_CONVERT() const override { return _numUniverses_CONVERT > 1; }
     virtual int GetUniverses_CONVERT() const override { return _numUniverses_CONVERT; }
     
-    virtual void SetTransientData(int& on, int32_t& startChannel, int nullnumber) override;
+    virtual void SetTransientData(int32_t& startChannel, int nullnumber) override;
     #pragma region 
 
     #pragma region Start and Stop

@@ -86,28 +86,27 @@ const std::vector<ControllerNameVendorMap> __controllerNameMap =
 #pragma region Constructors and Destructors
 Controller::Controller(OutputManager* om, wxXmlNode* node, const std::string& showDir) : _outputManager(om)
 {
-    _dirty = false;
-
-    _id = wxAtoi(node->GetAttribute("Id", "64001"));
-    _name = node->GetAttribute("Name", om->UniqueName(node->GetName() + "_"));
-    _description = node->GetAttribute("Description", "");
-    _autoSize = node->GetAttribute("AutoSize", "0") == "1";
-    //_autoStartChannels = node->GetAttribute("AutoStartChannels", "0") == "1";
-    _active = node->GetAttribute("Active", "1") == "1";
-    _vendor = node->GetAttribute("Vendor");
-    _model = node->GetAttribute("Model");
-    _firmwareVersion = node->GetAttribute("Firmware");
-    _suppressDuplicateFrames = node->GetAttribute("SuppressDuplicates", "0") == "1";
-
     for (wxXmlNode* n = node->GetChildren(); n != nullptr; n = n->GetNext()) {
         if (n->GetName() == "network") {
-            _outputs.push_back(Output::Create(n, showDir));
+            _outputs.push_back(Output::Create(this, n, showDir));
             if (_outputs.back() == nullptr) {
                 // this shouldnt happen unless we are loading a future file with an output type we dont recognise
                 _outputs.pop_back();
             }
         }
     }
+
+    _id = wxAtoi(node->GetAttribute("Id", "64001"));
+    _name = node->GetAttribute("Name", om->UniqueName(node->GetName() + "_"));
+    _description = node->GetAttribute("Description", "");
+    _autoSize = node->GetAttribute("AutoSize", "0") == "1";
+    SetActive(node->GetAttribute("Active", "1") == "1");
+    _vendor = node->GetAttribute("Vendor");
+    _model = node->GetAttribute("Model");
+    _firmwareVersion = node->GetAttribute("Firmware");
+    SetSuppressDuplicateFrames(node->GetAttribute("SuppressDuplicates", "0") == "1");
+
+    _dirty = false;
 }
 
 Controller::Controller(OutputManager* om) : _outputManager(om) {
@@ -244,7 +243,7 @@ int32_t Controller::GetEndChannel() const {
     return _outputs.back()->GetEndChannel();
 }
 
-uint32_t Controller::GetChannels() const
+int32_t Controller::GetChannels() const
 {
     return std::accumulate(begin(_outputs), end(_outputs), 0, [](uint32_t accumulator, Output* const o) { return accumulator + o->GetChannels(); });
 }
@@ -271,6 +270,16 @@ void Controller::EnsureUniqueId() {
     _id = _outputManager->UniqueId();
 }
 
+void Controller::SetActive(bool active)  {
+    if (_active != active) { 
+        _active = active;  
+        _dirty = true; 
+        for (auto& it : _outputs) {
+            it->Enable(active);
+        }
+    } 
+}
+
 std::string Controller::GetVMF() const {
 
     std::string res = GetVendor();
@@ -290,7 +299,7 @@ void Controller::SetSuppressDuplicateFrames(bool suppress) {
 #pragma endregion
 
 #pragma region Virtual Functions
-void Controller::SetTransientData(int& on, int32_t& startChannel, int& nullnumber)
+void Controller::SetTransientData(int32_t& startChannel, int& nullnumber)
 {
     for (auto& it : _outputs) {
 
@@ -298,7 +307,7 @@ void Controller::SetTransientData(int& on, int32_t& startChannel, int& nullnumbe
         it->SetSuppressDuplicateFrames(_suppressDuplicateFrames);
         it->Enable(_active);
 
-        it->SetTransientData(on, startChannel, nullnumber);
+        it->SetTransientData(startChannel, nullnumber);
     }
 }
 
@@ -308,8 +317,7 @@ void Controller::Convert(wxXmlNode* node, std::string showDir) {
 
     if (_outputs.size() == 1) {
         _suppressDuplicateFrames = _outputs.front()->IsSuppressDuplicateFrames();
-        _autoSize = _outputs.front()->IsAutoSize();
-        //_autoStartChannels = _outputs.front()->IsAutoLayoutModels();
+        _autoSize = _outputs.front()->IsAutoSize_CONVERT();
     }
 
     auto const c = node->GetAttribute("Controller");

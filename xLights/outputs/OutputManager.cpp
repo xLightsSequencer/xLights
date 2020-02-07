@@ -173,7 +173,7 @@ bool OutputManager::Load(const std::string& showdir, bool syncEnabled)
         {
             if (e->GetName() == "network")
             {
-                Output* conversionOutput = Output::Create(e, showdir);
+                Output* conversionOutput = Output::Create(nullptr, e, showdir);
 
                 auto type = e->GetAttribute("NetworkType");
                 auto port = e->GetAttribute("ComPort");
@@ -741,34 +741,27 @@ std::string OutputManager::GetChannelName(int32_t channel)
     int32_t startChannel = 0;
     ++channel;
 
-    Output* o = GetOutput(channel, startChannel);
-
-    if (o == nullptr)
+    auto c =  GetController(channel, startChannel);
+    if (c == nullptr)
     {
         return wxString::Format(wxT("Ch %ld: invalid"), channel).ToStdString();
     }
     else
     {
         return wxString::Format(wxT("Ch %ld: Net %i #%ld"),
-                                channel,
-                                o->GetOutputNumber(),
-                                (long)(channel - o->GetStartChannel() + 1)).ToStdString();
+            channel,
+            GetControllerIndex(c) + 1,
+            (long)(channel - c->GetStartChannel() + 1)).ToStdString();
     }
 }
 
-int32_t OutputManager::GetAbsoluteChannel(int outputNumber, int32_t startChannel) const
+int32_t OutputManager::GetAbsoluteChannel(int controllerIndex, int32_t startChannel) const
 {
-    wxASSERT(false);
-    return 0;
-    //if (outputNumber >= (int)_outputs.size()) return -1;
+    if (controllerIndex >= (int)_controllers.size()) return -1;
 
-    //auto it = _outputs.begin();
-    //for (int i = 0; i < outputNumber; i++)
-    //{
-    //    ++it;
-    //}
-
-    //return (*it)->GetStartChannel() + startChannel;
+    auto it = _controllers.begin();
+    std::advance(it, controllerIndex);
+    return (*it)->GetStartChannel() + startChannel;
 }
 
 int32_t OutputManager::GetAbsoluteChannel(const std::string& ip, int universe, int32_t startChannel) const
@@ -937,11 +930,10 @@ bool OutputManager::TxEmpty()
 void OutputManager::SomethingChanged() const
 {
     int nullcnt = 0;
-    int cnt = 0;
     int start = 1;
     for (const auto& it : _controllers)
     {
-        it->SetTransientData(cnt, start, nullcnt);
+        it->SetTransientData(start, nullcnt);
     }
 }
 
@@ -1189,10 +1181,13 @@ bool OutputManager::StartOutput()
         ok = it->Open() && ok;
         if (!ok && ok != preok)
         {
-            logger_base.error("An error occured opening output %d (%s). Do you want to continue trying to start output?", started + 1, (const char *)it->GetDescription().c_str());
+            auto name = it->GetIP();
+            if (name == "") name = it->GetCommPort();
+
+            logger_base.error("An error occured opening output %d (%s). Do you want to continue trying to start output?", started + 1, (const char *)name.c_str());
             if (OutputManager::IsInteractive())
             {
-                if (wxMessageBox(wxString::Format(wxT("An error occured opening output %d (%s). Do you want to continue trying to start output?"), started + 1, it->GetDescription()), "Continue?", wxYES_NO) == wxNO) return _outputting;
+                if (wxMessageBox(wxString::Format(wxT("An error occured opening output %d (%s). Do you want to continue trying to start output?"), started + 1, name), "Continue?", wxYES_NO) == wxNO) return _outputting;
             }
             err = true;
         }

@@ -2951,7 +2951,7 @@ void PixelTestDialog::SetSuspend()
         auto outputs = _outputManager->GetOutputs();
         for (auto it = outputs.begin(); it != outputs.end(); ++it)
         {
-            if (_channelTracker.AreAnyIncluded((*it)->GetStartChannel(), (*it)->GetActualEndChannel()))
+            if (_channelTracker.AreAnyIncluded((*it)->GetStartChannel(), (*it)->GetEndChannel()))
             {
                 (*it)->Suspend(false);
             }

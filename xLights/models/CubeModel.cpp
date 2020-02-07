@@ -11,7 +11,7 @@
 #include "../xLightsMain.h"
 #include "UtilFunctions.h"
 #include "../outputs/OutputManager.h"
-#include "../outputs/Output.h"
+#include "../outputs/Controller.h"
 
 #include <log4cpp/Category.hh>
 
@@ -1134,7 +1134,7 @@ std::string CubeModel::ChannelLayoutHtml(OutputManager* outputManager)
     std::string direction = GetStartLocation();
 
     int32_t sc;
-    Output* o = outputManager->GetOutput(this->GetFirstChannel(), sc);
+    auto c = outputManager->GetController(this->GetFirstChannel(), sc);
 
     std::string html = "<html><body><table border=0>";
     html += "<tr><td>Name:</td><td>" + name + "</td></tr>";
@@ -1146,9 +1146,9 @@ std::string CubeModel::ChannelLayoutHtml(OutputManager* outputManager)
     html += wxString::Format("<tr><td>Height:</td><td>%d</td></tr>", parm2);
     html += wxString::Format("<tr><td>Depth:</td><td>%d</td></tr>", parm3);
 
-    if (o != nullptr)
+    if (c != nullptr)
     {
-        html += wxString::Format("<tr><td>Controller:</td><td>%s:%s</td></tr>", o->GetCommPort(), o->GetDescription());
+        html += wxString::Format("<tr><td>Controller:</td><td>%s</td></tr>", c->GetName());
     }
 
     if (GetControllerProtocol() != "") {

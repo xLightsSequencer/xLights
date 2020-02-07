@@ -21,8 +21,6 @@
 wxPGChoices ControllerSerial::__types;
 wxPGChoices ControllerSerial::__ports;
 wxPGChoices ControllerSerial::__speeds;
-wxPGChoices ControllerSerial::__parities;
-wxPGChoices ControllerSerial::__stopBits;
 
 void ControllerSerial::InitialiseTypes(bool forceXXX) {
 
@@ -51,18 +49,6 @@ void ControllerSerial::InitialiseTypes(bool forceXXX) {
         }
     }
 
-    if (__parities.GetCount() == 0) {
-        __parities.Add("None");
-        __parities.Add("Odd");
-        __parities.Add("Even");
-    }
-
-    if (__stopBits.GetCount() == 0) {
-        __stopBits.Add("0");
-        __stopBits.Add("1");
-        __stopBits.Add("2");
-    }
-
     if (__speeds.GetCount() == 0) {
         auto s = SerialOutput::GetPossibleBaudRates();
         for (const auto& it : s) {
@@ -83,10 +69,8 @@ void ControllerSerial::InitialiseTypes(bool forceXXX) {
 ControllerSerial::ControllerSerial(OutputManager* om, wxXmlNode* node, const std::string& showDir) : Controller(om, node, showDir) {
     _type = node->GetAttribute("Protocol");
     InitialiseTypes(_type == OUTPUT_xxxSERIAL);
-    _port = node->GetAttribute("Port");
-    _parity = node->GetAttribute("Parity");
-    _speed = wxAtoi(node->GetAttribute("Speed"));
-    _stopBits = wxAtoi(node->GetAttribute("StopBits"));
+    SetPort(node->GetAttribute("Port"));
+    SetSpeed(wxAtoi(node->GetAttribute("Speed")));
     _dirty = false;
 }
 
@@ -97,11 +81,8 @@ ControllerSerial::ControllerSerial(OutputManager* om) : Controller(om) {
     o->SetChannels(512);
     _outputs.push_back(o);
     _type = OUTPUT_DMX;
-    _port = _outputManager->GetFirstUnusedCommPort();
-    o->SetCommPort(_port);
-    _speed = o->GetBaudRate();
-    _parity = o->GetParity();
-    _stopBits = o->GetStopBits();
+    SetPort(_outputManager->GetFirstUnusedCommPort());
+    SetSpeed(o->GetBaudRate());
 }
 
 wxXmlNode* ControllerSerial::Save() {
@@ -110,9 +91,6 @@ wxXmlNode* ControllerSerial::Save() {
 
     um->AddAttribute("Port", _port);
     um->AddAttribute("Speed", wxString::Format("%d", _speed));
-    um->AddAttribute("Parity", _parity);
-    um->AddAttribute("Bits", wxString::Format("%d", _bits));
-    um->AddAttribute("StopBits", wxString::Format("%d", _stopBits));
     um->AddAttribute("Protocol", _type);
 
     return um;
@@ -214,8 +192,7 @@ std::string ControllerSerial::GetLongDescription() const {
 
     if (!IsActive()) res += "INACTIVE ";
     res += GetName() + " " + GetProtocol() + " " + GetPort();
-    res += " (" + std::string(wxString::Format(wxT("%d"), GetStartChannel())) + "-" + std::string(wxString::Format(wxT("%i"), GetEndChannel())) + ") ";
-    res += _description;
+    res += " (" + std::string(wxString::Format(wxT("%d"), GetStartChannel())) + "-" + std::string(wxString::Format(wxT("%i"), GetEndChannel())) + ")";
 
     return res;
 }
@@ -224,10 +201,10 @@ void ControllerSerial::Convert(wxXmlNode* node, std::string showDir) {
 
     Controller::Convert(node, showDir);
 
-    _outputs.push_back(Output::Create(node, showDir));
+    _outputs.push_back(Output::Create(this, node, showDir));
     if (_name == "" || StartsWith(_name, "Serial_")) {
-        if (_outputs.back()->GetDescription() != "") {
-            _name = _outputManager->UniqueName(_outputs.back()->GetDescription());
+        if (_outputs.back()->GetDescription_CONVERT() != "") {
+            _name = _outputManager->UniqueName(_outputs.back()->GetDescription_CONVERT());
         }
         else {
             _name = _outputManager->UniqueName("Unnamed");
@@ -243,8 +220,6 @@ void ControllerSerial::Convert(wxXmlNode* node, std::string showDir) {
     if (_outputs.size() > 0) {
         _port = _outputs.front()->GetCommPort();
         _speed = _outputs.front()->GetBaudRate();
-        _parity = dynamic_cast<SerialOutput*>(_outputs.front())->GetParity();
-        _stopBits = dynamic_cast<SerialOutput*>(_outputs.front())->GetStopBits();
         _type = _outputs.front()->GetType();
         _id = _outputs.front()->GetUniverse();
     }
@@ -304,9 +279,6 @@ void ControllerSerial::AddProperties(wxPropertyGrid* propertyGrid, ModelManager*
             p->SetHelpString("Speed is fixed for this protocol.");
         }
     }
-
-    //p = propertyGrid->Append(new wxEnumProperty("Stop Bits", "StopBits", __stopBits, Controller::EncodeChoices(__stopBits, wxString::Format("%d", _stopBits))));
-    //p = propertyGrid->Append(new wxEnumProperty("Parity", "Parity", __parities, Controller::EncodeChoices(__parities, _parity)));
 
     p = propertyGrid->Append(new wxEnumProperty("Protocol", "Protocol", __types, Controller::EncodeChoices(__types, _type)));
 

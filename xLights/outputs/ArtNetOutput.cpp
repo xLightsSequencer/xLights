@@ -53,7 +53,7 @@ void ArtNetOutput::OpenDatagram() {
 ArtNetOutput::ArtNetOutput(wxXmlNode* node) : IPOutput(node) {
 
     if (_channels > 512) SetChannels(512);
-    if (_autoSize) SetAutoSize(false);
+    if (_autoSize_CONVERT) _autoSize_CONVERT = false;
     _sequenceNum = 0;
     _datagram = nullptr;
     memset(_data, 0, sizeof(_data));
@@ -195,7 +195,7 @@ std::list<ControllerEthernet*> ArtNetOutput::Discover(OutputManager* outputManag
     }
 
     unsigned char buffer[2048];
-    uint64_t endBroadcastTime = wxGetLocalTimeMillis().GetValue() + 2000l;
+    long long endBroadcastTime = wxGetLocalTimeMillis().GetValue() + 2000l;
     int readSize = 0;
     while (readSize > 0 || (wxGetLocalTimeMillis().GetValue() < endBroadcastTime)) {
         readSize = 0;

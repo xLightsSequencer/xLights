@@ -2475,7 +2475,7 @@ void xLightsFrame::UploadOutputToController(ControllerEthernet* controller)
 
 #pragma region ZCPP
 
-int xLightsFrame::SetZCPPPort(std::list<ZCPP_packet_t*>& modelDatas, int index, UDControllerPort* port, int portNum, int virtualString, long baseStart, bool isSerial, ZCPPOutput* zcpp)
+int xLightsFrame::SetZCPPPort(Controller* controller, std::list<ZCPP_packet_t*>& modelDatas, int index, UDControllerPort* port, int portNum, int virtualString, long baseStart, bool isSerial, ZCPPOutput* zcpp)
 {
     static log4cpp::Category& logger_zcpp = log4cpp::Category::getInstance(std::string("log_zcpp"));
 
@@ -2485,7 +2485,7 @@ int xLightsFrame::SetZCPPPort(std::list<ZCPP_packet_t*>& modelDatas, int index, 
         ZCPP_packet_t* modelData = new ZCPP_packet_t();
         modelDatas.push_back(modelData);
         current = modelDatas.back();
-        ZCPPOutput::InitialiseModelDataPacket(current, modelsChangeCount, zcpp->GetPriority(), zcpp->GetDescription());
+        ZCPPOutput::InitialiseModelDataPacket(current, modelsChangeCount, zcpp->GetPriority(), controller->GetName());
     }
     current->Configuration.ports++;
 
@@ -2713,7 +2713,7 @@ void xLightsFrame::SetModelData(ControllerEthernet* controller, ModelManager* mo
     std::list<ZCPP_packet_t*> modelDatas;
     modelDatas.push_back(modelData);
     auto currentmd = modelDatas.back();
-    ZCPPOutput::InitialiseModelDataPacket(currentmd, modelsChangeCount, zcpp->GetPriority(), zcpp->GetDescription());
+    ZCPPOutput::InitialiseModelDataPacket(currentmd, modelsChangeCount, zcpp->GetPriority(), controller->GetName());
 
     int index = 0;
     for (int i = 0; i < cud.GetMaxPixelPort(); i++)
@@ -2723,7 +2723,7 @@ void xLightsFrame::SetModelData(ControllerEthernet* controller, ModelManager* mo
 
         if (port == nullptr)
         {
-            SetZCPPPort(modelDatas, index, nullptr, i, 0, baseStart, false, zcpp);
+            SetZCPPPort(controller, modelDatas, index, nullptr, i, 0, baseStart, false, zcpp);
             SetZCPPExtraConfig(extraConfigs, i, 0, "", zcpp);
             index++;
         }
@@ -2739,14 +2739,14 @@ void xLightsFrame::SetModelData(ControllerEthernet* controller, ModelManager* mo
                         // put the smart remote number in the top 2 bits
                         string += (port->GetVirtualString(j)->_smartRemote << 6);
                     }
-                    SetZCPPPort(modelDatas, index, port, i, string, baseStart, false, zcpp);
+                    SetZCPPPort(controller, modelDatas, index, port, i, string, baseStart, false, zcpp);
                     SetZCPPExtraConfig(extraConfigs, i, string, port->GetVirtualString(j)->_description, zcpp);
                     index++;
                 }
             }
             else
             {
-                SetZCPPPort(modelDatas, index, port, i, 0, baseStart, false, zcpp);
+                SetZCPPPort(controller, modelDatas, index, port, i, 0, baseStart, false, zcpp);
                 SetZCPPExtraConfig(extraConfigs, i, 0, port->GetPortName(), zcpp);
                 index++;
             }
@@ -2759,13 +2759,13 @@ void xLightsFrame::SetModelData(ControllerEthernet* controller, ModelManager* mo
 
         if (port == nullptr)
         {
-            SetZCPPPort(modelDatas, index, port, i, 0, baseStart, true, zcpp);
+            SetZCPPPort(controller, modelDatas, index, port, i, 0, baseStart, true, zcpp);
             SetZCPPExtraConfig(extraConfigs, 0x80 + i, 0, "", zcpp);
             index++;
         }
         else
         {
-            SetZCPPPort(modelDatas, index, port, i, 0, baseStart, true, zcpp);
+            SetZCPPPort(controller, modelDatas, index, port, i, 0, baseStart, true, zcpp);
             SetZCPPExtraConfig(extraConfigs, 0x80 + i, 0, port->GetPortName(), zcpp);
             index++;
         }
@@ -2785,7 +2785,7 @@ void xLightsFrame::SetModelData(ControllerEthernet* controller, ModelManager* mo
         modelDatas.pop_back();
     }
 
-    if (zcpp->SetModelData(modelDatas, extraConfigs, showDir))
+    if (zcpp->SetModelData(controller, modelDatas, extraConfigs, showDir))
     {
         //#ifdef DEBUG
         cud.Dump();

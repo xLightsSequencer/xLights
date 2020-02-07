@@ -17,16 +17,11 @@ protected:
     static wxPGChoices __types;
     static wxPGChoices __ports;
     static wxPGChoices __speeds;
-    static wxPGChoices __parities;
-    static wxPGChoices __stopBits;
     static void InitialiseTypes(bool forceXXX);
 #pragma endregion
 
 #pragma region Member Variables
     std::string _port;
-    int _bits = 8;
-    int _stopBits = 1;
-    std::string _parity = "None";
     std::string _type = "DMX";
     int _speed = 250000;
 #pragma endregion Member Variables

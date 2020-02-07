@@ -2086,24 +2086,9 @@ int Model::GetNumberFromChannelString(const std::string &str, bool &valid, std::
                 return 1;
             }
         }
-        else
-        {
-            output = wxAtoi(start);
-            if (output == 0) {
-                output = 1; // 1 based
-            }
-        }
     }
     int returnChannel = wxAtoi(sc);
-    if (output > 1) {
-        returnChannel = modelManager.GetOutputManager()->GetAbsoluteChannel(output - 1, returnChannel - 1);
-        if (returnChannel < 1)
-        {
-            valid = false;
-            returnChannel = 1;
-        }
-    }
-    else if (returnChannel < 1)
+    if (returnChannel < 1)
     {
         valid = false;
         returnChannel = 1;

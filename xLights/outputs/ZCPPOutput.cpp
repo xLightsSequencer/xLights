@@ -21,7 +21,7 @@
 #include <log4cpp/Category.hh>
 
 #pragma region Constructors and Destructors
-ZCPPOutput::ZCPPOutput(wxXmlNode* node, std::string showdir) : IPOutput(node)
+ZCPPOutput::ZCPPOutput(Controller* c, wxXmlNode* node, std::string showdir) : IPOutput(node)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     _multicast = false;
@@ -132,7 +132,7 @@ ZCPPOutput::ZCPPOutput(wxXmlNode* node, std::string showdir) : IPOutput(node)
             {
                 logger_base.warn("ZCPP Model data file %s could not be opened.", (const char*)fileName.c_str());
             }
-            ExtractUsedChannelsFromModelData();
+            if (c != nullptr) ExtractUsedChannelsFromModelData(c);
         }
         else
         {
@@ -190,7 +190,7 @@ ZCPPOutput::ZCPPOutput() : IPOutput()
     _supportsSmartRemotes = false;
     _datagram = nullptr;
     _vendor = -1;
-    _autoSize = true;
+    _autoSize_CONVERT = true;
     _model = -1;
     _priority = 100;
     _data = (wxByte*)malloc(_channels);
@@ -242,10 +242,10 @@ ZCPPOutput::~ZCPPOutput()
 }
 #pragma endregion Constructors and Destructors
 
-void ZCPPOutput::ExtractUsedChannelsFromModelData()
+void ZCPPOutput::ExtractUsedChannelsFromModelData(Controller* c)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("Extracting used channels from model data. %s", (const char*)_description.c_str());
+    logger_base.debug("Extracting used channels from model data. %s", (const char*)c->GetName().c_str());
 
     _usedChannels = 1;
 
@@ -257,7 +257,7 @@ void ZCPPOutput::ExtractUsedChannelsFromModelData()
         {
             logger_base.warn("ZCPP file corrupt. Abandoning read.");
             _usedChannels = 1;
-            if (_autoSize)
+            if (c->IsAutoSize())
                 SetChannels(1);
             return;
         }
@@ -276,7 +276,7 @@ void ZCPPOutput::ExtractUsedChannelsFromModelData()
     }
 
     wxASSERT(_channels < 100000); // catch weird numbers
-    if (_usedChannels != _channels && _autoSize)
+    if (_usedChannels != _channels && c->IsAutoSize())
     {
         logger_base.debug("    usedChannels %ld != _channels %ld and autosize.", (long)_usedChannels, (long)_channels);
         SetChannels(_usedChannels);
@@ -298,12 +298,12 @@ void ZCPPOutput::AllOn()
     _changed = true;
 }
 
-bool ZCPPOutput::SetModelData(std::list<ZCPP_packet_t*> modelData, std::list<ZCPP_packet_t*> extraConfig, std::string showDir)
+bool ZCPPOutput::SetModelData(Controller* c, std::list<ZCPP_packet_t*> modelData, std::list<ZCPP_packet_t*> extraConfig, std::string showDir)
 {
     if (_dontConfigure) return false;
 
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("ZCPP setting the model data %s.", (const char*)_description.c_str());
+    logger_base.debug("ZCPP setting the model data %s.", (const char*)c->GetName().c_str());
 
     wxString fileName = GetIP();
 
@@ -433,7 +433,9 @@ bool ZCPPOutput::SetModelData(std::list<ZCPP_packet_t*> modelData, std::list<ZCP
 
     _lastSecond = -1;
 
-    ExtractUsedChannelsFromModelData();
+    if (c != nullptr) {
+        ExtractUsedChannelsFromModelData(c);
+    }
 
     _suspend = oldSuspend;
     return true;
@@ -750,7 +752,6 @@ std::list<ControllerEthernet*> ZCPPOutput::Discover(OutputManager* outputManager
                             }
 
                             controller->SetAutoSize(true);
-                            o->SetAutoSize(true);
                             o->SetChannels(1 /*channels*/); // Set this to one as it defaults to auto size
 
                             logger_base.info("ZCPP Discovery adding controller %s.", (const char*)controller->GetIP().c_str());
@@ -933,9 +934,9 @@ void ZCPPOutput::Close()
 }
 #pragma endregion Start and Stop
 
-void ZCPPOutput::SetTransientData(int& on, int32_t& startChannel, int nullnumber)
+void ZCPPOutput::SetTransientData(int32_t& startChannel, int nullnumber)
 {
-    _outputNumber = on++;
+    //_outputNumber = on++;
     _startChannel = startChannel;
     startChannel += GetChannels();
 }
@@ -1075,11 +1076,6 @@ void ZCPPOutput::AllOff()
 #pragma endregion Data Setting
 
 #pragma region Getters and Setters
-int32_t ZCPPOutput::GetEndChannel() const
-{
-    return _startChannel + _channels - 1;
-}
-
 void ZCPPOutput::SetChannels(int32_t channels)
 {
     if (channels != _channels)
@@ -1104,7 +1100,7 @@ std::string ZCPPOutput::GetLongDescription() const
     res += "ZCPP ";
     res += "[1-" + std::string(wxString::Format(wxT("%d"), _channels)) + "] ";
     res += "(" + std::string(wxString::Format(wxT("%d"), GetStartChannel())) + "-" +
-        std::string(wxString::Format(wxT("%d"), GetActualEndChannel())) + ") ";
+        std::string(wxString::Format(wxT("%d"), GetEndChannel())) + ") ";
 
     return res;
 }

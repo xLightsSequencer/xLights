@@ -278,7 +278,7 @@ std::string xxxEthernetOutput::GetLongDescription() const
     if (!_enabled) res += "INACTIVE ";
     res += "xxxEthernet {" + wxString::Format(wxT("%i"), _port).ToStdString() + "} ";
     res += "[1-" + std::string(wxString::Format(wxT("%i"), _channels)) + "] ";
-    res += "(" + std::string(wxString::Format(wxT("%i"), GetStartChannel())) + "-" + std::string(wxString::Format(wxT("%i"), GetActualEndChannel())) + ") ";
+    res += "(" + std::string(wxString::Format(wxT("%i"), GetStartChannel())) + "-" + std::string(wxString::Format(wxT("%i"), GetEndChannel())) + ") ";
 
     return res;
 }

@@ -48,8 +48,7 @@ ModelManager::ModelManager(OutputManager* outputManager, xLightsFrame* xl) :
     //ctor
 }
 
-ModelManager::~ModelManager()
-{
+ModelManager::~ModelManager() {
     clear();
 }
 
@@ -63,19 +62,16 @@ void ModelManager::clear() {
     models.clear();
 }
 
-BaseObject *ModelManager::GetObject(const std::string &name) const
-{
+inline BaseObject *ModelManager::GetObject(const std::string &name) const {
     return GetModel(name);
 }
 
-bool ModelManager::IsModelValid(Model* m) const
-{
-    for (const auto& it : models)
-    {
+bool ModelManager::IsModelValid(Model* m) const {
+
+    for (const auto& it : models) {
         if (it.second == m) return true;
 
-        for (auto it2 : it.second->GetSubModels())
-        {
+        for (auto it2 : it.second->GetSubModels()) {
             if (it2 == m) return true;
         }
     }
@@ -495,156 +491,117 @@ bool ModelManager::ReworkStartChannel() const
     OutputManager* outputManager = xlights->GetOutputManager();
     for (const auto& it : outputManager->GetControllers())
     {
-            std::map<std::string, std::list<Model*>> cmodels;
-            for (auto itm : models)
+        std::map<std::string, std::list<Model*>> cmodels;
+        for (auto itm : models)
+        {
+            if (itm.second->GetControllerName() == it->GetName() &&
+                itm.second->GetControllerPort() != 0 &&
+                itm.second->GetControllerProtocol() != ""
+                ) // we dont muck with unassigned models or no protocol models
             {
-                if (itm.second->GetControllerName() == it->GetName() &&
-                    itm.second->GetControllerPort() != 0 &&
-                    itm.second->GetControllerProtocol() != ""
-                    ) // we dont muck with unassigned models or no protocol models
+                wxString cc;
+                if (Model::IsPixelProtocol(itm.second->GetControllerProtocol()))
                 {
-                    wxString cc;
-                    if (Model::IsPixelProtocol(itm.second->GetControllerProtocol()))
-                    {
-                        cc = wxString::Format("%s:%d:%02d", itm.second->GetControllerProtocol(), itm.second->GetSmartRemote(), itm.second->GetControllerPort()).Lower();
-                    }
-                    else
-                    {
-                        cc = wxString::Format("%s:%02d", itm.second->GetControllerProtocol(), itm.second->GetControllerPort()).Lower();
-                    }
-                    if (cmodels.find(cc) == cmodels.end())
-                    {
-                        std::list<Model*> ml;
-                        cmodels[cc] = ml;
-                    }
-                    cmodels[cc].push_back(itm.second);
-                }
-            }
-
-            // first of all fix any weirdness ...
-            for (auto itcc = cmodels.begin(); itcc != cmodels.end(); ++itcc)
-            {
-                logger_zcpp.debug("Fixing weirdness on %s - %s", (const char*)it->GetName().c_str(), (const char*)itcc->first.c_str());
-                logger_zcpp.debug("    Models at start:");
-
-                // build a list of model names on the port
-                std::list<std::string> models;
-                for (auto itmm : itcc->second)
-                {
-                    logger_zcpp.debug("        %s Chained to '%s'", (const char*)itmm->GetName().c_str(), (const char*)itmm->GetModelChain().c_str());
-                    models.push_back(itmm->GetName());
-                }
-
-                logger_zcpp.debug("    Fixing weirdness:");
-
-                // If a model refers to a chained model not on the port then move it to beginning ... so next step can move it again
-                bool beginningFound = false;
-                for (auto itmm : itcc->second)
-                {
-                    auto ch = itmm->GetModelChain();
-                    if (ch == "" || ch == "Beginning")
-                    {
-                        beginningFound = true;
-                    }
-                    else
-                    {
-                        ch = ch.substr(1); // string off leading >
-                        if (std::find(models.begin(), models.end(), ch) == models.end())
-                        {
-                            logger_zcpp.debug("    Model %s set to beginning because the model it is chained to does not exist.", (const char*)itmm->GetName().c_str());
-                            itmm->SetModelChain("");
-                            beginningFound = true;
-                            outputsChanged = true;
-                        }
-                    }
-                }
-
-                // If no model is set as beginning ... then just make the first one beginning
-                if (!beginningFound)
-                {
-                    logger_zcpp.debug("    Model %s set to beginning because no other model was.", (const char*)itcc->second.front()->GetName().c_str());
-                    itcc->second.front()->SetModelChain("");
-                    outputsChanged = true;
-                }
-
-                // Now I would love to give any more than the first model a default to chain to but this is
-                // not as easy as it looks ... so for now i am going to leave multiple models at the beginning
-                // and let the user sort it out rather than creating loops
-            }
-
-            logger_zcpp.debug("    Sorting models:");
-            int32_t ch = 1;
-            for (auto itcc = cmodels.begin(); itcc != cmodels.end(); ++itcc)
-            {
-                // order the models
-                std::list<Model*> sortedmodels;
-                std::string last = "";
-
-                int32_t chstart = ch;
-
-                if (itcc->second.size() > 0 && itcc->second.front()->IsPixelProtocol())
-                {
-                    while ((*itcc).second.size() > 0)
-                    {
-                        bool pushed = false;
-                        for (auto itms = itcc->second.begin(); itms != itcc->second.end(); ++itms)
-                        {
-                            if ((((*itms)->GetModelChain() == "Beginning" || (*itms)->GetModelChain() == "") && last == "") ||
-                                (*itms)->GetModelChain() == last ||
-                                (*itms)->GetModelChain() == ">" + last)
-                            {
-                                sortedmodels.push_back(*itms);
-                                pushed = true;
-                                last = (*itms)->GetName();
-                                itcc->second.erase(itms);
-                                break;
-                            }
-                        }
-
-                        if (!pushed && (*itcc).second.size() > 0)
-                        {
-                            // chain is broken ... so just put the rest in in the original order
-                            // wxASSERT(false);
-                            logger_zcpp.error("    Model chain is broken so just stuffing the remaining %d models in in their original order.", (*itcc).second.size());
-                            while ((*itcc).second.size() > 0)
-                            {
-                                sortedmodels.push_back(itcc->second.front());
-                                itcc->second.pop_front();
-                            }
-                        }
-                    }
+                    cc = wxString::Format("%s:%d:%02d", itm.second->GetControllerProtocol(), itm.second->GetSmartRemote(), itm.second->GetControllerPort()).Lower();
                 }
                 else
                 {
-                    // dmx protocols wowk differently ... they can be chained or by specified dmx channel
-                    int dmx = 1;
-                    while ((*itcc).second.size() > 0 && dmx <= 512)
+                    cc = wxString::Format("%s:%02d", itm.second->GetControllerProtocol(), itm.second->GetControllerPort()).Lower();
+                }
+                if (cmodels.find(cc) == cmodels.end())
+                {
+                    std::list<Model*> ml;
+                    cmodels[cc] = ml;
+                }
+                cmodels[cc].push_back(itm.second);
+            }
+        }
+
+        // first of all fix any weirdness ...
+        for (auto itcc = cmodels.begin(); itcc != cmodels.end(); ++itcc)
+        {
+            logger_zcpp.debug("Fixing weirdness on %s - %s", (const char*)it->GetName().c_str(), (const char*)itcc->first.c_str());
+            logger_zcpp.debug("    Models at start:");
+
+            // build a list of model names on the port
+            std::list<std::string> models;
+            for (auto itmm : itcc->second)
+            {
+                logger_zcpp.debug("        %s Chained to '%s'", (const char*)itmm->GetName().c_str(), (const char*)itmm->GetModelChain().c_str());
+                models.push_back(itmm->GetName());
+            }
+
+            logger_zcpp.debug("    Fixing weirdness:");
+
+            // If a model refers to a chained model not on the port then move it to beginning ... so next step can move it again
+            bool beginningFound = false;
+            for (auto itmm : itcc->second)
+            {
+                auto ch = itmm->GetModelChain();
+                if (ch == "" || ch == "Beginning")
+                {
+                    beginningFound = true;
+                }
+                else
+                {
+                    ch = ch.substr(1); // string off leading >
+                    if (std::find(models.begin(), models.end(), ch) == models.end())
                     {
-                        for (auto itms = itcc->second.begin(); itms != itcc->second.end(); ++itms)
+                        logger_zcpp.debug("    Model %s set to beginning because the model it is chained to does not exist.", (const char*)itmm->GetName().c_str());
+                        itmm->SetModelChain("");
+                        beginningFound = true;
+                        outputsChanged = true;
+                    }
+                }
+            }
+
+            // If no model is set as beginning ... then just make the first one beginning
+            if (!beginningFound)
+            {
+                logger_zcpp.debug("    Model %s set to beginning because no other model was.", (const char*)itcc->second.front()->GetName().c_str());
+                itcc->second.front()->SetModelChain("");
+                outputsChanged = true;
+            }
+
+            // Now I would love to give any more than the first model a default to chain to but this is
+            // not as easy as it looks ... so for now i am going to leave multiple models at the beginning
+            // and let the user sort it out rather than creating loops
+        }
+
+        logger_zcpp.debug("    Sorting models:");
+        int32_t ch = 1;
+        for (auto itcc = cmodels.begin(); itcc != cmodels.end(); ++itcc)
+        {
+            // order the models
+            std::list<Model*> sortedmodels;
+            std::string last = "";
+
+            int32_t chstart = ch;
+
+            if (itcc->second.size() > 0 && itcc->second.front()->IsPixelProtocol())
+            {
+                while ((*itcc).second.size() > 0)
+                {
+                    bool pushed = false;
+                    for (auto itms = itcc->second.begin(); itms != itcc->second.end(); ++itms)
+                    {
+                        if ((((*itms)->GetModelChain() == "Beginning" || (*itms)->GetModelChain() == "") && last == "") ||
+                            (*itms)->GetModelChain() == last ||
+                            (*itms)->GetModelChain() == ">" + last)
                         {
-                            if (((*itms)->GetModelChain() == "Beginning" || (*itms)->GetModelChain() == "") && (*itms)->GetControllerDMXChannel() == dmx)
-                            {
-                                sortedmodels.push_back(*itms);
-                                last = (*itms)->GetName();
-                                itcc->second.erase(itms);
-                                break;
-                            }
-                            else if (last != "" && ((*itms)->GetModelChain() == last ||
-                                (*itms)->GetModelChain() == ">" + last))
-                            {
-                                sortedmodels.push_back(*itms);
-                                last = (*itms)->GetName();
-                                itcc->second.erase(itms);
-                                break;
-                            }
+                            sortedmodels.push_back(*itms);
+                            pushed = true;
+                            last = (*itms)->GetName();
+                            itcc->second.erase(itms);
+                            break;
                         }
-                        dmx++;
                     }
 
-                    if ((*itcc).second.size() > 0)
+                    if (!pushed && (*itcc).second.size() > 0)
                     {
-                        // models left over so stuff them on the end
-                        logger_zcpp.error("    DMX Model chain is broken or there are duplicate models so just stuffing the remaining %d models in in their original order.", (*itcc).second.size());
+                        // chain is broken ... so just put the rest in in the original order
+                        // wxASSERT(false);
+                        logger_zcpp.error("    Model chain is broken so just stuffing the remaining %d models in in their original order.", (*itcc).second.size());
                         while ((*itcc).second.size() > 0)
                         {
                             sortedmodels.push_back(itcc->second.front());
@@ -652,98 +609,137 @@ bool ModelManager::ReworkStartChannel() const
                         }
                     }
                 }
-
-                for (auto itm : sortedmodels)
+            }
+            else
+            {
+                // dmx protocols wowk differently ... they can be chained or by specified dmx channel
+                int dmx = 1;
+                while ((*itcc).second.size() > 0 && dmx <= 512)
                 {
-                    std::string sc = "";
-                    if (itm->IsPixelProtocol())
+                    for (auto itms = itcc->second.begin(); itms != itcc->second.end(); ++itms)
                     {
-                        if (itm->GetModelChain() == last ||
-                            itm->GetModelChain() == ">" + last ||
-                            ((itm->GetModelChain() == "Beginning" || itm->GetModelChain() == "") && last == ""))
+                        if (((*itms)->GetModelChain() == "Beginning" || (*itms)->GetModelChain() == "") && (*itms)->GetControllerDMXChannel() == dmx)
                         {
-                            auto osc = itm->ModelStartChannel;
-                            sc = "!" + it->GetName() + ":" + wxString::Format("%d", ch);
-                            itm->SetStartChannel(sc);
-                            last = itm->GetName();
-                            ch += itm->GetChanCount();
-                            if (osc != itm->ModelStartChannel)
-                            {
-                                outputsChanged = true;
-                            }
+                            sortedmodels.push_back(*itms);
+                            last = (*itms)->GetName();
+                            itcc->second.erase(itms);
+                            break;
                         }
-                        else
+                        else if (last != "" && ((*itms)->GetModelChain() == last ||
+                            (*itms)->GetModelChain() == ">" + last))
                         {
-                            auto osc = itm->ModelStartChannel;
-                            sc = "!" + it->GetName() + ":" + wxString::Format("%d", chstart);
-                            itm->SetStartChannel(sc);
-                            last = itm->GetName();
-                            ch = std::max(ch, (int32_t)(chstart + itm->GetChanCount()));
-                            if (osc != itm->ModelStartChannel)
-                            {
-                                outputsChanged = true;
-                            }
+                            sortedmodels.push_back(*itms);
+                            last = (*itms)->GetName();
+                            itcc->second.erase(itms);
+                            break;
+                        }
+                    }
+                    dmx++;
+                }
+
+                if ((*itcc).second.size() > 0)
+                {
+                    // models left over so stuff them on the end
+                    logger_zcpp.error("    DMX Model chain is broken or there are duplicate models so just stuffing the remaining %d models in in their original order.", (*itcc).second.size());
+                    while ((*itcc).second.size() > 0)
+                    {
+                        sortedmodels.push_back(itcc->second.front());
+                        itcc->second.pop_front();
+                    }
+                }
+            }
+
+            for (auto itm : sortedmodels)
+            {
+                std::string sc = "";
+                if (itm->IsPixelProtocol())
+                {
+                    if (itm->GetModelChain() == last ||
+                        itm->GetModelChain() == ">" + last ||
+                        ((itm->GetModelChain() == "Beginning" || itm->GetModelChain() == "") && last == ""))
+                    {
+                        auto osc = itm->ModelStartChannel;
+                        sc = "!" + it->GetName() + ":" + wxString::Format("%d", ch);
+                        itm->SetStartChannel(sc);
+                        last = itm->GetName();
+                        ch += itm->GetChanCount();
+                        if (osc != itm->ModelStartChannel)
+                        {
+                            outputsChanged = true;
                         }
                     }
                     else
                     {
-                        // when chained the use next channel
-                        if (last != "" &&
-                            (itm->GetModelChain() == last ||
-                                itm->GetModelChain() == ">" + last))
+                        auto osc = itm->ModelStartChannel;
+                        sc = "!" + it->GetName() + ":" + wxString::Format("%d", chstart);
+                        itm->SetStartChannel(sc);
+                        last = itm->GetName();
+                        ch = std::max(ch, (int32_t)(chstart + itm->GetChanCount()));
+                        if (osc != itm->ModelStartChannel)
                         {
-                            auto osc = itm->ModelStartChannel;
-                            sc = "!" + it->GetName() + ":" + wxString::Format("%d", ch);
-                            itm->SetStartChannel(sc);
-                            last = itm->GetName();
-                            ch += itm->GetChanCount();
-                            if (osc != itm->ModelStartChannel)
-                            {
-                                outputsChanged = true;
-                            }
-                        }
-                        else
-                        {
-                            // when not chained use dmx channel
-                            uint32_t msc = chstart + itm->GetControllerDMXChannel() - 1;
-                            auto osc = itm->ModelStartChannel;
-                            sc = "!" + it->GetName() + ":" + wxString::Format("%d", msc);
-                            itm->SetStartChannel(sc);
-                            last = itm->GetName();
-                            ch = std::max(ch, (int32_t)msc + (int32_t)itm->GetChanCount());
-                            if (osc != itm->ModelStartChannel)
-                            {
-                                outputsChanged = true;
-                            }
+                            outputsChanged = true;
                         }
                     }
-
-                    logger_zcpp.debug("    Model %s on port %d chained to %s start channel %s.",
-                        (const char*)itm->GetName().c_str(),
-                        itm->GetControllerPort(),
-                        (const char*)itm->GetModelChain().c_str(),
-                        (const char*)sc.c_str());
                 }
-            }
-
-            if (it->IsAutoSize())
-            {
-                if (it->GetChannels() != std::max((int32_t)1, (int32_t)ch - 1))
+                else
                 {
-                    logger_zcpp.debug("    Resizing output to %d channels.", std::max((int32_t)1, (int32_t)ch - 1));
-                    for (auto& it2 : it->GetOutputs())
+                    // when chained the use next channel
+                    if (last != "" &&
+                        (itm->GetModelChain() == last ||
+                            itm->GetModelChain() == ">" + last))
                     {
-                        it2->AllOff();
-                        it2->EndFrame(0);
+                        auto osc = itm->ModelStartChannel;
+                        sc = "!" + it->GetName() + ":" + wxString::Format("%d", ch);
+                        itm->SetStartChannel(sc);
+                        last = itm->GetName();
+                        ch += itm->GetChanCount();
+                        if (osc != itm->ModelStartChannel)
+                        {
+                            outputsChanged = true;
+                        }
                     }
-                    // we can only update the first output
-                    it->GetFirstOutput()->SetChannels(std::max((int32_t)1, (int32_t)ch - 1));
-                    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ReworkStartChannel");
-                    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "ReworkStartChannel");
-                    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "ReworkStartChannel");
-                    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_SAVE_NETWORKS, "ReworkStartChannel");
+                    else
+                    {
+                        // when not chained use dmx channel
+                        uint32_t msc = chstart + itm->GetControllerDMXChannel() - 1;
+                        auto osc = itm->ModelStartChannel;
+                        sc = "!" + it->GetName() + ":" + wxString::Format("%d", msc);
+                        itm->SetStartChannel(sc);
+                        last = itm->GetName();
+                        ch = std::max(ch, (int32_t)msc + (int32_t)itm->GetChanCount());
+                        if (osc != itm->ModelStartChannel)
+                        {
+                            outputsChanged = true;
+                        }
+                    }
                 }
+
+                logger_zcpp.debug("    Model %s on port %d chained to %s start channel %s.",
+                    (const char*)itm->GetName().c_str(),
+                    itm->GetControllerPort(),
+                    (const char*)itm->GetModelChain().c_str(),
+                    (const char*)sc.c_str());
             }
+        }
+
+        if (it->IsAutoSize())
+        {
+            if (it->GetChannels() != std::max((int32_t)1, (int32_t)ch - 1))
+            {
+                logger_zcpp.debug("    Resizing output to %d channels.", std::max((int32_t)1, (int32_t)ch - 1));
+                for (auto& it2 : it->GetOutputs())
+                {
+                    it2->AllOff();
+                    it2->EndFrame(0);
+                }
+                // we can only update the first output
+                it->GetFirstOutput()->SetChannels(std::max((int32_t)1, (int32_t)ch - 1));
+                xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ReworkStartChannel");
+                xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "ReworkStartChannel");
+                xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "ReworkStartChannel");
+                xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_SAVE_NETWORKS, "ReworkStartChannel");
+            }
+        }
     }
     return outputsChanged;
 }

@@ -48,11 +48,11 @@ void ControllerNull::Convert(wxXmlNode* node, std::string showDir) {
 
     Controller::Convert(node, showDir);
 
-    _outputs.push_back(Output::Create(node, showDir));
+    _outputs.push_back(Output::Create(this, node, showDir));
     if (_name == "" || StartsWith(_name, "Null_")) {
         _id = dynamic_cast<NullOutput*>(_outputs.front())->GetId();
-        if (_outputs.back()->GetDescription() != "") {
-            _name = _outputManager->UniqueName(_outputs.back()->GetDescription());
+        if (_outputs.back()->GetDescription_CONVERT() != "") {
+            _name = _outputManager->UniqueName(_outputs.back()->GetDescription_CONVERT());
         }
         else {
             _name = _outputManager->UniqueName("Unnamed");

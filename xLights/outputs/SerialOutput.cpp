@@ -102,18 +102,6 @@ wxXmlNode* SerialOutput::Save()
 #pragma endregion Save
 
 #pragma region Getters and Setters
-std::string SerialOutput::GetBaudRateString() const
-{
-    if (_baudRate == 0)
-    {
-        return "n/a";
-    }
-    else
-    {
-        return Output::GetBaudRateString();
-    }
-}
-
 size_t SerialOutput::TxNonEmptyCount() const
 {
     return _serial ? _serial->WaitingToWrite() : 0;
@@ -310,7 +298,7 @@ bool SerialOutput::Open()
 
     if (_commPort == "NotConnected")
     {
-        logger_base.warn("Serial port %s for %s not opened as it is tagged as not connected '%s'.", (const char *)_commPort.c_str(), (const char *)GetType().c_str(), (const char *)_description.c_str());
+        logger_base.warn("Serial port %s for %s not opened as it is tagged as not connected.", (const char *)_commPort.c_str(), (const char *)GetType().c_str());
         // dont set ok to false ... while this is not really open it is not an error as the user meant it to be not connected.
     }
     else

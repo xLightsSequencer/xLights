@@ -24,7 +24,7 @@ void E131Output::CreateMultiUniverses_CONVERT(int num) {
         e->SetIP(_ip);
         e->SetUniverse(_universe + i);
         e->SetChannels(_channels);
-        e->SetDescription(_description);
+        e->_description_CONVERT = _description_CONVERT;
         e->SetSuppressDuplicateFrames(_suppressDuplicateFrames);
         e->SetPriority(_priority);
         _outputs_CONVERT.push_back(e);
@@ -66,7 +66,7 @@ void E131Output::OpenDatagram() {
 E131Output::E131Output(wxXmlNode* node) : IPOutput(node) {
 
     if (_channels > 512) SetChannels(512);
-    if (_autoSize) SetAutoSize(false);
+    if (_autoSize_CONVERT) _autoSize_CONVERT = false;
     _numUniverses_CONVERT = wxAtoi(node->GetAttribute("NumUniverses", "1"));
     _priority = wxAtoi(node->GetAttribute("Priority","100"));
     if (_numUniverses_CONVERT > 1) {
@@ -238,8 +238,7 @@ std::string E131Output::GetLongDescription() const {
     if (!_enabled) res += "INACTIVE ";
     res += "E1.31 {" + wxString::Format(wxT("%i"), _universe).ToStdString() + "} ";
     res += "[1-" + std::string(wxString::Format(wxT("%i"), _channels)) + "] ";
-    res += "(" + std::string(wxString::Format(wxT("%i"), GetStartChannel())) + "-" + std::string(wxString::Format(wxT("%i"), GetActualEndChannel())) + ") ";
-    res += _description;
+    res += "(" + std::string(wxString::Format(wxT("%i"), GetStartChannel())) + "-" + std::string(wxString::Format(wxT("%i"), GetEndChannel())) + ")";
 
     return res;
 }
@@ -255,16 +254,16 @@ std::string E131Output::GetExport() const {
         GetChannels());
 }
 
-void E131Output::SetTransientData(int& on, int32_t& startChannel, int nullnumber) {
+void E131Output::SetTransientData(int32_t& startChannel, int nullnumber) {
 
     wxASSERT(!IsOutputCollection_CONVERT());
 
     if (_fppProxyOutput) {
-        _fppProxyOutput->SetTransientData(on, startChannel, nullnumber);
+        _fppProxyOutput->SetTransientData(startChannel, nullnumber);
     }
 
     wxASSERT(startChannel != -1);
-    _outputNumber = on++;
+    //_outputNumber = on++;
     _startChannel = startChannel;
     startChannel += GetChannels();
 }

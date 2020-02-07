@@ -52,7 +52,7 @@ public:
     std::string GetProtocol() const { return _type; }
     void SetProtocol(const std::string& protocol);
 
-    void SetFPPProxy(const std::string& proxy) { if (_fppProxy != proxy) { _fppProxy = proxy; _dirty = true; } }
+    void SetFPPProxy(const std::string& proxy);
     std::string GetControllerFPPProxy() const { return _fppProxy; }
     std::string GetFPPProxy() const;
 
@@ -94,7 +94,7 @@ public:
 
     virtual std::string GetExport() const override;
 
-    virtual void SetTransientData(int& on, int32_t& startChannel, int& nullnumber) override;
+    virtual void SetTransientData(int32_t& startChannel, int& nullnumber) override;
 
     virtual bool SupportsUpload() const override;
 #pragma endregion

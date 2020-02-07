@@ -31,14 +31,14 @@ class ZCPPOutput : public IPOutput
     std::list<std::string> _protocols;
     #pragma endregion Member Variables
 
-    void ExtractUsedChannelsFromModelData();
+    void ExtractUsedChannelsFromModelData(Controller* c);
     void DeserialiseProtocols(const std::string& protocols);
     std::string SerialiseProtocols();
 
 public:
 
     #pragma region Constructors and Destructors
-    ZCPPOutput(wxXmlNode* node, std::string showdir);
+    ZCPPOutput(Controller* c, wxXmlNode* node, std::string showdir);
     ZCPPOutput();
     ZCPPOutput(ZCPPOutput* output);
     virtual ~ZCPPOutput() override;
@@ -57,12 +57,10 @@ public:
     #pragma endregion Static Functions
 
     #pragma region Getters and Setters
-    virtual bool NeedsControllerConfig() const override { return true; }
     virtual std::string GetType() const override { return OUTPUT_ZCPP; }
     virtual std::string GetLongDescription() const override;
     virtual int GetMaxChannels() const override { return ZCPP_MAXCHANNELS; }
     virtual bool IsValidChannelCount(int32_t channelCount) const override { return channelCount > 0 && channelCount <= GetMaxChannels(); }
-    virtual int32_t GetEndChannel() const override;
     virtual void SetChannels(int32_t channels) override;
     int GetId() const { return _universe; }
     void SetId(int id) { _universe = id; _dirty = true; }
@@ -92,7 +90,7 @@ public:
     {
         return std::find(_protocols.begin(), _protocols.end(), wxString(protocol).Lower().ToStdString()) != _protocols.end();
     }
-    bool SetModelData(std::list<ZCPP_packet_t*> modelData, std::list<ZCPP_packet_t*> extraConfig, std::string showDir);
+    bool SetModelData(Controller* c, std::list<ZCPP_packet_t*> modelData, std::list<ZCPP_packet_t*> extraConfig, std::string showDir);
     //virtual bool IsLookedUpByControllerName() const override { return true; }
     //virtual bool IsAutoLayoutModels() const override { return true; }
     virtual std::string GetUniverseString() const override { return ""; }
@@ -112,7 +110,7 @@ public:
     #pragma endregion Frame Handling
     
     #pragma region Data Setting
-    virtual void SetTransientData(int& on, int32_t& startChannel, int nullnumber) override;
+    virtual void SetTransientData(int32_t& startChannel, int nullnumber) override;
     virtual void SetOneChannel(int32_t channel, unsigned char data) override;
     virtual void SetManyChannels(int32_t channel, unsigned char* data, size_t size) override;
     virtual void AllOff() override;

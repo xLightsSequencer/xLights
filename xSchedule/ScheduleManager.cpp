@@ -35,6 +35,7 @@
 #include "events/ListenerManager.h"
 #include "wxJSON/jsonreader.h"
 #include "../xLights/VideoReader.h"
+#include "../xLights/outputs/Controller.h"
 
 #include <memory>
 
@@ -4396,13 +4397,12 @@ void ScheduleManager::CheckScheduleIntegrity(bool display)
     LogAndWrite(f, "Inactive Outputs");
 
     // Check for inactive outputs
-    auto outputs = _outputManager->GetOutputs();
-    for (auto it = outputs.begin(); it != outputs.end(); ++it)
+    for (const auto& it : _outputManager->GetControllers())
     {
-        if (!(*it)->IsEnabled())
+        if (!it->IsActive())
         {
-            wxString msg = wxString::Format("    WARN: Inactive output %d %s:%s:%s:%s:'%s'.",
-                (*it)->GetOutputNumber(), (*it)->GetType(), (*it)->GetIP(), (*it)->GetUniverseString(), (*it)->GetCommPort(), (*it)->GetDescription());
+            wxString msg = wxString::Format("    WARN: Inactive controller %s:%s:%s.",
+                it->GetName(), it->GetColumn1Label(), it->GetColumn2Label());
             LogAndWrite(f, msg.ToStdString());
             warncount++;
         }
@@ -4420,7 +4420,7 @@ void ScheduleManager::CheckScheduleIntegrity(bool display)
     LogAndWrite(f, "Multiple outputs sending to same destination");
 
     std::list<std::string> used;
-    outputs = _outputManager->GetOutputs();
+    auto outputs = _outputManager->GetAllOutputs();
     for (auto n = outputs.begin(); n != outputs.end(); ++n)
     {
         if ((*n)->IsIpOutput())
@@ -4429,7 +4429,7 @@ void ScheduleManager::CheckScheduleIntegrity(bool display)
 
             if (std::find(used.begin(), used.end(), usedval) != used.end())
             {
-                wxString msg = wxString::Format("    ERR: Multiple outputs being sent to the same controller '%s' (%s) and universe %s.", (const char*)(*n)->GetDescription().c_str(), (const char*)(*n)->GetIP().c_str(), (const char *)(*n)->GetUniverseString().c_str());
+                wxString msg = wxString::Format("    ERR: Multiple outputs being sent to the same controller (%s) and universe %s.", (const char*)(*n)->GetIP().c_str(), (const char *)(*n)->GetUniverseString().c_str());
                 LogAndWrite(f, msg.ToStdString());
                 errcount++;
             }
@@ -4442,7 +4442,7 @@ void ScheduleManager::CheckScheduleIntegrity(bool display)
         {
             if (std::find(used.begin(), used.end(), (*n)->GetCommPort()) != used.end())
             {
-                wxString msg = wxString::Format("    ERR: Multiple outputs being sent to the same comm port %s '%s' %s.", (const char *)(*n)->GetType().c_str(), (const char *)(*n)->GetCommPort().c_str(), (const char*)(*n)->GetDescription().c_str());
+                wxString msg = wxString::Format("    ERR: Multiple outputs being sent to the same comm port %s %s.", (const char *)(*n)->GetType().c_str(), (const char *)(*n)->GetCommPort().c_str());
                 LogAndWrite(f, msg.ToStdString());
                 errcount++;
             }
