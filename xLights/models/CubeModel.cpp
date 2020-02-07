@@ -1134,7 +1134,7 @@ std::string CubeModel::ChannelLayoutHtml(OutputManager* outputManager)
     std::string direction = GetStartLocation();
 
     int32_t sc;
-    auto c = outputManager->GetController(this->GetFirstChannel(), sc);
+    auto c = outputManager->GetController(this->GetFirstChannel() + 1, sc);
 
     std::string html = "<html><body><table border=0>";
     html += "<tr><td>Name:</td><td>" + name + "</td></tr>";
@@ -1148,7 +1148,7 @@ std::string CubeModel::ChannelLayoutHtml(OutputManager* outputManager)
 
     if (c != nullptr)
     {
-        html += wxString::Format("<tr><td>Controller:</td><td>%s</td></tr>", c->GetName());
+        html += wxString::Format("<tr><td>Controller:</td><td>%s</td></tr>", c->GetLongDescription());
     }
 
     if (GetControllerProtocol() != "") {

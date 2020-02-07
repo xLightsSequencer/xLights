@@ -7,7 +7,7 @@
 #include "../CustomModelDialog.h"
 #include "../xLightsMain.h"
 #include "../xLightsVersion.h"
-#include "outputs/Output.h"
+#include "outputs/Controller.h"
 #include "UtilFunctions.h"
 #include "outputs/OutputManager.h"
 
@@ -983,7 +983,7 @@ std::string CustomModel::ChannelLayoutHtml(OutputManager* outputManager) {
     std::string direction = "n/a";
 
     int32_t sc;
-    Output* o = outputManager->GetOutput(this->GetFirstChannel(), sc);
+    Controller* c = outputManager->GetController(this->GetFirstChannel()+ 1, sc);
 
     std::string html = "<html><body><table border=0>";
     html += "<tr><td>Name:</td><td>" + name + "</td></tr>";
@@ -993,8 +993,8 @@ std::string CustomModel::ChannelLayoutHtml(OutputManager* outputManager) {
     html += wxString::Format("<tr><td>Total nodes:</td><td>%d</td></tr>", (int)NodeCount);
     html += wxString::Format("<tr><td>Width:</td><td>%d</td></tr>", BufferWi);
     html += wxString::Format("<tr><td>Height:</td><td>%d</td></tr>", BufferHt);
-    if (o != nullptr)
-        html += wxString::Format("<tr><td>Controller:</td><td>%s:%s</td></tr>", (o->GetIP() != "" ? o->GetIP() : o->GetCommPort()), o->GetDescription());
+    if (c != nullptr)
+        html += wxString::Format("<tr><td>Controller:</td><td>%s</td></tr>", c->GetLongDescription());
     if ("" != GetControllerProtocol())
     {
         html += wxString::Format("<tr><td>Pixel protocol:</td><td>%s</td></tr>", GetControllerProtocol());
