@@ -4,30 +4,31 @@
 
 class NullOutput : public Output
 {
-    int _id;
-
-    virtual void Save(wxXmlNode* node) override;
 
 public:
 
     #pragma region Constructors and Destructors
     NullOutput(wxXmlNode* node);
-    NullOutput() : Output() { _channels = 512; _id = 64001; }
+    NullOutput() : Output() { _channels = 512; SetUniverse(64001); }
     virtual ~NullOutput() override {};
+    virtual wxXmlNode* Save() override;
     #pragma endregion 
 
-    virtual wxXmlNode* Save() override;
-
     #pragma region Getters and Setters
+    int GetId() const { return GetUniverse(); }
+    void SetId(int id) { SetUniverse(id); }
+
     virtual std::string GetType() const override { return OUTPUT_NULL; }
+
     virtual std::string GetLongDescription() const override;
+    
     virtual bool IsIpOutput() const override { return false; }
     virtual bool IsSerialOutput() const override { return false; }
     virtual bool IsOutputable() const override { return false; }
+    
     virtual int32_t GetMaxChannels() const override { return 9999999; }
     virtual bool IsValidChannelCount(int32_t channelCount) const override { return channelCount > 0; }
-    int GetId() const { return _universe; }
-    void SetId(int id) { _universe = id; _dirty = true;}
+    
     virtual std::string GetSortName() const override;
     #pragma endregion 
 

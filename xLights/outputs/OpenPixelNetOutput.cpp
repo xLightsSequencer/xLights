@@ -3,33 +3,34 @@
 #include <wx/xml/xml.h>
 
 #pragma region Constructs and Destructors
-OpenPixelNetOutput::OpenPixelNetOutput(SerialOutput* output) : SerialOutput(output)
-{
+OpenPixelNetOutput::OpenPixelNetOutput(SerialOutput* output) : SerialOutput(output) {
+    
     _baudRate = 1000000;
     _datalen = 0;
     memset(_data, 0x00, sizeof(_data));
     memset(_serialBuffer, 0x00, sizeof(_serialBuffer));
 }
 
-OpenPixelNetOutput::OpenPixelNetOutput(wxXmlNode* node) : SerialOutput(node)
-{
-    _datalen = 0;
-    memset(_data, 0x00, sizeof(_data));
-    memset(_serialBuffer, 0x00, sizeof(_serialBuffer));
-}
+OpenPixelNetOutput::OpenPixelNetOutput(wxXmlNode* node) : SerialOutput(node) {
 
-OpenPixelNetOutput::OpenPixelNetOutput() : SerialOutput()
-{
     _baudRate = 1000000;
     _datalen = 0;
     memset(_data, 0x00, sizeof(_data));
     memset(_serialBuffer, 0x00, sizeof(_serialBuffer));
 }
-#pragma endregion Constructs and Destructors
+
+OpenPixelNetOutput::OpenPixelNetOutput() : SerialOutput() {
+
+    _baudRate = 1000000;
+    _datalen = 0;
+    memset(_data, 0x00, sizeof(_data));
+    memset(_serialBuffer, 0x00, sizeof(_serialBuffer));
+}
+#pragma endregion 
 
 #pragma region Start and Stop
-bool OpenPixelNetOutput::Open()
-{
+bool OpenPixelNetOutput::Open() {
+
     if (!_enabled) return true;
 
     _ok = SerialOutput::Open();
@@ -48,52 +49,39 @@ bool OpenPixelNetOutput::Open()
 
     return _ok;
 }
-#pragma endregion Start and Stop
+#pragma endregion 
 
 #pragma region Frame Handling
-void OpenPixelNetOutput::EndFrame(int suppressFrames)
-{
+void OpenPixelNetOutput::EndFrame(int suppressFrames) {
+
     if (!_enabled || _suspend || _serial == nullptr || !_ok) return;
 
-    if (_changed || NeedToOutput(suppressFrames))
-    {
-        if (_serial != nullptr)
-        {
-            if (_serial->WaitingToWrite() == 0)
-            {
+    if (_changed || NeedToOutput(suppressFrames)) {
+        if (_serial != nullptr) {
+            if (_serial->WaitingToWrite() == 0) {
                 memcpy(&_serialBuffer[6], _data, sizeof(_data));
                 _serial->Write((char *)_serialBuffer, sizeof(_serialBuffer));
                 FrameOutput();
             }
         }
     }
-    else
-    {
+    else {
         SkipFrame();
     }
 }
-#pragma endregion Frame Handling
+#pragma endregion 
 
 #pragma region Data Setting
-void OpenPixelNetOutput::SetOneChannel(int32_t channel, unsigned char data)
-{
-    if (_data[channel] != (data == 170 ? 171 : data))
-    {
+void OpenPixelNetOutput::SetOneChannel(int32_t channel, unsigned char data) {
+
+    if (_data[channel] != (data == 170 ? 171 : data)) {
         _data[channel] = (data == 170 ? 171 : data);
         _changed = true;
     }
 }
 
-void OpenPixelNetOutput::AllOff()
-{
+void OpenPixelNetOutput::AllOff() {
     memset(_data, 0, _channels);
     _changed = true;
 }
-#pragma endregion Data Setting
-
-#pragma region Getters and Setters
-//std::string OpenPixelNetOutput::GetSetupHelp() const {
-
-//    return "Pixelnet controllers attached to a generic USB\nto RS485 dongle with FTDI chipset and virtual comm port.";
-//}
-#pragma endregion Getters and Setters
+#pragma endregion
