@@ -2,6 +2,7 @@
 	<Controller Name="LED Panels">
 		<FirmwareVersion Name="">
 			<SupportsUpload/>
+			<SupportsInputOnlyUpload/>
 			<MaxInputUniverses>200</MaxInputUniverses>
 			<MaxPixelPort>0</MaxPixelPort>
 			<MaxSerialPort>0</MaxSerialPort>
@@ -23,6 +24,7 @@
 	<Controller Name="Pi Hat">
 		<FirmwareVersion Name="">
 			<SupportsUpload/>
+			<SupportsInputOnlyUpload/>
 			<MaxInputUniverses>200</MaxInputUniverses>
 			<MaxPixelPort>2</MaxPixelPort>
 			<MaxSerialPort>0</MaxSerialPort>
@@ -49,6 +51,7 @@
 	<Controller Name="RGBCape24">
 		<FirmwareVersion Name="">
 			<SupportsUpload/>
+			<SupportsInputOnlyUpload/>
 			<MaxInputUniverses>200</MaxInputUniverses>
 			<MaxPixelPort>24</MaxPixelPort>
 			<MaxSerialPort>0</MaxSerialPort>
@@ -79,6 +82,7 @@
 	<Controller Name="RGBCape48C">
 		<FirmwareVersion Name="">
 			<SupportsUpload/>
+			<SupportsInputOnlyUpload/>
 			<MaxInputUniverses>200</MaxInputUniverses>
 			<MaxPixelPort>48</MaxPixelPort>
 			<MaxSerialPort>0</MaxSerialPort>
@@ -112,6 +116,7 @@
 	<Controller Name="RGBCape48F">
 		<FirmwareVersion Name="">
 			<SupportsUpload/>
+			<SupportsInputOnlyUpload/>
 			<MaxInputUniverses>200</MaxInputUniverses>
 			<MaxPixelPort>24</MaxPixelPort>
 			<MaxSerialPort>0</MaxSerialPort>

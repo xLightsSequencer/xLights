@@ -2,6 +2,7 @@
 	<Controller Name="F16-B">
 		<FirmwareVersion Name="">
 			<SupportsUpload/>
+			<SupportsInputOnlyUpload/>
 			<MaxInputUniverses>200</MaxInputUniverses>
 			<MaxPixelPort>16</MaxPixelPort>
 			<MaxSerialPort>8</MaxSerialPort>
@@ -28,6 +29,7 @@
 	<Controller Name="F16-B w/32 outputs">
 		<FirmwareVersion Name="">
 			<SupportsUpload/>
+			<SupportsInputOnlyUpload/>
 			<MaxInputUniverses>200</MaxInputUniverses>
 			<MaxPixelPort>32</MaxPixelPort>
 			<MaxSerialPort>8</MaxSerialPort>
@@ -56,6 +58,7 @@
 	<Controller Name="F16-B w/48 outputs (No Serial)">
 		<FirmwareVersion Name="">
 			<SupportsUpload/>
+			<SupportsInputOnlyUpload/>
 			<MaxInputUniverses>200</MaxInputUniverses>
 			<MaxPixelPort>48</MaxPixelPort>
 			<MaxSerialPort>0</MaxSerialPort>
@@ -85,6 +88,7 @@
 	<Controller Name="F32-B (4 Serial)">
 		<FirmwareVersion Name="">
 			<SupportsUpload/>
+			<SupportsInputOnlyUpload/>
 			<MaxInputUniverses>200</MaxInputUniverses>
 			<MaxPixelPort>44</MaxPixelPort>
 			<MaxSerialPort>4</MaxSerialPort>
@@ -111,6 +115,7 @@
 	<Controller Name="F32-B (8 Serial)">
 		<FirmwareVersion Name="">
 			<SupportsUpload/>
+			<SupportsInputOnlyUpload/>
 			<MaxInputUniverses>200</MaxInputUniverses>
 			<MaxPixelPort>40</MaxPixelPort>
 			<MaxSerialPort>8</MaxSerialPort>
@@ -137,6 +142,7 @@
 	<Controller Name="F32-B (No Serial)">
 		<FirmwareVersion Name="">
 			<SupportsUpload/>
+			<SupportsInputOnlyUpload/>
 			<MaxInputUniverses>200</MaxInputUniverses>
 			<MaxPixelPort>48</MaxPixelPort>
 			<MaxSerialPort>0</MaxSerialPort>
@@ -160,6 +166,7 @@
 	<Controller Name="F4-B">
 		<FirmwareVersion Name="">
 			<SupportsUpload/>
+			<SupportsInputOnlyUpload/>
 			<MaxInputUniverses>200</MaxInputUniverses>
 			<MaxPixelPort>4</MaxPixelPort>
 			<MaxSerialPort>1</MaxSerialPort>
@@ -186,6 +193,7 @@
 	<Controller Name="F40D-PB (4 Serial)">
 		<FirmwareVersion Name="">
 			<SupportsUpload/>
+			<SupportsInputOnlyUpload/>
 			<MaxInputUniverses>200</MaxInputUniverses>
 			<MaxPixelPort>36</MaxPixelPort>
 			<MaxSerialPort>4</MaxSerialPort>
@@ -212,6 +220,7 @@
 	<Controller Name="F40D-PB (8 Serial)">
 		<FirmwareVersion Name="">
 			<SupportsUpload/>
+			<SupportsInputOnlyUpload/>
 			<MaxInputUniverses>200</MaxInputUniverses>
 			<MaxPixelPort>32</MaxPixelPort>
 			<MaxSerialPort>8</MaxSerialPort>
@@ -238,6 +247,7 @@
 	<Controller Name="F40D-PB (No Serial)">
 		<FirmwareVersion Name="">
 			<SupportsUpload/>
+			<SupportsInputOnlyUpload/>
 			<MaxInputUniverses>200</MaxInputUniverses>
 			<MaxPixelPort>40</MaxPixelPort>
 			<MaxSerialPort>0</MaxSerialPort>
@@ -263,6 +273,7 @@
 	<Controller Name="F8-B (4 Serial)">
 		<FirmwareVersion Name="">
 			<SupportsUpload/>
+			<SupportsInputOnlyUpload/>
 			<MaxInputUniverses>200</MaxInputUniverses>
 			<MaxPixelPort>16</MaxPixelPort>
 			<MaxSerialPort>4</MaxSerialPort>
@@ -289,6 +300,7 @@
 	<Controller Name="F8-B (8 Serial)">
 		<FirmwareVersion Name="">
 			<SupportsUpload/>
+			<SupportsInputOnlyUpload/>
 			<MaxInputUniverses>200</MaxInputUniverses>
 			<MaxPixelPort>12</MaxPixelPort>
 			<MaxSerialPort>8</MaxSerialPort>
@@ -315,6 +327,7 @@
 	<Controller Name="F8-B (No Serial)">
 		<FirmwareVersion Name="">
 			<SupportsUpload/>
+			<SupportsInputOnlyUpload/>
 			<MaxInputUniverses>200</MaxInputUniverses>
 			<MaxPixelPort>20</MaxPixelPort>
 			<MaxSerialPort>0</MaxSerialPort>
@@ -338,6 +351,7 @@
 	<Controller Name="F8-B w/Expansion (4 Serial)">
 		<FirmwareVersion Name="">
 			<SupportsUpload/>
+			<SupportsInputOnlyUpload/>
 			<MaxInputUniverses>200</MaxInputUniverses>
 			<MaxPixelPort>32</MaxPixelPort>
 			<MaxSerialPort>4</MaxSerialPort>
@@ -366,6 +380,7 @@
 	<Controller Name="F8-B w/Expansion (8 Serial)">
 		<FirmwareVersion Name="">
 			<SupportsUpload/>
+			<SupportsInputOnlyUpload/>
 			<MaxInputUniverses>200</MaxInputUniverses>
 			<MaxPixelPort>28</MaxPixelPort>
 			<MaxSerialPort>8</MaxSerialPort>
@@ -394,6 +409,7 @@
 	<Controller Name="F8-B w/Expansion (No Serial)">
 		<FirmwareVersion Name="">
 			<SupportsUpload/>
+			<SupportsInputOnlyUpload/>
 			<MaxInputUniverses>200</MaxInputUniverses>
 			<MaxPixelPort>36</MaxPixelPort>
 			<MaxSerialPort>0</MaxSerialPort>
@@ -419,6 +435,7 @@
 	<Controller Name="PB16 (2 Serial)">
 		<FirmwareVersion Name="">
 			<SupportsUpload/>
+			<SupportsInputOnlyUpload/>
 			<MaxInputUniverses>200</MaxInputUniverses>
 			<MaxPixelPort>16</MaxPixelPort>
 			<MaxSerialPort>2</MaxSerialPort>
@@ -445,6 +462,7 @@
 	<Controller Name="PB16 w/Expansion (2 Serial)">
 		<FirmwareVersion Name="">
 			<SupportsUpload/>
+			<SupportsInputOnlyUpload/>
 			<MaxInputUniverses>200</MaxInputUniverses>
 			<MaxPixelPort>32</MaxPixelPort>
 			<MaxSerialPort>2</MaxSerialPort>
