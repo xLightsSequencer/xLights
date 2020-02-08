@@ -3,11 +3,11 @@
 		<FirmwareVersion Name="">
 			<SupportsUpload/>
 			<SupportsInputOnlyUpload/>
-			<MaxInputUniverses>96</MaxInputUniverses>
+			<MaxInputUniverses>65</MaxInputUniverses>
 			<MaxPixelPort>16</MaxPixelPort>
 			<MaxSerialPort>1</MaxSerialPort>
 			<MaxSerialPortChannels>512</MaxSerialPortChannels>
-			<MaxPixelPortChannels>2040</MaxPixelPortChannels>
+			<MaxPixelPortChannels>680</MaxPixelPortChannels>
 			<UniversesMustBeSequential/>
 			<SupportsVirtualStrings/>
 			<MergeConsecutiveVirtualStrings/>
@@ -32,11 +32,11 @@
 		<FirmwareVersion Name="">
 			<SupportsUpload/>
 			<SupportsInputOnlyUpload/>
-			<MaxInputUniverses>96</MaxInputUniverses>
+			<MaxInputUniverses>144</MaxInputUniverses>
 			<MaxPixelPort>48</MaxPixelPort>
 			<MaxSerialPort>1</MaxSerialPort>
 			<MaxSerialPortChannels>512</MaxSerialPortChannels>
-			<MaxPixelPortChannels>2040</MaxPixelPortChannels>
+			<MaxPixelPortChannels>680</MaxPixelPortChannels>
 			<UniversesMustBeSequential/>
 			<SupportsVirtualStrings/>
 			<MergeConsecutiveVirtualStrings/>

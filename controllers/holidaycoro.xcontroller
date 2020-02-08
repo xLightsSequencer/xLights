@@ -1,12 +1,12 @@
-<Vendor Name="Holiday Coro">
+<Vendor Name="HolidayCoro">
 	<Controller Name="AlphaPix 4">
 		<FirmwareVersion Name="">
 			<SupportsUpload/>
-			<MaxInputUniverses>96</MaxInputUniverses>
+			<MaxInputUniverses>16</MaxInputUniverses>
 			<MaxPixelPort>4</MaxPixelPort>
 			<MaxSerialPort>1</MaxSerialPort>
 			<MaxSerialPortChannels>512</MaxSerialPortChannels>
-			<MaxPixelPortChannels>2040</MaxPixelPortChannels>
+			<MaxPixelPortChannels>680</MaxPixelPortChannels>
 			<AllInputUniversesMustBeSameSize/>
 			<PixelProtocols>
 				<Protocol>ws2811</Protocol>
@@ -27,11 +27,11 @@
 	<Controller Name="AlphaPix 16">
 		<FirmwareVersion Name="">
 			<SupportsUpload/>
-			<MaxInputUniverses>96</MaxInputUniverses>
+			<MaxInputUniverses>32</MaxInputUniverses>
 			<MaxPixelPort>16</MaxPixelPort>
 			<MaxSerialPort>3</MaxSerialPort>
 			<MaxSerialPortChannels>512</MaxSerialPortChannels>
-			<MaxPixelPortChannels>1020</MaxPixelPortChannels>
+			<MaxPixelPortChannels>340</MaxPixelPortChannels>
 			<AllInputUniversesMustBeSameSize/>
 			<PixelProtocols>
 				<Protocol>ws2811</Protocol>
@@ -56,7 +56,7 @@
 			<MaxPixelPort>48</MaxPixelPort>
 			<MaxSerialPort>2</MaxSerialPort>
 			<MaxSerialPortChannels>512</MaxSerialPortChannels>
-			<MaxPixelPortChannels>1020</MaxPixelPortChannels>
+			<MaxPixelPortChannels>340</MaxPixelPortChannels>
 			<AllInputUniversesMustBeSameSize/>
 			<PixelProtocols>
 				<Protocol>ws2811</Protocol>
