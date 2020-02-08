@@ -466,7 +466,7 @@ namespace DrawGLUtils
         xlVertex3ColorAccumulator(unsigned int m) : xlVertexColorAccumulator(m) {
             SetCoordsPerVertex(3);
         }
-        xlVertex3ColorAccumulator(xlVertex3ColorAccumulator &&mv) : xlVertexColorAccumulator(mv) {
+        xlVertex3ColorAccumulator(xlVertex3ColorAccumulator &&mv) noexcept : xlVertexColorAccumulator(mv) {
         }
         xlVertex3ColorAccumulator(const xlVertex3ColorAccumulator &mv) : xlVertexColorAccumulator(mv) {
         }

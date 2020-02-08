@@ -1933,7 +1933,7 @@ bool Model::IsValidStartChannelString() const
     else if (parts[0][0] == '!')
     {
         if ((parts.size() == 2) &&
-            (modelManager.GetOutputManager()->GetOutput(parts[0].substr(1)) != nullptr) &&
+            (modelManager.GetOutputManager()->GetController(parts[0].substr(1)) != nullptr) &&
             (parts[1].IsNumber() && wxAtol(parts[1]) > 0 && !parts[1].Contains('.')))
         {
             return true;
@@ -2038,12 +2038,10 @@ int Model::GetNumberFromChannelString(const std::string &str, bool &valid, std::
         {
             wxString ss = wxString(str);
             wxArrayString cs = wxSplit(ss.SubString(1, ss.Length()), ':');
-            if (cs.Count() == 2)
-            {
-                Output* o = modelManager.GetOutputManager()->GetOutput(cs[0].Trim(false).Trim(true).ToStdString());
-                if (o != nullptr)
-                {
-                    return o->GetStartChannel() - 1 + wxAtoi(cs[1]);
+            if (cs.Count() == 2) {
+                Controller* c = modelManager.GetOutputManager()->GetController(cs[0].Trim(false).Trim(true).ToStdString());
+                if (c != nullptr) {
+                    return c->GetStartChannel() - 1 + wxAtoi(cs[1]);
                 }
             }
             valid = false;
@@ -2672,11 +2670,11 @@ std::string Model::GetChannelInStartChannelFormat(OutputManager* outputManager, 
     else if (firstChar == '!')
     {
         auto comps = wxSplit(modelFormat, ':');
-        auto o = outputManager->GetOutput(comps[0].substr(1));
+        auto c = outputManager->GetController(comps[0].substr(1));
         int32_t start = 1;
-        if (o != nullptr)
+        if (c != nullptr)
         {
-            start = o->GetStartChannel();
+            start = c->GetStartChannel();
         }
         unsigned int lastChannel = GetLastChannel() + 1;
         return wxString(modelFormat).BeforeFirst(':') + ":" + wxString::Format("%d (%u)", lastChannel - start + 1, lastChannel);

@@ -14,6 +14,7 @@
 #include "FileConverter.h"
 #include "UtilFunctions.h"
 #include "outputs/OutputManager.h"
+#include "outputs/Controller.h"
 #ifndef FPP
     #include "xLightsMain.h"
     #include "ConvertDialog.h"
@@ -944,7 +945,8 @@ void FileConverter::ReadHLSFile(ConvertParameters& params)
     for (tmp = 0; tmp < map.size(); tmp += 2)
     {
         int i = map[tmp + 1];
-        int orig = params._outputManager->GetOutput(tmp / 2)->GetChannels();
+        int orig = params._outputManager->GetControllerIndex(tmp / 2)->GetChannels();
+        //int orig = params._outputManager->GetOutput(tmp / 2)->GetChannels();
         if (i < orig) {
             params.AppendConvertStatus(string_format(wxString("Found Universe: %ld   Channels in Seq: %ld   Configured: %d"), map[tmp], i, orig), false);
             i = orig;

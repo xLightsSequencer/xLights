@@ -1925,11 +1925,9 @@ void xLightsFrame::DeleteSelectedControllers()
 {
     auto selections = GetSelectedControllerNames();
 
-    for (const auto &it : selections)
-    {
+    for (const auto &it : selections) {
         _outputManager.DeleteController(it);
     }
-    _outputManager.UpdateUnmanaged();
     _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "DeleteSelectedControllers");
     _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "DeleteSelectedControllers");
     _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "DeleteSelectedControllers");

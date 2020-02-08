@@ -17,6 +17,7 @@
 #include "outputs/Output.h"
 #include "UtilFunctions.h"
 #include "outputs/OutputManager.h"
+#include "outputs/Controller.h"
 
 // xml
 #include "../include/spxml-0.5/spxmlparser.hpp"
@@ -1084,14 +1085,13 @@ void ConvertDialog::ReadHLSFile(const wxString& filename)
     int msPerCell = 50;
     long channels = 0;
     long cnt = 0;
-    long tmp;
+    long tmp = 0;
     long universe = 0;
     long channelsInUniverse = 0;
     std::string NodeName;
     std::vector<std::string> context;
     wxArrayInt map;
     bool showChannelMap = showChannelMapping();
-
 
     SP_XmlPullParser *parser = new SP_XmlPullParser();
     wxFile file(filename);
@@ -1216,7 +1216,8 @@ void ConvertDialog::ReadHLSFile(const wxString& filename)
     for (tmp = 0; tmp < map.size(); tmp += 2)
     {
         int i = map[tmp + 1];
-        int orig = _outputManager->GetOutput(tmp / 2)->GetChannels();
+        int orig = _outputManager->GetControllerIndex(tmp / 2)->GetChannels();
+        //int orig = _outputManager->GetOutput(tmp / 2)->GetChannels();
         if (i < orig) {
             AppendConvertStatus(string_format(wxString("Found Universe: %d   Channels in Seq: %d   Configured: %d\n"), map[tmp], i, orig), false);
             i = orig;

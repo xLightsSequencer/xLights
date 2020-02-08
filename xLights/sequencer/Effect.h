@@ -30,23 +30,23 @@ wxDECLARE_EVENT(EVT_SETTIMINGTRACKS, wxCommandEvent);
 // An effect represents a generic effect
 class Effect
 {
-    int mID;
-    short mEffectIndex;
+    int mID = 0;
+    short mEffectIndex = -1;
     std::string *mName;
-    int mStartTime;
-    int mEndTime;
-    int mSelected;
-    bool mTagged;
-    bool mProtected;
-    EffectLayer* mParentLayer;
-    xlColor mColorMask;
+    int mStartTime = 0;
+    int mEndTime = 0;
+    int mSelected = 0;
+    bool mTagged = false;
+    bool mProtected = false;
+    EffectLayer* mParentLayer = nullptr;
+    xlColor mColorMask = xlBLACK;
     mutable std::recursive_mutex settingsLock;
     SettingsMap mSettings;
     SettingsMap mPaletteMap;
     xlColorVector mColors;
     xlColorCurveVector mCC;
     DrawGLUtils::xlDisplayList background;
-    RenderCacheItem *mCache;
+    RenderCacheItem *mCache = nullptr;
     wxLongLong _timeToDelete = 0;
 
     Effect() {}  //don't allow default or copy constructor

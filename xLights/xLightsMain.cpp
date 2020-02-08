@@ -4427,7 +4427,7 @@ void xLightsFrame::CheckSequence(bool display)
             {
                 if (std::find(used.begin(), used.end(), o->GetCommPort()) != used.end())
                 {
-                    wxString msg = wxString::Format("    ERR: Multiple outputs being sent to the same comm port %s '%s' %s.", (const char *)o->GetType().c_str(), (const char *)o->GetCommPort().c_str(), (const char*)o->GetDescription().c_str());
+                    wxString msg = wxString::Format("    ERR: Multiple outputs being sent to the same comm port %s '%s'.", (const char *)o->GetType().c_str(), (const char *)o->GetCommPort().c_str());
                     LogAndWrite(f, msg.ToStdString());
                     errcount++;
                 }
@@ -4670,8 +4670,8 @@ void xLightsFrame::CheckSequence(bool display)
             {
                 if (lastuniverse[n->GetIP()] > n->GetUniverse())
                 {
-                    wxString msg = wxString::Format("    WARN: Controller %s %s Universe %d occurs after universe %d. Some controllers do not like out of order universes.",
-                                                    n->GetIP(), n->GetDescription(), n->GetUniverse(), lastuniverse[n->GetIP()]);
+                    wxString msg = wxString::Format("    WARN: Controller %s Universe %d occurs after universe %d. Some controllers do not like out of order universes.",
+                                                    n->GetIP(), n->GetUniverse(), lastuniverse[n->GetIP()]);
                     LogAndWrite(f, msg.ToStdString());
                     warncount++;
                 }
@@ -4901,7 +4901,7 @@ void xLightsFrame::CheckSequence(bool display)
             else if (start[0] == '!')
             {
                 auto comp = wxSplit(start.substr(1), ':');
-                if (_outputManager.GetOutput(comp[0]) == nullptr)
+                if (_outputManager.GetController(comp[0]) == nullptr)
                 {
                     wxString msg = wxString::Format("    ERR: Model '%s' start channel '%s' refers to non existent controller '%s'.", it->first, start, comp[0]);
                     LogAndWrite(f, msg.ToStdString());
