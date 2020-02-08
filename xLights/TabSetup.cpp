@@ -1615,45 +1615,45 @@ void xLightsFrame::SetControllersProperties()
 
         p = Controllers_PropertyEditor->Append(new wxStringProperty("Global FPP Proxy", "GlobalFPPProxy", _outputManager.GetGlobalFPPProxy()));
     }
-    else if (selections.size() == 1)
-    {
+    else if (selections.size() == 1) {
+
         auto controller = _outputManager.GetController(selections.front());
+        auto eth = dynamic_cast<ControllerEthernet*>(controller);
         if (controller != nullptr) {
             int usingip = _outputManager.GetControllerCount(controller->GetType(), controller->GetColumn2Label());
 
-            if (usingip == 1)
-            {
+            if (usingip == 1) {
                 ButtonVisualise->Enable();
             }
-            else
-            {
+            else {
                 ButtonVisualise->Enable(false);
             }
 
             auto caps = GetControllerCaps(selections.front());
             if (caps != nullptr && caps->SupportsUpload() && usingip == 1)
             {
-                if (caps->SupportsInputOnlyUpload())
-                {
+                if (caps->SupportsInputOnlyUpload() && (eth == nullptr || (eth->GetProtocol() != OUTPUT_DDP && eth->GetProtocol() != OUTPUT_ZCPP))) {
                     ButtonUploadInput->Enable();
                 }
                 else
                 {
-                    ButtonUploadInput->Enable(false);
+                        ButtonUploadInput->Enable(false);
                 }
-                ButtonUploadOutput->Enable();
+                if (eth == nullptr || eth->GetProtocol() != OUTPUT_ZCPP) {
+                    ButtonUploadOutput->Enable();
+                }
+                else {
+                    ButtonUploadOutput->Enable(false);
+                }
             }
-            else
-            {
+            else {
                 ButtonUploadInput->Enable(false);
                 ButtonUploadOutput->Enable(false);
             }
-            if (dynamic_cast<ControllerEthernet*>(controller) != nullptr)
-            {
+            if (dynamic_cast<ControllerEthernet*>(controller) != nullptr) {
                 ButtonOpen->Enable();
             }
-            else
-            {
+            else {
                 ButtonOpen->Enable(false);
             }
             ButtonControllerDelete->Enable();
@@ -1676,8 +1676,7 @@ void xLightsFrame::SetControllersProperties()
 
     // restore property grid location
     Controllers_PropertyEditor->RestoreEditableState(save);
-    if (selProp != "")
-    {
+    if (selProp != "") {
         auto p = Controllers_PropertyEditor->GetPropertyByName(selProp);
         if (p != nullptr) Controllers_PropertyEditor->EnsureVisible(p);
     }
@@ -1686,6 +1685,7 @@ void xLightsFrame::SetControllersProperties()
 
     Controllers_PropertyEditor->Thaw();
 
+    // This has to be done when the Property editor is not frozen ... as it is ignored if called when frozen
     Controllers_PropertyEditor->ExpandAll();
 }
 
