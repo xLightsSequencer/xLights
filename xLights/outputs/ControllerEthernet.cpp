@@ -430,12 +430,6 @@ void ControllerEthernet::AddProperties(wxPropertyGrid* propertyGrid, ModelManage
 
     p = propertyGrid->Append(new wxEnumProperty("Protocol", "Protocol", __types, EncodeChoices(__types, _type)));
 
-    if (_type == OUTPUT_ZCPP) {
-        p = propertyGrid->Append(new wxStringProperty("Multicast Address", "MulticastAddressDisplay", ZCPP_GetDataMulticastAddress(_ip)));
-        p->ChangeFlag(wxPG_PROP_READONLY, true);
-        p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
-    }
-
     bool allSameSize = AllSameSize();
     if (_outputs.size() == 1) {
         _outputs.front()->AddProperties(propertyGrid, allSameSize);
@@ -461,24 +455,6 @@ void ControllerEthernet::AddProperties(wxPropertyGrid* propertyGrid, ModelManage
     if (IsFPPProxyable()) {
         p = propertyGrid->Append(new wxStringProperty("FPP Proxy IP/Hostname", "FPPProxy", GetControllerFPPProxy()));
         p->SetHelpString("This is typically the WIFI IP of a FPP instance that bridges two networks.");
-    }
-
-    if (_type == OUTPUT_ZCPP) {
-        auto zcpp = dynamic_cast<ZCPPOutput*>(_outputs.front());
-
-        if (zcpp != nullptr) {
-            p = propertyGrid->Append(new wxBoolProperty("Supports Virtual Strings", "SupportsVirtualStrings", zcpp->IsSupportsVirtualStrings()));
-            p->SetEditor("CheckBox");
-
-            p = propertyGrid->Append(new wxBoolProperty("Supports Smart Remotes", "SupportsSmartRemotes", zcpp->IsSupportsSmartRemotes()));
-            p->SetEditor("CheckBox");
-
-            p = propertyGrid->Append(new wxBoolProperty("Send Data Multicast", "SendDataMulticast", zcpp->IsMulticast()));
-            p->SetEditor("CheckBox");
-
-            p = propertyGrid->Append(new wxBoolProperty("Suppress Sending Configuration", "DontSendConfig", zcpp->IsDontConfigure()));
-            p->SetEditor("CheckBox");
-        }
     }
 
     if (_type == OUTPUT_E131 || _type == OUTPUT_ARTNET || _type == OUTPUT_xxxETHERNET) {
@@ -586,26 +562,6 @@ bool ControllerEthernet::HandlePropertyEvent(wxPropertyGridEvent& event, OutputM
     else if (name == "FPPProxy") {
         SetFPPProxy(event.GetValue().GetString());
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ControllerEthernet::HandlePropertyEvent::FPPProxy");
-        return true;
-    }
-    else if (name == "SupportsVirtualStrings") {
-        dynamic_cast<ZCPPOutput*>(_outputs.front())->SetSupportsVirtualStrings(event.GetValue().GetBool());
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ControllerEthernet::HandlePropertyEvent::SupportsVirtualStrings");
-        return true;
-    }
-    else if (name == "SupportsSmartRemotes") {
-        dynamic_cast<ZCPPOutput*>(_outputs.front())->SetSupportsSmartRemotes(event.GetValue().GetBool());
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ControllerEthernet::HandlePropertyEvent::SupportsSmartRemotes");
-        return true;
-    }
-    else if (name == "SendDataMulticast") {
-        dynamic_cast<ZCPPOutput*>(_outputs.front())->SetMulticast(event.GetValue().GetBool());
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ControllerEthernet::HandlePropertyEvent::SendDataMulticast");
-        return true;
-    }
-    else if (name == "DontSendConfig") {
-        dynamic_cast<ZCPPOutput*>(_outputs.front())->SetDontConfigure(event.GetValue().GetBool());
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ControllerEthernet::HandlePropertyEvent::DontSendConfig");
         return true;
     }
     else if (name == "Managed") {

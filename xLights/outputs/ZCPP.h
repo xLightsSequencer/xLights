@@ -16,50 +16,10 @@
 *
 */
 
-#ifndef ZCPP_H
-#define ZCPP_H
+#pragma once
 
 #define ZCPP_MULTICAST_ADDRESS "224.0.30.5"
 #define ZCPP_MULTICAST_DATA_ADDRESS "224.0.31."
-
-inline std::string ZCPP_GetDataMulticastAddress(const std::string& controllerIP)
-{
-	// trim leading and trailing blanks
-	const auto begin = controllerIP.find_first_not_of(" \t");
-	if (begin == std::string::npos) return ""; // no content
-	const auto end = controllerIP.find_last_not_of(" \t");
-	const auto strRange = end - begin + 1;
-	auto working = controllerIP.substr(begin, strRange);
-
-	// tokenise around '.'
-	std::list<std::string> ipComp;
-	size_t pos = 0;
-	while ((pos = working.find(".")) != std::string::npos) {
-		ipComp.push_back(working.substr(0, pos));
-		working.erase(0, pos + 1);
-	}
-	if (working.size() > 0) {
-		ipComp.push_back(working);
-	}
-
-	// check for 4 values
-	if (ipComp.size() != 4) return "";
-
-	// check each value is in range 0-255
-	for (const auto& it : ipComp)
-	{
-		for (const auto it2 : it)
-		{
-			if (!std::isdigit(it2)) return "";
-		}
-
-		int c = atoi(it.c_str());
-		if (c < 0 || c > 255) return "";
-	}
-
-	// now take the last and return the multicast address
-	return ZCPP_MULTICAST_DATA_ADDRESS + ipComp.back();
-}
 
 // Defaults
 #define ZCPP_PORT 30005
@@ -73,6 +33,10 @@ inline std::string ZCPP_GetDataMulticastAddress(const std::string& controllerIP)
 #define ZCPP_TYPE_QUERY_CONFIG_RESPONSE 0x0D
 #define ZCPP_TYPE_DATA 0x14
 #define ZCPP_TYPE_SYNC 0x15
+
+#define ZCPP_SEND_CONFIG_EVERY_N_SECONDS 10
+// Extra data interval must be a multiple of the ZCPP_SEND_CONFIG_EVERY_N_SECONDS setting ... 10 * 6 = 60
+#define ZCPP_SEND_CONFIG_EXTRADATA_EVERY_N_SECONDS 60
 
 #define ZCPP_CURRENT_PROTOCOL_VERSION 0x00
 
@@ -423,20 +387,20 @@ __attribute__((packed))
 #pragma pack(pop)
 #endif
 
-inline uint32_t ZCPP_FromWire32(uint32_t value)
-{
+// Converts a 32 bit value from a network packet to an uint32
+inline uint32_t ZCPP_FromWire32(uint32_t value) {
     uint8_t* p = (uint8_t*)&value;
     return (((uint32_t)(*p)) << 24) + (((uint32_t)*(p + 1)) << 16) + (((uint32_t)*(p + 2)) << 8) + ((uint32_t)*(p + 3));
 }
 
-inline uint16_t ZCPP_FromWire16(uint16_t value)
-{
+// Converts a 16 bit value from a network packet to an uint16
+inline uint16_t ZCPP_FromWire16(uint16_t value) {
     uint8_t* p = (uint8_t*)&value;
     return (((uint16_t)(*p)) << 8) + (uint16_t)(*(p + 1));
 }
 
-inline uint32_t ZCPP_ToWire32(uint32_t value)
-{
+// Converts a uint32 value to the  network packet 
+inline uint32_t ZCPP_ToWire32(uint32_t value) {
     uint8_t res[4];
     res[0] = value >> 24;
     res[1] = (value & 0xFF0000) >> 16;
@@ -445,18 +409,17 @@ inline uint32_t ZCPP_ToWire32(uint32_t value)
     return *(uint32_t*)res;
 }
 
-inline uint16_t ZCPP_ToWire16(uint32_t value)
-{
+// Converts a uint16 value to the  network packet 
+inline uint16_t ZCPP_ToWire16(uint32_t value) {
     uint8_t res[2];
     res[0] = (value & 0xFF00) >> 8;
     res[1] = value & 0xFF;
     return *(uint16_t*)res;
 }
 
-inline uint16_t ZCPP_GetPacketActualSize(const ZCPP_packet_t& packet)
-{
-    switch (packet.Discovery.Header.type)
-    {
+// Calculates the ZCPP packet size based on the packet contents
+inline uint16_t ZCPP_GetPacketActualSize(const ZCPP_packet_t& packet) {
+    switch (packet.Discovery.Header.type) {
     case ZCPP_TYPE_DISCOVERY:
         return sizeof(ZCPP_Discovery);
     case ZCPP_TYPE_DISCOVERY_RESPONSE:
@@ -467,8 +430,7 @@ inline uint16_t ZCPP_GetPacketActualSize(const ZCPP_packet_t& packet)
     {
         int size = ZCPP_EXTRADATA_HEADER_SIZE;
         int i;
-        for (i = 0; i < packet.ExtraData.ports; i++)
-        {
+        for (i = 0; i < packet.ExtraData.ports; i++) {
             ZCPP_PortExtraData* p = (ZCPP_PortExtraData*)& packet.raw[size];
             size += ZCPP_PORTEXTRADATA_HEADER_SIZE + p->descriptionLength;
         }
@@ -487,4 +449,40 @@ inline uint16_t ZCPP_GetPacketActualSize(const ZCPP_packet_t& packet)
     return 0;
 }
 
-#endif
+// given the controllers IP returns the multicast IP to use for that controller
+inline std::string ZCPP_GetDataMulticastAddress(const std::string& controllerIP) {
+
+	// trim leading and trailing blanks
+	const auto begin = controllerIP.find_first_not_of(" \t");
+	if (begin == std::string::npos) return ""; // no content
+	const auto end = controllerIP.find_last_not_of(" \t");
+	const auto strRange = end - begin + 1;
+	auto working = controllerIP.substr(begin, strRange);
+
+	// tokenise around '.'
+	std::list<std::string> ipComp;
+	size_t pos = 0;
+	while ((pos = working.find(".")) != std::string::npos) {
+		ipComp.push_back(working.substr(0, pos));
+		working.erase(0, pos + 1);
+	}
+	if (working.size() > 0) {
+		ipComp.push_back(working);
+	}
+
+	// check for 4 values
+	if (ipComp.size() != 4) return "";
+
+	// check each value is in range 0-255
+	for (const auto& it : ipComp) {
+		for (const auto it2 : it) {
+			if (!std::isdigit(it2)) return "";
+		}
+
+		int c = atoi(it.c_str());
+		if (c < 0 || c > 255) return "";
+	}
+
+	// now take the last and return the multicast address
+	return ZCPP_MULTICAST_DATA_ADDRESS + ipComp.back();
+}
