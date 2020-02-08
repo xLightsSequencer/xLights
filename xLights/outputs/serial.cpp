@@ -2,19 +2,8 @@
 // Copyright:   (c) 2010 Joachim Buermann
 
 #include "serial.h"
+
 #include <log4cpp/Category.hh>
-
-#pragma region Callback 
-void SerialPort::SetCallback(int cb)
-{
-    _callback = cb;
-}
-
-int SerialPort::GetCallback()
-{
-    return _callback;
-}
-#pragma endregion Callback 
 
 #ifdef __WXMSW__
 # include "serial_win32.cpp"

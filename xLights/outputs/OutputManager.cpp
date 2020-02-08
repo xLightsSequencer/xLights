@@ -1026,16 +1026,17 @@ std::string OutputManager::GetFirstUnusedCommPort() const
 {
     auto ports = SerialOutput::GetAvailableSerialPorts();
 
-    if (ports.size() == 1 && ports.front() == "(no available ports)") return "NotConnected";
-
-    for (const auto& it : ports)
-    {
+    if (ports.size() == 1) {
+        if (ports.front() == "(no available ports)") return "NotConnected";
+#ifdef __LINUX__
+        if (ports.front() == "port enumeration not supported on Linux") return "NotConnected";
+#endif
+    }
+    for (const auto& it : ports) {
         bool used = false;
-        for (const auto& it2 : _controllers)
-        {
+        for (const auto& it2 : _controllers) {
             auto s = dynamic_cast<ControllerSerial*>(it2);
-            if (s != nullptr && s->GetPort() == it)
-            {
+            if (s != nullptr && s->GetPort() == it) {
                 used = true;
                 break;
             }

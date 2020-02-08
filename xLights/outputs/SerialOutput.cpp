@@ -16,123 +16,72 @@
 
 #include <log4cpp/Category.hh>
 
+#pragma region Private Functions
+void SerialOutput::Save(wxXmlNode* node) {
+
+    if (_commPort != "") {
+        node->AddAttribute("ComPort", _commPort.c_str());
+    }
+
+    if (_baudRate != 0) {
+        node->AddAttribute("BaudRate", wxString::Format(wxT("%i"), _baudRate));
+    }
+    else {
+        node->AddAttribute("BaudRate", "n/a");
+    }
+
+    Output::Save(node);
+}
+#pragma endregion
+
 #pragma region Constructors and Destructors
-SerialOutput::SerialOutput(wxXmlNode* node) : Output(node)
-{
-    _serial = nullptr;
+SerialOutput::SerialOutput(wxXmlNode* node) : Output(node) {
+    
     strcpy(_serialConfig, "8N1");
     _commPort = node->GetAttribute("ComPort", "").ToStdString();
-    if (node->GetAttribute("BaudRate", "n/a") == "n/a")
-    {
+    if (node->GetAttribute("BaudRate", "n/a") == "n/a") {
         _baudRate = 0;
     }
-    else
-    {
+    else {
         _baudRate = wxAtoi(node->GetAttribute("BaudRate", ""));
     }
     SetId(wxAtoi(node->GetAttribute("Id", "0")));
 }
 
-int SerialOutput::GetStopBits() const
-{
-    std::string s;
-    s += _serialConfig[2];
-    return wxAtoi(s);
-}
+SerialOutput::SerialOutput(SerialOutput* output) : Output(output) {
 
-std::string SerialOutput::GetParity() const
-{
-    if (_serialConfig[1] == 'N') return "None";
-    if (_serialConfig[1] == 'O') return "Odd";
-    if (_serialConfig[1] == 'E') return "Even";
-    return "None";
-}
-
-SerialOutput::SerialOutput(SerialOutput* output) : Output(output)
-{
-    _serial = nullptr;
     strcpy(_serialConfig, "8N1");
     _commPort = output->GetCommPort();
     _baudRate = output->GetBaudRate();
 }
 
-SerialOutput::SerialOutput() : Output()
-{
-    _serial = nullptr;
+SerialOutput::SerialOutput() : Output() {
+
     strcpy(_serialConfig, "8N1");
     _commPort = GetPossibleSerialPorts().front();
     _baudRate = 250000;
 }
 
-SerialOutput::~SerialOutput()
-{
+SerialOutput::~SerialOutput() {
+
     if (_serial != nullptr) delete _serial;
 }
-#pragma endregion Constructors and Destructors
 
-#pragma region Save
-void SerialOutput::Save(wxXmlNode* node)
-{
-    if (_commPort != "")
-    {
-        node->AddAttribute("ComPort", _commPort.c_str());
-    }
+wxXmlNode* SerialOutput::Save() {
 
-    if (_baudRate != 0)
-    {
-        node->AddAttribute("BaudRate", wxString::Format(wxT("%i"), _baudRate));
-    }
-    else
-    {
-        node->AddAttribute("BaudRate", "n/a");
-    }
-
-    node->AddAttribute("Id", wxString::Format(wxT("%i"), GetId()));
-
-    Output::Save(node);
-}
-
-wxXmlNode* SerialOutput::Save()
-{
     wxXmlNode* node = new wxXmlNode(wxXML_ELEMENT_NODE, "network");
     Save(node);
 
     return node;
 }
-#pragma endregion Save
+#pragma endregion 
 
-#pragma region Getters and Setters
-size_t SerialOutput::TxNonEmptyCount() const
-{
-    return _serial ? _serial->WaitingToWrite() : 0;
-}
+#pragma region static Functions
+std::list<std::string> SerialOutput::GetPossibleSerialPorts() {
 
-bool SerialOutput::TxEmpty() const
-{
-    if (_serial) return (_serial->WaitingToWrite() == 0);
-    return true;
-}
-
-std::string SerialOutput::GetLongDescription() const
-{
-    std::string res = "";
-
-    if (!_enabled) res += "INACTIVE ";
-    res += GetType();
-    res += " [1-" + std::string(wxString::Format(wxT("%d"), _channels)) + "] ";
-    res += "(" + std::string(wxString::Format(wxT("%d"), GetStartChannel())) + "-" + std::string(wxString::Format(wxT("%i"), GetEndChannel())) + ") ";
-
-    return res;
-}
-#pragma endregion Getters and Setters
-
-#pragma region Static Functions
-std::list<std::string> SerialOutput::GetPossibleSerialPorts()
-{
     std::list<std::string> res;
 
     res.push_back("NotConnected");
-
 #ifdef __WXMSW__
     // Windows
     res.push_back("COM1");
@@ -160,20 +109,15 @@ std::list<std::string> SerialOutput::GetPossibleSerialPorts()
     // scan /dev directory for candidates
     wxArrayString output, errors;
     wxExecute("ls -1 /dev", output, errors, wxEXEC_SYNC);
-    if (!errors.IsEmpty())
-    {
+    if (!errors.IsEmpty()) {
         DisplayError(errors.Last());
     }
-    else if (output.IsEmpty())
-    {
+    else if (output.IsEmpty()) {
         DisplayError(_("no devices found"));
     }
-    else
-    {
-        for (int i = 0; i<output.Count(); i++)
-        {
-            if (output[i].StartsWith("cu."))
-            {
+    else {
+        for (int i = 0; i < output.Count(); i++) {
+            if (output[i].StartsWith("cu.")) {
                 res.push_back("/dev/" + output[i].ToStdString());
             }
         }
@@ -195,8 +139,8 @@ std::list<std::string> SerialOutput::GetPossibleSerialPorts()
     return res;
 }
 
-std::list<std::string> SerialOutput::GetPossibleBaudRates()
-{
+std::list<std::string> SerialOutput::GetPossibleBaudRates() {
+
     std::list<std::string> res;
 
     res.push_back("9600");
@@ -215,8 +159,8 @@ std::list<std::string> SerialOutput::GetPossibleBaudRates()
     return res;
 }
 
-std::list<std::string> SerialOutput::GetAvailableSerialPorts()
-{
+std::list<std::string> SerialOutput::GetAvailableSerialPorts() {
+
     std::list<std::string> res;
 
 #ifdef __WXMSW__
@@ -229,12 +173,10 @@ std::list<std::string> SerialOutput::GetAvailableSerialPorts()
 
     //enum serial comm ports (more user friendly, especially if USB-to-serial ports change):
     //logic based on http://www.cplusplus.com/forum/windows/73821/
-    if (!((err = RegOpenKeyEx(HKEY_LOCAL_MACHINE, TEXT("HARDWARE\\DEVICEMAP\\SERIALCOMM"), 0, KEY_READ, &hkey))))
-    {
+    if (!((err = RegOpenKeyEx(HKEY_LOCAL_MACHINE, TEXT("HARDWARE\\DEVICEMAP\\SERIALCOMM"), 0, KEY_READ, &hkey)))) {
         for (DWORD inx = 0; !((err = RegEnumValue(hkey, inx, (LPTSTR)valname, &vallen, nullptr, nullptr, (LPBYTE)portname, &portlen))) || (err == ERROR_MORE_DATA); ++inx)
         {
-            if (err == ERROR_MORE_DATA)
-            {
+            if (err == ERROR_MORE_DATA) {
                 portname[sizeof(portname) / sizeof(portname[0]) - 1] = '\0';
             }
             //need to enlarge read buf if this happens; just truncate string for now
@@ -243,14 +185,12 @@ std::list<std::string> SerialOutput::GetAvailableSerialPorts()
             vallen = sizeof(valname);
             portlen = sizeof(portname);
         }
-        if (err && (err != ERROR_NO_MORE_ITEMS))
-        {
+        if (err && (err != ERROR_NO_MORE_ITEMS)) {
             res.push_back(wxString::Format("Error %d (can't get serial comm ports from registry)", err).ToStdString());
         }
         if (hkey) RegCloseKey(hkey);
     }
-    else
-    {
+    else {
         res.push_back("(no available ports)");
     }
 #elif __WXOSX__
@@ -258,20 +198,16 @@ std::list<std::string> SerialOutput::GetAvailableSerialPorts()
     // scan /dev directory for candidates
     wxArrayString output, errors;
     wxExecute("ls -1 /dev", output, errors, wxEXEC_SYNC);
-    if (!errors.IsEmpty())
-    {
+    if (!errors.IsEmpty()) {
         DisplayError(errors.Last());
     }
-    else if (output.IsEmpty())
-    {
+    else if (output.IsEmpty()) {
+        res.push_back("(no available ports)");
         DisplayError(_("no devices found"));
     }
-    else
-    {
-        for (int i = 0; i<output.Count(); i++)
-        {
-            if (output[i].StartsWith("cu."))
-            {
+    else {
+        for (int i = 0; i < output.Count(); i++) {
+            if (output[i].StartsWith("cu.")) {
                 res.push_back("/dev/" + output[i].ToStdString());
             }
         }
@@ -282,34 +218,84 @@ std::list<std::string> SerialOutput::GetAvailableSerialPorts()
 
     return res;
 }
-#pragma endregion Static Functions
+#pragma endregion 
+
+#pragma region Getters and Setters
+std::string SerialOutput::GetLongDescription() const {
+
+    std::string res = "";
+
+    if (!_enabled) res += "INACTIVE ";
+    res += GetType();
+    res += " [1-" + std::string(wxString::Format(wxT("%d"), _channels)) + "] ";
+    res += "(" + std::string(wxString::Format(wxT("%d"), GetStartChannel())) + "-" + std::string(wxString::Format(wxT("%i"), GetEndChannel())) + ") ";
+
+    return res;
+}
+
+size_t SerialOutput::TxNonEmptyCount() const {
+    return (_serial != nullptr) ? _serial->WaitingToWrite() : 0;
+}
+
+bool SerialOutput::TxEmpty() const {
+    if (_serial != nullptr) return (_serial->WaitingToWrite() == 0);
+    return true;
+}
+
+Output::PINGSTATE SerialOutput::Ping() const {
+
+    if (_serial != nullptr && _ok) {
+        return Output::PINGSTATE::PING_OPEN;
+    }
+    else {
+
+        Output::PINGSTATE res = Output::PINGSTATE::PING_ALLFAILED;
+        
+        SerialPort* serial = new SerialPort();
+        int errcode = serial->Open(_commPort, _baudRate, _serialConfig);
+        if (errcode >= 0) {
+            res = Output::PINGSTATE::PING_OPENED;
+            serial->Close();
+        }
+
+        delete serial;
+        return res;
+    }
+}
+#pragma endregion
+
+#pragma region Operators
+bool SerialOutput::operator==(const SerialOutput& output) const {
+
+    if (GetType() != output.GetType()) return false;
+
+    return _commPort == output.GetCommPort();
+}
+#pragma endregion
 
 #pragma region Start and Stop
-bool SerialOutput::Open()
-{
+bool SerialOutput::Open() {
+
     log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     _ok = Output::Open();
 
-    if (_commPort == "")
-    {
+    if (_commPort == "") {
         return false;
     }
 
-    if (_commPort == "NotConnected")
-    {
+    if (_commPort == "NotConnected") {
+
         logger_base.warn("Serial port %s for %s not opened as it is tagged as not connected.", (const char *)_commPort.c_str(), (const char *)GetType().c_str());
         // dont set ok to false ... while this is not really open it is not an error as the user meant it to be not connected.
     }
-    else
-    {
+    else {
         _serial = new SerialPort();
 
         logger_base.debug("Opening serial port %s. Baud rate = %d. Config = %s.", (const char *)_commPort.c_str(), _baudRate, (const char *)_serialConfig);
 
         int errcode = _serial->Open(_commPort, _baudRate, _serialConfig);
-        if (errcode < 0)
-        {
+        if (errcode < 0) {
             delete _serial;
             _serial = nullptr;
 
@@ -318,14 +304,13 @@ bool SerialOutput::Open()
 
             std::string p = "";
             auto ports = GetAvailableSerialPorts();
-            for (auto it = ports.begin(); it != ports.end(); ++it)
+            for (const auto& it : ports)
             {
                 if (p != "") p += ", ";
-                p += *it;
+                p += it;
             }
 
-            if (OutputManager::IsInteractive())
-            {
+            if (OutputManager::IsInteractive()) {
                 wxString msg = wxString::Format(_("Error occurred while connecting to %s network on %s (Available Ports %s) \n\n") +
                     _("Things to check:\n") +
                     _("1. Are all required cables plugged in?\n") +
@@ -340,8 +325,7 @@ bool SerialOutput::Open()
                 DisplayError(msg);
             }
         }
-        else
-        {
+        else {
             logger_base.debug("    Serial port %s open.", (const char *)_commPort.c_str());
         }
     }
@@ -375,97 +359,22 @@ void SerialOutput::Close() {
         logger_base.debug("    Serial port %s closed in %d milliseconds.", (const char *)_commPort.c_str(), i * 5);
     }
 }
+#pragma endregion
 
-void SerialOutput::StartFrame(long msec)
-{
+#pragma region Frame Handling
+void SerialOutput::StartFrame(long msec) {
+
     log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     if (!_enabled) return;
 
-    if (!_ok && OutputManager::IsRetryOpen())
-    {
+    if (!_ok && OutputManager::IsRetryOpen()) {
         _ok = SerialOutput::Open();
-        if (_ok)
-        {
+        if (_ok) {
             logger_base.debug("SerialOutput: Open retry successful. %s.", (const char *)_commPort.c_str());
         }
     }
 
     _timer_msec = msec;
 }
-#pragma endregion Start and Stop
-
-#pragma region Operator
-bool SerialOutput::operator==(const SerialOutput& output) const
-{
-    if (GetType() != output.GetType()) return false;
-
-    return _commPort == output.GetCommPort();
-}
-#pragma endregion Operator
-
-SerialOutput* SerialOutput::Mutate(const std::string& newtype)
-{
-    if (newtype == OUTPUT_DMX)
-    {
-        return new DMXOutput(this);
-    }
-    else if (newtype == OUTPUT_PIXELNET)
-    {
-        return new PixelNetOutput(this);
-    }
-    else if (newtype == OUTPUT_xxxSERIAL)
-    {
-        return new xxxSerialOutput(this);
-    }
-    else if (newtype == OUTPUT_LOR)
-    {
-        return new LOROutput(this);
-    }
-    else if (newtype == OUTPUT_LOR_OPT)
-    {
-        return new LOROptimisedOutput(this);
-    }
-    else if (newtype == OUTPUT_DLIGHT)
-    {
-        return new DLightOutput(this);
-    }
-    else if (newtype == OUTPUT_RENARD)
-    {
-        return new RenardOutput(this);
-    }
-    else if (newtype == OUTPUT_OPENDMX)
-    {
-        return new OpenDMXOutput(this);
-    }
-    else if (newtype == OUTPUT_OPENPIXELNET)
-    {
-        return new OpenPixelNetOutput(this);
-    }
-
-
-    return nullptr;
-}
-
-Output::PINGSTATE SerialOutput::Ping() const
-{
-    if (_serial != nullptr && _ok)
-    {
-        return Output::PINGSTATE::PING_OPEN;
-    }
-    else
-    {
-        Output::PINGSTATE res = Output::PINGSTATE::PING_ALLFAILED;
-        SerialPort* serial = new SerialPort();
-
-        int errcode = serial->Open(_commPort, _baudRate, _serialConfig);
-        if (errcode >= 0)
-        {
-            res = Output::PINGSTATE::PING_OPENED;
-            serial->Close();
-        }
-
-        delete serial;
-        return res;
-    }
-}
+#pragma endregion

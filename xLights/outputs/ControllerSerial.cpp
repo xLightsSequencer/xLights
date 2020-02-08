@@ -100,7 +100,7 @@ wxXmlNode* ControllerSerial::Save() {
 #pragma region Getters and Setters
 void ControllerSerial::SetPort(const std::string& port) {
     if (_outputs.front() != nullptr) {
-        if (_outputs.front()->GetCommPort() != port) {
+        if (_port != port) {
             _outputs.front()->SetCommPort(port);
             _port = port;
             _dirty = true;
@@ -110,7 +110,7 @@ void ControllerSerial::SetPort(const std::string& port) {
 
 void ControllerSerial::SetSpeed(int speed) {
     if (_outputs.front() != nullptr) {
-        if (_outputs.front()->GetBaudRate() != speed) {
+        if (_speed != speed) {
             _outputs.front()->SetBaudRate(speed);
             _speed = speed;
             _dirty = true;
