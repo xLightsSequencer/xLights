@@ -28,18 +28,18 @@ public:
     const int group;
     const int output;
     const int stringport;
-    char universe = 'A';
-    int startChannel = 1;
-    int pixels = 0;
-    int groupCount = 0;
-    int nullPixel = 0;
-    char colorOrder = 'A';
-    bool reverse = false;
-    char brightness = 'A';
-    int firstZig = 0;
-    int thenEvery = 0;
-    bool chase = false;
-    bool upload = false;
+    char universe{ 'A' };
+    int startChannel{ 1 };
+    int pixels{ 0 };
+    int groupCount{ 0 };
+    int nullPixel{ 0 };
+    char colorOrder{ 'A' };
+    bool reverse{ false };
+    char brightness{ 'A' };
+    int firstZig{ 0 };
+    int thenEvery{ 0 };
+    bool chase{ false };
+    bool upload{ false };
     void Dump() const;
 };
 
@@ -48,17 +48,17 @@ class SanDevicesOutputV4
 public:
     SanDevicesOutputV4(int group_) : group(group_) { }
     const int group;
-    char protocol = 'D';
-    int outputSize = 0;
-    char universe = 'A';
-    int startChannel = 1;
-    int pixels = 0;
-    int groupCount = 0;
+    char protocol{ 'D' };
+    int outputSize{ 0 };
+    char universe{ 'A' };
+    int startChannel{ 1 };
+    int pixels{ 0 };
+    int groupCount{ 0 };
     int nullPixel[4]{0, 0, 0, 0};
     int colorOrder = 'A';
     bool reverse[4]{ false,false,false,false };
-    int zigzag = 0;
-    bool upload =  false;
+    int zigzag{ 0 };
+    bool upload{ false };
     void Dump() const;
 };
 
@@ -68,7 +68,7 @@ private:
     const int _group;
     char _protocol;
     char _timing;
-    bool _upload = false;
+    bool _upload{ false };
 public:
     
     SanDevicesProtocol(int group, char protocol, char timing) : _group(group), _protocol(protocol), _timing(timing) { }
