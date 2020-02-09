@@ -2165,7 +2165,7 @@ void xLightsFrame::UploadOutputToController(ControllerEthernet* controller) {
                 }
             }
             else if (vendor == "ESPixelStick") {
-                ESPixelStick esPixelStick(ip, proxy);
+                ESPixelStick esPixelStick(ip);
                 if (esPixelStick.IsConnected()) {
                     if (esPixelStick.SetOutputs(&AllModels, &_outputManager, controller, this)) {
                         SetStatusText("ES Pixel Stick Upload Complete.");
