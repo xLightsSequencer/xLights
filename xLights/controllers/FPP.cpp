@@ -1923,8 +1923,8 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
                                                 //likely SanDevices
                                                 SanDevices sand(curls[x]->fpp->ipAddress, curls[x]->fpp->proxy);
                                                 if (sand.IsConnected()) {
-                                                    curls[x]->fpp->pixelControllerType = sand.GetPixelControllerTypeString();
-                                                    curls[x]->fpp->model = sand.GetModelName();
+                                                    curls[x]->fpp->pixelControllerType = sand.GetFullName();
+                                                    curls[x]->fpp->model = sand.GetModel();
                                                     curls[x]->fpp->fullVersion = sand.GetVersion();
                                                     curls[x]->fpp->platform = "SanDevices";
                                                     curls[x]->fpp->mode = "bridge";
@@ -1991,8 +1991,8 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
                                         if (response_code == 200) {
                                             SanDevices sand(curls[x]->fpp->ipAddress, curls[x]->fpp->proxy);
                                             if (sand.IsConnected()) {
-                                                curls[x]->fpp->pixelControllerType = sand.GetPixelControllerTypeString();
-                                                curls[x]->fpp->model = sand.GetModelName();
+                                                curls[x]->fpp->pixelControllerType = sand.GetFullName();
+                                                curls[x]->fpp->model = sand.GetModel();
                                                 curls[x]->fpp->fullVersion = sand.GetVersion();
                                                 curls[x]->fpp->platform = "SanDevices";
                                                 curls[x]->fpp->mode = "bridge";
