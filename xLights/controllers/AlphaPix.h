@@ -1,77 +1,51 @@
-#ifndef AlphaPix_H
-#define AlphaPix_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 #include <list>
 #include <string>
+
 #include "ControllerUploadData.h"
 #include "UtilClasses.h"
 
 class ModelManager;
 class Output;
 class OutputManager;
-class AlphaPix;
 class ControllerEthernet;
-
-class AlphaPixOutput
-{
-public:
-    AlphaPixOutput(int output_) :
-        output(output_), universe(1),
-        startChannel(1), pixels(0),
-        nullPixel(0), reverse(false),
-        brightness(100), zigZag(0), 
-        colorOrder(0), upload(false)
-    { };
-    const int output;
-    int universe;
-    int startChannel;
-    int pixels;
-    int nullPixel;
-    int colorOrder;
-    bool reverse;
-    int brightness;
-    int zigZag;
-    bool upload;
-
-    void Dump() const;
-};
-
-class AlphaPixSerial
-{
-public:
-    AlphaPixSerial(int output_) :
-        output(output_), universe(1),
-        enabled(false), upload(false)
-    { };
-    const int output;
-    int universe;
-    bool enabled;
-    bool upload;
-    void Dump() const;
-};
-
-class AlphaPixData
-{
-public:
-    AlphaPixData() :
-        protocol(0), inputMode(0)
-    {
-    };
-    wxString name;
-    int protocol;
-    int inputMode;
-    void Dump() const;
-};
+class AlphaPixData;
+class AlphaPixOutput;
+class AlphaPixSerial;
 
 class AlphaPix
 {
+    #pragma region Member Variables
+    std::string _baseUrl;
+    const std::string _fppProxy;
+    const std::string _ip;
+    wxString _page;
+    int _model = -1;
+    wxString _firmware;
+    std::vector<AlphaPixOutput*> _pixelOutputs;
+    std::vector<AlphaPixSerial*> _serialOutputs;
+    bool _connected = false;
+    #pragma endregion
+
+    #pragma region Private Functions
     static size_t writeFunction(void* ptr, size_t size, size_t nmemb, std::string* data) {
+    
         data->append((char*)ptr, size * nmemb);
         return size * nmemb;
     }
 
     void UpdatePortData(AlphaPixOutput* pd, UDControllerPort* stringData, bool& changeColor) const;
-
     void UpdateSerialData(AlphaPixSerial* pd, UDControllerPort* serialData) const;
 
     wxString BuildStringPortRequest(AlphaPixOutput* po) const;
@@ -106,7 +80,9 @@ class AlphaPix
     int EncodeStringPortProtocol(const std::string& protocol) const;
     std::string EncodeControllerType() const;
     std::string SafeDescription(const std::string description) const;
+    #pragma endregion
 
+    #pragma region Private Static Functions
     static const std::string GetNameURL() { return"/ABOUT"; };
     static const std::string GetInputTypeURL() { return"/InputSignal"; };
     static const std::string GetOutputURL() { return"/SetSPI"; };
@@ -116,22 +92,16 @@ class AlphaPix
     static const std::string GetDMXURL(const int index) { return "/DMX512_" + std::to_string(index); };
     static const std::string GetProtocolURL() { return"/PixelIC"; };
     static const std::string GetIndvColorOrderURL() { return"/RGBOrder"; };
-
-    std::string _baseUrl;
-    const std::string _fppProxy;
-    const std::string _ip;
-    wxString _page;
-    int _model;
-    wxString _firmware;
-
-    std::vector<AlphaPixOutput*> _pixelOutputs;
-    std::vector<AlphaPixSerial*> _serialOutputs;
-
-    bool _connected;
+    #pragma endregion
 
 public:
+    
+    #pragma region Constructors and Destructors
     AlphaPix(const std::string& ip, const std::string &fppProxy);
     virtual ~AlphaPix();
+    #pragma endregion
+    
+    #pragma region Getters and Setters
     bool IsConnected() const { return _connected; };
 
     bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent);
@@ -142,8 +112,7 @@ public:
     std::string GetModelName() { return EncodeControllerType(); }
     const std::string GetFirmware() { return _firmware; }
     const int GetNumberOfOutputs() { return _model; }
-    const int GetNumberOfSerial() 
-    { 
+    const int GetNumberOfSerial()  { 
         if (_model == 4)
             return 1;
         else if (_model == 16)
@@ -152,6 +121,5 @@ public:
             return 2;
         return 0;
     }
+    #pragma endregion
 };
-
-#endif

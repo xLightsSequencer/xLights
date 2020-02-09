@@ -123,8 +123,6 @@ class ControllerEthernet;
 #define PLAY_TYPE_EFFECT_PAUSED 3
 #define PLAY_TYPE_MODEL_PAUSED  4
 
-#define FixedPages 3
-
 #define TEXT_ENTRY_TIMING           0
 #define TEXT_ENTRY_EFFECT           1
 #define TEXT_ENTRY_DIALOG           2

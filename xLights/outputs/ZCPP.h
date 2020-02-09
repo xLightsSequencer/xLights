@@ -18,6 +18,16 @@
 
 #pragma once
 
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #define ZCPP_MULTICAST_ADDRESS "224.0.30.5"
 #define ZCPP_MULTICAST_DATA_ADDRESS "224.0.31."
 
