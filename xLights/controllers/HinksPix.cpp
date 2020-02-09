@@ -509,12 +509,10 @@ int HinksPix::EncodeGamma(int gamma) const
 HinksPix::HinksPix(const std::string& ip, const std::string& proxy) : BaseController(ip, proxy), _numberOfOutputs(0), _Flex(false)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    if (_fppProxy != "") {
-        _baseUrl = "/proxy/" + _ip;
+    if (!_fppProxy.empty()) {
         _connected = _http.Connect(_fppProxy);
     }
     else {
-        _baseUrl = "";
         _connected = _http.Connect(_ip);
     }
 
@@ -531,36 +529,33 @@ HinksPix::HinksPix(const std::string& ip, const std::string& proxy) : BaseContro
             if (mode != 0)
                 _numberOfOutputs += 16;
         }
-
         _connected = true;
         _Flex = wxAtoi(controlInfo.at("E"));
     }
-    else
-    {
+    else {
         _connected = false;
         logger_base.error("Error connecting to HinksPix controller on %s.", (const char*)_ip.c_str());
         DisplayError(wxString::Format("Error connecting to HinksPix controller on %s.", _ip).ToStdString());
     }
 
-    //Get Controller Firmware
-    auto const firmData = GetControllerData(906);
-    if (_connected && !firmData.empty()) {
-        static wxRegEx firmwareregex("Main\\sCPU\\s(\\d+)\\s+Power\\sCPU\\s+(\\d+)\\s+WIFI\\sCPU\\s+(\\d+)\\s+Web\\s+(\\d+)", wxRE_ADVANCED | wxRE_NEWLINE);
-        if (firmwareregex.Matches(firmData)) {
-            _firmware = wxString::Format("MAIN:%s,POWER:%s,WIFI:%s,WEB:%s",
-                firmwareregex.GetMatch(firmData, 1),
-                firmwareregex.GetMatch(firmData, 2),
-                firmwareregex.GetMatch(firmData, 3),
-                firmwareregex.GetMatch(firmData, 4));
-            logger_base.info("Connected to HinksPix controller model %s.", _firmware);
-        }
-    }
-    else
-    {
-        logger_base.error("Error Get Firmware Info");
-    }
-
     if (_connected) {
+        //Get Controller Firmware
+        auto const firmData = GetControllerData(906);
+        if (!firmData.empty()) {
+            static wxRegEx firmwareregex("Main\\sCPU\\s(\\d+)\\s+Power\\sCPU\\s+(\\d+)\\s+WIFI\\sCPU\\s+(\\d+)\\s+Web\\s+(\\d+)", wxRE_ADVANCED | wxRE_NEWLINE);
+            if (firmwareregex.Matches(firmData)) {
+                _firmware = wxString::Format("MAIN:%s,POWER:%s,WIFI:%s,WEB:%s",
+                    firmwareregex.GetMatch(firmData, 1),
+                    firmwareregex.GetMatch(firmData, 2),
+                    firmwareregex.GetMatch(firmData, 3),
+                    firmwareregex.GetMatch(firmData, 4));
+                logger_base.info("Connected to HinksPix controller model %s.", _firmware);
+            }
+        } 
+        else {
+            logger_base.error("Error Get Firmware Info");
+        }
+
         if (!_Flex)
             _model = "EasyLights Pix16";
         _model = "HinksPix PRO";

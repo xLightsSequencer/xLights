@@ -23,10 +23,8 @@ BaseController::BaseController(const std::string& ip, const std::string &proxy) 
 
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (!_fppProxy.empty()) {
-        _baseUrl = "http://"+ _fppProxy + "/proxy/" + _ip;
-    } else {
-        _baseUrl = "http://" + _ip;
-    }
+        _baseUrl = "/proxy/" + _ip;
+    } 
 }
 #pragma endregion
 
@@ -35,10 +33,11 @@ std::string BaseController::GetURL(const std::string& url, bool logresult) {
 
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     std::string res;
+    std::string const baseIP = _fppProxy.empty() ? _ip : _fppProxy;
 
     CURL* curl = curl_easy_init();
     if (curl) {
-        curl_easy_setopt(curl, CURLOPT_URL, std::string(_baseUrl + url).c_str());
+        curl_easy_setopt(curl, CURLOPT_URL, std::string("http://" + baseIP + _baseUrl + url).c_str());
         curl_easy_setopt(curl, CURLOPT_TIMEOUT, 10);
 
         std::string response_string;
@@ -66,13 +65,14 @@ std::string BaseController::PutURL(const std::string& url, const std::string& re
 
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
+    std::string const baseIP = _fppProxy.empty() ? _ip : _fppProxy;
     logger_base.debug("Making request to Controller '%s'.", (const char*)url.c_str());
     logger_base.debug("    With data '%s'.", (const char*)request.c_str());
 
     CURL* hnd = curl_easy_init();
     if (hnd != nullptr) {
         curl_easy_setopt(hnd, CURLOPT_CUSTOMREQUEST, "POST");
-        curl_easy_setopt(hnd, CURLOPT_URL, std::string(_baseUrl + url).c_str());
+        curl_easy_setopt(hnd, CURLOPT_URL, std::string("http://" + baseIP + _baseUrl + url).c_str());
 
         struct curl_slist* headers = NULL;
 

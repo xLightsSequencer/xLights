@@ -33,7 +33,7 @@ class ESPixelStick : public BaseController
 
 public:
     #pragma region Constructors and Destructors
-    ESPixelStick(const std::string& ip);
+    ESPixelStick(const std::string& ip, const std::string& proxy);
     virtual ~ESPixelStick() {}
     #pragma endregion
 

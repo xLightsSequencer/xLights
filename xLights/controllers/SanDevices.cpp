@@ -1211,11 +1211,9 @@ SanDevices::SanDevices(const std::string& ip, const std::string& proxy) : BaseCo
 
     _http.SetMethod("GET");
     if (_fppProxy != "") {
-        _baseUrl = "/proxy/" + _ip;
         _connected = _http.Connect(_fppProxy);
     }
     else {
-        _baseUrl = "";
         _connected = _http.Connect(_ip);
     }
     _firmware = FirmwareVersion::Unknown;

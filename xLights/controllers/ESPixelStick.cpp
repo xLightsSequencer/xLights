@@ -28,11 +28,16 @@
 
 #pragma region Constructors and Destructors
 // This is tested with a pixel stick running v3.0 of the firmware
-ESPixelStick::ESPixelStick(const std::string& ip) : BaseController(ip, "") {
+ESPixelStick::ESPixelStick(const std::string& ip, const std::string& proxy) : BaseController(ip, proxy) {
 
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    _wsClient.Connect(_ip, "/ws");
+    if (!_fppProxy.empty()) {
+        _wsClient.Connect(_fppProxy, "/proxy/" + _ip + "/ws");
+    }
+    else {
+        _wsClient.Connect(_ip, "/ws");
+    }
 
     if (_wsClient.IsConnected()) {
         _model = "ESPixelStick";
