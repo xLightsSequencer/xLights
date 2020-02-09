@@ -726,14 +726,9 @@ bool ModelManager::ReworkStartChannel() const
         {
             if (it->GetChannels() != std::max((int32_t)1, (int32_t)ch - 1))
             {
-                logger_zcpp.debug("    Resizing output to %d channels.", std::max((int32_t)1, (int32_t)ch - 1));
-                for (auto& it2 : it->GetOutputs())
-                {
-                    it2->AllOff();
-                    it2->EndFrame(0);
-                }
-                // we can only update the first output
-                it->GetFirstOutput()->SetChannels(std::max((int32_t)1, (int32_t)ch - 1));
+                logger_zcpp.debug("    Resizing output to %d channels.", std::max((int32_t)1, (int32_t)ch - 1));                
+                
+                it->SetChannelSize(std::max((int32_t)1, (int32_t)ch - 1));
                 xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ReworkStartChannel");
                 xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "ReworkStartChannel");
                 xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "ReworkStartChannel");

@@ -259,6 +259,19 @@ int32_t Controller::GetChannels() const
     return std::accumulate(begin(_outputs), end(_outputs), 0, [](uint32_t accumulator, Output* const o) { return accumulator + o->GetChannels(); });
 }
 
+bool Controller::SetChannelSize(int32_t channels) {
+    if (_outputs.size() == 0) return false;
+
+    for (auto& it2 : GetOutputs())
+    {
+        it2->AllOff();
+        it2->EndFrame(0);
+    }
+    GetFirstOutput()->SetChannels(channels);
+
+    return true;
+}
+
 bool Controller::IsDirty() const {
 
     if (_dirty) return _dirty;

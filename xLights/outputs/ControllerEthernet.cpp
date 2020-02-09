@@ -415,6 +415,49 @@ bool ControllerEthernet::SupportsUpload() const {
     }
     return false;
 }
+
+bool ControllerEthernet::SetChannelSize(int32_t channels) {
+    if (_outputs.size() == 0) return false;
+
+    for (auto& it2 : GetOutputs())
+    {
+        it2->AllOff();
+        it2->EndFrame(0);
+    }
+
+    if (_type == OUTPUT_ZCPP || _type == OUTPUT_DDP) {
+        _outputs.front()->SetChannels(channels);
+        return true;
+    }
+    else
+    {
+        #define CONVERT_CHANNELS_PER_UNIVERSE 510
+        auto const oldIP = _outputs.front()->GetIP();
+        _forceSizes = false;
+        DeleteAllOutputs();
+        int universes = (channels + CONVERT_CHANNELS_PER_UNIVERSE - 1) / CONVERT_CHANNELS_PER_UNIVERSE;
+        for (int i = 0; i < universes; i++) {
+            if (_type == OUTPUT_E131) {
+                _outputs.push_back(new E131Output());
+                if (dynamic_cast<E131Output*>(_outputs.back()) != nullptr) {
+                    dynamic_cast<E131Output*>(_outputs.back())->SetPriority(_priority);
+                }
+            }
+            else if (_type == OUTPUT_ARTNET) {
+                _outputs.push_back(new ArtNetOutput());
+            }
+            else if (_type == OUTPUT_xxxETHERNET) {
+                _outputs.push_back(new xxxEthernetOutput());
+            }
+            _outputs.back()->SetChannels(CONVERT_CHANNELS_PER_UNIVERSE );
+            _outputs.back()->SetIP(oldIP);
+            _outputs.back()->SetUniverse(i + 1);
+            _outputs.back()->SetFPPProxyIP(_fppProxy);
+        }
+    }
+    return true;
+}
+
 #pragma endregion
 
 #pragma region UI
@@ -485,7 +528,15 @@ void ControllerEthernet::AddProperties(wxPropertyGrid* propertyGrid, ModelManage
         p = propertyGrid->Append(new wxUIntProperty(uc, "Universes", _outputs.size()));
         p->SetAttribute("Min", 1);
         p->SetAttribute("Max", 1000);
-        p->SetEditor("SpinCtrl");
+        
+        if (IsAutoSize()) {
+            p->ChangeFlag(wxPG_PROP_READONLY, true);
+            p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
+            p->SetHelpString("Universes Count cannot be changed when an output is set to Auto Size.");
+        }
+        else {
+            p->SetEditor("SpinCtrl");
+        }
 
         if (_outputs.size() > 1) {
             p = propertyGrid->Append(new wxStringProperty(ud, "UniversesDisplay", _outputs.front()->GetUniverseString() + "- " + _outputs.back()->GetUniverseString()));
@@ -494,7 +545,15 @@ void ControllerEthernet::AddProperties(wxPropertyGrid* propertyGrid, ModelManage
         }
 
         p = propertyGrid->Append(new wxBoolProperty("Individual Sizes", "IndivSizes", !allSameSize || _forceSizes));
-        p->SetEditor("CheckBox");
+
+        if (IsAutoSize()) {
+            p->ChangeFlag(wxPG_PROP_READONLY, true);
+            p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
+            p->SetHelpString("Individual Sizes cannot be changed when an output is set to Auto Size.");
+        }
+        else {
+            p->SetEditor("CheckBox");
+        }        
 
         if (!allSameSize || _forceSizes) {
             wxPGProperty* p2 = propertyGrid->Append(new wxPropertyCategory("Sizes", "Sizes"));
@@ -510,7 +569,14 @@ void ControllerEthernet::AddProperties(wxPropertyGrid* propertyGrid, ModelManage
             p = propertyGrid->Append(new wxUIntProperty("Channels", "Channels", _outputs.front()->GetChannels()));
             p->SetAttribute("Min", 1);
             p->SetAttribute("Max", _outputs.front()->GetMaxChannels());
-            p->SetEditor("SpinCtrl");
+            if (IsAutoSize()) {
+                p->ChangeFlag(wxPG_PROP_READONLY, true);
+                p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
+                p->SetHelpString("Channels cannot be changed when an output is set to Auto Size.");
+            }
+            else {
+                p->SetEditor("SpinCtrl");
+            }
 
             p = propertyGrid->Append(new wxStringProperty("Models", "Models", modelManager->GetModelsOnChannels(GetStartChannel(), GetEndChannel(), -1)));
             p->ChangeFlag(wxPG_PROP_READONLY, true);

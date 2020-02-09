@@ -90,7 +90,7 @@ public:
 
     virtual bool IsLookedUpByControllerName() const override { return true; }
 
-    virtual bool SupportsAutoSize() const override { return _managed && (_type == OUTPUT_ZCPP || _type == OUTPUT_DDP); }
+    virtual bool SupportsAutoSize() const override { return _managed; }
 
     virtual std::string GetChannelMapping(int32_t ch) const override;
     virtual std::string GetUniverseString() const override { return ""; }
@@ -107,6 +107,8 @@ public:
     virtual void SetTransientData(int32_t& startChannel, int& nullnumber) override;
 
     virtual bool SupportsUpload() const override;
+
+    virtual bool SetChannelSize(int32_t channels) override;
 #pragma endregion
 
 #pragma region UI

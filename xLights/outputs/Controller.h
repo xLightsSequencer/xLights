@@ -177,6 +177,8 @@ public:
 
     virtual std::string GetSortName() const { return GetName(); }
     virtual std::string GetExport() const = 0;
+
+    virtual bool SetChannelSize(int32_t channels);
     #pragma endregion 
 
     #pragma region Operators
