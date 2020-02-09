@@ -492,7 +492,7 @@ public:
             for (int i = 0; i < _nodes; i++)
             {
                 // I am not sure this is right
-                long sc = _subModel->NodeStartChannel(i);
+                int32_t sc = _subModel->NodeStartChannel(i);
                 for (int j = 0; j < _subModel->GetChanCountPerNode(); j++)
                 {
                     _nonContiguousChannels.push_back(sc + 1 + j);

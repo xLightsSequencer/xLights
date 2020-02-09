@@ -320,7 +320,7 @@ public:
     virtual int GetLightsPerNode() const { return 1; } // default to one unless a model supports this
     wxCursor InitializeLocation(int &handle, wxCoord x,wxCoord y, ModelPreview* preview);
 
-    int NodeStartChannel(size_t nodenum) const;
+    int32_t NodeStartChannel(size_t nodenum) const;
     const std::string &NodeType(size_t nodenum) const;
     virtual int MapToNodeIndex(int strand, int node) const;
 

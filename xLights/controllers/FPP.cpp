@@ -1114,7 +1114,7 @@ wxJSONValue FPP::CreateUniverseFile(const std::list<ControllerEthernet*>& select
 
             wxJSONValue universe;
             universe["active"] = it->IsEnabled() ? 1 : 0;
-            universe["description"] = stripInvalidChars(it->GetDescription());
+            universe["description"] = stripInvalidChars(it2->GetName());
             universe["id"] = it->GetUniverse();
             universe["startChannel"] = c;
             universe["channelCount"] = it->GetChannels();
@@ -1132,7 +1132,7 @@ wxJSONValue FPP::CreateUniverseFile(const std::list<ControllerEthernet*>& select
                 //if (it->IsOutputCollection()) {
                 //    universe["universeCount"] = ((E131Output*)it)->GetUniverses();
                 //}
-                //else {
+                //else { 
                 universe["universeCount"] = 1;
                 //}
                 universes.Append(universe);
@@ -1980,7 +1980,7 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
                                                 }
                                                 curls[x]->fpp->pixelControllerType = falc.GetModel();
                                                 curls[x]->fpp->model = falc.GetModel();
-                                                curls[x]->fpp->fullVersion = falc.GetFirmwareVersion();
+                                                curls[x]->fpp->fullVersion = falc.GetFullName();
                                                 curls[x]->fpp->platform = "Falcon";
                                                 curls[x]->fpp->mode = "bridge";
                                                 curls[x]->fpp->isFPP = false;
@@ -2004,7 +2004,7 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
                                         if (response_code == 200) {
                                             J1Sys j1sys(curls[x]->fpp->ipAddress, curls[x]->fpp->proxy);
                                             if (j1sys.IsConnected()) {
-                                                curls[x]->fpp->pixelControllerType = j1sys.GetPixelControllerTypeString();
+                                                curls[x]->fpp->pixelControllerType = j1sys.GetFullName();
                                                 curls[x]->fpp->model = j1sys.GetModel();
                                                 curls[x]->fpp->fullVersion = j1sys.GetVersion();
                                                 curls[x]->fpp->platform = "J1Sys";

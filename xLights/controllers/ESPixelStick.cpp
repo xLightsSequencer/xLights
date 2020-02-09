@@ -1,7 +1,7 @@
-#include "ESPixelStick.h"
 #include <wx/msgdlg.h>
 #include <wx/regex.h>
 
+#include "ESPixelStick.h"
 #include "models/Model.h"
 #include "outputs/OutputManager.h"
 #include "outputs/Output.h"
@@ -15,17 +15,16 @@
 #include "../xSchedule/wxJSON/jsonreader.h"
 #include "../xSchedule/wxJSON/jsonwriter.h"
 
+#pragma region Constructors and Destructors
 // This is tested with a pixel stick running v3.0 of the firmware
-ESPixelStick::ESPixelStick(const std::string& ip)
-{
+ESPixelStick::ESPixelStick(const std::string& ip) : BaseController(ip, "") {
+
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    _ip = ip;
-    _connected = false;
 
     _wsClient.Connect(_ip, "/ws");
 
-    if (_wsClient.IsConnected())
-    {
+    if (_wsClient.IsConnected()) {
+        _model = "ESPixelStick";
         _connected = true;
         _wsClient.Send("G2");
         wxMilliSleep(500);
@@ -33,67 +32,74 @@ ESPixelStick::ESPixelStick(const std::string& ip)
         _version = GetFromJSON("", "version", g2);
         logger_base.debug("Connected to ESPixelStick - Firmware Version %s", (const char *)_version.c_str());
     }
-    else
-    {
+    else {
         _connected = false;
         logger_base.error("Error connecting to ESPixelStick controller on %s.", (const char *)_ip.c_str());
     }
 }
+#pragma endregion
 
-int ESPixelStick::GetMaxStringOutputs() const
-{
-    return 1;
+#pragma region Private Functions
+std::string ESPixelStick::DecodeStringPortProtocol(std::string protocol) {
+
+    wxString p(protocol);
+    p = p.Lower();
+    if (p == "ws2811") return "0";
+    if (p == "gece") return "1";
+    return "null";
 }
 
-int ESPixelStick::GetMaxSerialOutputs() const
-{
-    return 0;
+std::string ESPixelStick::DecodeSerialPortProtocol(std::string protocol) {
+
+    // This is not right as I dont actually have a board that supports this
+    wxString p(protocol);
+    p = p.Lower();
+
+    if (p == "dmx") return "null";
+    if (p == "renard") return "null";
+    return "null";
 }
 
-std::string ESPixelStick::GetFromJSON(std::string section, std::string key, std::string json)
-{
-    if (section == "")
-    {
+std::string ESPixelStick::DecodeSerialSpeed(std::string protocol) {
+
+    // This is not right as I dont actually have a board that supports this
+    wxString p(protocol);
+    p = p.Lower();
+
+    if (p == "dmx") return "null";
+    if (p == "renard") return "null";
+    return "null";
+}
+
+std::string ESPixelStick::GetFromJSON(std::string section, std::string key, std::string json) {
+
+    if (section == "") {
         wxString rkey = wxString::Format("(%s\\\":[\\\"]*)([^\\\",\\}]*)(\\\"|,|\\})", key);
         wxRegEx regexKey(rkey);
-        if (regexKey.Matches(wxString(json)))
-        {
+        if (regexKey.Matches(wxString(json))) {
             return regexKey.GetMatch(wxString(json), 2);
         }
     }
-    else
-    {
+    else {
         wxString rsection = wxString::Format("(%s\\\":\\{)([^\\}]*)\\}", section);
         wxRegEx regexSection(rsection);
-        if (regexSection.Matches(wxString(json)))
-        {
+        if (regexSection.Matches(wxString(json))) {
             wxString sec = regexSection.GetMatch(wxString(json), 2);
 
             wxString rkey = wxString::Format("(%s\\\":[\\\"]*)([^\\\",\\}]*)(\\\"|,|\\})", key);
             wxRegEx regexKey(rkey);
-            if (regexKey.Matches(wxString(sec)))
-            {
+            if (regexKey.Matches(wxString(sec))) {
                 return regexKey.GetMatch(wxString(sec), 2);
             }
         }
     }
     return "";
 }
+#pragma endregion
 
-ESPixelStick::~ESPixelStick()
-{
-}
+#pragma region Getters and Setters
+bool ESPixelStick::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent) {
 
-bool ESPixelStickcompare_startchannel(const Model* first, const Model* second)
-{
-    int firstmodelstart = first->GetNumberFromChannelString(first->ModelStartChannel);
-    int secondmodelstart = second->GetNumberFromChannelString(second->ModelStartChannel);
-
-    return firstmodelstart < secondmodelstart;
-}
-
-bool ESPixelStick::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent)
-{
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("ESPixelStick Outputs Upload: Uploading to %s", (const char *)_ip.c_str());
 
@@ -188,37 +194,4 @@ bool ESPixelStick::SetOutputs(ModelManager* allmodels, OutputManager* outputMana
 
     return success;
 }
-
-std::string ESPixelStick::DecodeStringPortProtocol(std::string protocol)
-{
-    wxString p(protocol);
-    p = p.Lower();
-    if (p == "ws2811") return "0";
-    if (p == "gece") return "1";
-    
-    return "null";
-}
-
-std::string ESPixelStick::DecodeSerialPortProtocol(std::string protocol)
-{
-    // This is not right as I dont actually have a board that supports this
-    wxString p(protocol);
-    p = p.Lower();
-
-    if (p == "dmx") return "null";
-    if (p == "renard") return "null";
-    
-    return "null";
-}
-
-std::string ESPixelStick::DecodeSerialSpeed(std::string protocol)
-{
-    // This is not right as I dont actually have a board that supports this
-    wxString p(protocol);
-    p = p.Lower();
-
-    if (p == "dmx") return "null";
-    if (p == "renard") return "null";
-    return "null";
-}
-
+#pragma endregion

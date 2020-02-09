@@ -212,6 +212,7 @@
     <ClCompile Include="ColorManager.cpp" />
     <ClCompile Include="ColoursPanel.cpp" />
     <ClCompile Include="controllers\AlphaPix.cpp" />
+    <ClCompile Include="controllers\BaseController.cpp" />
     <ClCompile Include="controllers\ControllerCaps.cpp" />
     <ClCompile Include="controllers\ControllerUploadData.cpp" />
     <ClCompile Include="controllers\ESPixelStick.cpp" />
@@ -629,6 +630,7 @@
     <ClInclude Include="ColorManager.h" />
     <ClInclude Include="ColoursPanel.h" />
     <ClInclude Include="controllers\AlphaPix.h" />
+    <ClInclude Include="controllers\BaseController.h" />
     <ClInclude Include="controllers\ControllerCaps.h" />
     <ClInclude Include="controllers\ControllerUploadData.h" />
     <ClInclude Include="controllers\ESPixelStick.h" />

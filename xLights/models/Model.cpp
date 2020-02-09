@@ -2772,7 +2772,7 @@ int Model::NodesPerString() const {
     return SingleNode ? 1 : parm2;
 }
 
-int Model::NodeStartChannel(size_t nodenum) const {
+int32_t Model::NodeStartChannel(size_t nodenum) const {
     return Nodes.size() && nodenum < Nodes.size() ? Nodes[nodenum]->ActChan: 0; //avoid memory access error if no nods -DJ
 }
 

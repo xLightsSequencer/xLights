@@ -199,4 +199,5 @@ public:
     std::string GetModelName() { return EncodeControllerType(); }
     const std::string &GetVersion() { return _version; }
     std::string GetPixelControllerTypeString() { return wxString::Format("E%d Firmware %d", _model, _firmware).ToStdString(); }
+    //virtual bool UsesHTTP() const override { return true; }
 };

@@ -26,8 +26,6 @@
 #include "../outputs/ControllerEthernet.h"
 #include "UtilFunctions.h"
 
-#include <curl/curl.h>
-
 #include <log4cpp/Category.hh>
 
 #pragma region Output Classes
@@ -105,14 +103,9 @@ public:
 #pragma endregion
 
 #pragma region Constructors and Destructors
-AlphaPix::AlphaPix(const std::string& ip, const std::string &proxy) : _ip(ip), _fppProxy(proxy), _baseUrl("") {
+AlphaPix::AlphaPix(const std::string& ip, const std::string &proxy) : BaseController(ip, proxy) {
 
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    if (!_fppProxy.empty()) {
-        _baseUrl = "http://"+ _fppProxy + "/proxy/" + _ip;
-    } else {
-        _baseUrl = "http://" + _ip;
-    }
 
     _page = GetURL("/");
     if (!_page.empty()) {
@@ -121,18 +114,18 @@ AlphaPix::AlphaPix(const std::string& ip, const std::string &proxy) : _ip(ip), _
         static wxRegEx modelregex("(\\d+) Port Ethernet to SPI Controller", wxRE_ADVANCED | wxRE_NEWLINE);
         static wxRegEx modelregex2("AlphaPix (\\d+) ", wxRE_ADVANCED | wxRE_NEWLINE);
         if (modelregex.Matches(_page)) {
-            _model = wxAtoi(modelregex.GetMatch(_page, 1).ToStdString());
-            logger_base.warn("Connected to AlphaPix controller model %s.", (const char *)EncodeControllerType().c_str());
+            _modelnum = wxAtoi(modelregex.GetMatch(_page, 1).ToStdString());
+            logger_base.warn("Connected to AlphaPix controller model %s.", (const char*)GetFullName().c_str());
             _connected = true;
         }
         else if (modelregex2.Matches(_page)) {
-            _model = wxAtoi(modelregex2.GetMatch(_page, 1).ToStdString());
-            logger_base.warn("Connected to AlphaPix controller model %s.", (const char*)EncodeControllerType().c_str());
+            _modelnum = wxAtoi(modelregex2.GetMatch(_page, 1).ToStdString());
+            logger_base.warn("Connected to AlphaPix controller model %s.", (const char*)GetFullName().c_str());
             _connected = true;
         }
         else if (_page.Contains("AlphaPix Flex Lighting Controller")) {
-            _model = 48;
-            logger_base.warn("Connected to AlphaPix controller model %s.", (const char*)EncodeControllerType().c_str());
+            _modelnum = 48;
+            logger_base.warn("Connected to AlphaPix controller model %s.", (const char*)GetFullName().c_str());
             _connected = true;
         }
         else {
@@ -145,6 +138,13 @@ AlphaPix::AlphaPix(const std::string& ip, const std::string &proxy) : _ip(ip), _
         if (firmwareregex.Matches(wxString(_page))) {
             _firmware = firmwareregex.GetMatch(wxString(_page), 2).ToStdString();
             logger_base.warn("                                 firmware %s.", (const char*)_firmware.c_str());
+        }
+
+        if (_modelnum == 48) {
+            _model = "AlphaPix Flex";
+        }
+        else { 
+            _model = wxString::Format("%d %s", _modelnum, _firmware).ToStdString();
         }
     }
     else {
@@ -180,7 +180,7 @@ bool AlphaPix::ParseWebpage(const wxString& page, AlphaPixData& data) {
 
     for (int i = 1; i <= GetNumberOfOutputs(); i++) {
         AlphaPixOutput* output;
-        if (_model == 48)
+        if (_modelnum == 48)
             output = ExtractFlexOutputData(page, i);
         else
             output = ExtractOutputData(page, i);
@@ -256,7 +256,7 @@ AlphaPixSerial* AlphaPix::ExtractSerialData(const wxString& page, int port) {
     int start = p.find("DMX512 Output");
 
     AlphaPixSerial* serial = new AlphaPixSerial(port);
-    if (_model == 4) {
+    if (_modelnum == 4) {
         serial->enabled = ExtractDMXEnabled(page, "Rever5");
         serial->universe = ExtractDMXUniverse(page, "DMX512");
     }
@@ -485,9 +485,9 @@ int AlphaPix::EncodeStringPortProtocol(const std::string& protocol) const {
     if (p == "ws2811") return 0;
     if (p == "ws2801") return 1;
     if (p == "lpd6803") return 2;
-    if (p == "tls3001" && _model != 48) return 4;
-    if (p == "tm18xx" && _model != 48) return 6;
-    if (p == "tm18xx" && _model == 48) return 4;
+    if (p == "tls3001" && _modelnum != 48) return 4;
+    if (p == "tm18xx" && _modelnum != 48) return 6;
+    if (p == "tm18xx" && _modelnum == 48) return 4;
     wxASSERT(false);
     return -1;
 }
@@ -512,11 +512,11 @@ bool AlphaPix::EncodeDirection(const std::string& direction) const {
     return direction == "Reverse";
 }
 
-std::string AlphaPix::EncodeControllerType() const {
+//std::string AlphaPix::EncodeControllerType() const {
 
-    if (_model == 48) return "AlphaPix Flex";
-    return wxString::Format("%d %s", _model, _firmware).ToStdString();
-}
+//    if (_modelnum == 48) return "AlphaPix Flex";
+//    return wxString::Format("%d %s", _modelnum, _firmware).ToStdString();
+//}
 
 AlphaPixOutput* AlphaPix::FindPortData(int port) {
 
@@ -582,74 +582,6 @@ wxString AlphaPix::BuildFlexStringPortRequest(AlphaPixOutput* po) const {
         po->output, po->zigZag,
         po->output, po->brightness,
         reverseAdd);
-}
-
-wxString AlphaPix::GetURL(const std::string& url, bool logresult) {
-
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    wxString res;
-
-    CURL* curl = curl_easy_init();
-    if (curl) {
-        curl_easy_setopt(curl, CURLOPT_URL, std::string(_baseUrl + url).c_str());
-        curl_easy_setopt(curl, CURLOPT_TIMEOUT, 10);
-
-        std::string response_string;
-
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeFunction);
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response_string);
-
-        /* Perform the request, res will get the return code */
-        CURLcode r = curl_easy_perform(curl);
-
-        if (r != CURLE_OK) {
-            logger_base.error("Failure to access %s: %s.", (const char*)url.c_str(), curl_easy_strerror(r));
-        }
-        else {
-            res = response_string;
-        }
-
-        /* always cleanup */
-        curl_easy_cleanup(curl);
-    }
-    return res;
-}
-
-wxString AlphaPix::PutURL(const std::string& url, const std::string& request, bool logresult) {
-
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
-    logger_base.debug("Making request to AlphaPix '%s'.", (const char*)url.c_str());
-    logger_base.debug("    With data '%s'.", (const char*)request.c_str());
-
-    CURL* hnd = curl_easy_init();
-    if (hnd != nullptr) {
-        curl_easy_setopt(hnd, CURLOPT_CUSTOMREQUEST, "POST");
-        curl_easy_setopt(hnd, CURLOPT_URL, std::string(_baseUrl + url).c_str());
-
-        struct curl_slist* headers = NULL;
-
-        headers = curl_slist_append(headers, "content-type: application/x-www-form-urlencoded");
-        curl_easy_setopt(hnd, CURLOPT_HTTPHEADER, headers);
-        curl_easy_setopt(hnd, CURLOPT_POSTFIELDS, request.c_str());
-
-        curl_easy_setopt(hnd, CURLOPT_WRITEFUNCTION, writeFunction);
-        curl_easy_setopt(hnd, CURLOPT_TIMEOUT, 30);
-        std::string buffer = "";
-        curl_easy_setopt(hnd, CURLOPT_WRITEDATA, &buffer);
-
-        CURLcode ret = curl_easy_perform(hnd);
-        curl_easy_cleanup(hnd);
-
-        if (ret == CURLE_OK) {
-            return buffer;
-        }
-        else {
-            logger_base.error("Failure to access %s: %s.", (const char*)url.c_str(), curl_easy_strerror(ret));
-        }
-    }
-
-    return "";
 }
 
 std::string AlphaPix::SafeDescription(const std::string description) const {
@@ -732,7 +664,7 @@ bool AlphaPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
 
     logger_base.info("Uploading String Output Information.");
     progress.Update(20, "Uploading String Output Information.");
-    if (_model == 48)
+    if (_modelnum == 48)
         UploadFlexPixelOutputs(worked);
     else
         UploadPixelOutputs(worked);
@@ -752,7 +684,7 @@ bool AlphaPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
     for (const auto& serial : _serialOutputs) {
         serial->Dump();
         if (serial->upload) {
-            if (_model == 4) {
+            if (_modelnum == 4) {
                 const std::string serialRequest = wxString::Format("Rever5=1&DMX512=%d", serial->universe);
                 const wxString res = PutURL(GetDMXURL(), serialRequest);
                 if (res.empty())

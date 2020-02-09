@@ -698,7 +698,7 @@ void HinksPixExportDialog::OnButton_ExportClick(wxCommandEvent& event)
         for (auto it = outputs.begin(); it != outputs.end(); ++it)
         {
             if ((*it)->GetStartChannel() < startChan) startChan = (*it)->GetStartChannel();
-            if ((*it)->GetActualEndChannel() > endChan) endChan = (*it)->GetActualEndChannel();
+            if ((*it)->GetEndChannel() > endChan) endChan = (*it)->GetEndChannel();
         }
 
         std::vector<std::tuple<wxString, wxString>> songs;

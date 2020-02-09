@@ -817,6 +817,9 @@
       <Filter>Outputs</Filter>
     </ClCompile>
     <ClCompile Include="..\xFade\wxLED.cpp" />
+    <ClCompile Include="controllers\BaseController.cpp">
+      <Filter>Controllers</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -1642,6 +1645,9 @@
       <Filter>Outputs</Filter>
     </ClInclude>
     <ClInclude Include="..\xFade\wxLED.h" />
+    <ClInclude Include="controllers\BaseController.h">
+      <Filter>Controllers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Models">

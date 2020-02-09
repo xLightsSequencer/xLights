@@ -1,71 +1,54 @@
-#ifndef J1SYS_H
-#define J1SYS_H
+#pragma once
 
-#include <wx/protocol/http.h>
 #include <list>
 #include <string>
 
-class ModelManager;
-class Output;
-class OutputManager;
-class ControllerEthernet;
+#include "BaseController.h"
 
-class J1Sys
+struct J1SysPixelOutput;
+struct J1SysSerialOutput;
+
+class J1Sys : public BaseController
 {
-    struct J1SysOutput
-    {
-        char port;
-        bool active;
-        char protocol;
-        int speed;
-        int universe;
-        int startChannel;
-        int pixels;
-    };
-
-    struct J1SysSerialOutput
-    {
-        char port;
-        bool active;
-        char protocol;
-        int speed;
-        int universe;
-    };
-
-    wxHTTP _http;
-	std::string _ip = "";
-    std::string _proxy = "";
-    std::string _baseUrl = "";
-    std::string _version = "";
-    std::string _model = "";
+    #pragma region Member Variables
     int _outputs = 0;
-    bool _connected = false;
-    std::string GetURL(const std::string& url, bool logresult = false);
-    std::string PutURL(const std::string& url, const std::string& request, bool logresult = false);
+    #pragma endregion
+
+    #pragma region Encode and Decode
     char EncodeStringPortProtocol(std::string protocol) const;
     char EncodeSerialPortProtocol(std::string protocol) const;
     int DecodeProtocolSpeed(std::string protocol) const;
+    #pragma endregion
+
+    #pragma region String Port Handling
     std::string BuildStringPort(bool active, int string, char protocol, int speed, int startChannel, int universe, int pixels, wxWindow* parent) const;
-    std::string BuildSerialPort(bool active, int port, char protocol, int speed, int universe, wxWindow* parent) const;
     void ResetStringOutputs();
-    void ResetSerialOutputs();
-    void Reboot();
-    void DumpConfig(const std::vector<J1SysOutput>& j) const;
-    void DumpConfig(const std::vector<J1SysSerialOutput>& j) const;
-    void ReadCurrentConfig(std::vector<J1SysOutput>& j);
-    void ReadCurrentSerialConfig(std::vector<J1SysSerialOutput>& j);
+    void ReadCurrentConfig(std::vector<J1SysPixelOutput>& j);
+    void DumpConfig(const std::vector<J1SysPixelOutput>& j) const;
     int GetBankSize() const;
+    #pragma endregion
+
+    #pragma region Serial Port Handling
+    std::string BuildSerialPort(bool active, int port, char protocol, int speed, int universe, wxWindow* parent) const;
+    void ResetSerialOutputs();
+    void DumpConfig(const std::vector<J1SysSerialOutput>& j) const;
+    void ReadCurrentSerialConfig(std::vector<J1SysSerialOutput>& j);
+    #pragma endregion
+
+    #pragma region Private Functions
+    void Reboot();
+    #pragma endregion
 
 public:
+    #pragma region Constructors and Destructors
     J1Sys(const std::string& ip, const std::string &proxy);
-    bool IsConnected() const { return _connected; };
-    virtual ~J1Sys();
+    virtual ~J1Sys() {}
+    #pragma endregion
+
+    #pragma region Getters and Setters
     bool SetInputUniverses(ControllerEthernet* controller, OutputManager* outputManager);
     bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent);
-    
-    const std::string &GetVersion() const { return _version; }
-    const std::string &GetModel() const { return _model; }
-    std::string GetPixelControllerTypeString() const;
+    virtual bool UsesHTTP() const override { return true; }
+    #pragma endregion
 };
 
-#endif

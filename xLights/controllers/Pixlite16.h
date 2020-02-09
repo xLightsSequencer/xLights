@@ -1,13 +1,11 @@
 #pragma once
 
-#include <wx/protocol/http.h>
 #include <list>
 #include "models/ModelManager.h"
 
-class ControllerEthernet;
-class OutputManager;
+#include "BaseController.h"
 
-class Pixlite16
+class Pixlite16 : public BaseController
 {
 public:
     struct Config
@@ -66,30 +64,44 @@ public:
     };
 
 protected:
-    Config _config;
-	std::string _ip = "";
-    bool _connected = false;
-    int _protocolVersion = 0;
 
-    bool SendConfig(bool logresult = false) const;
+    #pragma region Member Variables
+    Config _config;
+    int _protocolVersion = 0;
+    #pragma endregion
+
+    #pragma region Encode and Decode
     static int DecodeStringPortProtocol(std::string protocol);
     static int DecodeSerialOutputProtocol(std::string protocol);
+    #pragma endregion
+
+    #pragma region Private Functions
     static uint16_t Read16(uint8_t* data, int& pos);
     static void Write16(uint8_t* data, int& pos, int value);
     static void WriteString(uint8_t* data, int& pos, int len, const std::string& value);
+    
     bool ParseV4Config(uint8_t* data);
     bool ParseV5Config(uint8_t* data);
     bool ParseV6Config(uint8_t* data);
     int PrepareV4Config(uint8_t* data) const;
     int PrepareV5Config(uint8_t* data) const;
     int PrepareV6Config(uint8_t* data) const;
+
+    bool SendConfig(bool logresult = false) const;
+
     void DumpConfiguration() const;
+    #pragma endregion
 
 public:
 
+    #pragma region Constructors and Destructors
     Pixlite16(const std::string& ip);
-    bool IsConnected() const { return _connected; };
-    ~Pixlite16();
+    ~Pixlite16() {}
+    #pragma endregion
+
+    #pragma region Getters and Setters
     bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent);
+    virtual bool UsesHTTP() const override { return false; }
+    #pragma endregion
 };
 

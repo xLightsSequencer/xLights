@@ -13,25 +13,22 @@
 #include <list>
 #include <string>
 
+#include "BaseController.h"
 #include "ControllerUploadData.h"
 #include "UtilClasses.h"
 
-class ModelManager;
-class Output;
-class OutputManager;
-class ControllerEthernet;
 class AlphaPixData;
 class AlphaPixOutput;
 class AlphaPixSerial;
 
-class AlphaPix
+class AlphaPix : public BaseController
 {
     #pragma region Member Variables
     std::string _baseUrl;
     const std::string _fppProxy;
     const std::string _ip;
     wxString _page;
-    int _model = -1;
+    int _modelnum = -1;
     wxString _firmware;
     std::vector<AlphaPixOutput*> _pixelOutputs;
     std::vector<AlphaPixSerial*> _serialOutputs;
@@ -39,12 +36,6 @@ class AlphaPix
     #pragma endregion
 
     #pragma region Private Functions
-    static size_t writeFunction(void* ptr, size_t size, size_t nmemb, std::string* data) {
-    
-        data->append((char*)ptr, size * nmemb);
-        return size * nmemb;
-    }
-
     void UpdatePortData(AlphaPixOutput* pd, UDControllerPort* stringData, bool& changeColor) const;
     void UpdateSerialData(AlphaPixSerial* pd, UDControllerPort* serialData) const;
 
@@ -72,14 +63,25 @@ class AlphaPix
     int ExtractIntFromPage(const wxString& page, const std::string& parameter, const std::string& type, int defaultValue = 0, int start = 0);
     bool ExtractBoolFromPage(const wxString& page, const std::string& parameter, const std::string& type, bool defaultValue = false, int start = 0);
 
-    wxString GetURL(const std::string& url, bool logresult = true);
-    wxString PutURL(const std::string& url, const std::string& request, bool logresult = true);
-
     int EncodeColorOrder(const std::string& colorOrder) const;
     bool EncodeDirection(const std::string& direction) const;
     int EncodeStringPortProtocol(const std::string& protocol) const;
-    std::string EncodeControllerType() const;
     std::string SafeDescription(const std::string description) const;
+
+    void UploadPixelOutputs(bool& worked);
+    void UploadFlexPixelOutputs(bool& worked);
+
+    const std::string GetFirmware() { return _firmware; }
+    const int GetNumberOfOutputs() { return _modelnum; }
+    const int GetNumberOfSerial() {
+        if (_modelnum == 4)
+            return 1;
+        else if (_modelnum == 16)
+            return 3;
+        else if (_modelnum == 48)
+            return 2;
+        return 0;
+    }
     #pragma endregion
 
     #pragma region Private Static Functions
@@ -102,24 +104,7 @@ public:
     #pragma endregion
     
     #pragma region Getters and Setters
-    bool IsConnected() const { return _connected; };
-
-    bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent);
-
-    void UploadPixelOutputs(bool& worked);
-    void UploadFlexPixelOutputs(bool& worked);
-
-    std::string GetModelName() { return EncodeControllerType(); }
-    const std::string GetFirmware() { return _firmware; }
-    const int GetNumberOfOutputs() { return _model; }
-    const int GetNumberOfSerial()  { 
-        if (_model == 4)
-            return 1;
-        else if (_model == 16)
-            return 3;
-        else if (_model == 48)
-            return 2;
-        return 0;
-    }
+    virtual bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent) override;
+    virtual bool UsesHTTP() const override { return true; }
     #pragma endregion
 };

@@ -404,14 +404,14 @@ void xLightsFrame::UpdateChannelNames() {
             auto NodeCount = model->GetNodeCount();
             auto ChanPerNode = model->GetChanCountPerNode();
             wxString FormatSpec = "Ch %d: " + model->name + " #%d";
-            for (auto n = 0; n < NodeCount; n++) {
+            for (size_t n = 0; n < NodeCount; n++) {
                 auto ChannelNum = model->NodeStartChannel(n);
 
-                auto NodeNum = n + 1;
+                size_t NodeNum = n + 1;
                 if (ChanPerNode == 1) {
                     if (ChannelNum < ChNames.Count()) {
                         if (ChNames[ChannelNum] == "") {
-                            ChNames[ChannelNum] = wxString::Format(FormatSpec, (int)ChannelNum + 1, NodeNum);
+                            ChNames[ChannelNum] = wxString::Format(FormatSpec, (int)ChannelNum + 1, (int)NodeNum);
                         }
                     }
                 }
@@ -419,7 +419,7 @@ void xLightsFrame::UpdateChannelNames() {
                     for (auto c = 0; c < ChanPerNode; c++) {
                         if (ChannelNum < ChNames.Count()) {
                             if (ChNames[ChannelNum] == "") {
-                                ChNames[ChannelNum] = wxString::Format(FormatSpec, (int)ChannelNum + 1, NodeNum) + model->GetChannelColorLetter(c);
+                                ChNames[ChannelNum] = wxString::Format(FormatSpec, (int)ChannelNum + 1, (int)NodeNum) + model->GetChannelColorLetter(c);
                             }
                         }
                         ChannelNum++;

@@ -1,34 +1,34 @@
-#ifndef ESPIXELSTICK_H
-#define ESPIXELSTICK_H
+#pragma once 
 
 #include <list>
 #include <string>
+
+#include "BaseController.h"
 #include "WebSocketClient.h"
 #include "ControllerUploadData.h"
 
-class ModelManager;
-class Output;
-class OutputManager;
-class ControllerEthernet;
-
-class ESPixelStick
+class ESPixelStick : public BaseController
 {
+    #pragma region Member Variables
     WebSocketClient _wsClient;
-	std::string _ip;
-    std::string _version;
-    bool _connected;
+    #pragma endregion
+
+    #pragma region Private Functions
     std::string DecodeStringPortProtocol(std::string protocol);
     std::string DecodeSerialPortProtocol(std::string protocol);
     std::string DecodeSerialSpeed(std::string protocol);
-    int GetMaxStringOutputs() const;
-    int GetMaxSerialOutputs() const;
+
     std::string GetFromJSON(std::string section, std::string key, std::string json);
+    #pragma endregion
 
 public:
+    #pragma region Constructors and Destructors
     ESPixelStick(const std::string& ip);
-    bool IsConnected() const { return _connected; };
-    virtual ~ESPixelStick();
-    bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent);
-};
+    virtual ~ESPixelStick() {}
+    #pragma endregion
 
-#endif
+    #pragma region Getters and Setters
+    virtual bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent) override;
+    virtual bool UsesHTTP() const override { return false; }
+    #pragma endregion
+};
