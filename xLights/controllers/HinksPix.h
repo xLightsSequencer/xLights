@@ -1,17 +1,26 @@
 #pragma once
 
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include <wx/protocol/http.h>
+
 #include <list>
 #include <string>
 #include <memory>
+
 #include "ControllerUploadData.h"
 #include "UtilClasses.h"
+#include "BaseController.h"
 
-class ModelManager;
-class Output;
-class OutputManager;
 class HinksPix;
-class ControllerEthernet;
 
 class HinksPixOutput
 {
@@ -74,59 +83,11 @@ public:
     wxString BuildCommand() const;
 };
 
-class HinksPix
+class HinksPix : public BaseController
 {
-    static size_t writeFunction(void* ptr, size_t size, size_t nmemb, std::string* data) {
-        data->append((char*)ptr, size * nmemb);
-        return size * nmemb;
-    }
-
-    bool InitControllerOutputData();
-
-    void UpdatePortData(HinksPixOutput& pd, UDControllerPort* stringData, std::map<int, int> const& uniChan) const;
-
-    void UpdateSerialData(HinksPixSerial& pd, UDControllerPort* serialData, int mode) const;
-
-    void UploadPixelOutputs(bool& worked);
-
-    std::map<wxString,wxString> StringToMap(wxString const& text) const;
-
-    void InitExpansionBoardData(int expansion, int startport, int length);
-
-    void UploadExpansionBoardData(int expansion, int startport, int length, bool& worked);
-
-    std::unique_ptr < HinksPixSerial> InitSerialData();
-
-    wxString GetControllerData(int rowIndex, std::string const& data = std::string());
-
-    wxString GetControllerE131Data(int rowIndex);
-
-    wxString GetControllerRowData(int rowIndex, std::string const& url, std::string const& data);
-
-    std::map<int, int> MapE131Addresses();
-
-    int CalcControllerChannel(int universe, int startChan, std::map<int, int> const& uniChan) const;
-
-    int EncodeColorOrder(const std::string& colorOrder) const;
-    int EncodeDirection(const std::string& direction) const;
-    int EncodeStringPortProtocol(const std::string& protocol) const;
-    int EncodeBrightness(int brightness) const;
-    int EncodeGamma(int gamma) const;
-    std::string EncodeControllerType() const;
-
-    static const std::string GetInfoURL() { return"/GetInfo.cgi"; };
-
-    static const std::string GetE131URL() { return"/GetE131Data.cgi"; };
-
+    #pragma region Member Variables
     wxHTTP _http;
-
-    std::string _baseUrl;
-    const std::string _fppProxy;
-    const std::string _ip;
-
     int _inputMode;//e131=0, ddp=1, artnet=2
-
-    //int _model;
     std::string _firmware;
     int _outputTypes[3];
     int _Flex;
@@ -134,19 +95,51 @@ class HinksPix
 
     std::vector<HinksPixOutput> _pixelOutputs;
     std::unique_ptr <HinksPixSerial> _serialOutput;
+    #pragma endregion 
 
-    bool _connected;
+    #pragma region Encode and Decode
+    int EncodeColorOrder(const std::string& colorOrder) const;
+    int EncodeDirection(const std::string& direction) const;
+    int EncodeStringPortProtocol(const std::string& protocol) const;
+    int EncodeBrightness(int brightness) const;
+    int EncodeGamma(int gamma) const;
+    #pragma endregion
 
-public:
-    HinksPix(const std::string& ip, const std::string &fppProxy);
-    virtual ~HinksPix();
-    bool IsConnected() const { return _connected; };
-
-    bool SetInputUniverses(ControllerEthernet* controller);
-    bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent);
-
-    std::string GetModelName() { return EncodeControllerType(); }
-    const std::string GetFirmware() const { return  _firmware; } ;
+    #pragma region Private Functions
+    bool InitControllerOutputData();
+    void InitExpansionBoardData(int expansion, int startport, int length);
+    std::unique_ptr < HinksPixSerial> InitSerialData();
+    void UpdatePortData(HinksPixOutput& pd, UDControllerPort* stringData, std::map<int, int> const& uniChan) const;
+    void UpdateSerialData(HinksPixSerial& pd, UDControllerPort* serialData, int mode) const;
+    void UploadPixelOutputs(bool& worked);
+    void UploadExpansionBoardData(int expansion, int startport, int length, bool& worked);
+    wxString GetControllerData(int rowIndex, std::string const& data = std::string());
+    wxString GetControllerE131Data(int rowIndex);
+    wxString GetControllerRowData(int rowIndex, std::string const& url, std::string const& data);
+    int CalcControllerChannel(int universe, int startChan, std::map<int, int> const& uniChan) const;
+    std::map<int, int> MapE131Addresses();
+    std::map<wxString,wxString> StringToMap(wxString const& text) const;
+    static const std::string GetInfoURL() { return"/GetInfo.cgi"; };
+    static const std::string GetE131URL() { return"/GetE131Data.cgi"; };
     const int GetNumberOfOutputs() { return _numberOfOutputs; }
     const int GetNumberOfSerial() { return 1; }
+
+    static size_t writeFunction(void* ptr, size_t size, size_t nmemb, std::string* data) {
+        data->append((char*)ptr, size * nmemb);
+        return size * nmemb;
+    }
+    #pragma endregion
+
+public:
+    #pragma region Constructors and Destructors
+    HinksPix(const std::string& ip, const std::string &fppProxy);
+    virtual ~HinksPix();
+    #pragma endregion
+
+    #pragma region Getters and Setters
+    bool SetInputUniverses(ControllerEthernet* controller) override;
+    bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent) override;
+    virtual bool UsesHTTP() const override { return true; }
+    #pragma endregion
+
 };
