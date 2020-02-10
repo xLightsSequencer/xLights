@@ -1089,7 +1089,7 @@ public:
     wxLed* LedPing = nullptr;
 
     void OnListItemActivatedControllers(wxListEvent& event);
-    void OnListItemFocussedControllers(wxListEvent& event);
+    void OnListItemSelectedControllers(wxListEvent& event);
     void OnListKeyDownControllers(wxListEvent& event);
     void OnListControllersRClick(wxContextMenuEvent& event);
     void OnListControllersColClick(wxListEvent& event);
@@ -1109,7 +1109,6 @@ public:
     void UploadOutputToController(ControllerEthernet* controller);
     int GetFirstSelectedControllerIndex() const;
     std::list<std::string> GetSelectedControllerNames() const;
-    std::string GetFocussedController() const;
     void OnListControllerPopup(wxCommandEvent& event);
     int GetSelectedControllerCount() const;
     int FindControllerInListControllers(const std::string& name) const;

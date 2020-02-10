@@ -1276,7 +1276,7 @@ void xLightsFrame::InitialiseControllersTab() {
         Connect(ID_List_Controllers, wxEVT_RIGHT_DOWN, (wxObjectEventFunction)&xLightsFrame::OnListControllersRClick);
         Connect(ID_List_Controllers, wxEVT_LIST_COL_CLICK, (wxObjectEventFunction)&xLightsFrame::OnListControllersColClick);
         Connect(ID_List_Controllers, wxEVT_LIST_ITEM_RIGHT_CLICK, (wxObjectEventFunction)&xLightsFrame::OnListControllersItemRClick);
-        Connect(ID_List_Controllers, wxEVT_LIST_ITEM_FOCUSED, (wxObjectEventFunction)&xLightsFrame::OnListItemFocussedControllers);
+        Connect(ID_List_Controllers, wxEVT_LIST_ITEM_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnListItemSelectedControllers);
         Connect(ID_List_Controllers, wxEVT_LIST_ITEM_DESELECTED, (wxObjectEventFunction)&xLightsFrame::OnListItemDeselectedControllers);
         Connect(ID_List_Controllers, wxEVT_LIST_BEGIN_DRAG, (wxObjectEventFunction)&xLightsFrame::OnListItemBeginDragControllers);
 
@@ -1649,13 +1649,6 @@ void xLightsFrame::OnControllerPropertyGridChange(wxPropertyGridEvent& event) {
 #pragma endregion
 
 #pragma region List_Controllers
-std::string xLightsFrame::GetFocussedController() const {
-
-    int item = List_Controllers->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_FOCUSED);
-    if (item != -1) return List_Controllers->GetItemText(item, 0);
-    return "";
-}
-
 std::list<std::string> xLightsFrame::GetSelectedControllerNames() const {
 
     std::list<std::string> selected;
@@ -1665,11 +1658,15 @@ std::list<std::string> xLightsFrame::GetSelectedControllerNames() const {
         item = List_Controllers->GetNextItem(item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
     }
 
+    /*
     if (selected.size() == 0) {
-        auto focussed = GetFocussedController();
-        if (focussed != "") selected.push_back(focussed);
+        int item = List_Controllers->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_FOCUSED);
+        if (item != -1) {
+            auto focussed = List_Controllers->GetItemText(item, 0);
+            if (focussed != "") selected.push_back(focussed);
+        }
     }
-
+    */
     return selected;
 }
 
@@ -1690,7 +1687,7 @@ int xLightsFrame::GetSelectedControllerCount() const {
     return count;
 }
 
-void xLightsFrame::OnListItemFocussedControllers(wxListEvent& event) {
+void xLightsFrame::OnListItemSelectedControllers(wxListEvent& event) {
     SetControllersProperties();
 }
 
@@ -1709,7 +1706,6 @@ void xLightsFrame::OnListItemActivatedControllers(wxListEvent& event)
 }
 
 void xLightsFrame::OnListItemDeselectedControllers(wxListEvent& event) {
-
     SetControllersProperties();
 }
 
