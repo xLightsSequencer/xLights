@@ -16,6 +16,7 @@
 #include <wx/zstream.h>
 #include <wx/mstream.h>
 #include <wx/protocol/http.h>
+#include <wx/config.h>
 #include <zstd.h>
 
 #include "../xSchedule/wxJSON/jsonreader.h"
@@ -48,15 +49,17 @@ using namespace TraceLog;
 static const std::string PIHAT("Pi Hat");
 static const std::string LEDPANELS("LED Panels");
 
-FPP::FPP(const std::string &ad) : majorVersion(0), minorVersion(0), outputFile(nullptr), parent(nullptr), ipAddress(ad), curl(nullptr), isFPP(true) {
+FPP::FPP(const std::string &ad) : BaseController(ad, ""), majorVersion(0), minorVersion(0), outputFile(nullptr), parent(nullptr), ipAddress(ad), curl(nullptr), isFPP(true) {
     wxIPV4address address;
     if (address.Hostname(ad)) {
         hostName = ad;
         ipAddress = address.IPAddress();
+        _ip = ipAddress;
     }
+    _connected = true; // well not really but i need to fake it
 }
 
-FPP::FPP(ControllerEthernet* controller) : majorVersion(0), minorVersion(0), outputFile(nullptr), parent(nullptr), curl(nullptr), isFPP(true) {
+FPP::FPP(ControllerEthernet* controller) : BaseController(controller->GetIP(), ""), majorVersion(0), minorVersion(0), outputFile(nullptr), parent(nullptr), curl(nullptr), isFPP(true) {
     _controller = controller;
     ipAddress = controller->GetIP();
     pixelControllerType = _controller->GetModel();
@@ -64,7 +67,9 @@ FPP::FPP(ControllerEthernet* controller) : majorVersion(0), minorVersion(0), out
     if (address.Hostname(ipAddress)) {
         hostName = ipAddress;
         ipAddress = address.IPAddress();
+        _ip = ipAddress;
     }
+    _connected = true; // well not really but i need to fake it
 }
 
 FPP::FPP(const FPP &c)
@@ -90,14 +95,6 @@ FPP::~FPP() {
     }
 }
 
-static int buffer_writer(char *data, size_t size, size_t nmemb,
-                         std::string *writerData) {
-    if (writerData == NULL) {
-        return 0;
-    }
-    writerData->append(data, size * nmemb);
-    return size * nmemb;
-}
 class FPPWriteData {
 public:
     FPPWriteData() : file(nullptr), progress(nullptr), data(nullptr), dataSize(0), curPos(0),
@@ -185,7 +182,7 @@ void FPP::setupCurl() {
         curl = curl_easy_init();
     }
     curl_easy_reset(curl);
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, buffer_writer);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, BaseController::writeFunction);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &curlInputBuffer);
     curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
     curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT_MS, 2000);
@@ -1096,6 +1093,66 @@ std::string FPP::GetModel(const std::string& type)
     return m;
 }
 
+bool FPP::SetInputUniverses(ControllerEthernet* controller, wxWindow* parentWin) {
+
+    wxConfigBase* config = wxConfigBase::Get();
+    wxString fip;
+    config->Read("xLightsPiIP", &fip, "");
+    wxString ausername;
+    config->Read("xLightsPiUser", &ausername, "fpp");
+    wxString apassword;
+    config->Read("xLightsPiPassword", &apassword, "true");
+    username = ausername;
+    password = apassword;
+
+    auto ips = wxSplit(fip, '|');
+    auto users = wxSplit(ausername, '|');
+    auto passwords = wxSplit(password, '|');
+
+    // they should all be the same size ... but if not base it off the smallest
+    int count = std::min(ips.size(), std::min(users.size(), passwords.size()));
+
+    username = "fpp";
+    wxString thePassword = "true";
+    for (int i = 0; i < count; i++) {
+        if (ips[i] == controller->GetIP()) {
+            username = users[i];
+            thePassword = passwords[i];
+        }
+    }
+
+    if (thePassword == "true") {
+        if (username == "pi") {
+            password = "raspberry";
+        }
+        else if (username == "fpp") {
+            password = "falcon";
+        }
+        else {
+            wxTextEntryDialog ted(parentWin, "Enter password for " + username, "Password", controller->GetIP());
+            if (ted.ShowModal() == wxID_OK) {
+                password = ted.GetValue();
+            }
+        }
+    }
+    else {
+        wxTextEntryDialog ted(parentWin, "Enter password for " + username, "Password", controller->GetIP());
+        if (ted.ShowModal() == wxID_OK) {
+            password = ted.GetValue();
+        }
+    }
+
+    parentWin = parent;
+
+    return (AuthenticateAndUpdateVersions() && !SetInputUniversesBridge(controller));
+}
+
+bool FPP::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent)
+{
+    parent = parent;
+    return AuthenticateAndUpdateVersions() && !UploadPixelOutputs(allmodels, outputManager, controller);
+}
+
 wxJSONValue FPP::CreateUniverseFile(const std::list<ControllerEthernet*>& selected, bool input) {
     wxJSONValue root;
     root["type"] = wxString("universes");
@@ -1627,7 +1684,7 @@ public:
     CurlData(const std::string &a) : url(a), type(0), fpp(nullptr) {
         errorBuffer[0] = 0;
         curl = curl_easy_init();
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, buffer_writer);
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, BaseController::writeFunction);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, &buffer);
         curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
         curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);

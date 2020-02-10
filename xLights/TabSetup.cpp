@@ -2001,104 +2001,18 @@ void xLightsFrame::UploadInputToController(ControllerEthernet* controller) {
             auto proxy = controller->GetFPPProxy();
             RecalcModels();
 
+            BaseController* bc = nullptr;
             if (vendor == "Falcon") {
-                Falcon falcon(ip, proxy);
-                if (falcon.IsConnected()) {
-                    if (falcon.SetInputUniverses(controller)) {
-                        SetStatusText("Falcon Input Upload Complete.");
-                    }
-                    else {
-                        SetStatusText("Falcon Input Upload Failed.");
-                    }
-                }
-                else {
-                    SetStatusText("Falcon Input Upload Failed. Unable to connect.");
-                }
+                bc = new Falcon(ip, proxy);
             }
             else if (vendor == "FPP" || vendor == "Kulp") {
-                wxConfigBase* config = wxConfigBase::Get();
-                wxString fip;
-                config->Read("xLightsPiIP", &fip, "");
-                wxString user;
-                config->Read("xLightsPiUser", &user, "fpp");
-                wxString password;
-                config->Read("xLightsPiPassword", &password, "true");
-
-                auto ips = wxSplit(fip, '|');
-                auto users = wxSplit(user, '|');
-                auto passwords = wxSplit(password, '|');
-
-                // they should all be the same size ... but if not base it off the smallest
-                int count = std::min(ips.size(), std::min(users.size(), passwords.size()));
-
-                wxString theUser = "fpp";
-                wxString thePassword = "true";
-                for (int i = 0; i < count; i++) {
-                    if (ips[i] == ip) {
-                        theUser = users[i];
-                        thePassword = passwords[i];
-                    }
-                }
-
-                if (thePassword == "true") {
-                    if (theUser == "pi") {
-                        password = "raspberry";
-                    }
-                    else if (theUser == "fpp") {
-                        password = "falcon";
-                    }
-                    else {
-                        wxTextEntryDialog ted(this, "Enter password for " + theUser, "Password", ip);
-                        if (ted.ShowModal() == wxID_OK) {
-                            password = ted.GetValue();
-                        }
-                    }
-                }
-                else {
-                    wxTextEntryDialog ted(this, "Enter password for " + theUser, "Password", ip);
-                    if (ted.ShowModal() == wxID_OK) {
-                        password = ted.GetValue();
-                    }
-                }
-
-                FPP fpp(ip);
-                fpp.parent = this;
-                fpp.username = theUser;
-                fpp.password = password;
-                if (fpp.AuthenticateAndUpdateVersions() && !fpp.SetInputUniversesBridge(controller)) {
-                    SetStatusText("FPP Input Upload Complete.");
-                }
-                else {
-                    SetStatusText("FPP Input Upload Failed.");
-                }
+                bc = new FPP(ip);
             }
             else if (vendor == "SanDevices") {
-                SanDevices sanDevices(ip, proxy);
-                if (sanDevices.IsConnected()) {
-                    if (sanDevices.SetInputUniverses(controller)) {
-                        SetStatusText("SanDevices Input Upload Complete.");
-                    }
-                    else {
-                        SetStatusText("SanDevices Input Upload Failed.");
-                    }
-                }
-                else {
-                    SetStatusText("SanDevices Input Upload Failed. Unable to connect.");
-                }
+                bc = new SanDevices(ip, proxy);
             }
             else if (vendor == "HinksPix") {
-                HinksPix hinkspix(ip, proxy);
-                if (hinkspix.IsConnected()) {
-                    if (hinkspix.SetInputUniverses(controller)) {
-                        SetStatusText("HinksPix Input Upload Complete.");
-                    }
-                    else {
-                        SetStatusText("HinksPix Input Upload Failed.");
-                    }
-                }
-                else {
-                    SetStatusText("HinksPix Input Upload Failed. Unable to connect.");
-                }
+                bc = new HinksPix(ip, proxy);
             }
         }
         else {
@@ -2136,113 +2050,46 @@ void xLightsFrame::UploadOutputToController(ControllerEthernet* controller) {
             auto proxy = controller->GetFPPProxy();
             RecalcModels();
 
+            BaseController* bc = nullptr;
             if (vendor == "Falcon") {
-                Falcon falcon(ip, proxy);
-                if (falcon.IsConnected()) {
-                    if (falcon.SetOutputs(&AllModels, &_outputManager, controller, this)) {
-                        SetStatusText("Falcon Output Upload Complete.");
-                    }
-                    else {
-                        SetStatusText("Falcon Output Upload Failed.");
-                    }
-                }
-                else {
-                    SetStatusText("Falcon Output Upload Failed. Unable to connect");
-                }
+                bc = new Falcon(ip, proxy);
             }
             else if (vendor == "Advatek") {
-                Pixlite16 pixlite(ip);
-                if (pixlite.IsConnected()) {
-                    if (pixlite.SetOutputs(&AllModels, &_outputManager, controller, this)) {
-                        SetStatusText("PixLite/PixCon Upload Complete.");
-                    }
-                    else {
-                        SetStatusText("PixLite/PixCon Upload Failed.");
-                    }
-                }
-                else {
-                    SetStatusText("Unable to connect to PixLite/PixCon.");
-                }
+                bc = new Pixlite16(ip);
             }
             else if (vendor == "ESPixelStick") {
-                ESPixelStick esPixelStick(ip);
-                if (esPixelStick.IsConnected()) {
-                    if (esPixelStick.SetOutputs(&AllModels, &_outputManager, controller, this)) {
-                        SetStatusText("ES Pixel Stick Upload Complete.");
-                    }
-                    else {
-                        SetStatusText("ES Pixel Stick Upload Failed.");
-                    }
-                }
-                else {
-                    SetStatusText("ES Pixel Stick Upload Failed. Unable to connect.");
-                }
+                bc = new ESPixelStick(ip);
             }
             else if (vendor == "J1Sys") {
-                J1Sys j1sys(ip, proxy);
-                if (j1sys.IsConnected()) {
-                    if (j1sys.SetOutputs(&AllModels, &_outputManager, controller, this)) {
-                        SetStatusText("J1SYS Upload Complete.");
-                    }
-                    else {
-                        SetStatusText("J1SYS Upload Failed.");
-                    }
-                }
-                else {
-                    SetStatusText("J1SYS Upload Failed. Unable to connect.");
-                }
+                bc = new J1Sys(ip, proxy);
             }
             else if (vendor == "SanDevices") {
-                SanDevices sanDevices(ip, proxy);
-                if (sanDevices.IsConnected()) {
-                    if (sanDevices.SetOutputs(&AllModels, &_outputManager, controller, this)) {
-                        SetStatusText("SanDevices Output Upload Complete.");
-                    }
-                    else {
-                        SetStatusText("SanDevices Output Upload Failed.");
-                    }
-                }
-                else {
-                    SetStatusText("SanDevices Output Upload Failed. Unable to connect to controller.");
-                }
+                bc = new SanDevices(ip, proxy);
             }
             else if (vendor == "HinksPix") {
-                HinksPix hinkspix(ip, proxy);
-                if (hinkspix.IsConnected()) {
-                    if (hinkspix.SetOutputs(&AllModels, &_outputManager, controller, this)) {
-                        SetStatusText("HinksPix Output Upload Complete.");
-                    }
-                    else {
-                        SetStatusText("HinksPix Output Upload Failed.");
-                    }
-                }
-                else {
-                    SetStatusText("HinksPix Output Upload Failed. Unable to connect to controller.");
-                }
-            }
-            else if (vendor == "FPP" || vendor == "Kulp") {
-                FPP fpp(controller);
-                fpp.parent = this;
-                if (fpp.AuthenticateAndUpdateVersions() && !fpp.UploadPixelOutputs(&AllModels, &_outputManager, controller)) {
-                    SetStatusText("FPP Upload Complete.");
-                }
-                else {
-                    SetStatusText("FPP Upload Failed.");
-                }
+                bc = new HinksPix(ip, proxy);
             }
             else if (vendor == "HolidayCoro") {
-                AlphaPix alphapix(ip, proxy);
-                if (alphapix.IsConnected()) {
-                    if (alphapix.SetOutputs(&AllModels, &_outputManager, controller, this)) {
-                        SetStatusText("AlphaPix Upload Complete.");
+                bc = new AlphaPix(ip, proxy);
+            }
+            else if (vendor == "FPP" || vendor == "Kulp") {
+                bc = new FPP(controller);
+            }
+
+            if (bc != nullptr)
+            {
+                if (bc->IsConnected()) {
+                    if (bc->SetOutputs(&AllModels, &_outputManager, controller, this)) {
+                        SetStatusText(vendor + " Output Upload Complete.");
                     }
                     else {
-                        SetStatusText("AlphaPix Upload Failed.");
+                        SetStatusText(vendor + " Output Upload Failed.");
                     }
                 }
                 else {
-                    SetStatusText("Unable to connect to AlphaPix.");
+                    SetStatusText(vendor + " Output Upload Failed. Unable to connect");
                 }
+                delete bc;
             }
         }
         else {

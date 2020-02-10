@@ -710,7 +710,7 @@ void Falcon::DecodeModelVersion(int p, int& model, int& version) {
 #pragma endregion
 
 #pragma region Getters and Setters
-bool Falcon::SetInputUniverses(ControllerEthernet* controller) {
+bool Falcon::SetInputUniverses(ControllerEthernet* controller, wxWindow* parent) {
 
     wxString request;
     int output = 0;

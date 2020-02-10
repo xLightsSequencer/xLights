@@ -24,8 +24,8 @@ class BaseController
 {
 protected:
     #pragma region Member Variables
-    const std::string _fppProxy;
-    const std::string _ip;
+    std::string _fppProxy;
+    std::string _ip;
     std::string _baseUrl;
     std::string _model;
     std::string _version;
@@ -33,19 +33,23 @@ protected:
     #pragma endregion
 
     #pragma region Protected Functions
-    static size_t writeFunction(void* ptr, size_t size, size_t nmemb, std::string* data) {
-
-        data->append((char*)ptr, size * nmemb);
-        return size * nmemb;
-    }
-
     std::string GetURL(const std::string& url, bool logresult = true);
     std::string PutURL(const std::string& url, const std::string& request, bool logresult = true);
     #pragma endregion
 
 public:
     
+    #pragma region Static Functions
+    static size_t writeFunction(void* ptr, size_t size, size_t nmemb, std::string* data) {
+
+        if (data == nullptr) return 0;
+        data->append((char*)ptr, size * nmemb);
+        return size * nmemb;
+    }
+    #pragma endregion
+
     #pragma region Constructors and Destructors
+    BaseController() {}
     BaseController(const std::string& ip, const std::string &fppProxy);
     virtual ~BaseController() {}
     #pragma endregion
@@ -56,7 +60,7 @@ public:
     virtual std::string GetModel() const { return _model; }
     virtual std::string GetVersion() const { return _version; }
     virtual std::string GetFullName() const { return _model + ((_version == "") ? _("") : (_(" ") + _version)); }
-    virtual bool SetInputUniverses(ControllerEthernet* controller) { return false; }
+    virtual bool SetInputUniverses(ControllerEthernet* controller, wxWindow* parent) { return false; }
     virtual bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent) = 0;
     virtual bool UsesHTTP() const = 0;
     #pragma endregion

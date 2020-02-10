@@ -1287,7 +1287,7 @@ SanDevices::~SanDevices() {
 #pragma endregion
 
 #pragma region Getters and Setters
-bool SanDevices::SetInputUniverses(ControllerEthernet* controller) {
+bool SanDevices::SetInputUniverses(ControllerEthernet* controller, wxWindow* parent) {
 
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     const std::string page = _page;

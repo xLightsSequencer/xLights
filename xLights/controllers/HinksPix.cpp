@@ -569,7 +569,7 @@ HinksPix::~HinksPix()
 #pragma endregion
 
 #pragma region Getters and Setters
-bool HinksPix::SetInputUniverses(ControllerEthernet* controller)
+bool HinksPix::SetInputUniverses(ControllerEthernet* controller, wxWindow* parent)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("HinksPix Inputs Upload: Uploading to %s", (const char*)_ip.c_str());
@@ -729,7 +729,7 @@ bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
 
     //set DDP mode first
     if (mode == 1) {
-        SetInputUniverses(controller);
+        SetInputUniverses(controller, parent);
     }
 
     std::map<int, int> map;

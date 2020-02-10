@@ -7,20 +7,19 @@
 
 #include "../models/ModelManager.h"
 #include "ControllerUploadData.h"
+#include "BaseController.h"
 
-class OutputManager;
 class wxJSONValue;
 class FSEQFile;
 class wxMemoryBuffer;
 typedef void CURL;
 class wxWindow;
 class wxProgressDialog;
-class Controller;
-class ControllerEthernet;
 
-class FPP {
+class FPP : public BaseController
+{
     public:
-    FPP() : majorVersion(0), minorVersion(0), outputFile(nullptr), parent(nullptr), curl(nullptr), isFPP(true) {}
+    FPP() : BaseController("", ""), majorVersion(0), minorVersion(0), outputFile(nullptr), parent(nullptr), curl(nullptr), isFPP(true) {}
     FPP(const std::string &address);
     FPP(ControllerEthernet* controller);
     FPP(const FPP &c);
@@ -90,6 +89,13 @@ class FPP {
     static wxJSONValue CreateUniverseFile(ControllerEthernet* controller, bool input);
     static std::string GetVendor(const std::string& type);
     static std::string GetModel(const std::string& type);
+
+#pragma region Getters and Setters
+    virtual bool SetInputUniverses(ControllerEthernet* controller, wxWindow* parent) override;
+    virtual bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent) override;
+    virtual bool UsesHTTP() const override { return false; } // returning false here because i dont think you can uypload through a FPP proxy to another FPP
+#pragma endregion
+
 private:
     void FillRanges(std::map<int, int> &rngs);
     void SetNewRanges(const std::map<int, int> &rngs);
@@ -127,4 +133,3 @@ private:
     CURL *curl = nullptr;
     std::string curlInputBuffer;
 };
-
