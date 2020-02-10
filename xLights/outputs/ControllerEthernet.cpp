@@ -315,20 +315,20 @@ void ControllerEthernet::Convert(wxXmlNode* node, std::string showDir) {
 
 std::string ControllerEthernet::GetChannelMapping(int32_t ch) const {
 
-    wxString res = wxString::Format("Channel %ld maps to ...\nType: %s\nName: %s\nIP: %s\n", ch, GetProtocol(), GetName(), GetIP());
+    wxString res = wxString::Format("Channel %d maps to ...\nType: %s\nName: %s\nIP: %s\n", ch, GetProtocol(), GetName(), GetIP());
 
     int32_t sc;
     auto o = GetOutput(ch, sc);
 
     if (o->GetType() == OUTPUT_ARTNET || o->GetType() == OUTPUT_E131) {
-        res += wxString::Format("Universe: %s\nChannel: %ld\n", o->GetUniverseString(), sc);
+        res += wxString::Format("Universe: %s\nChannel: %d\n", o->GetUniverseString(), sc);
     }
     else if (o->GetType() == OUTPUT_xxxETHERNET) {
         auto xo = dynamic_cast<xxxEthernetOutput*>(o);
-        res += wxString::Format("Port: %d\nChannel: %ld\n", xo->GetPort(), sc);
+        res += wxString::Format("Port: %d\nChannel: %d\n", xo->GetPort(), sc);
     }
     else {
-        res += wxString::Format("Channel: %ld\n", sc);
+        res += wxString::Format("Channel: %d\n", sc);
     }
 
     if (!IsActive()) {
@@ -372,7 +372,7 @@ void ControllerEthernet::AsyncPing() {
 
 std::string ControllerEthernet::GetExport() const {
 
-    return wxString::Format("%s,%ld,%ld,%s,%s,%s,,,\"%s\",%s,%ld,%s,%s,%s,%s",
+    return wxString::Format("%s,%d,%d,%s,%s,%s,,,\"%s\",%s,%d,%s,%s,%s,%s",
         GetName(),
         GetStartChannel(),
         GetEndChannel(),
@@ -561,7 +561,7 @@ void ControllerEthernet::AddProperties(wxPropertyGrid* propertyGrid, ModelManage
                 p->SetAttribute("Min", 1);
                 p->SetAttribute("Max", it->GetMaxChannels());
                 p->SetEditor("SpinCtrl");
-                p->SetHelpString(wxString::Format("[%ld-%ld]\n", it->GetStartChannel(), it->GetEndChannel()) + modelManager->GetModelsOnChannels(it->GetStartChannel(), it->GetEndChannel(), 4));
+                p->SetHelpString(wxString::Format("[%d-%d]\n", it->GetStartChannel(), it->GetEndChannel()) + modelManager->GetModelsOnChannels(it->GetStartChannel(), it->GetEndChannel(), 4));
             }
         }
         else {

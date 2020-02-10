@@ -420,12 +420,8 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
                                         //wxPG_AUTO_SORT | // Automatic sorting after items added
                                         wxPG_SPLITTER_AUTO_CENTER | // Automatically center splitter until user manually adjusts it
                                         // Default style
-                                        wxPG_DEFAULT_STYLE );
-#ifdef __WXOSX__
-    propertyEditor->SetExtraStyle(wxPG_EX_NATIVE_DOUBLE_BUFFERING | wxWS_EX_PROCESS_IDLE | wxPG_EX_HELP_AS_TOOLTIPS);
-#else
-    propertyEditor->SetExtraStyle(wxWS_EX_PROCESS_IDLE | wxPG_EX_HELP_AS_TOOLTIPS);
-#endif
+                                        wxPG_DEFAULT_STYLE  | wxPG_EX_HELP_AS_TOOLTIPS |
+                                        wxWS_EX_PROCESS_IDLE);
     InitImageList();
 
     wxFlexGridSizer* FlexGridSizerModels = new wxFlexGridSizer(0, 1, 0, 0);

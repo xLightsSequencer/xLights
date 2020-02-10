@@ -1299,13 +1299,9 @@ void xLightsFrame::InitialiseControllersTab() {
             //wxPG_AUTO_SORT | // Automatic sorting after items added
             wxPG_SPLITTER_AUTO_CENTER | // Automatically center splitter until user manually adjusts it
             // Default style
-            wxPG_DEFAULT_STYLE);
+            wxPG_DEFAULT_STYLE | wxPG_EX_HELP_AS_TOOLTIPS |
+            wxWS_EX_PROCESS_IDLE);
         FlexGridSizerSetupProperties->Add(Controllers_PropertyEditor, 1, wxALL | wxEXPAND, 5);
-#ifdef __WXOSX__
-        Controllers_PropertyEditor->SetExtraStyle(wxPG_EX_NATIVE_DOUBLE_BUFFERING | wxWS_EX_PROCESS_IDLE | wxPG_EX_HELP_AS_TOOLTIPS);
-#else
-        Controllers_PropertyEditor->SetExtraStyle(wxWS_EX_PROCESS_IDLE | wxPG_EX_HELP_AS_TOOLTIPS);
-#endif
         Controllers_PropertyEditor->Connect(wxEVT_PG_CHANGED, (wxObjectEventFunction)&xLightsFrame::OnControllerPropertyGridChange, 0, this);
         Controllers_PropertyEditor->SetValidationFailureBehavior(wxPG_VFB_MARK_CELL | wxPG_VFB_BEEP);
     }
