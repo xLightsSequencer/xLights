@@ -1024,7 +1024,6 @@ void ZCPPOutput::AddProperties(wxPropertyGrid* propertyGrid, bool allSameSize) {
 bool ZCPPOutput::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager) {
 
     wxString const name = event.GetPropertyName();
-    wxPropertyGrid* grid = dynamic_cast<wxPropertyGrid*>(event.GetEventObject());
 
     if (name == "SupportsVirtualStrings") {
         SetSupportsVirtualStrings(event.GetValue().GetBool());

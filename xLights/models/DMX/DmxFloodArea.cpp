@@ -83,7 +83,6 @@ void DmxFloodArea::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccum
 
     float rw = ((BoxedScreenLocation)screenLocation).GetMWidth();
     float rh = ((BoxedScreenLocation)screenLocation).GetMHeight();
-    float min_size = (float)(std::min(rh, rw));
 
     if (shutter_open) {
         float halfwidth = rw / 2.0f;
@@ -167,8 +166,6 @@ void DmxFloodArea::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accu
 
     float rw = ((BoxedScreenLocation)screenLocation).GetMWidth();
     float rh = ((BoxedScreenLocation)screenLocation).GetMHeight();
-    float min_size = (float)(std::min(rh, rw));
-
     glm::quat rotation = GetModelScreenLocation().GetRotationQuat();
 
     if (shutter_open) {

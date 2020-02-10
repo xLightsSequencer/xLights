@@ -578,7 +578,6 @@ float DmxSkull::GetServoPos(Servo* _servo, bool active) {
 void DmxSkull::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator& va, const xlColor* c, float& sx, float& sy, bool active) {
     if (!IsActive()) return;
 
-    float sz = 0;
     DrawGLUtils::xl3Accumulator dummy;
     DrawModel(preview, va, dummy, c, sx, sy, active, false);
 }

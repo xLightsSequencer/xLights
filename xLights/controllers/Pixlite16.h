@@ -110,7 +110,7 @@ public:
     #pragma endregion
 
     #pragma region Getters and Setters
-    bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent);
+    bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent) override;
     virtual bool UsesHTTP() const override { return false; }
     #pragma endregion
 };

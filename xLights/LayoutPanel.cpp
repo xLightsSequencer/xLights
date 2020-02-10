@@ -5070,7 +5070,6 @@ void LayoutPanel::OnAddDmxPopup(wxCommandEvent& event)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     int id = event.GetId();
-    Model* dmxobj = nullptr;
     bool object_created = false;
     if (id == ID_ADD_DMX_FLOODLIGHT) {
         logger_base.debug("OnAddDmxPopup - ID_ADD_DMX_FLOODLIGHT");

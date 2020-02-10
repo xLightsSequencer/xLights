@@ -798,7 +798,6 @@ void HinksPixExportDialog::createPlayList(std::vector<std::tuple<wxString, wxStr
 {
     wxArrayString main;
 
-    int i = 0;
     for (std::tuple<wxString, wxString> const& song : songs)
     {
         wxString audio = std::get<1>(song);

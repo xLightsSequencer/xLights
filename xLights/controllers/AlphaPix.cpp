@@ -431,8 +431,6 @@ std::string AlphaPix::ExtractFromPage(const wxString& page, const std::string& p
         //logger_base.debug("Regex:%s", (const char*)regex.c_str());
         wxRegEx inputregex(regex, wxRE_ADVANCED | wxRE_NEWLINE);
         if (inputregex.Matches(wxString(p))) {
-            auto count = inputregex.GetMatchCount();
-
             const std::string res = inputregex.GetMatch(wxString(p), 0).ToStdString();
             const std::string res2 = inputregex.GetMatch(wxString(p), 1).ToStdString();
             if (!res2.empty())

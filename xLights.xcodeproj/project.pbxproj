@@ -230,6 +230,7 @@
 		675081ED21B80EC600A48CD1 /* EventState.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 675081EB21B80EC600A48CD1 /* EventState.cpp */; };
 		675081F021B80F0500A48CD1 /* EventStatePanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 675081EF21B80F0500A48CD1 /* EventStatePanel.cpp */; };
 		6755B8691F75D304005EEEF5 /* FontManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6755B8671F75D303005EEEF5 /* FontManager.cpp */; };
+		6755E89F23F040720014BA1F /* BaseController.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6755E89D23F040710014BA1F /* BaseController.cpp */; };
 		67582EC81C73643900850363 /* osx_shared_mutex.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67582EC71C73643900850363 /* osx_shared_mutex.cpp */; };
 		67582ECA1C73646300850363 /* xlMacUtils.mm in Sources */ = {isa = PBXBuildFile; fileRef = 67582EC91C73646300850363 /* xlMacUtils.mm */; };
 		675878DB1A89297200205A75 /* DataLayer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 675878D91A89297200205A75 /* DataLayer.cpp */; };
@@ -1285,6 +1286,8 @@
 		675081EF21B80F0500A48CD1 /* EventStatePanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = EventStatePanel.cpp; sourceTree = "<group>"; };
 		6755B8671F75D303005EEEF5 /* FontManager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = FontManager.cpp; sourceTree = "<group>"; };
 		6755B8681F75D304005EEEF5 /* FontManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FontManager.h; sourceTree = "<group>"; };
+		6755E89D23F040710014BA1F /* BaseController.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = BaseController.cpp; path = controllers/BaseController.cpp; sourceTree = "<group>"; };
+		6755E89E23F040720014BA1F /* BaseController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = BaseController.h; path = controllers/BaseController.h; sourceTree = "<group>"; };
 		67582EC71C73643900850363 /* osx_shared_mutex.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = osx_shared_mutex.cpp; path = osx_utils/osx_shared_mutex.cpp; sourceTree = "<group>"; };
 		67582EC91C73646300850363 /* xlMacUtils.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = xlMacUtils.mm; path = osx_utils/xlMacUtils.mm; sourceTree = "<group>"; };
 		675878D91A89297200205A75 /* DataLayer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DataLayer.cpp; sourceTree = "<group>"; };
@@ -2986,6 +2989,8 @@
 		67BF7FF31F278946002F118D /* Controllers */ = {
 			isa = PBXGroup;
 			children = (
+				6755E89D23F040710014BA1F /* BaseController.cpp */,
+				6755E89E23F040720014BA1F /* BaseController.h */,
 				678A41B223E6412000E5FB09 /* ControllerCaps.cpp */,
 				678A41B123E6412000E5FB09 /* ControllerCaps.h */,
 				6740DD0523BC2136002500F2 /* HinksPixExportDialog.cpp */,
@@ -4636,6 +4641,7 @@
 				6784F9311A5653670018EC0C /* Waveform.cpp in Sources */,
 				6780AB8A1A65C3480090B26E /* SequenceData.cpp in Sources */,
 				67367C7423DDD80E00B185E2 /* ServoConfigDialog.cpp in Sources */,
+				6755E89F23F040720014BA1F /* BaseController.cpp in Sources */,
 				671FD6301BD72014003C2E33 /* ResizeImageDialog.cpp in Sources */,
 				67CB9F2C1C6E1FF400390753 /* VUMeterEffect.cpp in Sources */,
 				67B2CFE61C3A186A003C17CA /* PianoEffect.cpp in Sources */,

@@ -61,7 +61,6 @@ void NullOutput::AddProperties(wxPropertyGrid* propertyGrid, bool allSameSize) {
 bool NullOutput::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager) {
 
     wxString name = event.GetPropertyName();
-    wxPropertyGrid* grid = dynamic_cast<wxPropertyGrid*>(event.GetEventObject());
 
     if (name == "Channels")
     {

@@ -40,7 +40,7 @@ public:
         : wxStringProperty(label, name, wxEmptyString), _lc(lc) { }
     virtual ~DeleteLorControllerProperty() { }
     
-    const wxPGEditor* DoGetEditorClass() const {
+    const wxPGEditor* DoGetEditorClass() const override {
         return wxPGEditor_TextCtrlAndButton;
     }
 
@@ -528,7 +528,6 @@ void LOROptimisedOutput::AddProperties(wxPropertyGrid* propertyGrid, bool allSam
 bool LOROptimisedOutput::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager) {
 
     wxString name = event.GetPropertyName();
-    wxPropertyGrid* grid = dynamic_cast<wxPropertyGrid*>(event.GetEventObject());
 
     if (StartsWith(name, "DeleteDevice/")) {
         CalcTotalChannels();

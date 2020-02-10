@@ -67,7 +67,7 @@ public:
 
     virtual std::string GetType() const override { return CONTROLLER_SERIAL; }
 
-    void Convert(wxXmlNode* node, std::string showDir); // loads a legacy networks node
+    void Convert(wxXmlNode* node, std::string showDir) override; // loads a legacy networks node
 
     virtual bool NeedsControllerConfig() const override { return false; }
 
@@ -82,7 +82,7 @@ public:
     virtual std::string GetColumn2Label() const override { return wxString::Format("%s:%d", _port, _speed); }
 
     virtual Output::PINGSTATE Ping() override;
-    virtual void AsyncPing() { _lastPingResult = Ping(); }
+    virtual void AsyncPing() override { _lastPingResult = Ping(); }
 
     virtual std::string GetExport() const override;
 #pragma endregion 

@@ -339,9 +339,6 @@ void DmxMovingHead3D::DrawModel(ModelPreview* preview, DrawGLUtils::xlAccumulato
     float sf = 12.0f;
     float scale = radius / sf;
 
-    int bars_deltax = (int)(scale * sf * 1.0f);
-    int bars_deltay = (int)(scale * sf * 1.1f);
-
     float beam_width = 30.0f;
     beam_length_displayed = scale * sf * beam_length;
     angle1 = angle - beam_width / 2.0f;

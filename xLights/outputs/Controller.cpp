@@ -434,7 +434,6 @@ void Controller::AddProperties(wxPropertyGrid* propertyGrid, ModelManager* model
 bool Controller::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager)
 {
     wxString const name = event.GetPropertyName();
-    wxPropertyGrid* grid = dynamic_cast<wxPropertyGrid*>(event.GetEventObject());
 
     if (name == "ControllerName") {
         auto cn = event.GetValue().GetString();

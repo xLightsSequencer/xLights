@@ -642,7 +642,7 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
             if (GetCheckValue(UPLOAD_CONTROLLER_COL + rowStr)) {
                 auto vendor = FPP::GetVendor(inst->pixelControllerType);
                 auto model = FPP::GetModel(inst->pixelControllerType);
-                auto caps = ControllerCaps::GetControllerConfig(vendor, model, "");
+                //auto caps = ControllerCaps::GetControllerConfig(vendor, model, "");
                 auto c = _outputManager->GetControllers(inst->ipAddress);
                 if (c.size() == 1)
                 {

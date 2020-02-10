@@ -174,9 +174,6 @@ void ModelScreenLocation::SetRenderSize(float NewWi, float NewHt, float NewDp) {
     RenderHt = NewHt;
     RenderWi = NewWi;
     RenderDp = NewDp;
-    if (RenderHt > 1.0f) {
-        int x = 5;
-    }
 }
 
 // This function is used when the render size needs to be adjusted after a mesh is loaded during model creation
@@ -2761,7 +2758,7 @@ void TwoPointScreenLocation::RotateAboutPoint(glm::vec3 position, glm::vec3 angl
  
     if (angle.y != 0.0f) {
         float posx = GetHcenterPos();
-        float posy = GetVcenterPos();
+        //float posy = GetVcenterPos();
         float posz = GetDcenterPos();
 
         float offset = angle.y;

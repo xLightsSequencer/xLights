@@ -19,6 +19,8 @@
 
 #include <log4cpp/Category.hh>
 
+static const int32_t xxxCHANNELSPERPACKET = 1200;
+
 #pragma region Private Functions
 void xxxEthernetOutput::Heartbeat(int mode) {
 

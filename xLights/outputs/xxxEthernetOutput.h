@@ -29,7 +29,6 @@ protected:
     static const unsigned int xxxETHERNET_MAX_CHANNELS = 4096*3;
     static const unsigned int xxx_PORT = 11000;
     static const unsigned int xxx_HEARTBEATINTERVAL = 25;
-    static const int32_t xxxCHANNELSPERPACKET = 1200;
     #pragma endregion 
 
     #pragma region Member Variables

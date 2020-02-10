@@ -135,7 +135,6 @@ void ControllerEthernet::SetProtocol(const std::string& protocol) {
     int totchannels = GetChannels();
     auto const oldtype = _type;
     auto oldoutputs = _outputs;
-    int size = _outputs.size();
     _outputs.clear(); // empties the list but doesnt delete anything yet
 
     _type = protocol;
@@ -610,7 +609,6 @@ bool ControllerEthernet::HandlePropertyEvent(wxPropertyGridEvent& event, OutputM
     if (Controller::HandlePropertyEvent(event, outputModelManager)) return true;
 
     wxString const name = event.GetPropertyName();
-    wxPropertyGrid* grid = dynamic_cast<wxPropertyGrid*>(event.GetEventObject());
 
     if (name == "IP") {
         SetIP(event.GetValue().GetString());

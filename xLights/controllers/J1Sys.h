@@ -57,7 +57,7 @@ public:
 
     #pragma region Getters and Setters
     bool SetInputUniverses(ControllerEthernet* controller, OutputManager* outputManager);
-    bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent);
+    bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent) override;
     virtual bool UsesHTTP() const override { return true; }
     #pragma endregion
 };

@@ -76,7 +76,7 @@ UDControllerPortModel::UDControllerPortModel(Model* m, Controller* controller, O
         o = controller->GetOutput(_startChannel, _universeStartChannel);
     }
     else {
-        Output* o = om->GetOutput(_startChannel, _universeStartChannel);
+        o = om->GetOutput(_startChannel, _universeStartChannel);
     }
 
     if (o == nullptr) {

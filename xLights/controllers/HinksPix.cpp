@@ -549,7 +549,7 @@ HinksPix::HinksPix(const std::string& ip, const std::string& proxy) : BaseContro
                     firmwareregex.GetMatch(firmData, 2),
                     firmwareregex.GetMatch(firmData, 3),
                     firmwareregex.GetMatch(firmData, 4));
-                logger_base.info("Connected to HinksPix controller model %s.", _firmware);
+                logger_base.info("Connected to HinksPix controller model %s.", _firmware.c_str());
             }
         } 
         else {
@@ -575,7 +575,6 @@ bool HinksPix::SetInputUniverses(ControllerEthernet* controller, wxWindow* paren
     logger_base.debug("HinksPix Inputs Upload: Uploading to %s", (const char*)_ip.c_str());
 
     wxString request;
-    int output = 0;
 
     // Get universes based on IP
     std::list<Output*> outputs = controller->GetOutputs();

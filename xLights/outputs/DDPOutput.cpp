@@ -361,14 +361,12 @@ void DDPOutput::AddProperties(wxPropertyGrid* propertyGrid, bool allSameSize)
 bool DDPOutput::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager) {
 
     wxString const name = event.GetPropertyName();
-    wxPropertyGrid* grid = dynamic_cast<wxPropertyGrid*>(event.GetEventObject());
 
     if (name == "ChannelsPerPacket") {
         SetChannelsPerPacket(event.GetValue().GetLong());
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "DDPOutput::HandlePropertyEvent::ChannelsPerPacket");
         return true;
-    }
-    else if (name == "KeepChannelNumbers") {
+    } else if (name == "KeepChannelNumbers") {
         SetKeepChannelNumber(event.GetValue().GetBool());
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "DDPOutput::HandlePropertyEvent::KeepChannelNumbers");
         return true;

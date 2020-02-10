@@ -116,8 +116,6 @@ void SelectPanel::populateModelsList(const std::string& effectType)
 
     std::vector<wxString> models;
 
-    auto const startendtime = GetStartAndEndTime();
-
     for (int i = 0; i < mSequenceElements->GetElementCount(); i++)
     {
         Element* el = mSequenceElements->GetElement(i);
@@ -228,7 +226,6 @@ void SelectPanel::SelectEffects()
 
         for (auto value : effectsSelected)
         {
-            const std::string& effectText = ListBox_Select_Effects->GetString(value).ToStdString();
             Effect* eff = (Effect*)ListBox_Select_Effects->GetClientData(value);
             if (eff != nullptr)
             {

@@ -46,7 +46,7 @@ public:
 
     virtual std::string GetType() const override { return CONTROLLER_NULL; }
 
-    virtual void Convert(wxXmlNode* node, std::string showDir); // loads a legacy networks node
+    virtual void Convert(wxXmlNode* node, std::string showDir) override; // loads a legacy networks node
 
     virtual bool NeedsControllerConfig() const override { return false; }
 

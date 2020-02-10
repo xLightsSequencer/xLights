@@ -321,7 +321,6 @@ bool ControllerSerial::HandlePropertyEvent(wxPropertyGridEvent& event, OutputMod
     if (Controller::HandlePropertyEvent(event, outputModelManager)) return true;
 
     wxString const name = event.GetPropertyName();
-    wxPropertyGrid* grid = dynamic_cast<wxPropertyGrid*>(event.GetEventObject());
 
     if (name == "Port") {
         SetPort(Controller::DecodeChoices(__ports, event.GetValue().GetLong()));
