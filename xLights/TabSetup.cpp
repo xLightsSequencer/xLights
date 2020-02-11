@@ -1155,6 +1155,7 @@ void xLightsFrame::OnButtonDiscoverClick(wxCommandEvent& event) {
 
         controller = new ControllerEthernet(&_outputManager, false);
         controller->SetProtocol(OUTPUT_DDP);
+        controller->EnsureUniqueId();
 
         if (v == "ESPixelStick") {
             dynamic_cast<DDPOutput*>(controller->GetOutputs().front())->SetKeepChannelNumber(false);
@@ -1232,6 +1233,7 @@ void xLightsFrame::OnButtonDiscoverClick(wxCommandEvent& event) {
             eth->SetProtocol(OUTPUT_E131);
             eth->SetName(_outputManager.UniqueName(it.second));
             eth->SetIP(it.first);
+            eth->EnsureUniqueId();
             _outputManager.AddController(eth, -1);
             _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "OnButton_DiscoverClick");
             _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "OnButton_DiscoverClick");
