@@ -71,6 +71,7 @@ public:
         std::vector<uint8_t> _bankVoltage;
         uint8_t _testMode = 0;
         std::vector<uint8_t> _testParameters;
+        uint8_t _protocolVersion = 0;
     };
 
 protected:
@@ -90,16 +91,18 @@ protected:
     static void Write16(uint8_t* data, int& pos, int value);
     static void WriteString(uint8_t* data, int& pos, int len, const std::string& value);
     
-    bool ParseV4Config(uint8_t* data);
-    bool ParseV5Config(uint8_t* data);
-    bool ParseV6Config(uint8_t* data);
+    static bool ParseV4Config(uint8_t* data, Pixlite16::Config& config);
+    static bool ParseV5Config(uint8_t* data, Pixlite16::Config& config);
+    static bool ParseV6Config(uint8_t* data, Pixlite16::Config& config);
     int PrepareV4Config(uint8_t* data) const;
     int PrepareV5Config(uint8_t* data) const;
     int PrepareV6Config(uint8_t* data) const;
 
+    static std::list<Pixlite16::Config> DoDiscover();
+
     bool SendConfig(bool logresult = false) const;
 
-    void DumpConfiguration() const;
+    static void DumpConfiguration(Pixlite16::Config& config);
     #pragma endregion
 
 public:
@@ -112,6 +115,7 @@ public:
     #pragma region Getters and Setters
     bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent) override;
     virtual bool UsesHTTP() const override { return false; }
+    static std::list<std::pair<std::string,std::string>> Discover(wxWindow* parent);
     #pragma endregion
 };
 

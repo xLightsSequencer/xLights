@@ -1222,6 +1222,19 @@ void xLightsFrame::OnButtonDiscoverClick(wxCommandEvent& event) {
             }
         }
     }
+
+    for (const auto& it : Pixlite16::Discover(this))
+    {
+        if (_outputManager.GetControllers(it.first, "").size() == 0)
+        {
+            // no controller with this IP exists
+            auto eth = new ControllerEthernet(&_outputManager, false);
+            eth->SetProtocol(OUTPUT_E131);
+            eth->SetName(_outputManager.UniqueName(it.second));
+            _outputManager.AddController(eth, -1);
+        }
+    }
+
     SetCursor(wxCURSOR_DEFAULT);
     SetStatusText("Discovery complete.");
     logger_base.debug("Controller discovery complete.");

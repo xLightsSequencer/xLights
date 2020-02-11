@@ -77,61 +77,61 @@ void Pixlite16::WriteString(uint8_t* data, int& pos, int len, const std::string&
     pos += len;
 }
 
-bool Pixlite16::ParseV4Config(uint8_t* data) {
+bool Pixlite16::ParseV4Config(uint8_t* data, Pixlite16::Config& config) {
 
     int pos = 12;
     char buffer[256];
 
-    _config._maxPixelsPerOutput = 340;
-    _config._modelNameLen = 20;
+    config._maxPixelsPerOutput = 340;
+    config._modelNameLen = 20;
     memset(buffer, 0x00, sizeof(buffer));
-    memcpy(buffer, &data[pos], _config._modelNameLen);
-    _config._modelName = buffer;
-    pos += _config._modelNameLen;
+    memcpy(buffer, &data[pos], config._modelNameLen);
+    config._modelName = buffer;
+    pos += config._modelNameLen;
 
-    memcpy(_config._currentIP, &data[pos], sizeof(_config._currentIP));
-    pos += sizeof(_config._currentIP);
-    _config._dhcp = data[pos++]; // I cant find this
+    memcpy(config._currentIP, &data[pos], sizeof(config._currentIP));
+    pos += sizeof(config._currentIP);
+    config._dhcp = data[pos++]; // I cant find this
 
     pos++; // unused
 
-    _config._nicknameLen = 40;
+    config._nicknameLen = 40;
     memset(buffer, 0x00, sizeof(buffer));
-    memcpy(buffer, &data[pos], _config._nicknameLen);
-    pos += _config._nicknameLen;
-    _config._nickname = buffer;
+    memcpy(buffer, &data[pos], config._nicknameLen);
+    pos += config._nicknameLen;
+    config._nickname = buffer;
 
-    _config._firmwareVersionLen = 20;
+    config._firmwareVersionLen = 20;
     memset(buffer, 0x00, sizeof(buffer));
-    memcpy(buffer, &data[pos], _config._firmwareVersionLen);
-    pos += _config._firmwareVersionLen;
-    _config._firmwareVersion = buffer;
+    memcpy(buffer, &data[pos], config._firmwareVersionLen);
+    pos += config._firmwareVersionLen;
+    config._firmwareVersion = buffer;
 
-    memcpy(_config._mac, &data[pos], sizeof(_config._mac));
-    pos += sizeof(_config._mac);
+    memcpy(config._mac, &data[pos], sizeof(config._mac));
+    pos += sizeof(config._mac);
 
-    _config._temperature = Read16(data, pos);
+    config._temperature = Read16(data, pos);
 
-    _config._numOutputs = 16;
-    if (_config._modelName.find("16") != std::string::npos) {
-        _config._realOutputs = 16;
+    config._numOutputs = 16;
+    if (config._modelName.find("16") != std::string::npos) {
+        config._realOutputs = 16;
     }
     else {
-        _config._realOutputs = 4;
+        config._realOutputs = 4;
     }
-    _config._outputPixels.resize(_config._numOutputs);
-    for (int i = 0; i < _config._numOutputs; i++) { _config._outputPixels[i] = Read16(data, pos); }
+    config._outputPixels.resize(config._numOutputs);
+    for (int i = 0; i < config._numOutputs; i++) { config._outputPixels[i] = Read16(data, pos); }
 
-    _config._protocol = data[pos++];
+    config._protocol = data[pos++];
 
     pos++; // unused
     pos++; // unused
 
-    memcpy(_config._staticIP, &data[pos], sizeof(_config._staticIP));
-    pos += sizeof(_config._staticIP);
+    memcpy(config._staticIP, &data[pos], sizeof(config._staticIP));
+    pos += sizeof(config._staticIP);
 
-    memcpy(_config._staticSubnetMask, &data[pos], sizeof(_config._staticSubnetMask));
-    pos += sizeof(_config._staticSubnetMask);
+    memcpy(config._staticSubnetMask, &data[pos], sizeof(config._staticSubnetMask));
+    pos += sizeof(config._staticSubnetMask);
 
     pos++; // unused
     pos++; // unused
@@ -141,79 +141,79 @@ bool Pixlite16::ParseV4Config(uint8_t* data) {
     pos++; // 0x00 static start channel - must be 0
     pos++; // 0x00
 
-    _config._currentDriver = data[pos++];
+    config._currentDriver = data[pos++];
 
-    _config._gamma.resize(3);
-    for (int i = 0; i < _config._gamma.size(); i++) { _config._gamma[i] = data[pos++]; }
+    config._gamma.resize(3);
+    for (int i = 0; i < config._gamma.size(); i++) { config._gamma[i] = data[pos++]; }
 
-    _config._numBanks = 2;
-    _config._bankVoltage.resize(_config._numBanks);
-    for (int i = 0; i < _config._numBanks; i++) { _config._bankVoltage[i] = Read16(data, pos); }
+    config._numBanks = 2;
+    config._bankVoltage.resize(config._numBanks);
+    for (int i = 0; i < config._numBanks; i++) { config._bankVoltage[i] = Read16(data, pos); }
 
-    _config._outputUniverse.resize(_config._numOutputs);
-    for (int i = 0; i < _config._numOutputs; i++) { _config._outputUniverse[i] = Read16(data, pos); }
+    config._outputUniverse.resize(config._numOutputs);
+    for (int i = 0; i < config._numOutputs; i++) { config._outputUniverse[i] = Read16(data, pos); }
 
-    _config._outputStartChannel.resize(_config._numOutputs);
-    for (int i = 0; i < _config._numOutputs; i++) { _config._outputStartChannel[i] = Read16(data, pos); }
+    config._outputStartChannel.resize(config._numOutputs);
+    for (int i = 0; i < config._numOutputs; i++) { config._outputStartChannel[i] = Read16(data, pos); }
 
-    _config._outputNullPixels.resize(_config._numOutputs);
-    for (int i = 0; i < _config._numOutputs; i++) { _config._outputNullPixels[i] = data[pos++]; }
+    config._outputNullPixels.resize(config._numOutputs);
+    for (int i = 0; i < config._numOutputs; i++) { config._outputNullPixels[i] = data[pos++]; }
 
-    _config._outputZigZag.resize(_config._numOutputs);
-    for (int i = 0; i < _config._numOutputs; i++) { _config._outputZigZag[i] = Read16(data, pos); }
+    config._outputZigZag.resize(config._numOutputs);
+    for (int i = 0; i < config._numOutputs; i++) { config._outputZigZag[i] = Read16(data, pos); }
 
-    _config._outputReverse.resize(_config._numOutputs);
-    for (int i = 0; i < _config._numOutputs; i++) { _config._outputReverse[i] = data[pos++]; }
+    config._outputReverse.resize(config._numOutputs);
+    for (int i = 0; i < config._numOutputs; i++) { config._outputReverse[i] = data[pos++]; }
 
     uint8_t rgb = data[pos++]; // 0xff turn on advanced RGB orders - if not FF then make it FF can copy the value to advanced
     pos++; // unused
     pos++; // unused
 
-    _config._numDMX = 4;
-    if (_config._modelName.find("16") != std::string::npos) {
-        _config._realDMX = 4;
+    config._numDMX = 4;
+    if (config._modelName.find("16") != std::string::npos) {
+        config._realDMX = 4;
     }
     else {
-        _config._realDMX = 1;
+        config._realDMX = 1;
     }
-    _config._dmxOn.resize(_config._numDMX);
-    _config._dmxUniverse.resize(_config._numDMX);
-    for (int i = 0; i < _config._numDMX; i++) { _config._dmxOn[i] = data[pos++]; }
-    for (int i = 0; i < _config._numDMX; i++) { _config._dmxUniverse[i] = Read16(data, pos); }
+    config._dmxOn.resize(config._numDMX);
+    config._dmxUniverse.resize(config._numDMX);
+    for (int i = 0; i < config._numDMX; i++) { config._dmxOn[i] = data[pos++]; }
+    for (int i = 0; i < config._numDMX; i++) { config._dmxUniverse[i] = Read16(data, pos); }
 
-    _config._hwRevision = data[pos++];
+    config._hwRevision = data[pos++];
 
-    _config._currentDriverSpeed = data[pos++];
+    config._currentDriverSpeed = data[pos++];
 
-    _config._outputColourOrder.resize(_config._numOutputs);
+    config._outputColourOrder.resize(config._numOutputs);
     if (rgb != 0xff) {
-        for (int i = 0; i < _config._numOutputs; i++) { _config._outputColourOrder[i] = rgb; }
-        pos += _config._numOutputs;
+        for (int i = 0; i < config._numOutputs; i++) { config._outputColourOrder[i] = rgb; }
+        pos += config._numOutputs;
     }
     else {
-        for (int i = 0; i < _config._numOutputs; i++) { _config._outputColourOrder[i] = data[pos++]; }
+        for (int i = 0; i < config._numOutputs; i++) { config._outputColourOrder[i] = data[pos++]; }
     }
 
-    _config._outputGrouping.resize(_config._numOutputs);
-    for (int i = 0; i < _config._numOutputs; i++) { _config._outputGrouping[i] = Read16(data, pos); }
+    config._outputGrouping.resize(config._numOutputs);
+    for (int i = 0; i < config._numOutputs; i++) { config._outputGrouping[i] = Read16(data, pos); }
 
-    _config._outputBrightness.resize(_config._numOutputs);
-    for (int i = 0; i < _config._numOutputs; i++) { _config._outputBrightness[i] = data[pos++]; }
+    config._outputBrightness.resize(config._numOutputs);
+    for (int i = 0; i < config._numOutputs; i++) { config._outputBrightness[i] = data[pos++]; }
 
-    _config._holdLastFrame = data[pos++];
-    _config._maxTargetTemp = data[pos++];
+    config._holdLastFrame = data[pos++];
+    config._maxTargetTemp = data[pos++];
 
-    memcpy(_config._currentSubnetMask, &data[pos], sizeof(_config._currentSubnetMask));
-    pos += sizeof(_config._currentSubnetMask);
+    memcpy(config._currentSubnetMask, &data[pos], sizeof(config._currentSubnetMask));
+    pos += sizeof(config._currentSubnetMask);
 
-    _config._currentDriverExpanded = data[pos++];
+    config._currentDriverExpanded = data[pos++];
 
-    memcpy(_config._minAssistantVer, &data[pos], sizeof(_config._minAssistantVer));
-    pos += sizeof(_config._minAssistantVer);
+    memcpy(config._minAssistantVer, &data[pos], sizeof(config._minAssistantVer));
+    pos += sizeof(config._minAssistantVer);
 
-    _config._testMode = data[pos++];
+    config._testMode = data[pos++];
 
-    _config._currentDriverType = data[pos++];
+    config._currentDriverType = data[pos++];
 
     pos++; // 0xff
     pos++; // 0xff
@@ -224,231 +224,231 @@ bool Pixlite16::ParseV4Config(uint8_t* data) {
 }
 
 
-bool Pixlite16::ParseV5Config(uint8_t* data) {
+bool Pixlite16::ParseV5Config(uint8_t* data, Pixlite16::Config& config) {
 
     int pos = 12;
     char buffer[256];
-    memcpy(_config._mac, &data[pos], sizeof(_config._mac));
+    memcpy(config._mac, &data[pos], sizeof(config._mac));
     pos += 6;
 
-    _config._modelNameLen = data[pos++];
+    config._modelNameLen = data[pos++];
     memset(buffer, 0x00, sizeof(buffer));
-    memcpy(buffer, &data[pos], _config._modelNameLen);
-    _config._modelName = buffer;
-    pos += _config._modelNameLen;
+    memcpy(buffer, &data[pos], config._modelNameLen);
+    config._modelName = buffer;
+    pos += config._modelNameLen;
 
-    _config._hwRevision = data[pos++];
-    memcpy(_config._minAssistantVer, &data[pos], sizeof(_config._minAssistantVer));
-    pos += sizeof(_config._minAssistantVer);
+    config._hwRevision = data[pos++];
+    memcpy(config._minAssistantVer, &data[pos], sizeof(config._minAssistantVer));
+    pos += sizeof(config._minAssistantVer);
 
-    _config._firmwareVersionLen = 20;
+    config._firmwareVersionLen = 20;
     memset(buffer, 0x00, sizeof(buffer));
-    memcpy(buffer, &data[pos], _config._firmwareVersionLen);
-    pos += _config._firmwareVersionLen;
-    _config._firmwareVersion = buffer;
+    memcpy(buffer, &data[pos], config._firmwareVersionLen);
+    pos += config._firmwareVersionLen;
+    config._firmwareVersion = buffer;
 
-    _config._brand = data[pos++];
+    config._brand = data[pos++];
 
-    memcpy(_config._currentIP, &data[pos], sizeof(_config._currentIP));
-    pos += sizeof(_config._currentIP);
+    memcpy(config._currentIP, &data[pos], sizeof(config._currentIP));
+    pos += sizeof(config._currentIP);
 
-    memcpy(_config._currentSubnetMask, &data[pos], sizeof(_config._currentSubnetMask));
-    pos += sizeof(_config._currentSubnetMask);
+    memcpy(config._currentSubnetMask, &data[pos], sizeof(config._currentSubnetMask));
+    pos += sizeof(config._currentSubnetMask);
 
-    _config._dhcp = data[pos++];
+    config._dhcp = data[pos++];
 
-    memcpy(_config._staticIP, &data[pos], sizeof(_config._staticIP));
-    pos += sizeof(_config._staticIP);
+    memcpy(config._staticIP, &data[pos], sizeof(config._staticIP));
+    pos += sizeof(config._staticIP);
 
-    memcpy(_config._staticSubnetMask, &data[pos], sizeof(_config._staticSubnetMask));
-    pos += sizeof(_config._staticSubnetMask);
+    memcpy(config._staticSubnetMask, &data[pos], sizeof(config._staticSubnetMask));
+    pos += sizeof(config._staticSubnetMask);
 
-    _config._protocol = data[pos++];
-    _config._holdLastFrame = data[pos++];
-    _config._simpleConfig = data[pos++];
-    _config._maxPixelsPerOutput = Read16(data, pos);
-    _config._numOutputs = data[pos++];
-    _config._realOutputs = _config._numOutputs;
-    _config._outputPixels.resize(_config._numOutputs);
-    _config._outputUniverse.resize(_config._numOutputs);
-    _config._outputStartChannel.resize(_config._numOutputs);
-    _config._outputNullPixels.resize(_config._numOutputs);
-    _config._outputZigZag.resize(_config._numOutputs);
-    _config._outputReverse.resize(_config._numOutputs);
-    _config._outputColourOrder.resize(_config._numOutputs);
-    _config._outputGrouping.resize(_config._numOutputs);
-    _config._outputBrightness.resize(_config._numOutputs);
-    for (int i = 0; i < _config._numOutputs; i++) { _config._outputPixels[i] = Read16(data, pos); }
-    for (int i = 0; i < _config._numOutputs; i++) { _config._outputUniverse[i] = Read16(data, pos); }
-    for (int i = 0; i < _config._numOutputs; i++) { _config._outputStartChannel[i] = Read16(data, pos); }
-    for (int i = 0; i < _config._numOutputs; i++) { _config._outputNullPixels[i] = data[pos++]; }
-    for (int i = 0; i < _config._numOutputs; i++) { _config._outputZigZag[i] = Read16(data, pos); }
-    for (int i = 0; i < _config._numOutputs; i++) { _config._outputReverse[i] = data[pos++]; }
-    for (int i = 0; i < _config._numOutputs; i++) { _config._outputColourOrder[i] = data[pos++]; }
-    for (int i = 0; i < _config._numOutputs; i++) { _config._outputGrouping[i] = Read16(data, pos); }
-    for (int i = 0; i < _config._numOutputs; i++) { _config._outputBrightness[i] = data[pos++]; }
+    config._protocol = data[pos++];
+    config._holdLastFrame = data[pos++];
+    config._simpleConfig = data[pos++];
+    config._maxPixelsPerOutput = Read16(data, pos);
+    config._numOutputs = data[pos++];
+    config._realOutputs = config._numOutputs;
+    config._outputPixels.resize(config._numOutputs);
+    config._outputUniverse.resize(config._numOutputs);
+    config._outputStartChannel.resize(config._numOutputs);
+    config._outputNullPixels.resize(config._numOutputs);
+    config._outputZigZag.resize(config._numOutputs);
+    config._outputReverse.resize(config._numOutputs);
+    config._outputColourOrder.resize(config._numOutputs);
+    config._outputGrouping.resize(config._numOutputs);
+    config._outputBrightness.resize(config._numOutputs);
+    for (int i = 0; i < config._numOutputs; i++) { config._outputPixels[i] = Read16(data, pos); }
+    for (int i = 0; i < config._numOutputs; i++) { config._outputUniverse[i] = Read16(data, pos); }
+    for (int i = 0; i < config._numOutputs; i++) { config._outputStartChannel[i] = Read16(data, pos); }
+    for (int i = 0; i < config._numOutputs; i++) { config._outputNullPixels[i] = data[pos++]; }
+    for (int i = 0; i < config._numOutputs; i++) { config._outputZigZag[i] = Read16(data, pos); }
+    for (int i = 0; i < config._numOutputs; i++) { config._outputReverse[i] = data[pos++]; }
+    for (int i = 0; i < config._numOutputs; i++) { config._outputColourOrder[i] = data[pos++]; }
+    for (int i = 0; i < config._numOutputs; i++) { config._outputGrouping[i] = Read16(data, pos); }
+    for (int i = 0; i < config._numOutputs; i++) { config._outputBrightness[i] = data[pos++]; }
 
-    _config._numDMX = data[pos++];
-    _config._realDMX = _config._numDMX;
-    _config._dmxOn.resize(_config._numDMX);
-    _config._dmxUniverse.resize(_config._numDMX);
-    for (int i = 0; i < _config._numDMX; i++) { _config._dmxOn[i] = data[pos++]; }
-    for (int i = 0; i < _config._numDMX; i++) { _config._dmxUniverse[i] = Read16(data, pos); }
+    config._numDMX = data[pos++];
+    config._realDMX = config._numDMX;
+    config._dmxOn.resize(config._numDMX);
+    config._dmxUniverse.resize(config._numDMX);
+    for (int i = 0; i < config._numDMX; i++) { config._dmxOn[i] = data[pos++]; }
+    for (int i = 0; i < config._numDMX; i++) { config._dmxUniverse[i] = Read16(data, pos); }
 
-    _config._numDrivers = data[pos++];
-    _config._driverNameLen = data[pos++];
-    _config._driverType.resize(_config._numDrivers);
-    _config._driverSpeed.resize(_config._numDrivers);
-    _config._driverExpandable.resize(_config._numDrivers);
-    _config._driverName.resize(_config._numDrivers);
-    for (int i = 0; i < _config._numDrivers; i++) { _config._driverType[i] = data[pos++]; }
-    for (int i = 0; i < _config._numDrivers; i++) { _config._driverSpeed[i] = data[pos++]; }
-    for (int i = 0; i < _config._numDrivers; i++) { _config._driverExpandable[i] = data[pos++]; }
-    for (int i = 0; i < _config._numDrivers; i++) {
+    config._numDrivers = data[pos++];
+    config._driverNameLen = data[pos++];
+    config._driverType.resize(config._numDrivers);
+    config._driverSpeed.resize(config._numDrivers);
+    config._driverExpandable.resize(config._numDrivers);
+    config._driverName.resize(config._numDrivers);
+    for (int i = 0; i < config._numDrivers; i++) { config._driverType[i] = data[pos++]; }
+    for (int i = 0; i < config._numDrivers; i++) { config._driverSpeed[i] = data[pos++]; }
+    for (int i = 0; i < config._numDrivers; i++) { config._driverExpandable[i] = data[pos++]; }
+    for (int i = 0; i < config._numDrivers; i++) {
         memset(buffer, 0x00, sizeof(buffer));
-        memcpy(buffer, &data[pos], _config._driverNameLen);
-        pos += _config._driverNameLen;
-        _config._driverName[i] = buffer;
+        memcpy(buffer, &data[pos], config._driverNameLen);
+        pos += config._driverNameLen;
+        config._driverName[i] = buffer;
     }
 
-    _config._currentDriver = data[pos++];
-    _config._currentDriverType = data[pos++];
-    _config._currentDriverSpeed = data[pos++];
-    _config._currentDriverExpanded = data[pos++];
-    _config._gamma.resize(3);
-    for (int i = 0; i < _config._gamma.size(); i++) { _config._gamma[i] = data[pos++]; }
+    config._currentDriver = data[pos++];
+    config._currentDriverType = data[pos++];
+    config._currentDriverSpeed = data[pos++];
+    config._currentDriverExpanded = data[pos++];
+    config._gamma.resize(3);
+    for (int i = 0; i < config._gamma.size(); i++) { config._gamma[i] = data[pos++]; }
 
-    _config._nicknameLen = 40;
+    config._nicknameLen = 40;
     memset(buffer, 0x00, sizeof(buffer));
-    memcpy(buffer, &data[pos], _config._nicknameLen);
-    pos += _config._nicknameLen;
-    _config._nickname = buffer;
+    memcpy(buffer, &data[pos], config._nicknameLen);
+    pos += config._nicknameLen;
+    config._nickname = buffer;
 
-    _config._temperature = Read16(data, pos);
-    _config._maxTargetTemp = data[pos++];
+    config._temperature = Read16(data, pos);
+    config._maxTargetTemp = data[pos++];
 
-    _config._numBanks = data[pos++];
-    _config._bankVoltage.resize(_config._numBanks);
-    for (int i = 0; i < _config._numBanks; i++) { _config._bankVoltage[i] = Read16(data, pos); }
+    config._numBanks = data[pos++];
+    config._bankVoltage.resize(config._numBanks);
+    for (int i = 0; i < config._numBanks; i++) { config._bankVoltage[i] = Read16(data, pos); }
 
-    _config._testMode = data[pos++];
+    config._testMode = data[pos++];
 
     //_testParameters not in v5
 
     return true;
 }
 
-bool Pixlite16::ParseV6Config(uint8_t* data) {
+bool Pixlite16::ParseV6Config(uint8_t* data, Pixlite16::Config& config) {
 
     int pos = 13;
     char buffer[256];
-    memcpy(_config._mac, &data[pos], sizeof(_config._mac));
+    memcpy(config._mac, &data[pos], sizeof(config._mac));
     pos += 6;
 
-    _config._modelNameLen = data[pos++];
+    config._modelNameLen = data[pos++];
     memset(buffer, 0x00, sizeof(buffer));
-    memcpy(buffer, &data[pos], _config._modelNameLen);
-    _config._modelName = buffer;
-    pos += _config._modelNameLen;
+    memcpy(buffer, &data[pos], config._modelNameLen);
+    config._modelName = buffer;
+    pos += config._modelNameLen;
 
-    _config._hwRevision = data[pos++];
-    memcpy(_config._minAssistantVer, &data[pos], sizeof(_config._minAssistantVer));
-    pos += sizeof(_config._minAssistantVer);
+    config._hwRevision = data[pos++];
+    memcpy(config._minAssistantVer, &data[pos], sizeof(config._minAssistantVer));
+    pos += sizeof(config._minAssistantVer);
 
-    _config._firmwareVersionLen = data[pos++];
+    config._firmwareVersionLen = data[pos++];
     memset(buffer, 0x00, sizeof(buffer));
-    memcpy(buffer, &data[pos + 1], _config._firmwareVersionLen);
-    _config._firmwareVersion = buffer;
-    pos += _config._firmwareVersionLen;
+    memcpy(buffer, &data[pos + 1], config._firmwareVersionLen);
+    config._firmwareVersion = buffer;
+    pos += config._firmwareVersionLen;
 
-    _config._brand = data[pos++];
+    config._brand = data[pos++];
 
-    memcpy(_config._currentIP, &data[pos], sizeof(_config._currentIP));
-    pos += sizeof(_config._currentIP);
+    memcpy(config._currentIP, &data[pos], sizeof(config._currentIP));
+    pos += sizeof(config._currentIP);
 
-    memcpy(_config._currentSubnetMask, &data[pos], sizeof(_config._currentSubnetMask));
-    pos += sizeof(_config._currentSubnetMask);
+    memcpy(config._currentSubnetMask, &data[pos], sizeof(config._currentSubnetMask));
+    pos += sizeof(config._currentSubnetMask);
 
-    _config._dhcp = data[pos++];
+    config._dhcp = data[pos++];
 
-    memcpy(_config._staticIP, &data[pos], sizeof(_config._staticIP));
-    pos += sizeof(_config._staticIP);
+    memcpy(config._staticIP, &data[pos], sizeof(config._staticIP));
+    pos += sizeof(config._staticIP);
 
-    memcpy(_config._staticSubnetMask, &data[pos], sizeof(_config._staticSubnetMask));
-    pos += sizeof(_config._staticSubnetMask);
+    memcpy(config._staticSubnetMask, &data[pos], sizeof(config._staticSubnetMask));
+    pos += sizeof(config._staticSubnetMask);
 
-    _config._protocol = data[pos++];
-    _config._holdLastFrame = data[pos++];
-    _config._simpleConfig = data[pos++];
-    _config._maxPixelsPerOutput = Read16(data, pos);
-    _config._numOutputs = data[pos++];
-    _config._realOutputs = _config._numOutputs;
-    _config._outputPixels.resize(_config._numOutputs);
-    _config._outputUniverse.resize(_config._numOutputs);
-    _config._outputStartChannel.resize(_config._numOutputs);
-    _config._outputNullPixels.resize(_config._numOutputs);
-    _config._outputZigZag.resize(_config._numOutputs);
-    _config._outputReverse.resize(_config._numOutputs);
-    _config._outputColourOrder.resize(_config._numOutputs);
-    _config._outputGrouping.resize(_config._numOutputs);
-    _config._outputBrightness.resize(_config._numOutputs);
-    for (int i = 0; i < _config._numOutputs; i++) { _config._outputPixels[i] = Read16(data, pos); }
-    for (int i = 0; i < _config._numOutputs; i++) { _config._outputUniverse[i] = Read16(data, pos); }
-    for (int i = 0; i < _config._numOutputs; i++) { _config._outputStartChannel[i] = Read16(data, pos); }
-    for (int i = 0; i < _config._numOutputs; i++) { _config._outputNullPixels[i] = data[pos++]; }
-    for (int i = 0; i < _config._numOutputs; i++) { _config._outputZigZag[i] = Read16(data, pos); }
-    for (int i = 0; i < _config._numOutputs; i++) { _config._outputReverse[i] = data[pos++]; }
-    for (int i = 0; i < _config._numOutputs; i++) { _config._outputColourOrder[i] = data[pos++]; }
-    for (int i = 0; i < _config._numOutputs; i++) { _config._outputGrouping[i] = Read16(data, pos); }
-    for (int i = 0; i < _config._numOutputs; i++) { _config._outputBrightness[i] = data[pos++]; }
+    config._protocol = data[pos++];
+    config._holdLastFrame = data[pos++];
+    config._simpleConfig = data[pos++];
+    config._maxPixelsPerOutput = Read16(data, pos);
+    config._numOutputs = data[pos++];
+    config._realOutputs = config._numOutputs;
+    config._outputPixels.resize(config._numOutputs);
+    config._outputUniverse.resize(config._numOutputs);
+    config._outputStartChannel.resize(config._numOutputs);
+    config._outputNullPixels.resize(config._numOutputs);
+    config._outputZigZag.resize(config._numOutputs);
+    config._outputReverse.resize(config._numOutputs);
+    config._outputColourOrder.resize(config._numOutputs);
+    config._outputGrouping.resize(config._numOutputs);
+    config._outputBrightness.resize(config._numOutputs);
+    for (int i = 0; i < config._numOutputs; i++) { config._outputPixels[i] = Read16(data, pos); }
+    for (int i = 0; i < config._numOutputs; i++) { config._outputUniverse[i] = Read16(data, pos); }
+    for (int i = 0; i < config._numOutputs; i++) { config._outputStartChannel[i] = Read16(data, pos); }
+    for (int i = 0; i < config._numOutputs; i++) { config._outputNullPixels[i] = data[pos++]; }
+    for (int i = 0; i < config._numOutputs; i++) { config._outputZigZag[i] = Read16(data, pos); }
+    for (int i = 0; i < config._numOutputs; i++) { config._outputReverse[i] = data[pos++]; }
+    for (int i = 0; i < config._numOutputs; i++) { config._outputColourOrder[i] = data[pos++]; }
+    for (int i = 0; i < config._numOutputs; i++) { config._outputGrouping[i] = Read16(data, pos); }
+    for (int i = 0; i < config._numOutputs; i++) { config._outputBrightness[i] = data[pos++]; }
 
-    _config._numDMX = data[pos++];
-    _config._realDMX = _config._numDMX;
-    _config._dmxOn.resize(_config._numDMX);
-    _config._dmxUniverse.resize(_config._numDMX);
-    for (int i = 0; i < _config._numDMX; i++) { _config._dmxOn[i] = data[pos++]; }
-    for (int i = 0; i < _config._numDMX; i++) { _config._dmxUniverse[i] = Read16(data, pos); }
+    config._numDMX = data[pos++];
+    config._realDMX = config._numDMX;
+    config._dmxOn.resize(config._numDMX);
+    config._dmxUniverse.resize(config._numDMX);
+    for (int i = 0; i < config._numDMX; i++) { config._dmxOn[i] = data[pos++]; }
+    for (int i = 0; i < config._numDMX; i++) { config._dmxUniverse[i] = Read16(data, pos); }
 
-    _config._numDrivers = data[pos++];
-    _config._driverNameLen = data[pos++];
-    _config._driverType.resize(_config._numDrivers);
-    _config._driverSpeed.resize(_config._numDrivers);
-    _config._driverExpandable.resize(_config._numDrivers);
-    _config._driverName.resize(_config._numDrivers);
-    for (int i = 0; i < _config._numDrivers; i++) { _config._driverType[i] = data[pos++]; }
-    for (int i = 0; i < _config._numDrivers; i++) { _config._driverSpeed[i] = data[pos++]; }
-    for (int i = 0; i < _config._numDrivers; i++) { _config._driverExpandable[i] = data[pos++]; }
-    for (int i = 0; i < _config._numDrivers; i++) {
+    config._numDrivers = data[pos++];
+    config._driverNameLen = data[pos++];
+    config._driverType.resize(config._numDrivers);
+    config._driverSpeed.resize(config._numDrivers);
+    config._driverExpandable.resize(config._numDrivers);
+    config._driverName.resize(config._numDrivers);
+    for (int i = 0; i < config._numDrivers; i++) { config._driverType[i] = data[pos++]; }
+    for (int i = 0; i < config._numDrivers; i++) { config._driverSpeed[i] = data[pos++]; }
+    for (int i = 0; i < config._numDrivers; i++) { config._driverExpandable[i] = data[pos++]; }
+    for (int i = 0; i < config._numDrivers; i++) {
         memset(buffer, 0x00, sizeof(buffer));
-        memcpy(buffer, &data[pos], _config._driverNameLen);
-        pos += _config._driverNameLen;
-        _config._driverName[i] = buffer;
+        memcpy(buffer, &data[pos], config._driverNameLen);
+        pos += config._driverNameLen;
+        config._driverName[i] = buffer;
     }
 
-    _config._currentDriver = data[pos++];
-    _config._currentDriverType = data[pos++];
-    _config._currentDriverSpeed = data[pos++];
-    _config._currentDriverExpanded = data[pos++];
-    _config._gamma.resize(4);
-    for (int i = 0; i < _config._gamma.size(); i++) { _config._gamma[i] = data[pos++]; }
+    config._currentDriver = data[pos++];
+    config._currentDriverType = data[pos++];
+    config._currentDriverSpeed = data[pos++];
+    config._currentDriverExpanded = data[pos++];
+    config._gamma.resize(4);
+    for (int i = 0; i < config._gamma.size(); i++) { config._gamma[i] = data[pos++]; }
 
-    _config._nicknameLen = 40;
+    config._nicknameLen = 40;
     memset(buffer, 0x00, sizeof(buffer));
-    memcpy(buffer, &data[pos], _config._nicknameLen);
-    pos += _config._nicknameLen;
-    _config._nickname = buffer;
+    memcpy(buffer, &data[pos], config._nicknameLen);
+    pos += config._nicknameLen;
+    config._nickname = buffer;
 
-    _config._temperature = Read16(data, pos);
-    _config._maxTargetTemp = data[pos++];
+    config._temperature = Read16(data, pos);
+    config._maxTargetTemp = data[pos++];
 
-    _config._numBanks = data[pos++];
-    _config._bankVoltage.resize(_config._numBanks);
-    for (int i = 0; i < _config._numBanks; i++) { _config._bankVoltage[i] = Read16(data, pos); }
+    config._numBanks = data[pos++];
+    config._bankVoltage.resize(config._numBanks);
+    for (int i = 0; i < config._numBanks; i++) { config._bankVoltage[i] = Read16(data, pos); }
 
-    _config._testMode = data[pos++];
+    config._testMode = data[pos++];
 
-    _config._testParameters.resize(4);
-    for (int i = 0; i < _config._testParameters.size(); i++) { _config._testParameters[i] = data[pos++]; }
+    config._testParameters.resize(4);
+    for (int i = 0; i < config._testParameters.size(); i++) { config._testParameters[i] = data[pos++]; }
 
     return true;
 }
@@ -616,6 +616,114 @@ int Pixlite16::PrepareV6Config(uint8_t* data) const {
     return pos;
 }
 
+std::list<Pixlite16::Config> Pixlite16::DoDiscover()
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    std::list<Pixlite16::Config> res;
+
+    // broadcast packet to find all of them
+    wxIPV4address localAddr;
+    localAddr.AnyAddress();
+    localAddr.Service(49150);
+
+    auto discovery = new wxDatagramSocket(localAddr, wxSOCKET_NOWAIT | wxSOCKET_BROADCAST);
+
+    if (discovery == nullptr) {
+        logger_base.error("Error initialising PixLite/PixCon discovery datagram.");
+        return res;
+    }
+    else if (!discovery->IsOk()) {
+        logger_base.error("Error initialising PixLite/PixCon discovery datagram ... is network connected? OK : FALSE");
+        delete discovery;
+        return res;
+    }
+    else if (discovery->Error()) {
+        logger_base.error("Error creating socket to broadcast from => %d : %s.", discovery->LastError(), (const char*)DecodeIPError(discovery->LastError()).c_str());
+        delete discovery;
+        return res;
+    }
+
+    wxString broadcast = "255.255.255.255";
+    logger_base.debug("PixLite/PixCon broadcasting to %s.", (const char*)broadcast.c_str());
+    wxIPV4address broadcastAddr;
+    broadcastAddr.Hostname(broadcast);
+    broadcastAddr.Service(49150);
+
+    wxByte discoveryData[12];
+    discoveryData[0] = 'A';
+    discoveryData[1] = 'd';
+    discoveryData[2] = 'v';
+    discoveryData[3] = 'a';
+    discoveryData[4] = 't';
+    discoveryData[5] = 'e';
+    discoveryData[6] = 'c';
+    discoveryData[7] = 'h';
+    discoveryData[8] = 0x00;
+    discoveryData[9] = 0x00;
+    discoveryData[10] = 0x01;
+    discoveryData[11] = 0x06;
+    discovery->SendTo(broadcastAddr, discoveryData, sizeof(discoveryData));
+
+    if (discovery->Error()) {
+        logger_base.error("PixLite/PixCon error broadcasting to %s => %d : %s.", (const char*)broadcast.c_str(), discovery->LastError(), (const char*)DecodeIPError(discovery->LastError()).c_str());
+        return res ;
+    }
+
+    wxMilliSleep(500);
+
+    // look through responses for one that matches my ip
+
+    while (discovery->IsData()) {
+        uint8_t data[1500];
+        memset(data, 0x00, sizeof(data));
+        wxIPV4address pixliteAddr;
+        discovery->RecvFrom(pixliteAddr, data, sizeof(data));
+
+        if (!discovery->Error() && data[10] == 0x02) {
+            Pixlite16::Config config;
+            memset(&config, 0x00, sizeof(config));
+            bool connected = false;
+            config._protocolVersion = data[11];
+            switch (config._protocolVersion) {
+            case 4:
+                connected = ParseV4Config(data, config);
+                break;
+            case 5:
+                connected = ParseV5Config(data, config);
+                break;
+            case 6:
+                connected = ParseV6Config(data, config);
+                break;
+            default:
+                logger_base.error("Unsupported protocol : %d.", config._protocolVersion);
+                wxASSERT(false);
+                break;
+            }
+
+            if (connected) {
+                wxString rcvIP = wxString::Format("%i.%i.%i.%i", config._currentIP[0], config._currentIP[1], config._currentIP[2], config._currentIP[3]);
+
+                logger_base.debug("Found PixLite/PixCon controller on %s.", (const char*)rcvIP.c_str());
+                logger_base.debug("    Model %s %.1f.", (const char*)config._modelName.c_str(), (float)config._hwRevision / 10.0);
+                logger_base.debug("    Firmware %s.", (const char*)config._firmwareVersion.c_str());
+                logger_base.debug("    Nickname %s.", (const char*)config._nickname.c_str());
+                logger_base.debug("    Brand %d.", config._brand);
+
+                res.push_back(config);
+            }
+        }
+        else if (discovery->Error()) {
+            logger_base.error("Error reading broadcast response => %d : %s.", discovery->LastError(), (const char*)DecodeIPError(discovery->LastError()).c_str());
+        }
+    }
+
+    discovery->Close();
+    delete discovery;
+
+    return res;
+}
+
 bool Pixlite16::SendConfig(bool logresult) const {
 
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -677,54 +785,54 @@ bool Pixlite16::SendConfig(bool logresult) const {
     return true;
 }
 
-void Pixlite16::DumpConfiguration() const {
+void Pixlite16::DumpConfiguration(Pixlite16::Config& config) {
 
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("Dumping PixLite/PixCon configuration: Packet Version: %d.", _protocolVersion);
-    logger_base.debug("    MAC %02x:%02x:%02x:%02x:%02x:%02x:", _config._mac[0], _config._mac[1], _config._mac[2], _config._mac[3], _config._mac[4], _config._mac[5]);
-    logger_base.debug("    Nickname %d : %s", _config._nicknameLen, (const char*)_config._nickname.c_str());
-    logger_base.debug("    Model Name %d : %s", _config._modelNameLen, (const char*)_config._modelName.c_str());
-    logger_base.debug("    Firmware Version %d : %s", _config._firmwareVersionLen, (const char*)_config._firmwareVersion.c_str());
-    logger_base.debug("    Brand : %d", _config._brand);
-    logger_base.debug("    Hardware Revision : %d", _config._hwRevision);
-    logger_base.debug("    Minimum Assistant Version : %d.%d.%d", _config._minAssistantVer[0], _config._minAssistantVer[1], _config._minAssistantVer[2]);
-    logger_base.debug("    Current IP : %d.%d.%d.%d", _config._currentIP[0], _config._currentIP[1], _config._currentIP[2], _config._currentIP[3]);
-    logger_base.debug("    Subnet Mask : %d.%d.%d.%d", _config._currentSubnetMask[0], _config._currentSubnetMask[1], _config._currentSubnetMask[2], _config._currentSubnetMask[3]);
-    logger_base.debug("    DHCP : %d", _config._dhcp);
-    logger_base.debug("    Static IP : %d.%d.%d.%d", _config._staticIP[0], _config._staticIP[1], _config._staticIP[2], _config._staticIP[3]);
-    logger_base.debug("    Static Subnet Mask : %d.%d.%d.%d", _config._staticSubnetMask[0], _config._staticSubnetMask[1], _config._staticSubnetMask[2], _config._staticSubnetMask[3]);
-    logger_base.debug("    Network Protocol : %d", _config._protocol);
-    logger_base.debug("    Hold Last Frame : %d", _config._holdLastFrame);
-    logger_base.debug("    Simple Config : %d", _config._simpleConfig);
-    logger_base.debug("    Max Pixels Per Output : %d", _config._maxPixelsPerOutput);
-    logger_base.debug("    Num Pixel Outputs : %d but really %d", _config._numOutputs, _config._realOutputs);
+    logger_base.debug("Dumping PixLite/PixCon configuration: Packet Version: %d.", config._protocolVersion);
+    logger_base.debug("    MAC %02x:%02x:%02x:%02x:%02x:%02x:", config._mac[0], config._mac[1], config._mac[2], config._mac[3], config._mac[4], config._mac[5]);
+    logger_base.debug("    Nickname %d : %s", config._nicknameLen, (const char*)config._nickname.c_str());
+    logger_base.debug("    Model Name %d : %s", config._modelNameLen, (const char*)config._modelName.c_str());
+    logger_base.debug("    Firmware Version %d : %s", config._firmwareVersionLen, (const char*)config._firmwareVersion.c_str());
+    logger_base.debug("    Brand : %d", config._brand);
+    logger_base.debug("    Hardware Revision : %d", config._hwRevision);
+    logger_base.debug("    Minimum Assistant Version : %d.%d.%d", config._minAssistantVer[0], config._minAssistantVer[1], config._minAssistantVer[2]);
+    logger_base.debug("    Current IP : %d.%d.%d.%d", config._currentIP[0], config._currentIP[1], config._currentIP[2], config._currentIP[3]);
+    logger_base.debug("    Subnet Mask : %d.%d.%d.%d", config._currentSubnetMask[0], config._currentSubnetMask[1], config._currentSubnetMask[2], config._currentSubnetMask[3]);
+    logger_base.debug("    DHCP : %d", config._dhcp);
+    logger_base.debug("    Static IP : %d.%d.%d.%d", config._staticIP[0], config._staticIP[1], config._staticIP[2], config._staticIP[3]);
+    logger_base.debug("    Static Subnet Mask : %d.%d.%d.%d", config._staticSubnetMask[0], config._staticSubnetMask[1], config._staticSubnetMask[2], config._staticSubnetMask[3]);
+    logger_base.debug("    Network Protocol : %d", config._protocol);
+    logger_base.debug("    Hold Last Frame : %d", config._holdLastFrame);
+    logger_base.debug("    Simple Config : %d", config._simpleConfig);
+    logger_base.debug("    Max Pixels Per Output : %d", config._maxPixelsPerOutput);
+    logger_base.debug("    Num Pixel Outputs : %d but really %d", config._numOutputs, config._realOutputs);
     logger_base.debug("    Pixel Outputs :");
-    for (int i = 0; i < _config._numOutputs; i++) {
+    for (int i = 0; i < config._numOutputs; i++) {
         logger_base.debug("        Pixel Output %d", i + 1);
-        logger_base.debug("            Pixels %d", _config._outputPixels[i]);
-        logger_base.debug("            Universe/StartChannel %d/%d", _config._outputUniverse[i], _config._outputStartChannel[i]);
-        logger_base.debug("            Null Pixels %d", _config._outputNullPixels[i]);
-        logger_base.debug("            Zig Zag %d", _config._outputZigZag[i]);
-        logger_base.debug("            Brightness %d", _config._outputBrightness[i]);
-        logger_base.debug("            Colour Order %d", _config._outputColourOrder[i]);
-        logger_base.debug("            Reverse %d", _config._outputReverse[i]);
-        logger_base.debug("            Grouping %d", _config._outputGrouping[i]);
+        logger_base.debug("            Pixels %d", config._outputPixels[i]);
+        logger_base.debug("            Universe/StartChannel %d/%d", config._outputUniverse[i], config._outputStartChannel[i]);
+        logger_base.debug("            Null Pixels %d", config._outputNullPixels[i]);
+        logger_base.debug("            Zig Zag %d", config._outputZigZag[i]);
+        logger_base.debug("            Brightness %d", config._outputBrightness[i]);
+        logger_base.debug("            Colour Order %d", config._outputColourOrder[i]);
+        logger_base.debug("            Reverse %d", config._outputReverse[i]);
+        logger_base.debug("            Grouping %d", config._outputGrouping[i]);
     }
-    logger_base.debug("    Num DMX Outputs : %d but really %d", _config._numDMX, _config._realDMX);
-    for (int i = 0; i < _config._numDMX; i++) {
+    logger_base.debug("    Num DMX Outputs : %d but really %d", config._numDMX, config._realDMX);
+    for (int i = 0; i < config._numDMX; i++) {
         logger_base.debug("        DMX Output %d", i + 1);
-        logger_base.debug("            On %d", _config._dmxOn[i]);
-        logger_base.debug("            Universe %d", _config._dmxUniverse[i]);
+        logger_base.debug("            On %d", config._dmxOn[i]);
+        logger_base.debug("            Universe %d", config._dmxUniverse[i]);
     }
-    logger_base.debug("    Current Driver : %d ", _config._currentDriver);
-    logger_base.debug("    Current Driver Type : %d ", _config._currentDriverType);
-    logger_base.debug("    Current Driver Speed : %d ", _config._currentDriverSpeed);
-    logger_base.debug("    Current Driver Expanded : %d ", _config._currentDriverExpanded);
-    logger_base.debug("    Gamma : %.1f/%.1f/%.1f ", (float)_config._gamma[0] / 10.0, (float)_config._gamma[1] / 10.0, (float)_config._gamma[2] / 10.0);
-    logger_base.debug("    Temperature : %.1f/%d ", (float)_config._temperature / 10.0, _config._maxTargetTemp);
-    logger_base.debug("    Voltage Banks : %d ", _config._numBanks);
-    for (int i = 0; i < _config._numBanks; i++) {
-        logger_base.debug("        Voltage Bank %d : %.1f ", i + 1, (float)_config._bankVoltage[i] / 10.0);
+    logger_base.debug("    Current Driver : %d ", config._currentDriver);
+    logger_base.debug("    Current Driver Type : %d ", config._currentDriverType);
+    logger_base.debug("    Current Driver Speed : %d ", config._currentDriverSpeed);
+    logger_base.debug("    Current Driver Expanded : %d ", config._currentDriverExpanded);
+    logger_base.debug("    Gamma : %.1f/%.1f/%.1f ", (float)config._gamma[0] / 10.0, (float)config._gamma[1] / 10.0, (float)config._gamma[2] / 10.0);
+    logger_base.debug("    Temperature : %.1f/%d ", (float)config._temperature / 10.0, config._maxTargetTemp);
+    logger_base.debug("    Voltage Banks : %d ", config._numBanks);
+    for (int i = 0; i < config._numBanks; i++) {
+        logger_base.debug("        Voltage Bank %d : %.1f ", i + 1, (float)config._bankVoltage[i] / 10.0);
     }
 }
 #pragma endregion
@@ -733,104 +841,23 @@ void Pixlite16::DumpConfiguration() const {
 Pixlite16::Pixlite16(const std::string& ip) : BaseController(ip, "") {
 
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    
-	// broadcast packet to find all of them
-    wxIPV4address localAddr;
-    localAddr.AnyAddress();
-    localAddr.Service(49150);
 
-    auto discovery = new wxDatagramSocket(localAddr, wxSOCKET_NOWAIT | wxSOCKET_BROADCAST);
+    auto configs = DoDiscover();
 
-    if (discovery == nullptr) {
-        logger_base.error("Error initialising PixLite/PixCon discovery datagram.");
-        return;
-    } else if (!discovery->IsOk()) {
-        logger_base.error("Error initialising PixLite/PixCon discovery datagram ... is network connected? OK : FALSE");
-        delete discovery;
-        return;
-    } 
-    else if (discovery->Error()) {
-        logger_base.error("Error creating socket to broadcast from => %d : %s.", discovery->LastError(), (const char *)DecodeIPError(discovery->LastError()).c_str());
-        delete discovery;
-        return;
-    }
+    for (const auto& it : configs)
+    {
+        wxString rcvIP = wxString::Format("%i.%i.%i.%i", it._currentIP[0], it._currentIP[1], it._currentIP[2], it._currentIP[3]);
 
-    wxString broadcast = "255.255.255.255";
-    logger_base.debug("PixLite/PixCon broadcasting to %s.", (const char *)broadcast.c_str());
-    wxIPV4address broadcastAddr;
-    broadcastAddr.Hostname(broadcast);
-    broadcastAddr.Service(49150);
-
-    wxByte discoveryData[12];
-    discoveryData[0] = 'A';
-    discoveryData[1] = 'd';
-    discoveryData[2] = 'v';
-    discoveryData[3] = 'a';
-    discoveryData[4] = 't';
-    discoveryData[5] = 'e';
-    discoveryData[6] = 'c';
-    discoveryData[7] = 'h';
-    discoveryData[8] = 0x00;
-    discoveryData[9] = 0x00;
-    discoveryData[10] = 0x01;
-    discoveryData[11] = 0x06;
-    discovery->SendTo(broadcastAddr, discoveryData, sizeof(discoveryData));
-
-    if (discovery->Error()) {
-        logger_base.error("PixLite/PixCon error broadcasting to %s => %d : %s.", (const char *)broadcast.c_str(), discovery->LastError(), (const char *)DecodeIPError(discovery->LastError()).c_str());
-        return;
-    }
-
-    wxMilliSleep(500);
-
-    // look through responses for one that matches my ip
-
-    while (discovery->IsData()) {
-        uint8_t data[1500];
-        memset(data, 0x00, sizeof(data));
-        wxIPV4address pixliteAddr;
-        discovery->RecvFrom(pixliteAddr, data, sizeof(data));
-
-        if (!discovery->Error() && data[10] == 0x02) {
-            _protocolVersion = data[11];
-            switch (_protocolVersion) {
-            case 4:
-                _connected = ParseV4Config(data);
-                break;
-            case 5:
-                _connected = ParseV5Config(data);
-                break;
-            case 6:
-                _connected = ParseV6Config(data);
-                break;
-            default:
-                logger_base.error("Unsupported protocol : %d.", _protocolVersion);
-                wxASSERT(false);
-                break;
-            }
-
-            if (_connected) {
-                wxString rcvIP = wxString::Format("%i.%i.%i.%i", _config._currentIP[0], _config._currentIP[1], _config._currentIP[2], _config._currentIP[3]);
-
-                logger_base.debug("Found PixLite/PixCon controller on %s.", (const char *)rcvIP.c_str());
-                logger_base.debug("    Model %s %.1f.", (const char *)_config._modelName.c_str(), (float)_config._hwRevision / 10.0);
-                logger_base.debug("    Firmware %s.", (const char *)_config._firmwareVersion.c_str());
-                logger_base.debug("    Nickname %s.", (const char *)_config._nickname.c_str());
-                logger_base.debug("    Brand %d.", _config._brand);
-
-                if (_ip == rcvIP) {
-                    logger_base.debug("*** Success connecting to PixLite/PixCon controller on %s.", (const char *)_ip.c_str());
-                    _model = _config._modelName;
-                    _version = _config._firmwareVersion;
-                    break;
-                }
-                else {
-                    _connected = false;
-                }
-            }
+        if (_ip == rcvIP) {
+            logger_base.debug("*** Success connecting to PixLite/PixCon controller on %s.", (const char *)_ip.c_str());
+            _config = it;
+            _protocolVersion = _config._protocolVersion;
+            _model = _config._modelName;
+            _version = _config._firmwareVersion;
+            break;
         }
-        else if (discovery->Error()) {
-            logger_base.error("Error reading broadcast response => %d : %s.", discovery->LastError(), (const char *)DecodeIPError(discovery->LastError()).c_str());
+        else {
+            _connected = false;
         }
     }
 
@@ -838,11 +865,8 @@ Pixlite16::Pixlite16(const std::string& ip) : BaseController(ip, "") {
         logger_base.error("Error connecting to PixLite/PixCon controller on %s.", (const char *)_ip.c_str());
     }
 
-    discovery->Close();
-    delete discovery;
-
     if (_connected) {
-        DumpConfiguration();
+        DumpConfiguration(_config);
     }
 }
 #pragma endregion
@@ -917,7 +941,7 @@ bool Pixlite16::SetOutputs(ModelManager* allmodels, OutputManager* outputManager
             DisplayWarning("Upload warnings:\n" + check);
         }
 
-        DumpConfiguration();
+        DumpConfiguration(_config);
 
         return SendConfig(false);
     }
@@ -926,5 +950,20 @@ bool Pixlite16::SetOutputs(ModelManager* allmodels, OutputManager* outputManager
 
     return false;
 }
+
+std::list<std::pair<std::string, std::string>> Pixlite16::Discover(wxWindow* parent)
+{
+    std::list<std::pair<std::string, std::string>> res;
+
+    auto configs = DoDiscover();
+
+    for (const auto& it : configs)
+    {
+        res.push_back({ wxString::Format("%i.%i.%i.%i", it._currentIP[0], it._currentIP[1], it._currentIP[2], it._currentIP[3]).ToStdString(), it._modelName});
+    }
+
+    return res;
+}
+
 #pragma endregion
 
