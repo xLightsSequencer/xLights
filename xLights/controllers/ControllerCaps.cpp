@@ -334,7 +334,7 @@ void ControllerCaps::Dump() const
     if (SupportsUpload()) logger_base.debug("   Supports upload.");
     if (SupportsInputOnlyUpload()) logger_base.debug("   Supports input only upload.");
     if (SupportsLEDPanelMatrix()) logger_base.debug("   Supports LED panel matrices.");
-    if (SupportsVirtualStrings()) logger_base.debug("   Supports sirtual strings.");
+    if (SupportsVirtualStrings()) logger_base.debug("   Supports virtual strings.");
     if (SupportsSmartRemotes()) logger_base.debug("   Supports smart remotes.");
     if (SupportsMultipleSimultaneousOutputProtocols()) logger_base.debug("   Supports multiple simultaneous output protocols.");
     if (AllInputUniversesMustBeSameSize()) logger_base.debug("   All input universes must be the same size.");

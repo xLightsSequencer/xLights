@@ -86,7 +86,7 @@ bool Pixlite16::ParseV4Config(uint8_t* data, Pixlite16::Config& config) {
     config._modelNameLen = 20;
     memset(buffer, 0x00, sizeof(buffer));
     memcpy(buffer, &data[pos], config._modelNameLen);
-    config._modelName = buffer;
+    config._modelName = std::string(buffer);
     pos += config._modelNameLen;
 
     memcpy(config._currentIP, &data[pos], sizeof(config._currentIP));
@@ -99,13 +99,13 @@ bool Pixlite16::ParseV4Config(uint8_t* data, Pixlite16::Config& config) {
     memset(buffer, 0x00, sizeof(buffer));
     memcpy(buffer, &data[pos], config._nicknameLen);
     pos += config._nicknameLen;
-    config._nickname = buffer;
+    config._nickname = std::string(buffer);
 
     config._firmwareVersionLen = 20;
     memset(buffer, 0x00, sizeof(buffer));
     memcpy(buffer, &data[pos], config._firmwareVersionLen);
     pos += config._firmwareVersionLen;
-    config._firmwareVersion = buffer;
+    config._firmwareVersion = std::string(buffer);
 
     memcpy(config._mac, &data[pos], sizeof(config._mac));
     pos += sizeof(config._mac);
@@ -234,7 +234,7 @@ bool Pixlite16::ParseV5Config(uint8_t* data, Pixlite16::Config& config) {
     config._modelNameLen = data[pos++];
     memset(buffer, 0x00, sizeof(buffer));
     memcpy(buffer, &data[pos], config._modelNameLen);
-    config._modelName = buffer;
+    config._modelName = std::string(buffer);
     pos += config._modelNameLen;
 
     config._hwRevision = data[pos++];
@@ -245,7 +245,7 @@ bool Pixlite16::ParseV5Config(uint8_t* data, Pixlite16::Config& config) {
     memset(buffer, 0x00, sizeof(buffer));
     memcpy(buffer, &data[pos], config._firmwareVersionLen);
     pos += config._firmwareVersionLen;
-    config._firmwareVersion = buffer;
+    config._firmwareVersion = std::string(buffer);
 
     config._brand = data[pos++];
 
@@ -308,7 +308,7 @@ bool Pixlite16::ParseV5Config(uint8_t* data, Pixlite16::Config& config) {
         memset(buffer, 0x00, sizeof(buffer));
         memcpy(buffer, &data[pos], config._driverNameLen);
         pos += config._driverNameLen;
-        config._driverName[i] = buffer;
+        config._driverName[i] = std::string(buffer);
     }
 
     config._currentDriver = data[pos++];
@@ -322,7 +322,7 @@ bool Pixlite16::ParseV5Config(uint8_t* data, Pixlite16::Config& config) {
     memset(buffer, 0x00, sizeof(buffer));
     memcpy(buffer, &data[pos], config._nicknameLen);
     pos += config._nicknameLen;
-    config._nickname = buffer;
+    config._nickname = std::string(buffer);
 
     config._temperature = Read16(data, pos);
     config._maxTargetTemp = data[pos++];
@@ -348,7 +348,7 @@ bool Pixlite16::ParseV6Config(uint8_t* data, Pixlite16::Config& config) {
     config._modelNameLen = data[pos++];
     memset(buffer, 0x00, sizeof(buffer));
     memcpy(buffer, &data[pos], config._modelNameLen);
-    config._modelName = buffer;
+    config._modelName = std::string(buffer);
     pos += config._modelNameLen;
 
     config._hwRevision = data[pos++];
@@ -358,7 +358,7 @@ bool Pixlite16::ParseV6Config(uint8_t* data, Pixlite16::Config& config) {
     config._firmwareVersionLen = data[pos++];
     memset(buffer, 0x00, sizeof(buffer));
     memcpy(buffer, &data[pos + 1], config._firmwareVersionLen);
-    config._firmwareVersion = buffer;
+    config._firmwareVersion = std::string(buffer);
     pos += config._firmwareVersionLen;
 
     config._brand = data[pos++];
@@ -422,7 +422,7 @@ bool Pixlite16::ParseV6Config(uint8_t* data, Pixlite16::Config& config) {
         memset(buffer, 0x00, sizeof(buffer));
         memcpy(buffer, &data[pos], config._driverNameLen);
         pos += config._driverNameLen;
-        config._driverName[i] = buffer;
+        config._driverName[i] = std::string(buffer);
     }
 
     config._currentDriver = data[pos++];
@@ -436,7 +436,7 @@ bool Pixlite16::ParseV6Config(uint8_t* data, Pixlite16::Config& config) {
     memset(buffer, 0x00, sizeof(buffer));
     memcpy(buffer, &data[pos], config._nicknameLen);
     pos += config._nicknameLen;
-    config._nickname = buffer;
+    config._nickname = std::string(buffer);
 
     config._temperature = Read16(data, pos);
     config._maxTargetTemp = data[pos++];
@@ -854,6 +854,7 @@ Pixlite16::Pixlite16(const std::string& ip) : BaseController(ip, "") {
             _protocolVersion = _config._protocolVersion;
             _model = _config._modelName;
             _version = _config._firmwareVersion;
+            _connected = true;
             break;
         }
         else {
@@ -892,6 +893,10 @@ bool Pixlite16::SetOutputs(ModelManager* allmodels, OutputManager* outputManager
     if (success && cud.GetMaxPixelPort() > 0) {
         for (int pp = 1; pp <= rules->GetMaxPixelPort(); pp++) {
             if (cud.HasPixelPort(pp)) {
+
+                // always go advanced ... it doesnt hurt and it makes the config always work
+                _config._simpleConfig = false;
+
                 UDControllerPort* port = cud.GetControllerPixelPort(pp);
 
                 // update the data
@@ -955,11 +960,9 @@ std::list<std::pair<std::string, std::string>> Pixlite16::Discover(wxWindow* par
 {
     std::list<std::pair<std::string, std::string>> res;
 
-    auto configs = DoDiscover();
-
-    for (const auto& it : configs)
+    for (const auto& it : DoDiscover())
     {
-        res.push_back({ wxString::Format("%i.%i.%i.%i", it._currentIP[0], it._currentIP[1], it._currentIP[2], it._currentIP[3]).ToStdString(), it._modelName});
+        res.push_back({ wxString::Format("%i.%i.%i.%i", it._currentIP[0], it._currentIP[1], it._currentIP[2], it._currentIP[3]).ToStdString(), it._nickname});
     }
 
     return res;

@@ -1231,7 +1231,12 @@ void xLightsFrame::OnButtonDiscoverClick(wxCommandEvent& event) {
             auto eth = new ControllerEthernet(&_outputManager, false);
             eth->SetProtocol(OUTPUT_E131);
             eth->SetName(_outputManager.UniqueName(it.second));
+            eth->SetIP(it.first);
             _outputManager.AddController(eth, -1);
+            _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "OnButton_DiscoverClick");
+            _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "OnButton_DiscoverClick");
+            _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "OnButton_DiscoverClick");
+            _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "OnButton_DiscoverClick");
         }
     }
 
@@ -1312,8 +1317,8 @@ void xLightsFrame::InitialiseControllersTab() {
             //wxPG_AUTO_SORT | // Automatic sorting after items added
             wxPG_SPLITTER_AUTO_CENTER | // Automatically center splitter until user manually adjusts it
             // Default style
-            wxPG_DEFAULT_STYLE | wxPG_EX_HELP_AS_TOOLTIPS |
-            wxWS_EX_PROCESS_IDLE);
+            wxPG_DEFAULT_STYLE);
+        Controllers_PropertyEditor->SetExtraStyle(wxWS_EX_PROCESS_IDLE | wxPG_EX_HELP_AS_TOOLTIPS);
         FlexGridSizerSetupProperties->Add(Controllers_PropertyEditor, 1, wxALL | wxEXPAND, 5);
         Controllers_PropertyEditor->Connect(wxEVT_PG_CHANGED, (wxObjectEventFunction)&xLightsFrame::OnControllerPropertyGridChange, 0, this);
         Controllers_PropertyEditor->SetValidationFailureBehavior(wxPG_VFB_MARK_CELL | wxPG_VFB_BEEP);
@@ -2023,7 +2028,6 @@ void xLightsFrame::UploadInputToController(ControllerEthernet* controller) {
         else {
             // This controller does not support uploads
             logger_base.error("Attempt to upload controller inputs on a unsupported controller %s:%s:%s", (const char*)controller->GetVendor().c_str(), (const char*)controller->GetModel().c_str(), (const char*)controller->GetFirmwareVersion().c_str());
-            wxASSERT(false);
         }
     }
     else {
@@ -2059,7 +2063,7 @@ void xLightsFrame::UploadOutputToController(ControllerEthernet* controller) {
             if (vendor == "Falcon") {
                 bc = new Falcon(ip, proxy);
             }
-            else if (vendor == "Advatek") {
+            else if (vendor == "Advatek" || vendor == "LOR") {
                 bc = new Pixlite16(ip);
             }
             else if (vendor == "ESPixelStick") {

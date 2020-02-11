@@ -7,9 +7,6 @@
 			<MaxSerialPort>1</MaxSerialPort>
 			<MaxSerialPortChannels>512</MaxSerialPortChannels>
 			<MaxPixelPortChannels>2040</MaxPixelPortChannels>
-			<UniversesMustBeSequential/>
-			<SupportsVirtualStrings/>
-			<MergeConsecutiveVirtualStrings/>
 			<PixelProtocols>
 				<Protocol>ws2811</Protocol>
 				<Protocol>tm18xx</Protocol>
@@ -45,9 +42,6 @@
 			<MaxSerialPort>1</MaxSerialPort>
 			<MaxSerialPortChannels>512</MaxSerialPortChannels>
 			<MaxPixelPortChannels>3060</MaxPixelPortChannels>
-			<UniversesMustBeSequential/>
-			<SupportsVirtualStrings/>
-			<MergeConsecutiveVirtualStrings/>
 			<PixelProtocols>
 				<Protocol>ws2811</Protocol>
 				<Protocol>tm18xx</Protocol>
@@ -83,9 +77,6 @@
 			<MaxSerialPort>4</MaxSerialPort>
 			<MaxSerialPortChannels>512</MaxSerialPortChannels>
 			<MaxPixelPortChannels>1020</MaxPixelPortChannels>
-			<UniversesMustBeSequential/>
-			<SupportsVirtualStrings/>
-			<MergeConsecutiveVirtualStrings/>
 			<PixelProtocols>
 				<Protocol>ws2811</Protocol>
 				<Protocol>tm18xx</Protocol>
@@ -121,9 +112,6 @@
 			<MaxSerialPort>4</MaxSerialPort>
 			<MaxSerialPortChannels>512</MaxSerialPortChannels>
 			<MaxPixelPortChannels>3060</MaxPixelPortChannels>
-			<UniversesMustBeSequential/>
-			<SupportsVirtualStrings/>
-			<MergeConsecutiveVirtualStrings/>
 			<PixelProtocols>
 				<Protocol>ws2811</Protocol>
 				<Protocol>tm18xx</Protocol>
