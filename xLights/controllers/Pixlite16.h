@@ -15,6 +15,9 @@
 
 #include "BaseController.h"
 
+class ControllerEthernet;
+class OutputManager;
+
 class Pixlite16 : public BaseController
 {
 public:
@@ -115,7 +118,7 @@ public:
     #pragma region Getters and Setters
     bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent) override;
     virtual bool UsesHTTP() const override { return false; }
-    static std::list<std::pair<std::string,std::string>> Discover(wxWindow* parent);
+    static std::list<ControllerEthernet*> Discover(OutputManager* om, wxWindow* parent);
     #pragma endregion
 };
 

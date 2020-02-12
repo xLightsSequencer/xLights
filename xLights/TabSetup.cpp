@@ -1224,21 +1224,23 @@ void xLightsFrame::OnButtonDiscoverClick(wxCommandEvent& event) {
         }
     }
 
-    for (const auto& it : Pixlite16::Discover(this))
+    for (const auto& it : Pixlite16::Discover(&_outputManager, this))
     {
-        if (_outputManager.GetControllers(it.first, "").size() == 0)
+        if (_outputManager.GetControllers(it->GetIP(), "").size() == 0)
         {
+            it->EnsureUniqueId();
+            it->SetName(_outputManager.UniqueName(it->GetName()));
+
             // no controller with this IP exists
-            auto eth = new ControllerEthernet(&_outputManager, false);
-            eth->SetProtocol(OUTPUT_E131);
-            eth->SetName(_outputManager.UniqueName(it.second));
-            eth->SetIP(it.first);
-            eth->EnsureUniqueId();
-            _outputManager.AddController(eth, -1);
+            _outputManager.AddController(it, -1);
             _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "OnButton_DiscoverClick");
             _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "OnButton_DiscoverClick");
             _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "OnButton_DiscoverClick");
             _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "OnButton_DiscoverClick");
+        }
+        else
+        {
+            delete it;
         }
     }
 

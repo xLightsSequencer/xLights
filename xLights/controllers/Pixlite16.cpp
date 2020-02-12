@@ -956,13 +956,42 @@ bool Pixlite16::SetOutputs(ModelManager* allmodels, OutputManager* outputManager
     return false;
 }
 
-std::list<std::pair<std::string, std::string>> Pixlite16::Discover(wxWindow* parent)
-{
-    std::list<std::pair<std::string, std::string>> res;
+std::list<ControllerEthernet*> Pixlite16::Discover(OutputManager* om, wxWindow* parent) {
 
-    for (const auto& it : DoDiscover())
-    {
-        res.push_back({ wxString::Format("%i.%i.%i.%i", it._currentIP[0], it._currentIP[1], it._currentIP[2], it._currentIP[3]).ToStdString(), it._nickname});
+    std::list<ControllerEthernet*> res;
+
+    for (const auto& it : DoDiscover()) {
+        auto eth = new ControllerEthernet(om, false);
+        eth->SetIP(wxString::Format("%i.%i.%i.%i", it._currentIP[0], it._currentIP[1], it._currentIP[2], it._currentIP[3]).ToStdString());
+        eth->SetProtocol(OUTPUT_E131);
+        eth->SetName(it._nickname);
+        eth->EnsureUniqueId();
+        bool mkII = Contains(it._modelName, "MkII");
+        if (Contains(it._modelName, "PixLite")) {
+            eth->SetVendor("Advatek");
+            if (it._outputPixels.size() >= 16) {
+                if (mkII) {
+                    eth->SetModel("PixLite 16 MkII");
+                }
+                else {
+                    eth->SetModel("PixLite 16");
+                }
+            }
+            else {
+                if (mkII) {
+                    eth->SetModel("PixLite 4 MkII");
+                }
+                else {
+                    eth->SetModel("PixLite 4");
+                }
+            }
+        }
+        else {
+            eth->SetVendor("LOR");
+            eth->SetModel("PixCon 16");
+        }
+
+        res.push_back(eth);
     }
 
     return res;
