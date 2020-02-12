@@ -2028,14 +2028,32 @@ void xLightsFrame::UploadInputToController(ControllerEthernet* controller) {
             else if (vendor == "HinksPix") {
                 bc = new HinksPix(ip, proxy);
             }
+
+            if (bc != nullptr)
+            {
+                if (bc->SetInputUniverses(controller, this)) {
+                    logger_base.debug("Attempt to upload controller inputs successful on controller %s:%s:%s", (const char*)controller->GetVendor().c_str(), (const char*)controller->GetModel().c_str(), (const char*)controller->GetFirmwareVersion().c_str());
+                    SetStatusText("Upload complete.");
+                }
+                else {
+                    logger_base.error("Attempt to upload controller inputs failed on controller %s:%s:%s", (const char*)controller->GetVendor().c_str(), (const char*)controller->GetModel().c_str(), (const char*)controller->GetFirmwareVersion().c_str());
+                    SetStatusText("Upload failed.");
+                }
+            }
+            else {
+                logger_base.error("Attempt to upload controller inputs on a unsupported controller %s:%s:%s", (const char*)controller->GetVendor().c_str(), (const char*)controller->GetModel().c_str(), (const char*)controller->GetFirmwareVersion().c_str());
+                SetStatusText("Upload not supported.");
+            }
         }
         else {
             // This controller does not support uploads
             logger_base.error("Attempt to upload controller inputs on a unsupported controller %s:%s:%s", (const char*)controller->GetVendor().c_str(), (const char*)controller->GetModel().c_str(), (const char*)controller->GetFirmwareVersion().c_str());
+            SetStatusText("Upload not supported.");
         }
     }
     else {
         logger_base.error("Unable to find controller capabilities info.");
+        SetStatusText("Upload not supported.");
         wxASSERT(false);
     }
 }
