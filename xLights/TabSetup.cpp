@@ -2033,16 +2033,16 @@ void xLightsFrame::UploadInputToController(ControllerEthernet* controller) {
             {
                 if (bc->SetInputUniverses(controller, this)) {
                     logger_base.debug("Attempt to upload controller inputs successful on controller %s:%s:%s", (const char*)controller->GetVendor().c_str(), (const char*)controller->GetModel().c_str(), (const char*)controller->GetFirmwareVersion().c_str());
-                    SetStatusText("Upload complete.");
+                    SetStatusText(vendor + " Input Upload complete.");
                 }
                 else {
                     logger_base.error("Attempt to upload controller inputs failed on controller %s:%s:%s", (const char*)controller->GetVendor().c_str(), (const char*)controller->GetModel().c_str(), (const char*)controller->GetFirmwareVersion().c_str());
-                    SetStatusText("Upload failed.");
+                    SetStatusText(vendor + " Input Upload failed.");
                 }
             }
             else {
                 logger_base.error("Attempt to upload controller inputs on a unsupported controller %s:%s:%s", (const char*)controller->GetVendor().c_str(), (const char*)controller->GetModel().c_str(), (const char*)controller->GetFirmwareVersion().c_str());
-                SetStatusText("Upload not supported.");
+                SetStatusText(vendor + " Input Upload not supported.");
             }
         }
         else {

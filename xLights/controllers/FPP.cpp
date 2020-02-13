@@ -1185,13 +1185,14 @@ wxJSONValue FPP::CreateUniverseFile(const std::list<ControllerEthernet*>& select
                 }
                 
                 // TODO this needs work to restore the loading of multiple universes as a single line
-
-                //if (it->IsOutputCollection()) {
-                //    universe["universeCount"] = ((E131Output*)it)->GetUniverses();
-                //}
-                //else { 
-                universe["universeCount"] = 1;
-                //}
+                if (it2->AllSameSize()) {
+                    universe["universeCount"] = it2->GetOutputCount();
+                    universes.Append(universe);
+                    break;
+                }
+                else { 
+                    universe["universeCount"] = 1;
+                }
                 universes.Append(universe);
             }
             else if (it->GetType() == OUTPUT_DDP) {
