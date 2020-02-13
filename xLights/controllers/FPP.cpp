@@ -1164,6 +1164,7 @@ wxJSONValue FPP::CreateUniverseFile(const std::list<ControllerEthernet*>& select
 
     for (const auto& it2 : selected)
     {
+        bool const allSameSize = it2->AllSameSize();
         // Get universes based on IP
         std::list<Output*> outputs = it2->GetOutputs();
         for (const auto& it : outputs) {
@@ -1185,7 +1186,7 @@ wxJSONValue FPP::CreateUniverseFile(const std::list<ControllerEthernet*>& select
                 }
                 
                 // TODO this needs work to restore the loading of multiple universes as a single line
-                if (it2->AllSameSize()) {
+                if (allSameSize) {
                     universe["universeCount"] = it2->GetOutputCount();
                     universes.Append(universe);
                     break;
