@@ -41,10 +41,6 @@ protected:
     std::future<Output::PINGSTATE> _asyncPing;
 #pragma endregion
 
-#pragma region Private Functions
-    bool AllSameSize() const;
-#pragma endregion
-
 public:
 
 #pragma region Constructors and Destructors
@@ -72,6 +68,8 @@ public:
 
     int GetPriority() const { return _priority; }
     void SetPriority(int priority);
+
+    bool AllSameSize() const;
 #pragma endregion
 
 #pragma region Virtual Functions

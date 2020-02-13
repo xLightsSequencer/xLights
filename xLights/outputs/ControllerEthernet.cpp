@@ -97,22 +97,6 @@ wxXmlNode* ControllerEthernet::Save() {
 }
 #pragma endregion
 
-#pragma region Private Functions
-bool ControllerEthernet::AllSameSize() const {
-
-    int32_t size = -1;
-    for (const auto& it : _outputs) {
-        if (size < 0) {
-            size = it->GetChannels();
-        }
-        else if (it->GetChannels() != size) {
-            return false;
-        }
-    }
-    return true;
-}
-#pragma endregion
-
 #pragma region Getters and Setters
 void ControllerEthernet::SetIP(const std::string& ip) {
 
@@ -237,6 +221,20 @@ void ControllerEthernet::SetPriority(int priority) {
             }
         }
     }
+}
+
+bool ControllerEthernet::AllSameSize() const {
+
+    int32_t size = -1;
+    for (const auto& it : _outputs) {
+        if (size < 0) {
+            size = it->GetChannels();
+        }
+        else if (it->GetChannels() != size) {
+            return false;
+        }
+    }
+    return true;
 }
 #pragma endregion
 
