@@ -22,6 +22,8 @@ class J1Sys : public BaseController
 {
     #pragma region Member Variables
     int _outputs = 0;
+    std::string _username = "admin";
+    std::string _password = "";
     #pragma endregion
 
     #pragma region Encode and Decode

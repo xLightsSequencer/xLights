@@ -487,6 +487,8 @@ bool Controller::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelMana
         auto it = begin(vendors);
         std::advance(it, event.GetValue().GetLong());
         SetVendor(*it);
+        SetModel("");
+        SetFirmwareVersion("");
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "Controller::HandlePropertyEvent::Vendor");
         outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "Controller::HandlePropertyEvent::AutoSize");
     }
@@ -495,6 +497,7 @@ bool Controller::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelMana
         auto it = begin(models);
         std::advance(it, event.GetValue().GetLong());
         SetModel(*it);
+        SetFirmwareVersion("");
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "Controller::HandlePropertyEvent::Model");
         outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "Controller::HandlePropertyEvent::AutoSize");
     }
