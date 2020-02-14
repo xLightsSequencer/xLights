@@ -32,7 +32,6 @@ class AlphaPix : public BaseController
     wxString _firmware;
     std::vector<AlphaPixOutput*> _pixelOutputs;
     std::vector<AlphaPixSerial*> _serialOutputs;
-    bool _connected = false;
     #pragma endregion
 
     #pragma region Private Functions
