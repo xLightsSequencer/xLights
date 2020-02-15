@@ -22,9 +22,10 @@ class EffectsGridSettingsPanel: public wxPanel
 		wxCheckBox* NodeValuesCheckBox;
 		wxCheckBox* SmallWaveformCheckBox;
 		wxCheckBox* SnapToTimingCheckBox;
-		wxCheckBox* TimingDoubleClickCheckbox;
 		wxCheckBox* TransistionMarksCheckBox;
+		wxChoice* DoubleClickChoice;
 		wxChoice* GridSpacingChoice;
+		wxStaticText* StaticText1;
 		//*)
 
         virtual bool TransferDataFromWindow() override;
@@ -37,9 +38,10 @@ class EffectsGridSettingsPanel: public wxPanel
 		static const long ID_CHECKBOX1;
 		static const long ID_CHECKBOX2;
 		static const long ID_CHECKBOX3;
-		static const long ID_CHECKBOX5;
+		static const long ID_STATICTEXT1;
 		static const long ID_CHECKBOX4;
 		static const long ID_CHECKBOX6;
+		static const long ID_CHOICE2;
 		//*)
 
 	private:
@@ -50,10 +52,10 @@ class EffectsGridSettingsPanel: public wxPanel
 		void OnIconBackgroundsCheckBoxClick(wxCommandEvent& event);
 		void OnNodeValuesCheckBoxClick(wxCommandEvent& event);
 		void OnSnapToTimingCheckBoxClick(wxCommandEvent& event);
-		void OnTimingDoubleClickChoiceSelect(wxCommandEvent& event);
 		void OnSmallWaveformCheckBoxClick(wxCommandEvent& event);
 		void OnGridSpacingChoiceSelect(wxCommandEvent& event);
 		void OnTransistionMarksCheckBoxClick(wxCommandEvent& event);
+		void OnDoubleClickChoiceSelect(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()
