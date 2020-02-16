@@ -118,7 +118,7 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent)
 	FlexGridSizer10->Add(Button_Sub_Import, 1, wxALL|wxEXPAND, 5);
 	Button_importCustom = new wxButton(Panel2, ID_BUTTON9, _("Import Custom"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON9"));
 	FlexGridSizer10->Add(Button_importCustom, 1, wxALL|wxEXPAND, 5);
-	FlexGridSizer10->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer10->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer9->Add(FlexGridSizer10, 1, wxALL|wxSHAPED|wxFIXED_MINSIZE, 5);
 	Panel2->SetSizer(FlexGridSizer9);
 	FlexGridSizer9->Fit(Panel2);
@@ -1649,7 +1649,7 @@ void SubModelsDialog::OnButton_Draw_ModelClick(wxCommandEvent& event)
     }
 
     SubModelInfo* sm = GetSubModelInfo(name);
-    NodeSelectGrid dialog(name, model, sm->strands, this);
+    NodeSelectGrid dialog(true, name, model, sm->strands, this);
 
     if (dialog.ShowModal() == wxID_OK)
     {
@@ -1680,7 +1680,7 @@ void SubModelsDialog::OnNodesGridCellLeftDClick(wxGridEvent& event)
     SubModelInfo* sm = GetSubModelInfo(name);
 
     const wxString title = name + " - " + NodesGrid->GetRowLabelValue(row);
-    NodeSelectGrid dialog(title, model, sm->strands[sm->strands.size() - 1 - row], this);
+    NodeSelectGrid dialog(false, title, model, sm->strands[sm->strands.size() - 1 - row], this);
 
     if (dialog.ShowModal() == wxID_OK)
     {

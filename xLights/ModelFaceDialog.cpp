@@ -848,7 +848,7 @@ void ModelFaceDialog::OnNodeRangeGridCellLeftDClick(wxGridEvent& event)
     if (event.GetCol() == CHANNEL_COL) {
         const std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
         const wxString title = name + " - " + NodeRangeGrid->GetRowLabelValue(event.GetRow());
-        NodeSelectGrid dialog(title, model, NodeRangeGrid->GetCellValue(event.GetRow(), CHANNEL_COL), this);
+        NodeSelectGrid dialog(true, title, model, NodeRangeGrid->GetCellValue(event.GetRow(), CHANNEL_COL), this);
 
         if (dialog.ShowModal() == wxID_OK)
         {
@@ -1135,7 +1135,7 @@ void ModelFaceDialog::OnNodeRangeGridLabelLeftDClick(wxGridEvent& event)
 {
     const std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
     const wxString title = name + " - " + NodeRangeGrid->GetRowLabelValue(event.GetRow());
-    NodeSelectGrid dialog(title, model, NodeRangeGrid->GetCellValue(event.GetRow(), CHANNEL_COL), this);
+    NodeSelectGrid dialog(true, title, model, NodeRangeGrid->GetCellValue(event.GetRow(), CHANNEL_COL), this);
 
     if (dialog.ShowModal() == wxID_OK)
     {

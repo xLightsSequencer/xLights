@@ -4,11 +4,13 @@
 //(*Headers(NodeSelectGrid)
 #include <wx/bmpbuttn.h>
 #include <wx/button.h>
+#include <wx/checkbox.h>
 #include <wx/dialog.h>
 #include <wx/filepicker.h>
 #include <wx/grid.h>
 #include <wx/sizer.h>
 #include <wx/slider.h>
+#include <wx/textctrl.h>
 //*)
 
 #include <wx/wx.h>
@@ -27,8 +29,8 @@ class NodeSelectGrid: public wxDialog
 {
 	public:
 
-		NodeSelectGrid(const wxString &title, Model *m, const std::vector<wxString> &rows, wxWindow* parent,wxWindowID id=wxID_ANY);
-        NodeSelectGrid(const wxString &title, Model *m, const wxString &row, wxWindow* parent, wxWindowID id = wxID_ANY);
+		NodeSelectGrid(bool multiline, const wxString &title, Model *m, const std::vector<wxString> &rows, wxWindow* parent,wxWindowID id=wxID_ANY);
+        NodeSelectGrid(bool multiline, const wxString &title, Model *m, const wxString &row, wxWindow* parent, wxWindowID id = wxID_ANY);
 
 		virtual ~NodeSelectGrid();
 
@@ -43,7 +45,9 @@ class NodeSelectGrid: public wxDialog
 		wxButton* ButtonSelectNone;
 		wxButton* ButtonZoomMinus;
 		wxButton* ButtonZoomPlus;
+		wxCheckBox* CheckBox_OrderedSelection;
 		wxSlider* SliderImgBrightness;
+		wxTextCtrl* TextCtrl_Nodes;
 		//*)
 
         static const long NODESELECT_CUT;
@@ -56,6 +60,7 @@ class NodeSelectGrid: public wxDialog
 	protected:
 
 		//(*Identifiers(NodeSelectGrid)
+		static const long ID_CHECKBOX1;
 		static const long ID_BUTTON_SELECT_ALL;
 		static const long ID_BUTTON_SELECT_NONE;
 		static const long ID_BUTTON_LOAD_MODEL;
@@ -67,6 +72,7 @@ class NodeSelectGrid: public wxDialog
 		static const long ID_BUTTON_NODE_SELECT_OK;
 		static const long ID_BUTTON_NODE_SELECT_CANCEL;
 		static const long ID_GRID_NODES;
+		static const long ID_TEXTCTRL1;
 		//*)
 
         wxImage* bkg_image;
@@ -90,6 +96,8 @@ class NodeSelectGrid: public wxDialog
 		void OnBitmapButton1Click(wxCommandEvent& event);
 		void OnFilePickerCtrl1FileChanged(wxFileDirPickerEvent& event);
 		void OnGridNodesCellSelect(wxGridRangeSelectEvent& event);
+		void OnCheckBox_OrderedSelectionClick(wxCommandEvent& event);
+		void OnTextCtrl_NodesText(wxCommandEvent& event);
 		//*)
 
         void OnCut(wxCommandEvent& event);
@@ -107,6 +115,10 @@ class NodeSelectGrid: public wxDialog
         wxString EncodeNodeLine(const std::vector<wxString> &nodes, const bool sort) const;
         void ImportModel(const std::string &filename);
         void ImportModelXML(wxXmlNode* xmlData);
+		void UpdateSelectedFromText();
+		void UpdateTextFromGrid();
+		void AddNode(int col, int row);
+		void RemoveNode(int col, int row);
 
         Model *model;
 
