@@ -84,7 +84,7 @@ public:
 
     void Convert(wxXmlNode* node, std::string showDir) override; // loads a legacy networks node
 
-    virtual bool NeedsControllerConfig() const override { return false; }
+    virtual bool NeedsControllerConfig() const override { return GetProtocol() == OUTPUT_ZCPP; }
 
     virtual bool IsLookedUpByControllerName() const override { return true; }
 
