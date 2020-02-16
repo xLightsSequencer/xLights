@@ -69,14 +69,12 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxCheckBox" name="ID_CHECKBOX5" variable="TimingDoubleClickCheckbox" member="yes">
-					<label>Double Click Timing Plays Timeframe</label>
-					<handler function="OnTimingDoubleClickChoiceSelect" entry="EVT_CHECKBOX" />
+				<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
+					<label>Double Click Mode</label>
 				</object>
-				<colspan>2</colspan>
 				<col>0</col>
 				<row>4</row>
-				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
@@ -102,6 +100,21 @@
 				<col>0</col>
 				<row>6</row>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxChoice" name="ID_CHOICE2" variable="DoubleClickChoice" member="yes">
+					<content>
+						<item>Edit Text</item>
+						<item>Play Timing</item>
+					</content>
+					<selection>1</selection>
+					<handler function="OnDoubleClickChoiceSelect" entry="EVT_CHOICE" />
+				</object>
+				<col>1</col>
+				<row>4</row>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>

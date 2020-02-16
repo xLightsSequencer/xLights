@@ -2679,12 +2679,12 @@ void VUMeterEffect::RenderLevelBarFrame(RenderBuffer &buffer, int bars, int sens
         buffer.palette.GetColor(colourindex, color1);
 
         int startx = buffer.BufferWi / bars * bar;
-        int endx = buffer.BufferWi / bars * (bar + 1);
-        if (endx > buffer.BufferWi - 1) endx = buffer.BufferWi - 1;
+        int endx = std::ceil(buffer.BufferWi / bars) * (bar + 1);
+        if (endx > buffer.BufferWi) endx = buffer.BufferWi;
 
         if (bar >= 0)
         {
-            for (int x = startx; x <= endx; ++x)
+            for (int x = startx; x < endx; ++x)
             {
                 for (int y = 0; y < buffer.BufferHt; ++y)
                 {
@@ -2749,10 +2749,10 @@ void VUMeterEffect::RenderTimingEventBarFrame(RenderBuffer &buffer, int bars, st
                 for (int i = 0; i < bars ;i++)
                 {
                     int startx = buffer.BufferWi / bars * i;
-                    int endx = buffer.BufferWi / bars * (i + 1);
-                    if (endx > buffer.BufferWi - 1) endx = buffer.BufferWi - 1;
+                    int endx = std::ceil(buffer.BufferWi / bars) * (i + 1);
+                    if (endx > buffer.BufferWi) endx = buffer.BufferWi;
 
-                    for (int x = startx; x <= endx; x++)
+                    for (int x = startx; x < endx; x++)
                     {
                         for (int y = 0; y < buffer.BufferHt; y++)
                         {
@@ -2768,12 +2768,12 @@ void VUMeterEffect::RenderTimingEventBarFrame(RenderBuffer &buffer, int bars, st
             else
             {
                 int startx = buffer.BufferWi / bars * bar;
-                int endx = buffer.BufferWi / bars * (bar + 1);
-                if (endx > buffer.BufferWi - 1) endx = buffer.BufferWi - 1;
+                int endx = std::ceil(buffer.BufferWi / bars) * (bar + 1);
+                if (endx > buffer.BufferWi) endx = buffer.BufferWi;
 
                 if (bar >= 0)
                 {
-                    for (int x = startx; x <= endx; x++)
+                    for (int x = startx; x < endx; x++)
                     {
                         for (int y = 0; y < buffer.BufferHt; y++)
                         {
@@ -2824,12 +2824,12 @@ void VUMeterEffect::RenderNoteLevelBarFrame(RenderBuffer &buffer, int bars, int 
         buffer.palette.GetColor(colourindex, color1);
 
         int startx = buffer.BufferWi / bars * bar;
-        int endx = buffer.BufferWi / bars * (bar + 1);
-        if (endx > buffer.BufferWi - 1) endx = buffer.BufferWi - 1;
+        int endx = std::ceil(buffer.BufferWi / bars) * (bar + 1);
+        if (endx > buffer.BufferWi) endx = buffer.BufferWi;
 
         if (bar >= 0)
         {
-            for (int x = startx; x <= endx; ++x)
+            for (int x = startx; x < endx; ++x)
             {
                 for (int y = 0; y < buffer.BufferHt; ++y)
                 {

@@ -17,9 +17,10 @@ const long EffectsGridSettingsPanel::ID_CHOICE1 = wxNewId();
 const long EffectsGridSettingsPanel::ID_CHECKBOX1 = wxNewId();
 const long EffectsGridSettingsPanel::ID_CHECKBOX2 = wxNewId();
 const long EffectsGridSettingsPanel::ID_CHECKBOX3 = wxNewId();
-const long EffectsGridSettingsPanel::ID_CHECKBOX5 = wxNewId();
+const long EffectsGridSettingsPanel::ID_STATICTEXT1 = wxNewId();
 const long EffectsGridSettingsPanel::ID_CHECKBOX4 = wxNewId();
 const long EffectsGridSettingsPanel::ID_CHECKBOX6 = wxNewId();
+const long EffectsGridSettingsPanel::ID_CHOICE2 = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(EffectsGridSettingsPanel,wxPanel)
@@ -53,15 +54,18 @@ EffectsGridSettingsPanel::EffectsGridSettingsPanel(wxWindow* parent, xLightsFram
 	SnapToTimingCheckBox = new wxCheckBox(this, ID_CHECKBOX3, _("Snap to Timing Marks"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX3"));
 	SnapToTimingCheckBox->SetValue(false);
 	GridBagSizer1->Add(SnapToTimingCheckBox, wxGBPosition(3, 0), wxGBSpan(1, 2), wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	TimingDoubleClickCheckbox = new wxCheckBox(this, ID_CHECKBOX5, _("Double Click Timing Plays Timeframe"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX5"));
-	TimingDoubleClickCheckbox->SetValue(false);
-	GridBagSizer1->Add(TimingDoubleClickCheckbox, wxGBPosition(4, 0), wxGBSpan(1, 2), wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Double Click Mode"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
+	GridBagSizer1->Add(StaticText1, wxGBPosition(4, 0), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SmallWaveformCheckBox = new wxCheckBox(this, ID_CHECKBOX4, _("Small Waveform"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX4"));
 	SmallWaveformCheckBox->SetValue(false);
 	GridBagSizer1->Add(SmallWaveformCheckBox, wxGBPosition(5, 0), wxGBSpan(1, 2), wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	TransistionMarksCheckBox = new wxCheckBox(this, ID_CHECKBOX6, _("Display Transition Marks"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX6"));
 	TransistionMarksCheckBox->SetValue(true);
 	GridBagSizer1->Add(TransistionMarksCheckBox, wxGBPosition(6, 0), wxGBSpan(1, 2), wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	DoubleClickChoice = new wxChoice(this, ID_CHOICE2, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE2"));
+	DoubleClickChoice->Append(_("Edit Text"));
+	DoubleClickChoice->SetSelection( DoubleClickChoice->Append(_("Play Timing")) );
+	GridBagSizer1->Add(DoubleClickChoice, wxGBPosition(4, 1), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SetSizer(GridBagSizer1);
 	GridBagSizer1->Fit(this);
 	GridBagSizer1->SetSizeHints(this);
@@ -70,9 +74,9 @@ EffectsGridSettingsPanel::EffectsGridSettingsPanel(wxWindow* parent, xLightsFram
 	Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&EffectsGridSettingsPanel::OnIconBackgroundsCheckBoxClick);
 	Connect(ID_CHECKBOX2,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&EffectsGridSettingsPanel::OnNodeValuesCheckBoxClick);
 	Connect(ID_CHECKBOX3,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&EffectsGridSettingsPanel::OnSnapToTimingCheckBoxClick);
-	Connect(ID_CHECKBOX5,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&EffectsGridSettingsPanel::OnTimingDoubleClickChoiceSelect);
 	Connect(ID_CHECKBOX4,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&EffectsGridSettingsPanel::OnSmallWaveformCheckBoxClick);
 	Connect(ID_CHECKBOX6,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&EffectsGridSettingsPanel::OnTransistionMarksCheckBoxClick);
+	Connect(ID_CHOICE2,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&EffectsGridSettingsPanel::OnDoubleClickChoiceSelect);
 	//*)
 }
 
@@ -86,7 +90,7 @@ EffectsGridSettingsPanel::~EffectsGridSettingsPanel()
 bool EffectsGridSettingsPanel::TransferDataToWindow() {
     NodeValuesCheckBox->SetValue(frame->GridNodeValues());
     IconBackgroundsCheckBox->SetValue(frame->GridIconBackgrounds());
-    TimingDoubleClickCheckbox->SetValue(frame->TimingPlayOnDClick());
+    DoubleClickChoice->SetSelection(frame->TimingPlayOnDClick());
     SmallWaveformCheckBox->SetValue(frame->SmallWaveform());
     SnapToTimingCheckBox->SetValue(frame->SnapToTimingMarks());
     TransistionMarksCheckBox->SetValue(!frame->SuppressFadeHints());
@@ -132,7 +136,7 @@ bool EffectsGridSettingsPanel::TransferDataFromWindow() {
     }
     frame->SetGridNodeValues(NodeValuesCheckBox->IsChecked());
     frame->SetGridIconBackgrounds(IconBackgroundsCheckBox->IsChecked());
-    frame->SetTimingPlayOnDClick(TimingDoubleClickCheckbox->IsChecked());
+    frame->SetTimingPlayOnDClick(DoubleClickChoice->GetSelection());
     frame->SetSmallWaveform(SmallWaveformCheckBox->IsChecked());
     frame->SetSnapToTimingMarks(SnapToTimingCheckBox->IsChecked());
     frame->SetSuppressFadeHints(!TransistionMarksCheckBox->IsChecked());
@@ -161,13 +165,6 @@ void EffectsGridSettingsPanel::OnSnapToTimingCheckBoxClick(wxCommandEvent& event
     }
 }
 
-void EffectsGridSettingsPanel::OnTimingDoubleClickChoiceSelect(wxCommandEvent& event)
-{
-    if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
-        TransferDataFromWindow();
-    }
-}
-
 void EffectsGridSettingsPanel::OnSmallWaveformCheckBoxClick(wxCommandEvent& event)
 {
     if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
@@ -183,6 +180,13 @@ void EffectsGridSettingsPanel::OnGridSpacingChoiceSelect(wxCommandEvent& event)
 }
 
 void EffectsGridSettingsPanel::OnTransistionMarksCheckBoxClick(wxCommandEvent& event)
+{
+    if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
+        TransferDataFromWindow();
+    }
+}
+
+void EffectsGridSettingsPanel::OnDoubleClickChoiceSelect(wxCommandEvent& event)
 {
     if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
         TransferDataFromWindow();
