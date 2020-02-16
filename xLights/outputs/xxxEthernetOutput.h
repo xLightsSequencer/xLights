@@ -36,7 +36,6 @@ protected:
     uint8_t* _data = nullptr;
     wxIPV4address _remoteAddr;
     wxDatagramSocket* _datagram = nullptr;
-    int _port = 0;
     #pragma endregion 
 
     #pragma region Private Functions
@@ -55,9 +54,6 @@ public:
     #pragma endregion 
 
     #pragma region Getters and Setters
-    int GetPort() const { return _port; }
-    void SetPort(int port) { _port = port; _dirty = true; }
-
     virtual std::string GetType() const override { return OUTPUT_xxxETHERNET; }
 
     virtual int32_t GetMaxChannels() const override { return xxxETHERNET_MAX_CHANNELS; }
@@ -70,7 +66,7 @@ public:
     virtual std::string GetLongDescription() const override;
 
     virtual std::string GetExport() const override;
-    virtual std::string GetUniverseString() const override { return wxString::Format(wxT("%i"), GetPort()).ToStdString(); }
+    virtual std::string GetUniverseString() const override { return wxString::Format(wxT("%i"), GetUniverse()).ToStdString(); }
     #pragma endregion
 
     #pragma region Start and Stop

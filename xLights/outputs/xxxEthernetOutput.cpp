@@ -115,23 +115,24 @@ void xxxEthernetOutput::OpenDatagram() {
 #pragma region Constructors and Destructors
 xxxEthernetOutput::xxxEthernetOutput(wxXmlNode* node) : IPOutput(node) {
 
-    _universe = 64001;
-    _port = wxAtoi(node->GetAttribute("Port", "1"));
     SetId(wxAtoi(node->GetAttribute("Id", "0")));
+    if (wxAtoi(node->GetAttribute("Port", "-1")) != -1)
+    {
+        _universe = wxAtoi(node->GetAttribute("Port"));
+    }
     _data = (uint8_t*)malloc(_channels + xxxETHERNET_PACKET_HEADERLEN + xxxETHERNET_PACKET_FOOTERLEN);
     memset(_data, 0, _channels + xxxETHERNET_PACKET_HEADERLEN + xxxETHERNET_PACKET_FOOTERLEN);
 }
 
 xxxEthernetOutput::xxxEthernetOutput() : IPOutput() {
 
-    _universe = 64001;
+    _universe = 1;
     _data = (uint8_t*)malloc(_channels + xxxETHERNET_PACKET_HEADERLEN + xxxETHERNET_PACKET_FOOTERLEN);
     memset(_data, 0, _channels + xxxETHERNET_PACKET_HEADERLEN + xxxETHERNET_PACKET_FOOTERLEN);
 }
 
 xxxEthernetOutput::xxxEthernetOutput(xxxEthernetOutput* output) : IPOutput(output) {
 
-    _port = output->_port;
     _data = (uint8_t*)malloc(_channels);
     memset(_data, 0, _channels);
 }
@@ -148,7 +149,6 @@ wxXmlNode* xxxEthernetOutput::Save() {
     wxXmlNode* node = new wxXmlNode(wxXML_ELEMENT_NODE, "network");
 
     node->AddAttribute("Id", wxString::Format(wxT("%i"), GetId()));
-    node->AddAttribute("Port", wxString::Format(wxT("%i"), _port));
 
     IPOutput::Save(node);
 
@@ -162,7 +162,7 @@ std::string xxxEthernetOutput::GetLongDescription() const {
     std::string res = "";
 
     if (!_enabled) res += "INACTIVE ";
-    res += "xxxEthernet {" + wxString::Format(wxT("%i"), _port).ToStdString() + "} ";
+    res += "xxxEthernet {" + wxString::Format(wxT("%i"), _universe).ToStdString() + "} ";
     res += "[1-" + std::string(wxString::Format(wxT("%i"), _channels)) + "] ";
     res += "(" + std::string(wxString::Format(wxT("%i"), GetStartChannel())) + "-" + std::string(wxString::Format(wxT("%i"), GetEndChannel())) + ") ";
 
@@ -176,7 +176,7 @@ std::string xxxEthernetOutput::GetExport() const {
         GetEndChannel(),
         GetType(),
         GetIP(),
-        GetPort(),
+        GetUniverse(),
         GetChannels());
 }
 #pragma endregion
@@ -237,8 +237,8 @@ void xxxEthernetOutput::EndFrame(int suppressFrames) {
             int current = 0;
             for (int i = 0; i < (_channels - 1) / xxxCHANNELSPERPACKET + 1; i++) {
                 _packet[0] = 0x80;
-                _packet[1] = _port;
-                _packet[2] = 0x1d; // 1c
+                _packet[1] = _universe;
+                _packet[2] = 0x1d; // 0x1c
                 _packet[3] = (uint8_t)(((current / 3) >> 8) & 0xFF); // high start pixel
                 _packet[4] = (uint8_t)((current / 3) & 0xFF); // low start pixel
                 int ch = (std::min)(_channels - current, xxxCHANNELSPERPACKET);

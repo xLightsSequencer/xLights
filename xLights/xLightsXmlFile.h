@@ -143,17 +143,17 @@ class xLightsXmlFile : public wxFileName
         wxArrayString header_info;
         wxArrayString timing_list;
         wxString version_string;
-        double seq_duration;
+        double seq_duration = 0;
         wxString media_file;
         wxString seq_type;
         wxString seq_timing;
         wxString image_dir;
-        bool supports_model_blending;
-        bool is_open;
-        bool was_converted;
-        bool sequence_loaded;  // flag to indicate the sequencer has been loaded with this xml data
+        bool supports_model_blending = false;
+        bool is_open = false;
+        bool was_converted = false;
+        bool sequence_loaded = false;  // flag to indicate the sequencer has been loaded with this xml data
         DataLayerSet mDataLayers;
-		AudioManager* audio;
+		AudioManager* audio = nullptr;
 
         void CreateNew();
         bool LoadSequence(const wxString& ShowDir, bool ignore_audio=false);

@@ -224,6 +224,7 @@ bool OutputManager::Load(const std::string& showdir, bool syncEnabled) {
                     }
                     AddController(cu, -1);
                     cu->DeleteAllOutputs();
+                    cu->SetActive(conversionOutput->IsEnabled());
                 }
                 cu->Convert(e, showdir);
 
@@ -618,20 +619,10 @@ Output* OutputManager::GetOutput(int universe, const std::string& ip) const {
 
     for (const auto& it : _controllers) {
         auto eth = dynamic_cast<ControllerEthernet*>(it);
-        if (eth != nullptr && (eth->GetProtocol() == OUTPUT_E131 || eth->GetProtocol() == OUTPUT_ARTNET)) {
+        if (eth != nullptr && (eth->GetProtocol() == OUTPUT_E131 || eth->GetProtocol() == OUTPUT_ARTNET || eth->GetProtocol() == OUTPUT_xxxETHERNET)) {
             if (ip == "" || ip == eth->GetIP() || ip == eth->GetResolvedIP()) {
                 for (const auto& it2 : eth->GetOutputs()) {
                     if (it2->GetUniverse() == universe) {
-                        return it2;
-                    }
-                }
-            }
-        }
-        else if (eth != nullptr && (eth->GetProtocol() == OUTPUT_xxxETHERNET)) {
-            if (ip == "" || ip == eth->GetIP() || ip == eth->GetResolvedIP()) {
-                for (const auto& it2 : eth->GetOutputs()) {
-                    auto o = dynamic_cast<xxxEthernetOutput*>(it2);
-                    if (o != nullptr && o->GetPort() == universe) {
                         return it2;
                     }
                 }
@@ -905,7 +896,7 @@ void OutputManager::UpdateUnmanaged() {
     {
         auto eth1 = dynamic_cast<ControllerEthernet*>(*it1);
         // only need to look at managed items
-        if (eth1 != nullptr && eth1->IsManaged() && (eth1->GetProtocol() == OUTPUT_E131 || eth1->GetProtocol() == OUTPUT_ARTNET || eth1->GetProtocol() == OUTPUT_xxxETHERNET)) {
+        if (eth1 != nullptr && eth1->IsManaged() && (eth1->GetProtocol() == OUTPUT_E131 || eth1->GetProtocol() == OUTPUT_ARTNET || eth1->GetProtocol() == OUTPUT_xxxETHERNET) && eth1->GetIP() != "MULTICAST") {
             auto it2 = it1;
             ++it2;
             while (it2 != _controllers.end()) {

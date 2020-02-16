@@ -2573,7 +2573,12 @@ void AudioManager::GetTrackMetrics(AVFormatContext* formatContext, AVCodecContex
 	// Clean up!
     av_frame_free(&frame);
     
-	_lengthMS = (long)(((Uint64)_trackSize * 1000) / ((codecContext->time_base.den)));
+    _lengthMS = (long)(((Uint64)_trackSize * 1000) / ((codecContext->time_base.den)));
+
+    // I think this does the same thing ... if they are different then maybe the file is corrupt
+    //long test = (long)((((uint64_t)audioStream->duration) * audioStream->time_base.num * 1000) / audioStream->time_base.den);
+    //wxASSERT(_lengthMS > test - 200 && _lengthMS < test + 200); // allow a buffer for rounding errors
+
 #ifdef RESAMPLE_RATE
     //if we resample, we need to estimate the new size
     float f = _trackSize;

@@ -1763,7 +1763,10 @@ xLightsFrame::~xLightsFrame()
     //unconnect these as the call to DeleteAllPages will cause pages to change and the page numbers to possibly not match
     Disconnect(ID_NOTEBOOK1,wxEVT_COMMAND_AUINOTEBOOK_PAGE_CHANGED,(wxObjectEventFunction)&xLightsFrame::OnNotebook1PageChanged1);
     Disconnect(ID_NOTEBOOK1,wxEVT_COMMAND_AUINOTEBOOK_PAGE_CHANGING,(wxObjectEventFunction)&xLightsFrame::OnNotebook1PageChanging);
+
+    // I still have examples where this crashes ... maybe we should just not delete them
     Notebook1->DeleteAllPages();
+
     delete m_mgr;
     delete MainAuiManager;
 

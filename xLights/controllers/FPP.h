@@ -99,6 +99,7 @@ class FPP : public BaseController
 private:
     void FillRanges(std::map<int, int> &rngs);
     void SetNewRanges(const std::map<int, int> &rngs);
+    void DumpJSON(const wxJSONValue& json);
 
     bool GetPathAsJSON(const std::string &path, wxJSONValue &val);
     bool GetURLAsJSON(const std::string& url, wxJSONValue& val);

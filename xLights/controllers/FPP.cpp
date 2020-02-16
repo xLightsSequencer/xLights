@@ -524,6 +524,15 @@ int FPP::PostJSONToURLAsFormData(const std::string& url, const std::string &extr
     return PostToURL(url, memBuffPost, "application/x-www-form-urlencoded; charset=UTF-8");
 }
 
+void FPP::DumpJSON(const wxJSONValue& json)
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    wxString str;
+    wxJSONWriter writer(wxJSONWRITER_STYLED, 0, 3);
+    writer.Write(json, str);
+    logger_base.debug(str);
+}
+
 int FPP::PostToURL(const std::string& url, const std::string &val, const std::string &contentType) {
     wxMemoryBuffer memBuffPost;
     addString(memBuffPost, val);
@@ -1347,7 +1356,9 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
             }
         }
     }
-    
+    logger_base.debug("Original JSON");
+    DumpJSON(origJson);
+
     wxString pinout = "1.x";
     std::map<std::string, wxJSONValue> origStrings;
     if (origJson["channelOutputs"].IsArray()) {
@@ -1661,7 +1672,11 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
         stringData["subType"] = dev;
     }
 
+    logger_base.debug("New JSON");
+    DumpJSON(root);
+
     if (!origJson.IsSameAs(root)) {
+        logger_base.debug("Uploading New JSON");
         wxFileName fn;
         fn.AssignTempFileName("pixelOutputs");
         file = fn.GetFullPath().ToStdString();
@@ -1676,6 +1691,10 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
             PostJSONToURLAsFormData("/fppjson.php", "command=setChannelOutputs&file=" + fppFileName, root);
             SetRestartFlag();
         }
+    }
+    else
+    {
+        logger_base.debug("Skipping JSON upload as it has not changed.");
     }
     SetNewRanges(rngs);
     return false;

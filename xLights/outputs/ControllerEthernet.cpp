@@ -318,12 +318,8 @@ std::string ControllerEthernet::GetChannelMapping(int32_t ch) const {
     int32_t sc;
     auto o = GetOutput(ch, sc);
 
-    if (o->GetType() == OUTPUT_ARTNET || o->GetType() == OUTPUT_E131) {
+    if (o->GetType() == OUTPUT_ARTNET || o->GetType() == OUTPUT_E131 || o->GetType() == OUTPUT_xxxETHERNET) {
         res += wxString::Format("Universe: %s\nChannel: %d\n", o->GetUniverseString(), sc);
-    }
-    else if (o->GetType() == OUTPUT_xxxETHERNET) {
-        auto xo = dynamic_cast<xxxEthernetOutput*>(o);
-        res += wxString::Format("Port: %d\nChannel: %d\n", xo->GetPort(), sc);
     }
     else {
         res += wxString::Format("Channel: %d\n", sc);
