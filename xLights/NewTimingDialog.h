@@ -2,10 +2,10 @@
 #define NEWTIMINGDIALOG_H
 
 //(*Headers(NewTimingDialog)
-#include <wx/sizer.h>
-#include <wx/stattext.h>
 #include <wx/choice.h>
 #include <wx/dialog.h>
+#include <wx/sizer.h>
+#include <wx/stattext.h>
 //*)
 
 class NewTimingDialog: public wxDialog

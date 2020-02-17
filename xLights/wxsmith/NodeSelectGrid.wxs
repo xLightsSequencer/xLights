@@ -204,8 +204,17 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxTextCtrl" name="ID_TEXTCTRL1" variable="TextCtrl_Nodes" member="yes">
-					<handler function="OnTextCtrl_NodesText" entry="EVT_TEXT" />
+				<object class="wxFlexGridSizer" variable="FlexGridSizer6" member="no">
+					<cols>1</cols>
+					<growablecols>0</growablecols>
+					<object class="sizeritem">
+						<object class="wxTextCtrl" name="ID_TEXTCTRL1" variable="TextCtrl_Nodes" member="yes">
+							<handler function="OnTextCtrl_NodesText" entry="EVT_TEXT" />
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>

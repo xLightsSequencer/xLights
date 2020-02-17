@@ -203,6 +203,7 @@ NodeSelectGrid::NodeSelectGrid(bool multiline, const wxString &title, Model *m, 
 	wxFlexGridSizer* FlexGridSizer3;
 	wxFlexGridSizer* FlexGridSizer4;
 	wxFlexGridSizer* FlexGridSizer5;
+	wxFlexGridSizer* FlexGridSizer6;
 	wxFlexGridSizer* wxFlexSizerMain;
 	wxStaticBoxSizer* StaticBoxSizer1;
 	wxStaticBoxSizer* StaticBoxSizer2;
@@ -268,8 +269,11 @@ NodeSelectGrid::NodeSelectGrid(bool multiline, const wxString &title, Model *m, 
 	GridNodes->SetDefaultCellTextColour( GridNodes->GetForegroundColour() );
 	FlexGridSizer2->Add(GridNodes, 1, wxALL|wxEXPAND, 5);
 	wxFlexSizerMain->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer6 = new wxFlexGridSizer(0, 1, 0, 0);
+	FlexGridSizer6->AddGrowableCol(0);
 	TextCtrl_Nodes = new wxTextCtrl(this, ID_TEXTCTRL1, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL1"));
-	wxFlexSizerMain->Add(TextCtrl_Nodes, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer6->Add(TextCtrl_Nodes, 1, wxALL|wxEXPAND, 5);
+	wxFlexSizerMain->Add(FlexGridSizer6, 1, wxALL|wxEXPAND, 5);
 	SetSizer(wxFlexSizerMain);
 	SetSizer(wxFlexSizerMain);
 	Layout();
@@ -290,6 +294,8 @@ NodeSelectGrid::NodeSelectGrid(bool multiline, const wxString &title, Model *m, 
 	Connect(ID_GRID_NODES,wxEVT_GRID_CELL_RIGHT_DCLICK,(wxObjectEventFunction)&NodeSelectGrid::OnGridNodesCellRightDClick);
 	Connect(ID_TEXTCTRL1,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&NodeSelectGrid::OnTextCtrl_NodesText);
 	//*)
+
+    TextCtrl_Nodes->Bind(wxEVT_KILL_FOCUS, &NodeSelectGrid::OnTextCtrl_NodesLoseFocus, this);
 
     GridNodes->Connect(wxEVT_TEXT_CUT, (wxObjectEventFunction)&NodeSelectGrid::OnCut, 0, this);
     GridNodes->Connect(wxEVT_TEXT_COPY, (wxObjectEventFunction)&NodeSelectGrid::OnCopy, 0, this);
@@ -396,7 +402,7 @@ void NodeSelectGrid::LoadGrid(const std::vector<wxString>& rows)
     GridNodes->Refresh();
     if (CheckBox_OrderedSelection->IsChecked() && rows.size() == 1)
     {
-        TextCtrl_Nodes->SetValue(rows.front());
+        TextCtrl_Nodes->SetValue(ExpandNodes(rows.front()));
     }
     else
     {
@@ -527,7 +533,7 @@ void NodeSelectGrid::OnGridNodesCellRightDClick(wxGridEvent& event)
             GridNodes->SetCellBackgroundColour(event.GetRow(), event.GetCol(), selectBackColor);
             AddNode(event.GetCol(), event.GetRow());
         }
-        
+
         UpdateTextFromGrid();
         GridNodes->Refresh();
         ValidateWindow();
@@ -705,7 +711,7 @@ std::vector<wxString> NodeSelectGrid::GetRowData()
 
 wxString NodeSelectGrid::GetNodeList(const bool sort)
 {
-    if (CheckBox_OrderedSelection->IsChecked()) return TextCtrl_Nodes->GetValue();
+    if (CheckBox_OrderedSelection->IsChecked()) return CompressNodes(TextCtrl_Nodes->GetValue());
 
     //encode with dashs
     std::vector<wxString> nodeList;
@@ -1193,6 +1199,128 @@ void NodeSelectGrid::RemoveNode(int col, int row)
     TextCtrl_Nodes->SetValue(ns);
 }
 
+wxString NodeSelectGrid::CompressNodes(const wxString& nodes) const
+{
+    wxString res = "";
+    // make sure it is fully expanded first
+    auto s = ExpandNodes(nodes);
+    int dir = 0;
+    int start = -1;
+    int last = -1;
+    auto as = wxSplit(s, ',');
+
+    for (const auto& i : as)
+    {
+        if (start == -1)
+        {
+            start = wxAtoi(i);
+            last = start;
+            dir = 0;
+        }
+        else
+        {
+            int j = wxAtoi(i);
+            if (dir == 0)
+            {
+                if (j == last + 1)
+                {
+                    dir = 1;
+                }
+                else if (j == last - 1)
+                {
+                    dir = -1;
+                }
+                else
+                {
+                    if (res != "") res += ",";
+                    res += wxString::Format("%d", start);
+                    start = j;
+                    dir = 0;
+                }
+                last = j;
+            }
+            else
+            {
+                if (j == last + dir)
+                {
+                }
+                else
+                {
+                    if (res != "") res += ",";
+                    res += wxString::Format("%d-%d", start, last);
+                    start = j;
+                    dir = 0;
+                }
+                last = j;
+            }
+        }
+    }
+
+    if (start == -1)
+    {
+        // nothing to do
+    }
+    if (start == last)
+    {
+        if (res != "") res += ",";
+        res += wxString::Format("%d", start);
+    }
+    else
+    {
+        if (res != "") res += ",";
+        res += wxString::Format("%d-%d", start, last);
+    }
+
+    return res;
+}
+
+wxString NodeSelectGrid::ExpandNodes(const wxString& nodes) const
+{
+    wxString res = "";
+
+    auto as = wxSplit(nodes, ',');
+
+    for (const auto& i : as)
+    {
+        if (i.Contains("-"))
+        {
+            auto as2 = wxSplit(i, '-');
+            if (as2.size() == 2)
+            {
+                int start = wxAtoi(as2[0]);
+                int end = wxAtoi(as2[1]);
+                if (start < end)
+                {
+                    for (int j = start; j <= end; j++)
+                    {
+                        if (res != "") res += ",";
+                        res += wxString::Format("%d", j);
+                    }
+                }
+                else if (start == end)
+                {
+                    if (res != "") res += ",";
+                    res += wxString::Format("%d", start);
+                }
+                else
+                {
+                    for (int j = start; j >= end; j--)
+                    {
+                        if (res != "") res += ",";
+                        res += wxString::Format("%d", j);
+                    }
+                }
+            }
+        }
+        else
+        {
+            if (res != "") res += ",";
+            res += i;
+        }
+    }
+    return res;
+}
+
 void NodeSelectGrid::AddNode(int col, int row)
 {
     if (!CheckBox_OrderedSelection->IsChecked()) return;
@@ -1248,3 +1376,9 @@ void NodeSelectGrid::AddNode(int col, int row)
     TextCtrl_Nodes->SetInsertionPoint(ip + 1 + cv.size());
 }
 
+void NodeSelectGrid::OnTextCtrl_NodesLoseFocus(wxFocusEvent& event)
+{
+    TextCtrl_Nodes->SetValue(ExpandNodes(TextCtrl_Nodes->GetValue()));
+    UpdateSelectedFromText();
+    TextCtrl_Nodes->OnSetFocus(event);
+}

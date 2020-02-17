@@ -243,6 +243,11 @@ bool ControllerCaps::UniversesMustBeSequential() const {
     return DoesXmlNodeExist(_config, "UniversesMustBeSequential");
 }
 
+bool ControllerCaps::NoWebUI() const
+{
+    return DoesXmlNodeExist(_config, "NoWebUI");
+}
+
 int ControllerCaps::GetMaxInputE131Universes() const {
 
     return wxAtoi(GetXmlNodeContent(_config, "MaxInputUniverses"));

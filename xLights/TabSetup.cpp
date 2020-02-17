@@ -1512,7 +1512,7 @@ void xLightsFrame::SetControllersProperties() {
                 ButtonUploadInput->Enable(false);
                 ButtonUploadOutput->Enable(false);
             }
-            if (dynamic_cast<ControllerEthernet*>(controller) != nullptr) {
+            if (eth != nullptr && eth->GetIP() != "MULTICAST" && eth->GetIP() != "" && (caps == nullptr || !caps->NoWebUI())) {
                 ButtonOpen->Enable();
             }
             else {

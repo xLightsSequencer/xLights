@@ -1,8 +1,8 @@
 #include "NewTimingDialog.h"
 
 //(*InternalHeaders(NewTimingDialog)
-#include <wx/intl.h>
 #include <wx/button.h>
+#include <wx/intl.h>
 #include <wx/string.h>
 //*)
 

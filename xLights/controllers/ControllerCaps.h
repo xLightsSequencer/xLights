@@ -62,6 +62,7 @@ public:
     bool AllInputUniversesMustBeSameSize() const;
     bool UniversesMustBeInNumericalOrder() const;
     bool UniversesMustBeSequential() const;
+    bool NoWebUI() const;
 
     int GetMaxInputE131Universes() const;
     int GetMaxPixelPort() const;

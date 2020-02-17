@@ -11,6 +11,7 @@
 			<!--SupportsLEDPanelMatrix/-->
 			<!--AllInputUniversesMustBeSameSize/-->
 			<!--UniversesMustBeSequential/-->
+			<!--NoWebUI/-->
 			<SupportsVirtualStrings/>
 			<SupportsSmartRemotes/>
 			<MergeConsecutiveVirtualStrings/>

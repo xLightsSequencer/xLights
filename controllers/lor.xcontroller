@@ -7,6 +7,7 @@
 			<MaxSerialPort>4</MaxSerialPort>
 			<MaxSerialPortChannels>512</MaxSerialPortChannels>
 			<MaxPixelPortChannels>1020</MaxPixelPortChannels>
+			<NoWebUI/>
 			<PixelProtocols>
 				<Protocol>ws2811</Protocol>
 				<Protocol>tm18xx</Protocol>
@@ -41,6 +42,7 @@
 			<MaxSerialPort>0</MaxSerialPort>
 			<MaxSerialPortChannels>0</MaxSerialPortChannels>
 			<MaxPixelPortChannels>510</MaxPixelPortChannels>
+			<NoWebUI/>
 			<PixelProtocols>
 				<Protocol>ws2811</Protocol>
 				<Protocol>ws2801</Protocol>
@@ -61,6 +63,7 @@
 			<MaxSerialPort>0</MaxSerialPort>
 			<MaxSerialPortChannels>0</MaxSerialPortChannels>
 			<MaxPixelPortChannels>510</MaxPixelPortChannels>
+			<NoWebUI/>
 			<PixelProtocols>
 				<Protocol>ws2811</Protocol>
 				<Protocol>ws2801</Protocol>
@@ -81,6 +84,7 @@
 			<MaxSerialPort>0</MaxSerialPort>
 			<MaxSerialPortChannels>0</MaxSerialPortChannels>
 			<MaxPixelPortChannels>510</MaxPixelPortChannels>
+			<NoWebUI/>
 			<PixelProtocols>
 				<Protocol>ws2811</Protocol>
 				<Protocol>ws2801</Protocol>
@@ -101,6 +105,7 @@
 			<MaxSerialPort>1</MaxSerialPort>
 			<MaxSerialPortChannels>32</MaxSerialPortChannels>
 			<MaxPixelPortChannels>0</MaxPixelPortChannels>
+			<NoWebUI/>
 			<PixelProtocols>
 			</PixelProtocols>
 			<SerialProtocols>
@@ -118,6 +123,7 @@
 			<MaxSerialPort>1</MaxSerialPort>
 			<MaxSerialPortChannels>16</MaxSerialPortChannels>
 			<MaxPixelPortChannels>0</MaxPixelPortChannels>
+			<NoWebUI/>
 			<PixelProtocols>
 			</PixelProtocols>
 			<SerialProtocols>
@@ -135,6 +141,7 @@
 			<MaxSerialPort>1</MaxSerialPort>
 			<MaxSerialPortChannels>32</MaxSerialPortChannels>
 			<MaxPixelPortChannels>0</MaxPixelPortChannels>
+			<NoWebUI/>
 			<PixelProtocols>
 			</PixelProtocols>
 			<SerialProtocols>
@@ -152,6 +159,7 @@
 			<MaxSerialPort>1</MaxSerialPort>
 			<MaxSerialPortChannels>8</MaxSerialPortChannels>
 			<MaxPixelPortChannels>0</MaxPixelPortChannels>
+			<NoWebUI/>
 			<PixelProtocols>
 			</PixelProtocols>
 			<SerialProtocols>
@@ -169,6 +177,7 @@
 			<MaxSerialPort>1</MaxSerialPort>
 			<MaxSerialPortChannels>4</MaxSerialPortChannels>
 			<MaxPixelPortChannels>0</MaxPixelPortChannels>
+			<NoWebUI/>
 			<PixelProtocols>
 			</PixelProtocols>
 			<SerialProtocols>
@@ -186,6 +195,7 @@
 			<MaxSerialPort>1</MaxSerialPort>
 			<MaxSerialPortChannels>16</MaxSerialPortChannels>
 			<MaxPixelPortChannels>0</MaxPixelPortChannels>
+			<NoWebUI/>
 			<PixelProtocols>
 			</PixelProtocols>
 			<SerialProtocols>
@@ -203,6 +213,7 @@
 			<MaxSerialPort>1</MaxSerialPort>
 			<MaxSerialPortChannels>8</MaxSerialPortChannels>
 			<MaxPixelPortChannels>0</MaxPixelPortChannels>
+			<NoWebUI/>
 			<PixelProtocols>
 			</PixelProtocols>
 			<SerialProtocols>
@@ -220,6 +231,7 @@
 			<MaxSerialPort>0</MaxSerialPort>
 			<MaxSerialPortChannels>0</MaxSerialPortChannels>
 			<MaxPixelPortChannels>150</MaxPixelPortChannels>
+			<NoWebUI/>
 			<PixelProtocols>
 				<Protocol>ccr</Protocol>
 				<Protocol>ccb</Protocol>
