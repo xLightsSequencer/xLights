@@ -99,6 +99,7 @@ public:
 
     virtual Output::PINGSTATE Ping() override;
     virtual void AsyncPing() override;
+    virtual bool CanPing() const override { return GetIP() != "MULTICAST"; }
 
     virtual std::string GetExport() const override;
 
