@@ -1251,8 +1251,10 @@ void xLightsFrame::OnButtonDiscoverClick(wxCommandEvent& event) {
 
 void xLightsFrame::OnButtonDeleteAllControllersClick(wxCommandEvent& event) {
 
-    SelectAllControllers();
-    DeleteSelectedControllers();
+    if (wxMessageBox("Are you sure you want to remove all controllers?", "Delete All Controllers", wxYES_NO, this) == wxYES) {
+        SelectAllControllers();
+        DeleteSelectedControllers();
+    }
 }
 
 void xLightsFrame::OnButtonAddControllerSerialClick(wxCommandEvent& event) {
