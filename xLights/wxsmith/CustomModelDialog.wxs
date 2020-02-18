@@ -32,7 +32,7 @@
 								<object class="wxSpinCtrl" name="ID_SPINCTRL1" variable="WidthSpin" member="yes">
 									<value>10</value>
 									<min>1</min>
-									<max>500</max>
+									<max>1000</max>
 									<handler function="OnWidthSpinChange" entry="EVT_SPINCTRL" />
 								</object>
 								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -51,7 +51,7 @@
 								<object class="wxSpinCtrl" name="ID_SPINCTRL2" variable="HeightSpin" member="yes">
 									<value>10</value>
 									<min>1</min>
-									<max>500</max>
+									<max>1000</max>
 									<handler function="OnHeightSpinChange" entry="EVT_SPINCTRL" />
 								</object>
 								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
