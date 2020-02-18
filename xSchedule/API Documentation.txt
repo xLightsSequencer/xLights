@@ -203,6 +203,12 @@ http://<host:port>/xScheduleCommand?Command=<command>&Parameters=<parameters>
 		Increase brightness by n% <brighness -100-100>
 			Adjusts the global brightness level by the specified amount. Unless you are running a fully pixel show this is unlikely to be useful as it adjusts the value of every single output channel. To dim selected channels/elements see the schedulers output processing settings.
 
+		Activate all schedules 
+			Sets all schedules to enabled
+			
+		Deactivate all schedules
+			Sets all schedules to disabled
+			
 		Activate specified schedule <schedule name>
 			Sets all instances of schedules with the specified name to enabled
 			

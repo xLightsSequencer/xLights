@@ -2911,16 +2911,44 @@ bool ScheduleManager::Action(const wxString& command, const wxString& parameters
                     }
                     scheduleChanged = true;
                 }
+                else if (command == "Deactivate all schedules")
+                {
+                    for (const auto& it : _playLists)
+                    {
+                        auto schedules = it->GetSchedules();
+                        for (const auto& it2 : schedules)
+                        {
+                            it2->SetEnabled(false);
+                        }
+                    }
+                    wxCommandEvent event(EVT_DOCHECKSCHEDULE);
+                    wxPostEvent(wxGetApp().GetTopWindow(), event);
+                    scheduleChanged = true;
+                }
+                else if (command == "Activate all schedules")
+                {
+                    for (const auto& it : _playLists)
+                    {
+                        auto schedules = it->GetSchedules();
+                        for (const auto& it2 : schedules)
+                        {
+                            it2->SetEnabled(true);
+                        }
+                    }
+                    wxCommandEvent event(EVT_DOCHECKSCHEDULE);
+                    wxPostEvent(wxGetApp().GetTopWindow(), event);
+                    scheduleChanged = true;
+                }
                 else if (command == "Activate specified schedule")
                 {
-                    for (auto it = _playLists.begin(); it != _playLists.end(); ++it)
+                    for (const auto& it : _playLists)
                     {
-                        auto schedules = (*it)->GetSchedules();
-                        for (auto it2 = schedules.begin(); it2 != schedules.end(); ++it2)
+                        auto schedules = it->GetSchedules();
+                        for (const auto& it2 : schedules)
                         {
-                            if ((*it2)->GetName() == parameters)
+                            if (it2->GetName() == parameters)
                             {
-                                (*it2)->SetEnabled(true);
+                                it2->SetEnabled(true);
                             }
                         }
                     }
@@ -2930,14 +2958,14 @@ bool ScheduleManager::Action(const wxString& command, const wxString& parameters
                 }
                 else if (command == "Deactivate specified schedule")
                 {
-                    for (auto it = _playLists.begin(); it != _playLists.end(); ++it)
+                    for (const auto& it : _playLists)
                     {
-                        auto schedules = (*it)->GetSchedules();
-                        for (auto it2 = schedules.begin(); it2 != schedules.end(); ++it2)
+                        auto schedules = it->GetSchedules();
+                        for (const auto& it2 : schedules)
                         {
-                            if ((*it2)->GetName() == parameters)
+                            if (it2->GetName() == parameters)
                             {
-                                (*it2)->SetEnabled(false);
+                                it2->SetEnabled(false);
                             }
                         }
                     }
@@ -5685,7 +5713,7 @@ void ScheduleManager::TestFrame(uint8_t* buffer, long totalChannels, long msec)
     }
     else if (mode == TESTMODE::TEST_LEVEL1)
     {
-        memset(&buffer[start], level1, end -  start + 1);
+        memset(&buffer[start], level1, end - start + 1);
     }
     else
     {
@@ -5778,7 +5806,7 @@ void ScheduleManager::TestFrame(uint8_t* buffer, long totalChannels, long msec)
         }
         else if (tc == end - 2)
         {
-            buffer[tc+1] = b;
+            buffer[tc + 1] = b;
         }
     }
 }

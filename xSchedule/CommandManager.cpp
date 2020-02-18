@@ -334,6 +334,8 @@ CommandManager::CommandManager()
     _commands.push_back(new Command("Stop event playlist if playing step", 2, plst, false, false, false, false, true, true, true, false));
     _commands.push_back(new Command("Activate specified schedule", 1, sch, false, false, false, false, true, true, true, false));
     _commands.push_back(new Command("Deactivate specified schedule", 1, sch, false, false, false, false, true, true, true, false));
+    _commands.push_back(new Command("Activate all schedules", 0, {}, false, false, false, false, true, true, true, false));
+    _commands.push_back(new Command("Deactivate all schedules", 0, {}, false, false, false, false, true, true, true, false));
     _commands.push_back(new Command("Set playlist as background", 1, pl, false, false, false, false, true, true, true, false));
     _commands.push_back(new Command("Clear background playlist", 0, {}, false, false, false, false, true, true, true, false));
     _commands.push_back(new Command("Close xSchedule", 0, {}, false, false, false, false, true, true, true, false));
