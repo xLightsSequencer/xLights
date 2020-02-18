@@ -565,6 +565,7 @@ void EffectsGrid::OnGridPopup(wxCommandEvent& event)
     }
     else if (id == ID_GRID_MNU_HALVETIMINGS)
     {
+        mSequenceElements->get_undo_mgr().CreateUndoStep();
         auto el = mSelectedEffect->GetParentEffectLayer();
         for (int i = 0; i < el->GetEffectCount(); i++)
         {
@@ -578,8 +579,11 @@ void EffectsGrid::OnGridPopup(wxCommandEvent& event)
                 if (e - s > base_timing)
                 {
                     long split = TimeLine::RoundToMultipleOfPeriod(s + (e - s) / 2, frequency);
+                    mSequenceElements->get_undo_mgr().CaptureModifiedEffect(el->GetParentElement()->GetModelName(), el->GetIndex(), ef->GetID(), ef->GetSettingsAsString(), ef->GetPaletteAsString());
+                    mSequenceElements->get_undo_mgr().CaptureEffectToBeMoved(el->GetParentElement()->GetModelName(), el->GetIndex(), ef->GetID(), ef->GetStartTimeMS(), ef->GetEndTimeMS());
                     ef->SetEndTimeMS(split);
-                    el->AddEffect(0, "", "", "", split, e, EFFECT_SELECTED, false);
+                    Effect* newef = el->AddEffect(0, "", "", "", split, e, EFFECT_SELECTED, false);
+                    mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetName(), el->GetIndex(), newef->GetID());
                     i++; // jump over the one we just inserted
                 }
             }
