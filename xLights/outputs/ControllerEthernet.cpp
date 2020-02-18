@@ -293,6 +293,9 @@ void ControllerEthernet::Convert(wxXmlNode* node, std::string showDir) {
         else if (_type == OUTPUT_ZCPP) {
             _priority = dynamic_cast<ZCPPOutput*>(_outputs.front())->GetPriority();
         }
+        else if (_type == OUTPUT_xxxETHERNET) {
+            InitialiseTypes(true);
+        }
     }
 
     if (_outputs.back()->IsOutputCollection_CONVERT()) {
@@ -538,15 +541,13 @@ void ControllerEthernet::AddProperties(wxPropertyGrid* propertyGrid, ModelManage
         }
 
         p = propertyGrid->Append(new wxBoolProperty("Individual Sizes", "IndivSizes", !allSameSize || _forceSizes));
+        p->SetEditor("CheckBox");
 
         if (IsAutoSize()) {
             p->ChangeFlag(wxPG_PROP_READONLY, true);
             p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
             p->SetHelpString("Individual Sizes cannot be changed when an output is set to Auto Size.");
         }
-        else {
-            p->SetEditor("CheckBox");
-        }        
 
         if (!allSameSize || _forceSizes) {
             wxPGProperty* p2 = propertyGrid->Append(new wxPropertyCategory("Sizes", "Sizes"));
@@ -559,7 +560,16 @@ void ControllerEthernet::AddProperties(wxPropertyGrid* propertyGrid, ModelManage
             }
         }
         else {
-            p = propertyGrid->Append(new wxUIntProperty("Channels", "Channels", _outputs.front()->GetChannels()));
+            std::string chlabel = "Channels";
+            if (GetProtocol() == OUTPUT_E131 || GetProtocol() == OUTPUT_ARTNET)
+            {
+                chlabel = "Channels per Universe";
+            }
+            else if (GetProtocol() == OUTPUT_xxxETHERNET)
+            {
+                chlabel = "Channels per Port";
+            }
+            p = propertyGrid->Append(new wxUIntProperty(chlabel, "Channels", _outputs.front()->GetChannels()));
             p->SetAttribute("Min", 1);
             p->SetAttribute("Max", _outputs.front()->GetMaxChannels());
             if (IsAutoSize()) {

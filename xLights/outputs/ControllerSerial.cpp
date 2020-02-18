@@ -233,6 +233,9 @@ void ControllerSerial::Convert(wxXmlNode* node, std::string showDir) {
         _speed = _outputs.front()->GetBaudRate();
         _type = _outputs.front()->GetType();
         _id = _outputs.front()->GetUniverse();
+        if (GetProtocol() == OUTPUT_xxxSERIAL) {
+            InitialiseTypes(true);
+        }
     }
 }
 
