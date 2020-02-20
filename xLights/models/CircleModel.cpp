@@ -105,13 +105,13 @@ void CircleModel::AddTypeProperties(wxPropertyGridInterface *grid) {
     if (SingleNode) {
         p = grid->Append(new wxUIntProperty("Lights/String", "CircleLightCount", parm2));
         p->SetAttribute("Min", 1);
-        p->SetAttribute("Max", 1000);
+        p->SetAttribute("Max", 2000);
         p->SetEditor("SpinCtrl");
     }
     else {
         p = grid->Append(new wxUIntProperty("Nodes/String", "CircleLightCount", parm2));
         p->SetAttribute("Min", 1);
-        p->SetAttribute("Max", 1000);
+        p->SetAttribute("Max", 2000);
         p->SetEditor("SpinCtrl");
     }
 
