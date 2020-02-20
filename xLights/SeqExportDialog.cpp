@@ -56,6 +56,7 @@ SeqExportDialog::SeqExportDialog(wxWindow* parent, const std::string& model, wxW
     ChoiceFormat->Append(_("Compressed Video, *.avi"));
     ChoiceFormat->Append(_("Uncompressed Video, *.avi"));
     ChoiceFormat->Append(_("Minleon Network Effects Controller, *.bin"));
+    ChoiceFormat->Append(_("GIF Image, *.gif"));
     FlexGridSizer2->Add(ChoiceFormat, 1, wxALL|wxEXPAND, 5);
     StaticText3 = new wxStaticText(this, ID_STATICTEXT3, _("File name"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
     FlexGridSizer2->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
@@ -160,6 +161,8 @@ void SeqExportDialog::SetDefaultName()
         TextCtrlFilename->SetValue(cwd + wxFileName::GetPathSeparator() + _model + ".avi");
     } else if (fmt == "Minleon Network Effects Controller, *.bin") {
         TextCtrlFilename->SetValue(cwd + wxFileName::GetPathSeparator() + _model + ".bin");
+    } else if (fmt == "GIF Image, *.gif") {
+        TextCtrlFilename->SetValue(cwd + wxFileName::GetPathSeparator() + _model + ".gif");
     }
 }
 
@@ -202,6 +205,8 @@ void SeqExportDialog::OnButtonFilePickClick(wxCommandEvent& event)
         TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), cwd, TextCtrlFilename->GetValue(), wxEmptyString, "Video (*.avi)|*.avi", wxFD_SAVE | wxFD_OVERWRITE_PROMPT, this));
     } else if (fmt == "Minleon Network Effects Controller, *.bin") {
         TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), cwd, TextCtrlFilename->GetValue(), wxEmptyString, "Minleon Networks Effects Controller (*.bin)|*.bin", wxFD_SAVE | wxFD_OVERWRITE_PROMPT, this));
+    } else if (fmt == "GIF Image, *.gif") {
+        TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), cwd, TextCtrlFilename->GetValue(), wxEmptyString, "GIF Image (*.gif)|*.gif", wxFD_SAVE | wxFD_OVERWRITE_PROMPT, this));
     }
 
     ValidateWindow();

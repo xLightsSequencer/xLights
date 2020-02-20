@@ -34,6 +34,7 @@
 								<item>Compressed Video, *.avi</item>
 								<item>Uncompressed Video, *.avi</item>
 								<item>Minleon Network Effects Controller, *.bin</item>
+								<item>GIF Image, *.gif</item>
 							</content>
 							<selection>0</selection>
 							<handler function="OnChoiceFormatSelect" entry="EVT_CHOICE" />

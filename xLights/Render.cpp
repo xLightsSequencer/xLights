@@ -1815,6 +1815,11 @@ void xLightsFrame::ExportModel(wxCommandEvent &command) {
             oName.SetExt(_("bin"));
             fullpath = oName.GetFullPath();
             WriteMinleonNECModelFile(fullpath, data->NumChannels(), SeqData.NumFrames(), data, stChan, data->NumChannels(), GetModel(model));
+        } else if (Out3 == "GIF") {
+            int stChan = m->GetNumberFromChannelString(m->ModelStartChannel);
+            oName.SetExt(_("gif"));
+            fullpath = oName.GetFullPath();
+            WriteGIFModelFile(fullpath, data->NumChannels(), SeqData.NumFrames(), data, stChan, data->NumChannels(), GetModel(model), SeqData.FrameTime());
         }
         SetStatusText(wxString::Format("Finished writing model: %s in %ld ms ", fullpath, sw.Time()));
 
