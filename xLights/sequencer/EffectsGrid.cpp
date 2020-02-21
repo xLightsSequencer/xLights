@@ -1,6 +1,7 @@
 #include "wx/wx.h"
 #include "wx/glcanvas.h"
 #include <wx/textdlg.h>
+#include <wx/numdlg.h>
 #ifdef __WXMAC__
  #include "OpenGL/gl.h"
 #else
@@ -376,7 +377,7 @@ void EffectsGrid::rightClick(wxMouseEvent& event)
                     mnuLayer.Append(ID_GRID_MNU_BREAKDOWN_WORDS,"Breakdown Selected Words");
                 }
             }
-            mnuLayer.Append(ID_GRID_MNU_HALVETIMINGS, "Halve Selected Timings");
+            mnuLayer.Append(ID_GRID_MNU_HALVETIMINGS, "Divide Timings");
             mSelectedEffect = selectedEffect;
         }
         mnuLayer.AppendSeparator();
@@ -565,26 +566,40 @@ void EffectsGrid::OnGridPopup(wxCommandEvent& event)
     }
     else if (id == ID_GRID_MNU_HALVETIMINGS)
     {
-        mSequenceElements->get_undo_mgr().CreateUndoStep();
-        auto el = mSelectedEffect->GetParentEffectLayer();
-        for (int i = 0; i < el->GetEffectCount(); i++)
-        {
-            auto ef = el->GetEffect(i);
-            if (ef->GetSelected() || ef->GetID() == mSelectedEffect->GetID())
-            {
-                auto s = ef->GetStartTimeMS();
-                auto e = ef->GetEndTimeMS();
-                auto frequency = mTimeline->GetTimeFrequency();
-                int base_timing = 1000.0 / frequency;
-                if (e - s > base_timing)
-                {
-                    long split = TimeLine::RoundToMultipleOfPeriod(s + (e - s) / 2, frequency);
-                    mSequenceElements->get_undo_mgr().CaptureModifiedEffect(el->GetParentElement()->GetModelName(), el->GetIndex(), ef->GetID(), ef->GetSettingsAsString(), ef->GetPaletteAsString());
-                    mSequenceElements->get_undo_mgr().CaptureEffectToBeMoved(el->GetParentElement()->GetModelName(), el->GetIndex(), ef->GetID(), ef->GetStartTimeMS(), ef->GetEndTimeMS());
-                    ef->SetEndTimeMS(split);
-                    Effect* newef = el->AddEffect(0, "", "", "", split, e, EFFECT_SELECTED, false);
-                    mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetName(), el->GetIndex(), newef->GetID());
-                    i++; // jump over the one we just inserted
+        wxNumberEntryDialog dlg(this, "", "Divide timings by:", "Divide Timings", 2, 2, 100);
+
+        if (dlg.ShowModal() == wxID_OK) {
+            int by = dlg.GetValue();
+            mSequenceElements->get_undo_mgr().CreateUndoStep();
+            auto el = mSelectedEffect->GetParentEffectLayer();
+            auto frequency = mTimeline->GetTimeFrequency();
+            int base_timing = 1000.0 / frequency;
+            for (int i = 0; i < el->GetEffectCount(); i++) {
+                auto ef = el->GetEffect(i);
+                if (ef->GetSelected() || ef->GetID() == mSelectedEffect->GetID()) {
+                    long s = ef->GetStartTimeMS();
+                    long e = ef->GetEndTimeMS();
+                    if (e - s > base_timing) {
+                        long split = TimeLine::RoundToMultipleOfPeriod((e - s) / by, frequency);
+                        mSequenceElements->get_undo_mgr().CaptureModifiedEffect(el->GetParentElement()->GetModelName(), el->GetIndex(), ef->GetID(), ef->GetSettingsAsString(), ef->GetPaletteAsString());
+                        mSequenceElements->get_undo_mgr().CaptureEffectToBeMoved(el->GetParentElement()->GetModelName(), el->GetIndex(), ef->GetID(), ef->GetStartTimeMS(), ef->GetEndTimeMS());
+                        ef->SetEndTimeMS(s + split);
+
+                        for (int j = 1; j < by; j++) {
+
+                            int newstart = s + split * j;
+                            int newend = std::min(newstart + split, e);
+                            if (j == by - 1) newend = e;
+
+                            if (newstart != newend)
+                            {
+                                Effect* newef = el->AddEffect(0, "", "", "", newstart, newend, EFFECT_SELECTED, false);
+                                mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetName(), el->GetIndex(), newef->GetID());
+                                i++; // jump over the one we just inserted
+                            }
+                        }
+                        ef->SetSelected(EFFECT_SELECTED);
+                    }
                 }
             }
         }
