@@ -11,8 +11,20 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
-   -- ens (scott)  Added Export Model as GIF image
+   -- enh (keith)  Change halve timings to a more generic divide timings
+   -- enh (keith)  Add undo support to divide timings
+   -- enh (keith)  Convert setup tab to the new controller tab included in this are a huge number of 
+                   smaller enhancements and standardisations of how the protocols work.
+   -- enh (keith)  Add pixlite controller discovery
+   -- enh (keith)  Add dominant frequency colour effect to VU meter which chooses the colour based on the dominant frequency
+   -- enh (keith)  Increase maximum nodes on the circles model
+   -- enh (keith)  Increase maximums on the custom model size
+   -- enh (keith)  Add to xSchedule activate and deactivate all schedules API
+   -- enh (keith)  Add ordered node selection to the submodel node selection dialog
+   -- enh (scott)  Added Export Model as GIF image
+   -- enh (pete)   Have breakdown words and phrases respect locking
    -- bug (gil)    Fix too many node names created for 8-bit servos
+   -- bug (keith)  Fix falcon upload of serial outputs incorrect if more than one port is uploaded
 2020.4 February 1 2020
    -- enh (dkulp)  Move all settings from Settings menu to new "Preferences" dialog
    -- enh (gil)    Servo effect can now be mapped to a Lyric track
