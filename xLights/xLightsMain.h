@@ -1186,6 +1186,8 @@ private:
         SeqDataType *dataBuf, int startAddr, int modelSize, Model* model, bool compressed); //.avi file
     void WriteMinleonNECModelFile(const wxString& filename, long numChans, long numPeriods,
         SeqDataType *dataBuf, int startAddr, int modelSize, Model* model); //.bin file
+    void WriteGIFModelFile(const wxString& filename, long numChans, long numPeriods,
+        SeqDataType* dataBuf, int startAddr, int modelSize, Model* model, unsigned int frameTime);
 
 
     void OnNetworkPopup(wxCommandEvent &event);

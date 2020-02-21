@@ -13,6 +13,10 @@
 
 #include <wx/msgdlg.h>
 #include <wx/filename.h>
+#include <wx/wfstream.h>
+#include <wx/imaggif.h>
+#include <wx/anidecod.h>
+#include <wx/quantize.h>
 
 extern "C"
 {
@@ -1096,6 +1100,48 @@ void xLightsFrame:: WriteVideoModelFile(const wxString& filenames, long numChans
     av_log_set_callback(nullptr);
 
     logger_base.debug("Model video written successfully.");
+}
+
+void xLightsFrame::WriteGIFModelFile(const wxString& filename, long numChans, long numPeriods,
+    SeqDataType* dataBuf, int startAddr, int modelSize, Model* model, unsigned int frameTime)
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("Writing model GIF.");
+
+    int width;
+    int height;
+    model->GetBufferSize("Default", "2D", "None", width, height);
+
+    // must be a multiple of 2
+    logger_base.debug("   GIF dimensions %dx%d.",  width, height);
+    logger_base.debug("   GIF frames %ld.", numPeriods);
+           
+    wxImageArray imgArray;
+
+    for (size_t i = 0; i < numPeriods; i++)
+    {
+        // Create a bitmap with the current frame
+        wxImage image(width, height, true);
+        FillImage(image, model, (uint8_t*)&(*dataBuf)[i][0], startAddr);
+
+        wxImage image2;
+        wxQuantize::Quantize(image, image2);
+        imgArray.Add(image2);
+    }
+
+    wxGIFHandler gif = wxGIFHandler();
+
+    wxFileOutputStream outStream(filename);
+
+    bool ret = gif.SaveAnimation(imgArray, &outStream, true, frameTime);
+    if (ret)
+    {
+        logger_base.debug("Model GIF written successfully.");
+    }
+    else
+    {
+        logger_base.debug("Model GIF written successfully.");
+    }   
 }
 
 void xLightsFrame:: WriteMinleonNECModelFile(const wxString& filename, long numChans, long numPeriods,
