@@ -58,7 +58,9 @@ namespace RenderType
         LEVEL_JUMP,
         LEVEL_JUMP100,
         NOTE_LEVEL_JUMP,
-        NOTE_LEVEL_JUMP100
+        NOTE_LEVEL_JUMP100,
+        DOMINANT_FREQUENCY_COLOUR,
+        DOMINANT_FREQUENCY_COLOUR_GRADIENT
     };
 }
 
@@ -119,7 +121,10 @@ std::list<std::string> VUMeterEffect::CheckEffectSettings(const SettingsMap& set
         type == "Color On" ||
         type == "Note On" ||
         type == "Note Level Pulse" ||
-        type == "Timing Event Jump"))
+        type == "Timing Event Jump" ||
+            type == "Dominant Frequency Colour" || 
+            type == "Dominant Frequency Colour Gradient"
+            ))
     {
         res.push_back(wxString::Format("    ERR: VU Meter effect '%s' is pointless if there is no music. Model '%s', Start %s", type, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
     }
@@ -431,8 +436,15 @@ int VUMeterEffect::DecodeType(const std::string& type)
     {
         return RenderType::FRAME_WAVEFORM;
     }
-
-	// default type is volume bars
+    else if (type == "Dominant Frequency Colour")
+    {
+    return RenderType::DOMINANT_FREQUENCY_COLOUR;
+     }
+    else if (type == "Dominant Frequency Colour Gradient")
+    {
+    return RenderType::DOMINANT_FREQUENCY_COLOUR_GRADIENT;
+     }
+     // default type is volume bars
 	return RenderType::VOLUME_BARS;
 }
 
@@ -634,6 +646,12 @@ void VUMeterEffect::Render(RenderBuffer &buffer, SequenceElements *elements, int
 			break;
         case RenderType::COLOR_ON:
             RenderOnColourFrame(buffer, gain);
+            break;
+        case RenderType::DOMINANT_FREQUENCY_COLOUR:
+            RenderDominantFrequencyColour(buffer, sensitivity, startnote, endnote, false);
+            break;
+        case RenderType::DOMINANT_FREQUENCY_COLOUR_GRADIENT:
+            RenderDominantFrequencyColour(buffer, sensitivity, startnote, endnote, true);
             break;
         case RenderType::TIMING_EVENT_COLOR:
             RenderTimingEventColourFrame(buffer, _colourindex, timingtrack);
@@ -1303,6 +1321,57 @@ void VUMeterEffect::RenderOnFrame(RenderBuffer& buffer, int gain)
 			buffer.SetPixel(x, y, color1);
 		}
 	}
+}
+
+void VUMeterEffect::RenderDominantFrequencyColour(RenderBuffer& buffer, int sensitivity, int startnote, int endnote, bool gradient)
+{
+    if (buffer.GetMedia() == nullptr) return;
+
+    float sns = (float)sensitivity / 100.0;
+
+    std::list<float>* pdata = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_VU, "");
+
+    if (pdata != nullptr && pdata->size() != 0)
+    {
+        int note = -1;
+        float max = -1000;
+        auto it = pdata->begin();
+        for (int i = 0; i < std::min((int)pdata->size(), endnote+1); i++)
+        {
+            if (i >= startnote)
+            {
+                if (*it > sns && *it > max)
+                {
+                    max = *it;
+                    note = i;
+                }
+            }
+            ++it;
+        }
+
+        if (note >= 0)
+        {
+            xlColor color1;
+            if (gradient)
+            {
+                buffer.GetMultiColorBlend((float)(note - startnote) / (float)(endnote - startnote + 1), false, color1);
+            }
+            else
+            {
+                int numcolours = buffer.palette.Size();
+                int colour = (float)((note - startnote) * numcolours) / (float)(endnote - startnote + 1);
+                color1 = buffer.palette.GetColor(colour);
+            }
+
+            for (int x = 0; x < buffer.BufferWi; x++)
+            {
+                for (int y = 0; y < buffer.BufferHt; y++)
+                {
+                    buffer.SetPixel(x, y, color1);
+                }
+            }
+        }
+    }
 }
 
 void VUMeterEffect::RenderOnColourFrame(RenderBuffer& buffer, int gain)

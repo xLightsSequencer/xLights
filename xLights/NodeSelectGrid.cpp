@@ -403,6 +403,7 @@ void NodeSelectGrid::LoadGrid(const std::vector<wxString>& rows)
     if (CheckBox_OrderedSelection->IsChecked() && rows.size() == 1)
     {
         TextCtrl_Nodes->SetValue(ExpandNodes(rows.front()));
+        TextCtrl_Nodes->SetInsertionPointEnd();
     }
     else
     {

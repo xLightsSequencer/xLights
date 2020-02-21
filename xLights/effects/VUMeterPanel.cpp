@@ -267,6 +267,8 @@ VUMeterPanel::VUMeterPanel(wxWindow* parent)
     Choice_VUMeter_Type->Append(_("Frame Waveform"));
     Choice_VUMeter_Type->Append(_("On"));
     Choice_VUMeter_Type->Append(_("Color On"));
+    Choice_VUMeter_Type->Append(_("Dominant Frequency Colour"));
+    Choice_VUMeter_Type->Append(_("Dominant Frequency Colour Gradient"));
     Choice_VUMeter_Type->Append(_("Intensity Wave"));
     Choice_VUMeter_Type->Append(_("Pulse"));
     Choice_VUMeter_Type->Append(_("Level Bar"));
@@ -398,7 +400,10 @@ void VUMeterPanel::ValidateWindow()
         type == "Spectrogram Circle Line" ||
         type == "Note Level Jump" ||
         type == "Note Level Jump 100" ||
-        type == "Note Level Pulse")
+        type == "Note Level Pulse" ||
+        type == "Dominant Frequency Colour" ||
+        type == "Dominant Frequency Colour Gradient"
+        )
     {
         Slider_VUMeter_Sensitivity->Enable();
         TextCtrl_VUMeter_Sensitivity->Enable();
@@ -468,7 +473,10 @@ void VUMeterPanel::ValidateWindow()
         type == "Note Level Bar" ||
         type == "Note Level Jump" ||
         type == "Note Level Jump 100" ||
-        type == "Note Level Pulse")
+        type == "Note Level Pulse" ||
+        type == "Dominant Frequency Colour" ||
+        type == "Dominant Frequency Colour Gradient"
+        )
     {
         Slider_VUMeter_EndNote->Enable();
         Slider_VUMeter_StartNote->Enable();

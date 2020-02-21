@@ -1,5 +1,46 @@
 <Vendor Name="Falcon">
-	<Controller Name="F4V2">
+	<Controller Name="F4V2 No Expansion Board">
+		<FirmwareVersion Name="">
+			<SupportsUpload/>
+			<SupportsInputOnlyUpload/>
+			<MaxInputUniverses>96</MaxInputUniverses>
+			<MaxPixelPort>4</MaxPixelPort>
+			<MaxSerialPort>1</MaxSerialPort>
+			<MaxSerialPortChannels>512</MaxSerialPortChannels>
+			<MaxPixelPortChannels>2040</MaxPixelPortChannels>
+			<!--SupportsLEDPanelMatrix/-->
+			<!--AllInputUniversesMustBeSameSize/-->
+			<!--UniversesMustBeSequential/-->
+			<!--NoWebUI/-->
+			<SupportsVirtualStrings/>
+			<SupportsSmartRemotes/>
+			<MergeConsecutiveVirtualStrings/>
+			<PixelProtocols>
+				<Protocol>ws2811</Protocol>
+				<Protocol>tm18xx</Protocol>
+				<Protocol>lx1203</Protocol>
+				<Protocol>ws2801</Protocol>
+				<Protocol>tls3001</Protocol>
+				<Protocol>lpd6803</Protocol>
+				<Protocol>gece</Protocol>
+				<Protocol>lpd8806</Protocol>
+				<Protocol>apa102</Protocol>
+			</PixelProtocols>
+			<SerialProtocols>
+				<Protocol>dmx</Protocol>
+				<Protocol>renard</Protocol>
+				<Protocol>pixelnet</Protocol>
+			</SerialProtocols>
+			<InputProtocols>
+				<Protocol>e131</Protocol>
+				<Protocol>artnet</Protocol>
+			</InputProtocols>
+			<SupportsMultipleSimultaneousOutputProtocols/>
+			<SupportsMultipleSimultaneousInputProtocols/>
+			<UniversesMustBeInNumericalOrder/>
+		</FirmwareVersion>
+	</Controller>
+	<Controller Name="F4V2 One Expansion Board">
 		<FirmwareVersion Name="">
 			<SupportsUpload/>
 			<SupportsInputOnlyUpload/>
@@ -40,7 +81,45 @@
 			<UniversesMustBeInNumericalOrder/>
 		</FirmwareVersion>
 	</Controller>
-	<Controller Name="F4V3">
+	<Controller Name="F4V3 No Expansion Board">
+		<FirmwareVersion Name="">
+			<SupportsUpload/>
+			<SupportsInputOnlyUpload/>
+			<MaxInputUniverses>96</MaxInputUniverses>
+			<MaxPixelPort>4</MaxPixelPort>
+			<MaxSerialPort>1</MaxSerialPort>
+			<MaxSerialPortChannels>512</MaxSerialPortChannels>
+			<MaxPixelPortChannels>3072</MaxPixelPortChannels>
+			<SupportsVirtualStrings/>
+			<SupportsSmartRemotes/>
+			<MergeConsecutiveVirtualStrings/>
+			<PixelProtocols>
+				<Protocol>ws2811</Protocol>
+				<Protocol>tm18xx</Protocol>
+				<Protocol>lx1203</Protocol>
+				<Protocol>ws2801</Protocol>
+				<Protocol>tls3001</Protocol>
+				<Protocol>lpd6803</Protocol>
+				<Protocol>gece</Protocol>
+				<Protocol>lpd8806</Protocol>
+				<Protocol>apa102</Protocol>
+			</PixelProtocols>
+			<SerialProtocols>
+				<Protocol>dmx</Protocol>
+				<Protocol>renard</Protocol>
+				<Protocol>pixelnet</Protocol>
+			</SerialProtocols>
+			<InputProtocols>
+				<Protocol>e131</Protocol>
+				<Protocol>artnet</Protocol>
+				<Protocol>zcpp</Protocol>
+			</InputProtocols>
+			<SupportsMultipleSimultaneousOutputProtocols/>
+			<SupportsMultipleSimultaneousInputProtocols/>
+			<UniversesMustBeInNumericalOrder/>
+		</FirmwareVersion>
+	</Controller>
+	<Controller Name="F4V3 One Expansion Board">
 		<FirmwareVersion Name="">
 			<SupportsUpload/>
 			<SupportsInputOnlyUpload/>
@@ -114,7 +193,79 @@
 			<UniversesMustBeInNumericalOrder/>
 		</FirmwareVersion>
 	</Controller>
-	<Controller Name="F16V2R">
+	<Controller Name="F16V2R No Expansion Boards">
+		<FirmwareVersion Name="">
+			<SupportsUpload/>
+			<SupportsInputOnlyUpload/>
+			<MaxInputUniverses>96</MaxInputUniverses>
+			<MaxPixelPort>16</MaxPixelPort>
+			<MaxSerialPort>4</MaxSerialPort>
+			<MaxSerialPortChannels>512</MaxSerialPortChannels>
+			<MaxPixelPortChannels>2040</MaxPixelPortChannels>
+			<SupportsVirtualStrings/>
+			<MergeConsecutiveVirtualStrings/>
+			<PixelProtocols>
+				<Protocol>ws2811</Protocol>
+				<Protocol>tm18xx</Protocol>
+				<Protocol>lx1203</Protocol>
+				<Protocol>ws2801</Protocol>
+				<Protocol>tls3001</Protocol>
+				<Protocol>lpd6803</Protocol>
+				<Protocol>gece</Protocol>
+				<Protocol>lpd8806</Protocol>
+				<Protocol>apa102</Protocol>
+			</PixelProtocols>
+			<SerialProtocols>
+				<Protocol>dmx</Protocol>
+				<Protocol>renard</Protocol>
+				<Protocol>pixelnet</Protocol>
+			</SerialProtocols>
+			<InputProtocols>
+				<Protocol>e131</Protocol>
+				<Protocol>artnet</Protocol>
+			</InputProtocols>
+			<SupportsMultipleSimultaneousOutputProtocols/>
+			<SupportsMultipleSimultaneousInputProtocols/>
+			<UniversesMustBeInNumericalOrder/>
+		</FirmwareVersion>
+	</Controller>
+	<Controller Name="F16V2R One Expansion Board">
+		<FirmwareVersion Name="">
+			<SupportsUpload/>
+			<SupportsInputOnlyUpload/>
+			<MaxInputUniverses>96</MaxInputUniverses>
+			<MaxPixelPort>32</MaxPixelPort>
+			<MaxSerialPort>4</MaxSerialPort>
+			<MaxSerialPortChannels>512</MaxSerialPortChannels>
+			<MaxPixelPortChannels>2040</MaxPixelPortChannels>
+			<SupportsVirtualStrings/>
+			<MergeConsecutiveVirtualStrings/>
+			<PixelProtocols>
+				<Protocol>ws2811</Protocol>
+				<Protocol>tm18xx</Protocol>
+				<Protocol>lx1203</Protocol>
+				<Protocol>ws2801</Protocol>
+				<Protocol>tls3001</Protocol>
+				<Protocol>lpd6803</Protocol>
+				<Protocol>gece</Protocol>
+				<Protocol>lpd8806</Protocol>
+				<Protocol>apa102</Protocol>
+			</PixelProtocols>
+			<SerialProtocols>
+				<Protocol>dmx</Protocol>
+				<Protocol>renard</Protocol>
+				<Protocol>pixelnet</Protocol>
+			</SerialProtocols>
+			<InputProtocols>
+				<Protocol>e131</Protocol>
+				<Protocol>artnet</Protocol>
+			</InputProtocols>
+			<SupportsMultipleSimultaneousOutputProtocols/>
+			<SupportsMultipleSimultaneousInputProtocols/>
+			<UniversesMustBeInNumericalOrder/>
+		</FirmwareVersion>
+	</Controller>
+	<Controller Name="F16V2R Two Expansion Boards">
 		<FirmwareVersion Name="">
 			<SupportsUpload/>
 			<SupportsInputOnlyUpload/>
@@ -150,7 +301,83 @@
 			<UniversesMustBeInNumericalOrder/>
 		</FirmwareVersion>
 	</Controller>
-	<Controller Name="F16V3">
+	<Controller Name="F16V3 No Expansion Boards">
+		<FirmwareVersion Name="">
+			<SupportsUpload/>
+			<SupportsInputOnlyUpload/>
+			<MaxInputUniverses>96</MaxInputUniverses>
+			<MaxPixelPort>16</MaxPixelPort>
+			<MaxSerialPort>4</MaxSerialPort>
+			<MaxSerialPortChannels>512</MaxSerialPortChannels>
+			<MaxPixelPortChannels>3072</MaxPixelPortChannels>
+			<SupportsVirtualStrings/>
+			<SupportsSmartRemotes/>
+			<MergeConsecutiveVirtualStrings/>
+			<PixelProtocols>
+				<Protocol>ws2811</Protocol>
+				<Protocol>tm18xx</Protocol>
+				<Protocol>lx1203</Protocol>
+				<Protocol>ws2801</Protocol>
+				<Protocol>tls3001</Protocol>
+				<Protocol>lpd6803</Protocol>
+				<Protocol>gece</Protocol>
+				<Protocol>lpd8806</Protocol>
+				<Protocol>apa102</Protocol>
+			</PixelProtocols>
+			<SerialProtocols>
+				<Protocol>dmx</Protocol>
+				<Protocol>renard</Protocol>
+				<Protocol>pixelnet</Protocol>
+			</SerialProtocols>
+			<InputProtocols>
+				<Protocol>e131</Protocol>
+				<Protocol>artnet</Protocol>
+				<Protocol>zcpp</Protocol>
+			</InputProtocols>
+			<SupportsMultipleSimultaneousOutputProtocols/>
+			<SupportsMultipleSimultaneousInputProtocols/>
+			<UniversesMustBeInNumericalOrder/>
+		</FirmwareVersion>
+	</Controller>
+	<Controller Name="F16V3 One Expansion Board">
+		<FirmwareVersion Name="">
+			<SupportsUpload/>
+			<SupportsInputOnlyUpload/>
+			<MaxInputUniverses>96</MaxInputUniverses>
+			<MaxPixelPort>32</MaxPixelPort>
+			<MaxSerialPort>4</MaxSerialPort>
+			<MaxSerialPortChannels>512</MaxSerialPortChannels>
+			<MaxPixelPortChannels>3072</MaxPixelPortChannels>
+			<SupportsVirtualStrings/>
+			<SupportsSmartRemotes/>
+			<MergeConsecutiveVirtualStrings/>
+			<PixelProtocols>
+				<Protocol>ws2811</Protocol>
+				<Protocol>tm18xx</Protocol>
+				<Protocol>lx1203</Protocol>
+				<Protocol>ws2801</Protocol>
+				<Protocol>tls3001</Protocol>
+				<Protocol>lpd6803</Protocol>
+				<Protocol>gece</Protocol>
+				<Protocol>lpd8806</Protocol>
+				<Protocol>apa102</Protocol>
+			</PixelProtocols>
+			<SerialProtocols>
+				<Protocol>dmx</Protocol>
+				<Protocol>renard</Protocol>
+				<Protocol>pixelnet</Protocol>
+			</SerialProtocols>
+			<InputProtocols>
+				<Protocol>e131</Protocol>
+				<Protocol>artnet</Protocol>
+				<Protocol>zcpp</Protocol>
+			</InputProtocols>
+			<SupportsMultipleSimultaneousOutputProtocols/>
+			<SupportsMultipleSimultaneousInputProtocols/>
+			<UniversesMustBeInNumericalOrder/>
+		</FirmwareVersion>
+	</Controller>
+	<Controller Name="F16V3 Two Expansion Boards">
 		<FirmwareVersion Name="">
 			<SupportsUpload/>
 			<SupportsInputOnlyUpload/>

@@ -55,6 +55,7 @@ protected:
     void RenderNoteLevelJumpFrame(RenderBuffer& buffer, int fadeframes, int sensitivity, int& lasttimingmark, int startNote, int endNote, int gain, bool fullJump, float& lastsize);
     void RenderTimingEventJumpFrame(RenderBuffer &buffer, int fallframes, std::string timingtrack, float& lastval, bool useAudioLevel, int gain);
     void RenderLevelPulseColourFrame(RenderBuffer &buffer, int fadeframes, int sensitivity, int& lasttimingmark, int& colourindex, int gain);
+    void RenderDominantFrequencyColour(RenderBuffer& buffer, int sensitivity, int startNote, int endNote, bool gradient);
 
     void DrawBox(RenderBuffer& buffer, int startx, int endx, int starty, int endy, xlColor& color1);
     void DrawCircle(RenderBuffer& buffer, int x, int y, float radius, xlColor& color1);
