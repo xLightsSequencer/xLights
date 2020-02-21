@@ -52,7 +52,7 @@ class Falcon : public BaseController
     void ResetStringOutputs();
     void UploadStringPort(const std::string& request, bool final);
     void UploadStringPorts(std::vector<FalconString*>& stringData, int maxMain, int maxDaughter1, int maxDaughter2);
-    void UploadSerialOutput(ControllerCaps* caps, int output, OutputManager* outputManager, int protocol, int portstart, wxWindow* parent);
+    std::string GetSerialOutputURI(ControllerCaps* caps, int output, OutputManager* outputManager, int protocol, int portstart, wxWindow* parent);
     #pragma endregion
 
     #pragma region Encode and Decode

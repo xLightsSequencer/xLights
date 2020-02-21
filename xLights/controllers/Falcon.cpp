@@ -387,33 +387,33 @@ void Falcon::UploadStringPorts(std::vector<FalconString*>& stringData, int maxMa
     }
 }
 
-void Falcon::UploadSerialOutput(ControllerCaps* caps, int output, OutputManager* outputManager, int protocol, int portstart, wxWindow* parent) {
+std::string Falcon::GetSerialOutputURI(ControllerCaps* caps, int output, OutputManager* outputManager, int protocol, int portstart, wxWindow* parent) {
 
     if (output > caps->GetMaxSerialPort()) {
         DisplayError("Falcon " + GetModel() + " only supports " + wxString::Format("%d", caps->GetMaxSerialPort()) + " outputs. Attempt to upload to output " + wxString::Format("%d", output) + ".", parent);
-        return;
+        return "";
     }
 
     if (_usingAbsolute) {
-        wxString request = wxString::Format("btnSave=Save&t%d=%d&s%d=%d",
+        return wxString::Format("t%d=%d&s%d=%d",
             output - 1, protocol,
-            output - 1, portstart);
-        PutURL("/SerialOutputs.htm", request.ToStdString());
+            output - 1, portstart).ToStdString();
     }
     else {
         int32_t sc;
         auto o = outputManager->GetOutput(portstart, sc);
         if (o != nullptr) {
-            wxString request = wxString::Format("btnSave=Save&t%d=%d&u%d=%d&s%d=%d",
+            return wxString::Format("t%d=%d&u%d=%d&s%d=%d",
                 output - 1, protocol,
                 output - 1, o->GetUniverse(),
-                output - 1, (int)sc);
-            PutURL("/SerialOutputs.htm", request.ToStdString());
+                output - 1, (int)sc).ToStdString();
         }
         else {
             DisplayError("Error uploading serial output to falcon. " + wxString::Format("%i", portstart) + " does not map to a universe.");
         }
     }
+
+    return "";
 }
 #pragma endregion
 
@@ -1110,6 +1110,8 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
             DisplayWarning("Upload warnings:\n" + check);
         }
 
+        std::string uri = "btnSave=Save";
+
         for (int sp = 1; sp <= cud.GetMaxSerialPort(); sp++) {
             if (cud.HasSerialPort(sp)) {
                 UDControllerPort* port = cud.GetControllerSerialPort(sp);
@@ -1125,8 +1127,14 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
                 int sc = port->GetStartChannel() - dmxOffset + 1;
                 logger_base.debug("    sc:%d - offset:%d -> %d", port->GetStartChannel(), dmxOffset, sc);
 
-                UploadSerialOutput(caps, port->GetPort(), outputManager, DecodeSerialOutputProtocol(port->GetProtocol()), sc, parent);
+                uri += "&";
+                uri += GetSerialOutputURI(caps, port->GetPort(), outputManager, DecodeSerialOutputProtocol(port->GetProtocol()), sc, parent);
             }
+        }
+
+        if (uri != "")
+        {
+            PutURL("/SerialOutputs.htm", uri);
         }
     }
     else {
