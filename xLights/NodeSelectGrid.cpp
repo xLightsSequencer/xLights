@@ -1380,5 +1380,4 @@ void NodeSelectGrid::OnTextCtrl_NodesLoseFocus(wxFocusEvent& event)
 {
     TextCtrl_Nodes->SetValue(ExpandNodes(TextCtrl_Nodes->GetValue()));
     UpdateSelectedFromText();
-    TextCtrl_Nodes->OnSetFocus(event);
 }

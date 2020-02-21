@@ -614,6 +614,12 @@
 		67D640F11E41169F00381DDA /* PlayListItemFSEQVideo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67D640EB1E41169F00381DDA /* PlayListItemFSEQVideo.cpp */; };
 		67D640F21E41169F00381DDA /* PlayListItemFSEQVideoPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67D640ED1E41169F00381DDA /* PlayListItemFSEQVideoPanel.cpp */; };
 		67D678FD1A7E628400421B05 /* tmGridCell.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67D678FC1A7E628400421B05 /* tmGridCell.cpp */; };
+		67D6CF7F23FF36E5004B56FD /* Controller.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 678A41BA23E6417600E5FB09 /* Controller.cpp */; };
+		67D6CF8023FF36E5004B56FD /* Controller.h in Sources */ = {isa = PBXBuildFile; fileRef = 678A41BC23E6417700E5FB09 /* Controller.h */; };
+		67D6CF8123FF3701004B56FD /* ControllerEthernet.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 678A41BB23E6417700E5FB09 /* ControllerEthernet.cpp */; };
+		67D6CF8223FF3701004B56FD /* ControllerNull.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 678A41B423E6417600E5FB09 /* ControllerNull.cpp */; };
+		67D6CF8323FF3701004B56FD /* ControllerSerial.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 678A41B523E6417600E5FB09 /* ControllerSerial.cpp */; };
+		67D6CF8423FF3711004B56FD /* ControllerCaps.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 678A41B223E6412000E5FB09 /* ControllerCaps.cpp */; };
 		67D75E2D2020ED1B005BAC6E /* EventE131Panel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67D75E1C2020ED17005BAC6E /* EventE131Panel.cpp */; };
 		67D75E2E2020ED1B005BAC6E /* EventDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67D75E1D2020ED17005BAC6E /* EventDialog.cpp */; };
 		67D75E2F2020ED1B005BAC6E /* EventOSCPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67D75E1E2020ED17005BAC6E /* EventOSCPanel.cpp */; };
@@ -4724,6 +4730,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				67D6CF8423FF3711004B56FD /* ControllerCaps.cpp in Sources */,
+				67D6CF8123FF3701004B56FD /* ControllerEthernet.cpp in Sources */,
+				67D6CF8223FF3701004B56FD /* ControllerNull.cpp in Sources */,
+				67D6CF8323FF3701004B56FD /* ControllerSerial.cpp in Sources */,
+				67D6CF7F23FF36E5004B56FD /* Controller.cpp in Sources */,
+				67D6CF8023FF36E5004B56FD /* Controller.h in Sources */,
 				67D90BE92390179F007792F2 /* xxxEthernetOutput.cpp in Sources */,
 				67D90BEA2390179F007792F2 /* xxxSerialOutput.cpp in Sources */,
 				67F89AF72361F0C800BD52A5 /* FSEQFile.cpp in Sources */,
