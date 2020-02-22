@@ -580,16 +580,22 @@ void EffectsGrid::OnGridPopup(wxCommandEvent& event)
                     long s = ef->GetStartTimeMS();
                     long e = ef->GetEndTimeMS();
                     if (e - s > base_timing) {
+                        float splitf = (float)(e - s) / (float)by;
                         long split = TimeLine::RoundToMultipleOfPeriod((e - s) / by, frequency);
                         mSequenceElements->get_undo_mgr().CaptureModifiedEffect(el->GetParentElement()->GetModelName(), el->GetIndex(), ef->GetID(), ef->GetSettingsAsString(), ef->GetPaletteAsString());
                         mSequenceElements->get_undo_mgr().CaptureEffectToBeMoved(el->GetParentElement()->GetModelName(), el->GetIndex(), ef->GetID(), ef->GetStartTimeMS(), ef->GetEndTimeMS());
-                        ef->SetEndTimeMS(s + split);
+                        long newend = TimeLine::RoundToMultipleOfPeriod((float)s + splitf, frequency);
+                        ef->SetEndTimeMS(newend);
 
                         for (int j = 1; j < by; j++) {
 
-                            int newstart = s + split * j;
-                            int newend = std::min(newstart + split, e);
-                            if (j == by - 1) newend = e;
+                            long newstart = newend;
+                            if (j == by - 1) {
+                                newend = e;
+                            }
+                            else {
+                                newend = TimeLine::RoundToMultipleOfPeriod((long)((float)s + splitf * (float)(j + 1)), frequency);
+                            }
 
                             if (newstart != newend)
                             {
