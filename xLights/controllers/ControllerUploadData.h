@@ -73,6 +73,7 @@ public:
 
     int GetSmartRemote() const { return _smartRemote; }
 
+    int GetSmartTs(int currentTs);
     int GetBrightness(int currentBrightness);
     int GetNullPixels(int currentNullPixels);
     float GetGamma(int currentGamma);
@@ -118,6 +119,8 @@ struct UDVirtualString
     bool _groupCountSet = false;
     int _groupCount = 1;
     bool _reverseSet = false;
+    bool _tsSet = false;
+    int _ts = 0;
     std::string _reverse;
     int _channelsPerPixel = -1;
     std::list<UDControllerPortModel*> _models;

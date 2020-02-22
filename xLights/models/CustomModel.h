@@ -45,7 +45,7 @@ class CustomModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual int NodesPerString() const override;
         virtual int MapPhysicalStringToLogicalString(int string) const override;
 
-        virtual int GetNumPhysicalStrings() const override { return _strings; }
+        virtual int GetNumPhysicalStrings() const override;
 
         std::string GetCustomData() const;
         void SetCustomData(const std::string &data);

@@ -5,14 +5,16 @@
 			<SupportsPixelPortDirection/>
 			<SupportsPixelPortColourOrder/>
 			<SupportsTs/>
-			<!--SupportsUpload/-->
+			<SupportsFullxLightsControl/>
 			<MaxInputUniverses>16</MaxInputUniverses>
 			<MaxPixelPort>16</MaxPixelPort>
 			<MaxSerialPort>0</MaxSerialPort>
 			<MaxSerialPortChannels>0</MaxSerialPortChannels>
-			<MaxPixelPortChannels>1035</MaxPixelPortChannels>
+			<MaxPixelPortChannels>2760</MaxPixelPortChannels>
 			<AllInputUniversesMustBeSameSize/>
 			<UniversesMustBeSequential/>
+			<MaxInputUniverseChannels>510</MaxInputUniverseChannels>
+			<MinInputUniverseChannels>510</MinInputUniverseChannels>
 			<PixelProtocols>
 				<Protocol>ws2811</Protocol>
 				<Protocol>tm18xx</Protocol>

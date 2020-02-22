@@ -21,7 +21,7 @@ class CubeModel : public ModelWithScreenLocation<BoxedScreenLocation>
 
         virtual const std::vector<std::string> &GetBufferStyles() const override;
         virtual void GetBufferSize(const std::string &type, const std::string &camera, const std::string &transform, int &BufferWi, int &BufferHi) const override;
-        virtual int GetNumPhysicalStrings() const override { return GetStrings(); }
+        virtual int GetNumPhysicalStrings() const override;
         virtual bool SupportsXlightsModel() override { return true; }
         virtual bool SupportsExportAsCustom() const override { return true; }
         virtual bool SupportsWiringView() const override { return false; }

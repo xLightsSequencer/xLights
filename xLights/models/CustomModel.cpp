@@ -447,7 +447,15 @@ void CustomModel::SetStringStartChannels(bool zeroBased, int NumberOfStrings, in
 
 int CustomModel::NodesPerString() const
 {
-    return GetChanCount() / std::max(GetChanCountPerNode(),1);
+    int nodes = GetChanCount() / std::max(GetChanCountPerNode(), 1);
+
+    int ts = GetSmartTs();
+    if (ts <= 1) {
+        return nodes;
+    }
+    else {
+        return nodes * ts;
+    }
 }
 
 inline void split(std::string frag, char splitBy, std::vector<std::string>& tokens)
@@ -1543,4 +1551,17 @@ int CustomModel::MapPhysicalStringToLogicalString(int string) const
         stringOrder.push_back(count);
     }
     return stringOrder[string];
+}
+
+int CustomModel::GetNumPhysicalStrings() const 
+{ 
+    int ts = GetSmartTs();
+    if (ts <= 1) {
+        return _strings;
+    }
+    else {
+        int strings = _strings / ts;
+        if (strings == 0) strings = 1;
+        return strings;
+    }
 }

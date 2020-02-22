@@ -19,6 +19,7 @@
 #include "OutputManager.h"
 #include "../UtilFunctions.h"
 #include "../OutputModelManager.h"
+#include "ControllerEthernet.h"
 
 #include <log4cpp/Category.hh>
 
@@ -161,6 +162,224 @@ void DDPOutput::SendSync() {
         syncdatagram->SendTo(syncremoteAddr, syncdata, DDP_SYNCPACKET_LEN);
     }
 }
+
+#ifndef EXCLUDENETWORKUI
+wxJSONValue DDPOutput::Query(const std::string& ip, uint8_t type)
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    wxJSONValue val;
+
+    uint8_t packet[DDP_DISCOVERPACKET_LEN];
+    memset(&packet, 0x00, sizeof(packet));
+
+    packet[0] = DDP_FLAGS1_VER1 | DDP_FLAGS1_QUERY;
+    packet[3] = type;
+
+    wxIPV4address localaddr;
+    if (IPOutput::__localIP == "") {
+        localaddr.AnyAddress();
+    }
+    else {
+        localaddr.Hostname(IPOutput::__localIP);
+    }
+
+    logger_base.debug(" DDP query using %s", (const char*)localaddr.IPAddress().c_str());
+    wxDatagramSocket* datagram = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);
+
+    if (datagram == nullptr) {
+        logger_base.error("Error initialising DDP query datagram.");
+    }
+    else if (!datagram->IsOk()) {
+        logger_base.error("Error initialising DDP query datagram ... is network connected? OK : FALSE");
+        delete datagram;
+        datagram = nullptr;
+    }
+    else if (datagram->Error() != wxSOCKET_NOERROR) {
+        logger_base.error("Error creating DDP query datagram => %d : %s.", datagram->LastError(), (const char*)DecodeIPError(datagram->LastError()).c_str());
+        delete datagram;
+        datagram = nullptr;
+    }
+    else {
+        logger_base.info("DDP query datagram opened successfully.");
+    }
+
+    wxIPV4address remoteaddr;
+    remoteaddr.Hostname(ip);
+    remoteaddr.Service(DDP_PORT);
+
+    // bail if we dont have a datagram to use
+    if (datagram != nullptr) {
+        logger_base.info("DDP sending query packet.");
+        datagram->SendTo(remoteaddr, &packet, DDP_DISCOVERPACKET_LEN);
+        if (datagram->Error() != wxSOCKET_NOERROR) {
+            logger_base.error("Error sending DDP query datagram => %d : %s.", datagram->LastError(), (const char*)DecodeIPError(datagram->LastError()).c_str());
+        }
+        else {
+            logger_base.info("DDP sent query packet. Sleeping for 1 second.");
+
+            // give the controllers 2 seconds to respond
+            wxMilliSleep(1000);
+
+            uint8_t response[1024];
+
+            int lastread = 1;
+
+            while (lastread > 0) {
+                wxStopWatch sw;
+                logger_base.debug("Trying to read DDP query response packet.");
+                memset(&response, 0x00, sizeof(response));
+                datagram->Read(&response, sizeof(response));
+                lastread = datagram->LastReadCount();
+
+                if (lastread > 10) {
+                    logger_base.debug(" Read done. %d bytes %ldms", lastread, sw.Time());
+
+                    if (response[3] == type) {
+                        logger_base.debug(" Valid response.");
+                        logger_base.debug((const char*)&response[10]);
+
+                        wxJSONReader reader;
+                        reader.Parse(wxString(&response[10]), &val);
+                    }
+                }
+                logger_base.info("DDP Query Done looking for response.");
+            }
+        }
+        datagram->Close();
+        delete datagram;
+    }
+    logger_base.info("DDP Query Finished.");
+
+    return val;
+}
+
+std::list<ControllerEthernet*> DDPOutput::Discover(OutputManager* outputManager)
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    std::list<ControllerEthernet*> res;
+
+    uint8_t packet[DDP_DISCOVERPACKET_LEN];
+
+    memset(&packet, 0x00, sizeof(packet));
+
+    packet[0] = DDP_FLAGS1_VER1 | DDP_FLAGS1_QUERY;
+    packet[3] = DDP_ID_CONFIG;
+
+    auto localIPs = GetLocalIPs();
+
+    for (auto ip : localIPs) {
+        if (ip == "127.0.0.1") {
+            continue;
+        }
+        wxIPV4address sendlocaladdr;
+        sendlocaladdr.Hostname(ip);
+
+        logger_base.debug(" DDP Discovery using %s", (const char*)ip.c_str());
+        wxDatagramSocket* datagram = new wxDatagramSocket(sendlocaladdr, wxSOCKET_NOWAIT | wxSOCKET_BROADCAST);
+
+        if (datagram == nullptr) {
+            logger_base.error("Error initialising DDP discovery datagram.");
+        }
+        else if (!datagram->IsOk()) {
+            logger_base.error("Error initialising DDP discovery datagram ... is network connected? OK : FALSE");
+            delete datagram;
+            datagram = nullptr;
+        }
+        else if (datagram->Error() != wxSOCKET_NOERROR) {
+            logger_base.error("Error creating DDP discovery datagram => %d : %s.", datagram->LastError(), (const char*)DecodeIPError(datagram->LastError()).c_str());
+            delete datagram;
+            datagram = nullptr;
+        }
+        else {
+            logger_base.info("DDP discovery datagram opened successfully.");
+        }
+
+        wxIPV4address remoteaddr;
+        wxString ipaddrWithUniv = "255.255.255.255";
+        remoteaddr.Hostname(ipaddrWithUniv);
+        remoteaddr.Service(DDP_PORT);
+
+        // bail if we dont have a datagram to use
+        if (datagram != nullptr) {
+            logger_base.info("DDP sending discovery packet.");
+            datagram->SendTo(remoteaddr, &packet, DDP_DISCOVERPACKET_LEN);
+            if (datagram->Error() != wxSOCKET_NOERROR) {
+                logger_base.error("Error sending DDP discovery datagram => %d : %s.", datagram->LastError(), (const char*)DecodeIPError(datagram->LastError()).c_str());
+            }
+            else {
+                logger_base.info("DDP sent discovery packet. Sleeping for 2 seconds.");
+
+                // give the controllers 2 seconds to respond
+                wxMilliSleep(2000);
+
+                uint8_t response[1024];
+
+                int lastread = 1;
+
+                while (lastread > 0) {
+                    wxStopWatch sw;
+                    logger_base.debug("Trying to read DDP discovery packet.");
+                    memset(&response, 0x00, sizeof(response));
+                    datagram->Read(&response, sizeof(response));
+                    lastread = datagram->LastReadCount();
+
+                    if (lastread > 10) {
+                        logger_base.debug(" Read done. %d bytes %ldms", lastread, sw.Time());
+
+                        if (response[3] == DDP_ID_CONFIG) {
+                            logger_base.debug(" Valid response.");
+                            logger_base.debug((const char*)&response[10]);
+
+                            wxIPV4address aa;
+                            auto peer = datagram->GetPeer(aa);
+                            auto ip = aa.IPAddress();
+
+                            ControllerEthernet* controller = new ControllerEthernet(outputManager, false);
+                            controller->SetProtocol(OUTPUT_DDP);
+
+                            logger_base.debug("   IP %s", (const char*)ip.c_str());
+                            controller->SetIP(ip);
+                            controller->SetName("DDP_" + ip);
+                            controller->SetId(1);
+                            controller->EnsureUniqueId();
+
+                            wxJSONReader reader;
+                            wxJSONValue val;
+                            reader.Parse(wxString(&response[10]), &val);
+
+                            int channels = 0;
+                            auto ports = val["config"]["ports"].AsArray();
+                            for (int i = 0; i < ports->Count(); i++)                                 {
+                                auto ts = wxAtoi(val["config"]["ports"][i]["ts"].AsString()) + 1;
+                                auto l = wxAtoi(val["config"]["ports"][i]["l"].AsString());
+                                channels += ts * l * 3;
+                            }
+                            controller->GetOutputs().front()->SetChannels(channels);
+
+                            logger_base.info("DDP Discovery found a new controller %s.", (const char*)controller->GetIP().c_str());
+
+                            res.push_back(controller);
+                        }
+                        else {
+                            // non discovery response packet
+                            logger_base.info("DDP Discovery strange packet received.");
+                        }
+                    }
+                }
+                logger_base.info("DDP Discovery Done looking for response.");
+            }
+            datagram->Close();
+            delete datagram;
+        }
+    }
+
+    logger_base.info("DDP Discovery Finished.");
+
+    return res;
+}
+#endif
 #pragma endregion
 
 #pragma region Getters and Setters

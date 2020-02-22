@@ -74,6 +74,7 @@ public:
     bool SupportsPixelPortGamma() const;
     bool SupportsPixelPortNullPixels() const;
     bool SupportsPixelPortGrouping() const;
+    bool SupportsTs() const;
     bool SupportsPixelPortDirection() const;
     bool SupportsPixelPortColourOrder() const;
     bool SupportsEthernetInputProtols() const;

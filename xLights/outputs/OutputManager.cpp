@@ -898,15 +898,14 @@ bool OutputManager::Discover(wxWindow* frame, std::map<std::string, std::string>
         }
     }
 
-    // There is no DDP discovery
-    //auto ddp = DDPOutput::Discover(this);
-    //for (const auto& it : ddp) {
-    //    auto c = GetControllers(it->GetIP());
-    //    if (c.size() == 0) {
-    //        _controllers.push_back(it);
-    //        found = true;
-    //    }
-    //}
+    auto ddp = DDPOutput::Discover(this);
+    for (const auto& it : ddp) {
+        auto c = GetControllers(it->GetIP());
+        if (c.size() == 0) {
+            _controllers.push_back(it);
+            found = true;
+        }
+    }
 
     return found;
 }

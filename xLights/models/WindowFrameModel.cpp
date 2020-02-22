@@ -34,7 +34,13 @@ void WindowFrameModel::InitModel() {
 
 int WindowFrameModel::NodesPerString() const
 {
-    return GetChanCount() / std::max(GetChanCountPerNode(),1);
+    int ts = GetSmartTs();
+    if (ts <= 1) {
+        return GetChanCount() / std::max(GetChanCountPerNode(), 1);
+    }
+    else {
+        return ts * (GetChanCount() / std::max(GetChanCountPerNode(), 1));
+    }
 }
 
 // initialize buffer coordinates

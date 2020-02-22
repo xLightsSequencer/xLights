@@ -95,7 +95,7 @@ public:
     int GetPixelStyle() const { return pixelStyle; }
     void SetPixelStyle(int style) { pixelStyle = style; } // temporarily changes pixel style
     static std::string GetPixelStyleDescription(int pixelStyle);
-    virtual int GetNumPhysicalStrings() const { return parm1; }
+    virtual int GetNumPhysicalStrings() const;
     ControllerCaps* GetControllerCaps() const;
     Controller* GetController() const;
 
@@ -252,12 +252,7 @@ public:
     wxColour GetTagColour() const { return modelTagColour; }
     bool IsPixelProtocol() const;
     bool IsSerialProtocol() const;
-    int32_t GetStringStartChan(int x) const {
-        if (x < stringStartChan.size()) {
-            return stringStartChan[x];
-        }
-        return 1;
-    }
+    int32_t GetStringStartChan(int x) const;
     void SaveSuperStringColours();
     void SetSuperStringColours(int count);
     void SetSuperStringColour(int index, xlColor c);
@@ -273,6 +268,7 @@ public:
     int GetControllerDMXChannel() const;
     int GetSmartRemote() const;
     int GetSortableSmartRemote() const;
+    int GetSmartTs() const;
     int GetSmartRemoteForString(int string = 1) const;
     int GetControllerPort(int string = 1) const;
     void SetModelChain(const std::string& modelChain);

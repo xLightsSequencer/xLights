@@ -1359,11 +1359,12 @@ void xLightsFrame::RenderAll()
     });
 }
 
-static void enableAllChildControls(wxWindow *parent, bool enable) {
+static void enableAllChildControls(wxWindow* parent, bool enable)
+{
     for (const auto& it : parent->GetChildren()) {
         it->Enable(enable);
         enableAllChildControls(it, enable);
-        if (enable && it->GetName().StartsWith("ID_VALUECURVE"))             {
+        if (enable && it->GetName().StartsWith("ID_VALUECURVE")) {
             wxCommandEvent e(EVT_VC_CHANGED);
             e.SetInt(-1);
             e.SetEventObject(it);
@@ -1372,20 +1373,22 @@ static void enableAllChildControls(wxWindow *parent, bool enable) {
     }
 }
 
-static void enableAllToolbarControls(wxAuiToolBar *parent, bool enable) {
-    enableAllChildControls((wxWindow *)parent, enable);
+static void enableAllToolbarControls(wxAuiToolBar* parent, bool enable)
+{
+    enableAllChildControls((wxWindow*)parent, enable);
     for (int x = 0; x < parent->GetToolCount(); x++) {
-        wxAuiToolBarItem * item = parent->FindToolByIndex(x);
+        wxAuiToolBarItem* item = parent->FindToolByIndex(x);
         parent->EnableTool(item->GetId(), enable);
     }
     parent->Refresh();
 }
 
-static void enableAllMenubarControls(wxMenuBar *parent, bool enable) {
+static void enableAllMenubarControls(wxMenuBar* parent, bool enable)
+{
     for (int x = 0; x < parent->GetMenuCount(); x++) {
-        wxMenu * menu = parent->GetMenu(x);
+        wxMenu* menu = parent->GetMenu(x);
         for (int y = 0; y < menu->GetMenuItemCount(); y++) {
-            wxMenuItem *item = menu->FindItemByPosition(y);
+            wxMenuItem* item = menu->FindItemByPosition(y);
             menu->Enable(item->GetId(), enable);
         }
     }
@@ -1396,7 +1399,7 @@ void xLightsFrame::EnableSequenceControls(bool enable)
 {
     enableAllToolbarControls(MainToolBar, enable);
     //enableAllToolbarControls(PlayToolBar, enable && SeqData.NumFrames() > 0);
-	SetAudioControls();
+    SetAudioControls();
     bool enableSeq = enable && SeqData.NumFrames() > 0;
     bool enableSeqNotAC = enable && SeqData.NumFrames() > 0 && !IsACActive();
     enableAllToolbarControls(WindowMgmtToolbar, enableSeq);
@@ -1417,7 +1420,7 @@ void xLightsFrame::EnableSequenceControls(bool enable)
     enableAllChildControls(perspectivePanel, enableSeq);
     //if (enableSeq) perspectivePanel->ValidateWindow();
     enableAllChildControls(colorPanel, enableSeqNotAC);
-    if (enableSeqNotAC) {colorPanel->ValidateWindow();}
+    if (enableSeqNotAC) { colorPanel->ValidateWindow(); }
     enableAllChildControls(effectPalettePanel, enableSeqNotAC);
     //if (enableSeqNotAC) effectPalettePanel->ValidateWindow();
     enableAllChildControls(_valueCurvesPanel, enableSeqNotAC);
@@ -1432,14 +1435,14 @@ void xLightsFrame::EnableSequenceControls(bool enable)
 
     if (enable && SeqData.NumFrames() == 0) {
         //no file is loaded, disable save/render buttons
-        EnableToolbarButton(MainToolBar,ID_AUITOOLBAR_SAVE,false);
-        EnableToolbarButton(MainToolBar,ID_AUITOOLBAR_SAVEAS,false);
-        EnableToolbarButton(MainToolBar,ID_AUITOOLBAR_RENDERALL,false);
+        EnableToolbarButton(MainToolBar, ID_AUITOOLBAR_SAVE, false);
+        EnableToolbarButton(MainToolBar, ID_AUITOOLBAR_SAVEAS, false);
+        EnableToolbarButton(MainToolBar, ID_AUITOOLBAR_RENDERALL, false);
         Menu_Settings_Sequence->Enable(false);
         MenuItem_File_Save->Enable(false);
         MenuItem_File_SaveAs_Sequence->Enable(false);
         MenuItem_File_Close_Sequence->Enable(false);
-		MenuItem_File_Export_Video->Enable(false);
+        MenuItem_File_Export_Video->Enable(false);
         MenuItem_PackageSequence->Enable(false);
         MenuItem_GenerateLyrics->Enable(false);
         MenuItem_ExportEffects->Enable(false);
@@ -1450,23 +1453,21 @@ void xLightsFrame::EnableSequenceControls(bool enable)
         //file is loaded, but we're doing something that requires controls disabled (such as rendering)
         //we need to also disable the quit button
         QuitMenuItem->Enable(false);
-    } else {
+    }
+    else {
         QuitMenuItem->Enable(true);
     }
 
-    if (MenuItem_CrashXLights != nullptr)
-    {
+    if (MenuItem_CrashXLights != nullptr) {
         MenuItem_CrashXLights->Enable();
     }
-    if (MenuItem_LogRenderState != nullptr)
-    {
+    if (MenuItem_LogRenderState != nullptr) {
         MenuItem_LogRenderState->Enable();
     }
 }
 
 //modifed for partially random -DJ
-//void djdebug(const char* fmt, ...); //_DJ
-std::string xLightsFrame::CreateEffectStringRandom(std::string &settings, std::string &palette)
+std::string xLightsFrame::CreateEffectStringRandom(std::string& settings, std::string& palette)
 {
     int eff1 = ChooseRandomEffect();
     settings = EffectsPanel1->GetRandomEffectString(eff1);
@@ -1476,10 +1477,7 @@ std::string xLightsFrame::CreateEffectStringRandom(std::string &settings, std::s
 
 int xLightsFrame::ChooseRandomEffect()
 {
-    if (_randomEffectsToUse.size() == 0)
-    {
-        return 0;
-    }
+    if (_randomEffectsToUse.size() == 0) return 0;
 
     const int select = rand() % _randomEffectsToUse.size();
     const wxString effect = _randomEffectsToUse[select];
@@ -1490,8 +1488,7 @@ int xLightsFrame::ChooseRandomEffect()
 void xLightsFrame::VCChanged(wxCommandEvent& event)
 {
     _valueCurvesPanel->Freeze();
-    if (event.GetInt() == -1)
-    {
+    if (event.GetInt() == -1) {
         _valueCurvesPanel->UpdateValueCurveButtons(true);
     }
     enableAllChildControls(_valueCurvesPanel, true); // enable and disable otherwise if anything has been added while disabled wont be disabled.

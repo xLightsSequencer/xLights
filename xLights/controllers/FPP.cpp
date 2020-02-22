@@ -53,6 +53,7 @@
 #include "../FSEQFile.h"
 
 #include "Falcon.h"
+#include "Minleon.h"
 #include "SanDevices.h"
 #include "J1Sys.h"
 

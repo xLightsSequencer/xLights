@@ -113,7 +113,7 @@ public:
     
     void SetAutoSize(bool autosize) { if (_autoSize != autosize) { _autoSize = autosize; _dirty = true; } }
     bool IsAutoSize() const { return IsAutoLayout() && _autoSize; }
-    
+
     void SetFullxLightsControl(bool fullxLightsControl) { if (_fullxLightsControl != fullxLightsControl) { _fullxLightsControl = fullxLightsControl; _dirty = true; } }
     bool IsFullxLightsControl() const { return _fullxLightsControl; }
 

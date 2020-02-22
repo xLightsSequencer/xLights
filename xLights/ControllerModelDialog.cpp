@@ -1739,6 +1739,9 @@ std::string ControllerModelDialog::GetModelTooltip(ModelCMObject* mob)
             {
                 stringSettings += wxString::Format("\nNull Pixels: %d", udm->GetNullPixels(0));
             }
+            if (udm->GetSmartTs(-1) != -1) {
+                stringSettings += wxString::Format("\nSmart Ts: %d", udm->GetSmartTs(0));
+            }
         }
     }
 

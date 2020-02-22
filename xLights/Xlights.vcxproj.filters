@@ -826,6 +826,9 @@
     <ClCompile Include="outputs\PixelNetOutput.cpp">
       <Filter>Outputs</Filter>
     </ClCompile>
+    <ClCompile Include="controllers\Minleon.cpp">
+      <Filter>Controllers</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -1658,6 +1661,9 @@
     <ClInclude Include="KeyBindingEditDialog.h" />
     <ClInclude Include="outputs\PixelNetOutput.h">
       <Filter>Outputs</Filter>
+    </ClInclude>
+    <ClInclude Include="controllers\Minleon.h">
+      <Filter>Controllers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

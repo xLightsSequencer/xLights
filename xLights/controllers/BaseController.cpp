@@ -29,6 +29,7 @@
 #include "Pixlite16.h"
 #include "ESPixelStick.h"
 #include "SanDevices.h"
+#include "Minleon.h"
 
 
 #pragma region Constructors and Destructors
@@ -71,6 +72,8 @@ BaseController *BaseController::CreateBaseController(ControllerEthernet *control
         bc = new AlphaPix(ip, proxy);
     } else if (vendor == "FPP" || vendor == "KulpLights") {
         bc = new FPP(ip, proxy, caps->GetModel());
+    } else if (vendor == "Minleon") {
+        bc = new Minleon(ip, proxy);
     }
     return bc;
 }

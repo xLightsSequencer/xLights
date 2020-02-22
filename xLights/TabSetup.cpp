@@ -32,6 +32,7 @@
 
 #include "controllers/FPP.h"
 #include "controllers/Falcon.h"
+#include "controllers/Minleon.h"
 #include "controllers/Pixlite16.h"
 #include "controllers/SanDevices.h"
 #include "controllers/J1Sys.h"

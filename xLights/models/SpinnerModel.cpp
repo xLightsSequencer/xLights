@@ -557,5 +557,16 @@ int SpinnerModel::CalcCannelsPerString() {
 }
 
 int SpinnerModel::NodesPerString() const {
-    return SingleNode ? 1 : parm2 * parm3;
+    if (SingleNode) {
+        return 1;
+    }
+    else {
+        int ts = GetSmartTs();
+        if (ts <= 1) {
+            return parm2 * parm3;
+        }
+        else {
+            return parm2 * parm3 * ts;
+        }
+    }
 }

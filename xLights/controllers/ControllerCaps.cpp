@@ -403,6 +403,11 @@ bool ControllerCaps::SupportsPixelPortGrouping() const {
     return SupportsPixelPortAllSettings() || DoesXmlNodeExist(_config, "SupportsPixelPortGrouping");
 }
 
+bool ControllerCaps::SupportsTs() const
+{
+    return SupportsPixelPortAllSettings() || DoesXmlNodeExist(_config, "SupportsTs");
+}
+
 bool ControllerCaps::SupportsPixelPortAllSettings() const {
 
     return DoesXmlNodeExist(_config, "SupportsPixelPortAllSettings");

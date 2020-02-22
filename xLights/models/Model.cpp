@@ -554,6 +554,19 @@ std::string Model::GetPixelStyleDescription(int pixelStyle)
     return "";
 }
 
+int Model::GetNumPhysicalStrings() const
+{
+    int ts = GetSmartTs();
+    if (ts <= 1) {
+        return parm1;
+    }
+    else {
+        int strings = parm1 / ts;
+        if (strings == 0) strings = 1;
+        return strings;
+    }
+}
+
 ControllerCaps* Model::GetControllerCaps() const
 {
     auto c = GetController();
@@ -916,6 +929,20 @@ void Model::AddControllerProperties(wxPropertyGridInterface *grid) {
                 grid->Collapse(sp);
             }
         }
+
+        if (caps == nullptr || caps->SupportsTs()) {
+            sp = grid->AppendIn(p, new wxBoolProperty("Set Smart Ts", "ModelControllerConnectionPixelSetTs", node->HasAttribute("ts")));
+            sp->SetAttribute("UseCheckbox", true);
+            auto sp2 = grid->AppendIn(sp, new wxUIntProperty("Smart Ts", "ModelControllerConnectionPixelTs",
+                GetSmartTs()));
+            sp2->SetAttribute("Min", 0);
+            sp2->SetAttribute("Max", 20);
+            sp2->SetEditor("SpinCtrl");
+            if (!node->HasAttribute("ts")) {
+                grid->DisableProperty(sp2);
+                grid->Collapse(sp);
+            }
+        }
     }
 }
 
@@ -1024,6 +1051,17 @@ void Model::UpdateControllerProperties(wxPropertyGridInterface* grid) {
                 grid->GetPropertyByName("ModelControllerConnectionPixelSetGroupCount.ModelControllerConnectionPixelGroupCount")->Enable();
             }
         }
+
+        if (grid->GetPropertyByName("ModelControllerConnectionPixelSetTs") != nullptr) {
+            if (!node->HasAttribute("ts")) {
+                grid->GetPropertyByName("ModelControllerConnectionPixelSetTs")->SetExpanded(false);
+                grid->GetPropertyByName("ModelControllerConnectionPixelSetTs.ModelControllerConnectionPixelTs")->Enable(false);
+            }
+            else {
+                grid->GetPropertyByName("ModelControllerConnectionPixelSetTs")->SetExpanded(true);
+                grid->GetPropertyByName("ModelControllerConnectionPixelSetTs.ModelControllerConnectionPixelTs")->Enable();
+            }
+        }
     }
     grid->RefreshGrid();
 }
@@ -1064,6 +1102,7 @@ static void clearUnusedProtocolProperties(wxXmlNode *node) {
         node->DeleteAttribute("colorOrder");
         node->DeleteAttribute("reverse");
         node->DeleteAttribute("groupCount");
+        node->DeleteAttribute("ts");
     }
     if (!isDMX) {
         node->DeleteAttribute("channel");
@@ -1498,7 +1537,37 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Model::OnPropertyGridChange::ModelControllerConnectionPixelGroupCount");
         AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "Model::OnPropertyGridChange::ModelControllerConnectionPixelGroupCount");
         return 0;
-    } else if (event.GetPropertyName() == "SubModels") {
+    }
+    else if (event.GetPropertyName() == "ModelControllerConnectionPixelSetTs") {
+        GetControllerConnection()->DeleteAttribute("ts");
+        wxPGProperty* prop = grid->GetFirstChild(event.GetProperty());
+        grid->EnableProperty(prop, event.GetValue().GetBool());
+        if (event.GetValue().GetBool()) {
+            GetControllerConnection()->AddAttribute("ts", "0");
+            prop->SetValueFromInt(0);
+            grid->Expand(event.GetProperty());
+        }
+        else {
+            grid->Collapse(event.GetProperty());
+        }
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::OnPropertyGridChange::ModelControllerConnectionPixelSetTs");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "Model::OnPropertyGridChange::ModelControllerConnectionPixelSetTs");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Model::OnPropertyGridChange::ModelControllerConnectionPixelSetTs");
+        AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "Model::OnPropertyGridChange::ModelControllerConnectionPixelSetTs");
+        return 0;
+    }
+    else if (event.GetPropertyName() == "ModelControllerConnectionPixelSetTs.ModelControllerConnectionPixelTs") {
+        GetControllerConnection()->DeleteAttribute("ts");
+        if (event.GetValue().GetLong() >= 0) {
+            GetControllerConnection()->AddAttribute("ts", wxString::Format("%i", (int)event.GetValue().GetLong()));
+        }
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::OnPropertyGridChange::ModelControllerConnectionPixelTs");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "Model::OnPropertyGridChange::ModelControllerConnectionPixelTs");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Model::OnPropertyGridChange::ModelControllerConnectionPixelTs");
+        AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "Model::OnPropertyGridChange::ModelControllerConnectionPixelTs");
+        return 0;
+    }
+    else if (event.GetPropertyName() == "SubModels") {
         // We cant know which submodels changed so increment all their change counts to ensure anything using them knows they may have changed
         for (auto& it : GetSubModels()) {
             it->IncrementChangeCount();
@@ -2986,7 +3055,18 @@ void Model::SetBufferSize(int NewHt, int NewWi) {
 
 // not valid for Frame or Custom
 int Model::NodesPerString() const {
-    return SingleNode ? 1 : parm2;
+    if (SingleNode) {
+        return 1;
+    }
+    else {
+        int ts = GetSmartTs();
+        if (ts <= 1) {
+            return parm2;
+        }
+        else {
+            return parm2 * ts;
+        }
+    }
 }
 
 int32_t Model::NodeStartChannel(size_t nodenum) const {
@@ -5444,6 +5524,24 @@ bool Model::IsSerialProtocol() const
     return GetControllerPort(1) != 0 && IsSerialProtocol(GetControllerProtocol());
 }
 
+int32_t Model::GetStringStartChan(int x) const
+{
+    int ts = GetSmartTs();
+    if (ts <= 1) {
+        if (x < stringStartChan.size()) {
+            return stringStartChan[x];
+        }
+        return 1;
+    }
+    else {
+        int str = x * ts;
+        if (str < stringStartChan.size()) {
+            return stringStartChan[str];
+        }
+        return 1;
+    }
+}
+
 int Model::GetSmartRemote() const
 {
     wxString s = GetControllerConnection()->GetAttribute("SmartRemote", "0");
@@ -5458,6 +5556,11 @@ int Model::GetSortableSmartRemote() const
 
     if (sr < 4) return sr += 10;
     return sr;
+}
+
+int Model::GetSmartTs() const
+{
+    return wxAtoi(GetControllerConnection()->GetAttribute("ts", "0"));
 }
 
 // string is one based

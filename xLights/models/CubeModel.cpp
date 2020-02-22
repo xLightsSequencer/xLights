@@ -653,6 +653,19 @@ void CubeModel::GetBufferSize(const std::string& type, const std::string& camera
     AdjustForTransform(transform, BufferWi, BufferHi);
 }
 
+int CubeModel::GetNumPhysicalStrings() const 
+{ 
+    int ts = GetSmartTs();
+    if (ts <= 1) {
+        return GetStrings();
+    }
+    else {
+        int strings = GetStrings() / ts;
+        if (strings == 0) strings = 1;
+        return strings;
+    }
+}
+
 void CubeModel::InitRenderBufferNodes(const std::string& type, const std::string& camera, const std::string& transform, std::vector<NodeBaseClassPtr>& Nodes, int& BufferWi, int& BufferHi) const
 {
     int width = parm1;
@@ -1311,5 +1324,14 @@ int CubeModel::NodesPerString() const
     int width = parm1;
     int height = parm2;
     int depth = parm3;
-    return (width * height * depth) / strings;
+    int nodes = (width * height * depth) / strings;
+
+    int ts = GetSmartTs();
+    if (ts <= 1) {
+        return nodes;
+    }
+    else
+    {
+        return nodes * ts;
+    }
 }

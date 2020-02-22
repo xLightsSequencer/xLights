@@ -115,6 +115,13 @@ int UDControllerPortModel::GetNullPixels(int currentNullPixels) {
     return currentNullPixels;
 }
 
+int UDControllerPortModel::GetSmartTs(int currentSmartTs)
+{
+    wxXmlNode* node = _model->GetControllerConnection();
+    if (node->HasAttribute("ts"))  return wxAtoi(node->GetAttribute("ts"));
+    return currentSmartTs;
+}
+
 float UDControllerPortModel::GetGamma(int currentGamma) {
 
     wxXmlNode* node = _model->GetControllerConnection();
@@ -448,6 +455,7 @@ void UDControllerPort::CreateVirtualStrings(bool mergeSequential) {
         std::string colourOrder = it->GetColourOrder("unknown");
         float gamma = it->GetGamma(-9999);
         int groupCount = it->GetGroupCount(-9999);
+        int ts = it->GetSmartTs(-9999);
 
         if (current == nullptr || !mergeSequential) {
             if (smartRemote != 0) {
@@ -477,6 +485,8 @@ void UDControllerPort::CreateVirtualStrings(bool mergeSequential) {
                     current->_reverse = "";
                     current->_colourOrderSet = false;
                     current->_colourOrder = "";
+                    current->_tsSet = false;
+                    current->_ts = 0;
                 }
             }
 
@@ -524,6 +534,8 @@ void UDControllerPort::CreateVirtualStrings(bool mergeSequential) {
                         current->_reverse = "";
                         current->_colourOrderSet = false;
                         current->_colourOrder = "";
+                        current->_tsSet = false;
+                        current->_ts = 0;
                     }
                 }
 
@@ -578,6 +590,14 @@ void UDControllerPort::CreateVirtualStrings(bool mergeSequential) {
             else {
                 current->_groupCountSet = true;
                 current->_groupCount = groupCount;
+            }
+            if (ts == -9999) {
+                current->_tsSet = false;
+                current->_ts = 0;
+            }
+            else {
+                current->_tsSet = true;
+                current->_ts = ts;
             }
             if (reverse == "unknown") {
                 current->_reverseSet = false;
@@ -827,6 +847,7 @@ UDController::~UDController() {
 }
 
 void UDController::Rescan(bool eliminateOverlaps) {
+
     for (const auto& it : _pixelPorts) {
         delete it.second;
     }

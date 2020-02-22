@@ -15,6 +15,8 @@
 #include <wx/sckaddr.h>
 #include <wx/socket.h>
 
+#include "../xSchedule/wxJSON/jsonreader.h"
+
 // ******************************************************
 // * This class represents a single universe for DDP
 // ******************************************************
@@ -24,9 +26,11 @@
 #define DDP_PACKET_LEN (DDP_PACKET_HEADERLEN + 1440)
 #define DDP_PORT 4048
 #define DDP_SYNCPACKET_LEN 10
+#define DDP_DISCOVERPACKET_LEN 10
 
-#define DDP_FLAGS1_VER     0xc0   // version mask
-#define DDP_FLAGS1_VER1    0x40   // version=1
+#define DDP_FLAGS1_VER     0xc0   
+#define DDP_FLAGS1_VER1    0x40
+#define DDP_FLAGS1_TIMECODE 0x10
 #define DDP_FLAGS1_PUSH    0x01
 #define DDP_FLAGS1_QUERY   0x02
 #define DDP_FLAGS1_REPLY   0x04
@@ -34,8 +38,11 @@
 #define DDP_FLAGS1_TIME    0x10
 
 #define DDP_ID_DISPLAY       1
+#define DDP_ID_CONTROL     246
 #define DDP_ID_CONFIG      250
 #define DDP_ID_STATUS      251
+#define DDP_ID_DMXTRANSIT  254
+#define DDP_ID_ALLDEVICES  255
 #pragma endregion 
 
 class DDPOutput : public IPOutput
@@ -68,6 +75,11 @@ public:
 
     #pragma region Static Functions
     static void SendSync();
+
+    #ifndef EXCLUDENETWORKUI
+    static wxJSONValue Query(const std::string& ip, uint8_t type);
+    static std::list<ControllerEthernet*> Discover(OutputManager* outputManager);
+    #endif
     #pragma endregion 
 
     #pragma region Getters and Setters
@@ -110,5 +122,4 @@ public:
     virtual bool HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager) override;
     #endif
     #pragma endregion UI
-
 };
