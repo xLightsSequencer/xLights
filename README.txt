@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2020.5 February 22 2020
    -- enh (keith)  Change halve timings to a more generic divide timings
    -- enh (keith)  Add undo support to divide timings
    -- enh (keith)  Convert setup tab to the new controller tab included in this are a huge number of 
