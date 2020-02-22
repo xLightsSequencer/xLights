@@ -820,6 +820,7 @@
     <ClCompile Include="controllers\BaseController.cpp">
       <Filter>Controllers</Filter>
     </ClCompile>
+    <ClCompile Include="ControllerModelDialog.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -1648,6 +1649,7 @@
     <ClInclude Include="controllers\BaseController.h">
       <Filter>Controllers</Filter>
     </ClInclude>
+    <ClInclude Include="ControllerModelDialog.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Models">

@@ -222,6 +222,15 @@ UDControllerPortModel* UDControllerPort::GetLastModel() const {
     return last;
 }
 
+UDControllerPortModel* UDControllerPort::GetModel(const std::string& modelName) const
+{
+    for (const auto& it : _models)
+    {
+        if (it->GetName() == modelName) return it;
+    }
+    return nullptr;
+}
+
 void UDControllerPort::AddModel(Model* m, Controller* controller, OutputManager* om, int string) {
 
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -730,6 +739,20 @@ UDControllerPort* UDController::GetControllerSerialPort(int port) {
         _serialPorts[port] = new UDControllerPort(port);
     }
     return _serialPorts[port];
+}
+UDControllerPortModel* UDController::GetControllerPortModel(const std::string& modelName)
+{
+    for (const auto& it : _pixelPorts)
+    {
+        auto m = it.second->GetModel(modelName);
+        if (m != nullptr) return m;
+    }
+    for (const auto& it : _serialPorts)
+    {
+        auto m = it.second->GetModel(modelName);
+        if (m != nullptr) return m;
+    }
+    return nullptr;
 }
 #pragma endregion
 

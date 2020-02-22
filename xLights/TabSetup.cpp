@@ -27,7 +27,7 @@
 #include "models/Model.h"
 #include "SpecialOptions.h"
 #include "LayoutGroup.h"
-#include "ControllerVisualiseDialog.h"
+#include "ControllerModelDialog.h"
 
 #include "controllers/FPP.h"
 #include "controllers/Falcon.h"
@@ -1932,7 +1932,7 @@ void xLightsFrame::OnButtonVisualiseClick(wxCommandEvent& event) {
     if (controller != nullptr) {
         std::string check;
         UDController cud(controller, &_outputManager, &AllModels, check);
-        ControllerVisualiseDialog dlg(this, cud, controller->GetColumn2Label(), controller->GetDescription());
+        ControllerModelDialog dlg(this, cud, controller->GetColumn2Label(), controller->GetDescription());
         dlg.ShowModal();
     }
     else {

@@ -142,7 +142,8 @@ class UDControllerPort
     #pragma region Model Handling
     UDControllerPortModel* GetFirstModel() const;
     UDControllerPortModel* GetLastModel() const;
-	void AddModel(Model* m, Controller* controller, OutputManager* om, int string = 0);
+    UDControllerPortModel* GetModel(const std::string& modelName) const;
+    void AddModel(Model* m, Controller* controller, OutputManager* om, int string = 0);
     bool ContainsModel(Model* m) const;
     std::list<UDControllerPortModel*> GetModels() const { return _models; }
     #pragma endregion
@@ -213,6 +214,7 @@ class UDController
     #pragma region Port Handling
     UDControllerPort* GetControllerPixelPort(int port);
 	UDControllerPort* GetControllerSerialPort(int port);
+    UDControllerPortModel* GetControllerPortModel(const std::string& modelName);
     #pragma endregion
 
     #pragma region Getters and Setters
