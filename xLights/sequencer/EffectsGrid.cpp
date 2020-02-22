@@ -2734,6 +2734,12 @@ bool EffectsGrid::HandleACKey(wxChar key, bool shift)
 {
     if (HasCapture()) return false;
 
+    ACTYPE old_type;
+    ACSTYLE old_style;
+    ACTOOL old_tool;
+    ACMODE old_mode;
+    xlights->GetACSettings(old_type, old_style, old_tool, old_mode);
+
     if (mRangeStartRow == -1 || mRangeStartCol == -1 || mRangeEndRow == -1 || mRangeEndCol == -1)
     {
         SetRCToolTip();
@@ -2745,30 +2751,35 @@ bool EffectsGrid::HandleACKey(wxChar key, bool shift)
     {
         xlights->SetACSettings(ACTOOL::CASCADE);
         DoACDraw(true);
+        if (old_type == ACTYPE::SELECT) xlights->SetACSettings(old_type);
         return true;
     }
     else if (key == 'f' || key == 'F')
     {
         xlights->SetACSettings(ACTOOL::FILL);
         DoACDraw(true);
+        if (old_type == ACTYPE::SELECT) xlights->SetACSettings(old_type);
         return true;
     }
     else if (key == 'n' || key == 'N')
     {
         xlights->SetACSettings(ACTYPE::ON);
         DoACDraw(true);
+        if (old_type == ACTYPE::SELECT) xlights->SetACSettings(old_type);
         return true;
     }
     else if (key == (wxChar)WXK_DELETE)
     {
         xlights->SetACSettings(ACTYPE::OFF);
         DoACDraw(true);
+        if (old_type == ACTYPE::SELECT) xlights->SetACSettings(old_type);
         return true;
     }
     else if (key == 'k' || key == 'K')
     {
         xlights->SetACSettings(ACTYPE::TWINKLE);
         DoACDraw(true);
+        if (old_type == ACTYPE::SELECT) xlights->SetACSettings(old_type);
         return true;
     }
     else if (key == 'l' || key == 'L')
@@ -2781,40 +2792,47 @@ bool EffectsGrid::HandleACKey(wxChar key, bool shift)
     {
         xlights->SetACSettings(ACTYPE::SHIMMER);
         DoACDraw(true);
+        if (old_type == ACTYPE::SELECT) xlights->SetACSettings(old_type);
         return true;
     }
     else if (key == 'i' || key == 'I')
     {
         xlights->SetACSettings(ACSTYLE::INTENSITY);
         DoACDraw(true);
+        if (old_type == ACTYPE::SELECT) xlights->SetACSettings(old_type);
         return true;
     }
     else if (key == 'u' || key == 'U')
     {
         xlights->SetACSettings(ACSTYLE::RAMPUP);
         DoACDraw(true);
+        if (old_type == ACTYPE::SELECT) xlights->SetACSettings(old_type);
         return true;
     }
     else if (key == 'd' || key == 'D')
     {
         xlights->SetACSettings(ACSTYLE::RAMPDOWN);
         DoACDraw(true);
+        if (old_type == ACTYPE::SELECT) xlights->SetACSettings(old_type);
         return true;
     }
     else if (key == 'a' || key == 'A')
     {
         xlights->SetACSettings(ACSTYLE::RAMPUPDOWN);
         DoACDraw(true);
+        if (old_type == ACTYPE::SELECT) xlights->SetACSettings(old_type);
         return true;
     }
     else if (key == 'g' || key == 'G')
     {
         xlights->SetACSettings(ACMODE::FOREGROUND);
+        if (old_type == ACTYPE::SELECT) xlights->SetACSettings(old_type);
         return true;
     }
     else if (key == 'b' || key == 'B')
     {
         xlights->SetACSettings(ACMODE::BACKGROUND);
+        if (old_type == ACTYPE::SELECT) xlights->SetACSettings(old_type);
         return true;
     }
     else if (key == (wxChar)WXK_UP)

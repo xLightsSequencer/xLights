@@ -21,10 +21,12 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- enh (keith)  Increase maximums on the custom model size
    -- enh (keith)  Add to xSchedule activate and deactivate all schedules API
    -- enh (keith)  Add ordered node selection to the submodel node selection dialog
+   -- enh (keith)  In AC select mode when key is pressed to add an effect dont take it out of select mode ... this seems more natural
    -- enh (scott)  Added Export Model as GIF image
    -- enh (pete)   Have breakdown words and phrases respect locking
    -- bug (gil)    Fix too many node names created for 8-bit servos
    -- bug (keith)  Fix falcon upload of serial outputs incorrect if more than one port is uploaded
+   -- bug (keith)  Fix change to submodel in group is not detected by sequencer until restart
 2020.4 February 1 2020
    -- enh (dkulp)  Move all settings from Settings menu to new "Preferences" dialog
    -- enh (gil)    Servo effect can now be mapped to a Lyric track
