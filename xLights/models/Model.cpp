@@ -1383,8 +1383,13 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "Model::OnPropertyGridChange::ModelControllerConnectionPixelGroupCount");
         return 0;
     } else if (event.GetPropertyName() == "SubModels") {
+        // We cant know which submodels changed so increment all their change counts to ensure anything using them knows they may have changed
+        for (auto& it : GetSubModels()) {
+            it->IncrementChangeCount();
+        }
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "Model::OnPropertyGridChange::Submodels");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Model::OnPropertyGridChange::Submodels");
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::OnPropertyGridChange::Submodels");
         return 0;
     } else if (event.GetPropertyName() == "Description") {

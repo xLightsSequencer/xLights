@@ -7,6 +7,9 @@
 
 SubModel::SubModel(Model* p, wxXmlNode* n) : Model(p->GetModelManager()), parent(p) {
 
+    // copy change count from owning model ... otherwise we lose track of changes when the model is recreated
+    changeCount = p->changeCount;
+
     _nodesAllValid = true;
     ModelXml = n;
     StrobeRate = 0;
