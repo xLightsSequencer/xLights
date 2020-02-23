@@ -1,6 +1,6 @@
 <Vendor Name="ESPixelStick">
 	<Controller Name="ESPixelStick">
-		<FirmwareVersion Name="">
+		<Variant Name="">
 			<SupportsUpload/>
 			<MaxInputUniverses>8</MaxInputUniverses>
 			<MaxPixelPort>0</MaxPixelPort>
@@ -19,6 +19,6 @@
 				<Protocol>ddp</Protocol>
 				<Protocol>zcpp</Protocol>
 			</InputProtocols>
-		</FirmwareVersion>	
+		</Variant>	
 	</Controller>
 </Vendor>

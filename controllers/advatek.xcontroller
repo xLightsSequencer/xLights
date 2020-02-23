@@ -1,6 +1,6 @@
 <Vendor Name="Advatek">
 	<Controller Name="PixLite 4">
-		<FirmwareVersion Name="">
+		<Variant Name="">
 			<SupportsUpload/>
 			<MaxInputUniverses>96</MaxInputUniverses>
 			<MaxPixelPort>4</MaxPixelPort>
@@ -33,10 +33,10 @@
 				<Protocol>e131</Protocol>
 				<Protocol>artnet</Protocol>
 			</InputProtocols>
-		</FirmwareVersion>
+		</Variant>
 	</Controller>
 	<Controller Name="PixLite 4 MkII">
-		<FirmwareVersion Name="">
+		<Variant Name="">
 			<SupportsUpload/>
 			<MaxInputUniverses>96</MaxInputUniverses>
 			<MaxPixelPort>4</MaxPixelPort>
@@ -69,10 +69,10 @@
 				<Protocol>e131</Protocol>
 				<Protocol>artnet</Protocol>
 			</InputProtocols>
-		</FirmwareVersion>
+		</Variant>
 	</Controller>
 	<Controller Name="PixLite 16">
-		<FirmwareVersion Name="">
+		<Variant Name="">
 			<SupportsUpload/>
 			<MaxInputUniverses>96</MaxInputUniverses>
 			<MaxPixelPort>16</MaxPixelPort>
@@ -105,10 +105,10 @@
 				<Protocol>e131</Protocol>
 				<Protocol>artnet</Protocol>
 			</InputProtocols>
-		</FirmwareVersion>
+		</Variant>
 	</Controller>
 	<Controller Name="PixLite 16 MkII">
-		<FirmwareVersion Name="">
+		<Variant Name="">
 			<SupportsUpload/>
 			<MaxInputUniverses>96</MaxInputUniverses>
 			<MaxPixelPort>16</MaxPixelPort>
@@ -141,6 +141,6 @@
 				<Protocol>e131</Protocol>
 				<Protocol>artnet</Protocol>
 			</InputProtocols>
-		</FirmwareVersion>
+		</Variant>
 	</Controller>
 </Vendor>

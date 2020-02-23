@@ -1,6 +1,6 @@
 <Vendor Name="HinksPix">
 	<Controller Name="EasyLights Pix16">
-		<FirmwareVersion Name="">
+		<Variant Name="">
 			<SupportsUpload/>
 			<SupportsInputOnlyUpload/>
 			<MaxInputUniverses>65</MaxInputUniverses>
@@ -26,10 +26,10 @@
 				<Protocol>ddp</Protocol>
 			</InputProtocols>
 			<SupportsMultipleSimultaneousOutputProtocols/>
-		</FirmwareVersion>
+		</Variant>
 	</Controller>
 	<Controller Name="PRO">
-		<FirmwareVersion Name="">
+		<Variant Name="">
 			<SupportsUpload/>
 			<SupportsInputOnlyUpload/>
 			<MaxInputUniverses>144</MaxInputUniverses>
@@ -55,6 +55,6 @@
 				<Protocol>ddp</Protocol>
 			</InputProtocols>
 			<SupportsMultipleSimultaneousOutputProtocols/>
-		</FirmwareVersion>
+		</Variant>
 	</Controller>
 </Vendor>

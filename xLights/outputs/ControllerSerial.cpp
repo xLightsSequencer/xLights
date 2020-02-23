@@ -262,7 +262,7 @@ std::string ControllerSerial::GetExport() const {
         GetName(),
         GetStartChannel(),
         GetEndChannel(),
-        GetVMF(),
+        GetVMV(),
         GetProtocol(),
         GetPort(),
         GetSpeed(),

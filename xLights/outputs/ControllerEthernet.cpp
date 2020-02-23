@@ -373,7 +373,7 @@ std::string ControllerEthernet::GetExport() const {
         GetName(),
         GetStartChannel(),
         GetEndChannel(),
-        GetVMF(),
+        GetVMV(),
         GetProtocol(),
         GetIP(),
         GetDescription(),
@@ -405,7 +405,7 @@ bool ControllerEthernet::SupportsUpload() const {
 
     if (_type == OUTPUT_ZCPP) return false;
 
-    auto c = ControllerCaps::GetControllerConfig(_vendor, _model, _firmwareVersion);
+    auto c = ControllerCaps::GetControllerConfig(_vendor, _model, _variant);
     if (c != nullptr) {
         return c->SupportsUpload();
     }

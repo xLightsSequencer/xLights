@@ -35,12 +35,12 @@ public:
     std::string _oldName;
     std::string _vendor;
     std::string _model;
-    std::string _firmwareVersion;
+    std::string _variant;
     #pragma endregion
 
     #pragma region Constructors and Destructors
-    ControllerNameVendorMap(const std::string& oldVendor, const std::string& oldName, const std::string& vendor, const std::string& model, const std::string& firmwareVersion = "") :
-        _oldVendor(oldVendor), _oldName(oldName), _vendor(vendor), _model(model), _firmwareVersion(firmwareVersion) {}
+    ControllerNameVendorMap(const std::string& oldVendor, const std::string& oldName, const std::string& vendor, const std::string& model, const std::string& variant = "") :
+        _oldVendor(oldVendor), _oldName(oldName), _vendor(vendor), _model(model), _variant(variant) {}
     #pragma endregion
 };
 
@@ -50,34 +50,38 @@ const std::vector<ControllerNameVendorMap> __controllerNameMap =
     ControllerNameVendorMap("AlphaPix", "AlphaPix 4", "Holiday Coro", "AlphaPix 4"),
     ControllerNameVendorMap("AlphaPix", "AlphaPix Flex", "Holiday Coro", "AlphaPix Flex"),
     ControllerNameVendorMap("", "ESPixelStick", "ESPixelStick", ""),
-    ControllerNameVendorMap("FPP", "F16-B", "Kulp", "F16-B"),
-    ControllerNameVendorMap("FPP", "F16-B-32", "Kulp", "F16-B w/32 outputs"),
-    ControllerNameVendorMap("FPP", "F16-B-48", "Kulp", "F16-B w/48 outputs (No Serial)"),
-    ControllerNameVendorMap("FPP", "F32-B-44", "Kulp", "F32-B (4 Serial)"),
-    ControllerNameVendorMap("FPP", "F32-B", "Kulp", "F32-B (8 Serial)"),
-    ControllerNameVendorMap("FPP", "F32-B-48", "Kulp", "F32-B (No Serial)"),
-    ControllerNameVendorMap("FPP", "F4-B", "Kulp", "F4-B"),
-    ControllerNameVendorMap("FPP", "F40D-PB-36", "Kulp", "F40D-PB (4 Serial)"),
-    ControllerNameVendorMap("FPP", "F40D-PB", "Kulp", "F40D-PB (8 Serial)"),
-    ControllerNameVendorMap("FPP", "F40D-PB-40", "Kulp", "F40D-PB (No Serial)"),
-    ControllerNameVendorMap("FPP", "F8-B-16", "Kulp", "F8-B (4 Serial)"),
-    ControllerNameVendorMap("FPP", "F8-B", "Kulp", "F8-B (8 Serial)"),
-    ControllerNameVendorMap("FPP", "F8-B-20", "Kulp", "F8-B (No Serial)"),
-    ControllerNameVendorMap("FPP", "F8-B-EXP-32", "Kulp", "F8-B w/Expansion (4 Serial)"),
-    ControllerNameVendorMap("FPP", "F8-B-EXP", "Kulp", "F8-B w/Expansion (8 Serial)"),
-    ControllerNameVendorMap("FPP", "F8-B-EXP-36", "Kulp", "F8-B w/Expansion (No Serial)"),
+    
+    ControllerNameVendorMap("FPP", "F32-B-44", "KulpLights", "F32-B", "4 Serial"),
+    ControllerNameVendorMap("FPP", "F32-B", "KulpLights", "F32-B", "8 Serial"),
+    ControllerNameVendorMap("FPP", "F32-B-48", "KulpLights", "F32-B", "No Serial"),
+    ControllerNameVendorMap("FPP", "F40D-PB-36", "KulpLights", "F40D-PB", "4 Serial"),
+    ControllerNameVendorMap("FPP", "F40D-PB", "KulpLights", "F40D-PB", "8 Serial"),
+    ControllerNameVendorMap("FPP", "F40D-PB-40", "KulpLights", "F40D-PB", "No Serial"),
+    ControllerNameVendorMap("FPP", "F8-B-16", "KulpLights", "F8-B", " 4 Serial"),
+    ControllerNameVendorMap("FPP", "F8-B", "KulpLights", "F8-B", " 8 Serial"),
+    ControllerNameVendorMap("FPP", "F8-B-20", "KulpLights", "F8-B", " No Serial"),
+    ControllerNameVendorMap("FPP", "F8-B-EXP-32", "KulpLights", "F8-B", "4 Serial w/Expansion"),
+    ControllerNameVendorMap("FPP", "F8-B-EXP", "KulpLights", "F8-B", "8 Serial w/Expansion"),
+    ControllerNameVendorMap("FPP", "F8-B-EXP-36", "KulpLights", "F8-B", "No Serial w/Expansion"),
+    
     ControllerNameVendorMap("FPP", "LED Panels", "FPP", "LED Panels"),
-    ControllerNameVendorMap("FPP", "PB16", "Kulp", "PB16 (2 Serial)"),
-    ControllerNameVendorMap("FPP", "PB16-EXP", "Kulp", "PB16 w/Expansion (2 Serial)"),
+    ControllerNameVendorMap("FPP", "F4-B", "FPP", "F4-B"),
     ControllerNameVendorMap("FPP", "PiHat", "FPP", "Pi Hat"),
     ControllerNameVendorMap("FPP", "RGBCape24", "FPP", "RGBCape24"),
-    ControllerNameVendorMap("FPP", "RGBCape48C", "FPP", "RGBCape48C"),
-    ControllerNameVendorMap("FPP", "RGBCape48F", "FPP", "RGBCape48F"),
+    ControllerNameVendorMap("FPP", "RGBCape48C", "FPP", "RGBCape48", "Revision C"),
+    ControllerNameVendorMap("FPP", "RGBCape48F", "FPP", "RGBCape48", "Revision F"),
+    ControllerNameVendorMap("FPP", "F16-B", "FPP", "F16-B", "No Expansion (8 Serial)"),
+    ControllerNameVendorMap("FPP", "F16-B-32", "FPP", "F16-B", "32 Outputs (8 Serial)"),
+    ControllerNameVendorMap("FPP", "F16-B-48", "FPP", "F16-B", "48 outputs (No Serial)"),
+    ControllerNameVendorMap("FPP", "PB16", "FPP", "PB16", "No Expansion"),
+    ControllerNameVendorMap("FPP", "PB16-EXP", "FPP", "PB16", "Expansion"),
+
     ControllerNameVendorMap("Falcon", "F16v2", "Falcon", "F16V2R Two Expansion Boards"),
     ControllerNameVendorMap("Falcon", "F16v3", "Falcon", "F16V3 Two Expansion Boards"),
     ControllerNameVendorMap("Falcon", "F48v3", "Falcon", "F48"),
     ControllerNameVendorMap("Falcon", "F4v2", "Falcon", "F4V2 One Expansion Board"),
     ControllerNameVendorMap("Falcon", "F4v3", "Falcon", "F4V3 One Expansion Board"),
+    
     ControllerNameVendorMap("HinksPix", "EasyLights Pix16", "HinksPix", "EasyLights Pix16"),
     ControllerNameVendorMap("HinksPix", "HinksPix PRO", "HinksPix", "PRO"),
     ControllerNameVendorMap("J1Sys", "J1Sys P2", "J1Sys", "P2"),
@@ -88,10 +92,10 @@ const std::vector<ControllerNameVendorMap> __controllerNameMap =
     ControllerNameVendorMap("PixLite", "16 MkII", "Advatek", "PixLite 16 MkII"),
     ControllerNameVendorMap("PixLite", "4", "Advatek", "PixLite 4"),
     ControllerNameVendorMap("PixLite", "4 MkII", "Advatek", "PixLite 4 MkII"),
-    ControllerNameVendorMap("SanDevices", "E6804 Firmware 4", "SanDevices", "E6804", "4"),
-    ControllerNameVendorMap("SanDevices", "E6804 Firmware 5", "SanDevices", "E6804", "5"),
-    ControllerNameVendorMap("SanDevices", "E682 Firmware 4", "SanDevices", "E682", "4"),
-    ControllerNameVendorMap("SanDevices", "E682 Firmware 5", "SanDevices", "E682", "5")
+    ControllerNameVendorMap("SanDevices", "E6804 Firmware 4", "SanDevices", "E6804", "4.x Firmware"),
+    ControllerNameVendorMap("SanDevices", "E6804 Firmware 5", "SanDevices", "E6804", "5.x Firmware"),
+    ControllerNameVendorMap("SanDevices", "E682 Firmware 4", "SanDevices", "E682", "4.x Firmware"),
+    ControllerNameVendorMap("SanDevices", "E682 Firmware 5", "SanDevices", "E682", "5.x Firmware")
 };
 
 #pragma region Constructors and Destructors
@@ -114,7 +118,7 @@ Controller::Controller(OutputManager* om, wxXmlNode* node, const std::string& sh
     SetActive(node->GetAttribute("Active", "1") == "1");
     _vendor = node->GetAttribute("Vendor");
     _model = node->GetAttribute("Model");
-    _firmwareVersion = node->GetAttribute("Firmware");
+    _variant = node->GetAttribute("Variant");
     SetSuppressDuplicateFrames(node->GetAttribute("SuppressDuplicates", "0") == "1");
 
     _dirty = false;
@@ -140,7 +144,7 @@ wxXmlNode* Controller::Save() {
     node->AddAttribute("Type", GetType());
     node->AddAttribute("Vendor", GetVendor());
     node->AddAttribute("Model", GetModel());
-    node->AddAttribute("Firmware", GetFirmwareVersion());
+    node->AddAttribute("Variant", GetVariant());
     if (_autoSize) node->AddAttribute("AutoSize", "1");
     //if (_autoStartChannels) node->AddAttribute("AutoStartChannels", "1");
     node->AddAttribute("Active", _active ? "1" : "0");
@@ -304,11 +308,11 @@ void Controller::SetActive(bool active)  {
     } 
 }
 
-std::string Controller::GetVMF() const {
+std::string Controller::GetVMV() const {
 
     std::string res = GetVendor();
     if (GetModel() != "") res += " " + GetModel();
-    if (GetFirmwareVersion() != "") res += " v" + GetFirmwareVersion();
+    if (GetVariant() != "") res += " - " + GetVariant();
     return res;
 }
 
@@ -351,7 +355,7 @@ void Controller::Convert(wxXmlNode* node, std::string showDir) {
             if (it._oldName == c) {
                 SetVendor(it._vendor);
                 SetModel(it._model);
-                SetFirmwareVersion(it._firmwareVersion);
+                SetVariant(it._variant);
                 break;
             }
         }
@@ -414,13 +418,13 @@ void Controller::AddProperties(wxPropertyGrid* propertyGrid, ModelManager* model
             if (_model != "") {
                 int v = 0;
                 wxPGChoices versions;
-                for (const auto& it : ControllerCaps::GetFirmwareVersions(_vendor, _model)) {
+                for (const auto& it : ControllerCaps::GetVariants(_vendor, _model)) {
                     versions.Add(it);
-                    if (it == _firmwareVersion) {
+                    if (it == _variant) {
                         v = versions.GetCount() - 1;
                     }
                 }
-                p = propertyGrid->Append(new wxEnumProperty("Version", "Version", versions, v));
+                p = propertyGrid->Append(new wxEnumProperty("Variant", "Variant", versions, v));
             }
         }
     }
@@ -488,7 +492,7 @@ bool Controller::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelMana
         std::advance(it, event.GetValue().GetLong());
         SetVendor(*it);
         SetModel("");
-        SetFirmwareVersion("");
+        SetVariant("");
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "Controller::HandlePropertyEvent::Vendor");
         outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "Controller::HandlePropertyEvent::AutoSize");
     }
@@ -497,16 +501,16 @@ bool Controller::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelMana
         auto it = begin(models);
         std::advance(it, event.GetValue().GetLong());
         SetModel(*it);
-        SetFirmwareVersion("");
+        SetVariant("");
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "Controller::HandlePropertyEvent::Model");
         outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "Controller::HandlePropertyEvent::AutoSize");
     }
-    else if (name == "Version") {
-        auto const versions = ControllerCaps::GetFirmwareVersions(_vendor, _model);
+    else if (name == "Variant") {
+        auto const versions = ControllerCaps::GetVariants(_vendor, _model);
         auto it = begin(versions);
         std::advance(it, event.GetValue().GetLong());
-        SetFirmwareVersion(*it);
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "Controller::HandlePropertyEvent::Version");
+        SetVariant(*it);
+        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "Controller::HandlePropertyEvent::Variant");
     }
     return false;
 }

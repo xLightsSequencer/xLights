@@ -1,6 +1,6 @@
 <Vendor Name="HolidayCoro">
 	<Controller Name="AlphaPix 4">
-		<FirmwareVersion Name="">
+		<Variant Name="">
 			<SupportsUpload/>
 			<MaxInputUniverses>16</MaxInputUniverses>
 			<MaxPixelPort>4</MaxPixelPort>
@@ -22,10 +22,10 @@
 				<Protocol>e131</Protocol>
 				<Protocol>artnet</Protocol>
 			</InputProtocols>
-		</FirmwareVersion>	
+		</Variant>
 	</Controller>
 	<Controller Name="AlphaPix 16">
-		<FirmwareVersion Name="">
+		<Variant Name="">
 			<SupportsUpload/>
 			<MaxInputUniverses>32</MaxInputUniverses>
 			<MaxPixelPort>16</MaxPixelPort>
@@ -47,10 +47,10 @@
 				<Protocol>e131</Protocol>
 				<Protocol>artnet</Protocol>
 			</InputProtocols>
-		</FirmwareVersion>	
+		</Variant>
 	</Controller>
 	<Controller Name="AlphaPix Flex">
-		<FirmwareVersion Name="">
+		<Variant Name="">
 			<SupportsUpload/>
 			<MaxInputUniverses>96</MaxInputUniverses>
 			<MaxPixelPort>48</MaxPixelPort>
@@ -71,6 +71,6 @@
 				<Protocol>e131</Protocol>
 				<Protocol>artnet</Protocol>
 			</InputProtocols>
-		</FirmwareVersion>	
+		</Variant>	
 	</Controller>
 </Vendor>

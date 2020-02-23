@@ -71,7 +71,7 @@ MultiControllerUploadDialog::MultiControllerUploadDialog(wxWindow* parent, wxWin
         auto eth = dynamic_cast<ControllerEthernet*>(it);
         if (eth != nullptr && eth->SupportsUpload() && eth->GetResolvedIP() != "MULTICAST")
         {
-            auto caps = ControllerCaps::GetControllerConfig(eth->GetVendor(), eth->GetModel(), eth->GetFirmwareVersion());
+            auto caps = ControllerCaps::GetControllerConfig(eth->GetVendor(), eth->GetModel(), eth->GetVariant());
             if (caps->SupportsUpload())
             {
                 _controllers.push_back(eth);
@@ -114,7 +114,7 @@ void MultiControllerUploadDialog::OnButton_UploadClick(wxCommandEvent& event)
 
     for (int i = 0; i < ch.Count() && wxGetKeyState(WXK_ESCAPE) == false; i++) {
         auto c = _controllers[ch[i]];
-        TextCtrl_Log->AppendText("Uploading to controller '" + c->GetName() + "' [" + c->GetIP() + "] " + c->GetVMF() + "\n");
+        TextCtrl_Log->AppendText("Uploading to controller '" + c->GetName() + "' [" + c->GetIP() + "] " + c->GetVMV() + "\n");
         _frame->UploadInputToController(c);
         _frame->UploadOutputToController(c);
         TextCtrl_Log->AppendText("    Done.");

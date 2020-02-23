@@ -1,6 +1,6 @@
 <Vendor Name="J1Sys">
 	<Controller Name="P2">
-		<FirmwareVersion Name="">
+		<Variant Name="">
 			<SupportsUpload/>
 			<MaxInputUniverses>8</MaxInputUniverses>
 			<MaxPixelPort>2</MaxPixelPort>
@@ -21,10 +21,10 @@
 				<Protocol>artnet</Protocol>
 			</InputProtocols>
 			<SupportsMultipleSimultaneousOutputProtocols/>
-		</FirmwareVersion>
+		</Variant>
 	</Controller>
 	<Controller Name="P12D">
-		<FirmwareVersion Name="">
+		<Variant Name="">
 			<SupportsUpload/>
 			<MaxInputUniverses>12</MaxInputUniverses>
 			<MaxPixelPort>12</MaxPixelPort>
@@ -47,10 +47,10 @@
 				<Protocol>artnet</Protocol>
 			</InputProtocols>
 			<SupportsMultipleSimultaneousOutputProtocols/>
-		</FirmwareVersion>
+		</Variant>
 	</Controller>
 	<Controller Name="P12R">
-		<FirmwareVersion Name="">
+		<Variant Name="">
 			<SupportsUpload/>
 			<MaxInputUniverses>96</MaxInputUniverses>
 			<MaxPixelPort>12</MaxPixelPort>
@@ -70,8 +70,8 @@
 				<Protocol>artnet</Protocol>
 			</InputProtocols>
 			<SupportsMultipleSimultaneousOutputProtocols/>
-		</FirmwareVersion>
-		<FirmwareVersion Name="3.4+">
+		</Variant>
+		<Variant Name="3.4+">
 			<SupportsUpload/>
 			<MaxInputUniverses>26</MaxInputUniverses>
 			<MaxPixelPort>12</MaxPixelPort>
@@ -91,10 +91,10 @@
 				<Protocol>artnet</Protocol>
 			</InputProtocols>
 			<SupportsMultipleSimultaneousOutputProtocols/>
-		</FirmwareVersion>
+		</Variant>
 	</Controller>
 	<Controller Name="P12S">
-		<FirmwareVersion Name="">
+		<Variant Name="">
 			<SupportsUpload/>
 			<MaxInputUniverses>96</MaxInputUniverses>
 			<MaxPixelPort>12</MaxPixelPort>
@@ -117,6 +117,6 @@
 				<Protocol>artnet</Protocol>
 			</InputProtocols>
 			<SupportsMultipleSimultaneousOutputProtocols/>
-		</FirmwareVersion>
+		</Variant>
 	</Controller>
 </Vendor>

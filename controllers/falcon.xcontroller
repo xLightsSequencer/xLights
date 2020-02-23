@@ -1,6 +1,6 @@
 <Vendor Name="Falcon">
 	<Controller Name="F4V2 No Expansion Board">
-		<FirmwareVersion Name="">
+		<Variant Name="">
 			<SupportsUpload/>
 			<SupportsInputOnlyUpload/>
 			<MaxInputUniverses>96</MaxInputUniverses>
@@ -38,10 +38,10 @@
 			<SupportsMultipleSimultaneousOutputProtocols/>
 			<SupportsMultipleSimultaneousInputProtocols/>
 			<UniversesMustBeInNumericalOrder/>
-		</FirmwareVersion>
+		</Variant>
 	</Controller>
 	<Controller Name="F4V2 One Expansion Board">
-		<FirmwareVersion Name="">
+		<Variant Name="">
 			<SupportsUpload/>
 			<SupportsInputOnlyUpload/>
 			<MaxInputUniverses>96</MaxInputUniverses>
@@ -79,10 +79,10 @@
 			<SupportsMultipleSimultaneousOutputProtocols/>
 			<SupportsMultipleSimultaneousInputProtocols/>
 			<UniversesMustBeInNumericalOrder/>
-		</FirmwareVersion>
+		</Variant>
 	</Controller>
 	<Controller Name="F4V3 No Expansion Board">
-		<FirmwareVersion Name="">
+		<Variant Name="">
 			<SupportsUpload/>
 			<SupportsInputOnlyUpload/>
 			<MaxInputUniverses>96</MaxInputUniverses>
@@ -117,10 +117,10 @@
 			<SupportsMultipleSimultaneousOutputProtocols/>
 			<SupportsMultipleSimultaneousInputProtocols/>
 			<UniversesMustBeInNumericalOrder/>
-		</FirmwareVersion>
+		</Variant>
 	</Controller>
 	<Controller Name="F4V3 One Expansion Board">
-		<FirmwareVersion Name="">
+		<Variant Name="">
 			<SupportsUpload/>
 			<SupportsInputOnlyUpload/>
 			<MaxInputUniverses>96</MaxInputUniverses>
@@ -155,10 +155,10 @@
 			<SupportsMultipleSimultaneousOutputProtocols/>
 			<SupportsMultipleSimultaneousInputProtocols/>
 			<UniversesMustBeInNumericalOrder/>
-		</FirmwareVersion>
+		</Variant>
 	</Controller>
 	<Controller Name="F16V2">
-		<FirmwareVersion Name="">
+		<Variant Name="">
 			<SupportsUpload/>
 			<SupportsInputOnlyUpload/>
 			<MaxInputUniverses>96</MaxInputUniverses>
@@ -191,10 +191,10 @@
 			<SupportsMultipleSimultaneousOutputProtocols/>
 			<SupportsMultipleSimultaneousInputProtocols/>
 			<UniversesMustBeInNumericalOrder/>
-		</FirmwareVersion>
+		</Variant>
 	</Controller>
 	<Controller Name="F16V2R No Expansion Boards">
-		<FirmwareVersion Name="">
+		<Variant Name="">
 			<SupportsUpload/>
 			<SupportsInputOnlyUpload/>
 			<MaxInputUniverses>96</MaxInputUniverses>
@@ -227,10 +227,10 @@
 			<SupportsMultipleSimultaneousOutputProtocols/>
 			<SupportsMultipleSimultaneousInputProtocols/>
 			<UniversesMustBeInNumericalOrder/>
-		</FirmwareVersion>
+		</Variant>
 	</Controller>
 	<Controller Name="F16V2R One Expansion Board">
-		<FirmwareVersion Name="">
+		<Variant Name="">
 			<SupportsUpload/>
 			<SupportsInputOnlyUpload/>
 			<MaxInputUniverses>96</MaxInputUniverses>
@@ -263,10 +263,10 @@
 			<SupportsMultipleSimultaneousOutputProtocols/>
 			<SupportsMultipleSimultaneousInputProtocols/>
 			<UniversesMustBeInNumericalOrder/>
-		</FirmwareVersion>
+		</Variant>
 	</Controller>
 	<Controller Name="F16V2R Two Expansion Boards">
-		<FirmwareVersion Name="">
+		<Variant Name="">
 			<SupportsUpload/>
 			<SupportsInputOnlyUpload/>
 			<MaxInputUniverses>96</MaxInputUniverses>
@@ -299,10 +299,10 @@
 			<SupportsMultipleSimultaneousOutputProtocols/>
 			<SupportsMultipleSimultaneousInputProtocols/>
 			<UniversesMustBeInNumericalOrder/>
-		</FirmwareVersion>
+		</Variant>
 	</Controller>
 	<Controller Name="F16V3 No Expansion Boards">
-		<FirmwareVersion Name="">
+		<Variant Name="">
 			<SupportsUpload/>
 			<SupportsInputOnlyUpload/>
 			<MaxInputUniverses>96</MaxInputUniverses>
@@ -337,10 +337,10 @@
 			<SupportsMultipleSimultaneousOutputProtocols/>
 			<SupportsMultipleSimultaneousInputProtocols/>
 			<UniversesMustBeInNumericalOrder/>
-		</FirmwareVersion>
+		</Variant>
 	</Controller>
 	<Controller Name="F16V3 One Expansion Board">
-		<FirmwareVersion Name="">
+		<Variant Name="">
 			<SupportsUpload/>
 			<SupportsInputOnlyUpload/>
 			<MaxInputUniverses>96</MaxInputUniverses>
@@ -375,10 +375,10 @@
 			<SupportsMultipleSimultaneousOutputProtocols/>
 			<SupportsMultipleSimultaneousInputProtocols/>
 			<UniversesMustBeInNumericalOrder/>
-		</FirmwareVersion>
+		</Variant>
 	</Controller>
 	<Controller Name="F16V3 Two Expansion Boards">
-		<FirmwareVersion Name="">
+		<Variant Name="">
 			<SupportsUpload/>
 			<SupportsInputOnlyUpload/>
 			<MaxInputUniverses>96</MaxInputUniverses>
@@ -413,10 +413,10 @@
 			<SupportsMultipleSimultaneousOutputProtocols/>
 			<SupportsMultipleSimultaneousInputProtocols/>
 			<UniversesMustBeInNumericalOrder/>
-		</FirmwareVersion>
+		</Variant>
 	</Controller>
 	<Controller Name="F48">
-		<FirmwareVersion Name="">
+		<Variant Name="">
 			<SupportsUpload/>
 			<SupportsInputOnlyUpload/>
 			<MaxInputUniverses>96</MaxInputUniverses>
@@ -451,6 +451,6 @@
 			<SupportsMultipleSimultaneousOutputProtocols/>
 			<SupportsMultipleSimultaneousInputProtocols/>
 			<UniversesMustBeInNumericalOrder/>
-		</FirmwareVersion>
+		</Variant>
 	</Controller>
 </Vendor>

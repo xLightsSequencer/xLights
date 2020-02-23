@@ -1,6 +1,6 @@
 <Vendor Name="SanDevices">
 	<Controller Name="E6804">
-		<FirmwareVersion Name="4">
+		<Variant Name="4.x Firmware">
 			<SupportsUpload/>
 			<SupportsInputOnlyUpload/>
 			<MaxInputUniverses>96</MaxInputUniverses>
@@ -22,8 +22,8 @@
 				<Protocol>artnet</Protocol>
 			</InputProtocols>
 			<SupportsMultipleSimultaneousOutputProtocols/>
-		</FirmwareVersion>
-		<FirmwareVersion Name="5">
+		</Variant>
+		<Variant Name="5.x Firmware">
 			<SupportsUpload/>
 			<SupportsInputOnlyUpload/>
 			<MaxInputUniverses>96</MaxInputUniverses>
@@ -46,10 +46,10 @@
 				<Protocol>artnet</Protocol>
 			</InputProtocols>
 			<SupportsMultipleSimultaneousOutputProtocols/>
-		</FirmwareVersion>
+		</Variant>
 	</Controller>
 	<Controller Name="E682">
-		<FirmwareVersion Name="4">
+		<Variant Name="4.x Firmware">
 			<SupportsUpload/>
 			<SupportsInputOnlyUpload/>
 			<MaxInputUniverses>96</MaxInputUniverses>
@@ -74,8 +74,8 @@
 				<Protocol>artnet</Protocol>
 			</InputProtocols>
 			<SupportsMultipleSimultaneousOutputProtocols/>
-		</FirmwareVersion>
-		<FirmwareVersion Name="5">
+		</Variant>
+		<Variant Name="5.x Firmware">
 			<SupportsUpload/>
 			<SupportsInputOnlyUpload/>
 			<MaxInputUniverses>96</MaxInputUniverses>
@@ -101,6 +101,6 @@
 				<Protocol>artnet</Protocol>
 			</InputProtocols>
 			<SupportsMultipleSimultaneousOutputProtocols/>
-		</FirmwareVersion>
+		</Variant>
 	</Controller>
 </Vendor>

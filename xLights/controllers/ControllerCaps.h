@@ -23,7 +23,6 @@ class ControllerCaps
     #pragma region Member Variables
     std::string _vendor;
     std::string _model;
-    std::string _firmware;
     wxXmlNode* _config = nullptr;
     #pragma endregion
 
@@ -34,7 +33,7 @@ class ControllerCaps
 public:
 
     #pragma region Constructors and Destructors
-    ControllerCaps(wxXmlNode* n) { _config = new wxXmlNode(*n); }
+    ControllerCaps(const std::string& v, const std::string& m, wxXmlNode* n) : _vendor(v), _model(m) { _config = new wxXmlNode(*n); }
     virtual ~ControllerCaps() { if (_config != nullptr) { delete _config; } }
     #pragma endregion Constructors and Destructors
 
@@ -44,7 +43,7 @@ public:
 
     static std::list<std::string> GetVendors();
     static std::list<std::string> GetModels(const std::string& vendor);
-    static std::list<std::string> GetFirmwareVersions(const std::string& vendor, const std::string& model);
+    static std::list<std::string> GetVariants(const std::string& vendor, const std::string& model);
 
     static ControllerCaps* GetControllerConfig(const std::string& vendor, const std::string& model, const std::string& firmwareVersion);
     static ControllerCaps* GetControllerConfig(const Controller* const controller);
@@ -74,6 +73,13 @@ public:
     bool IsValidPixelProtocol(const std::string& protocol) const;
     bool IsValidSerialProtocol(const std::string& protocol) const;
     bool IsValidInputProtocol(const std::string& protocol) const;
+
+    const std::string &GetVendor() const { return _vendor; }
+    const std::string &GetModel() const { return _model; }
+
+    std::string GetVariantName() const;
+    std::string GetID() const;
+
 
     std::list<std::string> GetInputProtocols() const;
     std::list<std::string> GetPixelProtocols() const;
