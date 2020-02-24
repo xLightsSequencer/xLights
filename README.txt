@@ -11,6 +11,10 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2020.6 February 24 2020
+   -- bug (dkulp)  Fix FPP upload ... includes adding board variants which mean users may need to reselect the model for their controllers
+   -- bug (scott)  Fix Artnet 0 universe not available
+   -- bug (scott)  Fix E1.31 autosize not keeping start universe
 2020.5 February 22 2020
    -- enh (keith)  Change halve timings to a more generic divide timings
    -- enh (keith)  Add undo support to divide timings

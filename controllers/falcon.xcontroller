@@ -1,6 +1,6 @@
 <Vendor Name="Falcon">
-	<Controller Name="F4V2 No Expansion Board">
-		<Variant Name="">
+	<Controller Name="F4V2">
+		<Variant Name="No Expansion Board">
 			<SupportsUpload/>
 			<SupportsInputOnlyUpload/>
 			<MaxInputUniverses>96</MaxInputUniverses>
@@ -40,8 +40,8 @@
 			<UniversesMustBeInNumericalOrder/>
 		</Variant>
 	</Controller>
-	<Controller Name="F4V2 One Expansion Board">
-		<Variant Name="">
+	<Controller Name="F4V2">
+		<Variant Name="One Expansion Board">
 			<SupportsUpload/>
 			<SupportsInputOnlyUpload/>
 			<MaxInputUniverses>96</MaxInputUniverses>
@@ -81,8 +81,8 @@
 			<UniversesMustBeInNumericalOrder/>
 		</Variant>
 	</Controller>
-	<Controller Name="F4V3 No Expansion Board">
-		<Variant Name="">
+	<Controller Name="F4V3">
+		<Variant Name="No Expansion Board">
 			<SupportsUpload/>
 			<SupportsInputOnlyUpload/>
 			<MaxInputUniverses>96</MaxInputUniverses>
@@ -119,8 +119,8 @@
 			<UniversesMustBeInNumericalOrder/>
 		</Variant>
 	</Controller>
-	<Controller Name="F4V3 One Expansion Board">
-		<Variant Name="">
+	<Controller Name="F4V3">
+		<Variant Name="One Expansion Board">
 			<SupportsUpload/>
 			<SupportsInputOnlyUpload/>
 			<MaxInputUniverses>96</MaxInputUniverses>
@@ -193,8 +193,8 @@
 			<UniversesMustBeInNumericalOrder/>
 		</Variant>
 	</Controller>
-	<Controller Name="F16V2R No Expansion Boards">
-		<Variant Name="">
+	<Controller Name="F16V2R">
+		<Variant Name="No Expansion Boards">
 			<SupportsUpload/>
 			<SupportsInputOnlyUpload/>
 			<MaxInputUniverses>96</MaxInputUniverses>
@@ -229,8 +229,8 @@
 			<UniversesMustBeInNumericalOrder/>
 		</Variant>
 	</Controller>
-	<Controller Name="F16V2R One Expansion Board">
-		<Variant Name="">
+	<Controller Name="F16V2R">
+		<Variant Name="One Expansion Board">
 			<SupportsUpload/>
 			<SupportsInputOnlyUpload/>
 			<MaxInputUniverses>96</MaxInputUniverses>
@@ -265,8 +265,8 @@
 			<UniversesMustBeInNumericalOrder/>
 		</Variant>
 	</Controller>
-	<Controller Name="F16V2R Two Expansion Boards">
-		<Variant Name="">
+	<Controller Name="F16V2R">
+		<Variant Name="Two Expansion Boards">
 			<SupportsUpload/>
 			<SupportsInputOnlyUpload/>
 			<MaxInputUniverses>96</MaxInputUniverses>
@@ -301,8 +301,8 @@
 			<UniversesMustBeInNumericalOrder/>
 		</Variant>
 	</Controller>
-	<Controller Name="F16V3 No Expansion Boards">
-		<Variant Name="">
+	<Controller Name="F16V3">
+		<Variant Name="No Expansion Boards">
 			<SupportsUpload/>
 			<SupportsInputOnlyUpload/>
 			<MaxInputUniverses>96</MaxInputUniverses>
@@ -339,8 +339,8 @@
 			<UniversesMustBeInNumericalOrder/>
 		</Variant>
 	</Controller>
-	<Controller Name="F16V3 One Expansion Board">
-		<Variant Name="">
+	<Controller Name="F16V3">
+		<Variant Name="One Expansion Board">
 			<SupportsUpload/>
 			<SupportsInputOnlyUpload/>
 			<MaxInputUniverses>96</MaxInputUniverses>
@@ -377,8 +377,8 @@
 			<UniversesMustBeInNumericalOrder/>
 		</Variant>
 	</Controller>
-	<Controller Name="F16V3 Two Expansion Boards">
-		<Variant Name="">
+	<Controller Name="F16V3">
+		<Variant Name="Two Expansion Boards">
 			<SupportsUpload/>
 			<SupportsInputOnlyUpload/>
 			<MaxInputUniverses>96</MaxInputUniverses>
