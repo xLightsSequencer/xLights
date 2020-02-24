@@ -730,8 +730,10 @@
 		<Unit filename="XlightsDrawable.h" />
 		<Unit filename="controllers/AlphaPix.cpp" />
 		<Unit filename="controllers/AlphaPix.h" />
-		<Unit filename="controllers/ControllerRegistry.cpp" />
-		<Unit filename="controllers/ControllerRegistry.h" />
+		<Unit filename="controllers/BaseController.cpp" />
+		<Unit filename="controllers/BaseController.h" />
+		<Unit filename="controllers/ControllerCaps.cpp" />
+		<Unit filename="controllers/ControllerCaps.h" />
 		<Unit filename="controllers/ControllerUploadData.cpp" />
 		<Unit filename="controllers/ControllerUploadData.h" />
 		<Unit filename="controllers/ESPixelStick.cpp" />
@@ -755,6 +757,8 @@
 		<Unit filename="controllers/WebSocketClient.cpp" />
 		<Unit filename="controllers/WebSocketClient.h" />
 		<Unit filename="djdebug.cpp" />
+		<Unit filename="../xFade/wxLED.cpp" />
+		<Unit filename="../xFade/wxLED.h" />
 		<Unit filename="effects/BarsEffect.cpp" />
 		<Unit filename="effects/BarsEffect.h" />
 		<Unit filename="effects/BarsPanel.cpp" />
@@ -1089,6 +1093,13 @@
 		<Unit filename="outputs/ArtNetOutput.cpp" />
 		<Unit filename="outputs/ArtNetOutput.h" />
 		<Unit filename="outputs/Controller.h" />
+		<Unit filename="outputs/Controller.cpp" />
+		<Unit filename="outputs/ControllerEthernet.cpp" />
+		<Unit filename="outputs/ControllerEthernet.h" />
+		<Unit filename="outputs/ControllerNull.cpp" />
+		<Unit filename="outputs/ControllerNull.h" />
+		<Unit filename="outputs/ControllerSerial.cpp" />
+		<Unit filename="outputs/ControllerSerial.h" />
 		<Unit filename="outputs/DDPOutput.cpp" />
 		<Unit filename="outputs/DDPOutput.h" />
 		<Unit filename="outputs/DLightOutput.h" />
