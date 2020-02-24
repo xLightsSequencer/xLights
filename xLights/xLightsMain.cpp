@@ -4601,7 +4601,7 @@ void xLightsFrame::CheckSequence(bool display)
                 }
 
                 check = "";
-                auto fcr = ControllerCaps::GetControllerConfig(it->GetVendor(), it->GetModel(), it->GetFirmwareVersion());
+                auto fcr = ControllerCaps::GetControllerConfig(it->GetVendor(), it->GetModel(), it->GetVariant());
                 if (fcr != nullptr)
                 {
                     edc.Check(fcr, check);

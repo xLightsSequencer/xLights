@@ -656,17 +656,44 @@ bool UDController::ModelProcessed(Model* m) {
 #pragma endregion
 
 #pragma region Constructors and Destructors
-UDController::UDController(Controller* controller, OutputManager* om, ModelManager* mm, std::string& check) {
+UDController::UDController(Controller* controller, OutputManager* om, ModelManager* mm, std::string& check) :
+    _controller(controller), _outputManager(om), _modelManager(mm) {
 
-    _controller = controller;
-    _ipAddress = controller->GetColumn2Label();
+    _ipAddress = _controller->GetColumn2Label();
 
-    for (const auto& it : *mm) {
+    Rescan();
+}
+
+UDController::~UDController() {
+
+    for (const auto& it : _pixelPorts) {
+        delete it.second;
+    }
+    _pixelPorts.clear();
+
+    for (const auto& it : _serialPorts) {
+        delete it.second;
+    }
+    _serialPorts.clear();
+}
+
+void UDController::Rescan() {
+    for (const auto& it : _pixelPorts) {
+        delete it.second;
+    }
+    _pixelPorts.clear();
+
+    for (const auto& it : _serialPorts) {
+        delete it.second;
+    }
+    _serialPorts.clear();
+
+    for (const auto& it : *_modelManager) {
         if (!ModelProcessed(it.second) && it.second->GetDisplayAs() != "ModelGroup") {
             int32_t modelstart = it.second->GetNumberFromChannelString(it.second->ModelStartChannel);
             int32_t modelend = modelstart + it.second->GetChanCount() - 1;
-            if ((modelstart >= controller->GetStartChannel() && modelstart <= controller->GetEndChannel()) ||
-                (modelend >= controller->GetStartChannel() && modelend <= controller->GetEndChannel())) {
+            if ((modelstart >= _controller->GetStartChannel() && modelstart <= _controller->GetEndChannel()) ||
+                (modelend >= _controller->GetStartChannel() && modelend <= _controller->GetEndChannel())) {
                 //logger_base.debug("Model %s start %d end %d found on controller %s output %d start %d end %d.",
                 //    (const char *)it->first.c_str(), modelstart, modelend,
                 //    (const char *)_ip.c_str(), node, currentcontrollerstartchannel, currentcontrollerendchannel);
@@ -681,16 +708,16 @@ UDController::UDController(Controller* controller, OutputManager* om, ModelManag
                     int port = it.second->GetControllerPort();
                     if (it.second->IsPixelProtocol()) {
                         if (it.second->GetNumPhysicalStrings() == 1) {
-                            GetControllerPixelPort(port)->AddModel(it.second, controller, om, -1);
+                            GetControllerPixelPort(port)->AddModel(it.second, _controller, _outputManager, -1);
                         }
                         else {
                             for (int i = 0; i < it.second->GetNumPhysicalStrings(); i++) {
                                 int32_t startChannel = it.second->GetStringStartChan(i) + 1;
                                 int32_t sc;
-                                Controller* c = om->GetController(startChannel, sc);
+                                Controller* c = _outputManager->GetController(startChannel, sc);
                                 if (c != nullptr &&
-                                    controller->GetColumn2Label() == c->GetColumn2Label()) {
-                                    GetControllerPixelPort(port + i)->AddModel(it.second, controller, om, i);
+                                    _controller->GetColumn2Label() == c->GetColumn2Label()) {
+                                    GetControllerPixelPort(port + i)->AddModel(it.second, _controller, _outputManager, i);
                                 }
                                 else {
                                     port = -1 * i;
@@ -699,25 +726,12 @@ UDController::UDController(Controller* controller, OutputManager* om, ModelManag
                         }
                     }
                     else {
-                        GetControllerSerialPort(port)->AddModel(it.second, controller, om, -1);
+                        GetControllerSerialPort(port)->AddModel(it.second, _controller, _outputManager, -1);
                     }
                 }
             }
         }
     }
-}
-
-UDController::~UDController() {
-
-    for (const auto& it : _pixelPorts) {
-        delete it.second;
-    }
-    _pixelPorts.clear();
-
-    for (const auto& it : _serialPorts) {
-        delete it.second;
-    }
-    _serialPorts.clear();
 }
 #pragma endregion
 

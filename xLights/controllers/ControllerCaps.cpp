@@ -79,12 +79,12 @@ void ControllerCaps::LoadControllers() {
 
                                 auto& c = v[controller];
                                 for (wxXmlNode* nnn = nn->GetChildren(); nnn != nullptr; nnn = nnn->GetNext()) {
-                                    if (nnn->GetName() == "FirmwareVersion") {
+                                    if (nnn->GetName() == "Variant") {
                                         auto fwv = nnn->GetAttribute("Name");
                                         if (c.find(fwv) == c.end()) {
                                             c[fwv] = nullptr;
                                         }
-                                        c[fwv] = new ControllerCaps(nnn);
+                                        c[fwv] = new ControllerCaps(vendor, controller, nnn);
                                     }
                                 }
                             }
@@ -143,7 +143,7 @@ std::list<std::string> ControllerCaps::GetModels(const std::string& vendor) {
     return models;
 }
 
-std::list<std::string> ControllerCaps::GetFirmwareVersions(const std::string& vendor, const std::string& model) {
+std::list<std::string> ControllerCaps::GetVariants(const std::string& vendor, const std::string& model) {
 
     LoadControllers();
     std::list<std::string> versions;
@@ -165,10 +165,10 @@ ControllerCaps* ControllerCaps::GetControllerConfig(const Controller* const cont
 
     if (controller == nullptr) return nullptr;
 
-    return GetControllerConfig(controller->GetVendor(), controller->GetModel(), controller->GetFirmwareVersion());
+    return GetControllerConfig(controller->GetVendor(), controller->GetModel(), controller->GetVariant());
 }
 
-ControllerCaps* ControllerCaps::GetControllerConfig(const std::string& vendor, const std::string& model, const std::string& firmwareVersion) {
+ControllerCaps* ControllerCaps::GetControllerConfig(const std::string& vendor, const std::string& model, const std::string& variant) {
 
     LoadControllers();
     std::list<std::string> versions;
@@ -177,7 +177,7 @@ ControllerCaps* ControllerCaps::GetControllerConfig(const std::string& vendor, c
     if (v != __controllers.end()) {
         auto m = v->second.find(model);
         if (m != v->second.end()) {
-            auto f = m->second.find(firmwareVersion);
+            auto f = m->second.find(variant);
             if (f != m->second.end()) return f->second;
         }
     }
@@ -326,6 +326,16 @@ std::list<std::string> ControllerCaps::GetSerialProtocols() const {
     return GetXmlNodeListContent(_config, "SerialProtocols", "Protocol");
 }
 
+std::string ControllerCaps::GetVariantName() const {
+    auto name = _config->GetAttribute("Name");
+    return name.ToStdString();
+}
+std::string ControllerCaps::GetID() const {
+    auto name = _config->GetAttribute("ID");
+    return name.ToStdString();
+}
+
+
 std::string ControllerCaps::GetCustomPropertyByPath(const std::string name, const std::string& def) const {
 
     return GetXmlNodeContent(_config, name, def);
@@ -334,7 +344,7 @@ std::string ControllerCaps::GetCustomPropertyByPath(const std::string name, cons
 void ControllerCaps::Dump() const
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("Controller Capabilities " + _vendor + ":" + _model + ":" + _firmware);
+    logger_base.debug("Controller Capabilities " + _vendor + ":" + _model + ":" + GetVariantName());
 
     if (SupportsUpload()) logger_base.debug("   Supports upload.");
     if (SupportsInputOnlyUpload()) logger_base.debug("   Supports input only upload.");

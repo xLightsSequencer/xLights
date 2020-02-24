@@ -49,7 +49,7 @@ protected:
     bool _active = true;                     // output to controller is active
     std::string _vendor;                     // the controller vendor
     std::string _model;                      // the model of the controller
-    std::string _firmwareVersion;            // the firmware on the controller
+    std::string _variant;                    // the variant of the controller
     bool _suppressDuplicateFrames = false;   // should we suppress duplicate fromes
     Output::PINGSTATE _lastPingResult = Output::PINGSTATE::PING_UNKNOWN; // last ping result
 #pragma endregion
@@ -95,7 +95,7 @@ public:
     int GetId() const { return _id; }
     void EnsureUniqueId();
 
-    std::string GetDescription() const { return _description; }
+    const std::string &GetDescription() const { return _description; }
     void SetDescription(const std::string& description) { if (_description != description) { _description = description; _dirty = true; } }
     
     void SetAutoSize(bool autosize) { if (_autoSize != autosize) { _autoSize = autosize; _dirty = true; } }
@@ -109,13 +109,13 @@ public:
 
     bool IsOk() const { return _ok; }
 
-    std::string GetVendor() const { return _vendor; }
+    const std::string &GetVendor() const { return _vendor; }
     void SetVendor(const std::string& vendor) { if (_vendor != vendor) { _vendor = vendor; _dirty = true; } }
-    std::string GetModel() const { return _model; }
+    const std::string &GetModel() const { return _model; }
     void SetModel(const std::string& model) { if (_model != model) { _model = model; _dirty = true; } }
-    std::string GetFirmwareVersion() const { return _firmwareVersion; }
-    void SetFirmwareVersion(const std::string& firmwareVersion) { if (_firmwareVersion != firmwareVersion) { _firmwareVersion = firmwareVersion; _dirty = true; } }
-    std::string GetVMF() const;
+    const std::string &GetVariant() const { return _variant; }
+    void SetVariant(const std::string& variant) { if (_variant != variant) { _variant = variant; _dirty = true; } }
+    std::string GetVMV() const;
 
     bool IsSuppressDuplicateFrames() const { return _suppressDuplicateFrames; }
     void SetSuppressDuplicateFrames(bool suppress);

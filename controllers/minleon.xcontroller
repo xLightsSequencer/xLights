@@ -1,6 +1,6 @@
 <Vendor Name="Minleon">
 	<Controller Name="RGB NDB Plus">
-		<FirmwareVersion Name="">
+		<Variant Name="">
 			<!--SupportsUpload/-->
 			<MaxInputUniverses>16</MaxInputUniverses>
 			<MaxPixelPort>16</MaxPixelPort>
@@ -26,6 +26,6 @@
 				<Protocol>ddp</Protocol>
 			</InputProtocols>
 			<UniversesMustBeInNumericalOrder/>
-		</FirmwareVersion>
+		</Variant>
 	</Controller>
 </Vendor>

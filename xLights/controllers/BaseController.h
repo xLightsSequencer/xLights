@@ -57,8 +57,8 @@ public:
     #pragma region Getters and Setters
     bool IsConnected() const { return _connected; };
 
-    virtual std::string GetModel() const { return _model; }
-    virtual std::string GetVersion() const { return _version; }
+    virtual const std::string &GetModel() const { return _model; }
+    virtual const std::string &GetVersion() const { return _version; }
     virtual std::string GetFullName() const { return _model + ((_version == "") ? _("") : (_(" ") + _version)); }
     virtual bool SetInputUniverses(ControllerEthernet* controller, wxWindow* parent) { return false; }
     virtual bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent) = 0;

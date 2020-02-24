@@ -88,7 +88,7 @@ std::string ControllerNull::GetExport() const {
         GetName(),
         GetStartChannel(),
         GetEndChannel(),
-        GetVMF(),
+        GetVMV(),
         GetDescription(),
         GetId(),
         GetChannels(),

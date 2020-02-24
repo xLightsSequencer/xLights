@@ -348,7 +348,7 @@ void xLightsFrame::GetControllerDetailsForChannel(int32_t channel, std::string& 
     controllername = "";
 
     if (c != nullptr) {
-        type = c->GetVMF();
+        type = c->GetVMV();
         description = c->GetDescription();
         channeloffset = csc;
         controllername = c->GetName();
@@ -1412,7 +1412,7 @@ ControllerCaps* xLightsFrame::GetControllerCaps(const std::string& name) {
 
     auto controller = _outputManager.GetController(name);
     if (controller == nullptr) return nullptr;
-    return ControllerCaps::GetControllerConfig(controller->GetVendor(), controller->GetModel(), controller->GetFirmwareVersion());
+    return ControllerCaps::GetControllerConfig(controller->GetVendor(), controller->GetModel(), controller->GetVariant());
 }
 
 #pragma region Controller Properties
@@ -1932,7 +1932,7 @@ void xLightsFrame::OnButtonVisualiseClick(wxCommandEvent& event) {
     if (controller != nullptr) {
         std::string check;
         UDController cud(controller, &_outputManager, &AllModels, check);
-        ControllerModelDialog dlg(this, cud, controller->GetColumn2Label(), controller->GetDescription());
+        ControllerModelDialog dlg(this, &cud, &AllModels, controller);
         dlg.ShowModal();
     }
     else {
@@ -2021,7 +2021,7 @@ void xLightsFrame::UploadInputToController(ControllerEthernet* controller) {
             if (vendor == "Falcon") {
                 bc = new Falcon(ip, proxy);
             }
-            else if (vendor == "FPP" || vendor == "Kulp") {
+            else if (vendor == "FPP" || vendor == "KulpLights") {
                 bc = new FPP(ip);
             }
             else if (vendor == "SanDevices") {
@@ -2034,22 +2034,22 @@ void xLightsFrame::UploadInputToController(ControllerEthernet* controller) {
             if (bc != nullptr)
             {
                 if (bc->SetInputUniverses(controller, this)) {
-                    logger_base.debug("Attempt to upload controller inputs successful on controller %s:%s:%s", (const char*)controller->GetVendor().c_str(), (const char*)controller->GetModel().c_str(), (const char*)controller->GetFirmwareVersion().c_str());
+                    logger_base.debug("Attempt to upload controller inputs successful on controller %s:%s:%s", (const char*)controller->GetVendor().c_str(), (const char*)controller->GetModel().c_str(), (const char*)controller->GetVariant().c_str());
                     SetStatusText(vendor + " Input Upload complete.");
                 }
                 else {
-                    logger_base.error("Attempt to upload controller inputs failed on controller %s:%s:%s", (const char*)controller->GetVendor().c_str(), (const char*)controller->GetModel().c_str(), (const char*)controller->GetFirmwareVersion().c_str());
+                    logger_base.error("Attempt to upload controller inputs failed on controller %s:%s:%s", (const char*)controller->GetVendor().c_str(), (const char*)controller->GetModel().c_str(), (const char*)controller->GetVariant().c_str());
                     SetStatusText(vendor + " Input Upload failed.");
                 }
             }
             else {
-                logger_base.error("Attempt to upload controller inputs on a unsupported controller %s:%s:%s", (const char*)controller->GetVendor().c_str(), (const char*)controller->GetModel().c_str(), (const char*)controller->GetFirmwareVersion().c_str());
+                logger_base.error("Attempt to upload controller inputs on a unsupported controller %s:%s:%s", (const char*)controller->GetVendor().c_str(), (const char*)controller->GetModel().c_str(), (const char*)controller->GetVariant().c_str());
                 SetStatusText(vendor + " Input Upload not supported.");
             }
         }
         else {
             // This controller does not support uploads
-            logger_base.error("Attempt to upload controller inputs on a unsupported controller %s:%s:%s", (const char*)controller->GetVendor().c_str(), (const char*)controller->GetModel().c_str(), (const char*)controller->GetFirmwareVersion().c_str());
+            logger_base.error("Attempt to upload controller inputs on a unsupported controller %s:%s:%s", (const char*)controller->GetVendor().c_str(), (const char*)controller->GetModel().c_str(), (const char*)controller->GetVariant().c_str());
             SetStatusText("Upload not supported.");
         }
     }
@@ -2105,7 +2105,7 @@ void xLightsFrame::UploadOutputToController(ControllerEthernet* controller) {
             else if (vendor == "HolidayCoro") {
                 bc = new AlphaPix(ip, proxy);
             }
-            else if (vendor == "FPP" || vendor == "Kulp") {
+            else if (vendor == "FPP" || vendor == "KulpLights") {
                 bc = new FPP(controller);
             }
 

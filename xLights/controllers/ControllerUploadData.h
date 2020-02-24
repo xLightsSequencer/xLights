@@ -198,6 +198,8 @@ class UDController
 	std::map<int, UDControllerPort*> _pixelPorts;
 	std::map<int, UDControllerPort*> _serialPorts;
     std::list<Model*> _noConnectionModels;
+    OutputManager* _outputManager = nullptr;
+    ModelManager* _modelManager = nullptr;
     #pragma endregion
 
     #pragma region Private Functions
@@ -209,6 +211,7 @@ class UDController
     #pragma region Constructors and Destructors
     UDController(Controller* controller, OutputManager* om, ModelManager* mm, std::string& check);
 	~UDController();
+    void Rescan();
     #pragma endregion
 
     #pragma region Port Handling

@@ -14,6 +14,7 @@
 class ControllerModelDialog;
 class Output;
 class BaseCMObject;
+class xLightsFrame;
 
 class ControllerModelPrintout : public wxPrintout
 {
@@ -25,18 +26,22 @@ public:
 
 class ControllerModelDialog: public wxDialog
 {
-    UDController& _cud;
-    std::string _ip;
-    std::string _description;
+	std::string _title;
+    UDController* _cud = nullptr;
+	Controller* _controller = nullptr;
+	ModelManager* _mm = nullptr;
+	xLightsFrame* _xLights = nullptr;
+	ControllerCaps* _caps = nullptr;
 	std::list<BaseCMObject*> _models;
 	std::list<BaseCMObject*> _controllers;
 
 	BaseCMObject* GetControllerCMObjectAt(wxPoint mouse);
 	BaseCMObject* GetModelsCMObjectAt(wxPoint mouse);
+	void ReloadModels();
 
 	public:
 
-		ControllerModelDialog(wxWindow* parent, UDController& cud, const std::string& ip, const std::string& description, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
+		ControllerModelDialog(wxWindow* parent, UDController* cud, ModelManager* mm, Controller* controller, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
 		virtual ~ControllerModelDialog();
 
 		//(*Declarations(ControllerModelDialog)
@@ -71,16 +76,6 @@ class ControllerModelDialog: public wxDialog
 	private:
 
 		//(*Handlers(ControllerModelDialog)
-		void OnPanel1Paint(wxPaintEvent& event);
-		void OnScrollBar_VerticalScroll(wxScrollEvent& event);
-		void OnScrollBar_HorizontalScroll(wxScrollEvent& event);
-		void OnScrollBar_HorizontalScrollThumbTrack(wxScrollEvent& event);
-		void OnScrollBar_HorizontalScrollChanged(wxScrollEvent& event);
-		void OnScrollBar_VerticalScrollChanged(wxScrollEvent& event);
-		void OnScrollBar_VerticalScrollThumbTrack(wxScrollEvent& event);
-		void OnPanel1Resize(wxSizeEvent& event);
-		void OnPanel1RightDown(wxMouseEvent& event);
-		void OnPanel1MouseWheel(wxMouseEvent& event);
 		void OnPanelControllerLeftDown(wxMouseEvent& event);
 		void OnPanelControllerKeyDown(wxKeyEvent& event);
 		void OnPanelControllerLeftUp(wxMouseEvent& event);
@@ -115,9 +110,6 @@ class ControllerModelDialog: public wxDialog
 		//*)
 
         void OnPopupCommand(wxCommandEvent & event);
-
-		void RenderDiagram(wxDC& dc, int scale = 1, bool addHeader = false);
-
 		void SaveCSV();
 
 		DECLARE_EVENT_TABLE()

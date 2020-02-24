@@ -1,6 +1,6 @@
 <Vendor Name="FPP">
 	<Controller Name="LED Panels">
-		<FirmwareVersion Name="">
+		<Variant Name="">
 			<SupportsUpload/>
 			<SupportsInputOnlyUpload/>
 			<MaxInputUniverses>200</MaxInputUniverses>
@@ -19,10 +19,10 @@
 				<Protocol>ddp</Protocol>
 			</InputProtocols>
 			<SupportsMultipleSimultaneousInputProtocols/>
-		</FirmwareVersion>
+		</Variant>
 	</Controller>
 	<Controller Name="Pi Hat">
-		<FirmwareVersion Name="">
+		<Variant Name="" ID="PiHat">
 			<SupportsUpload/>
 			<SupportsInputOnlyUpload/>
 			<MaxInputUniverses>200</MaxInputUniverses>
@@ -46,10 +46,10 @@
 				<Protocol>ddp</Protocol>
 			</InputProtocols>
 			<SupportsMultipleSimultaneousInputProtocols/>
-		</FirmwareVersion>
+		</Variant>
 	</Controller>
 	<Controller Name="RGBCape24">
-		<FirmwareVersion Name="">
+		<Variant Name="" ID="RGBCape24">
 			<SupportsUpload/>
 			<SupportsInputOnlyUpload/>
 			<MaxInputUniverses>200</MaxInputUniverses>
@@ -77,10 +77,10 @@
 			<fpp1>1,8</fpp1>
 			<fpp2>9,8</fpp2>
 			<fpp3>17,8</fpp3>
-		</FirmwareVersion>
+		</Variant>
 	</Controller>
-	<Controller Name="RGBCape48C">
-		<FirmwareVersion Name="">
+	<Controller Name="RGBCape48">
+		<Variant Name="Revision C" ID="RGBCape48C">
 			<SupportsUpload/>
 			<SupportsInputOnlyUpload/>
 			<MaxInputUniverses>200</MaxInputUniverses>
@@ -111,10 +111,8 @@
 			<fpp4>25,8</fpp4>
 			<fpp5>33,8</fpp5>
 			<fpp6>41,8</fpp6>
-		</FirmwareVersion>
-	</Controller>
-	<Controller Name="RGBCape48F">
-		<FirmwareVersion Name="">
+		</Variant>
+        <Variant Name="Revision F" ID="RGBCape48F">
 			<SupportsUpload/>
 			<SupportsInputOnlyUpload/>
 			<MaxInputUniverses>200</MaxInputUniverses>
@@ -145,6 +143,170 @@
 			<fpp4>25,8</fpp4>
 			<fpp5>33,8</fpp5>
 			<fpp6>41,8</fpp6>
-		</FirmwareVersion>
+		</Variant>
 	</Controller>
+    <Controller Name="F4-B">
+        <Variant Name="" ID="F4-B">
+            <SupportsUpload/>
+            <SupportsInputOnlyUpload/>
+            <MaxInputUniverses>200</MaxInputUniverses>
+            <MaxPixelPort>4</MaxPixelPort>
+            <MaxSerialPort>1</MaxSerialPort>
+            <MaxSerialPortChannels>512</MaxSerialPortChannels>
+            <MaxPixelPortChannels>4200</MaxPixelPortChannels>
+            <SupportsVirtualStrings/>
+            <SupportsSmartRemotes/>
+            <PixelProtocols>
+                <Protocol>ws2811</Protocol>
+            </PixelProtocols>
+            <SerialProtocols>
+                <Protocol>dmx</Protocol>
+                <Protocol>renard</Protocol>
+                <Protocol>pixelnet</Protocol>
+            </SerialProtocols>
+            <InputProtocols>
+                <Protocol>e131</Protocol>
+                <Protocol>artnet</Protocol>
+                <Protocol>ddp</Protocol>
+            </InputProtocols>
+            <SupportsMultipleSimultaneousInputProtocols/>
+        </Variant>
+    </Controller>
+    <Controller Name="F16-B">
+		<Variant Name="No Expansion (8 Serial)" ID="F16-B">
+			<SupportsUpload/>
+			<SupportsInputOnlyUpload/>
+			<MaxInputUniverses>200</MaxInputUniverses>
+			<MaxPixelPort>16</MaxPixelPort>
+			<MaxSerialPort>8</MaxSerialPort>
+			<MaxSerialPortChannels>512</MaxSerialPortChannels>
+			<MaxPixelPortChannels>4200</MaxPixelPortChannels>
+			<SupportsVirtualStrings/>
+			<SupportsSmartRemotes/>
+			<PixelProtocols>
+				<Protocol>ws2811</Protocol>
+			</PixelProtocols>
+			<SerialProtocols>
+				<Protocol>dmx</Protocol>
+				<Protocol>renard</Protocol>
+				<Protocol>pixelnet</Protocol>
+			</SerialProtocols>
+			<InputProtocols>
+				<Protocol>e131</Protocol>
+				<Protocol>artnet</Protocol>
+				<Protocol>ddp</Protocol>
+			</InputProtocols>
+			<SupportsMultipleSimultaneousInputProtocols/>
+		</Variant>
+		<Variant Name="32 Outputs (8 Serial)" ID="F16-B-32">
+			<SupportsUpload/>
+			<SupportsInputOnlyUpload/>
+			<MaxInputUniverses>200</MaxInputUniverses>
+			<MaxPixelPort>32</MaxPixelPort>
+			<MaxSerialPort>8</MaxSerialPort>
+			<MaxSerialPortChannels>512</MaxSerialPortChannels>
+			<MaxPixelPortChannels>4200</MaxPixelPortChannels>
+			<SupportsVirtualStrings/>
+			<SupportsSmartRemotes/>
+			<PixelProtocols>
+				<Protocol>ws2811</Protocol>
+			</PixelProtocols>
+			<SerialProtocols>
+				<Protocol>dmx</Protocol>
+				<Protocol>renard</Protocol>
+				<Protocol>pixelnet</Protocol>
+			</SerialProtocols>
+			<InputProtocols>
+				<Protocol>e131</Protocol>
+				<Protocol>artnet</Protocol>
+				<Protocol>ddp</Protocol>
+			</InputProtocols>
+			<SupportsMultipleSimultaneousInputProtocols/>
+			<fpp>1</fpp>
+			<fpp1>17,16</fpp1>
+		</Variant>
+		<Variant Name="48 outputs (No Serial)" ID="F16-B-48">
+			<SupportsUpload/>
+			<SupportsInputOnlyUpload/>
+			<MaxInputUniverses>200</MaxInputUniverses>
+			<MaxPixelPort>48</MaxPixelPort>
+			<MaxSerialPort>0</MaxSerialPort>
+			<MaxSerialPortChannels>0</MaxSerialPortChannels>
+			<MaxPixelPortChannels>4200</MaxPixelPortChannels>
+			<SupportsVirtualStrings/>
+			<SupportsSmartRemotes/>
+			<PixelProtocols>
+				<Protocol>ws2811</Protocol>
+			</PixelProtocols>
+			<SerialProtocols>
+				<Protocol>dmx</Protocol>
+				<Protocol>renard</Protocol>
+				<Protocol>pixelnet</Protocol>
+			</SerialProtocols>
+			<InputProtocols>
+				<Protocol>e131</Protocol>
+				<Protocol>artnet</Protocol>
+				<Protocol>ddp</Protocol>
+			</InputProtocols>
+			<SupportsMultipleSimultaneousInputProtocols/>
+			<fpp>2</fpp>
+			<fpp1>17,16</fpp1>
+			<fpp2>33,16</fpp2>
+		</Variant>
+	</Controller>
+    <Controller Name="PB16">
+        <Variant Name="No Expansion" ID="PB16">
+            <SupportsUpload/>
+            <SupportsInputOnlyUpload/>
+            <MaxInputUniverses>200</MaxInputUniverses>
+            <MaxPixelPort>16</MaxPixelPort>
+            <MaxSerialPort>2</MaxSerialPort>
+            <MaxSerialPortChannels>512</MaxSerialPortChannels>
+            <MaxPixelPortChannels>4200</MaxPixelPortChannels>
+            <SupportsVirtualStrings/>
+            <SupportsSmartRemotes/>
+            <PixelProtocols>
+                <Protocol>ws2811</Protocol>
+            </PixelProtocols>
+            <SerialProtocols>
+                <Protocol>dmx</Protocol>
+                <Protocol>renard</Protocol>
+                <Protocol>pixelnet</Protocol>
+            </SerialProtocols>
+            <InputProtocols>
+                <Protocol>e131</Protocol>
+                <Protocol>artnet</Protocol>
+                <Protocol>ddp</Protocol>
+            </InputProtocols>
+            <SupportsMultipleSimultaneousInputProtocols/>
+        </Variant>
+        <Variant Name="Expansion" ID="PB16-EXP">
+            <SupportsUpload/>
+            <SupportsInputOnlyUpload/>
+            <MaxInputUniverses>200</MaxInputUniverses>
+            <MaxPixelPort>32</MaxPixelPort>
+            <MaxSerialPort>2</MaxSerialPort>
+            <MaxSerialPortChannels>512</MaxSerialPortChannels>
+            <MaxPixelPortChannels>4200</MaxPixelPortChannels>
+            <SupportsVirtualStrings/>
+            <SupportsSmartRemotes/>
+            <PixelProtocols>
+                <Protocol>ws2811</Protocol>
+            </PixelProtocols>
+            <SerialProtocols>
+                <Protocol>dmx</Protocol>
+                <Protocol>renard</Protocol>
+                <Protocol>pixelnet</Protocol>
+            </SerialProtocols>
+            <InputProtocols>
+                <Protocol>e131</Protocol>
+                <Protocol>artnet</Protocol>
+                <Protocol>ddp</Protocol>
+            </InputProtocols>
+            <SupportsMultipleSimultaneousInputProtocols/>
+            <fpp>1</fpp>
+            <fpp1>17,16</fpp1>
+        </Variant>
+    </Controller>
+
 </Vendor>

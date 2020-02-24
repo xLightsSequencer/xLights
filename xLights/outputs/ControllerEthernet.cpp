@@ -373,7 +373,7 @@ std::string ControllerEthernet::GetExport() const {
         GetName(),
         GetStartChannel(),
         GetEndChannel(),
-        GetVMF(),
+        GetVMV(),
         GetProtocol(),
         GetIP(),
         GetDescription(),
@@ -405,7 +405,7 @@ bool ControllerEthernet::SupportsUpload() const {
 
     if (_type == OUTPUT_ZCPP) return false;
 
-    auto c = ControllerCaps::GetControllerConfig(_vendor, _model, _firmwareVersion);
+    auto c = ControllerCaps::GetControllerConfig(_vendor, _model, _variant);
     if (c != nullptr) {
         return c->SupportsUpload();
     }
@@ -429,6 +429,7 @@ bool ControllerEthernet::SetChannelSize(int32_t channels) {
     {
         #define CONVERT_CHANNELS_PER_UNIVERSE 510
         auto const oldIP = _outputs.front()->GetIP();
+        auto const oldStartUniverse = _outputs.front()->GetUniverse();
         _forceSizes = false;
         DeleteAllOutputs();
         int universes = (channels + CONVERT_CHANNELS_PER_UNIVERSE - 1) / CONVERT_CHANNELS_PER_UNIVERSE;
@@ -447,8 +448,9 @@ bool ControllerEthernet::SetChannelSize(int32_t channels) {
             }
             _outputs.back()->SetChannels(CONVERT_CHANNELS_PER_UNIVERSE );
             _outputs.back()->SetIP(oldIP);
-            _outputs.back()->SetUniverse(i + 1);
+            _outputs.back()->SetUniverse(i + oldStartUniverse);
             _outputs.back()->SetFPPProxyIP(_fppProxy);
+            _outputs.back()->SetSuppressDuplicateFrames(_suppressDuplicateFrames);
         }
     }
     return true;
@@ -517,7 +519,10 @@ void ControllerEthernet::AddProperties(wxPropertyGrid* propertyGrid, ModelManage
             ud = "Ports";
         }
         p = propertyGrid->Append(new wxUIntProperty(u, "Universe", _outputs.front()->GetUniverse()));
-        p->SetAttribute("Min", 1);
+        if (_type == OUTPUT_ARTNET)
+            p->SetAttribute("Min", 0);
+        else
+            p->SetAttribute("Min", 1);
         p->SetAttribute("Max", 64000);
         p->SetEditor("SpinCtrl");
 

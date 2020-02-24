@@ -1,6 +1,6 @@
 <Vendor Name="LOR">
 	<Controller Name="PixCon 16">
-		<FirmwareVersion Name="">
+		<Variant Name="">
 			<SupportsUpload/>
 			<MaxInputUniverses>96</MaxInputUniverses>
 			<MaxPixelPort>16</MaxPixelPort>
@@ -33,10 +33,10 @@
 				<Protocol>e131</Protocol>
 				<Protocol>artnet</Protocol>
 			</InputProtocols>
-		</FirmwareVersion>
+		</Variant>
 	</Controller>
 	<Controller Name="Pixe 4">
-		<FirmwareVersion Name="">
+		<Variant Name="">
 			<MaxInputUniverses>0</MaxInputUniverses>
 			<MaxPixelPort>4</MaxPixelPort>
 			<MaxSerialPort>0</MaxSerialPort>
@@ -54,10 +54,10 @@
 			<InputProtocols>
 				<Protocol>lor</Protocol>
 			</InputProtocols>
-		</FirmwareVersion>
+		</Variant>
 	</Controller>
 	<Controller Name="Pixie 8">
-		<FirmwareVersion Name="">
+		<Variant Name="">
 			<MaxInputUniverses>0</MaxInputUniverses>
 			<MaxPixelPort>8</MaxPixelPort>
 			<MaxSerialPort>0</MaxSerialPort>
@@ -75,10 +75,10 @@
 			<InputProtocols>
 				<Protocol>lor</Protocol>
 			</InputProtocols>
-		</FirmwareVersion>
+		</Variant>
 	</Controller>
 	<Controller Name="Pixie 16">
-		<FirmwareVersion Name="">
+		<Variant Name="">
 			<MaxInputUniverses>0</MaxInputUniverses>
 			<MaxPixelPort>16</MaxPixelPort>
 			<MaxSerialPort>0</MaxSerialPort>
@@ -96,10 +96,10 @@
 			<InputProtocols>
 				<Protocol>lor</Protocol>
 			</InputProtocols>
-		</FirmwareVersion>
+		</Variant>
 	</Controller>
 	<Controller Name="CTB32">
-		<FirmwareVersion Name="">
+		<Variant Name="">
 			<MaxInputUniverses>1</MaxInputUniverses>
 			<MaxPixelPort>0</MaxPixelPort>
 			<MaxSerialPort>1</MaxSerialPort>
@@ -114,10 +114,10 @@
 				<Protocol>dmx</Protocol>
 				<Protocol>lor</Protocol>
 			</InputProtocols>
-		</FirmwareVersion>
+		</Variant>
 	</Controller>
 	<Controller Name="CTB16PC">
-		<FirmwareVersion Name="">
+		<Variant Name="">
 			<MaxInputUniverses>1</MaxInputUniverses>
 			<MaxPixelPort>0</MaxPixelPort>
 			<MaxSerialPort>1</MaxSerialPort>
@@ -132,10 +132,10 @@
 				<Protocol>dmx</Protocol>
 				<Protocol>lor</Protocol>
 			</InputProtocols>
-		</FirmwareVersion>
+		</Variant>
 	</Controller>
 	<Controller Name="DIO32 DMX">
-		<FirmwareVersion Name="">
+		<Variant Name="">
 			<MaxInputUniverses>1</MaxInputUniverses>
 			<MaxPixelPort>0</MaxPixelPort>
 			<MaxSerialPort>1</MaxSerialPort>
@@ -150,10 +150,10 @@
 				<Protocol>dmx</Protocol>
 				<Protocol>lor</Protocol>
 			</InputProtocols>
-		</FirmwareVersion>
+		</Variant>
 	</Controller>
 	<Controller Name="CTB08">
-		<FirmwareVersion Name="">
+		<Variant Name="">
 			<MaxInputUniverses>1</MaxInputUniverses>
 			<MaxPixelPort>0</MaxPixelPort>
 			<MaxSerialPort>1</MaxSerialPort>
@@ -168,10 +168,10 @@
 				<Protocol>dmx</Protocol>
 				<Protocol>lor</Protocol>
 			</InputProtocols>
-		</FirmwareVersion>
+		</Variant>
 	</Controller>
 	<Controller Name="CTB04PC">
-		<FirmwareVersion Name="">
+		<Variant Name="">
 			<MaxInputUniverses>1</MaxInputUniverses>
 			<MaxPixelPort>0</MaxPixelPort>
 			<MaxSerialPort>1</MaxSerialPort>
@@ -186,10 +186,10 @@
 				<Protocol>dmx</Protocol>
 				<Protocol>lor</Protocol>
 			</InputProtocols>
-		</FirmwareVersion>
+		</Variant>
 	</Controller>
 	<Controller Name="LOR160x">
-		<FirmwareVersion Name="">
+		<Variant Name="">
 			<MaxInputUniverses>1</MaxInputUniverses>
 			<MaxPixelPort>0</MaxPixelPort>
 			<MaxSerialPort>1</MaxSerialPort>
@@ -204,10 +204,10 @@
 				<Protocol>dmx</Protocol>
 				<Protocol>lor</Protocol>
 			</InputProtocols>
-		</FirmwareVersion>
+		</Variant>
 	</Controller>
 	<Controller Name="LOR800">
-		<FirmwareVersion Name="">
+		<Variant Name="">
 			<MaxInputUniverses>1</MaxInputUniverses>
 			<MaxPixelPort>0</MaxPixelPort>
 			<MaxSerialPort>1</MaxSerialPort>
@@ -222,10 +222,10 @@
 				<Protocol>dmx</Protocol>
 				<Protocol>lor</Protocol>
 			</InputProtocols>
-		</FirmwareVersion>
+		</Variant>
 	</Controller>
 	<Controller Name="Cosmic Color">
-		<FirmwareVersion Name="">
+		<Variant Name="">
 			<MaxInputUniverses>0</MaxInputUniverses>
 			<MaxPixelPort>1</MaxPixelPort>
 			<MaxSerialPort>0</MaxSerialPort>
@@ -242,6 +242,6 @@
 				<Protocol>dmx</Protocol>
 				<Protocol>lor</Protocol>
 			</InputProtocols>
-		</FirmwareVersion>
+		</Variant>
 	</Controller>
 </Vendor>

@@ -19,6 +19,7 @@
 #include "controllers/ControllerCaps.h"
 #include "models/ModelManager.h"
 #include "models/Model.h"
+#include "outputs/Controller.h"
 
 //(*IdInit(ControllerModelDialog)
 const long ControllerModelDialog::ID_PANEL1 = wxNewId();
@@ -81,6 +82,7 @@ public:
     void UpdateCUD(UDController* cud) { _cud = cud; }
     virtual void AddRightClickMenu(wxMenu& mnu) {}
     virtual void HandlePopup(int id) {}
+    wxRect GetRect() const { return wxRect(_location, _size); }
 };
 
 class PortCMObject : public BaseCMObject
@@ -140,19 +142,17 @@ public:
     }
 };
 
-class ModelCMObject : BaseCMObject
-{
+class ModelCMObject : public BaseCMObject {
 protected:
-    ModelManager* _mm;
+    ModelManager* _mm = nullptr;
     std::string _name;
 public:
-    ModelCMObject(const std::string& name, ModelManager* mm, UDController* cud, ControllerCaps* caps, wxPoint location, wxSize size) : BaseCMObject(cud, caps, location, size)
-    {
+    ModelCMObject(const std::string& name, ModelManager* mm, UDController* cud, ControllerCaps* caps, wxPoint location, wxSize size) :
+        BaseCMObject(cud, caps, location, size), _mm(mm) {
         _name = name;
     }
 
-    virtual void Draw(wxDC& dc, wxPoint mouse, wxSize offset, int scale, bool printing = false) override
-    {
+    virtual void Draw(wxDC& dc, wxPoint mouse, wxSize offset, int scale, bool printing = false) override {
         auto origBrush = dc.GetBrush();
         auto origPen = dc.GetPen();
         auto origText = dc.GetTextForeground();
@@ -237,7 +237,8 @@ bool ControllerModelPrintout::OnPrintPage(int pageNum)
     return true;
 }
 
-ControllerModelDialog::ControllerModelDialog(wxWindow* parent, UDController& cud, const std::string& ip, const std::string& description, wxWindowID id,const wxPoint& pos,const wxSize& size) : _cud(cud), _ip(ip), _description(description)
+ControllerModelDialog::ControllerModelDialog(wxWindow* parent, UDController* cud, ModelManager* mm, Controller* controller, wxWindowID id,const wxPoint& pos,const wxSize& size) : 
+    _cud(cud), _mm(mm), _controller(controller), _xLights((xLightsFrame*)parent)
 {
 	//(*Initialize(ControllerModelDialog)
 	wxFlexGridSizer* FlexGridSizer1;
@@ -320,48 +321,103 @@ ControllerModelDialog::ControllerModelDialog(wxWindow* parent, UDController& cud
 	Connect(ID_SCROLLBAR3,wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&ControllerModelDialog::OnScrollBar_ModelsScrollChanged);
 	//*)
 
-    SetLabel(GetLabel() + " " + _ip + " " + _description);
+    _title = controller->GetLongDescription();
+    SetLabel(_title);
 
-    int countlines = 0;
-    int countcolumns = 1;
-    for (int i = 1; i <= _cud.GetMaxPixelPort(); i++)
-    {
-        _cud.GetControllerPixelPort(i)->CreateVirtualStrings(true);
-        if (_cud.GetControllerPixelPort(i)->GetVirtualStringCount() == 0)
-        {
-            countlines++;
-        }
-        else
-        {
-            countlines += _cud.GetControllerPixelPort(i)->GetVirtualStringCount();
-            int thiscols = 0;
-            for (int j = 0; j < _cud.GetControllerPixelPort(i)->GetVirtualStringCount(); j++)
-            {
-                thiscols = std::max(thiscols, (int)_cud.GetControllerPixelPort(i)->GetVirtualString(j)->_models.size());
-            }
-            countcolumns = std::max(countcolumns, 1 + thiscols);
-        }
-    }
-    countlines += _cud.GetMaxSerialPort();
-    for (int i = 1; i <= _cud.GetMaxSerialPort(); i++)
-    {
-        countcolumns = std::max(countcolumns, 1 + (int)_cud.GetControllerSerialPort(i)->GetModels().size());
-    }
+    _caps = ControllerCaps::GetControllerConfig(_controller);
 
-    int height = 2 * TOP_BOTTOM_MARGIN + countlines * VERTICAL_SIZE + (countlines - 1) * VERTICAL_GAP;
-    int width = 2 * LEFT_RIGHT_MARGIN + countcolumns * HORIZONTAL_SIZE + (countcolumns - 1) * HORIZONTAL_GAP;
-
-    ScrollBar_Controller_V->SetRange(height);
-    ScrollBar_Controller_H->SetRange(width);
-    ScrollBar_Controller_V->SetPageSize(height / 10);
-    ScrollBar_Controller_H->SetPageSize(width / 10);
+    ReloadModels();
     Layout();
 }
 
 ControllerModelDialog::~ControllerModelDialog()
 {
-	//(*Destroy(ControllerModelDialog)
+    while (_models.size() > 0)
+    {
+        delete _models.front();
+        _models.pop_front();
+    }
+
+    while (_controllers.size() > 0)
+    {
+        delete _controllers.front();
+        _controllers.pop_front();
+    }
+
+    //(*Destroy(ControllerModelDialog)
 	//*)
+}
+
+void ControllerModelDialog::ReloadModels()
+{
+    _cud->Rescan();
+
+    int y = VERTICAL_GAP;
+    for (const auto& it : *_mm)
+    {
+        if (it.second->GetDisplayAs() != "ModelGroup")
+        {
+            if (_cud->GetControllerPortModel(it.second->GetName()) == nullptr)
+            {
+                _models.push_back(new ModelCMObject(it.second->GetName(), _mm, _cud, _caps, wxPoint(5, y), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE)));
+                y += VERTICAL_GAP + VERTICAL_SIZE;
+            }
+        }
+    }
+
+    ScrollBar_Models->SetRange(y);
+    ScrollBar_Models->SetPageSize(y / 10);
+
+    y = VERTICAL_GAP;
+
+    for (int i = 0; i < _caps->GetMaxPixelPort(); i++)
+    {
+        _controllers.push_back(new PortCMObject(PortCMObject::PORTTYPE::PIXEL, i + 1, _cud, _caps, wxPoint(5, y), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE)));
+        y += VERTICAL_GAP + VERTICAL_SIZE;
+    }
+
+    for (int i = 0; i < _caps->GetMaxSerialPort(); i++)
+    {
+        _controllers.push_back(new PortCMObject(PortCMObject::PORTTYPE::SERIAL, i + 1, _cud, _caps, wxPoint(5, y), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE)));
+        y += VERTICAL_GAP + VERTICAL_SIZE;
+    }
+
+    ScrollBar_Controller_V->SetRange(y);
+    ScrollBar_Controller_V->SetPageSize(y / 10);
+
+    //int countlines = 0;
+    //int countcolumns = 1;
+    //for (int i = 1; i <= _cud.GetMaxPixelPort(); i++)
+    //{
+    //    _cud.GetControllerPixelPort(i)->CreateVirtualStrings(true);
+    //    if (_cud.GetControllerPixelPort(i)->GetVirtualStringCount() == 0)
+    //    {
+    //        countlines++;
+    //    }
+    //    else
+    //    {
+    //        countlines += _cud.GetControllerPixelPort(i)->GetVirtualStringCount();
+    //        int thiscols = 0;
+    //        for (int j = 0; j < _cud.GetControllerPixelPort(i)->GetVirtualStringCount(); j++)
+    //        {
+    //            thiscols = std::max(thiscols, (int)_cud.GetControllerPixelPort(i)->GetVirtualString(j)->_models.size());
+    //        }
+    //        countcolumns = std::max(countcolumns, 1 + thiscols);
+    //    }
+    //}
+    //countlines += _cud.GetMaxSerialPort();
+    //for (int i = 1; i <= _cud.GetMaxSerialPort(); i++)
+    //{
+    //    countcolumns = std::max(countcolumns, 1 + (int)_cud.GetControllerSerialPort(i)->GetModels().size());
+    //}
+
+    //int height = 2 * TOP_BOTTOM_MARGIN + countlines * VERTICAL_SIZE + (countlines - 1) * VERTICAL_GAP;
+    //int width = 2 * LEFT_RIGHT_MARGIN + countcolumns * HORIZONTAL_SIZE + (countcolumns - 1) * HORIZONTAL_GAP;
+
+    //ScrollBar_Controller_V->SetRange(height);
+    //ScrollBar_Controller_H->SetRange(width);
+    //ScrollBar_Controller_V->SetPageSize(height / 10);
+    //ScrollBar_Controller_H->SetPageSize(width / 10);
 }
 
 void ControllerModelDialog::OnPopupCommand(wxCommandEvent &event)
@@ -397,7 +453,6 @@ void ControllerModelDialog::OnPopupCommand(wxCommandEvent &event)
     }
 }
 
-
 void ControllerModelDialog::RenderPicture(wxBitmap& bitmap, bool printer)
 {
     wxMemoryDC dc;
@@ -417,7 +472,7 @@ void ControllerModelDialog::RenderPicture(wxBitmap& bitmap, bool printer)
     dc.SetFont(font);
 
     int rowPos = TOP_BOTTOM_MARGIN * PRINTSCALE;
-    dc.DrawText(_ip + " " + _description, LEFT_RIGHT_MARGIN * PRINTSCALE, rowPos);
+    dc.DrawText(_title, LEFT_RIGHT_MARGIN * PRINTSCALE, rowPos);
     rowPos += ((VERTICAL_SIZE / 2) * PRINTSCALE) + (VERTICAL_GAP * PRINTSCALE);
 
     for (const auto& it : _controllers)
@@ -429,21 +484,21 @@ void ControllerModelDialog::RenderPicture(wxBitmap& bitmap, bool printer)
 void ControllerModelDialog::SaveCSV()
 {
     wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
-    wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, _ip, wxEmptyString, "Export files (*.csv)|*.csv", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+    wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, _title, wxEmptyString, "Export files (*.csv)|*.csv", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
 
     if (filename.IsEmpty()) return;
 
     std::vector<wxString> lines;
     int columnSize = 0;
 
-    for (int i = 1; i <= _cud.GetMaxPixelPort(); i++)
+    for (int i = 1; i <= _cud->GetMaxPixelPort(); i++)
     {
         wxString line = wxString::Format("Pixel Port %d,", i);
 
-        if (columnSize < _cud.GetControllerPixelPort(i)->GetModels().size())
-            columnSize = _cud.GetControllerPixelPort(i)->GetModels().size();
+        if (columnSize < _cud->GetControllerPixelPort(i)->GetModels().size())
+            columnSize = _cud->GetControllerPixelPort(i)->GetModels().size();
 
-        for (const auto& it : _cud.GetControllerPixelPort(i)->GetModels())
+        for (const auto& it : _cud->GetControllerPixelPort(i)->GetModels())
         {
             if (it->GetSmartRemote() > 0)
             {
@@ -460,13 +515,13 @@ void ControllerModelDialog::SaveCSV()
         lines.push_back(line);
     }
        lines.push_back("\n");
-    for (int i = 1; i <= _cud.GetMaxSerialPort(); i++)
+    for (int i = 1; i <= _cud->GetMaxSerialPort(); i++)
     {
-        if (columnSize < _cud.GetControllerSerialPort(i)->GetModels().size())
-            columnSize = _cud.GetControllerSerialPort(i)->GetModels().size();
+        if (columnSize < _cud->GetControllerSerialPort(i)->GetModels().size())
+            columnSize = _cud->GetControllerSerialPort(i)->GetModels().size();
 
         wxString line = wxString::Format("Serial Port %d,", i);
-        for (const auto& it : _cud.GetControllerSerialPort(i)->GetModels())
+        for (const auto& it : _cud->GetControllerSerialPort(i)->GetModels())
         {
             line += it->GetName();
             line += ",";
@@ -483,7 +538,7 @@ void ControllerModelDialog::SaveCSV()
         return;
     }
 
-    wxString header = _ip + " " + _description + "\nOutput,";
+    wxString header = _title + "\nOutput,";
     for (int i = 1; i <= columnSize; i++)
     {
         header += wxString::Format("Model %d,", i);
@@ -604,7 +659,7 @@ void ControllerModelDialog::OnScrollBar_ModelsScrollChanged(wxScrollEvent& event
 
 void ControllerModelDialog::OnPanelModelsPaint(wxPaintEvent& event)
 {
-    wxPaintDC dc(PanelController);
+    wxPaintDC dc(PanelModels);
 
     int yOffset = ScrollBar_Models->GetThumbPosition();
 
@@ -612,7 +667,7 @@ void ControllerModelDialog::OnPanelModelsPaint(wxPaintEvent& event)
 
     for (const auto& it : _models)
     {
-        it->Draw(dc, wxGetMousePosition(), wxSize(0, 0), 1, false);
+        it->Draw(dc, PanelModels->ScreenToClient(wxGetMousePosition()), wxSize(0, 0), 1, false);
     }
 }
 
@@ -648,6 +703,14 @@ void ControllerModelDialog::OnPanelModelsRightDown(wxMouseEvent& event)
 
 void ControllerModelDialog::OnPanelModelsMouseMove(wxMouseEvent& event)
 {
+    for (const auto& it : _models)
+    {
+        if (HitTest(event.GetPosition()))
+        {
+            PanelModels->RefreshRect(it->GetRect());
+            break;
+        }
+    }
 }
 
 void ControllerModelDialog::OnPanelModelsMouseWheel(wxMouseEvent& event)

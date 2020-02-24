@@ -1405,7 +1405,7 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
         stringData["subType"] = wxString("");
     } else {
         stringData["type"] = wxString("BBB48String");
-        stringData["subType"] = wxString(pixelControllerType);
+        stringData["subType"] = rules->GetID();
         stringData["pinoutVersion"] = pinout;
     }
     stringData["outputCount"] = maxport;
