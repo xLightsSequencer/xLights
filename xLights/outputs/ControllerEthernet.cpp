@@ -429,6 +429,7 @@ bool ControllerEthernet::SetChannelSize(int32_t channels) {
     {
         #define CONVERT_CHANNELS_PER_UNIVERSE 510
         auto const oldIP = _outputs.front()->GetIP();
+        auto const oldStartUniverse = _outputs.front()->GetUniverse();
         _forceSizes = false;
         DeleteAllOutputs();
         int universes = (channels + CONVERT_CHANNELS_PER_UNIVERSE - 1) / CONVERT_CHANNELS_PER_UNIVERSE;
@@ -447,8 +448,9 @@ bool ControllerEthernet::SetChannelSize(int32_t channels) {
             }
             _outputs.back()->SetChannels(CONVERT_CHANNELS_PER_UNIVERSE );
             _outputs.back()->SetIP(oldIP);
-            _outputs.back()->SetUniverse(i + 1);
+            _outputs.back()->SetUniverse(i + oldStartUniverse);
             _outputs.back()->SetFPPProxyIP(_fppProxy);
+            _outputs.back()->SetSuppressDuplicateFrames(_suppressDuplicateFrames);
         }
     }
     return true;
