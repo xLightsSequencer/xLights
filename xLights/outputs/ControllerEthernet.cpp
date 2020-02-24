@@ -519,7 +519,10 @@ void ControllerEthernet::AddProperties(wxPropertyGrid* propertyGrid, ModelManage
             ud = "Ports";
         }
         p = propertyGrid->Append(new wxUIntProperty(u, "Universe", _outputs.front()->GetUniverse()));
-        p->SetAttribute("Min", 1);
+        if (_type == OUTPUT_ARTNET)
+            p->SetAttribute("Min", 0);
+        else
+            p->SetAttribute("Min", 1);
         p->SetAttribute("Max", 64000);
         p->SetEditor("SpinCtrl");
 
