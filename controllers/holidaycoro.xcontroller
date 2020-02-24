@@ -6,7 +6,7 @@
 			<MaxPixelPort>4</MaxPixelPort>
 			<MaxSerialPort>1</MaxSerialPort>
 			<MaxSerialPortChannels>512</MaxSerialPortChannels>
-			<MaxPixelPortChannels>680</MaxPixelPortChannels>
+			<MaxPixelPortChannels>2040‬</MaxPixelPortChannels>
 			<AllInputUniversesMustBeSameSize/>
 			<PixelProtocols>
 				<Protocol>ws2811</Protocol>
@@ -31,7 +31,7 @@
 			<MaxPixelPort>16</MaxPixelPort>
 			<MaxSerialPort>3</MaxSerialPort>
 			<MaxSerialPortChannels>512</MaxSerialPortChannels>
-			<MaxPixelPortChannels>340</MaxPixelPortChannels>
+			<MaxPixelPortChannels>1020</MaxPixelPortChannels>
 			<AllInputUniversesMustBeSameSize/>
 			<PixelProtocols>
 				<Protocol>ws2811</Protocol>
@@ -56,7 +56,7 @@
 			<MaxPixelPort>48</MaxPixelPort>
 			<MaxSerialPort>2</MaxSerialPort>
 			<MaxSerialPortChannels>512</MaxSerialPortChannels>
-			<MaxPixelPortChannels>340</MaxPixelPortChannels>
+			<MaxPixelPortChannels>1020</MaxPixelPortChannels>
 			<AllInputUniversesMustBeSameSize/>
 			<PixelProtocols>
 				<Protocol>ws2811</Protocol>
