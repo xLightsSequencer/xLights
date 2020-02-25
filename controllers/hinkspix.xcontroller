@@ -7,7 +7,7 @@
 			<MaxPixelPort>16</MaxPixelPort>
 			<MaxSerialPort>1</MaxSerialPort>
 			<MaxSerialPortChannels>512</MaxSerialPortChannels>
-			<MaxPixelPortChannels>680</MaxPixelPortChannels>
+			<MaxPixelPortChannels>2040</MaxPixelPortChannels>
 			<UniversesMustBeSequential/>
 			<SupportsVirtualStrings/>
 			<MergeConsecutiveVirtualStrings/>
@@ -36,7 +36,7 @@
 			<MaxPixelPort>48</MaxPixelPort>
 			<MaxSerialPort>1</MaxSerialPort>
 			<MaxSerialPortChannels>512</MaxSerialPortChannels>
-			<MaxPixelPortChannels>680</MaxPixelPortChannels>
+			<MaxPixelPortChannels>2040</MaxPixelPortChannels>
 			<UniversesMustBeSequential/>
 			<SupportsVirtualStrings/>
 			<MergeConsecutiveVirtualStrings/>

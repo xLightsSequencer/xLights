@@ -59,6 +59,8 @@ class ControllerModelDialog: public wxDialog
         static const long CONTROLLERModel_SAVE_CSV;
 
         void RenderPicture(wxBitmap& bitmap, bool printer);
+		void DropFromModels(const wxPoint& location, const std::string& name, wxPanel* target);
+		void DropFromController(const wxPoint& location, const std::string& name, wxPanel* target);
 
 	protected:
 

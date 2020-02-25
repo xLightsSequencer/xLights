@@ -12,6 +12,7 @@
 #include <wx/dcscreen.h>
 #include <wx/image.h>
 #include <wx/file.h>
+#include <wx/dnd.h>
 
 #include "UtilFunctions.h"
 #include "outputs/Output.h"
@@ -78,10 +79,16 @@ public:
             mouse.y >= _location.y &&
             mouse.y <= _location.y + _size.y);
     }
+    bool HitYTest(wxPoint mouse)
+    {
+        return (mouse.y >= _location.y &&
+            mouse.y <= _location.y + _size.y);
+    }
     virtual void Draw(wxDC& dc, wxPoint mouse, wxSize offset, int scale, bool printing = false) = 0;
     void UpdateCUD(UDController* cud) { _cud = cud; }
     virtual void AddRightClickMenu(wxMenu& mnu) {}
     virtual void HandlePopup(int id) {}
+    virtual std::string GetType() const = 0;
     wxRect GetRect() const { return wxRect(_location, _size); }
 };
 
@@ -99,6 +106,7 @@ public:
         _port = port;
         _type = type;
     }
+    virtual std::string GetType() const override { return "PORT"; }
     virtual void Draw(wxDC& dc, wxPoint mouse, wxSize offset, int scale, bool printing = false) override
     {
         auto origBrush = dc.GetBrush();
@@ -152,6 +160,9 @@ public:
         _name = name;
     }
 
+    std::string GetName() const { return _name; }
+
+    virtual std::string GetType() const override { return "MODEL"; }
     virtual void Draw(wxDC& dc, wxPoint mouse, wxSize offset, int scale, bool printing = false) override {
         auto origBrush = dc.GetBrush();
         auto origPen = dc.GetPen();
@@ -216,6 +227,48 @@ public:
 };
 
 #pragma endregion
+
+class CMDTextDropTarget : public wxTextDropTarget
+{
+public:
+    CMDTextDropTarget(std::list<BaseCMObject*>* objects, ControllerModelDialog* owner, wxPanel* target) { _owner = owner; _objects = objects; _target = target; };
+
+    virtual bool OnDropText(wxCoord x, wxCoord y, const wxString& data) override
+    {
+        if (data == "") return false;
+
+        if (data.StartsWith("Model:"))
+        {
+            _owner->DropFromModels(wxPoint(x, y), data.AfterFirst(':'), _target);
+            return true;
+        }
+        else if (data.StartsWith("Controller:"))
+        {
+            _owner->DropFromController(wxPoint(x, y), data.AfterFirst(':').ToStdString(), _target);
+            return true;
+        }
+        return false;
+    }
+    virtual wxDragResult OnDragOver(wxCoord x, wxCoord y, wxDragResult def) override
+    {
+        for (const auto& it : *_objects)
+        {
+            if (it->HitTest(wxPoint(x, y)))
+            {
+                return wxDragMove;
+            }
+            else if (it->HitYTest(wxPoint(x, y)))
+            {
+                return wxDragMove;
+            }
+        }
+        return wxDragNone;
+    }
+
+    std::list<BaseCMObject*>* _objects;
+    ControllerModelDialog* _owner;
+    wxPanel* _target;
+};
 
 ControllerModelPrintout::ControllerModelPrintout(ControllerModelDialog* controllerDialog)
 {
@@ -326,6 +379,13 @@ ControllerModelDialog::ControllerModelDialog(wxWindow* parent, UDController* cud
 
     _caps = ControllerCaps::GetControllerConfig(_controller);
 
+
+    CMDTextDropTarget* cmdt = new CMDTextDropTarget(&_controllers, this, PanelController);
+    PanelController->SetDropTarget(cmdt);
+
+    cmdt = new CMDTextDropTarget(&_models, this, PanelModels);
+    PanelModels->SetDropTarget(cmdt);
+
     ReloadModels();
     Layout();
 }
@@ -352,7 +412,7 @@ void ControllerModelDialog::ReloadModels()
 {
     _cud->Rescan();
 
-    int y = VERTICAL_GAP;
+    int y = TOP_BOTTOM_MARGIN;
     for (const auto& it : *_mm)
     {
         if (it.second->GetDisplayAs() != "ModelGroup")
@@ -370,54 +430,77 @@ void ControllerModelDialog::ReloadModels()
 
     y = VERTICAL_GAP;
 
+    int maxx = 0;
     for (int i = 0; i < _caps->GetMaxPixelPort(); i++)
     {
-        _controllers.push_back(new PortCMObject(PortCMObject::PORTTYPE::PIXEL, i + 1, _cud, _caps, wxPoint(5, y), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE)));
+        auto cmp = new PortCMObject(PortCMObject::PORTTYPE::PIXEL, i + 1, _cud, _caps, wxPoint(LEFT_RIGHT_MARGIN, y), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE));
+        _controllers.push_back(cmp);
         y += VERTICAL_GAP + VERTICAL_SIZE;
+
+        auto pp = _cud->GetControllerPixelPort(i + 1);
+        if (pp != nullptr)
+        {
+            if (_caps->SupportsVirtualStrings())
+            {
+                pp->CreateVirtualStrings(_caps->MergeConsecutiveVirtualStrings());
+                for (const auto& it : pp->GetVirtualStrings())
+                {
+                    int x = LEFT_RIGHT_MARGIN + HORIZONTAL_SIZE + HORIZONTAL_GAP;
+                    for (const auto& it2 : it->_models)
+                    {
+                        auto cmm = new ModelCMObject(it2->GetName(), _mm, _cud, _caps, wxPoint(x, y), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE));
+                        _controllers.push_back(cmm);
+                        x += HORIZONTAL_SIZE + HORIZONTAL_GAP;
+                    }
+                    if (x > maxx) maxx = x;
+                    y += VERTICAL_GAP + VERTICAL_SIZE;
+                }
+            }
+            else
+            {
+                int x = LEFT_RIGHT_MARGIN + HORIZONTAL_SIZE + HORIZONTAL_GAP;
+                for (const auto& it : pp->GetModels())
+                {
+                    auto cmm = new ModelCMObject(it->GetName(), _mm, _cud, _caps, wxPoint(x, y), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE));
+                    _controllers.push_back(cmm);
+                    x += HORIZONTAL_SIZE + HORIZONTAL_GAP;
+                }
+                if (x > maxx) maxx = x;
+            }
+        }
     }
 
     for (int i = 0; i < _caps->GetMaxSerialPort(); i++)
     {
-        _controllers.push_back(new PortCMObject(PortCMObject::PORTTYPE::SERIAL, i + 1, _cud, _caps, wxPoint(5, y), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE)));
+        _controllers.push_back(new PortCMObject(PortCMObject::PORTTYPE::SERIAL, i + 1, _cud, _caps, wxPoint(LEFT_RIGHT_MARGIN, y), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE)));
+        auto sp = _cud->GetControllerSerialPort(i + 1);
+        if (sp != nullptr)
+        {
+            int x = LEFT_RIGHT_MARGIN + HORIZONTAL_SIZE + HORIZONTAL_GAP;
+            for (const auto& it : sp->GetModels())
+            {
+                auto cmm = new ModelCMObject(it->GetName(), _mm, _cud, _caps, wxPoint(x, y), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE));
+                _controllers.push_back(cmm);
+                x += HORIZONTAL_SIZE + HORIZONTAL_GAP;
+            }
+            if (x > maxx) maxx = x;
+        }
+
         y += VERTICAL_GAP + VERTICAL_SIZE;
     }
 
+    y -= VERTICAL_GAP;
+    y += TOP_BOTTOM_MARGIN;
+    maxx -= HORIZONTAL_GAP;
+    maxx += LEFT_RIGHT_MARGIN;
+
     ScrollBar_Controller_V->SetRange(y);
     ScrollBar_Controller_V->SetPageSize(y / 10);
+    ScrollBar_Controller_H->SetRange(maxx);
+    ScrollBar_Controller_H->SetPageSize(maxx / 10);
 
-    //int countlines = 0;
-    //int countcolumns = 1;
-    //for (int i = 1; i <= _cud.GetMaxPixelPort(); i++)
-    //{
-    //    _cud.GetControllerPixelPort(i)->CreateVirtualStrings(true);
-    //    if (_cud.GetControllerPixelPort(i)->GetVirtualStringCount() == 0)
-    //    {
-    //        countlines++;
-    //    }
-    //    else
-    //    {
-    //        countlines += _cud.GetControllerPixelPort(i)->GetVirtualStringCount();
-    //        int thiscols = 0;
-    //        for (int j = 0; j < _cud.GetControllerPixelPort(i)->GetVirtualStringCount(); j++)
-    //        {
-    //            thiscols = std::max(thiscols, (int)_cud.GetControllerPixelPort(i)->GetVirtualString(j)->_models.size());
-    //        }
-    //        countcolumns = std::max(countcolumns, 1 + thiscols);
-    //    }
-    //}
-    //countlines += _cud.GetMaxSerialPort();
-    //for (int i = 1; i <= _cud.GetMaxSerialPort(); i++)
-    //{
-    //    countcolumns = std::max(countcolumns, 1 + (int)_cud.GetControllerSerialPort(i)->GetModels().size());
-    //}
-
-    //int height = 2 * TOP_BOTTOM_MARGIN + countlines * VERTICAL_SIZE + (countlines - 1) * VERTICAL_GAP;
-    //int width = 2 * LEFT_RIGHT_MARGIN + countcolumns * HORIZONTAL_SIZE + (countcolumns - 1) * HORIZONTAL_GAP;
-
-    //ScrollBar_Controller_V->SetRange(height);
-    //ScrollBar_Controller_H->SetRange(width);
-    //ScrollBar_Controller_V->SetPageSize(height / 10);
-    //ScrollBar_Controller_H->SetPageSize(width / 10);
+    PanelController->Refresh();
+    PanelModels->Refresh();
 }
 
 void ControllerModelDialog::OnPopupCommand(wxCommandEvent &event)
@@ -552,8 +635,42 @@ void ControllerModelDialog::SaveCSV()
     f.Close();
 }
 
+void ControllerModelDialog::DropFromModels(const wxPoint& location, const std::string& name, wxPanel* target)
+{
+    // model dragged from models 
+}
+
+void ControllerModelDialog::DropFromController(const wxPoint& location, const std::string& name, wxPanel* target)
+{
+    // model dragged from controllers 
+}
+
 void ControllerModelDialog::OnPanelControllerLeftDown(wxMouseEvent& event)
 {
+    for (const auto& it : _controllers)
+    {
+        if (it->GetType() == "MODEL" && it->HitTest(event.GetPosition()))
+        {
+            wxTextDataObject dragData("Controller:" + ((ModelCMObject*)it)->GetName());
+
+            wxBitmap bmp(it->GetRect().GetSize());
+            wxMemoryDC dc;
+            dc.SelectObject(bmp);
+            it->Draw(dc, wxPoint(-1, -1), wxSize(0, 0), 1, false);
+
+#ifdef __linux__
+            wxIcon dragCursor;
+            dragCursor.CopyFromBitmap(bmp.ConvertToImage());
+#else
+            wxCursor dragCursor(bmp.ConvertToImage());
+#endif
+
+            wxDropSource dragSource(this, dragCursor, dragCursor, dragCursor);
+
+            dragSource.SetData(dragData);
+            dragSource.DoDragDrop(wxDragMove);
+        }
+    }
 }
 
 void ControllerModelDialog::OnPanelControllerKeyDown(wxKeyEvent& event)
@@ -607,7 +724,7 @@ void ControllerModelDialog::OnPanelControllerPaint(wxPaintEvent& event)
 
     for (const auto& it : _controllers)
     {
-        it->Draw(dc, wxGetMousePosition(), wxSize(0,0), 1, false);
+        it->Draw(dc, PanelController->ScreenToClient(wxGetMousePosition()), wxSize(0,0), 1, false);
     }
 }
 
@@ -677,6 +794,30 @@ void ControllerModelDialog::OnPanelModelsKeyDown(wxKeyEvent& event)
 
 void ControllerModelDialog::OnPanelModelsLeftDown(wxMouseEvent& event)
 {
+    for (const auto& it : _models)
+    {
+        if (it->HitTest(event.GetPosition()))
+        {
+            wxTextDataObject dragData("Model:" + ((ModelCMObject*)it)->GetName());
+
+            wxBitmap bmp(it->GetRect().GetSize());
+            wxMemoryDC dc;
+            dc.SelectObject(bmp);
+            it->Draw(dc, wxPoint(-1, -1), wxSize(0, 0), 1, false);
+
+#ifdef __linux__
+            wxIcon dragCursor;
+            dragCursor.CopyFromBitmap(bmp.ConvertToImage());
+#else
+            wxCursor dragCursor(bmp.ConvertToImage());
+#endif
+
+            wxDropSource dragSource(this, dragCursor, dragCursor, dragCursor);
+
+            dragSource.SetData(dragData);
+            dragSource.DoDragDrop(wxDragMove);
+        }
+    }
 }
 
 void ControllerModelDialog::OnPanelModelsLeftUp(wxMouseEvent& event)
