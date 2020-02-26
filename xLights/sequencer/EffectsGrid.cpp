@@ -377,7 +377,7 @@ void EffectsGrid::rightClick(wxMouseEvent& event)
                     mnuLayer.Append(ID_GRID_MNU_BREAKDOWN_WORDS,"Breakdown Selected Words");
                 }
             }
-            mnuLayer.Append(ID_GRID_MNU_HALVETIMINGS, "Divide Timings");
+            mnuLayer.Append(ID_GRID_MNU_HALVETIMINGS, "Divide Timings")->Enable(!selectedEffect->GetParentEffectLayer()->IsFixedTimingLayer());
             mSelectedEffect = selectedEffect;
         }
         mnuLayer.AppendSeparator();
