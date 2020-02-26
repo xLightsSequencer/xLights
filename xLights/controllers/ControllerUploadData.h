@@ -80,6 +80,7 @@ public:
     std::string GetDirection(const std::string& currentDirection);
     int GetGroupCount(int currentGroupCount);
     std::string GetProtocol() const { return _protocol; }
+    bool IsFirstModelString() const { return _string < 1; }
 
     Model* GetModel() const { return _model; }
 
@@ -142,10 +143,13 @@ class UDControllerPort
     #pragma region Model Handling
     UDControllerPortModel* GetFirstModel() const;
     UDControllerPortModel* GetLastModel() const;
+    Model* GetModelAfter(Model* m) const;
     UDControllerPortModel* GetModel(const std::string& modelName) const;
     void AddModel(Model* m, Controller* controller, OutputManager* om, int string = 0);
     bool ContainsModel(Model* m) const;
     std::list<UDControllerPortModel*> GetModels() const { return _models; }
+    bool SetAllModelsToControllerName(const std::string& controllerName);
+    void EnsureAllModelsAreChained();
     #pragma endregion
 
     #pragma region Virtual String Handling
@@ -225,6 +229,8 @@ class UDController
     int GetMaxPixelPort() const;
     bool HasPixelPort(int port) const;
     bool HasSerialPort(int port) const;
+
+    bool SetAllModelsToControllerName(const std::string& controllerName);
 
     bool IsValid(ControllerCaps* rules) const;
     void Dump() const;

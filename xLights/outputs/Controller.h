@@ -24,6 +24,7 @@ class wxXmlNode;
 class OutputManager;
 class OutputModelManager;
 class ModelManager;
+class ControllerCaps;
 
 #pragma region Controller Constants
 // These are used to identify each output type
@@ -47,6 +48,7 @@ protected:
     //bool _autoStartChannels = false;         // models on this controller can be managed by xLights
     std::list<Output*> _outputs;             // the outputs on the controller
     bool _active = true;                     // output to controller is active
+    bool _autoLayout = false;
     std::string _vendor;                     // the controller vendor
     std::string _model;                      // the model of the controller
     std::string _variant;                    // the variant of the controller
@@ -85,6 +87,7 @@ public:
     int32_t GetStartChannel() const;
     int32_t GetEndChannel() const;
     int32_t GetChannels() const;
+    bool ContainsChannels(uint32_t start, uint32_t end) const;
 
     bool IsDirty() const;
     void ClearDirty();
@@ -104,6 +107,9 @@ public:
     bool IsEnabled() const { return std::any_of(begin(_outputs), end(_outputs), [](Output* o) { return o->IsEnabled(); }); }
     void Enable(bool enable) { for (auto& it : _outputs) { it->Enable(enable); } }
 
+    bool IsAutoLayout() const { return _autoLayout; }
+    void SetAutoLayout(bool autoLayout);
+
     bool IsActive() const { return _active; }
     void SetActive(bool active);
 
@@ -116,6 +122,7 @@ public:
     const std::string &GetVariant() const { return _variant; }
     void SetVariant(const std::string& variant) { if (_variant != variant) { _variant = variant; _dirty = true; } }
     std::string GetVMV() const;
+    ControllerCaps* GetControllerCaps() const;
 
     bool IsSuppressDuplicateFrames() const { return _suppressDuplicateFrames; }
     void SetSuppressDuplicateFrames(bool suppress);
@@ -130,6 +137,7 @@ public:
 
     virtual bool SupportsSuppressDuplicateFrames() const { return true; }
     virtual bool SupportsUpload() const { return false; }
+    virtual bool SupportsAutoLayout() const;
     virtual bool IsManaged() const = 0;
     virtual bool CanSendData() const { return true; }
 

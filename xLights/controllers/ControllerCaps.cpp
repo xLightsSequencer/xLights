@@ -213,6 +213,10 @@ bool ControllerCaps::SupportsSmartRemotes() const {
     return DoesXmlNodeExist(_config, "SupportsSmartRemotes");
 }
 
+bool ControllerCaps::SupportsAutoLayout() const {
+    return DoesXmlNodeExist(_config, "SupportsAutoLayout");
+}
+
 bool ControllerCaps::SupportsMultipleSimultaneousOutputProtocols() const {
 
     return DoesXmlNodeExist(_config, "SupportsMultipleSimultaneousOutputProtocols");

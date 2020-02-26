@@ -10,6 +10,7 @@
 			<MaxPixelPortChannels>2040</MaxPixelPortChannels>
 			<UniversesMustBeSequential/>
 			<SupportsVirtualStrings/>
+			<SupportsAutoLayout/>
 			<MergeConsecutiveVirtualStrings/>
 			<PixelProtocols>
 				<Protocol>ws2811</Protocol>
@@ -39,6 +40,7 @@
 			<MaxPixelPortChannels>2040</MaxPixelPortChannels>
 			<UniversesMustBeSequential/>
 			<SupportsVirtualStrings/>
+			<SupportsAutoLayout/>
 			<MergeConsecutiveVirtualStrings/>
 			<PixelProtocols>
 				<Protocol>ws2811</Protocol>

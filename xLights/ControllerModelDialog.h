@@ -1,12 +1,22 @@
 #pragma once
 
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 //(*Headers(ControllerModelDialog)
 #include <wx/dialog.h>
 #include <wx/panel.h>
 #include <wx/scrolbar.h>
 #include <wx/sizer.h>
-#include <wx/splitter.h>
 //*)
+#include <wx/colour.h>
 
 #include "controllers/ControllerUploadData.h"
 #include <wx/prntbase.h>
@@ -15,6 +25,8 @@ class ControllerModelDialog;
 class Output;
 class BaseCMObject;
 class xLightsFrame;
+class ModelCMObject;
+class PortCMObject;
 
 class ControllerModelPrintout : public wxPrintout
 {
@@ -34,10 +46,15 @@ class ControllerModelDialog: public wxDialog
 	ControllerCaps* _caps = nullptr;
 	std::list<BaseCMObject*> _models;
 	std::list<BaseCMObject*> _controllers;
+	ModelCMObject* _dragging = nullptr;
+	bool _autoLayout = false;
 
 	BaseCMObject* GetControllerCMObjectAt(wxPoint mouse);
 	BaseCMObject* GetModelsCMObjectAt(wxPoint mouse);
+	PortCMObject* GetControllerPortAtLocation(wxPoint mouse);
 	void ReloadModels();
+	void ClearOver(wxPanel* panel, std::list<BaseCMObject*> list);
+	std::string GetModelTooltip(ModelCMObject* m);
 
 	public:
 
@@ -52,7 +69,6 @@ class ControllerModelDialog: public wxDialog
 		wxScrollBar* ScrollBar_Controller_H;
 		wxScrollBar* ScrollBar_Controller_V;
 		wxScrollBar* ScrollBar_Models;
-		wxSplitterWindow* SplitterWindow1;
 		//*)
 
         static const long CONTROLLERModel_PRINT;
@@ -61,6 +77,10 @@ class ControllerModelDialog: public wxDialog
         void RenderPicture(wxBitmap& bitmap, bool printer);
 		void DropFromModels(const wxPoint& location, const std::string& name, wxPanel* target);
 		void DropFromController(const wxPoint& location, const std::string& name, wxPanel* target);
+		bool IsDragging(ModelCMObject* dragging) const { return _dragging == dragging; }
+		void Draw(wxPanel* panel, BaseCMObject* object, wxPoint mouse);
+		bool Scroll(wxPanel* panel, int scrollByX, int scrollByY);
+		wxPoint GetScrollPosition(wxPanel* panel) const;
 
 	protected:
 
@@ -72,7 +92,6 @@ class ControllerModelDialog: public wxDialog
 		static const long ID_PANEL2;
 		static const long ID_SCROLLBAR3;
 		static const long ID_PANEL4;
-		static const long ID_SPLITTERWINDOW1;
 		//*)
 
 	private:

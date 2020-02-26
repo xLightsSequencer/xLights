@@ -116,6 +116,7 @@ Controller::Controller(OutputManager* om, wxXmlNode* node, const std::string& sh
     _description = node->GetAttribute("Description", "");
     _autoSize = node->GetAttribute("AutoSize", "0") == "1";
     SetActive(node->GetAttribute("Active", "1") == "1");
+    SetAutoLayout(node->GetAttribute("AutoLayout", "0") == "1");
     _vendor = node->GetAttribute("Vendor");
     _model = node->GetAttribute("Model");
     _variant = node->GetAttribute("Variant");
@@ -148,6 +149,7 @@ wxXmlNode* Controller::Save() {
     if (_autoSize) node->AddAttribute("AutoSize", "1");
     //if (_autoStartChannels) node->AddAttribute("AutoStartChannels", "1");
     node->AddAttribute("Active", _active ? "1" : "0");
+    node->AddAttribute("AutoLayout", _autoLayout ? "1" : "0");
     node->AddAttribute("SuppressDuplicates", _suppressDuplicateFrames ? "1" : "0");
     for (const auto& it : _outputs) {
         node->AddChild(it->Save());
@@ -258,9 +260,12 @@ int32_t Controller::GetEndChannel() const {
     return _outputs.back()->GetEndChannel();
 }
 
-int32_t Controller::GetChannels() const
-{
+int32_t Controller::GetChannels() const {
     return std::accumulate(begin(_outputs), end(_outputs), 0, [](uint32_t accumulator, Output* const o) { return accumulator + o->GetChannels(); });
+}
+
+bool Controller::ContainsChannels(uint32_t start, uint32_t end) const {
+    return end >= GetStartChannel() && start < GetEndChannel();
 }
 
 bool Controller::SetChannelSize(int32_t channels) {
@@ -298,6 +303,13 @@ void Controller::EnsureUniqueId() {
     _id = _outputManager->UniqueId();
 }
 
+void Controller::SetAutoLayout(bool autoLayout) {
+    if (_autoLayout != autoLayout) {
+        _autoLayout = autoLayout;
+        _dirty = true;
+    }
+}
+
 void Controller::SetActive(bool active)  {
     if (_active != active) { 
         _active = active;  
@@ -314,6 +326,11 @@ std::string Controller::GetVMV() const {
     if (GetModel() != "") res += " " + GetModel();
     if (GetVariant() != "") res += " - " + GetVariant();
     return res;
+}
+
+ControllerCaps* Controller::GetControllerCaps() const
+{
+    return ControllerCaps::GetControllerConfig(this);
 }
 
 void Controller::SetSuppressDuplicateFrames(bool suppress) {
@@ -337,6 +354,15 @@ void Controller::SetTransientData(int32_t& startChannel, int& nullnumber)
 
         it->SetTransientData(startChannel, nullnumber);
     }
+}
+
+bool Controller::SupportsAutoLayout() const
+{
+    auto caps = GetControllerCaps();
+    if (caps != nullptr) {
+        return caps->SupportsAutoLayout();
+    }
+    return false;
 }
 
 void Controller::Convert(wxXmlNode* node, std::string showDir) {
@@ -382,6 +408,12 @@ void Controller::AddProperties(wxPropertyGrid* propertyGrid, ModelManager* model
         p->SetAttribute("Min", 1);
         p->SetAttribute("Max", 65335);
         p->SetEditor("SpinCtrl");
+    }
+
+    if (SupportsAutoLayout())
+    {
+        p = propertyGrid->Append(new wxBoolProperty("Auto Layout Models", "AutoLayout", IsAutoLayout()));
+        p->SetEditor("CheckBox");
     }
 
     if (SupportsAutoSize()) {
@@ -471,6 +503,12 @@ bool Controller::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelMana
         SetActive(event.GetValue().GetBool());
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "Controller::HandlePropertyEvent::Active");
         outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "Controller::HandlePropertyEvent::Active");
+        return true;
+    }
+    else if (name == "AutoLayout") {
+        SetAutoLayout(event.GetValue().GetBool());
+        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "Controller::HandlePropertyEvent::AutoLayout");
+        outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "Controller::HandlePropertyEvent::AutoLayout");
         return true;
     }
     else if (name == "SuppressDuplicates") {

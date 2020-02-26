@@ -10,7 +10,6 @@ class ValueCurveButton :
     public wxBitmapButton
 {
     ValueCurve* _vc;
-    void NotifyChange();
     void RenderNewBitmap();
 
 public:
@@ -30,6 +29,7 @@ public:
     void SetActive(bool active);
     void UpdateState();
     void UpdateBitmap();
+    void NotifyChange();
 
     static wxBitmap disabledBitmap;
 };

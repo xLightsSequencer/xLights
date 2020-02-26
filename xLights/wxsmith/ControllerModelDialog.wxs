@@ -11,11 +11,6 @@
 			<growablecols>0</growablecols>
 			<growablerows>0</growablerows>
 			<object class="sizeritem">
-				<object class="wxSplitterWindow" name="ID_SPLITTERWINDOW1" variable="SplitterWindow1" member="yes">
-					<sashpos>200</sashpos>
-					<minpanesize>150</minpanesize>
-					<orientation>vertical</orientation>
-					<style>wxSP_3D|wxSP_BORDER|wxSP_LIVE_UPDATE</style>
 					<object class="wxPanel" name="ID_PANEL3" variable="Panel3" member="yes">
 						<object class="wxFlexGridSizer" variable="FlexGridSizer5" member="no">
 							<cols>2</cols>
@@ -71,6 +66,11 @@
 							</object>
 						</object>
 					</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
 					<object class="wxPanel" name="ID_PANEL4" variable="Panel4" member="yes">
 						<object class="wxFlexGridSizer" variable="FlexGridSizer3" member="no">
 							<cols>2</cols>
@@ -109,7 +109,6 @@
 							</object>
 						</object>
 					</object>
-				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
 				<option>1</option>

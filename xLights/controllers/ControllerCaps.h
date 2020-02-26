@@ -55,6 +55,7 @@ public:
     bool SupportsLEDPanelMatrix() const;
     bool SupportsVirtualStrings() const;
     bool SupportsSmartRemotes() const;
+    bool SupportsAutoLayout() const;
     bool SupportsMultipleSimultaneousOutputProtocols() const;
     bool SupportsMultipleSimultaneousInputProtocols() const;
     bool MergeConsecutiveVirtualStrings() const;

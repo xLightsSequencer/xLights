@@ -51,8 +51,8 @@ bool VCTextDropTarget::OnDropText(wxCoord x, wxCoord y, const wxString& data)
         vc.FixChangedScale(pvc->GetMin(), pvc->GetMax(), 1);
 
         _owner->GetValue()->Deserialise(vc.Serialise());
-
         _owner->UpdateBitmap();
+        _owner->NotifyChange();
     }
 
     return true;

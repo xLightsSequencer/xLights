@@ -14,6 +14,7 @@
 			<!--NoWebUI/-->
 			<SupportsVirtualStrings/>
 			<SupportsSmartRemotes/>
+			<SupportsAutoLayout/>
 			<MergeConsecutiveVirtualStrings/>
 			<PixelProtocols>
 				<Protocol>ws2811</Protocol>
@@ -55,6 +56,7 @@
 			<!--NoWebUI/-->
 			<SupportsVirtualStrings/>
 			<SupportsSmartRemotes/>
+			<SupportsAutoLayout/>
 			<MergeConsecutiveVirtualStrings/>
 			<PixelProtocols>
 				<Protocol>ws2811</Protocol>
@@ -92,6 +94,7 @@
 			<MaxPixelPortChannels>3072</MaxPixelPortChannels>
 			<SupportsVirtualStrings/>
 			<SupportsSmartRemotes/>
+			<SupportsAutoLayout/>
 			<MergeConsecutiveVirtualStrings/>
 			<PixelProtocols>
 				<Protocol>ws2811</Protocol>
@@ -130,6 +133,7 @@
 			<MaxPixelPortChannels>3072</MaxPixelPortChannels>
 			<SupportsVirtualStrings/>
 			<SupportsSmartRemotes/>
+			<SupportsAutoLayout/>
 			<MergeConsecutiveVirtualStrings/>
 			<PixelProtocols>
 				<Protocol>ws2811</Protocol>
@@ -167,6 +171,7 @@
 			<MaxSerialPortChannels>512</MaxSerialPortChannels>
 			<MaxPixelPortChannels>2040</MaxPixelPortChannels>
 			<SupportsVirtualStrings/>
+			<SupportsAutoLayout/>
 			<MergeConsecutiveVirtualStrings/>
 			<PixelProtocols>
 				<Protocol>ws2811</Protocol>
@@ -203,6 +208,7 @@
 			<MaxSerialPortChannels>512</MaxSerialPortChannels>
 			<MaxPixelPortChannels>2040</MaxPixelPortChannels>
 			<SupportsVirtualStrings/>
+			<SupportsAutoLayout/>
 			<MergeConsecutiveVirtualStrings/>
 			<PixelProtocols>
 				<Protocol>ws2811</Protocol>
@@ -240,6 +246,7 @@
 			<MaxPixelPortChannels>2040</MaxPixelPortChannels>
 			<SupportsVirtualStrings/>
 			<MergeConsecutiveVirtualStrings/>
+			<SupportsAutoLayout/>
 			<PixelProtocols>
 				<Protocol>ws2811</Protocol>
 				<Protocol>tm18xx</Protocol>
@@ -276,6 +283,7 @@
 			<MaxPixelPortChannels>2040</MaxPixelPortChannels>
 			<SupportsVirtualStrings/>
 			<MergeConsecutiveVirtualStrings/>
+			<SupportsAutoLayout/>
 			<PixelProtocols>
 				<Protocol>ws2811</Protocol>
 				<Protocol>tm18xx</Protocol>
@@ -312,6 +320,7 @@
 			<MaxPixelPortChannels>3072</MaxPixelPortChannels>
 			<SupportsVirtualStrings/>
 			<SupportsSmartRemotes/>
+			<SupportsAutoLayout/>
 			<MergeConsecutiveVirtualStrings/>
 			<PixelProtocols>
 				<Protocol>ws2811</Protocol>
@@ -350,6 +359,7 @@
 			<MaxPixelPortChannels>3072</MaxPixelPortChannels>
 			<SupportsVirtualStrings/>
 			<SupportsSmartRemotes/>
+			<SupportsAutoLayout/>
 			<MergeConsecutiveVirtualStrings/>
 			<PixelProtocols>
 				<Protocol>ws2811</Protocol>
@@ -388,6 +398,7 @@
 			<MaxPixelPortChannels>3072</MaxPixelPortChannels>
 			<SupportsVirtualStrings/>
 			<SupportsSmartRemotes/>
+			<SupportsAutoLayout/>
 			<MergeConsecutiveVirtualStrings/>
 			<PixelProtocols>
 				<Protocol>ws2811</Protocol>
@@ -426,6 +437,7 @@
 			<MaxPixelPortChannels>3072</MaxPixelPortChannels>
 			<SupportsVirtualStrings/>
 			<SupportsSmartRemotes/>
+			<SupportsAutoLayout/>
 			<MergeConsecutiveVirtualStrings/>
 			<PixelProtocols>
 				<Protocol>ws2811</Protocol>

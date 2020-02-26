@@ -363,11 +363,12 @@ void RowHeading::rightClick( wxMouseEvent& event)
         }
         mnuLayer.AppendSeparator();
 
+        Model* m = mSequenceElements->GetXLightsFrame()->AllModels[ri->element->GetModelName()];
         wxMenu* rowMenu = new wxMenu();
         wxMenu* modelMenu = new wxMenu();
         modelMenu->Append(ID_ROW_MNU_PLAY_MODEL, "Play");
-        modelMenu->Append(ID_ROW_MNU_EXPORT_MODEL, "Export");
-        modelMenu->Append(ID_ROW_MNU_EXPORT_RENDERED_MODEL, "Render and Export");
+        modelMenu->Append(ID_ROW_MNU_EXPORT_MODEL, "Export")->Enable(m!=nullptr && m->GetDisplayAs() != "ModelGroup");
+        modelMenu->Append(ID_ROW_MNU_EXPORT_RENDERED_MODEL, "Render and Export")->Enable(m != nullptr && m->GetDisplayAs() != "ModelGroup");
         rowMenu->Append(ID_ROW_MNU_SELECT_ROW_EFFECTS, "Select Effects");
         modelMenu->Append(ID_ROW_MNU_SELECT_MODEL_EFFECTS, "Select Effects");
         rowMenu->Append(ID_ROW_MNU_COPY_ROW, "Copy Effects");

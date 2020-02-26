@@ -200,7 +200,7 @@ UDControllerPort::~UDControllerPort() {
 #pragma region Model Handling
 UDControllerPortModel* UDControllerPort::GetFirstModel() const {
 
-    wxASSERT(_models.size() > 0);
+    if (_models.size() == 0) return nullptr;
     UDControllerPortModel* first = _models.front();
     for (const auto& it : _models) {
         if (*it < *first) {
@@ -212,7 +212,7 @@ UDControllerPortModel* UDControllerPort::GetFirstModel() const {
 
 UDControllerPortModel* UDControllerPort::GetLastModel() const {
 
-    wxASSERT(_models.size() > 0);
+    if (_models.size() == 0) return nullptr;
     UDControllerPortModel* last = _models.front();
     for (const auto& it : _models) {
         if (it->GetEndChannel() > last->GetEndChannel()) {
@@ -222,11 +222,21 @@ UDControllerPortModel* UDControllerPort::GetLastModel() const {
     return last;
 }
 
+Model* UDControllerPort::GetModelAfter(Model* m) const
+{
+    bool takenext = false;
+    for (const auto& it : _models) {
+        if (takenext) return it->GetModel();
+        if (it->GetModel() == m) takenext = true;
+    }
+    return nullptr;
+}
+
 UDControllerPortModel* UDControllerPort::GetModel(const std::string& modelName) const
 {
     for (const auto& it : _models)
     {
-        if (it->GetName() == modelName) return it;
+        if (it->GetModel()->GetName() == modelName) return it;
     }
     return nullptr;
 }
@@ -300,6 +310,46 @@ bool UDControllerPort::ContainsModel(Model* m) const {
         }
     }
     return false;
+}
+
+bool UDControllerPort::SetAllModelsToControllerName(const std::string& controllerName)
+{
+    bool changed = false;
+    for (const auto& it : _models)
+    {
+        if (it->IsFirstModelString())
+        {
+            if (it->GetModel()->GetControllerName() != controllerName)
+            {
+                changed = true;
+                it->GetModel()->SetControllerName(controllerName);
+            }
+        }
+    }
+    return changed;
+}
+
+// This ensures none of the models on a port overlap ... they are all chained 
+// I am a bit concerned that using this stops you overlapping things ... but really if you are going to overlap things
+// you shouldnt set the port as that is just going to cause grief.
+void UDControllerPort::EnsureAllModelsAreChained()
+{
+    std::string last = "Beginning";
+    for (const auto& it : _models)
+    {
+        if (it->IsFirstModelString())
+        {
+            if (last == "Beginning")
+            {
+                it->GetModel()->SetModelChain(last);
+            }
+            else
+            {
+                it->GetModel()->SetModelChain(">" + last);
+            }
+            last = it->GetModel()->GetName();
+        }
+    }
 }
 #pragma endregion
 
@@ -801,6 +851,30 @@ bool UDController::HasSerialPort(int port) const {
         }
     }
     return false;
+}
+
+bool UDController::SetAllModelsToControllerName(const std::string& controllerName)
+{
+    bool changed = false;
+    for (const auto& it : _pixelPorts)
+    {
+        if (it.second->SetAllModelsToControllerName(controllerName))
+        {
+            changed = true;
+            it.second->EnsureAllModelsAreChained();
+        }
+    }
+
+    for (const auto& it : _serialPorts)
+    {
+        if (it.second->SetAllModelsToControllerName(controllerName))
+        {
+            changed = true;
+            it.second->EnsureAllModelsAreChained();
+        }
+    }
+
+    return changed;
 }
 
 bool UDController::HasPixelPort(int port) const {

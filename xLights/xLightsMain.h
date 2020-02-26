@@ -483,8 +483,6 @@ public:
     void OnmExportModelsMenuItemSelected(wxCommandEvent& event);
     void OnMenuItem_ViewLogSelected(wxCommandEvent& event);
     void OnMenuItemCheckSequenceSelected(wxCommandEvent& event);
-    void OnSpinCtrl_SyncUniverseChange(wxSpinEvent& event);
-    void OnButtonArtNETClick(wxCommandEvent& event);
     void OnMenuItem_Help_ForumSelected(wxCommandEvent& event);
     void OnMenuItem_Help_DownloadSelected(wxCommandEvent& event);
     void OnMenuItem_Help_ReleaseNotesSelected(wxCommandEvent& event);
