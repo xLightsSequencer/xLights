@@ -415,8 +415,7 @@ bool ControllerEthernet::SupportsUpload() const {
 bool ControllerEthernet::SetChannelSize(int32_t channels) {
     if (_outputs.size() == 0) return false;
 
-    for (auto& it2 : GetOutputs())
-    {
+    for (auto& it2 : GetOutputs()) {
         it2->AllOff();
         it2->EndFrame(0);
     }
@@ -425,15 +424,35 @@ bool ControllerEthernet::SetChannelSize(int32_t channels) {
         _outputs.front()->SetChannels(channels);
         return true;
     }
-    else
-    {
-        #define CONVERT_CHANNELS_PER_UNIVERSE 510
-        auto const oldIP = _outputs.front()->GetIP();
-        auto const oldStartUniverse = _outputs.front()->GetUniverse();
+    else {
+        int channels_per_universe = 510;
+        if(_outputs.size() != 0)
+            channels_per_universe = _outputs.front()->GetChannels();
+
+        //calculate required universes
+        int universes = (channels + channels_per_universe - 1) / channels_per_universe;
         _forceSizes = false;
-        DeleteAllOutputs();
-        int universes = (channels + CONVERT_CHANNELS_PER_UNIVERSE - 1) / CONVERT_CHANNELS_PER_UNIVERSE;
-        for (int i = 0; i < universes; i++) {
+        //require a minimum of one universe
+        universes = std::max(1, universes);
+
+        //if required universes equals  num of outputs, there is enough channels, return true
+        if (universes == _outputs.size()) {
+            return true;
+        }
+
+        auto const oldIP = _outputs.front()->GetIP();
+        _forceSizes = false;
+
+        //if required universes is less than num of outputs, remove unneeded universes
+        while (universes < _outputs.size()) {
+            delete _outputs.back();
+            _outputs.pop_back();
+        }
+
+        //if required universes is greater than  num of outputs, add needed universes
+        int diff = universes - _outputs.size();
+        for (int i = 0; i < diff; i++) {
+            auto const lastUsedUniverse = _outputs.back()->GetUniverse();
             if (_type == OUTPUT_E131) {
                 _outputs.push_back(new E131Output());
                 if (dynamic_cast<E131Output*>(_outputs.back()) != nullptr) {
@@ -446,9 +465,9 @@ bool ControllerEthernet::SetChannelSize(int32_t channels) {
             else if (_type == OUTPUT_xxxETHERNET) {
                 _outputs.push_back(new xxxEthernetOutput());
             }
-            _outputs.back()->SetChannels(CONVERT_CHANNELS_PER_UNIVERSE );
+            _outputs.back()->SetChannels(channels_per_universe);
             _outputs.back()->SetIP(oldIP);
-            _outputs.back()->SetUniverse(i + oldStartUniverse);
+            _outputs.back()->SetUniverse(lastUsedUniverse + 1);
             _outputs.back()->SetFPPProxyIP(_fppProxy);
             _outputs.back()->SetSuppressDuplicateFrames(_suppressDuplicateFrames);
         }
