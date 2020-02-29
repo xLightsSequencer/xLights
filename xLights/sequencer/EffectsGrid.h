@@ -113,8 +113,9 @@ public:
 
     void AlignSelectedEffects(EFF_ALIGN_MODE align_mode);
 
-    void OldPaste(const wxString &data, const wxString &pasteDataVer);
-    void Paste(const wxString &data, const wxString &pasteDataVer, bool row_paste = false);
+    int GetEffectRow(Effect* ef);
+    Effect* OldPaste(const wxString &data, const wxString &pasteDataVer);
+    Effect* Paste(const wxString &data, const wxString &pasteDataVer, bool row_paste = false);
     int GetStartColumn() { return mRangeStartCol < mRangeEndCol ? mRangeStartCol : mRangeEndCol; }
     int GetStartRow() { return mRangeStartRow < mRangeEndRow ? mRangeStartRow : mRangeEndRow; }
     int GetEndColumn() { return mRangeStartCol < mRangeEndCol ? mRangeEndCol : mRangeStartCol; }
@@ -136,6 +137,7 @@ public:
     void sendRenderEvent(const std::string &model, int start, int end, bool clear = true);
     void sendRenderDirtyEvent();
     void UnselectEffect(bool force = false);
+    void SelectEffect(Effect* ef);
     void ScrollBy(int by);
 protected:
     void InitializeGLCanvas() override;
@@ -206,17 +208,17 @@ private:
     void StretchAllSelectedEffects(int deltaMS, bool offset) const;
     int GetRow(int y) const;
     void OnGridPopup(wxCommandEvent& event);
-    void FillRandomEffects();
+    Effect* FillRandomEffects();
     bool OneCellSelected();
-    void ACDraw(ACTYPE type, ACSTYLE style, ACMODE mode, int intensity, int a, int b, int startMS, int endMS, int startRow, int endRow);
+    Effect* ACDraw(ACTYPE type, ACSTYLE style, ACMODE mode, int intensity, int a, int b, int startMS, int endMS, int startRow, int endRow);
     void ACCascade(int startMS, int endMS, int startCol, int endCol, int startRow, int endRow);
     void ACFill(ACTYPE type, int startMS, int endMS, int startRow, int endRow);
-    void CreateACEffect(EffectLayer* el, ACTYPE type, int startMS, int endMS, int startBrightness, int midBrightness, int endBrightness, bool select);
-    void CreateACEffect(EffectLayer* el, std::string name, std::string settings, int startMS, int endMS, bool select, std::string pal = "");
-    void CreatePartialACEffect(EffectLayer* el, ACTYPE type, int startMS, int endMS, int partialStart, int partialEnd, int startBrightness, int midBrightness, int endBrightness, bool select);
+    Effect* CreateACEffect(EffectLayer* el, ACTYPE type, int startMS, int endMS, int startBrightness, int midBrightness, int endBrightness, bool select);
+    Effect* CreateACEffect(EffectLayer* el, std::string name, std::string settings, int startMS, int endMS, bool select, std::string pal = "");
+    Effect* CreatePartialACEffect(EffectLayer* el, ACTYPE type, int startMS, int endMS, int partialStart, int partialEnd, int startBrightness, int midBrightness, int endBrightness, bool select);
     void TruncateEffect(EffectLayer* el, Effect* eff, int startMS, int endMS);
     int GetEffectBrightnessAt(std::string effName, SettingsMap settings, float pos, long startMS, long endMS);
-    void DuplicateAndTruncateEffect(EffectLayer* el, SettingsMap settings, std::string palette, std::string name, int originalStartMS, int originalEndMS, int startMS, int endMS, int offsetMS = 0);
+    Effect* DuplicateAndTruncateEffect(EffectLayer* el, SettingsMap settings, std::string palette, std::string name, int originalStartMS, int originalEndMS, int startMS, int endMS, int offsetMS = 0);
     void TruncateBrightnessValueCurve(ValueCurve& vc, double startPos, double endPos, int startMS, int endMS, int originalLength);
 
     SequenceElements* mSequenceElements;

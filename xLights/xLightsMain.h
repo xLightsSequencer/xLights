@@ -1246,7 +1246,7 @@ public:
     wxXmlNode* CreateEffectNode(wxString& name);
     void UpdateEffectNode(wxXmlNode* node);
     void ApplyEffectsPreset(wxString& data, const wxString &pasteDataVersion);
-    void ApplyEffectsPreset(const std::string& presetName);
+    Effect* ApplyEffectsPreset(const std::string& presetName);
     void RenameModelInViews(const std::string old_name, const std::string& new_name);
     bool RenameModel(const std::string old_name, const std::string& new_name);
     bool RenameObject(const std::string old_name, const std::string& new_name);

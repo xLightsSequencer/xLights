@@ -481,7 +481,8 @@ bool MainSequencer::HandleSequencerKeyBinding(wxKeyEvent& event)
             }
             else if (type == "RANDOM")
             {
-                PanelEffectGrid->Paste("Random\t\t\n", xlights_version_string);
+                Effect* ef = PanelEffectGrid->Paste("Random\t\t\n", xlights_version_string);
+                SelectEffect(ef);
             }
             else if (type == "EFFECT")
             {
@@ -489,7 +490,8 @@ bool MainSequencer::HandleSequencerKeyBinding(wxKeyEvent& event)
                 {
                     mSequenceElements->GetXLightsFrame()->ResetPanelDefaultSettings(binding->GetEffectName(), nullptr, true);
                 }
-                PanelEffectGrid->Paste(binding->GetEffectName() + "\t" + binding->GetEffectString() + _("\t\n"), binding->GetEffectDataVersion());
+                Effect* ef = PanelEffectGrid->Paste(binding->GetEffectName() + "\t" + binding->GetEffectString() + _("\t\n"), binding->GetEffectDataVersion());
+                SelectEffect(ef);
             }
             else if (type == "APPLYSETTING")
             {
@@ -507,7 +509,8 @@ bool MainSequencer::HandleSequencerKeyBinding(wxKeyEvent& event)
             }
             else if (type == "PRESET")
             {
-                mSequenceElements->GetXLightsFrame()->ApplyEffectsPreset(binding->GetEffectName());
+               Effect* ef = mSequenceElements->GetXLightsFrame()->ApplyEffectsPreset(binding->GetEffectName());
+                PanelEffectGrid->SelectEffect(ef);
             }
             else if (type == "EFFECT_SETTINGS_TOGGLE")
             {
@@ -975,7 +978,8 @@ void MainSequencer::TouchPlayControl(const std::string &evt) {
 void MainSequencer::TouchButtonEvent(wxCommandEvent &event) {
     if (mSequenceElements != nullptr) {
         wxString effect = ((wxWindow*)event.GetEventObject())->GetName();
-        PanelEffectGrid->Paste(effect + "\t\t\n", xlights_version_string);
+        Effect* ef = PanelEffectGrid->Paste(effect + "\t\t\n", xlights_version_string);
+        SelectEffect(ef);
     }
 }
 void MainSequencer::SetupTouchBar(EffectManager &effectManager, ColorPanelTouchBar *colorBar) {
@@ -1356,6 +1360,14 @@ void MainSequencer::UnselectAllEffects()
     mSequenceElements->UnSelectAllEffects();
 }
 
+void MainSequencer::SelectEffect(Effect* ef)
+{
+    if (!mSequenceElements->GetXLightsFrame()->IsACActive())
+    {
+        PanelEffectGrid->SelectEffect(ef);
+    }
+}
+
 Effect* MainSequencer::SelectEffectUsingDescription(std::string description)
 {
     mSequenceElements->UnSelectAllEffects();
@@ -1400,7 +1412,8 @@ void MainSequencer::Paste(bool row_paste) {
         if ((cbd->IsSupported(wxDF_TEXT) || cbd->IsSupported(wxDF_UNICODETEXT))
             && cbd->GetData(data)) {
             //assume clipboard always has data from same version of xLights
-            PanelEffectGrid->Paste(data.GetText(), xlights_version_string, row_paste);
+            Effect* ef = PanelEffectGrid->Paste(data.GetText(), xlights_version_string, row_paste);
+            SelectEffect(ef);
         }
         cbd->Close();
     }
