@@ -580,7 +580,11 @@ void ControllerEthernet::AddProperties(wxPropertyGrid* propertyGrid, ModelManage
                 p->SetAttribute("Min", 1);
                 p->SetAttribute("Max", it->GetMaxChannels());
                 p->SetEditor("SpinCtrl");
-                p->SetHelpString(wxString::Format("[%d-%d]\n", it->GetStartChannel(), it->GetEndChannel()) + modelManager->GetModelsOnChannels(it->GetStartChannel(), it->GetEndChannel(), 4));
+                auto modelsOnUniverse = modelManager->GetModelsOnChannels(it->GetStartChannel(), it->GetEndChannel(), 4);
+                p->SetHelpString(wxString::Format("[%d-%d]\n", it->GetStartChannel(), it->GetEndChannel()) + modelsOnUniverse);
+                if (modelsOnUniverse != "") {
+                    p->SetBackgroundColour(wxColour(208, 255, 158));
+                }
             }
         }
         else {
