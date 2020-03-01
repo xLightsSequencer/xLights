@@ -151,7 +151,6 @@
 		673ED25323E1C27C00C07472 /* DmxSkull.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 673ED25123E1C27C00C07472 /* DmxSkull.cpp */; };
 		673ED25423E1C27C00C07472 /* SkullConfigDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 673ED25223E1C27C00C07472 /* SkullConfigDialog.cpp */; };
 		6740DD0723BC2136002500F2 /* HinksPixExportDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6740DD0523BC2136002500F2 /* HinksPixExportDialog.cpp */; };
-		6743321F22B7C1C30038B63E /* ControllerVisualiseDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6743321D22B7C1C20038B63E /* ControllerVisualiseDialog.cpp */; };
 		6743322222B7C24E0038B63E /* OutputModelManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6743322122B7C24E0038B63E /* OutputModelManager.cpp */; };
 		674623C421E1A889005AE464 /* PathGenerationDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 674623C321E1A888005AE464 /* PathGenerationDialog.cpp */; };
 		6747107E1A65464C0086C35C /* xLightsXmlFile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6747107D1A65464C0086C35C /* xLightsXmlFile.cpp */; };
@@ -176,6 +175,7 @@
 		67480D4D207269DA00B3ED60 /* xLightsVersion.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67BCD1531E6DAF9100F99935 /* xLightsVersion.cpp */; };
 		67480D532072773F00B3ED60 /* EventPingPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67480D512072773F00B3ED60 /* EventPingPanel.cpp */; };
 		67480D542072773F00B3ED60 /* EventPing.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67480D522072773F00B3ED60 /* EventPing.cpp */; };
+		674A85D1240C663100920D26 /* ControllerModelDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 674A85CF240C663100920D26 /* ControllerModelDialog.cpp */; };
 		674AC9F82296399500F624EE /* xSMSDaemonApp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 674AC9F62296399500F624EE /* xSMSDaemonApp.cpp */; };
 		674B81522028EDA3002A97A6 /* PlayListItemScreenMap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 674B814F2028EDA3002A97A6 /* PlayListItemScreenMap.cpp */; };
 		674B81532028EDA3002A97A6 /* PlayListItemScreenMapPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 674B81502028EDA3002A97A6 /* PlayListItemScreenMapPanel.cpp */; };
@@ -1145,8 +1145,6 @@
 		6740DD0523BC2136002500F2 /* HinksPixExportDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = HinksPixExportDialog.cpp; path = controllers/HinksPixExportDialog.cpp; sourceTree = "<group>"; };
 		6740DD0623BC2136002500F2 /* HinksPixExportDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = HinksPixExportDialog.h; path = controllers/HinksPixExportDialog.h; sourceTree = "<group>"; };
 		674298971C20432600B11478 /* wx */ = {isa = PBXFileReference; lastKnownFileType = folder; name = wx; path = /opt/local/lib/wx; sourceTree = "<group>"; };
-		6743321D22B7C1C20038B63E /* ControllerVisualiseDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ControllerVisualiseDialog.cpp; sourceTree = "<group>"; };
-		6743321E22B7C1C30038B63E /* ControllerVisualiseDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ControllerVisualiseDialog.h; sourceTree = "<group>"; };
 		6743322022B7C24D0038B63E /* OutputModelManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OutputModelManager.h; sourceTree = "<group>"; };
 		6743322122B7C24E0038B63E /* OutputModelManager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = OutputModelManager.cpp; sourceTree = "<group>"; };
 		674623C221E1A888005AE464 /* PathGenerationDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PathGenerationDialog.h; sourceTree = "<group>"; };
@@ -1187,6 +1185,8 @@
 		67480D502072773F00B3ED60 /* EventPingPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EventPingPanel.h; sourceTree = "<group>"; };
 		67480D512072773F00B3ED60 /* EventPingPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = EventPingPanel.cpp; sourceTree = "<group>"; };
 		67480D522072773F00B3ED60 /* EventPing.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EventPing.cpp; path = events/EventPing.cpp; sourceTree = "<group>"; };
+		674A85CF240C663100920D26 /* ControllerModelDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ControllerModelDialog.cpp; sourceTree = "<group>"; };
+		674A85D0240C663100920D26 /* ControllerModelDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ControllerModelDialog.h; sourceTree = "<group>"; };
 		674AC9F62296399500F624EE /* xSMSDaemonApp.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = xSMSDaemonApp.cpp; sourceTree = "<group>"; };
 		674AC9F72296399500F624EE /* xSMSDaemonApp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = xSMSDaemonApp.h; sourceTree = "<group>"; };
 		674B814E2028EDA2002A97A6 /* PlayListItemScreenMapPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlayListItemScreenMapPanel.h; path = PlayList/PlayListItemScreenMapPanel.h; sourceTree = "<group>"; };
@@ -3256,17 +3256,8 @@
 		67E7087617B51AB400A22034 /* xLights */ = {
 			isa = PBXGroup;
 			children = (
-				67FC87FF23D6410400D457CB /* preferences */,
-				67F89AF32361E21B00BD52A5 /* TraceLog.cpp */,
-				67F89AF22361E21B00BD52A5 /* TraceLog.h */,
-				6737275D234AB2FD00C6C2F2 /* ColoursPanel.cpp */,
-				6737275E234AB2FD00C6C2F2 /* ColoursPanel.h */,
-				67372760234AB2FD00C6C2F2 /* DragColoursBitmapButton.cpp */,
-				6737275F234AB2FD00C6C2F2 /* DragColoursBitmapButton.h */,
-				67CA2D3E23441CD80053409E /* DragValueCurveBitmapButton.cpp */,
-				67CA2D3F23441CD80053409E /* DragValueCurveBitmapButton.h */,
-				67CA2D3C2344189A0053409E /* ValueCurvesPanel.cpp */,
-				67CA2D3B2344189A0053409E /* ValueCurvesPanel.h */,
+				674A85CF240C663100920D26 /* ControllerModelDialog.cpp */,
+				674A85D0240C663100920D26 /* ControllerModelDialog.h */,
 				677E58472251277400861ABF /* AlignmentDialog.cpp */,
 				677E58462251277400861ABF /* AlignmentDialog.h */,
 				67FA9FD21C67837500FED13B /* AudioManager.cpp */,
@@ -3299,11 +3290,11 @@
 				67B71D201EC09FDB00690109 /* ColorManager.cpp */,
 				67B71D211EC09FDB00690109 /* ColorManager.h */,
 				67B797171A5AE343008D5921 /* ColorPanel.cpp */,
+				6737275D234AB2FD00C6C2F2 /* ColoursPanel.cpp */,
+				6737275E234AB2FD00C6C2F2 /* ColoursPanel.h */,
 				67E0BB901E08460400C07EF7 /* ControllerConnectionDialog.cpp */,
 				67E0BB911E08460400C07EF7 /* ControllerConnectionDialog.h */,
 				67BF7FF31F278946002F118D /* Controllers */,
-				6743321D22B7C1C20038B63E /* ControllerVisualiseDialog.cpp */,
-				6743321E22B7C1C30038B63E /* ControllerVisualiseDialog.h */,
 				6719BF4D1CCB1DAB00899A4B /* ConvertDialog.cpp */,
 				6719BF4E1CCB1DAB00899A4B /* ConvertDialog.h */,
 				6719BF4F1CCB1DAB00899A4B /* ConvertLogDialog.cpp */,
@@ -3318,7 +3309,11 @@
 				67D11C7B1BEA692300000A7F /* DimmingCurvePanel.cpp */,
 				674E3EEA20CEB6000087FDA1 /* DissolveTransitionPattern.cpp */,
 				674E3EEB20CEB6000087FDA1 /* DissolveTransitionPattern.h */,
+				67372760234AB2FD00C6C2F2 /* DragColoursBitmapButton.cpp */,
+				6737275F234AB2FD00C6C2F2 /* DragColoursBitmapButton.h */,
 				671D81491A6723CF005819EA /* DragEffectBitmapButton.cpp */,
+				67CA2D3E23441CD80053409E /* DragValueCurveBitmapButton.cpp */,
+				67CA2D3F23441CD80053409E /* DragValueCurveBitmapButton.h */,
 				67A260EC1AB71EE3006B140D /* DrawGLUtils.cpp */,
 				67276C471CB424B300A245CA /* DrawGLUtils31.cpp */,
 				6778F3E31A601CA7008C2086 /* Effect.cpp */,
@@ -3390,10 +3385,10 @@
 				67278C811CF87537000DCFFB /* ModelGroupPanel.cpp */,
 				67278C821CF87537000DCFFB /* ModelGroupPanel.h */,
 				67694F1E1A0729220030D020 /* ModelPreview.cpp */,
+				67503C3B23C3261F0033449B /* models */,
 				67BC8BB61D2152EC009B660F /* ModelStateDialog.cpp */,
 				67BC8BB81D2152EC009B660F /* ModelStateDialog.h */,
 				678058C92176600500BFD388 /* MultiControllerUploadDialog.cpp */,
-				67503C3B23C3261F0033449B /* models */,
 				678058CA2176600500BFD388 /* MultiControllerUploadDialog.h */,
 				67FF398E1D57F5C000290DB4 /* MusicXML.cpp */,
 				67FF39901D57F5D000290DB4 /* MusicXML.h */,
@@ -3422,6 +3417,7 @@
 				67AAF8F01B63767B00585431 /* PhonemeDictionary.cpp */,
 				67B6F3242040BF6C00B847E0 /* PixelTestDialog.cpp */,
 				67B6F3232040BF6C00B847E0 /* PixelTestDialog.h */,
+				67FC87FF23D6410400D457CB /* preferences */,
 				67694F191A069BBE0030D020 /* PreviewModels.cpp */,
 				675D1E921D0B54B800CC6C02 /* PreviewPane.cpp */,
 				675D1E941D0B54B800CC6C02 /* PreviewPane.h */,
@@ -3477,6 +3473,8 @@
 				67B797181A5AE343008D5921 /* TimingPanel.cpp */,
 				67D678FC1A7E628400421B05 /* tmGridCell.cpp */,
 				67B797191A5AE343008D5921 /* TopEffectsPanel.cpp */,
+				67F89AF32361E21B00BD52A5 /* TraceLog.cpp */,
+				67F89AF22361E21B00BD52A5 /* TraceLog.h */,
 				67D7DD031B23C586007A3F20 /* UndoManager.cpp */,
 				67BD44281FAB3B3C0007E083 /* UpdaterDialog.cpp */,
 				67BD44291FAB3B3C0007E083 /* UpdaterDialog.h */,
@@ -3488,6 +3486,8 @@
 				67278C7B1CF74A01000DCFFB /* ValueCurveButton.h */,
 				67278C7C1CF74A01000DCFFB /* ValueCurveDialog.cpp */,
 				67278C7D1CF74A01000DCFFB /* ValueCurveDialog.h */,
+				67CA2D3C2344189A0053409E /* ValueCurvesPanel.cpp */,
+				67CA2D3B2344189A0053409E /* ValueCurvesPanel.h */,
 				675AB40B1B5ACEC900853A28 /* Vamp */,
 				67E42C1D1B5C32AD00CEBEC2 /* VAMPPluginDialog.cpp */,
 				67E675082009993C000E930E /* VendorModelDialog.cpp */,
@@ -4431,7 +4431,6 @@
 				67F4C6181A097A35003E978F /* XlightsDrawable.cpp in Sources */,
 				677196AD223C98790082576E /* ZCPPOutput.cpp in Sources */,
 				67B2B2271E1947BE0024F0BB /* DMXOutput.cpp in Sources */,
-				6743321F22B7C1C30038B63E /* ControllerVisualiseDialog.cpp in Sources */,
 				67DAFDDB1CA1A63C004B3237 /* Binasc.cpp in Sources */,
 				6778F3E71A601CA7008C2086 /* EffectLayer.cpp in Sources */,
 				6778F3E61A601CA7008C2086 /* Effect.cpp in Sources */,
@@ -4499,6 +4498,7 @@
 				67B2CF951C39D98A003C17CA /* CirclesEffect.cpp in Sources */,
 				6762EFF51D5A323300F28879 /* SubModelsDialog.cpp in Sources */,
 				67DAFDE11CA1A63C004B3237 /* Options.cpp in Sources */,
+				674A85D1240C663100920D26 /* ControllerModelDialog.cpp in Sources */,
 				67D7DD041B23C586007A3F20 /* UndoManager.cpp in Sources */,
 				67AAC48E214199A7005D55A9 /* NodeSelectGrid.cpp in Sources */,
 				67503C8E23C3261F0033449B /* ModelGroup.cpp in Sources */,

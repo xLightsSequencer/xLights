@@ -134,7 +134,7 @@ public:
     virtual bool HandlePopup(int id) { return false; }
     virtual std::string GetType() const = 0;
     wxRect GetRect() const { return wxRect(_location, _size); }
-    void DrawTextLimited(wxDC& dc, const std::string& text, wxPoint& pt, wxSize& size)
+    void DrawTextLimited(wxDC& dc, const std::string& text, const wxPoint& pt, const wxSize& size)
     {
         dc.SetClippingRegion(pt, size);
         dc.DrawText(text, pt);
@@ -168,6 +168,7 @@ public:
         auto origText = dc.GetTextForeground();
 
         wxSize sz = _size.Scale(scale, scale);
+        dc.SetTextForeground(*wxBLACK);
 
         UDControllerPort* p = nullptr;
         if (!border)
@@ -196,8 +197,7 @@ public:
         wxPoint pt = _location + wxSize(2, 2) + offset;
         if (_type == PORTTYPE::PIXEL) {
             DrawTextLimited(dc, wxString::Format("Pixel Port %d", _port), pt, _size - wxSize(4,4));
-        }
-        else {
+        } else {
             DrawTextLimited(dc, wxString::Format("Serial Port %d", _port), pt, _size - wxSize(4, 4));
         }
         pt += wxSize(0, (VERTICAL_SIZE * scale) / 2);
@@ -271,6 +271,7 @@ public:
         auto origBrush = dc.GetBrush();
         auto origPen = dc.GetPen();
         auto origText = dc.GetTextForeground();
+        dc.SetTextForeground(*wxBLACK);
 
         Model* m = _mm->GetModel(_name);
         UDControllerPortModel* udcpm = _cud->GetControllerPortModel(_name);
