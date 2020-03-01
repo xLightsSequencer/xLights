@@ -11,6 +11,17 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2020.7 March 1 2020
+   -- enh (keith)  Show used universes in controller properties by colouring in the cells when individual universes are shown
+   -- enh (keith)  Add width to the spirograph effect
+   -- bug (keith)  Fix preferences dialog crashes on windows
+   -- bug (keith)  Fix more keyboard anomalies in AC mode
+   -- bug (keith)  Fix focus not given to effects dropped with keybindings, paste and random effects
+   -- bug (keith)  Fix value curve dropper does not disable slider and text box when applied
+   -- bug (keith)  Fix split timing marks should not worked on fixed timing tracks
+   -- bug (keith)  Prevent model export on groups as the code cant work
+   -- bug (scott)  Fix bug in E131 autosize
+   -- bug (scott)  Fix HC pixel channel counts problem
 2020.6 February 24 2020
    -- bug (dkulp)  Fix FPP upload ... includes adding board variants which mean users may need to reselect the model for their controllers
    -- bug (scott)  Fix Artnet 0 universe not available

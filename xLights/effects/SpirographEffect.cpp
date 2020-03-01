@@ -94,8 +94,10 @@ void SpirographEffect::Render(Effect* effect, SettingsMap& SettingsMap, RenderBu
     int mod1440 = state % 1440;
     float d_orig = d;
     if (Animate) d = d_orig + animateState * d_orig; // should we modify the distance variable each pass through?
-    float step = 1.0 / (log10(width)+1);
+    float step = 1.0 / width;
+    float stepw = 1.0 / (log10(width) + 1);
     wxASSERT(step != 0);
+    wxASSERT(stepw != 0);
     for (float i = 1.0; i <= length; i += step)
     {
         float t = (i + mod1440) * M_PI / 180.0;
@@ -120,7 +122,7 @@ void SpirographEffect::Render(Effect* effect, SettingsMap& SettingsMap, RenderBu
 
         // work out the normal to the point being drawn
         float tt = ((R - r) / r) * t;
-        for (float w = -width / 2; w <= width / 2; w += step)
+        for (float w = -width / 2; w <= width / 2; w += stepw)
         {
             int xx = x + w * buffer.cos(tt);
             int yy = y + w * buffer.sin(tt);
