@@ -47,6 +47,11 @@ const long SpirographPanel::IDD_SLIDER_Spirograph_Length = wxNewId();
 const long SpirographPanel::ID_VALUECURVE_Spirograph_Length = wxNewId();
 const long SpirographPanel::ID_TEXTCTRL_Spirograph_Length = wxNewId();
 const long SpirographPanel::ID_BITMAPBUTTON_SLIDER_Spirograph_Length = wxNewId();
+const long SpirographPanel::ID_STATICTEXT1 = wxNewId();
+const long SpirographPanel::IDD_SLIDER_Spirograph_Width = wxNewId();
+const long SpirographPanel::ID_VALUECURVE_Spirograph_Width = wxNewId();
+const long SpirographPanel::ID_TEXTCTRL_Spirograph_Width = wxNewId();
+const long SpirographPanel::ID_BITMAPBUTTON_SLIDER_Spirograph_Width = wxNewId();
 const long SpirographPanel::ID_STATICTEXT91 = wxNewId();
 //*)
 
@@ -58,6 +63,7 @@ END_EVENT_TABLE()
 SpirographPanel::SpirographPanel(wxWindow* parent)
 {
 	//(*Initialize(SpirographPanel)
+	BulkEditTextCtrl* TextCtrl1;
 	BulkEditTextCtrl* TextCtrl21;
 	BulkEditTextCtrl* TextCtrl22;
 	BulkEditTextCtrl* TextCtrl23;
@@ -70,6 +76,7 @@ SpirographPanel::SpirographPanel(wxWindow* parent)
 	wxFlexGridSizer* FlexGridSizer132;
 	wxFlexGridSizer* FlexGridSizer133;
 	wxFlexGridSizer* FlexGridSizer134;
+	wxFlexGridSizer* FlexGridSizer1;
 	wxFlexGridSizer* FlexGridSizer72;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
@@ -165,8 +172,25 @@ SpirographPanel::SpirographPanel(wxWindow* parent)
 	BitmapButton_SpirographLength = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_Spirograph_Length, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Spirograph_Length"));
 	BitmapButton_SpirographLength->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer72->Add(BitmapButton_SpirographLength, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Width"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
+	FlexGridSizer72->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer1 = new wxFlexGridSizer(0, 3, 0, 0);
+	FlexGridSizer1->AddGrowableCol(0);
+	Slider_Spirograph_Width = new BulkEditSlider(this, IDD_SLIDER_Spirograph_Width, 1, 1, 50, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Spirograph_Width"));
+	FlexGridSizer1->Add(Slider_Spirograph_Width, 1, wxALL|wxEXPAND, 2);
+	BitmapButton_Spirograph_WidthVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_Spirograph_Width, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Spirograph_Width"));
+	FlexGridSizer1->Add(BitmapButton_Spirograph_WidthVC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	TextCtrl1 = new BulkEditTextCtrl(this, ID_TEXTCTRL_Spirograph_Width, _("1"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(25,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Spirograph_Width"));
+	TextCtrl1->SetMaxLength(3);
+	FlexGridSizer1->Add(TextCtrl1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer72->Add(FlexGridSizer1, 1, wxALL|wxEXPAND, 2);
+	BitmapButton_SpirographWidth = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_Spirograph_Width, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Spirograph_Width"));
+	BitmapButton_SpirographWidth->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
+	FlexGridSizer72->Add(BitmapButton_SpirographWidth, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText90 = new wxStaticText(this, ID_STATICTEXT91, _("Note: r should be <= R"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT91"));
 	FlexGridSizer72->Add(StaticText90, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer72->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer72->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SetSizer(FlexGridSizer72);
 	FlexGridSizer72->Fit(this);
 	FlexGridSizer72->SetSizeHints(this);
@@ -183,14 +207,17 @@ SpirographPanel::SpirographPanel(wxWindow* parent)
 	Connect(ID_BITMAPBUTTON_SLIDER_Spirograph_Animate,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SpirographPanel::OnLockButtonClick);
 	Connect(ID_VALUECURVE_Spirograph_Length,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SpirographPanel::OnVCButtonClick);
 	Connect(ID_BITMAPBUTTON_SLIDER_Spirograph_Length,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SpirographPanel::OnLockButtonClick);
+	Connect(ID_VALUECURVE_Spirograph_Width,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SpirographPanel::OnVCButtonClick);
+	Connect(ID_BITMAPBUTTON_SLIDER_Spirograph_Width,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SpirographPanel::OnLockButtonClick);
 	//*)
     SetName("ID_PANEL_SPIROGRAPH");
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&SpirographPanel::OnVCChanged, 0, this);
 
     BitmapButton_Spirograph_AnimateVC->GetValue()->SetLimits(SPIROGRAPH_ANIMATE_MIN, SPIROGRAPH_ANIMATE_MAX);
-    BitmapButton_Spirograph_LengthVC->GetValue()->SetLimits(SPIROGRAPH_LENGTH_MIN, SPIROGRAPH_LENGTH_MAX);
-    BitmapButton_Spirograph_RVC->GetValue()->SetLimits(SPIROGRAPH_R_MIN, SPIROGRAPH_R_MAX);
+	BitmapButton_Spirograph_LengthVC->GetValue()->SetLimits(SPIROGRAPH_LENGTH_MIN, SPIROGRAPH_LENGTH_MAX);
+	BitmapButton_Spirograph_WidthVC->GetValue()->SetLimits(SPIROGRAPH_WIDTH_MIN, SPIROGRAPH_WIDTH_MAX);
+	BitmapButton_Spirograph_RVC->GetValue()->SetLimits(SPIROGRAPH_R_MIN, SPIROGRAPH_R_MAX);
     BitmapButton_Spirograph_rVC->GetValue()->SetLimits(SPIROGRAPH_r_MIN, SPIROGRAPH_r_MAX);
     BitmapButton_Spirograph_SpeedrVC->GetValue()->SetLimits(SPIROGRAPH_SPEED_MIN, SPIROGRAPH_SPEED_MAX);
     BitmapButton_Spirograph_dVC->GetValue()->SetLimits(SPIROGRAPH_d_MIN, SPIROGRAPH_d_MAX);
