@@ -198,7 +198,6 @@
     <ClCompile Include="FSEQFile.cpp" />
     <ClCompile Include="PathGenerationDialog.cpp" />
     <ClCompile Include="RemapDMXChannelsDialog.cpp" />
-    <ClCompile Include="ControllerVisualiseDialog.cpp" />
     <ClCompile Include="LOREdit.cpp" />
     <ClCompile Include="AlignmentDialog.cpp" />
     <ClCompile Include="CharMapDialog.cpp" />
@@ -1021,7 +1020,6 @@
     <ClInclude Include="FSEQFile.h" />
     <ClInclude Include="PathGenerationDialog.h" />
     <ClInclude Include="RemapDMXChannelsDialog.h" />
-    <ClInclude Include="ControllerVisualiseDialog.h" />
     <ClInclude Include="LOREdit.h" />
     <ClInclude Include="..\include\globals.h" />
     <ClInclude Include="AlignmentDialog.h" />

@@ -88,7 +88,7 @@ public:
 
     virtual bool IsLookedUpByControllerName() const override { return true; }
 
-    virtual bool SupportsAutoSize() const override { return _managed; }
+    virtual bool SupportsAutoSize() const override { return _managed && IsAutoLayout(); }
 
     virtual std::string GetChannelMapping(int32_t ch) const override;
     virtual std::string GetUniverseString() const override { return ""; }

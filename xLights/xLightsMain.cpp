@@ -9609,6 +9609,7 @@ void xLightsFrame::SetUserEMAIL(const wxString &e) {
 
 void xLightsFrame::CollectUserEmail()
 {
+    if (_userEmail == "") _userEmail = "noone@nowhere.xlights.org";
     EmailDialog dlg(this, _userEmail);
     if (dlg.ShowModal() == wxID_OK) {
         SetUserEMAIL(dlg.GetEmail());

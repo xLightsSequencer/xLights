@@ -257,6 +257,27 @@ std::string ModelManager::GetLastModelOnPort(const std::string& controllerName, 
     return last;
 }
 
+std::string ModelManager::GetLastModelOnPort(const std::string& controllerName, int port, const std::string& excludeModel, const std::string& protocol, int smartReceiver) const
+{
+    std::string last = "";
+    unsigned int highestEndChannel = 0;
+
+    for (const auto& it : models)
+    {
+        if (it.second->GetDisplayAs() != "ModelGroup" &&
+            it.second->GetControllerName() == controllerName &&
+            it.second->GetControllerPort() == port &&
+            it.second->GetControllerProtocol() == protocol &&
+            it.second->GetSmartRemote() == smartReceiver &&
+            it.second->GetLastChannel() > highestEndChannel&& it.first != excludeModel)
+        {
+            last = it.first;
+            highestEndChannel = it.second->GetLastChannel();
+        }
+    }
+    return last;
+}
+
 void ModelManager::ReplaceIPInStartChannels(const std::string& oldIP, const std::string& newIP)
 {
     for (const auto& it : models)

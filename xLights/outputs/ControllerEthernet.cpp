@@ -582,8 +582,7 @@ void ControllerEthernet::AddProperties(wxPropertyGrid* propertyGrid, ModelManage
                 p->SetEditor("SpinCtrl");
                 auto modelsOnUniverse = modelManager->GetModelsOnChannels(it->GetStartChannel(), it->GetEndChannel(), 4);
                 p->SetHelpString(wxString::Format("[%d-%d]\n", it->GetStartChannel(), it->GetEndChannel()) + modelsOnUniverse);
-                if (modelsOnUniverse != "")
-                {
+                if (modelsOnUniverse != "") {
                     p->SetBackgroundColour(wxColour(208, 255, 158));
                 }
             }
@@ -733,7 +732,14 @@ bool ControllerEthernet::HandlePropertyEvent(wxPropertyGridEvent& event, OutputM
         return true;
     }
     else if (name == "IndivSizes") {
+
         _forceSizes = event.GetValue().GetBool();
+
+        // Let user stop this if they didnt understand the implications
+        if (!_forceSizes && !AllSameSize())
+        {
+            if (wxMessageBox(wxString::Format("Are you sure you want to set all universes to %ld channels?", (long)_outputs.front()->GetChannels()), "Confirm resize?", wxICON_QUESTION | wxYES_NO) != wxYES) return true;
+        }
 
         if (!_forceSizes) {
             for (auto& it : _outputs) {

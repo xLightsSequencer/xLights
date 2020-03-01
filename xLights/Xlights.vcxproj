@@ -612,7 +612,6 @@
     <ClCompile Include="xLightsXmlFile.cpp" />
     <ClCompile Include="xlLockButton.cpp" />
     <ClCompile Include="xlSlider.cpp" />
-    <ClCompile Include="ControllerVisualiseDialog.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\globals.h" />
@@ -1036,7 +1035,6 @@
     <ClInclude Include="xLightsXmlFile.h" />
     <ClInclude Include="xlLockButton.h" />
     <ClInclude Include="xlSlider.h" />
-    <ClInclude Include="ControllerVisualiseDialog.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc" />

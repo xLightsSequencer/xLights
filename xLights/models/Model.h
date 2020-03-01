@@ -247,6 +247,7 @@ public:
     int GetSmartRemote() const;
     int GetControllerPort(int string = 1) const;
     void SetModelChain(const std::string& modelChain);
+    void SetSmartRemote(int sr);
     std::string GetModelChain() const;
     const std::vector<Model *>& GetSubModels() const { return subModels; }
     Model *GetSubModel(const std::string &name) const;

@@ -52,7 +52,9 @@ public:
 
     virtual bool IsLookedUpByControllerName() const override { return false; }
 
-    virtual bool SupportsAutoSize() const override { return true; }
+    virtual bool SupportsAutoLayout() const override { return true; }
+
+    virtual bool SupportsAutoSize() const override { return IsAutoLayout(); }
 
     virtual std::string GetChannelMapping(int32_t ch) const override;
     virtual std::string GetUniverseString() const override { return wxString::Format("%d", _id); }

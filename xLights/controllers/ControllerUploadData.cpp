@@ -332,8 +332,9 @@ bool UDControllerPort::SetAllModelsToControllerName(const std::string& controlle
 // This ensures none of the models on a port overlap ... they are all chained 
 // I am a bit concerned that using this stops you overlapping things ... but really if you are going to overlap things
 // you shouldnt set the port as that is just going to cause grief.
-void UDControllerPort::EnsureAllModelsAreChained()
+bool UDControllerPort::EnsureAllModelsAreChained()
 {
+    bool changed = false;
     std::string last = "Beginning";
     for (const auto& it : _models)
     {
@@ -341,15 +342,24 @@ void UDControllerPort::EnsureAllModelsAreChained()
         {
             if (last == "Beginning")
             {
-                it->GetModel()->SetModelChain(last);
+                if (it->GetModel()->GetModelChain() != last)
+                {
+                    changed = true;
+                    it->GetModel()->SetModelChain(last);
+                }
             }
             else
             {
-                it->GetModel()->SetModelChain(">" + last);
+                if (it->GetModel()->GetModelChain() != ">" + last)
+                {
+                    changed = true;
+                    it->GetModel()->SetModelChain(">" + last);
+                }
             }
             last = it->GetModel()->GetName();
         }
     }
+    return changed;
 }
 #pragma endregion
 
@@ -853,25 +863,34 @@ bool UDController::HasSerialPort(int port) const {
     return false;
 }
 
+Model* UDController::GetModelAfter(Model* m) const
+{
+    for (const auto& it : _pixelPorts)
+    {
+        auto mm = it.second->GetModelAfter(m);
+        if (mm != nullptr) return mm;
+    }
+    for (const auto& it : _serialPorts)
+    {
+        auto mm = it.second->GetModelAfter(m);
+        if (mm != nullptr) return mm;
+    }
+    return nullptr;
+}
+
 bool UDController::SetAllModelsToControllerName(const std::string& controllerName)
 {
     bool changed = false;
     for (const auto& it : _pixelPorts)
     {
-        if (it.second->SetAllModelsToControllerName(controllerName))
-        {
-            changed = true;
-            it.second->EnsureAllModelsAreChained();
-        }
+        changed |= it.second->SetAllModelsToControllerName(controllerName);
+        changed |= it.second->EnsureAllModelsAreChained();
     }
 
     for (const auto& it : _serialPorts)
     {
-        if (it.second->SetAllModelsToControllerName(controllerName))
-        {
-            changed = true;
-            it.second->EnsureAllModelsAreChained();
-        }
+        changed |= it.second->SetAllModelsToControllerName(controllerName);
+        changed |= it.second->EnsureAllModelsAreChained();
     }
 
     return changed;

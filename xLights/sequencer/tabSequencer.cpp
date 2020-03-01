@@ -3712,8 +3712,9 @@ wxXmlNode* FindPreset(wxXmlNode* node, wxArrayString& path, int level)
     return nullptr;
 }
 
-void xLightsFrame::ApplyEffectsPreset(const std::string& presetName)
+Effect* xLightsFrame::ApplyEffectsPreset(const std::string& presetName)
 {
+    Effect* res = nullptr;
     wxXmlNode* ele = nullptr;
 
     auto path = wxSplit(presetName, '/');
@@ -3722,8 +3723,10 @@ void xLightsFrame::ApplyEffectsPreset(const std::string& presetName)
 
     if (ele != nullptr)
     {
-        mainSequencer->PanelEffectGrid->Paste(ele->GetAttribute("settings"), ele->GetAttribute("xLightsVersion", "4.0"));
+        res = mainSequencer->PanelEffectGrid->Paste(ele->GetAttribute("settings"), ele->GetAttribute("xLightsVersion", "4.0"));
     }
+
+    return res;
 }
 
 void xLightsFrame::ApplyEffectsPreset(wxString& data, const wxString &pasteDataVersion)

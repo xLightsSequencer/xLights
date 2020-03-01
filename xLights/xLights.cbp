@@ -471,8 +471,6 @@
 		<Unit filename="ControllerConnectionDialog.h" />
 		<Unit filename="ControllerModelDialog.cpp" />
 		<Unit filename="ControllerModelDialog.h" />
-		<Unit filename="ControllerVisualiseDialog.cpp" />
-		<Unit filename="ControllerVisualiseDialog.h" />
 		<Unit filename="ConvertDialog.cpp" />
 		<Unit filename="ConvertDialog.h" />
 		<Unit filename="ConvertLogDialog.cpp" />
@@ -1265,7 +1263,6 @@
 		<Unit filename="wxsmith/ColoursPanel.wxs" />
 		<Unit filename="wxsmith/ControllerConnectionDialog.wxs" />
 		<Unit filename="wxsmith/ControllerModelDialog.wxs" />
-		<Unit filename="wxsmith/ControllerVisualiseDialog.wxs" />
 		<Unit filename="wxsmith/ConvertDialog.wxs" />
 		<Unit filename="wxsmith/ConvertLogDialog.wxs" />
 		<Unit filename="wxsmith/CurrentPreviewModels.wxs" />
@@ -1448,7 +1445,6 @@
 					<wxDialog wxs="wxsmith/ColorCurveDialog.wxs" src="ColorCurveDialog.cpp" hdr="ColorCurveDialog.h" fwddecl="0" i18n="1" name="ColorCurveDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/ControllerConnectionDialog.wxs" src="ControllerConnectionDialog.cpp" hdr="ControllerConnectionDialog.h" fwddecl="0" i18n="1" name="ControllerConnectionDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/ControllerModelDialog.wxs" src="ControllerModelDialog.cpp" hdr="ControllerModelDialog.h" fwddecl="0" i18n="1" name="ControllerModelDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/ControllerVisualiseDialog.wxs" src="ControllerVisualiseDialog.cpp" hdr="ControllerVisualiseDialog.h" fwddecl="0" i18n="1" name="ControllerVisualiseDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/ConvertDialog.wxs" src="ConvertDialog.cpp" hdr="ConvertDialog.h" fwddecl="0" i18n="1" name="ConvertDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/ConvertLogDialog.wxs" src="ConvertLogDialog.cpp" hdr="ConvertLogDialog.h" fwddecl="0" i18n="1" name="ConvertLogDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/CurrentPreviewModels.wxs" src="CurrentPreviewModels.cpp" hdr="CurrentPreviewModels.h" fwddecl="0" i18n="1" name="CurrentPreviewModels" language="CPP" />

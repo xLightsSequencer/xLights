@@ -1164,14 +1164,8 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         SetActive(event.GetValue().GetBool());
         return 0;
     } else if (event.GetPropertyName() == "SmartRemote") {
-        GetControllerConnection()->DeleteAttribute("SmartRemote");
-        GetControllerConnection()->AddAttribute("SmartRemote", event.GetValue().GetString());
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::OnPropertyGridChange::SmartRemote");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "Model::OnPropertyGridChange::SmartRemote");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Model::OnPropertyGridChange::SmartRemote");
-        AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "Model::OnPropertyGridChange::SmartRemote");
-        AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "Model::OnPropertyGridChange::SmartRemote");
-        AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "Model::OnPropertyGridChange::SmartRemote");
+        SetSmartRemote(wxAtoi(event.GetValue().GetString()));
+
         return 0;
     } else if (event.GetPropertyName() == "ModelControllerConnectionProtocol") {
         std::string oldProtocol = GetControllerProtocol();
@@ -5191,12 +5185,47 @@ int Model::GetSmartRemote() const
     return wxAtoi(s);
 }
 
+void Model::SetSmartRemote(int sr)
+{
+    if (GetSmartRemote() != sr)
+    {
+        // Find the last model on this smart remote
+        if (GetControllerName() != "")
+        {
+            SetModelChain(modelManager.GetLastModelOnPort(GetControllerName(), GetControllerPort(), GetName(), GetControllerProtocol(), sr));
+        }
+        GetControllerConnection()->DeleteAttribute("SmartRemote");
+        if (sr != 0)
+        {
+            GetControllerConnection()->AddAttribute("SmartRemote", wxString::Format("%d", sr));
+        }
+    }
+
+    AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Model::SetSmartRemote");
+    AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::SetSmartRemote");
+    AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "Model::SetSmartRemote");
+    AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "Model::SetSmartRemote");
+    //AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "Model::SetSmartRemote");
+    AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "Model::SetSmartRemote");
+    AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "Model::SetSmartRemote");
+    IncrementChangeCount();
+}
+
 void Model::SetModelChain(const std::string& modelChain)
 {
-    ModelXml->DeleteAttribute("ModelChain");
-    if (modelChain != "" && modelChain != "Beginning" && modelChain != ">")
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    std::string mc = modelChain;
+    if (mc != "" && mc != "Beginning" && !StartsWith(mc, ">"))
     {
-        ModelXml->AddAttribute("ModelChain", modelChain);
+        mc = ">" + mc;
+    }
+
+    logger_base.debug("Model %s chained to %s.", (const char*)GetName().c_str(), (const char*)mc.c_str());
+    ModelXml->DeleteAttribute("ModelChain");
+    if (mc != "" && mc != "Beginning" && mc != ">")
+    {
+        ModelXml->AddAttribute("ModelChain", mc);
     }
     AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Model::SetModelChain");
     AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::SetModelChain");

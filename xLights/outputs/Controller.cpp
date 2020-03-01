@@ -117,6 +117,7 @@ Controller::Controller(OutputManager* om, wxXmlNode* node, const std::string& sh
     _autoSize = node->GetAttribute("AutoSize", "0") == "1";
     SetActive(node->GetAttribute("Active", "1") == "1");
     SetAutoLayout(node->GetAttribute("AutoLayout", "0") == "1");
+    if (!_autoLayout) _autoSize = false;
     _vendor = node->GetAttribute("Vendor");
     _model = node->GetAttribute("Model");
     _variant = node->GetAttribute("Variant");

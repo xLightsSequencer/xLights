@@ -21,6 +21,7 @@
 #include <wx/image.h>
 #include <wx/file.h>
 #include <wx/dnd.h>
+#include <wx/dcbuffer.h>
 
 #include "ControllerModelDialog.h"
 #include "xLightsMain.h"
@@ -46,12 +47,17 @@ const long ControllerModelDialog::ID_PANEL4 = wxNewId();
 
 const long ControllerModelDialog::CONTROLLERModel_PRINT = wxNewId();
 const long ControllerModelDialog::CONTROLLERModel_SAVE_CSV = wxNewId();
+const long ControllerModelDialog::CONTROLLER_SMARTREMOTE_None = wxNewId();
+const long ControllerModelDialog::CONTROLLER_SMARTREMOTE_A = wxNewId();
+const long ControllerModelDialog::CONTROLLER_SMARTREMOTE_B = wxNewId();
+const long ControllerModelDialog::CONTROLLER_SMARTREMOTE_C = wxNewId();
 
 BEGIN_EVENT_TABLE(ControllerModelDialog,wxDialog)
 	//(*EventTable(ControllerModelDialog)
 	//*)
 END_EVENT_TABLE()
 
+#pragma region Drawing Constants
 #define TOP_BOTTOM_MARGIN 10
 #define VERTICAL_GAP 5
 #define VERTICAL_SIZE 40
@@ -60,14 +66,15 @@ END_EVENT_TABLE()
 #define HORIZONTAL_SIZE 120
 #define CORNER_ROUNDING 5
 #define PRINTSCALE 8.0
-
-#pragma region Object Classes
+#pragma endregion
 
 wxColour __lightBlue(185, 246, 250, wxALPHA_OPAQUE);
 wxBrush __dropTargetBrush(__lightBlue);
 wxPen __dropTargetPen(__lightBlue);
 wxColour __lightRed(255, 133, 133, wxALPHA_OPAQUE);
 wxBrush __invalidBrush(__lightRed);
+
+#pragma region Object Classes
 
 class BaseCMObject
 {
@@ -124,7 +131,7 @@ public:
     virtual void Draw(wxDC& dc, wxPoint mouse, wxSize offset, int scale, bool printing = false, bool border = true) = 0;
     void UpdateCUD(UDController* cud) { _cud = cud; }
     virtual void AddRightClickMenu(wxMenu& mnu) {}
-    virtual void HandlePopup(int id) {}
+    virtual bool HandlePopup(int id) { return false; }
     virtual std::string GetType() const = 0;
     wxRect GetRect() const { return wxRect(_location, _size); }
     void DrawTextLimited(wxDC& dc, const std::string& text, wxPoint& pt, wxSize& size)
@@ -266,7 +273,6 @@ public:
         auto origText = dc.GetTextForeground();
 
         Model* m = _mm->GetModel(_name);
-
         UDControllerPortModel* udcpm = _cud->GetControllerPortModel(_name);
 
         if (!border) {
@@ -326,19 +332,24 @@ public:
         DrawTextLimited(dc, _displayName, pt, _size - wxSize(4,4));
         pt += wxSize(0, (VERTICAL_SIZE * scale) / 2);
         if (m != nullptr) {
-            if (_style & STYLE_PIXELS)
+
+            if (udcpm != nullptr)
             {
-                DrawTextLimited(dc, wxString::Format("Pixels: %d", m->GetChanCount() / 3), pt, _size - wxSize(4, 4));
-                pt += wxSize(0, (VERTICAL_SIZE * scale) / 2);
+                uint32_t chs = udcpm->Channels();
+                if (_style & STYLE_PIXELS)
+                {
+                    DrawTextLimited(dc, wxString::Format("Pixels: %ld", (long)chs / udcpm->GetChannelsPerPixel()), pt, _size - wxSize(4, 4));
+                    pt += wxSize(0, (VERTICAL_SIZE * scale) / 2);
+                }
+                if (_style & STYLE_CHANNELS)
+                {
+                    DrawTextLimited(dc, wxString::Format("Channels: %ld", (long)chs), pt, _size - wxSize(4, 4));
+                    pt += wxSize(0, (VERTICAL_SIZE * scale) / 2);
+                }
             }
             if (_style & STYLE_STRINGS)
             {
                 DrawTextLimited(dc, wxString::Format("Strings: %d", m->GetNumPhysicalStrings()), pt, _size - wxSize(4, 4));
-                pt += wxSize(0, (VERTICAL_SIZE * scale) / 2);
-            }
-            if (_style & STYLE_CHANNELS)
-            {
-                DrawTextLimited(dc, wxString::Format("Strings: %d", m->GetChanCount()), pt, _size - wxSize(4, 4));
                 pt += wxSize(0, (VERTICAL_SIZE * scale) / 2);
             }
         }
@@ -349,15 +360,43 @@ public:
     }
     virtual void AddRightClickMenu(wxMenu& mnu) override
     {
-        //wxMenuItem* mi = mnu.Append(CONTROLLERModel_SAVE_CSV, "Save As CSV...");
-        //mi->SetRefData((wxObjectRefData*)this); // this a bit dodgy
+        if (_caps->SupportsSmartRemotes() && GetModel() != nullptr)
+        {
+            mnu.AppendSeparator();
+            int sr = GetModel()->GetSmartRemote();
+            auto mi = mnu.AppendRadioItem(ControllerModelDialog::CONTROLLER_SMARTREMOTE_None, "None");
+            mi->Check(sr == 0);
+            mi = mnu.AppendRadioItem(ControllerModelDialog::CONTROLLER_SMARTREMOTE_A, "*A*->b->c");
+            mi->Check(sr == 1);
+            mi = mnu.AppendRadioItem(ControllerModelDialog::CONTROLLER_SMARTREMOTE_B, "*a*->B->c");
+            mi->Check(sr == 2);
+            mi = mnu.AppendRadioItem(ControllerModelDialog::CONTROLLER_SMARTREMOTE_C, "*a*->b->C");
+            mi->Check(sr == 3);
+        }
     }
-    virtual void HandlePopup(int id) override
+    virtual bool HandlePopup(int id) override
     {
-        //if (id == xxx)
-        //{
-
-        //}
+        if (id == ControllerModelDialog::CONTROLLER_SMARTREMOTE_None)
+        {
+            GetModel()->SetSmartRemote(0);
+            return true;
+        }
+        if (id == ControllerModelDialog::CONTROLLER_SMARTREMOTE_A)
+        {
+            GetModel()->SetSmartRemote(1);
+            return true;
+        }
+        if (id == ControllerModelDialog::CONTROLLER_SMARTREMOTE_B)
+        {
+            GetModel()->SetSmartRemote(2);
+            return true;
+        }
+        if (id == ControllerModelDialog::CONTROLLER_SMARTREMOTE_C)
+        {
+            GetModel()->SetSmartRemote(3);
+            return true;
+        }
+        return false;
     }
 };
 
@@ -421,7 +460,7 @@ public:
         for (const auto& it : *_objects)
         {
             auto m = dynamic_cast<ModelCMObject*>(it);
-            if (it->HitTest(mouse) != BaseCMObject::HITLOCATION::NONE && !_owner->IsDragging(m))
+            if (it->HitTest(mouse) != BaseCMObject::HITLOCATION::NONE && !_owner->IsDragging(m) && (m == nullptr || m->IsMain()))
             {
                 it->SetOver(it->HitTest(mouse));
                 _owner->Draw(_target, it, mouse);
@@ -553,6 +592,9 @@ ControllerModelDialog::ControllerModelDialog(wxWindow* parent, UDController* cud
 	Connect(ID_SCROLLBAR3,wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&ControllerModelDialog::OnScrollBar_ModelsScrollChanged);
 	//*)
 
+    //PanelController->SetBackgroundStyle(wxBG_STYLE_PAINT);
+    //PanelModels->SetBackgroundStyle(wxBG_STYLE_PAINT);
+
     wxSize panel4Size = wxSize(LEFT_RIGHT_MARGIN + HORIZONTAL_SIZE + LEFT_RIGHT_MARGIN + ScrollBar_Models->GetSize().GetWidth() + 10, -1);
     Panel4->SetMinSize(panel4Size);
     SetMinSize(wxSize(800, 400));
@@ -633,8 +675,13 @@ void ControllerModelDialog::ReloadModels()
         }
     }
 
-    ScrollBar_Models->SetRange(y);
-    ScrollBar_Models->SetPageSize(y / 10);
+    _modelsy = y;
+
+    int panely = PanelModels->GetSize().y;
+    ScrollBar_Models->SetRange(_modelsy);
+    ScrollBar_Models->SetPageSize(_modelsy / 10);
+    ScrollBar_Models->SetThumbSize(panely);
+    PanelModels->Refresh();
 
     y = VERTICAL_GAP;
 
@@ -709,10 +756,18 @@ void ControllerModelDialog::ReloadModels()
     maxx -= HORIZONTAL_GAP;
     maxx += LEFT_RIGHT_MARGIN;
 
-    ScrollBar_Controller_V->SetRange(y);
-    ScrollBar_Controller_V->SetPageSize(y / 10);
-    ScrollBar_Controller_H->SetRange(maxx);
-    ScrollBar_Controller_H->SetPageSize(maxx / 10);
+    _controllersx = maxx;
+    _controllersy = y;
+
+    int panelx = PanelController->GetSize().x;
+    ScrollBar_Controller_H->SetRange(_controllersx);
+    ScrollBar_Controller_H->SetPageSize(_controllersx / 10);
+    ScrollBar_Controller_H->SetThumbSize(panelx);
+
+    panely = PanelController->GetSize().y;
+    ScrollBar_Controller_V->SetRange(_controllersy);
+    ScrollBar_Controller_V->SetPageSize(_controllersy / 10);
+    ScrollBar_Controller_V->SetThumbSize(panely);
 
     PanelController->Refresh();
     PanelModels->Refresh();
@@ -744,10 +799,12 @@ void ControllerModelDialog::OnPopupCommand(wxCommandEvent &event)
     {
         SaveCSV();
     }
-    else
+    else if (_popup != nullptr)
     {
-        BaseCMObject* cm = (BaseCMObject *)event.GetEventObject()->GetRefData();
-        cm->HandlePopup(id);
+        if (_popup->HandlePopup(id)) {
+            while (!_xLights->DoAllWork());
+            ReloadModels();
+        }
     }
 }
 
@@ -895,23 +952,24 @@ void ControllerModelDialog::DropFromModels(const wxPoint& location, const std::s
 
             if (mob == nullptr || !mob->IsMain())
             {
-                logger_base.debug("    Processing it as a drop onto the port ... so setting it to beginning.");
+                logger_base.debug("    Processing it as a drop onto the port ... so setting it to end.");
 
                 // dropped on a port .. or not on the first string of a model
-                // If no model already there put it at the beginning ... else chain it
+                // If no model already there put it at the beginning ... else chain it to end
                 if (_autoLayout)
                 {
-                    auto fmud = _cud->GetControllerPixelPort(port->GetPort())->GetFirstModel();
-                    Model* fm = nullptr;
+                    auto fmud = _cud->GetControllerPixelPort(port->GetPort())->GetLastModel();
                     if (fmud != nullptr && fmud->IsFirstModelString())
                     {
-                        fm = fmud->GetModel();
+                        Model* lm = fmud->GetModel();
+                        if (lm != nullptr)
+                        {
+                            m->SetModelChain(">" + lm->GetName());
+                        }
                     }
-                    m->SetModelChain("Beginning");
-                    if (fm != nullptr)
+                    else
                     {
-                        fm->SetModelChain(">" + m->GetName());
-                        logger_base.debug("    Old beginning Model %s now chains to our dropped model.", (const char*)fm->GetName().c_str());
+                        m->SetModelChain("");
                     }
                 }
             }
@@ -926,6 +984,7 @@ void ControllerModelDialog::DropFromModels(const wxPoint& location, const std::s
                     if (hit == BaseCMObject::HITLOCATION::LEFT)
                     {
                         logger_base.debug("    On the left hand side.");
+                        logger_base.debug("    Left of %s which comes after %s.", (const char*)droppedOn->GetName().c_str(), (const char*)droppedOn->GetModelChain().c_str());
                         m->SetModelChain(droppedOn->GetModelChain());
                         droppedOn->SetModelChain(">" + m->GetName());
                     }
@@ -943,7 +1002,12 @@ void ControllerModelDialog::DropFromModels(const wxPoint& location, const std::s
                         }
                         if (next != nullptr)
                         {
+                            logger_base.debug("    Right of %s which comes before %s.", (const char*)droppedOn->GetName().c_str(), (const char*)next->GetName().c_str());
                             next->SetModelChain(">" + m->GetName());
+                        }
+                        else
+                        {
+                            logger_base.debug("    Right of %s.", (const char*)droppedOn->GetName().c_str());
                         }
                         m->SetModelChain(">" + droppedOn->GetName());
                     }
@@ -976,6 +1040,7 @@ void ControllerModelDialog::DropFromController(const wxPoint& location, const st
         if (_autoLayout)
         {
             m->SetControllerName("");
+            m->SetModelChain("");
         }
         m->SetControllerPort(0);
     }
@@ -1015,31 +1080,59 @@ void ControllerModelDialog::DropFromController(const wxPoint& location, const st
                 // If no model already there put it at the beginning ... else chain it
                 if (_autoLayout)
                 {
-                    auto fmud = _cud->GetControllerPixelPort(port->GetPort())->GetFirstModel();
-                    Model* fm = nullptr;
-                    if (fmud != nullptr && fmud->IsFirstModelString())
+                    UDControllerPort* cudp = nullptr;
+                    if (port->GetPortType() == PortCMObject::PORTTYPE::PIXEL)
                     {
-                        fm = fmud->GetModel();
+                        cudp = _cud->GetControllerPixelPort(port->GetPort());
                     }
-                    m->SetModelChain("Beginning");
-                    if (fm != nullptr)
+                    else
                     {
-                        fm->SetModelChain(">" + m->GetName());
-                        logger_base.debug("    Old beginning Model %s now chains to our dropped model.", (const char*)fm->GetName().c_str());
+                        cudp = _cud->GetControllerSerialPort(port->GetPort());
+                    }
+
+                    // Because we are moving a model already in a chain we need to patch that over first
+                    Model* nextfrom = _cud->GetModelAfter(m);
+                    if (nextfrom != nullptr) {
+                        logger_base.debug("    Model %s was removed from existing chain so %s now chains to %s", (const char*)m->GetName().c_str(), (const char*)nextfrom->GetName().c_str(), (const char*)m->GetModelChain().c_str());
+                        nextfrom->SetModelChain(m->GetModelChain());
+                    }
+
+                    auto fmud = cudp->GetLastModel();
+                    if (fmud == nullptr)
+                    {
+                        m->SetModelChain("");
+                    }
+                    else {
+                        if (fmud != nullptr && fmud->IsFirstModelString())
+                        {
+                            Model* lm = fmud->GetModel();
+                            m->SetModelChain(">" + lm->GetName());
+                        }
                     }
                 }
             }
-            else
-            {
+            else {
                 Model* droppedOn = _mm->GetModel(mob->GetName());
                 logger_base.debug("    Dropped onto model %s.", (const char*)droppedOn->GetName().c_str());
-
+                
                 // dropped on a model
-                if (_autoLayout)
-                {
-                    if (hit == BaseCMObject::HITLOCATION::LEFT)
-                    {
+                if (_autoLayout) {
+                    // Because we are moving a model already in a chain we need to patch that over first
+                    Model* nextfrom = _cud->GetModelAfter(m);
+                    if (nextfrom != nullptr) {
+                        if ((nextfrom == droppedOn && hit == BaseCMObject::HITLOCATION::LEFT) ||
+                            (">" + droppedOn->GetName() == m->GetModelChain())) {
+                            logger_base.debug("    Model did not actually move.");
+                        }
+                        else {
+                            logger_base.debug("    Model %s was removed from existing chain so %s now chains to %s", (const char*)m->GetName().c_str(), (const char*)nextfrom->GetName().c_str(), (const char*)m->GetModelChain().c_str());
+                            nextfrom->SetModelChain(m->GetModelChain());
+                        }
+                    }
+
+                    if (hit == BaseCMObject::HITLOCATION::LEFT) {
                         logger_base.debug("    On the left hand side.");
+                        logger_base.debug("    Left of %s which comes after %s.", (const char*)droppedOn->GetName().c_str(), (const char*)droppedOn->GetModelChain().c_str());
                         if (droppedOn->GetModelChain() != ">" + m->GetName())
                         {
                             m->SetModelChain(droppedOn->GetModelChain());
@@ -1062,7 +1155,12 @@ void ControllerModelDialog::DropFromController(const wxPoint& location, const st
                             }
                             if (next != nullptr)
                             {
+                                logger_base.debug("    Right of %s which comes before %s.", (const char*)droppedOn->GetName().c_str(), (const char*)next->GetName().c_str());
                                 next->SetModelChain(">" + m->GetName());
+                            }
+                            else
+                            {
+                                logger_base.debug("    Right of %s.", (const char*)droppedOn->GetName().c_str());
                             }
                             m->SetModelChain(">" + droppedOn->GetName());
                         }
@@ -1135,24 +1233,31 @@ void ControllerModelDialog::OnPanelControllerLeftDClick(wxMouseEvent& event)
 
 void ControllerModelDialog::OnPanelControllerMouseMove(wxMouseEvent& event)
 {
+    wxPoint mouse = event.GetPosition();
+    mouse += GetScrollPosition(PanelController);
+
     if (_dragging != nullptr)
     {
         for (const auto& it : _controllers)
         {
-            auto hit = it->HitTest(event.GetPosition());
+            auto hit = it->HitTest(mouse);
             if (hit != BaseCMObject::HITLOCATION::NONE)
             {
                 if (it->GetType() == "PORT")
                 {
                     it->SetOver(BaseCMObject::HITLOCATION::RIGHT);
-                    PanelController->RefreshRect(it->GetRect());
+                    wxRect rect = it->GetRect();
+                    rect.Offset(-1 * GetScrollPosition(PanelController));
+                    PanelController->RefreshRect(rect);
                 }
                 else
                 {
                     if (it->GetOver() != hit)
                     {
                         it->SetOver(hit);
-                        PanelController->RefreshRect(it->GetRect());
+                        wxRect rect = it->GetRect();
+                        rect.Offset(-1 * GetScrollPosition(PanelController));
+                        PanelController->RefreshRect(rect);
                     }
                 }
             }
@@ -1167,11 +1272,13 @@ void ControllerModelDialog::OnPanelControllerMouseMove(wxMouseEvent& event)
         std::string tt = "";
         for (const auto& it : _controllers)
         {
-            bool ishit = it->HitTest(event.GetPosition()) != BaseCMObject::HITLOCATION::NONE;
+            bool ishit = it->HitTest(mouse) != BaseCMObject::HITLOCATION::NONE;
             auto m = dynamic_cast<ModelCMObject*>(it);
             if (ishit || (m != nullptr && m->IsOutline()))
             {
-                PanelController->RefreshRect(it->GetRect());
+                wxRect rect = it->GetRect();
+                rect.Offset(-1 * GetScrollPosition(PanelController));
+                PanelController->RefreshRect(rect);
                 if (ishit)
                 {
                     if (m != nullptr)
@@ -1204,7 +1311,9 @@ void ControllerModelDialog::ClearOver(wxPanel* panel, std::list<BaseCMObject*> l
         if (it->GetOver() != BaseCMObject::HITLOCATION::NONE)
         {
             it->SetOver(BaseCMObject::HITLOCATION::NONE);
-            panel->RefreshRect(it->GetRect());
+            wxRect rect = it->GetRect();
+            rect.Offset(-1 * GetScrollPosition(panel));
+            panel->RefreshRect(rect);
         }
     }
 }
@@ -1226,20 +1335,39 @@ std::string ControllerModelDialog::GetModelTooltip(ModelCMObject* mob)
     auto m = mob->GetModel();
     if (m == nullptr) return "";
 
+    std::string sr;
+    switch (m->GetSmartRemote())
+    {
+    case 0:
+        sr = "None";
+        break;
+    case 1:
+        sr = "A";
+        break;
+    case 2:
+        sr = "B";
+        break;
+    case 3:
+        sr = "C";
+        break;
+    default:
+        sr = "error";
+        break;
+    }
     _xLights->GetControllerDetailsForChannel(m->GetFirstChannel(), controllerName, type, protocol, description,
                                              channelOffset, ip, universe, inactive, baud, startUniverse, endUniverse);
     auto om = _xLights->GetOutputManager();
     if (_autoLayout)
     {
-        return wxString::Format("Name: %s\nController Name: %s\nModel Chain: %s\nStart Channel: %s\nEnd Channel %s\nStrings %d",
+        return wxString::Format("Name: %s\nController Name: %s\nModel Chain: %s\nStart Channel: %s\nEnd Channel %s\nStrings %d\nSmart Remote: %s",
             mob->GetDisplayName(), controllerName, m->GetModelChain() == "" ? "Beginning" : m->GetModelChain(), m->GetStartChannelInDisplayFormat(om), m->GetLastChannelInStartChannelFormat(om),
-            m->GetNumPhysicalStrings()).ToStdString();
+            m->GetNumPhysicalStrings(), sr).ToStdString();
     }
     else
     {
-        return wxString::Format("name: %s\nController Name: %s\nIP/Serial: %s\nStart Channel: %s\nEnd Channel %s\nStrings %d",
+        return wxString::Format("name: %s\nController Name: %s\nIP/Serial: %s\nStart Channel: %s\nEnd Channel %s\nStrings %d\nSmart Remote: %s",
             mob->GetDisplayName(), controllerName, universe, m->GetStartChannelInDisplayFormat(om), m->GetLastChannelInStartChannelFormat(om),
-            m->GetNumPhysicalStrings()).ToStdString();
+            m->GetNumPhysicalStrings(), sr).ToStdString();
     }
 }
 
@@ -1307,15 +1435,19 @@ wxPoint ControllerModelDialog::GetScrollPosition(wxPanel* panel) const
 
 void ControllerModelDialog::OnPanelControllerRightDown(wxMouseEvent& event)
 {
+    wxPoint mouse = event.GetPosition();
+    mouse += GetScrollPosition(PanelController);
+
     wxMenu mnu;
     mnu.Append(CONTROLLERModel_PRINT, "Print");
     mnu.Append(CONTROLLERModel_SAVE_CSV, "Save As CSV...");
 
-    BaseCMObject* cm = GetControllerCMObjectAt(event.GetPosition());
+    BaseCMObject* cm = GetControllerCMObjectAt(mouse);
     if (cm != nullptr)
     {
         cm->AddRightClickMenu(mnu);
     }
+    _popup = cm;
 
     mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&ControllerModelDialog::OnPopupCommand, nullptr, this);
     PopupMenu(&mnu);
@@ -1323,6 +1455,7 @@ void ControllerModelDialog::OnPanelControllerRightDown(wxMouseEvent& event)
 
 void ControllerModelDialog::OnPanelControllerPaint(wxPaintEvent& event)
 {
+    //wxAutoBufferedPaintDC dc(PanelController);
     wxPaintDC dc(PanelController);
 
     int xOffset = ScrollBar_Controller_H->GetThumbPosition();
@@ -1330,9 +1463,12 @@ void ControllerModelDialog::OnPanelControllerPaint(wxPaintEvent& event)
 
     dc.SetDeviceOrigin(-xOffset, -yOffset);
 
+    wxPoint mouse = PanelController->ScreenToClient(wxGetMousePosition());
+    mouse += GetScrollPosition(PanelController);
+
     for (const auto& it : _controllers)
     {
-        it->Draw(dc, PanelController->ScreenToClient(wxGetMousePosition()), wxSize(0,0), 1, false);
+        it->Draw(dc, mouse, wxSize(0,0), 1, false);
     }
 }
 
@@ -1395,20 +1531,26 @@ void ControllerModelDialog::OnScrollBar_ModelsScrollThumbTrack(wxScrollEvent& ev
 
 void ControllerModelDialog::OnScrollBar_ModelsScrollChanged(wxScrollEvent& event)
 {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("Models Scrollbar: %d", ScrollBar_Models->GetThumbPosition());
     PanelModels->Refresh();
 }
 
 void ControllerModelDialog::OnPanelModelsPaint(wxPaintEvent& event)
 {
+    //wxAutoBufferedPaintDC dc(PanelModels);
     wxPaintDC dc(PanelModels);
 
     int yOffset = ScrollBar_Models->GetThumbPosition();
 
     dc.SetDeviceOrigin(0, -yOffset);
 
+    wxPoint mouse = PanelModels->ScreenToClient(wxGetMousePosition());
+    mouse += GetScrollPosition(PanelModels);
+
     for (const auto& it : _models)
     {
-        it->Draw(dc, PanelModels->ScreenToClient(wxGetMousePosition()), wxSize(0, 0), 1, false);
+        it->Draw(dc, mouse, wxSize(0, 0), 1, false);
     }
 }
 
@@ -1463,13 +1605,17 @@ void ControllerModelDialog::OnPanelModelsLeftDClick(wxMouseEvent& event)
 
 void ControllerModelDialog::OnPanelModelsRightDown(wxMouseEvent& event)
 {
+    wxPoint mouse = event.GetPosition();
+    mouse += GetScrollPosition(PanelModels);
+
     wxMenu mnu;
 
-    BaseCMObject* cm = GetModelsCMObjectAt(event.GetPosition());
+    BaseCMObject* cm = GetModelsCMObjectAt(mouse);
     if (cm != nullptr)
     {
         cm->AddRightClickMenu(mnu);
     }
+    _popup = cm;
 
     mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&ControllerModelDialog::OnPopupCommand, nullptr, this);
     PopupMenu(&mnu);
@@ -1477,16 +1623,21 @@ void ControllerModelDialog::OnPanelModelsRightDown(wxMouseEvent& event)
 
 void ControllerModelDialog::OnPanelModelsMouseMove(wxMouseEvent& event)
 {
+    wxPoint mouse = event.GetPosition();
+    mouse += GetScrollPosition(PanelModels);
+
     std::string tt = "";
     if (_dragging == nullptr)
     {
         for (const auto& it : _models)
         {
-            bool ishit = it->HitTest(event.GetPosition()) != BaseCMObject::HITLOCATION::NONE;
+            bool ishit = it->HitTest(mouse) != BaseCMObject::HITLOCATION::NONE;
 
             if (ishit || ((ModelCMObject*)it)->IsOutline())
             {
-                PanelModels->RefreshRect(it->GetRect());
+                wxRect rect = it->GetRect();
+                rect.Offset(-1 * GetScrollPosition(PanelModels));
+                PanelModels->RefreshRect(rect);
                 if (ishit)
                 {
                     auto m = dynamic_cast<ModelCMObject*>(it);
@@ -1514,14 +1665,11 @@ void ControllerModelDialog::OnPanelModelsMouseWheel(wxMouseEvent& event)
 
 void ControllerModelDialog::OnPanelModelsResize(wxSizeEvent& event)
 {
-    int pw;
-    int ph;
-    PanelModels->GetSize(&pw, &ph);
-    int h = (float)ph / ScrollBar_Controller_V->GetRange() * (ph - 80);
-    int w = (float)pw / ScrollBar_Controller_H->GetRange() * (pw - 80);
-    ScrollBar_Controller_H->SetThumbSize(w);
-    ScrollBar_Controller_V->SetThumbSize(h);
-    PanelController->Refresh();
+    int panely = PanelModels->GetSize().y;
+    ScrollBar_Models->SetRange(_modelsy);
+    ScrollBar_Models->SetPageSize(_modelsy / 10);
+    ScrollBar_Models->SetThumbSize(panely);
+    PanelModels->Refresh();
 }
 
 void ControllerModelDialog::OnPanelModelsMouseEnter(wxMouseEvent& event)
@@ -1554,13 +1702,15 @@ void ControllerModelDialog::OnPanelControllerMouseWheel(wxMouseEvent& event)
 
 void ControllerModelDialog::OnPanelControllerResize(wxSizeEvent& event)
 {
-    int pw;
-    int ph;
-    PanelController->GetSize(&pw, &ph);
-    int h = (float)ph / ScrollBar_Controller_V->GetRange() * (ph - 80);
-    int w = (float)pw / ScrollBar_Controller_H->GetRange() * (pw - 80);
-    ScrollBar_Controller_H->SetThumbSize(w);
-    ScrollBar_Controller_V->SetThumbSize(h);
+    int panelx = PanelController->GetSize().x;
+    ScrollBar_Controller_H->SetRange(_controllersx);
+    ScrollBar_Controller_H->SetPageSize(_controllersx / 10);
+    ScrollBar_Controller_H->SetThumbSize(panelx);
+
+    int panely = PanelController->GetSize().y;
+    ScrollBar_Controller_V->SetRange(_controllersy);
+    ScrollBar_Controller_V->SetPageSize(_controllersy / 10);
+    ScrollBar_Controller_V->SetThumbSize(panely);
     PanelController->Refresh();
 }
 #pragma endregion

@@ -47,7 +47,11 @@ class ControllerModelDialog: public wxDialog
 	std::list<BaseCMObject*> _models;
 	std::list<BaseCMObject*> _controllers;
 	ModelCMObject* _dragging = nullptr;
+	BaseCMObject* _popup = nullptr;
 	bool _autoLayout = false;
+	int _modelsy = 1;
+	int _controllersy = 1;
+	int _controllersx = 1;
 
 	BaseCMObject* GetControllerCMObjectAt(wxPoint mouse);
 	BaseCMObject* GetModelsCMObjectAt(wxPoint mouse);
@@ -72,7 +76,11 @@ class ControllerModelDialog: public wxDialog
 		//*)
 
         static const long CONTROLLERModel_PRINT;
-        static const long CONTROLLERModel_SAVE_CSV;
+		static const long CONTROLLERModel_SAVE_CSV;
+		static const long CONTROLLER_SMARTREMOTE_None;
+		static const long CONTROLLER_SMARTREMOTE_A;
+		static const long CONTROLLER_SMARTREMOTE_B;
+		static const long CONTROLLER_SMARTREMOTE_C;
 
         void RenderPicture(wxBitmap& bitmap, bool printer);
 		void DropFromModels(const wxPoint& location, const std::string& name, wxPanel* target);

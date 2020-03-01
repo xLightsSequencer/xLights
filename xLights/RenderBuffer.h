@@ -460,6 +460,8 @@ public:
     //aproximation of sin/cos, but much faster
     static float sin(float rad);
     static float cos(float rad);
+    static float cot(float rad) { return cos(rad) / sin(rad); }
+    static float acot(float rad) { return M_PI/2.0 - atan(rad); }
 
     double calcAccel(double ratio, double accel);
 

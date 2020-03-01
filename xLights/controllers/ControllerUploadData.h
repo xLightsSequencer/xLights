@@ -149,7 +149,7 @@ class UDControllerPort
     bool ContainsModel(Model* m) const;
     std::list<UDControllerPortModel*> GetModels() const { return _models; }
     bool SetAllModelsToControllerName(const std::string& controllerName);
-    void EnsureAllModelsAreChained();
+    bool EnsureAllModelsAreChained();
     #pragma endregion
 
     #pragma region Virtual String Handling
@@ -229,6 +229,8 @@ class UDController
     int GetMaxPixelPort() const;
     bool HasPixelPort(int port) const;
     bool HasSerialPort(int port) const;
+
+    Model* GetModelAfter(Model* m) const;
 
     bool SetAllModelsToControllerName(const std::string& controllerName);
 
