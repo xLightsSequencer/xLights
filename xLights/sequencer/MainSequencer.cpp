@@ -486,12 +486,15 @@ bool MainSequencer::HandleSequencerKeyBinding(wxKeyEvent& event)
             }
             else if (type == "EFFECT")
             {
-                if (binding->GetEffectName() != mSequenceElements->GetXLightsFrame()->GetEffectsPanel()->EffectChoicebook->GetChoiceCtrl()->GetStringSelection())
-                {
-                    mSequenceElements->GetXLightsFrame()->ResetPanelDefaultSettings(binding->GetEffectName(), nullptr, true);
-                }
                 Effect* ef = PanelEffectGrid->Paste(binding->GetEffectName() + "\t" + binding->GetEffectString() + _("\t\n"), binding->GetEffectDataVersion());
-                SelectEffect(ef);
+                if (ef != nullptr)
+                {
+                    if (binding->GetEffectName() != mSequenceElements->GetXLightsFrame()->GetEffectsPanel()->EffectChoicebook->GetChoiceCtrl()->GetStringSelection())
+                    {
+                        mSequenceElements->GetXLightsFrame()->ResetPanelDefaultSettings(binding->GetEffectName(), nullptr, true);
+                    }
+                    SelectEffect(ef);
+                }
             }
             else if (type == "APPLYSETTING")
             {
