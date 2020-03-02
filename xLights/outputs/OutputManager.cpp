@@ -548,7 +548,7 @@ std::list<std::string> OutputManager::GetAutoLayoutControllerNames() const {
 
     std::list<std::string> res;
     for (const auto& it : _controllers) {
-        if (it->IsManaged()) {
+        if (it->IsAutoLayout()) {
             res.push_back(it->GetName());
         }
     }
