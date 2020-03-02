@@ -504,7 +504,7 @@ Controller* OutputManager::GetControllerIndex(int index) const {
 Controller* OutputManager::GetController(int32_t absoluteChannel, int32_t& startChannel) const {
 
     for (const auto& it : _controllers) {
-        if (absoluteChannel >= it->GetStartChannel() && absoluteChannel <= it->GetEndChannel()) {
+        if (absoluteChannel+1 >= it->GetStartChannel() && absoluteChannel+1 <= it->GetEndChannel()) {
             startChannel = absoluteChannel - it->GetStartChannel() + 1;
             return it;
         }

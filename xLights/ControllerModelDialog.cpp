@@ -1360,15 +1360,16 @@ std::string ControllerModelDialog::GetModelTooltip(ModelCMObject* mob)
     auto om = _xLights->GetOutputManager();
     if (_autoLayout)
     {
-        return wxString::Format("Name: %s\nController Name: %s\nModel Chain: %s\nStart Channel: %s\nEnd Channel %s\nStrings %d\nSmart Remote: %s",
-            mob->GetDisplayName(), controllerName, m->GetModelChain() == "" ? "Beginning" : m->GetModelChain(), m->GetStartChannelInDisplayFormat(om), m->GetLastChannelInStartChannelFormat(om),
-            m->GetNumPhysicalStrings(), sr).ToStdString();
+        return wxString::Format("Name: %s\nController Name: %s\nModel Chain: %s\nStart Channel: %s\nEnd Channel %s\nStrings %d\nSmart Remote: %s\nPort: %d\nProtocol: %s",
+            mob->GetDisplayName(), controllerName, m->GetModelChain() == "" ? "Beginning" : m->GetModelChain(), m->GetStartChannelInDisplayFormat(om), 
+            m->GetLastChannelInStartChannelFormat(om),
+            m->GetNumPhysicalStrings(), sr, m->GetControllerPort(), m->GetControllerProtocol()).ToStdString();
     }
     else
     {
-        return wxString::Format("name: %s\nController Name: %s\nIP/Serial: %s\nStart Channel: %s\nEnd Channel %s\nStrings %d\nSmart Remote: %s",
+        return wxString::Format("name: %s\nController Name: %s\nIP/Serial: %s\nStart Channel: %s\nEnd Channel %s\nStrings %d\nSmart Remote: %s\nPort: %d\nProtocol: %s",
             mob->GetDisplayName(), controllerName, universe, m->GetStartChannelInDisplayFormat(om), m->GetLastChannelInStartChannelFormat(om),
-            m->GetNumPhysicalStrings(), sr).ToStdString();
+            m->GetNumPhysicalStrings(), sr, m->GetControllerPort(), m->GetControllerProtocol()).ToStdString();
     }
 }
 
