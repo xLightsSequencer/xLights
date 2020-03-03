@@ -1,314 +1,66 @@
 <Vendor Name="KulpLights">
 	<Controller Name="F32-B">
-		<Variant Name="4 Serial" ID="F32-B-44">
-			<SupportsUpload/>
-			<SupportsInputOnlyUpload/>
-			<MaxInputUniverses>200</MaxInputUniverses>
+		<Variant Name="4 Serial" ID="F32-B-44" Base="FPP:FPPStringCape">
 			<MaxPixelPort>44</MaxPixelPort>
 			<MaxSerialPort>4</MaxSerialPort>
-			<MaxSerialPortChannels>512</MaxSerialPortChannels>
-			<MaxPixelPortChannels>4200</MaxPixelPortChannels>
-			<SupportsVirtualStrings/>
-			<SupportsSmartRemotes/>
-			<SupportsAutoLayout/>
-			<PixelProtocols>
-				<Protocol>ws2811</Protocol>
-			</PixelProtocols>
-			<SerialProtocols>
-				<Protocol>dmx</Protocol>
-				<Protocol>renard</Protocol>
-				<Protocol>pixelnet</Protocol>
-			</SerialProtocols>
-			<InputProtocols>
-				<Protocol>e131</Protocol>
-				<Protocol>artnet</Protocol>
-				<Protocol>ddp</Protocol>
-			</InputProtocols>
-			<SupportsMultipleSimultaneousInputProtocols/>
 		</Variant>
-		<Variant Name="8 Serial" ID="F32-B">
-			<SupportsUpload/>
-			<SupportsInputOnlyUpload/>
-			<MaxInputUniverses>200</MaxInputUniverses>
+		<Variant Name="8 Serial" ID="F32-B" Base="FPP:FPPStringCape">
 			<MaxPixelPort>40</MaxPixelPort>
 			<MaxSerialPort>8</MaxSerialPort>
-			<MaxSerialPortChannels>512</MaxSerialPortChannels>
-			<MaxPixelPortChannels>4200</MaxPixelPortChannels>
-			<SupportsVirtualStrings/>
-			<SupportsSmartRemotes/>
-			<SupportsAutoLayout/>
-			<PixelProtocols>
-				<Protocol>ws2811</Protocol>
-			</PixelProtocols>
-			<SerialProtocols>
-				<Protocol>dmx</Protocol>
-				<Protocol>renard</Protocol>
-				<Protocol>pixelnet</Protocol>
-			</SerialProtocols>
-			<InputProtocols>
-				<Protocol>e131</Protocol>
-				<Protocol>artnet</Protocol>
-				<Protocol>ddp</Protocol>
-			</InputProtocols>
-			<SupportsMultipleSimultaneousInputProtocols/>
 		</Variant>
-		<Variant Name="No Serial" ID="F32-B-48">
-			<SupportsUpload/>
-			<SupportsInputOnlyUpload/>
-			<MaxInputUniverses>200</MaxInputUniverses>
+		<Variant Name="No Serial" ID="F32-B-48" Base="FPP:FPPStringCape">
 			<MaxPixelPort>48</MaxPixelPort>
 			<MaxSerialPort>0</MaxSerialPort>
 			<MaxSerialPortChannels>0</MaxSerialPortChannels>
-			<MaxPixelPortChannels>4200</MaxPixelPortChannels>
-			<SupportsVirtualStrings/>
-			<SupportsSmartRemotes/>
-			<SupportsAutoLayout/>
-			<PixelProtocols>
-				<Protocol>ws2811</Protocol>
-			</PixelProtocols>
-			<SerialProtocols>
-			</SerialProtocols>
-			<InputProtocols>
-				<Protocol>e131</Protocol>
-				<Protocol>artnet</Protocol>
-				<Protocol>ddp</Protocol>
-			</InputProtocols>
-			<SupportsMultipleSimultaneousInputProtocols/>
 		</Variant>
 	</Controller>
 	<Controller Name="F40D-PB">
-		<Variant Name="4 Serial" ID="F40D-PB-40">
-			<SupportsUpload/>
-			<SupportsInputOnlyUpload/>
-			<MaxInputUniverses>200</MaxInputUniverses>
+		<Variant Name="4 Serial" ID="F40D-PB-40" Base="FPP:FPPStringCape">
 			<MaxPixelPort>36</MaxPixelPort>
 			<MaxSerialPort>4</MaxSerialPort>
-			<MaxSerialPortChannels>512</MaxSerialPortChannels>
-			<MaxPixelPortChannels>4200</MaxPixelPortChannels>
-			<SupportsVirtualStrings/>
-			<SupportsSmartRemotes/>
-			<SupportsAutoLayout/>
-			<PixelProtocols>
-				<Protocol>ws2811</Protocol>
-			</PixelProtocols>
-			<SerialProtocols>
-				<Protocol>dmx</Protocol>
-				<Protocol>renard</Protocol>
-				<Protocol>pixelnet</Protocol>
-			</SerialProtocols>
-			<InputProtocols>
-				<Protocol>e131</Protocol>
-				<Protocol>artnet</Protocol>
-				<Protocol>ddp</Protocol>
-			</InputProtocols>
-			<SupportsMultipleSimultaneousInputProtocols/>
 		</Variant>
-		<Variant Name="8 Serial" ID="F40D-PB-36">
-			<SupportsUpload/>
-			<SupportsInputOnlyUpload/>
-			<MaxInputUniverses>200</MaxInputUniverses>
+		<Variant Name="8 Serial" ID="F40D-PB-36" Base="FPP:FPPStringCape">
 			<MaxPixelPort>32</MaxPixelPort>
 			<MaxSerialPort>8</MaxSerialPort>
-			<MaxSerialPortChannels>512</MaxSerialPortChannels>
-			<MaxPixelPortChannels>4200</MaxPixelPortChannels>
-			<SupportsVirtualStrings/>
-			<SupportsSmartRemotes/>
-			<SupportsAutoLayout/>
-			<PixelProtocols>
-				<Protocol>ws2811</Protocol>
-			</PixelProtocols>
-			<SerialProtocols>
-				<Protocol>dmx</Protocol>
-				<Protocol>renard</Protocol>
-				<Protocol>pixelnet</Protocol>
-			</SerialProtocols>
-			<InputProtocols>
-				<Protocol>e131</Protocol>
-				<Protocol>artnet</Protocol>
-				<Protocol>ddp</Protocol>
-			</InputProtocols>
-			<SupportsMultipleSimultaneousInputProtocols/>
 		</Variant>
-		<Variant Name="No Serial" ID="F40D-PB">
-			<SupportsUpload/>
-			<SupportsInputOnlyUpload/>
-			<MaxInputUniverses>200</MaxInputUniverses>
+		<Variant Name="No Serial" ID="F40D-PB" Base="FPP:FPPStringCape">
 			<MaxPixelPort>40</MaxPixelPort>
 			<MaxSerialPort>0</MaxSerialPort>
 			<MaxSerialPortChannels>0</MaxSerialPortChannels>
-			<MaxPixelPortChannels>4200</MaxPixelPortChannels>
-			<SupportsVirtualStrings/>
-			<SupportsSmartRemotes/>
-			<SupportsAutoLayout/>
-			<PixelProtocols>
-				<Protocol>ws2811</Protocol>
-			</PixelProtocols>
-			<SerialProtocols>
-			</SerialProtocols>
-			<InputProtocols>
-				<Protocol>e131</Protocol>
-				<Protocol>artnet</Protocol>
-				<Protocol>ddp</Protocol>
-			</InputProtocols>
-			<SupportsMultipleSimultaneousInputProtocols/>
 			<fpp>1</fpp>
 			<fpp1>13,16</fpp1>
 		</Variant>
 	</Controller>
 	<Controller Name="F8-B">
-		<Variant Name="4 Serial" ID="F8-B-20">
-			<SupportsUpload/>
-			<SupportsInputOnlyUpload/>
-			<MaxInputUniverses>200</MaxInputUniverses>
+		<Variant Name="4 Serial" ID="F8-B-20" Base="FPP:FPPStringCape">
 			<MaxPixelPort>16</MaxPixelPort>
 			<MaxSerialPort>4</MaxSerialPort>
-			<MaxSerialPortChannels>512</MaxSerialPortChannels>
-			<MaxPixelPortChannels>4200</MaxPixelPortChannels>
-			<SupportsVirtualStrings/>
-			<SupportsSmartRemotes/>
-			<SupportsAutoLayout/>
-			<PixelProtocols>
-				<Protocol>ws2811</Protocol>
-			</PixelProtocols>
-			<SerialProtocols>
-				<Protocol>dmx</Protocol>
-				<Protocol>renard</Protocol>
-				<Protocol>pixelnet</Protocol>
-			</SerialProtocols>
-			<InputProtocols>
-				<Protocol>e131</Protocol>
-				<Protocol>artnet</Protocol>
-				<Protocol>ddp</Protocol>
-			</InputProtocols>
-			<SupportsMultipleSimultaneousInputProtocols/>
 		</Variant>
-		<Variant Name="8 Serial" ID="F8-B">
-			<SupportsUpload/>
-			<SupportsInputOnlyUpload/>
-			<MaxInputUniverses>200</MaxInputUniverses>
+		<Variant Name="8 Serial" ID="F8-B" Base="FPP:FPPStringCape">
 			<MaxPixelPort>12</MaxPixelPort>
 			<MaxSerialPort>8</MaxSerialPort>
-			<MaxSerialPortChannels>512</MaxSerialPortChannels>
-			<MaxPixelPortChannels>4200</MaxPixelPortChannels>
-			<SupportsVirtualStrings/>
-			<SupportsSmartRemotes/>
-			<SupportsAutoLayout/>
-			<PixelProtocols>
-				<Protocol>ws2811</Protocol>
-			</PixelProtocols>
-			<SerialProtocols>
-				<Protocol>dmx</Protocol>
-				<Protocol>renard</Protocol>
-				<Protocol>pixelnet</Protocol>
-			</SerialProtocols>
-			<InputProtocols>
-				<Protocol>e131</Protocol>
-				<Protocol>artnet</Protocol>
-				<Protocol>ddp</Protocol>
-			</InputProtocols>
-			<SupportsMultipleSimultaneousInputProtocols/>
 		</Variant>
-		<Variant Name="No Serial" ID="F8-B-16">
-			<SupportsUpload/>
-			<SupportsInputOnlyUpload/>
-			<MaxInputUniverses>200</MaxInputUniverses>
+		<Variant Name="No Serial" ID="F8-B-16" Base="FPP:FPPStringCape">
 			<MaxPixelPort>20</MaxPixelPort>
 			<MaxSerialPort>0</MaxSerialPort>
 			<MaxSerialPortChannels>0</MaxSerialPortChannels>
-			<MaxPixelPortChannels>4200</MaxPixelPortChannels>
-			<SupportsVirtualStrings/>
-			<SupportsSmartRemotes/>
-			<SupportsAutoLayout/>
-			<PixelProtocols>
-				<Protocol>ws2811</Protocol>
-			</PixelProtocols>
-			<SerialProtocols>
-			</SerialProtocols>
-			<InputProtocols>
-				<Protocol>e131</Protocol>
-				<Protocol>artnet</Protocol>
-				<Protocol>ddp</Protocol>
-			</InputProtocols>
-			<SupportsMultipleSimultaneousInputProtocols/>
 		</Variant>
-		<Variant Name="4 Serial w/Expansion" ID="F8-B-EXP-32">
-			<SupportsUpload/>
-			<SupportsInputOnlyUpload/>
-			<MaxInputUniverses>200</MaxInputUniverses>
+		<Variant Name="4 Serial w/Expansion" ID="F8-B-EXP-32" Base="FPP:FPPStringCape">
 			<MaxPixelPort>32</MaxPixelPort>
 			<MaxSerialPort>4</MaxSerialPort>
-			<MaxSerialPortChannels>512</MaxSerialPortChannels>
-			<MaxPixelPortChannels>4200</MaxPixelPortChannels>
-			<SupportsVirtualStrings/>
-			<SupportsSmartRemotes/>
-			<SupportsAutoLayout/>
-			<PixelProtocols>
-				<Protocol>ws2811</Protocol>
-			</PixelProtocols>
-			<SerialProtocols>
-				<Protocol>dmx</Protocol>
-				<Protocol>renard</Protocol>
-				<Protocol>pixelnet</Protocol>
-			</SerialProtocols>
-			<InputProtocols>
-				<Protocol>e131</Protocol>
-				<Protocol>artnet</Protocol>
-				<Protocol>ddp</Protocol>
-			</InputProtocols>
-			<SupportsMultipleSimultaneousInputProtocols/>
 			<fpp>1</fpp>
 			<fpp1>17,16</fpp1>
 		</Variant>
-		<Variant Name="8 Serial w/Expansion" ID="F8-B-EXP">
-			<SupportsUpload/>
-			<SupportsInputOnlyUpload/>
-			<MaxInputUniverses>200</MaxInputUniverses>
+		<Variant Name="8 Serial w/Expansion" ID="F8-B-EXP" Base="FPP:FPPStringCape">
 			<MaxPixelPort>28</MaxPixelPort>
 			<MaxSerialPort>8</MaxSerialPort>
-			<MaxSerialPortChannels>512</MaxSerialPortChannels>
-			<MaxPixelPortChannels>4200</MaxPixelPortChannels>
-			<SupportsVirtualStrings/>
-			<SupportsSmartRemotes/>
-			<SupportsAutoLayout/>
-			<PixelProtocols>
-				<Protocol>ws2811</Protocol>
-			</PixelProtocols>
-			<SerialProtocols>
-				<Protocol>dmx</Protocol>
-				<Protocol>renard</Protocol>
-				<Protocol>pixelnet</Protocol>
-			</SerialProtocols>
-			<InputProtocols>
-				<Protocol>e131</Protocol>
-				<Protocol>artnet</Protocol>
-				<Protocol>ddp</Protocol>
-			</InputProtocols>
-			<SupportsMultipleSimultaneousInputProtocols/>
 			<fpp>1</fpp>
 			<fpp1>13,16</fpp1>
 		</Variant>
-		<Variant Name="No Serial w/ Expansion" ID="F8-B-EXP-36">
-			<SupportsUpload/>
-			<SupportsInputOnlyUpload/>
-			<MaxInputUniverses>200</MaxInputUniverses>
+		<Variant Name="No Serial w/ Expansion" ID="F8-B-EXP-36" Base="FPP:FPPStringCape">
 			<MaxPixelPort>36</MaxPixelPort>
 			<MaxSerialPort>0</MaxSerialPort>
 			<MaxSerialPortChannels>0</MaxSerialPortChannels>
-			<MaxPixelPortChannels>4200</MaxPixelPortChannels>
-			<SupportsVirtualStrings/>
-			<SupportsSmartRemotes/>
-			<SupportsAutoLayout/>
-			<PixelProtocols>
-				<Protocol>ws2811</Protocol>
-			</PixelProtocols>
-			<SerialProtocols>
-			</SerialProtocols>
-			<InputProtocols>
-				<Protocol>e131</Protocol>
-				<Protocol>artnet</Protocol>
-				<Protocol>ddp</Protocol>
-			</InputProtocols>
-			<SupportsMultipleSimultaneousInputProtocols/>
 			<fpp>1</fpp>
 			<fpp1>21,16</fpp1>
 		</Variant>

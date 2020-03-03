@@ -23,6 +23,7 @@
 #include <wx/dnd.h>
 #include <wx/dcbuffer.h>
 #include <wx/numdlg.h>
+#include <wx/artprov.h>
 
 #include "ControllerModelDialog.h"
 #include "xLightsMain.h"
@@ -189,7 +190,7 @@ public:
             return _caps->GetMaxSerialPortChannels();
         }
     }
-    virtual bool HitYTest(wxPoint mouse) {
+    virtual bool HitYTest(wxPoint mouse) override {
         int totaly = VERTICAL_SIZE;
         
         if (GetUDPort()->GetVirtualStringCount() > 1) {
@@ -366,6 +367,18 @@ public:
         DrawTextLimited(dc, _displayName, pt, _size - wxSize(4,4));
         pt += wxSize(0, (VERTICAL_SIZE * scale) / 2);
         if (m != nullptr) {
+            auto iconType = "xlART_" + m->GetDisplayAs() + "_ICON";
+            wxBitmap bmp =  wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(iconType), wxART_LIST, wxDefaultSize);
+            if (bmp.IsOk()) {
+                int height = bmp.GetScaledHeight();
+                if (height > 16) {
+                    wxImage img = bmp.ConvertToImage();
+                    img.Rescale(16, 16);
+                    bmp = wxBitmap(img);
+                }
+                dc.DrawBitmap(bmp, _location.x + sz.x - 3 - bmp.GetScaledWidth(), pt.y);
+            }
+
             if (udcpm != nullptr) {
                 uint32_t chs = udcpm->Channels();
                 if (_style & STYLE_PIXELS) {
@@ -381,6 +394,7 @@ public:
                 DrawTextLimited(dc, wxString::Format("Strings: %d", m->GetNumPhysicalStrings()), pt, _size - wxSize(4, 4));
                 pt += wxSize(0, (VERTICAL_SIZE * scale) / 2);
             }
+            
         }
 
         dc.SetBrush(origBrush);

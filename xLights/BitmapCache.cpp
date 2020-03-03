@@ -405,43 +405,43 @@ wxBitmap xlArtProvider::CreateBitmap(const wxArtID& id,
         return effectBitmaps.get(16, false, id, group_closed_24_xpm, group_closed_24_xpm, group_closed_64_xpm, group_closed_64_xpm, group_closed_64_xpm);
     } else if ("xlART_GROUP_OPEN" == id) {
         return effectBitmaps.get(16, false, id, group_open_24_xpm, group_open_24_xpm, group_open_64_xpm, group_open_64_xpm, group_open_64_xpm);
-    } else if ("xlART_ARCH_ICON" == id) {
+    } else if ("xlART_ARCH_ICON" == id || "xlART_Arches_ICON" == id) {
         return effectBitmaps.get(16, false, id, arch_icon_16_xpm, arch_icon_16_xpm, arch_icon_64_xpm, arch_icon_64_xpm, arch_icon_64_xpm);
-    } else if ("xlART_CANE_ICON" == id) {
+    } else if ("xlART_CANE_ICON" == id || "xlART_Candy Canes_ICON" == id) {
         return effectBitmaps.get(16, false, id, cane_icon_16_xpm, cane_icon_16_xpm, cane_icon_64_xpm, cane_icon_64_xpm, cane_icon_64_xpm);
-    } else if ("xlART_CIRCLE_ICON" == id) {
+    } else if ("xlART_CIRCLE_ICON" == id || "xlART_Circle_ICON" == id) {
         return effectBitmaps.get(16, false, id, circle_icon_16_xpm, circle_icon_16_xpm, circle_icon_64_xpm, circle_icon_64_xpm, circle_icon_64_xpm);
-    } else if ("xlART_CHANNELBLOCK_ICON" == id) {
+    } else if ("xlART_CHANNELBLOCK_ICON" == id || "xlART_Channel Block_ICON" == id) {
         return effectBitmaps.get(16, false, id, channelblock_icon_16_xpm, channelblock_icon_16_xpm, channelblock_icon_64_xpm, channelblock_icon_64_xpm, channelblock_icon_64_xpm);
-    } else if ("xlART_CUBE_ICON" == id) {
+    } else if ("xlART_CUBE_ICON" == id || "xlART_Cube_ICON" == id) {
         return effectBitmaps.get(16, false, id, cube_icon_16_xpm, cube_icon_16_xpm, cube_icon_64_xpm, cube_icon_64_xpm, cube_icon_64_xpm);
-    } else if ("xlART_CUSTOM_ICON" == id) {
+    } else if ("xlART_CUSTOM_ICON" == id || "xlART_Custom_ICON" == id) {
         return effectBitmaps.get(16, false, id, custom_icon_16_xpm, custom_icon_16_xpm, custom_icon_64_xpm, custom_icon_64_xpm, custom_icon_64_xpm);
-    } else if ("xlART_DMX_ICON" == id) {
+    } else if ("xlART_DMX_ICON" == id || "xlART_DMXFloodlight_ICON" == id || "xlART_DMXMovingHead_ICON" == id || "xlART_DMXMovingHead3D_ICON" == id || "xlART_DMXSkull_ICON" == id) {
         return effectBitmaps.get(16, false, id, dmx_icon_16_xpm, dmx_icon_16_xpm, dmx_icon_64_xpm, dmx_icon_64_xpm, dmx_icon_64_xpm);
-    } else if ("xlART_ICICLE_ICON" == id) {
+    } else if ("xlART_ICICLE_ICON" == id || "xlART_Icicles_ICON" == id) {
         return effectBitmaps.get(16, false, id, icicle_icon_16_xpm, icicle_icon_16_xpm, icicle_icon_64_xpm, icicle_icon_64_xpm, icicle_icon_64_xpm);
-    } else if ("xlART_LINE_ICON" == id) {
+    } else if ("xlART_LINE_ICON" == id || "xlART_Single Line_ICON" == id) {
         return effectBitmaps.get(16, false, id, line_icon_16_xpm, line_icon_16_xpm, line_icon_64_xpm, line_icon_64_xpm, line_icon_64_xpm);
-    } else if ("xlART_MATRIX_ICON" == id) {
+    } else if ("xlART_MATRIX_ICON" == id || "xlART_Matrix_ICON" == id) {
         return effectBitmaps.get(16, false, id, matrix_icon_16_xpm, matrix_icon_16_xpm, matrix_icon_64_xpm, matrix_icon_64_xpm, matrix_icon_64_xpm);
-    } else if ("xlART_POLY_ICON" == id) {
+    } else if ("xlART_POLY_ICON" == id || "xlART_Poly Line_ICON" == id) {
         return effectBitmaps.get(16, false, id, poly_icon_16_xpm, poly_icon_16_xpm, poly_icon_64_xpm, poly_icon_64_xpm, poly_icon_64_xpm);
-    } else if ("xlART_SPHERE_ICON" == id) {
+    } else if ("xlART_SPHERE_ICON" == id || "xlART_Sphere_ICON" == id) {
         return effectBitmaps.get(16, false, id, sphere_icon_16_xpm, sphere_icon_16_xpm, sphere_icon_64_xpm, sphere_icon_64_xpm, sphere_icon_64_xpm);
-    } else if ("xlART_SPINNER_ICON" == id) {
+    } else if ("xlART_SPINNER_ICON" == id || "xlART_Spinner_ICON" == id) {
         return effectBitmaps.get(16, false, id, spinner_icon_16_xpm, spinner_icon_16_xpm, spinner_icon_64_xpm, spinner_icon_64_xpm, spinner_icon_64_xpm);
-    } else if ("xlART_STAR_ICON" == id) {
+    } else if ("xlART_STAR_ICON" == id || "xlART_Star_ICON" == id) {
         return effectBitmaps.get(16, false, id, star_icon_16_xpm, star_icon_16_xpm, star_icon_64_xpm, star_icon_64_xpm, star_icon_64_xpm);
-    } else if ("xlART_TREE_ICON" == id) {
+    } else if ("xlART_TREE_ICON" == id || "xlART_Tree_ICON" == id) {
         return effectBitmaps.get(16, false, id, tree_icon_16_xpm, tree_icon_16_xpm, tree_icon_64_xpm, tree_icon_64_xpm, tree_icon_64_xpm);
     } else if ("xlART_SUBMODEL_ICON" == id) {
         return effectBitmaps.get(16, false, id, submarine_16, submarine_32, submarine_32, submarine_32, submarine_32);
-    } else if ("xlART_WINDOW_ICON" == id) {
+    } else if ("xlART_WINDOW_ICON" == id || "xlART_Window Frame_ICON" == id) {
         return effectBitmaps.get(16, false, id, window_icon_16_xpm, window_icon_16_xpm, window_icon_64_xpm, window_icon_64_xpm, window_icon_64_xpm);
-    } else if ("xlART_WREATH_ICON" == id) {
+    } else if ("xlART_WREATH_ICON" == id || "xlART_Wreath_ICON" == id) {
         return effectBitmaps.get(16, false, id, wreath_icon_16_xpm, wreath_icon_16_xpm, wreath_icon_64_xpm, wreath_icon_64_xpm, wreath_icon_64_xpm);
-    } else if ("xlART_IMAGE_ICON" == id) {
+    } else if ("xlART_IMAGE_ICON" == id || "xlART_Image_ICON" == id) {
         return effectBitmaps.get(16, false, id, image_xpm, image_xpm, image_xpm, image_xpm, image_xpm);
     } else if ("xlART_DICE_ICON" == id) {
         return effectBitmaps.get(24, false, id, dice_24, dice_24, dice_32, dice_48, dice_64);

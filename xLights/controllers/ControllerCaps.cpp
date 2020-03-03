@@ -23,6 +23,22 @@
 #pragma region Static Functions
 std::map<std::string, std::map<std::string, std::map<std::string, ControllerCaps*>>> ControllerCaps::__controllers;
 
+static void merge(std::map<std::string, wxXmlNode *> &abstracts, const std::string &base, wxXmlNode *t) {
+    wxXmlNode *baseNode = abstracts[base];
+    if (baseNode) {
+        for (wxXmlNode* nn = baseNode->GetChildren(); nn != nullptr; nn = nn->GetNext()) {
+            if (!DoesXmlNodeExist(t, nn->GetName())) {
+                wxXmlNode *newNode = new wxXmlNode(*nn);
+                t->AddChild(newNode);
+            }
+        }
+        auto newBase = baseNode->GetAttribute("Base");
+        if (newBase != "") {
+            merge(abstracts, newBase, t);
+        }
+    }
+}
+
 void ControllerCaps::LoadControllers() {
 
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -51,13 +67,43 @@ void ControllerCaps::LoadControllers() {
 
         wxString filename;
         bool cont = dir.GetFirst(&filename, "*.xcontroller", wxDIR_FILES);
-
+        int count = 0;
+        while (cont) {
+            count++;
+            cont = dir.GetNext(&filename);
+        }
+        std::vector<wxXmlDocument> docs;
+        docs.resize(count);
+        filename = "";
+        cont = dir.GetFirst(&filename, "*.xcontroller", wxDIR_FILES);
+        count = 0;
         while (cont) {
             wxFileName fn(dir.GetNameWithSep() + filename);
-
             wxXmlDocument doc;
-            doc.Load(fn.GetFullPath());
-
+            docs[count].Load(fn.GetFullPath());
+            if (docs[count].IsOk()) {
+                logger_base.error("Problem loading " + fn.GetFullPath());
+            }
+            count++;
+            cont = dir.GetNext(&filename);
+        }
+        std::map<std::string, wxXmlNode *> abstracts;
+        for (auto &doc : docs) {
+            if (doc.IsOk()) {
+                for (wxXmlNode* n = doc.GetRoot(); n != nullptr; n = n->GetNext()) {
+                    if (n->GetName() == "Vendor") {
+                        auto vendor = n->GetAttribute("Name");
+                        for (wxXmlNode* nn = n->GetChildren(); nn != nullptr; nn = nn->GetNext()) {
+                            if (nn->GetName() == "AbstractVariant") {
+                                auto var = nn->GetAttribute("Name");
+                                abstracts[vendor + ":" + var] = nn;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        for (auto &doc : docs) {
             if (doc.IsOk()) {
                 for (wxXmlNode* n = doc.GetRoot(); n != nullptr; n = n->GetNext()) {
                     if (n->GetName() == "Vendor") {
@@ -70,8 +116,7 @@ void ControllerCaps::LoadControllers() {
                         auto& v = __controllers[vendor];
 
                         for (wxXmlNode* nn = n->GetChildren(); nn != nullptr; nn = nn->GetNext()) {
-                            if (nn->GetName() == "Controller")
-                            {
+                            if (nn->GetName() == "Controller") {
                                 auto controller = nn->GetAttribute("Name");
                                 if (v.find(controller) == v.end()) {
                                     v[controller] = std::map<std::string, ControllerCaps*>();
@@ -84,6 +129,8 @@ void ControllerCaps::LoadControllers() {
                                         if (c.find(fwv) == c.end()) {
                                             c[fwv] = nullptr;
                                         }
+                                        auto base = nnn->GetAttribute("Base");
+                                        merge(abstracts, base, nnn);
                                         c[fwv] = new ControllerCaps(vendor, controller, nnn);
                                     }
                                 }
@@ -92,14 +139,8 @@ void ControllerCaps::LoadControllers() {
                     }
                 }
             }
-            else {
-                logger_base.error("Problem loading " + fn.GetFullPath());
-            }
-
-            cont = dir.GetNext(&filename);
         }
-    }
-    else {
+    } else {
         logger_base.error("Controllers folder not found " + d);
     }
 }
