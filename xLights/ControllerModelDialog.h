@@ -59,6 +59,7 @@ class ControllerModelDialog: public wxDialog
 	void ReloadModels();
 	void ClearOver(wxPanel* panel, std::list<BaseCMObject*> list);
 	std::string GetModelTooltip(ModelCMObject* m);
+	void FixDMXChannels();
 
 	public:
 
@@ -81,6 +82,7 @@ class ControllerModelDialog: public wxDialog
 		static const long CONTROLLER_SMARTREMOTE_A;
 		static const long CONTROLLER_SMARTREMOTE_B;
 		static const long CONTROLLER_SMARTREMOTE_C;
+		static const long CONTROLLER_DMXCHANNEL;
 
         void RenderPicture(wxBitmap& bitmap, bool printer);
 		void DropFromModels(const wxPoint& location, const std::string& name, wxPanel* target);

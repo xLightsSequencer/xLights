@@ -22,6 +22,7 @@
 #include <wx/file.h>
 #include <wx/dnd.h>
 #include <wx/dcbuffer.h>
+#include <wx/numdlg.h>
 
 #include "ControllerModelDialog.h"
 #include "xLightsMain.h"
@@ -51,6 +52,7 @@ const long ControllerModelDialog::CONTROLLER_SMARTREMOTE_None = wxNewId();
 const long ControllerModelDialog::CONTROLLER_SMARTREMOTE_A = wxNewId();
 const long ControllerModelDialog::CONTROLLER_SMARTREMOTE_B = wxNewId();
 const long ControllerModelDialog::CONTROLLER_SMARTREMOTE_C = wxNewId();
+const long ControllerModelDialog::CONTROLLER_DMXCHANNEL = wxNewId();
 
 BEGIN_EVENT_TABLE(ControllerModelDialog,wxDialog)
 	//(*EventTable(ControllerModelDialog)
@@ -134,7 +136,7 @@ public:
     virtual void Draw(wxDC& dc, wxPoint mouse, wxSize offset, int scale, bool printing = false, bool border = true) = 0;
     void UpdateCUD(UDController* cud) { _cud = cud; }
     virtual void AddRightClickMenu(wxMenu& mnu) {}
-    virtual bool HandlePopup(int id) { return false; }
+    virtual bool HandlePopup(wxWindow* parent, int id) { return false; }
     virtual std::string GetType() const = 0;
     wxRect GetRect() const { return wxRect(_location, _size); }
     void DrawTextLimited(wxDC& dc, const std::string& text, const wxPoint& pt, const wxSize& size)
@@ -414,8 +416,13 @@ public:
             mi = mnu.AppendRadioItem(ControllerModelDialog::CONTROLLER_SMARTREMOTE_C, "*a*->b->C");
             mi->Check(sr == 3);
         }
+        else if (GetModel() != nullptr && GetModel()->IsSerialProtocol())
+        {
+            mnu.AppendSeparator();
+            auto mi = mnu.Append(ControllerModelDialog::CONTROLLER_DMXCHANNEL, "Set Channel");
+        }
     }
-    virtual bool HandlePopup(int id) override
+    virtual bool HandlePopup(wxWindow* parent, int id) override
     {
         if (GetModel() == nullptr) return false;
 
@@ -437,6 +444,15 @@ public:
         if (id == ControllerModelDialog::CONTROLLER_SMARTREMOTE_C)
         {
             GetModel()->SetSmartRemote(3);
+            return true;
+        }
+        if (id == ControllerModelDialog::CONTROLLER_DMXCHANNEL)
+        {
+            wxNumberEntryDialog dlg(parent, "Enter the DMX channel", "Channel", "DMX Channel", GetModel()->GetControllerDMXChannel(), 1, 512);
+            if (dlg.ShowModal() == wxID_OK)
+            {
+                GetModel()->SetControllerDMXChannel(dlg.GetValue());
+            }
             return true;
         }
         return false;
@@ -707,6 +723,8 @@ void ControllerModelDialog::ReloadModels()
         _controllers.pop_front();
     }
 
+    FixDMXChannels();
+
     int y = TOP_BOTTOM_MARGIN;
     for (const auto& it : *_mm)
     {
@@ -866,7 +884,7 @@ void ControllerModelDialog::OnPopupCommand(wxCommandEvent &event)
     }
     else if (_popup != nullptr)
     {
-        if (_popup->HandlePopup(id)) {
+        if (_popup->HandlePopup(this, id)) {
             while (!_xLights->DoAllWork());
             ReloadModels();
         }
@@ -972,6 +990,43 @@ void ControllerModelDialog::SaveCSV()
     f.Close();
 }
 
+// Ensure DMX channels increase as you move left to right
+void ControllerModelDialog::FixDMXChannels()
+{
+    bool changed = false;
+    for (int i = 0; i < _cud->GetMaxSerialPort(); i++)
+    {
+        int next = -1;
+        auto p = _cud->GetControllerSerialPort(i + 1);
+        for (const auto& it : p->GetModels())
+        {
+            if (next == -1)
+            {
+                next = it->GetModel()->GetControllerDMXChannel();
+                if (next == 0) next = 1;
+                next += it->GetModel()->GetChanCount();
+            }
+            else
+            {
+                if (it->GetModel()->GetControllerDMXChannel() < next)
+                {
+                    changed = true;
+                    it->GetModel()->SetControllerDMXChannel(next);
+                }
+                next = it->GetModel()->GetControllerDMXChannel() + it->GetModel()->GetChanCount();
+            }
+        }
+    }
+
+    while (!_xLights->DoAllWork());
+
+    // if we changed anything we need to scan it one more time
+    if (changed)
+    {
+        _cud->Rescan();
+    }
+}
+
 void ControllerModelDialog::DropFromModels(const wxPoint& location, const std::string& name, wxPanel* target)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -1002,7 +1057,7 @@ void ControllerModelDialog::DropFromModels(const wxPoint& location, const std::s
             }
             else
             {
-                if (m->IsPixelProtocol() || m->GetControllerProtocol() == "") m->SetControllerProtocol("DMX");
+                if (!m->IsSerialProtocol()) m->SetControllerProtocol("DMX");
             }
 
             if (_autoLayout)
@@ -1076,6 +1131,7 @@ void ControllerModelDialog::DropFromModels(const wxPoint& location, const std::s
         {
             logger_base.debug("    but not onto a port ... so nothing to do.");
         }
+
         while (!_xLights->DoAllWork());
         ReloadModels();
     }
@@ -1402,19 +1458,26 @@ std::string ControllerModelDialog::GetModelTooltip(ModelCMObject* mob)
     }
     _xLights->GetControllerDetailsForChannel(m->GetFirstChannel()+1, controllerName, type, protocol, description,
                                              channelOffset, ip, universe, inactive, baud, startUniverse, endUniverse);
+
+    std::string dmx;
+    if (m->IsSerialProtocol())
+    {
+        dmx = wxString::Format("\nChannel %d", m->GetControllerDMXChannel());
+    }
+
     auto om = _xLights->GetOutputManager();
     if (_autoLayout)
     {
-        return wxString::Format("Name: %s\nController Name: %s\nModel Chain: %s\nStart Channel: %s\nEnd Channel %s\nStrings %d\nSmart Remote: %s\nPort: %d\nProtocol: %s",
+        return wxString::Format("Name: %s\nController Name: %s\nModel Chain: %s\nStart Channel: %s\nEnd Channel %s\nStrings %d\nSmart Remote: %s\nPort: %d\nProtocol: %s%s",
             mob->GetDisplayName(), controllerName, m->GetModelChain() == "" ? "Beginning" : m->GetModelChain(), m->GetStartChannelInDisplayFormat(om), 
             m->GetLastChannelInStartChannelFormat(om),
-            m->GetNumPhysicalStrings(), sr, m->GetControllerPort(), m->GetControllerProtocol()).ToStdString();
+            m->GetNumPhysicalStrings(), sr, m->GetControllerPort(), m->GetControllerProtocol(), dmx).ToStdString();
     }
     else
     {
-        return wxString::Format("name: %s\nController Name: %s\nIP/Serial: %s\nStart Channel: %s\nEnd Channel %s\nStrings %d\nSmart Remote: %s\nPort: %d\nProtocol: %s",
+        return wxString::Format("name: %s\nController Name: %s\nIP/Serial: %s\nStart Channel: %s\nEnd Channel %s\nStrings %d\nSmart Remote: %s\nPort: %d\nProtocol: %s%s",
             mob->GetDisplayName(), controllerName, universe, m->GetStartChannelInDisplayFormat(om), m->GetLastChannelInStartChannelFormat(om),
-            m->GetNumPhysicalStrings(), sr, m->GetControllerPort(), m->GetControllerProtocol()).ToStdString();
+            m->GetNumPhysicalStrings(), sr, m->GetControllerPort(), m->GetControllerProtocol(), dmx).ToStdString();
     }
 }
 

@@ -227,11 +227,13 @@ public:
     static std::list<std::string> GetProtocols();
     static std::list<std::string> GetLCProtocols();
     static bool IsProtocolValid(std::string protocol);
-    static bool IsPixelProtocol(const std::string &protocol);
+    static bool IsPixelProtocol(const std::string& protocol);
+    static bool IsSerialProtocol(const std::string& protocol);
 
     void SetTagColour(wxColour colour);
     wxColour GetTagColour() const { return modelTagColour; }
     bool IsPixelProtocol() const;
+    bool IsSerialProtocol() const;
     int32_t GetStringStartChan(int x) const {
         if (x < stringStartChan.size()) {
             return stringStartChan[x];
@@ -248,6 +250,7 @@ public:
     int GetControllerPort(int string = 1) const;
     void SetModelChain(const std::string& modelChain);
     void SetSmartRemote(int sr);
+    void SetControllerDMXChannel(int ch);
     std::string GetModelChain() const;
     const std::vector<Model *>& GetSubModels() const { return subModels; }
     Model *GetSubModel(const std::string &name) const;

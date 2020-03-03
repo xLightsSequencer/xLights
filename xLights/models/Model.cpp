@@ -1211,18 +1211,7 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "Model::OnPropertyGridChange::ModelControllerConnectionProtocol");
         return 0;
     } else if (event.GetPropertyName() == "ModelControllerConnectionDMXChannel") {
-        GetControllerConnection()->DeleteAttribute("channel");
-        if (event.GetValue().GetLong() > 0) {
-            GetControllerConnection()->AddAttribute("channel", wxString::Format("%i", (int)event.GetValue().GetLong()));
-            clearUnusedProtocolProperties(GetControllerConnection());
-        }
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::OnPropertyGridChange::ModelControllerConnectionDMXChannel");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "Model::OnPropertyGridChange::ModelControllerConnectionDMXChannel");
-        AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "Model::OnPropertyGridChange::ModelControllerConnectionDMXChannel");
-        AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "Model::OnPropertyGridChange::ModelControllerConnectionDMXChannel");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Model::OnPropertyGridChange::ModelControllerConnectionDMXChannel");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "Model::OnPropertyGridChange::ModelControllerConnectionDMXChannel");
-        AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "Model::OnPropertyGridChange::ModelControllerConnectionDMXChannel");
+        SetControllerDMXChannel((int)event.GetValue().GetLong());
         return 0;
     } else if (event.GetPropertyName() == "ModelControllerConnectionPixelSetBrightness") {
         GetControllerConnection()->DeleteAttribute("brightness");
@@ -5166,6 +5155,15 @@ bool Model::IsPixelProtocol(const std::string &p) {
     return (protocol != "dmx" && protocol != "pixelnet" && protocol != "renard" && protocol != "lor");
 }
 
+bool Model::IsSerialProtocol(const std::string& p) {
+    if (p == "") {
+        return false;
+    }
+    wxString protocol = p;
+    protocol.MakeLower();
+    return (protocol == "dmx" || protocol == "pixelnet" || protocol == "renard" || protocol == "lor");
+}
+
 void Model::SetTagColour(wxColour colour)
 {
     ModelXml->DeleteAttribute("TagColour");
@@ -5179,10 +5177,35 @@ bool Model::IsPixelProtocol() const
     return GetControllerPort(1) != 0 && IsPixelProtocol(GetControllerProtocol());
 }
 
+bool Model::IsSerialProtocol() const
+{
+    return GetControllerPort(1) != 0 && IsSerialProtocol(GetControllerProtocol());
+}
+
 int Model::GetSmartRemote() const
 {
     wxString s = GetControllerConnection()->GetAttribute("SmartRemote", "0");
     return wxAtoi(s);
+}
+
+void Model::SetControllerDMXChannel(int ch)
+{
+    if (GetControllerDMXChannel() != ch)
+    {
+        GetControllerConnection()->DeleteAttribute("channel");
+        if (ch > 0) {
+            GetControllerConnection()->AddAttribute("channel", wxString::Format("%i", ch));
+            clearUnusedProtocolProperties(GetControllerConnection());
+        }
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::OnPropertyGridChange::SetControllerDMXChannel");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "Model::OnPropertyGridChange::SetControllerDMXChannel");
+        AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "Model::SetControllerDMXChannel");
+        AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "Model::SetControllerDMXChannel");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Model::SetControllerDMXChannel");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "Model::SetControllerDMXChannel");
+        AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "Model::SetControllerDMXChannel");
+        IncrementChangeCount();
+    }
 }
 
 void Model::SetSmartRemote(int sr)
