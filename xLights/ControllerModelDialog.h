@@ -17,9 +17,9 @@
 #include <wx/sizer.h>
 //*)
 #include <wx/colour.h>
+#include <wx/prntbase.h>
 
 #include "controllers/ControllerUploadData.h"
-#include <wx/prntbase.h>
 
 class ControllerModelDialog;
 class Output;
@@ -38,6 +38,7 @@ public:
 
 class ControllerModelDialog: public wxDialog
 {
+	#pragma region Member Variables
 	std::string _title;
     UDController* _cud = nullptr;
 	Controller* _controller = nullptr;
@@ -52,6 +53,7 @@ class ControllerModelDialog: public wxDialog
 	int _modelsy = 1;
 	int _controllersy = 1;
 	int _controllersx = 1;
+	#pragma endregion
 
 	BaseCMObject* GetControllerCMObjectAt(wxPoint mouse);
 	BaseCMObject* GetModelsCMObjectAt(wxPoint mouse);
