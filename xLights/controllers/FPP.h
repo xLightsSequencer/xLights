@@ -20,12 +20,11 @@ class FPP : public BaseController
 {
     public:
     FPP() : BaseController("", ""), majorVersion(0), minorVersion(0), outputFile(nullptr), parent(nullptr), curl(nullptr), isFPP(true) {}
+    FPP(const std::string &ip, const std::string &proxy, const std::string &model);
     FPP(const std::string &address);
-    FPP(ControllerEthernet* controller);
     FPP(const FPP &c);
     virtual ~FPP();
 
-    ControllerEthernet* _controller = nullptr;
     std::string hostName;
     std::string description;
     std::string ipAddress;
@@ -78,6 +77,7 @@ class FPP : public BaseController
     bool SetInputUniversesBridge(Controller* controller);
 
     bool SetRestartFlag();
+    bool Restart(const std::string &mode = "");
     void SetDescription(const std::string &st);
 
     static void Discover(const std::list<std::string> &forcedAddresses, std::list<FPP*> &instances, bool doBroadcast = true, bool allPlatforms = false);
@@ -93,6 +93,8 @@ class FPP : public BaseController
 #pragma region Getters and Setters
     virtual bool SetInputUniverses(ControllerEthernet* controller, wxWindow* parent) override;
     virtual bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent) override;
+    virtual bool UploadForImmediateOutput(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent) override;
+
     virtual bool UsesHTTP() const override { return false; } // returning false here because i dont think you can uypload through a FPP proxy to another FPP
 #pragma endregion
 
@@ -133,4 +135,7 @@ private:
     void setupCurl();
     CURL *curl = nullptr;
     std::string curlInputBuffer;
+    
+    bool restartNeeded = false;
+    std::string curMode = "";
 };

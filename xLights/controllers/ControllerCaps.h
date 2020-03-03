@@ -17,6 +17,7 @@
 #include <wx/xml/xml.h>
 
 class Controller;
+class BaseController;
 
 class ControllerCaps
 {
@@ -56,6 +57,7 @@ public:
     bool SupportsVirtualStrings() const;
     bool SupportsSmartRemotes() const;
     bool SupportsAutoLayout() const;
+    bool SupportsAutoUpload() const;
     bool SupportsMultipleSimultaneousOutputProtocols() const;
     bool SupportsMultipleSimultaneousInputProtocols() const;
     bool MergeConsecutiveVirtualStrings() const;
@@ -87,7 +89,10 @@ public:
     std::list<std::string> GetSerialProtocols() const;
 
     std::string GetCustomPropertyByPath(const std::string path, const std::string& def = "") const;
-
+    
     void Dump() const;
+    
+    BaseController *CreateBaseController(const std::string &ip, const std::string &proxy) const;
+    
     #pragma endregion 
 };

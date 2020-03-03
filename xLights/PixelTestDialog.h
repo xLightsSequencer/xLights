@@ -33,6 +33,7 @@
 
 class ModelGroup;
 typedef SequenceData SeqDataType;
+class xLightsFrame;
 
 class ChannelTracker
 {
@@ -225,7 +226,7 @@ class PixelTestDialog: public wxDialog
 
 	public:
 
-		PixelTestDialog(wxWindow* parent, OutputManager* outputManager, wxFileName networkFile, ModelManager* modelManager, wxWindowID id=wxID_ANY);
+		PixelTestDialog(xLightsFrame* parent, OutputManager* outputManager, wxFileName networkFile, ModelManager* modelManager, wxWindowID id=wxID_ANY);
 		virtual ~PixelTestDialog();
 		wxTreeListCtrl* TreeListCtrl_Outputs;
 		wxTreeListCtrl* TreeListCtrl_ModelGroups;

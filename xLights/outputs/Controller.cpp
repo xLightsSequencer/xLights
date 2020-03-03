@@ -117,6 +117,7 @@ Controller::Controller(OutputManager* om, wxXmlNode* node, const std::string& sh
     _autoSize = node->GetAttribute("AutoSize", "0") == "1";
     SetActive(node->GetAttribute("Active", "1") == "1");
     SetAutoLayout(node->GetAttribute("AutoLayout", "0") == "1");
+    SetAutoUpload(node->GetAttribute("AutoUpload", "0") == "1");
     if (!_autoLayout) _autoSize = false;
     _vendor = node->GetAttribute("Vendor");
     _model = node->GetAttribute("Model");
@@ -151,6 +152,7 @@ wxXmlNode* Controller::Save() {
     //if (_autoStartChannels) node->AddAttribute("AutoStartChannels", "1");
     node->AddAttribute("Active", _active ? "1" : "0");
     node->AddAttribute("AutoLayout", _autoLayout ? "1" : "0");
+    node->AddAttribute("AutoUpload", _autoUpload ? "1" : "0");
     node->AddAttribute("SuppressDuplicates", _suppressDuplicateFrames ? "1" : "0");
     for (const auto& it : _outputs) {
         node->AddChild(it->Save());
@@ -310,6 +312,12 @@ void Controller::SetAutoLayout(bool autoLayout) {
         _dirty = true;
     }
 }
+void Controller::SetAutoUpload(bool autoUpload) {
+    if (_autoUpload != autoUpload) {
+        _autoUpload = autoUpload;
+        _dirty = true;
+    }
+}
 
 void Controller::SetActive(bool active)  {
     if (_active != active) { 
@@ -365,6 +373,14 @@ bool Controller::SupportsAutoLayout() const
     }
     return false;
 }
+bool Controller::SupportsAutoUpload() const {
+    auto caps = GetControllerCaps();
+    if (caps != nullptr) {
+        return caps->SupportsAutoUpload();
+    }
+    return false;
+}
+
 
 void Controller::Convert(wxXmlNode* node, std::string showDir) {
 
@@ -411,12 +427,14 @@ void Controller::AddProperties(wxPropertyGrid* propertyGrid, ModelManager* model
         p->SetEditor("SpinCtrl");
     }
 
-    if (SupportsAutoLayout())
-    {
+    if (SupportsAutoLayout()) {
         p = propertyGrid->Append(new wxBoolProperty("Auto Layout Models", "AutoLayout", IsAutoLayout()));
         p->SetEditor("CheckBox");
     }
-
+    if (SupportsAutoUpload()) {
+        p = propertyGrid->Append(new wxBoolProperty("Auto Upload Configuration", "AutoUpload", IsAutoUpload()));
+        p->SetEditor("CheckBox");
+    }
     if (SupportsAutoSize()) {
         p = propertyGrid->Append(new wxBoolProperty("Auto Size", "AutoSize", IsAutoSize()));
         p->SetEditor("CheckBox");
@@ -510,6 +528,12 @@ bool Controller::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelMana
         SetAutoLayout(event.GetValue().GetBool());
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "Controller::HandlePropertyEvent::AutoLayout");
         outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "Controller::HandlePropertyEvent::AutoLayout");
+        return true;
+    }
+    else if (name == "AutoUpload") {
+        SetAutoUpload(event.GetValue().GetBool());
+        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "Controller::HandlePropertyEvent::AutoUpload");
+        outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "Controller::HandlePropertyEvent::AutoUpload");
         return true;
     }
     else if (name == "SuppressDuplicates") {

@@ -59,10 +59,10 @@ FPP::FPP(const std::string &ad) : BaseController(ad, ""), majorVersion(0), minor
     _connected = true; // well not really but i need to fake it
 }
 
-FPP::FPP(ControllerEthernet* controller) : BaseController(controller->GetIP(), ""), majorVersion(0), minorVersion(0), outputFile(nullptr), parent(nullptr), curl(nullptr), isFPP(true) {
-    _controller = controller;
-    ipAddress = controller->GetIP();
-    pixelControllerType = _controller->GetModel();
+
+FPP::FPP(const std::string &ip, const std::string &proxy, const std::string &model) : BaseController(ip, proxy), majorVersion(0), minorVersion(0), outputFile(nullptr), parent(nullptr), curl(nullptr), isFPP(true) {
+    ipAddress = ip;
+    pixelControllerType = model;
     wxIPV4address address;
     if (address.Hostname(ipAddress)) {
         hostName = ipAddress;
@@ -428,6 +428,9 @@ void FPP::parseConfig(const std::string& v) {
             to = to.substr(0, to.find(";") - 1);
             settings[key] = to;
         }
+    }
+    if (curMode == "") {
+        curMode = settings["fppMode"];
     }
     isFPP = settings["Title"].find("Falcon Player") != std::string::npos;
 }
@@ -1161,6 +1164,18 @@ bool FPP::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Cont
     parent = parent;
     return AuthenticateAndUpdateVersions() && !UploadPixelOutputs(allmodels, outputManager, controller);
 }
+bool FPP::UploadForImmediateOutput(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent) {
+    parent = parent;
+    bool b = AuthenticateAndUpdateVersions();
+    if (!b) return b;
+    UploadPixelOutputs(allmodels, outputManager, controller);
+    SetInputUniversesBridge(controller);
+    std::string val;
+    if (restartNeeded || curMode != "bridge") {
+        Restart("bridge");
+    }
+    return b;
+}
 
 wxJSONValue FPP::CreateUniverseFile(const std::list<ControllerEthernet*>& selected, bool input) {
     wxJSONValue root;
@@ -1242,8 +1257,30 @@ wxJSONValue FPP::CreateUniverseFile(const std::list<ControllerEthernet*>& select
 bool FPP::SetRestartFlag() {
     std::string val;
     if (!IsDrive()) {
-        return GetURLAsString("/fppjson.php?command=setSetting&key=restartFlag&value=1", val);
+        restartNeeded = true;
+        std::string m = majorVersion >= 4 ? "2" : "1";
+        return GetURLAsString("/fppjson.php?command=setSetting&key=restartFlag&value=" + m, val);
     }
+    return false;
+}
+
+bool FPP::Restart(const std::string &mode) {
+    std::string val;
+    if (mode != "" && mode != curMode) {
+        std::string m = "1"; //bridge;
+        if (mode == "standalone") {
+            m = "2";
+        } else if (mode == "master") {
+            m = "6";
+        } else if (mode == "remote") {
+            m = "8";
+        }
+        GetURLAsString("/fppxml.php?command=setFPPDmode&mode=" + m, val);
+        SetRestartFlag();
+        curMode = mode;
+    }
+    GetURLAsString("/fppxml.php?command=restartFPPD&quick=1", val);
+    restartNeeded = false;
     return false;
 }
 
@@ -1909,6 +1946,12 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
                                                 std::string r = origJson["channelRanges"].AsString().ToStdString();
                                                 if (r.size() > curls[x]->fpp->ranges.size()) {
                                                     curls[x]->fpp->ranges = r;
+                                                }
+                                            }
+                                            if (!origJson["Mode"].IsNull()) {
+                                                std::string mode = origJson["Mode"].AsString();
+                                                if (mode != "") {
+                                                    curls[x]->fpp->curMode = mode;
                                                 }
                                             }
                                             

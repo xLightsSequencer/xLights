@@ -9,6 +9,7 @@
             <Protocol>ddp</Protocol>
         </InputProtocols>
         <SupportsMultipleSimultaneousInputProtocols/>
+        <SupportsAutoUpload/>
     </AbstractVariant>
     <AbstractVariant Name="FPPStringCape" Base="FPP:BaseFPPSettings">
         <MaxSerialPortChannels>0</MaxSerialPortChannels>

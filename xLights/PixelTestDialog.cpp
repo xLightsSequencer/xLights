@@ -22,6 +22,7 @@
 #include "outputs/Output.h"
 #include "UtilFunctions.h"
 #include "outputs/ControllerSerial.h"
+#include "xLightsMain.h"
 
 bool CompareRange(const wxLongLong& a, const wxLongLong& b)
 {
@@ -912,7 +913,7 @@ END_EVENT_TABLE()
 
 // Constructor
 
-PixelTestDialog::PixelTestDialog(wxWindow* parent, OutputManager* outputManager, wxFileName networkFile, ModelManager* modelManager, wxWindowID id)
+PixelTestDialog::PixelTestDialog(xLightsFrame* parent, OutputManager* outputManager, wxFileName networkFile, ModelManager* modelManager, wxWindowID id)
 {
     _lastModel = nullptr;
 	_outputManager = outputManager;
@@ -1233,7 +1234,7 @@ PixelTestDialog::PixelTestDialog(wxWindow* parent, OutputManager* outputManager,
         DisplayWarning("Another process seems to be outputing to lights right now. This may not generate the result expected.", this);
     }
 
-    if (!_outputManager->StartOutput())
+    if (!parent->ForceEnableOutputs())
     {
         DisplayWarning("At least one output could not be started. See log file for details.", this);
     }
@@ -2617,7 +2618,9 @@ void PixelTestDialog::OnCheckBox_OutputToLightsClick(wxCommandEvent& event)
             DisplayWarning("Another process seems to be outputing to lights right now. This may not generate the result expected.", this);
         }
 
-        if (!_outputManager->StartOutput())
+        xLightsFrame *f = (xLightsFrame *)GetParent();
+        
+        if (!f->ForceEnableOutputs())
         {
             DisplayWarning("At least one output could not be started. See log file for details.", this);
         }

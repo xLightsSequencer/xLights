@@ -1057,10 +1057,7 @@ void xLightsFrame::SetE131Sync(bool b) {
     _outputManager.SetSyncEnabled(me131Sync);
     if (me131Sync) {
         // recycle output connections if necessary
-        if (_outputManager.IsOutputting()) {
-            _outputManager.StopOutput();
-            _outputManager.StartOutput();
-        }
+        CycleOutputsIfOn();
     }
     NetworkChange();
 }
@@ -1616,11 +1613,7 @@ void xLightsFrame::OnControllerPropertyGridChange(wxPropertyGridEvent& event) {
 
             if (me131Sync) {
                 // recycle output connections if necessary
-                if (_outputManager.IsOutputting())
-                {
-                    _outputManager.StopOutput();
-                    _outputManager.StartOutput();
-                }
+                CycleOutputsIfOn();
             }
             _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "OnControllerPropertyGridChange::ControllerSync");
         }
@@ -2017,20 +2010,7 @@ void xLightsFrame::UploadInputToController(ControllerEthernet* controller) {
             auto proxy = controller->GetFPPProxy();
             RecalcModels();
 
-            BaseController* bc = nullptr;
-            if (vendor == "Falcon") {
-                bc = new Falcon(ip, proxy);
-            }
-            else if (vendor == "FPP" || vendor == "KulpLights") {
-                bc = new FPP(ip);
-            }
-            else if (vendor == "SanDevices") {
-                bc = new SanDevices(ip, proxy);
-            }
-            else if (vendor == "HinksPix") {
-                bc = new HinksPix(ip, proxy);
-            }
-
+            BaseController* bc = caps->CreateBaseController(ip, proxy);
             if (bc != nullptr)
             {
                 if (bc->SetInputUniverses(controller, this)) {
@@ -2083,34 +2063,8 @@ void xLightsFrame::UploadOutputToController(ControllerEthernet* controller) {
             auto proxy = controller->GetFPPProxy();
             RecalcModels();
 
-            BaseController* bc = nullptr;
-            if (vendor == "Falcon") {
-                bc = new Falcon(ip, proxy);
-            }
-            else if (vendor == "Advatek" || vendor == "LOR") {
-                bc = new Pixlite16(ip);
-            }
-            else if (vendor == "ESPixelStick") {
-                bc = new ESPixelStick(ip);
-            }
-            else if (vendor == "J1Sys") {
-                bc = new J1Sys(ip, proxy);
-            }
-            else if (vendor == "SanDevices") {
-                bc = new SanDevices(ip, proxy);
-            }
-            else if (vendor == "HinksPix") {
-                bc = new HinksPix(ip, proxy);
-            }
-            else if (vendor == "HolidayCoro") {
-                bc = new AlphaPix(ip, proxy);
-            }
-            else if (vendor == "FPP" || vendor == "KulpLights") {
-                bc = new FPP(controller);
-            }
-
-            if (bc != nullptr)
-            {
+            BaseController* bc = caps->CreateBaseController(ip, proxy);
+            if (bc != nullptr) {
                 if (bc->IsConnected()) {
                     if (bc->SetOutputs(&AllModels, &_outputManager, controller, this)) {
                         SetStatusText(vendor + " Output Upload Complete.");

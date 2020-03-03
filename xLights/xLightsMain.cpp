@@ -2128,6 +2128,46 @@ void xLightsFrame::OnButtonLightsOffClick(wxCommandEvent& event)
         EnableNetworkChanges();
     }
 }
+void xLightsFrame::CycleOutputsIfOn() {
+    if (_outputManager.IsOutputting()) {
+        _outputManager.StopOutput();
+        ForceEnableOutputs();
+    }
+}
+bool xLightsFrame::ForceEnableOutputs() {
+    bool outputting = false;
+    if (!_outputManager.IsOutputting()) {
+        outputting = _outputManager.StartOutput();
+        if (outputting) {
+            for (auto &controller : _outputManager.GetControllers()) {
+                if (controller->IsActive() && controller->IsAutoUpload() && controller->SupportsAutoUpload()) {
+                    ControllerEthernet *eCont = dynamic_cast<ControllerEthernet*>(controller);
+                    auto ip = eCont->GetResolvedIP();
+                    if (ip == "MULTICAST") {
+                        continue;
+                    }
+                    auto proxy = eCont->GetFPPProxy();
+                    BaseController* bc = eCont->GetControllerCaps()->CreateBaseController(ip, proxy);
+                    if (bc != nullptr && bc->IsConnected()) {
+                        if (bc->UploadForImmediateOutput(&AllModels, &_outputManager, eCont, this)) {
+                            SetStatusText(eCont->GetName() + " Upload Complete.");
+                        } else {
+                            SetStatusText(eCont->GetName() + " Upload Failed.");
+                        }
+                    } else {
+                        SetStatusText(eCont->GetName() + " Upload Failed. Unable to connect");
+                    }
+                    if (bc) {
+                        delete bc;
+                    }
+                    //upload config
+                }
+            }
+        }
+    }
+    return outputting;
+}
+
 
 bool xLightsFrame::EnableOutputs(bool ignoreCheck)
 {
@@ -2136,8 +2176,7 @@ bool xLightsFrame::EnableOutputs(bool ignoreCheck)
         if (!ignoreCheck && _outputManager.IsOutputOpenInAnotherProcess()) {
             DisplayWarning("Another process seems to be outputing to lights right now. This may not generate the result expected.", this);
         }
-
-        ok = _outputManager.StartOutput();
+        ok = ForceEnableOutputs();
         if (ok) {
             CheckBoxLightOutput->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_OUTPUT_LIGHTS_ON")), wxART_TOOLBAR));
         }
@@ -7208,10 +7247,7 @@ void xLightsFrame::SetLocalIP(const std::string &ip)
     mLocalIP = ip;
     _outputManager.SetForceFromIP(mLocalIP);
 
-    if (_outputManager.IsOutputting()) {
-        _outputManager.StopOutput();
-        _outputManager.StartOutput();
-    }
+    CycleOutputsIfOn();
 }
 
 void xLightsFrame::ShowACLights()

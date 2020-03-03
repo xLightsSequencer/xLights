@@ -1031,7 +1031,7 @@ bool OutputManager::StartOutput() {
         if (ok) started++;
         _outputting = (started > 0);
     }
-
+    
     if (err && !_outputting) {
         // fake it so we dont keep getting error messages
         _outputting = true;

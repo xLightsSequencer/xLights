@@ -14,6 +14,7 @@
 
 #include <list>
 #include <string>
+#include <functional>
 
 #include <wx/propgrid/propgrid.h>
 #include <wx/propgrid/advprops.h>
@@ -25,6 +26,7 @@ class OutputManager;
 class OutputModelManager;
 class ModelManager;
 class ControllerCaps;
+class BaseController;
 
 #pragma region Controller Constants
 // These are used to identify each output type
@@ -49,6 +51,7 @@ protected:
     std::list<Output*> _outputs;             // the outputs on the controller
     bool _active = true;                     // output to controller is active
     bool _autoLayout = false;
+    bool _autoUpload = false;
     std::string _vendor;                     // the controller vendor
     std::string _model;                      // the model of the controller
     std::string _variant;                    // the variant of the controller
@@ -110,6 +113,9 @@ public:
     bool IsAutoLayout() const { return _autoLayout; }
     void SetAutoLayout(bool autoLayout);
 
+    bool IsAutoUpload() const { return _autoUpload; }
+    void SetAutoUpload(bool autoUpload);
+
     bool IsActive() const { return _active; }
     void SetActive(bool active);
 
@@ -137,6 +143,7 @@ public:
 
     virtual bool SupportsSuppressDuplicateFrames() const { return true; }
     virtual bool SupportsUpload() const { return false; }
+    virtual bool SupportsAutoUpload() const;
     virtual bool SupportsAutoLayout() const;
     virtual bool IsManaged() const = 0;
     virtual bool CanSendData() const { return true; }
@@ -187,7 +194,8 @@ public:
     virtual std::string GetExport() const = 0;
 
     virtual bool SetChannelSize(int32_t channels);
-    #pragma endregion 
+    
+    #pragma endregion
 
     #pragma region Operators
     bool operator==(const Controller& controller) const { return _id == controller._id; }

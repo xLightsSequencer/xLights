@@ -1077,6 +1077,8 @@ public:
     void SetRandomEffectsToUse(const wxArrayString &e);
     
     bool EnableOutputs(bool ignoreCheck = false);
+    void CycleOutputsIfOn();
+    bool ForceEnableOutputs();
     void EnableNetworkChanges();
     void InitEffectsPanel(EffectsPanel* panel);
     void LogPerspective(const wxString& perspective) const;
