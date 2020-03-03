@@ -11,7 +11,7 @@
  **************************************************************/
 
 #include <list>
-#include "models/ModelManager.h"
+#include "../models/ModelManager.h"
 
 #include "BaseController.h"
 

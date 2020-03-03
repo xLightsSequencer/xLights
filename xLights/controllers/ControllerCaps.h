@@ -91,8 +91,5 @@ public:
     std::string GetCustomPropertyByPath(const std::string path, const std::string& def = "") const;
     
     void Dump() const;
-    
-    BaseController *CreateBaseController(const std::string &ip, const std::string &proxy) const;
-    
     #pragma endregion 
 };

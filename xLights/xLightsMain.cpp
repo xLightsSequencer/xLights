@@ -2146,8 +2146,7 @@ bool xLightsFrame::ForceEnableOutputs() {
                     if (ip == "MULTICAST") {
                         continue;
                     }
-                    auto proxy = eCont->GetFPPProxy();
-                    BaseController* bc = eCont->GetControllerCaps()->CreateBaseController(ip, proxy);
+                    BaseController* bc = BaseController::CreateBaseController(eCont);
                     if (bc != nullptr && bc->IsConnected()) {
                         if (bc->UploadForImmediateOutput(&AllModels, &_outputManager, eCont, this)) {
                             SetStatusText(eCont->GetName() + " Upload Complete.");

@@ -421,41 +421,4 @@ void ControllerCaps::Dump() const
 }
 
 
-#include "BaseController.h"
-#include "Falcon.h"
-#include "FPP.h"
-#include "AlphaPix.h"
-#include "HinksPix.h"
-#include "J1Sys.h"
-#include "Pixlite16.h"
-#include "ESPixelStick.h"
-#include "SanDevices.h"
-
-BaseController *ControllerCaps::CreateBaseController(const std::string &ip, const std::string &proxy) const {
-    BaseController* bc = nullptr;
-    if (_vendor == "Falcon") {
-        bc = new Falcon(ip, proxy);
-    } else if (_vendor == "Advatek" || _vendor == "LOR") {
-        bc = new Pixlite16(ip);
-    } else if (_vendor == "ESPixelStick") {
-        bc = new ESPixelStick(ip);
-    } else if (_vendor == "J1Sys") {
-        bc = new J1Sys(ip, proxy);
-    } else if (_vendor == "SanDevices") {
-        bc = new SanDevices(ip, proxy);
-    } else if (_vendor == "HinksPix") {
-        bc = new HinksPix(ip, proxy);
-    } else if (_vendor == "HolidayCoro") {
-        bc = new AlphaPix(ip, proxy);
-    } else if (_vendor == "FPP" || _vendor == "KulpLights") {
-        bc = new FPP(ip, proxy, GetModel());
-    }
-
-    if (bc != nullptr && !bc->IsConnected()) {
-        delete bc;
-        bc = nullptr;
-    }
-    return bc;
-}
-
 #pragma endregion

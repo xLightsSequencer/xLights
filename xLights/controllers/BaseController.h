@@ -52,6 +52,10 @@ public:
     BaseController() {}
     BaseController(const std::string& ip, const std::string &fppProxy);
     virtual ~BaseController() {}
+    
+    
+    static BaseController *CreateBaseController(ControllerEthernet *controller, const std::string &ip = "");
+
     #pragma endregion
     
     #pragma region Getters and Setters
@@ -65,5 +69,6 @@ public:
     
     virtual bool UploadForImmediateOutput(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent) { return false; }
     virtual bool UsesHTTP() const = 0;
+    
     #pragma endregion
 };

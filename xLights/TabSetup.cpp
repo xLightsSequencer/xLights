@@ -2007,10 +2007,9 @@ void xLightsFrame::UploadInputToController(ControllerEthernet* controller) {
                 }
                 ip = dlg.GetValue();
             }
-            auto proxy = controller->GetFPPProxy();
             RecalcModels();
 
-            BaseController* bc = caps->CreateBaseController(ip, proxy);
+            BaseController* bc = BaseController::CreateBaseController(controller, ip);
             if (bc != nullptr)
             {
                 if (bc->SetInputUniverses(controller, this)) {
@@ -2063,7 +2062,7 @@ void xLightsFrame::UploadOutputToController(ControllerEthernet* controller) {
             auto proxy = controller->GetFPPProxy();
             RecalcModels();
 
-            BaseController* bc = caps->CreateBaseController(ip, proxy);
+            BaseController* bc = BaseController::CreateBaseController(controller, ip);
             if (bc != nullptr) {
                 if (bc->IsConnected()) {
                     if (bc->SetOutputs(&AllModels, &_outputManager, controller, this)) {

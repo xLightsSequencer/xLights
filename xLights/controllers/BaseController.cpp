@@ -10,6 +10,7 @@
  **************************************************************/
 
 #include "BaseController.h"
+#include "ControllerCaps.h"
 #include "../outputs/OutputManager.h"
 #include "../models/ModelManager.h"
 #include "../outputs/ControllerEthernet.h"
@@ -18,14 +19,68 @@
 
 #include <log4cpp/Category.hh>
 
+
+#include "BaseController.h"
+#include "Falcon.h"
+#include "FPP.h"
+#include "AlphaPix.h"
+#include "HinksPix.h"
+#include "J1Sys.h"
+#include "Pixlite16.h"
+#include "ESPixelStick.h"
+#include "SanDevices.h"
+
+
 #pragma region Constructors and Destructors
 BaseController::BaseController(const std::string& ip, const std::string &proxy) : _ip(ip), _fppProxy(proxy), _baseUrl("") {
-
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (!_fppProxy.empty()) {
         _baseUrl = "/proxy/" + _ip;
     } 
 }
+
+BaseController *BaseController::CreateBaseController(ControllerEthernet *controller, const std::string &ipOrig) {
+    std::string ip = ipOrig;
+    ControllerCaps *caps = controller->GetControllerCaps();
+    if (!caps) {
+        return nullptr;
+    }
+    std::string vendor = controller->GetVendor();
+    BaseController* bc = nullptr;
+    
+    if (ipOrig == "") {
+        ip = controller->GetResolvedIP();
+        if (ip == "MULTICAST") {
+            return nullptr;
+        }
+    }
+    auto proxy = controller->GetFPPProxy();
+    
+    if (vendor == "Falcon") {
+        bc = new Falcon(ip, proxy);
+    } else if (vendor == "Advatek" || vendor == "LOR") {
+        bc = new Pixlite16(ip);
+    } else if (vendor == "ESPixelStick") {
+        bc = new ESPixelStick(ip);
+    } else if (vendor == "J1Sys") {
+        bc = new J1Sys(ip, proxy);
+    } else if (vendor == "SanDevices") {
+        bc = new SanDevices(ip, proxy);
+    } else if (vendor == "HinksPix") {
+        bc = new HinksPix(ip, proxy);
+    } else if (vendor == "HolidayCoro") {
+        bc = new AlphaPix(ip, proxy);
+    } else if (vendor == "FPP" || vendor == "KulpLights") {
+        bc = new FPP(ip, proxy, caps->GetModel());
+    }
+
+    if (bc != nullptr && !bc->IsConnected()) {
+        delete bc;
+        bc = nullptr;
+    }
+    return bc;
+}
+
+
 #pragma endregion
 
 #pragma region Protected Functions
