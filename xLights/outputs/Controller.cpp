@@ -533,7 +533,8 @@ bool Controller::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelMana
         SetModel("");
         SetVariant("");
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "Controller::HandlePropertyEvent::Vendor");
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "Controller::HandlePropertyEvent::AutoSize");
+        outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "Controller::HandlePropertyEvent::Vendor");
+        return true;
     }
     else if (name == "Model") {
         auto const models = ControllerCaps::GetModels(_vendor);
@@ -542,7 +543,8 @@ bool Controller::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelMana
         SetModel(*it);
         SetVariant("");
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "Controller::HandlePropertyEvent::Model");
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "Controller::HandlePropertyEvent::AutoSize");
+        outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "Controller::HandlePropertyEvent::Model");
+        return true;
     }
     else if (name == "Variant") {
         auto const versions = ControllerCaps::GetVariants(_vendor, _model);
@@ -550,6 +552,8 @@ bool Controller::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelMana
         std::advance(it, event.GetValue().GetLong());
         SetVariant(*it);
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "Controller::HandlePropertyEvent::Variant");
+        outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "Controller::HandlePropertyEvent::Variant");
+        return true;
     }
     return false;
 }

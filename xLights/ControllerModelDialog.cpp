@@ -94,6 +94,7 @@ protected:
     ControllerCaps* _caps = nullptr;
     HITLOCATION _over = HITLOCATION::NONE;
     int _style;
+    bool _invalid;
 
 public:
 
@@ -103,8 +104,10 @@ public:
         _caps = caps;
         _location = location;
         _size = size;
+        _invalid = false;
     }
     virtual ~BaseCMObject() {}
+    void SetInvalid(bool invalid) { _invalid = invalid; }
     HITLOCATION GetOver() const { return _over; }
     void SetOver(HITLOCATION hit) { _over = hit; }
     HITLOCATION HitTest(wxPoint mouse)
@@ -119,7 +122,7 @@ public:
             mouse.y <= _location.y + _size.y)  return HITLOCATION::RIGHT;
         return HITLOCATION::NONE;
     }
-    bool HitYTest(wxPoint mouse)
+    virtual bool HitYTest(wxPoint mouse)
     {
         return (mouse.y >= _location.y &&
             mouse.y <= _location.y + _size.y);
@@ -149,7 +152,6 @@ public:
 protected:
     int _port = -1;
     PORTTYPE _type = PORTTYPE::PIXEL;
-    bool _invalid;
 public:
 
     PortCMObject(PORTTYPE type, int port, UDController* cud, ControllerCaps* caps, wxPoint location, wxSize size, int style, bool invalid) : BaseCMObject(cud, caps, location, size, style)
@@ -158,6 +160,41 @@ public:
         _port = port;
         _type = type;
     }
+    UDControllerPort* GetUDPort() const
+    {
+        if (_type == PORTTYPE::PIXEL)
+        {
+            return _cud->GetControllerPixelPort(_port);
+        }
+        else {
+            return _cud->GetControllerSerialPort(_port);
+        }
+    }
+    int GetMaxPortChannels() const
+    {
+        if (_caps == nullptr) return 9999999;
+
+        if (_type == PORTTYPE::PIXEL)
+        {
+            return _caps->GetMaxPixelPortChannels();
+        }
+        else {
+            return _caps->GetMaxSerialPortChannels();
+        }
+    }
+    virtual bool HitYTest(wxPoint mouse)
+    {
+        int totaly = VERTICAL_SIZE;
+        
+        if (GetUDPort()->GetVirtualStringCount() > 1)
+        {
+            totaly += (GetUDPort()->GetVirtualStringCount() - 1)* (VERTICAL_SIZE + VERTICAL_GAP);
+        }
+
+        return (mouse.y >= _location.y &&
+            mouse.y <= _location.y + totaly);
+    }
+
     PORTTYPE GetPortType() const { return _type; }
     int GetPort() const { return _port; }
     virtual std::string GetType() const override { return "PORT"; }
@@ -170,18 +207,16 @@ public:
         wxSize sz = _size.Scale(scale, scale);
         dc.SetTextForeground(*wxBLACK);
 
-        UDControllerPort* p = nullptr;
+        UDControllerPort* p = GetUDPort();
         if (!border)
         {
             dc.SetPen(*wxTRANSPARENT_PEN);
         }
         else if (_type == PORTTYPE::PIXEL) {
             dc.SetPen(*wxRED_PEN);
-            p = _cud->GetControllerPixelPort(_port);
         }
         else {
             dc.SetPen(*wxGREEN_PEN);
-            p = _cud->GetControllerSerialPort(_port);
         }
 
         if (_over != HITLOCATION::NONE && !printing)
@@ -207,7 +242,7 @@ public:
             wxSize szp = dc.GetTextExtent(label);
             DrawTextLimited(dc, label, pt, _size - wxSize(4, 4));
             pt += wxSize(szp.GetWidth(), 0);
-            if (p->Channels() > _caps->GetMaxPixelPortChannels())
+            if (p->Channels() > GetMaxPortChannels())
             {
                 dc.SetTextForeground(*wxRED);
             }
@@ -220,7 +255,7 @@ public:
             wxSize szp = dc.GetTextExtent(label);
             DrawTextLimited(dc, label, pt, _size - wxSize(4, 4));
             pt += wxSize(szp.GetWidth(), 0);
-            if (p->Channels() > _caps->GetMaxPixelPortChannels())
+            if (p->Channels() > GetMaxPortChannels())
             {
                 dc.SetTextForeground(*wxRED);
             }
@@ -301,6 +336,11 @@ public:
             }
         }
 
+        if (_invalid)
+        {
+            dc.SetBrush(__invalidBrush);
+        }
+
         _outline = false;
         if (_dragging && !printing)
         {
@@ -361,7 +401,7 @@ public:
     }
     virtual void AddRightClickMenu(wxMenu& mnu) override
     {
-        if (_caps->SupportsSmartRemotes() && GetModel() != nullptr)
+        if (_caps != nullptr && _caps->SupportsSmartRemotes() && GetModel() != nullptr  && GetModel()->IsPixelProtocol())
         {
             mnu.AppendSeparator();
             int sr = GetModel()->GetSmartRemote();
@@ -377,6 +417,8 @@ public:
     }
     virtual bool HandlePopup(int id) override
     {
+        if (GetModel() == nullptr) return false;
+
         if (id == ControllerModelDialog::CONTROLLER_SMARTREMOTE_None)
         {
             GetModel()->SetSmartRemote(0);
@@ -686,18 +728,20 @@ void ControllerModelDialog::ReloadModels()
 
     y = VERTICAL_GAP;
 
+    std::list<int> pixelPortsWithSmartRemotes;
+
     int maxx = 0;
-    for (int i = 0; i < std::max(_caps->GetMaxPixelPort(), _cud->GetMaxPixelPort()); i++)
+    for (int i = 0; i < std::max((_caps == nullptr ? 0 : _caps->GetMaxPixelPort()), _cud->GetMaxPixelPort()); i++)
     {
-        auto cmp = new PortCMObject(PortCMObject::PORTTYPE::PIXEL, i + 1, _cud, _caps, wxPoint(LEFT_RIGHT_MARGIN, y), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE), BaseCMObject::STYLE_PIXELS, i+1 > _caps->GetMaxPixelPort());
+        auto cmp = new PortCMObject(PortCMObject::PORTTYPE::PIXEL, i + 1, _cud, _caps, wxPoint(LEFT_RIGHT_MARGIN, y), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE), BaseCMObject::STYLE_PIXELS, i+1 > (_caps == nullptr ? _cud->GetMaxPixelPort() : _caps->GetMaxPixelPort()));
         _controllers.push_back(cmp);
 
         auto pp = _cud->GetControllerPixelPort(i + 1);
         if (pp != nullptr)
         {
-            if (_caps->SupportsVirtualStrings())
+            if (_caps == nullptr || _caps->SupportsVirtualStrings())
             {
-                pp->CreateVirtualStrings(_caps->MergeConsecutiveVirtualStrings());
+                pp->CreateVirtualStrings(_caps == nullptr ? true : _caps->MergeConsecutiveVirtualStrings());
                 if (pp->GetVirtualStringCount() == 0)
                 {
                     y += VERTICAL_GAP + VERTICAL_SIZE;
@@ -709,9 +753,12 @@ void ControllerModelDialog::ReloadModels()
                         int x = LEFT_RIGHT_MARGIN + HORIZONTAL_SIZE + HORIZONTAL_GAP;
                         for (const auto& it2 : it->_models)
                         {
-                            auto cmm = new ModelCMObject(it2->GetModel()->GetName(), it2->GetName(), _mm, _cud, _caps, wxPoint(x, y), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE), BaseCMObject::STYLE_PIXELS);
-                            _controllers.push_back(cmm);
-                            x += HORIZONTAL_SIZE + HORIZONTAL_GAP;
+                            if (it2->GetModel() != nullptr) {
+                                if (it2->GetModel()->GetSmartRemote() != 0) pixelPortsWithSmartRemotes.push_back(i + 1);
+                                auto cmm = new ModelCMObject(it2->GetModel()->GetName(), it2->GetName(), _mm, _cud, _caps, wxPoint(x, y), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE), BaseCMObject::STYLE_PIXELS);
+                                _controllers.push_back(cmm);
+                                x += HORIZONTAL_SIZE + HORIZONTAL_GAP;
+                            }
                         }
                         if (x > maxx) maxx = x;
                         y += VERTICAL_GAP + VERTICAL_SIZE;
@@ -723,9 +770,12 @@ void ControllerModelDialog::ReloadModels()
                 int x = LEFT_RIGHT_MARGIN + HORIZONTAL_SIZE + HORIZONTAL_GAP;
                 for (const auto& it : pp->GetModels())
                 {
-                    auto cmm = new ModelCMObject(it->GetModel()->GetName(), it->GetName(), _mm, _cud, _caps, wxPoint(x, y), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE), BaseCMObject::STYLE_PIXELS);
-                    _controllers.push_back(cmm);
-                    x += HORIZONTAL_SIZE + HORIZONTAL_GAP;
+                    if (it->GetModel() != nullptr)
+                    {
+                        auto cmm = new ModelCMObject(it->GetModel()->GetName(), it->GetName(), _mm, _cud, _caps, wxPoint(x, y), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE), BaseCMObject::STYLE_PIXELS);
+                        _controllers.push_back(cmm);
+                        x += HORIZONTAL_SIZE + HORIZONTAL_GAP;
+                    }
                 }
                 if (x > maxx) maxx = x;
                 y += VERTICAL_GAP + VERTICAL_SIZE;
@@ -733,9 +783,9 @@ void ControllerModelDialog::ReloadModels()
         }
     }
 
-    for (int i = 0; i < std::max(_caps->GetMaxSerialPort(), _cud->GetMaxSerialPort()); i++)
+    for (int i = 0; i < std::max((_caps == nullptr ? 0 : _caps->GetMaxSerialPort()), _cud->GetMaxSerialPort()); i++)
     {
-        _controllers.push_back(new PortCMObject(PortCMObject::PORTTYPE::SERIAL, i + 1, _cud, _caps, wxPoint(LEFT_RIGHT_MARGIN, y), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE), BaseCMObject::STYLE_CHANNELS, i + 1 > _caps->GetMaxSerialPort()));
+        _controllers.push_back(new PortCMObject(PortCMObject::PORTTYPE::SERIAL, i + 1, _cud, _caps, wxPoint(LEFT_RIGHT_MARGIN, y), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE), BaseCMObject::STYLE_CHANNELS, i + 1 > (_caps == nullptr ? _cud->GetMaxSerialPort() : _caps->GetMaxSerialPort())));
         auto sp = _cud->GetControllerSerialPort(i + 1);
         if (sp != nullptr)
         {
@@ -769,6 +819,20 @@ void ControllerModelDialog::ReloadModels()
     ScrollBar_Controller_V->SetRange(_controllersy);
     ScrollBar_Controller_V->SetPageSize(_controllersy / 10);
     ScrollBar_Controller_V->SetThumbSize(panely);
+
+    // scan through all ports if any models are on smart remotes then all must be
+    std::unique(pixelPortsWithSmartRemotes.begin(), pixelPortsWithSmartRemotes.end());
+    for (auto p : pixelPortsWithSmartRemotes)
+    {
+        for (const auto& it : _controllers)
+        {
+            auto m = dynamic_cast<ModelCMObject*>(it);
+            if (m != nullptr && m->GetModel() != nullptr && m->GetModel()->IsPixelProtocol() && m->GetModel()->GetControllerPort() == p && m->GetModel()->GetSmartRemote() == 0)
+            {
+                m->SetInvalid(true);
+            }
+        }
+    }
 
     PanelController->Refresh();
     PanelModels->Refresh();
@@ -959,7 +1023,7 @@ void ControllerModelDialog::DropFromModels(const wxPoint& location, const std::s
                 // If no model already there put it at the beginning ... else chain it to end
                 if (_autoLayout)
                 {
-                    auto fmud = _cud->GetControllerPixelPort(port->GetPort())->GetLastModel();
+                    auto fmud = port->GetUDPort()->GetLastModel();
                     if (fmud != nullptr && fmud->IsFirstModelString())
                     {
                         Model* lm = fmud->GetModel();
@@ -982,6 +1046,7 @@ void ControllerModelDialog::DropFromModels(const wxPoint& location, const std::s
                 // dropped on a model
                 if (_autoLayout)
                 {
+                    m->SetSmartRemote(droppedOn->GetSmartRemote());
                     if (hit == BaseCMObject::HITLOCATION::LEFT)
                     {
                         logger_base.debug("    On the left hand side.");
@@ -992,15 +1057,7 @@ void ControllerModelDialog::DropFromModels(const wxPoint& location, const std::s
                     else
                     {
                         logger_base.debug("    On the right hand side.");
-                        Model* next = nullptr;
-                        if (port->GetPortType() == PortCMObject::PORTTYPE::PIXEL)
-                        {
-                            next = _cud->GetControllerPixelPort(port->GetPort())->GetModelAfter(droppedOn);
-                        }
-                        else
-                        {
-                            next = _cud->GetControllerSerialPort(port->GetPort())->GetModelAfter(droppedOn);
-                        }
+                        Model* next = port->GetUDPort()->GetModelAfter(droppedOn);
                         if (next != nullptr)
                         {
                             logger_base.debug("    Right of %s which comes before %s.", (const char*)droppedOn->GetName().c_str(), (const char*)next->GetName().c_str());
@@ -1081,15 +1138,7 @@ void ControllerModelDialog::DropFromController(const wxPoint& location, const st
                 // If no model already there put it at the beginning ... else chain it
                 if (_autoLayout)
                 {
-                    UDControllerPort* cudp = nullptr;
-                    if (port->GetPortType() == PortCMObject::PORTTYPE::PIXEL)
-                    {
-                        cudp = _cud->GetControllerPixelPort(port->GetPort());
-                    }
-                    else
-                    {
-                        cudp = _cud->GetControllerSerialPort(port->GetPort());
-                    }
+                    UDControllerPort* cudp = port->GetUDPort();
 
                     // Because we are moving a model already in a chain we need to patch that over first
                     Model* nextfrom = _cud->GetModelAfter(m);
@@ -1107,7 +1156,10 @@ void ControllerModelDialog::DropFromController(const wxPoint& location, const st
                         if (fmud != nullptr && fmud->IsFirstModelString())
                         {
                             Model* lm = fmud->GetModel();
-                            m->SetModelChain(">" + lm->GetName());
+                            if (lm != nullptr)
+                            {
+                                m->SetModelChain(">" + lm->GetName());
+                            }
                         }
                     }
                 }
@@ -1118,6 +1170,7 @@ void ControllerModelDialog::DropFromController(const wxPoint& location, const st
                 
                 // dropped on a model
                 if (_autoLayout) {
+                    m->SetSmartRemote(droppedOn->GetSmartRemote());
                     // Because we are moving a model already in a chain we need to patch that over first
                     Model* nextfrom = _cud->GetModelAfter(m);
                     if (nextfrom != nullptr) {
@@ -1145,15 +1198,7 @@ void ControllerModelDialog::DropFromController(const wxPoint& location, const st
                         logger_base.debug("    On the right hand side.");
                         if (m->GetModelChain() != ">" + droppedOn->GetName())
                         {
-                            Model* next = nullptr;
-                            if (port->GetPortType() == PortCMObject::PORTTYPE::PIXEL)
-                            {
-                                next = _cud->GetControllerPixelPort(port->GetPort())->GetModelAfter(droppedOn);
-                            }
-                            else
-                            {
-                                next = _cud->GetControllerSerialPort(port->GetPort())->GetModelAfter(droppedOn);
-                            }
+                            Model* next = port->GetUDPort()->GetModelAfter(droppedOn);
                             if (next != nullptr)
                             {
                                 logger_base.debug("    Right of %s which comes before %s.", (const char*)droppedOn->GetName().c_str(), (const char*)next->GetName().c_str());
@@ -1355,7 +1400,7 @@ std::string ControllerModelDialog::GetModelTooltip(ModelCMObject* mob)
         sr = "error";
         break;
     }
-    _xLights->GetControllerDetailsForChannel(m->GetFirstChannel(), controllerName, type, protocol, description,
+    _xLights->GetControllerDetailsForChannel(m->GetFirstChannel()+1, controllerName, type, protocol, description,
                                              channelOffset, ip, universe, inactive, baud, startUniverse, endUniverse);
     auto om = _xLights->GetOutputManager();
     if (_autoLayout)

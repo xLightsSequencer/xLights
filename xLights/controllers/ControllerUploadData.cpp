@@ -335,12 +335,12 @@ bool UDControllerPort::SetAllModelsToControllerName(const std::string& controlle
 bool UDControllerPort::EnsureAllModelsAreChained()
 {
     bool changed = false;
-    std::string last = "Beginning";
+    std::string last = "";
     for (const auto& it : _models)
     {
         if (it->IsFirstModelString())
         {
-            if (last == "Beginning")
+            if (last == "")
             {
                 if (it->GetModel()->GetModelChain() != last)
                 {
