@@ -760,12 +760,10 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
     std::string check;
     UDController cud(controller, outputManager, allmodels, check);
 
-    auto caps = ControllerCaps::GetControllerConfig(controller->GetVendor(), controller->GetModel(), controller->GetVariant());
+    auto caps = ControllerCaps::GetControllerConfig(controller);
     bool success = true;
 
-    if (caps != nullptr) {
-        success = cud.Check(caps, check);
-    }
+    success = cud.Check(caps, check);
 
     logger_base.debug(check);
 

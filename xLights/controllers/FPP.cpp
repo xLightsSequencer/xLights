@@ -1313,6 +1313,10 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
     int maxdmx = 0;
 
     auto rules = ControllerCaps::GetControllerConfig(controller);
+    if (rules == nullptr) {
+        return false;
+    }
+
     maxdmx = rules->GetMaxSerialPort();
     maxString = rules->GetMaxPixelPort();
     
