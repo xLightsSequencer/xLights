@@ -11,8 +11,12 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2020.8 March 4 2020
+   -- enh (keith)  Add drag and drop model controller assignment capability to the visualiser
    -- enh (dkulp)  FPP based Pixel controllers can auto-upload string configuration, intput information, and
                    flip to bridge mode when Output to lights it turned on.
+   -- bug (keith)  Keybinding effect should not change an existing effect
+   -- bug (keith)  Fix paste bug which also impacted presets and random effects
 2020.7 March 1 2020
    -- enh (keith)  Show used universes in controller properties by colouring in the cells when individual universes are shown
    -- enh (keith)  Add width to the spirograph effect

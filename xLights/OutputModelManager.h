@@ -53,6 +53,12 @@ public:
     uint32_t PeekASAPWork() {
         return _workASAP;
     }
+    uint32_t PeekLayoutWork() {
+        return _layoutTabWork;
+    }
+    uint32_t PeekSetupWork() {
+        return _setupTabWork;
+    }
     bool IsASAPWork(uint32_t work)
     {
         return (_workASAP & work) != 0;

@@ -759,9 +759,9 @@ bool xLightsFrame::DoAllWork() {
     DoWork(_outputModelManager.GetSetupWork(), "Setup");
     DoWork(_outputModelManager.GetLayoutWork(), "Layout");
     DoWork(_outputModelManager.GetASAPWork(), "ASAP");
-    return (_outputModelManager.GetASAPWork() == OutputModelManager::WORK_NOTHING && 
-            _outputModelManager.GetSetupWork() == OutputModelManager::WORK_NOTHING && 
-            _outputModelManager.GetLayoutWork() == OutputModelManager::WORK_NOTHING);
+    return (_outputModelManager.PeekASAPWork() == OutputModelManager::WORK_NOTHING && 
+            _outputModelManager.PeekSetupWork() == OutputModelManager::WORK_NOTHING && 
+            _outputModelManager.PeekLayoutWork() == OutputModelManager::WORK_NOTHING);
 }
 
 void xLightsFrame::DoWork(uint32_t work, const std::string& type, BaseObject* m, const std::string& selected) {
