@@ -710,6 +710,13 @@ void Falcon::DecodeModelVersion(int p, int& model, int& version) {
 #pragma endregion
 
 #pragma region Getters and Setters
+bool Falcon::UploadForImmediateOutput(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent) {
+    SetInputUniverses(controller, parent);
+    SetOutputs(allmodels, outputManager, controller, parent, false);
+    return true;
+}
+
+
 bool Falcon::SetInputUniverses(ControllerEthernet* controller, wxWindow* parent) {
 
     wxString request;
@@ -745,16 +752,22 @@ bool Falcon::SetInputUniverses(ControllerEthernet* controller, wxWindow* parent)
 }
 
 bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent) {
+    return SetOutputs(allmodels, outputManager, controller, parent, true);
+}
+bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, ControllerEthernet* controller, wxWindow* parent, bool doProgress) {
 
     //ResetStringOutputs(); // this shouldnt be used normally
 
-    wxProgressDialog progress("Uploading ...", "", 100, parent, wxPD_APP_MODAL | wxPD_AUTO_HIDE);
-    progress.Show();
+    std::unique_ptr<wxProgressDialog> progress;
+    if (doProgress) {
+        progress.reset(new wxProgressDialog("Uploading ...", "", 100, parent, wxPD_APP_MODAL | wxPD_AUTO_HIDE));
+        progress->Show();
+    }
 
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("Falcon Outputs Upload: Uploading to %s", (const char*)_ip.c_str());
 
-    progress.Update(0, "Scanning models");
+    if (doProgress) progress->Update(0, "Scanning models");
     logger_base.info("Scanning models.");
 
     std::string check;
@@ -769,14 +782,14 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
 
     cud.Dump();
 
-    progress.Update(10, "Retrieving string configuration from Falcon.");
+    if (doProgress) progress->Update(10, "Retrieving string configuration from Falcon.");
     logger_base.info("Retrieving string configuration from Falcon.");
 
     // get the current config before I start
     std::string strings = GetURL("/strings.xml");
     if (strings == "") {
         DisplayError("Error occured trying to upload to Falcon. strings.xml could not be retrieved.", parent);
-        progress.Update(100, "Aborting.");
+        if (doProgress) progress->Update(100, "Aborting.");
         return false;
     }
 
@@ -787,11 +800,11 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
 
     if (!stringsDoc.IsOk()) {
         DisplayError("Falcon Outputs Upload: Could not parse Falcon strings.xml.", parent);
-        progress.Update(100, "Aborting.");
+        if (doProgress) progress->Update(100, "Aborting.");
         return false;
     }
 
-    progress.Update(40, "Processing current configuration data.");
+    if (doProgress) progress->Update(40, "Processing current configuration data.");
     logger_base.info("Processing current configuration data.");
 
     int currentStrings = CountStrings(stringsDoc);
@@ -840,7 +853,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
 
     logger_base.info("Falcon pixel split: Main = %d, Expansion1 = %d, Expansion2 = %d", mainPixels, daughter1Pixels, daughter2Pixels);
 
-    progress.Update(50, "Configuring string ports.");
+    if (doProgress) progress->Update(50, "Configuring string ports.");
     logger_base.info("Configuring string ports.");
 
     bool portdone[100];
@@ -1078,7 +1091,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
     }
 
     if (success && cud.GetMaxPixelPort() > 0) {
-        progress.Update(60, "Uploading string ports.");
+        if (doProgress) progress->Update(60, "Uploading string ports.");
 
         if (check != "") {
             DisplayWarning("Upload warnings:\n" + check);
@@ -1102,7 +1115,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
     }
 
     if (success && cud.GetMaxSerialPort() > 0) {
-        progress.Update(90, "Uploading serial ports.");
+        if (doProgress) progress->Update(90, "Uploading serial ports.");
 
         if (check != "") {
             DisplayWarning("Upload warnings:\n" + check);
@@ -1141,7 +1154,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
         }
     }
 
-    progress.Update(100, "Done.");
+    if (doProgress) progress->Update(100, "Done.");
     logger_base.info("Falcon upload done.");
 
     return success;

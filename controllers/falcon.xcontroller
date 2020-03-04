@@ -1,468 +1,114 @@
 <Vendor Name="Falcon">
+    <AbstractVariant Name="BaseFalconSettings">
+        <SupportsUpload/>
+        <SupportsInputOnlyUpload/>
+        <SupportsAutoUpload/>
+        
+        <SupportsMultipleSimultaneousOutputProtocols/>
+        <SupportsMultipleSimultaneousInputProtocols/>
+        <UniversesMustBeInNumericalOrder/>
+        
+        <!--SupportsLEDPanelMatrix/-->
+        <!--AllInputUniversesMustBeSameSize/-->
+        <!--UniversesMustBeSequential/-->
+        <!--NoWebUI/-->
+        <SupportsVirtualStrings/>
+        <SupportsAutoLayout/>
+        <MergeConsecutiveVirtualStrings/>
+
+        <MaxInputUniverses>96</MaxInputUniverses>
+        <MaxSerialPortChannels>512</MaxSerialPortChannels>
+        <SerialProtocols>
+            <Protocol>dmx</Protocol>
+            <Protocol>renard</Protocol>
+            <Protocol>pixelnet</Protocol>
+        </SerialProtocols>
+        <PixelProtocols>
+            <Protocol>ws2811</Protocol>
+            <Protocol>tm18xx</Protocol>
+            <Protocol>lx1203</Protocol>
+            <Protocol>ws2801</Protocol>
+            <Protocol>tls3001</Protocol>
+            <Protocol>lpd6803</Protocol>
+            <Protocol>gece</Protocol>
+            <Protocol>lpd8806</Protocol>
+            <Protocol>apa102</Protocol>
+        </PixelProtocols>
+    </AbstractVariant>
+    <AbstractVariant Name="BaseFalconV2Settings" Base="Falcon:BaseFalconSettings">
+        <MaxPixelPortChannels>2040</MaxPixelPortChannels>
+        <InputProtocols>
+            <Protocol>e131</Protocol>
+            <Protocol>artnet</Protocol>
+        </InputProtocols>
+    </AbstractVariant>
+    <AbstractVariant Name="BaseFalconV3Settings" Base="Falcon:BaseFalconSettings">
+        <SupportsSmartRemotes/>
+        <MaxPixelPortChannels>3072</MaxPixelPortChannels>
+        <InputProtocols>
+            <Protocol>e131</Protocol>
+            <Protocol>artnet</Protocol>
+            <Protocol>zcpp</Protocol>
+        </InputProtocols>
+    </AbstractVariant>
 	<Controller Name="F4V2">
-		<Variant Name="No Expansion Board">
-			<SupportsUpload/>
-			<SupportsInputOnlyUpload/>
-			<MaxInputUniverses>96</MaxInputUniverses>
+		<Variant Name="No Expansion Board" Base="Falcon:BaseFalconV2Settings">
 			<MaxPixelPort>4</MaxPixelPort>
 			<MaxSerialPort>1</MaxSerialPort>
-			<MaxSerialPortChannels>512</MaxSerialPortChannels>
-			<MaxPixelPortChannels>2040</MaxPixelPortChannels>
-			<!--SupportsLEDPanelMatrix/-->
-			<!--AllInputUniversesMustBeSameSize/-->
-			<!--UniversesMustBeSequential/-->
-			<!--NoWebUI/-->
-			<SupportsVirtualStrings/>
-			<SupportsSmartRemotes/>
-			<SupportsAutoLayout/>
-			<MergeConsecutiveVirtualStrings/>
-			<PixelProtocols>
-				<Protocol>ws2811</Protocol>
-				<Protocol>tm18xx</Protocol>
-				<Protocol>lx1203</Protocol>
-				<Protocol>ws2801</Protocol>
-				<Protocol>tls3001</Protocol>
-				<Protocol>lpd6803</Protocol>
-				<Protocol>gece</Protocol>
-				<Protocol>lpd8806</Protocol>
-				<Protocol>apa102</Protocol>
-			</PixelProtocols>
-			<SerialProtocols>
-				<Protocol>dmx</Protocol>
-				<Protocol>renard</Protocol>
-				<Protocol>pixelnet</Protocol>
-			</SerialProtocols>
-			<InputProtocols>
-				<Protocol>e131</Protocol>
-				<Protocol>artnet</Protocol>
-			</InputProtocols>
-			<SupportsMultipleSimultaneousOutputProtocols/>
-			<SupportsMultipleSimultaneousInputProtocols/>
-			<UniversesMustBeInNumericalOrder/>
 		</Variant>
-	</Controller>
-	<Controller Name="F4V2">
-		<Variant Name="One Expansion Board">
-			<SupportsUpload/>
-			<SupportsInputOnlyUpload/>
-			<MaxInputUniverses>96</MaxInputUniverses>
+		<Variant Name="One Expansion Board" Base="Falcon:BaseFalconV2Settings">
 			<MaxPixelPort>12</MaxPixelPort>
 			<MaxSerialPort>1</MaxSerialPort>
-			<MaxSerialPortChannels>512</MaxSerialPortChannels>
-			<MaxPixelPortChannels>2040</MaxPixelPortChannels>
-			<!--SupportsLEDPanelMatrix/-->
-			<!--AllInputUniversesMustBeSameSize/-->
-			<!--UniversesMustBeSequential/-->
-			<!--NoWebUI/-->
-			<SupportsVirtualStrings/>
-			<SupportsSmartRemotes/>
-			<SupportsAutoLayout/>
-			<MergeConsecutiveVirtualStrings/>
-			<PixelProtocols>
-				<Protocol>ws2811</Protocol>
-				<Protocol>tm18xx</Protocol>
-				<Protocol>lx1203</Protocol>
-				<Protocol>ws2801</Protocol>
-				<Protocol>tls3001</Protocol>
-				<Protocol>lpd6803</Protocol>
-				<Protocol>gece</Protocol>
-				<Protocol>lpd8806</Protocol>
-				<Protocol>apa102</Protocol>
-			</PixelProtocols>
-			<SerialProtocols>
-				<Protocol>dmx</Protocol>
-				<Protocol>renard</Protocol>
-				<Protocol>pixelnet</Protocol>
-			</SerialProtocols>
-			<InputProtocols>
-				<Protocol>e131</Protocol>
-				<Protocol>artnet</Protocol>
-			</InputProtocols>
-			<SupportsMultipleSimultaneousOutputProtocols/>
-			<SupportsMultipleSimultaneousInputProtocols/>
-			<UniversesMustBeInNumericalOrder/>
 		</Variant>
 	</Controller>
 	<Controller Name="F4V3">
-		<Variant Name="No Expansion Board">
-			<SupportsUpload/>
-			<SupportsInputOnlyUpload/>
-			<MaxInputUniverses>96</MaxInputUniverses>
+		<Variant Name="No Expansion Board" Base="Falcon:BaseFalconV3Settings">
 			<MaxPixelPort>4</MaxPixelPort>
 			<MaxSerialPort>1</MaxSerialPort>
-			<MaxSerialPortChannels>512</MaxSerialPortChannels>
-			<MaxPixelPortChannels>3072</MaxPixelPortChannels>
-			<SupportsVirtualStrings/>
-			<SupportsSmartRemotes/>
-			<SupportsAutoLayout/>
-			<MergeConsecutiveVirtualStrings/>
-			<PixelProtocols>
-				<Protocol>ws2811</Protocol>
-				<Protocol>tm18xx</Protocol>
-				<Protocol>lx1203</Protocol>
-				<Protocol>ws2801</Protocol>
-				<Protocol>tls3001</Protocol>
-				<Protocol>lpd6803</Protocol>
-				<Protocol>gece</Protocol>
-				<Protocol>lpd8806</Protocol>
-				<Protocol>apa102</Protocol>
-			</PixelProtocols>
-			<SerialProtocols>
-				<Protocol>dmx</Protocol>
-				<Protocol>renard</Protocol>
-				<Protocol>pixelnet</Protocol>
-			</SerialProtocols>
-			<InputProtocols>
-				<Protocol>e131</Protocol>
-				<Protocol>artnet</Protocol>
-				<Protocol>zcpp</Protocol>
-			</InputProtocols>
-			<SupportsMultipleSimultaneousOutputProtocols/>
-			<SupportsMultipleSimultaneousInputProtocols/>
-			<UniversesMustBeInNumericalOrder/>
 		</Variant>
-	</Controller>
-	<Controller Name="F4V3">
-		<Variant Name="One Expansion Board">
-			<SupportsUpload/>
-			<SupportsInputOnlyUpload/>
-			<MaxInputUniverses>96</MaxInputUniverses>
+		<Variant Name="One Expansion Board" Base="Falcon:BaseFalconV3Settings">
 			<MaxPixelPort>12</MaxPixelPort>
 			<MaxSerialPort>1</MaxSerialPort>
-			<MaxSerialPortChannels>512</MaxSerialPortChannels>
-			<MaxPixelPortChannels>3072</MaxPixelPortChannels>
-			<SupportsVirtualStrings/>
-			<SupportsSmartRemotes/>
-			<SupportsAutoLayout/>
-			<MergeConsecutiveVirtualStrings/>
-			<PixelProtocols>
-				<Protocol>ws2811</Protocol>
-				<Protocol>tm18xx</Protocol>
-				<Protocol>lx1203</Protocol>
-				<Protocol>ws2801</Protocol>
-				<Protocol>tls3001</Protocol>
-				<Protocol>lpd6803</Protocol>
-				<Protocol>gece</Protocol>
-				<Protocol>lpd8806</Protocol>
-				<Protocol>apa102</Protocol>
-			</PixelProtocols>
-			<SerialProtocols>
-				<Protocol>dmx</Protocol>
-				<Protocol>renard</Protocol>
-				<Protocol>pixelnet</Protocol>
-			</SerialProtocols>
-			<InputProtocols>
-				<Protocol>e131</Protocol>
-				<Protocol>artnet</Protocol>
-				<Protocol>zcpp</Protocol>
-			</InputProtocols>
-			<SupportsMultipleSimultaneousOutputProtocols/>
-			<SupportsMultipleSimultaneousInputProtocols/>
-			<UniversesMustBeInNumericalOrder/>
 		</Variant>
 	</Controller>
 	<Controller Name="F16V2">
-		<Variant Name="">
-			<SupportsUpload/>
-			<SupportsInputOnlyUpload/>
-			<MaxInputUniverses>96</MaxInputUniverses>
+		<Variant Name="" Base="Falcon:BaseFalconV2Settings">
 			<MaxPixelPort>48</MaxPixelPort>
 			<MaxSerialPort>4</MaxSerialPort>
-			<MaxSerialPortChannels>512</MaxSerialPortChannels>
-			<MaxPixelPortChannels>2040</MaxPixelPortChannels>
-			<SupportsVirtualStrings/>
-			<SupportsAutoLayout/>
-			<MergeConsecutiveVirtualStrings/>
-			<PixelProtocols>
-				<Protocol>ws2811</Protocol>
-				<Protocol>tm18xx</Protocol>
-				<Protocol>lx1203</Protocol>
-				<Protocol>ws2801</Protocol>
-				<Protocol>tls3001</Protocol>
-				<Protocol>lpd6803</Protocol>
-				<Protocol>gece</Protocol>
-				<Protocol>lpd8806</Protocol>
-				<Protocol>apa102</Protocol>
-			</PixelProtocols>
-			<SerialProtocols>
-				<Protocol>dmx</Protocol>
-				<Protocol>renard</Protocol>
-				<Protocol>pixelnet</Protocol>
-			</SerialProtocols>
-			<InputProtocols>
-				<Protocol>e131</Protocol>
-				<Protocol>artnet</Protocol>
-			</InputProtocols>
-			<SupportsMultipleSimultaneousOutputProtocols/>
-			<SupportsMultipleSimultaneousInputProtocols/>
-			<UniversesMustBeInNumericalOrder/>
 		</Variant>
 	</Controller>
 	<Controller Name="F16V2R">
-		<Variant Name="No Expansion Boards">
-			<SupportsUpload/>
-			<SupportsInputOnlyUpload/>
-			<MaxInputUniverses>96</MaxInputUniverses>
+		<Variant Name="No Expansion Boards" Base="Falcon:BaseFalconV2Settings">
 			<MaxPixelPort>16</MaxPixelPort>
 			<MaxSerialPort>4</MaxSerialPort>
-			<MaxSerialPortChannels>512</MaxSerialPortChannels>
-			<MaxPixelPortChannels>2040</MaxPixelPortChannels>
-			<SupportsVirtualStrings/>
-			<SupportsAutoLayout/>
-			<MergeConsecutiveVirtualStrings/>
-			<PixelProtocols>
-				<Protocol>ws2811</Protocol>
-				<Protocol>tm18xx</Protocol>
-				<Protocol>lx1203</Protocol>
-				<Protocol>ws2801</Protocol>
-				<Protocol>tls3001</Protocol>
-				<Protocol>lpd6803</Protocol>
-				<Protocol>gece</Protocol>
-				<Protocol>lpd8806</Protocol>
-				<Protocol>apa102</Protocol>
-			</PixelProtocols>
-			<SerialProtocols>
-				<Protocol>dmx</Protocol>
-				<Protocol>renard</Protocol>
-				<Protocol>pixelnet</Protocol>
-			</SerialProtocols>
-			<InputProtocols>
-				<Protocol>e131</Protocol>
-				<Protocol>artnet</Protocol>
-			</InputProtocols>
-			<SupportsMultipleSimultaneousOutputProtocols/>
-			<SupportsMultipleSimultaneousInputProtocols/>
-			<UniversesMustBeInNumericalOrder/>
 		</Variant>
-	</Controller>
-	<Controller Name="F16V2R">
-		<Variant Name="One Expansion Board">
-			<SupportsUpload/>
-			<SupportsInputOnlyUpload/>
-			<MaxInputUniverses>96</MaxInputUniverses>
+		<Variant Name="One Expansion Board" Base="Falcon:BaseFalconV2Settings">
 			<MaxPixelPort>32</MaxPixelPort>
 			<MaxSerialPort>4</MaxSerialPort>
-			<MaxSerialPortChannels>512</MaxSerialPortChannels>
-			<MaxPixelPortChannels>2040</MaxPixelPortChannels>
-			<SupportsVirtualStrings/>
-			<MergeConsecutiveVirtualStrings/>
-			<SupportsAutoLayout/>
-			<PixelProtocols>
-				<Protocol>ws2811</Protocol>
-				<Protocol>tm18xx</Protocol>
-				<Protocol>lx1203</Protocol>
-				<Protocol>ws2801</Protocol>
-				<Protocol>tls3001</Protocol>
-				<Protocol>lpd6803</Protocol>
-				<Protocol>gece</Protocol>
-				<Protocol>lpd8806</Protocol>
-				<Protocol>apa102</Protocol>
-			</PixelProtocols>
-			<SerialProtocols>
-				<Protocol>dmx</Protocol>
-				<Protocol>renard</Protocol>
-				<Protocol>pixelnet</Protocol>
-			</SerialProtocols>
-			<InputProtocols>
-				<Protocol>e131</Protocol>
-				<Protocol>artnet</Protocol>
-			</InputProtocols>
-			<SupportsMultipleSimultaneousOutputProtocols/>
-			<SupportsMultipleSimultaneousInputProtocols/>
-			<UniversesMustBeInNumericalOrder/>
 		</Variant>
-	</Controller>
-	<Controller Name="F16V2R">
-		<Variant Name="Two Expansion Boards">
-			<SupportsUpload/>
-			<SupportsInputOnlyUpload/>
-			<MaxInputUniverses>96</MaxInputUniverses>
+		<Variant Name="Two Expansion Boards" Base="Falcon:BaseFalconV2Settings">
 			<MaxPixelPort>48</MaxPixelPort>
 			<MaxSerialPort>4</MaxSerialPort>
-			<MaxSerialPortChannels>512</MaxSerialPortChannels>
-			<MaxPixelPortChannels>2040</MaxPixelPortChannels>
-			<SupportsVirtualStrings/>
-			<MergeConsecutiveVirtualStrings/>
-			<SupportsAutoLayout/>
-			<PixelProtocols>
-				<Protocol>ws2811</Protocol>
-				<Protocol>tm18xx</Protocol>
-				<Protocol>lx1203</Protocol>
-				<Protocol>ws2801</Protocol>
-				<Protocol>tls3001</Protocol>
-				<Protocol>lpd6803</Protocol>
-				<Protocol>gece</Protocol>
-				<Protocol>lpd8806</Protocol>
-				<Protocol>apa102</Protocol>
-			</PixelProtocols>
-			<SerialProtocols>
-				<Protocol>dmx</Protocol>
-				<Protocol>renard</Protocol>
-				<Protocol>pixelnet</Protocol>
-			</SerialProtocols>
-			<InputProtocols>
-				<Protocol>e131</Protocol>
-				<Protocol>artnet</Protocol>
-			</InputProtocols>
-			<SupportsMultipleSimultaneousOutputProtocols/>
-			<SupportsMultipleSimultaneousInputProtocols/>
-			<UniversesMustBeInNumericalOrder/>
 		</Variant>
 	</Controller>
 	<Controller Name="F16V3">
-		<Variant Name="No Expansion Boards">
-			<SupportsUpload/>
-			<SupportsInputOnlyUpload/>
-			<MaxInputUniverses>96</MaxInputUniverses>
+		<Variant Name="No Expansion Boards" Base="Falcon:BaseFalconV3Settings">
 			<MaxPixelPort>16</MaxPixelPort>
 			<MaxSerialPort>4</MaxSerialPort>
-			<MaxSerialPortChannels>512</MaxSerialPortChannels>
-			<MaxPixelPortChannels>3072</MaxPixelPortChannels>
-			<SupportsVirtualStrings/>
-			<SupportsSmartRemotes/>
-			<SupportsAutoLayout/>
-			<MergeConsecutiveVirtualStrings/>
-			<PixelProtocols>
-				<Protocol>ws2811</Protocol>
-				<Protocol>tm18xx</Protocol>
-				<Protocol>lx1203</Protocol>
-				<Protocol>ws2801</Protocol>
-				<Protocol>tls3001</Protocol>
-				<Protocol>lpd6803</Protocol>
-				<Protocol>gece</Protocol>
-				<Protocol>lpd8806</Protocol>
-				<Protocol>apa102</Protocol>
-			</PixelProtocols>
-			<SerialProtocols>
-				<Protocol>dmx</Protocol>
-				<Protocol>renard</Protocol>
-				<Protocol>pixelnet</Protocol>
-			</SerialProtocols>
-			<InputProtocols>
-				<Protocol>e131</Protocol>
-				<Protocol>artnet</Protocol>
-				<Protocol>zcpp</Protocol>
-			</InputProtocols>
-			<SupportsMultipleSimultaneousOutputProtocols/>
-			<SupportsMultipleSimultaneousInputProtocols/>
-			<UniversesMustBeInNumericalOrder/>
 		</Variant>
-	</Controller>
-	<Controller Name="F16V3">
-		<Variant Name="One Expansion Board">
-			<SupportsUpload/>
-			<SupportsInputOnlyUpload/>
-			<MaxInputUniverses>96</MaxInputUniverses>
+		<Variant Name="One Expansion Board" Base="Falcon:BaseFalconV3Settings">
 			<MaxPixelPort>32</MaxPixelPort>
 			<MaxSerialPort>4</MaxSerialPort>
-			<MaxSerialPortChannels>512</MaxSerialPortChannels>
-			<MaxPixelPortChannels>3072</MaxPixelPortChannels>
-			<SupportsVirtualStrings/>
-			<SupportsSmartRemotes/>
-			<SupportsAutoLayout/>
-			<MergeConsecutiveVirtualStrings/>
-			<PixelProtocols>
-				<Protocol>ws2811</Protocol>
-				<Protocol>tm18xx</Protocol>
-				<Protocol>lx1203</Protocol>
-				<Protocol>ws2801</Protocol>
-				<Protocol>tls3001</Protocol>
-				<Protocol>lpd6803</Protocol>
-				<Protocol>gece</Protocol>
-				<Protocol>lpd8806</Protocol>
-				<Protocol>apa102</Protocol>
-			</PixelProtocols>
-			<SerialProtocols>
-				<Protocol>dmx</Protocol>
-				<Protocol>renard</Protocol>
-				<Protocol>pixelnet</Protocol>
-			</SerialProtocols>
-			<InputProtocols>
-				<Protocol>e131</Protocol>
-				<Protocol>artnet</Protocol>
-				<Protocol>zcpp</Protocol>
-			</InputProtocols>
-			<SupportsMultipleSimultaneousOutputProtocols/>
-			<SupportsMultipleSimultaneousInputProtocols/>
-			<UniversesMustBeInNumericalOrder/>
 		</Variant>
-	</Controller>
-	<Controller Name="F16V3">
-		<Variant Name="Two Expansion Boards">
-			<SupportsUpload/>
-			<SupportsInputOnlyUpload/>
-			<MaxInputUniverses>96</MaxInputUniverses>
+		<Variant Name="Two Expansion Boards" Base="Falcon:BaseFalconV3Settings">
 			<MaxPixelPort>48</MaxPixelPort>
 			<MaxSerialPort>4</MaxSerialPort>
-			<MaxSerialPortChannels>512</MaxSerialPortChannels>
-			<MaxPixelPortChannels>3072</MaxPixelPortChannels>
-			<SupportsVirtualStrings/>
-			<SupportsSmartRemotes/>
-			<SupportsAutoLayout/>
-			<MergeConsecutiveVirtualStrings/>
-			<PixelProtocols>
-				<Protocol>ws2811</Protocol>
-				<Protocol>tm18xx</Protocol>
-				<Protocol>lx1203</Protocol>
-				<Protocol>ws2801</Protocol>
-				<Protocol>tls3001</Protocol>
-				<Protocol>lpd6803</Protocol>
-				<Protocol>gece</Protocol>
-				<Protocol>lpd8806</Protocol>
-				<Protocol>apa102</Protocol>
-			</PixelProtocols>
-			<SerialProtocols>
-				<Protocol>dmx</Protocol>
-				<Protocol>renard</Protocol>
-				<Protocol>pixelnet</Protocol>
-			</SerialProtocols>
-			<InputProtocols>
-				<Protocol>e131</Protocol>
-				<Protocol>artnet</Protocol>
-				<Protocol>zcpp</Protocol>
-			</InputProtocols>
-			<SupportsMultipleSimultaneousOutputProtocols/>
-			<SupportsMultipleSimultaneousInputProtocols/>
-			<UniversesMustBeInNumericalOrder/>
 		</Variant>
 	</Controller>
 	<Controller Name="F48">
-		<Variant Name="">
-			<SupportsUpload/>
-			<SupportsInputOnlyUpload/>
-			<MaxInputUniverses>96</MaxInputUniverses>
+		<Variant Name="" Base="Falcon:BaseFalconV3Settings">
 			<MaxPixelPort>48</MaxPixelPort>
 			<MaxSerialPort>4</MaxSerialPort>
-			<MaxSerialPortChannels>512</MaxSerialPortChannels>
-			<MaxPixelPortChannels>3072</MaxPixelPortChannels>
-			<SupportsVirtualStrings/>
-			<SupportsSmartRemotes/>
-			<SupportsAutoLayout/>
-			<MergeConsecutiveVirtualStrings/>
-			<PixelProtocols>
-				<Protocol>ws2811</Protocol>
-				<Protocol>tm18xx</Protocol>
-				<Protocol>lx1203</Protocol>
-				<Protocol>ws2801</Protocol>
-				<Protocol>tls3001</Protocol>
-				<Protocol>lpd6803</Protocol>
-				<Protocol>gece</Protocol>
-				<Protocol>lpd8806</Protocol>
-				<Protocol>apa102</Protocol>
-			</PixelProtocols>
-			<SerialProtocols>
-				<Protocol>dmx</Protocol>
-				<Protocol>renard</Protocol>
-				<Protocol>pixelnet</Protocol>
-			</SerialProtocols>
-			<InputProtocols>
-				<Protocol>e131</Protocol>
-				<Protocol>artnet</Protocol>
-				<Protocol>zcpp</Protocol>
-			</InputProtocols>
-			<SupportsMultipleSimultaneousOutputProtocols/>
-			<SupportsMultipleSimultaneousInputProtocols/>
-			<UniversesMustBeInNumericalOrder/>
 		</Variant>
 	</Controller>
 </Vendor>

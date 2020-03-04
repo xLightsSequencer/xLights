@@ -57,9 +57,9 @@ const std::vector<ControllerNameVendorMap> __controllerNameMap =
     ControllerNameVendorMap("FPP", "F40D-PB-36", "KulpLights", "F40D-PB", "4 Serial"),
     ControllerNameVendorMap("FPP", "F40D-PB", "KulpLights", "F40D-PB", "8 Serial"),
     ControllerNameVendorMap("FPP", "F40D-PB-40", "KulpLights", "F40D-PB", "No Serial"),
-    ControllerNameVendorMap("FPP", "F8-B-16", "KulpLights", "F8-B", " 4 Serial"),
-    ControllerNameVendorMap("FPP", "F8-B", "KulpLights", "F8-B", " 8 Serial"),
-    ControllerNameVendorMap("FPP", "F8-B-20", "KulpLights", "F8-B", " No Serial"),
+    ControllerNameVendorMap("FPP", "F8-B-16", "KulpLights", "F8-B", "4 Serial"),
+    ControllerNameVendorMap("FPP", "F8-B", "KulpLights", "F8-B", "8 Serial"),
+    ControllerNameVendorMap("FPP", "F8-B-20", "KulpLights", "F8-B", "No Serial"),
     ControllerNameVendorMap("FPP", "F8-B-EXP-32", "KulpLights", "F8-B", "4 Serial w/Expansion"),
     ControllerNameVendorMap("FPP", "F8-B-EXP", "KulpLights", "F8-B", "8 Serial w/Expansion"),
     ControllerNameVendorMap("FPP", "F8-B-EXP-36", "KulpLights", "F8-B", "No Serial w/Expansion"),
@@ -76,11 +76,11 @@ const std::vector<ControllerNameVendorMap> __controllerNameMap =
     ControllerNameVendorMap("FPP", "PB16", "FPP", "PB16", "No Expansion"),
     ControllerNameVendorMap("FPP", "PB16-EXP", "FPP", "PB16", "Expansion"),
 
-    ControllerNameVendorMap("Falcon", "F16v2", "Falcon", "F16V2R Two Expansion Boards"),
-    ControllerNameVendorMap("Falcon", "F16v3", "Falcon", "F16V3 Two Expansion Boards"),
+    ControllerNameVendorMap("Falcon", "F16v2", "Falcon", "F16V2R", "Two Expansion Boards"),
+    ControllerNameVendorMap("Falcon", "F16v3", "Falcon", "F16V3", "Two Expansion Boards"),
     ControllerNameVendorMap("Falcon", "F48v3", "Falcon", "F48"),
-    ControllerNameVendorMap("Falcon", "F4v2", "Falcon", "F4V2 One Expansion Board"),
-    ControllerNameVendorMap("Falcon", "F4v3", "Falcon", "F4V3 One Expansion Board"),
+    ControllerNameVendorMap("Falcon", "F4v2", "Falcon", "F4V2", "One Expansion Board"),
+    ControllerNameVendorMap("Falcon", "F4v3", "Falcon", "F4V3", "One Expansion Board"),
     
     ControllerNameVendorMap("HinksPix", "EasyLights Pix16", "HinksPix", "EasyLights Pix16"),
     ControllerNameVendorMap("HinksPix", "HinksPix PRO", "HinksPix", "PRO"),
@@ -204,13 +204,15 @@ Controller* Controller::Create(OutputManager* om, wxXmlNode* node, std::string s
     return nullptr;
 }
 
-void Controller::ConvertOldTypeToVendorModel(const std::string& old, std::string& vendor, std::string& model) {
+void Controller::ConvertOldTypeToVendorModel(const std::string& old, std::string& vendor, std::string& model, std::string &variant) {
     vendor = "";
     model = "";
+    variant = "";
     for (const auto& it : __controllerNameMap) {
         if (it._oldName == old) {
             vendor = it._vendor;
             model = it._model;
+            variant = it._variant;
             return;
         }
     }

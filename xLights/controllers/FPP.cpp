@@ -1091,17 +1091,17 @@ wxJSONValue FPP::CreateUniverseFile(ControllerEthernet* controller, bool input) 
 
 std::string FPP::GetVendor(const std::string& type)
 {
-    std::string v, m;
+    std::string v, m, var;
 
-    Controller::ConvertOldTypeToVendorModel(type, v, m);
+    Controller::ConvertOldTypeToVendorModel(type, v, m, var);
     return v;
 }
 
 std::string FPP::GetModel(const std::string& type)
 {
-    std::string v, m;
+    std::string v, m, var;
 
-    Controller::ConvertOldTypeToVendorModel(type, v, m);
+    Controller::ConvertOldTypeToVendorModel(type, v, m, var);
     return m;
 }
 

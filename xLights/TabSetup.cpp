@@ -1098,6 +1098,7 @@ void xLightsFrame::OnButtonDiscoverClick(wxCommandEvent& event) {
             startAddresses.push_back(a);
         }
     }
+    bool hasChanges = false;
     FPP::Discover(startAddresses, instances, true, true);
     std::list<FPP*> consider;
     for (auto fpp : instances) {
@@ -1116,12 +1117,13 @@ void xLightsFrame::OnButtonDiscoverClick(wxCommandEvent& event) {
                     //FIXME - descriptions aren't equal, ask what to do....
                 }
             }
-            std::string v, m;
-            Controller::ConvertOldTypeToVendorModel(fpp->pixelControllerType, v, m);
+            std::string v, m, var;
+            Controller::ConvertOldTypeToVendorModel(fpp->pixelControllerType, v, m, var);
             if (c->GetVendor() != v) {
                 if (c->GetVendor() == "") {
                     c->SetVendor(v);
                     c->SetModel(m);
+                    c->SetVariant(var);
                 }
                 else if (fpp->pixelControllerType == "") {
                     // this will get set later at upload time
@@ -1131,6 +1133,7 @@ void xLightsFrame::OnButtonDiscoverClick(wxCommandEvent& event) {
                     //for now, I'll use what FPP is configured for
                     c->SetVendor(v);
                     c->SetModel(m);
+                    c->SetVariant(var);
                 }
             }
             delete fpp;
@@ -1145,8 +1148,8 @@ void xLightsFrame::OnButtonDiscoverClick(wxCommandEvent& event) {
     }
     for (auto fpp : consider) {
         ControllerEthernet* controller = nullptr;
-        std::string v, m;
-        Controller::ConvertOldTypeToVendorModel(fpp->pixelControllerType, v, m);
+        std::string v, m, var;
+        Controller::ConvertOldTypeToVendorModel(fpp->pixelControllerType, v, m, var);
 
         if (fpp->pixelControllerType == "") v = "FPP";
 
@@ -1167,12 +1170,12 @@ void xLightsFrame::OnButtonDiscoverClick(wxCommandEvent& event) {
         }
         controller->SetVendor(v);
         controller->SetModel(m);
+        controller->SetVariant(var);
         if (fpp->description == "") {
             if (fpp->hostName != "") {
                 controller->SetName(fpp->hostName);
             }
-        }
-        else {
+        } else {
             controller->SetName(fpp->description);
         }
         int min = 9999999; int max = 0;
@@ -1195,19 +1198,13 @@ void xLightsFrame::OnButtonDiscoverClick(wxCommandEvent& event) {
         }
         controller->GetOutputs().front()->SetChannels(count);
         _outputManager.AddController(controller, -1);
-        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "OnButton_DiscoverClick", nullptr);
-        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "OnButton_DiscoverClick", nullptr);
-        _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "OnButton_DiscoverClick", nullptr, controller);
-        _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "OnButton_DiscoverClick", nullptr);
+        hasChanges = true;
         delete fpp;
     }
 
     std::map<std::string, std::string> renames;
     if (_outputManager.Discover(this, renames)) {
-        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "OnButton_DiscoverClick");
-        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "OnButton_DiscoverClick");
-        _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "OnButton_DiscoverClick");
-        _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "OnButton_DiscoverClick");
+        hasChanges = true;
 
         // update the controller name on any models which use renamed controllers
         for (auto it = renames.begin(); it != renames.end(); ++it) {
@@ -1221,27 +1218,26 @@ void xLightsFrame::OnButtonDiscoverClick(wxCommandEvent& event) {
         }
     }
 
-    for (const auto& it : Pixlite16::Discover(&_outputManager, this))
-    {
-        if (_outputManager.GetControllers(it->GetIP(), "").size() == 0)
-        {
+    for (const auto& it : Pixlite16::Discover(&_outputManager, this)) {
+        if (_outputManager.GetControllers(it->GetIP(), "").size() == 0) {
             it->EnsureUniqueId();
             it->SetName(_outputManager.UniqueName(it->GetName()));
 
             // no controller with this IP exists
             _outputManager.AddController(it, -1);
-            _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "OnButton_DiscoverClick");
-            _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "OnButton_DiscoverClick");
-            _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "OnButton_DiscoverClick");
-            _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "OnButton_DiscoverClick");
-        }
-        else
-        {
+            hasChanges = true;
+        } else {
             delete it;
         }
     }
 
     SetCursor(wxCURSOR_DEFAULT);
+    if (hasChanges) {
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "OnButton_DiscoverClick");
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "OnButton_DiscoverClick");
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "OnButton_DiscoverClick");
+        _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "OnButton_DiscoverClick");
+    }
     SetStatusText("Discovery complete.");
     logger_base.debug("Controller discovery complete.");
 }

@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (dkulp)  Fix cape detection for known FPP capes
+   -- enh (dkulp)  Add e1.31 Auto upload for Falcons
 2020.8 March 4 2020
    -- enh (keith)  Add drag and drop model controller assignment capability to the visualiser
    -- enh (dkulp)  FPP based Pixel controllers can auto-upload string configuration, intput information, and
