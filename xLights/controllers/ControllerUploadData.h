@@ -149,6 +149,7 @@ class UDControllerPort
     bool ContainsModel(Model* m) const;
     std::list<UDControllerPortModel*> GetModels() const { return _models; }
     bool SetAllModelsToControllerName(const std::string& controllerName);
+    bool SetAllModelsToValidProtocols(const std::list<std::string>& protocols, const std::string& force);
     bool EnsureAllModelsAreChained();
     #pragma endregion
 
@@ -233,6 +234,7 @@ class UDController
     Model* GetModelAfter(Model* m) const;
 
     bool SetAllModelsToControllerName(const std::string& controllerName);
+    bool SetAllModelsToValidProtocols(const std::list<std::string>& pixelProtocols, const std::list<std::string>& serialProtocols, bool allsame);
 
     bool IsValid(ControllerCaps* rules) const;
     void Dump() const;

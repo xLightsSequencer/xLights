@@ -54,6 +54,7 @@ const long ControllerModelDialog::CONTROLLER_SMARTREMOTE_A = wxNewId();
 const long ControllerModelDialog::CONTROLLER_SMARTREMOTE_B = wxNewId();
 const long ControllerModelDialog::CONTROLLER_SMARTREMOTE_C = wxNewId();
 const long ControllerModelDialog::CONTROLLER_DMXCHANNEL = wxNewId();
+const long ControllerModelDialog::CONTROLLER_PROTOCOL = wxNewId();
 
 BEGIN_EVENT_TABLE(ControllerModelDialog,wxDialog)
 	//(*EventTable(ControllerModelDialog)
@@ -201,6 +202,13 @@ public:
             mouse.y <= _location.y + totaly);
     }
 
+    int GetModelCount() const {
+        return GetUDPort()->GetModels().size();
+    }
+    Model* GetFirstModel() const {
+        if (GetModelCount() == 0) return nullptr;
+        return GetUDPort()->GetModels().front()->GetModel();
+    }
     PORTTYPE GetPortType() const { return _type; }
     int GetPort() const { return _port; }
     virtual std::string GetType() const override { return "PORT"; }
@@ -267,6 +275,91 @@ public:
         dc.SetBrush(origBrush);
         dc.SetPen(origPen);
         dc.SetTextForeground(origText);
+    }
+    virtual void AddRightClickMenu(wxMenu& mnu) override
+    {
+        if (_caps != nullptr)
+        {
+            if (_type == PORTTYPE::PIXEL && _caps->GetPixelProtocols().size() == 0) return;
+            if (_type == PORTTYPE::SERIAL && _caps->GetSerialProtocols().size() == 0) return;
+        }
+        mnu.AppendSeparator();
+        auto mi = mnu.Append(ControllerModelDialog::CONTROLLER_PROTOCOL, "Set Protocol");
+    }
+    virtual bool HandlePopup(wxWindow* parent, int id) override {
+        if (id == ControllerModelDialog::CONTROLLER_PROTOCOL)
+        {
+            wxArrayString choices;
+            if (_caps != nullptr)
+            {
+                if (_type == PORTTYPE::PIXEL)
+                {
+                    for (const auto& it : _caps->GetPixelProtocols())
+                    {
+                        choices.push_back(it);
+                    }
+                }
+                else
+                {
+                    for (const auto& it : _caps->GetSerialProtocols())
+                    {
+                        choices.push_back(it);
+                    }
+                }
+            }
+            else
+            {
+                for (const auto& it : Model::GetProtocols())
+                {
+                    if (_type == PORTTYPE::PIXEL && Model::IsPixelProtocol(it))
+                    {
+                        choices.push_back(it);
+                    }
+                    else if (_type == PORTTYPE::SERIAL && !Model::IsPixelProtocol(it))
+                    {
+                        choices.push_back(it);
+                    }
+                }
+            }
+
+            wxSingleChoiceDialog dlg(parent, "Port Protocol", "Protocol", choices);
+            if (dlg.ShowModal() == wxID_OK)
+            {
+                if (_caps != nullptr && !_caps->SupportsMultipleSimultaneousOutputProtocols()){
+
+                    // We have to apply the protocol to all ports
+                    if (_type == PORTTYPE::PIXEL)
+                    {
+                        for (int i = 1; i <= _cud->GetMaxPixelPort(); i++)
+                        {
+                            for (const auto& it : _cud->GetControllerPixelPort(i)->GetModels())
+                            {
+                                it->GetModel()->SetControllerProtocol(choices[dlg.GetSelection()]);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        for (int i = 1; i <= _cud->GetMaxSerialPort(); i++)
+                        {
+                            for (const auto& it : _cud->GetControllerSerialPort(i)->GetModels())
+                            {
+                                it->GetModel()->SetControllerProtocol(choices[dlg.GetSelection()]);
+                            }
+                        }
+                    }
+                }
+                else {
+                    // We only need to apply the protocol to this port
+                    for (const auto& it : GetUDPort()->GetModels())
+                    {
+                        it->GetModel()->SetControllerProtocol(choices[dlg.GetSelection()]);
+                    }
+                }
+            }
+            return true;
+        }
+        return false;
     }
 };
 
@@ -647,15 +740,25 @@ ControllerModelDialog::ControllerModelDialog(wxWindow* parent, UDController* cud
     cmdt = new CMDTextDropTarget(&_models, this, PanelModels, true);
     PanelModels->SetDropTarget(cmdt);
 
+    bool changed = false;
+
     if (_autoLayout) {
         // If you are doing auto layout then all models must have controller name set ... this may much up model chaining but it has to be done
         // or things will get funky
         if (_cud->SetAllModelsToControllerName(_controller->GetName())) {
             wxMessageBox("At least one model had to have its controller name set because you are using Auto Layout. This may have mucked up the order of model chaining on some ports and you will need to fix that up here.");
-
-            // Now need to let all the recalculations work
-            while (!_xLights->DoAllWork());
+            changed = true;
         }
+    }
+
+    if (_caps != nullptr)
+    {
+        changed |= _cud->SetAllModelsToValidProtocols(_caps->GetPixelProtocols(), _caps->GetSerialProtocols(), !_caps->SupportsMultipleSimultaneousOutputProtocols());
+    }
+
+    if (changed) {
+        // Now need to let all the recalculations work
+        while (!_xLights->DoAllWork());
     }
 
     ReloadModels();
@@ -977,10 +1080,22 @@ void ControllerModelDialog::DropFromModels(const wxPoint& location, const std::s
             logger_base.debug("    onto port %d.", port->GetPort());
             m->SetControllerPort(port->GetPort());
             if (port->GetPortType() == PortCMObject::PORTTYPE::PIXEL) {
-                if (!m->IsPixelProtocol()) m->SetControllerProtocol("WS2811");
+                if (port->GetModelCount() == 0) {
+                    if (_caps != nullptr && !_caps->IsValidPixelProtocol(m->GetControllerProtocol())) m->SetControllerProtocol(_caps->GetPixelProtocols().front());
+                    if (!m->IsPixelProtocol()) m->SetControllerProtocol("WS2811");
+                }
+                else {
+                    m->SetControllerProtocol(port->GetFirstModel()->GetControllerProtocol());
+                }
             }
             else {
-                if (!m->IsSerialProtocol()) m->SetControllerProtocol("DMX");
+                if (port->GetModelCount() == 0) {
+                    if (_caps != nullptr && !_caps->IsValidSerialProtocol(m->GetControllerProtocol())) m->SetControllerProtocol(_caps->GetSerialProtocols().front());
+                    if (!m->IsSerialProtocol()) m->SetControllerProtocol("DMX");
+                }
+                else {
+                    m->SetControllerProtocol(port->GetFirstModel()->GetControllerProtocol());
+                }
             }
 
             if (_autoLayout) {
@@ -1073,10 +1188,22 @@ void ControllerModelDialog::DropFromController(const wxPoint& location, const st
             logger_base.debug("    onto port %d.", port->GetPort());
             m->SetControllerPort(port->GetPort());
             if (port->GetPortType() == PortCMObject::PORTTYPE::PIXEL) {
-                if (!m->IsPixelProtocol()) m->SetControllerProtocol("WS2811");
+                if (port->GetModelCount() == 0) {
+                    if (_caps != nullptr && !_caps->IsValidPixelProtocol(m->GetControllerProtocol())) m->SetControllerProtocol(_caps->GetPixelProtocols().front());
+                    if (!m->IsPixelProtocol()) m->SetControllerProtocol("WS2811");
+                }
+                else {
+                    m->SetControllerProtocol(port->GetFirstModel()->GetControllerProtocol());
+                }
             }
             else {
-                if (!m->IsSerialProtocol()) m->SetControllerProtocol("DMX");
+                if (port->GetModelCount() == 0) {
+                    if (_caps != nullptr && !_caps->IsValidSerialProtocol(m->GetControllerProtocol())) m->SetControllerProtocol(_caps->GetSerialProtocols().front());
+                    if (!m->IsSerialProtocol()) m->SetControllerProtocol("DMX");
+                }
+                else {
+                    m->SetControllerProtocol(port->GetFirstModel()->GetControllerProtocol());
+                }
             }
 
             if (_autoLayout) {

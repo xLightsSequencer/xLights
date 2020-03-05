@@ -329,6 +329,44 @@ bool UDControllerPort::SetAllModelsToControllerName(const std::string& controlle
     return changed;
 }
 
+// Set all ports to the valid first protocol
+bool UDControllerPort::SetAllModelsToValidProtocols(const std::list<std::string>& protocols, const std::string& force)
+{
+    std::string p = force;
+    bool changed = false;
+    for (const auto& it : _models)
+    {
+        if (it->IsFirstModelString())
+        {
+            if (p == "") {
+                if (std::find(protocols.begin(), protocols.end(), it->GetModel()->GetControllerProtocol()) != protocols.end()) {
+                    p = it->GetModel()->GetControllerProtocol();
+                }
+                else
+                {
+                    changed = true;
+                    if (p == "") {
+                        it->GetModel()->SetControllerProtocol(protocols.front());
+                        p = it->GetModel()->GetControllerProtocol();
+                    }
+                    else {
+                        it->GetModel()->SetControllerProtocol(p);
+                    }
+                }
+            }
+            else
+            {
+                if (p != it->GetModel()->GetControllerProtocol())
+                {
+                    changed = true;
+                    it->GetModel()->SetControllerProtocol(p);
+                }
+            }
+        }
+    }
+    return changed;
+}
+
 // This ensures none of the models on a port overlap ... they are all chained 
 // I am a bit concerned that using this stops you overlapping things ... but really if you are going to overlap things
 // you shouldnt set the port as that is just going to cause grief.
@@ -891,6 +929,32 @@ bool UDController::SetAllModelsToControllerName(const std::string& controllerNam
     {
         changed |= it.second->SetAllModelsToControllerName(controllerName);
         changed |= it.second->EnsureAllModelsAreChained();
+    }
+
+    return changed;
+}
+
+bool UDController::SetAllModelsToValidProtocols(const std::list<std::string>& pixelProtocols, const std::list<std::string>& serialProtocols, bool allsame)
+{
+    std::string force;
+    bool changed = false;
+    for (const auto& it : _pixelPorts)
+    {
+        changed |= it.second->SetAllModelsToValidProtocols(pixelProtocols, force);
+        if (allsame && force == "" && it.second->GetFirstModel() != nullptr)
+        {
+            force = it.second->GetFirstModel()->GetModel()->GetControllerProtocol();
+        }
+    }
+
+    force = "";
+    for (const auto& it : _serialPorts)
+    {
+        changed |= it.second->SetAllModelsToValidProtocols(serialProtocols, force);
+        if (allsame && force == "" && it.second->GetFirstModel() != nullptr)
+        {
+            force = it.second->GetFirstModel()->GetModel()->GetControllerProtocol();
+        }
     }
 
     return changed;
