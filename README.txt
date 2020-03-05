@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (dkulp)  Fix visualizer on HiDPI display on Windows
    -- bug (dkulp)  Fix cape detection for known FPP capes
    -- enh (dkulp)  Add e1.31 Auto upload for Falcons
 2020.8 March 4 2020

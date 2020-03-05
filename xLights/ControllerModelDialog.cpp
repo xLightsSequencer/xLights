@@ -34,6 +34,7 @@
 #include "models/ModelManager.h"
 #include "models/Model.h"
 #include "outputs/Controller.h"
+#include "UtilFunctions.h"
 
 #include <log4cpp/Category.hh>
 
@@ -62,14 +63,16 @@ BEGIN_EVENT_TABLE(ControllerModelDialog,wxDialog)
 END_EVENT_TABLE()
 
 #pragma region Drawing Constants
-#define TOP_BOTTOM_MARGIN 10
-#define VERTICAL_GAP 5
-#define VERTICAL_SIZE 40
+#define TOP_BOTTOM_MARGIN ScaleWithSystemDPI(GetSystemContentScaleFactor(), 10)
+#define VERTICAL_GAP ScaleWithSystemDPI(GetSystemContentScaleFactor(), 5)
+#define VERTICAL_SIZE ScaleWithSystemDPI(GetSystemContentScaleFactor(), 40)
 #define LEFT_RIGHT_MARGIN TOP_BOTTOM_MARGIN
 #define HORIZONTAL_GAP VERTICAL_GAP
-#define HORIZONTAL_SIZE 120
-#define CORNER_ROUNDING 5
-#define PRINTSCALE 8.0
+#define HORIZONTAL_SIZE ScaleWithSystemDPI(GetSystemContentScaleFactor(), 120)
+#define CORNER_ROUNDING ScaleWithSystemDPI(GetSystemContentScaleFactor(), 5)
+#define PRINTSCALE (8.0/ScaleWithSystemDPI(GetSystemContentScaleFactor(), 1))
+#define FONT_PIXEL_SIZE ScaleWithSystemDPI(GetSystemContentScaleFactor(), 15)
+#define MODEL_ICON_SIZE ScaleWithSystemDPI(GetSystemContentScaleFactor(), 16)
 #pragma endregion
 
 #pragma region Colours
@@ -106,7 +109,8 @@ protected:
     bool _selected = false;
     bool _dragging = false;
     wxPoint _location = wxPoint(0,0);
-    wxSize _size = wxSize(100,40);
+    wxSize _size = wxSize(ScaleWithSystemDPI(GetSystemContentScaleFactor(), 100),
+                          ScaleWithSystemDPI(GetSystemContentScaleFactor(), 40));
     UDController* _cud = nullptr;
     ControllerCaps* _caps = nullptr;
     HITLOCATION _over = HITLOCATION::NONE;
@@ -145,7 +149,7 @@ public:
     bool BelowHitYTest(wxPoint mouse) {
         return (mouse.y < _location.y);
     }
-    virtual void Draw(wxDC& dc, wxPoint mouse, wxSize offset, int scale, bool printing = false, bool border = true) = 0;
+    virtual void Draw(wxDC& dc, wxPoint mouse, wxSize offset, float scale, bool printing = false, bool border = true) = 0;
     void UpdateCUD(UDController* cud) { _cud = cud; }
     virtual void AddRightClickMenu(wxMenu& mnu) {}
     virtual bool HandlePopup(wxWindow* parent, int id) { return false; }
@@ -212,7 +216,7 @@ public:
     PORTTYPE GetPortType() const { return _type; }
     int GetPort() const { return _port; }
     virtual std::string GetType() const override { return "PORT"; }
-    virtual void Draw(wxDC& dc, wxPoint mouse, wxSize offset, int scale, bool printing = false, bool border = true) override {
+    virtual void Draw(wxDC& dc, wxPoint mouse, wxSize offset, float scale, bool printing = false, bool border = true) override {
         auto origBrush = dc.GetBrush();
         auto origPen = dc.GetPen();
         auto origText = dc.GetTextForeground();
@@ -399,7 +403,7 @@ public:
     bool IsMain() const { return _main; }
     bool IsOutline() const { return _outline; }
     virtual std::string GetType() const override { return "MODEL"; }
-    virtual void Draw(wxDC& dc, wxPoint mouse, wxSize offset, int scale, bool printing = false, bool border = true) override {
+    virtual void Draw(wxDC& dc, wxPoint mouse, wxSize offset, float scale, bool printing = false, bool border = true) override {
         auto origBrush = dc.GetBrush();
         auto origPen = dc.GetPen();
         auto origText = dc.GetTextForeground();
@@ -465,15 +469,28 @@ public:
         pt += wxSize(0, (VERTICAL_SIZE * scale) / 2);
         if (m != nullptr) {
             auto iconType = "xlART_" + m->GetDisplayAs() + "_ICON";
+            int iconSize = MODEL_ICON_SIZE;
+            if (iconSize > 24) {
+                iconSize = 32;
+            } else {
+                iconSize = 16;
+            }
+            
             wxBitmap bmp =  wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(iconType), wxART_LIST, wxDefaultSize);
             if (bmp.IsOk()) {
                 int height = bmp.GetScaledHeight();
-                if (height > 16) {
+                if (height > iconSize) {
                     wxImage img = bmp.ConvertToImage();
-                    img.Rescale(16, 16);
+                    img.Rescale(iconSize, iconSize);
                     bmp = wxBitmap(img);
                 }
-                dc.DrawBitmap(bmp, _location.x + sz.x - 3 - bmp.GetScaledWidth(), pt.y);
+#ifdef __WXOSX__
+                dc.DrawBitmap(bmp, _location.x + sz.x - ScaleWithSystemDPI(GetSystemContentScaleFactor(), 3) - bmp.GetScaledWidth(), pt.y);
+#else
+                wxIcon icon;
+                icon.CopyFromBitmap(bmp);
+                dc.DrawIcon(icon, _location.x + sz.x - ScaleWithSystemDPI(GetSystemContentScaleFactor(), 3) - bmp.GetScaledWidth(), pt.y);
+#endif
             }
 
             if (udcpm != nullptr) {
@@ -513,7 +530,7 @@ public:
         }
         else if (GetModel() != nullptr && GetModel()->IsSerialProtocol()) {
             mnu.AppendSeparator();
-            auto mi = mnu.Append(ControllerModelDialog::CONTROLLER_DMXCHANNEL, "Set Channel");
+            mnu.Append(ControllerModelDialog::CONTROLLER_DMXCHANNEL, "Set Channel");
         }
     }
     virtual bool HandlePopup(wxWindow* parent, int id) override {
@@ -959,7 +976,7 @@ void ControllerModelDialog::RenderPicture(wxBitmap& bitmap, bool printer) {
     dc.SetDeviceOrigin(0, 0);
 
     int fontSize = 10 * PRINTSCALE;
-    wxFont font = wxFont(fontSize, wxFONTFAMILY_SWISS, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, _T("Arial"), wxFONTENCODING_DEFAULT);
+    wxFont font = wxFont(wxSize(0, fontSize), wxFONTFAMILY_SWISS, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, _T("Arial"), wxFONTENCODING_DEFAULT);
     dc.SetFont(font);
 
     int rowPos = TOP_BOTTOM_MARGIN * PRINTSCALE;
@@ -1599,6 +1616,9 @@ void ControllerModelDialog::OnPanelControllerPaint(wxPaintEvent& event)
     wxPoint mouse = PanelController->ScreenToClient(wxGetMousePosition());
     mouse += GetScrollPosition(PanelController);
 
+    wxFont font = wxFont(wxSize(0, FONT_PIXEL_SIZE), wxFONTFAMILY_SWISS, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, _T("Arial"), wxFONTENCODING_DEFAULT);
+    dc.SetFont(font);
+
     for (const auto& it : _controllers) {
         it->Draw(dc, mouse, wxSize(0,0), 1, false);
     }
@@ -1616,6 +1636,9 @@ void ControllerModelDialog::Draw(wxPanel* panel, BaseCMObject* object, wxPoint m
         yOffset = ScrollBar_Models->GetThumbPosition();
     }
     dc.SetDeviceOrigin(-xOffset, -yOffset);
+    wxFont font = wxFont(wxSize(0, FONT_PIXEL_SIZE), wxFONTFAMILY_SWISS, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, _T("Arial"), wxFONTENCODING_DEFAULT);
+    dc.SetFont(font);
+
     object->Draw(dc, mouse, wxSize(0, 0), 1, false);
 }
 
@@ -1669,6 +1692,8 @@ void ControllerModelDialog::OnPanelModelsPaint(wxPaintEvent& event)
 
     wxPoint mouse = PanelModels->ScreenToClient(wxGetMousePosition());
     mouse += GetScrollPosition(PanelModels);
+    wxFont font = wxFont(wxSize(0, FONT_PIXEL_SIZE), wxFONTFAMILY_SWISS, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, _T("Arial"), wxFONTENCODING_DEFAULT);
+    dc.SetFont(font);
 
     for (const auto& it : _models) {
         it->Draw(dc, mouse, wxSize(0, 0), 1, false);
