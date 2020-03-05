@@ -1,6 +1,7 @@
 <Vendor Name="Advatek">
 	<Controller Name="PixLite 4">
 		<Variant Name="">
+			<SupportsPixelPortAllSettings/>
 			<SupportsUpload/>
 			<MaxInputUniverses>96</MaxInputUniverses>
 			<MaxPixelPort>4</MaxPixelPort>
@@ -37,6 +38,7 @@
 	</Controller>
 	<Controller Name="PixLite 4 MkII">
 		<Variant Name="">
+			<SupportsPixelPortAllSettings/>
 			<SupportsUpload/>
 			<MaxInputUniverses>96</MaxInputUniverses>
 			<MaxPixelPort>4</MaxPixelPort>
@@ -73,6 +75,7 @@
 	</Controller>
 	<Controller Name="PixLite 16">
 		<Variant Name="">
+			<SupportsPixelPortAllSettings/>
 			<SupportsUpload/>
 			<MaxInputUniverses>96</MaxInputUniverses>
 			<MaxPixelPort>16</MaxPixelPort>
@@ -109,6 +112,7 @@
 	</Controller>
 	<Controller Name="PixLite 16 MkII">
 		<Variant Name="">
+			<SupportsPixelPortAllSettings/>
 			<SupportsUpload/>
 			<MaxInputUniverses>96</MaxInputUniverses>
 			<MaxPixelPort>16</MaxPixelPort>

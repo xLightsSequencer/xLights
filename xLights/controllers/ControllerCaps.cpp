@@ -297,6 +297,41 @@ bool ControllerCaps::NoWebUI() const
     return DoesXmlNodeExist(_config, "NoWebUI");
 }
 
+bool ControllerCaps::SupportsPixelPortBrightness() const {
+
+    return SupportsPixelPortAllSettings() || DoesXmlNodeExist(_config, "SupportsPixelPortBrightness");
+}
+
+bool ControllerCaps::SupportsPixelPortGamma() const {
+
+    return SupportsPixelPortAllSettings() || DoesXmlNodeExist(_config, "SupportsPixelPortGamma");
+}
+
+bool ControllerCaps::SupportsPixelPortColourOrder() const {
+
+    return SupportsPixelPortAllSettings() || DoesXmlNodeExist(_config, "SupportsPixelPortColourOrder");
+}
+
+bool ControllerCaps::SupportsPixelPortNullPixels() const {
+
+    return SupportsPixelPortAllSettings() || DoesXmlNodeExist(_config, "SupportsPixelPortNullPixels");
+}
+
+bool ControllerCaps::SupportsPixelPortDirection() const {
+
+    return SupportsPixelPortAllSettings() || DoesXmlNodeExist(_config, "SupportsPixelPortDirection");
+}
+
+bool ControllerCaps::SupportsPixelPortGrouping() const {
+
+    return SupportsPixelPortAllSettings() || DoesXmlNodeExist(_config, "SupportsPixelPortGrouping");
+}
+
+bool ControllerCaps::SupportsPixelPortAllSettings() const {
+
+    return DoesXmlNodeExist(_config, "SupportsPixelPortAllSettings");
+}
+
 int ControllerCaps::GetMaxInputE131Universes() const {
 
     return wxAtoi(GetXmlNodeContent(_config, "MaxInputUniverses"));
@@ -373,6 +408,13 @@ std::list<std::string> ControllerCaps::GetPixelProtocols() const {
 std::list<std::string> ControllerCaps::GetSerialProtocols() const {
 
     return GetXmlNodeListContent(_config, "SerialProtocols", "Protocol");
+}
+
+std::list<std::string> ControllerCaps::GetAllProtocols() const
+{
+    std::list<std::string> res = GetPixelProtocols();
+	res.splice(res.end(), GetSerialProtocols());
+    return res;
 }
 
 std::string ControllerCaps::GetVariantName() const {

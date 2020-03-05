@@ -1,6 +1,7 @@
 <Vendor Name="HolidayCoro">
 	<Controller Name="AlphaPix 4">
 		<Variant Name="">
+			<SupportsPixelPortAllSettings/>
 			<SupportsUpload/>
 			<MaxInputUniverses>16</MaxInputUniverses>
 			<MaxPixelPort>4</MaxPixelPort>
@@ -26,6 +27,7 @@
 	</Controller>
 	<Controller Name="AlphaPix 16">
 		<Variant Name="">
+			<SupportsPixelPortAllSettings/>
 			<SupportsUpload/>
 			<MaxInputUniverses>32</MaxInputUniverses>
 			<MaxPixelPort>16</MaxPixelPort>
@@ -51,6 +53,7 @@
 	</Controller>
 	<Controller Name="AlphaPix Flex">
 		<Variant Name="">
+			<SupportsPixelPortAllSettings/>
 			<SupportsUpload/>
 			<MaxInputUniverses>96</MaxInputUniverses>
 			<MaxPixelPort>48</MaxPixelPort>

@@ -23,6 +23,7 @@ class ModelManager;
 class xLightsFrame;
 class OutputManager;
 class wxPGProperty;
+class ControllerCaps;
 
 class NodeBaseClass;
 typedef std::unique_ptr<NodeBaseClass> NodeBaseClassPtr;
@@ -86,6 +87,8 @@ public:
     void SetPixelStyle(int style) { pixelStyle = style; } // temporarily changes pixel style
     static std::string GetPixelStyleDescription(int pixelStyle);
     virtual int GetNumPhysicalStrings() const { return parm1; }
+    ControllerCaps* GetControllerCaps() const;
+    Controller* GetController() const;
 
     std::string description;
     xlColor customColor;
@@ -137,6 +140,7 @@ public:
     void SetProperty(wxString property, wxString value, bool apply = false);
     virtual void AddProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
     virtual void UpdateProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
+    void GetControllerProtocols(wxArrayString& cp, int& idx);
     virtual void AddControllerProperties(wxPropertyGridInterface *grid);
     virtual void UpdateControllerProperties(wxPropertyGridInterface* grid);
     virtual void DisableUnusedProperties(wxPropertyGridInterface *grid) {};

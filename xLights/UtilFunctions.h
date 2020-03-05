@@ -119,7 +119,14 @@ inline std::string AfterFirst(const std::string& in, char c)
 {
     auto pos = in.find(c);
     if (pos == std::string::npos) return "";
-    return in.substr(pos);
+    return in.substr(pos+1);
+}
+
+inline std::string BeforeFirst(const std::string& in, char c)
+{
+    auto pos = in.find(c);
+    if (pos == std::string::npos) return in;
+    return in.substr(0, pos);
 }
 
 inline bool EndsWith(const std::string& in, const std::string& endswith) noexcept

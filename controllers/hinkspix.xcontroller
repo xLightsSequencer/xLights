@@ -1,6 +1,7 @@
 <Vendor Name="HinksPix">
 	<Controller Name="EasyLights Pix16">
 		<Variant Name="">
+			<SupportsPixelPortAllSettings/>
 			<SupportsUpload/>
 			<SupportsInputOnlyUpload/>
 			<MaxInputUniverses>65</MaxInputUniverses>
@@ -31,6 +32,7 @@
 	</Controller>
 	<Controller Name="PRO">
 		<Variant Name="">
+			<SupportsPixelPortAllSettings/>
 			<SupportsUpload/>
 			<SupportsInputOnlyUpload/>
 			<MaxInputUniverses>144</MaxInputUniverses>

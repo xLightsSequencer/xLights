@@ -4,6 +4,14 @@
         <SupportsInputOnlyUpload/>
         <SupportsAutoUpload/>
         
+		<!--SupportsPixelPortAllSettings/-->
+		<SupportsPixelPortBrightness/>
+		<SupportsPixelPortGamma/>
+		<SupportsPixelPortNullPixels/>
+		<SupportsPixelPortGrouping/>
+		<SupportsPixelPortDirection/>
+		<SupportsPixelPortColourOrder/>
+		
         <SupportsMultipleSimultaneousOutputProtocols/>
         <SupportsMultipleSimultaneousInputProtocols/>
         <UniversesMustBeInNumericalOrder/>

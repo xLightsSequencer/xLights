@@ -1,6 +1,7 @@
 <Vendor Name="Minleon">
 	<Controller Name="RGB NDB Plus">
 		<Variant Name="">
+			<SupportsPixelPortAllSettings/>
 			<!--SupportsUpload/-->
 			<MaxInputUniverses>16</MaxInputUniverses>
 			<MaxPixelPort>16</MaxPixelPort>

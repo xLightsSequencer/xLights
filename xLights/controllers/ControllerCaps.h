@@ -31,6 +31,8 @@ class ControllerCaps
     static std::map<std::string, std::map<std::string, std::map<std::string, ControllerCaps*>>> __controllers;
     #pragma endregion
 
+    bool SupportsPixelPortAllSettings() const;
+
 public:
 
     #pragma region Constructors and Destructors
@@ -65,6 +67,12 @@ public:
     bool UniversesMustBeInNumericalOrder() const;
     bool UniversesMustBeSequential() const;
     bool NoWebUI() const;
+    bool SupportsPixelPortBrightness() const;
+    bool SupportsPixelPortGamma() const;
+    bool SupportsPixelPortNullPixels() const;
+    bool SupportsPixelPortGrouping() const;
+    bool SupportsPixelPortDirection() const;
+    bool SupportsPixelPortColourOrder() const;
 
     int GetMaxInputE131Universes() const;
     int GetMaxPixelPort() const;
@@ -87,6 +95,7 @@ public:
     std::list<std::string> GetInputProtocols() const;
     std::list<std::string> GetPixelProtocols() const;
     std::list<std::string> GetSerialProtocols() const;
+    std::list<std::string> GetAllProtocols() const;
 
     std::string GetCustomPropertyByPath(const std::string path, const std::string& def = "") const;
     

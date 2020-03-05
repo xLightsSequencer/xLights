@@ -1,6 +1,7 @@
 <Vendor Name="ESPixelStick">
 	<Controller Name="ESPixelStick">
 		<Variant Name="">
+			<SupportsPixelPortAllSettings/>
 			<SupportsUpload/>
 			<MaxInputUniverses>8</MaxInputUniverses>
 			<MaxPixelPort>0</MaxPixelPort>

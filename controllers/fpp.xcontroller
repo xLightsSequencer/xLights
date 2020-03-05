@@ -1,5 +1,6 @@
 <Vendor Name="FPP">
     <AbstractVariant Name="BaseFPPSettings">
+		<SupportsPixelPortAllSettings/>
         <SupportsUpload/>
         <SupportsInputOnlyUpload/>
         <MaxInputUniverses>1000</MaxInputUniverses>

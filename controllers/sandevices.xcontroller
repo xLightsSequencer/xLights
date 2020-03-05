@@ -1,6 +1,7 @@
 <Vendor Name="SanDevices">
 	<Controller Name="E6804">
 		<Variant Name="4.x Firmware">
+			<SupportsPixelPortAllSettings/>
 			<SupportsUpload/>
 			<SupportsInputOnlyUpload/>
 			<MaxInputUniverses>96</MaxInputUniverses>
@@ -24,6 +25,7 @@
 			<SupportsMultipleSimultaneousOutputProtocols/>
 		</Variant>
 		<Variant Name="5.x Firmware">
+			<SupportsPixelPortAllSettings/>
 			<SupportsUpload/>
 			<SupportsInputOnlyUpload/>
 			<MaxInputUniverses>96</MaxInputUniverses>
@@ -50,6 +52,7 @@
 	</Controller>
 	<Controller Name="E682">
 		<Variant Name="4.x Firmware">
+			<SupportsPixelPortAllSettings/>
 			<SupportsUpload/>
 			<SupportsInputOnlyUpload/>
 			<MaxInputUniverses>96</MaxInputUniverses>
@@ -76,6 +79,7 @@
 			<SupportsMultipleSimultaneousOutputProtocols/>
 		</Variant>
 		<Variant Name="5.x Firmware">
+			<SupportsPixelPortAllSettings/>
 			<SupportsUpload/>
 			<SupportsInputOnlyUpload/>
 			<MaxInputUniverses>96</MaxInputUniverses>

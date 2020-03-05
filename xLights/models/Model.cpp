@@ -33,6 +33,7 @@
 #include "SubModel.h"
 #include "../UtilFunctions.h"
 #include "xLightsVersion.h"
+#include "../controllers/ControllerCaps.h"
 
 #include <log4cpp/Category.hh>
 
@@ -522,6 +523,28 @@ std::string Model::GetPixelStyleDescription(int pixelStyle)
     return "";
 }
 
+ControllerCaps* Model::GetControllerCaps() const
+{
+    auto c = GetController();
+    if (c == nullptr) return nullptr;
+    return c->GetControllerCaps();
+}
+
+Controller* Model::GetController() const
+{
+    std::string controller = GetControllerName();
+    if (controller == "")
+    {
+        if (StartsWith(ModelStartChannel, "!") && Contains(ModelStartChannel, ":"))
+        {
+            controller = BeforeFirst(AfterFirst(ModelStartChannel, '!'), ':');
+        }
+    }
+    if (controller == "") return nullptr;
+
+    return modelManager.GetXLightsFrame()->GetOutputManager()->GetController(controller);
+}
+
 void Model::AddProperties(wxPropertyGridInterface *grid, OutputManager* outputManager) {
     LAYOUT_GROUPS = Model::GetLayoutGroups(modelManager);
 
@@ -715,109 +738,173 @@ static inline void setupProtocolList() {
     }
 }
 
+void Model::GetControllerProtocols(wxArrayString& cp, int& idx) {
+
+    auto caps = GetControllerCaps();
+    wxString protocol = GetControllerProtocol();
+    protocol.LowerCase();
+
+    int i = 0;
+    if (caps == nullptr) {
+        for (const auto& it : CONTROLLER_PROTOCOLS) {
+            cp.push_back(it);
+            if (protocol == it.Lower()) {
+                idx = i;
+            }
+            i++;
+        }
+    }
+    else {
+        for (const auto& it : caps->GetAllProtocols())
+        {
+            cp.push_back(it);
+            if (protocol == Lower(it)) {
+                idx = i;
+            }
+            i++;
+        }
+    }
+}
+
 void Model::AddControllerProperties(wxPropertyGridInterface *grid) {
 
+    auto caps = GetControllerCaps();
+
     setupProtocolList();
+
+    wxString protocol = GetControllerProtocol();
+    protocol.LowerCase();
 
     wxPGProperty *p = grid->Append(new wxPropertyCategory("Controller Connection", "ModelControllerConnectionProperties"));
 
     wxPGProperty *sp = grid->AppendIn(p, new wxUIntProperty("Port", "ModelControllerConnectionPort", GetControllerPort(1)));
     sp->SetAttribute("Min", 0);
-    sp->SetAttribute("Max", 48);
+    if (caps == nullptr || protocol == "") {
+        sp->SetAttribute("Max", 48);
+    }
+    else
+    {
+        if (IsPixelProtocol()) {
+            sp->SetAttribute("Max", caps->GetMaxPixelPort());
+        }
+        else {
+            sp->SetAttribute("Max", caps->GetMaxSerialPort());
+        }
+    }
     sp->SetEditor("SpinCtrl");
 
-    wxString protocol = GetControllerProtocol();
-    protocol.LowerCase();
+    wxArrayString cp;
     int idx = -1;
-    int i = 0;
-    for (const auto& it : CONTROLLER_PROTOCOLS) {
-        if (protocol == it.Lower()) {
-            idx = i;
-            break;
+    GetControllerProtocols(cp, idx);
+
+    if (caps == nullptr || caps->SupportsSmartRemotes()) {
+        if (protocol != "dmx" && protocol != "pixelnet" && protocol != "renard" && protocol != "lor" && protocol != "") {
+            sp = grid->AppendIn(p, new wxEnumProperty("Smart Remote", "SmartRemote", SMART_REMOTES, wxArrayInt(), GetSmartRemote()));
         }
-        i++;
     }
 
-    if (protocol != "dmx" && protocol != "pixelnet" && protocol != "renard" && protocol != "lor" && protocol != "") {
-        sp = grid->AppendIn(p, new wxEnumProperty("Smart Remote", "SmartRemote", SMART_REMOTES, wxArrayInt(), GetSmartRemote()));
-    }
-
-    sp = grid->AppendIn(p, new wxEnumProperty("Protocol", "ModelControllerConnectionProtocol", CONTROLLER_PROTOCOLS, wxArrayInt(), idx));
+    sp = grid->AppendIn(p, new wxEnumProperty("Protocol", "ModelControllerConnectionProtocol", cp, wxArrayInt(), idx));
 
     wxXmlNode *node = GetControllerConnection();
-    if (protocol == "dmx" || protocol == "pixelnet" || protocol == "renard" || protocol == "lor") {
+    if (IsSerialProtocol()) {
         int chan = wxAtoi(node->GetAttribute("channel", "1"));
         sp = grid->AppendIn(p, new wxUIntProperty(protocol + " Channel", "ModelControllerConnectionDMXChannel", chan));
         sp->SetAttribute("Min", 1);
-        sp->SetAttribute("Max", 512);
+        if (caps == nullptr) {
+            sp->SetAttribute("Max", 512);
+        }
+        else {
+            sp->SetAttribute("Max", caps->GetMaxSerialPortChannels());
+        }
         sp->SetEditor("SpinCtrl");
     } else if (IsPixelProtocol(protocol)) {
-        sp = grid->AppendIn(p, new wxBoolProperty("Set Null Pixels", "ModelControllerConnectionPixelSetNullNodes", node->HasAttribute("nullNodes")));
-        sp->SetAttribute("UseCheckbox", true);
-        wxPGProperty *sp2 = grid->AppendIn(sp, new wxUIntProperty("Null Pixels", "ModelControllerConnectionPixelNullNodes",
-                                                                  wxAtoi(GetControllerConnection()->GetAttribute("nullNodes", "0"))));
-        sp2->SetAttribute("Min", 0);
-        sp2->SetAttribute("Max", 100);
-        sp2->SetEditor("SpinCtrl");
-        if (!node->HasAttribute("nullNodes")) {
-            grid->DisableProperty(sp2);
-            grid->Collapse(sp);
+
+        auto caps = GetControllerCaps();
+
+        if (caps == nullptr || caps->SupportsPixelPortNullPixels())
+        {
+            sp = grid->AppendIn(p, new wxBoolProperty("Set Null Pixels", "ModelControllerConnectionPixelSetNullNodes", node->HasAttribute("nullNodes")));
+            sp->SetAttribute("UseCheckbox", true);
+            auto sp2 = grid->AppendIn(sp, new wxUIntProperty("Null Pixels", "ModelControllerConnectionPixelNullNodes",
+                wxAtoi(GetControllerConnection()->GetAttribute("nullNodes", "0"))));
+            sp2->SetAttribute("Min", 0);
+            sp2->SetAttribute("Max", 100);
+            sp2->SetEditor("SpinCtrl");
+            if (!node->HasAttribute("nullNodes")) {
+                grid->DisableProperty(sp2);
+                grid->Collapse(sp);
+            }
         }
 
-        sp = grid->AppendIn(p, new wxBoolProperty("Set Brightness", "ModelControllerConnectionPixelSetBrightness", node->HasAttribute("brightness")));
-        sp->SetAttribute("UseCheckbox", true);
-        sp2 = grid->AppendIn(sp, new wxUIntProperty("Brightness", "ModelControllerConnectionPixelBrightness",
-                                                    wxAtoi(GetControllerConnection()->GetAttribute("brightness", "100"))));
-        sp2->SetAttribute("Min", 0);
-        sp2->SetAttribute("Max", 100);
-        sp2->SetEditor("SpinCtrl");
-        if (!node->HasAttribute("brightness")) {
-            grid->DisableProperty(sp2);
-            grid->Collapse(sp);
+        if (caps == nullptr || caps->SupportsPixelPortBrightness())
+        {
+            sp = grid->AppendIn(p, new wxBoolProperty("Set Brightness", "ModelControllerConnectionPixelSetBrightness", node->HasAttribute("brightness")));
+            sp->SetAttribute("UseCheckbox", true);
+            auto sp2 = grid->AppendIn(sp, new wxUIntProperty("Brightness", "ModelControllerConnectionPixelBrightness",
+                wxAtoi(GetControllerConnection()->GetAttribute("brightness", "100"))));
+            sp2->SetAttribute("Min", 0);
+            sp2->SetAttribute("Max", 100);
+            sp2->SetEditor("SpinCtrl");
+            if (!node->HasAttribute("brightness")) {
+                grid->DisableProperty(sp2);
+                grid->Collapse(sp);
+            }
         }
 
-        sp = grid->AppendIn(p, new wxBoolProperty("Set Gamma", "ModelControllerConnectionPixelSetGamma", node->HasAttribute("gamma")));
-        sp->SetAttribute("UseCheckbox", true);
-        double gamma = wxAtof(GetControllerConnection()->GetAttribute("gamma", "1.0"));
-        sp2 = grid->AppendIn(sp, new wxFloatProperty("Gamma", "ModelControllerConnectionPixelGamma", gamma));
-        sp2->SetAttribute("Min", 0.1);
-        sp2->SetAttribute("Max", 5.0);
-        sp2->SetAttribute("Precision", 1);
-        sp2->SetAttribute("Step", 0.1);
-        sp2->SetEditor("SpinCtrl");
-        if (!node->HasAttribute("gamma")) {
-            grid->DisableProperty(sp2);
-            grid->Collapse(sp);
+        if (caps == nullptr || caps->SupportsPixelPortGamma())
+        {
+            sp = grid->AppendIn(p, new wxBoolProperty("Set Gamma", "ModelControllerConnectionPixelSetGamma", node->HasAttribute("gamma")));
+            sp->SetAttribute("UseCheckbox", true);
+            double gamma = wxAtof(GetControllerConnection()->GetAttribute("gamma", "1.0"));
+            auto sp2 = grid->AppendIn(sp, new wxFloatProperty("Gamma", "ModelControllerConnectionPixelGamma", gamma));
+            sp2->SetAttribute("Min", 0.1);
+            sp2->SetAttribute("Max", 5.0);
+            sp2->SetAttribute("Precision", 1);
+            sp2->SetAttribute("Step", 0.1);
+            sp2->SetEditor("SpinCtrl");
+            if (!node->HasAttribute("gamma")) {
+                grid->DisableProperty(sp2);
+                grid->Collapse(sp);
+            }
         }
 
-        sp = grid->AppendIn(p, new wxBoolProperty("Set Color Order", "ModelControllerConnectionPixelSetColorOrder", node->HasAttribute("colorOrder")));
-        sp->SetAttribute("UseCheckbox", true);
-        int cidx = CONTROLLER_COLORORDER.Index(GetControllerConnection()->GetAttribute("colorOrder", "RGB"));
-        sp2 = grid->AppendIn(sp, new wxEnumProperty("Color Order", "ModelControllerConnectionPixelColorOrder", CONTROLLER_COLORORDER, wxArrayInt(), cidx < 0 ? 0 : cidx));
-        if (!node->HasAttribute("colorOrder")) {
-            grid->DisableProperty(sp2);
-            grid->Collapse(sp);
+        if (caps == nullptr || caps->SupportsPixelPortColourOrder())
+        {
+            sp = grid->AppendIn(p, new wxBoolProperty("Set Color Order", "ModelControllerConnectionPixelSetColorOrder", node->HasAttribute("colorOrder")));
+            sp->SetAttribute("UseCheckbox", true);
+            int cidx = CONTROLLER_COLORORDER.Index(GetControllerConnection()->GetAttribute("colorOrder", "RGB"));
+            auto sp2 = grid->AppendIn(sp, new wxEnumProperty("Color Order", "ModelControllerConnectionPixelColorOrder", CONTROLLER_COLORORDER, wxArrayInt(), cidx < 0 ? 0 : cidx));
+            if (!node->HasAttribute("colorOrder")) {
+                grid->DisableProperty(sp2);
+                grid->Collapse(sp);
+            }
         }
 
-        sp = grid->AppendIn(p, new wxBoolProperty("Set Pixel Direction", "ModelControllerConnectionPixelSetDirection", node->HasAttribute("reverse")));
-        sp->SetAttribute("UseCheckbox", true);
-        sp2 = grid->AppendIn(sp, new wxEnumProperty("Direction", "ModelControllerConnectionPixelDirection", CONTROLLER_DIRECTION, wxArrayInt(),
-                                                    wxAtoi(GetControllerConnection()->GetAttribute("reverse", "0"))));
-        if (!node->HasAttribute("reverse")) {
-            grid->DisableProperty(sp2);
-            grid->Collapse(sp);
+        if (caps == nullptr || caps->SupportsPixelPortDirection())
+        {
+            sp = grid->AppendIn(p, new wxBoolProperty("Set Pixel Direction", "ModelControllerConnectionPixelSetDirection", node->HasAttribute("reverse")));
+            sp->SetAttribute("UseCheckbox", true);
+            auto sp2 = grid->AppendIn(sp, new wxEnumProperty("Direction", "ModelControllerConnectionPixelDirection", CONTROLLER_DIRECTION, wxArrayInt(),
+                wxAtoi(GetControllerConnection()->GetAttribute("reverse", "0"))));
+            if (!node->HasAttribute("reverse")) {
+                grid->DisableProperty(sp2);
+                grid->Collapse(sp);
+            }
         }
 
-        sp = grid->AppendIn(p, new wxBoolProperty("Set Group Count", "ModelControllerConnectionPixelSetGroupCount", node->HasAttribute("groupCount")));
-        sp->SetAttribute("UseCheckbox", true);
-        sp2 = grid->AppendIn(sp, new wxUIntProperty("Group Count", "ModelControllerConnectionPixelGroupCount",
-                                                    wxAtoi(GetControllerConnection()->GetAttribute("groupCount", "1"))));
-        sp2->SetAttribute("Min", 0);
-        sp2->SetAttribute("Max", 50);
-        sp2->SetEditor("SpinCtrl");
-        if (!node->HasAttribute("groupCount")) {
-            grid->DisableProperty(sp2);
-            grid->Collapse(sp);
+        if (caps == nullptr || caps->SupportsPixelPortGrouping())
+        {
+            sp = grid->AppendIn(p, new wxBoolProperty("Set Group Count", "ModelControllerConnectionPixelSetGroupCount", node->HasAttribute("groupCount")));
+            sp->SetAttribute("UseCheckbox", true);
+            auto sp2 = grid->AppendIn(sp, new wxUIntProperty("Group Count", "ModelControllerConnectionPixelGroupCount",
+                wxAtoi(GetControllerConnection()->GetAttribute("groupCount", "1"))));
+            sp2->SetAttribute("Min", 0);
+            sp2->SetAttribute("Max", 50);
+            sp2->SetEditor("SpinCtrl");
+            if (!node->HasAttribute("groupCount")) {
+                grid->DisableProperty(sp2);
+                grid->Collapse(sp);
+            }
         }
     }
 }
@@ -966,6 +1053,8 @@ static void clearUnusedProtocolProperties(wxXmlNode *node) {
 }
 
 int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
+    auto caps = GetControllerCaps();
+
     if (event.GetPropertyName() == "ModelPixelSize") {
         pixelSize = event.GetValue().GetLong();
         ModelXml->DeleteAttribute("PixelSize");
@@ -1120,7 +1209,21 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
 
             if (GetControllerPort(1) > 0 && GetControllerProtocol() == "")
             {
-                SetControllerProtocol(CONTROLLER_PROTOCOLS[1]);
+                if (caps == nullptr)
+                {
+                    SetControllerProtocol(CONTROLLER_PROTOCOLS[1]);
+                }
+                else
+                {
+                    if (caps->GetPixelProtocols().size() > 0)
+                    {
+                        SetControllerProtocol(caps->GetPixelProtocols().front());
+                    }
+                    else if (caps->GetSerialProtocols().size() > 0)
+                    {
+                        SetControllerProtocol(caps->GetSerialProtocols().front());
+                    }
+                }
                 protocolChanged = true;
             }
 
@@ -1168,10 +1271,13 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
 
         return 0;
     } else if (event.GetPropertyName() == "ModelControllerConnectionProtocol") {
+        wxArrayString cp;
+        int idx;
+        GetControllerProtocols(cp, idx);
         std::string oldProtocol = GetControllerProtocol();
-        SetControllerProtocol(CONTROLLER_PROTOCOLS[event.GetValue().GetLong()]);
+        SetControllerProtocol(cp[event.GetValue().GetLong()]);
 
-                clearUnusedProtocolProperties(GetControllerConnection());
+        clearUnusedProtocolProperties(GetControllerConnection());
 
         if (GetControllerName() != "" && _controller != 0)
         {

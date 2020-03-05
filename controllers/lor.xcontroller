@@ -1,6 +1,7 @@
 <Vendor Name="LOR">
 	<Controller Name="PixCon 16">
 		<Variant Name="">
+			<SupportsPixelPortAllSettings/>
 			<SupportsUpload/>
 			<MaxInputUniverses>96</MaxInputUniverses>
 			<MaxPixelPort>16</MaxPixelPort>

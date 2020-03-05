@@ -384,6 +384,10 @@ public:
     std::string GetName() const { return _name; }
     std::string GetDisplayName() const { return _displayName; }
 
+    UDControllerPortModel* GetUDModel() {
+        if (_cud == nullptr) return nullptr;
+        return _cud->GetControllerPortModel(_name);
+    }
     Model* GetModel() const {
         if (_main) {
             return _mm->GetModel(_name);
@@ -402,7 +406,7 @@ public:
         dc.SetTextForeground(*wxBLACK);
 
         Model* m = _mm->GetModel(_name);
-        UDControllerPortModel* udcpm = _cud->GetControllerPortModel(_name);
+        UDControllerPortModel* udcpm = GetUDModel();
 
         if (!border) {
             dc.SetPen(*wxTRANSPARENT_PEN);
@@ -1457,21 +1461,50 @@ std::string ControllerModelDialog::GetModelTooltip(ModelCMObject* mob)
                                              channelOffset, ip, universe, inactive, baud, startUniverse, endUniverse);
 
     std::string dmx;
+    std::string stringSettings;
     if (m->IsSerialProtocol()) {
         dmx = wxString::Format("\nChannel %d", m->GetControllerDMXChannel());
+    }
+    else {
+        UDControllerPortModel* udm = mob->GetUDModel();
+        if (udm != nullptr) {
+            if (udm->GetBrightness(-1) != -1) {
+                stringSettings += wxString::Format("\nBrightness: %d%%", udm->GetBrightness(-1));
+            }
+            if (udm->GetColourOrder("xxx") != "xxx")
+            {
+                stringSettings += wxString::Format("\nColor Order: %s", udm->GetColourOrder(""));
+            }
+            if (udm->GetDirection("xxx") != "xxx")
+            {
+                stringSettings += wxString::Format("\nDirection: %s", udm->GetDirection(""));
+            }
+            if (udm->GetGamma(-1) != -1)
+            {
+                stringSettings += wxString::Format("\nGamma: %.1f", (float)udm->GetGamma(0) / 10.0);
+            }
+            if (udm->GetGroupCount(-1) != -1)
+            {
+                stringSettings += wxString::Format("\nGrouping: %d", udm->GetGroupCount(0));
+            }
+            if (udm->GetNullPixels(-1) != -1)
+            {
+                stringSettings += wxString::Format("\nNull Pixels: %d", udm->GetNullPixels(0));
+            }
+        }
     }
 
     auto om = _xLights->GetOutputManager();
     if (_autoLayout) {
-        return wxString::Format("Name: %s\nController Name: %s\nModel Chain: %s\nStart Channel: %s\nEnd Channel %s\nStrings %d\nSmart Remote: %s\nPort: %d\nProtocol: %s%s",
+        return wxString::Format("Name: %s\nController Name: %s\nModel Chain: %s\nStart Channel: %s\nEnd Channel %s\nStrings %d\nSmart Remote: %s\nPort: %d\nProtocol: %s%s%s",
             mob->GetDisplayName(), controllerName, m->GetModelChain() == "" ? "Beginning" : m->GetModelChain(), m->GetStartChannelInDisplayFormat(om), 
             m->GetLastChannelInStartChannelFormat(om),
-            m->GetNumPhysicalStrings(), sr, m->GetControllerPort(), m->GetControllerProtocol(), dmx).ToStdString();
+            m->GetNumPhysicalStrings(), sr, m->GetControllerPort(), m->GetControllerProtocol(), dmx, stringSettings).ToStdString();
     }
     else {
-        return wxString::Format("name: %s\nController Name: %s\nIP/Serial: %s\nStart Channel: %s\nEnd Channel %s\nStrings %d\nSmart Remote: %s\nPort: %d\nProtocol: %s%s",
+        return wxString::Format("name: %s\nController Name: %s\nIP/Serial: %s\nStart Channel: %s\nEnd Channel %s\nStrings %d\nSmart Remote: %s\nPort: %d\nProtocol: %s%s%s",
             mob->GetDisplayName(), controllerName, universe, m->GetStartChannelInDisplayFormat(om), m->GetLastChannelInStartChannelFormat(om),
-            m->GetNumPhysicalStrings(), sr, m->GetControllerPort(), m->GetControllerProtocol(), dmx).ToStdString();
+            m->GetNumPhysicalStrings(), sr, m->GetControllerPort(), m->GetControllerProtocol(), dmx, stringSettings).ToStdString();
     }
 }
 
