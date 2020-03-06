@@ -67,7 +67,7 @@ class FPP : public BaseController
     bool UploadUDPOutputsForProxy(OutputManager* outputManager);
     
     bool UploadPlaylist(const std::string &playlist);
-    bool UploadModels(const std::string &models);
+    bool UploadModels(const wxJSONValue &models);
     bool UploadDisplayMap(const std::string &displayMap);
     bool UploadUDPOut(const wxJSONValue &udp);
 
@@ -83,7 +83,7 @@ class FPP : public BaseController
     static void Discover(const std::list<std::string> &forcedAddresses, std::list<FPP*> &instances, bool doBroadcast = true, bool allPlatforms = false);
     static void Probe(const std::list<std::string> &addresses, std::list<FPP*> &instances);
 
-    static std::string CreateModelMemoryMap(ModelManager* allmodels);
+    static wxJSONValue CreateModelMemoryMap(ModelManager* allmodels);
     static std::string CreateVirtualDisplayMap(ModelManager* allmodels, bool center0);
     static wxJSONValue CreateUniverseFile(const std::list<ControllerEthernet*>& controllers, bool input);
     static wxJSONValue CreateUniverseFile(ControllerEthernet* controller, bool input);

@@ -23,6 +23,8 @@ class MatrixModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
         virtual std::list<std::string> CheckModelSettings() override;
 
+    
+        bool isVerticalMatrix() const { return vMatrix; }
     protected:
         virtual void AddStyleProperties(wxPropertyGridInterface *grid);
     

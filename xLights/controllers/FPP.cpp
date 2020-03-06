@@ -25,6 +25,7 @@
 #include "FPP.h"
 #include "../xLightsXmlFile.h"
 #include "../models/Model.h"
+#include "../models/MatrixModel.h"
 #include "../outputs/OutputManager.h"
 #include "../outputs/Output.h"
 #include "../outputs/E131Output.h"
@@ -855,14 +856,12 @@ bool FPP::UploadPlaylist(const std::string &name) {
     return false;
 }
 
-bool FPP::UploadModels(const std::string &models) {
+bool FPP::UploadModels(const wxJSONValue &models) {
     if (IsDrive()) {
-        wxFileName fn = (ipAddress + wxFileName::GetPathSeparator() + "channelmemorymaps");
-        wxFile tf(fn.GetFullPath());
-        tf.Write(models);
-        tf.Close();
-    } else if (IsVersionAtLeast(2, 6)) {
-        PostToURL("/api/models/raw", models);
+        std::string fn = (ipAddress + wxFileName::GetPathSeparator() + "config" + wxFileName::GetPathSeparator() + "model-overlays.json");
+        WriteJSONToPath(fn, models);
+    } else if (IsVersionAtLeast(3, 0)) {
+        PostJSONToURL("/api/models", models);
     }
     return false;
 }
@@ -872,7 +871,7 @@ bool FPP::UploadDisplayMap(const std::string &displayMap) {
         wxFile tf(fn.GetFullPath());
         tf.Write(displayMap);
         tf.Close();
-    } else if (IsVersionAtLeast(2, 6)) {
+    } else if (IsVersionAtLeast(3, 6)) {
         PostToURL("/api/configfile/virtualdisplaymap", displayMap);
     }
     return false;
@@ -887,24 +886,49 @@ bool FPP::UploadUDPOut(const wxJSONValue &udp) {
     return false;
 }
 
-std::string FPP::CreateModelMemoryMap(ModelManager* allmodels) {
-    std::string ret;
+wxJSONValue FPP::CreateModelMemoryMap(ModelManager* allmodels) {
+    wxJSONValue json;
+    wxJSONValue models;
     for (const auto& m : *allmodels) {
         Model* model = m.second;
         wxString stch = model->GetModelXml()->GetAttribute("StartChannel", wxString::Format("%d?", model->NodeStartChannel(0) + 1)); //NOTE: value coming from model is probably not what is wanted, so show the base ch# instead
         int ch = model->GetNumberFromChannelString(model->ModelStartChannel);
         wxString name(model->name);
         name.Replace(" ", "_");
-        if (model->GetNumStrands() > 0) {
-            ret += wxString::Format("%s,%i,%lu,horizontal,TL,%i,%i\n",
-                                                     name.c_str(),
-                                                     ch,
-                                                     (unsigned long)model->GetActChanCount(),
-                                                     (int)model->GetNumStrands(),
-                                                     1).ToStdString();
+        
+        
+        int numStr = model->GetNumStrings();
+        if (numStr == 0) {
+            numStr = 1;
         }
+        int straPerStr =  model->GetNumStrands() / numStr;
+        if (straPerStr < 1) straPerStr = 1;
+        
+        wxJSONValue jm;
+        jm["Name"] = name;
+        jm["ChannelCount"] = model->GetActChanCount();
+        jm["StartChannel"] = ch;
+        jm["StrandsPerString"] = straPerStr;
+        jm["StringCount"] = numStr;
+        
+        MatrixModel *mm = dynamic_cast<MatrixModel*>(model);
+        if (mm) {
+            if (mm->isVerticalMatrix()) {
+                jm["Orientation"] = wxString("vertical");
+            } else {
+                jm["Orientation"] = wxString("horizontal");
+            }
+        } else {
+            jm["Orientation"] = wxString("horizontal");
+        }
+        std::string corner = model->GetIsBtoT() ? "B" : "T";
+        corner += model->GetIsLtoR() ? "L" : "R";
+        jm["StartCorner"] = corner;
+        
+        models.Append(jm);
     }
-    return ret;
+    json["models"] = models;
+    return json;
 }
 
 std::string FPP::CreateVirtualDisplayMap(ModelManager* allmodels, bool center0) {
