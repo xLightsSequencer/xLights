@@ -885,6 +885,7 @@ Model* ModelManager::CreateDefaultModel(const std::string &type, const std::stri
 
     std::string name = GenerateModelName(type);
     node->AddAttribute("name", name);
+    std::string protocol = "ws2811";
 
     if (type == "Star") {
         node->DeleteAttribute("parm3");
@@ -899,6 +900,7 @@ Model* ModelManager::CreateDefaultModel(const std::string &type, const std::stri
         node->AddAttribute("parm2", "18");
         model = new CandyCaneModel(node, *this, false);
     } else if (type == "Channel Block") {
+        protocol = "";
         node->DeleteAttribute("parm1");
         node->AddAttribute("parm1", "16");
         node->DeleteAttribute("StringType");
@@ -912,6 +914,7 @@ Model* ModelManager::CreateDefaultModel(const std::string &type, const std::stri
         node->AddAttribute("InsideOut", "0");
         model = new CircleModel(node, *this, false);
     } else if (type == "DmxMovingHead") {
+        protocol = "";
         node->DeleteAttribute("parm1");
         node->AddAttribute("parm1", "8");
         node->DeleteAttribute("parm2");
@@ -922,7 +925,8 @@ Model* ModelManager::CreateDefaultModel(const std::string &type, const std::stri
         node->AddAttribute("StringType", "Single Color White");
         model = new DmxMovingHead(node, *this, false);
     } else if (type == "DmxMovingHead3D") {
-         node->DeleteAttribute("parm1");
+        protocol = "";
+        node->DeleteAttribute("parm1");
          node->AddAttribute("parm1", "8");
          node->DeleteAttribute("parm2");
          node->AddAttribute("parm2", "1");
@@ -930,6 +934,7 @@ Model* ModelManager::CreateDefaultModel(const std::string &type, const std::stri
          node->AddAttribute("StringType", "Single Color White");
          model = new DmxMovingHead3D(node, *this, false);
     } else if (type == "DmxFloodlight") {
+        protocol = "";
         node->DeleteAttribute("parm1");
         node->AddAttribute("parm1", "3");
         node->DeleteAttribute("parm2");
@@ -938,6 +943,7 @@ Model* ModelManager::CreateDefaultModel(const std::string &type, const std::stri
         node->AddAttribute("StringType", "Single Color White");
         model = new DmxFloodlight(node, *this, false);
     } else if (type == "DmxFloodArea") {
+        protocol = "";
         node->DeleteAttribute("parm1");
         node->AddAttribute("parm1", "3");
         node->DeleteAttribute("parm2");
@@ -946,6 +952,7 @@ Model* ModelManager::CreateDefaultModel(const std::string &type, const std::stri
         node->AddAttribute("StringType", "Single Color White");
         model = new DmxFloodArea(node, *this, false);
     } else if (type == "DmxSkull") {
+        protocol = "";
         node->DeleteAttribute("parm1");
         node->AddAttribute("parm1", "26");
         node->DeleteAttribute("parm2");
@@ -954,6 +961,7 @@ Model* ModelManager::CreateDefaultModel(const std::string &type, const std::stri
         node->AddAttribute("StringType", "Single Color White");
         model = new DmxSkull(node, *this, false);
     } else if (type == "DmxServo") {
+        protocol = "";
         node->DeleteAttribute("parm1");
         node->AddAttribute("parm1", "2");
         node->DeleteAttribute("parm2");
@@ -962,6 +970,7 @@ Model* ModelManager::CreateDefaultModel(const std::string &type, const std::stri
         node->AddAttribute("StringType", "Single Color White");
         model = new DmxServo(node, *this, false);
     } else if (type == "DmxServo3d" || type == "DmxServo3Axis") {
+        protocol = "";
         node->DeleteAttribute("parm1");
         node->AddAttribute("parm1", "2");
         node->DeleteAttribute("parm2");
@@ -979,6 +988,7 @@ Model* ModelManager::CreateDefaultModel(const std::string &type, const std::stri
         }
         model = new DmxServo3d(node, *this, false);
     } else if (type == "Image") {
+        protocol = "";
         node->DeleteAttribute("parm1");
         node->AddAttribute("parm1", "1");
         node->DeleteAttribute("parm2");
@@ -1055,6 +1065,9 @@ Model* ModelManager::CreateDefaultModel(const std::string &type, const std::stri
         DisplayError(wxString::Format("'%s' is not a valid model type for model '%s'", type, node->GetAttribute("name")).ToStdString());
         return nullptr;
     }
+
+    model->SetControllerProtocol(protocol);
+
     return model;
 }
 

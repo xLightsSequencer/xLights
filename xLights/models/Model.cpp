@@ -474,7 +474,9 @@ void Model::UpdateProperties(wxPropertyGridInterface* grid, OutputManager* outpu
     
     UpdateTypeProperties(grid);
 
-    grid->GetPropertyByName("Controller")->Enable(outputManager->GetAutoLayoutControllerNames().size() > 0);
+    if (grid->GetPropertyByName("Controller") != nullptr) {
+        grid->GetPropertyByName("Controller")->Enable(outputManager->GetAutoLayoutControllerNames().size() > 0);
+    }
 
     if (HasOneString(DisplayAs)) {
         grid->GetPropertyByName("ModelStartChannel")->Enable(GetControllerName() == "" && _controller == 0);
@@ -483,7 +485,10 @@ void Model::UpdateProperties(wxPropertyGridInterface* grid, OutputManager* outpu
         grid->GetPropertyByName("ModelIndividualStartChannels")->Enable(parm1 > 1 && GetControllerName() == "" && _controller == 0);
         grid->GetPropertyByName("ModelIndividualStartChannels.ModelStartChannel")->Enable(GetControllerName() == "" && _controller == 0);
     }
-    grid->GetPropertyByName("ModelChain")->Enable(GetControllerName() != "" && GetControllerProtocol() != "" && GetControllerPort() != 0 && _controller != 0);
+
+    if (grid->GetPropertyByName("ModelChain") != nullptr) {
+        grid->GetPropertyByName("ModelChain")->Enable(GetControllerName() != "" && GetControllerProtocol() != "" && GetControllerPort() != 0 && _controller != 0);
+    }
 
     UpdateControllerProperties(grid);
 
@@ -499,6 +504,8 @@ void Model::UpdateProperties(wxPropertyGridInterface* grid, OutputManager* outpu
 
 void Model::ColourClashingChains(wxPGProperty* p)
 {
+    if (p == nullptr) return;
+
     std::string tip;
     if (GetControllerName() != "" && _controller != 0 && GetControllerProtocol() != "" && GetControllerPort() != 0 && p->IsEnabled()) {
         if (!modelManager.IsValidControllerModelChain(this, tip)) {
@@ -567,8 +574,11 @@ void Model::AddProperties(wxPropertyGridInterface *grid, OutputManager* outputMa
         CONTROLLERS.Add(it);
     }
 
-    p = grid->Append(new wxEnumProperty("Controller", "Controller", CONTROLLERS, wxArrayInt(), _controller));
-    p->Enable(CONTROLLERS.size() > 0);
+    if (CONTROLLERS.size() > 1)
+    {
+        p = grid->Append(new wxEnumProperty("Controller", "Controller", CONTROLLERS, wxArrayInt(), _controller));
+        p->Enable(CONTROLLERS.size() > 0);
+    }
 
     if (HasOneString(DisplayAs)) {
         p = grid->Append(new StartChannelProperty(this, 0, "Start Channel", "ModelStartChannel", ModelXml->GetAttribute("StartChannel","1"), modelManager.GetXLightsFrame()->GetSelectedLayoutPanelPreview()));
@@ -607,8 +617,12 @@ void Model::AddProperties(wxPropertyGridInterface *grid, OutputManager* outputMa
             }
         }
     }
-    p = grid->Append(new ModelChainProperty(this, "Model Chain", "ModelChain", GetModelChain() == "" ? _("Beginning").ToStdString() : GetModelChain()));
-    p->Enable(GetControllerName() != "" && GetControllerProtocol() != "" && GetControllerPort() != 0 && _controller != 0);
+
+    if (CONTROLLERS.size() > 1 && GetControllerName() != "" && GetControllerProtocol() != "" && GetControllerPort() != 0 && _controller != 0)
+    {
+        p = grid->Append(new ModelChainProperty(this, "Model Chain", "ModelChain", GetModelChain() == "" ? _("Beginning").ToStdString() : GetModelChain()));
+        p->Enable(GetControllerName() != "" && GetControllerProtocol() != "" && GetControllerPort() != 0 && _controller != 0);
+    }
 
     int layout_group_number = 0;
     for (int grp = 0; grp < LAYOUT_GROUPS.Count(); grp++)
@@ -934,7 +948,10 @@ void Model::UpdateControllerProperties(wxPropertyGridInterface* grid) {
         grid->GetPropertyByName("ModelControllerConnectionProtocol")->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
     }
 
-    ColourClashingChains(grid->GetPropertyByName("ModelChain"));
+    if (grid->GetPropertyByName("ModelChain") != nullptr)
+    {
+        ColourClashingChains(grid->GetPropertyByName("ModelChain"));
+    }
 
     wxXmlNode* node = GetControllerConnection();
     wxString protocol = GetControllerProtocol();
@@ -1180,19 +1197,19 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         {
             ModelXml->DeleteAttribute("Advanced");
             AdjustStringProperties(grid, parm1);
-            if (grid->GetPropertyByName("ModelStartChannel") != nullptr)
-            {
+            if (grid->GetPropertyByName("ModelStartChannel") != nullptr) {
                 grid->GetPropertyByName("ModelStartChannel")->SetValue(ModelXml->GetAttribute("StartChannel", "1"));
                 grid->GetPropertyByName("ModelStartChannel")->Enable(false);
             }
-            else if (grid->GetPropertyByName("ModelIndividualStartChannels.ModelStartChannel") != nullptr)
-            {
+            else if (grid->GetPropertyByName("ModelIndividualStartChannels.ModelStartChannel") != nullptr) {
                 grid->GetPropertyByName("ModelIndividualStartChannels.ModelStartChannel")->Enable(false);
                 grid->GetPropertyByName("ModelIndividualStartChannels")->Enable(false);
                 grid->GetPropertyByName("ModelIndividualStartChannels.ModelStartChannel")->SetValue(ModelXml->GetAttribute("StartChannel", "1"));
             }
         }
-        grid->GetPropertyByName("ModelChain")->Enable(GetControllerName() != "");
+        if (grid->GetPropertyByName("ModelChain") != nullptr) {
+            grid->GetPropertyByName("ModelChain")->Enable(GetControllerName() != "");
+        }
         UpdateControllerProperties(grid);
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::OnPropertyGridChange::Controller");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "Model::OnPropertyGridChange::Controller");
@@ -1243,14 +1260,15 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
                     // when the port changes we have to assume any existing model chain will break
                     SetModelChain(">" + modelManager.GetLastModelOnPort(GetControllerName(), event.GetValue().GetLong(), GetName(), GetControllerProtocol()));
                 }
-                else
-                {
+                else {
                     SetModelChain("Beginning");
                 }
             }
         }
 
-        grid->GetPropertyByName("ModelChain")->Enable(GetControllerName() != "" && GetControllerProtocol() != "" && GetControllerPort() != 0 && _controller != 0);
+        if (grid->GetPropertyByName("ModelChain") != nullptr) {
+            grid->GetPropertyByName("ModelChain")->Enable(GetControllerName() != "" && GetControllerProtocol() != "" && GetControllerPort() != 0 && _controller != 0);
+        }
 
         UpdateControllerProperties(grid);
         if (protocolChanged)
@@ -1279,26 +1297,23 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
 
         clearUnusedProtocolProperties(GetControllerConnection());
 
-        if (GetControllerName() != "" && _controller != 0)
-        {
-            if (grid->GetPropertyByName("ModelStartChannel") != nullptr)
-            {
+        if (GetControllerName() != "" && _controller != 0) {
+            if (grid->GetPropertyByName("ModelStartChannel") != nullptr) {
                 grid->GetPropertyByName("ModelStartChannel")->SetValue(ModelXml->GetAttribute("StartChannel", "1"));
             }
-            else if (grid->GetPropertyByName("ModelIndividualStartChannels.ModelStartChannel") != nullptr)
-            {
+            else if (grid->GetPropertyByName("ModelIndividualStartChannels.ModelStartChannel") != nullptr) {
                 grid->GetPropertyByName("ModelIndividualStartChannels.ModelStartChannel")->SetValue(ModelXml->GetAttribute("StartChannel", "1"));
             }
         }
-        grid->GetPropertyByName("ModelChain")->Enable(GetControllerName() != "" && GetControllerProtocol() != "" && GetControllerPort() != 0 && _controller != 0);
+        if (grid->GetPropertyByName("ModelChain") != nullptr) {
+            grid->GetPropertyByName("ModelChain")->Enable(GetControllerName() != "" && GetControllerProtocol() != "" && GetControllerPort() != 0 && _controller != 0);
+        }
 
         UpdateControllerProperties(grid);
         std::string newProtocol = GetControllerProtocol();
 
-        if (!IsPixelProtocol(newProtocol))
-        {
-            if (GetControllerConnection()->GetAttribute("channel", "-1") == "-1")
-            {
+        if (!IsPixelProtocol(newProtocol)) {
+            if (GetControllerConnection()->GetAttribute("channel", "-1") == "-1") {
                 GetControllerConnection()->AddAttribute("channel", "1");
             }
         }
@@ -1306,8 +1321,7 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
             ((newProtocol == "DMX" || newProtocol == "PixelNet" || newProtocol == "Renard" || newProtocol == "LOR") && IsPixelProtocol(oldProtocol)) ||
             ((oldProtocol == "DMX" || oldProtocol == "PixelNet" || oldProtocol == "Renard" || oldProtocol == "LOR") && IsPixelProtocol(newProtocol)) ||
             (oldProtocol == "" && newProtocol != "") ||
-            (newProtocol == "" && oldProtocol != ""))
-        {
+            (newProtocol == "" && oldProtocol != "")) {
             // if we switch between a DMX and pixel protocol we need to rebuild the properties
             AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "Model::OnPropertyGridChange::ModelControllerConnectionProtocol");
         }
