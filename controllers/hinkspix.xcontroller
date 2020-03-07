@@ -1,7 +1,11 @@
 <Vendor Name="HinksPix">
 	<Controller Name="EasyLights Pix16">
 		<Variant Name="">
-			<SupportsPixelPortAllSettings/>
+			<SupportsPixelPortBrightness/>
+			<SupportsPixelPortGamma/>
+			<SupportsPixelPortNullPixels/>
+			<SupportsPixelPortDirection/>
+			<SupportsPixelPortColourOrder/>
 			<SupportsUpload/>
 			<SupportsInputOnlyUpload/>
 			<MaxInputUniverses>65</MaxInputUniverses>
@@ -10,9 +14,7 @@
 			<MaxSerialPortChannels>512</MaxSerialPortChannels>
 			<MaxPixelPortChannels>2040</MaxPixelPortChannels>
 			<UniversesMustBeSequential/>
-			<SupportsVirtualStrings/>
 			<SupportsAutoLayout/>
-			<MergeConsecutiveVirtualStrings/>
 			<PixelProtocols>
 				<Protocol>ws2811</Protocol>
 				<Protocol>ws2801</Protocol>
@@ -32,7 +34,11 @@
 	</Controller>
 	<Controller Name="PRO">
 		<Variant Name="">
-			<SupportsPixelPortAllSettings/>
+			<SupportsPixelPortBrightness/>
+			<SupportsPixelPortGamma/>
+			<SupportsPixelPortNullPixels/>
+			<SupportsPixelPortDirection/>
+			<SupportsPixelPortColourOrder/>
 			<SupportsUpload/>
 			<SupportsInputOnlyUpload/>
 			<MaxInputUniverses>144</MaxInputUniverses>
@@ -41,9 +47,7 @@
 			<MaxSerialPortChannels>512</MaxSerialPortChannels>
 			<MaxPixelPortChannels>2040</MaxPixelPortChannels>
 			<UniversesMustBeSequential/>
-			<SupportsVirtualStrings/>
 			<SupportsAutoLayout/>
-			<MergeConsecutiveVirtualStrings/>
 			<PixelProtocols>
 				<Protocol>ws2811</Protocol>
 				<Protocol>ws2801</Protocol>

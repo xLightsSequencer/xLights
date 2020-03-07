@@ -1,14 +1,18 @@
 <Vendor Name="HolidayCoro">
 	<Controller Name="AlphaPix 4">
 		<Variant Name="">
-			<SupportsPixelPortAllSettings/>
 			<SupportsUpload/>
+			<SupportsPixelPortBrightness/>
+			<SupportsPixelPortNullPixels/>
+			<SupportsPixelPortDirection/>
+			<SupportsPixelPortColourOrder/>
 			<MaxInputUniverses>16</MaxInputUniverses>
 			<MaxPixelPort>4</MaxPixelPort>
 			<MaxSerialPort>1</MaxSerialPort>
 			<MaxSerialPortChannels>512</MaxSerialPortChannels>
 			<MaxPixelPortChannels>2040‬</MaxPixelPortChannels>
 			<AllInputUniversesMustBeSameSize/>
+			<SupportsAutoLayout/>
 			<PixelProtocols>
 				<Protocol>ws2811</Protocol>
 				<Protocol>tm18xx</Protocol>
@@ -27,14 +31,18 @@
 	</Controller>
 	<Controller Name="AlphaPix 16">
 		<Variant Name="">
-			<SupportsPixelPortAllSettings/>
 			<SupportsUpload/>
+			<SupportsPixelPortBrightness/>
+			<SupportsPixelPortNullPixels/>
+			<SupportsPixelPortDirection/>
+			<SupportsPixelPortColourOrder/>
 			<MaxInputUniverses>32</MaxInputUniverses>
 			<MaxPixelPort>16</MaxPixelPort>
 			<MaxSerialPort>3</MaxSerialPort>
 			<MaxSerialPortChannels>512</MaxSerialPortChannels>
 			<MaxPixelPortChannels>1020</MaxPixelPortChannels>
 			<AllInputUniversesMustBeSameSize/>
+			<SupportsAutoLayout/>
 			<PixelProtocols>
 				<Protocol>ws2811</Protocol>
 				<Protocol>tm18xx</Protocol>
@@ -53,14 +61,18 @@
 	</Controller>
 	<Controller Name="AlphaPix Flex">
 		<Variant Name="">
-			<SupportsPixelPortAllSettings/>
 			<SupportsUpload/>
+			<SupportsPixelPortBrightness/>
+			<SupportsPixelPortNullPixels/>
+			<SupportsPixelPortDirection/>
+			<SupportsPixelPortColourOrder/>
 			<MaxInputUniverses>96</MaxInputUniverses>
 			<MaxPixelPort>48</MaxPixelPort>
 			<MaxSerialPort>2</MaxSerialPort>
 			<MaxSerialPortChannels>512</MaxSerialPortChannels>
 			<MaxPixelPortChannels>1020</MaxPixelPortChannels>
 			<AllInputUniversesMustBeSameSize/>
+			<SupportsAutoLayout/>
 			<PixelProtocols>
 				<Protocol>ws2811</Protocol>
 				<Protocol>tm18xx</Protocol>
