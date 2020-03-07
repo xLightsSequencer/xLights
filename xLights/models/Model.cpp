@@ -544,7 +544,7 @@ Controller* Model::GetController() const
     {
         if (StartsWith(ModelStartChannel, "!") && Contains(ModelStartChannel, ":"))
         {
-            controller = BeforeFirst(AfterFirst(ModelStartChannel, '!'), ':');
+            controller = Trim(BeforeFirst(AfterFirst(ModelStartChannel, '!'), ':'));
         }
     }
     if (controller == "") return nullptr;
@@ -1997,7 +1997,7 @@ bool Model::ModelRenamed(const std::string &oldName, const std::string &newName)
 
 bool Model::IsValidStartChannelString() const
 {
-    wxString sc = ModelXml->GetAttribute("StartChannel");
+    wxString sc = ModelXml->GetAttribute("StartChannel").Trim(true).Trim(false);
 
     if (sc.IsNumber() && wxAtol(sc) > 0 && ! sc.Contains('.')) return true; // absolule
 
@@ -2013,7 +2013,7 @@ bool Model::IsValidStartChannelString() const
         {
             Output* o = modelManager.GetOutputManager()->GetOutput(wxAtoi(parts[0].substr(1)), "");
             if (o != nullptr &&
-                (parts[1].IsNumber() && wxAtol(parts[1]) > 0 && !parts[1].Contains('.')))
+                (parts[1].Trim(true).Trim(false).IsNumber() && wxAtol(parts[1]) > 0 && !parts[1].Contains('.')))
             {
                 return true;
             }
@@ -2023,7 +2023,7 @@ bool Model::IsValidStartChannelString() const
             wxString ip = parts[0].substr(1);
             Output* o = modelManager.GetOutputManager()->GetOutput(wxAtoi(parts[1]), ip.ToStdString());
             if (IsIPValidOrHostname(ip.ToStdString()) && o != nullptr &&
-                (parts[2].IsNumber() && wxAtol(parts[2]) > 0 && !parts[2].Contains('.')))
+                (parts[2].Trim(true).Trim(false).IsNumber() && wxAtol(parts[2]) > 0 && !parts[2].Contains('.')))
             {
                 return true;
             }
@@ -2032,8 +2032,8 @@ bool Model::IsValidStartChannelString() const
     else if (parts[0][0] == '>' || parts[0][0] == '@')
     {
         if ((parts.size() == 2) &&
-            (parts[0].substr(1) != GetName()) && // self referencing
-            (parts[1].IsNumber() && wxAtol(parts[1]) > 0 && !parts[1].Contains('.')))
+            (parts[0].Trim(true).Trim(false).substr(1) != GetName()) && // self referencing
+            (parts[1].Trim(true).Trim(false).IsNumber() && wxAtol(parts[1]) > 0 && !parts[1].Contains('.')))
         {
             // dont bother checking the model name ... other processes will check for that
             return true;
@@ -2042,8 +2042,8 @@ bool Model::IsValidStartChannelString() const
     else if (parts[0][0] == '!')
     {
         if ((parts.size() == 2) &&
-            (modelManager.GetOutputManager()->GetController(parts[0].substr(1)) != nullptr) &&
-            (parts[1].IsNumber() && wxAtol(parts[1]) > 0 && !parts[1].Contains('.')))
+            (modelManager.GetOutputManager()->GetController(Trim(parts[0].substr(1))) != nullptr) &&
+            (parts[1].Trim(true).Trim(false).IsNumber() && wxAtol(parts[1]) > 0 && !parts[1].Contains('.')))
         {
             return true;
         }
@@ -2092,7 +2092,7 @@ int Model::GetNumberFromChannelString(const std::string &sc) const {
 }
 
 int Model::GetNumberFromChannelString(const std::string &str, bool &valid, std::string& dependsonmodel) const {
-    std::string sc(str);
+    std::string sc(Trim(str));
     int output = 1;
     valid = true;
     if (sc.find(":") != std::string::npos) {
@@ -2101,7 +2101,7 @@ int Model::GetNumberFromChannelString(const std::string &str, bool &valid, std::
         if (start[0] == '@' || start[0] == '<' || start[0] == '>') {
             int returnChannel = wxAtoi(sc);
             bool fromStart = start[0] == '@';
-            start = start.substr(1, start.size());
+            start = Trim(start.substr(1, start.size()));
             if (start == GetName() && !CouldComputeStartChannel)
             {
                 valid = false;
@@ -2667,23 +2667,24 @@ char Model::GetAbsoluteChannelColorLetter(int32_t absoluteChannel)
 
 std::string Model::GetStartChannelInDisplayFormat(OutputManager* outputManager)
 {
+    auto s = Trim(ModelStartChannel);
     if (!IsValidStartChannelString())
     {
         return "(1)";
     }
-    else if (ModelStartChannel[0] == '>')
+    else if (s[0] == '>')
     {
-        return ModelStartChannel + wxString::Format(" (%u)", GetFirstChannel() + 1);
+        return s + wxString::Format(" (%u)", GetFirstChannel() + 1);
     }
-    else if (ModelStartChannel[0] == '@')
+    else if (s[0] == '@')
     {
-        return ModelStartChannel + wxString::Format(" (%u)", GetFirstChannel() + 1);
+        return s + wxString::Format(" (%u)", GetFirstChannel() + 1);
     }
-    else if (ModelStartChannel[0] == '!')
+    else if (s[0] == '!')
     {
-        return ModelStartChannel + wxString::Format(" (%u)", GetFirstChannel() + 1);
+        return s + wxString::Format(" (%u)", GetFirstChannel() + 1);
     }
-    else if (ModelStartChannel[0] == '#')
+    else if (s[0] == '#')
     {
         return GetFirstChannelInStartChannelFormat(outputManager);
     }
@@ -2703,18 +2704,18 @@ std::string Model::GetChannelInStartChannelFormat(OutputManager* outputManager, 
     std::list<std::string> visitedModels;
     visitedModels.push_back(GetName());
 
-    std::string modelFormat = ModelStartChannel;
+    std::string modelFormat = Trim(ModelStartChannel);
     char firstChar = modelFormat[0];
 
     bool done = false;
     while (!done && (firstChar == '@' || firstChar == '>') && CountChar(modelFormat, ':') == 1)
     {
-        std::string referencedModel = modelFormat.substr(1, modelFormat.find(':') - 1);
+        std::string referencedModel = Trim(modelFormat.substr(1, modelFormat.find(':') - 1));
         Model* m = modelManager[referencedModel];
 
         if (m != nullptr && std::find(visitedModels.begin(), visitedModels.end(), referencedModel) == visitedModels.end())
         {
-            modelFormat = m->ModelStartChannel;
+            modelFormat = Trim(m->ModelStartChannel);
             firstChar = modelFormat[0];
         }
         else
@@ -2779,14 +2780,14 @@ std::string Model::GetChannelInStartChannelFormat(OutputManager* outputManager, 
     else if (firstChar == '!')
     {
         auto comps = wxSplit(modelFormat, ':');
-        auto c = outputManager->GetController(comps[0].substr(1));
+        auto c = outputManager->GetController(Trim(comps[0].substr(1)));
         int32_t start = 1;
         if (c != nullptr)
         {
             start = c->GetStartChannel();
         }
         unsigned int lastChannel = GetLastChannel() + 1;
-        return wxString(modelFormat).BeforeFirst(':') + ":" + wxString::Format("%d (%u)", lastChannel - start + 1, lastChannel);
+        return wxString(modelFormat).BeforeFirst(':').Trim(true).Trim(false) + ":" + wxString::Format("%d (%u)", lastChannel - start + 1, lastChannel);
     }
     else if (firstChar == '@' || firstChar == '>' || CountChar(modelFormat, ':') == 0)
     {
@@ -5391,12 +5392,14 @@ std::string Model::GetModelChain() const
 
 void Model::SetControllerName(const std::string& controller)
 {
-    if (controller == ModelXml->GetAttribute("Controller", "xyzzy_kw")) return;
+    auto n = Trim(controller);
+
+    if (n == ModelXml->GetAttribute("Controller", "xyzzy_kw").Trim(true).Trim(false)) return;
 
     ModelXml->DeleteAttribute("Controller");
-    if (controller != "" && controller != "Use Start Channel")
+    if (n != "" && n != "Use Start Channel")
     {
-        ModelXml->AddAttribute("Controller", controller);
+        ModelXml->AddAttribute("Controller", n);
     }
     AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "Model::SetControllerName");
     AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "Model::SetControllerName");
@@ -5446,7 +5449,7 @@ void Model::SetControllerPort(int port)
 
 std::string Model::GetControllerName() const
 {
-    return ModelXml->GetAttribute("Controller", "").ToStdString();
+    return ModelXml->GetAttribute("Controller", "").Trim(true).Trim(false).ToStdString();
 }
 
 std::list<std::string> Model::GetProtocols()

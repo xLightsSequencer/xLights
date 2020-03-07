@@ -112,8 +112,8 @@ Controller::Controller(OutputManager* om, wxXmlNode* node, const std::string& sh
     }
 
     _id = wxAtoi(node->GetAttribute("Id", "64001"));
-    _name = node->GetAttribute("Name", om->UniqueName(node->GetName() + "_"));
-    _description = node->GetAttribute("Description", "");
+    _name = node->GetAttribute("Name", om->UniqueName(node->GetName() + "_")).Trim(true).Trim(false);
+    _description = node->GetAttribute("Description", "").Trim(true).Trim(false);
     _autoSize = node->GetAttribute("AutoSize", "0") == "1";
     SetActive(node->GetAttribute("Active", "1") == "1");
     SetAutoLayout(node->GetAttribute("AutoLayout", "0") == "1");
@@ -493,7 +493,7 @@ bool Controller::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelMana
     wxString const name = event.GetPropertyName();
 
     if (name == "ControllerName") {
-        auto cn = event.GetValue().GetString();
+        auto cn = event.GetValue().GetString().Trim(true).Trim(false);
         if (_outputManager->GetController(cn) != nullptr || cn == "") {
             DisplayError("Controller name '" + cn + "' blank or already used. Controller names must be unique and non blank.");
             outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "Controller::HandlePropertyEvent::ControllerName");
@@ -509,7 +509,7 @@ bool Controller::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelMana
         }
     }
     else if (name == "ControllerDescription") {
-        SetDescription(event.GetValue().GetString());
+        SetDescription(event.GetValue().GetString().Trim(true).Trim(false));
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "Controller::HandlePropertyEvent::Controllerdescription");
         outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "Controller::HandlePropertyEvent::ControllerName");
         return true;

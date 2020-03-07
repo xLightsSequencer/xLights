@@ -487,8 +487,9 @@ void OutputManager::MoveController(Controller* controller, int toControllerNumbe
 
 Controller* OutputManager::GetController(const std::string& name) const {
 
+    auto n = Trim(name);
     for (const auto& it : _controllers) {
-        if (it->GetName() == name) return it;
+        if (it->GetName() == n) return it;
     }
     return nullptr;
 }

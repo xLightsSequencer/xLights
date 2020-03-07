@@ -308,7 +308,7 @@ bool ModelManager::RecalcStartChannels() const {
         if (it.second->GetDisplayAs() != "ModelGroup")
         {
             char first = '0';
-            if (it.second->ModelStartChannel != "") first = it.second->ModelStartChannel[0];
+            if (Trim(it.second->ModelStartChannel) != "") first = Trim(it.second->ModelStartChannel)[0];
             if (first != '>' && first != '@')
             {
                 modelsDone.push_back(it.first);
@@ -332,10 +332,10 @@ bool ModelManager::RecalcStartChannels() const {
             if (it.second->GetDisplayAs() != "ModelGroup")
             {
                 char first = '0';
-                if (it.second->ModelStartChannel != "") first = it.second->ModelStartChannel[0];
+                if (Trim(it.second->ModelStartChannel) != "") first = Trim(it.second->ModelStartChannel)[0];
                 if ((first == '>' || first == '@') && !it.second->CouldComputeStartChannel)
                 {
-                    std::string dependsOn = it.second->ModelStartChannel.substr(1, it.second->ModelStartChannel.find(':') - 1);
+                    std::string dependsOn = Trim(it.second->ModelStartChannel).substr(1, Trim(it.second->ModelStartChannel).find(':') - 1);
                     if (std::find(modelsDone.begin(), modelsDone.end(), dependsOn) != modelsDone.end())
                     {
                         // the depends on model is done
@@ -363,7 +363,7 @@ bool ModelManager::RecalcStartChannels() const {
         if (it.second->GetDisplayAs() != "ModelGroup")
         {
             char first = '0';
-            if (it.second->ModelStartChannel != "") first = it.second->ModelStartChannel[0];
+            if (Trim(it.second->ModelStartChannel) != "") first = Trim(it.second->ModelStartChannel)[0];
             if ((first == '>' || first == '@') && !it.second->CouldComputeStartChannel)
             {
                 modelsDone.push_back(it.first);
