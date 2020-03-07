@@ -123,6 +123,8 @@ class NodeSelectGrid: public wxDialog
 		wxString CompressNodes(const wxString& nodes) const;
 		void OnTextCtrl_NodesLoseFocus(wxFocusEvent& event);
 
+		void SaveSettings();
+
         Model *model;
 
         const wxColour selectColor{ wxColour("white") };

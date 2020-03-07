@@ -12,6 +12,7 @@
 #include <wx/xml/xml.h>
 #include <wx/msgdlg.h>
 #include <wx/filedlg.h>
+#include <wx/config.h>
 #include <wx/clipbrd.h>
 
 #include "NodeSelectGrid.h"
@@ -322,7 +323,12 @@ NodeSelectGrid::NodeSelectGrid(bool multiline, const wxString &title, Model *m, 
     }
     else
     {
-        CheckBox_OrderedSelection->SetValue(true);
+        bool checked = true;
+        wxConfigBase* config = wxConfigBase::Get();
+        if (config != nullptr) {
+             checked = config->ReadBool("NodeSelectGridOrderedSelection", true);            
+        }
+        CheckBox_OrderedSelection->SetValue(checked);
     }
 
     LoadGrid(rows);
@@ -486,11 +492,13 @@ void NodeSelectGrid::OnButtonSelectNoneClick(wxCommandEvent& event)
 
 void NodeSelectGrid::OnButtonNodeSelectOKClick(wxCommandEvent& event)
 {
+    SaveSettings();
     EndDialog(wxID_OK);
 }
 
 void NodeSelectGrid::OnButtonNodeSelectCancelClick(wxCommandEvent& event)
 {
+    SaveSettings();
     EndDialog(wxID_CANCEL);
 }
 
@@ -1381,4 +1389,12 @@ void NodeSelectGrid::OnTextCtrl_NodesLoseFocus(wxFocusEvent& event)
 {
     TextCtrl_Nodes->SetValue(ExpandNodes(TextCtrl_Nodes->GetValue()));
     UpdateSelectedFromText();
+}
+
+void NodeSelectGrid::SaveSettings()
+{
+    wxConfigBase* config = wxConfigBase::Get();
+    if (config != nullptr) {
+        config->Write("NodeSelectGridOrderedSelection", CheckBox_OrderedSelection->GetValue());
+    }
 }
