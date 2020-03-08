@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (gil)    Fix DmxMovingHead3D beam not showing up
    -- bug (dkulp)  Fix orientation and start corner of overlay models uploaded to FPP
    -- bug (dkulp)  Fix visualizer on HiDPI display on Windows
    -- bug (dkulp)  Fix cape detection for known FPP capes

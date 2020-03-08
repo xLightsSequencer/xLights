@@ -125,7 +125,15 @@ public:
     }
 };
 
-static wxPGChoices DMX_STYLES;
+void DmxMovingHead3D::DisableUnusedProperties(wxPropertyGridInterface* grid)
+{
+    wxPGProperty* p = grid->GetPropertyByName("DmxStyle");
+    if (p != nullptr) {
+        p->Hide(true);
+    }
+
+    DmxModel::DisableUnusedProperties(grid);
+}
 
 void DmxMovingHead3D::InitModel() {
     DisplayAs = "DmxMovingHead3D";
@@ -180,7 +188,7 @@ void DmxMovingHead3D::InitModel() {
 void DmxMovingHead3D::DrawModel(ModelPreview* preview, DrawGLUtils::xlAccumulator& va2, DrawGLUtils::xl3Accumulator& va3, const xlColor* c, float& sx, float& sy, float& sz, bool active, bool is_3d)
 {
     static wxStopWatch sw;
-    float angle, pan_angle, pan_angle_raw, tilt_angle, angle1, angle2, beam_length_displayed;
+    float pan_angle, pan_angle_raw, tilt_angle, angle1, angle2, beam_length_displayed;
     int x1, x2, y1, y2;
     size_t NodeCount = Nodes.size();
     DrawGLUtils::xlAccumulator& va = is_3d ? va3 : va2;
@@ -208,8 +216,7 @@ void DmxMovingHead3D::DrawModel(ModelPreview* preview, DrawGLUtils::xlAccumulato
         color = *c;
     }
 
-    int dmx_size = ((BoxedScreenLocation)screenLocation).GetScaleX();
-    float radius = (float)(dmx_size) / 2.0f;
+    float beam_scale = base_mesh->GetWidth() * ((BoxedScreenLocation)screenLocation).GetScaleX() / 1.5f;
     xlColor color_angle;
 
     int trans = color == xlBLACK ? blackTransparency : transparency;
@@ -316,7 +323,7 @@ void DmxMovingHead3D::DrawModel(ModelPreview* preview, DrawGLUtils::xlAccumulato
     }
 
     // Determine if we need to flip the beam
-    int tilt_pos = (int)(RenderBuffer::cos(ToRadians(tilt_angle)) * radius * 0.8);
+    int tilt_pos = (int)(RenderBuffer::cos(ToRadians(tilt_angle)));
     if (tilt_pos < 0) {
         if (pan_angle >= 180.0f) {
             pan_angle -= 180.0f;
@@ -324,10 +331,7 @@ void DmxMovingHead3D::DrawModel(ModelPreview* preview, DrawGLUtils::xlAccumulato
         else {
             pan_angle += 180.0f;
         }
-        tilt_pos *= -1;
     }
-
-    angle = tilt_angle;
 
     // save the model state
     std::vector<std::string> state;
@@ -336,23 +340,8 @@ void DmxMovingHead3D::DrawModel(ModelPreview* preview, DrawGLUtils::xlAccumulato
     state.push_back(std::to_string(tilt_angle));
     SaveModelState(state);
 
-    float sf = 12.0f;
-    float scale = radius / sf;
-
-    float beam_width = 30.0f;
-    beam_length_displayed = scale * sf * beam_length;
-    angle1 = angle - beam_width / 2.0f;
-    angle2 = angle + beam_width / 2.0f;
-    if (angle1 < 0.0f) {
-        angle1 += 360.0f;
-    }
-    if (angle2 > 360.f) {
-        angle2 -= 360.0f;
-    }
-    x1 = (int)(RenderBuffer::cos(ToRadians(angle1)) * beam_length_displayed);
-    y1 = (int)(RenderBuffer::sin(ToRadians(angle1)) * beam_length_displayed);
-    x2 = (int)(RenderBuffer::cos(ToRadians(angle2)) * beam_length_displayed);
-    y2 = (int)(RenderBuffer::sin(ToRadians(angle2)) * beam_length_displayed);
+    float beam_width = 1.5;
+    beam_length_displayed = beam_scale * beam_length;
 
     // determine if shutter is open for heads that support it
     bool shutter_open = true;
@@ -378,11 +367,11 @@ void DmxMovingHead3D::DrawModel(ModelPreview* preview, DrawGLUtils::xlAccumulato
     float combined_angle = tilt_angle + rot_angle;
     if (beam_color.red != 0 || beam_color.green != 0 || beam_color.blue != 0) {
         if (shutter_open) {
-            dmxPoint3d p1(beam_length_displayed, -5, -5, sx, sy, sz, scale, pan_angle_raw, combined_angle);
-            dmxPoint3d p2(beam_length_displayed, -5, 5, sx, sy, sz, scale, pan_angle_raw, combined_angle);
-            dmxPoint3d p3(beam_length_displayed, 5, -5, sx, sy, sz, scale, pan_angle_raw, combined_angle);
-            dmxPoint3d p4(beam_length_displayed, 5, 5, sx, sy, sz, scale, pan_angle_raw, combined_angle);
-            dmxPoint3d p0(0, 0, 0, sx, sy, sz, scale, pan_angle_raw, combined_angle);
+            dmxPoint3d p1(beam_length_displayed, -beam_width, -beam_width, sx, sy, sz, beam_scale, pan_angle_raw, combined_angle);
+            dmxPoint3d p2(beam_length_displayed, -beam_width, beam_width, sx, sy, sz, beam_scale, pan_angle_raw, combined_angle);
+            dmxPoint3d p3(beam_length_displayed, beam_width, -beam_width, sx, sy, sz, beam_scale, pan_angle_raw, combined_angle);
+            dmxPoint3d p4(beam_length_displayed, beam_width, beam_width, sx, sy, sz, beam_scale, pan_angle_raw, combined_angle);
+            dmxPoint3d p0(0, 0, 0, sx, sy, sz, beam_scale, pan_angle_raw, combined_angle);
 
             if (facing_right) {
                 va.AddVertex(p2.x, p2.y, p2.z, beam_color_end);
