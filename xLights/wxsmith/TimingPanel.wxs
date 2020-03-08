@@ -185,6 +185,7 @@
 																			<item>Fold</item>
 																			<item>Dissolve</item>
 																			<item>Circular Swirl</item>
+																			<item>Bow Tie</item>
 																		</content>
 																		<selection>0</selection>
 																		<handler function="OnTransitionTypeSelect" entry="EVT_CHOICE" />
@@ -304,6 +305,7 @@
 																			<item>Fold</item>
 																			<item>Dissolve</item>
 																			<item>Circular Swirl</item>
+																			<item>Bow Tie</item>
 																		</content>
 																		<selection>0</selection>
 																		<handler function="OnTransitionTypeSelect" entry="EVT_CHOICE" />

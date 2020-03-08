@@ -135,7 +135,7 @@ namespace
         double red   = a.red   + progress * ( b.red   - a.red   );
         double green = a.green + progress * ( b.green - a.green );
         double blue  = a.blue  + progress * ( b.blue  - a.blue  );
-        
+
         return xlColor( uint8_t( red ), uint8_t( green ), uint8_t( blue ) );
     }
 
@@ -360,7 +360,6 @@ namespace
 
       return xlBLACK;
    }
-
    void circularSwirl( RenderBuffer& rb0, const ColorBuffer& cb0, const Vec2D& xy, float speed, double progress )
    {
       if ( progress < 0. || progress > 1. )
@@ -370,6 +369,95 @@ namespace
          for ( int x = 0; x < rb0.BufferWi; ++x ) {
             double s = double( x ) / ( rb0.BufferWi - 1 );
             rb0.SetPixel( x, y, circularSwirl( cb0, xy, speed, s, t, progress ) );
+         }
+      }, 25);
+   }
+
+   float check( const Vec2D& p1, const Vec2D& p2, const Vec2D& p3 )
+   {
+      return (p1.x - p3.x) * (p2.y - p3.y) - (p2.x - p3.x) * (p1.y - p3.y);
+   }
+   bool PointInTriangle( const Vec2D& pt, const Vec2D& p1, const Vec2D& p2, const Vec2D& p3 )
+   {
+      bool b1 = check( pt, p1, p2 ) < 0.0;
+      bool b2 = check( pt, p2, p3 ) < 0.0;
+      bool b3 = check( pt, p3, p1 ) < 0.0;
+      return b1 == b2 && b2 == b3;
+   }
+   bool in_top_triangle( const Vec2D& p, float progress )
+   {
+      Vec2D vertex1( 0.5, progress );
+      Vec2D vertex2( 0.5-progress, 0.0 );
+      Vec2D vertex3( 0.5+progress, 0.0 );
+      return PointInTriangle( p, vertex1, vertex2, vertex3 );
+   }
+   bool in_bottom_triangle(const Vec2D& p, float progress)
+   {
+      Vec2D vertex1( 0.5, 1.0 - progress );
+      Vec2D vertex2( 0.5-progress, 1.0 );
+      Vec2D vertex3( 0.5+progress, 1.0 );
+      return PointInTriangle( p, vertex1, vertex2, vertex3 );
+   }
+   float blur_edge( const Vec2D& bot1, const Vec2D& bot2, const Vec2D& top, const Vec2D& testPt )
+   {
+      Vec2D lineDir( bot1 - top );
+      Vec2D perpDir( lineDir.y, -lineDir.x );
+      Vec2D dirToPt1( bot1 - testPt );
+      double dist1 = fabs( dot( perpDir.Norm(), dirToPt1 ) );
+
+      lineDir = bot2 - top;
+      perpDir = Vec2D( lineDir.y, -lineDir.x );
+      dirToPt1 = bot2 - testPt;
+      double min_dist = std::min( fabs( dot( perpDir.Norm(), dirToPt1 ) ), dist1 );
+
+      return (min_dist < 0.005) ? min_dist / 0.005 : 1.0;
+
+   }
+   xlColor bowTie( const ColorBuffer& cb, double s, double t, float progress, xlColor fromColor, xlColor toColor )
+   {
+      Vec2D xy( s, t );
+      if ( in_top_triangle( xy, progress ) )
+      {
+         if ( progress < 0.1f )
+            return fromColor;
+         if (xy.y < 0.5)
+         {
+            Vec2D vertex1( 0.5, progress );
+            Vec2D vertex2( 0.5-progress, 0.0 );
+            Vec2D vertex3( 0.5+progress, 0.0 );
+            return lerp( fromColor, toColor, blur_edge( vertex2, vertex3, vertex1, xy ) );
+         }
+         else
+         {
+            return ( progress > 0.0 ) ? toColor : fromColor;
+         }
+      }
+      else if ( in_bottom_triangle( xy, progress ) )
+      {
+         if ( xy.y >= 0.5 )
+         {
+            Vec2D vertex1( 0.5, 1.0-progress );
+            Vec2D vertex2( 0.5-progress, 1.0 );
+            Vec2D vertex3( 0.5+progress, 1.0 );
+            return lerp( fromColor, toColor, blur_edge( vertex2, vertex3, vertex1, xy ) );
+         }
+         else
+         {
+            return fromColor;
+         }
+      }
+
+      return fromColor;
+   }
+   void bowTie( RenderBuffer& rb0, const ColorBuffer& cb0, double progress )
+   {
+      if ( progress < 0. || progress > 1. )
+         return;
+      parallel_for(0, rb0.BufferHt, [&rb0, &cb0, progress](int y) {
+         double t = double( y ) / ( rb0.BufferHt - 1 );
+         for ( int x = 0; x < rb0.BufferWi; ++x ) {
+            double s = double( x ) / ( rb0.BufferWi - 1 );
+            rb0.SetPixel( x, y, bowTie( cb0, s, t, progress, xlBLACK, tex2D( cb0, s, t ) ) );
          }
       }, 25);
    }
@@ -1585,6 +1673,7 @@ static const std::string STR_FADE("Fade");
 static const std::string STR_FOLD("Fold");
 static const std::string STR_DISSOLVE("Dissolve");
 static const std::string STR_CIRCULAR_SWIRL("Circular Swirl");
+static const std::string STR_BOW_TIE("Bow Tie");
 
 static const std::string CHOICE_In_Transition_Type("CHOICE_In_Transition_Type");
 static const std::string CHOICE_Out_Transition_Type("CHOICE_Out_Transition_Type");
@@ -3081,7 +3170,7 @@ void PixelBufferClass::LayerInfo::createSlideBarsMask(bool out) {
 namespace
 {
    const std::vector<std::string> transitionNames = {
-      "Fold", "Dissolve", "Circular Swirl"
+       STR_FOLD, STR_DISSOLVE, STR_CIRCULAR_SWIRL, STR_BOW_TIE
    };
    bool nonMaskTransition( const std::string& transitionType )
    {
@@ -3096,15 +3185,18 @@ void PixelBufferClass::LayerInfo::renderTransitions(bool isFirstFrame, const Ren
         if ( nonMaskTransition( inTransitionType ) ) {
             ColorBuffer cb( buffer.pixels, buffer.BufferWi, buffer.BufferHt );
 
-            if ( inTransitionType == "Fold" ) {
+            if ( inTransitionType == STR_FOLD ) {
                foldIn( buffer, cb, prevRB, inMaskFactor, inTransitionReverse );
-            } else if ( inTransitionType == "Dissolve" ) {
+            } else if ( inTransitionType == STR_DISSOLVE ) {
                dissolveIn( buffer, cb, inMaskFactor );
-            } else if ( inTransitionType == "Circular Swirl" ) {
+            } else if ( inTransitionType == STR_CIRCULAR_SWIRL ) {
                Vec2D xy( 0.5, 0.5 );
                double speed = interpolate( 0.2, 0.0, 1.0, 40.0, 9.0, LinearInterpolater() );
                circularSwirl( buffer, cb, xy, speed, 1.f-inMaskFactor );
+            } else if ( inTransitionType == STR_BOW_TIE ) {
+               bowTie( buffer, cb, inMaskFactor );
             }
+
         } else {
            calculateMask(inTransitionType, false, isFirstFrame);
         }
@@ -3114,14 +3206,16 @@ void PixelBufferClass::LayerInfo::renderTransitions(bool isFirstFrame, const Ren
         mask.resize(BufferHt * BufferWi);
         if ( nonMaskTransition( outTransitionType ) ) {
             ColorBuffer cb( buffer.pixels, buffer.BufferWi, buffer.BufferHt );
-            if ( outTransitionType == "Fold" ) {
+            if ( outTransitionType == STR_FOLD ) {
                foldOut( buffer, cb, prevRB, outMaskFactor, outTransitionReverse );
-            } else if ( outTransitionType == "Dissolve" ) {
+            } else if ( outTransitionType == STR_DISSOLVE ) {
                dissolveOut( buffer, cb, 1.f - outMaskFactor );
-            } else if ( outTransitionType == "Circular Swirl" ) {
+            } else if ( outTransitionType == STR_CIRCULAR_SWIRL ) {
                Vec2D xy( 0.5, 0.5 );
                double speed = interpolate( 0.2, 0.0, 1.0, 40.0, 9.0, LinearInterpolater() );
                circularSwirl( buffer, cb, xy, speed, 1.f - outMaskFactor );
+            } else if ( outTransitionType == STR_BOW_TIE ) {
+               bowTie( buffer, cb, outMaskFactor );
             }
         } else {
            calculateMask(outTransitionType, true, isFirstFrame);
@@ -3180,6 +3274,6 @@ bool PixelBufferClass::LayerInfo::isMasked(int x, int y) {
     return false;
 }
 
-int PixelBufferClass::GetLayerCount() const { 
-    return layers.size(); 
+int PixelBufferClass::GetLayerCount() const {
+    return layers.size();
 }
