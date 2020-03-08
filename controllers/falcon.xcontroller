@@ -84,16 +84,8 @@
 			<MaxPixelPort>16</MaxPixelPort>
 			<MaxSerialPort>4</MaxSerialPort>
 		</Variant>
-	</Controller>
-	<Controller Name="F16V2">
 		<Variant Name="One Expansion Board" Base="Falcon:BaseFalconV2Settings">
 			<MaxPixelPort>32</MaxPixelPort>
-			<MaxSerialPort>4</MaxSerialPort>
-		</Variant>
-	</Controller>
-	<Controller Name="F16V2">
-		<Variant Name="Two Expansion Boards" Base="Falcon:BaseFalconV2Settings">
-			<MaxPixelPort>48</MaxPixelPort>
 			<MaxSerialPort>4</MaxSerialPort>
 		</Variant>
 	</Controller>
@@ -104,10 +96,6 @@
 		</Variant>
 		<Variant Name="One Expansion Board" Base="Falcon:BaseFalconV2Settings">
 			<MaxPixelPort>32</MaxPixelPort>
-			<MaxSerialPort>4</MaxSerialPort>
-		</Variant>
-		<Variant Name="Two Expansion Boards" Base="Falcon:BaseFalconV2Settings">
-			<MaxPixelPort>48</MaxPixelPort>
 			<MaxSerialPort>4</MaxSerialPort>
 		</Variant>
 	</Controller>

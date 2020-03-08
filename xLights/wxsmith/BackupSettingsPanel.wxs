@@ -7,12 +7,13 @@
 			<object class="sizeritem">
 				<object class="wxCheckBox" name="ID_CHECKBOX1" variable="BackupOnSaveCheckBox" member="yes">
 					<label>Backup On Save</label>
+					<size>400,-1</size>
 					<handler function="OnBackupOnSaveCheckBoxClick" entry="EVT_CHECKBOX" />
 				</object>
 				<colspan>2</colspan>
 				<col>0</col>
 				<row>0</row>
-				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
@@ -24,7 +25,7 @@
 				<colspan>2</colspan>
 				<col>0</col>
 				<row>1</row>
-				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
@@ -36,35 +37,88 @@
 				<colspan>2</colspan>
 				<col>0</col>
 				<row>2</row>
-				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxChoice" name="ID_CHOICE1" variable="PurgeIntervalChoice" member="yes">
-					<content>
-						<item>Never</item>
-						<item>Older than 360 days</item>
-						<item>Older than 90 days</item>
-						<item>Older than 30 days</item>
-						<item>Older than 7 days</item>
-					</content>
-					<selection>0</selection>
-					<handler function="OnPurgeIntervalChoiceSelect" entry="EVT_CHOICE" />
-				</object>
-				<col>1</col>
-				<row>3</row>
-				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-				<border>5</border>
-				<option>1</option>
-			</object>
-			<object class="sizeritem">
-				<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
-					<label>Purge Backups</label>
+				<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
+					<cols>2</cols>
+					<growablecols>1</growablecols>
+					<object class="sizeritem">
+						<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
+							<label>Purge Backups</label>
+						</object>
+						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxChoice" name="ID_CHOICE1" variable="PurgeIntervalChoice" member="yes">
+							<content>
+								<item>Never</item>
+								<item>Older than 360 days</item>
+								<item>Older than 90 days</item>
+								<item>Older than 30 days</item>
+								<item>Older than 7 days</item>
+							</content>
+							<selection>0</selection>
+							<handler function="OnPurgeIntervalChoiceSelect" entry="EVT_CHOICE" />
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
 				</object>
 				<col>0</col>
 				<row>3</row>
-				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxStaticBoxSizer" variable="StaticBoxSizer1" member="no">
+					<label>Backup Directory</label>
+					<object class="sizeritem">
+						<object class="wxCheckBox" name="ID_CHECKBOX4" variable="CheckBox_Backup" member="yes">
+							<label>Use Show Folder</label>
+							<handler function="OnCheckBox_BackupClick" entry="EVT_CHECKBOX" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxDirPickerCtrl" name="ID_DIRPICKERCTRL1" variable="DirPickerCtrl_Backup" member="yes">
+							<size>400,-1</size>
+							<handler function="OnDirPickerCtrl_BackupDirChanged" entry="EVT_DIRPICKER_CHANGED" />
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+				</object>
+				<col>0</col>
+				<row>4</row>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxStaticBoxSizer" variable="StaticBoxSizer2" member="no">
+					<label>Alternative Backup Directory</label>
+					<object class="sizeritem">
+						<object class="wxDirPickerCtrl" name="ID_DIRPICKERCTRL2" variable="DirPickerCtrl_AltBackup" member="yes">
+							<handler function="OnDirPickerCtrl_AltBackupDirChanged" entry="EVT_DIRPICKER_CHANGED" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+				</object>
+				<col>0</col>
+				<row>5</row>
+				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>

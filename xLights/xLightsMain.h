@@ -978,7 +978,11 @@ public:
     void SetBackupPurgeDays(int i);
     int GetBackupPugeDays() const { return BackupPurgeDays; }
     void DoAltBackup(bool prompt = true);
-    
+
+    void GetBackupFolder(bool& useShow, std::string& folder);
+    void SetBackupFolder(bool useShow, const std::string& folder);
+    void GetAltBackupFolder(std::string& folder);
+    void SetAltBackupFolder(const std::string& folder);
     bool BackupOnSave() const {return mBackupOnSave;}
     void SetBackupOnSave(bool b) { mBackupOnSave = b;}
     bool BackupOnLaunch() const {return mBackupOnLaunch;}

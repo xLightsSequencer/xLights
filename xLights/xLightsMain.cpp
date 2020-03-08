@@ -3874,6 +3874,66 @@ void xLightsFrame::DoAltBackup(bool prompt)
     }
 }
 
+void xLightsFrame::GetBackupFolder(bool& useShow, std::string& folder)
+{
+    useShow = (showDirectory == backupDirectory);
+    folder = backupDirectory;
+}
+
+void xLightsFrame::SetBackupFolder(bool useShow, const std::string& folder)
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    if (useShow)
+    {
+        if (backupDirectory == showDirectory) return;
+        backupDirectory = showDirectory;
+    }
+    else
+    {
+        if (wxDir::Exists(folder))
+        {
+            if (backupDirectory == folder) return;
+            backupDirectory = folder;
+        }
+        else
+        {
+            DisplayError("Backup directory does not exist. Backup folder was not changed to " + folder + ". Backup folder remains : " + backupDirectory, this);
+            return;
+        }
+    }
+
+    SetXmlSetting("backupDir", backupDirectory);
+    UnsavedRgbEffectsChanges = true;
+
+    logger_base.debug("Backup directory set to : %s.", (const char*)backupDirectory.c_str());
+}
+
+void xLightsFrame::GetAltBackupFolder(std::string& folder)
+{
+    folder = mAltBackupDir;
+}
+
+void xLightsFrame::SetAltBackupFolder(const std::string& folder)
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    if (folder == mAltBackupDir) return;
+
+    wxConfigBase* config = wxConfigBase::Get();
+
+    if (folder != "" && !wxDir::Exists(folder))
+    {
+        DisplayError("Alternate backup directory does not exist. Alternate backup folder was not changed to " + folder + ". Alternate backup folder remains : " + mAltBackupDir, this);
+    }
+    else
+    {
+        config->Write(_("xLightsAltBackupDir"), wxString(folder));
+        mAltBackupDir = folder;
+        logger_base.debug("Alt Backup directory set to : %s.", (const char*)mAltBackupDir.c_str());
+    }
+}
+
 void xLightsFrame::OnmAltBackupMenuItemSelected(wxCommandEvent& event)
 {
     if (mAltBackupDir == "")
