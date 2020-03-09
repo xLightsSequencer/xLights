@@ -1,10 +1,14 @@
 <Vendor Name="SanDevices">
 	<Controller Name="E6804">
 		<Variant Name="4.x Firmware">
-			<SupportsPixelPortAllSettings/>
+			<SupportsPixelPortNullPixels/>
+			<SupportsPixelPortGrouping/>
+			<SupportsPixelPortDirection/>
+			<SupportsPixelPortColourOrder/>
 			<SupportsUpload/>
 			<SupportsInputOnlyUpload/>
-			<MaxInputUniverses>96</MaxInputUniverses>
+			<SupportsAutoLayout/>
+			<MaxInputUniverses>12</MaxInputUniverses>
 			<MaxPixelPort>4</MaxPixelPort>
 			<MaxSerialPort>0</MaxSerialPort>
 			<MaxSerialPortChannels>0</MaxSerialPortChannels>
@@ -25,10 +29,15 @@
 			<SupportsMultipleSimultaneousOutputProtocols/>
 		</Variant>
 		<Variant Name="5.x Firmware">
-			<SupportsPixelPortAllSettings/>
+			<SupportsPixelPortBrightness/>
+			<SupportsPixelPortNullPixels/>
+			<SupportsPixelPortGrouping/>
+			<SupportsPixelPortDirection/>
+			<SupportsPixelPortColourOrder/>
 			<SupportsUpload/>
 			<SupportsInputOnlyUpload/>
-			<MaxInputUniverses>96</MaxInputUniverses>
+			<SupportsAutoLayout/>
+			<MaxInputUniverses>12</MaxInputUniverses>
 			<MaxPixelPort>4</MaxPixelPort>
 			<MaxSerialPort>0</MaxSerialPort>
 			<MaxSerialPortChannels>0</MaxSerialPortChannels>
@@ -52,10 +61,14 @@
 	</Controller>
 	<Controller Name="E682">
 		<Variant Name="4.x Firmware">
-			<SupportsPixelPortAllSettings/>
+			<SupportsPixelPortNullPixels/>
+			<SupportsPixelPortGrouping/>
+			<SupportsPixelPortDirection/>
+			<SupportsPixelPortColourOrder/>
 			<SupportsUpload/>
 			<SupportsInputOnlyUpload/>
-			<MaxInputUniverses>96</MaxInputUniverses>
+			<SupportsAutoLayout/>
+			<MaxInputUniverses>12</MaxInputUniverses>
 			<MaxPixelPort>16</MaxPixelPort>
 			<MaxSerialPort>4</MaxSerialPort>
 			<MaxSerialPortChannels>512</MaxSerialPortChannels>
@@ -79,10 +92,15 @@
 			<SupportsMultipleSimultaneousOutputProtocols/>
 		</Variant>
 		<Variant Name="5.x Firmware">
-			<SupportsPixelPortAllSettings/>
+			<SupportsPixelPortBrightness/>
+			<SupportsPixelPortNullPixels/>
+			<SupportsPixelPortGrouping/>
+			<SupportsPixelPortDirection/>
+			<SupportsPixelPortColourOrder/>
 			<SupportsUpload/>
 			<SupportsInputOnlyUpload/>
-			<MaxInputUniverses>96</MaxInputUniverses>
+			<SupportsAutoLayout/>
+			<MaxInputUniverses>12</MaxInputUniverses>
 			<MaxPixelPort>16</MaxPixelPort>
 			<MaxSerialPort>1</MaxSerialPort>
 			<MaxSerialPortChannels>512</MaxSerialPortChannels>
