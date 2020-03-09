@@ -942,9 +942,11 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
                 }
                 if (vs->_groupCountSet) {
                     fs->groupCount = vs->_groupCount;
+                    fs->pixels *= vs->_groupCount;
                 }
                 else {
                     fs->groupCount = firstString->groupCount;
+                    fs->pixels *= firstString->groupCount;
                 }
                 newStringData.push_back(fs);
             }
