@@ -568,7 +568,7 @@ bool ModelManager::ReworkStartChannel() const
                     ch = ch.substr(1); // string off leading >
                     if (std::find(models.begin(), models.end(), ch) == models.end())
                     {
-                        logger_zcpp.debug("    Model %s set to beginning because the model it is chained to does not exist.", (const char*)itmm->GetName().c_str());
+                        logger_zcpp.debug("    Model %s set to beginning because the model it is chained to '%s' does not exist.", (const char*)itmm->GetName().c_str(), (const char*)ch.c_str());
                         itmm->SetModelChain("");
                         beginningFound = true;
                         outputsChanged = true;

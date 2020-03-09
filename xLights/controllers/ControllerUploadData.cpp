@@ -372,16 +372,27 @@ bool UDControllerPort::SetAllModelsToValidProtocols(const std::list<std::string>
 // you shouldnt set the port as that is just going to cause grief.
 bool UDControllerPort::EnsureAllModelsAreChained()
 {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     bool changed = false;
     std::string last = "";
+    int lastsr = 0;
+
     for (const auto& it : _models)
     {
         if (it->IsFirstModelString())
         {
+            if (it->GetModel()->GetSmartRemote() != lastsr) {
+                last = "";
+            }
+            lastsr = it->GetModel()->GetSmartRemote();
+
             if (last == "")
             {
                 if (it->GetModel()->GetModelChain() != last)
                 {
+                    logger_base.debug("Model '%s' was chained to '%s' but fixed to chain to '%s'.", (const char*)it->GetModel()->GetName().c_str(),
+                        (const char*)it->GetModel()->GetModelChain().c_str(), (const char*)last.c_str());
                     changed = true;
                     it->GetModel()->SetModelChain(last);
                 }
@@ -390,6 +401,8 @@ bool UDControllerPort::EnsureAllModelsAreChained()
             {
                 if (it->GetModel()->GetModelChain() != ">" + last)
                 {
+                    logger_base.debug("Model '%s' was chained to '%s' but fixed to chain to '%s'.", (const char*)it->GetModel()->GetName().c_str(),
+                        (const char*)it->GetModel()->GetModelChain().c_str(), (const char*)((">" + last).c_str()));
                     changed = true;
                     it->GetModel()->SetModelChain(">" + last);
                 }

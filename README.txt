@@ -11,11 +11,21 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2020.9 March 9 2020
+   -- enh (keith)  Where model knows the controller it is on apply controller limitations to the model properties
+   -- enh (keith)  Copy backup folder options into the preferences tab for backup
+   -- enh (keith)  Prevent model names and controller names from having leading and trailing spaces ... as these cause hard to detect issues
+   -- enh (keith)  Add protocol setting and constraints to the visualiser
+   -- enh (dkulp)  Add e1.31 Auto upload for Falcons
    -- bug (gil)    Fix DmxMovingHead3D beam not showing up
    -- bug (dkulp)  Fix orientation and start corner of overlay models uploaded to FPP
    -- bug (dkulp)  Fix visualizer on HiDPI display on Windows
    -- bug (dkulp)  Fix cape detection for known FPP capes
-   -- enh (dkulp)  Add e1.31 Auto upload for Falcons
+   -- bug (scott)  Fix group count on falcon controllers
+   -- bug (scott)  Fix SanDevice controller limits and auto layout
+   -- bug (scott)  Fix Alphapix controller limits
+   -- bug (keith)  Fix Falcon controller limits
+   -- bug (keith)  Fix ESPixelStick does not show a pixel port
 2020.8 March 4 2020
    -- enh (keith)  Add drag and drop model controller assignment capability to the visualiser
    -- enh (dkulp)  FPP based Pixel controllers can auto-upload string configuration, intput information, and

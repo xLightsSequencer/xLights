@@ -5365,7 +5365,7 @@ void Model::SetModelChain(const std::string& modelChain)
         mc = ">" + mc;
     }
 
-    logger_base.debug("Model %s chained to %s.", (const char*)GetName().c_str(), (const char*)mc.c_str());
+    logger_base.debug("Model '%s' chained to '%s'.", (const char*)GetName().c_str(), (const char*)mc.c_str());
     ModelXml->DeleteAttribute("ModelChain");
     if (mc != "" && mc != "Beginning" && mc != ">")
     {

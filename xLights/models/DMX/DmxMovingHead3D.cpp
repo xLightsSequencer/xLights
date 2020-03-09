@@ -188,8 +188,8 @@ void DmxMovingHead3D::InitModel() {
 void DmxMovingHead3D::DrawModel(ModelPreview* preview, DrawGLUtils::xlAccumulator& va2, DrawGLUtils::xl3Accumulator& va3, const xlColor* c, float& sx, float& sy, float& sz, bool active, bool is_3d)
 {
     static wxStopWatch sw;
-    float pan_angle, pan_angle_raw, tilt_angle, angle1, angle2, beam_length_displayed;
-    int x1, x2, y1, y2;
+    float pan_angle, pan_angle_raw, tilt_angle, beam_length_displayed; //, angle1, angle2
+    //int x1, x2, y1, y2;
     size_t NodeCount = Nodes.size();
     DrawGLUtils::xlAccumulator& va = is_3d ? va3 : va2;
 
