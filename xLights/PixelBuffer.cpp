@@ -49,6 +49,12 @@ namespace
       return std::min( hi, std::max( lo, val ) );
    }
 
+   double SmoothStep( double edge0, double edge1, double x )
+   {
+      double t = CLAMP( (x - edge0) / (edge1 - edge0), 0.0, 1.0 );
+      return t * t * (3.0 - 2.0 * t);
+   }
+
    struct ColorBuffer
    {
       ColorBuffer( const xlColorVector& i_cv, int i_w, int i_h ) : cv( i_cv ), w( i_w ), h( i_h ) {}
@@ -128,6 +134,10 @@ namespace
       }
       double x, y;
    };
+   xlColor tex2D( const ColorBuffer& cb, const Vec2D& st )
+   {
+       return tex2D( cb, st.x, st.y );
+   }
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused"
     xlColor lerp( const xlColor& a, const xlColor& b, double progress )
@@ -458,6 +468,39 @@ namespace
          for ( int x = 0; x < rb0.BufferWi; ++x ) {
             double s = double( x ) / ( rb0.BufferWi - 1 );
             rb0.SetPixel( x, y, bowTie( cb0, s, t, progress, xlBLACK, tex2D( cb0, s, t ) ) );
+         }
+      }, 25);
+   }
+
+   Vec2D zoom( const Vec2D& uv, float amount )
+   {
+      return ((uv - 0.5) * (1.0-amount)) + 0.5;
+   }
+   xlColor zoomTransitionIn( const ColorBuffer& cb, double s, double t, float progress )
+   {
+      const float zoom_quickness = 0.8f;
+
+      return lerp( tex2D( cb, zoom( Vec2D( s, t ), SmoothStep( 0.0, zoom_quickness, progress ) ) ),
+                   tex2D( cb, Vec2D( s, t ) ),
+                   SmoothStep( zoom_quickness - 0.2, 1.0, progress ) );
+   }
+   xlColor zoomTransitionOut( const ColorBuffer& cb, double s, double t, float progress )
+   {
+      const float zoom_quickness = 0.5f;
+
+      return lerp( tex2D( cb, Vec2D( s, t ) ),
+                   tex2D( cb, zoom( Vec2D( s, t ), SmoothStep( 1.0, zoom_quickness, progress )/*1-progress*/ ) ),
+                   SmoothStep( zoom_quickness - 0.2, 1.0, progress )/*1-progress*/ );
+   }
+   void zoomTransition( RenderBuffer& rb0, const ColorBuffer& cb0, double progress )
+   {
+      if ( progress < 0. || progress > 1. )
+         return;
+      parallel_for(0, rb0.BufferHt, [&rb0, &cb0, progress](int y) {
+         double t = double( y ) / ( rb0.BufferHt - 1 );
+         for ( int x = 0; x < rb0.BufferWi; ++x ) {
+            double s = double( x ) / ( rb0.BufferWi - 1 );
+            rb0.SetPixel( x, y, zoomTransitionOut( cb0, s, t, progress ) );
          }
       }, 25);
    }
@@ -1674,6 +1717,7 @@ static const std::string STR_FOLD("Fold");
 static const std::string STR_DISSOLVE("Dissolve");
 static const std::string STR_CIRCULAR_SWIRL("Circular Swirl");
 static const std::string STR_BOW_TIE("Bow Tie");
+static const std::string STR_ZOOM("Zoom");
 
 static const std::string CHOICE_In_Transition_Type("CHOICE_In_Transition_Type");
 static const std::string CHOICE_Out_Transition_Type("CHOICE_Out_Transition_Type");
@@ -3170,7 +3214,7 @@ void PixelBufferClass::LayerInfo::createSlideBarsMask(bool out) {
 namespace
 {
    const std::vector<std::string> transitionNames = {
-       STR_FOLD, STR_DISSOLVE, STR_CIRCULAR_SWIRL, STR_BOW_TIE
+       STR_FOLD, STR_DISSOLVE, STR_CIRCULAR_SWIRL, STR_BOW_TIE, STR_ZOOM
    };
    bool nonMaskTransition( const std::string& transitionType )
    {
@@ -3195,7 +3239,10 @@ void PixelBufferClass::LayerInfo::renderTransitions(bool isFirstFrame, const Ren
                circularSwirl( buffer, cb, xy, speed, 1.f-inMaskFactor );
             } else if ( inTransitionType == STR_BOW_TIE ) {
                bowTie( buffer, cb, inMaskFactor );
+            } else if ( inTransitionType == STR_ZOOM ) {
+               zoomTransition( buffer, cb, inMaskFactor );
             }
+
 
         } else {
            calculateMask(inTransitionType, false, isFirstFrame);
@@ -3216,7 +3263,10 @@ void PixelBufferClass::LayerInfo::renderTransitions(bool isFirstFrame, const Ren
                circularSwirl( buffer, cb, xy, speed, 1.f - outMaskFactor );
             } else if ( outTransitionType == STR_BOW_TIE ) {
                bowTie( buffer, cb, outMaskFactor );
+            } else if ( outTransitionType == STR_ZOOM ) {
+               zoomTransition( buffer, cb, outMaskFactor );
             }
+
         } else {
            calculateMask(outTransitionType, true, isFirstFrame);
         }
