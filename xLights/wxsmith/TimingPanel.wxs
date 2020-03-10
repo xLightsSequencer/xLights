@@ -187,6 +187,7 @@
 																			<item>Circular Swirl</item>
 																			<item>Bow Tie</item>
 																			<item>Zoom</item>
+																			<item>Doorway</item>
 																		</content>
 																		<selection>0</selection>
 																		<handler function="OnTransitionTypeSelect" entry="EVT_CHOICE" />
@@ -308,6 +309,7 @@
 																			<item>Circular Swirl</item>
 																			<item>Bow Tie</item>
 																			<item>Zoom</item>
+																			<item>Doorway</item>
 																		</content>
 																		<selection>0</selection>
 																		<handler function="OnTransitionTypeSelect" entry="EVT_CHOICE" />

@@ -166,6 +166,19 @@ namespace
     {
         return a.x * b.x + a.y * b.y;
     }
+
+    double lerp( double a, double b, double progress )
+    {
+        return a + progress * ( b - a );
+    }
+
+    xlColor operator+=( xlColor& lhs, const xlColor& rhs )
+    {
+        lhs.red += rhs.red;
+        lhs.green += rhs.green;
+        lhs.blue += rhs.blue;
+        return lhs;
+    }
 #pragma clang diagnostic pop
 
 
@@ -501,6 +514,67 @@ namespace
          for ( int x = 0; x < rb0.BufferWi; ++x ) {
             double s = double( x ) / ( rb0.BufferWi - 1 );
             rb0.SetPixel( x, y, zoomTransitionOut( cb0, s, t, progress ) );
+         }
+      }, 25);
+   }
+
+   const float reflection = 0.4f;
+   const float perspective = 0.4f;
+   const float depth = 3.f;
+   const Vec2D boundMin(0.0, 0.0);
+   const Vec2D boundMax(1.0, 1.0);
+   bool inBounds ( const Vec2D& p)
+   {
+      return ( boundMin.x < p.x && boundMin.y < p.y ) && ( p.x < boundMax.x && p.y < boundMax.y );
+   }
+   Vec2D project( const Vec2D& p )
+   {
+      return p * Vec2D(1.0, -1.2 ) + Vec2D( 0.0, -0.02 );
+   }
+   xlColor bgColor( const Vec2D& p, Vec2D& pto, const ColorBuffer& cb )
+   {
+      xlColor c = xlBLACK;
+      pto = project( pto );
+      if ( inBounds( pto ) )
+      {
+         xlColor toColor = tex2D( cb, pto );
+         c += lerp( xlBLACK, toColor, reflection * lerp( 1.0, 0.0, pto.y ) );
+      }
+      return c;
+   }
+   xlColor doorway( const ColorBuffer& cb0, const RenderBuffer* rb1, double s, double t, float progress )
+   {
+      Vec2D pfr( -1. );
+      Vec2D pto( -1. );
+      Vec2D p( s, t );
+      double middleSlit = 2.0 * fabs(p.x-0.5) - progress;
+      if ( middleSlit > 0.0 )
+      {
+         pfr = p + (p.x > 0.5 ? -1.0 : 1.0) * Vec2D(0.5*progress, 0.0);
+         double d = 1.0/(1.0+perspective*progress*(1.0-middleSlit));
+         pfr.y -= d/2.;
+         pfr.y *= d;
+         pfr.y += d/2.;
+      }
+      double size = lerp( 1.0, depth, 1.-progress );
+      pto = (p + Vec2D(-0.5, -0.5)) * Vec2D(size, size) + Vec2D(0.5, 0.5);
+
+      if ( inBounds( pfr ) ) // sliding left/right
+          return ( rb1 == nullptr ) ? xlBLACK : tex2D( *rb1, pfr.x, pfr.y );
+      if ( inBounds( pto ) ) // zooming in
+          return tex2D( cb0, pto );
+      // reflection part
+      return bgColor( p, pto, cb0 );
+   }
+   void doorway( RenderBuffer& rb0, const ColorBuffer& cb0, const RenderBuffer* rb1, double progress )
+   {
+      if ( progress < 0. || progress > 1. )
+         return;
+      parallel_for(0, rb0.BufferHt, [&rb0, &cb0, &rb1, progress](int y) {
+         double t = double( y ) / ( rb0.BufferHt - 1 );
+         for ( int x = 0; x < rb0.BufferWi; ++x ) {
+            double s = double( x ) / ( rb0.BufferWi - 1 );
+            rb0.SetPixel( x, y, doorway( cb0, rb1, s, t, progress ) );
          }
       }, 25);
    }
@@ -1718,6 +1792,7 @@ static const std::string STR_DISSOLVE("Dissolve");
 static const std::string STR_CIRCULAR_SWIRL("Circular Swirl");
 static const std::string STR_BOW_TIE("Bow Tie");
 static const std::string STR_ZOOM("Zoom");
+static const std::string STR_DOORWAY("Doorway");
 
 static const std::string CHOICE_In_Transition_Type("CHOICE_In_Transition_Type");
 static const std::string CHOICE_Out_Transition_Type("CHOICE_Out_Transition_Type");
@@ -3214,7 +3289,7 @@ void PixelBufferClass::LayerInfo::createSlideBarsMask(bool out) {
 namespace
 {
    const std::vector<std::string> transitionNames = {
-       STR_FOLD, STR_DISSOLVE, STR_CIRCULAR_SWIRL, STR_BOW_TIE, STR_ZOOM
+       STR_FOLD, STR_DISSOLVE, STR_CIRCULAR_SWIRL, STR_BOW_TIE, STR_ZOOM, STR_DOORWAY
    };
    bool nonMaskTransition( const std::string& transitionType )
    {
@@ -3241,9 +3316,9 @@ void PixelBufferClass::LayerInfo::renderTransitions(bool isFirstFrame, const Ren
                bowTie( buffer, cb, inMaskFactor );
             } else if ( inTransitionType == STR_ZOOM ) {
                zoomTransition( buffer, cb, inMaskFactor );
+            } else if ( inTransitionType == STR_DOORWAY ) {
+               doorway( buffer, cb, prevRB, inMaskFactor );
             }
-
-
         } else {
            calculateMask(inTransitionType, false, isFirstFrame);
         }
@@ -3265,6 +3340,8 @@ void PixelBufferClass::LayerInfo::renderTransitions(bool isFirstFrame, const Ren
                bowTie( buffer, cb, outMaskFactor );
             } else if ( outTransitionType == STR_ZOOM ) {
                zoomTransition( buffer, cb, outMaskFactor );
+            } else if ( outTransitionType == STR_DOORWAY ) {
+               doorway( buffer, cb, prevRB, outMaskFactor );
             }
 
         } else {
