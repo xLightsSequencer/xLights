@@ -489,21 +489,9 @@ namespace
    {
       return ((uv - 0.5) * (1.0-amount)) + 0.5;
    }
-   xlColor zoomTransitionIn( const ColorBuffer& cb, double s, double t, float progress )
+   xlColor zoomTransition( const ColorBuffer& cb, double s, double t, float progress )
    {
-      const float zoom_quickness = 0.8f;
-
-      return lerp( tex2D( cb, zoom( Vec2D( s, t ), SmoothStep( 0.0, zoom_quickness, progress ) ) ),
-                   tex2D( cb, Vec2D( s, t ) ),
-                   SmoothStep( zoom_quickness - 0.2, 1.0, progress ) );
-   }
-   xlColor zoomTransitionOut( const ColorBuffer& cb, double s, double t, float progress )
-   {
-      const float zoom_quickness = 0.5f;
-
-      return lerp( tex2D( cb, Vec2D( s, t ) ),
-                   tex2D( cb, zoom( Vec2D( s, t ), SmoothStep( 1.0, zoom_quickness, progress )/*1-progress*/ ) ),
-                   SmoothStep( zoom_quickness - 0.2, 1.0, progress )/*1-progress*/ );
+      return tex2D( cb, zoom( Vec2D( s, t ), 1.f-progress ) );
    }
    void zoomTransition( RenderBuffer& rb0, const ColorBuffer& cb0, double progress )
    {
@@ -513,7 +501,7 @@ namespace
          double t = double( y ) / ( rb0.BufferHt - 1 );
          for ( int x = 0; x < rb0.BufferWi; ++x ) {
             double s = double( x ) / ( rb0.BufferWi - 1 );
-            rb0.SetPixel( x, y, zoomTransitionOut( cb0, s, t, progress ) );
+            rb0.SetPixel( x, y, zoomTransition( cb0, s, t, progress ) );
          }
       }, 25);
    }
