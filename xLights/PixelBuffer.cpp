@@ -566,6 +566,79 @@ namespace
          }
       }, 25);
    }
+
+/////
+   const float blobsScale = 4.f;
+   const float blobsSmoothness = 0.01f;
+   const float blobsSeed = 12.9898f;
+
+   float blobsRandom( const Vec2D& co )
+   {
+      float a = blobsSeed;
+      float b = 78.233;
+      float c = 43758.5453;
+      float dt = dot( co, Vec2D(a, b) );
+      float sn = dt - 3.14f * floorf(dt / 3.14f);
+
+      float intpart;
+      return modf( sin( sn ) * c, &intpart );
+   }
+
+   float blobsNoise( const Vec2D& st )
+   {
+       Vec2D i, f;
+       f.x = modf( st.x, &i.x );
+       f.y = modf( st.y, &i.y );
+
+      // Four corners in 2D of a tile
+      float a = blobsRandom(i);
+      float b = blobsRandom(i + Vec2D(1.0, 0.0));
+      float c = blobsRandom(i + Vec2D(0.0, 1.0));
+      float d = blobsRandom(i + Vec2D(1.0, 1.0));
+
+      // Cubic Hermine Curve.  Same as SmoothStep()
+      Vec2D u( f*f*(3.0-2.0*f) );
+
+      // Mix 4 coorners porcentages
+      return lerp( a, b, u.x ) +
+             (c - a) * u.y * ( 1.0 - u.x ) +
+             (d - b) * u.x * u.y;
+   }
+   xlColor blobs( const ColorBuffer& cb0, const RenderBuffer* rb1, double s, double t, float progress )
+   {
+      return xlBLACK;
+#if 1
+#else
+  vec4 from = getFromColor(uv);
+  vec4 to = getToColor(uv);
+  float n = noise(uv * scale);
+
+  float p = mix(-smoothness, 1.0 + smoothness, progress);
+  float lower = p - smoothness;
+  float higher = p + smoothness;
+
+  float q = smoothstep(lower, higher, n);
+
+  return mix(
+    from,
+    to,
+    1.0 - q
+  );
+  #endif
+   }
+   void blobs( RenderBuffer& rb0, const ColorBuffer& cb0, const RenderBuffer* rb1, double progress )
+   {
+      if ( progress < 0. || progress > 1. )
+         return;
+      parallel_for(0, rb0.BufferHt, [&rb0, &cb0, &rb1, progress](int y) {
+         double t = double( y ) / ( rb0.BufferHt - 1 );
+         for ( int x = 0; x < rb0.BufferWi; ++x ) {
+            double s = double( x ) / ( rb0.BufferWi - 1 );
+            rb0.SetPixel( x, y, blobs( cb0, rb1, s, t, progress ) );
+         }
+      }, 25);
+   }
+/////
 }
 
 PixelBufferClass::PixelBufferClass(xLightsFrame *f) : frame(f)
@@ -1781,6 +1854,7 @@ static const std::string STR_CIRCULAR_SWIRL("Circular Swirl");
 static const std::string STR_BOW_TIE("Bow Tie");
 static const std::string STR_ZOOM("Zoom");
 static const std::string STR_DOORWAY("Doorway");
+static const std::string STR_BLOBS("Blobs");
 
 static const std::string CHOICE_In_Transition_Type("CHOICE_In_Transition_Type");
 static const std::string CHOICE_Out_Transition_Type("CHOICE_Out_Transition_Type");
@@ -3277,7 +3351,7 @@ void PixelBufferClass::LayerInfo::createSlideBarsMask(bool out) {
 namespace
 {
    const std::vector<std::string> transitionNames = {
-       STR_FOLD, STR_DISSOLVE, STR_CIRCULAR_SWIRL, STR_BOW_TIE, STR_ZOOM, STR_DOORWAY
+       STR_FOLD, STR_DISSOLVE, STR_CIRCULAR_SWIRL, STR_BOW_TIE, STR_ZOOM, STR_DOORWAY, STR_BLOBS
    };
    bool nonMaskTransition( const std::string& transitionType )
    {
@@ -3306,6 +3380,8 @@ void PixelBufferClass::LayerInfo::renderTransitions(bool isFirstFrame, const Ren
                zoomTransition( buffer, cb, inMaskFactor );
             } else if ( inTransitionType == STR_DOORWAY ) {
                doorway( buffer, cb, prevRB, inMaskFactor );
+            } else if ( inTransitionType == STR_BLOBS ) {
+               blobs( buffer, cb, prevRB, inMaskFactor );
             }
         } else {
            calculateMask(inTransitionType, false, isFirstFrame);
@@ -3330,6 +3406,8 @@ void PixelBufferClass::LayerInfo::renderTransitions(bool isFirstFrame, const Ren
                zoomTransition( buffer, cb, outMaskFactor );
             } else if ( outTransitionType == STR_DOORWAY ) {
                doorway( buffer, cb, prevRB, outMaskFactor );
+            } else if ( outTransitionType == STR_BLOBS ) {
+               blobs( buffer, cb, prevRB, outMaskFactor );
             }
 
         } else {

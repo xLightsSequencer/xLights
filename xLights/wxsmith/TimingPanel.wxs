@@ -188,6 +188,7 @@
 																			<item>Bow Tie</item>
 																			<item>Zoom</item>
 																			<item>Doorway</item>
+																			<item>Blobs</item>
 																		</content>
 																		<selection>0</selection>
 																		<handler function="OnTransitionTypeSelect" entry="EVT_CHOICE" />
@@ -310,6 +311,7 @@
 																			<item>Bow Tie</item>
 																			<item>Zoom</item>
 																			<item>Doorway</item>
+																			<item>Blobs</item>
 																		</content>
 																		<selection>0</selection>
 																		<handler function="OnTransitionTypeSelect" entry="EVT_CHOICE" />
