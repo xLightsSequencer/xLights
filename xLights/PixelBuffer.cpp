@@ -278,8 +278,8 @@ namespace
             return tex2D( cb0, uv0.x, uv0.y );
 
          if ( progress < 0.5 )
-            return tex2D( cb0, uv0.x, uv0.y );
-         xlColor c = tex2D( *rb1, 1-uv0.x, uv0.y );
+            return tex2D( *rb1, uv0.x, uv0.y );
+         xlColor c = tex2D( cb0, 1-uv0.x, uv0.y );
          return ( c != xlCLEAR ) ? c : tex2D( cb0, uv0.x, uv0.y );
       }
       return xlBLACK;
