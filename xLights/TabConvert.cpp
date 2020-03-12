@@ -116,7 +116,7 @@ void xLightsFrame:: ClearLastPeriod()
 
 #define string_format wxString::Format
 
-void xLightsFrame:: WriteVirFile(const wxString& filename, long numChans, long numPeriods, SeqDataType *dataBuf)
+void xLightsFrame:: WriteVirFile(const wxString& filename, long numChans, unsigned int startFrame, unsigned int endFrame, SeqDataType *dataBuf)
 {
     wxFile f;
     if (!f.Create(filename, true))
@@ -130,7 +130,7 @@ void xLightsFrame:: WriteVirFile(const wxString& filename, long numChans, long n
         SetStatusText(wxString("Status: ") + string_format(" Channel %ld ", ch));
 
         wxString buff = "";
-        for (int p = 0; p < numPeriods; p++)
+        for (int p = startFrame; p < endFrame; p++)
         {
             buff += string_format("%d ", (*dataBuf)[p][ch]);
         }
@@ -140,7 +140,7 @@ void xLightsFrame:: WriteVirFile(const wxString& filename, long numChans, long n
     f.Close();
 }
 
-void xLightsFrame:: WriteLSPFile(const wxString& filename, long numChans, long numPeriods, SeqDataType *dataBuf, int cpn)
+void xLightsFrame:: WriteLSPFile(const wxString& filename, long numChans, unsigned int startFrame, unsigned int endFrame, SeqDataType *dataBuf, int cpn)
 {
     /*  MrChristnas2000 (from DLA forum) investigated the lsp xml file for LSP 2.8
 
@@ -331,9 +331,9 @@ void xLightsFrame:: WriteLSPFile(const wxString& filename, long numChans, long n
 
         channels_exported += cpn;
 
-        for (int p = 0; p < numPeriods; p++)
+        for (int p = startFrame; p < endFrame; p++)
         {
-            float seconds = (p*dataBuf->FrameTime()) / 1000.0;
+            float seconds = ((p-startFrame)*dataBuf->FrameTime()) / 1000.0;
             //  SetStatusText(wxString("Status: " )+string_format(" Channel %4d. %4d out of %4d ",ch,p,numPeriods));
             int pos = seconds * 88200;
             //   SetStatusText(wxString("Status: " )+string_format(" Channel %ld. p=%ld (%ld). Sizeof %ld . seqid %ld",ch,p,numPeriods,sizeof(dataBuf),seqidx));
@@ -398,7 +398,7 @@ void xLightsFrame:: WriteLSPFile(const wxString& filename, long numChans, long n
     SetStatusText(wxString("Status: Export Complete. ") + string_format(" Channels exported=%4d ", channels_exported));
 }
 
-void xLightsFrame:: WriteHLSFile(const wxString& filename, long numChans, long numPeriods, SeqDataType *dataBuf)
+void xLightsFrame::WriteHLSFile(const wxString& filename, long numChans, unsigned int startFrame, unsigned int endFrame, SeqDataType* dataBuf)
 {
     wxString ChannelName, TestName;
     int seqidx = 0;
@@ -416,12 +416,12 @@ void xLightsFrame:: WriteHLSFile(const wxString& filename, long numChans, long n
 
         wxString buff = "";
 
-        for (int p = 0; p < numPeriods; p++, seqidx++)
+        for (int p = startFrame; p < endFrame; p++, seqidx++)
         {
             unsigned long rgb = ((*dataBuf)[p][ch] & 0xff) << 16 |
                 ((*dataBuf)[p][ch + 1] & 0xff) << 8 |
                 ((*dataBuf)[p][ch + 2] & 0xff); // we want a 24bit value for HLS
-            if (p<numPeriods - 1)
+            if (p < endFrame - 1)
             {
                 buff += string_format("%d ", rgb);
             }
@@ -437,7 +437,7 @@ void xLightsFrame:: WriteHLSFile(const wxString& filename, long numChans, long n
     f.Close();
 }
 
-void xLightsFrame:: WriteLcbFile(const wxString& filename, long numChans, long numPeriods, SeqDataType *dataBuf, int ver, int cpn)
+void xLightsFrame:: WriteLcbFile(const wxString& filename, long numChans, unsigned int startFrame, unsigned int endFrame, SeqDataType *dataBuf, int ver, int cpn)
 {
     wxString ChannelName, TestName;
     int p, csec;
@@ -475,14 +475,14 @@ void xLightsFrame:: WriteLcbFile(const wxString& filename, long numChans, long n
     int maxCell = 0;
     f.Write("  <cellDemarcations>\n");
     if (ver == 1) {
-        for (p = 0, csec = 0; p < numPeriods; p++, csec += interval)
+        for (p = startFrame, csec = 0; p < endFrame; p++, csec += interval)
         {
             f.Write(string_format("    <cellDemarcation centisecond=\"%d\" />\n", csec));
             maxCell = csec * 10;
         }
     } else {
         f.Write("    <cellDemarcation centisecond=\"0\"/>\n");
-        csec = numPeriods * interval;
+        csec = (endFrame - startFrame) * interval;
         maxCell = csec * 10;
         f.Write(string_format("    <cellDemarcation centisecond=\"%d\" />\n", csec));
     }
@@ -497,8 +497,8 @@ void xLightsFrame:: WriteLcbFile(const wxString& filename, long numChans, long n
 
         f.Write("    <channel>\n");
         xlColorVector colors;
-        colors.resize(numPeriods);
-        for (p = 0; p < numPeriods; p++)
+        colors.resize(endFrame - startFrame);
+        for (p = startFrame; p < endFrame; p++)
         {
             if (cpn == 1) {
                 colors[p].Set((*dataBuf)[p][ch], (*dataBuf)[p][ch], (*dataBuf)[p][ch]);
@@ -625,33 +625,34 @@ Rene Nyffenegger rene.nyffenegger@adp-gmbh.ch
 
 #define ESEQ_HEADER_LENGTH 20
 
-void xLightsFrame:: WriteFalconPiModelFile(const wxString& filename, long numChans, long numPeriods,
-                                           SeqDataType *dataBuf, int startAddr, int modelSize,
-                                           bool v2)
+void xLightsFrame::WriteFalconPiModelFile(const wxString& filename, long numChans, unsigned int startFrame, unsigned int endFrame,
+    SeqDataType* dataBuf, int startAddr, int modelSize,
+    bool v2)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (v2) {
-        V2FSEQFile *file = (V2FSEQFile*)FSEQFile::createFSEQFile(filename, 2);
-        file->setNumFrames(numPeriods);
+        V2FSEQFile* file = (V2FSEQFile*)FSEQFile::createFSEQFile(filename, 2);
+        file->setNumFrames(endFrame - startFrame);
         file->setStepTime(dataBuf->FrameTime());
         file->setChannelCount(startAddr + modelSize);
-        
+
         //add a sparse range so the header is correct,
         file->m_sparseRanges.push_back(std::pair<uint32_t, uint32_t>(startAddr - 1, modelSize));
         file->writeHeader();
         //now reset the sparse range to channel 0 since we don't have all the data in the dataBuf
         file->m_sparseRanges[0] = std::pair<uint32_t, uint32_t>(0, modelSize);
-        for (int x = 0; x < numPeriods; x++) {
-            file->addFrame(x, &(*dataBuf)[x][0]);
+        for (int x = startFrame; x < endFrame; x++) {
+            file->addFrame(x - startFrame, &(*dataBuf)[x][0]);
         }
         file->finalize();
         delete file;
-    } else {
+    }
+    else {
         wxUint32 stepSize = roundTo4(numChans);
         wxFile f;
         logger_base.debug("Creating file %s. Channels: %ld Frames %ld, Start Channel %d, Model Size %d.",
             (const char*)filename.c_str(),
-            numChans, numPeriods, startAddr, modelSize);
+            numChans, endFrame - startFrame, startAddr, modelSize);
 
         if (!f.Create(filename, true)) {
             ConversionError(wxString("Unable to create file: ") + filename);
@@ -720,7 +721,7 @@ void my_av_log_callback(void *ptr, int level, const char *fmt, va_list vargs)
 }
 
 // Render a model into our image
-void RenderModelOnImage(wxImage& image, Model* model, uint8_t* framedata, int startAddr, int x = 0, int y = 0)
+void RenderModelOnImage(wxImage& image, Model* model, uint8_t* framedata, int startAddr, int x = 0, int y = 0, bool invert = false)
 {
     int outheight = image.GetHeight();
     int outwidth = image.GetWidth();
@@ -776,11 +777,14 @@ void RenderModelOnImage(wxImage& image, Model* model, uint8_t* framedata, int st
         model->GetNodeCoords(i, pts);
 
         // for each bulb
-        for (auto it = pts.begin(); it != pts.end(); ++it)
-        {
+        for (const auto& it : pts) {
             // work out where we should display it in the output image
-            int xx = x + it->x;
-            int yy = y + it->y;
+            int xx = x + it.x;
+            int yy = y + it.y;
+
+            if (invert) {
+                yy = outheight - yy - 1;
+            }
 
             // make sure it is within the image bounds
             if (xx >= 0 && xx < outwidth && yy >= 0 && yy < outheight)
@@ -788,15 +792,13 @@ void RenderModelOnImage(wxImage& image, Model* model, uint8_t* framedata, int st
                 // calculate a pointer to the pixal in the image
                 uint8_t* p = imagedata + (yy * outwidth + xx) * 3;
 
-                if (chs == 1)
-                {
+                if (chs == 1) {
                     // for single channels we use the node colour
                     *p = c.Red();
                     *(p + 1) = c.Green();
                     *(p + 2) = c.Blue();
                 }
-                else
-                {
+                else {
                     // set the bulb colour to the pixel ... taking into account colour layout
                     *(p) = *(ps + rr);
                     *(p + 1) = *(ps + gg);
@@ -814,7 +816,7 @@ void RenderModelOnImage(wxImage& image, Model* model, uint8_t* framedata, int st
     }
 }
 
-void FillImage(wxImage& image, Model* model, uint8_t* framedata, int startAddr)
+void FillImage(wxImage& image, Model* model, uint8_t* framedata, int startAddr, bool invert)
 {
     if (model->GetDisplayAs() == "ModelGroup") {
         ModelGroup* mg = static_cast<ModelGroup*>(model);
@@ -834,15 +836,15 @@ void FillImage(wxImage& image, Model* model, uint8_t* framedata, int startAddr)
             //int x = ((float)width * msl.GetHcenterOffset());
             //int y = ((float)height * (1.0 - msl.GetVcenterOffset()));
 
-            RenderModelOnImage(image, *m, framedata, start, x, y);
+            RenderModelOnImage(image, *m, framedata, start, x, y, invert);
         }
     } else {
         // Render the model
-        RenderModelOnImage(image, model, framedata, model->GetFirstChannel() - startAddr + 1);
+        RenderModelOnImage(image, model, framedata, model->GetFirstChannel() - startAddr + 1, 0, 0, invert);
     }
 }
 
-void xLightsFrame:: WriteVideoModelFile(const wxString& filenames, long numChans, long numPeriods,
+void xLightsFrame:: WriteVideoModelFile(const wxString& filenames, long numChans, unsigned int startFrame, unsigned int endFrame,
     SeqDataType *dataBuf, int startAddr, int modelSize, Model* model, bool compressed)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -859,7 +861,7 @@ void xLightsFrame:: WriteVideoModelFile(const wxString& filenames, long numChans
     if (width % 2 > 0) width++;
     if (height % 2 > 0) height++;
     logger_base.debug("   Video dimensions %dx%d => %dx%d.", origwidth, origheight, width, height);
-    logger_base.debug("   Video frames %ld.", numPeriods);
+    logger_base.debug("   Video frames %ld.", endFrame - startFrame);
 
     av_log_set_callback(my_av_log_callback);
 
@@ -1020,11 +1022,11 @@ void xLightsFrame:: WriteVideoModelFile(const wxString& filenames, long numChans
 
     frame->pts = 0;
 
-    for (size_t i = 0; i < numPeriods; i++)
+    for (size_t i = startFrame; i < endFrame; i++)
     {
         // Create a bitmap with the current frame
         wxImage image(origwidth, origheight, true);
-        FillImage(image, model, (uint8_t*)&(*dataBuf)[i][0], startAddr);
+        FillImage(image, model, (uint8_t*)&(*dataBuf)[i][0], startAddr, false);
 
         // place it in a frame
         ret = av_image_fill_arrays(src_picture.data, src_picture.linesize, image.GetData(), informat, origwidth, origheight, 1);
@@ -1102,7 +1104,7 @@ void xLightsFrame:: WriteVideoModelFile(const wxString& filenames, long numChans
     logger_base.debug("Model video written successfully.");
 }
 
-void xLightsFrame::WriteGIFModelFile(const wxString& filename, long numChans, long numPeriods,
+void xLightsFrame::WriteGIFModelFile(const wxString& filename, long numChans, unsigned int startFrame, unsigned int endFrame,
     SeqDataType* dataBuf, int startAddr, int modelSize, Model* model, unsigned int frameTime)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -1114,15 +1116,15 @@ void xLightsFrame::WriteGIFModelFile(const wxString& filename, long numChans, lo
 
     // must be a multiple of 2
     logger_base.debug("   GIF dimensions %dx%d.",  width, height);
-    logger_base.debug("   GIF frames %ld.", numPeriods);
+    logger_base.debug("   GIF frames %ld.", endFrame - startFrame);
            
     wxImageArray imgArray;
 
-    for (size_t i = 0; i < numPeriods; i++)
+    for (size_t i = startFrame; i < endFrame; i++)
     {
         // Create a bitmap with the current frame
         wxImage image(width, height, true);
-        FillImage(image, model, (uint8_t*)&(*dataBuf)[i][0], startAddr);
+        FillImage(image, model, (uint8_t*)&(*dataBuf)[i][0], startAddr, true);
 
         wxImage image2;
         wxQuantize::Quantize(image, image2);
@@ -1144,7 +1146,7 @@ void xLightsFrame::WriteGIFModelFile(const wxString& filename, long numChans, lo
     }   
 }
 
-void xLightsFrame:: WriteMinleonNECModelFile(const wxString& filename, long numChans, long numPeriods,
+void xLightsFrame:: WriteMinleonNECModelFile(const wxString& filename, long numChans, unsigned int startFrame, unsigned int endFrame,
     SeqDataType *dataBuf, int startAddr, int modelSize, Model* model)
 {
     // this writes out at the sequence frame rate ... this may be a problem as samples I have seen seem to use 30fps
@@ -1165,7 +1167,7 @@ void xLightsFrame:: WriteMinleonNECModelFile(const wxString& filename, long numC
         return;
     }
 
-    logger_base.debug("   Model dimensions %dx%d => %ld channels %ld frames %ld.", width, height, (long)width * (long)height * 3, numChans, numPeriods);
+    logger_base.debug("   Model dimensions %dx%d => %ld channels %ld frames %ld.", width, height, (long)width * (long)height * 3, numChans, endFrame - startFrame);
 
     unsigned char header[512];
     memset(header, 0x00, sizeof(header));
@@ -1206,7 +1208,7 @@ void xLightsFrame:: WriteMinleonNECModelFile(const wxString& filename, long numC
         f.Write(&zero, sizeof(zero));
     }
 
-    for (int i = 0; i < numPeriods; ++i)
+    for (int i = startFrame; i < endFrame; ++i)
     {
         f.Write(&(*dataBuf)[i][0], numChans);
     }

@@ -574,8 +574,8 @@ namespace
    float blobsRandom( const Vec2D& co )
    {
       float a = blobsSeed;
-      float b = 78.233;
-      float c = 43758.5453;
+      float b = 78.233f;
+      float c = 43758.5453f;
       float dt = dot( co, Vec2D(a, b) );
       float sn = dt - 3.14f * floorf(dt / 3.14f);
 

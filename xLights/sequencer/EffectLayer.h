@@ -30,6 +30,8 @@ class EffectLayer
         Effect* GetEffect(int index) const;
         Effect* GetEffectByTime(int ms);
         Effect* GetEffectFromID(int id);
+        int GetFirstSelectedEffectStartMS() const;
+        int GetLastSelectedEffectEndMS() const;
         void RemoveEffect(int index);
         void RemoveAllEffects(UndoManager *undo_mgr);
         std::list<std::string> GetFileReferences(EffectManager& em) const;

@@ -93,6 +93,28 @@ Effect* EffectLayer::GetEffectFromID(int id)
     return eff;
 }
 
+int EffectLayer::GetFirstSelectedEffectStartMS() const
+{
+    for (int x = 0; x < mEffects.size(); x++) {
+        if (mEffects[x]->GetSelected() != EFFECT_NOT_SELECTED)
+        {
+            return mEffects[x]->GetStartTimeMS();
+        }
+    }
+    return -1;
+}
+
+int EffectLayer::GetLastSelectedEffectEndMS() const
+{
+    for (int x = mEffects.size() - 1; x >= 0; x--) {
+        if (mEffects[x]->GetSelected() != EFFECT_NOT_SELECTED)
+        {
+            return mEffects[x]->GetEndTimeMS();
+        }
+    }
+    return -1;
+}
+
 void EffectLayer::RemoveEffect(int index)
 {
     std::unique_lock<std::recursive_mutex> locker(lock);

@@ -1706,7 +1706,19 @@ void xLightsFrame::RenderTimeSlice(int startms, int endms, bool clear) {
 
 void xLightsFrame::ExportModel(wxCommandEvent &command) {
 
-    std::string model = command.GetString().ToStdString();
+    unsigned int startFrame = 0;
+    unsigned int endFrame = SeqData.NumFrames();
+    if (command.GetString().Contains('|'))
+    {
+        auto as = wxSplit(command.GetString(), '|');
+        if (as.size() == 3)
+        {
+            startFrame = wxAtoi(as[1]);
+            endFrame = wxAtoi(as[2]);
+        }
+    }
+
+    std::string model = command.GetString().BeforeFirst('|').ToStdString();
     Model *m = GetModel(model);
     if (m == nullptr) return;
 
@@ -1750,7 +1762,8 @@ void xLightsFrame::ExportModel(wxCommandEvent &command) {
         wxASSERT(data != nullptr);
         int cpn = job->getBuffer()->GetChanCountPerNode();
 
-        if (command.GetInt()) {
+        if (command.GetInt() == 1) {
+            // always render the whole model
             job->setRenderRange(0, SeqData.NumFrames());
             job->setPreviousFrameDone(END_OF_RENDER_FRAME);
             job->addNext(&wait);
@@ -1781,45 +1794,45 @@ void xLightsFrame::ExportModel(wxCommandEvent &command) {
             if (format.Contains("S5")) {
                 lcbVer = 2;
             }
-            WriteLcbFile(fullpath, data->NumChannels(), SeqData.NumFrames(), data, lcbVer, cpn);
+            WriteLcbFile(fullpath, data->NumChannels(), startFrame, endFrame, data, lcbVer, cpn);
         } else if (Out3 == "Vir") {
             oName.SetExt(_("vir"));
             fullpath = oName.GetFullPath();
-            WriteVirFile(fullpath, data->NumChannels(), SeqData.NumFrames(), data);
+            WriteVirFile(fullpath, data->NumChannels(), startFrame, endFrame, data);
         } else if (Out3 == "LSP") {
             oName.SetExt(_("xml"));
             fullpath = oName.GetFullPath();
-            WriteLSPFile(fullpath, data->NumChannels(), SeqData.NumFrames(), data, cpn);
+            WriteLSPFile(fullpath, data->NumChannels(), startFrame, endFrame, data, cpn);
         } else if (Out3 == "HLS") {
             oName.SetExt(_("hlsnc"));
             fullpath = oName.GetFullPath();
-            WriteHLSFile(fullpath, data->NumChannels(), SeqData.NumFrames(), data);
+            WriteHLSFile(fullpath, data->NumChannels(), startFrame, endFrame, data);
         } else if (Out3 == "Fal") {
             int stChan = m->GetNumberFromChannelString(m->ModelStartChannel);
             oName.SetExt(_("eseq"));
             fullpath = oName.GetFullPath();
             bool v2 = format.Contains("Compressed");
-            WriteFalconPiModelFile(fullpath, data->NumChannels(), SeqData.NumFrames(), data, stChan, data->NumChannels(), v2);
+            WriteFalconPiModelFile(fullpath, data->NumChannels(), startFrame, endFrame, data, stChan, data->NumChannels(), v2);
         } else if (Out3 == "Com") {
             int stChan = m->GetNumberFromChannelString(m->ModelStartChannel);
             oName.SetExt(_("avi"));
             fullpath = oName.GetFullPath();
-            WriteVideoModelFile(fullpath, data->NumChannels(), SeqData.NumFrames(), data, stChan, data->NumChannels(), GetModel(model), true);
+            WriteVideoModelFile(fullpath, data->NumChannels(), startFrame, endFrame, data, stChan, data->NumChannels(), GetModel(model), true);
         } else if (Out3 == "Unc") {
             int stChan = m->GetNumberFromChannelString(m->ModelStartChannel);
             oName.SetExt(_("avi"));
             fullpath = oName.GetFullPath();
-            WriteVideoModelFile(fullpath, data->NumChannels(), SeqData.NumFrames(), data, stChan, data->NumChannels(), GetModel(model), false);
+            WriteVideoModelFile(fullpath, data->NumChannels(), startFrame, endFrame, data, stChan, data->NumChannels(), GetModel(model), false);
         } else if (Out3 == "Min") {
             int stChan = m->GetNumberFromChannelString(m->ModelStartChannel);
             oName.SetExt(_("bin"));
             fullpath = oName.GetFullPath();
-            WriteMinleonNECModelFile(fullpath, data->NumChannels(), SeqData.NumFrames(), data, stChan, data->NumChannels(), GetModel(model));
+            WriteMinleonNECModelFile(fullpath, data->NumChannels(), startFrame, endFrame, data, stChan, data->NumChannels(), GetModel(model));
         } else if (Out3 == "GIF") {
             int stChan = m->GetNumberFromChannelString(m->ModelStartChannel);
             oName.SetExt(_("gif"));
             fullpath = oName.GetFullPath();
-            WriteGIFModelFile(fullpath, data->NumChannels(), SeqData.NumFrames(), data, stChan, data->NumChannels(), GetModel(model), SeqData.FrameTime());
+            WriteGIFModelFile(fullpath, data->NumChannels(), startFrame, endFrame, data, stChan, data->NumChannels(), GetModel(model), SeqData.FrameTime());
         }
         SetStatusText(wxString::Format("Finished writing model: %s in %ld ms ", fullpath, sw.Time()));
 

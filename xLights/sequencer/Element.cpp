@@ -91,6 +91,40 @@ std::vector<int> Element::GetLayersWithEffectsByTime(int startMs, int endMS) con
 	return returnList;
 }
 
+int Element::GetSelectedEffectCount() const {
+    int count = 0;
+    for (size_t x = 0; x < mEffectLayers.size(); x++) {
+        count += mEffectLayers[x]->GetSelectedEffectCount();
+    }
+    return count;
+}
+
+int Element::GetFirstSelectedEffectStartMS() const
+{
+    long startMS = -1;
+    for (size_t x = 0; x < mEffectLayers.size(); x++) {
+        auto start = mEffectLayers[x]->GetFirstSelectedEffectStartMS();
+        if (start != -1 && (startMS == -1 || start < startMS))
+        {
+            startMS = start;
+        }
+    }
+    return startMS;
+}
+
+int Element::GetLastSelectedEffectEndMS() const
+{
+    long endMS = -1;
+    for (size_t x = 0; x < mEffectLayers.size(); x++) {
+        auto end = mEffectLayers[x]->GetLastSelectedEffectEndMS();
+        if (end != -1 && (endMS == -1 || end > endMS))
+        {
+            endMS = end;
+        }
+    }
+    return endMS;
+}
+
 EffectLayer* Element::GetEffectLayerFromExclusiveIndex(int index)
 {
     for (size_t i = 0; i < mEffectLayers.size(); i++)

@@ -62,6 +62,9 @@ public:
     virtual bool IsEffectValid(Effect* e) const;
     Effect* SelectEffectUsingLayerTime(int layer, int time);
 	virtual std::vector<int> GetLayersWithEffectsByTime(int startMs, int endMS) const;
+    int GetSelectedEffectCount() const;
+    int GetFirstSelectedEffectStartMS() const;
+    int GetLastSelectedEffectEndMS() const;
 
     EffectLayer* AddEffectLayer();
     void RemoveEffectLayer(int index);

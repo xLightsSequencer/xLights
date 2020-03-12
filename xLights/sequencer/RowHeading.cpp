@@ -41,6 +41,8 @@ const long RowHeading::ID_ROW_MNU_DELETE_LAYERS = wxNewId();
 const long RowHeading::ID_ROW_MNU_DELETE_UNUSEDLAYERS = wxNewId();
 const long RowHeading::ID_ROW_MNU_LAYER = wxNewId();
 const long RowHeading::ID_ROW_MNU_PLAY_MODEL = wxNewId();
+const long RowHeading::ID_ROW_MNU_EXPORT_MODEL_SELECTED_EFFECTS = wxNewId();
+const long RowHeading::ID_ROW_MNU_EXPORT_RENDERED_MODEL_SELECTED_EFFECTS = wxNewId();
 const long RowHeading::ID_ROW_MNU_EXPORT_MODEL = wxNewId();
 const long RowHeading::ID_ROW_MNU_EXPORT_RENDERED_MODEL = wxNewId();
 const long RowHeading::ID_ROW_MNU_EDIT_DISPLAY_ELEMENTS = wxNewId();
@@ -369,6 +371,8 @@ void RowHeading::rightClick( wxMouseEvent& event)
         modelMenu->Append(ID_ROW_MNU_PLAY_MODEL, "Play");
         modelMenu->Append(ID_ROW_MNU_EXPORT_MODEL, "Export")->Enable(m!=nullptr && m->GetDisplayAs() != "ModelGroup");
         modelMenu->Append(ID_ROW_MNU_EXPORT_RENDERED_MODEL, "Render and Export")->Enable(m != nullptr && m->GetDisplayAs() != "ModelGroup");
+        modelMenu->Append(ID_ROW_MNU_EXPORT_MODEL_SELECTED_EFFECTS, "Export Selected Model Effects")->Enable(m != nullptr && m->GetDisplayAs() != "ModelGroup" && element->GetSelectedEffectCount() > 0);
+        modelMenu->Append(ID_ROW_MNU_EXPORT_RENDERED_MODEL_SELECTED_EFFECTS, "Render and Export Selected Model Effects")->Enable(m != nullptr && m->GetDisplayAs() != "ModelGroup" && element->GetSelectedEffectCount() > 0);
         rowMenu->Append(ID_ROW_MNU_SELECT_ROW_EFFECTS, "Select Effects");
         modelMenu->Append(ID_ROW_MNU_SELECT_MODEL_EFFECTS, "Select Effects");
         rowMenu->Append(ID_ROW_MNU_COPY_ROW, "Copy Effects");
@@ -588,8 +592,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
     else if(id == ID_ROW_MNU_ADD_TIMING_TRACK)
     {
         bool timing_added = false;
-        xLightsXmlFile* xml_file;
-        xml_file = mSequenceElements->GetXLightsFrame()->CurrentSeqXmlFile;
+        xLightsXmlFile* xml_file = mSequenceElements->GetXLightsFrame()->CurrentSeqXmlFile;
         NewTimingDialog dialog(this);
         OptimiseDialogPosition(&dialog);
         dialog.Fit();
@@ -871,6 +874,35 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         playEvent.SetInt(1);
         playEvent.SetString(element->GetModelName());
         wxPostEvent(GetParent(), playEvent);
+    }
+    else if (id == ID_ROW_MNU_EXPORT_MODEL_SELECTED_EFFECTS) {
+        
+        int startFrame = element->GetFirstSelectedEffectStartMS();
+        int endFrame = element->GetLastSelectedEffectEndMS();
+        if (startFrame != -1 && endFrame != -1)
+        {
+            xLightsXmlFile* xml_file = mSequenceElements->GetXLightsFrame()->CurrentSeqXmlFile;
+            startFrame /= xml_file->GetFrameMS();
+            endFrame /= xml_file->GetFrameMS();
+            wxCommandEvent playEvent(EVT_EXPORT_MODEL);
+            playEvent.SetInt(0);
+            playEvent.SetString(element->GetModelName() + wxString::Format("|%d|%d", startFrame, endFrame));
+            wxPostEvent(GetParent(), playEvent);
+        }
+    }
+    else if (id == ID_ROW_MNU_EXPORT_RENDERED_MODEL_SELECTED_EFFECTS) {
+        int startFrame = element->GetFirstSelectedEffectStartMS();
+        int endFrame = element->GetLastSelectedEffectEndMS();
+        if (startFrame != -1 && endFrame != -1)
+        {
+            xLightsXmlFile* xml_file = mSequenceElements->GetXLightsFrame()->CurrentSeqXmlFile;
+            startFrame /= xml_file->GetFrameMS();
+            endFrame /= xml_file->GetFrameMS();
+            wxCommandEvent playEvent(EVT_EXPORT_MODEL);
+            playEvent.SetInt(1);
+            playEvent.SetString(element->GetModelName() + wxString::Format("|%d|%d", startFrame, endFrame));
+            wxPostEvent(GetParent(), playEvent);
+        }
     } else if (id == ID_ROW_MNU_PLAY_MODEL) {
         wxCommandEvent playEvent(EVT_PLAY_MODEL);
         playEvent.SetString(element->GetModelName());

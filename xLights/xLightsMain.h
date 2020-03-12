@@ -1171,10 +1171,10 @@ public:
 
     void SuspendAutoSave(bool dosuspend) { _suspendAutoSave = dosuspend; }
     void ClearLastPeriod();
-    void WriteVirFile(const wxString& filename, long numChans, long numPeriods, SeqDataType *dataBuf); //       Vixen *.vir
-    void WriteHLSFile(const wxString& filename, long numChans, long numPeriods, SeqDataType *dataBuf);  //      HLS *.hlsnc
-    void WriteLcbFile(const wxString& filename, long numChans, long numPeriods, SeqDataType *dataBuf, int ver, int cpn);  //      LOR *.lcb
-    void WriteLSPFile(const wxString& filename, long numChans, long numPeriods, SeqDataType *dataBuf, int cpn);  //      LSP UserPatterns.xml
+    void WriteVirFile(const wxString& filename, long numChans, unsigned int startFrame, unsigned int endFrame, SeqDataType *dataBuf); //       Vixen *.vir
+    void WriteHLSFile(const wxString& filename, long numChans, unsigned int startFrame, unsigned int endFrame, SeqDataType *dataBuf);  //      HLS *.hlsnc
+    void WriteLcbFile(const wxString& filename, long numChans, unsigned int startFrame, unsigned int endFrame, SeqDataType *dataBuf, int ver, int cpn);  //      LOR *.lcb
+    void WriteLSPFile(const wxString& filename, long numChans, unsigned int startFrame, unsigned int endFrame, SeqDataType *dataBuf, int cpn);  //      LSP UserPatterns.xml
     void ReadXlightsFile(const wxString& FileName, wxString *mediaFilename = nullptr);
     void ReadFalconFile(const wxString& FileName, ConvertDialog* convertdlg);
     void WriteFalconPiFile(const wxString& filename); //  Falcon Pi Player *.pseq
@@ -1183,14 +1183,14 @@ public:
 
 private:
 
-    void WriteFalconPiModelFile(const wxString& filename, long numChans, long numPeriods,
+    void WriteFalconPiModelFile(const wxString& filename, long numChans, unsigned int startFrame, unsigned int endFrame,
                                 SeqDataType *dataBuf, int startAddr, int modelSize,
                                 bool v2 = false); //Falcon Pi sub sequence .eseq
-    void WriteVideoModelFile(const wxString& filename, long numChans, long numPeriods,
+    void WriteVideoModelFile(const wxString& filename, long numChans, unsigned int startFrame, unsigned int endFrame,
         SeqDataType *dataBuf, int startAddr, int modelSize, Model* model, bool compressed); //.avi file
-    void WriteMinleonNECModelFile(const wxString& filename, long numChans, long numPeriods,
+    void WriteMinleonNECModelFile(const wxString& filename, long numChans, unsigned int startFrame, unsigned int endFrame,
         SeqDataType *dataBuf, int startAddr, int modelSize, Model* model); //.bin file
-    void WriteGIFModelFile(const wxString& filename, long numChans, long numPeriods,
+    void WriteGIFModelFile(const wxString& filename, long numChans, unsigned int startFrame, unsigned int endFrame,
         SeqDataType* dataBuf, int startAddr, int modelSize, Model* model, unsigned int frameTime);
 
 

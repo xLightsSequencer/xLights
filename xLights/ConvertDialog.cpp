@@ -420,12 +420,12 @@ bool ConvertDialog::WriteVixenFile(const wxString& filename)
 
 void ConvertDialog::WriteVirFile(const wxString& filename) const
 {
-    _parent->WriteVirFile(filename, SeqData.NumChannels(), SeqData.NumFrames(), &SeqData);
+    _parent->WriteVirFile(filename, SeqData.NumChannels(), 0, SeqData.NumFrames(), &SeqData);
 }
 
 void ConvertDialog::WriteHLSFile(const wxString& filename) const
 {
-    _parent->WriteHLSFile(filename, SeqData.NumChannels(), SeqData.NumFrames(), &SeqData);
+    _parent->WriteHLSFile(filename, SeqData.NumChannels(), 0, SeqData.NumFrames(), &SeqData);
 }
 
 bool ConvertDialog::WriteLedBlinkyFile(const wxString& filename)
@@ -505,7 +505,7 @@ void ConvertDialog::WriteXLightsFile(const wxString& filename) const
 
 void ConvertDialog::WriteLSPFile(const wxString& filename) const
 {
-    _parent->WriteLSPFile(filename, SeqData.NumChannels(), SeqData.NumFrames(), &SeqData, 0);
+    _parent->WriteLSPFile(filename, SeqData.NumChannels(), 0, SeqData.NumFrames(), &SeqData, 0);
 }
 
 void ConvertDialog::WriteLorFile(const wxString& filename)
@@ -666,7 +666,7 @@ void ConvertDialog::WriteLorFile(const wxString& filename)
 }
 void ConvertDialog::WriteLcbFile(const wxString& filename) const
 {
-    _parent->WriteLcbFile(filename, SeqData.NumChannels(), SeqData.NumFrames(), &SeqData, 1, 1);
+    _parent->WriteLcbFile(filename, SeqData.NumChannels(), 0, SeqData.NumFrames(), &SeqData, 1, 1);
 }
 
 void ConvertDialog::WriteConductorFile(const wxString& filename) const

@@ -116,7 +116,6 @@
     <ClCompile Include="StartChannelDialog.cpp" />
     <ClCompile Include="StrandNodeNamesDialog.cpp" />
     <ClCompile Include="SubBufferPanel.cpp" />
-    <ClCompile Include="SubModelGenerateDialog.cpp" />
     <ClCompile Include="SuperStarImportDialog.cpp" />
     <ClCompile Include="support\EzGrid.cpp" />
     <ClCompile Include="support\FastComboEditor.cpp" />
@@ -820,6 +819,9 @@
       <Filter>Controllers</Filter>
     </ClCompile>
     <ClCompile Include="ControllerModelDialog.cpp" />
+    <ClCompile Include="SubModelGenerateDialog.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -926,7 +928,6 @@
     <ClInclude Include="StartChannelDialog.h" />
     <ClInclude Include="StrandNodeNamesDialog.h" />
     <ClInclude Include="SubBufferPanel.h" />
-    <ClInclude Include="SubModelGenerateDialog.h" />
     <ClInclude Include="SuperStarImportDialog.h" />
     <ClInclude Include="support\EzGrid.h" />
     <ClInclude Include="support\FastComboEditor.h" />
@@ -1648,6 +1649,9 @@
       <Filter>Controllers</Filter>
     </ClInclude>
     <ClInclude Include="ControllerModelDialog.h" />
+    <ClInclude Include="SubModelGenerateDialog.h">
+      <Filter>Models</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Models">
