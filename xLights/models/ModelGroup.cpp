@@ -317,7 +317,7 @@ bool ModelGroup::Reset(bool zeroBased) {
     wxArrayString mn = wxSplit(ModelXml->GetAttribute("models"), ',');
     int nc = 0;
     for (int x = 0; x < mn.size(); x++) {
-        Model *c = modelManager.GetModel(mn[x].ToStdString());
+        Model *c = modelManager.GetModel(mn[x].Trim(true).Trim(false).ToStdString());
         if (c != nullptr) {
             modelNames.push_back(c->GetFullName());
             models.push_back(c);
