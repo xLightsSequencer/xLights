@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (kevin)  Add four new transitions for matrices / high-density props
 2020.9 March 9 2020
    -- enh (keith)  Where model knows the controller it is on apply controller limitations to the model properties
    -- enh (keith)  Copy backup folder options into the preferences tab for backup
