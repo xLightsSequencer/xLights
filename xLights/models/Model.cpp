@@ -2522,6 +2522,18 @@ Model *Model::GetSubModel(const std::string &name) const {
     return nullptr;
 }
 
+std::string Model::GenerateUniqueSubmodelName(const std::string suggested) const
+{
+    if (GetSubModel(suggested) == nullptr) return suggested;
+
+    int i = 2;
+    for (;;)
+    {
+        auto name = wxString::Format("%s_%d", suggested, i++);
+        if (GetSubModel(name) == nullptr) return name;
+    }
+}
+
 void Model::ParseSubModel(wxXmlNode *node) {
     subModels.push_back(new SubModel(this, node));
 }

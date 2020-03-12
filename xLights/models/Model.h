@@ -258,6 +258,7 @@ public:
     std::string GetModelChain() const;
     const std::vector<Model *>& GetSubModels() const { return subModels; }
     Model *GetSubModel(const std::string &name) const;
+    std::string GenerateUniqueSubmodelName(const std::string suggested) const;
     int GetNumSubModels() const { return subModels.size();}
     Model *GetSubModel(int i) const { return i < (int)subModels.size() ? subModels[i] : nullptr;}
     void RemoveSubModel(const std::string &name);

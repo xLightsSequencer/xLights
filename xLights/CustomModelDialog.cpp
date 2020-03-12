@@ -78,6 +78,12 @@ const long CustomModelDialog::CUSTOMMODELDLGMNU_COPYLAYERFWD1 = wxNewId();
 const long CustomModelDialog::CUSTOMMODELDLGMNU_COPYLAYERBKWD1 = wxNewId();
 const long CustomModelDialog::CUSTOMMODELDLGMNU_COPYLAYERFWDALL = wxNewId();
 const long CustomModelDialog::CUSTOMMODELDLGMNU_COPYLAYERBKWDALL = wxNewId();
+const long CustomModelDialog::CUSTOMMODELDLGMNU_CREATESUBMODELFROMLAYER = wxNewId();
+const long CustomModelDialog::CUSTOMMODELDLGMNU_CREATEMINIMALSUBMODELFROMLAYER = wxNewId();
+const long CustomModelDialog::CUSTOMMODELDLGMNU_CREATESUBMODELFROMROW = wxNewId();
+const long CustomModelDialog::CUSTOMMODELDLGMNU_CREATEMINIMALSUBMODELFROMROW = wxNewId();
+const long CustomModelDialog::CUSTOMMODELDLGMNU_CREATESUBMODELFROMCOLUMN = wxNewId();
+const long CustomModelDialog::CUSTOMMODELDLGMNU_CREATEMINIMALSUBMODELFROMCOLUMN = wxNewId();
 
 wxDEFINE_EVENT(EVT_GRID_KEY, wxCommandEvent);
 
@@ -1864,6 +1870,364 @@ void CustomModelDialog::OnGridPopup(wxCommandEvent& event)
     {
         CopyLayer(false, -1);
     }
+    else if (id == CUSTOMMODELDLGMNU_CREATESUBMODELFROMLAYER)
+    {
+        int startcol = 0;
+        int endcol = GetActiveGrid()->GetNumberCols();
+        int startrow = 0;
+        int endrow = GetActiveGrid()->GetNumberRows();
+
+        wxXmlNode* sm = new wxXmlNode(wxXML_ELEMENT_NODE, "subModel");
+        sm->AddAttribute("name", _model->GenerateUniqueSubmodelName(wxString::Format("Layer%d", Notebook1->GetSelection() + 1)));
+        sm->AddAttribute("layout", "horizontal");
+        sm->AddAttribute("type", "ranges");
+
+        for (int y = startrow; y < endrow; y++) {
+            std::string row;
+            for (int x = startcol; x < endcol; x++)
+            {
+                if (x != startcol) row += ",";
+                if (!GetActiveGrid()->GetCellValue(y, x).IsEmpty())
+                {
+                    row += GetActiveGrid()->GetCellValue(y, x);
+                }
+            }
+
+            sm->AddAttribute(wxString::Format("line%d", endrow - y - 1), row);
+        }
+
+        _model->AddSubmodel(sm);
+    }
+    else if (id == CUSTOMMODELDLGMNU_CREATEMINIMALSUBMODELFROMLAYER)
+    {
+        int startcol = 0;
+        int endcol = GetActiveGrid()->GetNumberCols();
+        int startrow = 0;
+        int endrow = GetActiveGrid()->GetNumberRows();
+
+        bool nonblank = false;
+        for (int x = startcol; x < endcol && !nonblank; x++)
+        {
+            for (int y = startrow; y < endrow && !nonblank; y++)
+            {
+                if (!GetActiveGrid()->GetCellValue(y, x).IsEmpty())
+                {
+                    nonblank = true;
+                }
+            }
+            if (!nonblank)
+            {
+                startcol++;
+            }
+        }
+        nonblank = false;
+        for (int x = endcol - 1; x >= 0 && !nonblank; x--)
+        {
+            for (int y = startrow; y < endrow && !nonblank; y++)
+            {
+                if (!GetActiveGrid()->GetCellValue(y, x).IsEmpty())
+                {
+                    nonblank = true;
+                }
+            }
+            if (!nonblank)
+            {
+                endcol--;
+            }
+        }
+        nonblank = false;
+        for (int y = startrow; y < endrow && !nonblank; y++)
+        {
+            for (int x = startcol; x < endcol && !nonblank; x++)
+            {
+                if (!GetActiveGrid()->GetCellValue(y, x).IsEmpty())
+                {
+                    nonblank = true;
+                }
+            }
+            if (!nonblank)
+            {
+                startrow++;
+            }
+        }
+        nonblank = false;
+        for (int y = endrow - 1; y >= 0; y--)
+        {
+            for (int x = startcol; x < endcol && !nonblank; x++)
+            {
+                if (!GetActiveGrid()->GetCellValue(y, x).IsEmpty())
+                {
+                    nonblank = true;
+                }
+            }
+            if (!nonblank)
+            {
+                endrow--;
+            }
+        }
+
+        wxXmlNode* sm = new wxXmlNode(wxXML_ELEMENT_NODE, "subModel");
+        sm->AddAttribute("name", _model->GenerateUniqueSubmodelName(wxString::Format("MinimalLayer%d", Notebook1->GetSelection() + 1)));
+        sm->AddAttribute("layout", "horizontal");
+        sm->AddAttribute("type", "ranges");
+
+        for (int y = startrow; y < endrow; y++) {
+
+            std::string row;
+            for (int x = startcol; x < endcol; x++)
+            {
+                if (x != startcol) row += ",";
+                if (!GetActiveGrid()->GetCellValue(y, x).IsEmpty())
+                {
+                    row += GetActiveGrid()->GetCellValue(y, x);
+                }
+            }
+
+            sm->AddAttribute(wxString::Format("line%d", endrow - y - 1), row);
+        }
+
+        _model->AddSubmodel(sm);
+    }
+}
+
+void CustomModelDialog::OnGridPopupLabel(wxCommandEvent& event)
+{
+    int id = event.GetId();
+    
+    if (id == CUSTOMMODELDLGMNU_CREATESUBMODELFROMROW)
+    {
+        int startcol = 0;
+        int endcol = GetActiveGrid()->GetNumberCols();
+        int startrow = 0;
+        int endrow = SpinCtrl_Depth->GetValue();
+
+        wxXmlNode* sm = new wxXmlNode(wxXML_ELEMENT_NODE, "subModel");
+        sm->AddAttribute("name", _model->GenerateUniqueSubmodelName(wxString::Format("Row%d", _selRow + 1)));
+        sm->AddAttribute("layout", "horizontal");
+        sm->AddAttribute("type", "ranges");
+
+        for (int y = startrow; y < endrow; y++) {
+            std::string row;
+            for (int x = startcol; x < endcol; x++)
+            {
+                if (x != startcol) row += ",";
+                if (!GetLayerGrid(y)->GetCellValue(_selRow, x).IsEmpty())
+                {
+                    row += GetLayerGrid(y)->GetCellValue(_selRow, x);
+                }
+            }
+
+            sm->AddAttribute(wxString::Format("line%d", y - startrow), row);
+        }
+
+        _model->AddSubmodel(sm);
+    }
+    else if (id == CUSTOMMODELDLGMNU_CREATEMINIMALSUBMODELFROMROW)
+    {
+        int startcol = 0;
+        int endcol = GetActiveGrid()->GetNumberCols();
+        int startrow = 0;
+        int endrow = SpinCtrl_Depth->GetValue();
+
+        bool nonblank = false;
+        for (int x = startcol; x < endcol && !nonblank; x++)
+        {
+            for (int y = startrow; y < endrow && !nonblank; y++)
+            {
+                if (!GetLayerGrid(y)->GetCellValue(_selRow, x).IsEmpty())
+                {
+                    nonblank = true;
+                }
+            }
+            if (!nonblank)
+            {
+                startcol++;
+            }
+        }
+        nonblank = false;
+        for (int x = endcol - 1; x >= 0 && !nonblank; x--)
+        {
+            for (int y = startrow; y < endrow && !nonblank; y++)
+            {
+                if (!GetLayerGrid(y)->GetCellValue(_selRow, x).IsEmpty())
+                {
+                    nonblank = true;
+                }
+            }
+            if (!nonblank)
+            {
+                endcol--;
+            }
+        }
+        nonblank = false;
+        for (int y = startrow; y < endrow && !nonblank; y++)
+        {
+            for (int x = startcol; x < endcol && !nonblank; x++)
+            {
+                if (!GetLayerGrid(y)->GetCellValue(_selRow, x).IsEmpty())
+                {
+                    nonblank = true;
+                }
+            }
+            if (!nonblank)
+            {
+                startrow++;
+            }
+        }
+        nonblank = false;
+        for (int y = endrow - 1; y >= 0; y--)
+        {
+            for (int x = startcol; x < endcol && !nonblank; x++)
+            {
+                if (!GetLayerGrid(y)->GetCellValue(_selRow, x).IsEmpty())
+                {
+                    nonblank = true;
+                }
+            }
+            if (!nonblank)
+            {
+                endrow--;
+            }
+        }
+
+        wxXmlNode* sm = new wxXmlNode(wxXML_ELEMENT_NODE, "subModel");
+        sm->AddAttribute("name", _model->GenerateUniqueSubmodelName(wxString::Format("MinimalRow%d", _selRow + 1)));
+        sm->AddAttribute("layout", "horizontal");
+        sm->AddAttribute("type", "ranges");
+
+        for (int y = startrow; y < endrow; y++) {
+            std::string row;
+            for (int x = startcol; x < endcol; x++)
+            {
+                if (x != startcol) row += ",";
+                if (!GetLayerGrid(y)->GetCellValue(_selRow, x).IsEmpty())
+                {
+                    row += GetLayerGrid(y)->GetCellValue(_selRow, x);
+                }
+            }
+
+            sm->AddAttribute(wxString::Format("line%d", y - startrow), row);
+        }
+
+        _model->AddSubmodel(sm);
+    }
+    else if (id == CUSTOMMODELDLGMNU_CREATESUBMODELFROMCOLUMN)
+    {
+        int startcol = 0;
+        int endcol = SpinCtrl_Depth->GetValue();
+        int startrow = 0;
+        int endrow = GetActiveGrid()->GetNumberRows();
+
+        wxXmlNode* sm = new wxXmlNode(wxXML_ELEMENT_NODE, "subModel");
+        sm->AddAttribute("name", _model->GenerateUniqueSubmodelName(wxString::Format("Column%d", _selCol + 1)));
+        sm->AddAttribute("layout", "horizontal");
+        sm->AddAttribute("type", "ranges");
+
+        for (int y = startrow; y < endrow; y++) {
+            std::string row;
+            for (int x = endcol - 1; x >= startcol; x--)
+            {
+                if (x != endcol - 1) row += ",";
+                if (!GetLayerGrid(x)->GetCellValue(y, _selCol).IsEmpty())
+                {
+                    row += GetLayerGrid(x)->GetCellValue(y, _selCol);
+                }
+            }
+
+            sm->AddAttribute(wxString::Format("line%d", endrow - y - 1), row);
+        }
+
+        _model->AddSubmodel(sm);
+    }
+    else if (id == CUSTOMMODELDLGMNU_CREATEMINIMALSUBMODELFROMCOLUMN)
+    {
+        int startcol = 0;
+        int endcol = SpinCtrl_Depth->GetValue();
+        int startrow = 0;
+        int endrow = GetActiveGrid()->GetNumberRows();
+
+        bool nonblank = false;
+        for (int x = startcol; x < endcol && !nonblank; x++)
+        {
+            for (int y = startrow; y < endrow && !nonblank; y++)
+            {
+                if (!GetLayerGrid(x)->GetCellValue(y, _selCol).IsEmpty())
+                {
+                    nonblank = true;
+                }
+            }
+            if (!nonblank)
+            {
+                startcol++;
+            }
+        }
+        nonblank = false;
+        for (int x = endcol - 1; x >= 0 && !nonblank; x--)
+        {
+            for (int y = startrow; y < endrow && !nonblank; y++)
+            {
+                if (!GetLayerGrid(x)->GetCellValue(y, _selCol).IsEmpty())
+                {
+                    nonblank = true;
+                }
+            }
+            if (!nonblank)
+            {
+                endcol--;
+            }
+        }
+        nonblank = false;
+        for (int y = startrow; y < endrow && !nonblank; y++)
+        {
+            for (int x = startcol; x < endcol && !nonblank; x++)
+            {
+                if (!GetLayerGrid(x)->GetCellValue(y, _selCol).IsEmpty())
+                {
+                    nonblank = true;
+                }
+            }
+            if (!nonblank)
+            {
+                startrow++;
+            }
+        }
+        nonblank = false;
+        for (int y = endrow - 1; y >= 0; y--)
+        {
+            for (int x = startcol; x < endcol && !nonblank; x++)
+            {
+                if (!GetLayerGrid(x)->GetCellValue(y, _selCol).IsEmpty())
+                {
+                    nonblank = true;
+                }
+            }
+            if (!nonblank)
+            {
+                endrow--;
+            }
+        }
+
+        wxXmlNode* sm = new wxXmlNode(wxXML_ELEMENT_NODE, "subModel");
+        sm->AddAttribute("name", _model->GenerateUniqueSubmodelName(wxString::Format("MinimalColumn%d", _selCol + 1)));
+        sm->AddAttribute("layout", "horizontal");
+        sm->AddAttribute("type", "ranges");
+
+        for (int y = startrow; y < endrow; y++) {
+            std::string row;
+            for (int x = endcol - 1; x >= startcol; x--)
+            {
+                if (x != endcol - 1) row += ",";
+                if (!GetLayerGrid(x)->GetCellValue(y, _selCol).IsEmpty())
+                {
+                    row += GetLayerGrid(x)->GetCellValue(y, _selCol);
+                }
+            }
+
+            sm->AddAttribute(wxString::Format("line%d", endrow - y - 1), row);
+        }
+
+        _model->AddSubmodel(sm);
+    }
 }
 
 void CustomModelDialog::OnCut(wxCommandEvent& event)
@@ -1897,6 +2261,33 @@ void CustomModelDialog::OnFilePickerCtrl1FileChanged(wxFileDirPickerEvent& event
         }
         UpdateBackground();
         GetActiveGrid()->Refresh();
+    }
+}
+
+void CustomModelDialog::OnGridLabelRightClick(wxGridEvent& event)
+{
+    int selRow = event.GetRow();
+    int selCol = event.GetCol();
+
+    if (SpinCtrl_Depth->GetValue() > 1 && (selRow >= 0 || selCol >= 0))
+    {
+        wxMenu mnu;
+        mnu.AppendSeparator();
+        if (selRow >= 0)
+        {
+            mnu.Append(CUSTOMMODELDLGMNU_CREATESUBMODELFROMROW, "Create Submodel From Row");
+            mnu.Append(CUSTOMMODELDLGMNU_CREATEMINIMALSUBMODELFROMROW, "Create Minimal Submodel From Row");
+            _selRow = selRow;
+        }
+        if (selCol >= 0)
+        {
+            mnu.Append(CUSTOMMODELDLGMNU_CREATESUBMODELFROMCOLUMN, "Create Submodel From Column");
+            mnu.Append(CUSTOMMODELDLGMNU_CREATEMINIMALSUBMODELFROMCOLUMN, "Create Minimal Submodel From Column");
+            _selCol = selCol;
+        }
+
+        mnu.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&CustomModelDialog::OnGridPopupLabel, nullptr, this);
+        PopupMenu(&mnu);
     }
 }
 
@@ -1940,6 +2331,12 @@ void CustomModelDialog::OnGridCustomCellRightClick(wxGridEvent& event)
     mnu.Append(CUSTOMMODELDLGMNU_SHRINKSPACE10, "Shrink Space - Max 10%");
     mnu.Append(CUSTOMMODELDLGMNU_SHRINKSPACE50, "Shrink Space - Max 50%");
     mnu.Append(CUSTOMMODELDLGMNU_SHRINKSPACE99, "Shrink Space - Max 99%");
+    if (SpinCtrl_Depth->GetValue() > 1)
+    {
+        mnu.AppendSeparator();
+        mnu.Append(CUSTOMMODELDLGMNU_CREATESUBMODELFROMLAYER, "Create Submodel From Layer");
+        mnu.Append(CUSTOMMODELDLGMNU_CREATEMINIMALSUBMODELFROMLAYER, "Create Minimal Submodel From Layer");
+    }
 
     if (selectedCellWithValue)
     {
@@ -2004,6 +2401,8 @@ void CustomModelDialog::AddPage()
     Connect(id, wxEVT_GRID_CELL_LEFT_CLICK, (wxObjectEventFunction)&CustomModelDialog::OnGridCustomCellLeftClick);
     Connect(id, wxEVT_GRID_CELL_RIGHT_CLICK, (wxObjectEventFunction)&CustomModelDialog::OnGridCustomCellRightClick);
     Connect(id, wxEVT_GRID_CELL_CHANGED, (wxObjectEventFunction)&CustomModelDialog::OnGridCustomCellChange);
+
+    Connect(id, wxEVT_GRID_LABEL_RIGHT_CLICK, (wxObjectEventFunction)&CustomModelDialog::OnGridLabelRightClick);
 
     grid->Connect(wxEVT_TEXT_CUT, (wxObjectEventFunction)&CustomModelDialog::OnCut, 0, this);
     grid->Connect(wxEVT_TEXT_COPY, (wxObjectEventFunction)&CustomModelDialog::OnCopy, 0, this);

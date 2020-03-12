@@ -71,7 +71,13 @@ class CustomModelDialog: public wxDialog
     static const long CUSTOMMODELDLGMNU_COPYLAYERFWD1;
     static const long CUSTOMMODELDLGMNU_COPYLAYERBKWD1;
     static const long CUSTOMMODELDLGMNU_COPYLAYERFWDALL;
-    static const long CUSTOMMODELDLGMNU_COPYLAYERBKWDALL;
+	static const long CUSTOMMODELDLGMNU_COPYLAYERBKWDALL;
+	static const long CUSTOMMODELDLGMNU_CREATESUBMODELFROMLAYER;
+	static const long CUSTOMMODELDLGMNU_CREATEMINIMALSUBMODELFROMLAYER;
+	static const long CUSTOMMODELDLGMNU_CREATESUBMODELFROMROW;
+	static const long CUSTOMMODELDLGMNU_CREATESUBMODELFROMCOLUMN;
+	static const long CUSTOMMODELDLGMNU_CREATEMINIMALSUBMODELFROMROW;
+	static const long CUSTOMMODELDLGMNU_CREATEMINIMALSUBMODELFROMCOLUMN;
 
     public:
 
@@ -180,6 +186,7 @@ class CustomModelDialog: public wxDialog
 		void OnButtonWiringClick(wxCommandEvent& event);
 		void OnFilePickerCtrl1FileChanged(wxFileDirPickerEvent& event);
 		void OnGridCustomCellRightClick(wxGridEvent& event);
+		void OnGridLabelRightClick(wxGridEvent& event);
 		void OnSpinCtrl_DepthChange(wxSpinEvent& event);
 		void OnNotebook1PageChanged(wxNotebookEvent& event);
 		void OnResize(wxSizeEvent& event);
@@ -190,8 +197,9 @@ class CustomModelDialog: public wxDialog
         void OnCut(wxCommandEvent& event);
         void OnCopy(wxCommandEvent& event);
         void OnPaste(wxCommandEvent& event);
-        void OnGridPopup(wxCommandEvent& event);
-        void OnGridKey(wxCommandEvent& event);
+		void OnGridPopup(wxCommandEvent& event);
+		void OnGridPopupLabel(wxCommandEvent& event);
+		void OnGridKey(wxCommandEvent& event);
 
         void Reverse();
         bool CheckScale(std::list<wxPoint>& points, float scale) const;
