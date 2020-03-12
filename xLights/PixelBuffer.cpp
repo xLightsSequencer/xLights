@@ -215,6 +215,7 @@ namespace
 
    const float PI = 3.14159265359f;
 
+   // code for fold transition
    xlColor foldIn( const ColorBuffer& cb0, const RenderBuffer* rb1, double s, double t, float progress, bool isReverse )
    {
       const double CAMERA_DIST = 2.;
@@ -250,7 +251,6 @@ namespace
       }
       return xlBLACK;
    }
-
    xlColor foldOut( const ColorBuffer& cb0, const RenderBuffer* rb1, double s, double t, float progress, bool isReverse )
    {
       const double CAMERA_DIST = 2.;
@@ -284,7 +284,6 @@ namespace
       }
       return xlBLACK;
    }
-
    void foldIn( RenderBuffer& rb0, const ColorBuffer& cb0, const RenderBuffer* rb1, double progress, bool isReverse )
    {
       if ( progress < 0. || progress > 1. )
@@ -297,7 +296,6 @@ namespace
          }
       }, 25);
    }
-
    void foldOut( RenderBuffer& rb0, const ColorBuffer& cb0, const RenderBuffer* rb1, double progress, bool isReverse )
    {
       if ( progress < 0. || progress > 1. )
@@ -311,6 +309,7 @@ namespace
       }, 25);
    }
 
+   // code for dissolve transition
    xlColor dissolveTex( double s, double t )
    {
       const unsigned char *data = DissolveTransitonPattern;
@@ -323,14 +322,12 @@ namespace
       const unsigned char *val = data + y * DissolvePatternWidth + x;
       return xlColor( *val, *val, *val );
    }
-
    xlColor dissolveIn( const ColorBuffer& cb, double s, double t, float progress )
    {
       xlColor dissolveColor = dissolveTex( s, t );
       unsigned char byteProgress = (unsigned char)( 255 * progress );
       return (dissolveColor.red <= byteProgress) ? tex2D( cb, s, t ) : xlBLACK;
    }
-
    void dissolveIn( RenderBuffer& rb0, const ColorBuffer& cb0, double progress )
    {
       if ( progress < 0. || progress > 1. )
@@ -343,14 +340,12 @@ namespace
          }
       }, 25);
    }
-
    xlColor dissolveOut( const ColorBuffer& cb, double s, double t, float progress )
    {
       xlColor dissolveColor = dissolveTex( s, t );
       unsigned char byteProgress = (unsigned char)( 255 * progress );
       return (dissolveColor.red > byteProgress) ? tex2D( cb, s, t ) : xlBLACK;
    }
-
    void dissolveOut( RenderBuffer& rb0, const ColorBuffer& cb0, double progress )
    {
       if ( progress < 0. || progress > 1. )
@@ -364,6 +359,7 @@ namespace
       }, 25);
    }
 
+   // code for circular-swirl transition
    xlColor circularSwirl( const ColorBuffer& cb, const Vec2D& xy, float speed, double s, double t, float progress )
    {
       Vec2D uv( s, t );
@@ -396,6 +392,7 @@ namespace
       }, 25);
    }
 
+   // code for bowTie transition
    float check( const Vec2D& p1, const Vec2D& p2, const Vec2D& p3 )
    {
       return (p1.x - p3.x) * (p2.y - p3.y) - (p2.x - p3.x) * (p1.y - p3.y);
@@ -485,6 +482,7 @@ namespace
       }, 25);
    }
 
+   // code for zoom transition
    Vec2D zoom( const Vec2D& uv, float amount )
    {
       return ((uv - 0.5) * (1.0-amount)) + 0.5;
@@ -506,6 +504,7 @@ namespace
       }, 25);
    }
 
+   // code for doorway transition
    const float reflection = 0.4f;
    const float perspective = 0.4f;
    const float depth = 3.f;
@@ -567,7 +566,7 @@ namespace
       }, 25);
    }
 
-/////
+   // code for blobs transition
    const float blobsScale = 4.f;
    const float blobsSmoothness = 0.01f;
    const float blobsSeed = 12.9898f;
@@ -604,27 +603,19 @@ namespace
              (c - a) * u.y * ( 1.0 - u.x ) +
              (d - b) * u.x * u.y;
    }
-   xlColor blobs( const ColorBuffer& cb0, const RenderBuffer* rb1, double s, double t, float progress )
+   xlColor blobs( const ColorBuffer& cb0, const RenderBuffer* rb1, double s, double t, double progress )
    {
-      return xlBLACK;
-#if 1
-#else
-  vec4 from = getFromColor(uv);
-  vec4 to = getToColor(uv);
-  float n = noise(uv * scale);
+      xlColor fromColor( (rb1 == nullptr) ? xlBLACK : tex2D( *rb1, s, t ) );
+      xlColor toColor( tex2D( cb0, s, t ) );
+      float n = blobsNoise( blobsScale * Vec2D( s, t ) );
 
-  float p = mix(-smoothness, 1.0 + smoothness, progress);
-  float lower = p - smoothness;
-  float higher = p + smoothness;
+      float p = lerp( -blobsSmoothness, 1.- + blobsSmoothness, progress );
+      float lo = p - blobsSmoothness;
+      float hi = p + blobsSmoothness;
 
-  float q = smoothstep(lower, higher, n);
+      float q = SmoothStep( lo, hi, n );
 
-  return mix(
-    from,
-    to,
-    1.0 - q
-  );
-  #endif
+      return lerp( fromColor, toColor, 1.f - q );
    }
    void blobs( RenderBuffer& rb0, const ColorBuffer& cb0, const RenderBuffer* rb1, double progress )
    {
@@ -638,7 +629,6 @@ namespace
          }
       }, 25);
    }
-/////
 }
 
 PixelBufferClass::PixelBufferClass(xLightsFrame *f) : frame(f)
