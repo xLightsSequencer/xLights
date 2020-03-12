@@ -166,6 +166,10 @@ TimingPanel::TimingPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	Choice_In_Transition_Type->Append(_("Fold"));
 	Choice_In_Transition_Type->Append(_("Dissolve"));
 	Choice_In_Transition_Type->Append(_("Circular Swirl"));
+	Choice_In_Transition_Type->Append(_("Bow Tie"));
+	Choice_In_Transition_Type->Append(_("Zoom"));
+	Choice_In_Transition_Type->Append(_("Doorway"));
+	Choice_In_Transition_Type->Append(_("Blobs"));
 	FlexGridSizer10->Add(Choice_In_Transition_Type, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	StaticText2 = new wxStaticText(Panel1, ID_STATICTEXT_Fadein, _("Time (s)"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Fadein"));
 	FlexGridSizer10->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
@@ -212,6 +216,10 @@ TimingPanel::TimingPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	Choice_Out_Transition_Type->Append(_("Fold"));
 	Choice_Out_Transition_Type->Append(_("Dissolve"));
 	Choice_Out_Transition_Type->Append(_("Circular Swirl"));
+	Choice_Out_Transition_Type->Append(_("Bow Tie"));
+	Choice_Out_Transition_Type->Append(_("Zoom"));
+	Choice_Out_Transition_Type->Append(_("Doorway"));
+	Choice_Out_Transition_Type->Append(_("Blobs"));
 	FlexGridSizer12->Add(Choice_Out_Transition_Type, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	StaticText4 = new wxStaticText(Panel2, ID_STATICTEXT_Fadeout, _("Time (s)"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Fadeout"));
 	FlexGridSizer12->Add(StaticText4, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
@@ -430,7 +438,8 @@ void TimingPanel::OnTransitionTypeSelect(wxCommandEvent& event)
          inTransitionType == "Slide Bars" ||
          inTransitionType == "Blend" ||
          inTransitionType == "Dissolve" ||
-         inTransitionType == "Circular Swirl" )
+         inTransitionType == "Circular Swirl" ||
+         inTransitionType == "Bow Tie" )
    {
       CheckBox_In_Reverse->Disable();
    }
@@ -444,7 +453,8 @@ void TimingPanel::OnTransitionTypeSelect(wxCommandEvent& event)
         inTransitionType == "Circle Explode" ||
         inTransitionType == "Fold" ||
         inTransitionType == "Dissolve" ||
-        inTransitionType == "Circular Swirl" )
+        inTransitionType == "Circular Swirl" ||
+        inTransitionType == "Bow Tie" )
    {
       Slider_In_Adjust->Disable();
       TextCtrl_In_Adjust->Disable();
@@ -461,7 +471,8 @@ void TimingPanel::OnTransitionTypeSelect(wxCommandEvent& event)
         outTransitionType == "Slide Bars" ||
         outTransitionType == "Blend" ||
         outTransitionType == "Dissolve" ||
-        outTransitionType == "Circular Swirl" )
+        outTransitionType == "Circular Swirl" ||
+        outTransitionType == "Bow Tie" )
     {
        CheckBox_Out_Reverse->Disable();
     }
@@ -475,7 +486,8 @@ void TimingPanel::OnTransitionTypeSelect(wxCommandEvent& event)
          outTransitionType == "Circle Explode" ||
          outTransitionType == "Fold" ||
          outTransitionType == "Dissolve" ||
-         outTransitionType == "Circular Swirl" )
+         outTransitionType == "Circular Swirl" ||
+         outTransitionType == "Bow Tie" )
     {
        Slider_Out_Adjust->Disable();
        TextCtrl_Out_Adjust->Disable();

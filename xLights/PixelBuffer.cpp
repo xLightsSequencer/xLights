@@ -49,6 +49,12 @@ namespace
       return std::min( hi, std::max( lo, val ) );
    }
 
+   double SmoothStep( double edge0, double edge1, double x )
+   {
+      double t = CLAMP( (x - edge0) / (edge1 - edge0), 0.0, 1.0 );
+      return t * t * (3.0 - 2.0 * t);
+   }
+
    struct ColorBuffer
    {
       ColorBuffer( const xlColorVector& i_cv, int i_w, int i_h ) : cv( i_cv ), w( i_w ), h( i_h ) {}
@@ -128,6 +134,10 @@ namespace
       }
       double x, y;
    };
+   xlColor tex2D( const ColorBuffer& cb, const Vec2D& st )
+   {
+       return tex2D( cb, st.x, st.y );
+   }
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused"
     xlColor lerp( const xlColor& a, const xlColor& b, double progress )
@@ -135,7 +145,7 @@ namespace
         double red   = a.red   + progress * ( b.red   - a.red   );
         double green = a.green + progress * ( b.green - a.green );
         double blue  = a.blue  + progress * ( b.blue  - a.blue  );
-        
+
         return xlColor( uint8_t( red ), uint8_t( green ), uint8_t( blue ) );
     }
 
@@ -155,6 +165,19 @@ namespace
     double dot( const Vec2D& a, const Vec2D& b )
     {
         return a.x * b.x + a.y * b.y;
+    }
+
+    double lerp( double a, double b, double progress )
+    {
+        return a + progress * ( b - a );
+    }
+
+    xlColor operator+=( xlColor& lhs, const xlColor& rhs )
+    {
+        lhs.red += rhs.red;
+        lhs.green += rhs.green;
+        lhs.blue += rhs.blue;
+        return lhs;
     }
 #pragma clang diagnostic pop
 
@@ -192,6 +215,7 @@ namespace
 
    const float PI = 3.14159265359f;
 
+   // code for fold transition
    xlColor foldIn( const ColorBuffer& cb0, const RenderBuffer* rb1, double s, double t, float progress, bool isReverse )
    {
       const double CAMERA_DIST = 2.;
@@ -227,7 +251,6 @@ namespace
       }
       return xlBLACK;
    }
-
    xlColor foldOut( const ColorBuffer& cb0, const RenderBuffer* rb1, double s, double t, float progress, bool isReverse )
    {
       const double CAMERA_DIST = 2.;
@@ -255,13 +278,12 @@ namespace
             return tex2D( cb0, uv0.x, uv0.y );
 
          if ( progress < 0.5 )
-            return tex2D( cb0, uv0.x, uv0.y );
-         xlColor c = tex2D( *rb1, 1-uv0.x, uv0.y );
+            return tex2D( *rb1, uv0.x, uv0.y );
+         xlColor c = tex2D( cb0, 1-uv0.x, uv0.y );
          return ( c != xlCLEAR ) ? c : tex2D( cb0, uv0.x, uv0.y );
       }
       return xlBLACK;
    }
-
    void foldIn( RenderBuffer& rb0, const ColorBuffer& cb0, const RenderBuffer* rb1, double progress, bool isReverse )
    {
       if ( progress < 0. || progress > 1. )
@@ -274,7 +296,6 @@ namespace
          }
       }, 25);
    }
-
    void foldOut( RenderBuffer& rb0, const ColorBuffer& cb0, const RenderBuffer* rb1, double progress, bool isReverse )
    {
       if ( progress < 0. || progress > 1. )
@@ -288,6 +309,7 @@ namespace
       }, 25);
    }
 
+   // code for dissolve transition
    xlColor dissolveTex( double s, double t )
    {
       const unsigned char *data = DissolveTransitonPattern;
@@ -300,14 +322,12 @@ namespace
       const unsigned char *val = data + y * DissolvePatternWidth + x;
       return xlColor( *val, *val, *val );
    }
-
    xlColor dissolveIn( const ColorBuffer& cb, double s, double t, float progress )
    {
       xlColor dissolveColor = dissolveTex( s, t );
       unsigned char byteProgress = (unsigned char)( 255 * progress );
       return (dissolveColor.red <= byteProgress) ? tex2D( cb, s, t ) : xlBLACK;
    }
-
    void dissolveIn( RenderBuffer& rb0, const ColorBuffer& cb0, double progress )
    {
       if ( progress < 0. || progress > 1. )
@@ -320,14 +340,12 @@ namespace
          }
       }, 25);
    }
-
    xlColor dissolveOut( const ColorBuffer& cb, double s, double t, float progress )
    {
       xlColor dissolveColor = dissolveTex( s, t );
       unsigned char byteProgress = (unsigned char)( 255 * progress );
       return (dissolveColor.red > byteProgress) ? tex2D( cb, s, t ) : xlBLACK;
    }
-
    void dissolveOut( RenderBuffer& rb0, const ColorBuffer& cb0, double progress )
    {
       if ( progress < 0. || progress > 1. )
@@ -341,6 +359,7 @@ namespace
       }, 25);
    }
 
+   // code for circular-swirl transition
    xlColor circularSwirl( const ColorBuffer& cb, const Vec2D& xy, float speed, double s, double t, float progress )
    {
       Vec2D uv( s, t );
@@ -360,7 +379,6 @@ namespace
 
       return xlBLACK;
    }
-
    void circularSwirl( RenderBuffer& rb0, const ColorBuffer& cb0, const Vec2D& xy, float speed, double progress )
    {
       if ( progress < 0. || progress > 1. )
@@ -370,6 +388,244 @@ namespace
          for ( int x = 0; x < rb0.BufferWi; ++x ) {
             double s = double( x ) / ( rb0.BufferWi - 1 );
             rb0.SetPixel( x, y, circularSwirl( cb0, xy, speed, s, t, progress ) );
+         }
+      }, 25);
+   }
+
+   // code for bowTie transition
+   float check( const Vec2D& p1, const Vec2D& p2, const Vec2D& p3 )
+   {
+      return (p1.x - p3.x) * (p2.y - p3.y) - (p2.x - p3.x) * (p1.y - p3.y);
+   }
+   bool PointInTriangle( const Vec2D& pt, const Vec2D& p1, const Vec2D& p2, const Vec2D& p3 )
+   {
+      bool b1 = check( pt, p1, p2 ) < 0.0;
+      bool b2 = check( pt, p2, p3 ) < 0.0;
+      bool b3 = check( pt, p3, p1 ) < 0.0;
+      return b1 == b2 && b2 == b3;
+   }
+   bool in_top_triangle( const Vec2D& p, float progress )
+   {
+      Vec2D vertex1( 0.5, progress );
+      Vec2D vertex2( 0.5-progress, 0.0 );
+      Vec2D vertex3( 0.5+progress, 0.0 );
+      return PointInTriangle( p, vertex1, vertex2, vertex3 );
+   }
+   bool in_bottom_triangle(const Vec2D& p, float progress)
+   {
+      Vec2D vertex1( 0.5, 1.0 - progress );
+      Vec2D vertex2( 0.5-progress, 1.0 );
+      Vec2D vertex3( 0.5+progress, 1.0 );
+      return PointInTriangle( p, vertex1, vertex2, vertex3 );
+   }
+   float blur_edge( const Vec2D& bot1, const Vec2D& bot2, const Vec2D& top, const Vec2D& testPt )
+   {
+      Vec2D lineDir( bot1 - top );
+      Vec2D perpDir( lineDir.y, -lineDir.x );
+      Vec2D dirToPt1( bot1 - testPt );
+      double dist1 = fabs( dot( perpDir.Norm(), dirToPt1 ) );
+
+      lineDir = bot2 - top;
+      perpDir = Vec2D( lineDir.y, -lineDir.x );
+      dirToPt1 = bot2 - testPt;
+      double min_dist = std::min( fabs( dot( perpDir.Norm(), dirToPt1 ) ), dist1 );
+
+      return (min_dist < 0.005) ? min_dist / 0.005 : 1.0;
+
+   }
+   xlColor bowTie( const ColorBuffer& cb, double s, double t, float progress, xlColor fromColor, xlColor toColor )
+   {
+      Vec2D xy( s, t );
+      if ( in_top_triangle( xy, progress ) )
+      {
+         if ( progress < 0.1f )
+            return fromColor;
+         if (xy.y < 0.5)
+         {
+            Vec2D vertex1( 0.5, progress );
+            Vec2D vertex2( 0.5-progress, 0.0 );
+            Vec2D vertex3( 0.5+progress, 0.0 );
+            return lerp( fromColor, toColor, blur_edge( vertex2, vertex3, vertex1, xy ) );
+         }
+         else
+         {
+            return ( progress > 0.0 ) ? toColor : fromColor;
+         }
+      }
+      else if ( in_bottom_triangle( xy, progress ) )
+      {
+         if ( xy.y >= 0.5 )
+         {
+            Vec2D vertex1( 0.5, 1.0-progress );
+            Vec2D vertex2( 0.5-progress, 1.0 );
+            Vec2D vertex3( 0.5+progress, 1.0 );
+            return lerp( fromColor, toColor, blur_edge( vertex2, vertex3, vertex1, xy ) );
+         }
+         else
+         {
+            return fromColor;
+         }
+      }
+
+      return fromColor;
+   }
+   void bowTie( RenderBuffer& rb0, const ColorBuffer& cb0, double progress )
+   {
+      if ( progress < 0. || progress > 1. )
+         return;
+      parallel_for(0, rb0.BufferHt, [&rb0, &cb0, progress](int y) {
+         double t = double( y ) / ( rb0.BufferHt - 1 );
+         for ( int x = 0; x < rb0.BufferWi; ++x ) {
+            double s = double( x ) / ( rb0.BufferWi - 1 );
+            rb0.SetPixel( x, y, bowTie( cb0, s, t, progress, xlBLACK, tex2D( cb0, s, t ) ) );
+         }
+      }, 25);
+   }
+
+   // code for zoom transition
+   Vec2D zoom( const Vec2D& uv, float amount )
+   {
+      return ((uv - 0.5) * (1.0-amount)) + 0.5;
+   }
+   xlColor zoomTransition( const ColorBuffer& cb, double s, double t, float progress )
+   {
+      return tex2D( cb, zoom( Vec2D( s, t ), 1.f-progress ) );
+   }
+   void zoomTransition( RenderBuffer& rb0, const ColorBuffer& cb0, double progress )
+   {
+      if ( progress < 0. || progress > 1. )
+         return;
+      parallel_for(0, rb0.BufferHt, [&rb0, &cb0, progress](int y) {
+         double t = double( y ) / ( rb0.BufferHt - 1 );
+         for ( int x = 0; x < rb0.BufferWi; ++x ) {
+            double s = double( x ) / ( rb0.BufferWi - 1 );
+            rb0.SetPixel( x, y, zoomTransition( cb0, s, t, progress ) );
+         }
+      }, 25);
+   }
+
+   // code for doorway transition
+   const float reflection = 0.4f;
+   const float perspective = 0.4f;
+   const float depth = 3.f;
+   const Vec2D boundMin(0.0, 0.0);
+   const Vec2D boundMax(1.0, 1.0);
+   bool inBounds ( const Vec2D& p)
+   {
+      return ( boundMin.x < p.x && boundMin.y < p.y ) && ( p.x < boundMax.x && p.y < boundMax.y );
+   }
+   Vec2D project( const Vec2D& p )
+   {
+      return p * Vec2D(1.0, -1.2 ) + Vec2D( 0.0, -0.02 );
+   }
+   xlColor bgColor( const Vec2D& p, Vec2D& pto, const ColorBuffer& cb )
+   {
+      xlColor c = xlBLACK;
+      pto = project( pto );
+      if ( inBounds( pto ) )
+      {
+         xlColor toColor = tex2D( cb, pto );
+         c += lerp( xlBLACK, toColor, reflection * lerp( 1.0, 0.0, pto.y ) );
+      }
+      return c;
+   }
+   xlColor doorway( const ColorBuffer& cb0, const RenderBuffer* rb1, double s, double t, float progress )
+   {
+      Vec2D pfr( -1. );
+      Vec2D pto( -1. );
+      Vec2D p( s, t );
+      double middleSlit = 2.0 * fabs(p.x-0.5) - progress;
+      if ( middleSlit > 0.0 )
+      {
+         pfr = p + (p.x > 0.5 ? -1.0 : 1.0) * Vec2D(0.5*progress, 0.0);
+         double d = 1.0/(1.0+perspective*progress*(1.0-middleSlit));
+         pfr.y -= d/2.;
+         pfr.y *= d;
+         pfr.y += d/2.;
+      }
+      double size = lerp( 1.0, depth, 1.-progress );
+      pto = (p + Vec2D(-0.5, -0.5)) * Vec2D(size, size) + Vec2D(0.5, 0.5);
+
+      if ( inBounds( pfr ) ) // sliding left/right
+          return ( rb1 == nullptr ) ? xlBLACK : tex2D( *rb1, pfr.x, pfr.y );
+      if ( inBounds( pto ) ) // zooming in
+          return tex2D( cb0, pto );
+      // reflection part
+      return bgColor( p, pto, cb0 );
+   }
+   void doorway( RenderBuffer& rb0, const ColorBuffer& cb0, const RenderBuffer* rb1, double progress )
+   {
+      if ( progress < 0. || progress > 1. )
+         return;
+      parallel_for(0, rb0.BufferHt, [&rb0, &cb0, &rb1, progress](int y) {
+         double t = double( y ) / ( rb0.BufferHt - 1 );
+         for ( int x = 0; x < rb0.BufferWi; ++x ) {
+            double s = double( x ) / ( rb0.BufferWi - 1 );
+            rb0.SetPixel( x, y, doorway( cb0, rb1, s, t, progress ) );
+         }
+      }, 25);
+   }
+
+   // code for blobs transition
+   const float blobsScale = 4.f;
+   const float blobsSmoothness = 0.01f;
+   const float blobsSeed = 12.9898f;
+
+   float blobsRandom( const Vec2D& co )
+   {
+      float a = blobsSeed;
+      float b = 78.233;
+      float c = 43758.5453;
+      float dt = dot( co, Vec2D(a, b) );
+      float sn = dt - 3.14f * floorf(dt / 3.14f);
+
+      float intpart;
+      return modf( sin( sn ) * c, &intpart );
+   }
+
+   float blobsNoise( const Vec2D& st )
+   {
+       Vec2D i, f;
+       f.x = modf( st.x, &i.x );
+       f.y = modf( st.y, &i.y );
+
+      // Four corners in 2D of a tile
+      float a = blobsRandom(i);
+      float b = blobsRandom(i + Vec2D(1.0, 0.0));
+      float c = blobsRandom(i + Vec2D(0.0, 1.0));
+      float d = blobsRandom(i + Vec2D(1.0, 1.0));
+
+      // Cubic Hermine Curve.  Same as SmoothStep()
+      Vec2D u( f*f*(3.0-2.0*f) );
+
+      // Mix 4 coorners porcentages
+      return lerp( a, b, u.x ) +
+             (c - a) * u.y * ( 1.0 - u.x ) +
+             (d - b) * u.x * u.y;
+   }
+   xlColor blobs( const ColorBuffer& cb0, const RenderBuffer* rb1, double s, double t, double progress )
+   {
+      xlColor fromColor( (rb1 == nullptr) ? xlBLACK : tex2D( *rb1, s, t ) );
+      xlColor toColor( tex2D( cb0, s, t ) );
+      float n = blobsNoise( blobsScale * Vec2D( s, t ) );
+
+      float p = lerp( -blobsSmoothness, 1.- + blobsSmoothness, progress );
+      float lo = p - blobsSmoothness;
+      float hi = p + blobsSmoothness;
+
+      float q = SmoothStep( lo, hi, n );
+
+      return lerp( fromColor, toColor, 1.f - q );
+   }
+   void blobs( RenderBuffer& rb0, const ColorBuffer& cb0, const RenderBuffer* rb1, double progress )
+   {
+      if ( progress < 0. || progress > 1. )
+         return;
+      parallel_for(0, rb0.BufferHt, [&rb0, &cb0, &rb1, progress](int y) {
+         double t = double( y ) / ( rb0.BufferHt - 1 );
+         for ( int x = 0; x < rb0.BufferWi; ++x ) {
+            double s = double( x ) / ( rb0.BufferWi - 1 );
+            rb0.SetPixel( x, y, blobs( cb0, rb1, s, t, progress ) );
          }
       }, 25);
    }
@@ -1585,6 +1841,10 @@ static const std::string STR_FADE("Fade");
 static const std::string STR_FOLD("Fold");
 static const std::string STR_DISSOLVE("Dissolve");
 static const std::string STR_CIRCULAR_SWIRL("Circular Swirl");
+static const std::string STR_BOW_TIE("Bow Tie");
+static const std::string STR_ZOOM("Zoom");
+static const std::string STR_DOORWAY("Doorway");
+static const std::string STR_BLOBS("Blobs");
 
 static const std::string CHOICE_In_Transition_Type("CHOICE_In_Transition_Type");
 static const std::string CHOICE_Out_Transition_Type("CHOICE_Out_Transition_Type");
@@ -3081,7 +3341,7 @@ void PixelBufferClass::LayerInfo::createSlideBarsMask(bool out) {
 namespace
 {
    const std::vector<std::string> transitionNames = {
-      "Fold", "Dissolve", "Circular Swirl"
+       STR_FOLD, STR_DISSOLVE, STR_CIRCULAR_SWIRL, STR_BOW_TIE, STR_ZOOM, STR_DOORWAY, STR_BLOBS
    };
    bool nonMaskTransition( const std::string& transitionType )
    {
@@ -3096,14 +3356,22 @@ void PixelBufferClass::LayerInfo::renderTransitions(bool isFirstFrame, const Ren
         if ( nonMaskTransition( inTransitionType ) ) {
             ColorBuffer cb( buffer.pixels, buffer.BufferWi, buffer.BufferHt );
 
-            if ( inTransitionType == "Fold" ) {
+            if ( inTransitionType == STR_FOLD ) {
                foldIn( buffer, cb, prevRB, inMaskFactor, inTransitionReverse );
-            } else if ( inTransitionType == "Dissolve" ) {
+            } else if ( inTransitionType == STR_DISSOLVE ) {
                dissolveIn( buffer, cb, inMaskFactor );
-            } else if ( inTransitionType == "Circular Swirl" ) {
+            } else if ( inTransitionType == STR_CIRCULAR_SWIRL ) {
                Vec2D xy( 0.5, 0.5 );
                double speed = interpolate( 0.2, 0.0, 1.0, 40.0, 9.0, LinearInterpolater() );
                circularSwirl( buffer, cb, xy, speed, 1.f-inMaskFactor );
+            } else if ( inTransitionType == STR_BOW_TIE ) {
+               bowTie( buffer, cb, inMaskFactor );
+            } else if ( inTransitionType == STR_ZOOM ) {
+               zoomTransition( buffer, cb, inMaskFactor );
+            } else if ( inTransitionType == STR_DOORWAY ) {
+               doorway( buffer, cb, prevRB, inMaskFactor );
+            } else if ( inTransitionType == STR_BLOBS ) {
+               blobs( buffer, cb, prevRB, inMaskFactor );
             }
         } else {
            calculateMask(inTransitionType, false, isFirstFrame);
@@ -3114,15 +3382,24 @@ void PixelBufferClass::LayerInfo::renderTransitions(bool isFirstFrame, const Ren
         mask.resize(BufferHt * BufferWi);
         if ( nonMaskTransition( outTransitionType ) ) {
             ColorBuffer cb( buffer.pixels, buffer.BufferWi, buffer.BufferHt );
-            if ( outTransitionType == "Fold" ) {
+            if ( outTransitionType == STR_FOLD ) {
                foldOut( buffer, cb, prevRB, outMaskFactor, outTransitionReverse );
-            } else if ( outTransitionType == "Dissolve" ) {
+            } else if ( outTransitionType == STR_DISSOLVE ) {
                dissolveOut( buffer, cb, 1.f - outMaskFactor );
-            } else if ( outTransitionType == "Circular Swirl" ) {
+            } else if ( outTransitionType == STR_CIRCULAR_SWIRL ) {
                Vec2D xy( 0.5, 0.5 );
                double speed = interpolate( 0.2, 0.0, 1.0, 40.0, 9.0, LinearInterpolater() );
                circularSwirl( buffer, cb, xy, speed, 1.f - outMaskFactor );
+            } else if ( outTransitionType == STR_BOW_TIE ) {
+               bowTie( buffer, cb, outMaskFactor );
+            } else if ( outTransitionType == STR_ZOOM ) {
+               zoomTransition( buffer, cb, outMaskFactor );
+            } else if ( outTransitionType == STR_DOORWAY ) {
+               doorway( buffer, cb, prevRB, outMaskFactor );
+            } else if ( outTransitionType == STR_BLOBS ) {
+               blobs( buffer, cb, prevRB, outMaskFactor );
             }
+
         } else {
            calculateMask(outTransitionType, true, isFirstFrame);
         }
@@ -3180,6 +3457,6 @@ bool PixelBufferClass::LayerInfo::isMasked(int x, int y) {
     return false;
 }
 
-int PixelBufferClass::GetLayerCount() const { 
-    return layers.size(); 
+int PixelBufferClass::GetLayerCount() const {
+    return layers.size();
 }
