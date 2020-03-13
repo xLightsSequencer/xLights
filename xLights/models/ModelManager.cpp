@@ -79,12 +79,12 @@ bool ModelManager::IsModelValid(Model* m) const {
 }
 
 Model *ModelManager::GetModel(const std::string &name) const {
-    auto it = models.find(name);
+    auto it = models.find(Trim(name));
     if (it == models.end()) {
         size_t pos = name.find("/");
         if (pos != std::string::npos) {
-            std::string mname = name.substr(0, pos);
-            std::string smname = name.substr(pos + 1);
+            std::string mname = Trim(name.substr(0, pos));
+            std::string smname = Trim(name.substr(pos + 1));
             Model *m = GetModel(mname);
             if (m != nullptr) {
                 return m->GetSubModel(smname);
@@ -96,31 +96,33 @@ Model *ModelManager::GetModel(const std::string &name) const {
 }
 
 Model *ModelManager::operator[](const std::string &name) const {
-    return GetModel(name);
+    return GetModel(Trim(name));
 }
 
 bool ModelManager::Rename(const std::string &oldName, const std::string &newName) {
-    Model *model = GetModel(oldName);
+    auto on = Trim(oldName);
+    auto nn = Trim(newName);
+    Model *model = GetModel(on);
     if (model == nullptr || model->GetDisplayAs() == "SubModel") {
         return false;
     }
     model->GetModelXml()->DeleteAttribute("name");
-    model->GetModelXml()->AddAttribute("name",newName);
-    model->name = newName;
+    model->GetModelXml()->AddAttribute("name", nn);
+    model->name = nn;
     if (dynamic_cast<SubModel*>(model) == nullptr) {
         bool changed = false;
         for (auto& it2 : models) {
-            changed |= it2.second->ModelRenamed(oldName, newName);
+            changed |= it2.second->ModelRenamed(on, nn);
         }
-        models.erase(models.find(oldName));
-        models[newName] = model;
+        models.erase(models.find(on));
+        models[nn] = model;
 
         // go through all the model groups looking for things that might need to be renamed
         for (const auto& it : models) {
             ModelGroup* mg = dynamic_cast<ModelGroup*>(it.second);
             if (mg != nullptr)
             {
-                changed |= mg->ModelRenamed(oldName, newName);
+                changed |= mg->ModelRenamed(on, nn);
             }
         }
 
@@ -134,12 +136,15 @@ bool ModelManager::RenameSubModel(const std::string &oldName, const std::string 
 
     bool changed = false;
 
+    auto on = Trim(oldName);
+    auto nn = Trim(newName);
+
     for (auto& m : *this)
     {
         if (m.second->GetDisplayAs() == "ModelGroup")
         {
             ModelGroup* mg = dynamic_cast<ModelGroup*>(m.second);
-            changed |= mg->SubModelRenamed(oldName, newName);
+            changed |= mg->SubModelRenamed(on, nn);
         }
     }
 
@@ -148,10 +153,13 @@ bool ModelManager::RenameSubModel(const std::string &oldName, const std::string 
 
 bool ModelManager::RenameInListOnly(const std::string& oldName, const std::string& newName)
 {
-    Model *model = GetModel(oldName);
+    auto on = Trim(oldName);
+    auto nn = Trim(newName);
+
+    Model *model = GetModel(on);
     if (model == nullptr) return false;
-    models.erase(models.find(oldName));
-    models[newName] = model;
+    models.erase(models.find(on));
+    models[nn] = model;
     return true;
 }
 
@@ -187,7 +195,7 @@ void ModelManager::LoadModels(wxXmlNode *modelNode, int previewW, int previewH) 
     int countValid = 0;
     for (wxXmlNode* e=modelNode->GetChildren(); e!=nullptr; e=e->GetNext()) {
         if (e->GetName() == "model") {
-            std::string name = e->GetAttribute("name").ToStdString();
+            std::string name = e->GetAttribute("name").Trim(true).Trim(false).ToStdString();
             if (!name.empty()) {
                 Model *m = createAndAddModel(e, previewW, previewH);
                 if (m != nullptr) {
@@ -221,8 +229,8 @@ void ModelManager::LoadModels(wxXmlNode *modelNode, int previewW, int previewH) 
 
 uint32_t ModelManager::GetLastChannel() const {
     unsigned int max = 0;
-    for (auto it = models.begin(); it != models.end(); ++it) {
-        max = std::max(max, it->second->GetLastChannel());
+    for (const auto& it : models) {
+        max = std::max(max, it.second->GetLastChannel());
     }
     return max;
 }
@@ -335,7 +343,7 @@ bool ModelManager::RecalcStartChannels() const {
                 if (Trim(it.second->ModelStartChannel) != "") first = Trim(it.second->ModelStartChannel)[0];
                 if ((first == '>' || first == '@') && !it.second->CouldComputeStartChannel)
                 {
-                    std::string dependsOn = Trim(it.second->ModelStartChannel).substr(1, Trim(it.second->ModelStartChannel).find(':') - 1);
+                    std::string dependsOn = Trim(Trim(it.second->ModelStartChannel).substr(1, Trim(it.second->ModelStartChannel).find(':') - 1));
                     if (std::find(modelsDone.begin(), modelsDone.end(), dependsOn) != modelsDone.end())
                     {
                         // the depends on model is done
@@ -374,7 +382,9 @@ bool ModelManager::RecalcStartChannels() const {
                     changed = true;
                 }
             }
-            if (!it.second->CouldComputeStartChannel) countInvalid++;
+            if (!it.second->CouldComputeStartChannel) {
+                countInvalid++;
+            }
         }
     }
 

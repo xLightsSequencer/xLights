@@ -208,10 +208,10 @@ const std::vector<std::string> &ModelGroup::GetBufferStyles() const {
 bool ModelGroup::AllModelsExist(wxXmlNode* node, const ModelManager& models)
 {
     wxArrayString mn = wxSplit(node->GetAttribute("models"), ',');
-    for (const auto& it : mn) {
+    for (auto& it : mn) {
         if (it != "")
         {
-            Model* c = models.GetModel(it.ToStdString());
+            Model* c = models.GetModel(it.Trim(true).Trim(false).ToStdString());
             if (c == nullptr) return false;
         }
     }
@@ -225,20 +225,21 @@ bool ModelGroup::RemoveNonExistentModels(wxXmlNode* node, const std::list<std::s
     std::string models;
     std::string modelsRemoved;
 
-    wxString name = node->GetAttribute("name", "");
+    wxString name = node->GetAttribute("name", "").Trim(false).Trim(true);
     wxArrayString mn = wxSplit(node->GetAttribute("models", ""), ',');
 
-    for (const auto& it : mn) {
-        if (std::find(allmodels.begin(), allmodels.end(), it) == allmodels.end())
+    for (auto& it : mn) {
+        auto mm = it.Trim(true).Trim(false);
+        if (std::find(allmodels.begin(), allmodels.end(), mm) == allmodels.end())
         {
             if (modelsRemoved != "") modelsRemoved += ", ";
-            modelsRemoved += it;
+            modelsRemoved += mm;
             changed = true;
         }
         else
         {
             if (models != "") models += ",";
-            models += it;
+            models += mm;
         }
     }
 
@@ -463,7 +464,7 @@ void ModelGroup::ResetModels()
     models.clear();
     wxArrayString mn = wxSplit(ModelXml->GetAttribute("models"), ',');
     for (int x = 0; x < mn.size(); x++) {
-        Model *c = modelManager.GetModel(mn[x].ToStdString());
+        Model *c = modelManager.GetModel(mn[x].Trim(true).Trim(false).ToStdString());
         if (c != nullptr) {
             if (c->GetDisplayAs() == "ModelGroup")
             {
@@ -522,7 +523,7 @@ void ModelGroup::AddModel(const std::string &name) {
     if (newVal.size() > 0) {
         newVal += ",";
     }
-    newVal += name;
+    newVal += Trim(name);
     ModelXml->DeleteAttribute("models");
     ModelXml->AddAttribute("models", newVal);
     Reset();
@@ -530,15 +531,16 @@ void ModelGroup::AddModel(const std::string &name) {
 
 void ModelGroup::ModelRemoved(const std::string &oldName) {
     bool changed = false;
+    auto on = Trim(oldName);
     wxString newVal;
     for (int x = 0; x < modelNames.size(); x++) {
-        if (modelNames[x] == oldName) {
+        if (Trim(modelNames[x]) == on) {
             changed = true;
         } else {
             if (x != 0) {
                 newVal += ",";
             }
-            newVal += modelNames[x];
+            newVal += Trim(modelNames[x]);
         }
     }
     if (changed) {

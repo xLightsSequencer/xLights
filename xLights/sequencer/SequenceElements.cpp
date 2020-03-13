@@ -980,7 +980,7 @@ void SequenceElements::AddMissingModelsToSequence(const std::string &models, boo
         wxArrayString model=wxSplit(models,',');
         for(size_t m=0;m<model.size();m++)
         {
-            std::string modelName = model[m].ToStdString();
+            std::string modelName = model[m].Trim(true).Trim(false).ToStdString();
             Model *model1 = xframe->AllModels[modelName];
             if (model1 != nullptr) {
                 if (model1->GetDisplayAs() == "SubModel") {

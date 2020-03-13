@@ -3189,7 +3189,7 @@ void Model::InitRenderBufferNodes(const std::string &type, const std::string &ca
             wxArrayString mn = wxSplit(ModelXml->GetAttribute("models"), ',');
             int nc = 0;
             for (int x = 0; x < mn.size(); x++) {
-                Model *c = modelManager.GetModel(mn[x].ToStdString());
+                Model *c = modelManager.GetModel(mn[x].Trim(true).Trim(false).ToStdString());
                 if (c != nullptr) {
                     models.push_back(c);
                     nc += c->GetNodeCount();

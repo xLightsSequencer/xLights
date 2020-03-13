@@ -2,6 +2,8 @@
 #include <wx/wx.h>
 #include "models/ModelManager.h"
 #include "models/Model.h"
+#include "UtilFunctions.h"
+
 #include <log4cpp/Category.hh>
 
 #define MASTER_VIEW "Master View"
@@ -33,19 +35,19 @@ void SequenceView::SetModels(const std::string& models)
 	if (models == "") return;
 
 	auto ms = wxSplit(models, ',');
-	for (auto m = ms.begin(); m != ms.end(); ++m)
+	for (auto& m : ms)
 	{
-		_modelNames.push_back(m->ToStdString());
+		_modelNames.push_back(m.Trim(true).Trim(false).ToStdString());
 	}
 }
 
 void SequenceView::AddModel(const std::string& model, int pos)
 {
-	if (std::find(_modelNames.begin(), _modelNames.end(), model) == _modelNames.end())
+	if (std::find(_modelNames.begin(), _modelNames.end(), Trim(model)) == _modelNames.end())
 	{
         if (pos == -1)
         {
-            _modelNames.push_back(model);
+            _modelNames.push_back(Trim(model));
         }
         else
         {
@@ -54,7 +56,7 @@ void SequenceView::AddModel(const std::string& model, int pos)
             {
                 ++it;
             }
-            _modelNames.insert(it, model);
+            _modelNames.insert(it, Trim(model));
         }
 	}
 }

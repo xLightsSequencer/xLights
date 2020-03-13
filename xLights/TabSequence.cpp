@@ -459,9 +459,9 @@ void xLightsFrame::LoadEffectsFile()
                     if (selected == "1") {
                         wxArrayString mn = wxSplit(group->GetAttribute("models"), ',');
                         for (int x = 0; x < mn.size(); x++) {
-                            std::string name = mn[x].ToStdString();
+                            std::string name = mn[x].Trim(true).Trim(false).ToStdString();
                             if (modelsAdded.find(name) == modelsAdded.end()) {
-                                modelsAdded.insert(mn[x].ToStdString());
+                                modelsAdded.insert(mn[x].Trim(true).Trim(false).ToStdString());
                             }
                         }
                         layout_group = "Default";
@@ -878,7 +878,7 @@ static std::string chooseNewName(xLightsFrame *parent, std::vector<std::string> 
         DlgResult=dialog.ShowModal();
         if (DlgResult == wxID_OK) {
             // validate inputs
-            std::string NewName = dialog.GetValue().Trim();
+            std::string NewName = dialog.GetValue().Trim(true).Trim(false);
             if (std::find(names.begin(), names.end(), NewName) == names.end()) {
                 return NewName;
             }
@@ -931,13 +931,13 @@ void xLightsFrame::UpdateModelsList()
     }
     for (wxXmlNode* e=ModelGroupsNode->GetChildren(); e != nullptr; e = e->GetNext()) {
         if (e->GetName() == "modelGroup") {
-            std::string name = e->GetAttribute("name").ToStdString();
+            std::string name = e->GetAttribute("name").Trim(true).Trim(false).ToStdString();
             current.push_back(name);
         }
     }
     for (wxXmlNode* e=ModelGroupsNode->GetChildren(); e != nullptr; e = e->GetNext()) {
         if (e->GetName() == "modelGroup") {
-            std::string name = e->GetAttribute("name").ToStdString();
+            std::string name = e->GetAttribute("name").Trim(true).Trim(false).ToStdString();
             Model *model = AllModels[name];
             if (model != nullptr) {
                 wxArrayString choices;
@@ -958,7 +958,7 @@ void xLightsFrame::UpdateModelsList()
                         case 1:
                             for (wxXmlNode* e2=ModelsNode->GetChildren(); e2!=nullptr; e2=e2->GetNext()) {
                                 if (e2->GetName() == "model") {
-                                    std::string mname = e2->GetAttribute("name").ToStdString();
+                                    std::string mname = e2->GetAttribute("name").Trim(true).Trim(false).ToStdString();
                                     if (mname == name) {
                                         UnsavedRgbEffectsChanges=true;
                                         if (sel == 1) {
