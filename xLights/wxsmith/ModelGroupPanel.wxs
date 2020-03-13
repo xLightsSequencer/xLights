@@ -101,7 +101,7 @@
 							</object>
 							<object class="spacer">
 								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-								<border>5</border>
+								<border>2</border>
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
@@ -111,7 +111,22 @@
 									<handler function="OnCheckBox_ShowSubmodelsClick" entry="EVT_CHECKBOX" />
 								</object>
 								<flag>wxALL|wxEXPAND</flag>
-								<border>5</border>
+								<border>2</border>
+								<option>1</option>
+							</object>
+							<object class="spacer">
+								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>2</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxCheckBox" name="ID_CHECKBOX2" variable="CheckBox_ShowModelGroups" member="yes">
+									<label>Show model groups to add</label>
+									<checked>1</checked>
+									<handler function="OnCheckBox_ShowModelGroupsClick" entry="EVT_CHECKBOX" />
+								</object>
+								<flag>wxALL|wxEXPAND</flag>
+								<border>2</border>
 								<option>1</option>
 							</object>
 						</object>
@@ -151,6 +166,7 @@
 									<style>wxLC_REPORT|wxLC_NO_HEADER|wxLC_SORT_ASCENDING</style>
 									<handler function="OnListBoxAddToModelGroupBeginDrag" entry="EVT_LIST_BEGIN_DRAG" />
 									<handler function="OnListBoxAddToModelGroupItemSelect" entry="EVT_LIST_ITEM_SELECTED" />
+									<handler function="OnListBoxAddToModelGroupItemDeselect" entry="EVT_LIST_ITEM_DESELECTED" />
 									<handler function="OnListBoxAddToModelGroupItemActivated" entry="EVT_LIST_ITEM_ACTIVATED" />
 								</object>
 								<flag>wxALL|wxEXPAND</flag>
@@ -221,6 +237,7 @@
 									<style>wxLC_REPORT|wxLC_NO_HEADER</style>
 									<handler function="OnListBoxModelsInGroupBeginDrag" entry="EVT_LIST_BEGIN_DRAG" />
 									<handler function="OnListBoxModelsInGroupItemSelect" entry="EVT_LIST_ITEM_SELECTED" />
+									<handler function="OnListBoxModelsInGroupItemDeselect" entry="EVT_LIST_ITEM_DESELECTED" />
 									<handler function="OnListBoxModelsInGroupItemActivated" entry="EVT_LIST_ITEM_ACTIVATED" />
 								</object>
 								<flag>wxALL|wxEXPAND|wxFIXED_MINSIZE</flag>

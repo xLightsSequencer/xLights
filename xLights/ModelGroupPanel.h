@@ -47,6 +47,7 @@ class ModelGroupPanel: public wxPanel
 		wxBitmapButton* ButtonMoveDown;
 		wxBitmapButton* ButtonMoveUp;
 		wxBitmapButton* ButtonRemoveModel;
+		wxCheckBox* CheckBox_ShowModelGroups;
 		wxCheckBox* CheckBox_ShowSubmodels;
 		wxChoice* ChoiceModelLayoutType;
 		wxChoice* ChoicePreviews;
@@ -72,6 +73,7 @@ class ModelGroupPanel: public wxPanel
 		static const long ID_SPINCTRL1;
 		static const long ID_CHOICE_PREVIEWS;
 		static const long ID_CHECKBOX1;
+		static const long ID_CHECKBOX2;
 		static const long ID_STATICTEXT3;
 		static const long ID_STATICTEXT2;
 		static const long ID_LISTCTRL1;
@@ -104,6 +106,9 @@ class ModelGroupPanel: public wxPanel
 		void OnCheckBox_ShowSubmodelsClick(wxCommandEvent& event);
 		void OnListBoxAddToModelGroupItemActivated(wxListEvent& event);
 		void OnListBoxModelsInGroupItemActivated(wxListEvent& event);
+		void OnCheckBox_ShowModelGroupsClick(wxCommandEvent& event);
+		void OnListBoxModelsInGroupItemDeselect(wxListEvent& event);
+		void OnListBoxAddToModelGroupItemDeselect(wxListEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()
