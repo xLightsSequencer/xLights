@@ -52,6 +52,12 @@ class CustomModelDialog: public wxDialog
     void UpdatePreview(int width, int height, int depth, const std::string& modelData);
     void UpdatePreview();
     void ValidateWindow();
+	void CreateSubmodelFromLayer(int layer);
+	void CreateMinimalSubmodelFromLayer(int layer);
+	void CreateSubmodelFromColumn(int column);
+	void CreateMinimalSubmodelFromColumn(int column);
+	void CreateSubmodelFromRow(int row);
+	void CreateMinimalSubmodelFromRow(int row);
 
     static const long CUSTOMMODELDLGMNU_CUT;
     static const long CUSTOMMODELDLGMNU_COPY;
@@ -78,6 +84,12 @@ class CustomModelDialog: public wxDialog
 	static const long CUSTOMMODELDLGMNU_CREATESUBMODELFROMCOLUMN;
 	static const long CUSTOMMODELDLGMNU_CREATEMINIMALSUBMODELFROMROW;
 	static const long CUSTOMMODELDLGMNU_CREATEMINIMALSUBMODELFROMCOLUMN;
+	static const long CUSTOMMODELDLGMNU_CREATESUBMODELFROMALLLAYERS;
+	static const long CUSTOMMODELDLGMNU_CREATEMINIMALSUBMODELFROMALLLAYERS;
+	static const long CUSTOMMODELDLGMNU_CREATESUBMODELFROMALLROWS;
+	static const long CUSTOMMODELDLGMNU_CREATESUBMODELFROMALLCOLUMNS;
+	static const long CUSTOMMODELDLGMNU_CREATEMINIMALSUBMODELFROMALLROWS;
+	static const long CUSTOMMODELDLGMNU_CREATEMINIMALSUBMODELFROMALLCOLUMNS;
 
     public:
 
