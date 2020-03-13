@@ -798,7 +798,7 @@ void Model::AddControllerProperties(wxPropertyGridInterface *grid) {
     }
     else
     {
-        if (IsPixelProtocol()) {
+        if (IsPixelProtocol(GetControllerProtocol())) {
             sp->SetAttribute("Max", caps->GetMaxPixelPort());
         }
         else {
