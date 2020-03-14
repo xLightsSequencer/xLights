@@ -189,6 +189,7 @@
 																			<item>Zoom</item>
 																			<item>Doorway</item>
 																			<item>Blobs</item>
+																			<item>Pinwheel</item>
 																		</content>
 																		<selection>0</selection>
 																		<handler function="OnTransitionTypeSelect" entry="EVT_CHOICE" />
@@ -312,6 +313,7 @@
 																			<item>Zoom</item>
 																			<item>Doorway</item>
 																			<item>Blobs</item>
+																			<item>Pinwheel</item>
 																		</content>
 																		<selection>0</selection>
 																		<handler function="OnTransitionTypeSelect" entry="EVT_CHOICE" />

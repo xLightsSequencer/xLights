@@ -32,6 +32,7 @@
 #include "xLightsMain.h"
 #include <log4cpp/Category.hh>
 
+#include <cmath>
 #include <random>
 #include "Parallel.h"
 #include "UtilFunctions.h"
@@ -580,14 +581,14 @@ namespace
       float sn = dt - 3.14f * floorf(dt / 3.14f);
 
       float intpart;
-      return modf( sin( sn ) * c, &intpart );
+      return std::modf( sin( sn ) * c, &intpart );
    }
 
    float blobsNoise( const Vec2D& st )
    {
        Vec2D i, f;
-       f.x = modf( st.x, &i.x );
-       f.y = modf( st.y, &i.y );
+       f.x = std::modf( st.x, &i.x );
+       f.y = std::modf( st.y, &i.y );
 
       // Four corners in 2D of a tile
       float a = blobsRandom(i);
@@ -626,6 +627,43 @@ namespace
          for ( int x = 0; x < rb0.BufferWi; ++x ) {
             double s = double( x ) / ( rb0.BufferWi - 1 );
             rb0.SetPixel( x, y, blobs( cb0, rb1, s, t, progress ) );
+         }
+      }, 25);
+   }
+
+   // code for pinwheel transition
+   double sign( double v )
+   {
+      return ( v == 0. ) ? 0. : ( ( v < 0. ) ? -1. : 1. );
+   }
+   xlColor pinwheelTransition( const ColorBuffer& cb0, const RenderBuffer* rb1, double s, double t, double progress )
+   {
+      const double speed = 2.;
+
+      double x = s - 0.5;
+      double y = t - 0.5;
+      if ( t < 0.5 ) // this seems needed due to differences between GLSL and C++ versions of atan2()
+      {
+         y = -y;
+         x = -x;
+      }
+      double circPos = std::atan2( y, x ) + progress * speed;
+      double modPos = std::fmod( circPos, PI / 4. );
+      double signedVal = sign( progress - modPos );
+
+      return ( signedVal < 0.5 )
+         ? ( (rb1 == nullptr) ? xlBLACK : tex2D( *rb1, s, t ) )
+         : tex2D( cb0, s, t );
+   }
+   void pinwheelTransition( RenderBuffer& rb0, const ColorBuffer& cb0, const RenderBuffer* rb1, double progress )
+   {
+      if ( progress < 0. || progress > 1. )
+         return;
+      parallel_for(0, rb0.BufferHt, [&rb0, &cb0, &rb1, progress](int y) {
+         double t = double( y ) / ( rb0.BufferHt - 1 );
+         for ( int x = 0; x < rb0.BufferWi; ++x ) {
+            double s = double( x ) / ( rb0.BufferWi - 1 );
+            rb0.SetPixel( x, y, pinwheelTransition( cb0, rb1, s, t, progress ) );
          }
       }, 25);
    }
@@ -1845,6 +1883,7 @@ static const std::string STR_BOW_TIE("Bow Tie");
 static const std::string STR_ZOOM("Zoom");
 static const std::string STR_DOORWAY("Doorway");
 static const std::string STR_BLOBS("Blobs");
+static const std::string STR_PINWHEEL("Pinwheel");
 
 static const std::string CHOICE_In_Transition_Type("CHOICE_In_Transition_Type");
 static const std::string CHOICE_Out_Transition_Type("CHOICE_Out_Transition_Type");
@@ -3341,7 +3380,7 @@ void PixelBufferClass::LayerInfo::createSlideBarsMask(bool out) {
 namespace
 {
    const std::vector<std::string> transitionNames = {
-       STR_FOLD, STR_DISSOLVE, STR_CIRCULAR_SWIRL, STR_BOW_TIE, STR_ZOOM, STR_DOORWAY, STR_BLOBS
+       STR_FOLD, STR_DISSOLVE, STR_CIRCULAR_SWIRL, STR_BOW_TIE, STR_ZOOM, STR_DOORWAY, STR_BLOBS, STR_PINWHEEL
    };
    bool nonMaskTransition( const std::string& transitionType )
    {
@@ -3372,6 +3411,8 @@ void PixelBufferClass::LayerInfo::renderTransitions(bool isFirstFrame, const Ren
                doorway( buffer, cb, prevRB, inMaskFactor );
             } else if ( inTransitionType == STR_BLOBS ) {
                blobs( buffer, cb, prevRB, inMaskFactor );
+            } else if ( inTransitionType == STR_PINWHEEL ) {
+               pinwheelTransition( buffer, cb, prevRB, inMaskFactor );
             }
         } else {
            calculateMask(inTransitionType, false, isFirstFrame);
@@ -3398,6 +3439,8 @@ void PixelBufferClass::LayerInfo::renderTransitions(bool isFirstFrame, const Ren
                doorway( buffer, cb, prevRB, outMaskFactor );
             } else if ( outTransitionType == STR_BLOBS ) {
                blobs( buffer, cb, prevRB, outMaskFactor );
+            } else if ( outTransitionType == STR_PINWHEEL ) {
+               pinwheelTransition( buffer, cb, prevRB, outMaskFactor );
             }
 
         } else {
