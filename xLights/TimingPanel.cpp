@@ -19,6 +19,9 @@
 #include "xLightsMain.h"
 #include "UtilFunctions.h"
 
+#include <algorithm>
+#include <vector>
+
 //(*IdInit(TimingPanel)
 const long TimingPanel::ID_CHECKBOX_ResetTimingPanel = wxNewId();
 const long TimingPanel::ID_CHECKBOX_LayerMorph = wxNewId();
@@ -432,73 +435,78 @@ wxString TimingPanel::GetTimingString()
 
 PANEL_EVENT_HANDLERS(TimingPanel)
 
+namespace
+{
+   const std::vector<wxString> transitions_noReverse =
+   {
+      "Fade",
+      "Slide Bars",
+      "Blend",
+      "Dissolve",
+      "Circular Swirl",
+      "Bow Tie",
+      "Zoom",
+      "Doorway",
+      "Blobs",
+      "Pinwheel"
+   };
+
+   const std::vector<wxString> transitions_noAdjust =
+   {
+      "Fade",
+      "Square Explode",
+      "Circle Explode",
+      "Fold",
+      "Dissolve",
+      "Circular Swirl",
+      "Bow Tie",
+      "Zoom",
+      "Doorway"
+   };
+}
+
 void TimingPanel::OnTransitionTypeSelect(wxCommandEvent& event)
 {
    auto inTransitionType = Choice_In_Transition_Type->GetStringSelection();
 
-   if (  inTransitionType == "Fade" ||
-         inTransitionType == "Slide Bars" ||
-         inTransitionType == "Blend" ||
-         inTransitionType == "Dissolve" ||
-         inTransitionType == "Circular Swirl" ||
-         inTransitionType == "Bow Tie" )
-   {
+   if ( std::find( transitions_noReverse.cbegin(), transitions_noReverse.cend(), inTransitionType ) != transitions_noReverse.cend() )
       CheckBox_In_Reverse->Disable();
-   }
    else
-   {
       CheckBox_In_Reverse->Enable();
-   }
 
-   if ( inTransitionType == "Fade" ||
-        inTransitionType == "Square Explode" ||
-        inTransitionType == "Circle Explode" ||
-        inTransitionType == "Fold" ||
-        inTransitionType == "Dissolve" ||
-        inTransitionType == "Circular Swirl" ||
-        inTransitionType == "Bow Tie" )
+   if ( std::find( transitions_noAdjust.cbegin(), transitions_noAdjust.cend(), inTransitionType ) != transitions_noAdjust.cend() )
    {
       Slider_In_Adjust->Disable();
+      BitmapButton_In_Transition_Adjust->Disable();
       TextCtrl_In_Adjust->Disable();
    }
    else
    {
       Slider_In_Adjust->Enable();
+      BitmapButton_In_Transition_Adjust->Enable();
       TextCtrl_In_Adjust->Enable();
    }
 
    auto outTransitionType = Choice_Out_Transition_Type->GetStringSelection();
 
-   if ( outTransitionType == "Fade" ||
-        outTransitionType == "Slide Bars" ||
-        outTransitionType == "Blend" ||
-        outTransitionType == "Dissolve" ||
-        outTransitionType == "Circular Swirl" ||
-        outTransitionType == "Bow Tie" )
-    {
-       CheckBox_Out_Reverse->Disable();
-    }
-    else
-    {
-       CheckBox_Out_Reverse->Enable();
-    }
+   if ( std::find( transitions_noReverse.cbegin(), transitions_noReverse.cend(), inTransitionType ) != transitions_noReverse.cend() )
+      CheckBox_Out_Reverse->Disable();
+   else
+      CheckBox_Out_Reverse->Enable();
 
-    if ( outTransitionType == "Fade" ||
-         outTransitionType == "Square Explode" ||
-         outTransitionType == "Circle Explode" ||
-         outTransitionType == "Fold" ||
-         outTransitionType == "Dissolve" ||
-         outTransitionType == "Circular Swirl" ||
-         outTransitionType == "Bow Tie" )
-    {
-       Slider_Out_Adjust->Disable();
-       TextCtrl_Out_Adjust->Disable();
-    }
-    else
-    {
-       Slider_Out_Adjust->Enable();
-       TextCtrl_Out_Adjust->Enable();
-    }
+
+   if ( std::find( transitions_noAdjust.cbegin(), transitions_noAdjust.cend(), inTransitionType ) != transitions_noAdjust.cend() )
+   {
+      Slider_Out_Adjust->Disable();
+      BitmapButton_Out_Transition_Adjust->Disable();
+      TextCtrl_Out_Adjust->Disable();
+   }
+   else
+   {
+      Slider_Out_Adjust->Enable();
+      BitmapButton_Out_Transition_Adjust->Enable();
+      TextCtrl_Out_Adjust->Enable();
+   }
 }
 
 void TimingPanel::OnCheckBox_ResetTimingPanelClick(wxCommandEvent& event)
