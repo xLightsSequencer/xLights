@@ -461,8 +461,7 @@ namespace
       "Circular Swirl",
       "Bow Tie",
       "Zoom",
-      "Doorway",
-      "Blobs"
+      "Doorway"
    };
 }
 

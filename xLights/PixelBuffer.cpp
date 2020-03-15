@@ -568,7 +568,6 @@ namespace
    }
 
    // code for blobs transition
-   const float blobsScale = 4.f;
    const float blobsSmoothness = 0.01f;
    const float blobsSeed = 12.9898f;
 
@@ -604,11 +603,11 @@ namespace
              (c - a) * u.y * ( 1.0 - u.x ) +
              (d - b) * u.x * u.y;
    }
-   xlColor blobs( const ColorBuffer& cb0, const RenderBuffer* rb1, double s, double t, double progress )
+   xlColor blobs( const ColorBuffer& cb0, const RenderBuffer* rb1, double s, double t, double progress, double scale )
    {
       xlColor fromColor( (rb1 == nullptr) ? xlBLACK : tex2D( *rb1, s, t ) );
       xlColor toColor( tex2D( cb0, s, t ) );
-      float n = blobsNoise( blobsScale * Vec2D( s, t ) );
+      float n = blobsNoise( scale * Vec2D( s, t ) );
 
       float p = lerp( -blobsSmoothness, 1.- + blobsSmoothness, progress );
       float lo = p - blobsSmoothness;
@@ -618,15 +617,16 @@ namespace
 
       return lerp( fromColor, toColor, 1.f - q );
    }
-   void blobs( RenderBuffer& rb0, const ColorBuffer& cb0, const RenderBuffer* rb1, double progress )
+   void blobs( RenderBuffer& rb0, const ColorBuffer& cb0, const RenderBuffer* rb1, double progress, int adjust )
    {
       if ( progress < 0. || progress > 1. )
          return;
-      parallel_for(0, rb0.BufferHt, [&rb0, &cb0, &rb1, progress](int y) {
+      double scale = interpolate( double( adjust ), 0., 4., 100., 14., LinearInterpolater() );
+      parallel_for(0, rb0.BufferHt, [&rb0, &cb0, &rb1, progress, scale](int y) {
          double t = double( y ) / ( rb0.BufferHt - 1 );
          for ( int x = 0; x < rb0.BufferWi; ++x ) {
             double s = double( x ) / ( rb0.BufferWi - 1 );
-            rb0.SetPixel( x, y, blobs( cb0, rb1, s, t, progress ) );
+            rb0.SetPixel( x, y, blobs( cb0, rb1, s, t, progress, scale ) );
          }
       }, 25);
    }
@@ -3411,7 +3411,10 @@ void PixelBufferClass::LayerInfo::renderTransitions(bool isFirstFrame, const Ren
             } else if ( inTransitionType == STR_DOORWAY ) {
                doorway( buffer, cb, prevRB, inMaskFactor );
             } else if ( inTransitionType == STR_BLOBS ) {
-               blobs( buffer, cb, prevRB, inMaskFactor );
+               int adjust = inTransitionAdjust;
+               if ( InTransitionAdjustValueCurve.IsActive() )
+                  adjust = static_cast<int>( InTransitionAdjustValueCurve.GetOutputValueAt( inMaskFactor, buffer.GetStartTimeMS(), buffer.GetEndTimeMS() ) );
+               blobs( buffer, cb, prevRB, inMaskFactor, adjust );
             } else if ( inTransitionType == STR_PINWHEEL ) {
                int adjust = inTransitionAdjust;
                if ( InTransitionAdjustValueCurve.IsActive() )
@@ -3442,7 +3445,10 @@ void PixelBufferClass::LayerInfo::renderTransitions(bool isFirstFrame, const Ren
             } else if ( outTransitionType == STR_DOORWAY ) {
                doorway( buffer, cb, prevRB, outMaskFactor );
             } else if ( outTransitionType == STR_BLOBS ) {
-               blobs( buffer, cb, prevRB, outMaskFactor );
+               int adjust = outTransitionAdjust;
+               if ( OutTransitionAdjustValueCurve.IsActive() )
+                  adjust = static_cast<int>( OutTransitionAdjustValueCurve.GetOutputValueAt( outMaskFactor, buffer.GetStartTimeMS(), buffer.GetEndTimeMS() ) );
+               blobs( buffer, cb, prevRB, outMaskFactor, adjust );
             } else if ( outTransitionType == STR_PINWHEEL ) {
                int adjust = outTransitionAdjust;
                if ( OutTransitionAdjustValueCurve.IsActive() )
