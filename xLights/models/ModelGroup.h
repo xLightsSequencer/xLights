@@ -26,6 +26,8 @@ class ModelGroup : public ModelWithScreenLocation<BoxedScreenLocation>
         bool SubModelRenamed(const std::string &oldName, const std::string &newName);
         void AddModel(const std::string &name);
         int GetGridSize() const;
+        int GetXCentreOffset() const;
+        int GetYCentreOffset() const;
 
         bool IsSelected() const { return selected;}
         const std::vector<std::string> &ModelNames() const { return modelNames;}

@@ -55,12 +55,16 @@ class ModelGroupPanel: public wxPanel
 		wxListCtrl* ListBoxAddToModelGroup;
 		wxListCtrl* ListBoxModelsInGroup;
 		wxSpinCtrl* SizeSpinCtrl;
+		wxSpinCtrl* SpinCtrl_XCentreOffset;
+		wxSpinCtrl* SpinCtrl_YCentreOffset;
 		wxStaticText* GridSizeLabel;
 		wxStaticText* LabelModelGroupName;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText2;
 		wxStaticText* StaticText3;
 		wxStaticText* StaticText5;
+		wxStaticText* StaticText7;
+		wxStaticText* StaticText8;
 		//*)
 
 	protected:
@@ -72,6 +76,10 @@ class ModelGroupPanel: public wxPanel
 		static const long ID_STATICTEXT4;
 		static const long ID_SPINCTRL1;
 		static const long ID_CHOICE_PREVIEWS;
+		static const long ID_STATICTEXT7;
+		static const long ID_SPINCTRL2;
+		static const long ID_STATICTEXT8;
+		static const long ID_SPINCTRL3;
 		static const long ID_CHECKBOX1;
 		static const long ID_CHECKBOX2;
 		static const long ID_STATICTEXT3;
@@ -109,6 +117,8 @@ class ModelGroupPanel: public wxPanel
 		void OnCheckBox_ShowModelGroupsClick(wxCommandEvent& event);
 		void OnListBoxModelsInGroupItemDeselect(wxListEvent& event);
 		void OnListBoxAddToModelGroupItemDeselect(wxListEvent& event);
+		void OnSpinCtrl_XCentreOffsetChange(wxSpinEvent& event);
+		void OnSpinCtrl_YCentreOffsetChange(wxSpinEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

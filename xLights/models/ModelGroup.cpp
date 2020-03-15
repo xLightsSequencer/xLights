@@ -289,6 +289,16 @@ int ModelGroup::GetGridSize() const
     return wxAtoi(ModelXml->GetAttribute("GridSize", "400"));
 }
 
+int ModelGroup::GetXCentreOffset() const
+{
+    return wxAtoi(ModelXml->GetAttribute("XCentreOffset", "0"));
+}
+
+int ModelGroup::GetYCentreOffset() const
+{
+    return wxAtoi(ModelXml->GetAttribute("YCentreOffset", "0"));
+}
+
 bool ModelGroup::Reset(bool zeroBased) {
     this->zeroBased = zeroBased;
     selected = false;
@@ -299,6 +309,8 @@ bool ModelGroup::Reset(bool zeroBased) {
 
     layout_group = ModelXml->GetAttribute("LayoutGroup", "Unassigned");
     int gridSize = wxAtoi(ModelXml->GetAttribute("GridSize", "400"));
+    int offsetX = wxAtoi(ModelXml->GetAttribute("XCentreOffset", "0"));
+    int offsetY = wxAtoi(ModelXml->GetAttribute("YCentreOffset", "0"));
     std::string layout = ModelXml->GetAttribute("layout", "minimalGrid").ToStdString();
     defaultBufferStyle = layout;
     if (layout.compare(0, 9, "Per Model") == 0) {
@@ -345,6 +357,8 @@ bool ModelGroup::Reset(bool zeroBased) {
         LoadRenderBufferNodes(c, "Per Preview No Offset", "2D", Nodes, bw, bh);
     }
 
+    bool minimal = layout != "grid";
+
     //now have all the nodes for all the models
     float minx = 99999;
     float maxx = -1;
@@ -363,6 +377,7 @@ bool ModelGroup::Reset(bool zeroBased) {
             minChan = it->ActChan;
         }
     }
+
     if (miny < 0) {
         for (const auto& it : Nodes) {
             for (auto& coord : it->Coords) {
@@ -382,8 +397,6 @@ bool ModelGroup::Reset(bool zeroBased) {
         minx = 0;
     }
 
-    bool minimal = layout != "grid";
-
     float midX = (minx + maxx) / 2.0;
     float midY = (miny + maxy) / 2.0;
     if (!minimal) {
@@ -392,6 +405,7 @@ bool ModelGroup::Reset(bool zeroBased) {
         maxx = std::max(maxx, (float)screenLocation.previewW);
         maxy = std::max(maxy, (float)screenLocation.previewH);
     }
+
     double hscale = gridSize / maxy;
     double wscale = gridSize / maxx;
     if (maxy < gridSize && maxx < gridSize) {
@@ -451,6 +465,24 @@ bool ModelGroup::Reset(bool zeroBased) {
     if (!minimal) {
         BufferHt = std::max(BufferHt,(int)((float)screenLocation.previewH * hscale));
         BufferWi = std::max(BufferWi,(int)((float)screenLocation.previewW * wscale));
+    }
+    else
+    {
+        int offx = (offsetX * BufferWi) / 100.0;
+        int offy = (offsetY * BufferHt) / 100.0;
+
+        BufferWi += std::abs(offx);
+        BufferHt += std::abs(offy);
+
+        if (offx > 0) offx = 0;
+        if (offy > 0) offy = 0;
+
+        for (const auto& it : Nodes) {
+            for (auto& coord : it->Coords) {
+                coord.bufX -= offx;
+                coord.bufY -= offy;
+            }
+        }
     }
 
     screenLocation.SetRenderSize(maxx - nminx + 1, maxy - nminy + 1);
@@ -944,7 +976,7 @@ void ModelGroup::InitRenderBufferNodes(const std::string &tp,
                 int cy = 0;
                 int cnt = 0;
                 //find the middle
-                for (int x = 0; x < c->GetNodeCount(); x++) {
+                for (size_t x = 0; x < c->GetNodeCount(); x++) {
                     for (auto &coord : Nodes[start + x]->Coords) {
                         cx += coord.bufX;
                         cy += coord.bufY;

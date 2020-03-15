@@ -307,7 +307,6 @@
     <ClCompile Include="ControllerConnectionDialog.cpp" />
     <ClCompile Include="ConvertDialog.cpp" />
     <ClCompile Include="ConvertLogDialog.cpp" />
-    <ClCompile Include="CurrentPreviewModels.cpp" />
     <ClCompile Include="CustomModelDialog.cpp" />
     <ClCompile Include="DataLayer.cpp" />
     <ClCompile Include="DimmingCurve.cpp" />
@@ -510,7 +509,6 @@
     <ClCompile Include="preferences\SequenceFileSettingsPanel.cpp" />
     <ClCompile Include="preferences\ViewSettingsPanel.cpp" />
     <ClCompile Include="preferences\xLightsPreferences.cpp" />
-    <ClCompile Include="PreviewModels.cpp" />
     <ClCompile Include="PreviewPane.cpp" />
     <ClCompile Include="RemapDMXChannelsDialog.cpp" />
     <ClCompile Include="RenameTextDialog.cpp" />
@@ -732,7 +730,6 @@
     <ClInclude Include="ControllerConnectionDialog.h" />
     <ClInclude Include="ConvertDialog.h" />
     <ClInclude Include="ConvertLogDialog.h" />
-    <ClInclude Include="CurrentPreviewModels.h" />
     <ClInclude Include="CustomModelDialog.h" />
     <ClInclude Include="DataLayer.h" />
     <ClInclude Include="DimmingCurve.h" />
@@ -924,7 +921,6 @@
     <ClInclude Include="preferences\RandomEffectsSettingsPanel.h" />
     <ClInclude Include="preferences\SequenceFileSettingsPanel.h" />
     <ClInclude Include="preferences\ViewSettingsPanel.h" />
-    <ClInclude Include="PreviewModels.h" />
     <ClInclude Include="PreviewPane.h" />
     <ClInclude Include="RemapDMXChannelsDialog.h" />
     <ClInclude Include="RenameTextDialog.h" />

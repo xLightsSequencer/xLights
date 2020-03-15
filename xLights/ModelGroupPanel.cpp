@@ -79,6 +79,10 @@ const long ModelGroupPanel::ID_CHOICE1 = wxNewId();
 const long ModelGroupPanel::ID_STATICTEXT4 = wxNewId();
 const long ModelGroupPanel::ID_SPINCTRL1 = wxNewId();
 const long ModelGroupPanel::ID_CHOICE_PREVIEWS = wxNewId();
+const long ModelGroupPanel::ID_STATICTEXT7 = wxNewId();
+const long ModelGroupPanel::ID_SPINCTRL2 = wxNewId();
+const long ModelGroupPanel::ID_STATICTEXT8 = wxNewId();
+const long ModelGroupPanel::ID_SPINCTRL3 = wxNewId();
 const long ModelGroupPanel::ID_CHECKBOX1 = wxNewId();
 const long ModelGroupPanel::ID_CHECKBOX2 = wxNewId();
 const long ModelGroupPanel::ID_STATICTEXT3 = wxNewId();
@@ -120,7 +124,7 @@ ModelGroupPanel::ModelGroupPanel(wxWindow* parent,ModelManager &Models,LayoutPan
 	StaticText5 = new wxStaticText(this, ID_STATICTEXT5, _("Model Group Name:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT5"));
 	FlexGridSizer6->Add(StaticText5, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	LabelModelGroupName = new wxStaticText(this, ID_STATICTEXT6, _("<group name>"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT6"));
-	FlexGridSizer6->Add(LabelModelGroupName, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer6->Add(LabelModelGroupName, 1, wxALL|wxEXPAND, 5);
 	StaticText4 = new wxStaticText(this, wxID_ANY, _("Default Layout Mode:"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
 	FlexGridSizer6->Add(StaticText4, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	ChoiceModelLayoutType = new wxChoice(this, ID_CHOICE1, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE1"));
@@ -144,11 +148,21 @@ ModelGroupPanel::ModelGroupPanel(wxWindow* parent,ModelManager &Models,LayoutPan
 	FlexGridSizer6->Add(GridSizeLabel, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	SizeSpinCtrl = new wxSpinCtrl(this, ID_SPINCTRL1, _T("400"), wxDefaultPosition, wxDefaultSize, 0, 10, 2000, 400, _T("ID_SPINCTRL1"));
 	SizeSpinCtrl->SetValue(_T("400"));
-	FlexGridSizer6->Add(SizeSpinCtrl, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 0);
+	FlexGridSizer6->Add(SizeSpinCtrl, 1, wxALL|wxEXPAND, 2);
 	StaticText6 = new wxStaticText(this, wxID_ANY, _("Preview:"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
 	FlexGridSizer6->Add(StaticText6, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	ChoicePreviews = new wxChoice(this, ID_CHOICE_PREVIEWS, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_PREVIEWS"));
-	FlexGridSizer6->Add(ChoicePreviews, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer6->Add(ChoicePreviews, 1, wxALL|wxEXPAND, 2);
+	StaticText7 = new wxStaticText(this, ID_STATICTEXT7, _("X Center Offset:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT7"));
+	FlexGridSizer6->Add(StaticText7, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 2);
+	SpinCtrl_XCentreOffset = new wxSpinCtrl(this, ID_SPINCTRL2, _T("0"), wxDefaultPosition, wxDefaultSize, 0, -100, 100, 0, _T("ID_SPINCTRL2"));
+	SpinCtrl_XCentreOffset->SetValue(_T("0"));
+	FlexGridSizer6->Add(SpinCtrl_XCentreOffset, 1, wxALL|wxEXPAND, 2);
+	StaticText8 = new wxStaticText(this, ID_STATICTEXT8, _("Y Center Offset:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT8"));
+	FlexGridSizer6->Add(StaticText8, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 2);
+	SpinCtrl_YCentreOffset = new wxSpinCtrl(this, ID_SPINCTRL3, _T("0"), wxDefaultPosition, wxDefaultSize, 0, -100, 100, 0, _T("ID_SPINCTRL3"));
+	SpinCtrl_YCentreOffset->SetValue(_T("0"));
+	FlexGridSizer6->Add(SpinCtrl_YCentreOffset, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer6->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	CheckBox_ShowSubmodels = new wxCheckBox(this, ID_CHECKBOX1, _("Show submodels to add"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
 	CheckBox_ShowSubmodels->SetValue(true);
@@ -196,6 +210,8 @@ ModelGroupPanel::ModelGroupPanel(wxWindow* parent,ModelManager &Models,LayoutPan
 	Connect(ID_CHOICE1,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&ModelGroupPanel::OnChoiceModelLayoutTypeSelect);
 	Connect(ID_SPINCTRL1,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&ModelGroupPanel::OnSizeSpinCtrlChange);
 	Connect(ID_CHOICE_PREVIEWS,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&ModelGroupPanel::OnChoicePreviewsSelect);
+	Connect(ID_SPINCTRL2,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&ModelGroupPanel::OnSpinCtrl_XCentreOffsetChange);
+	Connect(ID_SPINCTRL3,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&ModelGroupPanel::OnSpinCtrl_YCentreOffsetChange);
 	Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ModelGroupPanel::OnCheckBox_ShowSubmodelsClick);
 	Connect(ID_CHECKBOX2,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ModelGroupPanel::OnCheckBox_ShowModelGroupsClick);
 	Connect(ID_LISTCTRL1,wxEVT_COMMAND_LIST_BEGIN_DRAG,(wxObjectEventFunction)&ModelGroupPanel::OnListBoxAddToModelGroupBeginDrag);
@@ -359,6 +375,8 @@ void ModelGroupPanel::UpdatePanel(const std::string group)
             }
         }
         SizeSpinCtrl->SetValue(wxAtoi(e->GetAttribute("GridSize", "400")));
+        SpinCtrl_XCentreOffset->SetValue(wxAtoi(e->GetAttribute("XCentreOffset", "0")));
+        SpinCtrl_YCentreOffset->SetValue(wxAtoi(e->GetAttribute("YCentreOffset", "0")));
     }
 
     ResizeColumns();
@@ -391,6 +409,7 @@ void ModelGroupPanel::ResizeColumns()
 void ModelGroupPanel::OnChoiceModelLayoutTypeSelect(wxCommandEvent& event)
 {
     SaveGroupChanges();
+    ValidateWindow();
 }
 
 void ModelGroupPanel::OnButtonAddToModelGroupClick(wxCommandEvent& event)
@@ -520,6 +539,13 @@ void ModelGroupPanel::SaveGroupChanges()
     e->DeleteAttribute("GridSize");
     e->DeleteAttribute("layout");
     e->AddAttribute("GridSize", wxString::Format("%d", SizeSpinCtrl->GetValue()));
+    e->DeleteAttribute("XCentreOffset");
+    e->DeleteAttribute("YCentreOffset");
+    if (ChoiceModelLayoutType->GetSelection() == 1)
+    {
+        e->AddAttribute("XCentreOffset", wxString::Format("%d", SpinCtrl_XCentreOffset->GetValue()));
+        e->AddAttribute("YCentreOffset", wxString::Format("%d", SpinCtrl_YCentreOffset->GetValue()));
+    }
     switch (ChoiceModelLayoutType->GetSelection()) {
     case 0:
         e->AddAttribute("layout", "grid");
@@ -777,6 +803,17 @@ bool ModelGroupPanel::IsItemSelected(wxListCtrl* ctrl, int item)
 
 void ModelGroupPanel::ValidateWindow()
 {
+    if (ChoiceModelLayoutType->GetStringSelection() == "Minimal Grid")
+    {
+        SpinCtrl_XCentreOffset->Enable(true);
+        SpinCtrl_YCentreOffset->Enable(true);
+    }
+    else
+    {
+        SpinCtrl_XCentreOffset->Enable(false);
+        SpinCtrl_YCentreOffset->Enable(false);
+    }
+
     if (ListBoxAddToModelGroup->GetSelectedItemCount() == 0)
     {
         ButtonAddModel->Enable(false);
@@ -986,4 +1023,14 @@ void ModelGroupPanel::OnListBoxModelsInGroupItemDeselect(wxListEvent& event)
 void ModelGroupPanel::OnListBoxAddToModelGroupItemDeselect(wxListEvent& event)
 {
     ValidateWindow();
+}
+
+void ModelGroupPanel::OnSpinCtrl_XCentreOffsetChange(wxSpinEvent& event)
+{
+    SaveGroupChanges();
+}
+
+void ModelGroupPanel::OnSpinCtrl_YCentreOffsetChange(wxSpinEvent& event)
+{
+    SaveGroupChanges();
 }

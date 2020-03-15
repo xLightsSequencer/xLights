@@ -26,7 +26,6 @@
     <ClCompile Include="ControllerConnectionDialog.cpp" />
     <ClCompile Include="ConvertDialog.cpp" />
     <ClCompile Include="ConvertLogDialog.cpp" />
-    <ClCompile Include="CurrentPreviewModels.cpp" />
     <ClCompile Include="DataLayer.cpp" />
     <ClCompile Include="DimmingCurve.cpp" />
     <ClCompile Include="DimmingCurvePanel.cpp" />
@@ -82,7 +81,6 @@
     <ClCompile Include="PerspectivesPanel.cpp" />
     <ClCompile Include="PhonemeDictionary.cpp" />
     <ClCompile Include="PixelBuffer.cpp" />
-    <ClCompile Include="PreviewModels.cpp" />
     <ClCompile Include="PreviewPane.cpp" />
     <ClCompile Include="RenameTextDialog.cpp" />
     <ClCompile Include="Render.cpp" />
@@ -850,7 +848,6 @@
     <ClInclude Include="ControllerConnectionDialog.h" />
     <ClInclude Include="ConvertDialog.h" />
     <ClInclude Include="ConvertLogDialog.h" />
-    <ClInclude Include="CurrentPreviewModels.h" />
     <ClInclude Include="DataLayer.h" />
     <ClInclude Include="DimmingCurve.h" />
     <ClInclude Include="DimmingCurvePanel.h" />
@@ -894,7 +891,6 @@
     <ClInclude Include="PerspectivesPanel.h" />
     <ClInclude Include="PhonemeDictionary.h" />
     <ClInclude Include="PixelBuffer.h" />
-    <ClInclude Include="PreviewModels.h" />
     <ClInclude Include="PreviewPane.h" />
     <ClInclude Include="RenameTextDialog.h" />
     <ClInclude Include="RenderBuffer.h" />
