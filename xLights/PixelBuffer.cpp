@@ -429,7 +429,7 @@ namespace
       lineDir = bot2 - top;
       perpDir = Vec2D( lineDir.y, -lineDir.x );
       dirToPt1 = bot2 - testPt;
-      double min_dist = std::min( fabs( dot( perpDir.Norm(), dirToPt1 ) ), dist1 );
+      double min_dist = std::min( std::fabs( dot( perpDir.Norm(), dirToPt1 ) ), dist1 );
 
       return (min_dist < 0.005) ? min_dist / 0.005 : 1.0;
 
@@ -636,7 +636,7 @@ namespace
    {
       return ( v == 0. ) ? 0. : ( ( v < 0. ) ? -1. : 1. );
    }
-   xlColor pinwheelTransition( const ColorBuffer& cb0, const RenderBuffer* rb1, double s, double t, double progress )
+   xlColor pinwheelTransition( const ColorBuffer& cb0, const RenderBuffer* rb1, double s, double t, double progress, double wheelAdjust )
    {
       const double speed = 2.;
 
@@ -648,22 +648,23 @@ namespace
          x = -x;
       }
       double circPos = std::atan2( y, x ) + progress * speed;
-      double modPos = std::fmod( circPos, PI / 4. );
+      double modPos = std::fmod( circPos, PI / wheelAdjust );
       double signedVal = sign( progress - modPos );
 
       return ( signedVal < 0.5 )
          ? ( (rb1 == nullptr) ? xlBLACK : tex2D( *rb1, s, t ) )
          : tex2D( cb0, s, t );
    }
-   void pinwheelTransition( RenderBuffer& rb0, const ColorBuffer& cb0, const RenderBuffer* rb1, double progress )
+   void pinwheelTransition( RenderBuffer& rb0, const ColorBuffer& cb0, const RenderBuffer* rb1, double progress, int wheelAdjust )
    {
       if ( progress < 0. || progress > 1. )
          return;
-      parallel_for(0, rb0.BufferHt, [&rb0, &cb0, &rb1, progress](int y) {
+      double adjust = 0.10 * wheelAdjust;
+      parallel_for(0, rb0.BufferHt, [&rb0, &cb0, &rb1, progress, adjust](int y) {
          double t = double( y ) / ( rb0.BufferHt - 1 );
          for ( int x = 0; x < rb0.BufferWi; ++x ) {
             double s = double( x ) / ( rb0.BufferWi - 1 );
-            rb0.SetPixel( x, y, pinwheelTransition( cb0, rb1, s, t, progress ) );
+            rb0.SetPixel( x, y, pinwheelTransition( cb0, rb1, s, t, progress, adjust ) );
          }
       }, 25);
    }
@@ -3412,7 +3413,10 @@ void PixelBufferClass::LayerInfo::renderTransitions(bool isFirstFrame, const Ren
             } else if ( inTransitionType == STR_BLOBS ) {
                blobs( buffer, cb, prevRB, inMaskFactor );
             } else if ( inTransitionType == STR_PINWHEEL ) {
-               pinwheelTransition( buffer, cb, prevRB, inMaskFactor );
+               int adjust = inTransitionAdjust;
+               if ( InTransitionAdjustValueCurve.IsActive() )
+                  adjust = static_cast<int>( InTransitionAdjustValueCurve.GetOutputValueAt( inMaskFactor, buffer.GetStartTimeMS(), buffer.GetEndTimeMS() ) );
+               pinwheelTransition( buffer, cb, prevRB, inMaskFactor, adjust );
             }
         } else {
            calculateMask(inTransitionType, false, isFirstFrame);
@@ -3440,7 +3444,10 @@ void PixelBufferClass::LayerInfo::renderTransitions(bool isFirstFrame, const Ren
             } else if ( outTransitionType == STR_BLOBS ) {
                blobs( buffer, cb, prevRB, outMaskFactor );
             } else if ( outTransitionType == STR_PINWHEEL ) {
-               pinwheelTransition( buffer, cb, prevRB, outMaskFactor );
+               int adjust = outTransitionAdjust;
+               if ( OutTransitionAdjustValueCurve.IsActive() )
+                  adjust = static_cast<int>( OutTransitionAdjustValueCurve.GetOutputValueAt( outMaskFactor, buffer.GetStartTimeMS(), buffer.GetEndTimeMS() ) );
+               pinwheelTransition( buffer, cb, prevRB, outMaskFactor, adjust );
             }
 
         } else {
