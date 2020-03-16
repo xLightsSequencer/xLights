@@ -155,12 +155,12 @@ ModelGroupPanel::ModelGroupPanel(wxWindow* parent,ModelManager &Models,LayoutPan
 	FlexGridSizer6->Add(ChoicePreviews, 1, wxALL|wxEXPAND, 2);
 	StaticText7 = new wxStaticText(this, ID_STATICTEXT7, _("X Center Offset:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT7"));
 	FlexGridSizer6->Add(StaticText7, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 2);
-	SpinCtrl_XCentreOffset = new wxSpinCtrl(this, ID_SPINCTRL2, _T("0"), wxDefaultPosition, wxDefaultSize, 0, -100, 100, 0, _T("ID_SPINCTRL2"));
+	SpinCtrl_XCentreOffset = new wxSpinCtrl(this, ID_SPINCTRL2, _T("0"), wxDefaultPosition, wxDefaultSize, 0, -1000, 1000, 0, _T("ID_SPINCTRL2"));
 	SpinCtrl_XCentreOffset->SetValue(_T("0"));
 	FlexGridSizer6->Add(SpinCtrl_XCentreOffset, 1, wxALL|wxEXPAND, 2);
 	StaticText8 = new wxStaticText(this, ID_STATICTEXT8, _("Y Center Offset:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT8"));
 	FlexGridSizer6->Add(StaticText8, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 2);
-	SpinCtrl_YCentreOffset = new wxSpinCtrl(this, ID_SPINCTRL3, _T("0"), wxDefaultPosition, wxDefaultSize, 0, -100, 100, 0, _T("ID_SPINCTRL3"));
+	SpinCtrl_YCentreOffset = new wxSpinCtrl(this, ID_SPINCTRL3, _T("0"), wxDefaultPosition, wxDefaultSize, 0, -1000, 1000, 0, _T("ID_SPINCTRL3"));
 	SpinCtrl_YCentreOffset->SetValue(_T("0"));
 	FlexGridSizer6->Add(SpinCtrl_YCentreOffset, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer6->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);

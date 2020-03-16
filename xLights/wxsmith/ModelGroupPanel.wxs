@@ -111,7 +111,8 @@
 							<object class="sizeritem">
 								<object class="wxSpinCtrl" name="ID_SPINCTRL2" variable="SpinCtrl_XCentreOffset" member="yes">
 									<value>0</value>
-									<min>-100</min>
+									<min>-1000</min>
+									<max>1000</max>
 									<handler function="OnSpinCtrl_XCentreOffsetChange" entry="EVT_SPINCTRL" />
 								</object>
 								<flag>wxALL|wxEXPAND</flag>
@@ -129,7 +130,8 @@
 							<object class="sizeritem">
 								<object class="wxSpinCtrl" name="ID_SPINCTRL3" variable="SpinCtrl_YCentreOffset" member="yes">
 									<value>0</value>
-									<min>-100</min>
+									<min>-1000</min>
+									<max>1000</max>
 									<handler function="OnSpinCtrl_YCentreOffsetChange" entry="EVT_SPINCTRL" />
 								</object>
 								<flag>wxALL|wxEXPAND</flag>

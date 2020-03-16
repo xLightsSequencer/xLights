@@ -468,8 +468,8 @@ bool ModelGroup::Reset(bool zeroBased) {
     }
     else
     {
-        int offx = (offsetX * BufferWi) / 100.0;
-        int offy = (offsetY * BufferHt) / 100.0;
+        int offx = (offsetX * BufferWi) / 1000;
+        int offy = (offsetY * BufferHt) / 1000;
 
         BufferWi += std::abs(offx);
         BufferHt += std::abs(offy);
