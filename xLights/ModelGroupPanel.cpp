@@ -908,7 +908,7 @@ void ModelGroupPanel::RemoveSelectedModels()
             Model* model = mModels[modelName];
             if (model != nullptr) {
                 if ((model->GetDisplayAs() == "ModelGroup" && !CheckBox_ShowModelGroups->GetValue()) ||
-                    (model->GetDisplayAs() == "SubModel" & !CheckBox_ShowSubmodels->GetValue()))
+                    (model->GetDisplayAs() == "SubModel" && !CheckBox_ShowSubmodels->GetValue()))
                 {
                     // these should not be moved
                 }
