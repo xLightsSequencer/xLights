@@ -738,7 +738,11 @@ bool ControllerEthernet::HandlePropertyEvent(wxPropertyGridEvent& event, OutputM
         // Let user stop this if they didnt understand the implications
         if (!_forceSizes && !AllSameSize())
         {
-            if (wxMessageBox(wxString::Format("Are you sure you want to set all universes to %ld channels?", (long)_outputs.front()->GetChannels()), "Confirm resize?", wxICON_QUESTION | wxYES_NO) != wxYES) return true;
+            if (wxMessageBox(wxString::Format("Are you sure you want to set all universes to %ld channels?", (long)_outputs.front()->GetChannels()), "Confirm resize?", wxICON_QUESTION | wxYES_NO) != wxYES)
+            {
+                event.GetProperty()->SetValue(wxVariant(true));
+                return true;
+            }
         }
 
         if (!_forceSizes) {
