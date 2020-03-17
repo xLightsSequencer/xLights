@@ -125,4 +125,30 @@
 			<SupportsMultipleSimultaneousOutputProtocols/>
 		</Variant>
 	</Controller>
+	<Controller Name="E680">
+		<Variant Name="">
+			<SupportsPixelPortNullPixels/>
+			<SupportsPixelPortGrouping/>
+			<SupportsPixelPortDirection/>
+			<SupportsPixelPortColourOrder/>
+			<SupportsAutoLayout/>
+			<MaxInputUniverses>4</MaxInputUniverses>
+			<MaxPixelPort>16</MaxPixelPort>
+			<MaxSerialPort>0</MaxSerialPort>
+			<MaxSerialPortChannels>0</MaxSerialPortChannels>
+			<MaxPixelPortChannels>510</MaxPixelPortChannels>
+			<PixelProtocols>
+				<Protocol>ws2811</Protocol>
+				<Protocol>tm18xx</Protocol>
+				<Protocol>lpd6803</Protocol>
+				<Protocol>ws2801</Protocol>
+				<Protocol>tls3001</Protocol>
+				<Protocol>gece</Protocol>
+			</PixelProtocols>
+			<SerialProtocols/>
+			<InputProtocols>
+				<Protocol>e131</Protocol>
+			</InputProtocols>
+		</Variant>
+	</Controller>
 </Vendor>
