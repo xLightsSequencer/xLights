@@ -475,8 +475,6 @@
 		<Unit filename="ConvertDialog.h" />
 		<Unit filename="ConvertLogDialog.cpp" />
 		<Unit filename="ConvertLogDialog.h" />
-		<Unit filename="CurrentPreviewModels.cpp" />
-		<Unit filename="CurrentPreviewModels.h" />
 		<Unit filename="CustomModelDialog.cpp" />
 		<Unit filename="CustomModelDialog.h" />
 		<Unit filename="CustomTimingDialog.cpp" />
@@ -616,8 +614,6 @@
 		<Unit filename="PixelTestDialog.cpp" />
 		<Unit filename="PixelTestDialog.h" />
 		<Unit filename="PlayerFrame.h" />
-		<Unit filename="PreviewModels.cpp" />
-		<Unit filename="PreviewModels.h" />
 		<Unit filename="PreviewPane.cpp" />
 		<Unit filename="PreviewPane.h" />
 		<Unit filename="RemapDMXChannelsDialog.cpp" />
