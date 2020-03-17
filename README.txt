@@ -11,7 +11,15 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2020.10 March 17 2020
    -- enh (kevin)  Add five new transitions for matrices / high-density props
+   -- enh (keith)  Add SanDevices E680 to controller options ... but no upload
+   -- enh (keith)  Add ability to set the centre point for minimal grid model groups
+   -- enh (keith)  Add the ability to generate submodels from 3D custom model slices
+   -- enh (keith)  Add the ability to suppress model groups when defining model groups
+   -- enh (keith)  Add ability to render and export models just for selected effect range
+   -- bug (keith)  Fix controlle port range set to serial range when port is currently set to 0
+   -- bug (keith)  More fixes to handle leading/trailing spaces in model names
 2020.9 March 9 2020
    -- enh (keith)  Where model knows the controller it is on apply controller limitations to the model properties
    -- enh (keith)  Copy backup folder options into the preferences tab for backup
