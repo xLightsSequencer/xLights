@@ -289,8 +289,6 @@
 		676639D22090B50F009D2401 /* IPEntryDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67E8F64E1E513B380096546A /* IPEntryDialog.cpp */; };
 		676639D32090B52F009D2401 /* UtilFunctions.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3D585F301E7E541400A3F84F /* UtilFunctions.cpp */; };
 		6767C51A1CE7EC3B003B3F6E /* xLightsTimer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6767C5181CE7EC3B003B3F6E /* xLightsTimer.cpp */; };
-		67694F1B1A069BBE0030D020 /* CurrentPreviewModels.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67694F181A069BBE0030D020 /* CurrentPreviewModels.cpp */; };
-		67694F1C1A069BBE0030D020 /* PreviewModels.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67694F191A069BBE0030D020 /* PreviewModels.cpp */; };
 		67694F1F1A0729220030D020 /* ModelPreview.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67694F1E1A0729220030D020 /* ModelPreview.cpp */; };
 		676AE41C201BDB6200EA14F8 /* SelectTimingsDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 676AE41B201BDB6200EA14F8 /* SelectTimingsDialog.cpp */; };
 		676C5EAB1C99D6D20031A033 /* liblog4cpp.5.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 676C5EAA1C99D6D20031A033 /* liblog4cpp.5.dylib */; };
@@ -1400,8 +1398,6 @@
 		676603901D01CA2400589601 /* FillPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = FillPanel.h; path = effects/FillPanel.h; sourceTree = "<group>"; };
 		6767C5181CE7EC3B003B3F6E /* xLightsTimer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = xLightsTimer.cpp; sourceTree = "<group>"; };
 		6767C5191CE7EC3B003B3F6E /* xLightsTimer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = xLightsTimer.h; sourceTree = "<group>"; };
-		67694F181A069BBE0030D020 /* CurrentPreviewModels.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CurrentPreviewModels.cpp; sourceTree = "<group>"; };
-		67694F191A069BBE0030D020 /* PreviewModels.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PreviewModels.cpp; sourceTree = "<group>"; };
 		67694F1E1A0729220030D020 /* ModelPreview.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ModelPreview.cpp; sourceTree = "<group>"; };
 		676AE41A201BDB6200EA14F8 /* SelectTimingsDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SelectTimingsDialog.h; sourceTree = "<group>"; };
 		676AE41B201BDB6200EA14F8 /* SelectTimingsDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SelectTimingsDialog.cpp; sourceTree = "<group>"; };
@@ -3299,7 +3295,6 @@
 				6719BF4E1CCB1DAB00899A4B /* ConvertDialog.h */,
 				6719BF4F1CCB1DAB00899A4B /* ConvertLogDialog.cpp */,
 				6719BF501CCB1DAB00899A4B /* ConvertLogDialog.h */,
-				67694F181A069BBE0030D020 /* CurrentPreviewModels.cpp */,
 				675AC53C1C987AA700C4AFE9 /* CustomModelDialog.cpp */,
 				675AC53B1C987AA700C4AFE9 /* CustomModelDialog.h */,
 				67A4E02A1E85AF1E00EBFAD9 /* CustomTimingDialog.cpp */,
@@ -3418,7 +3413,6 @@
 				67B6F3242040BF6C00B847E0 /* PixelTestDialog.cpp */,
 				67B6F3232040BF6C00B847E0 /* PixelTestDialog.h */,
 				67FC87FF23D6410400D457CB /* preferences */,
-				67694F191A069BBE0030D020 /* PreviewModels.cpp */,
 				675D1E921D0B54B800CC6C02 /* PreviewPane.cpp */,
 				675D1E941D0B54B800CC6C02 /* PreviewPane.h */,
 				67B61E7E21FEF3A800BCB000 /* RemapDMXChannelsDialog.cpp */,
@@ -4324,7 +4318,6 @@
 				67503CB123C3261F0033449B /* ViewObjectManager.cpp in Sources */,
 				676CFAF3207D2BBE002EB5E7 /* jsonreader.cpp in Sources */,
 				67503C9123C3261F0033449B /* MatrixModel.cpp in Sources */,
-				67694F1B1A069BBE0030D020 /* CurrentPreviewModels.cpp in Sources */,
 				67D5DEE81F792B19002BB5F6 /* SplashDialog.cpp in Sources */,
 				67B2CFDC1C3A186A003C17CA /* TreeEffect.cpp in Sources */,
 				67503C9B23C3261F0033449B /* DmxMovingHead.cpp in Sources */,
@@ -4381,7 +4374,6 @@
 				67C33C3722A7EA05001F9944 /* ShaderEffect.cpp in Sources */,
 				67B2CF901C39D98A003C17CA /* ColorWashPanel.cpp in Sources */,
 				67503C9D23C3261F0033449B /* DmxSkulltronix.cpp in Sources */,
-				67694F1C1A069BBE0030D020 /* PreviewModels.cpp in Sources */,
 				67CA858018BE86B800A6268C /* heartbeat.cpp in Sources */,
 				67476D22221313990071492C /* LinesEffect.cpp in Sources */,
 				679484AD1CD8E998001A7B4F /* GenerateCustomModelDialog.cpp in Sources */,
