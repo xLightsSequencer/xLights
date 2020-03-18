@@ -833,8 +833,6 @@ void Model::AddControllerProperties(wxPropertyGridInterface *grid) {
         sp->SetEditor("SpinCtrl");
     } else if (IsPixelProtocol(protocol)) {
 
-        auto caps = GetControllerCaps();
-
         if (caps == nullptr || caps->SupportsPixelPortNullPixels())
         {
             sp = grid->AppendIn(p, new wxBoolProperty("Set Null Pixels", "ModelControllerConnectionPixelSetNullNodes", node->HasAttribute("nullNodes")));
@@ -5457,6 +5455,26 @@ void Model::SetControllerPort(int port)
     //AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "Model::SetControllerPort");
     AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "Model::SetControllerPort");
     IncrementChangeCount();
+}
+
+void Model::SetControllerBrightness(int brightness)
+{
+    if (brightness == wxAtoi(ModelXml->GetAttribute("brightness", "-1"))) return;
+
+    GetControllerConnection()->DeleteAttribute("brightness");
+
+    GetControllerConnection()->AddAttribute("brightness", wxString::Format("%d", brightness));
+
+    AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::SetConnectionPixelBrightness");
+    AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "Model::SetConnectionPixelBrightness");
+    AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Model::SetConnectionBrightness");
+    AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "Model::SetConnectionBrightness");
+    IncrementChangeCount();
+}
+
+int Model::GetControllerBrightness() const
+{
+    return wxAtoi(GetControllerConnection()->GetAttribute("brightness", "100"));
 }
 
 std::string Model::GetControllerName() const

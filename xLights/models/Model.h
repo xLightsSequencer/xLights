@@ -247,8 +247,10 @@ public:
     void SetControllerName(const std::string& controllerName);
     void SetControllerProtocol(const std::string& protocol);
     void SetControllerPort(int port);
+    void SetControllerBrightness(int brightness);
     std::string GetControllerName() const;
     std::string GetControllerProtocol() const;
+    int GetControllerBrightness() const;
     int GetControllerDMXChannel() const;
     int GetSmartRemote() const;
     int GetControllerPort(int string = 1) const;

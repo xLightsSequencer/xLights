@@ -56,6 +56,7 @@ const long ControllerModelDialog::CONTROLLER_SMARTREMOTE_B = wxNewId();
 const long ControllerModelDialog::CONTROLLER_SMARTREMOTE_C = wxNewId();
 const long ControllerModelDialog::CONTROLLER_DMXCHANNEL = wxNewId();
 const long ControllerModelDialog::CONTROLLER_PROTOCOL = wxNewId();
+const long ControllerModelDialog::CONTROLLER_BRIGHTNESS = wxNewId();
 
 BEGIN_EVENT_TABLE(ControllerModelDialog,wxDialog)
 	//(*EventTable(ControllerModelDialog)
@@ -516,17 +517,26 @@ public:
         dc.SetTextForeground(origText);
     }
     virtual void AddRightClickMenu(wxMenu& mnu) override {
-        if (_caps != nullptr && _caps->SupportsSmartRemotes() && GetModel() != nullptr  && GetModel()->IsPixelProtocol()) {
-            mnu.AppendSeparator();
-            int sr = GetModel()->GetSmartRemote();
-            auto mi = mnu.AppendRadioItem(ControllerModelDialog::CONTROLLER_SMARTREMOTE_None, "None");
-            mi->Check(sr == 0);
-            mi = mnu.AppendRadioItem(ControllerModelDialog::CONTROLLER_SMARTREMOTE_A, "*A*->b->c");
-            mi->Check(sr == 1);
-            mi = mnu.AppendRadioItem(ControllerModelDialog::CONTROLLER_SMARTREMOTE_B, "*a*->B->c");
-            mi->Check(sr == 2);
-            mi = mnu.AppendRadioItem(ControllerModelDialog::CONTROLLER_SMARTREMOTE_C, "*a*->b->C");
-            mi->Check(sr == 3);
+        if (_caps != nullptr && GetModel() != nullptr && GetModel()->IsPixelProtocol()) 
+        {
+            if(_caps->SupportsSmartRemotes())
+            {
+                mnu.AppendSeparator();
+                int sr = GetModel()->GetSmartRemote();
+                auto mi = mnu.AppendRadioItem(ControllerModelDialog::CONTROLLER_SMARTREMOTE_None, "None");
+                mi->Check(sr == 0);
+                mi = mnu.AppendRadioItem(ControllerModelDialog::CONTROLLER_SMARTREMOTE_A, "*A*->b->c");
+                mi->Check(sr == 1);
+                mi = mnu.AppendRadioItem(ControllerModelDialog::CONTROLLER_SMARTREMOTE_B, "a->*B*->c");
+                mi->Check(sr == 2);
+                mi = mnu.AppendRadioItem(ControllerModelDialog::CONTROLLER_SMARTREMOTE_C, "a->b->*C*");
+                mi->Check(sr == 3);
+            }
+            if (_caps->SupportsPixelPortBrightness())
+            {
+                mnu.AppendSeparator();
+                mnu.Append(ControllerModelDialog::CONTROLLER_BRIGHTNESS, "Set Brightness");
+            }
         }
         else if (GetModel() != nullptr && GetModel()->IsSerialProtocol()) {
             mnu.AppendSeparator();
@@ -556,6 +566,13 @@ public:
             wxNumberEntryDialog dlg(parent, "Enter the DMX channel", "Channel", "DMX Channel", GetModel()->GetControllerDMXChannel(), 1, 512);
             if (dlg.ShowModal() == wxID_OK) {
                 GetModel()->SetControllerDMXChannel(dlg.GetValue());
+            }
+            return true;
+        }
+        if (id == ControllerModelDialog::CONTROLLER_BRIGHTNESS) {
+            wxNumberEntryDialog dlg(parent, "Enter the Model Brightness", "Brightness", "Model Brightness", GetModel()->GetControllerBrightness(), 0, 100);
+            if (dlg.ShowModal() == wxID_OK) {
+                GetModel()->SetControllerBrightness(dlg.GetValue());
             }
             return true;
         }
@@ -1474,7 +1491,7 @@ std::string ControllerModelDialog::GetModelTooltip(ModelCMObject* mob)
         sr = "error";
         break;
     }
-    _xLights->GetControllerDetailsForChannel(m->GetFirstChannel()+1, controllerName, type, protocol, description,
+    _xLights->GetControllerDetailsForChannel(m->GetFirstChannel() + 1, controllerName, type, protocol, description,
                                              channelOffset, ip, universe, inactive, baud, startUniverse, endUniverse);
 
     std::string dmx;
