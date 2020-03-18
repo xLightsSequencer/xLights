@@ -430,7 +430,7 @@ wxArrayString Model::GetLayoutGroups(const ModelManager& mm)
 
 void Model::Rename(std::string newName)
 {
-    name = newName;
+    name = Trim(newName);
     ModelXml->DeleteAttribute("name");
     ModelXml->AddAttribute("name", name);
 }
@@ -3732,7 +3732,7 @@ bool Model::ParseStateElement(const std::string& multi_str, std::vector<wxPoint>
 
 void Model::ExportAsCustomXModel() const {
 
-    wxString name = ModelXml->GetAttribute("name");
+    wxString name = ModelXml->GetAttribute("name").Trim(true).Trim(false);
     wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
     wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, name, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
 

@@ -302,7 +302,7 @@ int ModelGroup::GetYCentreOffset() const
 bool ModelGroup::Reset(bool zeroBased) {
     this->zeroBased = zeroBased;
     selected = false;
-    name = ModelXml->GetAttribute("name").ToStdString();
+    name = ModelXml->GetAttribute("name").Trim(true).Trim(false).ToStdString();
 
     DisplayAs = "ModelGroup";
     StringType = "RGB Nodes";

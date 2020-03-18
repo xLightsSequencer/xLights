@@ -205,14 +205,15 @@ inline std::string Trim(const std::string& input)
     return input.substr(firstnonblank, lastnonblank - firstnonblank + 1);
 }
 
-static inline double toRadians(float degrees) 
+static inline double toRadians(float degrees)
 {
-    return 2.0*M_PI*double(degrees) / 360.0;
+    return 2.0 * M_PI * double(degrees) / 360.0;
 }
 
 static inline double toDegrees(double radians) {
-    return (radians / (2 * M_PI))*360.0;
+    return (radians / (2 * M_PI)) * 360.0;
 }
+
 bool IsExcessiveMemoryUsage(double physicalMultiplier = 0.95);
 std::list<std::string> GetLocalIPs();
 

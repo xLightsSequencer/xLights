@@ -302,10 +302,6 @@ int CandyCaneModel::CalcCannelsPerString() {
     return GetNodeChannelCount(StringType) * parm2;
 }
 
-static inline double toRadians(float degrees) {
-    return 2.0*M_PI*double(degrees)/360.0;
-}
-
 static void rotate_point(float cx,float cy, float angle, float &x, float &y)
 {
     float s = sin(angle);

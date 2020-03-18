@@ -9,6 +9,7 @@
 #include "ModelScreenLocation.h"
 #include "../Color.h"
 #include "BaseObject.h"
+#include "../UtilFunctions.h"
 #include <wx/gdicmn.h>
 
 class wxProgressDialog;
@@ -24,7 +25,6 @@ class xLightsFrame;
 class OutputManager;
 class wxPGProperty;
 class ControllerCaps;
-
 class NodeBaseClass;
 typedef std::unique_ptr<NodeBaseClass> NodeBaseClassPtr;
 
@@ -55,7 +55,7 @@ public:
     static wxArrayString GetLayoutGroups(const ModelManager& mm);
     static std::string SafeModelName(const std::string& name)
     {
-        wxString n(name.c_str());
+        wxString n(Trim(name).c_str());
         n.Replace(",", "", true);
         n.Replace("~", "", true);
         n.Replace("!", "", true);
