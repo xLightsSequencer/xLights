@@ -1329,6 +1329,57 @@ bool FPP::SetInputUniversesBridge(Controller* controller) {
     }
     return false;
 }
+static bool mergeSerialInto(wxJSONValue &otherDmxData, wxJSONValue &otherOrigRoot) {
+    bool changed = false;
+    for (int x = 0; x < otherDmxData["channelOutputs"].Size(); x++) {
+        wxString device = otherDmxData["channelOutputs"][x]["device"].AsString();
+        wxString type = otherDmxData["channelOutputs"][x]["type"].AsString();
+        bool found = false;
+        for (int y = 0; y < otherOrigRoot["channelOutputs"].Size(); y++) {
+            if (otherOrigRoot["channelOutputs"][y]["device"].AsString() == device) {
+                //same device, see if type matches and update or disable
+                if (type == otherOrigRoot["channelOutputs"][y]["type"].AsString()) {
+                    //device and type the same, update values
+                    found = true;
+                    if (otherOrigRoot["channelOutputs"][y]["enabled"].AsInt() != 1) {
+                        otherOrigRoot["channelOutputs"][y]["enabled"] = 1;
+                        changed = true;
+                    }
+                    if (otherOrigRoot["channelOutputs"][y]["startChannel"].AsInt() != otherDmxData["channelOutputs"][x]["startChannel"].AsInt()) {
+                        otherOrigRoot["channelOutputs"][y]["startChannel"] = otherDmxData["channelOutputs"][x]["startChannel"].AsInt();
+                        changed = true;
+                    }
+                    if (otherOrigRoot["channelOutputs"][y]["channelCount"].AsInt() != otherDmxData["channelOutputs"][x]["channelCount"].AsInt()) {
+                        otherOrigRoot["channelOutputs"][y]["channelCount"] = otherDmxData["channelOutputs"][x]["channelCount"].AsInt();
+                        changed = true;
+                    }
+                } else if (otherOrigRoot["channelOutputs"][y]["enabled"].AsInt() != 0) {
+                    otherOrigRoot["channelOutputs"][y]["enabled"] = 0;
+                    changed = true;
+                }
+            }
+        }
+        if (!found) {
+            //add some defaults if needed
+            if (type == "Renard") {
+                otherDmxData["channelOutputs"][x]["renardparm"] = "8N1";
+                otherDmxData["channelOutputs"][x]["renardspeed"] = 57600;
+            } else if (type == "LOR") {
+                otherDmxData["channelOutputs"][x]["firstControllerId"] = 1;
+                otherDmxData["channelOutputs"][x]["speed"] = 19200;
+            } else if (type == "GenericSerial") {
+                otherDmxData["channelOutputs"][x]["header"] = "";
+                otherDmxData["channelOutputs"][x]["footer"] = "";
+                otherDmxData["channelOutputs"][x]["speed"] = 9600;
+            }
+            otherOrigRoot["channelOutputs"].Append(otherDmxData["channelOutputs"][x]);
+            changed = true;
+        }
+    }
+    return changed;
+}
+
+
 
 bool FPP::UploadPixelOutputs(ModelManager* allmodels,
                              OutputManager* outputManager,
@@ -1454,12 +1505,6 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
     stringData["startChannel"] = 1;
     stringData["channelCount"] = -1;
 
-    wxJSONValue dmxData;
-    dmxData["enabled"] = 1;
-    dmxData["startChannel"] = 1;
-    dmxData["type"] = wxString("BBBSerial");
-    dmxData["subType"] = wxString("DMX");
-
     maxport = cud.GetMaxPixelPort();
     if (maxport < minPorts) {
         maxport = minPorts;
@@ -1474,7 +1519,6 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
         stringData["pinoutVersion"] = pinout;
     }
     stringData["outputCount"] = maxport;
-    dmxData["device"] = wxString(pixelControllerType);
 
     for (int x = 0; x < maxport; x++) {
         wxJSONValue port;
@@ -1689,10 +1733,13 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
             maxChan = std::max(mx, maxChan);
         }
     }
+    
+    wxJSONValue bbbDmxData;
+    bool hasBBBDmx = false;
+    wxJSONValue otherDmxData;
     for (int sp = 1; sp <= rules->GetMaxSerialPort(); sp++) {
         wxJSONValue port;
-        port["outputNumber"] = (sp - 1);
-        port["outputType"] = isDMX ? wxString("DMX") : wxString("Pixelnet");
+        std::string portType = rules->GetCustomPropertyByPath("fppSerialPort" + std::to_string(sp), "BBBSerial");
         if (cud.HasSerialPort(sp)) {
             UDControllerPort* vport = cud.GetControllerSerialPort(sp);
             int dmxOffset = 1;
@@ -1703,25 +1750,43 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
             }
             int sc = vport->GetStartChannel() - dmxOffset + 1;
             port["startChannel"] = sc;
-            port["channelCount"] = isDMX ? (maxChan < 16 ? 16 : maxChan) : 4096;
-            hasSerial = true;
+            if (portType == "BBBSerial") {
+                port["channelCount"] = isDMX ? (maxChan < 16 ? 16 : maxChan) : 4096;
+                port["outputNumber"] = (sp - 1);
+                port["outputType"] = isDMX ? wxString("DMX") : wxString("Pixelnet");
+                bbbDmxData["outputs"].Append(port);
+                rngs[sc] = isDMX ? (maxChan < 16 ? 16 : maxChan) : 4096;
+                hasBBBDmx = true;
+            } else {
+                int mx = vport->GetEndChannel() - sc + 1;
+                port["channelCount"] = mx;
+                port["device"] = portType;
+                port["enabled"] = 1;
+                port["type"] = vport->GetProtocol();
+                otherDmxData["channelOutputs"].Append(port);
+            }
             
-            rngs[sc] = isDMX ? (maxChan < 16 ? 16 : maxChan) : 4096;
-        } else {
+            hasSerial = true;
+        } else if (portType == "BBBSerial") {
+            hasBBBDmx = true;
             port["startChannel"] = 0;
             port["channelCount"] = 0;
+            port["outputNumber"] = (sp - 1);
+            port["outputType"] = isDMX ? wxString("DMX") : wxString("Pixelnet");
+            bbbDmxData["outputs"].Append(port);
         }
-        dmxData["outputs"].Append(port);
     }
     if (!doVirtualString) {
         maxChan = 0;
         isDMX = true;
         hasSerial = false;
     }
-    dmxData["channelCount"] = isDMX ? (maxChan < 16 ? 16 : maxChan) : 4096;
-    if (maxChan == 0) {
-        dmxData["enabled"] = 0;
-        dmxData["subType"] = wxString("off");
+    if (hasBBBDmx) {
+        bbbDmxData["channelCount"] = isDMX ? (maxChan < 16 ? 16 : maxChan) : 4096;
+        if (maxChan == 0) {
+            bbbDmxData["enabled"] = 0;
+            bbbDmxData["subType"] = wxString("off");
+        }
     }
     // let the string handling know if it's safe to use the other PRU
     // or if the serial out will need it
@@ -1729,12 +1794,30 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
 
     wxJSONValue root;
     root["channelOutputs"].Append(stringData);
-    if (pixelControllerType != PIHAT) {
-        root["channelOutputs"].Append(dmxData);
+    if (hasBBBDmx) {
+        bbbDmxData["enabled"] = 1;
+        bbbDmxData["startChannel"] = 1;
+        bbbDmxData["type"] = wxString("BBBSerial");
+        bbbDmxData["subType"] = wxString("DMX");
+        bbbDmxData["device"] = wxString(pixelControllerType);
+        root["channelOutputs"].Append(bbbDmxData);
     } else {
-        wxString dev = pixelControllerType;
-        dmxData["device"] = dev;
-        stringData["subType"] = dev;
+        wxJSONValue otherOrigRoot;
+        
+        if (IsDrive()) {
+            GetPathAsJSON(ipAddress + wxFileName::GetPathSeparator() + "config" + wxFileName::GetPathSeparator() + "co-other.json", otherOrigRoot);
+        } else {
+            GetURLAsJSON("/api/configfile/co-other.json", otherOrigRoot);
+        }
+        bool changed = mergeSerialInto(otherDmxData, otherOrigRoot);
+        if (changed) {
+            if (IsDrive()) {
+                WriteJSONToPath(ipAddress + wxFileName::GetPathSeparator() + "config" + wxFileName::GetPathSeparator() + "co-other.json", otherOrigRoot);
+            } else {
+                PostJSONToURL("/api/configfile/co-other.json", otherOrigRoot);
+                SetRestartFlag();
+            }
+        }
     }
 
     logger_base.debug("New JSON");

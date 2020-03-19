@@ -51,10 +51,15 @@
 				<Protocol>ws2811</Protocol>
 			</PixelProtocols>
 			<SerialProtocols>
-				<Protocol>dmx</Protocol>
-				<Protocol>renard</Protocol>
-				<Protocol>pixelnet</Protocol>
+                <Protocol>DMX-Pro</Protocol>
+                <Protocol>DMX-Open</Protocol>
+                <Protocol>GenericSerial</Protocol>
+                <Protocol>LOR</Protocol>
+                <Protocol>Pixelnet-Lynx</Protocol>
+                <Protocol>Pixelnet-Open</Protocol>
+                <Protocol>Renard</Protocol>
 			</SerialProtocols>
+            <fppSerialPort1>ttyAMA0</fppSerialPort1>
 		</Variant>
 	</Controller>
 	<Controller Name="RGBCape24">

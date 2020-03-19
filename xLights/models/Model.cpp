@@ -719,6 +719,11 @@ static inline void setupProtocolList() {
         CONTROLLER_PROTOCOLS.push_back("PixelNet");
         CONTROLLER_PROTOCOLS.push_back("Renard");
         CONTROLLER_PROTOCOLS.push_back("LOR");
+        CONTROLLER_PROTOCOLS.push_back("DMX-Pro");
+        CONTROLLER_PROTOCOLS.push_back("DMX-Open");
+        CONTROLLER_PROTOCOLS.push_back("Pixelnet-Lynx");
+        CONTROLLER_PROTOCOLS.push_back("Pixelnet-Open");
+        CONTROLLER_PROTOCOLS.push_back("GenericSerial");
     }
     if (SMART_REMOTES.IsEmpty()) {
         SMART_REMOTES.push_back("N/A");
@@ -812,7 +817,7 @@ void Model::AddControllerProperties(wxPropertyGridInterface *grid) {
     GetControllerProtocols(cp, idx);
 
     if (caps == nullptr || caps->SupportsSmartRemotes()) {
-        if (protocol != "dmx" && protocol != "pixelnet" && protocol != "renard" && protocol != "lor" && protocol != "") {
+        if (Model::IsPixelProtocol(protocol)) {
             sp = grid->AppendIn(p, new wxEnumProperty("Smart Remote", "SmartRemote", SMART_REMOTES, wxArrayInt(), GetSmartRemote()));
         }
     }
@@ -1050,7 +1055,7 @@ static wxString GetColorString(wxPGProperty *p, xlColor &xc) {
 
 static void clearUnusedProtocolProperties(wxXmlNode *node) {
     std::string protocol = node->GetAttribute("Protocol");
-    bool isDMX = protocol == "DMX" || protocol == "dmx" || protocol == "PIXELNET" || protocol == "pixelnet" || protocol == "PixelNet" || protocol == "Renard" || protocol == "LOR" || protocol == "lor";
+    bool isDMX = Model::IsSerialProtocol(protocol);
     bool isPixel = Model::IsPixelProtocol(protocol);
 
     if (!isPixel) {
@@ -5277,13 +5282,15 @@ bool Model::IsControllerConnectionValid() const
     return (Model::IsProtocolValid(GetControllerProtocol()) && GetControllerPort(1) > 0);
 }
 
+static std::set<wxString> SERIAL_PROTOCOLS = {
+    "dmx", "dmx-open", "dmx-pro",  "pixelnet", "pixelnet-lynx", "pixelnet-open", "renard", "lor", "genericserial"
+};
+
 bool Model::IsPixelProtocol(const std::string &p) {
     if (p == "") {
         return false;
     }
-    wxString protocol = p;
-    protocol.MakeLower();
-    return (protocol != "dmx" && protocol != "pixelnet" && protocol != "renard" && protocol != "lor");
+    return !IsSerialProtocol(p);
 }
 
 bool Model::IsSerialProtocol(const std::string& p) {
@@ -5292,7 +5299,8 @@ bool Model::IsSerialProtocol(const std::string& p) {
     }
     wxString protocol = p;
     protocol.MakeLower();
-    return (protocol == "dmx" || protocol == "pixelnet" || protocol == "renard" || protocol == "lor");
+    
+    return SERIAL_PROTOCOLS.find(protocol) != SERIAL_PROTOCOLS.end();
 }
 
 void Model::SetTagColour(wxColour colour)
