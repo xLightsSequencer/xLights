@@ -2610,7 +2610,7 @@ xLightsMain.h: outputs/OutputManager.h PixelBuffer.h SequenceData.h effects/Effe
 
 PixelBuffer.h: models/Model.h models/SingleLineModel.h RenderBuffer.h ValueCurve.h RenderUtils.h
 
-models/Model.h: models/ModelScreenLocation.h Color.h models/BaseObject.h
+models/Model.h: models/ModelScreenLocation.h Color.h models/BaseObject.h UtilFunctions.h
 
 models/SingleLineModel.h: models/Model.h
 
