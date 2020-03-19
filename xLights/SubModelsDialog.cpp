@@ -259,17 +259,18 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent)
 
     _parent = parent;
 
-    //SetSize(1200, 800);
-    //wxPoint loc;
-    //wxSize sz;
-    //LoadWindowPosition("xLightsSubModelDialogPosition", sz, loc);
-    //if (loc.x != -1)
-    //{
-    //    if (sz.GetWidth() < 400) sz.SetWidth(400);
-     //   if (sz.GetHeight() < 300) sz.SetHeight(300);
-    //    SetPosition(loc);
-    //    SetSize(sz);
-    //}
+    SetSize(1200, 800);
+    wxPoint loc;
+    wxSize sz;
+    LoadWindowPosition("xLightsSubModelDialogPosition", sz, loc);
+    if (loc.x != -1)
+    {
+        if (sz.GetWidth() < 400) sz.SetWidth(400);
+        if (sz.GetHeight() < 300) sz.SetHeight(300);
+        SetPosition(loc);
+        SetSize(sz);
+        Layout();
+    }
 
     modelPreview = new ModelPreview(ModelPreviewPanelLocation);
     modelPreview->SetMinSize(wxSize(100, 100));

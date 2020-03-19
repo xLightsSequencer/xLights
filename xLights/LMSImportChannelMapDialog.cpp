@@ -125,12 +125,27 @@ LMSImportChannelMapDialog::LMSImportChannelMapDialog(wxWindow* parent, const wxF
     _dirty = false;
 
     SetEscapeId(Button_Cancel->GetId());
+
+    SetSize(1200, 800);
+    wxPoint loc;
+    wxSize sz;
+    LoadWindowPosition("xLightsImportDialogPosition", sz, loc);
+    if (loc.x != -1)
+    {
+        if (sz.GetWidth() < 400) sz.SetWidth(400);
+        if (sz.GetHeight() < 300) sz.SetHeight(300);
+        SetPosition(loc);
+        SetSize(sz);
+        Layout();
+    }
 }
 
 LMSImportChannelMapDialog::~LMSImportChannelMapDialog()
 {
 	//(*Destroy(LMSImportChannelMapDialog)
 	//*)
+
+    SaveWindowPosition("xLightsImportDialogPosition", this);
 }
 
 
