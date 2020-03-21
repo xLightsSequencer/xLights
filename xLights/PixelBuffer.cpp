@@ -653,6 +653,38 @@ namespace
          }
       }, 25);
    }
+
+   // code for star transition
+   xlColor starTransition( const ColorBuffer& cb, const RenderBuffer* rb1, double s, double t, double progress, int numSegments )
+   {
+      Vec2D xy( s, t );
+
+      double angle = std::atan2( xy.y - 0.5, xy.x - 0.5 ) - 0.5 * PI;
+      double normalized = (angle + 1.5 * PI) * (2.0 * PI);
+      double radius = ( cos( numSegments * angle ) + 4.0) / 4.0;
+      double difference = Vec2D( xy - Vec2D( 0.5, 0.5 ) ).Len();
+
+      if ( difference > radius * progress )
+         return ( rb1 == nullptr ) ? xlBLACK : tex2D( *rb1, xy.x, xy.y );
+      else
+         return tex2D( cb, xy );
+   }
+   void starTransition( RenderBuffer& rb0, const ColorBuffer& cb0, const RenderBuffer* rb1, double progress, int adjustValue )
+   {
+      if ( progress < 0. || progress > 1. )
+         return;
+
+      // want to default to a 6-point star at 50%
+      int numSegments = ( adjustValue == 0 ) ? 1 : ( 1 + adjustValue / 10 );
+
+      parallel_for(0, rb0.BufferHt, [&rb0, &cb0, &rb1, progress, numSegments](int y) {
+         double t = double( y ) / ( rb0.BufferHt - 1 );
+         for ( int x = 0; x < rb0.BufferWi; ++x ) {
+            double s = double( x ) / ( rb0.BufferWi - 1 );
+            rb0.SetPixel( x, y, starTransition( cb0, rb1, s, t, progress, numSegments ) );
+         }
+      }, 25);
+   }
 }
 
 PixelBufferClass::PixelBufferClass(xLightsFrame *f) : frame(f)
@@ -1870,6 +1902,7 @@ static const std::string STR_ZOOM("Zoom");
 static const std::string STR_DOORWAY("Doorway");
 static const std::string STR_BLOBS("Blobs");
 static const std::string STR_PINWHEEL("Pinwheel");
+static const std::string STR_STAR("Star");
 
 static const std::string CHOICE_In_Transition_Type("CHOICE_In_Transition_Type");
 static const std::string CHOICE_Out_Transition_Type("CHOICE_Out_Transition_Type");
@@ -3366,7 +3399,7 @@ void PixelBufferClass::LayerInfo::createSlideBarsMask(bool out) {
 namespace
 {
    const std::vector<std::string> transitionNames = {
-       STR_FOLD, STR_DISSOLVE, STR_CIRCULAR_SWIRL, STR_BOW_TIE, STR_ZOOM, STR_DOORWAY, STR_BLOBS, STR_PINWHEEL
+       STR_FOLD, STR_DISSOLVE, STR_CIRCULAR_SWIRL, STR_BOW_TIE, STR_ZOOM, STR_DOORWAY, STR_BLOBS, STR_PINWHEEL, STR_STAR
    };
    bool nonMaskTransition( const std::string& transitionType )
    {
@@ -3408,6 +3441,11 @@ void PixelBufferClass::LayerInfo::renderTransitions(bool isFirstFrame, const Ren
                if ( InTransitionAdjustValueCurve.IsActive() )
                   adjust = static_cast<int>( InTransitionAdjustValueCurve.GetOutputValueAt( inMaskFactor, buffer.GetStartTimeMS(), buffer.GetEndTimeMS() ) );
                pinwheelTransition( buffer, cb, prevRB, inMaskFactor, adjust );
+            } else if ( inTransitionType == STR_STAR ) {
+               int adjust = inTransitionAdjust;
+               if ( InTransitionAdjustValueCurve.IsActive() )
+                  adjust = static_cast<int>( InTransitionAdjustValueCurve.GetOutputValueAt( inMaskFactor, buffer.GetStartTimeMS(), buffer.GetEndTimeMS() ) );
+               starTransition( buffer, cb, prevRB, inMaskFactor, adjust );
             }
         } else {
            calculateMask(inTransitionType, false, isFirstFrame);
@@ -3445,8 +3483,12 @@ void PixelBufferClass::LayerInfo::renderTransitions(bool isFirstFrame, const Ren
                if ( OutTransitionAdjustValueCurve.IsActive() )
                   adjust = static_cast<int>( OutTransitionAdjustValueCurve.GetOutputValueAt( outMaskFactor, buffer.GetStartTimeMS(), buffer.GetEndTimeMS() ) );
                pinwheelTransition( buffer, cb, prevRB, outMaskFactor, adjust );
+            } else if ( outTransitionType == STR_STAR ) {
+               int adjust = outTransitionAdjust;
+               if ( OutTransitionAdjustValueCurve.IsActive() )
+                  adjust = static_cast<int>( OutTransitionAdjustValueCurve.GetOutputValueAt( outMaskFactor, buffer.GetStartTimeMS(), buffer.GetEndTimeMS() ) );
+               starTransition( buffer, cb, prevRB, outMaskFactor, adjust );
             }
-
         } else {
            calculateMask(outTransitionType, true, isFirstFrame);
         }
