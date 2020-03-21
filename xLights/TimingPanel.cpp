@@ -490,13 +490,13 @@ void TimingPanel::OnTransitionTypeSelect(wxCommandEvent& event)
 
    auto outTransitionType = Choice_Out_Transition_Type->GetStringSelection();
 
-   if ( std::find( transitions_noReverse.cbegin(), transitions_noReverse.cend(), inTransitionType ) != transitions_noReverse.cend() )
+   if ( std::find( transitions_noReverse.cbegin(), transitions_noReverse.cend(), outTransitionType ) != transitions_noReverse.cend() )
       CheckBox_Out_Reverse->Disable();
    else
       CheckBox_Out_Reverse->Enable();
 
 
-   if ( std::find( transitions_noAdjust.cbegin(), transitions_noAdjust.cend(), inTransitionType ) != transitions_noAdjust.cend() )
+   if ( std::find( transitions_noAdjust.cbegin(), transitions_noAdjust.cend(), outTransitionType ) != transitions_noAdjust.cend() )
    {
       Slider_Out_Adjust->Disable();
       BitmapButton_Out_Transition_Adjust->Disable();
