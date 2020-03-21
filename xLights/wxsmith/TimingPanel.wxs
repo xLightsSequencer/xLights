@@ -190,6 +190,7 @@
 																			<item>Doorway</item>
 																			<item>Blobs</item>
 																			<item>Pinwheel</item>
+																			<item>Star</item>
 																		</content>
 																		<selection>0</selection>
 																		<handler function="OnTransitionTypeSelect" entry="EVT_CHOICE" />
@@ -314,6 +315,7 @@
 																			<item>Doorway</item>
 																			<item>Blobs</item>
 																			<item>Pinwheel</item>
+																			<item>Star</item>
 																		</content>
 																		<selection>0</selection>
 																		<handler function="OnTransitionTypeSelect" entry="EVT_CHOICE" />

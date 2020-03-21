@@ -398,87 +398,72 @@ namespace
    {
       return (p1.x - p3.x) * (p2.y - p3.y) - (p2.x - p3.x) * (p1.y - p3.y);
    }
-   bool PointInTriangle( const Vec2D& pt, const Vec2D& p1, const Vec2D& p2, const Vec2D& p3 )
+   bool pointInTriangle( const Vec2D& pt, const Vec2D& p1, const Vec2D& p2, const Vec2D& p3 )
    {
       bool b1 = check( pt, p1, p2 ) < 0.0;
       bool b2 = check( pt, p2, p3 ) < 0.0;
       bool b3 = check( pt, p3, p1 ) < 0.0;
       return b1 == b2 && b2 == b3;
    }
-   bool in_top_triangle( const Vec2D& p, float progress )
+   const double bowTieHeight = 0.5;
+   xlColor bowTie_firstHalf( const ColorBuffer& cb, const RenderBuffer* rb1, const Vec2D& uv, double progress, double adjust )
    {
-      Vec2D vertex1( 0.5, progress );
-      Vec2D vertex2( 0.5-progress, 0.0 );
-      Vec2D vertex3( 0.5+progress, 0.0 );
-      return PointInTriangle( p, vertex1, vertex2, vertex3 );
+      if ( uv.y < 0.5 )
+      {
+         Vec2D botLeft( 0., progress-bowTieHeight );
+         Vec2D botRight( 1., progress-bowTieHeight );
+         Vec2D tip( adjust, progress );
+         if ( pointInTriangle( uv, botLeft, botRight, tip ) )
+            return tex2D( cb, uv );
+      }
+      else
+      {
+         Vec2D topLeft( 0., 1.-progress+bowTieHeight );
+         Vec2D topRight( 1., 1.-progress+bowTieHeight );
+         Vec2D tip( adjust, 1.-progress );
+         if ( pointInTriangle( uv, topLeft, topRight, tip ) )
+            return tex2D( cb, uv );
+      }
+      return (rb1 == nullptr) ? xlBLACK : tex2D( *rb1, uv.x, uv.y );
    }
-   bool in_bottom_triangle(const Vec2D& p, float progress)
+   xlColor bowTie_secondHalf( const ColorBuffer& cb, const RenderBuffer* rb1, const Vec2D& uv, double progress, double adjust )
    {
-      Vec2D vertex1( 0.5, 1.0 - progress );
-      Vec2D vertex2( 0.5-progress, 1.0 );
-      Vec2D vertex3( 0.5+progress, 1.0 );
-      return PointInTriangle( p, vertex1, vertex2, vertex3 );
+      if ( uv.x > adjust )
+      {
+         Vec2D top( progress + bowTieHeight, 1. );
+         Vec2D bot( progress + bowTieHeight, 0. );
+         Vec2D tip( lerp( adjust, 1.0, 2.0 * (progress - 0.5) ), 0.5 );
+         if ( pointInTriangle( uv, top, bot, tip) )
+            return ( rb1 == nullptr ) ? xlBLACK : tex2D( *rb1, uv.x, uv.y );
+      }
+      else
+      {
+         Vec2D top( 1.0-progress - bowTieHeight, 1. );
+         Vec2D bot( 1.0-progress - bowTieHeight, 0. );
+         Vec2D tip( lerp( adjust, 0.0, 2.0 * (progress - 0.5) ), 0.5 );
+         if ( pointInTriangle( uv, top, bot, tip) )
+            return ( rb1 == nullptr ) ? xlBLACK : tex2D( *rb1, uv.x, uv.y );
+      }
+      return tex2D( cb, uv );
    }
-   float blur_edge( const Vec2D& bot1, const Vec2D& bot2, const Vec2D& top, const Vec2D& testPt )
-   {
-      Vec2D lineDir( bot1 - top );
-      Vec2D perpDir( lineDir.y, -lineDir.x );
-      Vec2D dirToPt1( bot1 - testPt );
-      double dist1 = fabs( dot( perpDir.Norm(), dirToPt1 ) );
-
-      lineDir = bot2 - top;
-      perpDir = Vec2D( lineDir.y, -lineDir.x );
-      dirToPt1 = bot2 - testPt;
-      double min_dist = std::min( std::fabs( dot( perpDir.Norm(), dirToPt1 ) ), dist1 );
-
-      return (min_dist < 0.005) ? min_dist / 0.005 : 1.0;
-
-   }
-   xlColor bowTie( const ColorBuffer& cb, double s, double t, float progress, xlColor fromColor, xlColor toColor )
+   xlColor bowTie( const ColorBuffer& cb, const RenderBuffer* rb1, double s, double t, double progress, double adjust, bool isReversed )
    {
       Vec2D xy( s, t );
-      if ( in_top_triangle( xy, progress ) )
-      {
-         if ( progress < 0.1f )
-            return fromColor;
-         if (xy.y < 0.5)
-         {
-            Vec2D vertex1( 0.5, progress );
-            Vec2D vertex2( 0.5-progress, 0.0 );
-            Vec2D vertex3( 0.5+progress, 0.0 );
-            return lerp( fromColor, toColor, blur_edge( vertex2, vertex3, vertex1, xy ) );
-         }
-         else
-         {
-            return ( progress > 0.0 ) ? toColor : fromColor;
-         }
-      }
-      else if ( in_bottom_triangle( xy, progress ) )
-      {
-         if ( xy.y >= 0.5 )
-         {
-            Vec2D vertex1( 0.5, 1.0-progress );
-            Vec2D vertex2( 0.5-progress, 1.0 );
-            Vec2D vertex3( 0.5+progress, 1.0 );
-            return lerp( fromColor, toColor, blur_edge( vertex2, vertex3, vertex1, xy ) );
-         }
-         else
-         {
-            return fromColor;
-         }
-      }
-
-      return fromColor;
+      if ( isReversed )
+         return ( progress < 0.5 ) ? bowTie_secondHalf( cb, rb1, xy, 1.-progress, adjust ) : bowTie_firstHalf( cb, rb1, xy, 1.-progress, adjust );
+      else
+         return ( progress < 0.5 ) ? bowTie_firstHalf( cb, rb1, xy, progress, adjust ) : bowTie_secondHalf( cb, rb1, xy, progress, adjust );
    }
-   void bowTie( RenderBuffer& rb0, const ColorBuffer& cb0, double progress )
+   void bowTie( RenderBuffer& rb0, const ColorBuffer& cb0, const RenderBuffer* rb1, double progress, int adjust, bool isReversed )
    {
       if ( progress < 0. || progress > 1. )
          return;
-      parallel_for(0, rb0.BufferHt, [&rb0, &cb0, progress](int y) {
+      double bowTieAdjust = 0.01 * adjust;
+      parallel_for(0, rb0.BufferHt, [&rb0, &cb0, &rb1, progress, bowTieAdjust, isReversed](int y) {
          double t = double( y ) / ( rb0.BufferHt - 1 );
          for ( int x = 0; x < rb0.BufferWi; ++x ) {
             double s = double( x ) / ( rb0.BufferWi - 1 );
-            rb0.SetPixel( x, y, bowTie( cb0, s, t, progress, xlBLACK, tex2D( cb0, s, t ) ) );
+            rb0.SetPixel( x, y, bowTie( cb0, rb1, s, t, progress, bowTieAdjust, isReversed ) );
          }
       }, 25);
    }
@@ -665,6 +650,38 @@ namespace
          for ( int x = 0; x < rb0.BufferWi; ++x ) {
             double s = double( x ) / ( rb0.BufferWi - 1 );
             rb0.SetPixel( x, y, pinwheelTransition( cb0, rb1, s, t, progress, adjust ) );
+         }
+      }, 25);
+   }
+
+   // code for star transition
+   xlColor starTransition( const ColorBuffer& cb, const RenderBuffer* rb1, double s, double t, double progress, int numSegments )
+   {
+      Vec2D xy( s, t );
+
+      double angle = std::atan2( xy.y - 0.5, xy.x - 0.5 ) - 0.5 * PI;
+      double normalized = (angle + 1.5 * PI) * (2.0 * PI);
+      double radius = ( cos( numSegments * angle ) + 4.0) / 4.0;
+      double difference = Vec2D( xy - Vec2D( 0.5, 0.5 ) ).Len();
+
+      if ( difference > radius * progress )
+         return ( rb1 == nullptr ) ? xlBLACK : tex2D( *rb1, xy.x, xy.y );
+      else
+         return tex2D( cb, xy );
+   }
+   void starTransition( RenderBuffer& rb0, const ColorBuffer& cb0, const RenderBuffer* rb1, double progress, int adjustValue )
+   {
+      if ( progress < 0. || progress > 1. )
+         return;
+
+      // want to default to a 6-point star at 50%
+      int numSegments = ( adjustValue == 0 ) ? 1 : ( 1 + adjustValue / 10 );
+
+      parallel_for(0, rb0.BufferHt, [&rb0, &cb0, &rb1, progress, numSegments](int y) {
+         double t = double( y ) / ( rb0.BufferHt - 1 );
+         for ( int x = 0; x < rb0.BufferWi; ++x ) {
+            double s = double( x ) / ( rb0.BufferWi - 1 );
+            rb0.SetPixel( x, y, starTransition( cb0, rb1, s, t, progress, numSegments ) );
          }
       }, 25);
    }
@@ -1885,6 +1902,7 @@ static const std::string STR_ZOOM("Zoom");
 static const std::string STR_DOORWAY("Doorway");
 static const std::string STR_BLOBS("Blobs");
 static const std::string STR_PINWHEEL("Pinwheel");
+static const std::string STR_STAR("Star");
 
 static const std::string CHOICE_In_Transition_Type("CHOICE_In_Transition_Type");
 static const std::string CHOICE_Out_Transition_Type("CHOICE_Out_Transition_Type");
@@ -3381,7 +3399,7 @@ void PixelBufferClass::LayerInfo::createSlideBarsMask(bool out) {
 namespace
 {
    const std::vector<std::string> transitionNames = {
-       STR_FOLD, STR_DISSOLVE, STR_CIRCULAR_SWIRL, STR_BOW_TIE, STR_ZOOM, STR_DOORWAY, STR_BLOBS, STR_PINWHEEL
+       STR_FOLD, STR_DISSOLVE, STR_CIRCULAR_SWIRL, STR_BOW_TIE, STR_ZOOM, STR_DOORWAY, STR_BLOBS, STR_PINWHEEL, STR_STAR
    };
    bool nonMaskTransition( const std::string& transitionType )
    {
@@ -3405,7 +3423,10 @@ void PixelBufferClass::LayerInfo::renderTransitions(bool isFirstFrame, const Ren
                double speed = interpolate( 0.2, 0.0, 1.0, 40.0, 9.0, LinearInterpolater() );
                circularSwirl( buffer, cb, xy, speed, 1.f-inMaskFactor );
             } else if ( inTransitionType == STR_BOW_TIE ) {
-               bowTie( buffer, cb, inMaskFactor );
+               int adjust = inTransitionAdjust;
+               if ( InTransitionAdjustValueCurve.IsActive() )
+                  adjust = static_cast<int>( InTransitionAdjustValueCurve.GetOutputValueAt( inMaskFactor, buffer.GetStartTimeMS(), buffer.GetEndTimeMS() ) );
+               bowTie( buffer, cb, prevRB, inMaskFactor, adjust, inTransitionReverse );
             } else if ( inTransitionType == STR_ZOOM ) {
                zoomTransition( buffer, cb, inMaskFactor );
             } else if ( inTransitionType == STR_DOORWAY ) {
@@ -3420,6 +3441,11 @@ void PixelBufferClass::LayerInfo::renderTransitions(bool isFirstFrame, const Ren
                if ( InTransitionAdjustValueCurve.IsActive() )
                   adjust = static_cast<int>( InTransitionAdjustValueCurve.GetOutputValueAt( inMaskFactor, buffer.GetStartTimeMS(), buffer.GetEndTimeMS() ) );
                pinwheelTransition( buffer, cb, prevRB, inMaskFactor, adjust );
+            } else if ( inTransitionType == STR_STAR ) {
+               int adjust = inTransitionAdjust;
+               if ( InTransitionAdjustValueCurve.IsActive() )
+                  adjust = static_cast<int>( InTransitionAdjustValueCurve.GetOutputValueAt( inMaskFactor, buffer.GetStartTimeMS(), buffer.GetEndTimeMS() ) );
+               starTransition( buffer, cb, prevRB, inMaskFactor, adjust );
             }
         } else {
            calculateMask(inTransitionType, false, isFirstFrame);
@@ -3439,7 +3465,10 @@ void PixelBufferClass::LayerInfo::renderTransitions(bool isFirstFrame, const Ren
                double speed = interpolate( 0.2, 0.0, 1.0, 40.0, 9.0, LinearInterpolater() );
                circularSwirl( buffer, cb, xy, speed, 1.f - outMaskFactor );
             } else if ( outTransitionType == STR_BOW_TIE ) {
-               bowTie( buffer, cb, outMaskFactor );
+               int adjust = outTransitionAdjust;
+               if ( OutTransitionAdjustValueCurve.IsActive() )
+                  adjust = static_cast<int>( OutTransitionAdjustValueCurve.GetOutputValueAt( outMaskFactor, buffer.GetStartTimeMS(), buffer.GetEndTimeMS() ) );
+               bowTie( buffer, cb, prevRB, outMaskFactor, adjust, outTransitionReverse );
             } else if ( outTransitionType == STR_ZOOM ) {
                zoomTransition( buffer, cb, outMaskFactor );
             } else if ( outTransitionType == STR_DOORWAY ) {
@@ -3454,8 +3483,12 @@ void PixelBufferClass::LayerInfo::renderTransitions(bool isFirstFrame, const Ren
                if ( OutTransitionAdjustValueCurve.IsActive() )
                   adjust = static_cast<int>( OutTransitionAdjustValueCurve.GetOutputValueAt( outMaskFactor, buffer.GetStartTimeMS(), buffer.GetEndTimeMS() ) );
                pinwheelTransition( buffer, cb, prevRB, outMaskFactor, adjust );
+            } else if ( outTransitionType == STR_STAR ) {
+               int adjust = outTransitionAdjust;
+               if ( OutTransitionAdjustValueCurve.IsActive() )
+                  adjust = static_cast<int>( OutTransitionAdjustValueCurve.GetOutputValueAt( outMaskFactor, buffer.GetStartTimeMS(), buffer.GetEndTimeMS() ) );
+               starTransition( buffer, cb, prevRB, outMaskFactor, adjust );
             }
-
         } else {
            calculateMask(outTransitionType, true, isFirstFrame);
         }
