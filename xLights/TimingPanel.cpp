@@ -444,7 +444,6 @@ namespace
       "Blend",
       "Dissolve",
       "Circular Swirl",
-      "Bow Tie",
       "Zoom",
       "Doorway",
       "Blobs",
@@ -459,7 +458,6 @@ namespace
       "Fold",
       "Dissolve",
       "Circular Swirl",
-      "Bow Tie",
       "Zoom",
       "Doorway"
    };
