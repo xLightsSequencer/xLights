@@ -11,6 +11,17 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2020.11 March 21 2020
+   -- enh (kevin)  Add star transition
+   -- enh (kevin)  Extend options on the bowtie transition
+   -- enh (keith)  Remember import and submmodels dialog size and position
+   -- enh (dkulp)  Allow upload of config to PiHat serial port
+   -- enh (scott)  Add brightness settings control in the visualiser dialog
+   -- enh (keith)  Add WLED as a controller type
+   -- bug (keith)  Fix reverse on out transitions disabled
+   -- bug (keith)  Fix crash when model group name begins or starts with space
+   -- bug (dkulp)  Use dark green for used universes under E1.31 and Artnet on OSX dark mode 
+   -- bug (keith)  Fix cancel turning off of indiv universes does not re-set checkbox   
 2020.10 March 17 2020
    -- enh (kevin)  Add five new transitions for matrices / high-density props
    -- enh (keith)  Add SanDevices E680 to controller options ... but no upload
