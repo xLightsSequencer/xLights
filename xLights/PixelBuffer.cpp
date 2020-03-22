@@ -644,7 +644,8 @@ namespace
    {
       if ( progress < 0. || progress > 1. )
          return;
-      double adjust = 0.10 * wheelAdjust;
+      double adjust = interpolate( wheelAdjust, 0., 3.0, 100., 10.0, LinearInterpolater() );
+
       parallel_for(0, rb0.BufferHt, [&rb0, &cb0, &rb1, progress, adjust](int y) {
          double t = double( y ) / ( rb0.BufferHt - 1 );
          for ( int x = 0; x < rb0.BufferWi; ++x ) {
