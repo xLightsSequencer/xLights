@@ -6812,6 +6812,11 @@ void LayoutPanel::OnSelectionChanged(wxTreeListEvent& event)
             ModelTreeData *data = (ModelTreeData*)TreeListViewModels->GetItemData(item);
             Model *model = ((data != nullptr) ? data->GetModel() : nullptr);
             if (model != nullptr) {
+                if (!xlights->AllModels.IsModelValid(model))
+                {
+                    logger_base.debug("Warning: Model at %p is Not Valid. This would have crashed. Ignoring.\n", model);
+                    return;
+                }
                 wxASSERT(xlights->AllModels.IsModelValid(model));
                 if (model->GetDisplayAs() == "ModelGroup") {
                     mSelectedGroup = item;
