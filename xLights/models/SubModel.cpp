@@ -16,7 +16,7 @@ SubModel::SubModel(Model* p, wxXmlNode* n) : Model(p->GetModelManager()), parent
     Nodes.clear();
     DisplayAs = "SubModel";
 
-    name = n->GetAttribute("name").ToStdString();
+    name = n->GetAttribute("name").Trim(true).Trim(false).ToStdString();
     parm1 = 1;
     parm2 = 1;
     parm3 = 1;

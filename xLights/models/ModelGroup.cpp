@@ -230,6 +230,16 @@ bool ModelGroup::RemoveNonExistentModels(wxXmlNode* node, const std::list<std::s
 
     for (auto& it : mn) {
         auto mm = it.Trim(true).Trim(false);
+        if (mm.Contains("/"))
+        {
+            auto smm = wxSplit(mm, '/');
+            mm = "";
+            for (auto& it2 : smm)
+            {
+                if (mm != "") mm += "/";
+                mm += it2.Trim(true).Trim(false);
+            }
+        }
         if (std::find(allmodels.begin(), allmodels.end(), mm) == allmodels.end())
         {
             if (modelsRemoved != "") modelsRemoved += ", ";
