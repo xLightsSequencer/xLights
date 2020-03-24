@@ -9,6 +9,7 @@
 #include "sequencer/MainSequencer.h"
 #include "BulkEditSliderDialog.h"
 #include "BulkEditFontPickerDialog.h"
+#include "BulkEditColourPickerDialog.h"
 #include "UtilFunctions.h"
 
 #include <log4cpp/Category.hh>
@@ -42,6 +43,15 @@ BulkEditFontPicker::BulkEditFontPicker(wxWindow* parent, wxWindowID id, const wx
     ID_FONTPICKER_BULKEDIT = wxNewId();
     Connect(wxEVT_RIGHT_DOWN, (wxObjectEventFunction)& BulkEditFontPicker::OnRightDown, nullptr, this);
     this->GetPickerCtrl()->Connect(wxEVT_RIGHT_DOWN, (wxObjectEventFunction)& BulkEditFontPicker::OnRightDown, nullptr, this);
+}
+
+BulkEditColourPickerCtrl::BulkEditColourPickerCtrl(wxWindow* parent, wxWindowID id, const wxColour& initial, const wxPoint& pos, const wxSize& size, long style, const wxValidator& validator, const wxString& name)
+    : wxColourPickerCtrl(parent, id, initial, pos, size, style, validator, name)
+{
+    _supportsBulkEdit = true;
+    ID_COLOURPICKER_BULKEDIT = wxNewId();
+    Connect(wxEVT_RIGHT_DOWN, (wxObjectEventFunction)&BulkEditColourPickerCtrl::OnRightDown, nullptr, this);
+    this->GetPickerCtrl()->Connect(wxEVT_RIGHT_DOWN, (wxObjectEventFunction)&BulkEditColourPickerCtrl::OnRightDown, nullptr, this);
 }
 
 BulkEditTextCtrl::BulkEditTextCtrl(wxWindow *parent, wxWindowID id, wxString value, const wxPoint &pos, const wxSize &size, long style, const wxValidator &validator, const wxString &name) : wxTextCtrl(parent, id, value, pos, size, style, validator, name)
@@ -157,6 +167,17 @@ void BulkEditFontPicker::OnRightDown(wxMouseEvent& event)
     wxMenu mnu;
     mnu.Append(ID_FONTPICKER_BULKEDIT, "Bulk Edit");
     mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)& BulkEditFontPicker::OnFontPickerPopup, nullptr, this);
+    PopupMenu(&mnu);
+}
+
+void BulkEditColourPickerCtrl::OnRightDown(wxMouseEvent& event)
+{
+    if (!_supportsBulkEdit) return;
+    if (!IsBulkEditAvailable(GetParent(), false)) return;
+
+    wxMenu mnu;
+    mnu.Append(ID_COLOURPICKER_BULKEDIT, "Bulk Edit");
+    mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&BulkEditColourPickerCtrl::OnColourPickerPopup, nullptr, this);
     PopupMenu(&mnu);
 }
 
@@ -365,6 +386,11 @@ std::string BulkEditFontPicker::GetValue() const
     return "";
 }
 
+wxColour BulkEditColourPickerCtrl::GetValue() const
+{
+    return GetColour();
+}
+
 void BulkEditFontPicker::OnFontPickerPopup(wxCommandEvent& event)
 {
     if (event.GetId() == ID_FONTPICKER_BULKEDIT)
@@ -395,6 +421,41 @@ void BulkEditFontPicker::OnFontPickerPopup(wxCommandEvent& event)
             }
         }
     }
+}
+
+void BulkEditColourPickerCtrl::OnColourPickerPopup(wxCommandEvent& event)
+{
+    if (event.GetId() == ID_COLOURPICKER_BULKEDIT)
+    {
+        // Get the label
+        std::string label = "Colour";
+
+        BulkEditColourPickerDialog dlg(this, label, GetValue());
+        OptimiseDialogPosition(&dlg);
+
+        if (dlg.ShowModal() == wxID_OK)
+        {
+            SetColour(dlg.GetValue());
+
+            std::string id = GetName().ToStdString();
+            id = FixIdForPanel(GetPanelName(GetParent()), id);
+
+            if (GetPanelName(GetParent()) == "Effect")
+            {
+                std::string effect = ((EffectsPanel*)GetPanel(GetParent()))->EffectChoicebook->GetChoiceCtrl()->GetStringSelection().ToStdString();
+                xLightsApp::GetFrame()->GetMainSequencer()->ApplyEffectSettingToSelected(effect, id, GetValue().GetAsString(wxC2S_HTML_SYNTAX), nullptr, "");
+            }
+            else
+            {
+                xLightsApp::GetFrame()->GetMainSequencer()->ApplyEffectSettingToSelected("", id, GetValue().GetAsString(wxC2S_HTML_SYNTAX), nullptr, "");
+            }
+        }
+    }
+}
+
+std::string BulkEditColourPickerCtrl::GetStringValue() const
+{
+    return GetValue().GetAsString(wxC2S_HTML_SYNTAX);
 }
 
 void BulkEditValueCurveButton::OnValueCurvePopup(wxCommandEvent &event)
@@ -703,7 +764,7 @@ void BulkEditSlider::OnSlider_SliderUpdated(wxScrollEvent& event)
     wxTextCtrl* t = GetSettingTextControl(GetParent(), GetName().ToStdString(), "SLIDER");
     if (t == nullptr)
     {
-        wxASSERT(false);
+        //wxASSERT(false);
     }
     else
     {

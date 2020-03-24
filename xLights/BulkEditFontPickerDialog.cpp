@@ -48,6 +48,9 @@ BulkEditFontPickerDialog::BulkEditFontPickerDialog(wxWindow* parent, const std::
 	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&BulkEditFontPickerDialog::OnButton_CancelClick);
 	//*)
 
+	SetEscapeId(Button_Cancel->GetId());
+	Button_Ok->SetDefault();
+
     StaticText_Label->SetLabel(label);
 
     wxFont oldfont;

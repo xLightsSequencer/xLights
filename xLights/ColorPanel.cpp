@@ -38,6 +38,10 @@ const long ColorPanel::ID_BITMAPBUTTON3 = wxNewId();
 const long ColorPanel::ID_BUTTON1 = wxNewId();
 const long ColorPanel::ID_BITMAPBUTTON2 = wxNewId();
 const long ColorPanel::ID_CHECKBOX_ResetColorPanel = wxNewId();
+const long ColorPanel::ID_STATICTEXT1 = wxNewId();
+const long ColorPanel::ID_SLIDER_ChromaSensitivity = wxNewId();
+const long ColorPanel::ID_COLOURPICKERCTRL_ChromaColour = wxNewId();
+const long ColorPanel::ID_CHECKBOX_Chroma = wxNewId();
 const long ColorPanel::ID_STATICTEXT_SparkleFrequency = wxNewId();
 const long ColorPanel::ID_SLIDER_SparkleFrequency = wxNewId();
 const long ColorPanel::ID_VALUECURVE_SparkleFrequency = wxNewId();
@@ -260,6 +264,15 @@ ColorPanel::ColorPanel(wxWindow* parent, wxWindowID id,const wxPoint& pos,const 
 	FlexGridSizer4->Add(FlexGridSizer16, 1, wxALL|wxEXPAND, 0);
 	FlexGridSizer2 = new wxFlexGridSizer(0, 4, 0, 0);
 	FlexGridSizer2->AddGrowableCol(1);
+	StaticText5 = new wxStaticText(ColorScrollWindow, ID_STATICTEXT1, _("Chroma Key"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
+	FlexGridSizer2->Add(StaticText5, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+	Slider_ChromaSensitivity = new BulkEditSlider(ColorScrollWindow, ID_SLIDER_ChromaSensitivity, 1, 1, 255, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_ChromaSensitivity"));
+	FlexGridSizer2->Add(Slider_ChromaSensitivity, 1, wxALL|wxEXPAND, 2);
+	ColourPickerCtrl_ChromaKey = new BulkEditColourPickerCtrl(ColorScrollWindow, ID_COLOURPICKERCTRL_ChromaColour, wxColour(0,0,0), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_COLOURPICKERCTRL_ChromaColour"));
+	FlexGridSizer2->Add(ColourPickerCtrl_ChromaKey, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	CheckBox_EnableChromakey = new BulkEditCheckBox(ColorScrollWindow, ID_CHECKBOX_Chroma, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Chroma"));
+	CheckBox_EnableChromakey->SetValue(false);
+	FlexGridSizer2->Add(CheckBox_EnableChromakey, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	StaticText22 = new wxStaticText(ColorScrollWindow, ID_STATICTEXT_SparkleFrequency, _("Sparkles"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_SparkleFrequency"));
 	FlexGridSizer2->Add(StaticText22, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer8 = new wxFlexGridSizer(0, 2, 0, 0);
@@ -366,6 +379,7 @@ ColorPanel::ColorPanel(wxWindow* parent, wxWindowID id,const wxPoint& pos,const 
 	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorPanel::OnUpdateColorClick);
 	Connect(ID_BITMAPBUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorPanel::OnBitmapButton_DeletePaletteClick);
 	Connect(ID_CHECKBOX_ResetColorPanel,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ColorPanel::OnCheckBox_ResetColorPanelClick);
+	Connect(ID_CHECKBOX_Chroma,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ColorPanel::OnCheckBox_EnableChromakeyClick);
 	Connect(ID_VALUECURVE_SparkleFrequency,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorPanel::OnVCButtonClick);
 	Connect(ID_BITMAPBUTTON_SLIDER_SparkleFrequency,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorPanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_MusicSparkles,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorPanel::OnLockButtonClick);
@@ -727,18 +741,26 @@ wxString ColorPanel::GetRandomColorString() {
         ret+= wxString::Format("C_SLIDER_Brightness=%d,",Slider_Brightness->GetValue());
     }
     if (Slider_Contrast->GetValue() != 0) {
-        ret+= wxString::Format("C_SLIDER_Contrast=%d",Slider_Contrast->GetValue());
+        ret+= wxString::Format("C_SLIDER_Contrast=%d,",Slider_Contrast->GetValue());
     }
     if (Slider_Color_HueAdjust->GetValue() != 0) {
-        ret += wxString::Format("C_SLIDER_Color_HueAdjust=%d", Slider_Color_HueAdjust->GetValue());
+        ret += wxString::Format("C_SLIDER_Color_HueAdjust=%d,", Slider_Color_HueAdjust->GetValue());
     }
     if (Slider_Color_SaturationAdjust->GetValue() != 0) {
-        ret += wxString::Format("C_SLIDER_Color_SaturationAdjust=%d", Slider_Color_SaturationAdjust->GetValue());
+        ret += wxString::Format("C_SLIDER_Color_SaturationAdjust=%d,", Slider_Color_SaturationAdjust->GetValue());
     }
     if (Slider_Color_ValueAdjust->GetValue() != 0) {
-        ret += wxString::Format("C_SLIDER_Color_ValueAdjust=%d", Slider_Color_ValueAdjust->GetValue());
+        ret += wxString::Format("C_SLIDER_Color_ValueAdjust=%d,", Slider_Color_ValueAdjust->GetValue());
     }
-
+    if (Slider_ChromaSensitivity->GetValue() != 1) {
+        ret += wxString::Format("C_SLIDER_ChromaSensitivity=%d,", Slider_ChromaSensitivity->GetValue());
+    }
+    if (CheckBox_EnableChromakey->GetValue()) {
+        ret += wxString::Format("C_CHECKBOX_Chroma=1,");
+    }
+    if (ColourPickerCtrl_ChromaKey->GetColour() != *wxBLACK) {
+        ret += "C_CHECKBOX_Chroma=" + ColourPickerCtrl_ChromaKey->GetStringValue() + ",";
+    }
     return ret;
 }
 
@@ -870,6 +892,18 @@ wxString ColorPanel::GetColorString(bool colourOnly)
         s+= wxString::Format("C_SLIDER_Contrast=%d",Slider_Contrast->GetValue());
     }
 
+    if (CheckBox_EnableChromakey->GetValue()) {
+        if (Slider_ChromaSensitivity->GetValue() != 1) {
+            s += wxString::Format("C_SLIDER_ChromaSensitivity=%d,", Slider_ChromaSensitivity->GetValue());
+        }
+
+        if (ColourPickerCtrl_ChromaKey->GetColour() != *wxBLACK) {
+            s += "C_COLOURPICKERCTRL_ChromaColour=" + ColourPickerCtrl_ChromaKey->GetStringValue() + ",";
+        }
+
+        s += wxString::Format("C_CHECKBOX_Chroma=1", Slider_ChromaSensitivity->GetValue());
+    }
+
     return s;
 }
 
@@ -912,26 +946,30 @@ void ColorPanel::SetDefaultSettings(bool optionbased)
         BitmapButton_SparkleFrequencyVC->UpdateState();
         //Slider_SparkleFrequency->SetValue(0);
         txtCtrlSparkleFreq->SetValue("0");
-        
+
         CheckBox_MusicSparkles->SetValue(false);
-        
+
         BitmapButton_VCBrightness->GetValue()->SetDefault(COLORPANEL_BRIGHTNESS_MIN, COLORPANEL_BRIGHTNESS_MAX);
         BitmapButton_VCBrightness->UpdateState();
         //Slider_Brightness->SetValue(100);
         txtCtlBrightness->SetValue("100");
-        
+
+        Slider_ChromaSensitivity->SetValue(1);
+        ColourPickerCtrl_ChromaKey->SetColour(*wxBLACK);
+        CheckBox_EnableChromakey->SetValue(false);
+
         //Slider_Contrast->SetValue(0);
         txtCtlContrast->SetValue("0");
-        
+
         //Slider_Color_HueAdjust->SetValue(0);
         TextCtrl_Color_HueAdjust->SetValue("0");
-        
+
         //Slider_Color_SaturationAdjust->SetValue(0);
         TextCtrl_Color_SaturationAdjust->SetValue("0");
-        
+
         //Slider_Color_ValueAdjust->SetValue(0);
         TextCtrl_Color_ValueAdjust->SetValue("0");
-        
+
         BitmapButton_Color_HueAdjust->GetValue()->SetDefault(COLORPANEL_HUE_MIN, COLORPANEL_HUE_MAX);
         BitmapButton_Color_HueAdjust->UpdateState();
         BitmapButton_Color_SaturationAdjust->GetValue()->SetDefault(COLORPANEL_SATURATION_MIN, COLORPANEL_SATURATION_MAX);
@@ -1081,6 +1119,17 @@ void ColorPanel::ValidateWindow()
             // it should already be this
             ts->SetBitmap(wxArtProvider::GetBitmap("xlART_cc_na_xpm"));
         }
+    }
+
+    if (CheckBox_EnableChromakey->GetValue())
+    {
+        Slider_ChromaSensitivity->Enable();
+        ColourPickerCtrl_ChromaKey->Enable();
+    }
+    else
+    {
+        Slider_ChromaSensitivity->Enable(false);
+        ColourPickerCtrl_ChromaKey->Enable(false);
     }
 
     // only enable save if this palette was not loaded from disk or has been saved to disk
@@ -1310,4 +1359,9 @@ void ColorPanel::OnCheckBox_ResetColorPanelClick(wxCommandEvent& event)
 {
     wxConfigBase* config = wxConfigBase::Get();
     config->Write("xLightsResetColorPanel", CheckBox_ResetColorPanel->IsChecked());
+}
+
+void ColorPanel::OnCheckBox_EnableChromakeyClick(wxCommandEvent& event)
+{
+    ValidateWindow();
 }

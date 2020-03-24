@@ -203,6 +203,7 @@
     <ClCompile Include="..\xSchedule\wxJSON\jsonwriter.cpp" />
     <ClCompile Include="AlignmentDialog.cpp" />
     <ClCompile Include="BatchRenderDialog.cpp" />
+    <ClCompile Include="BulkEditColourPickerDialog.cpp" />
     <ClCompile Include="BulkEditControls.cpp" />
     <ClCompile Include="BulkEditFontPickerDialog.cpp" />
     <ClCompile Include="BulkEditSliderDialog.cpp" />
@@ -619,6 +620,7 @@
     <ClInclude Include="..\xSchedule\xSMSDaemon\Curl.h" />
     <ClInclude Include="AlignmentDialog.h" />
     <ClInclude Include="BatchRenderDialog.h" />
+    <ClInclude Include="BulkEditColourPickerDialog.h" />
     <ClInclude Include="BulkEditControls.h" />
     <ClInclude Include="BulkEditFontPickerDialog.h" />
     <ClInclude Include="BulkEditSliderDialog.h" />

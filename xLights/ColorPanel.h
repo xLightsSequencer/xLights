@@ -5,6 +5,7 @@
 #include <wx/bmpbuttn.h>
 #include <wx/button.h>
 #include <wx/checkbox.h>
+#include <wx/clrpicker.h>
 #include <wx/panel.h>
 #include <wx/scrolwin.h>
 #include <wx/sizer.h>
@@ -77,8 +78,11 @@ public:
         void SetButtonColor(int btn, const xlColor &v, bool notify = true);
 
 		//(*Declarations(ColorPanel)
+		BulkEditCheckBox* CheckBox_EnableChromakey;
 		BulkEditCheckBox* CheckBox_MusicSparkles;
+		BulkEditColourPickerCtrl* ColourPickerCtrl_ChromaKey;
 		BulkEditSlider* Slider_Brightness;
+		BulkEditSlider* Slider_ChromaSensitivity;
 		BulkEditSlider* Slider_Color_HueAdjust;
 		BulkEditSlider* Slider_Color_SaturationAdjust;
 		BulkEditSlider* Slider_Color_ValueAdjust;
@@ -108,6 +112,7 @@ public:
 		wxStaticText* StaticText2;
 		wxStaticText* StaticText3;
 		wxStaticText* StaticText4;
+		wxStaticText* StaticText5;
 		xlLockButton* BitmapButton_Brightness;
 		xlLockButton* BitmapButton_Contrast;
 		xlLockButton* BitmapButton_MusicSparkles;
@@ -126,6 +131,10 @@ public:
 		static const long ID_BUTTON1;
 		static const long ID_BITMAPBUTTON2;
 		static const long ID_CHECKBOX_ResetColorPanel;
+		static const long ID_STATICTEXT1;
+		static const long ID_SLIDER_ChromaSensitivity;
+		static const long ID_COLOURPICKERCTRL_ChromaColour;
+		static const long ID_CHECKBOX_Chroma;
 		static const long ID_STATICTEXT_SparkleFrequency;
 		static const long ID_SLIDER_SparkleFrequency;
 		static const long ID_VALUECURVE_SparkleFrequency;
@@ -174,6 +183,7 @@ public:
 		void OnBitmapButton_ShuffleColoursClick(wxCommandEvent& event);
 		void UpdateTouchBarSlider(wxScrollEvent& event);
 		void OnCheckBox_ResetColorPanelClick(wxCommandEvent& event);
+		void OnCheckBox_EnableChromakeyClick(wxCommandEvent& event);
 		//*)
 
         void OnCCButtonClick(wxCommandEvent& event);

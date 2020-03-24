@@ -2491,6 +2491,12 @@ bool xLightsFrame::ApplySetting(wxString name, const wxString &value)
 			oldfont.SetNativeFontInfoUserDesc(value);
 			picker->SetSelectedFont(oldfont);
 		}
+        else if (name.StartsWith("ID_COLOURPICKER"))
+        {
+            wxColourPickerCtrl* picker = (wxColourPickerCtrl*)CtrlWin;
+            wxColour c(value);
+            picker->SetColour(c);
+        }
         else if (name.StartsWith("ID_CUSTOM"))
         {
             xlCustomControl *custom = dynamic_cast<xlCustomControl *>(CtrlWin);
@@ -2505,6 +2511,7 @@ bool xLightsFrame::ApplySetting(wxString name, const wxString &value)
 		{
 			logger_base.error("ApplySetting: Unknown type: %s", (const char*)name.c_str());
             res = false;
+            wxASSERT(false);
         }
 	}
 	else
@@ -2517,6 +2524,7 @@ bool xLightsFrame::ApplySetting(wxString name, const wxString &value)
 		if (CtrlWin == nullptr) {
             logger_base.error("ApplySetting: Unable to find: %s", (const char*)name.c_str());
             res = false;
+            wxASSERT(false);
         }
 	}
     return res;

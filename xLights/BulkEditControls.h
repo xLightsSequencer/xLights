@@ -10,6 +10,7 @@
 #include "ValueCurveButton.h"
 #include "xlLockButton.h"
 #include <wx/filepicker.h>
+#include <wx/clrpicker.h>
 
 class wxStaticText;
 
@@ -65,6 +66,31 @@ public:
     void SetSupportsBulkEdit(bool supportsBulkEdit) { _supportsBulkEdit = supportsBulkEdit; }
     bool SupportsBulkEdit() const { return  _supportsBulkEdit; }
     std::string GetValue() const;
+};
+
+class BulkEditColourPickerCtrl : public wxColourPickerCtrl
+{
+protected:
+    long ID_COLOURPICKER_BULKEDIT;
+    bool _supportsBulkEdit;
+
+public:
+
+    BulkEditColourPickerCtrl(wxWindow* parent,
+        wxWindowID id,
+        const wxColour& initial = *wxBLACK,
+        const wxPoint& pos = wxDefaultPosition,
+        const wxSize& size = wxDefaultSize,
+        long style = wxFNTP_DEFAULT_STYLE,
+        const wxValidator& validator = wxDefaultValidator,
+        const wxString& name = wxFontPickerCtrlNameStr);
+    virtual ~BulkEditColourPickerCtrl() {}
+    void OnRightDown(wxMouseEvent& event);
+    void OnColourPickerPopup(wxCommandEvent& event);
+    void SetSupportsBulkEdit(bool supportsBulkEdit) { _supportsBulkEdit = supportsBulkEdit; }
+    bool SupportsBulkEdit() const { return  _supportsBulkEdit; }
+    wxColour GetValue() const;
+    std::string GetStringValue() const;
 };
 
 class BulkEditSliderF1 : public BulkEditSlider

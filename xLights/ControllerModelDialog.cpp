@@ -934,7 +934,9 @@ void ControllerModelDialog::ReloadModels()
     ScrollBar_Controller_V->SetThumbSize(panely);
 
     // scan through all ports if any models are on smart remotes then all must be
-    std::unique(pixelPortsWithSmartRemotes.begin(), pixelPortsWithSmartRemotes.end());
+    auto last = std::unique(pixelPortsWithSmartRemotes.begin(), pixelPortsWithSmartRemotes.end());
+    pixelPortsWithSmartRemotes.erase(last, pixelPortsWithSmartRemotes.end());
+
     for (auto p : pixelPortsWithSmartRemotes) {
         for (const auto& it : _controllers) {
             auto m = dynamic_cast<ModelCMObject*>(it);

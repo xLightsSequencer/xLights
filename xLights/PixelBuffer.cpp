@@ -736,6 +736,9 @@ void PixelBufferClass::reset(int nlayers, int timing, bool isNode)
         layers[x]->outTransitionType = "Fade";
         layers[x]->inTransitionType = "Fade";
         layers[x]->subBuffer = "";
+        layers[x]->isChromaKey = false;
+        layers[x]->chromaSensitivity = 1;
+        layers[x]->chromaKeyColour = *wxBLACK;
         layers[x]->brightnessValueCurve = "";
         layers[x]->hueAdjustValueCurve = "";
         layers[x]->saturationAdjustValueCurve = "";
@@ -897,6 +900,15 @@ void PixelBufferClass::SetMixType(int layer, const std::string& MixName)
     layers[layer]->buffer.SetAllowAlphaChannel(MixTypeHandlesAlpha(layers[layer]->mixType));
 }
 
+double ColourDistance(xlColor e1, xlColor e2)
+{
+    long rmean = ((long)e1.red + (long)e2.red) / 2;
+    long r = (long)e1.red - (long)e2.red;
+    long g = (long)e1.green - (long)e2.green;
+    long b = (long)e1.blue - (long)e2.blue;
+    return sqrt((((512 + rmean) * r * r) >> 8) + 4 * g * g + (((767 - rmean) * b * b) >> 8));
+}
+
 void PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColor &fg, xlColor &bg, int layer)
 {
     static const int n = 0;  //increase to change the curve of the crossfade
@@ -906,6 +918,23 @@ void PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColor &fg
         HSVValue hsv0 = fg.asHSV();
         hsv0.value *= layers[layer]->fadeFactor;
         fg = hsv0;
+    }
+
+    // Apply ChromaKey if it is enabled
+    if (layers[layer]->isChromaKey)
+    {
+        xlColor c(fg);
+        if (c.alpha < 255)
+        {
+            c.red = (int)(c.red * c.alpha) / 255;
+            c.green = (int)(c.green * c.alpha) / 255;
+            c.blue = (int)(c.blue * c.alpha) / 255;
+            c.alpha = 255;
+        }
+        if (ColourDistance(c, layers[layer]->chromaKeyColour) < layers[layer]->chromaSensitivity * 402 / 255)
+        {
+            return;
+        }
     }
 
     float svthresh = layers[layer]->effectMixThreshold;
@@ -1884,6 +1913,9 @@ static const std::string VALUECURVE_YPivot("VALUECURVE_YPivot");
 static const std::string STR_DEFAULT("Default");
 static const std::string STR_EMPTY("");
 
+static const std::string SLIDER_ChromaSensitivity("SLIDER_ChromaSensitivity");
+static const std::string CHECKBOX_Chroma("CHECKBOX_Chroma");
+static const std::string COLOURPICKERCTRL_ChromaColour("COLOURPICKERCTRL_ChromaColour");
 static const std::string SLIDER_SparkleFrequency("SLIDER_SparkleFrequency");
 static const std::string CHECKBOX_MusicSparkles("CHECKBOX_MusicSparkles");
 static const std::string SLIDER_Brightness("SLIDER_Brightness");
@@ -2180,6 +2212,9 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
     inf->sparkle_count = settingsMap.GetInt(SLIDER_SparkleFrequency, 0);
     inf->use_music_sparkle_count = settingsMap.GetBool(CHECKBOX_MusicSparkles, false);
 
+    inf->isChromaKey = settingsMap.GetBool(CHECKBOX_Chroma, false);
+    inf->chromaSensitivity = settingsMap.GetInt(SLIDER_ChromaSensitivity, 1);
+    inf->chromaKeyColour = wxColour(settingsMap.Get(COLOURPICKERCTRL_ChromaColour, "Black"));
     inf->brightness = settingsMap.GetInt(SLIDER_Brightness, 100);
     inf->hueadjust = settingsMap.GetInt(SLIDER_HueAdjust, 0);
     inf->saturationadjust = settingsMap.GetInt(SLIDER_SaturationAdjust, 0);

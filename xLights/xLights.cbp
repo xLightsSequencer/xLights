@@ -421,6 +421,8 @@
 			<Add option="-Wno-unused-local-typedefs" />
 			<Add option="-DwxUSE_UNICODE" />
 		</Compiler>
+		<Unit filename="../xFade/wxLED.cpp" />
+		<Unit filename="../xFade/wxLED.h" />
 		<Unit filename="../xSchedule/md5.cpp" />
 		<Unit filename="../xSchedule/md5.h" />
 		<Unit filename="../xSchedule/wxJSON/json_defs.h" />
@@ -442,6 +444,8 @@
 		<Unit filename="BufferPanel.h" />
 		<Unit filename="BufferSizeDialog.cpp" />
 		<Unit filename="BufferSizeDialog.h" />
+		<Unit filename="BulkEditColourPickerDialog.cpp" />
+		<Unit filename="BulkEditColourPickerDialog.h" />
 		<Unit filename="BulkEditControls.cpp" />
 		<Unit filename="BulkEditControls.h" />
 		<Unit filename="BulkEditFontPickerDialog.cpp" />
@@ -753,8 +757,6 @@
 		<Unit filename="controllers/WebSocketClient.cpp" />
 		<Unit filename="controllers/WebSocketClient.h" />
 		<Unit filename="djdebug.cpp" />
-		<Unit filename="../xFade/wxLED.cpp" />
-		<Unit filename="../xFade/wxLED.h" />
 		<Unit filename="effects/BarsEffect.cpp" />
 		<Unit filename="effects/BarsEffect.h" />
 		<Unit filename="effects/BarsPanel.cpp" />
@@ -1088,8 +1090,8 @@
 		<Unit filename="osx_utils/TouchBars.h" />
 		<Unit filename="outputs/ArtNetOutput.cpp" />
 		<Unit filename="outputs/ArtNetOutput.h" />
-		<Unit filename="outputs/Controller.h" />
 		<Unit filename="outputs/Controller.cpp" />
+		<Unit filename="outputs/Controller.h" />
 		<Unit filename="outputs/ControllerEthernet.cpp" />
 		<Unit filename="outputs/ControllerEthernet.h" />
 		<Unit filename="outputs/ControllerNull.cpp" />
@@ -1245,6 +1247,7 @@
 		<Unit filename="wxsmith/BatchRenderDialog.wxs" />
 		<Unit filename="wxsmith/BufferPanel.wxs" />
 		<Unit filename="wxsmith/BufferSizeDialog.wxs" />
+		<Unit filename="wxsmith/BulkEditColourPickerDialog.wxs" />
 		<Unit filename="wxsmith/BulkEditFontPickerDialog.wxs" />
 		<Unit filename="wxsmith/BulkEditSliderDialog.wxs" />
 		<Unit filename="wxsmith/ButterflyPanel.wxs" />
@@ -1590,6 +1593,7 @@
 					<wxPanel wxs="wxsmith/EffectsGridSettingsPanel.wxs" src="preferences/EffectsGridSettingsPanel.cpp" hdr="preferences/EffectsGridSettingsPanel.h" fwddecl="1" i18n="1" name="EffectsGridSettingsPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/RandomEffectsSettingsPanel.wxs" src="preferences/RandomEffectsSettingsPanel.cpp" hdr="preferences/RandomEffectsSettingsPanel.h" fwddecl="1" i18n="1" name="RandomEffectsSettingsPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/ColorManagerSettingsPanel.wxs" src="preferences/ColorManagerSettingsPanel.cpp" hdr="preferences/ColorManagerSettingsPanel.h" fwddecl="0" i18n="1" name="ColorManagerSettingsPanel" language="CPP" />
+					<wxDialog wxs="wxsmith/BulkEditColourPickerDialog.wxs" src="BulkEditColourPickerDialog.cpp" hdr="BulkEditColourPickerDialog.h" fwddecl="0" i18n="1" name="BulkEditColourPickerDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>

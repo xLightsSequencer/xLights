@@ -31,6 +31,7 @@
 #include "RenderBuffer.h"
 #include "ValueCurve.h"
 #include "RenderUtils.h"
+#include "Color.h"
 
 #define BLUR_MIN 1
 #define BLUR_MAX 15
@@ -215,6 +216,9 @@ private:
         float outMaskFactor;
         bool usingModelBuffers;
         std::vector<std::unique_ptr<RenderBuffer>> modelBuffers;
+        bool isChromaKey = false;
+        xlColor chromaKeyColour = xlBLACK;
+        int chromaSensitivity = 1;
 
         std::vector<uint8_t> mask;
         void renderTransitions(bool isFirstFrame, const RenderBuffer* prevRB);
