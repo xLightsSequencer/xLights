@@ -11,6 +11,7 @@
 #include <sstream>
 #include <iomanip>
 
+#include <wx/wx.h>
 #include <wx/msgdlg.h>
 #include <wx/filename.h>
 #include <wx/wfstream.h>
@@ -1128,6 +1129,35 @@ void xLightsFrame::WriteGIFModelFile(const wxString& filename, long numChans, un
 
         wxImage image2;
         wxQuantize::Quantize(image, image2);
+
+        // Black out the almost blacks
+        const unsigned char BLACK_THRESHOLD = 5;
+        auto pal = image2.GetPalette();
+
+        unsigned char* red = (unsigned char*)malloc(pal.GetColoursCount());
+        unsigned char* green = (unsigned char*)malloc(pal.GetColoursCount());
+        unsigned char* blue = (unsigned char*)malloc(pal.GetColoursCount());
+        for (int i = 0; i < pal.GetColoursCount(); i++)
+        {
+            pal.GetRGB(i, red + i, green + i, blue + i);
+            if (*(red + i) != 0 && (*(green + i) != 0) && *(blue + i) != 0)
+            {
+                if (*(red + i) < BLACK_THRESHOLD && *(green + i) < BLACK_THRESHOLD && *(blue + i) < BLACK_THRESHOLD)
+                {
+                    image2.Replace(*(red + i), *(green + i), *(blue + i), 0, 0, 0);
+                    *(red + i) = 0;
+                    *(green + i) = 0;
+                    *(blue + i) = 0;
+                }
+            }
+        }
+        wxPalette newpal = wxPalette(pal.GetColoursCount(), red, green, blue);
+        image2.SetPalette(newpal);
+
+        free(red);
+        free(green);
+        free(blue);
+
         imgArray.Add(image2);
     }
 
