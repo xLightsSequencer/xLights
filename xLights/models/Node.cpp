@@ -136,3 +136,31 @@ void NodeClassRGBW::GetForChannels(unsigned char *buf) const {
             break;
     }
 }
+
+void NodeClassSuperString::SetFromChannels(const unsigned char* buf)
+{
+    c[0] = 0;
+    c[1] = 0;
+    c[2] = 0;
+    for (int i = 0; i < _superStringColours.size(); i++)
+    {
+        xlColor cc = xlColor(_superStringColours[i].red * buf[i] / 255, _superStringColours[i].green * buf[i] / 255, _superStringColours[i].blue * buf[i] / 255);
+        if (c[0] < cc.red) c[0] = cc.red;
+        if (c[1] < cc.green) c[1] = cc.green;
+        if (c[2] < cc.blue) c[2] = cc.blue;
+    }
+}
+
+void NodeClassSuperString::GetForChannels(unsigned char* buf) const
+{
+    for (int i = 0; i < _superStringColours.size(); i++)
+    {
+        //this needs work
+        xlColor cc = _superStringColours[i];
+        float r = cc.red == 0 ? 1 : (float)c[0] / cc.red;
+        float g = cc.green == 0 ? 1 : (float)c[1] / cc.green;
+        float b = cc.blue == 0 ? 1 : (float)c[2] / cc.blue;
+        float in = std::min(r, std::min(g, std::min(1.0f, b)));
+        buf[i] = in * 255;
+    }
+}

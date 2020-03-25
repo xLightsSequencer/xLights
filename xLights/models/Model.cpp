@@ -82,6 +82,7 @@ Model::Model(const ModelManager &manager) : modelDimmingCurve(nullptr),
         NODE_TYPES.push_back("Strobes");
         NODE_TYPES.push_back("Single Color");
         NODE_TYPES.push_back("Single Color Intensity");
+        NODE_TYPES.push_back("Superstring");
 
         NODE_TYPES.push_back("WRGB Nodes");
         NODE_TYPES.push_back("WRBG Nodes");
@@ -552,12 +553,12 @@ Controller* Model::GetController() const
     return modelManager.GetXLightsFrame()->GetOutputManager()->GetController(controller);
 }
 
-void Model::AddProperties(wxPropertyGridInterface *grid, OutputManager* outputManager) {
+void Model::AddProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) {
     LAYOUT_GROUPS = Model::GetLayoutGroups(modelManager);
 
-    wxPGProperty *sp;
+    wxPGProperty* sp;
 
-    wxPGProperty *p = grid->Append(new wxPropertyCategory(DisplayAs, "ModelType"));
+    wxPGProperty* p = grid->Append(new wxPropertyCategory(DisplayAs, "ModelType"));
 
     AddTypeProperties(grid);
 
@@ -581,14 +582,15 @@ void Model::AddProperties(wxPropertyGridInterface *grid, OutputManager* outputMa
     }
 
     if (HasOneString(DisplayAs)) {
-        p = grid->Append(new StartChannelProperty(this, 0, "Start Channel", "ModelStartChannel", ModelXml->GetAttribute("StartChannel","1"), modelManager.GetXLightsFrame()->GetSelectedLayoutPanelPreview()));
+        p = grid->Append(new StartChannelProperty(this, 0, "Start Channel", "ModelStartChannel", ModelXml->GetAttribute("StartChannel", "1"), modelManager.GetXLightsFrame()->GetSelectedLayoutPanelPreview()));
         p->Enable(GetControllerName() == "" || _controller == 0);
-    } else {
+    }
+    else {
         bool hasIndiv = ModelXml->GetAttribute("Advanced", "0") == "1";
         p = grid->Append(new wxBoolProperty("Indiv Start Chans", "ModelIndividualStartChannels", hasIndiv));
         p->SetAttribute("UseCheckbox", true);
         p->Enable(parm1 > 1 && GetControllerName() == "" && _controller == 0);
-        sp = grid->AppendIn(p, new StartChannelProperty(this, 0, "Start Channel", "ModelStartChannel", ModelXml->GetAttribute("StartChannel","1"), modelManager.GetXLightsFrame()->GetSelectedLayoutPanelPreview()));
+        sp = grid->AppendIn(p, new StartChannelProperty(this, 0, "Start Channel", "ModelStartChannel", ModelXml->GetAttribute("StartChannel", "1"), modelManager.GetXLightsFrame()->GetSelectedLayoutPanelPreview()));
         sp->Enable(GetControllerName() == "" || _controller == 0);
         if (hasIndiv) {
             int c = Model::HasOneString(DisplayAs) ? 1 : parm1;
@@ -603,7 +605,8 @@ void Model::AddProperties(wxPropertyGridInterface *grid, OutputManager* outputMa
                 if (x == 0) {
                     sp->SetLabel(nm);
                     sp->SetValue(val);
-                } else {
+                }
+                else {
                     sp = grid->AppendIn(p, new StartChannelProperty(this, x, nm, nm, val, modelManager.GetXLightsFrame()->GetSelectedLayoutPanelPreview()));
                 }
             }
@@ -661,19 +664,39 @@ void Model::AddProperties(wxPropertyGridInterface *grid, OutputManager* outputMa
         wxColor v;
         if (StringType == "Single Color Red") {
             v = *wxRED;
-        } else if (StringType == "Single Color Green" || StringType == "G") {
+        }
+        else if (StringType == "Single Color Green" || StringType == "G") {
             v = *wxGREEN;
-        } else if (StringType == "Single Color Blue" || StringType == "B") {
+        }
+        else if (StringType == "Single Color Blue" || StringType == "B") {
             v = *wxBLUE;
-        } else if (StringType == "Single Color White" || StringType == "W") {
+        }
+        else if (StringType == "Single Color White" || StringType == "W") {
             v = *wxWHITE;
-        } else if (StringType == "Single Color Custom" || StringType == "Single Color Intensity") {
+        }
+        else if (StringType == "Single Color Custom" || StringType == "Single Color Intensity") {
             v = customColor.asWxColor();
-        } else if (StringType[0] == '#') {
+        }
+        else if (StringType[0] == '#') {
             v = xlColor(StringType).asWxColor();
         }
         grid->AppendIn(p, new wxColourProperty("Color", "ModelStringColor", v));
-    } else {
+    } else if (NODE_TYPES[i] == "Superstring") {
+        if (superStringColours.size() == 0)
+        {
+            superStringColours.push_back(xlRED);
+            SaveSuperStringColours();
+        }
+        sp = grid->AppendIn(p, new wxIntProperty("Colours", "SuperStringColours", superStringColours.size()));
+        sp->SetAttribute("Min", 1);
+        sp->SetAttribute("Max", 32);
+        sp->SetEditor("SpinCtrl");
+        for (int i = 0; i < superStringColours.size(); i++)
+        {
+            grid->AppendIn(p, new wxColourProperty(wxString::Format("Colour %d", i + 1), wxString::Format("SuperStringColour%d", i), superStringColours[i].asWxColor()));
+        }
+    }
+    else {
         sp = grid->AppendIn(p, new wxColourProperty("Color", "ModelStringColor", *wxRED));
         sp->Enable(false);
     }
@@ -1524,8 +1547,9 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::OnPropertyGridChange::ModelFaces");
         return 0;
-    } else if (event.GetPropertyName() == "ModelStates") {
-        wxXmlNode *f = ModelXml->GetChildren();
+    }
+    else if (event.GetPropertyName() == "ModelStates") {
+        wxXmlNode* f = ModelXml->GetChildren();
         while (f != nullptr) {
             if ("stateInfo" == f->GetName()) {
                 ModelXml->RemoveChild(f);
@@ -1539,6 +1563,17 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         Model::WriteStateInfo(ModelXml, stateInfo);
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::OnPropertyGridChange::ModelStates");
+        return 0;
+    }
+    else if (event.GetPropertyName().StartsWith("SuperStringColours"))
+    {
+        SetSuperStringColours(event.GetValue().GetLong());
+        return 0;
+    } else if (event.GetPropertyName().StartsWith("SuperStringColour")) {
+        int index = wxAtoi(event.GetPropertyName().substr(17));
+        wxColor c;
+        c << event.GetValue();
+        SetSuperStringColour(index, c);
         return 0;
     } else if (event.GetPropertyName() == "ModelStringColor"
                || event.GetPropertyName() == "ModelStringType"
@@ -2249,6 +2284,7 @@ void Model::SetFromXml(wxXmlNode* ModelNode, bool zb) {
         delete m;
     }
     subModels.clear();
+    superStringColours.clear();
 
     wxString channelstr;
 
@@ -2319,6 +2355,23 @@ void Model::SetFromXml(wxXmlNode* ModelNode, bool zb) {
             tempstr = "";
         }
         nodeNames.push_back(t2);
+    }
+
+    bool found = true;
+    int index = 0;
+    while (found)
+    {
+        auto an = wxString::Format("SuperStringColour%d", index);
+        auto v = ModelXml->GetAttribute(an, "");
+        if (v == "")
+        {
+            found = false;
+        }
+        else
+        {
+            superStringColours.push_back(wxColour(v));
+        }
+        index++;
     }
 
     CouldComputeStartChannel = false;
@@ -3395,6 +3448,12 @@ void Model::SetNodeCount(size_t NumStrings, size_t NodesPerString, const std::st
         } else if (StringType=="Single Color Green") {
             for(n = 0; n < NumStrings; n++) {
                 Nodes.push_back(NodeBaseClassPtr(new NodeClassGreen(n, NodesPerString, GetNextName())));
+                Nodes.back()->model = this;
+            }
+        }
+        else if (StringType == "Superstring") {
+            for (n = 0; n < NumStrings; n++) {
+                Nodes.push_back(NodeBaseClassPtr(new NodeClassSuperString(n, NodesPerString, superStringColours, GetNextName())));
                 Nodes.back()->model = this;
             }
         } else if (StringType=="Single Color Blue") {
@@ -5406,6 +5465,90 @@ std::string Model::GetModelChain() const
 		return "";
 	}
     return chain;
+}
+
+void Model::SaveSuperStringColours()
+{
+    bool found = true;
+    int index = 0;
+    while (found)
+    {
+        auto an = wxString::Format("SuperStringColour%d", index);
+        if (ModelXml->GetAttribute(an, "") == "")
+        {
+            found = false;
+        }
+        else
+        {
+            ModelXml->DeleteAttribute(an);
+        }
+        index++;
+    }
+
+    for (int i = 0; i < superStringColours.size(); i++)
+    {
+        auto an = wxString::Format("SuperStringColour%d", i);
+        ModelXml->AddAttribute(an, superStringColours[i]);
+    }
+}
+
+void Model::SetSuperStringColours(int count)
+{
+    while (superStringColours.size() < count)
+    {
+        bool r = false;
+        bool g = false;
+        bool b = false;
+        bool w = false;
+        bool y = false;
+
+        for (const auto& it : superStringColours)
+        {
+            if (it == xlRED) r = true;
+            if (it == xlGREEN) g = true;
+            if (it == xlBLUE) b = true;
+            if (it == xlWHITE) w = true;
+            if (it == xlYELLOW) y = true;
+        }
+
+        if (!r) superStringColours.push_back(xlRED); else
+            if (!g) superStringColours.push_back(xlGREEN); else
+                if (!b) superStringColours.push_back(xlBLUE); else
+                    if (!w) superStringColours.push_back(xlWHITE); else
+                        if (!y) superStringColours.push_back(xlYELLOW); else
+                            superStringColours.push_back(xlRED);
+    }
+
+    while (superStringColours.size() > count)
+    {
+        superStringColours.pop_back();
+    }
+
+    SaveSuperStringColours();
+
+    IncrementChangeCount();
+    AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "Model::SetSuperStringColours");
+    AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::SetSuperStringColours");
+    AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "Model::SetSuperStringColours");
+    AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "Model::SetSuperStringColours");
+    AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "Model::SetSuperStringColours");
+    AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "Model::SetSuperStringColours");
+    AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Model::SetSuperStringColours");
+}
+
+void Model::SetSuperStringColour(int index, xlColor c)
+{
+    superStringColours[index] = c;
+    SaveSuperStringColours();
+    
+    IncrementChangeCount();
+    AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "Model::SetSuperStringColour");
+    AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::SetSuperStringColour");
+    AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "Model::SetSuperStringColour");
+    AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "Model::SetSuperStringColour");
+    AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "Model::SetSuperStringColour");
+    AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "Model::SetSuperStringColour");
+    AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Model::SetSuperStringColour");
 }
 
 void Model::SetControllerName(const std::string& controller)

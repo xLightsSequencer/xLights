@@ -214,6 +214,7 @@ protected:
     bool isBotToTop;
     std::string StringType; // RGB Nodes, 3 Channel RGB, Single Color Red, Single Color Green, Single Color Blue, Single Color White
     int rgbwHandlingType;
+    std::vector<xlColor> superStringColours;
 
     std::vector<Model *> subModels;
     void ParseSubModel(wxXmlNode *subModelNode);
@@ -244,6 +245,9 @@ public:
         }
         return 1;
     }
+    void SaveSuperStringColours();
+    void SetSuperStringColours(int count);
+    void SetSuperStringColour(int index, xlColor c);
     void SetControllerName(const std::string& controllerName);
     void SetControllerProtocol(const std::string& protocol);
     void SetControllerPort(int port);
