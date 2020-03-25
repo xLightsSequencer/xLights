@@ -26,6 +26,25 @@
             <Protocol>pixelnet</Protocol>
         </SerialProtocols>
     </AbstractVariant>
+    <AbstractVariant Name="FPPStringCapeTTYs" Base="FPP:BaseFPPSettings">
+        <MaxSerialPortChannels>0</MaxSerialPortChannels>
+        <MaxPixelPortChannels>4200</MaxPixelPortChannels>
+        <SupportsVirtualStrings/>
+        <SupportsAutoLayout/>
+        <SupportsSmartRemotes/>
+        <PixelProtocols>
+            <Protocol>ws2811</Protocol>
+        </PixelProtocols>
+        <SerialProtocols>
+            <Protocol>DMX-Pro</Protocol>
+            <Protocol>DMX-Open</Protocol>
+            <Protocol>GenericSerial</Protocol>
+            <Protocol>LOR</Protocol>
+            <Protocol>Pixelnet-Lynx</Protocol>
+            <Protocol>Pixelnet-Open</Protocol>
+            <Protocol>Renard</Protocol>
+        </SerialProtocols>
+    </AbstractVariant>
 	<Controller Name="LED Panels">
 		<Variant Name="" Base="FPP:BaseFPPSettings">
 			<MaxPixelPort>0</MaxPixelPort>

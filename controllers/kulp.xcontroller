@@ -65,4 +65,29 @@
 			<fpp1>21,16</fpp1>
 		</Variant>
 	</Controller>
+    <Controller Name="K16A-B">
+        <Variant Name="No Expansion" ID="K16A-B" Base="FPP:FPPStringCapeTTYs">
+            <MaxPixelPort>32</MaxPixelPort>
+            <MaxSerialPort>2</MaxSerialPort>
+            <fpp>1</fpp>
+            <fpp1>33,-1</fpp1>
+            <fppSerialPort1>ttyS1</fppSerialPort1>
+            <fppSerialPort2>ttyS2</fppSerialPort2>
+        </Variant>
+        <Variant Name="Expansion" ID="K16A-B" Base="FPP:FPPStringCapeTTYs">
+            <MaxPixelPort>48</MaxPixelPort>
+            <MaxSerialPort>2</MaxSerialPort>
+            <fpp>1</fpp>
+            <fpp1>33,16</fpp1>
+            <fppSerialPort1>ttyS1</fppSerialPort1>
+            <fppSerialPort2>ttyS2</fppSerialPort2>
+        </Variant>
+    </Controller>
+    <Controller Name="K4-PB">
+        <Variant Name="" ID="K4-PB" Base="FPP:FPPStringCapeTTYs">
+            <MaxPixelPort>4</MaxPixelPort>
+            <MaxSerialPort>1</MaxSerialPort>
+            <fppSerialPort1>ttyS4</fppSerialPort1>
+        </Variant>
+    </Controller>
 </Vendor>

@@ -436,7 +436,9 @@ void UDControllerPort::CreateVirtualStrings(bool mergeSequential) {
 
         if (current == nullptr || !mergeSequential) {
             if (smartRemote != 0) {
-                for (int sr = 1; sr < smartRemote; sr++) {
+                int curRemote = current == nullptr ? 0 : current->_smartRemote;
+                curRemote++;
+                for (int sr = curRemote; sr < smartRemote; sr++) {
                     // we seem to have missed one so create a dummy
                     current = new UDVirtualString();
                     _virtualStrings.push_back(current);

@@ -670,6 +670,7 @@
 		67DAFDE01CA1A63C004B3237 /* MidiMessage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67DAFDD71CA1A63C004B3237 /* MidiMessage.cpp */; };
 		67DAFDE11CA1A63C004B3237 /* Options.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67DAFDD91CA1A63C004B3237 /* Options.cpp */; };
 		67DB97391B05744100FC5ADC /* SuperStarImportDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67DB97371B05744100FC5ADC /* SuperStarImportDialog.cpp */; };
+		67DC3609242B2CC900467C2D /* BulkEditColourPickerDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67DC3608242B2CC900467C2D /* BulkEditColourPickerDialog.cpp */; };
 		67DCFC24229E03790032DC47 /* ImportPreviewsModelsDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67DCFC22229E03780032DC47 /* ImportPreviewsModelsDialog.cpp */; };
 		67DD179820167D4B001E7A8B /* DDPOutput.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67DD179520167D4A001E7A8B /* DDPOutput.cpp */; };
 		67E0BB981E08460400C07EF7 /* ControllerConnectionDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67E0BB901E08460400C07EF7 /* ControllerConnectionDialog.cpp */; };
@@ -2045,6 +2046,7 @@
 		67DB87F51AD6CA1300595194 /* wxsmith */ = {isa = PBXFileReference; lastKnownFileType = folder; name = wxsmith; path = xLights/wxsmith; sourceTree = "<group>"; };
 		67DB97371B05744100FC5ADC /* SuperStarImportDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SuperStarImportDialog.cpp; sourceTree = "<group>"; };
 		67DB97381B05744100FC5ADC /* SuperStarImportDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SuperStarImportDialog.h; sourceTree = "<group>"; };
+		67DC3608242B2CC900467C2D /* BulkEditColourPickerDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = BulkEditColourPickerDialog.cpp; sourceTree = "<group>"; };
 		67DCFC22229E03780032DC47 /* ImportPreviewsModelsDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ImportPreviewsModelsDialog.cpp; sourceTree = "<group>"; };
 		67DCFC23229E03780032DC47 /* ImportPreviewsModelsDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ImportPreviewsModelsDialog.h; sourceTree = "<group>"; };
 		67DD179420167D4A001E7A8B /* DDPOutput.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DDPOutput.h; path = outputs/DDPOutput.h; sourceTree = "<group>"; };
@@ -3252,6 +3254,7 @@
 		67E7087617B51AB400A22034 /* xLights */ = {
 			isa = PBXGroup;
 			children = (
+				67DC3608242B2CC900467C2D /* BulkEditColourPickerDialog.cpp */,
 				674A85CF240C663100920D26 /* ControllerModelDialog.cpp */,
 				674A85D0240C663100920D26 /* ControllerModelDialog.h */,
 				677E58472251277400861ABF /* AlignmentDialog.cpp */,
@@ -4643,6 +4646,7 @@
 				671FD6301BD72014003C2E33 /* ResizeImageDialog.cpp in Sources */,
 				67CB9F2C1C6E1FF400390753 /* VUMeterEffect.cpp in Sources */,
 				67B2CFE61C3A186A003C17CA /* PianoEffect.cpp in Sources */,
+				67DC3609242B2CC900467C2D /* BulkEditColourPickerDialog.cpp in Sources */,
 				674E3EE920CEB5530087FDA1 /* WarpPanel.cpp in Sources */,
 				67B2CF811C39D98A003C17CA /* PlasmaPanel.cpp in Sources */,
 				671130AD1E4EB13B00AF09A7 /* ServoEffect.cpp in Sources */,
