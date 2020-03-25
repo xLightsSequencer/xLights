@@ -745,7 +745,7 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file, const wxStrin
                 bool active = false;
                 bool selected = false;
                 bool collapsed = false;
-                std::string name = element->GetAttribute(STR_NAME).ToStdString();
+                std::string name = element->GetAttribute(STR_NAME).Trim(true).Trim(false).ToStdString();
                 std::string type = element->GetAttribute(STR_TYPE).ToStdString();
                 bool visible = element->GetAttribute("visible") == '1' ? true : false;
 
@@ -845,7 +845,7 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file, const wxStrin
             {
                 if (elementNode->GetName() == STR_ELEMENT)
                 {
-                    Element* element = GetElement(elementNode->GetAttribute(STR_NAME).ToStdString());
+                    Element* element = GetElement(elementNode->GetAttribute(STR_NAME).Trim(true).Trim(false).ToStdString());
                     if (element != nullptr)
                     {
                         // check for fixed timing interval
@@ -885,9 +885,10 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file, const wxStrin
                                     effectLayer = element->AddEffectLayer();
                                 }
                                 else if (effectLayerNode->GetName() == STR_SUBMODEL_EFFECTLAYER) {
-                                    wxString name = effectLayerNode->GetAttribute("name");
+                                    wxString name = effectLayerNode->GetAttribute("name").Trim(true).Trim(false);
                                     int layer = wxAtoi(effectLayerNode->GetAttribute("layer", "0"));
                                     SubModelElement *se = dynamic_cast<ModelElement*>(element)->GetSubModel(name.ToStdString(), true);
+                                    wxASSERT(se != nullptr);
                                     while (layer >= se->GetEffectLayerCount()) {
                                         se->AddEffectLayer();
                                     }
@@ -901,7 +902,7 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file, const wxStrin
                                     }
                                     effectLayer = se->GetEffectLayer(layer);
                                     if (effectLayerNode->GetAttribute(STR_NAME, STR_EMPTY) != STR_EMPTY) {
-                                        se->SetName(effectLayerNode->GetAttribute(STR_NAME).ToStdString());
+                                        se->SetName(effectLayerNode->GetAttribute(STR_NAME).Trim(true).Trim(false).ToStdString());
                                     }
                                 }
                                 if (effectLayer != nullptr) {
@@ -910,8 +911,16 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file, const wxStrin
                                         GetXLightsFrame()->SetStatusText(wxString::Format("Effects Loaded: %i%%.", loaded * 100 / count));
                                     }
                                 }
+                                else
+                                {
+                                    wxASSERT(false);
+                                }
                             }
                         }
+                    }
+                    else
+                    {
+                        wxASSERT(false);
                     }
                 }
             }
