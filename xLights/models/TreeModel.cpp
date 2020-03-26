@@ -238,12 +238,15 @@ int TreeModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGri
         switch (event.GetPropertyValue().GetLong()) {
             case 0:
                 ModelXml->AddAttribute("DisplayAs", wxString::Format("Tree %d", degrees > 1 ? (int)degrees : 180));
+                treeType = 0;
                 break;
             case 1:
                 ModelXml->AddAttribute("DisplayAs", "Tree Flat");
+                treeType = 1;
                 break;
             case 2:
                 ModelXml->AddAttribute("DisplayAs", "Tree Ribbon");
+                treeType = 2;
                 break;
             default:
                 wxASSERT(false);
