@@ -100,6 +100,8 @@ class FPPConnectDialog: public wxDialog
         void SetChoiceValueIndex(const std::string &col, int i);
         void SetCheckValue(const std::string &col, bool b);
 
+		void DisplayDateModified(std::string const& filePath, long index) const;
+
 		DECLARE_EVENT_TABLE()
 };
 

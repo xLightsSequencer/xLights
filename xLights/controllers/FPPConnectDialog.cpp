@@ -506,8 +506,9 @@ void FPPConnectDialog::LoadSequencesFromFolder(wxString dir) const
             if (isSequence) {
                 long index = CheckListBox_Sequences->GetItemCount();
                 CheckListBox_Sequences->InsertItem(index, fseqName);
+                DisplayDateModified(fseqName, index);
                 if (mediaName != "") {
-                    CheckListBox_Sequences->SetItem(index, 1, mediaName);
+                    CheckListBox_Sequences->SetItem(index, 2, mediaName);
                 }
             }
         }
@@ -531,6 +532,7 @@ void FPPConnectDialog::LoadSequences()
 {
     CheckListBox_Sequences->ClearAll();
     CheckListBox_Sequences->AppendColumn("Sequence");
+    CheckListBox_Sequences->AppendColumn("Date Modified");
     CheckListBox_Sequences->AppendColumn("Media");
 
     xLightsFrame* frame = static_cast<xLightsFrame*>(GetParent());
@@ -556,7 +558,8 @@ void FPPConnectDialog::LoadSequences()
             wxListItem info;
             info.SetText(freqDir + wxFileName::GetPathSeparator() + file);
             info.SetId(99999);
-            CheckListBox_Sequences->InsertItem(info);
+            long index = CheckListBox_Sequences->InsertItem(info);
+            DisplayDateModified(freqDir + wxFileName::GetPathSeparator() + file, index);
         }
         fcont = directory.GetNext(&file);
     }
@@ -589,6 +592,7 @@ void FPPConnectDialog::LoadSequences()
 
     CheckListBox_Sequences->SetColumnWidth(0, wxLIST_AUTOSIZE);
     CheckListBox_Sequences->SetColumnWidth(1, wxLIST_AUTOSIZE);
+    CheckListBox_Sequences->SetColumnWidth(2, wxLIST_AUTOSIZE);
 }
 
 void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
@@ -656,7 +660,7 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
     for (int fs = 0; fs < CheckListBox_Sequences->GetItemCount(); fs++) {
         if (CheckListBox_Sequences->IsItemChecked(fs)) {
             std::string fseq = CheckListBox_Sequences->GetItemText(fs);
-            std::string media = CheckListBox_Sequences->GetItemText(fs, 1);
+            std::string media = CheckListBox_Sequences->GetItemText(fs, 2);
 
             FSEQFile *seq = FSEQFile::openFSEQFile(fseq);
             if (seq) {
@@ -1109,5 +1113,14 @@ void FPPConnectDialog::GetFolderList(const wxString& folder)
         if (subfolder.StartsWith("."))
             continue;
         ChoiceFolder->Append(subfolder);
+    }
+}
+
+
+void FPPConnectDialog::DisplayDateModified(std::string const& filePath, long index) const
+{ 
+    if (wxFile::Exists(filePath)) {
+        wxDateTime last_modified_time(wxFileModificationTime(filePath));
+        CheckListBox_Sequences->SetItem(index, 1, last_modified_time.Format(wxT("%x %I:%M %p")));
     }
 }
