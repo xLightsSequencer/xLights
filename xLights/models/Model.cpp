@@ -1598,7 +1598,7 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
             ModelXml->AddAttribute("StringType", tp);
         } else {
             ModelXml->AddAttribute("StringType", NODE_TYPES[i]);
-            grid->GetPropertyByName("ModelStringColor")->Enable(false);
+            AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "Model::OnPropertyGridChange::ModelStringType");
         }
         if (GetNodeChannelCount(ModelXml->GetAttribute("StringType")) == 4) {
             p2 = grid->GetPropertyByName("ModelRGBWHandling");
@@ -3518,7 +3518,7 @@ void Model::SetNodeCount(size_t NumStrings, size_t NodesPerString, const std::st
     }
 }
 
-int Model::GetNodeChannelCount(const std::string & nodeType) {
+int Model::GetNodeChannelCount(const std::string & nodeType) const {
     if (nodeType.compare(0, 12, "Single Color") == 0) {
         return 1;
     } else if (nodeType == "Strobes White 3fps") {
@@ -3532,6 +3532,9 @@ int Model::GetNodeChannelCount(const std::string & nodeType) {
     } else if (nodeType[0] == 'W' || nodeType [3] == 'W') {
         //various WRGB and RGBW types
         return 4;
+    }
+    else if (nodeType == "Superstring") {
+        return superStringColours.size();
     }
     return 3;
 }

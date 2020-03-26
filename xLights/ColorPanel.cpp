@@ -1141,20 +1141,19 @@ void ColorPanel::ValidateWindow()
         {
             BitmapButton_SavePalette->Disable();
             if (FindPaletteFile(ss.AfterLast(','), pal + ",") != "")
-                {
-            BitmapButton_DeletePalette->Enable();
-                }
-                else
-                {
-    BitmapButton_DeletePalette->Disable();
-                }
+            {
+                BitmapButton_DeletePalette->Enable();
+            }
+            else
+            {
+                BitmapButton_DeletePalette->Disable();
+            }
             return;
         }
     }
     BitmapButton_SavePalette->Enable();
     BitmapButton_DeletePalette->Disable();
 }
-
 
 void ColorPanel::OnColourChoiceDropDown(wxCommandEvent& WXUNUSED(event))
 {

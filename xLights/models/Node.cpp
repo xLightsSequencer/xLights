@@ -153,14 +153,60 @@ void NodeClassSuperString::SetFromChannels(const unsigned char* buf)
 
 void NodeClassSuperString::GetForChannels(unsigned char* buf) const
 {
-    for (int i = 0; i < _superStringColours.size(); i++)
+    bool r = c[0] > 0 && c[1] == 0 && c[2] == 0;
+    bool g = c[0] == 0 && c[1] > 0 && c[2] == 0;
+    bool b = c[0] == 0 && c[1] == 0 && c[2] > 0;
+    bool w = c[0] > 0 && c[0] == c[1] && c[0] == c[2];
+    bool y = c[0] > 0 && c[0] == c[1] && c[2] == 0;
+    bool cy = c[1] > 0 && c[1] == c[2] && c[0] == 0;
+    bool m = c[0] > 0 && c[0] == c[2] && c[1] == 0;
+
+    bool primary = r || g || b || y || w || cy || m;
+    int singleColour = -1;
+    if (primary)
     {
-        //this needs work
-        xlColor cc = _superStringColours[i];
-        float r = cc.red == 0 ? 1 : (float)c[0] / cc.red;
-        float g = cc.green == 0 ? 1 : (float)c[1] / cc.green;
-        float b = cc.blue == 0 ? 1 : (float)c[2] / cc.blue;
-        float in = std::min(r, std::min(g, std::min(1.0f, b)));
-        buf[i] = in * 255;
+        for (int i = 0; singleColour == -1 && i < _superStringColours.size(); i++)
+        {
+            xlColor cc = _superStringColours[i];
+            if ((r && cc.red > 0 && cc.green == 0 && cc.blue == 0) ||
+                (g && cc.red == 0 && cc.green > 0 && cc.blue == 0) ||
+                (b && cc.red == 0 && cc.green == 0 && cc.blue > 0) ||
+                (w && cc.red > 0 && cc.red == cc.green && cc.red == cc.blue) ||
+                (y && cc.red > 0 && cc.red == cc.green && cc.blue == 0) ||
+                (cy && cc.green > 0 && cc.green == cc.blue && cc.red == 0) ||
+                (m && cc.red > 0 && cc.red == cc.blue && cc.green == 0)
+                )
+            {
+                singleColour = i;
+            }
+        }
+    }
+
+    if (singleColour == -1)
+    {
+        for (int i = 0; i < _superStringColours.size(); i++)
+        {
+            //this needs work
+            xlColor cc = _superStringColours[i];
+            float r = cc.red == 0 ? 1 : (float)c[0] / cc.red;
+            float g = cc.green == 0 ? 1 : (float)c[1] / cc.green;
+            float b = cc.blue == 0 ? 1 : (float)c[2] / cc.blue;
+            float in = std::min(r, std::min(g, std::min(1.0f, b)));
+            buf[i] = in * 255;
+        }
+    }
+    else
+    {
+        for (int i = 0; i < _superStringColours.size(); i++)
+        {
+            if (i == singleColour)
+            {
+                buf[i] = std::max(c[0], std::max(c[1], c[2]));
+            }
+            else
+            {
+                buf[i] = 0;
+            }
+        }
     }
 }

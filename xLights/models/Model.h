@@ -405,18 +405,19 @@ public:
         return (DispAs == "Window Frame" || DispAs == "Custom");
     }
     // true for dumb strings and traditional strings
-    static bool HasSingleNode(const std::string& StrType)
+    bool HasSingleNode(const std::string& StrType)
     {
+        if (StrType == "Superstring") return true;
         static std::string Nodes(" Nodes");
         if (Nodes.size() > StrType.size()) return false;
         return StrType.find(Nodes) == std::string::npos;
     }
     // true for traditional strings
-    static bool HasSingleChannel(const std::string& StrType)
+    /*static */bool HasSingleChannel(const std::string& StrType)
     {
         return GetNodeChannelCount(StrType) == 1;
     }
-    static int GetNodeChannelCount(const std::string & nodeType);
+    /*static */int GetNodeChannelCount(const std::string & nodeType) const;
 
 protected:
     int maxVertexCount;
