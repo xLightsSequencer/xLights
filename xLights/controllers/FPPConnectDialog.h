@@ -8,7 +8,6 @@
 #include <wx/button.h>
 #include <wx/choice.h>
 #include <wx/dialog.h>
-#include <wx/listctrl.h>
 #include <wx/panel.h>
 #include <wx/scrolwin.h>
 #include <wx/sizer.h>
@@ -16,6 +15,7 @@
 #include <wx/stattext.h>
 //*)
 
+#include <wx/treelist.h>
 #include <wx/dataview.h>
 #include "FPP.h"
 
@@ -38,13 +38,15 @@ class FPPConnectDialog: public wxDialog
 		wxChoice* ChoiceFilter;
 		wxChoice* ChoiceFolder;
 		wxFlexGridSizer* FPPInstanceSizer;
-		wxListView* CheckListBox_Sequences;
+		wxPanel* CheckListBoxHolder;
 		wxPanel* Panel1;
 		wxScrolledWindow* FPPInstanceList;
 		wxSplitterWindow* SplitterWindow1;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText2;
 		//*)
+
+        wxTreeListCtrl* CheckListBox_Sequences;
 
 	protected:
 
@@ -54,7 +56,7 @@ class FPPConnectDialog: public wxDialog
 		static const long ID_CHOICE_FILTER;
 		static const long ID_STATICTEXT2;
 		static const long ID_CHOICE_FOLDER;
-		static const long ID_LISTVIEW_Sequences;
+		static const long ID_PANEL2;
 		static const long ID_PANEL1;
 		static const long ID_SPLITTERWINDOW1;
 		static const long ID_BUTTON1;
@@ -76,7 +78,7 @@ class FPPConnectDialog: public wxDialog
 		//(*Handlers(FPPConnectDialog)
 		void OnButton_UploadClick(wxCommandEvent& event);
 		void OnClose(wxCloseEvent& event);
-		void SequenceListPopup(wxListEvent& event);
+		void SequenceListPopup(wxTreeListEvent& event);
 		void OnAddFPPButtonClick(wxCommandEvent& event);
 		void OnChoiceFolderSelect(wxCommandEvent& event);
 		void OnChoiceFilterSelect(wxCommandEvent& event);
@@ -100,7 +102,7 @@ class FPPConnectDialog: public wxDialog
         void SetChoiceValueIndex(const std::string &col, int i);
         void SetCheckValue(const std::string &col, bool b);
 
-		void DisplayDateModified(std::string const& filePath, long index) const;
+		void DisplayDateModified(std::string const& filePath, wxTreeListItem &index) const;
 
 		DECLARE_EVENT_TABLE()
 };

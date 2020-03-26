@@ -33,7 +33,7 @@ const long FPPConnectDialog::ID_STATICTEXT1 = wxNewId();
 const long FPPConnectDialog::ID_CHOICE_FILTER = wxNewId();
 const long FPPConnectDialog::ID_STATICTEXT2 = wxNewId();
 const long FPPConnectDialog::ID_CHOICE_FOLDER = wxNewId();
-const long FPPConnectDialog::ID_LISTVIEW_Sequences = wxNewId();
+const long FPPConnectDialog::ID_PANEL2 = wxNewId();
 const long FPPConnectDialog::ID_PANEL1 = wxNewId();
 const long FPPConnectDialog::ID_SPLITTERWINDOW1 = wxNewId();
 const long FPPConnectDialog::ID_BUTTON1 = wxNewId();
@@ -49,6 +49,8 @@ const long FPPConnectDialog::ID_FPP_INSTANCE_LIST = wxNewId();
 BEGIN_EVENT_TABLE(FPPConnectDialog,wxDialog)
 	//(*EventTable(FPPConnectDialog)
 	//*)
+    EVT_TREELIST_ITEM_CONTEXT_MENU(wxID_ANY, FPPConnectDialog::SequenceListPopup)
+
 END_EVENT_TABLE()
 
 
@@ -111,9 +113,9 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
 	ChoiceFolder = new wxChoice(Panel1, ID_CHOICE_FOLDER, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_FOLDER"));
 	FlexGridSizer3->Add(ChoiceFolder, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer2->Add(FlexGridSizer3, 1, wxEXPAND, 0);
-	CheckListBox_Sequences = new wxListView(Panel1, ID_LISTVIEW_Sequences, wxDefaultPosition, wxDefaultSize, wxLC_REPORT, wxDefaultValidator, _T("ID_LISTVIEW_Sequences"));
-	CheckListBox_Sequences->SetMinSize(wxDLG_UNIT(Panel1,wxSize(-1,100)));
-	FlexGridSizer2->Add(CheckListBox_Sequences, 0, wxEXPAND, 0);
+	CheckListBoxHolder = new wxPanel(Panel1, ID_PANEL2, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL2"));
+	CheckListBoxHolder->SetMinSize(wxSize(-1,100));
+	FlexGridSizer2->Add(CheckListBoxHolder, 1, wxALL|wxEXPAND, 0);
 	Panel1->SetSizer(FlexGridSizer2);
 	FlexGridSizer2->Fit(Panel1);
 	FlexGridSizer2->SetSizeHints(Panel1);
@@ -136,13 +138,36 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
 
 	Connect(ID_CHOICE_FILTER,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&FPPConnectDialog::OnChoiceFilterSelect);
 	Connect(ID_CHOICE_FOLDER,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&FPPConnectDialog::OnChoiceFolderSelect);
-	Connect(ID_LISTVIEW_Sequences,wxEVT_COMMAND_LIST_ITEM_RIGHT_CLICK,(wxObjectEventFunction)&FPPConnectDialog::SequenceListPopup);
 	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&FPPConnectDialog::OnAddFPPButtonClick);
 	Connect(ID_BUTTON_Upload,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&FPPConnectDialog::OnButton_UploadClick);
 	Connect(wxID_ANY,wxEVT_CLOSE_WINDOW,(wxObjectEventFunction)&FPPConnectDialog::OnClose);
 	//*)
 
-    CheckListBox_Sequences->EnableCheckBoxes();
+    
+    CheckListBox_Sequences = new wxTreeListCtrl(Panel1, wxID_ANY,
+                                                wxDefaultPosition, wxDefaultSize,
+                                                wxTL_CHECKBOX | wxTL_MULTIPLE, "ID_TREELISTVIEW_SEQUENCES");
+    CheckListBox_Sequences->SetMinSize(wxSize(-1,100));
+    CheckListBox_Sequences->AppendColumn("Sequence", wxCOL_WIDTH_AUTOSIZE,
+                                         wxALIGN_LEFT,
+                                         wxCOL_RESIZABLE | wxCOL_SORTABLE);
+    CheckListBox_Sequences->AppendColumn("Modified Date", wxCOL_WIDTH_AUTOSIZE,
+                                         wxALIGN_LEFT,
+                                         wxCOL_RESIZABLE | wxCOL_SORTABLE);
+    CheckListBox_Sequences->AppendColumn("Media", wxCOL_WIDTH_AUTOSIZE,
+                                         wxALIGN_LEFT,
+                                         wxCOL_RESIZABLE | wxCOL_SORTABLE);
+    CheckListBox_Sequences->SetSortColumn(0, true);
+    
+    
+    FlexGridSizer2->Replace(CheckListBoxHolder, CheckListBox_Sequences, true);
+    
+    CheckListBoxHolder->Destroy();
+    
+    FlexGridSizer2->Layout();
+    FlexGridSizer1->Fit(this);
+    FlexGridSizer1->SetSizeHints(this);
+
 
     wxProgressDialog prgs("Discovering FPP Instances",
                           "Discovering FPP Instances", 100, parent);
@@ -184,10 +209,6 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
     prgs.Hide();
 
 
-    SetSizer(FlexGridSizer1);
-    FlexGridSizer1->Fit(this);
-    FlexGridSizer1->SetSizeHints(this);
-
     AddInstanceHeader("Upload", "Enable to Upload Files/Configs to this FPP Device.");
     AddInstanceHeader("Location", "Host and IP Address.");
     AddInstanceHeader("Description");
@@ -228,6 +249,10 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
     h *= 33;
     h /= 100;
     SplitterWindow1->SetSashPosition(h);
+    
+    SetSizer(FlexGridSizer1);
+    FlexGridSizer1->Fit(this);
+    FlexGridSizer1->SetSizeHints(this);
 }
 
 void FPPConnectDialog::PopulateFPPInstanceList() {
@@ -360,30 +385,20 @@ void FPPConnectDialog::AddInstanceRow(const FPP &inst) {
 void FPPConnectDialog::OnPopup(wxCommandEvent &event)
 {
     int id = event.GetId();
-    if (id == ID_MNU_SELECTALL) {
-        for (size_t i = 0; i < CheckListBox_Sequences->GetItemCount(); i++) {
-            if (!CheckListBox_Sequences->IsItemChecked(i)) {
-                CheckListBox_Sequences->CheckItem(i, true);
-            }
+    wxTreeListItem item = CheckListBox_Sequences->GetFirstItem();
+    while (item.IsOk()) {
+        bool isChecked = CheckListBox_Sequences->GetCheckedState(item) == wxCHK_CHECKED;
+        bool isSelected = CheckListBox_Sequences->IsSelected(item);
+        if (id == ID_MNU_SELECTALL && !isChecked) {
+            CheckListBox_Sequences->CheckItem(item);
+        } else if (id == ID_MNU_SELECTNONE && isChecked) {
+            CheckListBox_Sequences->UncheckItem(item);
+        } else if (id == ID_MNU_SELECTHIGH && !isChecked && isSelected) {
+            CheckListBox_Sequences->CheckItem(item);
+        } else if (id == ID_MNU_SELECTHIGH && isChecked && isSelected) {
+            CheckListBox_Sequences->UncheckItem(item);
         }
-    } else if (id == ID_MNU_SELECTNONE) {
-        for (size_t i = 0; i < CheckListBox_Sequences->GetItemCount(); i++) {
-            if (CheckListBox_Sequences->IsItemChecked(i)) {
-                CheckListBox_Sequences->CheckItem(i, false);
-            }
-        }
-    } else if (id == ID_MNU_SELECTHIGH) {
-        for (size_t i = 0; i < CheckListBox_Sequences->GetItemCount(); i++) {
-            if (!CheckListBox_Sequences->IsItemChecked(i) && CheckListBox_Sequences->IsSelected(i)) {
-                CheckListBox_Sequences->CheckItem(i, true);
-            }
-        }
-    } else if (id == ID_MNU_DESELECTHIGH) {
-        for (size_t i = 0; i < CheckListBox_Sequences->GetItemCount(); i++) {
-            if (CheckListBox_Sequences->IsItemChecked(i) && CheckListBox_Sequences->IsSelected(i)) {
-                CheckListBox_Sequences->CheckItem(i, false);
-            }
-        }
+        item = CheckListBox_Sequences->GetNextItem(item);
     }
 }
 
@@ -504,11 +519,12 @@ void FPPConnectDialog::LoadSequencesFromFolder(wxString dir) const
             }
             logger_base.debug("XML:  %s   IsSeq:  %d    FSEQ:  %s   Media:  %s", file.ToStdString().c_str(), isSequence, fseqName.c_str(), mediaName.c_str());
             if (isSequence) {
-                long index = CheckListBox_Sequences->GetItemCount();
-                CheckListBox_Sequences->InsertItem(index, fseqName);
-                DisplayDateModified(fseqName, index);
+                wxTreeListItem item = CheckListBox_Sequences->AppendItem(CheckListBox_Sequences->GetRootItem(),
+                                                                         fseqName);
+                
+                DisplayDateModified(fseqName, item);
                 if (mediaName != "") {
-                    CheckListBox_Sequences->SetItem(index, 2, mediaName);
+                    CheckListBox_Sequences->SetItemText(item, 2, mediaName);
                 }
             }
         }
@@ -530,11 +546,7 @@ void FPPConnectDialog::LoadSequencesFromFolder(wxString dir) const
 
 void FPPConnectDialog::LoadSequences()
 {
-    CheckListBox_Sequences->ClearAll();
-    CheckListBox_Sequences->AppendColumn("Sequence");
-    CheckListBox_Sequences->AppendColumn("Date Modified");
-    CheckListBox_Sequences->AppendColumn("Media");
-
+    CheckListBox_Sequences->DeleteAllItems();
     xLightsFrame* frame = static_cast<xLightsFrame*>(GetParent());
     wxString freqDir = frame->GetFseqDirectory();
 
@@ -553,13 +565,19 @@ void FPPConnectDialog::LoadSequences()
     wxString file;
     bool fcont = directory.GetFirst(&file, "*.?seq");
     while (fcont) {
-        int i = CheckListBox_Sequences->FindItem(0, freqDir + wxFileName::GetPathSeparator() + file, true);
-        if (i == -1) {
-            wxListItem info;
-            info.SetText(freqDir + wxFileName::GetPathSeparator() + file);
-            info.SetId(99999);
-            long index = CheckListBox_Sequences->InsertItem(info);
-            DisplayDateModified(freqDir + wxFileName::GetPathSeparator() + file, index);
+        wxString v = freqDir + wxFileName::GetPathSeparator() + file;
+        
+        wxTreeListItem item = CheckListBox_Sequences->GetFirstItem();
+        bool found = false;
+        while (item.IsOk()) {
+            if (v == CheckListBox_Sequences->GetItemText(item)) {
+                found = true;
+            }
+            item = CheckListBox_Sequences->GetNextItem(item);
+        }
+        if (!found) {
+            wxTreeListItem item = CheckListBox_Sequences->AppendItem(CheckListBox_Sequences->GetRootItem(), v);
+            DisplayDateModified(v, item);
         }
         fcont = directory.GetNext(&file);
     }
@@ -567,11 +585,15 @@ void FPPConnectDialog::LoadSequences()
     if (xLightsFrame::CurrentSeqXmlFile != nullptr) {
         wxString curSeq = xLightsFrame::CurrentSeqXmlFile->GetLongPath();
         if (!curSeq.StartsWith(xLightsFrame::CurrentDir)) {
-            LoadSequencesFromFolder(xLightsFrame::CurrentSeqXmlFile->GetLongPath());
+            LoadSequencesFromFolder(curSeq);
         }
-        int i = CheckListBox_Sequences->FindItem(0, xLightsFrame::CurrentSeqXmlFile->GetLongPath(), true);
-        if (i != -1) {
-            CheckListBox_Sequences->CheckItem(i, true);
+        wxTreeListItem item = CheckListBox_Sequences->GetFirstItem();
+        while (item.IsOk()) {
+            if (curSeq == CheckListBox_Sequences->GetItemText(item)) {
+                CheckListBox_Sequences->CheckItem(item);
+                break;
+            }
+            item = CheckListBox_Sequences->GetNextItem(item);
         }
     }
 
@@ -582,17 +604,19 @@ void FPPConnectDialog::LoadSequences()
         if (!itcsv.IsEmpty()) {
             wxArrayString savedUploadItems = wxSplit(itcsv, ',');
 
-            for (int x = 0; x < CheckListBox_Sequences->GetItemCount(); x++) {
-                if (savedUploadItems.Index(CheckListBox_Sequences->GetItemText(x)) != wxNOT_FOUND) {
-                    CheckListBox_Sequences->CheckItem(x, true);
+            wxTreeListItem item = CheckListBox_Sequences->GetFirstItem();
+            while (item.IsOk()) {
+                if (savedUploadItems.Index(CheckListBox_Sequences->GetItemText(item)) != wxNOT_FOUND) {
+                    CheckListBox_Sequences->CheckItem(item);
                 }
+                item = CheckListBox_Sequences->GetNextItem(item);
             }
         }
     }
 
-    CheckListBox_Sequences->SetColumnWidth(0, wxLIST_AUTOSIZE);
-    CheckListBox_Sequences->SetColumnWidth(1, wxLIST_AUTOSIZE);
-    CheckListBox_Sequences->SetColumnWidth(2, wxLIST_AUTOSIZE);
+    CheckListBox_Sequences->SetColumnWidth(2, wxCOL_WIDTH_AUTOSIZE);
+    CheckListBox_Sequences->SetColumnWidth(1, wxCOL_WIDTH_AUTOSIZE);
+    CheckListBox_Sequences->SetColumnWidth(0, wxCOL_WIDTH_AUTOSIZE);
 }
 
 void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
@@ -657,10 +681,12 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
         }
         row++;
     }
-    for (int fs = 0; fs < CheckListBox_Sequences->GetItemCount(); fs++) {
-        if (CheckListBox_Sequences->IsItemChecked(fs)) {
-            std::string fseq = CheckListBox_Sequences->GetItemText(fs);
-            std::string media = CheckListBox_Sequences->GetItemText(fs, 2);
+    
+    wxTreeListItem item = CheckListBox_Sequences->GetFirstItem();
+    while (item.IsOk()) {
+        if (CheckListBox_Sequences->GetCheckedState(item) == wxCHK_CHECKED) {
+            std::string fseq = CheckListBox_Sequences->GetItemText(item);
+            std::string media = CheckListBox_Sequences->GetItemText(item, 2);
 
             FSEQFile *seq = FSEQFile::openFSEQFile(fseq);
             if (seq) {
@@ -736,6 +762,7 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
             }
             delete seq;
         }
+        item = CheckListBox_Sequences->GetNextItem(item);
     }
     row = 0;
     
@@ -918,14 +945,18 @@ void FPPConnectDialog::SetCheckValue(const std::string &col, bool b) {
 void FPPConnectDialog::SaveSettings()
 {
     wxString selected = "";
-    for (int fs = 0; fs < CheckListBox_Sequences->GetItemCount(); fs++) {
-        if (CheckListBox_Sequences->IsItemChecked(fs)) {
+    wxTreeListItem item = CheckListBox_Sequences->GetFirstItem();
+    while (item.IsOk()) {
+        bool isChecked = CheckListBox_Sequences->GetCheckedState(item) == wxCHK_CHECKED;
+        if (isChecked) {
             if (selected != "") {
                 selected += ",";
             }
-            selected += CheckListBox_Sequences->GetItemText(fs);
+            selected += CheckListBox_Sequences->GetItemText(item);
         }
+        item = CheckListBox_Sequences->GetNextItem(item);
     }
+
     wxConfigBase* config = wxConfigBase::Get();
     config->Write("FPPConnectSelectedSequences", selected);
     config->Write("FPPConnectFilterSelection", ChoiceFilter->GetSelection());
@@ -1006,7 +1037,7 @@ void FPPConnectDialog::OnClose(wxCloseEvent& event)
     EndDialog(0);
 }
 
-void FPPConnectDialog::SequenceListPopup(wxListEvent& event)
+void FPPConnectDialog::SequenceListPopup(wxTreeListEvent& event)
 {
     wxMenu mnu;
     mnu.Append(ID_MNU_SELECTALL, "Select All");
@@ -1117,10 +1148,10 @@ void FPPConnectDialog::GetFolderList(const wxString& folder)
 }
 
 
-void FPPConnectDialog::DisplayDateModified(std::string const& filePath, long index) const
+void FPPConnectDialog::DisplayDateModified(std::string const& filePath, wxTreeListItem &item) const
 { 
     if (wxFile::Exists(filePath)) {
         wxDateTime last_modified_time(wxFileModificationTime(filePath));
-        CheckListBox_Sequences->SetItem(index, 1, last_modified_time.Format(wxT("%x %I:%M %p")));
+        CheckListBox_Sequences->SetItemText(item, 1, last_modified_time.Format(wxT("%x %I:%M %p")));
     }
 }

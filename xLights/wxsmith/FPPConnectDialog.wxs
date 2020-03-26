@@ -72,12 +72,11 @@
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
-								<object class="wxListView" name="ID_LISTVIEW_Sequences" variable="CheckListBox_Sequences" member="yes">
-									<minsize>-1,100d</minsize>
-									<style>wxLC_REPORT</style>
-									<handler function="SequenceListPopup" entry="EVT_LIST_ITEM_RIGHT_CLICK" />
+								<object class="wxPanel" name="ID_PANEL2" variable="CheckListBoxHolder" member="yes">
+									<minsize>-1,100</minsize>
 								</object>
-								<flag>wxEXPAND</flag>
+								<flag>wxALL|wxEXPAND</flag>
+								<option>1</option>
 							</object>
 						</object>
 					</object>

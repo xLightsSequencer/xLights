@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (dkulp)  FPP Connect - allow sorting the sequence list columns
    -- enh (dkulp)  Update FPP upload for new hardware, make sure both PRU's can be used
    -- bug (dkulp)  Fix issues of "DUMMY" virtual strings being uploaded to FPP
 2020.11 March 21 2020
