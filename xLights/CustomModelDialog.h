@@ -133,6 +133,7 @@ class CustomModelDialog: public wxDialog
         void CutOrCopyToClipboard(bool isCut);
         void UpdateBackground();
         void Paste();
+		void UpdateHighlight(int r, int c);
 
 		//(*Identifiers(CustomModelDialog)
 		static const long ID_SPINCTRL1;
@@ -173,6 +174,7 @@ class CustomModelDialog: public wxDialog
         std::vector<CopyPasteGrid*> _grids;
         std::vector<wxModelGridCellRenderer*> _renderers;
         ModelPreview* _modelPreview = nullptr;
+		int _highlightpixel = 0;
 
 	public:
 
@@ -185,20 +187,16 @@ class CustomModelDialog: public wxDialog
 		void OnButton_CustomModelZoomInClick(wxCommandEvent& event);
 		void OnButton_CustomModelZoomOutClick(wxCommandEvent& event);
 		void OnButtonCustomModelHelpClick(wxCommandEvent& event);
-		void OnGridCustomCellChange(wxGridEvent& event);
 		void OnBitmapButtonCustomBkgrdClick(wxCommandEvent& event);
 		void OnSliderCustomLightnessCmdSliderUpdated(wxScrollEvent& event);
 		void OnCheckBoxAutoNumberClick(wxCommandEvent& event);
 		void OnCheckBoxAutoIncrementClick(wxCommandEvent& event);
 		void OnSpinCtrlNextChannelChange(wxSpinEvent& event);
-		void OnGridCustomCellLeftClick(wxGridEvent& event);
 		void OnCheckBox_RearViewClick(wxCommandEvent& event);
 		void OnButtonCancelClick(wxCommandEvent& event);
 		void OnButtonOkClick(wxCommandEvent& event);
 		void OnButtonWiringClick(wxCommandEvent& event);
 		void OnFilePickerCtrl1FileChanged(wxFileDirPickerEvent& event);
-		void OnGridCustomCellRightClick(wxGridEvent& event);
-		void OnGridLabelRightClick(wxGridEvent& event);
 		void OnSpinCtrl_DepthChange(wxSpinEvent& event);
 		void OnNotebook1PageChanged(wxNotebookEvent& event);
 		void OnResize(wxSizeEvent& event);
@@ -212,6 +210,11 @@ class CustomModelDialog: public wxDialog
 		void OnGridPopup(wxCommandEvent& event);
 		void OnGridPopupLabel(wxCommandEvent& event);
 		void OnGridKey(wxCommandEvent& event);
+		void OnGridCustomCellSelected(wxGridEvent& event);
+		void OnGridCustomCellChange(wxGridEvent& event);
+		void OnGridCustomCellRightClick(wxGridEvent& event);
+		void OnGridLabelRightClick(wxGridEvent& event);
+		void OnGridCustomCellLeftClick(wxGridEvent& event);
 
         void Reverse();
         bool CheckScale(std::list<wxPoint>& points, float scale) const;

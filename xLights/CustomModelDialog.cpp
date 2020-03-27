@@ -487,7 +487,7 @@ void CustomModelDialog::UpdatePreview(int width, int height, int depth, const st
     float scale = 1500.0 / maxxy;
     _model->GetModelScreenLocation().SetScaleMatrix(glm::vec3(scale, scale, scale));
     if (_model != nullptr && _modelPreview != nullptr) {
-        _modelPreview->RenderModel(_model, CheckBox_ShowWiring->IsChecked(), true);
+        _modelPreview->RenderModel(_model, CheckBox_ShowWiring->IsChecked(), true, _highlightpixel);
     }
 }
 
@@ -745,7 +745,14 @@ void CustomModelDialog::OnButtonCustomModelHelpClick(wxCommandEvent& event)
 
 void CustomModelDialog::OnGridCustomCellChange(wxGridEvent& event)
 {
+    UpdateHighlight(event.GetRow(), event.GetCol());
     _changed = true;
+    UpdatePreview();
+}
+
+void CustomModelDialog::OnGridCustomCellSelected(wxGridEvent& event)
+{
+    UpdateHighlight(event.GetRow(), event.GetCol());
     UpdatePreview();
 }
 
@@ -937,6 +944,7 @@ void CustomModelDialog::Paste()
 
 void CustomModelDialog::OnBitmapButtonCustomPasteClick(wxCommandEvent& event)
 {
+    UpdateHighlight(-1, -1);
     _changed = true;
     Paste();
     UpdatePreview();
@@ -987,6 +995,7 @@ void CustomModelDialog::OnSpinCtrlNextChannelChange(wxSpinEvent& event)
 
 void CustomModelDialog::OnGridCustomCellLeftClick(wxGridEvent& event)
 {
+    UpdateHighlight(event.GetRow(), event.GetCol());
     if( autonumber ) {
         _changed = true;
         GetActiveGrid()->SetCellValue(event.GetRow(), event.GetCol(), wxString::Format("%d", next_channel) );
@@ -1751,6 +1760,7 @@ void CustomModelDialog::Shift()
 
 void CustomModelDialog::OnPaste(wxCommandEvent& event)
 {
+    UpdateHighlight(-1,-1);
     _changed = true;
     Paste();
     UpdatePreview();
@@ -1794,6 +1804,14 @@ void CustomModelDialog::OnGridKey(wxCommandEvent& event)
         wxASSERT(false);
         break;
     }
+    UpdateHighlight(-1, -1);
+}
+
+void CustomModelDialog::UpdateHighlight(int r, int c)
+{
+    if (r == -1) r = GetActiveGrid()->GetGridCursorRow();
+    if (c == -1) c = GetActiveGrid()->GetGridCursorCol();
+    _highlightpixel = wxAtoi(GetActiveGrid()->GetCellValue(r, c));
 }
 
 void CustomModelDialog::OnGridPopup(wxCommandEvent& event)
@@ -2304,6 +2322,7 @@ void CustomModelDialog::OnGridPopupLabel(wxCommandEvent& event)
 
 void CustomModelDialog::OnCut(wxCommandEvent& event)
 {
+    UpdateHighlight(-1, -1);
     _changed = true;
     CutOrCopyToClipboard(true);
     UpdatePreview();
@@ -2311,6 +2330,7 @@ void CustomModelDialog::OnCut(wxCommandEvent& event)
 
 void CustomModelDialog::OnCopy(wxCommandEvent& event)
 {
+    UpdateHighlight(-1, -1);
     CutOrCopyToClipboard(false);
 }
 
@@ -2340,6 +2360,8 @@ void CustomModelDialog::OnGridLabelRightClick(wxGridEvent& event)
 {
     int selRow = event.GetRow();
     int selCol = event.GetCol();
+
+    UpdateHighlight(selRow, selCol);
 
     if (SpinCtrl_Depth->GetValue() > 1 && (selRow >= 0 || selCol >= 0))
     {
@@ -2371,6 +2393,9 @@ void CustomModelDialog::OnGridCustomCellRightClick(wxGridEvent& event)
 {
     _selRow = event.GetRow();
     _selCol = event.GetCol();
+
+    UpdateHighlight(_selRow, _selCol);
+
     GetActiveGrid()->SetGridCursor(_selRow, _selCol);
     auto s = GetActiveGrid()->GetCellValue(_selRow, _selCol);
     bool selectedCellWithValue = !s.IsEmpty() && s.IsNumber();
@@ -2479,6 +2504,7 @@ void CustomModelDialog::AddPage()
     Connect(id, wxEVT_GRID_CELL_LEFT_CLICK, (wxObjectEventFunction)&CustomModelDialog::OnGridCustomCellLeftClick);
     Connect(id, wxEVT_GRID_CELL_RIGHT_CLICK, (wxObjectEventFunction)&CustomModelDialog::OnGridCustomCellRightClick);
     Connect(id, wxEVT_GRID_CELL_CHANGED, (wxObjectEventFunction)&CustomModelDialog::OnGridCustomCellChange);
+    Connect(id, wxEVT_GRID_SELECT_CELL, (wxObjectEventFunction)&CustomModelDialog::OnGridCustomCellSelected);
 
     Connect(id, wxEVT_GRID_LABEL_RIGHT_CLICK, (wxObjectEventFunction)&CustomModelDialog::OnGridLabelRightClick);
 
@@ -2571,6 +2597,7 @@ void CustomModelDialog::OnNotebook1PageChanged(wxNotebookEvent& event)
             }
         }
     }
+    UpdateHighlight(-1, -1);
 }
 
 void CustomModelDialog::OnCheckBox_ShowWiringClick(wxCommandEvent& event)

@@ -199,7 +199,7 @@ void DmxModel::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumu
 }
 
 // display model using colors
-void DmxModel::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator &sva, DrawGLUtils::xl3Accumulator &tva, DrawGLUtils::xl3Accumulator& lva, bool is_3d, const xlColor *c, bool allowSelected, bool wiring, bool highlightFirst) {
+void DmxModel::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator &sva, DrawGLUtils::xl3Accumulator &tva, DrawGLUtils::xl3Accumulator& lva, bool is_3d, const xlColor *c, bool allowSelected, bool wiring, bool highlightFirst, int highlightpixel) {
 
     if (!IsActive()) return;
 

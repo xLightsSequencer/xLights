@@ -17,7 +17,7 @@ class DmxModel : public ModelWithScreenLocation<BoxedScreenLocation>
                                            std::vector<NodeBaseClassPtr> &Nodes, int &BufferWi, int &BufferHi) const override;
 
         virtual void DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &va, DrawGLUtils::xlAccumulator &tva, bool is_3d = false, const xlColor *color = NULL, bool allowSelected = true) override;
-        virtual void DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va, DrawGLUtils::xl3Accumulator &tva, DrawGLUtils::xl3Accumulator& lva, bool is_3d = false, const xlColor *color = NULL, bool allowSelected = true, bool wiring = false, bool highlightFirst = false) override;
+        virtual void DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va, DrawGLUtils::xl3Accumulator &tva, DrawGLUtils::xl3Accumulator& lva, bool is_3d = false, const xlColor *color = NULL, bool allowSelected = true, bool wiring = false, bool highlightFirst = false, int highlightpixel = 0) override;
         virtual void DisplayEffectOnWindow(ModelPreview* preview, double pointSize) override;
 
         virtual void DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator& va, const xlColor* c, float& sx, float& sy, bool active) = 0;

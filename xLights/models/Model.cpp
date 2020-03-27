@@ -4205,7 +4205,7 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
 
 // display model using colors stored in each node
 // used when preview is running
-void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator &sva, DrawGLUtils::xl3Accumulator &tva, DrawGLUtils::xl3Accumulator& lva, bool is_3d, const xlColor *c, bool allowSelected, bool wiring, bool highlightFirst) {
+void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator &sva, DrawGLUtils::xl3Accumulator &tva, DrawGLUtils::xl3Accumulator& lva, bool is_3d, const xlColor *c, bool allowSelected, bool wiring, bool highlightFirst, int highlightpixel) {
     if (!IsActive() && preview->IsNoCurrentModel()) { return; }
     size_t NodeCount = Nodes.size();
     xlColor color;
@@ -4308,10 +4308,13 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumula
             
                 xlColor c3(color);
 
-                if (firstNode && highlightFirst)
-                {
+                if (firstNode && highlightFirst) {
                     c3 = xlYELLOW;
                 }
+                if (n+1 == highlightpixel) {
+                    c3 = xlMAGENTA;
+                }
+
                 ApplyTransparency(c3, transparency, blackTransparency);
                 va.AddVertex(sx, sy, sz, c3, replaceVertices);
             } else {
@@ -4322,6 +4325,11 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumula
                 {
                     ccolor = xlYELLOW;
                     ecolor = xlYELLOW;
+                }
+                else if (n+1 == highlightpixel)
+                {
+                    ccolor = xlMAGENTA;
+                    ecolor = xlMAGENTA;
                 }
 
                 ApplyTransparency(ccolor, transparency, blackTransparency);

@@ -276,7 +276,7 @@ void ImageModel::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccu
 }
 
 void ImageModel::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va,
-                                      DrawGLUtils::xl3Accumulator &tva, DrawGLUtils::xl3Accumulator& lva, bool is_3d, const xlColor *c, bool allowSelected, bool wiring, bool highlightFirst)
+                                      DrawGLUtils::xl3Accumulator &tva, DrawGLUtils::xl3Accumulator& lva, bool is_3d, const xlColor *c, bool allowSelected, bool wiring, bool highlightFirst, int highlightpixel)
 {
     GetModelScreenLocation().PrepareToDraw(is_3d, allowSelected);
 

@@ -81,7 +81,7 @@ public:
     void Render();
     void Render(const unsigned char *data, bool swapBuffers=true);
     void RenderModels(const std::vector<Model*>& models, bool selected);
-    void RenderModel(Model* m, bool wiring = false, bool highlightFirst = false);
+    void RenderModel(Model* m, bool wiring = false, bool highlightFirst = false, int highlightpixel = 0);
 
     double calcPixelSize(double i);
 

@@ -307,7 +307,7 @@ public:
     int GetNumberFromChannelString(const std::string &sc) const;
     int GetNumberFromChannelString(const std::string &sc, bool &valid, std::string& dependsonmodel) const;
     virtual void DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &solidVa, DrawGLUtils::xlAccumulator &transparentVa, bool is_3d = false, const xlColor *color = NULL, bool allowSelected = false);
-    virtual void DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator &solidVa3, DrawGLUtils::xl3Accumulator &transparentVa3, DrawGLUtils::xl3Accumulator& lva, bool is_3d = false, const xlColor *color =  NULL, bool allowSelected = false, bool wiring = false, bool highlightFirst = false);
+    virtual void DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator &solidVa3, DrawGLUtils::xl3Accumulator &transparentVa3, DrawGLUtils::xl3Accumulator& lva, bool is_3d = false, const xlColor *color =  NULL, bool allowSelected = false, bool wiring = false, bool highlightFirst = false, int highlightpixel = 0);
     virtual void DisplayEffectOnWindow(ModelPreview* preview, double pointSize);
     virtual int NodeRenderOrder() {return 0;}
     wxString GetNodeNear(ModelPreview* preview, wxPoint pt);

@@ -485,7 +485,7 @@ void ModelPreview::RenderModels(const std::vector<Model*>& models, bool isModelS
     }
 }
 
-void ModelPreview::RenderModel(Model* m, bool wiring, bool highlightFirst)
+void ModelPreview::RenderModel(Model* m, bool wiring, bool highlightFirst, int highlightpixel)
 {
     const xlColor* defColor = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_MODEL_DEFAULT);
 
@@ -493,7 +493,7 @@ void ModelPreview::RenderModel(Model* m, bool wiring, bool highlightFirst)
         if (is_3d) {
             int oldpixelSize = m->GetPixelSize();
             if (oldpixelSize < 5) m->SetPixelSize(5);
-            m->DisplayModelOnWindow(this, solidAccumulator3d, transparentAccumulator3d, linesAccumulator3d, true, defColor, false, wiring, highlightFirst);
+            m->DisplayModelOnWindow(this, solidAccumulator3d, transparentAccumulator3d, linesAccumulator3d, true, defColor, false, wiring, highlightFirst, highlightpixel);
             m->SetPixelSize(oldpixelSize);
         }
         else {
