@@ -11,9 +11,17 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2020.12 March 28 2020
    -- enh (dkulp)  FPP Connect - allow sorting the sequence list columns
    -- enh (dkulp)  Update FPP upload for new hardware, make sure both PRU's can be used
+   -- enh (keith)  Add chroma key ... make any colour transparent
+   -- enh (keith)  Add superstring support
+   -- enh (keith)  Highlight selected node in the 3d preview of custom models when editing them
+   -- enh (scott)  Add FSEQ date column to the FPP connect dialog
    -- bug (dkulp)  Fix issues of "DUMMY" virtual strings being uploaded to FPP
+   -- bug (keith)  Fix more leading/trailing space issues on model names
+   -- bug (keith)  When exporting GIF images of effects force almost blacks to black
+   -- bug (keith)  Fix tree properties not enabling and disabling correctly
 2020.11 March 21 2020
    -- enh (kevin)  Add star transition
    -- enh (kevin)  Extend options on the bowtie transition

@@ -4308,11 +4308,10 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumula
             
                 xlColor c3(color);
 
-                if (firstNode && highlightFirst) {
-                    c3 = xlYELLOW;
-                }
-                if (n+1 == highlightpixel) {
+                if (n + 1 == highlightpixel) {
                     c3 = xlMAGENTA;
+                } else  if (firstNode && highlightFirst) {
+                    c3 = xlYELLOW;
                 }
 
                 ApplyTransparency(c3, transparency, blackTransparency);
@@ -4321,15 +4320,13 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumula
                 xlColor ccolor(color);
                 xlColor ecolor(color);
 
-                if (firstNode && highlightFirst)
-                {
-                    ccolor = xlYELLOW;
-                    ecolor = xlYELLOW;
-                }
-                else if (n+1 == highlightpixel)
-                {
+                if (n+1 == highlightpixel) {
                     ccolor = xlMAGENTA;
                     ecolor = xlMAGENTA;
+                }
+                else if (firstNode && highlightFirst) {
+                    ccolor = xlYELLOW;
+                    ecolor = xlYELLOW;
                 }
 
                 ApplyTransparency(ccolor, transparency, blackTransparency);
