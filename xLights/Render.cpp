@@ -1940,8 +1940,17 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
                 if (event->signal.wait_for(lock, std::chrono::seconds(5)) == std::cv_status::no_timeout) {
                     retval = event->returnVal;
                 } else {
-                    logger_base.warn("Frame #%d render on model %s (%dx%d) layer %d effect %s from %dms (#%d) to %dms (#%d) timed out.", b.curPeriod, (const char *)buffer.GetModelName().c_str(), b.BufferWi, b.BufferHt, layer, (const char *)reff->Name().c_str(), effectObj->GetStartTimeMS(), b.curEffStartPer, effectObj->GetEndTimeMS(), b.curEffEndPer);
-                    printf("HELP!!!!   Frame #%d render on model %s (%dx%d) layer %d effect %s from %dms (#%d) to %dms (#%d) timed out.\n", b.curPeriod, (const char *)buffer.GetModelName().c_str(), b.BufferWi, b.BufferHt, layer, (const char *)reff->Name().c_str(), effectObj->GetStartTimeMS(), b.curEffStartPer, effectObj->GetEndTimeMS(), b.curEffEndPer);
+                    logger_base.warn("HELP!!!!   Frame #%d render on model %s (%dx%d) layer %d effect %s from %dms (#%d) to %dms (#%d) timed out 5 secs.", b.curPeriod, (const char *)buffer.GetModelName().c_str(), b.BufferWi, b.BufferHt, layer, (const char *)reff->Name().c_str(), effectObj->GetStartTimeMS(), b.curEffStartPer, effectObj->GetEndTimeMS(), b.curEffEndPer);
+                    printf("HELP!!!!   Frame #%d render on model %s (%dx%d) layer %d effect %s from %dms (#%d) to %dms (#%d) timed out 5 secs.\n", b.curPeriod, (const char *)buffer.GetModelName().c_str(), b.BufferWi, b.BufferHt, layer, (const char *)reff->Name().c_str(), effectObj->GetStartTimeMS(), b.curEffStartPer, effectObj->GetEndTimeMS(), b.curEffEndPer);
+
+                    // Give it one more chance
+                    if (event->signal.wait_for(lock, std::chrono::seconds(5)) == std::cv_status::no_timeout) {
+                        retval = event->returnVal;
+                    }
+                    else {
+                        logger_base.warn("DOUBLE HELP!!!!   Frame #%d render on model %s (%dx%d) layer %d effect %s from %dms (#%d) to %dms (#%d) timed out 10 secs.", b.curPeriod, (const char*)buffer.GetModelName().c_str(), b.BufferWi, b.BufferHt, layer, (const char*)reff->Name().c_str(), effectObj->GetStartTimeMS(), b.curEffStartPer, effectObj->GetEndTimeMS(), b.curEffEndPer);
+                        printf("DOUBLE HELP!!!!   Frame #%d render on model %s (%dx%d) layer %d effect %s from %dms (#%d) to %dms (#%d) timed out 10 secs.\n", b.curPeriod, (const char*)buffer.GetModelName().c_str(), b.BufferWi, b.BufferHt, layer, (const char*)reff->Name().c_str(), effectObj->GetStartTimeMS(), b.curEffStartPer, effectObj->GetEndTimeMS(), b.curEffEndPer);
+                    }
                 }
                 if (period % 10 == 0) {
                     //constantly putting stuff on CallAfter can result in the main
