@@ -5489,6 +5489,20 @@ void LayoutPanel::OnListCharHook(wxKeyEvent& event)
     }
 }
 
+ModelGroup* LayoutPanel::GetSelectedModelGroup() const
+{
+    auto item = TreeListViewModels->GetSelection();
+    if (!item.IsOk()) return nullptr;
+    ModelTreeData* data = dynamic_cast<ModelTreeData*>(TreeListViewModels->GetItemData(item));
+    Model* model = data != nullptr ? data->GetModel() : nullptr;
+    if (model != nullptr) {
+        if (model->GetDisplayAs() == "ModelGroup") {
+            return dynamic_cast<ModelGroup*>(model);
+        }
+    }
+    return nullptr;
+}
+
 void LayoutPanel::DeleteSelectedModel() {
 
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));

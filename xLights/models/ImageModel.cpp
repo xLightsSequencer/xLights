@@ -242,7 +242,7 @@ void ImageModel::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
 }
 
 // display model using colors
-void ImageModel::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &va, DrawGLUtils::xlAccumulator &tva, bool is_3d, const xlColor *c, bool allowSelected)
+void ImageModel::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &va, DrawGLUtils::xlAccumulator &tva, float& minx, float& miny, float& maxx, float& maxy, bool is_3d, const xlColor *c, bool allowSelected)
 {
     GetModelScreenLocation().PrepareToDraw(is_3d, allowSelected);
 
@@ -269,6 +269,11 @@ void ImageModel::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccu
 
     GetModelScreenLocation().UpdateBoundingBox(Nodes);  // FIXME: Modify to only call this when position changes
     DrawModelOnWindow(preview, va, tva, c, x1, y1, x2, y2, x3, y3, x4, y4, !allowSelected);
+
+    if (x1 < minx) minx = x1;
+    if (y4 < miny) miny = y4;
+    if (x4 > maxx) maxx = x4;
+    if (y1 > maxy) maxy = y1;
 
     if ((Selected || (Highlighted && is_3d)) && c != nullptr && allowSelected) {
         GetModelScreenLocation().DrawHandles(va, preview->GetCameraZoomForHandles(), preview->GetHandleScale());

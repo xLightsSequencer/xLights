@@ -172,7 +172,7 @@ void DmxModel::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
 }
 
 // display model using colors
-void DmxModel::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &sva, DrawGLUtils::xlAccumulator &tva, bool is_3d, const xlColor *c, bool allowSelected) {
+void DmxModel::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &sva, DrawGLUtils::xlAccumulator &tva, float& minx, float& miny, float& maxx, float&maxy, bool is_3d, const xlColor *c, bool allowSelected) {
 
     if (!IsActive()) return;
 
@@ -192,6 +192,11 @@ void DmxModel::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumu
     GetModelScreenLocation().UpdateBoundingBox(Nodes);  // FIXME: Modify to only call this when position changes
 
     DrawModelOnWindow(preview, tva, c, sx, sy, !allowSelected);
+
+    if (sx < minx) minx = sx;
+    if (sy < miny) miny = sy;
+    if (sx > maxx) maxx = sx;
+    if (sy > maxy) maxy = sy;
 
     if ((Selected || (Highlighted && is_3d)) && c != nullptr && allowSelected) {
         GetModelScreenLocation().DrawHandles(sva, preview->GetCameraZoomForHandles(), preview->GetHandleScale());

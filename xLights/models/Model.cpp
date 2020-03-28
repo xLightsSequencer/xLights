@@ -4089,7 +4089,7 @@ void Model::ApplyTransparency(xlColor& color, int transparency, int blackTranspa
 
 // display model using colors stored in each node
 // used when preview is running
-void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &sva, DrawGLUtils::xlAccumulator &tva, bool is_3d, const xlColor *c, bool allowSelected) {
+void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &sva, DrawGLUtils::xlAccumulator &tva, float& minx, float& miny, float& maxx, float& maxy, bool is_3d, const xlColor *c, bool allowSelected) {
     if (!IsActive() && preview->IsNoCurrentModel()) { return; }
     size_t NodeCount = Nodes.size();
     xlColor color;
@@ -4175,6 +4175,11 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
             float sy = Nodes[n]->Coords[c2].screenY;
             float sz = Nodes[n]->Coords[c2].screenZ;
             GetModelScreenLocation().TranslatePoint(sx, sy, sz);
+
+            if (sx < minx) minx = sx;
+            if (sy < miny) miny = sy;
+            if (sx > maxx) maxx = sx;
+            if (sy > maxy) maxy = sy;
 
             if (pixelStyle < 2) {
                 xlColor c3(color);

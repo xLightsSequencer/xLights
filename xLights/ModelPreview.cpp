@@ -18,6 +18,7 @@
 #include "ColorManager.h"
 #include "LayoutGroup.h"
 #include "xLightsMain.h"
+#include "models/ModelGroup.h"
 
 #include <log4cpp/Category.hh>
 
@@ -244,6 +245,15 @@ void ModelPreview::mouseLeftWindow(wxMouseEvent& event) {
     event.Skip (); // continue the event
 }
 
+ModelGroup* ModelPreview::GetSelectedModelGroup()
+{
+    if (xlights != nullptr)
+    {
+        return xlights->GetSelectedModelGroup();
+    }
+    return nullptr;
+}
+
 const std::vector<Model*> &ModelPreview::GetModels() {
     tmpModelList.clear();
     if (xlights) {
@@ -427,11 +437,21 @@ void ModelPreview::render(wxPaintEvent& event)
 
 void ModelPreview::RenderModels(const std::vector<Model*>& models, bool isModelSelected)
 {
+    float minx = 999999;
+    float maxx = -999999;
+    float miny = 999999;
+    float maxy = -999999;
+    bool group = false;
     const xlColor* defColor = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_MODEL_DEFAULT);
     const xlColor* selColor = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_MODEL_SELECTED);
     const xlColor* overlapColor = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_MODEL_OVERLAP);
     for (auto m : models) {
         if (xlights->AllModels.IsModelValid(m) || xlights->IsNewModel(m)) { // this IsModelValid should not be necessary but we are getting crashes due to invalid models
+
+            if (m->GroupSelected) {
+                group = true;
+            }
+
             const xlColor* color = defColor;
             if (m->Selected || m->GroupSelected) {
                 color = selColor;
@@ -453,7 +473,7 @@ void ModelPreview::RenderModels(const std::vector<Model*>& models, bool isModelS
                     m->DisplayModelOnWindow(this, solidAccumulator3d, transparentAccumulator3d, linesAccumulator3d, true, color, allowSelected);
                 }
                 else {
-                    m->DisplayModelOnWindow(this, solidAccumulator, transparentAccumulator, false, color, allowSelected);
+                    m->DisplayModelOnWindow(this, solidAccumulator, transparentAccumulator, minx, miny, maxx, maxy, false, color, allowSelected);
                     // FIXME:  Delete when not needed for debugging
                     //if ((*PreviewModels)[i]->Highlighted) {
                     //    (*PreviewModels)[i]->GetModelScreenLocation().DrawBoundingBox(accumulator);
@@ -465,13 +485,17 @@ void ModelPreview::RenderModels(const std::vector<Model*>& models, bool isModelS
                     color = selColor;
                     for (auto& sm : m->GetSubModels())
                     {
+                        if (sm->GroupSelected) {
+                            group = true;
+                        }
+
                         if (sm->GroupSelected || sm->Selected)
                         {
                             if (is_3d) {
                                 sm->DisplayModelOnWindow(this, solidAccumulator3d, transparentAccumulator3d, linesAccumulator3d, true, color, allowSelected);
                             }
                             else {
-                                sm->DisplayModelOnWindow(this, solidAccumulator, transparentAccumulator, false, color, allowSelected);
+                                sm->DisplayModelOnWindow(this, solidAccumulator, transparentAccumulator, minx, miny, maxx, maxy, false, color, allowSelected);
                             }
                         }
                     }
@@ -483,10 +507,36 @@ void ModelPreview::RenderModels(const std::vector<Model*>& models, bool isModelS
             wxASSERT(false); // why did we get here
         }
     }
+
+    auto mg = GetSelectedModelGroup();
+    if (minx != 999999 && !Is3D() && mg != nullptr)
+    {
+        int offx = 0;
+        int offy = 0;
+        offx = mg->GetXCentreOffset();
+        offy = mg->GetYCentreOffset();
+
+        DrawGroupCentre((minx + maxx) / 2.0 + (offx * (maxx - minx)) / 2000.0, (miny + maxy) / 2.0 + (offy * (maxy - miny)) / 2000.0);
+    }
+}
+
+void ModelPreview::DrawGroupCentre(float x, float y)
+{
+    solidAccumulator.AddVertex(x - 20, y, xlREDTRANSLUCENT);
+    solidAccumulator.AddVertex(x + 20, y, xlREDTRANSLUCENT);
+    solidAccumulator.Finish(GL_LINES);
+    solidAccumulator.AddVertex(x, y - 20, xlREDTRANSLUCENT);
+    solidAccumulator.AddVertex(x, y + 20, xlREDTRANSLUCENT);
+    solidAccumulator.Finish(GL_LINES);
 }
 
 void ModelPreview::RenderModel(Model* m, bool wiring, bool highlightFirst, int highlightpixel)
 {
+    float minx = 999999;
+    float maxx = -999999;
+    float miny = 999999;
+    float maxy = -999999;
+
     const xlColor* defColor = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_MODEL_DEFAULT);
 
     if (StartDrawing(mPointSize)) {
@@ -497,7 +547,7 @@ void ModelPreview::RenderModel(Model* m, bool wiring, bool highlightFirst, int h
             m->SetPixelSize(oldpixelSize);
         }
         else {
-            m->DisplayModelOnWindow(this, solidAccumulator, transparentAccumulator, false, defColor, false);
+            m->DisplayModelOnWindow(this, solidAccumulator, transparentAccumulator, minx, miny, maxx, maxy, false, defColor, false);
         }
         EndDrawing();
     }
@@ -533,6 +583,10 @@ void ModelPreview::Render()
 }
 
 void ModelPreview::Render(const unsigned char *data, bool swapBuffers/*=true*/) {
+    float minx = 999999;
+    float maxx = -999999;
+    float miny = 999999;
+    float maxy = -999999;
     if (StartDrawing(mPointSize)) {
         const std::vector<Model*> &models = GetModels();
         for (auto m : models) {
@@ -544,7 +598,7 @@ void ModelPreview::Render(const unsigned char *data, bool swapBuffers/*=true*/) 
             if (is_3d)
                 m->DisplayModelOnWindow(this, solidAccumulator3d, transparentAccumulator3d, linesAccumulator3d, true);
             else
-                m->DisplayModelOnWindow(this, solidAccumulator, transparentAccumulator, false);
+                m->DisplayModelOnWindow(this, solidAccumulator, transparentAccumulator, minx, miny, maxx, maxy, false);
         }
         // draw all the view objects
         if (is_3d) {

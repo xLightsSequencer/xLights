@@ -17,6 +17,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 class Model;
+class ModelGroup;
 class PreviewPane;
 class LayoutGroup;
 class xLightsFrame;
@@ -78,6 +79,7 @@ public:
     float GetCameraZoomForHandles() const;
     int GetHandleScale() const;
 
+    void DrawGroupCentre(float x, float y);
     void Render();
     void Render(const unsigned char *data, bool swapBuffers=true);
     void RenderModels(const std::vector<Model*>& models, bool selected);
@@ -91,6 +93,7 @@ public:
         Refresh();
     }
     const std::vector<Model*> &GetModels();
+    ModelGroup* GetSelectedModelGroup();
     bool ValidateModels(const ModelManager& mm);
     void SetAdditionalModel(Model *m) {
         additionalModel = m;

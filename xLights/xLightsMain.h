@@ -1573,6 +1573,7 @@ public:
     ViewpointMgr viewpoint_mgr;
     EffectTreeDialog *EffectTreeDlg = nullptr;
 
+    ModelGroup* GetSelectedModelGroup() const;
     void LoadJukebox(wxXmlNode* node);
     static wxXmlNode* FindNode(wxXmlNode* parent, const wxString& tag, const wxString& attr, const wxString& value, bool create = false);
     TimingPanel* GetLayerBlendingPanel() const { return timingPanel; }

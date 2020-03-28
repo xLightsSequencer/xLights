@@ -279,6 +279,7 @@ class LayoutPanel: public wxPanel
         bool HandleLayoutKeyBinding(wxKeyEvent& event);
 
         void OnListCharHook(wxKeyEvent& event);
+        ModelGroup* GetSelectedModelGroup() const;
 
     protected:
         std::string TreeModelName(const Model* model, bool fullname);

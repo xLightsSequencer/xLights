@@ -2551,6 +2551,12 @@ static void AddNonDupAttr(wxXmlNode* node, const wxString& name, const wxString&
     if (!value.empty()) node->AddAttribute(name, value);
 }
 
+ModelGroup* xLightsFrame::GetSelectedModelGroup() const
+{
+    if (Notebook1->GetSelection() != LAYOUTTAB) return nullptr;
+    return layoutPanel->GetSelectedModelGroup();
+}
+
 void xLightsFrame::LoadJukebox(wxXmlNode* node)
 {
     jukeboxPanel->Load(node);
