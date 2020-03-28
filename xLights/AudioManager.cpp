@@ -5,6 +5,7 @@
 
 #include <sstream>
 #include <algorithm>
+#include <fstream>
 
 #include <math.h>
 #include <stdlib.h>
@@ -2073,6 +2074,54 @@ long AudioManager::CalcLengthMS() const
 	return (long)(seconds * 1000.0f);
 }
 
+namespace
+{
+    struct WAVHeader
+    {
+        char riff[4];
+        int lenMinus8;
+        char wave[4];
+        char fmt[4];
+        int fmtChunkSize;
+        short compressionCode;
+        short channels;
+        int sampleRate;
+        int bytesPerSecond;
+        short blockAlign;
+        short bitsPerSample;
+        char data[4];
+        int dataChunkSize;
+    };
+
+    struct AudioParams
+    {
+        int             channelCount;
+        int             sampleRate;
+        AVSampleFormat  sampleFormat;
+        int             bytesPerSample;
+    };
+    bool ReadWavParams( const std::string& path, AudioParams& params )
+    {
+        std::ifstream file( path, std::ifstream::binary );
+        WAVHeader header;
+
+        if ( !file.good() )
+            return false;
+
+        file.read( (char *)&header, 44 );
+
+        if ( ::strncmp( header.wave, "WAVE", 4 ) == 0 )
+        {
+            params.channelCount = header.channels;
+            params.sampleRate = header.sampleRate;
+            params.sampleFormat = ( header.compressionCode == 1 ) ? AV_SAMPLE_FMT_S16 : AV_SAMPLE_FMT_FLT;
+            params.bytesPerSample = header.bitsPerSample / 8;
+        }
+
+        return true;
+    }
+}
+
 // Open and read the media file into memory
 int AudioManager::OpenMediaFile()
 {
@@ -2127,7 +2176,21 @@ int AudioManager::OpenMediaFile()
 	AVCodecContext* codecContext = audioStream->codec;
 	codecContext->codec = cdc;
 
-	if (avcodec_open2(codecContext, codecContext->codec, nullptr) != 0)
+	// Workaround for FFmpeg bug with WAV decoding
+	if ( audioStream->codecpar->codec_id == AV_CODEC_ID_FIRST_AUDIO )
+    {
+        AudioParams params;
+        if ( ReadWavParams( _audio_file, params ) )
+        {
+            codecContext->sample_rate = params.sampleRate;
+            codecContext->sample_fmt = params.sampleFormat;
+            codecContext->channels = params.channelCount;
+            codecContext->channel_layout = ( params.channelCount == 1 ) ? AV_CH_LAYOUT_MONO : AV_CH_LAYOUT_STEREO;
+            logger_base.info( "AudioManager::OpenMediaFile() - doing WAV-specific workaround for %d rate %d channel audio", codecContext->sample_rate, codecContext->channels );
+        }
+    }
+
+	if (avcodec_open2(codecContext, cdc, nullptr) != 0)
 	{
 		avformat_close_input(&formatContext);
         formatContext = nullptr;
