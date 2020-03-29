@@ -2173,8 +2173,7 @@ int AudioManager::OpenMediaFile()
 	}
 
 	AVStream* audioStream = formatContext->streams[streamIndex];
-	AVCodecContext* codecContext = audioStream->codecpar;
-	codecContext->codec = cdc;
+	AVCodecContext* codecContext = avcodec_alloc_context3( cdc );
 
 	// Workaround for FFmpeg bug with WAV decoding
 	if ( audioStream->codecpar->codec_id == AV_CODEC_ID_FIRST_AUDIO )
@@ -2589,48 +2588,40 @@ void AudioManager::GetTrackMetrics(AVFormatContext* formatContext, AVCodecContex
         _ok = false;
         return;
 	}
+	else
+        logger_base.info( "av_frame_alloc okay" );
 
-	AVPacket readingPacket;
-	av_init_packet(&readingPacket);
+	AVPacket *readingPacket = av_packet_alloc();
+	av_init_packet( readingPacket );
 
 	// start at the beginning
-	av_seek_frame(formatContext, 0, 0, AVSEEK_FLAG_ANY);
+	av_seek_frame( formatContext, 0, 0, AVSEEK_FLAG_ANY );
 
 	// Read the packets in a loop
-	while (av_read_frame(formatContext, &readingPacket) == 0)
+	while ( av_read_frame( formatContext, readingPacket ) == 0 )
 	{
-		if (readingPacket.stream_index == audioStream->index)
+		if ( readingPacket->stream_index == audioStream->index )
 		{
-			AVPacket decodingPacket = readingPacket;
-
-			// Audio packets can have multiple audio frames in a single packet
-			while (decodingPacket.size > 0)
-			{
-				// Try to decode the packet into a frame
-				// Some frames rely on multiple packets, so we have to make sure the frame is finished before
-				// we can use it
-				int gotFrame = 0;
-				int result = avcodec_decode_audio4(codecContext, frame, &gotFrame, &decodingPacket);
-
-				if (result >= 0 && gotFrame)
-				{
-					decodingPacket.size -= result;
-					_trackSize += frame->nb_samples;
-				}
-				else
-				{
-					decodingPacket.size = 0;
-				}
-
-			}
+            int status = avcodec_send_packet( codecContext, readingPacket );
+            if ( status == 0)
+            {
+                do
+                {
+                    status = avcodec_receive_frame( codecContext, frame );
+                    if ( status == AVERROR_EOF )
+                        break;
+                    _trackSize += frame->nb_samples;
+                } while ( status != AVERROR( EAGAIN ) );
+            }
 		}
 
 		// You *must* call av_free_packet() after each call to av_read_frame() or else you'll leak memory
-		av_packet_unref(&readingPacket);
+		av_packet_unref( readingPacket );
 	}
 
 	// Some codecs will cause frames to be buffered up in the decoding process. If the CODEC_CAP_DELAY flag
 	// is set, there can be buffered up frames that need to be flushed, so we'll do that
+#if 0
 	if (codecContext->codec != nullptr && codecContext->codec->capabilities & CODEC_CAP_DELAY)
 	{
 		av_init_packet(&readingPacket);
@@ -2645,15 +2636,13 @@ void AudioManager::GetTrackMetrics(AVFormatContext* formatContext, AVCodecContex
 			}
 		}
 	}
+#endif
 
 	// Clean up!
-    av_frame_free(&frame);
+    av_frame_free( &frame );
 
-    _lengthMS = (long)(((Uint64)_trackSize * 1000) / ((codecContext->time_base.den)));
-
-    // I think this does the same thing ... if they are different then maybe the file is corrupt
-    //long test = (long)((((uint64_t)audioStream->duration) * audioStream->time_base.num * 1000) / audioStream->time_base.den);
-    //wxASSERT(_lengthMS > test - 200 && _lengthMS < test + 200); // allow a buffer for rounding errors
+    double lengthInSeconds = double( _trackSize ) / codecContext->sample_rate;
+    _lengthMS = long( floor( lengthInSeconds * 1000 ) );
 
 #ifdef RESAMPLE_RATE
     //if we resample, we need to estimate the new size
