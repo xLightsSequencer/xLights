@@ -2173,7 +2173,7 @@ int AudioManager::OpenMediaFile()
 	}
 
 	AVStream* audioStream = formatContext->streams[streamIndex];
-	AVCodecContext* codecContext = audioStream->codec;
+	AVCodecContext* codecContext = audioStream->codecpar;
 	codecContext->codec = cdc;
 
 	// Workaround for FFmpeg bug with WAV decoding
@@ -2402,90 +2402,91 @@ void AudioManager::DoLoadAudioData(AVFormatContext* formatContext, AVCodecContex
     logger_base.debug("DoLoadAudioData: Song data loaded in %ld. Read: %ld", sw.Time(), read);
 }
 
-void AudioManager::LoadAudioFromFrame( AVFormatContext*formatContext, AVCodecContext* codecContext, AVPacket* decodingPacket, AVFrame* frame, SwrContext* au_convert_ctx, int out_channels, uint8_t* out_buffer, long& read, int& lastpct )
+void AudioManager::LoadAudioFromFrame( AVFormatContext* formatContext, AVCodecContext* codecContext, AVPacket* decodingPacket, AVFrame* frame, SwrContext* au_convert_ctx, int out_channels, uint8_t* out_buffer, long& read, int& lastpct )
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    // Audio packets can have multiple audio frames in a single packet
-    while (decodingPacket->size > 0)
+    int status = avcodec_send_packet( codecContext, decodingPacket );
+    if ( status == 0 )
     {
-        // Try to decode the packet into a frame
-        // Some frames rely on multiple packets, so we have to make sure the frame is finished before
-        // we can use it
-        int gotFrame = 0;
-        int result = avcodec_decode_audio4(codecContext, frame, &gotFrame, decodingPacket);
-
-        if (result >= 0 && gotFrame)
+        do
         {
-            decodingPacket->size -= result;
-            int outSamples;
-            try
-            {
-                if (*(frame->data) == nullptr)
-                {
-                    logger_base.error("LoadAudioFromFrame: frame->data was a pointer to a nullptr.");
+            status = avcodec_receive_frame( codecContext, frame );
+            if ( status == AVERROR_EOF )
+                break;
+            if ( status == 0 )
+                LoadDecodedAudioFromFrame( frame, formatContext, au_convert_ctx, out_channels, out_buffer, read, lastpct );
+        } while( status != AVERROR( EAGAIN ) );
+    }
+}
+
+void AudioManager::LoadDecodedAudioFromFrame( AVFrame* frame, AVFormatContext* formatContext, SwrContext* au_convert_ctx, int out_channels, uint8_t* out_buffer, long& read, int& lastpct )
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    int outSamples = 0;
+
+    try
+    {
+        if (*(frame->data) == nullptr)
+        {
+            logger_base.error("LoadDecodedAudioFromFrame: frame->data was a pointer to a nullptr.");
                             // let this go maybe it causes the crash
-                    wxASSERT(false);
-                }
-                if (frame->nb_samples == 0)
-                {
-                    logger_base.error("LoadAudioFromFrame: frame->nb_samples was 0.");
-                    // let this go maybe it causes the crash
-                    wxASSERT(false);
-                }
-
-                outSamples = swr_convert(au_convert_ctx, &out_buffer, CONVERSION_BUFFER_SIZE, (const uint8_t **)frame->data, frame->nb_samples);
-            }
-            catch (...)
-            {
-                logger_base.error("LoadAudioFromFrame: swr_convert threw an exception.");
-                wxASSERT(false);
-                swr_free(&au_convert_ctx);
-                av_free(out_buffer);
-                av_frame_free(&frame);
-                avformat_close_input(&formatContext);
-                std::unique_lock<std::shared_timed_mutex> locker(_mutexAudioLoad);
-                _trackSize = _loadedData; // makes it looks like we are done
-                return;
-            }
-
-            if (read + outSamples > _trackSize)
-            {
-                // I dont understand why this happens ... add logging when i can
-                // I have seen this happen with a wma file ... but i dont know why
-				logger_base.warn("LoadAudioFromFrame: This shouldnt happen ... read ["+ wxString::Format("%i", (long)read) +"] + nb_samples ["+ wxString::Format("%i", outSamples) +"] > _tracksize ["+ wxString::Format("%ld", (long)_trackSize) +"] .");
-
-                // override the track size
-                _trackSize = read + outSamples;
-            }
-
-            // copy the PCM data into the PCM buffer for playing
-            wxASSERT(_pcmdatasize + PCMFUDGE > read* out_channels * sizeof(uint16_t) + outSamples * out_channels * sizeof(uint16_t));
-            memcpy(_pcmdata + (read * out_channels * sizeof(uint16_t)), out_buffer, outSamples * out_channels * sizeof(uint16_t));
-
-            for (int i = 0; i < outSamples; i++)
-            {
-                int16_t s = *(int16_t*)(out_buffer + i * sizeof(int16_t) * out_channels);
-				_data[0][read + i] = ((float)s) / (float)0x8000;
-				if (_channels > 1)
-				{
-					s = *(int16_t*)(out_buffer + i * sizeof(int16_t) * out_channels + sizeof(int16_t));
-					_data[1][read + i] = ((float)s) / (float)0x8000;
-				}
-            }
-			read += outSamples;
-            SetLoadedData(read);
-            int progress = read * 100 / _trackSize;
-            if (progress >= lastpct + 10)
-            {
-                //logger_base.debug("DoLoadAudioData: Progress %d%%", progress);
-                lastpct = progress / 10 * 10;
-            }
+            wxASSERT(false);
         }
-        else
+        if (frame->nb_samples == 0)
         {
-            decodingPacket->size = 0;
+            logger_base.error("LoadDecodedAudioFromFrame: frame->nb_samples was 0.");
+                    // let this go maybe it causes the crash
+            wxASSERT(false);
         }
+
+        outSamples = swr_convert(au_convert_ctx, &out_buffer, CONVERSION_BUFFER_SIZE, (const uint8_t **)frame->data, frame->nb_samples);
+    }
+    catch (...)
+    {
+        logger_base.error("LoadDecodedAudioFromFrame: swr_convert threw an exception.");
+        wxASSERT(false);
+        swr_free(&au_convert_ctx);
+        av_free(out_buffer);
+        av_frame_free(&frame);
+        avformat_close_input(&formatContext);
+        std::unique_lock<std::shared_timed_mutex> locker(_mutexAudioLoad);
+        _trackSize = _loadedData; // makes it looks like we are done
+        return;
+    }
+
+    if (read + outSamples > _trackSize)
+    {
+        // I dont understand why this happens ... add logging when i can
+        // I have seen this happen with a wma file ... but i dont know why
+        logger_base.warn("LoadDecodedAudioFromFrame: This shouldnt happen ... read ["+ wxString::Format("%i", (long)read) +"] + nb_samples ["+ wxString::Format("%i", outSamples) +"] > _tracksize ["+ wxString::Format("%ld", (long)_trackSize) +"] .");
+
+        // override the track size
+        _trackSize = read + outSamples;
+    }
+
+    // copy the PCM data into the PCM buffer for playing
+    wxASSERT(_pcmdatasize + PCMFUDGE > read* out_channels * sizeof(uint16_t) + outSamples * out_channels * sizeof(uint16_t));
+    memcpy(_pcmdata + (read * out_channels * sizeof(uint16_t)), out_buffer, outSamples * out_channels * sizeof(uint16_t));
+
+    // possible optimization here... we ask resampler for S16 data and then convert that to floating-point?
+    for (int i = 0; i < outSamples; i++)
+    {
+        int16_t s = *(int16_t*)(out_buffer + i * sizeof(int16_t) * out_channels);
+        _data[0][read + i] = ((float)s) / (float)0x8000;
+        if (_channels > 1)
+        {
+            s = *(int16_t*)(out_buffer + i * sizeof(int16_t) * out_channels + sizeof(int16_t));
+            _data[1][read + i] = ((float)s) / (float)0x8000;
+        }
+    }
+    read += outSamples;
+    SetLoadedData(read);
+    int progress = read * 100 / _trackSize;
+    if (progress >= lastpct + 10)
+    {
+        //logger_base.debug("DoLoadAudioData: Progress %d%%", progress);
+        lastpct = progress / 10 * 10;
     }
 }
 
