@@ -281,10 +281,12 @@ public:
 	void DoPrepareFrameData();
 	void DoPolyphonicTranscription(wxProgressDialog* dlg, AudioManagerProgressCallback progresscallback);
 	bool IsPolyphonicTranscriptionDone() const { return _polyphonicTranscriptionDone; };
+
     void DoLoadAudioData(AVFormatContext* formatContext, AVCodecContext* codecContext, AVStream* audioStream, AVFrame* frame);
-    void LoadAudioFromFrame( AVFormatContext* formatContext, AVCodecContext* codecContext, AVPacket* decodingPacket, AVFrame* frame, SwrContext* au_convert_ctx, int out_channels, uint8_t* out_buffer, long& read, int& lastpct );
-    void LoadAudioFromFrame_Buffered( AVFormatContext* formatContext, AVCodecContext* codecContext, AVPacket* readingPacket, AVFrame* frame, SwrContext* au_convert_ctx, int out_channels, uint8_t* out_buffer, long& read, int& lastpct );
-    void LoadDecodedAudioFromFrame( AVFrame* frame, AVFormatContext* formatContext, SwrContext* au_convert_ctx, int out_channels, uint8_t* out_data, long& read, int& lastpct );
+    void LoadAudioFromFrame( AVFormatContext* formatContext, AVCodecContext* codecContext, AVPacket* decodingPacket, AVFrame* frame, SwrContext* au_convert_ctx,
+                             bool receivedEOF, int out_channels, uint8_t* out_buffer, long& read, int& lastpct );
+    void LoadDecodedAudioFromFrame( AVFrame* frame, AVFormatContext* formatContext, SwrContext* au_convert_ctx,
+                                    int out_channels, uint8_t* out_buffer, long& read, int& lastpct );
 
     static bool WriteAudioFrame(AVFormatContext *oc, AVStream *st, float *sampleBuff, int sampleCount, bool clearQueue = false);
     static bool CreateAudioFile(const std::vector<float>& left, const std::vector<float>& right, const std::string& targetFile, long bitrate);
