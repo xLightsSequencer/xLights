@@ -1218,7 +1218,7 @@ public:
     std::string GetSelectedLayoutPanelPreview() const;
     void UpdateRenderStatus();
     void LogRenderStatus();
-    bool RenderEffectFromMap(Effect *effect, int layer, int period, SettingsMap& SettingsMap,
+    bool RenderEffectFromMap(bool suppress, Effect *effect, int layer, int period, SettingsMap& SettingsMap,
                              PixelBufferClass &buffer, bool &ResetEffectState,
                              bool bgThread = false, RenderEvent *event = nullptr);
     void RenderMainThreadEffects();

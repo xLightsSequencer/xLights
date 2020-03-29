@@ -13,6 +13,7 @@
 #include <wx/scrolwin.h>
 #include <wx/sizer.h>
 #include <wx/slider.h>
+#include <wx/spinctrl.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
 //*)
@@ -47,6 +48,8 @@ class TimingPanel: public wxPanel
 		BulkEditSlider* Slider_EffectLayerMix;
 		BulkEditSlider* Slider_In_Adjust;
 		BulkEditSlider* Slider_Out_Adjust;
+		BulkEditSpinCtrl* SpinCtrl_FreezeEffectAtFrame;
+		BulkEditSpinCtrl* SpinCtrl_SuppressEffectUntil;
 		BulkEditTextCtrl* TextCtrl_EffectLayerMix;
 		BulkEditTextCtrl* TextCtrl_Fadein;
 		BulkEditTextCtrl* TextCtrl_Fadeout;
@@ -63,7 +66,9 @@ class TimingPanel: public wxPanel
 		wxScrolledWindow* ScrolledWindowTiming;
 		wxStaticText* InAdjustmentText;
 		wxStaticText* OutAdjustmentText;
+		wxStaticText* StaticText1;
 		wxStaticText* StaticText2;
+		wxStaticText* StaticText3;
 		wxStaticText* StaticText4;
 		xlLockButton* BitmapButton_CheckBox_LayerMorph;
 		xlLockButton* BitmapButton_EffectLayerMix;
@@ -73,6 +78,10 @@ class TimingPanel: public wxPanel
 
 		//(*Identifiers(TimingPanel)
 		static const long ID_CHECKBOX_ResetTimingPanel;
+		static const long ID_STATICTEXT1;
+		static const long ID_SPINCTRL_SuppressEffectUntil;
+		static const long ID_STATICTEXT2;
+		static const long ID_SPINCTRL_FreezeEffectAtFrame;
 		static const long ID_CHECKBOX_LayerMorph;
 		static const long ID_SLIDER_EffectLayerMix;
 		static const long IDD_TEXTCTRL_EffectLayerMix;

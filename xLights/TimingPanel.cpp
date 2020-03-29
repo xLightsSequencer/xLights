@@ -24,6 +24,10 @@
 
 //(*IdInit(TimingPanel)
 const long TimingPanel::ID_CHECKBOX_ResetTimingPanel = wxNewId();
+const long TimingPanel::ID_STATICTEXT1 = wxNewId();
+const long TimingPanel::ID_SPINCTRL_SuppressEffectUntil = wxNewId();
+const long TimingPanel::ID_STATICTEXT2 = wxNewId();
+const long TimingPanel::ID_SPINCTRL_FreezeEffectAtFrame = wxNewId();
 const long TimingPanel::ID_CHECKBOX_LayerMorph = wxNewId();
 const long TimingPanel::ID_SLIDER_EffectLayerMix = wxNewId();
 const long TimingPanel::IDD_TEXTCTRL_EffectLayerMix = wxNewId();
@@ -96,6 +100,18 @@ TimingPanel::TimingPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	FlexGridSizer5->Add(CheckBox_ResetTimingPanel, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer2 = new wxFlexGridSizer(0, 3, 0, 0);
 	FlexGridSizer2->AddGrowableCol(1);
+	StaticText1 = new wxStaticText(ScrolledWindowTiming, ID_STATICTEXT1, _("Suppress Effect Until Frame"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
+	FlexGridSizer2->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+	SpinCtrl_SuppressEffectUntil = new BulkEditSpinCtrl(ScrolledWindowTiming, ID_SPINCTRL_SuppressEffectUntil, _T("0"), wxDefaultPosition, wxDefaultSize, 0, 0, 99999, 0, _T("ID_SPINCTRL_SuppressEffectUntil"));
+	SpinCtrl_SuppressEffectUntil->SetValue(_T("0"));
+	FlexGridSizer2->Add(SpinCtrl_SuppressEffectUntil, 1, wxALL|wxEXPAND, 2);
+	FlexGridSizer2->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	StaticText3 = new wxStaticText(ScrolledWindowTiming, ID_STATICTEXT2, _("Freeze Effect At Frame"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
+	FlexGridSizer2->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+	SpinCtrl_FreezeEffectAtFrame = new BulkEditSpinCtrl(ScrolledWindowTiming, ID_SPINCTRL_FreezeEffectAtFrame, _T("99999"), wxDefaultPosition, wxDefaultSize, 0, 0, 99999, 99999, _T("ID_SPINCTRL_FreezeEffectAtFrame"));
+	SpinCtrl_FreezeEffectAtFrame->SetValue(_T("99999"));
+	FlexGridSizer2->Add(SpinCtrl_FreezeEffectAtFrame, 1, wxALL|wxEXPAND, 2);
+	FlexGridSizer2->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	CheckBox_LayerMorph = new wxCheckBox(ScrolledWindowTiming, ID_CHECKBOX_LayerMorph, _("Morph"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_LayerMorph"));
 	CheckBox_LayerMorph->SetValue(false);
 	CheckBox_LayerMorph->SetToolTip(_("Gradual cross-fade from Effect1 to Effect2"));
@@ -136,10 +152,10 @@ TimingPanel::TimingPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	Choice_LayerMethod->Append(_("Max"));
 	Choice_LayerMethod->Append(_("Min"));
 	Choice_LayerMethod->SetToolTip(_("Layering defines how Effect 1 and Effect 2 will be mixed together.\nHere are the Choices\n* Effect 1: Shows only Effect 1. Slide the slider to the right to blend in some Effect 2. \n* Effect 2: Shows only Effect 2. Slide the slider to the right to blend in some Effect 1.\n* 1 is Mask: (Shadow) Effect 1 will cast a shadow onto Effect 2 for every Effect 1 pixel that has a non-black value.\n* 2 is Mask: (Shadow) Effect 2 will cast a shadow onto Effect 1 for every Effect 2 pixel that has a non-black value.\n* 1 is Unmask: Unmask like but colours are revealed with no fade. Black becomes white.\n* 2 is Unmask: Unmask like but colours are revealed with no fade. Black becomes white.\n* 1 is True Unmask:  (Mask) Only allow Effect 2 to show through when Effect 1 has a non-black pixel.\n* 2 is True Unmask:  (Mask) Only allow Effect 1 to show through when Effect 2 has a non-black pixel.\n* Shadow 1 on 2: Take brightness and Saturation from 1, use hue from 2\n* Shadow 2 on 1: Take brightness and Saturation from 2, use hue from 1\n* 1 reveals 2: (Superimpose) Effect 1 reveals Effect 2\n* 2 reveals 1: (Superimpose) Effect 2 reveals Effect 1\n* Layered: Effect 1 only shows in black regions of Effect 2.\n* Average: Take value of Effect  and Add it to Value from Effect 2. Average the sum\n* Bottom-top: Effect 1 is put on bottom of model, Effect 2 is put on top in a plit screen display\n* Left-Right: Effect goes 1 goes on the left side, Effect 2 on the right. Split screen goes down middle of model.\n* Additive -  Take value of Effect 1  and Add it to Value from Effect 2.\n* Subtractive -  Take value of Effect 1  and Subtract it from the Value from Effect 2.\n* Max - Take the maximum value for each channel from both effects\n* Min - Take the minimum value for each channel from both effects\n* Canvas - Blend the selected layers into this layer"));
-	FlexGridSizer2->Add(Choice_LayerMethod, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer2->Add(Choice_LayerMethod, 1, wxALL|wxEXPAND, 2);
 	Button_About_Layers = new wxButton(ScrolledWindowTiming, ID_BUTTON_ABOUT_LAYERS, _("\?"), wxDefaultPosition, wxSize(25,23), 0, wxDefaultValidator, _T("ID_BUTTON_ABOUT_LAYERS"));
 	Button_About_Layers->SetToolTip(_("About Layer Blending Types"));
-	FlexGridSizer2->Add(Button_About_Layers, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE, 5);
+	FlexGridSizer2->Add(Button_About_Layers, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE, 2);
 	BitmapButton_EffectLayerMix = new xlLockButton(ScrolledWindowTiming, ID_BITMAPBUTTON_SLIDER_EffectLayerMix, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_EffectLayerMix"));
 	BitmapButton_EffectLayerMix->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	BitmapButton_EffectLayerMix->SetToolTip(_("Lock/Unlock. If Locked then a \"Create Random Effects\" will NOT change this value."));
@@ -149,6 +165,7 @@ TimingPanel::TimingPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	FlexGridSizer2->Add(CheckBox_Canvas, 1, wxALL|wxEXPAND, 5);
 	Button_Layers = new wxButton(ScrolledWindowTiming, ID_BUTTON1, _("Layers ..."), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
 	FlexGridSizer2->Add(Button_Layers, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer2->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer5->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 2);
 	Notebook1 = new wxNotebook(ScrolledWindowTiming, IDD_NOTEBOOK1, wxDefaultPosition, wxDefaultSize, 0, _T("IDD_NOTEBOOK1"));
 	Panel1 = new wxPanel(Notebook1, ID_PANEL2, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL2"));
@@ -339,6 +356,8 @@ void TimingPanel::SetDefaultControls(const Model *model, bool optionbased) {
         Slider_Out_Adjust->SetValue(50);
         Choice_In_Transition_Type->SetSelection(0);
         Choice_Out_Transition_Type->SetSelection(0);
+		SpinCtrl_FreezeEffectAtFrame->SetValue(99999);
+		SpinCtrl_SuppressEffectUntil->SetValue(0);
 
         CheckBox_In_Reverse->SetValue(false);
         CheckBox_In_Reverse->Enable(false);
@@ -376,7 +395,17 @@ wxString TimingPanel::GetTimingString()
         }
     }
 
-    // Effect Mix
+	if (SpinCtrl_FreezeEffectAtFrame->GetValue() != 99999)
+	{
+		s += wxString::Format("T_SPINCTRL_FreezeEffectAtFrame=%d,", SpinCtrl_FreezeEffectAtFrame->GetValue());
+	}
+
+	if (SpinCtrl_SuppressEffectUntil->GetValue() != 0)
+	{
+		s += wxString::Format("T_SPINCTRL_SuppressEffectUntil=%d,", SpinCtrl_SuppressEffectUntil->GetValue());
+	}
+
+	// Effect Mix
     if (Slider_EffectLayerMix->GetValue() != 0) {
         s += wxString::Format("T_SLIDER_EffectLayerMix=%d,",Slider_EffectLayerMix->GetValue());
     }
