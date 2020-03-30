@@ -230,6 +230,8 @@ class AudioManager
     void LoadAudioData(bool separateThread, AVFormatContext* formatContext, AVCodecContext* codecContext, AVStream* audioStream, AVFrame* frame);
     void SetLoadedData(long pos);
 
+    static bool WriteAudioFrame( AVFormatContext *oc, AVCodecContext* codecContext, AVStream *st, float *sampleBuff, int sampleCount, bool clearQueue = false );
+
 public:
     static double MidiToFrequency(int midi);
     static std::string MidiToNote(int midi);
@@ -288,8 +290,8 @@ public:
     void LoadDecodedAudioFromFrame( AVFrame* frame, AVFormatContext* formatContext, SwrContext* au_convert_ctx,
                                     int out_channels, uint8_t* out_buffer, long& read, int& lastpct );
 
-    static bool WriteAudioFrame(AVFormatContext *oc, AVStream *st, float *sampleBuff, int sampleCount, bool clearQueue = false);
-    static bool CreateAudioFile(const std::vector<float>& left, const std::vector<float>& right, const std::string& targetFile, long bitrate);
+    static bool CreateAudioFile( const std::vector<float>& left, const std::vector<float>& right, const std::string& targetFile, long bitrate );
+    bool WriteCurrentAudio( const std::string& path, long bitrate );
 
     bool AudioDeviceChanged();
 

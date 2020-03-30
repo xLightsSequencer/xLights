@@ -471,7 +471,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     logger_base.debug("xLightsFrame being constructed.");
 
     xLightsApp::__frame = this;
-    
+
     _exiting = false;
     SplashDialog splash(nullptr);
     splash.Show();
@@ -1759,7 +1759,7 @@ xLightsFrame::~xLightsFrame()
             w->RemoveEventHandler(m_mgr);
         }
     }
-    
+
     //unconnect these as the call to DeleteAllPages will cause pages to change and the page numbers to possibly not match
     Disconnect(ID_NOTEBOOK1,wxEVT_COMMAND_AUINOTEBOOK_PAGE_CHANGED,(wxObjectEventFunction)&xLightsFrame::OnNotebook1PageChanged1);
     Disconnect(ID_NOTEBOOK1,wxEVT_COMMAND_AUINOTEBOOK_PAGE_CHANGING,(wxObjectEventFunction)&xLightsFrame::OnNotebook1PageChanging);
@@ -4516,9 +4516,9 @@ void xLightsFrame::CheckSequence(bool display)
                 int32_t sc;
                 auto c = _outputManager.GetController(o->GetStartChannel(), sc);
 
-                wxString msg = wxString::Format("    ERR: Multiple outputs being sent to the same controller '%s' (%s) and universe %s.", 
-                    (const char*)c->GetName().c_str(), 
-                    (const char*)o->GetIP().c_str(), 
+                wxString msg = wxString::Format("    ERR: Multiple outputs being sent to the same controller '%s' (%s) and universe %s.",
+                    (const char*)c->GetName().c_str(),
+                    (const char*)o->GetIP().c_str(),
                     (const char *)o->GetUniverseString().c_str());
                 LogAndWrite(f, msg.ToStdString());
                 errcount++;
@@ -4606,8 +4606,8 @@ void xLightsFrame::CheckSequence(bool display)
                         wxString msg = wxString::Format("    ERR: Model %s on %s controller '%s:%s' has invalid controller connection '%s'.",
                             (const char*)it.second->GetName().c_str(),
                             (const char*)eth->GetProtocol().c_str(),
-                            (const char*)eth->GetName().c_str(), 
-                            (const char*)eth->GetIP().c_str(), 
+                            (const char*)eth->GetName().c_str(),
+                            (const char*)eth->GetIP().c_str(),
                             (const char*)it.second->GetControllerConnectionString().c_str());
                         LogAndWrite(f, msg.ToStdString());
                         errcount++;
@@ -4810,8 +4810,8 @@ void xLightsFrame::CheckSequence(bool display)
             {
                 if (!IsIPValidOrHostname(eth->GetIP()))
                 {
-                    wxString msg = wxString::Format("    WARN: IP address '%s' on controller '%s' does not look valid.", 
-                        (const char*)eth->GetIP().c_str(), 
+                    wxString msg = wxString::Format("    WARN: IP address '%s' on controller '%s' does not look valid.",
+                        (const char*)eth->GetIP().c_str(),
                         (const char*)eth->GetName().c_str());
                     LogAndWrite(f, msg.ToStdString());
                     warncount++;
@@ -4829,8 +4829,8 @@ void xLightsFrame::CheckSequence(bool display)
                         if (ip1 == 10)
                         {
                             if (ip2 == 255 && ip3 == 255 && ip4 == 255) {
-                                wxString msg = wxString::Format("    ERR: IP address '%s' on controller '%s' is a broadcast address.", 
-                                    (const char*)eth->GetIP().c_str(), 
+                                wxString msg = wxString::Format("    ERR: IP address '%s' on controller '%s' is a broadcast address.",
+                                    (const char*)eth->GetIP().c_str(),
                                     (const char*)eth->GetName().c_str());
                                 LogAndWrite(f, msg.ToStdString());
                                 errcount++;
@@ -4840,8 +4840,8 @@ void xLightsFrame::CheckSequence(bool display)
                         else if (ip1 == 192 && ip2 == 168)
                         {
                             if (ip3 == 255 && ip4 == 255) {
-                                wxString msg = wxString::Format("    ERR: IP address '%s' on controller '%s' is a broadcast address.", 
-                                    (const char*)eth->GetIP().c_str(), 
+                                wxString msg = wxString::Format("    ERR: IP address '%s' on controller '%s' is a broadcast address.",
+                                    (const char*)eth->GetIP().c_str(),
                                     (const char*)eth->GetName().c_str());
                                 LogAndWrite(f, msg.ToStdString());
                                 errcount++;
@@ -4854,32 +4854,32 @@ void xLightsFrame::CheckSequence(bool display)
                         }
                         else if (ip1 == 255 && ip2 == 255 && ip3 == 255 && ip4 == 255)
                         {
-                            wxString msg = wxString::Format("    ERR: IP address '%s' on controller '%s' is a broadcast address.", 
-                                (const char*)eth->GetIP().c_str(), 
+                            wxString msg = wxString::Format("    ERR: IP address '%s' on controller '%s' is a broadcast address.",
+                                (const char*)eth->GetIP().c_str(),
                                 (const char*)eth->GetName().c_str());
                             LogAndWrite(f, msg.ToStdString());
                             errcount++;
                         }
                         else if (ip1 == 0)
                         {
-                            wxString msg = wxString::Format("    ERR: IP address '%s' on controller '%s' not valid.", 
-                                (const char*)eth->GetIP().c_str(), 
+                            wxString msg = wxString::Format("    ERR: IP address '%s' on controller '%s' not valid.",
+                                (const char*)eth->GetIP().c_str(),
                                 (const char*)eth->GetName().c_str());
                             LogAndWrite(f, msg.ToStdString());
                             errcount++;
                         }
                         else if (ip1 >= 224 && ip1 <= 239)
                         {
-                            wxString msg = wxString::Format("    ERR: IP address '%s' on controller '%s' is a multicast address.", 
-                                (const char*)eth->GetIP().c_str(), 
+                            wxString msg = wxString::Format("    ERR: IP address '%s' on controller '%s' is a multicast address.",
+                                (const char*)eth->GetIP().c_str(),
                                 (const char*)eth->GetName().c_str());
                             LogAndWrite(f, msg.ToStdString());
                             errcount++;
                         }
                         else
                         {
-                            wxString msg = wxString::Format("    WARN: IP address '%s' on controller '%s' in internet routable ... are you sure you meant to do this.", 
-                                (const char*)eth->GetIP().c_str(), 
+                            wxString msg = wxString::Format("    WARN: IP address '%s' on controller '%s' in internet routable ... are you sure you meant to do this.",
+                                (const char*)eth->GetIP().c_str(),
                                 (const char*)eth->GetName().c_str());
                             LogAndWrite(f, msg.ToStdString());
                             warncount++;
@@ -4940,11 +4940,11 @@ void xLightsFrame::CheckSequence(bool display)
             {
                 if (eth_ostart->GetIP() != eth_oend->GetIP())
                 {
-                    wxString msg = wxString::Format("    WARN: Model '%s' starts on controller '%s' with IP '%s' but ends on a controller '%s' with IP '%s'.", 
-                        it->first, 
-                        ostart->GetName(), 
-                        eth_ostart->GetIP(), 
-                        oend->GetName(), 
+                    wxString msg = wxString::Format("    WARN: Model '%s' starts on controller '%s' with IP '%s' but ends on a controller '%s' with IP '%s'.",
+                        it->first,
+                        ostart->GetName(),
+                        eth_ostart->GetIP(),
+                        oend->GetName(),
                         eth_oend->GetIP());
                     LogAndWrite(f, msg.ToStdString());
                     warncount++;
@@ -4954,11 +4954,11 @@ void xLightsFrame::CheckSequence(bool display)
             {
                 if (ser_ostart->GetPort() != ser_oend->GetPort())
                 {
-                    wxString msg = wxString::Format("    WARN: Model '%s' starts on controller '%s' with CommPort '%s' but ends on a controller '%s' with CommPort '%s'.", 
-                        it->first, 
-                        ostart->GetName(), 
-                        ser_ostart->GetPort(), 
-                        ser_oend->GetName(), 
+                    wxString msg = wxString::Format("    WARN: Model '%s' starts on controller '%s' with CommPort '%s' but ends on a controller '%s' with CommPort '%s'.",
+                        it->first,
+                        ostart->GetName(),
+                        ser_ostart->GetPort(),
+                        ser_oend->GetName(),
                         ser_oend->GetPort());
                     LogAndWrite(f, msg.ToStdString());
                     warncount++;
@@ -9190,6 +9190,19 @@ void xLightsFrame::OnMenuItem_Generate2DPathSelected(wxCommandEvent& event)
 void xLightsFrame::OnMenuItem_PrepareAudioSelected(wxCommandEvent& event)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+
+    // This exists solely to provide an easy way to test AudioManager::CreateAudioFile()
+#if 0
+    if ( CurrentSeqXmlFile != nullptr )
+    {
+        AudioManager *audioMgr = CurrentSeqXmlFile->GetMedia();
+        if ( audioMgr != nullptr )
+            audioMgr->WriteCurrentAudio( "C:\\Temp\\audioOut.wav", 44100 );
+    }
+    return;
+#endif
+
     wxString filename = wxFileSelector("Choose reaper file describing the changes required to the audio.",
         CurrentDir, wxEmptyString, "*.rrp",
         "Reaper files (*.rpp)|*.rpp|xAudio files (*.xaudio)|*.xaudio|All files (*.*)|*.*",
