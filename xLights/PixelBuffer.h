@@ -129,7 +129,8 @@ private:
             BufferHt = BufferWi = 0;
             persistent = false;
             usingModelBuffers = false;
-
+            freezeAfterFrame = 10000;
+            suppressUntil = 0;
             fadeInSteps = fadeOutSteps = 0;
             inTransitionAdjust = outTransitionAdjust = 0;
             inTransitionReverse = outTransitionReverse = false;
@@ -200,8 +201,8 @@ private:
         MixTypes mixType;
         float effectMixThreshold;
         bool effectMixVaries;
-        bool canvas;
-        bool persistent;
+        bool canvas = false;
+        bool persistent = false;
         int fadeInSteps;
         int fadeOutSteps;
         std::string inTransitionType;
@@ -219,6 +220,8 @@ private:
         bool isChromaKey = false;
         xlColor chromaKeyColour = xlBLACK;
         int chromaSensitivity = 1;
+        int freezeAfterFrame = 99999;
+        int suppressUntil = 0;
 
         std::vector<uint8_t> mask;
         void renderTransitions(bool isFirstFrame, const RenderBuffer* prevRB);
@@ -274,6 +277,7 @@ public:
     int GetChanCountPerNode() const;
     MixTypes GetMixType(int layer) const;
     bool IsCanvasMix(int layer) const;
+    int GetFrameTimeInMS() const { return frameTimeInMs; }
 
     bool IsVariableSubBuffer(int layer) const;
     void PrepareVariableSubBuffer(int EffectPeriod, int layer);
@@ -299,6 +303,8 @@ public:
 
     void SetLayerSettings(int layer, const SettingsMap &settings);
     bool IsPersistent(int layer);
+    int GetFreezeFrame(int layer);
+    int GetSuppressUntil(int layer);
 
     void SetMixType(int layer, const std::string& MixName);
     void SetPalette(int layer, xlColorVector& newcolors, xlColorCurveVector& newcc);

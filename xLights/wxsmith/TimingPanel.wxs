@@ -30,6 +30,50 @@
 											<cols>3</cols>
 											<growablecols>1</growablecols>
 											<object class="sizeritem">
+												<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
+													<label>Suppress Effect Until Frame</label>
+												</object>
+												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+												<border>2</border>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
+												<object class="wxSpinCtrl" name="ID_SPINCTRL_SuppressEffectUntil" subclass="BulkEditSpinCtrl" variable="SpinCtrl_SuppressEffectUntil" member="yes">
+													<value>0</value>
+													<max>99999</max>
+												</object>
+												<flag>wxALL|wxEXPAND</flag>
+												<border>2</border>
+												<option>1</option>
+											</object>
+											<object class="spacer">
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<border>2</border>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
+												<object class="wxStaticText" name="ID_STATICTEXT2" variable="StaticText3" member="yes">
+													<label>Freeze Effect At Frame</label>
+												</object>
+												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+												<border>2</border>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
+												<object class="wxSpinCtrl" name="ID_SPINCTRL_FreezeEffectAtFrame" subclass="BulkEditSpinCtrl" variable="SpinCtrl_FreezeEffectAtFrame" member="yes">
+													<value>99999</value>
+													<max>99999</max>
+												</object>
+												<flag>wxALL|wxEXPAND</flag>
+												<border>2</border>
+												<option>1</option>
+											</object>
+											<object class="spacer">
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<border>2</border>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
 												<object class="wxCheckBox" name="ID_CHECKBOX_LayerMorph" variable="CheckBox_LayerMorph" member="yes">
 													<label>Morph</label>
 													<tooltip>Gradual cross-fade from Effect1 to Effect2</tooltip>
@@ -108,7 +152,7 @@
 													<style>wxFULL_REPAINT_ON_RESIZE</style>
 													<handler function="OnChoice_LayerMethodSelect" entry="EVT_CHOICE" />
 												</object>
-												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<flag>wxALL|wxEXPAND</flag>
 												<border>2</border>
 												<option>1</option>
 											</object>
@@ -120,7 +164,7 @@
 													<handler function="OnButton_AboutClick" entry="EVT_BUTTON" />
 												</object>
 												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE</flag>
-												<border>5</border>
+												<border>2</border>
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
@@ -152,6 +196,11 @@
 												</object>
 												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 												<border>2</border>
+												<option>1</option>
+											</object>
+											<object class="spacer">
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<border>5</border>
 												<option>1</option>
 											</object>
 										</object>

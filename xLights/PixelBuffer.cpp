@@ -738,6 +738,8 @@ void PixelBufferClass::reset(int nlayers, int timing, bool isNode)
         layers[x]->subBuffer = "";
         layers[x]->isChromaKey = false;
         layers[x]->chromaSensitivity = 1;
+        layers[x]->freezeAfterFrame = 99999;
+        layers[x]->suppressUntil = 0;
         layers[x]->chromaKeyColour = *wxBLACK;
         layers[x]->brightnessValueCurve = "";
         layers[x]->hueAdjustValueCurve = "";
@@ -1913,6 +1915,8 @@ static const std::string VALUECURVE_YPivot("VALUECURVE_YPivot");
 static const std::string STR_DEFAULT("Default");
 static const std::string STR_EMPTY("");
 
+static const std::string SPINCTRL_FreezeEffectAtFrame("SPINCTRL_FreezeEffectAtFrame");
+static const std::string SPINCTRL_SuppressEffectUntil("SPINCTRL_SuppressEffectUntil");
 static const std::string SLIDER_ChromaSensitivity("SLIDER_ChromaSensitivity");
 static const std::string CHECKBOX_Chroma("CHECKBOX_Chroma");
 static const std::string COLOURPICKERCTRL_ChromaColour("COLOURPICKERCTRL_ChromaColour");
@@ -2214,6 +2218,8 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
 
     inf->isChromaKey = settingsMap.GetBool(CHECKBOX_Chroma, false);
     inf->chromaSensitivity = settingsMap.GetInt(SLIDER_ChromaSensitivity, 1);
+    inf->freezeAfterFrame = settingsMap.GetInt(SPINCTRL_FreezeEffectAtFrame, 99999);
+    inf->suppressUntil = settingsMap.GetInt(SPINCTRL_SuppressEffectUntil, 0);
     inf->chromaKeyColour = wxColour(settingsMap.Get(COLOURPICKERCTRL_ChromaColour, "Black"));
     inf->brightness = settingsMap.GetInt(SLIDER_Brightness, 100);
     inf->hueadjust = settingsMap.GetInt(SLIDER_HueAdjust, 0);
@@ -2364,6 +2370,16 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
 
 bool PixelBufferClass::IsPersistent(int layer) {
     return layers[layer]->persistent;
+}
+
+int PixelBufferClass::GetFreezeFrame(int layer)
+{
+    return layers[layer]->freezeAfterFrame;
+}
+
+int PixelBufferClass::GetSuppressUntil(int layer)
+{
+    return layers[layer]->suppressUntil;
 }
 
 RenderBuffer& PixelBufferClass::BufferForLayer(int layer, int idx)

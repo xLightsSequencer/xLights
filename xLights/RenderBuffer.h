@@ -422,6 +422,7 @@ public:
     size_t GetColorCount();
     void SetAllowAlphaChannel(bool a);
     bool IsDmxBuffer() const { return dmx_buffer; }
+    void Forget();
 
     void SetState(int period, bool reset, const std::string& model_name);
 

@@ -664,8 +664,9 @@ RenderBuffer::~RenderBuffer()
     if (_pathDrawingContext != nullptr) {
         PathDrawingContext::ReleaseContext(_pathDrawingContext);
     }
-    for (std::map<int, EffectRenderCache*>::iterator i = infoCache.begin(); i != infoCache.end(); i++) {
-        delete i->second;
+    for (auto& it : infoCache) {
+        delete it.second;
+        it.second = nullptr;
     }
 }
 
@@ -1429,29 +1430,38 @@ double RenderBuffer::calcAccel(double ratio, double accel)
     }
 }
 
-// create a copy of the buffer suitable only for copying out pixel data
+// create a copy of the buffer suitable only for copying out pixel data and fake rendering
 RenderBuffer::RenderBuffer(RenderBuffer& buffer)
 {
-    frame = nullptr;
-    curPeriod = 0;
-    curEffStartPer = 0;
-    curEffEndPer = 0;
-    frameTimeInMs = 0;
-    isTransformed = false;
-    fadeinsteps = 0;
-    fadeoutsteps = 0;
-    needToInit = true;
-    tempInt = 0;
-    tempInt2 = 0;
+    frame = buffer.frame;
+    curPeriod = buffer.curPeriod;
+    curEffStartPer = buffer.curEffStartPer;
+    curEffEndPer = buffer.curEffEndPer;
+    frameTimeInMs = buffer.frameTimeInMs;
+    isTransformed = buffer.isTransformed;
+    fadeinsteps = buffer.fadeinsteps;
+    fadeoutsteps = buffer.fadeoutsteps;
+    needToInit = buffer.needToInit;
+    tempInt = buffer.tempInt;
+    tempInt2 = buffer.tempInt2;
     allowAlpha = buffer.allowAlpha;
-    dmx_buffer = false;
+    dmx_buffer = buffer.dmx_buffer;
     _nodeBuffer = buffer._nodeBuffer;
     BufferHt = buffer.BufferHt;
     BufferWi = buffer.BufferWi;
     ModelBufferHt = buffer.ModelBufferHt;
     ModelBufferWi = buffer.ModelBufferWi;
+    infoCache = buffer.infoCache;
 
     pixels = buffer.pixels;
+    _textDrawingContext = buffer._textDrawingContext;
+    _pathDrawingContext = buffer._pathDrawingContext;
+}
+
+void RenderBuffer::Forget()
+{
+    // Forget some stuff as this is a fake render buffer and we dont want it destroyed
+    infoCache.clear();
     _textDrawingContext = nullptr;
     _pathDrawingContext = nullptr;
 }
