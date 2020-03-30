@@ -354,6 +354,10 @@ public:
 
     virtual int GetDefaultHandle() override { return CENTER_HANDLE; }
     virtual int GetDefaultTool() override { return TOOL_SCALE; }
+    float GetCentreX() const { return centerx; }
+    float GetCentreY() const { return centery; }
+    void SetCentreX(float x) { centerx = x; worldPos_x = x; }
+    void SetCentreY(float y) { centery = y; worldPos_y = y; }
 
 private:
     float perspective;

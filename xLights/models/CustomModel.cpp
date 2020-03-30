@@ -48,6 +48,12 @@ public:
             SetValue(v);
             res = true;
         }
+        else
+        {
+            m_model->RestoreDisplayDimensions();
+            wxVariant v(CLICK_TO_EDIT);
+            SetValue(v);
+        }
         m_model->GetModelManager().GetXLightsFrame()->_suspendAutoSave = oldAutoSave;
         return res;
     }
