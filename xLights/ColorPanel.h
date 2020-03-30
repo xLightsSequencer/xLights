@@ -80,7 +80,8 @@ public:
 		//(*Declarations(ColorPanel)
 		BulkEditCheckBox* CheckBox_EnableChromakey;
 		BulkEditCheckBox* CheckBox_MusicSparkles;
-		BulkEditColourPickerCtrl* ColourPickerCtrl_ChromaKey;
+		BulkEditColourPickerCtrl* ColourPickerCtrl_ChromaColour;
+		BulkEditColourPickerCtrl* ColourPickerCtrl_SparklesColour;
 		BulkEditSlider* Slider_Brightness;
 		BulkEditSlider* Slider_ChromaSensitivity;
 		BulkEditSlider* Slider_Color_HueAdjust;
@@ -141,6 +142,7 @@ public:
 		static const long IDD_TEXTCTRL_SparkleFrequency;
 		static const long ID_BITMAPBUTTON_SLIDER_SparkleFrequency;
 		static const long ID_CHECKBOX_MusicSparkles;
+		static const long ID_COLOURPICKERCTRL_SparklesColour;
 		static const long ID_BITMAPBUTTON_MusicSparkles;
 		static const long ID_STATICTEXT_Brightness;
 		static const long ID_SLIDER_Brightness;

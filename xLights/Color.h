@@ -170,6 +170,12 @@ public:
         return xlColor(0, 0, 0, 0);
     }
 
+    xlColor ApplyBrightness(float b)
+    {
+        wxASSERT(b >= 0.0 && b <= 1.0);
+        return xlColor(b * red, b * green, b * blue);
+    }
+
     int Brightness() const;
 
     uint32_t GetRGB(bool BBGGRR = true) const

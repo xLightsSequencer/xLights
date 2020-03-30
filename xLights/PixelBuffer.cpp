@@ -741,6 +741,7 @@ void PixelBufferClass::reset(int nlayers, int timing, bool isNode)
         layers[x]->freezeAfterFrame = 99999;
         layers[x]->suppressUntil = 0;
         layers[x]->chromaKeyColour = *wxBLACK;
+        layers[x]->sparklesColour = *wxWHITE;
         layers[x]->brightnessValueCurve = "";
         layers[x]->hueAdjustValueCurve = "";
         layers[x]->saturationAdjustValueCurve = "";
@@ -1284,14 +1285,14 @@ void PixelBufferClass::GetMixedColor(int node, xlColor& c, const std::vector<boo
                         break;
                     case 2:
                     case 6:
-                        color.Set(0x88, 0x88, 0x88);
+                        color = thelayer->sparklesColour.ApplyBrightness(0.53f);
                         break;
                     case 3:
                     case 5:
-                        color.Set(0xbb, 0xbb, 0xbb);
+                        color = thelayer->sparklesColour.ApplyBrightness(0.75f);
                         break;
                     case 4:
-                        color.Set(255, 255, 255);
+                        color = thelayer->sparklesColour;
                         break;
                     default:
                         break;
@@ -1920,6 +1921,7 @@ static const std::string SPINCTRL_SuppressEffectUntil("SPINCTRL_SuppressEffectUn
 static const std::string SLIDER_ChromaSensitivity("SLIDER_ChromaSensitivity");
 static const std::string CHECKBOX_Chroma("CHECKBOX_Chroma");
 static const std::string COLOURPICKERCTRL_ChromaColour("COLOURPICKERCTRL_ChromaColour");
+static const std::string COLOURPICKERCTRL_SparklesColour("COLOURPICKERCTRL_SparklesColour");
 static const std::string SLIDER_SparkleFrequency("SLIDER_SparkleFrequency");
 static const std::string CHECKBOX_MusicSparkles("CHECKBOX_MusicSparkles");
 static const std::string SLIDER_Brightness("SLIDER_Brightness");
@@ -2221,6 +2223,7 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
     inf->freezeAfterFrame = settingsMap.GetInt(SPINCTRL_FreezeEffectAtFrame, 99999);
     inf->suppressUntil = settingsMap.GetInt(SPINCTRL_SuppressEffectUntil, 0);
     inf->chromaKeyColour = wxColour(settingsMap.Get(COLOURPICKERCTRL_ChromaColour, "Black"));
+    inf->sparklesColour = wxColour(settingsMap.Get(COLOURPICKERCTRL_SparklesColour, "White"));
     inf->brightness = settingsMap.GetInt(SLIDER_Brightness, 100);
     inf->hueadjust = settingsMap.GetInt(SLIDER_HueAdjust, 0);
     inf->saturationadjust = settingsMap.GetInt(SLIDER_SaturationAdjust, 0);

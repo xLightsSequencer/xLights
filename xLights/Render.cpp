@@ -484,7 +484,7 @@ public:
         if (!rng.empty()) {
             rangeRestriction.resize(rng.back().end + 1);
             for (auto i : rng) {
-                for (int s = i.start; s <= i.end; s++) {
+                for (unsigned int s = i.start; s <= i.end; s++) {
                     rangeRestriction[s] = true;
                 }
             }

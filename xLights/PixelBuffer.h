@@ -219,6 +219,7 @@ private:
         std::vector<std::unique_ptr<RenderBuffer>> modelBuffers;
         bool isChromaKey = false;
         xlColor chromaKeyColour = xlBLACK;
+        xlColor sparklesColour = xlWHITE;
         int chromaSensitivity = 1;
         int freezeAfterFrame = 99999;
         int suppressUntil = 0;

@@ -578,7 +578,7 @@ void HinksPixExportDialog::SaveSettings()
     }
 
     wxString selectedController = "";
-    for (int i = 0; i < CheckListBoxControllers->GetCount(); i++) {
+    for (size_t i = 0; i < CheckListBoxControllers->GetCount(); i++) {
         if (CheckListBoxControllers->IsChecked(i)) {
             if (selectedController != "") {
                 selectedController += ",";

@@ -973,7 +973,7 @@ void DrawGLUtils::xlAccumulator::Load(const DrawGLUtils::xlVertexColorAccumulato
     if (va.coordsPerVertex == coordsPerVertex) {
         memcpy(&vertices[count*coordsPerVertex], va.vertices, sizeof(float)*va.count*coordsPerVertex);
     } else {
-        for (int x = 0; x < va.count; x++) {
+        for (unsigned int x = 0; x < va.count; x++) {
             int cur = (count + x) * coordsPerVertex;
             int curva = x * va.coordsPerVertex;
             vertices[cur++] = va.vertices[curva++];
@@ -993,7 +993,7 @@ void DrawGLUtils::xlAccumulator::Load(const DrawGLUtils::xlVertexAccumulator& va
     if (va.coordsPerVertex == coordsPerVertex) {
         memcpy(&vertices[count*coordsPerVertex], va.vertices, sizeof(float)*va.count*coordsPerVertex);
     } else  {
-        for (int x = 0; x < va.count; x++) {
+        for (unsigned int x = 0; x < va.count; x++) {
             int cur = (count + x) * coordsPerVertex;
             int curva = x * va.coordsPerVertex;
             vertices[cur++] = va.vertices[curva++];
@@ -1004,7 +1004,7 @@ void DrawGLUtils::xlAccumulator::Load(const DrawGLUtils::xlVertexAccumulator& va
         }
     }
     int i = count * 4;
-    for (int x = 0; x < va.count; x++) {
+    for (unsigned int x = 0; x < va.count; x++) {
         colors[i++] = c.Red();
         colors[i++] = c.Green();
         colors[i++] = c.Blue();
@@ -1019,7 +1019,7 @@ void DrawGLUtils::xlAccumulator::Load(const xlVertexTextureAccumulator &va, int 
     if (va.coordsPerVertex == coordsPerVertex) {
         memcpy(&vertices[count*coordsPerVertex], va.vertices, sizeof(float)*va.count*coordsPerVertex);
     } else {
-        for (int x = 0; x < va.count; x++) {
+        for (unsigned int x = 0; x < va.count; x++) {
             int cur = (count + x) * coordsPerVertex;
             int curva = x * va.coordsPerVertex;
             vertices[cur++] = va.vertices[curva++];

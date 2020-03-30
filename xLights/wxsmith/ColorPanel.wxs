@@ -164,7 +164,7 @@
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
-												<object class="wxColourPickerCtrl" name="ID_COLOURPICKERCTRL_ChromaColour" subclass="BulkEditColourPickerCtrl" variable="ColourPickerCtrl_ChromaKey" member="yes">
+												<object class="wxColourPickerCtrl" name="ID_COLOURPICKERCTRL_ChromaColour" subclass="BulkEditColourPickerCtrl" variable="ColourPickerCtrl_ChromaColour" member="yes">
 													<colour>#000000</colour>
 												</object>
 												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -244,8 +244,12 @@
 												<border>2</border>
 												<option>1</option>
 											</object>
-											<object class="spacer">
+											<object class="sizeritem">
+												<object class="wxColourPickerCtrl" name="ID_COLOURPICKERCTRL_SparklesColour" subclass="BulkEditColourPickerCtrl" variable="ColourPickerCtrl_SparklesColour" member="yes">
+													<colour>wxSYS_COLOUR_BTNHIGHLIGHT</colour>
+												</object>
 												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<border>2</border>
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
