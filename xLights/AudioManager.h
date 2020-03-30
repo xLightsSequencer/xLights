@@ -289,6 +289,7 @@ public:
                              bool receivedEOF, int out_channels, uint8_t* out_buffer, long& read, int& lastpct );
     void LoadDecodedAudioFromFrame( AVFrame* frame, AVFormatContext* formatContext, SwrContext* au_convert_ctx,
                                     int out_channels, uint8_t* out_buffer, long& read, int& lastpct );
+    void LoadResampledAudio( int sampleCount, int out_channels, uint8_t* out_buffer, long& read, int& lastpct );
 
     static bool CreateAudioFile( const std::vector<float>& left, const std::vector<float>& right, const std::string& targetFile, long bitrate );
     bool WriteCurrentAudio( const std::string& path, long bitrate );

@@ -2399,7 +2399,9 @@ void AudioManager::DoLoadAudioData(AVFormatContext* formatContext, AVCodecContex
                                 true, out_channels, out_buffer, read, lastpct );
 	}
 
-	// todo - drain resample buffer
+	int numDrained = swr_convert( au_convert_ctx, &out_buffer, CONVERSION_BUFFER_SIZE, nullptr, 0 );
+	if ( numDrained > 0 )
+        LoadResampledAudio( numDrained, out_channels, out_buffer, read, lastpct );
 
 #ifdef RESAMPLE_RATE
     {
@@ -2469,22 +2471,29 @@ void AudioManager::LoadDecodedAudioFromFrame( AVFrame* frame, AVFormatContext* f
         return;
     }
 
-    if (read + outSamples > _trackSize)
+    LoadResampledAudio( outSamples, out_channels, out_buffer, read, lastpct );
+}
+
+void AudioManager::LoadResampledAudio( int sampleCount, int out_channels, uint8_t* out_buffer, long& read, int& lastpct )
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    if ( read + sampleCount > _trackSize )
     {
         // I dont understand why this happens ... add logging when i can
         // I have seen this happen with a wma file ... but i dont know why
-        logger_base.warn("LoadDecodedAudioFromFrame: This shouldnt happen ... read ["+ wxString::Format("%i", (long)read) +"] + nb_samples ["+ wxString::Format("%i", outSamples) +"] > _tracksize ["+ wxString::Format("%ld", (long)_trackSize) +"] .");
+        logger_base.warn("LoadResampledAudio: This shouldnt happen ... read ["+ wxString::Format("%i", (long)read) +"] + nb_samples ["+ wxString::Format("%i", sampleCount) +"] > _tracksize ["+ wxString::Format("%ld", (long)_trackSize) +"] .");
 
         // override the track size
-        _trackSize = read + outSamples;
+        _trackSize = read + sampleCount;
     }
 
     // copy the PCM data into the PCM buffer for playing
-    wxASSERT(_pcmdatasize + PCMFUDGE > read* out_channels * sizeof(uint16_t) + outSamples * out_channels * sizeof(uint16_t));
-    memcpy(_pcmdata + (read * out_channels * sizeof(uint16_t)), out_buffer, outSamples * out_channels * sizeof(uint16_t));
+    wxASSERT(_pcmdatasize + PCMFUDGE > read* out_channels * sizeof(uint16_t) + sampleCount * out_channels * sizeof(uint16_t));
+    memcpy(_pcmdata + (read * out_channels * sizeof(uint16_t)), out_buffer, sampleCount * out_channels * sizeof(uint16_t));
 
     // possible optimization here... we ask resampler for S16 data and then convert that to floating-point?
-    for (int i = 0; i < outSamples; i++)
+    for (int i = 0; i < sampleCount; i++)
     {
         int16_t s = *(int16_t*)(out_buffer + i * sizeof(int16_t) * out_channels);
         _data[0][read + i] = ((float)s) / (float)0x8000;
@@ -2494,7 +2503,7 @@ void AudioManager::LoadDecodedAudioFromFrame( AVFrame* frame, AVFormatContext* f
             _data[1][read + i] = ((float)s) / (float)0x8000;
         }
     }
-    read += outSamples;
+    read += sampleCount;
     SetLoadedData(read);
     int progress = read * 100 / _trackSize;
     if (progress >= lastpct + 10)
