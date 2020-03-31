@@ -75,7 +75,6 @@
     <ClCompile Include="OptionChooser.cpp" />
     <ClCompile Include="osx_utils\TouchBars.cpp" />
     <ClCompile Include="outputs\PixelNetOutput.cpp" />
-    <ClCompile Include="outputs\RenardOutput.cpp" />
     <ClCompile Include="outputs\TestPreset.cpp" />
     <ClCompile Include="PaletteMgmtDialog.cpp" />
     <ClCompile Include="PerspectivesPanel.cpp" />
@@ -821,6 +820,9 @@
       <Filter>Models</Filter>
     </ClCompile>
     <ClCompile Include="BulkEditColourPickerDialog.cpp" />
+    <ClCompile Include="outputs\RenardOutput.cpp">
+      <Filter>Outputs</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -886,7 +888,6 @@
     <ClInclude Include="osxMacUtils.h" />
     <ClInclude Include="osx_utils\TouchBars.h" />
     <ClInclude Include="outputs\PixelNetOutput.h" />
-    <ClInclude Include="outputs\RenardOutput.h" />
     <ClInclude Include="outputs\TestPreset.h" />
     <ClInclude Include="PaletteMgmtDialog.h" />
     <ClInclude Include="PerspectivesPanel.h" />
@@ -1650,6 +1651,9 @@
       <Filter>Models</Filter>
     </ClInclude>
     <ClInclude Include="BulkEditColourPickerDialog.h" />
+    <ClInclude Include="outputs\RenardOutput.h">
+      <Filter>Outputs</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Models">

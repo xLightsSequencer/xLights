@@ -75,6 +75,12 @@ void CircleModel::InitModel() {
             }
         }
     }
+    else
+    {
+        circleSizes.resize(1);
+        circleSizes[0] = parm1 * parm2;
+    }
+
     if (ModelXml->HasAttribute("InsideOut")) {
         insideOut = wxAtoi(ModelXml->GetAttribute("InsideOut"));
     }
