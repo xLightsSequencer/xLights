@@ -2566,25 +2566,6 @@ void AudioManager::GetTrackMetrics(AVFormatContext* formatContext, AVCodecContex
 		av_packet_unref( readingPacket );
 	}
 
-	// Some codecs will cause frames to be buffered up in the decoding process. If the CODEC_CAP_DELAY flag
-	// is set, there can be buffered up frames that need to be flushed, so we'll do that
-#if 0
-	if (codecContext->codec != nullptr && codecContext->codec->capabilities & CODEC_CAP_DELAY)
-	{
-		av_init_packet(&readingPacket);
-		// Decode all the remaining frames in the buffer, until the end is reached
-		int gotFrame = 1;
-		while (gotFrame)
-		{
-			int result = avcodec_decode_audio4(codecContext, frame, &gotFrame, &readingPacket);
-			if (result >= 0 && gotFrame)
-			{
-				_trackSize += frame->nb_samples;
-			}
-		}
-	}
-#endif
-
 	// Clean up!
     av_frame_free( &frame );
 
