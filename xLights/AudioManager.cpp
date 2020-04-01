@@ -2482,7 +2482,7 @@ void AudioManager::LoadResampledAudio( int sampleCount, int out_channels, uint8_
     {
         // I dont understand why this happens ... add logging when i can
         // I have seen this happen with a wma file ... but i dont know why
-        logger_base.warn("LoadResampledAudio: This shouldnt happen ... read ["+ wxString::Format("%i", (long)read) +"] + nb_samples ["+ wxString::Format("%i", sampleCount) +"] > _tracksize ["+ wxString::Format("%ld", (long)_trackSize) +"] .");
+        logger_base.warn("LoadResampledAudio: This shouldnt happen ... read ["+ wxString::Format("%li", (long)read) +"] + nb_samples ["+ wxString::Format("%i", sampleCount) +"] > _tracksize ["+ wxString::Format("%li", (long)_trackSize) +"] .");
 
         // override the track size
         _trackSize = read + sampleCount;
