@@ -31,9 +31,12 @@ class ArchesModel : public ModelWithScreenLocation<ThreePointScreenLocation>
         virtual int CalcCannelsPerString() override;
 
     private:
+        void SetLayerSizes(const std::string& layerSizes);
+        void SetLayerdArchCoord(int archcount, int maxLen);
         void SetArchCoord();
         int arc;
         int _gap = 0;
+        std::string _layeredArchSizes;
 };
 
 #endif // ARCHESMODEL_H
