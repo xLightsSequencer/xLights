@@ -981,7 +981,9 @@ bool HinksPixExportDialog::Create_HinksPix_PCM_File(wxString const& inAudioFile,
         logger_base.debug("HinksPix Audio Decoding is on a Big-Endian machine");
 
     // Initialize FFmpeg
+#if LIBAVFORMAT_VERSION_MAJOR < 58
     av_register_all();	// make all codecs available
+#endif
 
     AVFrame* frame = av_frame_alloc();	// does not create working buffers
     if (!frame)

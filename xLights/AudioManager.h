@@ -11,6 +11,8 @@ extern "C"
     struct AVCodecContext;
     struct AVStream;
     struct AVFrame;
+    struct AVPacket;
+    struct SwrContext;
 }
 
 extern "C"
@@ -225,8 +227,15 @@ class AudioManager
 	int decodesamplerateindex(int samplerateindex, int version) const;
     static int decodesideinfosize(int version, int mono);
 	std::list<float> CalculateSpectrumAnalysis(const float* in, int n, float& max, int id) const;
-    void LoadAudioData(bool separateThread, AVFormatContext* formatContext, AVCodecContext* codecContext, AVStream* audioStream, AVFrame* frame);
+
+    void LoadAudioFromFrame( AVFormatContext* formatContext, AVCodecContext* codecContext, AVPacket* decodingPacket, AVFrame* frame, SwrContext* au_convert_ctx,
+                             bool receivedEOF, int out_channels, uint8_t* out_buffer, long& read, int& lastpct );
+    void LoadDecodedAudioFromFrame( AVFrame* frame, AVFormatContext* formatContext, SwrContext* au_convert_ctx,
+                                    int out_channels, uint8_t* out_buffer, long& read, int& lastpct );
+    void LoadResampledAudio( int sampleCount, int out_channels, uint8_t* out_buffer, long& read, int& lastpct );
     void SetLoadedData(long pos);
+
+    static bool WriteAudioFrame( AVFormatContext *oc, AVCodecContext* codecContext, AVStream *st, float *sampleBuff, int sampleCount, bool clearQueue = false );
 
 public:
     static double MidiToFrequency(int midi);
@@ -279,10 +288,12 @@ public:
 	void DoPrepareFrameData();
 	void DoPolyphonicTranscription(wxProgressDialog* dlg, AudioManagerProgressCallback progresscallback);
 	bool IsPolyphonicTranscriptionDone() const { return _polyphonicTranscriptionDone; };
+
+    void LoadAudioData(bool separateThread, AVFormatContext* formatContext, AVCodecContext* codecContext, AVStream* audioStream, AVFrame* frame);
     void DoLoadAudioData(AVFormatContext* formatContext, AVCodecContext* codecContext, AVStream* audioStream, AVFrame* frame);
-    
-    static bool WriteAudioFrame(AVFormatContext *oc, AVStream *st, float *sampleBuff, int sampleCount, bool clearQueue = false);
-    static bool CreateAudioFile(const std::vector<float>& left, const std::vector<float>& right, const std::string& targetFile, long bitrate);
+
+    static bool CreateAudioFile( const std::vector<float>& left, const std::vector<float>& right, const std::string& targetFile, long bitrate );
+    bool WriteCurrentAudio( const std::string& path, long bitrate );
 
     bool AudioDeviceChanged();
 

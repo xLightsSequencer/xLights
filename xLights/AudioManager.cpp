@@ -5,6 +5,7 @@
 
 #include <sstream>
 #include <algorithm>
+#include <fstream>
 
 #include <math.h>
 #include <stdlib.h>
@@ -2073,6 +2074,54 @@ long AudioManager::CalcLengthMS() const
 	return (long)(seconds * 1000.0f);
 }
 
+namespace
+{
+    struct WAVHeader
+    {
+        char riff[4];
+        int lenMinus8;
+        char wave[4];
+        char fmt[4];
+        int fmtChunkSize;
+        short compressionCode;
+        short channels;
+        int sampleRate;
+        int bytesPerSecond;
+        short blockAlign;
+        short bitsPerSample;
+        char data[4];
+        int dataChunkSize;
+    };
+
+    struct AudioParams
+    {
+        int             channelCount;
+        int             sampleRate;
+        AVSampleFormat  sampleFormat;
+        int             bytesPerSample;
+    };
+    bool ReadWavParams( const std::string& path, AudioParams& params )
+    {
+        std::ifstream file( path, std::ifstream::binary );
+        WAVHeader header;
+
+        if ( !file.good() )
+            return false;
+
+        file.read( (char *)&header, 44 );
+
+        if ( ::strncmp( header.wave, "WAVE", 4 ) == 0 )
+        {
+            params.channelCount = header.channels;
+            params.sampleRate = header.sampleRate;
+            params.sampleFormat = ( header.compressionCode == 1 ) ? AV_SAMPLE_FMT_S16 : AV_SAMPLE_FMT_FLT;
+            params.bytesPerSample = header.bitsPerSample / 8;
+        }
+
+        return true;
+    }
+}
+
 // Open and read the media file into memory
 int AudioManager::OpenMediaFile()
 {
@@ -2124,10 +2173,23 @@ int AudioManager::OpenMediaFile()
 	}
 
 	AVStream* audioStream = formatContext->streams[streamIndex];
-	AVCodecContext* codecContext = audioStream->codec;
-	codecContext->codec = cdc;
+	AVCodecContext* codecContext = avcodec_alloc_context3( cdc );
 
-	if (avcodec_open2(codecContext, codecContext->codec, nullptr) != 0)
+	// Workaround for FFmpeg bug with WAV decoding
+	if ( audioStream->codecpar->codec_id == AV_CODEC_ID_FIRST_AUDIO )
+    {
+        AudioParams params;
+        if ( ReadWavParams( _audio_file, params ) )
+        {
+            codecContext->sample_rate = params.sampleRate;
+            codecContext->sample_fmt = params.sampleFormat;
+            codecContext->channels = params.channelCount;
+            codecContext->channel_layout = ( params.channelCount == 1 ) ? AV_CH_LAYOUT_MONO : AV_CH_LAYOUT_STEREO;
+            logger_base.info( "AudioManager::OpenMediaFile() - doing WAV-specific workaround for %d rate %d channel audio", codecContext->sample_rate, codecContext->channels );
+        }
+    }
+
+	if (avcodec_open2(codecContext, cdc, nullptr) != 0)
 	{
 		avformat_close_input(&formatContext);
         formatContext = nullptr;
@@ -2271,6 +2333,7 @@ void AudioManager::DoLoadAudioData(AVFormatContext* formatContext, AVCodecContex
 
     long read = 0;
     int lastpct = 0;
+    int status;
 
     // setup our conversion format ... we need to conver the input to a standard format before we can process anything
     uint64_t out_channel_layout = AV_CH_LAYOUT_STEREO;
@@ -2278,8 +2341,8 @@ void AudioManager::DoLoadAudioData(AVFormatContext* formatContext, AVCodecContex
     AVSampleFormat out_sample_fmt = AV_SAMPLE_FMT_S16;
     int out_sample_rate = _rate;
 
-    AVPacket readingPacket;
-	av_init_packet(&readingPacket);
+    AVPacket* readingPacket = av_packet_alloc();
+	av_init_packet( readingPacket );
 
     #define CONVERSION_BUFFER_SIZE 192000
     uint8_t* out_buffer = (uint8_t *)av_malloc(CONVERSION_BUFFER_SIZE * out_channels * 2); // 1 second of audio
@@ -2302,176 +2365,43 @@ void AudioManager::DoLoadAudioData(AVFormatContext* formatContext, AVCodecContex
     av_seek_frame(formatContext, 0, 0, AVSEEK_FLAG_ANY);
 
 	// Read the packets in a loop
-    while (av_read_frame(formatContext, &readingPacket) == 0)
+    while ( ( status = av_read_frame( formatContext, readingPacket ) ) == 0 )
 	{
-        if (readingPacket.stream_index == audioStream->index)
-		{
-			AVPacket decodingPacket = readingPacket;
-
-			// Audio packets can have multiple audio frames in a single packet
-			while (decodingPacket.size > 0)
-			{
-				// Try to decode the packet into a frame
-				// Some frames rely on multiple packets, so we have to make sure the frame is finished before
-				// we can use it
-				int gotFrame = 0;
-                int result = avcodec_decode_audio4(codecContext, frame, &gotFrame, &decodingPacket);
-
-				if (result >= 0 && gotFrame)
-				{
-					decodingPacket.size -= result;
-                    int outSamples;
-					try
-					{
-                        if (*(frame->data) == nullptr)
-                        {
-                            logger_base.error("DoLoadAudioData: frame->data was a pointer to a nullptr.");
-                            // let this go maybe it causes the crash
-                            wxASSERT(false);
-                        }
-					    if (frame->nb_samples == 0)
-					    {
-                            logger_base.error("DoLoadAudioData: frame->nb_samples was 0.");
-                            // let this go maybe it causes the crash
-                            wxASSERT(false);
-                        }
-
-                        outSamples = swr_convert(au_convert_ctx, &out_buffer, CONVERSION_BUFFER_SIZE, (const uint8_t **)frame->data, frame->nb_samples);
-					}
-					catch (...)
-					{
-                        logger_base.error("DoLoadAudioData: swr_convert threw an exception.");
-                        wxASSERT(false);
-                        swr_free(&au_convert_ctx);
-						av_free(out_buffer);
-						av_frame_free(&frame);
-                        avformat_close_input(&formatContext);
-                        std::unique_lock<std::shared_timed_mutex> locker(_mutexAudioLoad);
-                        _trackSize = _loadedData; // makes it looks like we are done
-                        return;
-					}
-
-					if (read + outSamples > _trackSize)
-					{
-						// I dont understand why this happens ... add logging when i can
-                        // I have seen this happen with a wma file ... but i dont know why
-						logger_base.warn("DoLoadAudioData: This shouldnt happen ... read ["+ wxString::Format("%i", (long)read) +"] + nb_samples ["+ wxString::Format("%i", outSamples) +"] > _tracksize ["+ wxString::Format("%ld", (long)_trackSize) +"] .");
-
-                        // override the track size
-                        _trackSize = read + outSamples;
-					}
-
-					// copy the PCM data into the PCM buffer for playing
-                    wxASSERT(_pcmdatasize + PCMFUDGE > read* out_channels * sizeof(uint16_t) + outSamples * out_channels * sizeof(uint16_t));
-					memcpy(_pcmdata + (read * out_channels * sizeof(uint16_t)), out_buffer, outSamples * out_channels * sizeof(uint16_t));
-
-					for (int i = 0; i < outSamples; i++)
-					{
-						int16_t s = *(int16_t*)(out_buffer + i * sizeof(int16_t) * out_channels);
-						_data[0][read + i] = ((float)s) / (float)0x8000;
-						if (_channels > 1)
-						{
-							s = *(int16_t*)(out_buffer + i * sizeof(int16_t) * out_channels + sizeof(int16_t));
-							_data[1][read + i] = ((float)s) / (float)0x8000;
-						}
-					}
-					read += outSamples;
-                    SetLoadedData(read);
-                    int progress = read * 100 / _trackSize;
-                    if (progress >= lastpct + 10)
-                    {
-                        //logger_base.debug("DoLoadAudioData: Progress %d%%", progress);
-                        lastpct = progress / 10 * 10;
-                    }
-				}
-				else
-				{
-					decodingPacket.size = 0;
-				}
-			}
-		}
+        if ( readingPacket->stream_index == audioStream->index )
+            LoadAudioFromFrame( formatContext, codecContext, readingPacket, frame, au_convert_ctx,
+                                false, out_channels, out_buffer, read, lastpct );
 
 		// You *must* call av_free_packet() after each call to av_read_frame() or else you'll leak memory
-        av_packet_unref(&readingPacket);
-    }
+        av_packet_unref( readingPacket );
+	}
+
+	if ( status == AVERROR_EOF && readingPacket->stream_index == audioStream->index )
+        LoadAudioFromFrame( formatContext, codecContext, readingPacket, frame, au_convert_ctx,
+                            true, out_channels, out_buffer, read, lastpct );
+
 
     // Some codecs will cause frames to be buffered up in the decoding process. If the CODEC_CAP_DELAY flag
 	// is set, there can be buffered up frames that need to be flushed, so we'll do that
-	if (codecContext->codec != nullptr && codecContext->codec->capabilities & CODEC_CAP_DELAY)
+	if ( codecContext->codec != nullptr && ( codecContext->codec->capabilities & CODEC_CAP_DELAY ) != 0 )
 	{
 		// Decode all the remaining frames in the buffer, until the end is reached
-		int gotFrame = 1;
-		while (gotFrame)
-		{
-			int result = avcodec_decode_audio4(codecContext, frame, &gotFrame, &readingPacket);
-			if (result >= 0 && gotFrame)
-			{
-                int outSamples;
-				try
-				{
-                    if (*(frame->data) == nullptr)
-                    {
-                        logger_base.error("DoLoadAudioData: frame->data was a pointer to a nullptr.");
-                        // let this go maybe it causes the crash
-                        wxASSERT(false);
-                    }
-                    if (frame->nb_samples == 0)
-                    {
-                        logger_base.error("DoLoadAudioData: frame->nb_samples was 0.");
-                        // let this go maybe it causes the crash
-                        wxASSERT(false);
-                    }
+		while ( ( status = av_read_frame( formatContext, readingPacket ) ) == 0 )
+        {
+            if ( readingPacket->stream_index == audioStream->index )
+                LoadAudioFromFrame( formatContext, codecContext, readingPacket, frame, au_convert_ctx,
+                                    false, out_channels, out_buffer, read, lastpct );
 
-				    outSamples = swr_convert(au_convert_ctx, &out_buffer, CONVERSION_BUFFER_SIZE, (const uint8_t **)frame->data, frame->nb_samples);
-				}
-				catch (...)
-				{
-                    logger_base.error("DoLoadAudioData: swr_convert threw an exception.");
-                    wxASSERT(false);
-                    swr_free(&au_convert_ctx);
-					av_free(out_buffer);
-					av_frame_free(&frame);
-                    avformat_close_input(&formatContext);
-                    std::unique_lock<std::shared_timed_mutex> locker(_mutexAudioLoad);
-                    _trackSize = _loadedData; // makes it looks like we are done
-                    return;
-				}
+            av_packet_unref( readingPacket );
+        }
 
-                if (read + outSamples > _trackSize)
-                {
-                    // I dont understand why this happens ... add logging when i can
-                    // I have seen this happen with a wma file ... but i dont know why
-                    logger_base.warn("DoLoadAudioData: This shouldnt happen ... read [" + wxString::Format("%i", (long)read) + "] + nb_samples [" + wxString::Format("%i", outSamples) + "] > _tracksize [" + wxString::Format("%ld", (long)_trackSize) + "] .");
-
-                    // override the track size
-                    _trackSize = read + outSamples;
-                }
-
-                // copy the PCM data into the PCM buffer for playing
-                wxASSERT(_pcmdatasize + PCMFUDGE > read * out_channels * sizeof(uint16_t) + outSamples * out_channels * sizeof(uint16_t));
-                memcpy(_pcmdata + (read * out_channels * sizeof(uint16_t)), out_buffer, outSamples * out_channels * sizeof(uint16_t));
-
-				for (int i = 0; i < outSamples; i++)
-				{
-					int16_t s = *(int16_t*)(out_buffer + i * sizeof(int16_t) * out_channels);
-					_data[0][read + i] = ((float)s) / (float)0x8000;
-					if (_channels > 1)
-					{
-						s = *(int16_t*)(out_buffer + i * sizeof(int16_t) * out_channels + sizeof(int16_t));
-						_data[1][read + i] = ((float)s) / (float)0x8000;
-					}
-				}
-				read += outSamples;
-                SetLoadedData(read);
-                int progress = read * 100 / _trackSize;
-                if (progress >= lastpct + 10)
-                {
-                    //logger_base.debug("DoLoadAudioData: Progress %d%%", progress);
-                    lastpct = progress / 10 * 10;
-                }
-            }
-		}
+        if ( status == AVERROR_EOF && readingPacket->stream_index == audioStream->index )
+            LoadAudioFromFrame( formatContext, codecContext, readingPacket, frame, au_convert_ctx,
+                                true, out_channels, out_buffer, read, lastpct );
 	}
+
+	int numDrained = swr_convert( au_convert_ctx, &out_buffer, CONVERSION_BUFFER_SIZE, nullptr, 0 );
+	if ( numDrained > 0 )
+        LoadResampledAudio( numDrained, out_channels, out_buffer, read, lastpct );
 
 #ifdef RESAMPLE_RATE
     {
@@ -2484,11 +2414,103 @@ void AudioManager::DoLoadAudioData(AVFormatContext* formatContext, AVCodecContex
 	// Clean up!
     swr_free(&au_convert_ctx);
 	av_free(out_buffer);
+	av_packet_free( &readingPacket );
 	av_frame_free(&frame);
 
     avformat_close_input(&formatContext);
 
     logger_base.debug("DoLoadAudioData: Song data loaded in %ld. Read: %ld", sw.Time(), read);
+}
+
+void AudioManager::LoadAudioFromFrame( AVFormatContext* formatContext, AVCodecContext* codecContext, AVPacket* decodingPacket, AVFrame* frame, SwrContext* au_convert_ctx, bool receivedEOF, int out_channels, uint8_t* out_buffer, long& read, int& lastpct )
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    int status = avcodec_send_packet( codecContext, receivedEOF ? nullptr : decodingPacket );
+    if ( status == 0 )
+    {
+        do
+        {
+            status = avcodec_receive_frame( codecContext, frame );
+            if ( status == AVERROR_EOF )
+                break;
+            if ( status == 0 )
+                LoadDecodedAudioFromFrame( frame, formatContext, au_convert_ctx, out_channels, out_buffer, read, lastpct );
+        } while( status != AVERROR( EAGAIN ) );
+    }
+}
+
+void AudioManager::LoadDecodedAudioFromFrame( AVFrame* frame, AVFormatContext* formatContext, SwrContext* au_convert_ctx, int out_channels, uint8_t* out_buffer, long& read, int& lastpct )
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    int outSamples = 0;
+
+    try
+    {
+        if (*(frame->data) == nullptr)
+        {
+            logger_base.error("LoadDecodedAudioFromFrame: frame->data was a pointer to a nullptr.");
+                            // let this go maybe it causes the crash
+            wxASSERT(false);
+        }
+        if (frame->nb_samples == 0)
+        {
+            logger_base.error("LoadDecodedAudioFromFrame: frame->nb_samples was 0.");
+                    // let this go maybe it causes the crash
+            wxASSERT(false);
+        }
+
+        outSamples = swr_convert(au_convert_ctx, &out_buffer, CONVERSION_BUFFER_SIZE, (const uint8_t **)frame->data, frame->nb_samples);
+    }
+    catch (...)
+    {
+        logger_base.error("LoadDecodedAudioFromFrame: swr_convert threw an exception.");
+        wxASSERT(false);
+        std::unique_lock<std::shared_timed_mutex> locker(_mutexAudioLoad);
+        _trackSize = _loadedData; // makes it looks like we are done
+        return;
+    }
+
+    LoadResampledAudio( outSamples, out_channels, out_buffer, read, lastpct );
+}
+
+void AudioManager::LoadResampledAudio( int sampleCount, int out_channels, uint8_t* out_buffer, long& read, int& lastpct )
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    if ( read + sampleCount > _trackSize )
+    {
+        // I dont understand why this happens ... add logging when i can
+        // I have seen this happen with a wma file ... but i dont know why
+        logger_base.warn("LoadResampledAudio: This shouldnt happen ... read ["+ wxString::Format("%i", (long)read) +"] + nb_samples ["+ wxString::Format("%i", sampleCount) +"] > _tracksize ["+ wxString::Format("%ld", (long)_trackSize) +"] .");
+
+        // override the track size
+        _trackSize = read + sampleCount;
+    }
+
+    // copy the PCM data into the PCM buffer for playing
+    wxASSERT(_pcmdatasize + PCMFUDGE > read* out_channels * sizeof(uint16_t) + sampleCount * out_channels * sizeof(uint16_t));
+    memcpy(_pcmdata + (read * out_channels * sizeof(uint16_t)), out_buffer, sampleCount * out_channels * sizeof(uint16_t));
+
+    // possible optimization here... we ask resampler for S16 data and then convert that to floating-point?
+    for (int i = 0; i < sampleCount; i++)
+    {
+        int16_t s = *(int16_t*)(out_buffer + i * sizeof(int16_t) * out_channels);
+        _data[0][read + i] = ((float)s) / (float)0x8000;
+        if (_channels > 1)
+        {
+            s = *(int16_t*)(out_buffer + i * sizeof(int16_t) * out_channels + sizeof(int16_t));
+            _data[1][read + i] = ((float)s) / (float)0x8000;
+        }
+    }
+    read += sampleCount;
+    SetLoadedData(read);
+    int progress = read * 100 / _trackSize;
+    if (progress >= lastpct + 10)
+    {
+        //logger_base.debug("DoLoadAudioData: Progress %d%%", progress);
+        lastpct = progress / 10 * 10;
+    }
 }
 
 SDL* AudioManager::GetSDL()
@@ -2513,71 +2535,42 @@ void AudioManager::GetTrackMetrics(AVFormatContext* formatContext, AVCodecContex
         _ok = false;
         return;
 	}
+	else
+        logger_base.info( "av_frame_alloc okay" );
 
-	AVPacket readingPacket;
-	av_init_packet(&readingPacket);
+	AVPacket *readingPacket = av_packet_alloc();
+	av_init_packet( readingPacket );
 
 	// start at the beginning
-	av_seek_frame(formatContext, 0, 0, AVSEEK_FLAG_ANY);
+	av_seek_frame( formatContext, 0, 0, AVSEEK_FLAG_ANY );
 
 	// Read the packets in a loop
-	while (av_read_frame(formatContext, &readingPacket) == 0)
+	while ( av_read_frame( formatContext, readingPacket ) == 0 )
 	{
-		if (readingPacket.stream_index == audioStream->index)
+		if ( readingPacket->stream_index == audioStream->index )
 		{
-			AVPacket decodingPacket = readingPacket;
-
-			// Audio packets can have multiple audio frames in a single packet
-			while (decodingPacket.size > 0)
-			{
-				// Try to decode the packet into a frame
-				// Some frames rely on multiple packets, so we have to make sure the frame is finished before
-				// we can use it
-				int gotFrame = 0;
-				int result = avcodec_decode_audio4(codecContext, frame, &gotFrame, &decodingPacket);
-
-				if (result >= 0 && gotFrame)
-				{
-					decodingPacket.size -= result;
-					_trackSize += frame->nb_samples;
-				}
-				else
-				{
-					decodingPacket.size = 0;
-				}
-
-			}
+            int status = avcodec_send_packet( codecContext, readingPacket );
+            if ( status == 0)
+            {
+                do
+                {
+                    status = avcodec_receive_frame( codecContext, frame );
+                    if ( status == AVERROR_EOF )
+                        break;
+                    _trackSize += frame->nb_samples;
+                } while ( status != AVERROR( EAGAIN ) );
+            }
 		}
 
 		// You *must* call av_free_packet() after each call to av_read_frame() or else you'll leak memory
-		av_packet_unref(&readingPacket);
-	}
-
-	// Some codecs will cause frames to be buffered up in the decoding process. If the CODEC_CAP_DELAY flag
-	// is set, there can be buffered up frames that need to be flushed, so we'll do that
-	if (codecContext->codec != nullptr && codecContext->codec->capabilities & CODEC_CAP_DELAY)
-	{
-		av_init_packet(&readingPacket);
-		// Decode all the remaining frames in the buffer, until the end is reached
-		int gotFrame = 1;
-		while (gotFrame)
-		{
-			int result = avcodec_decode_audio4(codecContext, frame, &gotFrame, &readingPacket);
-			if (result >= 0 && gotFrame)
-			{
-				_trackSize += frame->nb_samples;
-			}
-		}
+		av_packet_unref( readingPacket );
 	}
 
 	// Clean up!
-    av_frame_free(&frame);
-    
-    _lengthMS = (long)(((Uint64)_trackSize * 1000) / ((codecContext->time_base.den)));
+    av_frame_free( &frame );
 
-    // I think this does the same thing ... if they are different then maybe the file is corrupt
-    //long test = (long)((((uint64_t)audioStream->duration) * audioStream->time_base.num * 1000) / audioStream->time_base.den);
-    //wxASSERT(_lengthMS > test - 200 && _lengthMS < test + 200); // allow a buffer for rounding errors
+    double lengthInSeconds = double( _trackSize ) / codecContext->sample_rate;
+    _lengthMS = long( floor( lengthInSeconds * 1000 ) );
 
 #ifdef RESAMPLE_RATE
     //if we resample, we need to estimate the new size
@@ -2649,7 +2642,7 @@ void AudioManager::SwitchTo(AUDIOSAMPLETYPE type, int lowNote, int highNote) {
         logger_base.debug("SwitchTo waiting for data to be loaded.");
         wxMilliSleep(50);
     }
-    
+
     // Cant be playing when switching
     bool wasPlaying = IsPlaying();
     if (wasPlaying)
@@ -2683,7 +2676,7 @@ void AudioManager::SwitchTo(AUDIOSAMPLETYPE type, int lowNote, int highNote) {
         fad->type = AUDIOSAMPLETYPE::RAW;
         _filtered.push_back(fad);
     }
-    
+
     FilteredAudioData* fad = nullptr;
     switch (type) {
         case AUDIOSAMPLETYPE::NONVOCALS:
@@ -2698,7 +2691,7 @@ void AudioManager::SwitchTo(AUDIOSAMPLETYPE type, int lowNote, int highNote) {
                 fad = new FilteredAudioData();
                 fad->data = (float*)malloc(sizeof(float) * _trackSize);
                 fad->pcmdata = (int16_t*)malloc(_pcmdatasize + PCMFUDGE);
-                
+
                 for (int i = 0; i < _trackSize; ++i) {
                     float v = _data[0][i];
                     if (_data[1]) {
@@ -2706,7 +2699,7 @@ void AudioManager::SwitchTo(AUDIOSAMPLETYPE type, int lowNote, int highNote) {
                         v = (v - v1);
                     }
                     fad->data[i] = v;
-                                     
+
                     v = v * 32768;
                     int v2 = (int)v;
                     fad->pcmdata[i * _channels] = v2;
@@ -2781,7 +2774,7 @@ void AudioManager::SwitchTo(AUDIOSAMPLETYPE type, int lowNote, int highNote) {
                     }
                 }
                 fad->data[i] = lvalue;
-                
+
                 lvalue = lvalue * 32768;
                 int v2 = (int)lvalue;
                 fad->pcmdata[i * _channels] = v2;
@@ -2828,7 +2821,7 @@ void AudioManager::GetLeftDataMinMax(long start, long end, float& minimum, float
 
     minimum = 0;
     maximum = 0;
-    
+
     if (type == AUDIOSAMPLETYPE::NONVOCALS || type == AUDIOSAMPLETYPE::RAW) {
         lowNote = 0;
         highNote = 0;
@@ -3187,18 +3180,20 @@ std::list<std::string> AudioManager::GetAudioDevices()
     return __sdl.GetAudioDevices();
 }
 
-bool AudioManager::WriteAudioFrame(AVFormatContext *oc, AVStream *st, float *sampleBuff, int sampleCount, bool clearQueue/*= false*/)
+bool AudioManager::WriteAudioFrame(AVFormatContext *oc, AVCodecContext* codecContext, AVStream *st, float *sampleBuff, int sampleCount, bool clearQueue/*= false*/)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    AVCodecContext *c = st->codec;
+
+    const AVCodecParameters *cp = st->codecpar;
+    AVSampleFormat sampleFmt = AVSampleFormat( cp->format );
 
     AVFrame *frame = av_frame_alloc();
     frame->format = AV_SAMPLE_FMT_FLTP;
-    frame->channel_layout = c->channel_layout;
+    frame->channel_layout = cp->channel_layout;
     frame->nb_samples = sampleCount;
 
-    int buffer_size = av_samples_get_buffer_size(nullptr, c->channels, sampleCount, c->sample_fmt, 1);
-    int audioSize = avcodec_fill_audio_frame(frame, c->channels, c->sample_fmt, (uint8_t *)sampleBuff, buffer_size, 1);
+    int buffer_size = av_samples_get_buffer_size( nullptr, cp->channels, sampleCount, sampleFmt, 1 );
+    int audioSize = avcodec_fill_audio_frame( frame, cp->channels, sampleFmt, (uint8_t *)sampleBuff, buffer_size, 1 );
     if (audioSize < 0)
     {
         logger_base.error("  Error filling audio frame");
@@ -3211,27 +3206,22 @@ bool AudioManager::WriteAudioFrame(AVFormatContext *oc, AVStream *st, float *sam
     pkt.size = 0;
     pkt.stream_index = st->index;
 
-    int got_packet = 0;
-    int ret = avcodec_encode_audio2(c, &pkt, frame, &got_packet);
-    if (ret < 0)
+    if ( avcodec_send_frame( codecContext, frame ) == 0 )
     {
-        logger_base.error("  Error encoding audio frame");
-        return false;
-    }
-
-    if (got_packet)
-    {
-        pkt.stream_index = st->index;
-        if (av_interleaved_write_frame(oc, &pkt) != 0)
+        if ( avcodec_receive_packet( codecContext, &pkt) == 0 )
         {
-            logger_base.error("  error writing audio data");
-            return false;
-        }
+            pkt.stream_index = st->index;
+            if ( av_interleaved_write_frame(oc, &pkt) != 0 )
+            {
+                logger_base.error("  error writing audio data");
+                return false;
+            }
 
-        av_packet_unref(&pkt);
+            av_packet_unref( &pkt );
+        }
     }
 
-    av_frame_free(&frame);
+    av_frame_free( &frame );
     return true;
 }
 
@@ -3266,52 +3256,48 @@ bool AudioManager::CreateAudioFile(const std::vector<float>& left, const std::ve
     av_register_all();
     #endif
 
-    AVOutputFormat* fmt = av_guess_format(nullptr, targetFile.c_str(), nullptr);
-    AVCodec *audioCodec = avcodec_find_encoder(fmt->audio_codec);
+    const AVCodec* audioCodec = avcodec_find_encoder( AV_CODEC_ID_PCM_F32LE );
     if (audioCodec == nullptr)
     {
         logger_base.error("CreateAudioFile: Error finding codec.");
         return false;
     }
-    else
-    {
-        logger_base.debug("    Audio codec: %s.", audioCodec->name);
-    }
+
+    AVCodecContext* codecContext = avcodec_alloc_context3( audioCodec );
+    codecContext->bit_rate = 128000;
+    codecContext->sample_fmt = AV_SAMPLE_FMT_FLT;
+    codecContext->sample_rate = 44100;
+    codecContext->channels = 2;
+    codecContext->channel_layout = AV_CH_LAYOUT_STEREO;
 
     AVFormatContext* formatContext;
-    avformat_alloc_output_context2(&formatContext, fmt, nullptr, targetFile.c_str());
+    avformat_alloc_output_context2( &formatContext, nullptr, nullptr, targetFile.c_str() );
     if (formatContext == nullptr)
     {
         logger_base.error("  Error opening output-context");
         return false;
     }
 
-    AVStream *audio_st = nullptr;
-    audio_st = avformat_new_stream(formatContext, audioCodec);
-    audio_st->id = formatContext->nb_streams - 1;
-    AVCodecContext *audioCodecContext = audio_st->codec;
-    avcodec_get_context_defaults3(audioCodecContext, audioCodec);
-    audioCodecContext->sample_fmt = AV_SAMPLE_FMT_FLTP;
-    audioCodecContext->bit_rate = 128000;
-    audioCodecContext->sample_rate = bitrate;
-    audioCodecContext->channels = 2;
-    audioCodecContext->channel_layout = AV_CH_LAYOUT_STEREO;
+    AVStream *audio_st = avformat_new_stream( formatContext, audioCodec );
+    //audio_st->id = formatContext->nb_streams - 1;
 
-    if (formatContext->oformat->flags & AVFMT_GLOBALHEADER)
-        audioCodecContext->flags |= CODEC_FLAG_GLOBAL_HEADER;
-    if (avcodec_open2(audioCodecContext, audioCodec, nullptr) != 0)
+    int status = avcodec_parameters_from_context( audio_st->codecpar, codecContext );
+
+    if ( formatContext->oformat->flags & AVFMT_GLOBALHEADER )
+        codecContext->flags |= CODEC_FLAG_GLOBAL_HEADER;
+    if ( avcodec_open2( codecContext, audioCodec, nullptr ) != 0 )
     {
         logger_base.error("  Error opening audio codec.");
         return false;
     }
 
-    if (avio_open(&formatContext->pb, targetFile.c_str(), AVIO_FLAG_WRITE) < 0)
+    if ( avio_open( &formatContext->pb, targetFile.c_str(), AVIO_FLAG_WRITE ) < 0 )
     {
         logger_base.error("  Error opening output file");
         return false;
     }
 
-    if (avformat_write_header(formatContext, nullptr) < 0)
+    if ( avformat_write_header( formatContext, nullptr ) < 0 )
     {
         logger_base.error("  Error writing file header");
         return false;
@@ -3322,61 +3308,36 @@ bool AudioManager::CreateAudioFile(const std::vector<float>& left, const std::ve
     logger_base.debug("    Headers written.");
 
     double lenInSeconds = (double)left.size() / bitrate;
-    int frameSize = audio_st->codec->frame_size;
+    int frameSize = 4; // setting this too high seems to result in garbled audio
     double numFullFrames = (lenInSeconds * bitrate) / frameSize;
     int numAudioFrames = (int)floor(numFullFrames);
 
-    float *audioBuff = new float[audio_st->codec->frame_size * 2];
+    float *audioBuff = new float[frameSize * 2];
 
-    logger_base.debug("    Writing the audio %d frames.", numAudioFrames);
+    logger_base.debug( "    Writing the audio %d frames; frameSize == %d.", numAudioFrames, frameSize );
     for (int i = 0; i < numAudioFrames; ++i)
     {
-        getAudioFrame(audioBuff, frameSize, 2);
-        if (!WriteAudioFrame(formatContext, audio_st, audioBuff, frameSize))
+        getAudioFrame( audioBuff, frameSize, 2 );
+        if ( !WriteAudioFrame(formatContext, codecContext, audio_st, audioBuff, frameSize) )
             logger_base.error("   Error writing audio frame %d", i);
     }
 
     int numLeftoverSamples = (int)floor((numFullFrames - numAudioFrames) * frameSize);
     if (numLeftoverSamples)
     {
-        getAudioFrame(audioBuff, numLeftoverSamples, 2);
-        if (!WriteAudioFrame(formatContext, audio_st, audioBuff, numLeftoverSamples))
+        getAudioFrame( audioBuff, numLeftoverSamples, 2 );
+        if ( !WriteAudioFrame(formatContext, codecContext, audio_st, audioBuff, numLeftoverSamples) )
             logger_base.error("   Error writing leftover audio samples");
     }
 
     delete[] audioBuff;
 
     // delayed_audio_frames
-    for (int got_audio_output = 1; got_audio_output != 0;)
+    // TODO!!!
+
+    if ( !wasErrored && !wasCanceled )
     {
-        AVPacket pkt;
-        av_init_packet(&pkt);
-        pkt.data = nullptr;
-        pkt.size = 0;
-        pkt.stream_index = audio_st->index;
-
-        if (avcodec_encode_audio2(audio_st->codec, &pkt, nullptr, &got_audio_output) < 0)
-        {
-            logger_base.error("  Error encoding delayed audio frame");
-            return false;
-        }
-
-        if (got_audio_output)
-        {
-            pkt.stream_index = audio_st->index;
-            if (av_interleaved_write_frame(formatContext, &pkt) != 0)
-            {
-                logger_base.error("  Error writing delayed audio frame");
-                return false;
-            }
-
-            av_packet_unref(&pkt);
-        }
-    }
-
-    if (!wasErrored && !wasCanceled)
-    {
-        if (av_write_trailer(formatContext))
+        if ( av_write_trailer(formatContext) )
         {
             logger_base.error("  Error writing file trailer");
             wasErrored = true;
@@ -3384,18 +3345,13 @@ bool AudioManager::CreateAudioFile(const std::vector<float>& left, const std::ve
     }
 
     // Clean-up and close the output file
-    if (audio_st)
-        avcodec_close(audio_st->codec);
-    for (unsigned i = 0; i < formatContext->nb_streams; ++i)
-    {
-        av_freep(&formatContext->streams[i]->codec);
-        av_freep(&formatContext->streams[i]);
-    }
-    if (!(fmt->flags & AVFMT_NOFILE))
-    {
-        avio_close(formatContext->pb);
-    }
-    av_free(formatContext);
+    avcodec_close( codecContext );
+
+    avcodec_free_context( &codecContext );
+
+    if ( !(formatContext->oformat->flags & AVFMT_NOFILE) )
+        avio_close( formatContext->pb );
+    avformat_free_context( formatContext );
 
     if (wasErrored || wasCanceled)
     {
@@ -3405,4 +3361,15 @@ bool AudioManager::CreateAudioFile(const std::vector<float>& left, const std::ve
     }
 
     return true;
+}
+
+bool AudioManager::WriteCurrentAudio( const std::string& path, long bitrate )
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    logger_base.info( "AudioManager::WriteCurrentAudio() - %d samples to export to '%s'", _trackSize, path.c_str() );
+
+    std::vector<float> leftData( _data[0], _data[0] + _trackSize );
+    std::vector<float> rightData( _data[1], _data[1] + _trackSize );
+    return CreateAudioFile( leftData, rightData,  path, bitrate );
 }

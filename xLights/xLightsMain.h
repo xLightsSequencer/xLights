@@ -972,7 +972,7 @@ public:
     void StartxFadeListener();
     wxString ProcessXFadeMessage(wxString msg);
     void ShowACLights();
-    
+
     void DoBackup(bool prompt = true, bool startup = false, bool forceallfiles = false);
     void DoBackupPurge();
     void SetBackupPurgeDays(int i);
@@ -989,97 +989,97 @@ public:
     void SetBackupOnLaunch(bool b) { mBackupOnLaunch = b;}
     bool BackupSubFolders() const {return _backupSubfolders;}
     void SetBackupSubFolders(bool b) { _backupSubfolders = b;}
-    
+
     bool GridNodeValues() const { return mGridNodeValues; }
     void SetGridNodeValues(bool b);
-    
+
     bool GridIconBackgrounds() const { return mGridIconBackgrounds;}
     void SetGridIconBackgrounds(bool b);
-    
+
     bool SmallWaveform() const { return _smallWaveform; }
     void SetSmallWaveform(bool b);
-    
+
     int GridSpacing() const { return mGridSpacing; }
     void SetGridSpacing(int i);
-    
+
     bool TimingPlayOnDClick() const { return mTimingPlayOnDClick;}
     void SetTimingPlayOnDClick(bool b);
-    
+
     int ToolIconSize() const { return mIconSize; }
     void SetToolIconSize(int size);
-    
+
     bool GetSnapToTimingMarks() const { return _snapToTimingMarks; }
     bool SnapToTimingMarks() const { return _snapToTimingMarks; }
     void SetSnapToTimingMarks(bool b);
-    
+
     int XFadePort() const { return _xFadePort; }
     void SetXFadePort(int i);
-    
+
     bool E131Sync() const {return me131Sync;}
     void SetE131Sync(bool b);
-    
+
     const std::string &LocalIP() const { return mLocalIP; }
     void SetLocalIP(const std::string &ip);
-    
+
     int SuppressDuplicateFrames() const;
     void SetSuppressDuplicateFrames(int i);
-    
+
     bool HardwareVideoAccelerated() const { return _hwVideoAccleration; }
     void SetHardwareVideoAccelerated(bool b);
-    
+
     const wxString &UserEMAIL() const { return _userEmail;}
     void SetUserEMAIL(const wxString &e);
-    
+
     int SaveFSEQVersion() const { return _fseqVersion; }
     void SetSaveFSEQVersion(int i) { _fseqVersion = i; }
-    
+
     bool ExcludePresetsFromPackagedSequences() const { return _excludePresetsFromPackagedSequences;}
     void SetExcludePresetsFromPackagedSequences(bool b) {_excludePresetsFromPackagedSequences = b;}
-    
+
     bool ExcludeAudioFromPackagedSequences() const { return _excludeAudioFromPackagedSequences;}
     void SetExcludeAudioFromPackagedSequences(bool b) {_excludeAudioFromPackagedSequences = b;}
-    
+
     bool ModelBlendDefaultOff() const { return _modelBlendDefaultOff;}
     void SetModelBlendDefaultOff(bool b) { _modelBlendDefaultOff = b;}
-    
+
     const wxString &EnableRenderCache() const { return _enableRenderCache; }
     void SetEnableRenderCache(const wxString &t);
-    
+
     bool RenderOnSave() const { return mRenderOnSave; }
     void SetRenderOnSave(bool b);
 
     bool SaveFseqOnSave() const { return mSaveFseqOnSave; }
     void SetSaveFseqOnSave(bool b);
-    
+
     int AutoSaveInterval() const { return mAutoSaveInterval; }
     void SetAutoSaveInterval(int i);
-    
+
     bool IsSuppressFadeHints() const { return mSuppressFadeHints; }
     bool SuppressFadeHints() const { return mSuppressFadeHints; }
     void SetSuppressFadeHints(bool b);
-    
+
     bool PlayControlsOnPreview() const { return _playControlsOnPreview;}
     void SetPlayControlsOnPreview(bool b);
-    
+
     bool AutoShowHousePreview() const { return _autoShowHousePreview;}
     void SetAutoShowHousePreview(bool b);
-    
+
     int EffectAssistMode() const { return mEffectAssistMode;}
     void SetEffectAssistMode(int i);
-    
+
     int OpenGLVersion() const;
     void SetOpenGLVersion(int i);
-    
+
     int OpenGLRenderOrder() const;
     void SetOpenGLRenderOrder(int i);
-    
+
     int GetModelHandleScale() const { return _modelHandleSize; }
     int ModelHandleSize() const { return _modelHandleSize;}
     void SetModelHandleSize(int i);
-    
+
     const wxArrayString &RandomEffectsToUse() const { return _randomEffectsToUse;}
     void SetRandomEffectsToUse(const wxArrayString &e);
-    
+
     bool EnableOutputs(bool ignoreCheck = false);
     void CycleOutputsIfOn();
     bool ForceEnableOutputs();
@@ -1454,6 +1454,7 @@ private:
     SelectPanel *_selectPanel = nullptr;
     SequenceVideoPanel* sequenceVideoPanel = nullptr;
     int mMediaLengthMS;
+
     bool mSequencerInitialize = false;
     wxFlexGridSizer* FlexGridEffects = nullptr;
     std::set<int> LorTimingList; // contains a list of period numbers, set by ReadLorFile()
