@@ -208,7 +208,7 @@ std::list<ControllerEthernet*> ArtNetOutput::Discover(OutputManager* outputManag
     unsigned char buffer[2048];
     long long endBroadcastTime = wxGetLocalTimeMillis().GetValue() + 2000l;
     int readSize = 0;
-    while (readSize > 0 || (wxGetLocalTimeMillis().GetValue() < endBroadcastTime)) {
+    while (readSize > 0 || ((uint64_t)wxGetLocalTimeMillis().GetValue() < endBroadcastTime)) {
         readSize = 0;
         memset(buffer, 0x00, sizeof(buffer));
         for (auto socket : sockets) {

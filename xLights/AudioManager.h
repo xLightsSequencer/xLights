@@ -153,19 +153,23 @@ public:
     void Pause(int id, bool pause);
     bool HasAudio(int id);
     static std::list<std::string> GetAudioDevices();
+    static std::list<std::string> GetInputAudioDevices();
     bool AudioDeviceChanged();
-    bool OpenAudioDevice(const std::string device);
-    bool OpenInputAudioDevice(const std::string device);
-    void SetAudioDevice(const std::string device);
+    bool OpenAudioDevice(const std::string& device);
+    bool OpenInputAudioDevice(const std::string& device);
+    void SetAudioDevice(const std::string& device);
+    void SetInputAudioDevice(const std::string& inputDevice);
     bool CloseAudioDevice();
     bool CloseInputAudioDevice();
     int GetInputMax(int ms);
+    int GetInputAudio(uint8_t* buffer, int bufsize);
     void PurgeAllButInputAudio(int ms);
     std::list<float> GetInputSpectrum(int ms);
     void PurgeInput();
     void DumpState(std::string device, int devid, SDL_AudioSpec* wanted, SDL_AudioSpec* actual);
-    void StartListening();
+    void StartListening(const std::string& inputDevice = "");
     void StopListening();
+    bool IsListening();
 };
 
 struct FilteredAudioData
@@ -261,8 +265,10 @@ public:
     int GetVolume() const;
     static void SetGlobalVolume(int volume);
     static int GetGlobalVolume();
-    static void SetAudioDevice(const std::string device);
+    static void SetAudioDevice(const std::string& device);
     static std::list<std::string> GetAudioDevices();
+    static void SetInputAudioDevice(const std::string& device);
+    static std::list<std::string> GetInputAudioDevices();
     long GetTrackSize() const { return _trackSize; };
 	long GetRate() const { return _rate; };
 	int GetChannels() const { return _channels; };

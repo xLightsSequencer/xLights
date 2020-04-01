@@ -232,6 +232,8 @@ void ListenerMIDI::Poll()
 void ListenerMIDI::DoSync(int mode, int hours, int mins, int secs, int frames)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static long lastms = -99999;
+
 
     long ms = ((hours * 60 + mins) * 60 + secs) * 1000;
 
@@ -259,7 +261,11 @@ void ListenerMIDI::DoSync(int mode, int hours, int mins, int secs, int frames)
 
     ms -= _listenerManager->GetScheduleManager()->GetOptions()->GetMIDITimecodeOffset();
 
-    logger_base.debug("MIDI DoSync MS: %ld, Mode: %d, hours: %d, Mins: %d, Sec: %d, Frames: %d.", ms, mode, hours, mins, secs, frames);
+    if (ms - lastms > 10000 || ms < lastms)
+    {
+        logger_base.debug("MIDI DoSync MS: %ld, Mode: %d, hours: %d, Mins: %d, Sec: %d, Frames: %d.", ms, mode, hours, mins, secs, frames);
+        lastms = ms;
+    }
 
     _listenerManager->Sync("", ms, GetType());
 }

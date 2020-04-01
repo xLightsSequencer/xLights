@@ -173,6 +173,7 @@ class ScheduleOptions
     std::list<VirtualMatrix*> _virtualMatrices;
     std::list<std::string> _fppRemotes;
     std::string _audioDevice;
+    std::string _inputAudioDevice;
     OSCOptions* _oscOptions;
     TestOptions* _testOptions;
     std::list<EventBase*> _events;
@@ -188,8 +189,13 @@ class ScheduleOptions
     bool _suppressAudioOnRemotes;
     bool _hardwareAcceleratedVideo;
     bool _lateStartingScheduleUsesTime;
+    int _SMPTEMode;
 
     public:
+
+        static int EncodeSMPTEMode(const std::string& mode);
+        static wxArrayString GetSPMTEModes();
+        static std::string DecodeSMPTEMode(int mode);
 
         bool IsDirty() const;
         void ClearDirty();
@@ -215,6 +221,7 @@ class ScheduleOptions
         void SetParallelTransmission(bool parallel) { if (_parallelTransmission != parallel) { _parallelTransmission = parallel; _changeCount++; } }
         void SetRemoteAllOff(bool remoteAllOff) { if (_remoteAllOff != remoteAllOff) { _remoteAllOff = remoteAllOff; _changeCount++; } }
         void SetRetryOutputOpen(bool retryOpen) { if (_retryOutputOpen != retryOpen) { _retryOutputOpen = retryOpen; _changeCount++; } }
+        void SetSMPTEMode(int mode) { if (_SMPTEMode != mode) { _SMPTEMode = mode; _changeCount++; } }
         void SetSuppressAudioOnRemotes(bool suppressAudio) { if (_suppressAudioOnRemotes != suppressAudio) { _suppressAudioOnRemotes = suppressAudio; _changeCount++; } }
         void SetSync(bool sync) { if (_sync != sync) { _sync = sync; _changeCount++; } }
         void SetSendOffWhenNotRunning(bool send) { if (_sendOffWhenNotRunning != send) { _sendOffWhenNotRunning = send; _changeCount++; } }
@@ -222,6 +229,7 @@ class ScheduleOptions
         bool IsParallelTransmission() const { return _parallelTransmission; }
         bool IsRemoteAllOff() const { return _remoteAllOff; }
         bool IsRetryOpen() const { return _retryOutputOpen; }
+        int GetSMPTEMode() const { return _SMPTEMode; }
         bool IsSuppressAudioOnRemotes() const { return _suppressAudioOnRemotes; }
         void SetSendBackgroundWhenNotRunning(bool send) { if (_sendBackgroundWhenNotRunning != send) { _sendBackgroundWhenNotRunning = send; _changeCount++; } }
         bool IsSendBackgroundWhenNotRunning() const { return _sendBackgroundWhenNotRunning; }
@@ -242,10 +250,12 @@ class ScheduleOptions
         void SetFPPRemotes(std::list<std::string> remotes) { _fppRemotes = remotes; _changeCount++; } 
         std::string GetWWWRoot() const { return _wwwRoot; }
         std::string GetAudioDevice() const { return _audioDevice; }
+        std::string GetInputAudioDevice() const { return _inputAudioDevice; }
         std::string GetDefaultRoot() const;
         void SetWWWRoot(const std::string& wwwRoot) { if (_wwwRoot != wwwRoot) { _wwwRoot = wwwRoot; _changeCount++; } }
         void SetDirty() { _changeCount++; }
         void SetAudioDevice(const std::string& audioDevice);
+        void SetInputAudioDevice(const std::string& inputAudioDevice);
         void AddButton(const std::string& label, const std::string& command, const std::string& parms, char hotkey, const std::string& color, CommandManager* commandManager);
         bool GetAPIOnly() const { return _webAPIOnly; }
         int GetRemoteLatency() const { return _remoteLatency; }

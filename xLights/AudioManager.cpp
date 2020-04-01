@@ -128,8 +128,6 @@ public:
     virtual const std::string GetName() const override { return "AudioScan"; }
 };
 
-
-
 void SDL::SetGlobalVolume(int volume)
 {
     __globalVolume = volume;
@@ -178,23 +176,34 @@ SDL::SDL(const std::string& device, const std::string& inputDevice)
         return;
     }
 
-    logger_base.debug("SDL initialised");
+    logger_base.debug("SDL initialised output: '%s' input: '%s'", (const char *)device.c_str(), (const char*)inputDevice.c_str());
 }
 
-void SDL::StartListening()
+void SDL::StartListening(const std::string& inputDevice)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     _listeners++;
 
     if (_listeners == 1)
     {
+        if (inputDevice != "") _inputDevice = inputDevice;
+
         if (!OpenInputAudioDevice(_inputDevice))
         {
             logger_base.error("Could not open SDL audio input");
         }
+        else
+        {
+            logger_base.debug("SDL Starting listening - '%s'", (const char*)_inputDevice.c_str());
+        }
     }
 
     logger_base.debug("SDL Starting listening - listeners %d", _listeners);
+}
+
+bool SDL::IsListening()
+{
+    return _listeners > 0;
 }
 
 void SDL::StopListening()
@@ -287,6 +296,24 @@ std::list<std::string> SDL::GetAudioDevices()
     return devices;
 }
 
+std::list<std::string> SDL::GetInputAudioDevices()
+{
+    std::list<std::string> devices;
+
+#ifdef __WXMSW__
+    // TODO we need to this working on OSX/Linux
+    // Only windows supports multiple audio devices ... I think .. well at least I know Linux doesnt
+    int count = SDL_GetNumAudioDevices(1);
+
+    for (int i = 0; i < count; i++)
+    {
+        devices.push_back(SDL_GetAudioDeviceName(i, 1));
+    }
+#endif
+
+    return devices;
+}
+
 bool SDL::CloseAudioDevice()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -295,7 +322,7 @@ bool SDL::CloseAudioDevice()
 //#ifdef __WXMSW__
         if (_dev > 0)
         {
-            logger_base.debug("Pausing audio device %d.", _dev);
+                logger_base.debug("Pausing audio device %d.", _dev);
             SDL_ClearError();
             SDL_AudioStatus as = SDL_GetAudioDeviceStatus(_dev);
             if (as == SDL_AUDIO_PLAYING)
@@ -360,6 +387,15 @@ void SDL::PurgeAllButInputAudio(int ms)
         uint32_t read = SDL_DequeueAudio(_inputdev, buffer, toread);
         wxASSERT(read == toread);
     }
+}
+
+int SDL::GetInputAudio(uint8_t* buffer, int bufsize)
+{
+    int ms = bufsize * 1000 / DEFAULT_RATE;
+    PurgeAllButInputAudio(ms);
+
+    SDL_ClearError();
+    return SDL_DequeueAudio(_inputdev, buffer, bufsize);
 }
 
 int SDL::GetInputMax(int ms)
@@ -511,7 +547,7 @@ bool SDL::AudioDeviceChanged() {
     return true;
 }
 
-bool SDL::OpenAudioDevice(const std::string device)
+bool SDL::OpenAudioDevice(const std::string& device)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -563,7 +599,7 @@ bool SDL::OpenAudioDevice(const std::string device)
     return true;
 }
 
-bool SDL::OpenInputAudioDevice(const std::string device)
+bool SDL::OpenInputAudioDevice(const std::string& device)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -3155,7 +3191,7 @@ Vamp::Plugin* xLightsVamp::GetPlugin(std::string name)
 	return p;
 }
 
-void SDL::SetAudioDevice(const std::string device)
+void SDL::SetAudioDevice(const std::string& device)
 {
 #ifndef __WXMSW__
     // TODO we need to replace this on OSX/Linux
@@ -3170,7 +3206,22 @@ void SDL::SetAudioDevice(const std::string device)
 #endif
 }
 
-void AudioManager::SetAudioDevice(const std::string device)
+void SDL::SetInputAudioDevice(const std::string& device)
+{
+#ifndef __WXMSW__
+    // TODO we need to replace this on OSX/Linux
+    // Only windows supports multiple audio devices ... I think .. well at least I know Linux doesnt
+    _inputDevice = "";
+#else
+    if (IsListening() && _inputDevice != device)
+    {
+        StopListening();
+        StartListening(device);
+    }
+#endif
+}
+
+void AudioManager::SetAudioDevice(const std::string& device)
 {
     __sdl.SetAudioDevice(device);
 }
@@ -3178,6 +3229,16 @@ void AudioManager::SetAudioDevice(const std::string device)
 std::list<std::string> AudioManager::GetAudioDevices()
 {
     return __sdl.GetAudioDevices();
+}
+
+void AudioManager::SetInputAudioDevice(const std::string& device)
+{
+    __sdl.SetInputAudioDevice(device);
+}
+
+std::list<std::string> AudioManager::GetInputAudioDevices()
+{
+    return __sdl.GetInputAudioDevices();
 }
 
 bool AudioManager::WriteAudioFrame(AVFormatContext *oc, AVCodecContext* codecContext, AVStream *st, float *sampleBuff, int sampleCount, bool clearQueue/*= false*/)

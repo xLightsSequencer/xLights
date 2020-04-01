@@ -8,6 +8,7 @@
 #include "SyncFPP.h"
 #include "SyncMIDI.h"
 #include "SyncArtNet.h"
+#include "SyncSMPTE.h"
 
 std::unique_ptr<SyncBase> SyncManager::CreateSync(SYNCMODE sm, REMOTEMODE rm) const
 {
@@ -43,6 +44,10 @@ std::unique_ptr<SyncBase> SyncManager::CreateSync(SYNCMODE sm, REMOTEMODE rm) co
     else if (sm == SYNCMODE::MIDIMASTER || rm == REMOTEMODE::MIDISLAVE)
     {
         return std::make_unique<SyncMIDI>(SyncMIDI(sm, rm, *_scheduleManager->GetOptions(), _scheduleManager->GetListenerManager()));
+    }
+    else if (rm == REMOTEMODE::SMPTESLAVE)
+    {
+        return std::make_unique<SyncSMPTE>(SyncSMPTE(sm, rm, *_scheduleManager->GetOptions(), _scheduleManager->GetListenerManager()));
     }
     else
     {
@@ -174,6 +179,9 @@ void SyncManager::Start(int mode, REMOTEMODE remoteMode)
     }
     else if (remoteMode == REMOTEMODE::ARTNETSLAVE) {
         SetRemote(REMOTEMODE::ARTNETSLAVE);
+    }
+    else if (remoteMode == REMOTEMODE::SMPTESLAVE) {
+        SetRemote(REMOTEMODE::SMPTESLAVE);
     }
 
     _scheduleManager->GetListenerManager()->StartListeners();

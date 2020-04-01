@@ -196,6 +196,7 @@ const long xScheduleFrame::ID_MNU_FPPCSVREMOTE = wxNewId();
 const long xScheduleFrame::ID_MNU_ARTNETTIMECODESLAVE = wxNewId();
 const long xScheduleFrame::ID_MNU_OSCREMOTE = wxNewId();
 const long xScheduleFrame::MNU_MIDITIMECODEREMOTE = wxNewId();
+const long xScheduleFrame::ID_MNU_SMPTE = wxNewId();
 const long xScheduleFrame::ID_MNU_REMOTECONFIGURE = wxNewId();
 const long xScheduleFrame::ID_MNU_REMOTE = wxNewId();
 const long xScheduleFrame::ID_MNU_EDITFPPREMOTE = wxNewId();
@@ -584,6 +585,8 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     Menu6->Append(MenuItem_ModeOSCRemote);
     MenuItem_ModeMIDISlave = new wxMenuItem(Menu6, MNU_MIDITIMECODEREMOTE, _("MIDI Timecode"), wxEmptyString, wxITEM_RADIO);
     Menu6->Append(MenuItem_ModeMIDISlave);
+    MenuItem_SMPTE = new wxMenuItem(Menu6, ID_MNU_SMPTE, _("SMPTE LTC"), wxEmptyString, wxITEM_RADIO);
+    Menu6->Append(MenuItem_SMPTE);
     MenuItem_RemoteLatency = new wxMenuItem(Menu6, ID_MNU_REMOTECONFIGURE, _("Configure"), wxEmptyString, wxITEM_NORMAL);
     Menu6->Append(MenuItem_RemoteLatency);
     Menu4->Append(ID_MNU_REMOTE, _("Remote"), Menu6, wxEmptyString);
@@ -670,6 +673,7 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     Connect(ID_MNU_ARTNETTIMECODESLAVE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_ARTNetTimeCodeSlaveSelected);
     Connect(ID_MNU_OSCREMOTE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_OSCRemoteSelected);
     Connect(MNU_MIDITIMECODEREMOTE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_MIDITimeCodeSlaveSelected);
+    Connect(ID_MNU_SMPTE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_SMPTESelected);
     Connect(ID_MNU_REMOTECONFIGURE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_RemoteLatencySelected);
     Connect(ID_MNU_EDITFPPREMOTE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_EditFPPRemotesSelected);
     Connect(ID_MNU_OSCOPTION,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_ConfigureOSCSelected);
@@ -2810,6 +2814,7 @@ void xScheduleFrame::ModeToUI()
         MenuItem_ModeOSCRemote->Check(false);
         MenuItem_ModeArtNetSlave->Check(false);
         MenuItem_ModeMIDISlave->Check(false);
+        MenuItem_SMPTE->Check(false);
     }
     else
     {
@@ -2900,6 +2905,11 @@ void xScheduleFrame::ModeToUI()
             if (BitmapButton_IsScheduled->GetToolTipText() != "FPP remote.")
                 BitmapButton_IsScheduled->SetToolTip("FPP remote.");
             break;
+        case REMOTEMODE::SMPTESLAVE:
+            MenuItem_SMPTE->Check(true);
+            if (BitmapButton_IsScheduled->GetToolTipText() != "SMPTE LTC remote.")
+                BitmapButton_IsScheduled->SetToolTip("SMPTE LTC remote.");
+            break;
         case REMOTEMODE::FPPCSVSLAVE:
             MenuItem_ModeFPPCSVRemote->Check(true);
             if (BitmapButton_IsScheduled->GetToolTipText() != "FPP CSV remote.")
@@ -2946,6 +2956,10 @@ void xScheduleFrame::UIToMode()
     else if (MenuItem_ModeFPPCSVRemote->IsChecked())
     {
         __schedule->SetMode(mode, REMOTEMODE::FPPCSVSLAVE);
+    }
+    else if (MenuItem_SMPTE->IsChecked())
+    {
+        __schedule->SetMode(mode, REMOTEMODE::SMPTESLAVE);
     }
     else
     {
@@ -3591,4 +3605,9 @@ void xScheduleFrame::OnClose(wxCloseEvent& event)
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("xSchedule frame close.");
     Destroy();
+}
+
+void xScheduleFrame::OnMenuItem_SMPTESelected(wxCommandEvent& event)
+{
+    UIToMode();
 }

@@ -12,6 +12,7 @@
 #include "ListenerMIDI.h"
 #include "ListenerMQTT.h"
 #include "ListenerSerial.h"
+#include "ListenerSMPTE.h"
 #include "ListenerLor.h"
 #include "ListenerARTNet.h"
 #include "ListenerOSC.h"
@@ -138,6 +139,35 @@ void ListenerManager::StartListeners()
                 }
             }
         }
+        else if ((*it)->GetType() == "SMPTE")
+        {
+            if (_sync == 7)
+            {
+                ++it;
+            }
+            else
+            {
+                ListenerSMPTE* l = (ListenerSMPTE*)(*it);
+                bool found = false;
+                for (auto it2 : *_scheduleManager->GetOptions()->GetEvents())
+                {
+                    if (it2->GetType() == "SMPTE")
+                    {
+                        found = true;
+                    }
+                }
+                if (!found)
+                {
+                    l->Stop();
+                    _listeners.erase(it++);
+                    delete l;
+                }
+                else
+                {
+                    ++it;
+                }
+            }
+        }
         else if ((*it)->GetType() == "MQTT")
         {
             ListenerMQTT* l = (ListenerMQTT*)(*it);
@@ -220,32 +250,32 @@ void ListenerManager::StartListeners()
         }
         else if ((*it)->GetType() == "FPP CSV")
         {
-        if (_sync == 6)
-        {
-            ++it;
-        }
-        else
-        {
-            ListenerCSVFPP* l = (ListenerCSVFPP*)(*it);
-            bool found = false;
-            for (auto it2 : *_scheduleManager->GetOptions()->GetEvents())
-            {
-                if (it2->GetType() == "FPP CSV")
-                {
-                    found = true;
-                }
-            }
-            if (!found)
-            {
-                l->Stop();
-                _listeners.erase(it++);
-                delete l;
-            }
-            else
+            if (_sync == 6)
             {
                 ++it;
             }
-        }
+            else
+            {
+                ListenerCSVFPP* l = (ListenerCSVFPP*)(*it);
+                bool found = false;
+                for (auto it2 : *_scheduleManager->GetOptions()->GetEvents())
+                {
+                    if (it2->GetType() == "FPP CSV")
+                    {
+                        found = true;
+                    }
+                }
+                if (!found)
+                {
+                    l->Stop();
+                    _listeners.erase(it++);
+                    delete l;
+                }
+                else
+                {
+                    ++it;
+                }
+            }
         }
         else if ((*it)->GetType() == "OSC")
         {
@@ -435,6 +465,7 @@ void ListenerManager::StartListeners()
                 _listeners.back()->Start();
             }
         }
+        // No SMPTPE as there are no events
         else if (it3->GetType() == "MQTT")
         {
             EventMQTT* e = (EventMQTT*)it3;
@@ -590,6 +621,25 @@ void ListenerManager::StartListeners()
             _listeners.back()->Start();
         }
     }
+    else if (_sync == 7)
+    {
+        int mode = _scheduleManager->GetOptions()->GetSMPTEMode();
+        bool smpteExists = false;
+        for (auto it2 : _listeners)
+        {
+            if (it2->GetType() == "SMPTE")
+            {
+                smpteExists = true;
+                break;
+            }
+        }
+
+        if (!smpteExists)
+        {
+            _listeners.push_back(new ListenerSMPTE(mode, this));
+            _listeners.back()->Start();
+        }
+    }
 }
 
 void ListenerManager::SetRemoteOSC()
@@ -613,6 +663,12 @@ void ListenerManager::SetRemoteCSVFPP()
 void ListenerManager::SetRemoteMIDI()
 {
     _sync = 5;
+    StartListeners();
+}
+
+void ListenerManager::SetRemoteSMPTE()
+{
+    _sync = 7;
     StartListeners();
 }
 
@@ -676,7 +732,8 @@ int ListenerManager::Sync(const std::string filename, long ms, const std::string
     }
     else if ((_sync == 3 && type == "ARTNet") ||
         (_sync == 2 && type == "OSC") ||
-        (_sync == 5 && type == "MIDI"))
+        (_sync == 5 && type == "MIDI") ||
+        (_sync == 7 && type == "SMPTE"))
     {
 		if (_lastSyncMS < 0 || _lastSyncMS >= ms || ms > _lastSyncMS + MIN_SYNC_INTERVAL_MS)
 		{

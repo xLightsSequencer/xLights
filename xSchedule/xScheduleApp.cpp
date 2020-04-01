@@ -49,6 +49,7 @@
     #pragma comment(lib, "portmidid.lib")
     #pragma comment(lib, "msvcprtd.lib")
     #pragma comment(lib, "libzstdd_static_VS.lib")
+    #pragma comment(lib, "libltcd.lib")
 #else
     #pragma comment(lib, "wxbase31u.lib")
     #pragma comment(lib, "wxbase31u_net.lib")
@@ -67,6 +68,7 @@
     //#pragma comment(lib, "log4cpp.lib")
     #pragma comment(lib, "portmidi.lib")
     #pragma comment(lib, "msvcprt.lib")
+    #pragma comment(lib, "libltc.lib")
 #endif
 #pragma comment(lib, "libcurl.lib")
 #pragma comment(lib, "z.lib")
@@ -98,10 +100,8 @@
 
 IMPLEMENT_APP(xScheduleApp)
 
-std::string DecodeOS(wxOperatingSystemId o)
-{
-    switch (o)
-    {
+std::string DecodeOS(wxOperatingSystemId o)  {
+    switch (o) {
     case wxOS_UNKNOWN:
         return "Call get get operating system failed.";
     case wxOS_MAC_OS:

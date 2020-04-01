@@ -523,6 +523,10 @@
       <Filter>Outputs</Filter>
     </ClCompile>
     <ClCompile Include="..\xLights\controllers\ControllerCaps.cpp" />
+    <ClCompile Include="events\ListenerSMPTE.cpp">
+      <Filter>Events</Filter>
+    </ClCompile>
+    <ClCompile Include="SyncSMPTE.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\xLights\AudioManager.h" />
@@ -1039,6 +1043,10 @@
       <Filter>Outputs</Filter>
     </ClInclude>
     <ClInclude Include="..\xLights\controllers\ControllerCaps.h" />
+    <ClInclude Include="events\ListenerSMPTE.h">
+      <Filter>Events</Filter>
+    </ClInclude>
+    <ClInclude Include="SyncSMPTE.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="PlayList">

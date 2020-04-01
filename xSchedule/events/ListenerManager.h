@@ -41,6 +41,7 @@ class ListenerManager
         void SetRemoteFPP();
         void SetRemoteCSVFPP();
         void SetRemoteMIDI();
+        void SetRemoteSMPTE();
         void SetRemoteNone();
         void SetRemoteArtNet();
         void MidiRedirect(wxWindow* notify, int deviceId);

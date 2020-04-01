@@ -338,6 +338,7 @@ http://<host:port>/xScheduleCommand?Command=<command>&Parameters=<parameters>
 				Remote_Artnet
 				Remote_MIDI
 				Remote_OSC
+                Remote_SMPTE
 						
 		Fire plugin event <plugin>|<plugin parameteres>
 			Fires an event to the named plugin with the specified data

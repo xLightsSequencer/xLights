@@ -38,6 +38,8 @@ const long OptionsDialog::ID_BUTTON10 = wxNewId();
 const long OptionsDialog::ID_BUTTON9 = wxNewId();
 const long OptionsDialog::ID_STATICTEXT7 = wxNewId();
 const long OptionsDialog::ID_CHOICE1 = wxNewId();
+const long OptionsDialog::ID_STATICTEXT12 = wxNewId();
+const long OptionsDialog::ID_CHOICE7 = wxNewId();
 const long OptionsDialog::ID_STATICTEXT8 = wxNewId();
 const long OptionsDialog::ID_CHOICE2 = wxNewId();
 const long OptionsDialog::ID_STATICTEXT3 = wxNewId();
@@ -49,6 +51,8 @@ const long OptionsDialog::ID_STATICTEXT5 = wxNewId();
 const long OptionsDialog::ID_TEXTCTRL2 = wxNewId();
 const long OptionsDialog::ID_STATICTEXT6 = wxNewId();
 const long OptionsDialog::ID_SPINCTRL2 = wxNewId();
+const long OptionsDialog::ID_STATICTEXT11 = wxNewId();
+const long OptionsDialog::ID_CHOICE6 = wxNewId();
 const long OptionsDialog::ID_STATICTEXT1 = wxNewId();
 const long OptionsDialog::ID_CHOICE3 = wxNewId();
 const long OptionsDialog::ID_STATICTEXT9 = wxNewId();
@@ -141,6 +145,10 @@ OptionsDialog::OptionsDialog(wxWindow* parent, CommandManager* commandManager, S
 	Choice_AudioDevice = new wxChoice(this, ID_CHOICE1, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE1"));
 	Choice_AudioDevice->SetSelection( Choice_AudioDevice->Append(_("(Default)")) );
 	FlexGridSizer8->Add(Choice_AudioDevice, 1, wxALL|wxEXPAND, 5);
+	StaticText12 = new wxStaticText(this, ID_STATICTEXT12, _("Input Audio Device:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT12"));
+	FlexGridSizer8->Add(StaticText12, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	Choice_InputAudioDevice = new wxChoice(this, ID_CHOICE7, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE7"));
+	FlexGridSizer8->Add(Choice_InputAudioDevice, 1, wxALL|wxEXPAND, 5);
 	StaticText8 = new wxStaticText(this, ID_STATICTEXT8, _("ARTNet Time Code Format:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT8"));
 	FlexGridSizer8->Add(StaticText8, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	Choice_ARTNetTimeCodeFormat = new wxChoice(this, ID_CHOICE2, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE2"));
@@ -171,6 +179,10 @@ OptionsDialog::OptionsDialog(wxWindow* parent, CommandManager* commandManager, S
 	SpinCtrl_PasswordTimeout = new wxSpinCtrl(this, ID_SPINCTRL2, _T("30"), wxDefaultPosition, wxDefaultSize, 0, 1, 1440, 30, _T("ID_SPINCTRL2"));
 	SpinCtrl_PasswordTimeout->SetValue(_T("30"));
 	FlexGridSizer8->Add(SpinCtrl_PasswordTimeout, 1, wxALL|wxEXPAND, 5);
+	StaticText11 = new wxStaticText(this, ID_STATICTEXT11, _("SMPTE Timecode Frame Rate:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT11"));
+	FlexGridSizer8->Add(StaticText11, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	Choice_SMPTEFrameRate = new wxChoice(this, ID_CHOICE6, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE6"));
+	FlexGridSizer8->Add(Choice_SMPTEFrameRate, 1, wxALL|wxEXPAND, 5);
 	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Location:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
 	FlexGridSizer8->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	Choice_Location = new wxChoice(this, ID_CHOICE3, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE3"));
@@ -214,9 +226,16 @@ OptionsDialog::OptionsDialog(wxWindow* parent, CommandManager* commandManager, S
 	//*)
 
     auto audioDevices = AudioManager::GetAudioDevices();
-    for (auto it = audioDevices.begin(); it != audioDevices.end(); ++it)
+    for (const auto& it : audioDevices)
     {
-        Choice_AudioDevice->Append(*it);
+        Choice_AudioDevice->Append(it);
+    }
+
+    Choice_InputAudioDevice->SetSelection(Choice_InputAudioDevice->Append(_("(Default)")));
+    auto inputAudioDevices = AudioManager::GetInputAudioDevices();
+    for (const auto& it : inputAudioDevices)
+    {
+        Choice_InputAudioDevice->Append(it);
     }
 
     auto cities = City::GetCities();
@@ -256,6 +275,11 @@ OptionsDialog::OptionsDialog(wxWindow* parent, CommandManager* commandManager, S
     if (Choice_AudioDevice->GetSelection() == -1)
     {
         Choice_AudioDevice->SetStringSelection("(Default)");
+    }
+    Choice_InputAudioDevice->SetStringSelection(options->GetInputAudioDevice());
+    if (Choice_InputAudioDevice->GetSelection() == -1)
+    {
+        Choice_InputAudioDevice->SetStringSelection("(Default)");
     }
 
     Choice1->AppendString("");
@@ -346,6 +370,17 @@ void OptionsDialog::OnButton_OkClick(wxCommandEvent& event)
     {
         _options->SetAudioDevice(Choice_AudioDevice->GetStringSelection().ToStdString());
         AudioManager::SetAudioDevice(Choice_AudioDevice->GetStringSelection().ToStdString());
+    }
+
+    if (Choice_InputAudioDevice->GetStringSelection() == "(Default)")
+    {
+        _options->SetInputAudioDevice("");
+        AudioManager::SetInputAudioDevice("");
+    }
+    else
+    {
+        _options->SetInputAudioDevice(Choice_InputAudioDevice->GetStringSelection().ToStdString());
+        AudioManager::SetInputAudioDevice(Choice_InputAudioDevice->GetStringSelection().ToStdString());
     }
 
     _options->ClearButtons();

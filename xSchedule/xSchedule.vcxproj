@@ -105,7 +105,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>%(AdditionalDependencies);liblitc.lib</AdditionalDependencies>
       <ShowProgress>NotSet</ShowProgress>
     </Link>
   </ItemDefinitionGroup>
@@ -270,6 +270,7 @@
     <ClCompile Include="events\ListenerMQTT.cpp" />
     <ClCompile Include="events\ListenerOSC.cpp" />
     <ClCompile Include="events\ListenerSerial.cpp" />
+    <ClCompile Include="events\ListenerSMPTE.cpp" />
     <ClCompile Include="ExtraIPDialog.cpp" />
     <ClCompile Include="ExtraIPsDialog.cpp" />
     <ClCompile Include="FPPRemotesDialog.cpp" />
@@ -374,6 +375,7 @@
     <ClCompile Include="SyncManager.cpp" />
     <ClCompile Include="SyncMIDI.cpp" />
     <ClCompile Include="SyncOSC.cpp" />
+    <ClCompile Include="SyncSMPTE.cpp" />
     <ClCompile Include="ThreeToFourDialog.cpp" />
     <ClCompile Include="UserButton.cpp" />
     <ClCompile Include="VideoCache.cpp" />
@@ -492,6 +494,7 @@
     <ClInclude Include="events\ListenerMQTT.h" />
     <ClInclude Include="events\ListenerOSC.h" />
     <ClInclude Include="events\ListenerSerial.h" />
+    <ClInclude Include="events\ListenerSMPTE.h" />
     <ClInclude Include="ExtraIPDialog.h" />
     <ClInclude Include="ExtraIPsDialog.h" />
     <ClInclude Include="FPPRemotesDialog.h" />
@@ -599,6 +602,7 @@
     <ClInclude Include="SyncManager.h" />
     <ClInclude Include="SyncMIDI.h" />
     <ClInclude Include="SyncOSC.h" />
+    <ClInclude Include="SyncSMPTE.h" />
     <ClInclude Include="ThreeToFourDialog.h" />
     <ClInclude Include="UserButton.h" />
     <ClInclude Include="VideoCache.h" />

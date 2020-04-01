@@ -26,7 +26,8 @@ enum class SYNCMODE
     OSCMASTER = 8,
     MIDIMASTER = 16,
     FPPMULTICASTMASTER = 32,
-    FPPUNICASTCSVMASTER = 64
+    FPPUNICASTCSVMASTER = 64,
+    SMPTEMASTER = 128 // not currently useable
 };
 
 enum class REMOTEMODE
@@ -38,7 +39,8 @@ enum class REMOTEMODE
     OSCSLAVE,
     MIDISLAVE,
     FPPSLAVE,
-    FPPCSVSLAVE
+    FPPCSVSLAVE,
+    SMPTESLAVE
 };
 
 class SyncBase

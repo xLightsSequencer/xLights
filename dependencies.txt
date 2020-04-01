@@ -190,3 +190,12 @@ Last Pulled:
 Version:     1.2.11
 License:     zlib
 Strategy:    header added to xLights repository include/zlib, static libraries added to lib for Windows
+
+Library:     libltc
+Usage:       generate and consume SMTPE timecode
+Link:        https://github.com/x42/libltc
+Source:      https://github.com/x42/libltc
+Last Pulled: 2019-09-27
+Version:     
+License:     GNU Lesser GPL2
+Strategy:    Header added to repository. static libraries added for windows

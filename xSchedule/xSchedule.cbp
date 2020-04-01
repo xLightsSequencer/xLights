@@ -135,6 +135,7 @@
 					<Add library="../lib/windows/libwxzlib.a" />
 					<Add library="../lib/windows/libwxmsw31u_qa.a" />
 					<Add library="../lib/windows/libwxexpat.a" />
+					<Add library="../lib/windows/libltc.a" />
 					<Add directory="../lib/windows" />
 				</Linker>
 			</Target>
@@ -278,6 +279,7 @@
 					<Add library="../lib/windows64/libwxzlib.a" />
 					<Add library="../lib/windows64/libwxmsw31u_qa.a" />
 					<Add library="../lib/windows64/libwxexpat.a" />
+					<Add library="../lib/windows64/libltc.a" />
 					<Add directory="../lib/windows64" />
 				</Linker>
 			</Target>

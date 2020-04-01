@@ -1897,6 +1897,10 @@ bool ScheduleManager::Action(const wxString& command, const wxString& parameters
                         {
                             remote = REMOTEMODE::MIDISLAVE;
                         }
+                        else if (m == "remote_smpte")
+                        {
+                            remote = REMOTEMODE::SMPTESLAVE;
+                        }
                         else if (m == "remote_osc")
                         {
                             remote = REMOTEMODE::OSCSLAVE;

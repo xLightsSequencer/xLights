@@ -204,6 +204,7 @@ public:
         void OnMenuItem_ModeFPPUnicastCSVMasterSelected(wxCommandEvent& event);
         void OnMenuItem_ModeFPPCSVRemoteSelected(wxCommandEvent& event);
         void OnClose(wxCloseEvent& event);
+        void OnMenuItem_SMPTESelected(wxCommandEvent& event);
         //*)
 
         bool IsPlayList(wxTreeItemId id) const;
@@ -292,6 +293,7 @@ public:
         static const long ID_MNU_ARTNETTIMECODESLAVE;
         static const long ID_MNU_OSCREMOTE;
         static const long MNU_MIDITIMECODEREMOTE;
+        static const long ID_MNU_SMPTE;
         static const long ID_MNU_REMOTECONFIGURE;
         static const long ID_MNU_REMOTE;
         static const long ID_MNU_EDITFPPREMOTE;
@@ -371,6 +373,7 @@ public:
         wxMenuItem* MenuItem_ModeTest;
         wxMenuItem* MenuItem_Options;
         wxMenuItem* MenuItem_RemoteLatency;
+        wxMenuItem* MenuItem_SMPTE;
         wxMenuItem* MenuItem_Save;
         wxMenuItem* MenuItem_ShowFolder;
         wxMenuItem* MenuItem_UsexLightsFolder;

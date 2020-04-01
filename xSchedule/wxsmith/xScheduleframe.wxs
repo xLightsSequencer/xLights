@@ -509,6 +509,11 @@
 						<handler function="OnMenuItem_MIDITimeCodeSlaveSelected" entry="EVT_MENU" />
 						<radio>1</radio>
 					</object>
+					<object class="wxMenuItem" name="ID_MNU_SMPTE" variable="MenuItem_SMPTE" member="yes">
+						<label>SMPTE LTC</label>
+						<handler function="OnMenuItem_SMPTESelected" entry="EVT_MENU" />
+						<radio>1</radio>
+					</object>
 					<object class="wxMenuItem" name="ID_MNU_REMOTECONFIGURE" variable="MenuItem_RemoteLatency" member="yes">
 						<label>Configure</label>
 						<handler function="OnMenuItem_RemoteLatencySelected" entry="EVT_MENU" />
