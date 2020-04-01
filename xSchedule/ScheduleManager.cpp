@@ -3818,7 +3818,7 @@ std::string ScheduleManager::GetPingStatus()
                 res += ",";
             }
 
-            res += "{\"controller\":\"" + it->GetName() + "\",\"result\":\"" + APinger::GetPingResultName(it->GetPingResult()) + "\",\"failcount\":\""+wxString::Format("%d", it->GetFailCount())+"\"}";
+            res += "{\"controller\":\"" + it->GetIP() + " " + it->GetName() + "\",\"result\":\"" + APinger::GetPingResultName(it->GetPingResult()) + "\",\"failcount\":\""+wxString::Format("%d", it->GetFailCount())+"\"}";
         }
     }
 
