@@ -408,6 +408,24 @@ std::string XmlSafe(const std::string& s)
     return res;
 }
 
+std::string EscapeCSV(const std::string& s)
+{
+    std::string res = "";
+    for (auto c : s)
+    {
+        if (c == '\"')
+        {
+            res += "\"\"";
+        }
+        else
+        {
+            res += c;
+        }
+    }
+
+    return res;
+}
+
 wxString GetXmlNodeAttribute(wxXmlNode* parent, const std::string& path, const std::string& attribute, const std::string& def)
 {
     wxXmlNode* curr = parent;

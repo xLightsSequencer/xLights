@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (scott)  Escape CSV File Fields
 2020.12 March 28 2020
    -- enh (dkulp)  FPP Connect - allow sorting the sequence list columns
    -- enh (dkulp)  Update FPP upload for new hardware, make sure both PRU's can be used
