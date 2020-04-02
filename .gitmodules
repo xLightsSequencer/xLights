@@ -13,3 +13,6 @@
 [submodule "dependencies/log4cpp-codegit"]
 	path = dependencies/log4cpp-codegit
 	url = https://git.code.sf.net/p/log4cpp/codegit
+[submodule "dependencies/libltc"]
+	path = dependencies/libltc
+	url = https://github.com/x42/libltc.git
