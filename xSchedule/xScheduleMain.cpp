@@ -864,6 +864,10 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     }
 #endif
 
+#ifdef __WXOSX__
+    Menu6->Remove(MenuItem_SMPTE);
+#endif
+    
     RemoteWarning();
 
     UpdateUI(true);
