@@ -37,6 +37,7 @@ class ArchesModel : public ModelWithScreenLocation<ThreePointScreenLocation>
         int arc;
         int _gap = 0;
         std::string _layeredArchSizes;
+        int _hollow = 70;
 };
 
 #endif // ARCHESMODEL_H

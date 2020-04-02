@@ -54,6 +54,11 @@ void ArchesModel::AddTypeProperties(wxPropertyGridInterface *grid) {
         p->SetEditor("SpinCtrl");
 
         p = grid->Append(new wxStringProperty("Arch Layer Sizes", "LayeredArch", _layeredArchSizes));
+
+        p = grid->Append(new wxUIntProperty("Hollow %", "Hollow", _hollow));
+        p->SetAttribute("Min", 20);
+        p->SetAttribute("Max", 95);
+        p->SetEditor("SpinCtrl");
     }
 
     p = grid->Append(new wxUIntProperty("Lights Per Node", "ArchesLights", parm3));
@@ -170,6 +175,16 @@ int ArchesModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyG
         SetLayerSizes(event.GetPropertyValue().GetString());
         return 0;
     }
+    else if ("Hollow" == event.GetPropertyName()) {
+        _hollow = event.GetPropertyValue().GetLong();
+        ModelXml->DeleteAttribute("Hollow");
+        ModelXml->AddAttribute("Hollow", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ArchesModel::OnPropertyGridChange::ArchesGap");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "ArchesModel::OnPropertyGridChange::ArchesGap");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "ArchesModel::OnPropertyGridChange::ArchesGap");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ArchesModel::OnPropertyGridChange::ArchesGap");
+        return 0;
+    } 
     else if ("ArchesGap" == event.GetPropertyName()) {
         _gap = event.GetPropertyValue().GetLong();
         ModelXml->DeleteAttribute("Gap");
@@ -229,6 +244,7 @@ void ArchesModel::InitModel() {
 
     isBotToTop = true;
     arc = wxAtoi(ModelXml->GetAttribute("arc", "180"));
+    _hollow = wxAtoi(ModelXml->GetAttribute("Hollow", "70"));
 
     if (ModelXml->HasAttribute("ArchesSkew")) {
         ModelXml->DeleteAttribute("ArchesSkew");
@@ -405,7 +421,7 @@ void ArchesModel::SetLayerdArchCoord(int arches, int maxLen)
     double archgap = 0;
     if (arches > 1)
     {
-        archgap = 0.3 / (arches - 1);
+        archgap = (double)(1.0 - _hollow / 100.0) / (double)(arches - 1);
     }
 
     double minY = 999999;
@@ -507,6 +523,7 @@ void ArchesModel::ExportXlightsModel()
     wxString da = ModelXml->GetAttribute("DisplayAs");
     wxString an = ModelXml->GetAttribute("Angle", "0");
     wxString ls = ModelXml->GetAttribute("LayerSizes", "");
+    wxString h = ModelXml->GetAttribute("Hollow", "70");
 
     wxString v = xlights_version_string;
     f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<archesmodel \n");
@@ -527,6 +544,7 @@ void ArchesModel::ExportXlightsModel()
     f.Write(wxString::Format("Angle=\"%s\" ", an));
     f.Write(wxString::Format("SourceVersion=\"%s\" ", v));
     f.Write(wxString::Format("LayerSizes=\"%s\" ", ls));
+    f.Write(wxString::Format("Hollow=\"%s\" ", h));
     f.Write(" >\n");
     wxString state = SerialiseState();
     if (state != "")
@@ -572,6 +590,7 @@ void ArchesModel::ImportXlightsModel(std::string filename, xLightsFrame* xlights
             wxString pt = root->GetAttribute("PixelType");
             wxString psp = root->GetAttribute("PixelSpacing");
             wxString ls = root->GetAttribute("LayerSizes");
+            wxString h = root->GetAttribute("Hollow");
 
             // Add any model version conversion logic here
             // Source version will be the program version that created the custom model
@@ -594,6 +613,7 @@ void ArchesModel::ImportXlightsModel(std::string filename, xLightsFrame* xlights
         SetProperty("PixelType", pt);
         SetProperty("PixelSpacing", psp);
         SetProperty("LayerSizes", ls);
+        SetProperty("Hollow", h);
 
             wxString newname = xlights->AllModels.GenerateModelName(name.ToStdString());
             GetModelScreenLocation().Write(ModelXml);
