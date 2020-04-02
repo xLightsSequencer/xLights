@@ -309,6 +309,8 @@
 		<Unit filename="../xLights/UtilFunctions.h" />
 		<Unit filename="../xLights/VideoReader.cpp" />
 		<Unit filename="../xLights/VideoReader.h" />
+		<Unit filename="../xLights/controllers/ControllerCaps.cpp" />
+		<Unit filename="../xLights/controllers/ControllerCaps.h" />
 		<Unit filename="../xLights/effects/GIFImage.cpp" />
 		<Unit filename="../xLights/effects/GIFImage.h" />
 		<Unit filename="../xLights/kiss_fft/kiss_fft.c">
@@ -317,19 +319,17 @@
 		<Unit filename="../xLights/kiss_fft/tools/kiss_fftr.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="../xLights/controllers/ControllerCaps.cpp" />
-		<Unit filename="../xLights/controllers/ControllerCaps.h" />
 		<Unit filename="../xLights/outputs/ArtNetDialog.h" />
 		<Unit filename="../xLights/outputs/ArtNetOutput.cpp" />
 		<Unit filename="../xLights/outputs/ArtNetOutput.h" />
+		<Unit filename="../xLights/outputs/Controller.cpp" />
 		<Unit filename="../xLights/outputs/Controller.h" />
-        <Unit filename="../xLights/outputs/Controller.cpp" />
-￼       <Unit filename="../xLights/outputs/ControllerEthernet.cpp" />
-￼       <Unit filename="../xLights/outputs/ControllerEthernet.h" />
-￼       <Unit filename="../xLights/outputs/ControllerNull.cpp" />
-￼       <Unit filename="../xLights/outputs/ControllerNull.h" />
-￼       <Unit filename="../xLights/outputs/ControllerSerial.cpp" />
-￼       <Unit filename="../xLights/outputs/ControllerSerial.h" />
+		<Unit filename="../xLights/outputs/ControllerEthernet.cpp" />
+		<Unit filename="../xLights/outputs/ControllerEthernet.h" />
+		<Unit filename="../xLights/outputs/ControllerNull.cpp" />
+		<Unit filename="../xLights/outputs/ControllerNull.h" />
+		<Unit filename="../xLights/outputs/ControllerSerial.cpp" />
+		<Unit filename="../xLights/outputs/ControllerSerial.h" />
 		<Unit filename="../xLights/outputs/DDPDialog.h" />
 		<Unit filename="../xLights/outputs/DDPOutput.cpp" />
 		<Unit filename="../xLights/outputs/DDPOutput.h" />
@@ -711,6 +711,8 @@
 		<Unit filename="events/ListenerManager.h" />
 		<Unit filename="events/ListenerOSC.cpp" />
 		<Unit filename="events/ListenerOSC.h" />
+		<Unit filename="events/ListenerSMPTE.cpp" />
+		<Unit filename="events/ListenerSMPTE.h" />
 		<Unit filename="events/ListenerSerial.cpp" />
 		<Unit filename="events/ListenerSerial.h" />
 		<Unit filename="md5.cpp" />
