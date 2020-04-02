@@ -19,6 +19,7 @@
 #include "outputs/OutputManager.h"
 #include "UtilFunctions.h"
 #include "ControllerCaps.h"
+#include "AudioManager.h"
 #include "../outputs/ControllerEthernet.h"
 
 #include <log4cpp/Category.hh>
@@ -26,17 +27,6 @@
 #include "../include/spxml-0.5/spxmlparser.hpp"
 #include "../include/spxml-0.5/spxmlevent.hpp"
 
-extern "C"
-{
-#include <libavcodec/avcodec.h>
-#include <libavformat/avformat.h>
-#include <libswresample/swresample.h>
-#include <libavutil/avutil.h>
-}
-
-#ifndef CODEC_CAP_DELAY /* add compatibility for ffmpeg 3+ */
-#define CODEC_CAP_DELAY AV_CODEC_CAP_DELAY
-#endif
 
 //(*IdInit(HinksPixExportDialog)
 const long HinksPixExportDialog::ID_STATICTEXT4 = wxNewId();
@@ -87,7 +77,7 @@ inline void write4ByteUInt(uint8_t* data, uint32_t v) {
 
 void HSEQFile::writeHeader() {
     //this format was copied from Joe's HSA 2.0 JavaScript sourcecode
-    //320 bytes of HSEQ header data 
+    //320 bytes of HSEQ header data
     //16 bytes of garbage???, so I wrote part of old FESQ header, probably doesn't matter
     static int fixedHeaderLength = 336;
     // data offset
@@ -295,6 +285,9 @@ void HinksPixExportDialog::PopulateControllerList(wxString const& savedIPs)
     for (const auto& it : controllers)
     {
         auto eth = dynamic_cast<ControllerEthernet*>(it);
+        if ( eth == nullptr )
+            continue;
+
         if (eth->GetIP() != "MULTICAST" && eth->GetProtocol() != OUTPUT_ZCPP && eth->GetVendor() == "HinksPix" && eth->IsManaged())
         {
             _hixControllers.push_back(eth);
@@ -554,7 +547,7 @@ void HinksPixExportDialog::CreateDriveList()
         d2.Open("/media/" + dir);
         wxString dir2;
         bool fcont2 = d2.GetFirst(&dir2, wxEmptyString, wxDIR_DIRS);
-        while (fcont2) 
+        while (fcont2)
         {
             ChoiceSDCards->AppendString("/media/" + dir + "/" + dir2);
             fcont2 = d2.GetNext(&dir2);
@@ -662,11 +655,19 @@ void HinksPixExportDialog::OnAddRefreshButtonClick(wxCommandEvent& event)
 
 void HinksPixExportDialog::OnButton_ExportClick(wxCommandEvent& event)
 {
-    wxString const drive = ChoiceSDCards->GetString(ChoiceSDCards->GetSelection());
+    wxString const drive = ChoiceSDCards->GetString( ChoiceSDCards->GetSelection() );
 
-    if (drive.IsEmpty())
+    if ( drive.IsEmpty() )
     {
-        DisplayError("No USB Drive Selected.");
+        DisplayError( "No USB Drive Selected." );
+        return;
+    }
+
+    wxArrayInt ch;
+    CheckListBoxControllers->GetCheckedItems( ch );
+    if ( ch.IsEmpty() )
+    {
+        EndDialog( wxID_CLOSE );
         return;
     }
 
@@ -675,11 +676,10 @@ void HinksPixExportDialog::OnButton_ExportClick(wxCommandEvent& event)
         this, wxPD_CAN_ABORT | wxPD_APP_MODAL | wxPD_AUTO_HIDE);
     prgs.Show();
 
-    wxArrayInt ch;
     bool error = false;
     wxString errorMsg;
-    CheckListBoxControllers->GetCheckedItems(ch);
     int count = 0;
+
     for (auto const& index :ch)
     {
         wxString const ip = _hixControllers[index]->GetIP();
@@ -724,10 +724,29 @@ void HinksPixExportDialog::OnButton_ExportClick(wxCommandEvent& event)
                     wxString tempFile;
                     auName = shortName + ".au";
                     prgs.Update(++count, "Generating AU File " + auName);
-                    worked &= Create_HinksPix_PCM_File(media, tempFile, &Size_PCM_Bytes, &Sample_Rate_Used, errorMsg);
 
-                    if (worked)
-                        worked &= Make_AU_From_PCM(tempFile, controllerDrive + wxFileName::GetPathSeparator() + auName, Size_PCM_Bytes, Sample_Rate_Used, errorMsg);
+                    AudioLoader audioLoader( media.ToStdString(), true );
+                    worked &= audioLoader.loadAudioData();
+
+                    if ( worked )
+                    {
+                        worked &= Make_AU_From_ProcessedAudio( audioLoader.processedAudio(), controllerDrive + wxFileName::GetPathSeparator() + auName, errorMsg );
+                    }
+                    else
+                    {
+                        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+                        AudioLoader::State loaderState = audioLoader.state();
+
+                        AudioReaderDecoderInitState decoderInitState = AudioReaderDecoderInitState::NoInit;
+                        audioLoader.readerDecoderInitState( decoderInitState );
+
+                        AudioResamplerInitState resamplerInitState = AudioResamplerInitState::NoInit;
+                        audioLoader.resamplerInitState( resamplerInitState );
+
+                        logger_base.error( "HinksPixExportDialog export - loading audio fails - %d : %d : %d",
+                                           int( loaderState ), int( decoderInitState ), int (resamplerInitState ) );
+                    }
                 }
 
                 if (worked)
@@ -944,250 +963,29 @@ wxString HinksPixExportDialog::createUniqueShortName(wxString const& fseqName, s
     return newfseqName;
 }
 
-bool HinksPixExportDialog::Create_HinksPix_PCM_File(wxString const& inAudioFile, wxString& tmpPCMFile, uint32_t* Size_PCM_Bytes, uint32_t* Sample_Rate_Used, wxString& errorMsg)
-{
-    //mostly copied from Joe's pull request(#1441) in Jan 2019
-    int outSamples;
-    char* p;
-    int Little_Endian = 0;
-    uint16_t* W;
-    int i;
-    uint32_t Number_PCM_Stereo_Samples = 0;
-
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
-    wxFile fo;
-
-    wxFileName fn(inAudioFile);
-    wxString newfseqName = fn.GetName().Upper();
-    tmpPCMFile = wxFileName::CreateTempFileName(fn.GetName());
-
-    fo.Open(tmpPCMFile, wxFile::write);
-    if (!fo.IsOpened())
-    {
-        errorMsg = wxString::Format("Write Open Failed %s", tmpPCMFile);
-        logger_base.error(errorMsg);
-        return false;
-    }
-
-    // Audio samples are signed 16bit ints.  HinksPix wants audio sample in little-endian
-    outSamples = 1;
-    p = (char*)&outSamples;
-    Little_Endian = *p;
-
-    if (Little_Endian)
-        logger_base.debug("HinksPix Audio Decoding is on a Little-Endian machine");
-    else
-        logger_base.debug("HinksPix Audio Decoding is on a Big-Endian machine");
-
-    // Initialize FFmpeg
-#if LIBAVFORMAT_VERSION_MAJOR < 58
-    av_register_all();	// make all codecs available
-#endif
-
-    AVFrame* frame = av_frame_alloc();	// does not create working buffers
-    if (!frame)
-    {
-        errorMsg = wxString::Format("Error allocating the frame %s", inAudioFile);
-        logger_base.error(errorMsg);
-        return false;
-    }
-
-    AVFormatContext* formatContext = NULL;
-    if (avformat_open_input(&formatContext, inAudioFile.c_str(), NULL, NULL) != 0)
-    {
-        av_frame_free(&frame);
-        errorMsg = wxString::Format("Error opening the Audio file %s", inAudioFile);
-        logger_base.error(errorMsg);
-        return false;
-    }
-
-    if (avformat_find_stream_info(formatContext, NULL) < 0)
-    {
-        av_frame_free(&frame);
-        avformat_close_input(&formatContext);
-        errorMsg = wxString::Format("Error finding the Audio stream info %s", inAudioFile);
-        logger_base.error(errorMsg);
-        return false;
-    }
-
-    // Find the audio stream
-    AVCodec* cdc = nullptr;
-    int streamIndex = av_find_best_stream(formatContext, AVMEDIA_TYPE_AUDIO, -1, -1, &cdc, 0);
-    if (streamIndex < 0)
-    {
-        av_frame_free(&frame);
-        avformat_close_input(&formatContext);
-        errorMsg = wxString::Format("Could not find any audio stream in the file %s", inAudioFile);
-        logger_base.error(errorMsg);
-        return false;
-    }
-
-    AVStream* audioStream = formatContext->streams[streamIndex];
-    AVCodecContext* codecContext = audioStream->codec;
-    codecContext->codec = cdc;
-
-    if (avcodec_open2(codecContext, codecContext->codec, NULL) != 0)	// open the codec
-    {
-        av_frame_free(&frame);
-        avformat_close_input(&formatContext);
-        errorMsg = wxString::Format("Couldn't open the context with the decoder %s", inAudioFile);
-        logger_base.error(errorMsg);
-        return false;
-    }
-
-    logger_base.debug(wxString::Format("This Audio stream has %d channels and a sample rate of %d Hz", codecContext->channels, codecContext->sample_rate));
-    logger_base.debug(wxString::Format("The Audio data is in the format %s", av_get_sample_fmt_name(codecContext->sample_fmt)));
-
-    // setup our conversion format ... we need to conver the input to a standard format before we can process anything
-    uint64_t out_channel_layout = AV_CH_LAYOUT_STEREO;
-    int out_channels = av_get_channel_layout_nb_channels(out_channel_layout);
-    AVSampleFormat out_sample_fmt = AV_SAMPLE_FMT_S16;
-    int out_sample_rate = 44100;
-
-    *Sample_Rate_Used = out_sample_rate;
-
-#define CONVERSION_BUFFER_SIZE 192000
-    uint8_t* out_buffer = (uint8_t*)av_malloc(CONVERSION_BUFFER_SIZE * out_channels * 2); // 1 second of audio
-
-    int64_t in_channel_layout = av_get_default_channel_layout(codecContext->channels);
-
-    struct SwrContext* au_convert_ctx = swr_alloc_set_opts(nullptr, out_channel_layout, out_sample_fmt, out_sample_rate,
-        in_channel_layout, codecContext->sample_fmt, codecContext->sample_rate, 0, nullptr);
-
-    if (au_convert_ctx == nullptr)
-    {
-        logger_base.error("DoLoadAudioData: swe_alloc_set_opts was null");
-        // let it go as it may be the cause of a crash
-        wxASSERT(false);
-    }
-
-    swr_init(au_convert_ctx);
-
-    AVPacket readingPacket;
-    av_init_packet(&readingPacket);
-
-    // Read the packets in a loop
-    while (av_read_frame(formatContext, &readingPacket) == 0)
-    {
-        if (readingPacket.stream_index == audioStream->index)
-        {
-            AVPacket decodingPacket = readingPacket;
-
-            // Audio packets can have multiple audio frames in a single packet
-            while (decodingPacket.size > 0)
-            {
-                // Try to decode the packet into a frame
-                // Some frames rely on multiple packets, so we have to make sure the frame is finished before
-                // we can use it
-                int gotFrame = 0;
-                int result = avcodec_decode_audio4(codecContext, frame, &gotFrame, &decodingPacket);
-
-                if (result >= 0 && gotFrame)
-                {
-                    decodingPacket.size -= result;
-                    decodingPacket.data += result;
-
-                    // We now have a fully decoded audio frame
-                    outSamples = swr_convert(au_convert_ctx, &out_buffer, CONVERSION_BUFFER_SIZE, (const uint8_t**)frame->data, frame->nb_samples);
-
-                    // save pcm data
-
-                    Number_PCM_Stereo_Samples += outSamples;
-
-                    if (Little_Endian)
-                        fo.Write(out_buffer, (outSamples * out_channels * 2));
-                    else // big endian - need to swapp
-                    {
-                        W = (uint16_t*)out_buffer;
-
-                        for (i = 0; i < (outSamples * 2); i++)	// stereo - two 16 bits words per sample
-                        {
-                            *W = wxUINT16_SWAP_ALWAYS(*W);
-                            W++;
-                        }
-                    }
-                }
-                else
-                {
-                    decodingPacket.size = 0;
-                    decodingPacket.data = nullptr;
-                }
-            }
-        }
-
-        // You *must* call av_free_packet() after each call to av_read_frame() or else you'll leak memory
-        av_packet_unref(&readingPacket);
-    }
-
-    // Some codecs will cause frames to be buffered up in the decoding process. If the CODEC_CAP_DELAY flag
-    // is set, there can be buffered up frames that need to be flushed, so we'll do that
-    if (codecContext->codec->capabilities & CODEC_CAP_DELAY)
-    {
-        av_init_packet(&readingPacket);
-        // Decode all the remaining frames in the buffer, until the end is reached
-        int gotFrame = 0;
-        while (avcodec_decode_audio4(codecContext, frame, &gotFrame, &readingPacket) >= 0 && gotFrame)
-        {
-            // We now have a fully decoded audio frame
-            outSamples = swr_convert(au_convert_ctx, &out_buffer, CONVERSION_BUFFER_SIZE, (const uint8_t**)frame->data, frame->nb_samples);
-
-            // save pcm data
-            Number_PCM_Stereo_Samples += outSamples;
-
-            if (Little_Endian)
-                fo.Write(out_buffer, (outSamples * out_channels * 2));
-            else // big endian - need to swapp
-            {
-                W = (uint16_t*)out_buffer;
-
-                for (i = 0; i < (outSamples * 2); i++)	// stereo - two 16 bits words per sample
-                {
-                    *W = wxUINT16_SWAP_ALWAYS(*W);
-                    W++;
-                }
-            }
-        }
-    }
-
-    fo.Close();
-
-    *Size_PCM_Bytes = Number_PCM_Stereo_Samples * 4;	// stereo - two channels 16 bits each channel
-
-    logger_base.debug(wxString::Format("Audio PCM - %d seconds in duration", (Number_PCM_Stereo_Samples / out_sample_rate)));
-
-    // Clean up!
-    swr_free(&au_convert_ctx);
-    av_free(out_buffer);
-    av_frame_free(&frame);
-    avcodec_close(codecContext);
-    avformat_close_input(&formatContext);
-
-    return true;
-}
-
-bool HinksPixExportDialog::Make_AU_From_PCM(wxString const& PCM_File, wxString const& AU_File, uint32_t Size_PCM_Bytes, uint32_t Sample_Rate_Used, wxString& errorMsg)
+bool HinksPixExportDialog::Make_AU_From_ProcessedAudio( const std::vector<int16_t>&processedAudio, wxString const& AU_File, wxString& errorMsg )
 {
     //this format was copied from Joe's HSA 2.0 JavaScript sourcecode
     uint8_t header[24];
-    memset(header, 0, 24);
+    ::memset( header, 0, 24 );
+
+    uint32_t sz = processedAudio.size() * sizeof(int16_t);
 
     uint32_t magic = (0x2e << 24) | (0x73 << 16) | (0x6e << 8) | 0x64;
-    write4ByteUInt(&header[0], magic);
-    write4ByteUInt(&header[4], 24);
+    write4ByteUInt( &header[0], magic );
+    write4ByteUInt( &header[4], 24 );
 
-    write4ByteUInt(&header[8], Size_PCM_Bytes);
+    write4ByteUInt( &header[8], sz );
 
-    write4ByteUInt(&header[12], 3);
-    write4ByteUInt(&header[16], 44100);//bitrate
-    write4ByteUInt(&header[20], 2);//channels?
-
-    wxFile fo;
-    wxFile fi;
+    write4ByteUInt( &header[12], 3) ;
+    write4ByteUInt( &header[16], 44100 );//bitrate
+    write4ByteUInt( &header[20], 2 );//channels?
 
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    fo.Open(AU_File, wxFile::write);
-    if (!fo.IsOpened())
+
+    wxFile fo;
+    fo.Open( AU_File, wxFile::write );
+    if ( !fo.IsOpened() )
     {
         errorMsg = wxString::Format("Error Creating the AU Audio file %s", AU_File);
         logger_base.error(errorMsg);
@@ -1195,40 +993,9 @@ bool HinksPixExportDialog::Make_AU_From_PCM(wxString const& PCM_File, wxString c
     }
 
     fo.Write(&header, sizeof(header));
-
-    fi.Open(PCM_File, wxFile::read);
-    if (!fi.IsOpened())
-    {
-        fo.Close();
-        errorMsg = wxString::Format("Error Opening the PCM Audio file %s", PCM_File);
-        logger_base.error(errorMsg);
-        return false;
-    }
-
-    uint8_t* Buff = (uint8_t*)malloc(Size_PCM_Bytes);
-    if (Buff == 0)
-    {
-        fo.Close();
-        fi.Close();
-        errorMsg = wxString::Format("PCM Buffer is Null %s", PCM_File);
-        logger_base.error(errorMsg);
-        return false;
-    }
-
-    uint32_t r = fi.Read(Buff, Size_PCM_Bytes);
-    if (r != Size_PCM_Bytes)
-    {
-        fo.Close();
-        fi.Close();
-        errorMsg = wxString::Format("PCM and AU file size mismatch %s %s", PCM_File, AU_File);
-        logger_base.error(errorMsg);
-        return false;
-    }
-
-    fo.Write(Buff, Size_PCM_Bytes);
-
+    fo.Write( processedAudio.data(), sz );
     fo.Close();
-    fi.Close();
 
     return true;
 }
+

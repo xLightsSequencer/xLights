@@ -4,6 +4,8 @@
 #include <list>
 #include <map>
 #include <array>
+#include <cstdint>
+#include <vector>
 
 //(*Headers(HinksPixExportDialog)
 #include <wx/bmpbuttn.h>
@@ -138,8 +140,8 @@ class HinksPixExportDialog: public wxDialog
 
 		wxString createUniqueShortName(wxString const& fseqName, std::vector<wxString> const& names);
 
-		bool Create_HinksPix_PCM_File(wxString const& inAudioFile, wxString& tmpPCMFile, uint32_t* Size_PCM_Bytes, uint32_t* Sample_Rate_Used, wxString& errorMsg);
-		bool Make_AU_From_PCM(wxString const& PCM_File, wxString const& AU_File, uint32_t Size_PCM_Bytes, uint32_t Sample_Rate_Used, wxString& errorMsg);
+		bool Make_AU_From_ProcessedAudio( const std::vector<int16_t>& processedAudio, wxString const& AU_File, wxString& errorMsg );
+
         void OnPopup(wxCommandEvent &event);
 
 		DECLARE_EVENT_TABLE()
