@@ -139,6 +139,7 @@ void ListenerManager::StartListeners()
                 }
             }
         }
+#ifndef __WXOSX__
         else if ((*it)->GetType() == "SMPTE")
         {
             if (_sync == 7)
@@ -168,6 +169,7 @@ void ListenerManager::StartListeners()
                 }
             }
         }
+#endif
         else if ((*it)->GetType() == "MQTT")
         {
             ListenerMQTT* l = (ListenerMQTT*)(*it);
@@ -621,6 +623,7 @@ void ListenerManager::StartListeners()
             _listeners.back()->Start();
         }
     }
+#ifndef __WXOSX__
     else if (_sync == 7)
     {
         int mode = _scheduleManager->GetOptions()->GetSMPTEMode();
@@ -640,6 +643,7 @@ void ListenerManager::StartListeners()
             _listeners.back()->Start();
         }
     }
+#endif
 }
 
 void ListenerManager::SetRemoteOSC()
