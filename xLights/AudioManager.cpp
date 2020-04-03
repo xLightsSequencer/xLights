@@ -94,7 +94,6 @@ void fill_audio(void *udata, Uint8 *stream, int len)
     }
 }
 
-
 class AudioLoadJob : Job
 {
 private:
@@ -2177,7 +2176,8 @@ int AudioManager::OpenMediaFile()
 	{
 		logger_base.error("avformat_open_input Error opening the file %s => %d.", (const char *) _audio_file.c_str(), res);
         _ok = false;
-		return 1;
+        wxASSERT(false);
+        return 1;
 	}
 
 	if (avformat_find_stream_info(formatContext, nullptr) < 0)
@@ -2186,6 +2186,7 @@ int AudioManager::OpenMediaFile()
         formatContext = nullptr;
         logger_base.error("avformat_find_stream_info Error finding the stream info %s.", (const char *)_audio_file.c_str());
         _ok = false;
+        wxASSERT(false);
         return 1;
 	}
 
@@ -2198,10 +2199,39 @@ int AudioManager::OpenMediaFile()
         formatContext = nullptr;
         logger_base.error("av_find_best_stream Could not find any audio stream in the file %s.", (const char *)_audio_file.c_str());
         _ok = false;
+        wxASSERT(false);
         return 1;
 	}
 
 	AVStream* audioStream = formatContext->streams[streamIndex];
+    if (audioStream == nullptr)
+    {
+        avformat_close_input(&formatContext);
+        formatContext = nullptr;
+        logger_base.error("formatContext->streams[%d] was nullptr.", streamIndex);
+        _ok = false;
+        wxASSERT(false);
+        return 1;
+    }
+    else if (audioStream->codecpar == nullptr)
+    {
+        avformat_close_input(&formatContext);
+        formatContext = nullptr;
+        logger_base.error("formatContext->codecpar was nullptr.");
+        _ok = false;
+        wxASSERT(false);
+        return 1;
+    }
+    else if (audioStream->codec == nullptr)
+    {
+        avformat_close_input(&formatContext);
+        formatContext = nullptr;
+        logger_base.error("formatContext->codec was nullptr.");
+        _ok = false;
+        wxASSERT(false);
+        return 1;
+    }
+
 	AVCodecContext* codecContext = avcodec_alloc_context3( cdc );
 
 	// Workaround for FFmpeg bug with WAV decoding
@@ -2224,16 +2254,23 @@ int AudioManager::OpenMediaFile()
         formatContext = nullptr;
         logger_base.error("avcodec_open2 Couldn't open the context with the decoder %s.", (const char *)_audio_file.c_str());
         _ok = false;
+        wxASSERT(false);
         return 1;
 	}
+    wxASSERT(codecContext != nullptr);
 
-	_channels = codecContext->channels;
+    _channels = audioStream->codec->channels;
+    wxASSERT(_channels > 0);
+
 #ifdef RESAMPLE_RATE
     _rate = RESAMPLE_RATE;
 #else
-    _rate = codecContext->sample_rate;
+    _rate = audioStream->codec->sample_rate;
 #endif
-	_bits = av_get_bytes_per_sample(codecContext->sample_fmt);
+    wxASSERT(_rate > 0);
+
+    _bits = av_get_bytes_per_sample(codecContext->sample_fmt);
+    wxASSERT(_bits > 0);
 
 	/* Get Track Size */
 	GetTrackMetrics(formatContext, codecContext, audioStream);
@@ -2242,6 +2279,7 @@ int AudioManager::OpenMediaFile()
     {
         avformat_close_input(&formatContext);
         formatContext = nullptr;
+        wxASSERT(false);
         return 1;
     }
 
@@ -2265,9 +2303,9 @@ int AudioManager::OpenMediaFile()
     {
         avformat_close_input(&formatContext);
         formatContext = nullptr;
-        wxASSERT(false);
         logger_base.error("Unable to allocate %ld memory to load audio file %s.", (long)size, (const char *)_audio_file.c_str());
         _ok = false;
+        wxASSERT(false);
         return 1;
     }
 
@@ -2279,9 +2317,9 @@ int AudioManager::OpenMediaFile()
         {
             avformat_close_input(&formatContext);
             formatContext = nullptr;
-            wxASSERT(false);
             logger_base.error("Unable to allocate %ld memory to load audio file %s.", (long)size, (const char *)_audio_file.c_str());
             _ok = false;
+            wxASSERT(false);
             return 1;
         }
         memset(_data[1], 0x00, size);
@@ -2297,6 +2335,7 @@ int AudioManager::OpenMediaFile()
     {
         avformat_close_input(&formatContext);
         formatContext = nullptr;
+        wxASSERT(false);
         return 1;
     }
 
