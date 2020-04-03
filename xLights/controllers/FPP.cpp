@@ -1402,7 +1402,7 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
     logger_base.debug("FPP Outputs Upload: Uploading to %s", (const char *)ipAddress.c_str());
 
     std::string check;
-    UDController cud(controller, outputManager, allmodels, check);
+    UDController cud(controller, outputManager, allmodels, check, false);
     if (rules->SupportsLEDPanelMatrix()) {
         //LED panel cape, nothing we can really do except update the start channel
         int startChannel = -1;

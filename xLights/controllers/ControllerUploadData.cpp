@@ -241,7 +241,7 @@ UDControllerPortModel* UDControllerPort::GetModel(const std::string& modelName) 
     return nullptr;
 }
 
-void UDControllerPort::AddModel(Model* m, Controller* controller, OutputManager* om, int string) {
+void UDControllerPort::AddModel(Model* m, Controller* controller, OutputManager* om, int string, bool eliminateOverlaps) {
 
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxASSERT(!ContainsModel(m));
@@ -270,6 +270,7 @@ void UDControllerPort::AddModel(Model* m, Controller* controller, OutputManager*
                             (const char*)(*it2)->GetName().c_str(),
                             (const char*)(*it)->GetName().c_str()
                         );
+                        if (eliminateOverlaps) (*it2)->GetModel()->SetControllerPort(0);
                         _models.erase(it2);
                         erased = true;
                     }
@@ -281,6 +282,7 @@ void UDControllerPort::AddModel(Model* m, Controller* controller, OutputManager*
                             (const char*)(*it)->GetName().c_str(),
                             (const char*)(*it2)->GetName().c_str()
                         );
+                        if (eliminateOverlaps) (*it)->GetModel()->SetControllerPort(0);
                         _models.erase(it);
                         erased = true;
                     }
@@ -291,6 +293,7 @@ void UDControllerPort::AddModel(Model* m, Controller* controller, OutputManager*
                             (const char*)(*it)->GetName().c_str()
                         );
                         _models.erase(it2);
+                        if (eliminateOverlaps) (*it2)->GetModel()->SetControllerPort(0);
                         erased = true;
                     }
                 }
@@ -769,12 +772,12 @@ bool UDController::ModelProcessed(Model* m) {
 #pragma endregion
 
 #pragma region Constructors and Destructors
-UDController::UDController(Controller* controller, OutputManager* om, ModelManager* mm, std::string& check) :
+UDController::UDController(Controller* controller, OutputManager* om, ModelManager* mm, std::string& check, bool eliminateOverlaps) :
     _controller(controller), _outputManager(om), _modelManager(mm) {
 
     _ipAddress = _controller->GetColumn2Label();
 
-    Rescan();
+    Rescan(eliminateOverlaps);
 }
 
 UDController::~UDController() {
@@ -790,7 +793,7 @@ UDController::~UDController() {
     _serialPorts.clear();
 }
 
-void UDController::Rescan() {
+void UDController::Rescan(bool eliminateOverlaps) {
     for (const auto& it : _pixelPorts) {
         delete it.second;
     }
@@ -821,7 +824,7 @@ void UDController::Rescan() {
                     int port = it.second->GetControllerPort();
                     if (it.second->IsPixelProtocol()) {
                         if (it.second->GetNumPhysicalStrings() == 1) {
-                            GetControllerPixelPort(port)->AddModel(it.second, _controller, _outputManager, -1);
+                            GetControllerPixelPort(port)->AddModel(it.second, _controller, _outputManager, -1, eliminateOverlaps);
                         }
                         else {
                             for (int i = 0; i < it.second->GetNumPhysicalStrings(); i++) {
@@ -830,7 +833,7 @@ void UDController::Rescan() {
                                 Controller* c = _outputManager->GetController(startChannel, sc);
                                 if (c != nullptr &&
                                     _controller->GetColumn2Label() == c->GetColumn2Label()) {
-                                    GetControllerPixelPort(port + i)->AddModel(it.second, _controller, _outputManager, i);
+                                    GetControllerPixelPort(port + i)->AddModel(it.second, _controller, _outputManager, i, eliminateOverlaps);
                                 }
                                 else {
                                     port = -1 * i;
@@ -839,7 +842,7 @@ void UDController::Rescan() {
                         }
                     }
                     else {
-                        GetControllerSerialPort(port)->AddModel(it.second, _controller, _outputManager, -1);
+                        GetControllerSerialPort(port)->AddModel(it.second, _controller, _outputManager, -1, eliminateOverlaps);
                     }
                 }
             }

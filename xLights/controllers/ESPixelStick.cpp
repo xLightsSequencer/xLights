@@ -115,7 +115,7 @@ bool ESPixelStick::SetOutputs(ModelManager* allmodels, OutputManager* outputMana
     logger_base.debug("ESPixelStick Outputs Upload: Uploading to %s", (const char *)_ip.c_str());
 
     std::string check;
-    UDController cud(controller, outputManager, allmodels, check);
+    UDController cud(controller, outputManager, allmodels, check, false);
 
     auto rules = ControllerCaps::GetControllerConfig(controller);
     bool success = cud.Check(rules, check);

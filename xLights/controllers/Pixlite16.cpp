@@ -880,7 +880,7 @@ bool Pixlite16::SetOutputs(ModelManager* allmodels, OutputManager* outputManager
     logger_base.debug("PixLite/PixCon Outputs Upload: Uploading to %s", (const char *)_ip.c_str());
     
     std::string check;
-    UDController cud(controller, outputManager, allmodels, check);
+    UDController cud(controller, outputManager, allmodels, check, false);
 
     auto rules = ControllerCaps::GetControllerConfig(controller);
     bool success = cud.Check(rules, check);

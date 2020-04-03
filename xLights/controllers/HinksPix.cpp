@@ -707,7 +707,7 @@ bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
     logger_base.info("Scanning models.");
 
     std::string check;
-    UDController cud(controller, outputManager, allmodels, check);
+    UDController cud(controller, outputManager, allmodels, check, false);
 
     //first check rules
     auto rules = ControllerCaps::GetControllerConfig(controller);

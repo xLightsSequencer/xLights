@@ -4698,7 +4698,7 @@ void xLightsFrame::CheckSequence(bool display)
                 LogAndWrite(f, msg.ToStdString());
 
                 std::string check;
-                UDController edc(eth, &_outputManager, &AllModels, check);
+                UDController edc(eth, &_outputManager, &AllModels, check, false);
                 if (check != "")
                 {
                     LogAndWrite(f, check);

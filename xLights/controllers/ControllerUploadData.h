@@ -145,7 +145,7 @@ class UDControllerPort
     UDControllerPortModel* GetLastModel() const;
     Model* GetModelAfter(Model* m) const;
     UDControllerPortModel* GetModel(const std::string& modelName) const;
-    void AddModel(Model* m, Controller* controller, OutputManager* om, int string = 0);
+    void AddModel(Model* m, Controller* controller, OutputManager* om, int string = 0, bool eliminateOverlaps = false);
     bool ContainsModel(Model* m) const;
     std::list<UDControllerPortModel*> GetModels() const { return _models; }
     bool SetAllModelsToControllerName(const std::string& controllerName);
@@ -214,9 +214,9 @@ class UDController
     public:
 
     #pragma region Constructors and Destructors
-    UDController(Controller* controller, OutputManager* om, ModelManager* mm, std::string& check);
+    UDController(Controller* controller, OutputManager* om, ModelManager* mm, std::string& check, bool eliminateOverlaps);
 	~UDController();
-    void Rescan();
+    void Rescan(bool eliminateOverlaps);
     #pragma endregion
 
     #pragma region Port Handling

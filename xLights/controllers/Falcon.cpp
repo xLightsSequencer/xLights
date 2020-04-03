@@ -771,7 +771,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
     logger_base.info("Scanning models.");
 
     std::string check;
-    UDController cud(controller, outputManager, allmodels, check);
+    UDController cud(controller, outputManager, allmodels, check, false);
 
     auto caps = ControllerCaps::GetControllerConfig(controller);
     bool success = true;

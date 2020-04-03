@@ -820,7 +820,7 @@ ControllerModelDialog::~ControllerModelDialog() {
 
 void ControllerModelDialog::ReloadModels()
 {
-    _cud->Rescan();
+    _cud->Rescan(true);
 
     while (_models.size() > 0) {
         delete _models.front();
@@ -1095,7 +1095,7 @@ void ControllerModelDialog::FixDMXChannels() {
 
     // if we changed anything we need to scan it one more time
     if (changed) {
-        _cud->Rescan();
+        _cud->Rescan(true);
     }
 }
 
