@@ -11,7 +11,24 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (keith)  Add visual indication of model group centre
+   -- enh (keith)  Add effect suspend
+   -- enh (keith)  Add effect suppress
+   -- enh (keith)  Add colour control on sparkles
+   -- enh (keith)  Add option to layer arches
+   -- enh (keith)  Add SMPTE linear time code remote support to xSchedule
    -- bug (scott)  Escape CSV File Fields
+   -- bug (keith)  Fix channel block model does not update correctly in model list
+   -- bug (keith)  Give effects a bit more time to render a frame
+   -- bug (keith)  Fix cancelling custom model editing screws up model location and size
+   -- bug (keith)  Fix circle models dont seem to update when properties change
+   -- bug (keith)  Fix ip address missing from getplayingstatus results
+   -- bug (keith)  Fix when double clicking to remove node in ordered submodel move the 
+                   insertion point to where the node was removed
+   -- bug (keith)  Fix entering submodels with a space in the name is difficult
+   -- bug (keith)  In visualiser when models overlap the visualiser acts weird
+   -- bug (scott)  Fix model chain dropdown does not appear when port set
+   -- bug (scott)  Escape illegal characters in CSV file names
 2020.12 March 28 2020
    -- enh (dkulp)  FPP Connect - allow sorting the sequence list columns
    -- enh (dkulp)  Update FPP upload for new hardware, make sure both PRU's can be used
