@@ -135,7 +135,7 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent)
 	FlexGridSizer7->AddGrowableCol(1);
 	StaticTextName = new wxStaticText(Panel3, ID_STATICTEXT_NAME, _("Name:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_NAME"));
 	FlexGridSizer7->Add(StaticTextName, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	TextCtrl_Name = new wxTextCtrl(Panel3, ID_TEXTCTRL_NAME, _("Submodel Name"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL_NAME"));
+	TextCtrl_Name = new wxTextCtrl(Panel3, ID_TEXTCTRL_NAME, _("Submodel Name"), wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER, wxDefaultValidator, _T("ID_TEXTCTRL_NAME"));
 	FlexGridSizer7->Add(TextCtrl_Name, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer3->Add(FlexGridSizer7, 1, wxALL|wxEXPAND, 0);
 	TypeNotebook = new wxNotebook(Panel3, ID_NOTEBOOK1, wxDefaultPosition, wxDefaultSize, 0, _T("ID_NOTEBOOK1"));
@@ -249,6 +249,8 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent)
     Connect(wxID_ANY, EVT_SMDROP, (wxObjectEventFunction)&SubModelsDialog::OnDrop);
     Connect(ID_GRID1,wxEVT_GRID_CELL_CHANGED,(wxObjectEventFunction)&SubModelsDialog::OnNodesGridCellChange);
     //Connect(ID_GRID1, wxEVT_CHAR, (wxObjectEventFunction)&SubModelsDialog::OnGridChar);
+
+    TextCtrl_Name->Bind(wxEVT_KILL_FOCUS, &SubModelsDialog::OnTextCtrl_NameText_KillFocus, this);
 
     wxListItem nm0;
     nm0.SetId(0);
@@ -500,6 +502,7 @@ void SubModelsDialog::OnAddButtonClick(wxCommandEvent& event)
     ValidateWindow();
     Select(name);
 
+    Panel3->SetFocus();
     TextCtrl_Name->SetFocus();
     TextCtrl_Name->SelectAll();
 }
@@ -779,14 +782,14 @@ void SubModelsDialog::OnListCtrl_SubModelsKeyDown(wxListEvent& event)
     ValidateWindow();
 }
 
-void SubModelsDialog::OnTextCtrl_NameText_Change(wxCommandEvent& event)
+void SubModelsDialog::ApplySubmodelName()
 {
     int index = GetSelectedIndex();
     wxASSERT(index >= 0);
 
     wxString name = wxString(Model::SafeModelName(TextCtrl_Name->GetValue().ToStdString()));
 
-    if(name.IsEmpty())
+    if (name.IsEmpty())
     {
         TextCtrl_Name->SetBackgroundColour(*wxRED);
         return;
@@ -816,6 +819,17 @@ void SubModelsDialog::OnTextCtrl_NameText_Change(wxCommandEvent& event)
     }
 
     ValidateWindow();
+}
+
+void SubModelsDialog::OnTextCtrl_NameText_KillFocus(wxFocusEvent& event)
+{
+    ApplySubmodelName();
+    event.Skip();
+}
+
+void SubModelsDialog::OnTextCtrl_NameText_Change(wxCommandEvent& event)
+{
+    //ApplySubmodelName();
 }
 #pragma endregion actions
 
@@ -1394,6 +1408,7 @@ void SubModelsDialog::OnButton_ReverseRowClick(wxCommandEvent& event)
     Select(GetSelectedName());
 
     NodesGrid->SetGridCursor(row, 0);
+    Panel3->SetFocus();
     NodesGrid->SetFocus();
 
     ValidateWindow();
@@ -1422,6 +1437,7 @@ void SubModelsDialog::OnButton_MoveDownClick(wxCommandEvent& event)
         Select(GetSelectedName());
         NodesGrid->SetGridCursor(row + 1, 0);
         SelectRow(row + 1);
+        Panel3->SetFocus();
         NodesGrid->SetFocus();
     }
     ValidateWindow();
@@ -1449,6 +1465,7 @@ void SubModelsDialog::OnButton_MoveUpClick(wxCommandEvent& event)
         Select(GetSelectedName());
         NodesGrid->SetGridCursor(row - 1, 0);
         SelectRow(row - 1);
+        Panel3->SetFocus();
         NodesGrid->SetFocus();
     }
     ValidateWindow();
@@ -1466,6 +1483,7 @@ void SubModelsDialog::OnAddRowButtonClick(wxCommandEvent& event)
     Select(GetSelectedName());
     SelectRow(NodesGrid->GetNumberRows() - 1);
     NodesGrid->SetGridCursor(NodesGrid->GetNumberRows() - 1, 0);
+    Panel3->SetFocus();
     NodesGrid->SetFocus();
     ValidateWindow();
 }
@@ -1484,6 +1502,7 @@ void SubModelsDialog::OnDeleteRowButtonClick(wxCommandEvent& event)
         NodesGrid->SetCellValue(0, 0, "");
         Select(GetSelectedName());
         NodesGrid->SetGridCursor(0, 0);
+        Panel3->SetFocus();
         NodesGrid->SetFocus();
         SelectRow(0);
     }
@@ -1496,6 +1515,7 @@ void SubModelsDialog::OnDeleteRowButtonClick(wxCommandEvent& event)
         --row;
         Select(GetSelectedName());
         NodesGrid->SetGridCursor(row >= 0 ? row : 0, 0);
+        Panel3->SetFocus();
         NodesGrid->SetFocus();
         SelectRow(row >= 0 ? row : 0);
     }
@@ -1625,6 +1645,7 @@ void SubModelsDialog::OnButton_Sub_CopyClick(wxCommandEvent& event)
     ValidateWindow();
     Select(name);
 
+    Panel3->SetFocus();
     TextCtrl_Name->SetFocus();
     TextCtrl_Name->SelectAll();
 }
@@ -1659,6 +1680,7 @@ void SubModelsDialog::OnButton_Draw_ModelClick(wxCommandEvent& event)
         Select(GetSelectedName());
         dialog.Close();
 
+        Panel3->SetFocus();
         NodesGrid->SetFocus();
 
         ValidateWindow();
@@ -1691,6 +1713,7 @@ void SubModelsDialog::OnNodesGridCellLeftDClick(wxGridEvent& event)
         dialog.Close();
 
         NodesGrid->SetGridCursor(row >= 0 ? row : 0, 0);
+        Panel3->SetFocus();
         NodesGrid->SetFocus();
         SelectRow(row >= 0 ? row : 0);
 
@@ -1833,6 +1856,7 @@ void SubModelsDialog::ImportCustomModel(std::string filename)
                     long index = ListCtrl_SubModels->InsertItem(ListCtrl_SubModels->GetItemCount(), sm->name);
                     ListCtrl_SubModels->SetItemPtrData(index, (wxUIntPtr)sm);
 
+                    Panel3->SetFocus();
                     TextCtrl_Name->SetFocus();
                     TextCtrl_Name->SelectAll();
 

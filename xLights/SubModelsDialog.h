@@ -164,13 +164,14 @@ protected:
     SubModelInfo *GetSubModelInfo(const wxString &str);
     bool IsItemSelected(wxListCtrl* ctrl, int item) const;
 
-    void AddSubModelToList(SubModelInfo *submodel, int index = -1, bool load = false);
+    //void AddSubModelToList(SubModelInfo *submodel, int index = -1, bool load = false);
     void MoveSelectedModelsTo(int indexTo);
     void RemoveSubModelFromList(wxString name);
     wxString GenerateSubModelName(wxString basename);
     void ImportCustomModel(std::string filename);
     void FixNodes(wxXmlNode* n, const std::string& attribute, std::map<int, int>& nodeMap);
 
+    void ApplySubmodelName();
     void PopulateList();
     void ValidateWindow();
     void Select(const wxString &name);
@@ -220,6 +221,8 @@ private:
     void OnNodesGridCellLeftDClick(wxGridEvent& event);
     void OnButton_importCustomClick(wxCommandEvent& event);
     //*)
+
+    void OnTextCtrl_NameText_KillFocus(wxFocusEvent& event);
 
     wxWindow* _parent;
     xLightsFrame* xlights;

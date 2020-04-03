@@ -146,6 +146,7 @@
 											<object class="sizeritem">
 												<object class="wxTextCtrl" name="ID_TEXTCTRL_NAME" variable="TextCtrl_Name" member="yes">
 													<value>Submodel Name</value>
+													<style>wxTE_PROCESS_ENTER</style>
 													<handler function="OnTextCtrl_NameText_Change" entry="EVT_TEXT" />
 												</object>
 												<flag>wxALL|wxEXPAND</flag>
