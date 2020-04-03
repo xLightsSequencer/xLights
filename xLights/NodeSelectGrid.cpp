@@ -1191,6 +1191,7 @@ void NodeSelectGrid::RemoveNode(int col, int row)
 
     auto cv = GridNodes->GetCellValue(row, col);
     auto s = wxSplit(TextCtrl_Nodes->GetValue(), ',');
+    int pos = 0;
     for (auto it = s.begin(); it != s.end(); ++it)
     {
         if (*it == cv)
@@ -1198,6 +1199,7 @@ void NodeSelectGrid::RemoveNode(int col, int row)
             s.erase(it);
             break;
         }
+        pos += it->size() + 1;
     }
     wxString ns;
     for (const auto& it : s)
@@ -1206,6 +1208,7 @@ void NodeSelectGrid::RemoveNode(int col, int row)
         ns += it;
     }
     TextCtrl_Nodes->SetValue(ns);
+    TextCtrl_Nodes->SetInsertionPoint(pos);
 }
 
 wxString NodeSelectGrid::CompressNodes(const wxString& nodes) const
