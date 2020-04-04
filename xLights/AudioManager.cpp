@@ -1152,6 +1152,18 @@ size_t AudioManager::GetAudioFileLength(std::string filename)
 
         return duration;
     }
+    else if (audioStream != nullptr && audioStream->nb_frames > 0 && audioStream->time_base.den > 0)
+    {
+        size_t duration = audioStream->nb_frames * 1000 * audioStream->time_base.num / audioStream->time_base.den;
+
+        if (formatContext != nullptr)
+        {
+            avformat_close_input(&formatContext);
+            formatContext = nullptr;
+        }
+
+        return duration;
+    }
 
     if (formatContext != nullptr)
     {
