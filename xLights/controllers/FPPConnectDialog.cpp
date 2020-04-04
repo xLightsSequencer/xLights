@@ -208,7 +208,6 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
     prgs.Update(100);
     prgs.Hide();
 
-
     AddInstanceHeader("Upload", "Enable to Upload Files/Configs to this FPP Device.");
     AddInstanceHeader("Location", "Host and IP Address.");
     AddInstanceHeader("Description");
@@ -1152,6 +1151,6 @@ void FPPConnectDialog::DisplayDateModified(std::string const& filePath, wxTreeLi
 { 
     if (wxFile::Exists(filePath)) {
         wxDateTime last_modified_time(wxFileModificationTime(filePath));
-        CheckListBox_Sequences->SetItemText(item, 1, last_modified_time.Format(wxT("%x %I:%M %p")));
+        CheckListBox_Sequences->SetItemText(item, 1, last_modified_time.Format(wxT("%Y-%m-%d %H:%M:%S")));
     }
 }
