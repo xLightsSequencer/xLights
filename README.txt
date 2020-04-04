@@ -11,12 +11,15 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2020.13 April 4 2020
    -- enh (keith)  Add visual indication of model group centre
    -- enh (keith)  Add effect suspend
    -- enh (keith)  Add effect suppress
    -- enh (keith)  Add colour control on sparkles
    -- enh (keith)  Add option to layer arches
    -- enh (keith)  Add SMPTE linear time code remote support to xSchedule
+   -- enh (keith)  In visualiser pressing a key will scroll right hand list of models to 
+                   the first model starting with that letter
    -- bug (scott)  Escape CSV File Fields
    -- bug (keith)  Fix channel block model does not update correctly in model list
    -- bug (keith)  Give effects a bit more time to render a frame
