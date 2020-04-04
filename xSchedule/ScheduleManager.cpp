@@ -46,10 +46,6 @@ ScheduleManager::ScheduleManager(xScheduleFrame* frame, const std::string& showD
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.info("Loading schedule from %s.", (const char *)showDir.c_str());
 
-#ifdef __WXMSW__
-    ::SetThreadExecutionState(ES_CONTINUOUS | ES_SYSTEM_REQUIRED | ES_DISPLAY_REQUIRED | ES_AWAYMODE_REQUIRED);
-#endif
-
     // prime fix file with our show directory for any filename fixups
     FixFile(showDir, "");
 
@@ -204,6 +200,15 @@ ScheduleManager::ScheduleManager(xScheduleFrame* frame, const std::string& showD
     logger_base.info("Allocated frame buffer of %ld bytes", _outputManager->GetTotalChannels());
     _buffer = (uint8_t*)malloc(_outputManager->GetTotalChannels());
     memset(_buffer, 0x00, _outputManager->GetTotalChannels());
+
+#ifdef __WXMSW__
+    unsigned long state = ES_CONTINUOUS | ES_SYSTEM_REQUIRED | ES_AWAYMODE_REQUIRED;
+    if (_scheduleOptions->IsKeepScreenOn())
+    {
+        state |= ES_DISPLAY_REQUIRED;
+    }
+    ::SetThreadExecutionState(state);
+#endif
 }
 
 void ScheduleManager::AddPlayList(PlayList* playlist)

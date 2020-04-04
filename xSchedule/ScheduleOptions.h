@@ -185,6 +185,7 @@ class ScheduleOptions
     std::list<ExtraIP*> _extraIPs;
     bool _parallelTransmission;
     bool _remoteAllOff;
+    bool _keepScreenOn;
     bool _retryOutputOpen;
     bool _suppressAudioOnRemotes;
     bool _hardwareAcceleratedVideo;
@@ -220,6 +221,7 @@ class ScheduleOptions
         void SetAdvancedMode(bool advancedMode) { if (_advancedMode != advancedMode) { _advancedMode = advancedMode; _changeCount++; } }
         void SetParallelTransmission(bool parallel) { if (_parallelTransmission != parallel) { _parallelTransmission = parallel; _changeCount++; } }
         void SetRemoteAllOff(bool remoteAllOff) { if (_remoteAllOff != remoteAllOff) { _remoteAllOff = remoteAllOff; _changeCount++; } }
+        void SetKeepScreenOn(bool keepScreenOn) { if (_keepScreenOn != keepScreenOn) { _keepScreenOn = keepScreenOn; _changeCount++; } }
         void SetRetryOutputOpen(bool retryOpen) { if (_retryOutputOpen != retryOpen) { _retryOutputOpen = retryOpen; _changeCount++; } }
         void SetSMPTEMode(int mode) { if (_SMPTEMode != mode) { _SMPTEMode = mode; _changeCount++; } }
         void SetSuppressAudioOnRemotes(bool suppressAudio) { if (_suppressAudioOnRemotes != suppressAudio) { _suppressAudioOnRemotes = suppressAudio; _changeCount++; } }
@@ -228,6 +230,7 @@ class ScheduleOptions
         bool IsSendOffWhenNotRunning() const { return _sendOffWhenNotRunning; }
         bool IsParallelTransmission() const { return _parallelTransmission; }
         bool IsRemoteAllOff() const { return _remoteAllOff; }
+        bool IsKeepScreenOn() const { return _keepScreenOn; }
         bool IsRetryOpen() const { return _retryOutputOpen; }
         int GetSMPTEMode() const { return _SMPTEMode; }
         bool IsSuppressAudioOnRemotes() const { return _suppressAudioOnRemotes; }

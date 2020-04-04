@@ -44,6 +44,7 @@ ScheduleOptions::ScheduleOptions(OutputManager* outputManager, wxXmlNode* node, 
     _sendOffWhenNotRunning = node->GetAttribute("SendOffWhenNotRunning", "FALSE") == "TRUE";
     _parallelTransmission = node->GetAttribute("ParallelTransmission", "FALSE") == "TRUE";
     _remoteAllOff = node->GetAttribute("RemoteSustain", "FALSE") == "FALSE";
+    _keepScreenOn = node->GetAttribute("KeepScreenOn", "FALSE") == "TRUE";
     _retryOutputOpen = node->GetAttribute("RetryOutputOpen", "FALSE") == "TRUE";
     _suppressAudioOnRemotes = node->GetAttribute("SuppressAudioOnRemotes", "TRUE") == "TRUE";
     _sendBackgroundWhenNotRunning = node->GetAttribute("SendBackgroundWhenNotRunning", "FALSE") == "TRUE";
@@ -260,6 +261,7 @@ ScheduleOptions::ScheduleOptions()
     _sendOffWhenNotRunning = false;
     _parallelTransmission = false;
     _remoteAllOff = true;
+    _keepScreenOn = false;
     _retryOutputOpen = false;
     _suppressAudioOnRemotes = true;
     _sendBackgroundWhenNotRunning = false;
@@ -363,6 +365,15 @@ wxXmlNode* ScheduleOptions::Save()
     else
     {
         res->AddAttribute("SuppressAudioOnRemotes", "FALSE");
+    }
+
+    if (IsKeepScreenOn())
+    {
+        res->AddAttribute("KeepScreenOn", "TRUE");
+    }
+    else
+    {
+        res->AddAttribute("KeepScreenOn", "FALSE");
     }
 
     res->AddAttribute("WebServerPort", wxString::Format(wxT("%i"), _port));
