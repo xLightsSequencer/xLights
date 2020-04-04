@@ -2222,33 +2222,13 @@ int AudioManager::OpenMediaFile()
         wxASSERT(false);
         return 1;
     }
-    else if (audioStream->codec == nullptr)
-    {
-        avformat_close_input(&formatContext);
-        formatContext = nullptr;
-        logger_base.error("formatContext->codec was nullptr.");
-        _ok = false;
-        wxASSERT(false);
-        return 1;
-    }
 
 	AVCodecContext* codecContext = avcodec_alloc_context3( cdc );
+    wxASSERT(codecContext != nullptr);
 
-	// Workaround for FFmpeg bug with WAV decoding
-	if ( audioStream->codecpar->codec_id == AV_CODEC_ID_FIRST_AUDIO )
-    {
-        AudioParams params;
-        if ( ReadWavParams( _audio_file, params ) )
-        {
-            codecContext->sample_rate = params.sampleRate;
-            codecContext->sample_fmt = params.sampleFormat;
-            codecContext->channels = params.channelCount;
-            codecContext->channel_layout = ( params.channelCount == 1 ) ? AV_CH_LAYOUT_MONO : AV_CH_LAYOUT_STEREO;
-            logger_base.info( "AudioManager::OpenMediaFile() - doing WAV-specific workaround for %d rate %d channel audio", codecContext->sample_rate, codecContext->channels );
-        }
-    }
+    avcodec_parameters_to_context(codecContext, audioStream->codecpar);
 
-	if (avcodec_open2(codecContext, cdc, nullptr) != 0)
+	if (avcodec_open2(codecContext, cdc, nullptr) < 0)
 	{
 		avformat_close_input(&formatContext);
         formatContext = nullptr;
@@ -2257,15 +2237,14 @@ int AudioManager::OpenMediaFile()
         wxASSERT(false);
         return 1;
 	}
-    wxASSERT(codecContext != nullptr);
 
-    _channels = audioStream->codec->channels;
+    _channels = codecContext->channels;
     wxASSERT(_channels > 0);
 
 #ifdef RESAMPLE_RATE
     _rate = RESAMPLE_RATE;
 #else
-    _rate = audioStream->codec->sample_rate;
+    _rate = codecContext->sample_rate;
 #endif
     wxASSERT(_rate > 0);
 
