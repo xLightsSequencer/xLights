@@ -2110,46 +2110,6 @@ long AudioManager::CalcLengthMS() const
 	return (long)(seconds * 1000.0f);
 }
 
-namespace
-{
-    struct WAVHeader
-    {
-        char riff[4];
-        int lenMinus8;
-        char wave[4];
-        char fmt[4];
-        int fmtChunkSize;
-        short compressionCode;
-        short channels;
-        int sampleRate;
-        int bytesPerSecond;
-        short blockAlign;
-        short bitsPerSample;
-        char data[4];
-        int dataChunkSize;
-    };
-    bool ReadWavParams( const std::string& path, AudioParams& params )
-    {
-        std::ifstream file( path, std::ifstream::binary );
-        WAVHeader header;
-
-        if ( !file.good() )
-            return false;
-
-        file.read( (char *)&header, 44 );
-
-        if ( ::strncmp( header.wave, "WAVE", 4 ) == 0 )
-        {
-            params.channelCount = header.channels;
-            params.sampleRate = header.sampleRate;
-            params.sampleFormat = ( header.compressionCode == 1 ) ? AV_SAMPLE_FMT_S16 : AV_SAMPLE_FMT_FLT;
-            params.bytesPerSample = header.bitsPerSample / 8;
-        }
-
-        return true;
-    }
-}
-
 // Open and read the media file into memory
 int AudioManager::OpenMediaFile()
 {
@@ -3525,16 +3485,7 @@ AudioReaderDecoderInitState AudioReaderDecoder::initialize()
     if ( _codecContext == nullptr )
         SetStateAndReturn( AudioReaderDecoderInitState::CodecContextAllocFails );
 
-    // workaround for WAV decoding bug
-    if ( _formatContext->streams[_streamIndex]->codecpar->codec_id == AV_CODEC_ID_FIRST_AUDIO )
-    {
-        AudioParams params;
-        ReadWavParams( _path, params );
-        _codecContext->sample_rate = params.sampleRate;
-        _codecContext->sample_fmt = params.sampleFormat;
-        _codecContext->channels = params.channelCount;
-        _codecContext->channel_layout = ( params.channelCount == 1 ) ? AV_CH_LAYOUT_MONO : AV_CH_LAYOUT_STEREO;
-    }
+    avcodec_parameters_to_context(_codecContext, _formatContext->streams[_streamIndex]->codecpar);
 
     status = ::avcodec_open2( _codecContext, codec, nullptr );
     if ( status != 0 )
