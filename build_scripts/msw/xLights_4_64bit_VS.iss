@@ -15,7 +15,7 @@
 
 #define MyTitleName "xLights" 
 #define Year 2020
-#define Version 13
+#define Version 14
 #define Bits 64
 #define Other ""
 
@@ -35,7 +35,7 @@ ArchitecturesInstallIn64BitMode=x64
 
 AppName={#MyTitleName}
 AppVersion={#Year}.{#Version}{#Other}
-DefaultDirName={pf64}\{#MyTitleName}{#Other}
+DefaultDirName={commonpf64}\{#MyTitleName}{#Other}
 DefaultGroupName={#MyTitleName}{#Other}
 SetupIconFile=..\..\include\{#MyTitleName}64.ico
 
@@ -155,7 +155,7 @@ Root: HKCU; Subkey: "Software\xCapture"; Flags: uninsdeletekey
 Root: HKCU; Subkey: "Software\xFade"; Flags: uninsdeletekey
 Root: HKCU; Subkey: "Software\xSMSDaemon"; Flags: uninsdeletekey
 ; set PATH. if it is already there dont add path to our installation. we are doing this so user can run ffmpeg from a cmd prompt
-Root: HKLM; Subkey: "SYSTEM\CurrentControlSet\Control\Session Manager\Environment"; ValueType: expandsz; ValueName: "Path"; ValueData: "{olddata};{pf64}\xLights"; Check: NeedsAddPath ('C:\Program Files\xLights')
+Root: HKLM; Subkey: "SYSTEM\CurrentControlSet\Control\Session Manager\Environment"; ValueType: expandsz; ValueName: "Path"; ValueData: "{olddata};{commonpf64}\xLights"; Check: NeedsAddPath ('C:\Program Files\xLights')
 
 [Code]
 

@@ -11,6 +11,10 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2020.14 April 5 2020
+   -- enh (keith)  Make xSchedule holding the screen on on windows optional
+   -- bug (keith)  Fix FPP date column ordering is a text sort
+   -- bug (keith)  Fix crash when rendering blur
 2020.13 April 4 2020
    -- enh (keith)  Add visual indication of model group centre
    -- enh (keith)  Add effect suspend

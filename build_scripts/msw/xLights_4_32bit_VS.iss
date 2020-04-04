@@ -15,7 +15,7 @@
 
 #define MyTitleName "xLights" 
 #define Year 2020
-#define Version 13
+#define Version 14
 #define Bits 32
 #define Other ""
 
@@ -27,7 +27,7 @@ ChangesEnvironment=yes
 DisableDirPage=no   
 AppName={#MyTitleName}
 AppVersion={#Year}.{#Version}{#Other}
-DefaultDirName={pf32}\{#MyTitleName}{#Other}
+DefaultDirName={commonpf32}\{#MyTitleName}{#Other}
 DefaultGroupName={#MyTitleName}{#Other}
 SetupIconFile=..\..\include\{#MyTitleName}.ico
 
