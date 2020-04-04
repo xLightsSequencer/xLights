@@ -2017,7 +2017,6 @@ bool xLightsFrame::RenderEffectFromMap(bool suppress, Effect *effectObj, int lay
                 oldBuffer->needToInit = b->needToInit;
                 oldBuffer->infoCache = b->infoCache;
             }
-            rb.Forget();
         }
         buffer.MergeBuffersForLayer(layer);
     } else {

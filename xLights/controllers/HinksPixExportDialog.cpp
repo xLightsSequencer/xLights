@@ -719,8 +719,6 @@ void HinksPixExportDialog::OnButton_ExportClick(wxCommandEvent& event)
                 wxString auName;
                 if (worked && !media.IsEmpty())
                 {
-                    uint32_t Size_PCM_Bytes;
-                    uint32_t Sample_Rate_Used;
                     wxString tempFile;
                     auName = shortName + ".au";
                     prgs.Update(++count, "Generating AU File " + auName);

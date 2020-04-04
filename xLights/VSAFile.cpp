@@ -81,7 +81,7 @@ void VSAFile::Load(const std::string& filename)
         std::string second_event_type = "";
 
         // read all the events
-        for( int i=0; i < num_events; ++i ) {
+        for( size_t i=0; i < num_events; ++i ) {
             vsaEventRecord evt;
 
             // read track number
@@ -163,7 +163,7 @@ void VSAFile::Load(const std::string& filename)
         _fh->Read(&_num_audio, 4);
 
         // read all the audio files
-        for( int i=0; i < _num_audio; ++i ) {
+        for (size_t i = 0; i < _num_audio; ++i) {
             vsaAudioRecord aud;
 
             // read audio filename field
@@ -189,7 +189,7 @@ void VSAFile::Load(const std::string& filename)
         _fh->Read(&_num_tracks, 4);
 
         // read all the track data
-        for( int i=0; i < _num_tracks; ++i ) {
+        for (size_t i = 0; i < _num_tracks; ++i) {
             vsaTrackRecord trk;
 
             // read track name field
@@ -213,7 +213,7 @@ void VSAFile::Load(const std::string& filename)
 
             // Read track enabled flag
             _fh->Read(&trk.enable, 4);
-            if( trk.enable > 0 ) {
+            if (trk.enable > 0) {
                 _num_active_tracks++;
             }
 

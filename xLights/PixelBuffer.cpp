@@ -135,20 +135,20 @@ namespace
       }
       double x, y;
    };
-   xlColor tex2D( const ColorBuffer& cb, const Vec2D& st )
-   {
-       return tex2D( cb, st.x, st.y );
+   
+   xlColor tex2D(const ColorBuffer& cb, const Vec2D& st) {
+       return tex2D(cb, st.x, st.y);
    }
+
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused"
-    xlColor lerp( const xlColor& a, const xlColor& b, double progress )
-    {
-        double red   = a.red   + progress * ( b.red   - a.red   );
-        double green = a.green + progress * ( b.green - a.green );
-        double blue  = a.blue  + progress * ( b.blue  - a.blue  );
+   xlColor lerp(const xlColor& a, const xlColor& b, double progress) {
+       double red = a.red + progress * (b.red - a.red);
+       double green = a.green + progress * (b.green - a.green);
+       double blue = a.blue + progress * (b.blue - a.blue);
 
-        return xlColor( uint8_t( red ), uint8_t( green ), uint8_t( blue ) );
-    }
+       return xlColor(uint8_t(red), uint8_t(green), uint8_t(blue));
+   }
 
     Vec2D operator +( double a, const Vec2D& b )
     {

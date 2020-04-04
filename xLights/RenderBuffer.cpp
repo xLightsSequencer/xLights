@@ -1,25 +1,13 @@
+
 /***************************************************************
- * Name:      RgbEffects.cpp
- * Purpose:   Implements RGB effects
- * Author:    Matt Brown (dowdybrown@yahoo.com)
- * Created:   2012-12-23
- * Copyright: 2012 by Matt Brown
- * License:
-     This file is part of xLights.
-
-    xLights is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    xLights is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with xLights.  If not, see <http://www.gnu.org/licenses/>.
-**************************************************************/
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 #include <cmath>
 #ifdef _MSC_VER
@@ -267,8 +255,6 @@ inline double DegToRad(double deg) { return (deg * M_PI) / 180.0; }
 
 DrawingContext::DrawingContext(int BufferWi, int BufferHt, bool allowShared, bool alpha) : nullBitmap(wxNullBitmap)
 {
-    //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     gc = nullptr;
     dc = nullptr;
     unshare(nullBitmap);
@@ -324,8 +310,6 @@ DrawingContext::DrawingContext(int BufferWi, int BufferHt, bool allowShared, boo
 }
 
 DrawingContext::~DrawingContext() {
-    //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    
     if (gc != nullptr) {
         delete gc;
     }
@@ -469,7 +453,6 @@ bool TextDrawingContext::AllowAlphaChannel() {
 }
 
 wxImage *DrawingContext::FlushAndGetImage() {
-    //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (gc != nullptr) {
         gc->Flush();
         delete gc;
@@ -657,6 +640,8 @@ RenderBuffer::RenderBuffer(xLightsFrame *f) : frame(f)
 
 RenderBuffer::~RenderBuffer()
 {    
+    if (_isCopy) Forget();
+
     //dtor
     if (_textDrawingContext != nullptr) {
         TextDrawingContext::ReleaseContext(_textDrawingContext);
@@ -798,7 +783,7 @@ float RenderBuffer::cos(float rad)
 }
 
 // generates a random number between num1 and num2 inclusive
-double RenderBuffer::RandomRange(double num1, double num2)
+double RenderBuffer::RandomRange(double num1, double num2) const
 {
     double hi,lo;
     if (num1 < num2)
@@ -814,7 +799,7 @@ double RenderBuffer::RandomRange(double num1, double num2)
     return rand01()*(hi-lo)+ lo;
 }
 
-void RenderBuffer::Color2HSV(const xlColor& color, HSVValue& hsv)
+void RenderBuffer::Color2HSV(const xlColor& color, HSVValue& hsv) const
 {
     color.toHSV(hsv);
 }
@@ -830,7 +815,7 @@ void RenderBuffer::SetRangeColor(const HSVValue& hsv1, const HSVValue& hsv2, HSV
 // return a value between c1 and c2
 uint8_t RenderBuffer::ChannelBlend(uint8_t c1, uint8_t c2, float ratio)
 {
-    return c1 + floor(ratio*(c2-c1)+0.5);
+    return c1 + floor(ratio * (c2 - c1) + 0.5);
 }
 
 void RenderBuffer::Get2ColorBlend(int coloridx1, int coloridx2, float ratio, xlColor &color)
@@ -858,7 +843,7 @@ inline uint8_t SumUInt8(uint8_t c1, uint8_t c2)
     return x;
 }
 
-HSVValue RenderBuffer::Get2ColorAdditive(HSVValue& hsv1, HSVValue& hsv2)
+HSVValue RenderBuffer::Get2ColorAdditive(HSVValue& hsv1, HSVValue& hsv2) const
 {
     xlColor rgb;
     xlColor rgb1(hsv1);
@@ -1234,59 +1219,53 @@ void RenderBuffer::GetPixel(int x, int y, xlColor &color) const
     }
 }
 
-const xlColor &RenderBuffer::GetPixel(int x, int y) const {
-    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && y*BufferWi + x < pixels.size())
-    {
-        return pixels[y*BufferWi+x];
+const xlColor& RenderBuffer::GetPixel(int x, int y) const {
+    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && y * BufferWi + x < pixels.size()) {
+        return pixels[y * BufferWi + x];
     }
     return xlBLACK;
 }
 
 // 0,0 is lower left
-void RenderBuffer::SetTempPixel(int x, int y, const xlColor &color)
-{
-    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && y*BufferWi + x < tempbuf.size())
-    {
-        tempbuf[y*BufferWi+x]=color;
+void RenderBuffer::SetTempPixel(int x, int y, const xlColor& color) {
+
+    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && y * BufferWi + x < tempbuf.size()) {
+        tempbuf[y * BufferWi + x] = color;
     }
 }
 
-void RenderBuffer::SetTempPixel(int x, int y, const xlColor & color, int alpha)
-{
-    xlColor c(color.Red(), color.Green(), color.Blue(), alpha);
+void RenderBuffer::SetTempPixel(int x, int y, const xlColor & color, int alpha) {
 
+    xlColor c(color.Red(), color.Green(), color.Blue(), alpha);
     SetTempPixel(x, y, c);
 }
 
 // 0,0 is lower left
-void RenderBuffer::GetTempPixel(int x, int y, xlColor &color)
+void RenderBuffer::GetTempPixel(int x, int y, xlColor& color)
 {
-    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && y*BufferWi + x < tempbuf.size())
-    {
-        color=tempbuf[y*BufferWi+x];
+    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && y * BufferWi + x < tempbuf.size()) {
+        color = tempbuf[y * BufferWi + x];
     }
 }
-const xlColor &RenderBuffer::GetTempPixel(int x, int y) {
-    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && y*BufferWi + x < tempbuf.size())
-    {
-        return tempbuf[y*BufferWi+x];
+
+const xlColor& RenderBuffer::GetTempPixel(int x, int y) {
+    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && y * BufferWi + x < tempbuf.size()) {
+        return tempbuf[y * BufferWi + x];
     }
     return xlBLACK;
 }
 
 const xlColor& RenderBuffer::GetTempPixelRGB(int x, int y)
 {
-    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && y*BufferWi + x < tempbuf.size())
-    {
-        return tempbuf[y*BufferWi+x];
+    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && y * BufferWi + x < tempbuf.size()) {
+        return tempbuf[y * BufferWi + x];
     }
     return xlBLACK;
 }
 
 void RenderBuffer::SetState(int period, bool ResetState, const std::string& model_name)
 {
-    if (ResetState)
-    {
+    if (ResetState) {
         needToInit = true;
     }
     curPeriod = period;
@@ -1310,28 +1289,29 @@ void RenderBuffer::ClearTempBuf()
     }
 }
 
-float RenderBuffer::GetEffectTimeIntervalPosition(float cycles) {
+float RenderBuffer::GetEffectTimeIntervalPosition(float cycles) const {
     if (curEffEndPer == curEffStartPer) {
         return 0.0f;
     }
-    float periods = curEffEndPer-curEffStartPer +  1; //inclusive
+    float periods = curEffEndPer - curEffStartPer + 1; //inclusive
     float periodsPerCycle = periods / cycles;
     if (periodsPerCycle <= 1.0) {
         return 0.0f;
     }
-    float retval = (float)(curPeriod-curEffStartPer);
+    float retval = (float)(curPeriod - curEffStartPer);
     while (retval >= periodsPerCycle) {
         retval -= periodsPerCycle;
     }
     retval /= (periodsPerCycle - 1);
     return retval > 1.0f ? 1.0f : retval;
 }
-float RenderBuffer::GetEffectTimeIntervalPosition()
+
+float RenderBuffer::GetEffectTimeIntervalPosition() const
 {
     if (curEffEndPer == curEffStartPer) {
         return 0.0;
     }
-    return (float)(curPeriod-curEffStartPer)/(float)(curEffEndPer-curEffStartPer);
+    return (float)(curPeriod - curEffStartPer) / (float)(curEffEndPer - curEffStartPer);
 }
 
 void RenderBuffer::SetEffectDuration(int startMsec, int endMsec)
@@ -1340,8 +1320,7 @@ void RenderBuffer::SetEffectDuration(int startMsec, int endMsec)
     curEffEndPer = (endMsec - 1) / frameTimeInMs;
 }
 
-void RenderBuffer::GetEffectPeriods( int& start, int& endp)
-{
+void RenderBuffer::GetEffectPeriods(int& start, int& endp) const {
     start = curEffStartPer;
     endp = curEffEndPer;
 }
@@ -1433,6 +1412,7 @@ double RenderBuffer::calcAccel(double ratio, double accel)
 // create a copy of the buffer suitable only for copying out pixel data and fake rendering
 RenderBuffer::RenderBuffer(RenderBuffer& buffer)
 {
+    _isCopy = true;
     frame = buffer.frame;
     curPeriod = buffer.curPeriod;
     curEffStartPer = buffer.curEffStartPer;
