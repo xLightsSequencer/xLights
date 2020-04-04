@@ -144,7 +144,9 @@ class ControllerModelDialog: public wxDialog
 		void OnPanelControllerMouseWheel(wxMouseEvent& event);
 		//*)
 
-        void OnPopupCommand(wxCommandEvent & event);
+		void ScrollToKey(int keyCode);
+		void OnKeyDown(wxKeyEvent& event);
+		void OnPopupCommand(wxCommandEvent & event);
 		void SaveCSV();
 
 		DECLARE_EVENT_TABLE()

@@ -389,6 +389,13 @@ public:
     std::string GetName() const { return _name; }
     std::string GetDisplayName() const { return _displayName; }
 
+    bool NameStartsWith(char c) {
+        if (_name == "") return false;
+        char cn = _name[0];
+        if (cn >= 65 && cn <= 90) cn += 32;
+
+        return cn == c;
+    }
     UDControllerPortModel* GetUDModel() {
         if (_cud == nullptr) return nullptr;
         return _cud->GetControllerPortModel(_name);
@@ -756,6 +763,8 @@ ControllerModelDialog::ControllerModelDialog(wxWindow* parent, UDController* cud
 	Connect(ID_SCROLLBAR3,wxEVT_SCROLL_THUMBTRACK,(wxObjectEventFunction)&ControllerModelDialog::OnScrollBar_ModelsScrollThumbTrack);
 	Connect(ID_SCROLLBAR3,wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&ControllerModelDialog::OnScrollBar_ModelsScrollChanged);
 	//*)
+
+    Connect(wxEVT_KEY_DOWN, (wxObjectEventFunction)&ControllerModelDialog::OnKeyDown, 0, this);
 
     //PanelController->SetBackgroundStyle(wxBG_STYLE_PAINT);
     //PanelModels->SetBackgroundStyle(wxBG_STYLE_PAINT);
@@ -1377,6 +1386,7 @@ void ControllerModelDialog::OnPanelControllerLeftDown(wxMouseEvent& event)
 
 void ControllerModelDialog::OnPanelControllerKeyDown(wxKeyEvent& event)
 {
+    ScrollToKey(event.GetKeyCode());
 }
 
 void ControllerModelDialog::OnPanelControllerLeftUp(wxMouseEvent& event)
@@ -1719,8 +1729,29 @@ void ControllerModelDialog::OnPanelModelsPaint(wxPaintEvent& event)
     }
 }
 
+void ControllerModelDialog::ScrollToKey(int keyCode)
+{
+    if (keyCode >= 65 && keyCode <= 90) keyCode += 32;
+    for (const auto& it : _models)
+    {
+        ModelCMObject* m = dynamic_cast<ModelCMObject*>(it);
+        if (m != nullptr && m->NameStartsWith((char)keyCode))
+        {
+            ScrollBar_Models->SetThumbPosition(m->GetRect().GetPosition().y);
+            PanelModels->Refresh();
+            break;
+        }
+    }
+}
+
+void ControllerModelDialog::OnKeyDown(wxKeyEvent& event)
+{
+    ScrollToKey(event.GetKeyCode());
+}
+
 void ControllerModelDialog::OnPanelModelsKeyDown(wxKeyEvent& event)
 {
+    ScrollToKey(event.GetKeyCode());
 }
 
 void ControllerModelDialog::OnPanelModelsLeftDown(wxMouseEvent& event) {
