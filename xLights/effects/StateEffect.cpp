@@ -539,7 +539,7 @@ void StateEffect::RenderState(RenderBuffer &buffer,
                     for (size_t n = 0; n < model_info->GetNodeCount(); n++) {
                         wxString nn = model_info->GetNodeName(n, true);
                         if (nn == valstr) {
-                            buffer.SetNodePixel(n, color);
+                            buffer.SetNodePixel(n, color, true);
                         }
                     }
                 }
@@ -563,7 +563,7 @@ void StateEffect::RenderState(RenderBuffer &buffer,
                     start--;
                     end--;
                     for (int n = start; n <= end; n++) {
-                        buffer.SetNodePixel(n, color);
+                        buffer.SetNodePixel(n, color, true);
                     }
                 }
             }

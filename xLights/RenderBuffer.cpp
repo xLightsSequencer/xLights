@@ -977,10 +977,11 @@ void RenderBuffer::SetPixel(int x, int y, const HSVValue& hsv, bool wrap)
         pixels[y*BufferWi+x] = hsv;
     }
 }
-void RenderBuffer::SetNodePixel(int nodeNum, const xlColor &color) {
+
+void RenderBuffer::SetNodePixel(int nodeNum, const xlColor &color, bool dmx_ignore) {
     if (nodeNum < Nodes.size()) {
         for (auto &a : Nodes[nodeNum]->Coords) {
-            SetPixel(a.bufX, a.bufY, color);
+            SetPixel(a.bufX, a.bufY, color, false, false, dmx_ignore);
         }
     }
 }
