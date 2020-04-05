@@ -2,10 +2,109 @@
 #include "ScheduleOptions.h"
 #include "events/ListenerManager.h"
 #include "../xLights/outputs/IPOutput.h"
+#include "PlayList/PlayList.h"
+#include "ScheduleManager.h"
 
 #include <log4cpp/Category.hh>
 #include "../xLights/UtilFunctions.h"
 #include "../xLights/outputs/ArtNetOutput.h"
+
+class ArtNetTimecodeThread : public wxThread
+{
+    std::atomic<bool> _stop;
+    SyncArtNet* _syncArtNet = nullptr;
+    std::atomic<bool> _running;
+    std::atomic<bool> _suspend;
+    ScheduleManager* _scheduleManager = nullptr;
+    bool _toSendStop = false; // prevents us sending multiple stops
+
+public:
+    ArtNetTimecodeThread(SyncArtNet* syncArtNet, ScheduleManager* scheduleManager)
+    {
+        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+        _suspend = false;
+        _running = false;
+        _stop = false;
+        _syncArtNet = syncArtNet;
+        _scheduleManager = scheduleManager;
+
+        if (Run() != wxTHREAD_NO_ERROR)
+        {
+            logger_base.error("Failed to start ArtNet Timecode thread");
+        }
+        else
+        {
+            logger_base.info("ArtNet Timecode thread created.");
+        }
+    }
+    virtual ~ArtNetTimecodeThread()
+    {
+        Stop();
+    }
+
+    void Stop()
+    {
+        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        logger_base.info("ArtNet Timecode thread stopping.");
+        _stop = true;
+    }
+
+    void UpdateSyncArtNet(SyncArtNet* syncArtNet)
+    {
+        _suspend = true;
+        wxMilliSleep(100); // ensure it is suspended ... this is lazy ... i really should use sync objects
+        _syncArtNet = syncArtNet;
+        _suspend = false;
+    }
+
+    void* Entry()
+    {
+        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        wxLongLong last = 0;
+        double interval = _syncArtNet->GetInterval() * 1000.0; 
+        _running = true;
+        while (!_stop)
+        {
+            if (!_suspend)
+            {
+                long long sleepfor = 0;
+
+                if (wxGetUTCTimeUSec() - last > interval)
+                {
+                    // get our absolute position
+                    PlayList* pl = _scheduleManager->GetRunningPlayList();
+                    if (pl != nullptr)
+                    {
+                        // sent a sync
+                        auto ms = pl->GetPosition();
+                        _syncArtNet->SendSync(0, 0, 0, ms, "", "", "", "");
+                        _toSendStop = true;
+                    }
+                    else
+                    {
+                        if (_toSendStop)
+                        {
+                            _syncArtNet->SendStop();
+                            _toSendStop = false;
+                        }
+                    }
+
+                    sleepfor = (int64_t)((last.GetValue()) + interval - wxGetUTCTimeUSec().GetValue());
+                    last = wxGetUTCTimeUSec().GetValue();
+                }
+
+                if (sleepfor > 0)
+                {
+                    wxMicroSleep(sleepfor);
+                }
+            }
+        }
+        _running = false;
+        logger_base.info("ArtNet Timecode thread stopped.");
+        return nullptr;
+    }
+};
 
 SyncArtNet::SyncArtNet(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions& options, ListenerManager* listenerManager) : SyncBase(sm, rm)
 {
@@ -50,6 +149,7 @@ SyncArtNet::SyncArtNet(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions& option
         else
         {
             logger_base.info("ARTNet Sync as master datagram opened successfully.");
+            _threadTimecode = new ArtNetTimecodeThread(this, listenerManager->GetScheduleManager());
         }
     }
 
@@ -59,8 +159,12 @@ SyncArtNet::SyncArtNet(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions& option
     }
 }
 
-SyncArtNet::SyncArtNet(SyncArtNet&& from) : SyncBase(from)
+SyncArtNet::SyncArtNet(SyncArtNet&& from) noexcept : SyncBase(from)
 {
+    _threadTimecode = from._threadTimecode;
+    from._threadTimecode = nullptr; // this is a transfer of ownership
+    _threadTimecode->UpdateSyncArtNet(this);
+
     _artnetSocket = from._artnetSocket;
     from._artnetSocket = nullptr; // this is a transfer of ownership
     _remoteAddr = from._remoteAddr;
@@ -68,11 +172,38 @@ SyncArtNet::SyncArtNet(SyncArtNet&& from) : SyncBase(from)
 
 SyncArtNet::~SyncArtNet()
 {
+    // close the sending thread
+    if (_threadTimecode != nullptr)
+    {
+        //logger_base.debug("MIDI Timecode stopping.");
+        _threadTimecode->Stop();
+        _threadTimecode->Delete();
+        _threadTimecode = nullptr;
+    }
+
     if (_artnetSocket != nullptr) {
         _artnetSocket->Close();
         delete _artnetSocket;
         _artnetSocket = nullptr;
     }
+}
+
+double SyncArtNet::GetInterval()
+{
+    switch (_timeCodeFormat)
+    {
+    default:
+    case TIMECODEFORMAT::F24: // 24 fps
+        return 1000.0 / 24.0;
+    case TIMECODEFORMAT::F25: // 25 fps
+        return 1000.0 / 25.0;
+    case TIMECODEFORMAT::F2997: // 29.97 fps
+        return 1000.0 / 29.97;
+    case TIMECODEFORMAT::F30: // 30 fps
+        return 1000.0 / 30.0;
+        break;
+    }
+    return 1000.0 / 25.0;
 }
 
 void SyncArtNet::SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t stepMS, uint32_t playlistMS, const std::string& fseq, const std::string& media, const std::string& step, const std::string& timeItem) const
