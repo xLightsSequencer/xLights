@@ -63,6 +63,7 @@ class SyncBase
         std::string GetSong() const { return _song; }
         bool IsMode(SYNCMODE mode) const { return _mode == mode; }
         bool IsRemoteMode(REMOTEMODE mode) const { return _remoteMode == mode; }
+        virtual bool IsReactive() const { return true; }
 };
 
 class SyncManager

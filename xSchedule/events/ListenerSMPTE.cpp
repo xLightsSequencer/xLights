@@ -91,7 +91,7 @@ void ListenerSMPTE::DoSync(int mode, int hours, int mins, int secs, int frames)
     static long lastms = -99999;
 
     long ms = ((hours * 60 + mins) * 60 + secs) * 1000;
-    float fps = 0;
+    double fps = 0;
 
     switch (mode)
     {

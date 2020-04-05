@@ -103,7 +103,10 @@ void SyncManager::SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t ste
 { 
     for (auto& it : _masters)
     {
-        it->SendSync(frameMS, stepLengthMS, stepMS, playlistMS, fseq, media, step, timeItem);
+        if (it->IsReactive())
+        {
+            it->SendSync(frameMS, stepLengthMS, stepMS, playlistMS, fseq, media, step, timeItem);
+        }
     }
 }
 

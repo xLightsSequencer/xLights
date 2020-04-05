@@ -16,7 +16,7 @@ class ReentrancyCounter
 		{
             std::lock_guard<std::recursive_mutex> locker(_lock);
             --_ref;
-			wxASSERT(_ref >= 0);
+			//wxASSERT(_ref >= 0);
             if (_ref < 0) _ref = 0;
 		}
 		bool SoleReference()
