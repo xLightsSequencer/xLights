@@ -43,6 +43,7 @@ const long ControllerModelDialog::ID_PANEL1 = wxNewId();
 const long ControllerModelDialog::ID_SCROLLBAR1 = wxNewId();
 const long ControllerModelDialog::ID_SCROLLBAR2 = wxNewId();
 const long ControllerModelDialog::ID_PANEL3 = wxNewId();
+const long ControllerModelDialog::ID_CHECKBOX1 = wxNewId();
 const long ControllerModelDialog::ID_PANEL2 = wxNewId();
 const long ControllerModelDialog::ID_SCROLLBAR3 = wxNewId();
 const long ControllerModelDialog::ID_PANEL4 = wxNewId();
@@ -172,7 +173,7 @@ protected:
     PORTTYPE _type = PORTTYPE::PIXEL;
 public:
 
-    PortCMObject(PORTTYPE type, int port, UDController* cud, ControllerCaps* caps, wxPoint location, wxSize size, int style, bool invalid) : 
+    PortCMObject(PORTTYPE type, int port, UDController* cud, ControllerCaps* caps, wxPoint location, wxSize size, int style, bool invalid) :
         BaseCMObject(cud, caps, location, size, style) {
         _invalid = invalid;
         _port = port;
@@ -198,7 +199,7 @@ public:
     }
     virtual bool HitYTest(wxPoint mouse) override {
         int totaly = VERTICAL_SIZE;
-        
+
         if (GetUDPort()->GetVirtualStringCount() > 1) {
             totaly += (GetUDPort()->GetVirtualStringCount() - 1)* (VERTICAL_SIZE + VERTICAL_GAP);
         }
@@ -483,7 +484,7 @@ public:
             } else {
                 iconSize = 16;
             }
-            
+
             wxBitmap bmp =  wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(iconType), wxART_LIST, wxDefaultSize);
             if (bmp.IsOk()) {
                 int height = bmp.GetScaledHeight();
@@ -516,7 +517,7 @@ public:
                 DrawTextLimited(dc, wxString::Format("Strings: %d", m->GetNumPhysicalStrings()), pt, _size - wxSize(4, 4));
                 pt += wxSize(0, (VERTICAL_SIZE * scale) / 2);
             }
-            
+
         }
 
         dc.SetBrush(origBrush);
@@ -524,7 +525,7 @@ public:
         dc.SetTextForeground(origText);
     }
     virtual void AddRightClickMenu(wxMenu& mnu) override {
-        if (_caps != nullptr && GetModel() != nullptr && GetModel()->IsPixelProtocol()) 
+        if (_caps != nullptr && GetModel() != nullptr && GetModel()->IsPixelProtocol())
         {
             if(_caps->SupportsSmartRemotes())
             {
@@ -689,6 +690,7 @@ ControllerModelDialog::ControllerModelDialog(wxWindow* parent, UDController* cud
     _cud(cud), _mm(mm), _controller(controller), _xLights((xLightsFrame*)parent) {
 	//(*Initialize(ControllerModelDialog)
 	wxFlexGridSizer* FlexGridSizer1;
+	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer3;
 	wxFlexGridSizer* FlexGridSizer5;
 
@@ -715,14 +717,21 @@ ControllerModelDialog::ControllerModelDialog(wxWindow* parent, UDController* cud
 	FlexGridSizer5->SetSizeHints(Panel3);
 	FlexGridSizer1->Add(Panel3, 1, wxALL|wxEXPAND, 5);
 	Panel4 = new wxPanel(this, ID_PANEL4, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL4"));
-	FlexGridSizer3 = new wxFlexGridSizer(0, 2, 0, 0);
+	FlexGridSizer3 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer3->AddGrowableCol(0);
-	FlexGridSizer3->AddGrowableRow(0);
+	FlexGridSizer3->AddGrowableRow(1);
+	CheckBox_HideOtherControllerModels = new wxCheckBox(Panel4, ID_CHECKBOX1, _("Hide models assigned to other controllers"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
+	CheckBox_HideOtherControllerModels->SetValue(false);
+	FlexGridSizer3->Add(CheckBox_HideOtherControllerModels, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer2 = new wxFlexGridSizer(0, 2, 0, 0);
+	FlexGridSizer2->AddGrowableCol(0);
+	FlexGridSizer2->AddGrowableRow(0);
 	PanelModels = new wxPanel(Panel4, ID_PANEL2, wxDefaultPosition, wxDefaultSize, wxSIMPLE_BORDER, _T("ID_PANEL2"));
-	FlexGridSizer3->Add(PanelModels, 1, wxALL|wxEXPAND, 0);
+	FlexGridSizer2->Add(PanelModels, 1, wxALL|wxEXPAND, 0);
 	ScrollBar_Models = new wxScrollBar(Panel4, ID_SCROLLBAR3, wxDefaultPosition, wxDefaultSize, wxSB_VERTICAL, wxDefaultValidator, _T("ID_SCROLLBAR3"));
 	ScrollBar_Models->SetScrollbar(0, 1, 10, 1);
-	FlexGridSizer3->Add(ScrollBar_Models, 1, wxALL|wxEXPAND, 0);
+	FlexGridSizer2->Add(ScrollBar_Models, 1, wxALL|wxEXPAND, 0);
+	FlexGridSizer3->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 0);
 	Panel4->SetSizer(FlexGridSizer3);
 	FlexGridSizer3->Fit(Panel4);
 	FlexGridSizer3->SetSizeHints(Panel4);
@@ -748,6 +757,7 @@ ControllerModelDialog::ControllerModelDialog(wxWindow* parent, UDController* cud
 	Connect(ID_SCROLLBAR2,wxEVT_SCROLL_TOP|wxEVT_SCROLL_BOTTOM|wxEVT_SCROLL_LINEUP|wxEVT_SCROLL_LINEDOWN|wxEVT_SCROLL_PAGEUP|wxEVT_SCROLL_PAGEDOWN|wxEVT_SCROLL_THUMBTRACK|wxEVT_SCROLL_THUMBRELEASE|wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&ControllerModelDialog::OnScrollBar_Controller_HScroll);
 	Connect(ID_SCROLLBAR2,wxEVT_SCROLL_THUMBTRACK,(wxObjectEventFunction)&ControllerModelDialog::OnScrollBar_Controller_HScrollThumbTrack);
 	Connect(ID_SCROLLBAR2,wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&ControllerModelDialog::OnScrollBar_Controller_HScrollChanged);
+	Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ControllerModelDialog::OnCheckBox_HideOtherControllerModelsClick);
 	PanelModels->Connect(wxEVT_PAINT,(wxObjectEventFunction)&ControllerModelDialog::OnPanelModelsPaint,0,this);
 	PanelModels->Connect(wxEVT_KEY_DOWN,(wxObjectEventFunction)&ControllerModelDialog::OnPanelModelsKeyDown,0,this);
 	PanelModels->Connect(wxEVT_LEFT_DOWN,(wxObjectEventFunction)&ControllerModelDialog::OnPanelModelsLeftDown,0,this);
@@ -769,7 +779,7 @@ ControllerModelDialog::ControllerModelDialog(wxWindow* parent, UDController* cud
     //PanelController->SetBackgroundStyle(wxBG_STYLE_PAINT);
     //PanelModels->SetBackgroundStyle(wxBG_STYLE_PAINT);
 
-    wxSize panel4Size = wxSize(LEFT_RIGHT_MARGIN + HORIZONTAL_SIZE + LEFT_RIGHT_MARGIN + ScrollBar_Models->GetSize().GetWidth() + 10, -1);
+    wxSize panel4Size = wxSize(std::max((int)(LEFT_RIGHT_MARGIN + HORIZONTAL_SIZE + LEFT_RIGHT_MARGIN + ScrollBar_Models->GetSize().GetWidth() + 10), (int)CheckBox_HideOtherControllerModels->GetSize().GetWidth()), -1);
     Panel4->SetMinSize(panel4Size);
     SetMinSize(wxSize(800, 400));
     SetSize(wxSize(1200, 800));
@@ -796,6 +806,10 @@ ControllerModelDialog::ControllerModelDialog(wxWindow* parent, UDController* cud
             wxMessageBox("At least one model had to have its controller name set because you are using Auto Layout. This may have mucked up the order of model chaining on some ports and you will need to fix that up here.");
             changed = true;
         }
+    }
+    else
+    {
+        CheckBox_HideOtherControllerModels->Enable(false);
     }
 
     if (_caps != nullptr)
@@ -846,7 +860,10 @@ void ControllerModelDialog::ReloadModels()
     int y = TOP_BOTTOM_MARGIN;
     for (const auto& it : *_mm) {
         if (it.second->GetDisplayAs() != "ModelGroup") {
-            if (_cud->GetControllerPortModel(it.second->GetName()) == nullptr && (_autoLayout || _controller->ContainsChannels(it.second->GetFirstChannel(), it.second->GetLastChannel()))) {
+            if (_cud->GetControllerPortModel(it.second->GetName()) == nullptr &&
+                ((_autoLayout && !CheckBox_HideOtherControllerModels->GetValue()) ||
+                 (_autoLayout && CheckBox_HideOtherControllerModels->GetValue() && (it.second->GetController() == nullptr || _controller->ContainsChannels(it.second->GetFirstChannel(), it.second->GetLastChannel())) ||
+                 _controller->ContainsChannels(it.second->GetFirstChannel(), it.second->GetLastChannel())))) {
                 _models.push_back(new ModelCMObject(it.second->GetName(), it.second->GetName(), _mm, _cud, _caps, wxPoint(5, y), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE), BaseCMObject::STYLE_STRINGS));
                 y += VERTICAL_GAP + VERTICAL_SIZE;
             }
@@ -949,9 +966,9 @@ void ControllerModelDialog::ReloadModels()
     for (auto p : pixelPortsWithSmartRemotes) {
         for (const auto& it : _controllers) {
             auto m = dynamic_cast<ModelCMObject*>(it);
-            if (m != nullptr && m->GetModel() != nullptr && 
-                m->GetModel()->IsPixelProtocol() && 
-                m->GetModel()->GetControllerPort() == p && 
+            if (m != nullptr && m->GetModel() != nullptr &&
+                m->GetModel()->IsPixelProtocol() &&
+                m->GetModel()->GetControllerPort() == p &&
                 m->GetModel()->GetSmartRemote() == 0) {
                 m->SetInvalid(true);
             }
@@ -1296,7 +1313,7 @@ void ControllerModelDialog::DropFromController(const wxPoint& location, const st
             else {
                 Model* droppedOn = _mm->GetModel(mob->GetName());
                 logger_base.debug("    Dropped onto model %s.", (const char*)droppedOn->GetName().c_str());
-                
+
                 // dropped on a model
                 if (_autoLayout) {
                     m->SetSmartRemote(droppedOn->GetSmartRemote());
@@ -1543,7 +1560,7 @@ std::string ControllerModelDialog::GetModelTooltip(ModelCMObject* mob)
     auto om = _xLights->GetOutputManager();
     if (_autoLayout) {
         return wxString::Format("Name: %s\nController Name: %s\nModel Chain: %s\nStart Channel: %s\nEnd Channel %s\nStrings %d\nSmart Remote: %s\nPort: %d\nProtocol: %s%s%s",
-            mob->GetDisplayName(), controllerName, m->GetModelChain() == "" ? "Beginning" : m->GetModelChain(), m->GetStartChannelInDisplayFormat(om), 
+            mob->GetDisplayName(), controllerName, m->GetModelChain() == "" ? "Beginning" : m->GetModelChain(), m->GetStartChannelInDisplayFormat(om),
             m->GetLastChannelInStartChannelFormat(om),
             m->GetNumPhysicalStrings(), sr, m->GetControllerPort(), m->GetControllerProtocol(), dmx, stringSettings).ToStdString();
     }
@@ -1916,4 +1933,9 @@ PortCMObject* ControllerModelDialog::GetControllerPortAtLocation(wxPoint mouse) 
         if (it->BelowHitYTest(mouse)) return dynamic_cast<PortCMObject*>(last);
     }
     return nullptr;
+}
+
+void ControllerModelDialog::OnCheckBox_HideOtherControllerModelsClick(wxCommandEvent& event)
+{
+    ReloadModels();
 }

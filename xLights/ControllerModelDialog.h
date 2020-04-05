@@ -11,6 +11,7 @@
  **************************************************************/
 
 //(*Headers(ControllerModelDialog)
+#include <wx/checkbox.h>
 #include <wx/dialog.h>
 #include <wx/panel.h>
 #include <wx/scrolbar.h>
@@ -69,6 +70,7 @@ class ControllerModelDialog: public wxDialog
 		virtual ~ControllerModelDialog();
 
 		//(*Declarations(ControllerModelDialog)
+		wxCheckBox* CheckBox_HideOtherControllerModels;
 		wxPanel* Panel3;
 		wxPanel* Panel4;
 		wxPanel* PanelController;
@@ -103,6 +105,7 @@ class ControllerModelDialog: public wxDialog
 		static const long ID_SCROLLBAR1;
 		static const long ID_SCROLLBAR2;
 		static const long ID_PANEL3;
+		static const long ID_CHECKBOX1;
 		static const long ID_PANEL2;
 		static const long ID_SCROLLBAR3;
 		static const long ID_PANEL4;
@@ -142,6 +145,7 @@ class ControllerModelDialog: public wxDialog
 		void OnPanelModelsMouseEnter(wxMouseEvent& event);
 		void OnPanelModelsMouseLeave(wxMouseEvent& event);
 		void OnPanelControllerMouseWheel(wxMouseEvent& event);
+		void OnCheckBox_HideOtherControllerModelsClick(wxCommandEvent& event);
 		//*)
 
 		void ScrollToKey(int keyCode);
