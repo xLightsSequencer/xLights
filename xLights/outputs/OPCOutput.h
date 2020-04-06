@@ -10,6 +10,8 @@
  * License: https://github.com/smeighan/xLights/blob/master/License.txt
  **************************************************************/
 
+// Protocol specification can be found here: http://openpixelcontrol.org/
+
 #include "IPOutput.h"
 
 #include <wx/socket.h>
