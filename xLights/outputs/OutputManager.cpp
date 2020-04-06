@@ -180,6 +180,7 @@ bool OutputManager::Load(const std::string& showdir, bool syncEnabled) {
                 auto type = e->GetAttribute("NetworkType");
                 auto port = e->GetAttribute("ComPort");
                 int univ = wxAtoi(e->GetAttribute("BaudRate", "-1"));
+                int univcount = wxAtoi(e->GetAttribute("NumUniverses", "1"));
                 if (type == OUTPUT_xxxETHERNET) {
                     univ = wxAtoi(e->GetAttribute("Port", "1"));
                 }
@@ -233,7 +234,7 @@ bool OutputManager::Load(const std::string& showdir, bool syncEnabled) {
 
                 lasttype = type;
                 lastport = port;
-                lastuniv = univ;
+                lastuniv = univ + univcount - 1;
                 _didConvert = true;
             }
             else if (e->GetName() == "e131sync") {
