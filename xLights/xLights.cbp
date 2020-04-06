@@ -1117,6 +1117,8 @@
 		<Unit filename="outputs/LorControllers.h" />
 		<Unit filename="outputs/NullOutput.cpp" />
 		<Unit filename="outputs/NullOutput.h" />
+		<Unit filename="outputs/OPCOutput.cpp" />
+		<Unit filename="outputs/OPCOutput.h" />
 		<Unit filename="outputs/OpenDMXOutput.cpp" />
 		<Unit filename="outputs/OpenDMXOutput.h" />
 		<Unit filename="outputs/OpenPixelNetOutput.cpp" />

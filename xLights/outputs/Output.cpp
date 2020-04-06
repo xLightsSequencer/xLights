@@ -23,6 +23,7 @@
 #include "DMXOutput.h"
 #include "xxxSerialOutput.h"
 #include "xxxEthernetOutput.h"
+#include "OPCOutput.h"
 #include "PixelNetOutput.h"
 #include "RenardOutput.h"
 #include "OpenPixelNetOutput.h"
@@ -123,6 +124,9 @@ Output* Output::Create(Controller* c, wxXmlNode* node, std::string showDir) {
     }
     else if (type == OUTPUT_xxxETHERNET) {
         return new xxxEthernetOutput(node);
+    }
+    else if (type == OUTPUT_OPC) {
+        return new OPCOutput(node);
     }
     else if (type == OUTPUT_PIXELNET) {
         return new PixelNetOutput(node);

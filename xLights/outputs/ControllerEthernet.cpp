@@ -23,6 +23,7 @@
 #include "ZCPPOutput.h"
 #include "DDPOutput.h"
 #include "xxxEthernetOutput.h"
+#include "OPCOutput.h"
 #include "../controllers/ControllerCaps.h"
 #include "../models/ModelManager.h"
 
@@ -36,6 +37,7 @@ void ControllerEthernet::InitialiseTypes(bool forceXXX) {
         __types.Add(OUTPUT_ZCPP);
         __types.Add(OUTPUT_ARTNET);
         __types.Add(OUTPUT_DDP);
+        __types.Add(OUTPUT_OPC);
         if (SpecialOptions::GetOption("xxx") == "true" || forceXXX) {
             __types.Add(OUTPUT_xxxETHERNET);
         }
@@ -136,7 +138,7 @@ void ControllerEthernet::SetProtocol(const std::string& protocol) {
         _outputs.front()->SetSuppressDuplicateFrames(oldoutputs.front()->IsSuppressDuplicateFrames());
     }
     else {
-        if (oldtype == OUTPUT_E131 || oldtype == OUTPUT_ARTNET || oldtype == OUTPUT_xxxETHERNET) {
+        if (oldtype == OUTPUT_E131 || oldtype == OUTPUT_ARTNET || oldtype == OUTPUT_xxxETHERNET || oldtype == OUTPUT_OPC) {
             for (const auto& it : oldoutputs) {
                 if (_type == OUTPUT_E131) {
                     _outputs.push_back(new E131Output());
@@ -146,6 +148,9 @@ void ControllerEthernet::SetProtocol(const std::string& protocol) {
                 }
                 else if (_type == OUTPUT_xxxETHERNET) {
                     _outputs.push_back(new xxxEthernetOutput());
+                }
+                else if (_type == OUTPUT_OPC) {
+                    _outputs.push_back(new OPCOutput());
                 }
                 _outputs.back()->SetIP(oldoutputs.front()->GetIP());
                 _outputs.back()->SetUniverse(it->GetUniverse());
@@ -165,6 +170,9 @@ void ControllerEthernet::SetProtocol(const std::string& protocol) {
                 }
                 else if (_type == OUTPUT_xxxETHERNET) {
                     _outputs.push_back(new xxxEthernetOutput());
+                }
+                else if (_type == OUTPUT_OPC) {
+                    _outputs.push_back(new OPCOutput());
                 }
                 _outputs.back()->SetChannels(left > CONVERT_CHANNELS_PER_UNIVERSE ? CONVERT_CHANNELS_PER_UNIVERSE : left);
                 left -= _outputs.back()->GetChannels();
@@ -324,6 +332,10 @@ std::string ControllerEthernet::GetChannelMapping(int32_t ch) const {
     if (o->GetType() == OUTPUT_ARTNET || o->GetType() == OUTPUT_E131 || o->GetType() == OUTPUT_xxxETHERNET) {
         res += wxString::Format("Universe: %s\nChannel: %d\n", o->GetUniverseString(), sc);
     }
+    else if (o->GetType() == OUTPUT_OPC)
+    {
+        res += wxString::Format("Channel: %s\nMessage Offset: %d\n", o->GetUniverseString(), sc);
+    }
     else {
         res += wxString::Format("Channel: %d\n", sc);
     }
@@ -337,7 +349,7 @@ std::string ControllerEthernet::GetChannelMapping(int32_t ch) const {
 
 std::string ControllerEthernet::GetColumn3Label() const {
 
-    if (_type == OUTPUT_E131 || _type == OUTPUT_ARTNET || _type == OUTPUT_xxxETHERNET) {
+    if (_type == OUTPUT_E131 || _type == OUTPUT_ARTNET || _type == OUTPUT_xxxETHERNET || _type == OUTPUT_OPC) {
         if (_outputs.size() == 1) {
             return _outputs.front()->GetUniverseString();
         }
@@ -465,6 +477,9 @@ bool ControllerEthernet::SetChannelSize(int32_t channels) {
             else if (_type == OUTPUT_xxxETHERNET) {
                 _outputs.push_back(new xxxEthernetOutput());
             }
+            else if (_type == OUTPUT_OPC) {
+                _outputs.push_back(new OPCOutput());
+            }
             _outputs.back()->SetChannels(channels_per_universe);
             _outputs.back()->SetIP(oldIP);
             _outputs.back()->SetUniverse(lastUsedUniverse + 1);
@@ -513,7 +528,7 @@ void ControllerEthernet::AddProperties(wxPropertyGrid* propertyGrid, ModelManage
         p->SetEditor("SpinCtrl");
     }
 
-    if (_type == OUTPUT_E131 || _type == OUTPUT_ARTNET || _type == OUTPUT_xxxETHERNET) {
+    if (_type == OUTPUT_E131 || _type == OUTPUT_ARTNET || _type == OUTPUT_xxxETHERNET || _type == OUTPUT_OPC) {
         p = propertyGrid->Append(new wxBoolProperty("Managed", "Managed", _managed));
         p->SetEditor("CheckBox");
         p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
@@ -528,7 +543,7 @@ void ControllerEthernet::AddProperties(wxPropertyGrid* propertyGrid, ModelManage
         p->SetHelpString("This is typically the WIFI IP of a FPP instance that bridges two networks.");
     }
 
-    if (_type == OUTPUT_E131 || _type == OUTPUT_ARTNET || _type == OUTPUT_xxxETHERNET) {
+    if (_type == OUTPUT_E131 || _type == OUTPUT_ARTNET || _type == OUTPUT_xxxETHERNET || _type == OUTPUT_OPC) {
         auto u = "Start Universe";
         auto uc = "Universe Count";
         auto ud = "Universes";
@@ -537,40 +552,54 @@ void ControllerEthernet::AddProperties(wxPropertyGrid* propertyGrid, ModelManage
             uc = "Port Count";
             ud = "Ports";
         }
+        else if (_type == OUTPUT_OPC)
+        {
+            u = "Start OPC Channel";
+            uc = "OPC Channel Count";
+            ud = "OPC Channels";
+        }
         p = propertyGrid->Append(new wxUIntProperty(u, "Universe", _outputs.front()->GetUniverse()));
         if (_type == OUTPUT_ARTNET)
             p->SetAttribute("Min", 0);
         else
             p->SetAttribute("Min", 1);
-        p->SetAttribute("Max", 64000);
-        p->SetEditor("SpinCtrl");
-
-        p = propertyGrid->Append(new wxUIntProperty(uc, "Universes", _outputs.size()));
-        p->SetAttribute("Min", 1);
-        p->SetAttribute("Max", 1000);
-        
-        if (IsAutoSize()) {
-            p->ChangeFlag(wxPG_PROP_READONLY, true);
-            p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
-            p->SetHelpString("Universes Count cannot be changed when an output is set to Auto Size.");
+        if (_type == OUTPUT_OPC) {
+            p->SetAttribute("Max", 255);
         }
         else {
-            p->SetEditor("SpinCtrl");
+            p->SetAttribute("Max", 64000);
         }
+        p->SetEditor("SpinCtrl");
 
-        if (_outputs.size() > 1) {
-            p = propertyGrid->Append(new wxStringProperty(ud, "UniversesDisplay", _outputs.front()->GetUniverseString() + "- " + _outputs.back()->GetUniverseString()));
-            p->ChangeFlag(wxPG_PROP_READONLY, true);
-            p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
-        }
+        if (_type != OUTPUT_OPC)
+        {
+            p = propertyGrid->Append(new wxUIntProperty(uc, "Universes", _outputs.size()));
+            p->SetAttribute("Min", 1);
+            p->SetAttribute("Max", 1000);
 
-        p = propertyGrid->Append(new wxBoolProperty("Individual Sizes", "IndivSizes", !allSameSize || _forceSizes));
-        p->SetEditor("CheckBox");
+            if (IsAutoSize()) {
+                p->ChangeFlag(wxPG_PROP_READONLY, true);
+                p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
+                p->SetHelpString("Universes Count cannot be changed when an output is set to Auto Size.");
+            }
+            else {
+                p->SetEditor("SpinCtrl");
+            }
 
-        if (IsAutoSize()) {
-            p->ChangeFlag(wxPG_PROP_READONLY, true);
-            p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
-            p->SetHelpString("Individual Sizes cannot be changed when an output is set to Auto Size.");
+            if (_outputs.size() > 1) {
+                p = propertyGrid->Append(new wxStringProperty(ud, "UniversesDisplay", _outputs.front()->GetUniverseString() + "- " + _outputs.back()->GetUniverseString()));
+                p->ChangeFlag(wxPG_PROP_READONLY, true);
+                p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
+            }
+
+            p = propertyGrid->Append(new wxBoolProperty("Individual Sizes", "IndivSizes", !allSameSize || _forceSizes));
+            p->SetEditor("CheckBox");
+
+            if (IsAutoSize()) {
+                p->ChangeFlag(wxPG_PROP_READONLY, true);
+                p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
+                p->SetHelpString("Individual Sizes cannot be changed when an output is set to Auto Size.");
+            }
         }
 
         if (!allSameSize || _forceSizes) {
@@ -600,6 +629,10 @@ void ControllerEthernet::AddProperties(wxPropertyGrid* propertyGrid, ModelManage
             else if (GetProtocol() == OUTPUT_xxxETHERNET)
             {
                 chlabel = "Channels per Port";
+            }
+            else if (GetProtocol() == OUTPUT_OPC)
+            {
+                chlabel = "Message Data Size";
             }
             p = propertyGrid->Append(new wxUIntProperty(chlabel, "Channels", _outputs.front()->GetChannels()));
             p->SetAttribute("Min", 1);
@@ -712,6 +745,9 @@ bool ControllerEthernet::HandlePropertyEvent(wxPropertyGridEvent& event, OutputM
             }
             else if (_type == OUTPUT_xxxETHERNET) {
                 _outputs.push_back(new xxxEthernetOutput());
+            }
+            else if (_type == OUTPUT_OPC) {
+                _outputs.push_back(new OPCOutput());
             }
             else {
                 wxASSERT(false);

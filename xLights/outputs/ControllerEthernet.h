@@ -74,7 +74,7 @@ public:
 
 #pragma region Virtual Functions
     virtual void SetId(int id) override;
-    virtual bool IsNeedsId() const override { return (GetProtocol() != OUTPUT_E131 && GetProtocol() != OUTPUT_ARTNET && GetProtocol() != OUTPUT_xxxETHERNET); }
+    virtual bool IsNeedsId() const override { return (GetProtocol() != OUTPUT_E131 && GetProtocol() != OUTPUT_ARTNET && GetProtocol() != OUTPUT_xxxETHERNET && GetProtocol() != OUTPUT_OPC); }
 
     virtual bool IsManaged() const override { return _managed; }
 

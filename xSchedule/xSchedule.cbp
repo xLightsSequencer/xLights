@@ -356,6 +356,8 @@
 		<Unit filename="../xLights/outputs/NullOutput.cpp" />
 		<Unit filename="../xLights/outputs/NullOutput.h" />
 		<Unit filename="../xLights/outputs/NullOutputDialog.h" />
+		<Unit filename="../xLights/outputs/OPCOutput.cpp" />
+		<Unit filename="../xLights/outputs/OPCOutput.h" />
 		<Unit filename="../xLights/outputs/OpenDMXOutput.cpp" />
 		<Unit filename="../xLights/outputs/OpenDMXOutput.h" />
 		<Unit filename="../xLights/outputs/OpenPixelNetOutput.cpp" />

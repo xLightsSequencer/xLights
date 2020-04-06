@@ -46,7 +46,6 @@
 #include "outputs/Output.h"
 #include "outputs/NullOutput.h"
 #include "outputs/E131Output.h"
-#include "outputs/xxxEthernetOutput.h"
 #include "outputs/ZCPPOutput.h"
 #include "outputs/ArtNetOutput.h"
 #include "outputs/DDPOutput.h"

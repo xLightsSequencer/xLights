@@ -191,6 +191,7 @@
     <ClCompile Include="..\xLights\outputs\LOROptimisedOutput.cpp" />
     <ClCompile Include="..\xLights\outputs\LOROutput.cpp" />
     <ClCompile Include="..\xLights\outputs\NullOutput.cpp" />
+    <ClCompile Include="..\xLights\outputs\OPCOutput.cpp" />
     <ClCompile Include="..\xLights\outputs\OpenDMXOutput.cpp" />
     <ClCompile Include="..\xLights\outputs\OpenPixelNetOutput.cpp" />
     <ClCompile Include="..\xLights\outputs\Output.cpp" />
@@ -423,6 +424,7 @@
     <ClInclude Include="..\xLights\outputs\LOROptimisedOutput.h" />
     <ClInclude Include="..\xLights\outputs\LOROutput.h" />
     <ClInclude Include="..\xLights\outputs\NullOutput.h" />
+    <ClInclude Include="..\xLights\outputs\OPCOutput.h" />
     <ClInclude Include="..\xLights\outputs\OpenDMXOutput.h" />
     <ClInclude Include="..\xLights\outputs\OpenPixelNetOutput.h" />
     <ClInclude Include="..\xLights\outputs\Output.h" />

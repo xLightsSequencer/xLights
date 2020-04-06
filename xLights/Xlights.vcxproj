@@ -482,6 +482,7 @@
     <ClCompile Include="outputs\IPOutput.cpp" />
     <ClCompile Include="outputs\LOROutput.cpp" />
     <ClCompile Include="outputs\NullOutput.cpp" />
+    <ClCompile Include="outputs\OPCOutput.cpp" />
     <ClCompile Include="outputs\OpenDMXOutput.cpp" />
     <ClCompile Include="outputs\OpenPixelNetOutput.cpp" />
     <ClCompile Include="outputs\Output.cpp" />
@@ -895,6 +896,7 @@
     <ClInclude Include="outputs\IPOutput.h" />
     <ClInclude Include="outputs\LOROutput.h" />
     <ClInclude Include="outputs\NullOutput.h" />
+    <ClInclude Include="outputs\OPCOutput.h" />
     <ClInclude Include="outputs\OpenDMXOutput.h" />
     <ClInclude Include="outputs\OpenPixelNetOutput.h" />
     <ClInclude Include="outputs\Output.h" />

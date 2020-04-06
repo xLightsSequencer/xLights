@@ -41,6 +41,7 @@ class Controller;
 #define OUTPUT_OPENDMX "OpenDMX"
 #define OUTPUT_xxxSERIAL "xxx Serial"
 #define OUTPUT_xxxETHERNET "xxx Ethernet"
+#define OUTPUT_OPC "OPC"
 #pragma endregion
 
 class Output

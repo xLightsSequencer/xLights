@@ -527,6 +527,9 @@
       <Filter>Events</Filter>
     </ClCompile>
     <ClCompile Include="SyncSMPTE.cpp" />
+    <ClCompile Include="..\xLights\outputs\OPCOutput.cpp">
+      <Filter>Outputs</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\xLights\AudioManager.h" />
@@ -1047,6 +1050,9 @@
       <Filter>Events</Filter>
     </ClInclude>
     <ClInclude Include="SyncSMPTE.h" />
+    <ClInclude Include="..\xLights\outputs\OPCOutput.h">
+      <Filter>Outputs</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="PlayList">

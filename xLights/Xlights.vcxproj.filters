@@ -823,6 +823,9 @@
     <ClCompile Include="outputs\RenardOutput.cpp">
       <Filter>Outputs</Filter>
     </ClCompile>
+    <ClCompile Include="outputs\OPCOutput.cpp">
+      <Filter>Outputs</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -1652,6 +1655,9 @@
     </ClInclude>
     <ClInclude Include="BulkEditColourPickerDialog.h" />
     <ClInclude Include="outputs\RenardOutput.h">
+      <Filter>Outputs</Filter>
+    </ClInclude>
+    <ClInclude Include="outputs\OPCOutput.h">
       <Filter>Outputs</Filter>
     </ClInclude>
   </ItemGroup>
