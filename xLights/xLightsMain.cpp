@@ -9177,7 +9177,8 @@ void xLightsFrame::OnCharHook(wxKeyEvent& event)
 
 void xLightsFrame::OnMenuItem_ZoomSelected(wxCommandEvent& event)
 {
-    ::wxLaunchDefaultBrowser("https://zoom.us/j/175801909");
+    //::wxLaunchDefaultBrowser("https://zoom.us/j/175801909");
+    ::wxLaunchDefaultBrowser("https://zoom.us/j/175801909?pwd=ZU1hNzM5bjJpOGZ1d1BOb1BzMUFndz09");
 }
 
 
