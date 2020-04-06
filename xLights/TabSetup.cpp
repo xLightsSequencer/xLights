@@ -1197,6 +1197,14 @@ void xLightsFrame::OnButtonDiscoverClick(wxCommandEvent& event) {
             count = 512;
         }
         controller->GetOutputs().front()->SetChannels(count);
+        ControllerCaps *caps = controller->GetControllerCaps();
+        if (caps != nullptr && caps->SupportsAutoLayout()) {
+            controller->SetAutoLayout(true);
+            controller->SetAutoSize(true);
+        }
+        if (caps != nullptr && caps->SupportsAutoUpload()) {
+            controller->SetAutoUpload(true);
+        }
         _outputManager.AddController(controller, -1);
         hasChanges = true;
         delete fpp;

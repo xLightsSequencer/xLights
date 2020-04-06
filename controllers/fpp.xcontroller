@@ -46,7 +46,7 @@
         </SerialProtocols>
     </AbstractVariant>
 	<Controller Name="LED Panels">
-		<Variant Name="" Base="FPP:BaseFPPSettings">
+		<Variant Name="" ID="LED Panels" Base="FPP:BaseFPPSettings">
 			<MaxPixelPort>0</MaxPixelPort>
 			<MaxSerialPort>0</MaxSerialPort>
 			<MaxSerialPortChannels>0</MaxSerialPortChannels>

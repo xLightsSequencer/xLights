@@ -50,32 +50,7 @@ const std::vector<ControllerNameVendorMap> __controllerNameMap =
     ControllerNameVendorMap("AlphaPix", "AlphaPix 4", "Holiday Coro", "AlphaPix 4"),
     ControllerNameVendorMap("AlphaPix", "AlphaPix Flex", "Holiday Coro", "AlphaPix Flex"),
     ControllerNameVendorMap("", "ESPixelStick", "ESPixelStick", ""),
-    
-    ControllerNameVendorMap("FPP", "F32-B-44", "KulpLights", "F32-B", "4 Serial"),
-    ControllerNameVendorMap("FPP", "F32-B", "KulpLights", "F32-B", "8 Serial"),
-    ControllerNameVendorMap("FPP", "F32-B-48", "KulpLights", "F32-B", "No Serial"),
-    ControllerNameVendorMap("FPP", "F40D-PB-36", "KulpLights", "F40D-PB", "4 Serial"),
-    ControllerNameVendorMap("FPP", "F40D-PB", "KulpLights", "F40D-PB", "8 Serial"),
-    ControllerNameVendorMap("FPP", "F40D-PB-40", "KulpLights", "F40D-PB", "No Serial"),
-    ControllerNameVendorMap("FPP", "F8-B-16", "KulpLights", "F8-B", "4 Serial"),
-    ControllerNameVendorMap("FPP", "F8-B", "KulpLights", "F8-B", "8 Serial"),
-    ControllerNameVendorMap("FPP", "F8-B-20", "KulpLights", "F8-B", "No Serial"),
-    ControllerNameVendorMap("FPP", "F8-B-EXP-32", "KulpLights", "F8-B", "4 Serial w/Expansion"),
-    ControllerNameVendorMap("FPP", "F8-B-EXP", "KulpLights", "F8-B", "8 Serial w/Expansion"),
-    ControllerNameVendorMap("FPP", "F8-B-EXP-36", "KulpLights", "F8-B", "No Serial w/Expansion"),
-    
-    ControllerNameVendorMap("FPP", "LED Panels", "FPP", "LED Panels"),
-    ControllerNameVendorMap("FPP", "F4-B", "FPP", "F4-B"),
-    ControllerNameVendorMap("FPP", "PiHat", "FPP", "Pi Hat"),
-    ControllerNameVendorMap("FPP", "RGBCape24", "FPP", "RGBCape24"),
-    ControllerNameVendorMap("FPP", "RGBCape48C", "FPP", "RGBCape48", "Revision C"),
-    ControllerNameVendorMap("FPP", "RGBCape48F", "FPP", "RGBCape48", "Revision F"),
-    ControllerNameVendorMap("FPP", "F16-B", "FPP", "F16-B", "No Expansion (8 Serial)"),
-    ControllerNameVendorMap("FPP", "F16-B-32", "FPP", "F16-B", "32 Outputs (8 Serial)"),
-    ControllerNameVendorMap("FPP", "F16-B-48", "FPP", "F16-B", "48 outputs (No Serial)"),
-    ControllerNameVendorMap("FPP", "PB16", "FPP", "PB16", "No Expansion"),
-    ControllerNameVendorMap("FPP", "PB16-EXP", "FPP", "PB16", "Expansion"),
-
+        
     ControllerNameVendorMap("Falcon", "F16v2", "Falcon", "F16V2R", "Two Expansion Boards"),
     ControllerNameVendorMap("Falcon", "F16v3", "Falcon", "F16V3", "Two Expansion Boards"),
     ControllerNameVendorMap("Falcon", "F48v3", "Falcon", "F48"),
@@ -215,6 +190,12 @@ void Controller::ConvertOldTypeToVendorModel(const std::string& old, std::string
             variant = it._variant;
             return;
         }
+    }
+    ControllerCaps *caps = ControllerCaps::GetControllerConfigByID(old);
+    if (caps) {
+        vendor = caps->GetVendor();
+        model = caps->GetModel();
+        variant = caps->GetVariantName();
     }
 }
 #pragma endregion
@@ -403,6 +384,12 @@ void Controller::Convert(wxXmlNode* node, std::string showDir) {
                 SetVariant(it._variant);
                 break;
             }
+        }
+        ControllerCaps *caps = ControllerCaps::GetControllerConfigByID(c);
+        if (caps) {
+            SetVendor(caps->GetVendor());
+            SetModel(caps->GetModel());
+            SetVariant(caps->GetVariantName());
         }
 
         // vendor didnt convert ... strange

@@ -210,7 +210,6 @@ ControllerCaps* ControllerCaps::GetControllerConfig(const Controller* const cont
 }
 
 ControllerCaps* ControllerCaps::GetControllerConfig(const std::string& vendor, const std::string& model, const std::string& variant) {
-
     LoadControllers();
     std::list<std::string> versions;
 
@@ -220,6 +219,19 @@ ControllerCaps* ControllerCaps::GetControllerConfig(const std::string& vendor, c
         if (m != v->second.end()) {
             auto f = m->second.find(variant);
             if (f != m->second.end()) return f->second;
+        }
+    }
+    return nullptr;
+}
+ControllerCaps* ControllerCaps::GetControllerConfigByID(const std::string& ID) {
+    LoadControllers();
+    for (auto &v : __controllers) {
+        for (auto &m : v.second) {
+            for (auto &vr : m.second) {
+                if (ID == vr.second->GetID()) {
+                    return vr.second;
+                }
+            }
         }
     }
     return nullptr;

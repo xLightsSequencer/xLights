@@ -50,6 +50,7 @@ public:
 
     static ControllerCaps* GetControllerConfig(const std::string& vendor, const std::string& model, const std::string& firmwareVersion);
     static ControllerCaps* GetControllerConfig(const Controller* const controller);
+    static ControllerCaps* GetControllerConfigByID(const std::string& ID);
     #pragma endregion Static Functions
 
     #pragma region Getters and Setters
