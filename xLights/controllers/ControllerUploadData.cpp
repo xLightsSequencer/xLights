@@ -691,7 +691,7 @@ bool UDControllerPort::Check(Controller* c, const UDController* controller, bool
         }
         else {
             for (const auto& it : _models) {
-                if (it->GetProtocol() != _protocol) {
+                if (Lower(it->GetProtocol()) != Lower(_protocol)) {
                     res += wxString::Format("ERR: Model %s on pixel port %d has protocol %s but port protocol has been set to %s. This is because you have mixed protocols on your models.", it->GetName(), _port, it->GetProtocol(), _protocol).ToStdString();
                     success = false;
                 }
@@ -711,7 +711,7 @@ bool UDControllerPort::Check(Controller* c, const UDController* controller, bool
         }
         else {
             for (const auto& it : _models) {
-                if (it->GetProtocol() != _protocol) {
+                if (Lower(it->GetProtocol()) != Lower(_protocol)) {
                     res += wxString::Format("ERR: Model %s on serial port %d has protocol %s but port protocol has been set to %s. This is because you have mixed protocols on your models.\n", it->GetName(), _port, it->GetProtocol(), _protocol).ToStdString();
                     success = false;
                 }

@@ -81,7 +81,8 @@ void ControllerCaps::LoadControllers() {
             wxFileName fn(dir.GetNameWithSep() + filename);
             wxXmlDocument doc;
             docs[count].Load(fn.GetFullPath());
-            if (docs[count].IsOk()) {
+            if (!docs[count].IsOk()) {
+                wxASSERT(false);
                 logger_base.error("Problem loading " + fn.GetFullPath());
             }
             count++;
