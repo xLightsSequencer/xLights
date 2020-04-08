@@ -646,6 +646,8 @@
 		67D75E6F2020ED96005BAC6E /* PlayListItemFPPEvent.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67D75E6B2020ED96005BAC6E /* PlayListItemFPPEvent.cpp */; };
 		67D75E702020EE21005BAC6E /* DDPOutput.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67DD179520167D4A001E7A8B /* DDPOutput.cpp */; };
 		67D7DD041B23C586007A3F20 /* UndoManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67D7DD031B23C586007A3F20 /* UndoManager.cpp */; };
+		67D7FC59243B6918004956FF /* OPCOutput.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67D7FC58243B6918004956FF /* OPCOutput.cpp */; };
+		67D7FC5A243D6AE5004956FF /* OPCOutput.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67D7FC58243B6918004956FF /* OPCOutput.cpp */; };
 		67D8F45A1A1A584400522413 /* TabSequence.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67E491B317C45BAF00FE40EA /* TabSequence.cpp */; };
 		67D90BE62390176B007792F2 /* xxxSerialOutput.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67D90BE22390176A007792F2 /* xxxSerialOutput.cpp */; };
 		67D90BE72390176B007792F2 /* xxxEthernetOutput.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67D90BE32390176A007792F2 /* xxxEthernetOutput.cpp */; };
@@ -2006,6 +2008,8 @@
 		67D75E6A2020ED96005BAC6E /* PlayListItemSerial.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PlayListItemSerial.cpp; path = PlayList/PlayListItemSerial.cpp; sourceTree = "<group>"; };
 		67D75E6B2020ED96005BAC6E /* PlayListItemFPPEvent.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PlayListItemFPPEvent.cpp; path = PlayList/PlayListItemFPPEvent.cpp; sourceTree = "<group>"; };
 		67D7DD031B23C586007A3F20 /* UndoManager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = UndoManager.cpp; path = sequencer/UndoManager.cpp; sourceTree = "<group>"; };
+		67D7FC57243B6918004956FF /* OPCOutput.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OPCOutput.h; path = outputs/OPCOutput.h; sourceTree = "<group>"; };
+		67D7FC58243B6918004956FF /* OPCOutput.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = OPCOutput.cpp; path = outputs/OPCOutput.cpp; sourceTree = "<group>"; };
 		67D90BE023901769007792F2 /* xxxSerialOutput.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = xxxSerialOutput.h; path = outputs/xxxSerialOutput.h; sourceTree = "<group>"; };
 		67D90BE22390176A007792F2 /* xxxSerialOutput.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = xxxSerialOutput.cpp; path = outputs/xxxSerialOutput.cpp; sourceTree = "<group>"; };
 		67D90BE32390176A007792F2 /* xxxEthernetOutput.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = xxxEthernetOutput.cpp; path = outputs/xxxEthernetOutput.cpp; sourceTree = "<group>"; };
@@ -2921,6 +2925,8 @@
 		67B2B1F51E19478D0024F0BB /* Outputs */ = {
 			isa = PBXGroup;
 			children = (
+				67D7FC58243B6918004956FF /* OPCOutput.cpp */,
+				67D7FC57243B6918004956FF /* OPCOutput.h */,
 				678A41BA23E6417600E5FB09 /* Controller.cpp */,
 				678A41BC23E6417700E5FB09 /* Controller.h */,
 				678A41BB23E6417700E5FB09 /* ControllerEthernet.cpp */,
@@ -4526,6 +4532,7 @@
 				67B2B22E1E1947BE0024F0BB /* OpenDMXOutput.cpp in Sources */,
 				67C115651E9071E900B06690 /* CandlePanel.cpp in Sources */,
 				6761F5F61C4EA041009780DA /* PicturesAssistPanel.cpp in Sources */,
+				67D7FC59243B6918004956FF /* OPCOutput.cpp in Sources */,
 				672E62B11C4D2FCF006A4966 /* TendrilPanel.cpp in Sources */,
 				67B2CF821C39D98A003C17CA /* RipplePanel.cpp in Sources */,
 				672E62B01C4D2FCF006A4966 /* TendrilEffect.cpp in Sources */,
@@ -4726,6 +4733,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				67D7FC5A243D6AE5004956FF /* OPCOutput.cpp in Sources */,
 				67D6CF8423FF3711004B56FD /* ControllerCaps.cpp in Sources */,
 				67D6CF8123FF3701004B56FD /* ControllerEthernet.cpp in Sources */,
 				67D6CF8223FF3701004B56FD /* ControllerNull.cpp in Sources */,

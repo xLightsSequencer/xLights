@@ -3593,18 +3593,12 @@ void LayoutPanel::OnPreviewMouseWheel(wxMouseEvent& event)
                 modelPreview->SetPan(new_x, -new_y, 0.0f);
             }
             else {
-                float new_x = event.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ? 0 : -event.GetWheelRotation();
-                float new_y = event.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ? -event.GetWheelRotation() : 0;
-
-                // GRJ: Pretty sure this should change.  It's trackpad code for a MAC but this is in the 2D
-                //      section so there shouldn't be any grid rotation.  Probably copy paste error from 3D.
-
-                // account for grid rotation
-                float angle = glm::radians(modelPreview->GetCameraRotationY());
-                float delta_x = new_x * std::cos(angle) - new_y * std::sin(angle);
-                float delta_y = new_y * std::cos(angle) + new_x * std::sin(angle);
-                delta_x *= modelPreview->GetZoom() * 2.0f;
-                delta_y *= modelPreview->GetZoom() * 2.0f;
+                float delta_x = event.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ? 0 : -event.GetWheelRotation();
+                float delta_y = event.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ? -event.GetWheelRotation() : 0;
+                if (!fromTrackPad) {
+                    delta_x *= modelPreview->GetZoom() * 2.0f;
+                    delta_y *= modelPreview->GetZoom() * 2.0f;
+                }
                 modelPreview->SetPan(delta_x, delta_y, 0.0f);
                 m_previous_mouse_x = event.GetX();
                 m_previous_mouse_y = event.GetY();

@@ -361,21 +361,15 @@ void ModelPreview::mouseWheelMoved(wxMouseEvent& event) {
             if (is_3d) {
                 if (event.ShiftDown()) {
                     SetPan(delta_x, delta_y, 0.0f);
-                }
-                else {
+                } else {
                     SetCameraView(delta_x, delta_y, false);
                     SetCameraView(0, 0, true);
                 }
-            }
-            else {
-                // account for grid rotation
-                float angle = glm::radians(GetCameraRotationY());
-                float new_x = delta_x;
-                float new_y = delta_y;
-                delta_x = new_x * std::cos(angle) - new_y * std::sin(angle);
-                delta_y = new_y * std::cos(angle) + new_x * std::sin(angle);
-                delta_x *= GetZoom() * 2.0f;
-                delta_y *= GetZoom() * 2.0f;
+            } else {
+                if (!fromTrackPad) {
+                    delta_x *= GetZoom() * 2.0f;
+                    delta_y *= GetZoom() * 2.0f;
+                }
                 SetPan(delta_x, delta_y, 0.0f);
                 m_last_mouse_x = event.GetX();
                 m_last_mouse_y = event.GetY();
