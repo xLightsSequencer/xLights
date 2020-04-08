@@ -127,7 +127,7 @@ wxXmlNode* Controller::Save() {
     //if (_autoStartChannels) node->AddAttribute("AutoStartChannels", "1");
     node->AddAttribute("Active", _active ? "1" : "0");
     node->AddAttribute("AutoLayout", _autoLayout ? "1" : "0");
-    node->AddAttribute("AutoUpload", _autoUpload ? "1" : "0");
+    node->AddAttribute("AutoUpload", _autoUpload && SupportsAutoUpload() ? "1" : "0");
     node->AddAttribute("SuppressDuplicates", _suppressDuplicateFrames ? "1" : "0");
     for (const auto& it : _outputs) {
         node->AddChild(it->Save());
@@ -356,14 +356,20 @@ bool Controller::SupportsAutoLayout() const
     }
     return false;
 }
+
 bool Controller::SupportsAutoUpload() const {
+    
+    auto eth = dynamic_cast<const ControllerEthernet*>(this);
+
+    if (eth == nullptr) return false;
+    if (eth != nullptr && eth->GetProtocol() == OUTPUT_ZCPP) return false;
+
     auto caps = GetControllerCaps();
     if (caps != nullptr) {
         return caps->SupportsAutoUpload();
     }
     return false;
 }
-
 
 void Controller::Convert(wxXmlNode* node, std::string showDir) {
 
