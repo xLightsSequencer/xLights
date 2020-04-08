@@ -1,5 +1,4 @@
-#ifndef SHADEREFFECT_H
-#define SHADEREFFECT_H
+#pragma once
 
 #include "RenderableEffect.h"
 
@@ -197,4 +196,3 @@ protected:
         float t[2];
     } VertexTex;
 };
-#endif // SHADEREFFECT_H
