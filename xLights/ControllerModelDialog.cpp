@@ -72,7 +72,6 @@ END_EVENT_TABLE()
 #define HORIZONTAL_GAP VERTICAL_GAP
 #define HORIZONTAL_SIZE ScaleWithSystemDPI(GetSystemContentScaleFactor(), 120)
 #define CORNER_ROUNDING ScaleWithSystemDPI(GetSystemContentScaleFactor(), 5)
-#define PRINTSCALE (8.0/ScaleWithSystemDPI(GetSystemContentScaleFactor(), 1))
 #define FONT_PIXEL_SIZE ScaleWithSystemDPI(GetSystemContentScaleFactor(), 15)
 #define MODEL_ICON_SIZE ScaleWithSystemDPI(GetSystemContentScaleFactor(), 16)
 #pragma endregion
@@ -223,7 +222,8 @@ public:
         auto origPen = dc.GetPen();
         auto origText = dc.GetTextForeground();
 
-        wxSize sz = _size.Scale(scale, scale);
+        wxSize sz = _size;
+        sz = sz.Scale(scale, scale);
         dc.SetTextForeground(*wxBLACK);
 
         UDControllerPort* p = GetUDPort();
@@ -243,37 +243,39 @@ public:
         else if (_invalid) {
             dc.SetBrush(__invalidBrush);
         }
-        dc.DrawRoundedRectangle(_location + offset, sz, CORNER_ROUNDING * scale);
 
-        wxPoint pt = _location + wxSize(2, 2) + offset;
+        auto location = _location * scale;
+        dc.DrawRoundedRectangle(location + offset, sz, CORNER_ROUNDING * scale);
+
+        wxPoint pt = location + offset + wxSize(2, 2);
         if (_type == PORTTYPE::PIXEL) {
-            DrawTextLimited(dc, wxString::Format("Pixel Port %d", _port), pt, _size - wxSize(4,4));
+            DrawTextLimited(dc, wxString::Format("Pixel Port %d", _port), pt, sz - wxSize(4,4));
         } else {
-            DrawTextLimited(dc, wxString::Format("Serial Port %d", _port), pt, _size - wxSize(4, 4));
+            DrawTextLimited(dc, wxString::Format("Serial Port %d", _port), pt, sz - wxSize(4, 4));
         }
         pt += wxSize(0, (VERTICAL_SIZE * scale) / 2);
 
         if (_style & STYLE_PIXELS) {
             std::string label = "Pixels: ";
             wxSize szp = dc.GetTextExtent(label);
-            DrawTextLimited(dc, label, pt, _size - wxSize(4, 4));
+            DrawTextLimited(dc, label, pt, sz - wxSize(4, 4));
             pt += wxSize(szp.GetWidth(), 0);
             if (p->Channels() > GetMaxPortChannels()) {
                 dc.SetTextForeground(*wxRED);
             }
-            DrawTextLimited(dc, wxString::Format("%d", p->Channels() / 3), pt, _size - wxSize(pt.x + 2, 4));
+            DrawTextLimited(dc, wxString::Format("%d", p->Channels() / 3), pt, sz - wxSize(pt.x + 2, 4));
             dc.SetTextForeground(*wxBLACK);
             pt += wxSize(0, (VERTICAL_SIZE * scale) / 2);
         }
         if (_style & STYLE_CHANNELS) {
             std::string label = "Channels: ";
             wxSize szp = dc.GetTextExtent(label);
-            DrawTextLimited(dc, label, pt, _size - wxSize(4, 4));
+            DrawTextLimited(dc, label, pt, sz - wxSize(4, 4));
             pt += wxSize(szp.GetWidth(), 0);
             if (p->Channels() > GetMaxPortChannels()) {
                 dc.SetTextForeground(*wxRED);
             }
-            DrawTextLimited(dc, wxString::Format("%d", p->Channels()), pt, _size - wxSize(pt.x + 2, 4));
+            DrawTextLimited(dc, wxString::Format("%d", p->Channels()), pt, sz - wxSize(pt.x + 2, 4));
             dc.SetTextForeground(*wxBLACK);
             pt += wxSize(0, (VERTICAL_SIZE * scale) / 2);
         }
@@ -458,23 +460,26 @@ public:
             dc.SetPen(wxPen(dc.GetPen().GetColour(), 3));
         }
 
-        wxSize sz = _size.Scale(scale, scale);
-        dc.DrawRectangle(_location + offset, sz);
+        auto location = _location * scale;
+
+        wxSize sz = _size;
+        sz = sz.Scale(scale, scale);
+        dc.DrawRectangle(location + offset, sz);
         if (_over == HITLOCATION::LEFT) {
             dc.SetPen(__dropTargetPen);
             dc.SetBrush(__dropTargetBrush);
             wxSize ssz = wxSize((sz.x-2) / 2, sz.y-2);
-            dc.DrawRectangle(_location + offset + wxSize(1,1), ssz);
+            dc.DrawRectangle(location + offset + wxSize(1,1), ssz);
         }
         else if (_over == HITLOCATION::RIGHT) {
             dc.SetPen(__dropTargetPen);
             dc.SetBrush(__dropTargetBrush);
             wxSize ssz = wxSize((sz.x - 2) / 2, sz.y - 2);
-            dc.DrawRectangle(_location + offset + wxSize((sz.x / 2), 1), ssz);
+            dc.DrawRectangle(location + offset + wxSize((sz.x / 2), 1), ssz);
         }
 
-        wxPoint pt = _location + wxSize(2, 2) + offset;
-        DrawTextLimited(dc, _displayName, pt, _size - wxSize(4,4));
+        wxPoint pt = location + wxSize(2, 2) + offset;
+        DrawTextLimited(dc, _displayName, pt, sz - wxSize(4,4));
         pt += wxSize(0, (VERTICAL_SIZE * scale) / 2);
         if (m != nullptr) {
             auto iconType = "xlART_" + m->GetDisplayAs() + "_ICON";
@@ -494,30 +499,29 @@ public:
                     bmp = wxBitmap(img);
                 }
 #ifdef __WXOSX__
-                dc.DrawBitmap(bmp, _location.x + sz.x - ScaleWithSystemDPI(GetSystemContentScaleFactor(), 3) - bmp.GetScaledWidth(), pt.y);
+                dc.DrawBitmap(bmp, location.x + sz.x - ScaleWithSystemDPI(GetSystemContentScaleFactor(), 3) - bmp.GetScaledWidth(), pt.y);
 #else
                 wxIcon icon;
                 icon.CopyFromBitmap(bmp);
-                dc.DrawIcon(icon, _location.x + sz.x - ScaleWithSystemDPI(GetSystemContentScaleFactor(), 3) - bmp.GetScaledWidth(), pt.y);
+                dc.DrawIcon(icon, location.x + sz.x - ScaleWithSystemDPI(GetSystemContentScaleFactor(), 3) - bmp.GetScaledWidth(), pt.y);
 #endif
             }
 
             if (udcpm != nullptr) {
                 uint32_t chs = udcpm->Channels();
                 if (_style & STYLE_PIXELS) {
-                    DrawTextLimited(dc, wxString::Format("Pixels: %ld", (long)chs / udcpm->GetChannelsPerPixel()), pt, _size - wxSize(4, 4));
+                    DrawTextLimited(dc, wxString::Format("Pixels: %ld", (long)chs / udcpm->GetChannelsPerPixel()), pt, sz - wxSize(4, 4));
                     pt += wxSize(0, (VERTICAL_SIZE * scale) / 2);
                 }
                 if (_style & STYLE_CHANNELS) {
-                    DrawTextLimited(dc, wxString::Format("Channels: %ld", (long)chs), pt, _size - wxSize(4, 4));
+                    DrawTextLimited(dc, wxString::Format("Channels: %ld", (long)chs), pt, sz - wxSize(4, 4));
                     pt += wxSize(0, (VERTICAL_SIZE * scale) / 2);
                 }
             }
             if (_style & STYLE_STRINGS) {
-                DrawTextLimited(dc, wxString::Format("Strings: %d", m->GetNumPhysicalStrings()), pt, _size - wxSize(4, 4));
+                DrawTextLimited(dc, wxString::Format("Strings: %d", m->GetNumPhysicalStrings()), pt, sz - wxSize(4, 4));
                 pt += wxSize(0, (VERTICAL_SIZE * scale) / 2);
             }
-
         }
 
         dc.SetBrush(origBrush);
@@ -989,7 +993,7 @@ void ControllerModelDialog::OnPopupCommand(wxCommandEvent &event) {
 
         if (!printer.Print(this, &printout, true)) {
             if (wxPrinter::GetLastError() == wxPRINTER_ERROR) {
-                DisplayError(wxString::Format("Problem printing wiring. %d", wxPrinter::GetLastError()).ToStdString(), this);
+                DisplayError(wxString::Format("Problem printing controller layout. %d", wxPrinter::GetLastError()).ToStdString(), this);
             }
         }
         else {
@@ -1008,10 +1012,16 @@ void ControllerModelDialog::OnPopupCommand(wxCommandEvent &event) {
 }
 
 void ControllerModelDialog::RenderPicture(wxBitmap& bitmap, bool printer) {
+
+    float maxx = ScrollBar_Controller_H->GetRange();
+    float maxy = ScrollBar_Controller_V->GetRange();
+    wxSize dcSize = bitmap.GetSize() - wxSize(10 * LEFT_RIGHT_MARGIN, 10 * TOP_BOTTOM_MARGIN);
+    float scale = std::min((float)dcSize.x / maxx, (float)dcSize.y / maxy);
+
     wxMemoryDC dc;
     dc.SelectObject(bitmap);
 
-    dc.SetTextForeground(*wxWHITE);
+    dc.SetTextForeground(*wxBLACK);
 
     dc.SetPen(*wxWHITE_PEN);
     dc.SetBrush(*wxWHITE_BRUSH);
@@ -1020,16 +1030,16 @@ void ControllerModelDialog::RenderPicture(wxBitmap& bitmap, bool printer) {
 
     dc.SetDeviceOrigin(0, 0);
 
-    int fontSize = 10 * PRINTSCALE;
+    int fontSize = 10 * scale;
     wxFont font = wxFont(wxSize(0, fontSize), wxFONTFAMILY_SWISS, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, _T("Arial"), wxFONTENCODING_DEFAULT);
     dc.SetFont(font);
 
-    int rowPos = TOP_BOTTOM_MARGIN * PRINTSCALE;
-    dc.DrawText(_title, LEFT_RIGHT_MARGIN * PRINTSCALE, rowPos);
-    rowPos += ((VERTICAL_SIZE / 2) * PRINTSCALE) + (VERTICAL_GAP * PRINTSCALE);
+    int rowPos = TOP_BOTTOM_MARGIN * scale;
+    dc.DrawText(_title, LEFT_RIGHT_MARGIN * scale, rowPos);
+    rowPos += ((VERTICAL_SIZE / 2) * scale) + (VERTICAL_GAP * scale);
 
     for (const auto& it : _controllers) {
-        it->Draw(dc, wxPoint(0, 0), wxSize(0, rowPos), PRINTSCALE, true);
+        it->Draw(dc, wxPoint(0, 0), wxSize(0, rowPos), scale, true);
     }
 }
 
