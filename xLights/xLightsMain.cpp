@@ -2143,7 +2143,7 @@ bool xLightsFrame::ForceEnableOutputs() {
                 if (controller->IsActive() && controller->IsAutoUpload() && controller->SupportsAutoUpload()) {
                     ControllerEthernet *eCont = dynamic_cast<ControllerEthernet*>(controller);
                     auto ip = eCont->GetResolvedIP();
-                    if (ip == "MULTICAST") {
+                    if (ip == "MULTICAST" || eCont->GetProtocol() == OUTPUT_ZCPP) {
                         continue;
                     }
                     BaseController* bc = BaseController::CreateBaseController(eCont);
