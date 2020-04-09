@@ -565,6 +565,7 @@ public:
     void OnButtonAddControllerSerialClick(wxCommandEvent& event);
     void OnButtonAddControllerEthernetClick(wxCommandEvent& event);
     void OnButtonAddControllerNullClick(wxCommandEvent& event);
+    void OnMenuItem_KeyBindingsSelected(wxCommandEvent& event);
     //*)
     void OnCharHook(wxKeyEvent& event);
 private:
@@ -671,6 +672,7 @@ public:
     static const long ID_SAVE_AS_SEQUENCE;
     static const long ID_CLOSE_SEQ;
     static const long ID_SEQ_SETTINGS;
+    static const long ID_MNU_KEYBINDINGS;
     static const long ID_EXPORT_VIDEO;
     static const long ID_MENUITEM2;
     static const long ID_FILE_BACKUP;
@@ -742,7 +744,7 @@ public:
     static const long ID_IMPORT_EFFECTS;
     static const long ID_MNU_MANUAL;
     static const long ID_MNU_ZOOM;
-    static const long ID_MNU_KEYBINDINGS;
+    static const long ID_MENUITEM1;
     static const long idMenuHelpContent;
     static const long ID_MENU_HELP_FORMUM;
     static const long ID_MNU_VIDEOS;
@@ -857,6 +859,7 @@ public:
     wxMenuItem* MenuItem_Help_ReleaseNotes;
     wxMenuItem* MenuItem_ImportEffects;
     wxMenuItem* MenuItem_Jukebox;
+    wxMenuItem* MenuItem_KeyBindings;
     wxMenuItem* MenuItem_LogRenderState;
     wxMenuItem* MenuItem_LoudVol;
     wxMenuItem* MenuItem_MedVol;
@@ -1253,6 +1256,7 @@ public:
     void UpdateEffectNode(wxXmlNode* node);
     void ApplyEffectsPreset(wxString& data, const wxString &pasteDataVersion);
     Effect* ApplyEffectsPreset(const std::string& presetName);
+    std::vector<std::string> GetPresets() const;
     void RenameModelInViews(const std::string old_name, const std::string& new_name);
     bool RenameModel(const std::string old_name, const std::string& new_name);
     bool RenameObject(const std::string old_name, const std::string& new_name);
