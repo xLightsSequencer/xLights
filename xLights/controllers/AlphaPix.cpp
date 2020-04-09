@@ -115,17 +115,14 @@ AlphaPix::AlphaPix(const std::string& ip, const std::string &proxy) : BaseContro
         static wxRegEx modelregex2("AlphaPix (\\d+) ", wxRE_ADVANCED | wxRE_NEWLINE);
         if (modelregex.Matches(_page)) {
             _modelnum = wxAtoi(modelregex.GetMatch(_page, 1).ToStdString());
-            logger_base.warn("Connected to AlphaPix controller model %s.", (const char*)GetFullName().c_str());
             _connected = true;
         }
         else if (modelregex2.Matches(_page)) {
             _modelnum = wxAtoi(modelregex2.GetMatch(_page, 1).ToStdString());
-            logger_base.warn("Connected to AlphaPix controller model %s.", (const char*)GetFullName().c_str());
             _connected = true;
         }
         else if (_page.Contains("AlphaPix Flex Lighting Controller")) {
             _modelnum = 48;
-            logger_base.warn("Connected to AlphaPix controller model %s.", (const char*)GetFullName().c_str());
             _connected = true;
         }
         else {
@@ -136,16 +133,18 @@ AlphaPix::AlphaPix(const std::string& ip, const std::string &proxy) : BaseContro
         //Currently Installed Firmware Version:  2.08
         static wxRegEx firmwareregex("(Currently Installed Firmware Version:  ([0-9]+.[0-9]+))", wxRE_ADVANCED | wxRE_NEWLINE);
         if (firmwareregex.Matches(wxString(_page))) {
-            _firmware = firmwareregex.GetMatch(wxString(_page), 2).ToStdString();
-            logger_base.warn("                                 firmware %s.", (const char*)_firmware.c_str());
+            _version = firmwareregex.GetMatch(wxString(_page), 2).ToStdString();
         }
 
         if (_modelnum == 48) {
             _model = "AlphaPix Flex";
         }
         else { 
-            _model = wxString::Format("%d %s", _modelnum, _firmware).ToStdString();
+            _model = wxString::Format("AlphaPix %d", _modelnum).ToStdString();
         }
+
+        if(_connected)
+            logger_base.debug("Connected to AlphaPix controller model %s.", (const char*)GetFullName().c_str());
     }
     else {
         _connected = false;
@@ -508,12 +507,6 @@ bool AlphaPix::EncodeDirection(const std::string& direction) const {
 
     return direction == "Reverse";
 }
-
-//std::string AlphaPix::EncodeControllerType() const {
-
-//    if (_modelnum == 48) return "AlphaPix Flex";
-//    return wxString::Format("%d %s", _modelnum, _firmware).ToStdString();
-//}
 
 AlphaPixOutput* AlphaPix::FindPortData(int port) {
 

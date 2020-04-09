@@ -544,12 +544,11 @@ HinksPix::HinksPix(const std::string& ip, const std::string& proxy) : BaseContro
         if (!firmData.empty()) {
             static wxRegEx firmwareregex("Main\\sCPU\\s(\\d+)\\s+Power\\sCPU\\s+(\\d+)\\s+WIFI\\sCPU\\s+(\\d+)\\s+Web\\s+(\\d+)", wxRE_ADVANCED | wxRE_NEWLINE);
             if (firmwareregex.Matches(firmData)) {
-                _firmware = wxString::Format("MAIN:%s,POWER:%s,WIFI:%s,WEB:%s",
+                _version = wxString::Format("MAIN:%s,POWER:%s,WIFI:%s,WEB:%s",
                     firmwareregex.GetMatch(firmData, 1),
                     firmwareregex.GetMatch(firmData, 2),
                     firmwareregex.GetMatch(firmData, 3),
                     firmwareregex.GetMatch(firmData, 4));
-                logger_base.info("Connected to HinksPix controller model %s.", _firmware.c_str());
             }
         } 
         else {
@@ -559,6 +558,8 @@ HinksPix::HinksPix(const std::string& ip, const std::string& proxy) : BaseContro
         if (!_Flex)
             _model = "EasyLights Pix16";
         _model = "HinksPix PRO";
+
+        logger_base.debug("Connected to HinksPix controller model %s.", (const char*)GetFullName().c_str());
     }
 }
 

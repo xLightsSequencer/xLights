@@ -24,12 +24,8 @@ class AlphaPixSerial;
 class AlphaPix : public BaseController
 {
     #pragma region Member Variables
-    std::string _baseUrl;
-    const std::string _fppProxy;
-    const std::string _ip;
     wxString _page;
     int _modelnum = -1;
-    wxString _firmware;
     std::vector<AlphaPixOutput*> _pixelOutputs;
     std::vector<AlphaPixSerial*> _serialOutputs;
     #pragma endregion
@@ -70,7 +66,7 @@ class AlphaPix : public BaseController
     void UploadPixelOutputs(bool& worked);
     void UploadFlexPixelOutputs(bool& worked);
 
-    const std::string GetFirmware() { return _firmware; }
+    const std::string GetFirmware() { return _version; }
     const int GetNumberOfOutputs() { return _modelnum; }
     const int GetNumberOfSerial() {
         if (_modelnum == 4)

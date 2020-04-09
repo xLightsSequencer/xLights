@@ -88,7 +88,6 @@ class HinksPix : public BaseController
     #pragma region Member Variables
     wxHTTP _http;
     int _inputMode;//e131=0, ddp=1, artnet=2
-    std::string _firmware;
     int _outputTypes[3];
     int _Flex;
     int _numberOfOutputs;
