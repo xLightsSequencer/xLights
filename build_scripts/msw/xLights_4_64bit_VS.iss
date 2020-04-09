@@ -12,12 +12,9 @@
 ; mar 3,2016: (Removed, No longer needed as of 2016.10) Source: "bin/ffmpeg.exe"; DestDir: "{app}"; Flags: "ignoreversion"
 ; mar 7, 2016 added DisableDirPage=no . This always prompt for an installation directory
 
+#include "xLights_common.iss"
 
-#define MyTitleName "xLights" 
-#define Year 2020
-#define Version 14
 #define Bits 64
-#define Other ""
 
 [Setup]
 ;; (not yet implemented) SignTool=mystandard

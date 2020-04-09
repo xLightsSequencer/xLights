@@ -11,6 +11,23 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2020.15 April 10 2020
+   -- enh (keith)  Add to visualiser ability to hide models assigned to other controllers
+   -- enh (keith)  Add key binding editing
+   -- enh (keith)  Add support for OPC (Open Pixel Control)
+   -- enh (keith)  Update zoom room link
+   -- enh (dkulp)  FPP set discover defaults to autosize and autoupload
+   -- bug (keith)  Improve compliance of MIDI timecode sending
+   -- bug (keith)  Improve compliance of ArtNet timecode sending
+   -- bug (keith)  Fix state effect does not set channels on dmx models
+   -- bug (keith)  Fix mix of individual universes and universe ranges dont convert correctly
+   -- bug (keith)  Fix white wiring view does not zoom correctly
+   -- bug (keith)  Fix auto upload broke ZCPP sending
+   -- bug (keith)  Update shader download to work with new ISF URL format
+   -- bug (keith)  Fix controller visualiser printing
+   -- bug (scott)  Fix crash when changing custom model depth
+   -- bug (scott)  Fix star model end channel not updating
+   -- bug (dkulp)  Fix trackpad panning in 2D on OSX
 2020.14 April 5 2020
    -- enh (keith)  Make xSchedule holding the screen on on windows optional
    -- bug (keith)  Fix FPP date column ordering is a text sort
