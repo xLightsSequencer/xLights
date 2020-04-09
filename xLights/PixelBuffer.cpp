@@ -661,7 +661,6 @@ namespace
       Vec2D xy( s, t );
 
       double angle = std::atan2( xy.y - 0.5, xy.x - 0.5 ) - 0.5 * PI;
-      double normalized = (angle + 1.5 * PI) * (2.0 * PI);
       double radius = ( cos( numSegments * angle ) + 4.0) / 4.0;
       double difference = Vec2D( xy - Vec2D( 0.5, 0.5 ) ).Len();
 

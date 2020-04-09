@@ -2443,8 +2443,6 @@ void AudioManager::DoLoadAudioData(AVFormatContext* formatContext, AVCodecContex
 
 void AudioManager::LoadAudioFromFrame( AVFormatContext* formatContext, AVCodecContext* codecContext, AVPacket* decodingPacket, AVFrame* frame, SwrContext* au_convert_ctx, bool receivedEOF, int out_channels, uint8_t* out_buffer, long& read, int& lastpct )
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     int status = avcodec_send_packet( codecContext, receivedEOF ? nullptr : decodingPacket );
     if ( status == 0 )
     {
@@ -3325,7 +3323,7 @@ bool AudioManager::CreateAudioFile(const std::vector<float>& left, const std::ve
     AVStream *audio_st = avformat_new_stream( formatContext, audioCodec );
     //audio_st->id = formatContext->nb_streams - 1;
 
-    int status = avcodec_parameters_from_context( audio_st->codecpar, codecContext );
+    avcodec_parameters_from_context( audio_st->codecpar, codecContext );
 
     if ( formatContext->oformat->flags & AVFMT_GLOBALHEADER )
         codecContext->flags |= CODEC_FLAG_GLOBAL_HEADER;

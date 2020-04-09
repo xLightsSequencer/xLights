@@ -138,6 +138,38 @@ cp ./src/.libs/liblog4cpp.5.dylib to the libs/osx dir
 
 SDL2:  currently using 2.0.10
 
+Codeblocks:
+Codeblocks needs to have wxWidgets compiled differently, specifically c++14, no lto-thin, and without the containers, shared libs
+
+Set install dir:  needs to be separate from wxWidgets used for xLights:
+export CB_INSTALL=${CB_INSTALL:=~/working/codeblocks/install_dir}
+
+export CXXFLAGS="-stdlib=libc++ -std=c++14"
+export OBJCXXFLAGS="-stdlib=libc++ -std=c++14"
+export CPPFLAGS="-stdlib=libc++"
+export LDFLAGS="-stdlib=libc++"
+export CXX=clang++
+export CXXCPP="clang++ -E"
+export CC=clang
+export CPP="clang -E"
+export CFLAGS=""
+mkdir -p $CB_INSTALL
+../configure  --disable-debug --enable-optimise --prefix=$CB_INSTALL --enable-macosx_arch=x86_64 \
+             --enable-mediactrl --with-osx_cocoa --with-opengl --disable-dependency-tracking \
+             --disable-compat30 --with-macosx-version-min=10.10 --with-libjpeg=builtin  --without-libtiff --enable-mimetype \
+             --with-cxx=14 --enable-cxx11  \
+             --enable-backtrace --enable-exceptions --enable-aui --without-liblzma  --with-expat=builtin
+make -j 8
+make install
+
+Then in codeblocks, after bootstrap:
+PATH=$CB_INSTALL/bin:$PATH
+./configure --with-contrib-plugins=all,-spellchecker,-FileManager,-NassiShneiderman,-profiler --prefix=$CB_INSTALL
+make -j 8
+make install
+./bundle.sh
+
+
 
 wxWidgets git hash history:
 Feb 28, 2016 - cbb799b1ae3f309c99beb0d287e9bb3b62ea405c Update to 3.1.0 release from 3.0.x

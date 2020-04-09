@@ -1867,7 +1867,6 @@ void xLightsFrame::OnListControllerPopup(wxCommandEvent& event) {
 
     int id = event.GetId();
     int item = List_Controllers->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
-    int selcount = List_Controllers->GetSelectedItemCount();
 
     if (id == ID_NETWORK_ADDSERIAL) {
         auto c = new ControllerSerial(&_outputManager);

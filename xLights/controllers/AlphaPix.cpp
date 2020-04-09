@@ -253,7 +253,6 @@ AlphaPixOutput* AlphaPix::ExtractFlexOutputData(const wxString& page, int port) 
 AlphaPixSerial* AlphaPix::ExtractSerialData(const wxString& page, int port) {
 
     const wxString p(page);
-    int start = p.find("DMX512 Output");
 
     AlphaPixSerial* serial = new AlphaPixSerial(port);
     if (_modelnum == 4) {

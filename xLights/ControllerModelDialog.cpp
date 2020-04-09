@@ -292,7 +292,7 @@ public:
             if (_type == PORTTYPE::SERIAL && _caps->GetSerialProtocols().size() == 0) return;
         }
         mnu.AppendSeparator();
-        auto mi = mnu.Append(ControllerModelDialog::CONTROLLER_PROTOCOL, "Set Protocol");
+        mnu.Append(ControllerModelDialog::CONTROLLER_PROTOCOL, "Set Protocol");
     }
     virtual bool HandlePopup(wxWindow* parent, int id) override {
         if (id == ControllerModelDialog::CONTROLLER_PROTOCOL)
@@ -866,7 +866,7 @@ void ControllerModelDialog::ReloadModels()
         if (it.second->GetDisplayAs() != "ModelGroup") {
             if (_cud->GetControllerPortModel(it.second->GetName()) == nullptr &&
                 ((_autoLayout && !CheckBox_HideOtherControllerModels->GetValue()) ||
-                 (_autoLayout && CheckBox_HideOtherControllerModels->GetValue() && (it.second->GetController() == nullptr || _controller->ContainsChannels(it.second->GetFirstChannel(), it.second->GetLastChannel())) ||
+                 ((_autoLayout && CheckBox_HideOtherControllerModels->GetValue() && (it.second->GetController() == nullptr || _controller->ContainsChannels(it.second->GetFirstChannel(), it.second->GetLastChannel()))) ||
                  _controller->ContainsChannels(it.second->GetFirstChannel(), it.second->GetLastChannel())))) {
                 _models.push_back(new ModelCMObject(it.second->GetName(), it.second->GetName(), _mm, _cud, _caps, wxPoint(5, y), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE), BaseCMObject::STYLE_STRINGS));
                 y += VERTICAL_GAP + VERTICAL_SIZE;
