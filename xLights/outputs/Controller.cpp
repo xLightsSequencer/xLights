@@ -470,7 +470,8 @@ void Controller::AddProperties(wxPropertyGrid* propertyGrid, ModelManager* model
                         v = versions.GetCount() - 1;
                     }
                 }
-                p = propertyGrid->Append(new wxEnumProperty("Variant", "Variant", versions, v));
+                if(versions.GetCount() > 1)
+                    p = propertyGrid->Append(new wxEnumProperty("Variant", "Variant", versions, v));
             }
         }
     }

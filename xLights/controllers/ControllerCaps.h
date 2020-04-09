@@ -48,7 +48,7 @@ public:
     static std::list<std::string> GetModels(const std::string& vendor);
     static std::list<std::string> GetVariants(const std::string& vendor, const std::string& model);
 
-    static ControllerCaps* GetControllerConfig(const std::string& vendor, const std::string& model, const std::string& firmwareVersion);
+    static ControllerCaps* GetControllerConfig(const std::string& vendor, const std::string& model, const std::string& variant);
     static ControllerCaps* GetControllerConfig(const Controller* const controller);
     static ControllerCaps* GetControllerConfigByID(const std::string& ID);
     #pragma endregion Static Functions
