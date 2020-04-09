@@ -826,6 +826,7 @@
     <ClCompile Include="outputs\OPCOutput.cpp">
       <Filter>Outputs</Filter>
     </ClCompile>
+    <ClCompile Include="KeyBindingEditDialog.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -1660,6 +1661,7 @@
     <ClInclude Include="outputs\OPCOutput.h">
       <Filter>Outputs</Filter>
     </ClInclude>
+    <ClInclude Include="KeyBindingEditDialog.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Models">

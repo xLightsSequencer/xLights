@@ -543,6 +543,8 @@
 		<Unit filename="JobPool.h" />
 		<Unit filename="JukeboxPanel.cpp" />
 		<Unit filename="JukeboxPanel.h" />
+		<Unit filename="KeyBindingEditDialog.cpp" />
+		<Unit filename="KeyBindingEditDialog.h" />
 		<Unit filename="KeyBindings.cpp" />
 		<Unit filename="KeyBindings.h" />
 		<Unit filename="LMSImportChannelMapDialog.cpp" />
@@ -1297,6 +1299,7 @@
 		<Unit filename="wxsmith/ImportPreviewsModelsDialog.wxs" />
 		<Unit filename="wxsmith/JukeboxPanel.wxs" />
 		<Unit filename="wxsmith/KaleidoscopePanel.wxs" />
+		<Unit filename="wxsmith/KeyBindingEditDialog.wxs" />
 		<Unit filename="wxsmith/LMSImportChannelMapDialog.wxs" />
 		<Unit filename="wxsmith/LayerSelectDialog.wxs" />
 		<Unit filename="wxsmith/LayoutPanel.wxs" />
@@ -1596,6 +1599,7 @@
 					<wxPanel wxs="wxsmith/RandomEffectsSettingsPanel.wxs" src="preferences/RandomEffectsSettingsPanel.cpp" hdr="preferences/RandomEffectsSettingsPanel.h" fwddecl="1" i18n="1" name="RandomEffectsSettingsPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/ColorManagerSettingsPanel.wxs" src="preferences/ColorManagerSettingsPanel.cpp" hdr="preferences/ColorManagerSettingsPanel.h" fwddecl="0" i18n="1" name="ColorManagerSettingsPanel" language="CPP" />
 					<wxDialog wxs="wxsmith/BulkEditColourPickerDialog.wxs" src="BulkEditColourPickerDialog.cpp" hdr="BulkEditColourPickerDialog.h" fwddecl="0" i18n="1" name="BulkEditColourPickerDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/KeyBindingEditDialog.wxs" src="KeyBindingEditDialog.cpp" hdr="KeyBindingEditDialog.h" fwddecl="0" i18n="1" name="KeyBindingEditDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>

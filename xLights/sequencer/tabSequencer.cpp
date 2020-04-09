@@ -3695,6 +3695,40 @@ void xLightsFrame::UpdateEffectNode(wxXmlNode* node)
     node->AddAttribute("xLightsVersion", xlights_version_string);
 }
 
+std::vector<std::string> GetPresets(wxXmlNode* node, const std::string& path)
+{
+    std::vector<std::string> res;
+
+    if (node == nullptr) return res;
+
+    for (auto n = node->GetChildren(); n != nullptr; n = n->GetNext())
+    {
+        if (n->GetName() == "effect")
+        {
+            auto name = n->GetAttribute("name", "");
+            if (path != "") name = path + "\\" + name;
+            if (name != "") res.push_back(name);
+        }
+        else if (n->GetName() == "effectGroup")
+        {
+            auto name = n->GetAttribute("name", "");
+            auto p = path;
+            if (p != "") p = p + "\\";
+            p = p + name;
+            auto toadd = GetPresets(n, p);
+            res.reserve(res.size() + toadd.size()); // preallocate memory
+            res.insert(res.end(), toadd.begin(), toadd.end());
+        }
+    }
+
+    return res;
+}
+
+std::vector<std::string> xLightsFrame::GetPresets() const
+{
+    return ::GetPresets(mSequenceElements.GetEffectsNode(), "");
+}
+
 wxXmlNode* FindPreset(wxXmlNode* node, wxArrayString& path, int level)
 {
     for (auto n = node->GetChildren(); n != nullptr; n = n->GetNext())

@@ -1032,6 +1032,10 @@
 					<label>Sequence Settings</label>
 					<handler function="OnMenu_Settings_SequenceSelected" entry="EVT_MENU" />
 				</object>
+				<object class="wxMenuItem" name="ID_MNU_KEYBINDINGS" variable="MenuItem_KeyBindings" member="yes">
+					<label>Key bindings</label>
+					<handler function="OnMenuItem_KeyBindingsSelected" entry="EVT_MENU" />
+				</object>
 				<object class="separator" />
 				<object class="wxMenuItem" name="ID_EXPORT_VIDEO" variable="MenuItem_File_Export_Video" member="yes">
 					<label>Export House Preview Video</label>
@@ -1402,7 +1406,7 @@
 					<label>Zoom</label>
 					<handler function="OnMenuItem_ZoomSelected" entry="EVT_MENU" />
 				</object>
-				<object class="wxMenuItem" name="ID_MNU_KEYBINDINGS" variable="MenuItem_ShowKeyBindings" member="yes">
+				<object class="wxMenuItem" name="ID_MENUITEM1" variable="MenuItem_ShowKeyBindings" member="yes">
 					<label>Key Bindings</label>
 					<handler function="OnMenuItem_ShowKeyBindingsSelected" entry="EVT_MENU" />
 				</object>
