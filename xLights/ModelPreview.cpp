@@ -467,7 +467,18 @@ void ModelPreview::RenderModels(const std::vector<Model*>& models, bool isModelS
                     m->DisplayModelOnWindow(this, solidAccumulator3d, transparentAccumulator3d, linesAccumulator3d, true, color, allowSelected);
                 }
                 else {
-                    m->DisplayModelOnWindow(this, solidAccumulator, transparentAccumulator, minx, miny, maxx, maxy, false, color, allowSelected);
+                    float mix = 999999;
+                    float max = -999999;
+                    float miy = 999999;
+                    float may = -999999;
+                    m->DisplayModelOnWindow(this, solidAccumulator, transparentAccumulator, mix, miy, max, may, false, color, allowSelected);
+                    if (color == selColor)
+                    {
+                        if (mix < minx) minx = mix;
+                        if (miy < miny) miny = miy;
+                        if (max > maxx) maxx = max;
+                        if (may > maxy) maxy = may;
+                    }
                     // FIXME:  Delete when not needed for debugging
                     //if ((*PreviewModels)[i]->Highlighted) {
                     //    (*PreviewModels)[i]->GetModelScreenLocation().DrawBoundingBox(accumulator);
@@ -485,11 +496,22 @@ void ModelPreview::RenderModels(const std::vector<Model*>& models, bool isModelS
 
                         if (sm->GroupSelected || sm->Selected)
                         {
+                            float mix = 999999;
+                            float max = -999999;
+                            float miy = 999999;
+                            float may = -999999;
                             if (is_3d) {
                                 sm->DisplayModelOnWindow(this, solidAccumulator3d, transparentAccumulator3d, linesAccumulator3d, true, color, allowSelected);
                             }
                             else {
-                                sm->DisplayModelOnWindow(this, solidAccumulator, transparentAccumulator, minx, miny, maxx, maxy, false, color, allowSelected);
+                                sm->DisplayModelOnWindow(this, solidAccumulator, transparentAccumulator, mix, miy, max, may, false, color, allowSelected);
+                            }
+                            if (color == selColor)
+                            {
+                                if (mix < minx) minx = mix;
+                                if (miy < miny) miny = miy;
+                                if (max > maxx) maxx = max;
+                                if (may > maxy) maxy = may;
                             }
                         }
                     }
