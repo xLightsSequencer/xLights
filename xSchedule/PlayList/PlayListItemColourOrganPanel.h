@@ -33,8 +33,10 @@ class PlayListItemColourOrganPanel: public wxPanel
 		wxSpinCtrl* SpinCtrl_FadeFrames;
 		wxSpinCtrl* SpinCtrl_Priority;
 		wxSpinCtrl* SpinCtrl_StartNote;
+		wxSpinCtrl* SpinCtrl_Threshold;
 		wxStaticText* StaticText10;
 		wxStaticText* StaticText11;
+		wxStaticText* StaticText12;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText2;
 		wxStaticText* StaticText3;
@@ -74,6 +76,8 @@ class PlayListItemColourOrganPanel: public wxPanel
 		static const long ID_SPINCTRL3;
 		static const long ID_STATICTEXT12;
 		static const long ID_SPINCTRL5;
+		static const long ID_STATICTEXT13;
+		static const long ID_SPINCTRL6;
 		static const long ID_STATICTEXT7;
 		static const long ID_TEXTCTRL2;
 		//*)

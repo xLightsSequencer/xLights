@@ -20,6 +20,7 @@ PlayListItemColourOrgan::PlayListItemColourOrgan(OutputManager* outputManager, w
     _lastValue = 0;
     _fadeFrames = 0;
     _fadePerFrame = 1.0;
+    _threshold = 80;
     PlayListItemColourOrgan::Load(node);
 }
 
@@ -39,6 +40,7 @@ void PlayListItemColourOrgan::Load(wxXmlNode* node)
     _startNote = wxAtoi(node->GetAttribute("StartNote", "1"));
     _endNote = wxAtoi(node->GetAttribute("EndNote", "127"));
     _fadeFrames = wxAtoi(node->GetAttribute("FadeFrames", "0"));
+    _threshold = wxAtoi(node->GetAttribute("Threshold", "80"));
     if (_fadeFrames == 0) {
         _fadePerFrame = 10.0;
     }
@@ -62,6 +64,7 @@ PlayListItemColourOrgan::PlayListItemColourOrgan(OutputManager* outputManager) :
     _lastValue = 0;
     _fadeFrames = 0;
     _fadePerFrame = 1.0;
+    _threshold = 80;
     _blendMode = APPLYMETHOD::METHOD_OVERWRITEIFBLACK;
 }
 
@@ -80,6 +83,7 @@ PlayListItem* PlayListItemColourOrgan::Copy() const
     res->_lastValue = _lastValue;
     res->_fadeFrames = _fadeFrames;
     res->_fadePerFrame = _fadePerFrame;
+    res->_threshold = _threshold;
     PlayListItem::Copy(res);
 
     return res;
@@ -98,6 +102,7 @@ wxXmlNode* PlayListItemColourOrgan::Save()
     node->AddAttribute("StartNote", wxString::Format(wxT("%i"), (int)_startNote));
     node->AddAttribute("EndNote", wxString::Format(wxT("%i"), (int)_endNote));
     node->AddAttribute("FadeFrames", wxString::Format(wxT("%i"), (int)_fadeFrames));
+    node->AddAttribute("Threshold", wxString::Format(wxT("%i"), (int)_threshold));
 
     PlayListItem::Save(node);
 
@@ -150,6 +155,11 @@ void PlayListItemColourOrgan::Frame(uint8_t* buffer, size_t size, size_t ms, siz
                     value = std::max(res[i-1], value);
                 }
             }
+        }
+
+        if (value < ((float)_threshold * 10.0) / 255.0)
+        {
+            value = 0;
         }
 
         if (_lastValue - _fadePerFrame > value)

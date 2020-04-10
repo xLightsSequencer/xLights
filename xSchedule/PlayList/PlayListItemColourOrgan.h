@@ -25,6 +25,7 @@ protected:
     int _fadeFrames = 0;
     float _lastValue = 0;
     float _fadePerFrame = 1.0;
+    int _threshold = 80;
     #pragma endregion Member Variables
 
     void SetPixel(uint8_t* p, uint8_t r, uint8_t g, uint8_t b, APPLYMETHOD blendMode);
@@ -59,6 +60,8 @@ public:
     void SetEndNote(int endNote) { if (_endNote != endNote) { _endNote = endNote; _changeCount++; } };
     int GetFadeFrames() const { return _fadeFrames; }
     void SetFadeFrames(int fadeFrames) { if (_fadeFrames != fadeFrames) { _fadeFrames = fadeFrames; _changeCount++; } };
+    int GetThreshold() const { return _threshold; }
+    void SetThreshold(int threshold) { if (_threshold != threshold) { _threshold = threshold; _changeCount++; } };
     virtual std::string GetTitle() const override;
     #pragma endregion Getters and Setters
 
