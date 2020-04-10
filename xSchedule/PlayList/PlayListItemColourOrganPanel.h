@@ -1,7 +1,6 @@
-#ifndef PLAYLISTITEMMICROPHONEPANEL_H
-#define PLAYLISTITEMMICROPHONEPANEL_H
+#pragma once
 
-//(*Headers(PlayListItemMicrophonePanel)
+//(*Headers(PlayListItemColourOrganPanel)
 #include <wx/choice.h>
 #include <wx/clrpicker.h>
 #include <wx/panel.h>
@@ -12,26 +11,30 @@
 //*)
 
 class OutputManager;
-class PlayListItemMicrophone;
+class PlayListItemColourOrgan;
 
-class PlayListItemMicrophonePanel: public wxPanel
+class PlayListItemColourOrganPanel: public wxPanel
 {
     OutputManager* _outputManager;
-    PlayListItemMicrophone* _microphone;
+    PlayListItemColourOrgan* _ColourOrgan;
     void ValidateWindow();
 
 	public:
 
-		PlayListItemMicrophonePanel(wxWindow* parent, OutputManager* outputManager, PlayListItemMicrophone* microphone, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
-		virtual ~PlayListItemMicrophonePanel();
+		PlayListItemColourOrganPanel(wxWindow* parent, OutputManager* outputManager, PlayListItemColourOrgan* ColourOrgan, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
+		virtual ~PlayListItemColourOrganPanel();
 
-		//(*Declarations(PlayListItemMicrophonePanel)
+		//(*Declarations(PlayListItemColourOrganPanel)
 		wxChoice* Choice_BlendMode;
 		wxChoice* Choice_Mode;
 		wxColourPickerCtrl* ColourPickerCtrl1;
 		wxSpinCtrl* SpinCtrl_Channels;
+		wxSpinCtrl* SpinCtrl_EndNote;
+		wxSpinCtrl* SpinCtrl_FadeFrames;
 		wxSpinCtrl* SpinCtrl_Priority;
+		wxSpinCtrl* SpinCtrl_StartNote;
 		wxStaticText* StaticText10;
+		wxStaticText* StaticText11;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText2;
 		wxStaticText* StaticText3;
@@ -39,6 +42,8 @@ class PlayListItemMicrophonePanel: public wxPanel
 		wxStaticText* StaticText5;
 		wxStaticText* StaticText6;
 		wxStaticText* StaticText7;
+		wxStaticText* StaticText8;
+		wxStaticText* StaticText9;
 		wxStaticText* StaticText_StartChannel;
 		wxTextCtrl* TextCtrl_Duration;
 		wxTextCtrl* TextCtrl_Name;
@@ -47,7 +52,7 @@ class PlayListItemMicrophonePanel: public wxPanel
 
 	protected:
 
-		//(*Identifiers(PlayListItemMicrophonePanel)
+		//(*Identifiers(PlayListItemColourOrganPanel)
 		static const long ID_STATICTEXT1;
 		static const long ID_TEXTCTRL1;
 		static const long ID_STATICTEXT2;
@@ -63,19 +68,26 @@ class PlayListItemMicrophonePanel: public wxPanel
 		static const long ID_SPINCTRL4;
 		static const long ID_STATICTEXT4;
 		static const long ID_SPINCTRL1;
+		static const long ID_STATICTEXT8;
+		static const long ID_SPINCTRL2;
+		static const long ID_STATICTEXT11;
+		static const long ID_SPINCTRL3;
+		static const long ID_STATICTEXT12;
+		static const long ID_SPINCTRL5;
 		static const long ID_STATICTEXT7;
 		static const long ID_TEXTCTRL2;
 		//*)
 
 	private:
 
-		//(*Handlers(PlayListItemMicrophonePanel)
+		//(*Handlers(PlayListItemColourOrganPanel)
 		void OnTextCtrl_NameText(wxCommandEvent& event);
 		void OnChoice_ModeSelect(wxCommandEvent& event);
 		void OnTextCtrl_StartChannelText(wxCommandEvent& event);
+		void OnSpinCtrl_ChannelsChange(wxSpinEvent& event);
+		void OnSpinCtrl_StartNoteChange(wxSpinEvent& event);
+		void OnSpinCtrl_EndNoteChange(wxSpinEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()
 };
-
-#endif

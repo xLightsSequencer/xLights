@@ -2,14 +2,14 @@
 #define PLAYLISTITEMAUDIOPANEL_H
 
 //(*Headers(PlayListItemAudioPanel)
-#include <wx/sizer.h>
-#include <wx/stattext.h>
-#include <wx/textctrl.h>
 #include <wx/checkbox.h>
 #include <wx/filepicker.h>
-#include <wx/spinctrl.h>
-#include <wx/slider.h>
 #include <wx/panel.h>
+#include <wx/sizer.h>
+#include <wx/slider.h>
+#include <wx/spinctrl.h>
+#include <wx/stattext.h>
+#include <wx/textctrl.h>
 //*)
 
 class PlayListItemAudio;
@@ -26,15 +26,15 @@ class PlayListItemAudioPanel: public wxPanel
 		virtual ~PlayListItemAudioPanel();
 
 		//(*Declarations(PlayListItemAudioPanel)
-		wxSlider* Slider1;
-		wxStaticText* StaticText2;
-		wxCheckBox* CheckBox_FastStartAudio;
-		wxStaticText* StaticText3;
-		wxTextCtrl* TextCtrl_Delay;
-		wxSpinCtrl* SpinCtrl_Priority;
 		AudioFilePickerCtrl* FilePickerCtrl_AudioFile;
-		wxStaticText* StaticText4;
+		wxCheckBox* CheckBox_FastStartAudio;
 		wxCheckBox* CheckBox_OverrideVolume;
+		wxSlider* Slider1;
+		wxSpinCtrl* SpinCtrl_Priority;
+		wxStaticText* StaticText2;
+		wxStaticText* StaticText3;
+		wxStaticText* StaticText4;
+		wxTextCtrl* TextCtrl_Delay;
 		//*)
 
 	protected:

@@ -4,11 +4,11 @@
 #include "EventPanel.h"
 
 //(*Headers(EventE131Panel)
-#include <wx/sizer.h>
-#include <wx/stattext.h>
-#include <wx/spinctrl.h>
-#include <wx/panel.h>
 #include <wx/choice.h>
+#include <wx/panel.h>
+#include <wx/sizer.h>
+#include <wx/spinctrl.h>
+#include <wx/stattext.h>
 //*)
 
 class EventE131Panel: public EventPanel
@@ -24,11 +24,11 @@ class EventE131Panel: public EventPanel
 		//(*Declarations(EventE131Panel)
 		wxChoice* Choice_Test;
 		wxSpinCtrl* SpinCtrl_Channel;
-		wxStaticText* StaticText2;
 		wxSpinCtrl* SpinCtrl_Universe;
-		wxStaticText* StaticText1;
-		wxStaticText* StaticText3;
 		wxSpinCtrl* SpinCtrl_Value;
+		wxStaticText* StaticText1;
+		wxStaticText* StaticText2;
+		wxStaticText* StaticText3;
 		wxStaticText* StaticText4;
 		//*)
 

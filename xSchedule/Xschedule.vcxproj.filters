@@ -530,6 +530,12 @@
     <ClCompile Include="..\xLights\outputs\OPCOutput.cpp">
       <Filter>Outputs</Filter>
     </ClCompile>
+    <ClCompile Include="PlayList\PlayListItemColourOrgan.cpp">
+      <Filter>PlayList</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayList\PlayListItemColourOrganPanel.cpp">
+      <Filter>PlayList</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\xLights\AudioManager.h" />
@@ -1052,6 +1058,12 @@
     <ClInclude Include="SyncSMPTE.h" />
     <ClInclude Include="..\xLights\outputs\OPCOutput.h">
       <Filter>Outputs</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayList\PlayListItemColourOrgan.h">
+      <Filter>PlayList</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayList\PlayListItemColourOrganPanel.h">
+      <Filter>PlayList</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

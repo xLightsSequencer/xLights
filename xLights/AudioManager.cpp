@@ -433,9 +433,89 @@ int SDL::GetInputMax(int ms)
     return std::min((max - 127) * 2, 255);
 }
 
-std::list<float> SDL::GetInputSpectrum(int ms)
+// gets the spectrum for the current output frame
+std::vector<float> SDL::GetOutputSpectrum(int ms)
 {
-    std::list<float> res;
+    std::vector<float> res;
+
+    if (_audioData.size() == 0) return res;
+
+    int samplesNeeded = DEFAULT_RATE * ms / 1000;
+    if (samplesNeeded % 2 != 0) samplesNeeded++;
+
+    Uint8 buffer[SDL_INPUT_BUFFER_SIZE];
+    memset(buffer, 0x00, sizeof(buffer));
+
+    // we just work with the first audio track
+    auto ad = _audioData.front();
+
+    int read = std::min((int)sizeof(buffer), (int)ad->_audio_len);
+    memcpy(buffer, ad->_audio_pos, read);
+
+    int n = std::min(read / 2, samplesNeeded);
+    float* in = (float*)malloc(n * sizeof(float));
+    if (in == nullptr) return res;
+
+    int j = 0;
+    for (int i = std::max(0, read - samplesNeeded * 2); i < read - 1; i += 2)
+    {
+        *(in + j) = (float)(((int)buffer[i + 1] << 8) + (int)buffer[i]) / (float)0xFFF;
+        j++;
+    }
+
+    // Now do the spectrum analysing
+    int outcount = n / 2 + 1;
+    kiss_fftr_cfg cfg;
+    kiss_fft_cpx* out = (kiss_fft_cpx*)malloc(sizeof(kiss_fft_cpx) * (outcount));
+    if (out != nullptr)
+    {
+        if ((cfg = kiss_fftr_alloc(outcount, 0/*is_inverse_fft*/, nullptr, nullptr)) != nullptr)
+        {
+            kiss_fftr(cfg, in, out);
+            free(cfg);
+        }
+
+        for (j = 0; j < 127; j++)
+        {
+            // choose the right bucket for this MIDI note
+            double freq = 440.0 * exp2f(((double)j - 69.0) / 12.0);
+            int start = freq * (double)n / (double)DEFAULT_RATE;
+            double freqnext = 440.0 * exp2f(((double)j + 1.0 - 69.0) / 12.0);
+            int end = freqnext * (double)n / (double)DEFAULT_RATE;
+
+            float val = 0.0;
+
+            // got through all buckets up to the next note and take the maximums
+            if (end < outcount - 1)
+            {
+                for (int k = start; k <= end; k++)
+                {
+                    kiss_fft_cpx* cur = out + k;
+                    val = std::max(val, sqrtf(cur->r * cur->r + cur->i * cur->i));
+                    //float valscaled = valnew * scaling;
+                }
+            }
+
+            float db = log10(val);
+            if (db < 0.0)
+            {
+                db = 0.0;
+            }
+
+            res.push_back(db);
+        }
+
+        free(out);
+    }
+
+    free(in);
+
+    return res;
+}
+
+std::vector<float> SDL::GetInputSpectrum(int ms)
+{
+    std::vector<float> res;
 
     // Drop any audio less recent that the specified number of milliseconds ... this is necessary to make it responsive
     PurgeAllButInputAudio(ms);

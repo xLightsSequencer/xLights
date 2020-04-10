@@ -2,14 +2,14 @@
 #define PLAYLISTITEMVIDEOPANEL_H
 
 //(*Headers(PlayListItemVideoPanel)
-#include <wx/sizer.h>
-#include <wx/stattext.h>
-#include <wx/textctrl.h>
+#include <wx/button.h>
 #include <wx/checkbox.h>
 #include <wx/filepicker.h>
-#include <wx/spinctrl.h>
 #include <wx/panel.h>
-#include <wx/button.h>
+#include <wx/sizer.h>
+#include <wx/spinctrl.h>
+#include <wx/stattext.h>
+#include <wx/textctrl.h>
 //*)
 
 class PlayListItemVideo;
@@ -27,20 +27,20 @@ class PlayListItemVideoPanel: public wxPanel
 		virtual ~PlayListItemVideoPanel();
 
 		//(*Declarations(PlayListItemVideoPanel)
-		wxCheckBox* CheckBox_LoopVideo;
-		wxSpinCtrl* SpinCtrl_FadeOut;
-		wxStaticText* StaticText2;
 		VideoFilePickerCtrl* FilePickerCtrl_VideoFile;
-		wxCheckBox* CheckBox_CacheVideo;
-		wxStaticText* StaticText_Position;
-		wxStaticText* StaticText1;
-		wxStaticText* StaticText3;
-		wxCheckBox* CheckBox_Topmost;
-		wxTextCtrl* TextCtrl_Delay;
-		wxCheckBox* CheckBox_SuppressVirtualMatrix;
 		wxButton* Button_PositionWindow;
-		wxStaticText* StaticText4;
+		wxCheckBox* CheckBox_CacheVideo;
+		wxCheckBox* CheckBox_LoopVideo;
+		wxCheckBox* CheckBox_SuppressVirtualMatrix;
+		wxCheckBox* CheckBox_Topmost;
 		wxSpinCtrl* SpinCtrl_FadeIn;
+		wxSpinCtrl* SpinCtrl_FadeOut;
+		wxStaticText* StaticText1;
+		wxStaticText* StaticText2;
+		wxStaticText* StaticText3;
+		wxStaticText* StaticText4;
+		wxStaticText* StaticText_Position;
+		wxTextCtrl* TextCtrl_Delay;
 		//*)
 
 	protected:

@@ -507,6 +507,10 @@
 		<Unit filename="PlayList/PlayListItemAudio.h" />
 		<Unit filename="PlayList/PlayListItemAudioPanel.cpp" />
 		<Unit filename="PlayList/PlayListItemAudioPanel.h" />
+		<Unit filename="PlayList/PlayListItemColourOrgan.cpp" />
+		<Unit filename="PlayList/PlayListItemColourOrgan.h" />
+		<Unit filename="PlayList/PlayListItemColourOrganPanel.cpp" />
+		<Unit filename="PlayList/PlayListItemColourOrganPanel.h" />
 		<Unit filename="PlayList/PlayListItemCURL.cpp" />
 		<Unit filename="PlayList/PlayListItemCURL.h" />
 		<Unit filename="PlayList/PlayListItemCURLPanel.cpp" />
@@ -783,6 +787,7 @@
 		<Unit filename="wxsmith/PlayListItemARTNetTriggerPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemAllOffPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemAudioPanel.wxs" />
+		<Unit filename="wxsmith/PlayListItemColourOrganPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemCURLPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemDelayPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemDimPanel.wxs" />
@@ -873,6 +878,7 @@
 					<wxDialog wxs="wxsmith/ButtonDetailsDialog.wxs" src="ButtonDetailsDialog.cpp" hdr="ButtonDetailsDialog.h" fwddecl="0" i18n="1" name="ButtonDetailsDialog" language="CPP" />
 					<wxPanel wxs="wxsmith/PlayListItemRDSPanel.wxs" src="PlayList/PlayListItemRDSPanel.cpp" hdr="PlayList/PlayListItemRDSPanel.h" fwddecl="0" i18n="1" name="PlayListItemRDSPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/PlayListItemTestPanel.wxs" src="PlayList/PlayListItemTestPanel.cpp" hdr="PlayList/PlayListItemTestPanel.h" fwddecl="0" i18n="1" name="PlayListItemTestPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/PlayListItemColourOrganPanel.wxs" src="PlayList/PlayListItemColourOrganPanel.cpp" hdr="PlayList/PlayListItemColourOrganPanel.h" fwddecl="0" i18n="1" name="PlayListItemColourOrganPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/PlayListItemMicrophonePanel.wxs" src="PlayList/PlayListItemMicrophonePanel.cpp" hdr="PlayList/PlayListItemMicrophonePanel.h" fwddecl="0" i18n="1" name="PlayListItemMicrophonePanel" language="CPP" />
 					<wxDialog wxs="wxsmith/OutputProcessingDialog.wxs" src="OutputProcessingDialog.cpp" hdr="OutputProcessingDialog.h" fwddecl="0" i18n="1" name="OutputProcessingDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/DimDialog.wxs" src="DimDialog.cpp" hdr="DimDialog.h" fwddecl="0" i18n="1" name="DimDialog" language="CPP" />

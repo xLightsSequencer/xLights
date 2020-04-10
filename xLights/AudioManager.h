@@ -166,9 +166,10 @@ public:
     bool CloseAudioDevice();
     bool CloseInputAudioDevice();
     int GetInputMax(int ms);
+	std::vector<float> GetOutputSpectrum(int ms);
     int GetInputAudio(uint8_t* buffer, int bufsize);
     void PurgeAllButInputAudio(int ms);
-    std::list<float> GetInputSpectrum(int ms);
+    std::vector<float> GetInputSpectrum(int ms);
     void PurgeInput();
     void DumpState(std::string device, int devid, SDL_AudioSpec* wanted, SDL_AudioSpec* actual);
     void StartListening(const std::string& inputDevice = "");

@@ -12,6 +12,7 @@
 #include "PlayListItemFSEQVideo.h"
 #include "PlayListItemTest.h"
 #include "PlayListItemMicrophone.h"
+#include "PlayListItemColourOrgan.h"
 #include "PlayListItemRDS.h"
 #include "PlayListItemProjector.h"
 #include "PlayListItemAllOff.h"
@@ -207,6 +208,10 @@ void PlayListStep::Load(OutputManager* outputManager, wxXmlNode* node)
         else if (n->GetName() == "PLIMicrophone")
         {
             _items.push_back(new PlayListItemMicrophone(outputManager, n));
+        }
+        else if (n->GetName() == "PLIColourOrgan")
+        {
+            _items.push_back(new PlayListItemColourOrgan(outputManager, n));
         }
         else if (n->GetName() == "PLIRDS")
         {

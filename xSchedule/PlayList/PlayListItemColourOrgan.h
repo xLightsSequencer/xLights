@@ -7,7 +7,7 @@
 class wxXmlNode;
 class OutputManager;
 
-class PlayListItemMicrophone : public PlayListItem
+class PlayListItemColourOrgan : public PlayListItem
 {
 protected:
 
@@ -20,6 +20,11 @@ protected:
     size_t _pixels;
     size_t _duration;
     APPLYMETHOD _blendMode;
+    int _startNote = 1;
+    int _endNote = 127;
+    int _fadeFrames = 0;
+    float _lastValue = 0;
+    float _fadePerFrame = 1.0;
     #pragma endregion Member Variables
 
     void SetPixel(uint8_t* p, uint8_t r, uint8_t g, uint8_t b, APPLYMETHOD blendMode);
@@ -27,9 +32,9 @@ protected:
 public:
 
     #pragma region Constructors and Destructors
-    PlayListItemMicrophone(OutputManager* outputManager, wxXmlNode* node);
-    PlayListItemMicrophone(OutputManager* outputManager);
-    virtual ~PlayListItemMicrophone();
+    PlayListItemColourOrgan(OutputManager* outputManager, wxXmlNode* node);
+    PlayListItemColourOrgan(OutputManager* outputManager);
+    virtual ~PlayListItemColourOrgan();
     virtual PlayListItem* Copy() const override;
     #pragma endregion Constructors and Destructors
 
@@ -48,6 +53,12 @@ public:
     size_t GetStartChannelAsNumber();
     size_t GetPixels() const { return _pixels; }
     std::string GetMode() const { return _mode; }
+    int GetStartNote() const { return _startNote; }
+    void SetStartNote(int startNote) { if (_startNote != startNote) { _startNote = startNote; _changeCount++; } };
+    int GetEndNote() const { return _endNote; }
+    void SetEndNote(int endNote) { if (_endNote != endNote) { _endNote = endNote; _changeCount++; } };
+    int GetFadeFrames() const { return _fadeFrames; }
+    void SetFadeFrames(int fadeFrames) { if (_fadeFrames != fadeFrames) { _fadeFrames = fadeFrames; _changeCount++; } };
     virtual std::string GetTitle() const override;
     #pragma endregion Getters and Setters
 
