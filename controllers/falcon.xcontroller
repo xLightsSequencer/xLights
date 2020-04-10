@@ -2,7 +2,7 @@
     <AbstractVariant Name="BaseFalconSettings">
         <SupportsUpload/>
         <SupportsInputOnlyUpload/>
-        <SupportsAutoUpload/>
+        <!--SupportsAutoUpload/-->
         
 		<!--SupportsPixelPortAllSettings/-->
 		<SupportsPixelPortBrightness/>
