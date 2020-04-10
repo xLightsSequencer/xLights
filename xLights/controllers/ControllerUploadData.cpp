@@ -370,6 +370,16 @@ bool UDControllerPort::SetAllModelsToValidProtocols(const std::list<std::string>
     return changed;
 }
 
+bool UDControllerPort::ClearSmartRemoteOnAllModels()
+{
+    bool changed = false;
+    for (const auto& it : _models)
+    {
+        it->GetModel()->SetSmartRemote(0);
+    }
+    return changed;
+}
+
 // This ensures none of the models on a port overlap ... they are all chained 
 // I am a bit concerned that using this stops you overlapping things ... but really if you are going to overlap things
 // you shouldnt set the port as that is just going to cause grief.
@@ -975,6 +985,21 @@ bool UDController::SetAllModelsToValidProtocols(const std::list<std::string>& pi
         }
     }
 
+    return changed;
+}
+
+bool UDController::ClearSmartRemoteOnAllModels()
+{
+    bool changed = false;
+    for (const auto& it : _pixelPorts)
+    {
+        changed |= it.second->ClearSmartRemoteOnAllModels();
+    }
+
+    for (const auto& it : _serialPorts)
+    {
+        changed |= it.second->ClearSmartRemoteOnAllModels();
+    }
     return changed;
 }
 

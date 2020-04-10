@@ -819,6 +819,11 @@ ControllerModelDialog::ControllerModelDialog(wxWindow* parent, UDController* cud
     if (_caps != nullptr)
     {
         changed |= _cud->SetAllModelsToValidProtocols(_caps->GetPixelProtocols(), _caps->GetSerialProtocols(), !_caps->SupportsMultipleSimultaneousOutputProtocols());
+
+        if (!_caps->SupportsSmartRemotes())
+        {
+            changed |= _cud->ClearSmartRemoteOnAllModels();
+        }
     }
 
     if (changed) {
