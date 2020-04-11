@@ -863,6 +863,7 @@ void xLightsFrame:: WriteVideoModelFile(const wxString& filenames, long numChans
     if (height % 2 > 0) height++;
     logger_base.debug("   Video dimensions %dx%d => %dx%d.", origwidth, origheight, width, height);
     logger_base.debug("   Video frames %ld.", endFrame - startFrame);
+    unsigned framesPerSec = 1000u / dataBuf->FrameTime();
 
     av_log_set_callback(my_av_log_callback);
 
@@ -895,42 +896,48 @@ void xLightsFrame:: WriteVideoModelFile(const wxString& filenames, long numChans
     //fmt->video_codec = AV_CODEC_ID_MPEG4; // this is the default for AVI
 
     // Create the codec context that will configure the codec
-    AVFormatContext* oc;
+    AVFormatContext* oc = nullptr;
     avformat_alloc_output_context2(&oc, fmt, nullptr, filename);
-    if (!oc)
+    if (oc == nullptr)
     {
         logger_base.warn("   Could not create output context.");
         return;
     }
 
     // Find the output codec
-    AVCodec * codec = avcodec_find_encoder(fmt->video_codec);
-    if (!codec)
+    AVCodec* codec = avcodec_find_encoder(fmt->video_codec);
+    if (codec == nullptr)
     {
         logger_base.error("   Cannot find codec %d.", fmt->video_codec);
         return;
     }
 
     // Create a video stream
-    AVStream* video_st = avformat_new_stream(oc, codec);
-    if (!video_st)
+    AVStream* video_st = avformat_new_stream(oc, nullptr);
+    if (video_st == nullptr)
     {
         logger_base.error("   Cannot allocate stream.");
         return;
     }
-    video_st->id = oc->nb_streams - 1;
     video_st->time_base.num = 1;
-    video_st->time_base.den = 1000 / dataBuf->FrameTime();
+    video_st->time_base.den = framesPerSec;
+
+    video_st->codecpar->width = width;
+    video_st->codecpar->height = height;
+    video_st->codecpar->codec_id = fmt->video_codec;
+    video_st->codecpar->codec_type = AVMEDIA_TYPE_VIDEO;
+    video_st->codecpar->format = AV_PIX_FMT_NONE;
+    video_st->codecpar->bits_per_coded_sample = 24;
 
     // Configure the codec
-    AVCodecContext* codecContext = video_st->codec;
-    avcodec_get_context_defaults3(codecContext, codec);
-    codecContext->codec_id = fmt->video_codec;
+    AVCodecContext* codecContext = avcodec_alloc_context3( codec );
+    avcodec_parameters_to_context(codecContext, video_st->codecpar);
+
     codecContext->bit_rate = 400000;
     codecContext->width = width;
     codecContext->height = height;
     codecContext->time_base.num = 1;
-    codecContext->time_base.den = 1000 / dataBuf->FrameTime(); // This is the same as the sequence ms
+    codecContext->time_base.den = framesPerSec;
     codecContext->gop_size = 12; // key frame gap ... 1 is all key frames
     codecContext->max_b_frames = 1;
     codecContext->pix_fmt = AV_PIX_FMT_YUV420P;
@@ -962,10 +969,17 @@ void xLightsFrame:: WriteVideoModelFile(const wxString& filenames, long numChans
     if (oc->oformat->flags & AVFMT_GLOBALHEADER)
         codecContext->flags |= CODEC_FLAG_GLOBAL_HEADER;
 
-    int ret = avcodec_open2(codecContext, codec, nullptr);
+    int ret = avcodec_open2(codecContext, nullptr, nullptr);
     if (ret < 0)
     {
-        logger_base.error("   Cannot not open codec context %d.", ret);
+        logger_base.error("   Cannot open codec context %d.", ret);
+        return;
+    }
+
+    ret = avformat_init_output(oc, nullptr);
+    if (ret < 0)
+    {
+        logger_base.error("   Cannot init output %d.", ret);
         return;
     }
 
@@ -1078,7 +1092,7 @@ void xLightsFrame:: WriteVideoModelFile(const wxString& filenames, long numChans
             return;
         }
 
-        frame->pts += av_rescale_q(1, video_st->codec->time_base, video_st->time_base);
+        ++frame->pts;
     }
 
     // Write the video trailer
