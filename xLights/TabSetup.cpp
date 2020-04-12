@@ -1152,8 +1152,21 @@ void xLightsFrame::OnButtonDiscoverClick(wxCommandEvent& event) {
 
         if (fpp->pixelControllerType == "") v = "FPP";
 
+        if (fpp->platform == "J1Sys")
+        {
+            v = "J1Sys";
+            m = AfterFirst(fpp->model, '-');
+        }
+
         controller = new ControllerEthernet(&_outputManager, false);
-        controller->SetProtocol(OUTPUT_DDP);
+        if (v == "Falcon" || fpp->platform == "J1Sys")
+        {
+            controller->SetProtocol(OUTPUT_E131);
+        }
+        else
+        {
+            controller->SetProtocol(OUTPUT_DDP);
+        }
         controller->EnsureUniqueId();
 
         if (v == "ESPixelStick") {
