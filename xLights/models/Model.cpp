@@ -1629,6 +1629,7 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
 
         ModelXml->DeleteAttribute("StartChannel");
         ModelXml->AddAttribute("StartChannel", val);
+        SetControllerName("");
         if (ModelXml->GetAttribute("Advanced") == "1") {
             ModelXml->DeleteAttribute(StartChanAttrName(0));
             ModelXml->AddAttribute(StartChanAttrName(0), val);
