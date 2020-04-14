@@ -342,7 +342,6 @@ void xLightsXmlFile::AddDisplayElement( const wxString& name, const wxString& ty
             break;
        }
     }
-
 }
 
 void xLightsXmlFile::AddTimingDisplayElement( const wxString& name, const wxString& visible, const wxString& active )
@@ -389,7 +388,6 @@ void xLightsXmlFile::AddTimingDisplayElement( const wxString& name, const wxStri
             break;
         }
     }
-
 }
 
 int xLightsXmlFile::AddColorPalette(StringIntMap &paletteCache, const wxString &palette) {
@@ -2831,7 +2829,14 @@ void xLightsXmlFile::Save( SequenceElements& seq_elements)
         display_element_node->AddAttribute("collapsed", string_format("%d", element->GetCollapsed()));
         display_element_node->AddAttribute("type", element->GetType() == ElementType::ELEMENT_TYPE_TIMING ? "timing" : "model");
         display_element_node->AddAttribute("name", element->GetName());
-        display_element_node->AddAttribute("visible", string_format("%d", element->GetVisible()));
+        if (element->GetType() == ElementType::ELEMENT_TYPE_TIMING)
+        {
+            display_element_node->AddAttribute("visible", string_format("%d", dynamic_cast<TimingElement*>(element)->GetMasterVisible()));
+        }
+        else
+        {
+            display_element_node->AddAttribute("visible", string_format("%d", element->GetVisible()));
+        }
 
         // Add element node to ElementEffects
         wxXmlNode* element_effects_node = AddChildXmlNode(elements_node, "Element");
