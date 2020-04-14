@@ -267,6 +267,6 @@ class ModelElement : public Element
         bool mSelected = false;
         std::vector<SubModelElement*> mSubModels;
         std::vector<StrandElement*> mStrands;
-        std::atomic_int waitCount = 0;
+        std::atomic_int waitCount;
 };
 
