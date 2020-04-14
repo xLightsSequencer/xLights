@@ -1061,57 +1061,63 @@ void xLightsFrame:: WriteVideoModelFile(const wxString& filenames, long numChans
             return;
         }
 
-        /* create a packet to put the frame in */
-        AVPacket pkt;
-        int got_output;
-        av_init_packet(&pkt);
-        pkt.data = nullptr;    // packet data will be allocated by the encoder
-        pkt.size = 0;
+        AVPacket* pkt = av_packet_alloc();
+        av_init_packet(pkt);
 
-        // Encode it
-        ret = avcodec_encode_video2(codecContext, &pkt, frame, &got_output);
-        if (ret < 0) {
+        ret = avcodec_send_frame(codecContext, frame);
+        if ( ret < 0 )
+        {
             logger_base.error("   Error encoding frame %d.", ret);
             return;
         }
 
-        /* If size is zero, it means the image was buffered. */
-        if (got_output) {
-            pkt.stream_index = video_st->index;
-
-            /* Write the compressed frame to the media file. */
-            ret = av_interleaved_write_frame(oc, &pkt);
-        }
-        else {
-            ret = 0;
-        }
-
-        if (ret != 0)
+        while (1)
         {
-            logger_base.error("   Error writing video frame %d. %d.", i, ret);
-            return;
+            ret = avcodec_receive_packet(codecContext, pkt);
+            if (ret == 0)
+            {
+                pkt->duration = 1LL;
+                ret = av_interleaved_write_frame(oc, pkt);
+            }
+            else if (ret == AVERROR(EAGAIN))
+                break;
         }
 
-        ++frame->pts;
+        frame->pts += 1LL;
+
+        av_packet_free(&pkt);
+    }
+
+    // render out any buffered data
+    {
+        AVPacket* pkt = av_packet_alloc();
+        av_init_packet(pkt);
+        ret = avcodec_send_frame(codecContext, nullptr);
+        while (1)
+        {
+            ret = avcodec_receive_packet(codecContext, pkt);
+            if (ret == 0)
+            {
+                ret = av_interleaved_write_frame(oc, pkt);
+            }
+            else if (ret == AVERROR_EOF)
+                break;
+        }
+        av_packet_free(&pkt);
     }
 
     // Write the video trailer
     av_write_trailer(oc);
 
+    // Close the output file
+    if (!(fmt->flags & AVFMT_NOFILE))
+        avio_close(oc->pb);
+
     // Free and close everything
     sws_freeContext(sws_ctx);
-    avcodec_close(video_st->codec);
-    av_free(frame->data[0]);
-    av_free(frame);
-    for (size_t i = 0; i < oc->nb_streams; i++) {
-        av_freep(&oc->streams[i]->codec);
-        av_freep(&oc->streams[i]);
-    }
-    if (!(fmt->flags & AVFMT_NOFILE)) {
-        /* Close the output file. */
-        avio_close(oc->pb);
-    }
-    av_free(oc);
+
+    avcodec_free_context(&codecContext);
+    avformat_free_context(oc);
 
     // Remove the log function
     av_log_set_callback(nullptr);
