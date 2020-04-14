@@ -863,6 +863,7 @@ void xLightsFrame:: WriteVideoModelFile(const wxString& filenames, long numChans
     if (height % 2 > 0) height++;
     logger_base.debug("   Video dimensions %dx%d => %dx%d.", origwidth, origheight, width, height);
     logger_base.debug("   Video frames %ld.", endFrame - startFrame);
+    unsigned framesPerSec = 1000u / dataBuf->FrameTime();
 
     av_log_set_callback(my_av_log_callback);
 
@@ -895,42 +896,48 @@ void xLightsFrame:: WriteVideoModelFile(const wxString& filenames, long numChans
     //fmt->video_codec = AV_CODEC_ID_MPEG4; // this is the default for AVI
 
     // Create the codec context that will configure the codec
-    AVFormatContext* oc;
+    AVFormatContext* oc = nullptr;
     avformat_alloc_output_context2(&oc, fmt, nullptr, filename);
-    if (!oc)
+    if (oc == nullptr)
     {
         logger_base.warn("   Could not create output context.");
         return;
     }
 
     // Find the output codec
-    AVCodec * codec = avcodec_find_encoder(fmt->video_codec);
-    if (!codec)
+    AVCodec* codec = avcodec_find_encoder(fmt->video_codec);
+    if (codec == nullptr)
     {
         logger_base.error("   Cannot find codec %d.", fmt->video_codec);
         return;
     }
 
     // Create a video stream
-    AVStream* video_st = avformat_new_stream(oc, codec);
-    if (!video_st)
+    AVStream* video_st = avformat_new_stream(oc, nullptr);
+    if (video_st == nullptr)
     {
         logger_base.error("   Cannot allocate stream.");
         return;
     }
-    video_st->id = oc->nb_streams - 1;
     video_st->time_base.num = 1;
-    video_st->time_base.den = 1000 / dataBuf->FrameTime();
+    video_st->time_base.den = framesPerSec;
+
+    video_st->codecpar->width = width;
+    video_st->codecpar->height = height;
+    video_st->codecpar->codec_id = fmt->video_codec;
+    video_st->codecpar->codec_type = AVMEDIA_TYPE_VIDEO;
+    video_st->codecpar->format = AV_PIX_FMT_NONE;
+    video_st->codecpar->bits_per_coded_sample = 24;
 
     // Configure the codec
-    AVCodecContext* codecContext = video_st->codec;
-    avcodec_get_context_defaults3(codecContext, codec);
-    codecContext->codec_id = fmt->video_codec;
+    AVCodecContext* codecContext = avcodec_alloc_context3( codec );
+    avcodec_parameters_to_context(codecContext, video_st->codecpar);
+
     codecContext->bit_rate = 400000;
     codecContext->width = width;
     codecContext->height = height;
     codecContext->time_base.num = 1;
-    codecContext->time_base.den = 1000 / dataBuf->FrameTime(); // This is the same as the sequence ms
+    codecContext->time_base.den = framesPerSec;
     codecContext->gop_size = 12; // key frame gap ... 1 is all key frames
     codecContext->max_b_frames = 1;
     codecContext->pix_fmt = AV_PIX_FMT_YUV420P;
@@ -962,10 +969,17 @@ void xLightsFrame:: WriteVideoModelFile(const wxString& filenames, long numChans
     if (oc->oformat->flags & AVFMT_GLOBALHEADER)
         codecContext->flags |= CODEC_FLAG_GLOBAL_HEADER;
 
-    int ret = avcodec_open2(codecContext, codec, nullptr);
+    int ret = avcodec_open2(codecContext, nullptr, nullptr);
     if (ret < 0)
     {
-        logger_base.error("   Cannot not open codec context %d.", ret);
+        logger_base.error("   Cannot open codec context %d.", ret);
+        return;
+    }
+
+    ret = avformat_init_output(oc, nullptr);
+    if (ret < 0)
+    {
+        logger_base.error("   Cannot init output %d.", ret);
         return;
     }
 
@@ -1047,57 +1061,63 @@ void xLightsFrame:: WriteVideoModelFile(const wxString& filenames, long numChans
             return;
         }
 
-        /* create a packet to put the frame in */
-        AVPacket pkt;
-        int got_output;
-        av_init_packet(&pkt);
-        pkt.data = nullptr;    // packet data will be allocated by the encoder
-        pkt.size = 0;
+        AVPacket* pkt = av_packet_alloc();
+        av_init_packet(pkt);
 
-        // Encode it
-        ret = avcodec_encode_video2(codecContext, &pkt, frame, &got_output);
-        if (ret < 0) {
+        ret = avcodec_send_frame(codecContext, frame);
+        if ( ret < 0 )
+        {
             logger_base.error("   Error encoding frame %d.", ret);
             return;
         }
 
-        /* If size is zero, it means the image was buffered. */
-        if (got_output) {
-            pkt.stream_index = video_st->index;
-
-            /* Write the compressed frame to the media file. */
-            ret = av_interleaved_write_frame(oc, &pkt);
-        }
-        else {
-            ret = 0;
-        }
-
-        if (ret != 0)
+        while (1)
         {
-            logger_base.error("   Error writing video frame %d. %d.", i, ret);
-            return;
+            ret = avcodec_receive_packet(codecContext, pkt);
+            if (ret == 0)
+            {
+                pkt->duration = 1LL;
+                ret = av_interleaved_write_frame(oc, pkt);
+            }
+            else if (ret == AVERROR(EAGAIN))
+                break;
         }
 
-        frame->pts += av_rescale_q(1, video_st->codec->time_base, video_st->time_base);
+        frame->pts += 1LL;
+
+        av_packet_free(&pkt);
+    }
+
+    // render out any buffered data
+    {
+        AVPacket* pkt = av_packet_alloc();
+        av_init_packet(pkt);
+        ret = avcodec_send_frame(codecContext, nullptr);
+        while (1)
+        {
+            ret = avcodec_receive_packet(codecContext, pkt);
+            if (ret == 0)
+            {
+                ret = av_interleaved_write_frame(oc, pkt);
+            }
+            else if (ret == AVERROR_EOF)
+                break;
+        }
+        av_packet_free(&pkt);
     }
 
     // Write the video trailer
     av_write_trailer(oc);
 
+    // Close the output file
+    if (!(fmt->flags & AVFMT_NOFILE))
+        avio_close(oc->pb);
+
     // Free and close everything
     sws_freeContext(sws_ctx);
-    avcodec_close(video_st->codec);
-    av_free(frame->data[0]);
-    av_free(frame);
-    for (size_t i = 0; i < oc->nb_streams; i++) {
-        av_freep(&oc->streams[i]->codec);
-        av_freep(&oc->streams[i]);
-    }
-    if (!(fmt->flags & AVFMT_NOFILE)) {
-        /* Close the output file. */
-        avio_close(oc->pb);
-    }
-    av_free(oc);
+
+    avcodec_free_context(&codecContext);
+    avformat_free_context(oc);
 
     // Remove the log function
     av_log_set_callback(nullptr);
