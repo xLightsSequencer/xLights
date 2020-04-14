@@ -274,14 +274,14 @@ static bool doOnEffectsInternal(Element *em, std::function<bool(Effect*)>& func)
             }
         }
     }
-    if (em->GetType() == ELEMENT_TYPE_MODEL) {
+    if (em->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
         ModelElement *me = (ModelElement*)em;
         for (int x = 0; x < me->GetSubModelCount(); x++) {
             if (doOnEffectsInternal(me->GetSubModel(x), func)) {
                 return true;
             }
         }
-    } else if (em->GetType() == ELEMENT_TYPE_STRAND) {
+    } else if (em->GetType() == ElementType::ELEMENT_TYPE_STRAND) {
         StrandElement *se = (StrandElement*)em;
         for (int x = 0; x < se->GetNodeLayerCount(); x++) {
             NodeLayer* el = se->GetNodeLayer(x);

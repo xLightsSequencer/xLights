@@ -5754,11 +5754,11 @@ void xLightsFrame::CheckSequence(bool display)
         for (int i = 0; i < mSequenceElements.GetElementCount(MASTER_VIEW); i++)
         {
             Element* e = mSequenceElements.GetElement(i);
-            if (e->GetType() != ELEMENT_TYPE_TIMING)
+            if (e->GetType() != ElementType::ELEMENT_TYPE_TIMING)
             {
                 CheckElement(e, f, errcount, warncount, e->GetFullName(), e->GetName(), videoCacheWarning, faces, states, viewPoints, usesShader, allfiles);
 
-                if (e->GetType() == ELEMENT_TYPE_MODEL)
+                if (e->GetType() == ElementType::ELEMENT_TYPE_MODEL)
                 {
                     ModelElement *me = dynamic_cast<ModelElement *>(e);
 
@@ -5782,7 +5782,7 @@ void xLightsFrame::CheckSequence(bool display)
                     for (int j = 0; j < me->GetSubModelAndStrandCount(); ++j)
                     {
                         Element* sme = me->GetSubModel(j);
-                        if (sme->GetType() == ELEMENT_TYPE_SUBMODEL)
+                        if (sme->GetType() == ElementType::ELEMENT_TYPE_SUBMODEL)
                         {
                             CheckElement(sme, f, errcount, warncount, sme->GetFullName(), e->GetName(), videoCacheWarning, faces, states, viewPoints, usesShader, allfiles);
                         }
@@ -6158,7 +6158,7 @@ void xLightsFrame::CheckElement(Element* e, wxFile& f, int& errcount, int& warnc
             Model* m = AllModels[modelName];
             if (m != nullptr)
             {
-                if (e->GetType() == ELEMENT_TYPE_MODEL)
+                if (e->GetType() == ElementType::ELEMENT_TYPE_MODEL)
                 {
                     if (m->GetNodeCount() == 0)
                     {
@@ -6169,7 +6169,7 @@ void xLightsFrame::CheckElement(Element* e, wxFile& f, int& errcount, int& warnc
                         errcount++;
                     }
                 }
-                else if (e->GetType() == ELEMENT_TYPE_STRAND)
+                else if (e->GetType() == ElementType::ELEMENT_TYPE_STRAND)
                 {
                     StrandElement* se = (StrandElement*)e;
                     if (m->GetStrandLength(se->GetStrand()) == 0)
@@ -6181,7 +6181,7 @@ void xLightsFrame::CheckElement(Element* e, wxFile& f, int& errcount, int& warnc
                         errcount++;
                     }
                 }
-                else if (e->GetType() == ELEMENT_TYPE_SUBMODEL)
+                else if (e->GetType() == ElementType::ELEMENT_TYPE_SUBMODEL)
                 {
                     Model* se = AllModels[name];
                     if (se != nullptr)
@@ -6336,7 +6336,7 @@ int xLightsFrame::ExportElement(wxFile& f, Element* e, std::map<std::string, int
 {
     int effects = 0;
 
-    if (e->GetType() != ELEMENT_TYPE_TIMING)
+    if (e->GetType() != ElementType::ELEMENT_TYPE_TIMING)
     {
         Model* m = AllModels.GetModel(e->GetModelName());
 
@@ -6344,7 +6344,7 @@ int xLightsFrame::ExportElement(wxFile& f, Element* e, std::map<std::string, int
         wxString subname = "";
         switch (e->GetType())
         {
-        case     ELEMENT_TYPE_MODEL:
+        case     ElementType::ELEMENT_TYPE_MODEL:
             if (m->GetDisplayAs() == "ModelGroup")
             {
                 type = "Model Group";
@@ -6354,14 +6354,14 @@ int xLightsFrame::ExportElement(wxFile& f, Element* e, std::map<std::string, int
                 type = "Model";
             }
             break;
-        case ELEMENT_TYPE_SUBMODEL:
+        case ElementType::ELEMENT_TYPE_SUBMODEL:
             type = "Submodel";
             break;
-        case ELEMENT_TYPE_STRAND:
+        case ElementType::ELEMENT_TYPE_STRAND:
             type = "Strand";
             subname = wxString::Format("Strand %d", dynamic_cast<StrandElement*>(e)->GetStrand() + 1);
             break;
-        case ELEMENT_TYPE_TIMING:
+        case ElementType::ELEMENT_TYPE_TIMING:
             type = "Timing";
             break;
         }
@@ -6534,7 +6534,7 @@ void xLightsFrame::OnMenuItemShiftSelectedEffectsSelected(wxCommandEvent& event)
                 EffectLayer* el = ele->GetEffectLayer(layer);
                 ShiftSelectedEffectsOnLayer(el, milliseconds);
             }
-            if (ele->GetType() == ELEMENT_TYPE_MODEL)
+            if (ele->GetType() == ElementType::ELEMENT_TYPE_MODEL)
             {
                 ModelElement *me = dynamic_cast<ModelElement *>(ele);
                 for (int i = 0; i < me->GetStrandCount(); ++i)
@@ -6585,7 +6585,7 @@ void xLightsFrame::OnMenuItemShiftEffectsSelected(wxCommandEvent& event)
                 EffectLayer* el = ele->GetEffectLayer(layer);
                 ShiftEffectsOnLayer(el, milliseconds);
             }
-            if (ele->GetType() == ELEMENT_TYPE_MODEL)
+            if (ele->GetType() == ElementType::ELEMENT_TYPE_MODEL)
             {
                 ModelElement *me = dynamic_cast<ModelElement *>(ele);
                 for (int i = 0; i < me->GetStrandCount(); ++i)

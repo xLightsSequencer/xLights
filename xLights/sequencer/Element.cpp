@@ -211,7 +211,7 @@ bool Element::operator<(const Element& e) const
     }
     else
     {
-        if (myType == ELEMENT_TYPE_TIMING) return true;
+        if (myType == ElementType::ELEMENT_TYPE_TIMING) return true;
     }
 
     return false;
@@ -697,7 +697,7 @@ SubModelElement *ModelElement::GetSubModel(const std::string &name, bool create)
 std::list<std::string> Element::GetFileReferences(EffectManager& em) const
 {
     std::list<std::string> res;
-    if (GetType() != ELEMENT_TYPE_TIMING)
+    if (GetType() != ElementType::ELEMENT_TYPE_TIMING)
     {
         for (int j = 0; j < GetEffectLayerCount(); j++)
         {
@@ -711,7 +711,7 @@ std::list<std::string> Element::GetFileReferences(EffectManager& em) const
 std::list<std::string> Element::GetFacesUsed(EffectManager& em) const
 {
     std::list<std::string> res;
-    if (GetType() != ELEMENT_TYPE_TIMING)
+    if (GetType() != ElementType::ELEMENT_TYPE_TIMING)
     {
         for (int j = 0; j < GetEffectLayerCount(); j++)
         {
@@ -725,7 +725,7 @@ std::list<std::string> Element::GetFacesUsed(EffectManager& em) const
 bool Element::CleanupFileLocations(xLightsFrame* frame, EffectManager& em)
 {
     bool rc = false;
-    if (GetType() != ELEMENT_TYPE_TIMING)
+    if (GetType() != ElementType::ELEMENT_TYPE_TIMING)
     {
         for (int j = 0; j < GetEffectLayerCount(); j++)
         {

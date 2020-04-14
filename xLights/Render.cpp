@@ -248,7 +248,7 @@ public:
                 for (int x = 0; x < row->GetSubModelAndStrandCount(); ++x) {
                     SubModelElement *se = row->GetSubModel(x);
                     if (se->HasEffects()) {
-                        if (se->GetType() == ELEMENT_TYPE_STRAND) {
+                        if (se->GetType() == ElementType::ELEMENT_TYPE_STRAND) {
                             StrandElement *ste = (StrandElement*)se;
                             if (ste->GetStrand() < model->GetNumStrands()) {
                                 subModelInfos.push_back(new EffectLayerInfo(se->GetEffectLayerCount() + 1));
@@ -267,7 +267,7 @@ public:
                             }
                         }
                     }
-                    if (se->GetType() == ELEMENT_TYPE_STRAND) {
+                    if (se->GetType() == ElementType::ELEMENT_TYPE_STRAND) {
                         StrandElement *ste = (StrandElement*)se;
                         if (ste->GetStrand() < model->GetNumStrands()) {
                             for (int n = 0; n < ste->GetNodeLayerCount(); ++n) {
@@ -1246,7 +1246,7 @@ void xLightsFrame::BuildRenderTree() {
         }
         for (size_t row = 0; row < numEls; ++row) {
             Element *rowEl = mSequenceElements.GetElement(row, MASTER_VIEW);
-            if (rowEl != nullptr && rowEl->GetType() == ELEMENT_TYPE_MODEL) {
+            if (rowEl != nullptr && rowEl->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
                 Model *model = GetModel(rowEl->GetModelName());
                 if (model != nullptr) {
                     renderTree.Add(model);
@@ -1298,7 +1298,7 @@ void xLightsFrame::Render(const std::list<Model*> models,
         if (rowEl == nullptr) {
             //logger_base.crit("xLightsFrame::Render rowEl is nullptr ... this is going to crash looking for '%s'.", (const char *)(*it)->GetName().c_str());
         } else {
-            if (rowEl->GetType() == ELEMENT_TYPE_MODEL) {
+            if (rowEl->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
                 ModelElement *me = dynamic_cast<ModelElement *>(rowEl);
 
                 if (me == nullptr) {
@@ -1480,7 +1480,7 @@ void xLightsFrame::RenderDirtyModels() {
     std::list<Model *> restricts;
     for (int x = 0; x < numRows; x++) {
         Element *el = mSequenceElements.GetElement(x);
-        if (el->GetType() != ELEMENT_TYPE_TIMING) {
+        if (el->GetType() != ElementType::ELEMENT_TYPE_TIMING) {
             int st, ed;
             el->GetDirtyRange(st, ed);
             if (st != -1) {

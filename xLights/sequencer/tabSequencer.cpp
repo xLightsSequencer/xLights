@@ -469,7 +469,7 @@ void xLightsFrame::CheckForValidModels()
     }
 
     for (int x = mSequenceElements.GetElementCount() - 1; x >= 0; x--) {
-        if (ELEMENT_TYPE_MODEL == mSequenceElements.GetElement(x)->GetType()) {
+        if (ElementType::ELEMENT_TYPE_MODEL == mSequenceElements.GetElement(x)->GetType()) {
             std::string name = mSequenceElements.GetElement(x)->GetModelName();
             //remove the current models from the list so we don't end up with the same model represented twice
             Remove(AllNames, name);
@@ -484,7 +484,7 @@ void xLightsFrame::CheckForValidModels()
     // We do this because we can just rename them so it is easy
     // Strands, nodes and submodels are not so easy ... we have to delete them or map them
     for (int x = mSequenceElements.GetElementCount() - 1; x >= 0; x--) {
-        if (ELEMENT_TYPE_MODEL == mSequenceElements.GetElement(x)->GetType()) {
+        if (ElementType::ELEMENT_TYPE_MODEL == mSequenceElements.GetElement(x)->GetType()) {
 
             // Find the model/model group for the element
             ModelElement *me = static_cast<ModelElement*>(mSequenceElements.GetElement(x));
@@ -566,7 +566,7 @@ void xLightsFrame::CheckForValidModels()
             for (auto it = toMap.begin(); it != toMap.end(); ++it)
             {
                 Element* me = *it;
-                if ((*it)->GetType() == ELEMENT_TYPE_SUBMODEL)
+                if ((*it)->GetType() == ElementType::ELEMENT_TYPE_SUBMODEL)
                 {
                     me = dynamic_cast<SubModelElement*>(*it)->GetModelElement();
                 }
@@ -581,11 +581,11 @@ void xLightsFrame::CheckForValidModels()
 
             for (auto it = toMap.begin(); it != toMap.end(); ++it)
             {
-                if ((*it)->GetType() == ELEMENT_TYPE_MODEL)
+                if ((*it)->GetType() == ElementType::ELEMENT_TYPE_MODEL)
                 {
                     mSequenceElements.DeleteElement((*it)->GetName());
                 }
-                else if ((*it)->GetType() == ELEMENT_TYPE_SUBMODEL)
+                else if ((*it)->GetType() == ElementType::ELEMENT_TYPE_SUBMODEL)
                 {
                     SubModelElement* sme = dynamic_cast<SubModelElement*>(*it);
                     sme->GetModelElement()->RemoveSubModel(sme->GetName());
@@ -598,7 +598,7 @@ void xLightsFrame::CheckForValidModels()
         // Now we go through everything again ... but we also look at strands and submodels and nodes
         for (int x = mSequenceElements.GetElementCount() - 1; x >= 0; x--) {
 
-            if (ELEMENT_TYPE_MODEL == mSequenceElements.GetElement(x)->GetType()) {
+            if (ElementType::ELEMENT_TYPE_MODEL == mSequenceElements.GetElement(x)->GetType()) {
 
                 std::string name = mSequenceElements.GetElement(x)->GetModelName();
                 ModelElement * el = dynamic_cast<ModelElement*>(mSequenceElements.GetElement(x));
@@ -1141,7 +1141,7 @@ void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
     for(size_t i=0;i<mSequenceElements.GetSelectedRangeCount();i++)
     {
         EffectLayer* el = mSequenceElements.GetSelectedRange(i)->Layer;
-        if (el->GetParentElement()->GetType() == ELEMENT_TYPE_TIMING) {
+        if (el->GetParentElement()->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
             continue;
         }
         // Delete Effects that are in same time range as dropped effect
@@ -1234,7 +1234,7 @@ void xLightsFrame::EffectFileDroppedOnGrid(wxCommandEvent& event)
     for (size_t i = 0; i < mSequenceElements.GetSelectedRangeCount(); i++)
     {
         EffectLayer* el = mSequenceElements.GetSelectedRange(i)->Layer;
-        if (el->GetParentElement()->GetType() == ELEMENT_TYPE_TIMING) {
+        if (el->GetParentElement()->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
             continue;
         }
         // Delete Effects that are in same time range as dropped effect
@@ -3589,7 +3589,7 @@ void xLightsFrame::DoConvertDataRowToEffects(EffectLayer *layer, xlColorVector &
 void xLightsFrame::ConvertDataRowToEffects(wxCommandEvent &event) {
 
     Element* e = (Element*)event.GetClientData();
-    if (e->GetType() == ELEMENT_TYPE_MODEL)
+    if (e->GetType() == ElementType::ELEMENT_TYPE_MODEL)
     {
         ModelElement* el = dynamic_cast<ModelElement*>(e);
         Model* model = GetModel(el->GetModelName());
@@ -3622,7 +3622,7 @@ void xLightsFrame::ConvertDataRowToEffects(wxCommandEvent &event) {
             }
         }
     }
-    else if (e->GetType() == ELEMENT_TYPE_STRAND)
+    else if (e->GetType() == ElementType::ELEMENT_TYPE_STRAND)
     {
         StrandElement* el = dynamic_cast<StrandElement*>(e);
         Model* model = GetModel(el->GetModelName());

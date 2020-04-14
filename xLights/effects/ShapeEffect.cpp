@@ -74,7 +74,7 @@ void ShapeEffect::SetPanelTimingTracks() const
     for (size_t i = 0; i < mSequenceElements->GetElementCount(); i++)
     {
         Element* e = mSequenceElements->GetElement(i);
-        if (e->GetEffectLayerCount() == 1 && e->GetType() == ELEMENT_TYPE_TIMING)
+        if (e->GetEffectLayerCount() == 1 && e->GetType() == ElementType::ELEMENT_TYPE_TIMING)
         {
             if (timingtracks != "") timingtracks += "|";
             timingtracks += e->GetName();
@@ -450,7 +450,7 @@ void ShapeEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer 
             for (size_t l = 0; l < mSequenceElements->GetElementCount(); l++)
             {
                 Element* e = mSequenceElements->GetElement(l);
-                if (e->GetEffectLayerCount() == 1 && e->GetType() == ELEMENT_TYPE_TIMING)
+                if (e->GetEffectLayerCount() == 1 && e->GetType() == ElementType::ELEMENT_TYPE_TIMING)
                 {
                     if (e->GetName() == timing)
                     {

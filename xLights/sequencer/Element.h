@@ -1,5 +1,4 @@
-#ifndef ELEMENT_H
-#define ELEMENT_H
+#pragma once
 
 #include <vector>
 #include <atomic>
@@ -9,12 +8,12 @@
 #include "EffectLayer.h"
 #include "../effects/EffectManager.h"
 
-enum ElementType
+enum class ElementType
 {
     ELEMENT_TYPE_MODEL,
     ELEMENT_TYPE_SUBMODEL,
     ELEMENT_TYPE_STRAND,
-    ELEMENT_TYPE_TIMING,
+    ELEMENT_TYPE_TIMING
 };
 
 class NetInfoClass;
@@ -22,13 +21,12 @@ class Element;
 class ModelElement;
 class Model;
 class xLightsFrame;
+class SequenceElements;
 
 class ChangeListener {
 public:
     virtual void IncrementChangeCount(Element *el) = 0;
 };
-
-class SequenceElements;
 
 class Element {
 public:
@@ -43,7 +41,6 @@ public:
     void SetName(const std::string &name);
     virtual const std::string &GetModelName() const;
     virtual std::string GetFullName() const;
-    
     
     bool GetVisible() const {return mVisible;}
     void SetVisible(bool visible) {mVisible = visible;}
@@ -115,16 +112,16 @@ public:
 protected:
     EffectLayer* AddEffectLayerInternal();
 
-    SequenceElements *parent;
+    SequenceElements *parent = nullptr;
 
     std::string mName;
-    int mIndex;
-    bool mVisible;
-    bool mCollapsed;
+    int mIndex = 0;
+    bool mVisible = true;
+    bool mCollapsed = false;
 
     std::vector<EffectLayer*> mEffectLayers;
     std::list<EffectLayer *> mLayersToDelete;
-    ChangeListener *listener;
+    ChangeListener *listener = nullptr;
     volatile int changeCount = 0;
     volatile int dirtyStart = -1;
     volatile int dirtyEnd = -1;
@@ -138,7 +135,7 @@ public:
     TimingElement(SequenceElements *p, const std::string &name);
     virtual ~TimingElement();
     
-    virtual ElementType GetType() const override { return ELEMENT_TYPE_TIMING; }
+    virtual ElementType GetType() const override { return ElementType::ELEMENT_TYPE_TIMING; }
 
     int GetFixedTiming() const { return mFixed; }
     void SetFixedTiming(int fixed) { mFixed = fixed; }
@@ -155,13 +152,15 @@ public:
     std::string GetPapagayoExport(int ms) const;
     virtual NodeLayer* GetNodeEffectLayer(int index) const override { return nullptr; }
     bool HasLyrics(int layer) const;
+    bool GetMasterVisible() const { return _masterVisible; }
+    void SetMasterVisible(bool visible) { _masterVisible = visible; }
 
 private:
-    int mFixed;
-    bool mActive;
+    int mFixed = 0;
+    bool mActive = true;
     std::string mViews;
+    bool _masterVisible = false;
 };
-
 
 class SubModelElement : public Element {
 public:
@@ -171,7 +170,7 @@ public:
     ModelElement *GetModelElement() const { return mParentModel;}
     
     virtual const std::string &GetModelName() const override;
-    virtual ElementType GetType() const override { return ELEMENT_TYPE_SUBMODEL; }
+    virtual ElementType GetType() const override { return ElementType::ELEMENT_TYPE_SUBMODEL; }
     
     virtual std::string GetFullName() const override;
     virtual void IncrementChangeCount(int startMs, int endMS) override;
@@ -180,7 +179,7 @@ public:
     virtual bool HasEffects() const override;
 
 protected:
-    ModelElement *mParentModel;
+    ModelElement *mParentModel = nullptr;
 };
 
 class StrandElement : public SubModelElement {
@@ -191,7 +190,7 @@ public:
     void InitFromModel(Model &model);
     
     virtual EffectLayer* GetEffectLayerFromExclusiveIndex(int index) override;
-    virtual ElementType GetType() const override { return ELEMENT_TYPE_STRAND; }
+    virtual ElementType GetType() const override { return ElementType::ELEMENT_TYPE_STRAND; }
     virtual NodeLayer* GetNodeEffectLayer(int index) const override;
     virtual bool IsEffectValid(Effect* e) const override;
 
@@ -217,7 +216,7 @@ public:
     virtual void CleanupAfterRender() override;
 
 private:
-    int mStrand;
+    int mStrand = 0;
     bool mShowNodes = false;
     std::vector<NodeLayer*> mNodeLayers;
 };
@@ -230,7 +229,7 @@ class ModelElement : public Element
         virtual ~ModelElement();
     
         void Init(Model &cls);
-        virtual ElementType GetType() const override { return ELEMENT_TYPE_MODEL; }
+        virtual ElementType GetType() const override { return ElementType::ELEMENT_TYPE_MODEL; }
 
         bool GetSelected();
         void SetSelected(bool selected);
@@ -265,11 +264,9 @@ class ModelElement : public Element
     protected:
     private:
         bool mStrandsVisible = false;
-        bool mSelected;
+        bool mSelected = false;
         std::vector<SubModelElement*> mSubModels;
         std::vector<StrandElement*> mStrands;
-        std::atomic_int waitCount;
+        std::atomic_int waitCount = 0;
 };
-
-#endif // ELEMENT_H
 

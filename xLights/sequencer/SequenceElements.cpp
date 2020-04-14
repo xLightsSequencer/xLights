@@ -158,6 +158,8 @@ static Element* CreateElement(SequenceElements *se, const std::string &name, con
         TimingElement *te = new TimingElement(se, name);
         el = te;
         te->SetActive(active);
+        te->SetMasterVisible(visible);
+        el->SetVisible(te->GetMasterVisible());
     }
     else {
         ModelElement *me = new ModelElement(se, name, selected);
@@ -168,9 +170,9 @@ static Element* CreateElement(SequenceElements *se, const std::string &name, con
             }
         }
         el = me;
+        el->SetVisible(visible);
     }
     el->SetCollapsed(collapsed);
-    el->SetVisible(visible);
     return el;
 }
 
@@ -241,7 +243,7 @@ void SequenceElements::RenameTimingTrack(std::string oldname, std::string newnam
 
     for (size_t i = 0; i < GetElementCount(); i++) {
         Element* e = GetElement(i);
-        if (e->GetType() == ELEMENT_TYPE_MODEL) {
+        if (e->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
             ModelElement *elem = dynamic_cast<ModelElement *>(e);
             for (int j = 0; j < elem->GetEffectLayerCount(); j++) {
                 EffectLayer* layer = elem->GetEffectLayer(j);
@@ -263,7 +265,7 @@ void SequenceElements::RenameTimingTrack(std::string oldname, std::string newnam
                         }
                     }
                 }
-                if (se->GetType() == ELEMENT_TYPE_STRAND) {
+                if (se->GetType() == ElementType::ELEMENT_TYPE_STRAND) {
                     StrandElement *ste = dynamic_cast<StrandElement*>(se);
                     for (int k = 0; k < ste->GetNodeLayerCount(); k++) {
                         NodeLayer* nlayer = ste->GetNodeLayer(k);
@@ -326,7 +328,7 @@ std::string SequenceElements::GetViewModels(const std::string &viewName) const
     {
         for (auto it = mAllViews[MASTER_VIEW].begin(); it != mAllViews[MASTER_VIEW].end(); ++it)
         {
-            if ((*it)->GetType() == ELEMENT_TYPE_MODEL)
+            if ((*it)->GetType() == ElementType::ELEMENT_TYPE_MODEL)
             {
                 result += (*it)->GetName() + ",";
             }
@@ -366,7 +368,7 @@ Element* SequenceElements::GetElement(const std::string &name) const
         {
             return mAllViews[MASTER_VIEW][i];
         }
-        else if (el->GetType() == ELEMENT_TYPE_MODEL) {
+        else if (el->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
             ModelElement* mel = dynamic_cast<ModelElement*>(el);
             if (mel != nullptr)
             {
@@ -453,7 +455,7 @@ void SequenceElements::DeleteTimingFromView(const std::string &name, int view)
 {
     std::string viewName = GetViewName(view);
     TimingElement* elem = dynamic_cast<TimingElement*>(GetElement(name));
-    if (elem != nullptr && elem->GetType() == ELEMENT_TYPE_TIMING)
+    if (elem != nullptr && elem->GetType() == ElementType::ELEMENT_TYPE_TIMING)
     {
         std::string views = elem->GetViews();
         wxArrayString all_views = wxSplit(views, ',');
@@ -481,7 +483,7 @@ void SequenceElements::DeleteTimingsFromView(int view)
     for (size_t i = 0; i < mAllViews[view].size(); i++)
     {
         Element *el = mAllViews[view][i];
-        if (el->GetType() == ELEMENT_TYPE_TIMING)
+        if (el->GetType() == ElementType::ELEMENT_TYPE_TIMING)
         {
             TimingElement* te = dynamic_cast<TimingElement*>(el);
             std::string views = te->GetViews();
@@ -1016,14 +1018,15 @@ void SequenceElements::SetTimingVisibility(const std::string& name)
     for(size_t i=0;i<mAllViews[MASTER_VIEW].size();i++)
     {
         Element* elem = mAllViews[MASTER_VIEW][i];
-        if( elem->GetType() != ELEMENT_TYPE_TIMING )
+        if( elem->GetType() != ElementType::ELEMENT_TYPE_TIMING )
         {
             break;
         }
         TimingElement *te = dynamic_cast<TimingElement*>(elem);
         if( name == "Master View" )
         {
-            te->SetVisible(true);
+            te->SetVisible(te->GetMasterVisible());
+            //te->SetVisible(true);
         }
         else
         {
@@ -1076,7 +1079,7 @@ void SequenceElements::AddTimingToView(const std::string& timing, const std::str
 {
     Element* elem = GetElement(timing);
     TimingElement *te = dynamic_cast<TimingElement*>(elem);
-    if( elem != nullptr && elem->GetType() == ELEMENT_TYPE_TIMING )
+    if( elem != nullptr && elem->GetType() == ElementType::ELEMENT_TYPE_TIMING )
     {
         std::string views = te->GetViews();
         wxArrayString all_views = wxSplit(views,',');
@@ -1279,14 +1282,14 @@ void addModelElement(ModelElement* elem, std::vector<Row_Information_Struct>& mR
                 ri.layerIndex = x;
                 ri.Index = rowIndex++;
                 ri.strandIndex = -1;
-                if (se->GetType() == ELEMENT_TYPE_STRAND) {
+                if (se->GetType() == ElementType::ELEMENT_TYPE_STRAND) {
                     ri.strandIndex = ((StrandElement*)se)->GetStrand();
                 }
                 ri.submodel = submodel;
                 mRowInformation.push_back(ri);
             }
 
-            if (se->GetType() == ELEMENT_TYPE_STRAND && ((StrandElement*)se)->ShowNodes()) {
+            if (se->GetType() == ElementType::ELEMENT_TYPE_STRAND && ((StrandElement*)se)->ShowNodes()) {
                 StrandElement* ste = dynamic_cast<StrandElement*>(se);
                 for (int n = 0; n < ste->GetNodeLayerCount(); n++) {
                     Row_Information_Struct ri;
@@ -1364,9 +1367,9 @@ void SequenceElements::PopulateRowInformation()
         Element* elem = mAllViews[MASTER_VIEW][i];
         if (elem != nullptr)
         {
-            if (elem->GetType() == ELEMENT_TYPE_TIMING)
+            if (elem->GetType() == ElementType::ELEMENT_TYPE_TIMING)
             {
-                if (mCurrentView == MASTER_VIEW || TimingIsPartOfView(dynamic_cast<TimingElement*>(elem), mCurrentView))
+                if ((mCurrentView == MASTER_VIEW || TimingIsPartOfView(dynamic_cast<TimingElement*>(elem), mCurrentView)) && elem->GetVisible())
                 {
                     addTimingElement(dynamic_cast<TimingElement*>(elem), mRowInformation, rowIndex, mSelectedTimingRow, mTimingRowCount, timingColorIndex);
                 }
@@ -1379,7 +1382,7 @@ void SequenceElements::PopulateRowInformation()
         Element* elem = mAllViews[mCurrentView][i];
         if (elem != nullptr)
         {
-            if (elem->GetVisible() && elem->GetType() == ELEMENT_TYPE_MODEL) {
+            if (elem->GetVisible() && elem->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
                 addModelElement(dynamic_cast<ModelElement*>(elem), mRowInformation, rowIndex, xframe, mAllViews[MASTER_VIEW], false);
             }
         }
@@ -1449,7 +1452,7 @@ int SequenceElements::GetNumberOfTimingElements() {
     int count = 0;
     for (size_t i = 0; i < mAllViews[MASTER_VIEW].size(); i++)
     {
-        if (mAllViews[MASTER_VIEW][i]->GetType() == ELEMENT_TYPE_TIMING)
+        if (mAllViews[MASTER_VIEW][i]->GetType() == ElementType::ELEMENT_TYPE_TIMING)
         {
             count++;
         }
@@ -1462,7 +1465,7 @@ TimingElement* SequenceElements::GetTimingElement(int n)
     int count = 0;
     for (size_t i = 0; i < mAllViews[MASTER_VIEW].size(); i++)
     {
-        if (mAllViews[MASTER_VIEW][i]->GetType() == ELEMENT_TYPE_TIMING)
+        if (mAllViews[MASTER_VIEW][i]->GetType() == ElementType::ELEMENT_TYPE_TIMING)
         {
             if (count == n)
             {
@@ -1478,7 +1481,7 @@ TimingElement* SequenceElements::GetTimingElement(const std::string& name)
 {
     for (size_t i = 0; i < mAllViews[MASTER_VIEW].size(); i++)
     {
-        if (mAllViews[MASTER_VIEW][i]->GetType() == ELEMENT_TYPE_TIMING && mAllViews[MASTER_VIEW][i]->GetName() == name)
+        if (mAllViews[MASTER_VIEW][i]->GetType() == ElementType::ELEMENT_TYPE_TIMING && mAllViews[MASTER_VIEW][i]->GetName() == name)
         {
             return (TimingElement*)mAllViews[MASTER_VIEW][i];
         }
@@ -1501,7 +1504,7 @@ void SequenceElements::DeactivateAllTimingElements()
 {
     for(size_t i=0;i<mAllViews[mCurrentView].size();i++)
     {
-        if(mAllViews[mCurrentView][i]->GetType()==ELEMENT_TYPE_TIMING)
+        if(mAllViews[mCurrentView][i]->GetType()== ElementType::ELEMENT_TYPE_TIMING)
         {
             dynamic_cast<TimingElement*>(mAllViews[mCurrentView][i])->SetActive(false);
         }
@@ -1575,7 +1578,7 @@ void SequenceElements::SelectAllEffectsNoTiming()
 {
     for (size_t i = 0; i < mRowInformation.size(); i++)
     {
-        if (mRowInformation[i].element->GetType() == ELEMENT_TYPE_TIMING) {
+        if (mRowInformation[i].element->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
             continue;
         }
         EffectLayer* effectLayer = GetEffectLayer(&mRowInformation[i]);
@@ -1611,7 +1614,7 @@ void SequenceElements::SelectAllElements()
 {
     for (size_t i = 0; i < mAllViews[mCurrentView].size(); i++)
     {
-        if (mAllViews[mCurrentView][i]->GetType() == ELEMENT_TYPE_MODEL) {
+        if (mAllViews[mCurrentView][i]->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
             dynamic_cast<ModelElement*>(mAllViews[mCurrentView][i])->SetSelected(true);
         }
     }
@@ -1621,7 +1624,7 @@ void SequenceElements::UnSelectAllElements()
 {
     for(size_t i=0; i < mAllViews[mCurrentView].size(); i++)
     {
-        if(mAllViews[mCurrentView][i]->GetType() == ELEMENT_TYPE_MODEL) {
+        if(mAllViews[mCurrentView][i]->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
             dynamic_cast<ModelElement*>(mAllViews[mCurrentView][i])->SetSelected(false);
         }
     }
@@ -1681,13 +1684,13 @@ bool SequenceElements::IsValidEffect(Effect* ef) const
     for (size_t i = 0; i < GetElementCount(); i++)
     {
         Element* e = GetElement(i);
-        if (e->GetType() != ELEMENT_TYPE_TIMING)
+        if (e->GetType() != ElementType::ELEMENT_TYPE_TIMING)
         {
             if (e->IsEffectValid(ef))
             {
                 return true;
             }
-            if (e->GetType() == ELEMENT_TYPE_MODEL) {
+            if (e->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
                 ModelElement* mel = dynamic_cast<ModelElement*>(e);
                 if (mel != nullptr)
                 {
@@ -1715,7 +1718,7 @@ Effect* SequenceElements::SelectEffectUsingDescription(std::string description)
     for (size_t i = 0; i < GetElementCount(); i++)
     {
         Element* e = GetElement(i);
-        if (e->GetType() != ELEMENT_TYPE_TIMING)
+        if (e->GetType() != ElementType::ELEMENT_TYPE_TIMING)
         {
             Effect* ef = e->SelectEffectUsingDescription(description);
             if (ef != nullptr)
@@ -1735,7 +1738,7 @@ std::list<std::string> SequenceElements::GetAllEffectDescriptions()
     for (size_t i = 0; i < GetElementCount(); i++)
     {
         Element* e = GetElement(i);
-        if (e->GetType() != ELEMENT_TYPE_TIMING)
+        if (e->GetType() != ElementType::ELEMENT_TYPE_TIMING)
         {
             for (size_t j = 0; j < e->GetEffectLayerCount(); j++)
             {
@@ -1763,7 +1766,7 @@ std::list<std::string> SequenceElements::GetAllUsedEffectTypes() const
     for (size_t i = 0; i < GetElementCount(); i++)
     {
         Element* e = GetElement(i);
-        if (e->GetType() != ELEMENT_TYPE_TIMING)
+        if (e->GetType() != ElementType::ELEMENT_TYPE_TIMING)
         {
             for (size_t j = 0; j < e->GetEffectLayerCount(); j++)
             {
@@ -1791,7 +1794,7 @@ std::list<std::string> SequenceElements::GetAllElementNamesWithEffects()
     for (size_t i = 0; i < GetElementCount(); i++)
     {
         Element* e = GetElement(i);
-        if (e->GetType() != ELEMENT_TYPE_TIMING)
+        if (e->GetType() != ElementType::ELEMENT_TYPE_TIMING)
         {
             if (std::find(res.begin(), res.end(), e->GetFullName()) == res.end())
             {
@@ -1811,7 +1814,7 @@ int SequenceElements::GetElementLayerCount(std::string elementName, std::list<in
     for (size_t i = 0; i < GetElementCount(); i++)
     {
         Element* e = GetElement(i);
-        if (e->GetType() != ELEMENT_TYPE_TIMING)
+        if (e->GetType() != ElementType::ELEMENT_TYPE_TIMING)
         {
             if (e->GetFullName() == elementName)
             {
@@ -1841,7 +1844,7 @@ std::list<Effect*> SequenceElements::GetElementLayerEffects(std::string elementN
     for (size_t i = 0; i < GetElementCount(); i++)
     {
         Element* e = GetElement(i);
-        if (e->GetType() != ELEMENT_TYPE_TIMING)
+        if (e->GetType() != ElementType::ELEMENT_TYPE_TIMING)
         {
             if (e->GetFullName() == elementName)
             {
@@ -1862,7 +1865,7 @@ Effect* SequenceElements::SelectEffectUsingElementLayerTime(std::string element,
     for (size_t i = 0; i < GetElementCount(); i++)
     {
         Element* e = GetElement(i);
-        if (e->GetType() != ELEMENT_TYPE_TIMING)
+        if (e->GetType() != ElementType::ELEMENT_TYPE_TIMING)
         {
             if (e->GetFullName() == element)
             {
@@ -1888,7 +1891,7 @@ int SequenceElements::GetIndexOfModelFromModelIndex(int modelIndex)
 
     for (int i = 0; i < GetElementCount(); ++i)
     {
-        if (GetElement(i)->GetType() == ELEMENT_TYPE_TIMING)
+        if (GetElement(i)->GetType() == ElementType::ELEMENT_TYPE_TIMING)
         {
         }
         else
@@ -2153,7 +2156,7 @@ void SequenceElements::BreakdownWord(EffectLayer* phoneme_layer, int start_time,
 
 void SequenceElements::IncrementChangeCount(Element *el) {
     mChangeCount++;
-    if (el != nullptr && el->GetType() == ELEMENT_TYPE_TIMING) {
+    if (el != nullptr && el->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
         //need to check if we need to have some models re-rendered due to timing being changed
         std::unique_lock<std::mutex> locker(renderDepLock);
         std::map<std::string, std::set<std::string>>::iterator it = renderDependency.find(el->GetModelName());

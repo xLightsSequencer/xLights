@@ -1814,7 +1814,7 @@ wxString xLightsXmlFile::UniqueTimingName(xLightsFrame* xLightsParent, wxString 
         for (int i = 0; i < num_elements; ++i)
         {
             Element* element = xLightsParent->GetSequenceElements().GetElement(i);
-            if (element->GetType() == ELEMENT_TYPE_TIMING)
+            if (element->GetType() == ElementType::ELEMENT_TYPE_TIMING)
             {
                 if (element->GetName() == testname)
                 {
@@ -2539,7 +2539,7 @@ void xLightsXmlFile::ProcessXLightsTiming(const wxString& dir, const wxArrayStri
         wxArrayString names;
         for (size_t e = 0; e < se.GetElementCount(); e++) {
             Element *el = se.GetElement(e);
-            if (el->GetType() == ELEMENT_TYPE_TIMING) {
+            if (el->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
                 TimingElement *ti =dynamic_cast<TimingElement*>(el);
                 if (ti->GetFixedTiming() == 0) {
                     elements.push_back(ti);
@@ -2673,7 +2673,7 @@ wxArrayString xLightsXmlFile::GetTimingList(const SequenceElements& seq_elements
     for(int i = 0; i < num_elements; ++i)
     {
         Element* element = seq_elements.GetElement(i);
-        if( element->GetType() == ELEMENT_TYPE_TIMING )
+        if( element->GetType() == ElementType::ELEMENT_TYPE_TIMING )
         {
             timing_list.push_back(element->GetName());
         }
@@ -2829,16 +2829,16 @@ void xLightsXmlFile::Save( SequenceElements& seq_elements)
         // Add display elements
         wxXmlNode* display_element_node = AddChildXmlNode(display_node, "Element");
         display_element_node->AddAttribute("collapsed", string_format("%d", element->GetCollapsed()));
-        display_element_node->AddAttribute("type", element->GetType() == ELEMENT_TYPE_TIMING ? "timing" : "model");
+        display_element_node->AddAttribute("type", element->GetType() == ElementType::ELEMENT_TYPE_TIMING ? "timing" : "model");
         display_element_node->AddAttribute("name", element->GetName());
         display_element_node->AddAttribute("visible", string_format("%d", element->GetVisible()));
 
         // Add element node to ElementEffects
         wxXmlNode* element_effects_node = AddChildXmlNode(elements_node, "Element");
-        element_effects_node->AddAttribute("type", element->GetType() == ELEMENT_TYPE_TIMING ? "timing" : "model");
+        element_effects_node->AddAttribute("type", element->GetType() == ElementType::ELEMENT_TYPE_TIMING ? "timing" : "model");
         element_effects_node->AddAttribute("name", element->GetName());
 
-        if ( element->GetType() == ELEMENT_TYPE_TIMING ) {
+        if ( element->GetType() == ElementType::ELEMENT_TYPE_TIMING ) {
             TimingElement *tm = dynamic_cast<TimingElement *>(element);
             display_element_node->AddAttribute("views", tm->GetViews());
             display_element_node->AddAttribute("active", string_format("%d", tm->GetActive()));
@@ -2873,7 +2873,7 @@ void xLightsXmlFile::Save( SequenceElements& seq_elements)
 
                 }
             }
-        } else if ( element->GetType() == ELEMENT_TYPE_MODEL) {
+        } else if ( element->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
             ModelElement *me = dynamic_cast<ModelElement *>(element);
             int num_layers = me->GetEffectLayerCount();
             for(int j = 0; j < num_layers; ++j) {
@@ -3108,7 +3108,7 @@ void xLightsXmlFile::AdjustEffectSettingsForVersion(SequenceElements& elements, 
     if (count > 0) {
         for (size_t i = 0; i < elements.GetElementCount(); i++) {
             Element* elem = elements.GetElement(i);
-            if (elem->GetType() == ELEMENT_TYPE_MODEL) {
+            if (elem->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
                 ModelElement* me = dynamic_cast<ModelElement*>(elem);
                 for (int j = 0; j < elem->GetEffectLayerCount(); j++) {
                     EffectLayer* layer = elem->GetEffectLayer(j);
@@ -3130,7 +3130,7 @@ void xLightsXmlFile::AdjustEffectSettingsForVersion(SequenceElements& elements, 
                             }
                         }
                     }
-                    if (se->GetType() == ELEMENT_TYPE_STRAND) {
+                    if (se->GetType() == ElementType::ELEMENT_TYPE_STRAND) {
                         StrandElement* ste = dynamic_cast<StrandElement*>(se);
                         for (int k = 0; k < ste->GetNodeLayerCount(); k++) {
                             NodeLayer* nlayer = ste->GetNodeLayer(k);

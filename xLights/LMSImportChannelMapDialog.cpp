@@ -164,7 +164,7 @@ void LMSImportChannelMapDialog::Init(bool allModels) {
         }
     } else {
         for (size_t i=0;i<mSequenceElements->GetElementCount();i++) {
-            if (mSequenceElements->GetElement(i)->GetType() == ELEMENT_TYPE_MODEL) {
+            if (mSequenceElements->GetElement(i)->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
                 ModelsChoice->Append(mSequenceElements->GetElement(i)->GetName());
             }
         }
@@ -290,7 +290,7 @@ void LMSImportChannelMapDialog::OnAddModelButtonClick(wxCommandEvent& event)
     ModelsChoice->Delete(ModelsChoice->GetSelection());
     Element * model = nullptr;
     for (size_t i=0;i<mSequenceElements->GetElementCount();i++) {
-        if (mSequenceElements->GetElement(i)->GetType() == ELEMENT_TYPE_MODEL
+        if (mSequenceElements->GetElement(i)->GetType() == ElementType::ELEMENT_TYPE_MODEL
             && name == mSequenceElements->GetElement(i)->GetName()) {
             model = mSequenceElements->GetElement(i);
         }

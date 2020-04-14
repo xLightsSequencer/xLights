@@ -651,7 +651,7 @@ bool xLightsImportChannelMapDialog::InitImport() {
 
     int ms = 0;
     for (size_t i = 0; i < mSequenceElements->GetElementCount(); ++i) {
-        if (mSequenceElements->GetElement(i)->GetType() == ELEMENT_TYPE_MODEL) {
+        if (mSequenceElements->GetElement(i)->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
             Element* e = mSequenceElements->GetElement(i);
 
             Model *m = xlights->GetModel(e->GetName());

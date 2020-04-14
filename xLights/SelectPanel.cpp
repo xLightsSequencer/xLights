@@ -119,7 +119,7 @@ void SelectPanel::populateModelsList(const std::string& effectType)
     for (int i = 0; i < mSequenceElements->GetElementCount(); i++)
     {
         Element* el = mSequenceElements->GetElement(i);
-        if (el->GetType() == ELEMENT_TYPE_TIMING)
+        if (el->GetType() == ElementType::ELEMENT_TYPE_TIMING)
             continue;
 
         for (int i = 0; i < el->GetEffectLayerCount(); ++i)
@@ -131,7 +131,7 @@ void SelectPanel::populateModelsList(const std::string& effectType)
                 break;
             }
         }
-        if (el->GetType() == ELEMENT_TYPE_STRAND)
+        if (el->GetType() == ElementType::ELEMENT_TYPE_STRAND)
         {
             StrandElement* strEl = dynamic_cast<StrandElement*>(el);
             if (strEl != nullptr)
@@ -176,7 +176,7 @@ void SelectPanel::populateEffectsList()
         {
             auto const& modelname = ListBox_Select_Models->GetString(value);
             Element* el = mSequenceElements->GetElement(modelname);
-            if (el == nullptr || el->GetType() == ELEMENT_TYPE_TIMING)
+            if (el == nullptr || el->GetType() == ElementType::ELEMENT_TYPE_TIMING)
                 continue;
 
             wxString tmpname;
@@ -190,7 +190,7 @@ void SelectPanel::populateEffectsList()
                 for (Effect* eff : effs)
                     ListBox_Select_Effects->Append(wxString::Format("[%05.1fs,%05.1fs] %s", eff->GetStartTimeMS() / 1000.0, eff->GetEndTimeMS() / 1000.0, tmpname),(void * )eff);
             }
-            if (el->GetType() == ELEMENT_TYPE_STRAND)
+            if (el->GetType() == ElementType::ELEMENT_TYPE_STRAND)
             {
                 StrandElement* strEl = dynamic_cast<StrandElement*>(el);
                 if (strEl != nullptr)

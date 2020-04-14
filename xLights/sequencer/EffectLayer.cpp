@@ -176,7 +176,7 @@ Effect* EffectLayer::AddEffect(int id, const std::string &n, const std::string &
     // really dont want to add effects which look invalid - some imports result in this
     if (startTimeMS > endTimeMS) return nullptr;
 
-    if (GetParentElement() != nullptr && GetParentElement()->GetType() == ELEMENT_TYPE_MODEL) {
+    if (GetParentElement() != nullptr && GetParentElement()->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
         if (name == "") {
             name = "Off";
         }

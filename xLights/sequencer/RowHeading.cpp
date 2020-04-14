@@ -113,7 +113,7 @@ void RowHeading::ProcessTooltip(wxMouseEvent& event)
         if (e != nullptr)
         {
             wxString layers;
-            if (e->GetType() != ELEMENT_TYPE_TIMING && e->GetEffectLayerCount() > 1)
+            if (e->GetType() != ElementType::ELEMENT_TYPE_TIMING && e->GetEffectLayerCount() > 1)
             {
                 layers = wxString::Format(" [%d]", (int)e->GetEffectLayerCount());
             }
@@ -215,7 +215,7 @@ void RowHeading::mouseLeftDown( wxMouseEvent& event)
     {
         bool result;
         Element* e = mSequenceElements->GetVisibleRowInformation(mSelectedRow)->element;
-        if(e->GetType() == ELEMENT_TYPE_MODEL)
+        if(e->GetType() == ElementType::ELEMENT_TYPE_MODEL)
         {
             mSequenceElements->UnSelectAllElements();
             ModelElement *me = dynamic_cast<ModelElement *>(e);
@@ -247,17 +247,17 @@ void RowHeading::mouseLeftDown( wxMouseEvent& event)
 
 void RowHeading::ToggleExpand(Element* element)
 {
-    if (element->GetType() == ELEMENT_TYPE_MODEL) {
+    if (element->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
         ModelElement *me = dynamic_cast<ModelElement *>(element);
         me->ShowStrands(!me->ShowStrands());
         wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
         eventRowHeaderChanged.SetString(element->GetModelName());
         wxPostEvent(GetParent(), eventRowHeaderChanged);
     }
-    else if (element->GetType() == ELEMENT_TYPE_SUBMODEL) {
+    else if (element->GetType() == ElementType::ELEMENT_TYPE_SUBMODEL) {
 
     }
-    else if (element->GetType() == ELEMENT_TYPE_STRAND) {
+    else if (element->GetType() == ElementType::ELEMENT_TYPE_STRAND) {
         StrandElement *se = dynamic_cast<StrandElement *>(element);
         se->ShowNodes(!se->ShowNodes());
 
@@ -265,7 +265,7 @@ void RowHeading::ToggleExpand(Element* element)
         eventRowHeaderChanged.SetString(element->GetName());
         wxPostEvent(GetParent(), eventRowHeaderChanged);
     }
-    else if (element->GetType() == ELEMENT_TYPE_TIMING) {
+    else if (element->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
         if (element->GetEffectLayerCount() > 1) {
             if (element->GetCollapsed()) {
                 element->SetCollapsed(false);
@@ -302,9 +302,9 @@ void RowHeading::rightClick( wxMouseEvent& event)
 
     Row_Information_Struct *ri =  mSequenceElements->GetVisibleRowInformation(mSelectedRow);
     Element* element = ri->element;
-    if (element->GetType()==ELEMENT_TYPE_MODEL
-        || element->GetType()==ELEMENT_TYPE_SUBMODEL
-        || element->GetType()==ELEMENT_TYPE_STRAND)
+    if (element->GetType()== ElementType::ELEMENT_TYPE_MODEL
+        || element->GetType()== ElementType::ELEMENT_TYPE_SUBMODEL
+        || element->GetType()== ElementType::ELEMENT_TYPE_STRAND)
     {
         if (ri->nodeIndex < 0) {
             mnuLayer.Append(ID_ROW_MNU_INSERT_LAYER_ABOVE,"Insert Layer Above");
@@ -322,11 +322,11 @@ void RowHeading::rightClick( wxMouseEvent& event)
         }
         bool canPromote = false;
         ModelElement *me = dynamic_cast<ModelElement *>(element);
-        if (element->GetType()==ELEMENT_TYPE_STRAND || element->GetType()==ELEMENT_TYPE_SUBMODEL) {
+        if (element->GetType()== ElementType::ELEMENT_TYPE_STRAND || element->GetType()== ElementType::ELEMENT_TYPE_SUBMODEL) {
             me = dynamic_cast<SubModelElement *>(element)->GetModelElement();
         }
         if (me->GetSubModelAndStrandCount() > 0) {
-            if (element->GetType() != ELEMENT_TYPE_SUBMODEL) {
+            if (element->GetType() != ElementType::ELEMENT_TYPE_SUBMODEL) {
                 canPromote = true;
             }
             mnuLayer.Append(ID_ROW_MNU_TOGGLE_STRANDS,"Toggle Strands");
@@ -347,14 +347,14 @@ void RowHeading::rightClick( wxMouseEvent& event)
         }
         else
         {
-            if (element->GetType() == ELEMENT_TYPE_MODEL) {
+            if (element->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
                 Model* m = mSequenceElements->GetXLightsFrame()->AllModels[ri->element->GetModelName()];
                 if (m->GetDisplayAs() != "ModelGroup")
                 {
                     mnuLayer.Append(ID_ROW_MNU_CONVERT_TO_EFFECTS, "Convert To Effect");
                 }
             }
-            else if (element->GetType() == ELEMENT_TYPE_STRAND)
+            else if (element->GetType() == ElementType::ELEMENT_TYPE_STRAND)
             {
                 mnuLayer.Append(ID_ROW_MNU_CONVERT_TO_EFFECTS, "Convert To Effect");
             }
@@ -1004,7 +1004,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         for (int i = 0; i < mSequenceElements->GetElementCount(view); ++i)
         {
             Element* e = mSequenceElements->GetElement(i, view);
-            if (e->GetType() != ELEMENT_TYPE_TIMING)
+            if (e->GetType() != ElementType::ELEMENT_TYPE_TIMING)
             {
                 if (ExpandElementIfEffects(e))
                 {
@@ -1022,7 +1022,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         for (int i = 0; i < mSequenceElements->GetElementCount(view); ++i)
         {
             Element* e = mSequenceElements->GetElement(i, view);
-            if (e->GetType() != ELEMENT_TYPE_TIMING)
+            if (e->GetType() != ElementType::ELEMENT_TYPE_TIMING)
             {
                 ModelElement* me = dynamic_cast<ModelElement*>(e);
                 if (me != nullptr)
@@ -1093,7 +1093,7 @@ bool RowHeading::ExpandElementIfEffects(Element* e)
 		}
 	}
 
-    if (e->GetType() == ELEMENT_TYPE_MODEL)
+    if (e->GetType() == ElementType::ELEMENT_TYPE_MODEL)
     {
         ModelElement *me = dynamic_cast<ModelElement *>(e);
         Model *m = mSequenceElements->GetXLightsFrame()->AllModels[me->GetModelName()];
@@ -1130,7 +1130,7 @@ bool RowHeading::ExpandElementIfEffects(Element* e)
             if (hasEffects) me->ShowStrands(true);
         }
     }
-    else if (e->GetType() == ELEMENT_TYPE_STRAND)
+    else if (e->GetType() == ElementType::ELEMENT_TYPE_STRAND)
     {
         StrandElement* se = dynamic_cast<StrandElement*>(e);
         hasEffects = se->HasEffects();
@@ -1248,7 +1248,7 @@ void RowHeading::BreakdownTimingWords(TimingElement* element)
 
 bool RowHeading::HitTestCollapseExpand(int row,int x, bool* IsCollapsed)
 {
-    if(mSequenceElements->GetVisibleRowInformation(row)->element->GetType() != ELEMENT_TYPE_TIMING &&
+    if(mSequenceElements->GetVisibleRowInformation(row)->element->GetType() != ElementType::ELEMENT_TYPE_TIMING &&
        x<DEFAULT_ROW_HEADING_MARGIN)
     {
         *IsCollapsed = mSequenceElements->GetVisibleRowInformation(row)->Collapsed;
@@ -1262,7 +1262,7 @@ bool RowHeading::HitTestCollapseExpand(int row,int x, bool* IsCollapsed)
 
 bool RowHeading::HitTestTimingActive(int row,int x, bool* IsActive)
 {
-    if (mSequenceElements->GetVisibleRowInformation(row)->element->GetType() == ELEMENT_TYPE_TIMING
+    if (mSequenceElements->GetVisibleRowInformation(row)->element->GetType() == ElementType::ELEMENT_TYPE_TIMING
         && x < DEFAULT_ROW_HEADING_MARGIN) {
 
         *IsActive = dynamic_cast<TimingElement*>(mSequenceElements->GetVisibleRowInformation(row)->element)->GetActive();
@@ -1359,7 +1359,7 @@ void RowHeading::Draw()
         if (rowInfo->submodel) {
             prefix = "  ";
         }
-        if (rowInfo->element->GetType() != ELEMENT_TYPE_TIMING && rowInfo->element->GetEffectLayerCount() > 1)
+        if (rowInfo->element->GetType() != ElementType::ELEMENT_TYPE_TIMING && rowInfo->element->GetEffectLayerCount() > 1)
         {
             layers = wxString::Format(" [%d]", (int)rowInfo->element->GetEffectLayerCount());
         }
@@ -1425,7 +1425,7 @@ void RowHeading::Draw()
         else        // Draw label
         {
             auto name = rowInfo->element->GetName();
-            if (rowInfo->element->GetType() == ELEMENT_TYPE_SUBMODEL) {
+            if (rowInfo->element->GetType() == ElementType::ELEMENT_TYPE_SUBMODEL) {
                 prefix += "  ";
 
                 // find the parent row so we can work out its type
@@ -1435,7 +1435,7 @@ void RowHeading::Draw()
                 while (!done && parent >= 0)
                 {
                     auto maybeParent = mSequenceElements->GetRowInformationFromRow(parent);
-                    if (maybeParent != nullptr && maybeParent->element->GetType() == ELEMENT_TYPE_MODEL && !maybeParent->submodel)
+                    if (maybeParent != nullptr && maybeParent->element->GetType() == ElementType::ELEMENT_TYPE_MODEL && !maybeParent->submodel)
                     {
                         done = true;
                     }
@@ -1462,7 +1462,7 @@ void RowHeading::Draw()
             dc.DrawLabel(prefix + name + layers,r,wxALIGN_CENTER_VERTICAL|wxALIGN_LEFT);
         }
 
-        if (rowInfo->element->GetType() != ELEMENT_TYPE_TIMING)
+        if (rowInfo->element->GetType() != ElementType::ELEMENT_TYPE_TIMING)
         {
             if(rowInfo->element->GetEffectLayerCount() > 1
                && rowInfo->layerIndex == 0
@@ -1517,7 +1517,7 @@ void RowHeading::Draw()
                 }
             }
         }
-        else if(rowInfo->element->GetType()==ELEMENT_TYPE_TIMING)
+        else if(rowInfo->element->GetType()== ElementType::ELEMENT_TYPE_TIMING)
         {
             if( rowInfo->layerIndex == 0 )
             {
@@ -1556,7 +1556,7 @@ void RowHeading::Draw()
 
 xlColor RowHeading::GetHeaderColor(Row_Information_Struct* info) const
 {
-    if (info->element->GetType() == ELEMENT_TYPE_TIMING)
+    if (info->element->GetType() == ElementType::ELEMENT_TYPE_TIMING)
     {
         return ColorManager::instance()->GetTimingColor(info->colorIndex);
     }

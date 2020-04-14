@@ -220,7 +220,7 @@ bool NoteImportDialog::IsTimingUnique(wxString name) const
     for (int i = 0; i < num_elements; ++i)
     {
         Element* element = _sequenceElements.GetElement(i);
-        if (element->GetType() == ELEMENT_TYPE_TIMING)
+        if (element->GetType() == ElementType::ELEMENT_TYPE_TIMING)
         {
             if (element->GetName() == name)
             {

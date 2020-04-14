@@ -178,7 +178,7 @@ void EffectsGrid::mouseLeftDClick(wxMouseEvent& event)
     {
         if ((mTimingPlayOnDClick && event.ShiftDown()) ||
              (!mTimingPlayOnDClick && !event.ShiftDown())) {
-            if (selectedEffect->GetParentEffectLayer()->GetParentElement()->GetType() == ELEMENT_TYPE_TIMING ){
+            if (selectedEffect->GetParentEffectLayer()->GetParentElement()->GetType() == ElementType::ELEMENT_TYPE_TIMING ){
                 if (selectedEffect->GetParentEffectLayer()->IsFixedTimingLayer())
                 {
                     if (wxMessageBox("Cannot Add Labels to a Fixed Timing Track.\nWould You Like to convert it to a Varible Timing Track First?", "Convert Fixed Timing Track First", wxYES_NO) == wxYES)
@@ -273,7 +273,7 @@ void EffectsGrid::rightClick(wxMouseEvent& event)
     Element* element = ri->element;
     if (element == nullptr)
         logger_base.crit("EffectsGrid::rightClick No row element ... this is not going to end well.");
-    if (element->GetType() != ELEMENT_TYPE_TIMING)
+    if (element->GetType() != ElementType::ELEMENT_TYPE_TIMING)
     {
         wxMenu mnuLayer;
         // Copy / Paste / Delete
@@ -365,7 +365,7 @@ void EffectsGrid::rightClick(wxMouseEvent& event)
         HitLocation selectionType;
         int startTime = mTimeline->GetAbsoluteTimeMSfromPosition(event.GetX());
         Effect* selectedEffect = GetEffectAtRowAndTime(mSelectedRow,startTime,effectIndex,selectionType);
-        if (selectedEffect != nullptr && selectedEffect->GetParentEffectLayer()->GetParentElement()->GetType() == ELEMENT_TYPE_TIMING) {
+        if (selectedEffect != nullptr && selectedEffect->GetParentEffectLayer()->GetParentElement()->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
             if( ri->layerIndex == 0 )
             {
                 mnuLayer.Append(ID_GRID_MNU_BREAKDOWN_PHRASE,"Breakdown Phrase");
@@ -1337,7 +1337,7 @@ void EffectsGrid::mouseDown(wxMouseEvent& event)
             mEffectLayer = mSequenceElements->GetVisibleEffectLayer(row);
             Element* element = mEffectLayer->GetParentElement();
 
-            if(element->GetType() != ELEMENT_TYPE_TIMING)
+            if(element->GetType() != ElementType::ELEMENT_TYPE_TIMING)
             {
                 if (selectedEffect != mSelectedEffect)
                 {
@@ -1476,7 +1476,7 @@ void EffectsGrid::ApplyEffectSettingToSelected(const std::string& effectName, co
         }
         lastModel = ri->element;
 
-        if (ri->element->GetType() == ELEMENT_TYPE_TIMING)
+        if (ri->element->GetType() == ElementType::ELEMENT_TYPE_TIMING)
         {
             // skip timing rows
         }
@@ -1534,7 +1534,7 @@ void EffectsGrid::ApplyButtonPressToSelected(const std::string& effectName, cons
         }
         lastModel = ri->element;
 
-        if (ri->element->GetType() == ELEMENT_TYPE_TIMING)
+        if (ri->element->GetType() == ElementType::ELEMENT_TYPE_TIMING)
         {
             // skip timing rows
         }
@@ -1592,7 +1592,7 @@ void EffectsGrid::RemapSelectedDMXEffectValues(const std::vector<std::pair<int, 
         }
         lastModel = ri->element;
 
-        if (ri->element->GetType() == ELEMENT_TYPE_TIMING)
+        if (ri->element->GetType() == ElementType::ELEMENT_TYPE_TIMING)
         {
             // skip timing rows
         }
@@ -1650,7 +1650,7 @@ void EffectsGrid::ConvertSelectedEffectsTo(const std::string& effectName)
         }
         lastModel = ri->element;
 
-        if (ri->element->GetType() == ELEMENT_TYPE_TIMING)
+        if (ri->element->GetType() == ElementType::ELEMENT_TYPE_TIMING)
         {
             // skip timing rows
         }
@@ -1701,7 +1701,7 @@ Effect* EffectsGrid::ACDraw(ACTYPE type, ACSTYLE style, ACMODE mode, int intensi
         Element *e = el->GetParentElement();
         if (e == nullptr) logger_base.crit("BBB GetParentElement about to crash");
 
-        if (e->GetType() != ELEMENT_TYPE_TIMING)
+        if (e->GetType() != ElementType::ELEMENT_TYPE_TIMING)
         {
             switch (type)
             {
@@ -2004,13 +2004,13 @@ void EffectsGrid::ACCascade(int startMS, int endMS, int startCol, int endCol, in
     int inc = 1;
     if (startRow > endRow) inc = -1;
 
-    if (e->GetType() == ELEMENT_TYPE_TIMING) return;
+    if (e->GetType() == ElementType::ELEMENT_TYPE_TIMING) return;
 
     // exclude timing from end rows
     EffectLayer* eler = mSequenceElements->GetVisibleEffectLayer(endRow - mSequenceElements->GetFirstVisibleModelRow());
     if (eler == nullptr) return;
     Element *eer = eler->GetParentElement();
-    while (eer->GetType() == ELEMENT_TYPE_TIMING)
+    while (eer->GetType() == ElementType::ELEMENT_TYPE_TIMING)
     {
         endRow -= inc;
 
@@ -2099,7 +2099,7 @@ void EffectsGrid::ACCascade(int startMS, int endMS, int startCol, int endCol, in
                 EffectLayer* elTarget = mSequenceElements->GetVisibleEffectLayer(i - mSequenceElements->GetFirstVisibleModelRow());
                 Element *eTarget = elTarget->GetParentElement();
 
-                if (eTarget->GetType() != ELEMENT_TYPE_TIMING && el != elTarget)
+                if (eTarget->GetType() != ElementType::ELEMENT_TYPE_TIMING && el != elTarget)
                 {
                     if (std::find(layerUsed.begin(), layerUsed.end(), elTarget) == layerUsed.end())
                     {
@@ -2107,7 +2107,7 @@ void EffectsGrid::ACCascade(int startMS, int endMS, int startCol, int endCol, in
                         // erase everything in the target first
                         ACDraw(ACTYPE::OFF, ACSTYLE::INTENSITY, ACMODE::MODENIL, 0, 0, 0, startMS, endMS, i, i);
 
-                        if (eTarget->GetType() != ELEMENT_TYPE_TIMING)
+                        if (eTarget->GetType() != ElementType::ELEMENT_TYPE_TIMING)
                         {
                             for (auto j = 0; j < el->GetEffectCount(); ++j)
                             {
@@ -2154,7 +2154,7 @@ void EffectsGrid::ACCascade(int startMS, int endMS, int startCol, int endCol, in
             EffectLayer* elTarget = mSequenceElements->GetVisibleEffectLayer(r - mSequenceElements->GetFirstVisibleModelRow());
             Element *eTarget = elTarget->GetParentElement();
 
-            if (eTarget->GetType() != ELEMENT_TYPE_TIMING && el != elTarget)
+            if (eTarget->GetType() != ElementType::ELEMENT_TYPE_TIMING && el != elTarget)
             {
                 if (std::find(layerUsed.begin(), layerUsed.end(), elTarget) == layerUsed.end())
                 {
@@ -3316,7 +3316,7 @@ void EffectsGrid::mouseReleased(wxMouseEvent& event)
         }
         if (mResizing)
         {
-            if (mEffectLayer->GetParentElement()->GetType() != ELEMENT_TYPE_TIMING)
+            if (mEffectLayer->GetParentElement()->GetType() != ElementType::ELEMENT_TYPE_TIMING)
             {
                 if (MultipleEffectsSelected()) {
                     std::string lastModel;
@@ -4595,7 +4595,7 @@ bool EffectsGrid::PapagayoEffectsSelected() const
     for(int i = 0; i<mSequenceElements->GetVisibleRowInformationSize(); i++)
     {
         EffectLayer* el = mSequenceElements->GetVisibleEffectLayer(i);
-        if( el->GetParentElement()->GetType() == ELEMENT_TYPE_TIMING )
+        if( el->GetParentElement()->GetType() == ElementType::ELEMENT_TYPE_TIMING )
         {
             if( el->GetParentElement()->GetEffectLayerCount() > 1 )
             {
@@ -6212,7 +6212,7 @@ void EffectsGrid::DrawEffects()
     for (int row=0; row < mSequenceElements->GetVisibleRowInformationSize(); row++)
     {
         Row_Information_Struct* ri = mSequenceElements->GetVisibleRowInformation(row);
-        if(ri->element->GetType() == ELEMENT_TYPE_TIMING) {
+        if(ri->element->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
             DrawTimingEffects(row);
         } else {
             wxString name = ri->element->GetName();
@@ -6893,7 +6893,7 @@ Element* EffectsGrid::GetActiveTimingElement() const
     for (int row = 0; row<mSequenceElements->GetVisibleRowInformationSize(); row++)
     {
         Element* e = mSequenceElements->GetVisibleRowInformation(row)->element;
-        if (e->GetType() == ELEMENT_TYPE_TIMING && dynamic_cast<TimingElement*>(e)->GetActive())
+        if (e->GetType() == ElementType::ELEMENT_TYPE_TIMING && dynamic_cast<TimingElement*>(e)->GetActive())
         {
             returnValue = e;
             break;

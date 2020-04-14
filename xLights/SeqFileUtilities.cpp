@@ -1261,7 +1261,7 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
 
     for (const auto& it : elements) {
         Element *e = it;
-        if (e->GetType() == ELEMENT_TYPE_MODEL)
+        if (e->GetType() == ElementType::ELEMENT_TYPE_MODEL)
         {
             ModelElement *el = dynamic_cast<ModelElement*>(e);
             bool hasEffects = false;
@@ -1302,7 +1302,7 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
                     }
                 }
             }
-        } else if (e->GetType() == ELEMENT_TYPE_TIMING) {
+        } else if (e->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
             TimingElement *tel = dynamic_cast<TimingElement*>(e);
             if (tel->GetFixedTiming() == 0) {
                 bool hasEffects = false;
@@ -1364,7 +1364,7 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
         std::string modelName = m->_model.ToStdString();
         ModelElement * model = nullptr;
         for (size_t x=0; x<mSequenceElements.GetElementCount();++x) {
-            if (mSequenceElements.GetElement(x)->GetType() == ELEMENT_TYPE_MODEL
+            if (mSequenceElements.GetElement(x)->GetType() == ElementType::ELEMENT_TYPE_MODEL
                 && modelName == mSequenceElements.GetElement(x)->GetName()) {
                 model = dynamic_cast<ModelElement*>(mSequenceElements.GetElement(x));
                 break;
@@ -1892,7 +1892,7 @@ void xLightsFrame::ImportVix(const wxFileName &filename) {
         Model *mc = GetModel(modelName);
         ModelElement * model = nullptr;
         for (size_t x = 0; x < mSequenceElements.GetElementCount(); x++) {
-            if (mSequenceElements.GetElement(x)->GetType() == ELEMENT_TYPE_MODEL
+            if (mSequenceElements.GetElement(x)->GetType() == ElementType::ELEMENT_TYPE_MODEL
                 && modelName == mSequenceElements.GetElement(x)->GetName()) {
                 model = dynamic_cast<ModelElement*>(mSequenceElements.GetElement(x));
                 break;
@@ -2068,7 +2068,7 @@ void xLightsFrame::ImportHLS(const wxFileName &filename)
         Model *mc = GetModel(modelName);
         ModelElement * model = nullptr;
         for (size_t i=0;i<mSequenceElements.GetElementCount();i++) {
-            if (mSequenceElements.GetElement(i)->GetType() == ELEMENT_TYPE_MODEL
+            if (mSequenceElements.GetElement(i)->GetType() == ElementType::ELEMENT_TYPE_MODEL
                 && modelName == mSequenceElements.GetElement(i)->GetName()) {
                 model = dynamic_cast<ModelElement*>(mSequenceElements.GetElement(i));
             }
@@ -2224,7 +2224,7 @@ void xLightsFrame::ImportSuperStar(const wxFileName &filename)
     SuperStarImportDialog dlg(this);
 
     for (size_t i=0;i<mSequenceElements.GetElementCount();i++) {
-        if (mSequenceElements.GetElement(i)->GetType() == ELEMENT_TYPE_MODEL) {
+        if (mSequenceElements.GetElement(i)->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
             dlg.ChoiceSuperStarImportModel->Append(mSequenceElements.GetElement(i)->GetName());
 
             ModelElement *model = dynamic_cast<ModelElement*>(mSequenceElements.GetElement(i));
@@ -2270,7 +2270,7 @@ void xLightsFrame::ImportSuperStar(const wxFileName &filename)
     Element* model = nullptr;
 
     for(size_t i=0;i<mSequenceElements.GetElementCount();i++) {
-        if(mSequenceElements.GetElement(i)->GetType()== ELEMENT_TYPE_MODEL) {
+        if(mSequenceElements.GetElement(i)->GetType()== ElementType::ELEMENT_TYPE_MODEL) {
             model = mSequenceElements.GetElement(i);
             if( model->GetName() == model_name ) {
                 model_found = true;
@@ -2833,7 +2833,7 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml, const wxFileName &filenam
         Model *mc = GetModel(modelName);
         ModelElement* model = nullptr;
         for (size_t x = 0; x < mSequenceElements.GetElementCount(); x++) {
-            if (mSequenceElements.GetElement(x)->GetType() == ELEMENT_TYPE_MODEL
+            if (mSequenceElements.GetElement(x)->GetType() == ElementType::ELEMENT_TYPE_MODEL
                 && modelName == mSequenceElements.GetElement(x)->GetName()) {
                 model = dynamic_cast<ModelElement*>(mSequenceElements.GetElement(x));
                 break;
@@ -4388,7 +4388,7 @@ bool xLightsFrame::ImportS5(wxXmlDocument &input_xml, const wxFileName &filename
         std::string modelName = m->_model.ToStdString();
         ModelElement* model = nullptr;
         for (size_t x = 0; x < mSequenceElements.GetElementCount(); x++) {
-            if (mSequenceElements.GetElement(x)->GetType() == ELEMENT_TYPE_MODEL
+            if (mSequenceElements.GetElement(x)->GetType() == ElementType::ELEMENT_TYPE_MODEL
                 && modelName == mSequenceElements.GetElement(x)->GetName()) {
                 model = dynamic_cast<ModelElement*>(mSequenceElements.GetElement(x));
                 break;
@@ -4532,7 +4532,7 @@ bool xLightsFrame::ImportLPE(wxXmlDocument &input_xml, const wxFileName &filenam
         std::string modelName = m->_model.ToStdString();
         ModelElement* model = nullptr;
         for (size_t x = 0; x < mSequenceElements.GetElementCount(); x++) {
-            if (mSequenceElements.GetElement(x)->GetType() == ELEMENT_TYPE_MODEL
+            if (mSequenceElements.GetElement(x)->GetType() == ElementType::ELEMENT_TYPE_MODEL
                 && modelName == mSequenceElements.GetElement(x)->GetName()) {
                 model = dynamic_cast<ModelElement*>(mSequenceElements.GetElement(x));
                 break;
@@ -4741,7 +4741,7 @@ AT THIS POINT IT JUST BRINGS IN THE EFFECTS. WE MAKE NO EFFORT TO GET THE SETTIN
         std::string modelName = m->_model.ToStdString();
         ModelElement* model = nullptr;
         for (size_t x = 0; x < mSequenceElements.GetElementCount(); x++) {
-            if (mSequenceElements.GetElement(x)->GetType() == ELEMENT_TYPE_MODEL
+            if (mSequenceElements.GetElement(x)->GetType() == ElementType::ELEMENT_TYPE_MODEL
                 && modelName == mSequenceElements.GetElement(x)->GetName()) {
                 model = dynamic_cast<ModelElement*>(mSequenceElements.GetElement(x));
                 break;
@@ -5965,7 +5965,7 @@ void xLightsFrame::ImportLSP(const wxFileName &filename) {
         Model *mc = GetModel(modelName);
         ModelElement * model = nullptr;
         for (size_t i = 0; i < mSequenceElements.GetElementCount(); i++) {
-            if (mSequenceElements.GetElement(i)->GetType() == ELEMENT_TYPE_MODEL
+            if (mSequenceElements.GetElement(i)->GetType() == ElementType::ELEMENT_TYPE_MODEL
                 && modelName == mSequenceElements.GetElement(i)->GetName()) {
                 model = dynamic_cast<ModelElement*>(mSequenceElements.GetElement(i));
             }
@@ -6114,7 +6114,7 @@ void xLightsFrame::ImportVsa(const wxFileName &filename) {
         if( modelName != "" ) {
             ModelElement * model = nullptr;
             for (size_t i=0;i<mSequenceElements.GetElementCount();i++) {
-                if (mSequenceElements.GetElement(i)->GetType() == ELEMENT_TYPE_MODEL
+                if (mSequenceElements.GetElement(i)->GetType() == ElementType::ELEMENT_TYPE_MODEL
                     && modelName == mSequenceElements.GetElement(i)->GetName()) {
                     model = dynamic_cast<ModelElement*>(mSequenceElements.GetElement(i));
                     break;

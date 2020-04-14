@@ -324,7 +324,7 @@ void TextEffect::SetPanelStatus(Model* cls)
     for (int i = 0; i < mSequenceElements->GetElementCount(); i++)
     {
         Element* e = mSequenceElements->GetElement(i);
-        if (e->GetType() == ELEMENT_TYPE_TIMING)
+        if (e->GetType() == ElementType::ELEMENT_TYPE_TIMING)
         {
             TimingElement* te = dynamic_cast<TimingElement*>(e);
             auto n = e->GetName();
@@ -497,7 +497,7 @@ void TextEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &
                     auto lt = lyricTrack.BeforeLast('-');
                     lt = lt.Left(lt.size() - 1);
                     Element* e = mSequenceElements->GetElement(i);
-                    if (e->GetEffectLayerCount() > 1 && e->GetType() == ELEMENT_TYPE_TIMING && e->GetName() == lt)
+                    if (e->GetEffectLayerCount() > 1 && e->GetType() == ElementType::ELEMENT_TYPE_TIMING && e->GetName() == lt)
                     {
                         t = e;
                         break;
@@ -1418,7 +1418,7 @@ void TextEffect::RenderXLText(Effect *effect, const SettingsMap &settings, Rende
                     auto lt = lyricTrack.BeforeLast('-');
                     lt = lt.Left(lt.size() - 1);
                     Element* e = mSequenceElements->GetElement(i);
-                    if (e->GetEffectLayerCount() > 1 && e->GetType() == ELEMENT_TYPE_TIMING && e->GetName() == lt)
+                    if (e->GetEffectLayerCount() > 1 && e->GetType() == ElementType::ELEMENT_TYPE_TIMING && e->GetName() == lt)
                     {
                         t = e;
                         break;

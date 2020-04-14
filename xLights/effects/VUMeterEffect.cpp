@@ -191,7 +191,7 @@ void VUMeterEffect::SetPanelStatus(Model* cls)
     for (int i = 0; i < mSequenceElements->GetElementCount(); i++)
     {
         Element* e = mSequenceElements->GetElement(i);
-        if (e->GetType() == ELEMENT_TYPE_TIMING)
+        if (e->GetType() == ElementType::ELEMENT_TYPE_TIMING)
         {
             vp->Choice_VUMeter_TimingTrack->Append(e->GetName());
         }
@@ -2347,7 +2347,7 @@ void VUMeterEffect::RenderTimingEventJumpFrame(RenderBuffer &buffer, int fallfra
         for (int i = 0; i < mSequenceElements->GetElementCount(); i++)
         {
             Element* e = mSequenceElements->GetElement(i);
-            if (e->GetEffectLayerCount() == 1 && e->GetType() == ELEMENT_TYPE_TIMING
+            if (e->GetEffectLayerCount() == 1 && e->GetType() == ElementType::ELEMENT_TYPE_TIMING
                 && e->GetName() == timingtrack)
             {
                 t = e;
@@ -2417,7 +2417,7 @@ void VUMeterEffect::RenderTimingEventPulseFrame(RenderBuffer &buffer, int fadefr
         for (int i = 0; i < mSequenceElements->GetElementCount(); i++)
         {
             Element* e = mSequenceElements->GetElement(i);
-            if (e->GetEffectLayerCount() == 1 && e->GetType() == ELEMENT_TYPE_TIMING
+            if (e->GetEffectLayerCount() == 1 && e->GetType() == ElementType::ELEMENT_TYPE_TIMING
                 && e->GetName() == timingtrack)
             {
                 t = e;
@@ -2471,7 +2471,7 @@ void VUMeterEffect::RenderTimingEventPulseColourFrame(RenderBuffer &buffer, int 
         for (int i = 0; i < mSequenceElements->GetElementCount(); i++)
         {
             Element* e = mSequenceElements->GetElement(i);
-            if (e->GetEffectLayerCount() == 1 && e->GetType() == ELEMENT_TYPE_TIMING
+            if (e->GetEffectLayerCount() == 1 && e->GetType() == ElementType::ELEMENT_TYPE_TIMING
                 && e->GetName() == timingtrack)
             {
                 t = e;
@@ -2530,7 +2530,7 @@ void VUMeterEffect::RenderTimingEventColourFrame(RenderBuffer &buffer, int& colo
         for (int i = 0; i < mSequenceElements->GetElementCount(); i++)
         {
             Element* e = mSequenceElements->GetElement(i);
-            if (e->GetEffectLayerCount() == 1 && e->GetType() == ELEMENT_TYPE_TIMING
+            if (e->GetEffectLayerCount() == 1 && e->GetType() == ElementType::ELEMENT_TYPE_TIMING
                 && e->GetName() == timingtrack)
             {
                 t = e;
@@ -2772,7 +2772,7 @@ void VUMeterEffect::RenderTimingEventBarFrame(RenderBuffer &buffer, int bars, st
         for (int i = 0; i < mSequenceElements->GetElementCount(); i++)
         {
             Element* e = mSequenceElements->GetElement(i);
-            if (e->GetEffectLayerCount() == 1 && e->GetType() == ELEMENT_TYPE_TIMING
+            if (e->GetEffectLayerCount() == 1 && e->GetType() == ElementType::ELEMENT_TYPE_TIMING
                 && e->GetName() == timingtrack)
             {
                 t = e;

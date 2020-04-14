@@ -144,7 +144,7 @@ void VsaImportDialog::Init(VSAFile* file, bool allModels) {
         }
     } else {
         for (size_t i=0;i<mSequenceElements->GetElementCount();i++) {
-            if (mSequenceElements->GetElement(i)->GetType() == ELEMENT_TYPE_MODEL) {
+            if (mSequenceElements->GetElement(i)->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
                 modelNames.push_back(mSequenceElements->GetElement(i)->GetName());
             }
         }
