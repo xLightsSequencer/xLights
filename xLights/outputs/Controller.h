@@ -105,7 +105,7 @@ public:
     void SetDescription(const std::string& description) { if (_description != description) { _description = description; _dirty = true; } }
     
     void SetAutoSize(bool autosize) { if (_autoSize != autosize) { _autoSize = autosize; _dirty = true; } }
-    bool IsAutoSize() const { return _autoSize; }
+    bool IsAutoSize() const { return IsAutoLayout() && _autoSize; }
     
     bool IsEnabled() const { return std::any_of(begin(_outputs), end(_outputs), [](Output* o) { return o->IsEnabled(); }); }
     void Enable(bool enable) { for (auto& it : _outputs) { it->Enable(enable); } }
