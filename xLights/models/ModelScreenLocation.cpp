@@ -5365,34 +5365,34 @@ wxCursor PolyPointScreenLocation::InitializeLocation(int &handle, int x, int y, 
 void PolyPointScreenLocation::AddSizeLocationProperties(wxPropertyGridInterface *propertyEditor) const {
     wxPGProperty *prop = propertyEditor->Append(new wxBoolProperty("Locked", "Locked", _locked));
     prop->SetAttribute("UseCheckbox", 1);
-    prop = propertyEditor->Append(new wxFloatProperty("X1", "ModelX1", mPos[0].x * 100.0));
+    prop = propertyEditor->Append(new wxFloatProperty("X1", "ModelX1", mPos[0].x + worldPos_x));
     prop->SetAttribute("Precision", 2);
     prop->SetAttribute("Step", 0.5);
     prop->SetEditor("SpinCtrl");
     prop->SetTextColour(*wxGREEN);
-    prop = propertyEditor->Append(new wxFloatProperty("Y1", "ModelY1", mPos[0].y * 100.0));
+    prop = propertyEditor->Append(new wxFloatProperty("Y1", "ModelY1", mPos[0].y + worldPos_y));
     prop->SetAttribute("Precision", 2);
     prop->SetAttribute("Step", 0.5);
     prop->SetEditor("SpinCtrl");
     prop->SetTextColour(*wxGREEN);
-    prop = propertyEditor->Append(new wxFloatProperty("Z1", "ModelZ1", mPos[0].z * 100.0));
+    prop = propertyEditor->Append(new wxFloatProperty("Z1", "ModelZ1", mPos[0].z + worldPos_z));
     prop->SetAttribute("Precision", 2);
     prop->SetAttribute("Step", 0.5);
     prop->SetEditor("SpinCtrl");
     prop->SetTextColour(*wxGREEN);
 
     for( int i = 1; i < num_points; ++i ) {
-        prop = propertyEditor->Append(new wxFloatProperty(wxString::Format("X%d",i+1), wxString::Format("ModelX%d",i+1), mPos[i].x * 100.0));
+        prop = propertyEditor->Append(new wxFloatProperty(wxString::Format("X%d",i+1), wxString::Format("ModelX%d",i+1), mPos[i].x + worldPos_x));
         prop->SetAttribute("Precision", 2);
         prop->SetAttribute("Step", 0.5);
         prop->SetEditor("SpinCtrl");
         prop->SetTextColour(*wxBLUE);
-        prop = propertyEditor->Append(new wxFloatProperty(wxString::Format("Y%d", i+1), wxString::Format("ModelY%d", i+1), mPos[i].y * 100.0));
+        prop = propertyEditor->Append(new wxFloatProperty(wxString::Format("Y%d", i+1), wxString::Format("ModelY%d", i+1), mPos[i].y + worldPos_y));
         prop->SetAttribute("Precision", 2);
         prop->SetAttribute("Step", 0.5);
         prop->SetEditor("SpinCtrl");
         prop->SetTextColour(*wxBLUE);
-        prop = propertyEditor->Append(new wxFloatProperty(wxString::Format("Z%d", i+1), wxString::Format("ModelZ%d", i+1), mPos[i].z * 100.0));
+        prop = propertyEditor->Append(new wxFloatProperty(wxString::Format("Z%d", i+1), wxString::Format("ModelZ%d", i+1), mPos[i].z + worldPos_z));
         prop->SetAttribute("Precision", 2);
         prop->SetAttribute("Step", 0.5);
         prop->SetEditor("SpinCtrl");
@@ -5406,7 +5406,7 @@ int PolyPointScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid,
         selected_handle = wxAtoi(name.substr(6, name.length()-6)) - 1;
         selected_segment = -1;
         if (!_locked && name.find("ModelX") != std::string::npos) {
-            mPos[selected_handle].x = event.GetValue().GetDouble() / 100.0;
+            mPos[selected_handle].x = event.GetValue().GetDouble() - worldPos_x;
             AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "PolyPointScreenLocation::OnPropertyGridChange::ModelX");
             AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "PolyPointScreenLocation::OnPropertyGridChange::ModelX");
             AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "PolyPointScreenLocation::OnPropertyGridChange::ModelX");
@@ -5418,7 +5418,7 @@ int PolyPointScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid,
             return 0;
         }
         else if (!_locked && name.find("ModelY") != std::string::npos) {
-            mPos[selected_handle].y = event.GetValue().GetDouble() / 100.0;
+            mPos[selected_handle].y = event.GetValue().GetDouble() - worldPos_y;
             AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "PolyPointScreenLocation::OnPropertyGridChange::ModelY");
             AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "PolyPointScreenLocation::OnPropertyGridChange::ModelY");
             AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "PolyPointScreenLocation::OnPropertyGridChange::ModelY");
@@ -5430,7 +5430,7 @@ int PolyPointScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid,
             return 0;
         }
         else if (!_locked && name.find("ModelZ") != std::string::npos) {
-            mPos[selected_handle].z = event.GetValue().GetDouble() / 100.0;
+            mPos[selected_handle].z = event.GetValue().GetDouble() - worldPos_z;
             AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "PolyPointScreenLocation::OnPropertyGridChange::ModelZ");
             AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "PolyPointScreenLocation::OnPropertyGridChange::ModelZ");
             AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "PolyPointScreenLocation::OnPropertyGridChange::ModelZ");

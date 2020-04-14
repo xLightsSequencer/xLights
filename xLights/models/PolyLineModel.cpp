@@ -938,6 +938,7 @@ void PolyLineModel::AddTypeProperties(wxPropertyGridInterface *grid) {
         ModelXml->DeleteAttribute("Advanced");
     }
 }
+
 int PolyLineModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
     if ("PolyLineNodes" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm2");
