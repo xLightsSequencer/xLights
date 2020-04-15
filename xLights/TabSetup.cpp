@@ -1170,9 +1170,19 @@ void xLightsFrame::OnButtonDiscoverClick(wxCommandEvent& event) {
             dynamic_cast<DDPOutput*>(controller->GetOutputs().front())->SetKeepChannelNumber(false);
         }
 
+        printf("HN: %s    IP: %s\n", fpp->hostName.c_str(), fpp->ipAddress.c_str());
+
+        
         controller->SetFPPProxy(fpp->proxy);
         if (fpp->proxy == "" && fpp->hostName != "") {
-            controller->SetIP(fpp->hostName);
+            wxIPV4address address;
+            // hostname resolves to correct IP, DNS works, we can use it
+            if (address.Hostname(fpp->hostName) && address.IPAddress() == fpp->ipAddress) {
+                controller->SetIP(fpp->hostName);
+            } else {
+                // resolved to a different IP or didn't resolve at all, use the IP address directly
+                controller->SetIP(fpp->ipAddress);
+            }
         } else {
             controller->SetIP(fpp->ipAddress);
         }
