@@ -75,7 +75,7 @@ public:
         wxSizerFlags flagsBorder2;
         flagsBorder2.DoubleBorder();
 
-#ifdef wxUSE_SECRETSTORE
+#if wxUSE_SECRETSTORE
         GetSizer()->Insert(2, savePasswordCheckbox, flagsBorder2);
         GetSizer()->SetSizeHints(this);
         GetSizer()->Fit(this);
@@ -92,7 +92,7 @@ private:
     
     
 public:
-#ifdef wxUSE_SECRETSTORE
+#if wxUSE_SECRETSTORE
     static wxSecretStore pwdStore;
     static bool GetStoredPasswordForService(const std::string &service, std::string &user, std::string &pwd) {
         if (pwdStore.IsOk()) {
@@ -126,7 +126,7 @@ public:
 #endif
 };
 
-#ifdef wxUSE_SECRETSTORE
+#if wxUSE_SECRETSTORE
 wxSecretStore xlPasswordEntryDialog::pwdStore = wxSecretStore::GetDefault();
 #endif
 
