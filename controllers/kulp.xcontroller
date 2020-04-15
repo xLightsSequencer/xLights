@@ -32,7 +32,7 @@
 		</Variant>
 	</Controller>
 	<Controller Name="F8-B">
-		<Variant Name="4 Serial" ID="F8-B-20" Base="FPP:FPPStringCape">
+		<Variant Name="4 Serial" ID="F8-B-16" Base="FPP:FPPStringCape">
 			<MaxPixelPort>16</MaxPixelPort>
 			<MaxSerialPort>4</MaxSerialPort>
 		</Variant>
@@ -40,7 +40,7 @@
 			<MaxPixelPort>12</MaxPixelPort>
 			<MaxSerialPort>8</MaxSerialPort>
 		</Variant>
-		<Variant Name="No Serial" ID="F8-B-16" Base="FPP:FPPStringCape">
+		<Variant Name="No Serial" ID="F8-B-20" Base="FPP:FPPStringCape">
 			<MaxPixelPort>20</MaxPixelPort>
 			<MaxSerialPort>0</MaxSerialPort>
 			<MaxSerialPortChannels>0</MaxSerialPortChannels>

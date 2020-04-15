@@ -1159,12 +1159,9 @@ void xLightsFrame::OnButtonDiscoverClick(wxCommandEvent& event) {
         }
 
         controller = new ControllerEthernet(&_outputManager, false);
-        if (v == "Falcon" || fpp->platform == "J1Sys")
-        {
+        if (v == "Falcon" || fpp->platform == "J1Sys") {
             controller->SetProtocol(OUTPUT_E131);
-        }
-        else
-        {
+        } else {
             controller->SetProtocol(OUTPUT_DDP);
         }
         controller->EnsureUniqueId();
@@ -1176,8 +1173,7 @@ void xLightsFrame::OnButtonDiscoverClick(wxCommandEvent& event) {
         controller->SetFPPProxy(fpp->proxy);
         if (fpp->proxy == "" && fpp->hostName != "") {
             controller->SetIP(fpp->hostName);
-        }
-        else {
+        } else {
             controller->SetIP(fpp->ipAddress);
         }
         controller->SetVendor(v);
@@ -1190,6 +1186,13 @@ void xLightsFrame::OnButtonDiscoverClick(wxCommandEvent& event) {
         } else {
             controller->SetName(fpp->description);
         }
+        int dupCount = 1;
+        std::string origName = controller->GetName();
+        while (_outputManager.GetController(controller->GetName()) != nullptr) {
+            std::string name = origName + std::to_string(dupCount++);
+            controller->SetName(name);
+        }
+        
         int min = 9999999; int max = 0;
         if (fpp->ranges != "") {
             wxArrayString r1 = wxSplit(wxString(fpp->ranges), ',');
