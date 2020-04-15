@@ -277,9 +277,9 @@ int CustomModel::MapToNodeIndex(int strand, int node) const {
 void CustomModel::UpdateModel(int width, int height, int depth, const std::string& modelData)
 {
     ModelXml->DeleteAttribute("parm1");
-    ModelXml->AddAttribute("parm1", wxString::Format("%ld", width));
+    ModelXml->AddAttribute("parm1", wxString::Format("%d", width));
     ModelXml->DeleteAttribute("parm2");
-    ModelXml->AddAttribute("parm2", wxString::Format("%ld", height));
+    ModelXml->AddAttribute("parm2", wxString::Format("%d", height));
     ModelXml->DeleteAttribute("Depth");
     ModelXml->AddAttribute("Depth", wxString::Format("%d", depth));
     ModelXml->DeleteAttribute("CustomModel");
