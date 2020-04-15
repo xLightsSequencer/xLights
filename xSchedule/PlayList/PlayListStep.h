@@ -11,6 +11,7 @@ class wxXmlNode;
 class PlayListItem;
 class wxWindow;
 class AudioManager;
+class PlayList;
 
 class PlayListStep
 {
@@ -59,7 +60,8 @@ public:
     std::string GetStatus(bool ms = false);
     bool GetExcludeFromRandom() const { return _excludeFromRandom; }
     void SetExcludeFromRandom(bool efr) { if (_excludeFromRandom != efr) { _excludeFromRandom = efr; _changeCount++; } }
-    std::string GetName();
+    std::string GetStartTime(PlayList* pl);
+    std::string GetName(PlayList* pl);
     std::string GetNameNoTime();
     std::string GetRawName() const { return _name; }
     void SetName(const std::string& name) { if (_name != name) { _name = name; _changeCount++; } }

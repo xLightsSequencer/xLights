@@ -111,6 +111,7 @@ public:
     int GetPlayListSize() const { return _steps.size(); }
     bool IsLooping() const { return _looping; }
     void StopAtEndOfThisLoop() { _lastLoop = true; }
+    std::string GetStepStartTime(PlayListStep* step) const;
     bool IsSimple();
     std::string GetActiveSyncItemFSEQ();
     std::string GetActiveSyncItemMedia();

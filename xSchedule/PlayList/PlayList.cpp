@@ -9,6 +9,7 @@
 #include "../xScheduleApp.h"
 #include "../ScheduleManager.h"
 #include "../ReentrancyCounter.h"
+#include "../../xLights/UtilFunctions.h"
 
 #include <wx/xml/xml.h>
 
@@ -1386,6 +1387,18 @@ std::string PlayList::GetName()
     }
 
     return GetNameNoTime() + duration;
+}
+
+std::string PlayList::GetStepStartTime(PlayListStep* step) const
+{
+    long ms = 0;
+    for (const auto& it : _steps)
+    {
+        if (it == step) break;
+        ms += it->GetLengthMS();
+    }
+
+	return FORMATTIME(ms);
 }
 
 bool PlayList::IsSimple()

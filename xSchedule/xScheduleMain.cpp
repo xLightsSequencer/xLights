@@ -751,11 +751,12 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     logger_base.debug("xSchedule UI %d,%d %dx%d.", x, y, w, h);
 
     ListView_Running->AppendColumn("Step");
-    ListView_Running->AppendColumn("Duration");
+    ListView_Running->AppendColumn("Offset", wxLIST_FORMAT_RIGHT);
+    ListView_Running->AppendColumn("Duration", wxLIST_FORMAT_RIGHT);
     ListView_Running->AppendColumn("");
 
     ListView_Ping->AppendColumn("Controller");
-    ListView_Ping->AppendColumn("Failures");
+    ListView_Ping->AppendColumn("Failures", wxLIST_FORMAT_RIGHT);
     ListView_Ping->SetColumnWidth(1, wxLIST_AUTOSIZE_USEHEADER);
 
     _otlon = wxBitmap(xs_otlon);
@@ -2099,13 +2100,12 @@ void xScheduleFrame::UpdateStatus(bool force)
 
             ListView_Running->DeleteAllItems();
 
-            auto steps = p->GetSteps();
-
             int i = 0;
-            for (auto it : steps)
+            for (const auto& it : p->GetSteps())
             {
                 ListView_Running->InsertItem(i, it->GetNameNoTime());
-                ListView_Running->SetItem(i, 1, FormatTime(it->GetLengthMS()));
+                ListView_Running->SetItem(i, 1, it->GetStartTime(p));
+                ListView_Running->SetItem(i, 2, FormatTime(it->GetLengthMS()));
                 ListView_Running->SetItemData(i, it->GetId());
                 i++;
             }
@@ -2130,7 +2130,7 @@ void xScheduleFrame::UpdateStatus(bool force)
                 if (!currenthighlighted && ListView_Running->GetItemData(i) == step->GetId())
                 {
                     currenthighlighted = true;
-                    ListView_Running->SetItem(i, 2, step->GetStatus());
+                    ListView_Running->SetItem(i, 3, step->GetStatus());
                     ListView_Running->SetItemBackgroundColour(i, wxColor(146,244,155));
                 }
                 else
@@ -2144,7 +2144,7 @@ void xScheduleFrame::UpdateStatus(bool force)
                     {
                         ListView_Running->SetItemBackgroundColour(i, wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
                     }
-                    ListView_Running->SetItem(i, 2, "");
+                    ListView_Running->SetItem(i, 3, "");
                 }
             }
         }
@@ -2156,8 +2156,11 @@ void xScheduleFrame::UpdateStatus(bool force)
         if (ListView_Running->GetColumnWidth(1) < 80)
             ListView_Running->SetColumnWidth(1, 80);
         ListView_Running->SetColumnWidth(2, wxLIST_AUTOSIZE);
-        if (ListView_Running->GetColumnWidth(2) < 250)
-            ListView_Running->SetColumnWidth(2, 250);
+        if (ListView_Running->GetColumnWidth(2) < 80)
+            ListView_Running->SetColumnWidth(2, 80);
+        ListView_Running->SetColumnWidth(3, wxLIST_AUTOSIZE);
+        if (ListView_Running->GetColumnWidth(3) < 250)
+            ListView_Running->SetColumnWidth(3, 250);
     }
 
     ListView_Running->Thaw();

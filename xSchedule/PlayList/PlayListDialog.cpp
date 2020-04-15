@@ -278,29 +278,28 @@ void PlayListDialog::PopulateTree(PlayList* selplaylist, PlayListStep* selstep, 
     if (selstep == nullptr && selitem == nullptr) select = id;
 
     auto steps = _playlist->GetSteps();
-    for (auto it = steps.begin(); it != steps.end(); ++it)
+    for (const auto& it : steps)
     {
-        wxTreeItemId step = TreeCtrl_PlayList->AppendItem(TreeCtrl_PlayList->GetRootItem(), (*it)->GetName());
-        TreeCtrl_PlayList->SetItemData(step, new MyTreeItemData(*it));
-        if (selitem == nullptr && selstep != nullptr && (*it)->GetId() == selstep->GetId())
+        wxTreeItemId step = TreeCtrl_PlayList->AppendItem(TreeCtrl_PlayList->GetRootItem(), it->GetName(_playlist));
+        TreeCtrl_PlayList->SetItemData(step, new MyTreeItemData(it));
+        if (selitem == nullptr && selstep != nullptr && it->GetId() == selstep->GetId())
         {
             select = step;
         }
 
         size_t ms;
-        PlayListItem* ts = (*it)->GetTimeSource(ms);
+        PlayListItem* ts = it->GetTimeSource(ms);
 
-        auto items = (*it)->GetItems();
-        for (auto it2 = items.begin(); it2 != items.end(); ++it2)
+        for (const auto& it2 : it->GetItems())
         {
-            id = TreeCtrl_PlayList->AppendItem(step, (*it2)->GetName());
-            TreeCtrl_PlayList->SetItemData(id, new MyTreeItemData(*it2));
+            id = TreeCtrl_PlayList->AppendItem(step, it2->GetName());
+            TreeCtrl_PlayList->SetItemData(id, new MyTreeItemData(it2));
 
-            if (selitem != nullptr && (*it2)->GetId() == selitem->GetId()) select = id;
+            if (selitem != nullptr && it2->GetId() == selitem->GetId()) select = id;
 
             if (ts != nullptr)
             {
-                if (ts->GetId() == (*it2)->GetId())
+                if (ts->GetId() == it2->GetId())
                 {
                     TreeCtrl_PlayList->SetItemTextColour(id, *wxBLUE);
                 }
@@ -968,7 +967,8 @@ void PlayListDialog::OnNotebook1PageChanged(wxNotebookEvent& event)
 void PlayListDialog::UpdateTree()
 {
     wxTreeItemId root = TreeCtrl_PlayList->GetRootItem();
-    TreeCtrl_PlayList->SetItemText(root, ((PlayList*)((MyTreeItemData*)TreeCtrl_PlayList->GetItemData(root))->GetData())->GetName());
+    PlayList* pl = (PlayList*)((MyTreeItemData*)TreeCtrl_PlayList->GetItemData(root))->GetData();
+    TreeCtrl_PlayList->SetItemText(root, pl->GetName());
 
     wxTreeItemIdValue tid;
     for (wxTreeItemId it = TreeCtrl_PlayList->GetFirstChild(root, tid); it != nullptr; it = TreeCtrl_PlayList->GetNextChild(root, tid))
@@ -976,7 +976,7 @@ void PlayListDialog::UpdateTree()
         PlayListStep* pls = (PlayListStep*)((MyTreeItemData*)TreeCtrl_PlayList->GetItemData(it))->GetData();
         if (pls != nullptr)
         {
-            TreeCtrl_PlayList->SetItemText(it, pls->GetName());
+            TreeCtrl_PlayList->SetItemText(it, pls->GetName(pl));
         }
 
         wxTreeItemIdValue tid2;

@@ -1,5 +1,6 @@
 #include "PlayListStep.h"
 
+#include "PlayList.h"
 #include "PlayListItemVideo.h"
 #include "PlayListItemImage.h"
 #include "PlayListItemJukebox.h"
@@ -342,21 +343,34 @@ void PlayListStep::RemoveItem(PlayListItem* item)
     _changeCount++;
 }
 
-std::string PlayListStep::GetName()
+std::string PlayListStep::GetStartTime(PlayList* pl)
 {
+    if (pl == nullptr) return "";
+
+    return pl->GetStepStartTime(this);
+}
+
+std::string PlayListStep::GetName(PlayList* pl)
+{
+    std::string offset = "";
+    if (pl != nullptr)
+    {
+        offset = " {" + pl->GetStepStartTime(this) + "}";
+    }
+
     std::string duration = "";
     if (GetLengthMS() != 0)
     {
         duration = " [" + wxString::Format(wxT("%.3f"), (float)GetLengthMS() / 1000.0).ToStdString() + "]";
     }
 
-    if (_name != "") return _name + duration;
+    if (_name != "") return _name + offset + duration;
 
     {
         ReentrancyCounter rec(_reentrancyCounter);
-        if (_items.size() == 0) return "<unnamed>" + duration;
+        if (_items.size() == 0) return "<unnamed>" + offset + duration;
 
-        return _items.front()->GetNameNoTime() + duration;
+        return _items.front()->GetNameNoTime() + offset + duration;
     }
 }
 
