@@ -92,12 +92,14 @@ void StateEffect::SetPanelStatus(Model *cls) {
             m = ((ModelGroup*)cls)->GetFirstModel();
         }
 
+        std::list<std::string> used;
         if (m != nullptr)
         {
             for (const auto& it : m->stateInfo) {
-                if (it.second.size() > 30) // actually it should be about 120
+                if (std::find(begin(used), end(used), it.first) == end(used) && it.second.size() > 30) // actually it should be about 120
                 {
                     fp->Choice_StateDefinitonChoice->Append(it.first);
+                    used.push_back(it.first);
                 }
             }
         }
@@ -138,7 +140,7 @@ std::list<std::string> StateEffect::GetStates(Model* cls, std::string model) {
                     for (const auto& it2 : it.second)
                     {
                         wxString f(it2.first);
-                        if (f.EndsWith("-Name") && it2.second != "")
+                        if (f.EndsWith("-Name") && it2.second != "" && std::find(begin(res), end(res), it2.second) == end(res))
                         {
                             res.push_back(it2.second);
                         }
@@ -499,71 +501,77 @@ void StateEffect::RenderState(RenderBuffer &buffer,
     // process each token
     for (size_t i = 0; i < sstates.size(); i++)
     {
-        // get the channels
-        std::string statename = FindState(model_info->stateInfo[definition], sstates[i]);
-        std::string channels = model_info->stateInfo[definition][statename];
-
-        if (statename != "" && channels != "")
+        for (const auto& it : model_info->stateInfo[definition])
         {
-            xlColor color;
-            if (colourmode == "Graduate")
+            if (it.second == sstates[i] && EndsWith(it.first, "-Name"))
             {
-                buffer.GetMultiColorBlend(buffer.GetEffectTimeIntervalPosition(), false, color);
-            }
-            else if (colourmode == "Cycle")
-            {
-                buffer.palette.GetColor((intervalnumber - 1) % buffer.GetColorCount(), color);
-            }
-            else
-            {
-                // allocate
-                int statenum = wxAtoi(statename.substr(1));
-                buffer.palette.GetColor((statenum - 1) % buffer.GetColorCount(), color);
-            }
-            if (customColor) {
-                std::string cname = model_info->stateInfo[definition][statename + "-Color"];
-                if (cname == "") {
-                    color = xlWHITE;
-                }
-                else {
-                    color = xlColor(cname);
-                }
-            }
+                // get the channels
+                std::string statename = BeforeFirst(it.first, '-');// FindState(model_info->stateInfo[definition], sstates[i]);
+                std::string channels = model_info->stateInfo[definition][statename];
 
-            wxStringTokenizer wtkz(channels, ",");
-            while (wtkz.HasMoreTokens())
-            {
-                wxString valstr = wtkz.GetNextToken();
-
-                if (type == 0) {
-                    for (size_t n = 0; n < model_info->GetNodeCount(); n++) {
-                        wxString nn = model_info->GetNodeName(n, true);
-                        if (nn == valstr) {
-                            buffer.SetNodePixel(n, color, true);
+                if (statename != "" && channels != "")
+                {
+                    xlColor color;
+                    if (colourmode == "Graduate")
+                    {
+                        buffer.GetMultiColorBlend(buffer.GetEffectTimeIntervalPosition(), false, color);
+                    }
+                    else if (colourmode == "Cycle")
+                    {
+                        buffer.palette.GetColor((intervalnumber - 1) % buffer.GetColorCount(), color);
+                    }
+                    else
+                    {
+                        // allocate
+                        int statenum = wxAtoi(statename.substr(1));
+                        buffer.palette.GetColor((statenum - 1) % buffer.GetColorCount(), color);
+                    }
+                    if (customColor) {
+                        std::string cname = model_info->stateInfo[definition][statename + "-Color"];
+                        if (cname == "") {
+                            color = xlWHITE;
+                        }
+                        else {
+                            color = xlColor(cname);
                         }
                     }
-                }
-                else if (type == 1) {
-                    int start, end;
-                    if (valstr.Contains("-")) {
-                        int idx = valstr.Index('-');
-                        start = wxAtoi(valstr.Left(idx));
-                        end = wxAtoi(valstr.Right(valstr.size() - idx - 1));
-                        if (end < start)
-                        {
-                            std::swap(start, end);
+
+                    wxStringTokenizer wtkz(channels, ",");
+                    while (wtkz.HasMoreTokens())
+                    {
+                        wxString valstr = wtkz.GetNextToken();
+
+                        if (type == 0) {
+                            for (size_t n = 0; n < model_info->GetNodeCount(); n++) {
+                                wxString nn = model_info->GetNodeName(n, true);
+                                if (nn == valstr) {
+                                    buffer.SetNodePixel(n, color, true);
+                                }
+                            }
                         }
-                    }
-                    else {
-                        start = end = wxAtoi(valstr);
-                    }
-                    if (start > end) {
-                        start = end;
-                    }
-                    start--;
-                    end--;
-                    for (int n = start; n <= end; n++) {
-                        buffer.SetNodePixel(n, color, true);
+                        else if (type == 1) {
+                            int start, end;
+                            if (valstr.Contains("-")) {
+                                int idx = valstr.Index('-');
+                                start = wxAtoi(valstr.Left(idx));
+                                end = wxAtoi(valstr.Right(valstr.size() - idx - 1));
+                                if (end < start)
+                                {
+                                    std::swap(start, end);
+                                }
+                            }
+                            else {
+                                start = end = wxAtoi(valstr);
+                            }
+                            if (start > end) {
+                                start = end;
+                            }
+                            start--;
+                            end--;
+                            for (int n = start; n <= end; n++) {
+                                buffer.SetNodePixel(n, color, true);
+                            }
+                        }
                     }
                 }
             }

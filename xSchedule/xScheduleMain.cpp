@@ -758,6 +758,8 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     ListView_Ping->AppendColumn("Controller");
     ListView_Ping->AppendColumn("Failures", wxLIST_FORMAT_RIGHT);
     ListView_Ping->SetColumnWidth(1, wxLIST_AUTOSIZE_USEHEADER);
+    if (ListView_Ping->GetColumnWidth(1) > 80)
+        ListView_Ping->SetColumnWidth(1, 80);
 
     _otlon = wxBitmap(xs_otlon);
     _otloff = wxBitmap(xs_otloff);
@@ -930,8 +932,10 @@ void xScheduleFrame::LoadSchedule()
     }
     ListView_Ping->ClearAll();
     ListView_Ping->AppendColumn("Controller");
-    ListView_Ping->AppendColumn("Failures");
+    ListView_Ping->AppendColumn("Failures", wxLIST_FORMAT_RIGHT);
     ListView_Ping->SetColumnWidth(1, wxLIST_AUTOSIZE_USEHEADER);
+    if (ListView_Ping->GetColumnWidth(1) > 80)
+        ListView_Ping->SetColumnWidth(1, 80);
 
     if (__schedule != nullptr)
     {
