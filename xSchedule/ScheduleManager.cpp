@@ -3494,7 +3494,8 @@ bool ScheduleManager::Query(const wxString& command, const wxString& parameters,
                 data += "{\"name\":\"" + (*it)->GetNameNoTime() +
                     "\",\"id\":\"" + wxString::Format(wxT("%i"), (*it)->GetId()).ToStdString() +
                     first + last +
-                        "\",\"length\":\""+FormatTime((*it)->GetLengthMS())+"\"}";
+                    "\",\"offset\":\"" + (*it)->GetStartTime(p) +
+                    "\",\"length\":\""+FormatTime((*it)->GetLengthMS())+"\"}";
             }
             data += "],\"reference\":\""+reference+"\"}";
         }
@@ -3746,6 +3747,8 @@ bool ScheduleManager::Query(const wxString& command, const wxString& parameters,
                 "\",\"length\":\"" + FormatTime(p->GetRunningStep()->GetLengthMS()) +
                 "\",\"position\":\"" + FormatTime(p->GetRunningStep()->GetPosition()) +
                 "\",\"left\":\"" + FormatTime(p->GetRunningStep()->GetLengthMS() - p->GetRunningStep()->GetPosition()) +
+                "\",\"playlistposition\":\"" + FormatTime(p->GetPosition()) +
+                "\",\"playlistleft\":\"" + FormatTime(p->GetLengthMS() - p->GetPosition()) +
                 "\",\"trigger\":\"" + std::string(IsCurrentPlayListScheduled() ? "scheduled": (_immediatePlay != nullptr) ? "manual" : "queued") +
                 "\",\"schedulename\":\"" + std::string((IsCurrentPlayListScheduled() && rs != nullptr) ? rs->GetSchedule()->GetName() : "N/A") +
                 "\",\"scheduleend\":\"" + std::string((IsCurrentPlayListScheduled() && rs != nullptr) ? rs->GetSchedule()->GetNextEndTime() : "N/A") +
