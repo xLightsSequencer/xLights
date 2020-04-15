@@ -1169,10 +1169,6 @@ void xLightsFrame::OnButtonDiscoverClick(wxCommandEvent& event) {
         if (v == "ESPixelStick") {
             dynamic_cast<DDPOutput*>(controller->GetOutputs().front())->SetKeepChannelNumber(false);
         }
-
-        printf("HN: %s    IP: %s\n", fpp->hostName.c_str(), fpp->ipAddress.c_str());
-
-        
         controller->SetFPPProxy(fpp->proxy);
         if (fpp->proxy == "" && fpp->hostName != "") {
             wxIPV4address address;

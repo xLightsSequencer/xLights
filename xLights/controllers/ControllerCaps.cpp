@@ -225,6 +225,9 @@ ControllerCaps* ControllerCaps::GetControllerConfig(const std::string& vendor, c
     return nullptr;
 }
 ControllerCaps* ControllerCaps::GetControllerConfigByID(const std::string& ID) {
+    if (ID == "") {
+        return nullptr;
+    }
     LoadControllers();
     for (auto &v : __controllers) {
         for (auto &m : v.second) {
