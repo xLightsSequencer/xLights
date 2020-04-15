@@ -25,6 +25,8 @@ class FPP : public BaseController
     FPP(const FPP &c);
     virtual ~FPP();
 
+    void setIPAddress(const std::string &ip);
+    
     std::string hostName;
     std::string description;
     std::string ipAddress;

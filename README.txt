@@ -11,6 +11,11 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (dkulp)  Support for saving the password for FPP instances.
+   -- bug (dkulp)  Fix FPP instances being discovered as PixLites.
+   -- bug (dkulp)  Prevent FPP instances with duplicate hostname from being added
+                   to the controller list with same name.
+   -- bug (dkulp)  KulpLights F8-B's are mixing up ID's for the "No Serial" and "4 Serial" cases
 2020.15 April 10 2020
    -- enh (keith)  Add to visualiser ability to hide models assigned to other controllers
    -- enh (keith)  Add key binding editing

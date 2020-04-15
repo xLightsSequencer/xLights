@@ -17,6 +17,7 @@
 #include <wx/mstream.h>
 #include <wx/protocol/http.h>
 #include <wx/config.h>
+#include <wx/secretstore.h>
 #include <zstd.h>
 
 #include "../xSchedule/wxJSON/jsonreader.h"
@@ -47,6 +48,90 @@
 #include "TraceLog.h"
 using namespace TraceLog;
 
+class WXDLLIMPEXP_CORE xlPasswordEntryDialog : public wxPasswordEntryDialog
+{
+public:
+    xlPasswordEntryDialog(wxWindow *parent,
+                      const wxString& message,
+                      const wxString& caption = wxGetPasswordFromUserPromptStr,
+                      const wxString& value = wxEmptyString,
+                      long style = wxTextEntryDialogStyle,
+                      const wxPoint& pos = wxDefaultPosition)
+    {
+        Create(parent, message, caption, value, style, pos);
+    }
+
+    bool Create(wxWindow *parent,
+                const wxString& message,
+                const wxString& caption = wxGetPasswordFromUserPromptStr,
+                const wxString& value = wxEmptyString,
+                long style = wxTextEntryDialogStyle,
+                const wxPoint& pos = wxDefaultPosition) {
+        bool b = wxPasswordEntryDialog::Create(parent, message, caption, value, style, pos);
+        
+        savePasswordCheckbox = new wxCheckBox(this, wxID_ANY, _("Save Password"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_PWD"));
+        savePasswordCheckbox->SetValue(false);
+        
+        wxSizerFlags flagsBorder2;
+        flagsBorder2.DoubleBorder();
+
+#ifdef wxUSE_SECRETSTORE
+        GetSizer()->Insert(2, savePasswordCheckbox, flagsBorder2);
+        GetSizer()->SetSizeHints(this);
+        GetSizer()->Fit(this);
+#endif
+        return b;
+    }
+    
+    bool shouldSavePassword() const {
+        return savePasswordCheckbox && savePasswordCheckbox->IsChecked();
+    }
+
+private:
+    wxCheckBox *savePasswordCheckbox = nullptr;
+    
+    
+public:
+#ifdef wxUSE_SECRETSTORE
+    static wxSecretStore pwdStore;
+    static bool GetStoredPasswordForService(const std::string &service, std::string &user, std::string &pwd) {
+        if (pwdStore.IsOk()) {
+            wxSecretValue password;
+            wxString usr;
+            if (pwdStore.Load("xLights/FPP/" + service, usr, password)) {
+                user = usr;
+                pwd = password.GetAsString();
+                return true;
+            }
+        }
+        return false;
+    }
+
+    static bool StorePasswordForService(const std::string &service, const std::string &user, const std::string &pwd) {
+        if (pwdStore.IsOk()) {
+            wxSecretValue password(pwd);
+            if (pwdStore.Save("xLights/FPP/" + service, user, password)) {
+                return true;
+            }
+        }
+        return false;
+    }
+#else
+    static bool GetStoredPasswordForService(const std::string &service, std::string &user, std::string &pwd) {
+        return false;
+    }
+    static bool StorePasswordForService(const std::string &service, const std::string &user, const std::string &pwd) {
+        return false;
+    }
+#endif
+};
+
+#ifdef wxUSE_SECRETSTORE
+wxSecretStore xlPasswordEntryDialog::pwdStore = wxSecretStore::GetDefault();
+#endif
+
+
+
 static const std::string PIHAT("Pi Hat");
 static const std::string LEDPANELS("LED Panels");
 
@@ -56,6 +141,7 @@ FPP::FPP(const std::string &ad) : BaseController(ad, ""), majorVersion(0), minor
         hostName = ad;
         ipAddress = address.IPAddress();
         _ip = ipAddress;
+        
     }
     _connected = true; // well not really but i need to fake it
 }
@@ -95,6 +181,11 @@ FPP::~FPP() {
         curl = nullptr;
     }
 }
+
+void FPP::setIPAddress(const std::string &ip) {
+    ipAddress = ip;
+}
+
 
 class FPPWriteData {
 public:
@@ -213,13 +304,21 @@ bool FPP::GetURLAsString(const std::string& url, std::string& val)  {
         curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
         if (response_code == 401) {
             curlInputBuffer.clear();
-            wxPasswordEntryDialog dlg(nullptr, "Password needed to connect to " + ipAddress, "Password Required");
+            if (password == "" && xlPasswordEntryDialog::GetStoredPasswordForService(ipAddress, username, password)) {
+                if (password != "") {
+                    return GetURLAsString(url, val);
+                }
+            }
+            xlPasswordEntryDialog dlg(nullptr, "Password needed to connect to " + ipAddress, "Password Required");
             int rc = dlg.ShowModal();
             if (rc == wxID_CANCEL) {
                 return false;
             }
             username = "admin";
             password = dlg.GetValue().ToStdString();
+            if (dlg.shouldSavePassword()) {
+                xlPasswordEntryDialog::StorePasswordForService(ipAddress, username, password);
+            }
             return GetURLAsString(url, val);
         }
         retValue = (response_code == 200);
@@ -1790,7 +1889,7 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
 
 class CurlData {
 public:
-    CurlData(const std::string &a) : url(a), type(0), fpp(nullptr) {
+    CurlData(const std::string &a) : url(a), type(0), fpp(nullptr), authenticated(0) {
         errorBuffer[0] = 0;
         curl = curl_easy_init();
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, BaseController::writeFunction);
@@ -1805,15 +1904,46 @@ public:
     ~CurlData() {
         curl_easy_cleanup(curl);
     }
+    
+    void setFPP(FPP *f) {
+        fpp = f;
+        if (f->username != "" || f->password != "")  {
+            curl_easy_setopt(curl, CURLOPT_USERNAME, f->username.c_str());
+            curl_easy_setopt(curl, CURLOPT_PASSWORD, f->password.c_str());
+            curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_BASIC | CURLAUTH_DIGEST | CURLAUTH_NEGOTIATE);
+            authenticated = 1;
+        }
+    }
+    void setUsernamePassword(const std::string &username, const std::string &password) {
+        this->username = username;
+        this->password = password;
+        curl_easy_setopt(curl, CURLOPT_USERNAME, username.c_str());
+        curl_easy_setopt(curl, CURLOPT_PASSWORD, password.c_str());
+        curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_BASIC | CURLAUTH_DIGEST | CURLAUTH_NEGOTIATE);
+        authenticated = 1;
+    }
     std::string url;
     CURL *curl;
     std::string buffer;
     char errorBuffer[CURL_ERROR_SIZE];
     int type;
+    int authenticated;
+    
+    //either fpp or the ipAddress/username/password
     FPP *fpp;
+    
+    std::string ipAddress;
+    std::string username;
+    std::string password;
+
 };
 
 #define FPP_CTRL_PORT 32320
+
+static std::string toIp(uint8_t *buffer) {
+    std::string address = std::to_string(buffer[0]) + "." + std::to_string(buffer[1]) + "." + std::to_string(buffer[2]) + "." + std::to_string(buffer[3]);
+    return address;
+}
 
 void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &instances, bool doBroadcast, bool allPlatforms) {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -1824,6 +1954,7 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
     for (const auto &a : addresses) {
         std::string fullAddress = "http://" + a + "/fppjson.php?command=getFPPSystems";
         CurlData *data = new CurlData(fullAddress);
+        data->ipAddress = a;
         curls.push_back(data);
         curl_multi_add_handle(curlMulti, data->curl);
     }
@@ -1857,13 +1988,12 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
     wxIPV4address localaddr;
     localaddr.AnyAddress();
     localaddr.Service(FPP_CTRL_PORT);
-    wxDatagramSocket *socket = new wxDatagramSocket(localaddr, wxSOCKET_BROADCAST | wxSOCKET_NOWAIT);
-    socket->SetTimeout(1);
-    socket->Notify(false);
-    if (socket->IsOk()) {
-        sockets.push_back(socket);
+    wxDatagramSocket *mainSocket = new wxDatagramSocket(localaddr, wxSOCKET_BROADCAST | wxSOCKET_NOWAIT);
+    mainSocket->SetTimeout(1);
+    mainSocket->Notify(false);
+    if (mainSocket->IsOk()) {
+        sockets.push_back(mainSocket);
     }
-    
     auto localIPs = GetLocalIPs();
     for (const auto& ip : localIPs) {
         if (ip == "127.0.0.1") {
@@ -1887,6 +2017,20 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
     for (const auto& socket : sockets) {
         socket->SendTo(bcAddress, buffer, 207);
     }
+    if (mainSocket->IsOk()) {
+        wxIPV4address remoteaddr;
+        uint8_t target1[] = { 0xE0, 0x00, 0x1E, 0x05 };
+        uint8_t target2[] = { 0xE0, 0x46, 0x50, 0x50 };
+        remoteaddr.Hostname(toIp(target1));
+        remoteaddr.Service(0x7535);
+        uint8_t buf[] = { 0x5a, 0x43, 0x50, 0x50, 0, 0, 0, 0 };
+        mainSocket->SendTo(remoteaddr, buf, sizeof(buf));
+        
+        remoteaddr.Hostname(toIp(target2));
+        remoteaddr.Service(0x7E40);
+        mainSocket->SendTo(remoteaddr, buffer, 207);
+    }
+    
     
     uint64_t endBroadcastTime = wxGetLocalTimeMillis().GetValue() + 1200l;
     int running = curls.size();
@@ -1902,60 +2046,86 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
                 }
             }
         }
-        if (readSize != 0
-            && buffer[0] == 'F' && buffer[1] == 'P' && buffer[2] == 'P' && buffer[3] == 'D' && buffer[4] == 0x04) {
-            char ip[64];
-            sprintf(ip, "%d.%d.%d.%d", (int)buffer[15], (int)buffer[16], (int)buffer[17], (int)buffer[18]);
-            if (strcmp(ip, "0.0.0.0")) {
-                AddTraceMessage("Received UDP result " + std::string(ip));
+        if (readSize != 0) {
+            if (buffer[0] == 'F' && buffer[1] == 'P' && buffer[2] == 'P' && buffer[3] == 'D' && buffer[4] == 0x04) {
+                char ip[64];
+                sprintf(ip, "%d.%d.%d.%d", (int)buffer[15], (int)buffer[16], (int)buffer[17], (int)buffer[18]);
+                if (strcmp(ip, "0.0.0.0")) {
+                    AddTraceMessage("Received UDP result " + std::string(ip));
 
-                //we found a system!!!
-                std::string hostname = (char *)&buffer[19];
-                std::string ipStr = ip;
-                FPP *found = nullptr;
-                for (const auto& a : instances) {
-                    if (a->hostName == hostname || a->ipAddress == hostname || a->ipAddress == ipStr) {
-                        found = a;
+                    //we found a system!!!
+                    std::string hostname = (char *)&buffer[19];
+                    std::string ipStr = ip;
+                    FPP *found = nullptr;
+                    for (const auto& a : instances) {
+                        if (a->hostName == hostname || a->ipAddress == hostname || a->ipAddress == ipStr) {
+                            found = a;
+                        }
+                    }
+                    int platform = buffer[9];
+                    //printf("%d: %s  %s     %d\n", found ? 1 : 0, hostname.c_str(), ipStr.c_str(), platform);
+                    if (!found && (allPlatforms || (platform > 0 && platform < 0x80))) {
+                        //platform > 0x80 is Falcon controllers or xLights
+                        FPP *inst = new FPP();
+                        inst->hostName = (char *)&buffer[19];
+                        inst->model = (char *)&buffer[125];
+                        inst->setIPAddress(ip);
+                        inst->fullVersion = (char *)&buffer[84];
+                        inst->minorVersion = buffer[13] + (buffer[12] << 8);
+                        inst->majorVersion = buffer[11] + (buffer[10] << 8);
+                        inst->ranges = (char*)&buffer[166];
+                        instances.push_back(inst);
+
+                        std::string fullAddress = "http://" + inst->ipAddress + "/fppjson.php?command=getFPPSystems";
+                        CurlData *data = new CurlData(fullAddress);
+                        data->type = 0;
+                        data->setFPP(inst);
+                        curls.push_back(data);
+                        curl_multi_add_handle(curlMulti, data->curl);
+                        running++;
+
+                        fullAddress = "http://" + inst->ipAddress + "/fppjson.php?command=getSysInfo&simple";
+                        data = new CurlData(fullAddress);
+                        data->type = 1;
+                        data->setFPP(inst);
+                        curls.push_back(data);
+                        curl_multi_add_handle(curlMulti, data->curl);
+                        running++;
+                        
+                        fullAddress = "http://" + inst->ipAddress + "/api/proxies";
+                        data = new CurlData(fullAddress);
+                        data->type = 4;
+                        data->setFPP(inst);
+                        curls.push_back(data);
+                        curl_multi_add_handle(curlMulti, data->curl);
+                        running++;
                     }
                 }
-                int platform = buffer[9];
-                //printf("%d: %s  %s     %d\n", found ? 1 : 0, hostname.c_str(), ipStr.c_str(), platform);
-                if (!found && (allPlatforms || (platform > 0 && platform < 0x80))) {
-                    //platform > 0x80 is Falcon controllers or xLights
-                    FPP *inst = new FPP();
-                    inst->hostName = (char *)&buffer[19];
-                    inst->model = (char *)&buffer[125];
-                    inst->ipAddress = ip;
-                    inst->fullVersion = (char *)&buffer[84];
-                    inst->minorVersion = buffer[13] + (buffer[12] << 8);
-                    inst->majorVersion = buffer[11] + (buffer[10] << 8);
-                    inst->ranges = (char*)&buffer[166];
-                    instances.push_back(inst);
-
-                    std::string fullAddress = "http://" + inst->ipAddress + "/fppjson.php?command=getFPPSystems";
-                    CurlData *data = new CurlData(fullAddress);
-                    data->type = 0;
-                    data->fpp = inst;
-                    curls.push_back(data);
-                    curl_multi_add_handle(curlMulti, data->curl);
-                    running++;
-
-                    fullAddress = "http://" + inst->ipAddress + "/fppjson.php?command=getSysInfo&simple";
-                    data = new CurlData(fullAddress);
-                    data->type = 1;
-                    data->fpp = inst;
-                    curls.push_back(data);
-                    curl_multi_add_handle(curlMulti, data->curl);
-                    running++;
-                    
-                    fullAddress = "http://" + inst->ipAddress + "/api/proxies";
-                    data = new CurlData(fullAddress);
-                    data->type = 4;
-                    data->fpp = inst;
-                    curls.push_back(data);
-                    curl_multi_add_handle(curlMulti, data->curl);
-                    running++;
+            } else {
+                std::string address = toIp(&buffer[32]);
+                bool found = false;
+                for (const auto& f : instances) {
+                    if (f->ipAddress == address) {
+                        found = true;
+                    }
                 }
+                if (found) {
+                    continue;
+                }
+                
+                FPP *fpp = new FPP();
+                fpp->setIPAddress(address);
+                fpp->hostName = address;
+                instances.push_back(fpp);
+
+                
+                std::string fullAddress = "http://" + address + "/";
+                CurlData *data = new CurlData(fullAddress);
+                data->type = 5;
+                data->setFPP(fpp);
+                curls.push_back(data);
+                curl_multi_add_handle(curlMulti, data->curl);
+                running++;
             }
         } else {
             int start = running;
@@ -1984,7 +2154,75 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
                                 AddTraceMessage("Received curl response: " + std::to_string(curls[x]->type) + " - " + std::to_string(response_code));
                                 AddTraceMessage("    url: " + curls[x]->url);
                                 
-                                if (response_code > 202) {
+                                if (response_code == 401 && curls[x]->authenticated != 1) {
+                                    bool handled = false;
+                                    std::string ip = curls[x]->ipAddress;
+                                    if (ip == "") {
+                                        ip = curls[x]->url;
+                                    }
+                                    if (curls[x]->fpp && curls[x]->authenticated != 2) {
+                                        ip = curls[x]->fpp->ipAddress;
+                                        if (xlPasswordEntryDialog::GetStoredPasswordForService(curls[x]->fpp->ipAddress, curls[x]->fpp->username, curls[x]->fpp->password)) {
+                                            if (curls[x]->fpp->password != "") {
+                                                CurlData *data = new CurlData(curls[x]->url);
+                                                data->type = curls[x]->type;
+                                                data->setFPP(curls[x]->fpp);
+                                                data->authenticated = 2;
+                                                curls.push_back(data);
+                                                curl_multi_add_handle(curlMulti, data->curl);
+                                                curls[x]->authenticated = 2;
+                                                running++;
+                                                handled = true;
+                                            }
+                                        }
+                                    } else if (curls[x]->authenticated != 2) {
+                                        if (xlPasswordEntryDialog::GetStoredPasswordForService(curls[x]->ipAddress, curls[x]->username, curls[x]->password)) {
+                                            if (curls[x]->password != "") {
+                                                CurlData *data = new CurlData(curls[x]->url);
+                                                data->type = curls[x]->type;
+                                                data->ipAddress = curls[x]->ipAddress;
+                                                data->setUsernamePassword(curls[x]->username, curls[x]->password);
+                                                data->authenticated = 2;
+                                                curls.push_back(data);
+                                                curl_multi_add_handle(curlMulti, data->curl);
+                                                curls[x]->authenticated = 2;
+                                                running++;
+                                                handled = true;
+                                            }
+                                        }
+                                    }
+                                    if (!handled) {
+                                        if (curls[x]->fpp) {
+                                            ip = curls[x]->fpp->ipAddress;
+                                        }
+                                        xlPasswordEntryDialog dlg(nullptr, "Password needed to connect to " + ip, "Password Required");
+                                        int rc = dlg.ShowModal();
+                                        if (rc != wxID_CANCEL) {
+                                            std::string username = "admin";
+                                            std::string password = dlg.GetValue().ToStdString();
+                                            if (dlg.shouldSavePassword()) {
+                                                xlPasswordEntryDialog::StorePasswordForService(ip, username, password);
+                                            }
+                                            if (curls[x]->fpp) {
+                                                curls[x]->fpp->username = username;
+                                                curls[x]->fpp->password = password;
+                                                CurlData *data = new CurlData(curls[x]->url);
+                                                data->type = curls[x]->type;
+                                                data->setFPP(curls[x]->fpp);
+                                                curls.push_back(data);
+                                                curl_multi_add_handle(curlMulti, data->curl);
+                                                running++;
+                                            } else {
+                                                CurlData *data = new CurlData(curls[x]->url);
+                                                data->type = curls[x]->type;
+                                                data->setUsernamePassword(username, password);
+                                                curls.push_back(data);
+                                                curl_multi_add_handle(curlMulti, data->curl);
+                                                running++;
+                                            }
+                                        }
+                                    }
+                                } else if (response_code > 202) {
                                     logger_base.warn("Received response code %d from %s - %s", response_code, curls[x]->url.c_str(), curls[x]->errorBuffer);
                                 }
 
@@ -2017,7 +2255,7 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
                                             std::string fullAddress = baseUrl + "/fppjson.php?command=getChannelOutputs&file=" + file;
                                             CurlData *data = new CurlData(fullAddress);
                                             data->type = 2;
-                                            data->fpp = curls[x]->fpp;
+                                            data->setFPP(curls[x]->fpp);
                                             curls.push_back(data);
                                             curl_multi_add_handle(curlMulti, data->curl);
                                             running++;
@@ -2025,7 +2263,7 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
                                             fullAddress = baseUrl + "/fppjson.php?command=getChannelOutputs&file=channelOutputsJSON";
                                             data = new CurlData(fullAddress);
                                             data->type = 2;
-                                            data->fpp = curls[x]->fpp;
+                                            data->setFPP(curls[x]->fpp);
                                             curls.push_back(data);
                                             curl_multi_add_handle(curlMulti, data->curl);
                                             running++;
@@ -2033,7 +2271,7 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
                                             fullAddress = baseUrl + "/config.php";
                                             data = new CurlData(fullAddress);
                                             data->type = 3;
-                                            data->fpp = curls[x]->fpp;
+                                            data->setFPP(curls[x]->fpp);
                                             curls.push_back(data);
                                             curl_multi_add_handle(curlMulti, data->curl);
                                             running++;
@@ -2042,7 +2280,7 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
                                                 fullAddress = baseUrl + "/api/proxies";
                                                 data = new CurlData(fullAddress);
                                                 data->type = 4;
-                                                data->fpp = curls[x]->fpp;
+                                                data->setFPP(curls[x]->fpp);
                                                 curls.push_back(data);
                                                 curl_multi_add_handle(curlMulti, data->curl);
                                                 running++;
@@ -2073,9 +2311,11 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
                                             }
                                             
                                             FPP *fpp = new FPP();
-                                            fpp->ipAddress = address;
+                                            fpp->setIPAddress(address);
                                             fpp->hostName = address;
                                             fpp->proxy = curls[x]->fpp->ipAddress;
+                                            fpp->username = curls[x]->fpp->username;
+                                            fpp->password = curls[x]->fpp->password;
                                             curls[x]->fpp->isFPP = false;
                                             instances.push_back(fpp);
 
@@ -2083,7 +2323,7 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
                                             std::string fullAddress = "http://" + curls[x]->fpp->ipAddress + "/proxy/" + address + "/";
                                             CurlData *data = new CurlData(fullAddress);
                                             data->type = 5;
-                                            data->fpp = fpp;
+                                            data->setFPP(fpp);
                                             curls.push_back(data);
                                             curl_multi_add_handle(curlMulti, data->curl);
                                             running++;
@@ -2107,17 +2347,43 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
                                                 std::string fullAddress = "http://" + curls[x]->fpp->proxy + "/proxy/" + curls[x]->fpp->ipAddress + "/fppjson.php?command=getSysInfo&simple";
                                                 CurlData *data = new CurlData(fullAddress);
                                                 data->type = 1;
-                                                data->fpp = curls[x]->fpp;
+                                                data->setFPP(curls[x]->fpp);
                                                 curls.push_back(data);
                                                 curl_multi_add_handle(curlMulti, data->curl);
                                                 running++;
+                                            } else if (curls[x]->buffer.find("pixelcontroller.com") != std::string::npos && curls[x]->buffer.find("Controller Information") != std::string::npos) {
+                                                Falcon falc(curls[x]->fpp->ipAddress, curls[x]->fpp->proxy);
+                                                if (falc.IsConnected()) {
+                                                    if (falc.GetName() != "") {
+                                                        curls[x]->fpp->hostName = falc.GetName();
+                                                        curls[x]->fpp->description = falc.GetName();
+                                                    }
+                                                    curls[x]->fpp->pixelControllerType = falc.GetModel();
+                                                    curls[x]->fpp->model = falc.GetModel();
+                                                    curls[x]->fpp->fullVersion = falc.GetFullName();
+                                                    curls[x]->fpp->platform = "Falcon";
+                                                    
+                                                    curls[x]->fpp->mode = "bridge";
+                                                    int idx = curls[x]->buffer.find("name=\"m\" ");
+                                                    if (idx > 0) {
+                                                        idx = curls[x]->buffer.find("value=\"", idx);
+                                                        if (idx > 0) {
+                                                            idx += 7;
+                                                            if (curls[x]->buffer[idx] != '0') {
+                                                                curls[x]->fpp->mode = "unknown";
+                                                            }
+                                                        }
+                                                    }
+                                                                                                        
+                                                    curls[x]->fpp->isFPP = false;
+                                                }
                                             } else {
                                                 //there is a web server on port 80 running, lets see if we can determine what this is
                                                 FPP *fpp = curls[x]->fpp;
                                                 std::string fullAddress = "http://" + curls[x]->fpp->proxy + "/proxy/" + curls[x]->fpp->ipAddress + "/status.xml";
                                                 CurlData *data = new CurlData(fullAddress);
                                                 data->type = 6;
-                                                data->fpp = fpp;
+                                                data->setFPP(fpp);
                                                 curls.push_back(data);
                                                 curl_multi_add_handle(curlMulti, data->curl);
                                                 running++;
@@ -2125,7 +2391,7 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
                                                 fullAddress = "http://" + curls[x]->fpp->proxy + "/proxy/" + curls[x]->fpp->ipAddress + "/H?";
                                                 data = new CurlData(fullAddress);
                                                 data->type = 7;
-                                                data->fpp = fpp;
+                                                data->setFPP(fpp);
                                                 curls.push_back(data);
                                                 curl_multi_add_handle(curlMulti, data->curl);
                                                 running++;
@@ -2133,7 +2399,7 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
                                                 fullAddress = "http://" + curls[x]->fpp->proxy + "/proxy/" + curls[x]->fpp->ipAddress + "/sysinfo.htm";
                                                 data = new CurlData(fullAddress);
                                                 data->type = 8;
-                                                data->fpp = fpp;
+                                                data->setFPP(fpp);
                                                 curls.push_back(data);
                                                 curl_multi_add_handle(curlMulti, data->curl);
                                                 running++;
@@ -2229,7 +2495,7 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
                                                 if (!system["model"].IsNull()) {
                                                     inst.model = system["model"].AsString();
                                                 }
-                                                inst.ipAddress = address;
+                                                inst.setIPAddress(address);
                                                 if (!system["version"].IsNull()) {
                                                     inst.fullVersion = system["version"].AsString();
                                                 }
@@ -2279,7 +2545,7 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
                                                     }
                                                     CurlData *data = new CurlData(fullAddress);
                                                     data->type = 0;
-                                                    data->fpp = fpp;
+                                                    data->setFPP(fpp);
                                                     curls.push_back(data);
                                                     curl_multi_add_handle(curlMulti, data->curl);
                                                     running++;
@@ -2290,7 +2556,7 @@ void FPP::Discover(const std::list<std::string> &addresses, std::list<FPP*> &ins
                                                     }
                                                     data = new CurlData(fullAddress);
                                                     data->type = 1;
-                                                    data->fpp = fpp;
+                                                    data->setFPP(fpp);
                                                     curls.push_back(data);
                                                     curl_multi_add_handle(curlMulti, data->curl);
                                                     running++;
