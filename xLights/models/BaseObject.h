@@ -1,5 +1,4 @@
-#ifndef BASEOBJECT_H
-#define BASEOBJECT_H
+#pragma once
 
 #include <string>
 #include "../OutputModelManager.h"
@@ -31,7 +30,7 @@ public:
     virtual std::list<std::string> GetFileReferences() { return std::list<std::string>(); }
     virtual std::list<std::string> CheckModelSettings() { std::list<std::string> res; return res; };
 
-    virtual void MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z);
+    virtual glm::vec3 MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z);
     void SelectHandle(int handle);
     void Lock(bool lock);
     virtual void AddASAPWork(uint32_t work, const std::string& from);
@@ -89,19 +88,16 @@ public:
     void SetActive(bool active);
 
     std::string name;
-
     bool Selected = false;
     bool Highlighted = false;
     bool GroupSelected=false;
 
 protected:
     std::string DisplayAs;
-    wxXmlNode* ModelXml;
+    wxXmlNode* ModelXml = nullptr;
     std::string layout_group;
-    unsigned long changeCount;
-    bool _active;
+    unsigned long changeCount = 0;
+    bool _active = true;
 
 private:
 };
-
-#endif // BASEOBJECT_H

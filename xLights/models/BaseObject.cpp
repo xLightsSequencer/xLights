@@ -42,9 +42,9 @@ void BaseObject::EnableLayoutGroupProperty(wxPropertyGridInterface* grid, bool e
     }
 }
 
-void BaseObject::MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z)
+glm::vec3 BaseObject::MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z)
 {
-    if (GetBaseObjectScreenLocation().IsLocked()) return;
+    if (GetBaseObjectScreenLocation().IsLocked()) return GetBaseObjectScreenLocation().GetHandlePosition(handle);
 
     int i = GetBaseObjectScreenLocation().MoveHandle3D(preview, handle, ShiftKeyPressed, CtrlKeyPressed, mouseX, mouseY, latch, scale_z);
     GetBaseObjectScreenLocation().Write(ModelXml);
@@ -52,6 +52,7 @@ void BaseObject::MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPr
         SetFromXml(ModelXml);
     }
     IncrementChangeCount();
+    return GetBaseObjectScreenLocation().GetHandlePosition(handle);
 }
 
 void BaseObject::SelectHandle(int handle) {

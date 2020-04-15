@@ -2937,7 +2937,8 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
                         bool z_scale = selectedBaseObject->GetBaseObjectScreenLocation().GetSupportsZScaling();
                         // this is designed to pretend the control and shift keys are down when creating models to
                         // make them scale from the desired handle depending on model type
-                        selectedBaseObject->MoveHandle3D(modelPreview, active_handle, event.ShiftDown() | creating_model, event.ControlDown() | (creating_model & z_scale), event.GetX(), event.GetY(), true, z_scale);
+                        auto pos = selectedBaseObject->MoveHandle3D(modelPreview, active_handle, event.ShiftDown() | creating_model, event.ControlDown() | (creating_model & z_scale), event.GetX(), event.GetY(), true, z_scale);
+                        xlights->SetStatusText(wxString::Format("x=%.2f y=%.2f z=%.2f", pos.x, pos.y, pos.z));
                         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::ProcessLeftMouseClick3D");
                         m_moving_handle = true;
                         m_mouse_down = true;
@@ -3018,7 +3019,8 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
             bool z_scale = selectedBaseObject->GetBaseObjectScreenLocation().GetSupportsZScaling();
             // this is designed to pretend the control and shift keys are down when creating models to
             // make them scale from the desired handle depending on model type
-            selectedBaseObject->MoveHandle3D(modelPreview, selectedBaseObject->GetBaseObjectScreenLocation().GetDefaultHandle(), event.ShiftDown() | creating_model, event.ControlDown() | (creating_model & z_scale), event.GetX(), event.GetY(), true, z_scale);
+            auto pos = selectedBaseObject->MoveHandle3D(modelPreview, selectedBaseObject->GetBaseObjectScreenLocation().GetDefaultHandle(), event.ShiftDown() | creating_model, event.ControlDown() | (creating_model & z_scale), event.GetX(), event.GetY(), true, z_scale);
+            xlights->SetStatusText(wxString::Format("x=%.2f y=%.2f z=%.2f", pos.x, pos.y, pos.z));
             lastModelName = newModel->name;
             modelPreview->SetAdditionalModel(newModel);
         }
@@ -3657,6 +3659,7 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
         if (m_moving_handle) {
             if (selectedBaseObject != nullptr) {
                 int active_handle = selectedBaseObject->GetBaseObjectScreenLocation().GetActiveHandle();
+
                 int selectedModelCnt = ModelsSelectedCount();
                 int selectedViewObjectCnt = ViewObjectsSelectedCount();
                 if (selectedBaseObject != newModel) {
@@ -3668,7 +3671,8 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
                 }
                 // this is designed to pretend the control and shift keys are down when creating models to
                 // make them scale from the desired handle depending on model type
-                selectedBaseObject->MoveHandle3D(modelPreview, active_handle, event.ShiftDown() | creating_model, event.ControlDown() | (creating_model & z_scale), event.GetX(), event.GetY(), false, z_scale);
+                auto pos = selectedBaseObject->MoveHandle3D(modelPreview, active_handle, event.ShiftDown() | creating_model, event.ControlDown() | (creating_model & z_scale), event.GetX(), event.GetY(), false, z_scale);
+                xlights->SetStatusText(wxString::Format("x=%.2f y=%.2f z=%.2f", pos.x, pos.y, pos.z));
                 //SetupPropGrid(selectedBaseObject);
                 xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::OnPreviewMouseMove");
                 // dont need these until released
@@ -3819,7 +3823,8 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
             bool z_scale = obj->GetBaseObjectScreenLocation().GetSupportsZScaling();
             // this is designed to pretend the control and shift keys are down when creating models to
             // make them scale from the desired handle depending on model type
-            obj->MoveHandle3D(modelPreview, active_handle, event.ShiftDown() | creating_model, event.ControlDown() | (creating_model & z_scale), event.GetX(), event.GetY(), false, z_scale);
+            auto pos = obj->MoveHandle3D(modelPreview, active_handle, event.ShiftDown() | creating_model, event.ControlDown() | (creating_model & z_scale), event.GetX(), event.GetY(), false, z_scale);
+            xlights->SetStatusText(wxString::Format("x=%.2f y=%.2f z=%.2f", pos.x, pos.y, pos.z));
             //SetupPropGrid(obj);
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::OnPreviewMouseMove");
             // dont need these until model is finished moving
@@ -3951,7 +3956,9 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
         if (m != newModel) {
             CreateUndoPoint("SingleModel", m->name, std::to_string(m_over_handle));
         }
-        m->MoveHandle(modelPreview,m_over_handle, event.ShiftDown(), event.GetX(), event.GetY());
+        auto pos = m->MoveHandle(modelPreview,m_over_handle, event.ShiftDown(), event.GetX(), event.GetY());
+        xlights->SetStatusText(wxString::Format("x=%.2f y=%.2f", pos.x, pos.y));
+
         //SetupPropGrid(m);
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::OnPreviewMouseMove");
         // dont need these until finish moving

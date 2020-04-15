@@ -1,5 +1,4 @@
-#ifndef SUBMODEL_H
-#define SUBMODEL_H
+#pragma once
 
 #include "Model.h"
 
@@ -15,7 +14,7 @@ public:
 
     virtual const ModelScreenLocation &GetBaseObjectScreenLocation() const override { return parent->GetModelScreenLocation(); }
     virtual ModelScreenLocation &GetBaseObjectScreenLocation() override { return parent->GetModelScreenLocation(); };
-    virtual void MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z) override {}
+    virtual glm::vec3 MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z) override { return glm::vec3(0, 0, 0); }
 
     virtual const std::string &GetLayoutGroup() const override { return parent->GetLayoutGroup(); }
 
@@ -28,9 +27,7 @@ public:
 
     Model* GetParent() const { return parent; }
 private:
-    Model *parent;
-    bool _nodesAllValid;
+    Model *parent = nullptr;
+    bool _nodesAllValid = false;
 };
 
-
-#endif // SUBMODEL_H

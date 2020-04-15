@@ -4585,9 +4585,9 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
     }
 }
 
-void Model::MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX,int mouseY) {
+glm::vec3 Model::MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX,int mouseY) {
 
-    if (GetModelScreenLocation().IsLocked()) return;
+    if (GetModelScreenLocation().IsLocked()) return GetModelScreenLocation().GetHandlePosition(handle);
 
     int i = GetModelScreenLocation().MoveHandle(preview, handle, ShiftKeyPressed, mouseX, mouseY);
     GetModelScreenLocation().Write(ModelXml);
@@ -4595,6 +4595,8 @@ void Model::MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, 
         SetFromXml(ModelXml);
     }
     IncrementChangeCount();
+
+    return GetModelScreenLocation().GetHandlePosition(handle);
 }
 
 int Model::GetSelectedHandle() {

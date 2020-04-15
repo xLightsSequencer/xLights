@@ -155,6 +155,12 @@ static wxCursor GetResizeCursor(int cornerIndex, int PreviewRotation) {
 
 }
 
+glm::vec3 ModelScreenLocation::GetHandlePosition(int handle)
+{
+    if (handle < 0 || handle >= mHandlePosition.size()) return glm::vec3(0, 0, 0);
+    return glm::vec3(mHandlePosition[handle].x, mHandlePosition[handle].y, mHandlePosition[handle].z);
+}
+
 ModelScreenLocation::ModelScreenLocation(int sz)
 : RenderWi(0), RenderHt(0), RenderDp(0), previewW(-1), previewH(-1),
   worldPos_x(0.0f), worldPos_y(0.0f), worldPos_z(0.0f),

@@ -193,6 +193,7 @@ protected:
     void SetScaleMatrix(const glm::vec3& scale) { scalex = scale.x; scaley = scale.y; scalez = scale.z; }
     glm::vec3 GetCenterPosition() const { return glm::vec3(GetHcenterPos(), GetVcenterPos(), GetDcenterPos()); }
     glm::vec3 GetActiveHandlePosition() { return active_handle_pos; }
+    virtual glm::vec3 GetHandlePosition(int handle);
     glm::vec3 GetRotationAngles() { return angles; }
 
 protected:
