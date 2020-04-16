@@ -132,6 +132,15 @@ std::string PlayListItem::ReplaceTags(const std::string s) const
     wxString res = s;
     AudioManager* am = nullptr;
 
+    auto now = wxDateTime::Now();
+
+    res.Replace("\\n", "\n");
+    res.Replace("\\t", "\t");
+    res.Replace("%TIMESTAMP%", now.Format("%F %T"));
+    res.Replace("%TIME%", now.Format("%T"));
+    res.Replace("%DATE%", now.Format("%F"));
+    res.Replace("%MACHINENAME%", wxGetHostName());
+
     PlayList* pl = xScheduleFrame::GetScheduleManager()->GetRunningPlayList();
     if (pl != nullptr)
     {
@@ -195,6 +204,6 @@ std::string PlayListItem::ReplaceTags(const std::string s) const
 
 std::string PlayListItem::GetTagHint()
 {
-    return "Available variables:\n    %RUNNING_PLAYLIST% - current playlist\n    %RUNNING_PLAYLISTSTEP% - step name\n    %RUNNING_PLAYLISTSTEPMS% - Position in current step\n    %RUNNING_PLAYLISTSTEPMSLEFT% - Time left in current step\n    %RUNNING_SCHEDULE% - Name of schedule\n    %STEPNAME% - Current step\n    %NEXTSTEPNAME% - Next step\n    %NEXTSTEPNAME% - Next step\n    %ALBUM% - from mp3\n    %TITLE% - from mp3\n    %ARTIST% - from mp3";
+    return "Available variables:\n    %RUNNING_PLAYLIST% - current playlist\n    %RUNNING_PLAYLISTSTEP% - step name\n    %RUNNING_PLAYLISTSTEPMS% - Position in current step\n    %RUNNING_PLAYLISTSTEPMSLEFT% - Time left in current step\n    %RUNNING_SCHEDULE% - Name of schedule\n    %STEPNAME% - Current step\n    %NEXTSTEPNAME% - Next step\n    %NEXTSTEPNAME% - Next step\n    %ALBUM% - from mp3\n    %TITLE% - from mp3\n    %ARTIST% - from mp3\n    %TIMESTAMP% - timestamp\n    %TIME% - time now\n    %MACHINENAME% - computer name\n    %DATE% - date now";
 }
 

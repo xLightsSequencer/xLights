@@ -205,6 +205,7 @@ public:
         void OnMenuItem_ModeFPPCSVRemoteSelected(wxCommandEvent& event);
         void OnClose(wxCloseEvent& event);
         void OnMenuItem_SMPTESelected(wxCommandEvent& event);
+        void OnMenuItem_ResetWindowLocationsSelected(wxCommandEvent& event);
         //*)
 
         bool IsPlayList(wxTreeItemId id) const;
@@ -277,6 +278,7 @@ public:
         static const long ID_MNU_CHECK_SCHEDULE;
         static const long ID_MNU_WEBINTERFACE;
         static const long ID_MNU_IMPORT;
+        static const long ID_MNU_RESETWINDOWS;
         static const long ID_MNU_CRASH;
         static const long ID_MNU_TEST;
         static const long ID_MNU_FPP_BROADCASTMASTER;
@@ -373,6 +375,7 @@ public:
         wxMenuItem* MenuItem_ModeTest;
         wxMenuItem* MenuItem_Options;
         wxMenuItem* MenuItem_RemoteLatency;
+        wxMenuItem* MenuItem_ResetWindowLocations;
         wxMenuItem* MenuItem_SMPTE;
         wxMenuItem* MenuItem_Save;
         wxMenuItem* MenuItem_ShowFolder;

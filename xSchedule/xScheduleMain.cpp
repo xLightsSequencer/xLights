@@ -180,6 +180,7 @@ const long xScheduleFrame::ID_MNU_VIEW_LOG = wxNewId();
 const long xScheduleFrame::ID_MNU_CHECK_SCHEDULE = wxNewId();
 const long xScheduleFrame::ID_MNU_WEBINTERFACE = wxNewId();
 const long xScheduleFrame::ID_MNU_IMPORT = wxNewId();
+const long xScheduleFrame::ID_MNU_RESETWINDOWS = wxNewId();
 const long xScheduleFrame::ID_MNU_CRASH = wxNewId();
 const long xScheduleFrame::ID_MNU_TEST = wxNewId();
 const long xScheduleFrame::ID_MNU_FPP_BROADCASTMASTER = wxNewId();
@@ -550,6 +551,8 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     ToolsMenu->Append(MenuItem_WebInterface);
     MenuItem_ImportxLights = new wxMenuItem(ToolsMenu, ID_MNU_IMPORT, _("Import xLights Playlist"), wxEmptyString, wxITEM_NORMAL);
     ToolsMenu->Append(MenuItem_ImportxLights);
+    MenuItem_ResetWindowLocations = new wxMenuItem(ToolsMenu, ID_MNU_RESETWINDOWS, _("Reset Window Locations"), wxEmptyString, wxITEM_NORMAL);
+    ToolsMenu->Append(MenuItem_ResetWindowLocations);
     MenuItem_Crash = new wxMenuItem(ToolsMenu, ID_MNU_CRASH, _("Crash"), _("Crash xSchedule"), wxITEM_NORMAL);
     ToolsMenu->Append(MenuItem_Crash);
     MenuBar1->Append(ToolsMenu, _("&Tools"));
@@ -658,6 +661,7 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     Connect(ID_MNU_CHECK_SCHEDULE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_CheckScheduleSelected);
     Connect(ID_MNU_WEBINTERFACE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_WebInterfaceSelected);
     Connect(ID_MNU_IMPORT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_ImportxLightsSelected);
+    Connect(ID_MNU_RESETWINDOWS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_ResetWindowLocationsSelected);
     Connect(ID_MNU_CRASH,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_CrashSelected);
     Connect(ID_MNU_TEST,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_TestSelected);
     Connect(ID_MNU_FPP_BROADCASTMASTER,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_FPPMasterSelected);
@@ -870,7 +874,7 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
 #ifdef __WXOSX__
     Menu6->Remove(MenuItem_SMPTE);
 #endif
-    
+
     RemoteWarning();
 
     UpdateUI(true);
@@ -3621,4 +3625,17 @@ void xScheduleFrame::OnClose(wxCloseEvent& event)
 void xScheduleFrame::OnMenuItem_SMPTESelected(wxCommandEvent& event)
 {
     UIToMode();
+}
+
+void xScheduleFrame::OnMenuItem_ResetWindowLocationsSelected(wxCommandEvent& event)
+{
+    wxConfigBase* config = wxConfigBase::Get();
+    config->DeleteEntry(_("xsPLWindowPosX"));
+    config->DeleteEntry(_("xsPLWindowPosY"));
+    config->DeleteEntry(_("xsPLWindowPosW"));
+    config->DeleteEntry(_("xsPLWindowPosH"));
+    config->DeleteEntry(_("xsWindowPosX"));
+    config->DeleteEntry(_("xsWindowPosY"));
+    config->DeleteEntry(_("xsWindowPosW"));
+    config->DeleteEntry(_("xsWindowPosH"));
 }

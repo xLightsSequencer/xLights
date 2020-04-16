@@ -12,6 +12,7 @@
 PlayListItemFile::PlayListItemFile(wxXmlNode* node) : PlayListItem(node)
 {
     _started = false;
+    _append = false;
     _content = "";
 	_fileName = "";
     PlayListItemFile::Load(node);
@@ -22,12 +23,14 @@ void PlayListItemFile::Load(wxXmlNode* node)
     PlayListItem::Load(node);
     _content = node->GetAttribute("Content", "");
     _fileName = node->GetAttribute("FileName", "");
+    _append = node->GetAttribute("Append", "FALSE") == "TRUE";
 }
 
 PlayListItemFile::PlayListItemFile() : PlayListItem()
 {
     _type = "PLIFile";
     _started = false;
+    _append = false;
     _content = "";
     _fileName = "";
 }
@@ -36,6 +39,7 @@ PlayListItem* PlayListItemFile::Copy() const
 {
     PlayListItemFile* res = new PlayListItemFile();
     res->_content = _content;
+    res->_append = _append;
     res->_fileName = _fileName;
     res->_started = false;
     PlayListItem::Copy(res);
@@ -49,6 +53,7 @@ wxXmlNode* PlayListItemFile::Save()
 
     node->AddAttribute("Content", _content);
     node->AddAttribute("FileName", _fileName);
+    if (_append) node->AddAttribute("Append", "TRUE");
 
     PlayListItem::Save(node);
 
@@ -107,9 +112,16 @@ void PlayListItemFile::Frame(uint8_t* buffer, size_t size, size_t ms, size_t fra
 
 		wxFile f;
 		
-		f.Create(fileName, true);
-		f.Write(content);
-		f.Close();
+        if (_append) {
+            f.Open(fileName, wxFile::OpenMode::write_append);
+            f.Write(content);
+            f.Close();
+        }
+        else {
+            f.Create(fileName, true);
+            f.Write(content);
+            f.Close();
+        }
 
         logger_base.info("File written.");
     }

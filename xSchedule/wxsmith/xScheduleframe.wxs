@@ -426,6 +426,10 @@
 					<label>Import xLights Playlist</label>
 					<handler function="OnMenuItem_ImportxLightsSelected" entry="EVT_MENU" />
 				</object>
+				<object class="wxMenuItem" name="ID_MNU_RESETWINDOWS" variable="MenuItem_ResetWindowLocations" member="yes">
+					<label>Reset Window Locations</label>
+					<handler function="OnMenuItem_ResetWindowLocationsSelected" entry="EVT_MENU" />
+				</object>
 				<object class="wxMenuItem" name="ID_MNU_CRASH" variable="MenuItem_Crash" member="yes">
 					<label>Crash</label>
 					<help>Crash xSchedule</help>

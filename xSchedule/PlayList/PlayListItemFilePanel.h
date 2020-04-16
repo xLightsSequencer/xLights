@@ -2,10 +2,11 @@
 #define PLAYLISTITEMFILEPANEL_H
 
 //(*Headers(PlayListItemFilePanel)
+#include <wx/checkbox.h>
+#include <wx/panel.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
-#include <wx/panel.h>
 //*)
 
 class PlayListItemFile;
@@ -20,14 +21,15 @@ class PlayListItemFilePanel: public wxPanel
 		virtual ~PlayListItemFilePanel();
 
 		//(*Declarations(PlayListItemFilePanel)
-		wxTextCtrl* TextCtrl_FName;
-		wxStaticText* StaticText2;
+		wxCheckBox* CheckBox_Append;
 		wxStaticText* StaticText1;
-		wxTextCtrl* TextCtrl_FileName;
+		wxStaticText* StaticText2;
 		wxStaticText* StaticText3;
+		wxStaticText* StaticText4;
 		wxTextCtrl* TextCtrl_Content;
 		wxTextCtrl* TextCtrl_Delay;
-		wxStaticText* StaticText4;
+		wxTextCtrl* TextCtrl_FName;
+		wxTextCtrl* TextCtrl_FileName;
 		//*)
 
 	protected:
@@ -39,6 +41,7 @@ class PlayListItemFilePanel: public wxPanel
 		static const long ID_TEXTCTRL4;
 		static const long ID_STATICTEXT1;
 		static const long ID_TEXTCTRL1;
+		static const long ID_CHECKBOX1;
 		static const long ID_STATICTEXT2;
 		static const long ID_TEXTCTRL2;
 		//*)

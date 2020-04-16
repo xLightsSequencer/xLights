@@ -14,6 +14,7 @@ const long PlayListItemFilePanel::ID_STATICTEXT4 = wxNewId();
 const long PlayListItemFilePanel::ID_TEXTCTRL4 = wxNewId();
 const long PlayListItemFilePanel::ID_STATICTEXT1 = wxNewId();
 const long PlayListItemFilePanel::ID_TEXTCTRL1 = wxNewId();
+const long PlayListItemFilePanel::ID_CHECKBOX1 = wxNewId();
 const long PlayListItemFilePanel::ID_STATICTEXT2 = wxNewId();
 const long PlayListItemFilePanel::ID_TEXTCTRL2 = wxNewId();
 //*)
@@ -46,6 +47,10 @@ PlayListItemFilePanel::PlayListItemFilePanel(wxWindow* parent, PlayListItemFile*
 	FlexGridSizer1->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_Content = new wxTextCtrl(this, ID_TEXTCTRL1, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE, wxDefaultValidator, _T("ID_TEXTCTRL1"));
 	FlexGridSizer1->Add(TextCtrl_Content, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer1->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox_Append = new wxCheckBox(this, ID_CHECKBOX1, _("Append"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
+	CheckBox_Append->SetValue(false);
+	FlexGridSizer1->Add(CheckBox_Append, 1, wxALL|wxEXPAND, 5);
 	StaticText2 = new wxStaticText(this, ID_STATICTEXT2, _("Delay:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
 	FlexGridSizer1->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_Delay = new wxTextCtrl(this, ID_TEXTCTRL2, _("0.000"), wxDefaultPosition, wxDefaultSize, wxTE_RIGHT, wxDefaultValidator, _T("ID_TEXTCTRL2"));
@@ -66,6 +71,7 @@ PlayListItemFilePanel::PlayListItemFilePanel(wxWindow* parent, PlayListItemFile*
     TextCtrl_Content->SetToolTip(PlayListItemFile::GetTooltip());
     TextCtrl_FName->SetToolTip(PlayListItemFile::GetTooltip());
     TextCtrl_Delay->SetValue(wxString::Format(wxT("%.3f"), (float)file->GetDelay() / 1000.0));
+	CheckBox_Append->SetValue(file->GetAppend());
 }
 
 PlayListItemFilePanel::~PlayListItemFilePanel()
@@ -76,6 +82,7 @@ PlayListItemFilePanel::~PlayListItemFilePanel()
     _file->SetFileName(TextCtrl_FName->GetValue().ToStdString());
     _file->SetContent(TextCtrl_Content->GetValue().ToStdString());
     _file->SetDelay(wxAtof(TextCtrl_Delay->GetValue())*1000);
+	_file->SetAppend(CheckBox_Append->GetValue());
 }
 
 

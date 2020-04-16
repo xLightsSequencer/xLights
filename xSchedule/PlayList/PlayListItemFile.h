@@ -14,6 +14,7 @@ protected:
     std::string _content;
     std::string _fileName;
     bool _started;
+    bool _append;
     #pragma endregion Member Variables
 
     std::string FileReplaceTags(const std::string s);
@@ -31,8 +32,10 @@ public:
     static std::string GetTooltip();
     std::string GetNameNoTime() const override;
     void SetContent(const std::string& content) { if (_content != content) { _content = content; _changeCount++; } }
+    void SetAppend(bool append) { if (_append != append) { _append = append; _changeCount++; } }
     void SetFileName(const std::string& fileName) { if (_fileName != fileName) { _fileName = fileName; _changeCount++; } }
     std::string GetContent() const { return _content; }
+    bool GetAppend() const { return _append; }
     std::string GetFileName() const { return _fileName; }
     virtual std::string GetTitle() const override;
     #pragma endregion Getters and Setters
