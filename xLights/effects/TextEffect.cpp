@@ -926,7 +926,7 @@ wxImage *TextEffect::RenderTextLine(RenderBuffer &buffer,
             msg.clear();
             for(i=0; i<tempmsg.length(); i++)
             {
-                msg = msg + Line.GetChar(tempmsg.length()-i-1) + "\n";
+                msg = msg + tempmsg.GetChar(tempmsg.length()-i-1) + "\n";
             }
             break;
         case 2:
