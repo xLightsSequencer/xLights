@@ -136,6 +136,7 @@ std::string PlayListItem::ReplaceTags(const std::string s) const
 
     res.Replace("\\n", "\n");
     res.Replace("\\t", "\t");
+    res.Replace("\\\\", "\\");
     res.Replace("%TIMESTAMP%", now.Format("%F %T"));
     res.Replace("%TIME%", now.Format("%T"));
     res.Replace("%DATE%", now.Format("%F"));
