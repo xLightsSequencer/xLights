@@ -529,7 +529,8 @@ void xLightsFrame::CheckForValidModels()
                     if (newName != "")
                     {
                         logger_base.debug("Sequence Element Mismatch: rename '%s' to '%s'", (const char*)name.c_str(), (const char*)newName.c_str());
-                        mSequenceElements.DeleteElement(newName); // delete the existing element
+                        // This does not seem to be necessary and it has some bad side effects such as removing the model from all views
+                        //mSequenceElements.DeleteElement(newName); 
                         mSequenceElements.GetElement(x)->SetName(newName);
                         if (AllModels[newName] == nullptr)
                         {
