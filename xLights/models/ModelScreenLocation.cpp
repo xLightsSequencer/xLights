@@ -697,7 +697,7 @@ void ModelScreenLocation::UpdateBoundingBox(float width, float height, float dep
 }
 
 BoxedScreenLocation::BoxedScreenLocation()
-: ModelScreenLocation(10), perspective(0.0f), centerx(0.0), centery(0.0)
+: ModelScreenLocation(10), perspective(0.0f), centerx(0.0), centery(0.0), centerz(0.0)
 {
     mSelectableHandles = 1;
     handle_aabb_min.push_back(glm::vec3(0.0f));
@@ -1019,6 +1019,7 @@ wxCursor BoxedScreenLocation::InitializeLocation(int &handle, int x, int y, cons
             worldPos_z = 0.0f;
             centery = worldPos_y;
             centerx = worldPos_x;
+            centerz = worldPos_z;
             scalex = scaley = scalez = 0.0f;
         }
     }
@@ -1089,6 +1090,7 @@ void BoxedScreenLocation::UpdateBoundingBox(const std::vector<NodeBaseClassPtr> 
 void BoxedScreenLocation::PrepareToDraw(bool is_3d, bool allow_selected) const {
     centerx = worldPos_x;
     centery = worldPos_y;
+    centerz = worldPos_z;
     draw_3d = is_3d;
     if (allow_selected) {
 

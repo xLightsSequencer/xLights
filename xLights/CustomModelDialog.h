@@ -46,7 +46,8 @@ class CustomModelDialog: public wxDialog
     int _saveDepth = 0;
 	float _saveCentreX = 0.0;
 	float _saveCentreY = 0.0;
-    std::string _saveModelData;
+	float _saveCentreZ = 0.0;
+	std::string _saveModelData;
     CustomModel* _model = nullptr;
     bool _changed = false;
 

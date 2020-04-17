@@ -357,14 +357,17 @@ public:
     virtual int GetDefaultTool() override { return TOOL_SCALE; }
     float GetCentreX() const { return centerx; }
     float GetCentreY() const { return centery; }
+    float GetCentreZ() const { return centerz; }
     void SetCentreX(float x) { centerx = x; worldPos_x = x; }
     void SetCentreY(float y) { centery = y; worldPos_y = y; }
+    void SetCentreZ(float z) { centerz = z; worldPos_z = z; }
 
 private:
     float perspective;
 
     mutable float centerx;
     mutable float centery;
+    mutable float centerz;
 };
 
 //Location that uses two points to define start/end

@@ -566,6 +566,7 @@ void CustomModelDialog::Setup(CustomModel *m) {
     _saveWorldPos = m->GetModelScreenLocation().GetWorldPosition();
     _saveCentreX = ((BoxedScreenLocation&)m->GetModelScreenLocation()).GetCentreX();
     _saveCentreY = ((BoxedScreenLocation&)m->GetModelScreenLocation()).GetCentreY();
+    _saveCentreZ = ((BoxedScreenLocation&)m->GetModelScreenLocation()).GetCentreZ();
     _saveWidth = WidthSpin->GetValue();
     _saveHeight = HeightSpin->GetValue();
     _saveDepth = SpinCtrl_Depth->GetValue();
@@ -1050,6 +1051,7 @@ void CustomModelDialog::OnButtonCancelClick(wxCommandEvent& event)
     _model->GetModelScreenLocation().SetScaleMatrix(_saveScale);
     ((BoxedScreenLocation&)_model->GetModelScreenLocation()).SetCentreX(_saveCentreX);
     ((BoxedScreenLocation&)_model->GetModelScreenLocation()).SetCentreY(_saveCentreY);
+    ((BoxedScreenLocation&)_model->GetModelScreenLocation()).SetCentreZ(_saveCentreZ);
     EndDialog(wxID_CANCEL);
 }
 
@@ -1060,6 +1062,7 @@ void CustomModelDialog::OnButtonOkClick(wxCommandEvent& event)
     _model->GetModelScreenLocation().SetScaleMatrix(_saveScale);
     ((BoxedScreenLocation&)_model->GetModelScreenLocation()).SetCentreX(_saveCentreX);
     ((BoxedScreenLocation&)_model->GetModelScreenLocation()).SetCentreY(_saveCentreY);
+    ((BoxedScreenLocation&)_model->GetModelScreenLocation()).SetCentreZ(_saveCentreZ);
     EndDialog(wxID_OK);
 }
 
