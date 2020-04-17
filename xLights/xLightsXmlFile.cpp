@@ -1381,6 +1381,7 @@ void xLightsXmlFile::CleanUpEffects() const
         {
             wxString layer_effect_name;
             effect1->GetAttribute("name", &layer_effect_name);
+            layer_effect_name = UnXmlSafe(layer_effect_name);
 
             // Capture next effects now in case we delete
             wxXmlNode* next_effect1 = effect1->GetNext();
@@ -1419,6 +1420,7 @@ void xLightsXmlFile::CleanUpEffects() const
             {
                 wxString layer_effect_name;
                 effect->GetAttribute("name", &layer_effect_name);
+                layer_effect_name = UnXmlSafe(layer_effect_name);
                 if( layer_effect_name == "None" )
                 {
                     wxXmlNode* node_to_delete = effect;
@@ -2708,7 +2710,7 @@ void xLightsXmlFile::WriteEffects(EffectLayer *layer,
         // Add effect node
         wxXmlNode* effect_node = AddChildXmlNode(effect_layer_node, "Effect");
         effect_node->AddAttribute("ref", string_format("%d", ref));
-        effect_node->AddAttribute("name", effect->GetEffectName());
+        effect_node->AddAttribute("name", XmlSafe(effect->GetEffectName()));
         if (effect->GetProtected()) {
             effect_node->AddAttribute("protected", "1");
         }

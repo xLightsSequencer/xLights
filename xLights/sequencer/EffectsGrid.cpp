@@ -203,9 +203,9 @@ void EffectsGrid::mouseLeftDClick(wxMouseEvent& event)
 
                     wxString newLabel = dlg.GetValue();
                     newLabel = newLabel.Trim(true).Trim(false); // remove leading spaces
-                    newLabel.Replace("\"", ""); // remove illegal characters
-                    newLabel.Replace("<", ""); // remove illegal characters
-                    newLabel.Replace(">", ""); // remove illegal characters
+                    //newLabel.Replace("\"", ""); // remove illegal characters
+                    //newLabel.Replace("<", ""); // remove illegal characters
+                    //newLabel.Replace(">", ""); // remove illegal characters
 
                     selectedEffect->SetEffectName(newLabel.ToStdString());
 
