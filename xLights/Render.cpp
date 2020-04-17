@@ -358,11 +358,17 @@ public:
         LogToLogger(debugLog ? log4cpp::Priority::DEBUG : log4cpp::Priority::INFO);
     }
 
+    wxString PctSafe(const wxString& s)
+    {
+        wxString res(s);
+        res.Replace("%", "%%");
+        return res;
+    }
+
     wxString PrintStatusMap()
     {
         if (statusMap == nullptr) return "";
-
-        return statusMap->AsString();
+        return PctSafe(statusMap->AsString());
     }
 
     void SetRenderingStatus(int frame, SettingsMap*map, int layer, int strand, int node, bool debugLog = false) {

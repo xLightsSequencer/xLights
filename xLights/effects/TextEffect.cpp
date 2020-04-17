@@ -680,8 +680,8 @@ class TextRenderCache : public EffectRenderCache {
 public:
     TextRenderCache() : timer_countdown(0), synced_textsize(wxSize(0,0)) {};
     virtual ~TextRenderCache() {
-        for (auto it = textCache.begin(); it != textCache.end(); ++it) {
-            delete it->second;
+        for (const auto& it : textCache) {
+            delete it.second;
         }
     };
     int timer_countdown;
@@ -1141,12 +1141,13 @@ wxImage *TextEffect::RenderTextLine(RenderBuffer &buffer,
             dc->DrawText(msg, 0, OffsetTop, TextRotation);
             break; // static
     }
+
     return buffer.GetTextDrawingContext()->FlushAndGetImage();
 }
 
 void TextEffect::FormatCountdown(int Countdown, int state, wxString& Line, RenderBuffer &buffer, wxString& msg, wxString Line_orig) const
 {
-    long tempLong,longsecs;
+    long longsecs;
     int framesPerSec = 1000 / buffer.frameTimeInMs;
     int minutes,seconds;
 
@@ -1165,6 +1166,7 @@ void TextEffect::FormatCountdown(int Countdown, int state, wxString& Line, Rende
                 // countdown seconds
                 if (state == 0)
                 {
+                    long tempLong;
                     if (!Line.ToLong(&tempLong)) tempLong = 0;
                     GetCache(buffer, id)->timer_countdown = buffer.curPeriod + tempLong*framesPerSec + framesPerSec - 1;  // capture 0 period
                 }
