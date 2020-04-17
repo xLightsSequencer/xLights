@@ -11,11 +11,25 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2020.16 April 17 2020
    -- enh (dkulp)  Support for saving the password for FPP instances.
+   -- enh (keith)  Add colour organ to xSchedule
+   -- enh (keith)  Add time since start of playlist to schedule displays and in getplaying status api
+   -- enh (keith)  When dragging handle on model show coordinates in the status bar
+   -- enh (keith)  Add ability to append to file from a playlist item - great for logging what plays when
    -- bug (dkulp)  Fix FPP instances being discovered as PixLites.
    -- bug (dkulp)  Prevent FPP instances with duplicate hostname from being added
                    to the controller list with same name.
    -- bug (dkulp)  KulpLights F8-B's are mixing up ID's for the "No Serial" and "4 Serial" cases
+   -- bug (keith)  Auto remote smart controller settings from models on controllers that dont support them in visualiser
+   -- bug (keith)  Fix model group centre displays in wrong place
+   -- bug (keith)  Fix setting start channel on model does not blank controller name
+   -- bug (keith)  Fix eyeballs dont work on timing tracks in master view in display elements
+   -- bug (keith)  Display polyline points in same coordinate system as other models
+   -- bug (keith)  Fix renaming a model on sequence load removes the target model from all views
+   -- bug (keith)  Fix a crash in text effect when % is entered
+   -- bug (keith)  Fix cancel edit of custom model data zeros the z location
+   -- bug (keith)  Fix crash due to render progress exceeding the limit
 2020.15 April 10 2020
    -- enh (keith)  Add to visualiser ability to hide models assigned to other controllers
    -- enh (keith)  Add key binding editing
