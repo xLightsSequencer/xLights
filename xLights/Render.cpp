@@ -1386,7 +1386,7 @@ void xLightsFrame::Render(const std::list<Model*> models,
             if (progressDialog) {
                 wxStaticText *label = new wxStaticText(renderProgressDialog->scrolledWindow, wxID_ANY, jobs[row]->GetName());
                 renderProgressDialog->scrolledWindowSizer->Add(label,1, wxALL |wxEXPAND,3);
-                wxGauge *g = new wxGauge(renderProgressDialog->scrolledWindow, wxID_ANY, 99);
+                wxGauge *g = new wxGauge(renderProgressDialog->scrolledWindow, wxID_ANY, 100);
                 g->SetValue(0);
                 g->SetMinSize(wxSize(100, -1));
                 renderProgressDialog->scrolledWindowSizer->Add(g, 1, wxALL |wxEXPAND,3);
