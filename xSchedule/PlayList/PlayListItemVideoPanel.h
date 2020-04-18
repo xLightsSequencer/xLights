@@ -1,5 +1,14 @@
-#ifndef PLAYLISTITEMVIDEOPANEL_H
-#define PLAYLISTITEMVIDEOPANEL_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 //(*Headers(PlayListItemVideoPanel)
 #include <wx/button.h>
@@ -20,6 +29,7 @@ class PlayListItemVideoPanel: public wxPanel
     PlayListItemVideo* _video;
 
     void SetWindowPositionText();
+	void ValidateWindow();
 
 	public:
 
@@ -33,6 +43,7 @@ class PlayListItemVideoPanel: public wxPanel
 		wxCheckBox* CheckBox_LoopVideo;
 		wxCheckBox* CheckBox_SuppressVirtualMatrix;
 		wxCheckBox* CheckBox_Topmost;
+		wxCheckBox* CheckBox_UseMediaPlayer;
 		wxSpinCtrl* SpinCtrl_FadeIn;
 		wxSpinCtrl* SpinCtrl_FadeOut;
 		wxStaticText* StaticText1;
@@ -54,6 +65,7 @@ class PlayListItemVideoPanel: public wxPanel
 		static const long ID_CHECKBOX2;
 		static const long ID_CHECKBOX3;
 		static const long ID_CHECKBOX4;
+		static const long ID_CHECKBOX5;
 		static const long ID_STATICTEXT3;
 		static const long ID_SPINCTRL1;
 		static const long ID_STATICTEXT4;
@@ -68,9 +80,8 @@ class PlayListItemVideoPanel: public wxPanel
 		void OnButton_PositionWindowClick(wxCommandEvent& event);
 		void OnFilePickerCtrl_VideoFileFileChanged(wxFileDirPickerEvent& event);
 		void OnTextCtrl_DelayText(wxCommandEvent& event);
+		void OnCheckBox_UseMediaPlayerClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()
 };
-
-#endif

@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include "PlayListItemFSEQVideoPanel.h"
 #include "PlayListItemFSEQVideo.h"
 #include "PlayListDialog.h"
@@ -35,6 +45,7 @@ const long PlayListItemFSEQVideoPanel::ID_FILEPICKERCTRL2 = wxNewId();
 const long PlayListItemFSEQVideoPanel::ID_CHECKBOX4 = wxNewId();
 const long PlayListItemFSEQVideoPanel::ID_CHECKBOX7 = wxNewId();
 const long PlayListItemFSEQVideoPanel::ID_CHECKBOX8 = wxNewId();
+const long PlayListItemFSEQVideoPanel::ID_CHECKBOX9 = wxNewId();
 const long PlayListItemFSEQVideoPanel::ID_CHECKBOX2 = wxNewId();
 const long PlayListItemFSEQVideoPanel::ID_SLIDER1 = wxNewId();
 const long PlayListItemFSEQVideoPanel::ID_STATICTEXT4 = wxNewId();
@@ -119,8 +130,8 @@ PlayListItemFSEQVideoPanel::PlayListItemFSEQVideoPanel(wxWindow* parent, OutputM
     _fseq = fseq;
 
 	//(*Initialize(PlayListItemFSEQVideoPanel)
-	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer1;
+	wxFlexGridSizer* FlexGridSizer2;
 
 	Create(parent, id, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("id"));
 	FlexGridSizer1 = new wxFlexGridSizer(0, 2, 0, 0);
@@ -190,6 +201,10 @@ PlayListItemFSEQVideoPanel::PlayListItemFSEQVideoPanel(wxWindow* parent, OutputM
 	CheckBox_LoopVideo->SetValue(false);
 	FlexGridSizer1->Add(CheckBox_LoopVideo, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox_UseMediaPlayer = new wxCheckBox(this, ID_CHECKBOX9, _("Use Media Player"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX9"));
+	CheckBox_UseMediaPlayer->SetValue(false);
+	FlexGridSizer1->Add(CheckBox_UseMediaPlayer, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	CheckBox_OverrideVolume = new wxCheckBox(this, ID_CHECKBOX2, _("Override Volume"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX2"));
 	CheckBox_OverrideVolume->SetValue(false);
 	FlexGridSizer1->Add(CheckBox_OverrideVolume, 1, wxALL|wxEXPAND, 5);
@@ -226,6 +241,7 @@ PlayListItemFSEQVideoPanel::PlayListItemFSEQVideoPanel(wxWindow* parent, OutputM
 	Connect(ID_TEXTCTRL2,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&PlayListItemFSEQVideoPanel::OnTextCtrl_StartChannelText);
 	Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&PlayListItemFSEQVideoPanel::OnCheckBox_OverrideAudioClick);
 	Connect(ID_FILEPICKERCTRL2,wxEVT_COMMAND_FILEPICKER_CHANGED,(wxObjectEventFunction)&PlayListItemFSEQVideoPanel::OnFilePickerCtrl2FileChanged);
+	Connect(ID_CHECKBOX9,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&PlayListItemFSEQVideoPanel::OnCheckBox_UseMediaPlayerClick);
 	Connect(ID_CHECKBOX2,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&PlayListItemFSEQVideoPanel::OnCheckBox_OverrideVolumeClick);
 	//*)
 
@@ -246,6 +262,7 @@ PlayListItemFSEQVideoPanel::PlayListItemFSEQVideoPanel(wxWindow* parent, OutputM
     CheckBox_SuppressVirtualMatrix->SetValue(fseq->GetSuppressVirtualMatrix());
     SpinCtrl_FadeIn->SetValue(fseq->GetFadeInMS());
     SpinCtrl_FadeOut->SetValue(fseq->GetFadeOutMS());
+    CheckBox_UseMediaPlayer->SetValue(fseq->GetUseMediaPlayer());
 
     long channels = xScheduleFrame::GetScheduleManager()->GetTotalChannels();
     SpinCtrl_Channels->SetRange(1, channels);
@@ -310,6 +327,7 @@ PlayListItemFSEQVideoPanel::~PlayListItemFSEQVideoPanel()
     _fseq->SetSuppressVirtualMatrix(CheckBox_SuppressVirtualMatrix->GetValue());
     _fseq->SetFadeInMS(SpinCtrl_FadeIn->GetValue());
     _fseq->SetFadeOutMS(SpinCtrl_FadeOut->GetValue());
+    _fseq->SetUseMediaPlayer(CheckBox_UseMediaPlayer->GetValue());
 
     if (CheckBox_LimitChannels->GetValue())
     {
@@ -402,6 +420,20 @@ void PlayListItemFSEQVideoPanel::ValidateWindow()
         CheckBox_FastStartAudio->Enable();
         CheckBox_OverrideVolume->Enable();
     }
+
+    if (CheckBox_UseMediaPlayer->GetValue())
+    {
+        CheckBox_CacheVideo->Enable(false);
+        SpinCtrl_FadeIn->Enable(false);
+        SpinCtrl_FadeOut->Enable(false);
+    }
+    else
+    {
+        CheckBox_CacheVideo->Enable();
+        SpinCtrl_FadeIn->Enable();
+        SpinCtrl_FadeOut->Enable();
+    }
+
     StaticText_StartChannel->SetLabel(wxString::Format("%ld", _outputManager->DecodeStartChannel(TextCtrl_StartChannel->GetValue().ToStdString())));
 }
 
@@ -440,6 +472,11 @@ void PlayListItemFSEQVideoPanel::SetWindowPositionText()
 }
 
 void PlayListItemFSEQVideoPanel::OnTextCtrl_StartChannelText(wxCommandEvent& event)
+{
+    ValidateWindow();
+}
+
+void PlayListItemFSEQVideoPanel::OnCheckBox_UseMediaPlayerClick(wxCommandEvent& event)
 {
     ValidateWindow();
 }

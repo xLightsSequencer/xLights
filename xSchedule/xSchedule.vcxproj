@@ -294,6 +294,8 @@
     <ClCompile Include="OutputProcessSustain.cpp" />
     <ClCompile Include="OutputProcessThreeToFour.cpp" />
     <ClCompile Include="Pinger.cpp" />
+    <ClCompile Include="PlayList\PlayerFrame.cpp" />
+    <ClCompile Include="PlayList\PlayerWindow.cpp" />
     <ClCompile Include="PlayList\PlayListItemAllOff.cpp" />
     <ClCompile Include="PlayList\PlayListItemARTNetTrigger.cpp" />
     <ClCompile Include="PlayList\PlayListItemARTNetTriggerPanel.cpp" />
@@ -329,7 +331,6 @@
     <ClCompile Include="PlayList\PlayListItemSetColourPanel.cpp" />
     <ClCompile Include="PlayList\PlayListItemText.cpp" />
     <ClCompile Include="PlayList\PlayListItemTextPanel.cpp" />
-    <ClCompile Include="PlayList\PlayerWindow.cpp" />
     <ClCompile Include="PlayList\PlayList.cpp" />
     <ClCompile Include="PlayList\PlayListDialog.cpp" />
     <ClCompile Include="PlayList\PlayListItem.cpp" />
@@ -522,6 +523,8 @@
     <ClInclude Include="OutputProcessSustain.h" />
     <ClInclude Include="OutputProcessThreeToFour.h" />
     <ClInclude Include="Pinger.h" />
+    <ClInclude Include="PlayList\PlayerFrame.h" />
+    <ClInclude Include="PlayList\PlayerWindow.h" />
     <ClInclude Include="PlayList\PlayListItemAllOff.h" />
     <ClInclude Include="PlayList\PlayListItemARTNetTrigger.h" />
     <ClInclude Include="PlayList\PlayListItemARTNetTriggerPanel.h" />
@@ -556,7 +559,6 @@
     <ClInclude Include="PlayList\PlayListItemSetColour.h" />
     <ClInclude Include="PlayList\PlayListItemSetColourPanel.h" />
     <ClInclude Include="PlayList\PlayListItemTextPanel.h" />
-    <ClInclude Include="PlayList\PlayerWindow.h" />
     <ClInclude Include="PlayList\PlayList.h" />
     <ClInclude Include="PlayList\PlayListDialog.h" />
     <ClInclude Include="PlayList\PlayListItem.h" />

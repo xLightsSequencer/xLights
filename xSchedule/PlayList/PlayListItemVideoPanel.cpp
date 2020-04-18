@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include "PlayListItemVideoPanel.h"
 #include "PlayListItemVideo.h"
 #include "VideoWindowPositionDialog.h"
@@ -17,6 +27,7 @@ const long PlayListItemVideoPanel::ID_CHECKBOX1 = wxNewId();
 const long PlayListItemVideoPanel::ID_CHECKBOX2 = wxNewId();
 const long PlayListItemVideoPanel::ID_CHECKBOX3 = wxNewId();
 const long PlayListItemVideoPanel::ID_CHECKBOX4 = wxNewId();
+const long PlayListItemVideoPanel::ID_CHECKBOX5 = wxNewId();
 const long PlayListItemVideoPanel::ID_STATICTEXT3 = wxNewId();
 const long PlayListItemVideoPanel::ID_SPINCTRL1 = wxNewId();
 const long PlayListItemVideoPanel::ID_STATICTEXT4 = wxNewId();
@@ -86,6 +97,10 @@ PlayListItemVideoPanel::PlayListItemVideoPanel(wxWindow* parent, PlayListItemVid
 	CheckBox_LoopVideo = new wxCheckBox(this, ID_CHECKBOX4, _("Loop Video"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX4"));
 	CheckBox_LoopVideo->SetValue(false);
 	FlexGridSizer1->Add(CheckBox_LoopVideo, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox_UseMediaPlayer = new wxCheckBox(this, ID_CHECKBOX5, _("Use Media Player"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX5"));
+	CheckBox_UseMediaPlayer->SetValue(false);
+	FlexGridSizer1->Add(CheckBox_UseMediaPlayer, 1, wxALL|wxEXPAND, 5);
 	StaticText3 = new wxStaticText(this, ID_STATICTEXT3, _("Fade In MS:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
 	FlexGridSizer1->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	SpinCtrl_FadeIn = new wxSpinCtrl(this, ID_SPINCTRL1, _T("0"), wxDefaultPosition, wxDefaultSize, 0, 0, 10000, 0, _T("ID_SPINCTRL1"));
@@ -106,6 +121,7 @@ PlayListItemVideoPanel::PlayListItemVideoPanel(wxWindow* parent, PlayListItemVid
 
 	Connect(ID_FILEPICKERCTRL1,wxEVT_COMMAND_FILEPICKER_CHANGED,(wxObjectEventFunction)&PlayListItemVideoPanel::OnFilePickerCtrl_VideoFileFileChanged);
 	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PlayListItemVideoPanel::OnButton_PositionWindowClick);
+	Connect(ID_CHECKBOX5,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&PlayListItemVideoPanel::OnCheckBox_UseMediaPlayerClick);
 	Connect(ID_TEXTCTRL1,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&PlayListItemVideoPanel::OnTextCtrl_DelayText);
 	//*)
 
@@ -117,8 +133,10 @@ PlayListItemVideoPanel::PlayListItemVideoPanel(wxWindow* parent, PlayListItemVid
     CheckBox_SuppressVirtualMatrix->SetValue(video->GetSuppressVirtualMatrix());
     SpinCtrl_FadeIn->SetValue(video->GetFadeInMS());
     SpinCtrl_FadeOut->SetValue(video->GetFadeOutMS());
+	CheckBox_UseMediaPlayer->SetValue(video->GetUseMediaPlayer());
 
     SetWindowPositionText();
+	ValidateWindow();
 }
 
 void PlayListItemVideoPanel::SetWindowPositionText()
@@ -138,6 +156,7 @@ PlayListItemVideoPanel::~PlayListItemVideoPanel()
     _video->SetSuppressVirtualMatrix(CheckBox_SuppressVirtualMatrix->GetValue());
     _video->SetFadeInMS(SpinCtrl_FadeIn->GetValue());
     _video->SetFadeOutMS(SpinCtrl_FadeOut->GetValue());
+	_video->SetUseMediaPlayer(CheckBox_UseMediaPlayer->GetValue());
 }
 
 void PlayListItemVideoPanel::OnButton_PositionWindowClick(wxCommandEvent& event)
@@ -161,4 +180,25 @@ void PlayListItemVideoPanel::OnFilePickerCtrl_VideoFileFileChanged(wxFileDirPick
 
 void PlayListItemVideoPanel::OnTextCtrl_DelayText(wxCommandEvent& event)
 {
+}
+
+void PlayListItemVideoPanel::OnCheckBox_UseMediaPlayerClick(wxCommandEvent& event)
+{
+	ValidateWindow();
+}
+
+void PlayListItemVideoPanel::ValidateWindow()
+{
+	if (CheckBox_UseMediaPlayer->GetValue())
+	{
+		CheckBox_CacheVideo->Enable(false);
+		SpinCtrl_FadeIn->Enable(false);
+		SpinCtrl_FadeOut->Enable(false);
+	}
+	else
+	{
+		CheckBox_CacheVideo->Enable();
+		SpinCtrl_FadeIn->Enable();
+		SpinCtrl_FadeOut->Enable();
+	}
 }

@@ -1,14 +1,25 @@
-#ifndef PLAYLISTITEMFSEQVIDEO_H
-#define PLAYLISTITEMFSEQVIDEO_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
+#include <string>
 
 #include "PlayListItem.h"
 #include "../Blend.h"
-#include <string>
 
 class wxXmlNode;
 class wxWindow;
 class AudioManager;
 class PlayerWindow;
+class PlayerFrame;
 class VideoReader;
 class CachedVideoReader;
 class OutputManager;
@@ -22,31 +33,33 @@ protected:
     APPLYMETHOD _applyMethod;
     std::string _fseqFileName;
     std::string _audioFile;
-    bool _overrideAudio;
-    bool _topMost;
-    bool _suppressVirtualMatrix;
-    FSEQFile* _fseqFile;
-    AudioManager* _audioManager;
-    size_t _durationMS;
-    bool _controlsTimingCache;
-    size_t _sc;
+    bool _overrideAudio = false;
+    bool _topMost = false;
+    bool _suppressVirtualMatrix = false;
+    FSEQFile* _fseqFile = nullptr;
+    AudioManager* _audioManager = nullptr;
+    size_t _durationMS = 0;
+    size_t _videoLength = 0;
+    bool _controlsTimingCache = false;
+    size_t _sc = 0;
     std::string _startChannel;
-    OutputManager* _outputManager;
-    size_t _channels;
-    bool _fastStartAudio;
-    bool _cacheVideo;
-    VideoReader* _videoReader;
-    CachedVideoReader* _cachedVideoReader;
+    OutputManager* _outputManager = nullptr;
+    size_t _channels = 0;
+    bool _fastStartAudio = false;
+    bool _cacheVideo = false;
+    VideoReader* _videoReader = nullptr;
+    CachedVideoReader* _cachedVideoReader = nullptr;
     std::string _cachedAudioFilename;
-    long _fadeInMS;
-    long _fadeOutMS;
-    bool _loopVideo;
-
+    long _fadeInMS = 0;
+    long _fadeOutMS = 0;
+    bool _loopVideo= false;
+    bool _useMediaPlayer = false;
 	std::string _videoFile;
 	wxPoint _origin;
 	wxSize _size;
-	PlayerWindow* _window;
-#pragma endregion Member Variables
+	PlayerWindow* _window = nullptr;
+    PlayerFrame* _frame = nullptr;
+    #pragma endregion
 
     void LoadFiles(bool doCache);
     void CloseFiles();
@@ -109,6 +122,8 @@ public:
     wxSize GetSize() const { return _size; }
     virtual std::list<std::string> GetMissingFiles() override;
     virtual long GetFSEQChannels() const override;
+    bool GetUseMediaPlayer() const { return _useMediaPlayer; }
+    void SetUseMediaPlayer(bool useMediaPlayer) { if (_useMediaPlayer != useMediaPlayer) { _useMediaPlayer = useMediaPlayer; _changeCount++; } }
     #pragma endregion Getters and Setters
 
     virtual wxXmlNode* Save() override;
@@ -128,4 +143,3 @@ public:
     virtual void Configure(wxNotebook* notebook) override;
 #pragma endregion UI
 };
-#endif

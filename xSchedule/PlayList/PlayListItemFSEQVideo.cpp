@@ -1,10 +1,21 @@
-#include "PlayListItemFSEQVideo.h"
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include "wx/xml/xml.h"
 #include <wx/notebook.h>
+#include <wx/mediactrl.h>   //for wxMediaCtrl
+
+#include "PlayListItemFSEQVideo.h"
 #include "PlayListItemFSEQVideoPanel.h"
 #include "../../xLights/AudioManager.h"
 #include "../../xLights/VideoReader.h"
-#include <log4cpp/Category.hh>
 #include "../VideoCache.h"
 #include "PlayerWindow.h"
 #include "../xScheduleApp.h"
@@ -13,6 +24,9 @@
 #include "../../xLights/FSEQFile.h"
 #include "../../xLights/UtilFunctions.h"
 #include "../../xLights/outputs/OutputManager.h"
+#include "PlayerFrame.h"
+
+#include <log4cpp/Category.hh>
 
 PlayListItemFSEQVideo::PlayListItemFSEQVideo(OutputManager* outputManager, wxXmlNode* node) : PlayListItem(node)
 {
@@ -20,6 +34,7 @@ PlayListItemFSEQVideo::PlayListItemFSEQVideo(OutputManager* outputManager, wxXml
     _loopVideo = false;
     _fadeInMS = 0;
     _fadeOutMS = 0;
+    _useMediaPlayer = false;
     _fastStartAudio = false;
     _cachedAudioFilename = "";
     _videoReader = nullptr;
@@ -29,7 +44,9 @@ PlayListItemFSEQVideo::PlayListItemFSEQVideo(OutputManager* outputManager, wxXml
     _topMost = true;
     _suppressVirtualMatrix = false;
     _window = nullptr;
+    _frame = nullptr;
     _videoFile = "";
+    _videoLength = 0;
     _origin.x = 0;
     _origin.y = 0;
     _size.SetWidth(300);
@@ -64,6 +81,7 @@ void PlayListItemFSEQVideo::Load(wxXmlNode* node)
     _fastStartAudio = (node->GetAttribute("FastStartAudio", "FALSE") == "TRUE");
     _cacheVideo = (node->GetAttribute("CacheVideo", "FALSE") == "TRUE");
     _loopVideo = (node->GetAttribute("LoopVideo", "FALSE") == "TRUE");
+    _useMediaPlayer = (node->GetAttribute("UseMediaPlayer", "FALSE") == "TRUE");
     _videoFile = node->GetAttribute("VideoFile", "");
     _videoFile = FixFile("", _videoFile);
     _origin = wxPoint(wxAtoi(node->GetAttribute("X", "0")), wxAtoi(node->GetAttribute("Y", "0")));
@@ -81,30 +99,24 @@ void PlayListItemFSEQVideo::Load(wxXmlNode* node)
     }
 }
 
-std::string PlayListItemFSEQVideo::GetAudioFilename() 
+std::string PlayListItemFSEQVideo::GetAudioFilename()
 {
-    if (_overrideAudio)
-    {
+    if (_overrideAudio) {
         return _audioFile;
     }
-    else
-    {
-        if (_fseqFile != nullptr)
-        {
+    else {
+        if (_fseqFile != nullptr) {
             auto audio = _fseqFile->getMediaFilename();
             audio = FixFile("", audio);
             return audio;
         }
-        else
-        {
-            if (_cachedAudioFilename != "")
-            {
+        else {
+            if (_cachedAudioFilename != "") {
                 return _cachedAudioFilename;
             }
 
             std::unique_ptr<FSEQFile> f(FSEQFile::openFSEQFile(_fseqFileName));
-            if (f)
-            {
+            if (f) {
                 _cachedAudioFilename = f->getMediaFilename();
                 return f->getMediaFilename();
             }
@@ -116,49 +128,41 @@ std::string PlayListItemFSEQVideo::GetAudioFilename()
 
 void PlayListItemFSEQVideo::LoadAudio()
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     auto af = GetAudioFilename();
 
-    if (_audioManager != nullptr)
-    {
-        if (_audioManager->FileName() == af)
-        {
+    if (_audioManager != nullptr) {
+        if (_audioManager->FileName() == af) {
             // already open
 
             // If audio file is shorter than fseq override the duration
-            if (_audioManager->LengthMS() < _durationMS)
-            {
+            if (_audioManager->LengthMS() < _durationMS) {
                 logger_base.debug("FSEQ length %ld overridden by audio length %ld.", (long)_audioManager->LengthMS(), (long)_durationMS);
                 _durationMS = _audioManager->LengthMS();
             }
 
             return;
         }
-        else
-        {
+        else {
             delete _audioManager;
             _audioManager = nullptr;
         }
     }
 
-    if (IsInSlaveMode() && IsSuppressAudioOnSlaves())
-    {
+    if (IsInSlaveMode() && IsSuppressAudioOnSlaves()) {
     }
-    else if (wxFile::Exists(af))
-    {
-        logger_base.debug("FSEQ Video: Loading audio file '%s'.", (const char *)af.c_str());
+    else if (wxFile::Exists(af)) {
+        logger_base.debug("FSEQ Video: Loading audio file '%s'.", (const char*)af.c_str());
         _audioManager = new AudioManager(af);
 
-        if (!_audioManager->IsOk())
-        {
-            logger_base.error("FSEQ Video: Audio file '%s' has a problem opening.", (const char *)af.c_str());
+        if (!_audioManager->IsOk()) {
+            logger_base.error("FSEQ Video: Audio file '%s' has a problem opening.", (const char*)af.c_str());
             if (_fseqFile != nullptr)
                 _durationMS = _fseqFile->getTotalTimeMS();
             delete _audioManager;
             _audioManager = nullptr;
         }
-        else
-        {
+        else {
             logger_base.debug("    Loaded ok.");
             _durationMS = _audioManager->LengthMS();
         }
@@ -171,54 +175,50 @@ void PlayListItemFSEQVideo::LoadAudio()
         std::unique_ptr<FSEQFile> fseq(FSEQFile::openFSEQFile(_fseqFileName));
         size_t durationFSEQ = 0;
         if (fseq) {
-             durationFSEQ = fseq->getTotalTimeMS();
+            durationFSEQ = fseq->getTotalTimeMS();
         }
-        if (durationFSEQ < _durationMS)
-        {
+        if (durationFSEQ < _durationMS) {
             logger_base.debug("Audio length %ld overridden by FSEQ length %ld.", (long)_durationMS, (long)durationFSEQ);
             _durationMS = durationFSEQ;
         }
     }
-    else
-    {
-        if (af != "")
-        {
-            logger_base.error("FSEQ Video: Audio file '%s' cannot be opened because it does not exist.", (const char *)af.c_str());
+    else {
+        if (af != "") {
+            logger_base.error("FSEQ Video: Audio file '%s' cannot be opened because it does not exist.", (const char*)af.c_str());
         }
     }
 }
 
 void PlayListItemFSEQVideo::LoadFiles(bool doCache)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     CloseFiles();
 
-    if (wxFile::Exists(_fseqFileName))
-    {
+    if (wxFile::Exists(_fseqFileName)) {
         _fseqFile = FSEQFile::openFSEQFile(_fseqFileName);
-        if (_fseqFile != nullptr)
-        {
+        if (_fseqFile != nullptr) {
             _msPerFrame = _fseqFile->getStepTime();
             _durationMS = _fseqFile->getTotalTimeMS();
         }
-        else
-        {
+        else {
             _msPerFrame = 50;
             _durationMS = 0;
         }
     }
-    else
-    {
-        logger_base.error("FSEQ Video: File does not exist. %s", (const char *)_fseqFileName.c_str());
+    else {
+        logger_base.error("FSEQ Video: File does not exist. %s", (const char*)_fseqFileName.c_str());
     }
 
-    if (_cacheVideo && doCache)
-    {
+    if (!_useMediaPlayer && _cacheVideo && doCache) {
         _cachedVideoReader = new CachedVideoReader(_videoFile, 0, GetFrameMS(), _size, false);
     }
-    else
-    {
+    else {
         _videoReader = new VideoReader(_videoFile, _size.GetWidth(), _size.GetHeight(), false);
+        if (_useMediaPlayer) {
+            _videoLength = _videoReader->GetLengthMS();
+            delete _videoReader;
+            _videoReader = nullptr;
+        }
     }
 
     LoadAudio();
@@ -237,8 +237,10 @@ PlayListItemFSEQVideo::PlayListItemFSEQVideo(OutputManager* outputManager) : Pla
     _fastStartAudio = false;
     _cacheVideo = false;
     _loopVideo = false;
+    _useMediaPlayer = false;
     _videoReader = nullptr;
     _cachedVideoReader = nullptr;
+    _videoLength = 0;
     _sc = 0;
     _channels = 0;
     _startChannel = "1";
@@ -251,6 +253,7 @@ PlayListItemFSEQVideo::PlayListItemFSEQVideo(OutputManager* outputManager) : Pla
     _audioManager = nullptr;
     _fseqFile = nullptr;
     _window = nullptr;
+    _frame = nullptr;
     _videoFile = "";
     _origin.x = 0;
     _origin.y = 0;
@@ -282,9 +285,10 @@ PlayListItem* PlayListItemFSEQVideo::Copy() const
     res->_size = _size;
     res->_videoFile = _videoFile;
     res->SetAudioFile(_audioFile); // this will trigger file loading
+    res->_useMediaPlayer = _useMediaPlayer;
+    res->_videoLength = _videoLength;
 
-    if (_fastStartAudio)
-    {
+    if (_fastStartAudio) {
         res->LoadAudio();
     }
 
@@ -293,7 +297,7 @@ PlayListItem* PlayListItemFSEQVideo::Copy() const
 
 wxXmlNode* PlayListItemFSEQVideo::Save()
 {
-    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, GetType());
+    wxXmlNode* node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, GetType());
 
     node->AddAttribute("FSEQFile", _fseqFileName);
     _fseqFileName = FixFile("", _fseqFileName);
@@ -309,33 +313,31 @@ wxXmlNode* PlayListItemFSEQVideo::Save()
     node->AddAttribute("Channels", wxString::Format(wxT("%ld"), (long)_channels));
     node->AddAttribute("StartChannel", _startChannel);
 
-    if (!_topMost)
-    {
+    if (!_topMost) {
         node->AddAttribute("Topmost", "FALSE");
     }
 
-    if (_suppressVirtualMatrix)
-    {
+    if (_suppressVirtualMatrix) {
         node->AddAttribute("SuppressVM", "TRUE");
     }
 
-    if (_fastStartAudio)
-    {
+    if (_useMediaPlayer) {
+        node->AddAttribute("UseMediaPlayer", "TRUE");
+    }
+
+    if (_fastStartAudio) {
         node->AddAttribute("FastStartAudio", "TRUE");
     }
 
-    if (_cacheVideo)
-    {
+    if (_cacheVideo) {
         node->AddAttribute("CacheVideo", "TRUE");
     }
 
-    if (_loopVideo)
-    {
+    if (_loopVideo) {
         node->AddAttribute("LoopVideo", "TRUE");
     }
 
-    if (_overrideAudio)
-    {
+    if (_overrideAudio) {
         node->AddAttribute("AudioFile", _audioFile);
     }
 
@@ -351,8 +353,7 @@ std::string PlayListItemFSEQVideo::GetTitle() const
 
 size_t PlayListItemFSEQVideo::GetStartChannelAsNumber()
 {
-    if (_sc == 0)
-    {
+    if (_sc == 0) {
         _sc = _outputManager->DecodeStartChannel(_startChannel);
     }
 
@@ -367,27 +368,22 @@ void PlayListItemFSEQVideo::Configure(wxNotebook* notebook)
 std::string PlayListItemFSEQVideo::GetNameNoTime() const
 {
     wxFileName fn(_fseqFileName);
-    if (fn.GetName() == "")
-    {
+    if (fn.GetName() == "") {
         return "FSEQ & Video";
     }
-    else
-    {
+    else {
         return fn.GetName().ToStdString();
     }
 }
 
 void PlayListItemFSEQVideo::SetFSEQFileName(const std::string& fseqFileName)
 {
-    if (_fseqFileName != fseqFileName)
-    {
+    if (_fseqFileName != fseqFileName) {
         _fseqFileName = fseqFileName;
-        if (_fastStartAudio)
-        {
+        if (_fastStartAudio) {
             LoadAudio();
         }
-        else
-        {
+        else {
             FastSetDuration();
         }
         _changeCount++;
@@ -396,8 +392,7 @@ void PlayListItemFSEQVideo::SetFSEQFileName(const std::string& fseqFileName)
 
 void PlayListItemFSEQVideo::SetVideoFile(const std::string& videoFile) 
 { 
-    if (_videoFile != videoFile)
-    {
+    if (_videoFile != videoFile) {
         _videoFile = videoFile;
         _changeCount++;
     }
@@ -405,16 +400,13 @@ void PlayListItemFSEQVideo::SetVideoFile(const std::string& videoFile)
 
 void PlayListItemFSEQVideo::SetAudioFile(const std::string& audioFile)
 {
-    if (_audioFile != audioFile)
-    {
+    if (_audioFile != audioFile) {
         _audioFile = audioFile;
         _changeCount++;
-        if (_fastStartAudio)
-        {
+        if (_fastStartAudio) {
             LoadAudio();
         }
-        else
-        {
+        else {
             FastSetDuration();
         }
     }
@@ -422,16 +414,13 @@ void PlayListItemFSEQVideo::SetAudioFile(const std::string& audioFile)
 
 void PlayListItemFSEQVideo::SetOverrideAudio(bool overrideAudio)
 {
-    if (_overrideAudio != overrideAudio)
-    {
+    if (_overrideAudio != overrideAudio) {
         _overrideAudio = overrideAudio;
         _changeCount++;
-        if (_fastStartAudio)
-        {
+        if (_fastStartAudio) {
             LoadAudio();
         }
-        else
-        {
+        else {
             FastSetDuration();
         }
     }
@@ -439,18 +428,14 @@ void PlayListItemFSEQVideo::SetOverrideAudio(bool overrideAudio)
 
 void PlayListItemFSEQVideo::SetFastStartAudio(bool fastStartAudio)
 {
-    if (_fastStartAudio != fastStartAudio)
-    {
+    if (_fastStartAudio != fastStartAudio) {
         _fastStartAudio = fastStartAudio;
         _changeCount++;
-        if (_fastStartAudio)
-        {
+        if (_fastStartAudio) {
             LoadAudio();
         }
-        else
-        {
-            if (_audioManager != nullptr)
-            {
+        else {
+            if (_audioManager != nullptr) {
                 delete _audioManager;
                 _audioManager = nullptr;
             }
@@ -464,38 +449,32 @@ void PlayListItemFSEQVideo::FastSetDuration()
 
     _controlsTimingCache = false;
     std::string af = GetAudioFile();
-    if (af == "")
-    {
+    if (af == "") {
         std::unique_ptr<FSEQFile> fseq(FSEQFile::openFSEQFile(_fseqFileName));
         if (fseq) {
             af = fseq->getMediaFilename();
 
-            if (!_overrideAudio && af != "" && wxFile::Exists(af))
-            {
+            if (!_overrideAudio && af != "" && wxFile::Exists(af)) {
                 _durationMS = AudioManager::GetAudioFileLength(fseq->getMediaFilename());
                 _controlsTimingCache = true;
 
                 // If the FSEQ is shorter than the audio ... then override the length
                 size_t durationFSEQ = fseq->getTotalTimeMS();
-                if (_durationMS == 0)
-                {
+                if (_durationMS == 0) {
                     logger_base.debug("Audio length %ld overridden by FSEQ length %ld as zero just cant be right ... likely audio file load failed.", (long)_durationMS, (long)durationFSEQ);
                     _durationMS = durationFSEQ;
                 }
-                else if (durationFSEQ < _durationMS)
-                {
+                else if (durationFSEQ < _durationMS) {
                     logger_base.debug("Audio length %ld overridden by FSEQ length %ld.", (long)_durationMS, (long)durationFSEQ);
                     _durationMS = durationFSEQ;
                 }
             }
-            else
-            {
+            else {
                 _durationMS = fseq->getTotalTimeMS();
             }
         }
     }
-    else
-    {
+    else {
         _durationMS = AudioManager::GetAudioFileLength(GetAudioFilename());
         _controlsTimingCache = true;
 
@@ -505,13 +484,11 @@ void PlayListItemFSEQVideo::FastSetDuration()
         if (fseq) {
             durationFSEQ = fseq->getTotalTimeMS();
         }
-        if (_durationMS == 0)
-        {
+        if (_durationMS == 0) {
             logger_base.debug("Audio length %ld overridden by FSEQ length %ld as zero just cant be right ... likely audio file load failed.", (long)_durationMS, (long)durationFSEQ);
             _durationMS = durationFSEQ;
         }
-        else if (durationFSEQ < _durationMS)
-        {
+        else if (durationFSEQ < _durationMS) {
             logger_base.debug("Audio length %ld overridden by FSEQ length %ld.", (long)_durationMS, (long)durationFSEQ);
             _durationMS = durationFSEQ;
         }
@@ -525,8 +502,7 @@ bool PlayListItemFSEQVideo::Advance(int seconds)
     if (_currentFrame < 0) _currentFrame = 0;
     if (_currentFrame > _stepLengthMS / GetFrameMS()) _currentFrame = _stepLengthMS / GetFrameMS();
 
-    if (ControlsTiming() && _audioManager != nullptr)
-    {
+    if (ControlsTiming() && _audioManager != nullptr) {
         long newPos = _audioManager->Tell() + seconds * 1000;
         if (newPos < 0) newPos = 0;
         if (newPos > _audioManager->LengthMS()) newPos = _audioManager->LengthMS() - 5;
@@ -538,22 +514,21 @@ bool PlayListItemFSEQVideo::Advance(int seconds)
 
 size_t PlayListItemFSEQVideo::GetPositionMS() const
 {
-    if (ControlsTiming() && _audioManager != nullptr)
-    {
-        if (_delay != 0)
-        {
-            if (_currentFrame * GetFrameMS() < _delay)
-            {
+    if (ControlsTiming() && _audioManager != nullptr) {
+        if (_delay != 0) {
+            if (_currentFrame * GetFrameMS() < _delay) {
                 return _currentFrame * GetFrameMS();
             }
         }
         return _delay + _audioManager->Tell();
     }
-    else
-    {
+    else {
         return _currentFrame * GetFrameMS();
     }
 }
+
+// Maximum milliseconds a media player file can be out of sync with the sequence
+#define MAXMEDIAJITTER (3 * framems)
 
 void PlayListItemFSEQVideo::Frame(uint8_t* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
 {
@@ -563,22 +538,18 @@ void PlayListItemFSEQVideo::Frame(uint8_t* buffer, size_t size, size_t ms, size_
     wxStopWatch sw;
     if (outputframe)
     {
-        if (ms < _delay)
-        {
+        if (ms < _delay) {
             // do nothing
         }
-        else
-        {
-            if (ms == _delay && _delay != 0 && ControlsTiming() && _audioManager != nullptr)
-            {
+        else {
+            if (ms == _delay && _delay != 0 && ControlsTiming() && _audioManager != nullptr) {
                 _audioManager->Play(0, _audioManager->LengthMS());
             }
 
             if (_fseqFile != nullptr) {
                 int frame =  adjustedMS / framems;
                 FSEQFile::FrameData *data = _fseqFile->getFrame(frame);
-                if (data != nullptr)
-                {
+                if (data != nullptr) {
                     std::vector<uint8_t> buf(_fseqFile->getMaxChannel() + 1);
                     data->readFrame(&buf[0], buf.size());
                     size_t channelsPerFrame = (size_t)_fseqFile->getMaxChannel() + 1;
@@ -592,8 +563,7 @@ void PlayListItemFSEQVideo::Frame(uint8_t* buffer, size_t size, size_t ms, size_
                     }
                     delete data;
                 }
-                else
-                {
+                else {
                     wxASSERT(false);
                 }
             }
@@ -601,67 +571,89 @@ void PlayListItemFSEQVideo::Frame(uint8_t* buffer, size_t size, size_t ms, size_
         _currentFrame++;
     }
 
-    if (ms < _delay)
-    {
+    if (ms < _delay) {
         // do nothing
     }
     else
     {
-        int brightness = 100;
-        if (_fadeInMS != 0 && _fadeInMS < framems)
-        {
-            brightness = (float)framems * 100.0 / (float)_fadeInMS;
-        }
-        else if (_fadeOutMS != 0 && _stepLengthMS - framems < _fadeOutMS)
-        {
-            brightness = (float)(_stepLengthMS - framems) * 100.0 / (float)_fadeOutMS;
-        }
+        long adjustedMS = ms - _delay;
 
-        if (_cacheVideo)
-        {
-            if (_cachedVideoReader != nullptr)
-            {
-                auto videoLength = _cachedVideoReader->GetLengthMS();
-                while (_loopVideo && adjustedMS > videoLength && videoLength > 0)
-                {
-                    adjustedMS -= videoLength;
+        if (_useMediaPlayer) {
+            bool videoOver = (!_loopVideo && adjustedMS > _videoLength);
+
+            if (!videoOver && _frame->GetState() != wxMEDIASTATE_PLAYING) {
+                _frame->Play();
+            }
+
+            long mediapos = adjustedMS;
+            if (_loopVideo && _videoLength != 0) {
+                mediapos = mediapos % _videoLength;
+                // loop early to try and prevent black screen when video ends but before we can tell it to loop
+                if (mediapos > _videoLength - framems) {
+                    //logger_base.debug("Looping early");
+                    mediapos = 0;
                 }
+            }
 
-                _window->SetImage(CachedVideoReader::FadeImage(_cachedVideoReader->GetNextFrame(adjustedMS), brightness));
+            if (videoOver) {
+                _frame->Stop();
+            }
+            else {
+                long videopos = _frame->Tell();
+                long jitter = std::abs(videopos - mediapos);
+                if (jitter > MAXMEDIAJITTER) {
+                    _frame->Seek(mediapos);
+                    //logger_base.debug("Sequence pos %ld, Desired video pos %ld, Video pos %ld, Jitter %ld, Length %ld, %s", adjustedMS, mediapos, videopos, jitter, (long)_durationMS, (const char*)_videoFile.c_str());
+                }
             }
         }
         else
         {
-            if (_videoReader != nullptr)
-            {
-                auto videoLength = _videoReader->GetLengthMS();
-                while (_loopVideo && videoLength > 0 && adjustedMS > videoLength)
-                {
-                    adjustedMS -= videoLength;
-                }
+            int brightness = 100;
+            if (_fadeInMS != 0 && _fadeInMS < framems) {
+                brightness = (float)framems * 100.0 / (float)_fadeInMS;
+            }
+            else if (_fadeOutMS != 0 && _stepLengthMS - framems < _fadeOutMS) {
+                brightness = (float)(_stepLengthMS - framems) * 100.0 / (float)_fadeOutMS;
+            }
 
-                AVFrame* img = _videoReader->GetNextFrame(adjustedMS, framems);
-                _window->SetImage(CachedVideoReader::FadeImage(CachedVideoReader::CreateImageFromFrame(img, _size), brightness));
+            if (_cacheVideo) {
+                if (_cachedVideoReader != nullptr) {
+                    auto videoLength = _cachedVideoReader->GetLengthMS();
+                    while (_loopVideo && adjustedMS > videoLength && videoLength > 0) {
+                        adjustedMS -= videoLength;
+                    }
+
+                    _window->SetImage(CachedVideoReader::FadeImage(_cachedVideoReader->GetNextFrame(adjustedMS), brightness));
+                }
+            }
+            else {
+                if (_videoReader != nullptr) {
+                    auto videoLength = _videoReader->GetLengthMS();
+                    while (_loopVideo && videoLength > 0 && adjustedMS > videoLength) {
+                        adjustedMS -= videoLength;
+                    }
+
+                    AVFrame* img = _videoReader->GetNextFrame(adjustedMS, framems);
+                    _window->SetImage(CachedVideoReader::FadeImage(CachedVideoReader::CreateImageFromFrame(img, _size), brightness));
+                }
             }
         }
-        if (sw.Time() > framems / 2)
-        {
-            logger_base.warn("   Getting frame %ld from FSEQvideo %s took more than half a frame: %ld.", (long)adjustedMS, (const char *)GetNameNoTime().c_str(), (long)sw.Time());
-        }
+    }
+
+    if (sw.Time() > framems / 2) {
+        logger_base.warn("   Getting frame %ld from FSEQvideo %s took more than half a frame: %ld.", (long)adjustedMS, (const char*)GetNameNoTime().c_str(), (long)sw.Time());
     }
 }
 
 void PlayListItemFSEQVideo::Restart()
 {
-    if (ControlsTiming() && _audioManager != nullptr)
-    {
+    if (ControlsTiming() && _audioManager != nullptr) {
         _audioManager->Stop();
-        if (_delay == 0)
-        {
+        if (_delay == 0) {
             _audioManager->Play(0, _audioManager->LengthMS());
         }
-        else
-        {
+        else {
             _audioManager->Seek(0);
         }
     }
@@ -672,8 +664,7 @@ void PlayListItemFSEQVideo::Start(long stepLengthMS)
 {
     PlayListItem::Start(stepLengthMS);
 
-    if (_suppressVirtualMatrix)
-    {
+    if (_suppressVirtualMatrix) {
         xScheduleFrame::GetScheduleManager()->SuppressVM(true);
     }
 
@@ -681,33 +672,42 @@ void PlayListItemFSEQVideo::Start(long stepLengthMS)
     // load the audio
     LoadFiles(true);
 
-    if (_fseqFile != nullptr)
-    {
+    if (_fseqFile != nullptr) {
         _fseqFile->prepareRead({ { 0, _fseqFile->getMaxChannel() + 1} });
     }
 
     _currentFrame = 0;
-    if (ControlsTiming() && _audioManager != nullptr)
-    {
-        if (_delay == 0)
-        {
+    if (ControlsTiming() && _audioManager != nullptr) {
+        if (_delay == 0) {
             _audioManager->Play(0, _audioManager->LengthMS());
         }
-        else
-        {
+        else {
             _audioManager->Seek(0);
         }
     }
 
     // create the window
-    if (_window == nullptr)
-    {
-        _window = new PlayerWindow(wxGetApp().GetTopWindow(), _topMost, wxIMAGE_QUALITY_BILINEAR /*wxIMAGE_QUALITY_HIGH*/, -1, wxID_ANY, _origin, _size);
+    if (_useMediaPlayer) {
+        if (_frame == nullptr) {
+            _frame = new PlayerFrame(wxGetApp().GetTopWindow(), _topMost, wxID_ANY, _origin, _size);
+            auto res = _frame->Load(_videoFile);
+            wxASSERT(res);
+            _frame->Show();
+        }
+        else {
+            _frame->Move(_origin);
+            _frame->SetSize(_size);
+            _frame->Show();
+        }
     }
-    else
-    {
-        _window->Move(_origin);
-        _window->SetSize(_size);
+    else {
+        if (_window == nullptr) {
+            _window = new PlayerWindow(wxGetApp().GetTopWindow(), _topMost, wxIMAGE_QUALITY_BILINEAR /*wxIMAGE_QUALITY_HIGH*/, -1, wxID_ANY, _origin, _size);
+        }
+        else {
+            _window->Move(_origin);
+            _window->SetSize(_size);
+        }
     }
 }
 
@@ -715,83 +715,92 @@ void PlayListItemFSEQVideo::Suspend(bool suspend)
 {
     Pause(suspend);
 
-    if (suspend)
-    {
+    if (suspend) {
         if (_window != nullptr) _window->Hide();
+        if (_frame != nullptr) {
+            _frame->Pause();
+            _frame->Hide();
+        }
     }
-    else
-    {
+    else {
         if (_window != nullptr) _window->Show();
+        if (_frame != nullptr) {
+            _frame->Play();
+            _frame->Show();
+        }
     }
 }
 
 void PlayListItemFSEQVideo::Pause(bool pause)
 {
-    if (ControlsTiming() && _audioManager != nullptr)
-    {
-        if (pause)
-        {
+    if (ControlsTiming() && _audioManager != nullptr) {
+        if (pause) {
             _audioManager->Pause();
         }
-        else
-        {
+        else {
             _audioManager->Play();
+        }
+    }
+
+    if (_frame != nullptr) {
+        if (pause) {
+            _frame->Pause();
+        }
+        else {
+            _frame->Play();
         }
     }
 }
 
 void PlayListItemFSEQVideo::Stop()
 {
-    if (_suppressVirtualMatrix)
-    {
+    if (_suppressVirtualMatrix) {
         xScheduleFrame::GetScheduleManager()->SuppressVM(false);
     }
 
-    if (_audioManager != nullptr)
-    {
+    if (_audioManager != nullptr) {
         _audioManager->Stop();
     }
 
     CloseFiles();
 
     // destroy the window
-    if (_window != nullptr)
-    {
+    if (_window != nullptr) {
         delete _window;
         _window = nullptr;
     }
+    if (_frame != nullptr) {
+        _frame->Stop();
+        delete _frame;
+        _frame = nullptr;
+    }
+
     _currentFrame = 0;
 }
 
 void PlayListItemFSEQVideo::CloseFiles()
 {
-    if (_fseqFile != nullptr)
-    {
+    if (_fseqFile != nullptr) {
         delete _fseqFile;
         _fseqFile = nullptr;
     }
 
-    if (_audioManager != nullptr)
-    {
-        if (!_fastStartAudio)
-        {
+    if (_audioManager != nullptr) {
+        if (!_fastStartAudio) {
             delete _audioManager;
             _audioManager = nullptr;
         }
-        else
-        {
+        else {
             _audioManager->AbsoluteStop();
         }
     }
 
-    if (_videoReader != nullptr)
-    {
+    if (_videoReader != nullptr) {
         delete _videoReader;
         _videoReader = nullptr;
     }
 
-    if (_cachedVideoReader != nullptr)
-    {
+    if (_cachedVideoReader != nullptr) {
         delete _cachedVideoReader;
         _cachedVideoReader = nullptr;
     }
@@ -801,33 +810,33 @@ PlayListItemFSEQVideo::~PlayListItemFSEQVideo()
 {
     CloseFiles();
 	
-    if (_audioManager != nullptr)
-    {
+    if (_audioManager != nullptr) {
         delete _audioManager;
         _audioManager = nullptr;
     }
 
-    if (_window != nullptr)
-    {
+    if (_window != nullptr) {
         delete _window;
         _window = nullptr;
+    }
+
+    if (_frame != nullptr) {
+        delete _frame;
+        _frame = nullptr;
     }
 }
 
 std::list<std::string> PlayListItemFSEQVideo::GetMissingFiles()
 {
     std::list<std::string> res;
-    if (!wxFile::Exists(GetFSEQFileName()))
-    {
+    if (!wxFile::Exists(GetFSEQFileName())) {
         res.push_back(GetFSEQFileName());
     }
     auto af = GetAudioFilename();
-    if (af != "" && !wxFile::Exists(af))
-    {
+    if (af != "" && !wxFile::Exists(af)) {
         res.push_back(af);
     }
-    if (!wxFile::Exists(GetVideoFile()))
-    {
+    if (!wxFile::Exists(GetVideoFile())) {
         res.push_back(GetVideoFile());
     }
 
@@ -837,33 +846,33 @@ std::list<std::string> PlayListItemFSEQVideo::GetMissingFiles()
 bool PlayListItemFSEQVideo::SetPosition(size_t frame, size_t ms)
 {
     //wxASSERT(abs((long)frame * _msPerFrame - (long)ms) < _msPerFrame);
+    bool res = false;
 
     _currentFrame = frame;
-    if (_audioManager != nullptr)
-    {
+    if (_audioManager != nullptr) {
         _audioManager->Seek(frame * _msPerFrame);
-        return true;
+        res = true;
     }
 
-    return false;
+    if (_frame != nullptr) {
+        _frame->Seek(frame * _msPerFrame);
+    }
+
+    return res;
 }
 
 long PlayListItemFSEQVideo::GetFSEQChannels() const
 {
-    if (_fseqFile != nullptr)
-    {
+    if (_fseqFile != nullptr) {
         return _fseqFile->getMaxChannel(); // +1;
     }
-    else
-    {
-        if (wxFile::Exists(_fseqFileName))
-        {
+    else {
+        if (wxFile::Exists(_fseqFileName)) {
             std::unique_ptr<FSEQFile> fseqFile(FSEQFile::openFSEQFile(_fseqFileName));
             long ch = fseqFile->getMaxChannel(); // +1;
             return ch;
         }
-        else
-        {
+        else {
             return 0;
         }
     }

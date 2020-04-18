@@ -623,6 +623,8 @@
 		<Unit filename="PlayList/PlayListStep.h" />
 		<Unit filename="PlayList/PlayListStepPanel.cpp" />
 		<Unit filename="PlayList/PlayListStepPanel.h" />
+		<Unit filename="PlayList/PlayerFrame.cpp" />
+		<Unit filename="PlayList/PlayerFrame.h" />
 		<Unit filename="PlayList/PlayerWindow.cpp" />
 		<Unit filename="PlayList/PlayerWindow.h" />
 		<Unit filename="PlayList/VideoWindowPositionDialog.cpp" />
@@ -783,6 +785,7 @@
 		<Unit filename="wxsmith/MatrixDialog.wxs" />
 		<Unit filename="wxsmith/OptionsDialog.wxs" />
 		<Unit filename="wxsmith/OutputProcessingDialog.wxs" />
+		<Unit filename="wxsmith/PlayerFrame.wxs" />
 		<Unit filename="wxsmith/PlayListDialog.wxs" />
 		<Unit filename="wxsmith/PlayListItemARTNetTriggerPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemAllOffPanel.wxs" />
@@ -842,6 +845,7 @@
 				<gui name="wxWidgets" src="xScheduleApp.cpp" main="xScheduleFrame" init_handlers="necessary" language="CPP" />
 				<resources>
 					<wxFrame wxs="wxsmith/xScheduleframe.wxs" src="xScheduleMain.cpp" hdr="xScheduleMain.h" fwddecl="0" i18n="1" name="xScheduleFrame" language="CPP" />
+					<wxFrame wxs="wxsmith/PlayerFrame.wxs" src="PlayList/PlayerFrame.cpp" hdr="PlayList/PlayerFrame.h" fwddecl="0" i18n="1" name="PlayerFrame" language="CPP" />
 					<wxDialog wxs="wxsmith/OptionsDialog.wxs" src="OptionsDialog.cpp" hdr="OptionsDialog.h" fwddecl="0" i18n="1" name="OptionsDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/PlayListDialog.wxs" src="PlayList/PlayListDialog.cpp" hdr="PlayList/PlayListDialog.h" fwddecl="0" i18n="1" name="PlayListDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/PlayListSimpleDialog.wxs" src="PlayList/PlayListSimpleDialog.cpp" hdr="PlayList/PlayListSimpleDialog.h" fwddecl="0" i18n="1" name="PlayListSimpleDialog" language="CPP" />

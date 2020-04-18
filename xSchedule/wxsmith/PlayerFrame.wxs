@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<wxsmith>
+	<object class="wxFrame" name="PlayerFrame">
+		<title>xPlayer</title>
+		<pos_arg>1</pos_arg>
+		<size_arg>1</size_arg>
+		<style>wxNO_BORDER</style>
+		<handler function="OnClose" entry="EVT_CLOSE" />
+	</object>
+</wxsmith>

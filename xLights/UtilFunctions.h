@@ -1,5 +1,14 @@
-#ifndef UTILFUNCTIONS_H
-#define UTILFUNCTIONS_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 #include <wx/wx.h>
 #include <wx/socket.h>
@@ -220,4 +229,3 @@ std::list<std::string> GetLocalIPs();
 
 void ViewTempFile(const wxString& content, const wxString& name = "temp", const wxString& type = "txt");
 void CheckMemoryUsage(const std::string& reason, bool onchangeOnly = false);
-#endif

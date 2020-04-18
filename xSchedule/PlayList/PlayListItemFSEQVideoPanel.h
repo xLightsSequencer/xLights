@@ -1,17 +1,26 @@
-#ifndef PlayListItemFSEQVIDEOPANEL_H
-#define PlayListItemFSEQVIDEOPANEL_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 //(*Headers(PlayListItemFSEQVideoPanel)
+#include <wx/button.h>
+#include <wx/checkbox.h>
+#include <wx/choice.h>
+#include <wx/filepicker.h>
+#include <wx/panel.h>
 #include <wx/sizer.h>
+#include <wx/slider.h>
+#include <wx/spinctrl.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
-#include <wx/checkbox.h>
-#include <wx/filepicker.h>
-#include <wx/spinctrl.h>
-#include <wx/slider.h>
-#include <wx/panel.h>
-#include <wx/choice.h>
-#include <wx/button.h>
 //*)
 
 class OutputManager;
@@ -33,38 +42,39 @@ class PlayListItemFSEQVideoPanel: public wxPanel
 		virtual ~PlayListItemFSEQVideoPanel();
 
 		//(*Declarations(PlayListItemFSEQVideoPanel)
-		wxStaticText* StaticText10;
-		wxSlider* Slider1;
-		wxStaticText* StaticText9;
-		wxCheckBox* CheckBox_LoopVideo;
-		wxStaticText* StaticText_StartChannel;
-		wxSpinCtrl* SpinCtrl_FadeOut;
-		wxChoice* Choice_BlendMode;
-		wxSpinCtrl* SpinCtrl_Channels;
-		wxStaticText* StaticText2;
-		wxStaticText* StaticText6;
-		VideoFilePickerCtrl* FilePickerCtrl_VideoFile;
-		wxCheckBox* CheckBox_FastStartAudio;
-		wxStaticText* StaticText8;
-		wxCheckBox* CheckBox_CacheVideo;
-		wxStaticText* StaticText_Position;
-		wxStaticText* StaticText1;
-		wxStaticText* StaticText3;
-		wxCheckBox* CheckBox_LimitChannels;
-		wxCheckBox* CheckBox_Topmost;
-		wxTextCtrl* TextCtrl_Delay;
-		wxSpinCtrl* SpinCtrl_Priority;
-		wxCheckBox* CheckBox_OverrideAudio;
 		AudioFilePickerCtrl* FilePickerCtrl_AudioFile;
-		wxStaticText* StaticText5;
-		wxStaticText* StaticText7;
 		FSEQFilePickerCtrl* FilePickerCtrl_FSEQFile;
-		wxTextCtrl* TextCtrl_StartChannel;
-		wxCheckBox* CheckBox_SuppressVirtualMatrix;
+		VideoFilePickerCtrl* FilePickerCtrl_VideoFile;
 		wxButton* Button_PositionWindow;
-		wxStaticText* StaticText4;
-		wxSpinCtrl* SpinCtrl_FadeIn;
+		wxCheckBox* CheckBox_CacheVideo;
+		wxCheckBox* CheckBox_FastStartAudio;
+		wxCheckBox* CheckBox_LimitChannels;
+		wxCheckBox* CheckBox_LoopVideo;
+		wxCheckBox* CheckBox_OverrideAudio;
 		wxCheckBox* CheckBox_OverrideVolume;
+		wxCheckBox* CheckBox_SuppressVirtualMatrix;
+		wxCheckBox* CheckBox_Topmost;
+		wxCheckBox* CheckBox_UseMediaPlayer;
+		wxChoice* Choice_BlendMode;
+		wxSlider* Slider1;
+		wxSpinCtrl* SpinCtrl_Channels;
+		wxSpinCtrl* SpinCtrl_FadeIn;
+		wxSpinCtrl* SpinCtrl_FadeOut;
+		wxSpinCtrl* SpinCtrl_Priority;
+		wxStaticText* StaticText10;
+		wxStaticText* StaticText1;
+		wxStaticText* StaticText2;
+		wxStaticText* StaticText3;
+		wxStaticText* StaticText4;
+		wxStaticText* StaticText5;
+		wxStaticText* StaticText6;
+		wxStaticText* StaticText7;
+		wxStaticText* StaticText8;
+		wxStaticText* StaticText9;
+		wxStaticText* StaticText_Position;
+		wxStaticText* StaticText_StartChannel;
+		wxTextCtrl* TextCtrl_Delay;
+		wxTextCtrl* TextCtrl_StartChannel;
 		//*)
 
 	protected:
@@ -92,6 +102,7 @@ class PlayListItemFSEQVideoPanel: public wxPanel
 		static const long ID_CHECKBOX4;
 		static const long ID_CHECKBOX7;
 		static const long ID_CHECKBOX8;
+		static const long ID_CHECKBOX9;
 		static const long ID_CHECKBOX2;
 		static const long ID_SLIDER1;
 		static const long ID_STATICTEXT4;
@@ -116,9 +127,8 @@ class PlayListItemFSEQVideoPanel: public wxPanel
 		void OnFilePickerCtrl_VideoFileFileChanged(wxFileDirPickerEvent& event);
 		void OnButton_PositionWindowClick(wxCommandEvent& event);
 		void OnTextCtrl_StartChannelText(wxCommandEvent& event);
+		void OnCheckBox_UseMediaPlayerClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()
 };
-
-#endif
