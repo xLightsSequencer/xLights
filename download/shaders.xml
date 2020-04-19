@@ -608,6 +608,96 @@
 		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_250,w_360/jqtxbecwi3bkmdmq2txr</image>
 		<rating>3</rating>
 	</shader>
+	<shader>
+		<name>Shape Morph</name>
+		<id>5e9afa5a9a2c7b001769378c</id>
+		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_250,w_360/rya5m4wv2uwwmbwrwyti</image>
+		<rating>3</rating>
+	</shader>
+	<shader>
+		<name>Kaleidolines</name>
+		<id>5e9af9f89a2c7b0017693785</id>
+		<image></image>
+		<rating>3</rating>
+	</shader>
+	<shader>
+		<name>70tiesMaelstrom</name>
+		<id>5e9af9e29a2c7b0017693783</id>
+		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_250,w_360/mluxn1cvl3itfxgbwfpq</image>
+		<rating>3</rating>
+	</shader>
+	<shader>
+		<name>Ultimate Spiral</name>
+		<id>5e9af9d89a2c7b0017693782</id>
+		<image></image>
+		<rating>3</rating>
+	</shader>
+	<shader>
+		<name>Hexagon OpArt</name>
+		<id>5e9af9bd9a2c7b0017693780</id>
+		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_250,w_360/w8oblkb68g4doz3iou2t</image>
+		<rating>3</rating>
+	</shader>
+	<shader>
+		<name>Statis Spiraling</name>
+		<id>5e9af8169a2c7b001769377e</id>
+		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_250,w_360/j2zssfhr4mdwuuxmw19p</image>
+		<rating>3</rating>
+	</shader>
+	<shader>
+		<name>Cosplay</name>
+		<id>5e9af729658b34001590fdb6</id>
+		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_250,w_360/b63cthc8ng4tflbjn7t0</image>
+		<rating>3</rating>
+	</shader>
+	<shader>
+		<name>Black Cherry Cosmos</name>
+		<id>5e966f399a2c7b0017693765</id>
+		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_250,w_360/nbnpsbaoqoed2vjplgdw</image>
+		<rating>3</rating>
+	</shader>
+	<shader>
+		<name>Simply Nebulous</name>
+		<id>5e93bb5a3fd9680017950247</id>
+		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_250,w_360/mfygsivjqr9yyn8w5lhl</image>
+		<rating>3</rating>
+	</shader>
+	<shader>
+		<name>Rising Bubbles Falling Snow</name>
+		<id>5e7a802b7c113618206dec15</id>
+		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_250,w_360/maddkja8uynadelt59ni</image>
+		<rating>3</rating>
+	</shader>
+	<shader>
+		<name>Rainbow Ring Cubic Twist</name>
+		<id>5e7a801c7c113618206deae4</id>
+		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_250,w_360/fivpx3dhqvqz6hcaxpyt</image>
+		<rating>3</rating>
+	</shader>
+	<shader>
+		<name>Fire World</name>
+		<id>5e7a80407c113618206dedc0</id>
+		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_250,w_360/zupwtxzf6nd7sfxlileh</image>
+		<rating>3</rating>
+	</shader>
+	<shader>
+		<name>Galaxy</name>
+		<id>5e7a80407c113618206dedbf</id>
+		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_250,w_360/natdu3njoyl2wymbn6tf</image>
+		<rating>3</rating>
+	</shader>
+	<shader>
+		<name>Geodesic Tiling</name>
+		<id>5e7a803f7c113618206dedb5</id>
+		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_250,w_360/nw8v23bbiid2f1gfjhxe</image>
+		<rating>3</rating>
+	</shader>
+	<shader>
+		<name>Cloudy Shapes</name>
+		<id>5e7a803f7c113618206dedae</id>
+		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_250,w_360/bkueyyadw5k6qfmrzrou</image>
+		<rating>3</rating>
+	</shader>
 	<!--shader>
 		<name></name>
 		<id></id>
