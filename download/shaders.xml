@@ -602,6 +602,12 @@
 		<image>https://res.cloudinary.com/dud44u1ac/image/upload/c_fill,h_300,w_300/v1580149587/2020-01-27_13h23_08_vyeyuo.png</image>
 		<rating>3</rating>
 	</shader>
+	<shader>
+		<name>Better Bit Wheel</name>
+		<id>5e9afa639a2c7b001769378d</id>
+		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_250,w_360/jqtxbecwi3bkmdmq2txr</image>
+		<rating>3</rating>
+	</shader>
 	<!--shader>
 		<name></name>
 		<id></id>
