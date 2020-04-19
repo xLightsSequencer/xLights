@@ -75,6 +75,7 @@ Model::Model(const ModelManager &manager) : modelDimmingCurve(nullptr),
         NODE_TYPES.push_back("GRB Nodes");
         NODE_TYPES.push_back("BRG Nodes");
         NODE_TYPES.push_back("BGR Nodes");
+        NODE_TYPES.push_back("Node Single Color");
 
         NODE_TYPES.push_back("3 Channel RGB");
         NODE_TYPES.push_back("4 Channel RGBW");
@@ -494,8 +495,14 @@ void Model::UpdateProperties(wxPropertyGridInterface* grid, OutputManager* outpu
     UpdateControllerProperties(grid);
 
     int i = grid->GetPropertyByName("ModelStringType")->GetValue().GetLong();
-    if (NODE_TYPES[i] == "Single Color" || NODE_TYPES[i] == "Single Color Intensity") {
+    if (NODE_TYPES[i] == "Single Color" || NODE_TYPES[i] == "Single Color Intensity" || NODE_TYPES[i] == "Node Single Color") {
         grid->GetPropertyByName("ModelStringColor")->Enable();
+        if (NODE_TYPES[i] == "Node Single Color") {
+            grid->GetPropertyByName("ModelStringType")->SetHelpString("This represents a string of single color LEDS which are individually controlled. These are very uncommon.");
+        }
+        else {
+            grid->GetPropertyByName("ModelStringType")->SetHelpString("");
+        }
     }
     else {
         grid->GetPropertyByName("ModelStringColor")->Enable(false);
@@ -659,7 +666,7 @@ void Model::AddProperties(wxPropertyGridInterface* grid, OutputManager* outputMa
         i = NODE_TYPES.Index("Single Color");
     }
     grid->AppendIn(p, new wxEnumProperty("String Type", "ModelStringType", NODE_TYPES, wxArrayInt(), i));
-    if (NODE_TYPES[i] == "Single Color" || NODE_TYPES[i] == "Single Color Intensity") {
+    if (NODE_TYPES[i] == "Single Color" || NODE_TYPES[i] == "Single Color Intensity" || NODE_TYPES[i] == "Node Single Color") {
         //get the color
         wxColor v;
         if (StringType == "Single Color Red") {
@@ -674,13 +681,16 @@ void Model::AddProperties(wxPropertyGridInterface* grid, OutputManager* outputMa
         else if (StringType == "Single Color White" || StringType == "W") {
             v = *wxWHITE;
         }
-        else if (StringType == "Single Color Custom" || StringType == "Single Color Intensity") {
+        else if (StringType == "Single Color Custom" || StringType == "Single Color Intensity" || StringType == "Node Single Color") {
             v = customColor.asWxColor();
         }
         else if (StringType[0] == '#') {
             v = xlColor(StringType).asWxColor();
         }
         grid->AppendIn(p, new wxColourProperty("Color", "ModelStringColor", v));
+        if (NODE_TYPES[i] == "Node Single Color") {
+            grid->GetPropertyByName("ModelStringType")->SetHelpString("This represents a string of single color LEDS which are individually controlled. These are very uncommon.");
+        }
     } else if (NODE_TYPES[i] == "Superstring") {
         if (superStringColours.size() == 0)
         {
@@ -1583,15 +1593,21 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         int i = p2->GetValue().GetLong();
         ModelXml->DeleteAttribute("StringType");
         ModelXml->DeleteAttribute("RGBWHandling");
-        if (NODE_TYPES[i] == "Single Color"|| NODE_TYPES[i] == "Single Color Intensity") {
+        if (NODE_TYPES[i] == "Single Color"|| NODE_TYPES[i] == "Single Color Intensity" || NODE_TYPES[i] == "Node Single Color") {
             wxPGProperty *p = grid->GetPropertyByName("ModelStringColor");
             xlColor c;
             wxString tp = GetColorString(p, c);
             if (NODE_TYPES[i] == "Single Color Intensity") {
                 tp = "Single Color Intensity";
             }
+            else if (NODE_TYPES[i] == "Node Single Color") {
+                tp = "Node Single Color";
+                wxColor cc;
+                cc << p->GetValue();
+                c = cc;
+            }
             p->Enable();
-            if (tp == "Single Color Custom" || tp == "Single Color Intensity") {
+            if (tp == "Single Color Custom" || tp == "Single Color Intensity" || tp == "Node Single Color") {
                 ModelXml->DeleteAttribute("CustomColor");
                 xlColor xc = c;
                 ModelXml->AddAttribute("CustomColor", xc);
@@ -2302,7 +2318,7 @@ void Model::SetFromXml(wxXmlNode* ModelNode, bool zb) {
     _pixelType = ModelNode->GetAttribute("PixelType", "").ToStdString();
     _pixelSpacing = ModelNode->GetAttribute("PixelSpacing", "").ToStdString();
     _active = ModelNode->GetAttribute("Active", "1") == "1";
-    SingleNode=HasSingleNode(StringType);
+    SingleNode = HasSingleNode(StringType);
     int ncc = GetNodeChannelCount(StringType);
     SingleChannel = (ncc == 1);
     if (SingleNode) {
@@ -3489,8 +3505,9 @@ void Model::SetNodeCount(size_t NumStrings, size_t NodesPerString, const std::st
                 Nodes.push_back(NodeBaseClassPtr(new NodeClassRGBW(n, NodesPerString, "RGB", true, rgbwHandlingType, GetNextName())));
                 Nodes.back()->model = this;
             }
-        } else if (StringType=="4 Channel WRGB") {
-            for(n = 0; n < NumStrings; n++) {
+        }
+        else if (StringType == "4 Channel WRGB") {
+            for (n = 0; n < NumStrings; n++) {
                 Nodes.push_back(NodeBaseClassPtr(new NodeClassRGBW(n, NodesPerString, "RGB", false, rgbwHandlingType, GetNextName())));
                 Nodes.back()->model = this;
             }
@@ -3508,6 +3525,13 @@ void Model::SetNodeCount(size_t NumStrings, size_t NodesPerString, const std::st
         size_t numnodes = NumStrings * NodesPerString;
         for(n = 0; n < numnodes; n++) {
             Nodes.push_back(NodeBaseClassPtr(new NodeBaseClass(n/NodesPerString, 1, rgbOrder, GetNextName())));
+            Nodes.back()->model = this;
+        }
+    }
+    else if (StringType == "Node Single Color") {
+        size_t numnodes = NumStrings * NodesPerString;
+        for (n = 0; n < numnodes; n++) {
+            Nodes.push_back(NodeBaseClassPtr(new NodeClassCustom(n/NodesPerString, 1, customColor, GetNextName())));
             Nodes.back()->model = this;
         }
     } else {
@@ -3537,6 +3561,9 @@ int Model::GetNodeChannelCount(const std::string & nodeType) const {
     }
     else if (nodeType == "Superstring") {
         return superStringColours.size();
+    }
+    else if (nodeType == "Node Single Color") {
+        return 1;
     }
     return 3;
 }

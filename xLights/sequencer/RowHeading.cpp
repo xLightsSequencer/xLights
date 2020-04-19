@@ -1487,7 +1487,7 @@ void RowHeading::Draw()
                 {
                     dc.DrawBitmap(model_group_icon, getWidth() - ICON_SPACE, startY + 3, true);
                 }
-                else if (m->GetStringType().find("Single Color") == 0)
+                else if (StartsWith(m->GetStringType(), "Single Color") || m->GetStringType() == "Node Single Color")
                 {
                     if (m->GetNodeCount() > 0)
                     {

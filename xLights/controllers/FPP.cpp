@@ -1088,6 +1088,9 @@ std::string FPP::CreateVirtualDisplayMap(ModelManager* allmodels, bool center0) 
         {
             stringType = "White";
         }
+        else if (stringType == "Node Single Color")             {
+            stringType = "White";
+        }
 
         ret += wxString::Format("# Model: '%s', %d nodes\n", model->GetName().c_str(), model->GetNodeCount());
 

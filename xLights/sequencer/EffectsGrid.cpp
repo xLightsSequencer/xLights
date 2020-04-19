@@ -6180,7 +6180,7 @@ int EffectsGrid::DrawEffectBackground(const Row_Information_Struct* ri, const Ef
         }
         else
         {
-            if (wxString(m->GetStringType()).StartsWith("Single Color"))
+            if (wxString(m->GetStringType()).StartsWith("Single Color") || m->GetStringType() == "Node Single Color")
             {
                 colorMask = m->GetNodeMaskColor(0);
             }

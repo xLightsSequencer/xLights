@@ -4144,6 +4144,9 @@ void xLightsFrame::ExportModels(wxString filename)
                 {
                     bulbs += uniquechannels * model->GetNodeCount() * model->GetCoordCount(0);
                 }
+                else if (model->GetStringType() == "Node Single Color") {
+                    bulbs += uniquechannels * model->GetNodeCount() * model->GetCoordCount(0);
+                }
                 else
                 {
                     int den = model->GetChanCountPerNode();

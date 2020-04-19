@@ -407,6 +407,7 @@ public:
     // true for dumb strings and traditional strings
     bool HasSingleNode(const std::string& StrType)
     {
+        if (StrType == "Node Single Color") return false;
         if (StrType == "Superstring") return true;
         static std::string Nodes(" Nodes");
         if (Nodes.size() > StrType.size()) return false;
@@ -415,7 +416,7 @@ public:
     // true for traditional strings
     /*static */bool HasSingleChannel(const std::string& StrType)
     {
-        return GetNodeChannelCount(StrType) == 1;
+        return GetNodeChannelCount(StrType) == 1 && StrType != "Node Single Color";
     }
     /*static */int GetNodeChannelCount(const std::string & nodeType) const;
 

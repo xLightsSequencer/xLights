@@ -1926,7 +1926,7 @@ bool xLightsFrame::RenderEffectFromMap(bool suppress, Effect *effectObj, int lay
         }
 
         if (m != nullptr) {
-            if (m->GetStringType().compare(0, 12, "Single Color") == 0) {
+            if (m->GetStringType().compare(0, 12, "Single Color") == 0 || m->GetStringType() == "Node Single Color") {
                 colorMask = buffer.GetNodeMaskColor(0);
 
                 // If black ... then dont mask

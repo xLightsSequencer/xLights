@@ -296,7 +296,7 @@ void DMXEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &b
 
     xlColor color = xlBLACK;
 
-    if (string_type.find("Single Color") != std::string::npos) {
+    if (StartsWith(string_type, "Single Color")) {
         // handle channels for single color nodes
         if( SetDMXSinglColorPixel(1, num_channels, SettingsMap, eff_pos, color, buffer) ) return;
         if( SetDMXSinglColorPixel(2, num_channels, SettingsMap, eff_pos, color, buffer) ) return;

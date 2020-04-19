@@ -263,6 +263,7 @@ public:
         return new NodeClassBlue(*this);
     }
 };
+
 class NodeClassCustom : public NodeBaseClass
 {
 public:

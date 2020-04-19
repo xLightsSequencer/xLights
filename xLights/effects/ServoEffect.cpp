@@ -90,7 +90,7 @@ void ServoEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer 
 
     const std::string& string_type = model_info->GetStringType();
 
-    if (string_type.find("Single Color") != std::string::npos) {
+    if (StartsWith(string_type, "Single Color")) {
         // handle channels for single color nodes
         for(int i = 0; i <= num_channels; ++i) {
             std::string name = model_info->GetNodeName(i);
