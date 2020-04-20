@@ -1622,7 +1622,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     config->Read("xLightsLocalIP", &tmpString, "");
     mLocalIP = tmpString;
     _outputManager.SetForceFromIP(mLocalIP);
-
+    SetControllersProperties();
     UpdateACToolbar();
     ShowACLights();
 

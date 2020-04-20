@@ -1652,7 +1652,7 @@ void xLightsFrame::OnControllerPropertyGridChange(wxPropertyGridEvent& event) {
         }
         else if (name == "GlobalFPPProxy") {
             _outputManager.SetGlobalFPPProxy(event.GetValue().GetString());
-            _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "OnControllerPropertyGridChange::MaxSuppressFrames");
+            _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "OnControllerPropertyGridChange::GlobalFPPProxy");
         }
         else if (name == "ForceLocalIP") {
             auto ips = GetLocalIPs();
@@ -1661,7 +1661,7 @@ void xLightsFrame::OnControllerPropertyGridChange(wxPropertyGridEvent& event) {
                 mLocalIP = "";
             }
             else {
-                if (event.GetValue().GetLong() >= ips.size()) {
+                if (event.GetValue().GetLong() >= ips.size() + 1) {//need to add one as dropdown has blank first entry
                     // likely the number of IPs changed after the list was loaded so ignore
                 }
                 else {
@@ -1672,6 +1672,10 @@ void xLightsFrame::OnControllerPropertyGridChange(wxPropertyGridEvent& event) {
             }
 
             _outputManager.SetForceFromIP(mLocalIP);
+            _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "OnControllerPropertyGridChange::ForceLocalIP");
+            wxConfigBase* config = wxConfigBase::Get();
+            config->Write("xLightsLocalIP", wxString(mLocalIP));
+            config->Flush();
             if (_outputManager.IsOutputting()) {
                 _outputManager.StopOutput();
                 _outputManager.StartOutput();
