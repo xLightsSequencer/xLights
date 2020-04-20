@@ -72,7 +72,7 @@ Instructions for other Linux distributions will vary.
      Example commands to install packages on Fedora 31
 
      sudo dnf install https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm https://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm
-     sudo dnf install gcc-c++ gtk2-devel gstreamer1-devel gstreamer1-plugins-base-devel freeglut-devel gstreamer1-plugins-bad-free-devel ffmpeg-devel SDL2-devel portmidi-devel libzstd-devel curl-devel
+     sudo dnf install gcc-c++ gtk3-devel gstreamer1-devel gstreamer1-plugins-base-devel freeglut-devel gstreamer1-plugins-bad-free-devel ffmpeg-devel SDL2-devel portmidi-devel libzstd-devel curl-devel
 
 
   b) Get the xLights source code by opening a terminal window and
