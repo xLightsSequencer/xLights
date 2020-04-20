@@ -1107,27 +1107,7 @@
 					<label>&amp;Test</label>
 					<handler function="OnActionTestMenuItemSelected" entry="EVT_MENU" />
 				</object>
-				<object class="wxMenuItem" name="ID_MENUITEM_CONVERT" variable="MenuItemConvert" member="yes">
-					<label>&amp;Convert</label>
-					<handler function="OnMenuItemConvertSelected" entry="EVT_MENU" />
-				</object>
-				<object class="wxMenuItem" name="ID_MENUITEM_GenerateCustomModel" variable="Menu_GenerateCustomModel" member="yes">
-					<label>&amp;Generate Custom Model</label>
-					<handler function="OnMenu_GenerateCustomModelSelected" entry="EVT_MENU" />
-				</object>
-				<object class="wxMenuItem" name="ID_MNU_GENERATELYRICS" variable="MenuItem_GenerateLyrics" member="yes">
-					<label>Generate &amp;Lyrics From Data</label>
-					<help>Generate lyric phenomes from data</help>
-					<handler function="OnMenuItem_GenerateLyricsSelected" entry="EVT_MENU" />
-				</object>
-				<object class="wxMenuItem" name="ID_MENU_GENERATE2DPATH" variable="MenuItem_Generate2DPath" member="yes">
-					<label>Generate 2D Path</label>
-					<handler function="OnMenuItem_Generate2DPathSelected" entry="EVT_MENU" />
-				</object>
-				<object class="wxMenuItem" name="ID_MNU_PREPAREAUDIO" variable="MenuItem_PrepareAudio" member="yes">
-					<label>Prepare Audio</label>
-					<handler function="OnMenuItem_PrepareAudioSelected" entry="EVT_MENU" />
-				</object>
+				<object class="separator" />
 				<object class="wxMenuItem" name="ID_MNU_CHECKSEQ" variable="MenuItemCheckSequence" member="yes">
 					<label>C&amp;heck Sequence</label>
 					<handler function="OnMenuItemCheckSequenceSelected" entry="EVT_MENU" />
@@ -1137,15 +1117,32 @@
 					<help>Moves all files into or under the show folder.</help>
 					<handler function="OnMenuItem_CleanupFileLocationsSelected" entry="EVT_MENU" />
 				</object>
-				<object class="wxMenuItem" name="ID_MENU_VIEW_LOG" variable="MenuItem_ViewLog" member="yes">
-					<label>&amp;View Log</label>
-					<handler function="OnMenuItem_ViewLogSelected" entry="EVT_MENU" />
+				<object class="wxMenuItem" name="ID_MNU_PACKAGESEQUENCE" variable="MenuItem_PackageSequence" member="yes">
+					<label>Package &amp;Sequence</label>
+					<handler function="OnMenuItem_PackageSequenceSelected" entry="EVT_MENU" />
 				</object>
-				<object class="wxMenuItem" name="ID_MENUITEM18" variable="MenuItem38" member="yes">
-					<label>&amp;Package Log Files</label>
-					<help>Packages up current configuration, logs and sequence for reporting a problem to development team.</help>
-					<handler function="OnMenuItemPackageDebugFiles" entry="EVT_MENU" />
+				<object class="wxMenuItem" name="ID_MNU_DOWNLOADSEQUENCES" variable="MenuItem_DownloadSequences" member="yes">
+					<label>Download Sequences/Lyrics</label>
+					<handler function="OnMenuItem_DownloadSequencesSelected" entry="EVT_MENU" />
 				</object>
+				<object class="separator" />
+				<object class="wxMenuItem" name="ID_MENU_BATCH_RENDER" variable="MenuItemBatchRender" member="no">
+					<label>&amp;Batch Render</label>
+					<handler function="OnMenuItemBatchRenderSelected" entry="EVT_MENU" />
+				</object>
+				<object class="wxMenuItem" name="ID_MENU_FPP_CONNECT" variable="MenuItem_FPP_Connect" member="yes">
+					<label>&amp;FPP Connect</label>
+					<handler function="OnMenuItem_FPP_ConnectSelected" entry="EVT_MENU" />
+				</object>
+				<object class="wxMenuItem" name="ID_MNU_BULKUPLOAD" variable="MenuItemBulkControllerUpload" member="yes">
+					<label>Bulk Controller Upload</label>
+					<handler function="OnMenuItemBulkControllerUploadSelected" entry="EVT_MENU" />
+				</object>
+				<object class="wxMenuItem" name="ID_MENU_HINKSPIX_EXPORT" variable="MenuItemHinksPixExport" member="yes">
+					<label>HinksPix Export</label>
+					<handler function="OnMenuItemHinksPixExportSelected" entry="EVT_MENU" />
+				</object>
+				<object class="separator" />
 				<object class="wxMenuItem" name="ID_EXPORT_MODELS" variable="mExportModelsMenuItem" member="yes">
 					<label>E&amp;xport Models</label>
 					<handler function="OnmExportModelsMenuItemSelected" entry="EVT_MENU" />
@@ -1154,37 +1151,15 @@
 					<label>Export &amp;Effects</label>
 					<handler function="OnMenuItem_ExportEffectsSelected" entry="EVT_MENU" />
 				</object>
-				<object class="wxMenuItem" name="ID_MENU_FPP_CONNECT" variable="MenuItem_FPP_Connect" member="yes">
-					<label>&amp;FPP Connect</label>
-					<handler function="OnMenuItem_FPP_ConnectSelected" entry="EVT_MENU" />
+				<object class="separator" />
+				<object class="wxMenuItem" name="ID_MENU_VIEW_LOG" variable="MenuItem_ViewLog" member="yes">
+					<label>&amp;View Log</label>
+					<handler function="OnMenuItem_ViewLogSelected" entry="EVT_MENU" />
 				</object>
-				<object class="wxMenuItem" name="ID_MENU_HINKSPIX_EXPORT" variable="MenuItemHinksPixExport" member="yes">
-					<label>HinksPix Export</label>
-					<handler function="OnMenuItemHinksPixExportSelected" entry="EVT_MENU" />
-				</object>
-				<object class="wxMenuItem" name="ID_MNU_PACKAGESEQUENCE" variable="MenuItem_PackageSequence" member="yes">
-					<label>Package &amp;Sequence</label>
-					<handler function="OnMenuItem_PackageSequenceSelected" entry="EVT_MENU" />
-				</object>
-				<object class="wxMenuItem" name="ID_MENU_USER_DICT" variable="MenuItemUserDict" member="yes">
-					<label>User Lyric Dictionary</label>
-					<handler function="OnMenuItemUserDictSelected" entry="EVT_MENU" />
-				</object>
-				<object class="wxMenuItem" name="ID_MNU_DOWNLOADSEQUENCES" variable="MenuItem_DownloadSequences" member="yes">
-					<label>Download Sequences/Lyrics</label>
-					<handler function="OnMenuItem_DownloadSequencesSelected" entry="EVT_MENU" />
-				</object>
-				<object class="wxMenuItem" name="ID_MENU_BATCH_RENDER" variable="MenuItemBatchRender" member="no">
-					<label>&amp;Batch Render</label>
-					<handler function="OnMenuItemBatchRenderSelected" entry="EVT_MENU" />
-				</object>
-				<object class="wxMenuItem" name="ID_MNU_BULKUPLOAD" variable="MenuItemBulkControllerUpload" member="yes">
-					<label>Bulk Controller Upload</label>
-					<handler function="OnMenuItemBulkControllerUploadSelected" entry="EVT_MENU" />
-				</object>
-				<object class="wxMenuItem" name="ID_MNU_XSCHEDULE" variable="MenuItem_xSchedule" member="yes">
-					<label>xSchedu&amp;le</label>
-					<handler function="OnMenuItem_xScheduleSelected" entry="EVT_MENU" />
+				<object class="wxMenuItem" name="ID_MENUITEM18" variable="MenuItem38" member="yes">
+					<label>&amp;Package Log Files</label>
+					<help>Packages up current configuration, logs and sequence for reporting a problem to development team.</help>
+					<handler function="OnMenuItemPackageDebugFiles" entry="EVT_MENU" />
 				</object>
 				<object class="wxMenuItem" name="iD_MNU_VENDORCACHEPURGE" variable="MenuItem_PurgeVendorCache" member="yes">
 					<label>Purge Download Cache</label>
@@ -1201,6 +1176,37 @@
 				<object class="wxMenuItem" name="ID_MNU_DUMPRENDERSTATE" variable="MenuItem_LogRenderState" member="yes">
 					<label>Log Render State</label>
 					<handler function="OnMenuItem_LogRenderStateSelected" entry="EVT_MENU" />
+				</object>
+				<object class="separator" />
+				<object class="wxMenuItem" name="ID_MENU_GENERATE2DPATH" variable="MenuItem_Generate2DPath" member="yes">
+					<label>Generate 2D Path</label>
+					<handler function="OnMenuItem_Generate2DPathSelected" entry="EVT_MENU" />
+				</object>
+				<object class="wxMenuItem" name="ID_MENUITEM_GenerateCustomModel" variable="Menu_GenerateCustomModel" member="yes">
+					<label>&amp;Generate Custom Model</label>
+					<handler function="OnMenu_GenerateCustomModelSelected" entry="EVT_MENU" />
+				</object>
+				<object class="wxMenuItem" name="ID_MNU_GENERATELYRICS" variable="MenuItem_GenerateLyrics" member="yes">
+					<label>Generate &amp;Lyrics From Data</label>
+					<help>Generate lyric phenomes from data</help>
+					<handler function="OnMenuItem_GenerateLyricsSelected" entry="EVT_MENU" />
+				</object>
+				<object class="wxMenuItem" name="ID_MENUITEM_CONVERT" variable="MenuItemConvert" member="yes">
+					<label>&amp;Convert</label>
+					<handler function="OnMenuItemConvertSelected" entry="EVT_MENU" />
+				</object>
+				<object class="wxMenuItem" name="ID_MNU_PREPAREAUDIO" variable="MenuItem_PrepareAudio" member="yes">
+					<label>Prepare Audio</label>
+					<handler function="OnMenuItem_PrepareAudioSelected" entry="EVT_MENU" />
+				</object>
+				<object class="wxMenuItem" name="ID_MENU_USER_DICT" variable="MenuItemUserDict" member="yes">
+					<label>User Lyric Dictionary</label>
+					<handler function="OnMenuItemUserDictSelected" entry="EVT_MENU" />
+				</object>
+				<object class="separator" />
+				<object class="wxMenuItem" name="ID_MNU_XSCHEDULE" variable="MenuItem_xSchedule" member="yes">
+					<label>xSchedu&amp;le</label>
+					<handler function="OnMenuItem_xScheduleSelected" entry="EVT_MENU" />
 				</object>
 			</object>
 			<object class="wxMenu" variable="MenuView" member="yes">
