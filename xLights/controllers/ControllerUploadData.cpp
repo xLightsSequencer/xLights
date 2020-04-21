@@ -335,6 +335,8 @@ bool UDControllerPort::SetAllModelsToControllerName(const std::string& controlle
 // Set all ports to the valid first protocol
 bool UDControllerPort::SetAllModelsToValidProtocols(const std::list<std::string>& protocols, const std::string& force)
 {
+    if (protocols.size() == 0) return false;
+
     std::string p = force;
     bool changed = false;
     for (const auto& it : _models)
