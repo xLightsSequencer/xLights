@@ -181,7 +181,7 @@ const long LayoutPanel::ID_ADD_DMX_FLOODAREA = wxNewId();
 
 class ModelTreeData : public wxTreeItemData {
 public:
-    ModelTreeData(Model *m, int NativeOrder, bool fullname) :wxTreeItemData(), model(m), fullname(fullname) {
+    ModelTreeData(Model *m, int NativeOrder, bool fullname) :wxTreeItemData(), fullname(fullname), model(m) {
         wxASSERT(m != nullptr);
         //a SetFromXML call on the parent (example: recalc start channels) will cause
         //submodel pointers to be deleted.  Need to not save them, but instead, use the parent
@@ -219,7 +219,7 @@ class NewModelBitmapButton : public wxBitmapButton
 public:
 
     NewModelBitmapButton(wxWindow *parent, const wxBitmap &bmp, const std::string &type)
-        : wxBitmapButton(parent, wxID_ANY, bmp), bitmap(bmp), state(0), modelType(type) {
+        : wxBitmapButton(parent, wxID_ANY, bmp), modelType(type), state(0), bitmap(bmp) {
         SetToolTip("Create new " + type);
     }
     virtual ~NewModelBitmapButton() {}
@@ -255,14 +255,17 @@ private:
 
 #include <log4cpp/Category.hh>
 
-LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer) : xlights(xl), main_sequencer(sequencer),
-    m_creating_bound_rect(false), mPointSize(2), m_moving_handle(false), m_dragging(false),
-    m_over_handle(-1), selectedButton(nullptr), obj_button(nullptr), newModel(nullptr), selectedBaseObject(nullptr), highlightedBaseObject(nullptr),
-    colSizesSet(false), updatingProperty(false), mNumGroups(0), mPropGridActive(true), last_selection(nullptr), last_highlight(nullptr),
-    mSelectedGroup(nullptr), currentLayoutGroup("Default"), pGrp(nullptr), backgroundFile(""), previewBackgroundScaled(false),
-    previewBackgroundBrightness(100), previewBackgroundAlpha(100), m_polyline_active(false), mHitTestNextSelectModelIndex(0),
-    ModelGroupWindow(nullptr), ViewObjectWindow(nullptr), editing_models(true), m_mouse_down(false), m_wheel_down(false),
-    selectionLatched(false), over_handle(-1), creating_model(false), mouse_state_set(false)
+LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer) :
+    ViewObjectWindow(nullptr), ModelGroupWindow(nullptr), m_dragging(false), m_creating_bound_rect(false),
+    m_over_handle(-1), m_moving_handle(false), m_wheel_down(false), m_polyline_active(false), mPointSize(2),
+    mHitTestNextSelectModelIndex(0), mNumGroups(0), mPropGridActive(true),
+    mSelectedGroup(nullptr), updatingProperty(false), selectedBaseObject(nullptr), highlightedBaseObject(nullptr),
+    selectionLatched(false), over_handle(-1), colSizesSet(false), selectedButton(nullptr), obj_button(nullptr),
+    newModel(nullptr), currentLayoutGroup("Default"), pGrp(nullptr), xlights(xl), backgroundFile(""),
+    previewBackgroundScaled(false), previewBackgroundBrightness(100), previewBackgroundAlpha(100),
+    main_sequencer(sequencer), editing_models(true), m_mouse_down(false),
+    last_selection(nullptr), last_highlight(nullptr), creating_model(false),
+    mouse_state_set(false)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -2024,7 +2027,7 @@ public:
                     const wxString& name,
                     const wxString& value,
                     const wxImage *img)
-        : lastFileName(value), wxImageFileProperty(label, name, "") {
+        : wxImageFileProperty(label, name, ""), lastFileName(value) {
 
         SetValueFromString(value);
         if (img != nullptr) {
@@ -4173,7 +4176,7 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
     if (is_3d) {
         if (xlights->viewpoint_mgr.GetNum3DCameras() > 0) {
             wxMenu* mnuViewPoint = new wxMenu();
-            for (size_t i = 0; i < xlights->viewpoint_mgr.GetNum3DCameras(); ++i)
+            for (int i = 0; i < xlights->viewpoint_mgr.GetNum3DCameras(); ++i)
             {
                 mnuViewPoint->Append(xlights->viewpoint_mgr.GetCamera3D(i)->GetMenuId(), xlights->viewpoint_mgr.GetCamera3D(i)->GetName());
             }
@@ -4181,7 +4184,7 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
             mnuViewPoint->Connect(wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::OnPreviewModelPopup, nullptr, this);
 
             mnuViewPoint = new wxMenu();
-            for (size_t i = 0; i < xlights->viewpoint_mgr.GetNum3DCameras(); ++i)
+            for (int i = 0; i < xlights->viewpoint_mgr.GetNum3DCameras(); ++i)
             {
                 mnuViewPoint->Append(xlights->viewpoint_mgr.GetCamera3D(i)->GetDeleteMenuId(), xlights->viewpoint_mgr.GetCamera3D(i)->GetName());
             }
@@ -4192,7 +4195,7 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
     else {
         if (xlights->viewpoint_mgr.GetNum2DCameras() > 0) {
             wxMenu* mnuViewPoint = new wxMenu();
-            for (size_t i = 0; i < xlights->viewpoint_mgr.GetNum2DCameras(); ++i)
+            for (int i = 0; i < xlights->viewpoint_mgr.GetNum2DCameras(); ++i)
             {
                 mnuViewPoint->Append(xlights->viewpoint_mgr.GetCamera2D(i)->GetMenuId(), xlights->viewpoint_mgr.GetCamera2D(i)->GetName());
             }
@@ -4200,7 +4203,7 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
             mnuViewPoint->Connect(wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::OnPreviewModelPopup, nullptr, this);
 
             mnuViewPoint = new wxMenu();
-            for (size_t i = 0; i < xlights->viewpoint_mgr.GetNum2DCameras(); ++i)
+            for (int i = 0; i < xlights->viewpoint_mgr.GetNum2DCameras(); ++i)
             {
                 mnuViewPoint->Append(xlights->viewpoint_mgr.GetCamera2D(i)->GetDeleteMenuId(), xlights->viewpoint_mgr.GetCamera2D(i)->GetName());
             }
@@ -4507,7 +4510,7 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
     }
     else if (is_3d) {
         if (xlights->viewpoint_mgr.GetNum3DCameras() > 0) {
-            for (size_t i = 0; i < xlights->viewpoint_mgr.GetNum3DCameras(); ++i)
+            for (int i = 0; i < xlights->viewpoint_mgr.GetNum3DCameras(); ++i)
             {
                 if (event.GetId() == xlights->viewpoint_mgr.GetCamera3D(i)->GetMenuId())
                 {
@@ -4524,7 +4527,7 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
     }
     else {
         if (xlights->viewpoint_mgr.GetNum2DCameras() > 0) {
-            for (size_t i = 0; i < xlights->viewpoint_mgr.GetNum2DCameras(); ++i)
+            for (int i = 0; i < xlights->viewpoint_mgr.GetNum2DCameras(); ++i)
             {
                 if (event.GetId() == xlights->viewpoint_mgr.GetCamera2D(i)->GetMenuId())
                 {
