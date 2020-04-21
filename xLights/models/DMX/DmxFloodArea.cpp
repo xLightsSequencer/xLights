@@ -108,7 +108,7 @@ void DmxFloodArea::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccum
 
 }
 
-void DmxFloodArea::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va, const xlColor *c, float &sx, float &sy, float &sz, bool active)
+void DmxFloodArea::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator& va, const xlColor* c, float& sx, float& sy, float& sz, bool active)
 {
     if (!IsActive()) return;
 
@@ -130,8 +130,7 @@ void DmxFloodArea::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accu
 
     if (red_channel > NodeCount ||
         green_channel > NodeCount ||
-        blue_channel > NodeCount)
-    {
+        blue_channel > NodeCount) {
         return;
     }
 
@@ -160,7 +159,8 @@ void DmxFloodArea::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accu
     ApplyTransparency(beam_color, trans, trans);
     if (pixelStyle == 2) {
         ecolor = beam_color;
-    } else {
+    }
+    else {
         ecolor.alpha = 0;
     }
 
@@ -171,13 +171,14 @@ void DmxFloodArea::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accu
     if (shutter_open) {
         float halfwidth = rw / 2.0f;
         float halfheight = rh / 2.0f;
+        auto dist = std::min(halfwidth, halfheight);
         glm::mat4 translateToOrigin = glm::translate(glm::mat4(1.0f), glm::vec3(-sx, -sy, -sz));
         glm::mat4 translateBack = glm::translate(glm::mat4(1.0f), glm::vec3(sx, sy, sz));
         glm::mat4 RotationMatrix = glm::toMat4(rotation);
-        glm::vec4 top_lt_corner = glm::vec4(sx-halfwidth, sy+halfheight, 0.0f, 1.0f);
-        glm::vec4 top_rt_corner = glm::vec4(sx+halfwidth, sy+halfheight, 0.0f, 1.0f);
-        glm::vec4 bot_lt_corner = glm::vec4(sx-halfwidth, sy-halfheight, 0.0f, 1.0f);
-        glm::vec4 bot_rt_corner = glm::vec4(sx+halfwidth, sy-halfheight, 0.0f, 1.0f);
+        glm::vec4 top_lt_corner = glm::vec4(sx - halfwidth, sy + halfheight, sz + dist, 1.0f);
+        glm::vec4 top_rt_corner = glm::vec4(sx + halfwidth, sy + halfheight, sz + dist, 1.0f);
+        glm::vec4 bot_lt_corner = glm::vec4(sx - halfwidth, sy - halfheight, sz + dist, 1.0f);
+        glm::vec4 bot_rt_corner = glm::vec4(sx + halfwidth, sy - halfheight, sz + dist, 1.0f);
         top_lt_corner = translateBack * RotationMatrix * translateToOrigin * top_lt_corner;
         top_rt_corner = translateBack * RotationMatrix * translateToOrigin * top_rt_corner;
         bot_lt_corner = translateBack * RotationMatrix * translateToOrigin * bot_lt_corner;
