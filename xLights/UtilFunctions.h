@@ -144,6 +144,13 @@ inline bool EndsWith(const std::string& in, const std::string& endswith) noexcep
     return in.size() >= endswith.size() && in.substr(in.size() - endswith.size()) == endswith;
 }
 
+inline std::string AfterLast(const std::string& in, char c)
+{
+    auto pos = in.find_last_of(c);
+    if (pos == std::string::npos) return "";
+    return in.substr(pos+1);
+}
+
 inline void Replace(std::string& in, const std::string& what, const std::string& with)
 {
     auto pos = in.find(what);

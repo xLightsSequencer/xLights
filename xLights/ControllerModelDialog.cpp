@@ -378,6 +378,7 @@ protected:
     bool _outline = false;
     bool _main = false;
     std::string _displayName;
+    int _string = 0;
 public:
     ModelCMObject(const std::string& name, const std::string displayName, ModelManager* mm, UDController* cud, ControllerCaps* caps, wxPoint location, wxSize size, int style) :
         BaseCMObject(cud, caps, location, size, style), _mm(mm) {
@@ -386,6 +387,9 @@ public:
         _displayName = displayName;
         if (name != displayName && name + "-str-1" == displayName) {
             _main = true;
+        }
+        if (name != displayName) {
+            _string = wxAtoi(AfterLast(displayName, '-')) -1;
         }
     }
 
@@ -401,7 +405,7 @@ public:
     }
     UDControllerPortModel* GetUDModel() {
         if (_cud == nullptr) return nullptr;
-        return _cud->GetControllerPortModel(_name);
+        return _cud->GetControllerPortModel(_name, _string);
     }
     Model* GetModel() const {
         if (_main) {
@@ -869,7 +873,7 @@ void ControllerModelDialog::ReloadModels()
     int y = TOP_BOTTOM_MARGIN;
     for (const auto& it : *_mm) {
         if (it.second->GetDisplayAs() != "ModelGroup") {
-            if (_cud->GetControllerPortModel(it.second->GetName()) == nullptr &&
+            if (_cud->GetControllerPortModel(it.second->GetName(), 0) == nullptr &&
                 ((_autoLayout && !CheckBox_HideOtherControllerModels->GetValue()) ||
                  ((_autoLayout && CheckBox_HideOtherControllerModels->GetValue() && (it.second->GetController() == nullptr || _controller->ContainsChannels(it.second->GetFirstChannel(), it.second->GetLastChannel()))) ||
                  _controller->ContainsChannels(it.second->GetFirstChannel(), it.second->GetLastChannel())))) {

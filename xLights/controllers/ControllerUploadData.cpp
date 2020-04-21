@@ -232,11 +232,11 @@ Model* UDControllerPort::GetModelAfter(Model* m) const
     return nullptr;
 }
 
-UDControllerPortModel* UDControllerPort::GetModel(const std::string& modelName) const
+UDControllerPortModel* UDControllerPort::GetModel(const std::string& modelName, int str) const
 {
     for (const auto& it : _models)
     {
-        if (it->GetModel()->GetName() == modelName) return it;
+        if (it->GetModel()->GetName() == modelName && it->GetString() == str) return it;
     }
     return nullptr;
 }
@@ -880,16 +880,16 @@ UDControllerPort* UDController::GetControllerSerialPort(int port) {
     }
     return _serialPorts[port];
 }
-UDControllerPortModel* UDController::GetControllerPortModel(const std::string& modelName)
+UDControllerPortModel* UDController::GetControllerPortModel(const std::string& modelName, int str)
 {
     for (const auto& it : _pixelPorts)
     {
-        auto m = it.second->GetModel(modelName);
+        auto m = it.second->GetModel(modelName, str);
         if (m != nullptr) return m;
     }
     for (const auto& it : _serialPorts)
     {
-        auto m = it.second->GetModel(modelName);
+        auto m = it.second->GetModel(modelName, str);
         if (m != nullptr) return m;
     }
     return nullptr;

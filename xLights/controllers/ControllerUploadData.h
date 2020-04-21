@@ -81,6 +81,7 @@ public:
     int GetGroupCount(int currentGroupCount);
     std::string GetProtocol() const { return _protocol; }
     bool IsFirstModelString() const { return _string < 1; }
+    int GetString() const { return _string; }
 
     Model* GetModel() const { return _model; }
 
@@ -144,7 +145,7 @@ class UDControllerPort
     UDControllerPortModel* GetFirstModel() const;
     UDControllerPortModel* GetLastModel() const;
     Model* GetModelAfter(Model* m) const;
-    UDControllerPortModel* GetModel(const std::string& modelName) const;
+    UDControllerPortModel* GetModel(const std::string& modelName, int str) const;
     void AddModel(Model* m, Controller* controller, OutputManager* om, int string = 0, bool eliminateOverlaps = false);
     bool ContainsModel(Model* m) const;
     std::list<UDControllerPortModel*> GetModels() const { return _models; }
@@ -223,7 +224,7 @@ class UDController
     #pragma region Port Handling
     UDControllerPort* GetControllerPixelPort(int port);
 	UDControllerPort* GetControllerSerialPort(int port);
-    UDControllerPortModel* GetControllerPortModel(const std::string& modelName);
+    UDControllerPortModel* GetControllerPortModel(const std::string& modelName, int str);
     #pragma endregion
 
     #pragma region Getters and Setters
