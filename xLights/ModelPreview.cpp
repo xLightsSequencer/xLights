@@ -591,8 +591,8 @@ void ModelPreview::Render()
 
     // draw all the view objects
     if (is_3d && xlights != nullptr) {
-        for (auto it = xlights->AllObjects.begin(); it != xlights->AllObjects.end(); ++it) {
-            ViewObject* view_object = it->second;
+        for (const auto& it : xlights->AllObjects) {
+            ViewObject* view_object = it.second;
             view_object->Draw(this, solidViewObjectAccumulator, transparentViewObjectAccumulator, allowSelected);
         }
     }
@@ -618,8 +618,8 @@ void ModelPreview::Render(const unsigned char *data, bool swapBuffers/*=true*/) 
         }
         // draw all the view objects
         if (is_3d) {
-            for (auto it = xlights->AllObjects.begin(); it != xlights->AllObjects.end(); ++it) {
-                ViewObject *view_object = it->second;
+            for (const auto& it : xlights->AllObjects) {
+                ViewObject *view_object = it.second;
                 view_object->Draw(this, solidViewObjectAccumulator, transparentViewObjectAccumulator, allowSelected);
             }
         }
@@ -1138,6 +1138,7 @@ bool ModelPreview::StartDrawing(wxDouble pointSize, bool fromPaint)
                               (const char *)mBackgroundImage.c_str(),
                               (const char *)GetName().c_str());
             image = new Image(mBackgroundImage);
+            logger_base.debug("    Loaded.");
             sprite = new xLightsDrawable(image);
         }
         float scaleh = 1.0;

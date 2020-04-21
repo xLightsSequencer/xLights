@@ -467,7 +467,8 @@ void Mesh::loadObject(BaseObject* base) {
         std::string base_path = fn.GetPath();
         std::string err;
         tinyobj::LoadObj(&attrib, &shapes, &lines, &materials, &err, (char *)_objFile.c_str(), (char *)base_path.c_str());
-        
+        logger_base.debug("    Loaded.");
+
         // Append `default` material
         materials.push_back(tinyobj::material_t());
         

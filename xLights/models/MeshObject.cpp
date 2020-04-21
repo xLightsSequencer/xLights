@@ -382,14 +382,15 @@ void MeshObject::loadObject() {
     if (wxFileExists(_objFile)) {
         static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-        logger_base.debug("Loading mesh model %s file %s.",
+        logger_base.debug("Loading mesh model '%s' file '%s'.",
                           (const char *)GetName().c_str(),
                           (const char *)_objFile.c_str());
         wxFileName fn(_objFile);
         std::string base_path = fn.GetPath();
         std::string err;
         tinyobj::LoadObj(&attrib, &shapes, &lines, &materials, &err, (char *)_objFile.c_str(), (char *)base_path.c_str());
-        
+        logger_base.debug("    Loaded.");
+
         // Append `default` material
         materials.push_back(tinyobj::material_t());
         
