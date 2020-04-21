@@ -6828,6 +6828,13 @@ void LayoutPanel::OnSelectionChanged(wxTreeListEvent& event)
             Model *model = ((data != nullptr) ? data->GetModel() : nullptr);
             if (model != nullptr) {
                 wxASSERT(xlights->AllModels.IsModelValid(model));
+#ifdef __LINUX__
+                // This seems to happen only on Linux so prevent the crash
+                if (!xlights->AllModels.IsModelValid(model)) {
+                    logger_base.debug("LINUX ONLY Error: LayoutPanel::OnSelectionChanged Model is Not Valid pointer. This would have crashed. Ignoring.");
+                    return;
+                }
+#endif
                 if (model->GetDisplayAs() == "ModelGroup") {
                     mSelectedGroup = item;
                     ShowPropGrid(false);
