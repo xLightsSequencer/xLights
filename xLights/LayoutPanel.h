@@ -510,5 +510,7 @@ class LayoutPanel: public wxPanel
             xLightsFrame* xlights = nullptr;
         };
         ModelListComparator comparator;
+        bool zoom_gesture_active;
+        bool rotate_gesture_active;
 
 };

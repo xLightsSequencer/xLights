@@ -274,7 +274,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     mSelectedGroup(nullptr), currentLayoutGroup("Default"), pGrp(nullptr), backgroundFile(""), previewBackgroundScaled(false),
     previewBackgroundBrightness(100), previewBackgroundAlpha(100), m_polyline_active(false), mHitTestNextSelectModelIndex(0),
     ModelGroupWindow(nullptr), ViewObjectWindow(nullptr), editing_models(true), m_mouse_down(false), m_wheel_down(false),
-    selectionLatched(false), over_handle(-1), creating_model(false), mouse_state_set(false)
+    selectionLatched(false), over_handle(-1), creating_model(false), mouse_state_set(false), zoom_gesture_active(false), rotate_gesture_active(false)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -419,10 +419,10 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     modelPreview->Connect(wxEVT_MIDDLE_UP, (wxObjectEventFunction)&LayoutPanel::OnPreviewMouseWheelUp, nullptr, this);
     modelPreview->Connect(wxEVT_MAGNIFY, (wxObjectEventFunction)&LayoutPanel::OnPreviewMagnify, nullptr, this);
 
-    modelPreview->EnableTouchEvents(wxTOUCH_ROTATE_GESTURE | wxTOUCH_ZOOM_GESTURE);
-    modelPreview->Connect(wxEVT_GESTURE_ROTATE, (wxObjectEventFunction)&LayoutPanel::OnPreviewRotateGesture, nullptr, this);
-    modelPreview->Connect(wxEVT_GESTURE_ZOOM, (wxObjectEventFunction)&LayoutPanel::OnPreviewZoomGesture, nullptr, this);
-
+    if (modelPreview->EnableTouchEvents(wxTOUCH_ROTATE_GESTURE | wxTOUCH_ZOOM_GESTURE)) {
+        modelPreview->Connect(wxEVT_GESTURE_ROTATE, (wxObjectEventFunction)&LayoutPanel::OnPreviewRotateGesture, nullptr, this);
+        modelPreview->Connect(wxEVT_GESTURE_ZOOM, (wxObjectEventFunction)&LayoutPanel::OnPreviewZoomGesture, nullptr, this);
+    }
 
     propertyEditor = new wxPropertyGrid(ModelSplitter,
                                         wxID_ANY, // id
@@ -3499,6 +3499,14 @@ void LayoutPanel::OnPreviewMouseWheelUp(wxMouseEvent& event)
     m_wheel_down = false;
 }
 void LayoutPanel::OnPreviewRotateGesture(wxRotateGestureEvent& event) {
+    if (!rotate_gesture_active && !event.IsGestureStart()) {
+        return;
+    }
+    if (event.IsGestureEnd()) {
+        rotate_gesture_active = false;
+    } else if (event.IsGestureStart()) {
+        rotate_gesture_active = true;
+    }
     if (selectedBaseObject != nullptr) {
         //rotate model
         float delta = (m_last_mouse_x - (event.GetRotationAngle() * 1000)) / 1000.0;
@@ -3532,6 +3540,14 @@ void LayoutPanel::OnPreviewRotateGesture(wxRotateGestureEvent& event) {
 }
 
 void LayoutPanel::OnPreviewZoomGesture(wxZoomGestureEvent& event) {
+    if (!zoom_gesture_active && !event.IsGestureStart()) {
+        return;
+    }
+    if (event.IsGestureEnd()) {
+        zoom_gesture_active = false;
+    } else if (event.IsGestureStart()) {
+        zoom_gesture_active = true;
+    }
     float delta = (m_last_mouse_x - (event.GetZoomFactor() * 1000)) / 1000.0;
     if (selectedBaseObject != nullptr) {
         if (!event.IsGestureStart()) {
