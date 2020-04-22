@@ -63,11 +63,12 @@ Instructions for other Linux distributions will vary.
      libportmidi-dev
      libzstd-dev
      libcurl4-openssl-dev
+     libltc-dev
      cbp2make (optional but recommended if compiling from git)
 
      Example command to install packages on Ubuntu
 
-     sudo apt-get install g++ gcc build-essential libgtk-3-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev freeglut3-dev libavcodec-dev libavformat-dev libswscale-dev libsdl2-dev libswresample-dev libavutil-dev libavresample-dev libportmidi-dev libzstd-dev libcurl4-openssl-dev wget git cbp2make
+     sudo apt-get install g++ gcc build-essential libgtk-3-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev freeglut3-dev libavcodec-dev libavformat-dev libswscale-dev libsdl2-dev libswresample-dev libavutil-dev libavresample-dev libportmidi-dev libzstd-dev libcurl4-openssl-dev libltc-dev wget git cbp2make
 
      Example commands to install packages on Fedora 31
 
