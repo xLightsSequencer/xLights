@@ -1,7 +1,16 @@
-#ifndef CONFIGUREOSC_H
-#define CONFIGUREOSC_H
+#pragma once
 
-//(*Headers(ConfigureOSC)
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
+ //(*Headers(ConfigureOSC)
 #include <wx/button.h>
 #include <wx/checkbox.h>
 #include <wx/choice.h>
@@ -17,7 +26,7 @@ class OSCOptions;
 
 class ConfigureOSC: public wxDialog
 {
-    OSCOptions* _oscOptions;
+    OSCOptions* _oscOptions = nullptr;
 
     void ValidateWindow();
     bool IsValidPath() const;
@@ -89,5 +98,3 @@ class ConfigureOSC: public wxDialog
 
 		DECLARE_EVENT_TABLE()
 };
-
-#endif

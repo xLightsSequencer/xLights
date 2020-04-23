@@ -1,8 +1,16 @@
-#ifndef CIRCLEMODEL_H
-#define CIRCLEMODEL_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 #include "Model.h"
-
 
 class CircleModel : public ModelWithScreenLocation<BoxedScreenLocation>
 {
@@ -35,7 +43,5 @@ class CircleModel : public ModelWithScreenLocation<BoxedScreenLocation>
         int maxSize();
 
         std::vector<int> circleSizes;
-        bool insideOut;
+        bool insideOut = false;
 };
-
-#endif // CIRCLEMODEL_H

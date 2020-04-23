@@ -1,7 +1,16 @@
-#ifndef BULKEDITFONTPICKERDIALOG_H
-#define BULKEDITFONTPICKERDIALOG_H
+#pragma once
 
-//(*Headers(BulkEditFontPickerDialog)
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
+ //(*Headers(BulkEditFontPickerDialog)
 #include <wx/button.h>
 #include <wx/dialog.h>
 #include <wx/fontpicker.h>
@@ -42,5 +51,3 @@ class BulkEditFontPickerDialog: public wxDialog
 
 		DECLARE_EVENT_TABLE()
 };
-
-#endif

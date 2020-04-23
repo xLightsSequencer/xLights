@@ -1,5 +1,14 @@
-#ifndef OUTPUTPROCESSSET_H
-#define OUTPUTPROCESSSET_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 #include "OutputProcess.h"
 
@@ -21,5 +30,3 @@ class OutputProcessSet : public OutputProcess
         virtual size_t GetP2() const override { return _value; }
         virtual std::string GetType() const override { return "Set"; }
 };
-
-#endif

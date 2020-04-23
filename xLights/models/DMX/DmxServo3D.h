@@ -1,5 +1,14 @@
-#ifndef DMXSERVO3D_H
-#define DMXSERVO3D_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 #include "DmxModel.h"
 
@@ -51,6 +60,4 @@ class DmxServo3d : public DmxModel
         int servo_links[SUPPORTED_SERVOS];
         int mesh_links[SUPPORTED_SERVOS];
 };
-
-#endif // DMXSERVO3D_H
 

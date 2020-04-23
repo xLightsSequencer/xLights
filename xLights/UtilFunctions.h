@@ -84,6 +84,7 @@ double ScaleWithSystemDPI(double val);
 double ScaleWithSystemDPI(double scalingFactor, double val);
 double UnScaleWithSystemDPI(double val);
 double UnScaleWithSystemDPI(double scalingFactor, double val);
+void EnsureWindowHeaderIsOnScreen(wxWindow* win);
 
 inline bool isHexChar(char c)
 {

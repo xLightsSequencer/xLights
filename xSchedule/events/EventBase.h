@@ -1,7 +1,16 @@
-#ifndef EVENTBASE_H
-#define EVENTBASE_H
+#pragma once
 
-// Artnet channel
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
+ // Artnet channel
 // E131 channel
 // DMX Serial channel
 // OSC Path
@@ -73,4 +82,3 @@ class EventBase
         bool EvaluateCondition(uint8_t value);
         static std::string DefaultParmTooltip();
 };
-#endif

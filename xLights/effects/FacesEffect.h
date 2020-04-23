@@ -1,5 +1,14 @@
-#ifndef FACESEFFECT_H
-#define FACESEFFECT_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 #include "RenderableEffect.h"
 
@@ -34,5 +43,3 @@ private:
         const std::string& Phoneme, const std::string& track, const std::string& eyes, bool face_outline, bool transparentBlack, int transparentBlackLevel, bool suppressIfNotSinging);
     std::string MakeKey(int bufferWi, int bufferHt, std::string dirstr, std::string picture, std::string stf);
 };
-
-#endif // FACESEFFECT_H

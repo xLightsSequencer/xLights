@@ -1,5 +1,14 @@
-#ifndef EVENTLOR_H
-#define EVENTLOR_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 #include "EventSerial.h"
 
@@ -21,5 +30,3 @@ class EventLor: public EventSerial
         //virtual void Process(const std::string& commPort, uint8_t* buffer, long buffersize, ScheduleManager* scheduleManager) override;
         static std::string GetParmToolTip();
 };
-
-#endif

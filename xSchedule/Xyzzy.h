@@ -1,5 +1,14 @@
-#ifndef XYZZY_H
-#define XYZZY_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 #include <wx/wx.h>
 #include <list>
@@ -238,5 +247,3 @@ public:
     virtual bool Action(const wxString& command, const wxString& parameters, wxString& result, const wxString& reference) override;
     virtual void Initialise(const wxString& parameters, wxString& result, const wxString& reference, OutputManager* om) override;
 };
-
-#endif

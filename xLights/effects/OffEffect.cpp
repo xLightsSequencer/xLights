@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include <sstream>
 
 #include "OffEffect.h"
@@ -49,8 +59,8 @@ void OffEffect::SetDefaultParameters() {
     p->CheckBox_Transparent->SetValue(false);
 }
 
-void OffEffect::Render(Effect *effect, SettingsMap &settings, RenderBuffer &buffer) {
-
+void OffEffect::Render(Effect* effect, SettingsMap& settings, RenderBuffer& buffer)
+{
     // dont change any pixels at all if we are transparent
     if (settings.GetBool("CHECKBOX_Off_Transparent", false)) return;
 
@@ -64,7 +74,7 @@ void OffEffect::Render(Effect *effect, SettingsMap &settings, RenderBuffer &buff
 
 std::string OffEffect::GetEffectString()
 {
-    OffPanel *p = (OffPanel*)panel;
+    OffPanel* p = (OffPanel*)panel;
     std::stringstream ret;
     if (p->CheckBox_Transparent->GetValue()) {
         ret << "E_CHECKBOX_Off_Transparent=1,";

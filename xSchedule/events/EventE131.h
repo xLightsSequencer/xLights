@@ -1,5 +1,14 @@
-#ifndef EVENTE131_H
-#define EVENTE131_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 #include "EventBase.h"
 
@@ -22,5 +31,3 @@ class EventE131: public EventBase
         virtual void Process(int universe, uint8_t* buffer, long buffersize, ScheduleManager* scheduleManager) override;
         static std::string GetParmToolTip();
 };
-
-#endif

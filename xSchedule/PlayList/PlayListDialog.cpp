@@ -44,6 +44,7 @@
 #include "PlayListItemDim.h"
 #include "PlayListItemProjector.h"
 #include "PlayListItemARTNetTrigger.h"
+#include "../../xLights/UtilFunctions.h"
 
 #include "../xLights/osxMacUtils.h"
 
@@ -210,6 +211,7 @@ PlayListDialog::PlayListDialog(wxWindow* parent, OutputManager* outputManager, P
     h = config->ReadLong(_("xsPLWindowPosH"), 600);
     SetPosition(wxPoint(x, y));
     SetSize(w, h);
+    EnsureWindowHeaderIsOnScreen(this);
 
     // save the current state in case the user cancels
     _savedState = new PlayList(*playlist);

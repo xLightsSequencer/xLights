@@ -1090,6 +1090,22 @@ int GetxFadePort(int xfp)
     return xfp + 49912;
 }
 
+void EnsureWindowHeaderIsOnScreen(wxWindow* win)
+{
+    int headerHeight = wxSystemSettings::GetMetric(wxSystemMetric::wxSYS_CAPTION_Y, win);
+    wxSize size = win->GetSize();
+    wxPoint pos = win->GetPosition();
+
+    if (wxDisplay::GetFromPoint(wxPoint(pos.x, pos.y)) < 0 &&
+        wxDisplay::GetFromPoint(wxPoint(pos.x, pos.y + headerHeight)) < 0 &&
+        wxDisplay::GetFromPoint(wxPoint(pos.x + size.x, pos.y)) < 0 &&
+        wxDisplay::GetFromPoint(wxPoint(pos.x + size.x, pos.y + headerHeight)) < 0) {
+        
+        // window header is not on screen
+        win->Move(0, 0);
+    }
+}
+
 void OptimiseDialogPosition(wxDialog* dlg)
 {
     wxPoint pos = wxGetMousePosition();
@@ -1111,6 +1127,7 @@ void OptimiseDialogPosition(wxDialog* dlg)
     }
 
     dlg->SetPosition(pos);
+    EnsureWindowHeaderIsOnScreen(dlg);
 }
 
 wxString xLightsRequest(int xFadePort, wxString message, wxString ipAddress)

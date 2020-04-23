@@ -1,5 +1,14 @@
-#ifndef CRASHHANDLER_H
-#define CRASHHANDLER_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 #ifdef __WXMSW__
     #include <wx/textfile.h>
@@ -306,6 +315,4 @@ wxString windows_get_stacktrace(void* data)
         }
     #endif // _WIN64
 #endif
-#endif
-
 #endif

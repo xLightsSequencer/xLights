@@ -1,5 +1,14 @@
-#ifndef BULKEDITCONTROLS_H
-#define BULKEDITCONTROLS_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 #include <wx/slider.h>
 #include <wx/textctrl.h>
@@ -277,4 +286,3 @@ BulkEditSlider* GetSettingSliderControl(wxWindow* w, std::string ourName, std::s
 bool IsSliderTextPair(wxWindow* w, wxString ourName, wxString ourType);
 bool IsBulkEditAvailable(wxWindow* w, bool requireOneElement = false);
 
-#endif

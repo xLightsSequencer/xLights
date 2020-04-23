@@ -1,5 +1,15 @@
-#ifndef SCHEDULEOPTIONS_H
-#define SCHEDULEOPTIONS_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include <list>
 #include <string>
 #include <vector>
@@ -154,20 +164,20 @@ public:
 
 class ScheduleOptions
 {
-    bool _advancedMode;
-	bool _sync;
-    int _changeCount;
-    int _lastSavedChangeCount;
-    bool _sendOffWhenNotRunning;
-    bool _sendBackgroundWhenNotRunning;
-    bool _webAPIOnly;
-    int _port;
+    bool _advancedMode = false;
+	bool _sync = false;
+    int _changeCount = 0;
+    int _lastSavedChangeCount = 0;
+    bool _sendOffWhenNotRunning = false;
+    bool _sendBackgroundWhenNotRunning = false;
+    bool _webAPIOnly = false;
+    int _port = 80;
     int _remoteLatency = 0;
     int _remoteAcceptableJitter = 20;
     std::string _wwwRoot;
     std::string _password;
     std::string _crashBehaviour;
-    int _passwordTimeout;
+    int _passwordTimeout = 0;
     std::vector<UserButton*> _buttons;
     std::list<MatrixMapper*> _matrices;
     std::list<VirtualMatrix*> _virtualMatrices;
@@ -181,7 +191,7 @@ class ScheduleOptions
     std::string _city;
     std::string _MIDITimecodeDevice;
     TIMECODEFORMAT _MIDITimecodeFormat;
-    size_t _MIDITimecodeOffset;
+    size_t _MIDITimecodeOffset = 0;
     std::list<ExtraIP*> _extraIPs;
     bool _parallelTransmission;
     bool _remoteAllOff;
@@ -276,4 +286,3 @@ class ScheduleOptions
         TestOptions* GetTestOptions() const { return _testOptions; }
 };
 
-#endif

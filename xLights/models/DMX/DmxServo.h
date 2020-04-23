@@ -1,5 +1,14 @@
-#ifndef DMXSERVO_H
-#define DMXSERVO_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 #include "DmxModel.h"
 
@@ -41,5 +50,3 @@ class DmxServo : public DmxModel
         std::vector<DmxImage*> motion_images;
         std::vector<Servo*> servos;
 };
-
-#endif // DMXSERVO_H

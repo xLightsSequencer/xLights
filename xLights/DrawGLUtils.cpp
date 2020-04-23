@@ -1,7 +1,14 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
-
-#include "wx/wx.h"
-
+#include <wx/wx.h>
 
 #ifdef __WXMAC__
  #include "OpenGL/gl.h"
@@ -1961,7 +1968,7 @@ void DrawGLUtils::DrawBoundingBox(xlColor c, glm::vec3& min_pt, glm::vec3& max_p
     va.Finish(GL_LINES, GL_LINE_SMOOTH, 1.7f);
 }
 
-void DrawGLUtils::DrawBoundingBox(xlColor c, glm::vec3& min_pt, glm::vec3& max_pt, glm::mat4& bound_matrix, DrawGLUtils::xlAccumulator &va)
+void DrawGLUtils::DrawBoundingBox(xlColor c, glm::vec3& min_pt, glm::vec3& max_pt, glm::mat4& bound_matrix, DrawGLUtils::xlAccumulator& va)
 {
     glm::vec4 c1(min_pt.x, max_pt.y, 1.0f, 1.0f);
     glm::vec4 c2(max_pt.x, max_pt.y, 1.0f, 1.0f);

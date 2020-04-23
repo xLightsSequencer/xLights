@@ -1,5 +1,14 @@
-#ifndef CANDLEEFFECT_H
-#define CANDLEEFFECT_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 #include "RenderableEffect.h"
 
@@ -27,5 +36,3 @@ protected:
         virtual wxPanel *CreatePanel(wxWindow *parent) override;
         void Update(wxByte& flameprime, wxByte& flame, wxByte& wind, size_t windVariability, size_t flameAgility, size_t windCalmness, size_t windBaseline);
 };
-
-#endif // CANDLEEFFECT_H

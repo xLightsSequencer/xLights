@@ -313,7 +313,6 @@
     <ClCompile Include="DataLayer.cpp" />
     <ClCompile Include="DimmingCurve.cpp" />
     <ClCompile Include="DimmingCurvePanel.cpp" />
-    <ClCompile Include="djdebug.cpp" />
     <ClCompile Include="DrawGLUtils.cpp" />
     <ClCompile Include="DrawGLUtils31.cpp" />
     <ClCompile Include="outputs\Controller.cpp" />

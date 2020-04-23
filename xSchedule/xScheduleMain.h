@@ -1,14 +1,14 @@
-/***************************************************************
- * Name:      xScheduleMain.h
- * Purpose:   Defines Application Frame
- * Author:    xLights ()
- * Created:   2016-12-30
- * Copyright: xLights (http://xlights.org)
- * License:
- **************************************************************/
+#pragma once
 
-#ifndef XSCHEDULEMAIN_H
-#define XSCHEDULEMAIN_H
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 class BrightnessControl;
 
@@ -411,5 +411,3 @@ public:
 
         void OnPluginMenu(wxCommandEvent& event);
 };
-
-#endif // XSCHEDULEMAIN_H

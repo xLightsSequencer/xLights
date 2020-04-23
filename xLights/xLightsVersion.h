@@ -1,7 +1,16 @@
-#ifndef XLIGHTSVERSION_H
-#define XLIGHTSVERSION_H
+#pragma once
 
-// Update these before building a release
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
+ // Update these before building a release
 
 #if __has_include("xlights_build_version.h")
 #include "xlights_build_version.h"
@@ -13,5 +22,3 @@ static const wxString xlights_build_date      = "April 17, 2020";
 	
 const wxString &GetBitness();
 wxString GetDisplayVersionString();
-
-#endif

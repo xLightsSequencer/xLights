@@ -1,7 +1,16 @@
-#ifndef SCHEDULEDIALOG_H
-#define SCHEDULEDIALOG_H
+#pragma once
 
-//(*Headers(ScheduleDialog)
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
+ //(*Headers(ScheduleDialog)
 #include <wx/button.h>
 #include <wx/checkbox.h>
 #include <wx/choice.h>
@@ -142,4 +151,3 @@ class ScheduleDialog: public wxDialog
 		DECLARE_EVENT_TABLE()
 };
 
-#endif

@@ -1,7 +1,16 @@
-#ifndef COLORPANEL_H
-#define COLORPANEL_H
+#pragma once
 
-//(*Headers(ColorPanel)
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
+ //(*Headers(ColorPanel)
 #include <wx/bmpbuttn.h>
 #include <wx/button.h>
 #include <wx/checkbox.h>
@@ -203,5 +212,3 @@ public:
 		DECLARE_EVENT_TABLE()
 
 };
-
-#endif

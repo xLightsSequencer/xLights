@@ -1,5 +1,14 @@
-#ifndef GIFIMAGE_H
-#define GIFIMAGE_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 #include <string>
 #include <list>
@@ -16,12 +25,12 @@ class GIFImage
     std::list<wxPoint> _frameOffsets;
     wxColour _backgroundColour;
     wxSize _gifSize;
-	long _totalTime;
-    int _lastFrame;
-    bool _suppressBackground;
+	long _totalTime = 0;
+    int _lastFrame = 0;
+    bool _suppressBackground = false;
     std::string _filename;
     wxAnimationDisposal _lastDispose;
-    bool _ok;
+    bool _ok = false;
 	
 	void ReadFrameProperties();
     int CalcFrameForTime(int msec, bool loop);
@@ -40,5 +49,3 @@ class GIFImage
 
 		static bool IsGIF(const std::string& filename);
 };
-
-#endif

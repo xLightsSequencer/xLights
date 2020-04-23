@@ -1,5 +1,14 @@
-#ifndef VIDEOREADER_H
-#define VIDEOREADER_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 #include <wx/wx.h>
 #include <string>
@@ -42,11 +51,11 @@ private:
     
     int _maxwidth = 0;
     int _maxheight = 0;
-	bool _valid;
-    double _lengthMS;
-    double _dtspersec;
-    long _frames;
-    int _frameMS;
+	bool _valid = false;
+    double _lengthMS = 0;
+    double _dtspersec = 0;
+    long _frames = 0;
+    int _frameMS = 50;
     int _keyFrameCount = 20;
     bool _wantAlpha = false;
 	AVFormatContext* _formatContext = nullptr;
@@ -54,14 +63,14 @@ private:
 	AVStream* _videoStream = nullptr;
     AVCodec* _decoder = nullptr;
     AVBufferRef* _hw_device_ctx = nullptr;
-	int _streamIndex;
-	int _width;
-	int _height;
+	int _streamIndex = 0;
+	int _width = 0;
+	int _height = 0;
 	AVFrame* _dstFrame = nullptr; // the last frame
     AVFrame* _dstFrame2 = nullptr; // the second to the last frame
     AVFrame* _srcFrame = nullptr; // the src frame
     AVFrame* _srcFrame2 = nullptr; // the src frame
-    int _curPos;
+    int _curPos = 0;
     SwsContext *_swsCtx = nullptr;
     AVPacket _packet;
 	AVPixelFormat _pixelFmt;
@@ -74,4 +83,3 @@ private:
     std::list<D3DTEXTUREFILTERTYPE> _dxva2_filters = { D3DTEXF_ANISOTROPIC, D3DTEXF_PYRAMIDALQUAD, D3DTEXF_GAUSSIANQUAD, D3DTEXF_LINEAR, D3DTEXF_POINT, D3DTEXF_NONE };
 #endif
 };
-#endif // VIDEOREADER_H

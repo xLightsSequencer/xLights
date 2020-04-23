@@ -1,5 +1,15 @@
-#ifndef SCHEDULEMANAGER_H
-#define SCHEDULEMANAGER_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include <list>
 #include <string>
 #include <wx/wx.h>
@@ -63,15 +73,15 @@ class ScheduleManager
     int _mode = (int)SYNCMODE::STANDALONE;
     REMOTEMODE _remoteMode = REMOTEMODE::DISABLED;
     bool _testMode = false;
-    int _manualOTL;
+    int _manualOTL = 0;
     std::string _showDir;
-    int _lastSavedChangeCount;
-    int _changeCount;
+    int _lastSavedChangeCount = 0;
+    int _changeCount = 0;
 	std::list<PlayList*> _playLists;
     ScheduleOptions* _scheduleOptions;
     OutputManager* _outputManager;
     uint8_t* _buffer = nullptr;
-    wxUint32 _startTime;
+    wxUint32 _startTime = 0;
     PlayList* _immediatePlay = nullptr;
     PlayList* _backgroundPlayList = nullptr;
     std::list<PlayList*> _eventPlayLists;
@@ -81,8 +91,8 @@ class ScheduleManager
     PlayList* _queuedSongs = nullptr;
     std::list<RunningSchedule*> _activeSchedules;
     wxThreadIdType _mainThread;
-    int _brightness;
-    int _lastBrightness;
+    int _brightness = 0;
+    int _lastBrightness = 0;
     uint8_t _brightnessArray[256];
     wxMidiOutDevice* _midiMaster = nullptr;
     wxDatagramSocket* _fppSyncMaster = nullptr;
@@ -90,10 +100,10 @@ class ScheduleManager
     wxDatagramSocket* _fppSyncMasterUnicast = nullptr;
     std::list<OutputProcess*> _outputProcessing;
     ListenerManager* _listenerManager = nullptr;
-    XyzzyBase* _xyzzy;
+    XyzzyBase* _xyzzy = nullptr;
     wxDateTime _lastXyzzyCommand;
-    int _timerAdjustment;
-    bool _webRequestToggle;
+    int _timerAdjustment = 0;
+    bool _webRequestToggle = false;
     Pinger* _pinger = nullptr;
     std::unique_ptr<SyncManager> _syncManager = nullptr;
 
@@ -214,4 +224,3 @@ class ScheduleManager
         bool IsTest() const;
         void SetTestMode(bool test) { _testMode = test; if (!test) AllOff(); }
 };
-#endif

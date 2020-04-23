@@ -752,6 +752,7 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
 
     SetPosition(wxPoint(x, y));
     SetSize(w, h);
+    EnsureWindowHeaderIsOnScreen(this);
 
     logger_base.debug("xSchedule UI %d,%d %dx%d.", x, y, w, h);
 
