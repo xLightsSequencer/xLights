@@ -606,7 +606,7 @@ void ModelFaceDialog::DoSetPhonemes(wxFileName fn, std::string actualkey, std::s
     for (auto it = phonemes.begin(); it != phonemes.end(); ++it)
     {
         wxFileName fn2 = GetFileNamePhoneme(fn, actualkey, count, *it);
-        if (fn2.Exists() && faceData[name][GenerateKey(col, setPhoneme)] == "")
+        if (fn2.Exists() && (faceData[name][GenerateKey(col, setPhoneme)] == "" || !wxFileName::FileExists(faceData[name][GenerateKey(col, setPhoneme)])))
         {
             faceData[name][GenerateKey(col, setPhoneme)] = fn2.GetFullPath();
             MatrixModelsGrid->SetCellValue(row, col, fn2.GetFullPath());
