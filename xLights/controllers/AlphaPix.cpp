@@ -768,6 +768,9 @@ bool AlphaPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
         wxMilliSleep(5000);
     }
 
+    if(!worked)
+        logger_base.error("Error Uploading to AlphaPix controller, Page HTML:%s.", (const char*)_page.c_str());
+
     return worked;
 }
 
