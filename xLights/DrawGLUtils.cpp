@@ -1684,13 +1684,16 @@ public:
     }
 
     void Populate(float x, float yBase, const std::string &text, float factor, DrawGLUtils::xlVertexTextureAccumulator &va) {
+
+        if (widths.size() == 0) return;
+
         va.PreAlloc(6 * text.size());
         va.id = currentCache->GetTextureId(fontIdx);
         //DrawGLUtils::DrawLine(xlBLUE, 255, x, yBase, x+3, yBase, 1);
         //DrawGLUtils::DrawLine(xlBLUE, 255, x, yBase - (float(maxH) + 2) / factor, x+3, yBase - (float(maxH) + 2) / factor, 1);
         for (int idx = 0; idx < text.size(); idx++) {
             char ch = text[idx];
-            if (ch < ' ' && ch > '~') {
+            if (ch < ' ' || ch > '~') {
                 ch = '?';
             }
             if (ch == ' ') {
