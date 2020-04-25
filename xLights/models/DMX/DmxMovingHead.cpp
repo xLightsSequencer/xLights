@@ -29,6 +29,7 @@ DmxMovingHead::DmxMovingHead(wxXmlNode *node, const ModelManager &manager, bool 
   : DmxModel(node, manager, zeroBased), hide_body(false), style_changed(false), dmx_style("MOVING_HEAD_TOP"),
     dmx_style_val(0), beam_length(4)
 {
+    beam_width = GetDefaultBeamWidth();
     color_ability = this;
     SetFromXml(node, zeroBased);
 }
@@ -133,13 +134,21 @@ void DmxMovingHead::AddTypeProperties(wxPropertyGridInterface *grid) {
 
     p = grid->Append(new wxFloatProperty("Beam Display Length", "DmxBeamLength", beam_length));
     p->SetAttribute("Min", 0);
-    p->SetAttribute("Max", 10);
+    p->SetAttribute("Max", 100);
+    p->SetAttribute("Precision", 2);
+    p->SetAttribute("Step", 0.1);
+    p->SetEditor("SpinCtrl");
+
+    p = grid->Append(new wxFloatProperty("Beam Display Width", "DmxBeamWidth", beam_width));
+    p->SetAttribute("Min", 0.01);
+    p->SetAttribute("Max", 150);
     p->SetAttribute("Precision", 2);
     p->SetAttribute("Step", 0.1);
     p->SetEditor("SpinCtrl");
 }
 
-int DmxMovingHead::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
+int DmxMovingHead::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event)
+{
 
     if (OnColorPropertyGridChange(grid, event, ModelXml, this) == 0) {
         return 0;
@@ -156,20 +165,25 @@ int DmxMovingHead::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropert
     if ("DmxStyle" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxStyle");
         dmx_style_val = event.GetPropertyValue().GetLong();
-        if( dmx_style_val == DMX_STYLE_MOVING_HEAD_TOP ) {
+        if (dmx_style_val == DMX_STYLE_MOVING_HEAD_TOP) {
             dmx_style = "Moving Head Top";
-        } else if( dmx_style_val == DMX_STYLE_MOVING_HEAD_SIDE ) {
+        }
+        else if (dmx_style_val == DMX_STYLE_MOVING_HEAD_SIDE) {
             dmx_style = "Moving Head Side";
-        } else if( dmx_style_val == DMX_STYLE_MOVING_HEAD_BARS ) {
+        }
+        else if (dmx_style_val == DMX_STYLE_MOVING_HEAD_BARS) {
             dmx_style = "Moving Head Bars";
-        } else if( dmx_style_val == DMX_STYLE_MOVING_HEAD_TOP_BARS ) {
+        }
+        else if (dmx_style_val == DMX_STYLE_MOVING_HEAD_TOP_BARS) {
             dmx_style = "Moving Head TopBars";
-        } else if( dmx_style_val == DMX_STYLE_MOVING_HEAD_SIDE_BARS ) {
+        }
+        else if (dmx_style_val == DMX_STYLE_MOVING_HEAD_SIDE_BARS) {
             dmx_style = "Moving Head SideBars";
-        } else if (dmx_style_val == DMX_STYLE_MOVING_HEAD_3D) {
+        }
+        else if (dmx_style_val == DMX_STYLE_MOVING_HEAD_3D) {
             dmx_style = "Moving Head 3D";
         }
-        ModelXml->AddAttribute("DmxStyle", dmx_style );
+        ModelXml->AddAttribute("DmxStyle", dmx_style);
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DMXModel::OnPropertyGridChange::DMXStyle");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DMXModel::OnPropertyGridChange::DMXStyle");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DMXModel::OnPropertyGridChange::DMXStyle");
@@ -178,22 +192,31 @@ int DmxMovingHead::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropert
         AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "DMXModel::OnPropertyGridChange::DMXStyle");
         AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "DMXModel::OnPropertyGridChange::DMXStyle");
         return 0;
-    } else if ("HideBody" == event.GetPropertyName()) {
+    }
+    else if ("HideBody" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("HideBody");
-        if (event.GetPropertyValue().GetBool())
-        {
+        if (event.GetPropertyValue().GetBool()) {
             ModelXml->AddAttribute("HideBody", "True");
         }
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DMXModel::OnPropertyGridChange::HideBody");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DMXModel::OnPropertyGridChange::HideBody");
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DMXModel::OnPropertyGridChange::HideBody");
         return 0;
-    } else if ("DmxBeamLength" == event.GetPropertyName()) {
+    }
+    else if ("DmxBeamLength" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxBeamLength");
         ModelXml->AddAttribute("DmxBeamLength", wxString::Format("%6.4f", (float)event.GetPropertyValue().GetDouble()));
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DMXModel::OnPropertyGridChange::DMXBeamLength");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DMXModel::OnPropertyGridChange::DMXBeamLength");
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DMXModel::OnPropertyGridChange::DMXBeamLength");
+        return 0;
+    }
+    else if ("DmxBeamWidth" == event.GetPropertyName()) {
+        ModelXml->DeleteAttribute("DmxBeamWidth");
+        ModelXml->AddAttribute("DmxBeamWidth", wxString::Format("%6.4f", (float)event.GetPropertyValue().GetDouble()));
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DMXModel::OnPropertyGridChange::DMXBeamWidth");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DMXModel::OnPropertyGridChange::DMXBeamWidth");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DMXModel::OnPropertyGridChange::DMXBeamWidth");
         return 0;
     }
 
@@ -228,6 +251,10 @@ void DmxMovingHead::InitModel() {
 	shutter_channel = wxAtoi(ModelXml->GetAttribute("DmxShutterChannel", "0"));
 	shutter_threshold = wxAtoi(ModelXml->GetAttribute("DmxShutterOpen", "1"));
 	beam_length = wxAtof(ModelXml->GetAttribute("DmxBeamLength", "4.0"));
+    beam_width = GetDefaultBeamWidth();
+    if (ModelXml->HasAttribute("DmxBeamWidth")) {
+        beam_width = wxAtof(ModelXml->GetAttribute("DmxBeamWidth"));
+    }
 
     dmx_style_val = DMX_STYLE_MOVING_HEAD_TOP;
     if( dmx_style == "Moving Head Side" ) {
@@ -419,7 +446,6 @@ void DmxMovingHead::DrawModel(ModelPreview* preview, DrawGLUtils::xlAccumulator&
         tilt_pos /= 2;
     }
 
-    float beam_width = 30.0f;
     beam_length_displayed = scale * sf * beam_length;
     angle1 = angle - beam_width / 2.0f;
     angle2 = angle + beam_width / 2.0f;
