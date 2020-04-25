@@ -30,6 +30,7 @@ class DmxMovingHead3D : public DmxMovingHead
         virtual void DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va, const xlColor *c, float &sx, float &sy, float &sz, bool active) override;
 
         virtual void DisableUnusedProperties(wxPropertyGridInterface* grid) override;
+        virtual float GetDefaultBeamWidth() const override { return 1.5f; }
 
     private:
         void DrawModel(ModelPreview* preview, DrawGLUtils::xlAccumulator& va2, DrawGLUtils::xl3Accumulator& va3, const xlColor* c, float& sx, float& sy, float& sz, bool active, bool is_3d);

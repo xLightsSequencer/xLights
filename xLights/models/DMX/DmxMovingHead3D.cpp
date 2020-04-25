@@ -350,7 +350,6 @@ void DmxMovingHead3D::DrawModel(ModelPreview* preview, DrawGLUtils::xlAccumulato
     state.push_back(std::to_string(tilt_angle));
     SaveModelState(state);
 
-    float beam_width = 1.5;
     beam_length_displayed = beam_scale * beam_length;
 
     // determine if shutter is open for heads that support it
