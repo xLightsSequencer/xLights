@@ -2038,16 +2038,21 @@ void xLightsFrame::UploadInputToController(ControllerEthernet* controller) {
             RecalcModels();
 
             BaseController* bc = BaseController::CreateBaseController(controller, ip);
-            if (bc != nullptr)
-            {
-                if (bc->SetInputUniverses(controller, this)) {
-                    logger_base.debug("Attempt to upload controller inputs successful on controller %s:%s:%s", (const char*)controller->GetVendor().c_str(), (const char*)controller->GetModel().c_str(), (const char*)controller->GetVariant().c_str());
-                    SetStatusText(vendor + " Input Upload complete.");
+            if (bc != nullptr) {
+                if (bc->IsConnected()) {
+                    if (bc->SetInputUniverses(controller, this)) {
+                        logger_base.debug("Attempt to upload controller inputs successful on controller %s:%s:%s", (const char*)controller->GetVendor().c_str(), (const char*)controller->GetModel().c_str(), (const char*)controller->GetVariant().c_str());
+                        SetStatusText(vendor + " Input Upload complete.");
+                    }
+                    else {
+                        logger_base.error("Attempt to upload controller inputs failed on controller %s:%s:%s", (const char*)controller->GetVendor().c_str(), (const char*)controller->GetModel().c_str(), (const char*)controller->GetVariant().c_str());
+                        SetStatusText(vendor + " Input Upload failed.");
+                    }
                 }
                 else {
-                    logger_base.error("Attempt to upload controller inputs failed on controller %s:%s:%s", (const char*)controller->GetVendor().c_str(), (const char*)controller->GetModel().c_str(), (const char*)controller->GetVariant().c_str());
-                    SetStatusText(vendor + " Input Upload failed.");
+                    SetStatusText(vendor + " Input Upload Failed. Unable to connect");
                 }
+                delete bc;
             }
             else {
                 logger_base.error("Attempt to upload controller inputs on a unsupported controller %s:%s:%s", (const char*)controller->GetVendor().c_str(), (const char*)controller->GetModel().c_str(), (const char*)controller->GetVariant().c_str());
@@ -2104,6 +2109,9 @@ void xLightsFrame::UploadOutputToController(ControllerEthernet* controller) {
                     SetStatusText(vendor + " Output Upload Failed. Unable to connect");
                 }
                 delete bc;
+            }
+            else {
+                SetStatusText(vendor + " Output Upload Failed.");
             }
         }
         else {

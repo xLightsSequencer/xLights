@@ -72,11 +72,6 @@ BaseController *BaseController::CreateBaseController(ControllerEthernet *control
     } else if (vendor == "FPP" || vendor == "KulpLights") {
         bc = new FPP(ip, proxy, caps->GetModel());
     }
-
-    if (bc != nullptr && !bc->IsConnected()) {
-        delete bc;
-        bc = nullptr;
-    }
     return bc;
 }
 
