@@ -6,7 +6,7 @@
 		<size>450,350d</size>
 		<minsize>300,200d</minsize>
 		<id_arg>0</id_arg>
-		<style>wxCAPTION|wxRESIZE_BORDER|wxMAXIMIZE_BOX</style>
+		<style>wxCAPTION|wxRESIZE_BORDER|wxCLOSE_BOX|wxMAXIMIZE_BOX</style>
 		<object class="wxFlexGridSizer" variable="Sizer1" member="yes">
 			<cols>2</cols>
 			<growablecols>1</growablecols>
