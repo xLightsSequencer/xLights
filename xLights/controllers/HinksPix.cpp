@@ -588,8 +588,8 @@ bool HinksPix::SetInputUniverses(ControllerEthernet* controller, wxWindow* paren
 
     int maxUnv = wxAtoi(map.at("C"));
 
-    if (outputs.size() > maxUnv) {
-        DisplayError(wxString::Format("Attempt to upload %d universes to HinksPix controller but only %d are supported.", outputs.size(), maxUnv).ToStdString());
+    if (controller->GetOutputCount() > maxUnv) {
+        DisplayError(wxString::Format("Attempt to upload %d universes to HinksPix controller but only %d are supported.", controller->GetOutputCount(), maxUnv).ToStdString());
         return false;
     }
 
@@ -613,7 +613,7 @@ bool HinksPix::SetInputUniverses(ControllerEthernet* controller, wxWindow* paren
     }
 
     auto const cmd = wxString::Format("A,%d,B,%d,C,%d,D,%d,E,%d",
-        multi, type, maxUnv, outputs.size(), DDPStart);
+        multi, type, maxUnv, controller->GetOutputCount(), DDPStart);
 
     //Set Controller Input mode
     auto const setRet = GetControllerData(4902, cmd);
