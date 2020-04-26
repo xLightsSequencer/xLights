@@ -35,7 +35,7 @@ public:
     const int output;
     int universe = 1;
     int startChannel = 1;
-    int pixels = 0;
+    int pixels = 1;
     int nullPixel = 0;
     int colorOrder = 0;
     bool reverse = false;
@@ -136,11 +136,16 @@ AlphaPix::AlphaPix(const std::string& ip, const std::string &proxy) : BaseContro
             _version = firmwareregex.GetMatch(wxString(_page), 2).ToStdString();
         }
 
+        if (_page.Contains("name=\"U01\"")) {//look for certian web element. Fix for new webUI on firmware 2.16, 2.18 and maybe 2.12,2.13. Firmware has the same format as Flex Controller
+            _revision = 2;
+            logger_base.debug("AlphaPix V2/V3");
+        }
+
         if (_modelnum == 48) {
             _model = "AlphaPix Flex";
         }
         else { 
-            _model = wxString::Format("AlphaPix %d", _modelnum).ToStdString();
+            _model = wxString::Format("AlphaPix %d v%d", _modelnum, _revision).ToStdString();
         }
 
         if(_connected)
@@ -181,6 +186,8 @@ bool AlphaPix::ParseWebpage(const wxString& page, AlphaPixData& data) {
         AlphaPixOutput* output;
         if (_modelnum == 48)
             output = ExtractFlexOutputData(page, i);
+        else if  (_revision == 2)
+            output = ExtractOutputDataV2(page, i);
         else
             output = ExtractOutputData(page, i);
         output->Dump();
@@ -226,6 +233,24 @@ AlphaPixOutput* AlphaPix::ExtractOutputData(const wxString& page, int port) {
     output->zigZag = ExtractIntFromPage(page, wxString::Format("RA%d", port), "input", 0, start);
     output->brightness = ExtractIntFromPage(page, wxString::Format("LM%d", port), "input", 100, start);
     output->reverse = ExtractIntFromPage(page, wxString::Format("RV%d", port), "checkbox", 0, start);
+
+    return output;
+}
+
+AlphaPixOutput* AlphaPix::ExtractOutputDataV2(const wxString& page, int port) {
+
+    const wxString p(page);
+    int start = p.find("SPI Pixel Output Configuration");
+
+    AlphaPixOutput* output = new AlphaPixOutput(port);
+
+    output->universe = ExtractIntFromPage(page, wxString::Format("U%02d", port), "input", 1, start);
+    output->startChannel = ExtractIntFromPage(page, wxString::Format("C%02d", port), "input", 1, start);
+    output->pixels = ExtractIntFromPage(page, wxString::Format("P%02d", port), "input", 0, start);
+    output->nullPixel = ExtractIntFromPage(page, wxString::Format("N%02d", port), "input", 0, start);
+    output->zigZag = ExtractIntFromPage(page, wxString::Format("R%02d", port), "input", 0, start);
+    output->brightness = ExtractIntFromPage(page, wxString::Format("L%02d", port), "input", 100, start);
+    output->reverse = ExtractIntFromPage(page, wxString::Format("V%02d", port), "checkbox", 0, start);
 
     return output;
 }
@@ -656,6 +681,8 @@ bool AlphaPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
     progress.Update(20, "Uploading String Output Information.");
     if (_modelnum == 48)
         UploadFlexPixelOutputs(worked);
+    else if (_revision == 2)
+        UploadPixelOutputsV2(worked);
     else
         UploadPixelOutputs(worked);
 
@@ -787,6 +814,29 @@ void AlphaPix::UploadPixelOutputs(bool& worked) {
 
     logger_base.info("PUT String Output Information.");
 
+    if (!requestString.empty()) {
+        const wxString res = PutURL(GetOutputURL(), requestString);
+        if (res.empty())
+            worked = false;
+        wxMilliSleep(1000);
+    }
+}
+
+void AlphaPix::UploadPixelOutputsV2(bool& worked) {
+
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("Building pixel upload:");
+
+    std::string requestString;
+    bool upload = false;
+    for (const auto& pixelPort : _pixelOutputs) {
+        if (requestString != "")
+            requestString += "&";
+        requestString += BuildFlexStringPortRequest(pixelPort);
+        upload |= pixelPort->upload;
+    }
+
+    logger_base.info("PUT String Output Information.");
     if (!requestString.empty()) {
         const wxString res = PutURL(GetOutputURL(), requestString);
         if (res.empty())

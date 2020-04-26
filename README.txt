@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (scott)  Fixed AlphaPix Upload for Firmware 2.16+
 2020.16 April 17 2020
    -- enh (dkulp)  Support for saving the password for FPP instances.
    -- enh (keith)  Add colour organ to xSchedule

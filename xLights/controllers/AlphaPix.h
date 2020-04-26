@@ -26,6 +26,7 @@ class AlphaPix : public BaseController
     #pragma region Member Variables
     wxString _page;
     int _modelnum = -1;
+    int _revision = 1;
     std::vector<AlphaPixOutput*> _pixelOutputs;
     std::vector<AlphaPixSerial*> _serialOutputs;
     #pragma endregion
@@ -43,6 +44,7 @@ class AlphaPix : public BaseController
     bool ParseWebpage(const wxString& page, AlphaPixData &data);
 
     AlphaPixOutput* ExtractOutputData(const wxString& page, int port);
+    AlphaPixOutput* ExtractOutputDataV2(const wxString& page, int port);
     AlphaPixOutput* ExtractFlexOutputData(const wxString& page, int port);
     AlphaPixSerial* ExtractSerialData(const wxString& page, int port);
     std::string ExtractName(const wxString& page);
@@ -64,6 +66,7 @@ class AlphaPix : public BaseController
     std::string SafeDescription(const std::string description) const;
 
     void UploadPixelOutputs(bool& worked);
+    void UploadPixelOutputsV2(bool& worked);
     void UploadFlexPixelOutputs(bool& worked);
 
     const std::string GetFirmware() { return _version; }
