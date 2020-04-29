@@ -14,6 +14,7 @@
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
 #include "../models/Model.h"
+#include "../models/ModelGroup.h"
 
 #include "../../include/dmx-16.xpm"
 #include "../../include/dmx-24.xpm"
@@ -376,11 +377,17 @@ void DMXEffect::SetPanelStatus(Model *cls) {
         return;
     }
 
-    int num_channels = cls->GetNumChannels();
+    Model* m = cls;
+    if (cls->GetDisplayAs() == "ModelGroup")         {
+        m = dynamic_cast<ModelGroup*>(cls)->GetFirstModel();
+        if (m == nullptr) m = cls;
+    }
+
+    int num_channels = m->GetNumChannels();
 
     for(int i = 1; i <= 40; ++i) {
         wxString label_ctrl = wxString::Format("ID_STATICTEXT_DMX%d", i);
-        std::string name = cls->GetNodeName(i-1);
+        std::string name = m->GetNodeName(i-1);
         wxStaticText* label = (wxStaticText*)(p->FindWindowByName(label_ctrl));
         if( label != nullptr ) {
             if( name == "" ) {
