@@ -764,8 +764,8 @@ void ModelGroup::GetBufferSize(const std::string &tp, const std::string &camera,
     }
     AdjustForTransform(transform, BufferWi, BufferHt);
 
-    wxASSERT(BufferWi != 0);
-    wxASSERT(BufferHt != 0);
+    if (BufferWi == 0) BufferWi = 1;
+    if (BufferHt == 0) BufferHt = 1;
 }
 
 static inline void SetCoords(NodeBaseClass::CoordStruct &it2, int x, int y, int maxX, int maxY, int scale) {
@@ -899,22 +899,28 @@ void ModelGroup::InitRenderBufferNodes(const std::string &tp,
     else if (type == HORIZ_SCALED) {
         int modelX = 0;
         int numOfModels = modelNames.size();
-        GetBufferSize(type, "2D", "None", BufferWi, BufferHt);
-        int modBufferWi = BufferWi / numOfModels;
-        for (const auto& it : modelNames) {
-            Model* m = modelManager[it];
-            if (m != nullptr) {
-                int start = Nodes.size();
-                int x, y;
-                m->InitRenderBufferNodes("Default", "2D", "None", Nodes, x, y);
-                while (start < Nodes.size()) {
-                    for (auto& it2 : Nodes[start]->Coords) {
-                        it2.bufX = it2.bufX * (modBufferWi / x) + modelX;
-                        it2.bufY = it2.bufY * (BufferHt / y);
+        if (numOfModels == 0)             {
+            BufferWi = 1;
+            BufferHt = 1;
+        }
+        else {
+            GetBufferSize(type, "2D", "None", BufferWi, BufferHt);
+            int modBufferWi = BufferWi / numOfModels;
+            for (const auto& it : modelNames) {
+                Model* m = modelManager[it];
+                if (m != nullptr) {
+                    int start = Nodes.size();
+                    int x, y;
+                    m->InitRenderBufferNodes("Default", "2D", "None", Nodes, x, y);
+                    while (start < Nodes.size()) {
+                        for (auto& it2 : Nodes[start]->Coords) {
+                            it2.bufX = it2.bufX * (modBufferWi / x) + modelX;
+                            it2.bufY = it2.bufY * (BufferHt / y);
+                        }
+                        start++;
                     }
-                    start++;
+                    modelX += modBufferWi;
                 }
-                modelX += modBufferWi;
             }
         }
         ApplyTransform(transform, Nodes, BufferWi, BufferHt);
@@ -922,22 +928,29 @@ void ModelGroup::InitRenderBufferNodes(const std::string &tp,
     else if (type == VERT_SCALED) {
         int modelY = 0;
         int numOfModels = modelNames.size();
-        GetBufferSize(type, "2D", "None", BufferWi, BufferHt);
-        int modBufferHt = BufferHt / numOfModels;
-        for (const auto& it : modelNames) {
-            Model* m = modelManager[it];
-            if (m != nullptr) {
-                int start = Nodes.size();
-                int x, y;
-                m->InitRenderBufferNodes("Default", "2D", "None", Nodes, x, y);
-                while (start < Nodes.size()) {
-                    for (auto& it2 : Nodes[start]->Coords) {
-                        it2.bufX = it2.bufX * (BufferWi / x);
-                        it2.bufY = it2.bufY * (modBufferHt / y) + modelY;
+
+        if (numOfModels == 0)             {
+            BufferWi = 1;
+            BufferHt = 1;
+        }
+        else {
+            GetBufferSize(type, "2D", "None", BufferWi, BufferHt);
+            int modBufferHt = BufferHt / numOfModels;
+            for (const auto& it : modelNames) {
+                Model* m = modelManager[it];
+                if (m != nullptr) {
+                    int start = Nodes.size();
+                    int x, y;
+                    m->InitRenderBufferNodes("Default", "2D", "None", Nodes, x, y);
+                    while (start < Nodes.size()) {
+                        for (auto& it2 : Nodes[start]->Coords) {
+                            it2.bufX = it2.bufX * (BufferWi / x);
+                            it2.bufY = it2.bufY * (modBufferHt / y) + modelY;
+                        }
+                        start++;
                     }
-                    start++;
+                    modelY += modBufferHt;
                 }
-                modelY += modBufferHt;
             }
         }
         ApplyTransform(transform, Nodes, BufferWi, BufferHt);
