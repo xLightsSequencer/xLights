@@ -11,7 +11,21 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (keith)  Add native media player option for video in xSchedule. This slightly reduces control but improves performance
+   -- enh (keith)  When using DMX effect on model group label the sliders using the node names from the first model in the group
+   -- enh (keith)  Increase beam length of DMX moving heads and add visual control over beam width
+   -- enh (keith)  Reorganise the tools menu to group related items
+   -- enh (keith)  Add support for strings of single colour but individually controlled nodes
+   -- enh (keith)  Make picture effect display red when picture is missing much like video and shader effects do
+   -- bug (keith)  Try to force dialogs that dont appear on any monitor onto a monitor
+   -- bug (keith)  Fix picture effect tiling issues where tiling is not complete.
+   -- bug (keith)  Fix effects on model group with horizontal or vertical scaled render styles but containing no models crashes when rendering
+   -- bug (keith)  Fix some erroneous check sequence errors re subbuffers on per model render styles
+   -- bug (keith)  Fix crash in visualiser when controller with no protocols is assigned to a port
+   -- bug (keith)  Fix area flood beam length is anchored to z=0 rather than moving with the flood
+   -- bug (keith)  Fix models with uneven strings dont show correctly in visualiser
    -- bug (scott)  Fixed AlphaPix Upload for Firmware 2.16+
+   -- bug (scott)  Fix force ip not working on controller tab
 2020.16 April 17 2020
    -- enh (dkulp)  Support for saving the password for FPP instances.
    -- enh (keith)  Add colour organ to xSchedule
