@@ -6001,7 +6001,7 @@ void xLightsFrame::CheckEffect(Effect* ef, wxFile& f, int& errcount, int& warnco
     for (const auto& it : sm)
     {
         isPerModel |= (it.first == "B_CHOICE_BufferStyle" && StartsWith(it.second, "Per Model"));
-        isSubBuffer |= (it.first == "B_CUSTOM_SubBuffer");
+        isSubBuffer |= (it.first == "B_CUSTOM_SubBuffer" && it.second != "");
     }
 
     if (isPerModel && isSubBuffer)
