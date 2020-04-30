@@ -2602,8 +2602,11 @@ bool MapChannelInformation(EffectManager &effectManager, EffectLayer *layer, wxX
     for (wxXmlNode* e = input_xml.GetRoot()->GetChildren(); channel == nullptr && e != nullptr; e = e->GetNext()) {
         if (e->GetName() == "channels") {
             for (wxXmlNode* chan = e->GetChildren(); channel == nullptr && chan != nullptr; chan = chan->GetNext()) {
+                std::string unit = chan->GetAttribute("unit");
+                std::string circuit = chan->GetAttribute("circuit");
+                std::string dedupname = chan->GetAttribute("name") + "_Unit_" + unit + "_Circuit_" + circuit;
                 if ((chan->GetName() == "channel" || chan->GetName() == "rgbChannel")
-                    && nm == chan->GetAttribute("name")) {
+                    && (nm == chan->GetAttribute("name") || nm == dedupname)) {
                     channel = chan;
                     if (chan->GetName() == "rgbChannel"
                         && !findRGB(e, chan, rchannel, gchannel, bchannel)) {
@@ -2723,6 +2726,11 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml, const wxFileName &filenam
                         dlg.channelColors[name] = xlBLACK;
                     } else {
                         std::string color = chan->GetAttribute("color").ToStdString();
+                        std::string unit = chan->GetAttribute("unit").ToStdString();
+                        std::string circuit = chan->GetAttribute("circuit").ToStdString();
+                        if (std::find(begin(dlg.channelNames), end(dlg.channelNames), name) != end(dlg.channelNames)) {
+                            name += "_Unit_" + unit + "_Circuit_" + circuit;
+                        }
                         dlg.channelColors[name] = GetColor(color);
                     }
 
