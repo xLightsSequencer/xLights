@@ -335,6 +335,7 @@ const long xLightsFrame::ID_MENU_ITEM_PREVIEWS = wxNewId();
 const long xLightsFrame::ID_MENU_ITEM_PREVIEWS_SHOW_ALL = wxNewId();
 
 wxDEFINE_EVENT(EVT_ZOOM, wxCommandEvent);
+wxDEFINE_EVENT(EVT_SCRUB, wxCommandEvent);
 wxDEFINE_EVENT(EVT_GSCROLL, wxCommandEvent);
 wxDEFINE_EVENT(EVT_TIME_SELECTED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_MOUSE_POSITION, wxCommandEvent);
@@ -385,6 +386,7 @@ wxDEFINE_EVENT(EVT_COLOUR_CHANGED, wxCommandEvent);
 BEGIN_EVENT_TABLE(xLightsFrame,wxFrame)
     //(*EventTable(xLightsFrame)
     //*)
+    EVT_COMMAND(wxID_ANY, EVT_SCRUB, xLightsFrame::Scrub)
     EVT_COMMAND(wxID_ANY, EVT_ZOOM, xLightsFrame::Zoom)
     EVT_COMMAND(wxID_ANY, EVT_GSCROLL, xLightsFrame::Scroll)
     EVT_COMMAND(wxID_ANY, EVT_TIME_SELECTED, xLightsFrame::TimeSelected)

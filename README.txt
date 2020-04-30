@@ -17,6 +17,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- enh (keith)  Reorganise the tools menu to group related items
    -- enh (keith)  Add support for strings of single colour but individually controlled nodes
    -- enh (keith)  Make picture effect display red when picture is missing much like video and shader effects do
+   -- enh (keith)  Scrub model preview along with the audio
    -- bug (keith)  Try to force dialogs that dont appear on any monitor onto a monitor
    -- bug (keith)  Fix picture effect tiling issues where tiling is not complete.
    -- bug (keith)  Fix effects on model group with horizontal or vertical scaled render styles but containing no models crashes when rendering

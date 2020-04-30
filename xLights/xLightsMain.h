@@ -1,14 +1,14 @@
-/***************************************************************
- * Name:      xLightsMain.h
- * Purpose:   Defines Application Frame
- * Author:    Matt Brown (dowdybrown@yahoo.com)
- * Created:   2012-11-03
- * Copyright: Matt Brown ()
- * License:
- **************************************************************/
+#pragma once
 
-#ifndef XLIGHTSMAIN_H
-#define XLIGHTSMAIN_H
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 #ifdef _MSC_VER
     #include <stdlib.h>
@@ -1469,7 +1469,8 @@ private:
     std::unordered_map<std::string, EditState> buttonState;
 
     // Events
-    void Zoom( wxCommandEvent& event);
+    void Scrub(wxCommandEvent& event);
+    void Zoom(wxCommandEvent& event);
     void Scroll( wxCommandEvent& event);
     void WindowResized( wxCommandEvent& event);
     void TimeSelected( wxCommandEvent& event);
@@ -1597,4 +1598,4 @@ public:
 	void DoPlaySequence();
     void RecalcModels();
 };
-#endif // XLIGHTSMAIN_H
+

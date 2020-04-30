@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include <wx/wx.h>
 #ifdef __WXMAC__
     #include "OpenGL/gl.h"
@@ -326,6 +336,10 @@ void Waveform::mouseMoved( wxMouseEvent& event)
     {
         int msperpixel = std::max(1000 / GetTimeFrequency(), mTimeline->TimePerMajorTickInMS() / mTimeline->PixelsPerMajorTick());
         _media->Play(mouseTimeMS, msperpixel);
+
+        wxCommandEvent eventScrub(EVT_SCRUB);
+        eventScrub.SetInt(mouseTimeMS);
+        wxPostEvent(mParent, eventScrub);
     }
 }
 

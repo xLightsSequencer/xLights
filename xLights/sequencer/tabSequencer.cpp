@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include <map>
 
 #include <wx/utils.h>
@@ -816,6 +826,38 @@ void xLightsFrame::Zoom( wxCommandEvent& event)
     else
     {
         mainSequencer->PanelTimeLine->ZoomOut();
+    }
+}
+
+void xLightsFrame::Scrub(wxCommandEvent& event)
+{
+    // stop any playing so we can scrub
+    playType = PLAY_TYPE_STOPPED;
+
+    int ms = event.GetInt();
+    int frame = ms / CurrentSeqXmlFile->GetFrameMS();
+
+    // update any video diaplay
+    sequenceVideoPanel->UpdateVideo(ms);
+
+    //have the frame, copy from SeqData
+    if (playModel != nullptr) {
+        int nn = playModel->GetNodeCount();
+        for (int node = 0; node < nn; node++) {
+            int start = playModel->NodeStartChannel(node);
+            playModel->SetNodeChannelValues(node, &SeqData[frame][start]);
+        }
+    }
+    TimerOutput(frame);
+    if (playModel != nullptr) {
+        playModel->DisplayEffectOnWindow(_modelPreviewPanel, mPointSize);
+    }
+    _housePreviewPanel->GetModelPreview()->Render(&SeqData[frame][0]);
+    for (auto it = PreviewWindows.begin(); it != PreviewWindows.end(); ++it) {
+        ModelPreview* preview = *it;
+        if (preview->GetActive()) {
+            preview->Render(&SeqData[frame][0]);
+        }
     }
 }
 

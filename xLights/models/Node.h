@@ -1,10 +1,14 @@
-//
-//  Node.h
-//  xLights
-//
+#pragma once
 
-#ifndef Node_h
-#define Node_h
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 #include <vector>
 #include <string>
@@ -437,7 +441,4 @@ private:
 };
 
 typedef std::unique_ptr<NodeBaseClass> NodeBaseClassPtr;
-
-
-#endif /* Node_h */
 

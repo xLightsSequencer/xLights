@@ -1,5 +1,14 @@
-#ifndef WAVEFORM_H
-#define WAVEFORM_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 #include "wx/wx.h"
 
@@ -17,6 +26,7 @@ wxDECLARE_EVENT(EVT_WAVE_FORM_HIGHLIGHT, wxCommandEvent);
 wxDECLARE_EVENT(EVT_TIME_SELECTED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SCROLL_RIGHT, wxCommandEvent);
 wxDECLARE_EVENT(EVT_ZOOM, wxCommandEvent);
+wxDECLARE_EVENT(EVT_SCRUB, wxCommandEvent);
 wxDECLARE_EVENT(EVT_GSCROLL, wxCommandEvent);
 wxDECLARE_EVENT(EVT_MOUSE_POSITION, wxCommandEvent);
 
@@ -151,4 +161,3 @@ class Waveform : public xlGLCanvas
 
         std::vector<WaveView> views;
 };
-#endif // WAVEFORM_H
