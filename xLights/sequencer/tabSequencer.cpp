@@ -835,7 +835,11 @@ void xLightsFrame::Scrub(wxCommandEvent& event)
     playType = PLAY_TYPE_STOPPED;
 
     int ms = event.GetInt();
+    if (ms < 0) ms = 0;
     int frame = ms / CurrentSeqXmlFile->GetFrameMS();
+
+    if (ms > CurrentSeqXmlFile->GetSequenceDurationMS()) ms = CurrentSeqXmlFile->GetSequenceDurationMS();
+    if (frame >= SeqData.NumFrames()) frame = SeqData.NumFrames();
 
     // update any video diaplay
     sequenceVideoPanel->UpdateVideo(ms);
