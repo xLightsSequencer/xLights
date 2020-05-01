@@ -5762,7 +5762,7 @@ bool Model::CleanupFileLocations(xLightsFrame* frame)
 }
 
 // all when true includes all image files ... even if they dont really exist
-std::list<std::string> Model::GetFaceFiles(const std::list<std::string>& facesUsed, bool all) const
+std::list<std::string> Model::GetFaceFiles(const std::list<std::string>& facesUsed, bool all, bool includeFaceName) const
 {
     std::list<std::string> res;
 
@@ -5778,7 +5778,9 @@ std::list<std::string> Model::GetFaceFiles(const std::list<std::string>& facesUs
                     {
                         if (all || wxFile::Exists(it2->second))
                         {
-                            res.push_back(it2->second);
+                            std::string n = it2->second;
+                            if (includeFaceName) n = it->first + "|" + n;
+                            res.push_back(n);
                         }
                     }
                 }

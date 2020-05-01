@@ -1,5 +1,14 @@
-#ifndef __VIXEN3
-#define __VIXEN3
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 #include <wx/xml/xml.h>
 
@@ -63,4 +72,3 @@ class Vixen3 {
     std::list<std::string> GetModelsWithEffects() const;
     std::list<VixenEffect> GetEffects(const std::string& model) const;
 };
-#endif

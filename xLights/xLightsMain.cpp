@@ -5544,16 +5544,17 @@ void xLightsFrame::CheckSequence(bool display)
     LogAndWrite(f, "");
     LogAndWrite(f, "Missing matrix face images");
 
-    for (auto it = AllModels.begin(); it != AllModels.end(); ++it)
+    for (const auto& it : AllModels)
     {
-        auto facefiles = it->second->GetFaceFiles(std::list<std::string>(), true);
-        allfiles.splice(allfiles.end(), it->second->GetFileReferences());
+        auto facefiles = it.second->GetFaceFiles(std::list<std::string>(), true, true);
+        allfiles.splice(allfiles.end(), it.second->GetFileReferences());
 
-        for (auto fit = facefiles.begin(); fit != facefiles.end(); ++fit)
+        for (const auto& fit : facefiles)
         {
-            if (!wxFile::Exists(*fit))
+            auto ff = wxSplit(fit, '|');
+            if (!wxFile::Exists(ff[1]))
             {
-                wxString msg = wxString::Format("    ERR: Model '%s' face image missing %s.", it->second->GetFullName(), *fit);
+                wxString msg = wxString::Format("    ERR: Model '%s' face '%s' image missing %s.", it.second->GetFullName(), ff[0], ff[1]);
                 LogAndWrite(f, msg.ToStdString());
                 errcount++;
             }
@@ -5572,11 +5573,11 @@ void xLightsFrame::CheckSequence(bool display)
     LogAndWrite(f, "Large blocks of unused channels that bloats memory usage and the the fseq file.");
 
     std::list<Model*> modelssorted;
-    for (auto it = AllModels.begin(); it != AllModels.end(); ++it)
+    for (const auto& it : AllModels)
     {
-        if (it->second->GetDisplayAs() != "ModelGroup")
+        if (it.second->GetDisplayAs() != "ModelGroup")
         {
-            modelssorted.push_back(it->second);
+            modelssorted.push_back(it.second);
         }
     }
 
@@ -5584,9 +5585,9 @@ void xLightsFrame::CheckSequence(bool display)
 
     int32_t last = 0;
     Model* lastm = nullptr;
-    for (auto m = modelssorted.begin(); m != modelssorted.end(); ++m)
+    for (const auto& m : modelssorted)
     {
-        int32_t start = (*m)->GetNumberFromChannelString((*m)->ModelStartChannel);
+        int32_t start = m->GetNumberFromChannelString(m->ModelStartChannel);
         int32_t gap = start - last - 1;
         if (gap > 511) // 511 is the maximum acceptable gap ... at that point the user has wasted an entire universe
         {
@@ -5603,19 +5604,19 @@ void xLightsFrame::CheckSequence(bool display)
             wxString msg;
             if (lastm == nullptr)
             {
-                msg = wxString::Format("    %s: First Model '%s' starts at channel %d leaving a block of %d of unused channels.", level, (*m)->GetName(), start, start - 1);
+                msg = wxString::Format("    %s: First Model '%s' starts at channel %d leaving a block of %d of unused channels.", level, m->GetName(), start, start - 1);
             }
             else
             {
-                msg = wxString::Format("    %s: Model '%s' starts at channel %d leaving a block of %d of unused channels between this and the prior model '%s'.", level, (*m)->GetName(), start, gap, lastm->GetName());
+                msg = wxString::Format("    %s: Model '%s' starts at channel %d leaving a block of %d of unused channels between this and the prior model '%s'.", level, m->GetName(), start, gap, lastm->GetName());
             }
             LogAndWrite(f, msg.ToStdString());
         }
-        long newlast = start + (*m)->GetChanCount() - 1;
+        long newlast = start + m->GetChanCount() - 1;
         if (newlast > last)
         {
             last = newlast;
-            lastm = *m;
+            lastm = m;
         }
     }
     if (errcount + warncount == errcountsave + warncountsave)
@@ -6980,12 +6981,12 @@ void xLightsFrame::OnMenuItem_PackageSequenceSelected(wxCommandEvent& event)
 
     // Add any model images
     std::list<std::string> modelfiles;
-    for (auto m : AllModels)
+    for (const auto& m : AllModels)
     {
-        modelfiles.splice(end(modelfiles), m.second->GetFaceFiles(facesUsed, false));
+        modelfiles.splice(end(modelfiles), m.second->GetFaceFiles(facesUsed, false, false));
         modelfiles.splice(end(modelfiles), m.second->GetFileReferences());
     }
-    for (auto o : AllObjects)
+    for (const auto& o : AllObjects)
     {
         modelfiles.splice(end(modelfiles), o.second->GetFileReferences());
     }
@@ -6993,7 +6994,7 @@ void xLightsFrame::OnMenuItem_PackageSequenceSelected(wxCommandEvent& event)
     modelfiles.unique();
 
     float i = 0;
-    for (auto f : modelfiles)
+    for (const auto& f : modelfiles)
     {
         i++;
         wxFileName fnf(f);
