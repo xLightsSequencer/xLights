@@ -683,33 +683,21 @@ void CustomModel::InitRenderBufferNodes(const std::string& type, const std::stri
 int CustomModel::GetCustomMaxChannel(const std::string& customModel) const
 {
     int maxval = 0;
+    
+    std::stringstream ss(customModel);
+    std::string token;
+     
+     while(std::getline(ss, token, ',')) {
+         if (token != "" && token != ";" && token != "|") {
+             try {
+                 maxval = std::max(std::stoi(token), maxval);
+             }
+             catch (...) {
+                 // not a number, treat as 0
+             }
+         }
+     }
 
-    std::vector<std::string> layers;
-    std::vector<std::string> rows;
-    std::vector<std::string> cols;
-    layers.reserve(100);
-    rows.reserve(100);
-    cols.reserve(100);
-
-    split(customModel, '|', layers);
-
-    for (auto layer : layers) {
-        split(layer, ';', rows);
-        for (auto row : rows) {
-            cols.clear();
-            split(row, ',', cols);
-            for (auto col : cols) {
-                if (col != "") {
-                    try {
-                        maxval = std::max(std::stoi(col), maxval);
-                    }
-                    catch (...) {
-                        // not a number, treat as 0
-                    }
-                }
-            }
-        }
-    }
     return maxval;
 }
 
