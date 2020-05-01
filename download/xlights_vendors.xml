@@ -6,7 +6,7 @@
 	</vendor>
 	<vendor>
 		<name>DMX Fixture Library</name>
-		<link>http://nutcracker123.com/xlights/dmxmodels/dmx_fixtures.xml</link>
+		<link>https://raw.githubusercontent.com/smeighan/xLights/master/download/dmx_fixtures.xml</link>
 	</vendor>
 	<vendor>
 		<name>DMX Models Library</name>
