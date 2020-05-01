@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmxmodel name="Stairville PAR 64 CX-3 RGBW 4ch" parm1="9" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Red,Green,Blue,White,,,,," SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="0" DmxTiltChannel="0" DmxShutterChannel="0" DmxRedChannel="1" DmxGreenChannel="2" DmxBlueChannel="3" DmxWhiteChannel="4" DmxTiltDegOfRot="180" DmxStyle="Flood Light" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Node5" s1-Name="no_function" s1-Color="#070707" 
+s2="Node5" s2-Name="31_preprogrammed_color_macro" s2-Color="#878787" 
+s3="Node6" s3-Name="no_effect" s3-Color="#070707" 
+s4="Node6" s4-Name="strobe_speed" s4-Color="#878787" 
+s5="Node7" s5-Name="constant_color" s5-Color="#0F0F0F" 
+s6="Node7" s6-Name="fade-out_effect_speed_ch_6_" s6-Color="#2F2F2F" 
+s7="Node7" s7-Name="fade-in_effect_speed_ch_6_" s7-Color="#4F4F4F" 
+s8="Node7" s8-Name="fade-in-out_effect_speed_ch_6_" s8-Color="#6F6F6F" 
+s9="Node7" s9-Name="auto-mix_effect_speed_ch_6_" s9-Color="#8F8F8F" 
+s10="Node7" s10-Name="chase_4_colors_speed_ch6_" s10-Color="#AFAFAF" 
+s11="Node7" s11-Name="chase_12_colors_speed_ch_6_" s11-Color="#CFCFCF" 
+s12="Node7" s12-Name="sound-control" s12-Color="#EFEFEF" 
+s13="Node9" s13-Name="constant_color" s13-Color="#1F1F1F" 
+s14="Node9" s14-Name="7_automatic_colors_change" s14-Color="#5F5F5F" 
+s15="Node9" s15-Name="12_automatic_colors_change" s15-Color="#9F9F9F" 
+s16="Node9" s16-Name="4_automatic_colors_change" s16-Color="#DFDFDF" 
+/>
+</dmxmodel>

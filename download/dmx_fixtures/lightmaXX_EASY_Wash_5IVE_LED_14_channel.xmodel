@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmxmodel name="lightmaXX EASY Wash 5IVE LED 14 channel" parm1="14" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Pan,Pan Fine,Tilt,Tilt Fine,Dimmer & Strobe,Red,Green,Blue,White,Amber,Pan/Tilt Speed,Color Mixed and Changed,Movement (Auto and Sound Effect),Reset" SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="1" DmxTiltChannel="2" DmxShutterChannel="0" DmxRedChannel="4" DmxGreenChannel="5" DmxBlueChannel="6" DmxWhiteChannel="7" DmxTiltDegOfRot="180" DmxStyle="Moving Head 3D" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Tilt" s1-Name="closed" s1-Color="#040404" 
+s2="Tilt" s2-Name="dimmer" s2-Color="#484848" 
+s3="Tilt" s3-Name="strobe_from_0hz_to_40hz" s3-Color="#BBBBBB" 
+s4="Tilt" s4-Name="open" s4-Color="#F7F7F7" 
+s5="Color Mixed and Changed" s5-Name="color_mixed" s5-Color="#6F6F6F" 
+s6="Color Mixed and Changed" s6-Name="color_gradient_from_slow_to_fast" s6-Color="#E8E8E8" 
+s7="Color Mixed and Changed" s7-Name="color_jump_from_slow_to_fast" s7-Color="#F8F8F8" 
+s8="Movement (Auto and Sound Effect)" s8-Name="dmx_control" s8-Color="#010101" 
+s9="Movement (Auto and Sound Effect)" s9-Name="auto_1" s9-Color="#353535" 
+s10="Movement (Auto and Sound Effect)" s10-Name="auto_2" s10-Color="#7F7F7F" 
+s11="Movement (Auto and Sound Effect)" s11-Name="auto_3" s11-Color="#B2B2B2" 
+s12="Movement (Auto and Sound Effect)" s12-Name="sound" s12-Color="#E5E5E5" 
+s13="Reset" s13-Name="closed" s13-Color="#7F7F7F" 
+s14="Reset" s14-Name="reset" s14-Color="#FFFFFF" 
+/>
+</dmxmodel>

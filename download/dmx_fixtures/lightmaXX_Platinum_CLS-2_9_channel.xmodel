@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmxmodel name="lightmaXX Platinum CLS-2 9 channel" parm1="15" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Mode,Master dimmer / Program speed,Strobe,Red 1 / Program color select,Green 1,Blue 1,Red 2,Green 2,Blue 2,,,,,," SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="0" DmxTiltChannel="0" DmxShutterChannel="0" DmxRedChannel="0" DmxGreenChannel="0" DmxBlueChannel="0" DmxWhiteChannel="0" DmxTiltDegOfRot="180" DmxStyle="Moving Head Bars" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Mode" s1-Name="blackout" s1-Color="#050505" 
+s2="Mode" s2-Name="dmx_mode" s2-Color="#101010" 
+s3="Mode" s3-Name="red" s3-Color="#1B1B1B" 
+s4="Mode" s4-Name="yellow" s4-Color="#262626" 
+s5="Mode" s5-Name="green" s5-Color="#313131" 
+s6="Mode" s6-Name="cyan" s6-Color="#3C3C3C" 
+s7="Mode" s7-Name="blue" s7-Color="#474747" 
+s8="Mode" s8-Name="purple" s8-Color="#525252" 
+s9="Mode" s9-Name="white" s9-Color="#5D5D5D" 
+s10="Mode" s10-Name="program_dream" s10-Color="#686868" 
+s11="Mode" s11-Name="program_meteor" s11-Color="#737373" 
+s12="Mode" s12-Name="program_fade" s12-Color="#7E7E7E" 
+s13="Mode" s13-Name="program_change" s13-Color="#898989" 
+s14="Mode" s14-Name="program_flow_1" s14-Color="#949494" 
+s15="Mode" s15-Name="program_flow_2" s15-Color="#9F9F9F" 
+s16="Mode" s16-Name="program_flow_3" s16-Color="#AAAAAA" 
+s17="Mode" s17-Name="program_flow_4" s17-Color="#B5B5B5" 
+s18="Mode" s18-Name="program_flow_5" s18-Color="#C0C0C0" 
+s19="Mode" s19-Name="program_flow_6" s19-Color="#CBCBCB" 
+s20="Mode" s20-Name="program_flow_7" s20-Color="#D6D6D6" 
+s21="Mode" s21-Name="program_flow_8" s21-Color="#E1E1E1" 
+s22="Mode" s22-Name="program_flow_9" s22-Color="#ECECEC" 
+s23="Mode" s23-Name="sound_active_mode" s23-Color="#F8F8F8" 
+/>
+</dmxmodel>

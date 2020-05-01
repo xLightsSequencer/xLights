@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmxmodel name="Elation EVC MH 12-CH" parm1="12" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Pan Coarse,Pan Fine,Tilt Coarse,Tilt Fine,Pan / Tilt Speed,LED Color Temperature,Warm White LED,Cool White LED,Zoom,Focus Coarse,Focus Fine,Function" SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="0" DmxTiltChannel="0" DmxShutterChannel="0" DmxRedChannel="0" DmxGreenChannel="0" DmxBlueChannel="0" DmxWhiteChannel="0" DmxTiltDegOfRot="180" DmxStyle="Moving Head Bars" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Zoom" s1-Name="auto_focus" s1-Color="#000000" 
+s2="Zoom" s2-Name="near-far" s2-Color="#808080" 
+s3="Focus Fine" s3-Name="no_function" s3-Color="#222222" 
+s4="Focus Fine" s4-Name="enable_blackout_while_moving" s4-Color="#4A4A4A" 
+s5="Focus Fine" s5-Name="disable_blackout_while_moving" s5-Color="#545454" 
+s6="Focus Fine" s6-Name="reset_all" s6-Color="#CCCCCC" 
+s7="Function" s7-Name="off" s7-Color="#030303" 
+s8="Function" s8-Name="warm-cool" s8-Color="#838383" 
+/>
+</dmxmodel>

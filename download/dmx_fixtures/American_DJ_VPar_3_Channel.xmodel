@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmxmodel name="American_DJ VPar 3 Channel" parm1="7" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Color Macros,Master Dimmer,Strobing,,,," SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="0" DmxTiltChannel="0" DmxShutterChannel="0" DmxRedChannel="0" DmxGreenChannel="0" DmxBlueChannel="0" DmxWhiteChannel="0" DmxTiltDegOfRot="180" DmxStyle="Flood Light" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Node6" s1-Name="off" s1-Color="#070707" 
+s2="Node6" s2-Name="slow-fast_strobe" s2-Color="#878787" 
+s3="Node7" s3-Name="off" s3-Color="#070707" 
+s4="Node7" s4-Name="red" s4-Color="#171717" 
+s5="Node7" s5-Name="green" s5-Color="#272727" 
+s6="Node7" s6-Name="blue" s6-Color="#373737" 
+s7="Node7" s7-Name="amber" s7-Color="#474747" 
+s8="Node7" s8-Name="red_and_green_light_yellow_" s8-Color="#575757" 
+s9="Node7" s9-Name="red_and_blue_deep_purple_" s9-Color="#676767" 
+s10="Node7" s10-Name="red_and_amber_dark_orange_" s10-Color="#777777" 
+s11="Node7" s11-Name="green_and_blue_teal_" s11-Color="#878787" 
+s12="Node7" s12-Name="green_and_amber_yellow_green_" s12-Color="#979797" 
+s13="Node7" s13-Name="blue_and_amber_light_purple_" s13-Color="#A7A7A7" 
+s14="Node7" s14-Name="red_and_green_and_blue_purple-white_" s14-Color="#B7B7B7" 
+s15="Node7" s15-Name="red_and_green_and_amber_orange-yellow_" s15-Color="#C7C7C7" 
+s16="Node7" s16-Name="red_and_blue_and_amber_purple_" s16-Color="#D7D7D7" 
+s17="Node7" s17-Name="green_and_blue_and_amber_light_teal_" s17-Color="#E7E7E7" 
+s18="Node7" s18-Name="red_and_green_and_blue_and_amber_off_white_" s18-Color="#F7F7F7" 
+/>
+</dmxmodel>

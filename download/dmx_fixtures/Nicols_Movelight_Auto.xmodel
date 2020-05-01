@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmxmodel name="Nicols Movelight Auto" parm1="7" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Color macros,Program/Speed/Sensitivity,,,,," SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="0" DmxTiltChannel="0" DmxShutterChannel="0" DmxRedChannel="0" DmxGreenChannel="0" DmxBlueChannel="0" DmxWhiteChannel="0" DmxTiltDegOfRot="180" DmxStyle="Flood Light" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Color macros" s1-Name="blackout" s1-Color="#040404" 
+s2="Color macros" s2-Name="red" s2-Color="#0E0E0E" 
+s3="Color macros" s3-Name="yellow" s3-Color="#181818" 
+s4="Color macros" s4-Name="green" s4-Color="#222222" 
+s5="Color macros" s5-Name="cyan" s5-Color="#2C2C2C" 
+s6="Color macros" s6-Name="blue" s6-Color="#363636" 
+s7="Color macros" s7-Name="purple" s7-Color="#404040" 
+s8="Color macros" s8-Name="pink" s8-Color="#4A4A4A" 
+s9="Color macros" s9-Name="white" s9-Color="#545454" 
+s10="Color macros" s10-Name="program_02" s10-Color="#5E5E5E" 
+s11="Color macros" s11-Name="program_03" s11-Color="#686868" 
+s12="Color macros" s12-Name="program_04" s12-Color="#727272" 
+s13="Color macros" s13-Name="program_05" s13-Color="#7C7C7C" 
+s14="Color macros" s14-Name="program_06" s14-Color="#868686" 
+s15="Color macros" s15-Name="program_07" s15-Color="#909090" 
+s16="Color macros" s16-Name="program_08" s16-Color="#9A9A9A" 
+s17="Color macros" s17-Name="program_09" s17-Color="#A4A4A4" 
+s18="Color macros" s18-Name="sound_sensitivity" s18-Color="#D4D4D4" 
+s19="Program/Speed/Sensitivity" s19-Name="program" s19-Color="#2C2C2C" 
+s20="Program/Speed/Sensitivity" s20-Name="speed_slow_to_fast_" s20-Color="#818181" 
+s21="Program/Speed/Sensitivity" s21-Name="sensitivity_0-255" s21-Color="#D4D4D4" 
+/>
+</dmxmodel>

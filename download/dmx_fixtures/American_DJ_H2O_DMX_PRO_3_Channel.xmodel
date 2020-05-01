@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmxmodel name="American_DJ H2O DMX PRO 3 Channel" parm1="3" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Master Dimmer,Rotation,Colour Wheel" SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="0" DmxTiltChannel="0" DmxShutterChannel="0" DmxRedChannel="0" DmxGreenChannel="0" DmxBlueChannel="0" DmxWhiteChannel="0" DmxTiltDegOfRot="180" DmxStyle="Moving Head Bars" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Rotation" s1-Name="no_rotation" s1-Color="#040404" 
+s2="Rotation" s2-Name="clockwise_fast-slow" s2-Color="#414141" 
+s3="Rotation" s3-Name="counter-clockwise_slow-fast" s3-Color="#BEBEBE" 
+s4="Colour Wheel" s4-Name="white" s4-Color="#050505" 
+s5="Colour Wheel" s5-Name="white_and_orange" s5-Color="#101010" 
+s6="Colour Wheel" s6-Name="orange" s6-Color="#1B1B1B" 
+s7="Colour Wheel" s7-Name="orange_and_green" s7-Color="#262626" 
+s8="Colour Wheel" s8-Name="green" s8-Color="#313131" 
+s9="Colour Wheel" s9-Name="green_and_blue" s9-Color="#3C3C3C" 
+s10="Colour Wheel" s10-Name="blue" s10-Color="#474747" 
+s11="Colour Wheel" s11-Name="blue_and_yellow" s11-Color="#525252" 
+s12="Colour Wheel" s12-Name="yellow" s12-Color="#5D5D5D" 
+s13="Colour Wheel" s13-Name="yellow_and_purple" s13-Color="#686868" 
+s14="Colour Wheel" s14-Name="purple" s14-Color="#737373" 
+s15="Colour Wheel" s15-Name="purple_and_white" s15-Color="#7C7C7C" 
+s16="Colour Wheel" s16-Name="clockwise_colour_fast-slow" s16-Color="#9D9D9D" 
+s17="Colour Wheel" s17-Name="stop" s17-Color="#BFBFBF" 
+s18="Colour Wheel" s18-Name="counter-clockwise_slow-fast" s18-Color="#E2E2E2" 
+/>
+</dmxmodel>

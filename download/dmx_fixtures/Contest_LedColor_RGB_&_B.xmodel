@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmxmodel name="Contest LedColor RGB & B" parm1="9" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Red,Green,Blue,Dimmer,,,,," SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="0" DmxTiltChannel="0" DmxShutterChannel="0" DmxRedChannel="2" DmxGreenChannel="3" DmxBlueChannel="4" DmxWhiteChannel="0" DmxTiltDegOfRot="180" DmxStyle="Flood Light" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Red" s1-Name="rgb_and_b_and_f_ch2_eq_red_ch3_eq_green_ch4_eq_blue_ch5_eq_strobe_" s1-Color="#0E0E0E" 
+s2="Red" s2-Name="auto" s2-Color="#3E3E3E" 
+s3="Red" s3-Name="sound_impulsions" s3-Color="#7F7F7F" 
+s4="Red" s4-Name="snake" s4-Color="#ACACAC" 
+s5="Red" s5-Name="sequencer" s5-Color="#C5C5C5" 
+s6="Red" s6-Name="automatic_sequencer_40_colours_" s6-Color="#DEDEDE" 
+s7="Red" s7-Name="automatic_sequencer_time_synchronized_40_colours_" s7-Color="#F5F5F5" 
+/>
+</dmxmodel>

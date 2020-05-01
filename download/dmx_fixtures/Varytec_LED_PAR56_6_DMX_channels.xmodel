@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmxmodel name="Varytec LED PAR56 6 DMX channels" parm1="6" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Red,Green,Blue,Macro,Speed/Strobe,Mode" SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="0" DmxTiltChannel="0" DmxShutterChannel="0" DmxRedChannel="1" DmxGreenChannel="5" DmxBlueChannel="6" DmxWhiteChannel="0" DmxTiltDegOfRot="180" DmxStyle="Flood Light" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Red" s1-Name="off" s1-Color="#000000" 
+s2="Red" s2-Name="dimmer_off_channel_6_gt_31_and_lt_128_" s2-Color="#080808" 
+s3="Red" s3-Name="dimmer_on_channel_6_gt_31_and_lt_128_" s3-Color="#878787" 
+s4="Green" s4-Name="macro_off" s4-Color="#070707" 
+s5="Green" s5-Name="macro_on" s5-Color="#878787" 
+s6="Blue" s6-Name="strobe_off_speed_slow-fast_channel_6_gt_31_and_lt_224_" s6-Color="#070707" 
+s7="Blue" s7-Name="strobe_with_16_adjustable_speeds_speed_slow-fast_channel_6_gt_31_and_lt_224_" s7-Color="#878787" 
+s8="Macro" s8-Name="color_setting" s8-Color="#0F0F0F" 
+s9="Macro" s9-Name="lightness_decreasing_fade_out_" s9-Color="#2F2F2F" 
+s10="Macro" s10-Name="lightness_increasing_fade_in_" s10-Color="#4F4F4F" 
+s11="Macro" s11-Name="fade_out_and_in_mode" s11-Color="#6F6F6F" 
+s12="Macro" s12-Name="mix_color_automatically" s12-Color="#8F8F8F" 
+s13="Macro" s13-Name="3-color_flash_in_turn_chasing_" s13-Color="#AFAFAF" 
+s14="Macro" s14-Name="7-color_flash_in_turn_chasing_" s14-Color="#CFCFCF" 
+s15="Macro" s15-Name="sound_action" s15-Color="#EFEFEF" 
+s16="Speed/Strobe" s16-Name="off" s16-Color="#000000" 
+s17="Speed/Strobe" s17-Name="dimmer_off_channel_6_gt_31_and_lt_128_" s17-Color="#080808" 
+s18="Speed/Strobe" s18-Name="dimmer_on_channel_6_gt_31_and_lt_128_" s18-Color="#878787" 
+s19="Mode" s19-Name="off" s19-Color="#000000" 
+s20="Mode" s20-Name="dimmer_off_channel_6_gt_31_and_lt_128_" s20-Color="#080808" 
+s21="Mode" s21-Name="dimmer_on_channel_6_gt_31_and_lt_128_" s21-Color="#878787" 
+/>
+</dmxmodel>

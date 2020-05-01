@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmxmodel name="Mac_Mah Mac Follow 1200 Default" parm1="4" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Colour,Colour Temperature,Iris,Shutter" SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="0" DmxTiltChannel="0" DmxShutterChannel="4" DmxRedChannel="0" DmxGreenChannel="0" DmxBlueChannel="0" DmxWhiteChannel="0" DmxTiltDegOfRot="180" DmxStyle="Moving Head Bars" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Colour" s1-Name="white" s1-Color="#0C0C0C" 
+s2="Colour" s2-Name="blue" s2-Color="#252525" 
+s3="Colour" s3-Name="purple" s3-Color="#3E3E3E" 
+s4="Colour" s4-Name="green" s4-Color="#575757" 
+s5="Colour" s5-Name="red" s5-Color="#707070" 
+s6="Colour" s6-Name="yellow" s6-Color="#898989" 
+s7="Colour" s7-Name="orange" s7-Color="#A2A2A2" 
+s8="Colour" s8-Name="cyan" s8-Color="#BDBDBD" 
+s9="Colour" s9-Name="rainbow_slow_gt_fast_" s9-Color="#E5E5E5" 
+s10="Colour Temperature" s10-Name="5600°k" s10-Color="#282828" 
+s11="Colour Temperature" s11-Name="3200°k" s11-Color="#787878" 
+s12="Colour Temperature" s12-Name="6000°k" s12-Color="#D0D0D0" 
+s13="Shutter" s13-Name="close" s13-Color="#050505" 
+s14="Shutter" s14-Name="dimmer_0_gt_100pct" s14-Color="#303030" 
+s15="Shutter" s15-Name="strobe_slow_gt_fast_" s15-Color="#A9A9A9" 
+s16="Shutter" s16-Name="open" s16-Color="#FFFFFF" 
+/>
+</dmxmodel>

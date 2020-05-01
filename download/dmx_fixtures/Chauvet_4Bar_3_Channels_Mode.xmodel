@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmxmodel name="Chauvet 4Bar 3 Channels Mode" parm1="18" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Red,Green,Blue,,,,,,,,,,,,,,," SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="0" DmxTiltChannel="0" DmxShutterChannel="0" DmxRedChannel="16" DmxGreenChannel="17" DmxBlueChannel="18" DmxWhiteChannel="0" DmxTiltDegOfRot="180" DmxStyle="Flood Light" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Red" s1-Name="rgb_mode_ch2-15_" s1-Color="#040404" 
+s2="Red" s2-Name="auto_program_1" s2-Color="#131313" 
+s3="Red" s3-Name="auto_program_2" s3-Color="#272727" 
+s4="Red" s4-Name="auto_program_3" s4-Color="#3B3B3B" 
+s5="Red" s5-Name="auto_program_4" s5-Color="#4F4F4F" 
+s6="Red" s6-Name="auto_program_5" s6-Color="#636363" 
+s7="Red" s7-Name="auto_program_6" s7-Color="#777777" 
+s8="Red" s8-Name="auto_program_7" s8-Color="#8B8B8B" 
+s9="Red" s9-Name="auto_program_8" s9-Color="#9F9F9F" 
+s10="Red" s10-Name="auto_program_9" s10-Color="#B3B3B3" 
+s11="Red" s11-Name="auto_program_10" s11-Color="#C7C7C7" 
+s12="Red" s12-Name="auto_program_11" s12-Color="#DBDBDB" 
+s13="Red" s13-Name="auto_program_12" s13-Color="#EFEFEF" 
+s14="Red" s14-Name="sound_active_mode" s14-Color="#FCFCFC" 
+s15="Green" s15-Name="no_function" s15-Color="#040404" 
+s16="Green" s16-Name="dimmer_0-100" s16-Color="#848484" 
+s17="Blue" s17-Name="no_function" s17-Color="#040404" 
+s18="Blue" s18-Name="strobe_slow-fast" s18-Color="#848484" 
+/>
+</dmxmodel>

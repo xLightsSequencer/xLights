@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmxmodel name="BoomToneDJ Quattro Scan LED 9 channel mode" parm1="21" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Mode,Total dimmer,Strobe,Red,Green,Blue,White,X-axis position,Y-axis position,,,,,,,,,,,," SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="0" DmxTiltChannel="0" DmxShutterChannel="0" DmxRedChannel="4" DmxGreenChannel="5" DmxBlueChannel="6" DmxWhiteChannel="7" DmxTiltDegOfRot="180" DmxStyle="Flood Light" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Total dimmer" s1-Name="9_channel_mode" s1-Color="#1F1F1F" 
+s2="Total dimmer" s2-Name="15_channel_mode" s2-Color="#5F5F5F" 
+s3="Total dimmer" s3-Name="1_channel-sound_control_mode_1" s3-Color="#959595" 
+s4="Total dimmer" s4-Name="1_channel-sound_control_mode_2" s4-Color="#C0C0C0" 
+s5="Total dimmer" s5-Name="1_channel-automatic_mode" s5-Color="#EAEAEA" 
+/>
+</dmxmodel>

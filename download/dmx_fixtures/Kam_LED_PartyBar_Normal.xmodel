@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmxmodel name="Kam LED PartyBar Normal" parm1="15" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Sound,Dimmer,Strobe,Spot1 - Red,Spot1 - Green,Spot1 - Blue,Spot2 - Red,Spot2 - Green,Spot2 - Blue,Spot3 - Red,Spot3 - Green,Spot3 - Blue,Spot4 - Red,Spot4 - Green,Spot4 - Blue" SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="0" DmxTiltChannel="0" DmxShutterChannel="0" DmxRedChannel="0" DmxGreenChannel="0" DmxBlueChannel="0" DmxWhiteChannel="0" DmxTiltDegOfRot="180" DmxStyle="Moving Head Bars" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Sound" s1-Name="no_function" s1-Color="#050505" 
+s2="Sound" s2-Name="auto_1" s2-Color="#191919" 
+s3="Sound" s3-Name="auto_2" s3-Color="#373737" 
+s4="Sound" s4-Name="auto_3" s4-Color="#555555" 
+s5="Sound" s5-Name="auto_4" s5-Color="#737373" 
+s6="Sound" s6-Name="auto_5" s6-Color="#919191" 
+s7="Sound" s7-Name="auto_6" s7-Color="#AFAFAF" 
+s8="Sound" s8-Name="auto_7" s8-Color="#CDCDCD" 
+s9="Sound" s9-Name="auto_8" s9-Color="#EBEBEB" 
+s10="Sound" s10-Name="sound_activated" s10-Color="#FDFDFD" 
+s11="Strobe" s11-Name="no_function" s11-Color="#040404" 
+s12="Strobe" s12-Name="strobe_slow-fast_" s12-Color="#848484" 
+/>
+</dmxmodel>

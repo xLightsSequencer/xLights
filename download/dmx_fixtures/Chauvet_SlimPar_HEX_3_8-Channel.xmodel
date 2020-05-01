@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmxmodel name="Chauvet SlimPar HEX 3 8-Channel" parm1="12" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Intensity,Red,Green,Blue,Amber,White,Ultraviolet,Strobe,,,," SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="0" DmxTiltChannel="0" DmxShutterChannel="0" DmxRedChannel="2" DmxGreenChannel="3" DmxBlueChannel="4" DmxWhiteChannel="6" DmxTiltDegOfRot="180" DmxStyle="Flood Light" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Strobe" s1-Name="no_function" s1-Color="#050505" 
+s2="Strobe" s2-Name="slow_to_fast" s2-Color="#858585" 
+s3="Node9" s3-Name="no_function" s3-Color="#070707" 
+s4="Node9" s4-Name="color_macros" s4-Color="#878787" 
+s5="Node10" s5-Name="no_function" s5-Color="#050505" 
+s6="Node10" s6-Name="auto_program_1" s6-Color="#1E1E1E" 
+s7="Node10" s7-Name="auto_program_2" s7-Color="#4B4B4B" 
+s8="Node10" s8-Name="auto_program_3" s8-Color="#7D7D7D" 
+s9="Node10" s9-Name="auto_program_4" s9-Color="#AFAFAF" 
+s10="Node10" s10-Name="sound-active_6-color_" s10-Color="#D5D5D5" 
+s11="Node10" s11-Name="sound-active_63-color_" s11-Color="#F0F0F0" 
+s12="Node12" s12-Name="dimmer_mode_manual" s12-Color="#191919" 
+s13="Node12" s13-Name="dimmer_mode_off" s13-Color="#4C4C4C" 
+s14="Node12" s14-Name="dimmer_mode_1_fast_speed_" s14-Color="#7F7F7F" 
+s15="Node12" s15-Name="dimmer_mode_2_medium_speed_" s15-Color="#B2B2B2" 
+s16="Node12" s16-Name="dimmer_mode_3_slow_speed_" s16-Color="#E5E5E5" 
+/>
+</dmxmodel>

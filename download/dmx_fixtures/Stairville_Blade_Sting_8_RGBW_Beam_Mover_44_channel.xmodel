@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmxmodel name="Stairville Blade Sting 8 RGBW Beam Mover 44 channel" parm1="48" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Pan,Pan Fine,Upper Tilt,Upper Tilt Fine,Lower Tilt,Lower Tilt Fine,Rotation Speed,Pan/Tilt Rotation,Dimmer,Intensity red LED1,Intensity green LED1,Intensity blue LED1,Intensity white LED1,Intensity red LED2,Intensity green LED2,Intensity blue LED2,Intensity white LED2,Intensity red LED3,Intensity green LED3,Intensity blue LED3,Intensity white LED3,Intensity red LED4,Intensity green LED4,Intensity blue LED4,Intensity white LED4,Intensity red LED5,Intensity green LED5,Intensity blue LED5,Intensity white LED5,Intensity red LED6,Intensity green LED6,Intensity blue LED6,Intensity white LED6,Intensity red LED7,Intensity green LED7,Intensity blue LED7,Intensity white LED7,Intensity red LED8,Intensity green LED8,Intensity blue LED8,Intensity white LED8,Auto mode,Chaser light speed,Flash frequency,,,," SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="1" DmxTiltChannel="0" DmxShutterChannel="0" DmxRedChannel="0" DmxGreenChannel="0" DmxBlueChannel="0" DmxWhiteChannel="0" DmxTiltDegOfRot="180" DmxStyle="Moving Head 3D" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Pan/Tilt Rotation" s1-Name="no_function" s1-Color="#404040" 
+s2="Pan/Tilt Rotation" s2-Name="clockwise_rotation_movement_speed_increasing" s2-Color="#A1A1A1" 
+s3="Pan/Tilt Rotation" s3-Name="counter-clockwise_rotation_movement_speed_increasing" s3-Color="#E0E0E0" 
+s4="Auto mode" s4-Name="no_function" s4-Color="#040404" 
+s5="Auto mode" s5-Name="auto_operation" s5-Color="#0E0E0E" 
+s6="Auto mode" s6-Name="preprogrammed_automatic_show_no_01" s6-Color="#181818" 
+s7="Auto mode" s7-Name="preprogrammed_automatic_show_no_02" s7-Color="#222222" 
+s8="Auto mode" s8-Name="preprogrammed_automatic_show_no_03" s8-Color="#2C2C2C" 
+s9="Auto mode" s9-Name="preprogrammed_automatic_show_no_04" s9-Color="#363636" 
+s10="Auto mode" s10-Name="preprogrammed_automatic_show_no_05" s10-Color="#404040" 
+s11="Auto mode" s11-Name="preprogrammed_automatic_show_no_06" s11-Color="#4A4A4A" 
+s12="Auto mode" s12-Name="sound-controlled_operation_increasing_sensitivity" s12-Color="#C0C0C0" 
+s13="Flash frequency" s13-Name="no_function" s13-Color="#070707" 
+s14="Flash frequency" s14-Name="flash_frequency_auto_operation" s14-Color="#878787" 
+/>
+</dmxmodel>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmxmodel name="Pro-Lights LumiPIX 12Q 4 Channel" parm1="57" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Red,Green,Blue,White,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,," SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="0" DmxTiltChannel="0" DmxShutterChannel="0" DmxRedChannel="2" DmxGreenChannel="3" DmxBlueChannel="4" DmxWhiteChannel="5" DmxTiltDegOfRot="180" DmxStyle="Flood Light" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Node6" s1-Name="no_function" s1-Color="#050505" 
+s2="Node6" s2-Name="chase_1" s2-Color="#141414" 
+s3="Node6" s3-Name="chase_2" s3-Color="#282828" 
+s4="Node6" s4-Name="chase_3" s4-Color="#3C3C3C" 
+s5="Node6" s5-Name="chase_4" s5-Color="#505050" 
+s6="Node6" s6-Name="chase_5" s6-Color="#646464" 
+s7="Node6" s7-Name="chase_6" s7-Color="#787878" 
+s8="Node6" s8-Name="chase_7" s8-Color="#8C8C8C" 
+s9="Node6" s9-Name="chase_8" s9-Color="#A0A0A0" 
+s10="Node6" s10-Name="chase_9" s10-Color="#B4B4B4" 
+s11="Node6" s11-Name="chase_10" s11-Color="#C8C8C8" 
+s12="Node6" s12-Name="chase_11" s12-Color="#DCDCDC" 
+s13="Node6" s13-Name="chase_12" s13-Color="#F0F0F0" 
+s14="Node6" s14-Name="random_auto_show" s14-Color="#FDFDFD" 
+s15="Node7" s15-Name="no_function" s15-Color="#050505" 
+s16="Node7" s16-Name="strobe_slow_to_fast" s16-Color="#858585" 
+s17="Node8" s17-Name="no_function" s17-Color="#000000" 
+s18="Node8" s18-Name="random_auto_show" s18-Color="#030303" 
+s19="Node8" s19-Name="open" s19-Color="#080808" 
+s20="Node8" s20-Name="strobe_slow_to_fast" s20-Color="#858585" 
+/>
+</dmxmodel>

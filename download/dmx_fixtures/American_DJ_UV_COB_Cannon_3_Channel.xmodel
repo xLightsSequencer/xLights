@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmxmodel name="American_DJ UV COB Cannon 3 Channel" parm1="3" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Dimming,Strobing,Dimmer Curves" SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="0" DmxTiltChannel="0" DmxShutterChannel="0" DmxRedChannel="0" DmxGreenChannel="0" DmxBlueChannel="0" DmxWhiteChannel="0" DmxTiltDegOfRot="180" DmxStyle="Moving Head Bars" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Dimmer Curves" s1-Name="standard" s1-Color="#0A0A0A" 
+s2="Dimmer Curves" s2-Name="stage" s2-Color="#1E1E1E" 
+s3="Dimmer Curves" s3-Name="tv" s3-Color="#323232" 
+s4="Dimmer Curves" s4-Name="architectural" s4-Color="#464646" 
+s5="Dimmer Curves" s5-Name="theatre" s5-Color="#5A5A5A" 
+s6="Dimmer Curves" s6-Name="delay_mode_control" s6-Color="#B2B2B2" 
+/>
+</dmxmodel>

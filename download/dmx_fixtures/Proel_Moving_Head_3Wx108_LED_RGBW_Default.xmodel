@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmxmodel name="Proel Moving Head 3Wx108 LED RGBW Default" parm1="15" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Dimmer,Red,Green,Blue,White,Strobe,Colour change,Colours Macro,Automatic Colours Macro,Pan,Tilt,Pan Fine,Tilt Fine,Pan Tilt Speed,Reset" SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="10" DmxTiltChannel="11" DmxShutterChannel="0" DmxRedChannel="2" DmxGreenChannel="3" DmxBlueChannel="4" DmxWhiteChannel="5" DmxTiltDegOfRot="180" DmxStyle="Moving Head 3D" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Strobe" s1-Name="no_function" s1-Color="#010101" 
+s2="Strobe" s2-Name="random_strobe" s2-Color="#404040" 
+s3="Strobe" s3-Name="pulsing_strobe" s3-Color="#BEBEBE" 
+s4="Colour change" s4-Name="no_function" s4-Color="#010101" 
+s5="Colour change" s5-Name="color_change_slow_to_fast_" s5-Color="#818181" 
+s6="Colours Macro" s6-Name="no_function" s6-Color="#010101" 
+s7="Colours Macro" s7-Name="red_to_yellow" s7-Color="#161616" 
+s8="Colours Macro" s8-Name="yellow_to_green" s8-Color="#3E3E3E" 
+s9="Colours Macro" s9-Name="green_to_cyan" s9-Color="#686868" 
+s10="Colours Macro" s10-Name="cyan_to_blue" s10-Color="#929292" 
+s11="Colours Macro" s11-Name="blue_to_magenta" s11-Color="#BCBCBC" 
+s12="Colours Macro" s12-Name="magenta_to_white" s12-Color="#E6E6E6" 
+s13="Colours Macro" s13-Name="white" s13-Color="#FDFDFD" 
+s14="Automatic Colours Macro" s14-Name="no_function" s14-Color="#010101" 
+s15="Automatic Colours Macro" s15-Name="automatic_colour_mix_slow_to_fast_" s15-Color="#818181" 
+s16="Reset" s16-Name="no_function" s16-Color="#3F3F3F" 
+s17="Reset" s17-Name="reset_after_3_seconds" s17-Color="#BFBFBF" 
+/>
+</dmxmodel>

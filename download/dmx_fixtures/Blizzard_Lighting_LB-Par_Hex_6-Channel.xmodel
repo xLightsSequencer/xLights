@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmxmodel name="Blizzard_Lighting LB-Par Hex 6-Channel" parm1="11" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Red Intensity,Green Intensity,Blue Intensity,Amber Intensity,White Intensity,UV Intensity,,,,," SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="0" DmxTiltChannel="0" DmxShutterChannel="0" DmxRedChannel="0" DmxGreenChannel="0" DmxBlueChannel="0" DmxWhiteChannel="0" DmxTiltDegOfRot="180" DmxStyle="Moving Head Bars" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Node9" s1-Name="dimmer_speed" s1-Color="#040404" 
+s2="Node9" s2-Name="program_1_r_g_b_jump_" s2-Color="#0E0E0E" 
+s3="Node9" s3-Name="program_2_r_g_b_fade-in_out_" s3-Color="#181818" 
+s4="Node9" s4-Name="program_3_r_g_b_fade_" s4-Color="#222222" 
+s5="Node9" s5-Name="program_4_r_g_b_a_w_uv_jump_" s5-Color="#2C2C2C" 
+s6="Node9" s6-Name="program_5_r_g_b_a_w_uv_fade-in_out_" s6-Color="#363636" 
+s7="Node9" s7-Name="program_6_r_g_b_a_w_uv_fade_" s7-Color="#404040" 
+s8="Node9" s8-Name="program_7_7-color_jump_" s8-Color="#4A4A4A" 
+s9="Node9" s9-Name="program_8_7-color_fade-in_out_" s9-Color="#545454" 
+s10="Node9" s10-Name="program_9_7-color_fade_" s10-Color="#5E5E5E" 
+s11="Node9" s11-Name="program_10_multicolor_jump_" s11-Color="#686868" 
+s12="Node9" s12-Name="program_11_multicolor_fade-in_out_" s12-Color="#727272" 
+s13="Node9" s13-Name="program_12_multicolor_fade_" s13-Color="#7C7C7C" 
+s14="Node9" s14-Name="auto_mode_loop_all_programs_" s14-Color="#868686" 
+s15="Node9" s15-Name="sound_active_mode" s15-Color="#C5C5C5" 
+s16="Node11" s16-Name="as_set_in_the_control_menu_display" s16-Color="#020202" 
+s17="Node11" s17-Name="mode_0_eq_8-bit_256_dimming_steps" s17-Color="#1E1E1E" 
+s18="Node11" s18-Name="mode_1_eq_32-bit_0-25pct_intensity_range" s18-Color="#505050" 
+s19="Node11" s19-Name="mode_2_eq_32-bit_0-50pct_intensity_range" s19-Color="#828282" 
+s20="Node11" s20-Name="mode_3_eq_32-bit_0-75pct_intensity_range" s20-Color="#B4B4B4" 
+s21="Node11" s21-Name="mode_4_eq_32-bit_full_intensity_dimming" s21-Color="#E6E6E6" 
+/>
+</dmxmodel>

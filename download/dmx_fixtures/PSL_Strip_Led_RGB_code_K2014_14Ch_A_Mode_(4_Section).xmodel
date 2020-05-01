@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmxmodel name="PSL Strip Led RGB code K2014 14Ch A Mode (4 Section)" parm1="23" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Strobe/Chaser,Main Dimmer,Red 1st Segment,Green 1st Segment,Blue 1st Segment,Red 2nd Segment,Green 2nd Segment,Blue 2nd Segment,Red 3rd Segment,Green 3rd Segment,Blue 3rd Segment,Red 4th Segment,Green 4th Segment,Blue 4th Segment,,,,,,,,," SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="0" DmxTiltChannel="0" DmxShutterChannel="0" DmxRedChannel="3" DmxGreenChannel="4" DmxBlueChannel="5" DmxWhiteChannel="0" DmxTiltDegOfRot="180" DmxStyle="Flood Light" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Strobe/Chaser" s1-Name="light_off" s1-Color="#010101" 
+s2="Strobe/Chaser" s2-Name="light_on" s2-Color="#060606" 
+s3="Strobe/Chaser" s3-Name="strobe_from_slow_to_fast_" s3-Color="#181818" 
+s4="Strobe/Chaser" s4-Name="fade_in_out_from_slow_to_fast_" s4-Color="#363636" 
+s5="Strobe/Chaser" s5-Name="auto_colour_change" s5-Color="#545454" 
+s6="Strobe/Chaser" s6-Name="chase_1" s6-Color="#696969" 
+s7="Strobe/Chaser" s7-Name="chase_2" s7-Color="#747474" 
+s8="Strobe/Chaser" s8-Name="chase_3" s8-Color="#7F7F7F" 
+s9="Strobe/Chaser" s9-Name="chase_4" s9-Color="#8A8A8A" 
+s10="Strobe/Chaser" s10-Name="chase_5" s10-Color="#959595" 
+s11="Strobe/Chaser" s11-Name="chase_6" s11-Color="#A0A0A0" 
+s12="Strobe/Chaser" s12-Name="chase_7" s12-Color="#ABABAB" 
+s13="Strobe/Chaser" s13-Name="chase_8" s13-Color="#B6B6B6" 
+s14="Strobe/Chaser" s14-Name="chase_9" s14-Color="#C1C1C1" 
+s15="Strobe/Chaser" s15-Name="chase_10" s15-Color="#CCCCCC" 
+s16="Strobe/Chaser" s16-Name="chase_11" s16-Color="#D7D7D7" 
+s17="Strobe/Chaser" s17-Name="chase_12" s17-Color="#E2E2E2" 
+s18="Strobe/Chaser" s18-Name="chase_13" s18-Color="#F3F3F3" 
+/>
+</dmxmodel>

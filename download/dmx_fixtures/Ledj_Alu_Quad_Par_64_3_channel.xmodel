@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmxmodel name="Ledj Alu Quad Par 64 3 channel" parm1="11" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Static colours,Master dimmer,Sound mode / strobe,,,,,,,," SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="0" DmxTiltChannel="0" DmxShutterChannel="0" DmxRedChannel="0" DmxGreenChannel="0" DmxBlueChannel="0" DmxWhiteChannel="0" DmxTiltDegOfRot="180" DmxStyle="Flood Light" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Static colours" s1-Name="blackout" s1-Color="#030303" 
+s2="Static colours" s2-Name="30_static_colours" s2-Color="#838383" 
+s3="Sound mode / strobe" s3-Name="on" s3-Color="#000000" 
+s4="Sound mode / strobe" s4-Name="sound_mode" s4-Color="#030303" 
+s5="Sound mode / strobe" s5-Name="strobe" s5-Color="#858585" 
+/>
+</dmxmodel>

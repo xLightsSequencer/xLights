@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmxmodel name="Showlite Flood Light Panel 144x10mm LED RGBW default" parm1="7" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Dimmer,Red,Green,Blue,White,Speed,Function" SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="0" DmxTiltChannel="0" DmxShutterChannel="0" DmxRedChannel="2" DmxGreenChannel="3" DmxBlueChannel="4" DmxWhiteChannel="5" DmxTiltDegOfRot="180" DmxStyle="Flood Light" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Function" s1-Name="no_function" s1-Color="#070707" 
+s2="Function" s2-Name="sequence_r-g-b-rg-g" s2-Color="#171717" 
+s3="Function" s3-Name="sequence_r-rg-b-rb-r" s3-Color="#272727" 
+s4="Function" s4-Name="sequence_r-b-g-rg-g" s4-Color="#373737" 
+s5="Function" s5-Name="sequence_r-g-gb-rgb-g" s5-Color="#474747" 
+s6="Function" s6-Name="sequence_b-bg-rgb-rg-g" s6-Color="#575757" 
+s7="Function" s7-Name="color_sync_strobe" s7-Color="#676767" 
+s8="Function" s8-Name="color_fade" s8-Color="#777777" 
+s9="Function" s9-Name="color_change" s9-Color="#878787" 
+s10="Function" s10-Name="color_change_and_strobe" s10-Color="#979797" 
+s11="Function" s11-Name="color_fast_in_slow_out" s11-Color="#A7A7A7" 
+s12="Function" s12-Name="color_slow_in_fast_out" s12-Color="#B7B7B7" 
+s13="Function" s13-Name="color_slow_in_slow_out" s13-Color="#C7C7C7" 
+s14="Function" s14-Name="color_glide" s14-Color="#D7D7D7" 
+s15="Function" s15-Name="sound_1" s15-Color="#E7E7E7" 
+s16="Function" s16-Name="sound_2" s16-Color="#F7F7F7" 
+/>
+</dmxmodel>

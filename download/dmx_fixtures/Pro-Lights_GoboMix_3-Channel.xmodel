@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmxmodel name="Pro-Lights GoboMix 3-Channel" parm1="3" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Dimmer,Strobe,Gobo Rotating" SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="0" DmxTiltChannel="0" DmxShutterChannel="0" DmxRedChannel="0" DmxGreenChannel="0" DmxBlueChannel="0" DmxWhiteChannel="0" DmxTiltDegOfRot="180" DmxStyle="Moving Head Bars" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Strobe" s1-Name="no_function" s1-Color="#050505" 
+s2="Strobe" s2-Name="strobe_slow_to_fast_" s2-Color="#858585" 
+s3="Gobo Rotating" s3-Name="gobos_rotating_mirror_dish_rotating" s3-Color="#1F1F1F" 
+s4="Gobo Rotating" s4-Name="gobos_rotating_mirror_dish_static" s4-Color="#5F5F5F" 
+s5="Gobo Rotating" s5-Name="gobos_static_mirror_dish_rotating" s5-Color="#9F9F9F" 
+s6="Gobo Rotating" s6-Name="gobo_static_mirror_dish_static" s6-Color="#DFDFDF" 
+/>
+</dmxmodel>

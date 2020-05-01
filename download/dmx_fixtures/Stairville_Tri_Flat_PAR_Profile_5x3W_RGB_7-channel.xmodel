@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmxmodel name="Stairville Tri Flat PAR Profile 5x3W RGB 7-channel" parm1="7" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Dimmer,Red,Green,Blue,Operating Mode,Constant Colour / Progress Speed,Strobe" SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="0" DmxTiltChannel="0" DmxShutterChannel="0" DmxRedChannel="1" DmxGreenChannel="2" DmxBlueChannel="3" DmxWhiteChannel="0" DmxTiltDegOfRot="180" DmxStyle="Flood Light" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Constant Colour / Progress Speed" s1-Name="manual_mode_colours_can_be_adjusted_via_channels_2_to_4" s1-Color="#000000" 
+s2="Constant Colour / Progress Speed" s2-Name="preprogrammed_automatic_show_no_1" s2-Color="#0E0E0E" 
+s3="Constant Colour / Progress Speed" s3-Name="preprogrammed_automatic_show_no_2" s3-Color="#292929" 
+s4="Constant Colour / Progress Speed" s4-Name="preprogrammed_automatic_show_no_3" s4-Color="#454545" 
+s5="Constant Colour / Progress Speed" s5-Name="preprogrammed_automatic_show_no_4" s5-Color="#616161" 
+s6="Constant Colour / Progress Speed" s6-Name="preprogrammed_automatic_show_no_5" s6-Color="#7D7D7D" 
+s7="Constant Colour / Progress Speed" s7-Name="preprogrammed_automatic_show_no_6" s7-Color="#999999" 
+s8="Constant Colour / Progress Speed" s8-Name="preprogrammed_automatic_show_no_7" s8-Color="#B5B5B5" 
+s9="Constant Colour / Progress Speed" s9-Name="preprogrammed_automatic_show_no_8" s9-Color="#D1D1D1" 
+s10="Constant Colour / Progress Speed" s10-Name="preprogrammed_automatic_show_no_9" s10-Color="#EDEDED" 
+s11="Constant Colour / Progress Speed" s11-Name="sound-controlled_show" s11-Color="#FDFDFD" 
+s12="Strobe" s12-Name="dark_when_channel_5_eq_1_24" s12-Color="#0D0D0D" 
+s13="Strobe" s13-Name="red_when_channel_5_eq_1_24" s13-Color="#292929" 
+s14="Strobe" s14-Name="orange_when_channel_5_eq_1_24" s14-Color="#454545" 
+s15="Strobe" s15-Name="yellow_when_channel_5_eq_1_24" s15-Color="#616161" 
+s16="Strobe" s16-Name="light_green_when_channel_5_eq_1_24" s16-Color="#7D7D7D" 
+s17="Strobe" s17-Name="light_blue_when_channel_5_eq_1_24" s17-Color="#999999" 
+s18="Strobe" s18-Name="blue_when_channel_5_eq_1_24" s18-Color="#B5B5B5" 
+s19="Strobe" s19-Name="purple_when_channel_5_eq_1_24" s19-Color="#D1D1D1" 
+s20="Strobe" s20-Name="pink_when_channel_5_eq_1_24" s20-Color="#EDEDED" 
+s21="Strobe" s21-Name="red_green_blue_when_channel_5_eq_1_24" s21-Color="#FDFDFD" 
+/>
+</dmxmodel>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmxmodel name="QTX SL Series SL-Q8" parm1="7" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Red,Green,Blue,White,Dimmer,Effect," SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="0" DmxTiltChannel="0" DmxShutterChannel="0" DmxRedChannel="1" DmxGreenChannel="2" DmxBlueChannel="3" DmxWhiteChannel="4" DmxTiltDegOfRot="180" DmxStyle="Flood Light" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Effect" s1-Name="strobe_slow_to_fast" s1-Color="#7D7D7D" 
+s2="Effect" s2-Name="sound_activated" s2-Color="#FDFDFD" 
+s3="Node7" s3-Name="closed" s3-Color="#030303" 
+s4="Node7" s4-Name="dimming_0-100pct_" s4-Color="#636363" 
+s5="Node7" s5-Name="sound_to_light_pulse_" s5-Color="#C1C1C1" 
+s6="Node7" s6-Name="sound_to_light_strobe_" s6-Color="#C6C6C6" 
+s7="Node7" s7-Name="strobe" s7-Color="#E0E0E0" 
+s8="Node7" s8-Name="open_100pct_" s8-Color="#FBFBFB" 
+/>
+</dmxmodel>

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmxmodel name="Briteq Giga Flash RGB 4 Channel (Multi color)" parm1="18" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Dimmer,Flash Duration,Strobe rate,Color Pixel Effect,,,,,,,,,,,,,," SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="0" DmxTiltChannel="0" DmxShutterChannel="0" DmxRedChannel="0" DmxGreenChannel="0" DmxBlueChannel="0" DmxWhiteChannel="0" DmxTiltDegOfRot="180" DmxStyle="Flood Light" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Dimmer" s1-Name="blackout" s1-Color="#020202" 
+s2="Dimmer" s2-Name="strobe_rate_0-30hz" s2-Color="#7E7E7E" 
+s3="Dimmer" s3-Name="blinder_effect" s3-Color="#FBFBFB" 
+s4="Flash Duration" s4-Name="blackout" s4-Color="#020202" 
+s5="Flash Duration" s5-Name="dimmer_0-100pct" s5-Color="#828282" 
+s6="Color Pixel Effect" s6-Name="no_flash" s6-Color="#020202" 
+s7="Color Pixel Effect" s7-Name="strobe_rate_0-30hz" s7-Color="#828282" 
+s8="Node5" s8-Name="normal_flashes" s8-Color="#020202" 
+s9="Node5" s9-Name="ramp_up_s_gt_f" s9-Color="#181818" 
+s10="Node5" s10-Name="ramp_down_s_gt_f" s10-Color="#404040" 
+s11="Node5" s11-Name="ramp_up-down_s_gt_f" s11-Color="#6B6B6B" 
+s12="Node5" s12-Name="random_effect_s_gt_f" s12-Color="#969696" 
+s13="Node5" s13-Name="lightning_effect_s_gt_f" s13-Color="#C1C1C1" 
+s14="Node5" s14-Name="spike_effect" s14-Color="#EBEBEB" 
+s15="Node6" s15-Name="no_pixel_fx_other_channels_active_" s15-Color="#020202" 
+s16="Node6" s16-Name="color_pixel_fx_1_s_gt_f" s16-Color="#171717" 
+s17="Node6" s17-Name="color_pixel_fx_2_s_gt_f" s17-Color="#3E3E3E" 
+s18="Node6" s18-Name="color_pixel_fx_3_s_gt_f" s18-Color="#686868" 
+s19="Node6" s19-Name="color_pixel_fx_4_s_gt_f" s19-Color="#929292" 
+s20="Node6" s20-Name="color_pixel_fx_5_s_gt_f" s20-Color="#BCBCBC" 
+s21="Node6" s21-Name="color_pixel_fx_6_s_gt_f" s21-Color="#E8E8E8" 
+/>
+</dmxmodel>

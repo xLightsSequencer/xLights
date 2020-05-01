@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmxmodel name="Chauvet 4Bar Tri Main " parm1="15" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Mode,Dimmer,Strobe,1Red,1Green,1Blue,2Red,2Green,2Blue,3Red,3Green,3Blue,4Red,4Green,4Blue" SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="0" DmxTiltChannel="0" DmxShutterChannel="0" DmxRedChannel="0" DmxGreenChannel="0" DmxBlueChannel="0" DmxWhiteChannel="0" DmxTiltDegOfRot="180" DmxStyle="Moving Head Bars" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Mode" s1-Name="rgb_" s1-Color="#000000" 
+s2="Mode" s2-Name="ps1" s2-Color="#0A0A0A" 
+s3="Mode" s3-Name="ps2" s3-Color="#1E1E1E" 
+s4="Mode" s4-Name="ps3" s4-Color="#323232" 
+s5="Mode" s5-Name="ps4" s5-Color="#464646" 
+s6="Mode" s6-Name="ps5" s6-Color="#5A5A5A" 
+s7="Mode" s7-Name="ps6" s7-Color="#6E6E6E" 
+s8="Mode" s8-Name="ps7" s8-Color="#828282" 
+s9="Mode" s9-Name="ps8" s9-Color="#969696" 
+s10="Mode" s10-Name="ps9" s10-Color="#AAAAAA" 
+s11="Mode" s11-Name="ps10" s11-Color="#BEBEBE" 
+s12="Mode" s12-Name="ps11" s12-Color="#D2D2D2" 
+s13="Mode" s13-Name="ps12" s13-Color="#E6E6E6" 
+s14="Mode" s14-Name="sound" s14-Color="#FAFAFA" 
+s15="Dimmer" s15-Name="bo" s15-Color="#000000" 
+s16="Dimmer" s16-Name="1-100pct" s16-Color="#848484" 
+s17="Strobe" s17-Name="none" s17-Color="#000000" 
+s18="Strobe" s18-Name="strobe_slow-_gt_fast" s18-Color="#848484" 
+/>
+</dmxmodel>

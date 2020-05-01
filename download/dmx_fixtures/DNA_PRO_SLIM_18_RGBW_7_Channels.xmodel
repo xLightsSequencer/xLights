@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmxmodel name="DNA PRO SLIM 18 RGBW 7 Channels" parm1="7" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Dimmer,Red,Green,Blue,White,Strobe," SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="0" DmxTiltChannel="0" DmxShutterChannel="0" DmxRedChannel="2" DmxGreenChannel="3" DmxBlueChannel="4" DmxWhiteChannel="5" DmxTiltDegOfRot="180" DmxStyle="Flood Light" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Strobe" s1-Name="strobe_off" s1-Color="#000000" 
+s2="Strobe" s2-Name="strobe_speed" s2-Color="#636363" 
+s3="Strobe" s3-Name="random_strobe" s3-Color="#E2E2E2" 
+s4="Node7" s4-Name="no_function" s4-Color="#000000" 
+s5="Node7" s5-Name="rgb_colour_fade" s5-Color="#0A0A0A" 
+s6="Node7" s6-Name="colour_changing" s6-Color="#1D1D1D" 
+s7="Node7" s7-Name="random_colour_changing" s7-Color="#313131" 
+s8="Node7" s8-Name="yellow" s8-Color="#454545" 
+s9="Node7" s9-Name="purple" s9-Color="#595959" 
+s10="Node7" s10-Name="light_green" s10-Color="#6D6D6D" 
+s11="Node7" s11-Name="orange" s11-Color="#818181" 
+s12="Node7" s12-Name="red_on_off_10_sec_" s12-Color="#959595" 
+s13="Node7" s13-Name="green_on_off_10_sec_" s13-Color="#A9A9A9" 
+s14="Node7" s14-Name="blue_on_off_10_sec_" s14-Color="#BDBDBD" 
+s15="Node7" s15-Name="yellow_on_off_10_sec_" s15-Color="#D1D1D1" 
+s16="Node7" s16-Name="cyan_on_off_10_sec_" s16-Color="#E0E0E0" 
+s17="Node7" s17-Name="white_on_off_10_sec_" s17-Color="#EFEFEF" 
+s18="Node7" s18-Name="full_on" s18-Color="#FCFCFC" 
+/>
+</dmxmodel>

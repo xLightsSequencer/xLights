@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmxmodel name="Nicols Movelight Full" parm1="7" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Red,Green,Blue,Dimmer,Strobe,," SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="0" DmxTiltChannel="0" DmxShutterChannel="0" DmxRedChannel="3" DmxGreenChannel="4" DmxBlueChannel="5" DmxWhiteChannel="0" DmxTiltDegOfRot="180" DmxStyle="Flood Light" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Red" s1-Name="blackout" s1-Color="#040404" 
+s2="Red" s2-Name="red" s2-Color="#0E0E0E" 
+s3="Red" s3-Name="yellow" s3-Color="#181818" 
+s4="Red" s4-Name="green" s4-Color="#222222" 
+s5="Red" s5-Name="cyan" s5-Color="#2C2C2C" 
+s6="Red" s6-Name="blue" s6-Color="#363636" 
+s7="Red" s7-Name="purple" s7-Color="#404040" 
+s8="Red" s8-Name="pink" s8-Color="#4A4A4A" 
+s9="Red" s9-Name="white" s9-Color="#545454" 
+s10="Red" s10-Name="program_02" s10-Color="#5E5E5E" 
+s11="Red" s11-Name="program_03" s11-Color="#686868" 
+s12="Red" s12-Name="program_04" s12-Color="#727272" 
+s13="Red" s13-Name="program_05" s13-Color="#7C7C7C" 
+s14="Red" s14-Name="program_06" s14-Color="#868686" 
+s15="Red" s15-Name="program_07" s15-Color="#909090" 
+s16="Red" s16-Name="program_08" s16-Color="#9A9A9A" 
+s17="Red" s17-Name="program_09" s17-Color="#A4A4A4" 
+s18="Red" s18-Name="sound_sensitivity" s18-Color="#D4D4D4" 
+s19="Green" s19-Name="program" s19-Color="#2C2C2C" 
+s20="Green" s20-Name="speed_slow_to_fast_" s20-Color="#818181" 
+s21="Green" s21-Name="sensitivity_0-255" s21-Color="#D4D4D4" 
+/>
+</dmxmodel>

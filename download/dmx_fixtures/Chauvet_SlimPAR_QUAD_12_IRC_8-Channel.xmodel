@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmxmodel name="Chauvet SlimPAR QUAD 12 IRC 8-Channel" parm1="8" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Red,Green,Blue,Amber,Color Macros,Speed/Strobe,Mode,Dimmer" SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="0" DmxTiltChannel="0" DmxShutterChannel="0" DmxRedChannel="1" DmxGreenChannel="2" DmxBlueChannel="3" DmxWhiteChannel="0" DmxTiltDegOfRot="180" DmxStyle="Flood Light" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Amber" s1-Name="no_function" s1-Color="#070707" 
+s2="Amber" s2-Name="red" s2-Color="#171717" 
+s3="Amber" s3-Name="green" s3-Color="#272727" 
+s4="Amber" s4-Name="blue" s4-Color="#373737" 
+s5="Amber" s5-Name="amber" s5-Color="#474747" 
+s6="Amber" s6-Name="cyan" s6-Color="#575757" 
+s7="Amber" s7-Name="purple" s7-Color="#676767" 
+s8="Amber" s8-Name="yellow" s8-Color="#777777" 
+s9="Amber" s9-Name="light_blue" s9-Color="#878787" 
+s10="Amber" s10-Name="orange" s10-Color="#979797" 
+s11="Amber" s11-Name="light_green" s11-Color="#A7A7A7" 
+s12="Amber" s12-Name="violet" s12-Color="#B7B7B7" 
+s13="Amber" s13-Name="pink" s13-Color="#D7D7D7" 
+s14="Amber" s14-Name="white" s14-Color="#F7F7F7" 
+s15="Speed/Strobe" s15-Name="rgba_mode" s15-Color="#0F0F0F" 
+s16="Speed/Strobe" s16-Name="pulse_effect_0_100pct" s16-Color="#2F2F2F" 
+s17="Speed/Strobe" s17-Name="pulse_effect_100pct_0" s17-Color="#4F4F4F" 
+s18="Speed/Strobe" s18-Name="pulse_effect_100pct_0_100pct" s18-Color="#6F6F6F" 
+s19="Speed/Strobe" s19-Name="auto_fade_transition" s19-Color="#8F8F8F" 
+s20="Speed/Strobe" s20-Name="auto_snap_transition_4_colors_" s20-Color="#AFAFAF" 
+s21="Speed/Strobe" s21-Name="auto_snap_transition_15_colors_" s21-Color="#CFCFCF" 
+s22="Speed/Strobe" s22-Name="sound-active_mode" s22-Color="#EFEFEF" 
+/>
+</dmxmodel>

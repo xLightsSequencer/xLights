@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmxmodel name="Eurolite LED Z-200 TCL 6-channel" parm1="6" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Motor Rotation,LED effects,Speed settings for control channel 2,Red,Green,Blue" SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="0" DmxTiltChannel="0" DmxShutterChannel="0" DmxRedChannel="4" DmxGreenChannel="5" DmxBlueChannel="6" DmxWhiteChannel="0" DmxTiltDegOfRot="180" DmxStyle="Flood Light" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Motor Rotation" s1-Name="no_rotation" s1-Color="#0A0A0A" 
+s2="Motor Rotation" s2-Name="step_by_step_counter_clockwise_rotation" s2-Color="#5F5F5F" 
+s3="Motor Rotation" s3-Name="clockwise_and_counter_clockwise_rotation" s3-Color="#D5D5D5" 
+s4="LED effects" s4-Name="all_leds_on" s4-Color="#111111" 
+s5="LED effects" s5-Name="strobe-effect" s5-Color="#353535" 
+s6="LED effects" s6-Name="fade" s6-Color="#585858" 
+s7="LED effects" s7-Name="color-change" s7-Color="#7B7B7B" 
+s8="LED effects" s8-Name="color-change_strobe" s8-Color="#9E9E9E" 
+s9="LED effects" s9-Name="cross-fade" s9-Color="#C1C1C1" 
+s10="LED effects" s10-Name="cross-fade_strobe" s10-Color="#E9E9E9" 
+/>
+</dmxmodel>

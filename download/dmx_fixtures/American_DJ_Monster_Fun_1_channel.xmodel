@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmxmodel name="American_DJ Monster Fun 1 channel" parm1="1" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Shows" SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="0" DmxTiltChannel="0" DmxShutterChannel="0" DmxRedChannel="0" DmxGreenChannel="0" DmxBlueChannel="0" DmxWhiteChannel="0" DmxTiltDegOfRot="180" DmxStyle="Moving Head Bars" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Shows" s1-Name="blackout" s1-Color="#030303" 
+s2="Shows" s2-Name="show_1" s2-Color="#111111" 
+s3="Shows" s3-Name="show_2" s3-Color="#252525" 
+s4="Shows" s4-Name="show_3" s4-Color="#393939" 
+s5="Shows" s5-Name="show_4" s5-Color="#4D4D4D" 
+s6="Shows" s6-Name="show_5" s6-Color="#616161" 
+s7="Shows" s7-Name="show_6" s7-Color="#757575" 
+s8="Shows" s8-Name="show_7" s8-Color="#898989" 
+s9="Shows" s9-Name="show_8" s9-Color="#9D9D9D" 
+s10="Shows" s10-Name="show_9" s10-Color="#B1B1B1" 
+s11="Shows" s11-Name="show_10" s11-Color="#C5C5C5" 
+s12="Shows" s12-Name="show_11" s12-Color="#D9D9D9" 
+s13="Shows" s13-Name="show_12" s13-Color="#EDEDED" 
+s14="Shows" s14-Name="sound_active" s14-Color="#FBFBFB" 
+/>
+</dmxmodel>

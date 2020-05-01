@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmxmodel name="Showtec LED Pixel Track Pro 160 Channels" parm1="235" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Red - Aa,Green - Aa,Blue - Aa,Dimmer - Aa,Red - Ab,Green - Ab,Blue - Ab,Dimmer - Ab,Red - Ac,Green - Ac,Blue - Ac,Dimmer - Ac,Red - Ad,Green - Ad,Blue - Ad,Dimmer - Ad,Red - Ba,Green - Ba,Blue - Ba,Dimmer - Ba,Red - Bb,Green - Bb,Blue - Bb,Dimmer - Bb,Red - Bc,Green - Bc,Blue - Bc,Dimmer - Bc,Red - Bd,Green - Bd,Blue - Bd,Dimmer - Bd,Red - Ca,Green - Ca,Blue - Ca,Dimmer - Ca,Red - Cb,Green - Cb,Blue - Cb,Dimmer - Cb,Red - Cc,Green - Cc,Blue - Cc,Dimmer - Cc,Red - Cd,Green - Cd,Blue - Cd,Dimmer - Cd,Red - Da,Green - Da,Blue - Da,Dimmer - Da,Red - Db,Green - Db,Blue - Db,Dimmer - Db,Red - Dc,Green - Dc,Blue - Dc,Dimmer - Dc,Red - Dd,Green - Dd,Blue - Dd,Dimmer - Dd,Red - Ea,Green - Ea,Blue - Ea,Dimmer - Ea,Red - Eb,Green - Eb,Blue - Eb,Dimmer - Eb,Red - Ec,Green - Ec,Blue - Ec,Dimmer - Ec,Red - Ed,Green - Ed,Blue - Ed,Dimmer - Ed,Red - Fa,Green - Fa,Blue - Fa,Dimmer - Fa,Red - Fb,Green - Fb,Blue - Fb,Dimmer - Fb,Red - Fc,Green - Fc,Blue - Fc,Dimmer - Fc,Red - Fd,Green - Fd,Blue - Fd,Dimmer - Fd,Red - Ga,Green - Ga,Blue - Ga,Dimmer - Ga,Red - Gb,Green - Gb,Blue - Gb,Dimmer - Gb,Red - Gc,Green - Gc,Blue - Gc,Dimmer - Gc,Red - Gd,Green - Gd,Blue - Gd,Dimmer - Gd,Red - Ha,Green - Ha,Blue - Ha,Dimmer - Ha,Red - Hb,Green - Hb,Blue - Hb,Dimmer - Hb,Red - Hc,Green - Hc,Blue - Hc,Dimmer - Hc,Red - Hd,Green - Hd,Blue - Hd,Dimmer - Hd,Red - Ia,Green - Ia,Blue - Ia,Dimmer - Ia,Red - Ib,Green - Ib,Blue - Ib,Dimmer - Ib,Red - Ic,Green - Ic,Blue - Ic,Dimmer - Ic,Red - Id,Green - Id,Blue - Id,Dimmer - Id,Red - Ja,Green - Ja,Blue - Ja,Dimmer - Ja,Red - Jb,Green - Jb,Blue - Jb,Dimmer - Jb,Red - Jc,Green - Jc,Blue - Jc,Dimmer - Jc,Red - Jd,Green - Jd,Blue - Jd,Dimmer - Jd,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,," SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="0" DmxTiltChannel="0" DmxShutterChannel="0" DmxRedChannel="1" DmxGreenChannel="2" DmxBlueChannel="3" DmxWhiteChannel="0" DmxTiltDegOfRot="180" DmxStyle="Flood Light" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Dimmer - Aa" s1-Name="gradual_adjustment_of_dimmer_intensity_from_0-100pct" s1-Color="#4F4F4F" 
+s2="Dimmer - Aa" s2-Name="strobe_effect_from_slow_to_fast" s2-Color="#CFCFCF" 
+s3="Red - Ab" s3-Name="chase_1" s3-Color="#070707" 
+s4="Red - Ab" s4-Name="chase_2" s4-Color="#171717" 
+s5="Red - Ab" s5-Name="chase_3" s5-Color="#272727" 
+s6="Red - Ab" s6-Name="chase_4" s6-Color="#373737" 
+s7="Red - Ab" s7-Name="chase_5" s7-Color="#474747" 
+s8="Red - Ab" s8-Name="chase_6" s8-Color="#575757" 
+s9="Red - Ab" s9-Name="chase_7" s9-Color="#676767" 
+s10="Red - Ab" s10-Name="chase_8" s10-Color="#777777" 
+s11="Red - Ab" s11-Name="chase_9" s11-Color="#878787" 
+s12="Red - Ab" s12-Name="chase_10" s12-Color="#979797" 
+s13="Red - Ab" s13-Name="chase_11" s13-Color="#A7A7A7" 
+s14="Red - Ab" s14-Name="chase_12" s14-Color="#B7B7B7" 
+s15="Red - Ab" s15-Name="chase_13" s15-Color="#C7C7C7" 
+s16="Red - Ab" s16-Name="chase_14" s16-Color="#D7D7D7" 
+s17="Red - Ab" s17-Name="chase_15" s17-Color="#E7E7E7" 
+s18="Red - Ab" s18-Name="chase_16_sound_controlled_" s18-Color="#F7F7F7" 
+/>
+</dmxmodel>

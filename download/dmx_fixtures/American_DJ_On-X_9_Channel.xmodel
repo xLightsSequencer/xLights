@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmxmodel name="American_DJ On-X 9 Channel" parm1="20" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Head 1 Tilt,Head 2 Tilt,Red,Green,Blue,White,Strobe,Master Dimmer,Special Functions,,,,,,,,,,," SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="0" DmxTiltChannel="0" DmxShutterChannel="0" DmxRedChannel="5" DmxGreenChannel="6" DmxBlueChannel="7" DmxWhiteChannel="8" DmxTiltDegOfRot="180" DmxStyle="Flood Light" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Head 1 Tilt" s1-Name="off" s1-Color="#030303" 
+s2="Head 1 Tilt" s2-Name="show_0" s2-Color="#0B0B0B" 
+s3="Head 1 Tilt" s3-Name="show_1" s3-Color="#131313" 
+s4="Head 1 Tilt" s4-Name="show_2" s4-Color="#1B1B1B" 
+s5="Head 1 Tilt" s5-Name="sound_active" s5-Color="#232323" 
+s6="Head 1 Tilt" s6-Name="no_function" s6-Color="#939393" 
+s7="Special Functions" s7-Name="blackout" s7-Color="#030303" 
+s8="Special Functions" s8-Name="open" s8-Color="#0B0B0B" 
+s9="Special Functions" s9-Name="strobing_slow-fast" s9-Color="#494949" 
+s10="Special Functions" s10-Name="slow_open-fast_close" s10-Color="#A0A0A0" 
+s11="Special Functions" s11-Name="fast_open-slow_close" s11-Color="#D2D2D2" 
+s12="Special Functions" s12-Name="sound_active" s12-Color="#F3F3F3" 
+s13="Node11" s13-Name="nothing" s13-Color="#222222" 
+s14="Node11" s14-Name="blackout_with_tilt_movement" s14-Color="#4A4A4A" 
+s15="Node11" s15-Name="blackout_with_rgbw_value" s15-Color="#5E5E5E" 
+s16="Node11" s16-Name="reset_all" s16-Color="#CCCCCC" 
+s17="Node12" s17-Name="standard" s17-Color="#0A0A0A" 
+s18="Node12" s18-Name="stage" s18-Color="#1E1E1E" 
+s19="Node12" s19-Name="tv" s19-Color="#323232" 
+s20="Node12" s20-Name="architectural" s20-Color="#464646" 
+s21="Node12" s21-Name="theatre" s21-Color="#5A5A5A" 
+s22="Node12" s22-Name="default_dimmer_setting" s22-Color="#B2B2B2" 
+/>
+</dmxmodel>

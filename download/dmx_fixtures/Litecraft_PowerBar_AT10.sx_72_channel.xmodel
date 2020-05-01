@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmxmodel name="Litecraft PowerBar AT10.sx 72 channel" parm1="80" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="H01 red,H01 Green,H01 Blue,H01 white,H02 red,H02 Green,H02 Blue,H02 white,H03 red,H03 Green,H03 Blue,H03 white,H04 red,H04 Green,H04 Blue,H04 white,H05 red,H05 Green,H05 Blue,H05 white,H06 red,H06 Green,H06 Blue,H06 white,H07 red,H07 Green,H07 Blue,H07 white,H08 red,H08 Green,H08 Blue,H08 white,H09 red,H09 Green,H09 Blue,H09 white,H10 red,H10 Green,H10 Blue,H10 white,H11 red,H11 Green,H11 Blue,H11 white,H12 red,H12 Green,H12 Blue,H12 white,H13 red,H13 Green,H13 Blue,H13 white,H14 red,H14 Green,H14 Blue,H14 white,H15 red,H15 Green,H15 Blue,H15 white,H16 red,H16 Green,H16 Blue,H16 white,H17 red,H17 Green,H17 Blue,H17 white,H18 red,H18 Green,H18 Blue,H18 white,,,,,,,," SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="0" DmxTiltChannel="0" DmxShutterChannel="0" DmxRedChannel="0" DmxGreenChannel="4" DmxBlueChannel="5" DmxWhiteChannel="0" DmxTiltDegOfRot="180" DmxStyle="Flood Light" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="H01 red" s1-Name="no_macro" s1-Color="#060606" 
+s2="H01 red" s2-Name="preprogrammed_colours" s2-Color="#868686" 
+s3="H02 Blue" s3-Name="no_strobe" s3-Color="#060606" 
+s4="H02 Blue" s4-Name="strobe_16_speeds" s4-Color="#868686" 
+s5="H02 white" s5-Name="no_function" s5-Color="#0C0C0C" 
+s6="H02 white" s6-Name="automatic_dimming_upwards" s6-Color="#252525" 
+s7="H02 white" s7-Name="automatic_dimming_downwards" s7-Color="#3E3E3E" 
+s8="H02 white" s8-Name="automatic_dimming_up_downwards" s8-Color="#575757" 
+s9="H02 white" s9-Name="automatic_color_mix_mode" s9-Color="#707070" 
+s10="H02 white" s10-Name="random_playback_3_colours" s10-Color="#898989" 
+s11="H02 white" s11-Name="random_playback_7_colours" s11-Color="#A2A2A2" 
+s12="H02 white" s12-Name="program_1" s12-Color="#BBBBBB" 
+s13="H02 white" s13-Name="program_2" s13-Color="#D4D4D4" 
+s14="H02 white" s14-Name="program_3" s14-Color="#EDEDED" 
+s15="H02 white" s15-Name="audio_mode" s15-Color="#FDFDFD" 
+/>
+</dmxmodel>

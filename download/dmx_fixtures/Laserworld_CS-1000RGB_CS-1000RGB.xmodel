@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmxmodel name="Laserworld CS-1000RGB CS-1000RGB" parm1="13" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Mode,Patterns,Strobe,Horizontal movement,Horizontal / vertical movement,Zoom,Width (rotation over Y),Width (rotation over X),Rotation,Blanking,Wave,Colour,Image format" SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="0" DmxTiltChannel="0" DmxShutterChannel="0" DmxRedChannel="0" DmxGreenChannel="0" DmxBlueChannel="0" DmxWhiteChannel="0" DmxTiltDegOfRot="180" DmxStyle="Moving Head Bars" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Mode" s1-Name="laser_off" s1-Color="#1F1F1F" 
+s2="Mode" s2-Name="music_mode" s2-Color="#5F5F5F" 
+s3="Mode" s3-Name="automatic_mode" s3-Color="#9F9F9F" 
+s4="Mode" s4-Name="dmx_mode" s4-Color="#DFDFDF" 
+s5="Horizontal movement" s5-Name="no_effect" s5-Color="#000000" 
+s6="Horizontal movement" s6-Name="_fixed_movement" s6-Color="#545454" 
+s7="Horizontal movement" s7-Name="animated_left_to_right_with_increasing_speed" s7-Color="#B2B2B2" 
+s8="Horizontal movement" s8-Name="dto_right_to_left" s8-Color="#C7C7C7" 
+s9="Horizontal movement" s9-Name="dto_left_to_right_and_back" s9-Color="#E8E8E8" 
+s10="Horizontal / vertical movement" s10-Name="no_effect" s10-Color="#050505" 
+s11="Horizontal / vertical movement" s11-Name="increasing_size" s11-Color="#393939" 
+s12="Horizontal / vertical movement" s12-Name="growing_with_increasing_speed" s12-Color="#818181" 
+s13="Horizontal / vertical movement" s13-Name="dto_shrinking" s13-Color="#B3B3B3" 
+s14="Horizontal / vertical movement" s14-Name="dto_growing_shrinking" s14-Color="#E6E6E6" 
+s15="Zoom" s15-Name="fixed_rotation" s15-Color="#4B4B4B" 
+s16="Zoom" s16-Name="automatic_rotation_with_increased_speed" s16-Color="#CBCBCB" 
+s17="Width (rotation over X)" s17-Name="fixed_rotation" s17-Color="#5A5A5A" 
+s18="Width (rotation over X)" s18-Name="automatic_with_increased_speed_clockwise" s18-Color="#C7C7C7" 
+s19="Width (rotation over X)" s19-Name="do_counter_clockwise" s19-Color="#ECECEC" 
+s20="Rotation" s20-Name="no_effect" s20-Color="#232323" 
+s21="Rotation" s21-Name="points_are_brighter" s21-Color="#696969" 
+s22="Rotation" s22-Name="dashed_lines" s22-Color="#AEAEAE" 
+s23="Rotation" s23-Name="points_only" s23-Color="#E8E8E8" 
+/>
+</dmxmodel>

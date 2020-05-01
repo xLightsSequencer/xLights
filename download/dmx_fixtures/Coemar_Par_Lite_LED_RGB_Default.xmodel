@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmxmodel name="Coemar Par Lite LED RGB Default" parm1="6" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Master Dimmer,Red/Fade Speed,Green/Pause Time,Blue,Strobe Effect,Automated Functions" SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="0" DmxTiltChannel="0" DmxShutterChannel="0" DmxRedChannel="0" DmxGreenChannel="0" DmxBlueChannel="4" DmxWhiteChannel="0" DmxTiltDegOfRot="180" DmxStyle="Flood Light" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Strobe Effect" s1-Name="no_effect" s1-Color="#040404" 
+s2="Strobe Effect" s2-Name="variable_speed_from_slow_to_fast" s2-Color="#212121" 
+s3="Strobe Effect" s3-Name="stop" s3-Color="#3A3A3A" 
+s4="Strobe Effect" s4-Name="sequenced_pulse_effect_slow_closing_fast_opening" s4-Color="#545454" 
+s5="Strobe Effect" s5-Name="sequenced_pulse_effect_fast_closing_slow_opening" s5-Color="#878787" 
+s6="Strobe Effect" s6-Name="random_effect_from_slow_to_fast_with_synchronised_colours" s6-Color="#B8B8B8" 
+s7="Strobe Effect" s7-Name="random_effect_from_slow_to_fast_with_non-synchronised_colours" s7-Color="#E8E8E8" 
+s8="Automated Functions" s8-Name="no_effect" s8-Color="#040404" 
+s9="Automated Functions" s9-Name="automated_program_1" s9-Color="#1E1E1E" 
+s10="Automated Functions" s10-Name="automated_program_2" s10-Color="#474747" 
+s11="Automated Functions" s11-Name="automated_program_3" s11-Color="#707070" 
+s12="Automated Functions" s12-Name="automated_program_4" s12-Color="#999999" 
+s13="Automated Functions" s13-Name="random_program_repeat" s13-Color="#C2C2C2" 
+s14="Automated Functions" s14-Name="repeat_programs_in_sequence" s14-Color="#EBEBEB" 
+/>
+</dmxmodel>

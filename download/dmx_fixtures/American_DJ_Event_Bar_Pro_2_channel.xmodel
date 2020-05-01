@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmxmodel name="American_DJ Event Bar Pro 2 channel" parm1="25" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Shows,Show Speed/Sound Sensitivity,,,,,,,,,,,,,,,,,,,,,,," SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="0" DmxTiltChannel="0" DmxShutterChannel="0" DmxRedChannel="0" DmxGreenChannel="0" DmxBlueChannel="0" DmxWhiteChannel="0" DmxTiltDegOfRot="180" DmxStyle="Moving Head Bars" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Node17" s1-Name="open" s1-Color="#000000" 
+s2="Node17" s2-Name="reset" s2-Color="#030303" 
+s3="Node17" s3-Name="slow-fast" s3-Color="#828282" 
+s4="Node23" s4-Name="blackout" s4-Color="#030303" 
+s5="Node23" s5-Name="show_1" s5-Color="#161616" 
+s6="Node23" s6-Name="show_2" s6-Color="#343434" 
+s7="Node23" s7-Name="show_3" s7-Color="#525252" 
+s8="Node23" s8-Name="show_4" s8-Color="#707070" 
+s9="Node23" s9-Name="show_5" s9-Color="#8E8E8E" 
+s10="Node23" s10-Name="show_6" s10-Color="#ACACAC" 
+s11="Node23" s11-Name="show_7" s11-Color="#CACACA" 
+s12="Node23" s12-Name="show_8" s12-Color="#E8E8E8" 
+s13="Node23" s13-Name="random_show" s13-Color="#FBFBFB" 
+s14="Node23" s14-Name="sound_active" s14-Color="#FFFFFF" 
+s15="Node25" s15-Name="standard_" s15-Color="#0A0A0A" 
+s16="Node25" s16-Name="stage" s16-Color="#1E1E1E" 
+s17="Node25" s17-Name="tv" s17-Color="#323232" 
+s18="Node25" s18-Name="architectural" s18-Color="#464646" 
+s19="Node25" s19-Name="theater" s19-Color="#5A5A5A" 
+s20="Node25" s20-Name="default_to_unit_curve_setting" s20-Color="#B2B2B2" 
+/>
+</dmxmodel>

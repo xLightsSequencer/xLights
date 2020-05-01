@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmxmodel name="Studio_Due City Color 1800 7 Channels" parm1="7" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Motor Speed,Cyan,Yellow,Magenta,Dimmer,Macro Color,Reset / Lamp Off" SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="0" DmxTiltChannel="0" DmxShutterChannel="0" DmxRedChannel="0" DmxGreenChannel="0" DmxBlueChannel="0" DmxWhiteChannel="0" DmxTiltDegOfRot="180" DmxStyle="Moving Head Bars" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Motor Speed" s1-Name="slow" s1-Color="#1F1F1F" 
+s2="Motor Speed" s2-Name="mid_2" s2-Color="#5F5F5F" 
+s3="Motor Speed" s3-Name="mid_1" s3-Color="#9F9F9F" 
+s4="Motor Speed" s4-Name="fast" s4-Color="#DFDFDF" 
+s5="Macro Color" s5-Name="color_mixing" s5-Color="#0C0C0C" 
+s6="Macro Color" s6-Name="cyan" s6-Color="#262626" 
+s7="Macro Color" s7-Name="yellow" s7-Color="#404040" 
+s8="Macro Color" s8-Name="magenta" s8-Color="#5A5A5A" 
+s9="Macro Color" s9-Name="blue" s9-Color="#747474" 
+s10="Macro Color" s10-Name="red" s10-Color="#8E8E8E" 
+s11="Macro Color" s11-Name="green" s11-Color="#A8A8A8" 
+s12="Macro Color" s12-Name="color_mix_sequence_slow_" s12-Color="#C2C2C2" 
+s13="Macro Color" s13-Name="color_mix_sequence_mid_" s13-Color="#DCDCDC" 
+s14="Macro Color" s14-Name="color_mix_sequence_fast_" s14-Color="#F4F4F4" 
+s15="Reset / Lamp Off" s15-Name="normal" s15-Color="#3F3F3F" 
+s16="Reset / Lamp Off" s16-Name="reset_delay_" s16-Color="#9F9F9F" 
+s17="Reset / Lamp Off" s17-Name="lamp_off_delay_" s17-Color="#FDFDFD" 
+/>
+</dmxmodel>

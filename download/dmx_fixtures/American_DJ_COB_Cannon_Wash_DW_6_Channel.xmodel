@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmxmodel name="American_DJ COB Cannon Wash DW 6 Channel" parm1="6" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Cool White,Warm White,Colour Temperature,Shutter/Strobe,Master-Dimmer,Dimmer Curves" SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="0" DmxTiltChannel="0" DmxShutterChannel="0" DmxRedChannel="0" DmxGreenChannel="0" DmxBlueChannel="0" DmxWhiteChannel="0" DmxTiltDegOfRot="180" DmxStyle="Moving Head Bars" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Colour Temperature" s1-Name="off" s1-Color="#000000" 
+s2="Colour Temperature" s2-Name="3200_k-6400_k" s2-Color="#808080" 
+s3="Shutter/Strobe" s3-Name="off" s3-Color="#0F0F0F" 
+s4="Shutter/Strobe" s4-Name="on" s4-Color="#2F2F2F" 
+s5="Shutter/Strobe" s5-Name="strobe_slow-fast" s5-Color="#4F4F4F" 
+s6="Shutter/Strobe" s6-Name="strobe-pulse_slow-fast" s6-Color="#8F8F8F" 
+s7="Shutter/Strobe" s7-Name="random-strobe_slow-fast" s7-Color="#CFCFCF" 
+s8="Dimmer Curves" s8-Name="standard" s8-Color="#0A0A0A" 
+s9="Dimmer Curves" s9-Name="stage" s9-Color="#1E1E1E" 
+s10="Dimmer Curves" s10-Name="tv" s10-Color="#323232" 
+s11="Dimmer Curves" s11-Name="architecture" s11-Color="#464646" 
+s12="Dimmer Curves" s12-Name="theatre_" s12-Color="#5A5A5A" 
+s13="Dimmer Curves" s13-Name="default_to_unit_setting" s13-Color="#B2B2B2" 
+/>
+</dmxmodel>
