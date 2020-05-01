@@ -1119,6 +1119,9 @@ Model *ModelManager::CreateModel(wxXmlNode *node, int previewW, int previewH, bo
         else if (style == "Skulltronix Skull") {
             type = "DmxSkulltronix";
         }
+        else {
+            type = "DmxMovingHead";
+        }
         node->DeleteAttribute("DisplayAs");
         node->AddAttribute("DisplayAs", type);
     }
