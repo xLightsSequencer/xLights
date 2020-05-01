@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<dmxmodel name="Expolite TourSpot 60 12 Channel" parm1="12" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Iris,Dimmer,Color,Gobo Pattern,Gobo Rotation,Focus,Prism + Rotating,Pan,Pan Fine,Tilt,Tilt Fine,Pan & Tilt Speed + Vector Mode" SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="8" DmxTiltChannel="10" DmxShutterChannel="0" DmxRedChannel="0" DmxGreenChannel="0" DmxBlueChannel="0" DmxWhiteChannel="0" DmxTiltDegOfRot="180" DmxStyle="Moving Head 3D" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<dmxmodel name="Expolite TourSpot 60 12 Channel" parm1="12" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Iris,Dimmer,Color,Gobo Pattern,Gobo Rotation,Focus,Prism + Rotating,Pan,Pan Fine,Tilt,Tilt Fine,Pan &amp; Tilt Speed + Vector Mode" SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="8" DmxTiltChannel="10" DmxShutterChannel="0" DmxRedChannel="0" DmxGreenChannel="0" DmxBlueChannel="0" DmxWhiteChannel="0" DmxTiltDegOfRot="180" DmxStyle="Moving Head 3D" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
 <stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Iris" s1-Name="shutter_off" s1-Color="#050505" 
 s2="Iris" s2-Name="shutter_on" s2-Color="#191919" 
 s3="Iris" s3-Name="stobe_slow_to_fast" s3-Color="#8C8C8C" 
@@ -31,7 +31,7 @@ s28="Prism + Rotating" s28-Name="prism" s28-Color="#0C0C0C"
 s29="Prism + Rotating" s29-Name="prism_angle_adjustment" s29-Color="#4F4F4F" 
 s30="Prism + Rotating" s30-Name="clockwise_rotating_fast_to_slow" s30-Color="#A8A8A8" 
 s31="Prism + Rotating" s31-Name="counterclockwise_rotating_slow_to_fast" s31-Color="#E2E2E2" 
-s32="Pan & Tilt Speed + Vector Mode" s32-Name="fast_to_slow" s32-Color="#7D7D7D" 
-s33="Pan & Tilt Speed + Vector Mode" s33-Name="vector_mode" s33-Color="#FDFDFD" 
+s32="Pan &amp; Tilt Speed + Vector Mode" s32-Name="fast_to_slow" s32-Color="#7D7D7D" 
+s33="Pan &amp; Tilt Speed + Vector Mode" s33-Name="vector_mode" s33-Color="#FDFDFD" 
 />
 </dmxmodel>

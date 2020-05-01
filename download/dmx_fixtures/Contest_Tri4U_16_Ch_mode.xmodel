@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<dmxmodel name="Contest Tri4U 16 Ch mode" parm1="30" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Red #1,Green #1,Blue #1,Dimmer & Strobe #1,Red #2,Green #2,Blue #2,Dimmer & Strobe #2,Red #3,Green #3,Blue #3,Dimmer & Strobe #3,Red #4,Green #4,Blue #4,Dimmer & Strobe #4,,,,,,,,,,,,,," SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="0" DmxTiltChannel="0" DmxShutterChannel="0" DmxRedChannel="3" DmxGreenChannel="4" DmxBlueChannel="5" DmxWhiteChannel="0" DmxTiltDegOfRot="180" DmxStyle="Flood Light" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<dmxmodel name="Contest Tri4U 16 Ch mode" parm1="30" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Red #1,Green #1,Blue #1,Dimmer &amp; Strobe #1,Red #2,Green #2,Blue #2,Dimmer &amp; Strobe #2,Red #3,Green #3,Blue #3,Dimmer &amp; Strobe #3,Red #4,Green #4,Blue #4,Dimmer &amp; Strobe #4,,,,,,,,,,,,,," SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="0" DmxTiltChannel="0" DmxShutterChannel="0" DmxRedChannel="3" DmxGreenChannel="4" DmxBlueChannel="5" DmxWhiteChannel="0" DmxTiltDegOfRot="180" DmxStyle="Flood Light" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
 <stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Red #1" s1-Name="led_off" s1-Color="#050505" 
 s2="Red #1" s2-Name="red_r255-g00-b00" s2-Color="#0F0F0F" 
 s3="Red #1" s3-Name="orange_r255-g070-b000" s3-Color="#191919" 
@@ -29,8 +29,8 @@ s26="Green #2" s26-Name="black-out" s26-Color="#000000"
 s27="Green #2" s27-Name="dimmer" s27-Color="#5F5F5F" 
 s28="Green #2" s28-Name="strobe_slow_to_fast_" s28-Color="#DCDCDC" 
 s29="Green #2" s29-Name="full-on" s29-Color="#FDFDFD" 
-s30="Dimmer & Strobe #2" s30-Name="no_strobe" s30-Color="#070707" 
-s31="Dimmer & Strobe #2" s31-Name="strobe_slow_to_fast_" s31-Color="#858585" 
+s30="Dimmer &amp; Strobe #2" s30-Name="no_strobe" s30-Color="#070707" 
+s31="Dimmer &amp; Strobe #2" s31-Name="strobe_slow_to_fast_" s31-Color="#858585" 
 s32="Red #4" s32-Name="no_strobe" s32-Color="#0C0C0C" 
 s33="Red #4" s33-Name="strobe" s33-Color="#8C8C8C" 
 s34="Node26" s34-Name="speed" s34-Color="#646464" 

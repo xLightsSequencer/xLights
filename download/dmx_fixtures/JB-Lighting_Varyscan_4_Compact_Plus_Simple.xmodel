@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<dmxmodel name="JB-Lighting Varyscan 4 Compact Plus Simple" parm1="10" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Pan,Tilt,Gobo & Effect,Colour,Dimmer/Shutter,Iris & Gobo rotation,,,," SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="1" DmxTiltChannel="2" DmxShutterChannel="0" DmxRedChannel="0" DmxGreenChannel="0" DmxBlueChannel="0" DmxWhiteChannel="0" DmxTiltDegOfRot="180" DmxStyle="Moving Head 3D" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
-<stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Gobo & Effect" s1-Name="open" s1-Color="#0F0F0F" 
-s2="Gobo & Effect" s2-Name="gobo_1" s2-Color="#2F2F2F" 
-s3="Gobo & Effect" s3-Name="gobo_2" s3-Color="#4F4F4F" 
-s4="Gobo & Effect" s4-Name="gobo_3" s4-Color="#6F6F6F" 
-s5="Gobo & Effect" s5-Name="gobo_4" s5-Color="#8F8F8F" 
-s6="Gobo & Effect" s6-Name="gobo_5" s6-Color="#CFCFCF" 
-s7="Gobo & Effect" s7-Name="reset" s7-Color="#FFFFFF" 
+<dmxmodel name="JB-Lighting Varyscan 4 Compact Plus Simple" parm1="10" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Pan,Tilt,Gobo &amp; Effect,Colour,Dimmer/Shutter,Iris &amp; Gobo rotation,,,," SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="1" DmxTiltChannel="2" DmxShutterChannel="0" DmxRedChannel="0" DmxGreenChannel="0" DmxBlueChannel="0" DmxWhiteChannel="0" DmxTiltDegOfRot="180" DmxStyle="Moving Head 3D" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Gobo &amp; Effect" s1-Name="open" s1-Color="#0F0F0F" 
+s2="Gobo &amp; Effect" s2-Name="gobo_1" s2-Color="#2F2F2F" 
+s3="Gobo &amp; Effect" s3-Name="gobo_2" s3-Color="#4F4F4F" 
+s4="Gobo &amp; Effect" s4-Name="gobo_3" s4-Color="#6F6F6F" 
+s5="Gobo &amp; Effect" s5-Name="gobo_4" s5-Color="#8F8F8F" 
+s6="Gobo &amp; Effect" s6-Name="gobo_5" s6-Color="#CFCFCF" 
+s7="Gobo &amp; Effect" s7-Name="reset" s7-Color="#FFFFFF" 
 s8="Colour" s8-Name="colour_1_white" s8-Color="#030303" 
 s9="Colour" s9-Name="colour_2" s9-Color="#0B0B0B" 
 s10="Colour" s10-Name="colour_3_red" s10-Color="#131313" 

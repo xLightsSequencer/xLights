@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<dmxmodel name="American_DJ Vizi LED Spot Extended (630 degree Pan)" parm1="12" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Pan,Pan fine,Tilt,Tilt fine,Color Wheel,Gobos,Gobo Indexing & Rotation,Rotating Prism/Gobo Macros,Shutter & Strobe,Dimmer,Pan/Tilt Movement Speed,Reset & Internal Programs" SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="1" DmxTiltChannel="3" DmxShutterChannel="0" DmxRedChannel="0" DmxGreenChannel="0" DmxBlueChannel="0" DmxWhiteChannel="0" DmxTiltDegOfRot="180" DmxStyle="Moving Head 3D" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<dmxmodel name="American_DJ Vizi LED Spot Extended (630 degree Pan)" parm1="12" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Pan,Pan fine,Tilt,Tilt fine,Color Wheel,Gobos,Gobo Indexing &amp; Rotation,Rotating Prism/Gobo Macros,Shutter &amp; Strobe,Dimmer,Pan/Tilt Movement Speed,Reset &amp; Internal Programs" SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="1" DmxTiltChannel="3" DmxShutterChannel="0" DmxRedChannel="0" DmxGreenChannel="0" DmxBlueChannel="0" DmxWhiteChannel="0" DmxTiltDegOfRot="180" DmxStyle="Moving Head 3D" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
 <stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Color Wheel" s1-Name="open" s1-Color="#070707" 
 s2="Color Wheel" s2-Name="color_1" s2-Color="#161616" 
 s3="Color Wheel" s3-Name="color_2" s3-Color="#252525" 
@@ -28,10 +28,10 @@ s25="Gobos" s25-Name="rotating_gobo_5_shake" s25-Color="#979797"
 s26="Gobos" s26-Name="rotating_gobo_6_shake" s26-Color="#A7A7A7" 
 s27="Gobos" s27-Name="rotating_gobo_7_shake" s27-Color="#B7B7B7" 
 s28="Gobos" s28-Name="continious_rotation_of_gobo_wheel_slow-fast_" s28-Color="#DFDFDF" 
-s29="Gobo Indexing & Rotation" s29-Name="gobo_indexing" s29-Color="#3F3F3F" 
-s30="Gobo Indexing & Rotation" s30-Name="forwards_gobo_rotation_fast-slow_" s30-Color="#9E9E9E" 
-s31="Gobo Indexing & Rotation" s31-Name="no_rotation" s31-Color="#BFBFBF" 
-s32="Gobo Indexing & Rotation" s32-Name="backwards_gobo_rotation_slow-fast_" s32-Color="#E0E0E0" 
+s29="Gobo Indexing &amp; Rotation" s29-Name="gobo_indexing" s29-Color="#3F3F3F" 
+s30="Gobo Indexing &amp; Rotation" s30-Name="forwards_gobo_rotation_fast-slow_" s30-Color="#9E9E9E" 
+s31="Gobo Indexing &amp; Rotation" s31-Name="no_rotation" s31-Color="#BFBFBF" 
+s32="Gobo Indexing &amp; Rotation" s32-Name="backwards_gobo_rotation_slow-fast_" s32-Color="#E0E0E0" 
 s33="Rotating Prism/Gobo Macros" s33-Name="open" s33-Color="#0F0F0F" 
 s34="Rotating Prism/Gobo Macros" s34-Name="3_facet_prism" s34-Color="#2F2F2F" 
 s35="Rotating Prism/Gobo Macros" s35-Name="5_facet_prism" s35-Color="#4F4F4F" 

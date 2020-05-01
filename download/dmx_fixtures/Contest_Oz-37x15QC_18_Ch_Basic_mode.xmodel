@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<dmxmodel name="Contest Oz-37x15QC 18 Ch Basic mode" parm1="18" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Pan movement,Tilt movement,Pan/Tilt movement speed,Shutter & Strobe,Dimmer,All LEDs Red,All LEDs Green,All LEDs Blue,All LEDs White,Zoom,Colour macros,Preset colours,Preset colour dimmer,Patterns sequencing,Patterns sequencing speed,Patterns sequencing fader,White balance,Internal programs and options" SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="0" DmxTiltChannel="0" DmxShutterChannel="0" DmxRedChannel="0" DmxGreenChannel="0" DmxBlueChannel="0" DmxWhiteChannel="0" DmxTiltDegOfRot="180" DmxStyle="Moving Head Bars" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<dmxmodel name="Contest Oz-37x15QC 18 Ch Basic mode" parm1="18" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Pan movement,Tilt movement,Pan/Tilt movement speed,Shutter &amp; Strobe,Dimmer,All LEDs Red,All LEDs Green,All LEDs Blue,All LEDs White,Zoom,Colour macros,Preset colours,Preset colour dimmer,Patterns sequencing,Patterns sequencing speed,Patterns sequencing fader,White balance,Internal programs and options" SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="0" DmxTiltChannel="0" DmxShutterChannel="0" DmxRedChannel="0" DmxGreenChannel="0" DmxBlueChannel="0" DmxWhiteChannel="0" DmxTiltDegOfRot="180" DmxStyle="Moving Head Bars" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
 <stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Pan/Tilt movement speed" s1-Name="fast_to_slow_speed_settings" s1-Color="#707070" 
 s2="Pan/Tilt movement speed" s2-Name="black_out_during_movements" s2-Color="#E6E6E6" 
 s3="Pan/Tilt movement speed" s3-Name="no_function_max_speed" s3-Color="#F5F5F5" 
-s4="Shutter & Strobe" s4-Name="leds_off" s4-Color="#0F0F0F" 
-s5="Shutter & Strobe" s5-Name="no_function_leds_on" s5-Color="#2F2F2F" 
-s6="Shutter & Strobe" s6-Name="slow_to_fast_strobe" s6-Color="#4F4F4F" 
-s7="Shutter & Strobe" s7-Name="slow_to_fast_pulse_effect" s7-Color="#8F8F8F" 
-s8="Shutter & Strobe" s8-Name="slow_to_fast_random_strobe" s8-Color="#CFCFCF" 
-s9="Shutter & Strobe" s9-Name="no_function_leds_off" s9-Color="#EFEFEF" 
+s4="Shutter &amp; Strobe" s4-Name="leds_off" s4-Color="#0F0F0F" 
+s5="Shutter &amp; Strobe" s5-Name="no_function_leds_on" s5-Color="#2F2F2F" 
+s6="Shutter &amp; Strobe" s6-Name="slow_to_fast_strobe" s6-Color="#4F4F4F" 
+s7="Shutter &amp; Strobe" s7-Name="slow_to_fast_pulse_effect" s7-Color="#8F8F8F" 
+s8="Shutter &amp; Strobe" s8-Name="slow_to_fast_random_strobe" s8-Color="#CFCFCF" 
+s9="Shutter &amp; Strobe" s9-Name="no_function_leds_off" s9-Color="#EFEFEF" 
 s10="Colour macros" s10-Name="no_function" s10-Color="#030303" 
 s11="Colour macros" s11-Name="from_red_to_yellow" s11-Color="#171717" 
 s12="Colour macros" s12-Name="from_yellow_to_green" s12-Color="#373737" 

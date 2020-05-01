@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<dmxmodel name="Pro-Lights Miniruby 9 Channel" parm1="9" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Pan,Pan fine,Tilt,Tilt fine,Movement Speed,Shutter,Color,Prism & Prism rotation,Control" SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="1" DmxTiltChannel="3" DmxShutterChannel="6" DmxRedChannel="0" DmxGreenChannel="0" DmxBlueChannel="0" DmxWhiteChannel="0" DmxTiltDegOfRot="180" DmxStyle="Moving Head 3D" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<dmxmodel name="Pro-Lights Miniruby 9 Channel" parm1="9" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Pan,Pan fine,Tilt,Tilt fine,Movement Speed,Shutter,Color,Prism &amp; Prism rotation,Control" SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="1" DmxTiltChannel="3" DmxShutterChannel="6" DmxRedChannel="0" DmxGreenChannel="0" DmxBlueChannel="0" DmxWhiteChannel="0" DmxTiltDegOfRot="180" DmxStyle="Moving Head 3D" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
 <stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Shutter" s1-Name="closed" s1-Color="#0F0F0F" 
 s2="Shutter" s2-Name="strobe_effect_slow_to_fast" s2-Color="#7F7F7F" 
 s3="Shutter" s3-Name="shutter_open" s3-Color="#EFEFEF" 
@@ -26,9 +26,9 @@ s23="Color" s23-Name="indexed_with_bounce_position_1" s23-Color="#3D3D3D"
 s24="Color" s24-Name="indexed_with_bounce_position_2_17" s24-Color="#919191" 
 s25="Color" s25-Name="forward_wheel_spin_stop_to_fast" s25-Color="#E7E7E7" 
 s26="Color" s26-Name="reverse_wheel_spin_stop_to_fast" s26-Color="#F7F7F7" 
-s27="Prism & Prism rotation" s27-Name="prism_open" s27-Color="#010101" 
-s28="Prism & Prism rotation" s28-Name="forward_spin_stop_to_fast" s28-Color="#414141" 
-s29="Prism & Prism rotation" s29-Name="reverse_spin_stop_to_fast" s29-Color="#BFBFBF" 
+s27="Prism &amp; Prism rotation" s27-Name="prism_open" s27-Color="#010101" 
+s28="Prism &amp; Prism rotation" s28-Name="forward_spin_stop_to_fast" s28-Color="#414141" 
+s29="Prism &amp; Prism rotation" s29-Name="reverse_spin_stop_to_fast" s29-Color="#BFBFBF" 
 s30="Control" s30-Name="normal" s30-Color="#030303" 
 s31="Control" s31-Name="reset_all" s31-Color="#0B0B0B" 
 s32="Control" s32-Name="pan_and_tilt_reset" s32-Color="#131313" 

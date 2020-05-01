@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<dmxmodel name="Triton_Blue Wally MH-20 Default" parm1="12" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Colour,Gobo,Gobo spin & pos,Speed,Pan (coarse),Tilt (coarse),Prism,Flash,Dimmer,Control,Pan (fine),Tilt (fine)" SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="0" DmxTiltChannel="0" DmxShutterChannel="0" DmxRedChannel="0" DmxGreenChannel="0" DmxBlueChannel="0" DmxWhiteChannel="0" DmxTiltDegOfRot="180" DmxStyle="Moving Head Bars" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
+<dmxmodel name="Triton_Blue Wally MH-20 Default" parm1="12" parm2="1" parm3="1" DisplayAs="DMX" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Colour,Gobo,Gobo spin &amp; pos,Speed,Pan (coarse),Tilt (coarse),Prism,Flash,Dimmer,Control,Pan (fine),Tilt (fine)" SourceVersion="2018.19" DmxPanDegOfRot="540" DmxPanChannel="0" DmxTiltChannel="0" DmxShutterChannel="0" DmxRedChannel="0" DmxGreenChannel="0" DmxBlueChannel="0" DmxWhiteChannel="0" DmxTiltDegOfRot="180" DmxStyle="Moving Head Bars" DmxPanOrient="0" DmxTiltOrient="0" DmxShutterOpen="1" DmxTiltMinLimit="0" DmxTiltMaxLimit="0" DmxPanMinLimit="0" DmxPanMaxLimit="0" DmxNodChannel="0" DmxNodOrient="0" DmxNodDegOfRot="0" DmxNodMinLimit="0" DmxNodMaxLimit="0" DmxJawChannel="0" DmxJawMinLimit="0" DmxJawMaxLimit="0" DmxEyeBrtChannel="0" DmxEyeUDChannel="0" DmxEyeUDMinLimit="0" DmxEyeUDMaxLimit="0" DmxEyeLRChannel="0" DmxEyeLRMinLimit="0" DmxEyeLRMaxLimit="0">
 <stateInfo Name="presets" CustomColors="1" Type = "SingleNode" s1="Colour" s1-Name="white" s1-Color="#070707" 
 s2="Colour" s2-Name="red" s2-Color="#161616" 
 s3="Colour" s3-Name="light_blue" s3-Color="#252525" 
@@ -28,10 +28,10 @@ s25="Gobo" s25-Name="shake_gobo_5_from_slow_to_fast" s25-Color="#979797"
 s26="Gobo" s26-Name="shake_gobo_6_from_slow_to_fast" s26-Color="#A7A7A7" 
 s27="Gobo" s27-Name="shake_gobo_7_from_slow_to_fast" s27-Color="#B7B7B7" 
 s28="Gobo" s28-Name="rotation_gobo_wheel_continuous_from_slow_to_fast" s28-Color="#DFDFDF" 
-s29="Gobo spin & pos" s29-Name="gobo_indexing" s29-Color="#3F3F3F" 
-s30="Gobo spin & pos" s30-Name="cw_gobo_rotation_from_fast_to_slow" s30-Color="#9E9E9E" 
-s31="Gobo spin & pos" s31-Name="no_rotation" s31-Color="#BFBFBF" 
-s32="Gobo spin & pos" s32-Name="ccw_gobo_rotation_from_slow_to_fast" s32-Color="#E0E0E0" 
+s29="Gobo spin &amp; pos" s29-Name="gobo_indexing" s29-Color="#3F3F3F" 
+s30="Gobo spin &amp; pos" s30-Name="cw_gobo_rotation_from_fast_to_slow" s30-Color="#9E9E9E" 
+s31="Gobo spin &amp; pos" s31-Name="no_rotation" s31-Color="#BFBFBF" 
+s32="Gobo spin &amp; pos" s32-Name="ccw_gobo_rotation_from_slow_to_fast" s32-Color="#E0E0E0" 
 s33="Speed" s33-Name="speed_regulation_from_fast_to_slow" s33-Color="#707070" 
 s34="Speed" s34-Name="blackout_by_movement" s34-Color="#E6E6E6" 
 s35="Speed" s35-Name="blackout_by_all_wheel_changing" s35-Color="#F0F0F0" 
