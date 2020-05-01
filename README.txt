@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2020.17 May 1 2020
    -- enh (keith)  Add native media player option for video in xSchedule. This slightly reduces control but improves performance
    -- enh (keith)  When using DMX effect on model group label the sliders using the node names from the first model in the group
    -- enh (keith)  Increase beam length of DMX moving heads and add visual control over beam width
@@ -25,6 +26,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- bug (keith)  Fix crash in visualiser when controller with no protocols is assigned to a port
    -- bug (keith)  Fix area flood beam length is anchored to z=0 rather than moving with the flood
    -- bug (keith)  Fix models with uneven strings dont show correctly in visualiser
+   -- bug (keith)  Fix issue with unused smart remote port causing weird config on a falcon
+   -- bug (keith)  Fix issue with loading downloaded DMX fixtures
+   -- bug (keith)  Fix unable to map multiple channels from a single prop in the LMS import
    -- bug (scott)  Fixed AlphaPix Upload for Firmware 2.16+
    -- bug (scott)  Fix force ip not working on controller tab
 2020.16 April 17 2020
