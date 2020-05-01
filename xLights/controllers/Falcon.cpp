@@ -951,11 +951,14 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
             }
         }
         else {
+            int priorSmartRemote = 0;
             for (const auto& sd : stringData) {
                 if (sd->port == pp - 1) {
                     sd->index = index++;
+                    if (sd->port % 4 != 0 && priorSmartRemote != 0) sd->smartRemote = 1;
                     newStringData.push_back(sd);
                 }
+                priorSmartRemote = sd->smartRemote;
             }
         }
     }

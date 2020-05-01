@@ -236,7 +236,7 @@ UDControllerPortModel* UDControllerPort::GetModel(const std::string& modelName, 
 {
     for (const auto& it : _models)
     {
-        if (it->GetModel()->GetName() == modelName && it->GetString() == str) return it;
+        if (it->GetModel()->GetName() == modelName && (it->GetString() == str || it->GetString() == -1)) return it;
     }
     return nullptr;
 }
