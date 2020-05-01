@@ -17,7 +17,7 @@
 class wxXmlNode;
 class OutputManager;
 
-typedef enum {VM_NORMAL, VM_90, VM_270 } VMROTATION;
+typedef enum {VM_NORMAL, VM_90, VM_270, VM_FLIP_HORIZONTAL, VM_FLIP_VERTICAL } VMROTATION;
 
 class VirtualMatrix 
 {
