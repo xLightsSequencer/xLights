@@ -1,5 +1,14 @@
-#ifndef XLIGHTSIMPORTCHANNELMAPDIALOG_H
-#define XLIGHTSIMPORTCHANNELMAPDIALOG_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 // need to do these manually due to issues with wxSmith
 #include <wx/treelist.h>
@@ -423,5 +432,3 @@ protected:
 
 		DECLARE_EVENT_TABLE()
 };
-
-#endif

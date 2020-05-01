@@ -470,7 +470,7 @@ void PolyLineModel::InitModel() {
                 if (up)
                 {
                     Nodes[curNode]->Coords[curCoord].bufY = 2 * y;
-                    Nodes[curNode]->Coords[curCoord].screenY = -(maxH - 1) + (2 * y);
+                    Nodes[curNode]->Coords[curCoord].screenY = -1 * (maxH - 1) + (2 * y);
                 }
                 else
                 {
@@ -483,7 +483,7 @@ void PolyLineModel::InitModel() {
                 if (up)
                 {
                     Nodes[curNode]->Coords[curCoord].bufY = (nodesInDrop - (y + 1)) * 2 + 1;
-                    Nodes[curNode]->Coords[curCoord].screenY = -(maxH - 1) + ((nodesInDrop - (y + 1)) * 2 + 1);
+                    Nodes[curNode]->Coords[curCoord].screenY = -1 * (maxH - 1) + ((nodesInDrop - (y + 1)) * 2 + 1);
                 }
                 else
                 {

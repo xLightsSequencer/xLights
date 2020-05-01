@@ -1,5 +1,14 @@
-#ifndef XLGRIDCANVAS_H
-#define XLGRIDCANVAS_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 #include "wx/wx.h"
 #include "xlGLCanvas.h"
@@ -50,5 +59,3 @@ class xlGridCanvas : public xlGLCanvas
         const int mMinCornerSize = 15;
         DECLARE_EVENT_TABLE()
 };
-
-#endif // XLGRIDCANVAS_H

@@ -1,14 +1,14 @@
-/***************************************************************
- * Name:      xLightsApp.h
- * Purpose:   Defines Application Class
- * Author:    Matt Brown (dowdybrown@yahoo.com)
- * Created:   2012-11-03
- * Copyright: Matt Brown ()
- * License:
- **************************************************************/
+#pragma once
 
-#ifndef XLIGHTSAPP_H
-#define XLIGHTSAPP_H
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 #ifdef _MSC_VER
 #include <stdlib.h>
@@ -43,5 +43,3 @@ public:
     virtual bool ProcessIdle() override;
     uint64_t _nextIdleTime = 0;
 };
-
-#endif // XLIGHTSAPP_H
