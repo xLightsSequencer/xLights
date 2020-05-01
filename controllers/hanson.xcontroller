@@ -1,0 +1,70 @@
+<Vendor Name="Hanson Electronics">
+	<Controller Name="DMX18">
+		<Variant Name="">
+			<MaxInputUniverses>1</MaxInputUniverses>
+			<MaxPixelPort>0</MaxPixelPort>
+			<MaxSerialPort>1</MaxSerialPort>
+			<MaxSerialPortChannels>18</MaxSerialPortChannels>
+			<MaxPixelPortChannels>0</MaxPixelPortChannels>
+			<NoWebUI/>
+			<PixelProtocols>
+			</PixelProtocols>
+			<SerialProtocols>
+			</SerialProtocols>
+			<InputProtocols>
+				<Protocol>dmx</Protocol>
+			</InputProtocols>
+		</Variant>
+	</Controller>
+	<Controller Name="DMX2-18">
+		<Variant Name="">
+			<MaxInputUniverses>1</MaxInputUniverses>
+			<MaxPixelPort>0</MaxPixelPort>
+			<MaxSerialPort>1</MaxSerialPort>
+			<MaxSerialPortChannels>18</MaxSerialPortChannels>
+			<MaxPixelPortChannels>0</MaxPixelPortChannels>
+			<NoWebUI/>
+			<PixelProtocols>
+			</PixelProtocols>
+			<SerialProtocols>
+			</SerialProtocols>
+			<InputProtocols>
+				<Protocol>dmx</Protocol>
+			</InputProtocols>
+		</Variant>
+	</Controller>
+	<Controller Name="DMX36">
+		<Variant Name="">
+			<MaxInputUniverses>1</MaxInputUniverses>
+			<MaxPixelPort>0</MaxPixelPort>
+			<MaxSerialPort>1</MaxSerialPort>
+			<MaxSerialPortChannels>18</MaxSerialPortChannels>
+			<MaxPixelPortChannels>0</MaxPixelPortChannels>
+			<NoWebUI/>
+			<PixelProtocols>
+			</PixelProtocols>
+			<SerialProtocols>
+			</SerialProtocols>
+			<InputProtocols>
+				<Protocol>dmx</Protocol>
+			</InputProtocols>
+		</Variant>
+	</Controller>
+	<Controller Name="DMX36MK2">
+		<Variant Name="">
+			<MaxInputUniverses>1</MaxInputUniverses>
+			<MaxPixelPort>0</MaxPixelPort>
+			<MaxSerialPort>1</MaxSerialPort>
+			<MaxSerialPortChannels>18</MaxSerialPortChannels>
+			<MaxPixelPortChannels>0</MaxPixelPortChannels>
+			<NoWebUI/>
+			<PixelProtocols>
+			</PixelProtocols>
+			<SerialProtocols>
+			</SerialProtocols>
+			<InputProtocols>
+				<Protocol>dmx</Protocol>
+			</InputProtocols>
+		</Variant>
+	</Controller>
+</Vendor>
