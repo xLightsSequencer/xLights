@@ -2904,7 +2904,7 @@ void xLightsFrame::OnMenuItem_File_Export_VideoSelected(wxCommandEvent& event)
     }
     int audioFrameIndex = 0;
 
-    VideoExporter videoExporter(this, width, height, contentScaleFactor, SeqData.FrameTime(), SeqData.NumFrames(), audioChannelCount, audioSampleRate, path, logger_base);
+    VideoExporter videoExporter(this, width, height, contentScaleFactor, SeqData.FrameTime(), SeqData.NumFrames(), audioChannelCount, audioSampleRate, path);
 
     auto audioLambda = [audioMgr, &audioFrameIndex]( float* leftCh, float *rightCh, int frameSize )
     {

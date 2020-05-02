@@ -24,8 +24,6 @@ extern "C"
 #include <functional>
 #include <string>
 
-#include <log4cpp/Category.hh>
-
 class wxWindow;
 
 class GenericVideoExporter
@@ -61,6 +59,8 @@ public:
    void initialize();
    void exportFrames( int videoFrameCount );
    void completeExport();
+
+   const Params& outputParams() const { return _outParams; }
 
 protected:
    void initializeVideo( const AVCodec* codec );
@@ -100,8 +100,7 @@ public:
                    int width, int height, float scaleFactor,
                    unsigned int frameDuration, unsigned int frameCount,
                    int audioChannelCount, int audioSampleRate,
-                   const std::string& outPath,
-                   log4cpp::Category &logger_base );
+                   const std::string& outPath );
 
     bool Export();
 

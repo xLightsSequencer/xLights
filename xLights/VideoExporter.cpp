@@ -19,6 +19,8 @@ extern "C"
 #include <libswscale/swscale.h>
 }
 
+#include <log4cpp/Category.hh>
+
 #include <algorithm>
 #include <cstring>
 #include <stdexcept>
@@ -514,8 +516,7 @@ VideoExporter::VideoExporter( wxWindow *parent,
                               int width, int height, float scaleFactor,
                               unsigned int frameDuration, unsigned int frameCount,
                               int audioChannelCount, int audioSampleRate,
-                              const std::string& outPath,
-                              log4cpp::Category &logger_base )
+                              const std::string& outPath )
     : GenericVideoExporter( outPath, makeParams( width * scaleFactor, height * scaleFactor, 1000u / frameDuration, audioSampleRate ) )
     , _frameCount( frameCount )
 {
@@ -525,11 +526,25 @@ VideoExporter::VideoExporter( wxWindow *parent,
 
 bool VideoExporter::Export()
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance( std::string("log_base") );
+    bool status = true;
+
     // todo - enable cancel and progress updates!!
 
+    try
+    {
     initialize();
-    exportFrames( _frameCount );
-    completeExport();
+    auto p = outputParams();
+    logger_base.info( "VideoExporter - exporting %d x %d video", p.width, p.height );
 
-    return true;
+    exportFrames( _frameCount );
+
+    completeExport();
+    } catch ( const std::runtime_error& re )
+    {
+        logger_base.error( "Exception caught in VideoExporter - '%s'", re.what() );
+        status = false;
+    }
+
+    return status;
 }
