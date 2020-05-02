@@ -31,6 +31,7 @@
 #include <wx/wfstream.h>
 
 #include <cctype>
+#include <cstring>
 
 #include "xLightsMain.h"
 #include "SplashDialog.h"
@@ -2903,63 +2904,57 @@ void xLightsFrame::OnMenuItem_File_Export_VideoSelected(wxCommandEvent& event)
     }
     int audioFrameIndex = 0;
 
-    VideoExporter videoExporter(this, width, height, contentScaleFactor, SeqData.FrameTime(), SeqData.NumFrames(), audioChannelCount, audioSampleRate, logger_base);
+    VideoExporter videoExporter(this, width, height, contentScaleFactor, SeqData.FrameTime(), SeqData.NumFrames(), audioChannelCount, audioSampleRate, path);
 
-    videoExporter.SetGetAudioFrameCallback(
-        [audioMgr, &audioFrameIndex](float *samples, int frameSize, int numChannels) {
+    auto audioLambda = [audioMgr, &audioFrameIndex]( float* leftCh, float *rightCh, int frameSize )
+    {
         int trackSize = audioMgr->GetTrackSize();
-        int clampedSize = std::min(frameSize, trackSize - audioFrameIndex);
-
-        if (clampedSize > 0)
+        int clampedSize = std::min( frameSize, trackSize - audioFrameIndex );
+        if ( clampedSize > 0 )
         {
-            const float *leftptr = audioMgr->GetLeftDataPtr(audioFrameIndex);
-            const float *rightptr = audioMgr->GetRightDataPtr(audioFrameIndex);
+            const float *leftptr = audioMgr->GetLeftDataPtr( audioFrameIndex );
+            const float *rightptr = audioMgr->GetRightDataPtr( audioFrameIndex );
 
-            if (leftptr != nullptr)
+            if ( leftptr != nullptr )
             {
-                memcpy(samples, leftptr, clampedSize * sizeof(float));
-                samples += clampedSize;
-                memcpy(samples, rightptr, clampedSize * sizeof(float));
+                std::memcpy( leftCh, leftptr, clampedSize * sizeof(float) );
+                std::memcpy( rightCh, rightptr, clampedSize * sizeof(float) );
                 audioFrameIndex += frameSize;
             }
         }
-
         return true;
-    }
-    );
+    };
+    videoExporter.setGetAudioCallback( audioLambda );
 
-    xlGLCanvas::CaptureHelper captureHelper(width, height, contentScaleFactor);
+    xlGLCanvas::CaptureHelper captureHelper( width, height, contentScaleFactor );
 
-    videoExporter.SetGetVideoFrameCallback(
-        [this, housePreview, &captureHelper](unsigned char *buf, int bufSize, int width, int height, float scaleFactor, unsigned frameIndex) {
-        const FrameData &frameData = this->SeqData[frameIndex];
-        const unsigned char *data = frameData[0];
-        //logger_base.debug( "Requesting house-preview frame %d for video-export", frameIndex );
-        housePreview->Render(data, false);
-        //logger_base.debug( "Received house-preview frame %d for video-export", frameIndex );
-        bool convertStatus = captureHelper.ToRGB(buf, bufSize, true);
-        //logger_base.debug( " CaptureHelper RGB conversion %s", convertStatus ? "successful" : "failed" );
-        return convertStatus;
-    }
-    );
-
-    bool exportStatus = videoExporter.Export(path.c_str());
-
-    mainSequencer->SetPlayStatus(playStatus);
-
-    if (!visible)
+    auto videoLambda = [this, housePreview, &captureHelper]( uint8_t* buf, int bufSize, unsigned frameIndex )
     {
-        m_mgr->GetPane("HousePreview").Hide();
+        const FrameData& frameData( this->SeqData[frameIndex] );
+        const uint8_t* data = frameData[0];
+        housePreview->Render( data, false );
+        return captureHelper.ToRGB( buf, bufSize, true );
+      return true;
+    };
+    videoExporter.setGetVideoCallback( videoLambda );
+
+    bool exportStatus = videoExporter.Export();
+
+    mainSequencer->SetPlayStatus( playStatus );
+
+    if ( !visible )
+    {
+        m_mgr->GetPane( "HousePreview" ).Hide();
         m_mgr->Update();
     }
 
     if (exportStatus)
     {
-        logger_base.debug("Finished writing house-preview video.");
+        logger_base.debug( "Finished writing house-preview video." );
     }
     else
     {
-        DisplayError("Exporting house preview video failed", this);
+        DisplayError( "Exporting house preview video failed", this );
     }
 }
 

@@ -8,468 +8,575 @@
  * License: https://github.com/smeighan/xLights/blob/master/License.txt
  **************************************************************/
 
+#include "VideoExporter.h"
+
 extern "C"
 {
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
-#include <libswscale/swscale.h>
+#include <libavutil/avutil.h>
 #include <libavutil/opt.h>
-#include <libavutil/imgutils.h>
+#include <libswscale/swscale.h>
 }
 
-#include <wx/filefn.h>
+#include <log4cpp/Category.hh>
+
 #include <wx/progdlg.h>
 
-#include "VideoExporter.h"
+#include <algorithm>
+#include <cstring>
+#include <stdexcept>
 
-#ifndef CODEC_FLAG_GLOBAL_HEADER /* add compatibility for ffmpeg 3+ */
-#define CODEC_FLAG_GLOBAL_HEADER AV_CODEC_FLAG_GLOBAL_HEADER
+#ifdef min
+#undef min
 #endif
 
-double VideoExporter::s_t = 0.;
-double VideoExporter::s_freq = 750.;
-double VideoExporter::s_deltaTime = 1. / 44100;
-
-VideoExporter::VideoExporter(wxWindow *parent, int width, int height, float scaleFactor, unsigned int frameDuration, unsigned int frameCount, int audioChannelCount, int audioSampleRate, log4cpp::Category &logger_base)
-	: m_parent(parent), m_width(width), m_height(height), m_scaleFactor(scaleFactor), m_frameDuration(frameDuration), m_frameCount(frameCount)
-	, m_audioChannelCount(audioChannelCount), m_audioSampleRate(audioSampleRate), m_audioFrameSize(audioSampleRate / (1000 / frameDuration)), m_logger_base(logger_base)
-	, m_GetVideo(dummyGetVideoFrame), m_GetAudio(dummyGetAudioFrame)
+namespace
 {
-	s_t = 0.;
+   // initialize to solid color (varies with each frame)
+   bool getVideo( uint8_t* buf, int bufSize, unsigned frameIndex )
+   {
+      uint8_t* ptr = buf;
+      enum Color { Red, Green, Blue } color = Color( frameIndex % 3 );
+      int n = bufSize / 3;
+      for ( int i = 0; i < n; ++i )
+      {
+         if ( color == Red )
+         {
+            *ptr++ = 0xff;
+            *ptr++ = 0x00;
+            *ptr++ = 0x00;
+         }
+         else if ( color == Green )
+         {
+            *ptr++ = 0x00;
+            *ptr++ = 0xff;
+            *ptr++ = 0x00;
+         }
+         else
+         {
+            *ptr++ = 0x00;
+            *ptr++ = 0x00;
+            *ptr++ = 0xff;
+         }
+      }
+      return true;
+   }
+
+   // initialize to silence
+   bool getAudio( float* leftCh, float *rightCh, int frameSize )
+   {
+      std::memset( leftCh, 0, frameSize * sizeof( float ) );
+      std::memset( rightCh, 0, frameSize * sizeof( float ) );
+
+      return true;
+   }
+
+   bool queryForCancel()
+   {
+      return false;
+   }
+
+   void progressReporter( int )
+   {
+
+   }
+
+   //void my_av_log_callback( void* ptr, int level, const char*fmt, va_list vargs )
+   //{
+   //   char message[2048];
+   //   if ( level <= 16 )
+   //   {
+   //      ::vsnprintf( message, 2048, fmt, vargs );
+   //   }
+   //}
 }
 
-bool VideoExporter::Export(const char *path)
+GenericVideoExporter::GenericVideoExporter( const std::string& outPath, const Params& inParams, bool videoOnly/*=false*/ )
+   : _path( outPath )
+   , _inParams( inParams )
+   , _videoOnly( videoOnly )
 {
-	int width = m_width * m_scaleFactor;
-	int height = m_height * m_scaleFactor;
+   if ( inParams.pfmt != AV_PIX_FMT_RGB24 )
+      throw std::runtime_error( "VideoExporter - expecting RGB24 input!" );
 
-	// width and height must be even
-	if (width % 2)
-		++width;
-	if (height % 2)
-		++height;
+   _outParams = inParams;
 
-    m_logger_base.debug("Video size %d,%d", width, height);
+   // MP4/MOV has some restrictions on width... apparently it's common
+   // with FFmpeg to just enforce even-number width and height
+   if ( _outParams.width % 2 )
+      ++_outParams.width;
+   if ( _outParams.height % 2 )
+      ++_outParams.height;
 
-    #if LIBAVFORMAT_VERSION_MAJOR < 58
-    avcodec_register_all();
-    av_register_all();
-    #endif
+   // We're outputing an H.264 / AAC MP4 file; most players only support profiles with 4:2:0 compression
+   _outParams.pfmt = AV_PIX_FMT_YUV420P;
 
-	AVOutputFormat* fmt = av_guess_format(nullptr, path, nullptr);
-	AVCodec *videoCodec = avcodec_find_encoder(fmt->video_codec);
-	AVCodec *audioCodec = avcodec_find_encoder(fmt->audio_codec);
-	if (videoCodec == nullptr || audioCodec == nullptr)
-	{
-		m_logger_base.error("  error finding codecs.");
-		return false;
-	}
-    else
+   _getVideo = getVideo;
+   _getAudio = getAudio;
+   _queryForCancel = queryForCancel;
+   _progressReporter = progressReporter;
+
+   //::av_log_set_callback( my_av_log_callback );
+}
+
+GenericVideoExporter::~GenericVideoExporter()
+{
+   cleanup();
+
+   //::av_log_set_callback( nullptr );
+}
+
+void GenericVideoExporter::initialize()
+{
+   // Initialize color-converter
+   int sws_flags = SWS_FAST_BILINEAR; // usually doing just a colorspace conversion, so not too critical
+
+   AVPixelFormat inPfmt = static_cast<AVPixelFormat>( _inParams.pfmt );
+   AVPixelFormat outPfmt = static_cast<AVPixelFormat>( _outParams.pfmt );
+   SwsContext* sws_ctx = ::sws_getContext( _inParams.width, _inParams.height, inPfmt,
+                                           _outParams.width, _outParams.height, outPfmt,
+                                           sws_flags, nullptr, nullptr, nullptr );
+   if ( sws_ctx == nullptr )
+      throw std::runtime_error( "VideoExporter - error setting up video format conversion!" );
+
+   // Initialize video & audio
+   AVOutputFormat* fmt = ::av_guess_format( nullptr, _path.c_str(), nullptr );
+   const AVCodec* videoCodec = ::avcodec_find_encoder( fmt->video_codec );
+   const AVCodec* audioCodec = ::avcodec_find_encoder( fmt->audio_codec );
+
+   int status = ::avformat_alloc_output_context2( &_formatContext, fmt, nullptr, _path.c_str() );
+   if ( _formatContext == nullptr )
+      throw std::runtime_error( "VideoExporter - Error allocating output-context" );
+
+   initializeVideo( videoCodec );
+   initializeAudio( audioCodec );
+
+   // Initialize frames and packets
+   initializeFrames();
+   initializePackets();
+
+   // Open file for output and write header
+   status = ::avio_open( &_formatContext->pb, _path.c_str(), AVIO_FLAG_WRITE );
+   if ( status < 0 )
+      throw std::runtime_error( "VideoExporter - Error opening output file" );
+
+   // prepare to write... don't trust ::avformat_init_output() telling you that
+   // a call to ::avformat_write_header() is unnecessary. If you don't call it,
+   // the stream(s) won't be packaged in an MP4 container. Also, the stream's
+   // time_base appears to be updated within this call.
+   status = ::avformat_write_header( _formatContext, nullptr );
+   if ( status < 0 )
+      throw std::runtime_error( "VideoExporter - Error writing file header" );
+
+   _ptsIncrement = _formatContext->streams[0]->time_base.den / _outParams.fps;
+}
+
+void GenericVideoExporter::initializeVideo( const AVCodec* codec )
+{
+   AVStream* video_st = ::avformat_new_stream( _formatContext, nullptr );
+   video_st->time_base.num = 1;
+   video_st->time_base.den = _outParams.fps;
+   video_st->id = _formatContext->nb_streams - 1;
+
+   _videoCodecContext = ::avcodec_alloc_context3( codec );
+   _videoCodecContext->time_base.num = 1;
+   _videoCodecContext->time_base.den = _outParams.fps;
+   _videoCodecContext->gop_size = 40/*12*/; // aka keyframe interval
+   _videoCodecContext->max_b_frames = 0;
+   _videoCodecContext->width = _outParams.width;
+   _videoCodecContext->height = _outParams.height;
+   _videoCodecContext->pix_fmt = static_cast<AVPixelFormat>( _outParams.pfmt );
+   if ( _formatContext->oformat->flags & AVFMT_GLOBALHEADER )
+      _videoCodecContext->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
+
+   ::av_opt_set( _videoCodecContext->priv_data, "preset", "fast", 0 );
+   ::av_opt_set( _videoCodecContext->priv_data, "crf", "18", AV_OPT_SEARCH_CHILDREN );
+
+   int status = ::avcodec_open2( _videoCodecContext, nullptr, nullptr );
+   if ( status != 0 )
+      throw std::runtime_error( "VideoExporter - Error opening video codec context" );
+
+   status = ::avcodec_parameters_from_context( video_st->codecpar, _videoCodecContext );
+   if ( status != 0 )
+      throw std::runtime_error( "VideoExporter - Error setting video stream parameters" );
+}
+
+void GenericVideoExporter::initializeAudio( const AVCodec* codec )
+{
+   AVStream* audio_st = ::avformat_new_stream( _formatContext, nullptr );
+   audio_st->time_base.num = 1;
+   audio_st->time_base.den = _outParams.audioSampleRate;
+   audio_st->id = _formatContext->nb_streams - 1;
+
+   _audioCodecContext = ::avcodec_alloc_context3( codec );
+   _audioCodecContext->channels = 2;
+   _audioCodecContext->channel_layout = AV_CH_LAYOUT_STEREO;
+   _audioCodecContext->sample_rate = _outParams.audioSampleRate;
+   _audioCodecContext->sample_fmt = AV_SAMPLE_FMT_FLTP;
+   _audioCodecContext->bit_rate = 128000;
+
+   if ( _formatContext->oformat->flags & AVFMT_GLOBALHEADER )
+      _audioCodecContext->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
+
+   int status = ::avcodec_open2( _audioCodecContext, nullptr, nullptr );
+   if ( status != 0 )
+      throw std::runtime_error( "VideoExporter - Error opening audio codec context" );
+
+   status = ::avcodec_parameters_from_context( audio_st->codecpar, _audioCodecContext );
+   if ( status != 0 )
+      throw std::runtime_error( "VideoExporter - Error setting audio stream parameters" );
+}
+
+void GenericVideoExporter::initializeFrames()
+{
+   _colorConversionFrame = ::av_frame_alloc();
+   _colorConversionFrame->width = _inParams.width;
+   _colorConversionFrame->height = _inParams.height;
+   _colorConversionFrame->format = _inParams.pfmt;
+   int status = ::av_frame_get_buffer( _colorConversionFrame, 1 );
+   if ( status != 0 )
+      throw std::runtime_error( "VideoExporter - Error initializing color-conversion frame" );
+
+   _videoFrame = ::av_frame_alloc();
+   _videoFrame->width = _outParams.width;
+   _videoFrame->height = _outParams.height;
+   _videoFrame->format = _outParams.pfmt;
+   status = ::av_frame_get_buffer( _videoFrame, 0 );
+   if ( status != 0 )
+      throw std::runtime_error( "VideoExporter - Error initializing video frame" );
+   _videoFrame->pts = 0LL;
+
+   int flags = SWS_FAST_BILINEAR; // doesn't matter too much since we're just doing a colorspace conversion
+   AVPixelFormat inPfmt = static_cast<AVPixelFormat>( _inParams.pfmt );
+   AVPixelFormat outPfmt = static_cast<AVPixelFormat>( _outParams.pfmt );
+
+   _swsContext = ::sws_getContext( _inParams.width, _inParams.height, inPfmt,
+                                   _outParams.width, _outParams.height, outPfmt,
+                                   flags, nullptr, nullptr, nullptr );
+   if ( _swsContext == nullptr )
+      throw std::runtime_error( "VideoExporter - Error initializing color-converter" );
+
+   if ( _audioCodecContext != nullptr )
+   {
+      _audioFrame = ::av_frame_alloc();
+      _audioFrame->format = AV_SAMPLE_FMT_FLTP;
+      _audioFrame->nb_samples = _audioCodecContext->frame_size;
+      _audioFrame->channel_layout = AV_CH_LAYOUT_STEREO;
+      _audioFrame->channels = 2;
+      _audioFrame->sample_rate = _outParams.audioSampleRate;
+      status = ::av_frame_get_buffer( _audioFrame, 0 );
+      if ( status != 0 )
+         throw std::runtime_error( "VideoExporter - Error initializing audio frame" );
+      _audioFrame->pts = 0LL;
+   }
+}
+
+void GenericVideoExporter::initializePackets()
+{
+   _videoPacket = ::av_packet_alloc();
+   ::av_init_packet( _videoPacket );
+
+   _audioPacket = ::av_packet_alloc();
+   ::av_init_packet( _audioPacket );
+}
+
+void GenericVideoExporter::exportFrames( int videoFrameCount )
+{
+   int progressValueReported = 0;
+
+   // Accumulate the initial packet of compressed video (actually 35 video frames)
+   _videoFrame->nb_samples = 0;
+   int endFrameIndex = pushVideoUntilPacketFilled( 0 );
+
+   // Write the first packet of compressed video
+   _videoPacket->stream_index = 0;
+   int status = ::av_interleaved_write_frame( _formatContext, _videoPacket );
+   if ( status < 0 )
+      throw std::runtime_error( "VideoExporter - error writing initial compressed video packet" );
+
+   // We'll need to push a bunch of audio packets through in order to "catch up" to the video
+   if ( !_videoOnly )
+   {
+      int64_t numAudioSamplesToPush = endFrameIndex * _outParams.audioSampleRate / _outParams.fps;
+      for ( int64_t numAudioSamplesPushed = 0; numAudioSamplesPushed < numAudioSamplesToPush; )
+      {
+         // For AAC, first packet will be 2048 samples; always 1024 after that
+         _audioFrame->nb_samples = 0;
+         int64_t ptsBefore = _audioFrame->pts;
+         pushAudioUntilPacketFilled();
+
+         int64_t elapsed = _audioFrame->pts - ptsBefore;
+         numAudioSamplesPushed += elapsed;
+         _audioPacket->stream_index = 1;
+         status = ::av_interleaved_write_frame( _formatContext, _audioPacket );
+         if ( status < 0 )
+            throw std::runtime_error( "VideoExporter - error writing compressed audio packet" );
+      }
+   }
+
+   // ... and beyond the inital write_frame() calls...
+   while ( endFrameIndex <= videoFrameCount )
+   {
+      // Some housekeeping for cancel and progress reporting
+      if ( _queryForCancel != nullptr && _queryForCancel() )
+      {
+         ::avio_closep( &_formatContext->pb );
+         return;
+      }
+      double exportPercentage = double(endFrameIndex) / videoFrameCount;
+      int progressAsInt = int( 100 * exportPercentage );
+      if ( progressAsInt != progressValueReported )
+      {
+         if ( _progressReporter != nullptr )
+            _progressReporter( progressAsInt );
+         progressValueReported = progressAsInt;
+      }
+
+      _videoFrame->nb_samples = 0;
+      endFrameIndex = pushVideoUntilPacketFilled( endFrameIndex );
+
+      // Write the packet of compressed video
+      _videoPacket->stream_index = 0;
+      int status = ::av_interleaved_write_frame( _formatContext, _videoPacket );
+      if ( status < 0 )
+         throw std::runtime_error( "VideoExporter - error writing compressed video packet" );
+
+      // Process and write some (typically 1 to 3) packets of audio to keep roughly in sync with video
+      if ( !_videoOnly )
+      {
+         int64_t numAudioSamplesToPush = endFrameIndex * _outParams.audioSampleRate / _outParams.fps - _audioFrame->pts;
+         int64_t numAudioFramesToPush = numAudioSamplesToPush / _audioCodecContext->frame_size;
+         for ( int64_t i = 0; i < numAudioFramesToPush; ++i )
+         {
+            _audioFrame->nb_samples = 0;
+            pushAudioUntilPacketFilled();
+
+            _audioPacket->stream_index = 1;
+            status = ::av_interleaved_write_frame( _formatContext, _audioPacket );
+            if ( status < 0 )
+               throw std::runtime_error( "VideoExporter - error writing compressed audio packet" );
+         }
+      }
+   }
+
+   // Finally, clear out any buffered data
+   status = ::avcodec_send_frame( _videoCodecContext, nullptr );
+   if ( status < 0 )
+      throw std::runtime_error( "VideoExporter - error clearing compressed-video cache" );
+   while ( 1 )
+   {
+      status = ::avcodec_receive_packet( _videoCodecContext, _videoPacket );
+      if ( status == AVERROR_EOF )
+         break;
+      if ( status == 0 )
+      {
+         _videoPacket->stream_index = 0;
+         status = ::av_interleaved_write_frame( _formatContext, _videoPacket );
+         if ( status < 0 )
+            throw std::runtime_error( "VideoExporter - error writing cached video frame data" );
+      }
+   }
+
+   if ( !_videoOnly )
+   {
+      status = ::avcodec_send_frame( _audioCodecContext, nullptr );
+      if ( status < 0 )
+         throw std::runtime_error( "VideoExporter - error clearing compressed-audio cache" );
+      while ( 1 )
+      {
+         status = ::avcodec_receive_packet( _audioCodecContext, _audioPacket );
+         if ( status == AVERROR_EOF )
+            break;
+         if ( status == 0 )
+         {
+            _audioPacket->stream_index = 1;
+            status = ::av_interleaved_write_frame( _formatContext, _audioPacket );
+            if ( status < 0 )
+               throw std::runtime_error( "VideoExporter - error writing cached audio frame data" );
+         }
+      }
+   }
+
+   if ( _progressReporter != nullptr )
+      _progressReporter( 100 );
+}
+
+void GenericVideoExporter::completeExport()
+{
+   int status = ::av_write_trailer( _formatContext );
+   if ( status != 0 )
+      throw std::runtime_error( "VideoExporter - Error writing file trailer" );
+
+   status = ::avio_closep( &_formatContext->pb );
+   if ( status != 0 )
+      throw std::runtime_error( "VideoExporter - Error closing output file" );
+}
+
+void GenericVideoExporter::cleanup()
+{
+   if ( _videoPacket != nullptr )
+      ::av_packet_free( &_videoPacket );
+   if ( _audioPacket != nullptr )
+      ::av_packet_free( &_audioPacket );
+
+   if ( _colorConversionFrame != nullptr )
+      ::av_frame_free( &_colorConversionFrame );
+   if ( _videoFrame != nullptr )
+      ::av_frame_free( &_videoFrame );
+   if ( _audioFrame != nullptr )
+      ::av_frame_free( &_audioFrame );
+
+   if ( _formatContext != nullptr )
+   {
+      if ( _formatContext->pb != nullptr )
+         ::avio_closep( &_formatContext->pb );
+      ::avformat_free_context( _formatContext );
+      _formatContext = nullptr;
+   }
+
+   if ( _audioCodecContext != nullptr )
+      ::avcodec_free_context( &_audioCodecContext );
+
+   if ( _videoCodecContext != nullptr )
+      ::avcodec_free_context( &_videoCodecContext );
+
+   if ( _swsContext != nullptr )
+   {
+      ::sws_freeContext( _swsContext );
+      _swsContext = nullptr;
+   }
+}
+
+int GenericVideoExporter::pushVideoUntilPacketFilled( int index )
+{
+   int status = 0;
+
+   uint8_t* data[] = { _colorConversionFrame->data[0], nullptr, nullptr, nullptr };
+   int stride[] = { _colorConversionFrame->linesize[0], 0, 0, 0 };
+   int frameHeight = _colorConversionFrame->height;
+   int frameSize = stride[0] * frameHeight;
+
+   do
+   {
+      _getVideo( data[0], frameSize, index++ );
+
+      int height = ::sws_scale( _swsContext, data, stride, 0, frameHeight, _videoFrame->data, _videoFrame->linesize );
+      if ( height != _videoCodecContext->height )
+         throw std::runtime_error( "VideoExporter - color conversion error" );
+
+      status = ::avcodec_send_frame( _videoCodecContext, _videoFrame );
+      if ( status < 0 )
+         throw std::runtime_error( "VideoExporter - error sending video frame to compresssor" );
+      _videoFrame->pts += _ptsIncrement;
+
+      status = ::avcodec_receive_packet( _videoCodecContext, _videoPacket );
+      if ( status == AVERROR( EAGAIN ) )
+         continue;
+      if ( status < 0 )
+         throw std::runtime_error( "VideoExporter - error receiving compressed video" );
+   } while ( status != 0 );
+
+   return index;
+}
+
+void GenericVideoExporter::pushAudioUntilPacketFilled()
+{
+   int status = 0;
+
+   float *dstLeft = reinterpret_cast<float *>( _audioFrame->buf[0]->data );
+   float *dstRight = reinterpret_cast<float *>( _audioFrame->buf[1]->data );
+
+   do
+   {
+      // todo - handle when we can't get a full frame of audio
+      _getAudio( dstLeft, dstRight, _audioCodecContext->frame_size );
+      _audioFrame->nb_samples = _audioCodecContext->frame_size;
+
+      status = ::avcodec_send_frame( _audioCodecContext, _audioFrame );
+      if ( status < 0 )
+         throw std::runtime_error( "VideoExporter - error sending audio frame to compresssor" );
+      _audioFrame->pts += _audioCodecContext->frame_size;
+
+      status = ::avcodec_receive_packet( _audioCodecContext, _audioPacket );
+      if ( status == AVERROR( EAGAIN ) )
+         continue;
+      if ( status < 0 )
+         throw std::runtime_error( "VideoExporter - error receiving compressed audio" );
+   } while ( status != 0 );
+}
+
+
+namespace
+{
+    GenericVideoExporter::Params makeParams( int width, int height, int fps, int audioSampleRate )
     {
-        m_logger_base.debug("Video codec: %s.", videoCodec->name);
-        m_logger_base.debug("Audio codec: %s.", audioCodec->name);
+        GenericVideoExporter::Params p =
+        {
+            AV_PIX_FMT_RGB24,
+            width,
+            height,
+            fps,
+            audioSampleRate
+        };
+        return p;
+    }
+}
+
+VideoExporter::VideoExporter( wxWindow *parent,
+                              int width, int height, float scaleFactor,
+                              unsigned int frameDuration, unsigned int frameCount,
+                              int audioChannelCount, int audioSampleRate,
+                              const std::string& outPath )
+    : GenericVideoExporter( outPath, makeParams( width * scaleFactor, height * scaleFactor, 1000u / frameDuration, audioSampleRate ) )
+    , _parent( parent )
+    , _frameCount( frameCount )
+{
+    if ( audioChannelCount != 2 )
+        throw std::runtime_error( "VideoExporter - assumes stereo input/output currently" );
+}
+
+bool VideoExporter::Export()
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance( std::string("log_base") );
+    bool status = true;
+
+    int style = wxPD_APP_MODAL | wxPD_AUTO_HIDE | wxPD_CAN_ABORT;
+    wxProgressDialog dlg( _("Export progress"), _("Exporting video..."), 100, _parent, style );
+
+    auto cancelLambda = [&dlg]()
+    {
+      return dlg.WasCancelled();
+    };
+    setQueryForCancelCallback( cancelLambda );
+
+    auto progressLambda = [&dlg]( int value )
+    {
+        dlg.Update( value );
+    };
+    setProgressReportCallback( progressLambda );
+
+    try
+    {
+        initialize();
+        auto ip = inputParams();
+        auto op = outputParams();
+        logger_base.info( "VideoExporter - exporting %d x %d video from %d x %d", op.width, op.height, ip.width, ip.height );
+
+        exportFrames( _frameCount );
+        bool canceled = dlg.WasCancelled();
+        if ( canceled )
+           logger_base.info( "VideoExporter - exporting was canceled" );
+
+        if ( !canceled )
+           completeExport();
+    } catch ( const std::runtime_error& re )
+    {
+        logger_base.error( "Exception caught in VideoExporter - '%s'", re.what() );
+        status = false;
     }
 
-	AVFormatContext* formatContext;
-	avformat_alloc_output_context2(&formatContext, fmt, nullptr, path);
-	if (formatContext == nullptr)
-	{
-		m_logger_base.error("  error opening output-context");
-		return false;
-	}
+    dlg.Hide();
 
-	AVStream* video_st = avformat_new_stream(formatContext, videoCodec);
-	video_st->id = formatContext->nb_streams - 1;
-	video_st->time_base.num = 1;
-	video_st->time_base.den = 1000 / m_frameDuration;
-	AVCodecContext* videoCodecContext = video_st->codec;
-	avcodec_get_context_defaults3(videoCodecContext, videoCodec);
-	videoCodecContext->bit_rate = 400000;
-	videoCodecContext->width = width;
-	videoCodecContext->height = height;
-	videoCodecContext->time_base.num = 1;
-	videoCodecContext->time_base.den = 1000 / m_frameDuration;
-	videoCodecContext->gop_size = 20;
-    videoCodecContext->max_b_frames = 1;
-	videoCodecContext->pix_fmt = AV_PIX_FMT_YUV420P;
-
-	av_opt_set(videoCodecContext->priv_data, "preset", "medium", 0);
-	av_opt_set(videoCodecContext->priv_data, "crf", "18", AV_OPT_SEARCH_CHILDREN);
-
-	if (formatContext->oformat->flags & AVFMT_GLOBALHEADER)
-		videoCodecContext->flags |= CODEC_FLAG_GLOBAL_HEADER;
-
-    int status = avcodec_open2(videoCodecContext, videoCodec, nullptr);
-	if (status != 0)
-	{
-		m_logger_base.error("  error opening video codec.");
-		return false;
-	}
-
-	AVStream *audio_st = nullptr;
-	bool hasAudio = m_audioChannelCount != 0 && m_audioSampleRate != 0;
-	if (hasAudio)
-	{
-		audio_st = avformat_new_stream(formatContext, audioCodec);
-		audio_st->id = formatContext->nb_streams - 1;
-		AVCodecContext *audioCodecContext = audio_st->codec;
-		avcodec_get_context_defaults3(audioCodecContext, audioCodec);
-		audioCodecContext->sample_fmt = AV_SAMPLE_FMT_FLTP;
-		audioCodecContext->bit_rate = 128000;
-		audioCodecContext->sample_rate = m_audioSampleRate;
-		audioCodecContext->channels = 2;
-		audioCodecContext->channel_layout = AV_CH_LAYOUT_STEREO;
-
-		if (formatContext->oformat->flags & AVFMT_GLOBALHEADER)
-			audioCodecContext->flags |= CODEC_FLAG_GLOBAL_HEADER;
-		status = avcodec_open2(audioCodecContext, audioCodec, nullptr);
-		if (status != 0)
-		{
-			m_logger_base.error("  error opening audio codec.");
-			return false;
-		}
-	}
-
-	AVFrame *frame = av_frame_alloc();
-	frame->format = videoCodecContext->pix_fmt;
-	frame->width = videoCodecContext->width;
-	frame->height = videoCodecContext->height;
-
-	int sws_flags = SWS_FAST_BILINEAR; // doesn't matter too much since we're only doing a colorspace conversion currently
-	AVPixelFormat informat = AV_PIX_FMT_RGB24;
-	SwsContext *sws_ctx = sws_getContext(width, height, informat,
-		videoCodecContext->width, videoCodecContext->height, videoCodecContext->pix_fmt,
-		sws_flags, nullptr, nullptr, nullptr);
-
-	AVFrame src_picture;
-	int ret = av_image_alloc(src_picture.data, src_picture.linesize, width, height, informat, 1);
-	if (ret < 0)
-	{
-		m_logger_base.error("  error allocating for src-picture buffer");
-		return false;
-	}
-
-	ret = av_image_alloc(frame->data, frame->linesize, videoCodecContext->width, videoCodecContext->height, videoCodecContext->pix_fmt, 1);
-	if (ret < 0)
-	{
-		m_logger_base.error("  error allocatinf for encoded-picture buffer");
-		return false;
-	}
-
-	if (!(fmt->flags & AVFMT_NOFILE))
-	{
-		ret = avio_open(&formatContext->pb, path, AVIO_FLAG_WRITE);
-		if (ret < 0)
-		{
-			m_logger_base.error("  error opening output file");
-			return false;
-		}
-	}
-
-	if (avformat_write_header(formatContext, nullptr) < 0)
-	{
-		m_logger_base.error("  error writing file header");
-		return false;
-	}
-
-	// buffer for RGB input
-	unsigned char *buf = new unsigned char[width * 3 * height];
-
-	wxProgressDialog progressDialog(_("Export progress"), _T("Exporting video..."), 100, m_parent, wxPD_APP_MODAL | wxPD_AUTO_HIDE | wxPD_CAN_ABORT);
-	bool wasCanceled = false, wasErrored = false;
-	int progressValue = 0;
-	progressDialog.Show();
-
-    m_logger_base.debug("Headers written ... writing the video %u frames.", m_frameCount);
-
-	// Loop through each frame
-	frame->pts = 0;
-
-	for (unsigned int i = 0; i < m_frameCount; ++i)
-	{
-        //m_logger_base.debug("    Writing frame %u.", i);
-	    if (progressDialog.WasCancelled())
-		{
-			wasCanceled = true;
-			break;
-		}
-		double percentage = double(i) / m_frameCount;
-		int progressAsInt = int(100 * percentage);
-		if (progressAsInt != progressValue)
-		{
-			progressDialog.Update(progressAsInt);
-			progressValue = progressAsInt;
-		}
-
-		if (!write_video_frame(formatContext, video_st->index, videoCodecContext, &src_picture, frame, sws_ctx, buf, width, height, i, m_logger_base))
-		{
-         m_logger_base.error( "   error writing video frame %d", i );
-			wasErrored = true;
-			break;
-		}
-
-		frame->pts += av_rescale_q(1, video_st->codec->time_base, video_st->time_base);
-	}
-
-	progressDialog.Update(100);
-
-	if (!wasErrored && !wasCanceled)
-	{
-		// delayed video frames
-		for (int got_video_output = 1; got_video_output;)
-		{
-			AVPacket pkt;
-			av_init_packet(&pkt);
-			pkt.data = nullptr;
-			pkt.size = 0;
-			pkt.stream_index = video_st->index;
-
-			status = avcodec_encode_video2(videoCodecContext, &pkt, nullptr, &got_video_output);
-			if (status != 0)
-			{
-				m_logger_base.error("  error encoding delayed video frame");
-				wasErrored = true;
-				break;
-			}
-			if (got_video_output)
-			{
-				ret = av_interleaved_write_frame(formatContext, &pkt);
-				if (ret != 0)
-				{
-					m_logger_base.error("  error writing delayed video frame");
-					wasErrored = true;
-				}
-
-				av_packet_unref(&pkt);
-			}
-		}
-	}
-	if (!wasErrored && !wasCanceled && hasAudio)
-	{
-		double lenInSeconds = (m_frameCount * m_frameDuration) / 1000.;
-		int frameSize = audio_st->codec->frame_size;
-		double numFullFrames = (lenInSeconds * m_audioSampleRate) / frameSize;
-		int numAudioFrames = (int)floor(numFullFrames);
-
-		float *audioBuff = new float[audio_st->codec->frame_size * m_audioChannelCount];
-
-        m_logger_base.debug("    writing the audio %d frames.", numAudioFrames);
-        for (int i = 0; i < numAudioFrames; ++i)
-		{
-			m_GetAudio(audioBuff, frameSize, m_audioChannelCount);
-			if ( !write_audio_frame(formatContext, audio_st, audioBuff, frameSize, m_logger_base) )
-            m_logger_base.error( "   error writing audio frame %d", i );
-		}
-
-		int numLeftoverSamples = (int)floor((numFullFrames - numAudioFrames) * frameSize);
-		if (numLeftoverSamples)
-		{
-			m_GetAudio(audioBuff, numLeftoverSamples, m_audioChannelCount);
-			if ( !write_audio_frame(formatContext, audio_st, audioBuff, numLeftoverSamples, m_logger_base) )
-            m_logger_base.error( "   error writing leftover audio samples" );
-		}
-
-		delete[] audioBuff;
-
-		// delayed_audio_frames
-		for (int got_audio_output = 1; got_audio_output != 0;)
-		{
-			AVPacket pkt;
-			av_init_packet(&pkt);
-			pkt.data = nullptr;
-			pkt.size = 0;
-			pkt.stream_index = audio_st->index;
-
-			ret = avcodec_encode_audio2(audio_st->codec, &pkt, nullptr, &got_audio_output);
-			if (ret < 0)
-			{
-				m_logger_base.error("  error encoding delayed audio frame");
-				return false;
-			}
-
-			if (got_audio_output)
-			{
-				pkt.stream_index = audio_st->index;
-				if (av_interleaved_write_frame(formatContext, &pkt) != 0)
-				{
-					m_logger_base.error("  error writing delayed audio frame");
-					return false;
-				}
-
-				av_packet_unref(&pkt);
-			}
-		}
-	}
-
-	delete[] buf;
-
-	if (!wasErrored && !wasCanceled)
-	{
-		ret = av_write_trailer(formatContext);
-		if (ret)
-		{
-			m_logger_base.error("  error writing file trailer");
-			wasErrored = true;
-		}
-	}
-
-	progressDialog.Hide();
-
-	// Clean-up and close the output file
-	sws_freeContext(sws_ctx);
-	avcodec_close(video_st->codec);
-	if (audio_st)
-		avcodec_close(audio_st->codec);
-	av_frame_free(&frame);
-	for (unsigned i = 0; i < formatContext->nb_streams; ++i)
-	{
-		av_freep(&formatContext->streams[i]->codec);
-		av_freep(&formatContext->streams[i]);
-	}
-	if (!(fmt->flags & AVFMT_NOFILE))
-	{
-		avio_close(formatContext->pb);
-	}
-	av_free(formatContext);
-
-	if (wasErrored || wasCanceled)
-	{
-		wxRemoveFile(path);
-	}
-
-	return !wasErrored;
-}
-
-bool VideoExporter::write_video_frame(AVFormatContext *oc, int streamIndex, AVCodecContext *cc, AVFrame *srcFrame, AVFrame *dstFrame, SwsContext *sws_ctx, unsigned char *buf, int width, int height, int frameIndex, log4cpp::Category &logger_base)
-{
-	if (m_GetVideo == nullptr)
-	{
-		m_logger_base.error("  GetVideo un-set");
-		return false;
-	}
-
-	bool getStatus = m_GetVideo(buf, width * 3 * height, m_width, m_height, m_scaleFactor, frameIndex);
-	if (!getStatus)
-	{
-		m_logger_base.error("  GetVideo fails");
-		return false;
-	}
-
-	int ret = av_image_fill_arrays(srcFrame->data, srcFrame->linesize, buf, AV_PIX_FMT_RGB24, width, height, 1);
-	if (ret < 0)
-	{
-		m_logger_base.error("  error retrieving src-image data");
-		return false;
-	}
-
-	uint8_t * data = srcFrame->data[0];
-	uint8_t* tmp[4] = { data, nullptr, nullptr, nullptr };
-	int stride[4] = { srcFrame->linesize[0], 0, 0, 0 };
-	ret = sws_scale(sws_ctx, tmp, stride, 0, height, dstFrame->data, dstFrame->linesize);
-	if (ret != cc->height)
-	{
-		m_logger_base.error("  error scaling src-image");
-		return false;
-	}
-
-	AVPacket pkt;
-	av_init_packet(&pkt);
-	pkt.data = nullptr;
-	pkt.size = 0;
-
-	int got_video_output = 0;
-	ret = avcodec_encode_video2(cc, &pkt, dstFrame, &got_video_output);
-	if (ret < 0)
-	{
-		logger_base.error("  error encoding video frame");
-		return false;
-	}
-
-	if (got_video_output)
-	{
-		pkt.stream_index = streamIndex;
-
-		ret = av_interleaved_write_frame(oc, &pkt);
-
-		av_packet_unref(&pkt);
-	}
-
-	return true;
-}
-
-bool VideoExporter::write_audio_frame(AVFormatContext *oc, AVStream *st, float *sampleBuff, int sampleCount, log4cpp::Category &logger_base, bool clearQueue/*= false*/)
-{
-	AVCodecContext *c = st->codec;
-
-	AVFrame *frame = av_frame_alloc();
-	frame->format = AV_SAMPLE_FMT_FLTP;
-	frame->channel_layout = c->channel_layout;
-	frame->nb_samples = sampleCount;
-
-	int buffer_size = av_samples_get_buffer_size(nullptr, c->channels, sampleCount, c->sample_fmt, 1);
-	int audioSize = avcodec_fill_audio_frame(frame, c->channels, c->sample_fmt, (uint8_t *)sampleBuff, buffer_size, 1);
-	if (audioSize < 0)
-	{
-		logger_base.error("  error filling audio frame");
-		return false;
-	}
-
-	AVPacket pkt;
-	av_init_packet(&pkt);
-	pkt.data = nullptr;    // packet data will be allocated by the encoder
-	pkt.size = 0;
-	pkt.stream_index = st->index;
-
-	int got_packet = 0;
-	int ret = avcodec_encode_audio2(c, &pkt, frame, &got_packet);
-	if (ret < 0)
-	{
-		logger_base.error("  error encoding audio frame");
-		return false;
-	}
-
-	if (got_packet)
-	{
-		pkt.stream_index = st->index;
-		if (av_interleaved_write_frame(oc, &pkt) != 0)
-		{
-			logger_base.error("  error writing audio data");
-			return false;
-		}
-
-		av_packet_unref(&pkt);
-	}
-
-	av_frame_free(&frame);
-	return true;
-}
-
-bool VideoExporter::dummyGetVideoFrame(unsigned char *buf, int bufSize, int width, int height, float scaleFactor, unsigned frameIndex)
-{
-	unsigned char *ptr = buf;
-	for (int y = 0; y < height; ++y)
-	{
-		for (int x = 0; x < width; ++x)
-		{
-			*ptr++ = 0xff;
-			*ptr++ = 0x00;
-			*ptr++ = 0x00;
-		}
-	}
-	return true;
-}
-
-bool VideoExporter::dummyGetAudioFrame(float *samples, int frameSize, int numChannels)
-{
-	float *left = samples;
-	float *right = samples + frameSize;
-	for (int i = 0; i < frameSize; ++i)
-	{
-		double v = sin(2 * M_PI * s_freq * s_t);
-		*left++ = float(v);
-		*right++ = float(v);
-		s_t += s_deltaTime;
-	}
-
-	return true;
+    return status;
 }

@@ -10,53 +10,103 @@
  * License: https://github.com/smeighan/xLights/blob/master/License.txt
  **************************************************************/
 
+extern "C"
+{
+   struct AVCodec;
+   struct AVCodecContext;
+   struct AVFormatContext;
+   struct AVFrame;
+   struct AVPacket;
+   struct SwsContext;
+}
+
+#include <cstdint>
 #include <functional>
+#include <string>
 
-struct AVCodecContext;
-struct AVFormatContext;
-struct AVFrame;
-struct AVStream;
-struct SwsContext;
+class wxWindow;
 
-#include <log4cpp/Category.hh>
-
-class VideoExporter
+class GenericVideoExporter
 {
 public:
-	VideoExporter(wxWindow *parent, int width, int height, float scaleFactor, unsigned int frameDuration, unsigned int frameCount, int audioChannelCount, int audioSampleRate, log4cpp::Category &logger_base);
+   struct Params
+   {
+      int   pfmt;             // AVPixelFormat enum
+      int   width;
+      int   height;
+      int   fps;              // limited to constant-FPS input and output currently
+      int   audioSampleRate;  // assumes stereo input/output
+   };
 
-	typedef std::function<bool(unsigned char * /*buf*/, int /*bufSize*/, int/*width*/, int /*height*/, float/*scaleFactor*/, unsigned /*frameIndex*/)> GetVideoFrameFn;
-	typedef std::function<bool(float * /*samples*/, int/*frameSize*/, int/*numChannels*/)> GetAudioFrameFn;
+   // Callbacks provide the video and audio for each frame
+   typedef std::function< bool( uint8_t* /*buf*/, int/*bufSize*/, unsigned /*frameIndex*/ ) > GetVideoFrameCb;
+   typedef std::function< bool( float* /*leftCh*/, float* /*rightCh*/, int /*frameSize*/ ) > GetAudioFrameCb;
 
-	void SetGetVideoFrameCallback(GetVideoFrameFn gvfn) { m_GetVideo = gvfn; }
-	void SetGetAudioFrameCallback(GetAudioFrameFn gafn) { m_GetAudio = gafn; }
+   // Callback to allow the exporter to query the client on whether to abort the export
+   typedef std::function< bool() > QueryForCancelCb;
 
-	bool Export(const char *path);
+   // Callback to allow the exporter to report export progress to the client (0-100 scale)
+   typedef std::function< void( int ) > ProgressReportCb;
+
+   GenericVideoExporter( const std::string& outPath, const Params& inParams, bool videoOnly = false );
+   virtual ~GenericVideoExporter();
+
+   void setGetVideoCallback( GetVideoFrameCb fn ) { _getVideo = fn; }
+   void setGetAudioCallback( GetAudioFrameCb fn ) { _getAudio = fn; }
+   void setQueryForCancelCallback( QueryForCancelCb fn ) { _queryForCancel = fn; }
+   void setProgressReportCallback( ProgressReportCb fn ) { _progressReporter = fn; }
+
+   void initialize();
+   void exportFrames( int videoFrameCount );
+   void completeExport();
+
+   const Params& inputParams() const { return _inParams; }
+   const Params& outputParams() const { return _outParams; }
 
 protected:
-	static bool dummyGetVideoFrame(unsigned char *buf, int bufSize, int width, int height, float scaleFactor, unsigned frameIndex);
-	static bool dummyGetAudioFrame(float *samples, int framSize, int numChannels);
+   void initializeVideo( const AVCodec* codec );
+   void initializeAudio( const AVCodec* codec );
+   void initializeFrames();
+   void initializePackets();
 
-	bool write_video_frame(AVFormatContext *oc, int streamIndex, AVCodecContext *cc, AVFrame *srcFrame, AVFrame *dstFrame,
-		SwsContext *sws_ctx, unsigned char *buf, int width, int height, int frameIndex, log4cpp::Category &logger_base);
-	bool write_audio_frame(AVFormatContext *oc, AVStream *st, float *sampleBuff, int sampleCount, log4cpp::Category &logger_base, bool clearQueue = false);
+   int pushVideoUntilPacketFilled( int startFrameIndex );
+   void pushAudioUntilPacketFilled();
 
-   wxWindow * const m_parent;
-	const int m_width;
-	const int m_height;
-	const float m_scaleFactor;
-	const unsigned int m_frameDuration;
-	const unsigned int m_frameCount;
-	const int m_audioChannelCount;
-	const int m_audioSampleRate;
-	const int m_audioFrameSize;
-	log4cpp::Category &m_logger_base;
+   void cleanup();
 
-	GetVideoFrameFn m_GetVideo;
-	GetAudioFrameFn m_GetAudio;
+   const std::string       _path;
+   const Params            _inParams;
+   const bool              _videoOnly;
+   Params                  _outParams;
+   int64_t                 _ptsIncrement = 0LL;
+   SwsContext*             _swsContext = nullptr;
+   AVFormatContext*        _formatContext = nullptr;
+   AVCodecContext*         _videoCodecContext = nullptr;
+   AVCodecContext*         _audioCodecContext = nullptr;
+   AVFrame*                _colorConversionFrame = nullptr;
+   AVFrame*                _videoFrame = nullptr;
+   AVFrame*                _audioFrame = nullptr;
+   AVPacket*               _videoPacket = nullptr;
+   AVPacket*               _audioPacket = nullptr;
+   GetVideoFrameCb         _getVideo = nullptr;
+   GetAudioFrameCb         _getAudio = nullptr;
+   QueryForCancelCb        _queryForCancel = nullptr;
+   ProgressReportCb        _progressReporter = nullptr;
+};
 
-	static double s_t;
-	static double s_freq;
-	static double s_deltaTime;
+class VideoExporter : public GenericVideoExporter
+{
+public:
+    VideoExporter( wxWindow *parent,
+                   int width, int height, float scaleFactor,
+                   unsigned int frameDuration, unsigned int frameCount,
+                   int audioChannelCount, int audioSampleRate,
+                   const std::string& outPath );
+
+    bool Export();
+
+protected:
+    wxWindow * const    _parent;
+    unsigned int        _frameCount = 0u;
 };
 
