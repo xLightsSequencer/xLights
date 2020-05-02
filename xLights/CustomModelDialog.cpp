@@ -507,7 +507,7 @@ void CustomModelDialog::UpdatePreview()
 }
 
 void CustomModelDialog::Setup(CustomModel *m) {
-
+    
     _model = m;
     _modelPreview->SetModel(m, CheckBox_ShowWiring->IsChecked(), true);
     name = m->GetName();
@@ -538,14 +538,20 @@ void CustomModelDialog::Setup(CustomModel *m) {
     {
         AddPage();
         auto grid = GetLayerGrid(layer);
+        wxFont font = grid->GetDefaultCellFont();
+        grid->SetDefaultRowSize(int(1.5 * (float)font.GetPixelSize().y));
+        grid->SetDefaultColSize(2 * font.GetPixelSize().y);
         wxArrayString rows = wxSplit(layers[layer], ';');
+        grid->AppendRows(rows.size());
+        
         for (auto row = 0; row < rows.size(); row++)
         {
-            if (row >= grid->GetNumberRows()) grid->AppendRows();
             wxArrayString cols = wxSplit(rows[row], ',');
+            if (row == 0) {
+                grid->AppendCols(cols.size());
+            }
             for (auto col = 0; col < cols.size(); col++)
             {
-                if (col >= grid->GetNumberCols()) grid->AppendCols();
                 wxString value = cols[col];
                 if (!value.IsEmpty() && value != "0")
                 {
@@ -554,16 +560,9 @@ void CustomModelDialog::Setup(CustomModel *m) {
             }
         }
 
-        wxFont font = grid->GetDefaultCellFont();
         grid->SetRowMinimalAcceptableHeight(5); //don't need to read text, just see the shape
         grid->SetColMinimalAcceptableWidth(5); //don't need to read text, just see the shape
-        for (int c = 0; c < grid->GetNumberCols(); ++c)
-            grid->SetColSize(c, 2 * font.GetPixelSize().y); //GridCustom->GetColSize(c) * 4/5);
-        for (int r = 0; r < grid->GetNumberRows(); ++r)
-            grid->SetRowSize(r, int(1.5 * (float)font.GetPixelSize().y)); //GridCustom->GetRowSize(r) * 4/5);
-        font = grid->GetLabelFont();
         grid->SetColLabelSize(int(1.5 * (float)font.GetPixelSize().y));
-        //Sizer1->Fit(this);
     }
 
     UpdateBackground();
@@ -582,8 +581,7 @@ void CustomModelDialog::Setup(CustomModel *m) {
     _saveDepth = SpinCtrl_Depth->GetValue();
     _saveModelData = data;
 
-    UpdatePreview();
-
+    // UpdatePreview();  // this is called at the end so not sure why it is here as well, maybe wrong but appears to be redundant
     wxBookCtrlEvent e;
     e.SetSelection(0);
     OnNotebook1PageChanged(e);
