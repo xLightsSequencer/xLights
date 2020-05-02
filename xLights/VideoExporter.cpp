@@ -234,7 +234,7 @@ void GenericVideoExporter::initializeFrames()
    _colorConversionFrame->width = _inParams.width;
    _colorConversionFrame->height = _inParams.height;
    _colorConversionFrame->format = _inParams.pfmt;
-   int status = ::av_frame_get_buffer( _colorConversionFrame, 0 );
+   int status = ::av_frame_get_buffer( _colorConversionFrame, 1 );
    if ( status != 0 )
       throw std::runtime_error( "VideoExporter - Error initializing color-conversion frame" );
 
@@ -543,17 +543,16 @@ bool VideoExporter::Export()
 
     int style = wxPD_APP_MODAL | wxPD_AUTO_HIDE | wxPD_CAN_ABORT;
     wxProgressDialog dlg( _("Export progress"), _("Exporting video..."), 100, _parent, style );
-    wxProgressDialog *pDlg = &dlg;
 
-    auto cancelLambda = [pDlg]()
+    auto cancelLambda = [&dlg]()
     {
-      return pDlg->WasCancelled();
+      return dlg.WasCancelled();
     };
     setQueryForCancelCallback( cancelLambda );
 
-    auto progressLambda = [pDlg]( int value )
+    auto progressLambda = [&dlg]( int value )
     {
-        pDlg->Update( value );
+        dlg.Update( value );
     };
     setProgressReportCallback( progressLambda );
 
@@ -565,11 +564,11 @@ bool VideoExporter::Export()
         logger_base.info( "VideoExporter - exporting %d x %d video from %d x %d", op.width, op.height, ip.width, ip.height );
 
         exportFrames( _frameCount );
-        bool cancelled = dlg.WasCancelled();
-        if ( cancelled )
-           logger_base.info( "VideoExporter - exporting was cancelled" );
+        bool canceled = dlg.WasCancelled();
+        if ( canceled )
+           logger_base.info( "VideoExporter - exporting was canceled" );
 
-        if ( !cancelled )
+        if ( !canceled )
            completeExport();
     } catch ( const std::runtime_error& re )
     {
