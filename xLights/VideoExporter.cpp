@@ -21,6 +21,8 @@ extern "C"
 
 #include <log4cpp/Category.hh>
 
+#include <wx/progdlg.h>
+
 #include <algorithm>
 #include <cstring>
 #include <stdexcept>
@@ -281,6 +283,8 @@ void GenericVideoExporter::initializePackets()
 
 void GenericVideoExporter::exportFrames( int videoFrameCount )
 {
+   int progressValueReported = 0;
+
    // Accumulate the initial packet of compressed video (actually 35 video frames)
    _videoFrame->nb_samples = 0;
    int endFrameIndex = pushVideoUntilPacketFilled( 0 );
@@ -322,8 +326,12 @@ void GenericVideoExporter::exportFrames( int videoFrameCount )
       }
       double exportPercentage = double(endFrameIndex) / videoFrameCount;
       int progressAsInt = int( 100 * exportPercentage );
-      if ( _progressReporter != nullptr )
-         _progressReporter( progressAsInt );
+      if ( progressAsInt != progressValueReported )
+      {
+         if ( _progressReporter != nullptr )
+            _progressReporter( progressAsInt );
+         progressValueReported = progressAsInt;
+      }
 
       _videoFrame->nb_samples = 0;
       endFrameIndex = pushVideoUntilPacketFilled( endFrameIndex );
@@ -389,6 +397,9 @@ void GenericVideoExporter::exportFrames( int videoFrameCount )
          }
       }
    }
+
+   if ( _progressReporter != nullptr )
+      _progressReporter( 100 );
 }
 
 void GenericVideoExporter::completeExport()
@@ -518,6 +529,7 @@ VideoExporter::VideoExporter( wxWindow *parent,
                               int audioChannelCount, int audioSampleRate,
                               const std::string& outPath )
     : GenericVideoExporter( outPath, makeParams( width * scaleFactor, height * scaleFactor, 1000u / frameDuration, audioSampleRate ) )
+    , _parent( parent )
     , _frameCount( frameCount )
 {
     if ( audioChannelCount != 2 )
@@ -529,22 +541,43 @@ bool VideoExporter::Export()
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance( std::string("log_base") );
     bool status = true;
 
-    // todo - enable cancel and progress updates!!
+    int style = wxPD_APP_MODAL | wxPD_AUTO_HIDE | wxPD_CAN_ABORT;
+    wxProgressDialog dlg( _("Export progress"), _("Exporting video..."), 100, _parent, style );
+    wxProgressDialog *pDlg = &dlg;
+
+    auto cancelLambda = [pDlg]()
+    {
+      return pDlg->WasCancelled();
+    };
+    setQueryForCancelCallback( cancelLambda );
+
+    auto progressLambda = [pDlg]( int value )
+    {
+        pDlg->Update( value );
+    };
+    setProgressReportCallback( progressLambda );
 
     try
     {
-    initialize();
-    auto p = outputParams();
-    logger_base.info( "VideoExporter - exporting %d x %d video", p.width, p.height );
+        initialize();
+        auto ip = inputParams();
+        auto op = outputParams();
+        logger_base.info( "VideoExporter - exporting %d x %d video from %d x %d", op.width, op.height, ip.width, ip.height );
 
-    exportFrames( _frameCount );
+        exportFrames( _frameCount );
+        bool cancelled = dlg.WasCancelled();
+        if ( cancelled )
+           logger_base.info( "VideoExporter - exporting was cancelled" );
 
-    completeExport();
+        if ( !cancelled )
+           completeExport();
     } catch ( const std::runtime_error& re )
     {
         logger_base.error( "Exception caught in VideoExporter - '%s'", re.what() );
         status = false;
     }
+
+    dlg.Hide();
 
     return status;
 }

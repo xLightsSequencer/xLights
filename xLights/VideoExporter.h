@@ -60,6 +60,7 @@ public:
    void exportFrames( int videoFrameCount );
    void completeExport();
 
+   const Params& inputParams() const { return _inParams; }
    const Params& outputParams() const { return _outParams; }
 
 protected:
@@ -105,6 +106,7 @@ public:
     bool Export();
 
 protected:
-    unsigned int    _frameCount = 0u;
+    wxWindow * const    _parent;
+    unsigned int        _frameCount = 0u;
 };
 
