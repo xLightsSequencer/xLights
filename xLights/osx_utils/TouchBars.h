@@ -1,10 +1,14 @@
-//
-//  TouchBars.h
-//  xLights
+#pragma once
 
-#ifndef TouchBars_h
-#define TouchBars_h
-
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 #include <wx/event.h>
 #include <wx/colour.h>
@@ -13,7 +17,6 @@
 #include <vector>
 
 #include "../Color.h"
-
 
 class wxBitmap;
 class EffectManager;
@@ -197,6 +200,3 @@ private:
     ColorPanelTouchBar *colorBar;
     const EffectManager &manager;
 };
-
-
-#endif /* TouchBars_h */

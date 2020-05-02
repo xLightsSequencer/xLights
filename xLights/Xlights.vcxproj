@@ -423,7 +423,6 @@
     <ClCompile Include="FileConverter.cpp" />
     <ClCompile Include="FlickerFreeBitmapButton.cpp" />
     <ClCompile Include="GenerateCustomModelDialog.cpp" />
-    <ClCompile Include="heartbeat.cpp" />
     <ClCompile Include="Image.cpp" />
     <ClCompile Include="Image_Loader.cpp" />
     <ClCompile Include="JobPool.cpp" />
@@ -841,7 +840,6 @@
     <ClInclude Include="FileConverter.h" />
     <ClInclude Include="FlickerFreeBitmapButton.h" />
     <ClInclude Include="GenerateCustomModelDialog.h" />
-    <ClInclude Include="heartbeat.h" />
     <ClInclude Include="Image.h" />
     <ClInclude Include="Images_png.h" />
     <ClInclude Include="Image_Loader.h" />
@@ -950,7 +948,6 @@
     <ClInclude Include="sequencer\Element.h" />
     <ClInclude Include="sequencer\ElementLayers.h" />
     <ClInclude Include="sequencer\MainSequencer.h" />
-    <ClInclude Include="sequencer\mpg123.h" />
     <ClInclude Include="sequencer\RowHeading.h" />
     <ClInclude Include="sequencer\SequenceElements.h" />
     <ClInclude Include="sequencer\TimeLine.h" />

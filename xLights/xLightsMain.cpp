@@ -37,7 +37,6 @@
 #include "SplashDialog.h"
 #include "UpdaterDialog.h"
 #include "xLightsApp.h"
-#include "heartbeat.h"
 #include "SeqSettingsDialog.h"
 #include "xLightsVersion.h"
 #include "RenderCommandEvent.h"
@@ -2103,7 +2102,6 @@ void xLightsFrame::RenderLayout()
 
 void xLightsFrame::OnNotebook1PageChanged1(wxAuiNotebookEvent& event)
 {
-    heartbeat("tab change", true); //tell fido to stop watching -DJ
     int pagenum=event.GetSelection(); //Notebook1->GetSelection();
 	if (pagenum == LAYOUTTAB)
     {
@@ -2220,7 +2218,6 @@ void xLightsFrame::StopNow(void)
 	{
 		CurrentSeqXmlFile->GetMedia()->Stop();
 	}
-    heartbeat("playback end", true); //tell fido to stop watching -DJ
     starttime = wxDateTime::UNow();
     switch (actTab)
     {
@@ -2333,7 +2330,6 @@ void xLightsFrame::OnClose(wxCloseEvent& event)
     }
 
     logger_base.debug("Heartbeat exit.");
-    heartbeat("exit", true); //tell fido about graceful exit -DJ
 
     Destroy();
     logger_base.info("xLights Closed.");

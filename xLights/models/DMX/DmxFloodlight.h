@@ -35,5 +35,7 @@ class DmxFloodlight : public DmxModel, public DmxColorAbility, public DmxShutter
         virtual void DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &va, const xlColor *c, float &sx, float &sy, bool active) override;
         virtual void DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va, const xlColor *c, float &sx, float &sy, float &sz, bool active) override;
 
+        float beam_length;
+
     private:
 };

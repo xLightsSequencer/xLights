@@ -1,5 +1,14 @@
-#ifndef SERVOEFFECT_H
-#define SERVOEFFECT_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 #include "RenderableEffect.h"
 
@@ -24,4 +33,3 @@ protected:
         virtual bool needToAdjustSettings(const std::string& version) override { return false; }
         int GetPhonemeValue(RenderBuffer& buffer, SequenceElements* elements, const std::string& trackName);
 };
-#endif // SERVOEFFECT_H

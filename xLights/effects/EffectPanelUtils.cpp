@@ -1,5 +1,14 @@
-#include "EffectPanelUtils.h"
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
+#include "EffectPanelUtils.h"
 
 #include <wx/scrolwin.h>
 #include <wx/notebook.h>
@@ -18,14 +27,13 @@
 #include <wx/button.h>
 #include <wx/fontpicker.h>
 #include <wx/choicebk.h>
+#include <wx/valnum.h>
 
 #include "../BitmapCache.h"
 #include "../ValueCurveButton.h"
 #include "../ValueCurveDialog.h"
 #include "../xLightsApp.h"
 #include "../xLightsMain.h"
-#include <wx/valnum.h>
-
 #include "UtilFunctions.h"
 
 std::map<std::string, bool> EffectPanelUtils::buttonStates;

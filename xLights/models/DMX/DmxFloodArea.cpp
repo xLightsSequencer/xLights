@@ -115,7 +115,6 @@ void DmxFloodArea::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccum
         va.AddVertex(sx, sy, beam_color);
         va.Finish(GL_TRIANGLES);
     }
-
 }
 
 void DmxFloodArea::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator& va, const xlColor* c, float& sx, float& sy, float& sz, bool active)
@@ -181,7 +180,7 @@ void DmxFloodArea::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accu
     if (shutter_open) {
         float halfwidth = rw / 2.0f;
         float halfheight = rh / 2.0f;
-        auto dist = std::min(halfwidth, halfheight);
+        auto dist = std::min(halfwidth, halfheight) * beam_length;
         glm::mat4 translateToOrigin = glm::translate(glm::mat4(1.0f), glm::vec3(-sx, -sy, -sz));
         glm::mat4 translateBack = glm::translate(glm::mat4(1.0f), glm::vec3(sx, sy, sz));
         glm::mat4 RotationMatrix = glm::toMat4(rotation);

@@ -1297,7 +1297,7 @@ void DrawGLUtils::xlVertexColorAccumulator::AddTrianglesCircle(float ocx, float 
     }
 }
 
-void DrawGLUtils::xlVertexColorAccumulator::AddTrianglesRotatedCircle(float cx, float cy, float cz, glm::quat rotation, float radius, const xlColor &center, const xlColor &edge)
+void DrawGLUtils::xlVertexColorAccumulator::AddTrianglesRotatedCircle(float cx, float cy, float cz, glm::quat rotation, float radius, const xlColor& center, const xlColor& edge, float depth)
 {
     int num_segments = radius;
     if (num_segments < 16) {
@@ -1310,13 +1310,14 @@ void DrawGLUtils::xlVertexColorAccumulator::AddTrianglesRotatedCircle(float cx, 
 
     float x = radius;//we start at angle = 0
     float y = 0;
+    float z = depth * radius;
 
     glm::mat4 translateToOrigin = glm::translate(glm::mat4(1.0f), glm::vec3(-cx, -cy, -cz));
     glm::mat4 translateBack = glm::translate(glm::mat4(1.0f), glm::vec3(cx, cy, cz));
     glm::mat4 RotationMatrix = glm::toMat4(rotation);
 
     for (int ii = 0; ii < num_segments; ii++) {
-        glm::vec4 position = glm::vec4(x + cx, y + cy, cz, 1.0f);
+        glm::vec4 position = glm::vec4(x + cx, y + cy, z + cz, 1.0f);
         position = translateBack * RotationMatrix * translateToOrigin * position;
         AddVertex(position.x, position.y, position.z, edge);
         //calculate the tangential vector
@@ -1324,19 +1325,21 @@ void DrawGLUtils::xlVertexColorAccumulator::AddTrianglesRotatedCircle(float cx, 
         //to get the tangential vector we flip those coordinates and negate one of them
         float tx = -y;
         float ty = x;
+        //float tz = -z;
 
         //add the tangential vector
         x += tx * tangetial_factor;
         y += ty * tangetial_factor;
+        //z += tz * tangetial_factor;
         x *= radial_factor;
         y *= radial_factor;
-        position = glm::vec4(x + cx, y + cy, cz, 1.0f);
+        //z *= radial_factor;
+        position = glm::vec4(x + cx, y + cy, z + cz, 1.0f);
         position = translateBack * RotationMatrix * translateToOrigin * position;
         AddVertex(position.x, position.y, position.z, edge);
         AddVertex(cx, cy, cz, center);
     }
 }
-
 
 void DrawGLUtils::DrawDisplayList(float xOffset, float yOffset,
                                   float width, float height,
@@ -1353,18 +1356,17 @@ void DrawGLUtils::DrawDisplayList(float xOffset, float yOffset,
     }
 }
 
-static void addMipMap(const wxImage &l_Image, int &level) {
-    if (l_Image.IsOk() == true)
-    {
+static void addMipMap(const wxImage& l_Image, int& level)
+{
+    if (l_Image.IsOk() == true) {
         LOG_GL_ERRORV(glTexImage2D(GL_TEXTURE_2D, level, GL_RGB, (GLsizei)l_Image.GetWidth(), (GLsizei)l_Image.GetHeight(),
-                                   0, GL_RGB, GL_UNSIGNED_BYTE, (GLvoid*)l_Image.GetData()));
+            0, GL_RGB, GL_UNSIGNED_BYTE, (GLvoid*)l_Image.GetData()));
         int err = glGetError();
         if (err == GL_NO_ERROR) {
             level++;
         }
-        else
-        {
-            static log4cpp::Category &logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
+        else {
+            static log4cpp::Category& logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
             logger_opengl.error("Error glTexImage2D: %d", err);
         }
     }

@@ -1,5 +1,14 @@
-#ifndef SPIRALSEFFECT_H
-#define SPIRALSEFFECT_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 #include "RenderableEffect.h"
 
@@ -30,5 +39,3 @@ class SpiralsEffect : public RenderableEffect {
         virtual wxPanel *CreatePanel(wxWindow *parent) override;
     private:
 };
-
-#endif // SPIRALSEFFECT_H

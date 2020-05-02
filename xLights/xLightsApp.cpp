@@ -576,7 +576,6 @@ bool xLightsApp::OnInit()
     SetUnhandledExceptionFilter(windows_exception_handler);
 #endif
 
-//    heartbeat("init", true); //tell monitor active now -DJ
 //check for options on command line: -DJ
 //TODO: maybe use wxCmdLineParser instead?
 //do this before instantiating xLightsFrame so it can use info gathered here

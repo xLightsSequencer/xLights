@@ -1,5 +1,14 @@
-#ifndef RENDERABLEEFFECT_H
-#define RENDERABLEEFFECT_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 #include <wx/bitmap.h>
 #include <string>
@@ -117,5 +126,3 @@ class RenderableEffect
         wxBitmap icon64e;
     private:
 };
-
-#endif // RENDERABLEEFFECT_H

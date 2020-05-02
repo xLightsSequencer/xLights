@@ -47,7 +47,6 @@
     <ClCompile Include="FileConverter.cpp" />
     <ClCompile Include="FlickerFreeBitmapButton.cpp" />
     <ClCompile Include="GenerateCustomModelDialog.cpp" />
-    <ClCompile Include="heartbeat.cpp" />
     <ClCompile Include="Image.cpp" />
     <ClCompile Include="Image_Loader.cpp" />
     <ClCompile Include="JobPool.cpp" />
@@ -73,7 +72,6 @@
     <ClCompile Include="NoteImportDialog.cpp" />
     <ClCompile Include="OptionChooser.cpp" />
     <ClCompile Include="osx_utils\TouchBars.cpp" />
-    <ClCompile Include="outputs\PixelNetOutput.cpp" />
     <ClCompile Include="outputs\TestPreset.cpp" />
     <ClCompile Include="PaletteMgmtDialog.cpp" />
     <ClCompile Include="PerspectivesPanel.cpp" />
@@ -826,6 +824,9 @@
       <Filter>Outputs</Filter>
     </ClCompile>
     <ClCompile Include="KeyBindingEditDialog.cpp" />
+    <ClCompile Include="outputs\PixelNetOutput.cpp">
+      <Filter>Outputs</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -869,7 +870,6 @@
     <ClInclude Include="FileConverter.h" />
     <ClInclude Include="FlickerFreeBitmapButton.h" />
     <ClInclude Include="GenerateCustomModelDialog.h" />
-    <ClInclude Include="heartbeat.h" />
     <ClInclude Include="Image.h" />
     <ClInclude Include="Images_png.h" />
     <ClInclude Include="Image_Loader.h" />
@@ -890,7 +890,6 @@
     <ClInclude Include="OptionChooser.h" />
     <ClInclude Include="osxMacUtils.h" />
     <ClInclude Include="osx_utils\TouchBars.h" />
-    <ClInclude Include="outputs\PixelNetOutput.h" />
     <ClInclude Include="outputs\TestPreset.h" />
     <ClInclude Include="PaletteMgmtDialog.h" />
     <ClInclude Include="PerspectivesPanel.h" />
@@ -917,7 +916,6 @@
     <ClInclude Include="sequencer\Element.h" />
     <ClInclude Include="sequencer\ElementLayers.h" />
     <ClInclude Include="sequencer\MainSequencer.h" />
-    <ClInclude Include="sequencer\mpg123.h" />
     <ClInclude Include="sequencer\RowHeading.h" />
     <ClInclude Include="sequencer\SequenceElements.h" />
     <ClInclude Include="sequencer\TimeLine.h" />
@@ -1660,6 +1658,9 @@
       <Filter>Outputs</Filter>
     </ClInclude>
     <ClInclude Include="KeyBindingEditDialog.h" />
+    <ClInclude Include="outputs\PixelNetOutput.h">
+      <Filter>Outputs</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Models">

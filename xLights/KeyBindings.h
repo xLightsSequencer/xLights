@@ -1,3 +1,4 @@
+#pragma once
 
 /***************************************************************
  * This source files comes from the xLights project
@@ -8,8 +9,6 @@
  * Copyright claimed based on commit dates recorded in Github
  * License: https://github.com/smeighan/xLights/blob/master/License.txt
  **************************************************************/
-
-#pragma once
 
 // These classes have been updated to try to make them
 // Const correct

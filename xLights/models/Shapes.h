@@ -1,5 +1,14 @@
-#ifndef SHAPES_H
-#define SHAPES_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 #include <vector>
 #include <glm/mat3x3.hpp>
@@ -206,4 +215,3 @@ private:
     xlPointf cp1;
     xlPointf old_cp1;
 };
-#endif // SHAPES_H

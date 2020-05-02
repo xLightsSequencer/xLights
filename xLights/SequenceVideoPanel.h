@@ -1,5 +1,14 @@
-#ifndef SEQUENCEVIDEOPANEL_H
-#define SEQUENCEVIDEOPANEL_H
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 #include <memory>
 #include <string>
@@ -40,11 +49,9 @@ class SequenceVideoPanel: public wxPanel
 
       std::string                   _path;
       std::unique_ptr<VideoReader>  _videoReader;
-      bool                          _isValidVideo;
-      int                           _videoWidth;
-      int                           _videoHeight;
-      int                           _videoLength;
-      SequenceVideoPreview *        _videoPreview;
+      bool                          _isValidVideo = false;
+      int                           _videoWidth = 0;
+      int                           _videoHeight = 0;
+      int                           _videoLength = 0;
+      SequenceVideoPreview *        _videoPreview = nullptr;
 };
-
-#endif

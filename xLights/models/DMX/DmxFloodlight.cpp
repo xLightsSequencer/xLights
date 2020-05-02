@@ -19,7 +19,7 @@
 #include "../../xLightsVersion.h"
 
 DmxFloodlight::DmxFloodlight(wxXmlNode *node, const ModelManager &manager, bool zeroBased)
-    : DmxModel(node, manager, zeroBased)
+    : DmxModel(node, manager, zeroBased), beam_length(1)
 {
     color_ability = this;
     SetFromXml(node, zeroBased);
@@ -35,6 +35,13 @@ void DmxFloodlight::AddTypeProperties(wxPropertyGridInterface* grid) {
     DmxModel::AddTypeProperties(grid);
     AddColorTypeProperties(grid);
     AddShutterTypeProperties(grid);
+
+    auto p = grid->Append(new wxFloatProperty("Beam Display Length", "DmxBeamLength", beam_length));
+    p->SetAttribute("Min", 0);
+    p->SetAttribute("Max", 100);
+    p->SetAttribute("Precision", 2);
+    p->SetAttribute("Step", 0.1);
+    p->SetEditor("SpinCtrl");
 }
 
 void DmxFloodlight::DisableUnusedProperties(wxPropertyGridInterface* grid)
@@ -54,6 +61,15 @@ void DmxFloodlight::DisableUnusedProperties(wxPropertyGridInterface* grid)
 }
 
 int DmxFloodlight::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event) {
+
+    if ("DmxBeamLength" == event.GetPropertyName()) {
+        ModelXml->DeleteAttribute("DmxBeamLength");
+        ModelXml->AddAttribute("DmxBeamLength", wxString::Format("%6.4f", (float)event.GetPropertyValue().GetDouble()));
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DMXModel::OnPropertyGridChange::DMXBeamLength");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DMXModel::OnPropertyGridChange::DMXBeamLength");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DMXModel::OnPropertyGridChange::DMXBeamLength");
+        return 0;
+    }
 
     if (OnColorPropertyGridChange(grid, event, ModelXml, this) == 0) {
         return 0;
@@ -75,6 +91,7 @@ void DmxFloodlight::InitModel() {
     white_channel = wxAtoi(ModelXml->GetAttribute("DmxWhiteChannel", "0"));
     shutter_channel = wxAtoi(ModelXml->GetAttribute("DmxShutterChannel", "0"));
     shutter_threshold = wxAtoi(ModelXml->GetAttribute("DmxShutterOpen", "1"));
+    beam_length = wxAtof(ModelXml->GetAttribute("DmxBeamLength", "1.0"));
     screenLocation.SetRenderSize(1, 1);
 }
 
@@ -228,7 +245,7 @@ void DmxFloodlight::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Acc
     glm::quat rotation = GetModelScreenLocation().GetRotationQuat();
 
     if (shutter_open) {
-        va.AddTrianglesRotatedCircle(sx, sy, sz, rotation, min_size / 2.0f, beam_color, ecolor);
+        va.AddTrianglesRotatedCircle(sx, sy, sz, rotation, min_size / 2.0f, beam_color, ecolor, beam_length);
         va.Finish(GL_TRIANGLES);
     }
 }
@@ -249,6 +266,7 @@ void DmxFloodlight::ExportXlightsModel()
     wxString gc = ModelXml->GetAttribute("DmxGreenChannel", "0");
     wxString bc = ModelXml->GetAttribute("DmxBlueChannel", "0");
     wxString wc = ModelXml->GetAttribute("DmxWhiteChannel", "0");
+    wxString dbl = ModelXml->GetAttribute("DmxBeamLength", "1");
 
     wxString v = xlights_version_string;
 
@@ -258,6 +276,7 @@ void DmxFloodlight::ExportXlightsModel()
     f.Write(wxString::Format("DmxGreenChannel=\"%s\" ", gc));
     f.Write(wxString::Format("DmxBlueChannel=\"%s\" ", bc));
     f.Write(wxString::Format("DmxWhiteChannel=\"%s\" ", wc));
+    f.Write(wxString::Format("DmxBeamLength=\"%s\" ", dbl));
 
     f.Write(" >\n");
     wxString submodel = SerialiseSubmodel();
@@ -296,6 +315,7 @@ void DmxFloodlight::ImportXlightsModel(std::string filename, xLightsFrame* xligh
             wxString gc = root->GetAttribute("DmxGreenChannel");
             wxString bc = root->GetAttribute("DmxBlueChannel");
             wxString wc = root->GetAttribute("DmxWhiteChannel");
+            wxString dbl = root->GetAttribute("DmxBeamLength", "1");
 
             // Add any model version conversion logic here
             // Source version will be the program version that created the custom model
@@ -304,6 +324,7 @@ void DmxFloodlight::ImportXlightsModel(std::string filename, xLightsFrame* xligh
             SetProperty("DmxGreenChannel", gc);
             SetProperty("DmxBlueChannel", bc);
             SetProperty("DmxWhiteChannel", wc);
+            SetProperty("DmxBeamLength", dbl);
 
             wxString newname = xlights->AllModels.GenerateModelName(name.ToStdString());
             GetModelScreenLocation().Write(ModelXml);

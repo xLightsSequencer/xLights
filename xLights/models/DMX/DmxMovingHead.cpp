@@ -961,6 +961,8 @@ void DmxMovingHead::ExportXlightsModel()
     wxString wc = ModelXml->GetAttribute("DmxWhiteChannel", "0");
     wxString sc = ModelXml->GetAttribute("DmxShutterChannel", "0");
     wxString so = ModelXml->GetAttribute("DmxShutterOpen", "1");
+    wxString dbl = ModelXml->GetAttribute("DmxBeamLength", "1");
+    wxString dbw = ModelXml->GetAttribute("DmxBeamWidth", "1");
 
     f.Write(wxString::Format("DmxStyle=\"%s\" ", s));
     f.Write(wxString::Format("DmxPanDegOfRot=\"%s\" ", pdr));
@@ -975,6 +977,8 @@ void DmxMovingHead::ExportXlightsModel()
     f.Write(wxString::Format("DmxWhiteChannel=\"%s\" ", wc));
     f.Write(wxString::Format("DmxShutterChannel=\"%s\" ", sc));
     f.Write(wxString::Format("DmxShutterOpen=\"%s\" ", so));
+    f.Write(wxString::Format("DmxBeamLength=\"%s\" ", dbl));
+    f.Write(wxString::Format("DmxBeamWidth=\"%s\" ", dbw));
 
     f.Write(" >\n");
 
@@ -1026,6 +1030,8 @@ void DmxMovingHead::ImportXlightsModel(std::string filename, xLightsFrame* xligh
             wxString sc = root->GetAttribute("DmxShutterChannel");
             wxString so = root->GetAttribute("DmxShutterOpen");
             wxString bl = root->GetAttribute("DmxBeamLimit");
+            wxString dbl = root->GetAttribute("DmxBeamLength", "1");
+            wxString dbw = root->GetAttribute("DmxBeamWidth", "1");
 
             // Add any model version conversion logic here
             // Source version will be the program version that created the custom model
@@ -1046,6 +1052,8 @@ void DmxMovingHead::ImportXlightsModel(std::string filename, xLightsFrame* xligh
             SetProperty("DmxShutterChannel", sc);
             SetProperty("DmxShutterOpen", so);
             SetProperty("DmxBeamLimit", bl);
+            SetProperty("DmxBeamLength", dbl);
+            SetProperty("DmxBeamWidth", dbw);
 
             wxString newname = xlights->AllModels.GenerateModelName(name.ToStdString());
             GetModelScreenLocation().Write(ModelXml);

@@ -264,7 +264,7 @@ namespace DrawGLUtils
             AddVertex(x1, y1, z1, c);
         }
         void AddDottedLinesRect(float x1, float y1, float z1, float x2, float y2, float z2, const xlColor& c);
-        void AddTrianglesRotatedCircle(float x, float y, float z, glm::quat rotation, float radius, const xlColor& center, const xlColor& edge);
+        void AddTrianglesRotatedCircle(float x, float y, float z, glm::quat rotation, float radius, const xlColor& center, const xlColor& edge, float depth = 0);
 
         void AddTrianglesCircle(float x, float y, float z, float radius, const xlColor& color);
         void AddTrianglesCircle(float x, float y, float z, float radius, const xlColor& center, const xlColor& edge);
