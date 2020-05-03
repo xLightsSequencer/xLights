@@ -147,7 +147,7 @@ class UDControllerPort
     Model* GetModelAfter(Model* m) const;
     UDControllerPortModel* GetModel(const std::string& modelName, int str) const;
     void AddModel(Model* m, Controller* controller, OutputManager* om, int string = 0, bool eliminateOverlaps = false);
-    bool ContainsModel(Model* m) const;
+    bool ContainsModel(Model* m, int string) const;
     std::list<UDControllerPortModel*> GetModels() const { return _models; }
     bool SetAllModelsToControllerName(const std::string& controllerName);
     bool SetAllModelsToValidProtocols(const std::list<std::string>& protocols, const std::string& force);
@@ -210,7 +210,7 @@ class UDController
     #pragma endregion
 
     #pragma region Private Functions
-    bool ModelProcessed(Model* m);
+    bool ModelProcessed(Model* m, int string);
     #pragma endregion
 	
     public:

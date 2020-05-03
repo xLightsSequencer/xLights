@@ -244,7 +244,7 @@ UDControllerPortModel* UDControllerPort::GetModel(const std::string& modelName, 
 void UDControllerPort::AddModel(Model* m, Controller* controller, OutputManager* om, int string, bool eliminateOverlaps) {
 
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    wxASSERT(!ContainsModel(m));
+    wxASSERT(!ContainsModel(m, string));
 
     _models.push_back(new UDControllerPortModel(m, controller, om, string));
     if (_protocol == "") {
@@ -304,11 +304,11 @@ void UDControllerPort::AddModel(Model* m, Controller* controller, OutputManager*
     }
 }
 
-bool UDControllerPort::ContainsModel(Model* m) const {
+bool UDControllerPort::ContainsModel(Model* m, int string) const {
 
     for (const auto& it : _models)
     {
-        if (it->GetModel() == m) {
+        if (it->GetModel() == m && string == it->GetString()) {
             return true;
         }
     }
@@ -765,16 +765,16 @@ bool UDControllerPort::Check(Controller* c, const UDController* controller, bool
 #pragma region UDController
 
 #pragma region Private Functions
-bool UDController::ModelProcessed(Model* m) {
+bool UDController::ModelProcessed(Model* m, int string) {
 
     for (const auto& it : _pixelPorts) {
-        if (it.second->ContainsModel(m)) {
+        if (it.second->ContainsModel(m, string)) {
             return true;
         }
     }
 
     for (const auto& it : _serialPorts) {
-        if (it.second->ContainsModel(m)) {
+        if (it.second->ContainsModel(m, string)) {
             return true;
         }
     }
@@ -817,7 +817,7 @@ void UDController::Rescan(bool eliminateOverlaps) {
     _serialPorts.clear();
 
     for (const auto& it : *_modelManager) {
-        if (!ModelProcessed(it.second) && it.second->GetDisplayAs() != "ModelGroup") {
+        if (!ModelProcessed(it.second, 1) && it.second->GetDisplayAs() != "ModelGroup") {
             int32_t modelstart = it.second->GetNumberFromChannelString(it.second->ModelStartChannel);
             int32_t modelend = modelstart + it.second->GetChanCount() - 1;
             if ((modelstart >= _controller->GetStartChannel() && modelstart <= _controller->GetEndChannel()) ||
