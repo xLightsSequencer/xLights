@@ -237,6 +237,7 @@ public:
     std::string GetControllerConnectionString() const;
     std::string GetControllerConnectionRangeString() const;
     void ReplaceIPInStartChannels(const std::string& oldIP, const std::string& newIP);
+    static std::string DecodeSmartRemote(int sr);
 
     static std::list<std::string> GetProtocols();
     static std::list<std::string> GetLCProtocols();
@@ -432,7 +433,7 @@ public:
     /*static */int GetNodeChannelCount(const std::string & nodeType) const;
 
 protected:
-    int maxVertexCount;
+    unsigned int maxVertexCount;
 };
 
 template <class ScreenLocation>

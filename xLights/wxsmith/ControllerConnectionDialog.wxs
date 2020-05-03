@@ -59,6 +59,8 @@
 								<item>*A*-&gt;b-&gt;c</item>
 								<item>a-&gt;*B*-&gt;c</item>
 								<item>a-&gt;b-&gt;*C*</item>
+								<item>*A*-&gt;*B*-&gt;*C*</item>
+								<item>a-&gt;*B*-&gt;*C*</item>
 							</content>
 							<selection>0</selection>
 						</object>

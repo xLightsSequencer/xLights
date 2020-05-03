@@ -84,6 +84,8 @@ ControllerConnectionDialog::ControllerConnectionDialog(wxWindow* parent, control
 	Choice_SmartRemote->Append(_("*A*->b->c"));
 	Choice_SmartRemote->Append(_("a->*B*->c"));
 	Choice_SmartRemote->Append(_("a->b->*C*"));
+	Choice_SmartRemote->Append(_("*A*->*B*->*C*"));
+	Choice_SmartRemote->Append(_("a->*B*->*C*"));
 	FlexGridSizer2->Add(Choice_SmartRemote, 1, wxALL|wxEXPAND, 5);
 	CheckBox_PixelDirection = new wxCheckBox(this, ID_CHECKBOX1, _("Set Direction"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
 	CheckBox_PixelDirection->SetValue(false);

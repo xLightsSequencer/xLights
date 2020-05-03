@@ -2512,7 +2512,10 @@ std::string Model::GetControllerConnectionString() const
 
     wxXmlAttribute* att = GetControllerConnection()->GetAttributes();
     while (att != nullptr) {
-        if (att->GetName() != "Port" && att->GetName() != "Protocol") {
+        if (att->GetName() == "SmartRemote") {
+            ret += ":SmartRemote=" + DecodeSmartRemote(wxAtoi(att->GetValue()));
+        }
+        else if (att->GetName() != "Port" && att->GetName() != "Protocol") {
             ret += ":" + att->GetName() + "=" + att->GetValue();
         }
         att = att->GetNext();
@@ -2535,7 +2538,10 @@ std::string Model::GetControllerConnectionRangeString() const
 
     wxXmlAttribute* att = GetControllerConnection()->GetAttributes();
     while (att != nullptr) {
-        if (att->GetName() != "Port" && att->GetName() != "Protocol") {
+        if (att->GetName() == "SmartRemote") {
+            ret += ":SmartRemote=" + DecodeSmartRemote(wxAtoi(att->GetValue()));
+        }
+        else if (att->GetName() != "Port" && att->GetName() != "Protocol") {
             ret += ":" + att->GetName() + "=" + att->GetValue();
         }
         att = att->GetNext();
@@ -2576,6 +2582,19 @@ void Model::ReplaceIPInStartChannels(const std::string& oldIP, const std::string
         AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "Model::ReplaceIPInStartChannels");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "Model::ReplaceIPInStartChannels");
     }
+}
+
+std::string Model::DecodeSmartRemote(int sr)
+{
+    switch (sr) {
+    case 0: return "None";
+    case 1: return "A";
+    case 2: return "B";
+    case 3: return "C";
+    case 4: return "A->B->C";
+    case 5: return "B->C";
+    }
+    return wxString::Format("Invalid (%d)", sr).ToStdString();
 }
 
 wxXmlNode *Model::GetControllerConnection() const {
@@ -4269,9 +4288,9 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumula
     screenLocation.UpdateBoundingBox(Nodes);  // FIXME: Temporary...really only want to do this when something causes a boundary change
     screenLocation.PrepareToDraw(is_3d, allowSelected);
 
-    int vcount = 0;
-    for (auto it = Nodes.begin(); it != Nodes.end(); ++it) {
-        vcount += it->get()->Coords.size();
+    unsigned int vcount = 0;
+    for (const auto& it : Nodes) {
+        vcount += it.get()->Coords.size();
     }
     if (pixelStyle > 1) {
         int f = pixelSize;
@@ -4505,7 +4524,7 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
 
         // layer calculation and map to output
         size_t NodeCount = Nodes.size();
-        int vcount = 0;
+        unsigned int vcount = 0;
         for (const auto& it : Nodes) {
             vcount += it.get()->Coords.size();
         }
