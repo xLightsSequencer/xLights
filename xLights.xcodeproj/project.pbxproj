@@ -595,7 +595,6 @@
 		67C9E664211FC08C00379E2A /* VectorMath.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C9E662211FC08C00379E2A /* VectorMath.cpp */; };
 		67CA2D3D2344189A0053409E /* ValueCurvesPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67CA2D3C2344189A0053409E /* ValueCurvesPanel.cpp */; };
 		67CA2D4023441CD80053409E /* DragValueCurveBitmapButton.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67CA2D3E23441CD80053409E /* DragValueCurveBitmapButton.cpp */; };
-		67CA858018BE86B800A6268C /* heartbeat.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67CA857E18BE86B800A6268C /* heartbeat.cpp */; };
 		67CB9F2B1C6E1FF400390753 /* VUMeterPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67CB9F281C6E1FF400390753 /* VUMeterPanel.cpp */; };
 		67CB9F2C1C6E1FF400390753 /* VUMeterEffect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67CB9F2A1C6E1FF400390753 /* VUMeterEffect.cpp */; };
 		67CE25952138235500ADF180 /* ViewObjectPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67CE25942138235500ADF180 /* ViewObjectPanel.cpp */; };
@@ -1922,7 +1921,6 @@
 		67CA2D3C2344189A0053409E /* ValueCurvesPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ValueCurvesPanel.cpp; sourceTree = "<group>"; };
 		67CA2D3E23441CD80053409E /* DragValueCurveBitmapButton.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DragValueCurveBitmapButton.cpp; sourceTree = "<group>"; };
 		67CA2D3F23441CD80053409E /* DragValueCurveBitmapButton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DragValueCurveBitmapButton.h; sourceTree = "<group>"; };
-		67CA857E18BE86B800A6268C /* heartbeat.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = heartbeat.cpp; sourceTree = "<group>"; };
 		67CA857F18BE86B800A6268C /* heartbeat.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = heartbeat.h; sourceTree = "<group>"; };
 		67CB9F271C6E1FF400390753 /* VUMeterPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = VUMeterPanel.h; path = effects/VUMeterPanel.h; sourceTree = "<group>"; };
 		67CB9F281C6E1FF400390753 /* VUMeterPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = VUMeterPanel.cpp; path = effects/VUMeterPanel.cpp; sourceTree = "<group>"; };
@@ -3263,11 +3261,6 @@
 		67E7087617B51AB400A22034 /* xLights */ = {
 			isa = PBXGroup;
 			children = (
-				670CF9B8243F8B57000CA641 /* KeyBindingEditDialog.cpp */,
-				670CF9B9243F8B58000CA641 /* KeyBindingEditDialog.h */,
-				67DC3608242B2CC900467C2D /* BulkEditColourPickerDialog.cpp */,
-				674A85CF240C663100920D26 /* ControllerModelDialog.cpp */,
-				674A85D0240C663100920D26 /* ControllerModelDialog.h */,
 				677E58472251277400861ABF /* AlignmentDialog.cpp */,
 				677E58462251277400861ABF /* AlignmentDialog.h */,
 				67FA9FD21C67837500FED13B /* AudioManager.cpp */,
@@ -3279,6 +3272,7 @@
 				673C45551C79570B00FDED47 /* BufferPanel.h */,
 				67BBF2A71E0C147D0054D264 /* BufferSizeDialog.cpp */,
 				67BBF2A81E0C147D0054D264 /* BufferSizeDialog.h */,
+				67DC3608242B2CC900467C2D /* BulkEditColourPickerDialog.cpp */,
 				1ECB4F601FF4D013006D57AA /* BulkEditControls.cpp */,
 				1ECB4F5F1FF4D012006D57AA /* BulkEditControls.h */,
 				673CAD5422F1D02400836D87 /* BulkEditFontPickerDialog.cpp */,
@@ -3304,6 +3298,8 @@
 				6737275E234AB2FD00C6C2F2 /* ColoursPanel.h */,
 				67E0BB901E08460400C07EF7 /* ControllerConnectionDialog.cpp */,
 				67E0BB911E08460400C07EF7 /* ControllerConnectionDialog.h */,
+				674A85CF240C663100920D26 /* ControllerModelDialog.cpp */,
+				674A85D0240C663100920D26 /* ControllerModelDialog.h */,
 				67BF7FF31F278946002F118D /* Controllers */,
 				6719BF4D1CCB1DAB00899A4B /* ConvertDialog.cpp */,
 				6719BF4E1CCB1DAB00899A4B /* ConvertDialog.h */,
@@ -3354,7 +3350,6 @@
 				679484AA1CD8E998001A7B4F /* GenerateCustomModelDialog.h */,
 				6780E7E91F6EAE81002A8EC9 /* GenerateLyricsDialog.cpp */,
 				6780E7E81F6EAE81002A8EC9 /* GenerateLyricsDialog.h */,
-				67CA857E18BE86B800A6268C /* heartbeat.cpp */,
 				6715B4F91F5F15CF00D60087 /* HousePreviewPanel.cpp */,
 				6715B4F81F5F15CF00D60087 /* HousePreviewPanel.h */,
 				67F4C6131A097A35003E978F /* Image_Loader.cpp */,
@@ -3366,6 +3361,8 @@
 				677421D51A68ACDA0082DA5B /* JobPool.cpp */,
 				673C925520A47C5400E59F5D /* JukeboxPanel.cpp */,
 				673C925620A47C5400E59F5D /* JukeboxPanel.h */,
+				670CF9B8243F8B57000CA641 /* KeyBindingEditDialog.cpp */,
+				670CF9B9243F8B58000CA641 /* KeyBindingEditDialog.h */,
 				67623E6F1AD07E320022667B /* KeyBindings.cpp */,
 				676D0F6A1C72BAFA009C66FC /* kiss_fft */,
 				67BBFD0E208BD72D00A3D5AE /* LayerSelectDialog.cpp */,
@@ -4388,7 +4385,6 @@
 				67C33C3722A7EA05001F9944 /* ShaderEffect.cpp in Sources */,
 				67B2CF901C39D98A003C17CA /* ColorWashPanel.cpp in Sources */,
 				67503C9D23C3261F0033449B /* DmxSkulltronix.cpp in Sources */,
-				67CA858018BE86B800A6268C /* heartbeat.cpp in Sources */,
 				67476D22221313990071492C /* LinesEffect.cpp in Sources */,
 				679484AD1CD8E998001A7B4F /* GenerateCustomModelDialog.cpp in Sources */,
 				675D404C1E896AFD0033C950 /* LiquidPanel.cpp in Sources */,

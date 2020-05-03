@@ -554,8 +554,9 @@ bool xLightsApp::OnInit()
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.info("******* OnInit: XLights started.");
 
+    wxTheApp->SetAppName("xLights");
     DumpConfig();
-
+    
     int id = (int)wxThread::GetCurrentId();
     logger_base.info("Main thread id: 0x%X or %i", id, id);
 
