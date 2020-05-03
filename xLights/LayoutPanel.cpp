@@ -1103,10 +1103,6 @@ void LayoutPanel::refreshModelList() {
 
         if (model != nullptr ) {
 
-            TreeListViewModels->SetItemText(item, TreeModelName(model, data->fullname));
-
-            int end_channel = model->GetLastChannel()+1;
-            wxString endStr = model->GetLastChannelInStartChannelFormat(xlights->GetOutputManager());
             if( model->GetDisplayAs() != "ModelGroup" ) {
                 wxString cv = TreeListViewModels->GetItemText(item, Col_StartChan);
                 wxString startStr = model->GetStartChannelInDisplayFormat(xlights->GetOutputManager());
@@ -1122,8 +1118,9 @@ void LayoutPanel::refreshModelList() {
                     }
                 }
                 cv = TreeListViewModels->GetItemText(item, Col_EndChan);
+                wxString endStr = model->GetLastChannelInStartChannelFormat(xlights->GetOutputManager());
                 if (cv != endStr) {
-                    data->endingChannel = end_channel;
+                    data->endingChannel = model->GetLastChannel()+1;;
                     TreeListViewModels->SetItemText(item, Col_EndChan, endStr);
                 }
                 cv = TreeListViewModels->GetItemText(item, Col_ControllerConnection);
