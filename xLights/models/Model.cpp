@@ -5444,6 +5444,16 @@ int Model::GetSmartRemote() const
     return wxAtoi(s);
 }
 
+// This sorts the special A->B->C and B->C first to ensure that anything on a particular smart remote comes after things that span multiple ports
+int Model::GetSortableSmartRemote() const
+{
+    wxString s = GetControllerConnection()->GetAttribute("SmartRemote", "0");
+    int sr = wxAtoi(s);
+
+    if (sr < 4) return sr += 10;
+    return sr;
+}
+
 // string is one based
 int Model::GetSmartRemoteForString(int string) const
 {

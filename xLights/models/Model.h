@@ -266,6 +266,7 @@ public:
     int GetControllerBrightness() const;
     int GetControllerDMXChannel() const;
     int GetSmartRemote() const;
+    int GetSortableSmartRemote() const;
     int GetSmartRemoteForString(int string = 1) const;
     int GetControllerPort(int string = 1) const;
     void SetModelChain(const std::string& modelChain);

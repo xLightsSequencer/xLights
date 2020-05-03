@@ -11,6 +11,11 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (keith)  Add 3d display of floodlights including beam length control
+   -- enh (keith)  Add ability to span models over several smart remotes from the same 4 ports
+   -- enh (keith)  Add ability to flip virtual matrices
+   -- enh (keith)  When reporting missing face images include the name of the face in the error message
+   -- enh (priemd) Optimise custom model loading
 2020.17 May 1 2020
    -- enh (keith)  Add native media player option for video in xSchedule. This slightly reduces control but improves performance
    -- enh (keith)  When using DMX effect on model group label the sliders using the node names from the first model in the group

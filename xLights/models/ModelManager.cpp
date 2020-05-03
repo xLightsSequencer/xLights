@@ -543,7 +543,7 @@ bool ModelManager::ReworkStartChannel() const
                 wxString cc;
                 if (Model::IsPixelProtocol(itm.second->GetControllerProtocol()))
                 {
-                    cc = wxString::Format("%s:%d:%02d", itm.second->GetControllerProtocol(), itm.second->GetSmartRemote(), itm.second->GetControllerPort()).Lower();
+                    cc = wxString::Format("%s:%02d:%02d", itm.second->GetControllerProtocol(), itm.second->GetControllerPort(), itm.second->GetSortableSmartRemote()).Lower();
                 }
                 else
                 {
