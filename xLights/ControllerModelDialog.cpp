@@ -55,6 +55,8 @@ const long ControllerModelDialog::CONTROLLER_SMARTREMOTE_None = wxNewId();
 const long ControllerModelDialog::CONTROLLER_SMARTREMOTE_A = wxNewId();
 const long ControllerModelDialog::CONTROLLER_SMARTREMOTE_B = wxNewId();
 const long ControllerModelDialog::CONTROLLER_SMARTREMOTE_C = wxNewId();
+const long ControllerModelDialog::CONTROLLER_SMARTREMOTE_ABC = wxNewId();
+const long ControllerModelDialog::CONTROLLER_SMARTREMOTE_BC = wxNewId();
 const long ControllerModelDialog::CONTROLLER_DMXCHANNEL = wxNewId();
 const long ControllerModelDialog::CONTROLLER_PROTOCOL = wxNewId();
 const long ControllerModelDialog::CONTROLLER_BRIGHTNESS = wxNewId();
@@ -547,6 +549,10 @@ public:
                 mi->Check(sr == 2);
                 mi = mnu.AppendRadioItem(ControllerModelDialog::CONTROLLER_SMARTREMOTE_C, "a->b->*C*");
                 mi->Check(sr == 3);
+                mi = mnu.AppendRadioItem(ControllerModelDialog::CONTROLLER_SMARTREMOTE_ABC, "*A*->*B*->*C*");
+                mi->Check(sr == 4);
+                mi = mnu.AppendRadioItem(ControllerModelDialog::CONTROLLER_SMARTREMOTE_BC, "a->*B*->*C*");
+                mi->Check(sr == 5);
             }
             if (_caps->SupportsPixelPortBrightness())
             {
@@ -566,26 +572,34 @@ public:
             GetModel()->SetSmartRemote(0);
             return true;
         }
-        if (id == ControllerModelDialog::CONTROLLER_SMARTREMOTE_A) {
+        else if (id == ControllerModelDialog::CONTROLLER_SMARTREMOTE_A) {
             GetModel()->SetSmartRemote(1);
             return true;
         }
-        if (id == ControllerModelDialog::CONTROLLER_SMARTREMOTE_B) {
+        else if (id == ControllerModelDialog::CONTROLLER_SMARTREMOTE_B) {
             GetModel()->SetSmartRemote(2);
             return true;
         }
-        if (id == ControllerModelDialog::CONTROLLER_SMARTREMOTE_C) {
+        else if (id == ControllerModelDialog::CONTROLLER_SMARTREMOTE_C) {
             GetModel()->SetSmartRemote(3);
             return true;
         }
-        if (id == ControllerModelDialog::CONTROLLER_DMXCHANNEL) {
+        else if (id == ControllerModelDialog::CONTROLLER_SMARTREMOTE_ABC) {
+            GetModel()->SetSmartRemote(4);
+            return true;
+        }
+        else if (id == ControllerModelDialog::CONTROLLER_SMARTREMOTE_BC) {
+            GetModel()->SetSmartRemote(5);
+            return true;
+        }
+        else if (id == ControllerModelDialog::CONTROLLER_DMXCHANNEL) {
             wxNumberEntryDialog dlg(parent, "Enter the DMX channel", "Channel", "DMX Channel", GetModel()->GetControllerDMXChannel(), 1, 512);
             if (dlg.ShowModal() == wxID_OK) {
                 GetModel()->SetControllerDMXChannel(dlg.GetValue());
             }
             return true;
         }
-        if (id == ControllerModelDialog::CONTROLLER_BRIGHTNESS) {
+        else if (id == ControllerModelDialog::CONTROLLER_BRIGHTNESS) {
             wxNumberEntryDialog dlg(parent, "Enter the Model Brightness", "Brightness", "Model Brightness", GetModel()->GetControllerBrightness(), 0, 100);
             if (dlg.ShowModal() == wxID_OK) {
                 GetModel()->SetControllerBrightness(dlg.GetValue());
@@ -1534,6 +1548,12 @@ std::string ControllerModelDialog::GetModelTooltip(ModelCMObject* mob)
         break;
     case 3:
         sr = "C";
+        break;
+    case 4:
+        sr = "A->B->C";
+        break;
+    case 5:
+        sr = "B->C";
         break;
     default:
         sr = "error";

@@ -60,7 +60,7 @@ UDControllerPortModel::UDControllerPortModel(Model* m, Controller* controller, O
     _model = m;
     _string = string;
     _protocol = _model->GetControllerProtocol();
-    _smartRemote = _model->GetSmartRemote();
+    _smartRemote = _model->GetSmartRemoteForString(string+1);
 
     if (string == -1) {
         _startChannel = _model->GetNumberFromChannelString(_model->ModelStartChannel);
@@ -833,27 +833,26 @@ void UDController::Rescan(bool eliminateOverlaps) {
                 }
                 else {
                     // model uses channels in this universe
-                    int port = it.second->GetControllerPort();
                     if (it.second->IsPixelProtocol()) {
                         if (it.second->GetNumPhysicalStrings() == 1) {
+                            int port = it.second->GetControllerPort(1);
                             GetControllerPixelPort(port)->AddModel(it.second, _controller, _outputManager, -1, eliminateOverlaps);
                         }
                         else {
                             for (int i = 0; i < it.second->GetNumPhysicalStrings(); i++) {
+                                int port = it.second->GetControllerPort(i+1);
                                 int32_t startChannel = it.second->GetStringStartChan(i) + 1;
                                 int32_t sc;
                                 Controller* c = _outputManager->GetController(startChannel, sc);
                                 if (c != nullptr &&
                                     _controller->GetColumn2Label() == c->GetColumn2Label()) {
-                                    GetControllerPixelPort(port + i)->AddModel(it.second, _controller, _outputManager, i, eliminateOverlaps);
-                                }
-                                else {
-                                    port = -1 * i;
+                                    GetControllerPixelPort(port)->AddModel(it.second, _controller, _outputManager, i, eliminateOverlaps);
                                 }
                             }
                         }
                     }
                     else {
+                        int port = it.second->GetControllerPort(1);
                         GetControllerSerialPort(port)->AddModel(it.second, _controller, _outputManager, -1, eliminateOverlaps);
                     }
                 }

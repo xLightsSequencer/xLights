@@ -47,6 +47,8 @@
 
 #include <log4cpp/Category.hh>
 
+static const int PORTS_PER_SMARTREMOTE = 4;
+
 static wxArrayString NODE_TYPES;
 static wxArrayString RGBW_HANDLING;
 static wxArrayString PIXEL_STYLES;
@@ -773,6 +775,8 @@ static inline void setupProtocolList() {
         SMART_REMOTES.push_back("*A*->b->c");
         SMART_REMOTES.push_back("a->*B*->c");
         SMART_REMOTES.push_back("a->b->*C*");
+        SMART_REMOTES.push_back("*A*->*B*->*C*");
+        SMART_REMOTES.push_back("a->*B*->*C*");
     }
     if (CONTROLLER_DIRECTION.IsEmpty()) {
         CONTROLLER_DIRECTION.push_back("Forward");
@@ -5440,6 +5444,37 @@ int Model::GetSmartRemote() const
     return wxAtoi(s);
 }
 
+// string is one based
+int Model::GetSmartRemoteForString(int string) const
+{
+    int sr = GetSmartRemote();
+
+    if (sr < 4) return sr;
+
+    wxString s = GetControllerConnection()->GetAttribute("Port", "0");
+    int port = wxAtoi(s);
+
+    int perSmartRemote = 3;
+    if (sr == 5) perSmartRemote = 2;
+    int firstfirstmax = PORTS_PER_SMARTREMOTE - ((port - 1) % PORTS_PER_SMARTREMOTE);
+    int firstmax = (3 * PORTS_PER_SMARTREMOTE) - ((port - 1) % PORTS_PER_SMARTREMOTE);
+    if (sr == 5) firstmax = (2 * PORTS_PER_SMARTREMOTE) - ((port - 1) % PORTS_PER_SMARTREMOTE);
+    int othermax = 3 * PORTS_PER_SMARTREMOTE;
+    if (sr == 5) othermax = 2 * PORTS_PER_SMARTREMOTE;
+
+    if (string <= firstfirstmax) {
+        sr = ((string - 1) / PORTS_PER_SMARTREMOTE) % perSmartRemote + 4 - perSmartRemote;
+    }
+    else if (string <= firstmax) {
+        sr = 1 + ((string - firstfirstmax - 1) / PORTS_PER_SMARTREMOTE) % perSmartRemote + 4 - perSmartRemote;
+    }
+    else {
+        sr = ((string  - firstmax - 1) / PORTS_PER_SMARTREMOTE) % perSmartRemote + 4 - perSmartRemote;
+    }
+
+    return sr;
+}
+
 void Model::SetControllerDMXChannel(int ch)
 {
     if (GetControllerDMXChannel() != ch)
@@ -5823,7 +5858,27 @@ int Model::GetControllerPort(int string) const
     wxString s = GetControllerConnection()->GetAttribute("Port", "0");
     int port = wxAtoi(s);
     if (port > 0) {
-        port += string - 1;
+        int sr = GetSmartRemote();
+        if (sr < 4) {
+            port += string - 1;
+        }
+        else {
+            int firstfirstmax = PORTS_PER_SMARTREMOTE - ((port - 1) % PORTS_PER_SMARTREMOTE);
+            int firstmax = (3* PORTS_PER_SMARTREMOTE) - ((port-1) % PORTS_PER_SMARTREMOTE);
+            if (sr == 5) firstmax = (2* PORTS_PER_SMARTREMOTE) - ((port-1) % PORTS_PER_SMARTREMOTE);
+            int othermax = 3 * PORTS_PER_SMARTREMOTE;
+            if (sr == 5) othermax = 2 * PORTS_PER_SMARTREMOTE;
+
+            if (string <= firstfirstmax)                 {
+                port += (string - 1);
+            }
+            else if (string <= firstmax) {
+                port += (string - 1 - firstfirstmax) % PORTS_PER_SMARTREMOTE - ((port - 1) % PORTS_PER_SMARTREMOTE);
+            }
+            else {
+                port += PORTS_PER_SMARTREMOTE + (string - firstmax - 1) % PORTS_PER_SMARTREMOTE + ((string - firstmax - 1) / othermax) * PORTS_PER_SMARTREMOTE - ((port - 1) % PORTS_PER_SMARTREMOTE);
+            }
+        }
     }
     return port;
 }

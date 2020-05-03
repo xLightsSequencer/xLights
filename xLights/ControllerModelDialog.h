@@ -86,6 +86,8 @@ class ControllerModelDialog: public wxDialog
 		static const long CONTROLLER_SMARTREMOTE_A;
 		static const long CONTROLLER_SMARTREMOTE_B;
 		static const long CONTROLLER_SMARTREMOTE_C;
+		static const long CONTROLLER_SMARTREMOTE_ABC;
+		static const long CONTROLLER_SMARTREMOTE_BC;
 		static const long CONTROLLER_DMXCHANNEL;
 		static const long CONTROLLER_PROTOCOL;
 		static const long CONTROLLER_BRIGHTNESS;
