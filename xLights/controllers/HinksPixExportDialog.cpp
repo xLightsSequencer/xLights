@@ -113,7 +113,7 @@ void HSEQFile::writeHeader() {
     write4ByteUInt(&header[24], m_seqChannelCount);//total channel count of all controllers
     write2ByteUInt(&header[68], _hinx->GetChannels());//total channel count of master controllers
 
-    strcpy((char*)&header[28], (&_hinx->GetIP())->c_str());//IP of master controllers
+    strcpy((char*)&header[28], _hinx->GetIP().c_str());//IP of master controllers
 
     if (_remote1)
     {

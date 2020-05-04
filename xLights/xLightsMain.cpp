@@ -4159,7 +4159,7 @@ void xLightsFrame::ExportModels(wxString filename)
             }
         }
 
-        for (int i = 0; i < (maxchannel - minchannel + 1); i++)
+        for (long i = 0; i < (long)(maxchannel - minchannel + 1); i++)
         {
             if (chused[i] > 0)
             {
