@@ -27,11 +27,14 @@
 #include "../include/spxml-0.5/spxmlparser.hpp"
 #include "../include/spxml-0.5/spxmlevent.hpp"
 
+static const std::string CHECK_COL = "ID_UPLOAD_";
+static const std::string MODE_COL = "ID_MODE_";
+static const std::string REMOTE1_COL = "ID_REMOTE1_";
+static const std::string REMOTE2_COL = "ID_REMOTE2_";
+static const std::string DISK_COL = "ID_DISK_";
 
 //(*IdInit(HinksPixExportDialog)
-const long HinksPixExportDialog::ID_STATICTEXT4 = wxNewId();
-const long HinksPixExportDialog::ID_CHECKLISTBOX_CONTROLLERS = wxNewId();
-const long HinksPixExportDialog::ID_PANEL2 = wxNewId();
+const long HinksPixExportDialog::ID_SCROLLEDWINDOW1 = wxNewId();
 const long HinksPixExportDialog::ID_STATICTEXT1 = wxNewId();
 const long HinksPixExportDialog::ID_CHOICE_FILTER = wxNewId();
 const long HinksPixExportDialog::ID_STATICTEXT2 = wxNewId();
@@ -41,8 +44,6 @@ const long HinksPixExportDialog::ID_BITMAPBUTTON_MOVE_DOWN = wxNewId();
 const long HinksPixExportDialog::ID_LISTVIEW_Sequences = wxNewId();
 const long HinksPixExportDialog::ID_PANEL1 = wxNewId();
 const long HinksPixExportDialog::ID_SPLITTERWINDOW1 = wxNewId();
-const long HinksPixExportDialog::ID_STATICTEXT3 = wxNewId();
-const long HinksPixExportDialog::ID_CHOICE_SD_CARDS = wxNewId();
 const long HinksPixExportDialog::ID_BUTTON_REFRESH = wxNewId();
 const long HinksPixExportDialog::ID_STATICTEXT5 = wxNewId();
 const long HinksPixExportDialog::ID_SPINCTRL_START_HOUR = wxNewId();
@@ -75,9 +76,17 @@ inline void write4ByteUInt(uint8_t* data, uint32_t v) {
     data[3] = (uint8_t)((v >> 24) & 0xFF);
 }
 
+inline std::array<int, 4> getIPBytes(const wxString& ip)
+{
+    wxArrayString const ips = wxSplit(ip, '.');
+    if (ips.size() != 4)
+        return { 0,0,0,0 };
+    return { wxAtoi(ips[0]),wxAtoi(ips[1]),wxAtoi(ips[2]),wxAtoi(ips[3]) };
+}
+
 void HSEQFile::writeHeader() {
     //this format was copied from Joe's HSA 2.0 JavaScript sourcecode
-    //320 bytes of HSEQ header data
+    //320 bytes of HSEQ header data 
     //16 bytes of garbage???, so I wrote part of old FESQ header, probably doesn't matter
     static int fixedHeaderLength = 336;
     // data offset
@@ -90,15 +99,56 @@ void HSEQFile::writeHeader() {
     header[3] = 'Q';
     header[4] = 3; //format version
 
-    //header[9] = num_of_Addition_Controllers; //# of Slave Controllers
+    int num_of_Addition_Controllers = 0;
+    if (_remote1)
+        num_of_Addition_Controllers++;
+    if (_remote2)
+        num_of_Addition_Controllers++;   
+
+    header[9] = num_of_Addition_Controllers; //# of Slave Controllers
 
     write2ByteUInt(&header[16], ((44100 * m_seqStepTime) / 1000));//framerate
     write4ByteUInt(&header[20], m_seqNumFrames);//number of frames
 
     write4ByteUInt(&header[24], m_seqChannelCount);//total channel count of all controllers
-    write2ByteUInt(&header[68], m_seqChannelCount);//total channel count of master controllers
+    write2ByteUInt(&header[68], _hinx->GetChannels());//total channel count of master controllers
 
-    strcpy((char*)&header[28], (&_ipAdress)->c_str());//IP of master controllers
+    strcpy((char*)&header[28], (&_hinx->GetIP())->c_str());//IP of master controllers
+
+    if (_remote1)
+    {
+        write2ByteUInt(&header[76], _remote1->GetChannels());
+
+        auto const remote1IP = getIPBytes(_remote1->GetIP());
+        header[72] = remote1IP[0];
+        header[73] = remote1IP[1];
+        header[74] = remote1IP[2];
+        header[75] = remote1IP[3];
+        int j = 0;
+        for (auto const output : _remote1->GetOutputs())
+        {
+            write2ByteUInt(&header[80 + (j * 2)], output->GetUniverse());
+            write2ByteUInt(&header[148 + (j * 2)], output->GetChannels());
+            j++;
+        }
+    }
+    if (_remote2)
+    {
+        write2ByteUInt(&header[220], _remote2->GetChannels());
+
+        auto const remote2IP = getIPBytes(_remote2->GetIP());
+        header[216] = remote2IP[0];
+        header[217] = remote2IP[1];
+        header[218] = remote2IP[2];
+        header[219] = remote2IP[3];
+        int j = 0;
+        for (auto const output : _remote2->GetOutputs())
+        {
+            write2ByteUInt(&header[224 + (j * 2)], output->GetUniverse());
+            write2ByteUInt(&header[258 + (j * 2)], output->GetChannels());
+            j++;
+        }
+    }
 
     header[320] = 'P';
     header[321] = 'S';
@@ -119,8 +169,6 @@ void HSEQFile::writeHeader() {
 
 HinksPixExportDialog::HinksPixExportDialog(wxWindow* parent, OutputManager* outputManager, wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
-    _outputManager = outputManager;
-
 	//(*Initialize(HinksPixExportDialog)
 	wxBoxSizer* BoxSizer1;
 	wxBoxSizer* BoxSizer2;
@@ -134,19 +182,14 @@ HinksPixExportDialog::HinksPixExportDialog(wxWindow* parent, OutputManager* outp
 	FlexGridSizer1->AddGrowableCol(0);
 	FlexGridSizer1->AddGrowableRow(0);
 	SplitterWindow1 = new wxSplitterWindow(this, ID_SPLITTERWINDOW1, wxDefaultPosition, wxDefaultSize, wxSP_3D|wxSP_3DSASH, _T("ID_SPLITTERWINDOW1"));
-	SplitterWindow1->SetMinimumPaneSize(10);
+	SplitterWindow1->SetMinimumPaneSize(100);
 	SplitterWindow1->SetSashGravity(0.5);
-	Panel2 = new wxPanel(SplitterWindow1, ID_PANEL2, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL2"));
-	FlexGridSizer5 = new wxFlexGridSizer(0, 1, 0, 0);
-	FlexGridSizer5->AddGrowableCol(0);
-	FlexGridSizer5->AddGrowableRow(1);
-	StaticText4 = new wxStaticText(Panel2, ID_STATICTEXT4, _("HinksPix Controllers:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
-	FlexGridSizer5->Add(StaticText4, 0, wxALL|wxFIXED_MINSIZE, 5);
-	CheckListBoxControllers = new wxCheckListBox(Panel2, ID_CHECKLISTBOX_CONTROLLERS, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHECKLISTBOX_CONTROLLERS"));
-	FlexGridSizer5->Add(CheckListBoxControllers, 1, wxALL|wxEXPAND, 5);
-	Panel2->SetSizer(FlexGridSizer5);
-	FlexGridSizer5->Fit(Panel2);
-	FlexGridSizer5->SetSizeHints(Panel2);
+	HinkControllerList = new wxScrolledWindow(SplitterWindow1, ID_SCROLLEDWINDOW1, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_SCROLLEDWINDOW1"));
+	HinkControllerList->SetMinSize(wxDLG_UNIT(SplitterWindow1,wxSize(-1,150)));
+	HinkControllerSizer = new wxFlexGridSizer(0, 8, 0, 0);
+	HinkControllerList->SetSizer(HinkControllerSizer);
+	HinkControllerSizer->Fit(HinkControllerList);
+	HinkControllerSizer->SetSizeHints(HinkControllerList);
 	Panel1 = new wxPanel(SplitterWindow1, ID_PANEL1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL1"));
 	FlexGridSizer2 = new wxFlexGridSizer(2, 2, 0, 0);
 	FlexGridSizer2->AddGrowableCol(1);
@@ -175,16 +218,10 @@ HinksPixExportDialog::HinksPixExportDialog(wxWindow* parent, OutputManager* outp
 	Panel1->SetSizer(FlexGridSizer2);
 	FlexGridSizer2->Fit(Panel1);
 	FlexGridSizer2->SetSizeHints(Panel1);
-	SplitterWindow1->SplitHorizontally(Panel2, Panel1);
+	SplitterWindow1->SplitHorizontally(HinkControllerList, Panel1);
 	FlexGridSizer1->Add(SplitterWindow1, 1, wxALL|wxEXPAND, 5);
 	BoxSizer1 = new wxBoxSizer(wxHORIZONTAL);
-	StaticText3 = new wxStaticText(this, ID_STATICTEXT3, _("SD Card:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
-	BoxSizer1->Add(StaticText3, 0, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	ChoiceSDCards = new wxChoice(this, ID_CHOICE_SD_CARDS, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_SD_CARDS"));
-	ChoiceSDCards->SetMinSize(wxSize(40,-1));
-	BoxSizer1->Add(ChoiceSDCards, 0, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	AddRefreshButton = new wxButton(this, ID_BUTTON_REFRESH, _("Refresh"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_REFRESH"));
-	AddRefreshButton->SetMinSize(wxSize(50,-1));
+	AddRefreshButton = new wxButton(this, ID_BUTTON_REFRESH, _("Refresh USB Drives"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_REFRESH"));
 	BoxSizer1->Add(AddRefreshButton, 0, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText5 = new wxStaticText(this, ID_STATICTEXT5, _("Start Time:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT5"));
 	BoxSizer1->Add(StaticText5, 0, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -206,7 +243,7 @@ HinksPixExportDialog::HinksPixExportDialog(wxWindow* parent, OutputManager* outp
 	SpinCtrlEndMin->SetValue(_T("59"));
 	SpinCtrlEndMin->SetMinSize(wxSize(50,-1));
 	BoxSizer1->Add(SpinCtrlEndMin, 0, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	BoxSizer1->Add(0,0,0, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	BoxSizer1->Add(-1,-1,0, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Button_Export = new wxButton(this, ID_BUTTON_EXPORT, _("Export to SD Card"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_EXPORT"));
 	BoxSizer1->Add(Button_Export, 0, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	cancelButton = new wxButton(this, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("wxID_CANCEL"));
@@ -226,18 +263,24 @@ HinksPixExportDialog::HinksPixExportDialog(wxWindow* parent, OutputManager* outp
 	Connect(wxID_ANY,wxEVT_CLOSE_WINDOW,(wxObjectEventFunction)&HinksPixExportDialog::OnClose);
 	//*)
 
+    AddInstanceHeader("Create");
+    AddInstanceHeader("IP Address");
+    AddInstanceHeader("Description");
+    AddInstanceHeader("Model");
+    AddInstanceHeader("Mode");
+    AddInstanceHeader("Drive");
+    AddInstanceHeader("Remote1");
+    AddInstanceHeader("Remote2");
+    
     CheckListBox_Sequences->EnableCheckBoxes();
 
     CreateDriveList();
 
     wxConfigBase* config = wxConfigBase::Get();
 
-    wxString controllers = "";
-    if (config != nullptr) {
-        config->Read("HinksPixExportSelectedControllers", &controllers);
-    }
+    PopulateControllerList(outputManager);
+    ApplySavedSettings();
 
-    PopulateControllerList(controllers);
     GetFolderList(xLightsFrame::CurrentDir);
 
     if (config != nullptr) {
@@ -260,11 +303,6 @@ HinksPixExportDialog::HinksPixExportDialog(wxWindow* parent, OutputManager* outp
             ChoiceFolder->SetSelection(0);
         }
 
-        int const idriveSelect = ChoiceSDCards->FindString(driveSelect);
-        if (idriveSelect != wxNOT_FOUND)
-        {
-            ChoiceSDCards->SetSelection(idriveSelect);
-        }
         SpinCtrlStartHour->SetValue(config->ReadLong("HinksPixExportStartHour", 0));
         SpinCtrlStartMin->SetValue(config->ReadLong("HinksPixExportStartMin", 0));
         SpinCtrlEndHour->SetValue(config->ReadLong("HinksPixExportEndHour", 23));
@@ -279,25 +317,104 @@ HinksPixExportDialog::HinksPixExportDialog(wxWindow* parent, OutputManager* outp
     SplitterWindow1->SetSashPosition(h);
 }
 
-void HinksPixExportDialog::PopulateControllerList(wxString const& savedIPs)
+HinksPixExportDialog::~HinksPixExportDialog()
 {
-    auto const controllers = _outputManager->GetControllers();
+    //(*Destroy(HinksPixExportDialog)
+    //*)
+}
+
+void HinksPixExportDialog::PopulateControllerList(OutputManager* outputManager)
+{
+    HinkControllerList->Freeze();
+    //remove all the children from the first upload checkbox on
+    wxWindow* w = HinkControllerList->FindWindow(CHECK_COL + "0");
+    while (w) {
+        wxWindow* tmp = w->GetNextSibling();
+        w->Destroy();
+        tmp = w;
+    }
+
+    auto const controllers = outputManager->GetControllers();
+    wxArrayString otherControllers;
     for (const auto& it : controllers)
     {
         auto eth = dynamic_cast<ControllerEthernet*>(it);
-        if ( eth == nullptr )
-            continue;
-
-        if (eth->GetIP() != "MULTICAST" && eth->GetProtocol() != OUTPUT_ZCPP && eth->GetVendor() == "HinksPix" && eth->IsManaged())
+        if (eth->GetIP() != "MULTICAST" && eth->GetProtocol() != OUTPUT_ZCPP && eth->IsManaged())
         {
-            _hixControllers.push_back(eth);
-            CheckListBoxControllers->AppendString(eth->GetIP() + " " + it->GetName() + " " + it->GetModel() + " " + it->GetDescription());
-            if (savedIPs.Contains(eth->GetIP()))
+            if (eth->GetVendor() == "HinksPix")
             {
-                CheckListBoxControllers->Check(CheckListBoxControllers->GetCount() - 1);
+                _hixControllers.push_back(eth);
+            }
+            else if(eth->GetProtocol() == OUTPUT_E131)
+            {
+                _otherControllers.push_back(eth);
+                otherControllers.push_back(eth->GetName());
             }
         }
     }
+    int row = 0;
+    for (const auto& it : _hixControllers)
+    {
+        std::string rowStr = std::to_string(row);
+        wxCheckBox* CheckBox1 = new wxCheckBox(HinkControllerList, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, CHECK_COL + rowStr);
+        HinkControllerSizer->Add(CheckBox1, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 1);
+        std::string l = it->GetIP();
+        wxStaticText* label = new wxStaticText(HinkControllerList, wxID_ANY, l, wxDefaultPosition, wxDefaultSize, 0, _T("ID_IPADDRESS_" + rowStr));
+        HinkControllerSizer->Add(label, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 1);
+        label = new wxStaticText(HinkControllerList, wxID_ANY, it->GetName(), wxDefaultPosition, wxDefaultSize, 0, _T("ID_DESCRIPTION_" + rowStr));
+        HinkControllerSizer->Add(label, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 1);
+        label = new wxStaticText(HinkControllerList, wxID_ANY, it->GetModel(), wxDefaultPosition, wxDefaultSize, 0, _T("ID_MODEL_" + rowStr));
+        HinkControllerSizer->Add(label, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 1);
+  
+        wxChoice* Choice1 = new wxChoice(HinkControllerList, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, MODE_COL + rowStr);
+
+        Choice1->Append(_("Master"));
+        Choice1->Append(_("Remote"));
+        Choice1->Append(_("Don't Set"));
+        if(it == _hixControllers.front())
+            Choice1->SetSelection(0);
+        else
+            Choice1->SetSelection(1);
+        HinkControllerSizer->Add(Choice1, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 0);
+
+        Choice1 = new wxChoice(HinkControllerList, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, DISK_COL + rowStr);
+        Choice1->Append(_drives);
+
+        HinkControllerSizer->Add(Choice1, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 0);
+
+        wxChoice* Choice2 = new wxChoice(HinkControllerList, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, REMOTE1_COL + rowStr);
+        Choice2->Append(_(""));
+        wxChoice* Choice3 = new wxChoice(HinkControllerList, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, REMOTE2_COL + rowStr);
+        Choice3->Append(_(""));
+        for (wxString const& oth : otherControllers)
+        {
+            Choice2->Append(oth);
+            Choice3->Append(oth);
+        }
+        Choice2->SetSelection(0);
+        Choice3->SetSelection(0);
+
+        HinkControllerSizer->Add(Choice2, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 0);
+        HinkControllerSizer->Add(Choice3, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 0);
+        if (otherControllers.size() == 0)
+        {
+            Choice2->Enable(false);
+            Choice3->Enable(false);
+        }
+        else if (otherControllers.size() == 1) 
+        {
+            Choice3->Enable(false);
+        }
+ 
+        row++;
+    }
+
+    Connect(wxID_ANY, wxEVT_CHOICE, (wxObjectEventFunction)&HinksPixExportDialog::OnChoiceSelected);    
+
+    HinkControllerList->FitInside();
+    HinkControllerList->SetScrollRate(10, 10);
+    HinkControllerList->ShowScrollbars(wxSHOW_SB_ALWAYS, wxSHOW_SB_ALWAYS);
+    HinkControllerList->Thaw();
 }
 
 void HinksPixExportDialog::OnPopup(wxCommandEvent &event)
@@ -328,12 +445,6 @@ void HinksPixExportDialog::OnPopup(wxCommandEvent &event)
             }
         }
     }
-}
-
-HinksPixExportDialog::~HinksPixExportDialog()
-{
-	//(*Destroy(HinksPixExportDialog)
-	//*)
 }
 
 void HinksPixExportDialog::LoadSequencesFromFolder(wxString dir) const
@@ -519,12 +630,12 @@ void HinksPixExportDialog::LoadSequences()
 
 void HinksPixExportDialog::CreateDriveList()
 {
-    ChoiceSDCards->Clear();
+    _drives.Clear();
 
 #ifdef __WXMSW__
     wxArrayString ud = wxFSVolume::GetVolumes(wxFS_VOL_REMOVABLE | wxFS_VOL_MOUNTED, 0);
     for (const auto &a : ud) {
-        ChoiceSDCards->AppendString(a);
+        _drives.push_back(a);
     }
 #elif defined(__WXOSX__)
     wxDir d;
@@ -533,7 +644,7 @@ void HinksPixExportDialog::CreateDriveList()
     bool fcont = d.GetFirst(&dir, wxEmptyString, wxDIR_DIRS);
     while (fcont)
     {
-        ChoiceSDCards->AppendString("/Volumes/" + dir + "/");
+        _drives.push_back("/Volumes/" + dir + "/");
         fcont = d.GetNext(&dir);
     }
 #else
@@ -547,9 +658,9 @@ void HinksPixExportDialog::CreateDriveList()
         d2.Open("/media/" + dir);
         wxString dir2;
         bool fcont2 = d2.GetFirst(&dir2, wxEmptyString, wxDIR_DIRS);
-        while (fcont2)
+        while (fcont2) 
         {
-            ChoiceSDCards->AppendString("/media/" + dir + "/" + dir2);
+            _drives.push_back("/media/" + dir + "/" + dir2);
             fcont2 = d2.GetNext(&dir2);
         }
         fcont = d.GetNext(&dir);
@@ -570,27 +681,71 @@ void HinksPixExportDialog::SaveSettings()
         }
     }
 
-    wxString selectedController = "";
-    for (size_t i = 0; i < CheckListBoxControllers->GetCount(); i++) {
-        if (CheckListBoxControllers->IsChecked(i)) {
-            if (selectedController != "") {
-                selectedController += ",";
-            }
-            selectedController += _hixControllers[i]->GetIP();
-        }
-    }
-
     wxConfigBase* config = wxConfigBase::Get();
     config->Write("HinksPixExportSelectedSequences", selectedFSEQ);
-    config->Write("HinksPixExportSelectedControllers", selectedController);
     config->Write("HinksPixExportFilterSelection", ChoiceFilter->GetSelection());
     config->Write("HinksPixExportFolderSelection", ChoiceFolder->GetString(ChoiceFolder->GetSelection()));
-    config->Write("HinksPixExportDriveSelection", ChoiceSDCards->GetString(ChoiceSDCards->GetSelection()));
     config->Write("HinksPixExportStartHour", SpinCtrlStartHour->GetValue());
     config->Write("HinksPixExportStartMin", SpinCtrlStartMin->GetValue());
     config->Write("HinksPixExportEndHour", SpinCtrlEndHour->GetValue());
     config->Write("HinksPixExportEndMin", SpinCtrlEndMin->GetValue());
+
+    int row = 0;
+    for (const auto& inst : _hixControllers) {
+        std::string rowStr = std::to_string(row);
+        wxString ipaddress = inst->GetIP();
+
+        ipaddress.Replace(".", "_");
+        config->Write("HinksPixExportExport_" + ipaddress, GetCheckValue(CHECK_COL + rowStr));
+        config->Write("HinksPixExportMode_" + ipaddress, GetChoiceValue(MODE_COL + rowStr));
+        config->Write("HinksPixExportRemote1_" + ipaddress, GetChoiceValue(REMOTE1_COL + rowStr));
+        config->Write("HinksPixExportRemote2_" + ipaddress, GetChoiceValue(REMOTE2_COL + rowStr));
+        config->Write("HinksPixExportDisk_" + ipaddress, GetChoiceValue(DISK_COL + rowStr));
+        row++;
+    }
+
     config->Flush();
+}
+
+void HinksPixExportDialog::ApplySavedSettings()
+{
+    /*
+    static const std::string CHECK_COL = "ID_UPLOAD_";
+    static const std::string MODE_COL = "ID_MODE_";
+    static const std::string REMOTE1_COL = "ID_REMOTE1_";
+    static const std::string REMOTE2_COL = "ID_REMOTE2_";
+    static const std::string DISK_COL = "ID_DISK_";
+     */
+
+    wxConfigBase* config = wxConfigBase::Get();
+    if (config != nullptr) { 
+     
+        int row = 0;
+        for (const auto& hix : _hixControllers) {
+            std::string rowStr = std::to_string(row);
+            wxString ipAddress = hix->GetIP();
+            ipAddress.Replace(".", "_");
+
+            bool bval;
+            wxString sval;
+            if (config->Read("HinksPixExportExport_" + ipAddress, &bval)) {
+                SetCheckValue(CHECK_COL + rowStr, bval);
+            }
+            if (config->Read("HinksPixExportMode_" + ipAddress, &sval)) {
+                SetChoiceValue(MODE_COL + rowStr, sval);
+            }
+            if (config->Read("HinksPixExportRemote1_" + ipAddress, &sval)) {
+                SetChoiceValue(REMOTE1_COL + rowStr, sval);
+            }
+            if (config->Read("HinksPixExportRemote2_" + ipAddress, &sval)) {
+                SetChoiceValue(REMOTE2_COL + rowStr, sval);
+            }
+            if (config->Read("HinksPixExportDisk_" + ipAddress, &sval)) {
+                SetChoiceValue(DISK_COL + rowStr, sval);
+            }
+            row++;
+        }
+    }
 }
 
 void HinksPixExportDialog::OnClose(wxCloseEvent& event)
@@ -651,54 +806,84 @@ void HinksPixExportDialog::GetFolderList(const wxString& folder)
 void HinksPixExportDialog::OnAddRefreshButtonClick(wxCommandEvent& event)
 {
     CreateDriveList();
+    int row = 0;
+    for (int i = 0; i< _hixControllers.size(); i++) {
+        std::string rowStr = std::to_string(i);
+        SetDropDownItems(DISK_COL + rowStr, _drives);
+    }    
 }
 
 void HinksPixExportDialog::OnButton_ExportClick(wxCommandEvent& event)
 {
-    wxString const drive = ChoiceSDCards->GetString( ChoiceSDCards->GetSelection() );
-
-    if ( drive.IsEmpty() )
-    {
-        DisplayError( "No USB Drive Selected." );
-        return;
-    }
-
-    wxArrayInt ch;
-    CheckListBoxControllers->GetCheckedItems( ch );
-    if ( ch.IsEmpty() )
-    {
-        EndDialog( wxID_CLOSE );
-        return;
-    }
-
     wxProgressDialog prgs("Generating HinksPix Files", "Generating HinksPix Files",
-        CheckListBoxControllers->GetCount() * (CheckListBox_Sequences->GetItemCount()*2) + (CheckListBoxControllers->GetCount()*2) +1,
+        _hixControllers.size() * (CheckListBox_Sequences->GetItemCount()*2) + (_hixControllers.size() * 2) +1,
         this, wxPD_CAN_ABORT | wxPD_APP_MODAL | wxPD_AUTO_HIDE);
     prgs.Show();
+
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     bool error = false;
     wxString errorMsg;
     int count = 0;
-
-    for (auto const& index :ch)
+    int row = 0;
+    for (auto hix : _hixControllers) 
     {
-        wxString const ip = _hixControllers[index]->GetIP();
-        prgs.Update(++count, "Generating HinksPix Files for " + ip);
-        wxString controllerDrive = drive;
-        if (ch.Count() > 1)
+        std::string const rowStr = std::to_string(row);
+        ++row;
+        bool upload = GetCheckValue(CHECK_COL + rowStr);
+        if (!upload)
         {
-            controllerDrive = drive + ip + wxFileName::GetPathSeparator();
-            if (!wxDir::Exists(controllerDrive))
-                wxMkdir(controllerDrive);
+            ++count;
+            continue;
         }
 
-        int startChan = INT32_MAX;
-        int endChan = 0;
-        auto const outputs = _outputManager->GetAllOutputs(ip, "");
-        for (auto it = outputs.begin(); it != outputs.end(); ++it)
+        wxString const ip = hix->GetIP();
+
+        prgs.Update(++count, wxString::Format("Generating HinksPix Files for '%s'" , hix->GetName()));
+
+        wxString remoteName1 = GetChoiceValue(REMOTE1_COL + rowStr);
+        wxString remoteName2 = GetChoiceValue(REMOTE2_COL + rowStr);
+
+        if (!remoteName1.IsEmpty() && remoteName1 == remoteName2)
         {
-            if ((*it)->GetStartChannel() < startChan) startChan = (*it)->GetStartChannel();
-            if ((*it)->GetEndChannel() > endChan) endChan = (*it)->GetEndChannel();
+            error = true;
+            errorMsg = wxString::Format("Remote 1 and 2 cannot not be the same Controller: '%s'", remoteName1);
+            continue;
+        }  
+
+        auto remote1 = getRemoteController(remoteName1);
+        auto remote2 = getRemoteController(remoteName2);
+
+        if (!remote1 && remote2)
+        {
+            std::swap(remote1, remote2);
+        }
+
+        if (remote1 && remote2)
+        {
+            if (remote2->GetOutputCount() > remote1->GetOutputCount())
+            {
+                std::swap(remote1, remote2);
+            }
+        }
+
+        if (remote1 || remote2)
+        {
+            if (!CheckRemoteSizes(hix, remote1, remote2))
+            {
+                error = true;
+                errorMsg = wxString::Format("Too Many Remote Universes for '%s'", hix->GetName());
+                continue;
+            }
+        } 
+
+        wxString const drive = GetChoiceValue(DISK_COL + rowStr);
+
+        if (drive.IsEmpty())
+        {
+            error = true; 
+            errorMsg = wxString::Format("No USB Drive Set for '%s'", hix->GetName());
+            continue;
         }
 
         std::vector<std::tuple<wxString, wxString>> songs;
@@ -714,7 +899,7 @@ void HinksPixExportDialog::OnButton_ExportClick(wxCommandEvent& event)
                 wxString const shortHseqName = shortName + ".hseq";
                 prgs.Update(++count, "Generating HSEQ File " + shortHseqName);
 
-                bool worked = Create_HinksPix_HSEQ_File(fseq, controllerDrive + wxFileName::GetPathSeparator() + shortHseqName, ip, startChan, endChan, errorMsg);
+                bool worked = Create_HinksPix_HSEQ_File(fseq, drive + wxFileName::GetPathSeparator() + shortHseqName, hix, remote1, remote2, errorMsg);
 
                 wxString auName;
                 if (worked && !media.IsEmpty())
@@ -728,12 +913,10 @@ void HinksPixExportDialog::OnButton_ExportClick(wxCommandEvent& event)
 
                     if ( worked )
                     {
-                        worked &= Make_AU_From_ProcessedAudio( audioLoader.processedAudio(), controllerDrive + wxFileName::GetPathSeparator() + auName, errorMsg );
+                        worked &= Make_AU_From_ProcessedAudio( audioLoader.processedAudio(), drive + wxFileName::GetPathSeparator() + auName, errorMsg );
                     }
                     else
                     {
-                        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
                         AudioLoader::State loaderState = audioLoader.state();
 
                         AudioReaderDecoderInitState decoderInitState = AudioReaderDecoderInitState::NoInit;
@@ -757,8 +940,9 @@ void HinksPixExportDialog::OnButton_ExportClick(wxCommandEvent& event)
             }
         }
         prgs.Update(++count, "Generating Schedule File");
-        createPlayList(songs, controllerDrive);
-        createSchedule(controllerDrive);
+        createPlayList(songs, drive);
+        createSchedule(drive);
+        createModeFile(drive, GetChoiceValueIndex(MODE_COL + rowStr));
     }
 
     SaveSettings();
@@ -766,7 +950,8 @@ void HinksPixExportDialog::OnButton_ExportClick(wxCommandEvent& event)
     if(error)
         DisplayError("HinksPix File Generation Error\n" + errorMsg);
     else
-        EndDialog(wxID_CLOSE);
+        wxMessageBox("HinksPix File Generation Complete");
+      // EndDialog(wxID_CLOSE);
 }
 
 void HinksPixExportDialog::OnBitmapButtonMoveDownClick(wxCommandEvent& event)
@@ -791,6 +976,64 @@ void HinksPixExportDialog::OnBitmapButtonMoveUpClick(wxCommandEvent& event)
             moveSequenceItem(i-1, i);
         }
     }
+}
+
+void HinksPixExportDialog::OnChoiceSelected(wxCommandEvent& event)
+{
+    wxString const text = event.GetString();
+    if (text.IsEmpty())
+        return;
+
+    auto item = event.GetEventObject();
+    if (item) {
+        wxChoice* cb = dynamic_cast<wxChoice*>(item);
+        if (cb) {
+            auto name = cb->GetName();
+            if (name.Contains(REMOTE1_COL) || name.Contains(REMOTE2_COL))
+            {
+                int row = 0;
+                for (auto hix : _hixControllers)
+                {
+                    std::string const rowStr = std::to_string(row);
+                    ++row;
+                    wxString const remoteName1 = GetChoiceValue(REMOTE1_COL + rowStr);
+                    wxString const remoteName2 = GetChoiceValue(REMOTE2_COL + rowStr);
+                    if (name == REMOTE1_COL + rowStr || name == REMOTE2_COL + rowStr)
+                    {
+                        if (!CheckRemoteSizes(hix, getRemoteController(remoteName1), getRemoteController(remoteName2)))
+                        {
+                            cb->SetSelection(0);
+                            event.Skip();
+                            return;
+                        }
+                        if (name == REMOTE1_COL + rowStr && remoteName2 == text)
+                        {
+                            DisplayError(wxString::Format("Cannot Set Remote 1 and 2 to the same Controller '%s' ", text));
+                            cb->SetSelection(0);
+                            event.Skip();
+                            return;
+                        }
+                        if (name == REMOTE2_COL + rowStr && remoteName1 == text)
+                        {
+                            DisplayError(wxString::Format("Cannot Set Remote 1 and 2 to the same Controller '%s' ", text));
+                            cb->SetSelection(0);
+                            event.Skip();
+                            return;
+                        }
+                        continue;
+                    }
+
+                    if (text == remoteName1 || text == remoteName2)
+                    {
+                        DisplayError(wxString::Format("Cannot use the Same Remote accross multiple Controller '%s' ", text));
+                        cb->SetSelection(0);
+                        event.Skip();
+                        return;
+                    }
+                }
+            }            
+        }
+    }   
 }
 
 void HinksPixExportDialog::moveSequenceItem(int to, int from, bool select)
@@ -857,7 +1100,30 @@ void HinksPixExportDialog::createSchedule(wxString const& drive)
     }
 }
 
-bool HinksPixExportDialog::Create_HinksPix_HSEQ_File(wxString const& fseqFile, wxString const& shortHSEQName, wxString const ipAddress, int const startChan, int const endChan, wxString & errorMsg)
+void HinksPixExportDialog::createModeFile(wxString const& drive, int mode)
+{
+    //0=Master, 1=Slave
+    wxFile f;
+    wxString const filename = drive + "SD_StandAlone.sys";
+
+    if (mode == 2)//2=Skip, delete file that sets mode
+    {
+        wxRemoveFile(filename);
+        return;
+    }
+
+    f.Open(filename, wxFile::write);
+
+    if (f.IsOpened())
+    {
+        auto const line = wxString::Format("M  %d\r\n", mode);
+        f.Write(line);
+        f.Write("  \r\n");
+        f.Close();
+    }
+}
+
+bool HinksPixExportDialog::Create_HinksPix_HSEQ_File(wxString const& fseqFile, wxString const& shortHSEQName, ControllerEthernet* hix, ControllerEthernet* remote1, ControllerEthernet* remote2, wxString & errorMsg)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug(wxString::Format("HinksPix HSEQ Creation from %s", fseqFile));
@@ -870,10 +1136,10 @@ bool HinksPixExportDialog::Create_HinksPix_HSEQ_File(wxString const& fseqFile, w
         return false;
     }
 
-    uint32_t const xNumber_of_Frames = xf->getNumFrames();
-    uint32_t const numChannels = xf->getChannelCount();
-    int const xFrame_Rate = xf->getStepTime();
-    if (xFrame_Rate != 50)
+    uint32_t const ogNumber_of_Frames = xf->getNumFrames();
+    uint32_t const ogNumChannels = xf->getChannelCount();
+    int const ogFrame_Rate = xf->getStepTime();
+    if (ogFrame_Rate != 50)
     {
         errorMsg = wxString::Format("HinksPix Failed Framerate must be 50Ms FSEQ %s", fseqFile);
         logger_base.error(errorMsg);
@@ -881,48 +1147,68 @@ bool HinksPixExportDialog::Create_HinksPix_HSEQ_File(wxString const& fseqFile, w
     }
 
     std::vector<std::pair<uint32_t, uint32_t>> rng;
-    rng.push_back(std::pair<uint32_t, uint32_t>(0, numChannels));
+    rng.push_back(std::pair<uint32_t, uint32_t>(0, ogNumChannels));
     xf->prepareRead(rng);
 
+    // acquire channel data on all controllers
+    int32_t ef_Num_Channel_To_Write = hix->GetChannels();
+
+    if (remote1)
+        ef_Num_Channel_To_Write += remote1->GetChannels();
+
+    if (remote2)
+        ef_Num_Channel_To_Write += remote2->GetChannels();
+
     // read file ready -- do write file
-    std::unique_ptr<FSEQFile> ef(new HSEQFile(shortHSEQName, ipAddress, numChannels));
+    std::unique_ptr<FSEQFile> ef(new HSEQFile(shortHSEQName, hix, remote1, remote2, ogNumChannels));
     if (!ef)
     {
         errorMsg = wxString::Format("HinksPix Failed Write opening FSEQ %s", shortHSEQName);
         logger_base.error(errorMsg);
         return false;
     }
-
-    // acquire channel data on all controllers
-   int ef_Num_Channel_To_Write = endChan - startChan + 1;
-
+   
     uint8_t* src, * dest;
 
     ef->setChannelCount(ef_Num_Channel_To_Write);
-    ef->setStepTime(xFrame_Rate);
-    ef->setNumFrames(xNumber_of_Frames);
+    ef->setStepTime(ogFrame_Rate);
+    ef->setNumFrames(ogNumber_of_Frames);
 
     ef->writeHeader();	// ready for frame data
 
     uint8_t* WriteBuf = new uint8_t[ef_Num_Channel_To_Write];
 
     // read buff
-    uint8_t* tmpBuf = new uint8_t[numChannels];
+    uint8_t* tmpBuf = new uint8_t[ogNumChannels];
 
     uint32_t frame = 0;
 
     //mostly copied from Joe's pull request(#1441) in Jan 2019
-    while (frame < xNumber_of_Frames)
+    while (frame < ogNumber_of_Frames)
     {
         FSEQFile::FrameData* data = xf->getFrame(frame);
 
-        data->readFrame(tmpBuf, numChannels);	// we have a read frame
+        data->readFrame(tmpBuf, ogNumChannels);	// we have a read frame
 
         // move wanted write channels into write frame buffer
-        src = tmpBuf + startChan-1;		 // start of my data with global channel array
+        src = tmpBuf + hix->GetStartChannel() - 1;		 // start of my data with global channel array
         dest = WriteBuf;
-        memmove(dest, src, ef_Num_Channel_To_Write);
-        dest += ef_Num_Channel_To_Write;
+        memmove(dest, src, hix->GetChannels());
+        dest += hix->GetChannels();
+        
+        if (remote1)
+        {
+            src = tmpBuf + remote1->GetStartChannel() - 1;
+            memmove(dest, src, remote1->GetChannels());
+            dest += remote1->GetChannels();
+        }
+
+        if (remote2)
+        {
+            src = tmpBuf + remote2->GetStartChannel() - 1;
+            memmove(dest, src, remote2->GetChannels());
+            dest += remote2->GetChannels();
+        }        
 
         ef->addFrame(frame, WriteBuf);
 
@@ -997,3 +1283,171 @@ bool HinksPixExportDialog::Make_AU_From_ProcessedAudio( const std::vector<int16_
     return true;
 }
 
+bool HinksPixExportDialog::CheckRemoteSizes(ControllerEthernet* controller, ControllerEthernet* remote1, ControllerEthernet* remote2)
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    int slaveUni, slaveUni2;
+    slaveUni = slaveUni2 = howManyRemoteUniverses(controller);
+
+    if (remote1)
+    {
+        if (remote1->GetOutputCount()> 32)
+        {
+            logger_base.error("HinksPixExportDialog export - Remote '%s' has too many Unverses, Max is 32 Currently Used is %d",
+                remote1->GetName().c_str(), remote1->GetOutputCount());
+
+            DisplayError(wxString::Format("Remote '%s' has too many Unverses, Max is 32 Currently Used is %d",
+                remote1->GetName().c_str(), remote1->GetOutputCount()));
+            return false;
+        }
+        slaveUni -= remote1->GetOutputCount();
+    }
+
+    if (remote2)
+    {
+        if (remote2->GetOutputCount() > 16)
+        {
+            logger_base.error("HinksPixExportDialog export - Remote '%s' has too many Unverses, Max is 16 Currently Used is %d",
+                remote2->GetName().c_str(), remote2->GetOutputCount());
+
+            DisplayError(wxString::Format("Remote '%s' has too many Unverses, Max is 16 Currently Used is %d",
+                remote2->GetName().c_str(), remote2->GetOutputCount()));
+            return false;
+        }
+        slaveUni -= remote2->GetOutputCount();
+    }
+
+    if (slaveUni >= 0)
+        return true;
+
+    logger_base.error("HinksPixExportDialog export - too many Slave Unverses - '%s' : Max %d Used %d",
+        controller->GetName().c_str(), slaveUni2, (slaveUni2 - slaveUni));
+
+    DisplayError(wxString::Format("Too many Remote Unverses off '%s': Max %d Used %d\n", controller->GetName().c_str(), slaveUni2, (slaveUni2 - slaveUni)));
+
+    return false;
+}
+
+int HinksPixExportDialog::howManyRemoteUniverses(ControllerEthernet* controller)
+{
+    if (controller->GetModel().find("PRO") != std::string::npos)   // PRO
+    {
+        if (controller->GetOutputCount() <= ((3 * 16) + 1))
+        {
+            return (33 + 17);
+        }
+        else if (controller->GetOutputCount() <= ((5 * 16) + 1))
+        {
+            return (33);
+        }
+        else if (controller->GetOutputCount() <= ((6 * 16) + 1))
+        {
+            return (17);
+        }
+    }
+
+    if (controller->GetModel().find("EasyLights") != std::string::npos)  // easy
+    {
+        if (controller->GetOutputCount() <= ((1 * 16) + 1))
+        {
+            return (33);
+
+        }
+        else if (controller->GetOutputCount() <= ((2 * 16) + 1))
+        {
+            return (17);
+        }
+    }
+    return 0;
+}
+
+void HinksPixExportDialog::AddInstanceHeader(const wxString& h) {
+    wxPanel* Panel1 = new wxPanel(HinkControllerList, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSIMPLE_BORDER | wxTAB_TRAVERSAL, _T("ID_PANEL1"));
+    wxBoxSizer* BoxSizer1 = new wxBoxSizer(wxHORIZONTAL);
+    wxStaticText* StaticText3 = new wxStaticText(Panel1, wxID_ANY, h, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
+    BoxSizer1->Add(StaticText3, 1, wxLEFT | wxRIGHT | wxEXPAND, 5);
+    Panel1->SetSizer(BoxSizer1);
+    BoxSizer1->Fit(Panel1);
+    BoxSizer1->SetSizeHints(Panel1);
+    HinkControllerSizer->Add(Panel1, 1, wxALL | wxEXPAND, 0);
+}
+
+bool HinksPixExportDialog::GetCheckValue(const wxString& col) {
+    wxWindow* w = HinkControllerList->FindWindow(col);
+    if (w) {
+        wxCheckBox* cb = dynamic_cast<wxCheckBox*>(w);
+        if (cb) {
+            return cb->GetValue();
+        }
+    }
+    return false;
+}
+
+int HinksPixExportDialog::GetChoiceValueIndex(const wxString& col) {
+    wxWindow* w = HinkControllerList->FindWindow(col);
+    if (w) {
+        wxItemContainer* cb = dynamic_cast<wxItemContainer*>(w);
+        if (cb) {
+            return cb->GetSelection();
+        }
+    }
+    return 0;
+}
+
+wxString HinksPixExportDialog::GetChoiceValue(const wxString& col) {
+    wxWindow* w = HinkControllerList->FindWindow(col);
+    if (w) {
+        wxItemContainer* cb = dynamic_cast<wxItemContainer*>(w);
+        if (cb) {
+            return cb->GetStringSelection();
+        }
+    }
+    return "";
+}
+
+void HinksPixExportDialog::SetChoiceValueIndex(const wxString& col, int i) {
+    wxWindow* w = HinkControllerList->FindWindow(col);
+    if (w) {
+        wxItemContainer* cb = dynamic_cast<wxItemContainer*>(w);
+        if (cb) {
+            return cb->SetSelection(i);
+        }
+    }
+}
+
+void HinksPixExportDialog::SetChoiceValue(const wxString& col, const std::string& value) {
+    wxWindow* w = HinkControllerList->FindWindow(col);
+    if (w) {
+        wxItemContainer* cb = dynamic_cast<wxItemContainer*>(w);
+        if (cb) {
+            int find = cb->FindString(value);
+            return cb->SetSelection(find);
+        }
+
+        wxComboBox* comboBox = dynamic_cast<wxComboBox*>(w);
+        if (comboBox) {
+            int find = comboBox->FindString(value);
+            return comboBox->SetSelection(find);
+        }
+    }
+}
+
+void HinksPixExportDialog::SetCheckValue(const wxString& col, bool b) {
+    wxWindow* w = HinkControllerList->FindWindow(col);
+    if (w) {
+        wxCheckBox* cb = dynamic_cast<wxCheckBox*>(w);
+        if (cb) {
+            return cb->SetValue(b);
+        }
+    }
+}
+
+void HinksPixExportDialog::SetDropDownItems(const wxString& col, const wxArrayString& items) {
+    wxWindow* w = HinkControllerList->FindWindow(col);
+    if (w) {
+        wxItemContainer* cb = dynamic_cast<wxItemContainer*>(w);
+        if (cb) {
+            return cb->Set(items);
+        }
+    }
+}

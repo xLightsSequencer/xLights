@@ -11,26 +11,12 @@
 			<growablerows>0</growablerows>
 			<object class="sizeritem">
 				<object class="wxSplitterWindow" name="ID_SPLITTERWINDOW1" variable="SplitterWindow1" member="yes">
-					<minpanesize>10</minpanesize>
+					<minpanesize>100</minpanesize>
 					<style>wxSP_3D|wxSP_3DSASH</style>
-					<object class="wxPanel" name="ID_PANEL2" variable="Panel2" member="yes">
-						<object class="wxFlexGridSizer" variable="FlexGridSizer5" member="yes">
-							<cols>1</cols>
-							<growablecols>0</growablecols>
-							<growablerows>1</growablerows>
-							<object class="sizeritem">
-								<object class="wxStaticText" name="ID_STATICTEXT4" variable="StaticText4" member="yes">
-									<label>HinksPix Controllers:</label>
-								</object>
-								<flag>wxALL|wxFIXED_MINSIZE</flag>
-								<border>5</border>
-							</object>
-							<object class="sizeritem">
-								<object class="wxCheckListBox" name="ID_CHECKLISTBOX_CONTROLLERS" variable="CheckListBoxControllers" member="yes" />
-								<flag>wxALL|wxEXPAND</flag>
-								<border>5</border>
-								<option>1</option>
-							</object>
+					<object class="wxScrolledWindow" name="ID_SCROLLEDWINDOW1" variable="HinkControllerList" member="yes">
+						<minsize>-1,150d</minsize>
+						<object class="wxFlexGridSizer" variable="HinkControllerSizer" member="yes">
+							<cols>8</cols>
 						</object>
 					</object>
 					<object class="wxPanel" name="ID_PANEL1" variable="Panel1" member="yes">
@@ -132,23 +118,8 @@
 			<object class="sizeritem">
 				<object class="wxBoxSizer" variable="BoxSizer1" member="no">
 					<object class="sizeritem">
-						<object class="wxStaticText" name="ID_STATICTEXT3" variable="StaticText3" member="yes">
-							<label>SD Card:</label>
-						</object>
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
-					</object>
-					<object class="sizeritem">
-						<object class="wxChoice" name="ID_CHOICE_SD_CARDS" variable="ChoiceSDCards" member="yes">
-							<minsize>40,-1</minsize>
-						</object>
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
-					</object>
-					<object class="sizeritem">
 						<object class="wxButton" name="ID_BUTTON_REFRESH" variable="AddRefreshButton" member="yes">
-							<label>Refresh</label>
-							<minsize>50,-1</minsize>
+							<label>Refresh USB Drives</label>
 							<handler function="OnAddRefreshButtonClick" entry="EVT_BUTTON" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>

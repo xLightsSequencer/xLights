@@ -16,6 +16,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- enh (keith)  Add ability to flip virtual matrices
    -- enh (keith)  When reporting missing face images include the name of the face in the error message
    -- enh (priemd) Optimise custom model loading
+   -- enh (scott)  Updated HinksPix Export Dialog with Slave support and Master/Remote mode.
 2020.17 May 1 2020
    -- enh (keith)  Add native media player option for video in xSchedule. This slightly reduces control but improves performance
    -- enh (keith)  When using DMX effect on model group label the sliders using the node names from the first model in the group

@@ -4,17 +4,15 @@
 #include <list>
 #include <map>
 #include <array>
-#include <cstdint>
-#include <vector>
 
 //(*Headers(HinksPixExportDialog)
 #include <wx/bmpbuttn.h>
 #include <wx/button.h>
-#include <wx/checklst.h>
 #include <wx/choice.h>
 #include <wx/dialog.h>
 #include <wx/listctrl.h>
 #include <wx/panel.h>
+#include <wx/scrolwin.h>
 #include <wx/sizer.h>
 #include <wx/spinctrl.h>
 #include <wx/splitter.h>
@@ -29,13 +27,16 @@ class ControllerEthernet;
 
 class HSEQFile : public V1FSEQFile {
 public:
-	HSEQFile(const std::string& fn, wxString ipAdress, uint32_t orgChannelCount) : V1FSEQFile(fn), _ipAdress(ipAdress), _orgChannelCount(orgChannelCount){
+	HSEQFile(const std::string& fn, ControllerEthernet* hinx, ControllerEthernet* remote1, ControllerEthernet* remote2, uint32_t orgChannelCount)
+		: V1FSEQFile(fn), _hinx(hinx), _remote1(remote1), _remote2(remote2), _orgChannelCount(orgChannelCount){
 	};
 
 
 	virtual void writeHeader() override;
 private:
-	wxString const _ipAdress;
+	ControllerEthernet* _hinx;
+	ControllerEthernet* _remote1;
+	ControllerEthernet* _remote2;
 	uint32_t      _orgChannelCount;
 };
 
@@ -53,14 +54,12 @@ class HinksPixExportDialog: public wxDialog
 		wxBitmapButton* BitmapButtonMoveUp;
 		wxButton* AddRefreshButton;
 		wxButton* Button_Export;
-		wxCheckListBox* CheckListBoxControllers;
 		wxChoice* ChoiceFilter;
 		wxChoice* ChoiceFolder;
-		wxChoice* ChoiceSDCards;
-		wxFlexGridSizer* FlexGridSizer5;
+		wxFlexGridSizer* HinkControllerSizer;
 		wxListView* CheckListBox_Sequences;
 		wxPanel* Panel1;
-		wxPanel* Panel2;
+		wxScrolledWindow* HinkControllerList;
 		wxSpinCtrl* SpinCtrlEndHour;
 		wxSpinCtrl* SpinCtrlEndMin;
 		wxSpinCtrl* SpinCtrlStartHour;
@@ -68,18 +67,13 @@ class HinksPixExportDialog: public wxDialog
 		wxSplitterWindow* SplitterWindow1;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText2;
-		wxStaticText* StaticText3;
-		wxStaticText* StaticText4;
 		wxStaticText* StaticText5;
 		wxStaticText* StaticText6;
 		//*)
-
 	protected:
 
 		//(*Identifiers(HinksPixExportDialog)
-		static const long ID_STATICTEXT4;
-		static const long ID_CHECKLISTBOX_CONTROLLERS;
-		static const long ID_PANEL2;
+		static const long ID_SCROLLEDWINDOW1;
 		static const long ID_STATICTEXT1;
 		static const long ID_CHOICE_FILTER;
 		static const long ID_STATICTEXT2;
@@ -89,8 +83,6 @@ class HinksPixExportDialog: public wxDialog
 		static const long ID_LISTVIEW_Sequences;
 		static const long ID_PANEL1;
 		static const long ID_SPLITTERWINDOW1;
-		static const long ID_STATICTEXT3;
-		static const long ID_CHOICE_SD_CARDS;
 		static const long ID_BUTTON_REFRESH;
 		static const long ID_STATICTEXT5;
 		static const long ID_SPINCTRL_START_HOUR;
@@ -106,9 +98,9 @@ class HinksPixExportDialog: public wxDialog
         static const long ID_MNU_SELECTHIGH;
         static const long ID_MNU_DESELECTHIGH;
 
-        OutputManager* _outputManager;
-
 		std::vector <ControllerEthernet*> _hixControllers;
+		std::vector <ControllerEthernet*> _otherControllers;
+		wxArrayString _drives;
 
 	private:
 
@@ -126,7 +118,7 @@ class HinksPixExportDialog: public wxDialog
         void CreateDriveList();
         void LoadSequencesFromFolder(wxString dir) const;
         void LoadSequences();
-        void PopulateControllerList(wxString const& savedIPs);
+        void PopulateControllerList(OutputManager* outputManager);
 
         void GetFolderList(const wxString& folder);
 
@@ -136,13 +128,42 @@ class HinksPixExportDialog: public wxDialog
 
 		void createSchedule(wxString const& drive);
 
-		bool Create_HinksPix_HSEQ_File(wxString const& fseqFile, wxString const& shortFSEQName, wxString const ipAddress, int const startChan, int const endChan, wxString& errorMsg);
+		void createModeFile(wxString const& drive, int mode);
+
+		bool Create_HinksPix_HSEQ_File(wxString const& fseqFile, wxString const& shortFSEQName, ControllerEthernet* hix, ControllerEthernet* remote1, ControllerEthernet* remote2, wxString& errorMsg);
 
 		wxString createUniqueShortName(wxString const& fseqName, std::vector<wxString> const& names);
 
 		bool Make_AU_From_ProcessedAudio( const std::vector<int16_t>& processedAudio, wxString const& AU_File, wxString& errorMsg );
 
+		int howManyRemoteUniverses(ControllerEthernet* controller);
+
         void OnPopup(wxCommandEvent &event);
+
+		void OnChoiceSelected(wxCommandEvent& event);
+
+		void ApplySavedSettings();
+
+		void AddInstanceHeader(const wxString& h);
+
+		bool GetCheckValue(const wxString& col);
+		wxString GetChoiceValue(const wxString& col);
+		int GetChoiceValueIndex(const wxString& col);
+
+		void SetChoiceValue(const wxString& col, const std::string& value);
+		void SetChoiceValueIndex(const wxString& col, int i);
+		void SetCheckValue(const wxString& col, bool b);
+		void SetDropDownItems(const wxString& col, const wxArrayString& items);
+
+		bool CheckRemoteSizes(ControllerEthernet* controller, ControllerEthernet* remote1, ControllerEthernet* remote2);
+
+		ControllerEthernet* getRemoteController(const std::string& name)
+		{
+			auto contrl = std::find_if(_otherControllers.begin(), _otherControllers.end(), [&name](auto po) {return po->GetName() == name; });
+			if (contrl != _otherControllers.end())
+				return *contrl;
+			return nullptr;
+		}
 
 		DECLARE_EVENT_TABLE()
 };
