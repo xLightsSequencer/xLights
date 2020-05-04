@@ -615,11 +615,6 @@ bool AlphaPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("AlphaPix Outputs Upload: Uploading to %s", (const char*)_ip.c_str());
 
-    // Get universes based on IP
-    std::list<Output*> outputs = controller->GetOutputs();
-
-    auto o = outputs.front();
-
     progress.Update(0, "Scanning models");
     logger_base.info("Scanning models.");
 
@@ -775,6 +770,7 @@ bool AlphaPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
     }
 
     //upload Input Type
+    auto o = controller->GetFirstOutput();
     std::string requestInputString;
     if (o->GetType() == OUTPUT_E131) {
         if (controllerData.inputMode != 0)
