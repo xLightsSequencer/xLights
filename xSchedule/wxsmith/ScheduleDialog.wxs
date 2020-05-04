@@ -212,7 +212,7 @@
 			</object>
 			<object class="sizeritem">
 				<object class="wxStaticText" name="ID_STATICTEXT16" variable="StaticText16" member="yes">
-					<label>Every nth day</label>
+					<label>Every nth day:</label>
 				</object>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
@@ -272,10 +272,37 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxTextCtrl" name="ID_TEXTCTRL2" variable="TextCtrl_OnTime" member="yes">
-					<value>19:00</value>
-					<style>wxTE_RIGHT</style>
-					<handler function="OnTextCtrl_OnTimeText" entry="EVT_TEXT" />
+				<object class="wxFlexGridSizer" variable="FlexGridSizer5" member="no">
+					<cols>3</cols>
+					<growablecols>0</growablecols>
+					<object class="sizeritem">
+						<object class="wxTextCtrl" name="ID_TEXTCTRL2" variable="TextCtrl_OnTime" member="yes">
+							<value>19:00</value>
+							<style>wxTE_RIGHT</style>
+							<handler function="OnTextCtrl_OnTimeText" entry="EVT_TEXT" />
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxStaticText" name="ID_STATICTEXT20" variable="StaticText_OnOffsetMins" member="yes">
+							<label>Offset Mins:</label>
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxSpinCtrl" name="ID_SPINCTRL5" variable="SpinCtrl_OnOffsetMins" member="yes">
+							<value>0</value>
+							<min>-120</min>
+							<max>120</max>
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
@@ -290,10 +317,37 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxTextCtrl" name="ID_TEXTCTRL1" variable="TextCtrl_OffTime" member="yes">
-					<value>22:00</value>
-					<style>wxTE_RIGHT</style>
-					<handler function="OnTextCtrl_OffTimeText" entry="EVT_TEXT" />
+				<object class="wxFlexGridSizer" variable="FlexGridSizer6" member="no">
+					<cols>3</cols>
+					<growablecols>0</growablecols>
+					<object class="sizeritem">
+						<object class="wxTextCtrl" name="ID_TEXTCTRL1" variable="TextCtrl_OffTime" member="yes">
+							<value>22:00</value>
+							<style>wxTE_RIGHT</style>
+							<handler function="OnTextCtrl_OffTimeText" entry="EVT_TEXT" />
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxStaticText" name="ID_STATICTEXT21" variable="StaticText_OffOffsetMins" member="yes">
+							<label>Offset Mins:</label>
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxSpinCtrl" name="ID_SPINCTRL6" variable="SpinCtrl_OffOffsetMins" member="yes">
+							<value>0</value>
+							<min>-120</min>
+							<max>120</max>
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>

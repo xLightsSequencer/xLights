@@ -47,8 +47,12 @@ const long ScheduleDialog::ID_SPINCTRL4 = wxNewId();
 const long ScheduleDialog::ID_STATICTEXT18 = wxNewId();
 const long ScheduleDialog::ID_STATICTEXT12 = wxNewId();
 const long ScheduleDialog::ID_TEXTCTRL2 = wxNewId();
+const long ScheduleDialog::ID_STATICTEXT20 = wxNewId();
+const long ScheduleDialog::ID_SPINCTRL5 = wxNewId();
 const long ScheduleDialog::ID_STATICTEXT11 = wxNewId();
 const long ScheduleDialog::ID_TEXTCTRL1 = wxNewId();
+const long ScheduleDialog::ID_STATICTEXT21 = wxNewId();
+const long ScheduleDialog::ID_SPINCTRL6 = wxNewId();
 const long ScheduleDialog::ID_CHECKBOX12 = wxNewId();
 const long ScheduleDialog::ID_STATICTEXT19 = wxNewId();
 const long ScheduleDialog::ID_CHOICE1 = wxNewId();
@@ -76,6 +80,8 @@ ScheduleDialog::ScheduleDialog(wxWindow* parent, Schedule* schedule, wxWindowID 
 	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer3;
 	wxFlexGridSizer* FlexGridSizer4;
+	wxFlexGridSizer* FlexGridSizer5;
+	wxFlexGridSizer* FlexGridSizer6;
 
 	Create(parent, id, _("Schedule Playlist"), wxDefaultPosition, wxDefaultSize, wxCAPTION|wxRESIZE_BORDER|wxMAXIMIZE_BOX, _T("id"));
 	SetClientSize(wxDefaultSize);
@@ -140,7 +146,7 @@ ScheduleDialog::ScheduleDialog(wxWindow* parent, Schedule* schedule, wxWindowID 
 	CheckBox_Sun->SetValue(false);
 	FlexGridSizer2->Add(CheckBox_Sun, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 5);
-	StaticText16 = new wxStaticText(this, ID_STATICTEXT16, _("Every nth day"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT16"));
+	StaticText16 = new wxStaticText(this, ID_STATICTEXT16, _("Every nth day:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT16"));
 	FlexGridSizer1->Add(StaticText16, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer4 = new wxFlexGridSizer(0, 4, 0, 0);
 	SpinCtrl_NthDay = new wxSpinCtrl(this, ID_SPINCTRL3, _T("1"), wxDefaultPosition, wxDefaultSize, 0, 1, 14, 1, _T("ID_SPINCTRL3"));
@@ -156,12 +162,28 @@ ScheduleDialog::ScheduleDialog(wxWindow* parent, Schedule* schedule, wxWindowID 
 	FlexGridSizer1->Add(FlexGridSizer4, 1, wxALL|wxEXPAND, 5);
 	StaticText12 = new wxStaticText(this, ID_STATICTEXT12, _("On Time:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT12"));
 	FlexGridSizer1->Add(StaticText12, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer5 = new wxFlexGridSizer(0, 3, 0, 0);
+	FlexGridSizer5->AddGrowableCol(0);
 	TextCtrl_OnTime = new wxTextCtrl(this, ID_TEXTCTRL2, _("19:00"), wxDefaultPosition, wxDefaultSize, wxTE_RIGHT, wxDefaultValidator, _T("ID_TEXTCTRL2"));
-	FlexGridSizer1->Add(TextCtrl_OnTime, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer5->Add(TextCtrl_OnTime, 1, wxALL|wxEXPAND, 5);
+	StaticText_OnOffsetMins = new wxStaticText(this, ID_STATICTEXT20, _("Offset Mins:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT20"));
+	FlexGridSizer5->Add(StaticText_OnOffsetMins, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	SpinCtrl_OnOffsetMins = new wxSpinCtrl(this, ID_SPINCTRL5, _T("0"), wxDefaultPosition, wxDefaultSize, 0, -120, 120, 0, _T("ID_SPINCTRL5"));
+	SpinCtrl_OnOffsetMins->SetValue(_T("0"));
+	FlexGridSizer5->Add(SpinCtrl_OnOffsetMins, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer1->Add(FlexGridSizer5, 1, wxALL|wxEXPAND, 5);
 	StaticText11 = new wxStaticText(this, ID_STATICTEXT11, _("Off Time:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT11"));
 	FlexGridSizer1->Add(StaticText11, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer6 = new wxFlexGridSizer(0, 3, 0, 0);
+	FlexGridSizer6->AddGrowableCol(0);
 	TextCtrl_OffTime = new wxTextCtrl(this, ID_TEXTCTRL1, _("22:00"), wxDefaultPosition, wxDefaultSize, wxTE_RIGHT, wxDefaultValidator, _T("ID_TEXTCTRL1"));
-	FlexGridSizer1->Add(TextCtrl_OffTime, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer6->Add(TextCtrl_OffTime, 1, wxALL|wxEXPAND, 5);
+	StaticText_OffOffsetMins = new wxStaticText(this, ID_STATICTEXT21, _("Offset Mins:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT21"));
+	FlexGridSizer6->Add(StaticText_OffOffsetMins, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	SpinCtrl_OffOffsetMins = new wxSpinCtrl(this, ID_SPINCTRL6, _T("0"), wxDefaultPosition, wxDefaultSize, 0, -120, 120, 0, _T("ID_SPINCTRL6"));
+	SpinCtrl_OffOffsetMins->SetValue(_T("0"));
+	FlexGridSizer6->Add(SpinCtrl_OffOffsetMins, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer1->Add(FlexGridSizer6, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	CheckBox_GracefullyInterrupt = new wxCheckBox(this, ID_CHECKBOX12, _("Gracefully interupt any lower priority playing schedule"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX12"));
 	CheckBox_GracefullyInterrupt->SetValue(false);
@@ -250,6 +272,8 @@ ScheduleDialog::ScheduleDialog(wxWindow* parent, Schedule* schedule, wxWindowID 
     SpinCtrl_NthDay->SetValue(schedule->GetNthDay());
     SpinCtrl_NthDayOffset->SetValue(schedule->GetNthDayOffset());
     Choice_FireFrequency->SetStringSelection(schedule->GetFireFrequency());
+	SpinCtrl_OnOffsetMins->SetValue(schedule->GetOnOffsetMins());
+	SpinCtrl_OffOffsetMins->SetValue(schedule->GetOffOffsetMins());
 
     Choice_FireFrequency->SetToolTip("Times are relative to schedule start time.");
 
@@ -288,6 +312,8 @@ ScheduleDialog::~ScheduleDialog()
         CheckBox_Sun->GetValue());
     _schedule->SetEnabled(CheckBox_Enabled->GetValue());
     _schedule->SetFireFrequency(Choice_FireFrequency->GetStringSelection());
+	_schedule->SetOnOffsetMins(SpinCtrl_OnOffsetMins->GetValue());
+	_schedule->SetOffOffsetMins(SpinCtrl_OffOffsetMins->GetValue());
 }
 
 void ScheduleDialog::ValidateWindow()
@@ -322,6 +348,40 @@ void ScheduleDialog::ValidateWindow()
     {
         Button_Ok->Enable(false);
     }
+
+	auto st = TextCtrl_OnTime->GetValue().Lower();
+	if (st == "sunrise" || st == "sunup" || st == "sunset" || st == "sundown") 		{
+		if (!StaticText_OnOffsetMins->IsShown()) {
+			StaticText_OnOffsetMins->Show();
+			SpinCtrl_OnOffsetMins->Show();
+			Layout();
+		}
+	}
+	else {
+		if (StaticText_OnOffsetMins->IsShown()) {
+			StaticText_OnOffsetMins->Hide();
+			SpinCtrl_OnOffsetMins->Hide();
+			SpinCtrl_OnOffsetMins->SetValue(0);
+			Layout();
+		}
+	}
+
+	auto et = TextCtrl_OffTime->GetValue().Lower();
+	if (et == "sunrise" || et == "sunup" || et == "sunset" || et == "sundown") {
+		if (!StaticText_OffOffsetMins->IsShown()) {
+			StaticText_OffOffsetMins->Show();
+			SpinCtrl_OffOffsetMins->Show();
+			Layout();
+		}
+	}
+	else {
+		if (StaticText_OffOffsetMins->IsShown()) {
+			StaticText_OffOffsetMins->Hide();
+			SpinCtrl_OffOffsetMins->Hide();
+			SpinCtrl_OffOffsetMins->SetValue(0);
+			Layout();
+		}
+	}
 
     StaticText_NextDay->SetLabel(Schedule::GetNextNthDay(SpinCtrl_NthDay->GetValue(), SpinCtrl_NthDayOffset->GetValue()));
 }

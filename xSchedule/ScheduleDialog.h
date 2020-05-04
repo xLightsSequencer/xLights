@@ -11,17 +11,17 @@
  **************************************************************/
 
  //(*Headers(ScheduleDialog)
-#include <wx/button.h>
-#include <wx/checkbox.h>
-#include <wx/choice.h>
-#include <wx/datectrl.h>
-#include <wx/dateevt.h>
-#include <wx/dialog.h>
-#include <wx/sizer.h>
-#include <wx/spinctrl.h>
-#include <wx/stattext.h>
-#include <wx/textctrl.h>
-//*)
+ #include <wx/button.h>
+ #include <wx/checkbox.h>
+ #include <wx/choice.h>
+ #include <wx/datectrl.h>
+ #include <wx/dateevt.h>
+ #include <wx/dialog.h>
+ #include <wx/sizer.h>
+ #include <wx/spinctrl.h>
+ #include <wx/stattext.h>
+ #include <wx/textctrl.h>
+ //*)
 
 class Schedule;
 
@@ -56,6 +56,8 @@ class ScheduleDialog: public wxDialog
 		wxSpinCtrl* SpinCtrl_MaxLoops;
 		wxSpinCtrl* SpinCtrl_NthDay;
 		wxSpinCtrl* SpinCtrl_NthDayOffset;
+		wxSpinCtrl* SpinCtrl_OffOffsetMins;
+		wxSpinCtrl* SpinCtrl_OnOffsetMins;
 		wxSpinCtrl* SpinCtrl_Priority;
 		wxStaticText* StaticText10;
 		wxStaticText* StaticText11;
@@ -76,6 +78,8 @@ class ScheduleDialog: public wxDialog
 		wxStaticText* StaticText8;
 		wxStaticText* StaticText9;
 		wxStaticText* StaticText_NextDay;
+		wxStaticText* StaticText_OffOffsetMins;
+		wxStaticText* StaticText_OnOffsetMins;
 		wxTextCtrl* TextCtrl_Name;
 		wxTextCtrl* TextCtrl_OffTime;
 		wxTextCtrl* TextCtrl_OnTime;
@@ -114,8 +118,12 @@ class ScheduleDialog: public wxDialog
 		static const long ID_STATICTEXT18;
 		static const long ID_STATICTEXT12;
 		static const long ID_TEXTCTRL2;
+		static const long ID_STATICTEXT20;
+		static const long ID_SPINCTRL5;
 		static const long ID_STATICTEXT11;
 		static const long ID_TEXTCTRL1;
+		static const long ID_STATICTEXT21;
+		static const long ID_SPINCTRL6;
 		static const long ID_CHECKBOX12;
 		static const long ID_STATICTEXT19;
 		static const long ID_CHOICE1;

@@ -41,8 +41,10 @@ class Schedule
     int _nthDay;
     int _nthDayOffset;
     std::string _fireFrequency;
+    int _onOffsetMins = 0;
+    int _offOffsetMins = 0;
 
-    void SetTime(wxDateTime& toset, std::string city, wxDateTime time, std::string timeString) const;
+    void SetTime(wxDateTime& toset, std::string city, wxDateTime time, std::string timeString, int offset) const;
     bool IsOkDOW(const wxDateTime& date);
     bool IsOkNthDay(const wxDateTime& date);
     bool CheckActiveAt(const wxDateTime& now);
@@ -64,6 +66,8 @@ class Schedule
         void SetStartTime(const std::string& start);
         void SetEndTime(const std::string& end);
         void SetLoops(int loops) { if (_loops != loops) { _loops = loops; _changeCount++; } }
+        void SetOnOffsetMins(int offsetMins) { if (_onOffsetMins != offsetMins) { _onOffsetMins = offsetMins; _changeCount++; } }
+        void SetOffOffsetMins(int offsetMins) { if (_offOffsetMins != offsetMins) { _offOffsetMins = offsetMins; _changeCount++; } }
         int GetLoops() const { return _loops; }
         void SetLoop(bool loop) { if (_loop != loop) { _loop = loop; _changeCount++; } }
         int GetNthDay() const { return _nthDay; }
@@ -72,6 +76,8 @@ class Schedule
         void SetNthDayOffset(int nthDayOffset) { if (_nthDayOffset != nthDayOffset) { _nthDayOffset = nthDayOffset; _changeCount++; } }
         void SetEnabled(bool enabled) { if (_enabled != enabled) { _enabled = enabled; _changeCount++; } }
         bool GetLoop() const { return _loop; }
+        int GetOnOffsetMins() const { return _onOffsetMins; }
+        int GetOffOffsetMins() const { return _offOffsetMins; }
         bool GetEnabled() const { return _enabled; }
         void SetRandom(bool random) { if (_random != random) { _random = random; _changeCount++; } }
         bool GetRandom() const { return _random; }
