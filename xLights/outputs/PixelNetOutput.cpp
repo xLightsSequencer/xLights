@@ -77,6 +77,8 @@ void PixelNetOutput::EndFrame(int suppressFrames)
 #pragma region Data Setting
 void PixelNetOutput::SetOneChannel(int32_t channel, unsigned char data)
 {
+    if (!_enabled) return;
+
     if (_data[channel] != (data == 170 ? 171 : data))
     {
         _data[channel] = (data == 170 ? 171 : data);
@@ -86,6 +88,8 @@ void PixelNetOutput::SetOneChannel(int32_t channel, unsigned char data)
 
 void PixelNetOutput::AllOff()
 {
+    if (!_enabled) return;
+
     memset(_data, 0, _channels);
     _changed = true;
 }

@@ -66,6 +66,7 @@ void OpenDMXOutput::EndFrame(int suppressFrames) {
 #pragma region Data Setting
 void OpenDMXOutput::SetOneChannel(int32_t channel, unsigned char data) {
 
+    if (!_enabled) return;
     if (_data[channel + 1] != data) {
         _data[channel + 1] = data;
         _changed = true;
@@ -74,6 +75,7 @@ void OpenDMXOutput::SetOneChannel(int32_t channel, unsigned char data) {
 
 void OpenDMXOutput::SetManyChannels(int32_t channel, unsigned char data[], size_t size) {
 
+    if (!_enabled) return;
     size_t chs = std::min(size, (size_t)(GetMaxChannels() - channel));
     if (memcmp(&_data[channel + 1], data, chs) != 0) {
         memcpy(&_data[channel + 1], data, chs);
@@ -82,6 +84,7 @@ void OpenDMXOutput::SetManyChannels(int32_t channel, unsigned char data[], size_
 }
 
 void OpenDMXOutput::AllOff() {
+    if (!_enabled) return;
     memset(&_data[1], 0x00, _channels);
     _changed = true;
 }

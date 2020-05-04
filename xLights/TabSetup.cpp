@@ -61,6 +61,7 @@ const long xLightsFrame::ID_NETWORK_ADDETHERNET = wxNewId();
 const long xLightsFrame::ID_NETWORK_ADDNULL = wxNewId();
 const long xLightsFrame::ID_NETWORK_ADDSERIAL = wxNewId();
 const long xLightsFrame::ID_NETWORK_ACTIVE = wxNewId();
+const long xLightsFrame::ID_NETWORK_ACTIVEXLIGHTS = wxNewId();
 const long xLightsFrame::ID_NETWORK_INACTIVE = wxNewId();
 const long xLightsFrame::ID_NETWORK_DELETE = wxNewId();
 
@@ -429,7 +430,7 @@ void xLightsFrame::UpdateChannelNames() {
     }
 }
 
-void xLightsFrame::ActivateSelectedControllers(bool active) {
+void xLightsFrame::ActivateSelectedControllers(const std::string& active) {
 
     int item = List_Controllers->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
     while (item != -1) {
@@ -1881,6 +1882,7 @@ void xLightsFrame::OnListControllersItemRClick(wxListEvent& event) {
     mnu.Append(ID_NETWORK_ADDNULL, "Insert NULL")->Enable(ButtonAddControllerSerial->IsEnabled());
     mnu.Append(ID_NETWORK_ADDSERIAL, "Insert DMX/LOR/DLight/Renard")->Enable(ButtonAddControllerSerial->IsEnabled());
     mnu.Append(ID_NETWORK_ACTIVE, "Activate")->Enable(ButtonAddControllerSerial->IsEnabled());
+    mnu.Append(ID_NETWORK_ACTIVEXLIGHTS, "Activate in xLights Only")->Enable(ButtonAddControllerSerial->IsEnabled());
     mnu.Append(ID_NETWORK_INACTIVE, "Inactivate")->Enable(ButtonAddControllerSerial->IsEnabled());
     mnu.Append(ID_NETWORK_DELETE, "Delete")->Enable(ButtonAddControllerSerial->IsEnabled());
 
@@ -1919,18 +1921,25 @@ void xLightsFrame::OnListControllerPopup(wxCommandEvent& event) {
         _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "OnListControllerPopup:ADDNULL");
     }
     else if (id == ID_NETWORK_ACTIVE) {
-        ActivateSelectedControllers(true);
-        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "OnListControllerPopup:DELETE");
-        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "OnListControllerPopup:DELETE");
-        _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "OnListControllerPopup:DELETE");
-        _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "OnListControllerPopup:DELETE");
+        ActivateSelectedControllers("Active");
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "OnListControllerPopup:ACTIVE");
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "OnListControllerPopup:ACTIVE");
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "OnListControllerPopup:ACTIVE");
+        _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "OnListControllerPopup:ACTIVE");
+    }
+    else if (id == ID_NETWORK_ACTIVEXLIGHTS) {
+        ActivateSelectedControllers("xLights Only");
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "OnListControllerPopup:ACTIVEXLIGHTS");
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "OnListControllerPopup:ACTIVEXLIGHTS");
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "OnListControllerPopup:ACTIVEXLIGHTS");
+        _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "OnListControllerPopup:ACTIVEXLIGHTS");
     }
     else if (id == ID_NETWORK_INACTIVE) {
-        ActivateSelectedControllers(false);
-        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "OnListControllerPopup:DELETE");
-        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "OnListControllerPopup:DELETE");
-        _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "OnListControllerPopup:DELETE");
-        _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "OnListControllerPopup:DELETE");
+        ActivateSelectedControllers("Inactive");
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "OnListControllerPopup:INACTIVE");
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "OnListControllerPopup:INACTIVE");
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "OnListControllerPopup:INACTIVE");
+        _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "OnListControllerPopup:INACTIVE");
     }
     else if (id == ID_NETWORK_DELETE) {
         DeleteSelectedControllers();

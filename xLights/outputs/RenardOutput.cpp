@@ -62,6 +62,8 @@ void RenardOutput::EndFrame(int suppressFrames)
 #pragma region Data Setting
 void RenardOutput::SetOneChannel(int32_t channel, unsigned char data)
 {
+    if (!_enabled) return;
+
     uint8_t RenIntensity;
 
     switch (data)
@@ -86,6 +88,8 @@ void RenardOutput::SetOneChannel(int32_t channel, unsigned char data)
 
 void RenardOutput::AllOff()
 {
+    if (!_enabled) return;
+
     for (int i = 0; i < _channels; i++)
     {
         SetOneChannel(i + 2, 0x00);

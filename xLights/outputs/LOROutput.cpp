@@ -129,6 +129,8 @@ void LOROutput::SetOneChannel(int32_t channel, unsigned char data) {
 
 void LOROutput::AllOff() {
 
+    if (!_enabled) return;
+
     // force everything to be sent
     memset(_notSentCount, 0xF0, sizeof(_notSentCount));
 

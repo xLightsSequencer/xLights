@@ -26,6 +26,8 @@
 
 #include <log4cpp/Category.hh>
 
+static wxArrayString ACTIVETYPENAMES;
+
 // This class is used to convert old controller names to the new structure
 class ControllerNameVendorMap
 {
@@ -90,7 +92,17 @@ Controller::Controller(OutputManager* om, wxXmlNode* node, const std::string& sh
     _name = node->GetAttribute("Name", om->UniqueName(node->GetName() + "_")).Trim(true).Trim(false);
     _description = node->GetAttribute("Description", "").Trim(true).Trim(false);
     _autoSize = node->GetAttribute("AutoSize", "0") == "1";
-    SetActive(node->GetAttribute("Active", "1") == "1");
+    if (node->GetAttribute("ActiveState", "") == "") {
+        if (node->GetAttribute("Active", "1") == "0") {
+            SetActive("Inactive");
+        }
+        else {
+            SetActive("Active");
+        }
+    }
+    else {
+        SetActive(node->GetAttribute("ActiveState", "Active"));
+    }
     SetAutoLayout(node->GetAttribute("AutoLayout", "0") == "1");
     SetAutoUpload(node->GetAttribute("AutoUpload", "0") == "1");
     if (!_autoLayout) _autoSize = false;
@@ -125,7 +137,7 @@ wxXmlNode* Controller::Save() {
     node->AddAttribute("Variant", GetVariant());
     if (_autoSize) node->AddAttribute("AutoSize", "1");
     //if (_autoStartChannels) node->AddAttribute("AutoStartChannels", "1");
-    node->AddAttribute("Active", _active ? "1" : "0");
+    node->AddAttribute("ActiveState", DecodeActiveState(_active));
     node->AddAttribute("AutoLayout", _autoLayout ? "1" : "0");
     node->AddAttribute("AutoUpload", _autoUpload && SupportsAutoUpload() ? "1" : "0");
     node->AddAttribute("SuppressDuplicates", _suppressDuplicateFrames ? "1" : "0");
@@ -156,6 +168,27 @@ std::string Controller::DecodeChoices(const wxPGChoices& choices, int choice)
         return "";
     }
     return choices[choice].GetText();
+}
+
+Controller::ACTIVESTATE Controller::EncodeActiveState(const std::string& state)
+{
+    if (state == "Active") return ACTIVESTATE::ACTIVE;
+    if (state == "Inactive") return ACTIVESTATE::INACTIVE;
+    if (state == "xLights Only") return ACTIVESTATE::ACTIVEINXLIGHTSONLY;
+	return ACTIVESTATE::ACTIVE;
+}
+
+std::string Controller::DecodeActiveState(Controller::ACTIVESTATE state)
+{
+    switch (state)         {
+    case ACTIVESTATE::ACTIVE:
+        return "Active";
+    case ACTIVESTATE::ACTIVEINXLIGHTSONLY:
+        return "xLights Only";
+    case ACTIVESTATE::INACTIVE:
+        return "Inactive";
+    }
+    return "Active";
 }
 
 Controller* Controller::Create(OutputManager* om, wxXmlNode* node, std::string showDir) {
@@ -302,12 +335,18 @@ void Controller::SetAutoUpload(bool autoUpload) {
     }
 }
 
-void Controller::SetActive(bool active)  {
-    if (_active != active) { 
-        _active = active;  
+bool Controller::IsActive() const
+{
+    return _active == ACTIVESTATE::ACTIVE || (_active == ACTIVESTATE::ACTIVEINXLIGHTSONLY && IsxLights());
+}
+
+void Controller::SetActive(const std::string& active)  {
+    auto a = EncodeActiveState(active);
+    if (_active != a) { 
+        _active = a;  
         _dirty = true; 
         for (auto& it : _outputs) {
-            it->Enable(active);
+            it->Enable(IsActive());
         }
     } 
 }
@@ -342,7 +381,7 @@ void Controller::SetTransientData(int32_t& startChannel, int& nullnumber)
 
         // make sure data which is now kept on the controller is duplicated to the outputs so they behave as expected
         it->SetSuppressDuplicateFrames(_suppressDuplicateFrames);
-        it->Enable(_active);
+        it->Enable(IsActive());
 
         it->SetTransientData(startChannel, nullnumber);
     }
@@ -435,8 +474,12 @@ void Controller::AddProperties(wxPropertyGrid* propertyGrid, ModelManager* model
         p->SetEditor("CheckBox");
     }
 
-    p = propertyGrid->Append(new wxBoolProperty("Active", "Active", IsActive()));
-    p->SetEditor("CheckBox");
+    if (ACTIVETYPENAMES.IsEmpty())         {
+        ACTIVETYPENAMES.push_back("Active");
+        ACTIVETYPENAMES.push_back("Inactive");
+        ACTIVETYPENAMES.push_back("xLights Only");
+    }
+    p = propertyGrid->Append(new wxEnumProperty("Active", "Active", ACTIVETYPENAMES, wxArrayInt(), (int)_active));
 
     if (_outputs.front()->GetType() != OUTPUT_LOR_OPT)
     {
@@ -515,7 +558,7 @@ bool Controller::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelMana
         return true;
     }
     else if (name == "Active") {
-        SetActive(event.GetValue().GetBool());
+        SetActive(ACTIVETYPENAMES[event.GetValue().GetLong()]);
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "Controller::HandlePropertyEvent::Active");
         outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "Controller::HandlePropertyEvent::Active");
         return true;

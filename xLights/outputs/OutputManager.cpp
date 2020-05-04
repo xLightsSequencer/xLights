@@ -226,7 +226,7 @@ bool OutputManager::Load(const std::string& showdir, bool syncEnabled) {
                     }
                     AddController(cu, -1);
                     cu->DeleteAllOutputs();
-                    cu->SetActive(conversionOutput->IsEnabled());
+                    cu->SetActive(conversionOutput->IsEnabled() ? "Active" : "Inactive");
                 }
                 cu->Convert(e, showdir);
 
@@ -513,6 +513,18 @@ Controller* OutputManager::GetController(int32_t absoluteChannel, int32_t& start
         }
     }
     return nullptr;
+}
+
+Controller* OutputManager::GetControllerWithIP(const std::string& ip)
+{
+    // Finds the first controller with the ip address
+    for (const auto& it : _controllers) {
+        auto eth = dynamic_cast<ControllerEthernet*>(it);
+        if (eth != nullptr) {
+            if (eth->GetIP() == ip) return eth;
+        }
+    }
+	return nullptr;
 }
 
 int OutputManager::GetControllerIndex(Controller* c) {

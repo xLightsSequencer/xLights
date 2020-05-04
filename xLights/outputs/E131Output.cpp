@@ -472,6 +472,8 @@ void E131Output::SetManyChannels(int32_t channel, unsigned char* data, size_t si
 
     wxASSERT(!IsOutputCollection_CONVERT());
 
+    if (!_enabled) return;
+
     if (_fppProxyOutput) {
         _fppProxyOutput->SetManyChannels(channel, data, size);
     } 
@@ -490,6 +492,8 @@ void E131Output::SetManyChannels(int32_t channel, unsigned char* data, size_t si
 void E131Output::AllOff() {
 
     wxASSERT(!IsOutputCollection_CONVERT());
+
+    if (!_enabled) return;
 
     if (_fppProxyOutput) {
         _fppProxyOutput->AllOff();

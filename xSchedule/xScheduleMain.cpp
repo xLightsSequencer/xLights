@@ -1006,12 +1006,12 @@ void xScheduleFrame::AddIPs()
 {
     if (_pinger != nullptr)
     {
-        _pinger->RemoveNonOutputIPs();
+        //_pinger->RemoveNonOutputIPs();
 
         auto fppremotes = __schedule->GetOptions()->GetFPPRemotes();
-        for (auto it = fppremotes.begin(); it != fppremotes.end(); ++it)
+        for (const auto& it : fppremotes)
         {
-            _pinger->AddIP(*it, "FPPRemote");
+            _pinger->AddIP(it, "FPPRemote");
         }
 
         if (__schedule->GetOptions()->GetOSCOptions() != nullptr)
@@ -1020,11 +1020,11 @@ void xScheduleFrame::AddIPs()
         }
 
         auto plis = __schedule->GetPlayListIps();
-        for (auto it = plis.begin(); it != plis.end(); ++it)
+        for (const auto& it : plis)
         {
-            if ((*it)->GetTitle() == "OSC")
+            if (it->GetTitle() == "OSC")
             {
-                PlayListItemOSC* osc = (PlayListItemOSC*)* it;
+                PlayListItemOSC* osc = (PlayListItemOSC*)it;
                 _pinger->AddIP(osc->GetIP(), "OSC Play List Item");
             }
         }
@@ -3267,14 +3267,11 @@ void xScheduleFrame::UpdateUI(bool force)
     {
         ListView_Ping->Freeze();
         auto pingresults = _pinger->GetPingers();
-        for (auto it : pingresults)
-        {
+        for (auto it : pingresults) {
             // find it in the list
             int item = -1;
-            for (int i = 0; i < ListView_Ping->GetItemCount(); i++)
-            {
-                if (ListView_Ping->GetItemText(i) == it->GetName())
-                {
+            for (int i = 0; i < ListView_Ping->GetItemCount(); i++) {
+                if (ListView_Ping->GetItemText(i) == it->GetName()) {
                     item = i;
                     break;
                 }
@@ -3283,8 +3280,7 @@ void xScheduleFrame::UpdateUI(bool force)
             wxASSERT(ListView_Ping->GetColumnCount() == 2);
 
             // if not there ... add it
-            if (item == -1)
-            {
+            if (item == -1) {
                 item = ListView_Ping->GetItemCount();
                 item = ListView_Ping->InsertItem(item, it->GetName());
                 ListView_Ping->SetItem(item, 1, "");
@@ -3292,37 +3288,33 @@ void xScheduleFrame::UpdateUI(bool force)
             }
 
             // update the colour
-            if (item >= 0)
-            {
-                if (it->GetFailCount() == 0)
-                {
+            if (item >= 0) {
+                if (it->GetFailCount() == 0) {
                     ListView_Ping->SetItem(item, 1, "");
                 }
-                else
-                {
+                else {
                     ListView_Ping->SetItem(item, 1, wxString::Format("%d", it->GetFailCount()));
                 }
 
-                switch (it->GetPingResult())
-                {
+                switch (it->GetPingResult()) {
                 case Output::PINGSTATE::PING_OK:
                 case Output::PINGSTATE::PING_OPEN:
                 case Output::PINGSTATE::PING_OPENED:
                 case Output::PINGSTATE::PING_WEBOK:
-                    ListView_Ping->SetItemTextColour(item, *wxBLACK);
                     ListView_Ping->SetItemBackgroundColour(item, *wxGREEN);
+                    ListView_Ping->SetItemTextColour(item, *wxBLACK);
                     break;
                 case Output::PINGSTATE::PING_ALLFAILED:
-                    ListView_Ping->SetItemTextColour(item, *wxWHITE);
                     ListView_Ping->SetItemBackgroundColour(item, *wxRED);
+                    ListView_Ping->SetItemTextColour(item, *wxWHITE);
                     break;
                 case Output::PINGSTATE::PING_UNAVAILABLE:
                     ListView_Ping->SetItemTextColour(item, *wxBLACK);
                     ListView_Ping->SetItemBackgroundColour(item, *wxWHITE);
                     break;
                 case Output::PINGSTATE::PING_UNKNOWN:
-                    ListView_Ping->SetItemTextColour(item, *wxBLACK);
                     ListView_Ping->SetItemBackgroundColour(item, wxColour(255, 128, 0));
+                    ListView_Ping->SetItemTextColour(item, *wxBLACK);
                     break;
                 }
             }

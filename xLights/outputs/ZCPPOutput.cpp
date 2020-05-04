@@ -984,6 +984,8 @@ void ZCPPOutput::SetOneChannel(int32_t channel, unsigned char data) {
 
 void ZCPPOutput::SetManyChannels(int32_t channel, unsigned char* data, size_t size) {
 
+    if (!_enabled) return;
+
     size_t chs = std::min(size, (size_t)(_channels - channel));
 
     if (memcmp(&_data[channel], data, chs) != 0)
@@ -995,6 +997,7 @@ void ZCPPOutput::SetManyChannels(int32_t channel, unsigned char* data, size_t si
 
 void ZCPPOutput::AllOff() {
 
+    if (!_enabled) return;
     memset(_data, 0x00, _channels);
     _changed = true;
 }

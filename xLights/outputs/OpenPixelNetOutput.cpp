@@ -85,6 +85,8 @@ void OpenPixelNetOutput::EndFrame(int suppressFrames) {
 #pragma region Data Setting
 void OpenPixelNetOutput::SetOneChannel(int32_t channel, unsigned char data) {
 
+    if (!_enabled) return;
+
     if (_data[channel] != (data == 170 ? 171 : data)) {
         _data[channel] = (data == 170 ? 171 : data);
         _changed = true;
@@ -92,6 +94,7 @@ void OpenPixelNetOutput::SetOneChannel(int32_t channel, unsigned char data) {
 }
 
 void OpenPixelNetOutput::AllOff() {
+    if (!_enabled) return;
     memset(_data, 0, _channels);
     _changed = true;
 }

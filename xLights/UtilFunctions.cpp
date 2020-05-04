@@ -1226,6 +1226,12 @@ void CheckMemoryUsage(const std::string& reason, bool onchangeOnly)
 #endif
 }
 
+bool IsxLights()
+{
+    // Allows functions common to multiple xLights programs to know if they are running in xLights itself
+    return wxTheApp->GetAppName().Lower() == "xlights";
+}
+
 void CleanupIpAddress(wxString& IpAddr)
 {
     static wxRegEx leadingzero1("(^0+)(?:[1-9]|0\\.)", wxRE_ADVANCED);

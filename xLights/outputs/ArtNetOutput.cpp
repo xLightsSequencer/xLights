@@ -393,6 +393,7 @@ void ArtNetOutput::EndFrame(int suppressFrames) {
 #pragma region Data Setting
 void ArtNetOutput::SetOneChannel(int32_t channel, unsigned char data) {
 
+    if (!_enabled) return;
     wxASSERT(channel < _channels);
 
     if (_data[channel + ARTNET_PACKET_HEADERLEN] != data) {
@@ -403,6 +404,7 @@ void ArtNetOutput::SetOneChannel(int32_t channel, unsigned char data) {
 
 void ArtNetOutput::SetManyChannels(int32_t channel, unsigned char* data, size_t size) {
 
+    if (!_enabled) return;
     wxASSERT(channel + size <= _channels);
 
     size_t chs = (std::min)((int32_t)size, _channels - channel);
@@ -418,6 +420,7 @@ void ArtNetOutput::SetManyChannels(int32_t channel, unsigned char* data, size_t 
 
 void ArtNetOutput::AllOff() {
 
+    if (!_enabled) return;
     memset(&_data[ARTNET_PACKET_HEADERLEN], 0x00, _channels);
     _changed = true;
 }

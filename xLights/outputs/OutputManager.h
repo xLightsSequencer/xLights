@@ -95,6 +95,7 @@ public:
     void MoveController(Controller* controller, int toControllerNumber);
     Controller* GetController(const std::string& name) const;
     Controller* GetController(int32_t absoluteChannel, int32_t& startChannel) const; // returns the controller - equivalent to the old level 1
+    Controller* GetControllerWithIP(const std::string& ip);
     Controller* GetControllerIndex(int index) const;
     int GetControllerIndex(Controller* c);
     int GetControllerCount() const { return _controllers.size(); }

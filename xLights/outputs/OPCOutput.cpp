@@ -259,6 +259,7 @@ void OPCOutput::SetOneChannel(int32_t channel, unsigned char data) {
 
 void OPCOutput::SetManyChannels(int32_t channel, unsigned char* data, size_t size) {
 
+    if (!_enabled) return;
     //if (_fppProxyOutput) {
     //    _fppProxyOutput->SetManyChannels(channel, data, size);
     //} 
@@ -276,6 +277,7 @@ void OPCOutput::SetManyChannels(int32_t channel, unsigned char* data, size_t siz
 
 void OPCOutput::AllOff() {
 
+    if (!_enabled) return;
     //if (_fppProxyOutput) {
     //    _fppProxyOutput->AllOff();
     //} 

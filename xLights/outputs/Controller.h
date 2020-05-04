@@ -37,19 +37,23 @@ class BaseController;
 
 class Controller
 {
+public:
+    enum class ACTIVESTATE {ACTIVE, INACTIVE, ACTIVEINXLIGHTSONLY};
+
 protected:
 
 #pragma region Member Variables
-    OutputManager* _outputManager = nullptr; // we need this from time to time
-    bool _dirty = false;                     // dirty means it needs saving
-    int _id = 64001;                         // the controller id ... a unique number
-    std::string _name;                       // a unique name for the controller
-    std::string _description;                // a description for the controller
-    bool _ok = false;                        // controller initiated ok
-    bool _autoSize = false;                  // controller flexes the number of outputs to meet the needs of xLights
+    OutputManager* _outputManager = nullptr;   // we need this from time to time
+    bool _dirty = false;                       // dirty means it needs saving
+    int _id = 64001;                           // the controller id ... a unique number
+    std::string _name;                         // a unique name for the controller
+    std::string _description;                  // a description for the controller
+    bool _ok = false;                          // controller initiated ok
+    bool _autoSize = false;                    // controller flexes the number of outputs to meet the needs of xLights
     //bool _autoStartChannels = false;         // models on this controller can be managed by xLights
-    std::list<Output*> _outputs;             // the outputs on the controller
-    bool _active = true;                     // output to controller is active
+    std::list<Output*> _outputs;               // the outputs on the controller
+    ACTIVESTATE _active = ACTIVESTATE::ACTIVE; // output to controller is active
+
     bool _autoLayout = false;
     bool _autoUpload = false;
     std::string _vendor;                     // the controller vendor
@@ -72,6 +76,8 @@ public:
     // encodes/decodes string lists to indices
     static int EncodeChoices(const wxPGChoices& choices, const std::string& choice);
     static std::string DecodeChoices(const wxPGChoices& choices, int choice);
+    static Controller::ACTIVESTATE EncodeActiveState(const std::string& state);
+    static std::string DecodeActiveState(Controller::ACTIVESTATE state);
 
     static Controller* Create(OutputManager* om, wxXmlNode* node, std::string showDir);
     static std::list<Controller*> Discover(OutputManager* outputManager) { return std::list<Controller*>(); } // Discovers controllers supporting this connection type
@@ -116,8 +122,9 @@ public:
     bool IsAutoUpload() const { return _autoUpload; }
     void SetAutoUpload(bool autoUpload);
 
-    bool IsActive() const { return _active; }
-    void SetActive(bool active);
+    Controller::ACTIVESTATE GetActive() const { return _active; }
+    virtual bool IsActive() const;
+    void SetActive(const std::string& active);
 
     bool IsOk() const { return _ok; }
 
@@ -155,7 +162,7 @@ public:
     virtual std::string GetLongDescription() const { return GetName() + "\n" + GetDescription(); }
 
     // Used in xSchedule
-    virtual std::string GetPingDescription() const { return GetName(); }
+    virtual std::string GetPingDescription() const { return GetName() + (IsActive() ? "" : " (Inactive)"); }
 
     // return the controller type
     virtual std::string GetType() const = 0;

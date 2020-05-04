@@ -233,7 +233,7 @@ Pinger::Pinger(ListenerManager* listenerManager, OutputManager* outputManager)
 
     for (const auto& it : controllers)
     {
-        if (it->CanPing() && it->IsEnabled())
+        if (it->CanPing()) // && it->IsEnabled())
         {
             // check if we have already seen it
             bool found = false;

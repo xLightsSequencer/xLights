@@ -429,6 +429,8 @@ void LOROptimisedOutput::AllOff() {
     //log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     //logger_base.debug("    LOROptimisedOutput: AllOff starting");
 
+    if (!_enabled) return;
+
     int bank = 0;
     for (const auto& it : _controllers.GetControllers()) {
         int unit_id = it->GetUnitId();

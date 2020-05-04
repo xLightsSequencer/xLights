@@ -226,6 +226,9 @@ void Output::Close() {
 #pragma region Data Setting
 // channel here is 0 based
 void Output::SetManyChannels(int32_t channel, unsigned char* data, size_t size) {
+
+    if (!_enabled) return;
+
     if (_fppProxyOutput) {
         _fppProxyOutput->SetManyChannels(channel, data, size);
         return;

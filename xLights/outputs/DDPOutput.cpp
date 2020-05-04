@@ -303,6 +303,8 @@ void DDPOutput::EndFrame(int suppressFrames) {
 #pragma region Data Setting
 void DDPOutput::SetOneChannel(int32_t channel, unsigned char data) {
 
+    if (!_enabled) return;
+
     if (_fppProxyOutput) {
         _fppProxyOutput->SetOneChannel(channel, data);
         return;
@@ -316,6 +318,8 @@ void DDPOutput::SetOneChannel(int32_t channel, unsigned char data) {
 }
 
 void DDPOutput::SetManyChannels(int32_t channel, unsigned char* data, size_t size) {
+
+    if (!_enabled) return;
 
     if (_fppProxyOutput) {
         _fppProxyOutput->SetManyChannels(channel, data, size);
@@ -334,6 +338,8 @@ void DDPOutput::SetManyChannels(int32_t channel, unsigned char* data, size_t siz
 }
 
 void DDPOutput::AllOff() {
+
+    if (!_enabled) return;
 
     if (_fppProxyOutput) {
         _fppProxyOutput->AllOff();

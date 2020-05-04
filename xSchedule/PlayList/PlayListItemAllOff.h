@@ -56,7 +56,7 @@ public:
     int GetBlendMode() const { return _applyMethod; }
     void SetBlendMode(const std::string& blendMode) { if (_applyMethod != EncodeBlendMode(blendMode)) { _applyMethod = EncodeBlendMode(blendMode); _changeCount++; } }
     bool GetFadeToZero() const { return _fadeToZero; }
-    void SetFadeToZero(const int fadeToZero) { if (_fadeToZero != fadeToZero) { _fadeToZero = fadeToZero; _changeCount++; } }
+    void SetFadeToZero(bool fadeToZero) { if (_fadeToZero != fadeToZero) { _fadeToZero = fadeToZero; _changeCount++; } }
     virtual std::string GetTitle() const override;
     #pragma endregion Getters and Setters
 

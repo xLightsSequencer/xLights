@@ -1109,7 +1109,7 @@ public:
     void InitialiseControllersTab();
     void SetControllersProperties();
     void DeleteSelectedControllers();
-    void ActivateSelectedControllers(bool activate);
+    void ActivateSelectedControllers(const std::string& active);
     void SelectAllControllers();
     ControllerCaps* GetControllerCaps(const std::string& name);
     void UploadInputToController(ControllerEthernet* controller);
@@ -1560,6 +1560,7 @@ private:
     static const long ID_NETWORK_ADDNULL;
     static const long ID_NETWORK_ADDETHERNET;
     static const long ID_NETWORK_ACTIVE;
+    static const long ID_NETWORK_ACTIVEXLIGHTS;
     static const long ID_NETWORK_INACTIVE;
     static const long ID_NETWORK_DELETE;
 
