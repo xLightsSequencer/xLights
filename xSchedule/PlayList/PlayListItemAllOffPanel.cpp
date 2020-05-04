@@ -24,6 +24,7 @@ const long PlayListItemAllOffPanel::ID_STATICTEXT1 = wxNewId();
 const long PlayListItemAllOffPanel::ID_TEXTCTRL1 = wxNewId();
 const long PlayListItemAllOffPanel::ID_STATICTEXT3 = wxNewId();
 const long PlayListItemAllOffPanel::ID_SPINCTRL1 = wxNewId();
+const long PlayListItemAllOffPanel::ID_CHECKBOX2 = wxNewId();
 const long PlayListItemAllOffPanel::ID_CHECKBOX1 = wxNewId();
 const long PlayListItemAllOffPanel::ID_STATICTEXT6 = wxNewId();
 const long PlayListItemAllOffPanel::ID_TEXTCTRL3 = wxNewId();
@@ -49,8 +50,8 @@ PlayListItemAllOffPanel::PlayListItemAllOffPanel(wxWindow* parent, OutputManager
     _alloff = alloff;
 
 	//(*Initialize(PlayListItemAllOffPanel)
-	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer1;
+	wxFlexGridSizer* FlexGridSizer2;
 
 	Create(parent, id, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("id"));
 	FlexGridSizer1 = new wxFlexGridSizer(0, 2, 0, 0);
@@ -64,6 +65,10 @@ PlayListItemAllOffPanel::PlayListItemAllOffPanel(wxWindow* parent, OutputManager
 	SpinCtrl_AllSet = new wxSpinCtrl(this, ID_SPINCTRL1, _T("0"), wxDefaultPosition, wxDefaultSize, 0, 0, 255, 0, _T("ID_SPINCTRL1"));
 	SpinCtrl_AllSet->SetValue(_T("0"));
 	FlexGridSizer1->Add(SpinCtrl_AllSet, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer1->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox_FadeToZero = new wxCheckBox(this, ID_CHECKBOX2, _("Fade to zero"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX2"));
+	CheckBox_FadeToZero->SetValue(false);
+	FlexGridSizer1->Add(CheckBox_FadeToZero, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	CheckBox_LimitChannels = new wxCheckBox(this, ID_CHECKBOX1, _("Limit Channels"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
 	CheckBox_LimitChannels->SetValue(false);
@@ -112,6 +117,7 @@ PlayListItemAllOffPanel::PlayListItemAllOffPanel(wxWindow* parent, OutputManager
     SpinCtrl_AllSet->SetValue(alloff->GetValue());
     SpinCtrl_Priority->SetValue(alloff->GetPriority());
     Choice_BlendMode->SetSelection(alloff->GetBlendMode());
+	CheckBox_FadeToZero->SetValue(alloff->GetFadeToZero());
 
     long channels = xScheduleFrame::GetScheduleManager()->GetTotalChannels();
     SpinCtrl_Channels->SetRange(1, channels);
@@ -140,6 +146,7 @@ PlayListItemAllOffPanel::~PlayListItemAllOffPanel()
     _alloff->SetDelay(wxAtof(TextCtrl_Delay->GetValue()) * 1000);
     _alloff->SetBlendMode(Choice_BlendMode->GetStringSelection().ToStdString());
     _alloff->SetPriority(SpinCtrl_Priority->GetValue());
+	_alloff->SetFadeToZero(CheckBox_FadeToZero->GetValue());
     if (CheckBox_LimitChannels->GetValue())
     {
         _alloff->SetStartChannel(TextCtrl_StartChannel->GetValue().ToStdString());

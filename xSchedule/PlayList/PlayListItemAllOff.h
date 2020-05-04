@@ -24,6 +24,8 @@ protected:
 #pragma region Member Variables
     long _duration;
     uint8_t _value;
+    float _perFrame = 0;
+    bool _fadeToZero;
     size_t _sc;
     std::string _startChannel;
     OutputManager* _outputManager;
@@ -43,7 +45,7 @@ public:
 #pragma region Getters and Setters
     virtual size_t GetDurationMS() const override { return _delay + _duration; }
     long GetDuration() const { return _duration; }
-    void SetDuration(long duration) { if (_duration != duration) { _duration = duration; _changeCount++; } }
+    void SetDuration(long duration) { if (duration <= 1) duration = 1; if (_duration != duration) { _duration = duration; _changeCount++; } }
     std::string GetStartChannel() const { return _startChannel; }
     size_t GetStartChannelAsNumber();
     void SetStartChannel(std::string startChannel) { if (_startChannel != startChannel) { _startChannel = startChannel; _sc = 0;  _changeCount++; } }
@@ -53,6 +55,8 @@ public:
     void SetValue(uint8_t value) { if (_value != value) { _value = value; _changeCount++; } }
     int GetBlendMode() const { return _applyMethod; }
     void SetBlendMode(const std::string& blendMode) { if (_applyMethod != EncodeBlendMode(blendMode)) { _applyMethod = EncodeBlendMode(blendMode); _changeCount++; } }
+    bool GetFadeToZero() const { return _fadeToZero; }
+    void SetFadeToZero(const int fadeToZero) { if (_fadeToZero != fadeToZero) { _fadeToZero = fadeToZero; _changeCount++; } }
     virtual std::string GetTitle() const override;
     #pragma endregion Getters and Setters
 

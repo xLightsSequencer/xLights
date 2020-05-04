@@ -11,14 +11,14 @@
  **************************************************************/
 
  //(*Headers(PlayListItemAllOffPanel)
-#include <wx/sizer.h>
-#include <wx/stattext.h>
-#include <wx/textctrl.h>
-#include <wx/checkbox.h>
-#include <wx/spinctrl.h>
-#include <wx/panel.h>
-#include <wx/choice.h>
-//*)
+ #include <wx/checkbox.h>
+ #include <wx/choice.h>
+ #include <wx/panel.h>
+ #include <wx/sizer.h>
+ #include <wx/spinctrl.h>
+ #include <wx/stattext.h>
+ #include <wx/textctrl.h>
+ //*)
 
 class OutputManager;
 class PlayListItemAllOff;
@@ -35,22 +35,23 @@ class PlayListItemAllOffPanel: public wxPanel
         void ValidateWindow();
 
 		//(*Declarations(PlayListItemAllOffPanel)
-		wxStaticText* StaticText_StartChannel;
-		wxChoice* Choice_BlendMode;
-		wxSpinCtrl* SpinCtrl_Channels;
-		wxStaticText* StaticText2;
-		wxTextCtrl* TextCtrl_AllOffDuration;
-		wxStaticText* StaticText6;
-		wxStaticText* StaticText1;
-		wxStaticText* StaticText3;
+		wxCheckBox* CheckBox_FadeToZero;
 		wxCheckBox* CheckBox_LimitChannels;
-		wxTextCtrl* TextCtrl_Delay;
-		wxSpinCtrl* SpinCtrl_Priority;
-		wxStaticText* StaticText5;
-		wxStaticText* StaticText7;
-		wxTextCtrl* TextCtrl_StartChannel;
-		wxStaticText* StaticText4;
+		wxChoice* Choice_BlendMode;
 		wxSpinCtrl* SpinCtrl_AllSet;
+		wxSpinCtrl* SpinCtrl_Channels;
+		wxSpinCtrl* SpinCtrl_Priority;
+		wxStaticText* StaticText1;
+		wxStaticText* StaticText2;
+		wxStaticText* StaticText3;
+		wxStaticText* StaticText4;
+		wxStaticText* StaticText5;
+		wxStaticText* StaticText6;
+		wxStaticText* StaticText7;
+		wxStaticText* StaticText_StartChannel;
+		wxTextCtrl* TextCtrl_AllOffDuration;
+		wxTextCtrl* TextCtrl_Delay;
+		wxTextCtrl* TextCtrl_StartChannel;
 		//*)
 
 	protected:
@@ -60,6 +61,7 @@ class PlayListItemAllOffPanel: public wxPanel
 		static const long ID_TEXTCTRL1;
 		static const long ID_STATICTEXT3;
 		static const long ID_SPINCTRL1;
+		static const long ID_CHECKBOX2;
 		static const long ID_CHECKBOX1;
 		static const long ID_STATICTEXT6;
 		static const long ID_TEXTCTRL3;

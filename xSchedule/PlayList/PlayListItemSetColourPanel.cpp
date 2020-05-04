@@ -24,6 +24,7 @@ const long PlayListItemSetColourPanel::ID_STATICTEXT1 = wxNewId();
 const long PlayListItemSetColourPanel::ID_TEXTCTRL1 = wxNewId();
 const long PlayListItemSetColourPanel::ID_STATICTEXT3 = wxNewId();
 const long PlayListItemSetColourPanel::ID_COLOURPICKERCTRL1 = wxNewId();
+const long PlayListItemSetColourPanel::ID_CHECKBOX2 = wxNewId();
 const long PlayListItemSetColourPanel::ID_CHECKBOX1 = wxNewId();
 const long PlayListItemSetColourPanel::ID_STATICTEXT6 = wxNewId();
 const long PlayListItemSetColourPanel::ID_TEXTCTRL3 = wxNewId();
@@ -63,6 +64,10 @@ PlayListItemSetColourPanel::PlayListItemSetColourPanel(wxWindow* parent, OutputM
 	FlexGridSizer1->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	ColourPickerCtrl1 = new wxColourPickerCtrl(this, ID_COLOURPICKERCTRL1, wxColour(0,0,0), wxDefaultPosition, wxDefaultSize, wxCLRP_SHOW_LABEL, wxDefaultValidator, _T("ID_COLOURPICKERCTRL1"));
 	FlexGridSizer1->Add(ColourPickerCtrl1, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer1->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox_FadeToBlack = new wxCheckBox(this, ID_CHECKBOX2, _("Fade to black"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX2"));
+	CheckBox_FadeToBlack->SetValue(false);
+	FlexGridSizer1->Add(CheckBox_FadeToBlack, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	CheckBox_LimitNodes = new wxCheckBox(this, ID_CHECKBOX1, _("Limit Nodes"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
 	CheckBox_LimitNodes->SetValue(false);
@@ -111,6 +116,7 @@ PlayListItemSetColourPanel::PlayListItemSetColourPanel(wxWindow* parent, OutputM
     ColourPickerCtrl1->SetColour(SetColour->GetValue());
     SpinCtrl_Priority->SetValue(SetColour->GetPriority());
     Choice_BlendMode->SetSelection(SetColour->GetBlendMode());
+	CheckBox_FadeToBlack->SetValue(SetColour->GetFadeToBlack());
 
     long channels = xScheduleFrame::GetScheduleManager()->GetTotalChannels();
     SpinCtrl_Nodes->SetRange(1, channels / 3);
@@ -139,6 +145,7 @@ PlayListItemSetColourPanel::~PlayListItemSetColourPanel()
     _SetColour->SetDelay(wxAtof(TextCtrl_Delay->GetValue()) * 1000);
     _SetColour->SetBlendMode(Choice_BlendMode->GetStringSelection().ToStdString());
     _SetColour->SetPriority(SpinCtrl_Priority->GetValue());
+	_SetColour->SetFadeToBlack(CheckBox_FadeToBlack->GetValue());
     if (CheckBox_LimitNodes->GetValue())
     {
         _SetColour->SetStartChannel(TextCtrl_StartChannel->GetValue().ToStdString());

@@ -29,6 +29,8 @@ protected:
     OutputManager* _outputManager;
     size_t _nodes;
     APPLYMETHOD _applyMethod;
+    float _perFrame = 1.0;
+    bool _fadeToBlack = false;
 #pragma endregion Member Variables
 
 public:
@@ -43,7 +45,7 @@ public:
 #pragma region Getters and Setters
     virtual size_t GetDurationMS() const override { return _delay + _duration; }
     long GetDuration() const { return _duration; }
-    void SetDuration(long duration) { if (_duration != duration) { _duration = duration; _changeCount++; } }
+    void SetDuration(long duration) { if (_duration <= 1) _duration = 1; if (_duration != duration) { _duration = duration; _changeCount++; } }
     std::string GetStartChannel() const { return _startChannel; }
     size_t GetStartChannelAsNumber();
     void SetStartChannel(std::string startChannel) { if (_startChannel != startChannel) { _startChannel = startChannel; _sc = 0;  _changeCount++; } }
@@ -53,6 +55,8 @@ public:
     void SetValue(wxColor value) { if (_value != value) { _value = value; _changeCount++; } }
     int GetBlendMode() const { return _applyMethod; }
     void SetBlendMode(const std::string& blendMode) { if (_applyMethod != EncodeBlendMode(blendMode)) { _applyMethod = EncodeBlendMode(blendMode); _changeCount++; } }
+    bool GetFadeToBlack() const { return _fadeToBlack; }
+    void SetFadeToBlack(bool fadeToBlack) { if (_fadeToBlack != fadeToBlack) { _fadeToBlack = fadeToBlack; _changeCount++; } }
     virtual std::string GetTitle() const override;
     #pragma endregion Getters and Setters
 

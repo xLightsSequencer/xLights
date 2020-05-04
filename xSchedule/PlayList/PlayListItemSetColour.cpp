@@ -23,6 +23,8 @@ PlayListItemSetColour::PlayListItemSetColour(OutputManager* outputManager, wxXml
     _duration = 50;
     _value = *wxBLACK;
     _applyMethod = APPLYMETHOD::METHOD_OVERWRITE;
+    _fadeToBlack = false;
+    _perFrame = 999;
     PlayListItemSetColour::Load(node);
 }
 
@@ -34,6 +36,7 @@ void PlayListItemSetColour::Load(wxXmlNode* node)
     _applyMethod = (APPLYMETHOD)wxAtoi(node->GetAttribute("ApplyMethod", ""));
     _startChannel = node->GetAttribute("StartChannel", "1").ToStdString();
     _nodes = wxAtol(node->GetAttribute("Nodes", "0"));
+    _fadeToBlack = (node->GetAttribute("FadeToBlack", "FALSE") == "TRUE");
 }
 
 PlayListItemSetColour::PlayListItemSetColour(OutputManager* outputManager) : PlayListItem()
@@ -45,6 +48,8 @@ PlayListItemSetColour::PlayListItemSetColour(OutputManager* outputManager) : Pla
     _startChannel = "1";
     _duration = 50;
     _value = *wxBLACK;
+    _fadeToBlack = false;
+    _perFrame = 999;
     _applyMethod = APPLYMETHOD::METHOD_OVERWRITE;
     SetName("Set Colour");
 }
@@ -58,6 +63,7 @@ PlayListItem* PlayListItemSetColour::Copy() const
     res->_value = _value;
     res->_nodes = _nodes;
     res->_startChannel = _startChannel;
+    res->_fadeToBlack = _fadeToBlack;
     PlayListItem::Copy(res);
 
     return res;
@@ -82,6 +88,7 @@ wxXmlNode* PlayListItemSetColour::Save()
     node->AddAttribute("ApplyMethod", wxString::Format(wxT("%i"), (int)_applyMethod));
     node->AddAttribute("StartChannel", _startChannel);
     node->AddAttribute("Nodes", wxString::Format(wxT("%ld"), (long)_nodes));
+    if (_fadeToBlack) node->AddAttribute("FadeToBlack", "TRUE");
 
     PlayListItem::Save(node);
 
@@ -102,6 +109,15 @@ void PlayListItemSetColour::Frame(uint8_t* buffer, size_t size, size_t ms, size_
 {
     if (outputframe)
     {
+        if (_perFrame == 999)             {
+            if (_fadeToBlack) {
+                _perFrame = 1 / ((float)_duration / (float)framems);
+            }
+            else {
+                _perFrame = 0;
+            }
+        }
+
         if (ms >= _delay && ms <= _delay + _duration)
         {
             long sc = GetStartChannelAsNumber();
@@ -120,6 +136,21 @@ void PlayListItemSetColour::Frame(uint8_t* buffer, size_t size, size_t ms, size_
                 data[0] = _value.Red();
                 data[1] = _value.Green();
                 data[2] = _value.Blue();
+
+                if (_perFrame > 0) {
+                    int frame = (ms - _delay) / framems;
+                    float fade = _perFrame * frame;
+                    float f0 = (float)data[0] - ((float)data[0] * fade);
+                    float f1 = (float)data[1] - ((float)data[1] * fade);
+                    float f2 = (float)data[2] - ((float)data[2] * fade);
+                    if (f0 < 0) f0 = 0;
+                    if (f1 < 0) f1 = 0;
+                    if (f2 < 0) f2 = 0;
+                    data[0] = f0;
+                    data[1] = f1;
+                    data[2] = f2;
+                }
+
                 uint8_t* values = (uint8_t*)malloc(toset * 3);
                 if (values != nullptr)
                 {
