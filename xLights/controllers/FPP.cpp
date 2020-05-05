@@ -1324,6 +1324,7 @@ wxJSONValue FPP::CreateUniverseFile(const std::list<ControllerEthernet*>& select
 
     for (const auto& it2 : selected)
     {
+        auto controllerEnabled = it2->GetActive();
         bool const allSameSize = it2->AllSameSize();
         // Get universes based on IP
         std::list<Output*> outputs = it2->GetOutputs();
@@ -1331,7 +1332,7 @@ wxJSONValue FPP::CreateUniverseFile(const std::list<ControllerEthernet*>& select
             int c = it->GetStartChannel();
 
             wxJSONValue universe;
-            universe["active"] = it->IsEnabled() ? 1 : 0;
+            universe["active"] = controllerEnabled == Controller::ACTIVESTATE::ACTIVE ? 1 : 0;
             universe["description"] = stripInvalidChars(it2->GetName());
             universe["id"] = it->GetUniverse();
             universe["startChannel"] = c;
