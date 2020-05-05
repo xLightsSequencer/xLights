@@ -864,13 +864,6 @@ void LayoutPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
                         selectedModel->RestoreDisplayDimensions();
                     }
                     wxASSERT(i == 0 || i == GRIDCHANGE_SUPPRESS_HOLDSIZE);
-
-                    if ("SubModels" == name) {
-                        // if the sequencer is open we need to force a refresh to make sure submodel names are right
-                        wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
-                        wxPostEvent(xlights, eventForceRefresh);
-                        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "LayoutPanel::OnPropertyGridChange", nullptr, nullptr, selectedBaseObject->GetName());
-                    }
                 }
             }
         }
@@ -2222,7 +2215,12 @@ void LayoutPanel::SetupPropGrid(BaseObject *base_object) {
     clearPropGrid();
 
     if( editing_models ) {
-        propertyEditor->Append(new wxStringProperty("Name", "ModelName", base_object->name));
+        auto p = propertyEditor->Append(new wxStringProperty("Name", "ModelName", base_object->name));
+        if (dynamic_cast<SubModel*>(base_object) != nullptr) {
+            p->ChangeFlag(wxPG_PROP_READONLY, true);
+            p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
+            p->SetHelpString("Submodel names cannot be changed here.");
+        }
     } else {
         propertyEditor->Append(new wxStringProperty("Name", "ObjectName", base_object->name));
     }
