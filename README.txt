@@ -11,12 +11,19 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2020.18 May 5 2020
    -- enh (keith)  Add 3d display of floodlights including beam length control
    -- enh (keith)  Add ability to span models over several smart remotes from the same 4 ports
    -- enh (keith)  Add ability to flip virtual matrices
    -- enh (keith)  When reporting missing face images include the name of the face in the error message
    -- enh (priemd) Optimise custom model loading
    -- enh (scott)  Updated HinksPix Export Dialog with Slave support and Master/Remote mode.
+   -- enh (keith)  Added a new controller state ... active in xLights. This allows you to output to the controller in xLights but 
+                   in xSchedule or when uploaded to a FPP master the output will be disabled.
+   -- enh (keith)  Add option to fade to black or fade to zero in the set colour and set all playlist items in xSchedule
+   -- enh (keith)  Add an offset to the schedule start end time when sunrise or sunset is used.
+   -- enh (scott)  Updated HinksPix Export Dialog with Remote support and Master/Remote mode.
+   -- bug (priemd) Fix submodel names dont update in model list when changed
 2020.17 May 1 2020
    -- enh (keith)  Add native media player option for video in xSchedule. This slightly reduces control but improves performance
    -- enh (keith)  When using DMX effect on model group label the sliders using the node names from the first model in the group
