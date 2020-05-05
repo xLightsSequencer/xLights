@@ -2436,8 +2436,6 @@ void xLightsFrame::CreateMissingDirectories(wxString targetDirName, wxString las
 
     if (!tgt.GetFullPath().StartsWith(lst.GetFullPath())) return;
 
-    //wxArrayString tgtd = tgt.GetDirs();
-    //wxArrayString lstd = lst.GetDirs();
     wxArrayString tgtd = wxSplit(targetDirName, wxFileName::GetPathSeparator());
     wxArrayString lstd = wxSplit(lastCreatedDirectory, wxFileName::GetPathSeparator());
     wxString newDir = lastCreatedDirectory;
@@ -3846,6 +3844,11 @@ void xLightsFrame::ShowHideAllPreviewWindows(wxCommandEvent& event)
 void xLightsFrame::DoAltBackup(bool prompt)
 {
 
+    if (mAltBackupDir == "" || !wxDirExists(mAltBackupDir)) {
+        DisplayError(wxString::Format("Alternate backup directory location not defined or does not exist: '%s'", mAltBackupDir).ToStdString());
+        return;
+    }
+
     wxString folderName;
     time_t cur;
     time(&cur);
@@ -3854,8 +3857,7 @@ void xLightsFrame::DoAltBackup(bool prompt)
 
     //  first make sure there is a Backup sub directory
     wxString newDirBackup = mAltBackupDir + wxFileName::GetPathSeparator() + "Backup";
-    if (!wxDirExists(newDirBackup) && !newDirH.Mkdir(newDirBackup))
-    {
+    if (!wxDirExists(newDirBackup) && !newDirH.Mkdir(newDirBackup)) {
         DisplayError(wxString::Format("Unable to create backup directory '%s'!", newDirBackup).ToStdString());
         return;
     }
@@ -3864,17 +3866,14 @@ void xLightsFrame::DoAltBackup(bool prompt)
         "Backup%c%s-%s", wxFileName::GetPathSeparator(),
         curTime.FormatISODate(), curTime.Format("%H%M%S"));
 
-    if (prompt)
-    {
+    if (prompt) {
         if (wxNO == wxMessageBox("All xml files under " + wxString::Format("%i", MAXBACKUPFILE_MB) + "MB in your xlights directory will be backed up to \"" +
-            newDir + "\". Proceed?", "Backup", wxICON_QUESTION | wxYES_NO))
-        {
+            newDir + "\". Proceed?", "Backup", wxICON_QUESTION | wxYES_NO)) {
             return;
         }
     }
 
-    if (!newDirH.Mkdir(newDir))
-    {
+    if (!newDirH.Mkdir(newDir)) {
         DisplayError(wxString::Format("Unable to create directory '%s'!", newDir).ToStdString());
         return;
     }
@@ -3882,8 +3881,7 @@ void xLightsFrame::DoAltBackup(bool prompt)
     std::string errors = "";
     BackupDirectory(CurrentDir, newDir, newDir, false, errors);
 
-    if (errors != "")
-    {
+    if (errors != "") {
         DisplayError(errors, this);
     }
 }
@@ -3898,20 +3896,16 @@ void xLightsFrame::SetBackupFolder(bool useShow, const std::string& folder)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    if (useShow)
-    {
+    if (useShow) {
         if (backupDirectory == showDirectory) return;
         backupDirectory = showDirectory;
     }
-    else
-    {
-        if (wxDir::Exists(folder))
-        {
+    else {
+        if (wxDir::Exists(folder)) {
             if (backupDirectory == folder) return;
             backupDirectory = folder;
         }
-        else
-        {
+        else {
             DisplayError("Backup directory does not exist. Backup folder was not changed to " + folder + ". Backup folder remains : " + backupDirectory, this);
             return;
         }

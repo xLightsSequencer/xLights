@@ -745,7 +745,9 @@ Effect* EffectsGrid::FillRandomEffects()
             wxProgressDialog prog("Generating random effects", "This may take some time", 100, this, wxPD_APP_MODAL | wxPD_AUTO_HIDE);
             prog.Show();
             float progValue = 0;
-            float per = 100.0 / (float)((row2 - row1 + 1) * (timingIndex2 - timingIndex1 + 1));
+            float den = (float)((row2 - row1 + 1) * (timingIndex2 - timingIndex1 + 1));
+            float per = 0.01;
+            if (den != 0) per = 100.0 / den;
             mSequenceElements->get_undo_mgr().CreateUndoStep();
             for( int row = row1; row <= row2; row++)
             {
@@ -6931,7 +6933,7 @@ void EffectsGrid::GetRangeOfMovementForSelectedEffects(int &toLeft, int &toRight
 
 void EffectsGrid::MoveAllSelectedEffects(int deltaMS, bool offset) const
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     // Tag all selected effects so we don't move them twice
     ((MainSequencer*)mParent)->TagAllSelectedEffects();
@@ -6940,7 +6942,7 @@ void EffectsGrid::MoveAllSelectedEffects(int deltaMS, bool offset) const
         for(int row = 0; row < mSequenceElements->GetRowInformationSize(); row++)
         {
             EffectLayer* el = mSequenceElements->GetEffectLayer(row);
-            if (el == nullptr) logger_base.crit("MoveAllSelectedEffect EffectLayer A was NULL ... this is going to crash.");
+            //if (el == nullptr) logger_base.crit("MoveAllSelectedEffect EffectLayer A was NULL ... this is going to crash.");
             el->MoveAllSelectedEffects(deltaMS, mSequenceElements->get_undo_mgr());
         }
     } else {
@@ -6949,7 +6951,7 @@ void EffectsGrid::MoveAllSelectedEffects(int deltaMS, bool offset) const
         for(int row = 0; row < mSequenceElements->GetRowInformationSize(); row++)
         {
             EffectLayer* el = mSequenceElements->GetEffectLayer(row);
-            if (el == nullptr) logger_base.crit("MoveAllSelectedEffect EffectLayer B was NULL ... this is going to crash.");
+            //if (el == nullptr) logger_base.crit("MoveAllSelectedEffect EffectLayer B was NULL ... this is going to crash.");
             if (el->GetSelectedEffectCount() > 0) {
                 if (start_row == -1) {
                     start_row = row;
@@ -6958,13 +6960,15 @@ void EffectsGrid::MoveAllSelectedEffects(int deltaMS, bool offset) const
                 }
             }
         }
-        if (start_row == end_row) logger_base.crit("MoveAllSelectedEffect start_row == end_row ... this is going to crash.");
-        int delta_step = deltaMS / (end_row - start_row);
+        int delta_step = 1000 / mSequenceElements->GetFrequency();
+        if (start_row != end_row) {
+            delta_step = deltaMS / (end_row - start_row);
+        }
         delta_step = mTimeline->RoundToMultipleOfPeriod(delta_step, mSequenceElements->GetFrequency());
         for (int row = start_row; row <= end_row; row++)
         {
             EffectLayer* el = mSequenceElements->GetEffectLayer(row);
-            if (el == nullptr) logger_base.crit("MoveAllSelectedEffect EffectLayer C was NULL ... this is going to crash.");
+            //if (el == nullptr) logger_base.crit("MoveAllSelectedEffect EffectLayer C was NULL ... this is going to crash.");
             if( mResizingMode == EFFECT_RESIZE_RIGHT || mResizingMode == EFFECT_RESIZE_MOVE) {
                 el->MoveAllSelectedEffects(delta_step*(row-start_row), mSequenceElements->get_undo_mgr());
             } else {

@@ -3360,12 +3360,15 @@ void LayoutPanel::FinalizeModel()
             if (cancelled || newModel == nullptr) {
                 _lastXlightsModel = "";
                 xlights->AddTraceMessage("LayoutPanel::FinalizeModel Downloading or importing cancelled.");
+                xlights->GetOutputModelManager()->ClearSelectedModel();
+                modelPreview->SetAdditionalModel(nullptr);
+                xlights->AddTraceMessage("LayoutPanel::FinalizeModel Additional model cleared.");
                 if (newModel != nullptr)
                 {
                     delete newModel; // I am not sure this may cause issues ... but if we dont have it i think it leaks
                     newModel = nullptr;
                 }
-                modelPreview->SetAdditionalModel(nullptr);
+                xlights->AddTraceMessage("LayoutPanel::Model deleted.");
                 modelPreview->SetCursor(wxCURSOR_DEFAULT);
                 b->SetState(0);
                 selectedButton = nullptr;
@@ -3617,6 +3620,8 @@ void LayoutPanel::OnPreviewMouseWheel(wxMouseEvent& event)
 
 void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
 {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     if (m_creating_bound_rect)
     {
         m_bound_end_x = event.GetX();
@@ -3736,6 +3741,9 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
                     }
                     if (selectedBaseObject->GetBaseObjectScreenLocation().GetAxisTool() == TOOL_SCALE) {
                         glm::vec3 new_worldscale = selectedBaseObject->GetBaseObjectScreenLocation().GetScaleMatrix();
+                        if (last_worldscale.x == 0 || last_worldscale.y == 0 || last_worldscale.z == 0) {
+                            logger_base.crit("This is not going to end well last_world_scale has a zero parameter and we are about to divide using it.");
+                        }
                         glm::vec3 scale_offset = glm::vec3(new_worldscale / last_worldscale);
                         for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
                         {
@@ -5497,16 +5505,22 @@ void LayoutPanel::OnListCharHook(wxKeyEvent& event)
 
 ModelGroup* LayoutPanel::GetSelectedModelGroup() const
 {
+    ModelGroup* res = nullptr;
+
+    // This is here because I am seeing crashes which i believe originate here
+    xlights->AddTraceMessage("LayoutPanel::GetSelectedModelGroup");
     auto item = TreeListViewModels->GetSelection();
-    if (!item.IsOk()) return nullptr;
-    ModelTreeData* data = dynamic_cast<ModelTreeData*>(TreeListViewModels->GetItemData(item));
-    Model* model = data != nullptr ? data->GetModel() : nullptr;
-    if (model != nullptr) {
-        if (model->GetDisplayAs() == "ModelGroup") {
-            return dynamic_cast<ModelGroup*>(model);
+    if (item.IsOk()) {
+        ModelTreeData* data = dynamic_cast<ModelTreeData*>(TreeListViewModels->GetItemData(item));
+        Model* model = data != nullptr ? data->GetModel() : nullptr;
+        if (model != nullptr) {
+            if (model->GetDisplayAs() == "ModelGroup") {
+                res = dynamic_cast<ModelGroup*>(model);
+            }
         }
     }
-    return nullptr;
+    xlights->AddTraceMessage("LayoutPanel::GetSelectedModelGroup done");
+    return res;
 }
 
 void LayoutPanel::DeleteSelectedModel() {
@@ -5514,6 +5528,9 @@ void LayoutPanel::DeleteSelectedModel() {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     if( selectedBaseObject != nullptr && !selectedBaseObject->GetBaseObjectScreenLocation().IsLocked()) {
+
+        xlights->AddTraceMessage("LayoutPanel::Delete Selected Model");
+
         // we suspend deferred work because if the delete model pops a dialog then the ASAP work gets done prematurely
         xlights->GetOutputModelManager()->SuspendDeferredWork(true);
         xlights->UnselectEffect(); // we do this just in case the effect is on the model we are deleting
@@ -5955,6 +5972,8 @@ void LayoutPanel::DoUndo(wxCommandEvent& event) {
 }
 
 void LayoutPanel::CreateUndoPoint(const std::string &type, const std::string &model, const std::string &key, const std::string &data) {
+
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::CreateUndoPoint");
     size_t idx = undoBuffer.size();
 
@@ -5992,9 +6011,11 @@ void LayoutPanel::CreateUndoPoint(const std::string &type, const std::string &mo
                 return;
             }
             m=dynamic_cast<Model*>(selectedBaseObject);
+            wxASSERT(m != nullptr);
         }
         wxXmlDocument doc;
         wxXmlNode *parent = m->GetModelXml()->GetParent();
+        if (parent == nullptr) logger_base.crit("LayoutPanel::CreateUndoPoint Model Parent was NULL ... this is going to get ugly.");
         wxXmlNode *next = m->GetModelXml()->GetNext();
         parent->RemoveChild(m->GetModelXml());
         doc.SetRoot(m->GetModelXml());
@@ -6010,8 +6031,10 @@ void LayoutPanel::CreateUndoPoint(const std::string &type, const std::string &mo
             return;
         }
         obj=dynamic_cast<ViewObject*>(selectedBaseObject);
+        wxASSERT(obj != nullptr);
         wxXmlDocument doc;
         wxXmlNode *parent = obj->GetModelXml()->GetParent();
+        if (parent == nullptr) logger_base.crit("LayoutPanel::CreateUndoPoint ViewObject Parent was NULL ... this is going to get ugly.");
         wxXmlNode *next = obj->GetModelXml()->GetNext();
         parent->RemoveChild(obj->GetModelXml());
         doc.SetRoot(obj->GetModelXml());
@@ -6023,6 +6046,7 @@ void LayoutPanel::CreateUndoPoint(const std::string &type, const std::string &mo
     } else if (type == "All") {
         wxXmlDocument doc;
         wxXmlNode *parent = xlights->ModelsNode->GetParent();
+        if (parent == nullptr) logger_base.crit("LayoutPanel::CreateUndoPoint ModelsNode Parent was NULL ... this is going to get ugly.");
         wxXmlNode *next = xlights->ModelsNode->GetNext();
         parent->RemoveChild(xlights->ModelsNode);
         doc.SetRoot(xlights->ModelsNode);
@@ -6033,6 +6057,7 @@ void LayoutPanel::CreateUndoPoint(const std::string &type, const std::string &mo
         parent->InsertChild(xlights->ModelsNode, next);
 
         parent = xlights->ViewObjectsNode->GetParent();
+        if (parent == nullptr) logger_base.crit("LayoutPanel::CreateUndoPoint ViewObjectsNode Parent was NULL ... this is going to get ugly.");
         next = xlights->ViewObjectsNode->GetNext();
         parent->RemoveChild(xlights->ViewObjectsNode);
         doc.SetRoot(xlights->ViewObjectsNode);
@@ -6044,6 +6069,7 @@ void LayoutPanel::CreateUndoPoint(const std::string &type, const std::string &mo
 
         wxStringOutputStream stream2;
         parent = xlights->ModelGroupsNode->GetParent();
+        if (parent == nullptr) logger_base.crit("LayoutPanel::CreateUndoPoint ModelGroupsNode Parent was NULL ... this is going to get ugly.");
         next = xlights->ModelGroupsNode->GetNext();
         parent->RemoveChild(xlights->ModelGroupsNode);
         doc.SetRoot(xlights->ModelGroupsNode);

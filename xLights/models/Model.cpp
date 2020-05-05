@@ -492,12 +492,16 @@ void Model::UpdateProperties(wxPropertyGridInterface* grid, OutputManager* outpu
         grid->GetPropertyByName("Controller")->Enable(outputManager->GetAutoLayoutControllerNames().size() > 0);
     }
 
-    if (HasOneString(DisplayAs)) {
+    if (HasOneString(DisplayAs) && grid->GetPropertyByName("ModelStartChannel") != nullptr) {
         grid->GetPropertyByName("ModelStartChannel")->Enable(GetControllerName() == "" && _controller == 0);
     }
     else {
-        grid->GetPropertyByName("ModelIndividualStartChannels")->Enable(parm1 > 1 && GetControllerName() == "" && _controller == 0);
-        grid->GetPropertyByName("ModelIndividualStartChannels.ModelStartChannel")->Enable(GetControllerName() == "" && _controller == 0);
+        if (grid->GetPropertyByName("ModelIndividualStartChannels") != nullptr) {
+            grid->GetPropertyByName("ModelIndividualStartChannels")->Enable(parm1 > 1 && GetControllerName() == "" && _controller == 0);
+        }
+        if (grid->GetPropertyByName("ModelIndividualStartChannels.ModelStartChannel") != nullptr) {
+            grid->GetPropertyByName("ModelIndividualStartChannels.ModelStartChannel")->Enable(GetControllerName() == "" && _controller == 0);
+        }
     }
 
     if (grid->GetPropertyByName("ModelChain") != nullptr) {
@@ -506,20 +510,29 @@ void Model::UpdateProperties(wxPropertyGridInterface* grid, OutputManager* outpu
 
     UpdateControllerProperties(grid);
 
-    int i = grid->GetPropertyByName("ModelStringType")->GetValue().GetLong();
-    if (NODE_TYPES[i] == "Single Color" || NODE_TYPES[i] == "Single Color Intensity" || NODE_TYPES[i] == "Node Single Color") {
-        grid->GetPropertyByName("ModelStringColor")->Enable();
-        if (NODE_TYPES[i] == "Node Single Color") {
-            grid->GetPropertyByName("ModelStringType")->SetHelpString("This represents a string of single color LEDS which are individually controlled. These are very uncommon.");
+    if (grid->GetPropertyByName("ModelStringType") != nullptr) {
+        int i = grid->GetPropertyByName("ModelStringType")->GetValue().GetLong();
+        if (NODE_TYPES[i] == "Single Color" || NODE_TYPES[i] == "Single Color Intensity" || NODE_TYPES[i] == "Node Single Color") {
+            if (grid->GetPropertyByName("ModelStringColor") != nullptr) {
+                grid->GetPropertyByName("ModelStringColor")->Enable();
+            }
+            if (NODE_TYPES[i] == "Node Single Color") {
+                grid->GetPropertyByName("ModelStringType")->SetHelpString("This represents a string of single color LEDS which are individually controlled. These are very uncommon.");
+            }
+            else {
+                grid->GetPropertyByName("ModelStringType")->SetHelpString("");
+            }
         }
         else {
-            grid->GetPropertyByName("ModelStringType")->SetHelpString("");
+            if (grid->GetPropertyByName("ModelStringColor") != nullptr) {
+                grid->GetPropertyByName("ModelStringColor")->Enable(false);
+            }
         }
     }
-    else {
-        grid->GetPropertyByName("ModelStringColor")->Enable(false);
+
+    if (grid->GetPropertyByName("ModelRGBWHandling") != nullptr) {
+        grid->GetPropertyByName("ModelRGBWHandling")->Enable(!(HasSingleChannel(StringType) || GetNodeChannelCount(StringType) != 4));
     }
-    grid->GetPropertyByName("ModelRGBWHandling")->Enable(!(HasSingleChannel(StringType) || GetNodeChannelCount(StringType) != 4));
 }
 
 void Model::ColourClashingChains(wxPGProperty* p)

@@ -1444,7 +1444,8 @@ void xLightsFrame::SetControllersProperties() {
     if (GetFirstSelectedControllerIndex() >= 0 && ButtonAddControllerSerial->IsEnabled()) {
         if (Controllers_PropertyEditor->GetPropertyByName("ControllerName") == nullptr || 
             List_Controllers->GetItemText(GetFirstSelectedControllerIndex()) != Controllers_PropertyEditor->GetPropertyByName("ControllerName")->GetValue().GetString()) {
-            _outputManager.GetController(List_Controllers->GetItemText(GetFirstSelectedControllerIndex()))->AsyncPing();
+            auto doping = _outputManager.GetController(List_Controllers->GetItemText(GetFirstSelectedControllerIndex()));
+            if (doping != nullptr) doping->AsyncPing();
         }
         BitmapButtonMoveNetworkUp->Enable();
         BitmapButtonMoveNetworkDown->Enable();
@@ -1507,7 +1508,6 @@ void xLightsFrame::SetControllersProperties() {
     else if (selections.size() == 1) {
 
         auto controller = _outputManager.GetController(selections.front());
-        auto eth = dynamic_cast<ControllerEthernet*>(controller);
         if (controller != nullptr) {
             int usingip = _outputManager.GetControllerCount(controller->GetType(), controller->GetColumn2Label());
 
@@ -1518,13 +1518,14 @@ void xLightsFrame::SetControllersProperties() {
                 ButtonVisualise->Enable(false);
             }
 
+            auto eth = dynamic_cast<ControllerEthernet*>(controller);
             auto caps = GetControllerCaps(selections.front());
             if (caps != nullptr && caps->SupportsUpload() && usingip == 1) {
                 if (caps->SupportsInputOnlyUpload() && (eth == nullptr || (eth->GetProtocol() != OUTPUT_DDP && eth->GetProtocol() != OUTPUT_ZCPP))) {
                     ButtonUploadInput->Enable();
                 }
                 else {
-                        ButtonUploadInput->Enable(false);
+                    ButtonUploadInput->Enable(false);
                 }
                 if (eth == nullptr || eth->GetProtocol() != OUTPUT_ZCPP) {
                     ButtonUploadOutput->Enable();

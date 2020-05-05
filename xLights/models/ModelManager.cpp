@@ -63,10 +63,11 @@ ModelManager::~ModelManager() {
 }
 
 void ModelManager::clear() {
-    for (const auto& it : models) {
+    for (auto& it : models) {
         if (it.second != nullptr)
         {
             delete it.second;
+            it.second = nullptr;
         }
     }
     models.clear();
