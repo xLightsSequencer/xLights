@@ -99,6 +99,28 @@ bool OutputManager::ConvertStartChannel(const std::string sc, std::string& newsc
                 }
             }
         }
+        else if (parts[0][0] == '!') {
+            // output name may need to be updated
+            auto on = parts[0].substr(1);
+            int scc = wxAtoi(parts[1]);
+
+            for (const auto& it : _conversionOutputs) {
+                if (it.first->GetDescription_CONVERT() == on) {
+
+                    // find the first channel offset within this controller of this output
+                    int nsc = 0;
+                    for (const auto& it2 : it.second->GetOutputs())                         {
+                        if (it2->GetDescription_CONVERT() == on) break;
+                        nsc += it2->GetChannels();
+                    }
+
+                    newsc = wxString::Format("!%s:%d", it.second->GetName(), nsc + scc);
+                    changed = true;
+                    logger_base.debug("Networks conversion %s converted start channel '%s' to '%s'.", (const char*)it.first->GetType().c_str(), (const char*)sc.c_str(), (const char*)newsc.c_str());
+                    break;
+                }
+            }
+        }
     }
     return changed;
 }
