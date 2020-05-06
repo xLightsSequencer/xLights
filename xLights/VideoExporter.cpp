@@ -143,14 +143,19 @@ void GenericVideoExporter::initialize()
    // Initialize video & audio
    AVOutputFormat* fmt = ::av_guess_format( nullptr, _path.c_str(), nullptr );
    const AVCodec* videoCodec = ::avcodec_find_encoder( fmt->video_codec );
-   const AVCodec* audioCodec = ::avcodec_find_encoder( fmt->audio_codec );
+   const AVCodec* audioCodec = nullptr;
+   if (!_videoOnly) {
+       audioCodec = ::avcodec_find_encoder(fmt->audio_codec);
+   }
 
    int status = ::avformat_alloc_output_context2( &_formatContext, fmt, nullptr, _path.c_str() );
    if ( _formatContext == nullptr )
       throw std::runtime_error( "VideoExporter - Error allocating output-context" );
 
    initializeVideo( videoCodec );
-   initializeAudio( audioCodec );
+   if (!_videoOnly) {
+       initializeAudio(audioCodec);
+   }
 
    // Initialize frames and packets
    initializeFrames();
@@ -277,8 +282,10 @@ void GenericVideoExporter::initializePackets()
    _videoPacket = ::av_packet_alloc();
    ::av_init_packet( _videoPacket );
 
-   _audioPacket = ::av_packet_alloc();
-   ::av_init_packet( _audioPacket );
+   if (!_videoOnly) {
+       _audioPacket = ::av_packet_alloc();
+       ::av_init_packet(_audioPacket);
+   }
 }
 
 void GenericVideoExporter::exportFrames( int videoFrameCount )
@@ -528,11 +535,11 @@ VideoExporter::VideoExporter( wxWindow *parent,
                               unsigned int frameDuration, unsigned int frameCount,
                               int audioChannelCount, int audioSampleRate,
                               const std::string& outPath )
-    : GenericVideoExporter( outPath, makeParams( width * scaleFactor, height * scaleFactor, 1000u / frameDuration, audioSampleRate ) )
+    : GenericVideoExporter( outPath, makeParams( width * scaleFactor, height * scaleFactor, 1000u / frameDuration, audioSampleRate ), audioSampleRate == 0 )
     , _parent( parent )
     , _frameCount( frameCount )
 {
-    if ( audioChannelCount != 2 )
+    if ( audioChannelCount != 2 && audioChannelCount != 0)
         throw std::runtime_error( "VideoExporter - assumes stereo input/output currently" );
 }
 
@@ -572,7 +579,7 @@ bool VideoExporter::Export()
            completeExport();
     } catch ( const std::runtime_error& re )
     {
-        logger_base.error( "Exception caught in VideoExporter - '%s'", re.what() );
+        logger_base.error( "Exception caught in VideoExporter - '%s'", (const char*)re.what());
         status = false;
     }
 

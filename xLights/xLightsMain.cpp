@@ -2897,42 +2897,48 @@ void xLightsFrame::OnMenuItem_File_Export_VideoSelected(wxCommandEvent& event)
         audioChannelCount = audioMgr->GetChannels();
     }
     int audioFrameIndex = 0;
+    bool exportStatus = false;
 
-    VideoExporter videoExporter(this, width, height, contentScaleFactor, SeqData.FrameTime(), SeqData.NumFrames(), audioChannelCount, audioSampleRate, path);
+    try {
+        VideoExporter videoExporter(this, width, height, contentScaleFactor, SeqData.FrameTime(), SeqData.NumFrames(), audioChannelCount, audioSampleRate, path);
 
-    auto audioLambda = [audioMgr, &audioFrameIndex]( float* leftCh, float *rightCh, int frameSize )
-    {
-        int trackSize = audioMgr->GetTrackSize();
-        int clampedSize = std::min( frameSize, trackSize - audioFrameIndex );
-        if ( clampedSize > 0 )
-        {
-            const float *leftptr = audioMgr->GetLeftDataPtr( audioFrameIndex );
-            const float *rightptr = audioMgr->GetRightDataPtr( audioFrameIndex );
+        auto audioLambda = [audioMgr, &audioFrameIndex](float* leftCh, float* rightCh, int frameSize) {
+            int trackSize = audioMgr->GetTrackSize();
+            int clampedSize = std::min(frameSize, trackSize - audioFrameIndex);
+            if (clampedSize > 0) {
+                const float* leftptr = audioMgr->GetLeftDataPtr(audioFrameIndex);
+                const float* rightptr = audioMgr->GetRightDataPtr(audioFrameIndex);
 
-            if ( leftptr != nullptr )
-            {
-                std::memcpy( leftCh, leftptr, clampedSize * sizeof(float) );
-                std::memcpy( rightCh, rightptr, clampedSize * sizeof(float) );
-                audioFrameIndex += frameSize;
+                if (leftptr != nullptr) {
+                    std::memcpy(leftCh, leftptr, clampedSize * sizeof(float));
+                    std::memcpy(rightCh, rightptr, clampedSize * sizeof(float));
+                    audioFrameIndex += frameSize;
+                }
             }
+            return true;
+        };
+
+        if (audioMgr != nullptr) {
+            videoExporter.setGetAudioCallback(audioLambda);
         }
-        return true;
-    };
-    videoExporter.setGetAudioCallback( audioLambda );
 
-    xlGLCanvas::CaptureHelper captureHelper( width, height, contentScaleFactor );
+        xlGLCanvas::CaptureHelper captureHelper(width, height, contentScaleFactor);
 
-    auto videoLambda = [this, housePreview, &captureHelper]( uint8_t* buf, int bufSize, unsigned frameIndex )
-    {
-        const FrameData& frameData( this->SeqData[frameIndex] );
-        const uint8_t* data = frameData[0];
-        housePreview->Render( data, false );
-        return captureHelper.ToRGB( buf, bufSize, true );
-      return true;
-    };
-    videoExporter.setGetVideoCallback( videoLambda );
+        auto videoLambda = [this, housePreview, &captureHelper](uint8_t* buf, int bufSize, unsigned frameIndex) {
+            const FrameData& frameData(this->SeqData[frameIndex]);
+            const uint8_t* data = frameData[0];
+            housePreview->Render(data, false);
+            return captureHelper.ToRGB(buf, bufSize, true);
+            return true;
+        };
+        videoExporter.setGetVideoCallback(videoLambda);
 
-    bool exportStatus = videoExporter.Export();
+        exportStatus = videoExporter.Export();
+    }
+    catch (const std::runtime_error& re) {
+        logger_base.error("Error exporting video : %s", (const char*)re.what());
+        exportStatus = false;
+    }
 
     mainSequencer->SetPlayStatus( playStatus );
 

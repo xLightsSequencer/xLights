@@ -163,7 +163,7 @@ void xLightsFrame::NewSequence()
     MenuItem_PurgeRenderCache->Enable(true);
 
     unsigned int max = GetMaxNumChannels();
-    if (max >= 999999) {
+    if (max >= 1999999) {
         size_t m = std::max(CurrentSeqXmlFile->GetSequenceDurationMS(),  mMediaLengthMS) / ms;
         m *= max;
         m /= 1024; // ->kb
