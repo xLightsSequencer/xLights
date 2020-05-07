@@ -16,6 +16,7 @@
 #include <wx/panel.h>
 #include <wx/scrolbar.h>
 #include <wx/sizer.h>
+#include <wx/textctrl.h>
 //*)
 #include <wx/colour.h>
 #include <wx/prntbase.h>
@@ -78,6 +79,7 @@ class ControllerModelDialog: public wxDialog
 		wxScrollBar* ScrollBar_Controller_H;
 		wxScrollBar* ScrollBar_Controller_V;
 		wxScrollBar* ScrollBar_Models;
+		wxTextCtrl* TextCtrl_Check;
 		//*)
 
         static const long CONTROLLERModel_PRINT;
@@ -106,6 +108,7 @@ class ControllerModelDialog: public wxDialog
 		static const long ID_PANEL1;
 		static const long ID_SCROLLBAR1;
 		static const long ID_SCROLLBAR2;
+		static const long ID_TEXTCTRL1;
 		static const long ID_PANEL3;
 		static const long ID_CHECKBOX1;
 		static const long ID_PANEL2;

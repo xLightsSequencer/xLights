@@ -42,6 +42,7 @@
 const long ControllerModelDialog::ID_PANEL1 = wxNewId();
 const long ControllerModelDialog::ID_SCROLLBAR1 = wxNewId();
 const long ControllerModelDialog::ID_SCROLLBAR2 = wxNewId();
+const long ControllerModelDialog::ID_TEXTCTRL1 = wxNewId();
 const long ControllerModelDialog::ID_PANEL3 = wxNewId();
 const long ControllerModelDialog::ID_CHECKBOX1 = wxNewId();
 const long ControllerModelDialog::ID_PANEL2 = wxNewId();
@@ -734,6 +735,9 @@ ControllerModelDialog::ControllerModelDialog(wxWindow* parent, UDController* cud
 	ScrollBar_Controller_H->SetScrollbar(0, 1, 10, 1);
 	FlexGridSizer5->Add(ScrollBar_Controller_H, 1, wxALL|wxEXPAND, 0);
 	FlexGridSizer5->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
+	TextCtrl_Check = new wxTextCtrl(Panel3, ID_TEXTCTRL1, wxEmptyString, wxDefaultPosition, wxSize(-1,100), wxTE_MULTILINE|wxTE_READONLY|wxALWAYS_SHOW_SB, wxDefaultValidator, _T("ID_TEXTCTRL1"));
+	FlexGridSizer5->Add(TextCtrl_Check, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer5->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Panel3->SetSizer(FlexGridSizer5);
 	FlexGridSizer5->Fit(Panel3);
 	FlexGridSizer5->SetSizeHints(Panel3);
@@ -871,6 +875,11 @@ ControllerModelDialog::~ControllerModelDialog() {
 void ControllerModelDialog::ReloadModels()
 {
     _cud->Rescan(true);
+    std::string check;
+    if (_caps != nullptr) {
+        _cud->Check(_caps, check);
+        TextCtrl_Check->SetValue(check);
+    }
 
     while (_models.size() > 0) {
         delete _models.front();

@@ -681,6 +681,22 @@ std::string UDControllerPort::GetPortName() const {
     }
 }
 
+bool UDControllerPort::AtLeastOneModelIsUsingSmartRemote() const
+{
+    for (const auto& it : _models) {
+        if (it->GetSmartRemote() > 0) return true;
+    }
+    return false;
+}
+
+bool UDControllerPort::AtLeastOneModelIsNotUsingSmartRemote() const
+{
+    for (const auto& it : _models) {
+        if (it->GetSmartRemote() == 0) return true;
+    }
+    return false;
+}
+
 void UDControllerPort::Dump() const {
 
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));

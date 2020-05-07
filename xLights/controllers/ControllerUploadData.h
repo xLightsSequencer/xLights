@@ -189,6 +189,8 @@ class UDControllerPort
     bool IsValid() const { return _valid; }
     void SetInvalid() { _valid = false; }    
     std::string GetInvalidReason() const { return _invalidReason; }
+    bool AtLeastOneModelIsUsingSmartRemote() const;
+    bool AtLeastOneModelIsNotUsingSmartRemote() const;
 
     void Dump() const;
     bool Check(Controller* c, const UDController* controller, bool pixel, const ControllerCaps* rules, std::string& res) const;

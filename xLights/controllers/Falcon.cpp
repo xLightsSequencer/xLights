@@ -1095,6 +1095,27 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
     }
 
     if (success && cud.GetMaxPixelPort() > 0) {
+        for (int i = 1; i <= cud.GetMaxPixelPort(); i += 4) {
+            bool smartRemoteFound = false;
+            bool nonSmartRemoteFound = false;
+            for (int j = 0; j < 4; j++) {
+                if (cud.GetControllerPixelPort(i + j)->AtLeastOneModelIsUsingSmartRemote()) {
+                    smartRemoteFound = true;
+                }
+                if (cud.GetControllerPixelPort(i + j)->AtLeastOneModelIsNotUsingSmartRemote()) {
+                    nonSmartRemoteFound = true;
+                }
+            }
+
+            if (smartRemoteFound && nonSmartRemoteFound) {
+                success = false;
+                check += wxString::Format("ERROR: Ports %d-%d have a mix of models using smart and non-smart remotes. This is not supported.\n", i, i + 3);
+                logger_base.error("Ports %d-%d have a mix of models using smart and non-smart remotes. This is not supported.", i, i + 3);
+            }
+        }
+    }
+
+    if (success && cud.GetMaxPixelPort() > 0) {
         if (doProgress) progress->Update(60, "Uploading string ports.");
 
         if (check != "") {
