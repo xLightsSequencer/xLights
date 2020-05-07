@@ -2083,8 +2083,14 @@ bool Model::ModelRenamed(const std::string &oldName, const std::string &newName)
 
 bool Model::IsValidStartChannelString() const
 {
-    wxString sc = ModelXml->GetAttribute("StartChannel").Trim(true).Trim(false);
-
+    wxString sc;
+    
+    if (GetDisplayAs() == "SubModel") {
+        sc = this->ModelStartChannel;
+    } else {
+        sc = ModelXml->GetAttribute("StartChannel").Trim(true).Trim(false);
+    }
+    
     if (sc.IsNumber() && wxAtol(sc) > 0 && ! sc.Contains('.')) return true; // absolule
 
     if (!sc.Contains(':')) return false; // all other formats need a colon
