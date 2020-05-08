@@ -54,6 +54,7 @@ const long ScheduleDialog::ID_TEXTCTRL1 = wxNewId();
 const long ScheduleDialog::ID_STATICTEXT21 = wxNewId();
 const long ScheduleDialog::ID_SPINCTRL6 = wxNewId();
 const long ScheduleDialog::ID_CHECKBOX12 = wxNewId();
+const long ScheduleDialog::ID_CHECKBOX13 = wxNewId();
 const long ScheduleDialog::ID_STATICTEXT19 = wxNewId();
 const long ScheduleDialog::ID_CHOICE1 = wxNewId();
 const long ScheduleDialog::ID_CHECKBOX9 = wxNewId();
@@ -188,6 +189,10 @@ ScheduleDialog::ScheduleDialog(wxWindow* parent, Schedule* schedule, wxWindowID 
 	CheckBox_GracefullyInterrupt = new wxCheckBox(this, ID_CHECKBOX12, _("Gracefully interupt any lower priority playing schedule"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX12"));
 	CheckBox_GracefullyInterrupt->SetValue(false);
 	FlexGridSizer1->Add(CheckBox_GracefullyInterrupt, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer1->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox_HardStop = new wxCheckBox(this, ID_CHECKBOX13, _("Hard stop at end time"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX13"));
+	CheckBox_HardStop->SetValue(false);
+	FlexGridSizer1->Add(CheckBox_HardStop, 1, wxALL|wxEXPAND, 5);
 	StaticText18 = new wxStaticText(this, ID_STATICTEXT19, _("Refire frequency:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT19"));
 	FlexGridSizer1->Add(StaticText18, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	Choice_FireFrequency = new wxChoice(this, ID_CHOICE1, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE1"));
@@ -274,6 +279,7 @@ ScheduleDialog::ScheduleDialog(wxWindow* parent, Schedule* schedule, wxWindowID 
     Choice_FireFrequency->SetStringSelection(schedule->GetFireFrequency());
 	SpinCtrl_OnOffsetMins->SetValue(schedule->GetOnOffsetMins());
 	SpinCtrl_OffOffsetMins->SetValue(schedule->GetOffOffsetMins());
+	CheckBox_HardStop->SetValue(schedule->IsHardStop());
 
     Choice_FireFrequency->SetToolTip("Times are relative to schedule start time.");
 
@@ -314,6 +320,7 @@ ScheduleDialog::~ScheduleDialog()
     _schedule->SetFireFrequency(Choice_FireFrequency->GetStringSelection());
 	_schedule->SetOnOffsetMins(SpinCtrl_OnOffsetMins->GetValue());
 	_schedule->SetOffOffsetMins(SpinCtrl_OffOffsetMins->GetValue());
+	_schedule->SetHardStop(CheckBox_HardStop->GetValue());
 }
 
 void ScheduleDialog::ValidateWindow()

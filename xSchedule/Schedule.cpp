@@ -142,6 +142,7 @@ void Schedule::Load(wxXmlNode* node)
     _loops = wxAtoi(node->GetAttribute("Loops", "0"));
     _onOffsetMins = wxAtoi(node->GetAttribute("OnOffsetMins", "0"));
     _offOffsetMins = wxAtoi(node->GetAttribute("OffOffsetMins", "0"));
+    _hardStop = node->GetAttribute("HardStop", "FALSE") == "TRUE";
     _priority = wxAtoi(node->GetAttribute("Priority", "0"));
     _nthDay = wxAtoi(node->GetAttribute("NthDay", "1"));
     _nthDayOffset = wxAtoi(node->GetAttribute("NthDayOffset", "0"));
@@ -163,6 +164,7 @@ wxXmlNode* Schedule::Save()
     node->AddAttribute("NthDayOffset", wxString::Format(wxT("%i"), _nthDayOffset));
     node->AddAttribute("OnOffsetMins", wxString::Format(wxT("%i"), _onOffsetMins));
     node->AddAttribute("OffOffsetMins", wxString::Format(wxT("%i"), _offOffsetMins));
+    if (_hardStop) node->AddAttribute("HardStop", "TRUE");
     node->AddAttribute("FireFrequency", _fireFrequency);
     if (_loop)
     {
@@ -208,6 +210,7 @@ Schedule::Schedule()
     _loops = 0;
     _onOffsetMins = 0;
     _offOffsetMins = 0;
+    _hardStop = false;
     _everyYear = false;
     _gracefullyInterrupt = false;
     _priority = 5;
@@ -265,6 +268,7 @@ Schedule::Schedule(const Schedule& schedule, bool newid)
     _loops = schedule._loops;
     _onOffsetMins = schedule._onOffsetMins;
     _offOffsetMins = schedule._offOffsetMins;
+    _hardStop = schedule._hardStop;
     _everyYear = schedule._everyYear;
     _gracefullyInterrupt = schedule._gracefullyInterrupt;
     _priority = schedule._priority;
@@ -571,7 +575,7 @@ bool Schedule::CheckActiveAt(const wxDateTime& now)
     // handle the 24 hours a day case
     if (s == e)
     {
-        _active = now >= start && now <= end;
+        _active = now >= start && now < end;
 
 #ifdef LOGCALCNEXTTRIGGERTIME
         if (!_active) logger_base.debug("       24 hrs a day but not within dates. %s-%s", (const char *)start.Format("%Y-%m-%d %H:%M").c_str(), (const char *)end.Format("%Y-%m-%d %H:%M").c_str());
@@ -601,7 +605,7 @@ bool Schedule::CheckActiveAt(const wxDateTime& now)
             end.Add(wxTimeSpan(24));
         }
 
-        _active = now >= start && now <= end;
+        _active = now >= start && now < end;
 
 #ifdef LOGCALCNEXTTRIGGERTIME
         if (!_active) logger_base.debug("       Valid dates but not at this time %s-%s.", (const char *)start.Format("%Y-%m-%d %H:%M").c_str(), (const char *)end.Format("%Y-%m-%d %H:%M").c_str());

@@ -61,6 +61,9 @@ std::unique_ptr<SyncBase> SyncManager::CreateSync(SYNCMODE sm, REMOTEMODE rm) co
         return std::make_unique<SyncSMPTE>(SyncSMPTE(sm, rm, *_scheduleManager->GetOptions(), _scheduleManager->GetListenerManager()));
     }
 #endif
+    else if (rm == REMOTEMODE::DISABLED){
+        return nullptr;
+    }
     else
     {
         wxASSERT(false);
@@ -199,6 +202,13 @@ void SyncManager::Start(int mode, REMOTEMODE remoteMode)
         SetRemote(REMOTEMODE::SMPTESLAVE);
     }
 
+    _scheduleManager->GetListenerManager()->StartListeners();
+}
+
+void SyncManager::Stop()
+{
+    SetRemote(REMOTEMODE::DISABLED);
+    ClearMasters();
     _scheduleManager->GetListenerManager()->StartListeners();
 }
 

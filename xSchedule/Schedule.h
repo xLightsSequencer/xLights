@@ -43,6 +43,7 @@ class Schedule
     std::string _fireFrequency;
     int _onOffsetMins = 0;
     int _offOffsetMins = 0;
+    bool _hardStop = false;
 
     void SetTime(wxDateTime& toset, std::string city, wxDateTime time, std::string timeString, int offset) const;
     bool IsOkDOW(const wxDateTime& date);
@@ -72,6 +73,8 @@ class Schedule
         void SetLoop(bool loop) { if (_loop != loop) { _loop = loop; _changeCount++; } }
         int GetNthDay() const { return _nthDay; }
         void SetNthDay(int nthDay) { if (_nthDay != nthDay) { _nthDay = nthDay; _changeCount++; } }
+        bool IsHardStop() const { return _hardStop; }
+        void SetHardStop(bool hardStop) { if (_hardStop != hardStop) { _hardStop = hardStop; _changeCount++; } }
         int GetNthDayOffset() const { return _nthDayOffset; }
         void SetNthDayOffset(int nthDayOffset) { if (_nthDayOffset != nthDayOffset) { _nthDayOffset = nthDayOffset; _changeCount++; } }
         void SetEnabled(bool enabled) { if (_enabled != enabled) { _enabled = enabled; _changeCount++; } }

@@ -98,6 +98,7 @@ class SyncManager
         void ClearMasters();
         void SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t stepMS, uint32_t playlistMS, const std::string& fseq, const std::string& media, const std::string& step, const std::string& timeItem) const; // send out to all masters
         void Start(int mode, REMOTEMODE remoteMode);
+        void Stop();
         bool IsSlave() const { return _remote != nullptr; }
         bool IsFPPRemoteOrMaster() const;
         bool IsMaster(SYNCMODE mode) const;
