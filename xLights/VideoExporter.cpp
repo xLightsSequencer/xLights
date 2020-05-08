@@ -129,17 +129,6 @@ GenericVideoExporter::~GenericVideoExporter()
 
 void GenericVideoExporter::initialize()
 {
-   // Initialize color-converter
-   int sws_flags = SWS_FAST_BILINEAR; // usually doing just a colorspace conversion, so not too critical
-
-   AVPixelFormat inPfmt = static_cast<AVPixelFormat>( _inParams.pfmt );
-   AVPixelFormat outPfmt = static_cast<AVPixelFormat>( _outParams.pfmt );
-   SwsContext* sws_ctx = ::sws_getContext( _inParams.width, _inParams.height, inPfmt,
-                                           _outParams.width, _outParams.height, outPfmt,
-                                           sws_flags, nullptr, nullptr, nullptr );
-   if ( sws_ctx == nullptr )
-      throw std::runtime_error( "VideoExporter - error setting up video format conversion!" );
-
    // Initialize video & audio
    AVOutputFormat* fmt = ::av_guess_format( nullptr, _path.c_str(), nullptr );
    const AVCodec* videoCodec = ::avcodec_find_encoder( fmt->video_codec );
@@ -235,9 +224,11 @@ void GenericVideoExporter::initializeAudio( const AVCodec* codec )
 
 void GenericVideoExporter::initializeFrames()
 {
+   // Note: _swsContext does not do any scaling in the case where we need to pad out
+   //       the width/height; may just get an extra black column or row
    _colorConversionFrame = ::av_frame_alloc();
-   _colorConversionFrame->width = _inParams.width;
-   _colorConversionFrame->height = _inParams.height;
+   _colorConversionFrame->width = _outParams.width;
+   _colorConversionFrame->height = _outParams.height;
    _colorConversionFrame->format = _inParams.pfmt;
    int status = ::av_frame_get_buffer( _colorConversionFrame, 1 );
    if ( status != 0 )
@@ -256,7 +247,7 @@ void GenericVideoExporter::initializeFrames()
    AVPixelFormat inPfmt = static_cast<AVPixelFormat>( _inParams.pfmt );
    AVPixelFormat outPfmt = static_cast<AVPixelFormat>( _outParams.pfmt );
 
-   _swsContext = ::sws_getContext( _inParams.width, _inParams.height, inPfmt,
+   _swsContext = ::sws_getContext( _outParams.width, _outParams.height, inPfmt,
                                    _outParams.width, _outParams.height, outPfmt,
                                    flags, nullptr, nullptr, nullptr );
    if ( _swsContext == nullptr )
