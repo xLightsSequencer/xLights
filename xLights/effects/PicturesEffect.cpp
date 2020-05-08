@@ -509,156 +509,160 @@ void PicturesEffect::Render(RenderBuffer& buffer,
     int scale_image = false;
     bool noImageFile = false;
 
-    wxFile f;
-    if (NewPictureName2.length() == 0) return;
-
-    //  Look at ending of the filename passed in. If we have it ending as *-1.jpg or *-1.png then we will assume
-    //  we have a bunch of jpg files made by ffmpeg
-    //  movie files can be converted into jpg frames by this command
-    //      ffmpeg -i XXXX.mp4 -s 16x50 XXXX-%d.jpg
-    //      ffmpeg -i XXXX.avi -s 16x50 XXXX-%d.jpg
-    //      ffmpeg -i XXXX.mov -s 16x50 XXXX-%d.jpg
-    //      ffmpeg -i XXXX.mts -s 16x50 XXXX-%d.jpg
-
     PicturesRenderCache* cache = GetCache(buffer);
     wxImage& image = cache->image;
     wxImage& rawimage = cache->rawimage;
-    GIFImage*& gifImage = cache->gifImage;
-    std::vector<PixelVector>& PixelsByFrame = cache->PixelsByFrame;
-    int& frame = cache->frame;
 
-    wxString sPicture = NewPictureName2;
-
-    wxFileName fn(NewPictureName2);
-    wxString extension = fn.GetExt();
-    wxString suffix = "";
-    if (fn.GetName().Length() >= 2) {
-        suffix = fn.GetName().Right(2);
+    if (NewPictureName2.length() == 0) {
+        noImageFile = true;
     }
+    else {
+        //  Look at ending of the filename passed in. If we have it ending as *-1.jpg or *-1.png then we will assume
+        //  we have a bunch of jpg files made by ffmpeg
+        //  movie files can be converted into jpg frames by this command
+        //      ffmpeg -i XXXX.mp4 -s 16x50 XXXX-%d.jpg
+        //      ffmpeg -i XXXX.avi -s 16x50 XXXX-%d.jpg
+        //      ffmpeg -i XXXX.mov -s 16x50 XXXX-%d.jpg
+        //      ffmpeg -i XXXX.mts -s 16x50 XXXX-%d.jpg
 
-    if (suffix == "-1") {// do we have a movie file?
-        //    yes
-        wxString BasePicture = fn.GetPathWithSep() + fn.GetName().Left(fn.GetName().Length() - 2);
-        wxString sTmpPicture = wxString::Format("%s-2.%s", BasePicture, extension);
-        if (!wxFileExists(sTmpPicture)) {
-            // not a movie file as frame 2 does not exist
+        wxFile f;
+        GIFImage*& gifImage = cache->gifImage;
+        std::vector<PixelVector>& PixelsByFrame = cache->PixelsByFrame;
+        int& frame = cache->frame;
+
+        wxString sPicture = NewPictureName2;
+
+        wxFileName fn(NewPictureName2);
+        wxString extension = fn.GetExt();
+        wxString suffix = "";
+        if (fn.GetName().Length() >= 2) {
+            suffix = fn.GetName().Right(2);
         }
-        else {
 
-            //  build the next filename. the frame counter is incrementing through all frames
-            if (buffer.needToInit) { // only once, try 10000 files to find how high is frame count
-                buffer.needToInit = false;
-                cache->maxmovieframes = 1;
-                sPicture = wxString::Format("%s-%d.%s", BasePicture, frame, extension);
-                for (frame = 1; frame <= 9999; frame++) {
-                    sPicture = wxString::Format("%s-%d.%s", BasePicture, frame, extension);
-                    if (wxFileExists(sPicture)) {
-                        cache->maxmovieframes = frame;
-                    }
-                    else {
-                        break;
-                    }
-                }
-                frame = 1;
+        if (suffix == "-1") {// do we have a movie file?
+            //    yes
+            wxString BasePicture = fn.GetPathWithSep() + fn.GetName().Left(fn.GetName().Length() - 2);
+            wxString sTmpPicture = wxString::Format("%s-2.%s", BasePicture, extension);
+            if (!wxFileExists(sTmpPicture)) {
+                // not a movie file as frame 2 does not exist
             }
             else {
-                frame = floor((double(curPeriod - curEffStartPer)) * frameRateAdj) + 1;
+
+                //  build the next filename. the frame counter is incrementing through all frames
+                if (buffer.needToInit) { // only once, try 10000 files to find how high is frame count
+                    buffer.needToInit = false;
+                    cache->maxmovieframes = 1;
+                    sPicture = wxString::Format("%s-%d.%s", BasePicture, frame, extension);
+                    for (frame = 1; frame <= 9999; frame++) {
+                        sPicture = wxString::Format("%s-%d.%s", BasePicture, frame, extension);
+                        if (wxFileExists(sPicture)) {
+                            cache->maxmovieframes = frame;
+                        }
+                        else {
+                            break;
+                        }
+                    }
+                    frame = 1;
+                }
+                else {
+                    frame = floor((double(curPeriod - curEffStartPer)) * frameRateAdj) + 1;
+                }
+                if (frame > cache->maxmovieframes) {
+                    return;
+                }
+                sPicture = wxString::Format("%s-%d.%s", BasePicture, frame, extension);
             }
-            if (frame > cache->maxmovieframes) {
-                return;
-            }
-            sPicture = wxString::Format("%s-%d.%s", BasePicture, frame, extension);
         }
-    }
 
-    wxString NewPictureName = sPicture;
+        wxString NewPictureName = sPicture;
 
-    if (dir == RENDER_PICTURE_VIXREMAP) //load pre-rendered pixels from file and apply to model -DJ
-    {
-        LoadPixelsFromTextFile(buffer, f, NewPictureName);
-        int idx = curPeriod - curEffStartPer;
-        if (idx < PixelsByFrame.size()) //TODO: wrap?
-            for (auto /*std::vector<std::pair<wxPoint, xlColour>>::iterator*/ it = PixelsByFrame[idx].begin(); it != PixelsByFrame[idx].end(); ++it) {
-                SetTransparentBlackPixel(buffer, it->first.x, it->first.y, it->second, transparentBlack, transparentBlackLevel);
-            }
-        return;
-    }
-
-    if (NewPictureName != cache->PictureName || buffer.needToInit) {
-        buffer.needToInit = false;
-        scale_image = true;
-
-        if (!wxFile::Exists(NewPictureName)) {
-            noImageFile = true;
+        if (dir == RENDER_PICTURE_VIXREMAP) //load pre-rendered pixels from file and apply to model -DJ
+        {
+            LoadPixelsFromTextFile(buffer, f, NewPictureName);
+            int idx = curPeriod - curEffStartPer;
+            if (idx < PixelsByFrame.size()) //TODO: wrap?
+                for (auto /*std::vector<std::pair<wxPoint, xlColour>>::iterator*/ it = PixelsByFrame[idx].begin(); it != PixelsByFrame[idx].end(); ++it) {
+                    SetTransparentBlackPixel(buffer, it->first.x, it->first.y, it->second, transparentBlack, transparentBlackLevel);
+                }
+            return;
         }
-        else {
-            wxLogNull logNo;  // suppress popups from png images. See http://trac.wxwidgets.org/ticket/15331
 
-            // There seems to be a bug on linux where this function crashes occasionally
+        if (NewPictureName != cache->PictureName || buffer.needToInit) {
+            buffer.needToInit = false;
+            scale_image = true;
+
+            if (!wxFile::Exists(NewPictureName)) {
+                noImageFile = true;
+            }
+            else {
+                wxLogNull logNo;  // suppress popups from png images. See http://trac.wxwidgets.org/ticket/15331
+
+                // There seems to be a bug on linux where this function crashes occasionally
 #ifdef LINUX
-            logger_base.debug("About to count images in bitmap %s.", (const char*)NewPictureName.c_str());
+                logger_base.debug("About to count images in bitmap %s.", (const char*)NewPictureName.c_str());
 #endif
-            cache->imageCount = wxImage::GetImageCount(NewPictureName);
-            if (cache->imageCount <= 0) {
-                logger_base.error("Image %s reports %d frames which is invalid. Overriding it to be 1.", (const char*)NewPictureName.c_str(), cache->imageCount);
+                cache->imageCount = wxImage::GetImageCount(NewPictureName);
+                if (cache->imageCount <= 0) {
+                    logger_base.error("Image %s reports %d frames which is invalid. Overriding it to be 1.", (const char*)NewPictureName.c_str(), cache->imageCount);
 
-                // override it to 1
-                cache->imageCount = 1;
+                    // override it to 1
+                    cache->imageCount = 1;
+                }
+
+                if (!image.LoadFile(NewPictureName, wxBITMAP_TYPE_ANY, 0)) {
+                    logger_base.error("Error loading image file: %s.", (const char*)NewPictureName.c_str());
+                    image.Create(5, 5, true);
+                }
+
+                rawimage = image;
+                cache->PictureName = NewPictureName;
+
+                if (cache->imageCount > 1) {
+#ifdef DEBUG_GIF
+                    logger_base.debug("Preparing GIF file for reading: %s", (const char*)NewPictureName.c_str());
+#endif
+                    if (gifImage != nullptr && gifImage->GetFilename() != NewPictureName) {
+                        delete gifImage;
+                        gifImage = nullptr;
+                    }
+                    gifImage = new GIFImage(NewPictureName.ToStdString(), suppressGIFBackground);
+
+                    if (!gifImage->IsOk()) {
+                        delete gifImage;
+                        gifImage = nullptr;
+                        noImageFile = true;
+                    }
+
+                    if (!noImageFile) {
+                        image = gifImage->GetFrame(0);
+                        rawimage = image;
+                    }
             }
+        }
 
-            if (!image.LoadFile(NewPictureName, wxBITMAP_TYPE_ANY, 0)) {
-                logger_base.error("Error loading image file: %s.", (const char*)NewPictureName.c_str());
-                image.Create(5, 5, true);
+            if (!noImageFile && !image.IsOk()) {
+                noImageFile = true;
+            }
+    }
+
+        if (!noImageFile && cache->imageCount > 1) {
+
+            //animated Gif,
+            scale_image = true;
+
+            if (loopGIF) {
+                image = gifImage->GetFrameForTime((buffer.curPeriod - buffer.curEffStartPer) * buffer.frameTimeInMs * frameRateAdj, true);
+            }
+            else {
+                int ii = cache->imageCount * buffer.GetEffectTimeIntervalPosition(frameRateAdj) * 0.99;
+                image = gifImage->GetFrame(ii);
             }
 
             rawimage = image;
-            cache->PictureName = NewPictureName;
 
-            if (cache->imageCount > 1) {
-#ifdef DEBUG_GIF
-                logger_base.debug("Preparing GIF file for reading: %s", (const char*)NewPictureName.c_str());
-#endif
-                if (gifImage != nullptr && gifImage->GetFilename() != NewPictureName) {
-                    delete gifImage;
-                    gifImage = nullptr;
-                }
-                gifImage = new GIFImage(NewPictureName.ToStdString(), suppressGIFBackground);
-
-                if (!gifImage->IsOk()) {
-                    delete gifImage;
-                    gifImage = nullptr;
-                    noImageFile = true;
-                }
-
-                if (!noImageFile) {
-                    image = gifImage->GetFrame(0);
-                    rawimage = image;
-                }
+            if (!rawimage.IsOk()) {
+                noImageFile = true;
             }
-        }
-
-        if (!noImageFile && !image.IsOk()) {
-            noImageFile = true;
-        }
-    }
-
-    if (!noImageFile && cache->imageCount > 1) {
-
-        //animated Gif,
-        scale_image = true;
-
-        if (loopGIF) {
-            image = gifImage->GetFrameForTime((buffer.curPeriod - buffer.curEffStartPer) * buffer.frameTimeInMs * frameRateAdj, true);
-        }
-        else {
-            int ii = cache->imageCount * buffer.GetEffectTimeIntervalPosition(frameRateAdj) * 0.99;
-            image = gifImage->GetFrame(ii);
-        }
-
-        rawimage = image;
-
-        if (!rawimage.IsOk()) {
-            noImageFile = true;
         }
     }
 
