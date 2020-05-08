@@ -542,13 +542,13 @@ void CustomModelDialog::Setup(CustomModel *m) {
         grid->SetDefaultRowSize(int(1.5 * (float)font.GetPixelSize().y));
         grid->SetDefaultColSize(2 * font.GetPixelSize().y);
         wxArrayString rows = wxSplit(layers[layer], ';');
-        grid->AppendRows(rows.size());
+        grid->AppendRows(rows.size()-1);
         
         for (auto row = 0; row < rows.size(); row++)
         {
             wxArrayString cols = wxSplit(rows[row], ',');
             if (row == 0) {
-                grid->AppendCols(cols.size());
+                grid->AppendCols(cols.size()-1);
             }
             for (auto col = 0; col < cols.size(); col++)
             {
