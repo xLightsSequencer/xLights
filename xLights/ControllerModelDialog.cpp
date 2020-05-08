@@ -809,6 +809,11 @@ ControllerModelDialog::ControllerModelDialog(wxWindow* parent, UDController* cud
 	//*)
 
     Connect(wxEVT_KEY_DOWN, (wxObjectEventFunction)&ControllerModelDialog::OnKeyDown, 0, this);
+    TextCtrl_Check->Bind(wxEVT_KEY_DOWN, &ControllerModelDialog::OnKeyDown, this);
+    CheckBox_HideOtherControllerModels->Bind(wxEVT_KEY_DOWN, &ControllerModelDialog::OnKeyDown, this);
+    ScrollBar_Controller_H->Bind(wxEVT_KEY_DOWN, &ControllerModelDialog::OnKeyDown, this);
+    ScrollBar_Controller_V->Bind(wxEVT_KEY_DOWN, &ControllerModelDialog::OnKeyDown, this);
+    ScrollBar_Models->Bind(wxEVT_KEY_DOWN, &ControllerModelDialog::OnKeyDown, this);
 
     //PanelController->SetBackgroundStyle(wxBG_STYLE_PAINT);
     //PanelModels->SetBackgroundStyle(wxBG_STYLE_PAINT);
@@ -863,6 +868,8 @@ ControllerModelDialog::ControllerModelDialog(wxWindow* parent, UDController* cud
 
     ReloadModels();
     Layout();
+
+    PanelModels->SetFocus();
 }
 
 ControllerModelDialog::~ControllerModelDialog() {
@@ -1454,6 +1461,7 @@ void ControllerModelDialog::OnPanelControllerLeftDown(wxMouseEvent& event)
 void ControllerModelDialog::OnPanelControllerKeyDown(wxKeyEvent& event)
 {
     ScrollToKey(event.GetKeyCode());
+    event.Skip();
 }
 
 void ControllerModelDialog::OnPanelControllerLeftUp(wxMouseEvent& event)
@@ -1820,11 +1828,13 @@ void ControllerModelDialog::ScrollToKey(int keyCode)
 void ControllerModelDialog::OnKeyDown(wxKeyEvent& event)
 {
     ScrollToKey(event.GetKeyCode());
+    event.Skip();
 }
 
 void ControllerModelDialog::OnPanelModelsKeyDown(wxKeyEvent& event)
 {
     ScrollToKey(event.GetKeyCode());
+    event.Skip();
 }
 
 void ControllerModelDialog::OnPanelModelsLeftDown(wxMouseEvent& event) {
