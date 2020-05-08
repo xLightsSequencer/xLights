@@ -922,18 +922,10 @@ void xLightsFrame:: WriteVideoModelFile(const wxString& filenames, long numChans
     }
     video_st->time_base.num = 1;
     video_st->time_base.den = framesPerSec;
-
-    video_st->codecpar->width = width;
-    video_st->codecpar->height = height;
-    video_st->codecpar->codec_id = fmt->video_codec;
-    video_st->codecpar->codec_type = AVMEDIA_TYPE_VIDEO;
-    video_st->codecpar->format = AV_PIX_FMT_NONE;
-    video_st->codecpar->bits_per_coded_sample = 24;
+    video_st->id = oc->nb_streams - 1;
 
     // Configure the codec
     AVCodecContext* codecContext = avcodec_alloc_context3( codec );
-    avcodec_parameters_to_context(codecContext, video_st->codecpar);
-
     codecContext->bit_rate = 400000;
     codecContext->width = width;
     codecContext->height = height;
@@ -974,6 +966,13 @@ void xLightsFrame:: WriteVideoModelFile(const wxString& filenames, long numChans
     if (ret < 0)
     {
         logger_base.error("   Cannot open codec context %d.", ret);
+        return;
+    }
+
+    ret = avcodec_parameters_from_context( video_st->codecpar, codecContext );
+    if ( ret != 0 )
+    {
+        logger_base.error( "   Cannot init video stream from codec context" );
         return;
     }
 
@@ -1112,7 +1111,7 @@ void xLightsFrame:: WriteVideoModelFile(const wxString& filenames, long numChans
 
     // Close the output file
     if (!(fmt->flags & AVFMT_NOFILE))
-        avio_close(oc->pb);
+        avio_closep( &oc->pb );
 
     // Free and close everything
     sws_freeContext(sws_ctx);
