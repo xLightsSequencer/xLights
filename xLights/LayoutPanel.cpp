@@ -5509,9 +5509,8 @@ ModelGroup* LayoutPanel::GetSelectedModelGroup() const
 
     // This is here because I am seeing crashes which i believe originate here
     xlights->AddTraceMessage("LayoutPanel::GetSelectedModelGroup");
-    auto item = TreeListViewModels->GetSelection();
-    if (item.IsOk()) {
-        ModelTreeData* data = dynamic_cast<ModelTreeData*>(TreeListViewModels->GetItemData(item));
+    if (mSelectedGroup.IsOk()) {
+        ModelTreeData* data = dynamic_cast<ModelTreeData*>(TreeListViewModels->GetItemData(mSelectedGroup));
         Model* model = data != nullptr ? data->GetModel() : nullptr;
         if (model != nullptr) {
             if (model->GetDisplayAs() == "ModelGroup") {
