@@ -93,6 +93,7 @@ class ControllerModelDialog: public wxDialog
 		static const long CONTROLLER_DMXCHANNEL;
 		static const long CONTROLLER_PROTOCOL;
 		static const long CONTROLLER_BRIGHTNESS;
+		static const long CONTROLLER_BRIGHTNESSCLEAR;
 
         void RenderPicture(wxBitmap& bitmap, bool printer);
 		void DropFromModels(const wxPoint& location, const std::string& name, wxPanel* target);

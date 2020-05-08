@@ -262,6 +262,8 @@ public:
     void SetControllerProtocol(const std::string& protocol);
     void SetControllerPort(int port);
     void SetControllerBrightness(int brightness);
+    void ClearControllerBrightness();
+    bool IsControllerBrightnessSet() const;
     std::string GetControllerName() const;
     std::string GetControllerProtocol() const;
     int GetControllerBrightness() const;

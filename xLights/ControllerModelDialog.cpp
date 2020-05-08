@@ -61,6 +61,7 @@ const long ControllerModelDialog::CONTROLLER_SMARTREMOTE_BC = wxNewId();
 const long ControllerModelDialog::CONTROLLER_DMXCHANNEL = wxNewId();
 const long ControllerModelDialog::CONTROLLER_PROTOCOL = wxNewId();
 const long ControllerModelDialog::CONTROLLER_BRIGHTNESS = wxNewId();
+const long ControllerModelDialog::CONTROLLER_BRIGHTNESSCLEAR = wxNewId();
 
 BEGIN_EVENT_TABLE(ControllerModelDialog,wxDialog)
 	//(*EventTable(ControllerModelDialog)
@@ -559,6 +560,9 @@ public:
             {
                 mnu.AppendSeparator();
                 mnu.Append(ControllerModelDialog::CONTROLLER_BRIGHTNESS, "Set Brightness");
+                if (GetModel()->IsControllerBrightnessSet()) {
+                    mnu.Append(ControllerModelDialog::CONTROLLER_BRIGHTNESSCLEAR, "Clear Brightness");
+                }
             }
         }
         else if (GetModel() != nullptr && GetModel()->IsSerialProtocol()) {
@@ -605,6 +609,10 @@ public:
             if (dlg.ShowModal() == wxID_OK) {
                 GetModel()->SetControllerBrightness(dlg.GetValue());
             }
+            return true;
+        }
+        else if (id == ControllerModelDialog::CONTROLLER_BRIGHTNESSCLEAR) {
+            GetModel()->ClearControllerBrightness();
             return true;
         }
         return false;

@@ -5753,7 +5753,6 @@ void Model::SetControllerBrightness(int brightness)
     if (brightness == wxAtoi(ModelXml->GetAttribute("brightness", "-1"))) return;
 
     GetControllerConnection()->DeleteAttribute("brightness");
-
     GetControllerConnection()->AddAttribute("brightness", wxString::Format("%d", brightness));
 
     AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::SetConnectionPixelBrightness");
@@ -5761,6 +5760,23 @@ void Model::SetControllerBrightness(int brightness)
     AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Model::SetConnectionBrightness");
     AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "Model::SetConnectionBrightness");
     IncrementChangeCount();
+}
+
+void Model::ClearControllerBrightness()
+{
+    if (GetControllerConnection()->HasAttribute("brightness")) {
+        GetControllerConnection()->DeleteAttribute("brightness");
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::ClearControllerBrightness");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "Model::ClearControllerBrightness");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Model::ClearControllerBrightness");
+        AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "Model::ClearControllerBrightness");
+        IncrementChangeCount();
+    }
+}
+
+bool Model::IsControllerBrightnessSet() const
+{
+    return GetControllerConnection()->HasAttribute("brightness");
 }
 
 int Model::GetControllerBrightness() const
