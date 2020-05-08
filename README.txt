@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (kevin)  Fix house-preview video export broken for odd-numbered heights
 2020.18 May 5 2020
    -- enh (keith)  Add 3d display of floodlights including beam length control
    -- enh (keith)  Add ability to span models over several smart remotes from the same 4 ports

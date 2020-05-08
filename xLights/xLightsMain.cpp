@@ -2929,7 +2929,6 @@ void xLightsFrame::OnMenuItem_File_Export_VideoSelected(wxCommandEvent& event)
             const uint8_t* data = frameData[0];
             housePreview->Render(data, false);
             return captureHelper.ToRGB(buf, bufSize, true);
-            return true;
         };
         videoExporter.setGetVideoCallback(videoLambda);
 
