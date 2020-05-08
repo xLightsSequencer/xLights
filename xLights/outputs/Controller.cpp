@@ -481,40 +481,41 @@ void Controller::AddProperties(wxPropertyGrid* propertyGrid, ModelManager* model
     }
     p = propertyGrid->Append(new wxEnumProperty("Active", "Active", ACTIVETYPENAMES, wxArrayInt(), (int)_active));
 
-    if (_outputs.front()->GetType() != OUTPUT_LOR_OPT)
-    {
-        int v = 0;
-        wxPGChoices vendors;
-        for (const auto& it : ControllerCaps::GetVendors()) {
-            vendors.Add(it);
-            if (it == _vendor) {
-                v = vendors.GetCount() - 1;
-            }
+    int v = 0;
+    wxPGChoices vendors;
+    for (const auto& it : ControllerCaps::GetVendors(GetType())) {
+        vendors.Add(it);
+        if (it == _vendor) {
+            v = vendors.GetCount() - 1;
         }
+    }
+    if (vendors.GetCount() > 0) {
         p = propertyGrid->Append(new wxEnumProperty("Vendor", "Vendor", vendors, v));
 
         if (_vendor != "") {
             int m = 0;
             wxPGChoices models;
-            for (const auto& it : ControllerCaps::GetModels(_vendor)) {
+            for (const auto& it : ControllerCaps::GetModels(GetType(), _vendor)) {
                 models.Add(it);
                 if (it == _model) {
                     m = models.GetCount() - 1;
                 }
             }
-            p = propertyGrid->Append(new wxEnumProperty("Model", "Model", models, m));
+            if (models.GetCount() > 0) {
+                p = propertyGrid->Append(new wxEnumProperty("Model", "Model", models, m));
 
-            if (_model != "") {
-                int v = 0;
-                wxPGChoices versions;
-                for (const auto& it : ControllerCaps::GetVariants(_vendor, _model)) {
-                    versions.Add(it);
-                    if (it == _variant) {
-                        v = versions.GetCount() - 1;
+                if (_model != "") {
+                    int v = 0;
+                    wxPGChoices versions;
+                    for (const auto& it : ControllerCaps::GetVariants(GetType(), _vendor, _model)) {
+                        versions.Add(it);
+                        if (it == _variant) {
+                            v = versions.GetCount() - 1;
+                        }
                     }
+                    if (versions.GetCount() > 1)
+                        p = propertyGrid->Append(new wxEnumProperty("Variant", "Variant", versions, v));
                 }
-                if(versions.GetCount() > 1)
-                    p = propertyGrid->Append(new wxEnumProperty("Variant", "Variant", versions, v));
             }
         }
     }
@@ -589,7 +590,7 @@ bool Controller::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelMana
         return true;
     }
     else if (name == "Vendor") {
-        auto const vendors = ControllerCaps::GetVendors();
+        auto const vendors = ControllerCaps::GetVendors(GetType());
         auto it = begin(vendors);
         std::advance(it, event.GetValue().GetLong());
         SetVendor(*it);
@@ -600,7 +601,7 @@ bool Controller::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelMana
         return true;
     }
     else if (name == "Model") {
-        auto const models = ControllerCaps::GetModels(_vendor);
+        auto const models = ControllerCaps::GetModels(GetType(), _vendor);
         auto it = begin(models);
         std::advance(it, event.GetValue().GetLong());
         SetModel(*it);
@@ -610,7 +611,7 @@ bool Controller::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelMana
         return true;
     }
     else if (name == "Variant") {
-        auto const versions = ControllerCaps::GetVariants(_vendor, _model);
+        auto const versions = ControllerCaps::GetVariants(GetType(), _vendor, _model);
         auto it = begin(versions);
         std::advance(it, event.GetValue().GetLong());
         SetVariant(*it);

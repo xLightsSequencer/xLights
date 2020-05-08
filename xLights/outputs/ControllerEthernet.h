@@ -28,6 +28,7 @@ protected:
 #pragma region Property Choices
     static wxPGChoices __types;
     static void InitialiseTypes(bool forceXXX);
+    wxPGChoices GetProtocols() const;
 #pragma endregion
 
 #pragma region Member Variables

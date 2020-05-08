@@ -30,6 +30,28 @@
 #pragma region Property Choices
 wxPGChoices ControllerEthernet::__types;
 
+wxPGChoices ControllerEthernet::GetProtocols() const
+{
+    ControllerCaps* caps = ControllerCaps::GetControllerConfig(this);
+
+    if (caps == nullptr) return __types;
+
+    wxPGChoices types;
+    for (const auto& it : caps->GetInputProtocols()) {
+        if (it == "e131") types.Add(OUTPUT_E131);
+        else if (it == "zcpp") types.Add(OUTPUT_ZCPP);
+        else if (it == "artnet") types.Add(OUTPUT_ARTNET);
+        else if (it == "ddp") types.Add(OUTPUT_DDP);
+        else if (it == "opc") types.Add(OUTPUT_OPC);
+        else if (it == "xxx ethernet") {
+            if (SpecialOptions::GetOption("xxx") == "true" || GetProtocol() == OUTPUT_xxxETHERNET) {
+                types.Add(OUTPUT_xxxETHERNET);
+            }
+        }
+    }
+    return types;
+}
+
 void ControllerEthernet::InitialiseTypes(bool forceXXX) {
 
     if (__types.GetCount() == 0) {
@@ -514,7 +536,8 @@ void ControllerEthernet::AddProperties(wxPropertyGrid* propertyGrid, ModelManage
         }
     }
 
-    p = propertyGrid->Append(new wxEnumProperty("Protocol", "Protocol", __types, EncodeChoices(__types, _type)));
+    auto protocols = GetProtocols();
+    p = propertyGrid->Append(new wxEnumProperty("Protocol", "Protocol", protocols, EncodeChoices(protocols, _type)));
 
     bool allSameSize = AllSameSize();
     if (_outputs.size() == 1) {
@@ -715,12 +738,13 @@ bool ControllerEthernet::HandlePropertyEvent(wxPropertyGridEvent& event, OutputM
         return true;
     }
     else if (name == "Protocol") {
-        SetProtocol(Controller::DecodeChoices(__types, event.GetValue().GetLong()));
+        auto protocols = GetProtocols();
+        SetProtocol(Controller::DecodeChoices(protocols, event.GetValue().GetLong()));
 
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ControllerEthernet::HandlePropertyEvent::Type");
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "ControllerEthernet::HandlePropertyEvent::Type", nullptr);
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "ControllerEthernet::HandlePropertyEvent::Type", nullptr);
-        outputModelManager->AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "ControllerEthernet::HandlePropertyEvent::Type", nullptr);
+        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ControllerEthernet::HandlePropertyEvent::Protocol");
+        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "ControllerEthernet::HandlePropertyEvent::Protocol", nullptr);
+        outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "ControllerEthernet::HandlePropertyEvent::Protocol", nullptr);
+        outputModelManager->AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "ControllerEthernet::HandlePropertyEvent::Protocol", nullptr);
         return true;
     }
     else if (name == "Universe") {

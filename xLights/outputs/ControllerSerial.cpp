@@ -33,6 +33,31 @@ wxPGChoices ControllerSerial::__types;
 wxPGChoices ControllerSerial::__ports;
 wxPGChoices ControllerSerial::__speeds;
 
+wxPGChoices ControllerSerial::GetProtocols() const
+{
+    ControllerCaps* caps = ControllerCaps::GetControllerConfig(this);
+
+    if (caps == nullptr) return __types;
+
+    wxPGChoices types;
+    for (const auto& it : caps->GetInputProtocols()) {
+        if (it == "dmx") types.Add(OUTPUT_DMX);
+        else if (it == "lor") types.Add(OUTPUT_LOR);
+        else if (it == "lor optimised") types.Add(OUTPUT_LOR_OPT);
+        else if (it == "opendmx") types.Add(OUTPUT_OPENDMX);
+        else if (it == "pixelnet") types.Add(OUTPUT_PIXELNET);
+        else if (it == "openpixelnet") types.Add(OUTPUT_OPENPIXELNET);
+        else if (it == "renard") types.Add(OUTPUT_RENARD);
+        else if (it == "dlight") types.Add(OUTPUT_DLIGHT);
+        else if (it == "xxx serial") {
+            if (SpecialOptions::GetOption("xxx") == "true" || GetProtocol() == OUTPUT_xxxSERIAL) {
+                types.Add(OUTPUT_xxxSERIAL);
+            }
+        }
+    }
+    return types;
+}
+
 void ControllerSerial::InitialiseTypes(bool forceXXX) {
 
     if (__types.GetCount() == 0)  {
@@ -40,6 +65,7 @@ void ControllerSerial::InitialiseTypes(bool forceXXX) {
         __types.Add(OUTPUT_LOR);
         __types.Add(OUTPUT_LOR_OPT);
         __types.Add(OUTPUT_OPENDMX);
+        __types.Add(OUTPUT_PIXELNET);
         __types.Add(OUTPUT_OPENPIXELNET);
         __types.Add(OUTPUT_RENARD);
         __types.Add(OUTPUT_DLIGHT);
@@ -294,7 +320,8 @@ void ControllerSerial::AddProperties(wxPropertyGrid* propertyGrid, ModelManager*
         }
     }
 
-    p = propertyGrid->Append(new wxEnumProperty("Protocol", "Protocol", __types, Controller::EncodeChoices(__types, _type)));
+    auto protocols = GetProtocols();
+    p = propertyGrid->Append(new wxEnumProperty("Protocol", "Protocol", protocols, Controller::EncodeChoices(protocols, _type)));
 
     if (GetFirstOutput()->GetType() != OUTPUT_LOR_OPT)
     {
@@ -338,7 +365,8 @@ bool ControllerSerial::HandlePropertyEvent(wxPropertyGridEvent& event, OutputMod
         return true;
     }
     else if (name == "Protocol") {
-        SetProtocol(Controller::DecodeChoices(__types, event.GetValue().GetLong()));
+        auto protocols = GetProtocols();
+        SetProtocol(Controller::DecodeChoices(protocols, event.GetValue().GetLong()));
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ControllerSerial::HandlePropertyEvent::Protocol");
         outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "ControllerSerial::HandlePropertyEvent::Protocol", nullptr);
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "ControllerSerial::HandlePropertyEvent::Protocol", nullptr);

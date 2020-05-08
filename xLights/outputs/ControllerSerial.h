@@ -28,6 +28,7 @@ protected:
     static wxPGChoices __ports;
     static wxPGChoices __speeds;
     static void InitialiseTypes(bool forceXXX);
+    wxPGChoices GetProtocols() const;
 #pragma endregion
 
 #pragma region Member Variables

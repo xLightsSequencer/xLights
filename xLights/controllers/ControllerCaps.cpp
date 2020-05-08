@@ -159,18 +159,33 @@ void ControllerCaps::UnloadControllers() {
     __controllers.clear();
 }
 
-std::list<std::string> ControllerCaps::GetVendors() {
+std::list<std::string> ControllerCaps::GetVendors(const std::string& type) {
 
     LoadControllers();
     std::list<std::string> vendors;
     vendors.push_back("");
     for (const auto& it : __controllers) {
-        vendors.push_back(it.first);
+        bool done = false;
+        for (const auto& it2 : it.second) {
+            for (const auto& it3 : it2.second) {
+                if (type == CONTROLLER_ETHERNET && it3.second->SupportsEthernetInputProtols()) {
+                    vendors.push_back(it.first);
+                    done = true;
+                    break;
+                }
+                else if (type == CONTROLLER_SERIAL && it3.second->SupportsSerialInputProtols()) {
+                    vendors.push_back(it.first);
+                    done = true;
+                    break;
+                }
+            }
+            if (done) break;
+        }
     }
     return vendors;
 }
 
-std::list<std::string> ControllerCaps::GetModels(const std::string& vendor) {
+std::list<std::string> ControllerCaps::GetModels(const std::string& type, const std::string& vendor) {
 
     LoadControllers();
     std::list<std::string> models;
@@ -179,13 +194,22 @@ std::list<std::string> ControllerCaps::GetModels(const std::string& vendor) {
     auto v = __controllers.find(vendor);
     if (v != __controllers.end()) {
         for (const auto& it : v->second) {
-            models.push_back(it.first);
+            for (const auto& it3 : it.second) {
+                if (type == CONTROLLER_ETHERNET && it3.second->SupportsEthernetInputProtols()) {
+                    models.push_back(it.first);
+                    break;
+                }
+                else if (type == CONTROLLER_SERIAL && it3.second->SupportsSerialInputProtols()) {
+                    models.push_back(it.first);
+                    break;
+                }
+            }
         }
     }
     return models;
 }
 
-std::list<std::string> ControllerCaps::GetVariants(const std::string& vendor, const std::string& model) {
+std::list<std::string> ControllerCaps::GetVariants(const std::string& type, const std::string& vendor, const std::string& model) {
 
     LoadControllers();
     std::list<std::string> versions;
@@ -196,7 +220,14 @@ std::list<std::string> ControllerCaps::GetVariants(const std::string& vendor, co
         auto m = v->second.find(model);
         if (m != v->second.end()) {
             for (const auto& it : m->second) {
-                if (it.first != "") versions.push_back(it.first);
+                if (it.first != "") {
+                    if (type == CONTROLLER_ETHERNET && it.second->SupportsEthernetInputProtols()) {
+                        versions.push_back(it.first);
+                    }
+                    else if (type == CONTROLLER_SERIAL && it.second->SupportsSerialInputProtols()) {
+                        versions.push_back(it.first);
+                    }
+                }
             }
         }
     }
@@ -326,6 +357,24 @@ bool ControllerCaps::SupportsPixelPortGamma() const {
 bool ControllerCaps::SupportsPixelPortColourOrder() const {
 
     return SupportsPixelPortAllSettings() || DoesXmlNodeExist(_config, "SupportsPixelPortColourOrder");
+}
+
+bool ControllerCaps::SupportsEthernetInputProtols() const
+{
+    for (const auto& it : GetInputProtocols()) {
+        if (it == "e131" || it == "artnet" || it == "zcpp" || it == "ddp" || it == "opc" || it == "xxx ethernet") return true;
+    }
+    return false;
+}
+
+bool ControllerCaps::SupportsSerialInputProtols() const
+{
+    for (const auto& it : GetInputProtocols()) {
+        if (it == "dmx" || it == "lor" || it == "renard" || 
+            it == "opendmx" || it == "pixelnet" || it == "open pixelnet" || 
+            it == "dlight" || it == "lor optimised" || it == "xxx serial") return true;
+    }
+    return false;
 }
 
 bool ControllerCaps::SupportsPixelPortNullPixels() const {

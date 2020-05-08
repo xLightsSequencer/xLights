@@ -44,9 +44,9 @@ public:
     static void LoadControllers();
     static void UnloadControllers();
 
-    static std::list<std::string> GetVendors();
-    static std::list<std::string> GetModels(const std::string& vendor);
-    static std::list<std::string> GetVariants(const std::string& vendor, const std::string& model);
+    static std::list<std::string> GetVendors(const std::string& type);
+    static std::list<std::string> GetModels(const std::string& type, const std::string& vendor);
+    static std::list<std::string> GetVariants(const std::string& type, const std::string& vendor, const std::string& model);
 
     static ControllerCaps* GetControllerConfig(const std::string& vendor, const std::string& model, const std::string& variant);
     static ControllerCaps* GetControllerConfig(const Controller* const controller);
@@ -74,6 +74,8 @@ public:
     bool SupportsPixelPortGrouping() const;
     bool SupportsPixelPortDirection() const;
     bool SupportsPixelPortColourOrder() const;
+    bool SupportsEthernetInputProtols() const;
+    bool SupportsSerialInputProtols() const;
 
     int GetMaxInputE131Universes() const;
     int GetMaxPixelPort() const;
