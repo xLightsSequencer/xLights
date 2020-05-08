@@ -2113,11 +2113,13 @@ void xScheduleFrame::UpdateStatus(bool force)
             int i = 0;
             for (const auto& it : p->GetSteps())
             {
-                ListView_Running->InsertItem(i, it->GetNameNoTime());
-                ListView_Running->SetItem(i, 1, it->GetStartTime(p));
-                ListView_Running->SetItem(i, 2, FormatTime(it->GetLengthMS()));
-                ListView_Running->SetItemData(i, it->GetId());
-                i++;
+                if (!it->GetEveryStep()) {
+                    ListView_Running->InsertItem(i, it->GetNameNoTime());
+                    ListView_Running->SetItem(i, 1, it->GetStartTime(p));
+                    ListView_Running->SetItem(i, 2, FormatTime(it->GetLengthMS()));
+                    ListView_Running->SetItemData(i, it->GetId());
+                    i++;
+                }
             }
         }
 

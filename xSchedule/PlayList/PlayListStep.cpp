@@ -978,8 +978,7 @@ bool PlayListStep::IsSimple()
 
         auto type = _items.front()->GetTitle();
 
-        if (type == "FSEQ" || type == "Audio" || type == "FSEQ & Video")
-        {
+        if (type == "FSEQ" || type == "Audio" || type == "FSEQ & Video") {
             return true;
         }
     }
@@ -991,11 +990,9 @@ PlayListItemText* PlayListStep::GetTextItem(const std::string& name)
 {
     {
         ReentrancyCounter rec(_reentrancyCounter);
-        for (auto it = _items.begin(); it != _items.end(); ++it)
-        {
-            if ((*it)->GetTitle() == "Text" && wxString((*it)->GetNameNoTime()).Lower() == wxString(name).Lower())
-            {
-                return (PlayListItemText*)*it;
+        for (const auto& it : _items) {
+            if (it->GetTitle() == "Text" && wxString(it->GetNameNoTime()).Lower() == wxString(name).Lower()) {
+                return (PlayListItemText*)it;
             }
         }
     }
@@ -1007,11 +1004,9 @@ PlayListItem* PlayListStep::GetItem(const std::string item)
 {
     {
         ReentrancyCounter rec(_reentrancyCounter);
-        for (auto it = _items.begin(); it != _items.end(); ++it)
-        {
-            if (wxString((*it)->GetNameNoTime()).Lower() == wxString(item).Lower())
-            {
-                return *it;
+        for (const auto& it : _items) {
+            if (wxString(it->GetNameNoTime()).Lower() == wxString(item).Lower()) {
+                return it;
             }
         }
     }
@@ -1023,11 +1018,9 @@ PlayListItem* PlayListStep::GetItem(const wxUint32 id)
 {
     {
         ReentrancyCounter rec(_reentrancyCounter);
-        for (auto it = _items.begin(); it != _items.end(); ++it)
-        {
-            if ((*it)->GetId() == id)
-            {
-                return *it;
+        for (const auto& it : _items) {
+            if (it->GetId() == id) {
+                return it;
             }
         }
     }
@@ -1039,11 +1032,11 @@ PlayListItem* PlayListStep::FindRunProcessNamed(const std::string& item)
 {
     {
         ReentrancyCounter rec(_reentrancyCounter);
-        for (auto it = _items.begin(); it != _items.end(); ++it)
+        for (const auto& it : _items)
         {
-            if ((*it)->GetTitle() == "Run Process" && wxString((*it)->GetNameNoTime()).Lower() == wxString(item).Lower())
+            if (it->GetTitle() == "Run Process" && wxString(it->GetNameNoTime()).Lower() == wxString(item).Lower())
             {
-                return (*it);
+                return it;
             }
         }
     }

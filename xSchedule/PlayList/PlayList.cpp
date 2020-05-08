@@ -842,9 +842,10 @@ size_t PlayList::GetLengthMS()
     size_t length = 0;
     {
         ReentrancyCounter rec(_reentrancyCounter);
-        for (const auto& it : _steps)
-        {
-            length += it->GetLengthMS();
+        for (const auto& it : _steps) {
+            if (!it->GetEveryStep()) {
+                length += it->GetLengthMS();
+            }
         }
     }
 
@@ -1353,12 +1354,13 @@ PlayListStep* PlayList::GetStepAtTime(long ms, long& newMS)
         ReentrancyCounter rec(_reentrancyCounter);
         for (const auto& it : _steps)
         {
-            if (at + it->GetLengthMS() > ms)
-            {
-                newMS = ms - at;
-                return it;
+            if (!it->GetEveryStep()) {
+                if (at + it->GetLengthMS() > ms) {
+                    newMS = ms - at;
+                    return it;
+                }
+                at += it->GetLengthMS();
             }
-            at += it->GetLengthMS();
         }
     }
 
@@ -1373,14 +1375,14 @@ size_t PlayList::GetPosition()
         ReentrancyCounter rec(_reentrancyCounter);
         for (const auto& it : _steps)
         {
-            if (it == GetRunningStep())
-            {
-                pos += it->GetPosition();
-                break;
-            }
-            else
-            {
-                pos += it->GetLengthMS();
+            if (!it->GetEveryStep()) {
+                if (it == GetRunningStep()) {
+                    pos += it->GetPosition();
+                    break;
+                }
+                else {
+                    pos += it->GetLengthMS();
+                }
             }
         }
     }
@@ -1405,7 +1407,9 @@ std::string PlayList::GetStepStartTime(PlayListStep* step) const
     for (const auto& it : _steps)
     {
         if (it == step) break;
-        ms += it->GetLengthMS();
+        if (!it->GetEveryStep()) {
+            ms += it->GetLengthMS();
+        }
     }
 
 	return FORMATTIME(ms);
