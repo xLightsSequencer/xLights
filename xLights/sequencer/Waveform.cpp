@@ -290,17 +290,14 @@ void Waveform::SetSelectedInterval(int startMS, int endMS)
     Refresh(false);
 }
 
-void Waveform::mouseMoved( wxMouseEvent& event)
+void Waveform::mouseMoved(wxMouseEvent& event)
 {
-    if(!mIsInitialized){return;}
-    if (m_dragging)
-    {
-        if( m_drag_mode == DRAG_LEFT_EDGE )
-        {
+    if (!mIsInitialized) { return; }
+    if (m_dragging) {
+        if (m_drag_mode == DRAG_LEFT_EDGE) {
             mTimeline->SetSelectedPositionStart(event.GetX(), false);
         }
-        else
-        {
+        else {
             mTimeline->SetSelectedPositionEnd(event.GetX());
         }
         Refresh(false);
@@ -308,22 +305,18 @@ void Waveform::mouseMoved( wxMouseEvent& event)
         eventSelected.SetInt(abs(mTimeline->GetNewStartTimeMS() - mTimeline->GetNewEndTimeMS()));
         wxPostEvent(mParent, eventSelected);
     }
-    else
-    {
+    else {
         int selected_x1 = mTimeline->GetSelectedPositionStart();
         int selected_x2 = mTimeline->GetSelectedPositionEnd();
-        if( event.GetX() >= selected_x1 && event.GetX() < selected_x1+6 )
-        {
+        if (event.GetX() >= selected_x1 && event.GetX() < selected_x1 + 6) {
             SetCursor(wxCURSOR_POINT_LEFT);
             m_drag_mode = DRAG_LEFT_EDGE;
         }
-        else if( event.GetX() > selected_x2-6 && event.GetX() <= selected_x2 )
-        {
+        else if (event.GetX() > selected_x2 - 6 && event.GetX() <= selected_x2) {
             SetCursor(wxCURSOR_POINT_RIGHT);
             m_drag_mode = DRAG_RIGHT_EDGE;
         }
-        else
-        {
+        else {
             SetCursor(wxCURSOR_ARROW);
             m_drag_mode = DRAG_NORMAL;
         }
@@ -332,10 +325,11 @@ void Waveform::mouseMoved( wxMouseEvent& event)
     UpdateMousePosition(mouseTimeMS);
 
     // Scrubbing
-    if (_media != nullptr && event.LeftIsDown() && event.ControlDown())
-    {
-        int msperpixel = std::max(1000 / GetTimeFrequency(), mTimeline->TimePerMajorTickInMS() / mTimeline->PixelsPerMajorTick());
-        _media->Play(mouseTimeMS, msperpixel);
+    if (event.LeftIsDown() && event.ControlDown()) {
+        if (_media != nullptr) {
+            int msperpixel = std::max(1000 / GetTimeFrequency(), mTimeline->TimePerMajorTickInMS() / mTimeline->PixelsPerMajorTick());
+            _media->Play(mouseTimeMS, msperpixel);
+        }
 
         wxCommandEvent eventScrub(EVT_SCRUB);
         eventScrub.SetInt(mouseTimeMS);
