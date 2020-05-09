@@ -87,7 +87,7 @@ class ModelManager : public ObjectManager
     int previewWidth = 0;
     int previewHeight = 0;
     std::map<std::string, Model *> models;
-    std::mutex _modelLoadMutex;
+    mutable std::recursive_mutex _modelMutex;
     std::atomic<bool> _modelsLoading;
 };
 

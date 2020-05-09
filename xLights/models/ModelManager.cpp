@@ -69,6 +69,7 @@ ModelManager::~ModelManager() {
 
 void ModelManager::clear()
 {
+    std::lock_guard<std::recursive_mutex> _lock(_modelMutex);
     for (auto& it : models) {
         if (it.second != nullptr) {
             delete it.second;
@@ -84,6 +85,7 @@ inline BaseObject *ModelManager::GetObject(const std::string &name) const {
 
 bool ModelManager::IsModelValid(Model* m) const {
 
+    std::lock_guard<std::recursive_mutex> lock(_modelMutex);
     for (const auto& it : models) {
         if (it.second == m) return true;
 
@@ -95,7 +97,10 @@ bool ModelManager::IsModelValid(Model* m) const {
 }
 
 Model *ModelManager::GetModel(const std::string &name) const {
+    std::unique_lock<std::recursive_mutex> lock(_modelMutex);
     auto it = models.find(Trim(name));
+    lock.unlock();
+
     if (it == models.end()) {
         size_t pos = name.find("/");
         if (pos != std::string::npos) {
@@ -126,6 +131,7 @@ bool ModelManager::Rename(const std::string &oldName, const std::string &newName
     model->GetModelXml()->AddAttribute("name", nn);
     model->name = nn;
     if (dynamic_cast<SubModel*>(model) == nullptr) {
+        std::lock_guard<std::recursive_mutex> lock(_modelMutex);
         bool changed = false;
         for (auto& it2 : models) {
             changed |= it2.second->ModelRenamed(on, nn);
@@ -174,6 +180,8 @@ bool ModelManager::RenameInListOnly(const std::string& oldName, const std::strin
 
     Model *model = GetModel(on);
     if (model == nullptr) return false;
+    
+    std::lock_guard<std::recursive_mutex> lock(_modelMutex);
     models.erase(models.find(on));
     models[nn] = model;
     return true;
@@ -227,7 +235,6 @@ void ModelManager::LoadModels(wxXmlNode* modelNode, int previewW, int previewH)
         }
     }
     logger_base.debug("Models loaded in %ldms", timer.Time());
-
     _modelsLoading = false;
 
     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "ModelManager::LoadModels");
@@ -235,6 +242,7 @@ void ModelManager::LoadModels(wxXmlNode* modelNode, int previewW, int previewH)
 }
 
 uint32_t ModelManager::GetLastChannel() const {
+    std::lock_guard<std::recursive_mutex> lock(_modelMutex);
     unsigned int max = 0;
     for (const auto& it : models) {
         max = std::max(max, it.second->GetLastChannel());
@@ -245,6 +253,7 @@ uint32_t ModelManager::GetLastChannel() const {
 void ModelManager::ResetModelGroups() const
 {
     // This goes through all the model groups which hold model pointers and ensure their model pointers are correct
+    std::lock_guard<std::recursive_mutex> lock(_modelMutex);
     for (const auto& it : models) {
         if (it.second != nullptr && it.second->GetDisplayAs() == "ModelGroup") {
             ((ModelGroup*)(it.second))->ResetModels();
@@ -256,6 +265,7 @@ std::string ModelManager::GetLastModelOnPort(const std::string& controllerName, 
 {
     std::string last = "";
     unsigned int highestEndChannel = 0;
+    std::lock_guard<std::recursive_mutex> lock(_modelMutex);
 
     for (const auto& it : models)
     {
@@ -276,6 +286,7 @@ std::string ModelManager::GetLastModelOnPort(const std::string& controllerName, 
 {
     std::string last = "";
     unsigned int highestEndChannel = 0;
+    std::lock_guard<std::recursive_mutex> lock(_modelMutex);
 
     for (const auto& it : models)
     {
@@ -295,6 +306,7 @@ std::string ModelManager::GetLastModelOnPort(const std::string& controllerName, 
 
 void ModelManager::ReplaceIPInStartChannels(const std::string& oldIP, const std::string& newIP)
 {
+    std::lock_guard<std::recursive_mutex> lock(_modelMutex);
     for (const auto& it : models)
     {
         if (it.second->GetDisplayAs() != "ModelGroup")
@@ -309,6 +321,7 @@ void ModelManager::ReplaceIPInStartChannels(const std::string& oldIP, const std:
 
 bool ModelManager::RecalcStartChannels() const {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    std::lock_guard<std::recursive_mutex> lock(_modelMutex);
 
     wxStopWatch sw;
     bool changed = false;
@@ -411,6 +424,7 @@ void ModelManager::DisplayStartChannelCalcWarning() const
 {
     static std::string lastwarn = "";
     std::string msg = "Could not calculate start channels for models:\n";
+    std::lock_guard<std::recursive_mutex> lock(_modelMutex);
     for (const auto& it : models) {
         if (it.second->GetDisplayAs() != "ModelGroup" && !it.second->CouldComputeStartChannel) {
             msg += it.second->name + " : " + it.second->ModelStartChannel + "\n";
@@ -530,6 +544,7 @@ bool ModelManager::ReworkStartChannel() const
     for (const auto& it : outputManager->GetControllers())
     {
         std::map<std::string, std::list<Model*>> cmodels;
+        std::lock_guard<std::recursive_mutex> lock(_modelMutex);
         for (auto itm : models)
         {
             if (itm.second->GetControllerName() == it->GetName() &&
@@ -786,6 +801,7 @@ bool ModelManager::LoadGroups(wxXmlNode* groupNode, int previewW, int previewH) 
 
     std::list<wxXmlNode*> toBeDone;
     std::list<std::string> allModels;
+    std::lock_guard<std::recursive_mutex> lock(_modelMutex);
 
     // do all the models without embedded groups first or where the model order means everything exists
     for (wxXmlNode* e = groupNode->GetChildren(); e != nullptr; e = e->GetNext()) {
@@ -1211,9 +1227,9 @@ Model *ModelManager::CreateModel(wxXmlNode *node, int previewW, int previewH, bo
 void ModelManager::AddModel(Model *model) {
 
     // Lock before we add models ... this is required because LoadModels loads this in parallel
-    std::lock_guard<std::mutex> _lock(_modelLoadMutex);
 
     if (model != nullptr) {
+        std::lock_guard<std::recursive_mutex> _lock(_modelMutex);
         auto it = models.find(model->name);
         if (it != models.end()) {
             delete it->second;

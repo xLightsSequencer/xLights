@@ -1308,6 +1308,8 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
         int width = 0;
         //turn off the colum width auto-resize.  Makes it REALLY slow to populate the tree
         TreeListViewModels->SetColumnWidth(0, 10);
+        TreeListViewModels->SetColumnWidth(3, 10);
+        
         //turn off the sorting as that is ALSO really slow
         TreeListViewModels->SetItemComparator(nullptr);
         if (sorted) {
@@ -1368,10 +1370,8 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
         }
 
         TreeListViewModels->SetColumnWidth(0, wxCOL_WIDTH_AUTOSIZE);
-
         // we should have calculated a size, now turn off the auto-sizes as it's SLOW to update anything later
         int i = TreeListViewModels->GetColumnWidth(0);
-
 #ifdef LINUX // Calculate size on linux as GTK doesn't size the window in time
 
         i = TreeListViewModels->GetSize().GetWidth() - (width * 2);
@@ -1379,6 +1379,8 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
         if (i > 10) {
             TreeListViewModels->SetColumnWidth(0, i);
         }
+        TreeListViewModels->SetColumnWidth(3, wxCOL_WIDTH_AUTOSIZE);
+
         //turn the sorting back on
         TreeListViewModels->SetItemComparator(&comparator);
         if (sorted) {

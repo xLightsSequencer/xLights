@@ -65,7 +65,6 @@ static wxArrayString RGBW_HANDLING(3, RGBW_HANDLING_VALUES);
 static const char *PIXEL_STYLES_VALUES[] = {"Square", "Smooth", "Solid Circle", "Blended Circle"};
 static wxArrayString PIXEL_STYLES(4, PIXEL_STYLES_VALUES);
 
-static wxArrayString LAYOUT_GROUPS;
 
 static const char *CONTROLLER_PROTOCOLS_VALUES[] = {
     "", "ws2811", "gece", "tm18xx", "lx1203",
@@ -85,7 +84,10 @@ static const char *CONTROLLER_COLORORDER_VALUES[] = {
     "WRGB", "WRBG", "WGBR", "WGRB", "WBRG", "WBGR"};
 static wxArrayString CONTROLLER_COLORORDER(18, CONTROLLER_COLORORDER_VALUES);
 
+
+static wxArrayString LAYOUT_GROUPS;
 static wxArrayString CONTROLLERS;
+
 
 static const std::string DEFAULT("Default");
 static const std::string PER_PREVIEW("Per Preview");
