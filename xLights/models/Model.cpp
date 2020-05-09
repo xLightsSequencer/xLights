@@ -4190,9 +4190,9 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
     //UpdateBoundgingBox depends on "matrix" which is set in PrepareToDraw
     screenLocation.UpdateBoundingBox(Nodes);  // FIXME: Temporary...really only want to do this when something causes a boundary change
 
-    int vcount = 0;
-    for (auto it = Nodes.begin(); it != Nodes.end(); ++it) {
-        vcount += it->get()->Coords.size();
+    size_t vcount = 0;
+    for (const auto& it : Nodes) {
+        vcount += it.get()->Coords.size();
     }
     if (pixelStyle > 1) {
         int f = pixelSize;

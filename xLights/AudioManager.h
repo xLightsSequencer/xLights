@@ -15,6 +15,7 @@
 #include <list>
 #include <shared_mutex>
 #include <vector>
+#include <future>
 
 extern "C"
 {
@@ -35,7 +36,6 @@ extern "C"
 }
 
 #include "vamp-hostsdk/PluginLoader.h"
-#include "JobPool.h"
 #include <wx/progdlg.h>
 
 class AudioManager;
@@ -197,10 +197,7 @@ struct FilteredAudioData
 
 class AudioManager
 {
-	JobPool _jobPool;
-	Job* _job = nullptr;
     std::shared_timed_mutex _mutex;
-    Job* _jobAudioLoad = nullptr;
     std::shared_timed_mutex _mutexAudioLoad;
     long _loadedData = 0;
     std::vector<std::vector<std::list<float>>> _frameData;
@@ -232,6 +229,8 @@ class AudioManager
     int _sdlid = 0;
     bool _ok = false;
     std::string _hash;
+    std::future<void> _prepFrameData;
+    std::future<void> _loadingAudio;
 
 	void GetTrackMetrics(AVFormatContext* formatContext, AVCodecContext* codecContext, AVStream* audioStream);
 	void LoadTrackData(AVFormatContext* formatContext, AVCodecContext* codecContext, AVStream* audioStream);

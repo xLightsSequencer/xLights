@@ -836,7 +836,7 @@ void xLightsFrame::Scrub(wxCommandEvent& event)
 
     int ms = event.GetInt();
     if (ms < 0) ms = 0;
-    int frame = ms / CurrentSeqXmlFile->GetFrameMS();
+    unsigned int frame = ms / CurrentSeqXmlFile->GetFrameMS();
 
     if (ms > CurrentSeqXmlFile->GetSequenceDurationMS()) ms = CurrentSeqXmlFile->GetSequenceDurationMS();
     if (frame >= SeqData.NumFrames()) frame = SeqData.NumFrames();

@@ -104,39 +104,39 @@ void fill_audio(void *udata, Uint8 *stream, int len)
     }
 }
 
-class AudioLoadJob : Job
-{
-private:
-    AudioManager* _audio;
-    std::string _status;
-    AVFormatContext* _formatContext;
-    AVCodecContext* _codecContext;
-    AVStream* _audioStream;
-    AVFrame* _frame;
+//class AudioLoadJob : Job
+//{
+//private:
+//    AudioManager* _audio;
+//    std::string _status;
+//    AVFormatContext* _formatContext;
+//    AVCodecContext* _codecContext;
+//    AVStream* _audioStream;
+//    AVFrame* _frame;
+//
+//public:
+//    AudioLoadJob(AudioManager* audio, AVFormatContext* formatContext, AVCodecContext* codecContext, AVStream* audioStream, AVFrame* frame);
+//    virtual ~AudioLoadJob() {};
+//    virtual void Process() override;
+//    virtual std::string GetStatus() override { return _status; }
+//    virtual bool DeleteWhenComplete() override { return true; }
+//    virtual const std::string GetName() const override { return "AudioLoad"; }
+//};
 
-public:
-    AudioLoadJob(AudioManager* audio, AVFormatContext* formatContext, AVCodecContext* codecContext, AVStream* audioStream, AVFrame* frame);
-    virtual ~AudioLoadJob() {};
-    virtual void Process() override;
-    virtual std::string GetStatus() override { return _status; }
-    virtual bool DeleteWhenComplete() override { return true; }
-    virtual const std::string GetName() const override { return "AudioLoad"; }
-};
-
-class AudioScanJob : Job
-{
-private:
-    AudioManager* _audio;
-    std::string _status;
-
-public:
-    AudioScanJob(AudioManager* audio);
-    virtual ~AudioScanJob() {};
-    virtual void Process() override;
-    virtual std::string GetStatus() override { return _status; }
-    virtual bool DeleteWhenComplete() override { return true; }
-    virtual const std::string GetName() const override { return "AudioScan"; }
-};
+//class AudioScanJob : Job
+//{
+//private:
+//    AudioManager* _audio;
+//    std::string _status;
+//
+//public:
+//    AudioScanJob(AudioManager* audio);
+//    virtual ~AudioScanJob() {};
+//    virtual void Process() override;
+//    virtual std::string GetStatus() override { return _status; }
+//    virtual bool DeleteWhenComplete() override { return true; }
+//    virtual const std::string GetName() const override { return "AudioScan"; }
+//};
 
 void SDL::SetGlobalVolume(int volume)
 {
@@ -1295,7 +1295,7 @@ bool AudioManager::IsDataLoaded(long pos)
 }
 
 AudioManager::AudioManager(const std::string& audio_file, int step, int block)
-    :  _jobPool("AudioManager")
+    // :  _jobPool("AudioManager")
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -1304,8 +1304,8 @@ AudioManager::AudioManager(const std::string& audio_file, int step, int block)
 	// save parameters and initialise defaults
     _ok = true;
     _hash = "";
-	_job = nullptr;
-    _jobAudioLoad = nullptr;
+	//_job = nullptr;
+    //_jobAudioLoad = nullptr;
     _loadedData = 0;
 	_audio_file = audio_file;
 	_state = -1; // state uninitialised. 0 is error. 1 is loaded ok
@@ -1791,12 +1791,9 @@ void AudioManager::PrepareFrameData(bool separateThread)
 {
 	if (separateThread)
 	{
-		// if we have not prepared the frame data and no job has been created
-		if (!_frameDataPrepared && _job == nullptr)
-		{
-			_job = (Job*)new AudioScanJob(this);
-			_jobPool.PushJob(_job);
-		}
+        if (!_frameDataPrepared) {
+            _prepFrameData = std::async(std::launch::async, [this]() {DoPrepareFrameData(); });
+        }
 	}
 	else
 	{
@@ -1808,12 +1805,7 @@ void AudioManager::LoadAudioData(bool separateThread, AVFormatContext* formatCon
 {
     if (separateThread)
     {
-        // if we have not prepared the frame data and no job has been created
-        if (_jobAudioLoad == nullptr)
-        {
-            _jobAudioLoad = (Job*)new AudioLoadJob(this, formatContext, codecContext, audioStream, frame);
-            _jobPool.PushJob(_jobAudioLoad);
-        }
+        _loadingAudio = std::async(std::launch::async, [this, formatContext, codecContext, audioStream, frame]() {DoLoadAudioData(formatContext, codecContext, audioStream, frame); });
     }
     else
     {
@@ -2179,8 +2171,6 @@ AudioManager::~AudioManager()
 		free(_data[0]);
 		_data[0] = nullptr;
 	}
-
-	// I am not deleting _job as I think JobPool takes care of this
 }
 
 // Split the MP# data into left and right and normalise the values
@@ -3026,46 +3016,6 @@ float* AudioManager::GetRightDataPtr(long offset)
 		return nullptr;
 	}
 	return &_data[1][offset];
-}
-
-// AudioScanJob Functions
-// This job runs the frame data extraction on a background thread
-AudioScanJob::AudioScanJob(AudioManager* audio)
-{
-	_audio = audio;
-	_status = "Idle.";
-}
-
-// Run the job
-void AudioScanJob::Process()
-{
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("Audio scan job thread id 0x%x or %d", wxThread::GetCurrentId(), wxThread::GetCurrentId());
-	_status = "Processing.";
-	_audio->DoPrepareFrameData();
-	_status = "Done.";
-}
-
-// AudioLoadJob Functions
-// This job runs the frame data extraction on a background thread
-AudioLoadJob::AudioLoadJob(AudioManager* audio, AVFormatContext* formatContext, AVCodecContext* codecContext, AVStream* audioStream, AVFrame* frame)
-{
-    _formatContext = formatContext;
-    _codecContext = codecContext;
-    _audioStream = audioStream;
-    _frame = frame;
-    _audio = audio;
-    _status = "Idle.";
-}
-
-// Run the job
-void AudioLoadJob::Process()
-{
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("Audio load job thread id 0x%x or %d", wxThread::GetCurrentId(), wxThread::GetCurrentId());
-    _status = "Processing.";
-    _audio->DoLoadAudioData(_formatContext, _codecContext, _audioStream, _frame);
-    _status = "Done.";
 }
 
 // xLightsVamp Functions

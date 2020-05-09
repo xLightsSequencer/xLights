@@ -132,7 +132,7 @@ void xLightsFrame:: WriteVirFile(const wxString& filename, long numChans, unsign
         SetStatusText(wxString("Status: ") + string_format(" Channel %ld ", ch));
 
         wxString buff = "";
-        for (int p = startFrame; p < endFrame; p++)
+        for (unsigned int p = startFrame; p < endFrame; p++)
         {
             buff += string_format("%d ", (*dataBuf)[p][ch]);
         }
@@ -333,7 +333,7 @@ void xLightsFrame:: WriteLSPFile(const wxString& filename, long numChans, unsign
 
         channels_exported += cpn;
 
-        for (int p = startFrame; p < endFrame; p++)
+        for (unsigned int p = startFrame; p < endFrame; p++)
         {
             float seconds = ((p-startFrame)*dataBuf->FrameTime()) / 1000.0;
             //  SetStatusText(wxString("Status: " )+string_format(" Channel %4d. %4d out of %4d ",ch,p,numPeriods));
@@ -418,7 +418,7 @@ void xLightsFrame::WriteHLSFile(const wxString& filename, long numChans, unsigne
 
         wxString buff = "";
 
-        for (int p = startFrame; p < endFrame; p++, seqidx++)
+        for (unsigned int p = startFrame; p < endFrame; p++, seqidx++)
         {
             unsigned long rgb = ((*dataBuf)[p][ch] & 0xff) << 16 |
                 ((*dataBuf)[p][ch + 1] & 0xff) << 8 |
@@ -441,9 +441,6 @@ void xLightsFrame::WriteHLSFile(const wxString& filename, long numChans, unsigne
 
 void xLightsFrame:: WriteLcbFile(const wxString& filename, long numChans, unsigned int startFrame, unsigned int endFrame, SeqDataType *dataBuf, int ver, int cpn)
 {
-    wxString ChannelName, TestName;
-    int p, csec;
-
     int interval = SeqData.FrameTime() / 10;  // in centiseconds
     if( interval * 10 != SeqData.FrameTime() ) {
         DisplayError("Cannot export to LOR unless the sequence timing is evenly divisible by 10ms");
@@ -476,8 +473,9 @@ void xLightsFrame:: WriteLcbFile(const wxString& filename, long numChans, unsign
     //  <effect type="intensity" startCentisecond="0" endCentisecond="10" intensity="83" />
     int maxCell = 0;
     f.Write("  <cellDemarcations>\n");
+    int csec = 0;
     if (ver == 1) {
-        for (p = startFrame, csec = 0; p < endFrame; p++, csec += interval)
+        for (unsigned int p = startFrame, csec = 0; p < endFrame; p++, csec += interval)
         {
             f.Write(string_format("    <cellDemarcation centisecond=\"%d\" />\n", csec));
             maxCell = csec * 10;
@@ -500,7 +498,7 @@ void xLightsFrame:: WriteLcbFile(const wxString& filename, long numChans, unsign
         f.Write("    <channel>\n");
         xlColorVector colors;
         colors.resize(endFrame - startFrame);
-        for (p = startFrame; p < endFrame; p++)
+        for (unsigned int p = startFrame; p < endFrame; p++)
         {
             if (cpn == 1) {
                 colors[p].Set((*dataBuf)[p][ch], (*dataBuf)[p][ch], (*dataBuf)[p][ch]);
@@ -643,7 +641,7 @@ void xLightsFrame::WriteFalconPiModelFile(const wxString& filename, long numChan
         file->writeHeader();
         //now reset the sparse range to channel 0 since we don't have all the data in the dataBuf
         file->m_sparseRanges[0] = std::pair<uint32_t, uint32_t>(0, modelSize);
-        for (int x = startFrame; x < endFrame; x++) {
+        for (unsigned int x = startFrame; x < endFrame; x++) {
             file->addFrame(x - startFrame, &(*dataBuf)[x][0]);
         }
         file->finalize();
@@ -1258,7 +1256,7 @@ void xLightsFrame:: WriteMinleonNECModelFile(const wxString& filename, long numC
         f.Write(&zero, sizeof(zero));
     }
 
-    for (int i = startFrame; i < endFrame; ++i)
+    for (unsigned int i = startFrame; i < endFrame; ++i)
     {
         f.Write(&(*dataBuf)[i][0], numChans);
     }

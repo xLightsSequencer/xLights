@@ -746,7 +746,7 @@ Effect* EffectsGrid::FillRandomEffects()
             prog.Show();
             float progValue = 0;
             float den = (float)((row2 - row1 + 1) * (timingIndex2 - timingIndex1 + 1));
-            float per = 0.01;
+            float per = 0.01f;
             if (den != 0) per = 100.0 / den;
             mSequenceElements->get_undo_mgr().CreateUndoStep();
             for( int row = row1; row <= row2; row++)
