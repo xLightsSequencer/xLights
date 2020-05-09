@@ -99,19 +99,19 @@ void CircleModel::InitModel() {
     screenLocation.RenderDp = 10.0f;  // give the bounding box a little depth
 }
 
-static wxPGChoices CIRCLE_START_LOCATION;
-void CircleModel::AddTypeProperties(wxPropertyGridInterface *grid) {
-    if (CIRCLE_START_LOCATION.GetCount() == 0) {
-        CIRCLE_START_LOCATION.Add("Top Outer-CCW");
-        CIRCLE_START_LOCATION.Add("Top Outer-CW");
-        CIRCLE_START_LOCATION.Add("Top Inner-CCW");
-        CIRCLE_START_LOCATION.Add("Top Inner-CW");
+static const char* CIRCLE_START_LOCATION_VALUES[] = { 
+        "Top Outer-CCW",
+        "Top Outer-CW",
+        "Top Inner-CCW",
+        "Top Inner-CW",
+        "Bottom Outer-CCW",
+        "Bottom Outer-CW",
+        "Bottom Inner-CCW",
+        "Bottom Inner-CW"
+};
+static wxPGChoices CIRCLE_START_LOCATION(wxArrayString(8, CIRCLE_START_LOCATION_VALUES));
 
-        CIRCLE_START_LOCATION.Add("Bottom Outer-CCW");
-        CIRCLE_START_LOCATION.Add("Bottom Outer-CW");
-        CIRCLE_START_LOCATION.Add("Bottom Inner-CCW");
-        CIRCLE_START_LOCATION.Add("Bottom Inner-CW");
-    }
+void CircleModel::AddTypeProperties(wxPropertyGridInterface *grid) {
 
     wxPGProperty *p = grid->Append(new wxUIntProperty("# Strings", "CircleStringCount", parm1));
     p->SetAttribute("Min", 1);

@@ -77,34 +77,34 @@ static std::vector<std::tuple<int, int, int, int>> transformations =
     { 1,-1,0,1 }    //     S LR          ok
 };
 
-static wxPGChoices TOP_BOT_LEFT_RIGHT;
-static wxPGChoices CUBE_STYLES;
-static wxPGChoices STRAND_STYLES;
+static const char* TOP_BOT_LEFT_RIGHT_VALUES[] = {
+        "Front Bottom Left",
+        "Front Bottom Right",
+        "Front Top Left",
+        "Front Top Right",
+        "Back Bottom Left",
+        "Back Bottom Right",
+        "Back Top Left",
+        "Back Top Right"
+};
+static wxPGChoices TOP_BOT_LEFT_RIGHT(wxArrayString(8, TOP_BOT_LEFT_RIGHT_VALUES));
 
-void CubeModel::InitialiseChoices()
-{
-    if (TOP_BOT_LEFT_RIGHT.GetCount() == 0) {
-        TOP_BOT_LEFT_RIGHT.Add("Front Bottom Left");
-        TOP_BOT_LEFT_RIGHT.Add("Front Bottom Right");
-        TOP_BOT_LEFT_RIGHT.Add("Front Top Left");
-        TOP_BOT_LEFT_RIGHT.Add("Front Top Right");
-        TOP_BOT_LEFT_RIGHT.Add("Back Bottom Left");
-        TOP_BOT_LEFT_RIGHT.Add("Back Bottom Right");
-        TOP_BOT_LEFT_RIGHT.Add("Back Top Left");
-        TOP_BOT_LEFT_RIGHT.Add("Back Top Right");
+static const char* CUBE_STYLES_VALUES[] = { 
+        "Vertical Front/Back",
+        "Vertical Left/Right",
+        "Horizontal Front/Back",
+        "Horizontal Left/Right",
+        "Stacked Front/Back",
+        "Stacked Left/Right"
+};
+static wxPGChoices CUBE_STYLES(wxArrayString(6, CUBE_STYLES_VALUES));
 
-        CUBE_STYLES.Add("Vertical Front/Back");
-        CUBE_STYLES.Add("Vertical Left/Right");
-        CUBE_STYLES.Add("Horizontal Front/Back");
-        CUBE_STYLES.Add("Horizontal Left/Right");
-        CUBE_STYLES.Add("Stacked Front/Back");
-        CUBE_STYLES.Add("Stacked Left/Right");
-
-        STRAND_STYLES.Add("Zig Zag");
-        STRAND_STYLES.Add("No Zig Zag");
-        STRAND_STYLES.Add("Aternate Pixel");
-    }
-}
+static const char* STRAND_STYLES_VALUES[] = { 
+        "Zig Zag",
+        "No Zig Zag",
+        "Aternate Pixel"
+};
+static wxPGChoices STRAND_STYLES(wxArrayString(3, STRAND_STYLES_VALUES));
 
 CubeModel::CubeModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased) : ModelWithScreenLocation(manager)
 {
@@ -131,7 +131,6 @@ int CubeModel::CalcTransformationIndex() const
 }
 
 void CubeModel::AddTypeProperties(wxPropertyGridInterface *grid) {
-    InitialiseChoices();
     grid->Append(new wxEnumProperty("Starting Location", "CubeStart", TOP_BOT_LEFT_RIGHT, GetStartIndex()));
     grid->Append(new wxEnumProperty("Direction", "CubeStyle", CUBE_STYLES, GetStyleIndex()));
     grid->Append(new wxEnumProperty("Strand Style", "StrandPerLine", STRAND_STYLES, GetStrandStyleIndex()));

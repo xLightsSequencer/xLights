@@ -12,7 +12,6 @@
 
 #include "Model.h"
 
-
 class PolyLineModel : public ModelWithScreenLocation<PolyPointScreenLocation>
 {
     public:

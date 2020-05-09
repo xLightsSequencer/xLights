@@ -318,14 +318,14 @@ int TreeModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGri
     return MatrixModel::OnPropertyGridChange(grid, event);
 }
 
-static wxPGChoices TREE_STYLES;
+static const char* TREE_STYLES_VALUES[] = { 
+        "Round",
+        "Flat",
+        "Ribbon"
+};
+static wxPGChoices TREE_STYLES(wxArrayString(3, TREE_STYLES_VALUES));
 
 void TreeModel::AddStyleProperties(wxPropertyGridInterface *grid) {
-    if (TREE_STYLES.GetCount() == 0) {
-        TREE_STYLES.Add("Round");
-        TREE_STYLES.Add("Flat");
-        TREE_STYLES.Add("Ribbon");
-    }
     grid->Append(new wxEnumProperty("Type", "TreeStyle", TREE_STYLES, treeType));
 
     wxPGProperty *p = grid->Append(new wxUIntProperty("Degrees", "TreeDegrees", treeType == 0 ? degrees : 180));

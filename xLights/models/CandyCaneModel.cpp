@@ -29,7 +29,10 @@ CandyCaneModel::~CandyCaneModel()
 {
 }
 
-static const char *LEFT_RIGHT_VALUES[] = {"Green Square", "Blue Square"};
+static const char *LEFT_RIGHT_VALUES[] = {
+    "Green Square", 
+    "Blue Square"
+};
 static wxPGChoices LEFT_RIGHT(wxArrayString(2, LEFT_RIGHT_VALUES));
 
 void CandyCaneModel::AddTypeProperties(wxPropertyGridInterface *grid) {

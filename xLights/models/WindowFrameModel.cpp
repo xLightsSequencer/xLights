@@ -207,21 +207,21 @@ void WindowFrameModel::InitFrame()
     }
 }
 
-static wxPGChoices TOP_BOT_LEFT_RIGHT;
-static wxPGChoices CLOCKWISE_ANTI;
+static const char* TOP_BOT_LEFT_RIGHT_VALUES[] = { 
+        "Top Left",
+        "Top Right",
+        "Bottom Left",
+        "Bottom Right"
+};
+static wxPGChoices TOP_BOT_LEFT_RIGHT(wxArrayString(4, TOP_BOT_LEFT_RIGHT_VALUES));
+
+static const char* CLOCKWISE_ANTI_VALUES[] = {
+        "Clockwise",
+        "Counter Clockwise"
+};
+static wxPGChoices CLOCKWISE_ANTI(wxArrayString(2, CLOCKWISE_ANTI_VALUES));
 
 void WindowFrameModel::AddTypeProperties(wxPropertyGridInterface *grid) {
-    if (TOP_BOT_LEFT_RIGHT.GetCount() == 0) {
-        TOP_BOT_LEFT_RIGHT.Add("Top Left");
-        TOP_BOT_LEFT_RIGHT.Add("Top Right");
-        TOP_BOT_LEFT_RIGHT.Add("Bottom Left");
-        TOP_BOT_LEFT_RIGHT.Add("Bottom Right");
-    }
-    if (CLOCKWISE_ANTI.GetCount() == 0)
-    {
-        CLOCKWISE_ANTI.Add("Clockwise");
-        CLOCKWISE_ANTI.Add("Counter Clockwise");
-    }
     wxPGProperty *p = grid->Append(new wxUIntProperty("# Lights Top", "WFTopCount", parm1));
     p->SetAttribute("Min", 0);
     p->SetAttribute("Max", 1000);

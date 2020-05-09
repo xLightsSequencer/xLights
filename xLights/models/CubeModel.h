@@ -16,8 +16,6 @@ class CubeModel : public ModelWithScreenLocation<BoxedScreenLocation>
 {
     public:
     
-        static void InitialiseChoices();
-
         CubeModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased = false);
         virtual ~CubeModel();
 

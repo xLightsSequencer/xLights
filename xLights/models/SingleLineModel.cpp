@@ -165,13 +165,10 @@ void SingleLineModel::InitLine() {
     }
 }
 
-static wxPGChoices LEFT_RIGHT;
+static const char* LEFT_RIGHT_VALUES[] = { "Green Square", "Blue Square" };
+static wxPGChoices LEFT_RIGHT(wxArrayString(2, LEFT_RIGHT_VALUES));
 
 void SingleLineModel::AddTypeProperties(wxPropertyGridInterface *grid) {
-    if (LEFT_RIGHT.GetCount() == 0) {
-        LEFT_RIGHT.Add("Green Square");
-        LEFT_RIGHT.Add("Blue Square");
-    }
     wxPGProperty *p = grid->Append(new wxUIntProperty("# Strings", "SingleLineCount", parm1));
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", 100);

@@ -40,7 +40,15 @@ SpinnerModel::~SpinnerModel()
 // BottomLeft = End + CCW
 // Bottom Right = End + CW
 
-static wxPGChoices TOP_BOT_LEFT_RIGHT;
+static const char* TOP_BOT_LEFT_RIGHT_VALUES[] = { 
+    "Center Counter Clockwise",
+    "Center Clockwise",
+    "End Counter Clockwise",
+    "End Clockwise",
+    "Center Alternate Counter Clockwise",
+    "Center Alternate Clockwise"
+};
+static wxPGChoices TOP_BOT_LEFT_RIGHT(wxArrayString(6, TOP_BOT_LEFT_RIGHT_VALUES));
 
 wxString DecodeStart(long start)
 {
@@ -148,14 +156,6 @@ int SpinnerModel::EncodeStartLocation()
 }
 
 void SpinnerModel::AddTypeProperties(wxPropertyGridInterface *grid) {
-    if (TOP_BOT_LEFT_RIGHT.GetCount() == 0) {
-        TOP_BOT_LEFT_RIGHT.Add("Center Counter Clockwise");
-        TOP_BOT_LEFT_RIGHT.Add("Center Clockwise");
-        TOP_BOT_LEFT_RIGHT.Add("End Counter Clockwise");
-        TOP_BOT_LEFT_RIGHT.Add("End Clockwise");
-        TOP_BOT_LEFT_RIGHT.Add("Center Alternate Counter Clockwise");
-        TOP_BOT_LEFT_RIGHT.Add("Center Alternate Clockwise");
-    }
     
     wxPGProperty *p = grid->Append(new wxUIntProperty("# Strings", "SpinnerStringCount", parm1));
     p->SetAttribute("Min", 1);

@@ -63,15 +63,10 @@ void WreathModel::InitWreath() {
     }
 }
 
-static wxPGChoices TOP_BOT_LEFT_RIGHT;
+static const char* TOP_BOT_LEFT_RIGHT_VALUES[] = { "Top Ctr-CCW", "Top Ctr-CW", "Bottom Ctr-CW", "Bottom Ctr-CCW" };
+static wxPGChoices TOP_BOT_LEFT_RIGHT(wxArrayString(4, TOP_BOT_LEFT_RIGHT_VALUES));
 
 void WreathModel::AddTypeProperties(wxPropertyGridInterface *grid) {
-    if (TOP_BOT_LEFT_RIGHT.GetCount() == 0) {
-        TOP_BOT_LEFT_RIGHT.Add("Top Ctr-CCW");
-        TOP_BOT_LEFT_RIGHT.Add("Top Ctr-CW");
-        TOP_BOT_LEFT_RIGHT.Add("Bottom Ctr-CW");
-        TOP_BOT_LEFT_RIGHT.Add("Bottom Ctr-CCW");
-    }
     wxPGProperty *p = grid->Append(new wxUIntProperty("# Strings", "WreathStringCount", parm1));
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", 640);

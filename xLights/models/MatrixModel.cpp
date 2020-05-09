@@ -35,19 +35,21 @@ MatrixModel::~MatrixModel()
     //dtor
 }
 
-static wxPGChoices TOP_BOT_LEFT_RIGHT;
-static wxPGChoices MATRIX_STYLES;
+static const char* TOP_BOT_LEFT_RIGHT_VALUES[] = { 
+    "Top Left",
+    "Top Right",
+    "Bottom Left",
+    "Bottom Right"
+};
+static wxPGChoices TOP_BOT_LEFT_RIGHT(wxArrayString(4, TOP_BOT_LEFT_RIGHT_VALUES));
+
+static const char* MATRIX_STYLES_VALUES[] = {
+    "Horizontal",
+    "Vertical"
+};
+static wxPGChoices TOP_BOT_LEFT_RIGHT(wxArrayString(2, MATRIX_STYLES_VALUES));
 
 void MatrixModel::AddTypeProperties(wxPropertyGridInterface *grid) {
-    if (TOP_BOT_LEFT_RIGHT.GetCount() == 0) {
-        TOP_BOT_LEFT_RIGHT.Add("Top Left");
-        TOP_BOT_LEFT_RIGHT.Add("Top Right");
-        TOP_BOT_LEFT_RIGHT.Add("Bottom Left");
-        TOP_BOT_LEFT_RIGHT.Add("Bottom Right");
-
-        MATRIX_STYLES.Add("Horizontal");
-        MATRIX_STYLES.Add("Vertical");
-    }
 
     AddStyleProperties(grid);
 
