@@ -53,19 +53,24 @@ ModelManager::ModelManager(OutputManager* outputManager, xLightsFrame* xl) :
     xlights(xl),
     layoutsNode(nullptr),
     previewWidth(0),
-    previewHeight(0)
+    previewHeight(0),
+    _modelsLoading(false)
 {
     //ctor
 }
 
 ModelManager::~ModelManager() {
+
+    // Because loading models is async we have to ensure this is done before we destroy anything
+    while (_modelsLoading) wxMilliSleep(1);
+
     clear();
 }
 
-void ModelManager::clear() {
+void ModelManager::clear()
+{
     for (auto& it : models) {
-        if (it.second != nullptr)
-        {
+        if (it.second != nullptr) {
             delete it.second;
             it.second = nullptr;
         }
@@ -198,44 +203,35 @@ bool ModelManager::IsModelOverlapping(Model* model) const
     return false;
 }
 
-void ModelManager::LoadModels(wxXmlNode *modelNode, int previewW, int previewH) {
+void ModelManager::LoadModels(wxXmlNode* modelNode, int previewW, int previewH)
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    _modelsLoading = true;
     clear();
     previewWidth = previewW;
     previewHeight = previewH;
     this->modelNode = modelNode;
-    int countValid = 0;
-    for (wxXmlNode* e=modelNode->GetChildren(); e!=nullptr; e=e->GetNext()) {
-        if (e->GetName() == "model") {
-            std::string name = e->GetAttribute("name").Trim(true).Trim(false).ToStdString();
-            if (!name.empty()) {
-                Model *m = createAndAddModel(e, previewW, previewH);
-                if (m != nullptr) {
-                    countValid += m->CouldComputeStartChannel ? 1 : 0;
+    wxStopWatch timer;
+    {
+        std::vector<std::future<Model*>> modelsLoaded;
+        for (wxXmlNode* e = modelNode->GetChildren(); e != nullptr; e = e->GetNext()) {
+            if (e->GetName() == "model") {
+                std::string name = e->GetAttribute("name").Trim(true).Trim(false).ToStdString();
+                if (!name.empty()) {
+                    modelsLoaded.push_back(std::async(std::launch::async, [this, e, previewW, previewH]() {
+                        return createAndAddModel(e, previewW, previewH);
+                        }));
                 }
             }
         }
     }
+    logger_base.debug("Models loaded in %ldms", timer.Time());
 
-    RecalcStartChannels();
+    _modelsLoading = false;
 
-    //while (countValid != models.size()) {
-    //    int newCountValid = 0;
-    //    for (auto it = models.begin(); it != models.end(); ++it) {
-    //        if (!it->second->CouldComputeStartChannel) {
-    //            it->second->SetFromXml(it->second->GetModelXml());
-    //            newCountValid += it->second->CouldComputeStartChannel ? 1 : 0;
-    //        } else {
-    //            newCountValid++;
-    //        }
-    //    }
-    //    if (countValid == newCountValid) {
-    //        DisplayStartChannelCalcWarning();
-
-    //        //nothing improved
-    //        return;
-    //    }
-    //    countValid = newCountValid;
-    //}
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "ModelManager::LoadModels");
+    //RecalcStartChannels();
 }
 
 uint32_t ModelManager::GetLastChannel() const {
@@ -1213,6 +1209,10 @@ Model *ModelManager::CreateModel(wxXmlNode *node, int previewW, int previewH, bo
 }
 
 void ModelManager::AddModel(Model *model) {
+
+    // Lock before we add models ... this is required because LoadModels loads this in parallel
+    std::lock_guard<std::mutex> _lock(_modelLoadMutex);
+
     if (model != nullptr) {
         auto it = models.find(model->name);
         if (it != models.end()) {

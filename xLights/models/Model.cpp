@@ -130,8 +130,8 @@ Model::~Model() {
     if (modelDimmingCurve != nullptr) {
         delete modelDimmingCurve;
     }
-    for (auto it = subModels.begin(); it != subModels.end(); ++it) {
-        Model *m = *it;
+    for (const auto& it : subModels) {
+        Model *m = it;
         delete m;
     }
 }

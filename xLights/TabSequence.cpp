@@ -930,25 +930,25 @@ void xLightsFrame::UpdateModelsList()
     UnselectEffect();
     modelsChangeCount++;
     AllModels.LoadModels(ModelsNode,
-                         modelPreview->GetVirtualCanvasWidth(),
-                         modelPreview->GetVirtualCanvasHeight());
+        modelPreview->GetVirtualCanvasWidth(),
+        modelPreview->GetVirtualCanvasHeight());
 
     AllObjects.LoadViewObjects(ViewObjectsNode);
 
     std::vector<std::string> current;
-    for (auto it = AllModels.begin(); it != AllModels.end(); ++it) {
-        current.push_back(it->first);
+    for (const auto& it : AllModels) {
+        current.push_back(it.first);
     }
-    for (wxXmlNode* e=ModelGroupsNode->GetChildren(); e != nullptr; e = e->GetNext()) {
+    for (wxXmlNode* e = ModelGroupsNode->GetChildren(); e != nullptr; e = e->GetNext()) {
         if (e->GetName() == "modelGroup") {
             std::string name = e->GetAttribute("name").Trim(true).Trim(false).ToStdString();
             current.push_back(name);
         }
     }
-    for (wxXmlNode* e=ModelGroupsNode->GetChildren(); e != nullptr; e = e->GetNext()) {
+    for (wxXmlNode* e = ModelGroupsNode->GetChildren(); e != nullptr; e = e->GetNext()) {
         if (e->GetName() == "modelGroup") {
             std::string name = e->GetAttribute("name").Trim(true).Trim(false).ToStdString();
-            Model *model = AllModels[name];
+            Model* model = AllModels[name];
             if (model != nullptr) {
                 wxArrayString choices;
                 choices.push_back("Rename Model");
@@ -957,75 +957,76 @@ void xLightsFrame::UpdateModelsList()
                 choices.push_back("Delete Group");
 
                 wxString msg = "A model of name \'" + name + "\' already exists.  What action should we take?";
-                wxSingleChoiceDialog dlg(this, msg, "Model/Group Name Conflict", choices, (void **)nullptr,
-                                         wxDEFAULT_DIALOG_STYLE | wxOK | wxCENTRE | wxRESIZE_BORDER, wxDefaultPosition);
+                wxSingleChoiceDialog dlg(this, msg, "Model/Group Name Conflict", choices, (void**)nullptr,
+                    wxDEFAULT_DIALOG_STYLE | wxOK | wxCENTRE | wxRESIZE_BORDER, wxDefaultPosition);
                 bool done = false;
                 do {
                     dlg.ShowModal();
                     int sel = dlg.GetSelection();
                     switch (sel) {
-                        case 0:
-                        case 1:
-                            for (wxXmlNode* e2=ModelsNode->GetChildren(); e2!=nullptr; e2=e2->GetNext()) {
-                                if (e2->GetName() == "model") {
-                                    std::string mname = e2->GetAttribute("name").Trim(true).Trim(false).ToStdString();
-                                    if (mname == name) {
-                                        UnsavedRgbEffectsChanges=true;
-                                        if (sel == 1) {
-                                            ModelsNode->RemoveChild(e2);
-                                            done = true;
-                                        } else {
-                                            //rename
-                                            std::string newName = chooseNewName(this, current, "Rename Model", mname);
-                                            if (newName != mname) {
-                                                current.push_back(newName);
-                                                e2->DeleteAttribute("name");
-                                                e2->AddAttribute("name", newName);
-                                                done = true;
-                                            }
-                                        }
-                                        AllModels.LoadModels(ModelsNode,
-                                                             modelPreview->GetVirtualCanvasWidth(),
-                                                             modelPreview->GetVirtualCanvasHeight());
+                    case 0:
+                    case 1:
+                        for (wxXmlNode* e2 = ModelsNode->GetChildren(); e2 != nullptr; e2 = e2->GetNext()) {
+                            if (e2->GetName() == "model") {
+                                std::string mname = e2->GetAttribute("name").Trim(true).Trim(false).ToStdString();
+                                if (mname == name) {
+                                    UnsavedRgbEffectsChanges = true;
+                                    if (sel == 1) {
+                                        ModelsNode->RemoveChild(e2);
+                                        done = true;
                                     }
+                                    else {
+                                        //rename
+                                        std::string newName = chooseNewName(this, current, "Rename Model", mname);
+                                        if (newName != mname) {
+                                            current.push_back(newName);
+                                            e2->DeleteAttribute("name");
+                                            e2->AddAttribute("name", newName);
+                                            done = true;
+                                        }
+                                    }
+                                    AllModels.LoadModels(ModelsNode,
+                                        modelPreview->GetVirtualCanvasWidth(),
+                                        modelPreview->GetVirtualCanvasHeight());
                                 }
                             }
-                            break;
-                        case 2: {
-                                std::string newName = chooseNewName(this, current, "Rename Model Group", name);
-                                if (newName != name) {
-                                    current.push_back(newName);
-                                    e->DeleteAttribute("name");
-                                    e->AddAttribute("name", newName);
-                                    done = true;
-                                }
-                            }
-                            break;
-                        case 3:
-                            ModelGroupsNode->RemoveChild(e);
-                            e = ModelGroupsNode->GetChildren();
-                            UnsavedRgbEffectsChanges=true;
+                        }
+                        break;
+                    case 2: {
+                        std::string newName = chooseNewName(this, current, "Rename Model Group", name);
+                        if (newName != name) {
+                            current.push_back(newName);
+                            e->DeleteAttribute("name");
+                            e->AddAttribute("name", newName);
                             done = true;
-                            if (e == nullptr) {
-                                break;
-                            }
+                        }
+                    }
+                          break;
+                    case 3:
+                        ModelGroupsNode->RemoveChild(e);
+                        e = ModelGroupsNode->GetChildren();
+                        UnsavedRgbEffectsChanges = true;
+                        done = true;
+                        if (e == nullptr) {
                             break;
-                        default:
-                            break;
+                        }
+                        break;
+                    default:
+                        break;
                     }
                 } while (!done);
             }
         }
     }
     AllModels.LoadGroups(ModelGroupsNode,
-                         modelPreview->GetVirtualCanvasWidth(),
-                         modelPreview->GetVirtualCanvasHeight());
+        modelPreview->GetVirtualCanvasWidth(),
+        modelPreview->GetVirtualCanvasHeight());
 
     wxString msg;
 
     // Add all models to default House Preview that are set to Default or All Previews
-    for (auto it = AllModels.begin(); it != AllModels.end(); ++it) {
-        Model *model = it->second;
+    for (const auto& it : AllModels) {
+        Model* model = it.second;
         if (model->GetDisplayAs() != "ModelGroup") {
             if (model->GetLayoutGroup() == "Default" || model->GetLayoutGroup() == "All Previews") {
                 PreviewModels.push_back(model);
@@ -1034,10 +1035,10 @@ void xLightsFrame::UpdateModelsList()
     }
 
     // Now add all models to default House Preview that are in groups set to Default or All Previews
-    for (auto it = AllModels.begin(); it != AllModels.end(); ++it) {
-        Model *model = it->second;
+    for (const auto& it : AllModels) {
+        Model* model = it.second;
         if (model->GetDisplayAs() == "ModelGroup") {
-            ModelGroup *grp = (ModelGroup*)model;
+            ModelGroup* grp = (ModelGroup*)model;
             if (model->GetLayoutGroup() == "All Previews" || model->GetLayoutGroup() == "Default") {
                 AddModelsToPreview(grp, PreviewModels);
             }

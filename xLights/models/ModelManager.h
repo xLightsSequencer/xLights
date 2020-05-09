@@ -13,6 +13,9 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <mutex>
+#include <atomic>
+
 #include "ObjectManager.h"
 
 class Model;
@@ -24,6 +27,10 @@ class ModelManager : public ObjectManager
 {
     public:
         ModelManager(OutputManager* outputManager, xLightsFrame* xl);
+        ModelManager(const ModelManager& mm) = delete;
+        ModelManager& operator=(const ModelManager& mm) = delete;
+        ModelManager() = delete;
+
         virtual ~ModelManager();
 
         OutputManager* GetOutputManager() const { return _outputManager; }
@@ -42,7 +49,7 @@ class ModelManager : public ObjectManager
         bool RenameInListOnly(const std::string &oldName, const std::string &newName);
         bool IsModelOverlapping(Model* model) const;
         void AddModel(Model* m);
-        void AddModel(wxXmlNode* m);
+        //void AddModel(wxXmlNode* m);
         void Delete(const std::string &name);
         std::string GenerateModelName(const std::string& candidateModelName) const;
         void ResetModelGroups() const;
@@ -77,8 +84,10 @@ class ModelManager : public ObjectManager
     wxXmlNode *layoutsNode = nullptr;
     OutputManager* _outputManager = nullptr;
     xLightsFrame* xlights = nullptr;
-    int previewWidth;
-    int previewHeight;
+    int previewWidth = 0;
+    int previewHeight = 0;
     std::map<std::string, Model *> models;
+    std::mutex _modelLoadMutex;
+    std::atomic<bool> _modelsLoading;
 };
 

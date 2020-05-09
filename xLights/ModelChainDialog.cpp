@@ -82,15 +82,15 @@ void ModelChainDialog::Set(Model* m, const ModelManager &models) {
 
     wxArrayString  list;
     list.push_back("Beginning");
-    for (auto it = models.begin(); it != models.end(); ++it) {
-        if (it->second->GetDisplayAs() != "ModelGroup" && 
-            m != it->second && 
-            controller == it->second->GetControllerName() &&
-            port >= it->second->GetControllerPort() &&
-            port <= it->second->GetControllerPort() + it->second->GetNumPhysicalStrings() - 1 &&
-            smartRemote == it->second->GetSmartRemote() &&
-            protocol == it->second->GetControllerProtocol()) {
-            list.push_back(it->first);
+    for (const auto& it : models) {
+        if (it.second->GetDisplayAs() != "ModelGroup" && 
+            m != it.second && 
+            controller == it.second->GetControllerName() &&
+            port >= it.second->GetControllerPort() &&
+            port <= it.second->GetControllerPort() + it.second->GetNumPhysicalStrings() - 1 &&
+            smartRemote == it.second->GetSmartRemote() &&
+            protocol == it.second->GetControllerProtocol()) {
+            list.push_back(it.first);
         }
     }
 
