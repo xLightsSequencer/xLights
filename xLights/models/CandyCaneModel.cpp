@@ -29,13 +29,10 @@ CandyCaneModel::~CandyCaneModel()
 {
 }
 
-static wxPGChoices LEFT_RIGHT;
-void CandyCaneModel::AddTypeProperties(wxPropertyGridInterface *grid) {
-    if (LEFT_RIGHT.GetCount() == 0) {
-        LEFT_RIGHT.Add("Green Square");
-        LEFT_RIGHT.Add("Blue Square");
-    }
+static const char *LEFT_RIGHT_VALUES[] = {"Green Square", "Blue Square"};
+static wxPGChoices LEFT_RIGHT(wxArrayString(2, LEFT_RIGHT_VALUES));
 
+void CandyCaneModel::AddTypeProperties(wxPropertyGridInterface *grid) {
     wxPGProperty *p = grid->Append(new wxUIntProperty("# Canes", "CandyCaneCount", parm1));
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", 20);

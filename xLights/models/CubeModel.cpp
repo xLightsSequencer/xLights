@@ -108,14 +108,12 @@ void CubeModel::InitialiseChoices()
 
 CubeModel::CubeModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased) : ModelWithScreenLocation(manager)
 {
-    InitialiseChoices();
     screenLocation.SetSupportsZScaling(true);
     Model::SetFromXml(node, zeroBased);
 }
 
 CubeModel::CubeModel(const ModelManager &manager) : ModelWithScreenLocation(manager)
 {
-    InitialiseChoices();
 }
 
 CubeModel::~CubeModel()
@@ -133,7 +131,7 @@ int CubeModel::CalcTransformationIndex() const
 }
 
 void CubeModel::AddTypeProperties(wxPropertyGridInterface *grid) {
-
+    InitialiseChoices();
     grid->Append(new wxEnumProperty("Starting Location", "CubeStart", TOP_BOT_LEFT_RIGHT, GetStartIndex()));
     grid->Append(new wxEnumProperty("Direction", "CubeStyle", CUBE_STYLES, GetStyleIndex()));
     grid->Append(new wxEnumProperty("Strand Style", "StrandPerLine", STRAND_STYLES, GetStrandStyleIndex()));

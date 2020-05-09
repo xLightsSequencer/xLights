@@ -49,14 +49,42 @@
 
 static const int PORTS_PER_SMARTREMOTE = 4;
 
-static wxArrayString NODE_TYPES;
-static wxArrayString RGBW_HANDLING;
-static wxArrayString PIXEL_STYLES;
+static const char* NODE_TYPE_VLUES[] = {
+    "RGB Nodes", "RBG Nodes", "GBR Nodes", "GRB Nodes",
+    "BRG Nodes", "BGR Nodes", "Node Single Color", "3 Channel RGB",
+    "4 Channel RGBW", "4 Channel WRGB", "Strobes", "Single Color",
+    "Single Color Intensity", "Superstring", "WRGB Nodes", "WRBG Nodes",
+    "WGBR Nodes", "WGRB Nodes", "WBRG Nodes", "WBGR Nodes", "RGBW Nodes",
+    "RBGW Nodes", "GBRW Nodes", "GRBW Nodes", "BRGW Nodes",  "BGRW Nodes"
+};
+static wxArrayString NODE_TYPES(26, NODE_TYPE_VLUES);
+
+static const char *RGBW_HANDLING_VALUES[] = {"R=G=B -> W", "RGB Only", "White Only"};
+static wxArrayString RGBW_HANDLING(3, RGBW_HANDLING_VALUES);
+
+static const char *PIXEL_STYLES_VALUES[] = {"Square", "Smooth", "Solid Circle", "Blended Circle"};
+static wxArrayString PIXEL_STYLES(4, PIXEL_STYLES_VALUES);
+
 static wxArrayString LAYOUT_GROUPS;
-static wxArrayString CONTROLLER_PROTOCOLS;
-static wxArrayString SMART_REMOTES;
-static wxArrayString CONTROLLER_DIRECTION;
-static wxArrayString CONTROLLER_COLORORDER;
+
+static const char *CONTROLLER_PROTOCOLS_VALUES[] = {
+    "", "ws2811", "gece", "tm18xx", "lx1203",
+    "ws2801", "tls3001", "lpd6803", "apa102", "dmx",
+    "open dmx", "pixelnet", "renard", "lor", "open pixelnet"};
+static wxArrayString CONTROLLER_PROTOCOLS(15, CONTROLLER_PROTOCOLS_VALUES);
+
+static const char *SMART_REMOTES_VALUES[] = {"N/A", "*A*->b->c", "a->*B*->c", "a->b->*C*", "*A*->*B*->*C*", "a->*B*->*C*"};
+static wxArrayString SMART_REMOTES(6, SMART_REMOTES_VALUES);
+
+static const char *CONTROLLER_DIRECTION_VALUES[] = {"Forward", "Reverse"};
+static wxArrayString CONTROLLER_DIRECTION(2, CONTROLLER_DIRECTION_VALUES);
+
+static const char *CONTROLLER_COLORORDER_VALUES[] = {
+    "RGB", "RBG", "GBR", "GRB", "BRG", "BGR",
+    "RGBW", "RBGW", "GBRW", "GRBW", "BRGW", "BGRW",
+    "WRGB", "WRBG", "WGBR", "WGRB", "WBRG", "WBGR"};
+static wxArrayString CONTROLLER_COLORORDER(18, CONTROLLER_COLORORDER_VALUES);
+
 static wxArrayString CONTROLLERS;
 
 static const std::string DEFAULT("Default");
@@ -75,47 +103,6 @@ Model::Model(const ModelManager &manager) : modelDimmingCurve(nullptr),
     StrobeRate(0), modelManager(manager), CouldComputeStartChannel(false), maxVertexCount(0),
     rgbwHandlingType(0), BufferDp(0), _controller(0), modelTagColour(*wxBLACK)
 {
-    if (PIXEL_STYLES.empty()) {
-        PIXEL_STYLES.push_back("Square");
-        PIXEL_STYLES.push_back("Smooth");
-        PIXEL_STYLES.push_back("Solid Circle");
-        PIXEL_STYLES.push_back("Blended Circle");
-
-        NODE_TYPES.push_back("RGB Nodes");
-        NODE_TYPES.push_back("RBG Nodes");
-        NODE_TYPES.push_back("GBR Nodes");
-        NODE_TYPES.push_back("GRB Nodes");
-        NODE_TYPES.push_back("BRG Nodes");
-        NODE_TYPES.push_back("BGR Nodes");
-        NODE_TYPES.push_back("Node Single Color");
-
-        NODE_TYPES.push_back("3 Channel RGB");
-        NODE_TYPES.push_back("4 Channel RGBW");
-        NODE_TYPES.push_back("4 Channel WRGB");
-        NODE_TYPES.push_back("Strobes");
-        NODE_TYPES.push_back("Single Color");
-        NODE_TYPES.push_back("Single Color Intensity");
-        NODE_TYPES.push_back("Superstring");
-
-        NODE_TYPES.push_back("WRGB Nodes");
-        NODE_TYPES.push_back("WRBG Nodes");
-        NODE_TYPES.push_back("WGBR Nodes");
-        NODE_TYPES.push_back("WGRB Nodes");
-        NODE_TYPES.push_back("WBRG Nodes");
-        NODE_TYPES.push_back("WBGR Nodes");
-
-        NODE_TYPES.push_back("RGBW Nodes");
-        NODE_TYPES.push_back("RBGW Nodes");
-        NODE_TYPES.push_back("GBRW Nodes");
-        NODE_TYPES.push_back("GRBW Nodes");
-        NODE_TYPES.push_back("BRGW Nodes");
-        NODE_TYPES.push_back("BGRW Nodes");
-
-        RGBW_HANDLING.push_back("R=G=B -> W");
-        RGBW_HANDLING.push_back("RGB Only");
-        RGBW_HANDLING.push_back("White Only");
-    }
-
     // These member vars were not initialised so give them some defaults.
     BufferHt = 0;
     BufferWi = 0;
@@ -762,58 +749,6 @@ void Model::AddProperties(wxPropertyGridInterface* grid, OutputManager* outputMa
     DisableUnusedProperties(grid);
 }
 
-static inline void setupProtocolList() {
-    if (CONTROLLER_PROTOCOLS.IsEmpty()) {
-        CONTROLLER_PROTOCOLS.push_back("");
-        CONTROLLER_PROTOCOLS.push_back("ws2811");
-        CONTROLLER_PROTOCOLS.push_back("gece");
-        CONTROLLER_PROTOCOLS.push_back("tm18xx");
-        CONTROLLER_PROTOCOLS.push_back("lx1203");
-        CONTROLLER_PROTOCOLS.push_back("ws2801");
-        CONTROLLER_PROTOCOLS.push_back("tls3001");
-        CONTROLLER_PROTOCOLS.push_back("lpd6803");
-        CONTROLLER_PROTOCOLS.push_back("apa102");
-        CONTROLLER_PROTOCOLS.push_back("dmx");
-        CONTROLLER_PROTOCOLS.push_back("open dmx");
-        CONTROLLER_PROTOCOLS.push_back("pixelnet");
-        CONTROLLER_PROTOCOLS.push_back("renard");
-        CONTROLLER_PROTOCOLS.push_back("lor");
-        CONTROLLER_PROTOCOLS.push_back("open pixelnet");
-    }
-    if (SMART_REMOTES.IsEmpty()) {
-        SMART_REMOTES.push_back("N/A");
-        SMART_REMOTES.push_back("*A*->b->c");
-        SMART_REMOTES.push_back("a->*B*->c");
-        SMART_REMOTES.push_back("a->b->*C*");
-        SMART_REMOTES.push_back("*A*->*B*->*C*");
-        SMART_REMOTES.push_back("a->*B*->*C*");
-    }
-    if (CONTROLLER_DIRECTION.IsEmpty()) {
-        CONTROLLER_DIRECTION.push_back("Forward");
-        CONTROLLER_DIRECTION.push_back("Reverse");
-    }
-    if (CONTROLLER_COLORORDER.IsEmpty()) {
-        CONTROLLER_COLORORDER.push_back("RGB");
-        CONTROLLER_COLORORDER.push_back("RBG");
-        CONTROLLER_COLORORDER.push_back("GBR");
-        CONTROLLER_COLORORDER.push_back("GRB");
-        CONTROLLER_COLORORDER.push_back("BRG");
-        CONTROLLER_COLORORDER.push_back("BGR");
-        CONTROLLER_COLORORDER.push_back("RGBW");
-        CONTROLLER_COLORORDER.push_back("RBGW");
-        CONTROLLER_COLORORDER.push_back("GBRW");
-        CONTROLLER_COLORORDER.push_back("GRBW");
-        CONTROLLER_COLORORDER.push_back("BRGW");
-        CONTROLLER_COLORORDER.push_back("BGRW");
-        CONTROLLER_COLORORDER.push_back("WRGB");
-        CONTROLLER_COLORORDER.push_back("WRBG");
-        CONTROLLER_COLORORDER.push_back("WGBR");
-        CONTROLLER_COLORORDER.push_back("WGRB");
-        CONTROLLER_COLORORDER.push_back("WBRG");
-        CONTROLLER_COLORORDER.push_back("WBGR");
-    }
-}
-
 void Model::GetControllerProtocols(wxArrayString& cp, int& idx) {
 
     auto caps = GetControllerCaps();
@@ -845,8 +780,6 @@ void Model::GetControllerProtocols(wxArrayString& cp, int& idx) {
 void Model::AddControllerProperties(wxPropertyGridInterface *grid) {
 
     auto caps = GetControllerCaps();
-
-    setupProtocolList();
 
     wxString protocol = GetControllerProtocol();
     protocol.LowerCase();
@@ -5788,7 +5721,6 @@ std::string Model::GetControllerName() const
 
 std::list<std::string> Model::GetProtocols()
 {
-    setupProtocolList();
     std::list<std::string> res;
     for (auto a : CONTROLLER_PROTOCOLS) {
         if (a != "") {
