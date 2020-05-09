@@ -47,7 +47,7 @@ static const char* MATRIX_STYLES_VALUES[] = {
     "Horizontal",
     "Vertical"
 };
-static wxPGChoices TOP_BOT_LEFT_RIGHT(wxArrayString(2, MATRIX_STYLES_VALUES));
+static wxPGChoices MATRIX_STYLES(wxArrayString(2, MATRIX_STYLES_VALUES));
 
 void MatrixModel::AddTypeProperties(wxPropertyGridInterface *grid) {
 
