@@ -765,23 +765,20 @@ void Model::AddProperties(wxPropertyGridInterface* grid, OutputManager* outputMa
 static inline void setupProtocolList() {
     if (CONTROLLER_PROTOCOLS.IsEmpty()) {
         CONTROLLER_PROTOCOLS.push_back("");
-        CONTROLLER_PROTOCOLS.push_back("WS2811");
-        CONTROLLER_PROTOCOLS.push_back("GECE");
-        CONTROLLER_PROTOCOLS.push_back("TM18XX");
-        CONTROLLER_PROTOCOLS.push_back("LX1203");
-        CONTROLLER_PROTOCOLS.push_back("WS2801");
-        CONTROLLER_PROTOCOLS.push_back("TLS3001");
-        CONTROLLER_PROTOCOLS.push_back("LPD6803");
-        CONTROLLER_PROTOCOLS.push_back("APA102");
-        CONTROLLER_PROTOCOLS.push_back("DMX");
-        CONTROLLER_PROTOCOLS.push_back("PixelNet");
-        CONTROLLER_PROTOCOLS.push_back("Renard");
-        CONTROLLER_PROTOCOLS.push_back("LOR");
-        CONTROLLER_PROTOCOLS.push_back("DMX-Pro");
-        CONTROLLER_PROTOCOLS.push_back("DMX-Open");
-        CONTROLLER_PROTOCOLS.push_back("Pixelnet-Lynx");
-        CONTROLLER_PROTOCOLS.push_back("Pixelnet-Open");
-        CONTROLLER_PROTOCOLS.push_back("GenericSerial");
+        CONTROLLER_PROTOCOLS.push_back("ws2811");
+        CONTROLLER_PROTOCOLS.push_back("gece");
+        CONTROLLER_PROTOCOLS.push_back("tm18xx");
+        CONTROLLER_PROTOCOLS.push_back("lx1203");
+        CONTROLLER_PROTOCOLS.push_back("ws2801");
+        CONTROLLER_PROTOCOLS.push_back("tls3001");
+        CONTROLLER_PROTOCOLS.push_back("lpd6803");
+        CONTROLLER_PROTOCOLS.push_back("apa102");
+        CONTROLLER_PROTOCOLS.push_back("dmx");
+        CONTROLLER_PROTOCOLS.push_back("open dmx");
+        CONTROLLER_PROTOCOLS.push_back("pixelnet");
+        CONTROLLER_PROTOCOLS.push_back("renard");
+        CONTROLLER_PROTOCOLS.push_back("lor");
+        CONTROLLER_PROTOCOLS.push_back("open pixelnet");
     }
     if (SMART_REMOTES.IsEmpty()) {
         SMART_REMOTES.push_back("N/A");
