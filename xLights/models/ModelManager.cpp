@@ -234,7 +234,7 @@ void ModelManager::LoadModels(wxXmlNode* modelNode, int previewW, int previewH)
         createAndAddModel(e, previewW, previewH);
     };
     parallel_for(modelsToLoad, f);
-    printf("%d Models loaded in %ldms", (int)modelsToLoad.size(), timer.Time());
+    //printf("%d Models loaded in %ldms", (int)modelsToLoad.size(), timer.Time());
     logger_base.debug("Models loaded in %ldms", timer.Time());
     _modelsLoading = false;
 
