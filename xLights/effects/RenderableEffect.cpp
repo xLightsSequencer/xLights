@@ -152,10 +152,9 @@ bool RenderableEffect::IsVersionOlder(const std::string& compare, const std::str
 static std::string GetEffectStringFromWindow(wxWindow *ParentWin)
 {
     wxString s;
-    wxWindowList &ChildList = ParentWin->GetChildren();
-    for ( wxWindowList::iterator it = ChildList.begin(); it != ChildList.end(); ++it )
+    for (const auto& it : ParentWin->GetChildren())
     {
-        wxWindow *ChildWin = *it;
+        wxWindow *ChildWin = it;
         if (!ChildWin->IsEnabled()) {
             continue;
         }

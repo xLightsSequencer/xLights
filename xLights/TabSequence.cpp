@@ -1385,12 +1385,18 @@ void xLightsFrame::RenderAll()
 }
 
 static void enableAllChildControls(wxWindow *parent, bool enable) {
-    wxWindowList &ChildList = parent->GetChildren();
-    for (wxWindowList::iterator it = ChildList.begin(); it != ChildList.end(); ++it) {
-        wxWindow * child = *it;
-        child->Enable(enable);
+    for (const auto& it : parent->GetChildren()) {
+        it->Enable(enable);
+        enableAllChildControls(it, enable);
+        if (enable && it->GetName().StartsWith("ID_VALUECURVE"))             {
+            wxCommandEvent e(EVT_VC_CHANGED);
+            e.SetInt(-1);
+            e.SetEventObject(it);
+            wxPostEvent(parent, e);
+        }
     }
 }
+
 static void enableAllToolbarControls(wxAuiToolBar *parent, bool enable) {
     enableAllChildControls((wxWindow *)parent, enable);
     for (int x = 0; x < parent->GetToolCount(); x++) {
@@ -1416,23 +1422,35 @@ void xLightsFrame::EnableSequenceControls(bool enable)
     enableAllToolbarControls(MainToolBar, enable);
     //enableAllToolbarControls(PlayToolBar, enable && SeqData.NumFrames() > 0);
 	SetAudioControls();
-    enableAllToolbarControls(WindowMgmtToolbar, enable && SeqData.NumFrames() > 0);
-    enableAllToolbarControls(EffectsToolBar, enable && SeqData.NumFrames() > 0 && !IsACActive());
-    enableAllToolbarControls(EditToolBar, enable && SeqData.NumFrames() > 0);
-    enableAllToolbarControls(ACToolbar, enable && SeqData.NumFrames() > 0);
-    mainSequencer->CheckBox_SuspendRender->Enable(enable && SeqData.NumFrames() > 0);
+    bool enableSeq = enable && SeqData.NumFrames() > 0;
+    bool enableSeqNotAC = enable && SeqData.NumFrames() > 0 && !IsACActive();
+    enableAllToolbarControls(WindowMgmtToolbar, enableSeq);
+    enableAllToolbarControls(EffectsToolBar, enableSeqNotAC);
+    enableAllToolbarControls(EditToolBar, enableSeq);
+    enableAllToolbarControls(ACToolbar, enableSeq);
+    mainSequencer->CheckBox_SuspendRender->Enable(enableSeq);
     enableAllToolbarControls(ViewToolBar, enable);
     enableAllToolbarControls(OutputToolBar, enable);
 
-    enableAllChildControls(EffectsPanel1, enable && SeqData.NumFrames() > 0 && !IsACActive());
-    enableAllChildControls(timingPanel, enable && SeqData.NumFrames() > 0 && !IsACActive());
-    enableAllChildControls(bufferPanel, enable && SeqData.NumFrames() > 0 && !IsACActive());
-    enableAllChildControls(perspectivePanel, enable && SeqData.NumFrames() > 0);
-    enableAllChildControls(colorPanel, enable && SeqData.NumFrames() > 0 && !IsACActive());
-    enableAllChildControls(effectPalettePanel, enable && SeqData.NumFrames() > 0 && !IsACActive());
-    enableAllChildControls(_valueCurvesPanel, enable && SeqData.NumFrames() > 0 && !IsACActive());
-    enableAllChildControls(_coloursPanel, enable && SeqData.NumFrames() > 0 && !IsACActive());
-    enableAllChildControls(jukeboxPanel, enable && SeqData.NumFrames() > 0 && !IsACActive());
+
+    enableAllChildControls(EffectsPanel1, enableSeqNotAC);
+    //if (enableSeqNotAC) EffectsPanel1->ValidateWindow();
+    enableAllChildControls(timingPanel, enableSeqNotAC);
+    if (enableSeqNotAC) timingPanel->ValidateWindow();
+    enableAllChildControls(bufferPanel, enableSeqNotAC);
+    if (enableSeqNotAC) bufferPanel->ValidateWindow();
+    enableAllChildControls(perspectivePanel, enableSeq);
+    //if (enableSeq) perspectivePanel->ValidateWindow();
+    enableAllChildControls(colorPanel, enableSeqNotAC);
+    if (enableSeqNotAC) {colorPanel->ValidateWindow();}
+    enableAllChildControls(effectPalettePanel, enableSeqNotAC);
+    //if (enableSeqNotAC) effectPalettePanel->ValidateWindow();
+    enableAllChildControls(_valueCurvesPanel, enableSeqNotAC);
+    //if (enableSeqNotAC) _valueCurvesPanel->ValidateWindow();
+    enableAllChildControls(_coloursPanel, enableSeqNotAC);
+    //if (enableSeqNotAC) _coloursPanel->ValidateWindow();
+    enableAllChildControls(jukeboxPanel, enableSeqNotAC);
+    //if (enableSeqNotAC) jukeboxPanel->ValidateWindow();
     UpdateACToolbar(enable);
 
     enableAllMenubarControls(MenuBar, enable);

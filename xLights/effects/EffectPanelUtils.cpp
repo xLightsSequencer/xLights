@@ -142,51 +142,44 @@ bool EffectPanelUtils::IsLockable(wxControl* ctl) {
 void EffectPanelUtils::OnVCChanged(wxCommandEvent& event)
 {
     ValueCurveButton * vcb = (ValueCurveButton*)event.GetEventObject();
-    wxString name = vcb->GetName();
-    wxString slidername = name;
-    wxString slidername2 = name;
-    slidername.Replace("ID_VALUECURVE_", "ID_SLIDER_");
-    slidername2.Replace("ID_VALUECURVE_", "IDD_SLIDER_");
-    wxString textctrlname = name;
-    wxString textctrlname2 = name;
-    textctrlname.Replace("ID_VALUECURVE_", "ID_TEXTCTRL_");
-    textctrlname2.Replace("ID_VALUECURVE_", "IDD_TEXTCTRL_");
-    wxSlider* slider = (wxSlider*)vcb->GetParent()->FindWindowByName(slidername);
-    if (slider == nullptr || (void*)slider == (void*)vcb)
-    {
-        slider = (wxSlider*)vcb->GetParent()->FindWindowByName(slidername2);
-    }
-    wxTextCtrl* textctrl = (wxTextCtrl*)vcb->GetParent()->FindWindowByName(textctrlname);
-    if (textctrl == nullptr || (void*)textctrl == (void*)vcb)
-    {
-        textctrl = (wxTextCtrl*)vcb->GetParent()->FindWindowByName(textctrlname2);
-    }
-
-    wxASSERT(slider != nullptr && (void*)slider != (void*)vcb);
-    wxASSERT(textctrl != nullptr && (void*)textctrl != (void*)vcb);
-
-    if (vcb->GetValue()->IsActive())
-    {
-        if (slider != nullptr)
-        {
-            slider->Disable();
+    if (vcb != nullptr) {
+        wxString name = vcb->GetName();
+        wxString slidername = name;
+        wxString slidername2 = name;
+        slidername.Replace("ID_VALUECURVE_", "ID_SLIDER_");
+        slidername2.Replace("ID_VALUECURVE_", "IDD_SLIDER_");
+        wxString textctrlname = name;
+        wxString textctrlname2 = name;
+        textctrlname.Replace("ID_VALUECURVE_", "ID_TEXTCTRL_");
+        textctrlname2.Replace("ID_VALUECURVE_", "IDD_TEXTCTRL_");
+        wxSlider* slider = (wxSlider*)vcb->GetParent()->FindWindowByName(slidername);
+        if (slider == nullptr || (void*)slider == (void*)vcb) {
+            slider = (wxSlider*)vcb->GetParent()->FindWindowByName(slidername2);
         }
-        if (textctrl != nullptr)
-        {
-            textctrl->Disable();
+        wxTextCtrl* textctrl = (wxTextCtrl*)vcb->GetParent()->FindWindowByName(textctrlname);
+        if (textctrl == nullptr || (void*)textctrl == (void*)vcb) {
+            textctrl = (wxTextCtrl*)vcb->GetParent()->FindWindowByName(textctrlname2);
         }
-    }
-    else
-    {
-        if (vcb->IsEnabled())
-        {
-            if (slider != nullptr)
-            {
-                slider->Enable();
+
+        wxASSERT(slider != nullptr && (void*)slider != (void*)vcb);
+        wxASSERT(textctrl != nullptr && (void*)textctrl != (void*)vcb);
+
+        if (vcb->GetValue()->IsActive()) {
+            if (slider != nullptr) {
+                slider->Disable();
             }
-            if (textctrl != nullptr)
-            {
-                textctrl->Enable();
+            if (textctrl != nullptr) {
+                textctrl->Disable();
+            }
+        }
+        else {
+            if (vcb->IsEnabled()) {
+                if (slider != nullptr) {
+                    slider->Enable();
+                }
+                if (textctrl != nullptr) {
+                    textctrl->Enable();
+                }
             }
         }
     }
