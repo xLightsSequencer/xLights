@@ -45,7 +45,7 @@
 #include "UtilFunctions.h"
 #include "outputs/Output.h"
 #include "outputs/Controller.h"
-
+#include "Parallel.h"
 #include <log4cpp/Category.hh>
 
 ModelManager::ModelManager(OutputManager* outputManager, xLightsFrame* xl) :
@@ -221,19 +221,20 @@ void ModelManager::LoadModels(wxXmlNode* modelNode, int previewW, int previewH)
     previewHeight = previewH;
     this->modelNode = modelNode;
     wxStopWatch timer;
-    {
-        std::vector<std::future<Model*>> modelsLoaded;
-        for (wxXmlNode* e = modelNode->GetChildren(); e != nullptr; e = e->GetNext()) {
-            if (e->GetName() == "model") {
-                std::string name = e->GetAttribute("name").Trim(true).Trim(false).ToStdString();
-                if (!name.empty()) {
-                    modelsLoaded.push_back(std::async(std::launch::async, [this, e, previewW, previewH]() {
-                        return createAndAddModel(e, previewW, previewH);
-                        }));
-                }
+    std::list<wxXmlNode*> modelsToLoad;
+    for (wxXmlNode* e = modelNode->GetChildren(); e != nullptr; e = e->GetNext()) {
+        if (e->GetName() == "model") {
+            std::string name = e->GetAttribute("name").Trim(true).Trim(false).ToStdString();
+            if (!name.empty()) {
+                modelsToLoad.push_back(e);
             }
         }
     }
+    std::function<void(wxXmlNode*&, int)> f = [this, previewW, previewH] (wxXmlNode *e, int idx) {
+        createAndAddModel(e, previewW, previewH);
+    };
+    parallel_for(modelsToLoad, f);
+    printf("%d Models loaded in %ldms", (int)modelsToLoad.size(), timer.Time());
     logger_base.debug("Models loaded in %ldms", timer.Time());
     _modelsLoading = false;
 
