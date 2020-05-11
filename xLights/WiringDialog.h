@@ -34,6 +34,27 @@ public:
     virtual bool OnPrintPage(int pageNum) override;
 };
 
+typedef enum COLORTHEMETYPE {
+    DARK,
+    GRAY,
+    LIGHT
+} COLORTHEMETYPE;
+
+struct ColorTheme {
+    COLORTHEMETYPE type;
+    bool multiLightDark;
+    wxColour background;
+    wxColour messageFill;
+    wxColour messageAltFill;
+    wxColour messageOutline;
+    wxColour wiringFill;
+    wxColour wiringOutline;
+    wxColour nodeFill;
+    wxColour nodeOutline;
+    wxColour labelFill;
+    wxColour labelOutline;
+};
+
 class WiringDialog: public wxDialog
 {
     float _zoom = 1.0f;
@@ -41,9 +62,9 @@ class WiringDialog: public wxDialog
     wxPoint _lastMouse = wxPoint(0, 0);
     wxString _modelname;
     wxBitmap _bmp;
-    bool _dark;
     bool _rear;
     bool _multilight;
+    ColorTheme _selectedTheme;
     int _cols;
     int _rows;
     int _fontSize;
@@ -68,6 +89,7 @@ class WiringDialog: public wxDialog
     static const long ID_MNU_EXPORTLARGE;
     static const long ID_MNU_PRINT;
     static const long ID_MNU_DARK;
+    static const long ID_MNU_GRAY;
     static const long ID_MNU_LIGHT;
     static const long ID_MNU_FRONT;
     static const long ID_MNU_REAR;
@@ -79,6 +101,7 @@ class WiringDialog: public wxDialog
 
 		WiringDialog(wxWindow* parent, wxString modelname, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
 		virtual ~WiringDialog();
+        void SetColorTheme(COLORTHEMETYPE themeType);
         void SetData(wxGrid* grid, bool reverse);
         void SetData(Model* model);
         void DrawBitmap(wxBitmap& bitmap, bool printer = false);

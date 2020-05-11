@@ -45,6 +45,7 @@ const long WiringDialog::ID_MNU_EXPORT = wxNewId();
 const long WiringDialog::ID_MNU_EXPORTLARGE = wxNewId();
 const long WiringDialog::ID_MNU_PRINT = wxNewId();
 const long WiringDialog::ID_MNU_DARK = wxNewId();
+const long WiringDialog::ID_MNU_GRAY = wxNewId();
 const long WiringDialog::ID_MNU_LIGHT = wxNewId();
 const long WiringDialog::ID_MNU_FRONT = wxNewId();
 const long WiringDialog::ID_MNU_REAR = wxNewId();
@@ -58,11 +59,12 @@ END_EVENT_TABLE()
 
 WiringDialog::WiringDialog(wxWindow* parent, wxString modelname, wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
-    _dark = true;
     _rear = true;
     _multilight = false;
     _cols = 1;
     _rows = 1;
+
+    SetColorTheme(COLORTHEMETYPE::DARK);
 
 	//(*Initialize(WiringDialog)
 	wxFlexGridSizer* FlexGridSizer1;
@@ -98,6 +100,52 @@ WiringDialog::WiringDialog(wxWindow* parent, wxString modelname, wxWindowID id,c
 
     wxConfigBase* config = wxConfigBase::Get();
     config->Read("xLightsWDFontSize", &_fontSize, 12);
+}
+
+void WiringDialog::SetColorTheme(COLORTHEMETYPE themeType) {
+    _selectedTheme.type = themeType;
+
+    switch (themeType) {
+        case COLORTHEMETYPE::DARK:
+            _selectedTheme.multiLightDark = true;
+            _selectedTheme.background = *wxBLACK;
+            _selectedTheme.messageFill = *wxWHITE;
+            _selectedTheme.messageAltFill = *wxBLUE;
+            _selectedTheme.messageOutline = *wxBLACK;
+            _selectedTheme.wiringFill =  *wxWHITE;
+            _selectedTheme.wiringOutline = *wxYELLOW;
+            _selectedTheme.nodeFill = *wxWHITE;
+            _selectedTheme.nodeOutline = *wxYELLOW;
+            _selectedTheme.labelFill = *wxLIGHT_GREY;
+            _selectedTheme.labelOutline = *wxBLACK;
+            break;
+        case COLORTHEMETYPE::GRAY:
+            _selectedTheme.multiLightDark = true;
+            _selectedTheme.background = wxColour(48,48,48);
+            _selectedTheme.messageFill = *wxWHITE;
+            _selectedTheme.messageAltFill = *wxYELLOW;
+            _selectedTheme.messageOutline = wxColour(48,48,48);
+            _selectedTheme.wiringFill = wxColour(255, 255, 255, 128);
+            _selectedTheme.wiringOutline = wxColour(255, 255, 255, 128);
+            _selectedTheme.nodeFill = wxColour(255, 255, 255, 128);
+            _selectedTheme.nodeOutline = wxColour(255, 255, 255, 128);
+            _selectedTheme.labelFill = wxColour(255, 255, 255, 179);
+            _selectedTheme.labelOutline = wxColour(48,48,48);
+            break;
+        case COLORTHEMETYPE::LIGHT:
+            _selectedTheme.multiLightDark = false;
+            _selectedTheme.background = *wxWHITE;
+            _selectedTheme.messageFill = *wxBLACK;
+            _selectedTheme.messageAltFill = *wxBLUE;
+            _selectedTheme.messageOutline = *wxWHITE;
+            _selectedTheme.wiringFill =  *wxWHITE;
+            _selectedTheme.wiringOutline = *wxBLACK;
+            _selectedTheme.nodeFill = *wxWHITE;
+            _selectedTheme.nodeOutline = *wxBLACK;
+            _selectedTheme.labelFill = *wxBLACK;
+            _selectedTheme.labelOutline = *wxWHITE;
+        break;
+    }
 }
 
 void WiringDialog::SetData(Model* model)
@@ -225,16 +273,9 @@ void WiringDialog::RenderNodes(wxBitmap& bitmap, std::map<int, std::map<int, std
     int pageWidth = bitmap.GetScaledWidth() * SCALE_WIDTH;
     int pageHeight = bitmap.GetScaledHeight() * SCALE_HEIGHT;
 
-    if (_dark && !printer)
-    {
-        dc.SetPen(*wxBLACK_PEN);
-        dc.SetBrush(*wxBLACK_BRUSH);
-    }
-    else
-    {
-        dc.SetPen(*wxWHITE_PEN);
-        dc.SetBrush(*wxWHITE_BRUSH);
-    }
+    dc.SetPen(wxPen(_selectedTheme.background));
+    dc.SetBrush(wxBrush(_selectedTheme.background));
+    
     dc.DrawRectangle(wxPoint(0, 0), bitmap.GetScaledSize());
 
     int r = 0.6 * std::min(pageWidth / width / 2, pageHeight / height / 2);
@@ -257,21 +298,9 @@ void WiringDialog::RenderNodes(wxBitmap& bitmap, std::map<int, std::map<int, std
     wxFont font(fontSize, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD, false, wxEmptyString, wxFONTENCODING_DEFAULT);
     dc.SetFont(font);
 
-    wxPen* pen;
-    if (_dark && !printer)
-    {
-        pen = new wxPen(*wxYELLOW, 2);
-    }
-    else
-    {
-        if (printer)
-        {
-            pen = new wxPen(*wxBLACK, 5);
-        }
-        else
-        {
-            pen = new wxPen(*wxBLACK, 2);
-        }
+    int penWidth = 2;
+    if (printer) {
+        penWidth = 5;
     }
 
     // draw the lines
@@ -282,8 +311,9 @@ void WiringDialog::RenderNodes(wxBitmap& bitmap, std::map<int, std::map<int, std
 
         for (auto it = itp->second.begin(); it != itp->second.end(); ++it)
         {
-            dc.SetBrush(*wxWHITE_BRUSH);
-            dc.SetPen(*wxBLACK_PEN);
+            dc.SetBrush(wxBrush(_selectedTheme.wiringFill));
+            dc.SetPen(wxPen(_selectedTheme.wiringOutline, penWidth));
+
             int x = (width - it->second.front().x) * pageWidth / width;
             if (!_rear)
             {
@@ -293,7 +323,6 @@ void WiringDialog::RenderNodes(wxBitmap& bitmap, std::map<int, std::map<int, std
 
             if (it->first == last + 1)
             {
-                dc.SetPen(*pen);
                 int lastx = (width - lastpt.x) * pageWidth / width;
                 if (!_rear)
                 {
@@ -312,6 +341,9 @@ void WiringDialog::RenderNodes(wxBitmap& bitmap, std::map<int, std::map<int, std
     // now the circles
     for (auto itp = points.begin(); itp != points.end(); ++itp)
     {
+        dc.SetBrush(wxBrush(_selectedTheme.nodeFill));
+        dc.SetPen(wxPen(_selectedTheme.nodeOutline, penWidth));
+
         for (auto it = itp->second.begin(); it != itp->second.end(); ++it)
         {
             int x = (width - it->second.front().x) * pageWidth / width;
@@ -347,52 +379,23 @@ void WiringDialog::RenderNodes(wxBitmap& bitmap, std::map<int, std::map<int, std
                 label = wxString::Format("%d:%d", string, it->first).ToStdString();
             }
 
-            if (_dark && !printer)
-            {
-                RenderText(label, dc, (AdjustX(x + r + 2, printer) * _zoom) + _start.x, (AdjustY(y) * _zoom) + _start.y, *wxLIGHT_GREY, *wxBLACK);
-            }
-            else
-            {
-                if (printer)
-                {
-                    RenderText(label, dc, AdjustX(x + r + 2, printer) + _start.x, AdjustY(y) + _start.y, *wxBLACK, *wxWHITE);
-                }
-                else
-                {
-                    RenderText(label, dc, (AdjustX(x + r + 2, printer) * _zoom) + _start.x, (AdjustY(y) * _zoom) + _start.y, *wxBLACK, *wxWHITE);
-                }
-            }
-        }
+            if (printer) {
+                RenderText(label, dc, AdjustX(x + r + 2, printer) + _start.x, AdjustY(y) + _start.y, *wxBLACK, *wxWHITE);
+            } else {
+                RenderText(label, dc, (AdjustX(x + r + 2, printer) * _zoom) + _start.x, (AdjustY(y) * _zoom) + _start.y, _selectedTheme.labelFill, _selectedTheme.labelOutline);
+            }        }
         string++;
     }
 
-    if (_dark && !printer)
-    {
-        if (_rear)
-        {
-            RenderText("CAUTION: Reverse view", dc, AdjustX(0, printer) + _start.x, 20 + _start.y, *wxGREEN, *wxBLACK);
-        }
-        else
-        {
-            RenderText("CAUTION: Front view", dc, AdjustX(0, printer) + _start.x, 20 + _start.y, *wxBLUE, *wxBLACK);
-        }
-        RenderText("Model: " + _modelname, dc, AdjustX(0, printer) + _start.x, 20 + fontSize + 4 * printScale + _start.y, *wxGREEN, *wxBLACK);
-    }
-    else
-    {
-        if (_rear)
-        {
-            RenderText("CAUTION: Reverse view", dc, AdjustX(0, printer) + _start.x, 20 + _start.y, *wxBLACK, *wxWHITE);
-        }
-        else
-        {
-            RenderText("CAUTION: Front view", dc, AdjustX(0, printer) + _start.x, 20 + _start.y, *wxBLUE, *wxWHITE);
-        }
-        RenderText("Model: " + _modelname, dc, AdjustX(0, printer) + _start.x, 20 + fontSize + 4 * printScale + _start.y, *wxBLACK, *wxWHITE);
+    if (_rear) {
+        RenderText("CAUTION: Reverse view", dc, AdjustX(0, printer) + _start.x, 20 + _start.y, _selectedTheme.messageFill, _selectedTheme.messageOutline);
+    } else {
+        RenderText("CAUTION: Front view", dc, AdjustX(0, printer) + _start.x, 20 + _start.y, _selectedTheme.messageAltFill, _selectedTheme.messageOutline);
     }
 
+    RenderText("Model: " + _modelname, dc, AdjustX(0, printer) + _start.x, 20 + fontSize + 4 * printScale + _start.y, _selectedTheme.messageFill, _selectedTheme.labelOutline);
+
     dc.SetPen(*wxBLACK_PEN);
-    delete pen;
 }
 
 WiringPrintout::WiringPrintout(WiringDialog* wiringDialog)
@@ -427,16 +430,9 @@ void WiringDialog::RenderMultiLight(wxBitmap& bitmap, std::map<int, std::map<int
     int pageWidth = bitmap.GetScaledWidth() * SCALE_WIDTH;
     int pageHeight = bitmap.GetScaledHeight() * SCALE_HEIGHT;
 
-    if (_dark && !printer)
-    {
-        dc.SetPen(*wxBLACK_PEN);
-        dc.SetBrush(*wxBLACK_BRUSH);
-    }
-    else
-    {
-        dc.SetPen(*wxWHITE_PEN);
-        dc.SetBrush(*wxWHITE_BRUSH);
-    }
+    dc.SetPen(wxPen(_selectedTheme.background));
+    dc.SetBrush(wxBrush(_selectedTheme.background));
+
     dc.DrawRectangle(wxPoint(0, 0), bitmap.GetScaledSize());
 
     int printScale = 1;
@@ -465,7 +461,7 @@ void WiringDialog::RenderMultiLight(wxBitmap& bitmap, std::map<int, std::map<int
     {
         for (auto it = itp->second.begin(); it != itp->second.end(); ++it)
         {
-            if (_dark && !printer)
+            if (_selectedTheme.multiLightDark)
             {
                 dc.SetBrush(wxBrush(*colors[cindex], wxBRUSHSTYLE_SOLID));
             }
@@ -514,50 +510,23 @@ void WiringDialog::RenderMultiLight(wxBitmap& bitmap, std::map<int, std::map<int
                     label = wxString::Format("%d:%d", string, it->first).ToStdString();
                 }
 
-                if (_dark && !printer)
-                {
-                    RenderText(label, dc, (AdjustX(x + r + 2, printer) * _zoom) + _start.x, (AdjustY(y) * _zoom) + _start.y, *wxLIGHT_GREY, *wxBLACK);
-                }
-                else
-                {
-                    if (printer)
-                    {
-                        RenderText(label, dc, AdjustX(x + r + 2, printer) + _start.x, AdjustY(y) + _start.y, *wxBLACK, *wxWHITE);
-                    }
-                    else
-                    {
-                        RenderText(label, dc, (AdjustX(x + r + 2, printer) * _zoom) + _start.x, (AdjustY(y) * _zoom) + _start.y, *wxBLACK, *wxWHITE);
-                    }
+                if (printer) {
+                    RenderText(label, dc, AdjustX(x + r + 2, printer) + _start.x, AdjustY(y) + _start.y, *wxBLACK, *wxWHITE);
+                } else {
+                    RenderText(label, dc, (AdjustX(x + r + 2, printer) * _zoom) + _start.x, (AdjustY(y) * _zoom) + _start.y, _selectedTheme.labelFill, _selectedTheme.labelOutline);
                 }
             }
         }
         string++;
     }
 
-    if (_dark && !printer)
-    {
-        if (_rear)
-        {
-            RenderText("CAUTION: Reverse view", dc, AdjustX(0, printer) + _start.x, 20 + _start.y, *wxGREEN, *wxBLACK);
-        }
-        else
-        {
-            RenderText("CAUTION: Front view", dc, AdjustX(0, printer) + _start.x, 20 + _start.y, *wxBLUE, *wxBLACK);
-        }
-        RenderText("Model: " + _modelname, dc, AdjustX(0, printer) + _start.x, 20 + fontSize + 4 * printScale + _start.y, *wxGREEN, *wxBLACK);
+    if (_rear) {
+        RenderText("CAUTION: Reverse view", dc, AdjustX(0, printer) + _start.x, 20 + _start.y, _selectedTheme.messageFill, _selectedTheme.messageOutline);
+    } else {
+        RenderText("CAUTION: Front view", dc, AdjustX(0, printer) + _start.x, 20 + _start.y, _selectedTheme.messageAltFill, _selectedTheme.messageOutline);
     }
-    else
-    {
-        if (_rear)
-        {
-            RenderText("CAUTION: Reverse view", dc, AdjustX(0, printer) + _start.x, 20 + _start.y, *wxBLACK, *wxWHITE);
-        }
-        else
-        {
-            RenderText("CAUTION: Front view", dc, AdjustX(0, printer), 20, *wxBLUE, *wxWHITE);
-        }
-        RenderText("Model: " + _modelname, dc, AdjustX(0, printer) + _start.x, 20 + fontSize + 4 * printScale + _start.y, *wxBLACK, *wxWHITE);
-    }
+
+    RenderText("Model: " + _modelname, dc, AdjustX(0, printer) + _start.x, 20 + fontSize + 4 * printScale + _start.y, _selectedTheme.messageFill, _selectedTheme.messageOutline);
 }
 
 std::map<int, std::list<wxRealPoint>> WiringDialog::ExtractPoints(wxGrid* grid, bool reverse)
@@ -613,15 +582,19 @@ void WiringDialog::RightClick(wxContextMenuEvent& event)
     mnuLayer.Append(ID_MNU_EXPORTLARGE, "Export Large");
     mnuLayer.Append(ID_MNU_PRINT, "Print");
     auto dark = mnuLayer.Append(ID_MNU_DARK, "Dark", "", wxITEM_RADIO);
+    auto gray = mnuLayer.Append(ID_MNU_GRAY, "Gray", "", wxITEM_RADIO);
     auto light = mnuLayer.Append(ID_MNU_LIGHT, "Light", "", wxITEM_RADIO);
-    if (_dark)
-    {
+    
+    if (_selectedTheme.type == COLORTHEMETYPE::DARK) {
+        dark->Check();
+    } else if (_selectedTheme.type == COLORTHEMETYPE::GRAY) {
+        gray->Check();
+    } else if (_selectedTheme.type == COLORTHEMETYPE::LIGHT) {
+        light->Check();
+    } else {
         dark->Check();
     }
-    else
-    {
-        light->Check();
-    }
+    
     auto fontSmaller = mnuLayer.Append(ID_MNU_FONTSMALLER, "Smaller Font");
     if (_fontSize <= MINFONTSIZE) fontSmaller->Enable(false);
     mnuLayer.Append(ID_MNU_FONTLARGER, "Larger Font");
@@ -671,6 +644,8 @@ void WiringDialog::OnPopup(wxCommandEvent& event)
         static wxPrintDialogData printDialogData;
         wxPrinter printer(&printDialogData);
 
+        ColorTheme _prePrintTheme = _selectedTheme;
+        SetColorTheme(COLORTHEMETYPE::LIGHT);
         WiringPrintout printout(this);
 
         if (!printer.Print(this, &printout, true))
@@ -684,15 +659,22 @@ void WiringDialog::OnPopup(wxCommandEvent& event)
         {
             printDialogData = printer.GetPrintDialogData();
         }
+        
+        _selectedTheme = _prePrintTheme;
     }
     else if (id == ID_MNU_DARK)
     {
-        _dark = true;
+        SetColorTheme(COLORTHEMETYPE::DARK);
+        Render();
+    }
+    else if (id == ID_MNU_GRAY)
+    {
+        SetColorTheme(COLORTHEMETYPE::GRAY);
         Render();
     }
     else if (id == ID_MNU_LIGHT)
     {
-        _dark = false;
+        SetColorTheme(COLORTHEMETYPE::LIGHT);
         Render();
     }
     else if (id == ID_MNU_FRONT)
