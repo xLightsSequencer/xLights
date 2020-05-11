@@ -886,14 +886,14 @@ UDControllerPort* UDController::GetControllerPixelPort(int port) {
             return it.second;
         }
     }
-    _pixelPorts[port] = new UDControllerPort(port);
+    _pixelPorts[port] = new UDControllerPort("Pixel", port);
     return _pixelPorts[port];
 }
 
 UDControllerPort* UDController::GetControllerSerialPort(int port) {
 
     if (!HasSerialPort(port)) {
-        _serialPorts[port] = new UDControllerPort(port);
+        _serialPorts[port] = new UDControllerPort("USB/Serial", port);
     }
     return _serialPorts[port];
 }

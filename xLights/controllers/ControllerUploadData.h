@@ -132,12 +132,13 @@ class UDControllerPort
     bool _valid = false;
     std::string _invalidReason;
     std::list<UDVirtualString*> _virtualStrings;
+    std::string _type;
     #pragma endregion
 
 	public:
 
     #pragma region Constructors and Destructors
-    UDControllerPort(int port, const std::string & protocol = "") { _protocol = protocol; _port = port; _valid = true; _invalidReason = ""; }
+        UDControllerPort(const std::string& type, int port, const std::string& protocol = "") { _type = type; _protocol = protocol; _port = port; _valid = true; _invalidReason = ""; }
 	~UDControllerPort();
     #pragma endregion
 
@@ -158,6 +159,7 @@ class UDControllerPort
     #pragma region Virtual String Handling
     void CreateVirtualStrings(bool mergeSequential);
     int GetVirtualStringCount() const { return (int)_virtualStrings.size(); }
+    int GetModelCount() const { return (int)_models.size(); }
     std::list<UDVirtualString*> GetVirtualStrings() const { return _virtualStrings; }
     UDVirtualString* GetVirtualString(int index) const {
 
@@ -177,6 +179,7 @@ class UDControllerPort
 
     int GetUniverse() const;
     int GetUniverseStartChannel() const;
+    std::string GetType() const { return _type; }
 
     int Pixels() const { return Channels() / 3; }
 

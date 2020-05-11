@@ -211,6 +211,19 @@ public:
             mouse.y <= _location.y + totaly);
     }
 
+    int GetVirtualStringFromMouse(wxPoint mouse)
+    {
+        int vs = -1;
+        int y = _location.y;
+
+        while (mouse.y >= y) {
+            y += VERTICAL_SIZE + VERTICAL_GAP;
+            vs++;
+        }
+
+        return vs;
+    }
+
     int GetModelCount() const {
         return GetUDPort()->GetModels().size();
     }
@@ -383,9 +396,11 @@ protected:
     bool _main = false;
     std::string _displayName;
     int _string = 0;
+    UDControllerPort* _port = nullptr;
+    int _virtualString;
 public:
-    ModelCMObject(const std::string& name, const std::string displayName, ModelManager* mm, UDController* cud, ControllerCaps* caps, wxPoint location, wxSize size, int style) :
-        BaseCMObject(cud, caps, location, size, style), _mm(mm) {
+    ModelCMObject(UDControllerPort* port, int virtualString, const std::string& name, const std::string displayName, ModelManager* mm, UDController* cud, ControllerCaps* caps, wxPoint location, wxSize size, int style) :
+        BaseCMObject(cud, caps, location, size, style), _mm(mm), _port(port), _virtualString(virtualString) {
         _name = name;
         _main = name == displayName;
         _displayName = displayName;
@@ -399,7 +414,8 @@ public:
 
     std::string GetName() const { return _name; }
     std::string GetDisplayName() const { return _displayName; }
-
+    int GetVirtualString() const { return _virtualString; }
+    UDControllerPort* GetPort() const { return _port; }
     bool NameStartsWith(char c) {
         if (_name == "") return false;
         char cn = _name[0];
@@ -915,7 +931,7 @@ void ControllerModelDialog::ReloadModels()
                 ((_autoLayout && !CheckBox_HideOtherControllerModels->GetValue()) ||
                  ((_autoLayout && CheckBox_HideOtherControllerModels->GetValue() && (it.second->GetController() == nullptr || _controller->ContainsChannels(it.second->GetFirstChannel(), it.second->GetLastChannel()))) ||
                  _controller->ContainsChannels(it.second->GetFirstChannel(), it.second->GetLastChannel())))) {
-                _models.push_back(new ModelCMObject(it.second->GetName(), it.second->GetName(), _mm, _cud, _caps, wxPoint(5, y), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE), BaseCMObject::STYLE_STRINGS));
+                _models.push_back(new ModelCMObject(nullptr, 0, it.second->GetName(), it.second->GetName(), _mm, _cud, _caps, wxPoint(5, y), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE), BaseCMObject::STYLE_STRINGS));
                 y += VERTICAL_GAP + VERTICAL_SIZE;
             }
         }
@@ -946,12 +962,13 @@ void ControllerModelDialog::ReloadModels()
                     y += VERTICAL_GAP + VERTICAL_SIZE;
                 }
                 else {
+                    int vs = 0;
                     for (const auto& it : pp->GetVirtualStrings()) {
                         int x = LEFT_RIGHT_MARGIN + HORIZONTAL_SIZE + HORIZONTAL_GAP;
                         for (const auto& it2 : it->_models) {
                             if (it2->GetModel() != nullptr) {
                                 if (it2->GetModel()->GetSmartRemote() != 0) pixelPortsWithSmartRemotes.push_back(i + 1);
-                                auto cmm = new ModelCMObject(it2->GetModel()->GetName(), it2->GetName(), _mm, _cud, _caps, wxPoint(x, y), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE), BaseCMObject::STYLE_PIXELS);
+                                auto cmm = new ModelCMObject(pp, vs, it2->GetModel()->GetName(), it2->GetName(), _mm, _cud, _caps, wxPoint(x, y), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE), BaseCMObject::STYLE_PIXELS);
                                 _controllers.push_back(cmm);
                                 x += HORIZONTAL_SIZE + HORIZONTAL_GAP;
                             }
@@ -965,7 +982,7 @@ void ControllerModelDialog::ReloadModels()
                 int x = LEFT_RIGHT_MARGIN + HORIZONTAL_SIZE + HORIZONTAL_GAP;
                 for (const auto& it : pp->GetModels()) {
                     if (it->GetModel() != nullptr) {
-                        auto cmm = new ModelCMObject(it->GetModel()->GetName(), it->GetName(), _mm, _cud, _caps, wxPoint(x, y), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE), BaseCMObject::STYLE_PIXELS);
+                        auto cmm = new ModelCMObject(pp, 0, it->GetModel()->GetName(), it->GetName(), _mm, _cud, _caps, wxPoint(x, y), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE), BaseCMObject::STYLE_PIXELS);
                         _controllers.push_back(cmm);
                         x += HORIZONTAL_SIZE + HORIZONTAL_GAP;
                     }
@@ -982,7 +999,7 @@ void ControllerModelDialog::ReloadModels()
         if (sp != nullptr) {
             int x = LEFT_RIGHT_MARGIN + HORIZONTAL_SIZE + HORIZONTAL_GAP;
             for (const auto& it : sp->GetModels()) {
-                auto cmm = new ModelCMObject(it->GetName(), it->GetName(), _mm, _cud, _caps, wxPoint(x, y), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE), BaseCMObject::STYLE_CHANNELS);
+                auto cmm = new ModelCMObject(sp, 0, it->GetName(), it->GetName(), _mm, _cud, _caps, wxPoint(x, y), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE), BaseCMObject::STYLE_CHANNELS);
                 _controllers.push_back(cmm);
                 x += HORIZONTAL_SIZE + HORIZONTAL_GAP;
             }
@@ -1518,6 +1535,20 @@ void ControllerModelDialog::OnPanelControllerMouseMove(wxMouseEvent& event)
                 }
             }
         }
+
+        if (tt == "") {
+            for (const auto& it : _controllers) {
+                if (it->HitYTest(mouse))   
+                {
+                    auto port = dynamic_cast<PortCMObject*>(it);
+                    if (port != nullptr)                         {
+                        tt = GetPortTooltip(port->GetUDPort(), port->GetVirtualStringFromMouse(mouse));
+                    }
+                    break;
+                }
+            }
+        }
+
         if (PanelController->GetToolTipText() != tt) {
             PanelController->SetToolTip(tt);
         }
@@ -1541,6 +1572,64 @@ void ControllerModelDialog::ClearOver(wxPanel* panel, std::list<BaseCMObject*> l
             panel->RefreshRect(rect);
         }
     }
+}
+
+std::string ControllerModelDialog::GetPortTooltip(UDControllerPort* port, int virtualString)
+{
+    std::string res;
+
+    std::string protocol;
+    if (port->GetProtocol() != "")         {
+        protocol = wxString::Format("Protocol: %s\n", port->GetProtocol());
+    }
+
+    std::string vs;
+    if (port->GetVirtualStringCount() > 1) {
+        vs = wxString::Format("Virtual String: %d\n", virtualString+1);
+    }
+
+    std::string sc;
+    std::string sr;
+    if (port->GetVirtualStringCount() <= 1 || virtualString < 0)         {
+        if (port->GetModelCount() > 0 && port->Channels() > 0) {
+            sc = wxString::Format("Start Channel: %ld (#%d:%d)\nChannels: %ld", 
+                port->GetStartChannel(), 
+                port->GetUniverse(),
+                port->GetUniverseStartChannel(),
+                port->Channels());
+        }
+    }
+    else {
+        auto pvs = port->GetVirtualString(virtualString);
+        if (pvs == nullptr) {
+        }
+        else {
+            switch (pvs->_smartRemote)
+            {
+            case 1:
+                sr = "Smart Remote: A\n";
+                break;
+            case 2:
+                sr = "Smart Remote: B\n";
+                break;
+            case 3:
+                sr = "Smart Remote: C\n";
+                break;
+            default:
+                break;
+            }
+            if (pvs->Channels() > 0)                 {
+                sc = wxString::Format("Start Channel: %ld (#%d:%d)\nChannels: %ld",
+                    pvs->_startChannel,
+                    pvs->_universe,
+                    pvs->_universeStartChannel,
+                    pvs->Channels());
+            }
+        }
+    }
+
+    return wxString::Format("Port: %d\nType: %s\n%s%s%s%s", port->GetPort(), port->GetType(), protocol, sr, vs, sc);
+    return res;
 }
 
 std::string ControllerModelDialog::GetModelTooltip(ModelCMObject* mob)

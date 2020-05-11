@@ -11,7 +11,28 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (keith)  Make it possible to clear the set model brightness from in the visualiser
+   -- enh (keith)  Limit the list of vendors to those who have controllers that work with the chosen controller type
+   -- enh (keith)  Add a hard stop option to xSchedule
+   -- enh (keith)  Load models in parallel to speed up model load
+   -- enh (keith)  Add port tooltips in visualiser to help manually configure controllers
+   -- enh (priemd) Add grey option to wiring view
    -- bug (kevin)  Fix house-preview video export broken for odd-numbered heights
+   -- bug (keith)  Fix issues with control tab convert not converting some !desc:sc entries correctly
+   -- bug (keith)  Fix display export does not work for animations
+   -- bug (keith)  Fix crash in servo effect if some skull servos are missing
+   -- bug (keith)  Fix Falcon upload should refuse to upload invalid smart remote/non smart remotes on the same block of 4 ports
+   -- bug (keith)  Fix custom model dimensions inflate by 1 when you edit the custom model data
+   -- bug (keith)  Make scrubbing work in animations
+   -- bug (keith)  Display picture effect as all red if the filename is blank
+   -- bug (keith)  Fix scroll to model in visualiser
+   -- bug (keith)  Fix every step is counting in sequence overall times
+   -- bug (keith)  Change xSchedule to stop at the start of the end time rather than at the end of the end time minute
+   -- bug (keith)  Fix crash adding models to groups
+   -- bug (keith)  Fix models lose protocol in visualiser
+   -- bug (keith)  Fix panels dont enable correctly when new sequence created
+   -- bug (priemd) Fix display of submodel start channel
+   -- bug (kevin)  Fix display export exports blank video if video is an odd number of pixels high
 2020.18 May 5 2020
    -- enh (keith)  Add 3d display of floodlights including beam length control
    -- enh (keith)  Add ability to span models over several smart remotes from the same 4 ports

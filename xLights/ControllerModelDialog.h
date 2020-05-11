@@ -63,6 +63,7 @@ class ControllerModelDialog: public wxDialog
 	void ReloadModels();
 	void ClearOver(wxPanel* panel, std::list<BaseCMObject*> list);
 	std::string GetModelTooltip(ModelCMObject* m);
+	std::string GetPortTooltip(UDControllerPort* port, int virtualString);
 	void FixDMXChannels();
 
 	public:
