@@ -388,7 +388,7 @@ void WiringDialog::RenderNodes(wxBitmap& bitmap, std::map<int, std::map<int, std
     }
 
     if (_rear) {
-        RenderText("CAUTION: Reverse view", dc, AdjustX(0, printer) + _start.x, 20 + _start.y, _selectedTheme.messageFill, _selectedTheme.labelOutline);
+        RenderText("CAUTION: Reverse view", dc, AdjustX(0, printer) + _start.x, 20 + _start.y, _selectedTheme.messageFill, _selectedTheme.messageOutline);
     } else {
         RenderText("CAUTION: Front view", dc, AdjustX(0, printer) + _start.x, 20 + _start.y, _selectedTheme.messageAltFill, _selectedTheme.messageOutline);
     }
