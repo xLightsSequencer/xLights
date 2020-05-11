@@ -288,7 +288,7 @@ bool ControllerCaps::SupportsInputOnlyUpload() const {
 
 bool ControllerCaps::SupportsLEDPanelMatrix() const {
 
-    return DoesXmlNodeExist(_config, "SupportsLEDPanelMatix");
+    return DoesXmlNodeExist(_config, "SupportsLEDPanelMatrix");
 }
 
 bool ControllerCaps::SupportsVirtualStrings() const {
