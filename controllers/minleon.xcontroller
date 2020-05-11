@@ -1,7 +1,10 @@
 <Vendor Name="Minleon">
 	<Controller Name="RGB NDB Plus">
 		<Variant Name="">
-			<SupportsPixelPortAllSettings/>
+			<SupportsPixelPortGrouping/>
+			<SupportsPixelPortDirection/>
+			<SupportsPixelPortColourOrder/>
+			<SupportsTs/>
 			<!--SupportsUpload/-->
 			<MaxInputUniverses>16</MaxInputUniverses>
 			<MaxPixelPort>16</MaxPixelPort>
@@ -10,7 +13,6 @@
 			<MaxPixelPortChannels>1035</MaxPixelPortChannels>
 			<AllInputUniversesMustBeSameSize/>
 			<UniversesMustBeSequential/>
-			<SupportsTs/>
 			<PixelProtocols>
 				<Protocol>ws2811</Protocol>
 				<Protocol>tm18xx</Protocol>
