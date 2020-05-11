@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2020.19 May 11 2020
    -- enh (keith)  Make it possible to clear the set model brightness from in the visualiser
    -- enh (keith)  Limit the list of vendors to those who have controllers that work with the chosen controller type
    -- enh (keith)  Add a hard stop option to xSchedule
@@ -33,6 +34,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- bug (keith)  Fix panels dont enable correctly when new sequence created
    -- bug (priemd) Fix display of submodel start channel
    -- bug (kevin)  Fix display export exports blank video if video is an odd number of pixels high
+   -- bug (dkulp)  Fix matrix panel uploads incorrectly enabling BBB strings
 2020.18 May 5 2020
    -- enh (keith)  Add 3d display of floodlights including beam length control
    -- enh (keith)  Add ability to span models over several smart remotes from the same 4 ports
