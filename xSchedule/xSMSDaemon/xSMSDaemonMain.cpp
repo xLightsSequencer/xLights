@@ -1,10 +1,11 @@
 /***************************************************************
- * Name:      xSMSDaemonMain.cpp
- * Purpose:   Code for Application Frame
- * Author:    xLights ()
- * Created:   2016-12-30
- * Copyright: xLights (http://xlights.org)
- * License:
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
  **************************************************************/
 
 #define ZERO 0
@@ -107,7 +108,7 @@ xSMSDaemonFrame::xSMSDaemonFrame(wxWindow* parent, const std::string& showDir, c
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     _showDir = showDir;
-    _xScheduleURL = xScheduleURL;
+    //_xScheduleURL = xScheduleURL;
     _action = action;
 
     //(*Initialize(xSMSDaemonFrame)
@@ -245,6 +246,9 @@ xSMSDaemonFrame::xSMSDaemonFrame(wxWindow* parent, const std::string& showDir, c
 
 xSMSDaemonFrame::~xSMSDaemonFrame()
 {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("xSMSDaemonFrame::~xSMSDaemonFrame");
+
     Stop();
 
     int x, y;
@@ -426,6 +430,8 @@ void xSMSDaemonFrame::OnMenuItem_OptionsSelected(wxCommandEvent& event)
 
 void xSMSDaemonFrame::OnButton_CloseClick(wxCommandEvent& event)
 {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("xSMSDaemonFrame::OnButton_CloseClick");
 #ifdef __WXOSX__
     Hide();
 #else
@@ -656,6 +662,9 @@ void xSMSDaemonFrame::Start()
 
 void xSMSDaemonFrame::Stop()
 {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("xSMSDaemonFrame::Stop");
+
     SendTimer.Stop();
     SetAllText("");
 }
@@ -879,6 +888,9 @@ void xSMSDaemonFrame::OnTimer_SecondTrigger(wxTimerEvent& event)
 
 void xSMSDaemonFrame::OnClose(wxCloseEvent& event)
 {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("xSMSDaemonFrame::OnClose");
+
     if (event.CanVeto()) {
         event.Veto();
     } else{

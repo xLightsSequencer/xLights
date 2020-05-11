@@ -1,0 +1,353 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="RemoteFalcon" />
+		<Option execution_dir="../../bin/" />
+		<Option pch_mode="0" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="MinGW_Debug">
+				<Option platforms="Windows;" />
+				<Option output="../../bin/RemoteFalcon" imp_lib="$(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).a" def_file="$(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).def" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="../../bin" />
+				<Option object_output=".objs_wd32" />
+				<Option type="3" />
+				<Option compiler="gcc" />
+				<Option projectLinkerOptionsRelation="2" />
+				<Compiler>
+					<Add option="-march=i586" />
+					<Add option="-pedantic" />
+					<Add option="-std=c++1z" />
+					<Add option="-g" />
+					<Add option="-fPIC" />
+					<Add option="-pipe" />
+					<Add option="-mthreads" />
+					<Add option="-fno-keep-inline-dllexport" />
+					<Add option='[[if ((GetCompilerFactory().GetCompilerVersionString(_T(&quot;gcc&quot;)) &gt;= _T(&quot;4.0.0&quot;))) print(_T(&quot;-Wno-attributes&quot;));]]' />
+					<Add option="-D__GNUWIN32__" />
+					<Add option="-D__WXMSW__" />
+					<Add option="-DWXUSINGDLL" />
+					<Add option="-D__WXDEBUG__" />
+					<Add option="-D_USE_MATH_DEFINES" />
+					<Add directory="$(#wx)/lib/gcc_dll/mswud" />
+					<Add directory="$(#wx)/include" />
+					<Add directory="include" />
+					<Add directory="../../xSchedule/RemoteFalcon" />
+					<Add directory="../../include" />
+				</Compiler>
+				<ResourceCompiler>
+					<Add directory="$(#wx)/include" />
+					<Add directory="$(#wx)/lib/gcc_dll/mswud" />
+				</ResourceCompiler>
+				<Linker>
+					<Add option="-mthreads" />
+					<Add option="-lopengl32" />
+					<Add option="-Wl,-Map=../../bin/xLights.map" />
+					<Add option="-Wl,--large-address-aware" />
+					<Add option="-lz" />
+					<Add library="libwxmsw31ud.a" />
+					<Add library="libwxmsw31ud_gl.a" />
+					<Add library="../../lib/windows/liblog4cpp.lib" />
+					<Add library="../../lib/windows/DbgHelp.Lib" />
+					<Add library="../../lib/windows/iphlpapi.lib" />
+					<Add library="../../lib/windows/Ws2_32.lib" />
+					<Add library="libwinmm.a" />
+					<Add library="../../lib/windows/libcurl.lib" />
+					<Add directory="$(#wx)/lib/gcc_dll" />
+				</Linker>
+			</Target>
+			<Target title="MinGW_Release">
+				<Option platforms="Windows;" />
+				<Option output="../../bin/RemoteFalcon" imp_lib="$(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).a" def_file="$(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).def" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="../../bin" />
+				<Option object_output=".objs_wr32" />
+				<Option type="3" />
+				<Option compiler="gcc" />
+				<Option projectLinkerOptionsRelation="2" />
+				<Compiler>
+					<Add option="-march=i586" />
+					<Add option="-O2" />
+					<Add option="-pedantic" />
+					<Add option="-std=c++1z" />
+					<Add option="-fPIC" />
+					<Add option="-m32" />
+					<Add option="-pipe" />
+					<Add option="-mthreads" />
+					<Add option="-static-libgcc" />
+					<Add option="-fno-keep-inline-dllexport" />
+					<Add option='[[if ((GetCompilerFactory().GetCompilerVersionString(_T(&quot;gcc&quot;)) &gt;= _T(&quot;4.0.0&quot;))) print(_T(&quot;-Wno-attributes&quot;));]]' />
+					<Add option="-D__GNUWIN32__" />
+					<Add option="-D__WXMSW__" />
+					<Add option="-DNDEBUG" />
+					<Add option="-D_USE_MATH_DEFINES" />
+					<Add directory="$(#wx)/lib/gcc_dll/mswu" />
+					<Add directory="$(#wx)/include" />
+					<Add directory="include" />
+					<Add directory="../../xSchedule/RemoteFalcon" />
+					<Add directory="../../include" />
+				</Compiler>
+				<ResourceCompiler>
+					<Add directory="$(#wx)/include" />
+					<Add directory="$(#wx)/lib/gcc_dll/mswu" />
+				</ResourceCompiler>
+				<Linker>
+					<Add option="-O2" />
+					<Add option="-s" />
+					<Add option="-m32" />
+					<Add option="-Wl,-Map=../../bin/RemoteFalcon.map,--allow-multiple-definition" />
+					<Add option="-Wl,--large-address-aware" />
+					<Add option="-lpthread" />
+					<Add option="-lz" />
+					<Add library="libwxmsw31u_gl.a" />
+					<Add library="libwxregexu.a" />
+					<Add library="libwxexpat.a" />
+					<Add library="libuuid.a" />
+					<Add library="../../lib/windows/iphlpapi.lib" />
+					<Add library="libimagehlp.a" />
+					<Add library="../../lib/windows/liblog4cpp.lib" />
+					<Add library="libwinmm.a" />
+					<Add library="../../lib/windows/libcurl.lib" />
+					<Add library="psapi" />
+					<Add library="libuser32.a" />
+					<Add library="libkernel32.a" />
+					<Add library="libgdi32.a" />
+					<Add library="libversion.a" />
+					<Add library="libshlwapi.a" />
+					<Add library="libadvapi32.a" />
+					<Add library="libwsock32.a" />
+					<Add library="libole32.a" />
+					<Add library="libcomdlg32.a" />
+					<Add library="libuxtheme.a" />
+					<Add library="libcomctl32.a" />
+					<Add library="libwinspool.a" />
+					<Add library="liboleaut32.a" />
+					<Add library="libodbc32.a" />
+					<Add library="liboleacc.a" />
+					<Add library="libwxpng.a" />
+					<Add library="libwxjpeg.a" />
+					<Add library="libwxzlib.a" />
+					<Add library="libshell32.a" />
+					<Add library="../../lib/windows/libwxbase31u.a" />
+					<Add library="../../lib/windows/libwxbase31u_xml.a" />
+					<Add library="../../lib/windows/libwxexpat.a" />
+					<Add library="../../lib/windows/libwxmsw31u_core.a" />
+					<Add library="../../lib/windows/libwxmsw31u_qa.a" />
+					<Add library="../../lib/windows/libwxregexu.a" />
+					<Add library="../../lib/windows/libwxbase31u_net.a" />
+					<Add directory="../../lib/windows/static" />
+					<Add directory="../../lib/windows" />
+				</Linker>
+			</Target>
+			<Target title="Linux_Debug">
+				<Option platforms="Unix;" />
+				<Option output="../../bin/RemoteFalcon" imp_lib="$(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).a" def_file="$(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).def" prefix_auto="1" extension_auto="1" />
+				<Option object_output=".objs_ld" />
+				<Option type="3" />
+				<Option compiler="gcc" />
+				<Option projectCompilerOptionsRelation="1" />
+				<Option projectLinkerOptionsRelation="2" />
+				<Compiler>
+					<Add option="-Wall" />
+					<Add option="-g" />
+					<Add option="-fPIC" />
+					<Add option="`wx-config --version=3.1 --cflags`" />
+					<Add option="`pkg-config --cflags libavformat libavcodec libavutil  libswresample libswscale`" />
+					<Add option="`pkg-config --cflags gstreamer-1.0 gstreamer-video-1.0`" />
+					<Add option="`curl-config --cflags`" />
+					<Add option="-Winvalid-pch" />
+					<Add option="-DWX_PRECOMP" />
+					<Add option="-DLINUX" />
+					<Add option="-D__WXDEBUG__" />
+					<Add option='-D__cdecl=&quot;&quot;' />
+					<Add directory="include" />
+					<Add directory="../xSchedule/RemoteFalcon" />
+					<Add directory="../include" />
+				</Compiler>
+				<Linker>
+					<Add option="-lGL -lGLU -lglut -ldl -lX11 -lz -lzstd" />
+					<Add option="`pkg-config --libs libavformat libavcodec libavutil  libswresample libswscale`" />
+					<Add option="`pkg-config --libs log4cpp`" />
+					<Add option="`sdl2-config --libs`" />
+					<Add option="`wx-config --version=3.1 --libs std,media,gl,aui,propgrid`" />
+					<Add option="`pkg-config --libs gstreamer-1.0 gstreamer-video-1.0`" />
+					<Add option="`curl-config --libs`" />
+					<Add option="-lexpat" />
+					<Add option="-lporttime -lportmidi" />
+					<Add option="-rdynamic" />
+				</Linker>
+			</Target>
+			<Target title="Linux_Release">
+				<Option platforms="Unix;" />
+				<Option output="../../bin/RemoteFalcon" imp_lib="$(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).a" def_file="$(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).def" prefix_auto="1" extension_auto="1" />
+				<Option object_output=".objs_lr" />
+				<Option type="3" />
+				<Option compiler="gcc" />
+				<Option projectLinkerOptionsRelation="2" />
+				<Compiler>
+					<Add option="-O2" />
+					<Add option="-Wall" />
+					<Add option="-fPIC" />
+					<Add option="`wx-config --version=3.1 --cflags`" />
+					<Add option="`pkg-config --cflags gstreamer-1.0 gstreamer-video-1.0`" />
+					<Add option="`pkg-config --cflags libavformat libavcodec libavutil  libswresample libswscale`" />
+					<Add option="`curl-config --cflags`" />
+					<Add option="-Winvalid-pch" />
+					<Add option="-DWX_PRECOMP" />
+					<Add option="-DLINUX" />
+					<Add option="-DNDEBUG" />
+					<Add option="-D__cdecl=&apos;&apos;" />
+					<Add directory="include" />
+					<Add directory="../xSchedule/RemoteFalcon" />
+					<Add directory="../include" />
+				</Compiler>
+				<Linker>
+					<Add option="-lGL -lGLU -lglut -ldl -lX11 -lz -lzstd" />
+					<Add option="`pkg-config --libs libavformat libavcodec libavutil  libswresample libswscale`" />
+					<Add option="`pkg-config --libs log4cpp`" />
+					<Add option="`sdl2-config --libs`" />
+					<Add option="`wx-config --version=3.1 --libs std,media,gl,aui,propgrid`" />
+					<Add option="`pkg-config --libs gstreamer-1.0 gstreamer-video-1.0`" />
+					<Add option="`curl-config --libs`" />
+					<Add option="-lexpat" />
+					<Add option="-lporttime -lportmidi" />
+					<Add option="-rdynamic" />
+				</Linker>
+			</Target>
+			<Target title="64bit_MinGW_Release">
+				<Option platforms="Windows;" />
+				<Option output="../../bin64/RemoteFalcon" imp_lib="$(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).a" def_file="$(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).def" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="../../bin64" />
+				<Option object_output=".objs_wr64" />
+				<Option type="3" />
+				<Option compiler="gnu_gcc_64bit_compiler" />
+				<Option projectLinkerOptionsRelation="2" />
+				<Compiler>
+					<Add option="-O2" />
+					<Add option="-pedantic" />
+					<Add option="-std=c++1z" />
+					<Add option="-fPIC" />
+					<Add option="-m64" />
+					<Add option="-pipe" />
+					<Add option="-mthreads" />
+					<Add option="-static-libgcc" />
+					<Add option="-fno-keep-inline-dllexport" />
+					<Add option='[[if ((GetCompilerFactory().GetCompilerVersionString(_T(&quot;gcc&quot;)) &gt;= _T(&quot;4.0.0&quot;))) print(_T(&quot;-Wno-attributes&quot;));]]' />
+					<Add option="-D__GNUWIN32__" />
+					<Add option="-D__WXMSW__" />
+					<Add option="-DNDEBUG" />
+					<Add option="-D_USE_MATH_DEFINES" />
+					<Add directory="include" />
+					<Add directory="../../xSchedule/RemoteFalcon" />
+					<Add directory="../../include" />
+					<Add directory="$(#wx)/lib/gcc_dll/mswu" />
+					<Add directory="$(#wx)/include" />
+				</Compiler>
+				<ResourceCompiler>
+					<Add directory="$(#wx)/include" />
+					<Add directory="$(#wx)/lib/gcc_dll/mswu" />
+				</ResourceCompiler>
+				<Linker>
+					<Add option="-O2" />
+					<Add option="-s" />
+					<Add option="-m64" />
+					<Add option="-Wl,-Map=../../bin64/RemoteFalcon.map,--allow-multiple-definition" />
+					<Add option="-lpthread" />
+					<Add option="-lz" />
+					<Add library="libwxmsw31u_gl.a" />
+					<Add library="libwxregexu.a" />
+					<Add library="libwxexpat.a" />
+					<Add library="libuuid.a" />
+					<Add library="../../lib/windows64/iphlpapi.lib" />
+					<Add library="libimagehlp.a" />
+					<Add library="../../lib/windows64/liblog4cpp.a" />
+					<Add library="libwinmm.a" />
+					<Add library="../../lib/windows64/libcurl.lib" />
+					<Add library="psapi" />
+					<Add library="libuser32.a" />
+					<Add library="libkernel32.a" />
+					<Add library="libgdi32.a" />
+					<Add library="libversion.a" />
+					<Add library="libshlwapi.a" />
+					<Add library="libadvapi32.a" />
+					<Add library="libwsock32.a" />
+					<Add library="libole32.a" />
+					<Add library="libcomdlg32.a" />
+					<Add library="libuxtheme.a" />
+					<Add library="libcomctl32.a" />
+					<Add library="libwinspool.a" />
+					<Add library="liboleaut32.a" />
+					<Add library="libodbc32.a" />
+					<Add library="liboleacc.a" />
+					<Add library="libwxpng.a" />
+					<Add library="libwxjpeg.a" />
+					<Add library="libwxzlib.a" />
+					<Add library="libshell32.a" />
+					<Add library="../../lib/windows64/libwxbase31u.a" />
+					<Add library="../../lib/windows64/libwxbase31u_net.a" />
+					<Add library="../../lib/windows64/libwxbase31u_xml.a" />
+					<Add library="../../lib/windows64/libwxexpat.a" />
+					<Add library="../../lib/windows64/libwxjpeg.a" />
+					<Add library="../../lib/windows64/libwxmsw31u_core.a" />
+					<Add library="../../lib/windows64/libwxpng.a" />
+					<Add library="../../lib/windows64/libwxregexu.a" />
+					<Add library="../../lib/windows64/libwxscintilla.a" />
+					<Add directory="../../lib/windows64/static" />
+					<Add directory="../../lib/windows64" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-fno-strict-aliasing" />
+			<Add option="-Wno-unused-local-typedefs" />
+			<Add option="-DwxUSE_UNICODE" />
+		</Compiler>
+		<ResourceCompiler>
+			<Add directory="$(#wx)/include" />
+		</ResourceCompiler>
+		<Unit filename="../../xLights/UtilFunctions.cpp" />
+		<Unit filename="../../xLights/UtilFunctions.h" />
+		<Unit filename="../../xLights/xLightsTimer.cpp" />
+		<Unit filename="../../xLights/xLightsTimer.h" />
+		<Unit filename="../../xLights/xLightsVersion.cpp" />
+		<Unit filename="../../xLights/xLightsVersion.h" />
+		<Unit filename="../wxJSON/json_defs.h" />
+		<Unit filename="../wxJSON/jsonreader.cpp" />
+		<Unit filename="../wxJSON/jsonreader.h" />
+		<Unit filename="../wxJSON/jsonval.cpp" />
+		<Unit filename="../wxJSON/jsonval.h" />
+		<Unit filename="Bandwidth.h" />
+		<Unit filename="Curl.h" />
+		<Unit filename="RemoteFalconApp.cpp" />
+		<Unit filename="RemoteFalconApp.h" />
+		<Unit filename="RemoteFalconMain.cpp" />
+		<Unit filename="RemoteFalconMain.h" />
+		<Unit filename="RemoteFalconOptions.cpp" />
+		<Unit filename="RemoteFalconOptions.h" />
+		<Unit filename="RemoteFalconSettingsDialog.cpp" />
+		<Unit filename="RemoteFalconSettingsDialog.h" />
+		<Unit filename="xSchedule.h" />
+		<Unit filename="RemoteFalcon.h" />
+		<Unit filename="resource.rc">
+			<Option compilerVar="WINDRES" />
+			<Option target="MinGW_Debug" />
+			<Option target="MinGW_Release" />
+			<Option target="64bit_MinGW_Release" />
+		</Unit>
+		<Unit filename="wxsmith/RemoteFalconframe.wxs" />
+		<Unit filename="wxsmith/RemoteFalconSettingsDialog.wxs" />
+		<Extensions>
+			<code_completion />
+			<envvars />
+			<debugger />
+			<lib_finder disable_auto="1" />
+			<wxsmith version="1">
+				<gui name="wxWidgets" src="RemoteFalconApp.cpp" main="RemoteFalconFrame" init_handlers="necessary" language="CPP" />
+				<resources>
+					<wxFrame wxs="wxsmith/RemoteFalconframe.wxs" src="RemoteFalconMain.cpp" hdr="RemoteFalconMain.h" fwddecl="0" i18n="1" name="RemoteFalconFrame" language="CPP" />
+					<wxDialog wxs="wxsmith/RemoteFalconSettingsDialog.wxs" src="RemoteFalconSettingsDialog.cpp" hdr="RemoteFalconSettingsDialog.h" fwddecl="0" i18n="1" name="RemoteFalconSettingsDialog" language="CPP" />
+				</resources>
+			</wxsmith>
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>

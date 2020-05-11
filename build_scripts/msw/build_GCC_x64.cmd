@@ -1,6 +1,8 @@
 
 "C:\Program Files (x86)\CodeBlocks\codeblocks.exe" --build --target=64bit_MinGW_Release ..\..\xSchedule\xSMSDaemon\xSMSDaemon.cbp
 
+"C:\Program Files (x86)\CodeBlocks\codeblocks.exe" --build --target=64bit_MinGW_Release ..\..\xSchedule\RemoteFalcon\RemoteFalcon.cbp
+
 "C:\Program Files (x86)\CodeBlocks\codeblocks.exe" --build --target=64bit_MinGW_Release ..\..\xfade\xfade.cbp
 
 "C:\Program Files (x86)\CodeBlocks\codeblocks.exe" --build --target=64bit_MinGW_Release ..\..\xCapture\xCapture.cbp

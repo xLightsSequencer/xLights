@@ -1,14 +1,14 @@
-/***************************************************************
- * Name:      xSMSDaemonMain.h
- * Purpose:   Defines Application Frame
- * Author:    xLights ()
- * Created:   2016-12-30
- * Copyright: xLights (http://xlights.org)
- * License:
- **************************************************************/
+#pragma once
 
-#ifndef xSMSDaemonMAIN_H
-#define xSMSDaemonMAIN_H
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
 
 #ifdef _MSC_VER
 
@@ -45,7 +45,7 @@ class wxDebugReportCompress;
 class xSMSDaemonFrame : public wxFrame
 {
     std::string _showDir;
-    std::string _xScheduleURL;
+    //std::string _xScheduleURL;
     SMSDaemonOptions _options;
     std::unique_ptr<SMSService> _smsService;
     p_xSchedule_Action _action;
@@ -73,7 +73,9 @@ public:
         xSMSDaemonFrame(wxWindow* parent, const std::string& showdir, const std::string& xScheduleURL, p_xSchedule_Action action, wxWindowID id = -1);
         virtual ~xSMSDaemonFrame();
         bool Action(const std::string& command, const std::wstring& parameters, const std::wstring& data, const std::wstring& reference, std::wstring& response);
+        void NotifyStatus(const std::string& status);
         void UpdateModeration();
+        void FireEvent(const std::string& eventType, const std::string& eventParameter) {}
 
     private:
 
@@ -135,5 +137,3 @@ public:
 
         DECLARE_EVENT_TABLE()
 };
-
-#endif // xSMSDaemonMAIN_H

@@ -79,6 +79,10 @@ Source: "../../xSchedule\xSMSDaemon\Blacklist.txt"; DestDir: "{app}"; Flags: "ig
 Source: "../../xSchedule\xSMSDaemon\Whitelist.txt"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "../../xSchedule\xSMSDaemon\PhoneBlacklist.txt"; DestDir: "{app}"; Flags: "ignoreversion"
 
+; RemoteFalcon
+Source: "../../xSchedule/RemoteFalcon/x64/Release/RemoteFalcon.dll"; DestDir: "{app}"
+Source: "../../xSchedule/RemoteFalcon/x64/Release/RemoteFalcon.map"; DestDir: "{app}"; Flags: "ignoreversion"
+
 ; wxWidgets
 ; Statically linkes
 

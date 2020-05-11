@@ -22,7 +22,7 @@ public:
     class PluginState
     {
     public:
-        PluginState(wxDynamicLibrary* dl);
+        PluginState(wxDynamicLibrary* dl, const std::string& filename);
         virtual ~PluginState();
         
         std::string _filename;

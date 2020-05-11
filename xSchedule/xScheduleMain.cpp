@@ -1049,6 +1049,7 @@ xScheduleFrame::~xScheduleFrame()
     // give them plenty of time to stop
     wxMilliSleep(100);
 
+    _pluginManager.StopPlugins();
     _pluginManager.Uninitialise();
 
     if (_pinger != nullptr)
