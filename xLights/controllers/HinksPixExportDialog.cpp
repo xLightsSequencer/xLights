@@ -339,7 +339,7 @@ void HinksPixExportDialog::PopulateControllerList(OutputManager* outputManager)
     for (const auto& it : controllers)
     {
         auto eth = dynamic_cast<ControllerEthernet*>(it);
-        if (eth->GetIP() != "MULTICAST" && eth->GetProtocol() != OUTPUT_ZCPP && eth->IsManaged())
+        if (eth != nullptr && eth->GetIP() != "MULTICAST" && eth->GetProtocol() != OUTPUT_ZCPP && eth->IsManaged())
         {
             if (eth->GetVendor() == "HinksPix")
             {
