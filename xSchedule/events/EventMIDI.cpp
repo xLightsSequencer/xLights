@@ -227,7 +227,7 @@ void EventMIDI::ProcessMIDICommand(uint8_t data1, uint8_t data2, ScheduleManager
 
     size_t rate = 0;
     wxString msg;
-    scheduleManager->Action(_command, parameters, "", nullptr, nullptr, rate, msg);
+    scheduleManager->Action(_command, parameters, "", nullptr, nullptr, nullptr, rate, msg);
     logger_base.debug("    Event processed.");
 }
 

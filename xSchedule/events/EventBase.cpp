@@ -95,7 +95,7 @@ void EventBase::ProcessCommand(uint8_t value, ScheduleManager* scheduleManager)
 
     size_t rate = 0;
     wxString msg;
-    scheduleManager->Action(_command, parameters, "", nullptr, nullptr, rate, msg);
+    scheduleManager->Action(_command, parameters, "", nullptr, nullptr, nullptr, rate, msg);
     logger_base.debug("    Event processed.");
 }
 

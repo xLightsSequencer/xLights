@@ -1577,7 +1577,7 @@ bool ScheduleManager::IsQueuedPlaylistRunning() const
 }
 
 // localhost/xScheduleCommand?Command=<command>&Parameters=<comma separated parameters>
-bool ScheduleManager::Action(const wxString& command, const wxString& parameters, const wxString& data, PlayList* selplaylist, Schedule* selschedule, size_t& rate, wxString& msg)
+bool ScheduleManager::Action(const wxString& command, const wxString& parameters, const wxString& data, PlayList* selplaylist, PlayListStep* selplayliststep, Schedule* selschedule, size_t& rate, wxString& msg)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -1593,7 +1593,7 @@ bool ScheduleManager::Action(const wxString& command, const wxString& parameters
     }
     else
     {
-        if (!cmd->IsValid(parameters, selplaylist, selschedule, this, msg, IsQueuedPlaylistRunning()))
+        if (!cmd->IsValid(parameters, selplaylist, selplayliststep, selschedule, this, msg, IsQueuedPlaylistRunning()))
         {
             result = false;
         }
@@ -1646,6 +1646,35 @@ bool ScheduleManager::Action(const wxString& command, const wxString& parameters
                         {
                             result = false;
                             msg = "Unable to start playlist.";
+                        }
+                    }
+                    scheduleChanged = true;
+                }
+                else if (command == "Play selected playlist step") {
+                    if (selplaylist != nullptr) {
+
+                        if (selplayliststep != nullptr) {
+                            std::string step = selplayliststep->GetNameNoTime();
+                            if (!PlayPlayList(selplaylist, rate, false, step, true)) {
+                                result = false;
+                                msg = "Unable to start playlist step.";
+                            }
+                        }
+                    }
+                    scheduleChanged = true;
+                }
+                else if (command == "Play selected playlist step looped") {
+                    if (selplaylist != nullptr) {
+
+                        if (selplayliststep != nullptr) {
+                            std::string step = selplayliststep->GetNameNoTime();
+                            if (!PlayPlayList(selplaylist, rate, false, step, true)) {
+                                result = false;
+                                msg = "Unable to start playlist step.";
+                            }
+                            else {
+                                GetRunningPlayList()->SetStepLooping(true);
+                            }
                         }
                     }
                     scheduleChanged = true;
@@ -2973,7 +3002,7 @@ bool ScheduleManager::Action(const wxString& command, const wxString& parameters
 
                         if (c != "")
                         {
-                            result = Action(c, p, "", selplaylist, selschedule, rate, msg);
+                            result = Action(c, p, "", selplaylist, selplayliststep, selschedule, rate, msg);
                         }
                     }
                     else
@@ -3289,7 +3318,7 @@ bool ScheduleManager::Action(const wxString& command, const wxString& parameters
     return result;
 }
 
-bool ScheduleManager::Action(const wxString& label, PlayList* selplaylist, Schedule* selschedule, size_t& rate, wxString& msg)
+bool ScheduleManager::Action(const wxString& label, PlayList* selplaylist, PlayListStep* selplayliststep, Schedule* selschedule, size_t& rate, wxString& msg)
 {
     UserButton* b = _scheduleOptions->GetButton(label);
 
@@ -3298,7 +3327,7 @@ bool ScheduleManager::Action(const wxString& label, PlayList* selplaylist, Sched
         std::string command = b->GetCommand();
         std::string parameters = b->GetParameters();
 
-        return Action(command, parameters, "", selplaylist, selschedule, rate, msg);
+        return Action(command, parameters, "", selplaylist, selplayliststep, selschedule, rate, msg);
     }
     else
     {

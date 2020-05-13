@@ -691,6 +691,8 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     Connect(wxEVT_SIZE,(wxObjectEventFunction)&xScheduleFrame::OnResize);
     //*)
 
+    Connect(ID_LISTVIEW1, wxEVT_COMMAND_LIST_ITEM_SELECTED, (wxObjectEventFunction)&xScheduleFrame::OnListView_RunningItemSelected);
+
     Connect(wxID_ANY, EVT_FRAMEMS, (wxObjectEventFunction)&xScheduleFrame::RateNotification);
     Connect(wxID_ANY, EVT_STATUSMSG, (wxObjectEventFunction)&xScheduleFrame::StatusMsgNotification);
     Connect(wxID_ANY, EVT_RUNACTION, (wxObjectEventFunction)&xScheduleFrame::RunAction);
@@ -880,7 +882,6 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     RemoteWarning();
 
     UpdateUI(true);
-    ValidateWindow();
 
     _pluginManager.Initialise(_showDir);
 
@@ -1221,7 +1222,6 @@ void xScheduleFrame::OnTreeCtrlMenu(wxCommandEvent &event)
         __schedule->AddPlayList(newpl);
     }
     UpdateUI(true);
-    ValidateWindow();
 }
 
 void xScheduleFrame::DeleteSelectedItem()
@@ -1257,7 +1257,6 @@ void xScheduleFrame::DeleteSelectedItem()
 void xScheduleFrame::OnTreeCtrl_PlayListsSchedulesSelectionChanged(wxTreeEvent& event)
 {
     UpdateUI(true);
-    ValidateWindow();
 }
 
 void xScheduleFrame::DoPaste()
@@ -1353,7 +1352,6 @@ void xScheduleFrame::OnMenuItem_SaveSelected(wxCommandEvent& event)
 {
     __schedule->Save();
     UpdateUI();
-    ValidateWindow();
 }
 
 bool xScheduleFrame::SelectShowFolder()
@@ -1498,7 +1496,6 @@ void xScheduleFrame::OnTreeCtrl_PlayListsSchedulesItemActivated(wxTreeEvent& eve
 {
     EditSelectedItem();
     UpdateUI(true);
-    ValidateWindow();
 }
 
 void xScheduleFrame::On_timerTrigger(wxTimerEvent& event)
@@ -1669,8 +1666,6 @@ void xScheduleFrame::UpdateSchedule()
 
     logger_frame.debug("    UI updated %ldms", sw.Time());
 
-    ValidateWindow();
-
     TreeCtrl_PlayListsSchedules->Thaw();
     TreeCtrl_PlayListsSchedules->Refresh();
 
@@ -1769,7 +1764,6 @@ void xScheduleFrame::OnMenuItem_OptionsSelected(wxCommandEvent& event)
     AddIPs();
 
     UpdateUI();
-    ValidateWindow();
 }
 
 void xScheduleFrame::CreateButton(const std::string& label, const wxColor& c)
@@ -1845,7 +1839,7 @@ void xScheduleFrame::RunAction(wxCommandEvent& event)
     {
         size_t rate = 0;
         wxString msg;
-        __schedule->Action(a[0], a[1], "", nullptr, nullptr, rate, msg);
+        __schedule->Action(a[0], a[1], "", nullptr, nullptr, nullptr, rate, msg);
         if (msg != "")
         {
             SetTempMessage(msg);
@@ -1889,10 +1883,20 @@ void xScheduleFrame::OnButton_UserClick(wxCommandEvent& event)
         schedule = (Schedule*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(treeitem))->GetData();
         playlist = (PlayList*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(TreeCtrl_PlayListsSchedules->GetItemParent(treeitem)))->GetData();
     }
+    if (playlist == nullptr && __schedule->GetRunningPlayList() != nullptr) playlist = __schedule->GetPlayList(__schedule->GetRunningPlayList()->GetId());
+
+    PlayListStep* step = nullptr;
+    if (playlist != nullptr) {
+        int selected = ListView_Running->GetFirstSelected();
+        int stepid = (int)ListView_Running->GetItemData(selected);
+        if (selected >= 0 && stepid >= 0) {
+            step = playlist->GetStep(stepid);
+        }
+    }
 
     size_t rate = _timer.GetInterval();
     wxString msg = "";
-    __schedule->Action(((wxButton*)event.GetEventObject())->GetLabel(), playlist, schedule, rate, msg);
+    __schedule->Action(((wxButton*)event.GetEventObject())->GetLabel(), playlist, step, schedule, rate, msg);
 
     CorrectTimer(rate);
 
@@ -2027,6 +2031,11 @@ void xScheduleFrame::OnResize(wxSizeEvent& event)
     Layout();
 }
 
+void xScheduleFrame::OnListView_RunningItemSelected(wxListEvent& event)
+{
+    UpdateUI(false);
+}
+
 void xScheduleFrame::OnListView_RunningItemActivated(wxListEvent& event)
 {
     int selected = ListView_Running->GetFirstSelected();
@@ -2037,7 +2046,7 @@ void xScheduleFrame::OnListView_RunningItemActivated(wxListEvent& event)
     {
         size_t rate = 0;
         wxString msg;
-        __schedule->Action("Jump to specified step in current playlist", PlayListStep::GetStepNameWithId((int)ListView_Running->GetItemData(selected)), "", p, nullptr, rate, msg);
+        __schedule->Action("Jump to specified step in current playlist", PlayListStep::GetStepNameWithId((int)ListView_Running->GetItemData(selected)), "", p, nullptr, nullptr, rate, msg);
     }
 }
 
@@ -2387,6 +2396,17 @@ void xScheduleFrame::UpdateStatus(bool force)
         playlist = (PlayList*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(TreeCtrl_PlayListsSchedules->GetItemParent(treeitem)))->GetData();
     }
 
+    if (playlist == nullptr && __schedule->GetRunningPlayList() != nullptr) playlist = __schedule->GetPlayList(__schedule->GetRunningPlayList()->GetId());
+
+    PlayListStep* step = nullptr;
+    if (playlist != nullptr) {
+        int selected = ListView_Running->GetFirstSelected();
+        int stepid = (int)ListView_Running->GetItemData(selected);
+        if (selected >= 0 && stepid >= 0) {
+            step = playlist->GetStep(stepid);
+        }
+    }
+
     auto buttons = Panel1->GetChildren();
     for (auto it = buttons.begin(); it != buttons.end(); ++it)
     {
@@ -2398,7 +2418,7 @@ void xScheduleFrame::UpdateStatus(bool force)
             wxString parameters = b->GetParameters();
             Command* c = b->GetCommandObj();
             wxString msg;
-            if (c != nullptr && c->IsValid(parameters, playlist, schedule, __schedule, msg, __schedule->IsQueuedPlaylistRunning()))
+            if (c != nullptr && c->IsValid(parameters, playlist, step, schedule, __schedule, msg, __schedule->IsQueuedPlaylistRunning()))
             {
                 (*it)->Enable();
             }
@@ -2600,10 +2620,20 @@ bool xScheduleFrame::HandleHotkeys(wxKeyEvent& event)
             {
                 schedule = (Schedule*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(treeitem))->GetData();
             }
+            if (playlist == nullptr && __schedule->GetRunningPlayList() != nullptr) playlist = __schedule->GetPlayList(__schedule->GetRunningPlayList()->GetId());
+
+            PlayListStep* step = nullptr;
+            if (playlist != nullptr) {
+                int selected = ListView_Running->GetFirstSelected();
+                int stepid = (int)ListView_Running->GetItemData(selected);
+                if (selected >= 0 && stepid >= 0) {
+                    step = playlist->GetStep(stepid);
+                }
+            }
 
             size_t rate = _timer.GetInterval();
             wxString msg = "";
-            __schedule->Action((*it)->GetLabel(), playlist, schedule, rate, msg);
+            __schedule->Action((*it)->GetLabel(), playlist, step, schedule, rate, msg);
 
             CorrectTimer(rate);
 
@@ -3017,7 +3047,6 @@ void xScheduleFrame::OnMenuItem_AddPlayListSelected(wxCommandEvent& event)
 {
     AddPlayList();
     UpdateUI(true);
-    ValidateWindow();
 }
 
 void xScheduleFrame::AddPlayList(bool forceadvanced)
@@ -3041,21 +3070,18 @@ void xScheduleFrame::OnButton_AddClick(wxCommandEvent& event)
 {
     AddPlayList();
     UpdateUI(true);
-    ValidateWindow();
 }
 
 void xScheduleFrame::OnButton_EditClick(wxCommandEvent& event)
 {
     EditSelectedItem();
     UpdateUI(true);
-    ValidateWindow();
 }
 
 void xScheduleFrame::OnButton_DeleteClick(wxCommandEvent& event)
 {
     DeleteSelectedItem();
     UpdateUI(true);
-    ValidateWindow();
 }
 
 void xScheduleFrame::EditSelectedItem(bool forceadvanced)
@@ -3093,7 +3119,6 @@ void xScheduleFrame::OnMenu_OutputProcessingSelected(wxCommandEvent& event)
     }
 
     UpdateUI();
-    ValidateWindow();
 }
 
 // This is called when anything interesting happens in schedule manager
@@ -3152,6 +3177,7 @@ void xScheduleFrame::DoAction(wxCommandEvent& event)
 
     PlayList* playlist = nullptr;
     Schedule* schedule = nullptr;
+    PlayListStep* step = nullptr;
 
     wxTreeItemId treeitem = TreeCtrl_PlayListsSchedules->GetSelection();
     if (IsPlayList(treeitem))
@@ -3163,11 +3189,20 @@ void xScheduleFrame::DoAction(wxCommandEvent& event)
         schedule = (Schedule*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(treeitem))->GetData();
         playlist = (PlayList*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(TreeCtrl_PlayListsSchedules->GetItemParent(treeitem)))->GetData();
     }
+    if (playlist == nullptr && __schedule->GetRunningPlayList() != nullptr) playlist = __schedule->GetPlayList(__schedule->GetRunningPlayList()->GetId());
+
+    if (playlist != nullptr) {
+        int selected = ListView_Running->GetFirstSelected();
+        int stepid = (int)ListView_Running->GetItemData(selected);
+        if (selected >= 0 && stepid >= 0) {
+            step = playlist->GetStep(stepid);
+        }
+    }
 
     size_t rate = _timer.GetInterval();
     wxString msg = "";
 
-    __schedule->Action(amd->_command, amd->_parameters, amd->_data, playlist, schedule, rate, msg);
+    __schedule->Action(amd->_command, amd->_parameters, amd->_data, playlist, step, schedule, rate, msg);
 
     delete amd;
 }
@@ -3414,7 +3449,6 @@ void xScheduleFrame::OnMenuItem_MatricesSelected(wxCommandEvent& event)
     }
 
     UpdateUI();
-    ValidateWindow();
 }
 
 void xScheduleFrame::OnMenuItem_ImportxLightsSelected(wxCommandEvent& event)
@@ -3424,7 +3458,6 @@ void xScheduleFrame::OnMenuItem_ImportxLightsSelected(wxCommandEvent& event)
         __schedule->ImportxLightsSchedule(FileDialog1->GetPath().ToStdString());
         UpdateTree();
         UpdateUI();
-        ValidateWindow();
     }
 }
 
@@ -3454,7 +3487,6 @@ void xScheduleFrame::OnMenuItem_VirtualMatricesSelected(wxCommandEvent& event)
     }
 
     UpdateUI();
-    ValidateWindow();
 }
 
 void xScheduleFrame::SendStatus()
@@ -3525,7 +3557,6 @@ void xScheduleFrame::OnPingPopup(wxCommandEvent &event)
         dlg.ShowModal();
         AddIPs();
         UpdateUI();
-        ValidateWindow();
     }
 }
 

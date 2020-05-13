@@ -208,6 +208,7 @@ public:
         void OnMenuItem_ResetWindowLocationsSelected(wxCommandEvent& event);
         //*)
 
+        void OnListView_RunningItemSelected(wxListEvent& event);
         bool IsPlayList(wxTreeItemId id) const;
         bool IsSchedule(wxTreeItemId id) const;
         void OnTreeCtrlMenu(wxCommandEvent &event);

@@ -397,7 +397,7 @@ bool Action(const char* command, const wchar_t* parameters, const char* data, ch
     }
     else
     {
-        bool result = ((xScheduleFrame*)wxTheApp->GetTopWindow())->GetScheduleManager()->Action(c, p, d, nullptr, nullptr, rate, msg);
+        bool result = ((xScheduleFrame*)wxTheApp->GetTopWindow())->GetScheduleManager()->Action(c, p, d, nullptr, nullptr, nullptr, rate, msg);
         if (result || msg == "")
         {
             msg = "{result\":\"ok\"}";

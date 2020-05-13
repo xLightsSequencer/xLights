@@ -188,7 +188,7 @@ wxString ProcessCommand(HttpConnection &connection, const wxString& command, con
     wxString result;
     size_t rate = 0;
     wxString msg = "";
-    if (xScheduleFrame::GetScheduleManager()->Action(command, parameters, data, nullptr, nullptr, rate, msg))
+    if (xScheduleFrame::GetScheduleManager()->Action(command, parameters, data, nullptr, nullptr, nullptr, rate, msg))
     {
         wxCommandEvent event(EVT_FRAMEMS);
         event.SetInt(rate);

@@ -108,7 +108,7 @@ void EventMQTT::Process(const std::string& topic, const std::string& data, Sched
 
     size_t rate = 0;
     wxString msg;
-    scheduleManager->Action(_command, parameters, "", nullptr, nullptr, rate, msg);
+    scheduleManager->Action(_command, parameters, "", nullptr, nullptr, nullptr, rate, msg);
     logger_base.debug("    Event processed.");
 }
 
