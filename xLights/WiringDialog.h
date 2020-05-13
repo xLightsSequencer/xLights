@@ -64,15 +64,19 @@ class WiringDialog: public wxDialog
     wxBitmap _bmp;
     bool _rear;
     bool _multilight;
+    bool _rotated;
     ColorTheme _selectedTheme;
     int _cols;
     int _rows;
     int _fontSize;
+    int _rotation;
     std::map<int, std::map<int, std::list<wxRealPoint>>> _points;
+    std::map<int, std::map<int, std::list<wxRealPoint>>> _originalPoints;
     void RenderMultiLight(wxBitmap& bitmap, std::map<int, std::map<int, std::list<wxRealPoint>>>& points, int width, int height, bool printer = false);
     wxBitmap Render(int w, int h);
     void RenderNodes(wxBitmap& bitmap, std::map<int, std::map<int, std::list<wxRealPoint>>>& points, int width, int height, bool printer = false);
     std::map<int, std::list<wxRealPoint>> ExtractPoints(wxGrid* grid, bool reverse);
+    void RotatePoints(int rotateBy);
     void RightClick(wxContextMenuEvent& event);
     void OnPopup(wxCommandEvent& event);
     void LeftDown(wxMouseEvent& event);
@@ -95,6 +99,7 @@ class WiringDialog: public wxDialog
     static const long ID_MNU_REAR;
     static const long ID_MNU_FONTSMALLER;
     static const long ID_MNU_FONTLARGER;
+    static const long ID_MNU_ROTATE;
     void Render();
 
     public:
