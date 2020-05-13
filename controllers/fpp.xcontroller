@@ -13,7 +13,7 @@
         <SupportsAutoUpload/>
     </AbstractVariant>
     <AbstractVariant Name="FPPStringCape" Base="FPP:BaseFPPSettings">
-        <MaxSerialPortChannels>0</MaxSerialPortChannels>
+        <MaxSerialPortChannels>512</MaxSerialPortChannels>
         <MaxPixelPortChannels>4200</MaxPixelPortChannels>
         <SupportsVirtualStrings/>
         <SupportsAutoLayout/>
@@ -27,7 +27,7 @@
         </SerialProtocols>
     </AbstractVariant>
     <AbstractVariant Name="FPPStringCapeTTYs" Base="FPP:BaseFPPSettings">
-        <MaxSerialPortChannels>0</MaxSerialPortChannels>
+        <MaxSerialPortChannels>512</MaxSerialPortChannels>
         <MaxPixelPortChannels>4200</MaxPixelPortChannels>
         <SupportsVirtualStrings/>
         <SupportsAutoLayout/>
