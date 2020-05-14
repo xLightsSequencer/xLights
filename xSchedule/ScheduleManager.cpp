@@ -3429,17 +3429,22 @@ bool ScheduleManager::Query(const wxString& command, const wxString& parameters,
     std::string c = command.Lower();
     if (c == "getplaylists")
     {
+        bool first = true;
         data = "{\"playlists\":[";
-        for (auto it = _playLists.begin(); it != _playLists.end(); ++it)
+        for (const auto& it : _playLists)
         {
-            if (it != _playLists.begin())
+            if (first) {
+                first = false;
+            }
+            else
             {
                 data += ",";
             }
-            data += "{\"name\":\"" + (*it)->GetNameNoTime() +
-                    "\",\"id\":\"" + wxString::Format(wxT("%i"), (*it)->GetId()).ToStdString() +
-                "\",\"nextscheduled\":\"" + (*it)->GetNextScheduledTime() +
-                "\",\"length\":\""+ FormatTime((*it)->GetLengthMS()) +"\"}";
+            data += "{\"name\":\"" + it->GetNameNoTime() +
+                    "\",\"id\":\"" + wxString::Format(wxT("%i"), it->GetId()).ToStdString() +
+                "\",\"nextscheduled\":\"" + it->GetNextScheduledTime() +
+                "\",\"length\":\""+ FormatTime(it->GetLengthMS()) +
+                "\",\"lengthms\":\"" + wxString::Format("%ld", (long)it->GetLengthMS()) + "\"}";
         }
         data += "],\"reference\":\""+reference+"\"}";
     }
@@ -3482,7 +3487,8 @@ bool ScheduleManager::Query(const wxString& command, const wxString& parameters,
                     "\",\"id\":\"" + wxString::Format(wxT("%i"), (*it)->GetId()).ToStdString() +
                     first + last +
                     "\",\"offset\":\"" + (*it)->GetStartTime(p) +
-                    "\",\"length\":\""+FormatTime((*it)->GetLengthMS())+"\"}";
+                    "\",\"length\":\"" + FormatTime((*it)->GetLengthMS()) +
+                    "\",\"lengthms\":\"" + wxString::Format("%ld", (long)(*it)->GetLengthMS()) + "\"}";
             }
             data += "],\"reference\":\""+reference+"\"}";
         }
@@ -3538,7 +3544,8 @@ bool ScheduleManager::Query(const wxString& command, const wxString& parameters,
             }
             data += "{\"name\":\"" + (*it)->GetNameNoTime() +
                     "\",\"id\":\"" + wxString::Format(wxT("%i"), (*it)->GetId()).ToStdString() +
-                    "\",\"length\":\"" + FormatTime((*it)->GetLengthMS()) + "\"}";
+                    "\",\"length\":\"" + FormatTime((*it)->GetLengthMS()) +
+                    "\",\"lengthms\":\"" + wxString::Format("%ld", (long)((*it)->GetLengthMS())) + "\"}";
         }
         data += "],\"reference\":\""+reference+"\"}";
     }
@@ -3732,10 +3739,15 @@ bool ScheduleManager::Query(const wxString& command, const wxString& parameters,
                 "\",\"steplooping\":\"" + (p->IsStepLooping() || p->GetRunningStep()->GetLoopsLeft() > 0 ? "true" : "false") +
                 "\",\"steploopsleft\":\"" + wxString::Format(wxT("%i"), p->GetRunningStep()->GetLoopsLeft()).ToStdString() +
                 "\",\"length\":\"" + FormatTime(p->GetRunningStep()->GetLengthMS()) +
+                "\",\"lengthms\":\"" + wxString::Format("%ld", (long)(p->GetRunningStep()->GetLengthMS())) +
                 "\",\"position\":\"" + FormatTime(p->GetRunningStep()->GetPosition()) +
+                "\",\"positionms\":\"" + wxString::Format("%ld", (long)(p->GetRunningStep()->GetPosition())) +
                 "\",\"left\":\"" + FormatTime(p->GetRunningStep()->GetLengthMS() - p->GetRunningStep()->GetPosition()) +
+                "\",\"leftms\":\"" + wxString::Format("%ld", (long)(p->GetRunningStep()->GetLengthMS() - p->GetRunningStep()->GetPosition())) +
                 "\",\"playlistposition\":\"" + FormatTime(p->GetPosition()) +
+                "\",\"playlistpositionms\":\"" + wxString::Format("%ld", (long)(p->GetPosition())) +
                 "\",\"playlistleft\":\"" + FormatTime(p->GetLengthMS() - p->GetPosition()) +
+                "\",\"playlistleftms\":\"" + wxString::Format("%ld", (long)(p->GetLengthMS() - p->GetPosition())) +
                 "\",\"trigger\":\"" + std::string(IsCurrentPlayListScheduled() ? "scheduled": (_immediatePlay != nullptr) ? "manual" : "queued") +
                 "\",\"schedulename\":\"" + std::string((IsCurrentPlayListScheduled() && rs != nullptr) ? rs->GetSchedule()->GetName() : "N/A") +
                 "\",\"scheduleend\":\"" + std::string((IsCurrentPlayListScheduled() && rs != nullptr) ? rs->GetSchedule()->GetNextEndTime() : "N/A") +

@@ -33,6 +33,13 @@ if %ERRORLEVEL% NEQ 0 goto error
 cd ..
 cd ..
 
+cd xSchedule
+cd RemoteFalcon
+msbuild.exe /m RemoteFalcon.sln /p:Configuration="Release" /p:Platform="x64"
+if %ERRORLEVEL% NEQ 0 goto error
+cd ..
+cd ..
+
 cd xLights
 msbuild.exe /m xLights.sln /p:Configuration="Release" /p:Platform="x64"
 if %ERRORLEVEL% NEQ 0 goto error

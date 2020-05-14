@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/smeighan/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include "PluginManager.h"
 #include "xSchedulePlugin.h"
 #include "xScheduleMain.h"
@@ -11,20 +21,28 @@
 
 uint32_t __nextId = 1;
 
-PluginManager::PluginState::PluginState(wxDynamicLibrary* dl) : _dl(dl), _started(false), _id(__nextId++)
+void* GetFunction(wxDynamicLibrary* dl, const std::string& filename, const std::string& function)
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    void* fn = dl->GetSymbol(function);
+    if (fn == nullptr) logger_base.warn("Plugin DLL %s did not contain %s.", (const char*)filename.c_str(), (const char*)function.c_str());
+    return fn;
+}
+
+PluginManager::PluginState::PluginState(wxDynamicLibrary* dl, const std::string& filename) : _dl(dl), _filename(filename), _started(false), _id(__nextId++)
 {
     if (_dl) {
-        _loadFn = (p_xSchedule_Load)_dl->GetSymbol("xSchedule_Load");
-        _unloadFn = (p_xSchedule_Unload)_dl->GetSymbol("xSchedule_Unload");
-        _startFn = (p_xSchedule_Start)_dl->GetSymbol("xSchedule_Start");
-        _stopFn = (p_xSchedule_Stop)_dl->GetSymbol("xSchedule_Stop");
-        _handleWebFn = (p_xSchedule_HandleWeb)_dl->GetSymbol("xSchedule_HandleWeb");
-        _wipeFn = (p_xSchedule_WipeSettings)_dl->GetSymbol("xSchedule_WipeSettings");
-        _manipulateBufferFn = (p_xSchedule_ManipulateBuffer)_dl->GetSymbol("xSchedule_ManipulateBuffer");
-        _notifyStatusFn = (p_xSchedule_NotifyStatus)_dl->GetSymbol("xSchedule_NotifyStatus");
-        _getVirtualWebFolderFn = (p_xSchedule_GetVirtualWebFolder)_dl->GetSymbol("xSchedule_GetVirtualWebFolder");
-        _getMenuLabelFn = (p_xSchedule_GetMenuLabel)_dl->GetSymbol("xSchedule_GetMenuLabel");
-        _fireEventFn = (p_xSchedule_FireEvent)_dl->GetSymbol("xSchedule_FireEvent");
+        _loadFn = (p_xSchedule_Load)GetFunction(_dl, _filename, "xSchedule_Load");
+        _unloadFn = (p_xSchedule_Unload)GetFunction(_dl, _filename, "xSchedule_Unload");
+        _startFn = (p_xSchedule_Start)GetFunction(_dl, _filename, "xSchedule_Start");
+        _stopFn = (p_xSchedule_Stop)GetFunction(_dl, _filename, "xSchedule_Stop");
+        _handleWebFn = (p_xSchedule_HandleWeb)GetFunction(_dl, _filename, "xSchedule_HandleWeb");
+        _wipeFn = (p_xSchedule_WipeSettings)GetFunction(_dl, _filename, "xSchedule_WipeSettings");
+        _manipulateBufferFn = (p_xSchedule_ManipulateBuffer)GetFunction(_dl, _filename, "xSchedule_ManipulateBuffer");
+        _notifyStatusFn = (p_xSchedule_NotifyStatus)GetFunction(_dl, _filename, "xSchedule_NotifyStatus");
+        _getVirtualWebFolderFn = (p_xSchedule_GetVirtualWebFolder)GetFunction(_dl, _filename, "xSchedule_GetVirtualWebFolder");
+        _getMenuLabelFn = (p_xSchedule_GetMenuLabel)GetFunction(_dl, _filename, "xSchedule_GetMenuLabel");
+        _fireEventFn = (p_xSchedule_FireEvent)GetFunction(_dl, _filename, "xSchedule_FireEvent");
     } else {
         _loadFn = nullptr;
         _unloadFn = nullptr;
@@ -69,24 +87,27 @@ void PluginManager::ScanFolder(const std::string& folder)
 
     for (auto f : files)
     {
+        logger_base.debug("   Examining " + f);
+
         // load the dll
         wxDynamicLibrary* dl = new wxDynamicLibrary();
         dl->Load(f);
 
         if (dl->IsLoaded()) {
+            logger_base.debug("       Loaded.");
             // look for our function
             p_xSchedule_Load fn = (p_xSchedule_Load)dl->GetSymbol("xSchedule_Load");
 
             // if found add to list
             if (fn != nullptr) {
-                PluginState* pis = new PluginState(dl);
-                pis->_filename = f;
+                PluginState* pis = new PluginState(dl, f);
 
                 wxFileName fn(f);
                 _plugins[fn.GetName()] = pis;
 
-                logger_base.debug("Plugin found %s : %s", (const char*)fn.GetName().c_str(), (const char*)f.c_str());
+                logger_base.debug("       Plugin found %s : %s", (const char*)fn.GetName().c_str(), (const char*)f.c_str());
             } else {
+                logger_base.debug("       xSchedule_Load entry point not found.");
                 delete dl;
             }
         } else {
@@ -231,10 +252,17 @@ void PluginManager::DoNotifyStatus(const std::string& plugin, const char* status
     if (_plugins.find(plugin) == _plugins.end()) return;
     if (!_plugins.at(plugin)->_started) return;
 
+    static bool reenter = false;
+
+    if (reenter) return;
+    reenter = true;
+
     p_xSchedule_NotifyStatus fn = _plugins.at(plugin)->_notifyStatusFn;
     if (fn != nullptr) {
         fn(statusJSON);
     }
+
+    reenter = false;
 }
 
 std::string PluginManager::GetVirtualWebFolder(const std::string& plugin)
@@ -268,12 +296,15 @@ std::string PluginManager::GetMenuLabel(const std::string& plugin)
 
 
 #ifdef __WXOSX__
-PluginManager::PluginState *CreateSMSPluginState();
+PluginManager::PluginState* CreateSMSPluginState();
+PluginManager::PluginState* CreateRemoteFalconPluginState();
 #endif
 
 void PluginManager::RegisterStaticPlugins() {
 #ifdef __WXOSX__
     PluginManager::PluginState *p = CreateSMSPluginState();
+    if (p) _plugins[p->_filename] = p;
+    p = CreateRemoteFalconPluginState();
     if (p) _plugins[p->_filename] = p;
 #endif
 }
@@ -400,7 +431,7 @@ bool Action(const char* command, const wchar_t* parameters, const char* data, ch
         bool result = ((xScheduleFrame*)wxTheApp->GetTopWindow())->GetScheduleManager()->Action(c, p, d, nullptr, nullptr, nullptr, rate, msg);
         if (result || msg == "")
         {
-            msg = "{result\":\"ok\"}";
+            msg = "{\"result\":\"ok\"}";
         }
         else
         {
