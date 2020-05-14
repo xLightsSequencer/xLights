@@ -51,6 +51,7 @@ const long WiringDialog::ID_MNU_FRONT = wxNewId();
 const long WiringDialog::ID_MNU_REAR = wxNewId();
 const long WiringDialog::ID_MNU_FONTSMALLER = wxNewId();
 const long WiringDialog::ID_MNU_FONTLARGER = wxNewId();
+const long WiringDialog::ID_MNU_ROTATE = wxNewId();
 
 BEGIN_EVENT_TABLE(WiringDialog,wxDialog)
 	//(*EventTable(WiringDialog)
@@ -63,6 +64,8 @@ WiringDialog::WiringDialog(wxWindow* parent, wxString modelname, wxWindowID id,c
     _multilight = false;
     _cols = 1;
     _rows = 1;
+    _rotated = false;
+    _rotation = 0;
 
     SetColorTheme(COLORTHEMETYPE::DARK);
 
@@ -383,7 +386,8 @@ void WiringDialog::RenderNodes(wxBitmap& bitmap, std::map<int, std::map<int, std
                 RenderText(label, dc, AdjustX(x + r + 2, printer) + _start.x, AdjustY(y) + _start.y, *wxBLACK, *wxWHITE);
             } else {
                 RenderText(label, dc, (AdjustX(x + r + 2, printer) * _zoom) + _start.x, (AdjustY(y) * _zoom) + _start.y, _selectedTheme.labelFill, _selectedTheme.labelOutline);
-            }        }
+            }
+        }
         string++;
     }
 
@@ -394,6 +398,7 @@ void WiringDialog::RenderNodes(wxBitmap& bitmap, std::map<int, std::map<int, std
     }
 
     RenderText("Model: " + _modelname, dc, AdjustX(0, printer) + _start.x, 20 + fontSize + 4 * printScale + _start.y, _selectedTheme.messageFill, _selectedTheme.labelOutline);
+    RenderText("Rotation: " + std::to_string(_rotation), dc, AdjustX(0, printer) + _start.x, 35 + fontSize + 4 * printScale + _start.y, _selectedTheme.messageFill, _selectedTheme.messageOutline);
 
     dc.SetPen(*wxBLACK_PEN);
 }
@@ -527,6 +532,7 @@ void WiringDialog::RenderMultiLight(wxBitmap& bitmap, std::map<int, std::map<int
     }
 
     RenderText("Model: " + _modelname, dc, AdjustX(0, printer) + _start.x, 20 + fontSize + 4 * printScale + _start.y, _selectedTheme.messageFill, _selectedTheme.messageOutline);
+    RenderText("Rotation: " + std::to_string(_rotation), dc, AdjustX(0, printer) + _start.x, 40 + fontSize + 4 * printScale + _start.y, _selectedTheme.messageFill, _selectedTheme.messageOutline);
 }
 
 std::map<int, std::list<wxRealPoint>> WiringDialog::ExtractPoints(wxGrid* grid, bool reverse)
@@ -560,6 +566,49 @@ std::map<int, std::list<wxRealPoint>> WiringDialog::ExtractPoints(wxGrid* grid, 
     }
 
     return res;
+}
+
+void WiringDialog::RotatePoints(int rotateBy) {
+    _points.clear();
+
+    float newCenterX;
+    float newCenterY;
+
+    if (_rotation == 0) {
+        newCenterX = static_cast<float>(_cols) / 2;
+        newCenterY = static_cast<float>(_rows) / 2;
+    } else {
+        newCenterX = static_cast<float>(_rows - 3) / 2;
+        newCenterY = static_cast<float>(_cols - 4) / 2;
+    }
+
+    double radians = (M_PI / 180) * rotateBy;
+    double c = cos(radians);
+    double s = sin(radians);
+    std::map<int, std::list<wxRealPoint>> data;
+
+    int string = 0;
+    for (auto itp = _originalPoints.begin(); itp != _originalPoints.end(); ++itp) {
+        for (auto it = itp->second.begin(); it != itp->second.end(); ++it) {
+            if (_multilight) {
+                for (auto it2 = it->second.begin(); it2 != it->second.end(); ++it2) {
+                    float x = it2->x;
+                    float y = it2->y;
+                    float newX = (c * (x - newCenterX)) + (s * (y - newCenterY)) + newCenterX;
+                    float newY = (c * (y - newCenterY)) - (s * (x - newCenterX)) + newCenterY;
+                    data[it->first].push_back(wxRealPoint(newX, newY));
+                }
+            } else {
+                float x = it->second.front().x;
+                float y = it->second.front().y;
+                float newX = (c * (x - newCenterX)) + (s * (y - newCenterY)) + newCenterX;
+                float newY = (c * (y - newCenterY)) - (s * (x - newCenterX)) + newCenterY;
+                data[it->first].push_back(wxRealPoint(newX, newY));
+            }
+        }
+        _points[string] = data;
+        string++;
+    }
 }
 
 WiringDialog::~WiringDialog()
@@ -608,6 +657,7 @@ void WiringDialog::RightClick(wxContextMenuEvent& event)
     {
         front->Check();
     }
+    mnuLayer.Append(ID_MNU_ROTATE, "Rotate 90");
     mnuLayer.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&WiringDialog::OnPopup, nullptr, this);
     PopupMenu(&mnuLayer);
 }
@@ -619,6 +669,12 @@ void WiringDialog::OnPopup(wxCommandEvent& event)
     {
         _zoom = 1.0f;
         _start = wxPoint(0, 0);
+        if (_rotated) {
+            _rotation = 0;
+            _rotated = false;
+            _points.clear();
+            _points.insert(_originalPoints.begin(), _originalPoints.end());
+        }
         Render();
     }
     if (id == ID_MNU_EXPORT)
@@ -700,6 +756,20 @@ void WiringDialog::OnPopup(wxCommandEvent& event)
         if (_fontSize < MINFONTSIZE) _fontSize = MINFONTSIZE;
         wxConfigBase* config = wxConfigBase::Get();
         config->Write(_("xLightsWDFontSize"), _fontSize);
+        Render();
+    }
+    else if (id == ID_MNU_ROTATE)
+    {
+        _rotation += 90;
+        if (_rotation == 90 && !_rotated) {
+            _originalPoints.insert(_points.begin(), _points.end());
+            _rotated = true;
+        } else if (_rotation == 360) {
+            _rotation = 0;
+        }
+        RotatePoints(_rotation);
+        _zoom = 1.0f;
+        _start = wxPoint(0, 0);
         Render();
     }
 }
