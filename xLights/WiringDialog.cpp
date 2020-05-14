@@ -100,6 +100,7 @@ WiringDialog::WiringDialog(wxWindow* parent, wxString modelname, wxWindowID id,c
 
     wxConfigBase* config = wxConfigBase::Get();
     config->Read("xLightsWDFontSize", &_fontSize, 12);
+    Maximize();
 }
 
 void WiringDialog::SetColorTheme(COLORTHEMETYPE themeType) {

@@ -463,6 +463,7 @@ CustomModelDialog::CustomModelDialog(wxWindow* parent)
     Layout();
 
     ValidateWindow();
+    Maximize();
 }
 
 CustomModelDialog::~CustomModelDialog()

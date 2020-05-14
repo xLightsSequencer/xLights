@@ -66,6 +66,8 @@ ChannelLayoutDialog::ChannelLayoutDialog(wxWindow* parent,wxWindowID id,const wx
     Connect(ID_BUTTON_OPEN_IN_BROWSER,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ChannelLayoutDialog::OnButtonOpenInBrowerClick);
     //*)
     HtmlEasyPrint=new wxHtmlEasyPrinting("xLights Printing", this);
+    
+    Maximize();
 }
 
 ChannelLayoutDialog::~ChannelLayoutDialog()
