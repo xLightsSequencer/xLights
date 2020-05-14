@@ -90,4 +90,19 @@
             <fppSerialPort1>ttyS4</fppSerialPort1>
         </Variant>
     </Controller>
+    <Controller Name="K40D-PB">
+        <Variant Name="" ID="K40D-PB" Base="FPP:FPPStringCapeTTYs">
+            <MaxPixelPort>40</MaxPixelPort>
+            <MaxSerialPort>1</MaxSerialPort>
+            <fppSerialPort1>ttyS4</fppSerialPort1>
+        </Variant>
+    </Controller>
+    <Controller Name="K32A-B">
+        <Variant Name="" ID="K32A-B" Base="FPP:FPPStringCapeTTYs">
+            <MaxPixelPort>48</MaxPixelPort>
+            <MaxSerialPort>2</MaxSerialPort>
+            <fppSerialPort1>ttyS1</fppSerialPort1>
+            <fppSerialPort2>ttyS2</fppSerialPort2>
+        </Variant>
+    </Controller>
 </Vendor>
